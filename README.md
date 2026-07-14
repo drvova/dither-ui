@@ -5,17 +5,47 @@ ordered-dither **area, line, bar, pie and radar** charts on one tiny canvas engi
 plus generative **avatars**, **buttons**, and **gradient washes**. Charts inspired by
 [Evil Charts](https://evilcharts.com).
 
-Copy-in components (shadcn-style): everything lives in
-`src/components/dither-kit/` with no runtime framework beyond Vue, `d3-scale`,
+Copy-in components (shadcn-style): the library lives in
+`src/shared/dither-kit/` with no runtime framework beyond Vue, `d3-scale`,
 `d3-shape`, `clsx` and `tailwind-merge`.
 
-## Run the demo / marketing page
+The repo also ships a **multi-artboard chart studio** — a Figma-style editor
+(infinite pan/zoom canvas, layers panel, contextual inspector with full granular
+control, live code export) built on the library.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev      # http://localhost:5173 — the studio
 npm run build    # type-check + production build
 ```
+
+### Studio
+
+- **Canvas** — wheel to pan, ⌘/ctrl-wheel to zoom, drag empty space to pan.
+- **Artboards** — add (any chart type), select, drag the title to move, drag the
+  corner to resize, duplicate, delete.
+- **Layers** — the composed chart tree (root → grid, axes, series, legend,
+  tooltip) with per-layer visibility toggles.
+- **Inspector** — contextual props for the selected layer: frame X/Y/W/H, chart
+  type, bloom, stack, margins T/R/B/L, animation duration; per-series colour /
+  variant / clickable; grid h-v-dash; axis ticks; legend align; tooltip variant;
+  pie inner radius.
+- **Export** — a runnable Vue SFC of the selected artboard.
+
+### Architecture (Feature-Sliced Design)
+
+```
+src/
+  app/        app init, root component, global styles
+  pages/      studio page (composition root)
+  widgets/    canvas, layers-panel, inspector, toolbar, chart-renderer
+  features/   pan-zoom, artboard-transform, export-code
+  entities/   chart (model + codegen), artboard, editor (document store)
+  shared/     dither-kit (the component library), ui, lib, config
+```
+
+Imports only ever point downward (app → … → shared); each slice exposes a public
+`index.ts` barrel.
 
 ## Usage
 

@@ -1,5 +1,4 @@
-// Sample datasets the studio composes against. Series keys here are the ones
-// the series editor exposes as toggleable rows.
+import type { Family } from "@/shared/config"
 
 export const cartesianData = [
   { month: "Jan", desktop: 186, mobile: 80, tablet: 120, watch: 40 },
@@ -28,3 +27,14 @@ export const radarData = [
   { axis: "Craft", alpha: 95, beta: 65, gamma: 70 },
   { axis: "Flow", alpha: 65, beta: 80, gamma: 58 },
 ]
+
+export function dataFor(family: Family): Record<string, unknown>[] {
+  return family === "pie" ? pieData : family === "radar" ? radarData : cartesianData
+}
+
+/** Category field per family — <XAxis dataKey> / radar name-key / pie name-key. */
+export const LABEL_KEY: Record<Family, string> = {
+  cartesian: "month",
+  radar: "axis",
+  pie: "name",
+}
