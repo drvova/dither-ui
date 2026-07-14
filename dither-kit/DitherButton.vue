@@ -4,12 +4,11 @@ import {
   BAYER4,
   clamp01,
   fillOf,
-  type PixelBloom,
+  type PixelBloomInput,
   type PixelColor,
   pixelPrefersReducedMotion,
 } from "./pixel"
 
-const CELL = 2 // css px per dither cell — same chunk as the charts
 
 export type ButtonVariant = "gradient" | "dotted" | "hatched" | "solid"
 
@@ -66,10 +65,11 @@ const props = withDefaults(
   defineProps<{
     color?: PixelColor
     variant?: ButtonVariant
-    bloom?: PixelBloom
+    bloom?: PixelBloomInput
+    cell?: number // css px per dither cell — chunkiness
     class?: string
   }>(),
-  { color: "blue", variant: "gradient", bloom: "off" }
+  { color: "blue", variant: "gradient", bloom: "off", cell: 2 }
 )
 
 const buttonRef = ref<HTMLButtonElement | null>(null)
@@ -123,8 +123,9 @@ function init(): (() => void) | undefined {
 
   const resize = () => {
     const box = button.getBoundingClientRect()
-    cols = Math.max(4, Math.round(box.width / CELL))
-    rows = Math.max(4, Math.round(box.height / CELL))
+    const cellPx = Math.max(1, props.cell)
+    cols = Math.max(4, Math.round(box.width / cellPx))
+    rows = Math.max(4, Math.round(box.height / cellPx))
     canvas.width = cols
     canvas.height = rows
     if (bloomCanvas) {
@@ -170,7 +171,7 @@ onMounted(() => {
   teardown = init()
 })
 watch(
-  () => [props.color, props.variant, props.bloom],
+  () => [props.color, props.variant, props.bloom, props.cell],
   () => {
     teardown?.()
     teardown = init()

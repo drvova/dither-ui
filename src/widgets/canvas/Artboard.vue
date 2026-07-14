@@ -10,6 +10,7 @@ import {
 } from "@/entities/editor"
 import { startDrag } from "@/features/artboard-transform"
 import { ChartRenderer } from "@/widgets/chart-renderer"
+import { WidgetRenderer } from "@/widgets/widget-renderer"
 
 const props = defineProps<{ artboard: Artboard }>()
 const selected = computed(() => editor.selectedIds.includes(props.artboard.id))
@@ -62,7 +63,8 @@ function onResizeDown(e: PointerEvent) {
       class="h-full w-full rounded-lg bg-card/60 p-3"
       :class="selected ? 'ring-2 ring-accent' : 'border border-border'"
     >
-      <ChartRenderer :chart="artboard.chart" />
+      <WidgetRenderer v-if="artboard.widget" :widget="artboard.widget" />
+      <ChartRenderer v-else :chart="artboard.chart" />
     </div>
 
     <div

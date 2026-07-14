@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
 import { chartCode } from "@/entities/chart"
-import { selectedChart } from "@/entities/editor"
+import { selectedArtboard, selectedChart } from "@/entities/editor"
+import { widgetCode } from "@/entities/widget"
 import { CodeBlock } from "@/shared/ui"
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
-const code = computed(() =>
-  selectedChart.value ? chartCode(selectedChart.value) : "// select an artboard"
-)
+const code = computed(() => {
+  const a = selectedArtboard.value
+  if (!a) return "// select an artboard"
+  if (a.widget) return widgetCode(a.widget, { w: a.w, h: a.h })
+  return selectedChart.value ? chartCode(selectedChart.value) : "// select an artboard"
+})
 
 const closeRef = ref<HTMLButtonElement | null>(null)
 watch(

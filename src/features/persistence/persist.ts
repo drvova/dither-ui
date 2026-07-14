@@ -1,7 +1,7 @@
 import { watch } from "vue"
 import { editor, selectArtboard } from "@/entities/editor"
 
-const KEY = "dither-studio-v6"
+const KEY = "dither-studio-v7"
 
 /** Restore a saved document (run in setup, before first paint). Corrupt or
  * stale JSON is ignored on purpose — a bad blob must not brick the editor. */

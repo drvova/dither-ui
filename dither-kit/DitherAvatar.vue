@@ -3,21 +3,23 @@ import { rgb } from "./palette"
 import {
   BAYER4,
   clamp01,
+  fillOf,
   fnv1a,
   hueFill,
-  type PixelBloom,
+  type PixelBloomInput,
+  type PixelColor,
   pixelPrefersReducedMotion,
   xorshift32,
 } from "./pixel"
 
-// 8×8 cells, mirrored across one axis → 32 free pattern bits. With the mirror
-// axis bit and 180 hues that's 2^33 × 180 ≈ 1.5 trillion distinct avatars.
-const GRID = 8
-const CELL_PX = 4 // backing px per cell → a 32×32 canvas, scaled up pixelated
+// Defaults: 8×8 cells mirrored across one axis → 32 free pattern bits. With
+// the mirror axis bit and 180 hues that's ≈ 1.5 trillion distinct avatars.
+// Both are now props — `grid` (even, 4–16) and `cellPx` drive the resolution.
 
 export type AvatarMirror = "auto" | "horizontal" | "vertical"
 
 type AvatarModel = {
+  grid: number
   on: boolean[]
   density: number[]
   fill: [number, number, number]
@@ -25,43 +27,55 @@ type AvatarModel = {
 
 function avatarModel(
   name: string,
-  hueProp: number | undefined,
-  mirrorProp: AvatarMirror
+  colorProp: PixelColor | undefined,
+  mirrorProp: AvatarMirror,
+  gridProp: number
 ): AvatarModel {
+  const grid = Math.max(4, Math.min(16, Math.round(gridProp / 2) * 2))
+  const half = (grid * grid) / 2
   const rand = xorshift32(fnv1a(name))
-  const bits = Array.from({ length: 32 }, () => rand() < 0.5)
+  const bits = Array.from({ length: half }, () => rand() < 0.5)
   const drawnVertical = rand() < 0.5
   const drawnHue = Math.floor(rand() * 180) * 2
-  const halfDensity = Array.from({ length: 32 }, () => 0.55 + rand() * 0.45)
+  const halfDensity = Array.from({ length: half }, () => 0.55 + rand() * 0.45)
 
   const vertical =
     mirrorProp === "auto" ? drawnVertical : mirrorProp === "vertical"
-  const hue = hueProp ?? drawnHue
+  const fill = colorProp != null ? fillOf(colorProp) : hueFill(drawnHue)
 
-  const on = new Array<boolean>(GRID * GRID)
-  const density = new Array<number>(GRID * GRID)
-  for (let r = 0; r < GRID; r++) {
-    for (let c = 0; c < GRID; c++) {
+  const on = new Array<boolean>(grid * grid)
+  const density = new Array<number>(grid * grid)
+  for (let r = 0; r < grid; r++) {
+    for (let c = 0; c < grid; c++) {
       const i = vertical
-        ? Math.min(r, GRID - 1 - r) * GRID + c
-        : r * (GRID / 2) + Math.min(c, GRID - 1 - c)
-      on[r * GRID + c] = bits[i]
-      density[r * GRID + c] = halfDensity[i]
+        ? Math.min(r, grid - 1 - r) * grid + c
+        : r * (grid / 2) + Math.min(c, grid - 1 - c)
+      on[r * grid + c] = bits[i]
+      density[r * grid + c] = halfDensity[i]
     }
   }
-  return { on, density, fill: hueFill(hue) }
+  return { grid, on, density, fill }
+}
+
+type PaintOpts = {
+  animate: boolean
+  duration: number
+  cellPx: number
+  boost: number // additive per-cell density bias
+  offTier: number // alpha tier of unlit backing pixels
 }
 
 function paintAvatar(
   canvas: HTMLCanvasElement,
   bloomCanvas: HTMLCanvasElement | null,
   model: AvatarModel,
-  animate: boolean,
-  duration: number
+  { animate, duration, cellPx, boost, offTier }: PaintOpts
 ): (() => void) | undefined {
   const ctx = canvas.getContext("2d")
   if (!ctx) return undefined
-  const px = GRID * CELL_PX
+  const grid = model.grid
+  const cp = Math.max(1, Math.round(cellPx))
+  const px = grid * cp
   canvas.width = px
   canvas.height = px
   const bloomCtx = bloomCanvas?.getContext("2d") ?? null
@@ -72,20 +86,20 @@ function paintAvatar(
 
   const draw = (progress: number) => {
     ctx.clearRect(0, 0, px, px)
-    for (let r = 0; r < GRID; r++) {
-      for (let c = 0; c < GRID; c++) {
-        if (!model.on[r * GRID + c]) continue
+    for (let r = 0; r < grid; r++) {
+      for (let c = 0; c < grid; c++) {
+        if (!model.on[r * grid + c]) continue
         const start = BAYER4[r % 4][c % 4] * 0.7
         const cellAlpha = clamp01((progress - start) / 0.3)
         if (cellAlpha <= 0) continue
-        const density = model.density[r * GRID + c]
+        const density = clamp01(model.density[r * grid + c] + boost)
         const base = 0.35 + 0.65 * density
-        for (let py = 0; py < CELL_PX; py++) {
-          for (let pxi = 0; pxi < CELL_PX; pxi++) {
-            const gx = c * CELL_PX + pxi
-            const gy = r * CELL_PX + py
+        for (let py = 0; py < cp; py++) {
+          for (let pxi = 0; pxi < cp; pxi++) {
+            const gx = c * cp + pxi
+            const gy = r * cp + py
             const lit = density > BAYER4[gy & 3][gx & 3]
-            const alpha = (lit ? base : base * 0.35) * cellAlpha
+            const alpha = (lit ? base : base * offTier) * cellAlpha
             ctx.fillStyle = rgb(model.fill, 1, alpha)
             ctx.fillRect(gx, gy, 1, 1)
           }
@@ -123,16 +137,33 @@ import { pixelBloomStyle } from "./pixel"
 const props = withDefaults(
   defineProps<{
     name: string
+    /** Colour override — palette name, hue number, or hex. Derived from the
+     * name when omitted (or when the legacy `hue` prop is set). */
+    color?: PixelColor
     hue?: number
     mirror?: AvatarMirror
     size?: number
-    bloom?: PixelBloom
+    grid?: number // even cell count per side (4–16)
+    cellPx?: number // backing px per cell — dither resolution inside a cell
+    density?: number // additive density bias (-0.5–0.5)
+    offTier?: number // 0–1 alpha of unlit backing pixels
+    bloom?: PixelBloomInput
     animate?: boolean
     animationDuration?: number
     replayToken?: number
     class?: string
   }>(),
-  { mirror: "auto", bloom: "off", animate: true, animationDuration: 600, replayToken: 0 }
+  {
+    mirror: "auto",
+    grid: 8,
+    cellPx: 4,
+    density: 0,
+    offTier: 0.35,
+    bloom: "off",
+    animate: true,
+    animationDuration: 600,
+    replayToken: 0,
+  }
 )
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -147,15 +178,24 @@ function paint() {
   teardown = paintAvatar(
     canvas,
     bloomRef.value,
-    avatarModel(props.name, props.hue, props.mirror),
-    props.animate,
-    props.animationDuration
+    avatarModel(props.name, props.color ?? props.hue, props.mirror, props.grid),
+    {
+      animate: props.animate,
+      duration: props.animationDuration,
+      cellPx: props.cellPx,
+      boost: props.density,
+      offTier: props.offTier,
+    }
   )
 }
 
 onMounted(paint)
 watch(
-  () => [props.name, props.hue, props.mirror, props.animate, props.animationDuration, props.replayToken, props.bloom],
+  () => [
+    props.name, props.color, props.hue, props.mirror, props.grid, props.cellPx,
+    props.density, props.offTier, props.animate, props.animationDuration,
+    props.replayToken, props.bloom,
+  ],
   paint
 )
 onBeforeUnmount(() => teardown?.())

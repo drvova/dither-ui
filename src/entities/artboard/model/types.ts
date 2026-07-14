@@ -1,4 +1,5 @@
 import type { ChartModel } from "@/entities/chart"
+import type { WidgetModel } from "@/entities/widget"
 
 export type Artboard = {
   id: string
@@ -10,5 +11,6 @@ export type Artboard = {
   hidden: boolean
   locked: boolean
   groupId: string | null
-  chart: ChartModel
+  chart: ChartModel // meaningful for chart frames (widget frames keep a stub)
+  widget?: WidgetModel // present = this frame is a standalone widget
 }

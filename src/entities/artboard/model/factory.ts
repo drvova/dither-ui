@@ -1,26 +1,40 @@
 import { createChart } from "@/entities/chart"
+import { createWidget, type WidgetKind } from "@/entities/widget"
 import type { ChartType } from "@/shared/config"
 import type { Artboard } from "./types"
 
 let counter = 0
 const uid = () => `ab${Date.now().toString(36)}${(counter++).toString(36)}`
 
-const TITLE: Record<ChartType, string> = {
-  area: "Area", line: "Line", bar: "Bar", pie: "Pie", radar: "Radar",
-}
+export type ArtboardKind = ChartType | WidgetKind
 
-export function createArtboard(type: ChartType, x = 0, y = 0): Artboard {
+const TITLE: Record<ArtboardKind, string> = {
+  area: "Area chart", line: "Line chart", bar: "Bar chart", pie: "Pie chart",
+  radar: "Radar chart", avatar: "Avatar", button: "Button", gradient: "Gradient",
+}
+const WIDGET_KINDS: WidgetKind[] = ["avatar", "button", "gradient"]
+const isWidgetKind = (k: ArtboardKind): k is WidgetKind =>
+  (WIDGET_KINDS as string[]).includes(k)
+
+export function createArtboard(kind: ArtboardKind, x = 0, y = 0): Artboard {
+  const widget = isWidgetKind(kind) ? createWidget(kind) : undefined
+  const size = widget
+    ? widget.kind === "button"
+      ? { w: 220, h: 96 }
+      : { w: 280, h: 280 }
+    : { w: 520, h: 360 }
   return {
     id: uid(),
-    name: `${TITLE[type]} chart`,
+    name: TITLE[kind],
     x,
     y,
-    w: 520,
-    h: 360,
+    ...size,
     hidden: false,
     locked: false,
     groupId: null,
-    chart: createChart(type),
+    // Widget frames keep a stub chart so every chart-typed read stays safe.
+    chart: createChart(widget ? "area" : (kind as ChartType)),
+    ...(widget ? { widget } : {}),
   }
 }
 
@@ -29,6 +43,9 @@ export function createArtboard(type: ChartType, x = 0, y = 0): Artboard {
  * model is pure JSON-serializable data so this is exact. */
 export function cloneArtboard(src: Artboard, dx = 32, dy = 32): Artboard {
   const chart = JSON.parse(JSON.stringify(src.chart)) as Artboard["chart"]
+  const widget = src.widget
+    ? (JSON.parse(JSON.stringify(src.widget)) as Artboard["widget"])
+    : undefined
   return {
     id: uid(),
     name: `${src.name} copy`,
@@ -40,5 +57,6 @@ export function cloneArtboard(src: Artboard, dx = 32, dy = 32): Artboard {
     locked: false,
     groupId: src.groupId,
     chart,
+    ...(widget ? { widget } : {}),
   }
 }

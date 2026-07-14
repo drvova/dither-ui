@@ -1,5 +1,5 @@
 import { computed, reactive } from "vue"
-import { type Artboard, cloneArtboard, createArtboard } from "@/entities/artboard"
+import { type Artboard, type ArtboardKind, cloneArtboard, createArtboard } from "@/entities/artboard"
 import { type Layer, layersOf, setChartType } from "@/entities/chart"
 import type { ChartType } from "@/shared/config"
 
@@ -67,9 +67,9 @@ export function deselect() {
 const isSelected = (id: string) => editor.selectedIds.includes(id)
 
 // --- artboards -------------------------------------------------------------
-export function addArtboard(type: ChartType) {
+export function addArtboard(kind: ArtboardKind) {
   const right = editor.artboards.reduce((m, a) => Math.max(m, a.x + a.w), 0)
-  const a = createArtboard(type, editor.artboards.length ? right + 80 : 0, 0)
+  const a = createArtboard(kind, editor.artboards.length ? right + 80 : 0, 0)
   editor.artboards.push(a)
   selectArtboard(a.id)
 }
@@ -123,6 +123,7 @@ export function setArtboardLocked(id: string, v: boolean) {
   if (a) a.locked = v
 }
 export function setSelectedType(type: ChartType) {
+  if (selectedArtboard.value?.widget) return // widget frames have no chart type
   const c = selectedChart.value
   if (!c) return
   setChartType(c, type)

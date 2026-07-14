@@ -33,8 +33,9 @@ function toggleArtboard(id: string) {
   collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id)
 }
 
+// Widget frames (avatar/button/gradient) are single nodes — no chart layers.
 const childLayers = (a: Artboard) =>
-  layersOf(a.chart, a.id).filter((l) => l.kind !== "root")
+  a.widget ? [] : layersOf(a.chart, a.id).filter((l) => l.kind !== "root")
 
 const nodes = computed<Node[]>(() => {
   const out: Node[] = []
@@ -237,7 +238,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             <svg v-else viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l20 20M6.7 6.7A10.5 10.5 0 0 0 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.3-1.5" /></svg>
           </button>
         </span>
-        <span v-if="editingId !== node.a.id" class="shrink-0 text-[11px] capitalize text-muted-foreground/50">{{ node.a.chart.type }}</span>
+        <span v-if="editingId !== node.a.id" class="shrink-0 text-[11px] capitalize text-muted-foreground/50">{{ node.a.widget?.kind ?? node.a.chart.type }}</span>
       </div>
 
       <!-- LAYER -->

@@ -62,5 +62,5 @@ export {
   seedFromColor,
   seedFromHue,
 } from "./palette"
-export type { PixelBloom, PixelColor } from "./pixel"
+export type { PixelBloom, PixelBloomConfig, PixelBloomInput, PixelColor } from "./pixel"
 export type { StackType } from "./scales"

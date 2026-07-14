@@ -11,7 +11,8 @@ import {
   ungroup,
 } from "@/entities/editor"
 import { history, redo, undo } from "@/features/history"
-import { CHART_TYPES, type ChartType } from "@/shared/config"
+import type { ArtboardKind } from "@/entities/artboard"
+import { CHART_TYPES } from "@/shared/config"
 import { useTheme } from "@/shared/lib"
 
 const emit = defineEmits<{ export: [] }>()
@@ -33,7 +34,7 @@ watch(addOpen, (open) => {
   }
 })
 
-function add(t: ChartType) {
+function add(t: ArtboardKind) {
   addArtboard(t)
   addOpen.value = false
 }
@@ -61,6 +62,8 @@ function doUngroup() {
         </button>
         <div v-if="addOpen" role="menu" class="absolute right-0 top-full z-30 mt-1 w-32 rounded-lg border border-border bg-card p-1 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]" @pointerdown.stop>
           <button v-for="t in CHART_TYPES" :key="t" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs capitalize text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="add(t)">{{ t }}</button>
+          <div class="my-1 h-px bg-border" />
+          <button v-for="t in (['avatar', 'button', 'gradient'] as const)" :key="t" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs capitalize text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="add(t)">{{ t }}</button>
         </div>
       </div>
 

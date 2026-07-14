@@ -3,7 +3,7 @@ import { rgb } from "./palette"
 import {
   BAYER4,
   fillOf,
-  type PixelBloom,
+  type PixelBloomInput,
   type PixelColor,
 } from "./pixel"
 
@@ -84,7 +84,7 @@ const props = withDefaults(
     direction?: GradientDirection
     cell?: number
     opacity?: number
-    bloom?: PixelBloom
+    bloom?: PixelBloomInput
     class?: string
   }>(),
   { to: "transparent", direction: "up", cell: 3, opacity: 1, bloom: "off" }

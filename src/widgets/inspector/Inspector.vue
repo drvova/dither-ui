@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import type { VariantInput } from "@dither-kit"
+import { colorToHex, type VariantInput } from "@dither-kit"
 import { editor, replay, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
 import { CHART_TYPES, EASING_NAMES, familyOf, STACKS } from "@/shared/config"
 import { BezierEditor, BloomField, ColorField, NumberField, Segmented, TextureField, Toggle } from "@/shared/ui"
@@ -76,6 +76,23 @@ function setEasingChoice(v: string | number) {
   }
 }
 
+// Widget frames (avatar / button / gradient) — typed accessors per kind.
+const avatar = computed(() =>
+  ab.value?.widget?.kind === "avatar" ? ab.value.widget : null
+)
+const button = computed(() =>
+  ab.value?.widget?.kind === "button" ? ab.value.widget : null
+)
+const gradient = computed(() =>
+  ab.value?.widget?.kind === "gradient" ? ab.value.widget : null
+)
+const MIRRORS = ["auto", "horizontal", "vertical"] as const
+const BUTTON_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
+const GRAD_DIRS = ["up", "down", "left", "right"] as const
+/** PixelColor may be a legacy hue number — coerce for the ColorField. */
+const asFieldColor = (c: unknown) =>
+  (typeof c === "number" ? colorToHex(c) : c) as Parameters<typeof colorToHex>[0] & (string)
+
 const pieVariant = computed<VariantInput>(
   () => chart.value?.series[0]?.variant ?? "gradient"
 )
@@ -87,8 +104,8 @@ function setPieVariant(v: VariantInput) {
 <template>
   <div v-if="chart && ab" class="flex h-full flex-col">
     <div class="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-border/60 px-3">
-      <span class="truncate text-[13px] font-medium text-foreground">{{ layer?.label ?? "Inspector" }}</span>
-      <span class="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{{ kind }}</span>
+      <span class="truncate text-[13px] font-medium text-foreground">{{ ab.widget ? ab.name : (layer?.label ?? "Inspector") }}</span>
+      <span class="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{{ ab.widget?.kind ?? kind }}</span>
     </div>
     <div v-if="locked" class="mx-4 mt-3 flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] text-muted-foreground">
       <span class="flex items-center gap-1.5">
@@ -112,14 +129,14 @@ function setPieVariant(v: VariantInput) {
         <NumberField v-model="ab.h" label="H" :min="200" />
       </div>
 
-      <section>
+      <section v-if="!ab.widget">
         <p class="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">type</p>
         <div class="flex flex-wrap gap-0.5 rounded-md border border-border bg-background/60 p-0.5">
           <button v-for="t in CHART_TYPES" :key="t" type="button" class="rounded-[5px] px-2.5 py-1 text-xs capitalize leading-none transition-colors" :class="chart.type === t ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'" @click="setSelectedType(t)">{{ t }}</button>
         </div>
       </section>
 
-      <section class="flex flex-col gap-3">
+      <section v-if="!ab.widget" class="flex flex-col gap-3">
         <p class="text-[10px] uppercase tracking-widest text-muted-foreground">style</p>
         <BloomField v-model="chart.bloom" />
         <Segmented v-if="fam === 'cartesian'" v-model="chart.stackType" :options="STACKS" label="stack" />
@@ -191,7 +208,7 @@ function setPieVariant(v: VariantInput) {
         </div>
       </section>
 
-      <section class="flex flex-col gap-3">
+      <section v-if="!ab.widget" class="flex flex-col gap-3">
         <p class="text-[10px] uppercase tracking-widest text-muted-foreground">animation</p>
         <div class="grid grid-cols-2 gap-2">
           <NumberField v-model="chart.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
@@ -238,7 +255,7 @@ function setPieVariant(v: VariantInput) {
         </div>
       </section>
 
-      <section v-if="fam === 'cartesian'">
+      <section v-if="!ab.widget && fam === 'cartesian'">
         <p class="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">margins</p>
         <div class="grid grid-cols-2 gap-2">
           <NumberField v-model="chart.margins.top" label="top" :min="0" />
@@ -247,6 +264,102 @@ function setPieVariant(v: VariantInput) {
           <NumberField v-model="chart.margins.left" label="left" :min="0" />
         </div>
       </section>
+
+      <!-- AVATAR builder -->
+      <template v-if="avatar">
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">avatar</p>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">seed</span>
+            <input v-model="avatar.name" type="text" name="avatar-seed" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+          </label>
+          <Segmented v-model="avatar.mirror" :options="MIRRORS" label="mirror" />
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">grid</span>
+            <input v-model.number="avatar.grid" type="range" name="avatar-grid" min="4" max="16" step="2" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ avatar.grid }}×{{ avatar.grid }}</span>
+          </label>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">cell res</span>
+            <input v-model.number="avatar.cellPx" type="range" name="avatar-cellpx" min="1" max="8" step="1" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ avatar.cellPx }}px</span>
+          </label>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">density</span>
+            <input v-model.number="avatar.density" type="range" name="avatar-density" min="-0.5" max="0.5" step="0.05" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ avatar.density.toFixed(2) }}</span>
+          </label>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">off tier</span>
+            <input v-model.number="avatar.offTier" type="range" name="avatar-offtier" min="0" max="1" step="0.05" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ avatar.offTier.toFixed(2) }}</span>
+          </label>
+        </section>
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">colour</p>
+          <Toggle v-model="avatar.autoColor" label="derive from seed" />
+          <ColorField v-if="!avatar.autoColor" :model-value="asFieldColor(avatar.color)" @update:model-value="avatar.color = $event" />
+          <BloomField :model-value="avatar.bloom" @update:model-value="avatar.bloom = $event" />
+        </section>
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">animation</p>
+          <NumberField v-model="avatar.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
+          <div class="flex gap-4">
+            <Toggle v-model="avatar.animate" label="animate" />
+            <button type="button" class="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="replay()">replay</button>
+          </div>
+        </section>
+      </template>
+
+      <!-- BUTTON builder -->
+      <template v-else-if="button">
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">button</p>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">label</span>
+            <input v-model="button.label" type="text" name="button-label" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+          </label>
+          <Segmented v-model="button.variant" :options="BUTTON_VARIANTS" label="variant" />
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">pixel</span>
+            <input v-model.number="button.cell" type="range" name="button-cell" min="1" max="6" step="1" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ button.cell }}px</span>
+          </label>
+          <div class="text-[11px] text-muted-foreground">
+            <span class="mb-1 block">colour</span>
+            <ColorField :model-value="asFieldColor(button.color)" @update:model-value="button.color = $event" />
+          </div>
+          <BloomField :model-value="button.bloom" @update:model-value="button.bloom = $event" />
+        </section>
+      </template>
+
+      <!-- GRADIENT builder -->
+      <template v-else-if="gradient">
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">gradient</p>
+          <Segmented v-model="gradient.direction" :options="GRAD_DIRS" label="direction" />
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">pixel</span>
+            <input v-model.number="gradient.cell" type="range" name="gradient-cell" min="1" max="8" step="1" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ gradient.cell }}px</span>
+          </label>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">opacity</span>
+            <input v-model.number="gradient.opacity" type="range" name="gradient-opacity" min="0" max="1" step="0.05" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ gradient.opacity.toFixed(2) }}</span>
+          </label>
+          <div class="text-[11px] text-muted-foreground">
+            <span class="mb-1 block">from</span>
+            <ColorField :model-value="asFieldColor(gradient.from)" @update:model-value="gradient.from = $event" />
+          </div>
+          <Toggle v-model="gradient.twoTone" label="two-tone (blend into a colour)" />
+          <div v-if="gradient.twoTone" class="text-[11px] text-muted-foreground">
+            <span class="mb-1 block">to</span>
+            <ColorField :model-value="asFieldColor(gradient.to)" @update:model-value="gradient.to = $event" />
+          </div>
+          <BloomField :model-value="gradient.bloom" @update:model-value="gradient.bloom = $event" />
+        </section>
+      </template>
     </template>
 
     <!-- SERIES / SLICE -->
