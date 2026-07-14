@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
+import type { Artboard } from "@/entities/artboard"
 import { chartCode } from "@/entities/chart"
-import { selectedArtboard, selectedChart } from "@/entities/editor"
+import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { widgetCode } from "@/entities/widget"
 import { CodeBlock } from "@/shared/ui"
 
@@ -31,6 +32,26 @@ async function copy() {
   clearTimeout(copyTimer)
   copyTimer = setTimeout(() => (copied.value = false), 1500)
 }
+
+const codeFor = (a: Artboard) =>
+  a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart)
+const fileName = (a: Artboard) =>
+  `${a.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"}.vue`
+
+/** Download every artboard as its own .vue file (staggered so the browser
+ * accepts the download burst as one user gesture). */
+async function downloadAll() {
+  for (const a of editor.artboards) {
+    const blob = new Blob([codeFor(a)], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = fileName(a)
+    link.click()
+    URL.revokeObjectURL(url)
+    await new Promise((r) => setTimeout(r, 120))
+  }
+}
 </script>
 
 <template>
@@ -48,6 +69,14 @@ async function copy() {
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
           <span class="text-sm font-medium">Export — Vue SFC</span>
           <div class="flex items-center gap-2">
+            <button
+              type="button"
+              :title="`Download every artboard as its own .vue file (${editor.artboards.length})`"
+              class="rounded-md border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              @click="downloadAll"
+            >
+              download all ({{ editor.artboards.length }})
+            </button>
             <button
               type="button"
               class="rounded-md border border-border px-2.5 py-1 text-[11px] transition-colors"

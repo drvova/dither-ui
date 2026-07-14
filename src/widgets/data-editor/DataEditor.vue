@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import {
   addRow,
   addSeries,
+  importCsv,
   LABEL_KEY,
   removeRow,
   renamePieSlice,
 } from "@/entities/chart"
+import { replay } from "@/entities/editor"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { familyOf } from "@/shared/config"
 import { cssColor } from "@dither-kit"
@@ -25,6 +27,14 @@ function onPieName(index: number, e: Event) {
   if (!chart.value) return
   renamePieSlice(chart.value, index, (e.target as HTMLInputElement).value)
 }
+
+const csvInput = ref<HTMLInputElement | null>(null)
+async function onCsvFile(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (file && chart.value && importCsv(chart.value, await file.text())) replay()
+  input.value = ""
+}
 </script>
 
 <template>
@@ -35,6 +45,15 @@ function onPieName(index: number, e: Event) {
     <div class="flex h-9 items-center justify-between border-b border-border/60 px-3">
       <span class="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Data</span>
       <div class="flex items-center gap-1.5">
+        <button
+          type="button"
+          title="Replace the data from a CSV file (first column = labels)"
+          class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+          @click="csvInput?.click()"
+        >
+          import CSV
+        </button>
+        <input ref="csvInput" type="file" accept=".csv,text/csv" name="import-csv" class="hidden" @change="onCsvFile" />
         <button
           v-if="fam !== 'pie'"
           type="button"
