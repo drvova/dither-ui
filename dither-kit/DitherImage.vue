@@ -17,7 +17,7 @@ function paintImage(
   focusY: number,
   fade: number
 ): void {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || width <= 0 || height <= 0 || !img.naturalWidth) return
   const cols = Math.min(MAX_COLS, Math.max(4, Math.round(width / cell)))
   const rows = Math.min(MAX_ROWS, Math.max(4, Math.round(height / cell)))
