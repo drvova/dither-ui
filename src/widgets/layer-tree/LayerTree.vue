@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive } from "vue"
+import { nextTick, reactive, ref } from "vue"
 import type { Artboard } from "@/entities/artboard"
 import { type Layer, layersOf } from "@/entities/chart"
 import { editor, selectArtboard, selectLayer } from "@/entities/editor"
@@ -47,6 +47,22 @@ function pickArtboard(a: Artboard) {
   selectArtboard(a.id)
   collapsed.delete(a.id)
 }
+
+// Inline rename (double-click the frame name).
+const editingId = ref<string | null>(null)
+const editText = ref("")
+const renameInput = ref<HTMLInputElement | null>(null)
+function startRename(a: Artboard) {
+  editingId.value = a.id
+  editText.value = a.name
+  nextTick(() => renameInput.value?.select())
+}
+function commitRename(a: Artboard) {
+  if (editingId.value !== a.id) return
+  const t = editText.value.trim()
+  if (t) a.name = t
+  editingId.value = null
+}
 </script>
 
 <template>
@@ -68,8 +84,26 @@ function pickArtboard(a: Artboard) {
           </svg>
         </button>
         <span class="grid size-3.5 shrink-0 place-items-center text-[13px] font-semibold leading-none" :class="editor.selectedArtboardId === a.id ? 'text-accent' : 'text-muted-foreground/60'">#</span>
-        <span class="truncate" :class="editor.selectedArtboardId === a.id ? 'font-medium text-foreground' : 'text-foreground/90'">{{ a.name }}</span>
-        <span class="ml-auto shrink-0 text-[11px] capitalize text-muted-foreground/50">{{ a.chart.type }}</span>
+        <input
+          v-if="editingId === a.id"
+          ref="renameInput"
+          v-model="editText"
+          name="artboard-rename"
+          autocomplete="off"
+          class="min-w-0 flex-1 rounded border border-accent/60 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none"
+          @click.stop
+          @keydown.enter.prevent="commitRename(a)"
+          @keydown.esc.prevent="editingId = null"
+          @blur="commitRename(a)"
+        />
+        <span
+          v-else
+          class="truncate"
+          :class="editor.selectedArtboardId === a.id ? 'font-medium text-foreground' : 'text-foreground/90'"
+          @dblclick.stop="startRename(a)"
+          >{{ a.name }}</span
+        >
+        <span v-if="editingId !== a.id" class="ml-auto shrink-0 text-[11px] capitalize text-muted-foreground/50">{{ a.chart.type }}</span>
       </div>
 
       <!-- Child layers -->

@@ -1,4 +1,4 @@
-import { type ChartModel, createChart } from "@/entities/chart"
+import { createChart } from "@/entities/chart"
 import type { ChartType } from "@/shared/config"
 import type { Artboard } from "./types"
 
@@ -21,9 +21,11 @@ export function createArtboard(type: ChartType, x = 0, y = 0): Artboard {
   }
 }
 
-/** Deep-ish clone for duplicate — structuredClone keeps the chart granular. */
+/** Deep clone for duplicate. JSON round-trip (not structuredClone) because the
+ * source chart is a Vue reactive Proxy, which structuredClone can't clone; the
+ * model is pure JSON-serializable data so this is exact. */
 export function cloneArtboard(src: Artboard, dx = 32, dy = 32): Artboard {
-  const chart: ChartModel = structuredClone(src.chart)
+  const chart = JSON.parse(JSON.stringify(src.chart)) as Artboard["chart"]
   return {
     id: uid(),
     name: `${src.name} copy`,

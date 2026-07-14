@@ -67,5 +67,27 @@ export function usePanZoom(host: Ref<HTMLElement | null>) {
     v.y = 88
   }
 
-  return { onWheel, startPan, zoomIn, zoomOut, resetZoom }
+  /** Frame all artboards in the viewport (never zooms past 100%). */
+  const fit = () => {
+    const rect = host.value?.getBoundingClientRect()
+    if (!rect) return
+    const abs = editor.artboards
+    if (!abs.length) return resetZoom()
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    for (const a of abs) {
+      minX = Math.min(minX, a.x)
+      minY = Math.min(minY, a.y - 28) // room for the title label
+      maxX = Math.max(maxX, a.x + a.w)
+      maxY = Math.max(maxY, a.y + a.h)
+    }
+    const pad = 96
+    const cw = maxX - minX || 1
+    const ch = maxY - minY || 1
+    const z = clamp(Math.min((rect.width - pad) / cw, (rect.height - pad) / ch), MIN, 1)
+    v.zoom = z
+    v.x = (rect.width - cw * z) / 2 - minX * z
+    v.y = (rect.height - ch * z) / 2 - minY * z
+  }
+
+  return { onWheel, startPan, zoomIn, zoomOut, resetZoom, fit }
 }

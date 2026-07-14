@@ -24,6 +24,8 @@ function onInput(e: Event) {
     <span class="relative flex-1">
       <input
         type="number"
+        :name="label"
+        autocomplete="off"
         :value="modelValue"
         :min="min"
         :max="max"

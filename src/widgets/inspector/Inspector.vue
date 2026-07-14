@@ -34,7 +34,7 @@ function setPieVariant(v: AreaVariant) {
     <template v-if="kind === 'root'">
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">name</span>
-        <input v-model="ab.name" type="text" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+        <input v-model="ab.name" type="text" name="artboard-name" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
       </label>
       <div class="grid grid-cols-2 gap-2">
         <NumberField v-model="ab.x" label="X" />
@@ -56,7 +56,7 @@ function setPieVariant(v: AreaVariant) {
         <Segmented v-if="fam === 'cartesian'" v-model="chart.stackType" :options="STACKS" label="stack" />
         <label v-if="chart.type === 'pie'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
           <span class="w-14 shrink-0">radius</span>
-          <input v-model.number="chart.innerRadius" type="range" min="0" max="0.85" step="0.05" class="flex-1 accent-foreground" />
+          <input v-model.number="chart.innerRadius" type="range" name="pie-radius" min="0" max="0.85" step="0.05" class="flex-1 accent-foreground" />
           <span class="w-8 tabular-nums text-foreground">{{ chart.innerRadius.toFixed(2) }}</span>
         </label>
         <NumberField v-model="chart.animationDuration" label="anim" unit="ms" :min="0" :max="4000" :step="50" />
@@ -81,7 +81,7 @@ function setPieVariant(v: AreaVariant) {
     <template v-else-if="kind === 'series' && series">
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">label</span>
-        <input v-model="series.label" type="text" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+        <input v-model="series.label" type="text" name="series-label" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
       </label>
       <div class="text-[11px] text-muted-foreground">
         <span class="mb-1 block">color</span>
@@ -99,7 +99,7 @@ function setPieVariant(v: AreaVariant) {
       <Segmented :model-value="pieVariant" :options="VARIANTS" label="variant" @update:model-value="setPieVariant" />
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">radius</span>
-        <input v-model.number="chart.innerRadius" type="range" min="0" max="0.85" step="0.05" class="flex-1 accent-foreground" />
+        <input v-model.number="chart.innerRadius" type="range" name="pie-radius" min="0" max="0.85" step="0.05" class="flex-1 accent-foreground" />
         <span class="w-8 tabular-nums text-foreground">{{ chart.innerRadius.toFixed(2) }}</span>
       </label>
     </template>
@@ -112,7 +112,7 @@ function setPieVariant(v: AreaVariant) {
       </div>
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">dash</span>
-        <input v-model="chart.grid.dash" type="text" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" placeholder="3 3" />
+        <input v-model="chart.grid.dash" type="text" name="grid-dash" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" placeholder="3 3" />
       </label>
     </template>
 

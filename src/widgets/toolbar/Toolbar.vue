@@ -40,8 +40,8 @@ const canEdit = () => editor.selectedArtboardId !== ""
         </div>
       </div>
 
-      <button type="button" :disabled="!canEdit()" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="duplicateSelected">duplicate</button>
-      <button type="button" :disabled="!canEdit()" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="removeSelected">delete</button>
+      <button type="button" :disabled="!canEdit()" title="Duplicate (⌘D)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="duplicateSelected">duplicate</button>
+      <button type="button" :disabled="!canEdit()" title="Delete (⌫)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="removeSelected">delete</button>
 
       <span class="mx-1 h-4 w-px bg-border" />
 
