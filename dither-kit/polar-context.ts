@@ -7,13 +7,12 @@ import {
   watch,
 } from "vue"
 import type {
-  AreaVariant,
   ChartConfig,
   ChartType,
   Margins,
 } from "./chart-context"
 import type { CommonChart, TooltipItem } from "./common-context"
-import type { BloomInput, EasingInput } from "./dither-paint"
+import type { BloomInput, EasingInput, VariantInput } from "./dither-paint"
 import { type Seed, seedFromColor } from "./palette"
 import { type PieSlice, pieSlices, type RadarAxis, radarAxes } from "./polar"
 import type { Dimensions } from "./use-chart-dimensions"
@@ -46,8 +45,8 @@ export type PolarChartContextValue = {
   bloom: BloomInput
   bloomOnHover: boolean
   seedOf: (key: string) => Seed
-  variantOf: (key: string) => AreaVariant
-  registerVariant: (key: string, variant: AreaVariant) => void
+  variantOf: (key: string) => VariantInput
+  registerVariant: (key: string, variant: VariantInput) => void
   unregisterVariant: (key: string) => void
   selectedDataKey: string | null
   selectDataKey: (key: string | null) => void
@@ -121,7 +120,7 @@ export function usePolarController(
   const cursorX = ref(0)
   const cursorY = ref(0)
   const isMouseInChart = ref(false)
-  const variants = ref<Record<string, AreaVariant>>({})
+  const variants = ref<Record<string, VariantInput>>({})
 
   const revision = ref(0)
   watch(
@@ -148,9 +147,9 @@ export function usePolarController(
   )
 
   const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
-  const variantOf = (key: string): AreaVariant =>
+  const variantOf = (key: string): VariantInput =>
     variants.value[key] ?? variants.value["*"] ?? "gradient"
-  const registerVariant = (key: string, variant: AreaVariant) => {
+  const registerVariant = (key: string, variant: VariantInput) => {
     if (variants.value[key] === variant) return
     variants.value = { ...variants.value, [key]: variant }
   }

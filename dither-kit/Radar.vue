@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onBeforeUnmount, watch } from "vue"
-import type { AreaVariant } from "./chart-context"
+import type { VariantInput } from "./chart-context"
 import { usePolarPart } from "./polar-context"
 
 const props = withDefaults(
-  defineProps<{ dataKey: string; variant?: AreaVariant }>(),
+  defineProps<{ dataKey: string; variant?: VariantInput }>(),
   { variant: "gradient" }
 )
 

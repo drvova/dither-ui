@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import type { AreaVariant } from "@dither-kit"
+import type { VariantInput } from "@dither-kit"
 import { editor, replay, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
-import { BLOOMS, CHART_TYPES, EASING_NAMES, familyOf, STACKS, VARIANTS } from "@/shared/config"
-import { BezierEditor, ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
+import { CHART_TYPES, EASING_NAMES, familyOf, STACKS } from "@/shared/config"
+import { BezierEditor, BloomField, ColorField, NumberField, Segmented, TextureField, Toggle } from "@/shared/ui"
 
 const ab = selectedArtboard
 const chart = selectedChart
@@ -75,8 +75,10 @@ function setEasingChoice(v: string | number) {
   }
 }
 
-const pieVariant = computed(() => chart.value?.series[0]?.variant ?? "gradient")
-function setPieVariant(v: AreaVariant) {
+const pieVariant = computed<VariantInput>(
+  () => chart.value?.series[0]?.variant ?? "gradient"
+)
+function setPieVariant(v: VariantInput) {
   chart.value?.series.forEach((s) => (s.variant = v))
 }
 </script>
@@ -118,7 +120,7 @@ function setPieVariant(v: AreaVariant) {
 
       <section class="flex flex-col gap-3">
         <p class="text-[10px] uppercase tracking-widest text-muted-foreground">style</p>
-        <Segmented v-model="chart.bloom" :options="BLOOMS" label="bloom" />
+        <BloomField v-model="chart.bloom" />
         <Segmented v-if="fam === 'cartesian'" v-model="chart.stackType" :options="STACKS" label="stack" />
         <label v-if="chart.type === 'pie'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
           <span class="w-14 shrink-0">radius</span>
@@ -182,7 +184,7 @@ function setPieVariant(v: AreaVariant) {
         <span class="mb-1 block">color</span>
         <ColorField v-model="series.color" />
       </div>
-      <Segmented v-if="chart.type !== 'line'" v-model="series.variant" :options="VARIANTS" label="variant" />
+      <TextureField v-if="chart.type !== 'line'" v-model="series.variant" />
       <div class="flex gap-4 pt-0.5">
         <Toggle v-model="series.on" label="visible" />
         <Toggle v-model="series.isClickable" label="clickable" />
@@ -191,7 +193,7 @@ function setPieVariant(v: AreaVariant) {
 
     <!-- PIE -->
     <template v-else-if="kind === 'pie'">
-      <Segmented :model-value="pieVariant" :options="VARIANTS" label="variant" @update:model-value="setPieVariant" />
+      <TextureField :model-value="pieVariant" @update:model-value="setPieVariant" />
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">radius</span>
         <input v-model.number="chart.innerRadius" type="range" name="pie-radius" min="0" max="0.85" step="0.05" class="flex-1 accent-foreground" />

@@ -46,7 +46,10 @@ export type {
   BezierPoints,
   EasingInput,
   EasingName,
+  TextureConfig,
+  VariantInput,
 } from "./dither-paint"
+export { resolveTexture } from "./dither-paint"
 export { cubicBezier, EASINGS, resolveEasing } from "./dither-paint"
 export type { DotVariant } from "./dot-paint"
 export type { DitherColor } from "./palette"

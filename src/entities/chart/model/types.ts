@@ -1,18 +1,23 @@
 import type { ChartType } from "@/shared/config"
 import type {
   AreaVariant,
+  BloomConfig,
   BloomLevel,
   DitherColor,
   EasingInput,
   StackType,
+  TextureConfig,
   TooltipVariant,
+  VariantInput,
 } from "@dither-kit"
+
+export type { AreaVariant, BloomConfig, TextureConfig, VariantInput }
 
 export type SeriesRow = {
   key: string
   label: string
   color: DitherColor | string // preset name or a hex colour (#rrggbb)
-  variant: AreaVariant
+  variant: VariantInput // preset name or a fully custom texture
   on: boolean
   locked: boolean
   isClickable: boolean
@@ -30,7 +35,7 @@ export type TooltipPart = { on: boolean; locked: boolean; variant: TooltipVarian
  * inspector and the code exporter all read/write this one shape. */
 export type ChartModel = {
   type: ChartType
-  bloom: BloomLevel
+  bloom: BloomLevel | BloomConfig // preset or a fully custom glow
   stackType: StackType
   animate: boolean
   interactive: boolean

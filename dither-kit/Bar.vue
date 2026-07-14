@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, provide, watch } from "vue"
 import {
-  type AreaVariant,
+  type VariantInput,
   type StrokeVariant,
   useChartPart,
 } from "./chart-context"
@@ -10,7 +10,7 @@ import { SeriesKey } from "./series-context"
 const props = withDefaults(
   defineProps<{
     dataKey: string
-    variant?: AreaVariant
+    variant?: VariantInput
     strokeVariant?: StrokeVariant
     isClickable?: boolean
   }>(),

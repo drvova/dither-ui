@@ -12,7 +12,7 @@ import {
   backingSize,
   bloomLayerStyle,
   resolveEasing,
-  OFF_TIER,
+  resolveTexture,
   prefersReducedMotion,
 } from "./dither-paint"
 import { rgb } from "./palette"
@@ -111,14 +111,14 @@ function startPieLoop({
           c.fillRect(x, y, 1, 1)
           continue
         }
-        const density = (r - innerR) / Math.max(localOuter - innerR, 1)
-        const bias = variant === "dotted" ? 0.12 : 0
-        if (variant === "hatched" && ((x + y) & 3) >= 2) continue
-        const lit =
-          variant === "solid" || density > BAYER[y & 3][x & 3] - 0.1 * it - bias
-        if (variant === "dotted" && !lit) continue
+        const tex = resolveTexture(variant)
+        const raw = (r - innerR) / Math.max(localOuter - innerR, 1)
+        const density = 1 - tex.ramp * (1 - raw)
+        if (tex.hatch >= 2 && ((x + y) % tex.hatch) >= tex.hatch / 2) continue
+        const lit = density > BAYER[y & 3][x & 3] - 0.1 * it - tex.density
+        if (tex.gaps && !lit) continue
         const k = (0.35 + density * 0.65) * (1 + 0.22 * it)
-        const alpha = Math.min(1, (lit ? k : k * OFF_TIER) * selDim)
+        const alpha = Math.min(1, (lit ? k : k * tex.offTier) * selDim)
         c.fillStyle = rgb(seed.fill, 1, alpha)
         c.fillRect(x, y, 1, 1)
       }
@@ -172,7 +172,7 @@ function startPieLoop({
     }
 
     const paintSig = `${s.innerRadius}|${s.pie
-      .map((sl) => s.variantOf(sl.name))
+      .map((sl) => JSON.stringify(s.variantOf(sl.name)))
       .join(",")}`
     if (paintSig !== lastPaintSig) {
       lastPaintSig = paintSig

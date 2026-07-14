@@ -8,7 +8,7 @@ import {
   watch,
 } from "vue"
 import type { CommonChart, TooltipItem } from "./common-context"
-import type { BloomInput, EasingInput } from "./dither-paint"
+import type { BloomInput, EasingInput, VariantInput } from "./dither-paint"
 import { type DitherColor, type Seed, seedFromColor } from "./palette"
 import {
   buildBandScale,
@@ -31,6 +31,7 @@ export type Margins = { top: number; right: number; bottom: number; left: number
 type Row = Record<string, unknown>
 
 export type AreaVariant = "gradient" | "dotted" | "hatched" | "solid"
+export type { TextureConfig, VariantInput } from "./dither-paint"
 export type StrokeVariant = "solid" | "dashed"
 export type SeriesKind = "area" | "line" | "bar"
 
@@ -39,7 +40,7 @@ export type SeriesKind = "area" | "line" | "bar"
 export type SeriesSpec = {
   dataKey: string
   kind: SeriesKind
-  variant: AreaVariant
+  variant: VariantInput
   strokeVariant: StrokeVariant
 }
 

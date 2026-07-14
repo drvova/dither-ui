@@ -12,7 +12,7 @@ import {
   backingSize,
   bloomLayerStyle,
   resolveEasing,
-  OFF_TIER,
+  resolveTexture,
   prefersReducedMotion,
 } from "./dither-paint"
 import { rgb } from "./palette"
@@ -113,16 +113,16 @@ function startRadarLoop({
             covered = true
             continue
           }
-          const density = 1 - Math.min(1, dist / band)
-          const bias = variant === "dotted" ? 0.12 : 0
+          const tex = resolveTexture(variant)
+          const raw = 1 - Math.min(1, dist / band)
+          const density = 1 - tex.ramp * (1 - raw)
           const sparse = pi * 0.2
-          if (variant === "hatched" && ((x + y) & 3) >= 2) continue
+          if (tex.hatch >= 2 && ((x + y) % tex.hatch) >= tex.hatch / 2) continue
           const lit =
-            variant === "solid" ||
-            density > BAYER[y & 3][x & 3] - 0.1 * intensity - bias + sparse
-          if (!lit && (variant === "dotted" || covered)) continue
+            density > BAYER[y & 3][x & 3] - 0.1 * intensity - tex.density + sparse
+          if (!lit && (tex.gaps || covered)) continue
           const k = (0.32 + density * 0.68) * (1 + 0.22 * intensity)
-          const alpha = Math.min(1, (lit ? k : k * OFF_TIER) * selDim)
+          const alpha = Math.min(1, (lit ? k : k * tex.offTier) * selDim)
           c.fillStyle = rgb(seed.fill, 1, alpha)
           c.fillRect(x, y, 1, 1)
           covered = true
@@ -185,7 +185,7 @@ function startRadarLoop({
       needsFill = true
     }
 
-    const paintSig = s.configKeys.map((k) => s.variantOf(k)).join(",")
+    const paintSig = s.configKeys.map((k) => JSON.stringify(s.variantOf(k))).join(",")
     if (paintSig !== lastPaintSig) {
       lastPaintSig = paintSig
       needsFill = true

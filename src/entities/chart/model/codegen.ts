@@ -8,6 +8,11 @@ const ROOT: Record<string, string> = { area: "AreaChart", line: "LineChart", bar
 const SERIES: Record<string, string> = { area: "Area", line: "Line", bar: "Bar", pie: "Pie", radar: "Radar" }
 const DEFAULT_MARGINS = { top: 10, right: 12, bottom: 22, left: 36 }
 const q = (s: string) => `"${s}"`
+/** { blur: 5, opacity: 0.8 } — a JS object literal for a bound attribute. */
+const objLit = (o: Record<string, unknown>) =>
+  `{ ${Object.entries(o)
+    .map(([k, v]) => `${k}: ${typeof v === "string" ? q(v) : v}`)
+    .join(", ")} }`
 
 function dataLiteral(chart: ChartModel): string {
   const fam = familyOf(chart.type)
@@ -52,7 +57,9 @@ export function chartCode(chart: ChartModel): string {
   } else if (fam === "radar") attrs.push(`name-key="axis"`)
   if (marginsChanged) attrs.push(`:margins="{ top: ${m.top}, right: ${m.right}, bottom: ${m.bottom}, left: ${m.left} }"`)
   if (cart && chart.stackType !== "default") attrs.push(`stack-type="${chart.stackType}"`)
-  if (chart.bloom !== "off") attrs.push(`bloom="${chart.bloom}"`)
+  if (typeof chart.bloom === "object")
+    attrs.push(`:bloom="${objLit(chart.bloom as Record<string, unknown>)}"`)
+  else if (chart.bloom !== "off") attrs.push(`bloom="${chart.bloom}"`)
   if (chart.animationDuration !== 900) attrs.push(`:animation-duration="${chart.animationDuration}"`)
   if (chart.animationDelay > 0) attrs.push(`:animation-delay="${chart.animationDelay}"`)
   if (Array.isArray(chart.easing))
@@ -94,11 +101,19 @@ export function chartCode(chart: ChartModel): string {
   }
   if (chart.type === "pie") {
     const v = chart.series[0]?.variant ?? "gradient"
-    kids.push(`<Pie${v !== "gradient" ? ` variant="${v}"` : ""} />`)
+    const va =
+      typeof v === "object"
+        ? ` :variant="${objLit(v as Record<string, unknown>)}"`
+        : v !== "gradient"
+          ? ` variant="${v}"`
+          : ""
+    kids.push(`<Pie${va} />`)
   } else {
     for (const s of activeSeries(chart)) {
       const sa = [`dataKey="${s.key}"`]
-      if (s.variant !== "gradient") sa.push(`variant="${s.variant}"`)
+      if (typeof s.variant === "object")
+        sa.push(`:variant="${objLit(s.variant as Record<string, unknown>)}"`)
+      else if (s.variant !== "gradient") sa.push(`variant="${s.variant}"`)
       if (s.isClickable) sa.push(`is-clickable`)
       kids.push(`<${series} ${sa.join(" ")} />`)
     }

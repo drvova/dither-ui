@@ -187,7 +187,7 @@ function startCartesianLoop({
     const marker = s.hoverIndex != null ? s.hoverIndex : s.markerIndex
     const winkDue = !reduce && now - last >= 100
     const paintSig = `${s.stackType}|${s.configKeys
-      .map((k) => s.seriesSpecs[k]?.variant ?? "")
+      .map((k) => JSON.stringify(s.seriesSpecs[k]?.variant ?? ""))
       .join(",")}`
     const sigChanged = paintSig !== lastPaintSig
     if (sigChanged) {

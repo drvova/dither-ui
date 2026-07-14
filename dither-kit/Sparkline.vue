@@ -2,7 +2,7 @@
 import { computed } from "vue"
 import { AreaChart } from "./area-chart"
 import Area from "./Area.vue"
-import type { AreaVariant } from "./chart-context"
+import type { VariantInput } from "./chart-context"
 import type { BloomInput } from "./dither-paint"
 import type { DitherColor } from "./palette"
 
@@ -11,7 +11,7 @@ const props = withDefaults(
     /** Plain numeric series — the common sparkline case. */
     data: number[]
     color: DitherColor
-    variant?: AreaVariant
+    variant?: VariantInput
     markerIndex?: number | null
     hovered?: boolean
     bloom?: BloomInput

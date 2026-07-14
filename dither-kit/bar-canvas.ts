@@ -150,7 +150,7 @@ function startBarLoop({
     } else intensity = itTarget
 
     const paintSig = `${s.stackType}|${s.configKeys
-      .map((k) => s.seriesSpecs[k]?.variant ?? "")
+      .map((k) => JSON.stringify(s.seriesSpecs[k]?.variant ?? ""))
       .join(",")}`
     if (paintSig !== lastPaintSig) {
       lastPaintSig = paintSig

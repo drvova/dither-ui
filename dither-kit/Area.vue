@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { AreaVariant, StrokeVariant } from "./chart-context"
+import type { StrokeVariant, VariantInput } from "./chart-context"
 import CartesianSeries from "./CartesianSeries.vue"
 
 defineProps<{
   dataKey: string
-  variant?: AreaVariant
+  variant?: VariantInput
   strokeVariant?: StrokeVariant
   isClickable?: boolean
 }>()

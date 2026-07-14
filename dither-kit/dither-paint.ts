@@ -25,8 +25,43 @@ export const BORDER_ALPHA = 0.72
 // background never shows through as stark white on a light theme.
 export const OFF_TIER = 0.4
 
+/** Fully granular dither texture — the four named variants are presets over
+ * this. Every field is optional; missing fields take the gradient defaults. */
+export type TextureConfig = {
+  ramp?: number // 0–1: how much the fill fades toward the value line (1 = full fade)
+  density?: number // 0–1: extra fill bias (1 = solid, dotted preset uses 0.12)
+  gaps?: boolean // unlit cells stay empty (dotted look) instead of a faint tint
+  hatch?: number // 0 = off; n ≥ 2 = diagonal stripe period (hatched preset = 4)
+  offTier?: number // 0–1: alpha of unlit cells when gaps is false (default 0.4)
+  edge?: number // 0–1: top border-line alpha (default 0.72)
+}
+export type VariantInput = AreaVariant | TextureConfig
+
+const TEXTURE_PRESET: Record<AreaVariant, Required<TextureConfig>> = {
+  gradient: { ramp: 1, density: 0, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA },
+  dotted: { ramp: 1, density: 0.12, gaps: true, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA },
+  hatched: { ramp: 1, density: 0, gaps: false, hatch: 4, offTier: OFF_TIER, edge: BORDER_ALPHA },
+  // density 2: outbids every threshold shift (stacked/sparse) — always lit,
+  // exactly like the old hard-coded solid branch.
+  solid: { ramp: 1, density: 2, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA },
+}
+
+// Single-slot memo — the paint loops resolve per column, per frame.
+let lastTexKey: VariantInput | string = ""
+let lastTex: Required<TextureConfig> = TEXTURE_PRESET.gradient
+
+/** Resolve a preset name or a custom config to the full texture. */
+export function resolveTexture(input: VariantInput): Required<TextureConfig> {
+  if (typeof input === "string") return TEXTURE_PRESET[input] ?? TEXTURE_PRESET.gradient
+  if (input !== lastTexKey) {
+    lastTexKey = input
+    lastTex = { ...TEXTURE_PRESET.gradient, ...input }
+  }
+  return lastTex
+}
+
 export type PaintOpts = {
-  variant: AreaVariant
+  variant: VariantInput
   intensity: number // 0–1 hover lift
   dim: number // selection dim multiplier (0.3 dimmed, 1 normal)
   stacked: boolean // denser + solid floor when layers stack
@@ -59,42 +94,46 @@ export function paintColumn(
   seed: Seed,
   { variant, intensity, dim, stacked, sparse = 0 }: PaintOpts
 ) {
+  const tex = resolveTexture(variant)
   const t = Math.round(top)
   const f = Math.round(floor)
   const depth = f - t
   if (depth <= 0) {
-    octx.fillStyle = rgb(seed.fill, 1, BORDER_ALPHA * dim)
+    octx.fillStyle = rgb(seed.fill, 1, tex.edge * dim)
     octx.fillRect(x, t, 1, 1)
     return
   }
-  const bias = (variant === "dotted" ? 0.12 : 0) + (stacked ? 0.2 : 0) - sparse
+  const bias = tex.density + (stacked ? 0.2 : 0) - sparse
   for (let y = t; y < f; y++) {
     // Inverted falloff: 0 at the top line, 1 at the floor — dense at the
-    // bottom, thinning as it rises toward the outline.
-    let density = (y - t) / depth
+    // bottom, thinning as it rises toward the outline. `ramp` scales how much
+    // of that fade applies (0 = flat, 1 = full fade).
+    const raw = (y - t) / depth
+    let density = 1 - tex.ramp * (1 - raw)
     if (stacked) density = 0.5 + 0.5 * density
-    if (variant === "hatched" && ((x + y) & 3) >= 2) continue
-    const lit =
-      variant === "solid" ||
-      density > BAYER[y & 3][x & 3] - 0.1 * intensity - bias
-    // "dotted" keeps real gaps for its open look; every other variant covers
-    // the cell and lets the dither ride the alpha (on = full tier, off = a
-    // faint tint) so nothing shows the background through as white.
-    if (variant === "dotted" && !lit) continue
+    if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2)
+      continue
+    const lit = density > BAYER[y & 3][x & 3] - 0.1 * intensity - bias
+    // `gaps` keeps real holes for the open dotted look; otherwise unlit cells
+    // drop to a faint tier of the same colour so the background never bleeds
+    // through as stark white.
+    if (tex.gaps && !lit) continue
     // Density → alpha (see the colour-vs-opacity note above).
     const k = (0.3 + density * 0.7) * (1 + 0.22 * intensity)
-    const alpha = clamp01((lit ? k : k * OFF_TIER) * dim)
+    const alpha = clamp01((lit ? k : k * tex.offTier) * dim)
     octx.fillStyle = rgb(seed.fill, 1, alpha)
     octx.fillRect(x, y, 1, 1)
   }
   // Top border outline — the shape's edge now that the fill fades out here.
   // Kept just under full opacity, with a faint feather row beneath, so it reads
   // as a soft edge rather than a hard line floating over the fade.
-  octx.fillStyle = rgb(seed.fill, 1, BORDER_ALPHA * dim)
-  octx.fillRect(x, t, 1, 1)
-  if (depth > 1) {
-    octx.fillStyle = rgb(seed.fill, 1, BORDER_ALPHA * 0.5 * dim)
-    octx.fillRect(x, t + 1, 1, 1)
+  if (tex.edge > 0) {
+    octx.fillStyle = rgb(seed.fill, 1, tex.edge * dim)
+    octx.fillRect(x, t, 1, 1)
+    if (depth > 1) {
+      octx.fillStyle = rgb(seed.fill, 1, tex.edge * 0.5 * dim)
+      octx.fillRect(x, t + 1, 1, 1)
+    }
   }
 }
 

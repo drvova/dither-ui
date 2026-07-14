@@ -1,6 +1,8 @@
 export { default as Segmented } from "./Segmented.vue"
 export { default as ColorField } from "./ColorField.vue"
 export { default as BezierEditor } from "./BezierEditor.vue"
+export { default as TextureField } from "./TextureField.vue"
+export { default as BloomField } from "./BloomField.vue"
 export { default as ContextMenu, type MenuItem } from "./ContextMenu.vue"
 export { default as CodeBlock } from "./CodeBlock.vue"
 export { default as NumberField } from "./NumberField.vue"
