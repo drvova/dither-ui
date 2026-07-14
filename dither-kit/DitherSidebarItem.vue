@@ -1,6 +1,6 @@
 <script lang="ts">
 import { BAYER4, fillOf, type PixelColor } from "./pixel"
-import { rgb } from "./palette"
+import { cssColor, rgb } from "./palette"
 
 /** 2px dithered rail marking the active item — same recipe as the tabs underline. */
 function paintRail(canvas: HTMLCanvasElement, color: PixelColor, cssHeight: number) {
@@ -29,6 +29,8 @@ const props = withDefaults(
     label: string
     active?: boolean
     color?: PixelColor
+    /** Right-aligned count — folds to a colored dot on the icon rail. */
+    badge?: string | number
   }>(),
   { active: false, color: "blue" }
 )
@@ -66,6 +68,16 @@ watch(() => [props.active, props.color], () => requestAnimationFrame(paint))
         <span class="size-1.5 rounded-[1px] bg-current opacity-70" />
       </slot>
     </span>
-    <span v-if="!collapsed" class="truncate">{{ props.label }}</span>
+    <span v-if="!collapsed" class="min-w-0 flex-1 truncate">{{ props.label }}</span>
+    <span
+      v-if="props.badge !== undefined && !collapsed"
+      class="shrink-0 rounded border border-border/60 px-1 text-[10px] text-muted-foreground tabular-nums"
+    >{{ props.badge }}</span>
+    <span
+      v-else-if="props.badge !== undefined && collapsed"
+      aria-hidden="true"
+      class="absolute top-1.5 right-1.5 size-1.5 rounded-full"
+      :style="{ backgroundColor: cssColor(props.color) }"
+    />
   </button>
 </template>

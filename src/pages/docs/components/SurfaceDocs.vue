@@ -11,7 +11,9 @@ import {
   DitherScrollArea,
   DitherSeparator,
   DitherSidebar,
+  DitherSidebarGroup,
   DitherSidebarItem,
+  DitherSidebarSub,
   DitherSwipeArea,
   DitherSwitch,
   DitherToaster,
@@ -46,9 +48,11 @@ const nestedChild = ref(false)
 const swipeAreaOn = ref(false)
 const swipeDrawer = ref(false)
 
-const SIDEBAR_ITEMS = ["Overview", "Charts", "Palette", "Settings"]
 const sidebarActive = ref("Overview")
 const sidebarCollapsed = ref(false)
+const sidebarSubOpen = ref(true)
+const SIDEBAR_VARIANTS = ["default", "floating", "inset"] as const
+const variantActive = ref("Overview")
 
 const NAV_ITEMS = [
   { label: "Overview" },
@@ -125,15 +129,24 @@ const SNIPPET_DRAWER = `<!-- side drawers swipe-dismiss along their axis;
   <App />
 </DitherDrawerIndent>`
 
-const SNIPPET_SIDEBAR = `<DitherSidebar v-model="collapsed">
+const SNIPPET_SIDEBAR = `<DitherSidebar v-model="collapsed" variant="default" collapse="rail">
   <template #header>…wordmark…</template>
-  <DitherSidebarItem
-    v-for="item in items"
-    :label="item"
-    :active="active === item"
-    @select="active = item"
-  />
-</DitherSidebar>`
+
+  <DitherSidebarGroup label="Platform">   <!-- label folds to a hairline on the rail -->
+    <DitherSidebarItem label="Overview" :active="active === 'Overview'" />
+    <DitherSidebarItem label="Charts" :badge="12" />  <!-- badge folds to a dot -->
+  </DitherSidebarGroup>
+
+  <DitherSidebarGroup label="Library">
+    <DitherSidebarSub v-model="subOpen" label="Components">
+      <DitherSidebarItem label="Buttons" />
+      <DitherSidebarItem label="Forms" />
+    </DitherSidebarSub>
+  </DitherSidebarGroup>
+</DitherSidebar>
+
+<!-- variant: "default" | "floating" | "inset"
+     collapse: "rail" | "hide" | "none" · side: "left" | "right" -->`
 
 const SNIPPET_TOAST = `<script setup>
 import { DitherToaster, toast } from "@dither-kit"
@@ -223,11 +236,14 @@ const API: Record<string, PropRow[]> = {
     { prop: "dismissible", type: "boolean — false: backdrop click ignored", default: "true" },
   ],
   sidebar: [
-    { prop: "modelValue (Sidebar)", type: "boolean — collapsed rail", default: "false" },
-    { prop: "label (Sidebar)", type: "string", default: '"Sidebar"' },
-    { prop: "label (Item)", type: "string", default: "—" },
-    { prop: "active (Item)", type: "boolean", default: "false" },
-    { prop: "color (Item)", type: "PixelColor", default: '"blue"' },
+    { prop: "modelValue (Sidebar)", type: "boolean — collapsed (v-model)", default: "false" },
+    { prop: "variant (Sidebar)", type: '"default" | "floating" | "inset"', default: '"default"' },
+    { prop: "collapse (Sidebar)", type: '"rail" | "hide" | "none"', default: '"rail"' },
+    { prop: "side (Sidebar)", type: '"left" | "right"', default: '"left"' },
+    { prop: "label (Group)", type: "string — folds to a hairline on the rail", default: "undefined" },
+    { prop: "label / active / color (Item)", type: "string / boolean / PixelColor", default: '— / false / "blue"' },
+    { prop: "badge (Item)", type: "string | number — dot on the rail", default: "undefined" },
+    { prop: "modelValue / label (Sub)", type: "boolean (v-model) / string", default: "false / —" },
   ],
   toast: [
     { prop: "message", type: "string", default: "—" },
@@ -417,7 +433,7 @@ const API: Record<string, PropRow[]> = {
       area, labels fold away, the active item carries a dithered rail.
     </p>
     <DemoCard :code="SNIPPET_SIDEBAR">
-      <div class="mx-auto flex h-64 max-w-md overflow-hidden rounded-lg border border-border/60">
+      <div class="mx-auto flex h-80 max-w-md overflow-hidden rounded-lg border border-border/60">
         <DitherSidebar v-model="sidebarCollapsed" label="Demo sidebar">
           <template #header>
             <div class="flex h-8 items-center gap-2 px-2.5">
@@ -425,19 +441,42 @@ const API: Record<string, PropRow[]> = {
               <span v-if="!sidebarCollapsed" class="text-[12px] tracking-tight">dither-ui</span>
             </div>
           </template>
-          <DitherSidebarItem
-            v-for="item in SIDEBAR_ITEMS"
-            :key="item"
-            :label="item"
-            :active="sidebarActive === item"
-            @select="sidebarActive = item"
-          />
+          <DitherSidebarGroup label="Platform">
+            <DitherSidebarItem label="Overview" :active="sidebarActive === 'Overview'" @select="sidebarActive = 'Overview'" />
+            <DitherSidebarItem label="Charts" :badge="12" :active="sidebarActive === 'Charts'" @select="sidebarActive = 'Charts'" />
+            <DitherSidebarItem label="Alerts" :badge="3" color="red" :active="sidebarActive === 'Alerts'" @select="sidebarActive = 'Alerts'" />
+          </DitherSidebarGroup>
+          <DitherSidebarGroup label="Library">
+            <DitherSidebarSub v-model="sidebarSubOpen" label="Components">
+              <DitherSidebarItem label="Buttons" :active="sidebarActive === 'Buttons'" @select="sidebarActive = 'Buttons'" />
+              <DitherSidebarItem label="Forms" :active="sidebarActive === 'Forms'" @select="sidebarActive = 'Forms'" />
+            </DitherSidebarSub>
+            <DitherSidebarItem label="Palette" :active="sidebarActive === 'Palette'" @select="sidebarActive = 'Palette'" />
+          </DitherSidebarGroup>
         </DitherSidebar>
         <div class="grid flex-1 place-items-center text-[12px] text-muted-foreground">
           {{ sidebarActive }}
         </div>
       </div>
     </DemoCard>
+    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+    <div class="mt-4 grid gap-4 sm:grid-cols-3">
+      <div v-for="v in SIDEBAR_VARIANTS" :key="v">
+        <div class="flex h-44 overflow-hidden rounded-lg border border-border/60" :class="v === 'inset' ? 'bg-card/30 p-1.5' : ''">
+          <DitherSidebar :variant="v" collapse="none" :label="`${v} sidebar`" class="w-32">
+            <DitherSidebarItem
+              v-for="item in ['Overview', 'Charts', 'Palette']"
+              :key="item"
+              :label="item"
+              :active="variantActive === item"
+              @select="variantActive = item"
+            />
+          </DitherSidebar>
+          <div class="min-w-0 flex-1" :class="v === 'inset' ? 'm-1.5 rounded-md border border-border/60 bg-background' : ''" />
+        </div>
+        <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
+      </div>
+    </div>
     <PropsTable :rows="API.sidebar" />
   </section>
 

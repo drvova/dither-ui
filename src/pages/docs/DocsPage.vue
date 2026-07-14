@@ -354,9 +354,13 @@ onMounted(() => {
   const target = window.location.hash.replace(/^#\/docs\/?/, "")
   if (ids.includes(target)) {
     activeId.value = target
-    requestAnimationFrame(() =>
-      document.getElementById(target)?.scrollIntoView()
-    )
+    // The deep link owns the scroll: stop the browser's own restoration from
+    // overriding it on reload, and jump twice — once now, once after the
+    // canvas-heavy sections above have sized (late growth shifts the target).
+    history.scrollRestoration = "manual"
+    const jump = () => document.getElementById(target)?.scrollIntoView()
+    requestAnimationFrame(jump)
+    window.setTimeout(jump, 450)
   }
 
   observer = new IntersectionObserver(

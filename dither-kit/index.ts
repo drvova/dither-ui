@@ -77,8 +77,14 @@ export { default as DitherAlertDialog } from "./DitherAlertDialog.vue"
 export { default as DitherDrawer, type DrawerSide } from "./DitherDrawer.vue"
 export { default as DitherDrawerIndent } from "./DitherDrawerIndent.vue"
 export { default as DitherSwipeArea } from "./DitherSwipeArea.vue"
-export { default as DitherSidebar } from "./DitherSidebar.vue"
+export {
+  default as DitherSidebar,
+  type SidebarCollapse,
+  type SidebarVariant,
+} from "./DitherSidebar.vue"
 export { default as DitherSidebarItem } from "./DitherSidebarItem.vue"
+export { default as DitherSidebarGroup } from "./DitherSidebarGroup.vue"
+export { default as DitherSidebarSub } from "./DitherSidebarSub.vue"
 export { project, rubberband } from "./gesture"
 export { default as DitherToaster } from "./DitherToaster.vue"
 export { toast } from "./toast"
