@@ -3,18 +3,24 @@ import type {
   AreaVariant,
   BloomLevel,
   DitherColor,
+  GradientDirection,
   StackType,
 } from "../components/dither-kit"
 
-/** Shared live controls — the floating dial writes here, every chart reads it.
- * One source of truth so "tweak these charts from the panel" actually works. */
+/** Single source of truth for the playground — the controls panel writes here,
+ * the live preview and the generated code snippet both read it. */
 export const controls = reactive({
+  selected: "area",
   variant: "gradient" as AreaVariant,
   bloom: "low" as BloomLevel,
   stackType: "default" as StackType,
   color: "blue" as DitherColor,
   animate: true,
   interactive: true,
+  direction: "up" as GradientDirection,
+  twoTone: false,
+  innerRadius: 0.55,
+  avatarName: "Ada Lovelace",
   replayToken: 0,
 })
 
@@ -34,4 +40,4 @@ export const COLORS: DitherColor[] = [
   "red",
   "grey",
 ]
-export const DIRECTIONS = ["up", "down", "left", "right"] as const
+export const DIRECTIONS: GradientDirection[] = ["up", "down", "left", "right"]
