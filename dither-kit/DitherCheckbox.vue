@@ -45,8 +45,9 @@ function paintBox(
 </script>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
+import { kitFromSeed } from "./dither-paint"
 
 const CELL = 2
 
@@ -54,11 +55,14 @@ const props = withDefaults(
   defineProps<{
     modelValue: boolean
     color?: PixelColor
+    seed?: number
     disabled?: boolean
     class?: string
   }>(),
-  { color: "blue", disabled: false }
+  { disabled: false }
 )
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -73,11 +77,11 @@ function paint() {
   const n = Math.max(4, Math.round(box.getBoundingClientRect().width / CELL))
   canvas.width = n
   canvas.height = n
-  paintBox(ctx, n, fillOf(props.color), fillOf("grey"), props.modelValue)
+  paintBox(ctx, n, fillOf(color.value), fillOf("grey"), props.modelValue)
 }
 
 onMounted(paint)
-watch(() => [props.modelValue, props.color], paint)
+watch(() => [props.modelValue, color.value], paint)
 </script>
 
 <template>

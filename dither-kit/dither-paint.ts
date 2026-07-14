@@ -110,6 +110,42 @@ export function motionFromSeed(seed: number) {
   }
 }
 
+/** Seeded chart geometry — cartesian + polar structural params.
+ * Every value stays in a readable band so no seed breaks a chart. */
+export function geometryFromSeed(seed: number) {
+  const rand = mulberry32(Math.round(seed) ^ 0x27d4eb2f)
+  return {
+    barGap: 0.15 + rand() * 0.25,
+    barEdge: 0.08 + rand() * 0.2,
+    glowSize: 0.08 + rand() * 0.16,
+    hoverStrength: 0.7 + rand() * 0.6,
+    dimOpacity: 0.2 + rand() * 0.25,
+    innerRadius: rand() * 0.6,
+    rings: 3 + Math.floor(rand() * 4),
+    popOut: 4 + Math.floor(rand() * 6),
+    rimWidth: 1 + rand() * 1.2,
+    falloff: 0.3 + rand() * 0.4,
+  }
+}
+
+const SEED_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
+const SEED_DIRECTIONS = ["up", "down", "left", "right"] as const
+
+/** Master primitive seeder — one integer, one complete personality for any
+ * kit component. Components pick the fields they need; explicit props win. */
+export function kitFromSeed(seed: number) {
+  const rand = mulberry32(Math.round(seed) ^ 0x165667b1)
+  return {
+    hue: Math.floor(rand() * 360),
+    variant: SEED_VARIANTS[Math.floor(rand() * 4)],
+    direction: SEED_DIRECTIONS[Math.floor(rand() * 4)],
+    cell: 2 + Math.floor(rand() * 3),
+    opacity: 0.5 + rand() * 0.5,
+    focusY: rand(),
+    fade: 40 + Math.floor(rand() * 120),
+  }
+}
+
 // Single-slot memo — the paint loops resolve per column, per frame.
 let lastTexKey: VariantInput | string = ""
 let lastTex: Required<TextureConfig> = TEXTURE_PRESET.gradient

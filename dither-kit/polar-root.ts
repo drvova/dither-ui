@@ -11,7 +11,7 @@ import {
 import type { ChartConfig, Margins } from "./chart-context"
 import { CommonChartKey } from "./common-context"
 import type { BloomInput, EasingInput } from "./dither-paint"
-import { bloomFromSeed, easingFromSeed, motionFromSeed } from "./dither-paint"
+import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "./dither-paint"
 import { cn } from "./lib"
 import { axisAtAngle, sliceAtAngle } from "./polar"
 import { PolarChartKey, usePolarController } from "./polar-context"
@@ -70,7 +70,7 @@ export function definePolarChart(
       config: { type: Object as PropType<ChartConfig>, required: true },
       dataKey: { type: String, default: "" },
       nameKey: { type: String, required: true },
-      innerRadius: { type: Number, default: 0 },
+      innerRadius: { type: Number as PropType<number | undefined>, default: undefined },
       margins: {
         type: Object as PropType<Partial<Margins>>,
         default: () => ({}),
@@ -88,13 +88,13 @@ export function definePolarChart(
       },
       hoverLift: { type: Boolean, default: true },
       cell: { type: Number, default: 2 },
-      popOut: { type: Number, default: 6 },
-      rimWidth: { type: Number, default: 1.4 },
-      falloff: { type: Number, default: 0.45 },
-      hoverStrength: { type: Number, default: 1 },
-      dimOpacity: { type: Number, default: 0.3 },
+      popOut: { type: Number as PropType<number | undefined>, default: undefined },
+      rimWidth: { type: Number as PropType<number | undefined>, default: undefined },
+      falloff: { type: Number as PropType<number | undefined>, default: undefined },
+      hoverStrength: { type: Number as PropType<number | undefined>, default: undefined },
+      dimOpacity: { type: Number as PropType<number | undefined>, default: undefined },
       startAngle: { type: Number as PropType<number | undefined>, default: undefined },
-      rings: { type: Number, default: 4 },
+      rings: { type: Number as PropType<number | undefined>, default: undefined },
       replayToken: { type: Number, default: 0 },
       bloom: { type: [String, Object, Number] as PropType<BloomInput | undefined>, default: undefined },
       bloomOnHover: { type: Boolean, default: false },
@@ -116,6 +116,9 @@ export function definePolarChart(
       const seeded = computed(() =>
         props.seed !== undefined ? motionFromSeed(props.seed) : null
       )
+      const geo = computed(() =>
+        props.seed !== undefined ? geometryFromSeed(props.seed) : null
+      )
 
       const ctx = usePolarController({
         chartType,
@@ -123,7 +126,7 @@ export function definePolarChart(
         config: () => props.config,
         dataKey: () => props.dataKey,
         nameKey: () => props.nameKey,
-        innerRadiusRatio: () => props.innerRadius,
+        innerRadiusRatio: () => props.innerRadius ?? geo.value?.innerRadius ?? 0,
         dimensions: () => size.value,
         margins: () => margins.value,
         animate: () => props.animate,
@@ -134,13 +137,13 @@ export function definePolarChart(
           props.easing ?? (props.seed !== undefined ? easingFromSeed(props.seed) : "ease-in-out"),
         hoverLift: () => props.hoverLift,
         cell: () => props.cell,
-        popOut: () => props.popOut,
-        rimWidth: () => props.rimWidth,
-        falloff: () => props.falloff,
-        hoverStrength: () => props.hoverStrength,
-        dimOpacity: () => props.dimOpacity,
+        popOut: () => props.popOut ?? geo.value?.popOut ?? 6,
+        rimWidth: () => props.rimWidth ?? geo.value?.rimWidth ?? 1.4,
+        falloff: () => props.falloff ?? geo.value?.falloff ?? 0.45,
+        hoverStrength: () => props.hoverStrength ?? geo.value?.hoverStrength ?? 1,
+        dimOpacity: () => props.dimOpacity ?? geo.value?.dimOpacity ?? 0.3,
         startAngle: () => props.startAngle ?? seeded.value?.startAngle ?? 0,
-        rings: () => props.rings,
+        rings: () => props.rings ?? geo.value?.rings ?? 4,
         replayToken: () => props.replayToken,
         bloom: () =>
           props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),

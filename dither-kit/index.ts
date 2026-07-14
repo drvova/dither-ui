@@ -119,6 +119,8 @@ export type {
 export {
   bloomFromSeed,
   easingFromSeed,
+  geometryFromSeed,
+  kitFromSeed,
   motionFromSeed,
   mulberry32,
   resolveTexture,

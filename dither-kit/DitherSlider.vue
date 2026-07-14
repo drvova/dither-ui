@@ -56,6 +56,7 @@ function paintTrack(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
+import { kitFromSeed } from "./dither-paint"
 
 const CELL = 2
 
@@ -76,19 +77,21 @@ const props = withDefaults(
     /** Show a value bubble above the thumb while dragging or focused. */
     showValue?: boolean
     disabled?: boolean
+    seed?: number
     class?: string
   }>(),
   {
     min: 0,
     max: 100,
     step: 1,
-    color: "blue",
-    variant: "gradient",
     ticks: false,
     showValue: false,
     disabled: false,
   }
 )
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
+const variant = computed<SliderVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
 
 const emit = defineEmits<{ (e: "update:modelValue", value: number | [number, number]): void }>()
 
@@ -128,11 +131,11 @@ function paint() {
     ctx,
     cols,
     rows,
-    fillOf(props.color),
+    fillOf(color.value),
     fillOf("grey"),
     isRange.value ? toRatio(lo.value) : 0,
     toRatio(hi.value),
-    props.variant,
+    variant.value,
     tickRatios.value
   )
 }
@@ -215,7 +218,7 @@ onMounted(() => {
   }
 })
 watch(
-  () => [props.modelValue, props.color, props.min, props.max, props.variant, props.ticks],
+  () => [props.modelValue, color.value, props.min, props.max, variant.value, props.ticks],
   paint
 )
 onBeforeUnmount(() => ro?.disconnect())

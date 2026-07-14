@@ -60,6 +60,7 @@ function paintButton(
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle } from "./pixel"
+import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
   defineProps<{
@@ -67,15 +68,23 @@ const props = withDefaults(
     variant?: ButtonVariant
     bloom?: PixelBloomInput
     cell?: number // css px per dither cell — chunkiness
+    seed?: number
     class?: string
   }>(),
-  { color: "blue", variant: "gradient", bloom: "off", cell: 2 }
+  {}
 )
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
+const variant = computed<ButtonVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
+const bloom = computed<PixelBloomInput>(
+  () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
+)
+const cell = computed(() => props.cell ?? s.value?.cell ?? 2)
 
 const buttonRef = ref<HTMLButtonElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
-const bloomStyle = computed(() => pixelBloomStyle(props.bloom))
+const bloomStyle = computed(() => pixelBloomStyle(bloom.value))
 
 let teardown: (() => void) | undefined
 
@@ -86,7 +95,7 @@ function init(): (() => void) | undefined {
   if (!button || !canvas || !ctx) return undefined
   const bloomCanvas = bloomRef.value
   const bloomCtx = bloomCanvas?.getContext("2d") ?? null
-  const state: PaintState = { fill: fillOf(props.color), variant: props.variant }
+  const state: PaintState = { fill: fillOf(color.value), variant: variant.value }
   const reduce = pixelPrefersReducedMotion()
 
   let cols = 0
@@ -123,7 +132,7 @@ function init(): (() => void) | undefined {
 
   const resize = () => {
     const box = button.getBoundingClientRect()
-    const cellPx = Math.max(1, props.cell)
+    const cellPx = Math.max(1, cell.value)
     cols = Math.max(4, Math.round(box.width / cellPx))
     rows = Math.max(4, Math.round(box.height / cellPx))
     canvas.width = cols
@@ -170,13 +179,10 @@ function init(): (() => void) | undefined {
 onMounted(() => {
   teardown = init()
 })
-watch(
-  () => [props.color, props.variant, props.bloom, props.cell],
-  () => {
-    teardown?.()
-    teardown = init()
-  }
-)
+watch([color, variant, bloom, cell], () => {
+  teardown?.()
+  teardown = init()
+})
 onBeforeUnmount(() => teardown?.())
 </script>
 

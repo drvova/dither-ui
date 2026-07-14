@@ -124,6 +124,7 @@ function paintAvatar(
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle } from "./pixel"
+import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
   defineProps<{
@@ -141,6 +142,7 @@ const props = withDefaults(
     density?: number // additive density bias (-0.5–0.5)
     offTier?: number // 0–1 alpha of unlit backing pixels
     bloom?: PixelBloomInput
+    seed?: number
     animate?: boolean
     animationDuration?: number
     replayToken?: number
@@ -152,16 +154,21 @@ const props = withDefaults(
     cellPx: 4,
     density: 0,
     offTier: 0.35,
-    bloom: "off",
     animate: true,
     animationDuration: 600,
     replayToken: 0,
   }
 )
 
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const effHue = computed(() => props.hue ?? s.value?.hue)
+const effBloom = computed(
+  () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
+)
+
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
-const bloomStyle = computed(() => pixelBloomStyle(props.bloom))
+const bloomStyle = computed(() => pixelBloomStyle(effBloom.value))
 
 let teardown: (() => void) | undefined
 function paint() {
@@ -171,7 +178,7 @@ function paint() {
   teardown = paintAvatar(
     canvas,
     bloomRef.value,
-    avatarModel(props.name, props.color ?? props.hue, props.mirror, props.grid, props.pattern),
+    avatarModel(props.name, props.color ?? effHue.value, props.mirror, props.grid, props.pattern),
     {
       animate: props.animate,
       duration: props.animationDuration,
@@ -187,7 +194,7 @@ watch(
   () => [
     props.name, props.color, props.hue, props.mirror, props.grid, props.cellPx,
     props.density, props.offTier, props.animate, props.animationDuration,
-    props.replayToken, props.bloom, props.pattern,
+    props.replayToken, props.bloom, props.pattern, props.seed,
   ],
   paint
 )

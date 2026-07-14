@@ -17,7 +17,7 @@ import {
 } from "./chart-context"
 import { CommonChartKey } from "./common-context"
 import type { BloomInput, EasingInput } from "./dither-paint"
-import { bloomFromSeed, easingFromSeed, motionFromSeed } from "./dither-paint"
+import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "./dither-paint"
 import { cn } from "./lib"
 import type { StackType } from "./scales"
 import { useChartDimensions } from "./use-chart-dimensions"
@@ -103,11 +103,11 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
     cell: { type: Number, default: 2 },
     sparkleDensity: { type: Number as PropType<number | undefined>, default: undefined },
     sparkleSpeed: { type: Number as PropType<number | undefined>, default: undefined },
-    barGap: { type: Number, default: 0.28 },
-    barEdge: { type: Number, default: 0.18 },
-    glowSize: { type: Number, default: 0.16 },
-    hoverStrength: { type: Number, default: 1 },
-    dimOpacity: { type: Number, default: 0.3 },
+    barGap: { type: Number as PropType<number | undefined>, default: undefined },
+    barEdge: { type: Number as PropType<number | undefined>, default: undefined },
+    glowSize: { type: Number as PropType<number | undefined>, default: undefined },
+    hoverStrength: { type: Number as PropType<number | undefined>, default: undefined },
+    dimOpacity: { type: Number as PropType<number | undefined>, default: undefined },
     crosshair: { type: Boolean, default: true },
     replayToken: { type: Number, default: 0 },
     interactive: { type: Boolean, default: true },
@@ -139,6 +139,9 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
     const seeded = computed(() =>
       props.seed !== undefined ? motionFromSeed(props.seed) : null
     )
+    const geo = computed(() =>
+      props.seed !== undefined ? geometryFromSeed(props.seed) : null
+    )
 
     const ctx = useChartController({
       chartType: chartTypeVal,
@@ -164,11 +167,11 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
       cell: () => props.cell,
       sparkleDensity: () => props.sparkleDensity ?? seeded.value?.sparkleDensity ?? 1,
       sparkleSpeed: () => props.sparkleSpeed ?? seeded.value?.sparkleSpeed ?? 1,
-      barGap: () => props.barGap,
-      barEdge: () => props.barEdge,
-      glowSize: () => props.glowSize,
-      hoverStrength: () => props.hoverStrength,
-      dimOpacity: () => props.dimOpacity,
+      barGap: () => props.barGap ?? geo.value?.barGap ?? 0.28,
+      barEdge: () => props.barEdge ?? geo.value?.barEdge ?? 0.18,
+      glowSize: () => props.glowSize ?? geo.value?.glowSize ?? 0.16,
+      hoverStrength: () => props.hoverStrength ?? geo.value?.hoverStrength ?? 1,
+      dimOpacity: () => props.dimOpacity ?? geo.value?.dimOpacity ?? 0.3,
       crosshair: () => props.crosshair,
       replayToken: () => props.replayToken,
       markerIndex: () => props.markerIndex,

@@ -63,6 +63,7 @@ function paintWash(canvas: HTMLCanvasElement, w: number, h: number, color: Pixel
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, toRef, watch } from "vue"
 import { cn } from "./lib"
+import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
   defineProps<{
@@ -73,11 +74,15 @@ const props = withDefaults(
     /** underline: moving dither strip · segmented: boxed chips · washed: dither fill. */
     variant?: TabsVariant
     orientation?: "horizontal" | "vertical"
+    seed?: number
     class?: string
   }>(),
-  { color: "blue", variant: "underline", orientation: "horizontal" }
+  { variant: "underline", orientation: "horizontal" }
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
+
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const effColor = computed(() => props.color ?? s.value?.hue ?? "blue")
 
 const idBase = `dk-tabs-${counter++}`
 provide(TABS_CTX, { active: toRef(props, "modelValue"), idBase })
@@ -103,8 +108,8 @@ function measure() {
   const canvas = canvasRef.value
   if (!btn || !canvas) return
   marker.value = { left: btn.offsetLeft, top: btn.offsetTop, width: btn.offsetWidth, height: btn.offsetHeight }
-  if (props.variant === "washed") paintWash(canvas, btn.offsetWidth, btn.offsetHeight, props.color)
-  else paintUnderline(canvas, vertical.value ? btn.offsetHeight : btn.offsetWidth, props.color, vertical.value)
+  if (props.variant === "washed") paintWash(canvas, btn.offsetWidth, btn.offsetHeight, effColor.value)
+  else paintUnderline(canvas, vertical.value ? btn.offsetHeight : btn.offsetWidth, effColor.value, vertical.value)
 }
 
 function select(value: string) {
@@ -150,7 +155,7 @@ onMounted(() => {
   }
 })
 watch(
-  () => [props.modelValue, props.tabs, props.color, props.variant, props.orientation],
+  () => [props.modelValue, props.tabs, effColor.value, props.variant, props.orientation],
   () => nextTick(measure)
 )
 onBeforeUnmount(() => ro?.disconnect())

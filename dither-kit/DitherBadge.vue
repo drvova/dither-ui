@@ -43,17 +43,22 @@ function paintBadge(
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
+import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
   defineProps<{
     color?: PixelColor
     variant?: BadgeVariant
+    seed?: number
     class?: string
   }>(),
-  { color: "blue", variant: "gradient" }
+  {}
 )
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
+const variant = computed<BadgeVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
 
 const wrapRef = ref<HTMLSpanElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -70,7 +75,7 @@ function paint() {
   const rows = Math.max(4, Math.round(box.height / CELL))
   canvas.width = cols
   canvas.height = rows
-  paintBadge(ctx, cols, rows, fillOf(props.color), props.variant)
+  paintBadge(ctx, cols, rows, fillOf(color.value), variant.value)
 }
 
 onMounted(() => {
@@ -80,7 +85,7 @@ onMounted(() => {
     if (wrapRef.value) ro.observe(wrapRef.value)
   }
 })
-watch(() => [props.color, props.variant], paint)
+watch([color, variant], paint)
 onBeforeUnmount(() => ro?.disconnect())
 </script>
 

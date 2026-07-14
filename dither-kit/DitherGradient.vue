@@ -76,24 +76,33 @@ function paintGradient(
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle } from "./pixel"
+import { kitFromSeed } from "./dither-paint"
 
-const props = withDefaults(
-  defineProps<{
-    from: PixelColor
-    to?: PixelColor | "transparent"
-    direction?: GradientDirection
-    cell?: number
-    opacity?: number
-    bloom?: PixelBloomInput
-    class?: string
-  }>(),
-  { to: "transparent", direction: "up", cell: 3, opacity: 1, bloom: "off" }
+const props = defineProps<{
+  from?: PixelColor
+  to?: PixelColor | "transparent"
+  direction?: GradientDirection
+  cell?: number
+  opacity?: number
+  bloom?: PixelBloomInput
+  seed?: number
+  class?: string
+}>()
+
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const effFrom = computed(() => props.from ?? s.value?.hue ?? "blue")
+const effTo = computed(() => props.to ?? "transparent")
+const effDirection = computed(() => props.direction ?? s.value?.direction ?? "up")
+const effCell = computed(() => props.cell ?? s.value?.cell ?? 3)
+const effOpacity = computed(() => props.opacity ?? s.value?.opacity ?? 1)
+const effBloom = computed(
+  () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
 )
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
-const bloomStyle = computed(() => pixelBloomStyle(props.bloom))
+const bloomStyle = computed(() => pixelBloomStyle(effBloom.value))
 
 let ro: ResizeObserver | null = null
 function paint() {
@@ -102,11 +111,11 @@ function paint() {
   if (!wrap || !canvas) return
   const box = wrap.getBoundingClientRect()
   paintGradient(canvas, bloomRef.value, box.width, box.height, {
-    from: props.from,
-    to: props.to,
-    direction: props.direction,
-    cell: props.cell,
-    opacity: props.opacity,
+    from: effFrom.value,
+    to: effTo.value,
+    direction: effDirection.value,
+    cell: effCell.value,
+    opacity: effOpacity.value,
   })
 }
 
@@ -117,10 +126,7 @@ onMounted(() => {
     if (wrapRef.value) ro.observe(wrapRef.value)
   }
 })
-watch(
-  () => [props.from, props.to, props.direction, props.cell, props.opacity, props.bloom],
-  paint
-)
+watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom], paint)
 onBeforeUnmount(() => ro?.disconnect())
 </script>
 

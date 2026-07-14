@@ -30,9 +30,10 @@ function paintTrack(
 </script>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
+import { kitFromSeed } from "./dither-paint"
 
 const CELL = 2
 
@@ -42,11 +43,14 @@ const props = withDefaults(
     /** Accessible name — required for screen readers, the control has no text. */
     label?: string
     color?: PixelColor
+    seed?: number
     disabled?: boolean
     class?: string
   }>(),
-  { color: "blue", disabled: false }
+  { disabled: false }
 )
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -64,14 +68,14 @@ function paint() {
   const rows = Math.max(4, Math.round(box.height / CELL))
   canvas.width = cols
   canvas.height = rows
-  paintTrack(ctx, cols, rows, fillOf(props.color), fillOf("grey"), props.modelValue)
+  paintTrack(ctx, cols, rows, fillOf(color.value), fillOf("grey"), props.modelValue)
 }
 
 onMounted(() => {
   reduce.value = pixelPrefersReducedMotion()
   paint()
 })
-watch(() => [props.modelValue, props.color], paint)
+watch(() => [props.modelValue, color.value], paint)
 </script>
 
 <template>

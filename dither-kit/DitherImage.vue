@@ -61,8 +61,9 @@ function paintImage(
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
+import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
   defineProps<{
@@ -74,10 +75,16 @@ const props = withDefaults(
     focusY?: number
     /** css px of dithered edge dissolve — 0 keeps hard edges. */
     fade?: number
+    seed?: number
     class?: string
   }>(),
-  { alt: "", cell: 3, focusY: 0.5, fade: 0 }
+  { alt: "" }
 )
+
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const effCell = computed(() => props.cell ?? s.value?.cell ?? 3)
+const effFocusY = computed(() => props.focusY ?? s.value?.focusY ?? 0.5)
+const effFade = computed(() => props.fade ?? s.value?.fade ?? 0)
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -90,7 +97,7 @@ function paint() {
   const canvas = canvasRef.value
   if (!wrap || !canvas) return
   const box = wrap.getBoundingClientRect()
-  paintImage(canvas, img, box.width, box.height, props.cell, props.focusY, props.fade)
+  paintImage(canvas, img, box.width, box.height, effCell.value, effFocusY.value, effFade.value)
 }
 
 function load() {
@@ -106,7 +113,7 @@ onMounted(() => {
   }
 })
 watch(() => props.src, load)
-watch(() => [props.cell, props.focusY, props.fade], paint)
+watch([effCell, effFocusY, effFade], paint)
 onBeforeUnmount(() => {
   ro?.disconnect()
   img.onload = null

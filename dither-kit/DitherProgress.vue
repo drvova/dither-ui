@@ -48,9 +48,10 @@ function paintProgress(
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
+import { kitFromSeed } from "./dither-paint"
 
 const CELL = 2
 
@@ -58,11 +59,14 @@ const props = withDefaults(
   defineProps<{
     value?: number
     color?: PixelColor
+    seed?: number
     indeterminate?: boolean
     class?: string
   }>(),
-  { value: 0, color: "blue", indeterminate: false }
+  { value: 0, indeterminate: false }
 )
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 
 const rootRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -79,7 +83,7 @@ function paint(band: number | null) {
     ctx,
     cols,
     rows,
-    fillOf(props.color),
+    fillOf(color.value),
     fillOf("grey"),
     clamp01(props.value / 100),
     band
@@ -131,7 +135,7 @@ onMounted(() => {
     if (rootRef.value) ro.observe(rootRef.value)
   }
 })
-watch(() => [props.value, props.color, props.indeterminate], syncLoop)
+watch(() => [props.value, color.value, props.indeterminate], syncLoop)
 onBeforeUnmount(() => {
   if (raf) cancelAnimationFrame(raf)
   ro?.disconnect()

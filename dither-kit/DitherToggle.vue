@@ -38,19 +38,23 @@ export function paintToggleCanvas(
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { fillOf, type PixelColor } from "./pixel"
+import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
   defineProps<{
     modelValue: boolean
     color?: PixelColor
+    seed?: number
     disabled?: boolean
     class?: string
   }>(),
-  { color: "blue", disabled: false }
+  { disabled: false }
 )
+const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -61,7 +65,7 @@ let ro: ResizeObserver | null = null
 function paint() {
   if (!props.modelValue) return
   if (buttonRef.value && canvasRef.value)
-    paintToggleCanvas(buttonRef.value, canvasRef.value, fillOf(props.color))
+    paintToggleCanvas(buttonRef.value, canvasRef.value, fillOf(color.value))
 }
 
 onMounted(() => {
@@ -71,7 +75,7 @@ onMounted(() => {
     if (buttonRef.value) ro.observe(buttonRef.value)
   }
 })
-watch(() => [props.modelValue, props.color], paint)
+watch(() => [props.modelValue, color.value], paint)
 onBeforeUnmount(() => ro?.disconnect())
 </script>
 
