@@ -26,7 +26,7 @@ import {
   type DotVariant,
   type GradientDirection,
 } from "@dither-kit"
-import { onBeforeUnmount, onMounted, ref } from "vue"
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import PropsTable, { type PropRow } from "./PropsTable.vue"
@@ -87,6 +87,31 @@ const STATS = [
 
 const VARIANTS: AreaVariant[] = ["gradient", "dotted", "hatched", "solid"]
 const DOT_VARIANTS: DotVariant[] = ["border", "colored-border", "filled"]
+
+// Variant galleries drive the main preview: picking one swaps the prop and
+// bumps the chart's replay token, so the kit's own dither entrance IS the
+// transition — no CSS theatre required.
+const picked = reactive({
+  area: "gradient" as AreaVariant,
+  bar: "gradient" as AreaVariant,
+  pie: "gradient" as AreaVariant,
+  dot: "border" as DotVariant,
+})
+const galleryReplay = reactive({ area: 0, bar: 0, pie: 0, line: 0 })
+
+function pick(section: "area" | "bar" | "pie", v: AreaVariant) {
+  picked[section] = v
+  galleryReplay[section]++
+}
+function pickDot(v: DotVariant) {
+  picked.dot = v
+  galleryReplay.line++
+}
+
+const thumbClass = (active: boolean) =>
+  `rounded-md p-2 text-left transition-colors ${active ? "bg-card" : "hover:bg-card/50"}`
+const thumbLabel = (active: boolean) =>
+  `mt-2 text-center text-[10px] transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`
 const wave = Array.from({ length: 20 }, (_, i) => 5 + Math.sin(i * 0.6) * 2.2 + Math.sin(i * 1.4) * 1)
 
 // Tiny single-series set for the variant galleries.
@@ -360,6 +385,18 @@ const config = {
   palette: `import { cssColor, type DitherColor } from "@dither-kit"
 cssColor("blue") // rgb(53,143,243)`,
 }
+
+// Code tabs mirror the picked variant — what you see is what you copy.
+const areaCode = computed(() =>
+  SNIPPETS.area.replace('data-key="revenue" variant="gradient"', `data-key="revenue" variant="${picked.area}"`)
+)
+const lineCode = computed(() => SNIPPETS.line.replace('variant="border"', `variant="${picked.dot}"`))
+const barCode = computed(() =>
+  SNIPPETS.bar
+    .replace('<Bar data-key="organic" />', `<Bar data-key="organic" variant="${picked.bar}" />`)
+    .replace('<Bar data-key="paid" />', `<Bar data-key="paid" variant="${picked.bar}" />`)
+)
+const pieCode = computed(() => SNIPPETS.pie.replace('variant="gradient"', `variant="${picked.pie}"`))
 </script>
 
 <template>
@@ -481,25 +518,25 @@ cssColor("blue") // rgb(53,143,243)`,
               Revenue against expenses, stacked. Hover for the tooltip; click a legend
               entry to isolate a series.
             </p>
-            <DemoCard :code="SNIPPETS.area">
+            <DemoCard :code="areaCode">
               <div class="h-64">
-                <AreaChart :data="rows" :config="config" stack-type="stacked">
+                <AreaChart :data="rows" :config="config" stack-type="stacked" :replay-token="galleryReplay.area">
                   <Grid horizontal />
                   <XAxis data-key="month" :max-ticks="6" />
                   <YAxis :tick-count="4" />
                   <Area data-key="expenses" variant="dotted" />
-                  <Area data-key="revenue" variant="gradient" />
+                  <Area data-key="revenue" :variant="picked.area" />
                   <Legend align="right" :is-clickable="true" />
                   <Tooltip label-key="month" />
                 </AreaChart>
               </div>
             </DemoCard>
             <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
-            <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div v-for="v in VARIANTS" :key="v">
-                <Sparkline :data="wave" color="blue" :variant="v" class="h-14 w-full" />
-                <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
-              </div>
+            <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <button v-for="v in VARIANTS" :key="v" type="button" :aria-pressed="picked.area === v" :class="thumbClass(picked.area === v)" @click="pick('area', v)">
+                <Sparkline :data="wave" color="blue" :variant="v" class="pointer-events-none h-14 w-full" />
+                <div :class="thumbLabel(picked.area === v)">{{ v }}</div>
+              </button>
             </div>
             <PropsTable :rows="API.cartesian" />
           </section>
@@ -514,13 +551,13 @@ cssColor("blue") // rgb(53,143,243)`,
               Bright series lines with sparkles on the live edge; nest a
               <code class="text-foreground/80">Dot</code> inside a line for markers.
             </p>
-            <DemoCard :code="SNIPPETS.line">
+            <DemoCard :code="lineCode">
               <div class="h-64">
-                <LineChart :data="rows" :config="config">
+                <LineChart :data="rows" :config="config" :replay-token="galleryReplay.line">
                   <Grid horizontal />
                   <XAxis data-key="month" :max-ticks="6" />
                   <Line data-key="revenue">
-                    <Dot variant="border" :r="2" />
+                    <Dot :variant="picked.dot" :r="2" />
                   </Line>
                   <Line data-key="expenses" />
                   <Legend align="right" />
@@ -529,17 +566,17 @@ cssColor("blue") // rgb(53,143,243)`,
               </div>
             </DemoCard>
             <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">dot variants</h3>
-            <div class="mt-4 grid grid-cols-3 gap-4">
-              <div v-for="d in DOT_VARIANTS" :key="d">
-                <div class="h-20">
+            <div class="mt-2 grid grid-cols-3 gap-2">
+              <button v-for="d in DOT_VARIANTS" :key="d" type="button" :aria-pressed="picked.dot === d" :class="thumbClass(picked.dot === d)" @click="pickDot(d)">
+                <div class="pointer-events-none h-20">
                   <LineChart :data="miniRows" :config="miniConfig" :interactive="false" :margins="{ top: 6, right: 6, bottom: 6, left: 6 }">
                     <Line data-key="v">
                       <Dot :variant="d" :r="2.5" />
                     </Line>
                   </LineChart>
                 </div>
-                <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ d }}</div>
-              </div>
+                <div :class="thumbLabel(picked.dot === d)">{{ d }}</div>
+              </button>
             </div>
             <PropsTable :rows="API.cartesian" />
           </section>
@@ -555,29 +592,29 @@ cssColor("blue") // rgb(53,143,243)`,
               <code class="text-foreground/80">stack-type</code> to stacked or percent
               to pile the columns.
             </p>
-            <DemoCard :code="SNIPPETS.bar">
+            <DemoCard :code="barCode">
               <div class="h-64">
-                <BarChart :data="trafficRows" :config="trafficConfig">
+                <BarChart :data="trafficRows" :config="trafficConfig" :replay-token="galleryReplay.bar">
                   <Grid horizontal />
                   <XAxis data-key="month" />
                   <YAxis :tick-count="4" />
-                  <Bar data-key="organic" />
-                  <Bar data-key="paid" />
+                  <Bar data-key="organic" :variant="picked.bar" />
+                  <Bar data-key="paid" :variant="picked.bar" />
                   <Legend align="right" />
                   <Tooltip label-key="month" />
                 </BarChart>
               </div>
             </DemoCard>
             <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
-            <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div v-for="v in VARIANTS" :key="v">
-                <div class="h-20">
+            <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <button v-for="v in VARIANTS" :key="v" type="button" :aria-pressed="picked.bar === v" :class="thumbClass(picked.bar === v)" @click="pick('bar', v)">
+                <div class="pointer-events-none h-20">
                   <BarChart :data="miniRows" :config="miniConfig" :interactive="false" :margins="{ top: 6, right: 6, bottom: 6, left: 6 }">
                     <Bar data-key="v" :variant="v" />
                   </BarChart>
                 </div>
-                <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
-              </div>
+                <div :class="thumbLabel(picked.bar === v)">{{ v }}</div>
+              </button>
             </div>
             <PropsTable :rows="API.cartesian" />
           </section>
@@ -591,24 +628,24 @@ cssColor("blue") // rgb(53,143,243)`,
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Browser share as a donut — click a slice or legend entry to isolate it.
             </p>
-            <DemoCard :code="SNIPPETS.pie">
+            <DemoCard :code="pieCode">
               <div class="h-64">
-                <PieChart :data="pieRows" :config="pieConfig" data-key="value" name-key="name" :inner-radius="0.55">
-                  <Pie variant="gradient" :is-clickable="true" />
+                <PieChart :data="pieRows" :config="pieConfig" data-key="value" name-key="name" :inner-radius="0.55" :replay-token="galleryReplay.pie">
+                  <Pie :variant="picked.pie" :is-clickable="true" />
                   <Legend align="center" :is-clickable="true" />
                 </PieChart>
               </div>
             </DemoCard>
             <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
-            <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div v-for="v in VARIANTS" :key="v">
-                <div class="h-24">
+            <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <button v-for="v in VARIANTS" :key="v" type="button" :aria-pressed="picked.pie === v" :class="thumbClass(picked.pie === v)" @click="pick('pie', v)">
+                <div class="pointer-events-none h-24">
                   <PieChart :data="miniPieRows" :config="miniPieConfig" data-key="value" name-key="name" :inner-radius="0.5">
                     <Pie :variant="v" />
                   </PieChart>
                 </div>
-                <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
-              </div>
+                <div :class="thumbLabel(picked.pie === v)">{{ v }}</div>
+              </button>
             </div>
             <PropsTable :rows="API.pie" />
           </section>
