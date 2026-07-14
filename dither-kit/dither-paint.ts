@@ -34,16 +34,20 @@ export type TextureConfig = {
   hatch?: number // 0 = off; n ≥ 2 = diagonal stripe period (hatched preset = 4)
   offTier?: number // 0–1: alpha of unlit cells when gaps is false (default 0.4)
   edge?: number // 0–1: top border-line alpha (default 0.72)
+  // Luminance character — how density maps to pixel brightness.
+  alphaFloor?: number // base brightness of a lit cell (default 0.3)
+  alphaRange?: number // how much density adds above the floor (default 0.7)
+  intensityLift?: number // hover brightness multiplier (default 0.22)
 }
 export type VariantInput = AreaVariant | TextureConfig | number
 
 const TEXTURE_PRESET: Record<AreaVariant, Required<TextureConfig>> = {
-  gradient: { ramp: 1, density: 0, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA },
-  dotted: { ramp: 1, density: 0.12, gaps: true, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA },
-  hatched: { ramp: 1, density: 0, gaps: false, hatch: 4, offTier: OFF_TIER, edge: BORDER_ALPHA },
+  gradient: { ramp: 1, density: 0, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA, alphaFloor: 0.3, alphaRange: 0.7, intensityLift: 0.22 },
+  dotted: { ramp: 1, density: 0.12, gaps: true, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA, alphaFloor: 0.35, alphaRange: 0.65, intensityLift: 0.22 },
+  hatched: { ramp: 1, density: 0, gaps: false, hatch: 4, offTier: OFF_TIER, edge: BORDER_ALPHA, alphaFloor: 0.3, alphaRange: 0.7, intensityLift: 0.22 },
   // density 2: outbids every threshold shift (stacked/sparse) — always lit,
   // exactly like the old hard-coded solid branch.
-  solid: { ramp: 1, density: 2, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA },
+  solid: { ramp: 1, density: 2, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA, alphaFloor: 0.3, alphaRange: 0.7, intensityLift: 0.22 },
 }
 
 // --- seed-generative textures ------------------------------------------------
@@ -75,6 +79,9 @@ export function textureFromSeed(seed: number): Required<TextureConfig> {
     hatch,
     offTier: OFF_TIER * (0.6 + rand() * 0.9),
     edge: BORDER_ALPHA * (0.7 + rand() * 0.3),
+    alphaFloor: 0.2 + rand() * 0.25,
+    alphaRange: 0.5 + rand() * 0.3,
+    intensityLift: 0.12 + rand() * 0.2,
   }
 }
 
@@ -263,7 +270,7 @@ export function paintColumn(
     // through as stark white.
     if (tex.gaps && !lit) continue
     // Density → alpha (see the colour-vs-opacity note above).
-    const k = (0.3 + density * 0.7) * (1 + 0.22 * intensity)
+    const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
     const alpha = clamp01((lit ? k : k * tex.offTier) * dim)
     octx.fillStyle = rgb(seed.fill, 1, alpha)
     octx.fillRect(x, y, 1, 1)

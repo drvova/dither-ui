@@ -8,10 +8,10 @@ import {
   watch,
 } from "vue"
 import {
-  BAYER,
   backingSize,
   bloomLayerStyle,
   resolveEasing,
+  resolveMatrix,
   resolveTexture,
   prefersReducedMotion,
 } from "./dither-paint"
@@ -115,12 +115,13 @@ function startPieLoop({
           continue
         }
         const tex = resolveTexture(variant)
+        const mat = resolveMatrix(variant)
         const raw = (r - innerR) / Math.max(localOuter - innerR, 1)
         const density = 1 - tex.ramp * (1 - raw)
         if (tex.hatch >= 2 && ((x + y) % tex.hatch) >= tex.hatch / 2) continue
-        const lit = density > BAYER[y & 3][x & 3] - 0.1 * it - tex.density
+        const lit = density > mat[y & 3][x & 3] - 0.1 * it - tex.density
         if (tex.gaps && !lit) continue
-        const k = (0.35 + density * 0.65) * (1 + 0.22 * it)
+        const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * it)
         const alpha = Math.min(1, (lit ? k : k * tex.offTier) * selDim)
         c.fillStyle = rgb(seed.fill, 1, alpha)
         c.fillRect(x, y, 1, 1)

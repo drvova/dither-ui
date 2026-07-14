@@ -12,6 +12,7 @@ const props = withDefaults(
     data: number[]
     color: DitherColor
     variant?: VariantInput
+    seed?: number
     markerIndex?: number | null
     hovered?: boolean
     bloom?: BloomInput
@@ -39,6 +40,7 @@ const config = computed(() => ({ v: { color: props.color } }))
     :config="config"
     :interactive="false"
     :animate="props.animate"
+    :seed="props.seed"
     :marker-index="props.markerIndex"
     :hovered="props.hovered"
     :bloom="props.bloom"
