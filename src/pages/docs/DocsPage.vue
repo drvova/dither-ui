@@ -27,6 +27,7 @@ import {
 } from "@dither-kit"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
+import PropsTable, { type PropRow } from "./PropsTable.vue"
 
 // Believable dashboard numbers, not sine waves.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -89,8 +90,74 @@ const BUTTON_COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange
 const DIRECTIONS: GradientDirection[] = ["up", "down", "left", "right"]
 const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
 
+const API: Record<string, PropRow[]> = {
+  cartesian: [
+    { prop: "data", type: "Row[]", default: "—" },
+    { prop: "config", type: "ChartConfig", default: "—" },
+    { prop: "stack-type", type: '"default" | "stacked" | "percent"', default: '"default"' },
+    { prop: "interactive", type: "boolean", default: "true" },
+    { prop: "animate", type: "boolean", default: "true" },
+    { prop: "animation-duration", type: "number", default: "900" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
+    { prop: "margins", type: "Partial<Margins>", default: "{}" },
+  ],
+  pie: [
+    { prop: "data / config", type: "Row[] / ChartConfig", default: "—" },
+    { prop: "data-key", type: "string", default: "—" },
+    { prop: "name-key", type: "string", default: "—" },
+    { prop: "inner-radius", type: "number 0…0.85", default: "0" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
+  ],
+  radar: [
+    { prop: "data / config", type: "Row[] / ChartConfig", default: "—" },
+    { prop: "name-key", type: "string", default: "—" },
+    { prop: "rings", type: "number", default: "4" },
+  ],
+  sparkline: [
+    { prop: "data", type: "number[]", default: "—" },
+    { prop: "color", type: "DitherColor", default: "—" },
+    { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
+    { prop: "marker-index", type: "number | null", default: "null" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
+    { prop: "animate", type: "boolean", default: "false" },
+  ],
+  button: [
+    { prop: "color", type: "DitherColor | number", default: '"blue"' },
+    { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
+  ],
+  avatar: [
+    { prop: "name", type: "string", default: "—" },
+    { prop: "size", type: "number (px)", default: "—" },
+    { prop: "hue", type: "number 0…360", default: "from name" },
+    { prop: "mirror", type: '"auto" | "on" | "off"', default: '"auto"' },
+    { prop: "animate", type: "boolean", default: "true" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
+  ],
+  gradient: [
+    { prop: "from", type: "DitherColor", default: "—" },
+    { prop: "to", type: 'DitherColor | "transparent"', default: '"transparent"' },
+    { prop: "direction", type: '"up" | "down" | "left" | "right"', default: '"up"' },
+    { prop: "cell", type: "number (px)", default: "3" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+  ],
+  image: [
+    { prop: "src", type: "string", default: "—" },
+    { prop: "cell", type: "number (px)", default: "3" },
+    { prop: "focus-y", type: "number 0…1", default: "0.5" },
+    { prop: "fade", type: "number (px)", default: "0" },
+    { prop: "alt", type: "string", default: '""' },
+  ],
+}
+
 const GROUPS = [
-  { title: "Getting started", items: [{ id: "getting-started", label: "Installation" }] },
+  {
+    title: "Getting started",
+    items: [
+      { id: "getting-started", label: "Installation" },
+      { id: "dashboard", label: "Dashboard example" },
+    ],
+  },
   {
     title: "Charts",
     items: [
@@ -121,6 +188,19 @@ const SNIPPETS = {
   install: `// Copy the dither-kit/ folder into your project, then alias it:
 // vite.config.ts  →  "@dither-kit": "./dither-kit"
 import { AreaChart, Area, DitherButton } from "@dither-kit"`,
+  dashboard: `<!-- stat cards -->
+<div v-for="s in stats" class="rounded-lg border p-4">
+  <span>{{ s.label }}</span> <b>{{ s.value }}</b>
+  <Sparkline :data="s.trend" :color="s.color" class="h-8" />
+</div>
+
+<!-- main panel -->
+<AreaChart :data="rows" :config="config" stack-type="stacked">
+  <XAxis data-key="month" /> <Area data-key="expenses" variant="dotted" />
+  <Area data-key="revenue" /> <Tooltip label-key="month" />
+</AreaChart>
+<PieChart :data="share" :config="shareConfig" data-key="value"
+  name-key="name" :inner-radius="0.55"><Pie /></PieChart>`,
   area: `const rows = [{ month: "Jan", revenue: 42, expenses: 31 }, …]
 const config = {
   revenue:  { label: "Revenue",  color: "blue" },
@@ -260,6 +340,50 @@ cssColor("blue") // rgb(53,143,243)`,
             <div class="mt-5"><CodeBlock :code="SNIPPETS.install" /></div>
           </section>
 
+          <!-- Dashboard -->
+          <section id="dashboard" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Dashboard example</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Everything composed: stat cards, a stacked area, a donut — one
+              palette, one texture, zero SVG.
+            </p>
+            <DemoCard :code="SNIPPETS.dashboard">
+              <div class="grid gap-4">
+                <div class="grid gap-4 sm:grid-cols-3">
+                  <div v-for="s in STATS" :key="s.label" class="rounded-lg border border-border/60 p-4">
+                    <div class="text-[11px] text-muted-foreground">{{ s.label }}</div>
+                    <div class="mt-1 flex items-baseline gap-2">
+                      <span class="text-lg tracking-tight tabular-nums">{{ s.value }}</span>
+                      <span class="text-[11px] tabular-nums" :style="{ color: cssColor(s.up ? 'green' : 'red') }">{{ s.delta }}</span>
+                    </div>
+                    <Sparkline :data="s.data" :color="s.color" class="mt-3 h-8 w-full" />
+                  </div>
+                </div>
+                <div class="grid gap-4 lg:grid-cols-3">
+                  <div class="rounded-lg border border-border/60 p-4 lg:col-span-2">
+                    <div class="text-[11px] text-muted-foreground">Revenue vs expenses</div>
+                    <div class="mt-3 h-44">
+                      <AreaChart :data="rows" :config="config" stack-type="stacked">
+                        <XAxis data-key="month" :max-ticks="6" />
+                        <Area data-key="expenses" variant="dotted" />
+                        <Area data-key="revenue" variant="gradient" />
+                        <Tooltip label-key="month" />
+                      </AreaChart>
+                    </div>
+                  </div>
+                  <div class="rounded-lg border border-border/60 p-4">
+                    <div class="text-[11px] text-muted-foreground">Browser share</div>
+                    <div class="mt-3 h-44">
+                      <PieChart :data="pieRows" :config="pieConfig" data-key="value" name-key="name" :inner-radius="0.55">
+                        <Pie variant="gradient" />
+                      </PieChart>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DemoCard>
+          </section>
+
           <!-- Area -->
           <section id="area" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Area Chart</h2>
@@ -286,6 +410,7 @@ cssColor("blue") // rgb(53,143,243)`,
                 <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
               </div>
             </div>
+            <PropsTable :rows="API.cartesian" />
           </section>
 
           <!-- Line -->
@@ -309,6 +434,7 @@ cssColor("blue") // rgb(53,143,243)`,
                 </LineChart>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.cartesian" />
           </section>
 
           <!-- Bar -->
@@ -332,6 +458,7 @@ cssColor("blue") // rgb(53,143,243)`,
                 </BarChart>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.cartesian" />
           </section>
 
           <!-- Pie -->
@@ -348,6 +475,7 @@ cssColor("blue") // rgb(53,143,243)`,
                 </PieChart>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.pie" />
           </section>
 
           <!-- Radar -->
@@ -365,6 +493,7 @@ cssColor("blue") // rgb(53,143,243)`,
                 </RadarChart>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.radar" />
           </section>
 
           <!-- Sparkline -->
@@ -386,6 +515,7 @@ cssColor("blue") // rgb(53,143,243)`,
                 </div>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.sparkline" />
           </section>
 
           <!-- Button -->
@@ -406,12 +536,19 @@ cssColor("blue") // rgb(53,143,243)`,
                 <div class="flex flex-wrap justify-center gap-3">
                   <DitherButton v-for="c in BUTTON_COLORS" :key="c" :color="c" variant="gradient" class="capitalize">{{ c }}</DitherButton>
                 </div>
-                <div class="flex flex-wrap justify-center gap-3">
-                  <DitherButton color="green" variant="gradient" bloom="low">Approve</DitherButton>
-                  <DitherButton color="red" variant="gradient" disabled>Delete</DitherButton>
+                <div class="flex flex-wrap items-end justify-center gap-4">
+                  <div v-for="b in (['off', 'low', 'high', 'aura'] as const)" :key="b" class="text-center">
+                    <DitherButton color="green" variant="gradient" :bloom="b">Approve</DitherButton>
+                    <div class="mt-2 text-[10px] text-muted-foreground">bloom {{ b }}</div>
+                  </div>
+                  <div class="text-center">
+                    <DitherButton color="red" variant="gradient" disabled>Delete</DitherButton>
+                    <div class="mt-2 text-[10px] text-muted-foreground">disabled</div>
+                  </div>
                 </div>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.button" />
           </section>
 
           <!-- Avatar -->
@@ -434,6 +571,7 @@ cssColor("blue") // rgb(53,143,243)`,
                 </div>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.avatar" />
           </section>
 
           <!-- Gradient -->
@@ -453,6 +591,7 @@ cssColor("blue") // rgb(53,143,243)`,
                 </div>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.gradient" />
           </section>
 
           <!-- Image -->
@@ -462,6 +601,7 @@ cssColor("blue") // rgb(53,143,243)`,
               Ordered-dithers any image into chunky cells; edges can dissolve into the page.
             </p>
             <div class="mt-5"><CodeBlock :code="SNIPPETS.image" /></div>
+            <PropsTable :rows="API.image" />
           </section>
 
           <!-- Palette -->
