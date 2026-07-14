@@ -1,0 +1,42 @@
+# dither-kit — the toolkit
+
+## Purpose
+
+Self-contained Vue 3 component library: charts, buttons, avatars, gradients and
+images rendered on canvas through one ordered-dither (Bayer 4x4) engine.
+This folder is the product; the `src/` app is its showcase and editor.
+
+## Ownership
+
+- Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
+  chart roots/contexts, canvas painters, and the public component set.
+- Consumers import ONLY via `index.ts` (`@dither-kit` alias).
+
+## Local Contracts
+
+- Zero imports from `src/` — the kit must stay copy-out portable
+  (docs promise: "copy the folder, alias it"). Dependencies: vue, d3-scale,
+  d3-shape, tailwind classes only.
+- `palette.ts` is the single source of color truth: 7 seeds, each resolving
+  fill/line/star hues. Swatch CSS vars in `src/app/styles.css` mirror it.
+- `pixel.ts` owns BAYER4 and bloom presets; every dithered surface thresholds
+  against the same matrix.
+- New components: export from `index.ts` alongside their public types;
+  follow the existing shape (`withDefaults(defineProps<...>)`, ResizeObserver
+  repaint, `image-rendering: pixelated`, `cn()` for class merge).
+- Respect `prefers-reduced-motion` inside the kit (see
+  `pixelPrefersReducedMotion` / `prefersReducedMotion`) — consumers must not
+  need to opt in.
+- Chart composition: root provides context (`cartesian-root` / `polar-root`),
+  children register series via contexts. Props are declared with explicit
+  runtime defaults — keep API tables in `src/pages/docs` in sync when defaults
+  change.
+
+## Verification
+
+- `npx vue-tsc --noEmit` (workspace-wide) must stay green.
+- Visual: `npx vite build && npx vite preview` and eyeball `/#/docs` demos.
+
+## Child DOX Index
+
+- none (flat folder by design)
