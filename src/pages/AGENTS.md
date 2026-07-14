@@ -25,9 +25,13 @@ widgets/features; page-specific conventions live here.
 
 - Section anatomy: `<section id>` → heading row (h2 + optional
   "open in studio →") → muted description → `DemoCard` (Preview/Code tabs) →
-  optional variant gallery (micro-label + grid) → `PropsTable`.
-- `SNIPPETS` must match what the demo renders; API tables mirror actual kit
-  prop defaults — update both when the kit API changes.
+  optional picker gallery (micro-label + grid) → `PropsTable`.
+- Galleries and chip rows are PICKERS, not decoration: `aria-pressed`
+  buttons drive the main preview's props; chart previews also bump a
+  replay token so the kit's dither entrance is the transition. Code tabs
+  are computed from the picked state — what you see is what you copy.
+- `SNIPPETS`/computed code must match what the demo renders; API tables
+  mirror actual kit prop defaults — update both when the kit API changes.
 - Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
   `activeId` + `aria-current`; hash mirrors section via
   `history.replaceState("#/docs/<id>")`. Deep links restore on mount.

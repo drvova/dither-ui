@@ -22,9 +22,11 @@ import {
   XAxis,
   YAxis,
   type AreaVariant,
+  type ButtonVariant,
   type DitherColor,
   type DotVariant,
   type GradientDirection,
+  type PixelBloom,
 } from "@dither-kit"
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
 import { CodeBlock } from "@/shared/ui"
@@ -112,6 +114,28 @@ const thumbClass = (active: boolean) =>
   `rounded-md p-2 text-left transition-colors ${active ? "bg-card" : "hover:bg-card/50"}`
 const thumbLabel = (active: boolean) =>
   `mt-2 text-center text-[10px] transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`
+const chipClass = (active: boolean) =>
+  `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`
+
+// Button playground — one preview, three pickers.
+const btn = reactive({
+  variant: "gradient" as ButtonVariant,
+  color: "blue" as DitherColor,
+  bloom: "off" as PixelBloom,
+})
+const BLOOMS: PixelBloom[] = ["off", "low", "high", "aura"]
+
+// Avatar playground — picking a name replays the pixel entrance at all sizes.
+const AVATAR_NAMES = ["ada", "linus", "grace", "alan", "edsger", "barbara"]
+const avatarName = ref("ada")
+const avatarReplay = ref(0)
+function pickAvatar(n: string) {
+  avatarName.value = n
+  avatarReplay.value++
+}
+
+// Gradient playground.
+const grad = reactive({ direction: "up" as GradientDirection, from: "blue" as DitherColor })
 const wave = Array.from({ length: 20 }, (_, i) => 5 + Math.sin(i * 0.6) * 2.2 + Math.sin(i * 1.4) * 1)
 
 // Tiny single-series set for the variant galleries.
@@ -397,6 +421,21 @@ const barCode = computed(() =>
     .replace('<Bar data-key="paid" />', `<Bar data-key="paid" variant="${picked.bar}" />`)
 )
 const pieCode = computed(() => SNIPPETS.pie.replace('variant="gradient"', `variant="${picked.pie}"`))
+const buttonCode = computed(
+  () =>
+    `<DitherButton color="${btn.color}" variant="${btn.variant}"${btn.bloom === "off" ? "" : ` bloom="${btn.bloom}"`}>
+  Deploy
+</DitherButton>`
+)
+const avatarCode = computed(
+  () => `<DitherAvatar name="${avatarName.value}" :size="48" />
+<!-- same name, same face — at any size -->`
+)
+const gradientCode = computed(
+  () => `<div class="relative h-40">
+  <DitherGradient from="${grad.from}" to="transparent" direction="${grad.direction}" />
+</div>`
+)
 </script>
 
 <template>
@@ -743,25 +782,30 @@ const pieCode = computed(() => SNIPPETS.pie.replace('variant="gradient"', `varia
               Canvas-filled button; density lifts on hover, blooms on press.
               Four fills, seven colors, optional <code class="text-foreground/80">bloom</code>.
             </p>
-            <DemoCard :code="SNIPPETS.button">
-              <div class="grid justify-items-center gap-5">
-                <div class="flex flex-wrap justify-center gap-3">
-                  <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
-                  <DitherButton color="blue" variant="solid">Run</DitherButton>
-                  <DitherButton color="blue" variant="dotted">Preview</DitherButton>
-                  <DitherButton color="blue" variant="hatched">Cancel</DitherButton>
-                </div>
-                <div class="flex flex-wrap justify-center gap-3">
-                  <DitherButton v-for="c in BUTTON_COLORS" :key="c" :color="c" variant="gradient" class="capitalize">{{ c }}</DitherButton>
-                </div>
-                <div class="flex flex-wrap items-end justify-center gap-4">
-                  <div v-for="b in (['off', 'low', 'high', 'aura'] as const)" :key="b" class="text-center">
-                    <DitherButton color="green" variant="gradient" :bloom="b">Approve</DitherButton>
-                    <div class="mt-2 text-[10px] text-muted-foreground">bloom {{ b }}</div>
+            <DemoCard :code="buttonCode">
+              <div class="grid justify-items-center gap-8">
+                <DitherButton :color="btn.color" :variant="btn.variant" :bloom="btn.bloom" class="px-6 py-3 text-[13px]">
+                  Deploy
+                </DitherButton>
+                <div class="grid justify-items-center gap-3">
+                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                    <button v-for="v in VARIANTS" :key="v" type="button" :aria-pressed="btn.variant === v" :class="chipClass(btn.variant === v)" @click="btn.variant = v">{{ v }}</button>
                   </div>
-                  <div class="text-center">
-                    <DitherButton color="red" variant="gradient" disabled>Delete</DitherButton>
-                    <div class="mt-2 text-[10px] text-muted-foreground">disabled</div>
+                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                    <button v-for="b in BLOOMS" :key="b" type="button" :aria-pressed="btn.bloom === b" :class="chipClass(btn.bloom === b)" @click="btn.bloom = b">bloom {{ b }}</button>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      v-for="c in BUTTON_COLORS"
+                      :key="c"
+                      type="button"
+                      :aria-label="`Color ${c}`"
+                      :aria-pressed="btn.color === c"
+                      class="size-6 rounded-[4px] transition-transform"
+                      :class="btn.color === c ? 'ring-1 ring-foreground ring-offset-2 ring-offset-background' : 'hover:scale-110'"
+                      :style="{ backgroundColor: cssColor(c) }"
+                      @click="btn.color = c"
+                    />
                   </div>
                 </div>
               </div>
@@ -776,19 +820,23 @@ const pieCode = computed(() => SNIPPETS.pie.replace('variant="gradient"', `varia
               Deterministic identicon — the same name always draws the same face,
               at any size.
             </p>
-            <DemoCard :code="SNIPPETS.avatar">
-              <div class="flex flex-col items-center gap-6">
-                <div class="flex items-end gap-3">
-                  <DitherAvatar name="ada" :size="24" />
-                  <DitherAvatar name="ada" :size="32" />
-                  <DitherAvatar name="ada" :size="48" />
-                  <DitherAvatar name="ada" :size="64" />
-                </div>
-                <div class="flex items-center gap-3">
-                  <DitherAvatar v-for="n in ['linus', 'grace', 'alan', 'edsger', 'barbara']" :key="n" :name="n" :size="40" />
-                </div>
+            <DemoCard :code="avatarCode">
+              <div class="flex items-end justify-center gap-3">
+                <DitherAvatar :name="avatarName" :size="24" :replay-token="avatarReplay" />
+                <DitherAvatar :name="avatarName" :size="32" :replay-token="avatarReplay" />
+                <DitherAvatar :name="avatarName" :size="48" :replay-token="avatarReplay" />
+                <DitherAvatar :name="avatarName" :size="64" :replay-token="avatarReplay" />
               </div>
             </DemoCard>
+            <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">names</h3>
+            <div class="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+              <button v-for="n in AVATAR_NAMES" :key="n" type="button" :aria-pressed="avatarName === n" :class="thumbClass(avatarName === n)" @click="pickAvatar(n)">
+                <div class="pointer-events-none flex justify-center">
+                  <DitherAvatar :name="n" :size="40" :animate="false" />
+                </div>
+                <div :class="thumbLabel(avatarName === n)">{{ n }}</div>
+              </button>
+            </div>
             <PropsTable :rows="API.avatar" />
           </section>
 
@@ -799,13 +847,28 @@ const pieCode = computed(() => SNIPPETS.pie.replace('variant="gradient"', `varia
               A background wash that fades through the Bayer matrix instead of alpha —
               four directions, any palette color.
             </p>
-            <DemoCard :code="SNIPPETS.gradient">
-              <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div v-for="dir in DIRECTIONS" :key="dir">
-                  <div class="relative h-28 overflow-hidden rounded-md">
-                    <DitherGradient from="blue" to="transparent" :direction="dir" />
+            <DemoCard :code="gradientCode">
+              <div class="grid gap-5">
+                <div class="relative h-40 overflow-hidden rounded-md">
+                  <DitherGradient :from="grad.from" to="transparent" :direction="grad.direction" />
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                    <button v-for="dir in DIRECTIONS" :key="dir" type="button" :aria-pressed="grad.direction === dir" :class="chipClass(grad.direction === dir)" @click="grad.direction = dir">{{ dir }}</button>
                   </div>
-                  <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ dir }}</div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      v-for="c in COLORS"
+                      :key="c"
+                      type="button"
+                      :aria-label="`Color ${c}`"
+                      :aria-pressed="grad.from === c"
+                      class="size-6 rounded-[4px] transition-transform"
+                      :class="grad.from === c ? 'ring-1 ring-foreground ring-offset-2 ring-offset-background' : 'hover:scale-110'"
+                      :style="{ backgroundColor: cssColor(c) }"
+                      @click="grad.from = c"
+                    />
+                  </div>
                 </div>
               </div>
             </DemoCard>
