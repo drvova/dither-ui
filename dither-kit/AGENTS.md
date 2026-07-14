@@ -32,7 +32,10 @@ This folder is the product; the `src/` app is its showcase and editor.
   (twinkle freq, star brightness/burst, crosshair alpha) seeds via
   `sparklesFromSeed`; the master `seed` flows to the cartesian canvas through
   `ChartContextValue.seed` so star positions AND render coefficients derive
-  from it. Chart roots take a master `seed` prop deriving duration, delay,
+  from it. The ENTRANCE reveal is seeded (`revealFromSeed`): jitter=0 is a
+  clean sweep (optionally reversed), higher jitter dissolves the fill so it
+  develops out of order — half of all seeds stay a clean sweep.
+  Chart roots take a master `seed` prop deriving duration, delay,
   easing, stagger, sparkle character, geometry, matrix, bloom (+ startAngle on
   polar) with precedence: explicit prop > seed derivation > house default. All
   seed fns live in `dither-paint.ts` (mulberry32, params clamped to usable

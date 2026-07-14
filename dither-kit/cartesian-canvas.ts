@@ -16,6 +16,8 @@ import {
   paintColumn,
   prefersReducedMotion,
   resample,
+  revealFromSeed,
+  colNoise,
   sparklesFromSeed,
   mulberry32,
 } from "./dither-paint"
@@ -81,6 +83,10 @@ function startCartesianLoop({
     octx.clearRect(0, 0, cols, rows)
     const s = state.current
     const stacked = s.stackType === "stacked" || s.stackType === "percent"
+    // Seeded reveal: a clean sweep by default, a scattered dissolve when the
+    // chart's seed asks for it. `rev.jitter === 0` keeps the fast break path.
+    const rev = s.seed !== undefined ? revealFromSeed(s.seed) : { reverse: false, jitter: 0 }
+    const seedInt = Math.round(s.seed ?? 0)
     const revealCols = Math.ceil(reveal * cols)
     s.configKeys.forEach((key, si) => {
       const cur = current[key]
@@ -96,7 +102,16 @@ function startCartesianLoop({
         (s.seriesSpecs[key]?.opacity ?? 1)
       const sparse = stacked ? 0 : si * 0.14
       for (let x = 0; x < cols; x++) {
-        if (x > revealCols) break
+        if (rev.jitter === 0) {
+          // Clean sweep (optionally reversed) — break once past the edge.
+          const pos = rev.reverse ? cols - 1 - x : x
+          if (pos > revealCols) continue
+        } else {
+          // Dissolve: per-column threshold jittered around its sweep position,
+          // so columns develop out of order into the final fill.
+          const base = rev.reverse ? 1 - x / cols : x / cols
+          if (base + (colNoise(x, seedInt) - 0.5) * rev.jitter > reveal) continue
+        }
         paintColumn(octx, x, cur.top[x] ?? 0, cur.floor[x] ?? 0, seed, {
           variant,
           intensity,

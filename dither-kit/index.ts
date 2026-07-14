@@ -126,6 +126,7 @@ export {
   mulberry32,
   resolveMatrix,
   resolveTexture,
+  revealFromSeed,
   sparklesFromSeed,
   textureFromSeed,
 } from "./dither-paint"

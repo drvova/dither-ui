@@ -153,6 +153,23 @@ export function kitFromSeed(seed: number) {
   }
 }
 
+/** Seeded reveal — how the dither fill draws in. jitter=0 is a clean sweep;
+ * higher jitter dissolves the edge so the fill *develops* like a photo.
+ * reverse flips the sweep direction. Half of all seeds stay clean. */
+export function revealFromSeed(seed: number): { reverse: boolean; jitter: number } {
+  const rand = mulberry32(Math.round(seed) ^ 0x2545f491)
+  return {
+    reverse: rand() < 0.35,
+    jitter: rand() < 0.5 ? 0 : 0.15 + rand() * 0.5,
+  }
+}
+
+/** Cheap stable per-column noise in [0,1) — deterministic for (x, seed),
+ * one multiply, no allocation. Used to scatter the reveal edge per frame. */
+export function colNoise(x: number, seed: number): number {
+  return (((x + seed) * 2654435761) >>> 0) / 4294967296
+}
+
 /** Seeded sparkle character — twinkle frequency, brightness range, star
  * burst threshold, and crosshair opacity. The personality of the live edge. */
 export function sparklesFromSeed(seed: number) {
