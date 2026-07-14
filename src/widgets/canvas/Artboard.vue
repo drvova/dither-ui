@@ -41,6 +41,7 @@ function onResizeDown(e: PointerEvent) {
 <template>
   <div
     class="absolute"
+    :data-artboard-id="artboard.id"
     :style="{
       left: `${artboard.x}px`,
       top: `${artboard.y}px`,
@@ -60,6 +61,7 @@ function onResizeDown(e: PointerEvent) {
     </div>
 
     <div
+      data-artboard-surface
       class="h-full w-full rounded-lg bg-card/60 p-3"
       :class="selected ? 'ring-2 ring-accent' : 'border border-border'"
     >

@@ -11,6 +11,7 @@ import {
   ungroup,
 } from "@/entities/editor"
 import { history, redo, undo } from "@/features/history"
+import { exportArtboardPng } from "@/features/export-image"
 import { exportDocument, importDocument } from "@/features/persistence"
 import type { ArtboardKind } from "@/entities/artboard"
 import { CHART_TYPES } from "@/shared/config"
@@ -28,6 +29,15 @@ async function onOpenFile(e: Event) {
   input.value = ""
 }
 const canData = () => !!selectedArtboard.value && !selectedArtboard.value.widget
+
+const pngBusy = ref(false)
+async function onPng() {
+  const a = selectedArtboard.value
+  if (!a || pngBusy.value) return
+  pngBusy.value = true
+  await exportArtboardPng(a, 2)
+  pngBusy.value = false
+}
 
 // Dismiss the add-menu on outside click / Escape (same pattern as ContextMenu).
 const closeAdd = () => (addOpen.value = false)
@@ -99,6 +109,7 @@ function doUngroup() {
       </button>
       <button type="button" :disabled="!canData()" title="Edit the chart data" class="rounded-md px-2.5 py-1.5 text-[11px] transition-colors hover:bg-card disabled:opacity-40" :class="editor.dataOpen ? 'text-accent' : 'text-muted-foreground hover:text-foreground'" @click="editor.dataOpen = !editor.dataOpen">data</button>
       <button type="button" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground" @click="emit('export')">export</button>
+      <button type="button" :disabled="!editor.selectedArtboardId || pngBusy" title="Download the selected artboard as a PNG (@2x)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="onPng">png</button>
 
       <span class="mx-1 h-4 w-px bg-border" />
 

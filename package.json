@@ -15,6 +15,7 @@
     "clsx": "^2.1.1",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
+    "html-to-image": "^1.11.13",
     "tailwind-merge": "^2.5.4",
     "vue": "^3.5.13"
   },

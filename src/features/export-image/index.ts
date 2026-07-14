@@ -1,0 +1,1 @@
+export { exportArtboardPng } from "./exportPng"
