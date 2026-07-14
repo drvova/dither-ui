@@ -46,6 +46,42 @@ export { default as DitherCollapsible } from "./DitherCollapsible.vue"
 export { default as DitherDialog } from "./DitherDialog.vue"
 export { default as DitherKbd } from "./DitherKbd.vue"
 
+// Overlays & menus
+export { default as DitherPopover } from "./DitherPopover.vue"
+export { default as DitherMenu } from "./DitherMenu.vue"
+export { default as DitherContextMenu } from "./DitherContextMenu.vue"
+export { default as DitherMenubar } from "./DitherMenubar.vue"
+export { default as DitherTooltip } from "./DitherTooltip.vue"
+export { default as DitherPreviewCard } from "./DitherPreviewCard.vue"
+
+// Fields & forms
+export { default as DitherInput } from "./DitherInput.vue"
+export { default as DitherField } from "./DitherField.vue"
+export { default as DitherFieldset } from "./DitherFieldset.vue"
+export { default as DitherForm } from "./DitherForm.vue"
+export { default as DitherNumberField } from "./DitherNumberField.vue"
+export { default as DitherOtpField } from "./DitherOtpField.vue"
+
+// Selection
+export { default as DitherSelect } from "./DitherSelect.vue"
+export { default as DitherCombobox } from "./DitherCombobox.vue"
+export { default as DitherAutocomplete } from "./DitherAutocomplete.vue"
+export { default as DitherRadioGroup } from "./DitherRadioGroup.vue"
+export { default as DitherCheckboxGroup } from "./DitherCheckboxGroup.vue"
+export { default as DitherToggle } from "./DitherToggle.vue"
+export { default as DitherToggleGroup } from "./DitherToggleGroup.vue"
+
+// Surfaces & status
+export { default as DitherAccordion } from "./DitherAccordion.vue"
+export { default as DitherAlertDialog } from "./DitherAlertDialog.vue"
+export { default as DitherDrawer } from "./DitherDrawer.vue"
+export { default as DitherToaster } from "./DitherToaster.vue"
+export { toast } from "./toast"
+export { default as DitherMeter } from "./DitherMeter.vue"
+export { default as DitherScrollArea } from "./DitherScrollArea.vue"
+export { default as DitherToolbar } from "./DitherToolbar.vue"
+export { default as DitherNavMenu } from "./DitherNavMenu.vue"
+
 export type { CartesianChartProps } from "./cartesian-root"
 export type { PolarChartProps } from "./polar-root"
 export type {

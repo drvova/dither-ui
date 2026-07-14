@@ -37,6 +37,14 @@ import FeedbackDocs from "./components/FeedbackDocs.vue"
 import { FEEDBACK_NAV } from "./components/feedback-nav"
 import StructureDocs from "./components/StructureDocs.vue"
 import { STRUCTURE_NAV } from "./components/structure-nav"
+import OverlayDocs from "./components/OverlayDocs.vue"
+import { OVERLAY_NAV } from "./components/overlay-nav"
+import FieldDocs from "./components/FieldDocs.vue"
+import { FIELD_NAV } from "./components/field-nav"
+import SelectionDocs from "./components/SelectionDocs.vue"
+import { SELECTION_NAV } from "./components/selection-nav"
+import SurfaceDocs from "./components/SurfaceDocs.vue"
+import { SURFACE_NAV } from "./components/surface-nav"
 import AuthExamples from "./examples/AuthExamples.vue"
 import { AUTH_NAV } from "./examples/auth-nav"
 import ProductExamples from "./examples/ProductExamples.vue"
@@ -308,8 +316,12 @@ const GROUPS = [
       { id: "gradient", label: "Gradient" },
       { id: "image", label: "Image" },
       ...FORM_NAV,
+      ...FIELD_NAV,
+      ...SELECTION_NAV,
       ...FEEDBACK_NAV,
       ...STRUCTURE_NAV,
+      ...OVERLAY_NAV,
+      ...SURFACE_NAV,
     ],
   },
   { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
@@ -1279,6 +1291,18 @@ const gradientCode = computed(
 
           <!-- Structure: tabs, collapsible, dialog, kbd -->
           <StructureDocs />
+
+          <!-- Fields & forms -->
+          <FieldDocs />
+
+          <!-- Selection -->
+          <SelectionDocs />
+
+          <!-- Overlays & menus -->
+          <OverlayDocs />
+
+          <!-- Surfaces & status -->
+          <SurfaceDocs />
 
           <!-- Palette -->
           <section id="palette" class="mt-16 scroll-mt-24">
