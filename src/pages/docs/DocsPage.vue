@@ -26,7 +26,7 @@ import {
   type DotVariant,
   type GradientDirection,
 } from "@dither-kit"
-import { ref } from "vue"
+import { onBeforeUnmount, onMounted, ref } from "vue"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import PropsTable, { type PropRow } from "./PropsTable.vue"
@@ -205,8 +205,52 @@ const GROUPS = [
   { title: "Tokens", items: [{ id: "palette", label: "Palette" }] },
 ]
 
-const scrollTo = (id: string) =>
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
+// Wayfinding: the sidebar tracks the section in view, the hash tracks the
+// sidebar — so every section is shareable and survives a reload.
+const activeId = ref("")
+let observer: IntersectionObserver | null = null
+
+const smooth = () =>
+  matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: smooth() })
+  history.replaceState(null, "", `#/docs/${id}`)
+}
+
+onMounted(() => {
+  const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
+
+  // Deep link: #/docs/<section> — jump there once the sections have painted.
+  const target = window.location.hash.replace(/^#\/docs\/?/, "")
+  if (ids.includes(target)) {
+    activeId.value = target
+    requestAnimationFrame(() =>
+      document.getElementById(target)?.scrollIntoView()
+    )
+  }
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      // Topmost visible section wins; keep the previous one while scrolling gaps.
+      const visible = entries
+        .filter((e) => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+      const id = visible[0]?.target.id
+      if (id && id !== activeId.value) {
+        activeId.value = id
+        history.replaceState(null, "", `#/docs/${id}`)
+      }
+    },
+    // Compensate for the 56px sticky chrome; trigger in the upper half.
+    { rootMargin: "-56px 0px -50% 0px" }
+  )
+  for (const id of ids) {
+    const el = document.getElementById(id)
+    if (el) observer.observe(el)
+  }
+})
+onBeforeUnmount(() => observer?.disconnect())
 
 // Motion demo — replay re-runs the entrance, duration is chosen live.
 const replayToken = ref(0)
@@ -342,8 +386,12 @@ cssColor("blue") // rgb(53,143,243)`,
             <ul class="mt-2.5 grid gap-1.5 border-l border-border/60">
               <li v-for="it in grp.items" :key="it.id">
                 <a
-                  :href="`#/docs`"
-                  class="-ml-px block border-l border-transparent py-0.5 pl-3 text-[11px] text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                  :href="`#/docs/${it.id}`"
+                  :aria-current="activeId === it.id ? 'true' : undefined"
+                  class="-ml-px block border-l py-0.5 pl-3 text-[11px] transition-colors"
+                  :class="activeId === it.id
+                    ? 'border-foreground text-foreground'
+                    : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'"
                   @click.prevent="scrollTo(it.id)"
                 >{{ it.label }}</a>
               </li>
@@ -363,7 +411,7 @@ cssColor("blue") // rgb(53,143,243)`,
 
           <!-- Mobile nav -->
           <nav class="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted-foreground lg:hidden">
-            <a v-for="it in GROUPS.flatMap((g) => g.items)" :key="it.id" href="#/docs" class="transition-colors hover:text-foreground" @click.prevent="scrollTo(it.id)">
+            <a v-for="it in GROUPS.flatMap((g) => g.items)" :key="it.id" :href="`#/docs/${it.id}`" class="transition-colors hover:text-foreground" :class="activeId === it.id ? 'text-foreground' : ''" @click.prevent="scrollTo(it.id)">
               {{ it.label }}
             </a>
           </nav>
