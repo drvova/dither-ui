@@ -9,6 +9,9 @@ import {
   DitherNavMenu,
   DitherScrollArea,
   DitherSeparator,
+  DitherSidebar,
+  DitherSidebarItem,
+  DitherSwipeArea,
   DitherSwitch,
   DitherToaster,
   DitherToolbar,
@@ -30,6 +33,15 @@ const lastChoice = ref("nothing yet")
 const drawerOpen = ref(false)
 const gridSnap = ref(true)
 const showRulers = ref(false)
+const sheetOpen = ref(false)
+const nestedOpen = ref(false)
+const nestedChild = ref(false)
+const swipeAreaOn = ref(false)
+const swipeDrawer = ref(false)
+
+const SIDEBAR_ITEMS = ["Overview", "Charts", "Palette", "Settings"]
+const sidebarActive = ref("Overview")
+const sidebarCollapsed = ref(false)
 
 const NAV_ITEMS = [
   { label: "Overview" },
@@ -82,23 +94,30 @@ const open = ref(false)
   @cancel="open = false"
 />`
 
-const SNIPPET_DRAWER = `<script setup>
-const open = ref(false)
-const gridSnap = ref(true)
-const showRulers = ref(false)
-<\/script>
-
-<DitherButton @click="open = true">Open settings</DitherButton>
+const SNIPPET_DRAWER = `<!-- side drawers swipe-dismiss along their axis;
+     bottom sheets get a handle and dismiss downward -->
 <DitherDrawer :open="open" side="right" title="Settings" @close="open = false">
-  <div class="flex items-center justify-between py-2 text-[13px]">
-    <span>Snap to grid</span>
-    <DitherSwitch v-model="gridSnap" color="green" />
-  </div>
-  <div class="flex items-center justify-between py-2 text-[13px]">
-    <span>Show rulers</span>
-    <DitherSwitch v-model="showRulers" />
-  </div>
-</DitherDrawer>`
+  …
+</DitherDrawer>
+<DitherDrawer :open="sheet" side="bottom" title="Notifications" @close="sheet = false" />
+
+<!-- nesting: a child drawer pushes its parent back automatically -->
+<DitherDrawer :open="account" title="Account" @close="account = false">
+  <DitherDrawer :open="security" title="Security" @close="security = false" />
+</DitherDrawer>
+
+<!-- swipe-to-open from the viewport edge -->
+<DitherSwipeArea side="right" @open="open = true" />`
+
+const SNIPPET_SIDEBAR = `<DitherSidebar v-model="collapsed">
+  <template #header>…wordmark…</template>
+  <DitherSidebarItem
+    v-for="item in items"
+    :label="item"
+    :active="active === item"
+    @select="active = item"
+  />
+</DitherSidebar>`
 
 const SNIPPET_TOAST = `<script setup>
 import { DitherToaster, toast } from "@dither-kit"
@@ -179,8 +198,16 @@ const API: Record<string, PropRow[]> = {
   ],
   drawer: [
     { prop: "open", type: "boolean", default: "—" },
-    { prop: "side", type: '"right" | "left"', default: '"right"' },
+    { prop: "side", type: '"right" | "left" | "bottom"', default: '"right"' },
     { prop: "title", type: "string", default: "undefined" },
+    { prop: "swipe", type: "boolean — drag to dismiss, momentum decides", default: "true" },
+  ],
+  sidebar: [
+    { prop: "modelValue (Sidebar)", type: "boolean — collapsed rail", default: "false" },
+    { prop: "label (Sidebar)", type: "string", default: '"Sidebar"' },
+    { prop: "label (Item)", type: "string", default: "—" },
+    { prop: "active (Item)", type: "boolean", default: "false" },
+    { prop: "color (Item)", type: "PixelColor", default: '"blue"' },
   ],
   toast: [
     { prop: "message", type: "string", default: "—" },
@@ -264,14 +291,17 @@ const API: Record<string, PropRow[]> = {
       the close button takes focus on open.
     </p>
     <DemoCard :code="SNIPPET_DRAWER">
-      <div class="flex justify-center">
+      <div class="flex flex-wrap justify-center gap-3">
         <DitherButton @click="drawerOpen = true">Open settings</DitherButton>
+        <DitherButton color="purple" @click="sheetOpen = true">Bottom sheet</DitherButton>
+        <DitherButton color="green" @click="nestedOpen = true">Nested</DitherButton>
         <DitherDrawer
           :open="drawerOpen"
           side="right"
           title="Settings"
           @close="drawerOpen = false"
         >
+          <p class="pb-2 text-[11px] text-muted-foreground">Swipe the panel right to dismiss.</p>
           <div class="flex items-center justify-between py-2 text-[13px]">
             <span>Snap to grid</span>
             <DitherSwitch v-model="gridSnap" color="green" />
@@ -281,9 +311,74 @@ const API: Record<string, PropRow[]> = {
             <DitherSwitch v-model="showRulers" />
           </div>
         </DitherDrawer>
+        <DitherDrawer :open="sheetOpen" side="bottom" title="Notifications" @close="sheetOpen = false">
+          <p class="text-[13px] text-muted-foreground">
+            You are all caught up. Drag the handle down to dismiss — a flick
+            counts through its momentum, a slow drag settles back.
+          </p>
+        </DitherDrawer>
+        <DitherDrawer :open="nestedOpen" side="right" title="Account" @close="nestedOpen = false">
+          <p class="pb-3 text-[13px] text-muted-foreground">
+            Opening a child pushes this drawer back — scaled, dimmed, out of
+            reach until the child closes.
+          </p>
+          <DitherButton color="green" @click="nestedChild = true">Security settings</DitherButton>
+          <DitherDrawer :open="nestedChild" side="right" title="Security" @close="nestedChild = false">
+            <p class="text-[13px] text-muted-foreground">
+              Independently focus-managed; Escape closes just this one.
+            </p>
+          </DitherDrawer>
+        </DitherDrawer>
       </div>
     </DemoCard>
+    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">swipe to open</h3>
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 p-4">
+      <p class="max-w-sm text-[11px] leading-relaxed text-muted-foreground">
+        <code class="text-foreground/80">DitherSwipeArea</code> is an invisible
+        strip on the viewport edge — arm it, then swipe inward from the right
+        edge of your screen to open the drawer.
+      </p>
+      <div class="flex items-center gap-2 text-[12px]">
+        <span class="text-muted-foreground">arm edge</span>
+        <DitherSwitch v-model="swipeAreaOn" color="purple" />
+      </div>
+      <DitherSwipeArea v-if="swipeAreaOn" side="right" @open="swipeDrawer = true" />
+      <DitherDrawer :open="swipeDrawer" side="right" title="From the edge" @close="swipeDrawer = false">
+        <p class="text-[13px] text-muted-foreground">Opened by an edge swipe.</p>
+      </DitherDrawer>
+    </div>
     <PropsTable :rows="API.drawer" />
+  </section>
+
+  <section id="sidebar" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Sidebar</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An app sidebar that collapses to an icon rail — items keep their hit
+      area, labels fold away, the active item carries a dithered rail.
+    </p>
+    <DemoCard :code="SNIPPET_SIDEBAR">
+      <div class="mx-auto flex h-64 max-w-md overflow-hidden rounded-lg border border-border/60">
+        <DitherSidebar v-model="sidebarCollapsed" label="Demo sidebar">
+          <template #header>
+            <div class="flex h-8 items-center gap-2 px-2.5">
+              <span class="inline-block size-2.5 shrink-0 rounded-[2px] bg-foreground" />
+              <span v-if="!sidebarCollapsed" class="text-[12px] tracking-tight">dither-ui</span>
+            </div>
+          </template>
+          <DitherSidebarItem
+            v-for="item in SIDEBAR_ITEMS"
+            :key="item"
+            :label="item"
+            :active="sidebarActive === item"
+            @select="sidebarActive = item"
+          />
+        </DitherSidebar>
+        <div class="grid flex-1 place-items-center text-[12px] text-muted-foreground">
+          {{ sidebarActive }}
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.sidebar" />
   </section>
 
   <section id="toast" class="mt-16 scroll-mt-24">

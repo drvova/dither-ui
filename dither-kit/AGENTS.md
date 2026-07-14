@@ -21,6 +21,11 @@ This folder is the product; the `src/` app is its showcase and editor.
   fill/line/star hues. Swatch CSS vars in `src/app/styles.css` mirror it.
 - `pixel.ts` owns BAYER4 and bloom presets; every dithered surface thresholds
   against the same matrix.
+- `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
+  `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
+  uses these, never re-derives them. Gesture rules: 1:1 tracking with
+  setPointerCapture, rubber-band against the dismiss direction, velocity sign
+  decides a flick, projection decides a slow drag.
 - New components: export from `index.ts` alongside their public types;
   follow the existing shape (`withDefaults(defineProps<...>)`, ResizeObserver
   repaint, `image-rendering: pixelated`, `cn()` for class merge).
