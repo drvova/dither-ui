@@ -1,4 +1,4 @@
-import { watch } from "vue"
+import { reactive, watch } from "vue"
 import { deselect, editor, selectArtboard } from "@/entities/editor"
 
 /** Snapshot-based undo/redo over the document (artboards + groups).
@@ -10,6 +10,16 @@ const undoStack: string[] = []
 const redoStack: string[] = []
 let last = ""
 let timer: ReturnType<typeof setTimeout> | undefined
+let muted = false // swallow the watcher echo caused by restore() itself
+
+/** Reactive view over the stacks — what toolbar buttons bind to. A pending
+ * debounce window counts as undoable so the button lights up on first edit. */
+export const history = reactive({ canUndo: false, canRedo: false })
+
+function sync() {
+  history.canUndo = undoStack.length > 0 || timer !== undefined
+  history.canRedo = redoStack.length > 0
+}
 
 const snap = () =>
   JSON.stringify({ artboards: editor.artboards, groups: editor.groups })
@@ -27,6 +37,7 @@ function flush() {
   clearTimeout(timer)
   timer = undefined
   push()
+  sync()
 }
 
 function restore(s: string) {
@@ -39,6 +50,8 @@ function restore(s: string) {
   const keep = editor.artboards.find((a) => a.id === editor.selectedArtboardId)
   const first = keep ?? editor.artboards[0]
   first ? selectArtboard(first.id) : deselect()
+  muted = true
+  sync()
 }
 
 export function undo() {
@@ -63,8 +76,13 @@ export function startHistory() {
   watch(
     () => [editor.artboards, editor.groups],
     () => {
+      if (muted) {
+        muted = false
+        return
+      }
       clearTimeout(timer)
       timer = setTimeout(flush, 300)
+      sync()
     },
     { deep: true }
   )

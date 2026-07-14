@@ -10,6 +10,7 @@ import {
   selectedArtboard,
   ungroup,
 } from "@/entities/editor"
+import { history, redo, undo } from "@/features/history"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { useTheme } from "@/shared/lib"
 
@@ -62,6 +63,15 @@ function doUngroup() {
           <button v-for="t in CHART_TYPES" :key="t" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs capitalize text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="add(t)">{{ t }}</button>
         </div>
       </div>
+
+      <button type="button" :disabled="!history.canUndo" title="Undo (⌘Z)" aria-label="Undo" aria-keyshortcuts="Control+Z Meta+Z" class="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="undo">
+        <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6" /><path d="M3 13a9 9 0 1 0 3-7.7L3 8" /></svg>
+      </button>
+      <button type="button" :disabled="!history.canRedo" title="Redo (⌘⇧Z)" aria-label="Redo" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z" class="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="redo">
+        <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6" /><path d="M21 13a9 9 0 1 1-3-7.7L21 8" /></svg>
+      </button>
+
+      <span class="mx-1 h-4 w-px bg-border" />
 
       <button type="button" :disabled="!canEdit()" title="Duplicate (⌘D)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="duplicateSelected">duplicate</button>
       <button type="button" :disabled="!canEdit()" title="Delete (⌫)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="removeSelected">delete</button>
