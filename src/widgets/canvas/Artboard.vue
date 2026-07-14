@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import type { Artboard } from "@/entities/artboard"
-import { editor, resizeArtboard, selectArtboard } from "@/entities/editor"
+import { editor, selectArtboard } from "@/entities/editor"
 import { startDrag } from "@/features/artboard-transform"
 import { ChartRenderer } from "@/widgets/chart-renderer"
 import { WidgetRenderer } from "@/widgets/widget-renderer"
@@ -80,12 +80,53 @@ function onHeaderDown(e: PointerEvent) {
     }
   )
 }
-function onResizeDown(e: PointerEvent) {
+// 8-direction resize with shift-to-constrain (corner handles keep the aspect
+// ratio). Widget frames allow smaller minimums than chart frames.
+type ResizeDir = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw"
+const HANDLES: { dir: ResizeDir; class: string }[] = [
+  { dir: "nw", class: "-left-1.5 -top-1.5 cursor-nwse-resize" },
+  { dir: "n", class: "-top-1.5 left-1/2 -translate-x-1/2 cursor-ns-resize" },
+  { dir: "ne", class: "-right-1.5 -top-1.5 cursor-nesw-resize" },
+  { dir: "e", class: "-right-1.5 top-1/2 -translate-y-1/2 cursor-ew-resize" },
+  { dir: "se", class: "-bottom-1.5 -right-1.5 cursor-nwse-resize" },
+  { dir: "s", class: "-bottom-1.5 left-1/2 -translate-x-1/2 cursor-ns-resize" },
+  { dir: "sw", class: "-bottom-1.5 -left-1.5 cursor-nesw-resize" },
+  { dir: "w", class: "-left-1.5 top-1/2 -translate-y-1/2 cursor-ew-resize" },
+]
+
+function onResizeDown(dir: ResizeDir, e: PointerEvent) {
   if (!selected.value) selectArtboard(props.artboard.id)
-  if (props.artboard.locked) return
-  startDrag(e, (dx, dy) =>
-    resizeArtboard(props.artboard.id, props.artboard.w + dx, props.artboard.h + dy)
-  )
+  const a = props.artboard
+  if (a.locked) return
+  const start = { x: a.x, y: a.y, w: a.w, h: a.h }
+  const ratio = start.w / start.h
+  const minW = a.widget ? 100 : 260
+  const minH = a.widget ? 60 : 200
+  let ax = 0
+  let ay = 0
+  startDrag(e, (dx, dy, ev) => {
+    ax += dx
+    ay += dy
+    let w = start.w
+    let h = start.h
+    if (dir.includes("e")) w = start.w + ax
+    if (dir.includes("w")) w = start.w - ax
+    if (dir.includes("s")) h = start.h + ay
+    if (dir.includes("n")) h = start.h - ay
+    // Shift on a corner: constrain to the starting aspect ratio, following
+    // whichever axis moved further.
+    if (ev.shiftKey && dir.length === 2) {
+      if (Math.abs(ax) * start.h > Math.abs(ay) * start.w) h = w / ratio
+      else w = h * ratio
+    }
+    w = Math.max(minW, Math.round(w))
+    h = Math.max(minH, Math.round(h))
+    // Anchor the opposite edge: n/w drags move the origin by the size change.
+    a.w = w
+    a.h = h
+    a.x = dir.includes("w") ? start.x + (start.w - w) : start.x
+    a.y = dir.includes("n") ? start.y + (start.h - h) : start.y
+  })
 }
 </script>
 
@@ -120,10 +161,14 @@ function onResizeDown(e: PointerEvent) {
       <ChartRenderer v-else :chart="artboard.chart" />
     </div>
 
-    <div
-      v-if="selected && !artboard.locked"
-      class="absolute -bottom-1.5 -right-1.5 size-3 cursor-nwse-resize rounded-[2px] border border-accent bg-background"
-      @pointerdown.stop="onResizeDown"
-    />
+    <template v-if="selected && !artboard.locked">
+      <div
+        v-for="hd in HANDLES"
+        :key="hd.dir"
+        class="absolute z-10 size-3 rounded-[2px] border border-accent bg-background"
+        :class="hd.class"
+        @pointerdown.stop="onResizeDown(hd.dir, $event)"
+      />
+    </template>
   </div>
 </template>
