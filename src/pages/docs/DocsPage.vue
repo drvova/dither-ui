@@ -136,6 +136,18 @@ function pickAvatar(n: string) {
 
 // Gradient playground.
 const grad = reactive({ direction: "up" as GradientDirection, from: "blue" as DitherColor })
+
+// App shell example.
+const SHELL_NAV = ["Overview", "Reports", "Alerts", "Settings"]
+const shellNav = ref("Overview")
+
+// Monitoring example — four services, their pulse and state.
+const SERVICES = [
+  { name: "api-gateway", uptime: "99.98%", ok: true, color: "green" as DitherColor, data: trend(4, 0.1) },
+  { name: "render-farm", uptime: "99.91%", ok: true, color: "blue" as DitherColor, data: trend(5, 0.22) },
+  { name: "dither-engine", uptime: "100%", ok: true, color: "purple" as DitherColor, data: trend(6, 0.16) },
+  { name: "webhook-relay", uptime: "97.20%", ok: false, color: "red" as DitherColor, data: trend(7, -0.2).map((v) => v + 8) },
+]
 const wave = Array.from({ length: 20 }, (_, i) => 5 + Math.sin(i * 0.6) * 2.2 + Math.sin(i * 1.4) * 1)
 
 // Tiny single-series set for the variant galleries.
@@ -225,9 +237,14 @@ const API: Record<string, PropRow[]> = {
 const GROUPS = [
   {
     title: "Getting started",
+    items: [{ id: "getting-started", label: "Installation" }],
+  },
+  {
+    title: "Examples",
     items: [
-      { id: "getting-started", label: "Installation" },
-      { id: "dashboard", label: "Dashboard example" },
+      { id: "dashboard", label: "Dashboard" },
+      { id: "shell", label: "App shell" },
+      { id: "monitoring", label: "Monitoring" },
     ],
   },
   {
@@ -323,6 +340,32 @@ import { AreaChart, Area, DitherButton } from "@dither-kit"`,
 </AreaChart>
 <PieChart :data="share" :config="shareConfig" data-key="value"
   name-key="name" :inner-radius="0.55"><Pie /></PieChart>`,
+  shell: `<div class="grid grid-cols-[160px_1fr] rounded-lg border">
+  <aside class="border-r p-3">          <!-- sidebar -->
+    brand · nav (active chip) · <DitherAvatar /> footer
+  </aside>
+  <div>
+    <header class="border-b px-4">      <!-- topbar -->
+      title · <DitherButton>Export</DitherButton>
+    </header>
+    <main class="grid gap-4 p-4">
+      stat cards with <Sparkline />
+      <AreaChart … />                    <!-- main panel -->
+    </main>
+  </div>
+</div>`,
+  monitoring: `<LineChart :data="rows" :config="config">  <!-- pulse -->
+  <Grid horizontal /> <XAxis data-key="month" />
+  <Line data-key="revenue" /> <Line data-key="expenses" />
+</LineChart>
+
+<RadarChart … />                        <!-- sprint health -->
+
+<div v-for="s in services">             <!-- status rows -->
+  <span :class="s.ok ? 'bg-green' : 'bg-red'" />  <!-- dot -->
+  {{ s.name }} <Sparkline :data="s.data" :color="s.color" />
+  {{ s.uptime }}
+</div>`,
   area: `const rows = [{ month: "Jan", revenue: 42, expenses: 31 }, …]
 const config = {
   revenue:  { label: "Revenue",  color: "blue" },
@@ -541,6 +584,112 @@ const gradientCode = computed(
                         <Pie variant="gradient" />
                       </PieChart>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </DemoCard>
+          </section>
+
+          <!-- App shell -->
+          <section id="shell" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">App shell</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Sidebar, topbar, content — a whole product frame from tokens and
+              kit primitives. The nav works; click around.
+            </p>
+            <DemoCard :code="SNIPPETS.shell">
+              <div class="grid grid-cols-[150px_1fr] overflow-hidden rounded-lg border border-border/60 text-left sm:grid-cols-[170px_1fr]">
+                <!-- Sidebar -->
+                <aside class="flex min-h-[360px] flex-col border-r border-border/60 bg-background/40 p-3">
+                  <div class="flex items-center gap-2 px-2 py-1.5">
+                    <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
+                    <span class="text-[12px] tracking-tight">acme.io</span>
+                  </div>
+                  <nav class="mt-4 grid gap-0.5">
+                    <button
+                      v-for="item in SHELL_NAV"
+                      :key="item"
+                      type="button"
+                      :aria-pressed="shellNav === item"
+                      class="rounded-md px-2 py-1.5 text-left text-[11px] transition-colors"
+                      :class="shellNav === item ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'"
+                      @click="shellNav = item"
+                    >
+                      {{ item }}
+                    </button>
+                  </nav>
+                  <div class="mt-auto flex items-center gap-2 px-2 pt-3">
+                    <DitherAvatar name="ada" :size="24" :animate="false" />
+                    <div class="min-w-0">
+                      <div class="truncate text-[11px] text-foreground/90">ada</div>
+                      <div class="text-[10px] text-muted-foreground">admin</div>
+                    </div>
+                  </div>
+                </aside>
+                <!-- Main -->
+                <div class="flex min-w-0 flex-col">
+                  <header class="flex h-10 shrink-0 items-center justify-between border-b border-border/60 px-4">
+                    <span class="text-[12px]">{{ shellNav }}</span>
+                    <DitherButton color="blue" variant="gradient" class="px-2.5 py-1 text-[10px]">Export</DitherButton>
+                  </header>
+                  <main class="grid flex-1 content-start gap-3 p-4">
+                    <div class="grid grid-cols-3 gap-3">
+                      <div v-for="s in STATS" :key="s.label" class="rounded-md border border-border/60 p-2.5">
+                        <div class="truncate text-[10px] text-muted-foreground">{{ s.label }}</div>
+                        <div class="text-[13px] tracking-tight tabular-nums">{{ s.value }}</div>
+                        <Sparkline :data="s.data" :color="s.color" class="mt-1.5 h-5 w-full" />
+                      </div>
+                    </div>
+                    <div class="rounded-md border border-border/60 p-3">
+                      <div class="text-[10px] text-muted-foreground">Revenue vs expenses</div>
+                      <div class="mt-2 h-36">
+                        <AreaChart :data="rows" :config="config" stack-type="stacked" :interactive="false">
+                          <Area data-key="expenses" variant="dotted" />
+                          <Area data-key="revenue" variant="gradient" />
+                        </AreaChart>
+                      </div>
+                    </div>
+                  </main>
+                </div>
+              </div>
+            </DemoCard>
+          </section>
+
+          <!-- Monitoring -->
+          <section id="monitoring" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Monitoring</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              An ops board: system pulse, sprint health, and per-service status
+              rows — the grey seed marks what is quiet, red what is not.
+            </p>
+            <DemoCard :code="SNIPPETS.monitoring">
+              <div class="grid gap-4 lg:grid-cols-5">
+                <div class="rounded-lg border border-border/60 p-4 lg:col-span-3">
+                  <div class="text-[11px] text-muted-foreground">System pulse</div>
+                  <div class="mt-3 h-44">
+                    <LineChart :data="rows" :config="config" :interactive="false">
+                      <Grid horizontal />
+                      <XAxis data-key="month" :max-ticks="6" />
+                      <Line data-key="revenue" />
+                      <Line data-key="expenses" />
+                    </LineChart>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-border/60 p-4 lg:col-span-2">
+                  <div class="text-[11px] text-muted-foreground">Sprint health</div>
+                  <div class="mt-3 h-44">
+                    <RadarChart :data="radarRows" :config="radarConfig" name-key="axis">
+                      <Radar data-key="current" />
+                      <Radar data-key="previous" />
+                    </RadarChart>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-border/60 lg:col-span-5">
+                  <div v-for="(s, i) in SERVICES" :key="s.name" class="flex items-center gap-4 px-4 py-2.5" :class="i > 0 ? 'border-t border-border/40' : ''">
+                    <span class="size-1.5 shrink-0 rounded-full" :style="{ backgroundColor: cssColor(s.ok ? 'green' : 'red') }" />
+                    <span class="w-28 truncate text-[11px] text-foreground/90 sm:w-36">{{ s.name }}</span>
+                    <Sparkline :data="s.data" :color="s.color" class="h-5 min-w-0 flex-1" />
+                    <span class="w-14 text-right text-[11px] tabular-nums" :class="s.ok ? 'text-muted-foreground' : 'text-foreground'" :style="s.ok ? {} : { color: cssColor('red') }">{{ s.uptime }}</span>
                   </div>
                 </div>
               </div>
