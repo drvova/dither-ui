@@ -1,0 +1,35 @@
+{
+  "name": "dither-ui",
+  "version": "0.1.0",
+  "description": "Dithered UI toolkit for Vue 3 — composable ordered-dither charts (area, line, bar, pie, radar) on one tiny canvas engine, plus generative avatars, buttons, gradient washes and more.",
+  "type": "module",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./*"
+  },
+  "files": [
+    "*.ts",
+    "*.vue",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "peerDependencies": {
+    "clsx": "^2.1.0",
+    "d3-scale": "^4.0.0",
+    "d3-shape": "^3.2.0",
+    "tailwind-merge": "^2.5.0",
+    "vue": "^3.5.0"
+  },
+  "keywords": [
+    "vue",
+    "charts",
+    "dither",
+    "canvas",
+    "ui-kit",
+    "generative"
+  ],
+  "license": "MIT"
+}
