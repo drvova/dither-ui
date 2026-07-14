@@ -26,4 +26,5 @@ onBeforeUnmount(() => ctx.unregisterVariant(props.dataKey))
 
 <template>
   <!-- The dithered polygon is painted on the canvas; this registers the series. -->
+  <g />
 </template>

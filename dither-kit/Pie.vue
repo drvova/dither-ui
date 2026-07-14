@@ -20,4 +20,5 @@ onBeforeUnmount(() => ctx.unregisterVariant("*"))
 
 <template>
   <!-- Slices are painted on the canvas; this part only registers the variant. -->
+  <g />
 </template>
