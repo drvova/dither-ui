@@ -17,6 +17,7 @@ export const editor = reactive({
   selectedLayerId: "" as string,
   viewport: { x: 96, y: 88, zoom: 1 } as Viewport,
   replayToken: 0,
+  dataOpen: false,
 })
 selectArtboard(editor.artboards[0].id)
 

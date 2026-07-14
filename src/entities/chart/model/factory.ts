@@ -1,5 +1,11 @@
 import { type ChartType, familyOf } from "@/shared/config"
-import type { ChartModel, SeriesRow } from "./types"
+import { dataFor } from "./data"
+import type { ChartModel, DataRow, SeriesRow } from "./types"
+
+/** A fresh copy of the family's sample rows — each chart owns its data. */
+export function seedRows(type: ChartType): DataRow[] {
+  return JSON.parse(JSON.stringify(dataFor(familyOf(type)))) as DataRow[]
+}
 
 function seriesFor(type: ChartType): SeriesRow[] {
   const fam = familyOf(type)
@@ -74,6 +80,7 @@ export function createChart(type: ChartType = "area"): ChartModel {
     radarRings: 4,
     innerRadius: 0.5,
     margins: { ...DEFAULT_MARGINS },
+    rows: seedRows(type),
     series: seriesFor(type),
     grid: { on: true, locked: false, horizontal: true, vertical: false, dash: "3 3", tickCount: 4 },
     xAxis: { on: true, locked: false, tickMargin: 8, maxTicks: 8 },
@@ -97,6 +104,7 @@ export function setChartType(chart: ChartModel, type: ChartType): void {
   chart.type = type
   if (familyChanged) {
     chart.series = seriesFor(type)
+    chart.rows = seedRows(type)
     chart.legend.align = familyOf(type) === "cartesian" ? "right" : "center"
   }
 }

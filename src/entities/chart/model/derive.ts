@@ -1,6 +1,5 @@
 import { familyOf } from "@/shared/config"
 import type { ChartConfig } from "@dither-kit"
-import { dataFor, pieData } from "./data"
 import type { ChartModel, SeriesRow } from "./types"
 
 export const activeSeries = (chart: ChartModel): SeriesRow[] =>
@@ -13,10 +12,9 @@ export function configOf(chart: ChartModel): ChartConfig {
 }
 
 export function dataOf(chart: ChartModel): Record<string, unknown>[] {
-  const fam = familyOf(chart.type)
-  if (fam === "pie") {
+  if (familyOf(chart.type) === "pie") {
     const on = new Set(activeSeries(chart).map((s) => s.key))
-    return pieData.filter((d) => on.has(d.name as string))
+    return chart.rows.filter((d) => on.has(d.name as string))
   }
-  return dataFor(fam)
+  return chart.rows
 }

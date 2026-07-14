@@ -38,10 +38,14 @@ export type YAxisPart = { on: boolean; locked: boolean; tickCount: number; tickM
 export type LegendPart = { on: boolean; locked: boolean; align: "left" | "center" | "right"; clickable: boolean }
 export type TooltipPart = { on: boolean; locked: boolean; variant: TooltipVariant }
 
+/** One editable data row — the label field plus one numeric field per series. */
+export type DataRow = Record<string, string | number>
+
 /** A fully granular, editable chart. The renderer, the layers panel, the
  * inspector and the code exporter all read/write this one shape. */
 export type ChartModel = {
   type: ChartType
+  rows: DataRow[] // the chart's own data — fully editable
   bloom: BloomLevel | BloomConfig // preset or a fully custom glow
   stackType: StackType
   animate: boolean

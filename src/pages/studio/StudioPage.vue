@@ -1,19 +1,31 @@
 <script setup lang="ts">
 import { ref } from "vue"
+import { addArtboard } from "@/entities/editor"
 import { ExportDialog } from "@/features/export-code"
 import { startHistory } from "@/features/history"
 import { ShortcutsHelp } from "@/features/keyboard"
 import { hydrate, startAutosave } from "@/features/persistence"
 import { Canvas } from "@/widgets/canvas"
+import { DataEditor } from "@/widgets/data-editor"
 import { Inspector } from "@/widgets/inspector"
 import { LayerTree } from "@/widgets/layer-tree"
 import { Toolbar } from "@/widgets/toolbar"
+import { CHART_TYPES, type ChartType } from "@/shared/config"
 
 const exportOpen = ref(false)
 
 hydrate()
 startAutosave()
 startHistory()
+
+// Deep link from the docs: #/studio/new/<type> adds that chart to the
+// restored document (after startHistory, so it is undoable) and cleans the
+// hash so a refresh does not duplicate it.
+const wanted = window.location.hash.match(/^#\/studio\/new\/([a-z]+)/)?.[1]
+if (wanted && (CHART_TYPES as readonly string[]).includes(wanted)) {
+  addArtboard(wanted as ChartType)
+  history.replaceState(null, "", "#/studio")
+}
 </script>
 
 <template>
@@ -32,8 +44,9 @@ startHistory()
       </aside>
 
       <!-- Canvas -->
-      <div class="min-w-0 flex-1">
+      <div class="relative min-w-0 flex-1">
         <Canvas />
+        <DataEditor />
       </div>
 
       <!-- Inspector -->

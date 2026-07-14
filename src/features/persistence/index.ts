@@ -1,1 +1,1 @@
-export { hydrate, startAutosave } from "./persist"
+export { exportDocument, hydrate, importDocument, startAutosave } from "./persist"

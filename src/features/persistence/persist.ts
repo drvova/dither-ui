@@ -1,7 +1,7 @@
 import { watch } from "vue"
 import { editor, selectArtboard } from "@/entities/editor"
 
-const KEY = "dither-studio-v7"
+const KEY = "dither-studio-v8"
 
 /** Restore a saved document (run in setup, before first paint). Corrupt or
  * stale JSON is ignored on purpose — a bad blob must not brick the editor. */
@@ -18,6 +18,35 @@ export function hydrate() {
     }
   } catch {
     localStorage.removeItem(KEY)
+  }
+}
+
+/** Download the whole document as a project .json file. */
+export function exportDocument() {
+  const blob = new Blob(
+    [JSON.stringify({ artboards: editor.artboards, groups: editor.groups, viewport: editor.viewport }, null, 2)],
+    { type: "application/json" }
+  )
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = "dither-studio.json"
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+/** Load a project .json file into the editor. Invalid files are ignored. */
+export async function importDocument(file: File): Promise<boolean> {
+  try {
+    const d = JSON.parse(await file.text())
+    if (!Array.isArray(d.artboards) || !d.artboards.length) return false
+    editor.artboards = d.artboards
+    editor.groups = Array.isArray(d.groups) ? d.groups : []
+    if (d.viewport) editor.viewport = d.viewport
+    selectArtboard(editor.artboards[0].id)
+    return true
+  } catch {
+    return false
   }
 }
 
