@@ -51,6 +51,7 @@ onMounted(() => {
       let bestLabel = -1
       let bestSize = 0
       let nextLabel = 0
+      const touchesEdge: boolean[] = []
       for (let p = 0; p < n; p++) {
         if (label[p] >= 0 || d[p * 4 + 3] === 0) continue
         let head = 0
@@ -58,50 +59,63 @@ onMounted(() => {
         queue[tail++] = p
         label[p] = nextLabel
         let size = 0
+        let edge = false
         while (head < tail) {
           const q = queue[head++]
           size++
           const qx = q % f.w
+          if (qx === 0 || qx === f.w - 1) edge = true
           if (qx > 0 && label[q - 1] < 0 && d[(q - 1) * 4 + 3] > 0) { label[q - 1] = nextLabel; queue[tail++] = q - 1 }
           if (qx < f.w - 1 && label[q + 1] < 0 && d[(q + 1) * 4 + 3] > 0) { label[q + 1] = nextLabel; queue[tail++] = q + 1 }
           if (q >= f.w && label[q - f.w] < 0 && d[(q - f.w) * 4 + 3] > 0) { label[q - f.w] = nextLabel; queue[tail++] = q - f.w }
           if (q < n - f.w && label[q + f.w] < 0 && d[(q + f.w) * 4 + 3] > 0) { label[q + f.w] = nextLabel; queue[tail++] = q + f.w }
         }
+        touchesEdge.push(edge)
         if (size > bestSize) { bestSize = size; bestLabel = nextLabel }
         nextLabel++
       }
-      for (let p = 0; p < n; p++) if (label[p] !== bestLabel) d[p * 4 + 3] = 0
+      // Neighbour bleed always touches the cut edge; her shadow never does.
+      for (let p = 0; p < n; p++) {
+        const l = label[p]
+        if (l >= 0 && l !== bestLabel && touchesEdge[l]) d[p * 4 + 3] = 0
+      }
       og.putImageData(px, 0, 0)
       return off
     })
 
     c.width = 92
     c.height = 186
-    let k = 0
-    let last = 0
-    let x = -100
-    const draw = () => {
+    let k = -1
+    const draw = (frame: number) => {
+      if (frame === k) return
+      k = frame
       const f = cells[k]
       g.clearRect(0, 0, c.width, c.height)
       g.drawImage(f, Math.round((c.width - f.width) / 2), 0)
     }
-    draw()
+    draw(0)
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
       c.style.transform = "translateX(10vw)"
       return
     }
-    // Pixel-game locomotion: she steps WITH her frames — position advances in
-    // the same tick as the gait, so feet grip the ground instead of sliding.
-    const STEP = 7 // px per frame; 10 frames × 7px ≈ one full gait
+    // Smooth locomotion, quantized to whole pixels: position advances every
+    // display frame at a speed matched to the gait (one full 10-frame cycle
+    // covers one stride), frames derive from elapsed time — no drift, no 7px
+    // hops, feet stay planted on average.
+    const SPEED = 66 // px/s ≈ stride length per 1s gait cycle
+    let x = -100
+    let start = 0
+    let prev = 0
     const tick = (t: number) => {
-      if (t - last > FRAME_MS) {
-        last = t
-        k = (k + 1) % cells.length
-        x += STEP
-        if (x > window.innerWidth + 40) x = -160
-        draw()
-        c.style.transform = `translateX(${x}px)`
+      if (!start) {
+        start = t
+        prev = t
       }
+      x += (SPEED * (t - prev)) / 1000
+      prev = t
+      if (x > window.innerWidth + 40) x = -160
+      draw(Math.floor((t - start) / FRAME_MS) % cells.length)
+      c.style.transform = `translateX(${Math.round(x)}px)`
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
@@ -150,10 +164,10 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
       </div>
 
       <!-- Full-bleed runner: she jogs the whole width, along the footer line -->
-      <div aria-hidden="true" class="reveal relative h-40 w-full overflow-hidden" style="--reveal-delay: 300ms">
+      <div aria-hidden="true" class="reveal relative h-48 w-full overflow-hidden" style="--reveal-delay: 300ms">
         <canvas
           ref="spriteRef"
-          class="absolute bottom-0 h-36 w-auto"
+          class="absolute bottom-0 h-[186px] w-[92px]"
           style="image-rendering: pixelated"
         />
       </div>
