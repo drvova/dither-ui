@@ -1,7 +1,68 @@
 <script setup lang="ts">
-import { DitherButton, DitherGradient, DitherImage } from "@dither-kit"
+import { onBeforeUnmount, onMounted, ref } from "vue"
+import { DitherButton, DitherGradient } from "@dither-kit"
 
 const openStudio = () => (window.location.hash = "#/studio")
+
+// RUN cycle from the sprite sheet — frame boxes measured from the source png.
+const FRAMES = [
+  { x: 46, y: 433, w: 150, h: 217 },
+  { x: 219, y: 433, w: 138, h: 217 },
+  { x: 381, y: 433, w: 137, h: 217 },
+  { x: 540, y: 433, w: 134, h: 217 },
+]
+const FRAME_MS = 110
+const spriteRef = ref<HTMLCanvasElement | null>(null)
+let raf = 0
+
+onMounted(() => {
+  const img = new Image()
+  img.src = "/sprites.png"
+  img.onload = () => {
+    const c = spriteRef.value
+    const g = c?.getContext("2d")
+    if (!c || !g) return
+
+    // Chroma-key the sheet's near-black background so only the sprite shows.
+    const cells = FRAMES.map((f) => {
+      const off = document.createElement("canvas")
+      off.width = f.w
+      off.height = f.h
+      const og = off.getContext("2d")!
+      og.drawImage(img, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h)
+      const px = og.getImageData(0, 0, f.w, f.h)
+      const d = px.data
+      for (let i = 0; i < d.length; i += 4) {
+        if (Math.abs(d[i] - 15) + Math.abs(d[i + 1] - 16) + Math.abs(d[i + 2] - 17) < 48)
+          d[i + 3] = 0
+      }
+      og.putImageData(px, 0, 0)
+      return off
+    })
+
+    c.width = 152
+    c.height = 217
+    let k = 0
+    let last = 0
+    const draw = () => {
+      const f = cells[k]
+      g.clearRect(0, 0, c.width, c.height)
+      g.drawImage(f, Math.round((c.width - f.width) / 2), 0)
+    }
+    draw()
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    const tick = (t: number) => {
+      if (t - last > FRAME_MS) {
+        last = t
+        k = (k + 1) % cells.length
+        draw()
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+  }
+})
+onBeforeUnmount(() => cancelAnimationFrame(raf))
 </script>
 
 <template>
@@ -41,16 +102,15 @@ const openStudio = () => (window.location.hash = "#/studio")
           </DitherButton>
         </div>
 
-        <div class="reveal mt-20 sm:mt-24" style="--reveal-delay: 300ms">
-          <DitherImage
-            src="/hero.png"
-            alt="Dithered artwork rendered by dither-ui"
-            :cell="4"
-            :focus-y="0.22"
-            :fade="128"
-            class="h-72 w-full sm:h-96"
-          />
-        </div>
+      </div>
+
+      <!-- Full-bleed runner: she jogs the whole width, along the footer line -->
+      <div aria-hidden="true" class="reveal relative h-40 w-full overflow-hidden" style="--reveal-delay: 300ms">
+        <canvas
+          ref="spriteRef"
+          class="runner absolute bottom-0 h-36 w-auto"
+          style="image-rendering: pixelated"
+        />
       </div>
     </main>
 
@@ -91,6 +151,24 @@ const openStudio = () => (window.location.hash = "#/studio")
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     animation: none;
+  }
+  .runner {
+    animation: none;
+    left: 10%;
+  }
+}
+
+/* She jogs across the hero — transform only, linear, endless. */
+.runner {
+  animation: run-across 16s linear infinite;
+}
+
+@keyframes run-across {
+  from {
+    transform: translateX(-160px);
+  }
+  to {
+    transform: translateX(calc(100vw + 40px));
   }
 }
 </style>
