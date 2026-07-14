@@ -23,11 +23,12 @@ function setPieVariant(v: AreaVariant) {
 </script>
 
 <template>
-  <div v-if="chart && ab" class="flex flex-col gap-5">
-    <div class="flex items-baseline justify-between">
-      <span class="text-sm text-foreground">{{ layer?.label ?? "Inspector" }}</span>
-      <span class="text-[10px] uppercase tracking-widest text-muted-foreground">{{ kind }}</span>
+  <div v-if="chart && ab" class="flex h-full flex-col">
+    <div class="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-border/60 px-3">
+      <span class="truncate text-[13px] font-medium text-foreground">{{ layer?.label ?? "Inspector" }}</span>
+      <span class="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{{ kind }}</span>
     </div>
+    <div class="flex flex-col gap-5 overflow-y-auto p-4">
 
     <!-- ROOT / FRAME -->
     <template v-if="kind === 'root'">
@@ -137,6 +138,7 @@ function setPieVariant(v: AreaVariant) {
     <template v-else-if="kind === 'tooltip'">
       <Segmented v-model="chart.tooltip.variant" :options="['default', 'frosted-glass']" label="variant" />
     </template>
+    </div>
   </div>
 
   <div v-else class="flex h-full items-center justify-center px-4 text-center text-xs text-muted-foreground">

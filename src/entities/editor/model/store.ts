@@ -79,6 +79,10 @@ export function setSelectedType(type: ChartType) {
   editor.selectedLayerId = `${editor.selectedArtboardId}:root`
   replay()
 }
+export function deselect() {
+  editor.selectedArtboardId = ""
+  editor.selectedLayerId = ""
+}
 export function replay() {
   editor.replayToken += 1
 }

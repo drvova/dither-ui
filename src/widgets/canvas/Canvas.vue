@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { editor } from "@/entities/editor"
+import { deselect, editor } from "@/entities/editor"
 import { usePanZoom } from "@/features/pan-zoom"
 import Artboard from "./Artboard.vue"
 
@@ -14,6 +14,7 @@ const { onWheel, startPan, zoomIn, zoomOut, resetZoom } = usePanZoom(host)
     class="dk-canvas relative h-full w-full overflow-hidden"
     @wheel.prevent="onWheel"
     @pointerdown.self="startPan"
+    @click.self="deselect"
   >
     <div
       class="absolute left-0 top-0 origin-top-left"
@@ -25,7 +26,7 @@ const { onWheel, startPan, zoomIn, zoomOut, resetZoom } = usePanZoom(host)
     </div>
 
     <div
-      class="pointer-events-auto absolute bottom-4 left-4 flex items-center gap-0.5 rounded-lg border border-border bg-card/90 p-1 font-mono text-xs backdrop-blur"
+      class="pointer-events-auto absolute bottom-4 left-4 flex items-center gap-0.5 rounded-lg border border-border bg-card/90 p-1 text-xs backdrop-blur"
     >
       <button class="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="zoomOut">−</button>
       <button class="w-12 rounded-md py-1 text-center tabular-nums text-muted-foreground transition-colors hover:text-foreground" @click="resetZoom">{{ Math.round(editor.viewport.zoom * 100) }}%</button>

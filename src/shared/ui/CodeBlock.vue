@@ -27,6 +27,6 @@ async function copy() {
     >
       {{ copied ? "copied" : "copy" }}
     </button>
-    <pre class="overflow-x-auto p-4 text-[12px] leading-relaxed text-foreground"><code>{{ code }}</code></pre>
+    <pre class="overflow-x-auto p-4 font-mono text-[12px] leading-relaxed text-foreground"><code>{{ code }}</code></pre>
   </div>
 </template>

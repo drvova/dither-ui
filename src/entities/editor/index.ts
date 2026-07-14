@@ -1,6 +1,7 @@
 export {
   addArtboard,
   artboardIdOf,
+  deselect,
   duplicateSelected,
   editor,
   moveArtboard,

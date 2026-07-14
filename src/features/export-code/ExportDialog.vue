@@ -21,7 +21,7 @@ const code = computed(() =>
     >
       <div class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
-          <span class="font-mono text-sm">export — Vue SFC</span>
+          <span class="text-sm font-medium">Export — Vue SFC</span>
           <button
             type="button"
             class="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground"
