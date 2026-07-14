@@ -33,7 +33,7 @@ function doUngroup() {
   <header class="flex h-12 items-center justify-between border-b border-border/60 bg-background px-4">
     <div class="flex items-center gap-2">
       <span class="inline-block size-3 rounded-[2px] bg-foreground" />
-      <span class="font-mono text-sm tracking-tight">dither-kit</span>
+      <span class="font-mono text-sm tracking-tight">dither-ui</span>
       <span class="ml-1 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">studio</span>
     </div>
 

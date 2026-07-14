@@ -24,7 +24,7 @@ const series: { color: DitherColor; data: number[] }[] = [
     <div class="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6">
       <!-- Header -->
       <header class="flex h-14 items-center justify-between text-xs">
-        <span class="tracking-tight">dither-kit</span>
+        <span class="tracking-tight">dither-ui</span>
         <a
           href="#/studio"
           class="text-muted-foreground transition-colors hover:text-foreground"
@@ -36,11 +36,11 @@ const series: { color: DitherColor; data: number[] }[] = [
         <section class="relative isolate overflow-hidden rounded-lg border border-border/60 px-8 py-16">
           <DitherGradient from="blue" direction="up" :opacity="0.35" class="-z-10" />
           <h1 class="max-w-md text-2xl leading-snug tracking-tight text-balance">
-            Dithered charts, buttons and avatars for Vue.
+            A dithered UI toolkit for Vue.
           </h1>
           <p class="mt-3 max-w-sm text-xs leading-relaxed text-muted-foreground">
-            Canvas-rendered, ordered-dither components. No SVG soup, no chart
-            framework — just pixels.
+            Canvas-rendered charts, buttons, avatars and gradients with an
+            ordered-dither texture. No SVG soup, no chart framework — just pixels.
           </p>
           <div class="mt-8 flex items-center gap-4">
             <a href="#/studio">
@@ -49,9 +49,9 @@ const series: { color: DitherColor; data: number[] }[] = [
               </DitherButton>
             </a>
             <a
-              href="https://github.com"
+              href="https://dither-ui.com"
               class="text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >source</a>
+            >dither-ui.com</a>
           </div>
         </section>
 
@@ -81,7 +81,7 @@ const series: { color: DitherColor; data: number[] }[] = [
 
       <!-- Footer -->
       <footer class="flex h-14 items-center justify-between text-[10px] text-muted-foreground">
-        <span>dither-kit — vue port</span>
+        <span>dither-ui.com</span>
         <span>MIT</span>
       </footer>
     </div>
