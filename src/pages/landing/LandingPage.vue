@@ -46,18 +46,28 @@ onMounted(() => {
     c.height = 242
     let k = 0
     let last = 0
+    let x = -100
     const draw = () => {
       const f = cells[k]
       g.clearRect(0, 0, c.width, c.height)
       g.drawImage(f, Math.round((c.width - f.width) / 2), 0)
     }
     draw()
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      c.style.transform = "translateX(10vw)"
+      return
+    }
+    // Pixel-game locomotion: she steps WITH her frames — position advances in
+    // the same tick as the gait, so feet grip the ground instead of sliding.
+    const STEP = 9 // px per frame; 6 frames × 9px ≈ one stride
     const tick = (t: number) => {
       if (t - last > FRAME_MS) {
         last = t
         k = (k + 1) % cells.length
+        x += STEP
+        if (x > window.innerWidth + 40) x = -160
         draw()
+        c.style.transform = `translateX(${x}px)`
       }
       raf = requestAnimationFrame(tick)
     }
@@ -110,7 +120,7 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
       <div aria-hidden="true" class="reveal relative h-40 w-full overflow-hidden" style="--reveal-delay: 300ms">
         <canvas
           ref="spriteRef"
-          class="runner absolute bottom-0 h-36 w-auto"
+          class="absolute bottom-0 h-36 w-auto"
           style="image-rendering: pixelated"
         />
       </div>
@@ -153,24 +163,6 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     animation: none;
-  }
-  .runner {
-    animation: none;
-    left: 10%;
-  }
-}
-
-/* She strolls across the hero — transform only, linear, endless. */
-.runner {
-  animation: run-across 40s linear infinite;
-}
-
-@keyframes run-across {
-  from {
-    transform: translateX(-160px);
-  }
-  to {
-    transform: translateX(calc(100vw + 40px));
   }
 }
 </style>
