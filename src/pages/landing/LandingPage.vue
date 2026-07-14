@@ -67,11 +67,17 @@ const heroConfig = { v: { color: "blue" as DitherColor } }
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-border/60">
+    <!-- Footer: one quiet line, then the wordmark sinking below the fold -->
+    <footer class="overflow-hidden border-t border-border/60">
       <div class="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-[11px] text-muted-foreground">
         <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
         <span>MIT</span>
+      </div>
+      <div
+        aria-hidden="true"
+        class="pointer-events-none -mb-[0.34em] select-none text-center text-[clamp(5rem,19vw,15rem)] leading-none font-medium tracking-tighter whitespace-nowrap text-foreground/[0.045]"
+      >
+        dither-ui
       </div>
     </footer>
   </div>
