@@ -4,14 +4,16 @@ import { DitherButton, DitherGradient } from "@dither-kit"
 
 const openStudio = () => (window.location.hash = "#/studio")
 
-// RUN cycle from the sprite sheet — frame boxes measured from the source png.
+// WALK cycle from the sprite sheet — frame boxes measured from the source png.
 const FRAMES = [
-  { x: 46, y: 433, w: 150, h: 217 },
-  { x: 219, y: 433, w: 138, h: 217 },
-  { x: 381, y: 433, w: 137, h: 217 },
-  { x: 540, y: 433, w: 134, h: 217 },
+  { x: 651, y: 85, w: 114, h: 242 },
+  { x: 782, y: 85, w: 115, h: 242 },
+  { x: 914, y: 85, w: 115, h: 242 },
+  { x: 1045, y: 85, w: 115, h: 242 },
+  { x: 1177, y: 85, w: 116, h: 242 },
+  { x: 1309, y: 85, w: 115, h: 242 },
 ]
-const FRAME_MS = 110
+const FRAME_MS = 140
 const spriteRef = ref<HTMLCanvasElement | null>(null)
 let raf = 0
 
@@ -40,8 +42,8 @@ onMounted(() => {
       return off
     })
 
-    c.width = 152
-    c.height = 217
+    c.width = 120
+    c.height = 242
     let k = 0
     let last = 0
     const draw = () => {
@@ -158,9 +160,9 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
   }
 }
 
-/* She jogs across the hero — transform only, linear, endless. */
+/* She strolls across the hero — transform only, linear, endless. */
 .runner {
-  animation: run-across 16s linear infinite;
+  animation: run-across 40s linear infinite;
 }
 
 @keyframes run-across {
