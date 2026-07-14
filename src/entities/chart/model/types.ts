@@ -5,7 +5,7 @@ import type {
   DitherColor,
   StackType,
   TooltipVariant,
-} from "@/shared/dither-kit"
+} from "@dither-kit"
 
 export type SeriesRow = {
   key: string

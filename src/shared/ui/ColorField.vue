@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { COLORS } from "@/shared/config"
-import { cssColor, type DitherColor } from "@/shared/dither-kit"
+import { cssColor, type DitherColor } from "@dither-kit"
 
 const props = defineProps<{ modelValue: DitherColor | number }>()
 const emit = defineEmits<{ "update:modelValue": [DitherColor | number] }>()

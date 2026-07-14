@@ -18,7 +18,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "@/shared/dither-kit"
+} from "@dither-kit"
 
 const props = defineProps<{ chart: ChartModel }>()
 

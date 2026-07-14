@@ -17,8 +17,17 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@dither-kit": ["./dither-kit/index.ts"],
+      "@dither-kit/*": ["./dither-kit/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "vite.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.vue",
+    "dither-kit/**/*.ts",
+    "dither-kit/**/*.vue",
+    "vite.config.ts"
+  ]
 }

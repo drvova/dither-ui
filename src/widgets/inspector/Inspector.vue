@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import type { AreaVariant } from "@/shared/dither-kit"
+import type { AreaVariant } from "@dither-kit"
 import { editor, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
 import { BLOOMS, CHART_TYPES, familyOf, STACKS, VARIANTS } from "@/shared/config"
 import { ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"

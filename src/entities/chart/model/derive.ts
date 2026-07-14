@@ -1,5 +1,5 @@
 import { familyOf } from "@/shared/config"
-import type { ChartConfig } from "@/shared/dither-kit"
+import type { ChartConfig } from "@dither-kit"
 import { dataFor, pieData } from "./data"
 import type { ChartModel, SeriesRow } from "./types"
 

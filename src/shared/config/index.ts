@@ -4,7 +4,7 @@ import type {
   DitherColor,
   GradientDirection,
   StackType,
-} from "@/shared/dither-kit"
+} from "@dither-kit"
 
 export type ChartType = "area" | "line" | "bar" | "pie" | "radar"
 export type Family = "cartesian" | "pie" | "radar"

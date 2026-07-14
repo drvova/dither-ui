@@ -19,7 +19,7 @@ import {
   setGroupLocked,
   ungroup,
 } from "@/entities/editor"
-import { cssColor } from "@/shared/dither-kit"
+import { cssColor } from "@dither-kit"
 import { ContextMenu, type MenuItem } from "@/shared/ui"
 
 type Node =

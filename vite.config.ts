@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@dither-kit": fileURLToPath(new URL("./dither-kit", import.meta.url)),
     },
   },
 })
