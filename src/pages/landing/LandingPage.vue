@@ -1,7 +1,21 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
-import { DitherButton, DitherGradient } from "@dither-kit"
+import {
+  Area,
+  AreaChart,
+  cssColor,
+  DitherAvatar,
+  DitherButton,
+  DitherGradient,
+  type DitherColor,
+} from "@dither-kit"
 import { version } from "../../../package.json"
+
+const teaser = Array.from({ length: 18 }, (_, i) => ({
+  v: 5 + Math.sin(i * 0.7) * 2 + Math.sin(i * 1.6) * 1,
+}))
+const teaserConfig = { v: { color: "blue" as DitherColor } }
+const swatches: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
 
 const openStudio = () => (window.location.hash = "#/studio")
 
@@ -56,10 +70,10 @@ onMounted(() => {
     <!-- Header -->
     <header class="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-xs">
       <span class="tracking-tight">dither-ui</span>
-      <a
-        href="#/studio"
-        class="-m-3 p-3 text-muted-foreground transition-colors hover:text-foreground"
-      >studio →</a>
+      <nav class="flex items-center gap-5 text-muted-foreground">
+        <a href="#/docs" class="-m-3 p-3 transition-colors hover:text-foreground">docs</a>
+        <a href="#/studio" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
+      </nav>
     </header>
 
     <!-- Hero: one statement, one action, one visual. -->
@@ -79,8 +93,8 @@ onMounted(() => {
           <em class="text-foreground/80">pixel by pixel</em> on canvas. Built in
           the
           <a href="#/studio" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">studio</a>,
-          shipped under
-          <a href="https://dither-ui.com" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">MIT</a>.
+          documented in the
+          <a href="#/docs" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">docs</a>.
         </p>
         <div class="reveal mt-10" style="--reveal-delay: 180ms">
           <DitherButton
@@ -122,6 +136,49 @@ onMounted(() => {
         </div>
       </div>
     </main>
+
+    <!-- Inside the kit: three quiet tiles, one action for the group -->
+    <section class="border-t border-border/60">
+      <div class="mx-auto w-full max-w-4xl px-6 py-20">
+        <div class="flex items-baseline justify-between">
+          <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">inside the kit</p>
+          <a href="#/docs" class="-m-3 p-3 text-[11px] text-muted-foreground transition-colors hover:text-foreground">read the docs →</a>
+        </div>
+        <div class="mt-12 grid gap-x-12 gap-y-14 sm:grid-cols-3">
+          <a href="#/docs" class="group block">
+            <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
+              <AreaChart :data="teaser" :config="teaserConfig" :interactive="false" :margins="{ top: 4, right: 0, bottom: 0, left: 0 }">
+                <Area data-key="v" variant="gradient" />
+              </AreaChart>
+            </div>
+            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Charts</h3>
+            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
+              Area, line, bar, pie and radar — composed from parts, dithered per cell.
+            </p>
+          </a>
+          <a href="#/docs" class="group block">
+            <div inert class="flex h-24 flex-wrap content-center gap-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
+              <DitherButton color="blue" variant="gradient">Save</DitherButton>
+              <DitherButton color="green" variant="solid">Run</DitherButton>
+              <DitherAvatar v-for="n in ['ada', 'grace']" :key="n" :name="n" :size="32" />
+            </div>
+            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Primitives</h3>
+            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
+              Buttons, avatars, gradients and images — every fill drawn on canvas.
+            </p>
+          </a>
+          <a href="#/docs" class="group block">
+            <div inert class="flex h-24 content-center items-center gap-3 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
+              <span v-for="c in swatches" :key="c" class="size-5 rounded-[3px]" :style="{ backgroundColor: cssColor(c) }" />
+            </div>
+            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">One palette</h3>
+            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
+              Seven seeds; fill, line and sparkle hues resolve from the same source.
+            </p>
+          </a>
+        </div>
+      </div>
+    </section>
 
     <!-- Footer: one quiet line, then the wordmark sinking below the fold -->
     <footer class="overflow-hidden border-t border-border/60">

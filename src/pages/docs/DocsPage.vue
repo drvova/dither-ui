@@ -25,6 +25,7 @@ import {
   type DitherColor,
   type GradientDirection,
 } from "@dither-kit"
+import { ref } from "vue"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import PropsTable, { type PropRow } from "./PropsTable.vue"
@@ -121,6 +122,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
     { prop: "animate", type: "boolean", default: "false" },
   ],
+  motion: [
+    { prop: "animate", type: "boolean", default: "true" },
+    { prop: "animation-duration", type: "number (ms)", default: "900" },
+    { prop: "animation-delay", type: "number (ms)", default: "0" },
+    { prop: "replay-token", type: "number — bump to re-run", default: "0" },
+  ],
   button: [
     { prop: "color", type: "DitherColor | number", default: '"blue"' },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
@@ -167,6 +174,7 @@ const GROUPS = [
       { id: "pie", label: "Pie Chart" },
       { id: "radar", label: "Radar Chart" },
       { id: "sparkline", label: "Sparkline" },
+      { id: "motion", label: "Motion" },
     ],
   },
   {
@@ -183,6 +191,11 @@ const GROUPS = [
 
 const scrollTo = (id: string) =>
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
+
+// Motion demo — replay re-runs the entrance, duration is chosen live.
+const replayToken = ref(0)
+const motionDuration = ref(900)
+const DURATIONS = [300, 900, 2000]
 
 const SNIPPETS = {
   install: `// Copy the dither-kit/ folder into your project, then alias it:
@@ -253,6 +266,16 @@ const config = {
   </div>
   <Sparkline :data="last24h" color="green" class="mt-3 h-8 w-full" />
 </div>`,
+  motion: `const replayToken = ref(0)
+
+<BarChart :data="rows" :config="config"
+  :animation-duration="900" :replay-token="replayToken">
+  <Bar data-key="revenue" />
+</BarChart>
+
+<DitherButton @click="replayToken++">Replay</DitherButton>
+<!-- prefers-reduced-motion is respected automatically:
+     entrances snap, sparkles hold still -->`,
   button: `<!-- variants -->
 <DitherButton variant="gradient">Deploy</DitherButton>
 <DitherButton variant="solid">Run</DitherButton>
@@ -281,8 +304,8 @@ cssColor("blue") // rgb(53,143,243)`,
 
 <template>
   <div class="min-h-screen bg-background font-mono text-foreground antialiased">
-    <!-- Header -->
-    <header class="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur">
+    <!-- Header: translucent material, scroll-edge fade instead of a hard divider -->
+    <header class="chrome sticky top-0 z-40">
       <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6 text-xs">
         <div class="flex items-center gap-6">
           <a href="#" class="tracking-tight transition-colors hover:text-foreground">dither-ui</a>
@@ -518,6 +541,49 @@ cssColor("blue") // rgb(53,143,243)`,
             <PropsTable :rows="API.sparkline" />
           </section>
 
+          <!-- Motion -->
+          <section id="motion" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Motion</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Entrances draw the dither field in; bump
+              <code class="text-foreground/80">replay-token</code> to run one again.
+              When the OS asks for reduced motion, entrances snap and sparkles hold still — no opt-in needed.
+            </p>
+            <DemoCard :code="SNIPPETS.motion">
+              <div class="grid gap-5">
+                <div class="h-48">
+                  <BarChart
+                    :data="trafficRows"
+                    :config="trafficConfig"
+                    :interactive="false"
+                    :animation-duration="motionDuration"
+                    :replay-token="replayToken"
+                  >
+                    <XAxis data-key="month" />
+                    <Bar data-key="organic" />
+                    <Bar data-key="paid" />
+                  </BarChart>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                  <DitherButton color="blue" variant="gradient" @click="replayToken++">Replay</DitherButton>
+                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                    <button
+                      v-for="d in DURATIONS"
+                      :key="d"
+                      type="button"
+                      class="rounded px-2.5 py-1 text-[11px] tabular-nums transition-colors"
+                      :class="motionDuration === d ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'"
+                      @click="motionDuration = d; replayToken++"
+                    >
+                      {{ d }}ms
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </DemoCard>
+            <PropsTable :rows="API.motion" />
+          </section>
+
           <!-- Button -->
           <section id="button" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Button</h2>
@@ -634,3 +700,36 @@ cssColor("blue") // rgb(53,143,243)`,
     </footer>
   </div>
 </template>
+
+<style scoped>
+/* Apple-style chrome: a floating translucent material — content scrolls under
+   it, the boundary is a faded edge rather than a hard 1px divider. */
+.chrome {
+  background: color-mix(in oklab, var(--background) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+}
+
+.chrome::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklab, var(--border) 80%, transparent) 20%,
+    color-mix(in oklab, var(--border) 80%, transparent) 80%,
+    transparent
+  );
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .chrome {
+    background: var(--background);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+</style>
