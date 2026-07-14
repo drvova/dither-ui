@@ -19,6 +19,7 @@ import {
   setGroupLocked,
   ungroup,
 } from "@/entities/editor"
+import { componentEntry } from "@/entities/widget"
 import { savePreset } from "@/features/presets"
 import { cssColor } from "@dither-kit"
 import { ContextMenu, type MenuItem } from "@/shared/ui"
@@ -27,6 +28,8 @@ type Node =
   | { t: "group"; group: Group }
   | { t: "artboard"; a: Artboard; depth: number }
   | { t: "layer"; a: Artboard; layer: Layer; depth: number }
+  // screen sub-nodes: rows and their component cells
+  | { t: "snode"; a: Artboard; id: string; label: string; depth: number }
 
 const rootEl = ref<HTMLElement | null>(null)
 
@@ -56,8 +59,18 @@ const nodes = computed<Node[]>(() => {
   const out: Node[] = []
   const pushArtboard = (a: Artboard, depth: number) => {
     out.push({ t: "artboard", a, depth })
-    if (isOpen(a.id))
-      for (const l of childLayers(a)) out.push({ t: "layer", a, layer: l, depth: depth + 1 })
+    if (!isOpen(a.id)) return
+    if (a.widget?.kind === "screen") {
+      a.widget.rows.forEach((row, ri) => {
+        out.push({ t: "snode", a, id: `${a.id}:row:${row.id}`, label: `Row ${ri + 1}`, depth: depth + 1 })
+        for (const cell of row.cells) {
+          const label = componentEntry(cell.is)?.label ?? cell.is
+          out.push({ t: "snode", a, id: `${a.id}:cell:${cell.id}`, label, depth: depth + 2 })
+        }
+      })
+      return
+    }
+    for (const l of childLayers(a)) out.push({ t: "layer", a, layer: l, depth: depth + 1 })
   }
   const seen = new Set<string>()
   for (const a of editor.artboards) {
@@ -212,10 +225,20 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
 
 <template>
   <div ref="rootEl" role="listbox" aria-label="Layers" class="flex flex-col gap-px text-[13px]" @keydown="onRowsKey">
-    <template v-for="node in nodes" :key="node.t === 'group' ? node.group.id : node.t === 'artboard' ? node.a.id : node.layer.id">
+    <template v-for="node in nodes" :key="node.t === 'group' ? node.group.id : node.t === 'artboard' ? node.a.id : node.t === 'snode' ? node.id : node.layer.id">
+      <!-- SCREEN ROW / CELL -->
+      <div
+        v-if="node.t === 'snode'"
+        class="flex h-7 cursor-pointer items-center gap-2 rounded pr-1.5 transition-colors"
+        :style="{ paddingLeft: `${8 + node.depth * 16}px` }"
+        :class="editor.selectedLayerId === node.id ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-card'"
+        @click="selectLayer(node.id)"
+      >
+        <span class="truncate text-[12px]">{{ node.label }}</span>
+      </div>
       <!-- GROUP -->
       <div
-        v-if="node.t === 'group'"
+        v-else-if="node.t === 'group'"
         role="option"
         tabindex="0"
         :aria-selected="members(node.group).some((m) => isSel(m.id))"

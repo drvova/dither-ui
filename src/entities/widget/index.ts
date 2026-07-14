@@ -8,3 +8,21 @@ export {
   defaultComponentProps,
   type PropSpec,
 } from "./model/registry"
+export {
+  addCell,
+  addScreenRow,
+  createCell,
+  createRow,
+  createScreen,
+  findCell,
+  findRow,
+  moveCell,
+  moveScreenRow,
+  removeCell,
+  removeScreenRow,
+  type RowAlign,
+  type RowJustify,
+  type ScreenCell,
+  type ScreenModel,
+  type ScreenRow,
+} from "./model/screen"

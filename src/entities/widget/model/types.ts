@@ -64,10 +64,13 @@ export type ComponentModel = {
   model: unknown // live v-model value for the interactive preview
 }
 
+import type { ScreenModel } from "./screen"
+
 export type WidgetModel =
   | AvatarModel
   | ButtonModel
   | GradientModel
   | ImageModel
   | ComponentModel
+  | ScreenModel
 export type WidgetKind = WidgetModel["kind"]

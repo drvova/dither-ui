@@ -1,6 +1,7 @@
 export {
   addArtboard,
   addComponentArtboard,
+  addScreenArtboard,
   artboardIdOf,
   deleteGroup,
   deleteSeries,

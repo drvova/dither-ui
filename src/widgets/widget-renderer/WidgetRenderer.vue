@@ -4,8 +4,9 @@ import { editor } from "@/entities/editor"
 import { componentEntry, type WidgetModel } from "@/entities/widget"
 import * as kit from "@dither-kit"
 import { DitherAvatar, DitherButton, DitherGradient, DitherImage } from "@dither-kit"
+import ScreenRenderer from "./ScreenRenderer.vue"
 
-const props = defineProps<{ widget: WidgetModel }>()
+const props = defineProps<{ widget: WidgetModel; artboardId: string }>()
 const rt = computed(() => editor.replayToken)
 const w = computed(() => props.widget)
 
@@ -84,6 +85,9 @@ const hasModel = computed(
       class="h-full w-full"
     />
   </div>
+
+  <!-- SCREEN — composed rows of registry components -->
+  <ScreenRenderer v-else-if="w.kind === 'screen'" :screen="w" :artboard-id="artboardId" />
 
   <!-- GRADIENT — fills the frame -->
   <div v-else class="relative h-full w-full overflow-hidden rounded-md">

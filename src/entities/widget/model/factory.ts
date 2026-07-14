@@ -3,7 +3,7 @@ import type { AvatarModel, ButtonModel, ComponentModel, GradientModel, ImageMode
 
 /** The fixed widget kinds with bespoke builders — registry components are
  * created from their ComponentEntry instead. */
-export type SimpleWidgetKind = Exclude<WidgetKind, "component">
+export type SimpleWidgetKind = Exclude<WidgetKind, "component" | "screen">
 
 /** A component widget seeded from its registry entry. */
 export function createComponent(entry: ComponentEntry): ComponentModel {

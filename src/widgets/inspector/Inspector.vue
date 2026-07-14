@@ -1,8 +1,21 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { colorToHex, type VariantInput } from "@dither-kit"
-import { editor, replay, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
-import { componentEntry } from "@/entities/widget"
+import { editor, replay, selectedArtboard, selectedChart, selectedLayers, selectLayer, setSelectedType } from "@/entities/editor"
+import {
+  addCell,
+  addScreenRow,
+  COMPONENT_REGISTRY,
+  componentEntry,
+  findCell,
+  findRow,
+  moveCell,
+  moveScreenRow,
+  removeCell,
+  removeScreenRow,
+  type ScreenRow,
+} from "@/entities/widget"
+import ComponentPropsPanel from "./ComponentPropsPanel.vue"
 import { CHART_TYPES, EASING_NAMES, familyOf, STACKS } from "@/shared/config"
 import { BezierEditor, BloomField, ColorField, NumberField, Segmented, TextureField, Toggle } from "@/shared/ui"
 
@@ -96,13 +109,33 @@ const component = computed(() =>
 const componentSpec = computed(() =>
   component.value ? componentEntry(component.value.is) : undefined
 )
-const listText = (v: unknown) => (Array.isArray(v) ? v.join(", ") : String(v ?? ""))
-function setList(key: string, e: Event) {
-  if (!component.value) return
-  component.value.props[key] = (e.target as HTMLInputElement).value
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
+
+// Screen frames: nested row/cell selection parsed from the layer id.
+const screen = computed(() =>
+  ab.value?.widget?.kind === "screen" ? ab.value.widget : null
+)
+const screenSel = computed(() => {
+  if (!screen.value) return null
+  const id = editor.selectedLayerId
+  const rowMatch = id.match(/:row:(.+)$/)
+  if (rowMatch) return { kind: "row" as const, row: findRow(screen.value, rowMatch[1]) }
+  const cellMatch = id.match(/:cell:(.+)$/)
+  if (cellMatch) {
+    const hit = findCell(screen.value, cellMatch[1])
+    return hit ? { kind: "cell" as const, ...hit } : null
+  }
+  return null
+})
+const ROW_ALIGNS = ["start", "center", "end", "stretch"] as const
+const ROW_JUSTIFY = ["start", "center", "end", "between"] as const
+function addCellFromPicker(row: ScreenRow, e: Event) {
+  const is = (e.target as HTMLSelectElement).value
+  const entry = componentEntry(is)
+  if (entry) {
+    const cell = addCell(row, entry)
+    selectLayer(`${editor.selectedArtboardId}:cell:${cell.id}`)
+  }
+  ;(e.target as HTMLSelectElement).value = ""
 }
 const MIRRORS = ["auto", "horizontal", "vertical"] as const
 const BUTTON_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
@@ -355,27 +388,55 @@ function setPieVariant(v: VariantInput) {
       <template v-else-if="component && componentSpec">
         <section class="flex flex-col gap-3">
           <p class="text-[10px] uppercase tracking-widest text-muted-foreground">{{ componentSpec.label }}</p>
-          <label v-if="component.slotText != null" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span class="w-14 shrink-0">text</span>
-            <input v-model="component.slotText" type="text" name="component-slot" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+          <ComponentPropsPanel :entry="componentSpec" :target="component" />
+        </section>
+      </template>
+
+      <!-- SCREEN: cell selected -->
+      <template v-else-if="screen && screenSel?.kind === 'cell'">
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">
+            {{ componentEntry(screenSel.cell.is)?.label ?? screenSel.cell.is }}
+          </p>
+          <ComponentPropsPanel v-if="componentEntry(screenSel.cell.is)" :entry="componentEntry(screenSel.cell.is)!" :target="screenSel.cell" />
+          <Toggle :model-value="screenSel.cell.grow" label="grow (fill row)" @update:model-value="screenSel.cell.grow = $event" />
+          <div class="flex gap-1.5 pt-1">
+            <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveCell(screenSel.row, screenSel.cell.id, -1)">← move</button>
+            <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveCell(screenSel.row, screenSel.cell.id, 1)">move →</button>
+            <button type="button" class="ml-auto rounded border border-border px-2 py-0.5 text-[11px] text-red-400 transition-colors hover:bg-red-500/10" @click="removeCell(screen, screenSel.cell.id)">delete</button>
+          </div>
+        </section>
+      </template>
+
+      <!-- SCREEN: row selected -->
+      <template v-else-if="screen && screenSel?.kind === 'row' && screenSel.row">
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">row</p>
+          <Segmented :model-value="screenSel.row.align" :options="ROW_ALIGNS" label="align" @update:model-value="screenSel.row.align = $event" />
+          <Segmented :model-value="screenSel.row.justify" :options="ROW_JUSTIFY" label="justify" @update:model-value="screenSel.row.justify = $event" />
+          <NumberField :model-value="screenSel.row.gap" label="gap" :min="0" :max="64" @update:model-value="screenSel.row.gap = $event" />
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">add</span>
+            <select name="add-cell" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" @change="addCellFromPicker(screenSel.row, $event)">
+              <option value="">component…</option>
+              <option v-for="c in COMPONENT_REGISTRY" :key="c.is" :value="c.is">{{ c.label }}</option>
+            </select>
           </label>
-          <template v-for="spec in componentSpec.props" :key="spec.key">
-            <label v-if="spec.kind === 'text'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">{{ spec.key }}</span>
-              <input v-model="(component.props[spec.key] as string)" type="text" :name="`prop-${spec.key}`" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
-            </label>
-            <label v-else-if="spec.kind === 'list'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">{{ spec.key }}</span>
-              <input :value="listText(component.props[spec.key])" type="text" :name="`prop-${spec.key}`" autocomplete="off" placeholder="One, Two, Three" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" @change="setList(spec.key, $event)" />
-            </label>
-            <NumberField v-else-if="spec.kind === 'number'" :model-value="(component.props[spec.key] as number)" :label="spec.key" :min="spec.min" :max="spec.max" :step="spec.step" @update:model-value="component.props[spec.key] = $event" />
-            <Segmented v-else-if="spec.kind === 'select'" :model-value="(component.props[spec.key] as string)" :options="spec.options" :label="spec.key" @update:model-value="component.props[spec.key] = $event" />
-            <div v-else-if="spec.kind === 'color'" class="text-[11px] text-muted-foreground">
-              <span class="mb-1 block">{{ spec.key }}</span>
-              <ColorField :model-value="asFieldColor(component.props[spec.key])" @update:model-value="component.props[spec.key] = $event" />
-            </div>
-            <Toggle v-else-if="spec.kind === 'boolean'" :model-value="(component.props[spec.key] as boolean)" :label="spec.key" @update:model-value="component.props[spec.key] = $event" />
-          </template>
+          <div class="flex gap-1.5 pt-1">
+            <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveScreenRow(screen, screenSel.row.id, -1)">↑ move</button>
+            <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveScreenRow(screen, screenSel.row.id, 1)">move ↓</button>
+            <button type="button" class="ml-auto rounded border border-border px-2 py-0.5 text-[11px] text-red-400 transition-colors hover:bg-red-500/10" @click="removeScreenRow(screen, screenSel.row.id)">delete</button>
+          </div>
+        </section>
+      </template>
+
+      <!-- SCREEN: frame root -->
+      <template v-else-if="screen">
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">screen</p>
+          <NumberField :model-value="screen.gap" label="row gap" :min="0" :max="64" @update:model-value="screen.gap = $event" />
+          <NumberField :model-value="screen.padding" label="padding" :min="0" :max="64" @update:model-value="screen.padding = $event" />
+          <button type="button" class="self-start rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="addScreenRow(screen)">+ row</button>
         </section>
       </template>
 

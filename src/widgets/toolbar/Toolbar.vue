@@ -3,6 +3,7 @@ import { ref, watch } from "vue"
 import {
   addArtboard,
   addComponentArtboard,
+  addScreenArtboard,
   duplicateSelected,
   editor,
   groupSelected,
@@ -95,6 +96,7 @@ function doUngroup() {
           <button v-for="t in CHART_TYPES" :key="t" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs capitalize text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="add(t)">{{ t }}</button>
           <div class="my-1 h-px bg-border" />
           <button v-for="t in (['avatar', 'button', 'gradient', 'image'] as const)" :key="t" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs capitalize text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="add(t)">{{ t }}</button>
+          <button type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="addScreenArtboard(); addOpen = false">Screen</button>
           <template v-for="g in REGISTRY_GROUPS" :key="g.name">
             <div class="my-1 h-px bg-border" />
             <p class="px-2 py-0.5 text-[9px] uppercase tracking-widest text-muted-foreground/60">{{ g.name }}</p>

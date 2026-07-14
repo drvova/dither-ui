@@ -55,9 +55,67 @@ ${importRef}import { ${w.is} } from "@dither-kit"${modelSetup}
 </template>`
 }
 
+const JUSTIFY: Record<string, string> = {
+  start: "justify-start",
+  center: "justify-center",
+  end: "justify-end",
+  between: "justify-between",
+}
+const ALIGN: Record<string, string> = {
+  start: "items-start",
+  center: "items-center",
+  end: "items-end",
+  stretch: "items-stretch",
+}
+
+function screenCode(w: Extract<WidgetModel, { kind: "screen" }>): string {
+  const imports = new Set<string>()
+  const refs: string[] = []
+  let refN = 0
+  const cellTag = (cell: Extract<WidgetModel, { kind: "screen" }>["rows"][0]["cells"][0]): string => {
+    imports.add(cell.is)
+    const entry = componentEntry(cell.is)
+    const attrs: string[] = []
+    if (entry?.vmodel) {
+      refN += 1
+      refs.push(`const value${refN} = ref(${JSON.stringify(cell.model)})`)
+      attrs.push(`v-model="value${refN}"`)
+    }
+    const mapped = entry?.mapProps ? entry.mapProps(cell.props) : cell.props
+    for (const spec of entry?.props ?? []) {
+      if (JSON.stringify(cell.props[spec.key]) === JSON.stringify(spec.def)) continue
+      attrs.push(boundAttr(spec.key, mapped[spec.key]))
+    }
+    if (cell.grow) attrs.push(`class="flex-1"`)
+    const a = attrs.length ? ` ${attrs.join(" ")}` : ""
+    return cell.slotText != null
+      ? `<${cell.is}${a}>${cell.slotText}</${cell.is}>`
+      : `<${cell.is}${a} />`
+  }
+  const rows = w.rows
+    .map((row) => {
+      const kids = row.cells.map((c) => `      ${cellTag(c)}`).join("\n")
+      return `    <div class="flex ${ALIGN[row.align]} ${JUSTIFY[row.justify]}" style="gap: ${row.gap}px">\n${kids}\n    </div>`
+    })
+    .join("\n")
+  const importRef = refs.length ? `import { ref } from "vue"\n` : ""
+  return `<script setup lang="ts">
+${importRef}import { ${[...imports].sort().join(", ")} } from "@dither-kit"
+
+${refs.join("\n")}
+</script>
+
+<template>
+  <div class="flex flex-col" style="gap: ${w.gap}px; padding: ${w.padding}px">
+${rows}
+  </div>
+</template>`
+}
+
 /** A runnable snippet for a standalone widget, reflecting every non-default. */
 export function widgetCode(w: WidgetModel, frame: { w: number; h: number }): string {
   if (w.kind === "component") return componentCode(w)
+  if (w.kind === "screen") return screenCode(w)
   if (w.kind === "avatar") {
     const attrs: string[] = [`name="${w.name}"`, `:size="${Math.round(Math.min(frame.w, frame.h))}"`]
     if (!w.autoColor) attrs.push(colorAttr("color", w.color).trim())
