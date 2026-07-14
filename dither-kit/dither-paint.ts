@@ -181,6 +181,69 @@ export const EASINGS: Record<EasingName, (t: number) => number> = {
   "ease-in-out": easeInOutCubic,
 }
 
+/** An easing is a preset name or a CSS-style cubic-bezier(x1, y1, x2, y2) —
+ * y outside [0,1] gives real overshoot/anticipation, like any animator tool. */
+export type BezierPoints = readonly [number, number, number, number]
+export type EasingInput = EasingName | BezierPoints
+
+/** cubic-bezier(x1,y1,x2,y2) solver — Newton + bisection fallback, the same
+ * approach browsers use for CSS timing functions. */
+export function cubicBezier(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+): (t: number) => number {
+  const ax = 3 * x1 - 3 * x2 + 1
+  const bx = 3 * x2 - 6 * x1
+  const cx = 3 * x1
+  const ay = 3 * y1 - 3 * y2 + 1
+  const by = 3 * y2 - 6 * y1
+  const cy = 3 * y1
+  const sampleX = (t: number) => ((ax * t + bx) * t + cx) * t
+  const sampleY = (t: number) => ((ay * t + by) * t + cy) * t
+  const slopeX = (t: number) => (3 * ax * t + 2 * bx) * t + cx
+  const solve = (x: number) => {
+    let t = x
+    for (let i = 0; i < 8; i++) {
+      const err = sampleX(t) - x
+      if (Math.abs(err) < 1e-6) return t
+      const d = slopeX(t)
+      if (Math.abs(d) < 1e-6) break
+      t -= err / d
+    }
+    let lo = 0
+    let hi = 1
+    t = x
+    while (lo < hi) {
+      const err = sampleX(t) - x
+      if (Math.abs(err) < 1e-6) return t
+      if (err > 0) hi = t
+      else lo = t
+      t = (lo + hi) / 2
+      if (hi - lo < 1e-6) break
+    }
+    return t
+  }
+  return (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : sampleY(solve(x)))
+}
+
+// Tiny memo — canvas loops resolve the easing every frame; charts use one
+// curve at a time, so a single-slot cache removes the per-frame allocation.
+let lastBezierKey = ""
+let lastBezierFn: (t: number) => number = EASINGS.linear
+
+/** Resolve a preset name or bezier points to its timing function. */
+export function resolveEasing(input: EasingInput): (t: number) => number {
+  if (typeof input === "string") return EASINGS[input] ?? EASINGS["ease-in-out"]
+  const key = input.join(",")
+  if (key !== lastBezierKey) {
+    lastBezierKey = key
+    lastBezierFn = cubicBezier(input[0], input[1], input[2], input[3])
+  }
+  return lastBezierFn
+}
+
 /** Whether the OS asks for reduced motion (snap + steady stars). */
 export function prefersReducedMotion() {
   return (

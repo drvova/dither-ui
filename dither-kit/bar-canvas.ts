@@ -12,7 +12,7 @@ import {
   backingSize,
   bloomLayerStyle,
   clamp01,
-  EASINGS,
+  resolveEasing,
   paintColumn,
   prefersReducedMotion,
 } from "./dither-paint"
@@ -61,7 +61,7 @@ function startBarLoop({
     if (!animate) return 1
     const st = Math.min(0.9, Math.max(0, state.current.stagger))
     const start = len > 1 ? (i / (len - 1)) * st : 0
-    return EASINGS[state.current.easing](clamp01((prog - start) / (1 - st)))
+    return resolveEasing(state.current.easing)(clamp01((prog - start) / (1 - st)))
   }
 
   let intensity = 0

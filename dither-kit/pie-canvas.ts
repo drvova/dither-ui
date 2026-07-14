@@ -11,7 +11,7 @@ import {
   BAYER,
   backingSize,
   bloomLayerStyle,
-  EASINGS,
+  resolveEasing,
   OFF_TIER,
   prefersReducedMotion,
 } from "./dither-paint"
@@ -78,7 +78,7 @@ function startPieLoop({
     const cy = s.center.y
     const outerR = s.outerRadius
     const innerR = s.innerRadius
-    const revealAngle = TOP + EASINGS[s.easing](prog) * TAU
+    const revealAngle = TOP + resolveEasing(s.easing)(prog) * TAU
 
     for (let y = 0; y < rows; y++) {
       const py = ((y + 0.5) * height) / rows

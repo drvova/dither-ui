@@ -16,7 +16,7 @@ import {
   useChartController,
 } from "./chart-context"
 import { CommonChartKey } from "./common-context"
-import type { BloomInput, EasingName } from "./dither-paint"
+import type { BloomInput, EasingInput } from "./dither-paint"
 import { cn } from "./lib"
 import type { StackType } from "./scales"
 import { useChartDimensions } from "./use-chart-dimensions"
@@ -90,7 +90,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
     animationDuration: { type: Number, default: 900 },
     animationDelay: { type: Number, default: 0 },
     easing: {
-      type: String as PropType<EasingName>,
+      type: [String, Array] as PropType<EasingInput>,
       default: chartType === "bar" ? "ease-out" : "ease-in-out",
     },
     sparkles: { type: Boolean, default: true },

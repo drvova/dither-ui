@@ -3,7 +3,7 @@ import type {
   AreaVariant,
   BloomLevel,
   DitherColor,
-  EasingName,
+  EasingInput,
   StackType,
   TooltipVariant,
 } from "@dither-kit"
@@ -36,7 +36,7 @@ export type ChartModel = {
   interactive: boolean
   animationDuration: number
   animationDelay: number
-  easing: EasingName
+  easing: EasingInput // preset name or custom cubic-bezier points
   sparkles: boolean
   hoverLift: boolean
   stagger: number

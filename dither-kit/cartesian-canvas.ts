@@ -11,7 +11,7 @@ import { type ChartContextValue, useChart } from "./chart-context"
 import {
   backingSize,
   bloomLayerStyle,
-  EASINGS,
+  resolveEasing,
   paintColumn,
   prefersReducedMotion,
   resample,
@@ -214,7 +214,7 @@ function startCartesianLoop({
       tick += 1
     }
 
-    const reveal = animate ? EASINGS[s.easing](prog) : 1
+    const reveal = animate ? resolveEasing(s.easing)(prog) : 1
     const revealCols = reveal * cols
 
     if (needsFill) {

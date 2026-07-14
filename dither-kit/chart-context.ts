@@ -8,7 +8,7 @@ import {
   watch,
 } from "vue"
 import type { CommonChart, TooltipItem } from "./common-context"
-import type { BloomInput, EasingName } from "./dither-paint"
+import type { BloomInput, EasingInput } from "./dither-paint"
 import { type DitherColor, type Seed, seedFromColor } from "./palette"
 import {
   buildBandScale,
@@ -84,7 +84,7 @@ export type ChartContextValue = {
   animate: boolean
   animationDuration: number
   animationDelay: number
-  easing: EasingName
+  easing: EasingInput
   sparkles: boolean
   hoverLift: boolean
   stagger: number
@@ -154,7 +154,7 @@ export type ControllerInput = {
   animate: () => boolean
   animationDuration: () => number
   animationDelay: () => number
-  easing: () => EasingName
+  easing: () => EasingInput
   sparkles: () => boolean
   hoverLift: () => boolean
   stagger: () => number

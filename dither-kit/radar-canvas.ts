@@ -11,7 +11,7 @@ import {
   BAYER,
   backingSize,
   bloomLayerStyle,
-  EASINGS,
+  resolveEasing,
   OFF_TIER,
   prefersReducedMotion,
 } from "./dither-paint"
@@ -91,7 +91,7 @@ function startRadarLoop({
     const s = state.current
     if (!s.radar) return
     c.clearRect(0, 0, cols, rows)
-    const polys = buildPolys(EASINGS[state.current.easing](prog))
+    const polys = buildPolys(resolveEasing(state.current.easing)(prog))
     const band = Math.max(s.outerRadius * 0.45, 1)
 
     for (let y = 0; y < rows; y++) {

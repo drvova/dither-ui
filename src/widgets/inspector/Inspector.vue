@@ -3,7 +3,7 @@ import { computed } from "vue"
 import type { AreaVariant } from "@dither-kit"
 import { editor, replay, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
 import { BLOOMS, CHART_TYPES, EASING_NAMES, familyOf, STACKS, VARIANTS } from "@/shared/config"
-import { ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
+import { BezierEditor, ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
 
 const ab = selectedArtboard
 const chart = selectedChart
@@ -43,6 +43,35 @@ function unlock() {
     case "yAxis": c.yAxis.locked = false; break
     case "legend": c.legend.locked = false; break
     case "tooltip": c.tooltip.locked = false; break
+  }
+}
+
+// Easing: three presets + "custom" which opens the bezier curve editor,
+// seeded from the preset's equivalent curve so the switch is seamless.
+const EASING_CHOICES = [...EASING_NAMES, "custom"] as const
+const SEED_BEZIER: Record<string, [number, number, number, number]> = {
+  linear: [0.25, 0.25, 0.75, 0.75],
+  "ease-out": [0.33, 1, 0.68, 1],
+  "ease-in-out": [0.65, 0, 0.35, 1],
+}
+const easingChoice = computed<string>(() => {
+  const e = chart.value?.easing ?? "ease-in-out"
+  return typeof e === "string" ? e : "custom"
+})
+const bezierPoints = computed<[number, number, number, number]>(() => {
+  const e = chart.value?.easing
+  return typeof e === "object" && e
+    ? [e[0], e[1], e[2], e[3]]
+    : SEED_BEZIER["ease-in-out"]
+})
+function setEasingChoice(v: string | number) {
+  const c = chart.value
+  if (!c) return
+  if (v === "custom") {
+    const seed = SEED_BEZIER[easingChoice.value] ?? SEED_BEZIER["ease-in-out"]
+    c.easing = [seed[0], seed[1], seed[2], seed[3]]
+  } else {
+    c.easing = v as (typeof EASING_NAMES)[number]
   }
 }
 
@@ -105,7 +134,17 @@ function setPieVariant(v: AreaVariant) {
           <NumberField v-model="chart.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
           <NumberField v-model="chart.animationDelay" label="delay" unit="ms" :min="0" :max="4000" :step="50" />
         </div>
-        <Segmented v-model="chart.easing" :options="EASING_NAMES" label="easing" />
+        <Segmented
+          :model-value="easingChoice"
+          :options="EASING_CHOICES"
+          label="easing"
+          @update:model-value="setEasingChoice"
+        />
+        <BezierEditor
+          v-if="easingChoice === 'custom'"
+          :model-value="bezierPoints"
+          @update:model-value="chart.easing = [$event[0], $event[1], $event[2], $event[3]]"
+        />
         <label v-if="chart.type === 'bar'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
           <span class="w-14 shrink-0">stagger</span>
           <input v-model.number="chart.stagger" type="range" name="bar-stagger" min="0" max="0.9" step="0.05" class="flex-1 accent-foreground" />
