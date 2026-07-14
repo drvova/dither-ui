@@ -14,6 +14,10 @@ const bloom = ref(true)
 const opts = reactive({ grid: true, snap: false, rulers: true })
 
 const level = ref(40)
+const priceRange = ref<[number, number]>([25, 75])
+const quality = ref(60)
+const SLIDER_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
+const variantLevels = ref<Record<string, number>>({ gradient: 65, dotted: 65, hatched: 65, solid: 65 })
 
 const SNIPPET_SWITCH = `<script setup lang="ts">
 import { ref } from "vue"
@@ -44,19 +48,18 @@ const opts = reactive({ grid: true, snap: false, rulers: true })
   </div>
 </template>`
 
-const SNIPPET_SLIDER = `<script setup lang="ts">
-import { ref } from "vue"
-import { DitherSlider } from "@dither-kit"
+const SNIPPET_SLIDER = `const level = ref(40)
+const range = ref<[number, number]>([25, 75])
 
-const level = ref(40)
-<\/script>
+<!-- single -->
+<DitherSlider v-model="level" label="Level" />
 
-<template>
-  <div class="flex items-center gap-4">
-    <DitherSlider v-model="level" label="Level" :min="0" :max="100" :step="1" />
-    <span class="text-[13px] tabular-nums">{{ level }}</span>
-  </div>
-</template>`
+<!-- range: an array v-model grows a second thumb -->
+<DitherSlider v-model="range" label="Price" show-value />
+
+<!-- ticks mark the steps; variant picks the fill texture -->
+<DitherSlider v-model="quality" label="Quality" :step="10" ticks
+  variant="dotted" show-value />`
 
 const SNIPPET_PROGRESS = `<script setup lang="ts">
 import { ref } from "vue"
@@ -86,13 +89,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "class", type: "string", default: "—" },
   ],
   slider: [
-    { prop: "modelValue", type: "number", default: "—" },
-    { prop: "min", type: "number", default: "0" },
-    { prop: "max", type: "number", default: "100" },
-    { prop: "step", type: "number", default: "1" },
+    { prop: "modelValue", type: "number | [number, number] — array = range", default: "—" },
+    { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
+    { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
+    { prop: "ticks", type: "boolean — tick columns at steps (≤25) or tenths", default: "false" },
+    { prop: "show-value", type: "boolean — bubble while dragging or focused", default: "false" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
   ],
   progress: [
     { prop: "value", type: "number", default: "0" },
@@ -144,11 +147,34 @@ const API: Record<string, PropRow[]> = {
       denser toward the value, the rest stays a muted rail.
     </p>
     <DemoCard :code="SNIPPET_SLIDER">
-      <div class="mx-auto flex max-w-sm items-center gap-4">
-        <DitherSlider v-model="level" label="Level" :min="0" :max="100" :step="1" color="blue" />
-        <span class="w-8 text-right text-[13px] tabular-nums">{{ level }}</span>
+      <div class="mx-auto grid max-w-sm gap-7">
+        <div class="flex items-center gap-4">
+          <DitherSlider v-model="level" label="Level" :min="0" :max="100" :step="1" color="blue" />
+          <span class="w-8 text-right text-[13px] tabular-nums">{{ level }}</span>
+        </div>
+        <div class="grid gap-2">
+          <div class="flex items-baseline justify-between text-[11px] text-muted-foreground">
+            <span>Price range</span>
+            <span class="tabular-nums">{{ priceRange[0] }} – {{ priceRange[1] }}</span>
+          </div>
+          <DitherSlider v-model="priceRange" label="Price" color="green" show-value />
+        </div>
+        <div class="grid gap-2">
+          <div class="flex items-baseline justify-between text-[11px] text-muted-foreground">
+            <span>Quality · step 10 · ticks</span>
+            <span class="tabular-nums">{{ quality }}</span>
+          </div>
+          <DitherSlider v-model="quality" label="Quality" :step="10" ticks show-value color="purple" />
+        </div>
       </div>
     </DemoCard>
+    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+    <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
+      <div v-for="v in SLIDER_VARIANTS" :key="v">
+        <DitherSlider v-model="variantLevels[v]" :label="`${v} slider`" :variant="v" />
+        <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
+      </div>
+    </div>
     <PropsTable :rows="API.slider" />
   </section>
 

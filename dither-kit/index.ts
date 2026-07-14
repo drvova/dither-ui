@@ -31,7 +31,7 @@ export { default as DitherImage } from "./DitherImage.vue"
 // Form controls
 export { default as DitherSwitch } from "./DitherSwitch.vue"
 export { default as DitherCheckbox } from "./DitherCheckbox.vue"
-export { default as DitherSlider } from "./DitherSlider.vue"
+export { default as DitherSlider, type SliderVariant } from "./DitherSlider.vue"
 export { default as DitherProgress } from "./DitherProgress.vue"
 
 // Feedback

@@ -2,31 +2,53 @@
 import { rgb, type Rgb } from "./palette"
 import { BAYER4, clamp01, fillOf, type PixelColor } from "./pixel"
 
-/** Paint the slider track — the filled portion dithers toward the thumb with
- * rising density, the rest reads as a muted rail. */
+export type SliderVariant = "gradient" | "dotted" | "hatched" | "solid"
+
+/** Paint the track: the span between lo..hi dithers in the chosen texture,
+ * the rest reads as a muted rail; optional tick columns mark divisions. */
 function paintTrack(
   ctx: CanvasRenderingContext2D,
   cols: number,
   rows: number,
   fill: Rgb,
   muted: Rgb,
-  ratio: number
+  lo: number,
+  hi: number,
+  variant: SliderVariant,
+  ticks: number[]
 ): void {
   ctx.clearRect(0, 0, cols, rows)
-  const filled = Math.round(cols * clamp01(ratio))
+  const a = Math.round(cols * clamp01(lo))
+  const b = Math.round(cols * clamp01(hi))
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      if (x < filled) {
-        const density = 0.35 + 0.65 * ((x + 0.5) / Math.max(1, filled))
-        const lit = density > BAYER4[y & 3][x & 3]
-        const k = 0.3 + density * 0.7
-        ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
+      if (x >= a && x < b) {
+        const t = (x - a + 0.5) / Math.max(1, b - a)
+        const density =
+          variant === "gradient" ? 0.35 + 0.65 * t : variant === "dotted" ? 0.5 : 0.75
+        if (variant === "hatched" && ((x + y) & 3) >= 2) {
+          ctx.fillStyle = rgb(fill, 1, 0.12)
+        } else {
+          const lit = variant === "solid" || density > BAYER4[y & 3][x & 3] - (variant === "dotted" ? 0.12 : 0)
+          if (variant === "dotted" && !lit) {
+            ctx.fillStyle = rgb(fill, 1, 0.1)
+          } else {
+            const k = 0.3 + density * 0.7
+            ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
+          }
+        }
       } else {
         const lit = 0.25 > BAYER4[y & 3][x & 3]
         ctx.fillStyle = rgb(muted, 1, lit ? 0.2 : 0.06)
       }
       ctx.fillRect(x, y, 1, 1)
     }
+  }
+  for (const t of ticks) {
+    const x = Math.min(cols - 1, Math.round(cols * t))
+    const inFill = x >= a && x < b
+    ctx.fillStyle = rgb(muted, 2, inFill ? 0.9 : 0.45)
+    ctx.fillRect(x, 0, 1, rows)
   }
 }
 </script>
@@ -39,27 +61,58 @@ const CELL = 2
 
 const props = withDefaults(
   defineProps<{
-    modelValue: number
-    /** Accessible name for the slider thumb. */
+    /** A number, or a [lo, hi] pair for a range slider. */
+    modelValue: number | [number, number]
+    /** Accessible name for the thumb(s). */
     label?: string
     min?: number
     max?: number
     step?: number
     color?: PixelColor
+    /** Fill texture — same vocabulary as the charts. */
+    variant?: SliderVariant
+    /** Paint tick columns at each step (or 10 divisions when steps are dense). */
+    ticks?: boolean
+    /** Show a value bubble above the thumb while dragging or focused. */
+    showValue?: boolean
     disabled?: boolean
     class?: string
   }>(),
-  { min: 0, max: 100, step: 1, color: "blue", disabled: false }
+  {
+    min: 0,
+    max: 100,
+    step: 1,
+    color: "blue",
+    variant: "gradient",
+    ticks: false,
+    showValue: false,
+    disabled: false,
+  }
 )
 
-const emit = defineEmits<{ (e: "update:modelValue", value: number): void }>()
+const emit = defineEmits<{ (e: "update:modelValue", value: number | [number, number]): void }>()
 
 const rootRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
-const ratio = computed(() =>
-  clamp01((props.modelValue - props.min) / Math.max(1e-9, props.max - props.min))
+const isRange = computed(() => Array.isArray(props.modelValue))
+const lo = computed(() => (isRange.value ? (props.modelValue as [number, number])[0] : props.min))
+const hi = computed(() =>
+  isRange.value ? (props.modelValue as [number, number])[1] : (props.modelValue as number)
 )
+const span = computed(() => Math.max(1e-9, props.max - props.min))
+const toRatio = (v: number) => clamp01((v - props.min) / span.value)
+
+/** Which thumb is engaged — drives dragging and the value bubble. */
+const active = ref<-1 | 0 | 1>(-1)
+const focused = ref<-1 | 0 | 1>(-1)
+
+const tickRatios = computed(() => {
+  if (!props.ticks) return []
+  const steps = span.value / props.step
+  const count = steps <= 25 ? Math.round(steps) : 10
+  return Array.from({ length: count + 1 }, (_, i) => i / count)
+})
 
 function paint() {
   const root = rootRef.value
@@ -68,46 +121,90 @@ function paint() {
   if (!root || !canvas || !ctx) return
   const box = root.getBoundingClientRect()
   const cols = Math.max(4, Math.round(box.width / CELL))
-  const rows = 3 // h-1.5 track at CELL=2
+  const rows = 3
   canvas.width = cols
   canvas.height = rows
-  paintTrack(ctx, cols, rows, fillOf(props.color), fillOf("grey"), ratio.value)
+  paintTrack(
+    ctx,
+    cols,
+    rows,
+    fillOf(props.color),
+    fillOf("grey"),
+    isRange.value ? toRatio(lo.value) : 0,
+    toRatio(hi.value),
+    props.variant,
+    tickRatios.value
+  )
 }
 
 function clampStep(raw: number): number {
-  const stepped =
-    props.min + Math.round((raw - props.min) / props.step) * props.step
+  const stepped = props.min + Math.round((raw - props.min) / props.step) * props.step
   return Math.min(props.max, Math.max(props.min, stepped))
+}
+
+function setThumb(which: 0 | 1, value: number) {
+  if (!isRange.value) {
+    emit("update:modelValue", clampStep(value))
+    return
+  }
+  const [a, b] = props.modelValue as [number, number]
+  const v = clampStep(value)
+  // Thumbs may meet but never cross.
+  emit("update:modelValue", which === 0 ? [Math.min(v, b), b] : [a, Math.max(v, a)])
 }
 
 function valueFromClientX(clientX: number): number {
   const rect = rootRef.value!.getBoundingClientRect()
   const t = clamp01((clientX - rect.left) / Math.max(1, rect.width))
-  return clampStep(props.min + t * (props.max - props.min))
+  return props.min + t * span.value
+}
+
+function nearestThumb(value: number): 0 | 1 {
+  if (!isRange.value) return 1
+  return Math.abs(value - lo.value) <= Math.abs(value - hi.value) ? 0 : 1
 }
 
 function onPointerDown(event: PointerEvent) {
   if (props.disabled) return
   rootRef.value?.setPointerCapture(event.pointerId)
-  emit("update:modelValue", valueFromClientX(event.clientX))
+  const v = valueFromClientX(event.clientX)
+  active.value = nearestThumb(v)
+  setThumb(active.value, v)
 }
 
 function onPointerMove(event: PointerEvent) {
-  if (props.disabled || !rootRef.value?.hasPointerCapture(event.pointerId)) return
-  emit("update:modelValue", valueFromClientX(event.clientX))
+  if (props.disabled || active.value === -1) return
+  if (!rootRef.value?.hasPointerCapture(event.pointerId)) return
+  setThumb(active.value, valueFromClientX(event.clientX))
 }
 
-function onKeydown(event: KeyboardEvent) {
+function onPointerUp() {
+  active.value = -1
+}
+
+function onKeydown(which: 0 | 1, event: KeyboardEvent) {
   if (props.disabled) return
+  const current = which === 0 ? lo.value : hi.value
   let next: number
-  if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = props.modelValue - props.step
-  else if (event.key === "ArrowRight" || event.key === "ArrowUp") next = props.modelValue + props.step
+  if (event.key === "ArrowLeft" || event.key === "ArrowDown") next = current - props.step
+  else if (event.key === "ArrowRight" || event.key === "ArrowUp") next = current + props.step
   else if (event.key === "Home") next = props.min
   else if (event.key === "End") next = props.max
   else return
   event.preventDefault()
-  emit("update:modelValue", clampStep(next))
+  setThumb(which, next)
 }
+
+const thumbs = computed(() => {
+  const list: { which: 0 | 1; value: number; min: number; max: number; name: string }[] = []
+  if (isRange.value) {
+    list.push({ which: 0, value: lo.value, min: props.min, max: hi.value, name: props.label ? `${props.label} minimum` : "Minimum" })
+    list.push({ which: 1, value: hi.value, min: lo.value, max: props.max, name: props.label ? `${props.label} maximum` : "Maximum" })
+  } else {
+    list.push({ which: 1, value: hi.value, min: props.min, max: props.max, name: props.label ?? "" })
+  }
+  return list
+})
 
 let ro: ResizeObserver | null = null
 onMounted(() => {
@@ -117,7 +214,10 @@ onMounted(() => {
     if (rootRef.value) ro.observe(rootRef.value)
   }
 })
-watch(() => [props.modelValue, props.color, props.min, props.max], paint)
+watch(
+  () => [props.modelValue, props.color, props.min, props.max, props.variant, props.ticks],
+  paint
+)
 onBeforeUnmount(() => ro?.disconnect())
 </script>
 
@@ -133,6 +233,8 @@ onBeforeUnmount(() => ro?.disconnect())
     "
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
+    @pointerup="onPointerUp"
+    @pointercancel="onPointerUp"
   >
     <div class="absolute top-1/2 h-1.5 w-full -translate-y-1/2 overflow-hidden rounded-[2px]">
       <canvas
@@ -142,17 +244,29 @@ onBeforeUnmount(() => ro?.disconnect())
         style="image-rendering: pixelated"
       />
     </div>
-    <div
-      role="slider"
-      :aria-label="props.label"
-      :tabindex="props.disabled ? -1 : 0"
-      :aria-valuemin="props.min"
-      :aria-valuemax="props.max"
-      :aria-valuenow="props.modelValue"
-      :aria-disabled="props.disabled || undefined"
-      class="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-[2px] bg-foreground"
-      :style="{ left: `${ratio * 100}%` }"
-      @keydown="onKeydown"
-    />
+    <template v-for="t in thumbs" :key="t.which">
+      <div
+        role="slider"
+        :aria-label="t.name || undefined"
+        :tabindex="props.disabled ? -1 : 0"
+        :aria-valuemin="t.min"
+        :aria-valuemax="t.max"
+        :aria-valuenow="t.value"
+        :aria-disabled="props.disabled || undefined"
+        class="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-[2px] bg-foreground"
+        :style="{ left: `${toRatio(t.value) * 100}%` }"
+        @keydown="onKeydown(t.which, $event)"
+        @focus="focused = t.which"
+        @blur="focused = -1"
+      />
+      <div
+        v-if="props.showValue && (active === t.which || focused === t.which)"
+        aria-hidden="true"
+        class="pointer-events-none absolute -top-6 -translate-x-1/2 rounded border border-border bg-card px-1 py-0.5 font-mono text-[10px] text-foreground tabular-nums"
+        :style="{ left: `${toRatio(t.value) * 100}%` }"
+      >
+        {{ t.value }}
+      </div>
+    </template>
   </div>
 </template>
