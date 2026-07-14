@@ -76,7 +76,9 @@ function startBarLoop({
       const seed = s.seedOf(key)
       const variant = s.seriesSpecs[key]?.variant ?? "gradient"
       const emphasis = s.selectedDataKey ?? s.focusDataKey
-      const selDim = emphasis !== null && emphasis !== key ? 0.3 : 1
+      const selDim =
+        (emphasis !== null && emphasis !== key ? s.dimOpacity : 1) *
+        (s.seriesSpecs[key]?.opacity ?? 1)
       for (let i = 0; i < s.dataLength; i++) {
         const bp = barProgress(i, s.dataLength, prog)
         const base = t.base[i] ?? rows - 1
@@ -143,7 +145,8 @@ function startBarLoop({
       lastHover = s.hoverIndex
       needsFill = true
     }
-    const itTarget = s.hoverLift && (s.isMouseInChart || s.hovered) ? 1 : 0
+    const itTarget =
+      s.hoverLift && (s.isMouseInChart || s.hovered) ? s.hoverStrength : 0
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
       needsFill = true

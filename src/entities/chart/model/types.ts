@@ -27,11 +27,12 @@ export type SeriesRow = {
   isClickable: boolean
   dots: MarkerConfig // a marker at every data point
   activeDot: MarkerConfig // the marker at the hovered point
+  opacity: number // 0–1 layer opacity (cartesian series)
 }
 
 export type Margins = { top: number; right: number; bottom: number; left: number }
 
-export type GridPart = { on: boolean; locked: boolean; horizontal: boolean; vertical: boolean; dash: string }
+export type GridPart = { on: boolean; locked: boolean; horizontal: boolean; vertical: boolean; dash: string; tickCount: number }
 export type XAxisPart = { on: boolean; locked: boolean; tickMargin: number; maxTicks: number }
 export type YAxisPart = { on: boolean; locked: boolean; tickCount: number; tickMargin: number }
 export type LegendPart = { on: boolean; locked: boolean; align: "left" | "center" | "right"; clickable: boolean }
@@ -59,6 +60,12 @@ export type ChartModel = {
   popOut: number // hovered-slice bulge px (pie)
   rimWidth: number // bright rim thickness (pie)
   falloff: number // edge-density falloff distance fraction (radar)
+  barEdge: number // outer padding fraction at the plot edges (bar)
+  hoverStrength: number // hover-lift intensity multiplier
+  dimOpacity: number // opacity of non-selected series while one is emphasised
+  crosshair: boolean // scrub crosshair column (cartesian)
+  startAngle: number // pie start angle, degrees clockwise from 12 o'clock
+  radarRings: number // concentric frame rings (radar)
   innerRadius: number
   margins: Margins
   series: SeriesRow[]

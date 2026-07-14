@@ -18,11 +18,12 @@ export type PieSlice = {
 export function pieSlices(
   data: Row[],
   dataKey: string,
-  nameKey: string
+  nameKey: string,
+  startAngleDeg = 0
 ): PieSlice[] {
   const vals = data.map((r) => Math.max(0, Number(r[dataKey]) || 0))
   const total = vals.reduce((a, b) => a + b, 0) || 1
-  let a = TOP
+  let a = TOP + (startAngleDeg * Math.PI) / 180
   return data.map((r, i) => {
     const span = (vals[i] / total) * TAU
     const slice = {
@@ -39,10 +40,11 @@ export function pieSlices(
 
 /** Which slice a pointer angle falls in (or -1). */
 export function sliceAtAngle(slices: PieSlice[], angle: number): number {
-  // Normalize so comparisons against [start, end) (which begin at TOP) work.
+  // Normalize into [first slice start, +TAU) so any start angle works.
+  const base = slices[0]?.start ?? TOP
   let a = angle
-  while (a < TOP) a += TAU
-  while (a >= TOP + TAU) a -= TAU
+  while (a < base) a += TAU
+  while (a >= base + TAU) a -= TAU
   return slices.findIndex((s) => a >= s.start && a < s.end)
 }
 

@@ -62,12 +62,17 @@ export function buildXScale(length: number, plotWidth: number) {
 
 /** Banded x for bar categories — each index owns a slot of `bandwidth` width.
  * `gap` is the fraction of each slot given to spacing (d3 paddingInner). */
-export function buildBandScale(length: number, plotWidth: number, gap = 0.28) {
+export function buildBandScale(
+  length: number,
+  plotWidth: number,
+  gap = 0.28,
+  edge = 0.18
+) {
   return scaleBand<number>()
     .domain(Array.from({ length }, (_, i) => i))
     .range([0, plotWidth])
     .paddingInner(Math.max(0, Math.min(0.9, gap)))
-    .paddingOuter(0.18)
+    .paddingOuter(Math.max(0, Math.min(2, edge)))
 }
 
 /** Index of the category whose band a horizontal pixel offset falls in. */

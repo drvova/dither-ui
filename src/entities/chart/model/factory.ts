@@ -18,6 +18,7 @@ function seriesFor(type: ChartType): SeriesRow[] {
     isClickable: true,
     dots: { on: false, variant: "border", r: 2 },
     activeDot: { on: false, variant: "colored-border", r: 3 },
+    opacity: 1,
   })
 
   if (fam === "pie")
@@ -65,10 +66,16 @@ export function createChart(type: ChartType = "area"): ChartModel {
     popOut: 6,
     rimWidth: 1.4,
     falloff: 0.45,
+    barEdge: 0.18,
+    hoverStrength: 1,
+    dimOpacity: 0.3,
+    crosshair: true,
+    startAngle: 0,
+    radarRings: 4,
     innerRadius: 0.5,
     margins: { ...DEFAULT_MARGINS },
     series: seriesFor(type),
-    grid: { on: true, locked: false, horizontal: true, vertical: false, dash: "3 3" },
+    grid: { on: true, locked: false, horizontal: true, vertical: false, dash: "3 3", tickCount: 4 },
     xAxis: { on: true, locked: false, tickMargin: 8, maxTicks: 8 },
     yAxis: { on: true, locked: false, tickCount: 4, tickMargin: 8 },
     legend: { on: true, locked: false, align: "right", clickable: true },

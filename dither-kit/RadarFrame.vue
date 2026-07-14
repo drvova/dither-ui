@@ -5,8 +5,9 @@ import { usePolarChart } from "./polar-context"
 
 defineOptions({ chartLayer: "back" })
 
-const LEVELS = 4
 const ctx = usePolarChart()
+// Ring count comes from the chart context so the root's `rings` prop drives it.
+const LEVELS = computed(() => Math.max(1, Math.round(ctx.rings)))
 
 const axes = computed(() => ctx.radar?.axes ?? [])
 
@@ -22,7 +23,9 @@ function ring(radius: number): string {
 }
 
 const rings = computed(() =>
-  Array.from({ length: LEVELS }, (_, l) => ring((ctx.outerRadius * (l + 1)) / LEVELS))
+  Array.from({ length: LEVELS.value }, (_, l) =>
+    ring((ctx.outerRadius * (l + 1)) / LEVELS.value)
+  )
 )
 
 function anchorOf(angle: number): "start" | "middle" | "end" {

@@ -87,6 +87,12 @@ export function chartCode(chart: ChartModel): string {
     if (chart.rimWidth !== 1.4) attrs.push(`:rim-width="${chart.rimWidth}"`)
   }
   if (chart.type === "radar" && chart.falloff !== 0.45) attrs.push(`:falloff="${chart.falloff}"`)
+  if (chart.type === "bar" && chart.barEdge !== 0.18) attrs.push(`:bar-edge="${chart.barEdge}"`)
+  if (chart.hoverLift && chart.hoverStrength !== 1) attrs.push(`:hover-strength="${chart.hoverStrength}"`)
+  if (chart.dimOpacity !== 0.3) attrs.push(`:dim-opacity="${chart.dimOpacity}"`)
+  if (cart && !chart.crosshair) attrs.push(`:crosshair="false"`)
+  if (chart.type === "pie" && chart.startAngle !== 0) attrs.push(`:start-angle="${chart.startAngle}"`)
+  if (chart.type === "radar" && chart.radarRings !== 4) attrs.push(`:rings="${chart.radarRings}"`)
 
   const openTag =
     attrs.length <= 2
@@ -99,6 +105,7 @@ export function chartCode(chart: ChartModel): string {
     if (!g.horizontal) ga.push(`:horizontal="false"`)
     if (g.vertical) ga.push(`:vertical="true"`)
     if (g.dash !== "3 3") ga.push(`stroke-dasharray="${g.dash}"`)
+    if (g.tickCount !== 4) ga.push(`:tick-count="${g.tickCount}"`)
     kids.push(`<Grid${ga.length ? " " + ga.join(" ") : ""} />`)
   }
   if (cart && x.on) {
@@ -129,6 +136,7 @@ export function chartCode(chart: ChartModel): string {
         sa.push(`:variant="${objLit(s.variant as Record<string, unknown>)}"`)
       else if (s.variant !== "gradient") sa.push(`variant="${s.variant}"`)
       if (s.isClickable) sa.push(`is-clickable`)
+      if (cart && s.opacity !== 1) sa.push(`:opacity="${s.opacity}"`)
       const markers: string[] = []
       if (cart && s.dots.on) {
         const da = [s.dots.variant !== "border" ? ` variant="${s.dots.variant}"` : "", s.dots.r !== 2 ? ` :r="${s.dots.r}"` : ""].join("")

@@ -7,6 +7,7 @@ defineProps<{
   variant?: VariantInput
   strokeVariant?: StrokeVariant
   isClickable?: boolean
+  opacity?: number
 }>()
 </script>
 

@@ -42,6 +42,7 @@ export type SeriesSpec = {
   kind: SeriesKind
   variant: VariantInput
   strokeVariant: StrokeVariant
+  opacity: number // 0–1 layer opacity, multiplied into every painted alpha
 }
 
 export type ChartContextValue = {
@@ -93,7 +94,11 @@ export type ChartContextValue = {
   sparkleDensity: number
   sparkleSpeed: number
   barGap: number
+  barEdge: number
   glowSize: number
+  hoverStrength: number
+  dimOpacity: number
+  crosshair: boolean
   revision: number
   entranceDone: boolean
   markEntranceDone: () => void
@@ -168,7 +173,11 @@ export type ControllerInput = {
   sparkleDensity: () => number
   sparkleSpeed: () => number
   barGap: () => number
+  barEdge: () => number
   glowSize: () => number
+  hoverStrength: () => number
+  dimOpacity: () => number
+  crosshair: () => boolean
   replayToken: () => number
   markerIndex: () => number | null
   hovered: () => boolean
@@ -228,7 +237,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
 
   const xPoint = computed(() => buildXScale(input.data().length, plotWidth.value))
   const xBand = computed(() =>
-    buildBandScale(input.data().length, plotWidth.value, input.barGap())
+    buildBandScale(input.data().length, plotWidth.value, input.barGap(), input.barEdge())
   )
   const bandwidth = computed(() => (isBar ? xBand.value.bandwidth() : 0))
   const y = computed(() => buildYScale(max.value, plotHeight.value))
@@ -279,7 +288,8 @@ export function useChartController(input: ControllerInput): ChartContextValue {
       cur &&
       cur.kind === spec.kind &&
       cur.variant === spec.variant &&
-      cur.strokeVariant === spec.strokeVariant
+      cur.strokeVariant === spec.strokeVariant &&
+      cur.opacity === spec.opacity
     )
       return
     seriesSpecs.value = { ...seriesSpecs.value, [spec.dataKey]: spec }
@@ -457,8 +467,20 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     get barGap() {
       return input.barGap()
     },
+    get barEdge() {
+      return input.barEdge()
+    },
     get glowSize() {
       return input.glowSize()
+    },
+    get hoverStrength() {
+      return input.hoverStrength()
+    },
+    get dimOpacity() {
+      return input.dimOpacity()
+    },
+    get crosshair() {
+      return input.crosshair()
     },
     get revision() {
       return revision.value

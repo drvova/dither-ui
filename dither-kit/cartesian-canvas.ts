@@ -84,7 +84,9 @@ function startCartesianLoop({
         (s.seriesSpecs[key]?.kind ??
           (s.chartType === "line" ? "line" : "area")) === "line"
       const emphasis = s.selectedDataKey ?? s.focusDataKey
-      const dim = emphasis !== null && emphasis !== key ? 0.3 : 1
+      const dim =
+        (emphasis !== null && emphasis !== key ? s.dimOpacity : 1) *
+        (s.seriesSpecs[key]?.opacity ?? 1)
       const sparse = stacked ? 0 : si * 0.14
       for (let x = 0; x < cols; x++) {
         if (x > revealCols) break
@@ -176,7 +178,8 @@ function startCartesianLoop({
       needsFill = true
     }
 
-    const itTarget = s.hoverLift && (s.isMouseInChart || s.hovered) ? 1 : 0
+    const itTarget =
+      s.hoverLift && (s.isMouseInChart || s.hovered) ? s.hoverStrength : 0
     let settling = false
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * 0.16
@@ -229,7 +232,7 @@ function startCartesianLoop({
       marker != null && s.dataLength > 1
         ? Math.round((marker / (s.dataLength - 1)) * (cols - 1))
         : -1
-    if (mx >= 0 && mx <= revealCols) {
+    if (s.crosshair && mx >= 0 && mx <= revealCols) {
       for (const key of s.configKeys) {
         const cur = current[key]
         if (!cur) continue

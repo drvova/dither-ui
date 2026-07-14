@@ -77,7 +77,8 @@ function startPieLoop({
     const cy = s.center.y
     const outerR = s.outerRadius
     const innerR = s.innerRadius
-    const revealAngle = TOP + resolveEasing(s.easing)(prog) * TAU
+    const base = slices[0]?.start ?? TOP
+    const revealAngle = base + resolveEasing(s.easing)(prog) * TAU
 
     for (let y = 0; y < rows; y++) {
       const py = ((y + 0.5) * height) / rows
@@ -89,8 +90,8 @@ function startPieLoop({
         if (r < innerR) continue
         const angle = Math.atan2(dy, dx)
         let na = angle
-        while (na < TOP) na += TAU
-        while (na >= TOP + TAU) na -= TAU
+        while (na < base) na += TAU
+        while (na >= base + TAU) na -= TAU
         if (na > revealAngle) continue
         const si = sliceAtAngle(slices, angle)
         if (si < 0) continue
@@ -102,7 +103,7 @@ function startPieLoop({
         const seed = s.seedOf(slice.name)
         const variant = s.variantOf(slice.name)
         const emphasis = s.selectedDataKey ?? s.focusDataKey
-        const selDim = emphasis !== null && emphasis !== slice.name ? 0.3 : 1
+        const selDim = emphasis !== null && emphasis !== slice.name ? s.dimOpacity : 1
         const it = intensity + (active ? 0.4 * popEase : 0)
 
         if (localOuter - r < (active ? s.rimWidth + popEase : s.rimWidth)) {
@@ -155,7 +156,7 @@ function startPieLoop({
       popEase = 0
       needsFill = true
     }
-    const itTarget = s.hoverLift && s.isMouseInChart ? 1 : 0
+    const itTarget = s.hoverLift && s.isMouseInChart ? s.hoverStrength : 0
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
       needsFill = true

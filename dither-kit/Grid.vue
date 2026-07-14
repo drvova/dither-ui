@@ -8,8 +8,9 @@ withDefaults(
     horizontal?: boolean
     vertical?: boolean
     strokeDasharray?: string
+    tickCount?: number
   }>(),
-  { horizontal: true, vertical: false, strokeDasharray: "3 3" }
+  { horizontal: true, vertical: false, strokeDasharray: "3 3", tickCount: 4 }
 )
 
 const ctx = useChartPart("Grid")
@@ -19,7 +20,7 @@ const ctx = useChartPart("Grid")
   <g v-if="ctx.ready" class="stroke-border" :stroke-dasharray="strokeDasharray">
     <template v-if="horizontal">
       <line
-        v-for="t in ctx.y.ticks(4)"
+        v-for="t in ctx.y.ticks(tickCount)"
         :key="`h-${t}`"
         :x1="0"
         :x2="ctx.plot.width"

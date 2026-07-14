@@ -38,12 +38,13 @@ const rt = computed(() => editor.replayToken)
     :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
     :easing="chart.easing" :sparkles="chart.sparkles" :hover-lift="chart.hoverLift"
     :cell="chart.cell" :sparkle-density="chart.sparkleDensity" :sparkle-speed="chart.sparkleSpeed"
+    :hover-strength="chart.hoverStrength" :dim-opacity="chart.dimOpacity" :crosshair="chart.crosshair"
     :replay-token="rt"
   >
-    <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" />
+    <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" :tick-count="chart.grid.tickCount" />
     <XAxis v-if="chart.xAxis.on" dataKey="month" :tick-margin="chart.xAxis.tickMargin" :max-ticks="chart.xAxis.maxTicks" />
     <YAxis v-if="chart.yAxis.on" :tick-count="chart.yAxis.tickCount" :tick-margin="chart.yAxis.tickMargin" />
-    <Area v-for="s in series" :key="s.key" :dataKey="s.key" :variant="s.variant" :is-clickable="s.isClickable">
+    <Area v-for="s in series" :key="s.key" :dataKey="s.key" :variant="s.variant" :is-clickable="s.isClickable" :opacity="s.opacity">
       <Dot v-if="s.dots.on" :variant="s.dots.variant" :r="s.dots.r" />
       <ActiveDot v-if="s.activeDot.on" :variant="s.activeDot.variant" :r="s.activeDot.r" />
     </Area>
@@ -58,12 +59,13 @@ const rt = computed(() => editor.replayToken)
     :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
     :easing="chart.easing" :sparkles="chart.sparkles" :hover-lift="chart.hoverLift"
     :cell="chart.cell" :sparkle-density="chart.sparkleDensity" :sparkle-speed="chart.sparkleSpeed"
-    :glow-size="chart.glowSize" :replay-token="rt"
+    :glow-size="chart.glowSize" :hover-strength="chart.hoverStrength" :dim-opacity="chart.dimOpacity"
+    :crosshair="chart.crosshair" :replay-token="rt"
   >
-    <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" />
+    <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" :tick-count="chart.grid.tickCount" />
     <XAxis v-if="chart.xAxis.on" dataKey="month" :tick-margin="chart.xAxis.tickMargin" :max-ticks="chart.xAxis.maxTicks" />
     <YAxis v-if="chart.yAxis.on" :tick-count="chart.yAxis.tickCount" :tick-margin="chart.yAxis.tickMargin" />
-    <Line v-for="s in series" :key="s.key" :dataKey="s.key" :is-clickable="s.isClickable">
+    <Line v-for="s in series" :key="s.key" :dataKey="s.key" :is-clickable="s.isClickable" :opacity="s.opacity">
       <Dot v-if="s.dots.on" :variant="s.dots.variant" :r="s.dots.r" />
       <ActiveDot v-if="s.activeDot.on" :variant="s.activeDot.variant" :r="s.activeDot.r" />
     </Line>
@@ -77,12 +79,17 @@ const rt = computed(() => editor.replayToken)
     :stack-type="chart.stackType" :animate="chart.animate" :interactive="chart.interactive"
     :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
     :easing="chart.easing" :hover-lift="chart.hoverLift" :stagger="chart.stagger"
-    :cell="chart.cell" :bar-gap="chart.barGap" :replay-token="rt"
+    :cell="chart.cell" :bar-gap="chart.barGap" :bar-edge="chart.barEdge"
+    :hover-strength="chart.hoverStrength" :dim-opacity="chart.dimOpacity" :crosshair="chart.crosshair"
+    :replay-token="rt"
   >
-    <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" />
+    <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" :tick-count="chart.grid.tickCount" />
     <XAxis v-if="chart.xAxis.on" dataKey="month" :tick-margin="chart.xAxis.tickMargin" :max-ticks="chart.xAxis.maxTicks" />
     <YAxis v-if="chart.yAxis.on" :tick-count="chart.yAxis.tickCount" :tick-margin="chart.yAxis.tickMargin" />
-    <Bar v-for="s in series" :key="s.key" :dataKey="s.key" :variant="s.variant" :is-clickable="s.isClickable" />
+    <Bar v-for="s in series" :key="s.key" :dataKey="s.key" :variant="s.variant" :is-clickable="s.isClickable" :opacity="s.opacity">
+      <Dot v-if="s.dots.on" :variant="s.dots.variant" :r="s.dots.r" />
+      <ActiveDot v-if="s.activeDot.on" :variant="s.activeDot.variant" :r="s.activeDot.r" />
+    </Bar>
     <Legend v-if="chart.legend.on" :align="chart.legend.align" :is-clickable="chart.legend.clickable" />
     <Tooltip v-if="chart.tooltip.on" labelKey="month" :variant="chart.tooltip.variant" />
   </BarChart>
@@ -93,7 +100,8 @@ const rt = computed(() => editor.replayToken)
     :inner-radius="chart.innerRadius" :bloom="chart.bloom" :animate="chart.animate"
     :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
     :easing="chart.easing" :hover-lift="chart.hoverLift" :cell="chart.cell"
-    :pop-out="chart.popOut" :rim-width="chart.rimWidth" :replay-token="rt"
+    :pop-out="chart.popOut" :rim-width="chart.rimWidth" :hover-strength="chart.hoverStrength"
+    :dim-opacity="chart.dimOpacity" :start-angle="chart.startAngle" :replay-token="rt"
   >
     <Pie :variant="chart.series[0]?.variant ?? 'gradient'" />
     <Legend v-if="chart.legend.on" :align="chart.legend.align" :is-clickable="chart.legend.clickable" />
@@ -106,6 +114,7 @@ const rt = computed(() => editor.replayToken)
     :animate="chart.animate" :animation-duration="chart.animationDuration"
     :animation-delay="chart.animationDelay" :easing="chart.easing"
     :hover-lift="chart.hoverLift" :cell="chart.cell" :falloff="chart.falloff"
+    :hover-strength="chart.hoverStrength" :dim-opacity="chart.dimOpacity" :rings="chart.radarRings"
     :replay-token="rt"
   >
     <Radar v-for="s in series" :key="s.key" :dataKey="s.key" :variant="s.variant" :is-clickable="s.isClickable" />

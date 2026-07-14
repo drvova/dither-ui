@@ -13,8 +13,9 @@ const props = withDefaults(
     variant?: VariantInput
     strokeVariant?: StrokeVariant
     isClickable?: boolean
+    opacity?: number
   }>(),
-  { variant: "gradient", strokeVariant: "solid", isClickable: false }
+  { variant: "gradient", strokeVariant: "solid", isClickable: false, opacity: 1 }
 )
 
 const ctx = useChartPart("Bar", "bar")
@@ -26,9 +27,9 @@ if (import.meta.env.DEV && !ctx.config[props.dataKey]) {
 }
 
 watch(
-  () => [props.dataKey, props.variant, props.strokeVariant] as const,
-  ([dataKey, variant, strokeVariant]) =>
-    ctx.registerSeries({ dataKey, kind: "bar", variant, strokeVariant }),
+  () => [props.dataKey, props.variant, props.strokeVariant, props.opacity] as const,
+  ([dataKey, variant, strokeVariant, opacity]) =>
+    ctx.registerSeries({ dataKey, kind: "bar", variant, strokeVariant, opacity }),
   { immediate: true }
 )
 onBeforeUnmount(() => ctx.unregisterSeries(props.dataKey))

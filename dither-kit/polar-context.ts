@@ -45,6 +45,10 @@ export type PolarChartContextValue = {
   popOut: number
   rimWidth: number
   falloff: number
+  hoverStrength: number
+  dimOpacity: number
+  startAngle: number // degrees clockwise from 12 o'clock (pie)
+  rings: number // concentric frame rings (radar)
   revision: number
   bloom: BloomInput
   bloomOnHover: boolean
@@ -112,6 +116,10 @@ export type PolarControllerInput = {
   popOut: () => number
   rimWidth: () => number
   falloff: () => number
+  hoverStrength: () => number
+  dimOpacity: () => number
+  startAngle: () => number
+  rings: () => number
   replayToken: () => number
   bloom: () => BloomInput
   bloomOnHover: () => boolean
@@ -188,7 +196,7 @@ export function usePolarController(
 
   const pie = computed(() =>
     input.chartType === "pie"
-      ? pieSlices(input.data(), input.dataKey(), input.nameKey())
+      ? pieSlices(input.data(), input.dataKey(), input.nameKey(), input.startAngle())
       : null
   )
   const radar = computed(() => {
@@ -324,6 +332,18 @@ export function usePolarController(
     },
     get falloff() {
       return input.falloff()
+    },
+    get hoverStrength() {
+      return input.hoverStrength()
+    },
+    get dimOpacity() {
+      return input.dimOpacity()
+    },
+    get startAngle() {
+      return input.startAngle()
+    },
+    get rings() {
+      return input.rings()
     },
     get revision() {
       return revision.value

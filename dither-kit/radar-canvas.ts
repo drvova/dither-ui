@@ -105,7 +105,7 @@ function startRadarLoop({
           const seed = s.seedOf(key)
           const variant = s.variantOf(key)
           const emphasis = s.selectedDataKey ?? s.focusDataKey
-          const selDim = emphasis !== null && emphasis !== key ? 0.3 : 1
+          const selDim = emphasis !== null && emphasis !== key ? s.dimOpacity : 1
           const dist = distToPolygonEdge(px, py, poly)
           if (dist < 1.4) {
             c.fillStyle = rgb(seed.fill, 1, selDim)
@@ -133,7 +133,7 @@ function startRadarLoop({
     for (const { key, pts } of polys) {
       const seed = s.seedOf(key)
       const emphasis = s.selectedDataKey ?? s.focusDataKey
-      const selDim = emphasis !== null && emphasis !== key ? 0.3 : 1
+      const selDim = emphasis !== null && emphasis !== key ? s.dimOpacity : 1
       pts.forEach((p, i) => {
         const bx = Math.round(p.x * fx)
         const by = Math.round(p.y * fy)
@@ -175,7 +175,7 @@ function startRadarLoop({
       lastHover = s.hoverIndex
       needsFill = true
     }
-    const itTarget = s.hoverLift && s.isMouseInChart ? 1 : 0
+    const itTarget = s.hoverLift && s.isMouseInChart ? s.hoverStrength : 0
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
       needsFill = true

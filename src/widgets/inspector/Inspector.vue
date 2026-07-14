@@ -133,11 +133,18 @@ function setPieVariant(v: VariantInput) {
           <input v-model.number="chart.cell" type="range" name="cell" min="1" max="6" step="1" class="flex-1 accent-foreground" />
           <span class="w-8 tabular-nums text-foreground">{{ chart.cell }}px</span>
         </label>
-        <label v-if="chart.type === 'bar'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span class="w-14 shrink-0">bar gap</span>
-          <input v-model.number="chart.barGap" type="range" name="bar-gap" min="0" max="0.7" step="0.02" class="flex-1 accent-foreground" />
-          <span class="w-8 tabular-nums text-foreground">{{ chart.barGap.toFixed(2) }}</span>
-        </label>
+        <template v-if="chart.type === 'bar'">
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">bar gap</span>
+            <input v-model.number="chart.barGap" type="range" name="bar-gap" min="0" max="0.7" step="0.02" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ chart.barGap.toFixed(2) }}</span>
+          </label>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">edge</span>
+            <input v-model.number="chart.barEdge" type="range" name="bar-edge" min="0" max="1" step="0.02" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ chart.barEdge.toFixed(2) }}</span>
+          </label>
+        </template>
         <label v-if="chart.type === 'line'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
           <span class="w-14 shrink-0">glow</span>
           <input v-model.number="chart.glowSize" type="range" name="glow-size" min="0.05" max="0.4" step="0.01" class="flex-1 accent-foreground" />
@@ -155,12 +162,33 @@ function setPieVariant(v: VariantInput) {
             <span class="w-8 tabular-nums text-foreground">{{ chart.rimWidth.toFixed(1) }}</span>
           </label>
         </template>
-        <label v-if="chart.type === 'radar'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span class="w-14 shrink-0">falloff</span>
-          <input v-model.number="chart.falloff" type="range" name="radar-falloff" min="0.1" max="1" step="0.05" class="flex-1 accent-foreground" />
-          <span class="w-8 tabular-nums text-foreground">{{ chart.falloff.toFixed(2) }}</span>
+        <template v-if="chart.type === 'radar'">
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">falloff</span>
+            <input v-model.number="chart.falloff" type="range" name="radar-falloff" min="0.1" max="1" step="0.05" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ chart.falloff.toFixed(2) }}</span>
+          </label>
+          <NumberField v-model="chart.radarRings" label="rings" :min="1" :max="10" />
+        </template>
+        <label v-if="chart.type === 'pie'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="w-14 shrink-0">start</span>
+          <input v-model.number="chart.startAngle" type="range" name="pie-start" min="0" max="359" step="1" class="flex-1 accent-foreground" />
+          <span class="w-8 tabular-nums text-foreground">{{ chart.startAngle }}°</span>
         </label>
-        <Toggle v-if="fam === 'cartesian'" v-model="chart.interactive" label="interactive" />
+        <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="w-14 shrink-0">dim</span>
+          <input v-model.number="chart.dimOpacity" type="range" name="dim-opacity" min="0" max="1" step="0.05" class="flex-1 accent-foreground" />
+          <span class="w-8 tabular-nums text-foreground">{{ chart.dimOpacity.toFixed(2) }}</span>
+        </label>
+        <label v-if="chart.hoverLift" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="w-14 shrink-0">hover</span>
+          <input v-model.number="chart.hoverStrength" type="range" name="hover-strength" min="0" max="2" step="0.1" class="flex-1 accent-foreground" />
+          <span class="w-8 tabular-nums text-foreground">{{ chart.hoverStrength.toFixed(1) }}×</span>
+        </label>
+        <div class="flex gap-4">
+          <Toggle v-if="fam === 'cartesian'" v-model="chart.interactive" label="interactive" />
+          <Toggle v-if="fam === 'cartesian'" v-model="chart.crosshair" label="crosshair" />
+        </div>
       </section>
 
       <section class="flex flex-col gap-3">
@@ -232,6 +260,11 @@ function setPieVariant(v: VariantInput) {
         <ColorField v-model="series.color" />
       </div>
       <TextureField v-if="chart.type !== 'line'" v-model="series.variant" />
+      <label v-if="fam === 'cartesian'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <span class="w-14 shrink-0">opacity</span>
+        <input v-model.number="series.opacity" type="range" name="series-opacity" min="0" max="1" step="0.05" class="flex-1 accent-foreground" />
+        <span class="w-8 tabular-nums text-foreground">{{ series.opacity.toFixed(2) }}</span>
+      </label>
       <div class="flex gap-4 pt-0.5">
         <Toggle v-model="series.on" label="visible" />
         <Toggle v-model="series.isClickable" label="clickable" />
@@ -272,6 +305,7 @@ function setPieVariant(v: VariantInput) {
         <span class="w-14 shrink-0">dash</span>
         <input v-model="chart.grid.dash" type="text" name="grid-dash" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" placeholder="3 3" />
       </label>
+      <NumberField v-model="chart.grid.tickCount" label="lines" :min="1" :max="12" />
     </template>
 
     <!-- X AXIS -->
