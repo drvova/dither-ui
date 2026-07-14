@@ -116,7 +116,14 @@ export type {
   TextureConfig,
   VariantInput,
 } from "./dither-paint"
-export { resolveTexture, textureFromSeed } from "./dither-paint"
+export {
+  bloomFromSeed,
+  easingFromSeed,
+  motionFromSeed,
+  mulberry32,
+  resolveTexture,
+  textureFromSeed,
+} from "./dither-paint"
 export { cubicBezier, EASINGS, resolveEasing } from "./dither-paint"
 export type { DotVariant } from "./dot-paint"
 export type { DitherColor } from "./palette"

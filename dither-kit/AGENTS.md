@@ -21,11 +21,15 @@ This folder is the product; the `src/` app is its showcase and editor.
   fill/line/star hues. Swatch CSS vars in `src/app/styles.css` mirror it.
 - `pixel.ts` owns BAYER4 and bloom presets; every dithered surface thresholds
   against the same matrix.
-- `resolveTexture` in `dither-paint.ts` is the single variant seam:
-  `VariantInput = name preset | TextureConfig | number`. A number is a SEED —
-  `textureFromSeed` (mulberry32) generates deterministic texture params, same
-  seed = same fill everywhere, like the avatar. Extend textures here, never
-  in per-component paint loops.
+- Seed-generative contract: a `number` is a deterministic SEED everywhere a
+  visual input is accepted — `VariantInput` (texture via `textureFromSeed`),
+  `BloomInput`/`PixelBloomInput` (`bloomFromSeed`; pixel.ts mirrors the exact
+  PRNG+ranges, keep them in sync), `EasingInput` (`easingFromSeed`), and hue
+  colors. Chart roots take a master `seed` prop deriving duration, delay,
+  easing, stagger, sparkle character, bloom (+ startAngle on polar) with
+  precedence: explicit prop > seed derivation > house default. All seed fns
+  live in `dither-paint.ts` (mulberry32, params clamped to usable bands) —
+  extend seeds there, never in per-component paint loops.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with

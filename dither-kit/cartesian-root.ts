@@ -17,6 +17,7 @@ import {
 } from "./chart-context"
 import { CommonChartKey } from "./common-context"
 import type { BloomInput, EasingInput } from "./dither-paint"
+import { bloomFromSeed, easingFromSeed, motionFromSeed } from "./dither-paint"
 import { cn } from "./lib"
 import type { StackType } from "./scales"
 import { useChartDimensions } from "./use-chart-dimensions"
@@ -87,18 +88,21 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
     margins: { type: Object as PropType<Partial<Margins>>, default: () => ({}) },
     class: { type: String, default: undefined },
     animate: { type: Boolean, default: true },
-    animationDuration: { type: Number, default: 900 },
-    animationDelay: { type: Number, default: 0 },
+    /** Master seed — derives duration, delay, easing, stagger, sparkle
+     * character and bloom for every prop the consumer left unset. */
+    seed: { type: Number as PropType<number | undefined>, default: undefined },
+    animationDuration: { type: Number as PropType<number | undefined>, default: undefined },
+    animationDelay: { type: Number as PropType<number | undefined>, default: undefined },
     easing: {
-      type: [String, Array] as PropType<EasingInput>,
-      default: chartType === "bar" ? "ease-out" : "ease-in-out",
+      type: [String, Array, Number] as PropType<EasingInput | undefined>,
+      default: undefined,
     },
     sparkles: { type: Boolean, default: true },
     hoverLift: { type: Boolean, default: true },
-    stagger: { type: Number, default: 0.55 },
+    stagger: { type: Number as PropType<number | undefined>, default: undefined },
     cell: { type: Number, default: 2 },
-    sparkleDensity: { type: Number, default: 1 },
-    sparkleSpeed: { type: Number, default: 1 },
+    sparkleDensity: { type: Number as PropType<number | undefined>, default: undefined },
+    sparkleSpeed: { type: Number as PropType<number | undefined>, default: undefined },
     barGap: { type: Number, default: 0.28 },
     barEdge: { type: Number, default: 0.18 },
     glowSize: { type: Number, default: 0.16 },
@@ -109,7 +113,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
     interactive: { type: Boolean, default: true },
     markerIndex: { type: Number as PropType<number | null>, default: null },
     hovered: { type: Boolean, default: false },
-    bloom: { type: [String, Object] as PropType<BloomInput>, default: "off" },
+    bloom: { type: [String, Object, Number] as PropType<BloomInput | undefined>, default: undefined },
     bloomOnHover: { type: Boolean, default: false },
     defaultSelectedDataKey: {
       type: String as PropType<string | null>,
@@ -132,6 +136,9 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
       ...DEFAULT_MARGINS,
       ...props.margins,
     }))
+    const seeded = computed(() =>
+      props.seed !== undefined ? motionFromSeed(props.seed) : null
+    )
 
     const ctx = useChartController({
       chartType: chartTypeVal,
@@ -141,15 +148,22 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
       dimensions: () => size.value,
       margins: () => margins.value,
       animate: () => props.animate,
-      animationDuration: () => props.animationDuration,
-      animationDelay: () => props.animationDelay,
-      easing: () => props.easing,
+      // Explicit prop > master-seed derivation > house default.
+      animationDuration: () => props.animationDuration ?? seeded.value?.duration ?? 900,
+      animationDelay: () => props.animationDelay ?? seeded.value?.delay ?? 0,
+      easing: () =>
+        props.easing ??
+        (props.seed !== undefined
+          ? easingFromSeed(props.seed)
+          : chartTypeVal === "bar"
+            ? "ease-out"
+            : "ease-in-out"),
       sparkles: () => props.sparkles,
       hoverLift: () => props.hoverLift,
-      stagger: () => props.stagger,
+      stagger: () => props.stagger ?? seeded.value?.stagger ?? 0.55,
       cell: () => props.cell,
-      sparkleDensity: () => props.sparkleDensity,
-      sparkleSpeed: () => props.sparkleSpeed,
+      sparkleDensity: () => props.sparkleDensity ?? seeded.value?.sparkleDensity ?? 1,
+      sparkleSpeed: () => props.sparkleSpeed ?? seeded.value?.sparkleSpeed ?? 1,
       barGap: () => props.barGap,
       barEdge: () => props.barEdge,
       glowSize: () => props.glowSize,
@@ -159,7 +173,8 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
       replayToken: () => props.replayToken,
       markerIndex: () => props.markerIndex,
       hovered: () => props.hovered,
-      bloom: () => props.bloom,
+      bloom: () =>
+        props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),
       bloomOnHover: () => props.bloomOnHover,
       defaultSelectedDataKey: props.defaultSelectedDataKey,
       onSelectionChange: props.onSelectionChange,

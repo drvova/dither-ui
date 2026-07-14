@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import type { BloomConfig, BloomLevel } from "@dither-kit"
+import type { BloomConfig, BloomInput, BloomLevel } from "@dither-kit"
+import { bloomFromSeed } from "@dither-kit"
 import { BLOOMS } from "@/shared/config"
 import Segmented from "./Segmented.vue"
 
-const props = defineProps<{ modelValue: BloomLevel | BloomConfig }>()
-const emit = defineEmits<{ "update:modelValue": [BloomLevel | BloomConfig] }>()
+const props = defineProps<{ modelValue: BloomInput }>()
+const emit = defineEmits<{ "update:modelValue": [BloomInput] }>()
 
 // Mirrors the engine's bloom presets so "custom" seeds from the current look.
 const SEED: Record<string, Required<Omit<BloomConfig, "blend">>> = {
@@ -22,7 +23,9 @@ const choice = computed(() =>
 const cfg = computed<Required<Omit<BloomConfig, "blend">>>(() =>
   typeof props.modelValue === "string"
     ? SEED[props.modelValue]
-    : { ...SEED.low, ...props.modelValue }
+    : typeof props.modelValue === "number"
+      ? { ...SEED.low, ...bloomFromSeed(props.modelValue) }
+      : { ...SEED.low, ...props.modelValue }
 )
 
 function setChoice(v: string | number) {

@@ -128,6 +128,14 @@ function pick(section: "area" | "bar" | "pie", v: AreaVariant | number) {
 // Seed-generative textures: one integer, one deterministic texture.
 const SEEDS = [7, 1984, 4242, 90210, 31337]
 const randomSeed = () => pick("area", Math.floor(Math.random() * 1_000_000))
+
+// Master-seed playground: one integer drives texture, motion, easing, bloom.
+const masterSeed = ref(1984)
+const masterReplay = ref(0)
+function rollMaster() {
+  masterSeed.value = Math.floor(Math.random() * 1_000_000)
+  masterReplay.value++
+}
 function pickDot(v: DotVariant) {
   picked.dot = v
   galleryReplay.line++
@@ -297,6 +305,7 @@ const GROUPS = [
     items: [
       { id: "styling", label: "Styling" },
       { id: "composition", label: "Composition" },
+      { id: "seeds", label: "Seeds" },
       { id: "motion", label: "Animation" },
       { id: "accessibility", label: "Accessibility" },
     ],
@@ -399,6 +408,14 @@ const SNIPPETS = {
   install: `// Copy the dither-kit/ folder into your project, then alias it:
 // vite.config.ts  →  "@dither-kit": "./dither-kit"
 import { AreaChart, Area, DitherButton } from "@dither-kit"`,
+  seeds: `<!-- one integer is a complete visual personality: -->
+<AreaChart :data="rows" :config="config" :seed="1984">
+  <Area data-key="revenue" :variant="1984" />   <!-- texture  -->
+</AreaChart>
+<!-- :seed derives duration · delay · easing · stagger · sparkles · bloom
+     for every prop you leave unset; explicit props always win.
+     Seeds also work per prop: bloom / easing / variant / color(hue). -->
+<DitherButton :bloom="1984">Glow</DitherButton>`,
   styling: `/* the kit reads shadcn-style tokens — theme by overriding them */
 :root {
   --background: #08090b;   /* chart chrome: axes, legend, tooltip */
@@ -684,6 +701,42 @@ const gradientCode = computed(
               to compose with your own utilities.
             </p>
             <div class="mt-5"><CodeBlock :code="SNIPPETS.styling" /></div>
+          </section>
+
+          <!-- Seeds -->
+          <section id="seeds" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Seeds</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Everything visual in the kit resolves from deterministic seeds —
+              avatars from names, colors from hues, textures, bloom, easing and
+              motion from integers. Give a chart a
+              <code class="text-foreground/80">seed</code> and it derives a
+              whole personality for every prop you left unset; the same seed
+              reproduces it forever. Explicit props always win.
+            </p>
+            <DemoCard :code="SNIPPETS.seeds">
+              <div class="grid gap-5">
+                <div class="h-52">
+                  <AreaChart
+                    :key="masterSeed"
+                    :data="rows"
+                    :config="config"
+                    :seed="masterSeed"
+                    :interactive="false"
+                    :replay-token="masterReplay"
+                  >
+                    <XAxis data-key="month" :max-ticks="6" />
+                    <Area data-key="expenses" :variant="masterSeed + 1" />
+                    <Area data-key="revenue" :variant="masterSeed" />
+                  </AreaChart>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                  <DitherButton color="blue" variant="gradient" @click="rollMaster">Roll a personality</DitherButton>
+                  <span class="font-mono text-[11px] text-muted-foreground tabular-nums">seed: {{ masterSeed }}</span>
+                  <DitherButton color="purple" variant="dotted" :bloom="masterSeed">seeded bloom</DitherButton>
+                </div>
+              </div>
+            </DemoCard>
           </section>
 
           <!-- Composition -->

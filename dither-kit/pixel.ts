@@ -86,7 +86,7 @@ export type PixelBloomConfig = {
   saturate?: number
 }
 /** A preset name or a fully custom glow config. */
-export type PixelBloomInput = PixelBloom | PixelBloomConfig
+export type PixelBloomInput = PixelBloom | PixelBloomConfig | number
 
 const BLOOM_PRESET: Record<Exclude<PixelBloom, "off">, PixelBloomConfig> = {
   low: { blur: 3, brightness: 1.35, opacity: 0.7, saturate: 1.4 },
@@ -102,9 +102,33 @@ export type PixelBloomStyle = {
 }
 
 /** Style for the bloom layer canvas. null when off. */
+/** Seeded bloom — mirrors dither-paint's bloomFromSeed exactly (same PRNG,
+ * same xor, same ranges) so one seed glows identically in both engines. */
+function pixelBloomFromSeed(seed: number): PixelBloomConfig {
+  let a = (Math.round(seed) ^ 0x9e3779b9) >>> 0
+  const rand = () => {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+  return {
+    blur: 2 + rand() * 10,
+    brightness: 1.2 + rand() * 1.2,
+    opacity: 0.25 + rand() * 0.55,
+    saturate: 1.2 + rand() * 1.6,
+  }
+}
+
 export function pixelBloomStyle(bloom: PixelBloomInput): PixelBloomStyle | null {
   if (bloom === "off") return null
-  const cfg = typeof bloom === "string" ? BLOOM_PRESET[bloom] : bloom
+  const cfg =
+    typeof bloom === "string"
+      ? BLOOM_PRESET[bloom]
+      : typeof bloom === "number"
+        ? pixelBloomFromSeed(bloom)
+        : bloom
   return {
     filter: `blur(${cfg.blur}px) brightness(${cfg.brightness}) saturate(${cfg.saturate ?? 1})`,
     opacity: cfg.opacity,

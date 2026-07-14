@@ -11,6 +11,7 @@ import {
 import type { ChartConfig, Margins } from "./chart-context"
 import { CommonChartKey } from "./common-context"
 import type { BloomInput, EasingInput } from "./dither-paint"
+import { bloomFromSeed, easingFromSeed, motionFromSeed } from "./dither-paint"
 import { cn } from "./lib"
 import { axisAtAngle, sliceAtAngle } from "./polar"
 import { PolarChartKey, usePolarController } from "./polar-context"
@@ -76,9 +77,15 @@ export function definePolarChart(
       },
       class: { type: String, default: undefined },
       animate: { type: Boolean, default: true },
-      animationDuration: { type: Number, default: 900 },
-      animationDelay: { type: Number, default: 0 },
-      easing: { type: [String, Array] as PropType<EasingInput>, default: "ease-in-out" },
+      /** Master seed — derives duration, delay, easing, bloom and start angle
+       * for every prop the consumer left unset. */
+      seed: { type: Number as PropType<number | undefined>, default: undefined },
+      animationDuration: { type: Number as PropType<number | undefined>, default: undefined },
+      animationDelay: { type: Number as PropType<number | undefined>, default: undefined },
+      easing: {
+        type: [String, Array, Number] as PropType<EasingInput | undefined>,
+        default: undefined,
+      },
       hoverLift: { type: Boolean, default: true },
       cell: { type: Number, default: 2 },
       popOut: { type: Number, default: 6 },
@@ -86,10 +93,10 @@ export function definePolarChart(
       falloff: { type: Number, default: 0.45 },
       hoverStrength: { type: Number, default: 1 },
       dimOpacity: { type: Number, default: 0.3 },
-      startAngle: { type: Number, default: 0 },
+      startAngle: { type: Number as PropType<number | undefined>, default: undefined },
       rings: { type: Number, default: 4 },
       replayToken: { type: Number, default: 0 },
-      bloom: { type: [String, Object] as PropType<BloomInput>, default: "off" },
+      bloom: { type: [String, Object, Number] as PropType<BloomInput | undefined>, default: undefined },
       bloomOnHover: { type: Boolean, default: false },
       defaultSelectedDataKey: {
         type: String as PropType<string | null>,
@@ -106,6 +113,9 @@ export function definePolarChart(
         ...DEFAULT_POLAR_MARGINS,
         ...props.margins,
       }))
+      const seeded = computed(() =>
+        props.seed !== undefined ? motionFromSeed(props.seed) : null
+      )
 
       const ctx = usePolarController({
         chartType,
@@ -117,9 +127,11 @@ export function definePolarChart(
         dimensions: () => size.value,
         margins: () => margins.value,
         animate: () => props.animate,
-        animationDuration: () => props.animationDuration,
-        animationDelay: () => props.animationDelay,
-        easing: () => props.easing,
+        // Explicit prop > master-seed derivation > house default.
+        animationDuration: () => props.animationDuration ?? seeded.value?.duration ?? 900,
+        animationDelay: () => props.animationDelay ?? seeded.value?.delay ?? 0,
+        easing: () =>
+          props.easing ?? (props.seed !== undefined ? easingFromSeed(props.seed) : "ease-in-out"),
         hoverLift: () => props.hoverLift,
         cell: () => props.cell,
         popOut: () => props.popOut,
@@ -127,10 +139,11 @@ export function definePolarChart(
         falloff: () => props.falloff,
         hoverStrength: () => props.hoverStrength,
         dimOpacity: () => props.dimOpacity,
-        startAngle: () => props.startAngle,
+        startAngle: () => props.startAngle ?? seeded.value?.startAngle ?? 0,
         rings: () => props.rings,
         replayToken: () => props.replayToken,
-        bloom: () => props.bloom,
+        bloom: () =>
+          props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),
         bloomOnHover: () => props.bloomOnHover,
         defaultSelectedDataKey: props.defaultSelectedDataKey,
         onSelectionChange: props.onSelectionChange,

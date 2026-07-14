@@ -51,7 +51,7 @@ const TEXTURE_PRESET: Record<AreaVariant, Required<TextureConfig>> = {
 // one integer, one texture, identical on every surface that renders it.
 
 /** mulberry32 — tiny deterministic PRNG, good enough for texture params. */
-function mulberry32(seed: number) {
+export function mulberry32(seed: number) {
   let a = seed >>> 0
   return () => {
     a |= 0
@@ -75,6 +75,38 @@ export function textureFromSeed(seed: number): Required<TextureConfig> {
     hatch,
     offTier: OFF_TIER * (0.6 + rand() * 0.9),
     edge: BORDER_ALPHA * (0.7 + rand() * 0.3),
+  }
+}
+
+/** Seeded bloom — params stay in the usable glow band; a seed always blooms. */
+export function bloomFromSeed(seed: number): Required<BloomConfig> {
+  const rand = mulberry32(Math.round(seed) ^ 0x9e3779b9)
+  return {
+    blur: 2 + rand() * 10,
+    brightness: 1.2 + rand() * 1.2,
+    opacity: 0.25 + rand() * 0.55,
+    saturate: 1.2 + rand() * 1.6,
+    blend: "plus-lighter",
+  }
+}
+
+/** Seeded easing — a cubic bezier with character but no broken monotonicity
+ * (x control points stay in 0..1 as CSS requires). */
+export function easingFromSeed(seed: number): BezierPoints {
+  const rand = mulberry32(Math.round(seed) ^ 0x85ebca6b)
+  return [0.1 + rand() * 0.7, rand() * 1.1, 0.2 + rand() * 0.7, 0.5 + rand() * 0.6]
+}
+
+/** Seeded motion — duration, delay, stagger, sparkle character, start angle. */
+export function motionFromSeed(seed: number) {
+  const rand = mulberry32(Math.round(seed) ^ 0xc2b2ae35)
+  return {
+    duration: 550 + Math.round(rand() * 1100),
+    delay: Math.round(rand() * 180),
+    stagger: 0.2 + rand() * 0.7,
+    sparkleDensity: 0.5 + rand(),
+    sparkleSpeed: 0.5 + rand(),
+    startAngle: Math.round(rand() * 360),
   }
 }
 
@@ -213,7 +245,7 @@ export type BloomConfig = {
   blend?: BloomBlend // additive by default
 }
 /** A preset name, a full config, or "off". */
-export type BloomInput = BloomLevel | BloomConfig
+export type BloomInput = BloomLevel | BloomConfig | number
 
 const PRESET: Record<Exclude<BloomLevel, "off">, BloomConfig> = {
   low: { blur: 3, brightness: 1.35, opacity: 0.7, saturate: 1.4 },
@@ -234,7 +266,12 @@ export function bloomLayerStyle(
   active: boolean
 ): BloomStyle | null {
   if (!active || input === "off") return null
-  const cfg = typeof input === "string" ? PRESET[input] : input
+  const cfg =
+    typeof input === "string"
+      ? PRESET[input]
+      : typeof input === "number"
+        ? bloomFromSeed(input)
+        : input
   return {
     filter: `blur(${cfg.blur}px) brightness(${cfg.brightness}) saturate(${cfg.saturate ?? 1})`,
     opacity: cfg.opacity,
@@ -260,7 +297,7 @@ export const EASINGS: Record<EasingName, (t: number) => number> = {
 /** An easing is a preset name or a CSS-style cubic-bezier(x1, y1, x2, y2) —
  * y outside [0,1] gives real overshoot/anticipation, like any animator tool. */
 export type BezierPoints = readonly [number, number, number, number]
-export type EasingInput = EasingName | BezierPoints
+export type EasingInput = EasingName | BezierPoints | number
 
 /** cubic-bezier(x1,y1,x2,y2) solver — Newton + bisection fallback, the same
  * approach browsers use for CSS timing functions. */
@@ -312,10 +349,11 @@ let lastBezierFn: (t: number) => number = EASINGS.linear
 /** Resolve a preset name or bezier points to its timing function. */
 export function resolveEasing(input: EasingInput): (t: number) => number {
   if (typeof input === "string") return EASINGS[input] ?? EASINGS["ease-in-out"]
-  const key = input.join(",")
+  const pts = typeof input === "number" ? easingFromSeed(input) : input
+  const key = pts.join(",")
   if (key !== lastBezierKey) {
     lastBezierKey = key
-    lastBezierFn = cubicBezier(input[0], input[1], input[2], input[3])
+    lastBezierFn = cubicBezier(pts[0], pts[1], pts[2], pts[3])
   }
   return lastBezierFn
 }
