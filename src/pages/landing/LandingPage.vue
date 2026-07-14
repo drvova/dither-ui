@@ -1,127 +1,49 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue"
+import { onMounted, ref } from "vue"
 import { DitherButton, DitherGradient } from "@dither-kit"
 
 const openStudio = () => (window.location.hash = "#/studio")
 
-// WALK cycle from the sprite sheet — frame boxes measured from the source png
-// (10 phases, split on minimum-density columns since neighbours touch).
-const FRAMES = [
-  { x: 695, y: 50, w: 87, h: 186 },
-  { x: 782, y: 50, w: 89, h: 186 },
-  { x: 871, y: 50, w: 86, h: 186 },
-  { x: 957, y: 50, w: 84, h: 186 },
-  { x: 1041, y: 50, w: 83, h: 186 },
-  { x: 1124, y: 50, w: 84, h: 186 },
-  { x: 1208, y: 50, w: 81, h: 186 },
-  { x: 1289, y: 50, w: 85, h: 186 },
-  { x: 1374, y: 50, w: 75, h: 186 },
-  { x: 1449, y: 50, w: 77, h: 186 },
+// Facial-expression portraits from the sprite sheet — boxes measured from the
+// source png, uniform y-band so panel titles above the row stay out of frame.
+const FACES = [
+  { x: 29, w: 97 }, // neutral
+  { x: 147, w: 97 }, // smile
+  { x: 262, w: 95 }, // blush
+  { x: 378, w: 98 }, // wink
+  { x: 497, w: 96 }, // surprised
+  { x: 832, w: 94 }, // excited
 ]
-const FRAME_MS = 100
-const spriteRef = ref<HTMLCanvasElement | null>(null)
-let raf = 0
+const FACE_Y = 766
+const FACE_H = 126
+const GAP = 28
+
+const facesRef = ref<HTMLCanvasElement | null>(null)
 
 onMounted(() => {
   const img = new Image()
   img.src = "/sprites.png"
   img.onload = () => {
-    const c = spriteRef.value
+    const c = facesRef.value
     const g = c?.getContext("2d")
     if (!c || !g) return
-
-    // Chroma-key the sheet's near-black background, then keep only the
-    // largest connected blob — drops hair fragments bleeding in from
-    // neighbouring frames (the sheet's frames touch each other).
-    const cells = FRAMES.map((f) => {
-      const off = document.createElement("canvas")
-      off.width = f.w
-      off.height = f.h
-      const og = off.getContext("2d")!
-      og.drawImage(img, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h)
-      const px = og.getImageData(0, 0, f.w, f.h)
-      const d = px.data
-      const n = f.w * f.h
-      for (let i = 0; i < d.length; i += 4) {
-        if (Math.abs(d[i] - 7) + Math.abs(d[i + 1] - 9) + Math.abs(d[i + 2] - 13) < 48)
-          d[i + 3] = 0
-      }
-      const label = new Int32Array(n).fill(-1)
-      const queue = new Int32Array(n)
-      let bestLabel = -1
-      let bestSize = 0
-      let nextLabel = 0
-      const touchesEdge: boolean[] = []
-      for (let p = 0; p < n; p++) {
-        if (label[p] >= 0 || d[p * 4 + 3] === 0) continue
-        let head = 0
-        let tail = 0
-        queue[tail++] = p
-        label[p] = nextLabel
-        let size = 0
-        let edge = false
-        while (head < tail) {
-          const q = queue[head++]
-          size++
-          const qx = q % f.w
-          if (qx === 0 || qx === f.w - 1) edge = true
-          if (qx > 0 && label[q - 1] < 0 && d[(q - 1) * 4 + 3] > 0) { label[q - 1] = nextLabel; queue[tail++] = q - 1 }
-          if (qx < f.w - 1 && label[q + 1] < 0 && d[(q + 1) * 4 + 3] > 0) { label[q + 1] = nextLabel; queue[tail++] = q + 1 }
-          if (q >= f.w && label[q - f.w] < 0 && d[(q - f.w) * 4 + 3] > 0) { label[q - f.w] = nextLabel; queue[tail++] = q - f.w }
-          if (q < n - f.w && label[q + f.w] < 0 && d[(q + f.w) * 4 + 3] > 0) { label[q + f.w] = nextLabel; queue[tail++] = q + f.w }
-        }
-        touchesEdge.push(edge)
-        if (size > bestSize) { bestSize = size; bestLabel = nextLabel }
-        nextLabel++
-      }
-      // Neighbour bleed always touches the cut edge; her shadow never does.
-      for (let p = 0; p < n; p++) {
-        const l = label[p]
-        if (l >= 0 && l !== bestLabel && touchesEdge[l]) d[p * 4 + 3] = 0
-      }
-      og.putImageData(px, 0, 0)
-      return off
-    })
-
-    c.width = 92
-    c.height = 186
-    let k = -1
-    const draw = (frame: number) => {
-      if (frame === k) return
-      k = frame
-      const f = cells[k]
-      g.clearRect(0, 0, c.width, c.height)
-      g.drawImage(f, Math.round((c.width - f.width) / 2), 0)
+    c.width = FACES.reduce((sum, f) => sum + f.w, 0) + GAP * (FACES.length - 1)
+    c.height = FACE_H
+    let dx = 0
+    for (const f of FACES) {
+      g.drawImage(img, f.x, FACE_Y, f.w, FACE_H, dx, 0, f.w, FACE_H)
+      dx += f.w + GAP
     }
-    draw(0)
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      c.style.transform = "translateX(10vw)"
-      return
+    // Chroma-key the sheet's near-black background so the page shows through.
+    const px = g.getImageData(0, 0, c.width, c.height)
+    const d = px.data
+    for (let i = 0; i < d.length; i += 4) {
+      if (Math.abs(d[i] - 5) + Math.abs(d[i + 1] - 5) + Math.abs(d[i + 2] - 7) < 48)
+        d[i + 3] = 0
     }
-    // Smooth locomotion, quantized to whole pixels: position advances every
-    // display frame at a speed matched to the gait (one full 10-frame cycle
-    // covers one stride), frames derive from elapsed time — no drift, no 7px
-    // hops, feet stay planted on average.
-    const SPEED = 66 // px/s ≈ stride length per 1s gait cycle
-    let x = -100
-    let start = 0
-    let prev = 0
-    const tick = (t: number) => {
-      if (!start) {
-        start = t
-        prev = t
-      }
-      x += (SPEED * (t - prev)) / 1000
-      prev = t
-      if (x > window.innerWidth + 40) x = -160
-      draw(Math.floor((t - start) / FRAME_MS) % cells.length)
-      c.style.transform = `translateX(${Math.round(x)}px)`
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
+    g.putImageData(px, 0, 0)
   }
 })
-onBeforeUnmount(() => cancelAnimationFrame(raf))
 </script>
 
 <template>
@@ -163,11 +85,13 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
 
       </div>
 
-      <!-- Full-bleed runner: she jogs the whole width, along the footer line -->
-      <div aria-hidden="true" class="reveal relative h-48 w-full overflow-hidden" style="--reveal-delay: 300ms">
+      <!-- Six moods, one row — static pixel portraits, nothing to animate -->
+      <div class="reveal flex justify-center overflow-x-hidden pb-16" style="--reveal-delay: 300ms">
         <canvas
-          ref="spriteRef"
-          class="absolute bottom-0 h-[186px] w-[92px]"
+          ref="facesRef"
+          role="img"
+          aria-label="Pixel-art character portraits in six expressions"
+          class="h-[126px] max-w-full"
           style="image-rendering: pixelated"
         />
       </div>
