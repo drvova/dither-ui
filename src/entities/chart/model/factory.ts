@@ -8,7 +8,17 @@ function seriesFor(type: ChartType): SeriesRow[] {
     label: string,
     color: SeriesRow["color"],
     on: boolean
-  ): SeriesRow => ({ key, label, color, variant: "gradient", on, locked: false, isClickable: true })
+  ): SeriesRow => ({
+    key,
+    label,
+    color,
+    variant: "gradient",
+    on,
+    locked: false,
+    isClickable: true,
+    dots: { on: false, variant: "border", r: 2 },
+    activeDot: { on: false, variant: "colored-border", r: 3 },
+  })
 
   if (fam === "pie")
     return [
@@ -47,6 +57,14 @@ export function createChart(type: ChartType = "area"): ChartModel {
     sparkles: true,
     hoverLift: true,
     stagger: 0.55,
+    cell: 2,
+    sparkleDensity: 1,
+    sparkleSpeed: 1,
+    barGap: 0.28,
+    glowSize: 0.16,
+    popOut: 6,
+    rimWidth: 1.4,
+    falloff: 0.45,
     innerRadius: 0.5,
     margins: { ...DEFAULT_MARGINS },
     series: seriesFor(type),

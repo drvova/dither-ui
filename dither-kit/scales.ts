@@ -60,12 +60,13 @@ export function buildXScale(length: number, plotWidth: number) {
     .range([0, plotWidth])
 }
 
-/** Banded x for bar categories — each index owns a slot of `bandwidth` width. */
-export function buildBandScale(length: number, plotWidth: number) {
+/** Banded x for bar categories — each index owns a slot of `bandwidth` width.
+ * `gap` is the fraction of each slot given to spacing (d3 paddingInner). */
+export function buildBandScale(length: number, plotWidth: number, gap = 0.28) {
   return scaleBand<number>()
     .domain(Array.from({ length }, (_, i) => i))
     .range([0, plotWidth])
-    .paddingInner(0.28)
+    .paddingInner(Math.max(0, Math.min(0.9, gap)))
     .paddingOuter(0.18)
 }
 

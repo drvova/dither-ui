@@ -49,6 +49,7 @@ function unlock() {
 // Easing: three presets + "custom" which opens the bezier curve editor,
 // seeded from the preset's equivalent curve so the switch is seamless.
 const EASING_CHOICES = [...EASING_NAMES, "custom"] as const
+const DOT_VARIANTS = ["border", "colored-border", "filled"] as const
 const SEED_BEZIER: Record<string, [number, number, number, number]> = {
   linear: [0.25, 0.25, 0.75, 0.75],
   "ease-out": [0.33, 1, 0.68, 1],
@@ -127,6 +128,38 @@ function setPieVariant(v: VariantInput) {
           <input v-model.number="chart.innerRadius" type="range" name="pie-radius" min="0" max="0.85" step="0.05" class="flex-1 accent-foreground" />
           <span class="w-8 tabular-nums text-foreground">{{ chart.innerRadius.toFixed(2) }}</span>
         </label>
+        <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="w-14 shrink-0">pixel</span>
+          <input v-model.number="chart.cell" type="range" name="cell" min="1" max="6" step="1" class="flex-1 accent-foreground" />
+          <span class="w-8 tabular-nums text-foreground">{{ chart.cell }}px</span>
+        </label>
+        <label v-if="chart.type === 'bar'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="w-14 shrink-0">bar gap</span>
+          <input v-model.number="chart.barGap" type="range" name="bar-gap" min="0" max="0.7" step="0.02" class="flex-1 accent-foreground" />
+          <span class="w-8 tabular-nums text-foreground">{{ chart.barGap.toFixed(2) }}</span>
+        </label>
+        <label v-if="chart.type === 'line'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="w-14 shrink-0">glow</span>
+          <input v-model.number="chart.glowSize" type="range" name="glow-size" min="0.05" max="0.4" step="0.01" class="flex-1 accent-foreground" />
+          <span class="w-8 tabular-nums text-foreground">{{ chart.glowSize.toFixed(2) }}</span>
+        </label>
+        <template v-if="chart.type === 'pie'">
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">pop</span>
+            <input v-model.number="chart.popOut" type="range" name="pie-pop" min="0" max="20" step="1" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ chart.popOut }}px</span>
+          </label>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">rim</span>
+            <input v-model.number="chart.rimWidth" type="range" name="pie-rim" min="0" max="5" step="0.2" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ chart.rimWidth.toFixed(1) }}</span>
+          </label>
+        </template>
+        <label v-if="chart.type === 'radar'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="w-14 shrink-0">falloff</span>
+          <input v-model.number="chart.falloff" type="range" name="radar-falloff" min="0.1" max="1" step="0.05" class="flex-1 accent-foreground" />
+          <span class="w-8 tabular-nums text-foreground">{{ chart.falloff.toFixed(2) }}</span>
+        </label>
         <Toggle v-if="fam === 'cartesian'" v-model="chart.interactive" label="interactive" />
       </section>
 
@@ -156,6 +189,20 @@ function setPieVariant(v: VariantInput) {
           <Toggle v-model="chart.animate" label="animate" />
           <Toggle v-model="chart.hoverLift" label="hover lift" />
           <Toggle v-if="chart.type === 'area' || chart.type === 'line'" v-model="chart.sparkles" label="sparkles" />
+        </div>
+        <template v-if="(chart.type === 'area' || chart.type === 'line') && chart.sparkles">
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">stars</span>
+            <input v-model.number="chart.sparkleDensity" type="range" name="sparkle-density" min="0.2" max="3" step="0.1" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ chart.sparkleDensity.toFixed(1) }}×</span>
+          </label>
+          <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">wink</span>
+            <input v-model.number="chart.sparkleSpeed" type="range" name="sparkle-speed" min="0.2" max="3" step="0.1" class="flex-1 accent-foreground" />
+            <span class="w-8 tabular-nums text-foreground">{{ chart.sparkleSpeed.toFixed(1) }}×</span>
+          </label>
+        </template>
+        <div class="flex flex-wrap gap-x-4 gap-y-2">
           <button type="button" class="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="replay()">
             <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8" /><path d="M21 3v5h-5" /></svg>
             replay
@@ -189,6 +236,20 @@ function setPieVariant(v: VariantInput) {
         <Toggle v-model="series.on" label="visible" />
         <Toggle v-model="series.isClickable" label="clickable" />
       </div>
+
+      <section v-if="fam === 'cartesian'" class="flex flex-col gap-2.5 border-t border-border/60 pt-3">
+        <p class="text-[10px] uppercase tracking-widest text-muted-foreground">markers</p>
+        <Toggle v-model="series.dots.on" label="dots at every point" />
+        <template v-if="series.dots.on">
+          <Segmented v-model="series.dots.variant" :options="DOT_VARIANTS" label="style" />
+          <NumberField v-model="series.dots.r" label="radius" :min="1" :max="8" :step="0.5" />
+        </template>
+        <Toggle v-model="series.activeDot.on" label="active dot on hover" />
+        <template v-if="series.activeDot.on">
+          <Segmented v-model="series.activeDot.variant" :options="DOT_VARIANTS" label="style" />
+          <NumberField v-model="series.activeDot.r" label="radius" :min="1" :max="10" :step="0.5" />
+        </template>
+      </section>
     </template>
 
     <!-- PIE -->

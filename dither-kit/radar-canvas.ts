@@ -92,7 +92,7 @@ function startRadarLoop({
     if (!s.radar) return
     c.clearRect(0, 0, cols, rows)
     const polys = buildPolys(resolveEasing(state.current.easing)(prog))
-    const band = Math.max(s.outerRadius * 0.45, 1)
+    const band = Math.max(s.outerRadius * s.falloff, 1)
 
     for (let y = 0; y < rows; y++) {
       const py = ((y + 0.5) * height) / rows
@@ -207,7 +207,7 @@ export const RadarCanvas = defineComponent({
     const ctx = usePolarChart()
     const canvasRef = ref<HTMLCanvasElement | null>(null)
     const bloomRef = ref<HTMLCanvasElement | null>(null)
-    const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height))
+    const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
     const stateBox: Box<PolarChartContextValue> = { current: ctx }
 
     let stop: (() => void) | undefined

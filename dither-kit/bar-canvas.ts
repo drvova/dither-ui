@@ -177,7 +177,7 @@ export const BarCanvas = defineComponent({
     const ctx = useChart()
     const canvasRef = ref<HTMLCanvasElement | null>(null)
     const bloomRef = ref<HTMLCanvasElement | null>(null)
-    const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height))
+    const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
 
     const targets = computed<Record<string, Bars>>(() => {
       const out: Record<string, Bars> = {}

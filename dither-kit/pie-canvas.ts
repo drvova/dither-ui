@@ -21,7 +21,6 @@ import { type PolarChartContextValue, usePolarChart } from "./polar-context"
 
 const TOP = -Math.PI / 2
 const TAU = Math.PI * 2
-const POP = 6 // px the hovered slice bulges outward
 type Box<T> = { readonly current: T }
 
 type LoopArgs = {
@@ -97,7 +96,7 @@ function startPieLoop({
         if (si < 0) continue
         const slice = slices[si]
         const active = s.hoverIndex === si
-        const localOuter = active ? outerR + POP * popEase : outerR
+        const localOuter = active ? outerR + s.popOut * popEase : outerR
         if (r > localOuter) continue
 
         const seed = s.seedOf(slice.name)
@@ -106,7 +105,7 @@ function startPieLoop({
         const selDim = emphasis !== null && emphasis !== slice.name ? 0.3 : 1
         const it = intensity + (active ? 0.4 * popEase : 0)
 
-        if (localOuter - r < (active ? 1.4 + popEase : 1.4)) {
+        if (localOuter - r < (active ? s.rimWidth + popEase : s.rimWidth)) {
           c.fillStyle = rgb(seed.fill, 1, selDim)
           c.fillRect(x, y, 1, 1)
           continue
@@ -195,7 +194,7 @@ export const PieCanvas = defineComponent({
     const ctx = usePolarChart()
     const canvasRef = ref<HTMLCanvasElement | null>(null)
     const bloomRef = ref<HTMLCanvasElement | null>(null)
-    const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height))
+    const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
     const stateBox: Box<PolarChartContextValue> = { current: ctx }
 
     let stop: (() => void) | undefined

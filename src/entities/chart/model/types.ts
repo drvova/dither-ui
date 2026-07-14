@@ -4,6 +4,7 @@ import type {
   BloomConfig,
   BloomLevel,
   DitherColor,
+  DotVariant,
   EasingInput,
   StackType,
   TextureConfig,
@@ -11,7 +12,10 @@ import type {
   VariantInput,
 } from "@dither-kit"
 
-export type { AreaVariant, BloomConfig, TextureConfig, VariantInput }
+export type { AreaVariant, BloomConfig, DotVariant, TextureConfig, VariantInput }
+
+/** Per-series point markers (rendered inside the series). */
+export type MarkerConfig = { on: boolean; variant: DotVariant; r: number }
 
 export type SeriesRow = {
   key: string
@@ -21,6 +25,8 @@ export type SeriesRow = {
   on: boolean
   locked: boolean
   isClickable: boolean
+  dots: MarkerConfig // a marker at every data point
+  activeDot: MarkerConfig // the marker at the hovered point
 }
 
 export type Margins = { top: number; right: number; bottom: number; left: number }
@@ -45,6 +51,14 @@ export type ChartModel = {
   sparkles: boolean
   hoverLift: boolean
   stagger: number
+  cell: number // css px per dither cell — pixel chunkiness
+  sparkleDensity: number // star count multiplier (area/line)
+  sparkleSpeed: number // wink speed multiplier (area/line)
+  barGap: number // bar slot spacing fraction (bar)
+  glowSize: number // line glow band height fraction (line)
+  popOut: number // hovered-slice bulge px (pie)
+  rimWidth: number // bright rim thickness (pie)
+  falloff: number // edge-density falloff distance fraction (radar)
   innerRadius: number
   margins: Margins
   series: SeriesRow[]

@@ -46,6 +46,8 @@ export function chartCode(chart: ChartModel): string {
   if (cart && yx.on) parts.push("YAxis")
   if (lg.on) parts.push("Legend")
   if (tt.on) parts.push("Tooltip")
+  if (cart && activeSeries(chart).some((s) => s.dots.on)) parts.push("Dot")
+  if (cart && activeSeries(chart).some((s) => s.activeDot.on)) parts.push("ActiveDot")
   const imports = [root, series, ...parts].join(", ")
 
   const m = chart.margins
@@ -73,6 +75,18 @@ export function chartCode(chart: ChartModel): string {
     attrs.push(`:stagger="${chart.stagger}"`)
   if (!chart.animate) attrs.push(`:animate="false"`)
   if (cart && !chart.interactive) attrs.push(`:interactive="false"`)
+  if (chart.cell !== 2) attrs.push(`:cell="${chart.cell}"`)
+  if ((chart.type === "area" || chart.type === "line") && chart.sparkles) {
+    if (chart.sparkleDensity !== 1) attrs.push(`:sparkle-density="${chart.sparkleDensity}"`)
+    if (chart.sparkleSpeed !== 1) attrs.push(`:sparkle-speed="${chart.sparkleSpeed}"`)
+  }
+  if (chart.type === "bar" && chart.barGap !== 0.28) attrs.push(`:bar-gap="${chart.barGap}"`)
+  if (chart.type === "line" && chart.glowSize !== 0.16) attrs.push(`:glow-size="${chart.glowSize}"`)
+  if (chart.type === "pie") {
+    if (chart.popOut !== 6) attrs.push(`:pop-out="${chart.popOut}"`)
+    if (chart.rimWidth !== 1.4) attrs.push(`:rim-width="${chart.rimWidth}"`)
+  }
+  if (chart.type === "radar" && chart.falloff !== 0.45) attrs.push(`:falloff="${chart.falloff}"`)
 
   const openTag =
     attrs.length <= 2
@@ -115,7 +129,20 @@ export function chartCode(chart: ChartModel): string {
         sa.push(`:variant="${objLit(s.variant as Record<string, unknown>)}"`)
       else if (s.variant !== "gradient") sa.push(`variant="${s.variant}"`)
       if (s.isClickable) sa.push(`is-clickable`)
-      kids.push(`<${series} ${sa.join(" ")} />`)
+      const markers: string[] = []
+      if (cart && s.dots.on) {
+        const da = [s.dots.variant !== "border" ? ` variant="${s.dots.variant}"` : "", s.dots.r !== 2 ? ` :r="${s.dots.r}"` : ""].join("")
+        markers.push(`  <Dot${da} />`)
+      }
+      if (cart && s.activeDot.on) {
+        const da = [s.activeDot.variant !== "colored-border" ? ` variant="${s.activeDot.variant}"` : "", s.activeDot.r !== 3 ? ` :r="${s.activeDot.r}"` : ""].join("")
+        markers.push(`  <ActiveDot${da} />`)
+      }
+      if (markers.length) {
+        kids.push(`<${series} ${sa.join(" ")}>`, ...markers, `</${series}>`)
+      } else {
+        kids.push(`<${series} ${sa.join(" ")} />`)
+      }
     }
   }
   if (lg.on) {

@@ -152,11 +152,13 @@ export function resample(src: number[], cols: number): number[] {
   return out
 }
 
-/** Backing-canvas resolution for a plot rect — low-res, scaled up `pixelated`. */
-export function backingSize(width: number, height: number) {
+/** Backing-canvas resolution for a plot rect — low-res, scaled up `pixelated`.
+ * `cell` is the css px per dither cell: bigger = chunkier pixels. */
+export function backingSize(width: number, height: number, cell: number = CELL) {
+  const c = Math.max(1, cell)
   return {
-    cols: Math.min(MAX_COLS, Math.max(8, Math.round(width / CELL))),
-    rows: Math.min(MAX_ROWS, Math.max(8, Math.round(height / CELL))),
+    cols: Math.min(MAX_COLS, Math.max(8, Math.round(width / c))),
+    rows: Math.min(MAX_ROWS, Math.max(8, Math.round(height / c))),
   }
 }
 

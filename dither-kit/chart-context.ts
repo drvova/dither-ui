@@ -89,6 +89,11 @@ export type ChartContextValue = {
   sparkles: boolean
   hoverLift: boolean
   stagger: number
+  cell: number
+  sparkleDensity: number
+  sparkleSpeed: number
+  barGap: number
+  glowSize: number
   revision: number
   entranceDone: boolean
   markEntranceDone: () => void
@@ -159,6 +164,11 @@ export type ControllerInput = {
   sparkles: () => boolean
   hoverLift: () => boolean
   stagger: () => number
+  cell: () => number
+  sparkleDensity: () => number
+  sparkleSpeed: () => number
+  barGap: () => number
+  glowSize: () => number
   replayToken: () => number
   markerIndex: () => number | null
   hovered: () => boolean
@@ -217,7 +227,9 @@ export function useChartController(input: ControllerInput): ChartContextValue {
   const ready = computed(() => plotWidth.value > 0 && plotHeight.value > 0)
 
   const xPoint = computed(() => buildXScale(input.data().length, plotWidth.value))
-  const xBand = computed(() => buildBandScale(input.data().length, plotWidth.value))
+  const xBand = computed(() =>
+    buildBandScale(input.data().length, plotWidth.value, input.barGap())
+  )
   const bandwidth = computed(() => (isBar ? xBand.value.bandwidth() : 0))
   const y = computed(() => buildYScale(max.value, plotHeight.value))
 
@@ -432,6 +444,21 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     },
     get stagger() {
       return input.stagger()
+    },
+    get cell() {
+      return input.cell()
+    },
+    get sparkleDensity() {
+      return input.sparkleDensity()
+    },
+    get sparkleSpeed() {
+      return input.sparkleSpeed()
+    },
+    get barGap() {
+      return input.barGap()
+    },
+    get glowSize() {
+      return input.glowSize()
     },
     get revision() {
       return revision.value

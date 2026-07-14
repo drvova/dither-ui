@@ -41,6 +41,10 @@ export type PolarChartContextValue = {
   animationDelay: number
   easing: EasingInput
   hoverLift: boolean
+  cell: number
+  popOut: number
+  rimWidth: number
+  falloff: number
   revision: number
   bloom: BloomInput
   bloomOnHover: boolean
@@ -104,6 +108,10 @@ export type PolarControllerInput = {
   animationDelay: () => number
   easing: () => EasingInput
   hoverLift: () => boolean
+  cell: () => number
+  popOut: () => number
+  rimWidth: () => number
+  falloff: () => number
   replayToken: () => number
   bloom: () => BloomInput
   bloomOnHover: () => boolean
@@ -304,6 +312,18 @@ export function usePolarController(
     },
     get hoverLift() {
       return input.hoverLift()
+    },
+    get cell() {
+      return input.cell()
+    },
+    get popOut() {
+      return input.popOut()
+    },
+    get rimWidth() {
+      return input.rimWidth()
+    },
+    get falloff() {
+      return input.falloff()
     },
     get revision() {
       return revision.value

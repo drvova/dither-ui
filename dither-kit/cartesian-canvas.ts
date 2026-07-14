@@ -185,7 +185,8 @@ function startCartesianLoop({
     } else intensity = itTarget
 
     const marker = s.hoverIndex != null ? s.hoverIndex : s.markerIndex
-    const winkDue = !reduce && now - last >= 100
+    const winkDue =
+      !reduce && now - last >= 100 / Math.max(0.1, s.sparkleSpeed)
     const paintSig = `${s.stackType}|${s.configKeys
       .map((k) => JSON.stringify(s.seriesSpecs[k]?.variant ?? ""))
       .join(",")}`
@@ -284,14 +285,14 @@ export const CartesianCanvas = defineComponent({
     const canvasRef = ref<HTMLCanvasElement | null>(null)
     const bloomRef = ref<HTMLCanvasElement | null>(null)
 
-    const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height))
+    const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
 
     const targets = computed<Record<string, Surface>>(() => {
       const out: Record<string, Surface> = {}
       if (!ctx.ready) return out
       const { cols, rows } = backing.value
       const h0 = ctx.plot.height || 1
-      const glow = Math.max(6, Math.round(rows * 0.16))
+      const glow = Math.max(2, Math.round(rows * ctx.glowSize))
       const defaultKind = ctx.chartType === "line" ? "line" : "area"
       for (const key of ctx.configKeys) {
         const band = ctx.bands[key]
@@ -309,7 +310,7 @@ export const CartesianCanvas = defineComponent({
     const stars = computed<Star[]>(() => {
       const out: Star[] = []
       const { cols } = backing.value
-      const per = Math.max(4, Math.round(cols / 14))
+      const per = Math.max(1, Math.round((cols / 14) * ctx.sparkleDensity))
       ctx.configKeys.forEach((key, k) => {
         for (let i = 0; i < per; i++) {
           const seed = i * 67 + 13 + k * 131
