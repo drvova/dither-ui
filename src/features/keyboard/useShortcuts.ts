@@ -10,6 +10,7 @@ import {
   setArtboardLocked,
   ungroup,
 } from "@/entities/editor"
+import { redo, undo } from "@/features/history"
 
 type ZoomControls = {
   fit: () => void
@@ -36,6 +37,12 @@ export function useShortcuts(zoom: ZoomControls) {
     if (isTyping(e.target)) {
       if (e.key === "Escape") (e.target as HTMLElement).blur()
       return
+    }
+
+    // History
+    if (mod && (e.key === "z" || e.key === "Z")) {
+      e.preventDefault()
+      return e.shiftKey ? redo() : undo()
     }
 
     // Zoom

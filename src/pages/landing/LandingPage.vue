@@ -14,6 +14,7 @@ const heroData = MONTHS.map((month, i) => ({
   v: 6 + Math.sin(i * 0.9) * 2.4 + Math.sin(i * 2.1) * 1.2,
 }))
 const heroConfig = { v: { color: "blue" as DitherColor } }
+const openStudio = () => (window.location.hash = "#/studio")
 </script>
 
 <template>
@@ -43,18 +44,17 @@ const heroConfig = { v: { color: "blue" as DitherColor } }
           Charts, buttons, avatars and gradients — rendered pixel by pixel on canvas.
         </p>
         <div class="reveal mt-10" style="--reveal-delay: 180ms">
-          <a href="#/studio" class="inline-block">
-            <DitherButton
-              color="blue"
-              variant="gradient"
-              class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
-            >
-              Open studio
-            </DitherButton>
-          </a>
+          <DitherButton
+            color="blue"
+            variant="gradient"
+            class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
+            @click="openStudio"
+          >
+            Open studio
+          </DitherButton>
         </div>
 
-        <div class="reveal mt-20 h-48 sm:mt-24 sm:h-64" style="--reveal-delay: 300ms">
+        <div aria-hidden="true" class="reveal mt-20 h-48 sm:mt-24 sm:h-64" style="--reveal-delay: 300ms">
           <AreaChart
             :data="heroData"
             :config="heroConfig"

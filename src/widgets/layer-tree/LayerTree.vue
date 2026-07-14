@@ -196,17 +196,17 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         @click="selectGroup(node.group.id)"
         @contextmenu.prevent.stop="open($event, groupItems(node.group))"
       >
-        <button type="button" class="flex size-4 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground" @click.stop="node.group.collapsed = !node.group.collapsed">
+        <button type="button" :aria-label="node.group.collapsed ? 'Expand group' : 'Collapse group'" class="flex size-5 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground" @click.stop="node.group.collapsed = !node.group.collapsed">
           <svg viewBox="0 0 24 24" class="size-3 transition-transform" :class="!node.group.collapsed ? 'rotate-90' : ''" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6" /></svg>
         </button>
         <svg viewBox="0 0 24 24" class="size-3.5 shrink-0 text-muted-foreground/70" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
         <input v-if="editingId === node.group.id" ref="renameInput" v-model="editText" name="group-rename" autocomplete="off" class="min-w-0 flex-1 rounded border border-accent/60 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none" @click.stop @keydown.enter.prevent="commitGroupName(node.group)" @keydown.esc.prevent="editingId = null" @blur="commitGroupName(node.group)" />
         <span v-else class="truncate font-medium text-foreground/90" @dblclick.stop="startRename(node.group.id, node.group.name)">{{ node.group.name }}</span>
         <span class="ml-auto flex items-center gap-0.5">
-          <button type="button" class="flex size-5 items-center justify-center rounded hover:bg-background" :class="groupLocked(node.group) ? 'text-accent' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setGroupLocked(node.group.id, !groupLocked(node.group))">
+          <button type="button" :aria-label="groupLocked(node.group) ? 'Unlock group' : 'Lock group'" :aria-pressed="groupLocked(node.group)" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="groupLocked(node.group) ? 'text-accent' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setGroupLocked(node.group.id, !groupLocked(node.group))">
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path v-if="groupLocked(node.group)" d="M8 11V7a4 4 0 0 1 8 0v4" /><path v-else d="M8 11V7a4 4 0 0 1 7-2.6" /></svg>
           </button>
-          <button type="button" class="flex size-5 items-center justify-center rounded hover:bg-background" :class="groupHidden(node.group) ? 'text-muted-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setGroupHidden(node.group.id, !groupHidden(node.group))">
+          <button type="button" :aria-label="groupHidden(node.group) ? 'Show group' : 'Hide group'" :aria-pressed="groupHidden(node.group)" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="groupHidden(node.group) ? 'text-muted-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setGroupHidden(node.group.id, !groupHidden(node.group))">
             <svg v-if="!groupHidden(node.group)" viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
             <svg v-else viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l20 20M6.7 6.7A10.5 10.5 0 0 0 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.3-1.5" /></svg>
           </button>
@@ -222,17 +222,17 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         @click="clickArtboard(node.a, $event)"
         @contextmenu.prevent.stop="open($event, artboardItems(node.a))"
       >
-        <button type="button" class="flex size-4 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground" @click.stop="toggleArtboard(node.a.id)">
+        <button type="button" :aria-label="isOpen(node.a.id) ? 'Collapse layers' : 'Expand layers'" class="flex size-5 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground" @click.stop="toggleArtboard(node.a.id)">
           <svg viewBox="0 0 24 24" class="size-3 transition-transform" :class="isOpen(node.a.id) ? 'rotate-90' : ''" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6" /></svg>
         </button>
         <span class="grid size-3.5 shrink-0 place-items-center text-[13px] font-semibold leading-none" :class="isSel(node.a.id) ? 'text-accent' : 'text-muted-foreground/60'">#</span>
         <input v-if="editingId === node.a.id" ref="renameInput" v-model="editText" name="artboard-rename" autocomplete="off" class="min-w-0 flex-1 rounded border border-accent/60 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none" @click.stop @keydown.enter.prevent="commitArtboardName(node.a)" @keydown.esc.prevent="editingId = null" @blur="commitArtboardName(node.a)" />
         <span v-else class="truncate" :class="isSel(node.a.id) ? 'font-medium text-foreground' : 'text-foreground/90'" @dblclick.stop="startRename(node.a.id, node.a.name)">{{ node.a.name }}</span>
         <span class="ml-auto flex items-center gap-0.5">
-          <button type="button" class="flex size-5 items-center justify-center rounded hover:bg-background" :class="node.a.locked ? 'text-accent' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setArtboardLocked(node.a.id, !node.a.locked)">
+          <button type="button" :aria-label="node.a.locked ? 'Unlock artboard' : 'Lock artboard'" :aria-pressed="node.a.locked" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="node.a.locked ? 'text-accent' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setArtboardLocked(node.a.id, !node.a.locked)">
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path v-if="node.a.locked" d="M8 11V7a4 4 0 0 1 8 0v4" /><path v-else d="M8 11V7a4 4 0 0 1 7-2.6" /></svg>
           </button>
-          <button type="button" class="flex size-5 items-center justify-center rounded hover:bg-background" :class="node.a.hidden ? 'text-muted-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setArtboardHidden(node.a.id, !node.a.hidden)">
+          <button type="button" :aria-label="node.a.hidden ? 'Show artboard' : 'Hide artboard'" :aria-pressed="node.a.hidden" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="node.a.hidden ? 'text-muted-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setArtboardHidden(node.a.id, !node.a.hidden)">
             <svg v-if="!node.a.hidden" viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
             <svg v-else viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l20 20M6.7 6.7A10.5 10.5 0 0 0 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.3-1.5" /></svg>
           </button>
@@ -255,10 +255,10 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         <span class="truncate text-[12px]">{{ node.layer.label }}</span>
         <span v-if="node.layer.kind === 'series' && seriesOf(node.a, node.layer)" class="ml-auto size-2.5 shrink-0 rounded-[2px]" :style="{ backgroundColor: cssColor(seriesOf(node.a, node.layer)!.color) }" />
         <span v-if="togglable(node.layer)" class="flex items-center gap-0.5" :class="node.layer.kind === 'series' ? '' : 'ml-auto'">
-          <button type="button" class="flex size-5 items-center justify-center rounded hover:bg-black/10" :class="layerLocked(node.a, node.layer) ? 'opacity-90' : 'opacity-0 group-hover/row:opacity-70'" @click.stop="toggleLayerLock(node.a, node.layer)">
+          <button type="button" :aria-label="layerLocked(node.a, node.layer) ? 'Unlock layer' : 'Lock layer'" :aria-pressed="layerLocked(node.a, node.layer)" class="flex size-6 items-center justify-center rounded hover:bg-black/10" :class="layerLocked(node.a, node.layer) ? 'opacity-90' : 'opacity-0 group-hover/row:opacity-70'" @click.stop="toggleLayerLock(node.a, node.layer)">
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path v-if="layerLocked(node.a, node.layer)" d="M8 11V7a4 4 0 0 1 8 0v4" /><path v-else d="M8 11V7a4 4 0 0 1 7-2.6" /></svg>
           </button>
-          <button type="button" class="flex size-5 items-center justify-center rounded hover:bg-black/10" :class="!layerVisible(node.a, node.layer) ? 'opacity-90' : 'opacity-0 group-hover/row:opacity-70'" @click.stop="toggleLayerVis(node.a, node.layer)">
+          <button type="button" :aria-label="layerVisible(node.a, node.layer) ? 'Hide layer' : 'Show layer'" :aria-pressed="!layerVisible(node.a, node.layer)" class="flex size-6 items-center justify-center rounded hover:bg-black/10" :class="!layerVisible(node.a, node.layer) ? 'opacity-90' : 'opacity-0 group-hover/row:opacity-70'" @click.stop="toggleLayerVis(node.a, node.layer)">
             <svg v-if="layerVisible(node.a, node.layer)" viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
             <svg v-else viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l20 20M6.7 6.7A10.5 10.5 0 0 0 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.3-1.5" /></svg>
           </button>

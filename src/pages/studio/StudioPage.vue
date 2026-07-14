@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { ExportDialog } from "@/features/export-code"
+import { startHistory } from "@/features/history"
+import { ShortcutsHelp } from "@/features/keyboard"
 import { hydrate, startAutosave } from "@/features/persistence"
 import { Canvas } from "@/widgets/canvas"
 import { Inspector } from "@/widgets/inspector"
@@ -11,6 +13,7 @@ const exportOpen = ref(false)
 
 hydrate()
 startAutosave()
+startHistory()
 </script>
 
 <template>
@@ -40,5 +43,6 @@ startAutosave()
     </div>
 
     <ExportDialog :open="exportOpen" @close="exportOpen = false" />
+    <ShortcutsHelp />
   </div>
 </template>

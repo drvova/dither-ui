@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from "vue"
+import { onBeforeUnmount, ref, watchEffect } from "vue"
 import { LandingPage } from "@/pages/landing"
 import { StudioPage } from "@/pages/studio"
 
@@ -8,6 +8,13 @@ const hash = ref(window.location.hash)
 const onHash = () => (hash.value = window.location.hash)
 window.addEventListener("hashchange", onHash)
 onBeforeUnmount(() => window.removeEventListener("hashchange", onHash))
+
+watchEffect(() => {
+  document.title =
+    hash.value === "#/studio"
+      ? "Studio — dither-ui"
+      : "dither-ui — A dithered UI toolkit for Vue"
+})
 </script>
 
 <template>

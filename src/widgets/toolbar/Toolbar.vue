@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, watch } from "vue"
 import {
   addArtboard,
   duplicateSelected,
@@ -16,6 +16,21 @@ import { useTheme } from "@/shared/lib"
 const emit = defineEmits<{ export: [] }>()
 const { dark, toggle } = useTheme()
 const addOpen = ref(false)
+
+// Dismiss the add-menu on outside click / Escape (same pattern as ContextMenu).
+const closeAdd = () => (addOpen.value = false)
+const onAddKey = (e: KeyboardEvent) => e.key === "Escape" && closeAdd()
+watch(addOpen, (open) => {
+  if (open) {
+    setTimeout(() => {
+      window.addEventListener("pointerdown", closeAdd)
+      window.addEventListener("keydown", onAddKey)
+    }, 0)
+  } else {
+    window.removeEventListener("pointerdown", closeAdd)
+    window.removeEventListener("keydown", onAddKey)
+  }
+})
 
 function add(t: ChartType) {
   addArtboard(t)
@@ -40,10 +55,10 @@ function doUngroup() {
     <div class="flex items-center gap-1.5">
       <!-- Add -->
       <div class="relative">
-        <button type="button" class="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-[11px] text-accent-foreground transition-opacity hover:opacity-90" @click="addOpen = !addOpen">
+        <button type="button" aria-haspopup="menu" :aria-expanded="addOpen" class="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-[11px] text-accent-foreground transition-opacity hover:opacity-90" @click="addOpen = !addOpen">
           + artboard
         </button>
-        <div v-if="addOpen" class="absolute right-0 top-full z-30 mt-1 w-32 rounded-lg border border-border bg-card p-1 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]">
+        <div v-if="addOpen" role="menu" class="absolute right-0 top-full z-30 mt-1 w-32 rounded-lg border border-border bg-card p-1 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]" @pointerdown.stop>
           <button v-for="t in CHART_TYPES" :key="t" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs capitalize text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="add(t)">{{ t }}</button>
         </div>
       </div>
