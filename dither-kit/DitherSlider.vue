@@ -15,7 +15,8 @@ function paintTrack(
   lo: number,
   hi: number,
   variant: SliderVariant,
-  ticks: number[]
+  ticks: number[],
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const a = Math.round(cols * clamp01(lo))
@@ -29,7 +30,7 @@ function paintTrack(
         if (variant === "hatched" && ((x + y) & 3) >= 2) {
           ctx.fillStyle = rgb(fill, 1, 0.12)
         } else {
-          const lit = variant === "solid" || density > BAYER4[y & 3][x & 3] - (variant === "dotted" ? 0.12 : 0)
+          const lit = variant === "solid" || density > matrix[y & 3][x & 3] - (variant === "dotted" ? 0.12 : 0)
           if (variant === "dotted" && !lit) {
             ctx.fillStyle = rgb(fill, 1, 0.1)
           } else {
@@ -38,7 +39,7 @@ function paintTrack(
           }
         }
       } else {
-        const lit = 0.25 > BAYER4[y & 3][x & 3]
+        const lit = 0.25 > matrix[y & 3][x & 3]
         ctx.fillStyle = rgb(muted, 1, lit ? 0.2 : 0.06)
       }
       ctx.fillRect(x, y, 1, 1)
@@ -56,6 +57,7 @@ function paintTrack(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
+import { pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
 const CELL = 2
@@ -92,6 +94,7 @@ const props = withDefaults(
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<SliderVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const emit = defineEmits<{ (e: "update:modelValue", value: number | [number, number]): void }>()
 
@@ -136,7 +139,8 @@ function paint() {
     isRange.value ? toRatio(lo.value) : 0,
     toRatio(hi.value),
     variant.value,
-    tickRatios.value
+    tickRatios.value,
+    matrix.value
   )
 }
 
@@ -218,7 +222,7 @@ onMounted(() => {
   }
 })
 watch(
-  () => [props.modelValue, color.value, props.min, props.max, variant.value, props.ticks],
+  () => [props.modelValue, color.value, props.min, props.max, variant.value, props.ticks, matrix.value],
   paint
 )
 onBeforeUnmount(() => ro?.disconnect())

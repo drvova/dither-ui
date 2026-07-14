@@ -121,6 +121,35 @@ function pixelBloomFromSeed(seed: number): PixelBloomConfig {
   }
 }
 
+/** Seeded dither matrix — mirrors dither-paint's matrixFromSeed exactly (same
+ * PRNG, same xor, same BAYER baseline, same jitter ranges) so one seed
+ * scatters pixels identically in both engines. */
+export function pixelMatrixFromSeed(seed: number): number[][] {
+  const s = Math.round(seed)
+  let a = (s ^ 0x1b873593) >>> 0
+  const rand = () => {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+  const jitter = 0.02 + rand() * 0.13
+  return BAYER4.map((row, y) =>
+    row.map((v, x) => {
+      let b = (s * 7919 + y * 17 + x * 31 + 7) >>> 0
+      const r = () => {
+        b |= 0
+        b = (b + 0x6d2b79f5) | 0
+        let t = Math.imul(b ^ (b >>> 15), 1 | b)
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+      }
+      return Math.max(0, Math.min(1, v + (r() - 0.5) * jitter * 2))
+    })
+  )
+}
+
 export function pixelBloomStyle(bloom: PixelBloomInput): PixelBloomStyle | null {
   if (bloom === "off") return null
   const cfg =

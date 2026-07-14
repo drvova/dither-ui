@@ -9,7 +9,8 @@ function paintMeter(
   rows: number,
   fill: Rgb,
   muted: Rgb,
-  ratio: number
+  ratio: number,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const filled = Math.round(cols * clamp01(ratio))
@@ -17,11 +18,11 @@ function paintMeter(
     for (let x = 0; x < cols; x++) {
       if (x < filled) {
         const density = 0.35 + 0.65 * ((x + 0.5) / Math.max(1, filled))
-        const lit = density > BAYER4[y & 3][x & 3]
+        const lit = density > matrix[y & 3][x & 3]
         const k = 0.3 + density * 0.7
         ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
       } else {
-        const lit = 0.25 > BAYER4[y & 3][x & 3]
+        const lit = 0.25 > matrix[y & 3][x & 3]
         ctx.fillStyle = rgb(muted, 1, lit ? 0.2 : 0.06)
       }
       ctx.fillRect(x, y, 1, 1)

@@ -19,7 +19,8 @@ function paintBox(
   n: number,
   fill: Rgb,
   muted: Rgb,
-  checked: boolean
+  checked: boolean,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, n, n)
   if (!checked) {
@@ -33,7 +34,7 @@ function paintBox(
   const density = 0.8
   for (let y = 0; y < n; y++) {
     for (let x = 0; x < n; x++) {
-      const lit = density > BAYER4[y & 3][x & 3]
+      const lit = density > matrix[y & 3][x & 3]
       const k = 0.3 + density * 0.7
       ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
       ctx.fillRect(x, y, 1, 1)
@@ -47,6 +48,7 @@ function paintBox(
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
+import { pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
 const CELL = 2
@@ -63,6 +65,7 @@ const props = withDefaults(
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -77,11 +80,11 @@ function paint() {
   const n = Math.max(4, Math.round(box.getBoundingClientRect().width / CELL))
   canvas.width = n
   canvas.height = n
-  paintBox(ctx, n, fillOf(color.value), fillOf("grey"), props.modelValue)
+  paintBox(ctx, n, fillOf(color.value), fillOf("grey"), props.modelValue, matrix.value)
 }
 
 onMounted(paint)
-watch(() => [props.modelValue, color.value], paint)
+watch(() => [props.modelValue, color.value, matrix.value], paint)
 </script>
 
 <template>

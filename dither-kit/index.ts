@@ -121,8 +121,10 @@ export {
   easingFromSeed,
   geometryFromSeed,
   kitFromSeed,
+  matrixFromSeed,
   motionFromSeed,
   mulberry32,
+  resolveMatrix,
   resolveTexture,
   textureFromSeed,
 } from "./dither-paint"

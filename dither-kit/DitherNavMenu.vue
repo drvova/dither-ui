@@ -10,7 +10,8 @@ const CELL = 2
 function paintUnderline(
   canvas: HTMLCanvasElement,
   width: number,
-  color: PixelColor
+  color: PixelColor,
+  matrix: number[][] = BAYER4
 ): void {
   const ctx = canvas.getContext("2d")
   if (!ctx || width <= 0) return
@@ -21,7 +22,7 @@ function paintUnderline(
   ctx.clearRect(0, 0, cols, 1)
   for (let x = 0; x < cols; x++) {
     const density = (x + 0.5) / cols
-    const lit = density > BAYER4[0][x & 3]
+    const lit = density > matrix[0][x & 3]
     const alpha = lit ? 0.35 + 0.65 * density : 0.12 * density
     if (alpha <= 0.004) continue
     ctx.fillStyle = rgb(fill, 1, alpha)

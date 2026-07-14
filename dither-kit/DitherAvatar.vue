@@ -11,6 +11,7 @@ import {
   clamp01,
   fillOf,
   hueFill,
+  pixelMatrixFromSeed,
   type PixelBloomInput,
   type PixelColor,
   pixelPrefersReducedMotion,
@@ -60,6 +61,7 @@ function paintAvatar(
   canvas: HTMLCanvasElement,
   bloomCanvas: HTMLCanvasElement | null,
   model: AvatarModel,
+  matrix: number[][],
   { animate, duration, cellPx, boost, offTier }: PaintOpts
 ): (() => void) | undefined {
   const ctx = canvas.getContext("2d")
@@ -80,7 +82,7 @@ function paintAvatar(
     for (let r = 0; r < grid; r++) {
       for (let c = 0; c < grid; c++) {
         if (!model.on[r * grid + c]) continue
-        const start = BAYER4[r % 4][c % 4] * 0.7
+        const start = matrix[r % 4][c % 4] * 0.7
         const cellAlpha = clamp01((progress - start) / 0.3)
         if (cellAlpha <= 0) continue
         const density = clamp01(model.density[r * grid + c] + boost)
@@ -89,7 +91,7 @@ function paintAvatar(
           for (let pxi = 0; pxi < cp; pxi++) {
             const gx = c * cp + pxi
             const gy = r * cp + py
-            const lit = density > BAYER4[gy & 3][gx & 3]
+            const lit = density > matrix[gy & 3][gx & 3]
             const alpha = (lit ? base : base * offTier) * cellAlpha
             ctx.fillStyle = rgb(model.fill, 1, alpha)
             ctx.fillRect(gx, gy, 1, 1)
@@ -165,6 +167,7 @@ const effHue = computed(() => props.hue ?? s.value?.hue)
 const effBloom = computed(
   () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
 )
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
@@ -179,6 +182,7 @@ function paint() {
     canvas,
     bloomRef.value,
     avatarModel(props.name, props.color ?? effHue.value, props.mirror, props.grid, props.pattern),
+    matrix.value,
     {
       animate: props.animate,
       duration: props.animationDuration,

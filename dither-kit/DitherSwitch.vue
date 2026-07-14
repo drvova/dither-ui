@@ -10,13 +10,14 @@ function paintTrack(
   rows: number,
   fill: Rgb,
   muted: Rgb,
-  on: boolean
+  on: boolean,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   for (let y = 0; y < rows; y++) {
     const density = on ? 0.25 + 0.75 * ((y + 0.5) / rows) : 0.2
     for (let x = 0; x < cols; x++) {
-      const lit = density > BAYER4[y & 3][x & 3]
+      const lit = density > matrix[y & 3][x & 3]
       if (on) {
         const k = 0.3 + density * 0.7
         ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
@@ -32,7 +33,7 @@ function paintTrack(
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
-import { pixelPrefersReducedMotion } from "./pixel"
+import { pixelPrefersReducedMotion, pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
 const CELL = 2
@@ -51,6 +52,7 @@ const props = withDefaults(
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -68,14 +70,14 @@ function paint() {
   const rows = Math.max(4, Math.round(box.height / CELL))
   canvas.width = cols
   canvas.height = rows
-  paintTrack(ctx, cols, rows, fillOf(color.value), fillOf("grey"), props.modelValue)
+  paintTrack(ctx, cols, rows, fillOf(color.value), fillOf("grey"), props.modelValue, matrix.value)
 }
 
 onMounted(() => {
   reduce.value = pixelPrefersReducedMotion()
   paint()
 })
-watch(() => [props.modelValue, color.value], paint)
+watch(() => [props.modelValue, color.value, matrix.value], paint)
 </script>
 
 <template>

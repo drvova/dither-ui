@@ -1,5 +1,5 @@
 <script lang="ts">
-import { BAYER4 } from "./pixel"
+import { BAYER4, pixelMatrixFromSeed } from "./pixel"
 
 // Backing-resolution caps — same guard rails as DitherGradient.
 const MAX_COLS = 960
@@ -15,7 +15,8 @@ function paintImage(
   height: number,
   cell: number,
   focusY: number,
-  fade: number
+  fade: number,
+  matrix: number[][]
 ): void {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || width <= 0 || height <= 0 || !img.naturalWidth) return
@@ -38,7 +39,7 @@ function paintImage(
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const i = (y * cols + x) * 4
-      const t = BAYER4[y & 3][x & 3]
+      const t = matrix[y & 3][x & 3]
       // Dithered dissolve: toward every edge pixels first darken, then drop
       // out through the same Bayer matrix — the image melts into the page.
       let e = 1
@@ -85,6 +86,7 @@ const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : n
 const effCell = computed(() => props.cell ?? s.value?.cell ?? 3)
 const effFocusY = computed(() => props.focusY ?? s.value?.focusY ?? 0.5)
 const effFade = computed(() => props.fade ?? s.value?.fade ?? 0)
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -97,7 +99,7 @@ function paint() {
   const canvas = canvasRef.value
   if (!wrap || !canvas) return
   const box = wrap.getBoundingClientRect()
-  paintImage(canvas, img, box.width, box.height, effCell.value, effFocusY.value, effFade.value)
+  paintImage(canvas, img, box.width, box.height, effCell.value, effFocusY.value, effFade.value, matrix.value)
 }
 
 function load() {
@@ -113,7 +115,7 @@ onMounted(() => {
   }
 })
 watch(() => props.src, load)
-watch([effCell, effFocusY, effFade], paint)
+watch([effCell, effFocusY, effFade, matrix], paint)
 onBeforeUnmount(() => {
   ro?.disconnect()
   img.onload = null

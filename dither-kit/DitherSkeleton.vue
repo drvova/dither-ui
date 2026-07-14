@@ -11,13 +11,14 @@ function paintSkeleton(
   ctx: CanvasRenderingContext2D,
   cols: number,
   rows: number,
-  phase: number
+  phase: number,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const density = 0.45 + 0.1 * Math.sin(phase)
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      const lit = density > BAYER4[y & 3][x & 3]
+      const lit = density > matrix[y & 3][x & 3]
       ctx.fillStyle = rgb(GREY, 0.8, lit ? 0.5 : 0.18)
       ctx.fillRect(x, y, 1, 1)
     }

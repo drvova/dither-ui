@@ -12,7 +12,8 @@ function paintDot(
   n: number,
   fill: Rgb,
   muted: Rgb,
-  checked: boolean
+  checked: boolean,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, n, n)
   const c = (n - 1) / 2
@@ -26,7 +27,7 @@ function paintDot(
         ctx.fillRect(x, y, 1, 1)
       } else if (checked && d <= edge - 2.4) {
         const density = 0.8
-        const lit = density > BAYER4[y & 3][x & 3]
+        const lit = density > matrix[y & 3][x & 3]
         const k = 0.3 + density * 0.7
         ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
         ctx.fillRect(x, y, 1, 1)

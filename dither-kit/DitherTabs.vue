@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { InjectionKey, Ref } from "vue"
 import { rgb } from "./palette"
-import { BAYER4, fillOf, type PixelColor } from "./pixel"
+import { BAYER4, fillOf, pixelMatrixFromSeed, type PixelColor } from "./pixel"
 
 export type TabsVariant = "underline" | "segmented" | "washed"
 export type TabItem = {
@@ -18,7 +18,7 @@ let counter = 0
 const CELL = 2
 
 /** Underline: a dither ramp along the run (same recipe as the gradient fade). */
-function paintUnderline(canvas: HTMLCanvasElement, length: number, color: PixelColor, vertical: boolean) {
+function paintUnderline(canvas: HTMLCanvasElement, length: number, color: PixelColor, vertical: boolean, matrix: number[][]) {
   const ctx = canvas.getContext("2d")
   if (!ctx || length <= 0) return
   const cells = Math.max(4, Math.round(length / CELL))
@@ -28,7 +28,7 @@ function paintUnderline(canvas: HTMLCanvasElement, length: number, color: PixelC
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   for (let i = 0; i < cells; i++) {
     const density = (i + 0.5) / cells
-    const lit = density > BAYER4[0][i & 3]
+    const lit = density > matrix[0][i & 3]
     const alpha = lit ? 0.35 + 0.65 * density : 0.12 * density
     if (alpha <= 0.004) continue
     ctx.fillStyle = rgb(fill, 1, alpha)
@@ -38,7 +38,7 @@ function paintUnderline(canvas: HTMLCanvasElement, length: number, color: PixelC
 }
 
 /** Washed: a quiet rest-intensity fill behind the active tab. */
-function paintWash(canvas: HTMLCanvasElement, w: number, h: number, color: PixelColor) {
+function paintWash(canvas: HTMLCanvasElement, w: number, h: number, color: PixelColor, matrix: number[][]) {
   const ctx = canvas.getContext("2d")
   if (!ctx || w <= 0 || h <= 0) return
   const cols = Math.max(4, Math.round(w / CELL))
@@ -50,7 +50,7 @@ function paintWash(canvas: HTMLCanvasElement, w: number, h: number, color: Pixel
   for (let y = 0; y < rows; y++) {
     const density = 0.2 + 0.5 * ((y + 0.5) / rows)
     for (let x = 0; x < cols; x++) {
-      const lit = density > BAYER4[y & 3][x & 3]
+      const lit = density > matrix[y & 3][x & 3]
       ctx.fillStyle = rgb(fill, 1, lit ? 0.32 : 0.08)
       ctx.fillRect(x, y, 1, 1)
     }
@@ -83,6 +83,7 @@ const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effColor = computed(() => props.color ?? s.value?.hue ?? "blue")
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const idBase = `dk-tabs-${counter++}`
 provide(TABS_CTX, { active: toRef(props, "modelValue"), idBase })
@@ -108,8 +109,8 @@ function measure() {
   const canvas = canvasRef.value
   if (!btn || !canvas) return
   marker.value = { left: btn.offsetLeft, top: btn.offsetTop, width: btn.offsetWidth, height: btn.offsetHeight }
-  if (props.variant === "washed") paintWash(canvas, btn.offsetWidth, btn.offsetHeight, effColor.value)
-  else paintUnderline(canvas, vertical.value ? btn.offsetHeight : btn.offsetWidth, effColor.value, vertical.value)
+  if (props.variant === "washed") paintWash(canvas, btn.offsetWidth, btn.offsetHeight, effColor.value, matrix.value)
+  else paintUnderline(canvas, vertical.value ? btn.offsetHeight : btn.offsetWidth, effColor.value, vertical.value, matrix.value)
 }
 
 function select(value: string) {
@@ -155,7 +156,7 @@ onMounted(() => {
   }
 })
 watch(
-  () => [props.modelValue, props.tabs, effColor.value, props.variant, props.orientation],
+  () => [props.modelValue, props.tabs, effColor.value, props.variant, props.orientation, matrix.value],
   () => nextTick(measure)
 )
 onBeforeUnmount(() => ro?.disconnect())

@@ -12,7 +12,8 @@ const GREY = fillOf("grey")
 function paintSeparator(
   ctx: CanvasRenderingContext2D,
   cells: number,
-  vertical: boolean
+  vertical: boolean,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, vertical ? 1 : cells, vertical ? cells : 1)
   const half = cells / 2
@@ -20,7 +21,7 @@ function paintSeparator(
     const e = 1 - Math.abs(i + 0.5 - half) / half // 1 at center, 0 at ends
     const x = vertical ? 0 : i
     const y = vertical ? i : 0
-    if (e < 1 && e * e <= BAYER4[y & 3][x & 3]) continue
+    if (e < 1 && e * e <= matrix[y & 3][x & 3]) continue
     ctx.fillStyle = rgb(GREY, 1, 0.35 + 0.45 * e)
     ctx.fillRect(x, y, 1, 1)
   }

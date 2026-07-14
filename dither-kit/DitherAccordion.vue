@@ -9,7 +9,7 @@ let uid = 0
 
 /** Paint the 2px left rail — a vertical dither ramp fading downward,
  * the same recipe as DitherCollapsible. */
-function paintRail(canvas: HTMLCanvasElement, color: PixelColor): void {
+function paintRail(canvas: HTMLCanvasElement, color: PixelColor, matrix: number[][] = BAYER4): void {
   const ctx = canvas.getContext("2d")
   const height = canvas.offsetHeight
   if (!ctx || height <= 0) return
@@ -20,7 +20,7 @@ function paintRail(canvas: HTMLCanvasElement, color: PixelColor): void {
   ctx.clearRect(0, 0, 1, rows)
   for (let y = 0; y < rows; y++) {
     const density = 1 - (y + 0.5) / rows
-    const lit = density > BAYER4[y & 3][0]
+    const lit = density > matrix[y & 3][0]
     const alpha = lit ? 0.35 + 0.65 * density : 0.12 * density
     if (alpha <= 0.004) continue
     ctx.fillStyle = rgb(fill, 1, alpha)

@@ -14,7 +14,8 @@ function paintBadge(
   cols: number,
   rows: number,
   fill: Rgb,
-  variant: BadgeVariant
+  variant: BadgeVariant,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const bias = variant === "dotted" ? 0.12 : 0
@@ -27,7 +28,7 @@ function paintBadge(
           : 0.75
     for (let x = 0; x < cols; x++) {
       if (variant === "hatched" && ((x + y) & 3) >= 2) continue
-      const lit = variant === "solid" || density > BAYER4[y & 3][x & 3] - bias
+      const lit = variant === "solid" || density > matrix[y & 3][x & 3] - bias
       if (variant === "dotted" && !lit) continue
       const k = 0.3 + density * 0.7
       ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
@@ -45,6 +46,7 @@ function paintBadge(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
+import { pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
@@ -57,6 +59,7 @@ const props = withDefaults(
   {}
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<BadgeVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
 
@@ -75,7 +78,7 @@ function paint() {
   const rows = Math.max(4, Math.round(box.height / CELL))
   canvas.width = cols
   canvas.height = rows
-  paintBadge(ctx, cols, rows, fillOf(color.value), variant.value)
+  paintBadge(ctx, cols, rows, fillOf(color.value), variant.value, matrix.value)
 }
 
 onMounted(() => {
@@ -85,7 +88,7 @@ onMounted(() => {
     if (wrapRef.value) ro.observe(wrapRef.value)
   }
 })
-watch([color, variant], paint)
+watch([color, variant, matrix], paint)
 onBeforeUnmount(() => ro?.disconnect())
 </script>
 

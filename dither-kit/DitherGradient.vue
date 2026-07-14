@@ -3,6 +3,7 @@ import { rgb } from "./palette"
 import {
   BAYER4,
   fillOf,
+  pixelMatrixFromSeed,
   type PixelBloomInput,
   type PixelColor,
 } from "./pixel"
@@ -26,6 +27,7 @@ function paintGradient(
   bloomCanvas: HTMLCanvasElement | null,
   width: number,
   height: number,
+  matrix: number[][],
   spec: PaintSpec
 ): void {
   const ctx = canvas.getContext("2d")
@@ -50,7 +52,7 @@ function paintGradient(
               ? 1 - (x + 0.5) / cols
               : (x + 0.5) / cols
       const density = 1 - t
-      const lit = density > BAYER4[y & 3][x & 3]
+      const lit = density > matrix[y & 3][x & 3]
       if (toFill) {
         ctx.fillStyle = rgb(lit ? fromFill : toFill, 1, o)
         ctx.fillRect(x, y, 1, 1)
@@ -98,6 +100,7 @@ const effOpacity = computed(() => props.opacity ?? s.value?.opacity ?? 1)
 const effBloom = computed(
   () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
 )
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -110,7 +113,7 @@ function paint() {
   const canvas = canvasRef.value
   if (!wrap || !canvas) return
   const box = wrap.getBoundingClientRect()
-  paintGradient(canvas, bloomRef.value, box.width, box.height, {
+  paintGradient(canvas, bloomRef.value, box.width, box.height, matrix.value, {
     from: effFrom.value,
     to: effTo.value,
     direction: effDirection.value,
@@ -126,7 +129,7 @@ onMounted(() => {
     if (wrapRef.value) ro.observe(wrapRef.value)
   }
 })
-watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom], paint)
+watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom, matrix], paint)
 onBeforeUnmount(() => ro?.disconnect())
 </script>
 

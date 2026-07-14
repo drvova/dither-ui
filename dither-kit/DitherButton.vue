@@ -22,7 +22,8 @@ function paintButton(
   cols: number,
   rows: number,
   { fill, variant }: PaintState,
-  intensity: number
+  intensity: number,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const bias = variant === "dotted" ? 0.12 : 0
@@ -37,7 +38,7 @@ function paintButton(
       if (variant === "hatched" && ((x + y) & 3) >= 2) continue
       const lit =
         variant === "solid" ||
-        density > BAYER4[y & 3][x & 3] - 0.1 * intensity - bias
+        density > matrix[y & 3][x & 3] - 0.1 * intensity - bias
       if (variant === "dotted" && !lit) continue
       const k = (0.3 + density * 0.7) * (1 + 0.22 * intensity)
       ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
@@ -59,7 +60,7 @@ function paintButton(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
-import { pixelBloomStyle } from "./pixel"
+import { pixelBloomStyle, pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
@@ -74,6 +75,7 @@ const props = withDefaults(
   {}
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<ButtonVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
 const bloom = computed<PixelBloomInput>(
@@ -105,7 +107,7 @@ function init(): (() => void) | undefined {
   let hovered = false
   let raf = 0
 
-  const paint = () => paintButton(ctx, bloomCtx, cols, rows, state, intensity)
+  const paint = () => paintButton(ctx, bloomCtx, cols, rows, state, intensity, matrix.value)
 
   const tick = () => {
     const d = target - intensity
@@ -179,7 +181,7 @@ function init(): (() => void) | undefined {
 onMounted(() => {
   teardown = init()
 })
-watch([color, variant, bloom, cell], () => {
+watch([color, variant, bloom, cell, matrix], () => {
   teardown?.()
   teardown = init()
 })

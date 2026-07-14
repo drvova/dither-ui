@@ -146,6 +146,45 @@ export function kitFromSeed(seed: number) {
   }
 }
 
+/** A 4×4 dither threshold matrix — same shape as BAYER, but the values can
+ * be jittered per-seed so each integer produces a unique scatter pattern. */
+export type DitherMatrix = number[][]
+
+/** Generate a 4×4 dither matrix from a seed — the same ordered structure as
+ * Bayer but with per-cell threshold jitter, so each seed scatters pixels
+ * differently while staying recognizably dithered (not random noise).
+ * The jitter amount is seed-derived: some seeds stay near-classic, others
+ * lean organic. Always clamped to [0, 1). */
+export function matrixFromSeed(seed: number): DitherMatrix {
+  const s = Math.round(seed)
+  const rand = mulberry32(s ^ 0x1b873593)
+  const jitter = 0.02 + rand() * 0.13
+  // Per-cell noise — stable per (seed, cell), so the same seed always paints
+  // the same scatter on every surface that uses it.
+  return BAYER.map((row, y) =>
+    row.map((v, x) => {
+      const r = mulberry32(s * 7919 + y * 17 + x * 31 + 7)
+      return Math.max(0, Math.min(1, v + (r() - 0.5) * jitter * 2))
+    })
+  )
+}
+
+// Matrix memo — keyed alongside the texture so per-column paint loops don't
+// regenerate per pixel.
+let lastMatrixKey: VariantInput | string = ""
+let lastMatrix: DitherMatrix = BAYER
+
+/** Resolve the dither matrix from a variant input: numbers seed it, names and
+ * configs fall back to the classic Bayer 4×4. */
+export function resolveMatrix(input: VariantInput): DitherMatrix {
+  if (typeof input === "string") return BAYER
+  if (input !== lastMatrixKey) {
+    lastMatrixKey = input
+    lastMatrix = typeof input === "number" ? matrixFromSeed(input) : BAYER
+  }
+  return lastMatrix
+}
+
 // Single-slot memo — the paint loops resolve per column, per frame.
 let lastTexKey: VariantInput | string = ""
 let lastTex: Required<TextureConfig> = TEXTURE_PRESET.gradient
@@ -169,6 +208,7 @@ export type PaintOpts = {
   dim: number // selection dim multiplier (0.3 dimmed, 1 normal)
   stacked: boolean // denser + solid floor when layers stack
   sparse?: number // raise the dither threshold (thin out) — front layers
+  matrix?: DitherMatrix // dither threshold pattern (defaults to BAYER)
 }
 
 // Colour vs opacity — the guiding rule for the whole engine:
@@ -195,9 +235,10 @@ export function paintColumn(
   top: number,
   floor: number,
   seed: Seed,
-  { variant, intensity, dim, stacked, sparse = 0 }: PaintOpts
+  { variant, intensity, dim, stacked, sparse = 0, matrix }: PaintOpts
 ) {
   const tex = resolveTexture(variant)
+  const mat = matrix ?? resolveMatrix(variant)
   const t = Math.round(top)
   const f = Math.round(floor)
   const depth = f - t
@@ -216,7 +257,7 @@ export function paintColumn(
     if (stacked) density = 0.5 + 0.5 * density
     if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2)
       continue
-    const lit = density > BAYER[y & 3][x & 3] - 0.1 * intensity - bias
+    const lit = density > mat[y & 3][x & 3] - 0.1 * intensity - bias
     // `gaps` keeps real holes for the open dotted look; otherwise unlit cells
     // drop to a faint tier of the same colour so the background never bleeds
     // through as stark white.

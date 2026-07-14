@@ -14,7 +14,8 @@ function paintProgress(
   fill: Rgb,
   muted: Rgb,
   ratio: number,
-  band: number | null
+  band: number | null,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const bandW = Math.max(2, Math.round(cols * BAND_RATIO))
@@ -34,11 +35,11 @@ function paintProgress(
         }
       }
       if (density !== null) {
-        const lit = density > BAYER4[y & 3][((bx % 4) + 4) & 3]
+        const lit = density > matrix[y & 3][((bx % 4) + 4) & 3]
         const k = 0.3 + density * 0.7
         ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
       } else {
-        const lit = 0.25 > BAYER4[y & 3][x & 3]
+        const lit = 0.25 > matrix[y & 3][x & 3]
         ctx.fillStyle = rgb(muted, 1, lit ? 0.2 : 0.06)
       }
       ctx.fillRect(x, y, 1, 1)
@@ -50,7 +51,7 @@ function paintProgress(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
-import { pixelPrefersReducedMotion } from "./pixel"
+import { pixelPrefersReducedMotion, pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
 const CELL = 2
@@ -67,6 +68,7 @@ const props = withDefaults(
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const rootRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -86,7 +88,8 @@ function paint(band: number | null) {
     fillOf(color.value),
     fillOf("grey"),
     clamp01(props.value / 100),
-    band
+    band,
+    matrix.value
   )
 }
 
@@ -135,7 +138,7 @@ onMounted(() => {
     if (rootRef.value) ro.observe(rootRef.value)
   }
 })
-watch(() => [props.value, color.value, props.indeterminate], syncLoop)
+watch(() => [props.value, color.value, props.indeterminate, matrix.value], syncLoop)
 onBeforeUnmount(() => {
   if (raf) cancelAnimationFrame(raf)
   ro?.disconnect()

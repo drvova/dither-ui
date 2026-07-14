@@ -10,7 +10,8 @@ const CELL = 2
 export function paintToggleCanvas(
   host: HTMLElement,
   canvas: HTMLCanvasElement,
-  fill: Rgb
+  fill: Rgb,
+  matrix: number[][] = BAYER4
 ): void {
   const ctx = canvas.getContext("2d")
   if (!ctx) return
@@ -23,7 +24,7 @@ export function paintToggleCanvas(
   for (let y = 0; y < rows; y++) {
     const density = 0.25 + 0.75 * ((y + 0.5) / rows)
     for (let x = 0; x < cols; x++) {
-      const lit = density > BAYER4[y & 3][x & 3]
+      const lit = density > matrix[y & 3][x & 3]
       const k = 0.3 + density * 0.7
       ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
       ctx.fillRect(x, y, 1, 1)
@@ -40,7 +41,7 @@ export function paintToggleCanvas(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
-import { fillOf, type PixelColor } from "./pixel"
+import { fillOf, type PixelColor, pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
 const props = withDefaults(
@@ -55,6 +56,7 @@ const props = withDefaults(
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
+const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -65,7 +67,7 @@ let ro: ResizeObserver | null = null
 function paint() {
   if (!props.modelValue) return
   if (buttonRef.value && canvasRef.value)
-    paintToggleCanvas(buttonRef.value, canvasRef.value, fillOf(color.value))
+    paintToggleCanvas(buttonRef.value, canvasRef.value, fillOf(color.value), matrix.value)
 }
 
 onMounted(() => {
@@ -75,7 +77,7 @@ onMounted(() => {
     if (buttonRef.value) ro.observe(buttonRef.value)
   }
 })
-watch(() => [props.modelValue, color.value], paint)
+watch(() => [props.modelValue, color.value, matrix.value], paint)
 onBeforeUnmount(() => ro?.disconnect())
 </script>
 

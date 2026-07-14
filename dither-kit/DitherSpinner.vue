@@ -18,7 +18,8 @@ function paintSpinner(
   ctx: CanvasRenderingContext2D,
   cells: number,
   fill: Rgb,
-  start: number
+  start: number,
+  matrix: number[][] = BAYER4
 ): void {
   ctx.clearRect(0, 0, cells, cells)
   const c = cells / 2
@@ -33,7 +34,7 @@ function paintSpinner(
       const rel = (Math.atan2(dy, dx) - start + TAU * 2) % TAU
       if (rel > ARC) continue
       const density = 1 - 0.8 * (rel / ARC)
-      if (density <= BAYER4[y & 3][x & 3]) continue
+      if (density <= matrix[y & 3][x & 3]) continue
       ctx.fillStyle = rgb(fill, 1, 0.4 + 0.6 * density)
       ctx.fillRect(x, y, 1, 1)
     }
