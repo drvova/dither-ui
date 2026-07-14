@@ -3,9 +3,13 @@ import type { InjectionKey } from "vue"
 
 export type DrawerSide = "right" | "left" | "bottom"
 
-/** Nested-drawer channel: a child drawer tells its parent to push back. */
+/** Nested-drawer channel: a child drawer tells its parent (or an app-level
+ * DitherDrawerIndent) to push back while it is open. */
 export type DrawerChannel = { notify: (delta: number) => void }
 export const DRAWER_CHANNEL: InjectionKey<DrawerChannel> = Symbol("dither-drawer")
+
+/** Snap points: 0..1 = fraction of viewport height, >1 = px. */
+const resolveSnap = (s: number) => (s <= 1 ? s * window.innerHeight : s)
 </script>
 
 <script setup lang="ts">
@@ -20,17 +24,25 @@ const props = withDefaults(
     title?: string
     /** Swipe-to-dismiss gesture on the panel. */
     swipe?: boolean
+    /** Bottom sheets only: preset visible heights (0..1 viewport fraction, >1 px). */
+    snapPoints?: number[]
+    /** Active snap point (v-model:snapPoint). Defaults to the first. */
+    snapPoint?: number
+    /** false renders no backdrop and leaves the page interactive. */
+    modal?: boolean
+    /** false keeps the drawer open on backdrop clicks (Escape still closes). */
+    dismissible?: boolean
   }>(),
-  { side: "right", swipe: true }
+  { side: "right", swipe: true, modal: true, dismissible: true }
 )
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; "update:snapPoint": [number] }>()
 
 const closeRef = ref<HTMLButtonElement | null>(null)
 const panelRef = ref<HTMLElement | null>(null)
 watch(
   () => props.open,
   (v) => {
-    if (v) nextTick(() => closeRef.value?.focus())
+    if (v && props.modal) nextTick(() => closeRef.value?.focus())
   }
 )
 
@@ -49,11 +61,38 @@ onBeforeUnmount(() => {
   if (parent && props.open) parent.notify(-1)
 })
 
-// --- swipe to dismiss: 1:1 tracking, rubber-band, momentum projection -------
+// --- snap points (bottom sheets) ---------------------------------------------
+const hasSnaps = computed(
+  () => props.side === "bottom" && !!props.snapPoints && props.snapPoints.length > 0
+)
+const internalSnap = ref<number | null>(null)
+const activeSnap = computed(
+  () => props.snapPoint ?? internalSnap.value ?? props.snapPoints?.[0] ?? 1
+)
+watch(
+  () => props.open,
+  (v) => {
+    if (v) internalSnap.value = props.snapPoint ?? props.snapPoints?.[0] ?? null
+  }
+)
+const maxSnapPx = computed(() =>
+  hasSnaps.value ? Math.max(...props.snapPoints!.map(resolveSnap)) : 0
+)
+const activeSnapPx = computed(() => (hasSnaps.value ? resolveSnap(activeSnap.value) : 0))
+/** Resting translateY for the current snap: hide everything below it. */
+const snapBase = computed(() => (hasSnaps.value ? maxSnapPx.value - activeSnapPx.value : 0))
+
+function setSnap(s: number) {
+  internalSnap.value = s
+  emit("update:snapPoint", s)
+}
+
+// --- swipe: 1:1 tracking, rubber-band, momentum projection -------------------
 const axis = computed(() => (props.side === "bottom" ? "y" : "x"))
 const dismissSign = computed(() => (props.side === "left" ? -1 : 1))
 const dragging = ref(false)
-const offset = ref(0) // px toward dismissal (negative = rubber-banded peek)
+const offset = ref(0) // px toward dismissal (negative = upward / rubber-banded)
+const settleMs = ref(200)
 let start = 0
 let size = 320
 let samples: VelocitySample[] = []
@@ -77,18 +116,46 @@ function onMove(e: PointerEvent) {
   samples.push({ t: e.timeStamp, p: pos(e) })
   if (samples.length > 6) samples.shift()
   const d = (pos(e) - start) * dismissSign.value
-  offset.value = d >= 0 ? d : -rubberband(-d, size)
+  if (hasSnaps.value) {
+    // Upward headroom until the largest snap, rubber-band past it.
+    const headroom = snapBase.value
+    offset.value = d >= -headroom ? d : -headroom - rubberband(-d - headroom, size)
+  } else {
+    offset.value = d >= 0 ? d : -rubberband(-d, size)
+  }
 }
 function onUp() {
   if (!dragging.value) return
   dragging.value = false
   const v = velocityFrom(samples) * dismissSign.value
+  // A hard flick settles faster — scale the release duration by swipe strength.
+  settleMs.value = Math.round(200 * Math.min(1, Math.max(0.3, 1 - Math.abs(v) / 3000)))
   const projected = offset.value + project(v)
+
+  if (hasSnaps.value) {
+    // Projected visible height picks the snap; below half the smallest = dismiss.
+    const projectedVisible = activeSnapPx.value - projected
+    const snaps = props.snapPoints!
+    const smallest = Math.min(...snaps.map(resolveSnap))
+    if (projectedVisible < smallest * 0.5) {
+      dismiss()
+      return
+    }
+    const nearest = snaps.reduce((a, b) =>
+      Math.abs(resolveSnap(b) - projectedVisible) < Math.abs(resolveSnap(a) - projectedVisible)
+        ? b
+        : a
+    )
+    setSnap(nearest)
+    offset.value = 0
+    return
+  }
+
   // Velocity sign decides on a flick; projection decides on a slow drag.
   if (offset.value > 0 && (v > 500 || (projected > size * 0.5 && v > -100))) {
     dismiss()
   } else {
-    offset.value = 0 // settle back through the transition
+    offset.value = 0
   }
 }
 function dismiss() {
@@ -97,12 +164,19 @@ function dismiss() {
     emit("close")
     return
   }
-  offset.value = size * 1.05 // glide out from the presentation value…
+  offset.value = size * 1.05
   window.setTimeout(() => {
-    emit("close") // …then unmount where the leave transition is a no-op
+    emit("close")
     offset.value = 0
-  }, 180)
+  }, settleMs.value)
 }
+
+/** 0..1 how far the drawer has been swiped toward dismissal. */
+const progress = computed(() => {
+  const travelled = snapBase.value + offset.value
+  const total = hasSnaps.value ? maxSnapPx.value : size
+  return Math.min(1, Math.max(0, travelled / total))
+})
 
 const panelStyle = computed(() => {
   if (childOpen.value > 0) {
@@ -110,12 +184,16 @@ const panelStyle = computed(() => {
       props.side === "bottom" ? "translateY(10px)" : `translateX(${12 * dismissSign.value}px)`
     return { transform: `${push} scale(0.97)`, filter: "brightness(0.75)" }
   }
-  if (offset.value === 0) return {}
-  const t =
-    axis.value === "y"
-      ? `translateY(${offset.value}px)`
-      : `translateX(${offset.value * dismissSign.value}px)`
-  return { transform: t }
+  const style: Record<string, string> = { transitionDuration: `${settleMs.value}ms` }
+  if (hasSnaps.value) style.height = `${maxSnapPx.value}px`
+  const delta = snapBase.value + offset.value
+  if (delta !== 0) {
+    style.transform =
+      axis.value === "y"
+        ? `translateY(${delta}px)`
+        : `translateX(${offset.value * dismissSign.value}px)`
+  }
+  return style
 })
 </script>
 
@@ -123,10 +201,14 @@ const panelStyle = computed(() => {
   <Teleport to="body">
     <Transition name="dk-fade">
       <div
-        v-if="props.open"
+        v-if="props.open && props.modal"
         aria-hidden="true"
         class="fixed inset-0 z-50 bg-black/60"
-        @click="emit('close')"
+        :style="{
+          opacity: dragging || offset > 0 ? 1 - progress : undefined,
+          transition: dragging ? 'none' : undefined,
+        }"
+        @click="props.dismissible && emit('close')"
       />
     </Transition>
     <Transition :name="props.side === 'bottom' ? 'dk-slide-b' : props.side === 'right' ? 'dk-slide-r' : 'dk-slide-l'">
@@ -134,15 +216,16 @@ const panelStyle = computed(() => {
         v-if="props.open"
         ref="panelRef"
         role="dialog"
-        aria-modal="true"
+        :aria-modal="props.modal ? 'true' : undefined"
         :aria-label="props.title"
         class="fixed z-50 flex flex-col border-border bg-card p-4"
         :class="[
           props.side === 'bottom'
-            ? 'inset-x-0 bottom-0 max-h-[85vh] rounded-t-xl border-t'
+            ? 'inset-x-0 bottom-0 rounded-t-xl border-t'
             : 'inset-y-0 w-80 max-w-[85vw]',
+          props.side === 'bottom' && !hasSnaps ? 'max-h-[85vh]' : '',
           props.side === 'right' ? 'right-0 border-l' : props.side === 'left' ? 'left-0 border-r' : '',
-          dragging ? 'select-none' : 'transition-[transform,filter] duration-200 motion-reduce:transition-none',
+          dragging ? 'select-none' : 'transition-[transform,filter] motion-reduce:transition-none',
           props.swipe && props.side !== 'bottom' ? 'touch-pan-y' : '',
         ]"
         :style="panelStyle"

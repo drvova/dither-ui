@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import {
+  cssColor,
   DitherAccordion,
   DitherAlertDialog,
   DitherButton,
@@ -34,6 +35,12 @@ const drawerOpen = ref(false)
 const gridSnap = ref(true)
 const showRulers = ref(false)
 const sheetOpen = ref(false)
+const snapOpen = ref(false)
+const snapAt = ref(0.35)
+const SNAPS = [0.35, 0.75]
+const sheetActions = ref(false)
+const lastAction = ref("none")
+const ACTIONS = ["Duplicate", "Rename", "Export PNG", "Move to group"]
 const nestedOpen = ref(false)
 const nestedChild = ref(false)
 const swipeAreaOn = ref(false)
@@ -107,7 +114,16 @@ const SNIPPET_DRAWER = `<!-- side drawers swipe-dismiss along their axis;
 </DitherDrawer>
 
 <!-- swipe-to-open from the viewport edge -->
-<DitherSwipeArea side="right" @open="open = true" />`
+<DitherSwipeArea side="right" @open="open = true" />
+
+<!-- snap points: vh fractions or px; flicks can skip points -->
+<DitherDrawer v-model:snap-point="snap" :open="open" side="bottom"
+  :snap-points="[0.35, 0.75]" @close="open = false" />
+
+<!-- indent: your app scales back while any drawer is open -->
+<DitherDrawerIndent>
+  <App />
+</DitherDrawerIndent>`
 
 const SNIPPET_SIDEBAR = `<DitherSidebar v-model="collapsed">
   <template #header>…wordmark…</template>
@@ -201,6 +217,10 @@ const API: Record<string, PropRow[]> = {
     { prop: "side", type: '"right" | "left" | "bottom"', default: '"right"' },
     { prop: "title", type: "string", default: "undefined" },
     { prop: "swipe", type: "boolean — drag to dismiss, momentum decides", default: "true" },
+    { prop: "snap-points", type: "number[] — ≤1 vh fraction, >1 px (bottom)", default: "undefined" },
+    { prop: "snap-point", type: "number — v-model:snap-point", default: "first snap" },
+    { prop: "modal", type: "boolean — false: no backdrop, page stays live", default: "true" },
+    { prop: "dismissible", type: "boolean — false: backdrop click ignored", default: "true" },
   ],
   sidebar: [
     { prop: "modelValue (Sidebar)", type: "boolean — collapsed rail", default: "false" },
@@ -294,6 +314,8 @@ const API: Record<string, PropRow[]> = {
       <div class="flex flex-wrap justify-center gap-3">
         <DitherButton @click="drawerOpen = true">Open settings</DitherButton>
         <DitherButton color="purple" @click="sheetOpen = true">Bottom sheet</DitherButton>
+        <DitherButton color="pink" @click="snapOpen = true; snapAt = 0.35">Snap points</DitherButton>
+        <DitherButton color="orange" @click="sheetActions = true">Action sheet</DitherButton>
         <DitherButton color="green" @click="nestedOpen = true">Nested</DitherButton>
         <DitherDrawer
           :open="drawerOpen"
@@ -317,6 +339,44 @@ const API: Record<string, PropRow[]> = {
             counts through its momentum, a slow drag settles back.
           </p>
         </DitherDrawer>
+        <DitherDrawer
+          v-model:snap-point="snapAt"
+          :open="snapOpen"
+          side="bottom"
+          title="Snap points"
+          :snap-points="SNAPS"
+          @close="snapOpen = false"
+        >
+          <p class="text-[13px] text-muted-foreground">
+            Resting at <span class="text-foreground tabular-nums">{{ Math.round(snapAt * 100) }}vh</span>.
+            Drag the handle up for the tall snap, down to the short one — a
+            flick's momentum can skip straight past a point. Below half the
+            smallest snap, it dismisses.
+          </p>
+        </DitherDrawer>
+        <DitherDrawer :open="sheetActions" side="bottom" title="Artboard" @close="sheetActions = false">
+          <div class="grid gap-1 pb-2">
+            <button
+              v-for="a in ACTIONS"
+              :key="a"
+              type="button"
+              class="rounded-md px-3 py-2 text-left text-[13px] text-foreground/90 transition-colors hover:bg-background"
+              @click="lastAction = a; sheetActions = false"
+            >
+              {{ a }}
+            </button>
+            <div class="my-1 h-px bg-border/60" />
+            <button
+              type="button"
+              class="rounded-md px-3 py-2 text-left text-[13px] transition-colors hover:bg-background"
+              :style="{ color: cssColor('red') }"
+              @click="lastAction = 'Delete'; sheetActions = false"
+            >
+              Delete artboard
+            </button>
+          </div>
+        </DitherDrawer>
+        <p class="w-full text-center text-[11px] text-muted-foreground">last action: {{ lastAction }}</p>
         <DitherDrawer :open="nestedOpen" side="right" title="Account" @close="nestedOpen = false">
           <p class="pb-3 text-[13px] text-muted-foreground">
             Opening a child pushes this drawer back — scaled, dimmed, out of
