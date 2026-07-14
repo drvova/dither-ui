@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
 import { DitherButton, DitherGradient } from "@dither-kit"
+import { version } from "../../../package.json"
 
 const openStudio = () => (window.location.hash = "#/studio")
 
@@ -74,7 +75,12 @@ onMounted(() => {
           class="reveal mt-5 max-w-md text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]"
           style="--reveal-delay: 90ms"
         >
-          Charts, buttons, avatars and gradients — rendered pixel by pixel on canvas.
+          Charts, buttons, avatars and gradients — rendered
+          <em class="text-foreground/80">pixel by pixel</em> on canvas. Built in
+          the
+          <a href="#/studio" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">studio</a>,
+          shipped under
+          <a href="https://dither-ui.com" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">MIT</a>.
         </p>
         <div class="reveal mt-10" style="--reveal-delay: 180ms">
           <DitherButton
@@ -90,6 +96,12 @@ onMounted(() => {
       </div>
 
       <!-- Six moods, one row — hover a face and her emote answers -->
+      <p
+        class="reveal pb-6 text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70"
+        style="--reveal-delay: 260ms"
+      >
+        expressions
+      </p>
       <div
         role="img"
         aria-label="Pixel-art character portraits in six expressions"
@@ -115,7 +127,7 @@ onMounted(() => {
     <footer class="overflow-hidden border-t border-border/60">
       <div class="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-[11px] text-muted-foreground">
         <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
-        <span>MIT</span>
+        <span class="tabular-nums">v{{ version }} · MIT</span>
       </div>
       <div
         aria-hidden="true"
