@@ -141,6 +141,29 @@ const grad = reactive({ direction: "up" as GradientDirection, from: "blue" as Di
 const SHELL_NAV = ["Overview", "Reports", "Alerts", "Settings"]
 const shellNav = ref("Overview")
 
+// Team example — contributors and their commit pulse.
+const TEAM = [
+  { name: "ada", role: "maintainer", commits: 284, color: "green" as DitherColor, data: trend(11, 0.3) },
+  { name: "grace", role: "charts", commits: 197, color: "blue" as DitherColor, data: trend(12, 0.24) },
+  { name: "linus", role: "engine", commits: 151, color: "purple" as DitherColor, data: trend(13, 0.18) },
+  { name: "barbara", role: "docs", commits: 96, color: "orange" as DitherColor, data: trend(14, 0.12) },
+]
+
+// Usage example — renders per month and quota.
+const usageRows = MONTHS.slice(0, 8).map((month, i) => ({
+  month,
+  renders: [212, 248, 231, 290, 341, 322, 398, 441][i],
+}))
+const usageConfig = { renders: { label: "Renders (k)", color: "blue" as DitherColor } }
+const quotaRows = [
+  { name: "used", value: 68 },
+  { name: "free", value: 32 },
+]
+const quotaConfig = {
+  used: { label: "Used", color: "blue" as DitherColor },
+  free: { label: "Free", color: "grey" as DitherColor },
+}
+
 // Monitoring example — four services, their pulse and state.
 const SERVICES = [
   { name: "api-gateway", uptime: "99.98%", ok: true, color: "green" as DitherColor, data: trend(4, 0.1) },
@@ -245,6 +268,9 @@ const GROUPS = [
       { id: "dashboard", label: "Dashboard" },
       { id: "shell", label: "App shell" },
       { id: "monitoring", label: "Monitoring" },
+      { id: "team", label: "Team" },
+      { id: "usage", label: "Usage & billing" },
+      { id: "signin", label: "Sign in" },
     ],
   },
   {
@@ -365,6 +391,29 @@ import { AreaChart, Area, DitherButton } from "@dither-kit"`,
   <span :class="s.ok ? 'bg-green' : 'bg-red'" />  <!-- dot -->
   {{ s.name }} <Sparkline :data="s.data" :color="s.color" />
   {{ s.uptime }}
+</div>`,
+  team: `<div v-for="m in team" class="flex items-center gap-4">
+  <DitherAvatar :name="m.name" :size="32" />
+  {{ m.name }} · {{ m.role }}
+  <Sparkline :data="m.data" :color="m.color" class="h-5 flex-1" />
+  <span class="tabular-nums">{{ m.commits }}</span>
+</div>`,
+  usage: `<BarChart :data="usageRows" :config="usageConfig">   <!-- renders/mo -->
+  <XAxis data-key="month" /> <Bar data-key="renders" />
+</BarChart>
+
+<PieChart :data="quotaRows" :config="quotaConfig"    <!-- quota donut -->
+  data-key="value" name-key="name" :inner-radius="0.62">
+  <Pie /> <Legend align="center" />
+</PieChart>
+
+<DitherButton color="blue">Upgrade to Pro</DitherButton>`,
+  signin: `<div class="relative overflow-hidden rounded-lg border p-8">
+  <DitherGradient from="blue" direction="up" :opacity="0.2" />
+  <span>dither-ui</span>                    <!-- wordmark -->
+  <input placeholder="you@dither-ui.com" />
+  <input type="password" placeholder="••••••••" />
+  <DitherButton color="blue" class="w-full">Sign in</DitherButton>
 </div>`,
   area: `const rows = [{ month: "Jan", revenue: 42, expenses: 31 }, …]
 const config = {
@@ -603,7 +652,7 @@ const gradientCode = computed(
                 <aside class="flex min-h-[360px] flex-col border-r border-border/60 bg-background/40 p-3">
                   <div class="flex items-center gap-2 px-2 py-1.5">
                     <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
-                    <span class="text-[12px] tracking-tight">acme.io</span>
+                    <span class="text-[12px] tracking-tight">dither-ui</span>
                   </div>
                   <nav class="mt-4 grid gap-0.5">
                     <button
@@ -692,6 +741,103 @@ const gradientCode = computed(
                     <span class="w-14 text-right text-[11px] tabular-nums" :class="s.ok ? 'text-muted-foreground' : 'text-foreground'" :style="s.ok ? {} : { color: cssColor('red') }">{{ s.uptime }}</span>
                   </div>
                 </div>
+              </div>
+            </DemoCard>
+          </section>
+
+          <!-- Team -->
+          <section id="team" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Team</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Contributors panel — deterministic avatars, a commit pulse per
+              person, one palette seed each.
+            </p>
+            <DemoCard :code="SNIPPETS.team">
+              <div class="mx-auto max-w-md rounded-lg border border-border/60">
+                <div class="flex items-center justify-between border-b border-border/60 px-4 py-2.5">
+                  <span class="text-[11px] text-muted-foreground">dither-ui · contributors</span>
+                  <span class="text-[11px] tabular-nums text-muted-foreground">this quarter</span>
+                </div>
+                <div v-for="(m, i) in TEAM" :key="m.name" class="flex items-center gap-3 px-4 py-2.5" :class="i > 0 ? 'border-t border-border/40' : ''">
+                  <DitherAvatar :name="m.name" :size="32" :animate="false" />
+                  <div class="w-20 min-w-0 sm:w-24">
+                    <div class="truncate text-[11px] text-foreground/90">{{ m.name }}</div>
+                    <div class="truncate text-[10px] text-muted-foreground">{{ m.role }}</div>
+                  </div>
+                  <Sparkline :data="m.data" :color="m.color" class="h-5 min-w-0 flex-1" />
+                  <span class="w-10 text-right text-[11px] tabular-nums text-muted-foreground">{{ m.commits }}</span>
+                </div>
+              </div>
+            </DemoCard>
+          </section>
+
+          <!-- Usage & billing -->
+          <section id="usage" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Usage &amp; billing</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Renders per month, quota as a donut, and the one button every
+              billing page needs.
+            </p>
+            <DemoCard :code="SNIPPETS.usage">
+              <div class="grid gap-4 sm:grid-cols-5">
+                <div class="rounded-lg border border-border/60 p-4 sm:col-span-3">
+                  <div class="text-[11px] text-muted-foreground">Renders per month</div>
+                  <div class="mt-3 h-40">
+                    <BarChart :data="usageRows" :config="usageConfig" :interactive="false">
+                      <XAxis data-key="month" :max-ticks="4" />
+                      <Bar data-key="renders" />
+                    </BarChart>
+                  </div>
+                </div>
+                <div class="flex flex-col rounded-lg border border-border/60 p-4 sm:col-span-2">
+                  <div class="text-[11px] text-muted-foreground">Quota · dither-ui pro</div>
+                  <div class="mt-3 h-28">
+                    <PieChart :data="quotaRows" :config="quotaConfig" data-key="value" name-key="name" :inner-radius="0.62">
+                      <Pie variant="gradient" />
+                    </PieChart>
+                  </div>
+                  <div class="mt-2 text-center text-[11px] tabular-nums text-muted-foreground">6.8M / 10M renders</div>
+                  <DitherButton color="blue" variant="gradient" class="mt-3 w-full py-2 text-[11px]">Upgrade</DitherButton>
+                </div>
+              </div>
+            </DemoCard>
+          </section>
+
+          <!-- Sign in -->
+          <section id="signin" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Sign in</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              An auth card washed by a DitherGradient — the pixels do the
+              decoration, the form stays plain.
+            </p>
+            <DemoCard :code="SNIPPETS.signin">
+              <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
+                <DitherGradient from="blue" to="transparent" direction="up" :opacity="0.18" :cell="3" class="-z-10" />
+                <div class="flex items-center gap-2">
+                  <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
+                  <span class="text-[12px] tracking-tight">dither-ui</span>
+                </div>
+                <p class="mt-1.5 text-[11px] text-muted-foreground">Sign in to your workspace</p>
+                <div class="mt-5 grid gap-2.5">
+                  <input
+                    type="email"
+                    name="demo-email"
+                    placeholder="you@dither-ui.com"
+                    autocomplete="off"
+                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+                  />
+                  <input
+                    type="password"
+                    name="demo-password"
+                    placeholder="••••••••"
+                    autocomplete="off"
+                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+                  />
+                  <DitherButton color="blue" variant="gradient" class="w-full py-2 text-[11px]">Sign in</DitherButton>
+                </div>
+                <p class="mt-4 text-center text-[10px] text-muted-foreground">
+                  No account? <a href="#/docs/signin" class="text-foreground/80 underline decoration-border underline-offset-2" @click.prevent>Request access</a>
+                </p>
               </div>
             </DemoCard>
           </section>
