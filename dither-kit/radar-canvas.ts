@@ -18,12 +18,14 @@ import {
 import { rgb } from "./palette"
 import { distToPolygonEdge, pointInPolygon, polarX, polarY } from "./polar"
 import { type PolarChartContextValue, usePolarChart } from "./polar-context"
+import { useCanvasVisibility } from "./use-visibility"
 
 type Box<T> = { readonly current: T }
 
 type LoopArgs = {
   canvas: HTMLCanvasElement
   bloomCanvas: HTMLCanvasElement | null
+  visible: () => boolean
   cols: number
   rows: number
   width: number
@@ -35,6 +37,7 @@ type LoopArgs = {
 function startRadarLoop({
   canvas,
   bloomCanvas,
+  visible,
   cols,
   rows,
   width,
@@ -147,6 +150,7 @@ function startRadarLoop({
 
   const draw = (now: number) => {
     raf = requestAnimationFrame(draw)
+    if (!visible()) return // off-screen: keep ticking, paint nothing
     const s = state.current
     if (!s.ready || !s.radar) return
     if (bloomCtx) {
@@ -206,6 +210,7 @@ export const RadarCanvas = defineComponent({
   setup() {
     const ctx = usePolarChart()
     const canvasRef = ref<HTMLCanvasElement | null>(null)
+    const isVisible = useCanvasVisibility(canvasRef)
     const bloomRef = ref<HTMLCanvasElement | null>(null)
     const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
     const stateBox: Box<PolarChartContextValue> = { current: ctx }
@@ -219,6 +224,7 @@ export const RadarCanvas = defineComponent({
       const { cols, rows } = backing.value
       stop = startRadarLoop({
         canvas,
+        visible: isVisible,
         bloomCanvas: bloomRef.value,
         cols,
         rows,

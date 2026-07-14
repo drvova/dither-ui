@@ -8,6 +8,7 @@ import {
   watch,
 } from "vue"
 import { type ChartContextValue, useChart } from "./chart-context"
+import { useCanvasVisibility } from "./use-visibility"
 import {
   backingSize,
   bloomLayerStyle,
@@ -24,6 +25,7 @@ type Box<T> = { readonly current: T }
 type LoopArgs = {
   canvas: HTMLCanvasElement
   bloomCanvas: HTMLCanvasElement | null
+  visible: () => boolean
   cols: number
   rows: number
   width: number
@@ -35,6 +37,7 @@ type LoopArgs = {
 function startBarLoop({
   canvas,
   bloomCanvas,
+  visible,
   cols,
   rows,
   width,
@@ -112,6 +115,7 @@ function startBarLoop({
 
   const draw = (now: number) => {
     raf = requestAnimationFrame(draw)
+    if (!visible()) return // off-screen: keep ticking, paint nothing
     const s = state.current
     if (!s.ready) return
     if (bloomCtx) {
@@ -179,6 +183,7 @@ export const BarCanvas = defineComponent({
   setup() {
     const ctx = useChart()
     const canvasRef = ref<HTMLCanvasElement | null>(null)
+    const isVisible = useCanvasVisibility(canvasRef)
     const bloomRef = ref<HTMLCanvasElement | null>(null)
     const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
 
@@ -214,6 +219,7 @@ export const BarCanvas = defineComponent({
       const { cols, rows } = backing.value
       stop = startBarLoop({
         canvas,
+        visible: isVisible,
         bloomCanvas: bloomRef.value,
         cols,
         rows,
