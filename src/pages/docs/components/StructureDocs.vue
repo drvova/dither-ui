@@ -5,6 +5,7 @@ import {
   DitherCollapsible,
   DitherDialog,
   DitherKbd,
+  DitherTabPanel,
   DitherTabs,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
@@ -17,23 +18,34 @@ const PANEL: Record<string, string> = {
   Metrics: "p95 latency 42ms, error rate 0.02%.",
   Logs: "3 warnings in the last hour, zero errors.",
 }
+const TAB_VARIANTS = ["underline", "segmented", "washed"] as const
+const variantTab = ref("Overview")
+const vertTab = ref("Inbox")
+const VERT_TABS = [
+  { value: "Inbox", badge: 12 },
+  { value: "Drafts", badge: 2 },
+  { value: "Archive" },
+  { value: "Spam", disabled: true },
+]
 
 const openA = ref(true)
 const openB = ref(false)
 
 const dialogOpen = ref(false)
 
-const SNIPPET_TABS = `<script setup>
-const tab = ref("Overview")
-const panels = {
-  Overview: "Requests are steady; nothing on fire.",
-  Metrics: "p95 latency 42ms, error rate 0.02%.",
-  Logs: "3 warnings in the last hour, zero errors.",
-}
-<\/script>
+const SNIPPET_TABS = `<!-- panels nest inside so they inherit the tab context -->
+<DitherTabs v-model="tab" :tabs="['Overview', 'Metrics', 'Logs']">
+  <DitherTabPanel value="Overview" class="mt-4">…</DitherTabPanel>
+  <DitherTabPanel value="Metrics" class="mt-4">…</DitherTabPanel>
+  <DitherTabPanel value="Logs" class="mt-4">…</DitherTabPanel>
+</DitherTabs>
 
-<DitherTabs v-model="tab" :tabs="['Overview', 'Metrics', 'Logs']" color="blue" />
-<p class="mt-4 text-[12px] text-muted-foreground">{{ panels[tab] }}</p>`
+<!-- variant: underline | segmented | washed -->
+<DitherTabs v-model="tab" :tabs="tabs" variant="segmented" />
+
+<!-- objects add badges and disabled; vertical flips the rail -->
+<DitherTabs v-model="folder" orientation="vertical" variant="washed"
+  :tabs="[{ value: 'Inbox', badge: 12 }, { value: 'Spam', disabled: true }]" />`
 
 const SNIPPET_COLLAPSIBLE = `<script setup>
 const openA = ref(true)
@@ -76,9 +88,12 @@ const SNIPPET_KBD = `<div class="flex items-center gap-6 text-xs">
 
 const API: Record<string, PropRow[]> = {
   tabs: [
-    { prop: "tabs", type: "string[]", default: "—" },
+    { prop: "tabs", type: "(string | { value, label?, badge?, disabled? })[]", default: "—" },
     { prop: "modelValue", type: "string", default: "—" },
+    { prop: "variant", type: '"underline" | "segmented" | "washed"', default: '"underline"' },
+    { prop: "orientation", type: '"horizontal" | "vertical"', default: '"horizontal"' },
     { prop: "color", type: "PixelColor", default: '"blue"' },
+    { prop: "value (TabPanel)", type: "string — nests inside DitherTabs", default: "—" },
   ],
   collapsible: [
     { prop: "title", type: "string", default: "—" },
@@ -102,10 +117,30 @@ const API: Record<string, PropRow[]> = {
     </p>
     <DemoCard :code="SNIPPET_TABS">
       <div class="mx-auto max-w-sm">
-        <DitherTabs v-model="tab" :tabs="TABS" color="blue" />
-        <p class="mt-4 text-[12px] text-muted-foreground">{{ PANEL[tab] }}</p>
+        <DitherTabs v-model="tab" :tabs="TABS" color="blue">
+          <DitherTabPanel v-for="t in TABS" :key="t" :value="t" class="mt-4">
+            <p class="text-[12px] text-muted-foreground">{{ PANEL[t] }}</p>
+          </DitherTabPanel>
+        </DitherTabs>
       </div>
     </DemoCard>
+    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+    <div class="mt-4 grid gap-5 sm:grid-cols-3">
+      <div v-for="v in TAB_VARIANTS" :key="v">
+        <div class="flex h-16 items-start justify-center rounded-lg border border-border/60 p-3">
+          <DitherTabs v-model="variantTab" :tabs="TABS" :variant="v" color="purple" />
+        </div>
+        <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
+      </div>
+    </div>
+    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">vertical · badges · disabled</h3>
+    <div class="mt-4 rounded-lg border border-border/60 p-4">
+      <DitherTabs v-model="vertTab" :tabs="VERT_TABS" orientation="vertical" variant="washed" color="green" class="mx-auto max-w-sm">
+        <DitherTabPanel v-for="t in VERT_TABS" :key="t.value" :value="t.value" class="min-w-0 flex-1 self-stretch rounded-md border border-border/40 p-3">
+          <p class="text-[12px] text-muted-foreground">{{ t.value }} — {{ t.badge ?? 0 }} items.</p>
+        </DitherTabPanel>
+      </DitherTabs>
+    </div>
     <PropsTable :rows="API.tabs" />
   </section>
 
