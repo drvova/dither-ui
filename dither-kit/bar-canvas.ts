@@ -12,7 +12,7 @@ import {
   backingSize,
   bloomLayerStyle,
   clamp01,
-  easeOutCubic,
+  EASINGS,
   paintColumn,
   prefersReducedMotion,
 } from "./dither-paint"
@@ -20,9 +20,6 @@ import {
 type Bars = { top: number[]; base: number[] } // per data index, in backing rows
 type Box<T> = { readonly current: T }
 
-// Fraction of the timeline spent staggering bar starts — the rest is each bar's
-// own grow window, so the rise sweeps across the chart as a wave.
-const STAGGER = 0.55
 
 type LoopArgs = {
   canvas: HTMLCanvasElement
@@ -62,8 +59,9 @@ function startBarLoop({
 
   const barProgress = (i: number, len: number, prog: number) => {
     if (!animate) return 1
-    const start = len > 1 ? (i / (len - 1)) * STAGGER : 0
-    return easeOutCubic(clamp01((prog - start) / (1 - STAGGER)))
+    const st = Math.min(0.9, Math.max(0, state.current.stagger))
+    const start = len > 1 ? (i / (len - 1)) * st : 0
+    return EASINGS[state.current.easing](clamp01((prog - start) / (1 - st)))
   }
 
   let intensity = 0
@@ -128,7 +126,9 @@ function startBarLoop({
       lastProg = -1
     }
     if (!animStart) animStart = now
-    const prog = animate ? Math.min(1, (now - animStart) / duration) : 1
+    const prog = animate
+      ? Math.min(1, Math.max(0, (now - animStart - s.animationDelay) / duration))
+      : 1
 
     if (prog !== lastProg) {
       lastProg = prog
@@ -143,7 +143,7 @@ function startBarLoop({
       lastHover = s.hoverIndex
       needsFill = true
     }
-    const itTarget = s.isMouseInChart || s.hovered ? 1 : 0
+    const itTarget = s.hoverLift && (s.isMouseInChart || s.hovered) ? 1 : 0
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
       needsFill = true

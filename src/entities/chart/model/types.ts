@@ -3,6 +3,7 @@ import type {
   AreaVariant,
   BloomLevel,
   DitherColor,
+  EasingName,
   StackType,
   TooltipVariant,
 } from "@dither-kit"
@@ -34,6 +35,11 @@ export type ChartModel = {
   animate: boolean
   interactive: boolean
   animationDuration: number
+  animationDelay: number
+  easing: EasingName
+  sparkles: boolean
+  hoverLift: boolean
+  stagger: number
   innerRadius: number
   margins: Margins
   series: SeriesRow[]

@@ -11,7 +11,7 @@ import { type ChartContextValue, useChart } from "./chart-context"
 import {
   backingSize,
   bloomLayerStyle,
-  easeInOutCubic,
+  EASINGS,
   paintColumn,
   prefersReducedMotion,
   resample,
@@ -131,7 +131,9 @@ function startCartesianLoop({
       entranceReported = false
     }
     if (!animStart) animStart = now
-    const prog = animate ? Math.min(1, (now - animStart) / duration) : 1
+    const prog = animate
+      ? Math.min(1, Math.max(0, (now - animStart - s.animationDelay) / duration))
+      : 1
     const progChanged = prog !== lastProg
     if (prog >= 1 && !entranceReported) {
       entranceReported = true
@@ -174,7 +176,7 @@ function startCartesianLoop({
       needsFill = true
     }
 
-    const itTarget = s.isMouseInChart || s.hovered ? 1 : 0
+    const itTarget = s.hoverLift && (s.isMouseInChart || s.hovered) ? 1 : 0
     let settling = false
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * 0.16
@@ -212,7 +214,7 @@ function startCartesianLoop({
       tick += 1
     }
 
-    const reveal = animate ? easeInOutCubic(prog) : 1
+    const reveal = animate ? EASINGS[s.easing](prog) : 1
     const revealCols = reveal * cols
 
     if (needsFill) {
@@ -239,6 +241,7 @@ function startCartesianLoop({
       }
     }
 
+    if (!s.sparkles) return
     for (const star of stars.current) {
       const cur = current[star.key]
       if (!cur) continue

@@ -1,6 +1,7 @@
 import { familyOf } from "@/shared/config"
 import { LABEL_KEY } from "./data"
 import { activeSeries, dataOf } from "./derive"
+import { defaultEasing } from "./factory"
 import type { ChartModel } from "./types"
 
 const ROOT: Record<string, string> = { area: "AreaChart", line: "LineChart", bar: "BarChart", pie: "PieChart", radar: "RadarChart" }
@@ -53,6 +54,13 @@ export function chartCode(chart: ChartModel): string {
   if (cart && chart.stackType !== "default") attrs.push(`stack-type="${chart.stackType}"`)
   if (chart.bloom !== "off") attrs.push(`bloom="${chart.bloom}"`)
   if (chart.animationDuration !== 900) attrs.push(`:animation-duration="${chart.animationDuration}"`)
+  if (chart.animationDelay > 0) attrs.push(`:animation-delay="${chart.animationDelay}"`)
+  if (chart.easing !== defaultEasing(chart.type)) attrs.push(`easing="${chart.easing}"`)
+  if ((chart.type === "area" || chart.type === "line") && !chart.sparkles)
+    attrs.push(`:sparkles="false"`)
+  if (!chart.hoverLift) attrs.push(`:hover-lift="false"`)
+  if (chart.type === "bar" && chart.stagger !== 0.55)
+    attrs.push(`:stagger="${chart.stagger}"`)
   if (!chart.animate) attrs.push(`:animate="false"`)
   if (cart && !chart.interactive) attrs.push(`:interactive="false"`)
 

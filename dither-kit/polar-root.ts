@@ -10,7 +10,7 @@ import {
 } from "vue"
 import type { ChartConfig, Margins } from "./chart-context"
 import { CommonChartKey } from "./common-context"
-import type { BloomInput } from "./dither-paint"
+import type { BloomInput, EasingName } from "./dither-paint"
 import { cn } from "./lib"
 import { axisAtAngle, sliceAtAngle } from "./polar"
 import { PolarChartKey, usePolarController } from "./polar-context"
@@ -77,6 +77,9 @@ export function definePolarChart(
       class: { type: String, default: undefined },
       animate: { type: Boolean, default: true },
       animationDuration: { type: Number, default: 900 },
+      animationDelay: { type: Number, default: 0 },
+      easing: { type: String as PropType<EasingName>, default: "ease-in-out" },
+      hoverLift: { type: Boolean, default: true },
       replayToken: { type: Number, default: 0 },
       bloom: { type: [String, Object] as PropType<BloomInput>, default: "off" },
       bloomOnHover: { type: Boolean, default: false },
@@ -107,6 +110,9 @@ export function definePolarChart(
         margins: () => margins.value,
         animate: () => props.animate,
         animationDuration: () => props.animationDuration,
+        animationDelay: () => props.animationDelay,
+        easing: () => props.easing,
+        hoverLift: () => props.hoverLift,
         replayToken: () => props.replayToken,
         bloom: () => props.bloom,
         bloomOnHover: () => props.bloomOnHover,

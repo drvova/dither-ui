@@ -13,7 +13,7 @@ import type {
   Margins,
 } from "./chart-context"
 import type { CommonChart, TooltipItem } from "./common-context"
-import type { BloomInput } from "./dither-paint"
+import type { BloomInput, EasingName } from "./dither-paint"
 import { type Seed, seedFromColor } from "./palette"
 import { type PieSlice, pieSlices, type RadarAxis, radarAxes } from "./polar"
 import type { Dimensions } from "./use-chart-dimensions"
@@ -39,6 +39,9 @@ export type PolarChartContextValue = {
   innerRadius: number
   animate: boolean
   animationDuration: number
+  animationDelay: number
+  easing: EasingName
+  hoverLift: boolean
   revision: number
   bloom: BloomInput
   bloomOnHover: boolean
@@ -99,6 +102,9 @@ export type PolarControllerInput = {
   margins: () => Margins
   animate: () => boolean
   animationDuration: () => number
+  animationDelay: () => number
+  easing: () => EasingName
+  hoverLift: () => boolean
   replayToken: () => number
   bloom: () => BloomInput
   bloomOnHover: () => boolean
@@ -290,6 +296,15 @@ export function usePolarController(
     },
     get animationDuration() {
       return input.animationDuration()
+    },
+    get animationDelay() {
+      return input.animationDelay()
+    },
+    get easing() {
+      return input.easing()
+    },
+    get hoverLift() {
+      return input.hoverLift()
     },
     get revision() {
       return revision.value

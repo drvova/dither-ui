@@ -33,7 +33,9 @@ const rt = computed(() => editor.replayToken)
     v-if="chart.type === 'area'"
     :data="data" :config="cfg" :margins="chart.margins" :bloom="chart.bloom"
     :stack-type="chart.stackType" :animate="chart.animate" :interactive="chart.interactive"
-    :animation-duration="chart.animationDuration" :replay-token="rt"
+    :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
+    :easing="chart.easing" :sparkles="chart.sparkles" :hover-lift="chart.hoverLift"
+    :replay-token="rt"
   >
     <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" />
     <XAxis v-if="chart.xAxis.on" dataKey="month" :tick-margin="chart.xAxis.tickMargin" :max-ticks="chart.xAxis.maxTicks" />
@@ -47,7 +49,9 @@ const rt = computed(() => editor.replayToken)
     v-else-if="chart.type === 'line'"
     :data="data" :config="cfg" :margins="chart.margins" :bloom="chart.bloom"
     :animate="chart.animate" :interactive="chart.interactive"
-    :animation-duration="chart.animationDuration" :replay-token="rt"
+    :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
+    :easing="chart.easing" :sparkles="chart.sparkles" :hover-lift="chart.hoverLift"
+    :replay-token="rt"
   >
     <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" />
     <XAxis v-if="chart.xAxis.on" dataKey="month" :tick-margin="chart.xAxis.tickMargin" :max-ticks="chart.xAxis.maxTicks" />
@@ -61,7 +65,9 @@ const rt = computed(() => editor.replayToken)
     v-else-if="chart.type === 'bar'"
     :data="data" :config="cfg" :margins="chart.margins" :bloom="chart.bloom"
     :stack-type="chart.stackType" :animate="chart.animate" :interactive="chart.interactive"
-    :animation-duration="chart.animationDuration" :replay-token="rt"
+    :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
+    :easing="chart.easing" :hover-lift="chart.hoverLift" :stagger="chart.stagger"
+    :replay-token="rt"
   >
     <Grid v-if="chart.grid.on" :horizontal="chart.grid.horizontal" :vertical="chart.grid.vertical" :stroke-dasharray="chart.grid.dash" />
     <XAxis v-if="chart.xAxis.on" dataKey="month" :tick-margin="chart.xAxis.tickMargin" :max-ticks="chart.xAxis.maxTicks" />
@@ -75,7 +81,8 @@ const rt = computed(() => editor.replayToken)
     v-else-if="chart.type === 'pie'"
     :data="data" :config="cfg" data-key="value" name-key="name"
     :inner-radius="chart.innerRadius" :bloom="chart.bloom" :animate="chart.animate"
-    :animation-duration="chart.animationDuration" :replay-token="rt"
+    :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
+    :easing="chart.easing" :hover-lift="chart.hoverLift" :replay-token="rt"
   >
     <Pie :variant="chart.series[0]?.variant ?? 'gradient'" />
     <Legend v-if="chart.legend.on" :align="chart.legend.align" :is-clickable="chart.legend.clickable" />
@@ -85,7 +92,9 @@ const rt = computed(() => editor.replayToken)
   <RadarChart
     v-else
     :data="data" :config="cfg" name-key="axis" :bloom="chart.bloom"
-    :animate="chart.animate" :animation-duration="chart.animationDuration" :replay-token="rt"
+    :animate="chart.animate" :animation-duration="chart.animationDuration"
+    :animation-delay="chart.animationDelay" :easing="chart.easing"
+    :hover-lift="chart.hoverLift" :replay-token="rt"
   >
     <Radar v-for="s in series" :key="s.key" :dataKey="s.key" :variant="s.variant" :is-clickable="s.isClickable" />
     <Legend v-if="chart.legend.on" :align="chart.legend.align" :is-clickable="chart.legend.clickable" />

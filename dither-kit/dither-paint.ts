@@ -173,6 +173,14 @@ export const easeInOutCubic = (t: number) =>
 export const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
+/** Selectable entrance easing — one name every canvas resolves the same way. */
+export type EasingName = "linear" | "ease-out" | "ease-in-out"
+export const EASINGS: Record<EasingName, (t: number) => number> = {
+  linear: (t) => t,
+  "ease-out": easeOutCubic,
+  "ease-in-out": easeInOutCubic,
+}
+
 /** Whether the OS asks for reduced motion (snap + steady stars). */
 export function prefersReducedMotion() {
   return (

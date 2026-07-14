@@ -42,6 +42,11 @@ export function createChart(type: ChartType = "area"): ChartModel {
     animate: true,
     interactive: true,
     animationDuration: 900,
+    animationDelay: 0,
+    easing: defaultEasing(type),
+    sparkles: true,
+    hoverLift: true,
+    stagger: 0.55,
     innerRadius: 0.5,
     margins: { ...DEFAULT_MARGINS },
     series: seriesFor(type),
@@ -55,8 +60,15 @@ export function createChart(type: ChartType = "area"): ChartModel {
 
 /** Change chart type; when the family changes, reset the series to that
  * family's defaults so keys line up with the dataset. */
+/** Each type's native entrance feel — bars grow with an ease-out wave. */
+export function defaultEasing(type: ChartType): ChartModel["easing"] {
+  return type === "bar" ? "ease-out" : "ease-in-out"
+}
+
 export function setChartType(chart: ChartModel, type: ChartType): void {
   const familyChanged = familyOf(chart.type) !== familyOf(type)
+  // Keep a deliberate easing choice; follow the new type's default otherwise.
+  if (chart.easing === defaultEasing(chart.type)) chart.easing = defaultEasing(type)
   chart.type = type
   if (familyChanged) {
     chart.series = seriesFor(type)

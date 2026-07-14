@@ -11,7 +11,7 @@ import {
   BAYER,
   backingSize,
   bloomLayerStyle,
-  easeInOutCubic,
+  EASINGS,
   OFF_TIER,
   prefersReducedMotion,
 } from "./dither-paint"
@@ -78,7 +78,7 @@ function startPieLoop({
     const cy = s.center.y
     const outerR = s.outerRadius
     const innerR = s.innerRadius
-    const revealAngle = TOP + easeInOutCubic(prog) * TAU
+    const revealAngle = TOP + EASINGS[s.easing](prog) * TAU
 
     for (let y = 0; y < rows; y++) {
       const py = ((y + 0.5) * height) / rows
@@ -142,7 +142,9 @@ function startPieLoop({
       lastProg = -1
     }
     if (!animStart) animStart = now
-    const prog = animate ? Math.min(1, (now - animStart) / duration) : 1
+    const prog = animate
+      ? Math.min(1, Math.max(0, (now - animStart - s.animationDelay) / duration))
+      : 1
 
     const emphasisNow = s.selectedDataKey ?? s.focusDataKey
     if (emphasisNow !== lastSelected) {
@@ -154,7 +156,7 @@ function startPieLoop({
       popEase = 0
       needsFill = true
     }
-    const itTarget = s.isMouseInChart ? 1 : 0
+    const itTarget = s.hoverLift && s.isMouseInChart ? 1 : 0
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
       needsFill = true

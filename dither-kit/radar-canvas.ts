@@ -11,7 +11,7 @@ import {
   BAYER,
   backingSize,
   bloomLayerStyle,
-  easeInOutCubic,
+  EASINGS,
   OFF_TIER,
   prefersReducedMotion,
 } from "./dither-paint"
@@ -91,7 +91,7 @@ function startRadarLoop({
     const s = state.current
     if (!s.radar) return
     c.clearRect(0, 0, cols, rows)
-    const polys = buildPolys(easeInOutCubic(prog))
+    const polys = buildPolys(EASINGS[state.current.easing](prog))
     const band = Math.max(s.outerRadius * 0.45, 1)
 
     for (let y = 0; y < rows; y++) {
@@ -162,7 +162,9 @@ function startRadarLoop({
       lastProg = -1
     }
     if (!animStart) animStart = now
-    const prog = animate ? Math.min(1, (now - animStart) / duration) : 1
+    const prog = animate
+      ? Math.min(1, Math.max(0, (now - animStart - s.animationDelay) / duration))
+      : 1
 
     const emphasisNow = s.selectedDataKey ?? s.focusDataKey
     if (emphasisNow !== lastSelected) {
@@ -173,7 +175,7 @@ function startRadarLoop({
       lastHover = s.hoverIndex
       needsFill = true
     }
-    const itTarget = s.isMouseInChart ? 1 : 0
+    const itTarget = s.hoverLift && s.isMouseInChart ? 1 : 0
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
       needsFill = true

@@ -16,7 +16,7 @@ import {
   useChartController,
 } from "./chart-context"
 import { CommonChartKey } from "./common-context"
-import type { BloomInput } from "./dither-paint"
+import type { BloomInput, EasingName } from "./dither-paint"
 import { cn } from "./lib"
 import type { StackType } from "./scales"
 import { useChartDimensions } from "./use-chart-dimensions"

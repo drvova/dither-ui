@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import type { AreaVariant } from "@dither-kit"
-import { editor, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
-import { BLOOMS, CHART_TYPES, familyOf, STACKS, VARIANTS } from "@/shared/config"
+import { editor, replay, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
+import { BLOOMS, CHART_TYPES, EASING_NAMES, familyOf, STACKS, VARIANTS } from "@/shared/config"
 import { ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
 
 const ab = selectedArtboard
@@ -96,10 +96,29 @@ function setPieVariant(v: AreaVariant) {
           <input v-model.number="chart.innerRadius" type="range" name="pie-radius" min="0" max="0.85" step="0.05" class="flex-1 accent-foreground" />
           <span class="w-8 tabular-nums text-foreground">{{ chart.innerRadius.toFixed(2) }}</span>
         </label>
-        <NumberField v-model="chart.animationDuration" label="anim" unit="ms" :min="0" :max="4000" :step="50" />
-        <div class="flex gap-4 pt-0.5">
+        <Toggle v-if="fam === 'cartesian'" v-model="chart.interactive" label="interactive" />
+      </section>
+
+      <section class="flex flex-col gap-3">
+        <p class="text-[10px] uppercase tracking-widest text-muted-foreground">animation</p>
+        <div class="grid grid-cols-2 gap-2">
+          <NumberField v-model="chart.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
+          <NumberField v-model="chart.animationDelay" label="delay" unit="ms" :min="0" :max="4000" :step="50" />
+        </div>
+        <Segmented v-model="chart.easing" :options="EASING_NAMES" label="easing" />
+        <label v-if="chart.type === 'bar'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span class="w-14 shrink-0">stagger</span>
+          <input v-model.number="chart.stagger" type="range" name="bar-stagger" min="0" max="0.9" step="0.05" class="flex-1 accent-foreground" />
+          <span class="w-8 tabular-nums text-foreground">{{ chart.stagger.toFixed(2) }}</span>
+        </label>
+        <div class="flex flex-wrap gap-x-4 gap-y-2 pt-0.5">
           <Toggle v-model="chart.animate" label="animate" />
-          <Toggle v-if="fam === 'cartesian'" v-model="chart.interactive" label="interactive" />
+          <Toggle v-model="chart.hoverLift" label="hover lift" />
+          <Toggle v-if="chart.type === 'area' || chart.type === 'line'" v-model="chart.sparkles" label="sparkles" />
+          <button type="button" class="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="replay()">
+            <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8" /><path d="M21 3v5h-5" /></svg>
+            replay
+          </button>
         </div>
       </section>
 

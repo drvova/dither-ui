@@ -42,6 +42,7 @@ export type {
   BloomConfig,
   BloomInput,
   BloomLevel,
+  EasingName,
 } from "./dither-paint"
 export type { DotVariant } from "./dot-paint"
 export type { DitherColor } from "./palette"
