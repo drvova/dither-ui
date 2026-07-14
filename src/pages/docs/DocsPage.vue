@@ -263,8 +263,17 @@ const API: Record<string, PropRow[]> = {
 
 const GROUPS = [
   {
-    title: "Getting started",
-    items: [{ id: "getting-started", label: "Installation" }],
+    title: "Overview",
+    items: [{ id: "getting-started", label: "Quick start" }],
+  },
+  {
+    title: "Handbook",
+    items: [
+      { id: "styling", label: "Styling" },
+      { id: "composition", label: "Composition" },
+      { id: "motion", label: "Animation" },
+      { id: "accessibility", label: "Accessibility" },
+    ],
   },
   {
     title: "Examples",
@@ -280,7 +289,7 @@ const GROUPS = [
     ],
   },
   {
-    title: "Charts",
+    title: "Components",
     items: [
       { id: "area", label: "Area Chart" },
       { id: "line", label: "Line Chart" },
@@ -288,19 +297,13 @@ const GROUPS = [
       { id: "pie", label: "Pie Chart" },
       { id: "radar", label: "Radar Chart" },
       { id: "sparkline", label: "Sparkline" },
-      { id: "motion", label: "Motion" },
-    ],
-  },
-  {
-    title: "Primitives",
-    items: [
       { id: "button", label: "Button" },
       { id: "avatar", label: "Avatar" },
       { id: "gradient", label: "Gradient" },
       { id: "image", label: "Image" },
     ],
   },
-  { title: "Tokens", items: [{ id: "palette", label: "Palette" }] },
+  { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
 ]
 
 // Wayfinding: the sidebar tracks the section in view, the hash tracks the
@@ -359,6 +362,33 @@ const SNIPPETS = {
   install: `// Copy the dither-kit/ folder into your project, then alias it:
 // vite.config.ts  →  "@dither-kit": "./dither-kit"
 import { AreaChart, Area, DitherButton } from "@dither-kit"`,
+  styling: `/* the kit reads shadcn-style tokens — theme by overriding them */
+:root {
+  --background: #08090b;   /* chart chrome: axes, legend, tooltip */
+  --foreground: #ededed;
+  --border: #22252b;
+  --accent: #3f8ff3;
+}
+
+<!-- every component forwards class — compose with your utilities -->
+<AreaChart class="rounded-lg border border-border/60 p-2" … />`,
+  composition: `<AreaChart :data="rows" :config="config">  <!-- root: scales + context -->
+  <Grid horizontal />                       <!-- chrome registers first -->
+  <XAxis data-key="month" />
+  <YAxis :tick-count="4" />
+  <Area data-key="revenue" variant="gradient">
+    <Dot variant="border" :r="2" />         <!-- series children nest -->
+  </Area>
+  <Legend align="right" />                  <!-- reads the same context -->
+  <Tooltip label-key="month" />
+</AreaChart>`,
+  accessibility: `<!-- one accessible node per chart, not 400 rects -->
+<svg role="img" aria-label="Chart">…</svg>   <!-- provided by the root -->
+<canvas aria-hidden="true" />                <!-- pixels stay silent -->
+
+/* honored automatically — no opt-in props */
+@media (prefers-reduced-motion: reduce)      { /* entrances snap  */ }
+@media (prefers-reduced-transparency: reduce) { /* chrome goes solid */ }`,
   dashboard: `<!-- stat cards -->
 <div v-for="s in stats" class="rounded-lg border p-4">
   <span>{{ s.label }}</span> <b>{{ s.value }}</b>
@@ -600,6 +630,88 @@ const gradientCode = computed(
             </p>
             <div class="mt-5"><CodeBlock :code="SNIPPETS.install" /></div>
           </section>
+
+          <!-- Styling -->
+          <section id="styling" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Styling</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Pixels come from the palette seeds; chrome — axes, legend,
+              tooltip, borders — reads shadcn-style CSS tokens. Override the
+              tokens to theme, pass <code class="text-foreground/80">class</code>
+              to compose with your own utilities.
+            </p>
+            <div class="mt-5"><CodeBlock :code="SNIPPETS.styling" /></div>
+          </section>
+
+          <!-- Composition -->
+          <section id="composition" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Composition</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              A chart is a root plus parts. The root measures, builds scales and
+              provides context; children register themselves — grid and axes as
+              chrome, <code class="text-foreground/80">Area</code>/<code class="text-foreground/80">Line</code>/<code class="text-foreground/80">Bar</code>
+              as series, <code class="text-foreground/80">Dot</code> nested inside a
+              series. Order in the template is paint order.
+            </p>
+            <div class="mt-5"><CodeBlock :code="SNIPPETS.composition" /></div>
+          </section>
+
+          <!-- Accessibility -->
+          <section id="accessibility" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Accessibility</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Canvases are decoration and stay <code class="text-foreground/80">aria-hidden</code>;
+              each chart exposes a single labelled node instead of hundreds of
+              shapes. Legends are real buttons. Reduced motion snaps entrances
+              and stills the sparkles; reduced transparency solidifies floating
+              chrome — both from the OS setting, no props required.
+            </p>
+            <div class="mt-5"><CodeBlock :code="SNIPPETS.accessibility" /></div>
+          </section>
+
+          <!-- Motion -->
+          <section id="motion" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Motion</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Entrances draw the dither field in; bump
+              <code class="text-foreground/80">replay-token</code> to run one again.
+              When the OS asks for reduced motion, entrances snap and sparkles hold still — no opt-in needed.
+            </p>
+            <DemoCard :code="SNIPPETS.motion">
+              <div class="grid gap-5">
+                <div class="h-48">
+                  <BarChart
+                    :data="trafficRows"
+                    :config="trafficConfig"
+                    :interactive="false"
+                    :animation-duration="motionDuration"
+                    :replay-token="replayToken"
+                  >
+                    <XAxis data-key="month" />
+                    <Bar data-key="organic" />
+                    <Bar data-key="paid" />
+                  </BarChart>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                  <DitherButton color="blue" variant="gradient" @click="replayToken++">Replay</DitherButton>
+                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                    <button
+                      v-for="d in DURATIONS"
+                      :key="d"
+                      type="button"
+                      class="rounded px-2.5 py-1 text-[11px] tabular-nums transition-colors"
+                      :class="motionDuration === d ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'"
+                      @click="motionDuration = d; replayToken++"
+                    >
+                      {{ d }}ms
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </DemoCard>
+            <PropsTable :rows="API.motion" />
+          </section>
+
 
           <!-- Dashboard -->
           <section id="dashboard" class="mt-16 scroll-mt-24">
@@ -1039,48 +1151,6 @@ const gradientCode = computed(
             <PropsTable :rows="API.sparkline" />
           </section>
 
-          <!-- Motion -->
-          <section id="motion" class="mt-16 scroll-mt-24">
-            <h2 class="text-lg tracking-tight">Motion</h2>
-            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Entrances draw the dither field in; bump
-              <code class="text-foreground/80">replay-token</code> to run one again.
-              When the OS asks for reduced motion, entrances snap and sparkles hold still — no opt-in needed.
-            </p>
-            <DemoCard :code="SNIPPETS.motion">
-              <div class="grid gap-5">
-                <div class="h-48">
-                  <BarChart
-                    :data="trafficRows"
-                    :config="trafficConfig"
-                    :interactive="false"
-                    :animation-duration="motionDuration"
-                    :replay-token="replayToken"
-                  >
-                    <XAxis data-key="month" />
-                    <Bar data-key="organic" />
-                    <Bar data-key="paid" />
-                  </BarChart>
-                </div>
-                <div class="flex flex-wrap items-center justify-center gap-3">
-                  <DitherButton color="blue" variant="gradient" @click="replayToken++">Replay</DitherButton>
-                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
-                    <button
-                      v-for="d in DURATIONS"
-                      :key="d"
-                      type="button"
-                      class="rounded px-2.5 py-1 text-[11px] tabular-nums transition-colors"
-                      :class="motionDuration === d ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'"
-                      @click="motionDuration = d; replayToken++"
-                    >
-                      {{ d }}ms
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </DemoCard>
-            <PropsTable :rows="API.motion" />
-          </section>
 
           <!-- Button -->
           <section id="button" class="mt-16 scroll-mt-24">

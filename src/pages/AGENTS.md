@@ -23,7 +23,11 @@ widgets/features; page-specific conventions live here.
 
 ### docs/
 
-- Section anatomy: `<section id>` → heading row (h2 + optional
+- Sidebar IA (after Base UI): Overview · Handbook (Styling, Composition,
+  Animation, Accessibility — prose + CodeBlock, no DemoCard) · Examples ·
+  Components · Utils. Section ids are permanent deep links — relabel freely
+  (`motion` → "Animation") but never rename an id.
+- Component section anatomy: `<section id>` → heading row (h2 + optional
   "open in studio →") → muted description → `DemoCard` (Preview/Code tabs) →
   optional picker gallery (micro-label + grid) → `PropsTable`.
 - Galleries and chip rows are PICKERS, not decoration: `aria-pressed`
