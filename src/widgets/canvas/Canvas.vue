@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { addArtboard, deselect, editor } from "@/entities/editor"
 import { useShortcuts } from "@/features/keyboard"
 import { usePanZoom } from "@/features/pan-zoom"
@@ -8,6 +8,7 @@ import Artboard from "./Artboard.vue"
 const host = ref<HTMLElement | null>(null)
 const { onWheel, startPan, zoomIn, zoomOut, resetZoom, fit } = usePanZoom(host)
 useShortcuts({ fit, zoomIn, zoomOut, resetZoom })
+const visible = computed(() => editor.artboards.filter((a) => !a.hidden))
 </script>
 
 <template>
@@ -24,7 +25,7 @@ useShortcuts({ fit, zoomIn, zoomOut, resetZoom })
         transform: `translate(${editor.viewport.x}px, ${editor.viewport.y}px) scale(${editor.viewport.zoom})`,
       }"
     >
-      <Artboard v-for="a in editor.artboards" :key="a.id" :artboard="a" />
+      <Artboard v-for="a in visible" :key="a.id" :artboard="a" />
     </div>
 
     <!-- Empty state -->

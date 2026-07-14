@@ -17,6 +17,9 @@ export function createArtboard(type: ChartType, x = 0, y = 0): Artboard {
     y,
     w: 520,
     h: 360,
+    hidden: false,
+    locked: false,
+    groupId: null,
     chart: createChart(type),
   }
 }
@@ -33,6 +36,9 @@ export function cloneArtboard(src: Artboard, dx = 32, dy = 32): Artboard {
     y: src.y + dy,
     w: src.w,
     h: src.h,
+    hidden: false,
+    locked: false,
+    groupId: src.groupId,
     chart,
   }
 }

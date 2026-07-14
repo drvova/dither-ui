@@ -9,7 +9,7 @@ import {
 } from "vue"
 import type { CommonChart, TooltipItem } from "./common-context"
 import type { BloomInput } from "./dither-paint"
-import { type DitherColor, type Seed, seedOfColor } from "./palette"
+import { type DitherColor, type Seed, seedFromColor } from "./palette"
 import {
   buildBandScale,
   buildXScale,
@@ -24,7 +24,7 @@ import type { Dimensions } from "./use-chart-dimensions"
 /** Which chart root a part is composed under — drives the boundary guards. */
 export type ChartType = "area" | "bar" | "line" | "pie" | "radar"
 
-export type ChartConfig = Record<string, { label?: string; color: DitherColor }>
+export type ChartConfig = Record<string, { label?: string; color: DitherColor | number }>
 
 export type Margins = { top: number; right: number; bottom: number; left: number }
 
@@ -232,7 +232,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
   }
 
   const seedOf = (key: string): Seed =>
-    seedOfColor(input.config()[key]?.color ?? "grey")
+    seedFromColor(input.config()[key]?.color ?? "grey")
 
   const selectDataKey = (key: string | null) => {
     selectedDataKey.value = key

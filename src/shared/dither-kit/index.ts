@@ -45,5 +45,6 @@ export type {
 } from "./dither-paint"
 export type { DotVariant } from "./dot-paint"
 export type { DitherColor } from "./palette"
+export { cssColor, seedFromColor, seedFromHue } from "./palette"
 export type { PixelBloom, PixelColor } from "./pixel"
 export type { StackType } from "./scales"

@@ -14,7 +14,7 @@ import type {
 } from "./chart-context"
 import type { CommonChart, TooltipItem } from "./common-context"
 import type { BloomInput } from "./dither-paint"
-import { type Seed, seedOfColor } from "./palette"
+import { type Seed, seedFromColor } from "./palette"
 import { type PieSlice, pieSlices, type RadarAxis, radarAxes } from "./polar"
 import type { Dimensions } from "./use-chart-dimensions"
 
@@ -141,7 +141,7 @@ export function usePolarController(
     input.chartType === "pie" ? outerRadius.value * input.innerRadiusRatio() : 0
   )
 
-  const seedOf = (key: string): Seed => seedOfColor(input.config()[key]?.color ?? "grey")
+  const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
   const variantOf = (key: string): AreaVariant =>
     variants.value[key] ?? variants.value["*"] ?? "gradient"
   const registerVariant = (key: string, variant: AreaVariant) => {

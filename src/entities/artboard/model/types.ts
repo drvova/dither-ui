@@ -7,5 +7,8 @@ export type Artboard = {
   y: number
   w: number
   h: number
+  hidden: boolean
+  locked: boolean
+  groupId: string | null
   chart: ChartModel
 }

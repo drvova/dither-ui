@@ -3,8 +3,12 @@ import {
   deselect,
   duplicateSelected,
   editor,
+  groupSelected,
   moveArtboard,
   removeSelected,
+  selectedArtboard,
+  setArtboardLocked,
+  ungroup,
 } from "@/entities/editor"
 
 type ZoomControls = {
@@ -49,6 +53,20 @@ export function useShortcuts(zoom: ZoomControls) {
       return e.preventDefault(), removeSelected()
     if (mod && (e.key === "d" || e.key === "D") && hasSel)
       return e.preventDefault(), duplicateSelected()
+    if (mod && e.shiftKey && (e.key === "g" || e.key === "G")) {
+      e.preventDefault()
+      const a = selectedArtboard.value
+      if (a?.groupId) ungroup(a.groupId)
+      return
+    }
+    if (mod && (e.key === "g" || e.key === "G") && hasSel)
+      return e.preventDefault(), groupSelected()
+    if (mod && (e.key === "l" || e.key === "L") && hasSel) {
+      e.preventDefault()
+      const lock = !(selectedArtboard.value?.locked ?? false)
+      for (const sid of editor.selectedIds) setArtboardLocked(sid, lock)
+      return
+    }
 
     // Nudge
     if (hasSel && e.key.startsWith("Arrow")) {

@@ -20,9 +20,10 @@ function dataLiteral(chart: ChartModel): string {
 }
 
 function configLiteral(chart: ChartModel): string {
-  const entries = activeSeries(chart).map(
-    (s) => `  ${s.key}: { label: ${q(s.label)}, color: ${q(s.color)} },`
-  )
+  const entries = activeSeries(chart).map((s) => {
+    const color = typeof s.color === "number" ? String(s.color) : q(s.color)
+    return `  ${s.key}: { label: ${q(s.label)}, color: ${color} },`
+  })
   return `const config: ChartConfig = {\n${entries.join("\n")}\n}`
 }
 

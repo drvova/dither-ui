@@ -3,7 +3,7 @@ import { computed } from "vue"
 import type { AreaVariant } from "@/shared/dither-kit"
 import { editor, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
 import { BLOOMS, CHART_TYPES, familyOf, STACKS, VARIANTS } from "@/shared/config"
-import { ColorPicker, NumberField, Segmented, Toggle } from "@/shared/ui"
+import { ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
 
 const ab = selectedArtboard
 const chart = selectedChart
@@ -15,6 +15,36 @@ const series = computed(() =>
     ? chart.value?.series.find((s) => s.key === layer.value!.seriesKey)
     : undefined
 )
+
+const locked = computed(() => {
+  const c = chart.value
+  const a = ab.value
+  if (!c || !a) return false
+  switch (kind.value) {
+    case "root": return a.locked
+    case "series": return series.value?.locked ?? false
+    case "grid": return c.grid.locked
+    case "xAxis": return c.xAxis.locked
+    case "yAxis": return c.yAxis.locked
+    case "legend": return c.legend.locked
+    case "tooltip": return c.tooltip.locked
+    default: return false
+  }
+})
+function unlock() {
+  const c = chart.value
+  const a = ab.value
+  if (!c || !a) return
+  switch (kind.value) {
+    case "root": a.locked = false; break
+    case "series": if (series.value) series.value.locked = false; break
+    case "grid": c.grid.locked = false; break
+    case "xAxis": c.xAxis.locked = false; break
+    case "yAxis": c.yAxis.locked = false; break
+    case "legend": c.legend.locked = false; break
+    case "tooltip": c.tooltip.locked = false; break
+  }
+}
 
 const pieVariant = computed(() => chart.value?.series[0]?.variant ?? "gradient")
 function setPieVariant(v: AreaVariant) {
@@ -28,7 +58,14 @@ function setPieVariant(v: AreaVariant) {
       <span class="truncate text-[13px] font-medium text-foreground">{{ layer?.label ?? "Inspector" }}</span>
       <span class="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{{ kind }}</span>
     </div>
-    <div class="flex flex-col gap-5 overflow-y-auto p-4">
+    <div v-if="locked" class="mx-4 mt-3 flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] text-muted-foreground">
+      <span class="flex items-center gap-1.5">
+        <svg viewBox="0 0 24 24" class="size-3.5 text-accent" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+        Locked
+      </span>
+      <button type="button" class="rounded border border-border px-1.5 py-0.5 text-foreground transition-colors hover:bg-background" @click="unlock">Unlock</button>
+    </div>
+    <div class="flex flex-col gap-5 overflow-y-auto p-4" :class="locked ? 'pointer-events-none select-none opacity-50' : ''">
 
     <!-- ROOT / FRAME -->
     <template v-if="kind === 'root'">
@@ -85,7 +122,7 @@ function setPieVariant(v: AreaVariant) {
       </label>
       <div class="text-[11px] text-muted-foreground">
         <span class="mb-1 block">color</span>
-        <ColorPicker v-model="series.color" />
+        <ColorField v-model="series.color" />
       </div>
       <Segmented v-if="chart.type !== 'line'" v-model="series.variant" :options="VARIANTS" label="variant" />
       <div class="flex gap-4 pt-0.5">

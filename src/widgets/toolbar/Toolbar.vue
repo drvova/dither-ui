@@ -4,8 +4,11 @@ import {
   addArtboard,
   duplicateSelected,
   editor,
+  groupSelected,
   removeSelected,
   replay,
+  selectedArtboard,
+  ungroup,
 } from "@/entities/editor"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { useTheme } from "@/shared/lib"
@@ -19,6 +22,11 @@ function add(t: ChartType) {
   addOpen.value = false
 }
 const canEdit = () => editor.selectedArtboardId !== ""
+const canUngroup = () => !!selectedArtboard.value?.groupId
+function doUngroup() {
+  const a = selectedArtboard.value
+  if (a?.groupId) ungroup(a.groupId)
+}
 </script>
 
 <template>
@@ -42,6 +50,8 @@ const canEdit = () => editor.selectedArtboardId !== ""
 
       <button type="button" :disabled="!canEdit()" title="Duplicate (⌘D)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="duplicateSelected">duplicate</button>
       <button type="button" :disabled="!canEdit()" title="Delete (⌫)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="removeSelected">delete</button>
+      <button type="button" :disabled="editor.selectedIds.length < 1" title="Group (⌘G)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:opacity-40" @click="groupSelected">group</button>
+      <button v-if="canUngroup()" type="button" title="Ungroup (⌘⇧G)" class="rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground" @click="doUngroup">ungroup</button>
 
       <span class="mx-1 h-4 w-px bg-border" />
 

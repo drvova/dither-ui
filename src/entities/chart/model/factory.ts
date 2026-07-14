@@ -8,7 +8,7 @@ function seriesFor(type: ChartType): SeriesRow[] {
     label: string,
     color: SeriesRow["color"],
     on: boolean
-  ): SeriesRow => ({ key, label, color, variant: "gradient", on, isClickable: true })
+  ): SeriesRow => ({ key, label, color, variant: "gradient", on, locked: false, isClickable: true })
 
   if (fam === "pie")
     return [
@@ -45,11 +45,11 @@ export function createChart(type: ChartType = "area"): ChartModel {
     innerRadius: 0.5,
     margins: { ...DEFAULT_MARGINS },
     series: seriesFor(type),
-    grid: { on: true, horizontal: true, vertical: false, dash: "3 3" },
-    xAxis: { on: true, tickMargin: 8, maxTicks: 8 },
-    yAxis: { on: true, tickCount: 4, tickMargin: 8 },
-    legend: { on: true, align: "right", clickable: true },
-    tooltip: { on: true, variant: "default" },
+    grid: { on: true, locked: false, horizontal: true, vertical: false, dash: "3 3" },
+    xAxis: { on: true, locked: false, tickMargin: 8, maxTicks: 8 },
+    yAxis: { on: true, locked: false, tickCount: 4, tickMargin: 8 },
+    legend: { on: true, locked: false, align: "right", clickable: true },
+    tooltip: { on: true, locked: false, variant: "default" },
   }
 }
 

@@ -10,19 +10,20 @@ import type {
 export type SeriesRow = {
   key: string
   label: string
-  color: DitherColor
+  color: DitherColor | number // preset name or an arbitrary hue (0–360)
   variant: AreaVariant
   on: boolean
+  locked: boolean
   isClickable: boolean
 }
 
 export type Margins = { top: number; right: number; bottom: number; left: number }
 
-export type GridPart = { on: boolean; horizontal: boolean; vertical: boolean; dash: string }
-export type XAxisPart = { on: boolean; tickMargin: number; maxTicks: number }
-export type YAxisPart = { on: boolean; tickCount: number; tickMargin: number }
-export type LegendPart = { on: boolean; align: "left" | "center" | "right"; clickable: boolean }
-export type TooltipPart = { on: boolean; variant: TooltipVariant }
+export type GridPart = { on: boolean; locked: boolean; horizontal: boolean; vertical: boolean; dash: string }
+export type XAxisPart = { on: boolean; locked: boolean; tickMargin: number; maxTicks: number }
+export type YAxisPart = { on: boolean; locked: boolean; tickCount: number; tickMargin: number }
+export type LegendPart = { on: boolean; locked: boolean; align: "left" | "center" | "right"; clickable: boolean }
+export type TooltipPart = { on: boolean; locked: boolean; variant: TooltipVariant }
 
 /** A fully granular, editable chart. The renderer, the layers panel, the
  * inspector and the code exporter all read/write this one shape. */
