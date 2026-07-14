@@ -26,6 +26,7 @@ export {
   default as DitherGradient,
   type GradientDirection,
 } from "./DitherGradient.vue"
+export { default as DitherImage } from "./DitherImage.vue"
 
 export type { CartesianChartProps } from "./cartesian-root"
 export type { PolarChartProps } from "./polar-root"
@@ -42,8 +43,11 @@ export type {
   BloomConfig,
   BloomInput,
   BloomLevel,
+  BezierPoints,
+  EasingInput,
   EasingName,
 } from "./dither-paint"
+export { cubicBezier, EASINGS, resolveEasing } from "./dither-paint"
 export type { DotVariant } from "./dot-paint"
 export type { DitherColor } from "./palette"
 export {

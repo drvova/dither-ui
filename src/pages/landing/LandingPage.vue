@@ -1,19 +1,6 @@
 <script setup lang="ts">
-import {
-  Area,
-  AreaChart,
-  DitherButton,
-  DitherGradient,
-  type DitherColor,
-} from "@dither-kit"
+import { DitherButton, DitherGradient, DitherImage } from "@dither-kit"
 
-// One quiet, deterministic series — a single focal point.
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-const heroData = MONTHS.map((month, i) => ({
-  month,
-  v: 6 + Math.sin(i * 0.9) * 2.4 + Math.sin(i * 2.1) * 1.2,
-}))
-const heroConfig = { v: { color: "blue" as DitherColor } }
 const openStudio = () => (window.location.hash = "#/studio")
 </script>
 
@@ -54,15 +41,14 @@ const openStudio = () => (window.location.hash = "#/studio")
           </DitherButton>
         </div>
 
-        <div aria-hidden="true" class="reveal mt-20 h-48 sm:mt-24 sm:h-64" style="--reveal-delay: 300ms">
-          <AreaChart
-            :data="heroData"
-            :config="heroConfig"
-            :interactive="false"
-            :margins="{ top: 8, right: 0, bottom: 0, left: 0 }"
-          >
-            <Area data-key="v" variant="gradient" />
-          </AreaChart>
+        <div class="reveal mt-20 sm:mt-24" style="--reveal-delay: 300ms">
+          <DitherImage
+            src="/hero.png"
+            alt="Dithered artwork rendered by dither-ui"
+            :cell="4"
+            :focus-y="0.22"
+            class="h-72 w-full sm:h-96"
+          />
         </div>
       </div>
     </main>
