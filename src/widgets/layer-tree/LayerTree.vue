@@ -27,6 +27,20 @@ type Node =
   | { t: "artboard"; a: Artboard; depth: number }
   | { t: "layer"; a: Artboard; layer: Layer; depth: number }
 
+const rootEl = ref<HTMLElement | null>(null)
+
+/** ↑/↓ move focus between rows. Swallow the event so the canvas-level
+ * shortcut (arrow = nudge artboard) does not fire from inside the tree. */
+function onRowsKey(e: KeyboardEvent) {
+  if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return
+  const rows = [...(rootEl.value?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
+  const i = rows.indexOf(e.target as HTMLElement)
+  if (i < 0) return // focus is in a rename input or icon button
+  e.preventDefault()
+  e.stopPropagation()
+  rows[Math.min(rows.length - 1, Math.max(0, i + (e.key === "ArrowDown" ? 1 : -1)))]?.focus()
+}
+
 const collapsed = reactive(new Set<string>()) // collapsed artboard ids
 const isOpen = (id: string) => !collapsed.has(id)
 function toggleArtboard(id: string) {
@@ -187,14 +201,20 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
 </script>
 
 <template>
-  <div class="flex flex-col gap-px text-[13px]">
+  <div ref="rootEl" role="listbox" aria-label="Layers" class="flex flex-col gap-px text-[13px]" @keydown="onRowsKey">
     <template v-for="node in nodes" :key="node.t === 'group' ? node.group.id : node.t === 'artboard' ? node.a.id : node.layer.id">
       <!-- GROUP -->
       <div
         v-if="node.t === 'group'"
+        role="option"
+        tabindex="0"
+        :aria-selected="members(node.group).some((m) => isSel(m.id))"
+        :aria-label="`Group ${node.group.name}`"
         class="group/row flex h-7 items-center gap-1 rounded pl-1 pr-1.5 transition-colors"
         :class="members(node.group).some((m) => isSel(m.id)) ? 'bg-accent/10' : 'hover:bg-card'"
         @click="selectGroup(node.group.id)"
+        @keydown.enter.self.prevent="selectGroup(node.group.id)"
+        @keydown.space.self.prevent="selectGroup(node.group.id)"
         @contextmenu.prevent.stop="open($event, groupItems(node.group))"
       >
         <button type="button" :aria-label="node.group.collapsed ? 'Expand group' : 'Collapse group'" class="flex size-5 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground" @click.stop="node.group.collapsed = !node.group.collapsed">
@@ -217,10 +237,16 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
       <!-- ARTBOARD -->
       <div
         v-else-if="node.t === 'artboard'"
+        role="option"
+        tabindex="0"
+        :aria-selected="isSel(node.a.id)"
+        :aria-label="node.a.name"
         class="group/row flex h-7 items-center gap-1 rounded pr-1.5 transition-colors"
         :style="{ paddingLeft: `${4 + node.depth * 16}px` }"
         :class="[isSel(node.a.id) ? 'bg-accent/15' : 'hover:bg-card', node.a.hidden ? 'opacity-45' : '']"
         @click="clickArtboard(node.a, $event)"
+        @keydown.enter.self.prevent="clickArtboard(node.a, $event as unknown as MouseEvent)"
+        @keydown.space.self.prevent="clickArtboard(node.a, $event as unknown as MouseEvent)"
         @contextmenu.prevent.stop="open($event, artboardItems(node.a))"
       >
         <button type="button" :aria-label="isOpen(node.a.id) ? 'Collapse layers' : 'Expand layers'" class="flex size-5 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground" @click.stop="toggleArtboard(node.a.id)">
@@ -244,6 +270,10 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
       <!-- LAYER -->
       <div
         v-else
+        role="option"
+        tabindex="0"
+        :aria-selected="editor.selectedLayerId === node.layer.id"
+        :aria-label="node.layer.label"
         class="group/row flex h-7 items-center gap-2 rounded pr-1.5 transition-colors"
         :style="{ paddingLeft: `${8 + node.depth * 16}px` }"
         :class="[
@@ -251,6 +281,8 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
           !layerVisible(node.a, node.layer) && togglable(node.layer) ? 'opacity-45' : '',
         ]"
         @click="selectLayer(node.layer.id)"
+        @keydown.enter.self.prevent="selectLayer(node.layer.id)"
+        @keydown.space.self.prevent="selectLayer(node.layer.id)"
         @contextmenu.prevent.stop="open($event, layerItems(node.a, node.layer))"
       >
         <span class="truncate text-[12px]">{{ node.layer.label }}</span>

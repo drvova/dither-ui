@@ -37,6 +37,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - A11y floor: icon-only buttons carry `aria-label` (+ `aria-pressed` for
   toggles); dialogs use `role="dialog" aria-modal`, close on Escape, focus on
   open; global `:focus-visible` ring is in `app/styles.css` — do not suppress.
+- Layer tree is a `listbox`: every row type is a focusable `role="option"`
+  with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
+  don't retrigger), ↑/↓ move focus and MUST stopPropagation — the same keys
+  nudge artboards at window level. New row kinds follow this shape.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex.
