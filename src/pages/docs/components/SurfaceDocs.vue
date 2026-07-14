@@ -326,11 +326,11 @@ const API: Record<string, PropRow[]> = {
           <p class="pb-2 text-[11px] text-muted-foreground">Swipe the panel right to dismiss.</p>
           <div class="flex items-center justify-between py-2 text-[13px]">
             <span>Snap to grid</span>
-            <DitherSwitch v-model="gridSnap" color="green" />
+            <DitherSwitch v-model="gridSnap" label="Snap to grid" color="green" />
           </div>
           <div class="flex items-center justify-between py-2 text-[13px]">
             <span>Show rulers</span>
-            <DitherSwitch v-model="showRulers" />
+            <DitherSwitch v-model="showRulers" label="Show rulers" />
           </div>
         </DitherDrawer>
         <DitherDrawer :open="sheetOpen" side="bottom" title="Notifications" @close="sheetOpen = false">
@@ -400,7 +400,7 @@ const API: Record<string, PropRow[]> = {
       </p>
       <div class="flex items-center gap-2 text-[12px]">
         <span class="text-muted-foreground">arm edge</span>
-        <DitherSwitch v-model="swipeAreaOn" color="purple" />
+        <DitherSwitch v-model="swipeAreaOn" label="Arm swipe area" color="purple" />
       </div>
       <DitherSwipeArea v-if="swipeAreaOn" side="right" @open="swipeDrawer = true" />
       <DitherDrawer :open="swipeDrawer" side="right" title="From the edge" @close="swipeDrawer = false">

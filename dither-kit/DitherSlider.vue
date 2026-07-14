@@ -40,6 +40,8 @@ const CELL = 2
 const props = withDefaults(
   defineProps<{
     modelValue: number
+    /** Accessible name for the slider thumb. */
+    label?: string
     min?: number
     max?: number
     step?: number
@@ -142,6 +144,7 @@ onBeforeUnmount(() => ro?.disconnect())
     </div>
     <div
       role="slider"
+      :aria-label="props.label"
       :tabindex="props.disabled ? -1 : 0"
       :aria-valuemin="props.min"
       :aria-valuemax="props.max"

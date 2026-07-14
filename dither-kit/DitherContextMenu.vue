@@ -24,7 +24,18 @@ function setItemRef(el: unknown, i: number) {
 function onContextmenu(e: MouseEvent) {
   itemRefs.value = []
   pos.value = { x: e.clientX, y: e.clientY }
-  nextTick(() => panelRef.value?.focus())
+  nextTick(() => {
+    // Clamp inside the viewport — menus opened near an edge flip inward.
+    const panel = panelRef.value
+    if (panel && pos.value) {
+      const r = panel.getBoundingClientRect()
+      pos.value = {
+        x: Math.max(8, Math.min(pos.value.x, window.innerWidth - r.width - 8)),
+        y: Math.max(8, Math.min(pos.value.y, window.innerHeight - r.height - 8)),
+      }
+    }
+    panel?.focus()
+  })
 }
 
 function pick(it: ContextMenuItem) {

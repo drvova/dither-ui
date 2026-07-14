@@ -25,7 +25,7 @@ const bloom = ref(true)
 <template>
   <label class="flex items-center justify-between gap-4">
     <span class="text-[13px]">Bloom on hover</span>
-    <DitherSwitch v-model="bloom" color="blue" />
+    <DitherSwitch v-model="bloom" label="Bloom on hover" color="blue" />
   </label>
 </template>`
 
@@ -53,7 +53,7 @@ const level = ref(40)
 
 <template>
   <div class="flex items-center gap-4">
-    <DitherSlider v-model="level" :min="0" :max="100" :step="1" />
+    <DitherSlider v-model="level" label="Level" :min="0" :max="100" :step="1" />
     <span class="text-[13px] tabular-nums">{{ level }}</span>
   </div>
 </template>`
@@ -114,7 +114,7 @@ const API: Record<string, PropRow[]> = {
       <div class="mx-auto max-w-sm">
         <label class="flex items-center justify-between gap-4">
           <span class="text-[13px]">Bloom on hover</span>
-          <DitherSwitch v-model="bloom" color="blue" />
+          <DitherSwitch v-model="bloom" label="Bloom on hover" color="blue" />
         </label>
       </div>
     </DemoCard>
@@ -145,7 +145,7 @@ const API: Record<string, PropRow[]> = {
     </p>
     <DemoCard :code="SNIPPET_SLIDER">
       <div class="mx-auto flex max-w-sm items-center gap-4">
-        <DitherSlider v-model="level" :min="0" :max="100" :step="1" color="blue" />
+        <DitherSlider v-model="level" label="Level" :min="0" :max="100" :step="1" color="blue" />
         <span class="w-8 text-right text-[13px] tabular-nums">{{ level }}</span>
       </div>
     </DemoCard>

@@ -39,6 +39,8 @@ const CELL = 2
 const props = withDefaults(
   defineProps<{
     modelValue: boolean
+    /** Accessible name — required for screen readers, the control has no text. */
+    label?: string
     color?: PixelColor
     disabled?: boolean
     class?: string
@@ -77,6 +79,7 @@ watch(() => [props.modelValue, props.color], paint)
     ref="trackRef"
     type="button"
     role="switch"
+    :aria-label="props.label"
     :aria-checked="props.modelValue"
     :disabled="props.disabled"
     :class="
