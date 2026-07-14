@@ -1,10 +1,12 @@
 import { onBeforeUnmount, onMounted } from "vue"
 import {
+  copySelected,
   deselect,
   duplicateSelected,
   editor,
   groupSelected,
   moveArtboard,
+  pasteClipboard,
   removeSelected,
   selectedArtboard,
   setArtboardLocked,
@@ -60,6 +62,10 @@ export function useShortcuts(zoom: ZoomControls) {
       return e.preventDefault(), removeSelected()
     if (mod && (e.key === "d" || e.key === "D") && hasSel)
       return e.preventDefault(), duplicateSelected()
+    if (mod && (e.key === "c" || e.key === "C") && hasSel)
+      return e.preventDefault(), copySelected()
+    if (mod && (e.key === "v" || e.key === "V"))
+      return e.preventDefault(), pasteClipboard()
     if (mod && e.shiftKey && (e.key === "g" || e.key === "G")) {
       e.preventDefault()
       const a = selectedArtboard.value

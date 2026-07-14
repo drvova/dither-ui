@@ -4,7 +4,8 @@ import { editor } from "@/entities/editor"
  * moving/resizing an artboard tracks the cursor at any zoom level. */
 export function startDrag(
   e: PointerEvent,
-  onDelta: (dx: number, dy: number) => void
+  onDelta: (dx: number, dy: number) => void,
+  onEnd?: () => void
 ) {
   e.preventDefault()
   e.stopPropagation()
@@ -19,6 +20,7 @@ export function startDrag(
   const up = () => {
     window.removeEventListener("pointermove", move)
     window.removeEventListener("pointerup", up)
+    onEnd?.()
   }
   window.addEventListener("pointermove", move)
   window.addEventListener("pointerup", up)

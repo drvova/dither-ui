@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import type { Artboard } from "@/entities/artboard"
-import {
-  editor,
-  moveArtboard,
-  moveSelected,
-  resizeArtboard,
-  selectArtboard,
-} from "@/entities/editor"
+import { editor, resizeArtboard, selectArtboard } from "@/entities/editor"
 import { startDrag } from "@/features/artboard-transform"
 import { ChartRenderer } from "@/widgets/chart-renderer"
 import { WidgetRenderer } from "@/widgets/widget-renderer"
@@ -20,14 +14,71 @@ const additive = (e: PointerEvent) => e.metaKey || e.ctrlKey || e.shiftKey
 function onSelect(e: PointerEvent) {
   selectArtboard(props.artboard.id, additive(e))
 }
+/** Drag with edge/center snapping against the other artboards. Moves the
+ * whole selection; guides render in the canvas while a snap is active. */
 function onHeaderDown(e: PointerEvent) {
   if (!selected.value) selectArtboard(props.artboard.id, additive(e))
   if (props.artboard.locked) return
-  startDrag(e, (dx, dy) => {
-    if (editor.selectedIds.length > 1 && editor.selectedIds.includes(props.artboard.id))
-      moveSelected(dx, dy)
-    else moveArtboard(props.artboard.id, dx, dy)
-  })
+  const moving = editor.artboards.filter(
+    (a) => editor.selectedIds.includes(a.id) && !a.locked
+  )
+  const others = editor.artboards.filter(
+    (a) => !editor.selectedIds.includes(a.id) && !a.hidden
+  )
+  const starts = new Map(moving.map((a) => [a.id, { x: a.x, y: a.y }]))
+  const meStart = { x: props.artboard.x, y: props.artboard.y }
+  const { w, h } = props.artboard
+  let accX = 0
+  let accY = 0
+  startDrag(
+    e,
+    (dx, dy) => {
+      accX += dx
+      accY += dy
+      const threshold = 6 / (editor.viewport.zoom || 1)
+      const rawX = meStart.x + accX
+      const rawY = meStart.y + accY
+      let sx = 0
+      let sy = 0
+      let gv: number | null = null
+      let gh: number | null = null
+      let bestX = threshold
+      let bestY = threshold
+      for (const o of others) {
+        for (const ox of [o.x, o.x + o.w / 2, o.x + o.w]) {
+          for (const mx of [rawX, rawX + w / 2, rawX + w]) {
+            const d = ox - mx
+            if (Math.abs(d) < bestX) {
+              bestX = Math.abs(d)
+              sx = d
+              gv = ox
+            }
+          }
+        }
+        for (const oy of [o.y, o.y + o.h / 2, o.y + o.h]) {
+          for (const my of [rawY, rawY + h / 2, rawY + h]) {
+            const d = oy - my
+            if (Math.abs(d) < bestY) {
+              bestY = Math.abs(d)
+              sy = d
+              gh = oy
+            }
+          }
+        }
+      }
+      for (const a of moving) {
+        const s = starts.get(a.id)!
+        a.x = s.x + accX + sx
+        a.y = s.y + accY + sy
+      }
+      editor.guides.v = gv
+      editor.guides.h = gh
+    },
+    () => {
+      editor.guides.v = null
+      editor.guides.h = null
+    }
+  )
 }
 function onResizeDown(e: PointerEvent) {
   if (!selected.value) selectArtboard(props.artboard.id)

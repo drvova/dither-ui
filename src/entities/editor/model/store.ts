@@ -18,6 +18,8 @@ export const editor = reactive({
   viewport: { x: 96, y: 88, zoom: 1 } as Viewport,
   replayToken: 0,
   dataOpen: false,
+  // Transient snap guides shown while dragging (world coords), never persisted.
+  guides: { v: null as number | null, h: null as number | null },
 })
 selectArtboard(editor.artboards[0].id)
 
@@ -60,6 +62,29 @@ export function selectLayer(id: string) {
   editor.selectedArtboardId = ab
   editor.selectedLayerId = id
 }
+/** Replace the selection with an explicit id list (marquee / paste). */
+export function selectMany(ids: string[]) {
+  editor.selectedIds = [...ids]
+  editor.selectedArtboardId = ids[ids.length - 1] ?? ""
+  editor.selectedLayerId = editor.selectedArtboardId
+    ? `${editor.selectedArtboardId}:root`
+    : ""
+}
+
+// Internal clipboard — a JSON snapshot so paste still works after a delete.
+let clipboard: string | null = null
+export function copySelected() {
+  const sel = editor.artboards.filter((a) => editor.selectedIds.includes(a.id))
+  if (sel.length) clipboard = JSON.stringify(sel)
+}
+export function pasteClipboard() {
+  if (!clipboard) return
+  const src = JSON.parse(clipboard) as Artboard[]
+  const copies = src.map((a) => cloneArtboard(a))
+  editor.artboards.push(...copies)
+  selectMany(copies.map((c) => c.id))
+}
+
 export function deselect() {
   editor.selectedIds = []
   editor.selectedArtboardId = ""
