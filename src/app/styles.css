@@ -77,4 +77,8 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  ::selection {
+    background-color: color-mix(in oklch, var(--accent) 30%, transparent);
+    color: var(--foreground);
+  }
 }
