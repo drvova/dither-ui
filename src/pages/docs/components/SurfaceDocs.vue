@@ -51,8 +51,9 @@ const swipeDrawer = ref(false)
 const sidebarActive = ref("Overview")
 const sidebarCollapsed = ref(false)
 const sidebarSubOpen = ref(true)
-const SIDEBAR_VARIANTS = ["default", "floating", "inset"] as const
+const SIDEBAR_VARIANTS = ["default", "floating", "inset", "washed"] as const
 const variantActive = ref("Overview")
+const modeActive = ref("Overview")
 
 const NAV_ITEMS = [
   { label: "Overview" },
@@ -145,8 +146,9 @@ const SNIPPET_SIDEBAR = `<DitherSidebar v-model="collapsed" variant="default" co
   </DitherSidebarGroup>
 </DitherSidebar>
 
-<!-- variant: "default" | "floating" | "inset"
-     collapse: "rail" | "hide" | "none" · side: "left" | "right" -->`
+<!-- variant: default | floating | inset | washed (dither gradient chrome)
+     collapse: rail | hide | none · side: left | right
+     density: default | compact · :toggle="false" = permanent rail -->`
 
 const SNIPPET_TOAST = `<script setup>
 import { DitherToaster, toast } from "@dither-kit"
@@ -237,9 +239,12 @@ const API: Record<string, PropRow[]> = {
   ],
   sidebar: [
     { prop: "modelValue (Sidebar)", type: "boolean — collapsed (v-model)", default: "false" },
-    { prop: "variant (Sidebar)", type: '"default" | "floating" | "inset"', default: '"default"' },
+    { prop: "variant (Sidebar)", type: '"default" | "floating" | "inset" | "washed"', default: '"default"' },
     { prop: "collapse (Sidebar)", type: '"rail" | "hide" | "none"', default: '"rail"' },
     { prop: "side (Sidebar)", type: '"left" | "right"', default: '"left"' },
+    { prop: "density (Sidebar)", type: '"default" | "compact"', default: '"default"' },
+    { prop: "toggle (Sidebar)", type: "boolean — false: permanent rail", default: "true" },
+    { prop: "wash-color (Sidebar)", type: 'PixelColor — for variant="washed"', default: '"blue"' },
     { prop: "label (Group)", type: "string — folds to a hairline on the rail", default: "undefined" },
     { prop: "label / active / color (Item)", type: "string / boolean / PixelColor", default: '— / false / "blue"' },
     { prop: "badge (Item)", type: "string | number — dot on the rail", default: "undefined" },
@@ -460,14 +465,15 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
-    <div class="mt-4 grid gap-4 sm:grid-cols-3">
+    <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
       <div v-for="v in SIDEBAR_VARIANTS" :key="v">
         <div class="flex h-44 overflow-hidden rounded-lg border border-border/60" :class="v === 'inset' ? 'bg-card/30 p-1.5' : ''">
-          <DitherSidebar :variant="v" collapse="none" :label="`${v} sidebar`" class="w-32">
+          <DitherSidebar :variant="v" collapse="none" :wash-color="v === 'washed' ? 'purple' : undefined" :label="`${v} sidebar`" class="w-32">
             <DitherSidebarItem
               v-for="item in ['Overview', 'Charts', 'Palette']"
               :key="item"
               :label="item"
+              :color="v === 'washed' ? 'purple' : 'blue'"
               :active="variantActive === item"
               @select="variantActive = item"
             />
@@ -475,6 +481,43 @@ const API: Record<string, PropRow[]> = {
           <div class="min-w-0 flex-1" :class="v === 'inset' ? 'm-1.5 rounded-md border border-border/60 bg-background' : ''" />
         </div>
         <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
+      </div>
+    </div>
+    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">modes</h3>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+      <div>
+        <div class="flex h-48 overflow-hidden rounded-lg border border-border/60">
+          <DitherSidebar collapse="none" density="compact" label="Compact sidebar" class="w-36">
+            <DitherSidebarGroup label="Files">
+              <DitherSidebarItem
+                v-for="item in ['index.ts', 'palette.ts', 'pixel.ts', 'gesture.ts', 'lib.ts']"
+                :key="item"
+                :label="item"
+                :active="modeActive === item"
+                @select="modeActive = item"
+              />
+            </DitherSidebarGroup>
+          </DitherSidebar>
+          <div class="min-w-0 flex-1" />
+        </div>
+        <div class="mt-2 text-center text-[10px] text-muted-foreground">density="compact"</div>
+      </div>
+      <div>
+        <div class="flex h-48 overflow-hidden rounded-lg border border-border/60">
+          <DitherSidebar collapse="rail" :model-value="true" :toggle="false" label="Permanent rail">
+            <DitherSidebarItem
+              v-for="item in ['Overview', 'Charts', 'Alerts']"
+              :key="item"
+              :label="item"
+              :badge="item === 'Alerts' ? 2 : undefined"
+              :color="item === 'Alerts' ? 'red' : 'blue'"
+              :active="modeActive === item"
+              @select="modeActive = item"
+            />
+          </DitherSidebar>
+          <div class="grid min-w-0 flex-1 place-items-center text-[11px] text-muted-foreground">{{ modeActive }}</div>
+        </div>
+        <div class="mt-2 text-center text-[10px] text-muted-foreground">permanent rail · :toggle="false"</div>
       </div>
     </div>
     <PropsTable :rows="API.sidebar" />

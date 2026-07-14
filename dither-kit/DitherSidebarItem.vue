@@ -22,7 +22,7 @@ function paintRail(canvas: HTMLCanvasElement, color: PixelColor, cssHeight: numb
 
 <script setup lang="ts">
 import { inject, onMounted, ref, watch } from "vue"
-import { SIDEBAR_COLLAPSED } from "./DitherSidebar.vue"
+import { SIDEBAR_COLLAPSED, SIDEBAR_COMPACT } from "./DitherSidebar.vue"
 
 const props = withDefaults(
   defineProps<{
@@ -37,6 +37,7 @@ const props = withDefaults(
 const emit = defineEmits<{ select: [] }>()
 
 const collapsed = inject(SIDEBAR_COLLAPSED, ref(false))
+const compact = inject(SIDEBAR_COMPACT, ref(false))
 const railRef = ref<HTMLCanvasElement | null>(null)
 
 function paint() {
@@ -52,8 +53,11 @@ watch(() => [props.active, props.color], () => requestAnimationFrame(paint))
     type="button"
     :aria-current="props.active ? 'true' : undefined"
     :title="collapsed ? props.label : undefined"
-    class="relative flex h-8 items-center gap-2.5 rounded-md px-2.5 text-left font-mono text-[12px] transition-colors"
-    :class="props.active ? 'bg-card text-foreground' : 'text-muted-foreground hover:bg-card/60 hover:text-foreground'"
+    class="relative flex items-center rounded-md text-left font-mono transition-colors"
+    :class="[
+      compact ? 'h-7 gap-2 px-2 text-[11px]' : 'h-8 gap-2.5 px-2.5 text-[12px]',
+      props.active ? 'bg-card text-foreground' : 'text-muted-foreground hover:bg-card/60 hover:text-foreground',
+    ]"
     @click="emit('select')"
   >
     <canvas

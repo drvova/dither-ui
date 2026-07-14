@@ -80,6 +80,7 @@ export { default as DitherSwipeArea } from "./DitherSwipeArea.vue"
 export {
   default as DitherSidebar,
   type SidebarCollapse,
+  type SidebarDensity,
   type SidebarVariant,
 } from "./DitherSidebar.vue"
 export { default as DitherSidebarItem } from "./DitherSidebarItem.vue"

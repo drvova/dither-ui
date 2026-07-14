@@ -4,7 +4,7 @@ let counter = 0
 
 <script setup lang="ts">
 import { inject, ref } from "vue"
-import { SIDEBAR_COLLAPSED } from "./DitherSidebar.vue"
+import { SIDEBAR_COLLAPSED, SIDEBAR_COMPACT } from "./DitherSidebar.vue"
 
 /** Collapsible sub-menu: a parent row plus indented children behind a rail.
  * On the icon rail only the parent icon remains (children need the width). */
@@ -19,6 +19,7 @@ const props = withDefaults(
 const emit = defineEmits<{ "update:modelValue": [boolean] }>()
 
 const collapsed = inject(SIDEBAR_COLLAPSED, ref(false))
+const compact = inject(SIDEBAR_COMPACT, ref(false))
 const id = `dk-sidebar-sub-${counter++}`
 </script>
 
@@ -29,7 +30,8 @@ const id = `dk-sidebar-sub-${counter++}`
       :aria-expanded="props.modelValue"
       :aria-controls="id"
       :title="collapsed ? props.label : undefined"
-      class="flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left font-mono text-[12px] text-muted-foreground transition-colors hover:bg-card/60 hover:text-foreground"
+      class="flex w-full items-center rounded-md text-left font-mono text-muted-foreground transition-colors hover:bg-card/60 hover:text-foreground"
+      :class="compact ? 'h-7 gap-2 px-2 text-[11px]' : 'h-8 gap-2.5 px-2.5 text-[12px]'"
       @click="emit('update:modelValue', !props.modelValue)"
     >
       <span class="grid size-4 shrink-0 place-items-center" aria-hidden="true">
