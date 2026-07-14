@@ -1,0 +1,177 @@
+<script setup lang="ts">
+import { ref } from "vue"
+import {
+  DitherButton,
+  DitherCollapsible,
+  DitherDialog,
+  DitherKbd,
+  DitherTabs,
+} from "@dither-kit"
+import DemoCard from "../DemoCard.vue"
+import PropsTable, { type PropRow } from "../PropsTable.vue"
+
+const TABS = ["Overview", "Metrics", "Logs"]
+const tab = ref("Overview")
+const PANEL: Record<string, string> = {
+  Overview: "Requests are steady; nothing on fire.",
+  Metrics: "p95 latency 42ms, error rate 0.02%.",
+  Logs: "3 warnings in the last hour, zero errors.",
+}
+
+const openA = ref(true)
+const openB = ref(false)
+
+const dialogOpen = ref(false)
+
+const SNIPPET_TABS = `<script setup>
+const tab = ref("Overview")
+const panels = {
+  Overview: "Requests are steady; nothing on fire.",
+  Metrics: "p95 latency 42ms, error rate 0.02%.",
+  Logs: "3 warnings in the last hour, zero errors.",
+}
+<\/script>
+
+<DitherTabs v-model="tab" :tabs="['Overview', 'Metrics', 'Logs']" color="blue" />
+<p class="mt-4 text-[12px] text-muted-foreground">{{ panels[tab] }}</p>`
+
+const SNIPPET_COLLAPSIBLE = `<script setup>
+const openA = ref(true)
+const openB = ref(false)
+<\/script>
+
+<DitherCollapsible v-model="openA" title="What is dithering?" color="blue">
+  Ordered dithering trades smooth gradients for a fixed threshold
+  matrix — the same Bayer 4x4 behind every fill in this kit.
+</DitherCollapsible>
+<DitherCollapsible v-model="openB" title="Why canvas?" color="purple">
+  One engine paints every fill, so components stay coherent.
+</DitherCollapsible>`
+
+const SNIPPET_DIALOG = `<script setup>
+const open = ref(false)
+<\/script>
+
+<DitherButton @click="open = true">Open dialog</DitherButton>
+<DitherDialog :open="open" title="Confirm" @close="open = false">
+  <p class="text-[13px] text-muted-foreground">
+    Ship the dithered build to production?
+  </p>
+  <DitherButton color="green" class="mt-4" @click="open = false">
+    Confirm
+  </DitherButton>
+</DitherDialog>`
+
+const SNIPPET_KBD = `<div class="flex items-center gap-6 text-xs">
+  <div class="flex items-center gap-2">
+    <span class="text-muted-foreground">Command menu</span>
+    <DitherKbd>⌘</DitherKbd>
+    <DitherKbd>K</DitherKbd>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="text-muted-foreground">Shortcuts</span>
+    <DitherKbd>?</DitherKbd>
+  </div>
+</div>`
+
+const API: Record<string, PropRow[]> = {
+  tabs: [
+    { prop: "tabs", type: "string[]", default: "—" },
+    { prop: "modelValue", type: "string", default: "—" },
+    { prop: "color", type: "PixelColor", default: '"blue"' },
+  ],
+  collapsible: [
+    { prop: "title", type: "string", default: "—" },
+    { prop: "modelValue", type: "boolean", default: "false" },
+    { prop: "color", type: "PixelColor", default: '"blue"' },
+  ],
+  dialog: [
+    { prop: "open", type: "boolean", default: "—" },
+    { prop: "title", type: "string", default: "undefined" },
+  ],
+  kbd: [{ prop: "class", type: "string", default: "undefined" }],
+}
+</script>
+
+<template>
+  <section id="tabs" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Tabs</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A roving-tabindex tablist with a dithered underline that slides to the
+      active tab. Arrow keys move selection.
+    </p>
+    <DemoCard :code="SNIPPET_TABS">
+      <div class="mx-auto max-w-sm">
+        <DitherTabs v-model="tab" :tabs="TABS" color="blue" />
+        <p class="mt-4 text-[12px] text-muted-foreground">{{ PANEL[tab] }}</p>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.tabs" />
+  </section>
+
+  <section id="collapsible" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Collapsible</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A disclosure row animated through grid-template-rows; when open, a 2px
+      dithered rail runs down the left edge of the content.
+    </p>
+    <DemoCard :code="SNIPPET_COLLAPSIBLE">
+      <div class="mx-auto max-w-sm divide-y divide-border/60">
+        <DitherCollapsible v-model="openA" title="What is dithering?" color="blue">
+          Ordered dithering trades smooth gradients for a fixed threshold
+          matrix — the same Bayer 4x4 behind every fill in this kit.
+        </DitherCollapsible>
+        <DitherCollapsible v-model="openB" title="Why canvas?" color="purple">
+          One engine paints every fill, so components stay coherent.
+        </DitherCollapsible>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.collapsible" />
+  </section>
+
+  <section id="dialog" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Dialog</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A teleported modal — Escape or overlay click closes, the close button
+      takes focus on open. Bring your own body content.
+    </p>
+    <DemoCard :code="SNIPPET_DIALOG">
+      <div class="flex justify-center">
+        <DitherButton @click="dialogOpen = true">Open dialog</DitherButton>
+        <DitherDialog :open="dialogOpen" title="Confirm" @close="dialogOpen = false">
+          <p class="text-[13px] leading-relaxed text-muted-foreground">
+            Ship the dithered build to production?
+          </p>
+          <DitherButton color="green" class="mt-4" @click="dialogOpen = false">
+            Confirm
+          </DitherButton>
+        </DitherDialog>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.dialog" />
+  </section>
+
+  <section id="kbd" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Kbd</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An honest keyboard key — no canvas, just the house border and a 2px
+      bottom edge. Pairs with shortcut listings.
+    </p>
+    <DemoCard :code="SNIPPET_KBD">
+      <div class="flex items-center justify-center gap-6 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-muted-foreground">Command menu</span>
+          <span class="flex items-center gap-1">
+            <DitherKbd>⌘</DitherKbd>
+            <DitherKbd>K</DitherKbd>
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-muted-foreground">Shortcuts</span>
+          <DitherKbd>?</DitherKbd>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.kbd" />
+  </section>
+</template>

@@ -31,6 +31,12 @@ import {
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
+import FormDocs from "./components/FormDocs.vue"
+import { FORM_NAV } from "./components/form-nav"
+import FeedbackDocs from "./components/FeedbackDocs.vue"
+import { FEEDBACK_NAV } from "./components/feedback-nav"
+import StructureDocs from "./components/StructureDocs.vue"
+import { STRUCTURE_NAV } from "./components/structure-nav"
 import AuthExamples from "./examples/AuthExamples.vue"
 import { AUTH_NAV } from "./examples/auth-nav"
 import ProductExamples from "./examples/ProductExamples.vue"
@@ -301,6 +307,9 @@ const GROUPS = [
       { id: "avatar", label: "Avatar" },
       { id: "gradient", label: "Gradient" },
       { id: "image", label: "Image" },
+      ...FORM_NAV,
+      ...FEEDBACK_NAV,
+      ...STRUCTURE_NAV,
     ],
   },
   { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
@@ -1261,6 +1270,15 @@ const gradientCode = computed(
             <div class="mt-5"><CodeBlock :code="SNIPPETS.image" /></div>
             <PropsTable :rows="API.image" />
           </section>
+
+          <!-- Form controls: switch, checkbox, slider, progress -->
+          <FormDocs />
+
+          <!-- Feedback: badge, skeleton, spinner, separator -->
+          <FeedbackDocs />
+
+          <!-- Structure: tabs, collapsible, dialog, kbd -->
+          <StructureDocs />
 
           <!-- Palette -->
           <section id="palette" class="mt-16 scroll-mt-24">
