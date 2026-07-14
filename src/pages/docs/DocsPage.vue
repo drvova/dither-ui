@@ -8,7 +8,9 @@ import {
   DitherAvatar,
   DitherButton,
   DitherGradient,
+  Dot,
   Grid,
+  Legend,
   Line,
   LineChart,
   Pie,
@@ -18,49 +20,73 @@ import {
   Sparkline,
   Tooltip,
   XAxis,
+  YAxis,
+  type AreaVariant,
   type DitherColor,
+  type GradientDirection,
 } from "@dither-kit"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"]
-const rows = MONTHS.map((month, i) => ({
-  month,
-  desktop: 12 + Math.sin(i * 0.9) * 5 + i,
-  mobile: 8 + Math.cos(i * 0.7) * 4 + i * 0.6,
-}))
+// Believable dashboard numbers, not sine waves.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const revenue = [42, 51, 48, 63, 71, 68, 79, 86, 82, 94, 102, 118]
+const expenses = [31, 34, 33, 39, 44, 47, 46, 52, 55, 58, 61, 67]
+const rows = MONTHS.map((month, i) => ({ month, revenue: revenue[i], expenses: expenses[i] }))
 const config = {
-  desktop: { label: "Desktop", color: "blue" as DitherColor },
-  mobile: { label: "Mobile", color: "purple" as DitherColor },
+  revenue: { label: "Revenue", color: "blue" as DitherColor },
+  expenses: { label: "Expenses", color: "purple" as DitherColor },
+}
+
+const trafficRows = MONTHS.slice(0, 8).map((month, i) => ({
+  month,
+  organic: [820, 932, 901, 1290, 1330, 1320, 1450, 1682][i],
+  paid: [420, 532, 501, 654, 690, 720, 810, 932][i],
+}))
+const trafficConfig = {
+  organic: { label: "Organic", color: "green" as DitherColor },
+  paid: { label: "Paid", color: "orange" as DitherColor },
 }
 
 const pieRows = [
-  { name: "green", value: 32 },
-  { name: "blue", value: 26 },
-  { name: "purple", value: 22 },
-  { name: "orange", value: 20 },
+  { name: "Chrome", value: 61 },
+  { name: "Safari", value: 19 },
+  { name: "Firefox", value: 11 },
+  { name: "Other", value: 9 },
 ]
 const pieConfig = {
-  green: { color: "green" as DitherColor },
-  blue: { color: "blue" as DitherColor },
-  purple: { color: "purple" as DitherColor },
-  orange: { color: "orange" as DitherColor },
+  Chrome: { label: "Chrome", color: "blue" as DitherColor },
+  Safari: { label: "Safari", color: "purple" as DitherColor },
+  Firefox: { label: "Firefox", color: "orange" as DitherColor },
+  Other: { label: "Other", color: "grey" as DitherColor },
 }
 
 const radarConfig = {
-  a: { label: "dither-ui", color: "blue" as DitherColor },
-  b: { label: "the other guys", color: "grey" as DitherColor },
+  current: { label: "This sprint", color: "blue" as DitherColor },
+  previous: { label: "Last sprint", color: "grey" as DitherColor },
 }
 const radarRows = [
-  { axis: "speed", a: 8, b: 5 },
-  { axis: "craft", a: 9, b: 7 },
-  { axis: "size", a: 6, b: 8 },
-  { axis: "charm", a: 9, b: 6 },
-  { axis: "docs", a: 7, b: 7 },
+  { axis: "shipped", current: 9, previous: 6 },
+  { axis: "reviewed", current: 7, previous: 7 },
+  { axis: "tested", current: 8, previous: 5 },
+  { axis: "documented", current: 6, previous: 3 },
+  { axis: "on time", current: 8, previous: 6 },
 ]
 
-const spark = Array.from({ length: 24 }, (_, i) => 4 + Math.sin(i * 0.55) * 2 + Math.sin(i * 1.3) * 1.2)
+// Stat-card sparklines — last 24 data points each.
+const trend = (seed: number, drift: number) =>
+  Array.from({ length: 24 }, (_, i) => 10 + i * drift + Math.sin(i * 0.8 + seed) * 2 + Math.sin(i * 1.7 + seed * 2) * 1.1)
+const STATS = [
+  { label: "Revenue", value: "$48.2k", delta: "+12.4%", up: true, color: "green" as DitherColor, data: trend(1, 0.35) },
+  { label: "Active users", value: "8,110", delta: "+3.2%", up: true, color: "blue" as DitherColor, data: trend(2, 0.2) },
+  { label: "Error rate", value: "0.42%", delta: "−8.1%", up: false, color: "red" as DitherColor, data: trend(3, -0.18).map((v) => v + 8) },
+]
 
+const VARIANTS: AreaVariant[] = ["gradient", "dotted", "hatched", "solid"]
+const wave = Array.from({ length: 20 }, (_, i) => 5 + Math.sin(i * 0.6) * 2.2 + Math.sin(i * 1.4) * 1)
+
+const BUTTON_COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red"]
+const DIRECTIONS: GradientDirection[] = ["up", "down", "left", "right"]
 const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
 
 const GROUPS = [
@@ -95,41 +121,76 @@ const SNIPPETS = {
   install: `// Copy the dither-kit/ folder into your project, then alias it:
 // vite.config.ts  →  "@dither-kit": "./dither-kit"
 import { AreaChart, Area, DitherButton } from "@dither-kit"`,
-  area: `<AreaChart :data="rows" :config="config">
+  area: `const rows = [{ month: "Jan", revenue: 42, expenses: 31 }, …]
+const config = {
+  revenue:  { label: "Revenue",  color: "blue" },
+  expenses: { label: "Expenses", color: "purple" },
+}
+
+<AreaChart :data="rows" :config="config" stack-type="stacked">
   <Grid horizontal />
-  <XAxis data-key="month" />
-  <Area data-key="desktop" variant="gradient" />
-  <Area data-key="mobile" variant="dotted" />
+  <XAxis data-key="month" :max-ticks="6" />
+  <YAxis :tick-count="4" />
+  <Area data-key="expenses" variant="dotted" />
+  <Area data-key="revenue" variant="gradient" />
+  <Legend align="right" />
   <Tooltip label-key="month" />
 </AreaChart>`,
   line: `<LineChart :data="rows" :config="config">
-  <XAxis data-key="month" />
-  <Line data-key="desktop" />
-  <Line data-key="mobile" />
+  <Grid horizontal />
+  <XAxis data-key="month" :max-ticks="6" />
+  <Line data-key="revenue">
+    <Dot variant="border" :r="2" />
+  </Line>
+  <Line data-key="expenses" />
+  <Legend align="right" />
+  <Tooltip label-key="month" />
 </LineChart>`,
-  bar: `<BarChart :data="rows" :config="config" stack-type="stacked">
+  bar: `<BarChart :data="trafficRows" :config="trafficConfig">
+  <Grid horizontal />
   <XAxis data-key="month" />
-  <Bar data-key="desktop" />
-  <Bar data-key="mobile" />
+  <YAxis :tick-count="4" />
+  <Bar data-key="organic" />
+  <Bar data-key="paid" />
+  <Legend align="right" />
+  <Tooltip label-key="month" />
 </BarChart>`,
   pie: `<PieChart :data="pieRows" :config="pieConfig"
   data-key="value" name-key="name" :inner-radius="0.55">
-  <Pie variant="gradient" />
+  <Pie variant="gradient" is-clickable />
+  <Legend align="center" />
 </PieChart>`,
-  radar: `<RadarChart :data="radarRows" :config="config" name-key="axis">
-  <Radar data-key="a" />
-  <Radar data-key="b" />
+  radar: `<RadarChart :data="radarRows" :config="radarConfig" name-key="axis">
+  <Radar data-key="current" />
+  <Radar data-key="previous" />
+  <Legend align="center" />
 </RadarChart>`,
-  sparkline: `<Sparkline :data="values" color="green" class="h-10 w-40" />`,
-  button: `<DitherButton color="blue" variant="gradient">Save</DitherButton>
-<DitherButton color="green" variant="solid">Run</DitherButton>
-<DitherButton color="purple" variant="dotted">Mix</DitherButton>
-<DitherButton color="orange" variant="hatched">Stop</DitherButton>`,
-  avatar: `<DitherAvatar name="ada" :size="40" />
-<DitherAvatar name="grace" :size="40" bloom="low" />`,
+  sparkline: `<div class="rounded-lg border p-4">
+  <div class="text-xs text-muted-foreground">Revenue</div>
+  <div class="flex items-baseline gap-2">
+    <span class="text-lg tabular-nums">$48.2k</span>
+    <span class="text-xs text-green-400">+12.4%</span>
+  </div>
+  <Sparkline :data="last24h" color="green" class="mt-3 h-8 w-full" />
+</div>`,
+  button: `<!-- variants -->
+<DitherButton variant="gradient">Deploy</DitherButton>
+<DitherButton variant="solid">Run</DitherButton>
+<DitherButton variant="dotted">Preview</DitherButton>
+<DitherButton variant="hatched">Cancel</DitherButton>
+
+<!-- colors, bloom, disabled -->
+<DitherButton color="green" bloom="low">Approve</DitherButton>
+<DitherButton color="red" disabled>Delete</DitherButton>`,
+  avatar: `<DitherAvatar name="ada" :size="24" />
+<DitherAvatar name="ada" :size="32" />
+<DitherAvatar name="ada" :size="48" />
+<DitherAvatar name="grace" :size="48" bloom="low" />`,
   gradient: `<div class="relative h-40">
   <DitherGradient from="blue" to="transparent" direction="up" />
-</div>`,
+</div>
+<!-- from/to: any DitherColor · direction: up · down · left · right
+     cell: px per dither cell · opacity: 0…1 -->`,
   image: `<DitherImage src="/art.png" :cell="4" :fade="96" class="h-72" />
 <!-- cell: px per dither cell · fade: dithered edge dissolve
      focus-y: cover-crop focus (0 top … 1 bottom) -->`,
@@ -203,34 +264,47 @@ cssColor("blue") // rgb(53,143,243)`,
           <section id="area" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Area Chart</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Stacked, dithered area series. <code class="text-foreground/80">variant</code>: gradient · dotted · hatched · solid,
-              <code class="text-foreground/80">stack-type</code>: default · stacked · percent.
+              Revenue against expenses, stacked. Hover for the tooltip; click a legend
+              entry to isolate a series.
             </p>
             <DemoCard :code="SNIPPETS.area">
-              <div class="h-56">
-                <AreaChart :data="rows" :config="config">
+              <div class="h-64">
+                <AreaChart :data="rows" :config="config" stack-type="stacked">
                   <Grid horizontal />
-                  <XAxis data-key="month" />
-                  <Area data-key="desktop" variant="gradient" />
-                  <Area data-key="mobile" variant="dotted" />
+                  <XAxis data-key="month" :max-ticks="6" />
+                  <YAxis :tick-count="4" />
+                  <Area data-key="expenses" variant="dotted" />
+                  <Area data-key="revenue" variant="gradient" />
+                  <Legend align="right" :is-clickable="true" />
                   <Tooltip label-key="month" />
                 </AreaChart>
               </div>
             </DemoCard>
+            <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div v-for="v in VARIANTS" :key="v">
+                <Sparkline :data="wave" color="blue" :variant="v" class="h-14 w-full" />
+                <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
+              </div>
+            </div>
           </section>
 
           <!-- Line -->
           <section id="line" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Line Chart</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Bright series lines with star sparkles on the live edge.
+              Bright series lines with sparkles on the live edge; nest a
+              <code class="text-foreground/80">Dot</code> inside a line for markers.
             </p>
             <DemoCard :code="SNIPPETS.line">
-              <div class="h-56">
+              <div class="h-64">
                 <LineChart :data="rows" :config="config">
-                  <XAxis data-key="month" />
-                  <Line data-key="desktop" />
-                  <Line data-key="mobile" />
+                  <Grid horizontal />
+                  <XAxis data-key="month" :max-ticks="6" />
+                  <Line data-key="revenue">
+                    <Dot variant="border" :r="2" />
+                  </Line>
+                  <Line data-key="expenses" />
+                  <Legend align="right" />
                   <Tooltip label-key="month" />
                 </LineChart>
               </div>
@@ -241,14 +315,19 @@ cssColor("blue") // rgb(53,143,243)`,
           <section id="bar" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Bar Chart</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Grouped or stacked columns, dithered per cell.
+              Organic vs paid traffic, grouped. Set
+              <code class="text-foreground/80">stack-type</code> to stacked or percent
+              to pile the columns.
             </p>
             <DemoCard :code="SNIPPETS.bar">
-              <div class="h-56">
-                <BarChart :data="rows" :config="config" stack-type="stacked">
+              <div class="h-64">
+                <BarChart :data="trafficRows" :config="trafficConfig">
+                  <Grid horizontal />
                   <XAxis data-key="month" />
-                  <Bar data-key="desktop" />
-                  <Bar data-key="mobile" />
+                  <YAxis :tick-count="4" />
+                  <Bar data-key="organic" />
+                  <Bar data-key="paid" />
+                  <Legend align="right" />
                   <Tooltip label-key="month" />
                 </BarChart>
               </div>
@@ -259,12 +338,13 @@ cssColor("blue") // rgb(53,143,243)`,
           <section id="pie" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Pie Chart</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Slices from the shared palette; <code class="text-foreground/80">inner-radius</code> turns it into a donut.
+              Browser share as a donut — click a slice or legend entry to isolate it.
             </p>
             <DemoCard :code="SNIPPETS.pie">
-              <div class="h-56">
+              <div class="h-64">
                 <PieChart :data="pieRows" :config="pieConfig" data-key="value" name-key="name" :inner-radius="0.55">
-                  <Pie variant="gradient" />
+                  <Pie variant="gradient" :is-clickable="true" />
+                  <Legend align="center" :is-clickable="true" />
                 </PieChart>
               </div>
             </DemoCard>
@@ -274,13 +354,14 @@ cssColor("blue") // rgb(53,143,243)`,
           <section id="radar" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Radar Chart</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Polar comparison across axes, same dither texture.
+              Sprint health across five axes, this sprint against the last.
             </p>
             <DemoCard :code="SNIPPETS.radar">
-              <div class="h-64">
+              <div class="h-72">
                 <RadarChart :data="radarRows" :config="radarConfig" name-key="axis">
-                  <Radar data-key="a" />
-                  <Radar data-key="b" />
+                  <Radar data-key="current" />
+                  <Radar data-key="previous" />
+                  <Legend align="center" />
                 </RadarChart>
               </div>
             </DemoCard>
@@ -290,12 +371,19 @@ cssColor("blue") // rgb(53,143,243)`,
           <section id="sparkline" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Sparkline</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              A plain numeric series, zero margins — for table cells and stat rows.
+              A plain numeric series with zero margins — built for stat cards,
+              table cells and dashboard rows.
             </p>
             <DemoCard :code="SNIPPETS.sparkline">
-              <div class="flex items-end justify-center gap-6">
-                <Sparkline :data="spark" color="green" class="h-10 w-40" />
-                <Sparkline :data="spark.map((v, i) => v + Math.cos(i))" color="pink" variant="dotted" class="h-10 w-40" />
+              <div class="grid gap-4 sm:grid-cols-3">
+                <div v-for="s in STATS" :key="s.label" class="rounded-lg border border-border/60 p-4">
+                  <div class="text-[11px] text-muted-foreground">{{ s.label }}</div>
+                  <div class="mt-1 flex items-baseline gap-2">
+                    <span class="text-lg tracking-tight tabular-nums">{{ s.value }}</span>
+                    <span class="text-[11px] tabular-nums" :style="{ color: cssColor(s.up ? 'green' : 'red') }">{{ s.delta }}</span>
+                  </div>
+                  <Sparkline :data="s.data" :color="s.color" class="mt-3 h-8 w-full" />
+                </div>
               </div>
             </DemoCard>
           </section>
@@ -305,13 +393,23 @@ cssColor("blue") // rgb(53,143,243)`,
             <h2 class="text-lg tracking-tight">Button</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Canvas-filled button; density lifts on hover, blooms on press.
+              Four fills, seven colors, optional <code class="text-foreground/80">bloom</code>.
             </p>
             <DemoCard :code="SNIPPETS.button">
-              <div class="flex flex-wrap justify-center gap-3">
-                <DitherButton color="blue" variant="gradient">Save</DitherButton>
-                <DitherButton color="green" variant="solid">Run</DitherButton>
-                <DitherButton color="purple" variant="dotted">Mix</DitherButton>
-                <DitherButton color="orange" variant="hatched">Stop</DitherButton>
+              <div class="grid justify-items-center gap-5">
+                <div class="flex flex-wrap justify-center gap-3">
+                  <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
+                  <DitherButton color="blue" variant="solid">Run</DitherButton>
+                  <DitherButton color="blue" variant="dotted">Preview</DitherButton>
+                  <DitherButton color="blue" variant="hatched">Cancel</DitherButton>
+                </div>
+                <div class="flex flex-wrap justify-center gap-3">
+                  <DitherButton v-for="c in BUTTON_COLORS" :key="c" :color="c" variant="gradient" class="capitalize">{{ c }}</DitherButton>
+                </div>
+                <div class="flex flex-wrap justify-center gap-3">
+                  <DitherButton color="green" variant="gradient" bloom="low">Approve</DitherButton>
+                  <DitherButton color="red" variant="gradient" disabled>Delete</DitherButton>
+                </div>
               </div>
             </DemoCard>
           </section>
@@ -320,11 +418,20 @@ cssColor("blue") // rgb(53,143,243)`,
           <section id="avatar" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Avatar</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Deterministic identicon — the same name always draws the same face.
+              Deterministic identicon — the same name always draws the same face,
+              at any size.
             </p>
             <DemoCard :code="SNIPPETS.avatar">
-              <div class="flex items-center justify-center gap-3">
-                <DitherAvatar v-for="n in ['ada', 'linus', 'grace', 'alan', 'edsger']" :key="n" :name="n" :size="40" />
+              <div class="flex flex-col items-center gap-6">
+                <div class="flex items-end gap-3">
+                  <DitherAvatar name="ada" :size="24" />
+                  <DitherAvatar name="ada" :size="32" />
+                  <DitherAvatar name="ada" :size="48" />
+                  <DitherAvatar name="ada" :size="64" />
+                </div>
+                <div class="flex items-center gap-3">
+                  <DitherAvatar v-for="n in ['linus', 'grace', 'alan', 'edsger', 'barbara']" :key="n" :name="n" :size="40" />
+                </div>
               </div>
             </DemoCard>
           </section>
@@ -333,11 +440,17 @@ cssColor("blue") // rgb(53,143,243)`,
           <section id="gradient" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Gradient</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              A background wash that fades through the Bayer matrix instead of alpha.
+              A background wash that fades through the Bayer matrix instead of alpha —
+              four directions, any palette color.
             </p>
             <DemoCard :code="SNIPPETS.gradient">
-              <div class="relative h-40 overflow-hidden rounded-md">
-                <DitherGradient from="blue" to="transparent" direction="up" />
+              <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div v-for="dir in DIRECTIONS" :key="dir">
+                  <div class="relative h-28 overflow-hidden rounded-md">
+                    <DitherGradient from="blue" to="transparent" :direction="dir" />
+                  </div>
+                  <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ dir }}</div>
+                </div>
               </div>
             </DemoCard>
           </section>
@@ -355,13 +468,15 @@ cssColor("blue") // rgb(53,143,243)`,
           <section id="palette" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Palette</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Seven seeded colors; every component resolves fill, line and sparkle hues from the same seed.
+              Seven seeded colors; every component resolves fill, line and sparkle
+              hues from the same seed, so a dashboard stays coherent for free.
             </p>
             <DemoCard :code="SNIPPETS.palette">
-              <div class="flex flex-wrap justify-center gap-4">
-                <div v-for="c in COLORS" :key="c" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-                  <span class="size-4 rounded-[3px]" :style="{ backgroundColor: cssColor(c) }" />
-                  {{ c }}
+              <div class="grid gap-3">
+                <div v-for="c in COLORS" :key="c" class="flex items-center gap-4">
+                  <span class="w-14 text-[11px] text-muted-foreground">{{ c }}</span>
+                  <span class="size-5 rounded-[3px]" :style="{ backgroundColor: cssColor(c) }" />
+                  <Sparkline :data="wave" :color="c" class="h-6 flex-1" />
                 </div>
               </div>
             </DemoCard>
