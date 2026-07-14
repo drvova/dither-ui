@@ -473,7 +473,10 @@ cssColor("blue") // rgb(53,143,243)`,
 
           <!-- Area -->
           <section id="area" class="mt-16 scroll-mt-24">
-            <h2 class="text-lg tracking-tight">Area Chart</h2>
+            <div class="flex items-baseline justify-between gap-4">
+              <h2 class="text-lg tracking-tight">Area Chart</h2>
+              <a href="#/studio/new/area" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new area chart in the studio">open in studio →</a>
+            </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Revenue against expenses, stacked. Hover for the tooltip; click a legend
               entry to isolate a series.
@@ -503,7 +506,10 @@ cssColor("blue") // rgb(53,143,243)`,
 
           <!-- Line -->
           <section id="line" class="mt-16 scroll-mt-24">
-            <h2 class="text-lg tracking-tight">Line Chart</h2>
+            <div class="flex items-baseline justify-between gap-4">
+              <h2 class="text-lg tracking-tight">Line Chart</h2>
+              <a href="#/studio/new/line" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new line chart in the studio">open in studio →</a>
+            </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Bright series lines with sparkles on the live edge; nest a
               <code class="text-foreground/80">Dot</code> inside a line for markers.
@@ -540,7 +546,10 @@ cssColor("blue") // rgb(53,143,243)`,
 
           <!-- Bar -->
           <section id="bar" class="mt-16 scroll-mt-24">
-            <h2 class="text-lg tracking-tight">Bar Chart</h2>
+            <div class="flex items-baseline justify-between gap-4">
+              <h2 class="text-lg tracking-tight">Bar Chart</h2>
+              <a href="#/studio/new/bar" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new bar chart in the studio">open in studio →</a>
+            </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Organic vs paid traffic, grouped. Set
               <code class="text-foreground/80">stack-type</code> to stacked or percent
@@ -575,7 +584,10 @@ cssColor("blue") // rgb(53,143,243)`,
 
           <!-- Pie -->
           <section id="pie" class="mt-16 scroll-mt-24">
-            <h2 class="text-lg tracking-tight">Pie Chart</h2>
+            <div class="flex items-baseline justify-between gap-4">
+              <h2 class="text-lg tracking-tight">Pie Chart</h2>
+              <a href="#/studio/new/pie" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new pie chart in the studio">open in studio →</a>
+            </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Browser share as a donut — click a slice or legend entry to isolate it.
             </p>
@@ -603,7 +615,10 @@ cssColor("blue") // rgb(53,143,243)`,
 
           <!-- Radar -->
           <section id="radar" class="mt-16 scroll-mt-24">
-            <h2 class="text-lg tracking-tight">Radar Chart</h2>
+            <div class="flex items-baseline justify-between gap-4">
+              <h2 class="text-lg tracking-tight">Radar Chart</h2>
+              <a href="#/studio/new/radar" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new radar chart in the studio">open in studio →</a>
+            </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Sprint health across five axes, this sprint against the last.
             </p>
