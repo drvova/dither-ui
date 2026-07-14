@@ -31,6 +31,10 @@ import {
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
+import AuthExamples from "./examples/AuthExamples.vue"
+import { AUTH_NAV } from "./examples/auth-nav"
+import ProductExamples from "./examples/ProductExamples.vue"
+import { PRODUCT_NAV } from "./examples/product-nav"
 import PropsTable, { type PropRow } from "./PropsTable.vue"
 
 // Believable dashboard numbers, not sine waves.
@@ -271,6 +275,8 @@ const GROUPS = [
       { id: "team", label: "Team" },
       { id: "usage", label: "Usage & billing" },
       { id: "signin", label: "Sign in" },
+      ...AUTH_NAV,
+      ...PRODUCT_NAV,
     ],
   },
   {
@@ -841,6 +847,12 @@ const gradientCode = computed(
               </div>
             </DemoCard>
           </section>
+
+          <!-- Auth cards: sign up, magic link, two-factor -->
+          <AuthExamples />
+
+          <!-- Product blocks: pricing, activity feed, changelog -->
+          <ProductExamples />
 
           <!-- Area -->
           <section id="area" class="mt-16 scroll-mt-24">

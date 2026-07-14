@@ -39,6 +39,11 @@ widgets/features; page-specific conventions live here.
   honors `prefers-reduced-transparency`.
 - Chart sections link to `#/studio/new/<type>` — keep in sync with
   `CHART_TYPES`.
+- Composed example blocks beyond the core three live in `docs/examples/`
+  as self-contained components (sections + snippets + local state) with a
+  sibling `*-nav.ts` exporting their nav items; DocsPage imports both and
+  spreads the nav into the Examples group. New example packs follow this
+  shape instead of growing DocsPage.
 
 ### studio/
 
