@@ -4,16 +4,21 @@ import { DitherButton, DitherGradient } from "@dither-kit"
 
 const openStudio = () => (window.location.hash = "#/studio")
 
-// WALK cycle from the sprite sheet — frame boxes measured from the source png.
+// WALK cycle from the sprite sheet — frame boxes measured from the source png
+// (10 phases, split on minimum-density columns since neighbours touch).
 const FRAMES = [
-  { x: 651, y: 85, w: 114, h: 242 },
-  { x: 782, y: 85, w: 115, h: 242 },
-  { x: 914, y: 85, w: 115, h: 242 },
-  { x: 1045, y: 85, w: 115, h: 242 },
-  { x: 1177, y: 85, w: 116, h: 242 },
-  { x: 1309, y: 85, w: 115, h: 242 },
+  { x: 695, y: 50, w: 87, h: 186 },
+  { x: 782, y: 50, w: 89, h: 186 },
+  { x: 871, y: 50, w: 86, h: 186 },
+  { x: 957, y: 50, w: 84, h: 186 },
+  { x: 1041, y: 50, w: 83, h: 186 },
+  { x: 1124, y: 50, w: 84, h: 186 },
+  { x: 1208, y: 50, w: 81, h: 186 },
+  { x: 1289, y: 50, w: 85, h: 186 },
+  { x: 1374, y: 50, w: 75, h: 186 },
+  { x: 1449, y: 50, w: 77, h: 186 },
 ]
-const FRAME_MS = 140
+const FRAME_MS = 100
 const spriteRef = ref<HTMLCanvasElement | null>(null)
 let raf = 0
 
@@ -25,7 +30,9 @@ onMounted(() => {
     const g = c?.getContext("2d")
     if (!c || !g) return
 
-    // Chroma-key the sheet's near-black background so only the sprite shows.
+    // Chroma-key the sheet's near-black background, then keep only the
+    // largest connected blob — drops hair fragments bleeding in from
+    // neighbouring frames (the sheet's frames touch each other).
     const cells = FRAMES.map((f) => {
       const off = document.createElement("canvas")
       off.width = f.w
@@ -34,16 +41,42 @@ onMounted(() => {
       og.drawImage(img, f.x, f.y, f.w, f.h, 0, 0, f.w, f.h)
       const px = og.getImageData(0, 0, f.w, f.h)
       const d = px.data
+      const n = f.w * f.h
       for (let i = 0; i < d.length; i += 4) {
-        if (Math.abs(d[i] - 15) + Math.abs(d[i + 1] - 16) + Math.abs(d[i + 2] - 17) < 48)
+        if (Math.abs(d[i] - 7) + Math.abs(d[i + 1] - 9) + Math.abs(d[i + 2] - 13) < 48)
           d[i + 3] = 0
       }
+      const label = new Int32Array(n).fill(-1)
+      const queue = new Int32Array(n)
+      let bestLabel = -1
+      let bestSize = 0
+      let nextLabel = 0
+      for (let p = 0; p < n; p++) {
+        if (label[p] >= 0 || d[p * 4 + 3] === 0) continue
+        let head = 0
+        let tail = 0
+        queue[tail++] = p
+        label[p] = nextLabel
+        let size = 0
+        while (head < tail) {
+          const q = queue[head++]
+          size++
+          const qx = q % f.w
+          if (qx > 0 && label[q - 1] < 0 && d[(q - 1) * 4 + 3] > 0) { label[q - 1] = nextLabel; queue[tail++] = q - 1 }
+          if (qx < f.w - 1 && label[q + 1] < 0 && d[(q + 1) * 4 + 3] > 0) { label[q + 1] = nextLabel; queue[tail++] = q + 1 }
+          if (q >= f.w && label[q - f.w] < 0 && d[(q - f.w) * 4 + 3] > 0) { label[q - f.w] = nextLabel; queue[tail++] = q - f.w }
+          if (q < n - f.w && label[q + f.w] < 0 && d[(q + f.w) * 4 + 3] > 0) { label[q + f.w] = nextLabel; queue[tail++] = q + f.w }
+        }
+        if (size > bestSize) { bestSize = size; bestLabel = nextLabel }
+        nextLabel++
+      }
+      for (let p = 0; p < n; p++) if (label[p] !== bestLabel) d[p * 4 + 3] = 0
       og.putImageData(px, 0, 0)
       return off
     })
 
-    c.width = 120
-    c.height = 242
+    c.width = 92
+    c.height = 186
     let k = 0
     let last = 0
     let x = -100
@@ -59,7 +92,7 @@ onMounted(() => {
     }
     // Pixel-game locomotion: she steps WITH her frames — position advances in
     // the same tick as the gait, so feet grip the ground instead of sliding.
-    const STEP = 9 // px per frame; 6 frames × 9px ≈ one stride
+    const STEP = 7 // px per frame; 10 frames × 7px ≈ one full gait
     const tick = (t: number) => {
       if (t - last > FRAME_MS) {
         last = t
