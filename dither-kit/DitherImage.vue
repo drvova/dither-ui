@@ -14,7 +14,8 @@ function paintImage(
   width: number,
   height: number,
   cell: number,
-  focusY: number
+  focusY: number,
+  fade: number
 ): void {
   const ctx = canvas.getContext("2d")
   if (!ctx || width <= 0 || height <= 0 || !img.naturalWidth) return
@@ -33,11 +34,23 @@ function paintImage(
 
   const px = ctx.getImageData(0, 0, cols, rows)
   const d = px.data
+  const f = Math.max(1, Math.round(fade / cell)) // fade margin in cells
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const i = (y * cols + x) * 4
+      const t = BAYER4[y & 3][x & 3]
+      // Dithered dissolve: toward every edge pixels first darken, then drop
+      // out through the same Bayer matrix — the image melts into the page.
+      let e = 1
+      if (fade > 0) {
+        e = Math.min(Math.min(x, cols - 1 - x, y, rows - 1 - y) / f, 1)
+        if (e < 1 && e * e <= t) {
+          d[i + 3] = 0
+          continue
+        }
+      }
       const luma = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255
-      const k = luma > BAYER4[y & 3][x & 3] ? 1 : 0.45
+      const k = (luma > t ? 1 : 0.45) * (0.25 + 0.75 * e)
       d[i] = Math.round(d[i] * k)
       d[i + 1] = Math.round(d[i + 1] * k)
       d[i + 2] = Math.round(d[i + 2] * k)
@@ -59,9 +72,11 @@ const props = withDefaults(
     cell?: number
     /** vertical crop focus for cover-fit: 0 top, 0.5 center, 1 bottom. */
     focusY?: number
+    /** css px of dithered edge dissolve — 0 keeps hard edges. */
+    fade?: number
     class?: string
   }>(),
-  { alt: "", cell: 3, focusY: 0.5 }
+  { alt: "", cell: 3, focusY: 0.5, fade: 0 }
 )
 
 const wrapRef = ref<HTMLDivElement | null>(null)
@@ -75,7 +90,7 @@ function paint() {
   const canvas = canvasRef.value
   if (!wrap || !canvas) return
   const box = wrap.getBoundingClientRect()
-  paintImage(canvas, img, box.width, box.height, props.cell, props.focusY)
+  paintImage(canvas, img, box.width, box.height, props.cell, props.focusY, props.fade)
 }
 
 function load() {
@@ -91,7 +106,7 @@ onMounted(() => {
   }
 })
 watch(() => props.src, load)
-watch(() => [props.cell, props.focusY], paint)
+watch(() => [props.cell, props.focusY, props.fade], paint)
 onBeforeUnmount(() => {
   ro?.disconnect()
   img.onload = null

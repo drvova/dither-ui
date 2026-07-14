@@ -47,6 +47,7 @@ const openStudio = () => (window.location.hash = "#/studio")
             alt="Dithered artwork rendered by dither-ui"
             :cell="4"
             :focus-y="0.22"
+            :fade="128"
             class="h-72 w-full sm:h-96"
           />
         </div>
