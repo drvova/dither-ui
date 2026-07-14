@@ -39,13 +39,13 @@ function setRail(el: unknown, color: PixelColor) {
     <div
       role="status"
       aria-live="polite"
-      class="fixed right-4 bottom-4 z-[60] grid gap-2"
+      class="pointer-events-none fixed right-4 bottom-4 z-[60] grid justify-items-end gap-2"
     >
       <TransitionGroup name="dk-toast">
         <div
           v-for="t in toasts"
           :key="t.id"
-          class="flex gap-2 rounded-lg border border-border bg-card px-3 py-2 font-mono text-[12px]"
+          class="pointer-events-auto flex gap-2 rounded-lg border border-border bg-card px-3 py-2 font-mono text-[12px]"
         >
           <canvas
             :ref="(el) => setRail(el, t.color)"

@@ -79,7 +79,7 @@ onMounted(() => {
     <!-- Hero: one statement, one action, one visual. -->
     <main class="relative isolate flex flex-1 flex-col overflow-hidden">
       <DitherGradient from="blue" direction="up" :opacity="0.14" :cell="4" class="-z-10" />
-      <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 sm:pt-32">
+      <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 pb-14 sm:pt-32">
         <h1
           class="reveal max-w-xl text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.15] tracking-tight text-balance"
         >

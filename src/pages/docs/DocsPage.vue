@@ -8,6 +8,7 @@ import {
   DitherAvatar,
   DitherButton,
   DitherGradient,
+  DitherImage,
   Dot,
   Grid,
   Legend,
@@ -272,6 +273,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "focus-y", type: "number 0…1", default: "0.5" },
     { prop: "fade", type: "number (px)", default: "0" },
     { prop: "alt", type: "string", default: '""' },
+  ],
+  palette: [
+    { prop: "cssColor(c)", type: "(DitherColor | number) → css string", default: "—" },
+    { prop: "seedFromColor(c)", type: "(DitherColor | number) → Seed", default: "—" },
+    { prop: "seedFromHue(h)", type: "(number 0…360) → Seed", default: "—" },
+    { prop: "DitherColor", type: '"green" … "grey" — seven seeds', default: "—" },
   ],
 }
 
@@ -552,7 +559,8 @@ const config = {
 </div>
 <!-- from/to: any DitherColor · direction: up · down · left · right
      cell: px per dither cell · opacity: 0…1 -->`,
-  image: `<DitherImage src="/art.png" :cell="4" :fade="96" class="h-72" />
+  image: `<DitherImage src="/sprites.png" :cell="3" :focus-y="0.62" :fade="72"
+  alt="The dither-ui sprite sheet, re-dithered" class="h-64 w-full" />
 <!-- cell: px per dither cell · fade: dithered edge dissolve
      focus-y: cover-crop focus (0 top … 1 bottom) -->`,
   palette: `import { cssColor, type DitherColor } from "@dither-kit"
@@ -1277,9 +1285,19 @@ const gradientCode = computed(
           <section id="image" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Image</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Ordered-dithers any image into chunky cells; edges can dissolve into the page.
+              Ordered-dithers any image into chunky cells; edges can dissolve
+              into the page. Below: the site's own sprite sheet run through it.
             </p>
-            <div class="mt-5"><CodeBlock :code="SNIPPETS.image" /></div>
+            <DemoCard :code="SNIPPETS.image">
+              <DitherImage
+                src="/sprites.png"
+                alt="The dither-ui sprite sheet, re-dithered"
+                :cell="3"
+                :focus-y="0.62"
+                :fade="72"
+                class="h-64 w-full"
+              />
+            </DemoCard>
             <PropsTable :rows="API.image" />
           </section>
 
@@ -1320,6 +1338,7 @@ const gradientCode = computed(
                 </div>
               </div>
             </DemoCard>
+            <PropsTable :rows="API.palette" />
           </section>
         </div>
       </main>
@@ -1342,6 +1361,14 @@ const gradientCode = computed(
   background: color-mix(in oklab, var(--background) 82%, transparent);
   backdrop-filter: blur(14px) saturate(1.5);
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
+}
+
+/* Narrow screens put dense tables right under the chrome — frost it harder
+   so high-contrast text cannot silhouette through. */
+@media (max-width: 640px) {
+  .chrome {
+    background: color-mix(in oklab, var(--background) 93%, transparent);
+  }
 }
 
 .chrome::after {
