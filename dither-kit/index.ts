@@ -113,12 +113,15 @@ export type {
   BezierPoints,
   EasingInput,
   EasingName,
+  EdgeEffect,
   TextureConfig,
   VariantInput,
 } from "./dither-paint"
 export {
   bloomFromSeed,
   easingFromSeed,
+  EDGE_EFFECTS,
+  effectFromSeed,
   geometryFromSeed,
   kitFromSeed,
   matrixFromSeed,

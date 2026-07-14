@@ -16,7 +16,7 @@ import {
   useChartController,
 } from "./chart-context"
 import { CommonChartKey } from "./common-context"
-import type { BloomInput, EasingInput } from "./dither-paint"
+import type { BloomInput, EasingInput, EdgeEffect } from "./dither-paint"
 import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "./dither-paint"
 import { cn } from "./lib"
 import type { StackType } from "./scales"
@@ -91,6 +91,8 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
     /** Master seed — derives duration, delay, easing, stagger, sparkle
      * character and bloom for every prop the consumer left unset. */
     seed: { type: Number as PropType<number | undefined>, default: undefined },
+    /** Force the live-edge effect. Unset: seed picks one, or sparkle. */
+    effect: { type: String as PropType<EdgeEffect | undefined>, default: undefined },
     animationDuration: { type: Number as PropType<number | undefined>, default: undefined },
     animationDelay: { type: Number as PropType<number | undefined>, default: undefined },
     easing: {
@@ -180,6 +182,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
         props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),
       bloomOnHover: () => props.bloomOnHover,
       seed: () => props.seed,
+      effect: () => props.effect,
       defaultSelectedDataKey: props.defaultSelectedDataKey,
       onSelectionChange: props.onSelectionChange,
     })

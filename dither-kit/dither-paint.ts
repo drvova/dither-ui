@@ -184,6 +184,29 @@ export function sparklesFromSeed(seed: number) {
   }
 }
 
+/** The family of live-edge effects a chart can wear. Each is pixel-native and
+ * reads the same particle pool or value-line surface. */
+export type EdgeEffect = "sparkle" | "rain" | "rise" | "scan" | "pulse" | "comet"
+export const EDGE_EFFECTS: EdgeEffect[] = ["sparkle", "rain", "rise", "scan", "pulse", "comet"]
+
+/** Seeded edge effect — picks WHICH animation type plays on the live fill and
+ * its motion character (speed, trail length, glow depth). A named type can be
+ * forced; a seed picks one deterministically. */
+export function effectFromSeed(seed: number): {
+  type: EdgeEffect
+  speed: number
+  tail: number
+  glow: number
+} {
+  const rand = mulberry32(Math.round(seed) ^ 0x7f4a7c15)
+  return {
+    type: EDGE_EFFECTS[Math.floor(rand() * EDGE_EFFECTS.length)],
+    speed: 0.6 + rand() * 1.2, // motion rate multiplier
+    tail: 8 + Math.floor(rand() * 14), // comet trail / particle spread
+    glow: 0.5 + rand() * 0.5, // pulse depth / scan brightness
+  }
+}
+
 /** A 4×4 dither threshold matrix — same shape as BAYER, but the values can
  * be jittered per-seed so each integer produces a unique scatter pattern. */
 export type DitherMatrix = number[][]

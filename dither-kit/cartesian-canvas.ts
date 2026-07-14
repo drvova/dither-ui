@@ -19,6 +19,7 @@ import {
   revealFromSeed,
   colNoise,
   sparklesFromSeed,
+  effectFromSeed,
   mulberry32,
 } from "./dither-paint"
 import { rgb } from "./palette"
@@ -37,6 +38,7 @@ type LoopArgs = {
   targets: Box<Record<string, Surface>>
   stars: Box<Star[]>
   spark: Box<ReturnType<typeof sparklesFromSeed> | { twinkleFreq: number; starBase: number; starRange: number; burstThreshold: number; starCrossAlpha: number; crosshairAlpha: number }>
+  effect: Box<ReturnType<typeof effectFromSeed>>
 }
 
 /**
@@ -55,6 +57,7 @@ function startCartesianLoop({
   targets,
   stars,
   spark,
+  effect,
 }: LoopArgs): (() => void) | undefined {
   const c = canvas.getContext("2d")
   if (!c || cols <= 0 || rows <= 0) return undefined
@@ -269,29 +272,126 @@ function startCartesianLoop({
     }
 
     if (!s.sparkles) return
-    for (const star of stars.current) {
-      const cur = current[star.key]
-      if (!cur) continue
-      const sx = Math.round(
-        (star.xi / Math.max(s.dataLength - 1, 1)) * (cols - 1)
-      )
-      if (sx > revealCols) continue
-      const top = cur.top[sx] ?? 0
-      const floor = cur.floor[sx] ?? rows - 1
-      const sy = Math.round(top + star.depth * (floor - top))
-      const tw = reduce ? 0.85 : (Math.sin((tick + star.phase) * spark.current.twinkleFreq) + 1) / 2
-      const lift = tw * (spark.current.starBase + spark.current.starRange * intensity)
-      if (lift < 0.55 || sy < 0 || sy >= rows) continue
-      const starColor = s.seedOf(star.key).fill
-      c.fillStyle = rgb(starColor, 1, lift)
-      c.fillRect(sx, sy, 1, 1)
-      if (tw > spark.current.burstThreshold) {
-        c.fillStyle = rgb(starColor, 1, lift * spark.current.starCrossAlpha * (tw - spark.current.burstThreshold) * 10)
-        c.fillRect(sx - 1, sy, 1, 1)
-        c.fillRect(sx + 1, sy, 1, 1)
-        c.fillRect(sx, sy - 1, 1, 1)
-        c.fillRect(sx, sy + 1, 1, 1)
+    const fx = effect.current
+    const sxOf = (xi: number) => Math.round((xi / Math.max(s.dataLength - 1, 1)) * (cols - 1))
+
+    // === sparkle: winking stars that burst a cross (the original) ===
+    if (fx.type === "sparkle") {
+      for (const star of stars.current) {
+        const cur = current[star.key]
+        if (!cur) continue
+        const sx = sxOf(star.xi)
+        if (sx > revealCols) continue
+        const top = cur.top[sx] ?? 0
+        const floor = cur.floor[sx] ?? rows - 1
+        const sy = Math.round(top + star.depth * (floor - top))
+        const tw = reduce ? 0.85 : (Math.sin((tick + star.phase) * spark.current.twinkleFreq) + 1) / 2
+        const lift = tw * (spark.current.starBase + spark.current.starRange * intensity)
+        if (lift < 0.55 || sy < 0 || sy >= rows) continue
+        const col = s.seedOf(star.key).fill
+        c.fillStyle = rgb(col, 1, lift)
+        c.fillRect(sx, sy, 1, 1)
+        if (tw > spark.current.burstThreshold) {
+          c.fillStyle = rgb(col, 1, lift * spark.current.starCrossAlpha * (tw - spark.current.burstThreshold) * 10)
+          c.fillRect(sx - 1, sy, 1, 1)
+          c.fillRect(sx + 1, sy, 1, 1)
+          c.fillRect(sx, sy - 1, 1, 1)
+          c.fillRect(sx, sy + 1, 1, 1)
+        }
       }
+      return
+    }
+
+    // === rain / rise: particles fall or float through the fill band ===
+    if (fx.type === "rain" || fx.type === "rise") {
+      const rate = reduce ? 0 : tick * fx.speed * 0.018
+      for (const star of stars.current) {
+        const cur = current[star.key]
+        if (!cur) continue
+        const sx = sxOf(star.xi)
+        if (sx > revealCols) continue
+        const top = cur.top[sx] ?? 0
+        const floor = cur.floor[sx] ?? rows - 1
+        const band = Math.max(1, floor - top)
+        const p = ((rate + star.phase * 0.02 + star.depth) % 1 + 1) % 1
+        const prog = fx.type === "rain" ? p : 1 - p
+        const sy = Math.round(top + prog * band)
+        if (sy < 0 || sy >= rows) continue
+        const head = fx.type === "rain" ? 1 - prog : prog // brightest where it enters
+        const col = s.seedOf(star.key).fill
+        c.fillStyle = rgb(col, 1, (0.35 + 0.65 * head) * (0.7 + 0.3 * intensity))
+        c.fillRect(sx, sy, 1, 1)
+        // one-pixel trail behind the drop
+        const ty = fx.type === "rain" ? sy - 1 : sy + 1
+        if (ty >= 0 && ty < rows) {
+          c.fillStyle = rgb(col, 1, 0.2 * head)
+          c.fillRect(sx, ty, 1, 1)
+        }
+      }
+      return
+    }
+
+    // === scan: a bright vertical line sweeps along the revealed fill ===
+    if (fx.type === "scan") {
+      const reach = Math.max(1, Math.min(revealCols, cols - 1))
+      const scanX = reduce ? reach : Math.round((((tick * fx.speed * 0.01) % 1) + 1) % 1 * reach)
+      for (const key of s.configKeys) {
+        const cur = current[key]
+        if (!cur) continue
+        const top = Math.round(cur.top[scanX] ?? 0)
+        const floor = Math.round(cur.floor[scanX] ?? rows - 1)
+        const col = s.seedOf(key).fill
+        for (let y = top; y <= floor && y < rows; y++) {
+          if (y < 0) continue
+          c.fillStyle = rgb(col, 1, fx.glow * (0.4 + 0.6 * (1 - (y - top) / Math.max(1, floor - top))))
+          c.fillRect(scanX, y, 1, 1)
+        }
+      }
+      return
+    }
+
+    // === pulse: the value line breathes brighter and dimmer ===
+    if (fx.type === "pulse") {
+      const glow = reduce ? 0.7 : (Math.sin(tick * fx.speed * 0.04) + 1) / 2
+      for (const key of s.configKeys) {
+        const cur = current[key]
+        if (!cur) continue
+        const col = s.seedOf(key).fill
+        const alpha = (0.35 + 0.5 * glow * fx.glow) * (0.8 + 0.2 * intensity)
+        for (let x = 0; x <= revealCols && x < cols; x++) {
+          const ty = Math.round(cur.top[x] ?? 0)
+          if (ty < 0 || ty >= rows) continue
+          c.fillStyle = rgb(col, 1, alpha)
+          c.fillRect(x, ty, 1, 1)
+        }
+      }
+      return
+    }
+
+    // === comet: a bright head runs the value line with a fading tail ===
+    if (fx.type === "comet") {
+      const reach = Math.max(1, Math.min(revealCols, cols - 1))
+      const headX = reduce ? reach : Math.round((((tick * fx.speed * 0.012) % 1) + 1) % 1 * reach)
+      for (const key of s.configKeys) {
+        const cur = current[key]
+        if (!cur) continue
+        const col = s.seedOf(key).fill
+        for (let t = 0; t < fx.tail; t++) {
+          const x = headX - t
+          if (x < 0 || x > revealCols) continue
+          const ty = Math.round(cur.top[x] ?? 0)
+          if (ty < 0 || ty >= rows) continue
+          const b = (1 - t / fx.tail) * (0.7 + 0.3 * intensity)
+          c.fillStyle = rgb(col, 1, b)
+          c.fillRect(x, ty, 1, 1)
+          if (t === 0) {
+            // brighter head, 1px halo
+            c.fillStyle = rgb(col, 1, Math.min(1, b + 0.3))
+            if (ty - 1 >= 0) c.fillRect(x, ty - 1, 1, 1)
+          }
+        }
+      }
+      return
     }
   }
 
@@ -345,6 +445,15 @@ export const CartesianCanvas = defineComponent({
         crosshairAlpha: 0.55,
       }
     )
+
+    // Which live-edge effect plays — explicit prop > seed pick > sparkle.
+    // The explicit prop sets the type; motion params stay seeded/default.
+    const effect = computed(() => {
+      const base = ctx.seed !== undefined
+        ? effectFromSeed(ctx.seed)
+        : { type: "sparkle" as const, speed: 1, tail: 12, glow: 0.7 }
+      return ctx.effect ? { ...base, type: ctx.effect } : base
+    })
 
     const stars = computed<Star[]>(() => {
       const out: Star[] = []
@@ -405,6 +514,7 @@ export const CartesianCanvas = defineComponent({
         targets: targetsBox,
         stars: starsBox,
         spark: { get current() { return spark.value } },
+        effect: { get current() { return effect.value } },
       })
     }
 

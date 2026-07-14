@@ -81,6 +81,7 @@ export type ChartContextValue = {
   bloom: BloomInput
   bloomOnHover: boolean
   seed: number | undefined
+  effect: import("./dither-paint").EdgeEffect | undefined
   seriesSpecs: Record<string, SeriesSpec>
   registerSeries: (spec: SeriesSpec) => void
   unregisterSeries: (dataKey: string) => void
@@ -185,6 +186,7 @@ export type ControllerInput = {
   bloom: () => BloomInput
   bloomOnHover: () => boolean
   seed: () => number | undefined
+  effect: () => import("./dither-paint").EdgeEffect | undefined
   defaultSelectedDataKey: string | null
   onSelectionChange?: (key: string | null) => void
 }
@@ -433,6 +435,9 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     },
     get seed() {
       return input.seed()
+    },
+    get effect() {
+      return input.effect()
     },
     get seriesSpecs() {
       return seriesSpecs.value
