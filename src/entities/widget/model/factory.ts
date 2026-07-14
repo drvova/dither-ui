@@ -1,6 +1,22 @@
-import type { AvatarModel, ButtonModel, GradientModel, ImageModel, WidgetKind, WidgetModel } from "./types"
+import { type ComponentEntry, defaultComponentProps } from "./registry"
+import type { AvatarModel, ButtonModel, ComponentModel, GradientModel, ImageModel, WidgetKind, WidgetModel } from "./types"
 
-export function createWidget(kind: WidgetKind): WidgetModel {
+/** The fixed widget kinds with bespoke builders — registry components are
+ * created from their ComponentEntry instead. */
+export type SimpleWidgetKind = Exclude<WidgetKind, "component">
+
+/** A component widget seeded from its registry entry. */
+export function createComponent(entry: ComponentEntry): ComponentModel {
+  return {
+    kind: "component",
+    is: entry.is,
+    props: defaultComponentProps(entry),
+    slotText: entry.slotText ?? null,
+    model: entry.vmodel ? entry.vmodel.def : undefined,
+  }
+}
+
+export function createWidget(kind: SimpleWidgetKind): WidgetModel {
   switch (kind) {
     case "avatar":
       return {

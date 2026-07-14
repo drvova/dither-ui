@@ -1,5 +1,6 @@
 import { computed, reactive } from "vue"
 import { type Artboard, type ArtboardKind, cloneArtboard, createArtboard } from "@/entities/artboard"
+import { type ComponentEntry, createComponent } from "@/entities/widget"
 import { type Layer, layersOf, setChartType } from "@/entities/chart"
 import type { ChartType } from "@/shared/config"
 
@@ -98,6 +99,18 @@ export function addArtboard(kind: ArtboardKind) {
   const a = createArtboard(kind, editor.artboards.length ? right + 80 : 0, 0)
   editor.artboards.push(a)
   selectArtboard(a.id)
+}
+
+/** Add a registry-driven kit component as an artboard. */
+export function addComponentArtboard(entry: ComponentEntry) {
+  const right = editor.artboards.reduce((m, a) => Math.max(m, a.x + a.w), 0)
+  const base = createArtboard("button", editor.artboards.length ? right + 80 : 0, 0)
+  base.name = entry.label
+  base.w = entry.frame.w
+  base.h = entry.frame.h
+  base.widget = createComponent(entry)
+  editor.artboards.push(base)
+  selectArtboard(base.id)
 }
 export function duplicateSelected() {
   const copies = editor.selectedIds

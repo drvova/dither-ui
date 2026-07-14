@@ -2,6 +2,7 @@
 import { computed } from "vue"
 import { colorToHex, type VariantInput } from "@dither-kit"
 import { editor, replay, selectedArtboard, selectedChart, selectedLayers, setSelectedType } from "@/entities/editor"
+import { componentEntry } from "@/entities/widget"
 import { CHART_TYPES, EASING_NAMES, familyOf, STACKS } from "@/shared/config"
 import { BezierEditor, BloomField, ColorField, NumberField, Segmented, TextureField, Toggle } from "@/shared/ui"
 
@@ -89,6 +90,20 @@ const gradient = computed(() =>
 const image = computed(() =>
   ab.value?.widget?.kind === "image" ? ab.value.widget : null
 )
+const component = computed(() =>
+  ab.value?.widget?.kind === "component" ? ab.value.widget : null
+)
+const componentSpec = computed(() =>
+  component.value ? componentEntry(component.value.is) : undefined
+)
+const listText = (v: unknown) => (Array.isArray(v) ? v.join(", ") : String(v ?? ""))
+function setList(key: string, e: Event) {
+  if (!component.value) return
+  component.value.props[key] = (e.target as HTMLInputElement).value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
 const MIRRORS = ["auto", "horizontal", "vertical"] as const
 const BUTTON_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
 const GRAD_DIRS = ["up", "down", "left", "right"] as const
@@ -333,6 +348,34 @@ function setPieVariant(v: VariantInput) {
             <ColorField :model-value="asFieldColor(button.color)" @update:model-value="button.color = $event" />
           </div>
           <BloomField :model-value="button.bloom" @update:model-value="button.bloom = $event" />
+        </section>
+      </template>
+
+      <!-- REGISTRY COMPONENT — generic panel rendered from the spec -->
+      <template v-else-if="component && componentSpec">
+        <section class="flex flex-col gap-3">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">{{ componentSpec.label }}</p>
+          <label v-if="component.slotText != null" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span class="w-14 shrink-0">text</span>
+            <input v-model="component.slotText" type="text" name="component-slot" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+          </label>
+          <template v-for="spec in componentSpec.props" :key="spec.key">
+            <label v-if="spec.kind === 'text'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+              <span class="w-14 shrink-0">{{ spec.key }}</span>
+              <input v-model="(component.props[spec.key] as string)" type="text" :name="`prop-${spec.key}`" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+            </label>
+            <label v-else-if="spec.kind === 'list'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+              <span class="w-14 shrink-0">{{ spec.key }}</span>
+              <input :value="listText(component.props[spec.key])" type="text" :name="`prop-${spec.key}`" autocomplete="off" placeholder="One, Two, Three" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" @change="setList(spec.key, $event)" />
+            </label>
+            <NumberField v-else-if="spec.kind === 'number'" :model-value="(component.props[spec.key] as number)" :label="spec.key" :min="spec.min" :max="spec.max" :step="spec.step" @update:model-value="component.props[spec.key] = $event" />
+            <Segmented v-else-if="spec.kind === 'select'" :model-value="(component.props[spec.key] as string)" :options="spec.options" :label="spec.key" @update:model-value="component.props[spec.key] = $event" />
+            <div v-else-if="spec.kind === 'color'" class="text-[11px] text-muted-foreground">
+              <span class="mb-1 block">{{ spec.key }}</span>
+              <ColorField :model-value="asFieldColor(component.props[spec.key])" @update:model-value="component.props[spec.key] = $event" />
+            </div>
+            <Toggle v-else-if="spec.kind === 'boolean'" :model-value="(component.props[spec.key] as boolean)" :label="spec.key" @update:model-value="component.props[spec.key] = $event" />
+          </template>
         </section>
       </template>
 

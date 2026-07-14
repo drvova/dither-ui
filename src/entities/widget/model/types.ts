@@ -54,5 +54,20 @@ export type GradientModel = {
   bloom: PixelBloomInput
 }
 
-export type WidgetModel = AvatarModel | ButtonModel | GradientModel | ImageModel
+/** A registry-driven kit component (switch, tabs, progress, …) — the
+ * inspector renders its controls from the ComponentEntry spec. */
+export type ComponentModel = {
+  kind: "component"
+  is: string // kit export name, resolved through the registry
+  props: Record<string, unknown>
+  slotText: string | null
+  model: unknown // live v-model value for the interactive preview
+}
+
+export type WidgetModel =
+  | AvatarModel
+  | ButtonModel
+  | GradientModel
+  | ImageModel
+  | ComponentModel
 export type WidgetKind = WidgetModel["kind"]

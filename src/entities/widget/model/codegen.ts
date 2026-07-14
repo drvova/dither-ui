@@ -1,3 +1,4 @@
+import { componentEntry } from "./registry"
 import type { PixelBloomInput, WidgetModel } from "./types"
 
 const q = (s: string) => `"${s}"`
@@ -15,8 +16,48 @@ function bloomAttr(bloom: PixelBloomInput): string {
   return ` :bloom="${objLit(bloom as unknown as Record<string, unknown>)}"`
 }
 
+/** `:prop="..."` for any JSON-serialisable value — arrays/objects inline. */
+const boundAttr = (key: string, v: unknown): string => {
+  if (typeof v === "string") return `${key}="${v}"`
+  if (typeof v === "boolean" || typeof v === "number") return `:${key}="${v}"`
+  return `:${key}='${JSON.stringify(v)}'`
+}
+
+function componentCode(w: Extract<WidgetModel, { kind: "component" }>): string {
+  const entry = componentEntry(w.is)
+  const attrs: string[] = []
+  if (entry?.vmodel) {
+    const v = w.model
+    attrs.push(
+      typeof v === "string" ? `v-model="value"` : `v-model="value"` // named ref in the snippet
+    )
+  }
+  const mapped = entry?.mapProps ? entry.mapProps(w.props) : w.props
+  for (const spec of entry?.props ?? []) {
+    const v = mapped[spec.key]
+    const raw = w.props[spec.key]
+    // emit only non-defaults (compare against the registry default)
+    if (JSON.stringify(raw) === JSON.stringify(spec.def)) continue
+    attrs.push(boundAttr(spec.key, v))
+  }
+  const attrStr = attrs.length ? ` ${attrs.join(" ")}` : ""
+  const modelSetup = entry?.vmodel
+    ? `\nconst value = ref(${JSON.stringify(w.model)})`
+    : ""
+  const importRef = entry?.vmodel ? `import { ref } from "vue"\n` : ""
+  const slot = w.slotText
+  return `<script setup lang="ts">
+${importRef}import { ${w.is} } from "@dither-kit"${modelSetup}
+</script>
+
+<template>
+  ${slot != null ? `<${w.is}${attrStr}>${slot}</${w.is}>` : `<${w.is}${attrStr} />`}
+</template>`
+}
+
 /** A runnable snippet for a standalone widget, reflecting every non-default. */
 export function widgetCode(w: WidgetModel, frame: { w: number; h: number }): string {
+  if (w.kind === "component") return componentCode(w)
   if (w.kind === "avatar") {
     const attrs: string[] = [`name="${w.name}"`, `:size="${Math.round(Math.min(frame.w, frame.h))}"`]
     if (!w.autoColor) attrs.push(colorAttr("color", w.color).trim())

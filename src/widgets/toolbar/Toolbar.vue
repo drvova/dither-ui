@@ -2,6 +2,7 @@
 import { ref, watch } from "vue"
 import {
   addArtboard,
+  addComponentArtboard,
   duplicateSelected,
   editor,
   groupSelected,
@@ -14,6 +15,7 @@ import { history, redo, undo } from "@/features/history"
 import { exportArtboardPng } from "@/features/export-image"
 import { exportDocument, importDocument } from "@/features/persistence"
 import { addArtboardFromPreset, presets } from "@/features/presets"
+import { COMPONENT_REGISTRY, type ComponentEntry } from "@/entities/widget"
 import type { ArtboardKind } from "@/entities/artboard"
 import { CHART_TYPES } from "@/shared/config"
 import { useTheme } from "@/shared/lib"
@@ -59,6 +61,14 @@ function add(t: ArtboardKind) {
   addArtboard(t)
   addOpen.value = false
 }
+function addComponent(entry: ComponentEntry) {
+  addComponentArtboard(entry)
+  addOpen.value = false
+}
+const REGISTRY_GROUPS = [
+  { name: "inputs", items: COMPONENT_REGISTRY.filter((e) => e.group === "inputs") },
+  { name: "display", items: COMPONENT_REGISTRY.filter((e) => e.group === "display") },
+]
 const canEdit = () => editor.selectedArtboardId !== ""
 const canUngroup = () => !!selectedArtboard.value?.groupId
 function doUngroup() {
@@ -81,10 +91,15 @@ function doUngroup() {
         <button type="button" aria-haspopup="menu" :aria-expanded="addOpen" class="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-[11px] text-accent-foreground transition-opacity hover:opacity-90" @click="addOpen = !addOpen">
           + artboard
         </button>
-        <div v-if="addOpen" role="menu" class="absolute right-0 top-full z-30 mt-1 w-32 rounded-lg border border-border bg-card p-1 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]" @pointerdown.stop>
+        <div v-if="addOpen" role="menu" class="absolute right-0 top-full z-30 mt-1 max-h-[70vh] w-36 overflow-y-auto rounded-lg border border-border bg-card p-1 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]" @pointerdown.stop>
           <button v-for="t in CHART_TYPES" :key="t" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs capitalize text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="add(t)">{{ t }}</button>
           <div class="my-1 h-px bg-border" />
           <button v-for="t in (['avatar', 'button', 'gradient', 'image'] as const)" :key="t" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs capitalize text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="add(t)">{{ t }}</button>
+          <template v-for="g in REGISTRY_GROUPS" :key="g.name">
+            <div class="my-1 h-px bg-border" />
+            <p class="px-2 py-0.5 text-[9px] uppercase tracking-widest text-muted-foreground/60">{{ g.name }}</p>
+            <button v-for="c in g.items" :key="c.is" type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="addComponent(c)">{{ c.label }}</button>
+          </template>
           <template v-if="presets.length">
             <div class="my-1 h-px bg-border" />
             <p class="px-2 py-0.5 text-[9px] uppercase tracking-widest text-muted-foreground/60">presets</p>

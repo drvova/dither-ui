@@ -1,12 +1,28 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { editor } from "@/entities/editor"
-import type { WidgetModel } from "@/entities/widget"
+import { componentEntry, type WidgetModel } from "@/entities/widget"
+import * as kit from "@dither-kit"
 import { DitherAvatar, DitherButton, DitherGradient, DitherImage } from "@dither-kit"
 
 const props = defineProps<{ widget: WidgetModel }>()
 const rt = computed(() => editor.replayToken)
 const w = computed(() => props.widget)
+
+// Registry-driven kit component: resolve by export name, map list props.
+const comp = computed(() =>
+  w.value.kind === "component"
+    ? (kit as Record<string, unknown>)[w.value.is]
+    : null
+)
+const compProps = computed(() => {
+  if (w.value.kind !== "component") return {}
+  const entry = componentEntry(w.value.is)
+  return entry?.mapProps ? entry.mapProps(w.value.props) : w.value.props
+})
+const hasModel = computed(
+  () => w.value.kind === "component" && !!componentEntry(w.value.is)?.vmodel
+)
 </script>
 
 <template>
@@ -40,6 +56,20 @@ const w = computed(() => props.widget)
       class="px-6 py-3 text-sm"
       >{{ w.label }}</DitherButton
     >
+  </div>
+
+  <!-- REGISTRY COMPONENT — centred, interactive -->
+  <div v-else-if="w.kind === 'component'" class="flex h-full w-full items-center justify-center overflow-hidden p-2">
+    <component
+      :is="comp as never"
+      v-if="comp"
+      v-bind="compProps"
+      :model-value="hasModel ? w.model : undefined"
+      class="max-w-full"
+      @update:model-value="hasModel ? (w.model = $event) : undefined"
+    >
+      <template v-if="w.slotText != null" #default>{{ w.slotText }}</template>
+    </component>
   </div>
 
   <!-- IMAGE — fills the frame -->
