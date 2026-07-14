@@ -1,5 +1,5 @@
 import { reactive } from "vue"
-import type { Artboard } from "@/entities/artboard"
+import { type Artboard, normalizeArtboard } from "@/entities/artboard"
 import type { ChartModel } from "@/entities/chart"
 import { editor, selectArtboard } from "@/entities/editor"
 
@@ -65,6 +65,7 @@ export function addArtboardFromPreset(preset: Preset): void {
     groupId: null,
     chart: JSON.parse(JSON.stringify(preset.chart)) as ChartModel,
   }
-  editor.artboards.push(a)
+  // Presets saved by an older schema get missing fields filled from defaults.
+  editor.artboards.push(normalizeArtboard(a))
   selectArtboard(a.id)
 }

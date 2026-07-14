@@ -48,7 +48,9 @@ describe("resolveEasing", () => {
 
 describe("resolveTexture", () => {
   it("gradient preset", () => {
-    expect(resolveTexture("gradient")).toEqual({
+    // toMatchObject: the texture config may gain fields (e.g. seed-driven
+    // luminance coefficients) — these core mappings must hold regardless.
+    expect(resolveTexture("gradient")).toMatchObject({
       ramp: 1, density: 0, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA,
     })
   })
