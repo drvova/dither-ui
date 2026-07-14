@@ -25,11 +25,18 @@ This folder is the product; the `src/` app is its showcase and editor.
   visual input is accepted — `VariantInput` (texture via `textureFromSeed`),
   `BloomInput`/`PixelBloomInput` (`bloomFromSeed`; pixel.ts mirrors the exact
   PRNG+ranges, keep them in sync), `EasingInput` (`easingFromSeed`), and hue
-  colors. Chart roots take a master `seed` prop deriving duration, delay,
-  easing, stagger, sparkle character, bloom (+ startAngle on polar) with
-  precedence: explicit prop > seed derivation > house default. All seed fns
-  live in `dither-paint.ts` (mulberry32, params clamped to usable bands) —
-  extend seeds there, never in per-component paint loops.
+  colors. The dither MATRIX itself is seeded (`matrixFromSeed` /
+  `resolveMatrix`, mirrored as `pixelMatrixFromSeed`) — the threshold pattern
+  varies per seed. Luminance coefficients (alphaFloor/alphaRange/intensityLift)
+  live in `TextureConfig` and seed with the texture. Sparkle character
+  (twinkle freq, star brightness/burst, crosshair alpha) seeds via
+  `sparklesFromSeed`; the master `seed` flows to the cartesian canvas through
+  `ChartContextValue.seed` so star positions AND render coefficients derive
+  from it. Chart roots take a master `seed` prop deriving duration, delay,
+  easing, stagger, sparkle character, geometry, matrix, bloom (+ startAngle on
+  polar) with precedence: explicit prop > seed derivation > house default. All
+  seed fns live in `dither-paint.ts` (mulberry32, params clamped to usable
+  bands) — extend seeds there, never in per-component paint loops.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with

@@ -126,6 +126,7 @@ export {
   mulberry32,
   resolveMatrix,
   resolveTexture,
+  sparklesFromSeed,
   textureFromSeed,
 } from "./dither-paint"
 export { cubicBezier, EASINGS, resolveEasing } from "./dither-paint"

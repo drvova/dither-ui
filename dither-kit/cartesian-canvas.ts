@@ -16,6 +16,8 @@ import {
   paintColumn,
   prefersReducedMotion,
   resample,
+  sparklesFromSeed,
+  mulberry32,
 } from "./dither-paint"
 import { rgb } from "./palette"
 
@@ -32,6 +34,7 @@ type LoopArgs = {
   state: Box<ChartContextValue>
   targets: Box<Record<string, Surface>>
   stars: Box<Star[]>
+  spark: Box<ReturnType<typeof sparklesFromSeed> | { twinkleFreq: number; starBase: number; starRange: number; burstThreshold: number; starCrossAlpha: number; crosshairAlpha: number }>
 }
 
 /**
@@ -49,6 +52,7 @@ function startCartesianLoop({
   state,
   targets,
   stars,
+  spark,
 }: LoopArgs): (() => void) | undefined {
   const c = canvas.getContext("2d")
   if (!c || cols <= 0 || rows <= 0) return undefined
@@ -242,7 +246,7 @@ function startCartesianLoop({
         if (!cur) continue
         const seed = s.seedOf(key)
         const my = Math.round(cur.top[mx] ?? 0)
-        c.fillStyle = rgb(seed.fill, 1, 0.55)
+        c.fillStyle = rgb(seed.fill, 1, spark.current.crosshairAlpha)
         for (let y = my; y < rows; y++) c.fillRect(mx, y, 1, 1)
         c.fillStyle = rgb(seed.fill)
         c.fillRect(mx - 1, my - 1, 3, 3)
@@ -260,14 +264,14 @@ function startCartesianLoop({
       const top = cur.top[sx] ?? 0
       const floor = cur.floor[sx] ?? rows - 1
       const sy = Math.round(top + star.depth * (floor - top))
-      const tw = reduce ? 0.85 : (Math.sin((tick + star.phase) * 0.35) + 1) / 2
-      const lift = tw * (0.7 + 0.3 * intensity)
+      const tw = reduce ? 0.85 : (Math.sin((tick + star.phase) * spark.current.twinkleFreq) + 1) / 2
+      const lift = tw * (spark.current.starBase + spark.current.starRange * intensity)
       if (lift < 0.55 || sy < 0 || sy >= rows) continue
       const starColor = s.seedOf(star.key).fill
       c.fillStyle = rgb(starColor, 1, lift)
       c.fillRect(sx, sy, 1, 1)
-      if (tw > 0.9) {
-        c.fillStyle = rgb(starColor, 1, lift * 0.6 * (tw - 0.9) * 10)
+      if (tw > spark.current.burstThreshold) {
+        c.fillStyle = rgb(starColor, 1, lift * spark.current.starCrossAlpha * (tw - spark.current.burstThreshold) * 10)
         c.fillRect(sx - 1, sy, 1, 1)
         c.fillRect(sx + 1, sy, 1, 1)
         c.fillRect(sx, sy - 1, 1, 1)
@@ -315,19 +319,43 @@ export const CartesianCanvas = defineComponent({
       return out
     })
 
+    // Sparkle character — seed-derived when the chart has a master seed.
+    const spark = computed(() =>
+      ctx.seed !== undefined ? sparklesFromSeed(ctx.seed) : {
+        twinkleFreq: 0.35,
+        starBase: 0.7,
+        starRange: 0.3,
+        burstThreshold: 0.9,
+        starCrossAlpha: 0.6,
+        crosshairAlpha: 0.55,
+      }
+    )
+
     const stars = computed<Star[]>(() => {
       const out: Star[] = []
       const { cols } = backing.value
       const per = Math.max(1, Math.round((cols / 14) * ctx.sparkleDensity))
       ctx.configKeys.forEach((key, k) => {
         for (let i = 0; i < per; i++) {
-          const seed = i * 67 + 13 + k * 131
-          out.push({
-            key,
-            xi: seed % Math.max(ctx.dataLength, 1),
-            depth: ((seed * 53 + 7) % 100) / 100,
-            phase: (seed * 41) % 360,
-          })
+          // Seed-derived position and phase when a master seed exists;
+          // otherwise the legacy linear hash (unchanged behavior).
+          if (ctx.seed !== undefined) {
+            const rand = mulberry32(ctx.seed ^ (k * 7919 + i * 31 + 0x5bd1e995))
+            out.push({
+              key,
+              xi: Math.floor(rand() * Math.max(ctx.dataLength, 1)),
+              depth: rand(),
+              phase: rand() * 360,
+            })
+          } else {
+            const h = i * 67 + 13 + k * 131
+            out.push({
+              key,
+              xi: h % Math.max(ctx.dataLength, 1),
+              depth: ((h * 53 + 7) % 100) / 100,
+              phase: (h * 41) % 360,
+            })
+          }
         }
       })
       return out
@@ -361,6 +389,7 @@ export const CartesianCanvas = defineComponent({
         state: stateBox,
         targets: targetsBox,
         stars: starsBox,
+        spark: { get current() { return spark.value } },
       })
     }
 

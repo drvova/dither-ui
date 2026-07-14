@@ -80,6 +80,7 @@ export type ChartContextValue = {
   hovered: boolean
   bloom: BloomInput
   bloomOnHover: boolean
+  seed: number | undefined
   seriesSpecs: Record<string, SeriesSpec>
   registerSeries: (spec: SeriesSpec) => void
   unregisterSeries: (dataKey: string) => void
@@ -183,6 +184,7 @@ export type ControllerInput = {
   hovered: () => boolean
   bloom: () => BloomInput
   bloomOnHover: () => boolean
+  seed: () => number | undefined
   defaultSelectedDataKey: string | null
   onSelectionChange?: (key: string | null) => void
 }
@@ -428,6 +430,9 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     },
     get bloomOnHover() {
       return input.bloomOnHover()
+    },
+    get seed() {
+      return input.seed()
     },
     get seriesSpecs() {
       return seriesSpecs.value

@@ -179,6 +179,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
       bloom: () =>
         props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),
       bloomOnHover: () => props.bloomOnHover,
+      seed: () => props.seed,
       defaultSelectedDataKey: props.defaultSelectedDataKey,
       onSelectionChange: props.onSelectionChange,
     })

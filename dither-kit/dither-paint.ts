@@ -153,6 +153,20 @@ export function kitFromSeed(seed: number) {
   }
 }
 
+/** Seeded sparkle character — twinkle frequency, brightness range, star
+ * burst threshold, and crosshair opacity. The personality of the live edge. */
+export function sparklesFromSeed(seed: number) {
+  const rand = mulberry32(Math.round(seed) ^ 0x5bd1e995)
+  return {
+    twinkleFreq: 0.2 + rand() * 0.4, // how fast stars wink (default 0.35)
+    starBase: 0.6 + rand() * 0.25, // base brightness multiplier (default 0.7)
+    starRange: 0.2 + rand() * 0.2, // brightness variance with intensity (default 0.3)
+    burstThreshold: 0.8 + rand() * 0.15, // tw value above which a star bursts its cross (default 0.9)
+    starCrossAlpha: 0.4 + rand() * 0.4, // brightness of the burst cross (default 0.6)
+    crosshairAlpha: 0.4 + rand() * 0.3, // crosshair column opacity (default 0.55)
+  }
+}
+
 /** A 4×4 dither threshold matrix — same shape as BAYER, but the values can
  * be jittered per-seed so each integer produces a unique scatter pattern. */
 export type DitherMatrix = number[][]
