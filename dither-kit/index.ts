@@ -40,6 +40,13 @@ export { default as DitherSkeleton } from "./DitherSkeleton.vue"
 export { default as DitherSpinner } from "./DitherSpinner.vue"
 export { default as DitherSeparator } from "./DitherSeparator.vue"
 
+// Navigation & data
+export { default as DitherBreadcrumb, type Crumb } from "./DitherBreadcrumb.vue"
+export { default as DitherPagination, pageList } from "./DitherPagination.vue"
+export { default as DitherRating } from "./DitherRating.vue"
+export { default as DitherStepper, type Step } from "./DitherStepper.vue"
+export { default as DitherTimeline, type TimelineItem } from "./DitherTimeline.vue"
+
 // Structure
 export { default as DitherTabs, type TabItem, type TabsVariant } from "./DitherTabs.vue"
 export { default as DitherTabPanel } from "./DitherTabPanel.vue"

@@ -46,6 +46,8 @@ import SelectionDocs from "./components/SelectionDocs.vue"
 import { SELECTION_NAV } from "./components/selection-nav"
 import SurfaceDocs from "./components/SurfaceDocs.vue"
 import { SURFACE_NAV } from "./components/surface-nav"
+import NavigationDocs from "./components/NavigationDocs.vue"
+import { NAVIGATION_NAV } from "./components/navigation-nav"
 import AuthExamples from "./examples/AuthExamples.vue"
 import { AUTH_NAV } from "./examples/auth-nav"
 import ProductExamples from "./examples/ProductExamples.vue"
@@ -344,6 +346,7 @@ const GROUPS = [
       ...STRUCTURE_NAV,
       ...OVERLAY_NAV,
       ...SURFACE_NAV,
+      ...NAVIGATION_NAV,
     ],
   },
   { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
@@ -1436,6 +1439,9 @@ const gradientCode = computed(
 
           <!-- Surfaces & status -->
           <SurfaceDocs />
+
+          <!-- Navigation & data -->
+          <NavigationDocs />
 
           <!-- Palette -->
           <section id="palette" class="mt-16 scroll-mt-24">
