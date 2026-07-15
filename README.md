@@ -108,3 +108,8 @@ Shared props: `bloom` (`off`/`low`/`high`/`aura`), `bloomOnHover`, `animate`,
 - The framework-agnostic `requestAnimationFrame` canvas painters port ~verbatim.
 - The tooltip's `motion` spring → Vue `<Transition>` + a CSS glide (no extra dep).
 - Tailwind v4 with shadcn-style tokens (`--foreground`, `--card`, …) in `src/styles.css`.
+
+## Credits
+
+Dithering approach and the original **Dither Kit** charts by
+[tripwire.sh/dither-kit](https://www.tripwire.sh/dither-kit).
