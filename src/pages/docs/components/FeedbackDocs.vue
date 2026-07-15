@@ -136,10 +136,13 @@ const API: Record<string, PropRow[]> = {
   <section id="spinner" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Spinner</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A rotating dithered ring, repainted at 30fps. It's not one shape — a seed
-      samples a continuous form space (sweep, segments, petals, thickness), so
-      every seed is a different spinner: an arc, a ring of dots, a turning
-      flower, a thin comet. Static under reduced motion.
+      A dithered loader, repainted at 30fps. It's not one shape — a seed samples
+      three axes at once: the <em class="text-foreground/80 not-italic">silhouette</em>
+      (circle ring, square box-ring, or bar), the
+      <em class="text-foreground/80 not-italic">flow</em> (sweep like a comet, pulse
+      breathing, or a travelling wave), and the detail (dashes, petals, thickness).
+      So every seed is a genuinely different loader — a rotating ring, a breathing
+      square, dashes racing a bar. Static under reduced motion.
     </p>
     <DemoCard :code="SNIPPET_SPINNER">
       <div class="grid gap-6">

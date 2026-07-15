@@ -13,75 +13,125 @@ import {
 const CELL = 2
 const TAU = Math.PI * 2
 
-/** A spinner is a point in a continuous form space, not a preset. A rotating
- * brightness wave sweeps a ring; `segments` carves it into dots/bars, `spokes`
- * adds radial petals, `innerRatio`/`taper`/`arc` shape the band and falloff.
- * So one seed yields an arc, a ring of dots, a rotating flower, a thin comet
- * — and everything between. Ranges bounded so no seed is unreadable. */
+/** A spinner is a point in a continuous form space, not a preset. Three axes
+ * are seeded independently:
+ *   • SHAPE  — the silhouette the pattern lives on: a circle ring, a square
+ *              box-ring, or a horizontal bar (each pixel gets a path coord t
+ *              in 0..1 walking that outline).
+ *   • FLOW   — how brightness animates along t: sweep (a comet head chasing
+ *              the outline), pulse (the whole shape breathing), or wave (bright
+ *              bands travelling the outline).
+ *   • DETAIL — arc/taper/segments/spokes/innerRatio carving the lit pattern.
+ * So one seed yields a rotating ring, a breathing square, dashes racing a bar,
+ * a travelling-wave donut — and everything between. Ranges bounded so no seed
+ * is unreadable. ONE render loop draws any point; widen params, never branch
+ * per preset. */
 export type SpinnerParams = {
-  speed: number
+  shape: number // 0 circle ring, 1 square ring, 2 bar
+  flow: number // 0 sweep, 1 pulse, 2 wave
+  speed: number // phase advance per ms
   dir: 1 | -1
-  arc: number // fraction of the ring the wave spans (0..1)
-  segments: number // 0 = continuous; N = N dots/bars
-  spokes: number // 0 = none; N = radial petals
-  innerRatio: number // hollow center as a fraction of outer radius
-  taper: number // brightness falloff along the wave
+  arc: number // fraction of the outline the sweep head spans
+  segments: number // 0 = continuous; N = N dashes along the outline
+  spokes: number // 0 = none; N = radial petals (circle/square only)
+  innerRatio: number // hollow center as a fraction of outer extent
+  taper: number // brightness falloff behind the sweep head
+  waveCount: number // crests around the outline in wave flow
 }
 const SPINNER_DEFAULT: SpinnerParams = {
-  speed: 0.004,
+  shape: 0,
+  flow: 0,
+  speed: 0.00064,
   dir: 1,
   arc: 0.75,
   segments: 0,
   spokes: 0,
   innerRatio: 0.5,
   taper: 0.8,
+  waveCount: 3,
 }
 
 function spinnerFromSeed(seed: number): SpinnerParams {
   const rand = xorshift32(Math.round(seed) ^ 0x2f72b4a1)
   return {
-    speed: 0.0025 + rand() * 0.006,
+    shape: Math.floor(rand() * 3),
+    flow: Math.floor(rand() * 3),
+    speed: 0.0004 + rand() * 0.0009, // ~770ms..2500ms per loop
     dir: rand() < 0.5 ? 1 : -1,
-    arc: 0.35 + rand() * 0.75,
+    arc: 0.3 + rand() * 0.6,
     segments: Math.floor(rand() ** 1.4 * 13), // usually few, sometimes many
     spokes: Math.floor(rand() ** 2 * 7), // petals are rarer
     innerRatio: 0.3 + rand() * 0.45,
     taper: 0.3 + rand() * 0.7,
+    waveCount: 2 + Math.floor(rand() * 3),
   }
 }
 
-/** One frame — render the ring, sampling a rotating brightness wave against the
- * dither matrix. `start` is the head angle (advances over time). */
+/** Perimeter coordinate 0..1 walking a unit-square outline, continuous across
+ * corners — the square's answer to a circle's angle. */
+function squareT(sx: number, sy: number): number {
+  const ax = Math.abs(sx)
+  const ay = Math.abs(sy)
+  if (sy < 0 && ay >= ax) return (sx + 1) / 8 // top L→R
+  if (sx > 0 && ax >= ay) return 0.25 + (sy + 1) / 8 // right T→B
+  if (sy > 0 && ay >= ax) return 0.5 + (1 - sx) / 8 // bottom R→L
+  return 0.75 + (1 - sy) / 8 // left B→T
+}
+
+/** One frame — walk every cell, resolve its outline membership + path coord by
+ * SHAPE, its brightness by FLOW, then carve detail and dither. `phase` (0..1)
+ * advances over time. */
 function paintSpinner(
   ctx: CanvasRenderingContext2D,
   cells: number,
   fill: Rgb,
-  start: number,
+  phase: number,
   matrix: number[][] = BAYER4,
   p: SpinnerParams = SPINNER_DEFAULT
 ): void {
   ctx.clearRect(0, 0, cells, cells)
   const c = cells / 2
-  const rOuter = c - 0.5
-  const rInner = Math.max(1, rOuter * p.innerRatio)
-  const arcW = Math.max(0.05, Math.min(1, p.arc)) * TAU
+  const half = c - 0.5
+  const arc = Math.max(0.05, Math.min(1, p.arc))
+  const ph = (((phase * p.dir) % 1) + 1) % 1
   for (let y = 0; y < cells; y++) {
     for (let x = 0; x < cells; x++) {
-      const dx = x + 0.5 - c
-      const dy = y + 0.5 - c
-      const r = Math.hypot(dx, dy)
-      if (r < rInner || r > rOuter) continue
-      const ang = (Math.atan2(dy, dx) + TAU) % TAU
-      // Brightness wave, relative to the rotating head.
-      const rel = ((ang - start * p.dir) % TAU + TAU) % TAU
-      let bright = rel <= arcW ? 1 - p.taper * (rel / arcW) : 0
-      // Segmentation: fixed gaps in space that the wave sweeps through.
-      if (p.segments > 0) {
-        const phase = ((ang / TAU) * p.segments) % 1
-        if (phase > 0.6) bright = 0 // 40% gap between dots
+      const nx = (x + 0.5 - c) / half // -1..1
+      const ny = (y + 0.5 - c) / half
+      // SHAPE: membership on the outline + path coordinate t (0..1) + angle.
+      let lit: boolean
+      let t: number
+      let ang: number
+      if (p.shape === 1) {
+        const d = Math.max(Math.abs(nx), Math.abs(ny))
+        lit = d >= p.innerRatio && d <= 1
+        t = squareT(nx / (d || 1), ny / (d || 1))
+        ang = t * TAU
+      } else if (p.shape === 2) {
+        lit = Math.abs(ny) <= 0.4 && Math.abs(nx) <= 1
+        t = (nx + 1) / 2
+        ang = t * TAU
+      } else {
+        const r = Math.hypot(nx, ny)
+        lit = r >= p.innerRatio && r <= 1
+        ang = (Math.atan2(ny, nx) + TAU) % TAU
+        t = ang / TAU
       }
-      // Spokes: radial petals modulate by absolute angle.
-      if (p.spokes > 0) bright *= 0.35 + 0.65 * Math.abs(Math.cos((ang * p.spokes) / 2)) ** 2
+      if (!lit) continue
+      // FLOW: brightness along the outline.
+      let bright: number
+      if (p.flow === 1) {
+        bright = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(ph * TAU)) // breathe
+      } else if (p.flow === 2) {
+        bright = (0.5 + 0.5 * Math.sin((t * p.waveCount - ph) * TAU)) ** 1.6 // travelling
+      } else {
+        const rel = (((t - ph) % 1) + 1) % 1 // sweep head at ph
+        bright = rel <= arc ? 1 - p.taper * (rel / arc) : 0
+      }
+      // DETAIL: dashes along the outline, radial petals on round shapes.
+      if (p.segments > 0 && (t * p.segments) % 1 > 0.6) bright = 0
+      if (p.spokes > 0 && p.shape !== 2)
+        bright *= 0.35 + 0.65 * Math.abs(Math.cos((ang * p.spokes) / 2)) ** 2
       if (bright <= 0 || bright <= matrix[y & 3][x & 3]) continue
       ctx.fillStyle = rgb(fill, 1, 0.4 + 0.6 * bright)
       ctx.fillRect(x, y, 1, 1)
@@ -121,14 +171,14 @@ function init(): (() => void) | undefined {
   let raf = 0
   let last = 0
 
-  paintSpinner(ctx, cells, fill, -Math.PI / 2, matrix, spin)
+  paintSpinner(ctx, cells, fill, 0, matrix, spin)
 
   if (!pixelPrefersReducedMotion()) {
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame)
       if (now - last < 33) return // ~30fps
       last = now
-      paintSpinner(ctx, cells, fill, (now * spin.speed) % TAU, matrix, spin)
+      paintSpinner(ctx, cells, fill, (now * spin.speed) % 1, matrix, spin)
     }
     raf = requestAnimationFrame(frame)
   }
