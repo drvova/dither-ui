@@ -38,18 +38,31 @@ const emoteEls = ref<HTMLCanvasElement[]>([])
 
 /** Blit a sheet crop into a canvas at native size with the background keyed. */
 function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-  const g = c.getContext("2d", { willReadFrequently: true })
-  if (!g) return
-  c.width = w
-  c.height = h
-  g.drawImage(img, x, y, w, h, 0, 0, w, h)
-  const px = g.getImageData(0, 0, w, h)
+  const dpr = Math.min(window.devicePixelRatio || 1, 3)
+  // Key the background out at native size so the tolerance test sees the exact
+  // source pixels (smoothing first would fringe the key).
+  const off = document.createElement("canvas")
+  off.width = w
+  off.height = h
+  const og = off.getContext("2d", { willReadFrequently: true })
+  if (!og) return
+  og.drawImage(img, x, y, w, h, 0, 0, w, h)
+  const px = og.getImageData(0, 0, w, h)
   const d = px.data
   for (let i = 0; i < d.length; i += 4) {
     if (Math.abs(d[i] - 5) + Math.abs(d[i + 1] - 5) + Math.abs(d[i + 2] - 7) < 48)
       d[i + 3] = 0
   }
-  g.putImageData(px, 0, 0)
+  og.putImageData(px, 0, 0)
+  // Render the display canvas at device resolution and upscale the keyed portrait
+  // into it — stays sharp on hi-DPI / 4K instead of a blocky nearest-neighbour.
+  const g = c.getContext("2d")
+  if (!g) return
+  c.width = Math.round(w * dpr)
+  c.height = Math.round(h * dpr)
+  g.imageSmoothingEnabled = true
+  g.imageSmoothingQuality = "high"
+  g.drawImage(off, 0, 0, c.width, c.height)
 }
 
 onMounted(() => {
@@ -131,21 +144,16 @@ onMounted(() => {
         style="--reveal-delay: 300ms"
       >
         <div v-for="(f, i) in FACES" :key="i" class="group relative pt-10">
-          <!-- width + height reserved up front so the portraits don't reflow when
-               the sheet paints (kills the layout shift) -->
+          <!-- CSS size reserves layout (no CLS); blit paints the backing store at
+               device resolution so the portrait stays sharp on hi-DPI / 4K -->
           <canvas
             :ref="(el) => { if (el) faceEls[i] = el as HTMLCanvasElement }"
-            :width="f.w"
-            :height="FACE_H"
-            class="h-[126px]"
-            style="image-rendering: pixelated"
+            :style="{ width: `${f.w}px`, height: `${FACE_H}px` }"
           />
           <canvas
             :ref="(el) => { if (el) emoteEls[i] = el as HTMLCanvasElement }"
-            :width="f.emote.w"
-            :height="f.emote.h"
             class="emote absolute top-0 left-1/2"
-            style="image-rendering: pixelated"
+            :style="{ width: `${f.emote.w}px`, height: `${f.emote.h}px` }"
           />
         </div>
       </div>
