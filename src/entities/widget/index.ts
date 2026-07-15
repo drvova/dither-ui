@@ -6,6 +6,7 @@ export {
   componentEntry,
   type ComponentEntry,
   defaultComponentProps,
+  sanitizeComponentProps,
   type PropSpec,
 } from "./model/registry"
 export {

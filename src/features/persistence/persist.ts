@@ -59,13 +59,49 @@ const snapshotDoc = (): Doc => ({
   viewport: editor.viewport,
 })
 
+const isPlain = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v !== null && !Array.isArray(v)
+
+let abFallback = 0
+/** Envelope validation for untrusted documents (imports, tampered storage):
+ * only plain-object artboards survive, ids are guaranteed strings, groups are
+ * shape-checked, and the viewport must be finite numbers. Field-level
+ * sanitisation happens in normalizeArtboard. */
+function validDoc(d: Doc): {
+  artboards: Parameters<typeof normalizeArtboard>[0][]
+  groups: typeof editor.groups
+  viewport: typeof editor.viewport | null
+} | null {
+  const artboards = (Array.isArray(d.artboards) ? d.artboards : [])
+    .filter(isPlain)
+    .map((a) => {
+      if (typeof a.id !== "string" || !a.id) a.id = `ab-imported-${abFallback++}`
+      if (typeof a.name !== "string") a.name = "Artboard"
+      for (const k of ["x", "y", "w", "h"] as const) {
+        if (typeof a[k] !== "number" || !Number.isFinite(a[k])) a[k] = k === "w" ? 520 : k === "h" ? 360 : 0
+      }
+      return a as unknown as Parameters<typeof normalizeArtboard>[0]
+    })
+  if (!artboards.length) return null
+  const groups = (Array.isArray(d.groups) ? d.groups : [])
+    .filter(isPlain)
+    .filter((g) => typeof g.id === "string" && typeof g.name === "string")
+    .map((g) => ({ id: g.id as string, name: g.name as string, collapsed: g.collapsed === true }))
+  const v = d.viewport
+  const viewport =
+    isPlain(v) &&
+    [v.x, v.y, v.zoom].every((n) => typeof n === "number" && Number.isFinite(n))
+      ? { x: v.x as number, y: v.y as number, zoom: Math.min(3, Math.max(0.2, v.zoom as number)) }
+      : null
+  return { artboards, groups, viewport }
+}
+
 function applyDoc(d: Doc | null): void {
-  if (d && Array.isArray(d.artboards) && d.artboards.length) {
-    editor.artboards = (d.artboards as Parameters<typeof normalizeArtboard>[0][]).map(
-      normalizeArtboard
-    )
-    editor.groups = Array.isArray(d.groups) ? (d.groups as typeof editor.groups) : []
-    if (d.viewport) editor.viewport = d.viewport
+  const valid = d ? validDoc(d) : null
+  if (valid) {
+    editor.artboards = valid.artboards.map(normalizeArtboard)
+    editor.groups = valid.groups
+    if (valid.viewport) editor.viewport = valid.viewport
     selectArtboard(editor.artboards[0].id)
   } else {
     editor.artboards = [createArtboard("area", 0, 0)]

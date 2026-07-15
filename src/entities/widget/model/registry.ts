@@ -158,3 +158,52 @@ export const componentEntry = (is: string): ComponentEntry | undefined =>
 export function defaultComponentProps(entry: ComponentEntry): Record<string, unknown> {
   return Object.fromEntries(entry.props.map((p) => [p.key, p.def]))
 }
+
+const isPlain = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v !== null && !Array.isArray(v)
+
+/**
+ * Deny-by-default prop sanitiser for untrusted documents (imports, storage).
+ * Only keys declared in the entry's spec survive, each coerced to its spec
+ * type (numbers clamped, selects checked against options). This is what
+ * keeps a crafted project file from smuggling `innerHTML` / `onX` keys into
+ * the renderer's v-bind.
+ */
+export function sanitizeComponentProps(
+  entry: ComponentEntry,
+  raw: unknown
+): Record<string, unknown> {
+  const src = isPlain(raw) ? raw : {}
+  const out: Record<string, unknown> = {}
+  for (const spec of entry.props) {
+    const v = src[spec.key]
+    switch (spec.kind) {
+      case "text":
+        out[spec.key] = typeof v === "string" ? v : spec.def
+        break
+      case "boolean":
+        out[spec.key] = typeof v === "boolean" ? v : spec.def
+        break
+      case "number": {
+        let n = typeof v === "number" && Number.isFinite(v) ? v : spec.def
+        if (spec.min != null) n = Math.max(spec.min, n)
+        if (spec.max != null) n = Math.min(spec.max, n)
+        out[spec.key] = n
+        break
+      }
+      case "select":
+        out[spec.key] = spec.options.includes(v as string) ? v : spec.def
+        break
+      case "color":
+        out[spec.key] =
+          typeof v === "string" || typeof v === "number" ? v : spec.def
+        break
+      case "list":
+        out[spec.key] = Array.isArray(v)
+          ? v.filter((x): x is string => typeof x === "string")
+          : [...spec.def]
+        break
+    }
+  }
+  return out
+}
