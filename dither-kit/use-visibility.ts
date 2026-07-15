@@ -1,18 +1,24 @@
 import { onBeforeUnmount, onMounted, type Ref, ref } from "vue"
 
 /**
- * Tracks whether an element is on screen, so canvas paint loops can skip all
- * work while scrolled/panned out of view. The rAF keeps ticking (a boolean
- * check per frame — negligible) which means no entrance replays and no state
- * loss when the element scrolls back in; it just resumes painting.
+ * Tracks whether an element is on screen so canvas paint loops can fully stop
+ * while scrolled/panned out of view (a chart off-screen costs nothing instead
+ * of burning a 60fps rAF loop). `onWake` fires when the element re-enters view;
+ * the loop resumes its SAME closure, so preserved timing means no entrance
+ * replay and no state loss — any in-progress entrance simply snaps to done.
  */
-export function useCanvasVisibility(el: Ref<HTMLElement | null>): () => boolean {
+export function useCanvasVisibility(
+  el: Ref<HTMLElement | null>,
+  onWake?: () => void
+): () => boolean {
   const visible = ref(true)
   let io: IntersectionObserver | null = null
   onMounted(() => {
     if (typeof IntersectionObserver === "undefined" || !el.value) return
     io = new IntersectionObserver(([entry]) => {
-      visible.value = entry?.isIntersecting ?? true
+      const v = entry?.isIntersecting ?? true
+      if (v && !visible.value) onWake?.() // re-entered view — resume the paused loop
+      visible.value = v
     })
     io.observe(el.value)
   })

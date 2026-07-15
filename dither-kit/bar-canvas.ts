@@ -43,7 +43,7 @@ function startBarLoop({
   width,
   state,
   targets,
-}: LoopArgs): (() => void) | undefined {
+}: LoopArgs): { stop: () => void; wake: () => void } | undefined {
   const c = canvas.getContext("2d")
   if (!c || cols <= 0 || rows <= 0) return undefined
   canvas.width = cols
@@ -114,8 +114,11 @@ function startBarLoop({
   let lastHover: number | null | undefined = Symbol() as never
 
   const draw = (now: number) => {
+    if (!visible()) {
+      raf = 0
+      return // off-screen: pause the loop; useCanvasVisibility wakes it on re-entry
+    }
     raf = requestAnimationFrame(draw)
-    if (!visible()) return // off-screen: keep ticking, paint nothing
     const s = state.current
     if (!s.ready) return
     if (bloomCtx) {
@@ -170,7 +173,12 @@ function startBarLoop({
   }
 
   raf = requestAnimationFrame(draw)
-  return () => cancelAnimationFrame(raf)
+  return {
+    stop: () => cancelAnimationFrame(raf),
+    wake: () => {
+      if (!raf) raf = requestAnimationFrame(draw)
+    },
+  }
 }
 
 /**
@@ -183,7 +191,8 @@ export const BarCanvas = defineComponent({
   setup() {
     const ctx = useChart()
     const canvasRef = ref<HTMLCanvasElement | null>(null)
-    const isVisible = useCanvasVisibility(canvasRef)
+    let loop: { stop: () => void; wake: () => void } | undefined
+    const isVisible = useCanvasVisibility(canvasRef, () => loop?.wake())
     const bloomRef = ref<HTMLCanvasElement | null>(null)
     const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
 
@@ -210,14 +219,13 @@ export const BarCanvas = defineComponent({
       },
     }
 
-    let stop: (() => void) | undefined
     const restart = () => {
-      stop?.()
-      stop = undefined
+      loop?.stop()
+      loop = undefined
       const canvas = canvasRef.value
       if (!canvas) return
       const { cols, rows } = backing.value
-      stop = startBarLoop({
+      loop = startBarLoop({
         canvas,
         visible: isVisible,
         bloomCanvas: bloomRef.value,
@@ -234,7 +242,7 @@ export const BarCanvas = defineComponent({
       () => [backing.value.cols, backing.value.rows, ctx.plot.width],
       restart
     )
-    onBeforeUnmount(() => stop?.())
+    onBeforeUnmount(() => loop?.stop())
 
     return () => {
       const bloomActive = ctx.bloomOnHover

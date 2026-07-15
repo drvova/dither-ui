@@ -45,7 +45,7 @@ function startPieLoop({
   width,
   height,
   state,
-}: LoopArgs): (() => void) | undefined {
+}: LoopArgs): { stop: () => void; wake: () => void } | undefined {
   const c = canvas.getContext("2d")
   if (!c || cols <= 0 || rows <= 0) return undefined
   canvas.width = cols
@@ -130,8 +130,11 @@ function startPieLoop({
   }
 
   const draw = (now: number) => {
+    if (!visible()) {
+      raf = 0
+      return // off-screen: pause the loop; useCanvasVisibility wakes it on re-entry
+    }
     raf = requestAnimationFrame(draw)
-    if (!visible()) return // off-screen: keep ticking, paint nothing
     const s = state.current
     if (!s.ready || !s.pie) return
     if (bloomCtx) {
@@ -190,7 +193,12 @@ function startPieLoop({
   }
 
   raf = requestAnimationFrame(draw)
-  return () => cancelAnimationFrame(raf)
+  return {
+    stop: () => cancelAnimationFrame(raf),
+    wake: () => {
+      if (!raf) raf = requestAnimationFrame(draw)
+    },
+  }
 }
 
 /** Dither canvas for pie / donut charts — clockwise sweep-in, slice hover-pop. */
@@ -199,19 +207,19 @@ export const PieCanvas = defineComponent({
   setup() {
     const ctx = usePolarChart()
     const canvasRef = ref<HTMLCanvasElement | null>(null)
-    const isVisible = useCanvasVisibility(canvasRef)
+    let loop: { stop: () => void; wake: () => void } | undefined
+    const isVisible = useCanvasVisibility(canvasRef, () => loop?.wake())
     const bloomRef = ref<HTMLCanvasElement | null>(null)
     const backing = computed(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
     const stateBox: Box<PolarChartContextValue> = { current: ctx }
 
-    let stop: (() => void) | undefined
     const restart = () => {
-      stop?.()
-      stop = undefined
+      loop?.stop()
+      loop = undefined
       const canvas = canvasRef.value
       if (!canvas) return
       const { cols, rows } = backing.value
-      stop = startPieLoop({
+      loop = startPieLoop({
         canvas,
         visible: isVisible,
         bloomCanvas: bloomRef.value,
@@ -233,7 +241,7 @@ export const PieCanvas = defineComponent({
       ],
       restart
     )
-    onBeforeUnmount(() => stop?.())
+    onBeforeUnmount(() => loop?.stop())
 
     return () => {
       const bloom = bloomLayerStyle(
