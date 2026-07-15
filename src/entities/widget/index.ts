@@ -5,6 +5,7 @@ export {
   COMPONENT_REGISTRY,
   componentEntry,
   type ComponentEntry,
+  type ComponentGroup,
   defaultComponentProps,
   sanitizeComponentProps,
   type PropSpec,

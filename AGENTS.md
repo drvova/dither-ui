@@ -102,10 +102,12 @@ Default section order:
   restraint (one statement / one action / one visual) on the landing.
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
   tables, variant galleries) while keeping the dither skin.
-- Prefer editing existing code over adding new files; net-negative LOC
-  changes are prized; avoid over-abstraction and new dependencies.
+- Prefer editing existing code over adding new files; avoid over-abstraction and
+  new dependencies. Net-negative LOC is prized when behavior remains complete.
 - Accessibility is a floor, not a feature: labels, focus rings, reduced-motion
   and reduced-transparency support are expected in every change.
+- Studio serves Vue developers and visual designers equally. Use the durable
+  audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 
 ## Child DOX Index
 

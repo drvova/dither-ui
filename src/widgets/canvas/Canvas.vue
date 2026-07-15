@@ -127,7 +127,7 @@ function onCanvasDown(e: PointerEvent) {
 
     <!-- Zoom controls -->
     <div
-      class="pointer-events-auto absolute bottom-4 left-4 flex items-center gap-0.5 rounded-lg border border-border bg-card/90 p-1 text-xs backdrop-blur"
+      class="pointer-events-auto absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-0.5 rounded-lg border border-border/70 bg-background/95 p-1 text-xs shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
     >
       <button type="button" aria-label="Zoom out" class="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground" title="Zoom out (⌘−)" @click="zoomOut">−</button>
       <button type="button" aria-label="Reset zoom to 100%" class="w-12 rounded-md py-1 text-center tabular-nums text-muted-foreground transition-colors hover:text-foreground" title="Reset to 100% (⌘0)" @click="resetZoom">{{ Math.round(editor.viewport.zoom * 100) }}%</button>

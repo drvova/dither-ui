@@ -57,8 +57,14 @@ widgets/features; page-specific conventions live here.
   `startHistory()` → deep-link handling (`#/studio/new/<type>`), so deep-link
   artboards are part of the restored doc and undoable; hash is cleaned via
   `replaceState` to prevent refresh duplication.
-- `ShortcutsHelp` (?) and `ExportDialog` mount here; keep them on the page,
-  not inside widgets.
+- Studio is canvas-first: Toolbar floats over the full-bleed canvas; Layers and
+  Inspector are dismissible overlay panels; the searchable Library is the single
+  insertion surface for charts, bespoke widgets, every public kit component,
+  screens, and presets.
+- Child-only kit exports render as the smallest valid parent composition; do not
+  add broken isolated previews merely to satisfy registry coverage.
+- `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not
+  inside widgets.
 
 ## Verification
 

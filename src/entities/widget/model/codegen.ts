@@ -24,13 +24,13 @@ const boundAttr = (key: string, v: unknown): string => {
 }
 
 function componentCode(w: Extract<WidgetModel, { kind: "component" }>): string {
+  // Studio-only demo wrappers provide required parent context; exported code keeps
+  // the public component and its editable props as the portable starting point.
   const entry = componentEntry(w.is)
   const attrs: string[] = []
   if (entry?.vmodel) {
-    const v = w.model
-    attrs.push(
-      typeof v === "string" ? `v-model="value"` : `v-model="value"` // named ref in the snippet
-    )
+    const prop = entry.vmodel.prop
+    attrs.push(prop && prop !== "modelValue" ? `:${prop}="value" @${entry.vmodel.event}="value = false"` : `v-model="value"`)
   }
   const mapped = entry?.mapProps ? entry.mapProps(w.props) : w.props
   for (const spec of entry?.props ?? []) {

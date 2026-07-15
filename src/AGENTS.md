@@ -18,6 +18,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   truth), chart, widget, artboard.
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
   ContextMenu, ...), config (CHART_TYPES), lib (theme).
+- `entities/widget/model/registry.ts` is the single source for Studio's searchable
+  component library, inspector controls, untrusted-prop sanitization, functional
+  demo composition, and code export. Every public `Dither*` export is covered
+  there or by a bespoke widget kind.
 
 ## Local Contracts
 

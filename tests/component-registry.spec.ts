@@ -19,6 +19,12 @@ describe("component registry", () => {
       expect(e.frame.h).toBeGreaterThan(0)
     }
   })
+  it("covers every public Dither component exactly once", async () => {
+    const kit = await import("../dither-kit")
+    const bespoke = new Set(["DitherAvatar", "DitherButton", "DitherGradient", "DitherImage"])
+    const publicComponents = Object.keys(kit).filter((name) => /^Dither[A-Z]/.test(name) && !bespoke.has(name)).sort()
+    expect(COMPONENT_REGISTRY.map((entry) => entry.is).sort()).toEqual(publicComponents)
+  })
   it("defaults come straight from the specs", () => {
     const entry = componentEntry("DitherSlider")!
     const props = defaultComponentProps(entry)
@@ -41,6 +47,11 @@ describe("component registry", () => {
       { value: "aa", label: "Aa" },
       { value: "bb", label: "Bb" },
     ])
+  })
+  it("gives child-only exports a valid composed demo", () => {
+    for (const name of ["DitherTabPanel", "DitherSidebarItem", "DitherSidebarGroup", "DitherSidebarSub", "DitherDrawerIndent"]) {
+      expect(componentEntry(name)?.demo).toBeTruthy()
+    }
   })
 })
 
