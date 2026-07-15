@@ -65,6 +65,13 @@ function unlock() {
 // seeded from the preset's equivalent curve so the switch is seamless.
 const EASING_CHOICES = [...EASING_NAMES, "custom"] as const
 const DOT_VARIANTS = ["border", "colored-border", "filled"] as const
+
+// Seed controls — one integer derives texture, motion, geometry and glow; the
+// effect seed pins the generative live-edge motion independently.
+const rollSeed = () => { if (chart.value) chart.value.seed = Math.floor(Math.random() * 1_000_000) }
+const clearSeed = () => { if (chart.value) chart.value.seed = undefined }
+const rollEffect = () => { if (chart.value) chart.value.effect = Math.floor(Math.random() * 1_000_000) }
+const clearEffect = () => { if (chart.value) chart.value.effect = undefined }
 const SEED_BEZIER: Record<string, [number, number, number, number]> = {
   linear: [0.25, 0.25, 0.75, 0.75],
   "ease-out": [0.33, 1, 0.68, 1],
@@ -344,6 +351,26 @@ function setPieVariant(v: VariantInput) {
             <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8" /><path d="M21 3v5h-5" /></svg>
             replay
           </button>
+        </div>
+      </section>
+
+      <section v-if="!ab.widget" class="flex flex-col gap-2">
+        <p class="text-[10px] uppercase tracking-widest text-muted-foreground">seed</p>
+        <p class="text-[10px] leading-relaxed text-muted-foreground/70">
+          One integer derives texture, motion, geometry and glow. Explicit
+          controls above always win.
+        </p>
+        <div class="flex items-center gap-2">
+          <span class="w-14 shrink-0 text-[11px] text-muted-foreground">master</span>
+          <button type="button" class="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground" @click="rollSeed">roll</button>
+          <span class="flex-1 truncate text-[11px] tabular-nums text-foreground">{{ chart.seed ?? "off" }}</span>
+          <button v-if="chart.seed !== undefined" type="button" class="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="clearSeed">clear</button>
+        </div>
+        <div v-if="chart.type === 'area' || chart.type === 'line'" class="flex items-center gap-2">
+          <span class="w-14 shrink-0 text-[11px] text-muted-foreground">motion</span>
+          <button type="button" class="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground" @click="rollEffect">roll</button>
+          <span class="flex-1 truncate text-[11px] tabular-nums text-foreground">{{ chart.effect ?? "seed" }}</span>
+          <button v-if="chart.effect !== undefined" type="button" class="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="clearEffect">clear</button>
         </div>
       </section>
 

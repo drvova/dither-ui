@@ -47,6 +47,8 @@ export type ChartModel = {
   type: ChartType
   rows: DataRow[] // the chart's own data — fully editable
   bloom: BloomLevel | BloomConfig // preset or a fully custom glow
+  seed?: number // master seed — derives texture, motion, geometry, glow when set
+  effect?: number // dedicated live-edge motion seed (cartesian)
   stackType: StackType
   animate: boolean
   interactive: boolean

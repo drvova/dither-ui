@@ -62,6 +62,8 @@ export function chartCode(chart: ChartModel): string {
   if (typeof chart.bloom === "object")
     attrs.push(`:bloom="${objLit(chart.bloom as Record<string, unknown>)}"`)
   else if (chart.bloom !== "off") attrs.push(`bloom="${chart.bloom}"`)
+  if (chart.seed !== undefined) attrs.push(`:seed="${chart.seed}"`)
+  if (cart && chart.effect !== undefined) attrs.push(`:effect="${chart.effect}"`)
   if (chart.animationDuration !== 900) attrs.push(`:animation-duration="${chart.animationDuration}"`)
   if (chart.animationDelay > 0) attrs.push(`:animation-delay="${chart.animationDelay}"`)
   if (Array.isArray(chart.easing))

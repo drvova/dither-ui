@@ -34,6 +34,7 @@ const rt = computed(() => editor.replayToken)
   <AreaChart
     v-if="chart.type === 'area'"
     :data="data" :config="cfg" :margins="chart.margins" :bloom="chart.bloom"
+    :seed="chart.seed" :effect="chart.effect"
     :stack-type="chart.stackType" :animate="chart.animate" :interactive="chart.interactive"
     :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
     :easing="chart.easing" :sparkles="chart.sparkles" :hover-lift="chart.hoverLift"
@@ -55,6 +56,7 @@ const rt = computed(() => editor.replayToken)
   <LineChart
     v-else-if="chart.type === 'line'"
     :data="data" :config="cfg" :margins="chart.margins" :bloom="chart.bloom"
+    :seed="chart.seed" :effect="chart.effect"
     :animate="chart.animate" :interactive="chart.interactive"
     :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
     :easing="chart.easing" :sparkles="chart.sparkles" :hover-lift="chart.hoverLift"
@@ -76,6 +78,7 @@ const rt = computed(() => editor.replayToken)
   <BarChart
     v-else-if="chart.type === 'bar'"
     :data="data" :config="cfg" :margins="chart.margins" :bloom="chart.bloom"
+    :seed="chart.seed"
     :stack-type="chart.stackType" :animate="chart.animate" :interactive="chart.interactive"
     :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
     :easing="chart.easing" :hover-lift="chart.hoverLift" :stagger="chart.stagger"
@@ -97,7 +100,7 @@ const rt = computed(() => editor.replayToken)
   <PieChart
     v-else-if="chart.type === 'pie'"
     :data="data" :config="cfg" data-key="value" name-key="name"
-    :inner-radius="chart.innerRadius" :bloom="chart.bloom" :animate="chart.animate"
+    :inner-radius="chart.innerRadius" :bloom="chart.bloom" :seed="chart.seed" :animate="chart.animate"
     :animation-duration="chart.animationDuration" :animation-delay="chart.animationDelay"
     :easing="chart.easing" :hover-lift="chart.hoverLift" :cell="chart.cell"
     :pop-out="chart.popOut" :rim-width="chart.rimWidth" :hover-strength="chart.hoverStrength"
@@ -110,7 +113,7 @@ const rt = computed(() => editor.replayToken)
 
   <RadarChart
     v-else
-    :data="data" :config="cfg" name-key="axis" :bloom="chart.bloom"
+    :data="data" :config="cfg" name-key="axis" :bloom="chart.bloom" :seed="chart.seed"
     :animate="chart.animate" :animation-duration="chart.animationDuration"
     :animation-delay="chart.animationDelay" :easing="chart.easing"
     :hover-lift="chart.hoverLift" :cell="chart.cell" :falloff="chart.falloff"
