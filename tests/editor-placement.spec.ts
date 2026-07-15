@@ -16,10 +16,11 @@ describe("artboard placement", () => {
     expect(editor.selectedArtboardId).toBe(a.id)
   })
 
-  it("offsets consecutive frames so they remain separately draggable", () => {
+  it("keeps consecutive frames at the exact visual center", () => {
     const first = placeArtboard(createArtboard("button"))
     const second = placeArtboard(createArtboard("button"))
-    expect(second.x - first.x).toBe(24)
-    expect(second.y - first.y).toBe(24)
+    expect(second.x).toBe(first.x)
+    expect(second.y).toBe(first.y)
+    expect(editor.selectedArtboardId).toBe(second.id)
   })
 })

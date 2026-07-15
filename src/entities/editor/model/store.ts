@@ -44,9 +44,8 @@ export function placeArtboard(a: Artboard): Artboard {
   const zoom = editor.viewport.zoom || 1
   const width = typeof window === "undefined" ? 1280 : window.innerWidth
   const height = typeof window === "undefined" ? 720 : window.innerHeight
-  const offset = (editor.artboards.length % 4) * 24
-  a.x = Math.round((width / 2 - editor.viewport.x) / zoom - a.w / 2 + offset)
-  a.y = Math.round((height / 2 - editor.viewport.y) / zoom - a.h / 2 + offset)
+  a.x = Math.round((width / 2 - editor.viewport.x) / zoom - a.w / 2)
+  a.y = Math.round((height / 2 - editor.viewport.y) / zoom - a.h / 2)
   editor.artboards.push(a)
   selectArtboard(a.id)
   return a

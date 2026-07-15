@@ -37,8 +37,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Editor mutations must stay undoable: route them through the editor store so
   the deep watcher records them; never mutate artboards from a component.
 - New artboards route through `placeArtboard` after their final size is known; it
-  centers them in the current viewport and offsets successive inserts so their
-  drag handles stay visible. Do not restore origin/right-edge spawn logic.
+  centers every insert exactly in the current viewport. Do not restore cascading,
+  origin, or right-edge spawn logic.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.
 - Studio lifecycle watchers are singletons while the route is mounted:
