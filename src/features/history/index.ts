@@ -1,1 +1,1 @@
-export { history, redo, startHistory, undo } from "./history"
+export { history, redo, resetHistory, startHistory, undo } from "./history"

@@ -1,1 +1,15 @@
-export { exportDocument, hydrate, importDocument, startAutosave } from "./persist"
+export {
+  activeProjectId,
+  activeProjectName,
+  createProject,
+  deleteProject,
+  exportDocument,
+  flushSave,
+  hydrate,
+  importDocument,
+  type ProjectMeta,
+  projects,
+  renameProject,
+  startAutosave,
+  switchProject,
+} from "./persist"

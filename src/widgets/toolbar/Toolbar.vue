@@ -14,7 +14,17 @@ import {
 } from "@/entities/editor"
 import { history, redo, undo } from "@/features/history"
 import { exportArtboardPng } from "@/features/export-image"
-import { exportDocument, importDocument } from "@/features/persistence"
+import {
+  activeProjectId,
+  activeProjectName,
+  createProject,
+  deleteProject,
+  exportDocument,
+  importDocument,
+  projects,
+  renameProject,
+  switchProject,
+} from "@/features/persistence"
 import { addArtboardFromPreset, presets } from "@/features/presets"
 import { COMPONENT_REGISTRY, type ComponentEntry } from "@/entities/widget"
 import type { ArtboardKind } from "@/entities/artboard"
@@ -24,6 +34,38 @@ import { useTheme } from "@/shared/lib"
 const emit = defineEmits<{ export: [] }>()
 const { dark, toggle } = useTheme()
 const addOpen = ref(false)
+const projOpen = ref(false)
+const closeProj = () => (projOpen.value = false)
+const onProjKey = (e: KeyboardEvent) => {
+  if (e.key === "Escape") closeProj()
+}
+watch(projOpen, (open) => {
+  if (open) {
+    setTimeout(() => {
+      window.addEventListener("pointerdown", closeProj)
+      window.addEventListener("keydown", onProjKey)
+    }, 0)
+  } else {
+    window.removeEventListener("pointerdown", closeProj)
+    window.removeEventListener("keydown", onProjKey)
+  }
+})
+
+function onNewProject() {
+  const name = window.prompt("Project name", `Project ${projects.length + 1}`)
+  if (name) createProject(name)
+  projOpen.value = false
+}
+function onRenameProject() {
+  const name = window.prompt("Rename project", activeProjectName())
+  if (name) renameProject(activeProjectId.value, name)
+  projOpen.value = false
+}
+function onDeleteProject() {
+  if (window.confirm(`Delete “${activeProjectName()}”? This cannot be undone.`))
+    deleteProject(activeProjectId.value)
+  projOpen.value = false
+}
 const fileInput = ref<HTMLInputElement | null>(null)
 
 async function onOpenFile(e: Event) {
@@ -84,6 +126,42 @@ function doUngroup() {
       <span class="inline-block size-3 rounded-[2px] bg-foreground" />
       <span class="font-mono text-sm tracking-tight">dither-ui</span>
       <span class="ml-1 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">studio</span>
+
+      <!-- project switcher: each visitor's own workspace -->
+      <div class="relative ml-2">
+        <button
+          type="button"
+          aria-haspopup="menu"
+          :aria-expanded="projOpen"
+          class="flex max-w-44 items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+          @click="projOpen = !projOpen"
+        >
+          <span class="truncate">{{ activeProjectName() }}</span>
+          <svg viewBox="0 0 24 24" class="size-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        <div
+          v-if="projOpen"
+          role="menu"
+          class="absolute left-0 top-full z-30 mt-1 max-h-[60vh] w-52 overflow-y-auto rounded-lg border border-border bg-card p-1 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]"
+          @pointerdown.stop
+        >
+          <button
+            v-for="p in projects"
+            :key="p.id"
+            type="button"
+            class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-xs transition-colors"
+            :class="p.id === activeProjectId.value ? 'bg-accent/15 text-foreground' : 'text-muted-foreground hover:bg-background hover:text-foreground'"
+            @click="switchProject(p.id); projOpen = false"
+          >
+            <span class="truncate">{{ p.name }}</span>
+            <span v-if="p.id === activeProjectId.value" class="ml-auto text-[9px] uppercase tracking-wider text-accent">open</span>
+          </button>
+          <div class="my-1 h-px bg-border" />
+          <button type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="onNewProject">+ new project</button>
+          <button type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-background hover:text-foreground" @click="onRenameProject">rename</button>
+          <button type="button" class="block w-full rounded-md px-2 py-1.5 text-left text-xs text-red-400 transition-colors hover:bg-red-500/10" @click="onDeleteProject">delete</button>
+        </div>
+      </div>
     </div>
 
     <div class="flex items-center gap-1.5">

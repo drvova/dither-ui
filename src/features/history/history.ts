@@ -70,6 +70,18 @@ export function redo() {
   restore(next)
 }
 
+/** Re-baseline on the current document and clear both stacks — used when a
+ * different project loads so undo can never bleed across projects. */
+export function resetHistory() {
+  clearTimeout(timer)
+  timer = undefined
+  undoStack.length = 0
+  redoStack.length = 0
+  last = snap()
+  muted = true // swallow the watcher echo from the project switch itself
+  sync()
+}
+
 /** Install after hydrate() so the restored document is the history baseline. */
 export function startHistory() {
   last = snap()
