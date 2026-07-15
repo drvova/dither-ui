@@ -50,6 +50,7 @@ function paintProgress(
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { useCanvasVisibility } from "./use-visibility"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion, pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
@@ -72,6 +73,8 @@ const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(pro
 
 const rootRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+// Pause the indeterminate loop while off-screen; syncLoop resumes it on re-entry.
+const isVisible = useCanvasVisibility(canvasRef, () => syncLoop())
 
 let raf = 0
 let cols = 0
@@ -104,6 +107,10 @@ function repaint() {
 }
 
 function tick() {
+  if (!isVisible()) {
+    raf = 0
+    return // off-screen: pause the loop
+  }
   const bandW = Math.max(2, Math.round(cols * 0.4))
   paint(Math.floor(performance.now() / 50) % (cols + bandW) - bandW)
   raf = requestAnimationFrame(tick)

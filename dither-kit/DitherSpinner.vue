@@ -142,6 +142,7 @@ function paintSpinner(
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { useCanvasVisibility } from "./use-visibility"
 
 const props = withDefaults(
   defineProps<{
@@ -158,6 +159,9 @@ const matrix = props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYE
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 let teardown: (() => void) | undefined
+let wake: (() => void) | undefined
+// Pause the spin loop while scrolled/panned off-screen; resume on re-entry.
+const isVisible = useCanvasVisibility(canvasRef, () => wake?.())
 
 function init(): (() => void) | undefined {
   const canvas = canvasRef.value
@@ -173,12 +177,20 @@ function init(): (() => void) | undefined {
 
   paintSpinner(ctx, cells, fill, 0, matrix, spin)
 
+  wake = undefined
   if (!pixelPrefersReducedMotion()) {
     const frame = (now: number) => {
+      if (!isVisible()) {
+        raf = 0
+        return // off-screen: pause the loop
+      }
       raf = requestAnimationFrame(frame)
       if (now - last < 33) return // ~30fps
       last = now
       paintSpinner(ctx, cells, fill, (now * spin.speed) % 1, matrix, spin)
+    }
+    wake = () => {
+      if (!raf) raf = requestAnimationFrame(frame)
     }
     raf = requestAnimationFrame(frame)
   }

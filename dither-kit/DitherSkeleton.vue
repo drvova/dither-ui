@@ -38,6 +38,7 @@ function paintSkeleton(
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
+import { useCanvasVisibility } from "./use-visibility"
 
 const props = defineProps<{ seed?: number; class?: string }>()
 const shimmer = props.seed !== undefined ? shimmerFromSeed(props.seed) : SHIMMER_DEFAULT
@@ -47,6 +48,9 @@ const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 let teardown: (() => void) | undefined
+let wake: (() => void) | undefined
+// Pause the shimmer loop while off-screen; resume on re-entry.
+const isVisible = useCanvasVisibility(canvasRef, () => wake?.())
 
 function init(): (() => void) | undefined {
   const wrap = wrapRef.value
@@ -73,11 +77,21 @@ function init(): (() => void) | undefined {
   resize()
 
   const tick = (now: number) => {
+    if (!isVisible()) {
+      raf = 0
+      return // off-screen: pause the loop
+    }
     phase = now * shimmer.rate
     draw()
     raf = requestAnimationFrame(tick)
   }
-  if (!reduce) raf = requestAnimationFrame(tick)
+  wake = undefined
+  if (!reduce) {
+    wake = () => {
+      if (!raf) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+  }
 
   const ro =
     typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null
