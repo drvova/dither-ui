@@ -1,7 +1,7 @@
 import { reactive } from "vue"
 import { type Artboard, normalizeArtboard } from "@/entities/artboard"
 import type { ChartModel } from "@/entities/chart"
-import { editor, selectArtboard } from "@/entities/editor"
+import { placeArtboard } from "@/entities/editor"
 
 const KEY = "dither-presets-v1"
 
@@ -52,11 +52,10 @@ const uid = () => `ab${Date.now().toString(36)}p${(counter++).toString(36)}`
 
 /** Add a new artboard seeded from a preset's chart. */
 export function addArtboardFromPreset(preset: Preset): void {
-  const right = editor.artboards.reduce((m, a) => Math.max(m, a.x + a.w), 0)
   const a: Artboard = {
     id: uid(),
     name: preset.name,
-    x: editor.artboards.length ? right + 80 : 0,
+    x: 0,
     y: 0,
     w: 520,
     h: 360,
@@ -66,6 +65,5 @@ export function addArtboardFromPreset(preset: Preset): void {
     chart: JSON.parse(JSON.stringify(preset.chart)) as ChartModel,
   }
   // Presets saved by an older schema get missing fields filled from defaults.
-  editor.artboards.push(normalizeArtboard(a))
-  selectArtboard(a.id)
+  placeArtboard(normalizeArtboard(a))
 }

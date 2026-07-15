@@ -39,6 +39,19 @@ const find = (id: string) => editor.artboards.find((a) => a.id === id)
 const membersOf = (groupId: string) =>
   editor.artboards.filter((a) => a.groupId === groupId)
 
+/** Place a new frame at the visible canvas center, not document origin/right edge. */
+export function placeArtboard(a: Artboard): Artboard {
+  const zoom = editor.viewport.zoom || 1
+  const width = typeof window === "undefined" ? 1280 : window.innerWidth
+  const height = typeof window === "undefined" ? 720 : window.innerHeight
+  const offset = (editor.artboards.length % 4) * 24
+  a.x = Math.round((width / 2 - editor.viewport.x) / zoom - a.w / 2 + offset)
+  a.y = Math.round((height / 2 - editor.viewport.y) / zoom - a.h / 2 + offset)
+  editor.artboards.push(a)
+  selectArtboard(a.id)
+  return a
+}
+
 // --- selection -------------------------------------------------------------
 export function selectArtboard(id: string, additive = false) {
   if (additive) {
@@ -95,34 +108,27 @@ const isSelected = (id: string) => editor.selectedIds.includes(id)
 
 // --- artboards -------------------------------------------------------------
 export function addArtboard(kind: ArtboardKind) {
-  const right = editor.artboards.reduce((m, a) => Math.max(m, a.x + a.w), 0)
-  const a = createArtboard(kind, editor.artboards.length ? right + 80 : 0, 0)
-  editor.artboards.push(a)
-  selectArtboard(a.id)
+  return placeArtboard(createArtboard(kind))
 }
 
 /** Add a composed-screen artboard (rows of registry components). */
 export function addScreenArtboard() {
-  const right = editor.artboards.reduce((m, a) => Math.max(m, a.x + a.w), 0)
-  const base = createArtboard("button", editor.artboards.length ? right + 80 : 0, 0)
+  const base = createArtboard("button")
   base.name = "Screen"
   base.w = 380
   base.h = 560
   base.widget = createScreen()
-  editor.artboards.push(base)
-  selectArtboard(base.id)
+  return placeArtboard(base)
 }
 
 /** Add a registry-driven kit component as an artboard. */
 export function addComponentArtboard(entry: ComponentEntry) {
-  const right = editor.artboards.reduce((m, a) => Math.max(m, a.x + a.w), 0)
-  const base = createArtboard("button", editor.artboards.length ? right + 80 : 0, 0)
+  const base = createArtboard("button")
   base.name = entry.label
   base.w = entry.frame.w
   base.h = entry.frame.h
   base.widget = createComponent(entry)
-  editor.artboards.push(base)
-  selectArtboard(base.id)
+  return placeArtboard(base)
 }
 export function duplicateSelected() {
   const copies = editor.selectedIds

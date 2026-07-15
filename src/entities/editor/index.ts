@@ -14,6 +14,7 @@ export {
   moveArtboard,
   moveSelected,
   pasteClipboard,
+  placeArtboard,
   removeArtboard,
   removeSelected,
   replay,
