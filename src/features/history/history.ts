@@ -1,4 +1,4 @@
-import { reactive, watch } from "vue"
+import { reactive, watch, type WatchHandle } from "vue"
 import { deselect, editor, selectArtboard } from "@/entities/editor"
 
 /** Snapshot-based undo/redo over the document (artboards + groups).
@@ -83,9 +83,11 @@ export function resetHistory() {
 }
 
 /** Install after hydrate() so the restored document is the history baseline. */
+let stopWatch: WatchHandle | undefined
 export function startHistory() {
+  stopWatch?.()
   last = snap()
-  watch(
+  stopWatch = watch(
     () => [editor.artboards, editor.groups],
     () => {
       if (muted) {
@@ -98,4 +100,12 @@ export function startHistory() {
     },
     { deep: true }
   )
+}
+
+export function stopHistory() {
+  stopWatch?.()
+  stopWatch = undefined
+  clearTimeout(timer)
+  timer = undefined
+  sync()
 }

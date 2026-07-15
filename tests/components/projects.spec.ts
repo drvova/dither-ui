@@ -40,6 +40,11 @@ describe("project workspace (sequential story)", () => {
     // legacy key consumed
     expect(localStorage.getItem("dither-studio-v8")).toBeNull()
   })
+  it("rehydrates without duplicating project metadata", () => {
+    hydrate()
+    expect(projects).toHaveLength(1)
+    expect(projects[0].name).toBe("My project")
+  })
 
   it("createProject starts a fresh isolated document", () => {
     const before = editor.artboards.map((a) => a.id)

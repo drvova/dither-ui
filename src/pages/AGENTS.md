@@ -13,10 +13,11 @@ widgets/features; page-specific conventions live here.
   visual. Additions must remove something or justify their presence.
 - Load choreography: `.reveal` stagger (0/90/180/300ms), disabled under
   `prefers-reduced-motion`.
-- Sprite crops (`public/faces.webp` band + `public/sprites.webp`) crops are MEASURED constants
-  (`FACES`, emote boxes, `FACE_Y/FACE_H`); if the sheet changes, re-measure
+- Sprite crops (`public/faces.webp` band + `public/sprites.webp`) use MEASURED constants
+  (`FACES`, emote boxes, `FACE_Y/FACE_H`); if a sheet changes, re-measure
   programmatically in the browser (density-scan pattern) — never eyeball.
-- Sheet background chroma-key: rgb(5,5,7), threshold 48.
+- `public/faces.webp` has transparency baked in; do not reintroduce runtime
+  `getImageData` chroma-keying on the landing.
 - Emote hover reactions are CSS-only (`.emote` + `.group:hover`); no JS timers
   on the landing.
 - Footer signature: cropped giant wordmark at `text-foreground/[0.045]`.

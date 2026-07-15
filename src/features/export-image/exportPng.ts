@@ -1,4 +1,3 @@
-import { toPng } from "html-to-image"
 import type { Artboard } from "@/entities/artboard"
 
 /**
@@ -15,6 +14,7 @@ export async function exportArtboardPng(
   )
   if (!node) return false
   try {
+    const { toPng } = await import("html-to-image")
     const url = await toPng(node, {
       pixelRatio: scale,
       width: artboard.w,

@@ -1,4 +1,4 @@
-import { reactive, watch } from "vue"
+import { reactive, watch, type WatchHandle } from "vue"
 import { createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { editor, selectArtboard } from "@/entities/editor"
 import { resetHistory } from "@/features/history"
@@ -126,7 +126,7 @@ export function flushSave(): void {
 /** Restore the workspace (run in setup, before first paint). */
 export function hydrate(): void {
   const index = readJson<ProjectMeta[]>(INDEX_KEY)
-  if (Array.isArray(index)) projects.push(...index)
+  if (Array.isArray(index)) projects.splice(0, projects.length, ...index)
 
   // Migrate the legacy single-document world into the first project.
   if (!projects.length) {
@@ -144,8 +144,7 @@ export function hydrate(): void {
   const active = projects.find((p) => p.id === requested) ?? projects[0]
   activeProjectId.value = active.id
   localStorage.setItem(ACTIVE_KEY, active.id)
-  const doc = readJson<Doc>(DOC_PREFIX + active.id)
-  if (doc) applyDoc(doc)
+  applyDoc(readJson<Doc>(DOC_PREFIX + active.id))
 }
 
 export function createProject(name: string): void {
@@ -227,8 +226,10 @@ export async function importDocument(file: File): Promise<boolean> {
   }
 }
 
+let stopWatch: WatchHandle | undefined
 export function startAutosave(): void {
-  watch(
+  stopWatch?.()
+  stopWatch = watch(
     () => [editor.artboards, editor.groups, editor.viewport],
     () => {
       clearTimeout(timer)
@@ -236,5 +237,11 @@ export function startAutosave(): void {
     },
     { deep: true }
   )
+}
+
+export function stopAutosave(): void {
+  stopWatch?.()
+  stopWatch = undefined
+  if (timer) flushSave()
 }
 

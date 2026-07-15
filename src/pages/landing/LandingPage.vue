@@ -36,33 +36,11 @@ const FACES = [
 const faceEls = ref<HTMLCanvasElement[]>([])
 const emoteEls = ref<HTMLCanvasElement[]>([])
 
-/** Blit a sheet crop into a canvas at native size with the background keyed. */
 function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
   const dpr = Math.min(window.devicePixelRatio || 1, 3)
-  // Key the background out at native size so the tolerance test sees the exact
-  // source pixels (smoothing first would fringe the key).
-  const off = document.createElement("canvas")
-  off.width = w
-  off.height = h
-  const og = off.getContext("2d", { willReadFrequently: true })
-  if (!og) return
-  og.drawImage(img, x, y, w, h, 0, 0, w, h)
-  const px = og.getImageData(0, 0, w, h)
-  const d = px.data
-  for (let i = 0; i < d.length; i += 4) {
-    if (Math.abs(d[i] - 5) + Math.abs(d[i + 1] - 5) + Math.abs(d[i + 2] - 7) < 48)
-      d[i + 3] = 0
-  }
-  og.putImageData(px, 0, 0)
-  // Render the display canvas at device resolution and upscale the keyed portrait
-  // into it — stays sharp on hi-DPI / 4K instead of a blocky nearest-neighbour.
-  const g = c.getContext("2d")
-  if (!g) return
   c.width = Math.round(w * dpr)
   c.height = Math.round(h * dpr)
-  g.imageSmoothingEnabled = true
-  g.imageSmoothingQuality = "high"
-  g.drawImage(off, 0, 0, c.width, c.height)
+  c.getContext("2d")?.drawImage(img, x, y, w, h, 0, 0, c.width, c.height)
 }
 
 onMounted(() => {
@@ -99,7 +77,7 @@ onMounted(() => {
 
     <!-- Hero: one statement, one action, one visual. -->
     <main class="relative isolate flex flex-1 flex-col overflow-hidden">
-      <DitherGradient from="blue" direction="up" :opacity="0.14" :cell="4" class="-z-10" />
+      <DitherGradient from="blue" direction="up" :opacity="0.14" :cell="8" class="-z-10" />
       <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 pb-14 sm:pt-32">
         <h1
           class="reveal max-w-xl text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.15] tracking-tight text-balance"
@@ -169,7 +147,7 @@ onMounted(() => {
         <div class="mt-12 grid gap-x-12 gap-y-14 sm:grid-cols-3">
           <a href="#/docs" class="group block">
             <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <AreaChart :data="teaser" :config="teaserConfig" :interactive="false" :margins="{ top: 4, right: 0, bottom: 0, left: 0 }">
+              <AreaChart :data="teaser" :config="teaserConfig" :animate="false" :sparkles="false" :interactive="false" :margins="{ top: 4, right: 0, bottom: 0, left: 0 }">
                 <Area data-key="v" variant="gradient" />
               </AreaChart>
             </div>
@@ -182,7 +160,7 @@ onMounted(() => {
             <div inert class="flex h-24 flex-wrap content-center gap-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
               <DitherButton color="blue" variant="gradient">Save</DitherButton>
               <DitherButton color="green" variant="solid">Run</DitherButton>
-              <DitherAvatar v-for="n in ['ada', 'grace']" :key="n" :name="n" :size="32" />
+              <DitherAvatar v-for="n in ['ada', 'grace']" :key="n" :name="n" :size="32" :animate="false" />
             </div>
             <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Primitives</h3>
             <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">

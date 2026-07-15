@@ -68,6 +68,9 @@ This folder is the product; the `src/` app is its showcase and editor.
 - Respect `prefers-reduced-motion` inside the kit (see
   `pixelPrefersReducedMotion` / `prefersReducedMotion`) — consumers must not
   need to opt in.
+- Canvas visibility defaults to paused until IntersectionObserver reports the
+  element visible; do not start chart animation loops optimistically before the
+  first visibility observation.
 - Chart composition: root provides context (`cartesian-root` / `polar-root`),
   children register series via contexts. Props are declared with explicit
   runtime defaults — keep API tables in `src/pages/docs` in sync when defaults

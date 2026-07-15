@@ -108,6 +108,7 @@ const bloomRef = ref<HTMLCanvasElement | null>(null)
 const bloomStyle = computed(() => pixelBloomStyle(effBloom.value))
 
 let ro: ResizeObserver | null = null
+let timer = 0
 function paint() {
   const wrap = wrapRef.value
   const canvas = canvasRef.value
@@ -123,14 +124,19 @@ function paint() {
 }
 
 onMounted(() => {
-  paint()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(paint)
-    if (wrapRef.value) ro.observe(wrapRef.value)
-  }
+  timer = window.setTimeout(() => {
+    paint()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(paint)
+      if (wrapRef.value) ro.observe(wrapRef.value)
+    }
+  })
 })
 watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom, matrix], paint)
-onBeforeUnmount(() => ro?.disconnect())
+onBeforeUnmount(() => {
+  clearTimeout(timer)
+  ro?.disconnect()
+})
 </script>
 
 <template>

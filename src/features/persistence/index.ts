@@ -11,5 +11,6 @@ export {
   projects,
   renameProject,
   startAutosave,
+  stopAutosave,
   switchProject,
 } from "./persist"

@@ -34,6 +34,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the deep watcher records them; never mutate artboards from a component.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.
+- Studio lifecycle watchers are singletons while the route is mounted:
+  `startAutosave`/`startHistory` replace prior handles and StudioPage stops them
+  on unmount. Route revisits must not accumulate deep watchers.
 - A11y floor: icon-only buttons carry `aria-label` (+ `aria-pressed` for
   toggles); dialogs use `role="dialog" aria-modal`, close on Escape, focus on
   open; global `:focus-visible` ring is in `app/styles.css` — do not suppress.

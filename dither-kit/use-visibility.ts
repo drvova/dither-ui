@@ -11,7 +11,7 @@ export function useCanvasVisibility(
   el: Ref<HTMLElement | null>,
   onWake?: () => void
 ): () => boolean {
-  const visible = ref(true)
+  const visible = ref(typeof IntersectionObserver === "undefined")
   let io: IntersectionObserver | null = null
   onMounted(() => {
     if (typeof IntersectionObserver === "undefined" || !el.value) return

@@ -346,7 +346,7 @@ function startCartesianLoop({
     }
   }
 
-  raf = requestAnimationFrame(draw)
+  if (visible()) raf = requestAnimationFrame(draw)
   return {
     stop: () => cancelAnimationFrame(raf),
     wake: () => {

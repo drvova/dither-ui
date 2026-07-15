@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from "vue"
+import { defineAsyncComponent, onBeforeUnmount, ref } from "vue"
 import { addArtboard } from "@/entities/editor"
-import { ExportDialog } from "@/features/export-code"
-import { startHistory } from "@/features/history"
+import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp } from "@/features/keyboard"
-import { hydrate, startAutosave } from "@/features/persistence"
+import { hydrate, startAutosave, stopAutosave } from "@/features/persistence"
 import { Canvas } from "@/widgets/canvas"
 import { DataEditor } from "@/widgets/data-editor"
 import { Inspector } from "@/widgets/inspector"
@@ -12,6 +11,9 @@ import { LayerTree } from "@/widgets/layer-tree"
 import { Toolbar } from "@/widgets/toolbar"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 
+const ExportDialog = defineAsyncComponent(() =>
+  import("@/features/export-code").then((m) => m.ExportDialog)
+)
 const exportOpen = ref(false)
 
 hydrate()
@@ -33,7 +35,11 @@ if (wanted && (CHART_TYPES as readonly string[]).includes(wanted)) {
 const isDesktop = ref(window.innerWidth >= 1024)
 const onResize = () => (isDesktop.value = window.innerWidth >= 1024)
 window.addEventListener("resize", onResize)
-onBeforeUnmount(() => window.removeEventListener("resize", onResize))
+onBeforeUnmount(() => {
+  stopAutosave()
+  stopHistory()
+  window.removeEventListener("resize", onResize)
+})
 </script>
 
 <template>
@@ -63,7 +69,7 @@ onBeforeUnmount(() => window.removeEventListener("resize", onResize))
       </aside>
     </div>
 
-    <ExportDialog :open="exportOpen" @close="exportOpen = false" />
+    <ExportDialog v-if="exportOpen" :open="exportOpen" @close="exportOpen = false" />
     <ShortcutsHelp />
   </div>
 
