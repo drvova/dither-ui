@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { onBeforeUnmount, ref } from "vue"
 import { addArtboard } from "@/entities/editor"
 import { ExportDialog } from "@/features/export-code"
 import { startHistory } from "@/features/history"
@@ -26,10 +26,18 @@ if (wanted && (CHART_TYPES as readonly string[]).includes(wanted)) {
   addArtboard(wanted as ChartType)
   history.replaceState(null, "", "#/studio")
 }
+
+// The studio is a wide-screen, pointer + keyboard tool (layer rail, inspector,
+// shortcuts). Below lg we show a hint instead of a cramped, broken layout — and
+// skip mounting the heavy canvas widgets entirely.
+const isDesktop = ref(window.innerWidth >= 1024)
+const onResize = () => (isDesktop.value = window.innerWidth >= 1024)
+window.addEventListener("resize", onResize)
+onBeforeUnmount(() => window.removeEventListener("resize", onResize))
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden bg-background text-[13px] text-foreground antialiased">
+  <div v-if="isDesktop" class="flex h-screen flex-col overflow-hidden bg-background text-[13px] text-foreground antialiased">
     <Toolbar @export="exportOpen = true" />
 
     <div class="flex min-h-0 flex-1">
@@ -57,5 +65,23 @@ if (wanted && (CHART_TYPES as readonly string[]).includes(wanted)) {
 
     <ExportDialog :open="exportOpen" @close="exportOpen = false" />
     <ShortcutsHelp />
+  </div>
+
+  <!-- Small screens: the editor needs a desktop, so guide instead of breaking. -->
+  <div
+    v-else
+    class="flex h-screen flex-col items-center justify-center gap-5 bg-background px-8 text-center font-mono text-foreground antialiased"
+  >
+    <div class="text-[11px] uppercase tracking-[0.3em] text-muted-foreground/60">studio</div>
+    <h1 class="text-xl tracking-tight">Best on a desktop</h1>
+    <p class="max-w-xs text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
+      The studio is a Figma-style editor — layer rail, inspector and keyboard
+      shortcuts, built for a wide screen and a pointer. Open it on a laptop or
+      desktop to design with the kit.
+    </p>
+    <div class="mt-2 flex items-center gap-5 text-[12px] text-muted-foreground">
+      <a href="#/docs" class="transition-colors hover:text-foreground">browse the docs →</a>
+      <a href="#/" class="transition-colors hover:text-foreground">home</a>
+    </div>
   </div>
 </template>
