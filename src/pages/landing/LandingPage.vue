@@ -38,7 +38,7 @@ const emoteEls = ref<HTMLCanvasElement[]>([])
 
 /** Blit a sheet crop into a canvas at native size with the background keyed. */
 function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-  const g = c.getContext("2d")
+  const g = c.getContext("2d", { willReadFrequently: true })
   if (!g) return
   c.width = w
   c.height = h
@@ -130,14 +130,20 @@ onMounted(() => {
         class="reveal flex flex-wrap justify-center gap-7 pb-16"
         style="--reveal-delay: 300ms"
       >
-        <div v-for="(_, i) in FACES" :key="i" class="group relative pt-10">
+        <div v-for="(f, i) in FACES" :key="i" class="group relative pt-10">
+          <!-- width + height reserved up front so the portraits don't reflow when
+               the sheet paints (kills the layout shift) -->
           <canvas
             :ref="(el) => { if (el) faceEls[i] = el as HTMLCanvasElement }"
+            :width="f.w"
+            :height="FACE_H"
             class="h-[126px]"
             style="image-rendering: pixelated"
           />
           <canvas
             :ref="(el) => { if (el) emoteEls[i] = el as HTMLCanvasElement }"
+            :width="f.emote.w"
+            :height="f.emote.h"
             class="emote absolute top-0 left-1/2"
             style="image-rendering: pixelated"
           />

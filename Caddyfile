@@ -1,0 +1,24 @@
+# Static serving with explicit cache lifetimes — fixes Lighthouse's
+# "Use efficient cache lifetimes". Vite fingerprints /assets/* filenames, so
+# they are safe to cache forever; index.html must always revalidate so a new
+# deploy is seen immediately.
+:{$PORT:8080} {
+	root * /srv
+	encode zstd gzip
+
+	# Fingerprinted build output — immutable, cache for a year.
+	@immutable path /assets/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	# Static media & meta — long cache, still revalidated.
+	@static path *.webp *.png *.jpg *.svg *.ico *.woff2 *.txt *.xml
+	header @static Cache-Control "public, max-age=2592000"
+
+	# Entry HTML — never cache, so updates roll out instantly.
+	@html path / *.html
+	header @html Cache-Control "no-cache"
+
+	# Hash-routed SPA: any unknown path resolves to the shell.
+	try_files {path} /index.html
+	file_server
+}
