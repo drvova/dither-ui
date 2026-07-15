@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onBeforeUnmount, ref, watchEffect } from "vue"
 import { LandingPage } from "@/pages/landing"
+import PageLoader from "./PageLoader.vue"
 
 // Landing paints immediately — it is the entry and the shared link target.
 // Docs (200+ canvas demos) and Studio (a Figma-style editor) are heavy, so they
-// load on demand as their own chunks; the initial bundle stays small, which is
-// what makes the first paint fast on mobile.
-const DocsPage = defineAsyncComponent(() => import("@/pages/docs").then((m) => m.DocsPage))
-const StudioPage = defineAsyncComponent(() => import("@/pages/studio").then((m) => m.StudioPage))
+// load on demand as their own chunks. While a chunk downloads we show a spinner
+// (after a 150ms delay, so cached/instant loads never flash one) instead of a
+// blank freeze during navigation.
+const DocsPage = defineAsyncComponent({
+  loader: () => import("@/pages/docs").then((m) => m.DocsPage),
+  loadingComponent: PageLoader,
+  delay: 150,
+})
+const StudioPage = defineAsyncComponent({
+  loader: () => import("@/pages/studio").then((m) => m.StudioPage),
+  loadingComponent: PageLoader,
+  delay: 150,
+})
 
 // ponytail: hash routing over three routes; vue-router when params appear
 const hash = ref(window.location.hash)
