@@ -72,6 +72,13 @@ onMounted(() => {
       <span class="tracking-tight">dither-ui</span>
       <nav class="flex items-center gap-5 text-muted-foreground">
         <a href="#/docs" class="-m-3 p-3 transition-colors hover:text-foreground">docs</a>
+        <a
+          href="https://github.com/drvova/dither-ui"
+          target="_blank"
+          rel="noreferrer"
+          class="-m-3 p-3 transition-colors hover:text-foreground"
+          >github</a
+        >
         <a href="#/studio" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
       </nav>
     </header>
@@ -184,7 +191,16 @@ onMounted(() => {
     <footer class="overflow-hidden border-t border-border/60">
       <div class="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-[11px] text-muted-foreground">
         <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
-        <span class="tabular-nums">v{{ version }} · MIT</span>
+        <div class="flex items-center gap-4">
+          <a
+            href="https://github.com/drvova/dither-ui"
+            target="_blank"
+            rel="noreferrer"
+            class="transition-colors hover:text-foreground"
+            >GitHub</a
+          >
+          <span class="tabular-nums">v{{ version }} · MIT</span>
+        </div>
       </div>
       <div
         aria-hidden="true"

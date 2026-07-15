@@ -419,8 +419,17 @@ const effectData = MONTHS.map((month, i) => ({
 const effectConfig = { v: { label: "signal", color: "blue" as DitherColor } }
 
 const SNIPPETS = {
-  install: `// Copy the dither-kit/ folder into your project, then alias it:
-// vite.config.ts  →  "@dither-kit": "./dither-kit"
+  install: `# 1 — copy the kit folder straight from the repo (degit grabs just the folder)
+npx degit drvova/dither-ui/dither-kit src/dither-kit
+
+# 2 — install the four runtime deps (Vue & Tailwind you already have)
+npm i d3-scale d3-shape clsx tailwind-merge
+
+# 3 — alias @dither-kit so imports stay clean
+#     vite.config.ts → resolve.alias: { "@dither-kit": "/src/dither-kit" }
+#     tsconfig.json  → paths:        { "@dither-kit": ["./src/dither-kit"] }
+
+# 4 — use it
 import { AreaChart, Area, DitherButton } from "@dither-kit"`,
   seeds: `<!-- one integer is a complete visual personality: -->
 <AreaChart :data="rows" :config="config" :seed="1984">
@@ -650,6 +659,13 @@ const gradientCode = computed(
           <span class="hidden text-muted-foreground sm:inline">docs</span>
         </div>
         <nav class="flex items-center gap-5 text-muted-foreground">
+          <a
+            href="https://github.com/drvova/dither-ui"
+            target="_blank"
+            rel="noreferrer"
+            class="-m-3 p-3 transition-colors hover:text-foreground"
+            >github</a
+          >
           <a href="#/studio" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
         </nav>
       </div>
@@ -694,15 +710,32 @@ const gradientCode = computed(
             </a>
           </nav>
 
-          <!-- Installation -->
+          <!-- Quick start -->
           <section id="getting-started" class="mt-16 scroll-mt-24">
-            <h2 class="text-lg tracking-tight">Installation</h2>
+            <h2 class="text-lg tracking-tight">Quick start</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              The kit is a folder, not a package — copy
-              <code class="text-foreground/80">dither-kit/</code> in and alias it.
-              Vue 3, Tailwind, d3-scale and d3-shape are the only dependencies.
+              The kit is a folder, not a package. Copy
+              <code class="text-foreground/80">dither-kit/</code> straight from the
+              <a
+                href="https://github.com/drvova/dither-ui"
+                target="_blank"
+                rel="noreferrer"
+                class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
+                >GitHub repo</a
+              >, install four small runtime deps, and alias it — Vue 3 and Tailwind
+              you already have.
             </p>
             <div class="mt-5"><CodeBlock :code="SNIPPETS.install" /></div>
+            <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
+              Prefer to read the source first? Every component lives under
+              <a
+                href="https://github.com/drvova/dither-ui/tree/master/dither-kit"
+                target="_blank"
+                rel="noreferrer"
+                class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
+                >dither-kit/</a
+              > — no build step, no black box.
+            </p>
           </section>
 
           <!-- Styling -->
