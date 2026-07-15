@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { ref } from "vue"
 import {
   DitherBadge,
+  DitherButton,
   DitherSeparator,
   DitherSkeleton,
   DitherSpinner,
@@ -32,15 +34,17 @@ const SNIPPET_SKELETON = `<div class="rounded-lg border p-5">
   <DitherSkeleton class="mt-4 h-24 w-full rounded" />
 </div>`
 
-const SNIPPET_SPINNER = `<DitherSpinner :size="16" />
+// Each seed is a different spinner FORM — arc, dots, petals, thin comet.
+const spinnerSeeds = ref([3, 17, 42, 128, 777, 2024])
+const rerollSpinners = () => {
+  spinnerSeeds.value = spinnerSeeds.value.map(() => Math.floor(Math.random() * 100000))
+}
+const SNIPPET_SPINNER = `<!-- default: a clean rotating arc -->
 <DitherSpinner :size="20" />
-<DitherSpinner :size="28" />
-<span class="text-muted-foreground">loading…</span>
 
-<!-- any palette color -->
-<DitherSpinner color="green" />
-<DitherSpinner color="orange" />`
-
+<!-- a seed picks the FORM — arc, ring of dots, rotating petals, thin comet -->
+<DitherSpinner :seed="42" :size="28" />
+<DitherSpinner :seed="777" color="green" />`
 const SNIPPET_SEPARATOR = `<p>Charts render on canvas.</p>
 <DitherSeparator class="my-4" />
 <p>Fills threshold the same Bayer matrix.</p>
@@ -64,8 +68,9 @@ const API: Record<string, PropRow[]> = {
   ],
   skeleton: [{ prop: "class", type: "string", default: "—" }],
   spinner: [
-    { prop: "size", type: "number", default: "20" },
+    { prop: "size", type: "number (px)", default: "20" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
+    { prop: "seed", type: "number — samples a spinner form", default: "clean arc" },
   ],
   separator: [
     {
@@ -131,20 +136,24 @@ const API: Record<string, PropRow[]> = {
   <section id="spinner" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Spinner</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A rotating dithered arc — 270° of a ring dissolving toward its tail,
-      repainted at 30fps. Static under reduced motion.
+      A rotating dithered ring, repainted at 30fps. It's not one shape — a seed
+      samples a continuous form space (sweep, segments, petals, thickness), so
+      every seed is a different spinner: an arc, a ring of dots, a turning
+      flower, a thin comet. Static under reduced motion.
     </p>
     <DemoCard :code="SNIPPET_SPINNER">
-      <div class="grid gap-5">
+      <div class="grid gap-6">
         <div class="flex items-center justify-center gap-6">
           <DitherSpinner :size="16" />
           <DitherSpinner :size="20" />
           <DitherSpinner :size="28" />
-          <span class="text-[11px] text-muted-foreground">loading…</span>
+          <span class="text-[11px] text-muted-foreground">default arc</span>
         </div>
-        <div class="flex items-center justify-center gap-6">
-          <DitherSpinner color="green" />
-          <DitherSpinner color="orange" />
+        <div class="flex flex-wrap items-center justify-center gap-6">
+          <DitherSpinner v-for="(sd, i) in spinnerSeeds" :key="i" :seed="sd" :size="32" :color="(['blue','green','purple','orange','pink','red'] as const)[i % 6]" />
+        </div>
+        <div class="flex justify-center">
+          <DitherButton color="blue" variant="gradient" @click="rerollSpinners">Roll new spinners</DitherButton>
         </div>
       </div>
     </DemoCard>

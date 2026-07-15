@@ -49,6 +49,11 @@ This folder is the product; the `src/` app is its showcase and editor.
   polar) with precedence: explicit prop > seed derivation > house default. All
   seed fns live in `dither-paint.ts` (mulberry32, params clamped to usable
   bands) — extend seeds there, never in per-component paint loops.
+- `DitherSpinner` is generative like the charts: `spinnerFromSeed` samples a
+  continuous form space (speed, dir, arc, segments, spokes, innerRatio, taper)
+  — one seed → an arc, a ring of dots, a rotating flower, or a thin comet.
+  ONE render loop draws any point; add spinner variety by widening the params,
+  never by branching. Default (no seed) is a clean rotating arc.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
