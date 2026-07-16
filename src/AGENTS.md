@@ -43,6 +43,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   origin, or right-edge spawn logic.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.
+- Pointer transforms use `features/artboard-transform/startDrag`; it filters by
+  pointer id and owns pointer-up/cancel/unmount cleanup. Artboard surfaces drag
+  only from non-interactive regions so live controls retain pointer ownership.
+- Move, nudge, duplicate, delete, lock, and group commands act on the complete
+  selection; locked members remain stationary.
 - Studio lifecycle watchers are singletons while the route is mounted:
   `startAutosave`/`startHistory` replace prior handles and StudioPage stops them
   on unmount. Route revisits must not accumulate deep watchers.

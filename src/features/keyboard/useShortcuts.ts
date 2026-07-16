@@ -5,7 +5,7 @@ import {
   duplicateSelected,
   editor,
   groupSelected,
-  moveArtboard,
+  moveSelected,
   pasteClipboard,
   removeSelected,
   selectedArtboard,
@@ -87,10 +87,10 @@ export function useShortcuts(zoom: ZoomControls) {
     if (hasSel && e.key.startsWith("Arrow")) {
       e.preventDefault()
       const s = e.shiftKey ? 10 : 1
-      if (e.key === "ArrowLeft") moveArtboard(id, -s, 0)
-      else if (e.key === "ArrowRight") moveArtboard(id, s, 0)
-      else if (e.key === "ArrowUp") moveArtboard(id, 0, -s)
-      else if (e.key === "ArrowDown") moveArtboard(id, 0, s)
+      if (e.key === "ArrowLeft") moveSelected(-s, 0)
+      else if (e.key === "ArrowRight") moveSelected(s, 0)
+      else if (e.key === "ArrowUp") moveSelected(0, -s)
+      else if (e.key === "ArrowDown") moveSelected(0, s)
     }
   }
 

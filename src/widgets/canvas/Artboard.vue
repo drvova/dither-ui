@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, onBeforeUnmount, ref } from "vue"
 import type { Artboard } from "@/entities/artboard"
 import { editor, selectArtboard } from "@/entities/editor"
 import { startDrag } from "@/features/artboard-transform"
@@ -10,15 +10,23 @@ const props = defineProps<{ artboard: Artboard }>()
 const selected = computed(() => editor.selectedIds.includes(props.artboard.id))
 // Live position/size readout while dragging or resizing.
 const interacting = ref(false)
+let stopDrag: (() => void) | undefined
+onBeforeUnmount(() => stopDrag?.())
 
 const additive = (e: PointerEvent) => e.metaKey || e.ctrlKey || e.shiftKey
+const interactive = (target: EventTarget | null) =>
+  target instanceof Element && !!target.closest("button, a, input, textarea, select, [contenteditable], [role='button'], [role='link'], [data-canvas-interactive]")
 
-function onSelect(e: PointerEvent) {
-  selectArtboard(props.artboard.id, additive(e))
+function onSurfaceDown(e: PointerEvent) {
+  if (e.button !== 0) return
+  if (additive(e)) return selectArtboard(props.artboard.id, true)
+  if (!selected.value) selectArtboard(props.artboard.id)
+  if (e.target instanceof Element && e.target.closest("[data-artboard-surface]") === e.target && !interactive(e.target)) onMoveDown(e)
 }
 /** Drag with edge/center snapping against the other artboards. Moves the
  * whole selection; guides render in the canvas while a snap is active. */
-function onHeaderDown(e: PointerEvent) {
+function onMoveDown(e: PointerEvent) {
+  if (e.button !== 0) return
   if (!selected.value) selectArtboard(props.artboard.id, additive(e))
   if (props.artboard.locked) return
   const moving = editor.artboards.filter(
@@ -33,7 +41,8 @@ function onHeaderDown(e: PointerEvent) {
   let accX = 0
   let accY = 0
   interacting.value = true
-  startDrag(
+  stopDrag?.()
+  stopDrag = startDrag(
     e,
     (dx, dy) => {
       accX += dx
@@ -81,6 +90,7 @@ function onHeaderDown(e: PointerEvent) {
       editor.guides.v = null
       editor.guides.h = null
       interacting.value = false
+      stopDrag = undefined
     }
   )
 }
@@ -109,7 +119,8 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
   let ax = 0
   let ay = 0
   interacting.value = true
-  startDrag(e, (dx, dy, ev) => {
+  stopDrag?.()
+  stopDrag = startDrag(e, (dx, dy, ev) => {
     ax += dx
     ay += dy
     let w = start.w
@@ -133,6 +144,7 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
     a.y = dir.includes("n") ? start.y + (start.h - h) : start.y
   }, () => {
     interacting.value = false
+    stopDrag = undefined
   })
 }
 </script>
@@ -147,12 +159,12 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
       width: `${artboard.w}px`,
       height: `${artboard.h}px`,
     }"
-    @pointerdown.stop="onSelect"
+    @pointerdown.stop="onSurfaceDown"
   >
     <div
       class="absolute -top-6 left-0 flex max-w-full select-none items-center gap-1.5 truncate text-[11px]"
       :class="[selected ? 'text-accent' : 'text-muted-foreground', artboard.locked ? 'cursor-default' : 'cursor-move']"
-      @pointerdown.stop="onHeaderDown"
+      @pointerdown.stop="onMoveDown"
     >
       <svg v-if="artboard.locked" viewBox="0 0 24 24" class="size-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
       <span class="truncate">{{ artboard.name }}</span>
@@ -166,7 +178,7 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
       :class="selected ? 'ring-2 ring-accent' : 'border border-border'"
     >
       <WidgetRenderer v-if="artboard.widget" :widget="artboard.widget" :artboard-id="artboard.id" />
-      <ChartRenderer v-else :chart="artboard.chart" />
+      <div v-else data-canvas-interactive class="h-full"><ChartRenderer :chart="artboard.chart" /></div>
     </div>
 
     <template v-if="selected && !artboard.locked">
