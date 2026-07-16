@@ -201,6 +201,14 @@ Palette colors: `green` `blue` `purple` `pink` `orange` `red` `grey`.
 - The tooltip's `motion` spring → Vue `<Transition>` + a CSS glide (no extra dep).
 - Tailwind v4 with shadcn-style tokens (`--foreground`, `--card`, …) in `src/styles.css`.
 
+## Creator
+
+- [Vova](https://github.com/drvova)
+
+## Contributors
+
+- [Vibhek Soni](https://github.com/vibheksoni)
+
 ## Credits
 
 Dithering approach and the original **Dither Kit** charts by
