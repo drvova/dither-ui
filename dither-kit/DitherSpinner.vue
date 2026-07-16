@@ -147,7 +147,7 @@ function paintSpinner(
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useCanvasVisibility } from "./use-visibility"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "./precompile"
 
@@ -162,14 +162,15 @@ const props = withDefaults(
   { size: 20, color: "blue" }
 )
 
-const spin = props.seed !== undefined ? spinnerFromSeed(props.seed) : SPINNER_DEFAULT
-const matrix = props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4
+const spin = computed(() => (props.seed !== undefined ? spinnerFromSeed(props.seed) : SPINNER_DEFAULT))
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 let teardown: (() => void) | undefined
 let wake: (() => void) | undefined
+let restartToken = 0
 // Pause the spin loop while scrolled/panned off-screen; resume on re-entry.
 const isVisible = useCanvasVisibility(canvasRef, () => wake?.())
 
@@ -185,23 +186,25 @@ function init(): (() => void) | undefined {
 
   let raf = 0
   let last = 0
-  const buffer = createRasterBuffer(cells, cells)
+  let buffer = createRasterBuffer(cells, cells)
+  let imageData: ImageData | undefined
 
-  paintSpinner(buffer, cells, fill, 0, matrix, spin)
-  putRasterBuffer(ctx, buffer)
+  paintSpinner(buffer, cells, fill, 0, matrix.value, spin.value)
+  imageData = putRasterBuffer(ctx, buffer, imageData)
 
   wake = undefined
   if (props.renderMode !== "static" && !pixelPrefersReducedMotion()) {
     const frame = (now: number) => {
-      if (!isVisible()) {
-        raf = 0
-        return // off-screen: pause the loop
+      raf = 0
+      if (!isVisible()) return // off-screen: pause the loop
+      if (now - last < 33) {
+        raf = requestAnimationFrame(frame)
+        return
       }
-      raf = requestAnimationFrame(frame)
-      if (now - last < 33) return // ~30fps
       last = now
-      paintSpinner(buffer, cells, fill, (now * spin.speed) % 1, matrix, spin)
-      putRasterBuffer(ctx, buffer)
+      paintSpinner(buffer, cells, fill, (now * spin.value.speed) % 1, matrix.value, spin.value)
+      imageData = putRasterBuffer(ctx, buffer, imageData)
+      raf = requestAnimationFrame(frame)
     }
     wake = () => {
       if (!raf) raf = requestAnimationFrame(frame)
@@ -214,17 +217,27 @@ function init(): (() => void) | undefined {
   }
 }
 
-onMounted(() => {
-  teardown = init()
-})
-watch(
-  () => [props.size, props.color, props.renderMode, precompiled.value],
-  () => {
-    teardown?.()
+function restartRuntime() {
+  const token = ++restartToken
+  teardown?.()
+  teardown = undefined
+  if (precompiled.value) return
+  void nextTick(() => {
+    if (token !== restartToken || precompiled.value) return
     teardown = init()
-  }
+  })
+}
+
+onMounted(restartRuntime)
+watch(
+  () => [props.size, props.color, props.seed, props.renderMode, precompiled.value],
+  restartRuntime,
+  { flush: "post" }
 )
-onBeforeUnmount(() => teardown?.())
+onBeforeUnmount(() => {
+  restartToken += 1
+  teardown?.()
+})
 </script>
 
 <template>

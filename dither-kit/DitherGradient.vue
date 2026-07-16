@@ -13,7 +13,7 @@ export type { DitherRenderMode, GradientDirection, PrecompiledDither }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
@@ -48,6 +48,7 @@ const bloomStyle = computed(() => pixelBloomStyle(effBloom.value))
 
 let ro: ResizeObserver | null = null
 let timer = 0
+let restartToken = 0
 function paint() {
   const wrap = wrapRef.value
   const canvas = canvasRef.value
@@ -76,20 +77,35 @@ function paint() {
   }
 }
 
-onMounted(() => {
-  if (precompiled.value) return
-  timer = window.setTimeout(() => {
-    paint()
-    if (props.renderMode !== "static" && typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(paint)
-      if (wrapRef.value) ro.observe(wrapRef.value)
-    }
-  })
-})
-watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom, precompiled], paint)
-onBeforeUnmount(() => {
+function stopRuntime() {
   clearTimeout(timer)
+  timer = 0
   ro?.disconnect()
+  ro = null
+}
+
+function startRuntime() {
+  const token = ++restartToken
+  stopRuntime()
+  if (precompiled.value) return
+  void nextTick(() => {
+    if (token !== restartToken || precompiled.value) return
+    timer = window.setTimeout(() => {
+      paint()
+      if (props.renderMode !== "static" && typeof ResizeObserver !== "undefined") {
+        ro = new ResizeObserver(paint)
+        if (wrapRef.value) ro.observe(wrapRef.value)
+      }
+    })
+  })
+}
+
+onMounted(startRuntime)
+watch(() => [precompiled.value, props.renderMode], startRuntime, { flush: "post" })
+watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom], paint, { flush: "post" })
+onBeforeUnmount(() => {
+  restartToken += 1
+  stopRuntime()
 })
 </script>
 

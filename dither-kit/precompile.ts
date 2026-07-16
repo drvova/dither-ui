@@ -1,6 +1,6 @@
 import { fillOf, pixelMatrixFromSeed, BAYER4, type PixelColor } from "./pixel"
 import type { RasterBuffer } from "./raster"
-import { blendRasterPixel, createRasterBuffer } from "./raster"
+import { blendRasterPixel, clearRasterBuffer, createRasterBuffer } from "./raster"
 
 export type DitherRenderMode = "live" | "static"
 export type PrecompiledDither = string | { src: string; width?: number; height?: number }
@@ -75,14 +75,20 @@ export type ButtonRasterOptions = {
 }
 
 /** Compile a static dither button backing store without canvas APIs. */
-export function renderDitherButton(options: ButtonRasterOptions): RasterBuffer {
+export function renderDitherButton(
+  options: ButtonRasterOptions,
+  target?: RasterBuffer
+): RasterBuffer {
   const cols = Math.min(MAX_COLS, Math.max(4, Math.round(options.width / Math.max(1, options.cell ?? 2))))
   const rows = Math.min(MAX_ROWS, Math.max(4, Math.round(options.height / Math.max(1, options.cell ?? 2))))
   const fill = fillOf(options.color ?? "blue")
   const variant = options.variant ?? "gradient"
   const intensity = options.intensity ?? 0
   const matrix = options.seed === undefined ? BAYER4 : pixelMatrixFromSeed(options.seed)
-  const buffer = createRasterBuffer(cols, rows)
+  const buffer = target?.width === cols && target.height === rows
+    ? target
+    : createRasterBuffer(cols, rows)
+  clearRasterBuffer(buffer)
   const bias = variant === "dotted" ? 0.12 : 0
 
   for (let y = 0; y < rows; y++) {

@@ -62,7 +62,7 @@ function paintImage(
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { kitFromSeed } from "./dither-paint"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "./precompile"
@@ -98,6 +98,7 @@ const img = new Image()
 img.crossOrigin = "anonymous"
 
 let ro: ResizeObserver | null = null
+let restartToken = 0
 function paint() {
   const wrap = wrapRef.value
   const canvas = canvasRef.value
@@ -109,22 +110,36 @@ function paint() {
 function load() {
   if (precompiled.value) return
   img.onload = paint
-  img.src = props.src
+  if (img.src !== props.src) img.src = props.src
+  else if (img.complete) paint()
 }
 
-onMounted(() => {
-  if (precompiled.value) return
-  load()
-  if (props.renderMode !== "static" && typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(paint)
-    if (wrapRef.value) ro.observe(wrapRef.value)
-  }
-})
-watch(() => [props.src, precompiled.value], load)
-watch([effCell, effFocusY, effFade, matrix], paint)
-onBeforeUnmount(() => {
+function stopRuntime() {
   ro?.disconnect()
+  ro = null
   img.onload = null
+}
+
+function startRuntime() {
+  const token = ++restartToken
+  stopRuntime()
+  if (precompiled.value) return
+  void nextTick(() => {
+    if (token !== restartToken || precompiled.value) return
+    load()
+    if (props.renderMode !== "static" && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(paint)
+      if (wrapRef.value) ro.observe(wrapRef.value)
+    }
+  })
+}
+
+onMounted(startRuntime)
+watch(() => [props.src, precompiled.value, props.renderMode], startRuntime, { flush: "post" })
+watch([effCell, effFocusY, effFade, matrix], paint, { flush: "post" })
+onBeforeUnmount(() => {
+  restartToken += 1
+  stopRuntime()
 })
 </script>
 

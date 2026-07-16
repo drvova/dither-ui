@@ -6,14 +6,14 @@ import {
   type DitherRenderMode,
   type PrecompiledDither,
 } from "./precompile"
-import { putRasterBuffer } from "./raster"
+import { putRasterBuffer, type RasterBuffer } from "./raster"
 
 export type ButtonVariant = "gradient" | "dotted" | "hatched" | "solid"
 export type { DitherRenderMode, PrecompiledDither }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle, pixelPrefersReducedMotion } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
@@ -50,8 +50,10 @@ const bloomRef = ref<HTMLCanvasElement | null>(null)
 const bloomStyle = computed(() => pixelBloomStyle(bloom.value))
 
 let teardown: (() => void) | undefined
+let restartToken = 0
 
 function init(): (() => void) | undefined {
+  if (precompiled.value) return undefined
   const button = buttonRef.value
   const canvas = canvasRef.value
   const ctx = canvas?.getContext("2d")
@@ -67,18 +69,23 @@ function init(): (() => void) | undefined {
   let target = 0
   let hovered = false
   let raf = 0
+  let raster: RasterBuffer | undefined
+  let imageData: ImageData | undefined
 
   const paint = () => {
-    const raster = renderDitherButton({
-      width: cols,
-      height: rows,
-      color: color.value,
-      variant: variant.value,
-      cell: 1,
-      intensity,
-      seed: props.seed,
-    })
-    putRasterBuffer(ctx, raster)
+    raster = renderDitherButton(
+      {
+        width: cols,
+        height: rows,
+        color: color.value,
+        variant: variant.value,
+        cell: 1,
+        intensity,
+        seed: props.seed,
+      },
+      raster
+    )
+    imageData = putRasterBuffer(ctx, raster, imageData)
     if (bloomCanvas && bloomCtx) {
       bloomCtx.clearRect(0, 0, cols, rows)
       bloomCtx.drawImage(canvas, 0, 0)
@@ -158,14 +165,36 @@ function init(): (() => void) | undefined {
   }
 }
 
-onMounted(() => {
-  teardown = init()
-})
-watch([color, variant, bloom, cell, precompiled, () => props.loading, () => props.disabled], () => {
+function restartRuntime() {
+  const token = ++restartToken
   teardown?.()
-  teardown = init()
+  teardown = undefined
+  if (precompiled.value) return
+  void nextTick(() => {
+    if (token !== restartToken || precompiled.value) return
+    teardown = init()
+  })
+}
+
+onMounted(restartRuntime)
+watch(
+  [
+    color,
+    variant,
+    bloom,
+    cell,
+    precompiled,
+    () => props.renderMode,
+    () => props.loading,
+    () => props.disabled,
+  ],
+  restartRuntime,
+  { flush: "post" }
+)
+onBeforeUnmount(() => {
+  restartToken += 1
+  teardown?.()
 })
-onBeforeUnmount(() => teardown?.())
 </script>
 
 <template>
