@@ -48,6 +48,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   only from non-interactive regions so live controls retain pointer ownership.
 - Move, nudge, duplicate, delete, lock, and group commands act on the complete
   selection; locked members remain stationary.
+- Toolbar hierarchy is contextual: project/insertion/global view controls persist;
+  edit, data, and export actions appear in the selection toolbar only while an
+  artboard is selected. Project file import/export stays in the project menu.
 - Studio lifecycle watchers are singletons while the route is mounted:
   `startAutosave`/`startHistory` replace prior handles and StudioPage stops them
   on unmount. Route revisits must not accumulate deep watchers.

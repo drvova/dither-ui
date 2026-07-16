@@ -45,6 +45,9 @@ const addScreen = () => { addScreenArtboard(); closeMenus() }
 const canEdit = () => editor.selectedArtboardId !== ""
 const canData = () => !!selectedArtboard.value && !selectedArtboard.value.widget
 const canUngroup = () => !!selectedArtboard.value?.groupId
+const selectionLabel = computed(() =>
+  editor.selectedIds.length > 1 ? `${editor.selectedIds.length} selected` : selectedArtboard.value?.name ?? ""
+)
 const doUngroup = () => { const a = selectedArtboard.value; if (a?.groupId) ungroup(a.groupId) }
 function newProject() { const name = window.prompt("Project name", `Project ${projects.length + 1}`); if (name) createProject(name); closeMenus() }
 function rename() { const name = window.prompt("Rename project", activeProjectName()); if (name) renameProject(activeProjectId.value, name); closeMenus() }
@@ -68,7 +71,10 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
           <div class="my-1 h-px bg-border" />
           <button type="button" role="menuitem" class="menu-row" @click="newProject">New project</button>
           <button type="button" role="menuitem" class="menu-row" @click="rename">Rename</button>
-          <button type="button" role="menuitem" class="menu-row text-red-400" @click="removeProject">Delete</button>
+          <button type="button" role="menuitem" class="menu-row" @click="exportDocument(); closeMenus()">Save to file</button>
+          <button type="button" role="menuitem" class="menu-row" @click="fileInput?.click(); closeMenus()">Open file</button>
+          <div class="my-1 h-px bg-border" />
+          <button type="button" role="menuitem" class="menu-row text-red-400" @click="removeProject">Delete project</button>
         </div>
       </div>
     </div>
@@ -112,23 +118,33 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
       <button type="button" aria-label="Undo" title="Undo (⌘Z)" :disabled="!history.canUndo" class="tool" @click="undo">↶</button>
       <button type="button" aria-label="Redo" title="Redo (⌘⇧Z)" :disabled="!history.canRedo" class="tool" @click="redo">↷</button>
       <span class="mx-1 h-4 w-px bg-border" />
-      <button type="button" title="Duplicate (⌘D)" :disabled="!canEdit()" class="tool wide" @click="duplicateSelected">duplicate</button>
-      <button type="button" title="Delete (⌫)" :disabled="!canEdit()" class="tool wide" @click="removeSelected">delete</button>
-      <button type="button" title="Group (⌘G)" :disabled="editor.selectedIds.length < 1" class="tool wide" @click="groupSelected">group</button>
-      <button v-if="canUngroup()" type="button" class="tool wide" @click="doUngroup">ungroup</button>
-      <span class="mx-1 h-4 w-px bg-border" />
-      <button type="button" title="Replay" class="tool" @click="replay">↻</button>
-      <button type="button" :disabled="!canData()" class="tool wide" :class="editor.dataOpen ? 'bg-card text-foreground' : ''" @click="editor.dataOpen = !editor.dataOpen">data</button>
-      <button type="button" class="tool wide" @click="emit('export')">export</button>
-      <button type="button" :disabled="!editor.selectedArtboardId || pngBusy" class="tool wide" @click="exportPng">png</button>
-      <span class="mx-1 h-4 w-px bg-border" />
       <button type="button" aria-label="Toggle layers" :aria-pressed="props.layersOpen" title="Layers" class="tool" @click="emit('update:layersOpen', !props.layersOpen)">☷</button>
       <button type="button" aria-label="Toggle properties" :aria-pressed="props.inspectorOpen" title="Properties" class="tool" @click="emit('update:inspectorOpen', !props.inspectorOpen)">◫</button>
       <button type="button" :aria-label="dark ? 'Use light theme' : 'Use dark theme'" class="tool" @click="toggle">{{ dark ? '☀' : '◐' }}</button>
-      <button type="button" title="Save project" class="tool" @click="exportDocument">↓</button>
-      <button type="button" title="Open project" class="tool" @click="fileInput?.click()">↑</button>
-      <input ref="fileInput" type="file" accept="application/json" name="open-project" class="hidden" @change="openFile" />
     </div>
+
+    <Transition name="selection-tools">
+      <div
+        v-if="canEdit()"
+        class="pointer-events-auto fixed left-1/2 z-30 flex h-10 -translate-x-1/2 items-center gap-0.5 rounded-lg border border-border/70 bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
+        :class="editor.dataOpen ? 'bottom-[17rem]' : 'bottom-3'"
+        role="toolbar"
+        aria-label="Selection actions"
+      >
+        <span class="max-w-36 truncate px-2 text-[11px] text-foreground" aria-live="polite">{{ selectionLabel }}</span>
+        <span class="mx-0.5 h-4 w-px bg-border" />
+        <button type="button" title="Duplicate (⌘D)" class="tool wide" @click="duplicateSelected">duplicate</button>
+        <button v-if="canUngroup()" type="button" title="Ungroup (⌘⇧G)" class="tool wide" @click="doUngroup">ungroup</button>
+        <button v-else type="button" title="Group (⌘G)" class="tool wide" @click="groupSelected">group</button>
+        <button type="button" title="Delete (⌫)" class="tool wide text-red-400" @click="removeSelected">delete</button>
+        <span class="mx-0.5 h-4 w-px bg-border" />
+        <button type="button" title="Replay animation" class="tool" aria-label="Replay animation" @click="replay">↻</button>
+        <button v-if="canData()" type="button" class="tool wide" :aria-pressed="editor.dataOpen" :class="editor.dataOpen ? 'bg-card text-foreground' : ''" @click="editor.dataOpen = !editor.dataOpen">data</button>
+        <button type="button" class="tool wide" @click="emit('export')">code</button>
+        <button type="button" :disabled="pngBusy" class="tool wide" @click="exportPng">{{ pngBusy ? 'saving…' : 'png' }}</button>
+      </div>
+    </Transition>
+    <input ref="fileInput" type="file" accept="application/json" name="open-project" class="hidden" @change="openFile" />
   </div>
 </template>
 
@@ -143,4 +159,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
 .tool:active { scale: 0.96; }
 .tool:disabled { pointer-events: none; opacity: 0.35; }
 .tool.wide { padding-inline: 0.5rem; }
+.selection-tools-enter-active, .selection-tools-leave-active { transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), opacity 120ms ease; }
+.selection-tools-enter-from, .selection-tools-leave-to { transform: translate(-50%, 6px); opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .selection-tools-enter-active, .selection-tools-leave-active { transition: none; } }
 </style>
