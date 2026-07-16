@@ -132,17 +132,23 @@ benchmark performs 3 warmups, then 6 measured batches × 2 repetitions at
 painter with RGBA generation plus one `putImageData` upload and reports mean,
 median, p95, and canvas calls.
 
-Two local Chrome runs without CPU throttling produced:
+Five independent local Chrome runs without CPU throttling produced:
 
-| Run | Legacy mean | Raster mean | Legacy calls | Raster calls |
-| --- | ---: | ---: | ---: | ---: |
-| 1 | 118.17 ms | 4.60 ms | 144,000 | 1 |
-| 2 | 125.73 ms | 3.85 ms | 144,000 | 1 |
-| Average | 121.95 ms | 4.23 ms | 144,000 | 1 |
+| Run | Legacy mean | Legacy median | Legacy p95 | Raster mean | Raster median | Raster p95 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 110.80 ms | 109.70 ms | 173.20 ms | 6.44 ms | 4.00 ms | 36.10 ms |
+| 2 | 111.76 ms | 114.40 ms | 180.00 ms | 4.01 ms | 4.30 ms | 5.10 ms |
+| 3 | 108.18 ms | 110.00 ms | 151.00 ms | 4.07 ms | 4.50 ms | 4.80 ms |
+| 4 | 122.25 ms | 121.80 ms | 179.60 ms | 5.62 ms | 4.60 ms | 20.10 ms |
+| 5 | 118.31 ms | 129.30 ms | 156.60 ms | 3.94 ms | 3.90 ms | 4.60 ms |
+| Average mean | 114.26 ms | — | — | 4.82 ms | — | — |
 
-These are directional measurements on one desktop, not a device-independent
-latency promise. Re-run the page on target low-power devices before choosing
-`cell`, animation, bloom, or precompilation policy.
+The average means show a **23.7× speedup** and **95.8% lower measured paint
+latency**. Each legacy sample made 144,000 `fillRect` calls; each raster sample
+made one `putImageData` upload. These are directional measurements on one
+desktop, not a device-independent latency promise. Re-run the page on target
+low-power devices before choosing `cell`, animation, bloom, or precompilation
+policy.
 
 ### Components
 
