@@ -27,14 +27,11 @@ jobs:
       - run: npx vue-tsc --noEmit
       - run: npx vite build
         env:
-          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/dither-ui/' }}
+          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/' }}
       - name: Prepare Pages artifact
         run: |
           cp dist/index.html dist/404.html
           touch dist/.nojekyll
-          if [ -n "${{ vars.PAGES_CNAME }}" ]; then
-            printf '%s\n' "${{ vars.PAGES_CNAME }}" > dist/CNAME
-          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

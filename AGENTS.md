@@ -84,9 +84,10 @@ Default section order:
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links. GitHub Pages deploys through
-  `.github/workflows/pages.yml`; default project base is `/dither-ui/`, set repo
-  variable `VITE_BASE_PATH=/` for a custom root domain and `PAGES_CNAME` for a
-  Pages CNAME.
+  `.github/workflows/pages.yml`; default deploy base is `/` because
+  `public/CNAME` sets `dither-ui.com`. Set repo variable
+  `VITE_BASE_PATH=/dither-ui/` only when removing the custom domain and using
+  the GitHub Pages project URL.
 - Assets: `public/faces.webp` is the measured portrait/emote band;
   `public/sprites.webp` is the broader character sheet.
 

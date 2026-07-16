@@ -19,8 +19,8 @@ control, live code export) built on the library.
 npm install
 npm run dev      # http://localhost:5173 — the site; /studio is the editor
 npm run build    # type-check + production build
-# GitHub Pages uses .github/workflows/pages.yml and builds with /dither-ui/ by default.
-# Set repo variable VITE_BASE_PATH=/ for a custom root domain, and PAGES_CNAME if needed.
+# GitHub Pages uses .github/workflows/pages.yml and builds for dither-ui.com by default.
+# public/CNAME sets the custom domain; set VITE_BASE_PATH=/dither-ui/ only for project-URL deploys.
 ```
 
 ### Studio
