@@ -159,7 +159,7 @@ const props = withDefaults(
     renderMode?: DitherRenderMode
     precompiled?: PrecompiledDither
   }>(),
-  { size: 20, color: "blue" }
+  { size: 20, color: "blue", renderMode: "live", precompiled: undefined }
 )
 
 const spin = computed(() => (props.seed !== undefined ? spinnerFromSeed(props.seed) : SPINNER_DEFAULT))

@@ -1,5 +1,10 @@
-import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "../dither-kit/raster"
-import { renderDitherButton, renderDitherGradient } from "../dither-kit/precompile"
+import {
+  createRasterBuffer,
+  putRasterBuffer,
+  renderDitherButton,
+  renderDitherGradient,
+  type RasterBuffer,
+} from "../dither-kit"
 
 const WIDTH = 960
 const HEIGHT = 600
@@ -46,7 +51,7 @@ function legacySample(): number {
   return performance.now() - start
 }
 
-function rasterSample(): number {
+function rasterSample(image: { current?: ImageData }): number {
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d")
   if (!ctx) throw new Error("Canvas 2D is unavailable")
@@ -54,7 +59,7 @@ function rasterSample(): number {
   const raster = renderDitherGradient(options())
   canvas.width = raster.width
   canvas.height = raster.height
-  putRasterBuffer(ctx, raster)
+  image.current = putRasterBuffer(ctx, raster, image.current)
   return performance.now() - start
 }
 
@@ -78,7 +83,7 @@ function buttonFreshSample(): number {
   return performance.now() - start
 }
 
-function buttonReuseSample(target: RasterBuffer): number {
+function buttonReuseSample(target: RasterBuffer, image: { current?: ImageData }): number {
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d")
   if (!ctx) throw new Error("Canvas 2D is unavailable")
@@ -94,7 +99,7 @@ function buttonReuseSample(target: RasterBuffer): number {
   }, target)
   canvas.width = raster.width
   canvas.height = raster.height
-  putRasterBuffer(ctx, raster)
+  image.current = putRasterBuffer(ctx, raster, image.current)
   return performance.now() - start
 }
 
@@ -116,32 +121,36 @@ async function run(): Promise<void> {
   const button = document.querySelector<HTMLButtonElement>("#run")!
   button.disabled = true
   status.textContent = "Warming up..."
+  const warmupRasterImage: { current?: ImageData } = {}
+  const warmupButtonImage: { current?: ImageData } = {}
   for (let i = 0; i < WARMUPS; i++) {
     legacySample()
-    rasterSample()
+    rasterSample(warmupRasterImage)
     buttonFreshSample()
-    buttonReuseSample(createRasterBuffer(Math.round(BUTTON_WIDTH / 2), Math.round(BUTTON_HEIGHT / 2)))
+    buttonReuseSample(createRasterBuffer(Math.round(BUTTON_WIDTH / 2), Math.round(BUTTON_HEIGHT / 2)), warmupButtonImage)
   }
   const legacy: number[] = []
   const raster: number[] = []
   const buttonFresh: number[] = []
   const buttonReuse: number[] = []
+  const rasterImage: { current?: ImageData } = {}
+  const buttonImage: { current?: ImageData } = {}
   const buttonTarget = createRasterBuffer(Math.round(BUTTON_WIDTH / 2), Math.round(BUTTON_HEIGHT / 2))
   for (let batch = 0; batch < SAMPLES; batch++) {
     status.textContent = `Measured batch ${batch + 1} of ${SAMPLES}...`
     for (let rep = 0; rep < REPS; rep++) {
       legacy.push(legacySample())
-      raster.push(rasterSample())
+      raster.push(rasterSample(rasterImage))
       buttonFresh.push(buttonFreshSample())
-      buttonReuse.push(buttonReuseSample(buttonTarget))
+      buttonReuse.push(buttonReuseSample(buttonTarget, buttonImage))
     }
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
   }
   const rows = [
-    stats(legacy, "Gradient legacy fillRect", Math.round(WIDTH / CELL) * Math.round(HEIGHT / CELL), legacy.length),
-    stats(raster, "Gradient RGBA + putImageData", 1, raster.length),
-    stats(buttonFresh, "Button fresh RGBA buffer", 1, buttonFresh.length),
-    stats(buttonReuse, "Button reused RGBA buffer", 1, 1),
+    stats(legacy, "Gradient legacy fillRect", Math.round(WIDTH / CELL) * Math.round(HEIGHT / CELL), 0),
+    stats(raster, "Gradient RGBA + putImageData", 1, raster.length + 1),
+    stats(buttonFresh, "Button fresh RGBA buffer", 1, buttonFresh.length * 2),
+    stats(buttonReuse, "Button reused RGBA buffer", 1, 2),
   ]
   results.innerHTML = rows.map((row) => `<tr><td>${row.name}</td><td>${row.mean.toFixed(2)}</td><td>${row.median.toFixed(2)}</td><td>${row.p95.toFixed(2)}</td><td>${row.calls.toLocaleString()}</td><td>${row.allocations.toLocaleString()}</td></tr>`).join("")
   status.textContent = `Completed ${SAMPLES} batches × ${REPS} repetitions after ${WARMUPS} warmups.`

@@ -31,7 +31,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`; legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported. Route
   entry HTML files own crawler-visible metadata; `app/App.vue` resolves both
-  path styles. Add vue-router only when route params outgrow this.
+  path styles. Internal app links and public asset URLs use `routePath()` /
+  `assetPath()` from `shared/lib/routes.ts` so the same build works at `/` and
+  at the GitHub Pages project base. Add vue-router only when route params
+  outgrow this.
 - `entities/editor` is the sole mutation path for document state. History
   (`features/history`) snapshots `{artboards, groups}` — excludes viewport and
   selection deliberately; new document-shaped state must be added to both the

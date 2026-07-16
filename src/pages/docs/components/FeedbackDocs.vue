@@ -73,7 +73,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "seed", type: "number — samples a spinner form", default: "clean arc" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
-    { prop: "precompiled", type: "string | { src: string }", default: "undefined" },
+    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
   ],
   separator: [
     {

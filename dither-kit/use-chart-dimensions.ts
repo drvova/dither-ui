@@ -26,7 +26,10 @@ export function useChartDimensions<T extends HTMLElement>() {
 
   onMounted(() => {
     if (!el.value) return
-    ro = new ResizeObserver(([entry]) => measure(entry))
+    ro = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (entry) measure(entry)
+    })
     ro.observe(el.value)
   })
   onBeforeUnmount(() => ro?.disconnect())

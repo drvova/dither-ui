@@ -259,8 +259,9 @@ export const BarCanvas = defineComponent({
 
     onMounted(restart)
     watch(
-      () => [backing.value.cols, backing.value.rows, ctx.plot.width],
-      restart
+      () => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.precompiled],
+      restart,
+      { flush: "post" }
     )
     watch(
       () => [
@@ -298,7 +299,8 @@ export const BarCanvas = defineComponent({
       if (ctx.precompiled) {
         return h("img", {
           src: ctx.precompiled,
-          alt: "Chart",
+          alt: "",
+          "aria-hidden": "true",
           class: "pointer-events-none absolute",
           style: { ...pos, imageRendering: "pixelated" },
         })

@@ -7,24 +7,26 @@ import { clampGrid, cssColor, seededPattern } from "@dither-kit"
  * mirror setting (horizontal folds left/right, vertical top/bottom, auto =
  * free painting). */
 const props = defineProps<{ avatar: AvatarModel }>()
+const avatar = computed(() => props.avatar)
 
-const grid = computed(() => clampGrid(props.avatar.grid))
+const grid = computed(() => clampGrid(avatar.value.grid))
 const cells = computed(() => {
   const n = grid.value * grid.value
-  const on = props.avatar.pattern?.on ?? []
+  const on = avatar.value.pattern?.on ?? []
   return Array.from({ length: n }, (_, i) => !!on[i])
 })
 const fill = computed(() =>
-  props.avatar.autoColor ? "var(--color-foreground)" : cssColor(props.avatar.color)
+  avatar.value.autoColor ? "var(--color-foreground)" : cssColor(avatar.value.color)
 )
 
 function ensurePattern() {
+  const model = avatar.value
   const n = grid.value * grid.value
-  if (!props.avatar.pattern || props.avatar.pattern.on.length !== n) {
+  if (!model.pattern || model.pattern.on.length !== n) {
     // Seed the canvas-to-be from the current generative pattern so switching
     // to draw starts from something recognisable instead of a blank grid.
-    const seeded = seededPattern(props.avatar.name, grid.value, props.avatar.mirror)
-    props.avatar.pattern = {
+    const seeded = seededPattern(model.name, grid.value, model.mirror)
+    model.pattern = {
       on: seeded.on.map((b) => (b ? 1 : 0)),
       density: seeded.density.map((d) => Math.round(d * 100) / 100),
     }
@@ -35,15 +37,15 @@ const twinOf = (i: number): number | null => {
   const g = grid.value
   const r = Math.floor(i / g)
   const c = i % g
-  if (props.avatar.mirror === "horizontal") return r * g + (g - 1 - c)
-  if (props.avatar.mirror === "vertical") return (g - 1 - r) * g + c
+  if (avatar.value.mirror === "horizontal") return r * g + (g - 1 - c)
+  if (avatar.value.mirror === "vertical") return (g - 1 - r) * g + c
   return null
 }
 
 let paintTo: 0 | 1 = 1
 function setCell(i: number, value: 0 | 1) {
   ensurePattern()
-  const p = props.avatar.pattern!
+  const p = avatar.value.pattern!
   p.on[i] = value
   p.density[i] = p.density[i] || 0.85
   const twin = twinOf(i)
@@ -55,7 +57,7 @@ function setCell(i: number, value: 0 | 1) {
 function onDown(i: number, e: PointerEvent) {
   e.preventDefault()
   ensurePattern()
-  paintTo = props.avatar.pattern!.on[i] ? 0 : 1
+  paintTo = avatar.value.pattern!.on[i] ? 0 : 1
   setCell(i, paintTo)
 }
 function onEnter(i: number, e: PointerEvent) {
@@ -64,16 +66,16 @@ function onEnter(i: number, e: PointerEvent) {
 
 function fillAll(value: 0 | 1) {
   ensurePattern()
-  const p = props.avatar.pattern!
+  const p = avatar.value.pattern!
   p.on = p.on.map(() => value)
 }
 function invert() {
   ensurePattern()
-  const p = props.avatar.pattern!
+  const p = avatar.value.pattern!
   p.on = p.on.map((v) => (v ? 0 : 1))
 }
 function reseed() {
-  props.avatar.pattern = null
+  avatar.value.pattern = null
   ensurePattern()
 }
 </script>

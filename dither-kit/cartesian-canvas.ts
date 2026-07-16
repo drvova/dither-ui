@@ -245,7 +245,10 @@ function startCartesianLoop({
       lastCrosshair = s.crosshair
       needsFill = true
     }
-    if (!(moving || settling || sparkleMotion || progChanged || sigChanged || needsFill)) return
+    if (!(moving || settling || (sparkleMotion && winkDue) || progChanged || sigChanged || needsFill)) {
+      if (sparkleMotion) schedule()
+      return
+    }
     if (progChanged) {
       lastProg = prog
       needsFill = true
@@ -557,7 +560,8 @@ export const CartesianCanvas = defineComponent({
       if (ctx.precompiled) {
         return h("img", {
           src: ctx.precompiled,
-          alt: "Chart",
+          alt: "",
+          "aria-hidden": "true",
           class: "pointer-events-none absolute",
           style: { ...pos, imageRendering: "pixelated" },
         })

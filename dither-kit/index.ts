@@ -34,6 +34,7 @@ export {
   renderDitherGradient,
 } from "./precompile"
 export type { ButtonRasterOptions, GradientRasterOptions } from "./precompile"
+export { createRasterBuffer, putRasterBuffer } from "./raster"
 export type { RasterBuffer } from "./raster"
 
 // Form controls

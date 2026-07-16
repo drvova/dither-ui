@@ -318,7 +318,8 @@ export const RadarCanvas = defineComponent({
       if (ctx.precompiled) {
         return h("img", {
           src: ctx.precompiled,
-          alt: "Chart",
+          alt: "",
+          "aria-hidden": "true",
           class: "pointer-events-none absolute",
           style: { ...pos, imageRendering: "pixelated" },
         })

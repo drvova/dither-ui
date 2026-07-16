@@ -59,8 +59,10 @@ observation are unnecessary.
 `cell` controls backing resolution; larger cells mean fewer pixels to compute.
 The kit also pauses chart RAF loops while invisible, batches standalone surface
 pixels through one `putImageData`, and copies bloom layers only after a changed
-frame. Keep `animate`, `sparkles`, and bloom off for static content, and use the
-precompiled path for content whose data and dimensions are known on the server.
+frame. `createRasterBuffer()` and `putRasterBuffer()` are exported for host code
+that wants the same reusable RGBA-buffer upload path. Keep `animate`, `sparkles`,
+and bloom off for static content, and use the precompiled path for content whose
+data and dimensions are known on the server.
 
 The repository benchmark is available at `/benchmarks/`; it records six measured
 batches after three warmups and reports mean, median, p95, canvas-call count, and

@@ -82,7 +82,7 @@ const props = withDefaults(
     renderMode?: DitherRenderMode
     precompiled?: PrecompiledDither
   }>(),
-  { alt: "" }
+  { alt: "", renderMode: "live", precompiled: undefined }
 )
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))

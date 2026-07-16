@@ -18,18 +18,21 @@ import { cn } from "./lib"
 import { pixelBloomStyle } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
-const props = defineProps<{
-  from?: PixelColor
-  to?: PixelColor | "transparent"
-  direction?: GradientDirection
-  cell?: number
-  opacity?: number
-  bloom?: PixelBloomInput
-  seed?: number
-  class?: string
-  renderMode?: DitherRenderMode
-  precompiled?: PrecompiledDither
-}>()
+const props = withDefaults(
+  defineProps<{
+    from?: PixelColor
+    to?: PixelColor | "transparent"
+    direction?: GradientDirection
+    cell?: number
+    opacity?: number
+    bloom?: PixelBloomInput
+    seed?: number
+    class?: string
+    renderMode?: DitherRenderMode
+    precompiled?: PrecompiledDither
+  }>(),
+  { renderMode: "live", precompiled: undefined }
+)
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effFrom = computed(() => props.from ?? s.value?.hue ?? "blue")
@@ -49,6 +52,7 @@ const bloomStyle = computed(() => pixelBloomStyle(effBloom.value))
 let ro: ResizeObserver | null = null
 let timer = 0
 let restartToken = 0
+let imageData: ImageData | undefined
 function paint() {
   const wrap = wrapRef.value
   const canvas = canvasRef.value
@@ -68,7 +72,7 @@ function paint() {
   })
   canvas.width = raster.width
   canvas.height = raster.height
-  putRasterBuffer(ctx, raster)
+  imageData = putRasterBuffer(ctx, raster, imageData)
   const bloomCtx = bloomRef.value?.getContext("2d")
   if (bloomRef.value && bloomCtx) {
     bloomRef.value.width = raster.width
@@ -128,8 +132,20 @@ onBeforeUnmount(() => {
       class="absolute inset-0 h-full w-full"
       style="image-rendering: pixelated"
     />
+    <img
+      v-if="precompiled && bloomStyle"
+      :src="precompiled"
+      alt=""
+      class="absolute inset-0 h-full w-full object-fill"
+      :style="{
+        filter: bloomStyle.filter,
+        opacity: bloomStyle.opacity,
+        mixBlendMode: bloomStyle.mixBlendMode,
+        imageRendering: bloomStyle.imageRendering,
+      }"
+    />
     <canvas
-      v-if="bloomStyle"
+      v-else-if="bloomStyle"
       ref="bloomRef"
       class="absolute inset-0 h-full w-full"
       :style="{

@@ -17,6 +17,8 @@ control, live code export) built on the library.
 npm install
 npm run dev      # http://localhost:5173 — the site; /studio is the editor
 npm run build    # type-check + production build
+# GitHub Pages uses .github/workflows/pages.yml and builds with /dither-ui/ by default.
+# Set repo variable VITE_BASE_PATH=/ for a custom root domain, and PAGES_CNAME if needed.
 ```
 
 ### Studio
@@ -142,15 +144,15 @@ A local Chrome run of the expanded benchmark produced:
 
 | Painter | Mean | Median | p95 | Canvas calls | RGBA allocations |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Gradient legacy fillRect | 116.81 ms | 106.10 ms | 198.00 ms | 144,000 | 12 |
-| Gradient RGBA + putImageData | 3.82 ms | 3.70 ms | 5.60 ms | 1 | 12 |
-| Button fresh RGBA buffer | 0.18 ms | 0.20 ms | 0.30 ms | 1 | 12 |
-| Button reused RGBA buffer | 0.17 ms | 0.20 ms | 0.30 ms | 1 | 1 |
+| Gradient legacy fillRect | 109.11 ms | 107.70 ms | 174.40 ms | 144,000 | 0 |
+| Gradient RGBA + putImageData | 4.70 ms | 4.10 ms | 10.00 ms | 1 | 13 |
+| Button fresh RGBA buffer | 0.28 ms | 0.30 ms | 0.40 ms | 1 | 24 |
+| Button reused RGBA buffer | 0.45 ms | 0.20 ms | 2.90 ms | 1 | 2 |
 
-The gradient rows in that run show a **30.6× speedup** and **96.7% lower
+The gradient rows in that run show a **23.2× speedup** and **95.7% lower
 measured paint latency**. The button rows are intentionally small in wall-clock
 terms; their useful signal is allocation behavior, where reuse keeps the repeated
-RGBA buffer allocation count at one.
+RGBA buffer allocation count bounded at two reusable objects.
 
 Earlier five independent local Chrome runs without CPU throttling produced:
 

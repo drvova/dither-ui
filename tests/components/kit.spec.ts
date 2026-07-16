@@ -37,22 +37,25 @@ describe("DitherButton", () => {
 
 describe("DitherSwitch", () => {
   it("toggles via update:modelValue", async () => {
-    const w = mount(DitherSwitch, { props: { modelValue: false } })
+    const onUpdate = vi.fn()
+    const w = mount(DitherSwitch, { props: { modelValue: false, "onUpdate:modelValue": onUpdate } })
     await w.find("button").trigger("click")
-    expect(w.emitted("update:modelValue")?.[0]).toEqual([true])
+    expect(onUpdate).toHaveBeenCalledWith(true)
   })
   it("does not emit when disabled", async () => {
-    const w = mount(DitherSwitch, { props: { modelValue: false, disabled: true } })
+    const onUpdate = vi.fn()
+    const w = mount(DitherSwitch, { props: { modelValue: false, disabled: true, "onUpdate:modelValue": onUpdate } })
     await w.find("button").trigger("click")
-    expect(w.emitted("update:modelValue")).toBeUndefined()
+    expect(onUpdate).not.toHaveBeenCalled()
   })
 })
 
 describe("DitherCheckbox", () => {
   it("toggles via update:modelValue", async () => {
-    const w = mount(DitherCheckbox, { props: { modelValue: true } })
+    const onUpdate = vi.fn()
+    const w = mount(DitherCheckbox, { props: { modelValue: true, "onUpdate:modelValue": onUpdate } })
     await w.find("button").trigger("click")
-    expect(w.emitted("update:modelValue")?.[0]).toEqual([false])
+    expect(onUpdate).toHaveBeenCalledWith(false)
   })
 })
 
@@ -68,10 +71,11 @@ describe("field controls", () => {
     expect(input.attributes("aria-invalid")).toBe("true")
   })
   it("forwards textarea attributes and emits input", async () => {
-    const w = mount(DitherTextarea, { props: { modelValue: "", name: "bio", rows: 5 } })
+    const onUpdate = vi.fn()
+    const w = mount(DitherTextarea, { props: { modelValue: "", name: "bio", rows: 5, "onUpdate:modelValue": onUpdate } })
     await w.get("textarea").setValue("Hello")
     expect(w.get("textarea").attributes()).toMatchObject({ name: "bio", rows: "5" })
-    expect(w.emitted("update:modelValue")?.[0]).toEqual(["Hello"])
+    expect(onUpdate).toHaveBeenCalledWith("Hello")
   })
   it("generates unique field relationships", () => {
     const w = mount({ components: { DitherField, DitherInput }, template: '<div><DitherField label="One"><DitherInput /></DitherField><DitherField label="Two"><DitherInput /></DitherField></div>' })
@@ -82,19 +86,21 @@ describe("field controls", () => {
 
 describe("DitherSelect", () => {
   it("links its listbox and skips disabled options with keyboard", async () => {
-    const w = mount(DitherSelect, { props: { modelValue: "", options: [{ value: "a", label: "A", disabled: true }, { value: "b", label: "B" }] } })
+    const onUpdate = vi.fn()
+    const w = mount(DitherSelect, { props: { modelValue: "", options: [{ value: "a", label: "A", disabled: true }, { value: "b", label: "B" }], "onUpdate:modelValue": onUpdate } })
     const trigger = w.get("button")
     await trigger.trigger("keydown", { key: "ArrowDown" })
     expect(trigger.attributes("aria-controls")).toBe(w.get('[role="listbox"]').attributes("id"))
     await trigger.trigger("keydown", { key: "Enter" })
-    expect(w.emitted("update:modelValue")?.[0]).toEqual(["b"])
+    expect(onUpdate).toHaveBeenCalledWith("b")
   })
 })
 
 describe("DitherDialog", () => {
   it("labels, traps, closes, and restores focus", async () => {
     const opener = document.createElement("button"); document.body.append(opener); opener.focus()
-    const w = mount(DitherDialog, { attachTo: document.body, props: { open: false, title: "Settings", description: "Project options" }, slots: { default: '<button id="last">Apply</button>' } })
+    const onClose = vi.fn()
+    const w = mount(DitherDialog, { attachTo: document.body, props: { open: false, title: "Settings", description: "Project options", onClose }, slots: { default: '<button id="last">Apply</button>' } })
     opener.focus()
     await w.setProps({ open: true }); await nextTick()
     const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
@@ -102,7 +108,7 @@ describe("DitherDialog", () => {
     const close = dialog.querySelector<HTMLButtonElement>('[aria-label="Close"]')!; expect(document.activeElement).toBe(close)
     dialog.querySelector<HTMLButtonElement>("#last")!.focus(); dialog.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true }))
     expect(document.activeElement).toBe(close)
-    close.click(); expect(w.emitted("close")).toHaveLength(1)
+    close.click(); expect(onClose).toHaveBeenCalledTimes(1)
     await w.setProps({ open: false }); await nextTick(); expect(document.activeElement).toBe(opener)
     w.unmount(); opener.remove()
   })
@@ -110,13 +116,14 @@ describe("DitherDialog", () => {
 
 describe("DitherTabs", () => {
   it("renders every tab and emits the clicked one", async () => {
+    const onUpdate = vi.fn()
     const w = mount(DitherTabs, {
-      props: { tabs: ["One", "Two", "Three"], modelValue: "One" },
+      props: { tabs: ["One", "Two", "Three"], modelValue: "One", "onUpdate:modelValue": onUpdate },
     })
     const buttons = w.findAll("button")
     expect(buttons.length).toBeGreaterThanOrEqual(3)
     await buttons[1].trigger("click")
-    expect(w.emitted("update:modelValue")?.[0]).toEqual(["Two"])
+    expect(onUpdate).toHaveBeenCalledWith("Two")
   })
 })
 

@@ -33,7 +33,7 @@ const props = withDefaults(
     renderMode?: DitherRenderMode
     precompiled?: PrecompiledDither
   }>(),
-  { type: "button", loading: false, disabled: false }
+  { type: "button", loading: false, disabled: false, renderMode: "live", precompiled: undefined }
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const precompiled = computed(() => precompiledSrc(props.precompiled))
@@ -226,8 +226,21 @@ onBeforeUnmount(() => {
       class="absolute inset-0 -z-10 h-full w-full"
       style="image-rendering: pixelated"
     />
+    <img
+      v-if="precompiled && bloomStyle"
+      :src="precompiled"
+      alt=""
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 -z-10 h-full w-full object-fill"
+      :style="{
+        filter: bloomStyle.filter,
+        opacity: bloomStyle.opacity,
+        mixBlendMode: bloomStyle.mixBlendMode,
+        imageRendering: bloomStyle.imageRendering,
+      }"
+    />
     <canvas
-      v-if="bloomStyle"
+      v-else-if="bloomStyle"
       ref="bloomRef"
       aria-hidden="true"
       class="pointer-events-none absolute inset-0 -z-10 h-full w-full"
