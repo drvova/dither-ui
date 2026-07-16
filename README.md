@@ -1,5 +1,7 @@
 # Dither Kit — Vue
 
+![Dither Kit banner](public/dither-banner.png)
+
 A faithful **Vue 3** port of [Dither Kit](https://tripwire.sh/dither-kit) — composable
 ordered-dither **area, line, bar, pie and radar** charts on one tiny canvas engine,
 plus generative **avatars**, **buttons**, and **gradient washes**. Charts inspired by
