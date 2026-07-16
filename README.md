@@ -1,4 +1,4 @@
-# Dither Kit — Vue
+# dither-ui
 
 ![Dither Kit banner](public/dither-banner.png)
 
@@ -11,44 +11,59 @@ Copy-in components (shadcn-style): the library lives in `dither-kit/` with no
 imports from the app. Its runtime dependencies are Vue, `d3-scale`, `d3-shape`,
 `clsx` and `tailwind-merge`.
 
-The repo also ships a **multi-artboard chart studio** — a Figma-style editor
-(infinite pan/zoom canvas, layers panel, contextual inspector with full granular
-control, live code export) built on the library.
+The repo ships three surfaces on one hash router:
+
+- **Landing** (`/#/`) — marketing page
+- **Docs** (`/#/docs`) — component docs, interactive playgrounds, example blocks
+- **Studio** (`/#/studio`) — a Figma-style multi-artboard editor
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173 — the site; /studio is the editor
+npm run test     # engine + model unit tests (vitest)
 npm run build    # type-check + production build
 # GitHub Pages uses .github/workflows/pages.yml and builds for dither-ui.com by default.
 # public/CNAME sets the custom domain; set VITE_BASE_PATH=/dither-ui/ only for project-URL deploys.
 ```
 
-### Studio
+## Studio
 
-- **Canvas** — wheel to pan, ⌘/ctrl-wheel to zoom, drag empty space to pan.
-- **Artboards** — add (any chart type), select, drag the title to move, drag the
-  corner to resize, duplicate, delete.
-- **Layers** — the composed chart tree (root → grid, axes, series, legend,
-  tooltip) with per-layer visibility toggles.
-- **Inspector** — contextual props for the selected layer: frame X/Y/W/H, chart
-  type, bloom, stack, margins T/R/B/L, animation duration; per-series colour /
-  variant / clickable; grid h-v-dash; axis ticks; legend align; tooltip variant;
-  pie inner radius.
-- **Export** — a runnable Vue SFC of the selected artboard.
+A full design-tool editor for every component in the kit:
 
-### Architecture (Feature-Sliced Design)
+- **Canvas** — infinite pan/zoom (wheel pan, ⌘-wheel zoom, ⇧1 fit), multiple
+  artboards: drag, resize, duplicate (⌘D), group (⌘G), lock (⌘L), hide, delete.
+- **Layer tree** — frames expand to their chart layers; visibility/lock
+  toggles, right-click context menus, inline rename, keyboard operable.
+- **Inspector — full granularity.** Charts: type, per-series colour (presets +
+  HSV/hex picker), texture (preset variants or custom ramp/density/gaps/hatch/
+  off-tier/edge), bloom (presets or custom blur/brightness/opacity/saturate),
+  easing (presets or a draggable cubic-bézier curve editor with overshoot),
+  animation time/delay/stagger/sparkles/hover-lift, dither pixel size, margins,
+  axes/grid/legend/tooltip settings, per-series opacity + dot markers, and
+  per-type geometry (bar gap/edge, pie start angle/pop/rim, radar rings/falloff).
+- **Widget builders** — avatar (seed, mirror, grid, cell resolution, density,
+  colour, bloom, entrance), button (label, variant, pixel, colour, bloom),
+  gradient (direction, pixel, opacity, from/two-tone-to, bloom).
+- **Data editor** — a spreadsheet drawer per chart: edit any cell, add/remove
+  rows and series; pie rows are slices (name/series stay synced).
+- **Code export** — a runnable Vue SFC per artboard reflecting every setting.
+- **Projects** — autosave to localStorage, save/open `.json` project files,
+  undo/redo (⌘Z/⌘⇧Z), shortcuts overlay (?).
+
+## Architecture (Feature-Sliced Design)
 
 ```
+dither-kit/   the component library (@dither-kit)
 src/
-  app/        app init, root component, global styles
+  app/        root + styles + hash routing
   pages/      landing, docs, studio
-  widgets/    canvas, layers-panel, inspector, toolbar, chart-renderer
-  features/   pan-zoom, artboard-transform, export-code
-  entities/   chart (model + codegen), artboard, editor (document store)
-  shared/     ui, lib, config
-
-dither-kit/
-  Vue kit source (charts, avatars, buttons, surfaces)
+  widgets/    canvas, layer-tree, inspector, toolbar, data-editor,
+              chart-renderer, widget-renderer
+  features/   pan-zoom, artboard-transform, keyboard, history,
+              persistence, export-code
+  entities/   chart (model/rows/codegen), widget, artboard, editor
+  shared/     ui (fields, editors), lib, config
+tests/        vitest unit tests over the engine + models
 ```
 
 Imports inside `src/` only ever point downward (app → … → shared); each slice
