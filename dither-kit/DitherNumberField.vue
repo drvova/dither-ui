@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
+import { CONTROL, CONTROL_BUTTON } from "./control"
+import { cn } from "./lib"
 
 const props = withDefaults(
   defineProps<{
@@ -65,7 +67,7 @@ function onKeydown(event: KeyboardEvent) {
       type="button"
       aria-label="Decrease"
       :disabled="props.disabled || atMin"
-      class="size-8 rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+      :class="cn(CONTROL_BUTTON, 'size-10 rounded-md border border-border text-muted-foreground transition-colors hover:bg-card hover:text-foreground')"
       @click="set(props.modelValue - props.step)"
     >
       -
@@ -79,7 +81,7 @@ function onKeydown(event: KeyboardEvent) {
       :aria-valuemin="props.min"
       :aria-valuemax="props.max"
       :disabled="props.disabled"
-      class="w-16 rounded-md border border-border bg-background/60 px-3 py-2 text-center font-mono text-[13px] text-foreground tabular-nums outline-none transition-colors focus:border-accent/60 disabled:pointer-events-none disabled:opacity-40"
+      :class="cn(CONTROL, 'w-20 text-center tabular-nums')"
       @blur="onBlur"
       @keydown="onKeydown"
     />
@@ -87,7 +89,7 @@ function onKeydown(event: KeyboardEvent) {
       type="button"
       aria-label="Increase"
       :disabled="props.disabled || atMax"
-      class="size-8 rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+      :class="cn(CONTROL_BUTTON, 'size-10 rounded-md border border-border text-muted-foreground transition-colors hover:bg-card hover:text-foreground')"
       @click="set(props.modelValue + props.step)"
     >
       +

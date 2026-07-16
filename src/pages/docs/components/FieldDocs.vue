@@ -7,6 +7,7 @@ import {
   DitherFieldset,
   DitherForm,
   DitherInput,
+  DitherTextarea,
   DitherNumberField,
   DitherOtpField,
 } from "@dither-kit"
@@ -16,6 +17,7 @@ import PropsTable, { type PropRow } from "../PropsTable.vue"
 const name = ref("")
 const email = ref("not-an-email")
 const handle = ref("")
+const bio = ref("Dithered interfaces, composed with Vue.")
 const website = ref("")
 const profileName = ref("Ada Byte")
 const profileHandle = ref("ada")
@@ -40,6 +42,19 @@ const email = ref("not-an-email")
   </div>
 </template>`
 
+const SNIPPET_TEXTAREA = `<script setup lang="ts">
+import { ref } from "vue"
+import { DitherField, DitherTextarea } from "@dither-kit"
+
+const bio = ref("")
+<\/script>
+
+<template>
+  <DitherField label="Bio" description="A short introduction.">
+    <DitherTextarea v-model="bio" placeholder="Tell us what you make…" />
+  </DitherField>
+</template>`
+
 const SNIPPET_FIELD = `<script setup lang="ts">
 import { ref } from "vue"
 import { DitherField, DitherInput } from "@dither-kit"
@@ -50,11 +65,11 @@ const website = ref("")
 
 <template>
   <div class="grid gap-5">
-    <DitherField label="Handle" description="Lowercase, no spaces." for="field-handle">
-      <DitherInput id="field-handle" v-model="handle" placeholder="ada" />
+    <DitherField label="Handle" description="Lowercase, no spaces.">
+      <DitherInput v-model="handle" placeholder="ada" />
     </DitherField>
-    <DitherField label="Website" error="That URL does not resolve." for="field-website">
-      <DitherInput id="field-website" v-model="website" invalid placeholder="https://" />
+    <DitherField label="Website" error="That URL does not resolve.">
+      <DitherInput v-model="website" placeholder="https://" />
     </DitherField>
   </div>
 </template>`
@@ -132,8 +147,15 @@ const API: Record<string, PropRow[]> = {
     { prop: "modelValue", type: "string", default: '""' },
     { prop: "type", type: "string", default: '"text"' },
     { prop: "placeholder", type: "string", default: "—" },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "invalid", type: "boolean", default: "false" },
+    { prop: "disabled / readonly / invalid", type: "boolean", default: "false" },
+    { prop: "class", type: "string", default: "—" },
+  ],
+  textarea: [
+    { prop: "modelValue", type: "string", default: '""' },
+    { prop: "placeholder", type: "string", default: "—" },
+    { prop: "rows", type: "number", default: "4" },
+    { prop: "resize", type: '"none" | "vertical" | "horizontal" | "both"', default: '"vertical"' },
+    { prop: "disabled / readonly / invalid", type: "boolean", default: "false" },
     { prop: "class", type: "string", default: "—" },
   ],
   field: [
@@ -175,6 +197,22 @@ const API: Record<string, PropRow[]> = {
     <PropsTable :rows="API.input" />
   </section>
 
+  <section id="textarea" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Textarea</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The multiline companion to Input, with the same field context, invalid,
+      read-only, focus, and disabled contracts. Resize behavior stays explicit.
+    </p>
+    <DemoCard :code="SNIPPET_TEXTAREA">
+      <div class="mx-auto max-w-sm">
+        <DitherField label="Bio" description="A short introduction.">
+          <DitherTextarea v-model="bio" placeholder="Tell us what you make…" />
+        </DitherField>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.textarea" />
+  </section>
+
   <section id="field" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
@@ -184,11 +222,11 @@ const API: Record<string, PropRow[]> = {
     </p>
     <DemoCard :code="SNIPPET_FIELD">
       <div class="mx-auto grid max-w-sm gap-5">
-        <DitherField label="Handle" description="Lowercase, no spaces." for="field-handle">
-          <DitherInput id="field-handle" v-model="handle" placeholder="ada" />
+        <DitherField label="Handle" description="Lowercase, no spaces.">
+          <DitherInput v-model="handle" placeholder="ada" />
         </DitherField>
-        <DitherField label="Website" error="That URL does not resolve." for="field-website">
-          <DitherInput id="field-website" v-model="website" invalid placeholder="https://" />
+        <DitherField label="Website" error="That URL does not resolve.">
+          <DitherInput v-model="website" placeholder="https://" />
         </DitherField>
       </div>
     </DemoCard>

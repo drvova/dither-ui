@@ -267,6 +267,8 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "DitherColor | number", default: '"blue"' },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
+    { prop: "type", type: '"button" | "submit" | "reset"', default: '"button"' },
+    { prop: "loading / disabled", type: "boolean", default: "false" },
   ],
   avatar: [
     { prop: "name", type: "string", default: "—" },

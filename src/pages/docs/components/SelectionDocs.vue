@@ -196,7 +196,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "modelValue", type: "string", default: "—" },
     { prop: "placeholder", type: "string", default: '"Select…"' },
     { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "disabled", type: "boolean", default: "false" },
+    { prop: "disabled / invalid", type: "boolean", default: "false" },
     { prop: "class", type: "string", default: "—" },
   ],
   combobox: [

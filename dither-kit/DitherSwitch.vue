@@ -35,6 +35,7 @@ import { computed, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion, pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
+import { CONTROL_BUTTON } from "./control"
 
 const CELL = 2
 
@@ -56,7 +57,7 @@ const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(pro
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
-const trackRef = ref<HTMLButtonElement | null>(null)
+const trackRef = ref<HTMLSpanElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const reduce = ref(false)
 
@@ -82,32 +83,20 @@ watch(() => [props.modelValue, color.value, matrix.value], paint)
 
 <template>
   <button
-    ref="trackRef"
     type="button"
     role="switch"
     :aria-label="props.label"
     :aria-checked="props.modelValue"
     :disabled="props.disabled"
-    :class="
-      cn(
-        'relative inline-flex h-5 w-9 shrink-0 items-center overflow-hidden rounded-[3px] disabled:pointer-events-none disabled:opacity-40',
-        props.class
-      )
-    "
+    :class="cn(CONTROL_BUTTON, 'relative inline-flex size-10 shrink-0 items-center justify-center rounded-md', props.class)"
     @click="emit('update:modelValue', !props.modelValue)"
   >
-    <canvas
-      ref="canvasRef"
-      aria-hidden="true"
-      class="absolute inset-0 h-full w-full"
-      style="image-rendering: pixelated"
-    />
-    <span
-      class="relative size-3.5 rounded-[2px] bg-foreground"
-      :class="[
-        props.modelValue ? 'translate-x-[19px]' : 'translate-x-[3px]',
-        reduce ? '' : 'transition-transform duration-150',
-      ]"
-    />
+    <span ref="trackRef" class="relative inline-flex h-5 w-9 items-center overflow-hidden rounded-[3px]">
+      <canvas ref="canvasRef" aria-hidden="true" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
+      <span
+        class="relative size-3.5 rounded-[2px] bg-foreground"
+        :class="[props.modelValue ? 'translate-x-[19px]' : 'translate-x-[3px]', reduce ? '' : 'transition-transform duration-150']"
+      />
+    </span>
   </button>
 </template>

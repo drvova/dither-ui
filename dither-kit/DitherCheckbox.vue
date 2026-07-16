@@ -50,6 +50,7 @@ import { computed, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
+import { CONTROL_BUTTON } from "./control"
 
 const CELL = 2
 
@@ -95,7 +96,8 @@ watch(() => [props.modelValue, color.value, matrix.value], paint)
     :disabled="props.disabled"
     :class="
       cn(
-        'inline-flex items-center gap-2 text-left disabled:pointer-events-none disabled:opacity-40',
+        CONTROL_BUTTON,
+        'relative inline-flex min-h-10 items-center gap-2 text-left',
         props.class
       )
     "

@@ -65,6 +65,12 @@ This folder is the product; the `src/` app is its showcase and editor.
 - New components: export from `index.ts` alongside their public types;
   follow the existing shape (`withDefaults(defineProps<...>)`, ResizeObserver
   repaint, `image-rendering: pixelated`, `cn()` for class merge).
+- `control.ts` is the internal source for native-control geometry, focus rings,
+  disabled states, elevated popovers, and `DitherField` context. Inputs, textarea,
+  select, number field, button, checkbox, switch, and modal controls reuse it;
+  keep native elements and public component APIs rather than adding a base class.
+- `DitherField` supplies generated control/help IDs and error state to compatible
+  descendants. Explicit consumer `id`, `aria-describedby`, and invalid props win.
 - Respect `prefers-reduced-motion` inside the kit (see
   `pixelPrefersReducedMotion` / `prefersReducedMotion`) — consumers must not
   need to opt in.

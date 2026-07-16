@@ -64,6 +64,7 @@ export { default as DitherPreviewCard } from "./DitherPreviewCard.vue"
 
 // Fields & forms
 export { default as DitherInput } from "./DitherInput.vue"
+export { default as DitherTextarea } from "./DitherTextarea.vue"
 export { default as DitherField } from "./DitherField.vue"
 export { default as DitherFieldset } from "./DitherFieldset.vue"
 export { default as DitherForm } from "./DitherForm.vue"
@@ -71,7 +72,7 @@ export { default as DitherNumberField } from "./DitherNumberField.vue"
 export { default as DitherOtpField } from "./DitherOtpField.vue"
 
 // Selection
-export { default as DitherSelect } from "./DitherSelect.vue"
+export { default as DitherSelect, type Option } from "./DitherSelect.vue"
 export { default as DitherCombobox } from "./DitherCombobox.vue"
 export { default as DitherAutocomplete } from "./DitherAutocomplete.vue"
 export { default as DitherRadioGroup } from "./DitherRadioGroup.vue"

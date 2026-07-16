@@ -37,6 +37,8 @@ widgets/features; page-specific conventions live here.
   are computed from the picked state — what you see is what you copy.
 - `SNIPPETS`/computed code must match what the demo renders; API tables
   mirror actual kit prop defaults — update both when the kit API changes.
+  Core form controls share Field-generated IDs, help/error relationships, and
+  unified focus/invalid/disabled states; docs examples should show that path.
 - Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
   `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
   deep links both restore and remain shareable.

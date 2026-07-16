@@ -62,6 +62,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle, pixelMatrixFromSeed } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
+import { CONTROL_BUTTON } from "./control"
 
 const props = withDefaults(
   defineProps<{
@@ -70,9 +71,12 @@ const props = withDefaults(
     bloom?: PixelBloomInput
     cell?: number // css px per dither cell — chunkiness
     seed?: number
+    type?: "button" | "submit" | "reset"
+    loading?: boolean
+    disabled?: boolean
     class?: string
   }>(),
-  {}
+  { type: "button", loading: false, disabled: false }
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
@@ -155,7 +159,7 @@ function init(): (() => void) | undefined {
     hovered = false
     setTarget(0)
   }
-  const down = () => setTarget(1.5)
+  const down = () => { if (!button.disabled) setTarget(1.5) }
   const up = () => setTarget(hovered ? 1 : 0)
   button.addEventListener("pointerenter", enter)
   button.addEventListener("pointerleave", leave)
@@ -181,7 +185,7 @@ function init(): (() => void) | undefined {
 onMounted(() => {
   teardown = init()
 })
-watch([color, variant, bloom, cell, matrix], () => {
+watch([color, variant, bloom, cell, matrix, () => props.loading, () => props.disabled], () => {
   teardown?.()
   teardown = init()
 })
@@ -191,10 +195,13 @@ onBeforeUnmount(() => teardown?.())
 <template>
   <button
     ref="buttonRef"
-    type="button"
+    :type="props.type"
+    :disabled="props.loading || props.disabled"
+    :aria-busy="props.loading || undefined"
     :class="
       cn(
-        'relative isolate overflow-hidden rounded-md px-4 py-2 font-mono text-xs text-foreground transition-opacity focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40',
+        CONTROL_BUTTON,
+        'relative isolate inline-flex min-h-10 items-center justify-center gap-2 overflow-hidden rounded-md px-4 py-2 font-mono text-xs text-foreground transition-[opacity,scale] active:scale-[0.96] motion-reduce:transition-none',
         props.class
       )
     "
@@ -217,6 +224,9 @@ onBeforeUnmount(() => teardown?.())
         imageRendering: bloomStyle.imageRendering,
       }"
     />
+    <span v-if="props.loading" aria-hidden="true" class="relative grid grid-cols-3 gap-0.5">
+      <span v-for="n in 3" :key="n" class="size-1 bg-current opacity-70" />
+    </span>
     <span class="relative"><slot /></span>
   </button>
 </template>

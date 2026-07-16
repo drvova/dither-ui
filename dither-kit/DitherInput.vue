@@ -2,6 +2,7 @@
 import { computed } from "vue"
 import { cn } from "./lib"
 import { cssColor } from "./palette"
+import { CONTROL, useField } from "./control"
 
 defineOptions({ inheritAttrs: false })
 
@@ -11,6 +12,7 @@ const props = withDefaults(
     type?: string
     placeholder?: string
     disabled?: boolean
+    readonly?: boolean
     invalid?: boolean
     class?: string
   }>(),
@@ -18,29 +20,30 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
-
-// Inline style wins over the border-border / focus:border-accent classes,
-// so an invalid input stays red-bordered even while focused.
-const invalidStyle = computed(() =>
-  props.invalid ? { borderColor: cssColor("red") } : undefined
-)
+const field = useField()
+const invalid = computed(() => props.invalid || field?.invalid.value || false)
+const invalidStyle = computed(() => invalid.value ? { borderColor: cssColor("red") } : undefined)
 </script>
 
 <template>
   <input
-    v-bind="$attrs"
     :type="props.type"
     :value="props.modelValue"
     :placeholder="props.placeholder"
+    :id="($attrs.id as string | undefined) ?? field?.controlId.value"
     :disabled="props.disabled"
-    :aria-invalid="props.invalid || undefined"
+    :readonly="props.readonly"
+    :aria-invalid="invalid || undefined"
+    :aria-describedby="($attrs['aria-describedby'] as string | undefined) ?? field?.describedBy.value"
     :style="invalidStyle"
     :class="
       cn(
-        'w-full rounded-md border border-border bg-background/60 px-3 py-2 font-mono text-[13px] text-foreground outline-none placeholder:text-muted-foreground/60 transition-colors focus:border-accent/60 disabled:pointer-events-none disabled:opacity-40',
+        CONTROL,
+        'w-full read-only:cursor-default read-only:bg-card/40 read-only:text-muted-foreground',
         props.class
       )
     "
+    v-bind="$attrs"
     @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
   />
 </template>

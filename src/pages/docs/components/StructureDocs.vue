@@ -65,13 +65,12 @@ const open = ref(false)
 <\/script>
 
 <DitherButton @click="open = true">Open dialog</DitherButton>
-<DitherDialog :open="open" title="Confirm" @close="open = false">
-  <p class="text-[13px] text-muted-foreground">
-    Ship the dithered build to production?
-  </p>
-  <DitherButton color="green" class="mt-4" @click="open = false">
-    Confirm
-  </DitherButton>
+<DitherDialog :open="open" title="Confirm"
+  description="Ship the dithered build to production?" @close="open = false">
+  <p class="text-[13px] text-muted-foreground">Review the release before continuing.</p>
+  <template #footer>
+    <DitherButton color="green" @click="open = false">Confirm</DitherButton>
+  </template>
 </DitherDialog>`
 
 const SNIPPET_KBD = `<div class="flex items-center gap-6 text-xs">
@@ -103,6 +102,9 @@ const API: Record<string, PropRow[]> = {
   dialog: [
     { prop: "open", type: "boolean", default: "—" },
     { prop: "title", type: "string", default: "undefined" },
+    { prop: "description", type: "string", default: "undefined" },
+    { prop: "closeOnBackdrop", type: "boolean", default: "true" },
+    { prop: "class", type: "string", default: "—" },
   ],
   kbd: [{ prop: "class", type: "string", default: "undefined" }],
 }
@@ -167,19 +169,17 @@ const API: Record<string, PropRow[]> = {
   <section id="dialog" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Dialog</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A teleported modal — Escape or overlay click closes, the close button
-      takes focus on open. Bring your own body content.
+      A teleported modal with labelled title and description, trapped focus,
+      Escape/backdrop dismissal, focus restoration, and an optional action footer.
     </p>
     <DemoCard :code="SNIPPET_DIALOG">
       <div class="flex justify-center">
         <DitherButton @click="dialogOpen = true">Open dialog</DitherButton>
-        <DitherDialog :open="dialogOpen" title="Confirm" @close="dialogOpen = false">
-          <p class="text-[13px] leading-relaxed text-muted-foreground">
-            Ship the dithered build to production?
-          </p>
-          <DitherButton color="green" class="mt-4" @click="dialogOpen = false">
-            Confirm
-          </DitherButton>
+        <DitherDialog :open="dialogOpen" title="Confirm" description="Ship the dithered build to production?" @close="dialogOpen = false">
+          <p class="text-[13px] leading-relaxed text-muted-foreground">Review the release before continuing.</p>
+          <template #footer>
+            <DitherButton color="green" @click="dialogOpen = false">Confirm</DitherButton>
+          </template>
         </DitherDialog>
       </div>
     </DemoCard>
