@@ -38,9 +38,14 @@ export function blendRasterPixel(
 /** Upload a portable raster in one browser call. */
 export function putRasterBuffer(
   ctx: CanvasRenderingContext2D,
-  buffer: RasterBuffer
-): void {
-  const image = ctx.createImageData(buffer.width, buffer.height)
-  image.data.set(buffer.data)
-  ctx.putImageData(image, 0, 0)
+  buffer: RasterBuffer,
+  image?: ImageData
+): ImageData {
+  const target =
+    image?.width === buffer.width && image.height === buffer.height
+      ? image
+      : ctx.createImageData(buffer.width, buffer.height)
+  target.data.set(buffer.data)
+  ctx.putImageData(target, 0, 0)
+  return target
 }

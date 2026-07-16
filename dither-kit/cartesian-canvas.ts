@@ -70,6 +70,7 @@ function startCartesianLoop({
   canvas.height = rows
 
   const frame = createRasterBuffer(cols, rows)
+  let imageData: ImageData | undefined
 
   const bloomCtx = bloomCanvas?.getContext("2d") ?? null
   if (bloomCanvas) {
@@ -79,8 +80,6 @@ function startCartesianLoop({
 
   const reduce = prefersReducedMotion()
   const EASE = reduce ? 1 : 0.18
-  const animate = state.current.animate && !reduce
-  const duration = state.current.animationDuration
   const current: Record<string, Surface> = {}
 
   const paintFill = (intensity: number, reveal: number) => {
@@ -133,26 +132,43 @@ function startCartesianLoop({
   let animStart = 0
   let lastProg = -1
   let lastRevision = state.current.revision
-  let entranceReported = !animate
+  let lastAnimate = state.current.animate && !reduce
+  let lastDuration = state.current.animationDuration
+  let lastDelay = state.current.animationDelay
+  let entranceReported = !lastAnimate
   let intensity = 0
   let needsFill = true
   let lastPaintSig = ""
+  let lastBloomSig = ""
   let lastSelected: string | null | undefined = Symbol() as never
+  let lastMarker: number | null | undefined = Symbol() as never
+  let lastCrosshair: boolean | undefined
+  const schedule = () => {
+    if (!raf && visible()) raf = requestAnimationFrame(draw)
+  }
 
   const draw = (now: number) => {
-    if (!visible()) {
-      raf = 0
-      return // off-screen: pause the loop; useCanvasVisibility wakes it on re-entry
-    }
-    raf = requestAnimationFrame(draw)
+    raf = 0
+    if (!visible()) return // off-screen: pause until useCanvasVisibility wakes it
     const s = state.current
     if (!s.ready) return
     const tgt = targets.current
-    if (s.revision !== lastRevision) {
+    const animate = s.animate && !reduce
+    const duration = Math.max(1, s.animationDuration)
+    if (
+      s.revision !== lastRevision ||
+      animate !== lastAnimate ||
+      duration !== lastDuration ||
+      s.animationDelay !== lastDelay
+    ) {
       lastRevision = s.revision
+      lastAnimate = animate
+      lastDuration = duration
+      lastDelay = s.animationDelay
       animStart = 0
       lastProg = -1
-      entranceReported = false
+      entranceReported = !animate
+      needsFill = true
     }
     if (!animStart) animStart = now
     const prog = animate
@@ -210,27 +226,26 @@ function startCartesianLoop({
     } else intensity = itTarget
 
     const marker = s.hoverIndex != null ? s.hoverIndex : s.markerIndex
+    const sparkleMotion = s.sparkles && !reduce
     const winkDue =
-      !reduce && now - last >= 100 / Math.max(0.1, s.sparkleSpeed)
-    const paintSig = `${s.stackType}|${s.configKeys
-      .map((k) => JSON.stringify(s.seriesSpecs[k]?.variant ?? ""))
-      .join(",")}`
+      sparkleMotion && now - last >= 100 / Math.max(0.1, s.sparkleSpeed)
+    const paintSig = `${s.stackType}|${s.dimOpacity}|${JSON.stringify(s.configKeys.map((k) => [k, s.config[k]?.color, s.seriesSpecs[k]]))}`
+    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}|${s.hovered}`
     const sigChanged = paintSig !== lastPaintSig
     if (sigChanged) {
       lastPaintSig = paintSig
       needsFill = true
     }
-    if (
-      !(
-        moving ||
-        settling ||
-        winkDue ||
-        marker != null ||
-        progChanged ||
-        sigChanged
-      )
-    )
-      return
+    if (bloomSig !== lastBloomSig) {
+      lastBloomSig = bloomSig
+      needsFill = true
+    }
+    if (marker !== lastMarker || s.crosshair !== lastCrosshair) {
+      lastMarker = marker
+      lastCrosshair = s.crosshair
+      needsFill = true
+    }
+    if (!(moving || settling || sparkleMotion || progChanged || sigChanged || needsFill)) return
     if (progChanged) {
       lastProg = prog
       needsFill = true
@@ -248,7 +263,7 @@ function startCartesianLoop({
       needsFill = false
     }
     c.clearRect(0, 0, cols, rows)
-    putRasterBuffer(c, frame)
+    imageData = putRasterBuffer(c, frame, imageData)
 
     const mx =
       marker != null && s.dataLength > 1
@@ -272,6 +287,7 @@ function startCartesianLoop({
         bloomCtx.clearRect(0, 0, cols, rows)
         bloomCtx.drawImage(canvas, 0, 0)
       }
+      if ((animate && !entranceReported) || moving || settling) schedule()
       return
     }
     // Generative particle field — one loop, infinite motions. Each particle
@@ -343,13 +359,14 @@ function startCartesianLoop({
       bloomCtx.clearRect(0, 0, cols, rows)
       bloomCtx.drawImage(canvas, 0, 0)
     }
+    if (sparkleMotion || (animate && !entranceReported) || moving || settling) schedule()
   }
 
-  if (visible()) raf = requestAnimationFrame(draw)
+  if (visible()) schedule()
   return {
     stop: () => cancelAnimationFrame(raf),
     wake: () => {
-      if (!raf) raf = requestAnimationFrame(draw)
+      schedule()
     },
   }
 }
@@ -494,7 +511,40 @@ export const CartesianCanvas = defineComponent({
     }
 
     onMounted(restart)
-    watch(() => [backing.value.cols, backing.value.rows], restart)
+    watch(
+      () => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.plot.height, ctx.precompiled],
+      restart,
+      { flush: "post" }
+    )
+    watch(
+      () => [
+        targets.value,
+        ctx.revision,
+        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
+        ctx.seriesSpecs,
+        ctx.selectedDataKey,
+        ctx.focusDataKey,
+        ctx.hoverIndex,
+        ctx.markerIndex,
+        ctx.isMouseInChart,
+        ctx.hovered,
+        ctx.animate,
+        ctx.animationDuration,
+        ctx.animationDelay,
+        ctx.easing,
+        ctx.sparkles,
+        ctx.hoverLift,
+        ctx.sparkleDensity,
+        ctx.sparkleSpeed,
+        ctx.hoverStrength,
+        ctx.dimOpacity,
+        ctx.bloom,
+        ctx.bloomOnHover,
+        ctx.crosshair,
+      ],
+      () => loop?.wake(),
+      { flush: "post" }
+    )
     onBeforeUnmount(() => loop?.stop())
 
     return () => {
