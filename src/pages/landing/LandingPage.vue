@@ -17,7 +17,7 @@ const teaser = Array.from({ length: 18 }, (_, i) => ({
 const teaserConfig = { v: { color: "blue" as DitherColor } }
 const swatches: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
 
-const openStudio = () => (window.location.hash = "#/studio")
+const openStudio = () => location.assign("/studio")
 
 // Portraits + their reaction emotes, cropped from faces.webp — a thin band
 // sliced out of the source sheet (rows 766..900) so the landing loads ~70KB
@@ -63,7 +63,7 @@ onMounted(() => {
     <header class="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-xs">
       <span class="tracking-tight">dither-ui</span>
       <nav class="flex items-center gap-5 text-muted-foreground">
-        <a href="#/docs" class="-m-3 p-3 transition-colors hover:text-foreground">docs</a>
+        <a href="/docs" class="-m-3 p-3 transition-colors hover:text-foreground">docs</a>
         <a
           href="https://github.com/drvova/dither-ui"
           target="_blank"
@@ -71,7 +71,7 @@ onMounted(() => {
           class="-m-3 p-3 transition-colors hover:text-foreground"
           >github</a
         >
-        <a href="#/studio" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
+        <a href="/studio" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
       </nav>
     </header>
 
@@ -91,9 +91,9 @@ onMounted(() => {
           Charts, buttons, avatars and gradients — rendered
           <em class="text-foreground/80">pixel by pixel</em> on canvas. Built in
           the
-          <a href="#/studio" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">studio</a>,
+          <a href="/studio" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">studio</a>,
           documented in the
-          <a href="#/docs" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">docs</a>.
+          <a href="/docs" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">docs</a>.
         </p>
         <div class="reveal mt-10" style="--reveal-delay: 180ms">
           <DitherButton
@@ -142,10 +142,10 @@ onMounted(() => {
       <div class="mx-auto w-full max-w-4xl px-6 py-20">
         <div class="flex items-baseline justify-between">
           <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">inside the kit</p>
-          <a href="#/docs" class="-m-3 p-3 text-[11px] text-muted-foreground transition-colors hover:text-foreground">read the docs →</a>
+          <a href="/docs" class="-m-3 p-3 text-[11px] text-muted-foreground transition-colors hover:text-foreground">read the docs →</a>
         </div>
         <div class="mt-12 grid gap-x-12 gap-y-14 sm:grid-cols-3">
-          <a href="#/docs" class="group block">
+          <a href="/docs" class="group block">
             <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
               <AreaChart :data="teaser" :config="teaserConfig" :animate="false" :sparkles="false" :interactive="false" :margins="{ top: 4, right: 0, bottom: 0, left: 0 }">
                 <Area data-key="v" variant="gradient" />
@@ -156,7 +156,7 @@ onMounted(() => {
               Area, line, bar, pie and radar — composed from parts, dithered per cell.
             </p>
           </a>
-          <a href="#/docs" class="group block">
+          <a href="/docs" class="group block">
             <div inert class="flex h-24 flex-wrap content-center gap-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
               <DitherButton color="blue" variant="gradient">Save</DitherButton>
               <DitherButton color="green" variant="solid">Run</DitherButton>
@@ -167,7 +167,7 @@ onMounted(() => {
               Buttons, avatars, gradients and images — every fill drawn on canvas.
             </p>
           </a>
-          <a href="#/docs" class="group block">
+          <a href="/docs" class="group block">
             <div inert class="flex h-24 content-center items-center gap-3 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
               <span v-for="c in swatches" :key="c" class="size-5 rounded-[3px]" :style="{ backgroundColor: cssColor(c) }" />
             </div>

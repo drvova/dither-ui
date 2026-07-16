@@ -79,11 +79,13 @@ Default section order:
 - dither-ui: a dithered UI toolkit for Vue (dither-ui.com). Two halves:
   `dither-kit/` (the portable component library) and `src/` (site + studio).
 - Stack: Vue 3, TypeScript strict, Vite, Tailwind v4, d3-scale/d3-shape.
-  No vue-router (hash routing), no test framework, no emojis in code.
+  No vue-router; Vitest covers models/components; no emojis in code.
 - Aliases: `@` → `src/`, `@dither-kit` → `dither-kit/` (vite.config.ts +
   tsconfig paths — change both together).
-- Routes: `#/` landing · `#/docs[/section]` · `#/studio[/new/<type>]`.
-- Assets: `public/sprites.png` is the character sheet the landing crops from.
+- Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
+  routes remain supported for old links.
+- Assets: `public/faces.webp` is the measured portrait/emote band;
+  `public/sprites.webp` is the broader character sheet.
 
 ## Workflow Rules
 
@@ -95,6 +97,8 @@ Default section order:
   blocks the build, save a patch first and coordinate.
 - Commit at the end of every completed task; concise message naming the seam.
 - Fix root causes, not symptoms; no TODOs, stubs, or placeholder logic.
+- `.rpiv/` contains private local research/workflow artifacts: keep it ignored,
+  excluded from container contexts, and out of public commits.
 
 ## User Preferences
 

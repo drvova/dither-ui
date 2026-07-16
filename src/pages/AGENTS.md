@@ -38,12 +38,12 @@ widgets/features; page-specific conventions live here.
 - `SNIPPETS`/computed code must match what the demo renders; API tables
   mirror actual kit prop defaults — update both when the kit API changes.
 - Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
-  `activeId` + `aria-current`; hash mirrors section via
-  `history.replaceState("#/docs/<id>")`. Deep links restore on mount.
+  `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
+  deep links both restore and remain shareable.
 - Chrome: `.chrome` translucent header (scroll-edge fade, no hard border);
   honors `prefers-reduced-transparency`.
-- Chart sections link to `#/studio/new/<type>` — keep in sync with
-  `CHART_TYPES`.
+- Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
+  Studio also accepts legacy `#/studio/new/<type>` links.
 - Section packs live in subfolders as self-contained components (sections +
   snippets + local state) with a sibling `*-nav.ts` exporting nav items;
   DocsPage imports both and spreads the nav into the right group.
@@ -54,9 +54,9 @@ widgets/features; page-specific conventions live here.
 ### studio/
 
 - Boot order in `StudioPage.vue` matters: `hydrate()` → `startAutosave()` →
-  `startHistory()` → deep-link handling (`#/studio/new/<type>`), so deep-link
-  artboards are part of the restored doc and undoable; hash is cleaned via
-  `replaceState` to prevent refresh duplication.
+  `startHistory()` → deep-link handling (`/studio#new/<type>` or legacy
+  `#/studio/new/<type>`), so deep-link artboards are part of the restored doc
+  and undoable; the URL is cleaned via `replaceState` to prevent duplication.
 - Studio is canvas-first: Toolbar floats over the full-bleed canvas; Layers and
   Inspector are dismissible overlay panels; the searchable Library is the single
   insertion surface for charts, bespoke widgets, every public kit component,
@@ -68,9 +68,9 @@ widgets/features; page-specific conventions live here.
 
 ## Verification
 
-- Browser walk after changes: landing reveal + emote hover, docs deep link
-  reload (`#/docs/avatar`), studio deep link (`#/studio/new/pie`) creates and
-  selects exactly one artboard.
+- Browser walk after changes: landing reveal + emote hover, canonical and legacy
+  docs deep links (`/docs/avatar`, `#/docs/avatar`), and Studio deep links
+  (`/studio#new/pie`, `#/studio/new/pie`) each create/select exactly one artboard.
 
 ## Child DOX Index
 

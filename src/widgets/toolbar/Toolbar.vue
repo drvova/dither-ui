@@ -56,7 +56,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
 <template>
   <div class="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3">
     <div class="pointer-events-auto flex h-10 items-center rounded-lg border border-border/70 bg-background/95 px-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]">
-      <a href="#/" class="flex h-8 items-center gap-2 rounded-md px-2.5 text-xs text-foreground transition-colors hover:bg-card" aria-label="dither-ui home">
+      <a href="/" class="flex h-8 items-center gap-2 rounded-md px-2.5 text-xs text-foreground transition-colors hover:bg-card" aria-label="dither-ui home">
         <span class="size-2.5 rounded-[2px] bg-foreground" /><span>dither-ui</span>
       </a>
       <div class="relative border-l border-border/60 pl-1">

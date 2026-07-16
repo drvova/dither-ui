@@ -15,10 +15,14 @@
 	header @static Cache-Control "public, max-age=2592000"
 
 	# Entry HTML — never cache, so updates roll out instantly.
-	@html path / *.html
+	@html path / /docs /docs/ /docs/* /studio /studio/ /studio/* *.html
 	header @html Cache-Control "no-cache"
 
-	# Hash-routed SPA: any unknown path resolves to the shell.
+	# Canonical route documents expose route-specific metadata to crawlers.
+	@docs path /docs /docs/*
+	rewrite @docs /docs/index.html
+	@studio path /studio /studio/*
+	rewrite @studio /studio/index.html
 	try_files {path} /index.html
 	file_server
 }

@@ -7,7 +7,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
 ## Ownership
 
-- `app/` — entry, global styles/tokens, hash router (App.vue).
+- `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio (see `pages/AGENTS.md`).
 - `widgets/` — studio panels: toolbar, layer-tree, inspector, canvas,
   chart-renderer, widget-renderer, data-editor.
@@ -28,8 +28,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Layer imports flow downward only: pages → widgets → features → entities →
   shared. `@dither-kit` may be imported from any layer; nothing imports back
   into it.
-- Routing is hash-based in `app/App.vue`: `#/` landing, `#/docs[/section]`,
-  `#/studio[/new/<type>]`. Add vue-router only when route params outgrow this.
+- Canonical routes are `/`, `/docs[/section]`, and `/studio`; legacy
+  `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported. Route
+  entry HTML files own crawler-visible metadata; `app/App.vue` resolves both
+  path styles. Add vue-router only when route params outgrow this.
 - `entities/editor` is the sole mutation path for document state. History
   (`features/history`) snapshots `{artboards, groups}` — excludes viewport and
   selection deliberately; new document-shaped state must be added to both the

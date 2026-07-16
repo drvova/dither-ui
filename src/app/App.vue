@@ -19,23 +19,38 @@ const StudioPage = defineAsyncComponent({
   delay: 150,
 })
 
-// ponytail: hash routing over three routes; vue-router when params appear
-const hash = ref(window.location.hash)
-const onHash = () => (hash.value = window.location.hash)
-window.addEventListener("hashchange", onHash)
-onBeforeUnmount(() => window.removeEventListener("hashchange", onHash))
+// Clean paths are canonical for crawlers; migrate legacy hash links in place.
+type Route = "landing" | "docs" | "studio"
+if (location.pathname === "/" && location.hash.startsWith("#/docs"))
+  history.replaceState(null, "", location.hash.replace(/^#/, ""))
+else if (location.pathname === "/" && location.hash.startsWith("#/studio"))
+  history.replaceState(null, "", location.hash.replace(/^#\/studio\/?/, "/studio#"))
+
+const resolveRoute = (): Route => {
+  if (location.pathname.startsWith("/studio")) return "studio"
+  if (location.pathname.startsWith("/docs")) return "docs"
+  return "landing"
+}
+const route = ref(resolveRoute())
+const onRoute = () => (route.value = resolveRoute())
+window.addEventListener("hashchange", onRoute)
+window.addEventListener("popstate", onRoute)
+onBeforeUnmount(() => {
+  window.removeEventListener("hashchange", onRoute)
+  window.removeEventListener("popstate", onRoute)
+})
 
 watchEffect(() => {
-  document.title = hash.value.startsWith("#/studio")
-    ? "Studio — dither-ui"
-    : hash.value.startsWith("#/docs")
-      ? "Docs — dither-ui"
+  document.title = route.value === "studio"
+    ? "Studio — Build dithered Vue interfaces | dither-ui"
+    : route.value === "docs"
+      ? "Vue dither components and chart documentation | dither-ui"
       : "dither-ui — A dithered UI toolkit for Vue"
 })
 </script>
 
 <template>
-  <StudioPage v-if="hash.startsWith('#/studio')" />
-  <DocsPage v-else-if="hash.startsWith('#/docs')" />
+  <StudioPage v-if="route === 'studio'" />
+  <DocsPage v-else-if="route === 'docs'" />
   <LandingPage v-else />
 </template>

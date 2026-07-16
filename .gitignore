@@ -9,3 +9,6 @@ dist
 
 # local design reference — third-party / proprietary, not part of the product
 ui-laws/
+
+# local RPIV research, plans, and workflow artifacts
+.rpiv/

@@ -360,16 +360,21 @@ let observer: IntersectionObserver | null = null
 const smooth = () =>
   matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
 
+function docsUrl(id: string) {
+  return `${location.pathname.startsWith("/docs") ? "/docs" : "#/docs"}/${id}`
+}
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: smooth() })
-  history.replaceState(null, "", `#/docs/${id}`)
+  history.replaceState(null, "", docsUrl(id))
 }
 
 onMounted(() => {
   const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
 
-  // Deep link: #/docs/<section> — jump there once the sections have painted.
-  const target = window.location.hash.replace(/^#\/docs\/?/, "")
+  // Deep links support canonical /docs/<section> and legacy #/docs/<section>.
+  const target = location.pathname.startsWith("/docs/")
+    ? location.pathname.slice("/docs/".length)
+    : location.hash.replace(/^#\/docs\/?/, "")
   if (ids.includes(target)) {
     activeId.value = target
     // The deep link owns the scroll: stop the browser's own restoration from
@@ -390,7 +395,7 @@ onMounted(() => {
       const id = visible[0]?.target.id
       if (id && id !== activeId.value) {
         activeId.value = id
-        history.replaceState(null, "", `#/docs/${id}`)
+        history.replaceState(null, "", docsUrl(id))
       }
     },
     // Compensate for the 56px sticky chrome; trigger in the upper half.
@@ -655,7 +660,7 @@ const gradientCode = computed(
     <header class="chrome sticky top-0 z-40">
       <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6 text-xs">
         <div class="flex items-center gap-6">
-          <a href="#" class="tracking-tight transition-colors hover:text-foreground">dither-ui</a>
+          <a href="/" class="tracking-tight transition-colors hover:text-foreground">dither-ui</a>
           <span class="hidden text-muted-foreground sm:inline">docs</span>
         </div>
         <nav class="flex items-center gap-5 text-muted-foreground">
@@ -666,7 +671,7 @@ const gradientCode = computed(
             class="-m-3 p-3 transition-colors hover:text-foreground"
             >github</a
           >
-          <a href="#/studio" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
+          <a href="/studio" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
         </nav>
       </div>
     </header>
@@ -680,7 +685,7 @@ const gradientCode = computed(
             <ul class="mt-2.5 grid gap-1.5 border-l border-border/60">
               <li v-for="it in grp.items" :key="it.id">
                 <a
-                  :href="`#/docs/${it.id}`"
+                  :href="docsUrl(it.id)"
                   :aria-current="activeId === it.id ? 'true' : undefined"
                   class="-ml-px block border-l py-0.5 pl-3 text-[11px] transition-colors"
                   :class="activeId === it.id
@@ -1132,7 +1137,7 @@ const gradientCode = computed(
           <section id="area" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Area Chart</h2>
-              <a href="#/studio/new/area" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new area chart in the studio">open in studio →</a>
+              <a href="/studio#new/area" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new area chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Revenue against expenses, stacked. Hover for the tooltip; click a legend
@@ -1183,7 +1188,7 @@ const gradientCode = computed(
           <section id="line" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Line Chart</h2>
-              <a href="#/studio/new/line" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new line chart in the studio">open in studio →</a>
+              <a href="/studio#new/line" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new line chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Bright series lines with sparkles on the live edge; nest a
@@ -1223,7 +1228,7 @@ const gradientCode = computed(
           <section id="bar" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Bar Chart</h2>
-              <a href="#/studio/new/bar" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new bar chart in the studio">open in studio →</a>
+              <a href="/studio#new/bar" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new bar chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Organic vs paid traffic, grouped. Set
@@ -1261,7 +1266,7 @@ const gradientCode = computed(
           <section id="pie" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Pie Chart</h2>
-              <a href="#/studio/new/pie" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new pie chart in the studio">open in studio →</a>
+              <a href="/studio#new/pie" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new pie chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Browser share as a donut — click a slice or legend entry to isolate it.
@@ -1292,7 +1297,7 @@ const gradientCode = computed(
           <section id="radar" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Radar Chart</h2>
-              <a href="#/studio/new/radar" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new radar chart in the studio">open in studio →</a>
+              <a href="/studio#new/radar" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new radar chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Sprint health across five axes, this sprint against the last.

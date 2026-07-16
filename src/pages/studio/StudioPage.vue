@@ -22,13 +22,12 @@ hydrate()
 startAutosave()
 startHistory()
 
-// Deep link from the docs: #/studio/new/<type> adds that chart to the
-// restored document (after startHistory, so it is undoable) and cleans the
-// hash so a refresh does not duplicate it.
-const wanted = window.location.hash.match(/^#\/studio\/new\/([a-z]+)/)?.[1]
+// Deep links from docs support canonical /studio#new/<type> and legacy
+// #/studio/new/<type>; both add once after history starts, then clean the URL.
+const wanted = location.hash.match(/^(?:#new\/|#\/studio\/new\/)([a-z]+)/)?.[1]
 if (wanted && (CHART_TYPES as readonly string[]).includes(wanted)) {
   addArtboard(wanted as ChartType)
-  history.replaceState(null, "", "#/studio")
+  history.replaceState(null, "", location.pathname.startsWith("/studio") ? "/studio" : "#/studio")
 }
 
 // The studio is a wide-screen, pointer + keyboard tool (layer rail, inspector,
@@ -84,8 +83,8 @@ onBeforeUnmount(() => {
       desktop to design with the kit.
     </p>
     <div class="mt-2 flex items-center gap-5 text-[12px] text-muted-foreground">
-      <a href="#/docs" class="transition-colors hover:text-foreground">browse the docs →</a>
-      <a href="#/" class="transition-colors hover:text-foreground">home</a>
+      <a href="/docs" class="transition-colors hover:text-foreground">browse the docs →</a>
+      <a href="/" class="transition-colors hover:text-foreground">home</a>
     </div>
   </div>
 </template>

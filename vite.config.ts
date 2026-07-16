@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { fileURLToPath, URL } from "node:url"
 import vue from "@vitejs/plugin-vue"
 import tailwindcss from "@tailwindcss/vite"
@@ -9,6 +10,15 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@dither-kit": fileURLToPath(new URL("./dither-kit", import.meta.url)),
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        home: resolve(import.meta.dirname, "index.html"),
+        docs: resolve(import.meta.dirname, "docs/index.html"),
+        studio: resolve(import.meta.dirname, "studio/index.html"),
+      },
     },
   },
 })
