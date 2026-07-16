@@ -22,6 +22,15 @@ export type GradientRasterOptions = {
 const MAX_COLS = 960
 const MAX_ROWS = 600
 
+function finiteNumber(value: number, name: string): number {
+  if (!Number.isFinite(value)) throw new RangeError(`${name} must be finite`)
+  return value
+}
+
+function finiteOptional(value: number | undefined, name: string, fallback: number): number {
+  return finiteNumber(value ?? fallback, name)
+}
+
 /**
  * Compile a deterministic dither gradient without DOM or canvas APIs.
  *
@@ -29,9 +38,9 @@ const MAX_ROWS = 600
  * `sharp(Buffer.from(data), { raw: { width, height, channels: 4 } }).png()`.
  */
 export function renderDitherGradient(options: GradientRasterOptions): RasterBuffer {
-  const width = Math.max(0, Math.round(options.width))
-  const height = Math.max(0, Math.round(options.height))
-  const cell = Math.max(1, options.cell ?? 3)
+  const width = Math.max(0, Math.round(finiteNumber(options.width, "width")))
+  const height = Math.max(0, Math.round(finiteNumber(options.height, "height")))
+  const cell = Math.max(1, finiteOptional(options.cell, "cell", 3))
   const cols = Math.min(MAX_COLS, Math.max(4, Math.round(width / cell)))
   const rows = Math.min(MAX_ROWS, Math.max(4, Math.round(height / cell)))
   const from = fillOf(options.from ?? "blue")
@@ -79,8 +88,11 @@ export function renderDitherButton(
   options: ButtonRasterOptions,
   target?: RasterBuffer
 ): RasterBuffer {
-  const cols = Math.min(MAX_COLS, Math.max(4, Math.round(options.width / Math.max(1, options.cell ?? 2))))
-  const rows = Math.min(MAX_ROWS, Math.max(4, Math.round(options.height / Math.max(1, options.cell ?? 2))))
+  const width = finiteNumber(options.width, "width")
+  const height = finiteNumber(options.height, "height")
+  const cell = Math.max(1, finiteOptional(options.cell, "cell", 2))
+  const cols = Math.min(MAX_COLS, Math.max(4, Math.round(width / cell)))
+  const rows = Math.min(MAX_ROWS, Math.max(4, Math.round(height / cell)))
   const fill = fillOf(options.color ?? "blue")
   const variant = options.variant ?? "gradient"
   const intensity = options.intensity ?? 0

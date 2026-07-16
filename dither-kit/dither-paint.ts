@@ -4,6 +4,7 @@
 
 import type { AreaVariant } from "./chart-context"
 import { rgb, type Rgb, type Seed } from "./palette"
+import { xorshift32 } from "./pixel"
 import { blendRasterPixel, type RasterBuffer } from "./raster"
 
 // 4×4 ordered (Bayer) matrix, normalized to 0–1 thresholds — the exact matrix
@@ -133,6 +134,48 @@ export function geometryFromSeed(seed: number) {
     popOut: 4 + Math.floor(rand() * 6),
     rimWidth: 1 + rand() * 1.2,
     falloff: 0.3 + rand() * 0.4,
+  }
+}
+
+export type SpinnerParams = {
+  shape: number
+  flow: number
+  speed: number
+  dir: 1 | -1
+  arc: number
+  segments: number
+  spokes: number
+  innerRatio: number
+  taper: number
+  waveCount: number
+}
+
+export const SPINNER_DEFAULT: SpinnerParams = {
+  shape: 0,
+  flow: 0,
+  speed: 0.00064,
+  dir: 1,
+  arc: 0.75,
+  segments: 0,
+  spokes: 0,
+  innerRatio: 0.5,
+  taper: 0.8,
+  waveCount: 3,
+}
+
+export function spinnerFromSeed(seed: number): SpinnerParams {
+  const rand = xorshift32(Math.round(seed) ^ 0x2f72b4a1)
+  return {
+    shape: Math.floor(rand() * 3),
+    flow: Math.floor(rand() * 3),
+    speed: 0.0004 + rand() * 0.0009,
+    dir: rand() < 0.5 ? 1 : -1,
+    arc: 0.3 + rand() * 0.6,
+    segments: Math.floor(rand() ** 1.4 * 13),
+    spokes: Math.floor(rand() ** 2 * 7),
+    innerRatio: 0.3 + rand() * 0.45,
+    taper: 0.3 + rand() * 0.7,
+    waveCount: 2 + Math.floor(rand() * 3),
   }
 }
 

@@ -17,4 +17,9 @@ describe("server-safe raster compiler", () => {
     expect(raster.height).toBe(20)
     expect([...raster.data].some((value) => value > 0)).toBe(true)
   })
+
+  it("rejects non-finite raster dimensions and cell sizes", () => {
+    expect(() => renderDitherGradient({ width: Number.NaN, height: 40 })).toThrow(RangeError)
+    expect(() => renderDitherButton({ width: 160, height: 40, cell: Number.POSITIVE_INFINITY })).toThrow(RangeError)
+  })
 })

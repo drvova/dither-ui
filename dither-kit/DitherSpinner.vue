@@ -2,13 +2,13 @@
 import { rgb } from "./palette"
 import type { Rgb } from "./palette"
 import { blendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
+import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "./dither-paint"
 import {
   BAYER4,
   fillOf,
   type PixelColor,
   pixelMatrixFromSeed,
   pixelPrefersReducedMotion,
-  xorshift32,
 } from "./pixel"
 
 const CELL = 2
@@ -27,47 +27,6 @@ const TAU = Math.PI * 2
  * a travelling-wave donut — and everything between. Ranges bounded so no seed
  * is unreadable. ONE render loop draws any point; widen params, never branch
  * per preset. */
-export type SpinnerParams = {
-  shape: number // 0 circle ring, 1 square ring, 2 bar
-  flow: number // 0 sweep, 1 pulse, 2 wave
-  speed: number // phase advance per ms
-  dir: 1 | -1
-  arc: number // fraction of the outline the sweep head spans
-  segments: number // 0 = continuous; N = N dashes along the outline
-  spokes: number // 0 = none; N = radial petals (circle/square only)
-  innerRatio: number // hollow center as a fraction of outer extent
-  taper: number // brightness falloff behind the sweep head
-  waveCount: number // crests around the outline in wave flow
-}
-const SPINNER_DEFAULT: SpinnerParams = {
-  shape: 0,
-  flow: 0,
-  speed: 0.00064,
-  dir: 1,
-  arc: 0.75,
-  segments: 0,
-  spokes: 0,
-  innerRatio: 0.5,
-  taper: 0.8,
-  waveCount: 3,
-}
-
-function spinnerFromSeed(seed: number): SpinnerParams {
-  const rand = xorshift32(Math.round(seed) ^ 0x2f72b4a1)
-  return {
-    shape: Math.floor(rand() * 3),
-    flow: Math.floor(rand() * 3),
-    speed: 0.0004 + rand() * 0.0009, // ~770ms..2500ms per loop
-    dir: rand() < 0.5 ? 1 : -1,
-    arc: 0.3 + rand() * 0.6,
-    segments: Math.floor(rand() ** 1.4 * 13), // usually few, sometimes many
-    spokes: Math.floor(rand() ** 2 * 7), // petals are rarer
-    innerRatio: 0.3 + rand() * 0.45,
-    taper: 0.3 + rand() * 0.7,
-    waveCount: 2 + Math.floor(rand() * 3),
-  }
-}
-
 /** Perimeter coordinate 0..1 walking a unit-square outline, continuous across
  * corners — the square's answer to a circle's angle. */
 function squareT(sx: number, sy: number): number {
