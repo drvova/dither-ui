@@ -1,95 +1,38 @@
 <script lang="ts">
-import { rgb } from "./palette"
+import type { PixelBloomInput, PixelColor } from "./pixel"
 import {
-  BAYER4,
-  fillOf,
-  pixelMatrixFromSeed,
-  type PixelBloomInput,
-  type PixelColor,
-} from "./pixel"
+  precompiledSrc,
+  renderDitherGradient,
+  type DitherRenderMode,
+  type GradientDirection,
+  type PrecompiledDither,
+} from "./precompile"
+import { putRasterBuffer } from "./raster"
 
-// Backing-resolution caps — a background wash never needs more cells than this.
-const MAX_COLS = 960
-const MAX_ROWS = 600
-
-export type GradientDirection = "up" | "down" | "left" | "right"
-
-type PaintSpec = {
-  from: PixelColor
-  to: PixelColor | "transparent"
-  direction: GradientDirection
-  cell: number
-  opacity: number
-}
-
-function paintGradient(
-  canvas: HTMLCanvasElement,
-  bloomCanvas: HTMLCanvasElement | null,
-  width: number,
-  height: number,
-  matrix: number[][],
-  spec: PaintSpec
-): void {
-  const ctx = canvas.getContext("2d")
-  if (!ctx || width <= 0 || height <= 0) return
-  const cols = Math.min(MAX_COLS, Math.max(4, Math.round(width / spec.cell)))
-  const rows = Math.min(MAX_ROWS, Math.max(4, Math.round(height / spec.cell)))
-  canvas.width = cols
-  canvas.height = rows
-
-  const fromFill = fillOf(spec.from)
-  const toFill = spec.to === "transparent" ? null : fillOf(spec.to)
-  const o = spec.opacity
-
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const t =
-        spec.direction === "up"
-          ? 1 - (y + 0.5) / rows
-          : spec.direction === "down"
-            ? (y + 0.5) / rows
-            : spec.direction === "left"
-              ? 1 - (x + 0.5) / cols
-              : (x + 0.5) / cols
-      const density = 1 - t
-      const lit = density > matrix[y & 3][x & 3]
-      if (toFill) {
-        ctx.fillStyle = rgb(lit ? fromFill : toFill, 1, o)
-        ctx.fillRect(x, y, 1, 1)
-      } else {
-        const alpha = (lit ? 0.35 + 0.65 * density : 0.12 * density) * o
-        if (alpha <= 0.004) continue
-        ctx.fillStyle = rgb(fromFill, 1, alpha)
-        ctx.fillRect(x, y, 1, 1)
-      }
-    }
-  }
-
-  const bloomCtx = bloomCanvas?.getContext("2d") ?? null
-  if (bloomCanvas && bloomCtx) {
-    bloomCanvas.width = cols
-    bloomCanvas.height = rows
-    bloomCtx.drawImage(canvas, 0, 0)
-  }
-}
+export type { DitherRenderMode, GradientDirection, PrecompiledDither }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
 
-const props = defineProps<{
-  from?: PixelColor
-  to?: PixelColor | "transparent"
-  direction?: GradientDirection
-  cell?: number
-  opacity?: number
-  bloom?: PixelBloomInput
-  seed?: number
-  class?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    from?: PixelColor
+    to?: PixelColor | "transparent"
+    direction?: GradientDirection
+    cell?: number
+    opacity?: number
+    bloom?: PixelBloomInput
+    seed?: number
+    class?: string
+    renderMode?: DitherRenderMode
+    precompiled?: PrecompiledDither
+  }>(),
+  { renderMode: "live", precompiled: undefined }
+)
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effFrom = computed(() => props.from ?? s.value?.hue ?? "blue")
@@ -100,8 +43,7 @@ const effOpacity = computed(() => props.opacity ?? s.value?.opacity ?? 1)
 const effBloom = computed(
   () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
 )
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
-
+const precompiled = computed(() => precompiledSrc(props.precompiled))
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
@@ -109,33 +51,65 @@ const bloomStyle = computed(() => pixelBloomStyle(effBloom.value))
 
 let ro: ResizeObserver | null = null
 let timer = 0
+let restartToken = 0
+let imageData: ImageData | undefined
 function paint() {
   const wrap = wrapRef.value
   const canvas = canvasRef.value
-  if (!wrap || !canvas) return
+  if (!wrap || !canvas || precompiled.value) return
   const box = wrap.getBoundingClientRect()
-  paintGradient(canvas, bloomRef.value, box.width, box.height, matrix.value, {
+  const ctx = canvas.getContext("2d")
+  if (!ctx) return
+  const raster = renderDitherGradient({
+    width: box.width,
+    height: box.height,
     from: effFrom.value,
     to: effTo.value,
     direction: effDirection.value,
     cell: effCell.value,
     opacity: effOpacity.value,
+    seed: props.seed,
+  })
+  canvas.width = raster.width
+  canvas.height = raster.height
+  imageData = putRasterBuffer(ctx, raster, imageData)
+  const bloomCtx = bloomRef.value?.getContext("2d")
+  if (bloomRef.value && bloomCtx) {
+    bloomRef.value.width = raster.width
+    bloomRef.value.height = raster.height
+    bloomCtx.drawImage(canvas, 0, 0)
+  }
+}
+
+function stopRuntime() {
+  clearTimeout(timer)
+  timer = 0
+  ro?.disconnect()
+  ro = null
+}
+
+function startRuntime() {
+  const token = ++restartToken
+  stopRuntime()
+  if (precompiled.value) return
+  void nextTick(() => {
+    if (token !== restartToken || precompiled.value) return
+    timer = window.setTimeout(() => {
+      paint()
+      if (props.renderMode !== "static" && typeof ResizeObserver !== "undefined") {
+        ro = new ResizeObserver(paint)
+        if (wrapRef.value) ro.observe(wrapRef.value)
+      }
+    })
   })
 }
 
-onMounted(() => {
-  timer = window.setTimeout(() => {
-    paint()
-    if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(paint)
-      if (wrapRef.value) ro.observe(wrapRef.value)
-    }
-  })
-})
-watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom, matrix], paint)
+onMounted(startRuntime)
+watch(() => [precompiled.value, props.renderMode], startRuntime, { flush: "post" })
+watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom], paint, { flush: "post" })
 onBeforeUnmount(() => {
-  clearTimeout(timer)
-  ro?.disconnect()
+  restartToken += 1
+  stopRuntime()
 })
 </script>
 
@@ -145,13 +119,33 @@ onBeforeUnmount(() => {
     aria-hidden="true"
     :class="cn('pointer-events-none absolute inset-0 overflow-hidden', props.class)"
   >
+    <img
+      v-if="precompiled"
+      :src="precompiled"
+      alt=""
+      class="absolute inset-0 h-full w-full object-fill"
+      style="image-rendering: pixelated"
+    />
     <canvas
+      v-else
       ref="canvasRef"
       class="absolute inset-0 h-full w-full"
       style="image-rendering: pixelated"
     />
+    <img
+      v-if="precompiled && bloomStyle"
+      :src="precompiled"
+      alt=""
+      class="absolute inset-0 h-full w-full object-fill"
+      :style="{
+        filter: bloomStyle.filter,
+        opacity: bloomStyle.opacity,
+        mixBlendMode: bloomStyle.mixBlendMode,
+        imageRendering: bloomStyle.imageRendering,
+      }"
+    />
     <canvas
-      v-if="bloomStyle"
+      v-else-if="bloomStyle"
       ref="bloomRef"
       class="absolute inset-0 h-full w-full"
       :style="{

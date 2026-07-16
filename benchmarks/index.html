@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dither raster benchmark</title>
+    <style>
+      :root { color-scheme: dark; font: 14px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
+      body { max-width: 900px; margin: 40px auto; padding: 0 20px; background: #101012; color: #e8e8ec; }
+      button { padding: 8px 12px; color: inherit; background: #24242a; border: 1px solid #555563; cursor: pointer; }
+      table { width: 100%; margin-top: 24px; border-collapse: collapse; }
+      th, td { padding: 8px; text-align: right; border-bottom: 1px solid #303038; }
+      th:first-child, td:first-child { text-align: left; }
+      #status { min-height: 24px; color: #a9a9b6; }
+    </style>
+  </head>
+  <body>
+    <h1>Dither raster benchmark</h1>
+    <p id="status">Runs six measured batches after three warmups. Gradient samples use 960 × 600 CSS px at 2 px cells; button samples use 240 × 56 CSS px at 2 px cells.</p>
+    <button id="run" type="button">Run benchmark</button>
+    <table>
+      <thead><tr><th>Painter</th><th>Mean ms</th><th>Median ms</th><th>p95 ms</th><th>Canvas calls</th><th>RGBA allocations</th></tr></thead>
+      <tbody id="results"></tbody>
+    </table>
+    <script type="module" src="./raster.ts"></script>
+  </body>
+</html>

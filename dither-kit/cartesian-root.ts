@@ -17,6 +17,7 @@ import {
 } from "./chart-context"
 import { CommonChartKey } from "./common-context"
 import type { BloomInput, EasingInput } from "./dither-paint"
+import { precompiledSrc, type PrecompiledDither } from "./precompile"
 import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "./dither-paint"
 import { cn } from "./lib"
 import type { StackType } from "./scales"
@@ -63,6 +64,7 @@ export type CartesianChartProps = {
   onHoverChange?: (index: number | null) => void
   defaultSelectedDataKey?: string | null
   onSelectionChange?: (key: string | null) => void
+  precompiled?: PrecompiledDither
 }
 
 /**
@@ -118,6 +120,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
     hovered: { type: Boolean, default: false },
     bloom: { type: [String, Object, Number] as PropType<BloomInput | undefined>, default: undefined },
     bloomOnHover: { type: Boolean, default: false },
+    precompiled: { type: [String, Object] as PropType<PrecompiledDither | undefined>, default: undefined },
     defaultSelectedDataKey: {
       type: String as PropType<string | null>,
       default: null,
@@ -182,6 +185,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component) {
       bloom: () =>
         props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),
       bloomOnHover: () => props.bloomOnHover,
+      precompiled: () => precompiledSrc(props.precompiled),
       seed: () => props.seed,
       effect: () => props.effect,
       defaultSelectedDataKey: props.defaultSelectedDataKey,

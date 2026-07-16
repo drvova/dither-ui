@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onBeforeUnmount, ref, watchEffect } from "vue"
 import { LandingPage } from "@/pages/landing"
+import { appPathname, routePath } from "@/shared/lib"
 import PageLoader from "./PageLoader.vue"
 
 // Landing paints immediately — it is the entry and the shared link target.
@@ -21,14 +22,15 @@ const StudioPage = defineAsyncComponent({
 
 // Clean paths are canonical for crawlers; migrate legacy hash links in place.
 type Route = "landing" | "docs" | "studio"
-if (location.pathname === "/" && location.hash.startsWith("#/docs"))
-  history.replaceState(null, "", location.hash.replace(/^#/, ""))
-else if (location.pathname === "/" && location.hash.startsWith("#/studio"))
-  history.replaceState(null, "", location.hash.replace(/^#\/studio\/?/, "/studio#"))
+if (appPathname() === "/" && location.hash.startsWith("#/docs"))
+  history.replaceState(null, "", routePath(location.hash.replace(/^#/, "")))
+else if (appPathname() === "/" && location.hash.startsWith("#/studio"))
+  history.replaceState(null, "", routePath(location.hash.replace(/^#\/studio\/?/, "/studio#")))
 
 const resolveRoute = (): Route => {
-  if (location.pathname.startsWith("/studio")) return "studio"
-  if (location.pathname.startsWith("/docs")) return "docs"
+  const path = appPathname()
+  if (path.startsWith("/studio")) return "studio"
+  if (path.startsWith("/docs")) return "docs"
   return "landing"
 }
 const route = ref(resolveRoute())

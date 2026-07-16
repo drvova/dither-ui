@@ -3,8 +3,10 @@
 ## Purpose
 
 Self-contained Vue 3 component library: charts, buttons, avatars, gradients and
-images rendered on canvas through one ordered-dither (Bayer 4x4) engine.
-This folder is the product; the `src/` app is its showcase and editor.
+images rendered through one ordered-dither (Bayer 4x4) engine. Interactive
+surfaces use canvas; deterministic surfaces can use the dependency-free RGBA
+compiler and a packaged image URL. This folder is the product; the `src/` app
+is its showcase and editor.
 
 ## Ownership
 
@@ -77,6 +79,12 @@ This folder is the product; the `src/` app is its showcase and editor.
 - Canvas visibility defaults to paused until IntersectionObserver reports the
   element visible; do not start chart animation loops optimistically before the
   first visibility observation.
+- `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
+  must not import Vue, DOM APIs, or a server-specific image encoder. Consumers
+  own encoding, caching, and invalidation of packaged assets.
+- `precompiled` replaces only the dither plot/surface image; surrounding chart
+  composition remains available. `renderMode="static"` disables animation and
+  resize observation for standalone surfaces.
 - Chart composition: root provides context (`cartesian-root` / `polar-root`),
   children register series via contexts. Props are declared with explicit
   runtime defaults — keep API tables in `src/pages/docs` in sync when defaults

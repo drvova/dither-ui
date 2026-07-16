@@ -25,6 +25,7 @@ import {
   mulberry32,
 } from "./dither-paint"
 import { rgb } from "./palette"
+import { clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 
 type Star = { key: string; xi: number; depth: number; phase: number }
 type Surface = { top: number[]; floor: number[] }
@@ -68,11 +69,8 @@ function startCartesianLoop({
   canvas.width = cols
   canvas.height = rows
 
-  const off = document.createElement("canvas")
-  off.width = cols
-  off.height = rows
-  const octx = off.getContext("2d")
-  if (!octx) return undefined
+  const frame = createRasterBuffer(cols, rows)
+  let imageData: ImageData | undefined
 
   const bloomCtx = bloomCanvas?.getContext("2d") ?? null
   if (bloomCanvas) {
@@ -82,12 +80,10 @@ function startCartesianLoop({
 
   const reduce = prefersReducedMotion()
   const EASE = reduce ? 1 : 0.18
-  const animate = state.current.animate && !reduce
-  const duration = state.current.animationDuration
   const current: Record<string, Surface> = {}
 
   const paintFill = (intensity: number, reveal: number) => {
-    octx.clearRect(0, 0, cols, rows)
+    clearRasterBuffer(frame)
     const s = state.current
     const stacked = s.stackType === "stacked" || s.stackType === "percent"
     // Seeded reveal: a clean sweep by default, a scattered dissolve when the
@@ -119,7 +115,7 @@ function startCartesianLoop({
           const base = rev.reverse ? 1 - x / cols : x / cols
           if (base + (colNoise(x, seedInt) - 0.5) * rev.jitter > reveal) continue
         }
-        paintColumn(octx, x, cur.top[x] ?? 0, cur.floor[x] ?? 0, seed, {
+        paintColumn(frame, x, cur.top[x] ?? 0, cur.floor[x] ?? 0, seed, {
           variant,
           intensity,
           dim,
@@ -136,34 +132,43 @@ function startCartesianLoop({
   let animStart = 0
   let lastProg = -1
   let lastRevision = state.current.revision
-  let entranceReported = !animate
+  let lastAnimate = state.current.animate && !reduce
+  let lastDuration = state.current.animationDuration
+  let lastDelay = state.current.animationDelay
+  let entranceReported = !lastAnimate
   let intensity = 0
   let needsFill = true
   let lastPaintSig = ""
+  let lastBloomSig = ""
   let lastSelected: string | null | undefined = Symbol() as never
+  let lastMarker: number | null | undefined = Symbol() as never
+  let lastCrosshair: boolean | undefined
+  const schedule = () => {
+    if (!raf && visible()) raf = requestAnimationFrame(draw)
+  }
 
   const draw = (now: number) => {
-    if (!visible()) {
-      raf = 0
-      return // off-screen: pause the loop; useCanvasVisibility wakes it on re-entry
-    }
-    raf = requestAnimationFrame(draw)
+    raf = 0
+    if (!visible()) return // off-screen: pause until useCanvasVisibility wakes it
     const s = state.current
     if (!s.ready) return
-    if (bloomCtx) {
-      const on =
-        s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart || s.hovered)
-      if (on) {
-        bloomCtx.clearRect(0, 0, cols, rows)
-        bloomCtx.drawImage(canvas, 0, 0)
-      }
-    }
     const tgt = targets.current
-    if (s.revision !== lastRevision) {
+    const animate = s.animate && !reduce
+    const duration = Math.max(1, s.animationDuration)
+    if (
+      s.revision !== lastRevision ||
+      animate !== lastAnimate ||
+      duration !== lastDuration ||
+      s.animationDelay !== lastDelay
+    ) {
       lastRevision = s.revision
+      lastAnimate = animate
+      lastDuration = duration
+      lastDelay = s.animationDelay
       animStart = 0
       lastProg = -1
-      entranceReported = false
+      entranceReported = !animate
+      needsFill = true
     }
     if (!animStart) animStart = now
     const prog = animate
@@ -221,27 +226,29 @@ function startCartesianLoop({
     } else intensity = itTarget
 
     const marker = s.hoverIndex != null ? s.hoverIndex : s.markerIndex
+    const sparkleMotion = s.sparkles && !reduce
     const winkDue =
-      !reduce && now - last >= 100 / Math.max(0.1, s.sparkleSpeed)
-    const paintSig = `${s.stackType}|${s.configKeys
-      .map((k) => JSON.stringify(s.seriesSpecs[k]?.variant ?? ""))
-      .join(",")}`
+      sparkleMotion && now - last >= 100 / Math.max(0.1, s.sparkleSpeed)
+    const paintSig = `${s.stackType}|${s.dimOpacity}|${JSON.stringify(s.configKeys.map((k) => [k, s.config[k]?.color, s.seriesSpecs[k]]))}`
+    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}|${s.hovered}`
     const sigChanged = paintSig !== lastPaintSig
     if (sigChanged) {
       lastPaintSig = paintSig
       needsFill = true
     }
-    if (
-      !(
-        moving ||
-        settling ||
-        winkDue ||
-        marker != null ||
-        progChanged ||
-        sigChanged
-      )
-    )
+    if (bloomSig !== lastBloomSig) {
+      lastBloomSig = bloomSig
+      needsFill = true
+    }
+    if (marker !== lastMarker || s.crosshair !== lastCrosshair) {
+      lastMarker = marker
+      lastCrosshair = s.crosshair
+      needsFill = true
+    }
+    if (!(moving || settling || (sparkleMotion && winkDue) || progChanged || sigChanged || needsFill)) {
+      if (sparkleMotion) schedule()
       return
+    }
     if (progChanged) {
       lastProg = prog
       needsFill = true
@@ -259,7 +266,7 @@ function startCartesianLoop({
       needsFill = false
     }
     c.clearRect(0, 0, cols, rows)
-    c.drawImage(off, 0, 0)
+    imageData = putRasterBuffer(c, frame, imageData)
 
     const mx =
       marker != null && s.dataLength > 1
@@ -278,7 +285,14 @@ function startCartesianLoop({
       }
     }
 
-    if (!s.sparkles) return
+    if (!s.sparkles) {
+      if (bloomCtx && s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart || s.hovered)) {
+        bloomCtx.clearRect(0, 0, cols, rows)
+        bloomCtx.drawImage(canvas, 0, 0)
+      }
+      if ((animate && !entranceReported) || moving || settling) schedule()
+      return
+    }
     // Generative particle field — one loop, infinite motions. Each particle
     // drifts by the seeded velocity + gravity, twinkles, and trails; where it
     // lands in the band is blended by `flow` between the value line and free
@@ -344,13 +358,18 @@ function startCartesianLoop({
         }
       }
     }
+    if (bloomCtx && s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart || s.hovered)) {
+      bloomCtx.clearRect(0, 0, cols, rows)
+      bloomCtx.drawImage(canvas, 0, 0)
+    }
+    if (sparkleMotion || (animate && !entranceReported) || moving || settling) schedule()
   }
 
-  if (visible()) raf = requestAnimationFrame(draw)
+  if (visible()) schedule()
   return {
     stop: () => cancelAnimationFrame(raf),
     wake: () => {
-      if (!raf) raf = requestAnimationFrame(draw)
+      schedule()
     },
   }
 }
@@ -495,20 +514,62 @@ export const CartesianCanvas = defineComponent({
     }
 
     onMounted(restart)
-    watch(() => [backing.value.cols, backing.value.rows], restart)
+    watch(
+      () => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.plot.height, ctx.precompiled],
+      restart,
+      { flush: "post" }
+    )
+    watch(
+      () => [
+        targets.value,
+        ctx.revision,
+        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
+        ctx.seriesSpecs,
+        ctx.selectedDataKey,
+        ctx.focusDataKey,
+        ctx.hoverIndex,
+        ctx.markerIndex,
+        ctx.isMouseInChart,
+        ctx.hovered,
+        ctx.animate,
+        ctx.animationDuration,
+        ctx.animationDelay,
+        ctx.easing,
+        ctx.sparkles,
+        ctx.hoverLift,
+        ctx.sparkleDensity,
+        ctx.sparkleSpeed,
+        ctx.hoverStrength,
+        ctx.dimOpacity,
+        ctx.bloom,
+        ctx.bloomOnHover,
+        ctx.crosshair,
+      ],
+      () => loop?.wake(),
+      { flush: "post" }
+    )
     onBeforeUnmount(() => loop?.stop())
 
     return () => {
-      const bloomActive = ctx.bloomOnHover
-        ? ctx.isMouseInChart || ctx.hovered
-        : true
-      const bloom = bloomLayerStyle(ctx.bloom, bloomActive)
       const pos = {
         left: `${ctx.margins.left}px`,
         top: `${ctx.margins.top}px`,
         width: `${ctx.plot.width}px`,
         height: `${ctx.plot.height}px`,
       }
+      if (ctx.precompiled) {
+        return h("img", {
+          src: ctx.precompiled,
+          alt: "",
+          "aria-hidden": "true",
+          class: "pointer-events-none absolute",
+          style: { ...pos, imageRendering: "pixelated" },
+        })
+      }
+      const bloomActive = ctx.bloomOnHover
+        ? ctx.isMouseInChart || ctx.hovered
+        : true
+      const bloom = bloomLayerStyle(ctx.bloom, bloomActive)
       return [
         h("canvas", {
           ref: canvasRef,

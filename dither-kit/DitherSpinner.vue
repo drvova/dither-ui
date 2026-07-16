@@ -1,13 +1,14 @@
 <script lang="ts">
 import { rgb } from "./palette"
 import type { Rgb } from "./palette"
+import { blendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
+import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "./dither-paint"
 import {
   BAYER4,
   fillOf,
   type PixelColor,
   pixelMatrixFromSeed,
   pixelPrefersReducedMotion,
-  xorshift32,
 } from "./pixel"
 
 const CELL = 2
@@ -26,47 +27,6 @@ const TAU = Math.PI * 2
  * a travelling-wave donut — and everything between. Ranges bounded so no seed
  * is unreadable. ONE render loop draws any point; widen params, never branch
  * per preset. */
-export type SpinnerParams = {
-  shape: number // 0 circle ring, 1 square ring, 2 bar
-  flow: number // 0 sweep, 1 pulse, 2 wave
-  speed: number // phase advance per ms
-  dir: 1 | -1
-  arc: number // fraction of the outline the sweep head spans
-  segments: number // 0 = continuous; N = N dashes along the outline
-  spokes: number // 0 = none; N = radial petals (circle/square only)
-  innerRatio: number // hollow center as a fraction of outer extent
-  taper: number // brightness falloff behind the sweep head
-  waveCount: number // crests around the outline in wave flow
-}
-const SPINNER_DEFAULT: SpinnerParams = {
-  shape: 0,
-  flow: 0,
-  speed: 0.00064,
-  dir: 1,
-  arc: 0.75,
-  segments: 0,
-  spokes: 0,
-  innerRatio: 0.5,
-  taper: 0.8,
-  waveCount: 3,
-}
-
-function spinnerFromSeed(seed: number): SpinnerParams {
-  const rand = xorshift32(Math.round(seed) ^ 0x2f72b4a1)
-  return {
-    shape: Math.floor(rand() * 3),
-    flow: Math.floor(rand() * 3),
-    speed: 0.0004 + rand() * 0.0009, // ~770ms..2500ms per loop
-    dir: rand() < 0.5 ? 1 : -1,
-    arc: 0.3 + rand() * 0.6,
-    segments: Math.floor(rand() ** 1.4 * 13), // usually few, sometimes many
-    spokes: Math.floor(rand() ** 2 * 7), // petals are rarer
-    innerRatio: 0.3 + rand() * 0.45,
-    taper: 0.3 + rand() * 0.7,
-    waveCount: 2 + Math.floor(rand() * 3),
-  }
-}
-
 /** Perimeter coordinate 0..1 walking a unit-square outline, continuous across
  * corners — the square's answer to a circle's angle. */
 function squareT(sx: number, sy: number): number {
@@ -82,14 +42,15 @@ function squareT(sx: number, sy: number): number {
  * SHAPE, its brightness by FLOW, then carve detail and dither. `phase` (0..1)
  * advances over time. */
 function paintSpinner(
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | RasterBuffer,
   cells: number,
   fill: Rgb,
   phase: number,
   matrix: number[][] = BAYER4,
   p: SpinnerParams = SPINNER_DEFAULT
 ): void {
-  ctx.clearRect(0, 0, cells, cells)
+  if ("data" in ctx) clearRasterBuffer(ctx)
+  else ctx.clearRect(0, 0, cells, cells)
   const c = cells / 2
   const half = c - 0.5
   const arc = Math.max(0.05, Math.min(1, p.arc))
@@ -133,38 +94,48 @@ function paintSpinner(
       if (p.spokes > 0 && p.shape !== 2)
         bright *= 0.35 + 0.65 * Math.abs(Math.cos((ang * p.spokes) / 2)) ** 2
       if (bright <= 0 || bright <= matrix[y & 3][x & 3]) continue
-      ctx.fillStyle = rgb(fill, 1, 0.4 + 0.6 * bright)
-      ctx.fillRect(x, y, 1, 1)
+      const alpha = 0.4 + 0.6 * bright
+      if ("data" in ctx) blendRasterPixel(ctx, x, y, fill, alpha)
+      else {
+        ctx.fillStyle = rgb(fill, 1, alpha)
+        ctx.fillRect(x, y, 1, 1)
+      }
     }
   }
 }
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useCanvasVisibility } from "./use-visibility"
+import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "./precompile"
 
 const props = withDefaults(
   defineProps<{
     size?: number
     color?: PixelColor
     seed?: number
+    renderMode?: DitherRenderMode
+    precompiled?: PrecompiledDither
   }>(),
-  { size: 20, color: "blue" }
+  { size: 20, color: "blue", renderMode: "live", precompiled: undefined }
 )
 
-const spin = props.seed !== undefined ? spinnerFromSeed(props.seed) : SPINNER_DEFAULT
-const matrix = props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4
+const spin = computed(() => (props.seed !== undefined ? spinnerFromSeed(props.seed) : SPINNER_DEFAULT))
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
+const precompiled = computed(() => precompiledSrc(props.precompiled))
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 let teardown: (() => void) | undefined
 let wake: (() => void) | undefined
+let restartToken = 0
 // Pause the spin loop while scrolled/panned off-screen; resume on re-entry.
 const isVisible = useCanvasVisibility(canvasRef, () => wake?.())
 
 function init(): (() => void) | undefined {
   const canvas = canvasRef.value
+  if (precompiled.value) return undefined
   const ctx = canvas?.getContext("2d")
   if (!canvas || !ctx) return undefined
   const fill = fillOf(props.color)
@@ -174,20 +145,25 @@ function init(): (() => void) | undefined {
 
   let raf = 0
   let last = 0
+  let buffer = createRasterBuffer(cells, cells)
+  let imageData: ImageData | undefined
 
-  paintSpinner(ctx, cells, fill, 0, matrix, spin)
+  paintSpinner(buffer, cells, fill, 0, matrix.value, spin.value)
+  imageData = putRasterBuffer(ctx, buffer, imageData)
 
   wake = undefined
-  if (!pixelPrefersReducedMotion()) {
+  if (props.renderMode !== "static" && !pixelPrefersReducedMotion()) {
     const frame = (now: number) => {
-      if (!isVisible()) {
-        raf = 0
-        return // off-screen: pause the loop
+      raf = 0
+      if (!isVisible()) return // off-screen: pause the loop
+      if (now - last < 33) {
+        raf = requestAnimationFrame(frame)
+        return
       }
-      raf = requestAnimationFrame(frame)
-      if (now - last < 33) return // ~30fps
       last = now
-      paintSpinner(ctx, cells, fill, (now * spin.speed) % 1, matrix, spin)
+      paintSpinner(buffer, cells, fill, (now * spin.value.speed) % 1, matrix.value, spin.value)
+      imageData = putRasterBuffer(ctx, buffer, imageData)
+      raf = requestAnimationFrame(frame)
     }
     wake = () => {
       if (!raf) raf = requestAnimationFrame(frame)
@@ -200,22 +176,43 @@ function init(): (() => void) | undefined {
   }
 }
 
-onMounted(() => {
-  teardown = init()
-})
-watch(
-  () => [props.size, props.color],
-  () => {
-    teardown?.()
+function restartRuntime() {
+  const token = ++restartToken
+  teardown?.()
+  teardown = undefined
+  if (precompiled.value) return
+  void nextTick(() => {
+    if (token !== restartToken || precompiled.value) return
     teardown = init()
-  }
+  })
+}
+
+onMounted(restartRuntime)
+watch(
+  () => [props.size, props.color, props.seed, props.renderMode, precompiled.value],
+  restartRuntime,
+  { flush: "post" }
 )
-onBeforeUnmount(() => teardown?.())
+onBeforeUnmount(() => {
+  restartToken += 1
+  teardown?.()
+})
 </script>
 
 <template>
   <span role="status" aria-label="Loading" class="inline-flex">
+    <img
+      v-if="precompiled"
+      :src="precompiled"
+      alt=""
+      :style="{
+        width: `${props.size}px`,
+        height: `${props.size}px`,
+        imageRendering: 'pixelated',
+      }"
+    />
     <canvas
+      v-else
       ref="canvasRef"
       :style="{
         width: `${props.size}px`,

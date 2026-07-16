@@ -10,6 +10,7 @@ import { Inspector } from "@/widgets/inspector"
 import { LayerTree } from "@/widgets/layer-tree"
 import { Toolbar } from "@/widgets/toolbar"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
+import { routePath } from "@/shared/lib"
 
 const ExportDialog = defineAsyncComponent(() =>
   import("@/features/export-code").then((m) => m.ExportDialog)
@@ -27,7 +28,7 @@ startHistory()
 const wanted = location.hash.match(/^(?:#new\/|#\/studio\/new\/)([a-z]+)/)?.[1]
 if (wanted && (CHART_TYPES as readonly string[]).includes(wanted)) {
   addArtboard(wanted as ChartType)
-  history.replaceState(null, "", location.pathname.startsWith("/studio") ? "/studio" : "#/studio")
+  history.replaceState(null, "", routePath("/studio"))
 }
 
 // The studio is a wide-screen, pointer + keyboard tool (layer rail, inspector,
@@ -83,8 +84,8 @@ onBeforeUnmount(() => {
       desktop to design with the kit.
     </p>
     <div class="mt-2 flex items-center gap-5 text-[12px] text-muted-foreground">
-      <a href="/docs" class="transition-colors hover:text-foreground">browse the docs →</a>
-      <a href="/" class="transition-colors hover:text-foreground">home</a>
+      <a :href="routePath('/docs')" class="transition-colors hover:text-foreground">browse the docs →</a>
+      <a :href="routePath('/')" class="transition-colors hover:text-foreground">home</a>
     </div>
   </div>
 </template>

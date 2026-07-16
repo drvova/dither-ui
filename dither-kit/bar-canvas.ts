@@ -8,6 +8,7 @@ import {
   watch,
 } from "vue"
 import { type ChartContextValue, useChart } from "./chart-context"
+import { clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { useCanvasVisibility } from "./use-visibility"
 import {
   backingSize,
@@ -56,21 +57,21 @@ function startBarLoop({
   }
 
   const reduce = prefersReducedMotion()
-  const animate = state.current.animate && !reduce
-  const duration = state.current.animationDuration
   const fx = cols / Math.max(width, 1)
 
   const barProgress = (i: number, len: number, prog: number) => {
-    if (!animate) return 1
+    if (!state.current.animate || reduce) return 1
     const st = Math.min(0.9, Math.max(0, state.current.stagger))
     const start = len > 1 ? (i / (len - 1)) * st : 0
     return resolveEasing(state.current.easing)(clamp01((prog - start) / (1 - st)))
   }
 
   let intensity = 0
+  const frame = createRasterBuffer(cols, rows)
+  let imageData: ImageData | undefined
   const paint = (prog: number) => {
     const s = state.current
-    c.clearRect(0, 0, cols, rows)
+    clearRasterBuffer(frame)
     const stacked = s.stackType === "stacked" || s.stackType === "percent"
     const keys = s.configKeys
     keys.forEach((key, si) => {
@@ -93,7 +94,7 @@ function startBarLoop({
         const c0 = Math.round(slot.x * fx)
         const c1 = Math.round((slot.x + slot.width) * fx)
         for (let x = c0; x < c1; x++) {
-          paintColumn(c, x, top, base, seed, {
+          paintColumn(frame, x, top, base, seed, {
             variant,
             intensity: intensity + (active ? 0.4 : 0),
             dim: selDim * hoverDim,
@@ -108,31 +109,38 @@ function startBarLoop({
   let animStart = 0
   let lastProg = -1
   let lastRevision = state.current.revision
+  let lastAnimate = state.current.animate && !reduce
+  let lastDuration = state.current.animationDuration
+  let lastDelay = state.current.animationDelay
   let needsFill = true
   let lastPaintSig = ""
+  let lastBloomSig = ""
   let lastSelected: string | null | undefined = Symbol() as never
   let lastHover: number | null | undefined = Symbol() as never
+  const schedule = () => {
+    if (!raf && visible()) raf = requestAnimationFrame(draw)
+  }
 
   const draw = (now: number) => {
-    if (!visible()) {
-      raf = 0
-      return // off-screen: pause the loop; useCanvasVisibility wakes it on re-entry
-    }
-    raf = requestAnimationFrame(draw)
+    raf = 0
+    if (!visible()) return // off-screen: pause until useCanvasVisibility wakes it
     const s = state.current
     if (!s.ready) return
-    if (bloomCtx) {
-      const on =
-        s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart || s.hovered)
-      if (on) {
-        bloomCtx.clearRect(0, 0, cols, rows)
-        bloomCtx.drawImage(canvas, 0, 0)
-      }
-    }
-    if (s.revision !== lastRevision) {
+    const animate = s.animate && !reduce
+    const duration = Math.max(1, s.animationDuration)
+    if (
+      s.revision !== lastRevision ||
+      animate !== lastAnimate ||
+      duration !== lastDuration ||
+      s.animationDelay !== lastDelay
+    ) {
       lastRevision = s.revision
+      lastAnimate = animate
+      lastDuration = duration
+      lastDelay = s.animationDelay
       animStart = 0
       lastProg = -1
+      needsFill = true
     }
     if (!animStart) animStart = now
     const prog = animate
@@ -154,29 +162,41 @@ function startBarLoop({
     }
     const itTarget =
       s.hoverLift && (s.isMouseInChart || s.hovered) ? s.hoverStrength : 0
+    let settling = false
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
+      settling = true
       needsFill = true
     } else intensity = itTarget
 
-    const paintSig = `${s.stackType}|${s.configKeys
-      .map((k) => JSON.stringify(s.seriesSpecs[k]?.variant ?? ""))
-      .join(",")}`
+    const paintSig = `${s.stackType}|${s.dimOpacity}|${JSON.stringify(s.configKeys.map((k) => [k, s.config[k]?.color, s.seriesSpecs[k]]))}`
+    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}|${s.hovered}`
     if (paintSig !== lastPaintSig) {
       lastPaintSig = paintSig
       needsFill = true
     }
+    if (bloomSig !== lastBloomSig) {
+      lastBloomSig = bloomSig
+      needsFill = true
+    }
 
-    if (!needsFill) return
+    if (!(needsFill || settling || (animate && prog < 1))) return
     paint(prog)
+    c.clearRect(0, 0, cols, rows)
+    imageData = putRasterBuffer(c, frame, imageData)
+    if (bloomCtx && s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart || s.hovered)) {
+      bloomCtx.clearRect(0, 0, cols, rows)
+      bloomCtx.drawImage(canvas, 0, 0)
+    }
     needsFill = false
+    if (settling || (animate && prog < 1)) schedule()
   }
 
-  raf = requestAnimationFrame(draw)
+  if (visible()) schedule()
   return {
     stop: () => cancelAnimationFrame(raf),
     wake: () => {
-      if (!raf) raf = requestAnimationFrame(draw)
+      schedule()
     },
   }
 }
@@ -239,22 +259,56 @@ export const BarCanvas = defineComponent({
 
     onMounted(restart)
     watch(
-      () => [backing.value.cols, backing.value.rows, ctx.plot.width],
-      restart
+      () => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.precompiled],
+      restart,
+      { flush: "post" }
+    )
+    watch(
+      () => [
+        targets.value,
+        ctx.revision,
+        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
+        ctx.seriesSpecs,
+        ctx.selectedDataKey,
+        ctx.focusDataKey,
+        ctx.hoverIndex,
+        ctx.isMouseInChart,
+        ctx.hovered,
+        ctx.animate,
+        ctx.animationDuration,
+        ctx.animationDelay,
+        ctx.easing,
+        ctx.hoverLift,
+        ctx.hoverStrength,
+        ctx.dimOpacity,
+        ctx.bloom,
+        ctx.bloomOnHover,
+      ],
+      () => loop?.wake(),
+      { flush: "post" }
     )
     onBeforeUnmount(() => loop?.stop())
 
     return () => {
-      const bloomActive = ctx.bloomOnHover
-        ? ctx.isMouseInChart || ctx.hovered
-        : true
-      const bloom = bloomLayerStyle(ctx.bloom, bloomActive)
       const pos = {
         left: `${ctx.margins.left}px`,
         top: `${ctx.margins.top}px`,
         width: `${ctx.plot.width}px`,
         height: `${ctx.plot.height}px`,
       }
+      if (ctx.precompiled) {
+        return h("img", {
+          src: ctx.precompiled,
+          alt: "",
+          "aria-hidden": "true",
+          class: "pointer-events-none absolute",
+          style: { ...pos, imageRendering: "pixelated" },
+        })
+      }
+      const bloomActive = ctx.bloomOnHover
+        ? ctx.isMouseInChart || ctx.hovered
+        : true
+      const bloom = bloomLayerStyle(ctx.bloom, bloomActive)
       return [
         h("canvas", {
           ref: canvasRef,

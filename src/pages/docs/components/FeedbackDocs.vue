@@ -44,7 +44,8 @@ const SNIPPET_SPINNER = `<!-- default: a clean rotating arc -->
 
 <!-- a seed picks the FORM — arc, ring of dots, rotating petals, thin comet -->
 <DitherSpinner :seed="42" :size="28" />
-<DitherSpinner :seed="777" color="green" />`
+<DitherSpinner :seed="777" color="green" />
+<DitherSpinner render-mode="static" precompiled="/spinner.png" />`
 const SNIPPET_SEPARATOR = `<p>Charts render on canvas.</p>
 <DitherSeparator class="my-4" />
 <p>Fills threshold the same Bayer matrix.</p>
@@ -71,6 +72,8 @@ const API: Record<string, PropRow[]> = {
     { prop: "size", type: "number (px)", default: "20" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "seed", type: "number — samples a spinner form", default: "clean arc" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
   ],
   separator: [
     {

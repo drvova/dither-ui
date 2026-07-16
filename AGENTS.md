@@ -83,7 +83,10 @@ Default section order:
 - Aliases: `@` → `src/`, `@dither-kit` → `dither-kit/` (vite.config.ts +
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
-  routes remain supported for old links.
+  routes remain supported for old links. GitHub Pages deploys through
+  `.github/workflows/pages.yml`; default project base is `/dither-ui/`, set repo
+  variable `VITE_BASE_PATH=/` for a custom root domain and `PAGES_CNAME` for a
+  Pages CNAME.
 - Assets: `public/faces.webp` is the measured portrait/emote band;
   `public/sprites.webp` is the broader character sheet.
 

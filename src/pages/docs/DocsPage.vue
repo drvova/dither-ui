@@ -30,6 +30,7 @@ import {
   type PixelBloom,
 } from "@dither-kit"
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
+import { assetPath, appPathname, routePath } from "@/shared/lib"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import FormDocs from "./components/FormDocs.vue"
@@ -226,27 +227,93 @@ const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red
 
 const API: Record<string, PropRow[]> = {
   cartesian: [
-    { prop: "data", type: "Row[]", default: "—" },
-    { prop: "config", type: "ChartConfig", default: "—" },
+    { prop: "data", type: "Row[]", default: "required" },
+    { prop: "config", type: "ChartConfig", default: "required" },
     { prop: "stack-type", type: '"default" | "stacked" | "percent"', default: '"default"' },
+    { prop: "margins", type: "Partial<Margins>", default: "{}" },
+    { prop: "class", type: "string", default: "undefined" },
     { prop: "interactive", type: "boolean", default: "true" },
     { prop: "animate", type: "boolean", default: "true" },
-    { prop: "animation-duration", type: "number", default: "900" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
-    { prop: "margins", type: "Partial<Margins>", default: "{}" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "effect", type: "number", default: "seed / sparkle" },
+    { prop: "animation-duration", type: "number (ms)", default: "seed / 900" },
+    { prop: "animation-delay", type: "number (ms)", default: "seed / 0" },
+    { prop: "easing", type: "name | bezier tuple | number", default: "seed / chart default" },
+    { prop: "sparkles", type: "boolean", default: "true" },
+    { prop: "hover-lift", type: "boolean", default: "true" },
+    { prop: "stagger", type: "number", default: "seed / 0.55" },
+    { prop: "cell", type: "number (px)", default: "2" },
+    { prop: "sparkle-density", type: "number", default: "seed / 1" },
+    { prop: "sparkle-speed", type: "number", default: "seed / 1" },
+    { prop: "bar-gap", type: "number", default: "seed / 0.28" },
+    { prop: "bar-edge", type: "number", default: "seed / 0.18" },
+    { prop: "glow-size", type: "number", default: "seed / 0.16" },
+    { prop: "hover-strength", type: "number", default: "seed / 1" },
+    { prop: "dim-opacity", type: "number", default: "seed / 0.3" },
+    { prop: "crosshair", type: "boolean", default: "true" },
+    { prop: "replay-token", type: "number", default: "0" },
+    { prop: "marker-index", type: "number | null", default: "null" },
+    { prop: "hovered", type: "boolean", default: "false" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
+    { prop: "bloom-on-hover", type: "boolean", default: "false" },
+    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number } — packaged plot URL", default: "undefined" },
+    { prop: "default-selected-data-key", type: "string | null", default: "null" },
+    { prop: "on-hover-change", type: "(index: number | null) => void", default: "undefined" },
+    { prop: "on-selection-change", type: "(key: string | null) => void", default: "undefined" },
     { prop: "variant (series)", type: "name | TextureConfig | number (seed)", default: '"gradient"' },
   ],
   pie: [
-    { prop: "data / config", type: "Row[] / ChartConfig", default: "—" },
-    { prop: "data-key", type: "string", default: "—" },
-    { prop: "name-key", type: "string", default: "—" },
-    { prop: "inner-radius", type: "number 0…0.85", default: "0" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
+    { prop: "data", type: "Row[]", default: "required" },
+    { prop: "config", type: "ChartConfig", default: "required" },
+    { prop: "data-key", type: "string", default: '""' },
+    { prop: "name-key", type: "string", default: "required" },
+    { prop: "inner-radius", type: "number 0…0.85", default: "seed / 0" },
+    { prop: "margins", type: "Partial<Margins>", default: "{}" },
+    { prop: "class", type: "string", default: "undefined" },
+    { prop: "animate", type: "boolean", default: "true" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "animation-duration", type: "number (ms)", default: "seed / 900" },
+    { prop: "animation-delay", type: "number (ms)", default: "seed / 0" },
+    { prop: "easing", type: "name | bezier tuple | number", default: "seed / ease-in-out" },
+    { prop: "hover-lift", type: "boolean", default: "true" },
+    { prop: "cell", type: "number (px)", default: "2" },
+    { prop: "pop-out", type: "number", default: "seed / 6" },
+    { prop: "rim-width", type: "number", default: "seed / 1.4" },
+    { prop: "falloff", type: "number", default: "seed / 0.45" },
+    { prop: "hover-strength", type: "number", default: "seed / 1" },
+    { prop: "dim-opacity", type: "number", default: "seed / 0.3" },
+    { prop: "start-angle", type: "number", default: "seed / 0" },
+    { prop: "replay-token", type: "number", default: "0" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
+    { prop: "bloom-on-hover", type: "boolean", default: "false" },
+    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number } — packaged plot URL", default: "undefined" },
+    { prop: "default-selected-data-key", type: "string | null", default: "null" },
+    { prop: "on-selection-change", type: "(key: string | null) => void", default: "undefined" },
   ],
   radar: [
-    { prop: "data / config", type: "Row[] / ChartConfig", default: "—" },
-    { prop: "name-key", type: "string", default: "—" },
-    { prop: "rings", type: "number", default: "4" },
+    { prop: "data", type: "Row[]", default: "required" },
+    { prop: "config", type: "ChartConfig", default: "required" },
+    { prop: "name-key", type: "string", default: "required" },
+    { prop: "rings", type: "number", default: "seed / 4" },
+    { prop: "margins", type: "Partial<Margins>", default: "{}" },
+    { prop: "class", type: "string", default: "undefined" },
+    { prop: "animate", type: "boolean", default: "true" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "animation-duration", type: "number (ms)", default: "seed / 900" },
+    { prop: "animation-delay", type: "number (ms)", default: "seed / 0" },
+    { prop: "easing", type: "name | bezier tuple | number", default: "seed / ease-in-out" },
+    { prop: "hover-lift", type: "boolean", default: "true" },
+    { prop: "cell", type: "number (px)", default: "2" },
+    { prop: "falloff", type: "number", default: "seed / 0.45" },
+    { prop: "hover-strength", type: "number", default: "seed / 1" },
+    { prop: "dim-opacity", type: "number", default: "seed / 0.3" },
+    { prop: "start-angle", type: "number", default: "seed / 0" },
+    { prop: "replay-token", type: "number", default: "0" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
+    { prop: "bloom-on-hover", type: "boolean", default: "false" },
+    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number } — packaged plot URL", default: "undefined" },
+    { prop: "default-selected-data-key", type: "string | null", default: "null" },
+    { prop: "on-selection-change", type: "(key: string | null) => void", default: "undefined" },
   ],
   sparkline: [
     { prop: "data", type: "number[]", default: "—" },
@@ -264,11 +331,16 @@ const API: Record<string, PropRow[]> = {
     { prop: "effect", type: "number — dedicated edge-motion seed", default: "master seed / gentle" },
   ],
   button: [
-    { prop: "color", type: "DitherColor | number", default: '"blue"' },
-    { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
+    { prop: "color", type: "PixelColor", default: "seed / blue" },
+    { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: "seed / gradient" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
+    { prop: "cell", type: "number (px)", default: "seed / 2" },
+    { prop: "seed", type: "number", default: "undefined" },
     { prop: "type", type: '"button" | "submit" | "reset"', default: '"button"' },
     { prop: "loading / disabled", type: "boolean", default: "false" },
+    { prop: "class", type: "string", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
   ],
   avatar: [
     { prop: "name", type: "string", default: "—" },
@@ -279,18 +351,27 @@ const API: Record<string, PropRow[]> = {
     { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
   ],
   gradient: [
-    { prop: "from", type: "DitherColor", default: "—" },
-    { prop: "to", type: 'DitherColor | "transparent"', default: '"transparent"' },
-    { prop: "direction", type: '"up" | "down" | "left" | "right"', default: '"up"' },
-    { prop: "cell", type: "number (px)", default: "3" },
-    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "from", type: "PixelColor", default: "seed / blue" },
+    { prop: "to", type: 'PixelColor | "transparent"', default: '"transparent"' },
+    { prop: "direction", type: '"up" | "down" | "left" | "right"', default: "seed / up" },
+    { prop: "cell", type: "number (px)", default: "seed / 3" },
+    { prop: "opacity", type: "number 0…1", default: "seed / 1" },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "class", type: "string", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
   ],
   image: [
-    { prop: "src", type: "string", default: "—" },
-    { prop: "cell", type: "number (px)", default: "3" },
-    { prop: "focus-y", type: "number 0…1", default: "0.5" },
-    { prop: "fade", type: "number (px)", default: "0" },
+    { prop: "src", type: "string", default: "required" },
+    { prop: "cell", type: "number (px)", default: "seed / 3" },
+    { prop: "focus-y", type: "number 0…1", default: "seed / 0.5" },
+    { prop: "fade", type: "number (px)", default: "seed / 0" },
+    { prop: "seed", type: "number", default: "undefined" },
     { prop: "alt", type: "string", default: '""' },
+    { prop: "class", type: "string", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
   ],
   palette: [
     { prop: "cssColor(c)", type: "(DitherColor | number) → css string", default: "—" },
@@ -363,7 +444,7 @@ const smooth = () =>
   matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
 
 function docsUrl(id: string) {
-  return `${location.pathname.startsWith("/docs") ? "/docs" : "#/docs"}/${id}`
+  return routePath(`/docs/${id}`)
 }
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: smooth() })
@@ -374,8 +455,9 @@ onMounted(() => {
   const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
 
   // Deep links support canonical /docs/<section> and legacy #/docs/<section>.
-  const target = location.pathname.startsWith("/docs/")
-    ? location.pathname.slice("/docs/".length)
+  const path = appPathname()
+  const target = path.startsWith("/docs/")
+    ? path.slice("/docs/".length)
     : location.hash.replace(/^#\/docs\/?/, "")
   if (ids.includes(target)) {
     activeId.value = target
@@ -603,9 +685,10 @@ const config = {
 <DitherButton variant="dotted">Preview</DitherButton>
 <DitherButton variant="hatched">Cancel</DitherButton>
 
-<!-- colors, bloom, disabled -->
+<!-- colors, bloom, static raster -->
 <DitherButton color="green" bloom="low">Approve</DitherButton>
-<DitherButton color="red" disabled>Delete</DitherButton>`,
+<DitherButton color="red" disabled>Delete</DitherButton>
+<DitherButton render-mode="static" precompiled="/button.png">Saved</DitherButton>`,
   avatar: `<DitherAvatar name="ada" :size="24" />
 <DitherAvatar name="ada" :size="32" />
 <DitherAvatar name="ada" :size="48" />
@@ -613,10 +696,14 @@ const config = {
   gradient: `<div class="relative h-40">
   <DitherGradient from="blue" to="transparent" direction="up" />
 </div>
+<div class="relative h-24">
+  <DitherGradient render-mode="static" precompiled="/gradient.png" />
+</div>
 <!-- from/to: any DitherColor · direction: up · down · left · right
      cell: px per dither cell · opacity: 0…1 -->`,
   image: `<DitherImage src="/sprites.webp" :cell="3" :focus-y="0.62" :fade="72"
   alt="The dither-ui sprite sheet, re-dithered" class="h-64 w-full" />
+<DitherImage precompiled="/sprites-dither.png" alt="The dither-ui sprite sheet" />
 <!-- cell: px per dither cell · fade: dithered edge dissolve
      focus-y: cover-crop focus (0 top … 1 bottom) -->`,
   palette: `import { cssColor, type DitherColor } from "@dither-kit"
@@ -643,7 +730,8 @@ const buttonCode = computed(
   () =>
     `<DitherButton color="${btn.color}" variant="${btn.variant}"${btn.bloom === "off" ? "" : ` bloom="${btn.bloom}"`}>
   Deploy
-</DitherButton>`
+</DitherButton>
+<DitherButton render-mode="static" precompiled="/button.png">Saved</DitherButton>`
 )
 const avatarCode = computed(
   () => `<DitherAvatar name="${avatarName.value}" :size="48" />
@@ -652,6 +740,9 @@ const avatarCode = computed(
 const gradientCode = computed(
   () => `<div class="relative h-40">
   <DitherGradient from="${grad.from}" to="transparent" direction="${grad.direction}" />
+</div>
+<div class="relative h-24">
+  <DitherGradient render-mode="static" precompiled="/gradient.png" />
 </div>`
 )
 </script>
@@ -662,7 +753,7 @@ const gradientCode = computed(
     <header class="chrome sticky top-0 z-40">
       <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6 text-xs">
         <div class="flex items-center gap-6">
-          <a href="/" class="tracking-tight transition-colors hover:text-foreground">dither-ui</a>
+          <a :href="routePath('/')" class="tracking-tight transition-colors hover:text-foreground">dither-ui</a>
           <span class="hidden text-muted-foreground sm:inline">docs</span>
         </div>
         <nav class="flex items-center gap-5 text-muted-foreground">
@@ -673,7 +764,7 @@ const gradientCode = computed(
             class="-m-3 p-3 transition-colors hover:text-foreground"
             >github</a
           >
-          <a href="/studio" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
+          <a :href="routePath('/studio')" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
         </nav>
       </div>
     </header>
@@ -712,7 +803,7 @@ const gradientCode = computed(
 
           <!-- Mobile nav -->
           <nav class="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted-foreground lg:hidden">
-            <a v-for="it in GROUPS.flatMap((g) => g.items)" :key="it.id" :href="`#/docs/${it.id}`" class="transition-colors hover:text-foreground" :class="activeId === it.id ? 'text-foreground' : ''" @click.prevent="scrollTo(it.id)">
+            <a v-for="it in GROUPS.flatMap((g) => g.items)" :key="it.id" :href="docsUrl(it.id)" class="transition-colors hover:text-foreground" :class="activeId === it.id ? 'text-foreground' : ''" @click.prevent="scrollTo(it.id)">
               {{ it.label }}
             </a>
           </nav>
@@ -1139,7 +1230,7 @@ const gradientCode = computed(
           <section id="area" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Area Chart</h2>
-              <a href="/studio#new/area" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new area chart in the studio">open in studio →</a>
+              <a :href="`${routePath('/studio')}#new/area`" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new area chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Revenue against expenses, stacked. Hover for the tooltip; click a legend
@@ -1190,7 +1281,7 @@ const gradientCode = computed(
           <section id="line" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Line Chart</h2>
-              <a href="/studio#new/line" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new line chart in the studio">open in studio →</a>
+              <a :href="`${routePath('/studio')}#new/line`" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new line chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Bright series lines with sparkles on the live edge; nest a
@@ -1230,7 +1321,7 @@ const gradientCode = computed(
           <section id="bar" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Bar Chart</h2>
-              <a href="/studio#new/bar" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new bar chart in the studio">open in studio →</a>
+              <a :href="`${routePath('/studio')}#new/bar`" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new bar chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Organic vs paid traffic, grouped. Set
@@ -1268,7 +1359,7 @@ const gradientCode = computed(
           <section id="pie" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Pie Chart</h2>
-              <a href="/studio#new/pie" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new pie chart in the studio">open in studio →</a>
+              <a :href="`${routePath('/studio')}#new/pie`" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new pie chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Browser share as a donut — click a slice or legend entry to isolate it.
@@ -1299,7 +1390,7 @@ const gradientCode = computed(
           <section id="radar" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
               <h2 class="text-lg tracking-tight">Radar Chart</h2>
-              <a href="/studio#new/radar" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new radar chart in the studio">open in studio →</a>
+              <a :href="`${routePath('/studio')}#new/radar`" class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground" aria-label="Open a new radar chart in the studio">open in studio →</a>
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Sprint health across five axes, this sprint against the last.
@@ -1344,7 +1435,7 @@ const gradientCode = computed(
             <h2 class="text-lg tracking-tight">Button</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Canvas-filled button; density lifts on hover, blooms on press.
-              Four fills, seven colors, optional <code class="text-foreground/80">bloom</code>.
+              Four fills, seven colors, optional <code class="text-foreground/80">bloom</code>, and static/precompiled raster paths.
             </p>
             <DemoCard :code="buttonCode">
               <div class="grid justify-items-center gap-8">
@@ -1448,7 +1539,7 @@ const gradientCode = computed(
             </p>
             <DemoCard :code="SNIPPETS.image">
               <DitherImage
-                src="/sprites.webp"
+                :src="assetPath('/sprites.webp')"
                 alt="The dither-ui sprite sheet, re-dithered"
                 :cell="3"
                 :focus-y="0.62"

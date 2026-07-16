@@ -31,5 +31,41 @@ import { AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip } from "dither-ui"
 Every visual knob is a prop: colors accept palette names, hue numbers or hex;
 `variant` accepts presets or a full texture config; `bloom` accepts presets or
 `{ blur, brightness, opacity, saturate }`; `easing` accepts presets or
-cubic-bézier points — see the studio and docs in the repository for the full
-surface.
+cubic-bezier points.
+
+## Server precompilation
+
+`renderDitherGradient()` and `renderDitherButton()` are dependency-free
+server-safe compilers. They return `{ width, height, data }` RGBA buffers that
+can be encoded by the host application with PNG/WebP tooling such as `sharp`:
+
+```ts
+const raster = renderDitherGradient({ width: 960, height: 600, cell: 2, seed: 42 })
+const png = await sharp(Buffer.from(raster.data), {
+  raw: { width: raster.width, height: raster.height, channels: 4 },
+}).png().toBuffer()
+```
+
+Pass the resulting public URL as `precompiled` to a chart root or standalone
+surface. The kit currently exports compilers for gradient and button rasters;
+chart, image, and spinner precompiled URLs are consumed by the kit but generated,
+encoded, cached, and invalidated by the host app. The chart image replaces the
+dither canvas while its SVG and DOM children remain available. Use
+`renderMode="static"` when a client paint is needed but animation and resize
+observation are unnecessary.
+
+## Client cost controls
+
+`cell` controls backing resolution; larger cells mean fewer pixels to compute.
+The kit also pauses chart RAF loops while invisible, batches standalone surface
+pixels through one `putImageData`, and copies bloom layers only after a changed
+frame. `createRasterBuffer()` and `putRasterBuffer()` are exported for host code
+that wants the same reusable RGBA-buffer upload path. Keep `animate`, `sparkles`,
+and bloom off for static content, and use the precompiled path for content whose
+data and dimensions are known on the server.
+
+The repository benchmark is available at `/benchmarks/`; it records six measured
+batches after three warmups and reports mean, median, p95, canvas-call count, and
+RGBA allocation count. It covers the large gradient `fillRect` → `putImageData`
+path and button fresh-buffer versus reused-buffer rendering. See the root README
+for the current local baseline and reproduction command.

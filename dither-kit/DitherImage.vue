@@ -62,9 +62,10 @@ function paintImage(
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { kitFromSeed } from "./dither-paint"
+import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "./precompile"
 
 const props = withDefaults(
   defineProps<{
@@ -78,8 +79,10 @@ const props = withDefaults(
     fade?: number
     seed?: number
     class?: string
+    renderMode?: DitherRenderMode
+    precompiled?: PrecompiledDither
   }>(),
-  { alt: "" }
+  { alt: "", renderMode: "live", precompiled: undefined }
 )
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
@@ -87,6 +90,7 @@ const effCell = computed(() => props.cell ?? s.value?.cell ?? 3)
 const effFocusY = computed(() => props.focusY ?? s.value?.focusY ?? 0.5)
 const effFade = computed(() => props.fade ?? s.value?.fade ?? 0)
 const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const precompiled = computed(() => precompiledSrc(props.precompiled))
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -94,6 +98,7 @@ const img = new Image()
 img.crossOrigin = "anonymous"
 
 let ro: ResizeObserver | null = null
+let restartToken = 0
 function paint() {
   const wrap = wrapRef.value
   const canvas = canvasRef.value
@@ -103,22 +108,38 @@ function paint() {
 }
 
 function load() {
+  if (precompiled.value) return
   img.onload = paint
-  img.src = props.src
+  if (img.src !== props.src) img.src = props.src
+  else if (img.complete) paint()
 }
 
-onMounted(() => {
-  load()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(paint)
-    if (wrapRef.value) ro.observe(wrapRef.value)
-  }
-})
-watch(() => props.src, load)
-watch([effCell, effFocusY, effFade, matrix], paint)
-onBeforeUnmount(() => {
+function stopRuntime() {
   ro?.disconnect()
+  ro = null
   img.onload = null
+}
+
+function startRuntime() {
+  const token = ++restartToken
+  stopRuntime()
+  if (precompiled.value) return
+  void nextTick(() => {
+    if (token !== restartToken || precompiled.value) return
+    load()
+    if (props.renderMode !== "static" && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(paint)
+      if (wrapRef.value) ro.observe(wrapRef.value)
+    }
+  })
+}
+
+onMounted(startRuntime)
+watch(() => [props.src, precompiled.value, props.renderMode], startRuntime, { flush: "post" })
+watch([effCell, effFocusY, effFade, matrix], paint, { flush: "post" })
+onBeforeUnmount(() => {
+  restartToken += 1
+  stopRuntime()
 })
 </script>
 
@@ -130,7 +151,15 @@ onBeforeUnmount(() => {
     :aria-hidden="props.alt ? undefined : 'true'"
     :class="cn('relative overflow-hidden', props.class)"
   >
+    <img
+      v-if="precompiled"
+      :src="precompiled"
+      :alt="props.alt"
+      class="absolute inset-0 h-full w-full object-cover"
+      style="image-rendering: pixelated"
+    />
     <canvas
+      v-else
       ref="canvasRef"
       class="absolute inset-0 h-full w-full"
       style="image-rendering: pixelated"

@@ -226,22 +226,26 @@ export async function importDocument(file: File): Promise<boolean> {
   }
 }
 
-let stopWatch: WatchHandle | undefined
+let stopWatches: WatchHandle[] = []
+const scheduleSave = () => {
+  clearTimeout(timer)
+  timer = setTimeout(flushSave, 400)
+}
+
 export function startAutosave(): void {
-  stopWatch?.()
-  stopWatch = watch(
-    () => [editor.artboards, editor.groups, editor.viewport],
-    () => {
-      clearTimeout(timer)
-      timer = setTimeout(flushSave, 400)
-    },
-    { deep: true }
-  )
+  stopWatches.forEach((stop) => stop())
+  stopWatches = [
+    watch(() => [editor.artboards, editor.groups], scheduleSave, { deep: true }),
+    watch(
+      () => [editor.viewport.x, editor.viewport.y, editor.viewport.zoom],
+      scheduleSave
+    ),
+  ]
 }
 
 export function stopAutosave(): void {
-  stopWatch?.()
-  stopWatch = undefined
+  stopWatches.forEach((stop) => stop())
+  stopWatches = []
   if (timer) flushSave()
 }
 

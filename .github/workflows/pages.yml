@@ -1,0 +1,51 @@
+name: Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx vue-tsc --noEmit
+      - run: npx vite build
+        env:
+          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/dither-ui/' }}
+      - name: Prepare Pages artifact
+        run: |
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
+          if [ -n "${{ vars.PAGES_CNAME }}" ]; then
+            printf '%s\n' "${{ vars.PAGES_CNAME }}" > dist/CNAME
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

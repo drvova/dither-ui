@@ -50,8 +50,10 @@ export type PolarChartContextValue = {
   startAngle: number // degrees clockwise from 12 o'clock (pie)
   rings: number // concentric frame rings (radar)
   revision: number
+  variantRevision: number
   bloom: BloomInput
   bloomOnHover: boolean
+  precompiled: string | undefined
   seedOf: (key: string) => Seed
   variantOf: (key: string) => VariantInput
   registerVariant: (key: string, variant: VariantInput) => void
@@ -123,6 +125,7 @@ export type PolarControllerInput = {
   replayToken: () => number
   bloom: () => BloomInput
   bloomOnHover: () => boolean
+  precompiled: () => string | undefined
   defaultSelectedDataKey: string | null
   onSelectionChange?: (key: string | null) => void
 }
@@ -137,6 +140,7 @@ export function usePolarController(
   const cursorY = ref(0)
   const isMouseInChart = ref(false)
   const variants = ref<Record<string, VariantInput>>({})
+  const variantRevision = ref(0)
 
   const revision = ref(0)
   watch(
@@ -168,12 +172,14 @@ export function usePolarController(
   const registerVariant = (key: string, variant: VariantInput) => {
     if (variants.value[key] === variant) return
     variants.value = { ...variants.value, [key]: variant }
+    variantRevision.value += 1
   }
   const unregisterVariant = (key: string) => {
     if (!(key in variants.value)) return
     const next = { ...variants.value }
     delete next[key]
     variants.value = next
+    variantRevision.value += 1
   }
 
   const selectDataKey = (key: string | null) => {
@@ -348,11 +354,17 @@ export function usePolarController(
     get revision() {
       return revision.value
     },
+    get variantRevision() {
+      return variantRevision.value
+    },
     get bloom() {
       return input.bloom()
     },
     get bloomOnHover() {
       return input.bloomOnHover()
+    },
+    get precompiled() {
+      return input.precompiled()
     },
     seedOf,
     variantOf,

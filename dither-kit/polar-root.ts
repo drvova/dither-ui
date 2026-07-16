@@ -11,6 +11,7 @@ import {
 import type { ChartConfig, Margins } from "./chart-context"
 import { CommonChartKey } from "./common-context"
 import type { BloomInput, EasingInput } from "./dither-paint"
+import { precompiledSrc, type PrecompiledDither } from "./precompile"
 import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "./dither-paint"
 import { cn } from "./lib"
 import { axisAtAngle, sliceAtAngle } from "./polar"
@@ -54,6 +55,7 @@ export type PolarChartProps = {
   bloomOnHover?: boolean
   defaultSelectedDataKey?: string | null
   onSelectionChange?: (key: string | null) => void
+  precompiled?: PrecompiledDither
 }
 
 /** Builds a concrete polar chart component (PieChart, RadarChart) with the
@@ -98,6 +100,7 @@ export function definePolarChart(
       replayToken: { type: Number, default: 0 },
       bloom: { type: [String, Object, Number] as PropType<BloomInput | undefined>, default: undefined },
       bloomOnHover: { type: Boolean, default: false },
+      precompiled: { type: [String, Object] as PropType<PrecompiledDither | undefined>, default: undefined },
       defaultSelectedDataKey: {
         type: String as PropType<string | null>,
         default: null,
@@ -148,6 +151,7 @@ export function definePolarChart(
         bloom: () =>
           props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),
         bloomOnHover: () => props.bloomOnHover,
+        precompiled: () => precompiledSrc(props.precompiled),
         defaultSelectedDataKey: props.defaultSelectedDataKey,
         onSelectionChange: props.onSelectionChange,
       })

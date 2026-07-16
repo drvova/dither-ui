@@ -80,6 +80,7 @@ export type ChartContextValue = {
   hovered: boolean
   bloom: BloomInput
   bloomOnHover: boolean
+  precompiled: string | undefined
   seed: number | undefined
   effect: number | undefined
   seriesSpecs: Record<string, SeriesSpec>
@@ -185,6 +186,7 @@ export type ControllerInput = {
   hovered: () => boolean
   bloom: () => BloomInput
   bloomOnHover: () => boolean
+  precompiled: () => string | undefined
   seed: () => number | undefined
   effect: () => number | undefined
   defaultSelectedDataKey: string | null
@@ -432,6 +434,9 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     },
     get bloomOnHover() {
       return input.bloomOnHover()
+    },
+    get precompiled() {
+      return input.precompiled()
     },
     get seed() {
       return input.seed()

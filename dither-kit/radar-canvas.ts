@@ -15,9 +15,9 @@ import {
   resolveTexture,
   prefersReducedMotion,
 } from "./dither-paint"
-import { rgb } from "./palette"
 import { distToPolygonEdge, pointInPolygon, polarX, polarY } from "./polar"
 import { type PolarChartContextValue, usePolarChart } from "./polar-context"
+import { blendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { useCanvasVisibility } from "./use-visibility"
 
 type Box<T> = { readonly current: T }
@@ -56,15 +56,19 @@ function startRadarLoop({
   }
 
   const reduce = prefersReducedMotion()
-  const animate = state.current.animate && !reduce
-  const duration = state.current.animationDuration
+  const frame = createRasterBuffer(cols, rows)
+  let imageData: ImageData | undefined
   let raf = 0
   let animStart = 0
   let lastProg = -1
   let lastRevision = state.current.revision
+  let lastAnimate = state.current.animate && !reduce
+  let lastDuration = state.current.animationDuration
+  let lastDelay = state.current.animationDelay
   let intensity = 0
   let needsFill = true
   let lastPaintSig = ""
+  let lastBloomSig = ""
   let lastSelected: string | null | undefined = Symbol() as never
   let lastHover: number | null | undefined = Symbol() as never
 
@@ -93,7 +97,7 @@ function startRadarLoop({
   const paint = (prog: number) => {
     const s = state.current
     if (!s.radar) return
-    c.clearRect(0, 0, cols, rows)
+    clearRasterBuffer(frame)
     const polys = buildPolys(resolveEasing(state.current.easing)(prog))
     const band = Math.max(s.outerRadius * s.falloff, 1)
 
@@ -111,8 +115,7 @@ function startRadarLoop({
           const selDim = emphasis !== null && emphasis !== key ? s.dimOpacity : 1
           const dist = distToPolygonEdge(px, py, poly)
           if (dist < 1.4) {
-            c.fillStyle = rgb(seed.fill, 1, selDim)
-            c.fillRect(x, y, 1, 1)
+            blendRasterPixel(frame, x, y, seed.fill, selDim)
             covered = true
             continue
           }
@@ -127,8 +130,7 @@ function startRadarLoop({
           if (!lit && (tex.gaps || covered)) continue
           const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
           const alpha = Math.min(1, (lit ? k : k * tex.offTier) * selDim)
-          c.fillStyle = rgb(seed.fill, 1, alpha)
-          c.fillRect(x, y, 1, 1)
+          blendRasterPixel(frame, x, y, seed.fill, alpha)
           covered = true
         }
       }
@@ -142,32 +144,43 @@ function startRadarLoop({
         const bx = Math.round(p.x * fx)
         const by = Math.round(p.y * fy)
         const big = s.hoverIndex === i
-        c.fillStyle = rgb(seed.fill, 1, selDim)
         const sz = big ? 2 : 1
-        c.fillRect(bx - (sz - 1), by - (sz - 1), sz * 2 - 1, sz * 2 - 1)
+        const side = sz * 2 - 1
+        for (let yy = 0; yy < side; yy++) {
+          for (let xx = 0; xx < side; xx++) {
+            blendRasterPixel(frame, bx - (sz - 1) + xx, by - (sz - 1) + yy, seed.fill, selDim)
+          }
+        }
       })
     }
+    c.clearRect(0, 0, cols, rows)
+    imageData = putRasterBuffer(c, frame, imageData)
+  }
+
+  const schedule = () => {
+    if (!raf && visible()) raf = requestAnimationFrame(draw)
   }
 
   const draw = (now: number) => {
-    if (!visible()) {
-      raf = 0
-      return // off-screen: pause the loop; useCanvasVisibility wakes it on re-entry
-    }
-    raf = requestAnimationFrame(draw)
+    raf = 0
+    if (!visible()) return // off-screen: pause until useCanvasVisibility wakes it
     const s = state.current
     if (!s.ready || !s.radar) return
-    if (bloomCtx) {
-      const on = s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart)
-      if (on) {
-        bloomCtx.clearRect(0, 0, cols, rows)
-        bloomCtx.drawImage(canvas, 0, 0)
-      }
-    }
-    if (s.revision !== lastRevision) {
+    const animate = s.animate && !reduce
+    const duration = Math.max(1, s.animationDuration)
+    if (
+      s.revision !== lastRevision ||
+      animate !== lastAnimate ||
+      duration !== lastDuration ||
+      s.animationDelay !== lastDelay
+    ) {
       lastRevision = s.revision
+      lastAnimate = animate
+      lastDuration = duration
+      lastDelay = s.animationDelay
       animStart = 0
       lastProg = -1
+      needsFill = true
     }
     if (!animStart) animStart = now
     const prog = animate
@@ -184,8 +197,10 @@ function startRadarLoop({
       needsFill = true
     }
     const itTarget = s.hoverLift && s.isMouseInChart ? s.hoverStrength : 0
+    let settling = false
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
+      settling = true
       needsFill = true
     } else intensity = itTarget
     if (prog !== lastProg) {
@@ -193,23 +208,34 @@ function startRadarLoop({
       needsFill = true
     }
 
-    const paintSig = s.configKeys.map((k) => JSON.stringify(s.variantOf(k))).join(",")
+    const paintSig = `${s.outerRadius}|${s.falloff}|${s.dimOpacity}|${s.configKeys
+      .map((k) => [k, s.config[k]?.color, s.variantOf(k)])
+      .map((v) => JSON.stringify(v))
+      .join(",")}`
+    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}`
     if (paintSig !== lastPaintSig) {
       lastPaintSig = paintSig
       needsFill = true
     }
+    if (bloomSig !== lastBloomSig) {
+      lastBloomSig = bloomSig
+      needsFill = true
+    }
 
-    if (!needsFill) return
+    if (!(needsFill || settling || (animate && prog < 1))) return
     paint(prog)
+    if (bloomCtx && s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart)) {
+      bloomCtx.clearRect(0, 0, cols, rows)
+      bloomCtx.drawImage(canvas, 0, 0)
+    }
     needsFill = false
+    if (settling || (animate && prog < 1)) schedule()
   }
 
-  raf = requestAnimationFrame(draw)
+  if (visible()) schedule()
   return {
     stop: () => cancelAnimationFrame(raf),
-    wake: () => {
-      if (!raf) raf = requestAnimationFrame(draw)
-    },
+    wake: schedule,
   }
 }
 
@@ -250,22 +276,58 @@ export const RadarCanvas = defineComponent({
         backing.value.rows,
         ctx.plot.width,
         ctx.plot.height,
+        ctx.precompiled,
       ],
-      restart
+      restart,
+      { flush: "post" }
+    )
+    watch(
+      () => [
+        ctx.radar,
+        ctx.revision,
+        ctx.variantRevision,
+        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
+        ctx.selectedDataKey,
+        ctx.focusDataKey,
+        ctx.hoverIndex,
+        ctx.isMouseInChart,
+        ctx.animate,
+        ctx.animationDuration,
+        ctx.animationDelay,
+        ctx.easing,
+        ctx.hoverLift,
+        ctx.hoverStrength,
+        ctx.dimOpacity,
+        ctx.outerRadius,
+        ctx.falloff,
+        ctx.bloom,
+        ctx.bloomOnHover,
+      ],
+      () => loop?.wake(),
+      { flush: "post" }
     )
     onBeforeUnmount(() => loop?.stop())
 
     return () => {
-      const bloom = bloomLayerStyle(
-        ctx.bloom,
-        ctx.bloomOnHover ? ctx.isMouseInChart : true
-      )
       const pos = {
         left: `${ctx.margins.left}px`,
         top: `${ctx.margins.top}px`,
         width: `${ctx.plot.width}px`,
         height: `${ctx.plot.height}px`,
       }
+      if (ctx.precompiled) {
+        return h("img", {
+          src: ctx.precompiled,
+          alt: "",
+          "aria-hidden": "true",
+          class: "pointer-events-none absolute",
+          style: { ...pos, imageRendering: "pixelated" },
+        })
+      }
+      const bloom = bloomLayerStyle(
+        ctx.bloom,
+        ctx.bloomOnHover ? ctx.isMouseInChart : true
+      )
       return [
         h("canvas", {
           ref: canvasRef,
