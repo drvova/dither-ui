@@ -17,7 +17,7 @@ import {
 } from "./dither-paint"
 import { distToPolygonEdge, pointInPolygon, polarX, polarY } from "./polar"
 import { type PolarChartContextValue, usePolarChart } from "./polar-context"
-import { blendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
+import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { useCanvasVisibility } from "./use-visibility"
 
 type Box<T> = { readonly current: T }
@@ -44,7 +44,7 @@ function startRadarLoop({
   height,
   state,
 }: LoopArgs): { stop: () => void; wake: () => void } | undefined {
-  const c = canvas.getContext("2d")
+  const c = canvas.getContext("2d", { willReadFrequently: true })
   if (!c || cols <= 0 || rows <= 0) return undefined
   canvas.width = cols
   canvas.height = rows
@@ -115,7 +115,7 @@ function startRadarLoop({
           const selDim = emphasis !== null && emphasis !== key ? s.dimOpacity : 1
           const dist = distToPolygonEdge(px, py, poly)
           if (dist < 1.4) {
-            blendRasterPixel(frame, x, y, seed.fill, selDim)
+            setOrBlendRasterPixel(frame, x, y, seed.fill, selDim)
             covered = true
             continue
           }
@@ -130,7 +130,7 @@ function startRadarLoop({
           if (!lit && (tex.gaps || covered)) continue
           const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
           const alpha = Math.min(1, (lit ? k : k * tex.offTier) * selDim)
-          blendRasterPixel(frame, x, y, seed.fill, alpha)
+          setOrBlendRasterPixel(frame, x, y, seed.fill, alpha)
           covered = true
         }
       }
@@ -148,7 +148,7 @@ function startRadarLoop({
         const side = sz * 2 - 1
         for (let yy = 0; yy < side; yy++) {
           for (let xx = 0; xx < side; xx++) {
-            blendRasterPixel(frame, bx - (sz - 1) + xx, by - (sz - 1) + yy, seed.fill, selDim)
+            setOrBlendRasterPixel(frame, bx - (sz - 1) + xx, by - (sz - 1) + yy, seed.fill, selDim)
           }
         }
       })
@@ -279,6 +279,11 @@ export const RadarCanvas = defineComponent({
         ctx.precompiled,
       ],
       restart,
+      { flush: "post" }
+    )
+    watch(
+      () => ctx.ready,
+      () => loop?.wake(),
       { flush: "post" }
     )
     watch(

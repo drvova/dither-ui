@@ -3,23 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dither raster benchmark</title>
+    <title>Dither raster benchmark — real DOM</title>
     <style>
       :root { color-scheme: dark; font: 14px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
-      body { max-width: 900px; margin: 40px auto; padding: 0 20px; background: #101012; color: #e8e8ec; }
+      body { max-width: 1000px; margin: 40px auto; padding: 0 20px; background: #101012; color: #e8e8ec; }
       button { padding: 8px 12px; color: inherit; background: #24242a; border: 1px solid #555563; cursor: pointer; }
-      table { width: 100%; margin-top: 24px; border-collapse: collapse; }
-      th, td { padding: 8px; text-align: right; border-bottom: 1px solid #303038; }
+      button:disabled { opacity: 0.5; cursor: wait; }
+      input { padding: 6px 8px; color: inherit; background: #24242a; border: 1px solid #555563; width: 60px; text-align: right; font: inherit; }
+      label { font-size: 12px; color: #a9a9b6; }
+      .controls { display: flex; gap: 16px; align-items: center; margin-top: 16px; }
+      table { width: 100%; margin-top: 16px; border-collapse: collapse; }
+      th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid #303038; }
       th:first-child, td:first-child { text-align: left; }
+      th:last-child, td:last-child { text-align: left; font-size: 12px; color: #a9a9b6; }
+      thead th { font-size: 12px; color: #a9a9b6; }
+      .run-header { background: #1a1a1e; font-size: 12px; color: #7a7a8a; padding: 4px 8px; border-bottom: 1px solid #404048; }
+      .aggregate-header { background: #1e2a1e; font-size: 13px; color: #6a9a6a; padding: 6px 8px; border-bottom: 1px solid #2a4a2a; font-weight: bold; }
+      .warning { color: #c9a93a; }
       #status { min-height: 24px; color: #a9a9b6; }
+      h1 { font-size: 18px; }
+      p { color: #a9a9b6; font-size: 12px; }
     </style>
   </head>
   <body>
     <h1>Dither raster benchmark</h1>
-    <p id="status">Runs six measured batches after three warmups. Gradient samples use 960 × 600 CSS px at 2 px cells; button samples use 240 × 56 CSS px at 2 px cells.</p>
-    <button id="run" type="button">Run benchmark</button>
+    <p>Mounts real Vue components in the DOM, measures compute time (mount→nextTick)
+       and full end-to-end time (mount→visible canvas pixels via RAF + readback).
+       Compute time is the kit's actual work; full time includes the RAF frame wait.
+       Compares live vs static renderMode, prop-change re-renders, and raw raster paths.
+       Each scenario runs 3 warmups + N measured batches per run.</p>
+    <div class="controls">
+      <label>Runs: <input id="runCount" type="number" min="1" max="20" value="5" /></label>
+      <label>Batches: <input id="batchCount" type="number" min="3" max="50" value="10" /></label>
+      <button id="run" type="button">Run benchmark</button>
+    </div>
+    <p id="status">Click Run to start.</p>
+    <div id="stage"></div>
     <table>
-      <thead><tr><th>Painter</th><th>Mean ms</th><th>Median ms</th><th>p95 ms</th><th>Canvas calls</th><th>RGBA allocations</th></tr></thead>
+      <thead><tr><th>Scenario</th><th>Mean ms</th><th>Median ms</th><th>p95 ms</th><th>Min ms</th><th>Max ms</th><th>Notes (full=RAF incl.)</th></tr></thead>
       <tbody id="results"></tbody>
     </table>
     <script type="module" src="./raster.ts"></script>

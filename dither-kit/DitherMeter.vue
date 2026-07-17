@@ -64,7 +64,7 @@ let cols = 0
 const rows = 3 // h-1.5 track at CELL=2
 
 function paint() {
-  const ctx = canvasRef.value?.getContext("2d")
+  const ctx = canvasRef.value?.getContext("2d", { willReadFrequently: true })
   if (!ctx || cols <= 0) return
   paintMeter(ctx, cols, rows, fillOf(zone.value), fillOf("grey"), ratio.value)
 }
@@ -81,11 +81,13 @@ function resize() {
 
 let ro: ResizeObserver | null = null
 onMounted(() => {
-  resize()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(resize)
-    if (rootRef.value) ro.observe(rootRef.value)
-  }
+  requestAnimationFrame(() => {
+    resize()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(resize)
+      if (rootRef.value) ro.observe(rootRef.value)
+    }
+  })
 })
 watch(() => [props.value, props.min, props.max, props.low, props.high], paint)
 onBeforeUnmount(() => ro?.disconnect())

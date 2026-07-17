@@ -6,7 +6,7 @@ const CELL = 2
 
 /** Paint the 3px left rail — DitherCollapsible's vertical dither ramp. */
 function paintRail(canvas: HTMLCanvasElement, color: PixelColor, matrix: number[][] = BAYER4): void {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   const height = canvas.offsetHeight
   if (!ctx || height <= 0) return
   const rows = Math.max(4, Math.round(height / CELL))

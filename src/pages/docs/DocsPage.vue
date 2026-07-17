@@ -341,6 +341,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "class", type: "string", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
+    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 (live) · 320 / 200 (static)" },
   ],
   avatar: [
     { prop: "name", type: "string", default: "—" },
@@ -361,6 +362,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "class", type: "string", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
+    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 (live) · 320 / 200 (static)" },
   ],
   image: [
     { prop: "src", type: "string", default: "required" },
@@ -372,6 +374,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "class", type: "string", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
+    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 (live) · 320 / 200 (static)" },
   ],
   palette: [
     { prop: "cssColor(c)", type: "(DitherColor | number) → css string", default: "—" },
@@ -700,7 +703,8 @@ const config = {
   <DitherGradient render-mode="static" precompiled="/gradient.png" />
 </div>
 <!-- from/to: any DitherColor · direction: up · down · left · right
-     cell: px per dither cell · opacity: 0…1 -->`,
+     cell: px per dither cell · opacity: 0…1
+     max-cols / max-rows: backing-resolution caps (default 960×600 live, 320×200 static) -->`,
   image: `<DitherImage src="/sprites.webp" :cell="3" :focus-y="0.62" :fade="72"
   alt="The dither-ui sprite sheet, re-dithered" class="h-64 w-full" />
 <DitherImage precompiled="/sprites-dither.png" alt="The dither-ui sprite sheet" />
@@ -1190,7 +1194,7 @@ const gradientCode = computed(
             </p>
             <DemoCard :code="SNIPPETS.signin">
               <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
-                <DitherGradient from="blue" to="transparent" direction="up" :opacity="0.18" :cell="3" class="-z-10" />
+                <DitherGradient from="blue" to="transparent" direction="up" :opacity="0.18" :cell="4" render-mode="static" class="-z-10" />
                 <div class="flex items-center gap-2">
                   <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
                   <span class="text-[12px] tracking-tight">dither-ui</span>

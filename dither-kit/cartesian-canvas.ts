@@ -64,7 +64,7 @@ function startCartesianLoop({
   effect,
   glyph,
 }: LoopArgs): { stop: () => void; wake: () => void } | undefined {
-  const c = canvas.getContext("2d")
+  const c = canvas.getContext("2d", { willReadFrequently: true })
   if (!c || cols <= 0 || rows <= 0) return undefined
   canvas.width = cols
   canvas.height = rows
@@ -517,6 +517,14 @@ export const CartesianCanvas = defineComponent({
     watch(
       () => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.plot.height, ctx.precompiled],
       restart,
+      { flush: "post" }
+    )
+    // Ensure the loop wakes when the chart becomes ready (dimensions > 0).
+    // This covers the race where IntersectionObserver fires before ResizeObserver,
+    // causing restart() to skip schedule() because visible() is still false.
+    watch(
+      () => ctx.ready,
+      () => loop?.wake(),
       { flush: "post" }
     )
     watch(

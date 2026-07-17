@@ -17,8 +17,8 @@ export function useCanvasVisibility(
     if (typeof IntersectionObserver === "undefined" || !el.value) return
     io = new IntersectionObserver(([entry]) => {
       const v = entry?.isIntersecting ?? true
-      if (v && !visible.value) onWake?.() // re-entered view — resume the paused loop
       visible.value = v
+      if (v) onWake?.() // now visible — resume the paused loop
     })
     io.observe(el.value)
   })

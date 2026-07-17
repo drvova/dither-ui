@@ -46,7 +46,7 @@ const dots = ref<HTMLCanvasElement[]>([])
 onMounted(() => {
   const cells = Math.max(4, Math.round(props.dotSize / CELL))
   dots.value.forEach((canvas, i) => {
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })
     if (!ctx) return
     canvas.width = cells
     canvas.height = cells

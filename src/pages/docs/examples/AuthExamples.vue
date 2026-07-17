@@ -64,7 +64,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
     </p>
     <DemoCard :code="SNIPPET_SIGNUP">
       <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
-        <DitherGradient from="purple" to="transparent" direction="up" :opacity="0.16" :cell="3" class="-z-10" />
+        <DitherGradient from="purple" to="transparent" direction="up" :opacity="0.16" :cell="4" render-mode="static" class="-z-10" />
         <div class="flex items-center gap-2">
           <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
           <span class="text-[12px] tracking-tight">dither-ui</span>
@@ -119,7 +119,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
     </p>
     <DemoCard :code="SNIPPET_MAGIC">
       <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
-        <DitherGradient from="green" to="transparent" direction="up" :opacity="0.14" :cell="3" class="-z-10" />
+        <DitherGradient from="green" to="transparent" direction="up" :opacity="0.14" :cell="4" render-mode="static" class="-z-10" />
         <div class="flex items-center gap-2">
           <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
           <span class="text-[12px] tracking-tight">dither-ui</span>
@@ -168,7 +168,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
     </p>
     <DemoCard :code="SNIPPET_TWOFACTOR">
       <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
-        <DitherGradient from="blue" to="transparent" direction="up" :opacity="0.14" :cell="3" class="-z-10" />
+        <DitherGradient from="blue" to="transparent" direction="up" :opacity="0.14" :cell="4" render-mode="static" class="-z-10" />
         <div class="flex items-center gap-2">
           <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
           <span class="text-[12px] tracking-tight">dither-ui</span>

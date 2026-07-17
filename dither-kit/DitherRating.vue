@@ -92,7 +92,7 @@ const display = computed(() => hover.value ?? props.modelValue)
 
 function paint() {
   const canvas = canvasRef.value
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!canvas || !ctx) return
   const cells = Math.max(6, Math.round(props.size / CELL))
   canvas.width = cells * props.max

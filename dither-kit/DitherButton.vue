@@ -3,6 +3,10 @@ import type { PixelBloomInput, PixelColor } from "./pixel"
 import {
   precompiledSrc,
   renderDitherButton,
+  STATIC_DEFAULT_MAX_COLS,
+  STATIC_DEFAULT_MAX_ROWS,
+  DEFAULT_MAX_COLS,
+  DEFAULT_MAX_ROWS,
   type DitherRenderMode,
   type PrecompiledDither,
 } from "./precompile"
@@ -13,7 +17,7 @@ export type { DitherRenderMode, PrecompiledDither }
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle, pixelPrefersReducedMotion } from "./pixel"
 import { kitFromSeed } from "./dither-paint"
@@ -32,6 +36,8 @@ const props = withDefaults(
     class?: string
     renderMode?: DitherRenderMode
     precompiled?: PrecompiledDither
+    maxCols?: number
+    maxRows?: number
   }>(),
   { type: "button", loading: false, disabled: false, renderMode: "live", precompiled: undefined }
 )
@@ -43,6 +49,16 @@ const bloom = computed<PixelBloomInput>(
   () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
 )
 const cell = computed(() => props.cell ?? s.value?.cell ?? 2)
+
+/** Effective resolution caps: static mode auto-uses lower caps unless overridden. */
+const effMaxCols = computed(() => {
+  if (props.maxCols !== undefined) return props.maxCols
+  return props.renderMode === "static" ? STATIC_DEFAULT_MAX_COLS : DEFAULT_MAX_COLS
+})
+const effMaxRows = computed(() => {
+  if (props.maxRows !== undefined) return props.maxRows
+  return props.renderMode === "static" ? STATIC_DEFAULT_MAX_ROWS : DEFAULT_MAX_ROWS
+})
 
 const buttonRef = ref<HTMLButtonElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -56,7 +72,7 @@ function init(): (() => void) | undefined {
   if (precompiled.value) return undefined
   const button = buttonRef.value
   const canvas = canvasRef.value
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!button || !canvas || !ctx) return undefined
   const bloomCanvas = bloomRef.value
   const bloomCtx = bloomCanvas?.getContext("2d") ?? null
@@ -82,6 +98,8 @@ function init(): (() => void) | undefined {
         cell: 1,
         intensity,
         seed: props.seed,
+        maxCols: effMaxCols.value,
+        maxRows: effMaxRows.value,
       },
       raster
     )
@@ -170,7 +188,10 @@ function restartRuntime() {
   teardown?.()
   teardown = undefined
   if (precompiled.value) return
-  void nextTick(() => {
+  // Defer to rAF instead of nextTick — nextTick runs inside Vue's flush
+  // queue, so getBoundingClientRect() inside resize() forces synchronous
+  // layout. rAF runs after layout, so the read is free.
+  requestAnimationFrame(() => {
     if (token !== restartToken || precompiled.value) return
     teardown = init()
   })
@@ -187,6 +208,8 @@ watch(
     () => props.renderMode,
     () => props.loading,
     () => props.disabled,
+    effMaxCols,
+    effMaxRows,
   ],
   restartRuntime,
   { flush: "post" }

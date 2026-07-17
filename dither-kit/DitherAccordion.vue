@@ -10,7 +10,7 @@ let uid = 0
 /** Paint the 2px left rail — a vertical dither ramp fading downward,
  * the same recipe as DitherCollapsible. */
 function paintRail(canvas: HTMLCanvasElement, color: PixelColor, matrix: number[][] = BAYER4): void {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   const height = canvas.offsetHeight
   if (!ctx || height <= 0) return
   const rows = Math.max(4, Math.round(height / CELL))
@@ -78,14 +78,16 @@ function paintAll() {
 
 let ro: ResizeObserver | null = null
 onMounted(() => {
-  paintAll()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver((entries) => {
-      for (const entry of entries)
-        paintRail(entry.target as HTMLCanvasElement, props.color)
-    })
-    for (const canvas of rails.value) if (canvas) ro.observe(canvas)
-  }
+  requestAnimationFrame(() => {
+    paintAll()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver((entries) => {
+        for (const entry of entries)
+          paintRail(entry.target as HTMLCanvasElement, props.color)
+      })
+      for (const canvas of rails.value) if (canvas) ro.observe(canvas)
+    }
+  })
 })
 watch(() => props.color, paintAll)
 onBeforeUnmount(() => ro?.disconnect())

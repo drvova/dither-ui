@@ -142,10 +142,72 @@ invalidated when data, colors, dimensions, or dither props change:
 
 `DitherGradient`, `DitherImage`, `DitherButton`, and `DitherSpinner` accept the
 same `precompiled` URL. Use `renderMode="static"` when the visual should still
-be painted in the browser but never animate or observe resizes. Without a
-packaged asset, the kit also batches gradient/button/spinner pixels through
-`ImageData`, caps chart backing resolution with `cell`, pauses off-screen chart
-loops, and avoids rebuilding bloom layers when the frame is unchanged.
+be painted in the browser but never animate or observe resizes. In static mode
+the kit defers initial paint through `requestIdleCallback` (with `setTimeout`
+fallback for Safari) so decorative gradients never block first contentful paint,
+and auto-uses lower backing-resolution caps (`320×200` vs `960×600`) since the
+visual difference at low opacity is imperceptible. Override per-instance with
+`maxCols`/`maxRows` props:
+
+```vue
+<DitherGradient from="blue" :opacity="0.14" render-mode="static" :max-cols="480" :max-rows="300" />
+```
+
+Without a packaged asset, the kit also batches gradient/button/spinner pixels
+through `ImageData`, caps chart backing resolution with `cell`, pauses
+off-screen chart loops, and avoids rebuilding bloom layers when the frame is
+unchanged. Exported constants `DEFAULT_MAX_COLS` (960), `DEFAULT_MAX_ROWS`
+(600), `STATIC_DEFAULT_MAX_COLS` (320), `STATIC_DEFAULT_MAX_ROWS` (200) let
+server-side compilers match client caps.
+
+### Rendering performance
+
+The kit applies several main-thread optimizations that benefit every consumer:
+
+- **Inlined pixel writes.** `paintColumn` (chart frames) and the
+  gradient/button compilers write directly into `Uint8ClampedArray` with
+  `| 0` rounding instead of per-pixel function calls.
+- **`willReadFrequently` canvas contexts.** All primary canvas contexts use
+  `{ willReadFrequently: true }`, hinting the browser to use software rendering
+  for `putImageData`-heavy surfaces. Bloom canvases omit the flag (they only
+  use `drawImage`).
+- **`requestAnimationFrame` layout deferral.** Standalone components defer
+  their initial `getBoundingClientRect()` read to a `requestAnimationFrame`
+  callback, batching layout reads into one frame after layout completes
+  instead of forcing a synchronous reflow per component inside Vue's
+  `flushJobs`.
+- **`RasterBuffer` for toggle canvases.** `paintToggleCanvas` (shared by
+  DitherToggle and DitherToggleGroup) uses `createRasterBuffer` +
+  `putRasterBuffer` instead of per-pixel `fillRect`.
+- **`IntersectionObserver` visibility gating.** Chart paint loops remain
+  paused until the IO reports the canvas visible. The IO callback sets
+  `visible.value` before calling `onWake` so `schedule()` sees the correct
+  state and requests a RAF immediately.
+
+Kit-level benchmarks (Chrome DevTools, real DOM, 3 warmups + 5 batches × 3 runs):
+
+| Operation | Compute | Full (RAF incl.) | Notes |
+| --- | ---: | ---: | --- |
+| DitherGradient live mount | 0.45 ms | 16.6 ms | 960×120, cell=3 |
+| DitherGradient static mount | 0.42 ms | 16.4 ms | 320×200 cap, cell=4, idle-deferred |
+| DitherGradient live re-render | 0.75 ms | 16.7 ms | direction up→down |
+| DitherButton live mount | 0.51 ms | 16.4 ms | 240×56, cell=2 |
+| DitherButton static mount | 0.48 ms | 16.5 ms | 320×200 cap, idle-deferred |
+| DitherSpinner live mount | 0.59 ms | 16.4 ms | 32px, RAF loop |
+| Raw raster gradient | 5.21 ms | 4.9 ms | 480×300, no Vue |
+
+**Compute time** is mount→nextTick (Vue patch + onMounted setup — the kit's
+actual work). **Full time** adds the `requestAnimationFrame` frame wait
+(~16.67 ms at 60 fps) before the canvas has visible pixels. The raw raster
+benchmark has no Vue overhead and no RAF wait, so its full time equals
+compute time. Static mode is comparable to live mode in compute time because
+both use the same inlined pixel writes; the difference is that static mode
+auto-caps at 320×200 (4× fewer pixels) and defers paint via
+`requestIdleCallback`.
+
+These are per-component measurements on one desktop, not device-independent
+latency promises. Re-run on target devices before choosing `cell`, animation,
+bloom, or precompilation policy.
 
 ### Benchmark
 

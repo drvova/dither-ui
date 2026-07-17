@@ -64,9 +64,15 @@ is its showcase and editor.
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
   setPointerCapture, rubber-band against the dismiss direction, velocity sign
   decides a flick, projection decides a slow drag.
-- New components: export from `index.ts` alongside their public types;
-  follow the existing shape (`withDefaults(defineProps<...>)`, ResizeObserver
-  repaint, `image-rendering: pixelated`, `cn()` for class merge).
+- All primary canvas contexts must be created with `{ willReadFrequently: true }`
+  because the kit uses `putImageData` for bulk pixel writes. Bloom canvases omit
+  the flag (they only use `drawImage`).
+- Standalone components must defer their initial `getBoundingClientRect()` to
+  `requestAnimationFrame` to avoid forced reflow inside Vue's `flushJobs` when
+  many components mount simultaneously. `DitherButton` defers `init()` via RAF
+  with a `restartToken` guard. `DitherToggleGroup` defers `paintAll()` via RAF.
+  `paintToggleCanvas` (shared by DitherToggle and DitherToggleGroup) must use
+  `RasterBuffer` + `putRasterBuffer`, not per-pixel `fillRect`.
 - `control.ts` is the internal source for native-control geometry, focus rings,
   disabled states, elevated popovers, and `DitherField` context. Inputs, textarea,
   select, number field, button, checkbox, switch, and modal controls reuse it;
@@ -78,13 +84,21 @@ is its showcase and editor.
   need to opt in.
 - Canvas visibility defaults to paused until IntersectionObserver reports the
   element visible; do not start chart animation loops optimistically before the
-  first visibility observation.
+  first visibility observation. The IO callback must set `visible.value` before
+  calling `onWake` so `schedule()` sees the correct state.
 - `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
   must not import Vue, DOM APIs, or a server-specific image encoder. Consumers
   own encoding, caching, and invalidation of packaged assets.
 - `precompiled` replaces only the dither plot/surface image; surrounding chart
   composition remains available. `renderMode="static"` disables animation and
-  resize observation for standalone surfaces.
+  resize observation for standalone surfaces, auto-uses lower backing-resolution
+  caps (`STATIC_DEFAULT_MAX_COLS=320`, `STATIC_DEFAULT_MAX_ROWS=200`) unless
+  `maxCols`/`maxRows` props override, and defers initial paint through
+  `requestIdleCallback` (with `setTimeout` fallback) so decorative gradients
+  never block first contentful paint. Live mode uses `DEFAULT_MAX_COLS=960`,
+  `DEFAULT_MAX_ROWS=600` and paints immediately via `setTimeout(0)`.
+  `maxCols`/`maxRows` are configurable props on DitherGradient, DitherButton,
+  and DitherImage for per-instance tuning.
 - Chart composition: root provides context (`cartesian-root` / `polar-root`),
   children register series via contexts. Props are declared with explicit
   runtime defaults — keep API tables in `src/pages/docs` in sync when defaults

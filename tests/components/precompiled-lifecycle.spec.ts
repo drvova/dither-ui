@@ -54,6 +54,9 @@ describe("precompiled runtime transitions", () => {
     await nextTick()
 
     expect(w.find("canvas").exists()).toBe(true)
+    // DitherButton defers init to requestAnimationFrame to avoid forced
+    // reflow; flush it so getContext is called in jsdom.
+    await new Promise<void>((r) => requestAnimationFrame(() => r()))
     expect(getContext).toHaveBeenCalled()
     w.unmount()
   })

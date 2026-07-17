@@ -55,7 +55,7 @@ const isVisible = useCanvasVisibility(canvasRef, () => wake?.())
 function init(): (() => void) | undefined {
   const wrap = wrapRef.value
   const canvas = canvasRef.value
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!wrap || !canvas || !ctx) return undefined
   const reduce = pixelPrefersReducedMotion()
 
@@ -104,7 +104,7 @@ function init(): (() => void) | undefined {
 }
 
 onMounted(() => {
-  teardown = init()
+  requestAnimationFrame(() => { teardown = init() })
 })
 onBeforeUnmount(() => teardown?.())
 </script>

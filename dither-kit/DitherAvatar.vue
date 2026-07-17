@@ -64,7 +64,7 @@ function paintAvatar(
   matrix: number[][],
   { animate, duration, cellPx, boost, offTier }: PaintOpts
 ): (() => void) | undefined {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx) return undefined
   const grid = model.grid
   const cp = Math.max(1, Math.round(cellPx))

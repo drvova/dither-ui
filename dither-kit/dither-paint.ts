@@ -5,7 +5,7 @@
 import type { AreaVariant } from "./chart-context"
 import { rgb, type Rgb, type Seed } from "./palette"
 import { xorshift32 } from "./pixel"
-import { blendRasterPixel, type RasterBuffer } from "./raster"
+import { setOrBlendRasterPixel, type RasterBuffer } from "./raster"
 
 // 4×4 ordered (Bayer) matrix, normalized to 0–1 thresholds — the exact matrix
 // the legacy chart dithers with.
@@ -362,11 +362,21 @@ export function resolveTexture(input: VariantInput): Required<TextureConfig> {
 export type PaintTarget = CanvasRenderingContext2D | RasterBuffer
 
 function paintPixel(target: PaintTarget, x: number, y: number, color: Rgb, alpha: number): void {
-  if ("data" in target) blendRasterPixel(target, x, y, color, alpha)
+  if ("data" in target) setOrBlendRasterPixel(target, x, y, color, alpha)
   else {
     target.fillStyle = rgb(color, 1, alpha)
     target.fillRect(x, y, 1, 1)
   }
+}
+
+/** Inlined RasterBuffer pixel set — no function call, no blend, no branch.
+ *  Buffer is cleared before paintColumn so first write is always a direct set. */
+function setPixelInline(buf: RasterBuffer, i: number, color: Rgb, alpha: number): void {
+  const a = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha
+  buf.data[i] = (color[0] * a + 0.5) | 0
+  buf.data[i + 1] = (color[1] * a + 0.5) | 0
+  buf.data[i + 2] = (color[2] * a + 0.5) | 0
+  buf.data[i + 3] = (a * 255 + 0.5) | 0
 }
 
 export type PaintOpts = {
@@ -409,36 +419,60 @@ export function paintColumn(
   const t = Math.round(top)
   const f = Math.round(floor)
   const depth = f - t
+  const fill = seed.fill
+  // Fast path: RasterBuffer target — inline pixel writes, no function call per pixel.
+  if ("data" in octx) {
+    const buf = octx
+    const w = buf.width
+    if (depth <= 0) {
+      if (t >= 0 && t < buf.height && x >= 0 && x < w) {
+        setPixelInline(buf, (t * w + x) * 4, fill, tex.edge * dim)
+      }
+      return
+    }
+    const bias = tex.density + (stacked ? 0.2 : 0) - sparse
+    for (let y = t; y < f; y++) {
+      if (y < 0 || y >= buf.height) continue
+      const raw = (y - t) / depth
+      let density = 1 - tex.ramp * (1 - raw)
+      if (stacked) density = 0.5 + 0.5 * density
+      if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2)
+        continue
+      const lit = density > mat[y & 3][x & 3] - 0.1 * intensity - bias
+      if (tex.gaps && !lit) continue
+      const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
+      const alpha = (lit ? k : k * tex.offTier) * dim
+      if (alpha <= 0) continue
+      setPixelInline(buf, (y * w + x) * 4, fill, alpha)
+    }
+    if (tex.edge > 0 && t >= 0 && t < buf.height && x >= 0 && x < w) {
+      setPixelInline(buf, (t * w + x) * 4, fill, tex.edge * dim)
+      if (depth > 1 && t + 1 < buf.height)
+        setPixelInline(buf, ((t + 1) * w + x) * 4, fill, tex.edge * 0.5 * dim)
+    }
+    return
+  }
+  // Canvas 2D path (used when target is CanvasRenderingContext2D)
   if (depth <= 0) {
-    paintPixel(octx, x, t, seed.fill, tex.edge * dim)
+    paintPixel(octx, x, t, fill, tex.edge * dim)
     return
   }
   const bias = tex.density + (stacked ? 0.2 : 0) - sparse
   for (let y = t; y < f; y++) {
-    // Inverted falloff: 0 at the top line, 1 at the floor — dense at the
-    // bottom, thinning as it rises toward the outline. `ramp` scales how much
-    // of that fade applies (0 = flat, 1 = full fade).
     const raw = (y - t) / depth
     let density = 1 - tex.ramp * (1 - raw)
     if (stacked) density = 0.5 + 0.5 * density
     if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2)
       continue
     const lit = density > mat[y & 3][x & 3] - 0.1 * intensity - bias
-    // `gaps` keeps real holes for the open dotted look; otherwise unlit cells
-    // drop to a faint tier of the same colour so the background never bleeds
-    // through as stark white.
     if (tex.gaps && !lit) continue
-    // Density → alpha (see the colour-vs-opacity note above).
     const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
     const alpha = clamp01((lit ? k : k * tex.offTier) * dim)
-    paintPixel(octx, x, y, seed.fill, alpha)
+    paintPixel(octx, x, y, fill, alpha)
   }
-  // Top border outline — the shape's edge now that the fill fades out here.
-  // Kept just under full opacity, with a faint feather row beneath, so it reads
-  // as a soft edge rather than a hard line floating over the fade.
   if (tex.edge > 0) {
-    paintPixel(octx, x, t, seed.fill, tex.edge * dim)
-    if (depth > 1) paintPixel(octx, x, t + 1, seed.fill, tex.edge * 0.5 * dim)
+    paintPixel(octx, x, t, fill, tex.edge * dim)
+    if (depth > 1) paintPixel(octx, x, t + 1, fill, tex.edge * 0.5 * dim)
   }
 }
 

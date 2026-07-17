@@ -76,7 +76,7 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 function paint() {
   const box = boxRef.value
   const canvas = canvasRef.value
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!box || !canvas || !ctx) return
   const n = Math.max(4, Math.round(box.getBoundingClientRect().width / CELL))
   canvas.width = n
@@ -84,7 +84,7 @@ function paint() {
   paintBox(ctx, n, fillOf(color.value), fillOf("grey"), props.modelValue, matrix.value)
 }
 
-onMounted(paint)
+onMounted(() => requestAnimationFrame(paint))
 watch(() => [props.modelValue, color.value, matrix.value], paint)
 </script>
 

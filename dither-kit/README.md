@@ -52,7 +52,13 @@ chart, image, and spinner precompiled URLs are consumed by the kit but generated
 encoded, cached, and invalidated by the host app. The chart image replaces the
 dither canvas while its SVG and DOM children remain available. Use
 `renderMode="static"` when a client paint is needed but animation and resize
-observation are unnecessary.
+observation are unnecessary. In static mode, `maxCols`/`maxRows` props
+auto-default to `STATIC_DEFAULT_MAX_COLS` (320) and `STATIC_DEFAULT_MAX_ROWS`
+(200) for 4× less compute than live mode's `DEFAULT_MAX_COLS` (960) /
+`DEFAULT_MAX_ROWS` (600). Override per-instance with explicit `maxCols`/
+`maxRows` values. Static mode also defers initial paint through
+`requestIdleCallback` (with `setTimeout` fallback) so decorative surfaces never
+block first contentful paint.
 
 ## Client cost controls
 
@@ -60,9 +66,26 @@ observation are unnecessary.
 The kit also pauses chart RAF loops while invisible, batches standalone surface
 pixels through one `putImageData`, and copies bloom layers only after a changed
 frame. `createRasterBuffer()` and `putRasterBuffer()` are exported for host code
-that wants the same reusable RGBA-buffer upload path. Keep `animate`, `sparkles`,
-and bloom off for static content, and use the precompiled path for content whose
-data and dimensions are known on the server.
+that wants the same reusable RGBA-buffer upload path. `setRasterPixel32()`
+writes opaque pixels via a `Uint32Array` view for ~1.5× faster writes when
+blending is not needed. `setOrBlendRasterPixel()` fast-paths the common case
+where the destination buffer is freshly cleared (direct write) and falls back
+to full source-over blend only when destination has content.
+
+All primary canvas contexts are created with `{ willReadFrequently: true }`
+so the browser uses software-accelerated 2D context for `putImageData`-heavy
+surfaces. Bloom canvases omit the flag because they only use `drawImage`.
+
+Standalone components defer their initial layout read (`getBoundingClientRect()`)
+to `requestAnimationFrame` so multiple components mounting simultaneously batch
+into one layout pass instead of forcing a synchronous reflow per component
+inside Vue's `flushJobs`. `DitherButton` uses the same pattern for its `resize()`
+call.
+`paintToggleCanvas` (shared by DitherToggle and DitherToggleGroup) uses
+`RasterBuffer` + `putRasterBuffer` instead of per-pixel `fillRect`.
+
+Keep `animate`, `sparkles`, and bloom off for static content, and use the
+precompiled path for content whose data and dimensions are known on the server.
 
 The repository benchmark is available at `/benchmarks/`; it records six measured
 batches after three warmups and reports mean, median, p95, canvas-call count, and

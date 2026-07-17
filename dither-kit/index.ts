@@ -32,9 +32,13 @@ export {
   precompiledSrc,
   renderDitherButton,
   renderDitherGradient,
+  DEFAULT_MAX_COLS,
+  DEFAULT_MAX_ROWS,
+  STATIC_DEFAULT_MAX_COLS,
+  STATIC_DEFAULT_MAX_ROWS,
 } from "./precompile"
 export type { ButtonRasterOptions, GradientRasterOptions } from "./precompile"
-export { createRasterBuffer, putRasterBuffer } from "./raster"
+export { createRasterBuffer, putRasterBuffer, setRasterPixel32, setOrBlendRasterPixel } from "./raster"
 export type { RasterBuffer } from "./raster"
 
 // Form controls

@@ -4,7 +4,7 @@ import { cssColor, rgb } from "./palette"
 
 /** 2px dithered rail marking the active item — same recipe as the tabs underline. */
 function paintRail(canvas: HTMLCanvasElement, color: PixelColor, cssHeight: number, matrix: number[][] = BAYER4) {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx) return
   const rows = Math.max(4, Math.round(cssHeight / 2))
   canvas.width = 1

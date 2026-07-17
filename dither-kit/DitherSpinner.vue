@@ -1,7 +1,7 @@
 <script lang="ts">
 import { rgb } from "./palette"
 import type { Rgb } from "./palette"
-import { blendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
+import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
 import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "./dither-paint"
 import {
   BAYER4,
@@ -95,7 +95,7 @@ function paintSpinner(
         bright *= 0.35 + 0.65 * Math.abs(Math.cos((ang * p.spokes) / 2)) ** 2
       if (bright <= 0 || bright <= matrix[y & 3][x & 3]) continue
       const alpha = 0.4 + 0.6 * bright
-      if ("data" in ctx) blendRasterPixel(ctx, x, y, fill, alpha)
+      if ("data" in ctx) setOrBlendRasterPixel(ctx, x, y, fill, alpha)
       else {
         ctx.fillStyle = rgb(fill, 1, alpha)
         ctx.fillRect(x, y, 1, 1)
@@ -136,7 +136,7 @@ const isVisible = useCanvasVisibility(canvasRef, () => wake?.())
 function init(): (() => void) | undefined {
   const canvas = canvasRef.value
   if (precompiled.value) return undefined
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!canvas || !ctx) return undefined
   const fill = fillOf(props.color)
   const cells = Math.max(8, Math.round(props.size / CELL))

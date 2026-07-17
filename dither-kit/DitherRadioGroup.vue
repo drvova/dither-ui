@@ -76,7 +76,7 @@ function paintAll() {
   const muted = fillOf("grey")
   props.options.forEach((o, i) => {
     const canvas = canvasRefs.value[i]
-    const ctx = canvas?.getContext("2d")
+    const ctx = canvas?.getContext("2d", { willReadFrequently: true })
     if (!canvas || !ctx) return
     const n = Math.max(4, Math.round(canvas.getBoundingClientRect().width / CELL))
     canvas.width = n
@@ -106,7 +106,7 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-onMounted(paintAll)
+onMounted(() => requestAnimationFrame(paintAll))
 watch(
   () => [props.modelValue, props.color, props.options],
   () => nextTick(paintAll)

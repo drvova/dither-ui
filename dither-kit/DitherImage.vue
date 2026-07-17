@@ -1,9 +1,11 @@
 <script lang="ts">
 import { BAYER4, pixelMatrixFromSeed } from "./pixel"
-
-// Backing-resolution caps — same guard rails as DitherGradient.
-const MAX_COLS = 960
-const MAX_ROWS = 960
+import {
+  DEFAULT_MAX_COLS,
+  DEFAULT_MAX_ROWS,
+  STATIC_DEFAULT_MAX_COLS,
+  STATIC_DEFAULT_MAX_ROWS,
+} from "./precompile"
 
 /** Ordered-dither an image into chunky cells: each cell keeps its source hue,
  * the Bayer matrix decides whether it renders lit or dimmed — the same
@@ -16,12 +18,14 @@ function paintImage(
   cell: number,
   focusY: number,
   fade: number,
-  matrix: number[][]
+  matrix: number[][],
+  maxCols: number,
+  maxRows: number
 ): void {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || width <= 0 || height <= 0 || !img.naturalWidth) return
-  const cols = Math.min(MAX_COLS, Math.max(4, Math.round(width / cell)))
-  const rows = Math.min(MAX_ROWS, Math.max(4, Math.round(height / cell)))
+  const cols = Math.min(maxCols, Math.max(4, Math.round(width / cell)))
+  const rows = Math.min(maxRows, Math.max(4, Math.round(height / cell)))
   canvas.width = cols
   canvas.height = rows
 
@@ -81,6 +85,8 @@ const props = withDefaults(
     class?: string
     renderMode?: DitherRenderMode
     precompiled?: PrecompiledDither
+    maxCols?: number
+    maxRows?: number
   }>(),
   { alt: "", renderMode: "live", precompiled: undefined }
 )
@@ -91,6 +97,16 @@ const effFocusY = computed(() => props.focusY ?? s.value?.focusY ?? 0.5)
 const effFade = computed(() => props.fade ?? s.value?.fade ?? 0)
 const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
 const precompiled = computed(() => precompiledSrc(props.precompiled))
+
+/** Effective resolution caps: static mode auto-uses lower caps unless overridden. */
+const effMaxCols = computed(() => {
+  if (props.maxCols !== undefined) return props.maxCols
+  return props.renderMode === "static" ? STATIC_DEFAULT_MAX_COLS : DEFAULT_MAX_COLS
+})
+const effMaxRows = computed(() => {
+  if (props.maxRows !== undefined) return props.maxRows
+  return props.renderMode === "static" ? STATIC_DEFAULT_MAX_ROWS : DEFAULT_MAX_ROWS
+})
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -104,7 +120,7 @@ function paint() {
   const canvas = canvasRef.value
   if (!wrap || !canvas) return
   const box = wrap.getBoundingClientRect()
-  paintImage(canvas, img, box.width, box.height, effCell.value, effFocusY.value, effFade.value, matrix.value)
+  paintImage(canvas, img, box.width, box.height, effCell.value, effFocusY.value, effFade.value, matrix.value, effMaxCols.value, effMaxRows.value)
 }
 
 function load() {
@@ -136,7 +152,7 @@ function startRuntime() {
 
 onMounted(startRuntime)
 watch(() => [props.src, precompiled.value, props.renderMode], startRuntime, { flush: "post" })
-watch([effCell, effFocusY, effFade, matrix], paint, { flush: "post" })
+watch([effCell, effFocusY, effFade, matrix, effMaxCols, effMaxRows], paint, { flush: "post" })
 onBeforeUnmount(() => {
   restartToken += 1
   stopRuntime()

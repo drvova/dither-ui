@@ -64,7 +64,7 @@ const reduce = ref(false)
 function paint() {
   const track = trackRef.value
   const canvas = canvasRef.value
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!track || !canvas || !ctx) return
   const box = track.getBoundingClientRect()
   const cols = Math.max(4, Math.round(box.width / CELL))
@@ -76,7 +76,7 @@ function paint() {
 
 onMounted(() => {
   reduce.value = pixelPrefersReducedMotion()
-  paint()
+  requestAnimationFrame(paint)
 })
 watch(() => [props.modelValue, color.value, matrix.value], paint)
 </script>

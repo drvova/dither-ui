@@ -123,7 +123,7 @@ const tickRatios = computed(() => {
 function paint() {
   const root = rootRef.value
   const canvas = canvasRef.value
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!root || !canvas || !ctx) return
   const box = root.getBoundingClientRect()
   const cols = Math.max(4, Math.round(box.width / CELL))
@@ -215,11 +215,13 @@ const thumbs = computed(() => {
 
 let ro: ResizeObserver | null = null
 onMounted(() => {
-  paint()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(paint)
-    if (rootRef.value) ro.observe(rootRef.value)
-  }
+  requestAnimationFrame(() => {
+    paint()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(paint)
+      if (rootRef.value) ro.observe(rootRef.value)
+    }
+  })
 })
 watch(
   () => [props.modelValue, color.value, props.min, props.max, variant.value, props.ticks, matrix.value],

@@ -12,7 +12,7 @@ function paintRail(
   color: PixelColor,
   matrix: number[][] = BAYER4
 ): void {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || height <= 0) return
   const rows = Math.max(4, Math.round(height / CELL))
   canvas.width = 1
@@ -53,11 +53,13 @@ function paint() {
 
 let ro: ResizeObserver | null = null
 onMounted(() => {
-  paint()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(paint)
-    if (railRef.value) ro.observe(railRef.value)
-  }
+  requestAnimationFrame(() => {
+    paint()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(paint)
+      if (railRef.value) ro.observe(railRef.value)
+    }
+  })
 })
 watch(() => props.color, paint)
 onBeforeUnmount(() => ro?.disconnect())

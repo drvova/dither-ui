@@ -82,7 +82,7 @@ const rows = 3 // h-1.5 track at CELL=2
 
 function paint(band: number | null) {
   const canvas = canvasRef.value
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!canvas || !ctx || cols <= 0) return
   paintProgress(
     ctx,
@@ -138,12 +138,14 @@ function resize() {
 
 let ro: ResizeObserver | null = null
 onMounted(() => {
-  resize()
-  syncLoop()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(resize)
-    if (rootRef.value) ro.observe(rootRef.value)
-  }
+  requestAnimationFrame(() => {
+    resize()
+    syncLoop()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(resize)
+      if (rootRef.value) ro.observe(rootRef.value)
+    }
+  })
 })
 watch(() => [props.value, color.value, props.indeterminate, matrix.value], syncLoop)
 onBeforeUnmount(() => {

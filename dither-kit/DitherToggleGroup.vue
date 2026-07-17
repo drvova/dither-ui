@@ -92,15 +92,17 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
-  paintAll()
+  // Defer to rAF to avoid forced reflow from getBoundingClientRect()
+  // inside paintToggleCanvas during Vue's flushJobs.
+  requestAnimationFrame(paintAll)
   if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(paintAll)
+    ro = new ResizeObserver(() => requestAnimationFrame(paintAll))
     if (rootRef.value) ro.observe(rootRef.value)
   }
 })
 watch(
   () => [props.modelValue, props.color, props.options],
-  () => nextTick(paintAll)
+  () => requestAnimationFrame(paintAll)
 )
 onBeforeUnmount(() => ro?.disconnect())
 </script>

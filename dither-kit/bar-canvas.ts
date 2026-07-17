@@ -45,7 +45,7 @@ function startBarLoop({
   state,
   targets,
 }: LoopArgs): { stop: () => void; wake: () => void } | undefined {
-  const c = canvas.getContext("2d")
+  const c = canvas.getContext("2d", { willReadFrequently: true })
   if (!c || cols <= 0 || rows <= 0) return undefined
   canvas.width = cols
   canvas.height = rows
@@ -261,6 +261,11 @@ export const BarCanvas = defineComponent({
     watch(
       () => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.precompiled],
       restart,
+      { flush: "post" }
+    )
+    watch(
+      () => ctx.ready,
+      () => loop?.wake(),
       { flush: "post" }
     )
     watch(

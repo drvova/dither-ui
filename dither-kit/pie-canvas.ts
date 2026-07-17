@@ -17,7 +17,7 @@ import {
 } from "./dither-paint"
 import { sliceAtAngle } from "./polar"
 import { type PolarChartContextValue, usePolarChart } from "./polar-context"
-import { blendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
+import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { useCanvasVisibility } from "./use-visibility"
 
 const TOP = -Math.PI / 2
@@ -46,7 +46,7 @@ function startPieLoop({
   height,
   state,
 }: LoopArgs): { stop: () => void; wake: () => void } | undefined {
-  const c = canvas.getContext("2d")
+  const c = canvas.getContext("2d", { willReadFrequently: true })
   if (!c || cols <= 0 || rows <= 0) return undefined
   canvas.width = cols
   canvas.height = rows
@@ -114,7 +114,7 @@ function startPieLoop({
         const it = intensity + (active ? 0.4 * popEase : 0)
 
         if (localOuter - r < (active ? s.rimWidth + popEase : s.rimWidth)) {
-          blendRasterPixel(frame, x, y, seed.fill, selDim)
+          setOrBlendRasterPixel(frame, x, y, seed.fill, selDim)
           continue
         }
         const tex = resolveTexture(variant)
@@ -126,7 +126,7 @@ function startPieLoop({
         if (tex.gaps && !lit) continue
         const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * it)
         const alpha = Math.min(1, (lit ? k : k * tex.offTier) * selDim)
-        blendRasterPixel(frame, x, y, seed.fill, alpha)
+        setOrBlendRasterPixel(frame, x, y, seed.fill, alpha)
       }
     }
     c.clearRect(0, 0, cols, rows)
@@ -262,6 +262,11 @@ export const PieCanvas = defineComponent({
         ctx.precompiled,
       ],
       restart,
+      { flush: "post" }
+    )
+    watch(
+      () => ctx.ready,
+      () => loop?.wake(),
       { flush: "post" }
     )
     watch(

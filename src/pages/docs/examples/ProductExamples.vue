@@ -110,7 +110,7 @@ const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
           :key="tier.name"
           class="relative isolate flex flex-col overflow-hidden rounded-lg border border-border/60 p-4"
         >
-          <DitherGradient v-if="tier.popular" from="blue" :opacity="0.12" class="-z-10" />
+          <DitherGradient v-if="tier.popular" from="blue" :opacity="0.12" :cell="4" render-mode="static" class="-z-10" />
           <div class="flex items-center justify-between">
             <span class="text-[11px] text-muted-foreground">{{ tier.name }}</span>
             <span

@@ -91,7 +91,7 @@ const chrome = computed(() => {
       to="transparent"
       direction="up"
       :opacity="0.12"
-      :cell="3"
+      :cell="4"
       class="-z-10"
     />
     <slot name="header" />

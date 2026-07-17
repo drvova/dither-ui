@@ -71,7 +71,7 @@ let ro: ResizeObserver | null = null
 function paint() {
   const wrap = wrapRef.value
   const canvas = canvasRef.value
-  const ctx = canvas?.getContext("2d")
+  const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!wrap || !canvas || !ctx) return
   const box = wrap.getBoundingClientRect()
   const cols = Math.max(4, Math.round(box.width / CELL))
@@ -82,11 +82,13 @@ function paint() {
 }
 
 onMounted(() => {
-  paint()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(paint)
-    if (wrapRef.value) ro.observe(wrapRef.value)
-  }
+  requestAnimationFrame(() => {
+    paint()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(paint)
+      if (wrapRef.value) ro.observe(wrapRef.value)
+    }
+  })
 })
 watch([color, variant, matrix], paint)
 onBeforeUnmount(() => ro?.disconnect())

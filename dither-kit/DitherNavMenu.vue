@@ -13,7 +13,7 @@ function paintUnderline(
   color: PixelColor,
   matrix: number[][] = BAYER4
 ): void {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || width <= 0) return
   const cols = Math.max(4, Math.round(width / CELL))
   canvas.width = cols
@@ -64,11 +64,13 @@ function measure() {
 
 let ro: ResizeObserver | null = null
 onMounted(() => {
-  measure()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(measure)
-    if (listRef.value) ro.observe(listRef.value)
-  }
+  requestAnimationFrame(() => {
+    measure()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(measure)
+      if (listRef.value) ro.observe(listRef.value)
+    }
+  })
 })
 watch(
   () => [props.modelValue, props.items, props.color],

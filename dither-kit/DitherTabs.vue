@@ -19,7 +19,7 @@ const CELL = 2
 
 /** Underline: a dither ramp along the run (same recipe as the gradient fade). */
 function paintUnderline(canvas: HTMLCanvasElement, length: number, color: PixelColor, vertical: boolean, matrix: number[][]) {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || length <= 0) return
   const cells = Math.max(4, Math.round(length / CELL))
   canvas.width = vertical ? 1 : cells
@@ -39,7 +39,7 @@ function paintUnderline(canvas: HTMLCanvasElement, length: number, color: PixelC
 
 /** Washed: a quiet rest-intensity fill behind the active tab. */
 function paintWash(canvas: HTMLCanvasElement, w: number, h: number, color: PixelColor, matrix: number[][]) {
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || w <= 0 || h <= 0) return
   const cols = Math.max(4, Math.round(w / CELL))
   const rows = Math.max(4, Math.round(h / CELL))
@@ -149,11 +149,13 @@ const markerStyle = computed(() => {
 
 let ro: ResizeObserver | null = null
 onMounted(() => {
-  measure()
-  if (typeof ResizeObserver !== "undefined") {
-    ro = new ResizeObserver(measure)
-    if (listRef.value) ro.observe(listRef.value)
-  }
+  requestAnimationFrame(() => {
+    measure()
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(measure)
+      if (listRef.value) ro.observe(listRef.value)
+    }
+  })
 })
 watch(
   () => [props.modelValue, props.tabs, effColor.value, props.variant, props.orientation, matrix.value],

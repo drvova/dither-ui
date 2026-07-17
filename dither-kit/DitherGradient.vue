@@ -3,6 +3,10 @@ import type { PixelBloomInput, PixelColor } from "./pixel"
 import {
   precompiledSrc,
   renderDitherGradient,
+  STATIC_DEFAULT_MAX_COLS,
+  STATIC_DEFAULT_MAX_ROWS,
+  DEFAULT_MAX_COLS,
+  DEFAULT_MAX_ROWS,
   type DitherRenderMode,
   type GradientDirection,
   type PrecompiledDither,
@@ -30,6 +34,8 @@ const props = withDefaults(
     class?: string
     renderMode?: DitherRenderMode
     precompiled?: PrecompiledDither
+    maxCols?: number
+    maxRows?: number
   }>(),
   { renderMode: "live", precompiled: undefined }
 )
@@ -44,6 +50,16 @@ const effBloom = computed(
   () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
 )
 const precompiled = computed(() => precompiledSrc(props.precompiled))
+
+/** Effective resolution caps: static mode auto-uses lower caps unless overridden. */
+const effMaxCols = computed(() => {
+  if (props.maxCols !== undefined) return props.maxCols
+  return props.renderMode === "static" ? STATIC_DEFAULT_MAX_COLS : DEFAULT_MAX_COLS
+})
+const effMaxRows = computed(() => {
+  if (props.maxRows !== undefined) return props.maxRows
+  return props.renderMode === "static" ? STATIC_DEFAULT_MAX_ROWS : DEFAULT_MAX_ROWS
+})
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
@@ -51,6 +67,7 @@ const bloomStyle = computed(() => pixelBloomStyle(effBloom.value))
 
 let ro: ResizeObserver | null = null
 let timer = 0
+let idleHandle = 0
 let restartToken = 0
 let imageData: ImageData | undefined
 function paint() {
@@ -58,7 +75,7 @@ function paint() {
   const canvas = canvasRef.value
   if (!wrap || !canvas || precompiled.value) return
   const box = wrap.getBoundingClientRect()
-  const ctx = canvas.getContext("2d")
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx) return
   const raster = renderDitherGradient({
     width: box.width,
@@ -69,6 +86,8 @@ function paint() {
     cell: effCell.value,
     opacity: effOpacity.value,
     seed: props.seed,
+    maxCols: effMaxCols.value,
+    maxRows: effMaxRows.value,
   })
   canvas.width = raster.width
   canvas.height = raster.height
@@ -84,6 +103,10 @@ function paint() {
 function stopRuntime() {
   clearTimeout(timer)
   timer = 0
+  if (idleHandle) {
+    if (typeof cancelIdleCallback === "function") cancelIdleCallback(idleHandle)
+    idleHandle = 0
+  }
   ro?.disconnect()
   ro = null
 }
@@ -94,19 +117,38 @@ function startRuntime() {
   if (precompiled.value) return
   void nextTick(() => {
     if (token !== restartToken || precompiled.value) return
-    timer = window.setTimeout(() => {
-      paint()
-      if (props.renderMode !== "static" && typeof ResizeObserver !== "undefined") {
-        ro = new ResizeObserver(paint)
-        if (wrapRef.value) ro.observe(wrapRef.value)
+    if (props.renderMode === "static") {
+      // Defer decorative paint to idle so it never blocks first contentful paint.
+      // timeout ensures the callback fires even under heavy load (W3C spec).
+      // Safari fallback: setTimeout(0) when requestIdleCallback is unavailable.
+      if (typeof requestIdleCallback === "function") {
+        idleHandle = requestIdleCallback(() => {
+          idleHandle = 0
+          if (token !== restartToken || precompiled.value) return
+          paint()
+        }, { timeout: 2000 })
+      } else {
+        timer = window.setTimeout(() => {
+          if (token !== restartToken || precompiled.value) return
+          paint()
+        })
       }
-    })
+    } else {
+      // Live mode: paint immediately — interactive surfaces need to appear instantly.
+      timer = window.setTimeout(() => {
+        paint()
+        if (typeof ResizeObserver !== "undefined") {
+          ro = new ResizeObserver(paint)
+          if (wrapRef.value) ro.observe(wrapRef.value)
+        }
+      })
+    }
   })
 }
 
 onMounted(startRuntime)
 watch(() => [precompiled.value, props.renderMode], startRuntime, { flush: "post" })
-watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom], paint, { flush: "post" })
+watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom, effMaxCols, effMaxRows], paint, { flush: "post" })
 onBeforeUnmount(() => {
   restartToken += 1
   stopRuntime()
