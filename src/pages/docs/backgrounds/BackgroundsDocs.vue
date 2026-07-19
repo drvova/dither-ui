@@ -850,6 +850,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "mouse-strength", type: "number", default: "0.5" },
     { prop: "page-load-animation", type: "boolean", default: "false" },
     { prop: "brightness", type: "number", default: "1" },
+    { prop: "mix-blend-mode", type: "string", default: "undefined" },
     { prop: "seed", type: "number", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "class", type: "string", default: "undefined" },

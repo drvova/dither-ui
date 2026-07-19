@@ -34,6 +34,7 @@ const props = withDefaults(
     seed?: number
     renderMode?: DitherRenderMode
     precompiled?: PrecompiledDither
+    mixBlendMode?: string
     class?: string
   }>(),
   {
@@ -133,13 +134,13 @@ onBeforeUnmount(() => {
       :src="precompiled"
       alt=""
       class="absolute inset-0 h-full w-full object-fill"
-      style="image-rendering: pixelated"
+      :style="{ imageRendering: 'pixelated', mixBlendMode: props.mixBlendMode as never }"
     />
     <canvas
       v-else
       ref="canvasRef"
       class="absolute inset-0 h-full w-full"
-      style="image-rendering: pixelated"
+      :style="{ imageRendering: 'pixelated', mixBlendMode: props.mixBlendMode as never }"
     />
   </div>
 </template>
