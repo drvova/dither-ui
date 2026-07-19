@@ -58,7 +58,10 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
   function measure(): CanvasRenderingContext2D | null {
     const wrap = opts.wrapRef.value
     const canvas = opts.canvasRef.value
-    if (!wrap || !canvas) return null
+    // Vue can transiently hand back a reused element that is not (yet) a real
+    // <canvas> during a large page mount; bail without throwing and retry next
+    // frame rather than calling getContext on a non-canvas.
+    if (!wrap || !canvas || typeof canvas.getContext !== "function") return null
     const ctx = canvas.getContext("2d", { willReadFrequently: true })
     if (!ctx) return null
     const box = wrap.getBoundingClientRect()
@@ -84,7 +87,11 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     raf = 0
     if (!isVisible() || opts.paused()) return
     const ctx = measure()
-    if (!ctx) return
+    if (!ctx) {
+      // Canvas ref not ready yet — keep the loop alive and retry next frame.
+      raf = requestAnimationFrame(frame)
+      return
+    }
     if (now - lastPaint < 33) {
       raf = requestAnimationFrame(frame)
       return
@@ -109,16 +116,23 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     if (opts.precompiled()) return
     void nextTick(() => {
       if (token !== restartToken || opts.precompiled()) return
-      const ctx = measure()
-      if (!ctx) return
       startNow = typeof performance !== "undefined" ? performance.now() : 0
       lastPaint = 0
       if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) {
         clock = opts.staticClock ?? 4
-        draw(ctx, 0, 1e6) // elapsed large -> any page-load fade reads complete
+        // Retry the one-shot until the canvas ref settles.
+        const paintOnce = () => {
+          if (token !== restartToken) return
+          const ctx = measure()
+          if (!ctx) {
+            raf = requestAnimationFrame(paintOnce)
+            return
+          }
+          draw(ctx, 0, 1e6) // elapsed large -> any page-load fade reads complete
+        }
+        paintOnce()
         return
       }
-      draw(ctx, 0, 0) // first frame, elapsed 0 -> page-load fade starts here
       if (typeof ResizeObserver !== "undefined") {
         ro = new ResizeObserver(() => {
           if (raf) return
@@ -127,6 +141,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
         })
         if (opts.wrapRef.value) ro.observe(opts.wrapRef.value)
       }
+      // frame() paints the first frame and retries until the canvas is ready.
       raf = requestAnimationFrame(frame)
     })
   }
