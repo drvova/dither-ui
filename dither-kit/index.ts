@@ -28,6 +28,11 @@ export {
 } from "./DitherGradient.vue"
 export { default as DitherImage } from "./DitherImage.vue"
 export {
+  default as DitherAurora,
+  type AuroraParams,
+  paintAurora,
+} from "./Aurora.vue"
+export {
   default as DitherFaultyTerminal,
   type FaultyTerminalParams,
   paintFaultyTerminal,

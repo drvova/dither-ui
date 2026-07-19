@@ -26,7 +26,7 @@ widgets/features; page-specific conventions live here.
 
 - Sidebar IA (after Base UI): Overview · Handbook (Styling, Composition,
   Animation, Accessibility — prose + CodeBlock, no DemoCard) · Examples ·
-  Components · Utils. Section ids are permanent deep links — relabel freely
+  Components · Backgrounds · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 + optional
   "open in studio →") → muted description → `DemoCard` (Preview/Code tabs) →
@@ -50,8 +50,9 @@ widgets/features; page-specific conventions live here.
   snippets + local state) with a sibling `*-nav.ts` exporting nav items;
   DocsPage imports both and spreads the nav into the right group.
   `docs/examples/` = Examples packs, `docs/components/` = component-doc
-  packs (form/feedback/structure). New packs follow this shape instead of
-  growing DocsPage.
+  packs (form/feedback/structure), `docs/backgrounds/` = the full-bleed
+  generative canvas surfaces (aurora, faulty-terminal, ferrofluid, ...). New
+  packs follow this shape instead of growing DocsPage.
 
 ### studio/
 

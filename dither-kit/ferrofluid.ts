@@ -6,7 +6,7 @@
 // loop stamps every knob; widen the params, never branch per effect.
 
 import { clamp01 } from "./pixel"
-import type { Rgb } from "./palette"
+import { sampleRgbGradient, type Rgb } from "./palette"
 import type { RasterBuffer } from "./raster"
 import { fbm, hash21, valueNoise } from "./noise"
 
@@ -16,27 +16,6 @@ function smax(a: number, b: number, k: number): number {
   if (k <= 0) return Math.max(a, b)
   const h = Math.max(0, k - Math.abs(a - b)) / k
   return Math.max(a, b) + h * h * k * 0.25
-}
-
-/** Sample the rim palette at t in [0, 1] — colors spread across the surface by
- * height; a single color makes the whole rim uniform. */
-function sampleGradient(colors: Rgb[], t: number, out: [number, number, number]): void {
-  const n = colors.length
-  const a = colors[0]
-  if (n === 1) {
-    out[0] = a[0]
-    out[1] = a[1]
-    out[2] = a[2]
-    return
-  }
-  const f = clamp01(t) * (n - 1)
-  const i = Math.floor(f)
-  const frac = f - i
-  const lo = colors[i]
-  const hi = colors[Math.min(i + 1, n - 1)]
-  out[0] = lo[0] + (hi[0] - lo[0]) * frac
-  out[1] = lo[1] + (hi[1] - lo[1]) * frac
-  out[2] = lo[2] + (hi[2] - lo[2]) * frac
 }
 
 /** Resolved per-frame knobs (colors as rgb, flow as a unit vector). */
@@ -121,7 +100,7 @@ export function paintFerrofluid(
         data[i] = data[i + 1] = data[i + 2] = data[i + 3] = 0
         continue
       }
-      sampleGradient(p.colors, v, col)
+      sampleRgbGradient(p.colors, v, col)
       data[i] = col[0]
       data[i + 1] = col[1]
       data[i + 2] = col[2]

@@ -88,6 +88,28 @@ const hx = (n: number) =>
   Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0")
 export const rgbToHex = ([r, g, b]: Rgb): string => `#${hx(r)}${hx(g)}${hx(b)}`
 
+/** Sample a colour ramp at t in [0, 1] into `out` (no allocation per pixel).
+ * A single colour fills `out` uniformly. Shared by the generative canvas
+ * backgrounds (ferrofluid, aurora, ...) that tint by a position. */
+export function sampleRgbGradient(colors: Rgb[], t: number, out: [number, number, number]): void {
+  const n = colors.length
+  const lo = colors[0]
+  if (n === 1) {
+    out[0] = lo[0]
+    out[1] = lo[1]
+    out[2] = lo[2]
+    return
+  }
+  const f = (t < 0 ? 0 : t > 1 ? 1 : t) * (n - 1)
+  const i = Math.floor(f)
+  const frac = f - i
+  const a = colors[i]
+  const b = colors[Math.min(i + 1, n - 1)]
+  out[0] = a[0] + (b[0] - a[0]) * frac
+  out[1] = a[1] + (b[1] - a[1]) * frac
+  out[2] = a[2] + (b[2] - a[2]) * frac
+}
+
 /** HSV (h 0–360, s/v 0–1) → rgb. */
 export function hsvToRgb(h: number, s: number, v: number): Rgb {
   h = ((h % 360) + 360) % 360

@@ -1,0 +1,226 @@
+<script setup lang="ts">
+import { computed, reactive } from "vue"
+import {
+  cssColor,
+  DitherAurora,
+  DitherFaultyTerminal,
+  DitherFerrofluid,
+  type DitherColor,
+  type FlowDirection,
+} from "@dither-kit"
+import DemoCard from "../DemoCard.vue"
+import PropsTable, { type PropRow } from "../PropsTable.vue"
+
+const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
+const chipClass = (active: boolean) =>
+  `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`
+
+// Aurora playground — a colour ramp preset; the code tab mirrors it.
+const AURORA_PALETTES = {
+  polar: ["#5227FF", "#7CFF67", "#5227FF"],
+  emerald: ["#27FF64", "#7CFF67", "#A8FFB6"],
+  sunset: ["#FF3D2E", "#FF8A3D", "#FFD23D"],
+} as const
+type AuroraPalette = keyof typeof AURORA_PALETTES
+const AURORA_PALETTE_NAMES = Object.keys(AURORA_PALETTES) as AuroraPalette[]
+const aurora = reactive({ palette: "polar" as AuroraPalette })
+const auroraColors = computed(() => [...AURORA_PALETTES[aurora.palette]])
+const auroraCode = computed(
+  () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherAurora :colors='${JSON.stringify(auroraColors.value)}' />\n</div>`
+)
+
+// Faulty-terminal playground — a tint swatch plus feel presets that swap the
+// effect knobs; the code tab mirrors exactly what the preview renders.
+const TERM_PRESETS = {
+  signal: { scale: 1.5, glitchAmount: 0.6, scanlineIntensity: 0.8, dither: 0, curvature: 0, chromaticAberration: 0 },
+  glitch: { scale: 1.4, glitchAmount: 2.2, scanlineIntensity: 1.2, dither: 0, curvature: 0.05, chromaticAberration: 3 },
+  dithered: { scale: 1.8, glitchAmount: 0.4, scanlineIntensity: 0.6, dither: 1, curvature: 0, chromaticAberration: 0 },
+  crt: { scale: 1.6, glitchAmount: 0.8, scanlineIntensity: 1.4, dither: 0.3, curvature: 0.35, chromaticAberration: 2 },
+} as const
+type TermPreset = keyof typeof TERM_PRESETS
+const TERM_PRESET_NAMES = Object.keys(TERM_PRESETS) as TermPreset[]
+const term = reactive({ tint: "green" as DitherColor, preset: "signal" as TermPreset })
+const termParams = computed(() => TERM_PRESETS[term.preset])
+const termCode = computed(() => {
+  const p = termParams.value
+  const attrs = [`tint="${term.tint}"`, `:scale="${p.scale}"`, `:glitch-amount="${p.glitchAmount}"`, `:scanline-intensity="${p.scanlineIntensity}"`]
+  if (p.dither) attrs.push(`:dither="${p.dither}"`)
+  if (p.curvature) attrs.push(`:curvature="${p.curvature}"`)
+  if (p.chromaticAberration) attrs.push(`:chromatic-aberration="${p.chromaticAberration}"`)
+  return `<div class="relative h-56 overflow-hidden rounded-md">\n  <DitherFaultyTerminal ${attrs.join(" ")} />\n</div>`
+})
+
+// Ferrofluid playground — a rim palette and a flow direction; the code tab
+// mirrors exactly what the preview renders.
+const FLUID_PALETTES = {
+  acid: ["#27FF64", "#7CFF67", "#A8FFB6"],
+  magma: ["#FF3D2E", "#FF8A3D", "#FFD23D"],
+  ice: ["#3DA5FF", "#7CE0FF", "#CFF6FF"],
+  mono: ["#A8FFB6"],
+} as const
+type FluidPalette = keyof typeof FLUID_PALETTES
+const FLUID_PALETTE_NAMES = Object.keys(FLUID_PALETTES) as FluidPalette[]
+const FLOW_DIRS: FlowDirection[] = ["up", "down", "left", "right"]
+const fluid = reactive({ palette: "acid" as FluidPalette, flow: "down" as FlowDirection })
+const fluidColors = computed(() => [...FLUID_PALETTES[fluid.palette]])
+const fluidCode = computed(
+  () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherFerrofluid :colors='${JSON.stringify(fluidColors.value)}' flow-direction="${fluid.flow}" />\n</div>`
+)
+
+const API: Record<string, PropRow[]> = {
+  aurora: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#5227FF']" },
+    { prop: "amplitude", type: "number", default: "1" },
+    { prop: "blend", type: "number 0…1", default: "0.5" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "paused", type: "boolean", default: "false" },
+    { prop: "dpr", type: "number", default: "devicePixelRatio" },
+    { prop: "mix-blend-mode", type: "string", default: "undefined" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
+  faultyTerminal: [
+    { prop: "scale", type: "number", default: "1.5" },
+    { prop: "grid-mul", type: "[number, number]", default: "[2, 1]" },
+    { prop: "digit-size", type: "number", default: "1.2" },
+    { prop: "time-scale", type: "number", default: "1" },
+    { prop: "pause", type: "boolean", default: "false" },
+    { prop: "scanline-intensity", type: "number", default: "1" },
+    { prop: "glitch-amount", type: "number", default: "1" },
+    { prop: "flicker-amount", type: "number", default: "1" },
+    { prop: "noise-amp", type: "number", default: "1" },
+    { prop: "chromatic-aberration", type: "number (px)", default: "0" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "0" },
+    { prop: "curvature", type: "number", default: "0" },
+    { prop: "tint", type: "PixelColor (hex or seed)", default: '"#ffffff"' },
+    { prop: "mouse-react", type: "boolean", default: "true" },
+    { prop: "mouse-strength", type: "number", default: "0.5" },
+    { prop: "page-load-animation", type: "boolean", default: "false" },
+    { prop: "brightness", type: "number", default: "1" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
+  ferrofluid: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#27FF64', '#7CFF67', '#A8FFB6']" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "scale", type: "number", default: "1.6" },
+    { prop: "turbulence", type: "number", default: "1" },
+    { prop: "fluidity", type: "number", default: "0.1" },
+    { prop: "rim-width", type: "number", default: "0.2" },
+    { prop: "sharpness", type: "number", default: "2.5" },
+    { prop: "shimmer", type: "number", default: "1.5" },
+    { prop: "glow", type: "number", default: "2" },
+    { prop: "flow-direction", type: '"up" | "down" | "left" | "right"', default: '"down"' },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouse-strength", type: "number", default: "1" },
+    { prop: "mouse-radius", type: "number", default: "0.35" },
+    { prop: "mouse-dampening", type: "number (s)", default: "0.15" },
+    { prop: "mix-blend-mode", type: "string", default: "undefined" },
+    { prop: "paused", type: "boolean", default: "false" },
+    { prop: "dpr", type: "number", default: "devicePixelRatio" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
+}
+</script>
+
+<template>
+  <!-- Aurora -->
+  <section id="aurora" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Aurora</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Glowing polar curtains — a wavy light band hangs near the top, broken into
+      vertical rays and tinted across the colour ramp by width. No WebGL: it
+      draws through the same Bayer engine, so the glow comes out dithered.
+      Fills its box.
+    </p>
+    <DemoCard :code="auroraCode">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherAurora :colors="auroraColors" />
+      </div>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
+        <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+          <button v-for="pName in AURORA_PALETTE_NAMES" :key="pName" type="button" :aria-pressed="aurora.palette === pName" :class="chipClass(aurora.palette === pName)" @click="aurora.palette = pName">{{ pName }}</button>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.aurora" />
+  </section>
+
+  <!-- Faulty terminal -->
+  <section id="faulty-terminal" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Faulty terminal</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A CRT glyph wall — animated value-noise lights a grid of characters, then
+      scanlines, glitch, flicker, chromatic aberration and barrel curvature run
+      over it. No WebGL: it draws through the same Bayer engine as everything
+      else, so <code class="text-foreground/80">dither</code> is just an
+      intensity from smooth to hard 1-bit. Fills its box; move the pointer over it.
+    </p>
+    <DemoCard :code="termCode">
+      <div class="relative h-56 overflow-hidden rounded-md border border-border/60">
+        <DitherFaultyTerminal
+          :tint="term.tint"
+          :scale="termParams.scale"
+          :glitch-amount="termParams.glitchAmount"
+          :scanline-intensity="termParams.scanlineIntensity"
+          :dither="termParams.dither"
+          :curvature="termParams.curvature"
+          :chromatic-aberration="termParams.chromaticAberration"
+        />
+      </div>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
+        <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+          <button v-for="pName in TERM_PRESET_NAMES" :key="pName" type="button" :aria-pressed="term.preset === pName" :class="chipClass(term.preset === pName)" @click="term.preset = pName">{{ pName }}</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            v-for="c in COLORS"
+            :key="c"
+            type="button"
+            :aria-label="`Tint ${c}`"
+            :aria-pressed="term.tint === c"
+            class="size-6 rounded-[4px] transition-transform"
+            :class="term.tint === c ? 'ring-1 ring-foreground ring-offset-2 ring-offset-background' : 'hover:scale-110'"
+            :style="{ backgroundColor: cssColor(c) }"
+            @click="term.tint = c"
+          />
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.faultyTerminal" />
+  </section>
+
+  <!-- Ferrofluid -->
+  <section id="ferrofluid" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Ferrofluid</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Two fluid layers merge into metaball blobs; their contour rim glows,
+      tinted across the array of colors by height. Turbulence swirls the domain,
+      shimmer grains the lines, and the pointer raises a magnetic spike. No
+      WebGL — it draws through the same Bayer engine, so the rim comes out
+      crunchy. Fills its box.
+    </p>
+    <DemoCard :code="fluidCode">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60">
+        <DitherFerrofluid :colors="fluidColors" :flow-direction="fluid.flow" />
+      </div>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
+        <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+          <button v-for="pName in FLUID_PALETTE_NAMES" :key="pName" type="button" :aria-pressed="fluid.palette === pName" :class="chipClass(fluid.palette === pName)" @click="fluid.palette = pName">{{ pName }}</button>
+        </div>
+        <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+          <button v-for="dir in FLOW_DIRS" :key="dir" type="button" :aria-pressed="fluid.flow === dir" :class="chipClass(fluid.flow === dir)" @click="fluid.flow = dir">{{ dir }}</button>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.ferrofluid" />
+  </section>
+</template>

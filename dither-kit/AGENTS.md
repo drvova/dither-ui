@@ -74,9 +74,15 @@ is its showcase and editor.
   and ordered-dithers it. Same WebGL-free, self-sizing, generic-registry rules
   as FaultyTerminal; the pointer raises a magnetic spike eased by
   `mouseDampening`, and `dpr` scales the backing resolution.
-- `noise.ts` is the single source for the 2D value-noise/fbm used by both
-  FaultyTerminal and Ferrofluid — add generative canvas surfaces on top of it,
-  never re-derive hash/valueNoise/fbm per component.
+- `Aurora` (`aurora.ts`) is the same family: fbm drives a wavy curtain edge lit
+  into vertical rays and tinted across the `colors` ramp by width. All the
+  generative background surfaces (FaultyTerminal, Ferrofluid, Aurora, and the
+  ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
+  `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
+- `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;
+  `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
+  sampler they tint with. Add new generative backgrounds on top of both — never
+  re-derive hash/valueNoise/fbm or a per-pixel gradient lerp per component.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
