@@ -1,7 +1,7 @@
 <script lang="ts">
-import { paintRadar, type RadarParams } from "./radar"
-export type { RadarParams }
-export { paintRadar }
+import { paintGradientBlinds, type GradientBlindsParams } from "./gradient-blinds"
+export type { GradientBlindsParams }
+export { paintGradientBlinds }
 </script>
 
 <script setup lang="ts">
@@ -16,10 +16,10 @@ import { useDitherBackground } from "./use-dither-background"
 const props = withDefaults(
   defineProps<{
     colors?: string[]
-    rings?: number
+    count?: number
+    angle?: number
     speed?: number
-    sweepWidth?: number
-    glow?: number
+    gap?: number
     opacity?: number
     dither?: number | boolean
     paused?: boolean
@@ -31,11 +31,11 @@ const props = withDefaults(
     class?: string
   }>(),
   {
-    colors: () => ["#27FF64", "#7CFF67"],
-    rings: 4,
-    speed: 1,
-    sweepWidth: 0.6,
-    glow: 1.5,
+    colors: () => ["#5227FF", "#FF3D2E", "#FFD23D"],
+    count: 8,
+    angle: 0.3,
+    speed: 0.5,
+    gap: 0.15,
     opacity: 1,
     dither: 1,
     paused: false,
@@ -48,12 +48,12 @@ const MAX_COLS = 240
 const MAX_ROWS = 150
 
 const precompiled = computed(() => precompiledSrc(props.precompiled))
-const params = computed<RadarParams>(() => ({
+const params = computed<GradientBlindsParams>(() => ({
   colors: (props.colors.length ? props.colors : ["#ffffff"]).slice(0, 8).map(hexToRgb),
-  rings: props.rings,
+  count: props.count,
+  angle: props.angle,
   speed: props.speed,
-  sweepWidth: props.sweepWidth,
-  glow: props.glow,
+  gap: props.gap,
   opacity: clamp01(props.opacity),
   dither: props.dither === true ? 1 : props.dither === false ? 0 : clamp01(props.dither),
 }))
@@ -72,7 +72,7 @@ useDitherBackground({
   renderMode: () => props.renderMode,
   precompiled: () => precompiled.value,
   restart: () => [props.seed, props.renderMode, precompiled.value, props.dpr],
-  render: (buffer: RasterBuffer, clock: number) => paintRadar(buffer, params.value, clock, matrix.value),
+  render: (buffer: RasterBuffer, clock: number) => paintGradientBlinds(buffer, params.value, clock, matrix.value),
 })
 </script>
 

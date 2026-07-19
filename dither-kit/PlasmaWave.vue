@@ -1,7 +1,7 @@
 <script lang="ts">
-import { paintRadar, type RadarParams } from "./radar"
-export type { RadarParams }
-export { paintRadar }
+import { paintPlasmaWave, type PlasmaWaveParams } from "./plasma-wave"
+export type { PlasmaWaveParams }
+export { paintPlasmaWave }
 </script>
 
 <script setup lang="ts">
@@ -16,10 +16,9 @@ import { useDitherBackground } from "./use-dither-background"
 const props = withDefaults(
   defineProps<{
     colors?: string[]
-    rings?: number
+    scale?: number
     speed?: number
-    sweepWidth?: number
-    glow?: number
+    angle?: number
     opacity?: number
     dither?: number | boolean
     paused?: boolean
@@ -31,11 +30,10 @@ const props = withDefaults(
     class?: string
   }>(),
   {
-    colors: () => ["#27FF64", "#7CFF67"],
-    rings: 4,
-    speed: 1,
-    sweepWidth: 0.6,
-    glow: 1.5,
+    colors: () => ["#5227FF", "#7CFF67", "#FFD23D"],
+    scale: 1,
+    speed: 0.5,
+    angle: 0.6,
     opacity: 1,
     dither: 1,
     paused: false,
@@ -48,12 +46,11 @@ const MAX_COLS = 240
 const MAX_ROWS = 150
 
 const precompiled = computed(() => precompiledSrc(props.precompiled))
-const params = computed<RadarParams>(() => ({
+const params = computed<PlasmaWaveParams>(() => ({
   colors: (props.colors.length ? props.colors : ["#ffffff"]).slice(0, 8).map(hexToRgb),
-  rings: props.rings,
+  scale: props.scale,
   speed: props.speed,
-  sweepWidth: props.sweepWidth,
-  glow: props.glow,
+  angle: props.angle,
   opacity: clamp01(props.opacity),
   dither: props.dither === true ? 1 : props.dither === false ? 0 : clamp01(props.dither),
 }))
@@ -72,7 +69,7 @@ useDitherBackground({
   renderMode: () => props.renderMode,
   precompiled: () => precompiled.value,
   restart: () => [props.seed, props.renderMode, precompiled.value, props.dpr],
-  render: (buffer: RasterBuffer, clock: number) => paintRadar(buffer, params.value, clock, matrix.value),
+  render: (buffer: RasterBuffer, clock: number) => paintPlasmaWave(buffer, params.value, clock, matrix.value),
 })
 </script>
 

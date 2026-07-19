@@ -4,7 +4,15 @@ import {
   cssColor,
   DitherAurora,
   DitherBeams,
+  DitherColorBends,
+  DitherDither,
+  DitherDotField,
   DitherDotGrid,
+  DitherFloatingLines,
+  DitherGradientBlinds,
+  DitherGrainient,
+  DitherPlasmaWave,
+  DitherRadar,
   DitherGridDistortion,
   DitherGridMotion,
   DitherGridScan,
@@ -116,6 +124,14 @@ const DEMO = {
   gridMotion: wrap('<DitherGridMotion />'),
   gridScan: wrap('<DitherGridScan />'),
   gridDistortion: wrap('<DitherGridDistortion />'),
+  dotField: wrap('<DitherDotField />'),
+  colorBends: wrap('<DitherColorBends />'),
+  gradientBlinds: wrap('<DitherGradientBlinds />'),
+  grainient: wrap('<DitherGrainient />'),
+  plasmaWave: wrap('<DitherPlasmaWave />'),
+  floatingLines: wrap('<DitherFloatingLines />'),
+  radar: wrap('<DitherRadar />'),
+  dither: wrap('<DitherDither />'),
 }
 
 const API: Record<string, PropRow[]> = {
@@ -304,6 +320,68 @@ const API: Record<string, PropRow[]> = {
     { prop: "mouse-interaction", type: "boolean", default: "true" },
     { prop: "mouse-strength", type: "number", default: "1" },
     { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  dotField: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "gap", type: "number (dots across)", default: "26" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "size-variation", type: "number (radius breathe)", default: "1" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouse-strength", type: "number", default: "1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  colorBends: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#FFD23D']" },
+    { prop: "scale", type: "number", default: "2" },
+    { prop: "bend", type: "number (warp amount)", default: "0.4" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  gradientBlinds: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#FF3D2E', '#FFD23D']" },
+    { prop: "count", type: "number (slats)", default: "8" },
+    { prop: "angle", type: "number (radians)", default: "0.3" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "gap", type: "number 0…1 (slat spacing)", default: "0.15" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  grainient: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "angle", type: "number (gradient direction)", default: "0.6" },
+    { prop: "grain", type: "number (noise amount)", default: "0.4" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  plasmaWave: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#FFD23D']" },
+    { prop: "scale", type: "number", default: "1" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "angle", type: "number (flow direction)", default: "0.6" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  floatingLines: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#3DA5FF', '#7CE0FF']" },
+    { prop: "count", type: "number", default: "10" },
+    { prop: "amplitude", type: "number (bob height)", default: "1" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "line-width", type: "number", default: "0.012" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  radar: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#27FF64', '#7CFF67']" },
+    { prop: "rings", type: "number", default: "4" },
+    { prop: "speed", type: "number (sweep rad/s)", default: "1" },
+    { prop: "sweep-width", type: "number (trail length)", default: "0.6" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  dither: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#7CFF67', '#5227FF']" },
+    { prop: "scale", type: "number", default: "3" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "opacity / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
   ],
   faultyTerminal: [
     { prop: "scale", type: "number", default: "1.5" },
@@ -605,6 +683,110 @@ const API: Record<string, PropRow[]> = {
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGridDistortion /></div>
     </DemoCard>
     <PropsTable :rows="API.gridDistortion" />
+  </section>
+
+  <!-- Dot field -->
+  <section id="dot-field" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Dot field</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A lattice of dots whose radius breathes with fbm and swells under the
+      cursor — tinted across the ramp by row. Move the pointer to bloom them.
+    </p>
+    <DemoCard :code="DEMO.dotField">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherDotField /></div>
+    </DemoCard>
+    <PropsTable :rows="API.dotField" />
+  </section>
+
+  <!-- Color bends -->
+  <section id="color-bends" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Color bends</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Smooth colour bands undulating on an fbm warp — the ramp index is bent by
+      noise so the bands ripple. Ordered dithering crunches the gradient.
+    </p>
+    <DemoCard :code="DEMO.colorBends">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherColorBends /></div>
+    </DemoCard>
+    <PropsTable :rows="API.colorBends" />
+  </section>
+
+  <!-- Gradient blinds -->
+  <section id="gradient-blinds" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Gradient blinds</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Angled slats each showing a colour-ramp gradient, separated by thin
+      transparent gaps and sliding over time. Dithered within each slat.
+    </p>
+    <DemoCard :code="DEMO.gradientBlinds">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGradientBlinds /></div>
+    </DemoCard>
+    <PropsTable :rows="API.gradientBlinds" />
+  </section>
+
+  <!-- Grainient -->
+  <section id="grainient" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Grainient</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A directional colour gradient dusted with animated grain — per-pixel hash
+      noise breaks up the ramp; ordered dithering adds the crunch on top.
+    </p>
+    <DemoCard :code="DEMO.grainient">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherGrainient /></div>
+    </DemoCard>
+    <PropsTable :rows="API.grainient" />
+  </section>
+
+  <!-- Plasma wave -->
+  <section id="plasma-wave" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Plasma wave</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Directional plasma with wavefronts travelling along an axis — sines along
+      and across the flow sum into a value mapped across the ramp. Dithered.
+    </p>
+    <DemoCard :code="DEMO.plasmaWave">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherPlasmaWave /></div>
+    </DemoCard>
+    <PropsTable :rows="API.plasmaWave" />
+  </section>
+
+  <!-- Floating lines -->
+  <section id="floating-lines" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Floating lines</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A few thin horizontal lines bobbing and drifting independently, each with
+      its own phase — tinted across the ramp by line. Dithered.
+    </p>
+    <DemoCard :code="DEMO.floatingLines">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherFloatingLines /></div>
+    </DemoCard>
+    <PropsTable :rows="API.floatingLines" />
+  </section>
+
+  <!-- Radar -->
+  <section id="radar-sweep" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Radar</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A rotating sweep with an afterglow trail over concentric rings — the scope
+      is circular, tinted across the ramp by radius. Dithered.
+    </p>
+    <DemoCard :code="DEMO.radar">
+      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherRadar /></div>
+    </DemoCard>
+    <PropsTable :rows="API.radar" />
+  </section>
+
+  <!-- Dither -->
+  <section id="dither" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Dither</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The kit's signature at its purest — an animated fbm cloud thresholded 1-bit
+      against the Bayer matrix, so the whole surface IS the ordered dither.
+    </p>
+    <DemoCard :code="DEMO.dither">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherDither /></div>
+    </DemoCard>
+    <PropsTable :rows="API.dither" />
   </section>
 
   <!-- Faulty terminal -->

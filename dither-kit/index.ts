@@ -53,6 +53,14 @@ export { default as DitherLightRays, type RaysParams, paintRays } from "./LightR
 export { default as DitherSideRays } from "./SideRays.vue"
 export { default as DitherLightPillar, type LightPillarParams, paintLightPillar } from "./LightPillar.vue"
 export { default as DitherSoftAurora, type SoftAuroraParams, paintSoftAurora } from "./SoftAurora.vue"
+export { default as DitherDotField, type DotFieldParams, paintDotField } from "./DotField.vue"
+export { default as DitherColorBends, type ColorBendsParams, paintColorBends } from "./ColorBends.vue"
+export { default as DitherGradientBlinds, type GradientBlindsParams, paintGradientBlinds } from "./GradientBlinds.vue"
+export { default as DitherGrainient, type GrainientParams, paintGrainient } from "./Grainient.vue"
+export { default as DitherDither, type DitherBgParams, paintDitherBg } from "./Dither.vue"
+export { default as DitherFloatingLines, type FloatingLinesParams, paintFloatingLines } from "./FloatingLines.vue"
+export { default as DitherPlasmaWave, type PlasmaWaveParams, paintPlasmaWave } from "./PlasmaWave.vue"
+export { default as DitherRadar, type RadarParams, paintRadar } from "./Radar.vue"
 export {
   default as DitherFaultyTerminal,
   type FaultyTerminalParams,

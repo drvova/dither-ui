@@ -1,7 +1,7 @@
 <script lang="ts">
-import { paintRadar, type RadarParams } from "./radar"
-export type { RadarParams }
-export { paintRadar }
+import { paintFloatingLines, type FloatingLinesParams } from "./floating-lines"
+export type { FloatingLinesParams }
+export { paintFloatingLines }
 </script>
 
 <script setup lang="ts">
@@ -16,9 +16,10 @@ import { useDitherBackground } from "./use-dither-background"
 const props = withDefaults(
   defineProps<{
     colors?: string[]
-    rings?: number
+    count?: number
+    amplitude?: number
     speed?: number
-    sweepWidth?: number
+    lineWidth?: number
     glow?: number
     opacity?: number
     dither?: number | boolean
@@ -31,10 +32,11 @@ const props = withDefaults(
     class?: string
   }>(),
   {
-    colors: () => ["#27FF64", "#7CFF67"],
-    rings: 4,
-    speed: 1,
-    sweepWidth: 0.6,
+    colors: () => ["#3DA5FF", "#7CE0FF"],
+    count: 10,
+    amplitude: 1,
+    speed: 0.5,
+    lineWidth: 0.012,
     glow: 1.5,
     opacity: 1,
     dither: 1,
@@ -44,15 +46,16 @@ const props = withDefaults(
 )
 
 const CELL = 4
-const MAX_COLS = 240
-const MAX_ROWS = 150
+const MAX_COLS = 260
+const MAX_ROWS = 160
 
 const precompiled = computed(() => precompiledSrc(props.precompiled))
-const params = computed<RadarParams>(() => ({
+const params = computed<FloatingLinesParams>(() => ({
   colors: (props.colors.length ? props.colors : ["#ffffff"]).slice(0, 8).map(hexToRgb),
-  rings: props.rings,
+  count: props.count,
+  amplitude: props.amplitude,
   speed: props.speed,
-  sweepWidth: props.sweepWidth,
+  lineWidth: props.lineWidth,
   glow: props.glow,
   opacity: clamp01(props.opacity),
   dither: props.dither === true ? 1 : props.dither === false ? 0 : clamp01(props.dither),
@@ -72,7 +75,7 @@ useDitherBackground({
   renderMode: () => props.renderMode,
   precompiled: () => precompiled.value,
   restart: () => [props.seed, props.renderMode, precompiled.value, props.dpr],
-  render: (buffer: RasterBuffer, clock: number) => paintRadar(buffer, params.value, clock, matrix.value),
+  render: (buffer: RasterBuffer, clock: number) => paintFloatingLines(buffer, params.value, clock, matrix.value),
 })
 </script>
 

@@ -1,11 +1,11 @@
 <script lang="ts">
-import { paintRadar, type RadarParams } from "./radar"
-export type { RadarParams }
-export { paintRadar }
+import { paintDotField, type DotFieldParams } from "./dot-field"
+export type { DotFieldParams }
+export { paintDotField }
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
 import { BAYER4, clamp01, pixelMatrixFromSeed } from "./pixel"
 import { hexToRgb } from "./palette"
@@ -16,12 +16,14 @@ import { useDitherBackground } from "./use-dither-background"
 const props = withDefaults(
   defineProps<{
     colors?: string[]
-    rings?: number
+    gap?: number
     speed?: number
-    sweepWidth?: number
+    sizeVariation?: number
     glow?: number
     opacity?: number
     dither?: number | boolean
+    mouseInteraction?: boolean
+    mouseStrength?: number
     paused?: boolean
     dpr?: number
     mixBlendMode?: string
@@ -31,35 +33,39 @@ const props = withDefaults(
     class?: string
   }>(),
   {
-    colors: () => ["#27FF64", "#7CFF67"],
-    rings: 4,
-    speed: 1,
-    sweepWidth: 0.6,
+    colors: () => ["#5227FF", "#7CFF67"],
+    gap: 26,
+    speed: 0.5,
+    sizeVariation: 1,
     glow: 1.5,
     opacity: 1,
     dither: 1,
+    mouseInteraction: true,
+    mouseStrength: 1,
     paused: false,
     renderMode: "live",
   }
 )
 
-const CELL = 4
-const MAX_COLS = 240
-const MAX_ROWS = 150
+const CELL = 3
+const MAX_COLS = 260
+const MAX_ROWS = 170
 
 const precompiled = computed(() => precompiledSrc(props.precompiled))
-const params = computed<RadarParams>(() => ({
+const params = computed<DotFieldParams>(() => ({
   colors: (props.colors.length ? props.colors : ["#ffffff"]).slice(0, 8).map(hexToRgb),
-  rings: props.rings,
+  gap: props.gap,
   speed: props.speed,
-  sweepWidth: props.sweepWidth,
+  sizeVariation: props.sizeVariation,
   glow: props.glow,
   opacity: clamp01(props.opacity),
   dither: props.dither === true ? 1 : props.dither === false ? 0 : clamp01(props.dither),
+  mouseStrength: props.mouseStrength,
 }))
 const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const mouse = { x: 0.5, y: 0.5 }
 
 useDitherBackground({
   wrapRef,
@@ -72,7 +78,23 @@ useDitherBackground({
   renderMode: () => props.renderMode,
   precompiled: () => precompiled.value,
   restart: () => [props.seed, props.renderMode, precompiled.value, props.dpr],
-  render: (buffer: RasterBuffer, clock: number) => paintRadar(buffer, params.value, clock, matrix.value),
+  render: (buffer: RasterBuffer, clock: number) =>
+    paintDotField(buffer, params.value, clock, matrix.value, props.mouseInteraction ? mouse : null),
+})
+
+function onPointerMove(e: PointerEvent) {
+  const c = canvasRef.value
+  if (!c) return
+  const r = c.getBoundingClientRect()
+  if (r.width <= 0 || r.height <= 0) return
+  mouse.x = (e.clientX - r.left) / r.width
+  mouse.y = (e.clientY - r.top) / r.height
+}
+onMounted(() => {
+  if (typeof window !== "undefined") window.addEventListener("pointermove", onPointerMove, { passive: true })
+})
+onBeforeUnmount(() => {
+  if (typeof window !== "undefined") window.removeEventListener("pointermove", onPointerMove)
 })
 </script>
 
