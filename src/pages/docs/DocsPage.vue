@@ -8,6 +8,7 @@ import {
   DitherAvatar,
   DitherButton,
   DitherFaultyTerminal,
+  DitherFerrofluid,
   DitherGradient,
   DitherImage,
   Dot,
@@ -27,6 +28,7 @@ import {
   type ButtonVariant,
   type DitherColor,
   type DotVariant,
+  type FlowDirection,
   type GradientDirection,
   type PixelBloom,
 } from "@dither-kit"
@@ -184,6 +186,23 @@ type TermPreset = keyof typeof TERM_PRESETS
 const TERM_PRESET_NAMES = Object.keys(TERM_PRESETS) as TermPreset[]
 const term = reactive({ tint: "green" as DitherColor, preset: "signal" as TermPreset })
 const termParams = computed(() => TERM_PRESETS[term.preset])
+
+// Ferrofluid playground — a rim palette and a flow direction; the code tab
+// mirrors exactly what the preview renders.
+const FLUID_PALETTES = {
+  acid: ["#27FF64", "#7CFF67", "#A8FFB6"],
+  magma: ["#FF3D2E", "#FF8A3D", "#FFD23D"],
+  ice: ["#3DA5FF", "#7CE0FF", "#CFF6FF"],
+  mono: ["#A8FFB6"],
+} as const
+type FluidPalette = keyof typeof FLUID_PALETTES
+const FLUID_PALETTE_NAMES = Object.keys(FLUID_PALETTES) as FluidPalette[]
+const FLOW_DIRS: FlowDirection[] = ["up", "down", "left", "right"]
+const fluid = reactive({ palette: "acid" as FluidPalette, flow: "down" as FlowDirection })
+const fluidColors = computed(() => [...FLUID_PALETTES[fluid.palette]])
+const fluidCode = computed(
+  () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherFerrofluid :colors='${JSON.stringify(fluidColors.value)}' flow-direction="${fluid.flow}" />\n</div>`
+)
 
 // App shell example.
 const SHELL_NAV = ["Overview", "Reports", "Alerts", "Settings"]
@@ -412,6 +431,30 @@ const API: Record<string, PropRow[]> = {
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "class", type: "string", default: "undefined" },
   ],
+  ferrofluid: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#27FF64', '#7CFF67', '#A8FFB6']" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "scale", type: "number", default: "1.6" },
+    { prop: "turbulence", type: "number", default: "1" },
+    { prop: "fluidity", type: "number", default: "0.1" },
+    { prop: "rim-width", type: "number", default: "0.2" },
+    { prop: "sharpness", type: "number", default: "2.5" },
+    { prop: "shimmer", type: "number", default: "1.5" },
+    { prop: "glow", type: "number", default: "2" },
+    { prop: "flow-direction", type: '"up" | "down" | "left" | "right"', default: '"down"' },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouse-strength", type: "number", default: "1" },
+    { prop: "mouse-radius", type: "number", default: "0.35" },
+    { prop: "mouse-dampening", type: "number (s)", default: "0.15" },
+    { prop: "mix-blend-mode", type: "string", default: "undefined" },
+    { prop: "paused", type: "boolean", default: "false" },
+    { prop: "dpr", type: "number", default: "devicePixelRatio" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
   palette: [
     { prop: "cssColor(c)", type: "(DitherColor | number) → css string", default: "—" },
     { prop: "seedFromColor(c)", type: "(DitherColor | number) → Seed", default: "—" },
@@ -462,6 +505,7 @@ const GROUPS = [
       { id: "gradient", label: "Gradient" },
       { id: "image", label: "Image" },
       { id: "faulty-terminal", label: "Faulty terminal" },
+      { id: "ferrofluid", label: "Ferrofluid" },
       ...FORM_NAV,
       ...FIELD_NAV,
       ...SELECTION_NAV,
@@ -754,6 +798,13 @@ const config = {
      tint: hex or palette seed · dither: 0 smooth … 1 hard Bayer
      curvature: barrel warp · chromatic-aberration: rgb split (px)
      mouse-react on by default · render-mode="static" paints one frame -->`,
+  ferrofluid: `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherFerrofluid :colors="['#27FF64', '#7CFF67', '#A8FFB6']" />
+</div>
+<!-- colors: up to 8 hex, spread across the rim by height
+     flow-direction: up · down · left · right · fluidity: merge softness
+     glow/rim-width/sharpness shape the contour · shimmer grains it
+     mouse-interaction raises a magnetic spike · dither: Bayer crunch -->`,
   palette: `import { cssColor, type DitherColor } from "@dither-kit"
 cssColor("blue") // rgb(53,143,243)`,
 }
@@ -1649,6 +1700,32 @@ const termCode = computed(() => {
               </div>
             </DemoCard>
             <PropsTable :rows="API.faultyTerminal" />
+          </section>
+
+          <!-- Ferrofluid -->
+          <section id="ferrofluid" class="mt-16 scroll-mt-24">
+            <h2 class="text-lg tracking-tight">Ferrofluid</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+              Two fluid layers merge into metaball blobs; their contour rim
+              glows, tinted across the array of colors by height. Turbulence
+              swirls the domain, shimmer grains the lines, and the pointer
+              raises a magnetic spike. No WebGL — it draws through the same Bayer
+              engine, so the rim comes out crunchy. Fills its box.
+            </p>
+            <DemoCard :code="fluidCode">
+              <div class="relative h-64 overflow-hidden rounded-md border border-border/60">
+                <DitherFerrofluid :colors="fluidColors" :flow-direction="fluid.flow" />
+              </div>
+              <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
+                <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                  <button v-for="pName in FLUID_PALETTE_NAMES" :key="pName" type="button" :aria-pressed="fluid.palette === pName" :class="chipClass(fluid.palette === pName)" @click="fluid.palette = pName">{{ pName }}</button>
+                </div>
+                <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                  <button v-for="dir in FLOW_DIRS" :key="dir" type="button" :aria-pressed="fluid.flow === dir" :class="chipClass(fluid.flow === dir)" @click="fluid.flow = dir">{{ dir }}</button>
+                </div>
+              </div>
+            </DemoCard>
+            <PropsTable :rows="API.ferrofluid" />
           </section>
 
           <!-- Form controls: switch, checkbox, slider, progress -->

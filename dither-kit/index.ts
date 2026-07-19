@@ -32,6 +32,12 @@ export {
   type FaultyTerminalParams,
   paintFaultyTerminal,
 } from "./FaultyTerminal.vue"
+export {
+  default as DitherFerrofluid,
+  type FerrofluidParams,
+  type FlowDirection,
+  paintFerrofluid,
+} from "./Ferrofluid.vue"
 export type { DitherRenderMode, PrecompiledDither } from "./precompile"
 export {
   precompiledSrc,

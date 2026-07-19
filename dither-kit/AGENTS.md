@@ -68,6 +68,15 @@ is its showcase and editor.
   DitherGradient, so it renders filled in Studio's generic widget renderer and
   registers as an ordinary `COMPONENT_REGISTRY` entry instead of a bespoke kind;
   pass `class="absolute inset-0"` to use it as a background layer.
+- `Ferrofluid` is the same family: `ferrofluid.ts` fuses two fbm layers with a
+  smooth-max (metaball union tuned by `fluidity`), lights the iso-surface's
+  contour rim, tints it across the `colors` array by height, then shimmer-grains
+  and ordered-dithers it. Same WebGL-free, self-sizing, generic-registry rules
+  as FaultyTerminal; the pointer raises a magnetic spike eased by
+  `mouseDampening`, and `dpr` scales the backing resolution.
+- `noise.ts` is the single source for the 2D value-noise/fbm used by both
+  FaultyTerminal and Ferrofluid — add generative canvas surfaces on top of it,
+  never re-derive hash/valueNoise/fbm per component.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
