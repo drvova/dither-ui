@@ -27,6 +27,11 @@ export {
   type GradientDirection,
 } from "./DitherGradient.vue"
 export { default as DitherImage } from "./DitherImage.vue"
+export {
+  default as DitherFaultyTerminal,
+  type FaultyTerminalParams,
+  paintFaultyTerminal,
+} from "./FaultyTerminal.vue"
 export type { DitherRenderMode, PrecompiledDither } from "./precompile"
 export {
   precompiledSrc,

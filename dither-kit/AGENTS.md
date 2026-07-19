@@ -59,6 +59,15 @@ is its showcase and editor.
   racing a bar, a travelling-wave donut. ONE render loop resolves membership+t
   by shape then brightness by flow — add variety by widening the axes, never by
   branching per preset. Default (no seed) is a clean rotating circle arc.
+- `FaultyTerminal` is a CRT glyph wall: `faulty-terminal.ts` lights a grid of
+  glyph cells with animated value-noise/fbm, then applies scanlines, glitch,
+  flicker, chromatic aberration, barrel curvature, tint and ordered dithering.
+  It is a WebGL-free reimplementation (canvas + Bayer only) — the `dither` prop
+  is the ordered-threshold intensity (0 smooth -> 1 hard 1-bit). Its root is
+  `relative h-full w-full` (self-sizing), NOT `absolute inset-0` like
+  DitherGradient, so it renders filled in Studio's generic widget renderer and
+  registers as an ordinary `COMPONENT_REGISTRY` entry instead of a bespoke kind;
+  pass `class="absolute inset-0"` to use it as a background layer.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
