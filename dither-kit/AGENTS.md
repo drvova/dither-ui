@@ -90,6 +90,12 @@ is its showcase and editor.
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
   re-derive hash/valueNoise/fbm or a per-pixel gradient lerp per component.
+- Text animations (`GradientText`, `ShinyText`, `GlitchText`, `SplitText`,
+  `RotatingText`, `CountUp`, ...) are a separate family: pure DOM/CSS (or a small
+  rAF for counting), NOT canvas/Bayer. They still ship as `Dither*` exports,
+  register in `COMPONENT_REGISTRY`, and must honour `prefers-reduced-motion`
+  (CSS `@media` or `pixelPrefersReducedMotion`). Slot-based effects wrap arbitrary
+  text; char/number effects take a `text`/`to` prop. Docs live in `src/pages/docs/text/`.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with

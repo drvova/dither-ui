@@ -55,6 +55,8 @@ import ProductExamples from "./examples/ProductExamples.vue"
 import { PRODUCT_NAV } from "./examples/product-nav"
 import BackgroundsDocs from "./backgrounds/BackgroundsDocs.vue"
 import { BACKGROUNDS_NAV } from "./backgrounds/backgrounds-nav"
+import TextDocs from "./text/TextDocs.vue"
+import { TEXT_NAV } from "./text/text-nav"
 import PropsTable, { type PropRow } from "./PropsTable.vue"
 
 // Believable dashboard numbers, not sine waves.
@@ -440,6 +442,10 @@ const GROUPS = [
   {
     title: "Backgrounds",
     items: [...BACKGROUNDS_NAV],
+  },
+  {
+    title: "Text",
+    items: [...TEXT_NAV],
   },
   { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
 ]
@@ -1586,6 +1592,9 @@ const gradientCode = computed(
 
           <!-- Backgrounds: aurora, faulty terminal, ferrofluid -->
           <BackgroundsDocs />
+
+          <!-- Text animations: gradient, shiny, glitch, split, rotating, count -->
+          <TextDocs />
 
           <!-- Palette -->
           <section id="palette" class="mt-16 scroll-mt-24">

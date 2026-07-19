@@ -239,3 +239,11 @@ export {
   patternFromPixels,
   seededPattern,
 } from "./avatar-pattern"
+
+// Text animations
+export { default as DitherGradientText } from "./GradientText.vue"
+export { default as DitherShinyText } from "./ShinyText.vue"
+export { default as DitherGlitchText } from "./GlitchText.vue"
+export { default as DitherSplitText } from "./SplitText.vue"
+export { default as DitherRotatingText } from "./RotatingText.vue"
+export { default as DitherCountUp } from "./CountUp.vue"

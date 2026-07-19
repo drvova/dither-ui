@@ -26,7 +26,7 @@ widgets/features; page-specific conventions live here.
 
 - Sidebar IA (after Base UI): Overview · Handbook (Styling, Composition,
   Animation, Accessibility — prose + CodeBlock, no DemoCard) · Examples ·
-  Components · Backgrounds · Utils. Section ids are permanent deep links — relabel freely
+  Components · Backgrounds · Text · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 + optional
   "open in studio →") → muted description → `DemoCard` (Preview/Code tabs) →
@@ -51,7 +51,8 @@ widgets/features; page-specific conventions live here.
   DocsPage imports both and spreads the nav into the right group.
   `docs/examples/` = Examples packs, `docs/components/` = component-doc
   packs (form/feedback/structure), `docs/backgrounds/` = the full-bleed
-  generative canvas surfaces (aurora, faulty-terminal, ferrofluid, ...). New
+  generative canvas surfaces (aurora, faulty-terminal, ferrofluid, ...),
+  `docs/text/` = DOM/CSS text animations (gradient/shiny/glitch/split/...). New
   packs follow this shape instead of growing DocsPage.
 
 ### studio/

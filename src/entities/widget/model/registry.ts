@@ -151,6 +151,13 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherSidebarGroup", label: "Sidebar group", group: "structure", frame: { w: 300, h: 260 }, props: [text("label", "Workspace")], demo: "sidebar" },
   { is: "DitherSidebarSub", label: "Sidebar sub", group: "structure", frame: { w: 300, h: 280 }, props: [text("label", "Projects")], vmodel: { def: true }, demo: "sidebar" },
   { is: "DitherDrawerIndent", label: "Drawer indent", group: "structure", frame: { w: 320, h: 180 }, props: [], slotText: "Indented application surface", vmodel: { def: false }, demo: "drawer-indent" },
+
+  { is: "DitherGradientText", label: "Gradient text", group: "display", frame: { w: 320, h: 100 }, props: [list("colors", ["#358ff3", "#7CFF67", "#358ff3"]), number("speed", 1, 0, 4, 0.1)], slotText: "Gradient text" },
+  { is: "DitherShinyText", label: "Shiny text", group: "display", frame: { w: 320, h: 100 }, props: [number("speed", 1, 0, 4, 0.1), bool("disabled")], slotText: "Shiny text" },
+  { is: "DitherGlitchText", label: "Glitch text", group: "display", frame: { w: 320, h: 100 }, props: [text("text", "GLITCH"), number("speed", 1, 0, 4, 0.1)] },
+  { is: "DitherSplitText", label: "Split text", group: "display", frame: { w: 320, h: 100 }, props: [text("text", "Split text"), number("stagger", 40, 0, 200, 5), number("duration", 600, 100, 2000, 50)] },
+  { is: "DitherRotatingText", label: "Rotating text", group: "display", frame: { w: 320, h: 100 }, props: [list("texts", ["Vue", "canvas", "dither"]), number("interval", 2000, 400, 6000, 100)], mapProps: (p) => ({ ...p, texts: strList(p.texts) }) },
+  { is: "DitherCountUp", label: "Count up", group: "display", frame: { w: 220, h: 100 }, props: [number("to", 1984, 0, 1000000, 1), number("from", 0, 0, 1000000, 1), number("duration", 1500, 100, 5000, 100), number("decimals", 0, 0, 4, 1)] },
 ]
 
 export const componentEntry = (is: string): ComponentEntry | undefined =>
