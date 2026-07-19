@@ -5,6 +5,14 @@ import {
   DitherAurora,
   DitherBeams,
   DitherColorBends,
+  DitherDarkVeil,
+  DitherGalaxy,
+  DitherLetterGlitch,
+  DitherLightning,
+  DitherLiquidChrome,
+  DitherOrb,
+  DitherPrism,
+  DitherShapeGrid,
   DitherDither,
   DitherDotField,
   DitherDotGrid,
@@ -132,6 +140,14 @@ const DEMO = {
   floatingLines: wrap('<DitherFloatingLines />'),
   radar: wrap('<DitherRadar />'),
   dither: wrap('<DitherDither />'),
+  letterGlitch: wrap('<DitherLetterGlitch />'),
+  shapeGrid: wrap('<DitherShapeGrid />'),
+  lightning: wrap('<DitherLightning />'),
+  orb: wrap('<DitherOrb />'),
+  prism: wrap('<DitherPrism />'),
+  galaxy: wrap('<DitherGalaxy />'),
+  liquidChrome: wrap('<DitherLiquidChrome />'),
+  darkVeil: wrap('<DitherDarkVeil />'),
 }
 
 const API: Record<string, PropRow[]> = {
@@ -382,6 +398,69 @@ const API: Record<string, PropRow[]> = {
     { prop: "scale", type: "number", default: "3" },
     { prop: "speed", type: "number", default: "0.5" },
     { prop: "opacity / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  letterGlitch: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#0A3A1A', '#27FF64', '#CFFFDF']" },
+    { prop: "columns", type: "number", default: "24" },
+    { prop: "speed", type: "number", default: "0.6" },
+    { prop: "trail-length", type: "number 0…1", default: "0.5" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  shapeGrid: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "gap", type: "number (cells across)", default: "18" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  lightning: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CE0FF', '#FFFFFF']" },
+    { prop: "bolts", type: "number", default: "3" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "jitter", type: "number (path wander)", default: "0.3" },
+    { prop: "width", type: "number (bolt thickness)", default: "0.03" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  orb: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#CFFFDF']" },
+    { prop: "size", type: "number 0…1 (radius)", default: "0.5" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "noise-amount", type: "number (rim wobble)", default: "1" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  prism: [
+    { prop: "spread", type: "number (fan half-angle)", default: "0.6" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "saturation", type: "number 0…1", default: "0.9" },
+    { prop: "brightness", type: "number 0…1", default: "1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  galaxy: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#3DA5FF', '#A8FFB6', '#FFFFFF']" },
+    { prop: "arms", type: "number", default: "3" },
+    { prop: "twist", type: "number (arm winding)", default: "8" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "density", type: "number 0…1 (star count)", default: "0.6" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  liquidChrome: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#1A1A22', '#8890A0', '#E8ECF4']" },
+    { prop: "scale", type: "number", default: "2" },
+    { prop: "speed", type: "number", default: "0.4" },
+    { prop: "distortion", type: "number (fold amount)", default: "1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  darkVeil: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#0A0A12', '#3A2A6A', '#5227FF']" },
+    { prop: "scale", type: "number", default: "3" },
+    { prop: "speed", type: "number", default: "0.4" },
+    { prop: "intensity", type: "number (wisp strength)", default: "2.5" },
+    { prop: "vignette", type: "number 0…1 (edge dark)", default: "0.7" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
   ],
   faultyTerminal: [
     { prop: "scale", type: "number", default: "1.5" },
@@ -787,6 +866,110 @@ const API: Record<string, PropRow[]> = {
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherDither /></div>
     </DemoCard>
     <PropsTable :rows="API.dither" />
+  </section>
+
+  <!-- Letter glitch -->
+  <section id="letter-glitch" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Letter glitch</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Matrix-style glyph rain — each column drops a bright head with a trailing
+      fade; every cell holds a hashed 3x5 glyph. Tinted by brightness, dithered.
+    </p>
+    <DemoCard :code="DEMO.letterGlitch">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLetterGlitch /></div>
+    </DemoCard>
+    <PropsTable :rows="API.letterGlitch" />
+  </section>
+
+  <!-- Shape grid -->
+  <section id="shape-grid" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Shape grid</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A lattice where each cell holds a hashed shape — square, diamond, plus or
+      ring — pulsing on its own phase. Tinted across the ramp, dithered.
+    </p>
+    <DemoCard :code="DEMO.shapeGrid">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherShapeGrid /></div>
+    </DemoCard>
+    <PropsTable :rows="API.shapeGrid" />
+  </section>
+
+  <!-- Lightning -->
+  <section id="lightning" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Lightning</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Jagged fbm-displaced bolts flickering in bursts — each a thin glowing line
+      wandering vertically, wider toward the ground. Dithered.
+    </p>
+    <DemoCard :code="DEMO.lightning">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLightning /></div>
+    </DemoCard>
+    <PropsTable :rows="API.lightning" />
+  </section>
+
+  <!-- Orb -->
+  <section id="orb" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Orb</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A glowing pulsing sphere with a wobbling rim — fbm perturbs the radius for
+      a plasma edge; a core glow plus a rim ring tint across the ramp by radius.
+    </p>
+    <DemoCard :code="DEMO.orb">
+      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherOrb /></div>
+    </DemoCard>
+    <PropsTable :rows="API.orb" />
+  </section>
+
+  <!-- Prism -->
+  <section id="prism" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Prism</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A spectral light fan dispersing from above — the angle across the fan maps
+      to an HSV hue, so the beam splits into a rainbow. Self-colouring, dithered.
+    </p>
+    <DemoCard :code="DEMO.prism">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPrism /></div>
+    </DemoCard>
+    <PropsTable :rows="API.prism" />
+  </section>
+
+  <!-- Galaxy -->
+  <section id="galaxy" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Galaxy</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A rotating spiral of twinkling stars with a bright core — spiral arms
+      modulate a hashed star density; inner stars rotate faster. Dithered.
+    </p>
+    <DemoCard :code="DEMO.galaxy">
+      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGalaxy /></div>
+    </DemoCard>
+    <PropsTable :rows="API.galaxy" />
+  </section>
+
+  <!-- Liquid chrome -->
+  <section id="liquid-chrome" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Liquid chrome</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Molten metal — iterative domain warping folds the coordinates into rippled
+      reflective bands; a high-contrast sine reads them as chrome. Dithered.
+    </p>
+    <DemoCard :code="DEMO.liquidChrome">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherLiquidChrome /></div>
+    </DemoCard>
+    <PropsTable :rows="API.liquidChrome" />
+  </section>
+
+  <!-- Dark veil -->
+  <section id="dark-veil" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Dark veil</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A moody near-black wash with faint colour wisps and an edge vignette —
+      sparse fbm highlights climb the ramp; dithering crunches the low light.
+    </p>
+    <DemoCard :code="DEMO.darkVeil">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherDarkVeil /></div>
+    </DemoCard>
+    <PropsTable :rows="API.darkVeil" />
   </section>
 
   <!-- Faulty terminal -->

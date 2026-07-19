@@ -61,6 +61,14 @@ export { default as DitherDither, type DitherBgParams, paintDitherBg } from "./D
 export { default as DitherFloatingLines, type FloatingLinesParams, paintFloatingLines } from "./FloatingLines.vue"
 export { default as DitherPlasmaWave, type PlasmaWaveParams, paintPlasmaWave } from "./PlasmaWave.vue"
 export { default as DitherRadar, type RadarParams, paintRadar } from "./Radar.vue"
+export { default as DitherLetterGlitch, type LetterGlitchParams, paintLetterGlitch } from "./LetterGlitch.vue"
+export { default as DitherShapeGrid, type ShapeGridParams, paintShapeGrid } from "./ShapeGrid.vue"
+export { default as DitherLightning, type LightningParams, paintLightning } from "./Lightning.vue"
+export { default as DitherDarkVeil, type DarkVeilParams, paintDarkVeil } from "./DarkVeil.vue"
+export { default as DitherLiquidChrome, type LiquidChromeParams, paintLiquidChrome } from "./LiquidChrome.vue"
+export { default as DitherOrb, type OrbParams, paintOrb } from "./Orb.vue"
+export { default as DitherPrism, type PrismParams, paintPrism } from "./Prism.vue"
+export { default as DitherGalaxy, type GalaxyParams, paintGalaxy } from "./Galaxy.vue"
 export {
   default as DitherFaultyTerminal,
   type FaultyTerminalParams,
