@@ -91,12 +91,14 @@ onBeforeUnmount(() => ro?.disconnect())
     >
       <div class="overflow-hidden">
         <div class="flex gap-3 pt-1 pb-2">
-          <canvas
-            ref="railRef"
-            aria-hidden="true"
-            class="w-[2px] self-stretch"
-            style="image-rendering: pixelated"
-          />
+          <div class="relative w-[2px] self-stretch">
+            <canvas
+              ref="railRef"
+              aria-hidden="true"
+              class="absolute inset-0 h-full w-full"
+              style="image-rendering: pixelated"
+            />
+          </div>
           <div class="min-w-0 flex-1 text-[13px] leading-relaxed text-muted-foreground">
             <slot />
           </div>
