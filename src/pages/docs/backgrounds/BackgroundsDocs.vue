@@ -3,8 +3,17 @@ import { computed, reactive } from "vue"
 import {
   cssColor,
   DitherAurora,
+  DitherBalatro,
+  DitherBallpit,
   DitherBeams,
   DitherColorBends,
+  DitherEvilEye,
+  DitherHyperspeed,
+  DitherLightfall,
+  DitherLiquidEther,
+  DitherParticles,
+  DitherPixelBlast,
+  DitherPrismaticBurst,
   DitherDarkVeil,
   DitherGalaxy,
   DitherLetterGlitch,
@@ -148,6 +157,15 @@ const DEMO = {
   galaxy: wrap('<DitherGalaxy />'),
   liquidChrome: wrap('<DitherLiquidChrome />'),
   darkVeil: wrap('<DitherDarkVeil />'),
+  balatro: wrap('<DitherBalatro />'),
+  liquidEther: wrap('<DitherLiquidEther />'),
+  ballpit: wrap('<DitherBallpit />'),
+  particles: wrap('<DitherParticles />'),
+  hyperspeed: wrap('<DitherHyperspeed />'),
+  lightfall: wrap('<DitherLightfall />'),
+  pixelBlast: wrap('<DitherPixelBlast />'),
+  prismaticBurst: wrap('<DitherPrismaticBurst />'),
+  evilEye: wrap('<DitherEvilEye />'),
 }
 
 const API: Record<string, PropRow[]> = {
@@ -460,6 +478,83 @@ const API: Record<string, PropRow[]> = {
     { prop: "speed", type: "number", default: "0.4" },
     { prop: "intensity", type: "number (wisp strength)", default: "2.5" },
     { prop: "vignette", type: "number 0…1 (edge dark)", default: "0.7" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  balatro: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#FF3D2E', '#FFD23D', '#27FF64']" },
+    { prop: "scale", type: "number", default: "2" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "spin", type: "number (swirl)", default: "3" },
+    { prop: "contrast", type: "number", default: "1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  liquidEther: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
+    { prop: "scale", type: "number", default: "2" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "flow", type: "number (advection)", default: "1" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouse-strength", type: "number", default: "1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  ballpit: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#FF3D2E']" },
+    { prop: "count", type: "number (balls across)", default: "12" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "ball-size", type: "number", default: "0.8" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "mouse-interaction / mouse-strength", type: "boolean / number", default: "true / 1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  particles: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#3DA5FF', '#7CFF67', '#FFFFFF']" },
+    { prop: "count", type: "number", default: "20" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "particle-size", type: "number", default: "0.7" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "mouse-interaction / mouse-strength", type: "boolean / number", default: "true / 1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  hyperspeed: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#3DA5FF', '#7CE0FF', '#FFFFFF']" },
+    { prop: "count", type: "number (lanes)", default: "24" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "streak-length", type: "number", default: "0.5" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  lightfall: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CE0FF', '#CFFFFF']" },
+    { prop: "count", type: "number (columns)", default: "16" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "trail-length", type: "number", default: "0.6" },
+    { prop: "width", type: "number", default: "0.06" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  pixelBlast: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#FF3D2E', '#FFD23D']" },
+    { prop: "waves", type: "number (rings)", default: "3" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "pixels", type: "number (block density)", default: "40" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  prismaticBurst: [
+    { prop: "rays", type: "number", default: "8" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "spread", type: "number (ray sharpness)", default: "2" },
+    { prop: "saturation", type: "number 0…1", default: "0.9" },
+    { prop: "brightness", type: "number 0…1", default: "1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  evilEye: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#0A0A0A', '#FF3D2E', '#FFD23D']" },
+    { prop: "size", type: "number", default: "0.55" },
+    { prop: "speed", type: "number (blink/iris)", default: "0.5" },
+    { prop: "pupil-size", type: "number 0…1", default: "0.4" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "mouse-interaction / mouse-strength", type: "boolean / number", default: "true / 1" },
     { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
   ],
   faultyTerminal: [
@@ -970,6 +1065,123 @@ const API: Record<string, PropRow[]> = {
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherDarkVeil /></div>
     </DemoCard>
     <PropsTable :rows="API.darkVeil" />
+  </section>
+
+  <!-- Balatro -->
+  <section id="balatro" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Balatro</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A swirling psychedelic paint vortex — polar coordinates twisted by a
+      radius-dependent spin, then layered sines paint the swirl. Dithered.
+    </p>
+    <DemoCard :code="DEMO.balatro">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherBalatro /></div>
+    </DemoCard>
+    <PropsTable :rows="API.balatro" />
+  </section>
+
+  <!-- Liquid ether -->
+  <section id="liquid-ether" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Liquid ether</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An ethereal flowing colour fluid — coordinates are advected by an fbm flow
+      and stirred by the cursor before sampling the ramp. Move the pointer.
+    </p>
+    <DemoCard :code="DEMO.liquidEther">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherLiquidEther /></div>
+    </DemoCard>
+    <PropsTable :rows="API.liquidEther" />
+  </section>
+
+  <!-- Ballpit -->
+  <section id="ballpit" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Ballpit</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A pit of shaded spheres bobbing on a grid — sphere shading gives depth, and
+      the balls repel from the cursor. Move the pointer to part them.
+    </p>
+    <DemoCard :code="DEMO.ballpit">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherBallpit /></div>
+    </DemoCard>
+    <PropsTable :rows="API.ballpit" />
+  </section>
+
+  <!-- Particles -->
+  <section id="particles" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Particles</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A drifting, twinkling point cloud — each particle wanders on a sine orbit
+      and drifts toward the cursor. Move the pointer to gather them.
+    </p>
+    <DemoCard :code="DEMO.particles">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherParticles /></div>
+    </DemoCard>
+    <PropsTable :rows="API.particles" />
+  </section>
+
+  <!-- Hyperspeed -->
+  <section id="hyperspeed" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Hyperspeed</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A warp-drive starfield streaking radially from the centre — angular lanes
+      carry hashed star heads rushing outward with trailing tails. Dithered.
+    </p>
+    <DemoCard :code="DEMO.hyperspeed">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherHyperspeed /></div>
+    </DemoCard>
+    <PropsTable :rows="API.hyperspeed" />
+  </section>
+
+  <!-- Lightfall -->
+  <section id="lightfall" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Lightfall</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Soft columns of light drifting downward with long fading trails — each
+      column drops a hashed head; the trail fades upward. Dithered.
+    </p>
+    <DemoCard :code="DEMO.lightfall">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLightfall /></div>
+    </DemoCard>
+    <PropsTable :rows="API.lightfall" />
+  </section>
+
+  <!-- Pixel blast -->
+  <section id="pixel-blast" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Pixel blast</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Expanding shockwave rings broken into chunky pixels — several rings pulse
+      outward from the centre and fade; a coarse hash grid pixelates them.
+    </p>
+    <DemoCard :code="DEMO.pixelBlast">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPixelBlast /></div>
+    </DemoCard>
+    <PropsTable :rows="API.pixelBlast" />
+  </section>
+
+  <!-- Prismatic burst -->
+  <section id="prismatic-burst" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Prismatic burst</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A rainbow starburst radiating from the centre — sharpened angular rays take
+      an HSV hue from angle and radius, so the burst is a spectrum. Self-colouring.
+    </p>
+    <DemoCard :code="DEMO.prismaticBurst">
+      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPrismaticBurst /></div>
+    </DemoCard>
+    <PropsTable :rows="API.prismaticBurst" />
+  </section>
+
+  <!-- Evil eye -->
+  <section id="evil-eye" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Evil eye</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A glowing eye whose iris tracks the cursor and that blinks — a lens mask
+      carves the eye; iris rings pulse around a dark pupil. Move the pointer.
+    </p>
+    <DemoCard :code="DEMO.evilEye">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherEvilEye /></div>
+    </DemoCard>
+    <PropsTable :rows="API.evilEye" />
   </section>
 
   <!-- Faulty terminal -->

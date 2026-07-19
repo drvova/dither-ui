@@ -69,6 +69,15 @@ export { default as DitherLiquidChrome, type LiquidChromeParams, paintLiquidChro
 export { default as DitherOrb, type OrbParams, paintOrb } from "./Orb.vue"
 export { default as DitherPrism, type PrismParams, paintPrism } from "./Prism.vue"
 export { default as DitherGalaxy, type GalaxyParams, paintGalaxy } from "./Galaxy.vue"
+export { default as DitherBalatro, type BalatroParams, paintBalatro } from "./Balatro.vue"
+export { default as DitherBallpit, type BallpitParams, paintBallpit } from "./Ballpit.vue"
+export { default as DitherEvilEye, type EvilEyeParams, paintEvilEye } from "./EvilEye.vue"
+export { default as DitherHyperspeed, type HyperspeedParams, paintHyperspeed } from "./Hyperspeed.vue"
+export { default as DitherLightfall, type LightfallParams, paintLightfall } from "./Lightfall.vue"
+export { default as DitherLiquidEther, type LiquidEtherParams, paintLiquidEther } from "./LiquidEther.vue"
+export { default as DitherParticles, type ParticlesParams, paintParticles } from "./Particles.vue"
+export { default as DitherPixelBlast, type PixelBlastParams, paintPixelBlast } from "./PixelBlast.vue"
+export { default as DitherPrismaticBurst, type PrismaticBurstParams, paintPrismaticBurst } from "./PrismaticBurst.vue"
 export {
   default as DitherFaultyTerminal,
   type FaultyTerminalParams,
