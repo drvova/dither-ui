@@ -3,8 +3,16 @@ import { computed, reactive } from "vue"
 import {
   cssColor,
   DitherAurora,
+  DitherDotGrid,
   DitherFaultyTerminal,
   DitherFerrofluid,
+  DitherIridescence,
+  DitherLineWaves,
+  DitherPixelSnow,
+  DitherPlasma,
+  DitherRippleGrid,
+  DitherSilk,
+  DitherThreads,
   DitherWaves,
   type DitherColor,
   type FlowDirection,
@@ -82,6 +90,18 @@ const fluidCode = computed(
   () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherFerrofluid :colors='${JSON.stringify(fluidColors.value)}' flow-direction="${fluid.flow}" />\n</div>`
 )
 
+const wrap = (tag: string) => `<div class="relative h-64 overflow-hidden rounded-md">\n  ${tag}\n</div>`
+const DEMO = {
+  lineWaves: wrap('<DitherLineWaves />'),
+  threads: wrap('<DitherThreads />'),
+  silk: wrap('<DitherSilk />'),
+  plasma: wrap('<DitherPlasma />'),
+  iridescence: wrap('<DitherIridescence />'),
+  dotGrid: wrap('<DitherDotGrid />'),
+  rippleGrid: wrap('<DitherRippleGrid />'),
+  pixelSnow: wrap('<DitherPixelSnow />'),
+}
+
 const API: Record<string, PropRow[]> = {
   aurora: [
     { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#5227FF']" },
@@ -114,6 +134,89 @@ const API: Record<string, PropRow[]> = {
     { prop: "seed", type: "number", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "class", type: "string", default: "undefined" },
+  ],
+  lineWaves: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#3DA5FF', '#7CE0FF']" },
+    { prop: "count", type: "number", default: "16" },
+    { prop: "amplitude", type: "number", default: "0.5" },
+    { prop: "frequency", type: "number", default: "2" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "line-width", type: "number (fraction of gap)", default: "0.16" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  threads: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "count", type: "number", default: "22" },
+    { prop: "amplitude", type: "number", default: "0.6" },
+    { prop: "distortion", type: "number", default: "2" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "line-width", type: "number (fraction of gap)", default: "0.14" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  silk: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#5227FF']" },
+    { prop: "scale", type: "number", default: "2" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "noise-intensity", type: "number", default: "1" },
+    { prop: "rotation", type: "number (radians)", default: "0.6" },
+    { prop: "sharpness", type: "number", default: "1.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  plasma: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#FFD23D']" },
+    { prop: "scale", type: "number", default: "1" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  iridescence: [
+    { prop: "scale", type: "number", default: "2" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "saturation", type: "number 0…1", default: "0.85" },
+    { prop: "brightness", type: "number 0…1", default: "0.9" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  dotGrid: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "gap", type: "number (dots across)", default: "26" },
+    { prop: "dot-size", type: "number 0…1 (of cell)", default: "0.5" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouse-strength", type: "number", default: "1" },
+    { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  rippleGrid: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#3DA5FF', '#7CE0FF', '#CFF6FF']" },
+    { prop: "gap", type: "number (dots across)", default: "26" },
+    { prop: "dot-size", type: "number 0…1 (of cell)", default: "0.6" },
+    { prop: "frequency", type: "number", default: "26" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  pixelSnow: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#CFF6FF', '#7CE0FF']" },
+    { prop: "density", type: "number (flakes across)", default: "30" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
   ],
   faultyTerminal: [
     { prop: "scale", type: "number", default: "1.5" },
@@ -207,6 +310,110 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.waves" />
+  </section>
+
+  <!-- Line waves -->
+  <section id="line-waves" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Line waves</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A clean sinusoidal contour stack — like Waves but purely sine, each line
+      phase-shifted into a travelling interference pattern. Dithered.
+    </p>
+    <DemoCard :code="DEMO.lineWaves">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLineWaves /></div>
+    </DemoCard>
+    <PropsTable :rows="API.lineWaves" />
+  </section>
+
+  <!-- Threads -->
+  <section id="threads" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Threads</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Vertical filaments drifting on an fbm flow — thin glowing threads whose x
+      wanders with noise, tinted across the ramp by depth. Dithered.
+    </p>
+    <DemoCard :code="DEMO.threads">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherThreads /></div>
+    </DemoCard>
+    <PropsTable :rows="API.threads" />
+  </section>
+
+  <!-- Silk -->
+  <section id="silk" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Silk</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Flowing anisotropic sheen — fbm warps a rotated sine into liquid ribbons,
+      tinted across the colour ramp. No WebGL; the sheen comes out dithered.
+    </p>
+    <DemoCard :code="DEMO.silk">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherSilk /></div>
+    </DemoCard>
+    <PropsTable :rows="API.silk" />
+  </section>
+
+  <!-- Plasma -->
+  <section id="plasma" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Plasma</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The classic layered-sine plasma, mapped across the colour ramp. Ordered
+      dithering bands the gradient into the kit's crunch instead of a smooth blend.
+    </p>
+    <DemoCard :code="DEMO.plasma">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherPlasma /></div>
+    </DemoCard>
+    <PropsTable :rows="API.plasma" />
+  </section>
+
+  <!-- Iridescence -->
+  <section id="iridescence" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Iridescence</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A shifting soap-bubble sheen — fbm perturbs an HSV hue swept across the
+      surface; ordered dithering bands the rainbow. Self-tinting, no colours prop.
+    </p>
+    <DemoCard :code="DEMO.iridescence">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherIridescence /></div>
+    </DemoCard>
+    <PropsTable :rows="API.iridescence" />
+  </section>
+
+  <!-- Dot grid -->
+  <section id="dot-grid" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Dot grid</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A lattice of round dots pulsing on fbm, brightened under the cursor — cells
+      stay square via the aspect ratio, tinted across the ramp by row. Move the pointer.
+    </p>
+    <DemoCard :code="DEMO.dotGrid">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherDotGrid /></div>
+    </DemoCard>
+    <PropsTable :rows="API.dotGrid" />
+  </section>
+
+  <!-- Ripple grid -->
+  <section id="ripple-grid" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Ripple grid</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A lattice of dots brightened by concentric ripples expanding from the
+      centre — tinted across the ramp by ring. Dithered.
+    </p>
+    <DemoCard :code="DEMO.rippleGrid">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherRippleGrid /></div>
+    </DemoCard>
+    <PropsTable :rows="API.rippleGrid" />
+  </section>
+
+  <!-- Pixel snow -->
+  <section id="pixel-snow" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Pixel snow</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Sparse flakes drifting down a hashed grid — each cell hashes to a flake or
+      empty, falling as time advances. Tinted across the ramp by depth, dithered.
+    </p>
+    <DemoCard :code="DEMO.pixelSnow">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPixelSnow /></div>
+    </DemoCard>
+    <PropsTable :rows="API.pixelSnow" />
   </section>
 
   <!-- Faulty terminal -->

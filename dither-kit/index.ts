@@ -37,6 +37,14 @@ export {
   type WavesParams,
   paintWaves,
 } from "./Waves.vue"
+export { default as DitherSilk, type SilkParams, paintSilk } from "./Silk.vue"
+export { default as DitherPlasma, type PlasmaParams, paintPlasma } from "./Plasma.vue"
+export { default as DitherLineWaves, type LineWavesParams, paintLineWaves } from "./LineWaves.vue"
+export { default as DitherThreads, type ThreadsParams, paintThreads } from "./Threads.vue"
+export { default as DitherDotGrid, type DotGridParams, paintDotGrid } from "./DotGrid.vue"
+export { default as DitherRippleGrid, type RippleGridParams, paintRippleGrid } from "./RippleGrid.vue"
+export { default as DitherIridescence, type IridescenceParams, paintIridescence } from "./Iridescence.vue"
+export { default as DitherPixelSnow, type PixelSnowParams, paintPixelSnow } from "./PixelSnow.vue"
 export {
   default as DitherFaultyTerminal,
   type FaultyTerminalParams,
