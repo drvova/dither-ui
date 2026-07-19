@@ -20,6 +20,11 @@ const swatches: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "r
 
 const openStudio = () => location.assign(routePath("/studio"))
 
+// The hero glow masks itself out of the content column (a soft hole where the
+// heading + CTA sit) so they stay legible, while it keeps glowing at the top
+// and right edges — no separate darkening layer needed.
+const HERO_GLOW_MASK = "radial-gradient(78% 88% at 27% 48%, transparent 0%, transparent 26%, #000 70%)"
+
 // Portraits + their reaction emotes, cropped from faces.webp — a thin band
 // sliced out of the source sheet (rows 766..900) so the landing loads ~70KB
 // instead of the full 2MB sheet. Y boxes are relative to the band (source − 766).
@@ -78,6 +83,7 @@ onMounted(() => {
 
     <!-- Hero: one statement, one action, one visual. -->
     <main class="relative isolate flex flex-1 flex-col overflow-hidden">
+      <!-- Hero glow: a dithered aurora, masked out of the content column. -->
       <DitherAurora
         :colors="['#358ff3', '#7CE0FF', '#5227FF']"
         :opacity="0.38"
@@ -85,13 +91,7 @@ onMounted(() => {
         :blend="0.6"
         :speed="0.35"
         class="pointer-events-none absolute inset-0 -z-10"
-      />
-      <!-- Scrim: darkens the content column so text + CTA stay legible over the
-           aurora, which keeps glowing at the top and right edges. -->
-      <div
-        aria-hidden="true"
-        class="pointer-events-none absolute inset-0 -z-10"
-        style="background: radial-gradient(78% 88% at 27% 48%, var(--background) 0%, var(--background) 26%, transparent 70%)"
+        :style="{ maskImage: HERO_GLOW_MASK, WebkitMaskImage: HERO_GLOW_MASK }"
       />
       <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 pb-14 sm:pt-32">
         <h1
