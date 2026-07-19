@@ -5,13 +5,13 @@ export { paintAurora }
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, ref } from "vue"
 import { cn } from "./lib"
-import { BAYER4, clamp01, pixelMatrixFromSeed, pixelPrefersReducedMotion } from "./pixel"
+import { BAYER4, clamp01, pixelMatrixFromSeed } from "./pixel"
 import { hexToRgb } from "./palette"
-import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
+import type { RasterBuffer } from "./raster"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "./precompile"
-import { useCanvasVisibility } from "./use-visibility"
+import { useDitherBackground } from "./use-dither-background"
 
 const props = withDefaults(
   defineProps<{
@@ -59,107 +59,18 @@ const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(pr
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
-let raf = 0
-let ro: ResizeObserver | null = null
-let restartToken = 0
-let clock = 0
-let lastPaint = 0
-let buffer: RasterBuffer | null = null
-let imageData: ImageData | undefined
-const isVisible = useCanvasVisibility(wrapRef, () => wake())
-
-function dprFactor(): number {
-  const raw = props.dpr ?? (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1)
-  return Math.max(0.5, Math.min(3, raw))
-}
-
-function measure(): CanvasRenderingContext2D | null {
-  const wrap = wrapRef.value
-  const canvas = canvasRef.value
-  if (!wrap || !canvas) return null
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })
-  if (!ctx) return null
-  const box = wrap.getBoundingClientRect()
-  const unit = CELL / dprFactor()
-  const cols = Math.min(MAX_COLS, Math.max(8, Math.round(box.width / unit)))
-  const rows = Math.min(MAX_ROWS, Math.max(8, Math.round(box.height / unit)))
-  if (!buffer || buffer.width !== cols || buffer.height !== rows) {
-    buffer = createRasterBuffer(cols, rows)
-    imageData = undefined
-    canvas.width = cols
-    canvas.height = rows
-  }
-  return ctx
-}
-
-function paint(ctx: CanvasRenderingContext2D) {
-  if (!buffer) return
-  paintAurora(buffer, params.value, clock, matrix.value)
-  imageData = putRasterBuffer(ctx, buffer, imageData)
-}
-
-function frame(now: number) {
-  raf = 0
-  if (!isVisible() || props.paused) return
-  const ctx = measure()
-  if (!ctx) return
-  if (now - lastPaint < 33) {
-    raf = requestAnimationFrame(frame)
-    return
-  }
-  const dt = lastPaint ? Math.min(0.1, (now - lastPaint) / 1000) : 0
-  lastPaint = now
-  clock += dt
-  paint(ctx)
-  raf = requestAnimationFrame(frame)
-}
-
-function wake() {
-  if (!raf && !props.paused && props.renderMode !== "static" && isVisible()) {
-    lastPaint = 0
-    raf = requestAnimationFrame(frame)
-  }
-}
-
-function start() {
-  const token = ++restartToken
-  stop()
-  if (precompiled.value) return
-  void nextTick(() => {
-    if (token !== restartToken || precompiled.value) return
-    const ctx = measure()
-    if (!ctx) return
-    if (props.renderMode === "static" || pixelPrefersReducedMotion()) {
-      clock = 4
-      paint(ctx)
-      return
-    }
-    paint(ctx)
-    if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(() => {
-        if (raf) return
-        const c = measure()
-        if (c && props.paused) paint(c)
-      })
-      if (wrapRef.value) ro.observe(wrapRef.value)
-    }
-    raf = requestAnimationFrame(frame)
-  })
-}
-
-function stop() {
-  if (raf) cancelAnimationFrame(raf)
-  raf = 0
-  ro?.disconnect()
-  ro = null
-}
-
-onMounted(start)
-watch(() => [props.seed, props.renderMode, precompiled.value, props.dpr], start, { flush: "post" })
-watch(() => props.paused, (paused) => (paused ? stop() : wake()))
-onBeforeUnmount(() => {
-  restartToken += 1
-  stop()
+useDitherBackground({
+  wrapRef,
+  canvasRef,
+  cell: CELL,
+  maxCols: MAX_COLS,
+  maxRows: MAX_ROWS,
+  dpr: () => props.dpr,
+  paused: () => props.paused,
+  renderMode: () => props.renderMode,
+  precompiled: () => precompiled.value,
+  restart: () => [props.seed, props.renderMode, precompiled.value, props.dpr],
+  render: (buffer: RasterBuffer, clock: number) => paintAurora(buffer, params.value, clock, matrix.value),
 })
 </script>
 

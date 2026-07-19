@@ -5,12 +5,12 @@ export { paintFaultyTerminal }
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
-import { BAYER4, clamp01, fillOf, pixelMatrixFromSeed, pixelPrefersReducedMotion, type PixelColor } from "./pixel"
-import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
+import { BAYER4, clamp01, fillOf, pixelMatrixFromSeed, type PixelColor } from "./pixel"
+import type { RasterBuffer } from "./raster"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "./precompile"
-import { useCanvasVisibility } from "./use-visibility"
+import { useDitherBackground } from "./use-dither-background"
 
 const props = withDefaults(
   defineProps<{
@@ -87,100 +87,24 @@ const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const mouse = { x: 0.5, y: 0.5 }
 
-let raf = 0
-let ro: ResizeObserver | null = null
-let restartToken = 0
-let clock = 0
-let loadStart = 0
-let lastPaint = 0
-let buffer: RasterBuffer | null = null
-let imageData: ImageData | undefined
-const isVisible = useCanvasVisibility(wrapRef, () => wake())
-
-/** (Re)size the backing buffer to the element, deferring the read to rAF so a
- * wall of these mounting together never forces reflow inside flushJobs. */
-function measure(): CanvasRenderingContext2D | null {
-  const wrap = wrapRef.value
-  const canvas = canvasRef.value
-  if (!wrap || !canvas) return null
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })
-  if (!ctx) return null
-  const box = wrap.getBoundingClientRect()
-  const cols = Math.min(MAX_COLS, Math.max(8, Math.round(box.width / CELL)))
-  const rows = Math.min(MAX_ROWS, Math.max(8, Math.round(box.height / CELL)))
-  if (!buffer || buffer.width !== cols || buffer.height !== rows) {
-    buffer = createRasterBuffer(cols, rows)
-    imageData = undefined
-    canvas.width = cols
-    canvas.height = rows
-  }
-  return ctx
-}
-
-function paint(ctx: CanvasRenderingContext2D, fade: number) {
-  if (!buffer) return
-  paintFaultyTerminal(buffer, params.value, clock, matrix.value, props.mouseReact ? mouse : null, fade)
-  imageData = putRasterBuffer(ctx, buffer, imageData)
-}
-
-function frame(now: number) {
-  raf = 0
-  if (!isVisible() || props.pause) return
-  const ctx = measure()
-  if (!ctx) return
-  if (now - lastPaint < 33) {
-    raf = requestAnimationFrame(frame)
-    return
-  }
-  const dt = lastPaint ? Math.min(0.1, (now - lastPaint) / 1000) : 0
-  lastPaint = now
-  clock += dt * props.timeScale
-  if (!loadStart) loadStart = now
-  const fade = props.pageLoadAnimation ? clamp01((now - loadStart) / 900) : 1
-  paint(ctx, fade)
-  raf = requestAnimationFrame(frame)
-}
-
-function wake() {
-  if (!raf && !props.pause && props.renderMode !== "static" && isVisible()) {
-    lastPaint = 0
-    raf = requestAnimationFrame(frame)
-  }
-}
-
-function start() {
-  const token = ++restartToken
-  stop()
-  if (precompiled.value) return
-  void nextTick(() => {
-    if (token !== restartToken || precompiled.value) return
-    const ctx = measure()
-    if (!ctx) return
-    // A single settled frame for static / reduced-motion / paused states.
-    if (props.renderMode === "static" || pixelPrefersReducedMotion()) {
-      clock = 3
-      paint(ctx, 1)
-      return
-    }
-    paint(ctx, props.pageLoadAnimation ? 0 : 1)
-    if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(() => {
-        if (raf) return
-        const c = measure()
-        if (c && (props.pause || props.renderMode === "static")) paint(c, 1)
-      })
-      if (wrapRef.value) ro.observe(wrapRef.value)
-    }
-    raf = requestAnimationFrame(frame)
-  })
-}
-
-function stop() {
-  if (raf) cancelAnimationFrame(raf)
-  raf = 0
-  ro?.disconnect()
-  ro = null
-}
+useDitherBackground({
+  wrapRef,
+  canvasRef,
+  cell: CELL,
+  maxCols: MAX_COLS,
+  maxRows: MAX_ROWS,
+  dpr: () => 1,
+  paused: () => props.pause,
+  renderMode: () => props.renderMode,
+  precompiled: () => precompiled.value,
+  restart: () => [props.seed, props.renderMode, precompiled.value, props.pageLoadAnimation],
+  timeScale: () => props.timeScale,
+  staticClock: 3,
+  render: (buffer: RasterBuffer, clock: number, _dt: number, elapsed: number) => {
+    const fade = props.pageLoadAnimation ? clamp01(elapsed / 900) : 1
+    paintFaultyTerminal(buffer, params.value, clock, matrix.value, props.mouseReact ? mouse : null, fade)
+  },
+})
 
 function onPointerMove(e: PointerEvent) {
   const c = canvasRef.value
@@ -190,20 +114,10 @@ function onPointerMove(e: PointerEvent) {
   mouse.x = (e.clientX - r.left) / r.width
   mouse.y = (e.clientY - r.top) / r.height
 }
-
 onMounted(() => {
   if (typeof window !== "undefined") window.addEventListener("pointermove", onPointerMove, { passive: true })
-  start()
 })
-watch(
-  () => [props.seed, props.renderMode, precompiled.value, props.pageLoadAnimation],
-  start,
-  { flush: "post" }
-)
-watch(() => props.pause, (paused) => (paused ? stop() : wake()))
 onBeforeUnmount(() => {
-  restartToken += 1
-  stop()
   if (typeof window !== "undefined") window.removeEventListener("pointermove", onPointerMove)
 })
 </script>

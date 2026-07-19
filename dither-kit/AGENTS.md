@@ -79,6 +79,13 @@ is its showcase and editor.
   generative background surfaces (FaultyTerminal, Ferrofluid, Aurora, and the
   ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
   `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
+- `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
+  for that family: throttled rAF loop, backing buffer + upload, visibility gate,
+  resize, dpr, static/reduced-motion single frame, and the mount/restart/teardown
+  lifecycle. A new background is just an `engine.ts` `paint*` fn plus a thin `.vue`
+  that resolves props and passes a `render(buffer, clock, dt, elapsed)` callback —
+  never re-implement the loop per component. Per-frame extras stay in `render`:
+  page-load fade reads `elapsed`, eased pointers read `dt`.
 - `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
