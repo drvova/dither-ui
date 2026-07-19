@@ -45,6 +45,14 @@ export { default as DitherDotGrid, type DotGridParams, paintDotGrid } from "./Do
 export { default as DitherRippleGrid, type RippleGridParams, paintRippleGrid } from "./RippleGrid.vue"
 export { default as DitherIridescence, type IridescenceParams, paintIridescence } from "./Iridescence.vue"
 export { default as DitherPixelSnow, type PixelSnowParams, paintPixelSnow } from "./PixelSnow.vue"
+export { default as DitherBeams, type BeamsParams, paintBeams } from "./Beams.vue"
+export { default as DitherGridMotion, type GridMotionParams, paintGridMotion } from "./GridMotion.vue"
+export { default as DitherGridScan, type GridScanParams, paintGridScan } from "./GridScan.vue"
+export { default as DitherGridDistortion, type GridDistortionParams, paintGridDistortion } from "./GridDistortion.vue"
+export { default as DitherLightRays, type RaysParams, paintRays } from "./LightRays.vue"
+export { default as DitherSideRays } from "./SideRays.vue"
+export { default as DitherLightPillar, type LightPillarParams, paintLightPillar } from "./LightPillar.vue"
+export { default as DitherSoftAurora, type SoftAuroraParams, paintSoftAurora } from "./SoftAurora.vue"
 export {
   default as DitherFaultyTerminal,
   type FaultyTerminalParams,

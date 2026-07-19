@@ -3,7 +3,15 @@ import { computed, reactive } from "vue"
 import {
   cssColor,
   DitherAurora,
+  DitherBeams,
   DitherDotGrid,
+  DitherGridDistortion,
+  DitherGridMotion,
+  DitherGridScan,
+  DitherLightPillar,
+  DitherLightRays,
+  DitherSideRays,
+  DitherSoftAurora,
   DitherFaultyTerminal,
   DitherFerrofluid,
   DitherIridescence,
@@ -100,6 +108,14 @@ const DEMO = {
   dotGrid: wrap('<DitherDotGrid />'),
   rippleGrid: wrap('<DitherRippleGrid />'),
   pixelSnow: wrap('<DitherPixelSnow />'),
+  beams: wrap('<DitherBeams />'),
+  lightRays: wrap('<DitherLightRays />'),
+  sideRays: wrap('<DitherSideRays />'),
+  lightPillar: wrap('<DitherLightPillar />'),
+  softAurora: wrap('<DitherSoftAurora />'),
+  gridMotion: wrap('<DitherGridMotion />'),
+  gridScan: wrap('<DitherGridScan />'),
+  gridDistortion: wrap('<DitherGridDistortion />'),
 }
 
 const API: Record<string, PropRow[]> = {
@@ -217,6 +233,77 @@ const API: Record<string, PropRow[]> = {
     { prop: "opacity", type: "number 0…1", default: "1" },
     { prop: "dither", type: "number 0…1 | boolean", default: "1" },
     { prop: "paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  beams: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "count", type: "number", default: "6" },
+    { prop: "angle", type: "number (radians)", default: "0.6" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "sharpness", type: "number (higher = thinner)", default: "3" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  lightRays: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#FFD23D', '#FF8A3D']" },
+    { prop: "ray-count", type: "number", default: "16" },
+    { prop: "speed", type: "number", default: "0.4" },
+    { prop: "spread", type: "number (fbm jitter)", default: "1.2" },
+    { prop: "falloff", type: "number (distance fade)", default: "0.7" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  sideRays: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#3DA5FF', '#7CE0FF']" },
+    { prop: "side", type: '"left" | "right"', default: '"left"' },
+    { prop: "ray-count", type: "number", default: "12" },
+    { prop: "speed / spread / falloff / glow", type: "number", default: "0.4 / 1 / 0.6 / 1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  lightPillar: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "count", type: "number", default: "8" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "width", type: "number 0…1 (pillar thickness)", default: "0.4" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  softAurora: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67', '#A8FFB6']" },
+    { prop: "bands", type: "number", default: "3" },
+    { prop: "amplitude", type: "number", default: "1" },
+    { prop: "blend", type: "number 0…1 (softness)", default: "0.6" },
+    { prop: "speed", type: "number", default: "0.4" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "0.5" },
+    { prop: "opacity / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  gridMotion: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#3DA5FF', '#7CE0FF']" },
+    { prop: "count", type: "number (cells)", default: "14" },
+    { prop: "angle", type: "number (drift direction)", default: "0.5" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "line-width", type: "number", default: "0.06" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  gridScan: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#27FF64', '#7CFF67']" },
+    { prop: "count", type: "number (cells)", default: "16" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "line-width", type: "number", default: "0.05" },
+    { prop: "scan-width", type: "number (bar softness)", default: "0.12" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
+  ],
+  gridDistortion: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "count", type: "number (cells)", default: "14" },
+    { prop: "distortion", type: "number (fbm warp)", default: "1" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "line-width", type: "number", default: "0.06" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouse-strength", type: "number", default: "1" },
+    { prop: "opacity / dither / paused / dpr / seed / render-mode / class", type: "shared", default: "—" },
   ],
   faultyTerminal: [
     { prop: "scale", type: "number", default: "1.5" },
@@ -414,6 +501,110 @@ const API: Record<string, PropRow[]> = {
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPixelSnow /></div>
     </DemoCard>
     <PropsTable :rows="API.pixelSnow" />
+  </section>
+
+  <!-- Beams -->
+  <section id="beams" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Beams</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Parallel light beams sweeping at an angle — a rotated coordinate banded by a
+      sharpened sine that scrolls over time, tinted across the ramp. Dithered.
+    </p>
+    <DemoCard :code="DEMO.beams">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherBeams /></div>
+    </DemoCard>
+    <PropsTable :rows="API.beams" />
+  </section>
+
+  <!-- Light rays -->
+  <section id="light-rays" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Light rays</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      God rays fanning from a source above — the angle to the source is banded by
+      a sharpened sine, jittered with fbm and faded by distance. Dithered.
+    </p>
+    <DemoCard :code="DEMO.lightRays">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLightRays /></div>
+    </DemoCard>
+    <PropsTable :rows="API.lightRays" />
+  </section>
+
+  <!-- Side rays -->
+  <section id="side-rays" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Side rays</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The same god-ray fan, but the source sits off a side edge for horizontal
+      streaks — flip <code class="text-foreground/80">side</code> to left or right.
+    </p>
+    <DemoCard :code="DEMO.sideRays">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherSideRays /></div>
+    </DemoCard>
+    <PropsTable :rows="API.sideRays" />
+  </section>
+
+  <!-- Light pillar -->
+  <section id="light-pillar" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Light pillar</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Vertical light columns shimmering upward — fbm nudges the positions, a
+      sharpened sine makes the pillars, brighter at the base. Dithered.
+    </p>
+    <DemoCard :code="DEMO.lightPillar">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLightPillar /></div>
+    </DemoCard>
+    <PropsTable :rows="API.lightPillar" />
+  </section>
+
+  <!-- Soft aurora -->
+  <section id="soft-aurora" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Soft aurora</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Several overlapping soft curtains accumulating into a gentle glow — wider
+      falloff and a lower default dither than Aurora for a hazier look.
+    </p>
+    <DemoCard :code="DEMO.softAurora">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherSoftAurora /></div>
+    </DemoCard>
+    <PropsTable :rows="API.softAurora" />
+  </section>
+
+  <!-- Grid motion -->
+  <section id="grid-motion" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Grid motion</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A scrolling line grid drifting in a direction — cells stay square via the
+      aspect ratio, tinted across the ramp by depth. Dithered.
+    </p>
+    <DemoCard :code="DEMO.gridMotion">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGridMotion /></div>
+    </DemoCard>
+    <PropsTable :rows="API.gridMotion" />
+  </section>
+
+  <!-- Grid scan -->
+  <section id="grid-scan" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Grid scan</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A faint static grid with a bright bar sweeping down it, boosting gridline
+      intensity as it passes. Dithered.
+    </p>
+    <DemoCard :code="DEMO.gridScan">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGridScan /></div>
+    </DemoCard>
+    <PropsTable :rows="API.gridScan" />
+  </section>
+
+  <!-- Grid distortion -->
+  <section id="grid-distortion" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Grid distortion</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A line grid warped by an fbm flow and the cursor — coordinates are displaced
+      before the grid is sampled. Move the pointer to push it around.
+    </p>
+    <DemoCard :code="DEMO.gridDistortion">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGridDistortion /></div>
+    </DemoCard>
+    <PropsTable :rows="API.gridDistortion" />
   </section>
 
   <!-- Faulty terminal -->
