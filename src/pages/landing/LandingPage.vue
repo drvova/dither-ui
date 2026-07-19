@@ -86,6 +86,13 @@ onMounted(() => {
         :speed="0.35"
         class="pointer-events-none absolute inset-0 -z-10"
       />
+      <!-- Scrim: darkens the content column so text + CTA stay legible over the
+           aurora, which keeps glowing at the top and right edges. -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 -z-10"
+        style="background: radial-gradient(78% 88% at 27% 48%, var(--background) 0%, var(--background) 26%, transparent 70%)"
+      />
       <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 pb-14 sm:pt-32">
         <h1
           class="reveal max-w-xl text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.15] tracking-tight text-balance"
