@@ -33,6 +33,11 @@ export {
   paintAurora,
 } from "./Aurora.vue"
 export {
+  default as DitherWaves,
+  type WavesParams,
+  paintWaves,
+} from "./Waves.vue"
+export {
   default as DitherFaultyTerminal,
   type FaultyTerminalParams,
   paintFaultyTerminal,

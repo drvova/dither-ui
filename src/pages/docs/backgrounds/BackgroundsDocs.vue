@@ -5,6 +5,7 @@ import {
   DitherAurora,
   DitherFaultyTerminal,
   DitherFerrofluid,
+  DitherWaves,
   type DitherColor,
   type FlowDirection,
 } from "@dither-kit"
@@ -27,6 +28,20 @@ const aurora = reactive({ palette: "polar" as AuroraPalette })
 const auroraColors = computed(() => [...AURORA_PALETTES[aurora.palette]])
 const auroraCode = computed(
   () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherAurora :colors='${JSON.stringify(auroraColors.value)}' />\n</div>`
+)
+
+// Waves playground — a colour ramp preset; the code tab mirrors it.
+const WAVES_PALETTES = {
+  aurora: ["#5227FF", "#7CFF67"],
+  ocean: ["#3DA5FF", "#7CE0FF"],
+  sunset: ["#FF3D2E", "#FFD23D"],
+} as const
+type WavesPalette = keyof typeof WAVES_PALETTES
+const WAVES_PALETTE_NAMES = Object.keys(WAVES_PALETTES) as WavesPalette[]
+const waves = reactive({ palette: "aurora" as WavesPalette })
+const wavesColors = computed(() => [...WAVES_PALETTES[waves.palette]])
+const wavesCode = computed(
+  () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherWaves :colors='${JSON.stringify(wavesColors.value)}' />\n</div>`
 )
 
 // Faulty-terminal playground — a tint swatch plus feel presets that swap the
@@ -78,6 +93,24 @@ const API: Record<string, PropRow[]> = {
     { prop: "paused", type: "boolean", default: "false" },
     { prop: "dpr", type: "number", default: "devicePixelRatio" },
     { prop: "mix-blend-mode", type: "string", default: "undefined" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
+  waves: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "count", type: "number", default: "14" },
+    { prop: "amplitude", type: "number", default: "0.5" },
+    { prop: "frequency", type: "number", default: "2" },
+    { prop: "speed", type: "number", default: "0.5" },
+    { prop: "line-width", type: "number (fraction of gap)", default: "0.18" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouse-strength", type: "number", default: "0.6" },
+    { prop: "paused", type: "boolean", default: "false" },
+    { prop: "dpr", type: "number", default: "devicePixelRatio" },
     { prop: "seed", type: "number", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "class", type: "string", default: "undefined" },
@@ -152,6 +185,28 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.aurora" />
+  </section>
+
+  <!-- Waves -->
+  <section id="waves" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Waves</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A stack of horizontal contour lines flowing on an fbm field — each a thin
+      glowing band that ripples with noise, tinted across the colour ramp by
+      depth. Move the pointer to bend the nearest lines toward it. No WebGL: it
+      draws through the same Bayer engine, so the lines come out dithered.
+    </p>
+    <DemoCard :code="wavesCode">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherWaves :colors="wavesColors" />
+      </div>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
+        <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+          <button v-for="pName in WAVES_PALETTE_NAMES" :key="pName" type="button" :aria-pressed="waves.palette === pName" :class="chipClass(waves.palette === pName)" @click="waves.palette = pName">{{ pName }}</button>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.waves" />
   </section>
 
   <!-- Faulty terminal -->
