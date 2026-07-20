@@ -175,6 +175,14 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherCurvedLoop", label: "Curved loop", group: "display", frame: { w: 420, h: 120 }, props: [text("text", "DITHER UI · CANVAS + BAYER · "), number("speed", 60, 0, 300, 10)] },
   { is: "DitherFuzzyText", label: "Fuzzy text", group: "display", frame: { w: 240, h: 100 }, props: [text("text", "FUZZY"), number("intensity", 4, 0, 20, 0.5)] },
   { is: "DitherAsciiText", label: "ASCII text", group: "display", frame: { w: 320, h: 150 }, props: [text("text", "DITHER"), number("cols", 64, 8, 160, 4)] },
+  { is: "DitherAnimatedContent", label: "Animated content", group: "display", frame: { w: 260, h: 120 }, props: [number("distance", 40, 0, 200, 5), select("direction", "vertical", ["vertical", "horizontal"]), bool("reverse"), number("duration", 800, 100, 3000, 50), number("delay", 0, 0, 2000, 50)], slotText: "Animated content" },
+  { is: "DitherFadeContent", label: "Fade content", group: "display", frame: { w: 260, h: 120 }, props: [number("duration", 1000, 100, 3000, 50), number("delay", 0, 0, 2000, 50), bool("blur")], slotText: "Fade content" },
+  { is: "DitherGradualBlur", label: "Gradual blur", group: "display", frame: { w: 280, h: 160 }, props: [select("position", "bottom", ["bottom", "top"]), number("height", 96, 16, 300, 4), number("strength", 4, 0, 20, 0.5)], slotText: "Content fades into a soft edge as it reaches the blur band" },
+  { is: "DitherStarBorder", label: "Star border", group: "display", frame: { w: 220, h: 90 }, props: [color("green"), number("speed", 6, 1, 20, 0.5), number("thickness", 1, 1, 6, 1)], slotText: "Star border" },
+  { is: "DitherElectricBorder", label: "Electric border", group: "display", frame: { w: 220, h: 90 }, props: [color(), number("speed", 1, 0.2, 4, 0.1), number("thickness", 2, 1, 6, 1)], slotText: "Electric border" },
+  { is: "DitherGlareHover", label: "Glare hover", group: "display", frame: { w: 240, h: 140 }, props: [], slotText: "Hover for a glare sweep" },
+  { is: "DitherMagnet", label: "Magnet", group: "display", frame: { w: 220, h: 120 }, props: [number("strength", 0.4, 0, 1, 0.05), number("radius", 200, 40, 500, 10)], slotText: "Magnet" },
+  { is: "DitherClickSpark", label: "Click spark", group: "display", frame: { w: 240, h: 140 }, props: [color(), number("count", 8, 3, 20, 1), number("size", 16, 4, 60, 2), number("duration", 420, 100, 1500, 20)], slotText: "Click anywhere here" },
 ]
 
 export const componentEntry = (is: string): ComponentEntry | undefined =>

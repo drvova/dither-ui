@@ -96,6 +96,12 @@ is its showcase and editor.
   register in `COMPONENT_REGISTRY`, and must honour `prefers-reduced-motion`
   (CSS `@media` or `pixelPrefersReducedMotion`). Slot-based effects wrap arbitrary
   text; char/number effects take a `text`/`to` prop. Docs live in `src/pages/docs/text/`.
+- Interaction/motion effects (`AnimatedContent`, `FadeContent`, `GradualBlur`,
+  `StarBorder`, `ElectricBorder`, `GlareHover`, `Magnet`, `ClickSpark`, ...) are
+  another DOM/CSS/pointer family: slot wrappers (reveal-on-view, animated
+  borders, hover glare) or area wrappers (cursor + click effects on a canvas
+  overlay). Same rules: `Dither*` export, `COMPONENT_REGISTRY` entry (wrappers use
+  `slotText`), reduced-motion aware. Docs live in `src/pages/docs/animations/`.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
