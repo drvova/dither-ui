@@ -2,15 +2,18 @@
 
 ## Purpose
 
-A minimal Vite + Svelte 5 app that showcases `dither-kit-svelte`, mirroring the
-Vue `src/` landing page. It is the Svelte counterpart to `src/` (the Vue site):
+A Vite + Svelte 5 app that showcases `dither-kit-svelte`, mirroring the Vue `src/`
+site: a landing page and a shadcn-style docs (sidebar rail, Preview/Code tabs, API
+tables). It is the Svelte counterpart to `src/` (the Vue site):
 same dark, monospace, pixel/dither identity and one-statement/one-action/one-visual
 restraint, re-expressed with the Svelte kit.
 
 ## Ownership
 
-- Owns the Svelte landing (`src/App.svelte`), its entry (`src/main.ts`), the
-  design-token stylesheet (`src/app.css`), and the Vite/Svelte/TS config.
+- Owns the entry (`src/main.ts`), the hash router (`src/App.svelte`), the landing
+  (`src/Landing.svelte`), the docs (`src/docs/` — `DocsPage.svelte` + `DemoCard`,
+  `PropsTable`, `CodeBlock`), the design-token stylesheet (`src/app.css`), and the
+  Vite/Svelte/TS config.
 - Does NOT own components — every visual comes from `dither-kit-svelte` via the
   `@dither-kit-svelte` alias (its `index.ts`). No component logic is duplicated here.
 
@@ -30,8 +33,14 @@ restraint, re-expressed with the Svelte kit.
 
 ## Work Guidance
 
-- Prefer editing existing files; the landing is one component by design.
-- Nav links point at the live site / GitHub (there is no Svelte docs/studio yet).
+- `App.svelte` is a hash router: `#/docs[...]` renders `DocsPage`, everything else
+  the landing. Internal nav uses `#/` and `#/docs/<id>`; GitHub/studio link out.
+- Docs is a long-scroll page: each `<section id>` is tracked by an IntersectionObserver
+  that syncs `#/docs/<id>`; the sidebar highlights the section in view. Demos use
+  `DemoCard` (Preview/Code tabs) and `PropsTable`; code snippets are Svelte syntax.
+- The docs currently covers a representative slice (getting-started, the five charts,
+  primitives, a few controls, a backgrounds gallery, palette). Extend by adding more
+  `<section id>` blocks + matching sidebar `NAV` entries.
 
 ## Verification
 
