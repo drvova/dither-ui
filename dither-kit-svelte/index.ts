@@ -206,3 +206,4 @@ export { CONTROL, CONTROL_BUTTON, POPOVER, setField, useField, type FieldContext
 // kit; import them from their deep paths (e.g. "dither-kit-svelte/engine/palette")
 // avoid barrel name collisions. Only the className helper is surfaced here.
 export { cn } from "./runtime/lib"
+export { cssColor, rgb, type DitherColor } from "./engine/palette"

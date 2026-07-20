@@ -122,7 +122,10 @@ Default section order:
 - `dither-kit/AGENTS.md` — the toolkit: dither engine, palette, component
   contracts, portability rules
 - `dither-kit-svelte/AGENTS.md` — the Svelte 5 port of the toolkit: runes-only
-  components, `ditherBackground` action runtime, verbatim engine copies
+  components, `ditherBackground` action runtime, verbatim engine copies,
+  organized into engine/runtime/family subfolders
+- `svelte-site/AGENTS.md` — the Svelte showcase app: landing page mirroring the
+  Vue `src/` landing, built on `dither-kit-svelte`
 - `src/AGENTS.md` — the app: FSD layers, routing, editor/history/persistence
   contracts, a11y floor
   - `src/pages/AGENTS.md` — landing/docs/studio page conventions

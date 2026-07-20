@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+/* Scan this app's source AND the ported Svelte kit so every Tailwind utility a
+   component renders (bg-background, absolute inset-0, ...) is generated. */
+@source "./";
+@source "../../dither-kit-svelte";
+
+/* shadcn-style design tokens the ported components read
+   (text-foreground, bg-background, border, text-muted-foreground, ...). */
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --muted: #f4f4f5;
+  --muted-foreground: #6b7280;
+  --border: #e4e4e7;
+  --ring: #0a0a0a;
+  --accent: #2f81f7;
+  --accent-foreground: #ffffff;
+  --radius: 0.5rem;
+
+  /* Palette swatches — mirror PALETTE fills in engine/palette.ts. */
+  --swatch-green: rgb(40, 210, 110);
+  --swatch-blue: rgb(53, 143, 243);
+  --swatch-purple: rgb(150, 110, 255);
+  --swatch-pink: rgb(240, 90, 190);
+  --swatch-orange: rgb(255, 150, 50);
+  --swatch-red: rgb(240, 70, 70);
+  --swatch-grey: rgb(92, 92, 100);
+}
+
+.dark {
+  --background: #08090b;
+  --foreground: #ededed;
+  --card: #0d0f12;
+  --card-foreground: #ededed;
+  --popover: #0d0f12;
+  --popover-foreground: #ededed;
+  --muted: #16181d;
+  --muted-foreground: #8b8f98;
+  --border: #22252b;
+  --ring: #ededed;
+  --accent: #3f8ff3;
+  --accent-foreground: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+  body {
+    margin: 0;
+  }
+}
