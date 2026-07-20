@@ -14,7 +14,7 @@ full generative canvas-background family is ported; the remaining components
 | Family | Ported | Proves |
 | --- | --- | --- |
 | Canvas backgrounds | all 53 (`Aurora`, `Plasma`, `Ferrofluid`, `FaultyTerminal`, `MetaBalls`, ...) | shared `ditherBackground` action; pointer via `<svelte:window>` |
-| Text / CSS | `ShinyText` | pure-CSS effect, reduced-motion, `Snippet` |
+| Text / motion effects | 11 so far (`ShinyText`, `GradientText`, `GlitchText`, `BlurText`, `RotatingText`, `CountUp`, `StarBorder`, `GlareHover`, `FadeContent`, `AnimatedContent`, `GradualBlur`) | pure DOM/CSS, reduced-motion, `Snippet`, reveal via `inView` action |
 | Native canvas control | `DitherButton` | self-contained canvas action + pointer easing |
 | Context / DI | `DitherField` + `DitherInput` | `setContext`/`getContext`, `$bindable` |
 

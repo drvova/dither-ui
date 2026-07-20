@@ -59,7 +59,19 @@ export { default as Waves, type WavesParams } from "./Waves.svelte"
 export { default as Ribbons, type RibbonsParams } from "./Ribbons.svelte"
 export { default as Ferrofluid, type FerrofluidParams, type FlowDirection } from "./Ferrofluid.svelte"
 export { default as FaultyTerminal, type FaultyTerminalParams } from "./FaultyTerminal.svelte"
+// Text & motion effects (DOM/CSS, reduced-motion aware; reveal via `inView`).
 export { default as ShinyText } from "./ShinyText.svelte"
+export { default as GradientText } from "./GradientText.svelte"
+export { default as GlitchText } from "./GlitchText.svelte"
+export { default as BlurText } from "./BlurText.svelte"
+export { default as RotatingText } from "./RotatingText.svelte"
+export { default as CountUp } from "./CountUp.svelte"
+export { default as GradualBlur } from "./GradualBlur.svelte"
+export { default as StarBorder } from "./StarBorder.svelte"
+export { default as GlareHover } from "./GlareHover.svelte"
+export { default as FadeContent } from "./FadeContent.svelte"
+export { default as AnimatedContent } from "./AnimatedContent.svelte"
+export { inView } from "./in-view"
 export {
   default as DitherButton,
   type ButtonVariant,
