@@ -7,19 +7,24 @@ import from `index.ts`.
 
 ## Status
 
-In-progress port, delivered in batches. This bootstrap slice ships the canonical
-patterns; the rest of the ~168 components follow the same translation.
+In-progress port, delivered in batches. The canonical patterns are proven and the
+full generative canvas-background family is ported; the remaining components
+(charts, text/motion effects, the rest of the controls) follow the same translation.
 
-| Family | Component | Proves |
+| Family | Ported | Proves |
 | --- | --- | --- |
-| Canvas background | `Aurora` | shared `ditherBackground` action runtime |
+| Canvas backgrounds | `Aurora`, `Plasma`, `Silk`, `Galaxy`, `Lightning`, ...39 total | shared `ditherBackground` action runtime |
 | Text / CSS | `ShinyText` | pure-CSS effect, reduced-motion, `Snippet` |
 | Native canvas control | `DitherButton` | self-contained canvas action + pointer easing |
 | Context / DI | `DitherField` + `DitherInput` | `setContext`/`getContext`, `$bindable` |
 
-The 8 Vue-free engine modules (`palette`, `pixel`, `raster`, `noise`,
-`precompile`, `dither-paint`, `aurora`, `lib`) are copied verbatim from the Vue
-kit — `dither-kit` stays the single source of truth for engine math.
+The Vue-free engine modules (`palette`, `pixel`, `raster`, `noise`, `precompile`,
+`dither-paint`, and each background's `paint*` module) are copied verbatim from
+the Vue kit — `dither-kit` stays the single source of truth for engine math.
+
+The 13 pointer/`<style>`-driven backgrounds (Ferrofluid, FaultyTerminal,
+Waves, DotGrid, MetaBalls, Ballpit, ...) are deferred to a follow-up batch
+because they need individual pointer/interaction wiring, not a mechanical port.
 
 ## Usage
 
