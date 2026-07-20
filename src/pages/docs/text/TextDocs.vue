@@ -15,6 +15,15 @@ import {
   DitherShuffle,
   DitherSplitText,
   DitherTextType,
+  DitherScrollVelocity,
+  DitherTextCursor,
+  DitherTextPressure,
+  DitherVariableProximity,
+  DitherTrueFocus,
+  DitherCircularText,
+  DitherCurvedLoop,
+  DitherFuzzyText,
+  DitherAsciiText,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -103,6 +112,45 @@ const API: Record<string, PropRow[]> = {
     { prop: "text", type: "string", default: "required" },
     { prop: "amount", type: "number", default: "1" },
   ],
+  scrollVelocity: [
+    { prop: "text", type: "string", default: '"DITHER · UI · TOOLKIT ·"' },
+    { prop: "base-speed", type: "number (px/s)", default: "60" },
+  ],
+  textCursor: [
+    { prop: "text", type: "string", default: '"dither"' },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
+  textPressure: [
+    { prop: "text", type: "string", default: '"Pressure"' },
+    { prop: "radius", type: "number (px)", default: "140" },
+    { prop: "strength", type: "number", default: "1" },
+  ],
+  variableProximity: [
+    { prop: "text", type: "string", default: "required" },
+    { prop: "radius", type: "number (px)", default: "120" },
+  ],
+  trueFocus: [
+    { prop: "text", type: "string", default: '"True focus mode"' },
+    { prop: "interval", type: "number (ms)", default: "1400" },
+    { prop: "blur", type: "number (px)", default: "5" },
+  ],
+  circularText: [
+    { prop: "text", type: "string", default: '"DITHER · UI · TOOLKIT ·"' },
+    { prop: "duration", type: "number (s)", default: "12" },
+    { prop: "size", type: "number (px)", default: "170" },
+  ],
+  curvedLoop: [
+    { prop: "text", type: "string", default: '"DITHER UI · CANVAS + BAYER ·"' },
+    { prop: "speed", type: "number (units/s)", default: "60" },
+  ],
+  fuzzyText: [
+    { prop: "text", type: "string", default: '"FUZZY"' },
+    { prop: "intensity", type: "number", default: "4" },
+  ],
+  asciiText: [
+    { prop: "text", type: "string", default: '"DITHER"' },
+    { prop: "cols", type: "number", default: "64" },
+  ],
 }
 
 const SNIPPETS = {
@@ -122,6 +170,15 @@ const SNIPPETS = {
   fallingText: `<DitherFallingText text="Falling into place" :replay-token="token" />`,
   scrollReveal: `<DitherScrollReveal text="These words reveal as you scroll them into view" />`,
   scrollFloat: `<DitherScrollFloat text="Floating up on scroll" />`,
+  scrollVelocity: `<DitherScrollVelocity text="DITHER · UI · TOOLKIT · " />`,
+  textCursor: `<div class="h-40"><DitherTextCursor text="dither" /></div>`,
+  textPressure: `<DitherTextPressure text="Pressure" />`,
+  variableProximity: `<DitherVariableProximity text="Move the cursor across this line" />`,
+  trueFocus: `<DitherTrueFocus text="True focus mode" />`,
+  circularText: `<DitherCircularText text="DITHER · UI · TOOLKIT · " />`,
+  curvedLoop: `<DitherCurvedLoop text="DITHER UI · CANVAS + BAYER · " />`,
+  fuzzyText: `<DitherFuzzyText text="FUZZY" />`,
+  asciiText: `<DitherAsciiText text="DITHER" />`,
 }
 </script>
 
@@ -349,5 +406,141 @@ const SNIPPETS = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.scrollFloat" />
+  </section>
+
+  <!-- Scroll velocity -->
+  <section id="scroll-velocity" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Scroll velocity</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A seamless marquee band that drifts on its own and speeds up (or reverses)
+      with your scroll velocity, easing back to base speed. Scroll the page.
+    </p>
+    <DemoCard :code="SNIPPETS.scrollVelocity">
+      <div class="w-full text-2xl font-medium tracking-tight text-muted-foreground">
+        <DitherScrollVelocity text="DITHER · UI · TOOLKIT · " />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.scrollVelocity" />
+  </section>
+
+  <!-- Text cursor -->
+  <section id="text-cursor" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Text cursor</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The characters of the word trail the pointer inside the box, each lagging a
+      little further behind for a ribbon of type. Move your cursor over the preview.
+    </p>
+    <DemoCard :code="SNIPPETS.textCursor">
+      <div class="h-40 w-full text-xl">
+        <DitherTextCursor text="dither" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.textCursor" />
+  </section>
+
+  <!-- Text pressure -->
+  <section id="text-pressure" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Text pressure</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Characters bulge — scaling up and gaining weight — near the cursor, like the
+      word is being pressed. Move your cursor near the text.
+    </p>
+    <DemoCard :code="SNIPPETS.textPressure">
+      <div class="flex min-h-24 items-center justify-center text-4xl tracking-tight">
+        <DitherTextPressure text="Pressure" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.textPressure" />
+  </section>
+
+  <!-- Variable proximity -->
+  <section id="variable-proximity" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Variable proximity</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Each character's weight and opacity ramps with its distance to the pointer —
+      no scaling, so a whole sentence stays put while the cursor lights a path
+      through it.
+    </p>
+    <DemoCard :code="SNIPPETS.variableProximity">
+      <div class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight">
+        <DitherVariableProximity text="Move the cursor across this line to feel the weight shift" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.variableProximity" />
+  </section>
+
+  <!-- True focus -->
+  <section id="true-focus" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">True focus</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      One word stays sharp while the rest blur, and the focus steps through the
+      phrase on a timer — pulling the eye word by word.
+    </p>
+    <DemoCard :code="SNIPPETS.trueFocus">
+      <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
+        <DitherTrueFocus text="True focus mode" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.trueFocus" />
+  </section>
+
+  <!-- Circular text -->
+  <section id="circular-text" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Circular text</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Text set around a full circle on an SVG path, rotating forever — a badge or
+      seal. Uses <code class="text-foreground/80">currentColor</code> so it inherits type colour.
+    </p>
+    <DemoCard :code="SNIPPETS.circularText">
+      <div class="flex min-h-48 items-center justify-center text-foreground">
+        <DitherCircularText text="DITHER · UI · TOOLKIT · " />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.circularText" />
+  </section>
+
+  <!-- Curved loop -->
+  <section id="curved-loop" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Curved loop</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Text flows along a wavy SVG path as a seamless loop — the copy length is
+      measured so the scroll wraps without a visible seam.
+    </p>
+    <DemoCard :code="SNIPPETS.curvedLoop">
+      <div class="flex min-h-24 w-full items-center justify-center text-foreground">
+        <DitherCurvedLoop text="DITHER UI · CANVAS + BAYER · " />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.curvedLoop" />
+  </section>
+
+  <!-- Fuzzy text -->
+  <section id="fuzzy-text" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Fuzzy text</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An SVG turbulence + displacement filter wobbles the glyph edges into an
+      analog fuzz — native filters, no canvas. Reduced motion drops the filter.
+    </p>
+    <DemoCard :code="SNIPPETS.fuzzyText">
+      <div class="flex min-h-24 items-center justify-center text-5xl font-bold tracking-tight">
+        <DitherFuzzyText text="FUZZY" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.fuzzyText" />
+  </section>
+
+  <!-- ASCII text -->
+  <section id="ascii-text" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">ASCII text</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The word is rasterised to an offscreen canvas and mapped onto an ASCII
+      density ramp — an on-brand ASCII render of any string.
+    </p>
+    <DemoCard :code="SNIPPETS.asciiText">
+      <div class="flex min-h-24 items-center justify-center text-foreground">
+        <DitherAsciiText text="DITHER" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.asciiText" />
   </section>
 </template>

@@ -13,4 +13,13 @@ export const TEXT_NAV = [
   { id: "falling-text", label: "Falling text" },
   { id: "scroll-reveal", label: "Scroll reveal" },
   { id: "scroll-float", label: "Scroll float" },
+  { id: "scroll-velocity", label: "Scroll velocity" },
+  { id: "text-cursor", label: "Text cursor" },
+  { id: "text-pressure", label: "Text pressure" },
+  { id: "variable-proximity", label: "Variable proximity" },
+  { id: "true-focus", label: "True focus" },
+  { id: "circular-text", label: "Circular text" },
+  { id: "curved-loop", label: "Curved loop" },
+  { id: "fuzzy-text", label: "Fuzzy text" },
+  { id: "ascii-text", label: "ASCII text" },
 ]

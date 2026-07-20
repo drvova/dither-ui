@@ -166,6 +166,15 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherFallingText", label: "Falling text", group: "display", frame: { w: 300, h: 100 }, props: [text("text", "Falling text"), number("stagger", 45, 0, 200, 5), number("duration", 700, 100, 2000, 50)] },
   { is: "DitherScrollReveal", label: "Scroll reveal", group: "display", frame: { w: 360, h: 120 }, props: [text("text", "Words reveal as you scroll into view")] },
   { is: "DitherScrollFloat", label: "Scroll float", group: "display", frame: { w: 320, h: 100 }, props: [text("text", "Scroll float"), number("amount", 1, 0, 3, 0.1)] },
+  { is: "DitherScrollVelocity", label: "Scroll velocity", group: "display", frame: { w: 380, h: 80 }, props: [text("text", "DITHER · UI · TOOLKIT · "), number("baseSpeed", 60, 0, 400, 10)] },
+  { is: "DitherTextCursor", label: "Text cursor", group: "display", frame: { w: 280, h: 160 }, props: [text("text", "dither")] },
+  { is: "DitherTextPressure", label: "Text pressure", group: "display", frame: { w: 300, h: 100 }, props: [text("text", "Pressure"), number("radius", 140, 20, 400, 10), number("strength", 1, 0, 3, 0.1)] },
+  { is: "DitherVariableProximity", label: "Variable proximity", group: "display", frame: { w: 400, h: 120 }, props: [text("text", "Move the cursor across this line to feel the weight shift"), number("radius", 120, 20, 400, 10)] },
+  { is: "DitherTrueFocus", label: "True focus", group: "display", frame: { w: 320, h: 100 }, props: [text("text", "True focus mode"), number("interval", 1400, 300, 5000, 100), number("blur", 5, 0, 12, 0.5)] },
+  { is: "DitherCircularText", label: "Circular text", group: "display", frame: { w: 190, h: 190 }, props: [text("text", "DITHER · UI · TOOLKIT · "), number("duration", 12, 2, 60, 1), number("size", 170, 80, 400, 10)] },
+  { is: "DitherCurvedLoop", label: "Curved loop", group: "display", frame: { w: 420, h: 120 }, props: [text("text", "DITHER UI · CANVAS + BAYER · "), number("speed", 60, 0, 300, 10)] },
+  { is: "DitherFuzzyText", label: "Fuzzy text", group: "display", frame: { w: 240, h: 100 }, props: [text("text", "FUZZY"), number("intensity", 4, 0, 20, 0.5)] },
+  { is: "DitherAsciiText", label: "ASCII text", group: "display", frame: { w: 320, h: 150 }, props: [text("text", "DITHER"), number("cols", 64, 8, 160, 4)] },
 ]
 
 export const componentEntry = (is: string): ComponentEntry | undefined =>
