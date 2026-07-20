@@ -76,6 +76,11 @@ export { default as ScrollFloat } from "./ScrollFloat.svelte"
 export { default as DecryptedText } from "./DecryptedText.svelte"
 export { default as CircularText } from "./CircularText.svelte"
 export { default as ElectricBorder } from "./ElectricBorder.svelte"
+export { default as ScrollReveal } from "./ScrollReveal.svelte"
+export { default as TrueFocus } from "./TrueFocus.svelte"
+export { default as Magnet } from "./Magnet.svelte"
+export { default as TextType } from "./TextType.svelte"
+export { default as ScrambleText } from "./ScrambleText.svelte"
 export { inView } from "./in-view"
 export {
   default as DitherButton,
