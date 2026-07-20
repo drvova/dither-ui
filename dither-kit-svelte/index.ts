@@ -71,6 +71,11 @@ export { default as StarBorder } from "./StarBorder.svelte"
 export { default as GlareHover } from "./GlareHover.svelte"
 export { default as FadeContent } from "./FadeContent.svelte"
 export { default as AnimatedContent } from "./AnimatedContent.svelte"
+export { default as SplitText } from "./SplitText.svelte"
+export { default as ScrollFloat } from "./ScrollFloat.svelte"
+export { default as DecryptedText } from "./DecryptedText.svelte"
+export { default as CircularText } from "./CircularText.svelte"
+export { default as ElectricBorder } from "./ElectricBorder.svelte"
 export { inView } from "./in-view"
 export {
   default as DitherButton,
