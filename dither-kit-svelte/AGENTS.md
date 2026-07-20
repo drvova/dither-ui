@@ -57,7 +57,13 @@ patterns and the rest follows the same mechanical translation.
   `$state` (seeded once via `untrack`) because gaps cannot round-trip a joined
   string; it drives the model one-way, so external resync is not mirrored.
 - Custom events other than `update:modelValue` become callback props
-  (`oncomplete?: (code) => void` on OtpField, `onsubmit?: () => void` on Form).
+  (`oncomplete?: (code) => void` on OtpField, `onsubmit?: () => void` on Form,
+  `onopen?: () => void` on SwipeArea).
+- Vue dynamic named slots (`<slot :name="item.value" />`, Accordion) become
+  named snippet props captured through `...rest` on `$props()` and rendered by
+  key (`{@render (rest[item.value] as Snippet)?.()}`); type them with a
+  `[slot: string]: unknown` index signature on `Props`. Static named/default
+  slots stay explicit `Snippet` props.
 - Svelte 5 `svelte-ignore` takes ONE rule code per comment (trailing text is a
   description); stack multiple comment lines to suppress several rules.
 - `control.ts` owns native-control tokens and the field context. Svelte
