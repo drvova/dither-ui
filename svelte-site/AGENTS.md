@@ -38,9 +38,14 @@ restraint, re-expressed with the Svelte kit.
 - Docs is a long-scroll page: each `<section id>` is tracked by an IntersectionObserver
   that syncs `#/docs/<id>`; the sidebar highlights the section in view. Demos use
   `DemoCard` (Preview/Code tabs) and `PropsTable`; code snippets are Svelte syntax.
-- The docs currently covers a representative slice (getting-started, the five charts,
-  primitives, a few controls, a backgrounds gallery, palette). Extend by adding more
-  `<section id>` blocks + matching sidebar `NAV` entries.
+- `DocsPage.svelte` is a thin shell: sidebar from `nav.ts` (`GROUPS`) + the
+  IntersectionObserver, composing per-family section packs (`GuidesDocs`,
+  `ExamplesDocs`, `ChartsDocs`, `PrimitivesDocs`, `Form/Field/Selection/Feedback/
+  Structure/Overlay/Surface/NavigationDocs`, `BackgroundsDocs`, `TextDocs`,
+  `AnimationsDocs`, `PaletteDocs`). Each pack renders its own `<section id>` blocks.
+- Full parity with the Vue docs (~170 sections). The only gap: the `radar` chart
+  (the kit has no radar chart series — `Radar` is a background), omitted from `nav.ts`.
+- Extend by adding `<section id>` blocks to a pack + a matching `nav.ts` entry.
 
 ## Verification
 
