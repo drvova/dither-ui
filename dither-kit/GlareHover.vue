@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { cn } from "./lib"
 
-defineProps<{ class?: string }>()
+const props = defineProps<{ class?: string }>()
 </script>
 
 <template>
-  <div :class="cn('dither-glare group relative inline-block overflow-hidden rounded-[12px]', $props.class)">
+  <div :class="cn('dither-glare group relative inline-block overflow-hidden rounded-[12px]', props.class)">
     <slot />
     <div class="glare pointer-events-none absolute inset-0" aria-hidden="true" />
   </div>

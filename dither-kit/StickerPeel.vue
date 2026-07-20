@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { cn } from "./lib"
 
-defineProps<{ class?: string }>()
+const props = defineProps<{ class?: string }>()
 </script>
 
 <template>
-  <div :class="cn('dither-sticker group relative inline-block', $props.class)">
+  <div :class="cn('dither-sticker group relative inline-block', props.class)">
     <div class="relative z-[1]">
       <slot />
     </div>

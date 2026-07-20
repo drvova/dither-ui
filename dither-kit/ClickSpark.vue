@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
+import { pixelPrefersReducedMotion } from "./pixel"
 
 const props = withDefaults(
   defineProps<{
@@ -29,6 +30,7 @@ function resize() {
   c.height = Math.max(1, r.height)
 }
 function onClick(e: MouseEvent) {
+  if (pixelPrefersReducedMotion()) return
   const w = wrap.value
   if (!w) return
   const r = w.getBoundingClientRect()

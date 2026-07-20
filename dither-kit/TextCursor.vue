@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
+import { pixelPrefersReducedMotion } from "./pixel"
 
 const props = withDefaults(
   defineProps<{
@@ -42,6 +43,7 @@ function frame() {
 }
 
 onMounted(() => {
+  if (pixelPrefersReducedMotion()) return
   raf = requestAnimationFrame(frame)
 })
 onBeforeUnmount(() => {

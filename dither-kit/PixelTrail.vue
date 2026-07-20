@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
+import { pixelPrefersReducedMotion } from "./pixel"
 
 const props = withDefaults(
   defineProps<{
@@ -27,6 +28,7 @@ function resize() {
   c.height = Math.max(1, r.height)
 }
 function onMove(e: PointerEvent) {
+  if (pixelPrefersReducedMotion()) return
   const r = wrap.value?.getBoundingClientRect()
   if (!r) return
   const cx = Math.floor((e.clientX - r.left) / props.gap)

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
+import { pixelPrefersReducedMotion } from "./pixel"
 
 const props = withDefaults(
   defineProps<{
@@ -59,7 +60,7 @@ onMounted(() => {
   resize()
   ro = new ResizeObserver(resize)
   if (wrap.value) ro.observe(wrap.value)
-  raf = requestAnimationFrame(frame)
+  if (!pixelPrefersReducedMotion()) raf = requestAnimationFrame(frame)
 })
 onBeforeUnmount(() => {
   if (raf) cancelAnimationFrame(raf)
