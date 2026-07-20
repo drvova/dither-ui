@@ -142,6 +142,26 @@ patterns and the rest follows the same mechanical translation.
 
 - `npm run check` (svelte-check) must stay green with 0 errors and 0 warnings.
 
+## Structure
+
+Files are grouped into subfolders; `index.ts` (root) is the only public entry
+and re-exports everything. Internal imports are relative across folders
+(`../engine/pixel`, `../runtime/lib`); consumers only ever touch `index.ts`.
+
+- `engine/` — framework-agnostic paint & math `.ts` (palette, pixel, raster,
+  noise, precompile, dither-paint, scales, polar, dot-paint, every `paint*`
+  module). Copied verbatim from `dither-kit`; re-copy with
+  `cp ../dither-kit/X.ts engine/X.ts`.
+- `runtime/` — shared Svelte seams reused across families: `lib` (cn),
+  `control` (tokens + field context), `in-view`, `portal`, `canvas-mount`,
+  `use-dither-background`, `toast.svelte`, `gesture`.
+- `backgrounds/` — the 53 generative canvas backgrounds.
+- `text/` — text & cursor/pointer effects.
+- `controls/` — form/input controls (reuse `runtime/control`).
+- `overlays/` — dialogs, menus, popovers, tooltips, sidebar, toaster.
+- `widgets/` — image/avatar/spinner + layout (accordion, breadcrumb, etc.).
+- `charts/` — chart roots, parts, canvases, controllers, and chart context `.ts`.
+
 ## Child DOX Index
 
-- none (flat folder by design, mirroring `dither-kit`)
+- none (subfolders share this contract; no folder yet needs its own rules)

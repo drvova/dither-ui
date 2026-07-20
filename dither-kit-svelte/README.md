@@ -25,6 +25,16 @@ The Vue-free engine modules (`palette`, `pixel`, `raster`, `noise`, `precompile`
 `dither-paint`, and each `paint*` module) are copied verbatim from the Vue kit —
 `dither-kit` stays the single source of truth for engine math.
 
+## Structure
+
+Files are grouped by role; `index.ts` is the single public entry (re-exports all).
+
+```
+engine/       framework-agnostic paint & math (palette, pixel, paint* ...)
+runtime/      shared Svelte seams (cn, control, in-view, portal, ...)
+backgrounds/  text/  controls/  overlays/  widgets/  charts/
+```
+
 Pointer-reactive backgrounds (Ferrofluid, FaultyTerminal, MetaBalls, DotGrid,
 Waves, Ballpit, ...) track the cursor through `<svelte:window onpointermove>`
 with a plain mutable `mouse` object the render closure reads each frame — no
