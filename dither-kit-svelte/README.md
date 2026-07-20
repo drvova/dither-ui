@@ -7,10 +7,9 @@ import from `index.ts`.
 
 ## Status
 
-Near-complete port: **166 components** across every family are ported and pass
-`svelte-check` (0 errors, 0 warnings). Only the chart **root** components
-(`AreaChart`/`BarChart`/`PieChart`/`RadarChart` + `Sparkline`) remain — they wrap
-Vue `h()` vnode render functions and need a Svelte root-composition pass.
+Complete port: **all 168 components** across every family are ported and pass
+`svelte-check` (0 errors, 0 warnings) — the full Vue kit re-expressed in Svelte 5
+runes with no legacy API and no `$effect`.
 
 | Family | Ported | Proves |
 | --- | --- | --- |
@@ -19,7 +18,7 @@ Vue `h()` vnode render functions and need a Svelte root-composition pass.
 | Form controls | 23 | `$bindable` two-way, `control.ts` field context, `canvas-mount` action |
 | Overlays / nav / sidebar | 19 | `portal` action (Teleport), `toast.svelte.ts` store, transitions, focus/a11y |
 | Widgets & layout | 11 | canvas widgets, dynamic named slots → rest `Snippet` props |
-| Charts (parts) | 13 | reactive `setContext` getters, series `register*` actions |
+| Charts | 13 parts + 5 roots + `Sparkline` | reactive `setContext` getters, series `register*` actions, self-stacking SVG layers, framework-agnostic canvas loop |
 | Native canvas control / Context DI | `DitherButton`, `DitherField`+`DitherInput` | canvas action, `setContext`/`getContext`, `$bindable` |
 
 The Vue-free engine modules (`palette`, `pixel`, `raster`, `noise`, `precompile`,

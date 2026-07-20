@@ -92,7 +92,7 @@ export { default as DitherField } from "./DitherField.svelte"
 export { default as DitherInput } from "./DitherInput.svelte"
 
 // ===== Full port (parallel batches: charts, effects, controls, widgets) =====
-// Charts (parts + reactive context; roots pending)
+// Chart roots (composable) + parts + reactive context
 export { default as Area } from "./Area.svelte"
 export { default as Line } from "./Line.svelte"
 export { default as Bar } from "./Bar.svelte"
@@ -106,6 +106,12 @@ export { default as YAxis } from "./YAxis.svelte"
 export { default as RadarFrame } from "./RadarFrame.svelte"
 export { default as Legend } from "./Legend.svelte"
 export { default as Tooltip, type TooltipVariant } from "./Tooltip.svelte"
+export { default as AreaChart } from "./AreaChart.svelte"
+export { default as LineChart } from "./LineChart.svelte"
+export { default as BarChart } from "./BarChart.svelte"
+export { default as PieChart } from "./PieChart.svelte"
+export { default as RadarChart } from "./RadarChart.svelte"
+export { default as Sparkline } from "./Sparkline.svelte"
 
 // Text & cursor effects
 export { default as AsciiText } from "./AsciiText.svelte"
