@@ -158,6 +158,14 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherSplitText", label: "Split text", group: "display", frame: { w: 320, h: 100 }, props: [text("text", "Split text"), number("stagger", 40, 0, 200, 5), number("duration", 600, 100, 2000, 50)] },
   { is: "DitherRotatingText", label: "Rotating text", group: "display", frame: { w: 320, h: 100 }, props: [list("texts", ["Vue", "canvas", "dither"]), number("interval", 2000, 400, 6000, 100)], mapProps: (p) => ({ ...p, texts: strList(p.texts) }) },
   { is: "DitherCountUp", label: "Count up", group: "display", frame: { w: 220, h: 100 }, props: [number("to", 1984, 0, 1000000, 1), number("from", 0, 0, 1000000, 1), number("duration", 1500, 100, 5000, 100), number("decimals", 0, 0, 4, 1)] },
+  { is: "DitherBlurText", label: "Blur text", group: "display", frame: { w: 340, h: 100 }, props: [text("text", "Blur into focus"), select("by", "words", ["words", "chars"]), number("stagger", 90, 0, 400, 10), number("duration", 600, 100, 2000, 50)] },
+  { is: "DitherDecryptedText", label: "Decrypted text", group: "display", frame: { w: 300, h: 100 }, props: [text("text", "DECRYPTED"), number("speed", 1, 0.2, 4, 0.1), select("trigger", "view", ["view", "hover"])] },
+  { is: "DitherScrambleText", label: "Scramble text", group: "display", frame: { w: 340, h: 100 }, props: [text("text", "Hover to scramble"), number("speed", 1, 0.2, 4, 0.1)] },
+  { is: "DitherShuffle", label: "Shuffle", group: "display", frame: { w: 300, h: 100 }, props: [text("text", "Shuffle in"), number("stagger", 55, 0, 200, 5), number("duration", 650, 100, 2000, 50)] },
+  { is: "DitherTextType", label: "Text type", group: "display", frame: { w: 340, h: 100 }, props: [list("texts", ["Type this out.", "Then this."]), number("typingSpeed", 60, 10, 300, 5), number("deletingSpeed", 35, 10, 300, 5), number("pause", 1400, 200, 5000, 100), bool("loop", true), bool("cursor", true)], mapProps: (p) => ({ ...p, texts: strList(p.texts) }) },
+  { is: "DitherFallingText", label: "Falling text", group: "display", frame: { w: 300, h: 100 }, props: [text("text", "Falling text"), number("stagger", 45, 0, 200, 5), number("duration", 700, 100, 2000, 50)] },
+  { is: "DitherScrollReveal", label: "Scroll reveal", group: "display", frame: { w: 360, h: 120 }, props: [text("text", "Words reveal as you scroll into view")] },
+  { is: "DitherScrollFloat", label: "Scroll float", group: "display", frame: { w: 320, h: 100 }, props: [text("text", "Scroll float"), number("amount", 1, 0, 3, 0.1)] },
 ]
 
 export const componentEntry = (is: string): ComponentEntry | undefined =>

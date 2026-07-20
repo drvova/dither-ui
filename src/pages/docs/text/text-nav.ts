@@ -5,4 +5,12 @@ export const TEXT_NAV = [
   { id: "split-text", label: "Split text" },
   { id: "rotating-text", label: "Rotating text" },
   { id: "count-up", label: "Count up" },
+  { id: "text-type", label: "Text type" },
+  { id: "blur-text", label: "Blur text" },
+  { id: "decrypted-text", label: "Decrypted text" },
+  { id: "scramble-text", label: "Scramble text" },
+  { id: "shuffle", label: "Shuffle" },
+  { id: "falling-text", label: "Falling text" },
+  { id: "scroll-reveal", label: "Scroll reveal" },
+  { id: "scroll-float", label: "Scroll float" },
 ]
