@@ -22,4 +22,11 @@ export const ANIMATIONS_NAV = [
   { id: "shape-blur", label: "Shape blur" },
   { id: "strands", label: "Strands" },
   { id: "laser-flow", label: "Laser flow" },
+  { id: "antigravity", label: "Antigravity" },
+  { id: "logo-loop", label: "Logo loop" },
+  { id: "magic-rings", label: "Magic rings" },
+  { id: "magnet-lines", label: "Magnet lines" },
+  { id: "orbit-images", label: "Orbit images" },
+  { id: "pixel-transition", label: "Pixel transition" },
+  { id: "sticker-peel", label: "Sticker peel" },
 ]

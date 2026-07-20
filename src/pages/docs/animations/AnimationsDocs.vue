@@ -23,6 +23,13 @@ import {
   DitherShapeBlur,
   DitherStrands,
   DitherLaserFlow,
+  DitherAntigravity,
+  DitherLogoLoop,
+  DitherMagicRings,
+  DitherMagnetLines,
+  DitherOrbitImages,
+  DitherPixelTransition,
+  DitherStickerPeel,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -178,6 +185,42 @@ const API: Record<string, PropRow[]> = {
     { prop: "glow", type: "number", default: "1" },
     ...SHARED_CANVAS,
   ],
+  antigravity: [
+    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
+    { prop: "count", type: "number", default: "40" },
+    { prop: "speed", type: "number", default: "1" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  logoLoop: [
+    { prop: "items", type: "string[]", default: "['DITHER', 'BAYER', ...]" },
+    { prop: "speed", type: "number (s)", default: "18" },
+    { prop: "gap", type: "number (px)", default: "48" },
+  ],
+  magicRings: [
+    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
+    { prop: "count", type: "number", default: "4" },
+    { prop: "duration", type: "number (s)", default: "3" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  magnetLines: [
+    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
+    { prop: "gap", type: "number (px)", default: "28" },
+    { prop: "line-length", type: "number (px)", default: "14" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  orbitImages: [
+    { prop: "items", type: "string[]", default: "['A', 'B', 'C', 'D', 'E']" },
+    { prop: "radius", type: "number (px)", default: "80" },
+    { prop: "duration", type: "number (s)", default: "16" },
+    { prop: "size", type: "number (px)", default: "200" },
+  ],
+  pixelTransition: [
+    { prop: "rows", type: "number", default: "6" },
+    { prop: "cols", type: "number", default: "10" },
+    { prop: "color", type: "string (hex)", default: '"#111318"' },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  stickerPeel: [{ prop: "default slot", type: "content", default: "—" }],
 }
 
 const SNIPPETS = {
@@ -210,6 +253,13 @@ const SNIPPETS = {
   shapeBlur: `<DitherShapeBlur class="h-64" />`,
   strands: `<DitherStrands class="h-64" />`,
   laserFlow: `<DitherLaserFlow class="h-64" />`,
+  antigravity: `<DitherAntigravity class="h-52"><YourContent /></DitherAntigravity>`,
+  logoLoop: `<DitherLogoLoop :items="['DITHER', 'BAYER', 'CANVAS', 'VUE', 'PIXELS']" />`,
+  magicRings: `<DitherMagicRings class="h-52"><YourContent /></DitherMagicRings>`,
+  magnetLines: `<DitherMagnetLines class="h-52" />`,
+  orbitImages: `<DitherOrbitImages :items="['A', 'B', 'C', 'D', 'E']" />`,
+  pixelTransition: `<DitherPixelTransition><YourCard /></DitherPixelTransition>`,
+  stickerPeel: `<DitherStickerPeel><YourCard /></DitherStickerPeel>`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
@@ -525,5 +575,106 @@ const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/6
       <div :class="canvasBox"><DitherLaserFlow /></div>
     </DemoCard>
     <PropsTable :rows="API.laserFlow" />
+  </section>
+
+  <!-- Antigravity -->
+  <section id="antigravity" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Antigravity</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A field of motes drifts upward and wraps — gravity in reverse, layered
+      behind your content.
+    </p>
+    <DemoCard :code="SNIPPETS.antigravity">
+      <DitherAntigravity :class="cursorArea">Antigravity</DitherAntigravity>
+    </DemoCard>
+    <PropsTable :rows="API.antigravity" />
+  </section>
+
+  <!-- Logo loop -->
+  <section id="logo-loop" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Logo loop</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A seamless infinite marquee of items — pass logos or wordmarks and it loops
+      forever with a measured wrap.
+    </p>
+    <DemoCard :code="SNIPPETS.logoLoop">
+      <div class="w-full text-xl font-medium tracking-tight text-muted-foreground">
+        <DitherLogoLoop :items="['DITHER', 'BAYER', 'CANVAS', 'VUE', 'PIXELS']" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.logoLoop" />
+  </section>
+
+  <!-- Magic rings -->
+  <section id="magic-rings" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Magic rings</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Concentric rings pulse outward from the center on a stagger — a radar-ping
+      halo around whatever you wrap.
+    </p>
+    <DemoCard :code="SNIPPETS.magicRings">
+      <DitherMagicRings class="h-52 w-full">
+        <span class="grid h-12 w-12 place-items-center rounded-full border border-border/60 bg-card text-xs text-muted-foreground">core</span>
+      </DitherMagicRings>
+    </DemoCard>
+    <PropsTable :rows="API.magicRings" />
+  </section>
+
+  <!-- Magnet lines -->
+  <section id="magnet-lines" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Magnet lines</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A grid of little needles all swivel to point at the pointer, like iron
+      filings over a magnet. Move your cursor over the box.
+    </p>
+    <DemoCard :code="SNIPPETS.magnetLines">
+      <DitherMagnetLines :class="cursorArea" />
+    </DemoCard>
+    <PropsTable :rows="API.magnetLines" />
+  </section>
+
+  <!-- Orbit images -->
+  <section id="orbit-images" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Orbit images</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Items ride a circular orbit around a center point — pass avatars, logos or
+      labels. Counter-rotated so they stay upright.
+    </p>
+    <DemoCard :code="SNIPPETS.orbitImages">
+      <div class="grid min-h-56 place-items-center">
+        <DitherOrbitImages :items="['A', 'B', 'C', 'D', 'E']" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.orbitImages" />
+  </section>
+
+  <!-- Pixel transition -->
+  <section id="pixel-transition" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Pixel transition</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A grid of pixel cells covers the content and dissolves in a scattered order
+      on hover, revealing what is underneath. Hover the card.
+    </p>
+    <DemoCard :code="SNIPPETS.pixelTransition">
+      <DitherPixelTransition class="grid h-32 w-56 place-items-center rounded-lg border border-border/60" color="#181b22">
+        <span class="text-lg tracking-tight">Revealed</span>
+      </DitherPixelTransition>
+    </DemoCard>
+    <PropsTable :rows="API.pixelTransition" />
+  </section>
+
+  <!-- Sticker peel -->
+  <section id="sticker-peel" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Sticker peel</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A corner of the card peels up on hover with a soft curl shadow — the sticker
+      lift. Hover the card.
+    </p>
+    <DemoCard :code="SNIPPETS.stickerPeel">
+      <DitherStickerPeel>
+        <div class="grid h-24 w-40 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground">Peel me</div>
+      </DitherStickerPeel>
+    </DemoCard>
+    <PropsTable :rows="API.stickerPeel" />
   </section>
 </template>
