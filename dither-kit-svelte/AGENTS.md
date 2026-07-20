@@ -70,6 +70,14 @@ patterns and the rest follows the same mechanical translation.
   `setContext`/`getContext` replace Vue `provide`/`inject`; the context value
   exposes live GETTERS (backed by `$derived`) instead of Vue `Ref`s, so
   descendants read `field.controlId`, not `field.controlId.value`.
+- Charts: roots provide reactive context via `setContext` getters; parts (`Area`,
+  `Line`, `Bar`, ...) self-register through `register*` Svelte ACTIONS (init ->
+  register, param change -> re-register, unmount -> unregister) instead of Vue's
+  `watch(immediate)` + `onBeforeUnmount`. `useChartDimensions` -> a `chartDimensions`
+  action. Runes live in components, so chart controller assembly belongs to the
+  root component, not a plain `.ts`. The chart ROOT engine (`area-chart`,
+  `cartesian-root`/`-canvas`, `polar-root`, `*-canvas`) + `Sparkline` are a
+  pending follow-up batch (Vue `h()` render functions have no direct Svelte form).
 - `dither-paint.ts` carries ONE deliberate change from the verbatim copy:
   `AreaVariant` is defined here (the low-level painting layer) instead of being
   type-imported from `chart-context`, which keeps this kit free of the

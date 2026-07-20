@@ -7,20 +7,24 @@ import from `index.ts`.
 
 ## Status
 
-In-progress port, delivered in batches. The canonical patterns are proven and the
-full generative canvas-background family is ported; the remaining components
-(charts, text/motion effects, the rest of the controls) follow the same translation.
+Near-complete port: **166 components** across every family are ported and pass
+`svelte-check` (0 errors, 0 warnings). Only the chart **root** components
+(`AreaChart`/`BarChart`/`PieChart`/`RadarChart` + `Sparkline`) remain — they wrap
+Vue `h()` vnode render functions and need a Svelte root-composition pass.
 
 | Family | Ported | Proves |
 | --- | --- | --- |
-| Canvas backgrounds | all 53 (`Aurora`, `Plasma`, `Ferrofluid`, `FaultyTerminal`, `MetaBalls`, ...) | shared `ditherBackground` action; pointer via `<svelte:window>` |
-| Text / motion effects | 11 so far (`ShinyText`, `GradientText`, `GlitchText`, `BlurText`, `RotatingText`, `CountUp`, `StarBorder`, `GlareHover`, `FadeContent`, `AnimatedContent`, `GradualBlur`) | pure DOM/CSS, reduced-motion, `Snippet`, reveal via `inView` action |
-| Native canvas control | `DitherButton` | self-contained canvas action + pointer easing |
-| Context / DI | `DitherField` + `DitherInput` | `setContext`/`getContext`, `$bindable` |
+| Canvas backgrounds | all 53 | shared `ditherBackground` action; pointer via `<svelte:window>` |
+| Text / cursor effects | 35 | DOM/CSS + rAF, `inView` reveal, `{#key}` replay, canvas cursor actions |
+| Form controls | 23 | `$bindable` two-way, `control.ts` field context, `canvas-mount` action |
+| Overlays / nav / sidebar | 19 | `portal` action (Teleport), `toast.svelte.ts` store, transitions, focus/a11y |
+| Widgets & layout | 11 | canvas widgets, dynamic named slots → rest `Snippet` props |
+| Charts (parts) | 13 | reactive `setContext` getters, series `register*` actions |
+| Native canvas control / Context DI | `DitherButton`, `DitherField`+`DitherInput` | canvas action, `setContext`/`getContext`, `$bindable` |
 
 The Vue-free engine modules (`palette`, `pixel`, `raster`, `noise`, `precompile`,
-`dither-paint`, and each background's `paint*` module) are copied verbatim from
-the Vue kit — `dither-kit` stays the single source of truth for engine math.
+`dither-paint`, and each `paint*` module) are copied verbatim from the Vue kit —
+`dither-kit` stays the single source of truth for engine math.
 
 Pointer-reactive backgrounds (Ferrofluid, FaultyTerminal, MetaBalls, DotGrid,
 Waves, Ballpit, ...) track the cursor through `<svelte:window onpointermove>`
