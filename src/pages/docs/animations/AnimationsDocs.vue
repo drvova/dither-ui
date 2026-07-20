@@ -15,9 +15,25 @@ import {
   DitherSplashCursor,
   DitherStarBorder,
   DitherTargetCursor,
+  DitherMetaBalls,
+  DitherMetallicPaint,
+  DitherNoise,
+  DitherCubes,
+  DitherRibbons,
+  DitherShapeBlur,
+  DitherStrands,
+  DitherLaserFlow,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
+
+const SHARED_CANVAS: PropRow[] = [
+  { prop: "opacity", type: "number (0-1)", default: "1" },
+  { prop: "dither", type: "number (0-1) | boolean", default: "1" },
+  { prop: "paused", type: "boolean", default: "false" },
+  { prop: "mix-blend-mode", type: "string", default: "undefined" },
+  { prop: "seed", type: "number", default: "undefined" },
+]
 
 const API: Record<string, PropRow[]> = {
   animatedContent: [
@@ -104,6 +120,64 @@ const API: Record<string, PropRow[]> = {
     { prop: "duration", type: "number (ms)", default: "650" },
     { prop: "default slot", type: "content", default: "—" },
   ],
+  metaBalls: [
+    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
+    { prop: "count", type: "number", default: "6" },
+    { prop: "speed", type: "number", default: "1" },
+    { prop: "ball-size", type: "number", default: "1" },
+    { prop: "glow", type: "number", default: "1.5" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    ...SHARED_CANVAS,
+  ],
+  metallicPaint: [
+    { prop: "colors", type: "string[] (hex)", default: "['#1A1A22', '#8890A0', '#E8ECF4']" },
+    { prop: "scale", type: "number", default: "3" },
+    { prop: "speed", type: "number", default: "0.4" },
+    { prop: "distortion", type: "number", default: "0.6" },
+    ...SHARED_CANVAS,
+  ],
+  noise: [
+    { prop: "colors", type: "string[] (hex)", default: "['#3DA5FF', '#7CE0FF', '#FFFFFF']" },
+    { prop: "speed", type: "number", default: "1" },
+    { prop: "density", type: "number (0-1)", default: "0.5" },
+    { prop: "opacity", type: "number (0-1)", default: "1" },
+    { prop: "paused", type: "boolean", default: "false" },
+  ],
+  cubes: [
+    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#CFFFDF']" },
+    { prop: "scale", type: "number", default: "6" },
+    { prop: "speed", type: "number", default: "0.4" },
+    ...SHARED_CANVAS,
+  ],
+  ribbons: [
+    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
+    { prop: "count", type: "number", default: "5" },
+    { prop: "thickness", type: "number", default: "0.12" },
+    { prop: "amplitude", type: "number", default: "1" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    ...SHARED_CANVAS,
+  ],
+  shapeBlur: [
+    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67']" },
+    { prop: "size", type: "number", default: "0.4" },
+    { prop: "softness", type: "number", default: "0.3" },
+    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    ...SHARED_CANVAS,
+  ],
+  strands: [
+    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CE0FF']" },
+    { prop: "count", type: "number", default: "40" },
+    { prop: "sway", type: "number", default: "0.15" },
+    { prop: "line-width", type: "number", default: "0.01" },
+    ...SHARED_CANVAS,
+  ],
+  laserFlow: [
+    { prop: "colors", type: "string[] (hex)", default: "['#FF3D2E', '#FFD23D', '#FFFFFF']" },
+    { prop: "count", type: "number", default: "4" },
+    { prop: "beam-width", type: "number", default: "0.02" },
+    { prop: "glow", type: "number", default: "1" },
+    ...SHARED_CANVAS,
+  ],
 }
 
 const SNIPPETS = {
@@ -128,10 +202,19 @@ const SNIPPETS = {
   targetCursor: `<DitherTargetCursor color="#7CFF67" class="h-40"><YourArea /></DitherTargetCursor>`,
   pixelTrail: `<DitherPixelTrail color="#7CFF67" class="h-40"><YourArea /></DitherPixelTrail>`,
   imageTrail: `<DitherImageTrail class="h-44"><YourArea /></DitherImageTrail>`,
+  metaBalls: `<DitherMetaBalls class="h-64" />`,
+  metallicPaint: `<DitherMetallicPaint class="h-64" />`,
+  noise: `<DitherNoise class="h-64" />`,
+  cubes: `<DitherCubes class="h-64" />`,
+  ribbons: `<DitherRibbons class="h-64" />`,
+  shapeBlur: `<DitherShapeBlur class="h-64" />`,
+  strands: `<DitherStrands class="h-64" />`,
+  laserFlow: `<DitherLaserFlow class="h-64" />`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
 const cursorArea = "grid h-40 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground"
+const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/60"
 </script>
 
 <template>
@@ -338,5 +421,109 @@ const cursorArea = "grid h-40 w-full place-items-center rounded-lg border border
       <DitherImageTrail class="grid h-44 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground">Move your cursor here</DitherImageTrail>
     </DemoCard>
     <PropsTable :rows="API.imageTrail" />
+  </section>
+
+  <!-- Meta balls -->
+  <section id="meta-balls" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Meta balls</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Orbiting blobs fuse into a gooey metaball iso-surface, tinted and
+      ordered-dithered through the kit engine. The pointer adds a blob.
+    </p>
+    <DemoCard :code="SNIPPETS.metaBalls">
+      <div :class="canvasBox"><DitherMetaBalls /></div>
+    </DemoCard>
+    <PropsTable :rows="API.metaBalls" />
+  </section>
+
+  <!-- Metallic paint -->
+  <section id="metallic-paint" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Metallic paint</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Iterative domain-warped reflections read as flowing liquid chrome — fully
+      opaque, dithered across a metallic ramp.
+    </p>
+    <DemoCard :code="SNIPPETS.metallicPaint">
+      <div :class="canvasBox"><DitherMetallicPaint /></div>
+    </DemoCard>
+    <PropsTable :rows="API.metallicPaint" />
+  </section>
+
+  <!-- Noise -->
+  <section id="noise" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Noise</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Animated hashed grain thresholded against the Bayer matrix — living static
+      for a texture overlay. Tune <code class="text-foreground/80">density</code> and blend it over content.
+    </p>
+    <DemoCard :code="SNIPPETS.noise">
+      <div :class="canvasBox"><DitherNoise /></div>
+    </DemoCard>
+    <PropsTable :rows="API.noise" />
+  </section>
+
+  <!-- Cubes -->
+  <section id="cubes" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Cubes</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A rhombille tiling shades into a field of isometric cubes, each face lit and
+      pulsing on noise. Tinted and ordered-dithered.
+    </p>
+    <DemoCard :code="SNIPPETS.cubes">
+      <div :class="canvasBox"><DitherCubes /></div>
+    </DemoCard>
+    <PropsTable :rows="API.cubes" />
+  </section>
+
+  <!-- Ribbons -->
+  <section id="ribbons" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Ribbons</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Thick flowing bands ride wavy fbm centerlines, bright at the core and tinted
+      per ribbon. The pointer bends nearby ribbons toward it.
+    </p>
+    <DemoCard :code="SNIPPETS.ribbons">
+      <div :class="canvasBox"><DitherRibbons /></div>
+    </DemoCard>
+    <PropsTable :rows="API.ribbons" />
+  </section>
+
+  <!-- Shape blur -->
+  <section id="shape-blur" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Shape blur</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A big soft blob morphs on noise and drifts toward the pointer — a gentle
+      out-of-focus shape. Move your cursor over it.
+    </p>
+    <DemoCard :code="SNIPPETS.shapeBlur">
+      <div :class="canvasBox"><DitherShapeBlur /></div>
+    </DemoCard>
+    <PropsTable :rows="API.shapeBlur" />
+  </section>
+
+  <!-- Strands -->
+  <section id="strands" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Strands</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Dozens of thin filaments sway on fbm like blown hair, tinted by depth and
+      ordered-dithered with transparent gaps.
+    </p>
+    <DemoCard :code="SNIPPETS.strands">
+      <div :class="canvasBox"><DitherStrands /></div>
+    </DemoCard>
+    <PropsTable :rows="API.strands" />
+  </section>
+
+  <!-- Laser flow -->
+  <section id="laser-flow" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Laser flow</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Sharp horizontal beams sweep with additive bloom and a faint jitter, tinted
+      per beam — a scanning laser array.
+    </p>
+    <DemoCard :code="SNIPPETS.laserFlow">
+      <div :class="canvasBox"><DitherLaserFlow /></div>
+    </DemoCard>
+    <PropsTable :rows="API.laserFlow" />
   </section>
 </template>

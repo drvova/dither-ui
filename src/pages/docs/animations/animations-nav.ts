@@ -14,4 +14,12 @@ export const ANIMATIONS_NAV = [
   { id: "target-cursor", label: "Target cursor" },
   { id: "pixel-trail", label: "Pixel trail" },
   { id: "image-trail", label: "Image trail" },
+  { id: "meta-balls", label: "Meta balls" },
+  { id: "metallic-paint", label: "Metallic paint" },
+  { id: "noise", label: "Noise" },
+  { id: "cubes", label: "Cubes" },
+  { id: "ribbons", label: "Ribbons" },
+  { id: "shape-blur", label: "Shape blur" },
+  { id: "strands", label: "Strands" },
+  { id: "laser-flow", label: "Laser flow" },
 ]
