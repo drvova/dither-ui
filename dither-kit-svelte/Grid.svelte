@@ -24,16 +24,24 @@
 </script>
 
 {#if ctx.ready}
-  <g class="stroke-border" stroke-dasharray={strokeDasharray}>
-    {#if horizontal}
-      {#each ctx.y.ticks(tickCount) as t (t)}
-        <line x1={0} x2={ctx.plot.width} y1={ctx.y(t)} y2={ctx.y(t)} />
-      {/each}
-    {/if}
-    {#if vertical}
-      {#each ctx.data as _row, i (i)}
-        <line x1={ctx.xCenter(i) ?? 0} x2={ctx.xCenter(i) ?? 0} y1={0} y2={ctx.plot.height} />
-      {/each}
-    {/if}
-  </g>
+  <svg
+    class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+    style:z-index={5}
+    aria-hidden="true"
+  >
+    <g transform={`translate(${ctx.margins.left},${ctx.margins.top})`}>
+      <g class="stroke-border" stroke-dasharray={strokeDasharray}>
+        {#if horizontal}
+          {#each ctx.y.ticks(tickCount) as t (t)}
+            <line x1={0} x2={ctx.plot.width} y1={ctx.y(t)} y2={ctx.y(t)} />
+          {/each}
+        {/if}
+        {#if vertical}
+          {#each ctx.data as _row, i (i)}
+            <line x1={ctx.xCenter(i) ?? 0} x2={ctx.xCenter(i) ?? 0} y1={0} y2={ctx.plot.height} />
+          {/each}
+        {/if}
+      </g>
+    </g>
+  </svg>
 {/if}

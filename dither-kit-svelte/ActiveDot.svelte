@@ -21,8 +21,14 @@
 </script>
 
 {#if point}
-  <g>
-    <circle cx={point.cx} cy={point.cy} r={r + 3} fill={halo} />
-    <circle cx={point.cx} cy={point.cy} {r} fill={paint.fill} stroke={paint.stroke} stroke-width={2} />
-  </g>
+  <svg
+    class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+    style:z-index={20}
+    aria-hidden="true"
+  >
+    <g transform={`translate(${ctx.margins.left},${ctx.margins.top})`}>
+      <circle cx={point.cx} cy={point.cy} r={r + 3} fill={halo} />
+      <circle cx={point.cx} cy={point.cy} {r} fill={paint.fill} stroke={paint.stroke} stroke-width={2} />
+    </g>
+  </svg>
 {/if}

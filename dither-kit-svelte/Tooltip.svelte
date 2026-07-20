@@ -40,7 +40,7 @@
 {#if show && items.length > 0}
   <div
     class="dk-tooltip-card {cn(
-      'pointer-events-none absolute z-10 rounded-md border px-2 py-1 shadow-sm',
+      'pointer-events-none absolute z-30 rounded-md border px-2 py-1 shadow-sm',
       VARIANT[variant]
     )}"
     style:top="{chart.tooltipTop}px"

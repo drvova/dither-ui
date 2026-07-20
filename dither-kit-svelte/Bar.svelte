@@ -73,21 +73,31 @@
   }
 </script>
 
-<g use:registerSeries={{ ctx, spec }}>
-  {#if ctx.ready && band}
-    {#each rects as r, i (i)}
-      <!-- svelte-ignore a11y_no_static_element_interactions (bar hit-area is a pointer convenience; the Legend is the keyboard-accessible selector) -->
-      <!-- svelte-ignore a11y_click_events_have_key_events (bar hit-area is a pointer convenience; the Legend is the keyboard-accessible selector) -->
-      <rect
-        x={r.x}
-        y={r.y}
-        width={r.width}
-        height={r.height}
-        fill="transparent"
-        style="cursor: pointer"
-        onclick={onClick}
-      />
-    {/each}
-    {@render children?.()}
+<svg
+  class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+  style:z-index={20}
+  aria-hidden="true"
+  use:registerSeries={{ ctx, spec }}
+>
+  {#if ctx.ready && band && rects.length > 0}
+    <g transform={`translate(${ctx.margins.left},${ctx.margins.top})`}>
+      {#each rects as r, i (i)}
+        <!-- svelte-ignore a11y_no_static_element_interactions (bar hit-area is a pointer convenience; the Legend is the keyboard-accessible selector) -->
+        <!-- svelte-ignore a11y_click_events_have_key_events (bar hit-area is a pointer convenience; the Legend is the keyboard-accessible selector) -->
+        <rect
+          x={r.x}
+          y={r.y}
+          width={r.width}
+          height={r.height}
+          class="pointer-events-auto"
+          fill="transparent"
+          style="cursor: pointer"
+          onclick={onClick}
+        />
+      {/each}
+    </g>
   {/if}
-</g>
+</svg>
+{#if ctx.ready && band}
+  {@render children?.()}
+{/if}

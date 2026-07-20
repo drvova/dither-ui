@@ -25,7 +25,7 @@
 
 <div
   class={cn(
-    "pointer-events-none absolute inset-x-0 top-0 flex flex-wrap gap-3 px-1",
+    "pointer-events-none absolute inset-x-0 top-0 z-30 flex flex-wrap gap-3 px-1",
     align === "right" && "justify-end",
     align === "center" && "justify-center",
     align === "left" && "justify-start"

@@ -38,33 +38,39 @@
 </script>
 
 {#if ctx.ready && ctx.radar}
-  <g>
-    <g class="stroke-border" fill="none">
-      {#each rings as d, l (l)}
-        <path {d} />
-      {/each}
-      {#each axes as ax, i (ax.label)}
-        <line
-          x1={ctx.center.x}
-          y1={ctx.center.y}
-          x2={polarX(ctx.center.x, ctx.outerRadius, ax.angle)}
-          y2={polarY(ctx.center.y, ctx.outerRadius, ax.angle)}
-          class={ctx.hoverIndex === i ? "stroke-foreground" : undefined}
-        />
-      {/each}
+  <svg
+    class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+    style:z-index={5}
+    aria-hidden="true"
+  >
+    <g transform={`translate(${ctx.margins.left},${ctx.margins.top})`}>
+      <g class="stroke-border" fill="none">
+        {#each rings as d, l (l)}
+          <path {d} />
+        {/each}
+        {#each axes as ax, i (ax.label)}
+          <line
+            x1={ctx.center.x}
+            y1={ctx.center.y}
+            x2={polarX(ctx.center.x, ctx.outerRadius, ax.angle)}
+            y2={polarY(ctx.center.y, ctx.outerRadius, ax.angle)}
+            class={ctx.hoverIndex === i ? "stroke-foreground" : undefined}
+          />
+        {/each}
+      </g>
+      <g class="font-mono text-[10px]">
+        {#each axes as ax, i (ax.label)}
+          <text
+            x={polarX(ctx.center.x, ctx.outerRadius + 10, ax.angle)}
+            y={polarY(ctx.center.y, ctx.outerRadius + 10, ax.angle)}
+            text-anchor={anchorOf(ax.angle)}
+            dominant-baseline="central"
+            class={ctx.hoverIndex === i ? "fill-foreground" : "fill-muted-foreground"}
+          >
+            {ax.label}
+          </text>
+        {/each}
+      </g>
     </g>
-    <g class="font-mono text-[10px]">
-      {#each axes as ax, i (ax.label)}
-        <text
-          x={polarX(ctx.center.x, ctx.outerRadius + 10, ax.angle)}
-          y={polarY(ctx.center.y, ctx.outerRadius + 10, ax.angle)}
-          text-anchor={anchorOf(ax.angle)}
-          dominant-baseline="central"
-          class={ctx.hoverIndex === i ? "fill-foreground" : "fill-muted-foreground"}
-        >
-          {ax.label}
-        </text>
-      {/each}
-    </g>
-  </g>
+  </svg>
 {/if}

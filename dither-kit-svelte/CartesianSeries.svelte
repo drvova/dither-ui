@@ -79,13 +79,25 @@
   }
 </script>
 
-<g use:registerSeries={{ ctx, spec }}>
-  {#if ctx.ready && band}
-    {#if hitPath}
+<!-- Self-stacking front layer (z-20). The registration action lives on the
+     always-rendered svg so the series registers regardless of `ready`; the hit
+     path is the only interactive element (pointer-events:auto) and its events
+     bubble to the root's pointermove. Children (Dot / ActiveDot) render as
+     siblings so their own self-svg wrappers are not nested / double-transformed. -->
+<svg
+  class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+  style:z-index={20}
+  aria-hidden="true"
+  use:registerSeries={{ ctx, spec }}
+>
+  {#if ctx.ready && band && hitPath}
+    <g transform={`translate(${ctx.margins.left},${ctx.margins.top})`}>
       <!-- svelte-ignore a11y_no_static_element_interactions (series hit-area is a pointer convenience; the Legend is the keyboard-accessible selector) -->
       <!-- svelte-ignore a11y_click_events_have_key_events (series hit-area is a pointer convenience; the Legend is the keyboard-accessible selector) -->
-      <path d={hitPath} fill="transparent" style="cursor: pointer" onclick={onClick} />
-    {/if}
-    {@render children?.()}
+      <path d={hitPath} class="pointer-events-auto" fill="transparent" style="cursor: pointer" onclick={onClick} />
+    </g>
   {/if}
-</g>
+</svg>
+{#if ctx.ready && band}
+  {@render children?.()}
+{/if}

@@ -74,15 +74,40 @@ patterns and the rest follows the same mechanical translation.
   `Line`, `Bar`, ...) self-register through `register*` Svelte ACTIONS (init ->
   register, param change -> re-register, unmount -> unregister) instead of Vue's
   `watch(immediate)` + `onBeforeUnmount`. `useChartDimensions` -> a `chartDimensions`
-  action. Runes live in components, so chart controller assembly belongs to the
-  root component, not a plain `.ts`. The chart ROOT engine (`area-chart`,
-  `cartesian-root`/`-canvas`, `polar-root`, `*-canvas`) + `Sparkline` are a
-  pending follow-up batch (Vue `h()` render functions have no direct Svelte form).
+  action. The controllers are `.svelte.ts` factories (`chart-controller.svelte.ts`,
+  `polar-controller.svelte.ts`): runes but NO `$effect`. Vue's two side-effecting
+  `watch`es become pure derivations — a change-detecting `revision` (a plain
+  counter bumped inside `$derived.by` only when `data`/`replayToken` identity
+  changes) and an entrance-epoch (`entranceDone = !animate || epoch === revision`,
+  `markEntranceDone` sets `epoch = revision`). Each controller returns a plain
+  object of GETTERS over its `$state`/`$derived`, so templates track and the
+  canvas rAF loop reads `ctx.*` fresh every frame (owned Svelte deriveds are
+  pull-fresh when read outside a reaction — verified).
+- Chart canvases (`CartesianCanvas`/`BarCanvas`/`PieCanvas`/`RadarCanvas`.svelte)
+  copy the Vue `*-canvas.ts` framework-agnostic `start*Loop` engine VERBATIM into
+  the `<script module>` block; the thin wrapper is one shared action,
+  `chart-canvas.ts` (`use:chartCanvas`), owning the IntersectionObserver gate +
+  rAF-deferred (re)start on `restartKey` + wake on `wakeKey`. The loop reads live
+  state through getter `Box`es (`{ get current() { return derived } }`), never
+  `$effect`. Roots are `CartesianChart.svelte` / `PolarChart.svelte` (a `chartType`
+  prop selects canvas + fallback chains) with thin `AreaChart`/`LineChart`/
+  `BarChart`/`PieChart`/`RadarChart` wrappers + `Sparkline`; `RadarChart` renders
+  its baked `<RadarFrame>` back-decoration.
+- LAYER ROUTING: Svelte cannot inspect a child's `chartLayer` (Vue read child
+  VNode types). Instead each SVG part SELF-STACKS: it renders its own
+  `<svg class="pointer-events-none absolute inset-0 ... overflow-visible">` with a
+  `<g transform="translate(margins)">`, at `z-index` 5 for `chartLayer="back"`
+  (`Grid`, `RadarFrame`), 20 for front parts (axes, dots, series hit-areas). The
+  canvas sits at z-10, `Legend`/`Tooltip` (`chartLayer="dom"`) at z-30. Children
+  render ONCE; the self-`<svg>` wrapper also fixes the SVG namespace (a bare `<g>`
+  at a component root is created in the wrong namespace). Interactive hit paths
+  keep `pointer-events:auto` on just the `<path>`/`<rect>` (events bubble to the
+  root's pointermove); their wrapper svg stays `pointer-events-none`.
 - `dither-paint.ts` carries ONE deliberate change from the verbatim copy:
   `AreaVariant` is defined here (the low-level painting layer) instead of being
   type-imported from `chart-context`, which keeps this kit free of the
-  Vue-reactive chart context. When the chart batch lands, `chart-context`
-  re-exports `AreaVariant` from `dither-paint` rather than redefining it.
+  Vue-reactive chart context. `chart-context` re-exports `AreaVariant` from
+  `dither-paint` rather than redefining it (the chart batch has landed).
 - Respect `prefers-reduced-motion` inside the kit (canvas via
   `pixelPrefersReducedMotion`, CSS via `@media`) — consumers must not opt in.
 - Primary canvas contexts use `{ willReadFrequently: true }` (bulk

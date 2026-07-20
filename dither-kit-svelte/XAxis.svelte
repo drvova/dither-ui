@@ -19,19 +19,27 @@
 </script>
 
 {#if ctx.ready}
-  <g class="fill-current font-mono text-[10px] text-muted-foreground">
-    {#each ctx.data as row, i (i)}
-      {#if i % step === 0}
-        <text
-          x={ctx.xCenter(i) ?? 0}
-          y={ctx.plot.height + tickMargin}
-          text-anchor="middle"
-          dominant-baseline="hanging"
-          fill="currentColor"
-        >
-          {labelAt(row as Record<string, unknown>, i)}
-        </text>
-      {/if}
-    {/each}
-  </g>
+  <svg
+    class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+    style:z-index={20}
+    aria-hidden="true"
+  >
+    <g transform={`translate(${ctx.margins.left},${ctx.margins.top})`}>
+      <g class="fill-current font-mono text-[10px] text-muted-foreground">
+        {#each ctx.data as row, i (i)}
+          {#if i % step === 0}
+            <text
+              x={ctx.xCenter(i) ?? 0}
+              y={ctx.plot.height + tickMargin}
+              text-anchor="middle"
+              dominant-baseline="hanging"
+              fill="currentColor"
+            >
+              {labelAt(row as Record<string, unknown>, i)}
+            </text>
+          {/if}
+        {/each}
+      </g>
+    </g>
+  </svg>
 {/if}

@@ -13,16 +13,24 @@
 </script>
 
 {#if ctx.ready && band}
-  <g style:opacity={ctx.entranceDone ? 1 : 0} style:transition="opacity 300ms ease">
-    {#each band as b, i (i)}
-      <circle
-        fill={paint.fill}
-        stroke={paint.stroke}
-        stroke-width={paint.strokeWidth}
-        cx={ctx.xCenter(i) ?? 0}
-        cy={ctx.y(b[1])}
-        {r}
-      />
-    {/each}
-  </g>
+  <svg
+    class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+    style:z-index={20}
+    aria-hidden="true"
+  >
+    <g transform={`translate(${ctx.margins.left},${ctx.margins.top})`}>
+      <g style:opacity={ctx.entranceDone ? 1 : 0} style:transition="opacity 300ms ease">
+        {#each band as b, i (i)}
+          <circle
+            fill={paint.fill}
+            stroke={paint.stroke}
+            stroke-width={paint.strokeWidth}
+            cx={ctx.xCenter(i) ?? 0}
+            cy={ctx.y(b[1])}
+            {r}
+          />
+        {/each}
+      </g>
+    </g>
+  </svg>
 {/if}

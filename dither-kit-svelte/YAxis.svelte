@@ -12,17 +12,25 @@
 </script>
 
 {#if ctx.ready}
-  <g class="fill-current font-mono text-[10px] text-muted-foreground">
-    {#each ctx.y.ticks(tickCount) as t (t)}
-      <text
-        x={-tickMargin}
-        y={ctx.y(t)}
-        text-anchor="end"
-        dominant-baseline="central"
-        fill="currentColor"
-      >
-        {tickFormatter ? tickFormatter(t) : t}
-      </text>
-    {/each}
-  </g>
+  <svg
+    class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+    style:z-index={20}
+    aria-hidden="true"
+  >
+    <g transform={`translate(${ctx.margins.left},${ctx.margins.top})`}>
+      <g class="fill-current font-mono text-[10px] text-muted-foreground">
+        {#each ctx.y.ticks(tickCount) as t (t)}
+          <text
+            x={-tickMargin}
+            y={ctx.y(t)}
+            text-anchor="end"
+            dominant-baseline="central"
+            fill="currentColor"
+          >
+            {tickFormatter ? tickFormatter(t) : t}
+          </text>
+        {/each}
+      </g>
+    </g>
+  </svg>
 {/if}
