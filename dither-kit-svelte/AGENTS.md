@@ -38,6 +38,28 @@ patterns and the rest follows the same mechanical translation.
 - Self-contained canvas components (e.g. `DitherButton`) put their paint loop in
   a LOCAL action, deferring the first `init` through `requestAnimationFrame` to
   avoid a forced reflow — mirroring the Vue component's rAF defer.
+- `canvas-mount.ts` is the shared `paintOnResize` ACTION for static/param-repaint
+  canvas controls (switch, checkbox, badge, meter, separator, rating, slider,
+  toggle, radio/toggle-group dots): attach it to the `<canvas>`, it measures the
+  parent, rAF-defers the first paint, repaints on resize, and repaints when its
+  `$derived` paint closure changes. The host passes a `(canvas, host) => void`
+  closure (reading current props so Svelte tracks them) — do NOT re-implement the
+  rAF/ResizeObserver skeleton per component. Continuous animated canvases
+  (progress band, skeleton shimmer) keep a bespoke local action with their own
+  rAF loop + IntersectionObserver visibility gate.
+- Prop-synced editable buffers translate WITHOUT `$effect`: an in-progress
+  `$state` override plus a `$derived` fallback to the model (`typed ?? String(value)`
+  in NumberField, `typed ?? selected.label` in Combobox) reproduces a Vue
+  `watch(modelValue)` reset — null override outside editing, cleared on commit.
+  A group→item update (Vue `:model-value` + `@update:model-value`) becomes a
+  Svelte function binding `bind:value={() => get, (v) => set}` (CheckboxGroup),
+  keeping the child a pure `$bindable`. OTP `digits` must stay authoritative
+  `$state` (seeded once via `untrack`) because gaps cannot round-trip a joined
+  string; it drives the model one-way, so external resync is not mirrored.
+- Custom events other than `update:modelValue` become callback props
+  (`oncomplete?: (code) => void` on OtpField, `onsubmit?: () => void` on Form).
+- Svelte 5 `svelte-ignore` takes ONE rule code per comment (trailing text is a
+  description); stack multiple comment lines to suppress several rules.
 - `control.ts` owns native-control tokens and the field context. Svelte
   `setContext`/`getContext` replace Vue `provide`/`inject`; the context value
   exposes live GETTERS (backed by `$derived`) instead of Vue `Ref`s, so
@@ -51,6 +73,19 @@ patterns and the rest follows the same mechanical translation.
   `pixelPrefersReducedMotion`, CSS via `@media`) — consumers must not opt in.
 - Primary canvas contexts use `{ willReadFrequently: true }` (bulk
   `putImageData`); bloom canvases omit it (they only `drawImage`).
+- Vue `<Teleport>` becomes the `portal` ACTION (`portal.ts`): it appends the node
+  to `document.body` on mount and `node.remove()`s on destroy, so Svelte plays
+  out-transitions before teardown. Overlays that Vue teleports (dialog,
+  alert-dialog, drawer, context-menu, toaster) use it; in-place popovers, menus,
+  and tooltips do not. Outside-click / Escape dismissal is an always-mounted
+  `<svelte:window>` listener guarded by the open flag — the opening pointerdown
+  lands while open is still false, replacing the Vue `setTimeout(0)` defer. A
+  panel gated by `{#if open}` uses its mount/destroy (an action) as the open/close
+  seam for focus capture-restore and parent push-channel notify.
+- Module-level stores Vue builds with `reactive` become a `.svelte.ts` module
+  exporting `$state` (e.g. `toast.svelte.ts`); consumers import and mutate it
+  (push/splice), never reassign the export. Timers/lifecycle live in the store's
+  plain functions, not `$effect`.
 - Zero Vue imports. Runtime deps: `clsx`, `tailwind-merge`, and the `svelte`
   peer only. Deeper engine files pull `d3-scale`/`d3-shape` as they are ported.
 
