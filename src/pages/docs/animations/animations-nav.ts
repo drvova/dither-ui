@@ -7,4 +7,11 @@ export const ANIMATIONS_NAV = [
   { id: "glare-hover", label: "Glare hover" },
   { id: "magnet", label: "Magnet" },
   { id: "click-spark", label: "Click spark" },
+  { id: "blob-cursor", label: "Blob cursor" },
+  { id: "crosshair", label: "Crosshair" },
+  { id: "ghost-cursor", label: "Ghost cursor" },
+  { id: "splash-cursor", label: "Splash cursor" },
+  { id: "target-cursor", label: "Target cursor" },
+  { id: "pixel-trail", label: "Pixel trail" },
+  { id: "image-trail", label: "Image trail" },
 ]

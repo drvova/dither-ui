@@ -183,6 +183,13 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherGlareHover", label: "Glare hover", group: "display", frame: { w: 240, h: 140 }, props: [], slotText: "Hover for a glare sweep" },
   { is: "DitherMagnet", label: "Magnet", group: "display", frame: { w: 220, h: 120 }, props: [number("strength", 0.4, 0, 1, 0.05), number("radius", 200, 40, 500, 10)], slotText: "Magnet" },
   { is: "DitherClickSpark", label: "Click spark", group: "display", frame: { w: 240, h: 140 }, props: [color(), number("count", 8, 3, 20, 1), number("size", 16, 4, 60, 2), number("duration", 420, 100, 1500, 20)], slotText: "Click anywhere here" },
+  { is: "DitherBlobCursor", label: "Blob cursor", group: "display", frame: { w: 240, h: 160 }, props: [color(), number("size", 48, 8, 160, 4), number("lag", 0.18, 0.02, 1, 0.02)], slotText: "Move your cursor here" },
+  { is: "DitherCrosshair", label: "Crosshair", group: "display", frame: { w: 240, h: 160 }, props: [color(), number("thickness", 1, 1, 6, 1)], slotText: "Move your cursor here" },
+  { is: "DitherGhostCursor", label: "Ghost cursor", group: "display", frame: { w: 240, h: 160 }, props: [color(), number("count", 18, 4, 60, 1), number("size", 10, 2, 40, 1)], slotText: "Move your cursor here" },
+  { is: "DitherSplashCursor", label: "Splash cursor", group: "display", frame: { w: 240, h: 160 }, props: [color("blue"), number("maxRadius", 60, 10, 200, 5), number("duration", 700, 100, 2000, 50)], slotText: "Move your cursor here" },
+  { is: "DitherTargetCursor", label: "Target cursor", group: "display", frame: { w: 240, h: 160 }, props: [color(), number("size", 36, 12, 120, 4)], slotText: "Move your cursor here" },
+  { is: "DitherPixelTrail", label: "Pixel trail", group: "display", frame: { w: 240, h: 160 }, props: [color(), number("gap", 24, 8, 80, 2)], slotText: "Move your cursor here" },
+  { is: "DitherImageTrail", label: "Image trail", group: "display", frame: { w: 260, h: 180 }, props: [list("colors", ["#5227FF", "#7CFF67", "#3DA5FF", "#FF3D2E", "#FFD23D"]), number("size", 40, 8, 120, 4), number("duration", 650, 100, 2000, 50)], slotText: "Move your cursor here" },
 ]
 
 export const componentEntry = (is: string): ComponentEntry | undefined =>

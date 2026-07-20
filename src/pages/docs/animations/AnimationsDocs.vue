@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import {
   DitherAnimatedContent,
+  DitherBlobCursor,
   DitherClickSpark,
+  DitherCrosshair,
   DitherElectricBorder,
   DitherFadeContent,
+  DitherGhostCursor,
   DitherGlareHover,
   DitherGradualBlur,
+  DitherImageTrail,
   DitherMagnet,
+  DitherPixelTrail,
+  DitherSplashCursor,
   DitherStarBorder,
+  DitherTargetCursor,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -58,6 +65,45 @@ const API: Record<string, PropRow[]> = {
     { prop: "duration", type: "number (ms)", default: "420" },
     { prop: "default slot", type: "content", default: "—" },
   ],
+  blobCursor: [
+    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
+    { prop: "size", type: "number (px)", default: "48" },
+    { prop: "lag", type: "number (0-1)", default: "0.18" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  crosshair: [
+    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
+    { prop: "thickness", type: "number (px)", default: "1" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  ghostCursor: [
+    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
+    { prop: "count", type: "number", default: "18" },
+    { prop: "size", type: "number (px)", default: "10" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  splashCursor: [
+    { prop: "color", type: "string (hex)", default: '"#3DA5FF"' },
+    { prop: "max-radius", type: "number (px)", default: "60" },
+    { prop: "duration", type: "number (ms)", default: "700" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  targetCursor: [
+    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
+    { prop: "size", type: "number (px)", default: "36" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  pixelTrail: [
+    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
+    { prop: "gap", type: "number (px)", default: "24" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
+  imageTrail: [
+    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', ...]" },
+    { prop: "size", type: "number (px)", default: "40" },
+    { prop: "duration", type: "number (ms)", default: "650" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
 }
 
 const SNIPPETS = {
@@ -75,9 +121,17 @@ const SNIPPETS = {
   glareHover: `<DitherGlareHover><YourCard /></DitherGlareHover>`,
   magnet: `<DitherMagnet :strength="0.4"><button>Magnet</button></DitherMagnet>`,
   clickSpark: `<DitherClickSpark color="#7CFF67"><YourArea /></DitherClickSpark>`,
+  blobCursor: `<DitherBlobCursor color="#7CFF67" class="h-40"><YourArea /></DitherBlobCursor>`,
+  crosshair: `<DitherCrosshair color="#7CFF67" class="h-40"><YourArea /></DitherCrosshair>`,
+  ghostCursor: `<DitherGhostCursor color="#7CFF67" class="h-40"><YourArea /></DitherGhostCursor>`,
+  splashCursor: `<DitherSplashCursor color="#3DA5FF" class="h-40"><YourArea /></DitherSplashCursor>`,
+  targetCursor: `<DitherTargetCursor color="#7CFF67" class="h-40"><YourArea /></DitherTargetCursor>`,
+  pixelTrail: `<DitherPixelTrail color="#7CFF67" class="h-40"><YourArea /></DitherPixelTrail>`,
+  imageTrail: `<DitherImageTrail class="h-44"><YourArea /></DitherImageTrail>`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
+const cursorArea = "grid h-40 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground"
 </script>
 
 <template>
@@ -192,5 +246,97 @@ const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-bord
       </DitherClickSpark>
     </DemoCard>
     <PropsTable :rows="API.clickSpark" />
+  </section>
+
+  <!-- Blob cursor -->
+  <section id="blob-cursor" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Blob cursor</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A soft, screen-blended blob eases toward the pointer inside the area — a
+      gooey cursor companion. Move your cursor over the box.
+    </p>
+    <DemoCard :code="SNIPPETS.blobCursor">
+      <DitherBlobCursor :class="cursorArea">Move your cursor here</DitherBlobCursor>
+    </DemoCard>
+    <PropsTable :rows="API.blobCursor" />
+  </section>
+
+  <!-- Crosshair -->
+  <section id="crosshair" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Crosshair</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Full-height and full-width guide lines track the pointer across the area — a
+      precision reticle. Move your cursor over the box.
+    </p>
+    <DemoCard :code="SNIPPETS.crosshair">
+      <DitherCrosshair :class="cursorArea">Move your cursor here</DitherCrosshair>
+    </DemoCard>
+    <PropsTable :rows="API.crosshair" />
+  </section>
+
+  <!-- Ghost cursor -->
+  <section id="ghost-cursor" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Ghost cursor</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A tapering trail of fading dots chases the pointer on a canvas overlay.
+      Move your cursor over the box.
+    </p>
+    <DemoCard :code="SNIPPETS.ghostCursor">
+      <DitherGhostCursor :class="cursorArea">Move your cursor here</DitherGhostCursor>
+    </DemoCard>
+    <PropsTable :rows="API.ghostCursor" />
+  </section>
+
+  <!-- Splash cursor -->
+  <section id="splash-cursor" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Splash cursor</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Expanding ripple rings bloom along the pointer path, like drops on water.
+      Move your cursor over the box.
+    </p>
+    <DemoCard :code="SNIPPETS.splashCursor">
+      <DitherSplashCursor :class="cursorArea">Move your cursor here</DitherSplashCursor>
+    </DemoCard>
+    <PropsTable :rows="API.splashCursor" />
+  </section>
+
+  <!-- Target cursor -->
+  <section id="target-cursor" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Target cursor</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A slowly rotating corner-bracket reticle locks onto the pointer — a HUD
+      targeting frame. Move your cursor over the box.
+    </p>
+    <DemoCard :code="SNIPPETS.targetCursor">
+      <DitherTargetCursor :class="cursorArea">Move your cursor here</DitherTargetCursor>
+    </DemoCard>
+    <PropsTable :rows="API.targetCursor" />
+  </section>
+
+  <!-- Pixel trail -->
+  <section id="pixel-trail" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Pixel trail</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The pointer lights up cells of a pixel grid that then fade back out — a
+      glowing wake across the lattice. Move your cursor over the box.
+    </p>
+    <DemoCard :code="SNIPPETS.pixelTrail">
+      <DitherPixelTrail :class="cursorArea">Move your cursor here</DitherPixelTrail>
+    </DemoCard>
+    <PropsTable :rows="API.pixelTrail" />
+  </section>
+
+  <!-- Image trail -->
+  <section id="image-trail" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Image trail</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Tiles from a palette drop along the pointer path, rotating and shrinking as
+      they fade — pass real image URLs via <code class="text-foreground/80">colors</code>
+      swapped for tiles here. Move your cursor over the box.
+    </p>
+    <DemoCard :code="SNIPPETS.imageTrail">
+      <DitherImageTrail class="grid h-44 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground">Move your cursor here</DitherImageTrail>
+    </DemoCard>
+    <PropsTable :rows="API.imageTrail" />
   </section>
 </template>
