@@ -13,7 +13,7 @@ full generative canvas-background family is ported; the remaining components
 
 | Family | Ported | Proves |
 | --- | --- | --- |
-| Canvas backgrounds | `Aurora`, `Plasma`, `Silk`, `Galaxy`, `Lightning`, ...39 total | shared `ditherBackground` action runtime |
+| Canvas backgrounds | all 53 (`Aurora`, `Plasma`, `Ferrofluid`, `FaultyTerminal`, `MetaBalls`, ...) | shared `ditherBackground` action; pointer via `<svelte:window>` |
 | Text / CSS | `ShinyText` | pure-CSS effect, reduced-motion, `Snippet` |
 | Native canvas control | `DitherButton` | self-contained canvas action + pointer easing |
 | Context / DI | `DitherField` + `DitherInput` | `setContext`/`getContext`, `$bindable` |
@@ -22,9 +22,10 @@ The Vue-free engine modules (`palette`, `pixel`, `raster`, `noise`, `precompile`
 `dither-paint`, and each background's `paint*` module) are copied verbatim from
 the Vue kit — `dither-kit` stays the single source of truth for engine math.
 
-The 13 pointer/`<style>`-driven backgrounds (Ferrofluid, FaultyTerminal,
-Waves, DotGrid, MetaBalls, Ballpit, ...) are deferred to a follow-up batch
-because they need individual pointer/interaction wiring, not a mechanical port.
+Pointer-reactive backgrounds (Ferrofluid, FaultyTerminal, MetaBalls, DotGrid,
+Waves, Ballpit, ...) track the cursor through `<svelte:window onpointermove>`
+with a plain mutable `mouse` object the render closure reads each frame — no
+`$effect`, no manual listener lifecycle.
 
 ## Usage
 
