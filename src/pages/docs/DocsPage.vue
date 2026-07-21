@@ -33,6 +33,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
 import { assetPath, appPathname, routePath } from "@/shared/lib"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
+import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
 import FormDocs from "./components/FormDocs.vue"
 import { FORM_NAV } from "./components/form-nav"
 import FeedbackDocs from "./components/FeedbackDocs.vue"
@@ -541,6 +542,18 @@ npm i d3-scale d3-shape clsx tailwind-merge
 
 # 4 — use it
 import { AreaChart, Area, DitherButton } from "@dither-kit"`,
+  installSvelte: `# 1 — copy the kit folder straight from the repo (degit grabs just the folder)
+npx degit drvova/dither-ui/dither-kit-svelte src/dither-kit-svelte
+
+# 2 — install the four runtime deps (Svelte 5 & Tailwind you already have)
+npm i d3-scale d3-shape clsx tailwind-merge
+
+# 3 — alias @dither-kit-svelte so imports stay clean
+#     vite.config.ts → resolve.alias: { "@dither-kit-svelte": "/src/dither-kit-svelte" }
+#     tsconfig.json  → paths:        { "@dither-kit-svelte": ["./src/dither-kit-svelte"] }
+
+# 4 — use it
+import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
   seeds: `<!-- one integer is a complete visual personality: -->
 <AreaChart :data="rows" :config="config" :seed="1984">
   <Area data-key="revenue" :variant="1984" />   <!-- texture  -->
@@ -732,6 +745,9 @@ const config = {
 cssColor("blue") // rgb(53,143,243)`,
 }
 
+// Handbook code blocks follow the framework toggle like DemoCard tabs do.
+const fw = (code: string) => (docsFramework.value === "svelte" ? toSvelteCode(code) : code)
+
 // Code tabs mirror the picked variant — what you see is what you copy.
 const areaCode = computed(() =>
   SNIPPETS.area.replace(
@@ -779,6 +795,26 @@ const gradientCode = computed(
           <span class="hidden text-muted-foreground sm:inline">docs</span>
         </div>
         <nav class="flex items-center gap-5 text-muted-foreground">
+          <div class="flex items-center gap-1" role="group" aria-label="Framework">
+            <button
+              type="button"
+              :aria-pressed="docsFramework === 'vue'"
+              class="rounded border px-2 py-0.5 text-[11px] transition-colors"
+              :class="docsFramework === 'vue' ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'"
+              @click="setDocsFramework('vue')"
+            >
+              vue
+            </button>
+            <button
+              type="button"
+              :aria-pressed="docsFramework === 'svelte'"
+              class="rounded border px-2 py-0.5 text-[11px] transition-colors"
+              :class="docsFramework === 'svelte' ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'"
+              @click="setDocsFramework('svelte')"
+            >
+              svelte
+            </button>
+          </div>
           <a
             href="https://github.com/drvova/dither-ui"
             target="_blank"
@@ -835,25 +871,25 @@ const gradientCode = computed(
             <h2 class="text-lg tracking-tight">Quick start</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               The kit is a folder, not a package. Copy
-              <code class="text-foreground/80">dither-kit/</code> straight from the
+              <code class="text-foreground/80">{{ docsFramework === "svelte" ? "dither-kit-svelte/" : "dither-kit/" }}</code> straight from the
               <a
                 href="https://github.com/drvova/dither-ui"
                 target="_blank"
                 rel="noreferrer"
                 class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
                 >GitHub repo</a
-              >, install four small runtime deps, and alias it — Vue 3 and Tailwind
+              >, install four small runtime deps, and alias it — {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }} and Tailwind
               you already have.
             </p>
-            <div class="mt-5"><CodeBlock :code="SNIPPETS.install" /></div>
+            <div class="mt-5"><CodeBlock :code="docsFramework === 'svelte' ? SNIPPETS.installSvelte : SNIPPETS.install" /></div>
             <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
               Prefer to read the source first? Every component lives under
               <a
-                href="https://github.com/drvova/dither-ui/tree/master/dither-kit"
+                :href="`https://github.com/drvova/dither-ui/tree/master/${docsFramework === 'svelte' ? 'dither-kit-svelte' : 'dither-kit'}`"
                 target="_blank"
                 rel="noreferrer"
                 class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
-                >dither-kit/</a
+                >{{ docsFramework === "svelte" ? "dither-kit-svelte/" : "dither-kit/" }}</a
               > — no build step, no black box.
             </p>
           </section>
@@ -867,7 +903,7 @@ const gradientCode = computed(
               tokens to theme, pass <code class="text-foreground/80">class</code>
               to compose with your own utilities.
             </p>
-            <div class="mt-5"><CodeBlock :code="SNIPPETS.styling" /></div>
+            <div class="mt-5"><CodeBlock :code="fw(SNIPPETS.styling)" /></div>
           </section>
 
           <!-- Seeds -->
@@ -916,7 +952,7 @@ const gradientCode = computed(
               as series, <code class="text-foreground/80">Dot</code> nested inside a
               series. Order in the template is paint order.
             </p>
-            <div class="mt-5"><CodeBlock :code="SNIPPETS.composition" /></div>
+            <div class="mt-5"><CodeBlock :code="fw(SNIPPETS.composition)" /></div>
           </section>
 
           <!-- Accessibility -->
@@ -929,7 +965,7 @@ const gradientCode = computed(
               and stills the sparkles; reduced transparency solidifies floating
               chrome — both from the OS setting, no props required.
             </p>
-            <div class="mt-5"><CodeBlock :code="SNIPPETS.accessibility" /></div>
+            <div class="mt-5"><CodeBlock :code="fw(SNIPPETS.accessibility)" /></div>
           </section>
 
           <!-- Motion -->

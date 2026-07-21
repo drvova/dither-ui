@@ -35,6 +35,16 @@ widgets/features; page-specific conventions live here.
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs
   are computed from the picked state — what you see is what you copy.
+- Docs serve Vue AND Svelte: snippets are authored once in Vue; `docs/svelte.ts`
+  derives the Svelte flavor (`toSvelteCode`) for DemoCard code tabs, Handbook
+  CodeBlocks (`fw()`), and PropsTable's modelValue/v-model display mapping. The
+  global `docsFramework` ref (header toggle + per-card chips, persisted to
+  localStorage) drives all of them. The translator parses real export names
+  from `dither-kit-svelte/index.ts?raw` (plain-named background/text/animation
+  families rename automatically); `V_MODEL_TARGETS` maps the two non-`value`
+  bindables (Sidebar→collapsed, SidebarSub→open). New Vue idioms in snippets
+  need a translator rule + a `tests/svelte-code.spec.ts` case — never a
+  hand-forked Svelte snippet.
 - `SNIPPETS`/computed code must match what the demo renders; API tables
   mirror actual kit prop defaults — update both when the kit API changes.
   Core form controls share Field-generated IDs, help/error relationships, and

@@ -125,8 +125,11 @@ patterns and the rest follows the same mechanical translation.
   exporting `$state` (e.g. `toast.svelte.ts`); consumers import and mutate it
   (push/splice), never reassign the export. Timers/lifecycle live in the store's
   plain functions, not `$effect`.
-- Zero Vue imports. Runtime deps: `clsx`, `tailwind-merge`, and the `svelte`
-  peer only. Deeper engine files pull `d3-scale`/`d3-shape` as they are ported.
+- Zero Vue imports. Runtime deps: `clsx`, `tailwind-merge`, `d3-scale`,
+  `d3-shape` (charts), and the `svelte` peer — `package.json` lists all four.
+- The Vue docs site derives its Svelte code tabs by parsing this kit's
+  `index.ts` export names (`src/pages/docs/svelte.ts`); keep index exports
+  accurate and expect renames to propagate to the docs automatically.
 
 ## Work Guidance
 
