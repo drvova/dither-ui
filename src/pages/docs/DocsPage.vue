@@ -56,6 +56,14 @@ import ProductExamples from "./examples/ProductExamples.vue"
 import { PRODUCT_NAV } from "./examples/product-nav"
 import SidebarExamples from "./examples/SidebarExamples.vue"
 import { SIDEBAR_NAV } from "./examples/sidebar-nav"
+import StatsExamples from "./examples/StatsExamples.vue"
+import { STATS_NAV } from "./examples/stats-nav"
+import TableExamples from "./examples/TableExamples.vue"
+import { TABLE_NAV } from "./examples/table-nav"
+import ChatExamples from "./examples/ChatExamples.vue"
+import { CHAT_NAV } from "./examples/chat-nav"
+import NotificationsExamples from "./examples/NotificationsExamples.vue"
+import { NOTIFICATIONS_NAV } from "./examples/notifications-nav"
 import BackgroundsDocs from "./backgrounds/BackgroundsDocs.vue"
 import { BACKGROUNDS_NAV } from "./backgrounds/backgrounds-nav"
 import TextDocs from "./text/TextDocs.vue"
@@ -420,6 +428,10 @@ const GROUPS = [
       ...AUTH_NAV,
       ...PRODUCT_NAV,
       ...SIDEBAR_NAV,
+      ...STATS_NAV,
+      ...TABLE_NAV,
+      ...CHAT_NAV,
+      ...NOTIFICATIONS_NAV,
     ],
   },
   {
@@ -1289,6 +1301,18 @@ const gradientCode = computed(
 
           <!-- Sidebar blocks: dashboard, docs nav, admin panel -->
           <SidebarExamples />
+
+          <!-- Stat blocks: KPI cards, chart cards -->
+          <StatsExamples />
+
+          <!-- Table block: filter + sort + select + paginate -->
+          <TableExamples />
+
+          <!-- Chat block: conversations + live thread -->
+          <ChatExamples />
+
+          <!-- Notification block: tabs + unread state -->
+          <NotificationsExamples />
 
           <!-- Area -->
           <section id="area" class="mt-16 scroll-mt-24">
