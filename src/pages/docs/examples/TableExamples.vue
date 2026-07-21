@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { ActiveDot, DitherButton, DitherCheckbox, DitherInput, DitherPagination } from "@dither-kit"
+import { DitherButton, DitherCheckbox, DitherInput, DitherPagination } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 
 type Member = { name: string; email: string; role: string; status: "active" | "away" | "offline"; joined: string }
@@ -99,7 +99,11 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
         @update:model-value="toggleRow(m.email)" /></td>
       <td>{{ m.name }} — {{ m.email }}</td>
       <td>{{ m.role }}</td>
-      <td><ActiveDot /> {{ m.status }}</td>   <!-- colored presence dot -->
+      <td>   <!-- presence dot from the palette swatch vars -->
+        <span class="size-1.5 rounded-full"
+          :style="{ background: \`var(--swatch-\${STATUS[m.status].color})\` }" />
+        {{ STATUS[m.status].label }}
+      </td>
       <td>{{ m.joined }}</td>
     </tr>
   </tbody>
@@ -186,7 +190,11 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
               <td class="py-2 pr-3 text-muted-foreground">{{ m.role }}</td>
               <td class="py-2 pr-3">
                 <span class="inline-flex items-center gap-1.5 text-muted-foreground">
-                  <ActiveDot :color="STATUS[m.status].color" :r="2.5" />
+                  <span
+                    class="size-1.5 shrink-0 rounded-full"
+                    :style="{ backgroundColor: `var(--swatch-${STATUS[m.status].color})` }"
+                    aria-hidden="true"
+                  />
                   {{ STATUS[m.status].label }}
                 </span>
               </td>
