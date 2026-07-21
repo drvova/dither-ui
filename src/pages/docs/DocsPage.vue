@@ -40,6 +40,8 @@ import FeedbackDocs from "./components/FeedbackDocs.vue"
 import { FEEDBACK_NAV } from "./components/feedback-nav"
 import StructureDocs from "./components/StructureDocs.vue"
 import { STRUCTURE_NAV } from "./components/structure-nav"
+import LayoutDocs from "./components/LayoutDocs.vue"
+import { LAYOUT_NAV } from "./components/layout-nav"
 import OverlayDocs from "./components/OverlayDocs.vue"
 import { OVERLAY_NAV } from "./components/overlay-nav"
 import FieldDocs from "./components/FieldDocs.vue"
@@ -452,6 +454,7 @@ const GROUPS = [
       ...SELECTION_NAV,
       ...FEEDBACK_NAV,
       ...STRUCTURE_NAV,
+      ...LAYOUT_NAV,
       ...OVERLAY_NAV,
       ...SURFACE_NAV,
       ...NAVIGATION_NAV,
@@ -1646,6 +1649,9 @@ const gradientCode = computed(
 
           <!-- Structure: tabs, collapsible, dialog, kbd -->
           <StructureDocs />
+
+          <!-- Layout: shell, rail, console, canvas, grid -->
+          <LayoutDocs />
 
           <!-- Fields & forms -->
           <FieldDocs />

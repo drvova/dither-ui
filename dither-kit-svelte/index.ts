@@ -195,6 +195,11 @@ export { default as DitherBreadcrumb, type Crumb } from "./widgets/DitherBreadcr
 export { default as DitherPagination } from "./widgets/DitherPagination.svelte"
 export { default as DitherToolbar } from "./widgets/DitherToolbar.svelte"
 export { default as DitherScrollArea } from "./widgets/DitherScrollArea.svelte"
+export { default as DitherShell } from "./widgets/DitherShell.svelte"
+export { default as DitherRail } from "./widgets/DitherRail.svelte"
+export { default as DitherConsole, type ConsoleLevel, type ConsoleLine } from "./widgets/DitherConsole.svelte"
+export { default as DitherCanvas } from "./widgets/DitherCanvas.svelte"
+export { default as DitherGrid } from "./widgets/DitherGrid.svelte"
 export { default as DitherSwipeArea } from "./widgets/DitherSwipeArea.svelte"
 export { default as DitherTimeline, type TimelineItem } from "./widgets/DitherTimeline.svelte"
 

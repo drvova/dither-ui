@@ -102,6 +102,12 @@ is its showcase and editor.
   borders, hover glare) or area wrappers (cursor + click effects on a canvas
   overlay). Same rules: `Dither*` export, `COMPONENT_REGISTRY` entry (wrappers use
   `slotText`), reduced-motion aware. Docs live in `src/pages/docs/animations/`.
+- The layout family (`DitherShell`, `DitherRail`, `DitherConsole`,
+  `DitherCanvas`, `DitherGrid`) is pure DOM/CSS — slot-driven frames for
+  dashboards. `DitherRail` provides the sidebar's collapsed context so
+  `DitherSidebarItem` children fold automatically; `DitherConsole` follow-mode
+  pins the newest line and its caret stills under reduced motion. Docs live in
+  `src/pages/docs/components/LayoutDocs.vue`.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
