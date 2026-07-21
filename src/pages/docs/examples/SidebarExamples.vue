@@ -4,13 +4,16 @@ import {
   DitherAvatar,
   DitherButton,
   DitherCheckbox,
+  DitherDrawer,
   DitherInput,
+  DitherMenu,
   DitherMeter,
   DitherSidebar,
   DitherSidebarGroup,
   DitherSidebarItem,
   DitherSidebarSub,
   DitherSlider,
+  DitherTooltip,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 
@@ -39,12 +42,24 @@ function resetFilters() {
   filterSearch.value = ""
 }
 
-/* Documentation nav */
+/* Documentation nav — data-driven so the search really filters */
 const docsSearch = ref("")
 const docsActive = ref("Installation")
-const docsStarted = ref(true)
-const docsApi = ref(false)
-const docsGuides = ref(false)
+const DOCS_TREE: Record<string, string[]> = {
+  "Getting started": ["Introduction", "Installation", "Quick start", "Configuration"],
+  "API reference": ["Props", "Events", "Slots"],
+  Guides: ["Theming", "Composition"],
+}
+const docsOpen = reactive<Record<string, boolean>>({ "Getting started": true, "API reference": false, Guides: false })
+const docsFiltered = computed(() => {
+  const q = docsSearch.value.trim().toLowerCase()
+  const out: Record<string, string[]> = {}
+  for (const [group, items] of Object.entries(DOCS_TREE)) {
+    const hit = q ? items.filter((i) => i.toLowerCase().includes(q)) : items
+    if (hit.length) out[group] = hit
+  }
+  return out
+})
 
 /* Dual layout */
 const railActive = ref("Inbox")
@@ -92,6 +107,71 @@ const calendars = reactive([
   { label: "Family", color: "purple", on: false },
   { label: "Deadlines", color: "red", on: true },
 ] as { label: string; color: "blue" | "green" | "purple" | "red"; on: boolean }[])
+
+/* Team switcher */
+type Team = { color: "blue" | "green" | "purple"; plan: string; groups: Record<string, { label: string; badge?: number }[]> }
+const TEAMS: Record<string, Team> = {
+  "Acme Inc": {
+    color: "blue",
+    plan: "Enterprise",
+    groups: {
+      Product: [{ label: "Roadmap" }, { label: "Releases", badge: 3 }, { label: "Feedback" }],
+      Ops: [{ label: "Billing" }, { label: "Members", badge: 24 }],
+    },
+  },
+  "Pixel Labs": {
+    color: "purple",
+    plan: "Startup",
+    groups: {
+      Research: [{ label: "Experiments", badge: 7 }, { label: "Datasets" }, { label: "Notebooks" }],
+      Studio: [{ label: "Prototypes" }, { label: "Reviews", badge: 2 }],
+    },
+  },
+  "Zine Press": {
+    color: "green",
+    plan: "Indie",
+    groups: {
+      Issues: [{ label: "Drafts", badge: 4 }, { label: "Published" }],
+      Shop: [{ label: "Orders", badge: 12 }, { label: "Stock" }],
+    },
+  },
+}
+const teamNames = Object.keys(TEAMS)
+const team = ref(teamNames[0])
+const teamActive = ref("Roadmap")
+function switchTeam(name: string) {
+  if (!TEAMS[name]) return
+  team.value = name
+  teamActive.value = Object.values(TEAMS[name].groups)[0][0].label
+}
+
+/* File tree */
+const treeOpen = reactive<Record<string, boolean>>({
+  src: true,
+  components: true,
+  charts: false,
+  lib: false,
+  public: false,
+})
+const treeActive = ref("DitherSidebar.vue")
+const treeAll = (open: boolean) => Object.keys(treeOpen).forEach((k) => (treeOpen[k] = open))
+
+/* Mobile drawer */
+const drawerOpen = ref(false)
+const drawerActive = ref("Home")
+function drawerPick(label: string) {
+  drawerActive.value = label
+  drawerOpen.value = false
+}
+
+/* Icon rail */
+const railOnly = ref("Charts")
+const RAIL_ITEMS = [
+  { label: "Charts", badge: undefined, color: "blue" as const },
+  { label: "Palettes", badge: 2, color: "purple" as const },
+  { label: "Exports", badge: undefined, color: "green" as const },
+  { label: "Alerts", badge: 5, color: "red" as const },
+]
 
 const SNIPPET_DASHBOARD = `<div class="flex h-96 overflow-hidden rounded-lg border">
   <DitherSidebar v-model="collapsed" variant="washed" wash-color="blue">
@@ -162,15 +242,19 @@ const SNIPPET_FILTERS = `<DitherSidebar collapse="none" variant="inset">
 const SNIPPET_DOCS = `<DitherSidebar collapse="none" density="compact" variant="inset">
   <template #header>
     …project + v2.4 chip…
-    <DitherInput v-model="query" placeholder="Search docs…" />  <!-- ⌘K -->
+    <DitherInput v-model="query" placeholder="Search docs…" />  <!-- filters the tree -->
   </template>
-  <DitherSidebarSub v-model="started" label="Getting started">
-    <DitherSidebarItem label="Introduction" />
-    <DitherSidebarItem label="Installation" :active="active === 'Installation'" />
-    <DitherSidebarItem label="Quick start" />
+
+  <!-- searching forces groups open and prunes rows -->
+  <DitherSidebarSub v-for="(items, group) in filtered" :key="group"
+    :label="group"
+    :model-value="query ? true : open[group]"
+    @update:model-value="(v) => (open[group] = v)">
+    <DitherSidebarItem v-for="item in items" :key="item" :label="item"
+      :active="active === item" @select="active = item" />
   </DitherSidebarSub>
-  <DitherSidebarSub v-model="api" label="API reference">…</DitherSidebarSub>
-  <DitherSidebarSub v-model="guides" label="Guides">…</DitherSidebarSub>
+  <p v-if="!Object.keys(filtered).length">No pages match.</p>
+
   <template #footer>
     <div class="rounded-md border p-2.5">Need help? …</div>
   </template>
@@ -262,6 +346,63 @@ const SNIPPET_RIGHT = `<div class="flex h-96 overflow-hidden rounded-lg border">
     <template #footer><button>+ New calendar</button></template>
   </DitherSidebar>
 </div>`
+
+const SNIPPET_TEAMS = `<DitherSidebar :variant="'washed'" :wash-color="teams[team].color">
+  <template #header>              <!-- workspace dropdown really switches -->
+    <DitherMenu :items="names.map((n) => ({ label: n }))" @select="switchTeam">
+      <span class="flex items-center gap-2">
+        <DitherAvatar :name="team" :size="22" :color="teams[team].color" />
+        {{ team }} — {{ teams[team].plan }} <span aria-hidden="true">⇅</span>
+      </span>
+    </DitherMenu>
+  </template>
+  <DitherSidebarGroup v-for="(items, group) in teams[team].groups" :label="group">
+    <DitherSidebarItem v-for="i in items" :label="i.label" :badge="i.badge"
+      :color="teams[team].color"
+      :active="active === i.label" @select="active = i.label" />
+  </DitherSidebarGroup>
+</DitherSidebar>`
+
+const SNIPPET_TREE = `<DitherSidebar collapse="none" density="compact" variant="inset">
+  <template #header>
+    Explorer · <button @click="all(true)">expand</button>
+    / <button @click="all(false)">collapse</button>
+  </template>
+
+  <DitherSidebarSub v-model="open.src" label="src">
+    <DitherSidebarSub v-model="open.components" label="components">   <!-- nests -->
+      <DitherSidebarItem label="DitherSidebar.vue"
+        :active="file === 'DitherSidebar.vue'" @select="file = 'DitherSidebar.vue'" />
+      <DitherSidebarItem label="DitherButton.vue" />
+    </DitherSidebarSub>
+    <DitherSidebarSub v-model="open.charts" label="charts">…</DitherSidebarSub>
+    <DitherSidebarItem label="index.ts" />
+  </DitherSidebarSub>
+  <DitherSidebarSub v-model="open.public" label="public">…</DitherSidebarSub>
+</DitherSidebar>`
+
+const SNIPPET_DRAWER = `<!-- mobile: the sidebar rides in a drawer -->
+<button aria-label="Open navigation" @click="open = true">☰</button>
+
+<DitherDrawer :open="open" side="left" title="Navigation" @close="open = false">
+  <DitherSidebarGroup label="Browse">   <!-- items work standalone -->
+    <DitherSidebarItem v-for="i in items" :label="i"
+      :active="active === i" @select="pick(i)" />  <!-- pick() also closes -->
+  </DitherSidebarGroup>
+  <DitherSidebarGroup label="Library">…</DitherSidebarGroup>
+</DitherDrawer>
+
+<!-- swipe-to-dismiss ships with the drawer; Escape closes; focus is trapped -->`
+
+const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -->
+<DitherSidebar collapse="rail" :model-value="true" :toggle="false">
+  <template #header>…glyph…</template>
+  <DitherTooltip v-for="i in items" :text="i.label">
+    <DitherSidebarItem :label="i.label" :badge="i.badge" :color="i.color"
+      :active="active === i.label" @select="active = i.label" />
+  </DitherTooltip>
+  <template #footer><DitherAvatar name="Ada Byte" :size="22" /></template>
+</DitherSidebar>`
 </script>
 
 <template>
@@ -516,21 +657,24 @@ const SNIPPET_RIGHT = `<div class="flex h-96 overflow-hidden rounded-lg border">
               </div>
             </div>
           </template>
-          <DitherSidebarSub v-model="docsStarted" label="Getting started">
-            <DitherSidebarItem label="Introduction" :active="docsActive === 'Introduction'" @select="docsActive = 'Introduction'" />
-            <DitherSidebarItem label="Installation" :active="docsActive === 'Installation'" @select="docsActive = 'Installation'" />
-            <DitherSidebarItem label="Quick start" :active="docsActive === 'Quick start'" @select="docsActive = 'Quick start'" />
-            <DitherSidebarItem label="Configuration" :active="docsActive === 'Configuration'" @select="docsActive = 'Configuration'" />
+          <DitherSidebarSub
+            v-for="(items, group) in docsFiltered"
+            :key="group"
+            :label="String(group)"
+            :model-value="docsSearch.trim() ? true : docsOpen[group]"
+            @update:model-value="(v: boolean) => (docsOpen[group] = v)"
+          >
+            <DitherSidebarItem
+              v-for="item in items"
+              :key="item"
+              :label="item"
+              :active="docsActive === item"
+              @select="docsActive = item"
+            />
           </DitherSidebarSub>
-          <DitherSidebarSub v-model="docsApi" label="API reference">
-            <DitherSidebarItem label="Props" :active="docsActive === 'Props'" @select="docsActive = 'Props'" />
-            <DitherSidebarItem label="Events" :active="docsActive === 'Events'" @select="docsActive = 'Events'" />
-            <DitherSidebarItem label="Slots" :active="docsActive === 'Slots'" @select="docsActive = 'Slots'" />
-          </DitherSidebarSub>
-          <DitherSidebarSub v-model="docsGuides" label="Guides">
-            <DitherSidebarItem label="Theming" :active="docsActive === 'Theming'" @select="docsActive = 'Theming'" />
-            <DitherSidebarItem label="Composition" :active="docsActive === 'Composition'" @select="docsActive = 'Composition'" />
-          </DitherSidebarSub>
+          <p v-if="!Object.keys(docsFiltered).length" class="px-2.5 py-4 text-[11px] text-muted-foreground">
+            No pages match “{{ docsSearch }}”.
+          </p>
           <template #footer>
             <div class="rounded-md border border-border/60 bg-background/40 p-2.5">
               <div class="text-[11px] text-foreground">Need help?</div>
@@ -796,6 +940,190 @@ const SNIPPET_RIGHT = `<div class="flex h-96 overflow-hidden rounded-lg border">
             </button>
           </template>
         </DitherSidebar>
+      </div>
+    </DemoCard>
+  </section>
+
+  <!-- Team switcher -->
+  <section id="sidebar-teams" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Team switcher</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      One sidebar, three workspaces — the header dropdown swaps the whole
+      identity: wash color, accent, groups, badges. Arrow keys walk the menu;
+      Escape returns focus to the trigger.
+    </p>
+    <DemoCard :code="SNIPPET_TEAMS">
+      <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
+        <DitherSidebar label="Workspace nav" variant="washed" :wash-color="TEAMS[team].color" collapse="none" class="w-60">
+          <template #header>
+            <DitherMenu :items="teamNames.map((n) => ({ label: n }))" @select="switchTeam">
+              <span class="flex w-full items-center gap-2 rounded-md border border-border/60 bg-background/40 p-1.5 text-left transition-colors hover:bg-card">
+                <DitherAvatar :name="team" :size="22" :color="TEAMS[team].color" />
+                <span class="min-w-0 flex-1 leading-tight">
+                  <span class="block truncate text-[11px] text-foreground">{{ team }}</span>
+                  <span class="block truncate text-[9px] text-muted-foreground">{{ TEAMS[team].plan }}</span>
+                </span>
+                <span aria-hidden="true" class="text-[10px] text-muted-foreground">⇅</span>
+              </span>
+            </DitherMenu>
+          </template>
+          <DitherSidebarGroup v-for="(items, group) in TEAMS[team].groups" :key="group" :label="String(group)">
+            <DitherSidebarItem
+              v-for="i in items"
+              :key="i.label"
+              :label="i.label"
+              :badge="i.badge"
+              :color="TEAMS[team].color"
+              :active="teamActive === i.label"
+              @select="teamActive = i.label"
+            />
+          </DitherSidebarGroup>
+        </DitherSidebar>
+        <main class="grid min-w-0 flex-1 place-items-center">
+          <div class="text-center">
+            <div class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">{{ team }}</div>
+            <div class="mt-1 text-[13px] text-foreground">{{ teamActive }}</div>
+          </div>
+        </main>
+      </div>
+    </DemoCard>
+  </section>
+
+  <!-- File tree -->
+  <section id="sidebar-tree" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">File tree</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Sub-menus nest — an explorer three levels deep with expand/collapse
+      all, rail guides on every level, and a selected file the header echoes.
+    </p>
+    <DemoCard :code="SNIPPET_TREE">
+      <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
+        <DitherSidebar label="File explorer" collapse="none" density="compact" variant="inset" class="w-60 border-r border-border/60">
+          <template #header>
+            <div class="flex h-8 items-center justify-between px-2.5">
+              <span class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">Explorer</span>
+              <span class="flex gap-1">
+                <button
+                  type="button"
+                  aria-label="Expand all folders"
+                  class="grid size-5 place-items-center rounded text-[10px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                  @click="treeAll(true)"
+                >+</button>
+                <button
+                  type="button"
+                  aria-label="Collapse all folders"
+                  class="grid size-5 place-items-center rounded text-[10px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+                  @click="treeAll(false)"
+                >−</button>
+              </span>
+            </div>
+          </template>
+          <DitherSidebarSub v-model="treeOpen.src" label="src">
+            <DitherSidebarSub v-model="treeOpen.components" label="components">
+              <DitherSidebarItem label="DitherSidebar.vue" :active="treeActive === 'DitherSidebar.vue'" @select="treeActive = 'DitherSidebar.vue'" />
+              <DitherSidebarItem label="DitherButton.vue" :active="treeActive === 'DitherButton.vue'" @select="treeActive = 'DitherButton.vue'" />
+              <DitherSidebarItem label="DitherInput.vue" :active="treeActive === 'DitherInput.vue'" @select="treeActive = 'DitherInput.vue'" />
+            </DitherSidebarSub>
+            <DitherSidebarSub v-model="treeOpen.charts" label="charts">
+              <DitherSidebarItem label="AreaChart.vue" :active="treeActive === 'AreaChart.vue'" @select="treeActive = 'AreaChart.vue'" />
+              <DitherSidebarItem label="Sparkline.vue" :active="treeActive === 'Sparkline.vue'" @select="treeActive = 'Sparkline.vue'" />
+            </DitherSidebarSub>
+            <DitherSidebarSub v-model="treeOpen.lib" label="lib">
+              <DitherSidebarItem label="palette.ts" :active="treeActive === 'palette.ts'" @select="treeActive = 'palette.ts'" />
+              <DitherSidebarItem label="pixel.ts" :active="treeActive === 'pixel.ts'" @select="treeActive = 'pixel.ts'" />
+            </DitherSidebarSub>
+            <DitherSidebarItem label="index.ts" :active="treeActive === 'index.ts'" @select="treeActive = 'index.ts'" />
+          </DitherSidebarSub>
+          <DitherSidebarSub v-model="treeOpen.public" label="public">
+            <DitherSidebarItem label="faces.webp" :active="treeActive === 'faces.webp'" @select="treeActive = 'faces.webp'" />
+            <DitherSidebarItem label="sprites.webp" :active="treeActive === 'sprites.webp'" @select="treeActive = 'sprites.webp'" />
+          </DitherSidebarSub>
+        </DitherSidebar>
+        <main class="flex min-w-0 flex-1 flex-col">
+          <div class="flex h-9 items-center border-b border-border/60 px-3 text-[11px] text-muted-foreground">
+            <span class="text-foreground">{{ treeActive }}</span>
+          </div>
+          <div class="grid flex-1 gap-1.5 p-4" aria-hidden="true">
+            <div v-for="i in 8" :key="i" class="h-2 rounded-sm bg-border/40" :class="['w-2/3', 'w-11/12', 'w-3/4', 'w-5/6', 'w-1/2', 'w-4/5', 'w-2/3', 'w-1/3'][i - 1]" />
+          </div>
+        </main>
+      </div>
+    </DemoCard>
+  </section>
+
+  <!-- Mobile drawer -->
+  <section id="sidebar-drawer" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Mobile drawer</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Below the breakpoint the sidebar rides in a drawer — hamburger opens,
+      picking a destination closes, swipe dismisses. Groups and items work
+      standalone inside any panel.
+    </p>
+    <DemoCard :code="SNIPPET_DRAWER">
+      <div class="relative mx-auto flex h-96 w-64 flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40">
+        <div class="flex h-11 shrink-0 items-center gap-2.5 border-b border-border/60 px-3">
+          <button
+            type="button"
+            aria-label="Open navigation"
+            class="grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+            @click="drawerOpen = true"
+          >
+            <span aria-hidden="true" class="text-[13px] leading-none">☰</span>
+          </button>
+          <span class="text-[12px] text-foreground">{{ drawerActive }}</span>
+        </div>
+        <div class="grid flex-1 content-start gap-2 p-3" aria-hidden="true">
+          <div class="h-24 rounded-md border border-border/60 bg-card/40" />
+          <div class="h-2 w-3/4 rounded-sm bg-border/50" />
+          <div class="h-2 w-1/2 rounded-sm bg-border/50" />
+          <div class="h-16 rounded-md border border-border/60 bg-card/40" />
+        </div>
+        <DitherDrawer :open="drawerOpen" side="left" title="Navigation" @close="drawerOpen = false">
+          <DitherSidebarGroup label="Browse">
+            <DitherSidebarItem v-for="i in ['Home', 'Discover', 'Library']" :key="i" :label="i" :active="drawerActive === i" @select="drawerPick(i)" />
+          </DitherSidebarGroup>
+          <DitherSidebarGroup label="You">
+            <DitherSidebarItem label="Saved" :badge="8" :active="drawerActive === 'Saved'" @select="drawerPick('Saved')" />
+            <DitherSidebarItem label="Settings" :active="drawerActive === 'Settings'" @select="drawerPick('Settings')" />
+          </DitherSidebarGroup>
+        </DitherDrawer>
+      </div>
+    </DemoCard>
+  </section>
+
+  <!-- Icon rail -->
+  <section id="sidebar-rail" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Icon rail</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The whole nav in 56 pixels — a permanent rail where tooltips carry the
+      labels, badges fold to colored dots, and the footer keeps the person.
+    </p>
+    <DemoCard :code="SNIPPET_RAIL">
+      <div class="mx-auto flex h-80 max-w-md overflow-hidden rounded-lg border border-border/60">
+        <DitherSidebar label="Rail nav" collapse="rail" :model-value="true" :toggle="false">
+          <template #header>
+            <div class="grid h-8 place-items-center">
+              <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
+            </div>
+          </template>
+          <DitherTooltip v-for="i in RAIL_ITEMS" :key="i.label" :text="i.label">
+            <DitherSidebarItem
+              :label="i.label"
+              :badge="i.badge"
+              :color="i.color"
+              :active="railOnly === i.label"
+              @select="railOnly = i.label"
+            />
+          </DitherTooltip>
+          <template #footer>
+            <div class="grid place-items-center border-t border-border/60 pt-2">
+              <DitherAvatar name="Ada Byte" :size="22" />
+            </div>
+          </template>
+        </DitherSidebar>
+        <main class="grid min-w-0 flex-1 place-items-center text-[12px] text-muted-foreground">
+          {{ railOnly }}
+        </main>
       </div>
     </DemoCard>
   </section>

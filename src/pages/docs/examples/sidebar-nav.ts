@@ -7,4 +7,8 @@ export const SIDEBAR_NAV = [
   { id: "sidebar-personal", label: "Personal dashboard" },
   { id: "sidebar-floating", label: "Floating left" },
   { id: "sidebar-right", label: "Right side" },
+  { id: "sidebar-teams", label: "Team switcher" },
+  { id: "sidebar-tree", label: "File tree" },
+  { id: "sidebar-drawer", label: "Mobile drawer" },
+  { id: "sidebar-rail", label: "Icon rail" },
 ]
