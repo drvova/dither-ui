@@ -1,5 +1,10 @@
 export const SIDEBAR_NAV = [
-  { id: "sidebar-dashboard", label: "Dashboard sidebar" },
-  { id: "sidebar-docs", label: "Docs sidebar" },
-  { id: "sidebar-admin", label: "Admin sidebar" },
+  { id: "sidebar-dashboard", label: "Basic dashboard" },
+  { id: "sidebar-admin", label: "Admin with profile" },
+  { id: "sidebar-filters", label: "E-commerce filters" },
+  { id: "sidebar-docs", label: "Documentation nav" },
+  { id: "sidebar-dual", label: "Dual layout" },
+  { id: "sidebar-personal", label: "Personal dashboard" },
+  { id: "sidebar-floating", label: "Floating left" },
+  { id: "sidebar-right", label: "Right side" },
 ]
