@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, reactive, ref } from "vue"
+import { computed, nextTick, onUnmounted, reactive, ref, watch } from "vue"
 import { DitherAvatar, DitherBadge, DitherButton, DitherInput } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 
@@ -48,18 +48,26 @@ function openThread(id: string) {
 }
 
 const draft = ref("")
+const scroller = ref<HTMLDivElement | null>(null)
+const stamp = () => new Date().toTimeString().slice(0, 5)
 const typing = ref(false)
+/** Chat stays pinned to the newest message — on send, reply, typing, and thread switch. */
+watch(
+  [() => active.value.messages.length, typing, activeId],
+  () => nextTick(() => scroller.value?.scrollTo({ top: scroller.value.scrollHeight })),
+  { flush: "post" }
+)
 let timer = 0
 function send() {
   const text = draft.value.trim()
   if (!text || typing.value) return
   const t = active.value
-  t.messages.push({ from: "me", text, at: "now" })
+  t.messages.push({ from: "me", text, at: stamp() })
   draft.value = ""
   typing.value = true
   window.clearTimeout(timer)
   timer = window.setTimeout(() => {
-    t.messages.push({ from: "them", text: t.replies[t.messages.length % t.replies.length], at: "now" })
+    t.messages.push({ from: "them", text: t.replies[t.messages.length % t.replies.length], at: stamp() })
     typing.value = false
   }, 1200)
 }
@@ -110,7 +118,7 @@ const SNIPPET = `<!-- conversation list -->
               :key="t.id"
               type="button"
               :aria-pressed="activeId === t.id"
-              class="flex items-center gap-2 rounded-md p-2 text-left transition-colors"
+              class="flex min-w-0 items-center gap-2 rounded-md p-2 text-left transition-colors"
               :class="activeId === t.id ? 'bg-card' : 'hover:bg-card/60'"
               @click="openThread(t.id)"
             >
@@ -131,7 +139,7 @@ const SNIPPET = `<!-- conversation list -->
             <span class="text-[12px] text-foreground">{{ active.name }}</span>
             <span class="ml-auto text-[10px] text-muted-foreground">today</span>
           </div>
-          <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
+          <div ref="scroller" class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
             <div
               v-for="(m, i) in active.messages"
               :key="i"
