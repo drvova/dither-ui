@@ -54,6 +54,8 @@ import AuthExamples from "./examples/AuthExamples.vue"
 import { AUTH_NAV } from "./examples/auth-nav"
 import ProductExamples from "./examples/ProductExamples.vue"
 import { PRODUCT_NAV } from "./examples/product-nav"
+import SidebarExamples from "./examples/SidebarExamples.vue"
+import { SIDEBAR_NAV } from "./examples/sidebar-nav"
 import BackgroundsDocs from "./backgrounds/BackgroundsDocs.vue"
 import { BACKGROUNDS_NAV } from "./backgrounds/backgrounds-nav"
 import TextDocs from "./text/TextDocs.vue"
@@ -417,6 +419,7 @@ const GROUPS = [
       { id: "signin", label: "Sign in" },
       ...AUTH_NAV,
       ...PRODUCT_NAV,
+      ...SIDEBAR_NAV,
     ],
   },
   {
@@ -1283,6 +1286,9 @@ const gradientCode = computed(
 
           <!-- Product blocks: pricing, activity feed, changelog -->
           <ProductExamples />
+
+          <!-- Sidebar blocks: dashboard, docs nav, admin panel -->
+          <SidebarExamples />
 
           <!-- Area -->
           <section id="area" class="mt-16 scroll-mt-24">
