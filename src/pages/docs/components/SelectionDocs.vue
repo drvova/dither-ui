@@ -8,6 +8,7 @@ import {
   DitherSelect,
   DitherToggle,
   DitherToggleGroup,
+  DitherWheelPicker,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -38,6 +39,11 @@ const TERMS = [
   "pixel art",
   "pixelated",
 ]
+
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"))
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
+const wheelHour = ref("09")
+const wheelMinute = ref("30")
 
 const bloomLevel = ref("low")
 const BLOOMS = [
@@ -116,6 +122,25 @@ const TERMS = ["dither", "dithering", "bayer", "bayer 4x4", "pixel", "pixel art"
 <template>
   <DitherAutocomplete v-model="term" :suggestions="TERMS" placeholder="Search the docs…" />
   <p class="text-[11px] text-muted-foreground">term: "{{ term }}"</p>
+</template>`
+
+const SNIPPET_WHEEL = `<script setup lang="ts">
+import { ref } from "vue"
+import { DitherWheelPicker } from "@dither-kit"
+
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"))
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
+const hour = ref("09")
+const minute = ref("30")
+<\/script>
+
+<template>
+  <!-- wheels compose side by side; each is one drum -->
+  <div class="flex items-center gap-1">
+    <DitherWheelPicker v-model="hour" :options="HOURS" label="Hour" />
+    <span class="text-muted-foreground">:</span>
+    <DitherWheelPicker v-model="minute" :options="MINUTES" label="Minute" color="green" />
+  </div>
 </template>`
 
 const SNIPPET_RADIO = `<script setup lang="ts">
@@ -214,6 +239,14 @@ const API: Record<string, PropRow[]> = {
     { prop: "disabled", type: "boolean", default: "false" },
     { prop: "class", type: "string", default: "—" },
   ],
+  wheelPicker: [
+    { prop: "options", type: "(string | { value, label })[]", default: "—" },
+    { prop: "modelValue", type: "string (v-model)", default: "—" },
+    { prop: "rows", type: "number — visible rows (odd)", default: "5" },
+    { prop: "label", type: "string — accessible name", default: '"Wheel picker"' },
+    { prop: "color", type: "PixelColor — selected notch tint", default: '"blue"' },
+    { prop: "class", type: "string", default: "—" },
+  ],
   radio: [
     { prop: "options", type: "Option[]", default: "—" },
     { prop: "modelValue", type: "string", default: "—" },
@@ -299,6 +332,27 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.autocomplete" />
+  </section>
+
+  <section id="wheel-picker" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Wheel Picker</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An iOS-style picker wheel — a 3D drum on native momentum scroll that
+      snaps to the nearest notch, steered by wheel, drag or spinbutton keys.
+      Wheels compose side by side for date and time pickers; reduced motion
+      flattens the drum.
+    </p>
+    <DemoCard :code="SNIPPET_WHEEL">
+      <div class="flex flex-col items-center gap-4">
+        <div class="flex items-center gap-1">
+          <DitherWheelPicker v-model="wheelHour" :options="HOURS" label="Hour" />
+          <span class="text-muted-foreground">:</span>
+          <DitherWheelPicker v-model="wheelMinute" :options="MINUTES" label="Minute" color="green" />
+        </div>
+        <p class="font-mono text-[11px] text-muted-foreground">time: {{ wheelHour }}:{{ wheelMinute }}</p>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.wheelPicker" />
   </section>
 
   <section id="radio" class="mt-16 scroll-mt-24">

@@ -142,6 +142,7 @@ export { default as Antigravity } from "./text/Antigravity.svelte"
 
 // Form controls
 export { default as DitherSelect, type Option } from "./controls/DitherSelect.svelte"
+export { default as DitherWheelPicker, type WheelOption } from "./controls/WheelPicker.svelte"
 export { default as DitherCombobox } from "./controls/DitherCombobox.svelte"
 export { default as DitherCheckbox } from "./controls/DitherCheckbox.svelte"
 export { default as DitherCheckboxGroup } from "./controls/DitherCheckboxGroup.svelte"

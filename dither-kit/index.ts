@@ -149,6 +149,7 @@ export { default as DitherOtpField } from "./DitherOtpField.vue"
 
 // Selection
 export { default as DitherSelect, type Option } from "./DitherSelect.vue"
+export { default as DitherWheelPicker, type WheelOption } from "./WheelPicker.vue"
 export { default as DitherCombobox } from "./DitherCombobox.vue"
 export { default as DitherAutocomplete } from "./DitherAutocomplete.vue"
 export { default as DitherRadioGroup } from "./DitherRadioGroup.vue"
