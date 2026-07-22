@@ -110,3 +110,11 @@
     color: var(--foreground);
   }
 }
+
+/* Theme swap rides a circular reveal (useTheme.revealToggle): the default
+   view-transition crossfade is disabled so the clip circle owns the frame. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}

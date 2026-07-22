@@ -7,6 +7,7 @@ import {
   cssColor,
   DitherAvatar,
   DitherButton,
+  DitherCommand,
   DitherGradient,
   DitherImage,
   Dot,
@@ -30,7 +31,7 @@ import {
   type PixelBloom,
 } from "@dither-kit"
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
-import { assetPath, appPathname, routePath } from "@/shared/lib"
+import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
 import { CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
@@ -494,7 +495,27 @@ function scrollTo(id: string) {
   history.replaceState(null, "", docsUrl(id))
 }
 
+/* Docs search: the kit's own Command palette navigating the whole IA. */
+const searchOpen = ref(false)
+const commandItems = GROUPS.flatMap((g) =>
+  g.items.map((it) => ({ value: it.id, label: it.label, group: g.title }))
+)
+function searchHotkey(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault()
+    searchOpen.value = !searchOpen.value
+  }
+}
+function searchGo(id: string) {
+  activeId.value = id
+  scrollTo(id)
+}
+
+/* Theme: dark by default, remembered, revealed as a circle from the toggle. */
+const { dark, revealToggle } = useTheme()
+
 onMounted(() => {
+  window.addEventListener("keydown", searchHotkey)
   const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
 
   // Deep links support canonical /docs/<section> and legacy #/docs/<section>.
@@ -533,7 +554,10 @@ onMounted(() => {
     if (el) observer.observe(el)
   }
 })
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  window.removeEventListener("keydown", searchHotkey)
+})
 
 // Motion demo — replay re-runs the entrance, duration is chosen live.
 const replayToken = ref(0)
@@ -836,6 +860,23 @@ const gradientCode = computed(
               svelte
             </button>
           </div>
+          <button
+            type="button"
+            class="flex items-center gap-1.5 rounded-md border border-border/60 px-2 py-1 text-[11px] transition-colors hover:text-foreground"
+            aria-label="Search docs"
+            @click="searchOpen = true"
+          >
+            search
+            <kbd class="rounded border border-border/60 px-1 text-[9px]">⌘K</kbd>
+          </button>
+          <button
+            type="button"
+            class="-m-2 p-2 transition-colors hover:text-foreground"
+            :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
+            @click="revealToggle($event)"
+          >
+            <span aria-hidden="true">{{ dark ? "☀" : "◐" }}</span>
+          </button>
           <a
             href="https://github.com/drvova/dither-ui"
             target="_blank"
@@ -1712,6 +1753,14 @@ const gradientCode = computed(
         <span>MIT</span>
       </div>
     </footer>
+
+    <DitherCommand
+      :open="searchOpen"
+      :items="commandItems"
+      placeholder="Search docs…"
+      @select="searchGo"
+      @close="searchOpen = false"
+    />
   </div>
 </template>
 
