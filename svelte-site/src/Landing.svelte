@@ -134,7 +134,7 @@
       <div class="mt-12 grid gap-x-12 gap-y-14 sm:grid-cols-3">
         <a href={DOCS} class="group block">
           <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-            <AreaChart data={teaser} config={teaserConfig} animate={false} sparkles={false} interactive={false} margins={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+            <AreaChart data={teaser} config={teaserConfig} seed={1984} interactive={false} margins={{ top: 4, right: 0, bottom: 0, left: 0 }}>
               <Area dataKey="v" variant="gradient" />
             </AreaChart>
           </div>
@@ -145,10 +145,10 @@
         </a>
         <a href={DOCS} class="group block">
           <div inert class="flex h-24 flex-wrap content-center gap-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-            <DitherButton color="blue" variant="gradient">Save</DitherButton>
-            <DitherButton color="green" variant="solid">Run</DitherButton>
+            <DitherButton color="blue" variant="gradient" bloom={1984}>Save</DitherButton>
+            <DitherButton color="green" variant="solid" bloom={7}>Run</DitherButton>
             {#each ["ada", "grace"] as n (n)}
-              <DitherAvatar name={n} size={32} animate={false} />
+              <DitherAvatar name={n} size={32} />
             {/each}
           </div>
           <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Primitives</h3>
@@ -159,7 +159,12 @@
         <a href={DOCS} class="group block">
           <div inert class="flex h-24 content-center items-center gap-3 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
             {#each swatches as c (c)}
-              <span class="size-5 rounded-[3px]" style:background-color={cssColor(c)}></span>
+              <span
+                class="size-5 rounded-[3px]"
+                style:background-image={`radial-gradient(${cssColor(c)} 1.1px, transparent 1.1px), radial-gradient(${cssColor(c)} 0.8px, transparent 0.8px)`}
+                style:background-size="4px 4px, 4px 4px"
+                style:background-position="0 0, 2px 2px"
+              ></span>
             {/each}
           </div>
           <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">One palette</h3>
@@ -172,7 +177,7 @@
             <DitherConsole
               lines={[{ text: "$ vite build" }, { text: "built in 4.2s", level: "success" }]}
               title="console"
-              caret={false}
+              caret
               follow={false}
               class="h-full"
             />
@@ -195,7 +200,7 @@
         </a>
         <a href={`${DOCS}/aurora`} class="group block">
           <div inert class="h-24 overflow-hidden rounded-md border border-border/60 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-            <Aurora paused class="h-full w-full" />
+            <Aurora class="h-full w-full" />
           </div>
           <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Backgrounds</h3>
           <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">

@@ -163,7 +163,7 @@ onMounted(() => {
         <div class="mt-12 grid gap-x-12 gap-y-14 sm:grid-cols-3">
           <a :href="routePath('/docs')" class="group block">
             <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <AreaChart :data="teaser" :config="teaserConfig" :animate="false" :sparkles="false" :interactive="false" :margins="{ top: 4, right: 0, bottom: 0, left: 0 }">
+              <AreaChart :data="teaser" :config="teaserConfig" :seed="1984" :interactive="false" :margins="{ top: 4, right: 0, bottom: 0, left: 0 }">
                 <Area data-key="v" variant="gradient" />
               </AreaChart>
             </div>
@@ -174,9 +174,9 @@ onMounted(() => {
           </a>
           <a :href="routePath('/docs')" class="group block">
             <div inert class="flex h-24 flex-wrap content-center gap-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <DitherButton color="blue" variant="gradient">Save</DitherButton>
-              <DitherButton color="green" variant="solid">Run</DitherButton>
-              <DitherAvatar v-for="n in ['ada', 'grace']" :key="n" :name="n" :size="32" :animate="false" />
+              <DitherButton color="blue" variant="gradient" :bloom="1984">Save</DitherButton>
+              <DitherButton color="green" variant="solid" :bloom="7">Run</DitherButton>
+              <DitherAvatar v-for="n in ['ada', 'grace']" :key="n" :name="n" :size="32" />
             </div>
             <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Primitives</h3>
             <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
@@ -185,7 +185,17 @@ onMounted(() => {
           </a>
           <a :href="routePath('/docs')" class="group block">
             <div inert class="flex h-24 content-center items-center gap-3 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <span v-for="c in swatches" :key="c" class="size-5 rounded-[3px]" :style="{ backgroundColor: cssColor(c) }" />
+              <span
+                v-for="c in swatches"
+                :key="c"
+                class="size-5 rounded-[3px]"
+                :style="{
+                  backgroundColor: 'transparent',
+                  backgroundImage: `radial-gradient(${cssColor(c)} 1.1px, transparent 1.1px), radial-gradient(${cssColor(c)} 0.8px, transparent 0.8px)`,
+                  backgroundSize: '4px 4px, 4px 4px',
+                  backgroundPosition: '0 0, 2px 2px',
+                }"
+              />
             </div>
             <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">One palette</h3>
             <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
@@ -197,7 +207,7 @@ onMounted(() => {
               <DitherConsole
                 :lines="[{ text: '$ vite build' }, { text: 'built in 4.2s', level: 'success' }]"
                 title="console"
-                :caret="false"
+                caret
                 :follow="false"
                 class="h-full"
               />
@@ -220,7 +230,7 @@ onMounted(() => {
           </a>
           <a :href="routePath('/docs/aurora')" class="group block">
             <div inert class="h-24 overflow-hidden rounded-md border border-border/60 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <DitherAurora paused class="h-full w-full" />
+              <DitherAurora class="h-full w-full" />
             </div>
             <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Backgrounds</h3>
             <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
