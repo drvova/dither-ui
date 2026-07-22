@@ -19,14 +19,16 @@
   --accent-foreground: #ffffff;
   --radius: 0.5rem;
 
-  /* Palette swatches — mirror PALETTE fills in palette.ts. */
-  --swatch-green: rgb(40, 210, 110);
-  --swatch-blue: rgb(53, 143, 243);
-  --swatch-purple: rgb(150, 110, 255);
-  --swatch-pink: rgb(240, 90, 190);
-  --swatch-orange: rgb(255, 150, 50);
-  --swatch-red: rgb(240, 70, 70);
-  --swatch-grey: rgb(92, 92, 100);
+  /* Palette swatches — the perceptual mirror of PALETTE in palette.ts,
+     tuned per theme: deeper ink on light so text stays readable, the
+     original bright fills on dark (see .dark below). */
+  --swatch-green: rgb(20, 140, 72);
+  --swatch-blue: rgb(24, 104, 204);
+  --swatch-purple: rgb(112, 72, 220);
+  --swatch-pink: rgb(190, 42, 142);
+  --swatch-orange: rgb(198, 106, 16);
+  --swatch-red: rgb(198, 44, 44);
+  --swatch-grey: rgb(96, 100, 108);
 }
 
 .dark {
@@ -42,6 +44,15 @@
   --ring: #ededed;
   --accent: #3f8ff3;
   --accent-foreground: #ffffff;
+
+  /* Bright swatches — the exact PALETTE fills, at home on dark. */
+  --swatch-green: rgb(40, 210, 110);
+  --swatch-blue: rgb(53, 143, 243);
+  --swatch-purple: rgb(150, 110, 255);
+  --swatch-pink: rgb(240, 90, 190);
+  --swatch-orange: rgb(255, 150, 50);
+  --swatch-red: rgb(240, 70, 70);
+  --swatch-grey: rgb(92, 92, 100);
 }
 
 @theme inline {

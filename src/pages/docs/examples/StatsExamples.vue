@@ -103,7 +103,10 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
             <div class="mt-2 flex items-baseline gap-1.5">
               <span
                 class="rounded border px-1 py-px text-[10px] tabular-nums"
-                :class="good(k) ? 'border-green-500/30 text-green-400' : 'border-red-500/30 text-red-400'"
+                :style="{
+                  color: `var(--swatch-${good(k) ? 'green' : 'red'})`,
+                  borderColor: `color-mix(in oklab, var(--swatch-${good(k) ? 'green' : 'red'}) 35%, transparent)`,
+                }"
               >
                 <span aria-hidden="true">{{ k.delta > 0 ? "▲" : "▼" }}</span>
                 <span class="sr-only">{{ k.delta > 0 ? "up" : "down" }}</span>
@@ -130,7 +133,7 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
         <div class="rounded-lg border border-border/60 bg-background/40 p-3.5">
           <div class="flex items-baseline justify-between">
             <span class="text-[11px] text-muted-foreground">MRR</span>
-            <span class="rounded border border-green-500/30 px-1 py-px text-[10px] tabular-nums text-green-400">▲ 18.9%</span>
+            <span class="rounded border px-1 py-px text-[10px] tabular-nums" :style="{ color: 'var(--swatch-green)', borderColor: 'color-mix(in oklab, var(--swatch-green) 35%, transparent)' }">▲ 18.9%</span>
           </div>
           <div class="mt-1.5 text-[19px] leading-none tracking-tight tabular-nums text-foreground">$31,204</div>
           <Sparkline :data="TRENDS.revenue" color="green" class="mt-3 h-10" />
@@ -138,7 +141,7 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
         <div class="rounded-lg border border-border/60 bg-background/40 p-3.5">
           <div class="flex items-baseline justify-between">
             <span class="text-[11px] text-muted-foreground">Sessions</span>
-            <span class="rounded border border-blue-500/30 px-1 py-px text-[10px] tabular-nums text-blue-400">▲ 9.6%</span>
+            <span class="rounded border px-1 py-px text-[10px] tabular-nums" :style="{ color: 'var(--swatch-blue)', borderColor: 'color-mix(in oklab, var(--swatch-blue) 35%, transparent)' }">▲ 9.6%</span>
           </div>
           <div class="mt-1.5 text-[19px] leading-none tracking-tight tabular-nums text-foreground">690k</div>
           <Sparkline :data="TRENDS.sessions" color="blue" variant="dotted" class="mt-3 h-10" />

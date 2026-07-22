@@ -37,7 +37,8 @@ const API: Record<string, PropRow[]> = {
     { prop: "src", type: "string — no src renders an honest empty face", default: "undefined" },
     { prop: "poster", type: "string", default: "undefined" },
     { prop: "label", type: "string — accessible name", default: '"Video"' },
-    { prop: "color", type: "PixelColor — scrubber hue", default: '"blue"' },
+    { prop: "color", type: "PixelColor — scrubber and volume hue", default: '"blue"' },
+    { prop: "keyboard", type: "Space/K play · ←→ seek 5s · ↑↓ volume · M mute · F fullscreen", default: "—" },
   ],
   bracket: [
     { prop: "rounds", type: "{ a, b, winner? }[][] — columns left to right", default: "required" },
@@ -88,8 +89,9 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
     <h2 class="text-lg tracking-tight">Video player</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A native video under dither chrome — play, a dithered scrubber that
-      really seeks, tabular time, mute, fullscreen. Without a source it shows
-      an honest empty face instead of a broken box.
+      really seeks, a volume slider, playback speed, mute, fullscreen, and
+      player keyboard (Space, arrows, M, F). Without a source it shows an
+      honest empty face instead of a broken box.
     </p>
     <DemoCard :code="SNIPPET_VIDEO">
       <div class="mx-auto max-w-md">

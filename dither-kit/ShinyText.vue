@@ -25,11 +25,12 @@ const dur = computed(() => `${Math.max(0.4, 5 / Math.max(0.01, props.speed))}s`)
 .dither-shiny-text {
   display: inline-block;
   color: transparent;
+  /* Sheen inks from the foreground token, so it survives both themes. */
   background-image: linear-gradient(
     120deg,
-    rgba(255, 255, 255, 0.35) 40%,
-    #ffffff 50%,
-    rgba(255, 255, 255, 0.35) 60%
+    color-mix(in oklab, var(--foreground) 35%, transparent) 40%,
+    var(--foreground) 50%,
+    color-mix(in oklab, var(--foreground) 35%, transparent) 60%
   );
   background-size: 220% 100%;
   -webkit-background-clip: text;
@@ -44,7 +45,7 @@ const dur = computed(() => `${Math.max(0.4, 5 / Math.max(0.01, props.speed))}s`)
 @media (prefers-reduced-motion: reduce) {
   .dither-shiny-text {
     animation: none;
-    color: rgba(255, 255, 255, 0.8);
+    color: color-mix(in oklab, var(--foreground) 80%, transparent);
   }
 }
 </style>
