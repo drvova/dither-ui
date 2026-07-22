@@ -33,6 +33,7 @@ export const ANIMATIONS_NAV = [
   { id: "island", label: "Island" },
   { id: "card-stack", label: "Card stack" },
   { id: "dock", label: "Dock" },
+  { id: "preview-rail", label: "Preview rail" },
   { id: "scroll-progress", label: "Scroll progress" },
   { id: "snap-button", label: "Snap button" },
   { id: "gooey-menu", label: "Gooey menu" },

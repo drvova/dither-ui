@@ -35,6 +35,7 @@ import {
   DitherIsland,
   DitherCardStack,
   DitherDock,
+  DitherPreviewRail,
   DitherScrollProgress,
   DitherSnapButton,
   DitherGooeyMenu,
@@ -74,6 +75,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "magnify", type: "number — peak scale over the pointer", default: "1.7" },
     { prop: "range", type: "number (px) — gaussian falloff radius", default: "80" },
     { prop: "@select", type: "(value)", default: "—" },
+  ],
+  previewRail: [
+    { prop: "items", type: "{ value, label, hint?, color? }[]", default: "required" },
+    { prop: "modelValue", type: "string (v-model) — active destination", default: "undefined" },
+    { prop: "range", type: "number (px) — pyramid falloff radius", default: "56" },
+    { prop: "side", type: '"left" | "right" — edge the rail hugs', default: '"left"' },
+    { prop: "preview slot", type: "scoped: { item } — custom preview content", default: "label + hint" },
   ],
   scrollProgress: [
     { prop: "attach", type: '"viewport" | "parent"', default: '"viewport"' },
@@ -328,6 +336,13 @@ const SNIPPETS = {
   { value: 'docs', label: 'Docs', color: 'green' },
   { value: 'alerts', label: 'Alerts', color: 'red' },
 ]" @select="go" />  <!-- gaussian magnify around the pointer -->`,
+  previewRail: `<DitherPreviewRail v-model="dest" :items="[
+  { value: 'inbox', label: 'Inbox', hint: '12 unread threads', color: 'blue' },
+  { value: 'drafts', label: 'Drafts', hint: '2 in progress', color: 'purple' },
+  { value: 'planner', label: 'Planner', hint: 'Sprint 14 — day 3', color: 'green' },
+  { value: 'metrics', label: 'Metrics', hint: 'p95 latency 42ms', color: 'orange' },
+  { value: 'settings', label: 'Settings', hint: 'Workspace + theme' },
+]" />  <!-- ticks pyramid around the pointer · preview floats beside the rail -->`,
   scrollProgress: `<DitherScrollProgress />                    <!-- viewport, fixed top -->
 <DitherScrollProgress attach="parent" color="purple" />  <!-- nearest scrollable parent -->`,
   snapButton: `<DitherSnapButton :threshold="64" axis="x" color="green" @snap="confirm">
@@ -358,6 +373,7 @@ const STACK_CARDS = [
 ] as { title: string; color: "purple" | "blue" | "green" | "orange" }[]
 const stackIndex = ref(0)
 const dockPick = ref("—")
+const railDest = ref("inbox")
 const snapCount = ref(0)
 const gooeyOpen = ref(false)
 const gooeyPick = ref("—")
@@ -859,6 +875,31 @@ const gooeyPick = ref("—")
       </div>
     </DemoCard>
     <PropsTable :rows="API.dock" />
+  </section>
+
+  <section id="preview-rail" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Preview rail</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A Codex app-inspired navigation rail — compact ticks form a pyramid
+      around the pointer and reveal a floating destination preview beside the
+      rail. Keyboard focus previews too; reduced motion keeps the ticks still.
+    </p>
+    <DemoCard :code="SNIPPETS.previewRail">
+      <div class="flex min-h-56 items-center justify-start pl-6">
+        <DitherPreviewRail
+          v-model="railDest"
+          :items="[
+            { value: 'inbox', label: 'Inbox', hint: '12 unread threads', color: 'blue' },
+            { value: 'drafts', label: 'Drafts', hint: '2 in progress', color: 'purple' },
+            { value: 'planner', label: 'Planner', hint: 'Sprint 14 — day 3', color: 'green' },
+            { value: 'metrics', label: 'Metrics', hint: 'p95 latency 42ms', color: 'orange' },
+            { value: 'settings', label: 'Settings', hint: 'Workspace + theme' },
+          ]"
+        />
+        <p class="ml-10 text-[10px] text-muted-foreground">destination: {{ railDest }}</p>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.previewRail" />
   </section>
 
   <section id="scroll-progress" class="mt-16 scroll-mt-24">
