@@ -7,6 +7,7 @@ import {
   DitherCanvas,
   DitherConsole,
   DitherGrid,
+  DitherInfiniteCanvas,
   DitherRail,
   DitherShell,
   DitherSidebarItem,
@@ -52,6 +53,7 @@ onUnmounted(() => deployTimers.forEach((t) => window.clearTimeout(t)))
 
 const canvasPattern = ref<"dots" | "grid" | "plain">("dots")
 const gridMin = ref(140)
+const canvasZoom = ref(1)
 
 const TREND = [12, 14, 13, 17, 16, 19, 22, 21, 24, 27, 26, 31]
 
@@ -80,6 +82,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "min", type: "number — minimum card width; columns auto-fit", default: "240" },
     { prop: "cols", type: "number — fixed column count (overrides min)", default: "—" },
     { prop: "gap", type: "string — any CSS length", default: '"0.75rem"' },
+  ],
+  infinite: [
+    { prop: "zoom", type: "number (v-model:zoom)", default: "1" },
+    { prop: "minZoom / maxZoom", type: "number — clamp range", default: "0.25 / 3" },
+    { prop: "pattern", type: '"dots" | "grid" | "plain"', default: '"dots"' },
+    { prop: "cell", type: "number — pattern pitch at zoom 1, px", default: "16" },
+    { prop: "label", type: "string — aria-label for the surface", default: '"Infinite canvas"' },
   ],
 }
 
@@ -142,6 +151,14 @@ const SNIPPET_GRID = `<DitherGrid :min="140">          <!-- auto-fit by min card
   <div class="col-span-2">wide</div>
   <div>narrow</div>
 </DitherGrid>`
+
+const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 rounded-lg border">
+  <div class="absolute" style="left: 40px; top: 40px">…an artboard…</div>
+  <div class="absolute" style="left: 320px; top: 160px">…another…</div>
+</DitherInfiniteCanvas>
+
+<!-- drag pans · wheel zooms toward the cursor · the dot field
+     rides the same transform, so space feels real -->`
 </script>
 
 <template>
@@ -319,5 +336,34 @@ const SNIPPET_GRID = `<DitherGrid :min="140">          <!-- auto-fit by min card
       </div>
     </DemoCard>
     <PropsTable :rows="API.grid" />
+  </section>
+
+  <!-- Infinite canvas -->
+  <section id="infinite-canvas" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Infinite canvas</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A pannable, zoomable work surface — drag to pan, wheel to zoom toward
+      the cursor, and the dot field rides the same transform so space feels
+      real. The zoom is a v-model.
+    </p>
+    <DemoCard :code="SNIPPET_INFINITE">
+      <div class="mx-auto max-w-lg">
+        <div class="flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>drag · wheel</span>
+          <span class="tabular-nums">{{ Math.round(canvasZoom * 100) }}%</span>
+        </div>
+        <DitherInfiniteCanvas v-model:zoom="canvasZoom" class="mt-2 h-64 rounded-lg border border-border/60">
+          <div class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3" style="left: 32px; top: 32px">
+            <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">Artboard A</div>
+            <div class="mt-1 text-[12px] text-foreground">Drag the field</div>
+          </div>
+          <div class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3" style="left: 280px; top: 150px">
+            <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">Artboard B</div>
+            <div class="mt-1 text-[12px] text-foreground">Zoom finds me</div>
+          </div>
+        </DitherInfiniteCanvas>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.infinite" />
   </section>
 </template>

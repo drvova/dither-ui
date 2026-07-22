@@ -36,6 +36,8 @@ import {
   DitherCardStack,
   DitherDock,
   DitherScrollProgress,
+  DitherSnapButton,
+  DitherGooeyMenu,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -77,6 +79,20 @@ const API: Record<string, PropRow[]> = {
     { prop: "attach", type: '"viewport" | "parent"', default: '"viewport"' },
     { prop: "edge", type: '"top" | "bottom"', default: '"top"' },
     { prop: "color", type: "PixelColor", default: '"green"' },
+  ],
+  snapButton: [
+    { prop: "threshold", type: "number (px) — displacement that arms the snap", default: "64" },
+    { prop: "axis", type: '"x" | "y" | "both"', default: '"x"' },
+    { prop: "color", type: "PixelColor — armed accent", default: '"green"' },
+    { prop: "@snap", type: "() — armed release, or Enter/Space", default: "—" },
+    { prop: "default slot", type: "label content", default: '"Pull to confirm"' },
+  ],
+  gooeyMenu: [
+    { prop: "items", type: "{ value, label, color? }[]", default: "required" },
+    { prop: "modelValue", type: "boolean (v-model) — expanded", default: "false" },
+    { prop: "direction", type: '"up" | "down" | "left" | "right"', default: '"up"' },
+    { prop: "spacing", type: "number (px) — gap between item centers", default: "52" },
+    { prop: "@select", type: "(value) — also collapses", default: "—" },
   ],
   animatedContent: [
     { prop: "distance", type: "number (px)", default: "40" },
@@ -314,6 +330,17 @@ const SNIPPETS = {
 ]" @select="go" />  <!-- gaussian magnify around the pointer -->`,
   scrollProgress: `<DitherScrollProgress />                    <!-- viewport, fixed top -->
 <DitherScrollProgress attach="parent" color="purple" />  <!-- nearest scrollable parent -->`,
+  snapButton: `<DitherSnapButton :threshold="64" axis="x" color="green" @snap="confirm">
+  Pull to deploy
+</DitherSnapButton>
+<!-- 1:1 drag · rubber-band past the line · border arms at the threshold ·
+     release fires @snap · Enter/Space fires without the pull -->`,
+  gooeyMenu: `<DitherGooeyMenu v-model="open" :items="[
+  { value: 'add', label: 'Add', color: 'green' },
+  { value: 'export', label: 'Export', color: 'blue' },
+  { value: 'share', label: 'Share', color: 'purple' },
+]" direction="up" @select="run" />
+<!-- one SVG goo filter fuses the circles while they travel -->`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
@@ -331,6 +358,9 @@ const STACK_CARDS = [
 ] as { title: string; color: "purple" | "blue" | "green" | "orange" }[]
 const stackIndex = ref(0)
 const dockPick = ref("—")
+const snapCount = ref(0)
+const gooeyOpen = ref(false)
+const gooeyPick = ref("—")
 </script>
 
 <template>
@@ -847,5 +877,50 @@ const dockPick = ref("—")
       </div>
     </DemoCard>
     <PropsTable :rows="API.scrollProgress" />
+  </section>
+
+  <section id="snap-button" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Snap button</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Pull to confirm — drag past the line and the border arms; release fires
+      and the button springs home. Short pulls just spring. Enter and Space
+      fire without the pull; reduced motion skips the spring.
+    </p>
+    <DemoCard :code="SNIPPETS.snapButton">
+      <div class="grid min-h-28 place-items-center gap-3">
+        <DitherSnapButton :threshold="64" axis="x" color="green" @snap="snapCount++">
+          Pull to deploy
+        </DitherSnapButton>
+        <p class="text-[10px] tabular-nums text-muted-foreground">deploys fired: {{ snapCount }}</p>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.snapButton" />
+  </section>
+
+  <section id="gooey-menu" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Gooey menu</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Actions that melt out of one trigger — an SVG goo filter fuses the
+      circles while they travel, then they settle apart. Escape collapses;
+      reduced motion drops the travel.
+    </p>
+    <DemoCard :code="SNIPPETS.gooeyMenu">
+      <div class="grid min-h-64 place-items-end justify-center pb-4">
+        <div class="text-center">
+          <DitherGooeyMenu
+            v-model="gooeyOpen"
+            direction="up"
+            :items="[
+              { value: 'add', label: 'Add', color: 'green' },
+              { value: 'export', label: 'Export', color: 'blue' },
+              { value: 'share', label: 'Share', color: 'purple' },
+            ]"
+            @select="gooeyPick = $event"
+          />
+          <p class="mt-3 text-[10px] text-muted-foreground">picked: {{ gooeyPick }}</p>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.gooeyMenu" />
   </section>
 </template>

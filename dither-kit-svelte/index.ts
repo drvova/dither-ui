@@ -212,6 +212,9 @@ export { default as DitherDock, type DockItem } from "./widgets/Dock.svelte"
 export { default as DitherVideoPlayer } from "./widgets/DitherVideoPlayer.svelte"
 export { default as DitherBracket, type BracketMatch } from "./widgets/DitherBracket.svelte"
 export { default as DitherSchedule, type ScheduleEvent } from "./widgets/DitherSchedule.svelte"
+export { default as DitherInfiniteCanvas } from "./widgets/DitherInfiniteCanvas.svelte"
+export { default as DitherSnapButton } from "./widgets/SnapButton.svelte"
+export { default as DitherGooeyMenu, type GooeyItem } from "./widgets/GooeyMenu.svelte"
 
 // Shared runtime + tokens (also portable on their own).
 export { ditherBackground, type DitherBackgroundParams } from "./runtime/use-dither-background"
