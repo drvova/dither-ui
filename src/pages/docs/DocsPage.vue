@@ -32,7 +32,7 @@ import {
 } from "@dither-kit"
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
 import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
-import { CodeBlock } from "@/shared/ui"
+import { AdSlot, CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
 import FormDocs from "./components/FormDocs.vue"
@@ -910,6 +910,7 @@ const gradientCode = computed(
             </ul>
           </div>
         </nav>
+        <AdSlot />
       </aside>
 
       <!-- Content -->
