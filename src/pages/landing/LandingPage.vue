@@ -7,6 +7,8 @@ import {
   DitherDarkVeil,
   DitherAvatar,
   DitherButton,
+  DitherGradient,
+  DitherShinyText,
   type DitherColor,
 } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
@@ -192,7 +194,16 @@ onMounted(() => {
     </section>
 
     <!-- Footer: one quiet line, then the wordmark sinking below the fold -->
-    <footer class="overflow-hidden border-t border-border/60">
+    <footer class="relative isolate overflow-hidden border-t border-border/60">
+      <DitherGradient
+        from="blue"
+        to="transparent"
+        direction="up"
+        :opacity="0.2"
+        :cell="4"
+        render-mode="static"
+        class="-z-10"
+      />
       <div class="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-[11px] text-muted-foreground">
         <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
         <div class="flex items-center gap-4">
@@ -208,9 +219,9 @@ onMounted(() => {
       </div>
       <div
         aria-hidden="true"
-        class="pointer-events-none -mb-[0.34em] select-none text-center text-[clamp(5rem,19vw,15rem)] leading-none font-medium tracking-tighter whitespace-nowrap text-foreground/[0.045]"
+        class="pointer-events-none -mb-[0.34em] select-none text-center text-[clamp(5rem,19vw,15rem)] leading-none font-medium tracking-tighter whitespace-nowrap"
       >
-        dither-ui
+        <DitherShinyText :speed="0.12" class="opacity-[0.07]">dither-ui</DitherShinyText>
       </div>
     </footer>
   </div>
