@@ -5,9 +5,12 @@ import {
   AreaChart,
   cssColor,
   DitherDarkVeil,
+  DitherAurora,
   DitherAvatar,
   DitherButton,
+  DitherConsole,
   DitherGradient,
+  DitherIsland,
   DitherShinyText,
   type DitherColor,
 } from "@dither-kit"
@@ -150,7 +153,7 @@ onMounted(() => {
       </div>
     </main>
 
-    <!-- Inside the kit: three quiet tiles, one action for the group -->
+    <!-- Inside the kit: six quiet tiles, one action for the group -->
     <section class="border-t border-border/60">
       <div class="mx-auto w-full max-w-4xl px-6 py-20">
         <div class="flex items-baseline justify-between">
@@ -187,6 +190,41 @@ onMounted(() => {
             <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">One palette</h3>
             <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
               Seven seeds; fill, line and sparkle hues resolve from the same source.
+            </p>
+          </a>
+          <a :href="routePath('/docs/dither-shell')" class="group block">
+            <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
+              <DitherConsole
+                :lines="[{ text: '$ vite build' }, { text: 'built in 4.2s', level: 'success' }]"
+                title="console"
+                :caret="false"
+                :follow="false"
+                class="h-full"
+              />
+            </div>
+            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Layout</h3>
+            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
+              Shell, rail, console, canvas, grid — dashboards composed from slots.
+            </p>
+          </a>
+          <a :href="routePath('/docs/island')" class="group block">
+            <div inert class="flex h-24 items-center transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
+              <DitherIsland label="Deploy running" color="green" live class="w-full max-w-56">
+                Build 214 · 3 of 5 steps done.
+              </DitherIsland>
+            </div>
+            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Motion</h3>
+            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
+              Islands, decks, docks, palettes — gestures on the kit's own math.
+            </p>
+          </a>
+          <a :href="routePath('/docs/aurora')" class="group block">
+            <div inert class="h-24 overflow-hidden rounded-md border border-border/60 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
+              <DitherAurora paused class="h-full w-full" />
+            </div>
+            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Backgrounds</h3>
+            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
+              Fifty generative surfaces — aurora to terminal, one Bayer engine.
             </p>
           </a>
         </div>
