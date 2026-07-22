@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { onUnmounted, ref } from "vue"
 import {
   DitherBlurText,
   DitherCountUp,
+  DitherNumberFlow,
   DitherDecryptedText,
   DitherFallingText,
   DitherGlitchText,
@@ -31,6 +32,13 @@ import PropsTable, { type PropRow } from "../PropsTable.vue"
 const splitReplay = ref(0)
 const shuffleReplay = ref(0)
 const fallingReplay = ref(0)
+
+/* Number flow: a live metric that re-rolls every few seconds. */
+const flowValue = ref(12480)
+const flowTimer = window.setInterval(() => {
+  flowValue.value += Math.round(Math.random() * 900 - 300)
+}, 2400)
+onUnmounted(() => window.clearInterval(flowTimer))
 
 const API: Record<string, PropRow[]> = {
   gradientText: [
@@ -67,6 +75,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "from", type: "number", default: "0" },
     { prop: "duration", type: "number (ms)", default: "1500" },
     { prop: "decimals", type: "number", default: "0" },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
+  numberFlow: [
+    { prop: "value", type: "number", default: "required" },
+    { prop: "decimals", type: "number", default: "0" },
+    { prop: "duration", type: "number (ms) — roll time per change", default: "600" },
     { prop: "class", type: "string", default: "undefined" },
   ],
   textType: [
@@ -162,6 +176,8 @@ const SNIPPETS = {
   splitText: `<DitherSplitText text="Split into characters" :replay-token="token" />`,
   rotatingText: `Built for <DitherRotatingText :texts="['Vue', 'canvas', 'the studio']" />`,
   countUp: `<DitherCountUp :to="1984" /> renders <!-- counts up when scrolled into view -->`,
+  numberFlow: `<DitherNumberFlow :value="metric" />  <!-- digits roll on every change -->
+<DitherNumberFlow :value="price" :decimals="2" :duration="400" />`,
   textType: `<DitherTextType :texts="['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']" />`,
   blurText: `<DitherBlurText text="Blur into focus" by="words" />`,
   decryptedText: `<DitherDecryptedText text="ACCESS GRANTED" />`,
@@ -284,6 +300,22 @@ const SNIPPETS = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.countUp" />
+  </section>
+
+  <section id="number-flow" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Number flow</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An odometer for live values — every digit rides a 0-9 column that rolls
+      to the new figure whenever <code class="text-foreground/80">value</code>
+      changes. Count up plays once; this one never stops. Reduced motion snaps.
+    </p>
+    <DemoCard :code="SNIPPETS.numberFlow">
+      <div class="flex min-h-24 items-center justify-center gap-3 text-4xl tracking-tight">
+        <span class="text-2xl text-muted-foreground" aria-hidden="true">$</span>
+        <DitherNumberFlow :value="flowValue" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.numberFlow" />
   </section>
 
   <!-- Text type -->

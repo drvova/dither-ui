@@ -5,6 +5,7 @@ export const TEXT_NAV = [
   { id: "split-text", label: "Split text" },
   { id: "rotating-text", label: "Rotating text" },
   { id: "count-up", label: "Count up" },
+  { id: "number-flow", label: "Number flow" },
   { id: "text-type", label: "Text type" },
   { id: "blur-text", label: "Blur text" },
   { id: "decrypted-text", label: "Decrypted text" },

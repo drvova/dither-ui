@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue"
 import {
   DitherAnimatedContent,
   DitherBlobCursor,
@@ -30,6 +31,11 @@ import {
   DitherOrbitImages,
   DitherPixelTransition,
   DitherStickerPeel,
+  DitherExpandTabs,
+  DitherIsland,
+  DitherCardStack,
+  DitherDock,
+  DitherScrollProgress,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -43,6 +49,35 @@ const SHARED_CANVAS: PropRow[] = [
 ]
 
 const API: Record<string, PropRow[]> = {
+  expandTabs: [
+    { prop: "tabs", type: "{ value, label, color? }[]", default: "required" },
+    { prop: "modelValue", type: "string (v-model)", default: "required" },
+    { prop: "color", type: "PixelColor — active glyph fallback", default: '"blue"' },
+  ],
+  island: [
+    { prop: "modelValue", type: "boolean (v-model) — expanded", default: "false" },
+    { prop: "label", type: "string — compact row text", default: '"Status"' },
+    { prop: "color", type: "PixelColor — status dot", default: '"green"' },
+    { prop: "live", type: "boolean — pulse the dot while collapsed", default: "true" },
+    { prop: "slots", type: "compact · default (detail panel)", default: "—" },
+  ],
+  cardStack: [
+    { prop: "items", type: "T[] — cycled forever", default: "required" },
+    { prop: "depth", type: "number — visible under-cards", default: "2" },
+    { prop: "default slot", type: "scoped: { item, index, top }", default: "card face fallback" },
+    { prop: "@advance", type: "(index) — after a card flies out", default: "—" },
+  ],
+  dock: [
+    { prop: "items", type: "{ value, label, color? }[]", default: "required" },
+    { prop: "magnify", type: "number — peak scale over the pointer", default: "1.7" },
+    { prop: "range", type: "number (px) — gaussian falloff radius", default: "80" },
+    { prop: "@select", type: "(value)", default: "—" },
+  ],
+  scrollProgress: [
+    { prop: "attach", type: '"viewport" | "parent"', default: '"viewport"' },
+    { prop: "edge", type: '"top" | "bottom"', default: '"top"' },
+    { prop: "color", type: "PixelColor", default: '"green"' },
+  ],
   animatedContent: [
     { prop: "distance", type: "number (px)", default: "40" },
     { prop: "direction", type: '"vertical" | "horizontal"', default: '"vertical"' },
@@ -260,11 +295,42 @@ const SNIPPETS = {
   orbitImages: `<DitherOrbitImages :items="['A', 'B', 'C', 'D', 'E']" />`,
   pixelTransition: `<DitherPixelTransition><YourCard /></DitherPixelTransition>`,
   stickerPeel: `<DitherStickerPeel><YourCard /></DitherStickerPeel>`,
+  expandTabs: `<DitherExpandTabs v-model="tab" :tabs="[
+  { value: 'home', label: 'Home' },
+  { value: 'library', label: 'Library', color: 'purple' },
+  { value: 'alerts', label: 'Alerts', color: 'red' },
+]" />  <!-- only the active tab unfolds its label -->`,
+  island: `<DitherIsland v-model="open" label="Deploy running" color="green" live>
+  Build 214 · lint ok · 3 of 5 steps done.  <!-- unfolds beneath the pill -->
+</DitherIsland>`,
+  cardStack: `<DitherCardStack :items="cards" class="h-44 w-64" v-slot="{ item }">
+  <article class="h-full rounded-lg border bg-card p-4">{{ item.title }}</article>
+</DitherCardStack>  <!-- drag horizontally · flick advances · cycles -->`,
+  dock: `<DitherDock :items="[
+  { value: 'home', label: 'Home' },
+  { value: 'studio', label: 'Studio', color: 'purple' },
+  { value: 'docs', label: 'Docs', color: 'green' },
+  { value: 'alerts', label: 'Alerts', color: 'red' },
+]" @select="go" />  <!-- gaussian magnify around the pointer -->`,
+  scrollProgress: `<DitherScrollProgress />                    <!-- viewport, fixed top -->
+<DitherScrollProgress attach="parent" color="purple" />  <!-- nearest scrollable parent -->`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
 const cursorArea = "grid h-40 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground"
 const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/60"
+
+/* Skiper-adjacent widgets: working demo state. */
+const expandTab = ref("home")
+const islandOpen = ref(false)
+const STACK_CARDS = [
+  { title: "Prints · riso on cream", color: "purple" },
+  { title: "Frames · oak 24×30", color: "blue" },
+  { title: "Zines · issue 04", color: "green" },
+  { title: "Stickers · die-cut set", color: "orange" },
+] as { title: string; color: "purple" | "blue" | "green" | "orange" }[]
+const stackIndex = ref(0)
+const dockPick = ref("—")
 </script>
 
 <template>
@@ -676,5 +742,110 @@ const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/6
       </DitherStickerPeel>
     </DemoCard>
     <PropsTable :rows="API.stickerPeel" />
+  </section>
+
+  <section id="expand-tabs" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Expand tabs</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An icon bar where only the active tab unfolds its label — the rest stay
+      square glyphs. The label slides through the house 0fr grid trick.
+    </p>
+    <DemoCard :code="SNIPPETS.expandTabs">
+      <div class="grid min-h-24 place-items-center">
+        <DitherExpandTabs
+          v-model="expandTab"
+          :tabs="[
+            { value: 'home', label: 'Home' },
+            { value: 'library', label: 'Library', color: 'purple' },
+            { value: 'alerts', label: 'Alerts', color: 'red' },
+          ]"
+        />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.expandTabs" />
+  </section>
+
+  <section id="island" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Island</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A morphing status pill — the compact row keeps its pulse while the
+      detail unfolds beneath. Escape collapses; reduced motion snaps.
+    </p>
+    <DemoCard :code="SNIPPETS.island">
+      <div class="grid min-h-28 place-items-center">
+        <DitherIsland v-model="islandOpen" label="Deploy running" color="green" live class="w-64">
+          Build 214 · lint ok · bundle 84kB · 3 of 5 steps done.
+        </DitherIsland>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.island" />
+  </section>
+
+  <section id="card-stack" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Card stack</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A swipe deck on the kit's own gesture math — 1:1 tracking, rubber-band
+      past the edge, a flick or a far drag sends the card flying and the
+      stack rises. Drag the top card.
+    </p>
+    <DemoCard :code="SNIPPETS.cardStack">
+      <div class="grid min-h-56 place-items-center">
+        <div>
+          <DitherCardStack :items="STACK_CARDS" class="h-40 w-64" @advance="stackIndex = $event">
+            <template #default="{ item }">
+              <article class="flex h-full flex-col justify-between rounded-lg border border-border/60 bg-card/90 p-4">
+                <span class="size-2 rounded-[2px]" :style="{ background: `var(--swatch-${item.color})` }" aria-hidden="true" />
+                <p class="font-mono text-[13px] text-foreground">{{ item.title }}</p>
+              </article>
+            </template>
+          </DitherCardStack>
+          <p class="mt-3 text-center text-[10px] tabular-nums text-muted-foreground">card {{ stackIndex + 1 }} of {{ STACK_CARDS.length }}</p>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.cardStack" />
+  </section>
+
+  <section id="dock" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Dock</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A hover-magnifying dock — items swell on a gaussian falloff around the
+      pointer and settle when it leaves. Reduced motion keeps the row still.
+    </p>
+    <DemoCard :code="SNIPPETS.dock">
+      <div class="grid min-h-28 place-items-end justify-center pb-2">
+        <div class="text-center">
+          <DitherDock
+            :items="[
+              { value: 'home', label: 'Home' },
+              { value: 'studio', label: 'Studio', color: 'purple' },
+              { value: 'docs', label: 'Docs', color: 'green' },
+              { value: 'alerts', label: 'Alerts', color: 'red' },
+            ]"
+            @select="dockPick = $event"
+          />
+          <p class="mt-2 text-[10px] text-muted-foreground">selected: {{ dockPick }}</p>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.dock" />
+  </section>
+
+  <section id="scroll-progress" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Scroll progress</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Reading progress as a dithered bar — it composes DitherProgress and
+      rides the viewport edge, or the top of any scrollable parent. Scroll
+      the box.
+    </p>
+    <DemoCard :code="SNIPPETS.scrollProgress">
+      <div class="relative mx-auto h-48 max-w-md overflow-y-auto rounded-lg border border-border/60">
+        <DitherScrollProgress attach="parent" color="purple" />
+        <div class="grid gap-2 p-4" aria-hidden="true">
+          <div v-for="i in 14" :key="i" class="h-2 rounded-sm bg-border/50" :class="i % 3 === 0 ? 'w-2/3' : 'w-full'" />
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.scrollProgress" />
   </section>
 </template>
