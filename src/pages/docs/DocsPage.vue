@@ -42,6 +42,8 @@ import StructureDocs from "./components/StructureDocs.vue"
 import { STRUCTURE_NAV } from "./components/structure-nav"
 import LayoutDocs from "./components/LayoutDocs.vue"
 import { LAYOUT_NAV } from "./components/layout-nav"
+import MediaDocs from "./components/MediaDocs.vue"
+import { MEDIA_NAV } from "./components/media-nav"
 import OverlayDocs from "./components/OverlayDocs.vue"
 import { OVERLAY_NAV } from "./components/overlay-nav"
 import FieldDocs from "./components/FieldDocs.vue"
@@ -455,6 +457,7 @@ const GROUPS = [
       ...FEEDBACK_NAV,
       ...STRUCTURE_NAV,
       ...LAYOUT_NAV,
+      ...MEDIA_NAV,
       ...OVERLAY_NAV,
       ...SURFACE_NAV,
       ...NAVIGATION_NAV,
@@ -1652,6 +1655,9 @@ const gradientCode = computed(
 
           <!-- Layout: shell, rail, console, canvas, grid -->
           <LayoutDocs />
+
+          <!-- Media & data: video player, bracket, schedule -->
+          <MediaDocs />
 
           <!-- Fields & forms -->
           <FieldDocs />

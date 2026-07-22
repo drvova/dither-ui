@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { onMounted, onUnmounted, ref } from "vue"
 import {
   DitherAvatar,
   DitherBadge,
   DitherButton,
+  DitherCommand,
   DitherContextMenu,
   DitherMenu,
   DitherMenubar,
@@ -15,6 +16,25 @@ import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
 const popoverOpen = ref(false)
+
+/* Command palette: open state, catalog, last run, and a real hotkey. */
+const commandOpen = ref(false)
+const commandRan = ref("—")
+const COMMAND_ITEMS = [
+  { value: "new-artboard", label: "New artboard", group: "Studio", kbd: "N" },
+  { value: "export-image", label: "Export image", group: "Studio", kbd: "⇧E" },
+  { value: "open-docs", label: "Open docs", group: "Navigate" },
+  { value: "open-studio", label: "Open studio", group: "Navigate" },
+  { value: "toggle-theme", label: "Toggle theme", group: "Preferences" },
+]
+function commandHotkey(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault()
+    commandOpen.value = !commandOpen.value
+  }
+}
+onMounted(() => window.addEventListener("keydown", commandHotkey))
+onUnmounted(() => window.removeEventListener("keydown", commandHotkey))
 
 const MENU_ITEMS = [
   { label: "New" },
@@ -107,6 +127,27 @@ const SNIPPET_TOOLTIP = `<DitherTooltip text="Deploys are frozen until Monday">
   <DitherBadge color="orange">frozen</DitherBadge>
 </DitherTooltip>`
 
+const SNIPPET_COMMAND = `<script setup>
+const open = ref(false)
+window.addEventListener("keydown", (e) => {   // the hotkey stays yours
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") (e.preventDefault(), open.value = !open.value)
+})
+<\/script>
+
+<DitherButton @click="open = true">⌘K · Command</DitherButton>
+<DitherCommand
+  :open="open"
+  :items="[
+    { value: 'new', label: 'New artboard', group: 'Studio', kbd: 'N' },
+    { value: 'export', label: 'Export image', group: 'Studio' },
+    { value: 'docs', label: 'Open docs', group: 'Navigate' },
+  ]"
+  @select="run"
+  @close="open = false"
+/>
+
+<!-- type to filter · ↑↓ walk · Enter runs · Escape leaves -->`
+
 const SNIPPET_PREVIEW = `<DitherPreviewCard>
   <template #trigger>
     <span class="underline decoration-border underline-offset-4" tabindex="0">
@@ -141,6 +182,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "delay", type: "number", default: "300" },
   ],
   previewCard: [{ prop: "delay", type: "number", default: "400" }],
+  command: [
+    { prop: "open", type: "boolean — @close asks to leave", default: "required" },
+    { prop: "items", type: "{ value, label, group?, kbd? }[]", default: "required" },
+    { prop: "placeholder", type: "string", default: '"Type a command…"' },
+    { prop: "empty", type: "string — no-match line", default: '"No results."' },
+    { prop: "@select", type: "(value) — fired before close", default: "—" },
+  ],
 }
 </script>
 
@@ -283,5 +331,27 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.previewCard" />
+  </section>
+
+  <section id="command" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Command</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The ⌘K palette — type to filter, arrows to walk, Enter runs, Escape
+      leaves. Groups follow first appearance; the hotkey stays in your hands.
+      Try ⌘K right here.
+    </p>
+    <DemoCard :code="SNIPPET_COMMAND">
+      <div class="grid min-h-28 place-items-center gap-3">
+        <DitherButton color="blue" class="px-3 py-1.5 text-[12px]" @click="commandOpen = true">⌘K · Command</DitherButton>
+        <p class="text-[10px] text-muted-foreground">last ran: {{ commandRan }}</p>
+        <DitherCommand
+          :open="commandOpen"
+          :items="COMMAND_ITEMS"
+          @select="commandRan = $event"
+          @close="commandOpen = false"
+        />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.command" />
   </section>
 </template>
