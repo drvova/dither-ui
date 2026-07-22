@@ -159,6 +159,7 @@ export { default as DitherToggleGroup } from "./DitherToggleGroup.vue"
 
 // Surfaces & status
 export { default as DitherAccordion } from "./DitherAccordion.vue"
+export { default as DitherBouncyAccordion, type BouncyItem } from "./BouncyAccordion.vue"
 export { default as DitherAlertDialog } from "./DitherAlertDialog.vue"
 export { default as DitherDrawer, type DrawerSide } from "./DitherDrawer.vue"
 export { default as DitherDrawerIndent } from "./DitherDrawerIndent.vue"

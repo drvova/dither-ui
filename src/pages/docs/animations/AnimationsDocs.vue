@@ -39,6 +39,7 @@ import {
   DitherScrollProgress,
   DitherSnapButton,
   DitherGooeyMenu,
+  DitherBouncyAccordion,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -101,6 +102,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "direction", type: '"up" | "down" | "left" | "right"', default: '"up"' },
     { prop: "spacing", type: "number (px) — gap between item centers", default: "52" },
     { prop: "@select", type: "(value) — also collapses", default: "—" },
+  ],
+  bouncyAccordion: [
+    { prop: "items", type: "{ value, label, hint?, icon?, color?, content? }[]", default: "required" },
+    { prop: "modelValue", type: "string (v-model) — open item, \"\" closes all", default: '""' },
+    { prop: "color", type: "PixelColor — icon fallback tint", default: '"blue"' },
+    { prop: "item slots", type: "#<value> — rich panel content (else item.content)", default: "—" },
   ],
   animatedContent: [
     { prop: "distance", type: "number (px)", default: "40" },
@@ -356,6 +363,14 @@ const SNIPPETS = {
   { value: 'share', label: 'Share', color: 'purple' },
 ]" direction="up" @select="run" />
 <!-- one SVG goo filter fuses the circles while they travel -->`,
+  bouncyAccordion: `<DitherBouncyAccordion v-model="panel" :items="[
+  { value: 'overview', label: 'Overview', hint: 'What shipped this week', icon: '▤',
+    content: 'Charts, buttons and backgrounds now share one Bayer engine.' },
+  { value: 'activity', label: 'Activity', hint: '3 deploys, 1 rollback', icon: '◷', color: 'green',
+    content: 'Build 214 settled after a weighted spring — 8% overshoot, then calm.' },
+  { value: 'alerts', label: 'Alerts', hint: 'One flapping check', icon: '◈', color: 'orange',
+    content: 'p95 latency wobbled at 04:00 and snapped back on its own.' },
+]" />  <!-- single-open · spring overshoot on open · brisk close -->`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
@@ -376,6 +391,7 @@ const dockPick = ref("—")
 const railDest = ref("inbox")
 const snapCount = ref(0)
 const gooeyOpen = ref(false)
+const bouncyPanel = ref("overview")
 const gooeyPick = ref("—")
 </script>
 
@@ -963,5 +979,29 @@ const gooeyPick = ref("—")
       </div>
     </DemoCard>
     <PropsTable :rows="API.gooeyMenu" />
+  </section>
+
+  <section id="bouncy-accordion" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Bouncy accordion</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A single-open accordion with a weighted spring layout — panels overshoot
+      and settle on a sampled damped-spring easing, icon rows lead each header,
+      and content rises into view. Reduced motion reveals instantly.
+    </p>
+    <DemoCard :code="SNIPPETS.bouncyAccordion">
+      <DitherBouncyAccordion
+        v-model="bouncyPanel"
+        class="mx-auto max-w-sm"
+        :items="[
+          { value: 'overview', label: 'Overview', hint: 'What shipped this week', icon: '▤',
+            content: 'Charts, buttons and backgrounds now share one Bayer engine.' },
+          { value: 'activity', label: 'Activity', hint: '3 deploys, 1 rollback', icon: '◷', color: 'green',
+            content: 'Build 214 settled after a weighted spring — 8% overshoot, then calm.' },
+          { value: 'alerts', label: 'Alerts', hint: 'One flapping check', icon: '◈', color: 'orange',
+            content: 'p95 latency wobbled at 04:00 and snapped back on its own.' },
+        ]"
+      />
+    </DemoCard>
+    <PropsTable :rows="API.bouncyAccordion" />
   </section>
 </template>

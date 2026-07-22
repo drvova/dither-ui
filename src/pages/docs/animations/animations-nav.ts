@@ -37,4 +37,5 @@ export const ANIMATIONS_NAV = [
   { id: "scroll-progress", label: "Scroll progress" },
   { id: "snap-button", label: "Snap button" },
   { id: "gooey-menu", label: "Gooey menu" },
+  { id: "bouncy-accordion", label: "Bouncy accordion" },
 ]
