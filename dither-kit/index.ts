@@ -127,6 +127,7 @@ export { default as DitherTabs, type TabItem, type TabsVariant } from "./DitherT
 export { default as DitherTabPanel } from "./DitherTabPanel.vue"
 export { default as DitherCollapsible } from "./DitherCollapsible.vue"
 export { default as DitherDialog } from "./DitherDialog.vue"
+export { default as DitherCenterMorphModal } from "./CenterMorphModal.vue"
 export { default as DitherKbd } from "./DitherKbd.vue"
 
 // Overlays & menus

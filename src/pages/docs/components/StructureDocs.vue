@@ -2,6 +2,7 @@
 import { ref } from "vue"
 import {
   DitherButton,
+  DitherCenterMorphModal,
   DitherCollapsible,
   DitherDialog,
   DitherKbd,
@@ -32,6 +33,7 @@ const openA = ref(true)
 const openB = ref(false)
 
 const dialogOpen = ref(false)
+const morphOpen = ref(false)
 
 const SNIPPET_TABS = `<!-- panels nest inside so they inherit the tab context -->
 <DitherTabs v-model="tab" :tabs="['Overview', 'Metrics', 'Logs']">
@@ -73,6 +75,21 @@ const open = ref(false)
   </template>
 </DitherDialog>`
 
+const SNIPPET_MORPH = `<script setup>
+const open = ref(false)
+<\/script>
+
+<DitherButton @click="open = true">Open modal</DitherButton>
+<DitherCenterMorphModal :open="open" label="Release notes" @close="open = false">
+  <div class="flex h-full flex-col justify-end gap-2">
+    <h3 class="text-sm font-medium text-foreground">v2.4 — dithered everything</h3>
+    <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">
+      This full-size surface unfolded from its exact center. Press Escape,
+      the backdrop, or the inset control to fold it back.
+    </p>
+  </div>
+</DitherCenterMorphModal>`
+
 const SNIPPET_KBD = `<div class="flex items-center gap-6 text-xs">
   <div class="flex items-center gap-2">
     <span class="text-muted-foreground">Command menu</span>
@@ -103,6 +120,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "open", type: "boolean", default: "—" },
     { prop: "title", type: "string", default: "undefined" },
     { prop: "description", type: "string", default: "undefined" },
+    { prop: "closeOnBackdrop", type: "boolean", default: "true" },
+    { prop: "class", type: "string", default: "—" },
+  ],
+  centerMorphModal: [
+    { prop: "open", type: "boolean", default: "—" },
+    { prop: "label", type: "string — accessible name", default: '"Modal"' },
     { prop: "closeOnBackdrop", type: "boolean", default: "true" },
     { prop: "class", type: "string", default: "—" },
   ],
@@ -184,6 +207,30 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.dialog" />
+  </section>
+
+  <section id="center-morph-modal" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Center Morph Modal</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A composable modal whose full-size surface unfolds from its exact center
+      toward every edge, then folds back the same way with an inset close
+      control. Same focus trap, Escape, and backdrop contract as Dialog.
+    </p>
+    <DemoCard :code="SNIPPET_MORPH">
+      <div class="flex justify-center">
+        <DitherButton @click="morphOpen = true">Open modal</DitherButton>
+        <DitherCenterMorphModal :open="morphOpen" label="Release notes" @close="morphOpen = false">
+          <div class="flex h-full flex-col justify-end gap-2">
+            <h3 class="text-sm font-medium text-foreground">v2.4 — dithered everything</h3>
+            <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">
+              This full-size surface unfolded from its exact center. Press Escape,
+              the backdrop, or the inset control to fold it back.
+            </p>
+          </div>
+        </DitherCenterMorphModal>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.centerMorphModal" />
   </section>
 
   <section id="kbd" class="mt-16 scroll-mt-24">
