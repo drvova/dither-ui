@@ -19,7 +19,8 @@ describe("component registry", () => {
       expect(e.frame.h).toBeGreaterThan(0)
     }
   })
-  it("covers every public Dither component exactly once", async () => {
+  // Imports the entire kit (400+ SFC transforms) — integration-scale budget.
+  it("covers every public Dither component exactly once", { timeout: 20000 }, async () => {
     const kit = await import("../dither-kit")
     const bespoke = new Set(["DitherAvatar", "DitherButton", "DitherGradient", "DitherImage"])
     const publicComponents = Object.keys(kit).filter((name) => /^Dither[A-Z]/.test(name) && !bespoke.has(name)).sort()

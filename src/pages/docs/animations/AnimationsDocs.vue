@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import {
   DitherAnimatedContent,
   DitherBlobCursor,
@@ -44,6 +44,7 @@ import {
   DitherSlideAction,
   DitherHoldAction,
   DitherWalletCard,
+  DitherNotificationStack,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -145,6 +146,17 @@ const API: Record<string, PropRow[]> = {
     { prop: "@search", type: "(query) — live text on every keystroke", default: "—" },
     { prop: "@submit", type: "(query) — Enter or a recent row", default: "—" },
     { prop: "@notify", type: "() — bell pressed", default: "—" }
+  ],
+  notificationStack: [
+    { prop: "items", type: "{ id, title, body?, time?, icon?, color? }[]", default: "required" },
+    { prop: "modelValue", type: "boolean (v-model) — pinned open; hover/focus expand transiently", default: "false" },
+    { prop: "maxVisible", type: "number — cards shown in the stack and list", default: "3" },
+    { prop: "collapsedLabel", type: "string — header + toggle aria-label", default: '"Notifications"' },
+    { prop: "expandedLabel", type: "string — view-all button text", default: '"View all"' },
+    { prop: "emptyLabel", type: "string — empty-state card", default: '"All caught up"' },
+    { prop: "variant", type: '"stack" | "fan" | "condensed" — collapsed silhouette', default: '"stack"' },
+    { prop: "color", type: "PixelColor — icon fallback tint", default: '"blue"' },
+    { prop: "@viewall", type: "() — view-all pressed", default: "—" },
   ],
   animatedContent: [
     { prop: "distance", type: "number (px)", default: "40" },
@@ -450,6 +462,21 @@ const slideCount = ref(0)
 const holdCount = ref(0)
 const walletAccount = ref("main")
 const walletNote = ref("—")
+const stackPinned = ref(false)
+const stackNote = ref("—")
+const STACK_VARIANTS = ["stack", "fan", "condensed"] as const
+const stackVariant = ref<(typeof STACK_VARIANTS)[number]>("stack")
+const stackChip = (active: boolean) =>
+  `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`
+const stackSnippet = computed(
+  () => `<DitherNotificationStack v-model="pinned"${stackVariant.value === "stack" ? "" : ` variant=\"${stackVariant.value}\"`} :items="[
+  { id: 'n1', title: 'Deploy finished', body: 'dither-ui → production in 42s', time: '2m', icon: '↑', color: 'green' },
+  { id: 'n2', title: 'New comment', body: 'Rei: “the drum snaps beautifully”', time: '16m', icon: '▤', color: 'blue' },
+  { id: 'n3', title: 'Build warning', body: 'chunk index.js is 447 kB', time: '1h', icon: '◈', color: 'orange' },
+]" @viewall="openInbox" />
+<!-- stacked summary → readable list on hover, focus or tap · tap pins ·
+     spring fan-out with per-card stagger -->`
+)
 const WALLET_ACCOUNTS = [
   { value: "main", label: "Main", address: "0x7f3a9c2e14b7d55aa93d", balance: 12480.52, change: 2.4 },
   { value: "savings", label: "Savings", address: "0x8b21e0c4a6f9d1327e55", balance: 8210.11, change: -1.1, color: "purple" },
@@ -1142,5 +1169,43 @@ const gooeyPick = ref("—")
       </div>
     </DemoCard>
     <PropsTable :rows="API.walletCard" />
+  </section>
+
+  <section id="notification-stack" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Notification stack</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Compact notification cards that spring from a stacked summary into a
+      readable list on hover, focus or tap — tap pins the list open, and the
+      view-all row appears with the expansion. Reduced motion snaps.
+    </p>
+    <DemoCard :code="stackSnippet">
+      <div class="flex min-h-72 flex-col items-center justify-center gap-4">
+        <DitherNotificationStack
+          v-model="stackPinned"
+          :variant="stackVariant"
+          :items="[
+            { id: 'n1', title: 'Deploy finished', body: 'dither-ui → production in 42s', time: '2m', icon: '↑', color: 'green' },
+            { id: 'n2', title: 'New comment', body: 'Rei: “the drum snaps beautifully”', time: '16m', icon: '▤', color: 'blue' },
+            { id: 'n3', title: 'Build warning', body: 'chunk index.js is 447 kB', time: '1h', icon: '◈', color: 'orange' },
+          ]"
+          @viewall="stackNote = 'view all'"
+        />
+        <p class="font-mono text-[10px] text-muted-foreground">pinned: {{ stackPinned }} · last: {{ stackNote }}</p>
+      </div>
+    </DemoCard>
+    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+    <div class="mt-3 flex gap-1">
+      <button
+        v-for="v in STACK_VARIANTS"
+        :key="v"
+        type="button"
+        :aria-pressed="stackVariant === v"
+        :class="stackChip(stackVariant === v)"
+        @click="stackVariant = v"
+      >
+        {{ v }}
+      </button>
+    </div>
+    <PropsTable :rows="API.notificationStack" />
   </section>
 </template>

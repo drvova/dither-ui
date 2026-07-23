@@ -222,6 +222,7 @@ export { default as DitherExpandingArrow } from "./widgets/ExpandingArrow.svelte
 export { default as DitherSlideAction } from "./widgets/SlideAction.svelte"
 export { default as DitherHoldAction } from "./widgets/HoldAction.svelte"
 export { default as DitherWalletCard, type WalletAccount, type WalletAction } from "./widgets/WalletCard.svelte"
+export { default as DitherNotificationStack, type NotificationItem, type NotificationStackVariant } from "./widgets/NotificationStack.svelte"
 export { default as DitherGooeyMenu, type GooeyItem } from "./widgets/GooeyMenu.svelte"
 
 // Shared runtime + tokens (also portable on their own).
