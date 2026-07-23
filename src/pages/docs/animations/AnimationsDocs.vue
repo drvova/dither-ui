@@ -43,6 +43,7 @@ import {
   DitherExpandingArrow,
   DitherSlideAction,
   DitherHoldAction,
+  DitherWalletCard,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -129,6 +130,14 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "PixelColor — fill and crest accent", default: '"orange"' },
     { prop: "disabled", type: "boolean", default: "false" },
     { prop: "@complete", type: "() — fill reached full; once per hold", default: "—" },
+  ],
+  walletCard: [
+    { prop: "accounts", type: "{ value, label, address, balance, change?, color? }[]", default: "required" },
+    { prop: "modelValue", type: "string (v-model) — selected account", default: "first account" },
+    { prop: "currency", type: "string — balance prefix", default: '"$"' },
+    { prop: "color", type: "PixelColor — card accent", default: '"green"' },
+    { prop: "@action", type: '("send" | "deposit" | "swap" | "buy")', default: "—" },
+    { prop: "@search", type: "(query) — Enter in the morphed search", default: "—" },
   ],
   animatedContent: [
     { prop: "distance", type: "number (px)", default: "40" },
@@ -401,6 +410,13 @@ const SNIPPETS = {
   holdAction: `<DitherHoldAction :duration="1200" direction="vertical" color="orange" @complete="purge">
   Hold to purge cache
 </DitherHoldAction>  <!-- liquid fill with a dotted crest · release early to drain -->`,
+  walletCard: `<DitherWalletCard v-model="account" :accounts="[
+  { value: 'main', label: 'Main', address: '0x7f3a9c2e14b7d55aa93d', balance: 12480.52, change: 2.4 },
+  { value: 'savings', label: 'Savings', address: '0x8b21e0c4a6f9d1327e55', balance: 8210.11, change: -1.1, color: 'purple' },
+  { value: 'trading', label: 'Trading', address: '0x91cc4db2e87a30f6b214', balance: 3033.7, change: 0.6, color: 'orange' },
+]" @action="run" @search="find" />
+<!-- switcher + search morph from their triggers · digits cascade ·
+     privacy toggle masks · copy-address gives a ✓ -->`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
@@ -424,6 +440,13 @@ const gooeyOpen = ref(false)
 const bouncyPanel = ref("overview")
 const slideCount = ref(0)
 const holdCount = ref(0)
+const walletAccount = ref("main")
+const walletNote = ref("—")
+const WALLET_ACCOUNTS = [
+  { value: "main", label: "Main", address: "0x7f3a9c2e14b7d55aa93d", balance: 12480.52, change: 2.4 },
+  { value: "savings", label: "Savings", address: "0x8b21e0c4a6f9d1327e55", balance: 8210.11, change: -1.1, color: "purple" },
+  { value: "trading", label: "Trading", address: "0x91cc4db2e87a30f6b214", balance: 3033.7, change: 0.6, color: "orange" },
+] as { value: string; label: string; address: string; balance: number; change: number; color?: "purple" | "orange" }[]
 const gooeyPick = ref("—")
 </script>
 
@@ -1085,5 +1108,27 @@ const gooeyPick = ref("—")
       </div>
     </DemoCard>
     <PropsTable :rows="API.holdAction" />
+  </section>
+
+  <section id="wallet-card" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Wallet card</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A wallet overview card — the account switcher and search morph open from
+      their triggers, the balance cascades in with a live change pill and a
+      privacy toggle, the address copies with feedback, and Send / Deposit /
+      Swap / Buy report through one event.
+    </p>
+    <DemoCard :code="SNIPPETS.walletCard">
+      <div class="flex min-h-72 flex-col items-center justify-center gap-3">
+        <DitherWalletCard
+          v-model="walletAccount"
+          :accounts="WALLET_ACCOUNTS"
+          @action="walletNote = $event"
+          @search="walletNote = 'search: ' + $event"
+        />
+        <p class="font-mono text-[10px] text-muted-foreground">last: {{ walletNote }}</p>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.walletCard" />
   </section>
 </template>

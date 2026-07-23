@@ -41,4 +41,5 @@ export const ANIMATIONS_NAV = [
   { id: "expanding-arrow", label: "Expanding arrow" },
   { id: "slide-action", label: "Slide action" },
   { id: "hold-action", label: "Hold action" },
+  { id: "wallet-card", label: "Wallet card" },
 ]
