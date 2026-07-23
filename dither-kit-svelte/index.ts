@@ -218,6 +218,9 @@ export { default as DitherBracket, type BracketMatch } from "./widgets/DitherBra
 export { default as DitherSchedule, type ScheduleEvent } from "./widgets/DitherSchedule.svelte"
 export { default as DitherInfiniteCanvas } from "./widgets/DitherInfiniteCanvas.svelte"
 export { default as DitherSnapButton } from "./widgets/SnapButton.svelte"
+export { default as DitherExpandingArrow } from "./widgets/ExpandingArrow.svelte"
+export { default as DitherSlideAction } from "./widgets/SlideAction.svelte"
+export { default as DitherHoldAction } from "./widgets/HoldAction.svelte"
 export { default as DitherGooeyMenu, type GooeyItem } from "./widgets/GooeyMenu.svelte"
 
 // Shared runtime + tokens (also portable on their own).

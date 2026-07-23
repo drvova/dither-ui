@@ -38,4 +38,7 @@ export const ANIMATIONS_NAV = [
   { id: "snap-button", label: "Snap button" },
   { id: "gooey-menu", label: "Gooey menu" },
   { id: "bouncy-accordion", label: "Bouncy accordion" },
+  { id: "expanding-arrow", label: "Expanding arrow" },
+  { id: "slide-action", label: "Slide action" },
+  { id: "hold-action", label: "Hold action" },
 ]

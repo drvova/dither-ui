@@ -40,6 +40,9 @@ import {
   DitherSnapButton,
   DitherGooeyMenu,
   DitherBouncyAccordion,
+  DitherExpandingArrow,
+  DitherSlideAction,
+  DitherHoldAction,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -108,6 +111,24 @@ const API: Record<string, PropRow[]> = {
     { prop: "modelValue", type: "string (v-model) — open item, \"\" closes all", default: '""' },
     { prop: "color", type: "PixelColor — icon fallback tint", default: '"blue"' },
     { prop: "item slots", type: "#<value> — rich panel content (else item.content)", default: "—" },
+  ],
+  expandingArrow: [
+    { prop: "color", type: "PixelColor — tile and trail accent", default: '"blue"' },
+    { prop: "disabled", type: "boolean", default: "false" },
+    { prop: "default slot", type: "label content", default: '"Explore the kit"' },
+  ],
+  slideAction: [
+    { prop: "label", type: "string — track text and thumb aria-label", default: '"Slide to confirm"' },
+    { prop: "color", type: "PixelColor — thumb accent", default: '"green"' },
+    { prop: "disabled", type: "boolean", default: "false" },
+    { prop: "@confirm", type: "() — thumb reached the end, or Enter/Space", default: "—" },
+  ],
+  holdAction: [
+    { prop: "duration", type: "number (ms) — hold time to complete", default: "1200" },
+    { prop: "direction", type: '"vertical" | "horizontal" — fill axis', default: '"vertical"' },
+    { prop: "color", type: "PixelColor — fill and crest accent", default: '"orange"' },
+    { prop: "disabled", type: "boolean", default: "false" },
+    { prop: "@complete", type: "() — fill reached full; once per hold", default: "—" },
   ],
   animatedContent: [
     { prop: "distance", type: "number (px)", default: "40" },
@@ -371,6 +392,15 @@ const SNIPPETS = {
   { value: 'alerts', label: 'Alerts', hint: 'One flapping check', icon: '◈', color: 'orange',
     content: 'p95 latency wobbled at 04:00 and snapped back on its own.' },
 ]" />  <!-- single-open · spring overshoot on open · brisk close -->`,
+  expandingArrow: `<DitherExpandingArrow color="blue" @click="explore">
+  Explore the kit
+</DitherExpandingArrow>  <!-- dotted trail unrolls on hover or focus -->`,
+  slideAction: `<DitherSlideAction label="Slide to deploy" color="green" @confirm="deploy" />
+<!-- 1:1 thumb drag · flick momentum counts · early release springs back ·
+     Enter/Space confirms without the slide -->`,
+  holdAction: `<DitherHoldAction :duration="1200" direction="vertical" color="orange" @complete="purge">
+  Hold to purge cache
+</DitherHoldAction>  <!-- liquid fill with a dotted crest · release early to drain -->`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
@@ -392,6 +422,8 @@ const railDest = ref("inbox")
 const snapCount = ref(0)
 const gooeyOpen = ref(false)
 const bouncyPanel = ref("overview")
+const slideCount = ref(0)
+const holdCount = ref(0)
 const gooeyPick = ref("—")
 </script>
 
@@ -1003,5 +1035,55 @@ const gooeyPick = ref("—")
       />
     </DemoCard>
     <PropsTable :rows="API.bouncyAccordion" />
+  </section>
+
+  <section id="expanding-arrow" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Expanding arrow</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An accent tile that expands into a dotted-arrow trail on hover or focus
+      — the trail is stamped from the same accent hue. Reduced motion reveals
+      it instantly.
+    </p>
+    <DemoCard :code="SNIPPETS.expandingArrow">
+      <div class="flex min-h-24 items-center justify-center">
+        <DitherExpandingArrow color="blue">Explore the kit</DitherExpandingArrow>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.expandingArrow" />
+  </section>
+
+  <section id="slide-action" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Slide action</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Drag the thumb to the end of the track to confirm — flick momentum
+      counts — or release early and it springs back. Enter or Space confirms
+      without the slide.
+    </p>
+    <DemoCard :code="SNIPPETS.slideAction">
+      <div class="flex min-h-24 flex-col items-center justify-center gap-3">
+        <DitherSlideAction label="Slide to deploy" color="green" @confirm="slideCount++" />
+        <p class="font-mono text-[10px] text-muted-foreground">deploys: {{ slideCount }}</p>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.slideAction" />
+  </section>
+
+  <section id="hold-action" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Hold action</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Hold to complete — a liquid fill with a dotted crest rises (or slides)
+      while you press; release early and it drains back. A held Enter or Space
+      works the same way.
+    </p>
+    <DemoCard :code="SNIPPETS.holdAction">
+      <div class="flex min-h-24 flex-col items-center justify-center gap-3">
+        <div class="flex items-center gap-4">
+          <DitherHoldAction color="orange" @complete="holdCount++">Hold to purge cache</DitherHoldAction>
+          <DitherHoldAction direction="horizontal" color="red" :duration="900" @complete="holdCount++">Hold to delete</DitherHoldAction>
+        </div>
+        <p class="font-mono text-[10px] text-muted-foreground">completed: {{ holdCount }}</p>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.holdAction" />
   </section>
 </template>
