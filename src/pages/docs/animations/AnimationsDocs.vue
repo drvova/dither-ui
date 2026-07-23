@@ -134,10 +134,17 @@ const API: Record<string, PropRow[]> = {
   walletCard: [
     { prop: "accounts", type: "{ value, label, address, balance, change?, color? }[]", default: "required" },
     { prop: "modelValue", type: "string (v-model) — selected account", default: "first account" },
+    { prop: "balance / change", type: "number — override the active account's numbers", default: "account data" },
     { prop: "currency", type: "string — balance prefix", default: '"$"' },
+    { prop: "defaultHidden", type: "boolean — start masked", default: "false" },
+    { prop: "searchPlaceholder", type: "string", default: '"Search…"' },
+    { prop: "recent", type: "string[] — recent queries in the search panel", default: "undefined" },
+    { prop: "notifications", type: "boolean — unread pulse on the bell", default: "false" },
     { prop: "color", type: "PixelColor — card accent", default: '"green"' },
     { prop: "@action", type: '("send" | "deposit" | "swap" | "buy")', default: "—" },
-    { prop: "@search", type: "(query) — Enter in the morphed search", default: "—" },
+    { prop: "@search", type: "(query) — live text on every keystroke", default: "—" },
+    { prop: "@submit", type: "(query) — Enter or a recent row", default: "—" },
+    { prop: "@notify", type: "() — bell pressed", default: "—" }
   ],
   animatedContent: [
     { prop: "distance", type: "number (px)", default: "40" },
@@ -414,9 +421,10 @@ const SNIPPETS = {
   { value: 'main', label: 'Main', address: '0x7f3a9c2e14b7d55aa93d', balance: 12480.52, change: 2.4 },
   { value: 'savings', label: 'Savings', address: '0x8b21e0c4a6f9d1327e55', balance: 8210.11, change: -1.1, color: 'purple' },
   { value: 'trading', label: 'Trading', address: '0x91cc4db2e87a30f6b214', balance: 3033.7, change: 0.6, color: 'orange' },
-]" @action="run" @search="find" />
-<!-- switcher + search morph from their triggers · digits cascade ·
-     privacy toggle masks · copy-address gives a ✓ -->`,
+]" :recent="['gas fees', 'swap history']" notifications
+  @action="run" @submit="find" @notify="openInbox" />
+<!-- switcher + search morph from their triggers (recents listed) · digits
+     cascade · privacy masks to ******* · copy-address gives a ✓ · bell pulses -->`,
 }
 
 const cardBox = "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
@@ -1113,18 +1121,22 @@ const gooeyPick = ref("—")
   <section id="wallet-card" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Wallet card</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A wallet overview card — the account switcher and search morph open from
-      their triggers, the balance cascades in with a live change pill and a
-      privacy toggle, the address copies with feedback, and Send / Deposit /
-      Swap / Buy report through one event.
+      A wallet overview card — the account switcher and search morph open
+      from their triggers (recents listed in the panel), the balance cascades
+      in with a change pill and privacy toggle, the address copies with
+      feedback, the bell carries an unread pulse, and Send / Deposit / Swap /
+      Buy report through one event.
     </p>
     <DemoCard :code="SNIPPETS.walletCard">
       <div class="flex min-h-72 flex-col items-center justify-center gap-3">
         <DitherWalletCard
           v-model="walletAccount"
           :accounts="WALLET_ACCOUNTS"
+          :recent="['gas fees', 'swap history']"
+          notifications
           @action="walletNote = $event"
-          @search="walletNote = 'search: ' + $event"
+          @submit="walletNote = 'search: ' + $event"
+          @notify="walletNote = 'notifications'"
         />
         <p class="font-mono text-[10px] text-muted-foreground">last: {{ walletNote }}</p>
       </div>

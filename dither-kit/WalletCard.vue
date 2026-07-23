@@ -17,6 +17,7 @@ const ACTIONS: { name: WalletAction; glyph: string; label: string }[] = [
   { name: "buy", glyph: "+", label: "Buy" },
 ]
 const FMT = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const MASK = "*******"
 </script>
 
 <script setup lang="ts">
@@ -27,23 +28,40 @@ import { cn } from "./lib"
 import type { PixelColor } from "./pixel"
 
 /** Wallet overview card — the account switcher and search morph open from
- * their triggers, the balance cascades in digit by digit with a live change
- * pill and privacy toggle, the address copies with feedback, and the four
- * actions report through one event. */
+ * their triggers (the search panel lists recent queries), the balance
+ * cascades in with a change pill and privacy toggle, the address copies with
+ * feedback, a bell carries an unread pulse, and the four actions report
+ * through one event. Explicit balance/change props override the active
+ * account's numbers. */
 const props = withDefaults(
   defineProps<{
     accounts: WalletAccount[]
     modelValue?: string
+    /** Override the active account's balance. */
+    balance?: number
+    /** Override the active account's change. */
+    change?: number
     currency?: string
+    /** Start with the balance masked. */
+    defaultHidden?: boolean
+    searchPlaceholder?: string
+    /** Recent queries listed in the morphed-open search panel. */
+    recent?: string[]
+    /** Show an unread pulse on the bell. */
+    notifications?: boolean
     color?: PixelColor
     class?: string
   }>(),
-  { currency: "$", color: "green" }
+  { currency: "$", defaultHidden: false, searchPlaceholder: "Search…", notifications: false, color: "green" }
 )
 const emit = defineEmits<{
   "update:modelValue": [value: string]
   action: [name: WalletAction]
+  /** Live query text on every keystroke. */
   search: [query: string]
+  /** Committed query — Enter or a recent row. */
+  submit: [query: string]
+  notify: []
 }>()
 
 const account = computed(
@@ -54,14 +72,15 @@ const switcherRef = ref<HTMLButtonElement | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
 const switching = ref(false)
 const searching = ref(false)
-const hidden = ref(false)
+const hidden = ref(props.defaultHidden)
 const copied = ref(false)
 const query = ref("")
 
+const shownBalance = computed(() => props.balance ?? account.value?.balance ?? 0)
+const change = computed(() => props.change ?? account.value?.change ?? 0)
 const digits = computed(() =>
-  hidden.value ? "••••••".split("") : `${props.currency}${FMT.format(account.value?.balance ?? 0)}`.split("")
+  hidden.value ? MASK.split("") : `${props.currency}${FMT.format(shownBalance.value)}`.split("")
 )
-const change = computed(() => account.value?.change ?? 0)
 const changeColor = computed(() => cssColor(change.value < 0 ? "red" : "green"))
 const shortAddress = computed(() => {
   const a = account.value?.address ?? ""
@@ -107,8 +126,12 @@ function openSearch() {
   searching.value = true
   nextTick(() => searchInput.value?.focus())
 }
-function submitSearch() {
+function type() {
   emit("search", query.value)
+}
+function submitSearch(q?: string) {
+  if (q !== undefined) query.value = q
+  emit("submit", query.value)
 }
 async function copy() {
   try {
@@ -141,31 +164,46 @@ async function copy() {
         <span class="truncate">{{ account?.label }}</span>
         <span aria-hidden="true" class="text-[10px] text-muted-foreground transition-transform duration-200 motion-reduce:transition-none" :class="switching ? 'rotate-180' : ''">▾</span>
       </button>
-      <div
-        class="flex h-8 items-center overflow-hidden rounded-md border border-border/60 bg-background/60 transition-[width] duration-200 ease-out motion-reduce:transition-none"
-        :style="{ width: searching ? '148px' : '32px' }"
-      >
-        <button
-          v-if="!searching"
-          type="button"
-          aria-label="Search wallet"
-          :class="cn(CONTROL_BUTTON, 'grid size-8 shrink-0 place-items-center text-[13px] text-muted-foreground transition-colors hover:text-foreground')"
-          @click="openSearch"
+      <div class="flex shrink-0 items-center gap-1">
+        <div
+          class="flex h-8 items-center overflow-hidden rounded-md border border-border/60 bg-background/60 transition-[width] duration-200 ease-out motion-reduce:transition-none"
+          :style="{ width: searching ? '148px' : '32px' }"
         >
-          ⌕
-        </button>
-        <template v-else>
-          <span aria-hidden="true" class="pl-2.5 text-[13px] text-muted-foreground">⌕</span>
-          <input
-            ref="searchInput"
-            v-model="query"
-            type="text"
+          <button
+            v-if="!searching"
+            type="button"
             aria-label="Search wallet"
-            placeholder="Search…"
-            class="w-full bg-transparent px-2 text-[12px] text-foreground outline-none placeholder:text-muted-foreground/60"
-            @keydown.enter="submitSearch"
-          />
-        </template>
+            :class="cn(CONTROL_BUTTON, 'grid size-8 shrink-0 place-items-center text-[13px] text-muted-foreground transition-colors hover:text-foreground')"
+            @click="openSearch"
+          >
+            ⌕
+          </button>
+          <template v-else>
+            <span aria-hidden="true" class="pl-2.5 text-[13px] text-muted-foreground">⌕</span>
+            <input
+              ref="searchInput"
+              v-model="query"
+              type="text"
+              aria-label="Search wallet"
+              :placeholder="props.searchPlaceholder"
+              class="w-full bg-transparent px-2 text-[12px] text-foreground outline-none placeholder:text-muted-foreground/60"
+              @input="type"
+              @keydown.enter="submitSearch()"
+            />
+          </template>
+        </div>
+        <button
+          type="button"
+          aria-label="Notifications"
+          :class="cn(CONTROL_BUTTON, 'relative grid size-8 place-items-center rounded-md border border-border/60 bg-background/60 text-[13px] text-muted-foreground transition-colors hover:text-foreground')"
+          @click="emit('notify')"
+        >
+          ⍾
+          <span v-if="props.notifications" aria-hidden="true" class="absolute top-1.5 right-1.5 flex size-1.5">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 motion-reduce:animate-none" :style="{ background: cssColor(props.color) }" />
+            <span class="relative inline-flex size-1.5 rounded-full" :style="{ background: cssColor(props.color) }" />
+          </span>
+        </button>
       </div>
     </div>
 
@@ -192,46 +230,68 @@ async function copy() {
       </ul>
     </Transition>
 
-    <div class="mt-4 flex items-end justify-between gap-2">
-      <div>
-        <div class="text-[10px] tracking-[0.2em] text-muted-foreground uppercase">Balance</div>
-        <div class="mt-1 flex text-[24px] leading-none text-foreground" aria-live="polite">
-          <span
-            v-for="(c, i) in digits"
-            :key="`${account?.value}-${hidden}-${i}-${c}`"
-            class="dk-wc-digit motion-reduce:animate-none"
-            :style="{ animationDelay: `${i * 36}ms` }"
-          >{{ c }}</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <span
-          class="relative overflow-hidden rounded-full px-2 py-0.5 text-[10px]"
-          :style="{ color: changeColor }"
+    <Transition name="dk-wc-morph">
+      <div
+        v-if="searching && props.recent?.length && !query"
+        class="absolute top-12 right-14 z-20 min-w-40 origin-top-right rounded-lg border border-border bg-card p-1 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"
+      >
+        <div class="px-2.5 pt-1 pb-0.5 text-[9px] tracking-[0.2em] text-muted-foreground/70 uppercase">Recent</div>
+        <button
+          v-for="r in props.recent"
+          :key="r"
+          type="button"
+          :class="cn(CONTROL_BUTTON, 'flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground')"
+          @click="submitSearch(r)"
         >
-          <span aria-hidden="true" class="absolute inset-0 opacity-15" :style="{ background: changeColor }" />
-          <span class="relative flex items-center gap-1">
-            <span aria-hidden="true" class="size-1 rounded-full motion-reduce:animate-none animate-pulse" :style="{ background: changeColor }" />
-            {{ change < 0 ? "▼" : "▲" }} {{ Math.abs(change).toFixed(1) }}%
-          </span>
-        </span>
+          <span aria-hidden="true" class="text-[11px]">⌕</span>
+          <span class="min-w-0 flex-1 truncate">{{ r }}</span>
+        </button>
+      </div>
+    </Transition>
+
+    <div class="mt-5 flex flex-col items-center text-center">
+      <div class="flex items-center gap-1.5">
+        <span class="text-[10px] tracking-[0.2em] text-muted-foreground uppercase">Balance</span>
         <button
           type="button"
           :aria-pressed="hidden"
           :aria-label="hidden ? 'Show balance' : 'Hide balance'"
-          :class="cn(CONTROL_BUTTON, 'grid size-7 place-items-center rounded-md border border-border/60 bg-background/60 text-[12px] text-muted-foreground transition-colors hover:text-foreground')"
+          class="text-[11px] text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:text-foreground"
           @click="hidden = !hidden"
         >
           {{ hidden ? "◒" : "◉" }}
         </button>
       </div>
-    </div>
-
-    <div class="mt-3 flex items-center justify-between gap-2">
+      <div class="mt-1 flex text-[24px] leading-none text-foreground" aria-live="polite">
+        <span
+          v-for="(c, i) in digits"
+          :key="`${account?.value}-${hidden}-${i}-${c}`"
+          class="dk-wc-digit motion-reduce:animate-none"
+          :style="{ animationDelay: `${i * 36}ms` }"
+        >{{ c }}</span>
+      </div>
+      <div class="mt-1.5 flex h-6 items-center justify-center">
+        <span
+          v-if="hidden"
+          class="translate-y-[2px] text-[12px] leading-none tracking-[0.3em] text-muted-foreground"
+          aria-hidden="true"
+        >*****</span>
+        <span
+          v-else
+          class="relative overflow-hidden rounded-full px-2 py-0.5 text-[10px]"
+          :style="{ color: changeColor }"
+        >
+          <span aria-hidden="true" class="absolute inset-0 opacity-15" :style="{ background: changeColor }" />
+          <span class="relative flex items-center gap-1">
+            <span aria-hidden="true" class="size-1 animate-pulse rounded-full motion-reduce:animate-none" :style="{ background: changeColor }" />
+            {{ change < 0 ? "▼" : "▲" }} {{ Math.abs(change).toFixed(1) }}%
+          </span>
+        </span>
+      </div>
       <button
         type="button"
         :aria-label="copied ? 'Address copied' : 'Copy address'"
-        :class="cn(CONTROL_BUTTON, 'flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground')"
+        :class="cn(CONTROL_BUTTON, 'mt-1 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground')"
         @click="copy"
       >
         <span>{{ shortAddress }}</span>
@@ -239,7 +299,7 @@ async function copy() {
       </button>
     </div>
 
-    <div class="mt-3 grid grid-cols-4 gap-2">
+    <div class="mt-4 grid grid-cols-4 gap-2">
       <button
         v-for="a in ACTIONS"
         :key="a.name"
