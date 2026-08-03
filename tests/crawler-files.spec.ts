@@ -1,21 +1,17 @@
-import { readFileSync } from "node:fs"
-import { resolve } from "node:path"
 import { describe, expect, it } from "vitest"
+import { llmsTxt, robotsTxt, sitemapXml } from "@/pages/docs/crawler-files"
 import { SECTIONS } from "@/pages/docs/groups"
+import { SITE_URL } from "@/pages/docs/seo"
 
-// public/llms.txt follows the llmstxt.org spec: H1, blockquote summary,
-// absolute https links with descriptions, no nested lists. Every /docs deep
-// link it points at must exist in the section IA, or an LLM gets a 404 shell.
-const llms = readFileSync(resolve(import.meta.dirname, "../public/llms.txt"), "utf8")
-const robots = readFileSync(resolve(import.meta.dirname, "../public/robots.txt"), "utf8")
-
-const links = [...llms.matchAll(/^- \[([^\]]+)\]\((https:\/\/[^)]+)\): (.+)$/gm)].map((m) => ({
-  title: m[1],
-  url: m[2],
-  desc: m[3],
-}))
+// All three crawler files are generated at build time from GROUPS/SITE_URL
+// (see vite.config crawlFiles plugin); these tests pin the emitted shape and
+// prove the generators never drift from the section IA. A renamed section id
+// referenced in llms.txt or the sitemap throws from docsUrl() at render time,
+// so dead links fail the build and these tests together.
 
 describe("llms.txt", () => {
+  const llms = llmsTxt()
+
   it("starts with an H1 then a blockquote summary", () => {
     expect(llms.split("\n").slice(0, 3)).toEqual([
       "# dither-ui",
@@ -24,27 +20,19 @@ describe("llms.txt", () => {
     ])
   })
 
-  it("uses only absolute https links with descriptions and no nesting", () => {
+  it("emits curated absolute https links with descriptions and an Optional section", () => {
+    const links = [...llms.matchAll(/^- \[([^\]]+)\]\((https:\/\/[^)]+)\): (.+)$/gm)]
     expect(links.length).toBeGreaterThan(10)
-    for (const l of links) {
-      expect(l.url).toMatch(/^https:\/\//)
-      expect(l.desc.length).toBeGreaterThan(20)
-    }
+    for (const [, , , desc] of links) expect(desc.length).toBeGreaterThan(20)
+    expect(llms).toContain("## Optional")
     expect(llms).not.toMatch(/^\s{2,}- /m) // no nested bullets
-  })
-
-  it("points every /docs link at an existing section id", () => {
-    const ids = new Set(SECTIONS.map((s) => s.id))
-    const bad = links.filter((l) => {
-      const m = l.url.match(/^https:\/\/dither-ui\.com\/docs\/([a-z0-9-]+)$/)
-      return m ? !ids.has(m[1]) : false
-    })
-    expect(bad.map((b) => b.url)).toEqual([])
   })
 })
 
 describe("robots.txt", () => {
-  it("allows every declared crawler and keeps the sitemap line", () => {
+  const robots = robotsTxt()
+
+  it("allows every declared crawler and derives the sitemap URL from SITE_URL", () => {
     const agents = [...robots.matchAll(/^User-agent: (.+)$/gm)].map((m) => m[1])
     expect(agents).toContain("*")
     for (const a of agents) {
@@ -52,7 +40,22 @@ describe("robots.txt", () => {
       const end = block.indexOf("\nUser-agent:", 1)
       expect(block.slice(0, end === -1 ? undefined : end)).toMatch(/^[\s\S]*Allow: \/\r?$/m)
     }
-    expect(robots).toMatch(/Sitemap: https:\/\/dither-ui\.com\/sitemap\.xml/)
+    expect(robots).toMatch(new RegExp(`Sitemap: ${SITE_URL}/sitemap\\.xml`))
     expect(robots).not.toMatch(/Disallow/)
+  })
+})
+
+describe("sitemap.xml", () => {
+  const xml = sitemapXml()
+
+  it("covers the three route entries and every docs section exactly once", () => {
+    expect(xml).toMatch(`<loc>${SITE_URL}/</loc>`)
+    expect(xml).toMatch(`<loc>${SITE_URL}/docs</loc>`)
+    expect(xml).toMatch(`<loc>${SITE_URL}/studio</loc>`)
+    const locs = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1])
+    const sectionLocs = SECTIONS.map((s) => `${SITE_URL}/docs/${s.id}`)
+    expect(locs).toHaveLength(3 + sectionLocs.length)
+    expect(new Set(locs).size).toBe(locs.length)
+    for (const loc of sectionLocs) expect(locs).toContain(loc)
   })
 })

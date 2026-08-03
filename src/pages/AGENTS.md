@@ -53,10 +53,11 @@ widgets/features; page-specific conventions live here.
   `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
   deep links both restore and remain shareable.
 - Section IA lives in `docs/groups.ts` — the single source for the sidebar,
-  the `/docs/<id>` deep links, and the build-time sitemap (vite.config
-  `sitemap` plugin writes `dist/sitemap.xml`; no hand-maintained public
-  copy). New sections are added to a `*-nav.ts` pack and spread into a group
-  there — never to the sitemap.
+  the `/docs/<id>` deep links, and the build-time crawl files
+  (`crawler-files.ts` generates `dist/sitemap.xml`, `dist/robots.txt`, and
+  `dist/llms.txt` via the vite `crawlFiles` plugin; no hand-maintained
+  public copies). New sections are added to a `*-nav.ts` pack and spread
+  into a group there — never to the sitemap or llms.txt.
 - Search metadata: `docs/seo.ts` derives per-section title, canonical,
   description, and BreadcrumbList JSON-LD from `GROUPS`. `DocsPage` applies
   them to the DOM as `activeId` changes (scroll-spy, deep links, search), so
