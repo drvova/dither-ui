@@ -1,6 +1,24 @@
 # dither-ui
 
+<p align="center">
+  <img src="public/emotes/emote-heart.webp" alt="" width="42" height="38">
+  <img src="public/emotes/emote-sparkles.webp" alt="" width="36" height="41">
+  <img src="public/emotes/emote-note.webp" alt="" width="25" height="27">
+  <img src="public/emotes/emote-bang.webp" alt="" width="20" height="47">
+  <img src="public/emotes/emote-star.webp" alt="" width="40" height="40">
+  <img src="public/emotes/emote-dots.webp" alt="" width="51" height="49">
+</p>
+
 ![Dither Kit banner](public/dither-banner.webp)
+
+<p align="center">
+  <img src="public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
+  <img src="public/emotes/face-smile.webp" alt="Smiling dither face" width="97" height="126">
+  <img src="public/emotes/face-blush.webp" alt="Blushing dither face" width="95" height="126">
+  <img src="public/emotes/face-wink.webp" alt="Winking dither face" width="98" height="126">
+  <img src="public/emotes/face-surprised.webp" alt="Surprised dither face" width="96" height="126">
+  <img src="public/emotes/face-excited.webp" alt="Excited dither face" width="94" height="126">
+</p>
 
 A faithful **Vue 3** port of [Dither Kit](https://tripwire.sh/dither-kit) — composable
 ordered-dither **area, line, bar, pie and radar** charts on one tiny canvas engine,

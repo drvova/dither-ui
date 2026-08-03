@@ -89,7 +89,11 @@ Default section order:
   `VITE_BASE_PATH=/dither-ui/` only when removing the custom domain and using
   the GitHub Pages project URL.
 - Assets: `public/faces.webp` is the measured portrait/emote band;
-  `public/sprites.webp` is the broader character sheet.
+  `public/sprites.webp` is the broader character sheet. `public/emotes/`
+  holds alpha-keyed per-sprite crops of that band (six faces + six emotes,
+  measured coordinates in `LandingPage.vue` FACES) — regenerate from the
+  sheet, don't hand-draw. They decorate the README; the landing still
+  blits from the sheet directly.
 - Crawler surface: `src/pages/docs/crawler-files.ts` generates `dist/sitemap.xml`,
   `dist/robots.txt`, and `dist/llms.txt` at build (vite `crawlFiles` plugin —
   no hand-maintained copies in `public/`). It derives every URL from
