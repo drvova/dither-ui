@@ -1,6 +1,6 @@
 # dither-ui
 
-![Dither Kit banner](public/dither-banner.png)
+![Dither Kit banner](public/dither-banner.webp)
 
 A faithful **Vue 3** port of [Dither Kit](https://tripwire.sh/dither-kit) — composable
 ordered-dither **area, line, bar, pie and radar** charts on one tiny canvas engine,
