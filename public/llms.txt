@@ -1,0 +1,54 @@
+# dither-ui
+
+> dither-ui is a Vue 3 UI toolkit (plus a Svelte 5 port, dither-kit-svelte) rendered on one ordered-dither canvas engine: composable area, line, bar, pie, radar and sparkline charts, 55+ Base UI-parity components, generative backgrounds, text and animation effects — all seed-generative, MIT licensed, and free to use.
+
+dither-ui is not published to a package registry. Install by copying the `dither-kit` folder (or `dither-kit-svelte` for Svelte 5) from the GitHub repository into your project, installing four small runtime dependencies (vue or svelte, tailwindcss, d3-scale, d3-shape), and aliasing the folder. The documentation site is served as prerendered static HTML, so every page below can be fetched directly without a browser.
+
+## Getting started
+
+- [Quick start](https://dither-ui.com/docs/getting-started): Copy the kit folder, install the runtime dependencies, alias it, and render the first component.
+- [Landing page](https://dither-ui.com/): Product overview, the dither identity, and links into docs and studio.
+- [GitHub repository](https://github.com/drvova/dither-ui): Full source for both kits (dither-kit Vue 3, dither-kit-svelte Svelte 5), benchmarks, and this site.
+
+## Charts
+
+- [Area chart](https://dither-ui.com/docs/area): Composable stacked or percent area chart with gradient, dotted, and hatched variants.
+- [Line chart](https://dither-ui.com/docs/line): Multi-series line chart with dither fill, seeds, and sparkle effects.
+- [Bar chart](https://dither-ui.com/docs/bar): Grouped or stacked bars with dither textures.
+- [Pie chart](https://dither-ui.com/docs/pie): Seed-generative pie and donut with legend and tooltips.
+- [Radar chart](https://dither-ui.com/docs/radar): Multi-axis radar with per-series colors.
+- [Sparkline](https://dither-ui.com/docs/sparkline): Tiny inline canvas sparkline, seed-driven.
+
+## Components
+
+- [Button](https://dither-ui.com/docs/button): Gradient, dotted, hatched, and solid fills with pixel bloom.
+- [Avatar](https://dither-ui.com/docs/avatar): Seed-generative pixel portraits with reaction emotes.
+- [Gradient](https://dither-ui.com/docs/gradient): Bayer-faded background wash in four directions.
+- [Image](https://dither-ui.com/docs/image): Ordered-dithers any image into chunky cells.
+- [Form controls](https://dither-ui.com/docs/switch): Switch, checkbox, slider, and progress with unified field states.
+- [Fields and selection](https://dither-ui.com/docs/input): Inputs, textareas, selects, comboboxes, radios, and toggles.
+- [Overlays and menus](https://dither-ui.com/docs/dialog): Dialogs, drawers, popovers, context menus, tooltips, and command palettes.
+- [Structure and layout](https://dither-ui.com/docs/tabs): Tabs, collapsibles, shells, rails, consoles, grids, and infinite canvas.
+- [Navigation and data](https://dither-ui.com/docs/sidebar): Sidebars, nav menus, breadcrumbs, pagination, and tables.
+
+## Backgrounds, text, and animations
+
+- [Backgrounds](https://dither-ui.com/docs/aurora): Full-bleed generative canvas surfaces — aurora, waves, plasma, dark veil, particles.
+- [Text](https://dither-ui.com/docs/gradient-text): DOM and CSS text effects — gradient, shiny, glitch, split, scramble, ASCII.
+- [Animations](https://dither-ui.com/docs/animated-content): Motion and interaction effects — reveals, borders, cursors, magnets.
+
+## Handbook
+
+- [Styling](https://dither-ui.com/docs/styling): Theme tokens, colors, and the dither design language.
+- [Seeds](https://dither-ui.com/docs/seeds): How one integer drives texture, motion, and color deterministically.
+- [Animation](https://dither-ui.com/docs/motion): The dither entrance, replay tokens, and reduced-motion support.
+- [Accessibility](https://dither-ui.com/docs/accessibility): Labels, focus rings, and reduced-motion and reduced-transparency floors.
+
+## Studio
+
+- [Studio](https://dither-ui.com/studio): Infinite-canvas editor to compose, configure, and export dither-ui charts and components as code.
+
+## Optional
+
+- [All documentation](https://dither-ui.com/docs): The complete docs IA — every section lives on this one page; deep links like /docs/avatar scroll to the section.
+- [Svelte port](https://github.com/drvova/dither-ui/tree/master/dither-kit-svelte): Runes-only Svelte 5 port with a verbatim copy of the engine.

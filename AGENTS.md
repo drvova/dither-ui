@@ -90,6 +90,11 @@ Default section order:
   the GitHub Pages project URL.
 - Assets: `public/faces.webp` is the measured portrait/emote band;
   `public/sprites.webp` is the broader character sheet.
+- Crawler surface: `public/robots.txt` declares an explicit allow-all
+  AI-crawler posture (site is public/MIT — keep named allows when policy
+  changes) and `public/llms.txt` is the LLM-facing index (llmstxt.org spec);
+  both are guarded by `tests/crawler-files.spec.ts` (spec shape + every
+  `/docs/` link resolves to a real section id).
 
 ## Workflow Rules
 

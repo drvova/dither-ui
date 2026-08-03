@@ -1,3 +1,30 @@
+# dither-ui — everything on this site is public and MIT licensed; no paths
+# are restricted. The named AI-crawler allows below make that open posture
+# explicit and intentional (the wildcard already permits all crawlers), so
+# the policy stays correct if defaults are ever tightened. See also the
+# LLM-facing index at /llms.txt.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: bingbot
+Allow: /
+
 User-agent: *
 Allow: /
 
