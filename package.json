@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc -b && vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
@@ -32,6 +32,7 @@
     "eslint-plugin-vue": "^10.9.2",
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
+    "playwright-core": "^1.62.1",
     "tailwindcss": "^4.0.0",
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.64.0",
