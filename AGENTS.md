@@ -102,11 +102,12 @@ Default section order:
 - Verification gate before any commit: `npx vue-tsc --noEmit` and
   `npx vite build` green; visual/stateful changes also checked in a live
   browser (vite preview + screenshots).
-- `npm run build` ends with a headless-chromium prerender of `/` and `/docs`
-  (`scripts/prerender.mjs`, devDependency playwright-core) so non-JS crawlers
-  read the real docs DOM from bytes. It requires a chromium binary
-  (`CHROME_PATH` or standard install paths — preinstalled on GitHub Actions
-  ubuntu runners); the script fails loudly rather than skipping. Do not
+- `npm run build` ends with a headless-chromium prerender of `/`, `/docs`,
+  and `/studio` (`scripts/prerender.mjs`, devDependency playwright-core) so
+  non-JS crawlers read the real page DOM from bytes. It requires a chromium
+  binary (`CHROME_PATH` or standard install paths — preinstalled on GitHub
+  Actions ubuntu runners); the script fails loudly rather than skipping. Do
+  not
   hand-edit `dist/*/index.html` output — regenerate via the build.
 - Multiple agents may work this tree concurrently. Stage and commit only the
   files you changed; never revert another agent's uncommitted work — if it

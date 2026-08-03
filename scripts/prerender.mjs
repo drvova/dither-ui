@@ -1,9 +1,9 @@
-// Build-time prerender: snapshots / and /docs into dist as static HTML so
-// non-JS crawlers (Bing, DuckDuckGo, social fetchers) read the real docs DOM
-// from bytes instead of an empty #app shell. Canvas pixels never serialize —
-// text, headings, props tables, and code do, which is what search needs.
-// The module scripts stay in the snapshot, so browsers re-mount the
-// interactive app on top. Runs as the last step of `npm run build`.
+// Build-time prerender: snapshots /, /docs, and /studio into dist as static
+// HTML so non-JS crawlers (Bing, DuckDuckGo, social fetchers) read the real
+// page DOM from bytes instead of an empty #app shell. Canvas pixels never
+// serialize — text, headings, props tables, and code do, which is what
+// search needs. The module scripts stay in the snapshot, so browsers
+// re-mount the interactive app on top. Runs as the last step of `npm run build`.
 import { access, readFile, stat, writeFile } from "node:fs/promises"
 import { createReadStream, existsSync } from "node:fs"
 import { createServer } from "node:http"
@@ -12,9 +12,13 @@ import { fileURLToPath } from "node:url"
 import { chromium } from "playwright-core"
 
 const DIST = fileURLToPath(new URL("../dist", import.meta.url))
+// Each route waits for its own mount signal: the landing's h1, the docs'
+// full section IA (>200 sections = chunk mounted), or the studio's toolbar
+// home link (unconditional once the studio chunk mounts).
 const ROUTES = [
-  { path: "/", entry: "index.html" },
-  { path: "/docs", entry: "docs/index.html" },
+  { path: "/", entry: "index.html", ready: "h1", settle: 1000 },
+  { path: "/docs", entry: "docs/index.html", minSections: 200, settle: 2000 },
+  { path: "/studio", entry: "studio/index.html", ready: 'a[aria-label="dither-ui home"]', settle: 1000 },
 ]
 const MIME = {
   ".html": "text/html", ".js": "text/javascript", ".css": "text/css",
@@ -77,18 +81,18 @@ try {
     const entry = join(DIST, route.entry)
     const meta = extractStaticMeta(await readFile(entry, "utf8"))
     await page.goto(`http://127.0.0.1:${port}${route.path}`, { waitUntil: "networkidle" })
-    if (route.path === "/docs") {
+    if (route.minSections) {
       // The docs chunk is async; wait until the full section IA is mounted,
       // then let canvas-driven layout settle before serializing.
       await page.waitForFunction(
-        () => document.querySelectorAll("section[id]").length > 200,
+        (n) => document.querySelectorAll("section[id]").length > n,
+        route.minSections,
         { timeout: 60_000 }
       )
-      await page.waitForTimeout(2000)
     } else {
-      await page.waitForSelector("h1", { timeout: 30_000 })
-      await page.waitForTimeout(1000)
+      await page.waitForSelector(route.ready, { timeout: 30_000 })
     }
+    await page.waitForTimeout(route.settle)
     await page.evaluate((m) => {
       document.title = m.title
       document.querySelector('link[rel="canonical"]')?.setAttribute("href", m.canonical)
