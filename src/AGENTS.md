@@ -30,8 +30,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   into it.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`; legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported. Route
-  entry HTML files own crawler-visible metadata; `app/App.vue` resolves both
-  path styles. Internal app links and public asset URLs use `routePath()` /
+  entry HTML files own static crawler-visible metadata; docs sections refine
+  it at runtime per `/docs/<id>` (see `pages/AGENTS.md`). `app/App.vue`
+  resolves both path styles. Internal app links and public asset URLs use
+  `routePath()` /
   `assetPath()` from `shared/lib/routes.ts` so the same build works at `/` and
   at the GitHub Pages project base. Add vue-router only when route params
   outgrow this.

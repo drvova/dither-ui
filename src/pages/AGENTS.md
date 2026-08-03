@@ -52,6 +52,16 @@ widgets/features; page-specific conventions live here.
 - Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
   `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
   deep links both restore and remain shareable.
+- Section IA lives in `docs/groups.ts` — the single source for the sidebar,
+  the `/docs/<id>` deep links, and the build-time sitemap (vite.config
+  `sitemap` plugin writes `dist/sitemap.xml`; no hand-maintained public
+  copy). New sections are added to a `*-nav.ts` pack and spread into a group
+  there — never to the sitemap.
+- Search metadata: `docs/seo.ts` derives per-section title, canonical,
+  description, and BreadcrumbList JSON-LD from `GROUPS`. `DocsPage` applies
+  them to the DOM as `activeId` changes (scroll-spy, deep links, search), so
+  Google's renderer sees unique metadata per `/docs/<id>` page. Unknown or
+  empty ids fall back to the generic `/docs` metadata; keep ids unique.
 - Chrome: `.chrome` translucent header (scroll-edge fade, no hard border);
   honors `prefers-reduced-transparency`.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;

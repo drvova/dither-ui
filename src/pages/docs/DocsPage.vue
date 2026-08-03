@@ -30,51 +30,33 @@ import {
   type GradientDirection,
   type PixelBloom,
 } from "@dither-kit"
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue"
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
+import { GROUPS } from "./groups"
+import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
-import { FORM_NAV } from "./components/form-nav"
 import FeedbackDocs from "./components/FeedbackDocs.vue"
-import { FEEDBACK_NAV } from "./components/feedback-nav"
 import StructureDocs from "./components/StructureDocs.vue"
-import { STRUCTURE_NAV } from "./components/structure-nav"
 import LayoutDocs from "./components/LayoutDocs.vue"
-import { LAYOUT_NAV } from "./components/layout-nav"
 import MediaDocs from "./components/MediaDocs.vue"
-import { MEDIA_NAV } from "./components/media-nav"
 import OverlayDocs from "./components/OverlayDocs.vue"
-import { OVERLAY_NAV } from "./components/overlay-nav"
 import FieldDocs from "./components/FieldDocs.vue"
-import { FIELD_NAV } from "./components/field-nav"
 import SelectionDocs from "./components/SelectionDocs.vue"
-import { SELECTION_NAV } from "./components/selection-nav"
 import SurfaceDocs from "./components/SurfaceDocs.vue"
-import { SURFACE_NAV } from "./components/surface-nav"
 import NavigationDocs from "./components/NavigationDocs.vue"
-import { NAVIGATION_NAV } from "./components/navigation-nav"
 import AuthExamples from "./examples/AuthExamples.vue"
-import { AUTH_NAV } from "./examples/auth-nav"
 import ProductExamples from "./examples/ProductExamples.vue"
-import { PRODUCT_NAV } from "./examples/product-nav"
 import SidebarExamples from "./examples/SidebarExamples.vue"
-import { SIDEBAR_NAV } from "./examples/sidebar-nav"
 import StatsExamples from "./examples/StatsExamples.vue"
-import { STATS_NAV } from "./examples/stats-nav"
 import TableExamples from "./examples/TableExamples.vue"
-import { TABLE_NAV } from "./examples/table-nav"
 import ChatExamples from "./examples/ChatExamples.vue"
-import { CHAT_NAV } from "./examples/chat-nav"
 import NotificationsExamples from "./examples/NotificationsExamples.vue"
-import { NOTIFICATIONS_NAV } from "./examples/notifications-nav"
 import BackgroundsDocs from "./backgrounds/BackgroundsDocs.vue"
-import { BACKGROUNDS_NAV } from "./backgrounds/backgrounds-nav"
 import TextDocs from "./text/TextDocs.vue"
-import { TEXT_NAV } from "./text/text-nav"
 import AnimationsDocs from "./animations/AnimationsDocs.vue"
-import { ANIMATIONS_NAV } from "./animations/animations-nav"
 import PropsTable, { type PropRow } from "./PropsTable.vue"
 
 // Believable dashboard numbers, not sine waves.
@@ -406,84 +388,38 @@ const API: Record<string, PropRow[]> = {
   ],
 }
 
-const GROUPS = [
-  {
-    title: "Overview",
-    items: [{ id: "getting-started", label: "Quick start" }],
-  },
-  {
-    title: "Handbook",
-    items: [
-      { id: "styling", label: "Styling" },
-      { id: "composition", label: "Composition" },
-      { id: "seeds", label: "Seeds" },
-      { id: "motion", label: "Animation" },
-      { id: "accessibility", label: "Accessibility" },
-    ],
-  },
-  {
-    title: "Examples",
-    items: [
-      { id: "dashboard", label: "Dashboard" },
-      { id: "shell", label: "App shell" },
-      { id: "monitoring", label: "Monitoring" },
-      { id: "team", label: "Team" },
-      { id: "usage", label: "Usage & billing" },
-      { id: "signin", label: "Sign in" },
-      ...AUTH_NAV,
-      ...PRODUCT_NAV,
-      ...SIDEBAR_NAV,
-      ...STATS_NAV,
-      ...TABLE_NAV,
-      ...CHAT_NAV,
-      ...NOTIFICATIONS_NAV,
-    ],
-  },
-  {
-    title: "Components",
-    items: [
-      { id: "area", label: "Area Chart" },
-      { id: "line", label: "Line Chart" },
-      { id: "bar", label: "Bar Chart" },
-      { id: "pie", label: "Pie Chart" },
-      { id: "radar", label: "Radar Chart" },
-      { id: "sparkline", label: "Sparkline" },
-      { id: "button", label: "Button" },
-      { id: "avatar", label: "Avatar" },
-      { id: "gradient", label: "Gradient" },
-      { id: "image", label: "Image" },
-      ...FORM_NAV,
-      ...FIELD_NAV,
-      ...SELECTION_NAV,
-      ...FEEDBACK_NAV,
-      ...STRUCTURE_NAV,
-      ...LAYOUT_NAV,
-      ...MEDIA_NAV,
-      ...OVERLAY_NAV,
-      ...SURFACE_NAV,
-      ...NAVIGATION_NAV,
-    ],
-  },
-  {
-    title: "Backgrounds",
-    items: [...BACKGROUNDS_NAV],
-  },
-  {
-    title: "Text",
-    items: [...TEXT_NAV],
-  },
-  {
-    title: "Animations",
-    items: [...ANIMATIONS_NAV],
-  },
-  { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
-]
 
 // Wayfinding: the sidebar tracks the section in view, the hash tracks the
 // sidebar — so every section is shareable and survives a reload.
 const activeId = ref("")
 let observer: IntersectionObserver | null = null
 
+/* Per-section search metadata follows the section in view. The docs render
+   client-side from one HTML entry, so Google's renderer reads title,
+   canonical, description, and breadcrumb structured data from the final DOM.
+   `docsMeta("")` falls back to the generic /docs metadata. */
+const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+let breadcrumb: HTMLScriptElement | null = null
+
+function applyDocMeta(id: string) {
+  const m = docsMeta(id)
+  document.title = m.title
+  if (canonical) canonical.href = m.url
+  if (description) description.content = m.description
+  if (m.id && !breadcrumb) {
+    breadcrumb = document.createElement("script")
+    breadcrumb.type = "application/ld+json"
+    breadcrumb.id = "docs-breadcrumb"
+    document.head.appendChild(breadcrumb)
+  }
+  if (m.id && breadcrumb) breadcrumb.textContent = docsBreadcrumb(m.id)
+  else if (!m.id && breadcrumb) {
+    breadcrumb.remove()
+    breadcrumb = null
+  }
+}
+watch(activeId, (id) => applyDocMeta(id), { flush: "post" })
 const smooth = () =>
   matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
 
