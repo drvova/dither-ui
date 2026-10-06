@@ -417,6 +417,22 @@ function setActive(i: number) {
   }
 }
 
+/* Ghost-style focus pull (measured from ghost.ai: .soft-focus whispers at
+   blur(1px), resolves to blur(0), 300ms cubic-bezier(0.4, 0, 0.2, 1)):
+   entering the essay softens the out-of-focus statements while the hovered
+   one stays sharp — a camera focus pull across the text. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .statement {
+    transition:
+      filter 300ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .essay:hover .statement:not(:hover) {
+    filter: blur(1px);
+    opacity: 0.72;
+  }
+}
+
 /* Ghost-style soft focus: --soft (1 = below the fold, 0 = in focus) drives a
    blur through filter only — the GPU-composited property, no will-change
    needed at two elements. The sixth power makes the sharpening accelerate
