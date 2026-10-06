@@ -66,7 +66,8 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
         <button type="button" aria-haspopup="menu" :aria-expanded="projectOpen" class="flex h-8 max-w-48 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground" @click="projectOpen = !projectOpen; libraryOpen = false">
           <span class="truncate">{{ activeProjectName() }}</span><span aria-hidden="true">⌄</span>
         </button>
-        <div v-if="projectOpen" role="menu" class="absolute left-0 top-full mt-1 w-56 rounded-lg border border-border bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]">
+        <Transition name="pop">
+          <div v-if="projectOpen" role="menu" class="absolute left-0 top-full mt-1 w-56 rounded-lg border border-border bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]">
           <button v-for="project in projects" :key="project.id" type="button" role="menuitem" class="flex w-full rounded-md px-2 py-1.5 text-left text-xs" :class="project.id === activeProjectId.value ? 'bg-accent/15 text-foreground' : 'text-muted-foreground hover:bg-background hover:text-foreground'" @click="switchProject(project.id); closeMenus()">{{ project.name }}</button>
           <div class="my-1 h-px bg-border" />
           <button type="button" role="menuitem" class="menu-row" @click="newProject">New project</button>
@@ -75,15 +76,17 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
           <button type="button" role="menuitem" class="menu-row" @click="fileInput?.click(); closeMenus()">Open file</button>
           <div class="my-1 h-px bg-border" />
           <button type="button" role="menuitem" class="menu-row text-red-400" @click="removeProject">Delete project</button>
-        </div>
+          </div>
+        </Transition>
       </div>
     </div>
 
     <div class="pointer-events-auto relative">
-      <button type="button" aria-haspopup="dialog" :aria-expanded="libraryOpen" class="flex h-10 items-center gap-2 rounded-lg border border-border/70 bg-background/95 px-3 text-xs text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.24)] transition-colors hover:bg-card active:scale-[0.96]" @click="libraryOpen = !libraryOpen; projectOpen = false">
+      <button type="button" aria-haspopup="dialog" :aria-expanded="libraryOpen" class="flex h-10 items-center gap-2 rounded-lg border border-border/70 bg-background/95 px-3 text-xs text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.24)] transition-[background-color,scale] hover:bg-card active:scale-[0.96]" @click="libraryOpen = !libraryOpen; projectOpen = false">
         <span aria-hidden="true" class="text-base leading-none">+</span> Library
       </button>
-      <div v-if="libraryOpen" role="dialog" aria-label="Component library" class="absolute left-1/2 top-full mt-2 flex max-h-[min(72vh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]">
+      <Transition name="pop">
+        <div v-if="libraryOpen" role="dialog" aria-label="Component library" class="absolute left-1/2 top-full mt-2 flex max-h-[min(72vh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]">
         <label class="border-b border-border/60 p-2">
           <span class="sr-only">Search components</span>
           <input ref="searchRef" v-model="query" type="search" name="component-search" placeholder="Search 55 components…" class="h-9 w-full rounded-md border border-border bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60" @keydown.esc="libraryOpen = false" />
@@ -111,7 +114,8 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
           </section>
           <p v-if="!grouped.length" class="px-2 py-8 text-center text-xs text-muted-foreground">No components match “{{ query }}”.</p>
         </div>
-      </div>
+        </div>
+      </Transition>
     </div>
 
     <div class="pointer-events-auto flex h-10 items-center gap-0.5 rounded-lg border border-border/70 bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]">
@@ -151,6 +155,12 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
 <style scoped>
 .menu-row { display: block; width: 100%; border-radius: 0.375rem; padding: 0.375rem 0.5rem; text-align: left; font-size: 0.75rem; color: var(--color-muted-foreground); }
 .menu-row:hover { background: var(--color-background); color: var(--color-foreground); }
+/* Menus and popovers: quick rise on enter, softer drop on exit (exits are
+   quieter than enters), house easing, still under reduced motion. */
+.pop-enter-active { transition: opacity 140ms cubic-bezier(0.2, 0, 0, 1), transform 140ms cubic-bezier(0.2, 0, 0, 1); }
+.pop-leave-active { transition: opacity 100ms ease, transform 100ms ease; }
+.pop-enter-from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+.pop-leave-to { opacity: 0; transform: translateY(-2px) scale(0.99); }
 .library-label { padding: 0.25rem 0.5rem; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: color-mix(in oklab, var(--color-muted-foreground) 72%, transparent); }
 .library-item { border-radius: 0.375rem; padding: 0.5rem; font-size: 11px; color: var(--color-muted-foreground); transition: background-color 140ms ease, color 140ms ease; }
 .library-item:hover { background: var(--color-background); color: var(--color-foreground); }
@@ -161,5 +171,5 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
 .tool.wide { padding-inline: 0.5rem; }
 .selection-tools-enter-active, .selection-tools-leave-active { transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), opacity 120ms ease; }
 .selection-tools-enter-from, .selection-tools-leave-to { transform: translate(-50%, 6px); opacity: 0; }
-@media (prefers-reduced-motion: reduce) { .selection-tools-enter-active, .selection-tools-leave-active { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .selection-tools-enter-active, .selection-tools-leave-active { transition: none; } .pop-enter-active, .pop-leave-active { transition: none; } }
 </style>
