@@ -4,10 +4,10 @@ import {
   DitherDarkVeil,
   DitherButton,
   DitherGradient,
-  DitherShinyText,
 } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import { version } from "../../../package.json"
+import EngravedWordmark from "./EngravedWordmark.vue"
 
 const openStudio = () => location.assign(routePath("/studio"))
 
@@ -312,9 +312,10 @@ function setActive(i: number) {
       <div
         :ref="(el) => { if (el) softEls[1] = el as HTMLElement }"
         aria-hidden="true"
-        class="soft pointer-events-none -mb-[0.34em] select-none text-center text-[clamp(5rem,19vw,15rem)] leading-none font-medium tracking-tighter whitespace-nowrap"
+        class="soft mx-auto w-[min(90vw,56rem)] px-6"
+        style="margin-bottom: -5%"
       >
-        <DitherShinyText :speed="0.12" class="opacity-[0.07]">dither-ui</DitherShinyText>
+        <EngravedWordmark />
       </div>
     </footer>
   </div>

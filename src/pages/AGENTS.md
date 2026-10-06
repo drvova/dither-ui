@@ -20,7 +20,12 @@ widgets/features; page-specific conventions live here.
   `getImageData` chroma-keying on the landing.
 - Emote hover reactions are CSS-only (`.emote` + `.group:hover`); no JS timers
   on the landing.
-- Footer signature: cropped giant wordmark at `text-foreground/[0.045]`.
+- Footer signature: engraved wordmark (`EngravedWordmark.vue`) — glyph paths
+  baked from Consolas Bold via `.scratch/engrave/bake.js` into
+  `public/engraved-{rim,letters}.svg` (rim bleeds 100.96%, ghost.ai-style),
+  masked by a shared `objectBoundingBox` clipPath; cursor-driven specular
+  sheen clipped to the letters on hover. Regenerate with the bake script if
+  the wordmark text ever changes.
 
 ### docs/
 
