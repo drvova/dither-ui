@@ -25,7 +25,11 @@ widgets/features; page-specific conventions live here.
   `public/engraved-{rim,letters}.svg` (ghost.ai depth registration: rim
   ×1.0096 centered, letters ×1.0332 at -1.66%/-3.47% — the clip mask
   compensates with the letters' transform), cursor-driven specular sheen
-  clipped to the letters on hover. Regenerate with the bake script if the
+  clipped to the letters on hover. The letters svg is edge-light only — no
+  opaque fill (an opaque magnified layer reads as a doubled wordmark); the
+  dark glyph bodies come from the page showing through. The sheen is a tight
+  cursor pool (~19% wide) — a wide band lights stems across half the mark
+  and reads as misregistered. Regenerate with the bake script if the
   wordmark text ever changes. `max-w-none` on the layer imgs is load-bearing:
   the preflight img cap silently clamps the percentage bleeds.
 

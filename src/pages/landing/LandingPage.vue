@@ -312,8 +312,7 @@ function setActive(i: number) {
       <div
         :ref="(el) => { if (el) softEls[1] = el as HTMLElement }"
         aria-hidden="true"
-        class="soft mx-auto w-[min(90vw,56rem)] px-6"
-        style="margin-bottom: -5%"
+        class="soft mx-auto w-[min(90vw,56rem)] px-6 pb-10"
       >
         <EngravedWordmark />
       </div>

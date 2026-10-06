@@ -91,14 +91,12 @@ function onMove(e: MouseEvent) {
       class="absolute inset-0 opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100"
       style="
         clip-path: url(#wordmark-letters);
-        background:
-          radial-gradient(
-            42% 65% at var(--mx, 50%) var(--my, 30%),
-            rgba(168, 204, 240, 0.28),
-            rgba(168, 204, 240, 0.07) 46%,
-            transparent 72%
-          ),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 34%);
+        background: radial-gradient(
+          19% 56% at var(--mx, 50%) var(--my, 40%),
+          rgba(168, 204, 240, 0.34),
+          rgba(168, 204, 240, 0.1) 48%,
+          transparent 74%
+        );
         mix-blend-mode: screen;
       "
     />
