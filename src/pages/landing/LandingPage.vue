@@ -1,30 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { onBeforeUnmount, onMounted, ref } from "vue"
 import {
-  Area,
-  AreaChart,
-  cssColor,
   DitherDarkVeil,
-  DitherAurora,
-  DitherAvatar,
   DitherButton,
-  DitherConsole,
   DitherGradient,
-  DitherIsland,
   DitherShinyText,
-  type DitherColor,
 } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import { version } from "../../../package.json"
 
-const teaser = Array.from({ length: 18 }, (_, i) => ({
-  v: 5 + Math.sin(i * 0.7) * 2 + Math.sin(i * 1.6) * 1,
-}))
-const teaserConfig = { v: { color: "blue" as DitherColor } }
-const swatches: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
-
 const openStudio = () => location.assign(routePath("/studio"))
-
 
 // Portraits + their reaction emotes, cropped from faces.webp — a thin band
 // sliced out of the source sheet (rows 766..900) so the landing loads ~70KB
@@ -50,6 +35,82 @@ function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number,
   c.getContext("2d")?.drawImage(img, x, y, w, h, 0, 0, c.width, c.height)
 }
 
+// The essay: statements light up as they cross the viewport, the in-focus one's
+// index scales with a spring. A rAF-throttled scroll driver picks the lit set
+// (a ratchet — anything whose top crossed 85% of the viewport, never un-lit)
+// and the active one (the statement whose band is nearest the viewport middle).
+const STAGES = [
+  { lines: ["Every pixel is placed", "on purpose."], n: "01" },
+  { lines: ["Charts, buttons, avatars", "and gradients — rendered", "pixel by pixel on canvas."], n: "02" },
+  { lines: ["One palette: seven seeds;", "fill, line and sparkle hues", "resolve from the same source."], n: "03" },
+  { lines: ["Every fill is deterministic —", "a seed replays it forever, and", "explicit props always win."], n: "04" },
+  { lines: ["Layout, motion and text", "families compose from the", "same dither engine."], n: "05" },
+  { lines: ["Copy the folder, alias it —", "no build step, no black box."], n: "06" },
+]
+
+const stageEls = ref<HTMLElement[]>([])
+const softEls = ref<HTMLElement[]>([])
+const litSet = ref<Set<number>>(new Set())
+const activeIdx = ref(-1)
+let ticking = false
+let reduced = false
+
+function updateEssay() {
+  ticking = false
+  const vh = window.innerHeight
+  const focus = vh * 0.5
+  // At max scroll the lower statements sit below the 0.5vh focus line but above
+  // the fold; light anything whose top crossed 85% of the viewport (a ratchet:
+  // once lit, stays lit — the essay reads as read), and pick the active one as
+  // the statement whose band is nearest the focus line.
+  const lightLine = vh * 0.85
+  const lit = new Set<number>()
+  let active = -1
+  let bestDist = Infinity
+  stageEls.value.forEach((el, i) => {
+    const r = el.getBoundingClientRect()
+    if (r.top < lightLine) lit.add(i)
+    const dist = r.top > focus ? r.top - focus : r.bottom < focus ? focus - r.bottom : 0
+    if (dist < bestDist) {
+      bestDist = dist
+      active = i
+    }
+  })
+  litSet.value = lit
+  activeIdx.value = active
+}
+
+function requestUpdate() {
+  if (!ticking) {
+    ticking = true
+    requestAnimationFrame(updateAll)
+  }
+}
+
+// Ghost-style soft focus: footer content rests blurred and resolves into focus
+// as it scrolls into view. Measured from the reference: blur decays like
+// 12px * (1-p)^6, sharpening slowly at first then snapping clean. The footer
+// is the page's last block, so progress rides its scroll RUNWAY: the distance
+// from "footer top enters the viewport" to max scroll. That guarantees it
+// resolves to exactly 0 by the end of the page — a viewport-relative zone
+// can't, because a short footer's resting top never rises past ~75% vh.
+// --soft is 1 = fully blurred, 0 = sharp.
+function updateSoft() {
+  const footer = softEls.value[0]?.closest("footer")
+  if (!footer) return
+  const max = document.documentElement.scrollHeight - window.innerHeight
+  const footerTop = footer.getBoundingClientRect().top + window.scrollY
+  const start = Math.max(0, footerTop - window.innerHeight) // runway start
+  const p = max > start ? Math.min(1, Math.max(0, (window.scrollY - start) / (max - start))) : 1
+  const soft = (1 - p).toFixed(4)
+  for (const el of softEls.value) el.style.setProperty("--soft", soft)
+}
+
+function updateAll() {
+  updateEssay()
+  updateSoft()
+}
+
 onMounted(() => {
   const img = new Image()
   img.src = assetPath("/faces.webp")
@@ -61,7 +122,28 @@ onMounted(() => {
       if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
     })
   }
+
+  reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  if (reduced) {
+    litSet.value = new Set(STAGES.map((_, i) => i))
+    // Soft focus is decorative: under reduced motion, everything is sharp.
+    for (const el of softEls.value) el.style.setProperty("--soft", "0")
+    return
+  }
+  updateAll()
+  window.addEventListener("scroll", requestUpdate, { passive: true })
+  window.addEventListener("resize", requestUpdate, { passive: true })
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener("scroll", requestUpdate)
+  window.removeEventListener("resize", requestUpdate)
+})
+
+function setActive(i: number) {
+  if (reduced) return
+  activeIdx.value = i
+}
 </script>
 
 <template>
@@ -82,19 +164,20 @@ onMounted(() => {
       </nav>
     </header>
 
-    <!-- Hero: one statement, one action, one visual. -->
-    <main class="relative isolate flex flex-1 flex-col overflow-hidden">
-      <!-- Hero backdrop: a dithered dark veil — near-black with faint blue wisps
-           and a vignette. Opaque, so the CTA stays legible with no mask hack. -->
+    <main class="relative isolate flex flex-1 flex-col">
+      <!-- Page backdrop: one dithered dark veil behind the whole essay, the way
+           the reference floats statements over a fixed cell canvas. -->
       <DitherDarkVeil
         :colors="['#05060a', '#0c1730', '#2f6fd0']"
         :scale="2.6"
         :speed="0.15"
         :intensity="1.5"
         :vignette="0.9"
-        class="pointer-events-none absolute inset-0 -z-10"
+        class="pointer-events-none fixed inset-0 -z-10"
       />
-      <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 pb-14 sm:pt-32">
+
+      <!-- Hero: one statement, one action, one visual. -->
+      <section class="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 pb-14 sm:pt-28">
         <h1
           class="reveal max-w-xl text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.15] tracking-tight text-balance"
         >
@@ -121,8 +204,7 @@ onMounted(() => {
             Open studio
           </DitherButton>
         </div>
-
-      </div>
+      </section>
 
       <!-- Six moods, one row — hover a face and her emote answers -->
       <p
@@ -134,7 +216,7 @@ onMounted(() => {
       <div
         role="img"
         aria-label="Pixel-art character portraits in six expressions"
-        class="reveal flex flex-wrap justify-center gap-7 pb-16"
+        class="reveal flex flex-wrap justify-center gap-7 pb-24"
         style="--reveal-delay: 300ms"
       >
         <div v-for="(f, i) in FACES" :key="i" class="group relative pt-10">
@@ -151,97 +233,56 @@ onMounted(() => {
           />
         </div>
       </div>
+
+      <!-- The essay: six numbered statements that light up as you scroll.
+           The index rail (01–06) scales + springs on the in-focus one. -->
+      <section aria-label="What the kit does" class="mx-auto w-full max-w-4xl px-6 pb-16 sm:pb-24">
+        <ol class="essay mx-auto flex list-none flex-col p-0" style="--m-essay: 42rem">
+          <li
+            v-for="(s, i) in STAGES"
+            :key="s.n"
+            :ref="(el) => { if (el) stageEls[i] = el as HTMLElement }"
+            class="statement"
+            :class="litSet.has(i) ? 'is-lit' : ''"
+            :data-n="s.n"
+            :data-active="activeIdx === i ? 'true' : 'false'"
+            @mouseenter="setActive(i)"
+            @focusin="setActive(i)"
+          >
+            <span v-for="line in s.lines" :key="line" class="block">{{ line }}</span>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Closing band: full-bleed elevated surface, one display line, one CTA. -->
+      <section class="bleed">
+        <div class="mx-auto flex w-full flex-col items-center gap-9 px-6 py-24 text-center">
+          <h2 class="display max-w-xl text-[clamp(1.875rem,4.2vw,3.375rem)] font-normal leading-[1.08] tracking-[-0.032em]">
+            Pixel by pixel,<br />on canvas.
+          </h2>
+          <div class="flex flex-wrap justify-center gap-3">
+            <DitherButton
+              color="blue"
+              variant="gradient"
+              class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
+              @click="openStudio"
+            >
+              Open studio
+            </DitherButton>
+            <DitherButton
+              color="grey"
+              variant="dotted"
+              class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
+            >
+              <a :href="routePath('/docs')">Read the docs</a>
+            </DitherButton>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <!-- Inside the kit: six quiet tiles, one action for the group -->
-    <section class="border-t border-border/60">
-      <div class="mx-auto w-full max-w-4xl px-6 py-20">
-        <div class="flex items-baseline justify-between">
-          <p class="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">inside the kit</p>
-          <a :href="routePath('/docs')" class="-m-3 p-3 text-[11px] text-muted-foreground transition-colors hover:text-foreground">read the docs →</a>
-        </div>
-        <div class="mt-12 grid gap-x-12 gap-y-14 sm:grid-cols-3">
-          <a :href="routePath('/docs')" class="group block">
-            <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <AreaChart :data="teaser" :config="teaserConfig" :seed="1984" :interactive="false" :margins="{ top: 4, right: 0, bottom: 0, left: 0 }">
-                <Area data-key="v" variant="gradient" />
-              </AreaChart>
-            </div>
-            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Charts</h3>
-            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
-              Area, line, bar, pie and radar — composed from parts, dithered per cell.
-            </p>
-          </a>
-          <a :href="routePath('/docs')" class="group block">
-            <div inert class="flex h-24 flex-wrap content-center gap-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <DitherButton color="blue" variant="gradient" :bloom="1984">Save</DitherButton>
-              <DitherButton color="green" variant="solid" :bloom="7">Run</DitherButton>
-              <DitherAvatar v-for="n in ['ada', 'grace']" :key="n" :name="n" :size="32" />
-            </div>
-            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Primitives</h3>
-            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
-              Buttons, avatars, gradients and images — every fill drawn on canvas.
-            </p>
-          </a>
-          <a :href="routePath('/docs')" class="group block">
-            <div inert class="flex h-24 content-center items-center gap-3 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <span
-                v-for="c in swatches"
-                :key="c"
-                class="size-5 rounded-[3px]"
-                :style="{
-                  backgroundColor: 'transparent',
-                  backgroundImage: `radial-gradient(${cssColor(c)} 1.1px, transparent 1.1px), radial-gradient(${cssColor(c)} 0.8px, transparent 0.8px)`,
-                  backgroundSize: '4px 4px, 4px 4px',
-                  backgroundPosition: '0 0, 2px 2px',
-                }"
-              />
-            </div>
-            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">One palette</h3>
-            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
-              Seven seeds; fill, line and sparkle hues resolve from the same source.
-            </p>
-          </a>
-          <a :href="routePath('/docs/dither-shell')" class="group block">
-            <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <DitherConsole
-                :lines="[{ text: '$ vite build' }, { text: 'built in 4.2s', level: 'success' }]"
-                title="console"
-                caret
-                :follow="false"
-                class="h-full"
-              />
-            </div>
-            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Layout</h3>
-            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
-              Shell, rail, console, canvas, grid — dashboards composed from slots.
-            </p>
-          </a>
-          <a :href="routePath('/docs/island')" class="group block">
-            <div inert class="flex h-24 items-center transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <DitherIsland label="Deploy running" color="green" live class="w-full max-w-56">
-                Build 214 · 3 of 5 steps done.
-              </DitherIsland>
-            </div>
-            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Motion</h3>
-            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
-              Islands, decks, docks, palettes — gestures on the kit's own math.
-            </p>
-          </a>
-          <a :href="routePath('/docs/aurora')" class="group block">
-            <div inert class="h-24 overflow-hidden rounded-md border border-border/60 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
-              <DitherAurora class="h-full w-full" />
-            </div>
-            <h3 class="mt-5 text-[13px] text-foreground/90 transition-colors group-hover:text-foreground">Backgrounds</h3>
-            <p class="mt-1.5 text-[11px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
-              Fifty generative surfaces — aurora to terminal, one Bayer engine.
-            </p>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer: one quiet line, then the wordmark sinking below the fold -->
+    <!-- Footer: soft-focus like the ghost reference — blurred at rest, the
+         whole footer resolves into focus as it scrolls into view. -->
     <footer class="relative isolate overflow-hidden border-t border-border/60">
       <DitherGradient
         from="blue"
@@ -252,7 +293,10 @@ onMounted(() => {
         render-mode="static"
         class="-z-10"
       />
-      <div class="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-[11px] text-muted-foreground">
+      <div
+        :ref="(el) => { if (el) softEls[0] = el as HTMLElement }"
+        class="soft mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-[11px] text-muted-foreground"
+      >
         <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
         <div class="flex items-center gap-4">
           <a
@@ -266,8 +310,9 @@ onMounted(() => {
         </div>
       </div>
       <div
+        :ref="(el) => { if (el) softEls[1] = el as HTMLElement }"
         aria-hidden="true"
-        class="pointer-events-none -mb-[0.34em] select-none text-center text-[clamp(5rem,19vw,15rem)] leading-none font-medium tracking-tighter whitespace-nowrap"
+        class="soft pointer-events-none -mb-[0.34em] select-none text-center text-[clamp(5rem,19vw,15rem)] leading-none font-medium tracking-tighter whitespace-nowrap"
       >
         <DitherShinyText :speed="0.12" class="opacity-[0.07]">dither-ui</DitherShinyText>
       </div>
@@ -293,12 +338,96 @@ onMounted(() => {
   }
 }
 
+/* The essay. Values measured from the reference: line clamp 16→46px,
+   -0.03em tracking, 1.05 leading, 0.52s lit transition with the
+   cubic-bezier(0.22, 1, 0.36, 1) settle; index 10px, 0.1em tracking,
+   1.55× spring scale on the active one. */
+.essay {
+  --rail: clamp(2rem, 3.6vw, 3.5rem);
+  --line: clamp(1rem, 5.3vw, 2.875rem);
+  gap: clamp(2.375rem, 4.3vw, 3.875rem);
+  padding-left: var(--rail);
+  max-width: calc(42rem + var(--rail));
+}
+
+.statement {
+  position: relative;
+  font-size: var(--line);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--color-muted-foreground);
+  text-wrap: pretty;
+  transition: color 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.statement.is-lit {
+  color: var(--color-foreground);
+}
+
+.statement::after {
+  content: attr(data-n);
+  position: absolute;
+  top: 0.34em;
+  left: calc(-1 * var(--rail));
+  width: var(--rail);
+  padding-right: 0.8125rem;
+  text-align: right;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  color: color-mix(in oklab, var(--color-muted-foreground) 40%, transparent);
+  transform-origin: 100% center;
+  transition:
+    color 200ms ease,
+    transform 620ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.statement.is-lit::after {
+  color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent);
+}
+
+.statement[data-active="true"]::after {
+  color: var(--swatch-orange);
+  transform: scale(1.55);
+}
+
+/* Closing band: an elevated, slightly lighter surface than the page. */
+.bleed {
+  background: color-mix(in oklab, var(--color-foreground) 4%, transparent);
+  border-block: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     animation: none;
   }
   .emote {
     transition: none;
+  }
+  .statement {
+    transition: none;
+  }
+  .statement::after {
+    transition: none;
+  }
+  .statement[data-active="true"]::after {
+    transform: none;
+  }
+}
+
+/* Ghost-style soft focus: --soft (1 = below the fold, 0 = in focus) drives a
+   blur through filter only — the GPU-composited property, no will-change
+   needed at two elements. The sixth power makes the sharpening accelerate
+   near the end, matching the reference's measured curve. */
+.soft {
+  filter: blur(calc(var(--soft, 1) * var(--soft, 1) * var(--soft, 1) * var(--soft, 1) * var(--soft, 1) * var(--soft, 1) * 12px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soft {
+    filter: none;
   }
 }
 
