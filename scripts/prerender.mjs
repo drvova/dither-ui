@@ -28,12 +28,21 @@ const MIME = {
 }
 
 function findChromium() {
+  const programFiles = process.env["ProgramFiles"] ?? "C:\\Program Files"
+  const programFilesX86 = process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)"
+  const localAppData = process.env.LOCALAPPDATA ?? ""
   const candidates = [
     process.env.CHROME_PATH,
     "/usr/bin/google-chrome",
     "/usr/bin/google-chrome-stable",
     "/usr/bin/chromium",
     "/usr/bin/chromium-browser",
+    // Windows install paths (chrome stable, then Edge — both are chromium)
+    `${programFiles}\\Google\\Chrome\\Application\\chrome.exe`,
+    `${programFilesX86}\\Google\\Chrome\\Application\\chrome.exe`,
+    localAppData ? `${localAppData}\\Google\\Chrome\\Application\\chrome.exe` : "",
+    `${programFilesX86}\\Microsoft\\Edge\\Application\\msedge.exe`,
+    `${programFiles}\\Microsoft\\Edge\\Application\\msedge.exe`,
   ].filter(Boolean)
   const found = candidates.find((p) => existsSync(p))
   if (!found)
