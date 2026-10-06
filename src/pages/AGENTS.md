@@ -22,10 +22,12 @@ widgets/features; page-specific conventions live here.
   on the landing.
 - Footer signature: engraved wordmark (`EngravedWordmark.vue`) — glyph paths
   baked from Consolas Bold via `.scratch/engrave/bake.js` into
-  `public/engraved-{rim,letters}.svg` (rim bleeds 100.96%, ghost.ai-style),
-  masked by a shared `objectBoundingBox` clipPath; cursor-driven specular
-  sheen clipped to the letters on hover. Regenerate with the bake script if
-  the wordmark text ever changes.
+  `public/engraved-{rim,letters}.svg` (ghost.ai depth registration: rim
+  ×1.0096 centered, letters ×1.0332 at -1.66%/-3.47% — the clip mask
+  compensates with the letters' transform), cursor-driven specular sheen
+  clipped to the letters on hover. Regenerate with the bake script if the
+  wordmark text ever changes. `max-w-none` on the layer imgs is load-bearing:
+  the preflight img cap silently clamps the percentage bleeds.
 
 ### docs/
 
