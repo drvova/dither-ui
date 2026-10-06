@@ -39,13 +39,28 @@ const MASK_SCALE_Y = (1 / VB_H) * LETTER_SCALE
 const MASK_TRANSFORM = `translate(${LETTER_DX} ${LETTER_DY}) scale(${MASK_SCALE_X} ${MASK_SCALE_Y})`
 
 const sheen = ref<HTMLElement | null>(null)
+const lit = ref<HTMLImageElement | null>(null)
+
+// Cursor pool that reveals the lit letter bodies — a soft round pool in the
+// lit layer's own coordinate space.
+const POOL_MASK =
+  "radial-gradient(11rem 9rem at var(--px, 50%) var(--py, 40%), black 0%, rgba(0, 0, 0, 0.55) 45%, transparent 72%)"
 
 function onMove(e: MouseEvent) {
-  const el = sheen.value
-  if (!el) return
-  const r = el.getBoundingClientRect()
-  el.style.setProperty("--mx", `${((e.clientX - r.left) / r.width) * 100}%`)
-  el.style.setProperty("--my", `${((e.clientY - r.top) / r.height) * 100}%`)
+  const s = sheen.value
+  const r = s?.getBoundingClientRect()
+  if (s && r) {
+    s.style.setProperty("--mx", `${((e.clientX - r.left) / r.width) * 100}%`)
+    s.style.setProperty("--my", `${((e.clientY - r.top) / r.height) * 100}%`)
+  }
+  // the lit layer lives in the magnified letters' box — resolve the cursor in
+  // ITS space so the pool centers exactly under the hand
+  const l = lit.value
+  const lr = l?.getBoundingClientRect()
+  if (l && lr) {
+    l.style.setProperty("--px", `${((e.clientX - lr.left) / lr.width) * 100}%`)
+    l.style.setProperty("--py", `${((e.clientY - lr.top) / lr.height) * 100}%`)
+  }
 }
 </script>
 
@@ -84,18 +99,34 @@ function onMove(e: MouseEvent) {
       :style="LETTERS_BOX"
     />
 
-    <!-- Interactive fill, clipped to the glyphs: faint top gloss at rest, a
-         specular sheen that tracks the cursor on hover -->
+    <!-- Lit letter bodies: the glyphs FILLED with glass light, bounded by the
+         shared glyph mask and revealed only inside a cursor-driven pool
+         (mask-image), so the light takes the letterforms' shape -->
+    <img
+      :ref="(el) => { if (el) lit = el as HTMLImageElement }"
+      :src="assetPath('/engraved-lit.svg')"
+      alt=""
+      class="pointer-events-none absolute max-w-none opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100"
+      :style="{
+        ...LETTERS_BOX,
+        clipPath: 'url(#wordmark-letters)',
+        maskImage: POOL_MASK,
+        WebkitMaskImage: POOL_MASK,
+        mixBlendMode: 'screen',
+      }"
+    />
+
+    <!-- Faint halo bloom trailing the cursor (the lit bodies above carry the
+         shape; this only bleeds a little light past their edges) -->
     <span
       :ref="(el) => { if (el) sheen = el as HTMLElement }"
       class="absolute inset-0 opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100"
       style="
         clip-path: url(#wordmark-letters);
         background: radial-gradient(
-          19% 56% at var(--mx, 50%) var(--my, 40%),
-          rgba(168, 204, 240, 0.34),
-          rgba(168, 204, 240, 0.1) 48%,
-          transparent 74%
+          24% 62% at var(--mx, 50%) var(--my, 40%),
+          rgba(168, 204, 240, 0.12),
+          transparent 70%
         );
         mix-blend-mode: screen;
       "
