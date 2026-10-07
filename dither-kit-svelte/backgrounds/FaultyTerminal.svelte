@@ -17,6 +17,7 @@
     digitSize?: number
     timeScale?: number
     pause?: boolean
+    frameRate?: number
     scanlineIntensity?: number
     glitchAmount?: number
     flickerAmount?: number
@@ -42,6 +43,7 @@
     digitSize = 1.2,
     timeScale = 1,
     pause = false,
+    frameRate = 0,
     scanlineIntensity = 1,
     glitchAmount = 1,
     flickerAmount = 1,
@@ -96,6 +98,7 @@
     maxRows: MAX_ROWS,
     dpr: 1,
     paused: pause,
+    frameRate,
     renderMode,
     precompiled,
     timeScale,

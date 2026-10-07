@@ -13,9 +13,10 @@ patterns and the rest follows the same mechanical translation.
 - Owns the Svelte-flavoured component surface and the framework glue that the
   Vue kit expresses with the Composition API (lifecycle, reactivity, context).
 - The rendering ENGINE is NOT owned here. The Vue kit's Vue-free `.ts` engine
-  modules (palette, pixel, raster, noise, precompile, dither-paint, the `paint*`
-  families) are copied VERBATIM. `../dither-kit` stays the single source of
-  truth for engine math; a change there is re-copied here, not re-invented.
+  modules (palette, pixel, raster, noise, precompile, dither-paint, timing, the
+  `paint*` families) are copied VERBATIM. `../dither-kit` stays the single
+  source of truth for engine math; a change there is re-copied here
+  (`cp ../dither-kit/timing.ts engine/timing.ts`), not re-invented.
 
 ## Local Contracts
 
@@ -30,11 +31,19 @@ patterns and the rest follows the same mechanical translation.
 - `use-dither-background.ts` is the shared background runtime, ported from the
   Vue composable to the `ditherBackground` ACTION: it owns the throttled rAF
   loop, backing buffer + upload, IntersectionObserver visibility gate, resize,
-  dpr, the static/reduced-motion single frame, and teardown. A new background is
+  dpr, the static/reduced-motion single frame, and teardown. Its optional
+  `frameRate` param gates painting on `engine/timing.frameIndex` boundaries —
+  between boundaries the raster is held (stop-motion cadence, no upload),
+  0/undefined keeps the smooth ~30fps throttle; every background passes a
+  `frameRate` prop (default 0) through. A new background is
   an engine `paint*` fn plus a thin `.svelte` that binds a canvas and passes a
   `render(buffer, clock, dt, elapsed)` callback and a `restartKey` — never
   re-implement the loop per component. The action restarts when `restartKey`
   changes and always paints with the latest `render` closure.
+- Step-timing parity: `engine/timing.ts` has no Svelte-side test suite —
+  `tests/timing.spec.ts` in the Vue kit pins the css-easing-1 parity table for
+  BOTH copies (verbatim rule above), so re-copy on change and keep that table
+  green there.
 - Self-contained canvas components (e.g. `DitherButton`) put their paint loop in
   a LOCAL action, deferring the first `init` through `requestAnimationFrame` to
   avoid a forced reflow — mirroring the Vue component's rAF defer.
@@ -152,8 +161,8 @@ and re-exports everything. Internal imports are relative across folders
 (`../engine/pixel`, `../runtime/lib`); consumers only ever touch `index.ts`.
 
 - `engine/` — framework-agnostic paint & math `.ts` (palette, pixel, raster,
-  noise, precompile, dither-paint, scales, polar, dot-paint, every `paint*`
-  module). Copied verbatim from `dither-kit`; re-copy with
+  noise, precompile, dither-paint, timing, scales, polar, dot-paint, every
+  `paint*` module). Copied verbatim from `dither-kit`; re-copy with
   `cp ../dither-kit/X.ts engine/X.ts`.
 - `runtime/` — shared Svelte seams reused across families: `lib` (cn),
   `control` (tokens + field context), `in-view`, `portal`, `canvas-mount`,

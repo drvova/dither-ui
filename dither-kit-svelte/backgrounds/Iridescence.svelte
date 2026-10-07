@@ -19,6 +19,7 @@
     opacity?: number
     dither?: number | boolean
     paused?: boolean
+    frameRate?: number
     dpr?: number
     mixBlendMode?: string
     seed?: number
@@ -35,6 +36,7 @@
     opacity = 1,
     dither = 1,
     paused = false,
+    frameRate = 0,
     dpr,
     mixBlendMode,
     seed,
@@ -67,6 +69,7 @@
     maxRows: MAX_ROWS,
     dpr,
     paused,
+    frameRate,
     renderMode,
     precompiled,
     restartKey: JSON.stringify([seed, renderMode, precompiled, dpr]),

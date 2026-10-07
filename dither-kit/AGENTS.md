@@ -94,7 +94,11 @@ is its showcase and editor.
   lifecycle. Its optional `frameRate` getter gates painting on
   `timing.frameIndex` boundaries — between boundaries the raster is held
   (stop-motion cadence, no upload), 0/undefined keeps the smooth ~30fps
-  throttle. A new background is just an `engine.ts` `paint*` fn plus a thin `.vue`
+  throttle. EVERY background component exposes the matching `frameRate` prop
+  (default 0) and passes it through; the studio registry row and the docs API
+  table carry the same row — `scripts/frame-rate-codemod.ts` keeps all four
+  surfaces in step (strict anchors, idempotent, `--dry` to preview). A new
+  background is just an `engine.ts` `paint*` fn plus a thin `.vue`
   that resolves props and passes a `render(buffer, clock, dt, elapsed)` callback —
   never re-implement the loop per component. Per-frame extras stay in `render`:
   page-load fade reads `elapsed`, eased pointers read `dt`.

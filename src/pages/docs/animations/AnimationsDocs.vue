@@ -258,6 +258,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "glow", type: "number", default: "1.5" },
     { prop: "mouse-interaction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   metallicPaint: [
     { prop: "colors", type: "string[] (hex)", default: "['#1A1A22', '#8890A0', '#E8ECF4']" },
@@ -265,6 +266,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "speed", type: "number", default: "0.4" },
     { prop: "distortion", type: "number", default: "0.6" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   noise: [
     { prop: "colors", type: "string[] (hex)", default: "['#3DA5FF', '#7CE0FF', '#FFFFFF']" },
@@ -272,12 +274,14 @@ const API: Record<string, PropRow[]> = {
     { prop: "density", type: "number (0-1)", default: "0.5" },
     { prop: "opacity", type: "number (0-1)", default: "1" },
     { prop: "paused", type: "boolean", default: "false" },
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   cubes: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#CFFFDF']" },
     { prop: "scale", type: "number", default: "6" },
     { prop: "speed", type: "number", default: "0.4" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   ribbons: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
@@ -286,6 +290,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "amplitude", type: "number", default: "1" },
     { prop: "mouse-interaction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   shapeBlur: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67']" },
@@ -293,6 +298,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "softness", type: "number", default: "0.3" },
     { prop: "mouse-interaction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   strands: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CE0FF']" },
@@ -300,6 +306,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "sway", type: "number", default: "0.15" },
     { prop: "line-width", type: "number", default: "0.01" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   laserFlow: [
     { prop: "colors", type: "string[] (hex)", default: "['#FF3D2E', '#FFD23D', '#FFFFFF']" },
@@ -307,6 +314,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "beam-width", type: "number", default: "0.02" },
     { prop: "glow", type: "number", default: "1" },
     ...SHARED_CANVAS,
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   antigravity: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },

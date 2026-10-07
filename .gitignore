@@ -20,3 +20,4 @@ sources*.zip
 !.scratch/engrave/
 .scratch/engrave/node_modules/
 .scratch/engrave/bun.lock
+/bun.lock

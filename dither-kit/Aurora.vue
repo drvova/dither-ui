@@ -40,6 +40,7 @@ const props = withDefaults(
     opacity: 1,
     dither: 1,
     paused: false,
+    frameRate: 0,
     renderMode: "live",
   }
 )

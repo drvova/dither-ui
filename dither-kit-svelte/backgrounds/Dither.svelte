@@ -18,6 +18,7 @@
     speed?: number
     opacity?: number
     paused?: boolean
+    frameRate?: number
     dpr?: number
     mixBlendMode?: string
     seed?: number
@@ -32,6 +33,7 @@
     speed = 0.5,
     opacity = 1,
     paused = false,
+    frameRate = 0,
     dpr,
     mixBlendMode,
     seed,
@@ -62,6 +64,7 @@
     maxRows: MAX_ROWS,
     dpr,
     paused,
+    frameRate,
     renderMode,
     precompiled,
     restartKey: JSON.stringify([seed, renderMode, precompiled, dpr]),

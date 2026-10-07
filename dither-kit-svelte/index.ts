@@ -234,3 +234,4 @@ export { CONTROL, CONTROL_BUTTON, POPOVER, setField, useField, type FieldContext
 // avoid barrel name collisions. Only the className helper is surfaced here.
 export { cn } from "./runtime/lib"
 export { cssColor, rgb, type DitherColor } from "./engine/palette"
+export { linear, steps, frameSteps, frameIndex, cssSteps, type Easing, type StepPosition } from "./engine/timing"

@@ -42,6 +42,7 @@
     mouseDampening?: number
     mixBlendMode?: string
     paused?: boolean
+    frameRate?: number
     dpr?: number
     seed?: number
     renderMode?: DitherRenderMode
@@ -68,6 +69,7 @@
     mouseDampening = 0.15,
     mixBlendMode,
     paused = false,
+    frameRate = 0,
     dpr,
     seed,
     renderMode = "live",
@@ -114,6 +116,7 @@
     maxRows: MAX_ROWS,
     dpr,
     paused,
+    frameRate,
     renderMode,
     precompiled,
     restartKey: JSON.stringify([seed, renderMode, precompiled, dpr]),

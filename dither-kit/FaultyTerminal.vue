@@ -19,6 +19,7 @@ const props = withDefaults(
     digitSize?: number
     timeScale?: number
     pause?: boolean
+    frameRate?: number
     scanlineIntensity?: number
     glitchAmount?: number
     flickerAmount?: number
@@ -43,6 +44,7 @@ const props = withDefaults(
     digitSize: 1.2,
     timeScale: 1,
     pause: false,
+    frameRate: 0,
     scanlineIntensity: 1,
     glitchAmount: 1,
     flickerAmount: 1,
@@ -96,6 +98,7 @@ useDitherBackground({
   maxRows: MAX_ROWS,
   dpr: () => 1,
   paused: () => props.pause,
+  frameRate: () => props.frameRate,
   renderMode: () => props.renderMode,
   precompiled: () => precompiled.value,
   restart: () => [props.seed, props.renderMode, precompiled.value, props.pageLoadAnimation],

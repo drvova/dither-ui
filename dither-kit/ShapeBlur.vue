@@ -24,6 +24,7 @@ const props = withDefaults(
     mouseInteraction?: boolean
     mouseStrength?: number
     paused?: boolean
+    frameRate?: number
     dpr?: number
     mixBlendMode?: string
     seed?: number
@@ -41,6 +42,7 @@ const props = withDefaults(
     mouseInteraction: true,
     mouseStrength: 0.5,
     paused: false,
+    frameRate: 0,
     renderMode: "live",
   }
 )
@@ -72,6 +74,7 @@ useDitherBackground({
   maxRows: MAX_ROWS,
   dpr: () => props.dpr,
   paused: () => props.paused,
+  frameRate: () => props.frameRate,
   renderMode: () => props.renderMode,
   precompiled: () => precompiled.value,
   restart: () => [props.seed, props.renderMode, precompiled.value, props.dpr],

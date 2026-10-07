@@ -22,6 +22,7 @@
     dither?: number | boolean
     mouseInteraction?: boolean
     paused?: boolean
+    frameRate?: number
     dpr?: number
     mixBlendMode?: string
     seed?: number
@@ -40,6 +41,7 @@
     dither = 1,
     mouseInteraction = true,
     paused = false,
+    frameRate = 0,
     dpr,
     mixBlendMode,
     seed,
@@ -75,6 +77,7 @@
     maxRows: MAX_ROWS,
     dpr,
     paused,
+    frameRate,
     renderMode,
     precompiled,
     restartKey: JSON.stringify([seed, renderMode, precompiled, dpr]),
