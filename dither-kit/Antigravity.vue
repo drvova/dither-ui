@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
+import { useInviewLoop } from "./use-inview-loop"
 
 const props = withDefaults(
   defineProps<{
@@ -60,17 +61,26 @@ function frame() {
   ctx.globalAlpha = 1
 }
 
+function start() {
+  if (raf || pixelPrefersReducedMotion()) return
+  raf = requestAnimationFrame(frame)
+}
+function stop() {
+  if (!raf) return
+  cancelAnimationFrame(raf)
+  raf = 0
+}
+
 onMounted(() => {
   resize()
   init()
   ro = new ResizeObserver(() => resize())
   if (wrap.value) ro.observe(wrap.value)
-  if (!pixelPrefersReducedMotion()) raf = requestAnimationFrame(frame)
 })
 onBeforeUnmount(() => {
-  if (raf) cancelAnimationFrame(raf)
   ro?.disconnect()
 })
+useInviewLoop(wrap, start, stop)
 </script>
 
 <template>

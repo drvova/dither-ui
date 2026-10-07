@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+import { computed, ref } from "vue"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
+import { useInviewLoop } from "./use-inview-loop"
 
 const props = withDefaults(
   defineProps<{
@@ -42,13 +43,17 @@ function frame() {
   }
 }
 
-onMounted(() => {
-  if (pixelPrefersReducedMotion()) return
+function start() {
+  if (raf || pixelPrefersReducedMotion()) return
   raf = requestAnimationFrame(frame)
-})
-onBeforeUnmount(() => {
-  if (raf) cancelAnimationFrame(raf)
-})
+}
+function stop() {
+  if (!raf) return
+  cancelAnimationFrame(raf)
+  raf = 0
+}
+
+useInviewLoop(area, start, stop)
 </script>
 
 <template>

@@ -58,6 +58,15 @@ widgets/features; page-specific conventions live here.
 - Component section anatomy: `<section id>` → heading row (h2 + optional
   "open in studio →") → muted description → `DemoCard` (Preview/Code tabs) →
   optional picker gallery (micro-label + grid) → `PropsTable`.
+- DemoCard is the page's perf seam: its preview `<slot>` mounts only as the
+  card approaches the viewport (IO, 600px rootMargin) and LATCHES — once
+  revealed it stays, so demo interaction state never resets on scroll; the
+  Code tab mounts `CodeBlock` on first open (`v-if` — under the old `v-show`
+  every hidden code block highlighted at initial mount). Section text,
+  standalone Handbook CodeBlocks and PropsTables render eagerly, and the
+  preview frame keeps `min-h-[280px]` so the box exists from first paint and
+  below-fold growth never shifts visible content. Without IO (jsdom) the
+  slot renders immediately — tests stay on the eager path.
 - Galleries and chip rows are PICKERS, not decoration: `aria-pressed`
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs

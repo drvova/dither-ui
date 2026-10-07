@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from "vue"
+import { onMounted, ref } from "vue"
 import { ETHICALADS_PUBLISHER } from "@/shared/config/ads"
 
 /** One EthicalAds text unit, dressed in the house tokens. Renders nothing
@@ -13,8 +13,11 @@ declare global {
   }
 }
 
-onMounted(() => {
-  if (!ETHICALADS_PUBLISHER) return
+const root = ref<HTMLElement | null>(null)
+let scheduled = false
+let io: IntersectionObserver | null = null
+
+function start() {
   if (window.ethicalads) {
     window.ethicalads.load()
     return
@@ -27,11 +30,51 @@ onMounted(() => {
     s.onload = () => window.ethicalads?.load()
     document.head.appendChild(s)
   }
+}
+
+/** Eligible: load the library once the document has finished loading plus a
+ * beat, so its work (measured: ~440 rAF/s the moment it evaluates) lands
+ * clear of first paint, LCP and the mount tasks. */
+function schedule() {
+  if (scheduled) return
+  scheduled = true
+  const go = () => setTimeout(start, 1500)
+  if (document.readyState === "complete") go()
+  else window.addEventListener("load", go, { once: true })
+}
+
+onMounted(() => {
+  if (!ETHICALADS_PUBLISHER) return
+  // Gate on the slot actually approaching the viewport: the aside is
+  // display:none under lg, so phones never pay for the ad at all. The gate is
+  // IntersectionObserver on purpose — Safari has no requestIdleCallback —
+  // and an 8s-after-load safety net means a missed observation can never
+  // strand the unit. The guard on `started` keeps both paths single-fire.
+  if (typeof IntersectionObserver !== "undefined" && root.value) {
+    io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io?.disconnect()
+          io = null
+          schedule()
+        }
+      },
+      { rootMargin: "300px" },
+    )
+    io.observe(root.value)
+    window.addEventListener(
+      "load",
+      () => setTimeout(() => { if (io) { io.disconnect(); io = null; schedule() } }, 8000),
+      { once: true },
+    )
+  } else {
+    schedule()
+  }
 })
 </script>
 
 <template>
-  <div v-if="ETHICALADS_PUBLISHER" class="ad-slot mt-8">
+  <div v-if="ETHICALADS_PUBLISHER" ref="root" class="ad-slot mt-8">
     <div
       :data-ea-publisher="ETHICALADS_PUBLISHER"
       data-ea-type="text"

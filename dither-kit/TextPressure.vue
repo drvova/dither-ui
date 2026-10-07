@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
+import { useInviewLoop } from "./use-inview-loop"
 
 const props = withDefaults(
   defineProps<{
@@ -43,17 +44,26 @@ function frame() {
   }
 }
 
+function start() {
+  if (raf || pixelPrefersReducedMotion()) return
+  raf = requestAnimationFrame(frame)
+}
+function stop() {
+  if (!raf) return
+  cancelAnimationFrame(raf)
+  raf = 0
+}
+
 onMounted(() => {
   if (pixelPrefersReducedMotion()) return
   window.addEventListener("pointermove", onMove, { passive: true })
   window.addEventListener("pointerleave", onLeave)
-  raf = requestAnimationFrame(frame)
 })
 onBeforeUnmount(() => {
-  if (raf) cancelAnimationFrame(raf)
   window.removeEventListener("pointermove", onMove)
   window.removeEventListener("pointerleave", onLeave)
 })
+useInviewLoop(root, start, stop)
 </script>
 
 <template>

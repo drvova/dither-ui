@@ -1,10 +1,39 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { CodeBlock } from "@/shared/ui"
 import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
 
 const props = defineProps<{ code: string }>()
 const tab = ref<"preview" | "code">("preview")
+const host = ref<HTMLElement | null>(null)
+
+// Mount the heavy slot (canvases, charts, whole demo trees) only as the card
+// approaches the viewport — and latch: once revealed it stays, so interaction
+// state inside a demo never resets on scroll. Falls back to always-on without
+// IntersectionObserver (jsdom included), keeping tests and ancient engines on
+// the old behaviour. The preview frame keeps min-h-[280px], so the box exists
+// from first paint and below-fold growth never shifts visible content.
+const revealed = ref(false)
+let io: IntersectionObserver | null = null
+
+onMounted(() => {
+  if (typeof IntersectionObserver === "undefined" || !host.value) {
+    revealed.value = true
+    return
+  }
+  io = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        revealed.value = true
+        io?.disconnect()
+        io = null
+      }
+    },
+    { rootMargin: "600px" },
+  )
+  io.observe(host.value)
+})
+onBeforeUnmount(() => io?.disconnect())
 
 const shownCode = computed(() =>
   docsFramework.value === "svelte" ? toSvelteCode(props.code) : props.code,
@@ -25,7 +54,7 @@ const chipClass = (active: boolean) =>
           role="tab"
           :aria-selected="tab === 'preview'"
           class="border-b pb-2 transition-colors"
-          :class="tab === 'preview' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'"
+          :class="tab === 'preview' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'"
           @click="tab = 'preview'"
         >
           Preview
@@ -35,7 +64,7 @@ const chipClass = (active: boolean) =>
           role="tab"
           :aria-selected="tab === 'code'"
           class="border-b pb-2 transition-colors"
-          :class="tab === 'code' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'"
+          :class="tab === 'code' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'"
           @click="tab = 'code'"
         >
           Code
@@ -48,18 +77,14 @@ const chipClass = (active: boolean) =>
         aria-label="Framework"
       >
         <button
-          type="button"
           :aria-pressed="docsFramework === 'vue'"
-          class="transition-colors"
           :class="chipClass(docsFramework === 'vue')"
           @click="setDocsFramework('vue')"
         >
           Vue
         </button>
         <button
-          type="button"
           :aria-pressed="docsFramework === 'svelte'"
-          class="transition-colors"
           :class="chipClass(docsFramework === 'svelte')"
           @click="setDocsFramework('svelte')"
         >
@@ -69,14 +94,18 @@ const chipClass = (active: boolean) =>
     </div>
     <div
       v-show="tab === 'preview'"
+      ref="host"
       class="mt-3 flex min-h-[280px] items-center justify-center rounded-lg border border-border/60 p-8 sm:p-10"
     >
       <div class="w-full">
-        <slot />
+        <slot v-if="revealed" />
       </div>
     </div>
+    <!-- Highlighted code mounts only when its tab is first opened: under the
+         old v-show, every one of the page's ~150 hidden CodeBlocks ran at
+         initial mount. -->
     <div v-show="tab === 'code'" class="mt-3">
-      <CodeBlock :code="shownCode" />
+      <CodeBlock v-if="tab === 'code'" :code="shownCode" />
     </div>
   </div>
 </template>

@@ -97,6 +97,15 @@ is its showcase and editor.
   `DitherImage` defers its `src` fetch behind an IntersectionObserver
   (400px rootMargin, eager fallback when the observer or element is missing) —
   never pull the source at mount when the frame is offscreen.
+- Loop visibility contract: self-scheduling rAF loops in the text/animation
+  family (CurvedLoop, ScrollVelocity, TextCursor, TextPressure,
+  VariableProximity, GhostCursor, BlobCursor, Antigravity) run through
+  `use-inview-loop.ts` — `start` only on the first IntersectionObserver hit,
+  `stop` when the host leaves, `start` idempotent, never an optimistic start
+  at mount (measured: ungated demos burned ~440 rAF/s offscreen on docs).
+  Without IO the loop is always-on — the old behaviour, which is what jsdom
+  tests get. A new looping component uses this composable, never a bare
+  mount-time `requestAnimationFrame` chain.
 - Text animations (`GradientText`, `ShinyText`, `GlitchText`, `SplitText`,
   `RotatingText`, `CountUp`, ...) are a separate family: pure DOM/CSS (or a small
   rAF for counting), NOT canvas/Bayer. They still ship as `Dither*` exports,

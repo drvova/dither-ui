@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue"
+import { onMounted, ref } from "vue"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
+import { useInviewLoop } from "./use-inview-loop"
 
 const props = withDefaults(
   defineProps<{
@@ -9,7 +10,7 @@ const props = withDefaults(
     speed?: number
     class?: string
   }>(),
-  { text: "DITHER UI \u00b7 CANVAS + BAYER \u00b7 ", speed: 60 }
+  { text: "DITHER UI · CANVAS + BAYER · ", speed: 60 }
 )
 
 const uid = `dither-curve-${Math.floor(Math.random() * 1e9)}`
@@ -17,6 +18,7 @@ const d = "M -100 58 Q 25 18 150 58 T 400 58 T 650 58 T 900 58"
 // Repeated enough to always cover the visible path plus one wrap unit.
 const content = props.text.repeat(10)
 
+const host = ref<SVGSVGElement | null>(null)
 const measure = ref<SVGTextElement | null>(null)
 const textPathEl = ref<SVGTextPathElement | null>(null)
 let raf = 0
@@ -35,18 +37,24 @@ function frame(now: number) {
   el.setAttribute("startOffset", String(offset))
 }
 
+function start() {
+  if (raf || pixelPrefersReducedMotion()) return
+  raf = requestAnimationFrame(frame)
+}
+function stop() {
+  if (!raf) return
+  cancelAnimationFrame(raf)
+  raf = 0
+}
+
 onMounted(() => {
   copyLen = measure.value?.getComputedTextLength?.() || 0
-  if (pixelPrefersReducedMotion()) return
-  raf = requestAnimationFrame(frame)
 })
-onBeforeUnmount(() => {
-  if (raf) cancelAnimationFrame(raf)
-})
+useInviewLoop(host, start, stop)
 </script>
 
 <template>
-  <svg viewBox="0 0 600 100" :class="cn('w-full', props.class)" :aria-label="props.text">
+  <svg ref="host" viewBox="0 0 600 100" :class="cn('w-full', props.class)" :aria-label="props.text">
     <defs>
       <path :id="uid" :d="d" fill="none" />
     </defs>

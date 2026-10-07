@@ -1751,4 +1751,14 @@ const gradientCode = computed(
   content-visibility: auto;
   contain-intrinsic-size: auto 700px;
 }
+
+/* WebKit's reveal path keeps stale geometry until a forced layout flush —
+   blank chunks under real scroll (WebKit 321501) and re-entry jank (318216),
+   both unfixed as of Safari/iOS 26. `html.engine-webkit` (set in
+   app/main.ts by ENGINE, not brand) keeps Safari-family sections in normal
+   layout: these engines pay the paint cost, they do not survive the skip. */
+html.engine-webkit .docs-flow > section {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+}
 </style>

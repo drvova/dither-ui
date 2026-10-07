@@ -80,6 +80,18 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   fold sections skip layout/paint until they approach the viewport (the page
   is 220 sections / ~180k px; first layout of everything cost seconds). New
   section wrappers must stay inside `.docs-flow` to keep the rule applying.
+- Engine gate: `app/main.ts` adds `html.engine-webkit` when the UA is WebKit
+  by ENGINE (`AppleWebKit` without `Chrome`/`Android` — so iOS skins like
+  CriOS/FxiOS/EdGiOS count), and the docs sections then opt OUT of
+  content-visibility there, because WebKit's reveal path keeps stale geometry
+  until a forced flush — blank chunks under real scroll (bug 321501) and
+  re-entry jank (318216), both unfixed as of Safari/iOS 26. Chrome/Gecko/Edge
+  keep the skip. Remove the gate when those bugs ship fixes.
+- `shared/ui/AdSlot.vue` never evaluates the EthicalAds client on the
+  critical path: the slot loads only when it approaches the viewport AND the
+  document is loaded plus a beat (8s-after-load safety net), and the aside it
+  lives in is `display: none` under lg — phones never fetch it. The gate is
+  IntersectionObserver on purpose: Safari has no `requestIdleCallback`.
 
 ## Verification
 
