@@ -22,19 +22,17 @@ widgets/features; page-specific conventions live here.
   on the landing.
 - Footer signature: engraved wordmark (`EngravedWordmark.vue`) — glyph paths
   baked from Consolas Bold via `.scratch/engrave/bake.js` into
-  `public/engraved-{rim,letters}.svg` (ghost.ai depth registration: rim
-  ×1.0096 centered, letters ×1.0332 at -1.66%/-3.47% — the clip mask
-  compensates with the letters' transform), plus `engraved-lit.svg` — glyph
-  bodies pre-filled with glass light, revealed through a cursor-driven
-  `mask-image` pool so the light takes the letterforms' shape (the lit img
-  resolves the cursor in its own magnified box via `--px/--py`). Cursor-driven
-  specular sheen clipped to the letters on hover. The letters svg is
-  edge-light only — no opaque fill (an opaque magnified layer reads as a
-  doubled wordmark); the dark glyph bodies come from the page showing
-  through. The sheen is a tight cursor pool — a wide band lights stems
-  across half the mark and reads as misregistered. Regenerate with the bake script if the
-  wordmark text ever changes. `max-w-none` on the layer imgs is load-bearing:
-  the preflight img cap silently clamps the percentage bleeds.
+  `public/engraved-{rim,letters,lit}.svg`, a scale-accurate port of ghost.ai's
+  footer recipe (their assets under `gitignored ghostai-ref/`, k = H/524.804):
+  rim = glyph-masked inside-stroke `#D6EAFF` @0.7 blurred 1.49; letters =
+  their ddii filter — two white under-glows + `#00050A` fill at feFuncA
+  slope 0.1 + two black inner shadows from above; lit = glyph-bounded grain
+  revealed through a cursor-pool `mask-image` (lit img resolves the cursor in
+  its own magnified box via `--px/--py`), blend `plus-lighter`. Depth
+  registration: rim ×1.0096 centered, letters ×1.0332 at -1.66%/-3.47% — the
+  clip mask compensates with the letters' transform. Regenerate with the bake
+  script if the wordmark text ever changes. `max-w-none` on EVERY layer img
+  is load-bearing: the preflight img cap silently clamps percentage bleeds.
 
 ### docs/
 

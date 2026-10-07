@@ -9,6 +9,8 @@ dist
 
 # local design reference — third-party / proprietary, not part of the product
 ui-laws/
+ghostai-ref/
+sources*.zip
 
 # local RPIV research, plans, and workflow artifacts
 .rpiv/

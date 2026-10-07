@@ -112,7 +112,7 @@ function onMove(e: MouseEvent) {
         clipPath: 'url(#wordmark-letters)',
         maskImage: POOL_MASK,
         WebkitMaskImage: POOL_MASK,
-        mixBlendMode: 'screen',
+        mixBlendMode: 'plus-lighter',
       }"
     />
 
