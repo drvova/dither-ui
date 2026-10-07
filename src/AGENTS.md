@@ -69,12 +69,26 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex.
+- Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
+  hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
+  surface, and hydrating it corrupts DOM because kit components gate on
+  measured state (chart `ctx.ready`, mount flags), so first-render vnodes
+  never match the settled snapshot. Don't retry hydration without first
+  making first render equal settled state.
+- Docs sections are DIRECT children of `.docs-flow` and carry
+  `content-visibility: auto` + `contain-intrinsic-size: auto 700px` — below-
+  fold sections skip layout/paint until they approach the viewport (the page
+  is 220 sections / ~180k px; first layout of everything cost seconds). New
+  section wrappers must stay inside `.docs-flow` to keep the rule applying.
 
 ## Verification
 
 - `npx vue-tsc --noEmit` and `npx vite build` green before commit.
 - Interactive checks in a real browser (agent-browser + screenshots) for
   anything visual or stateful (undo/redo walks, dialog focus, deep links).
+- Perf probes MUST use trailing-slash URLs (`/docs/`, `/studio/`): `vite
+  preview` falls back to the landing HTML for slashless paths, which silently
+  measures the wrong page.
 
 ## Child DOX Index
 

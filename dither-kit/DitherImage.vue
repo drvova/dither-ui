@@ -114,6 +114,7 @@ const img = new Image()
 img.crossOrigin = "anonymous"
 
 let ro: ResizeObserver | null = null
+let io: IntersectionObserver | null = null
 let restartToken = 0
 function paint() {
   const wrap = wrapRef.value
@@ -133,6 +134,8 @@ function load() {
 function stopRuntime() {
   ro?.disconnect()
   ro = null
+  io?.disconnect()
+  io = null
   img.onload = null
 }
 
@@ -142,10 +145,28 @@ function startRuntime() {
   if (precompiled.value) return
   void nextTick(() => {
     if (token !== restartToken || precompiled.value) return
-    load()
     if (props.renderMode !== "static" && typeof ResizeObserver !== "undefined") {
       ro = new ResizeObserver(paint)
       if (wrapRef.value) ro.observe(wrapRef.value)
+    }
+    // Fetch the source only as the frame approaches the viewport: the eager
+    // load pulled a multi-hundred-KB sheet at mount on pages where the image
+    // sits far below the fold. Falls back to the old eager load when the
+    // observer is unavailable or the element never mounts.
+    if (typeof IntersectionObserver !== "undefined" && wrapRef.value) {
+      io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io?.disconnect()
+            io = null
+            load()
+          }
+        },
+        { rootMargin: "400px" }
+      )
+      io.observe(wrapRef.value)
+    } else {
+      load()
     }
   })
 }

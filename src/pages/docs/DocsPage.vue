@@ -851,7 +851,7 @@ const gradientCode = computed(
 
       <!-- Content -->
       <main class="min-w-0 flex-1 pb-24 lg:pl-10">
-        <div class="max-w-2xl">
+        <div class="docs-flow max-w-2xl">
           <h1 class="mt-12 text-2xl tracking-tight">Components</h1>
           <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
             Every component draws on canvas through the same ordered-dither engine.
@@ -1739,5 +1739,16 @@ const gradientCode = computed(
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+}
+</style>
+
+<style>
+/* First paint on this page lays out 220 sections (~180k px). Skip layout and
+   paint for sections below the fold until they approach the viewport; `auto`
+   remembers each section's real height once it has rendered, and the 700px
+   seed (median section height) keeps the scrollbar honest before first use. */
+.docs-flow > section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 700px;
 }
 </style>

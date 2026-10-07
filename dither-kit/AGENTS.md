@@ -90,6 +90,13 @@ is its showcase and editor.
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
   re-derive hash/valueNoise/fbm or a per-pixel gradient lerp per component.
+- Perf seams (measured on the docs page, 6x-throttled mobile):
+  `ScrollReveal` measures via `getBoundingClientRect` at most once per frame
+  (rAF-coalesced; its first measure lands before first paint — a direct
+  mount-time call measured the whole dirty document for ~2s), and
+  `DitherImage` defers its `src` fetch behind an IntersectionObserver
+  (400px rootMargin, eager fallback when the observer or element is missing) —
+  never pull the source at mount when the frame is offscreen.
 - Text animations (`GradientText`, `ShinyText`, `GlitchText`, `SplitText`,
   `RotatingText`, `CountUp`, ...) are a separate family: pure DOM/CSS (or a small
   rAF for counting), NOT canvas/Bayer. They still ship as `Dither*` exports,

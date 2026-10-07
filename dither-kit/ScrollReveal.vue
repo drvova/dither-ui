@@ -15,6 +15,7 @@ const words = computed(() => props.text.split(/(\s+)/))
 const el = ref<HTMLElement | null>(null)
 const progress = ref(0)
 let onScroll: (() => void) | null = null
+let pending = 0
 
 function update() {
   const e = el.value
@@ -26,17 +27,30 @@ function update() {
   progress.value = Math.max(0, Math.min(1, 1 - (r.top - vh * 0.2) / (vh * 0.55)))
 }
 
+/** Measure once per frame at the latest: the initial call lands before first
+ * paint (visually identical), and scrolling never forces layout more than once
+ * per frame — a direct call during mount measured the whole document while
+ * it was still dirty. */
+function schedule() {
+  if (pending) return
+  pending = requestAnimationFrame(() => {
+    pending = 0
+    update()
+  })
+}
+
 onMounted(() => {
   if (pixelPrefersReducedMotion()) {
     progress.value = 1
     return
   }
-  onScroll = () => update()
+  onScroll = () => schedule()
   window.addEventListener("scroll", onScroll, { passive: true })
   window.addEventListener("resize", onScroll)
-  update()
+  schedule()
 })
 onBeforeUnmount(() => {
+  if (pending) cancelAnimationFrame(pending)
   if (onScroll) {
     window.removeEventListener("scroll", onScroll)
     window.removeEventListener("resize", onScroll)
