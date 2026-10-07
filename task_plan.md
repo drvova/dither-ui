@@ -49,8 +49,12 @@ with type=password, SearchInput = DitherInput + icon slot).
 
 - W0 foundation audit — complete (numbers above; matcher lesson in findings.md)
 - W1 primitives/typography/layout gaps (~50) — in_progress (batch 1 complete:
-  DitherBox/DitherText/DitherDivider/DitherVisuallyHidden; batch 2 next —
-  Icon/IconSet decision first)
+  DitherBox/DitherText/DitherDivider/DitherVisuallyHidden; batch 2 complete:
+  Svg, Img, Spacer, Portal, Overlay, Measure, Clipboard, ClickOutside,
+  FocusRing, FocusScope, HoverArea, Pressable, InView — 17/26 Primitives done.
+  Waivers recorded: Show/For/Fragment/Slot/KeyboardHandler = native Vue.
+  Batch 3 = Icon/IconSet (needs the sprite design decision) + leftovers:
+  Canvas/Dice/ProgressiveImage-class items re-checked against the kit)
 - W2 buttons + forms completions + interaction (~70) — pending
 - W3 navigation/menus/overlays/feedback/loading/data-display (~80) — pending
 - W4 lists + tables + dashboard (~50) — pending
