@@ -40,11 +40,13 @@ const MASK_TRANSFORM = `translate(${LETTER_DX} ${LETTER_DY}) scale(${MASK_SCALE_
 
 const sheen = ref<HTMLElement | null>(null)
 const lit = ref<HTMLImageElement | null>(null)
+const bloom = ref<HTMLImageElement | null>(null)
 
-// Cursor pool that reveals the lit letter bodies — a soft round pool in the
-// lit layer's own coordinate space.
+// Cursor pool that reveals the lit letter light — a soft round pool resolved
+// in EACH light img's own box (they carry the letters' magnification, so the
+// pool registers exactly under the hand).
 const POOL_MASK =
-  "radial-gradient(13rem 10rem at var(--px, 50%) var(--py, 40%), black 0%, rgba(0, 0, 0, 0.72) 52%, transparent 80%)"
+  "radial-gradient(16rem 12.5rem at var(--px, 50%) var(--py, 40%), black 0%, rgba(0, 0, 0, 0.72) 48%, transparent 82%)"
 
 function onMove(e: MouseEvent) {
   const s = sheen.value
@@ -53,13 +55,12 @@ function onMove(e: MouseEvent) {
     s.style.setProperty("--mx", `${((e.clientX - r.left) / r.width) * 100}%`)
     s.style.setProperty("--my", `${((e.clientY - r.top) / r.height) * 100}%`)
   }
-  // the lit layer lives in the magnified letters' box — resolve the cursor in
-  // ITS space so the pool centers exactly under the hand
-  const l = lit.value
-  const lr = l?.getBoundingClientRect()
-  if (l && lr) {
-    l.style.setProperty("--px", `${((e.clientX - lr.left) / lr.width) * 100}%`)
-    l.style.setProperty("--py", `${((e.clientY - lr.top) / lr.height) * 100}%`)
+  for (const el of [lit.value, bloom.value]) {
+    const lr = el?.getBoundingClientRect()
+    if (el && lr) {
+      el.style.setProperty("--px", `${((e.clientX - lr.left) / lr.width) * 100}%`)
+      el.style.setProperty("--py", `${((e.clientY - lr.top) / lr.height) * 100}%`)
+    }
   }
 }
 </script>
@@ -99,9 +100,22 @@ function onMove(e: MouseEvent) {
       :style="LETTERS_BOX"
     />
 
-    <!-- Lit letter bodies: the glyphs FILLED with glass light, bounded by the
-         shared glyph mask and revealed only inside a cursor-driven pool
-         (mask-image), so the light takes the letterforms' shape -->
+    <!-- Hover light, ghost's stacking: a BLOOM (heavier blur — the halation
+         that bleeds past the letter edges) under a CORE (sharper ramp fill +
+         grain). No glyph clip — like theirs, the light layer's own letterforms
+         shape it; both are bounded only by the cursor pool (mask-image) -->
+    <img
+      :ref="(el) => { if (el) bloom = el as HTMLImageElement }"
+      :src="assetPath('/engraved-lit-bloom.svg')"
+      alt=""
+      class="pointer-events-none absolute max-w-none opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100"
+      :style="{
+        ...LETTERS_BOX,
+        maskImage: POOL_MASK,
+        WebkitMaskImage: POOL_MASK,
+        mixBlendMode: 'plus-lighter',
+      }"
+    />
     <img
       :ref="(el) => { if (el) lit = el as HTMLImageElement }"
       :src="assetPath('/engraved-lit.svg')"
@@ -109,7 +123,6 @@ function onMove(e: MouseEvent) {
       class="pointer-events-none absolute max-w-none opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100"
       :style="{
         ...LETTERS_BOX,
-        clipPath: 'url(#wordmark-letters)',
         maskImage: POOL_MASK,
         WebkitMaskImage: POOL_MASK,
         mixBlendMode: 'plus-lighter',
