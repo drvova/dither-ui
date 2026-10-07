@@ -44,7 +44,7 @@ const lit = ref<HTMLImageElement | null>(null)
 // Cursor pool that reveals the lit letter bodies — a soft round pool in the
 // lit layer's own coordinate space.
 const POOL_MASK =
-  "radial-gradient(11rem 9rem at var(--px, 50%) var(--py, 40%), black 0%, rgba(0, 0, 0, 0.55) 45%, transparent 72%)"
+  "radial-gradient(13rem 10rem at var(--px, 50%) var(--py, 40%), black 0%, rgba(0, 0, 0, 0.72) 52%, transparent 80%)"
 
 function onMove(e: MouseEvent) {
   const s = sheen.value
