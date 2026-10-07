@@ -141,6 +141,7 @@ const litBloom = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}
 `;
 
 const TS_OUT = [
+  ["WORDMARK_GLYPH_PATH", d],
   ["WORDMARK_RIM", rim],
   ["WORDMARK_LETTERS", letters],
   ["WORDMARK_LIGHT_CORE", litCore],

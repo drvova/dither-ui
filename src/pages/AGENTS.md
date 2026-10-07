@@ -44,7 +44,9 @@ widgets/features; page-specific conventions live here.
   plate). Because all four layers share one DOM, every filter/gradient/mask
   id in the baked module MUST be layer-namespaced (`wm-*-c` / `wm-*-b`).
   Depth registration: rim ×1.0096 centered, letters ×1.0332 at
-  -1.66%/-3.47% — the clip mask compensates with the letters' transform.
+  -1.66%/-3.47% — the sheen's clipPath takes `WORDMARK_GLYPH_PATH` from the
+  SAME bake (never a hand-held path constant: a stale copy clipped the sheen
+  to garbled shapes — it surfaced as a dark cross on hover).
   Regenerate with the bake script if the wordmark text ever changes.
 
 ### docs/
