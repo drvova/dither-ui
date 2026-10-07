@@ -177,6 +177,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "opacity", type: "number 0…1", default: "1" },
     { prop: "dither", type: "number 0…1 | boolean", default: "1" },
     { prop: "paused", type: "boolean", default: "false" },
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
     { prop: "dpr", type: "number", default: "devicePixelRatio" },
     { prop: "mix-blend-mode", type: "string", default: "undefined" },
     { prop: "seed", type: "number", default: "undefined" },

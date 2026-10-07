@@ -2,6 +2,7 @@
 import { computed, ref } from "vue"
 import {
   DitherAnimatedContent,
+  DitherAurora,
   DitherBlobCursor,
   DitherClickSpark,
   DitherCrosshair,
@@ -58,6 +59,13 @@ const SHARED_CANVAS: PropRow[] = [
 ]
 
 const API: Record<string, PropRow[]> = {
+  stepTiming: [
+    { prop: "steps(n, position?)", type: "(p) => number — css-easing-1 step positions", default: '"jump-end"' },
+    { prop: "frameSteps(fps, durationMs)", type: "(p) => number — frame(fps) cadence polyfill", default: "—" },
+    { prop: "frameIndex(elapsedMs, fps)", type: "number — wall-clock frame gate for drivers", default: "—" },
+    { prop: "cssSteps(n, position?)", type: "string — one config serialized for CSS", default: '"jump-end"' },
+    { prop: "DitherAurora frame-rate", type: "number (fps)", default: "0 (smooth)" },
+  ],
   expandTabs: [
     { prop: "tabs", type: "{ value, label, color? }[]", default: "required" },
     { prop: "modelValue", type: "string (v-model)", default: "required" },
@@ -339,6 +347,21 @@ const API: Record<string, PropRow[]> = {
 }
 
 const SNIPPETS = {
+  stepTiming: `import { steps, frameSteps, frameIndex, cssSteps } from "@dither-kit"
+
+// easing-level: progress in, quantized progress out — the four positions are
+// spec-locked to css-easing-1 (jump-end | jump-start | jump-none | jump-both)
+const lattice6 = steps(6, "jump-none")   // displays both 0 and 1 — meters
+const retro = frameSteps(24, 2400)       // 24fps cadence derived from duration
+
+// one config → the CSS surface, so JS and CSS can never disagree
+el.style.animationTimingFunction = cssSteps(6, "jump-none") // "steps(6, jump-none)"
+
+// driver-level: hold the raster between wall-time frame boundaries
+const idx = frameIndex(elapsedMs, 12)    // same idx → skip the paint entirely`,
+  stepTimingAurora: `<!-- the field driver's own knob: stop-motion and fewer uploads -->
+<DitherAurora />                          <!-- smooth, ~30fps paint throttle -->
+<DitherAurora :frame-rate="8" />          <!-- film: paints 8×/s, holds between -->`,
   animatedContent: `<DitherAnimatedContent :distance="40" direction="vertical">
   <YourCard />
 </DitherAnimatedContent>`,
@@ -1208,4 +1231,101 @@ const gooeyPick = ref("—")
     </div>
     <PropsTable :rows="API.notificationStack" />
   </section>
+
+  <!-- Step timing -->
+  <section id="step-timing" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Step timing</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Quantized time for a quantized renderer — <code class="text-foreground/80">steps()</code>
+      samples progress instead of interpolating it, the temporal twin of the Bayer threshold.
+      One keyframe run, three clocks: smooth, six-step (both endpoints visible), three-step
+      (the end value lands only on the last frame).
+    </p>
+    <DemoCard :code="SNIPPETS.stepTiming">
+      <div class="grid gap-2.5">
+        <div class="timing-lane">
+          <span class="timing-tag">linear</span>
+          <i class="timing-probe bg-accent/70" />
+        </div>
+        <div class="timing-lane">
+          <span class="timing-tag">steps(6, jump-none)</span>
+          <i class="timing-probe stair-6 bg-accent/70" />
+        </div>
+        <div class="timing-lane">
+          <span class="timing-tag">steps(3, jump-end)</span>
+          <i class="timing-probe stair-3 bg-accent/70" />
+        </div>
+      </div>
+    </DemoCard>
+    <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+      The kit's shared field runtime takes the same idea down at the driver layer:
+      <code class="text-foreground/80">frameRate</code> paints only on wall-time boundaries and
+      holds the raster between them — stop-motion <i>and</i> fewer buffer uploads. Two Auroras,
+      same clock source, different cadence.
+    </p>
+    <DemoCard :code="SNIPPETS.stepTimingAurora">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="overflow-hidden rounded-lg border border-border/60">
+          <p class="border-b border-border/60 bg-card/60 px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+            smooth
+          </p>
+          <div class="h-36"><DitherAurora /></div>
+        </div>
+        <div class="overflow-hidden rounded-lg border border-border/60">
+          <p class="border-b border-border/60 bg-card/60 px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+            frame-rate 8
+          </p>
+          <div class="h-36"><DitherAurora :frame-rate="8" /></div>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.stepTiming" />
+  </section>
 </template>
+
+<style scoped>
+/* Lane chrome + the shared sweep; the two stair classes swap only the timing
+   function, so the lanes differ by clock alone. */
+.timing-lane {
+  position: relative;
+  height: 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.timing-tag {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground, #8a8a99);
+  pointer-events: none;
+}
+.timing-probe {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 30%;
+  transform: translateX(-110%);
+  animation: timing-sweep 2.8s linear infinite alternate;
+}
+.stair-6 {
+  animation-timing-function: steps(6, jump-none);
+}
+.stair-3 {
+  animation-timing-function: steps(3, jump-end);
+}
+@keyframes timing-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(340%); /* 30%-wide block sweeps the whole lane */
+  }
+}
+</style>

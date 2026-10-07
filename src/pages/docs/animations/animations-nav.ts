@@ -17,6 +17,7 @@ export const ANIMATIONS_NAV = [
   { id: "meta-balls", label: "Meta balls" },
   { id: "metallic-paint", label: "Metallic paint" },
   { id: "noise", label: "Noise" },
+  { id: "step-timing", label: "Step timing" },
   { id: "cubes", label: "Cubes" },
   { id: "ribbons", label: "Ribbons" },
   { id: "shape-blur", label: "Shape blur" },

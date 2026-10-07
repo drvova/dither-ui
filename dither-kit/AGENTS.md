@@ -11,7 +11,8 @@ is its showcase and editor.
 ## Ownership
 
 - Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
-  chart roots/contexts, canvas painters, and the public component set.
+  step-timing primitives, chart roots/contexts, canvas painters, and the
+  public component set.
 - Consumers import ONLY via `index.ts` (`@dither-kit` alias).
 
 ## Local Contracts
@@ -23,6 +24,14 @@ is its showcase and editor.
   fill/line/star hues. Swatch CSS vars in `src/app/styles.css` mirror it.
 - `pixel.ts` owns BAYER4 and bloom presets; every dithered surface thresholds
   against the same matrix.
+- `timing.ts` is the pure temporal core: DOM-free and clock-free. `steps()` is
+  spec-locked to the css-easing-1 positions (jump-end/start/none/both),
+  `frameSteps` derives a `frame(fps)` cadence, `frameIndex` is the wall-clock
+  frame gate drivers paint through, and `cssSteps` serializes one config for
+  the CSS surface so JS and CSS can never disagree. Drivers pick cadence and
+  own the clock — the engine never reads time itself.
+  `tests/timing.spec.ts` holds the MDN step-graph parity table; change code
+  and table together.
 - Seed-generative contract: a `number` is a deterministic SEED everywhere a
   visual input is accepted — `VariantInput` (texture via `textureFromSeed`),
   `BloomInput`/`PixelBloomInput` (`bloomFromSeed`; pixel.ts mirrors the exact
@@ -82,7 +91,10 @@ is its showcase and editor.
 - `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
   for that family: throttled rAF loop, backing buffer + upload, visibility gate,
   resize, dpr, static/reduced-motion single frame, and the mount/restart/teardown
-  lifecycle. A new background is just an `engine.ts` `paint*` fn plus a thin `.vue`
+  lifecycle. Its optional `frameRate` getter gates painting on
+  `timing.frameIndex` boundaries — between boundaries the raster is held
+  (stop-motion cadence, no upload), 0/undefined keeps the smooth ~30fps
+  throttle. A new background is just an `engine.ts` `paint*` fn plus a thin `.vue`
   that resolves props and passes a `render(buffer, clock, dt, elapsed)` callback —
   never re-implement the loop per component. Per-frame extras stay in `render`:
   page-load fade reads `elapsed`, eased pointers read `dt`.

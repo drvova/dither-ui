@@ -8,6 +8,7 @@ import { nextTick, onBeforeUnmount, onMounted, watch, type Ref } from "vue"
 import { pixelPrefersReducedMotion } from "./pixel"
 import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
 import type { DitherRenderMode } from "./precompile"
+import { frameIndex } from "./timing"
 import { useCanvasVisibility } from "./use-visibility"
 
 export type DitherBackgroundOptions = {
@@ -26,6 +27,13 @@ export type DitherBackgroundOptions = {
   restart: () => unknown
   /** dt multiplier for the clock — e.g. a `timeScale` prop. Default 1. */
   timeScale?: () => number
+  /**
+   * Stop-motion cadence: when > 0, paint only on wall-time frame boundaries at
+   * this fps (`timing.frameIndex`) — between boundaries the previous raster is
+   * held, so the surface steps like film AND skips the buffer upload entirely.
+   * 0/undefined keeps the smooth ~30fps paint throttle.
+   */
+  frameRate?: () => number | undefined
   /** Clock value used for the single static / reduced-motion frame. Default 4. */
   staticClock?: number
   /**
@@ -43,6 +51,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
   let restartToken = 0
   let clock = 0
   let lastPaint = 0
+  let lastFrame = -1
   let startNow = 0
   let buffer: RasterBuffer | null = null
   let imageData: ImageData | undefined
@@ -92,11 +101,25 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
       raf = requestAnimationFrame(frame)
       return
     }
-    if (now - lastPaint < 33) {
+    const fps = opts.frameRate?.()
+    if (fps && fps > 0) {
+      // Stop-motion gate: hold the last raster until wall time crosses the
+      // next fps boundary (dt below spans the held frames, so the clock never
+      // loses time between paints).
+      const idx = frameIndex(now - startNow, fps)
+      if (idx === lastFrame) {
+        raf = requestAnimationFrame(frame)
+        return
+      }
+      lastFrame = idx
+    } else if (now - lastPaint < 33) {
       raf = requestAnimationFrame(frame)
       return
     }
-    const dt = lastPaint ? Math.min(0.1, (now - lastPaint) / 1000) : 0
+    // The default dt clamp survives tab stalls; at low cadence one frame can
+    // span >100ms, so widen it to two frame periods when frameRate is set.
+    const cap = fps && fps > 0 ? Math.max(0.1, 2 / fps) : 0.1
+    const dt = lastPaint ? Math.min(cap, (now - lastPaint) / 1000) : 0
     lastPaint = now
     clock += dt * (opts.timeScale ? opts.timeScale() : 1)
     draw(ctx, dt, now - startNow)
@@ -106,6 +129,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
   function wake() {
     if (!raf && !opts.paused() && opts.renderMode() !== "static" && isVisible()) {
       lastPaint = 0
+      lastFrame = -1 // a resume paints immediately instead of waiting a boundary
       raf = requestAnimationFrame(frame)
     }
   }

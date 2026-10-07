@@ -23,6 +23,9 @@ const props = withDefaults(
     dither?: number | boolean
     paused?: boolean
     dpr?: number
+    /** Stop-motion cadence in fps (0 = smooth). Steps the field like film and
+     * skips paints between boundaries — see timing.ts. */
+    frameRate?: number
     mixBlendMode?: string
     seed?: number
     renderMode?: DitherRenderMode
@@ -70,6 +73,7 @@ useDitherBackground({
   renderMode: () => props.renderMode,
   precompiled: () => precompiled.value,
   restart: () => [props.seed, props.renderMode, precompiled.value, props.dpr],
+  frameRate: () => props.frameRate,
   render: (buffer: RasterBuffer, clock: number) => paintAurora(buffer, params.value, clock, matrix.value),
 })
 </script>
