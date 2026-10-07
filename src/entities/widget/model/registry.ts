@@ -1,4 +1,4 @@
-import type { PixelColor } from "@dither-kit"
+import { ICON_NAMES, type PixelColor } from "@dither-kit"
 
 export type PropSpec =
   | { key: string; kind: "text"; def: string }
@@ -99,6 +99,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherHoverArea", label: "Hover area", group: "structure", frame: { w: 240, h: 100 }, props: [], slotText: "Hover or focus" },
   { is: "DitherPressable", label: "Pressable", group: "inputs", frame: { w: 200, h: 80 }, props: [select("type", "button", ["button", "submit", "reset"]), bool("disabled")], slotText: "Press me" },
   { is: "DitherInView", label: "In view", group: "structure", frame: { w: 240, h: 110 }, props: [text("rootMargin", "200px"), number("threshold", 0, 0, 1, 0.05), bool("once", true)], slotText: "Reveals in view" },
+  { is: "DitherIcon", label: "Icon", group: "display", frame: { w: 160, h: 80 }, props: [select("name", "Check", [...ICON_NAMES]), number("size", 16, 8, 48), number("strokeWidth", 2, 1, 3)] },
+  { is: "DitherIconSet", label: "Icon set", group: "display", frame: { w: 200, h: 80 }, props: [], slotText: "" },
   { is: "DitherSpinner", label: "Spinner", group: "display", frame: { w: 120, h: 90 }, props: [color(), number("size", 24, 8, 96)] },
   { is: "DitherAurora", label: "Aurora", group: "display", frame: { w: 320, h: 220 }, props: [list("colors", ["#5227FF", "#7CFF67", "#5227FF"]), number("amplitude", 1, 0, 3, 0.1), number("blend", 0.5, 0, 1, 0.05), number("speed", 0.5, 0, 3, 0.1), number("opacity", 1, 0, 1, 0.05), number("dither", 1, 0, 1, 0.1), select("mixBlendMode", "normal", ["normal", "screen", "lighten", "plus-lighter"]), bool("paused")] },
   { is: "DitherWaves", label: "Waves", group: "display", frame: { w: 320, h: 220 }, props: [list("colors", ["#5227FF", "#7CFF67"]), number("count", 14, 2, 40, 1), number("amplitude", 0.5, 0, 1.5, 0.05), number("frequency", 2, 0.5, 6, 0.1), number("speed", 0.5, 0, 3, 0.1), number("lineWidth", 0.18, 0.02, 0.5, 0.02), number("glow", 1.5, 0, 3, 0.1), number("opacity", 1, 0, 1, 0.05), number("dither", 1, 0, 1, 0.1), bool("mouseInteraction", true), number("mouseStrength", 0.6, 0, 2, 0.1), select("mixBlendMode", "normal", ["normal", "screen", "lighten", "plus-lighter"]), bool("paused")] },

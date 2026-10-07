@@ -29,3 +29,12 @@
   with DitherImage's section in the seo uniqueness test → "Image (plain)";
   (6) VTU emitted() cleared after unmount → spy via attrs onOutside.
   Gate: tsc green, 250/250 tests, build green, /docs/pressable verified.
+
+- 2026-10-07 W1 batch 3 COMPLETE: icon system, decision (a) hand-rolled zero-dep
+  sprite per repo law. dither-kit/icons.ts (60 glyphs, 24x24 stroke, two-arc
+  circles), DitherIcon (px size, label a11y, unknown name THROWS), DitherIconSet
+  (symbol sheets #di-icon-Name, opt-in), gallery docs section + IconSet use-demo,
+  registry entries wired to ICON_NAMES, tests/components/icons.spec.ts (7 tests:
+  data shape, path counts, a11y, throw, full-set mount, symbol ids).
+  Gate: tsc green, 257/257, build green, /docs/icon shows 60 tiles.
+  Primitives 19/26 (Show/For/Fragment/Slot/KeyboardHandler waived native).

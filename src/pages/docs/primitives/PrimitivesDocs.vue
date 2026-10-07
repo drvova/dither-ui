@@ -20,6 +20,8 @@ import {
   DitherVisuallyHidden,
 } from "@dither-kit"
 import { assetPath } from "@/shared/lib"
+import { DitherIcon, DitherIconSet } from "@dither-kit"
+import { ICON_NAMES } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -137,6 +139,24 @@ const SNIPPET_IN_VIEW = `<DitherInView v-slot="{ inView }" :once="true">
   </div>
 </DitherInView>`
 
+
+const SNIPPET_ICON = `<!-- decorative by default -->
+<DitherIcon name="Search" :size="20" />
+
+<!-- labeled: promoted to role=img with a name -->
+<DitherIcon name="Close" label="Dismiss" :size="18" />
+
+<!-- currentColor inherits; weight rides on stroke-width -->
+<DitherIcon name="Trash" :size="24" :stroke-width="1.5" class="text-red-400" />`
+
+const SNIPPET_ICON_SET = `<!-- once, near the app root -->
+<DitherIconSet />
+
+<!-- then anywhere: one symbol, many uses -->
+<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+  <use href="#di-icon-Star" />
+</svg>`
+
 const API: Record<string, PropRow[]> = {
   box: [{ prop: "as", type: '"div" | "section" | "span" | "article" | …', default: '"div"' }],
   text: [
@@ -146,6 +166,13 @@ const API: Record<string, PropRow[]> = {
   ],
   divider: [{ prop: "orientation", type: '"horizontal" | "vertical"', default: '"horizontal"' }],
   visuallyHidden: [{ prop: "focusable", type: "boolean", default: "false" }],
+  icon: [
+    { prop: "name", type: "IconName (glyph list in icons.ts)", default: "required" },
+    { prop: "size", type: "number (px)", default: "16" },
+    { prop: "label", type: "string (promotes to role=img)", default: "—" },
+    { prop: "strokeWidth", type: "number", default: "2" },
+  ],
+  iconSet: [{ prop: "use", type: 'via <use href="#di-icon-Name">', default: "—" }],
   svg: [
     { prop: "viewBox", type: "string", default: "—" },
     { prop: "label", type: "string (promotes to role=img)", default: "—" },
@@ -570,5 +597,58 @@ const API: Record<string, PropRow[]> = {
       </DitherInView>
     </DemoCard>
     <PropsTable :rows="API.inView" />
+  </section>
+
+  <!-- Icon -->
+  <section id="icon" class="mt-16 scroll-mt-24">
+    <div class="flex items-baseline justify-between gap-4">
+      <h2 class="text-lg tracking-tight">Icon</h2>
+      <span class="text-[11px] tabular-nums text-muted-foreground">{{ ICON_NAMES.length }} glyphs</span>
+    </div>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The hand-rolled set: 24×24 stroke geometry, currentColor, round caps —
+      one source in <code class="text-foreground/80">icons.ts</code>, no
+      dependencies. Decorative by default; a
+      <code class="text-foreground/80">label</code> names it for screen
+      readers. Unknown names throw instead of rendering an empty box.
+    </p>
+    <DemoCard :code="SNIPPET_ICON">
+      <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">
+        <div
+          v-for="n in ICON_NAMES"
+          :key="n"
+          class="grid justify-items-center gap-1.5 rounded-md border border-border/60 bg-card/30 px-1 py-3"
+        >
+          <DitherIcon :name="n" :size="20" class="text-foreground/90" />
+          <span class="w-full truncate text-center text-[9px] text-muted-foreground">{{ n }}</span>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.icon" />
+  </section>
+
+  <!-- IconSet -->
+  <section id="icon-set" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">IconSet</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The same set as <code class="text-foreground/80">&lt;symbol&gt;</code>
+      sheets — mount once and reference glyphs with
+      <code class="text-foreground/80">&lt;use href="#di-icon-Name"&gt;</code>
+      when a screen repeats icons enough to care. Opt-in:
+      <code class="text-foreground/80">DitherIcon</code> never needs it.
+    </p>
+    <DemoCard :code="SNIPPET_ICON_SET">
+      <div class="grid justify-items-center gap-4">
+        <div class="flex items-center gap-5 text-foreground/90">
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#di-icon-Star" /></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#di-icon-Heart" /></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#di-icon-Bell" /></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#di-icon-Bookmark" /></svg>
+        </div>
+        <span class="text-[11px] text-muted-foreground">four symbols, one sprite</span>
+        <DitherIconSet />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.iconSet" />
   </section>
 </template>

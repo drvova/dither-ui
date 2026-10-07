@@ -16,4 +16,6 @@ export const PRIMITIVES_NAV = [
   { id: "hover-area", label: "HoverArea" },
   { id: "pressable", label: "Pressable" },
   { id: "in-view", label: "InView" },
+  { id: "icon", label: "Icon" },
+  { id: "icon-set", label: "IconSet" },
 ]

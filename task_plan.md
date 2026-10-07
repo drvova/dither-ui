@@ -53,8 +53,9 @@ with type=password, SearchInput = DitherInput + icon slot).
   Svg, Img, Spacer, Portal, Overlay, Measure, Clipboard, ClickOutside,
   FocusRing, FocusScope, HoverArea, Pressable, InView — 17/26 Primitives done.
   Waivers recorded: Show/For/Fragment/Slot/KeyboardHandler = native Vue.
-  Batch 3 = Icon/IconSet (needs the sprite design decision) + leftovers:
-  Canvas/Dice/ProgressiveImage-class items re-checked against the kit)
+  Batch 3 complete: icon system (decision (a) hand-rolled, zero deps): icons.ts
+  60 glyphs + DitherIcon + DitherIconSet + gallery docs + 7 tests.
+  Primitives = 19/26; remaining: re-check Canvas/Dice-class rows against kit)
 - W2 buttons + forms completions + interaction (~70) — pending
 - W3 navigation/menus/overlays/feedback/loading/data-display (~80) — pending
 - W4 lists + tables + dashboard (~50) — pending
