@@ -1,0 +1,30 @@
+export const TYPOGRAPHY_NAV = [
+  { id: "heading", label: "Heading" },
+  { id: "label", label: "Label" },
+  { id: "caption", label: "Caption" },
+  { id: "overline", label: "Overline" },
+  { id: "code", label: "Code" },
+  { id: "kbd-combo", label: "KbdCombo" },
+  { id: "blockquote", label: "Blockquote" },
+  { id: "highlight", label: "Highlight" },
+  { id: "truncate", label: "Truncate" },
+  { id: "line-clamp", label: "LineClamp" },
+  { id: "middle-ellipsis", label: "MiddleEllipsis" },
+  { id: "ellipsis-tooltip", label: "EllipsisTooltip" },
+  { id: "link", label: "Link" },
+  { id: "external-link", label: "ExternalLink" },
+  { id: "selectable-text", label: "SelectableText" },
+  { id: "copyable-text", label: "CopyableText" },
+]
+// Batch 5: text formatters + time
+TYPOGRAPHY_NAV.push(
+  { id: "number-text", label: "NumberText" },
+  { id: "currency-text", label: "CurrencyText" },
+  { id: "percent-text", label: "PercentText" },
+  { id: "file-size-text", label: "FileSizeText" },
+  { id: "duration-text", label: "DurationText" },
+  { id: "relative-time", label: "RelativeTime" },
+  { id: "date-time-text", label: "DateTimeText" },
+  { id: "plural-text", label: "PluralText" },
+  { id: "emoji", label: "Emoji" },
+)

@@ -39,6 +39,7 @@ import { GROUPS } from "./groups"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
 import PrimitivesDocs from "./primitives/PrimitivesDocs.vue"
+import TypographyDocs from "./typography/TypographyDocs.vue"
 import FeedbackDocs from "./components/FeedbackDocs.vue"
 import StructureDocs from "./components/StructureDocs.vue"
 import LayoutDocs from "./components/LayoutDocs.vue"
@@ -46,6 +47,7 @@ import MediaDocs from "./components/MediaDocs.vue"
 import OverlayDocs from "./components/OverlayDocs.vue"
 import FieldDocs from "./components/FieldDocs.vue"
 import SelectionDocs from "./components/SelectionDocs.vue"
+import FormsDocs from "./forms/FormsDocs.vue"
 import SurfaceDocs from "./components/SurfaceDocs.vue"
 import NavigationDocs from "./components/NavigationDocs.vue"
 import AuthExamples from "./examples/AuthExamples.vue"
@@ -965,6 +967,9 @@ const gradientCode = computed(
           <!-- Primitives: box, text, divider, visually-hidden -->
           <PrimitivesDocs />
 
+          <!-- Typography: heading, label, captions, links, truncation -->
+          <TypographyDocs />
+
           <!-- Styling -->
           <section id="styling" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Styling</h2>
@@ -1714,6 +1719,9 @@ const gradientCode = computed(
 
           <!-- Selection -->
           <SelectionDocs />
+
+          <!-- Form completions: password, search, scrub, hotkey, inline… -->
+          <FormsDocs />
 
           <!-- Overlays & menus -->
           <OverlayDocs />

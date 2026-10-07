@@ -1,5 +1,6 @@
 import { AUTH_NAV } from "./examples/auth-nav"
 import { PRIMITIVES_NAV } from "./primitives/primitives-nav"
+import { TYPOGRAPHY_NAV } from "./typography/typography-nav"
 import { PRODUCT_NAV } from "./examples/product-nav"
 import { SIDEBAR_NAV } from "./examples/sidebar-nav"
 import { STATS_NAV } from "./examples/stats-nav"
@@ -7,6 +8,7 @@ import { TABLE_NAV } from "./examples/table-nav"
 import { CHAT_NAV } from "./examples/chat-nav"
 import { NOTIFICATIONS_NAV } from "./examples/notifications-nav"
 import { FORM_NAV } from "./components/form-nav"
+import { FORMS_NAV } from "./forms/forms-nav"
 import { FIELD_NAV } from "./components/field-nav"
 import { SELECTION_NAV } from "./components/selection-nav"
 import { FEEDBACK_NAV } from "./components/feedback-nav"
@@ -36,6 +38,10 @@ export const GROUPS: DocsGroup[] = [
   {
     title: "Primitives",
     items: PRIMITIVES_NAV,
+  },
+  {
+    title: "Typography",
+    items: TYPOGRAPHY_NAV,
   },
   {
     title: "Handbook",
@@ -80,6 +86,7 @@ export const GROUPS: DocsGroup[] = [
       { id: "image", label: "Image" },
       ...FORM_NAV,
       ...FIELD_NAV,
+      ...FORMS_NAV,
       ...SELECTION_NAV,
       ...FEEDBACK_NAV,
       ...STRUCTURE_NAV,
