@@ -38,6 +38,7 @@ import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
 import { GROUPS } from "./groups"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
+import PrimitivesDocs from "./primitives/PrimitivesDocs.vue"
 import FeedbackDocs from "./components/FeedbackDocs.vue"
 import StructureDocs from "./components/StructureDocs.vue"
 import LayoutDocs from "./components/LayoutDocs.vue"
@@ -960,6 +961,9 @@ const gradientCode = computed(
               > — no build step, no black box.
             </p>
           </section>
+
+          <!-- Primitives: box, text, divider, visually-hidden -->
+          <PrimitivesDocs />
 
           <!-- Styling -->
           <section id="styling" class="mt-16 scroll-mt-24">

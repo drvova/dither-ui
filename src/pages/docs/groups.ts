@@ -1,4 +1,5 @@
 import { AUTH_NAV } from "./examples/auth-nav"
+import { PRIMITIVES_NAV } from "./primitives/primitives-nav"
 import { PRODUCT_NAV } from "./examples/product-nav"
 import { SIDEBAR_NAV } from "./examples/sidebar-nav"
 import { STATS_NAV } from "./examples/stats-nav"
@@ -31,6 +32,10 @@ export const GROUPS: DocsGroup[] = [
   {
     title: "Overview",
     items: [{ id: "getting-started", label: "Quick start" }],
+  },
+  {
+    title: "Primitives",
+    items: PRIMITIVES_NAV,
   },
   {
     title: "Handbook",
