@@ -5,7 +5,9 @@
 //   letters = glyphs filled #00050A @10% with white under-glows + two black
 //             inner shadows from above (their ddii filter)
 //   lit     = glyph-bounded grain for the cursor pool (their lit-noise)
-// One-off asset generator — output lands in public/.
+// Asset generator — emits src/pages/landing/wordmark-layers.ts so the layers
+// render INLINE (img-embedded svg rasterizes filters in isolation; inline
+// renders in-document at page resolution with exact filter/mask coordinates).
 const opentype = require("opentype.js");
 const fs = require("fs");
 
@@ -28,7 +30,7 @@ const n = (v) => +(v * k).toFixed(3);
 // ---- rim: inside stroke, blurred — the glow that hugs every inner edge ----
 const RIM_STROKE = n(6.62783); // 2.981
 const RIM_BLUR = n(3.31392); // 1.49
-const rim = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="none">
+const rim = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="100%" style="display:block" fill="none">
   <defs>
     <mask id="wm-ins" fill="white">
       <path d="${d}"/>
@@ -45,7 +47,7 @@ const rim = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fil
 
 // ---- letters: their ddii filter (two white under-glows, 10% dark fill,
 //      two black inner shadows from above), scaled to this viewBox ---------
-const letters = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="none">
+const letters = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="100%" style="display:block" fill="none">
   <defs>
     <filter id="wm-ddii" x="-24" y="-24" width="${W + 48}" height="${H + 48}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feFlood flood-opacity="0" result="BIF"/>
@@ -96,52 +98,57 @@ const letters = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"
 //      edges). Both are pool-masked in the component, no glyph clip — like
 //      theirs, the light layer's own letterforms shape it ---------------
 const gradStops = [
-  [0, "#F2FAFF"],
-  [0.55, "#DCECE8"],
-  [0.86, "#9EF0FF"],
-  [1, "#59D2FF"],
+  [0, "#FFFFFF"],
+  [0.55, "#EAF6F2"],
+  [0.86, "#CFF4FF"],
+  [1, "#9EEBFF"],
 ]
   .map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`)
   .join("");
 
-const litCore = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="none">
+const litCore = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="100%" style="display:block" fill="none">
   <defs>
-    <linearGradient id="wm-ramp" x1="-60" y1="${b.y1.toFixed(2)}" x2="${W + 60}" y2="${b.y2.toFixed(2)}" gradientUnits="userSpaceOnUse">${gradStops}</linearGradient>
-    <filter id="wm-core" x="-12" y="-12" width="${W + 24}" height="${H + 24}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    <linearGradient id="wm-ramp-c" x1="-60" y1="${b.y1.toFixed(2)}" x2="${W + 60}" y2="${b.y2.toFixed(2)}" gradientUnits="userSpaceOnUse">${gradStops}</linearGradient>
+    <filter id="wm-core-f" x="-12" y="-12" width="${W + 24}" height="${H + 24}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feGaussianBlur stdDeviation="${n(3.4)}"/>
     </filter>
-    <filter id="wm-grain" x="0" y="0" width="${W}" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    <filter id="wm-grain-f" x="0" y="0" width="${W}" height="${H}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="11" stitchTiles="stitch" result="t"/>
       <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.9  0 0 0 0 0.96  0 0 0 0 1  0.5 0 0 0 0" result="c"/>
       <feComposite in="c" in2="SourceGraphic" operator="in"/>
       <feGaussianBlur stdDeviation="1.6"/>
     </filter>
   </defs>
-  <g filter="url(#wm-core)">
-    <path d="${d}" fill="url(#wm-ramp)"/>
+  <g filter="url(#wm-core-f)">
+    <path d="${d}" fill="url(#wm-ramp-c)"/>
   </g>
-  <path d="${d}" fill="#fff" filter="url(#wm-grain)"/>
+  <path d="${d}" fill="#fff" filter="url(#wm-grain-f)"/>
 </svg>
 `;
 
-const litBloom = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="none">
+const litBloom = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="100%" style="display:block" fill="none">
   <defs>
-    <linearGradient id="wm-ramp" x1="-60" y1="${b.y1.toFixed(2)}" x2="${W + 60}" y2="${b.y2.toFixed(2)}" gradientUnits="userSpaceOnUse">${gradStops}</linearGradient>
-    <filter id="wm-bloom" x="-24" y="-24" width="${W + 48}" height="${H + 48}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    <linearGradient id="wm-ramp-b" x1="-60" y1="${b.y1.toFixed(2)}" x2="${W + 60}" y2="${b.y2.toFixed(2)}" gradientUnits="userSpaceOnUse">${gradStops}</linearGradient>
+    <filter id="wm-bloom-b" x="-24" y="-24" width="${W + 48}" height="${H + 48}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feOffset dx="3.5" dy="2.5"/>
       <feGaussianBlur stdDeviation="${n(7.5)}"/>
     </filter>
   </defs>
-  <g filter="url(#wm-bloom)" opacity="0.8">
-    <path d="${d}" fill="url(#wm-ramp)"/>
+  <g filter="url(#wm-bloom-b)" opacity="0.8">
+    <path d="${d}" fill="url(#wm-ramp-b)"/>
   </g>
 </svg>
 `;
 
-fs.writeFileSync("../../public/engraved-rim.svg", rim);
-fs.writeFileSync("../../public/engraved-letters.svg", letters);
-fs.writeFileSync("../../public/engraved-lit.svg", litCore);
-fs.writeFileSync("../../public/engraved-lit-bloom.svg", litBloom);
+const TS_OUT = [
+  ["WORDMARK_RIM", rim],
+  ["WORDMARK_LETTERS", letters],
+  ["WORDMARK_LIGHT_CORE", litCore],
+  ["WORDMARK_LIGHT_BLOOM", litBloom],
+];
+const ts =
+  TS_OUT.map(([name, markup]) => `export const ${name} = ${JSON.stringify(markup)};`).join("\n\n") + "\n";
+fs.writeFileSync("../../src/pages/landing/wordmark-layers.ts", ts);
 fs.writeFileSync(
   "wordmark-meta.json",
   JSON.stringify({ w: W, h: H, x1: +b.x1.toFixed(2), y1: +b.y1.toFixed(2), k }, null, 1),
