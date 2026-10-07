@@ -88,6 +88,17 @@ widgets/features; page-specific conventions live here.
 - Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
   `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
   deep links both restore and remain shareable.
+- Mobile chrome: the phone header keeps the brand `whitespace-nowrap`, drops
+  "studio →" (it lives on every section's "open in studio →" and returns at
+  sm+), and hides the ⌘K kbd; the section list is a grouped disclosure
+  (`browse sections` button with aria-expanded/aria-controls, group headings,
+  two-column links, closes on tap) instead of the old flat wall of all ~220
+  links.
+- `scrollTo(id)` is computed `window.scrollTo` + a settle loop (re-align after
+  motion stops, ≤8 tries, bottom-clamp aware): lazy demo reveals and
+  content-visibility seeds move the target while the smooth flight is still
+  running, and Chromium's `scrollIntoView` refused the short re-aligns — taps
+  landed a screen short. Deep links keep the `jump()` path.
 - Section IA lives in `docs/groups.ts` — the single source for the sidebar,
   the `/docs/<id>` deep links, and the build-time crawl files
   (`crawler-files.ts` generates `dist/sitemap.xml`, `dist/robots.txt`, and

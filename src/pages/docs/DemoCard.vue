@@ -99,6 +99,15 @@ const chipClass = (active: boolean) =>
     >
       <div class="w-full">
         <slot v-if="revealed" />
+        <!-- Quiet frame while the demo waits for its turn: a fast flick can
+             outrun the observer, and an empty bordered box reads as broken. -->
+        <div
+          v-else
+          class="flex h-40 animate-pulse items-center justify-center rounded-md bg-card/40 motion-reduce:animate-none"
+          aria-hidden="true"
+        >
+          <span class="text-[11px] text-muted-foreground/60">preview</span>
+        </div>
       </div>
     </div>
     <!-- Highlighted code mounts only when its tab is first opened: under the

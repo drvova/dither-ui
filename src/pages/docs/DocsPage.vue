@@ -426,13 +426,55 @@ const smooth = () =>
 function docsUrl(id: string) {
   return routePath(`/docs/${id}`)
 }
+let scrollGen = 0
 function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: smooth() })
   history.replaceState(null, "", docsUrl(id))
+  // One scrollIntoView cannot land this: the flight takes seconds over a
+  // 200k-px page, and lazy demo reveals (plus content-visibility seeds) move
+  // the target WHILE it flies — a palette tap landed a full screen short.
+  // Computed window.scrollTo (scrollIntoView refused short re-aligns in
+  // Chromium) with a settle loop: re-align after motion stops, until the
+  // section rests under its scroll-mt (96px) or the bottom clamps it.
+  const gen = ++scrollGen
+  const align = (el: HTMLElement, behavior: ScrollBehavior) => {
+    const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
+    window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - margin, behavior })
+  }
+  const inPlace = (el: HTMLElement) => {
+    const top = el.getBoundingClientRect().top
+    if (top >= 64 && top <= 140) return true
+    const atEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4
+    return atEnd && top < window.innerHeight
+  }
+  let tries = 0
+  let last = -1
+  let stable = 0
+  const settle = () => {
+    if (gen !== scrollGen) return
+    const el = document.getElementById(id)
+    if (!el || tries >= 8 || inPlace(el)) return
+    if (window.scrollY === last) stable++
+    else {
+      stable = 0
+      last = window.scrollY
+    }
+    if (stable >= 2) {
+      stable = 0
+      tries++
+      align(el, smooth())
+    }
+    window.setTimeout(settle, 250)
+  }
+  const first = document.getElementById(id)
+  if (first) align(first, smooth())
+  window.setTimeout(settle, 400)
 }
 
 /* Docs search: the kit's own Command palette navigating the whole IA. */
 const searchOpen = ref(false)
+/* Mobile contents disclosure — the phone layout opens clean instead of the
+   old flat wall of every section link. */
+const tocOpen = ref(false)
 const commandItems = GROUPS.flatMap((g) =>
   g.items.map((it) => ({ value: it.id, label: it.label, group: g.title }))
 )
@@ -772,10 +814,10 @@ const gradientCode = computed(
     <header class="chrome sticky top-0 z-40">
       <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6 text-xs">
         <div class="flex items-center gap-6">
-          <a :href="routePath('/')" class="tracking-tight transition-colors hover:text-foreground">dither-ui</a>
+          <a :href="routePath('/')" class="whitespace-nowrap tracking-tight transition-colors hover:text-foreground">dither-ui</a>
           <span class="hidden text-muted-foreground sm:inline">docs</span>
         </div>
-        <nav class="flex items-center gap-5 text-muted-foreground">
+        <nav class="flex items-center gap-3 text-muted-foreground sm:gap-5">
           <div class="flex items-center gap-1" role="group" aria-label="Framework">
             <button
               type="button"
@@ -803,7 +845,7 @@ const gradientCode = computed(
             @click="searchOpen = true"
           >
             search
-            <kbd class="rounded border border-border/60 px-1 text-[9px]">⌘K</kbd>
+            <kbd class="hidden rounded border border-border/60 px-1 text-[9px] sm:inline">⌘K</kbd>
           </button>
           <button
             type="button"
@@ -817,10 +859,12 @@ const gradientCode = computed(
             href="https://github.com/drvova/dither-ui"
             target="_blank"
             rel="noreferrer"
-            class="-m-3 p-3 transition-colors hover:text-foreground"
+            class="-m-3 whitespace-nowrap p-3 transition-colors hover:text-foreground"
             >github</a
           >
-          <a :href="routePath('/studio')" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
+          <!-- Phones keep the chrome for content: the studio link stays on
+               every section's "open in studio →" and at sm and up here. -->
+          <a :href="routePath('/studio')" class="-m-3 hidden whitespace-nowrap p-3 transition-colors hover:text-foreground sm:inline">studio →</a>
         </nav>
       </div>
     </header>
@@ -858,11 +902,35 @@ const gradientCode = computed(
             Compose charts from parts, or drop in a single primitive.
           </p>
 
-          <!-- Mobile nav -->
-          <nav class="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted-foreground lg:hidden">
-            <a v-for="it in GROUPS.flatMap((g) => g.items)" :key="it.id" :href="docsUrl(it.id)" class="transition-colors hover:text-foreground" :class="activeId === it.id ? 'text-foreground' : ''" @click.prevent="scrollTo(it.id)">
-              {{ it.label }}
-            </a>
+          <!-- Mobile contents: grouped disclosure — phones open clean instead
+               of the old flat wall of every section link. -->
+          <nav class="mt-6 lg:hidden" aria-label="Docs sections">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between rounded-md border border-border/60 px-3 py-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              :aria-expanded="tocOpen"
+              aria-controls="docs-toc"
+              @click="tocOpen = !tocOpen"
+            >
+              <span>browse sections</span>
+              <span class="tabular-nums" aria-hidden="true">{{ GROUPS.flatMap((g) => g.items).length }} {{ tocOpen ? "▲" : "▼" }}</span>
+            </button>
+            <div v-show="tocOpen" id="docs-toc" class="mt-4 grid gap-5">
+              <div v-for="grp in GROUPS" :key="grp.title">
+                <div class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">{{ grp.title }}</div>
+                <ul class="mt-2 grid grid-cols-2 gap-x-4 gap-y-0.5">
+                  <li v-for="it in grp.items" :key="it.id">
+                    <a
+                      :href="docsUrl(it.id)"
+                      :aria-current="activeId === it.id ? 'true' : undefined"
+                      class="block truncate py-0.5 text-[11px] transition-colors"
+                      :class="activeId === it.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
+                      @click.prevent="tocOpen = false; scrollTo(it.id)"
+                    >{{ it.label }}</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </nav>
 
           <!-- Quick start -->
