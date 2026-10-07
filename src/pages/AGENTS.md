@@ -31,8 +31,9 @@ widgets/features; page-specific conventions live here.
   glyphs, blur 12·k → halation past the edges) under `engraved-lit.svg`
   (sharper ramp core + fine grain), both `plus-lighter`, NO glyph clip — the
   light layer's own letterforms shape it, only the cursor pool bounds it
-  (their ramps: pale mint-white bodies, ice `#9EF0FF`→`#59D2FF` at the letter
-  bottoms). Depth
+  (pool focus sits up-left of the cursor; the ramp is diagonal — light enters
+  from the upper-left, halo offset down-right — pale mint-white bodies, ice
+  `#9EF0FF`→`#59D2FF` collecting at the letter bottoms). Depth
   registration: rim ×1.0096 centered, letters ×1.0332 at -1.66%/-3.47% — the
   clip mask compensates with the letters' transform. Regenerate with the bake
   script if the wordmark text ever changes. `max-w-none` on EVERY layer img

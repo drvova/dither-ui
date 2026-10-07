@@ -14,3 +14,9 @@ sources*.zip
 
 # local RPIV research, plans, and workflow artifacts
 .rpiv/
+
+# local scratch — except .scratch/engrave, the canonical wordmark regenerator
+.scratch/*
+!.scratch/engrave/
+.scratch/engrave/node_modules/
+.scratch/engrave/bun.lock

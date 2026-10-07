@@ -44,9 +44,11 @@ const bloom = ref<HTMLImageElement | null>(null)
 
 // Cursor pool that reveals the lit letter light — a soft round pool resolved
 // in EACH light img's own box (they carry the letters' magnification, so the
-// pool registers exactly under the hand).
+// pool registers exactly under the hand). The focus sits up-left of the
+// cursor: light ENTERS from that direction, so the reveal is asymmetric
+// instead of a symmetric blob.
 const POOL_MASK =
-  "radial-gradient(13rem 10.5rem at var(--px, 50%) var(--py, 40%), black 0%, rgba(0, 0, 0, 0.72) 45%, transparent 72%)"
+  "radial-gradient(13rem 10.5rem at calc(var(--px, 50%) - 1.1rem) calc(var(--py, 40%) - 0.5rem), black 0%, rgba(0, 0, 0, 0.72) 45%, transparent 72%)"
 
 function onMove(e: MouseEvent) {
   const s = sheen.value
