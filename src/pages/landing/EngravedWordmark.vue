@@ -46,7 +46,7 @@ const bloom = ref<HTMLImageElement | null>(null)
 // in EACH light img's own box (they carry the letters' magnification, so the
 // pool registers exactly under the hand).
 const POOL_MASK =
-  "radial-gradient(16rem 12.5rem at var(--px, 50%) var(--py, 40%), black 0%, rgba(0, 0, 0, 0.72) 48%, transparent 82%)"
+  "radial-gradient(13rem 10.5rem at var(--px, 50%) var(--py, 40%), black 0%, rgba(0, 0, 0, 0.72) 45%, transparent 72%)"
 
 function onMove(e: MouseEvent) {
   const s = sheen.value
@@ -138,8 +138,8 @@ function onMove(e: MouseEvent) {
         clip-path: url(#wordmark-letters);
         background: radial-gradient(
           24% 62% at var(--mx, 50%) var(--my, 40%),
-          rgba(168, 204, 240, 0.12),
-          transparent 70%
+          rgba(168, 204, 240, 0.07),
+          transparent 58%
         );
         mix-blend-mode: screen;
       "
