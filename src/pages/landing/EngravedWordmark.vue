@@ -94,11 +94,13 @@ function onMove(e: MouseEvent) {
       :style="RIM_BOX"
     />
     <!-- Letter detail sits LARGER than the rim (ghost's convex-concave depth
-         parallax) -->
+         parallax). On hover the carve RECEDES to 45% — with the light pooling
+         over it, the dark fill + inner shadows must not sit around the pool
+         edge as a shadow plate; un-lit areas fall back to plain background -->
     <img
       :src="assetPath('/engraved-letters.svg')"
       alt=""
-      class="pointer-events-none absolute max-w-none"
+      class="pointer-events-none absolute max-w-none opacity-100 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-45"
       :style="LETTERS_BOX"
     />
 

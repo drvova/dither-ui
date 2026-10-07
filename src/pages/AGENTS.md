@@ -26,14 +26,18 @@ widgets/features; page-specific conventions live here.
   footer recipe (their assets under `gitignored ghostai-ref/`, k = H/524.804):
   rim = glyph-masked inside-stroke `#D6EAFF` @0.7 blurred 1.49; letters =
   their ddii filter — two white under-glows + `#00050A` fill at feFuncA
-  slope 0.1 + two black inner shadows from above; hover light = TWO
+  slope 0.1 + two black inner shadows from above; the letters layer RECEDES
+  to 45% opacity on hover — with light pooling over the carve, the dark fill
+  and inner shadows must not appear as shadow plates at the pool edge
+  (un-lit areas fall back to plain background); hover light = TWO
   pool-masked layers in ghost's stacking — `engraved-lit-bloom.svg` (ramp
   glyphs, blur 12·k → halation past the edges) under `engraved-lit.svg`
   (sharper ramp core + fine grain), both `plus-lighter`, NO glyph clip — the
   light layer's own letterforms shape it, only the cursor pool bounds it
   (pool focus sits up-left of the cursor; the ramp is diagonal — light enters
-  from the upper-left, halo offset down-right — pale mint-white bodies, ice
-  `#9EF0FF`→`#59D2FF` collecting at the letter bottoms). Depth
+  from the upper-left, halo offset down-right — white bodies easing to pale
+  ice `#CFF4FF`→`#9EEBFF` at the letter bottoms; the ramp tail must stay
+  luminous, a dark end reads as a shadow plate). Depth
   registration: rim ×1.0096 centered, letters ×1.0332 at -1.66%/-3.47% — the
   clip mask compensates with the letters' transform. Regenerate with the bake
   script if the wordmark text ever changes. `max-w-none` on EVERY layer img

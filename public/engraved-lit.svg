@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1027 236" fill="none">
   <defs>
-    <linearGradient id="wm-ramp" x1="-60" y1="14.01" x2="1087" y2="158.25" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#F2FAFF"/><stop offset="0.55" stop-color="#DCECE8"/><stop offset="0.86" stop-color="#9EF0FF"/><stop offset="1" stop-color="#59D2FF"/></linearGradient>
+    <linearGradient id="wm-ramp" x1="-60" y1="14.01" x2="1087" y2="158.25" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.55" stop-color="#EAF6F2"/><stop offset="0.86" stop-color="#CFF4FF"/><stop offset="1" stop-color="#9EEBFF"/></linearGradient>
     <filter id="wm-core" x="-12" y="-12" width="1051" height="260" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feGaussianBlur stdDeviation="1.529"/>
     </filter>
