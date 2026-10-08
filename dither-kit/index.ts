@@ -27,6 +27,7 @@ export {
   type GradientDirection,
 } from "./DitherGradient.vue"
 export { default as DitherImage } from "./DitherImage.vue"
+export { default as DitherThumbnail } from "./Thumbnail.vue"
 export {
   default as DitherAurora,
   type AuroraParams,
