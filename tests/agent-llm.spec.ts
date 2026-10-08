@@ -58,7 +58,8 @@ describe("agent loop", () => {
       onEvent: (e) => events.push(e.type),
     })
     expect(ran).toEqual([{ type: "component.add", is: "DitherTabs", props: { variant: "segmented" } }])
-    expect(events).toEqual(["assistant", "tool", "assistant", "done"])
+    expect(events.filter((t) => t !== "turn")).toEqual(["assistant", "tool", "assistant", "done"])
+    expect(events.filter((t) => t === "turn")).toHaveLength(2)
     expect(calls[0].url).toBe("https://api.anthropic.com/v1/messages")
     expect(calls[0].headers["x-api-key"]).toBe("k")
     expect(calls[0].headers["anthropic-dangerous-direct-browser-access"]).toBe("true")
@@ -97,7 +98,31 @@ describe("agent loop", () => {
     const loop = (async () => ({ ok: true, status: 200, json: async () => ({ content: [{ type: "tool_use", id: "t", name: "list_artboards", input: {} }] }) }) as Response) as unknown as typeof fetch
     const ev2: string[] = []
     await runAgent({ provider: { kind: "anthropic", apiKey: "k", model: "m" }, goal: "x", fetch: loop, maxSteps: 2, run: () => ({ ok: true, data: [] }), onEvent: (e) => ev2.push(e.type) })
-    expect(ev2).toEqual(["tool", "tool", "error"])
+    expect(ev2.filter((t) => t !== "turn")).toEqual(["tool", "tool", "error"])
+  })
+
+  it("delivers steering text after tool results in one user turn, and reports usage", async () => {
+    const { f, calls } = fakeFetch([
+      { content: [{ type: "tool_use", id: "t1", name: "list_artboards", input: {} }], usage: { input_tokens: 120, output_tokens: 8 } },
+      { content: [{ type: "text", text: "ok" }], usage: { input_tokens: 150, output_tokens: 4 } },
+    ])
+    const queue = ["make it blue"]
+    const events: { type: string; usage?: { input: number }; text?: string }[] = []
+    await runAgent({
+      provider: { kind: "anthropic", apiKey: "k", model: "m" },
+      goal: "x",
+      fetch: f,
+      run: () => ({ ok: true, data: [] }),
+      pull: () => queue.splice(0),
+      onEvent: (e) => events.push(e as never),
+    })
+    const second = calls[1].body.messages as { role: string; content: { type: string; text?: string }[] }[]
+    const last = second[second.length - 1]
+    expect(last.role).toBe("user")
+    expect(last.content.map((b) => b.type)).toEqual(["tool_result", "text"])
+    expect(last.content[1].text).toBe("make it blue")
+    expect(events.filter((e) => e.type === "steer").map((e) => e.text)).toEqual(["make it blue"])
+    expect(events.filter((e) => e.type === "turn").map((e) => e.usage?.input)).toEqual([120, 150])
   })
 
   it("builds a system prompt from the live registry", () => {

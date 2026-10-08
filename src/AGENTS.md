@@ -82,9 +82,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     holding Claude.ai credentials, and OpenAI plan access needs partner
     registration — those users drive the Studio from their own harness via
     the protocol. The loop (`runAgent`) executes tool calls through
-    `runCommand`, truncates results at 12k chars, and stops on prose or the
-    step budget; `systemPrompt()` lists registry names by group and sends the
-    model to `get_registry` for props. Pure parts are pinned by
+    `runCommand`, truncates results at 12k chars, drains `pull()` steering
+    messages after each turn's tool results (Anthropic: merged into the same
+    user turn after the `tool_result` blocks), reports `turn` events with
+    elapsed time and token usage, and stops on prose or the step budget;
+    `systemPrompt()` lists registry names by group and sends the model to
+    `get_registry` for props. Pure parts are pinned by
     `tests/agent-protocol.spec.ts`, `agent-evolve.spec.ts`, `agent-llm.spec.ts`.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.

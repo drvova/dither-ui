@@ -36,7 +36,8 @@ export type AgentMessage =
 
 export type ToolDef = { name: string; description: string; parameters: Record<string, unknown> }
 
-export type ChatResult = { text: string; toolCalls: ToolCall[] }
+export type Usage = { input: number; output: number }
+export type ChatResult = { text: string; toolCalls: ToolCall[]; usage?: Usage }
 
 export type ChatOptions = {
   system: string
@@ -80,7 +81,16 @@ export function toAnthropic(messages: AgentMessage[]): { role: "user" | "assista
       else out.push({ role: "user", content: [block] })
     }
   }
-  return out
+  // A steering message typed while tools ran lands as text after the tool
+  // results in the SAME user turn (roles must alternate); any two adjacent
+  // user turns merge the same way.
+  const merged: typeof out = []
+  for (const turn of out) {
+    const last = merged[merged.length - 1]
+    if (last && last.role === "user" && turn.role === "user") last.content.push(...turn.content)
+    else merged.push(turn)
+  }
+  return merged
 }
 
 async function chatAnthropic(p: AgentProvider, o: ChatOptions): Promise<ChatResult> {
@@ -102,13 +112,18 @@ async function chatAnthropic(p: AgentProvider, o: ChatOptions): Promise<ChatResu
       tools: o.tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters })),
     }),
   })
-  const data = (await res.json().catch(() => ({}))) as { content?: AnthropicBlock[]; error?: { message?: string } }
+  const data = (await res.json().catch(() => ({}))) as {
+    content?: AnthropicBlock[]
+    usage?: { input_tokens?: number; output_tokens?: number }
+    error?: { message?: string }
+  }
   if (!res.ok) throw new Error(data.error?.message ?? `${p.kind} ${res.status}`)
   const text = (data.content ?? []).filter((b): b is Extract<AnthropicBlock, { type: "text" }> => b.type === "text").map((b) => b.text).join("\n")
   const toolCalls = (data.content ?? [])
     .filter((b): b is Extract<AnthropicBlock, { type: "tool_use" }> => b.type === "tool_use")
     .map((b) => ({ id: b.id, name: b.name, args: isPlain(b.input) ? b.input : {} }))
-  return { text, toolCalls }
+  const usage = data.usage ? { input: data.usage.input_tokens ?? 0, output: data.usage.output_tokens ?? 0 } : undefined
+  return { text, toolCalls, usage }
 }
 
 /* -------------------------------- openai --------------------------------- */
@@ -149,6 +164,7 @@ async function chatOpenAI(p: AgentProvider, o: ChatOptions): Promise<ChatResult>
   })
   const data = (await res.json().catch(() => ({}))) as {
     choices?: { message?: { content?: string | null; tool_calls?: { id: string; function: { name: string; arguments: string } }[] } }[]
+    usage?: { prompt_tokens?: number; completion_tokens?: number }
     error?: { message?: string }
   }
   if (!res.ok) throw new Error(data.error?.message ?? `${p.kind} ${res.status}`)
@@ -163,7 +179,8 @@ async function chatOpenAI(p: AgentProvider, o: ChatOptions): Promise<ChatResult>
     }
     return { id: c.id, name: c.function.name, args }
   })
-  return { text: msg?.content ?? "", toolCalls }
+  const usage = data.usage ? { input: data.usage.prompt_tokens ?? 0, output: data.usage.completion_tokens ?? 0 } : undefined
+  return { text: msg?.content ?? "", toolCalls, usage }
 }
 
 /** One model turn. */
@@ -216,6 +233,8 @@ export function systemPrompt(): string {
 export type AgentEvent =
   | { type: "assistant"; text: string }
   | { type: "tool"; name: string; args: Record<string, unknown>; result: CommandResult }
+  | { type: "turn"; step: number; elapsedMs: number; usage?: Usage }
+  | { type: "steer"; text: string }
   | { type: "error"; message: string }
   | { type: "done"; steps: number }
 
@@ -225,6 +244,10 @@ export type RunOptions = {
   history?: AgentMessage[]
   onEvent?: (e: AgentEvent) => void
   run?: (command: unknown) => CommandResult
+  /** Steering: messages typed while the agent works. Drained before every
+   * model turn and delivered as user text after the tool results, the way
+   * pi delivers a mid-run message. */
+  pull?: () => string[]
   maxSteps?: number
   signal?: AbortSignal
   fetch?: typeof fetch
@@ -241,12 +264,14 @@ export async function runAgent(o: RunOptions): Promise<AgentMessage[]> {
   const max = o.maxSteps ?? 10
   for (let step = 0; step < max; step++) {
     let turn: ChatResult
+    const started = Date.now()
     try {
       turn = await chat(o.provider, { system, messages, tools, signal: o.signal, fetch: o.fetch })
     } catch (e) {
-      o.onEvent?.({ type: "error", message: e instanceof Error ? e.message : String(e) })
+      o.onEvent?.({ type: "error", message: o.signal?.aborted ? "stopped" : e instanceof Error ? e.message : String(e) })
       return messages
     }
+    o.onEvent?.({ type: "turn", step: step + 1, elapsedMs: Date.now() - started, usage: turn.usage })
     messages.push({ role: "assistant", content: turn.text, toolCalls: turn.toolCalls })
     if (turn.text) o.onEvent?.({ type: "assistant", text: turn.text })
     if (!turn.toolCalls.length) {
@@ -260,6 +285,12 @@ export async function runAgent(o: RunOptions): Promise<AgentMessage[]> {
       let text = JSON.stringify(result)
       if (text.length > RESULT_LIMIT) text = `${text.slice(0, RESULT_LIMIT)}… (truncated ${text.length - RESULT_LIMIT} chars)`
       messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: text })
+    }
+    // Steering typed while the tools ran rides in after their results.
+    for (const text of o.pull?.() ?? []) {
+      if (!text.trim()) continue
+      messages.push({ role: "user", content: text })
+      o.onEvent?.({ type: "steer", text })
     }
   }
   o.onEvent?.({ type: "error", message: `stopped after ${max} steps` })

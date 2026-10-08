@@ -314,12 +314,23 @@ widgets/features; page-specific conventions live here.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
-- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is the BYO-key
-  assistant over `features/agent/llm.ts`: provider settings (⚙; shown until
-  a key exists), a transcript of assistant lines and one line per tool call
-  (orange when the Studio rejected it), a composer (Enter runs, Shift+Enter
-  newlines), stop, clear, and "evolve selection". Its help text points
-  subscription users to `/agent/SKILL.md` instead of offering a login.
+- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a COMPOSER in
+  the pi / omp / Claude Code sense, over `features/agent/llm.ts`: a
+  monospace transcript of turns — `›` your prompt, `⏺` the agent's prose,
+  `↳` a steering message, one `<details>` per tool call (`⚙ name · args ⎿
+  result`, orange `×` and auto-open when the Studio rejected it, the JSON
+  args/result inside), a `✻ working… 4.2s · turn 2` line while it runs — a
+  prompt line with slash commands (`/help /model /provider /base /key
+  /remember /settings /evolve /select /code /undo /clear /stop`; typing `/`
+  opens an autocomplete listbox, ↑/↓ + Tab/Enter pick), ↑/↓ prompt history
+  on a single-line input, Enter sends, Shift+Enter newlines, Esc stops;
+  STEERING: text sent while the agent works is queued (chips under the
+  log), delivered after the current tool results before its next turn, and
+  anything left when the run ends becomes the next prompt. The status line
+  shows provider, session tokens (in/out, summed from each turn's usage)
+  and the last turn's time. Settings (⚙ or `/settings`; open until a key
+  exists) hold provider/model/base URL/key/remember; the model chip in the
+  head opens them. Subscription users are pointed to `/agent/SKILL.md`.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not
