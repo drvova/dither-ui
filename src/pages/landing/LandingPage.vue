@@ -595,7 +595,7 @@ function setActive(i: number) {
   transform-origin: 100% center;
   transition:
     color 200ms ease,
-    transform 620ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .statement.is-lit::after {
