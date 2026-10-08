@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { onBeforeUnmount, onMounted, ref } from "vue"
+import { directedTime, isDirected, onSeek } from "./clock"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
 import { useInviewLoop } from "./use-inview-loop"
@@ -39,8 +40,22 @@ function frame(now: number) {
 
 function start() {
   if (raf || pixelPrefersReducedMotion()) return
+  if (isDirected()) {
+    seekTo(directedTime() ?? 0)
+    return
+  }
   raf = requestAnimationFrame(frame)
 }
+/** Directed (clock.ts): the scroll is a pure function of the moment. */
+function seekTo(ms: number) {
+  stop()
+  const el = textPathEl.value
+  if (!el || !copyLen) return
+  offset = -(((props.speed * ms) / 1000) % copyLen)
+  el.setAttribute("startOffset", String(offset))
+}
+const unseek = onSeek((ms) => (ms === null ? start() : seekTo(ms)))
+onBeforeUnmount(unseek)
 function stop() {
   if (!raf) return
   cancelAnimationFrame(raf)

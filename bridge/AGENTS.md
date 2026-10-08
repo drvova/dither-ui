@@ -33,9 +33,14 @@
 - Loopback only, one tab at a time, agent killed on disconnect, 30s relay
   timeout per tool call; `--mcp <port>` is the server mode the agent
   spawns, never run by hand.
-- The agent is launched through the shell (`shell: true`) so `--agent` can
-  be any command line; it inherits the environment plus
-  `DITHER_BRIDGE_PORT`.
+- The agent is launched through the shell (`shell: true`) from `--cwd`, so
+  `--agent` can be any command line (a local script by absolute path); it
+  inherits the environment plus `DITHER_BRIDGE_PORT`.
+- A tool result's `data.files` (`[{ path, content }]`) is materialized
+  under `--cwd` before it reaches the agent — relative paths only, nothing
+  above the directory — and replaced by the written paths plus `data.cwd`,
+  so the agent gets a location, never a payload (`export_video` ships a
+  self-contained HyperFrames composition this way).
 
 ## Work Guidance
 
@@ -50,7 +55,8 @@
   `tests/fixtures/fake-acp-agent.mjs` (a scripted ACP agent that spawns the
   injected MCP server and calls `add_screen` through it) and plays the tab:
   initialize, session/new, prompt with streaming, plan, permission, tool
-  relay, usage, health, second-tab refusal, cancel.
+  relay, usage, health, second-tab refusal, file materialization under
+  `--cwd` (and refusal of escaping paths), cancel.
 - Lint covers the file (`npm run lint`); the browser walk is the Studio in
   the acp backend against the same fixture (`node bridge/dither-bridge.mjs
   --agent "node tests/fixtures/fake-acp-agent.mjs"`).

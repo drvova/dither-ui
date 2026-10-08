@@ -20,7 +20,7 @@ import { CHART_TYPES } from "@/shared/config"
 import { routePath, useTheme } from "@/shared/lib"
 
 const props = defineProps<{ layersOpen: boolean; inspectorOpen: boolean; agentOpen: boolean }>()
-const emit = defineEmits<{ export: []; "update:layersOpen": [boolean]; "update:inspectorOpen": [boolean]; "update:agentOpen": [boolean] }>()
+const emit = defineEmits<{ export: []; video: []; "update:layersOpen": [boolean]; "update:inspectorOpen": [boolean]; "update:agentOpen": [boolean] }>()
 const { dark, toggle } = useTheme()
 const libraryOpen = ref(false)
 const projectOpen = ref(false)
@@ -191,6 +191,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
         <button v-if="canData()" type="button" class="tool wide" :aria-pressed="editor.dataOpen" :class="editor.dataOpen ? 'bg-card text-foreground' : ''" @click="editor.dataOpen = !editor.dataOpen">data</button>
         <button type="button" class="tool wide" @click="emit('export')">code</button>
         <button type="button" :disabled="pngBusy" class="tool wide" @click="exportPng">{{ pngBusy ? 'saving…' : 'png' }}</button>
+        <button type="button" title="Export as a HyperFrames video composition" class="tool wide" @click="emit('video')">video</button>
       </div>
     </Transition>
     <input ref="fileInput" type="file" accept="application/json" name="open-project" class="hidden" @change="openFile" />

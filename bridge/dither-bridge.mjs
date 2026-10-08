@@ -24,7 +24,9 @@
 // Internal: `--mcp <port>` is the MCP server mode the agent spawns.
 import { spawn } from "node:child_process"
 import { createHash } from "node:crypto"
+import { mkdirSync, writeFileSync } from "node:fs"
 import { createServer, request as httpRequest } from "node:http"
+import { dirname, join } from "node:path"
 import { createInterface } from "node:readline"
 import { fileURLToPath } from "node:url"
 
@@ -153,7 +155,7 @@ function serveMode({ agent, port, cwd }) {
         browser.send(JSON.stringify({ jsonrpc: "2.0", id, method: "studio/call", params: { name, arguments: a ?? {} } }))
         setTimeout(() => relayPending.delete(id) && resolve({ ok: false, error: "studio did not answer" }), 30_000)
       })
-      return json(res, 200, result)
+      return json(res, 200, materialize(result))
     }
     json(res, 404, { error: "not found" })
   })
@@ -203,6 +205,29 @@ function serveMode({ agent, port, cwd }) {
     if (!child) return
     child.kill()
     child = null
+  }
+
+  /** A tab's tool result may carry files for the project (`data.files:
+   * [{ path, content }]`, e.g. a video composition): they are written under
+   * --cwd — relative paths only, never above it — and replaced by their
+   * paths, so the agent gets a location, not a payload. */
+  function materialize(result) {
+    const files = result?.data?.files
+    if (!Array.isArray(files)) return result
+    const written = []
+    for (const f of files) {
+      if (!f || typeof f.path !== "string" || typeof f.content !== "string") continue
+      const rel = f.path.replace(/\\/g, "/")
+      if (rel.startsWith("/") || /^[a-z]:/i.test(rel) || rel.split("/").includes("..")) continue
+      const abs = join(cwd, rel)
+      mkdirSync(dirname(abs), { recursive: true })
+      writeFileSync(abs, f.content)
+      written.push(rel)
+      log(`wrote ${rel} (${f.content.length} chars)`)
+    }
+    result.data.files = written
+    result.data.cwd = cwd
+    return result
   }
 
   function fromBrowser(text) {

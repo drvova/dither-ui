@@ -50,6 +50,7 @@ function paintProgress(
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { directedTime, isDirected, onSeek } from "./clock"
 import { useCanvasVisibility } from "./use-visibility"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion, pixelMatrixFromSeed } from "./pixel"
@@ -106,18 +107,39 @@ function repaint() {
   }
 }
 
-function tick() {
-  if (!isVisible()) {
-    raf = 0
-    return // off-screen: pause the loop
-  }
+/** The indeterminate band's column at a moment (one step per 50ms). */
+function bandAt(ms: number): number {
   const bandW = Math.max(2, Math.round(cols * 0.4))
-  paint(Math.floor(performance.now() / 50) % (cols + bandW) - bandW)
+  return (Math.floor(ms / 50) % (cols + bandW)) - bandW
+}
+
+function tick() {
+  if (!isVisible() || isDirected()) {
+    raf = 0
+    return // off-screen or directed: no loop
+  }
+  paint(bandAt(performance.now()))
   raf = requestAnimationFrame(tick)
 }
 
+// Directed (clock.ts): the band sits where the moment puts it.
+const unseek = onSeek((ms) => {
+  if (!props.indeterminate || pixelPrefersReducedMotion()) return
+  if (ms === null) {
+    syncLoop()
+    return
+  }
+  if (raf) cancelAnimationFrame(raf)
+  raf = 0
+  paint(bandAt(ms))
+})
+
 function syncLoop() {
   const animate = props.indeterminate && !pixelPrefersReducedMotion()
+  if (animate && isDirected()) {
+    paint(bandAt(directedTime() ?? 0))
+    return
+  }
   if (animate && !raf) raf = requestAnimationFrame(tick)
   if (!animate && raf) {
     cancelAnimationFrame(raf)
@@ -149,6 +171,7 @@ onMounted(() => {
 })
 watch(() => [props.value, color.value, props.indeterminate, matrix.value], syncLoop)
 onBeforeUnmount(() => {
+  unseek()
   if (raf) cancelAnimationFrame(raf)
   ro?.disconnect()
 })

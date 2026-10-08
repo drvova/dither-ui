@@ -9,6 +9,7 @@ export {
   flushSave,
   hydrate,
   importDocument,
+  parseDocument,
   type ProjectMeta,
   type StudioDocument,
   projects,

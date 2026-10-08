@@ -8,14 +8,16 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 ## Ownership
 
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
-- `pages/` — landing, docs, studio (see `pages/AGENTS.md`).
+- `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
 - `widgets/` — studio panels: toolbar, layer-tree, inspector, canvas,
   chart-renderer, widget-renderer, data-editor, agent (the composer / harness
   control plane).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
-  export-code, pan-zoom, artboard-transform, agent (the Studio agent
-  protocol, seeded evolution, the model client + loop).
+  export-code, export-image, export-video (a frame as a HyperFrames
+  composition: builder, dialog, delivery for the agent paths), pan-zoom,
+  artboard-transform, agent (the Studio agent protocol, seeded evolution,
+  the model client + loop).
 - `entities/` — domain stores: editor (selection/artboards, single source of
   truth), chart, widget, artboard.
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
@@ -30,7 +32,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Layer imports flow downward only: pages → widgets → features → entities →
   shared. `@dither-kit` may be imported from any layer; nothing imports back
   into it.
-- Canonical routes are `/`, `/docs[/section]`, and `/studio`; legacy
+- Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
+  `noindex` player at `/play/` (not prerendered); legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported. Route
   entry HTML files own static crawler-visible metadata; docs sections refine
   it at runtime per `/docs/<id>` (see `pages/AGENTS.md`). `app/App.vue`
@@ -118,6 +121,27 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     the panel busy. Pure parts are pinned by `tests/agent-protocol.spec.ts`,
     `agent-evolve.spec.ts`, `agent-llm.spec.ts`; the bridge chain by
     `tests/bridge.spec.ts`.
+- Video: `features/export-video` turns ONE frame into a HyperFrames
+  composition (hyperframes.dev — HTML that `npx hyperframes render` turns
+  into a deterministic MP4). `compositionHtml` writes the root contract
+  (`data-composition-id/width/height/duration/fps`; the frame IS the video
+  frame), embeds the frame's document as JSON with `<` escaped, and carries
+  the player inline (`{ js, css }`, `</script` escaped in the bundle) or by
+  reference (`{ jsRef, cssRef }`). The player is `pages/play`; its
+  single-file bundle is a second build, `vite.player.config.ts` →
+  `dist/play/player.js` + `player.css`, which `npm run build` runs after the
+  site build because the site's entries share chunks; `playerAssets()`
+  fetches it from the same origin and on a dev server, where it does not
+  exist, the export says so. Delivery: the Studio's video dialog downloads
+  the self-contained file; the `video.export` protocol command returns the
+  composition referencing `./player.js` + `./player.css` and the assets'
+  absolute URLs (sync, for any consumer); the `export_video` tool is
+  finished by `finishStudioTool` — the in-page loop downloads, the bridge
+  path ships `data.files` for the bridge to write under the harness's
+  project as `video/<slug>/index.html`. Options normalize to seconds 1–600
+  (default 6), fps 24|30|60, theme dark|light. Pinned by
+  `tests/composition.spec.ts`, the `video.export` case in
+  `tests/agent-protocol.spec.ts`, and the file case in `tests/bridge.spec.ts`.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.
 - Pointer transforms use `features/artboard-transform/startDrag`; it filters by
@@ -191,10 +215,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `npx vue-tsc --noEmit` and `npx vite build` green before commit.
 - Interactive checks in a real browser (agent-browser + screenshots) for
   anything visual or stateful (undo/redo walks, dialog focus, deep links).
+- The video path on the built site (`vite preview`): the player seeked by
+  synthetic `hf-seek` events gives identical bytes for identical times, the
+  dialog's download opened from disk matches the player at the same time,
+  and `npx hyperframes lint`/`render` accept the file.
 - Perf probes MUST use trailing-slash URLs (`/docs/`, `/studio/`): `vite
   preview` falls back to the landing HTML for slashless paths, which silently
   measures the wrong page.
 
 ## Child DOX Index
 
-- `pages/AGENTS.md` — landing, docs, studio page contracts
+- `pages/AGENTS.md` — landing, docs, studio, play page contracts

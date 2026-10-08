@@ -29,7 +29,8 @@ node bridge/dither-bridge.mjs --agent "pi --acp"            # or omp
 Options: `--port 8790` (websocket + relay port, loopback only), `--cwd <dir>`
 (the agent's working directory, default: where you ran the bridge — point it
 at a project that holds `/agent/SKILL.md` or `registry.json` if the agent
-should read them from disk).
+should read them from disk). The agent command runs from `--cwd`, so a local
+script needs an absolute path.
 
 Then open the Studio, open the Agent panel, choose the **acp bridge**
 backend (the default) and send a prompt. The panel connects, the bridge
@@ -55,6 +56,17 @@ the way the key-based loop does — every placement is one undo away.
   and kills the agent when the tab disconnects.
 - Never sees a credential: the agent authenticates itself the way it always
   does (its own login, keychain or env), and nothing goes to dither-ui.com.
+
+## Files from the Studio
+
+Some tools answer with files for the project instead of data — `export_video`
+hands back a HyperFrames composition. The bridge writes them under `--cwd`
+(relative paths only, never above it) and the agent receives their paths:
+
+```
+export_video → video/sign-in/index.html
+npx hyperframes render video/sign-in -o sign-in.mp4
+```
 
 ## Health
 

@@ -11,8 +11,9 @@ is its showcase and editor.
 ## Ownership
 
 - Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
-  step-timing primitives, the sequence timeline algebra, container-query
-  scales, chart roots/contexts, canvas painters, and the public component set.
+  step-timing primitives, the sequence timeline algebra, the clock director,
+  container-query scales, chart roots/contexts, canvas painters, and the
+  public component set.
 - Consumers import ONLY via `index.ts` (`@dither-kit` alias).
 
 ## Local Contracts
@@ -53,6 +54,29 @@ is its showcase and editor.
   completion checked BEFORE the gate. `tests/sequence.spec.ts` (algebra) and
   `tests/sequence-vue.spec.ts` (driver, manual-rAF fake clock — respect the
   100ms dt cap when stepping fake time) pin both halves.
+- `clock.ts` is the director — external ownership of time. Free-running,
+  every animated surface owns its own rAF loop on wall time. `seek(ms)`
+  directs them: the loops stand down and each surface paints exactly the
+  given moment, in any order (same seed + same time → same pixels);
+  `release()` hands time back. Surfaces subscribe with `onSeek` (a `null`
+  moment means released → resume through their own `wake`), request no
+  frames while `isDirected()`, and paint `directedTime()` when they start
+  or wake under direction. Directed semantics per surface:
+  `use-dither-background` sets `clock = ms/1000 · timeScale` (pure
+  renderers land on the exact frame) and passes `dt` = the step since the
+  last directed moment (simulations advance in capture order, so those
+  render with one worker); the chart canvases run the entrance from
+  composition time 0 and derive the sparkle tick from the moment;
+  `Sequence` samples its plan at the moment; spinner, skeleton, progress,
+  avatar, `CountUp` and `CurvedLoop` are pure functions of the moment;
+  `DecryptedText` runs its reveal at 60 frames per second of the moment with
+  a hashed glyph instead of `Math.random`. Pointer-driven motion (hover
+  lifts, cursors, `HoldAction`) stays free: a renderer has no input. CSS
+  keyframe and transition motion is not the clock's — HyperFrames seeks it
+  itself through WAAPI. `directFromHyperframes()` takes direction from
+  HyperFrames' `hf-seek` events (`detail.time` seconds): the contract the
+  Studio's video export and `src/pages/play` rely on. Pinned by
+  `tests/clock.spec.ts` and the directed case in `tests/sequence-vue.spec.ts`.
 - `containers.ts` + `DitherContainer.vue` are the container-query engine —
   children answer to their OWN box, never the viewport (the responsive half
   of the animation stack). The pure core resolves a content-box width
@@ -244,10 +268,18 @@ is its showcase and editor.
   runtime defaults — keep API tables in `src/pages/docs` in sync when defaults
   change.
 
+## Work Guidance
+
+- A new time-driven surface subscribes to the clock: paint the moment on
+  seek, request no frames while directed, resume on release.
+
 ## Verification
 
 - `npx vue-tsc --noEmit` (workspace-wide) must stay green.
 - Visual: `npx vite build && npx vite preview` and eyeball `/#/docs` demos.
+- Determinism: on the built site, `/play/#doc=…` driven by synthetic
+  `hf-seek` events must give identical bytes for identical times, in any
+  order, and request no animation frames while directed.
 
 ## Child DOX Index
 

@@ -197,6 +197,8 @@ function describeResult(result: { ok: true; data: unknown } | { ok: false; error
     if (Array.isArray(d.components)) return `${d.components.length} components`
     if (Array.isArray(d.artboards)) return `${d.artboards.length} frames`
     if (typeof d.removed === "string") return "removed"
+    if (Array.isArray(d.files)) return d.files.map(String).join(", ")
+    if (typeof d.downloaded === "string") return `downloaded ${d.downloaded}`
   }
   return "ok"
 }

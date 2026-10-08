@@ -151,3 +151,24 @@ describe("studio agent protocol", () => {
     expect(document.getElementById(MIRROR_ID)).toBeNull()
   })
 })
+
+describe("video.export", () => {
+  it("returns a composition referencing the player, with the assets to fetch", () => {
+    editor.artboards = []
+    const added = runCommand({ type: "component.add", is: "DitherBadge", name: "Hero badge", slotText: "New" })
+    expect(added.ok).toBe(true)
+    const r = runCommand({ type: "video.export", seconds: 3, fps: 60, theme: "light" })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    const d = r.data as { file: string; index: string; assets: { path: string; url: string }[]; render: string; options: { seconds: number } }
+    expect(d.file).toBe("hero-badge.hyperframes.html")
+    expect(d.options.seconds).toBe(3)
+    expect(d.index).toContain('data-composition-id="dither-hero-badge"')
+    expect(d.index).toContain('data-duration="3" data-fps="60"')
+    expect(d.index).toContain('<script src="./player.js"></script>')
+    expect(d.assets.map((a) => a.path)).toEqual(["player.js", "player.css"])
+    expect(d.assets[0].url).toMatch(/^http.*\/play\/player\.js$/)
+    expect(d.render).toContain("npx hyperframes render")
+    expect(runCommand({ type: "video.export", id: "nope" }).ok).toBe(false)
+  })
+})

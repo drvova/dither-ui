@@ -5,6 +5,7 @@
 // per-frame `render`; everything mechanical lives here once, not per component.
 
 import { nextTick, onBeforeUnmount, onMounted, watch, type Ref } from "vue"
+import { directedTime, isDirected, onSeek } from "./clock"
 import { pixelPrefersReducedMotion } from "./pixel"
 import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
 import type { DitherRenderMode } from "./precompile"
@@ -53,6 +54,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
   let lastPaint = 0
   let lastFrame = -1
   let startNow = 0
+  let lastSeek = -1
   let buffer: RasterBuffer | null = null
   let imageData: ImageData | undefined
   const isVisible = useCanvasVisibility(opts.wrapRef, () => wake())
@@ -94,7 +96,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
 
   function frame(now: number) {
     raf = 0
-    if (!isVisible() || opts.paused()) return
+    if (!isVisible() || opts.paused() || isDirected()) return
     // Cadence gates run BEFORE measure(): a held frame must not read layout.
     // Measuring first cost one getBoundingClientRect + getContext per surface
     // per vsync, paints or not (measured, three 8fps landing surfaces at 4x
@@ -128,11 +130,32 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
   }
 
   function wake() {
+    if (isDirected()) {
+      seekTo(directedTime() ?? 0)
+      return
+    }
     if (!raf && !opts.paused() && opts.renderMode() !== "static" && isVisible()) {
       lastPaint = 0
       lastFrame = -1 // a resume paints immediately instead of waiting a boundary
       raf = requestAnimationFrame(frame)
     }
+  }
+
+  /** Directed (clock.ts): paint one moment. `clock` is absolute, so pure
+   * renderers land on the exact frame; `dt` is the step since the last
+   * directed moment (0 when first or backwards), so simulations advance
+   * frame by frame in capture order. */
+  function seekTo(ms: number) {
+    if (raf) cancelAnimationFrame(raf)
+    raf = 0
+    if (opts.paused() || opts.precompiled() || opts.renderMode() === "static") return
+    const ctx = measure()
+    if (!ctx) return
+    const scale = opts.timeScale ? opts.timeScale() : 1
+    const dt = lastSeek >= 0 && ms > lastSeek ? Math.min(0.1, (ms - lastSeek) / 1000) : 0
+    lastSeek = ms
+    clock = (ms / 1000) * scale
+    draw(ctx, dt, ms)
   }
 
   function start() {
@@ -143,6 +166,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
       if (token !== restartToken || opts.precompiled()) return
       startNow = typeof performance !== "undefined" ? performance.now() : 0
       lastPaint = 0
+      lastSeek = -1
       if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) {
         clock = opts.staticClock ?? 4
         // Retry the one-shot until the canvas ref settles.
@@ -160,11 +184,19 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
       }
       if (typeof ResizeObserver !== "undefined") {
         ro = new ResizeObserver(() => {
+          if (isDirected()) {
+            seekTo(directedTime() ?? 0)
+            return
+          }
           if (raf) return
           const c = measure()
           if (c && opts.paused()) draw(c, 0, 1e6)
         })
         if (opts.wrapRef.value) ro.observe(opts.wrapRef.value)
+      }
+      if (isDirected()) {
+        seekTo(directedTime() ?? 0)
+        return
       }
       // frame() paints the first frame and retries until the canvas is ready.
       raf = requestAnimationFrame(frame)
@@ -178,11 +210,13 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     ro = null
   }
 
+  const unseek = onSeek((ms) => (ms === null ? wake() : seekTo(ms)))
   onMounted(start)
   watch(opts.restart, start, { flush: "post" })
   watch(opts.paused, (p) => (p ? stop() : wake()))
   onBeforeUnmount(() => {
     restartToken += 1
+    unseek()
     stop()
   })
 }

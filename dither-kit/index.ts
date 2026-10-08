@@ -406,6 +406,8 @@ export { default as DitherColorPicker } from "./ColorPicker.vue"
 export { default as DitherKnob } from "./Knob.vue"
 export { default as DitherSignaturePad } from "./SignaturePad.vue"
 export { linear, steps, frameSteps, frameIndex, cssSteps } from "./timing"
+export { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "./clock"
+export type { SeekListener } from "./clock"
 export { planSequence, sampleSequence, staggerDelay } from "./sequence"
 export { CONTAINER_SCALE, resolveCq, quantize } from "./containers"
 export type {

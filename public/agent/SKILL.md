@@ -139,6 +139,7 @@ Commands (`type` and fields):
 | `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |
 | `code.get` | `id` — the frame as a Vue SFC |
 | `registry.get` | `is?` — the registry, or one component |
+| `video.export` | `id?`, `seconds?` (1–600), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it |
 
 ## 4. Work like the Studio does
 
@@ -149,3 +150,32 @@ Commands (`type` and fields):
   Variation belongs to the engine (seeds), structure belongs to you.
 - Ask Studio for `registry.get` with `is` before guessing a prop name.
 - Finish with `code.get` when the user wants code, and quote the SFC.
+
+## 5. Render a frame to video (HyperFrames)
+
+Every frame is also a video: the kit's animations are seek-deterministic, so
+a frame exported as a [HyperFrames](https://github.com/heygen-com/hyperframes)
+composition renders to an MP4 whose every pixel follows from the frame's seeds
+and the requested time (Node 22 + FFmpeg: `npx hyperframes render`).
+
+- Through the bridge: call the `export_video` tool (`id?`, `seconds?`,
+  `fps?`, `theme?`). The Studio hands the bridge a self-contained composition
+  and the bridge writes it as `video/<name>/index.html` under the project;
+  render it with `npx hyperframes render video/<name> -o <name>.mp4`.
+- Through the DOM protocol: `video.export` returns `index` plus two asset
+  URLs; write `index.html`, `player.js` and `player.css` side by side and
+  render the directory. The exported file carries the frame's document, the
+  player and the root contract (`data-width/height`, `data-duration`,
+  `data-fps`, `data-no-timeline`), so nothing is fetched at render time.
+- Length and frame rate are the file's `data-duration` / `data-fps`; the
+  frame's size is the video's size. For 1080p, make the frame 960×540 (or
+  480×270) and render with `--resolution landscape`: HyperFrames captures at
+  a higher device pixel ratio, the kit's canvases follow it, and the dither
+  gets finer while the design stays the same.
+- Simulation backgrounds (particles, fluids) advance frame by frame, so
+  render those with `--workers 1`. `npx hyperframes lint` reports the inert
+  free-running paths inside the bundled player (`requestAnimationFrame`,
+  `Math.random`, wall clocks); they do not run while the renderer seeks.
+- The composition is a plain HyperFrames file: the HyperFrames skills apply
+  if the user wants it cut into a longer piece (sub-composition, captions,
+  music).

@@ -39,6 +39,7 @@ import {
   sanitizeComponentProps,
   widgetCode,
 } from "@/entities/widget"
+import { compositionHtml, normalizeVideoOptions, playerAssetUrls, renderCommand, slugOf, videoFileName } from "@/features/export-video"
 import { applyDocument, documentSnapshot, type StudioDocument } from "@/features/persistence"
 import { CHART_TYPES, type ChartType, familyOf } from "@/shared/config"
 import { evolveArtboard, type EvolveOptions } from "./evolve"
@@ -77,6 +78,7 @@ export type StudioCommand =
   | { type: "evolve"; id?: string; count?: number; seed?: number; strength?: number }
   | { type: "code.get"; id: string }
   | { type: "registry.get"; is?: string }
+  | { type: "video.export"; id?: string; seconds?: number; fps?: number; theme?: string }
 
 export type CommandResult = { ok: true; data: unknown } | { ok: false; error: string }
 
@@ -132,6 +134,7 @@ export function registrySchema() {
       evolve: "{ id?, count?, seed?, strength? } — seeded variants placed as a row",
       "code.get": "{ id } — the frame as a Vue SFC",
       "registry.get": "{ is? } — this schema, or one component's entry",
+      "video.export": "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`",
     },
   }
 }
@@ -295,6 +298,21 @@ export function runCommand(input: unknown): CommandResult {
         const a = find(cmd.id)
         if (!a) return fail(`no artboard ${cmd.id}`)
         return ok({ id: a.id, code: a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart) })
+      }
+      case "video.export": {
+        const a = find(typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId)
+        if (!a) return fail("select an artboard or pass { id }")
+        const options = normalizeVideoOptions(cmd)
+        return ok({
+          id: a.id,
+          name: a.name,
+          file: videoFileName(a),
+          options,
+          index: compositionHtml(a, options, { jsRef: "./player.js", cssRef: "./player.css" }),
+          assets: playerAssetUrls(),
+          render: renderCommand(a),
+          note: `index.html + player.js + player.css in one directory: npx hyperframes render <dir> -o ${slugOf(a.name)}.mp4. Same seeds + time → same pixels; simulation backgrounds need --workers 1.`,
+        })
       }
       case "registry.get": {
         if (typeof cmd.is === "string") {

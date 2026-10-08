@@ -119,6 +119,15 @@ Default section order:
   pi process through the Agent Client Protocol, so subscriptions work with
   no key in the browser; or a bring-your-own-API-key loop. Subscription
   logins are never collected in-app.
+- Video: every Studio frame exports as a HyperFrames composition
+  (`features/export-video`, the `video` selection action, the
+  `video.export` command / `export_video` tool) — one self-contained HTML
+  file that `npx hyperframes render` turns into a deterministic MP4. The
+  kit's clock (`dither-kit/clock.ts`) makes every animation seekable; the
+  player page `/play/` (`src/pages/play`) renders one frame and is also
+  built as a single file (`vite.player.config.ts` → `dist/play/player.js`)
+  that the export inlines. Details in `src/AGENTS.md` and
+  `dither-kit/AGENTS.md`.
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node
@@ -136,7 +145,9 @@ Default section order:
   `npm run check` in `dither-kit-svelte/` when the kit is touched;
   visual/stateful changes also checked in a live browser (vite preview +
   screenshots).
-- `npm run build` ends with a headless-chromium prerender of `/`, `/docs`,
+- `npm run build` runs the site build, then the single-file player build
+  (`vite build -c vite.player.config.ts`, also `npm run build:player`), and
+  ends with a headless-chromium prerender of `/`, `/docs`,
   and `/studio` (`scripts/prerender.mjs`, devDependency playwright-core) so
   non-JS crawlers read the real page DOM from bytes. It requires a chromium
   binary (`CHROME_PATH` or standard install paths — preinstalled on GitHub

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Player | dither-ui</title>
+    <meta name="description" content="Plays one dither-ui Studio frame on its own: the page a HyperFrames video export carries." />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
+    <style>
+      html, body { margin: 0; min-height: 100%; background: var(--color-background, #08090b); }
+      #dither-stage { display: grid; min-height: 100vh; place-items: center; }
+    </style>
+  </head>
+  <body>
+    <div id="dither-stage"></div>
+    <script type="module" src="/src/pages/play/main.ts"></script>
+  </body>
+</html>

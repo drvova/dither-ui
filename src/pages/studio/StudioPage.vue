@@ -19,6 +19,8 @@ const ExportDialog = defineAsyncComponent(() =>
   import("@/features/export-code").then((m) => m.ExportDialog)
 )
 const exportOpen = ref(false)
+const VideoDialog = defineAsyncComponent(() => import("@/features/export-video").then((m) => m.VideoDialog))
+const videoOpen = ref(false)
 const layersOpen = ref(true)
 const inspectorOpen = ref(true)
 // The left slot holds one panel: opening the agent folds the layers away
@@ -70,6 +72,7 @@ onBeforeUnmount(() => {
       v-model:inspector-open="inspectorOpen"
       v-model:agent-open="agentOpen"
       @export="exportOpen = true"
+      @video="videoOpen = true"
     />
 
     <Transition name="panel-left">
@@ -93,6 +96,7 @@ onBeforeUnmount(() => {
 
     <DataEditor />
     <ExportDialog v-if="exportOpen" :open="exportOpen" @close="exportOpen = false" />
+    <VideoDialog v-if="videoOpen" :open="videoOpen" @close="videoOpen = false" />
     <ShortcutsHelp />
   </div>
 

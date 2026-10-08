@@ -19,6 +19,7 @@ import { sliceAtAngle } from "./polar"
 import { type PolarChartContextValue, usePolarChart } from "./polar-context"
 import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { useCanvasVisibility } from "./use-visibility"
+import { directedTime, isDirected, onSeek } from "./clock"
 
 const TOP = -Math.PI / 2
 const TAU = Math.PI * 2
@@ -133,13 +134,15 @@ function startPieLoop({
     imageData = putRasterBuffer(c, frame, imageData)
   }
 
+  // Directed (clock.ts): no frames are requested; `draw(ms)` paints the
+  // moment and the entrance runs from composition time 0.
   const schedule = () => {
-    if (!raf && visible()) raf = requestAnimationFrame(draw)
+    if (!raf && visible() && !isDirected()) raf = requestAnimationFrame(draw)
   }
 
   const draw = (now: number) => {
     raf = 0
-    if (!visible()) return // off-screen: pause until useCanvasVisibility wakes it
+    if (!visible() && !isDirected()) return // off-screen: pause until useCanvasVisibility wakes it
     const s = state.current
     if (!s.ready || !s.pie) return
     const animate = s.animate && !reduce
@@ -159,8 +162,9 @@ function startPieLoop({
       needsFill = true
     }
     if (!animStart) animStart = now
+    const origin = isDirected() ? 0 : animStart
     const prog = animate
-      ? Math.min(1, Math.max(0, (now - animStart - s.animationDelay) / duration))
+      ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration))
       : 1
 
     const emphasisNow = s.selectedDataKey ?? s.focusDataKey
@@ -215,10 +219,21 @@ function startPieLoop({
     if (settling || (animate && prog < 1)) schedule()
   }
 
-  if (visible()) schedule()
+  const paintDirected = (ms: number) => {
+    if (raf) cancelAnimationFrame(raf)
+    raf = 0
+    draw(ms)
+  }
+  const unseek = onSeek((ms) => (ms === null ? schedule() : paintDirected(ms)))
+  if (isDirected()) paintDirected(directedTime() ?? 0)
+  else if (visible()) schedule()
   return {
-    stop: () => cancelAnimationFrame(raf),
-    wake: schedule,
+    stop: () => {
+      cancelAnimationFrame(raf)
+      unseek()
+    },
+    // A wake under direction (ready flipped, data changed) repaints the moment.
+    wake: () => (isDirected() ? paintDirected(directedTime() ?? 0) : schedule()),
   }
 }
 

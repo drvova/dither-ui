@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+import { directedTime, isDirected, onSeek } from "./clock"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
 
@@ -22,28 +23,45 @@ let io: IntersectionObserver | null = null
 let running = false
 
 const rand = () => CHARS[Math.floor(Math.random() * CHARS.length)]
+/** A directed render must repeat: the glyph is a hash of (frame, slot). */
+const seededChar = (frame: number, i: number) => CHARS[((Math.imul(frame + 1, 2654435761) ^ Math.imul(i + 1, 40503)) >>> 0) % CHARS.length]
+
+/** The text at a decrypt frame, or null once the reveal is complete. */
+function frameText(frame: number, seeded: boolean): string | null {
+  const t = target.value
+  const revealEvery = Math.max(1, Math.round(3 / Math.max(0.1, props.speed)))
+  if (frame >= t.length * revealEvery + 8) return null
+  const revealed = Math.floor(frame / revealEvery)
+  let out = ""
+  for (let i = 0; i < t.length; i++) out += i < revealed ? t[i] : t[i] === " " ? " " : seeded ? seededChar(frame, i) : rand()
+  return out
+}
 
 function scramble() {
   if (running) return
   running = true
-  const t = target.value
-  const revealEvery = Math.max(1, Math.round(3 / Math.max(0.1, props.speed)))
-  const total = t.length * revealEvery + 8
   let frame = 0
   const tick = () => {
-    frame++
-    const revealed = Math.floor(frame / revealEvery)
-    let out = ""
-    for (let i = 0; i < t.length; i++) out += i < revealed ? t[i] : t[i] === " " ? " " : rand()
-    display.value = out
-    if (frame < total) raf = requestAnimationFrame(tick)
-    else {
-      display.value = t
+    const out = frameText(++frame, false)
+    if (out === null || isDirected()) {
+      display.value = target.value
       running = false
+      return
     }
+    display.value = out
+    raf = requestAnimationFrame(tick)
   }
   raf = requestAnimationFrame(tick)
 }
+
+// Directed (clock.ts): the reveal runs at 60 frames per second of the moment.
+function seekTo(ms: number) {
+  if (raf) cancelAnimationFrame(raf)
+  raf = 0
+  running = false
+  display.value = frameText(Math.floor(ms / (1000 / 60)), true) ?? target.value
+}
+const unseek = onSeek((ms) => (ms === null ? scramble() : seekTo(ms)))
 
 onMounted(() => {
   display.value = target.value.replace(/[^ ]/g, "?")
@@ -53,6 +71,10 @@ onMounted(() => {
   }
   if (props.trigger === "hover") {
     display.value = target.value
+    return
+  }
+  if (isDirected()) {
+    seekTo(directedTime() ?? 0)
     return
   }
   if (typeof IntersectionObserver === "undefined") {
@@ -68,6 +90,7 @@ onMounted(() => {
   if (el.value) io.observe(el.value)
 })
 onBeforeUnmount(() => {
+  unseek()
   if (raf) cancelAnimationFrame(raf)
   io?.disconnect()
 })

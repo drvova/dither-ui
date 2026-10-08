@@ -1,8 +1,8 @@
-# pages — landing, docs, studio
+# pages — landing, docs, studio, play
 
 ## Purpose
 
-The three routes of dither-ui.com. Each page is a thin composition over
+The routes of dither-ui.com. Each page is a thin composition over
 widgets/features; page-specific conventions live here.
 
 ## Local Contracts
@@ -314,6 +314,10 @@ widgets/features; page-specific conventions live here.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
+- The selection toolbar's `video` opens `VideoDialog`
+  (`features/export-video`, lazy like `ExportDialog`): length, frame rate
+  and theme, then download the self-contained HyperFrames composition,
+  open the live player preview, or copy the render command.
 - The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a COMPOSER in
   the pi / omp / Claude Code sense and a harness control plane. Backends:
   `acp` (default — the local bridge spawns the user's own Claude Code /
@@ -351,6 +355,26 @@ widgets/features; page-specific conventions live here.
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not
   inside widgets.
+
+### play/
+
+- The player: ONE Studio frame rendered by the Studio's own renderers
+  (`ChartRenderer`, `WidgetRenderer`) at its frame size with no editor
+  around it — the page an exported HyperFrames composition carries and the
+  page the Studio opens for a live preview. `source.ts` reads the document
+  from the composition's embedded `#dither-document` JSON (with
+  `data-artboard` / `data-theme` on `#dither-stage`) or else from the hash
+  `#doc=<base64url document>&artboard=<id>&theme=<dark|light>`; documents
+  are untrusted and go through `parseDocument` (persistence) before they
+  render. `main.ts` installs `directFromHyperframes()` before mount and
+  registers `window.__hf.buildReady["dither-ui"]` as fonts + Vue's mount
+  flush + one macrotask — never an animation frame: the renderer drives
+  Chrome with begin-frame control, so frames and rAF only happen when it
+  captures one, and every surface paints its moment synchronously on seek
+  (a chart that measures later repaints the moment through its `wake`).
+  `play/index.html` is the route's entry (noindex, not prerendered) and the
+  same `main.ts` is the entry of the single-file bundle
+  (`vite.player.config.ts`). Nothing here reads the project store.
 
 ## Verification
 

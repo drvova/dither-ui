@@ -43,6 +43,9 @@ export default defineConfig({
         home: resolve(import.meta.dirname, "index.html"),
         docs: resolve(import.meta.dirname, "docs/index.html"),
         studio: resolve(import.meta.dirname, "studio/index.html"),
+        // The player route; its single-file bundle is a second build
+        // (vite.player.config.ts) because this one shares chunks.
+        play: resolve(import.meta.dirname, "play/index.html"),
       },
     },
   },

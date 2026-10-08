@@ -31,6 +31,7 @@
 // third-party apps from holding Claude.ai credentials, and OpenAI's plan
 // access needs a partner registration. Those users drive the Studio from
 // their own harness — through the ACP bridge (`acp.ts`) or the protocol.
+import { deliverVideo, type VideoExportData } from "@/features/export-video"
 import type { CommandResult } from "./protocol"
 import { registrySchema, runCommand } from "./protocol"
 
@@ -362,7 +363,14 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; destructive?: boolea
   { def: { name: "evolve", description: "Produce seeded variants of a frame, placed as a row and selected. Use when the user wants options.", parameters: obj({ id: str("parent artboard id; defaults to the selection"), count: num("1–12, default 4"), seed: num("generation seed"), strength: num("0–1 mutation pressure") }) }, command: "evolve" },
   { def: { name: "get_code", description: "The frame as a Vue single-file component.", parameters: obj({ id: str("artboard id") }, ["id"]) }, command: "code.get" },
   { def: { name: "get_document", description: "The whole project document (large; image data is elided). Prefer list_artboards.", parameters: obj({}) }, command: "document.get" },
+  { def: { name: "export_video", description: "Export a frame as a HyperFrames composition — one HTML file that `npx hyperframes render` turns into a deterministic MP4 (Node 22 + FFmpeg). Through the bridge it is written under the project as video/<name>/index.html; in the browser it downloads. Returns the render command.", parameters: obj({ id: str("artboard id; defaults to the selection"), seconds: num("length in seconds, 1–600 (default 6)"), fps: { type: "number", enum: [24, 30, 60] }, theme: { type: "string", enum: ["dark", "light"] } }) }, command: "video.export" },
 ]
+
+/** A composition is delivered, not returned: the in-page loop downloads it
+ * for the user, the bridge path ships it to the project directory. */
+export async function finishStudioTool(name: string, result: CommandResult, mode: "download" | "files"): Promise<CommandResult> {
+  return name === "export_video" && result.ok ? deliverVideo(result.data as VideoExportData, mode) : result
+}
 
 /** Execute a named studio tool with raw arguments (the bridge's MCP path
  * and the loop share it). Unknown names and denials come back as errors. */
@@ -515,7 +523,7 @@ export async function runAgent(o: RunOptions): Promise<AgentMessage[]> {
       let result: CommandResult
       if (!tool) result = { ok: false, error: `unknown tool ${call.name}` }
       else if (tool.destructive && !(await (o.approve?.(call) ?? Promise.resolve(false)))) result = { ok: false, error: "denied by the user" }
-      else result = run({ ...call.args, type: tool.command })
+      else result = await finishStudioTool(call.name, run({ ...call.args, type: tool.command }), "download")
       o.onEvent?.({ type: "tool", name: call.name, args: call.args, result })
       messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: shapeResult(call.name, result) })
       if (o.signal?.aborted) {

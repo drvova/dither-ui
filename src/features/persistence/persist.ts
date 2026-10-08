@@ -97,10 +97,19 @@ function validDoc(d: Doc): {
   return { artboards, groups, viewport }
 }
 
+/** Validate + normalize an untrusted document without touching the editor:
+ * the shape the player renders and the import path applies. Null when no
+ * artboard survives. */
+export function parseDocument(d: unknown): { artboards: ReturnType<typeof normalizeArtboard>[]; groups: typeof editor.groups; viewport: typeof editor.viewport | null } | null {
+  if (!isPlain(d)) return null
+  const valid = validDoc(d as Doc)
+  return valid ? { ...valid, artboards: valid.artboards.map(normalizeArtboard) } : null
+}
+
 function applyDoc(d: Doc | null): void {
-  const valid = d ? validDoc(d) : null
+  const valid = d ? parseDocument(d) : null
   if (valid) {
-    editor.artboards = valid.artboards.map(normalizeArtboard)
+    editor.artboards = valid.artboards
     editor.groups = valid.groups
     if (valid.viewport) editor.viewport = valid.viewport
     selectArtboard(editor.artboards[0].id)

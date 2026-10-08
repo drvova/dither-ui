@@ -102,6 +102,16 @@ async function prompt(id, params) {
     await say("Understood, leaving the canvas as it is.")
     return end()
   }
+  if (/video/i.test(goal)) {
+    // The export rides back through the bridge, which writes the files
+    // under --cwd and hands the agent their paths.
+    const r = mcp ? await mcp.call("export_video", { seconds: 2 }) : { isError: true }
+    const text = r.content?.[0]?.text ?? "{}"
+    const files = JSON.parse(text)?.data?.files ?? []
+    plan("completed", "completed")
+    await say(files.length ? `Exported ${files.join(" ")}` : "The export failed.")
+    return end({ usage: { inputTokens: 900, outputTokens: 40 } })
+  }
   const r = mcp ? await mcp.call("add_screen", SCREEN) : { isError: true }
   plan("completed", r.isError ? "pending" : "completed")
   await say(r.isError ? "The Studio rejected the screen." : "Placed a sign-in screen with email, password and a Continue badge.")

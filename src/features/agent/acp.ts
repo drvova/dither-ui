@@ -14,7 +14,7 @@
 // emits, so both backends look identical in the transcript.
 import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
-import { type AgentEvent, callStudioTool, STUDIO_TOOLS, type Usage } from "./llm"
+import { type AgentEvent, callStudioTool, finishStudioTool, STUDIO_TOOLS, type Usage } from "./llm"
 
 type JsonRpcId = string | number
 type Message = { jsonrpc: "2.0"; id?: JsonRpcId; method?: string; params?: unknown; result?: unknown; error?: { code: number; message: string } }
@@ -188,7 +188,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           // The bridge's MCP server forwarding the harness's tool call.
           const name = String(params.name ?? "")
           const args = typeof params.arguments === "object" && params.arguments !== null ? (params.arguments as Record<string, unknown>) : {}
-          const result = callStudioTool(name, args, run)
+          const result = await finishStudioTool(name, callStudioTool(name, args, run), "files")
           flush()
           o.onEvent?.({ type: "tool", name, args, result })
           send({ jsonrpc: "2.0", id: m.id, result })
