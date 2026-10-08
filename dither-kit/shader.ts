@@ -62,18 +62,34 @@ ${KIT_HELPERS}`
 
 /** A world material's view of the finished target (`world.ts`
  * WorldTarget, packed into one texture: R shade, G palette index / 255,
- * B + A a 16-bit depth across the bounding sphere) and the palette. */
+ * B + A a 16-bit depth across the bounding sphere), the palette, the
+ * texture coordinates (`packUv`: R + G a 16-bit s, B + A a 16-bit t offset
+ * by one, 0 where the mesh has none) and the channels: `dk_uv(p)` is the
+ * cell's st ready for `texture(iChannelN, …)` (t flipped to GL's),
+ * `dk_textured(p)` whether the mesh has uvs, `dk_texture(p)` iChannel0
+ * sampled there. */
 const MATERIAL_UNIFORMS = `uniform sampler2D dk_target;
 uniform sampler2D dk_palette;
+uniform sampler2D dk_uvmap;
 uniform vec3 iResolution;
 uniform float iTime;
 uniform vec3 iColor;
 uniform float iSeed;
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+uniform sampler2D iChannel2;
+uniform sampler2D iChannel3;
+uniform vec3 iChannelResolution[4];
+uniform float iChannelTime[4];
 ${KIT_HELPERS}vec4 dk_cell(vec2 p) { return texture(dk_target, (floor(p) + 0.5) / iResolution.xy); }
 float dk_shade(vec2 p) { return dk_cell(p).r; }
 bool dk_covered(vec2 p) { return dk_cell(p).g > 0.0; }
 float dk_depth(vec2 p) { vec4 t = dk_cell(p); return t.g > 0.0 ? (t.b * 65280.0 + t.a * 255.0) / 65535.0 : 1.0; }
 vec3 dk_color(vec2 p) { float i = dk_cell(p).g * 255.0; return texture(dk_palette, vec2((i - 0.5) / 256.0, 0.5)).rgb; }
+vec4 dk_uvcell(vec2 p) { return texture(dk_uvmap, (floor(p) + 0.5) / iResolution.xy); }
+bool dk_textured(vec2 p) { vec4 t = dk_uvcell(p); return t.b + t.a > 0.0; }
+vec2 dk_uv(vec2 p) { vec4 t = dk_uvcell(p); float v = t.b * 65280.0 + t.a * 255.0; return vec2((t.r * 65280.0 + t.g * 255.0) / 65535.0, v > 0.0 ? 1.0 - (v - 1.0) / 65534.0 : 0.0); }
+vec4 dk_texture(vec2 p) { return texture(iChannel0, dk_uv(p)); }
 `
 
 const VERTEX_1 = "attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }"
@@ -116,8 +132,9 @@ export function wrapShader(source: string, webgl2: boolean): ShaderProgram {
 /**
  * Build a world material: a fragment function over the finished target —
  * `mainMaterial(out vec4 fragColor, in vec2 fragCoord)` (or a Shadertoy
- * `mainImage`) reading `dk_shade`, `dk_depth`, `dk_covered`, `dk_color`
- * per cell and returning rgb + the shade the dither pass thresholds.
+ * `mainImage`) reading `dk_shade`, `dk_depth`, `dk_covered`, `dk_color`,
+ * `dk_uv` / `dk_texture` (the channels on the surface) per cell and
+ * returning rgb + the shade the dither pass thresholds.
  */
 export function wrapMaterial(source: string, webgl2: boolean): ShaderProgram {
   const body = source.replace(/\r\n?/g, "\n").replace(/^\s*#version[^\n]*\n/, "")

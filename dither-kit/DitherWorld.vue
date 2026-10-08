@@ -1,14 +1,15 @@
 <script lang="ts">
 import { externalResources, formatOf, parseWorld, type ModelFormat } from "./models"
-import { packTarget, paintMaterial, paintTarget, paintWorld, rasterizeWorld, sampleWorld, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
+import { packTarget, packUv, paintMaterial, paintTarget, paintWorld, rasterizeWorld, sampleWorld, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
 import { createWorldGpu, createWorldMaterial, type WorldGpu, type WorldMaterial } from "./world-gl"
 export type { ModelFormat, World, WorldGpu, WorldMaterial, WorldMesh, WorldStyle, WorldTarget, WorldView }
-export { createWorldGpu, createWorldMaterial, externalResources, formatOf, packTarget, paintMaterial, paintTarget, paintWorld, parseWorld, rasterizeWorld, sampleWorld }
+export { createWorldGpu, createWorldMaterial, externalResources, formatOf, packTarget, packUv, paintMaterial, paintTarget, paintWorld, parseWorld, rasterizeWorld, sampleWorld }
 </script>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue"
-import { createGl, type GlHandle } from "./gl"
+import { directedTime } from "./clock"
+import { type ChannelInput, createGl, type GlHandle, rasterOf } from "./gl"
 import { cn } from "./lib"
 import { BAYER4, clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle, pixelMatrixFromSeed } from "./pixel"
 import type { DitherRenderMode } from "./precompile"
@@ -59,9 +60,15 @@ const props = withDefaults(
     /** Draw polygon outlines, hidden lines removed. */
     wire?: boolean
     /** A GLSL material over the finished target: `mainMaterial(out vec4, in
-     * vec2)` reading dk_shade / dk_depth / dk_covered / dk_color per cell and
-     * returning rgb + the shade the Bayer cell thresholds (needs WebGL). */
+     * vec2)` reading dk_shade / dk_depth / dk_covered / dk_color / dk_uv per
+     * cell and returning rgb + the shade the Bayer cell thresholds (needs WebGL). */
     shader?: string
+    /** Up to four sources — other kit surfaces (pulled at the same clock
+     * time), canvases, images or videos. Without a shader the first wraps
+     * the model through its texture coordinates (primitives, OBJ `vt`, glTF
+     * `TEXCOORD_0`, VRML `TextureCoordinate`, PLY `s`/`t`) as its skin on
+     * either engine; a shader reads them as `iChannel0..3` at `dk_uv(p)`. */
+    channels?: ChannelInput[]
     /** Glow layer: a preset, a config, or a seed. */
     bloom?: PixelBloomInput
     /** Play the file's own animations (VRML ROUTEs, glTF) on the kit clock. */
@@ -313,16 +320,21 @@ function render(buffer: RasterBuffer, clock: number) {
   }
   if (!drawn) rasterizeWorld(w, v, target, style.value)
   engineUsed.value = drawn ? "gpu" : "cpu"
+  const moment = directedTime()
   if (props.shader) {
     const h = glHandle()
-    const rgba = h ? (materialPass = materialPass ?? createWorldMaterial(h)).shade(props.shader, target, w, v, { time: v.time ?? 0, color: fillOf(props.color), seed: props.seed ?? 0 }) : null
+    const rgba = h
+      ? (materialPass = materialPass ?? createWorldMaterial(h)).shade(props.shader, target, w, v, { time: v.time ?? 0, color: fillOf(props.color), seed: props.seed ?? 0, channels: props.channels, moment })
+      : null
     materialProblem.value = rgba ? "" : h ? materialPass?.problem() || "the material did not compile" : "WebGL is not available"
     if (rgba) {
       paintMaterial(buffer, target, w, v, style.value, rgba)
       return
     }
   }
-  paintTarget(buffer, target, w, v, style.value)
+  // The first channel is the model's skin: sampled per cell through the uvs.
+  const texture = props.channels?.length ? rasterOf(props.channels[0], moment) : null
+  paintTarget(buffer, target, w, v, texture ? { ...style.value, texture } : style.value)
 }
 
 function afterPaint(canvas: HTMLCanvasElement) {
@@ -360,7 +372,7 @@ const surface = useDitherBackground({
   restart: () => [
     props.renderMode, props.dpr, props.cell, world.value, orbit.yaw, orbit.pitch, props.engine,
     props.yaw, props.pitch, props.zoom, props.fov, props.color, props.colors, props.dither, props.seed, props.shade, props.fog,
-    props.grain, props.grainScale, props.material, props.wire, props.shader, props.bloom, props.animate, props.time,
+    props.grain, props.grainScale, props.material, props.wire, props.shader, props.bloom, props.animate, props.time, props.channels,
   ],
   frameRate: () => props.frameRate,
   staticClock: 0,

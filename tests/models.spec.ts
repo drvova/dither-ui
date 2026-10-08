@@ -5,13 +5,14 @@ import { nodeMatrices, transformPoint } from "../dither-kit/world"
 const enc = (s: string) => new TextEncoder().encode(s)
 
 /** A GLB holding one triangle (+ optional colour, node transform, animation). */
-function glb(opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip?: boolean } = {}): Uint8Array {
+function glb(opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip?: boolean; uv?: boolean } = {}): Uint8Array {
   const positions = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0])
   const colors = new Float32Array([1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0])
   const indices = new Uint16Array([0, 1, 2, 0])
   const times = new Float32Array([0, 1])
   const quats = new Float32Array([0, 0, 0, 1, 0, 0, Math.SQRT1_2, Math.SQRT1_2])
-  const parts = [positions, colors, indices, times, quats].map((a) => new Uint8Array(a.buffer))
+  const uvs = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1])
+  const parts = [positions, colors, indices, times, quats, uvs].map((a) => new Uint8Array(a.buffer))
   const total = parts.reduce((n, p) => n + Math.ceil(p.length / 4) * 4, 0)
   const bin = new Uint8Array(total)
   const views: { buffer: number; byteOffset: number; byteLength: number }[] = []
@@ -26,7 +27,7 @@ function glb(opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip
     scene: 0,
     scenes: [{ nodes: [0] }],
     nodes: [{ mesh: 0, ...(opts.rotate ? { rotation: [0, 0, Math.SQRT1_2, Math.SQRT1_2] } : {}) }],
-    meshes: [{ primitives: [{ attributes: { POSITION: 0, ...(opts.color ? { COLOR_0: 1 } : {}) }, indices: 2, material: 0, ...(opts.strip ? { mode: 5 } : {}) }] }],
+    meshes: [{ primitives: [{ attributes: { POSITION: 0, ...(opts.color ? { COLOR_0: 1 } : {}), ...(opts.uv ? { TEXCOORD_0: 5 } : {}) }, indices: 2, material: 0, ...(opts.strip ? { mode: 5 } : {}) }] }],
     materials: [{ pbrMetallicRoughness: { baseColorFactor: [0, 1, 0, 1] }, doubleSided: true }],
     buffers: [{ byteLength: total }],
     bufferViews: views,
@@ -36,6 +37,7 @@ function glb(opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip
       { bufferView: 2, componentType: 5123, count: opts.strip ? 4 : 3, type: "SCALAR" },
       { bufferView: 3, componentType: 5126, count: 2, type: "SCALAR" },
       { bufferView: 4, componentType: 5126, count: 2, type: "VEC4" },
+      { bufferView: 5, componentType: 5126, count: 4, type: "VEC2" },
     ],
     ...(opts.animate ? { animations: [{ channels: [{ sampler: 0, target: { node: 0, path: "rotation" } }], samplers: [{ input: 3, output: 4, interpolation: "LINEAR" }] }] } : {}),
   }
@@ -105,6 +107,32 @@ describe("glTF", () => {
     expect(parseWorld(json(`data:application/octet-stream;base64,${b64}`), "gltf").meshes[0].indices.length).toBe(3)
     expect(parseWorld(json("tri.bin"), "gltf", { resources: { "tri.bin": pos.buffer } }).meshes[0].indices.length).toBe(3)
     expect(parseWorld(json("missing.bin"), "gltf").meshes.length).toBe(0)
+  })
+})
+
+describe("texture coordinates", () => {
+  it("OBJ vt per corner (t flipped), splitting seams; glTF TEXCOORD_0 as is", () => {
+    const obj = parseObj("v 0 0 0\nv 1 0 0\nv 0 1 0\nvt 0 0\nvt 1 0\nvt 0 1\nvt 1 1\nf 1/1 2/2 3/3\nf 1/4 2/2 3/3\n")
+    const m = obj.meshes[0]
+    expect(m.positions.length).toBe(12) // the first point is used with two uvs
+    expect(Array.from(m.uv!.slice(0, 6))).toEqual([0, 1, 1, 1, 0, 0])
+    expect(Array.from(m.uv!.slice(6))).toEqual([1, 0])
+    expect(parseObj("v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n").meshes[0].uv).toBeNull()
+    expect(Array.from(parseGltf(glb({ uv: true })).meshes[0].uv!.slice(0, 6))).toEqual([0, 0, 1, 0, 0, 1])
+    expect(parseGltf(glb()).meshes[0].uv).toBeNull()
+  })
+  it("VRML TextureCoordinate + texCoordIndex (t flipped), primitives with their own; PLY s/t", () => {
+    const w = parseWorld(
+      `#VRML V2.0 utf8
+Shape { geometry IndexedFaceSet { coord Coordinate { point [ 0 0 0, 1 0 0, 0 1 0 ] } coordIndex [ 0 1 2 -1 ]
+  texCoord TextureCoordinate { point [ 0 0, 1 0, 0 1 ] } texCoordIndex [ 2 1 0 -1 ] } }
+Shape { geometry Box {} }`,
+      "vrml",
+    )
+    expect(Array.from(w.meshes[0].uv!)).toEqual([0, 0, 1, 1, 0, 1])
+    expect(w.meshes[1].uv?.length).toBe(40)
+    const ply = parsePly("ply\nformat ascii 1.0\nelement vertex 3\nproperty float x\nproperty float y\nproperty float z\nproperty float s\nproperty float t\nelement face 1\nproperty list uchar int vertex_indices\nend_header\n0 0 0 0 0\n1 0 0 1 0\n0 1 0 0 1\n3 0 1 2\n")
+    expect(Array.from(ply.meshes[0].uv!)).toEqual([0, 1, 1, 1, 0, 0])
   })
 })
 

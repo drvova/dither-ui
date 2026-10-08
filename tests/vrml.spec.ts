@@ -70,7 +70,7 @@ describe("VRML97 scene", () => {
     expect(sw.meshes.length).toBe(1)
     expect(sw.meshes[0].positions.length).toBeGreaterThan(100)
     expect(parseVrml(`${V2}Switch { choice [ Shape { geometry Box {} } ] }`).meshes.length).toBe(0)
-    expect(parseVrml(`${V2}LOD { level [ Shape { geometry Box {} } Shape { geometry Sphere {} } ] }`).meshes[0].positions.length).toBe(24)
+    expect(parseVrml(`${V2}LOD { level [ Shape { geometry Box {} } Shape { geometry Sphere {} } ] }`).meshes[0].positions.length).toBe(60)
   })
   it("reads materials, IndexedFaceSet winding flags and ElevationGrid", () => {
     const m = parseVrml(`${V2}Shape { appearance Appearance { material Material { diffuseColor 1 0 0.5 } } geometry Box {} }`)

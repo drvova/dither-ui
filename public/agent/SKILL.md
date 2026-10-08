@@ -160,7 +160,10 @@ Commands (`type` and fields):
   ordinary `component.add` targets; `props.colors` gives either a palette
   ramp. A world also takes `props.shader`: a GLSL material
   (`mainMaterial(out vec4, in vec2)` reading `dk_shade`, `dk_depth`,
-  `dk_covered`, `dk_color` per cell) over its finished render.
+  `dk_covered`, `dk_color` per cell) over its finished render. In code
+  (not through the protocol) a world's `channels` bind other kit surfaces
+  or images as its skin through the file's texture coordinates, and a
+  material samples them with `dk_texture(p)` / `dk_uv(p)`.
 - A sequence is a reel: `reel.add` cuts existing frames into one frame that
   plays them in order, each clip coming in through an ordered-dither
   dissolve or wipe (the kit's `DitherReveal` masks). Build the frames first,

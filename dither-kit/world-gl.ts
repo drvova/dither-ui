@@ -6,17 +6,21 @@
 // never knows which engine filled the target, so the dither, outlines, line
 // sets and point sets are identical. Big meshes rasterize here in the time
 // the CPU engine needs for a small one; the CPU engine stays the byte-exact
-// default. Node animation poses on the GPU through a per-mesh matrix.
+// default. Node animation poses on the GPU through a per-mesh matrix. On
+// WebGL2 the pass draws into two attachments — the target and the texture
+// coordinates (`packUv`'s encoding) — so textures and `dk_uv` work on both
+// engines; WebGL1 leaves the uvs unset.
 
-import { buildProgram, createGl, type Gl, type GlHandle } from "./gl"
+import { buildProgram, type ChannelInput, type Channels, createChannels, createGl, type Gl, type GlHandle } from "./gl"
 import type { Rgb } from "./palette"
 import { wrapMaterial } from "./shader"
-import { cameraOf, meshGrain, nodeMatrices, packTarget, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
+import { cameraOf, meshGrain, nodeMatrices, packTarget, packUv, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
 
 const VERTEX = (es3: boolean) => `${es3 ? "#version 300 es\n#define IN in\n#define OUT out\n" : "#define IN attribute\n#define OUT varying\n"}
 IN vec3 p;
 IN float g;
 IN float c;
+IN vec2 t;
 uniform mat4 uModel;
 uniform vec3 uCenter;
 uniform vec4 uRot;   // cos yaw, sin yaw, cos pitch, sin pitch
@@ -25,6 +29,7 @@ uniform vec2 uDepth; // near, span
 OUT vec3 vPos;
 OUT float vGrain;
 OUT float vIndex;
+OUT vec2 vUv;
 void main() {
   vec3 w = (uModel * vec4(p, 1.0)).xyz - uCenter;
   float x1 = w.x * uRot.x + w.z * uRot.y;
@@ -34,20 +39,23 @@ void main() {
   vPos = vec3(x1, y2, z2);
   vGrain = g;
   vIndex = c;
+  vUv = t;
   float depth = max(-z2, 1e-6);
   float zn = (depth - uDepth.x) / uDepth.y * 2.0 - 1.0;
   gl_Position = vec4(x1 * uCam.y / uCam.z, y2 * uCam.y / uCam.w, zn * depth, depth);
 }
 `
 
-const FRAGMENT = (es3: boolean) => `${es3 ? "#version 300 es\nprecision highp float;\n#define IN in\nout vec4 fragColor;\n" : "#extension GL_OES_standard_derivatives : enable\nprecision highp float;\n#define IN varying\n#define fragColor gl_FragColor\n"}
+const FRAGMENT = (es3: boolean) => `${es3 ? "#version 300 es\nprecision highp float;\n#define IN in\nlayout(location = 0) out vec4 fragColor;\nlayout(location = 1) out vec4 uvColor;\n" : "#extension GL_OES_standard_derivatives : enable\nprecision highp float;\n#define IN varying\n#define fragColor gl_FragColor\n"}
 IN vec3 vPos;
 IN float vGrain;
 IN float vIndex;
+IN vec2 vUv;
 uniform vec4 uLights[8];
 uniform int uLightCount;
 uniform vec2 uDepth;
 uniform float uGrain;
+uniform float uHasUv;
 void main() {
   vec3 n = normalize(cross(dFdx(vPos), dFdy(vPos)));
   float lit = 0.0;
@@ -63,10 +71,21 @@ void main() {
   float hi = floor(code / 256.0);
   float lo = code - hi * 256.0;
   fragColor = vec4(shade, hi / 255.0, lo / 255.0, vIndex);
-}
+${
+  es3
+    ? `  float s = (vUv.x > 1.0 || vUv.x < 0.0) ? fract(vUv.x) : vUv.x;
+  float t = (vUv.y > 1.0 || vUv.y < 0.0) ? fract(vUv.y) : vUv.y;
+  float se = s * 65535.0;
+  float sh = floor(se / 256.0);
+  float te = uHasUv > 0.5 ? 1.0 + t * 65534.0 : 0.0;
+  float th = floor(te / 256.0);
+  uvColor = vec4(sh / 255.0, (se - sh * 256.0) / 255.0, th / 255.0, (te - th * 256.0) / 255.0);
+`
+    : ""
+}}
 `
 
-type Buffers = { pos: WebGLBuffer; idx: WebGLBuffer | null; color: WebGLBuffer | null; grain: WebGLBuffer | null; grainKey: string; count: number; expanded: boolean }
+type Buffers = { pos: WebGLBuffer; idx: WebGLBuffer | null; color: WebGLBuffer | null; uv: WebGLBuffer | null; grain: WebGLBuffer | null; grainKey: string; count: number; expanded: boolean }
 
 export type WorldGpu = {
   /** Fill `target` for one frame; false when WebGL (or an extension) is missing. */
@@ -84,8 +103,49 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
   let program: WebGLProgram | null = null
   let problem = ""
   let pixels = new Uint8Array(0)
+  let uvPixels = new Uint8Array(0)
   const buffers = new WeakMap<WorldMesh, Buffers>()
   const uniforms: Record<string, WebGLUniformLocation | null> = {}
+  // WebGL2 draws into its own framebuffer: the target and the uv map side by side.
+  let fbo: WebGLFramebuffer | null = null
+  let fboTex: (WebGLTexture | null)[] = []
+  let fboDepth: WebGLRenderbuffer | null = null
+  let fboW = 0
+  let fboH = 0
+
+  /** Bind the two-attachment framebuffer (WebGL2), sized to the target; false on WebGL1 or when it cannot complete. */
+  const bindOutput = (gl: Gl, webgl2: boolean, cols: number, rows: number): boolean => {
+    if (!webgl2) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+      return false
+    }
+    const gl2 = gl as WebGL2RenderingContext
+    if (!fbo) {
+      fbo = gl2.createFramebuffer()
+      fboDepth = gl2.createRenderbuffer()
+      fboTex = [gl2.createTexture(), gl2.createTexture()]
+      fboW = 0
+    }
+    gl2.bindFramebuffer(gl2.FRAMEBUFFER, fbo)
+    if (fboW !== cols || fboH !== rows) {
+      fboTex.forEach((tex, i) => {
+        gl2.bindTexture(gl2.TEXTURE_2D, tex)
+        gl2.texImage2D(gl2.TEXTURE_2D, 0, gl2.RGBA, cols, rows, 0, gl2.RGBA, gl2.UNSIGNED_BYTE, null)
+        gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MIN_FILTER, gl2.NEAREST)
+        gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MAG_FILTER, gl2.NEAREST)
+        gl2.framebufferTexture2D(gl2.FRAMEBUFFER, gl2.COLOR_ATTACHMENT0 + i, gl2.TEXTURE_2D, tex, 0)
+      })
+      gl2.bindRenderbuffer(gl2.RENDERBUFFER, fboDepth)
+      gl2.renderbufferStorage(gl2.RENDERBUFFER, gl2.DEPTH_COMPONENT16, cols, rows)
+      gl2.framebufferRenderbuffer(gl2.FRAMEBUFFER, gl2.DEPTH_ATTACHMENT, gl2.RENDERBUFFER, fboDepth)
+      gl2.drawBuffers([gl2.COLOR_ATTACHMENT0, gl2.COLOR_ATTACHMENT1])
+      fboW = cols
+      fboH = rows
+    }
+    if (gl2.checkFramebufferStatus(gl2.FRAMEBUFFER) === gl2.FRAMEBUFFER_COMPLETE) return true
+    gl2.bindFramebuffer(gl2.FRAMEBUFFER, null)
+    return false
+  }
 
   const setup = (): Gl | null => {
     if (handle === undefined) {
@@ -99,13 +159,13 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
         problem = "the GPU engine needs WebGL2"
         return null
       }
-      const built = buildProgram(gl, VERTEX(handle.webgl2), FRAGMENT(handle.webgl2), ["p", "g", "c"])
+      const built = buildProgram(gl, VERTEX(handle.webgl2), FRAGMENT(handle.webgl2), ["p", "g", "c", "t"])
       if (typeof built === "string") {
         problem = built
         return null
       }
       program = built
-      for (const name of ["uModel", "uCenter", "uRot", "uCam", "uDepth", "uLights", "uLightCount", "uGrain"]) uniforms[name] = gl.getUniformLocation(program, name)
+      for (const name of ["uModel", "uCenter", "uRot", "uCam", "uDepth", "uLights", "uLightCount", "uGrain", "uHasUv"]) uniforms[name] = gl.getUniformLocation(program, name)
     }
     // Per-pass state: the material pass on the same context sets its own.
     gl.enable(gl.DEPTH_TEST)
@@ -127,17 +187,24 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
       const expanded = !!mesh.triColors
       let idx: WebGLBuffer | null = null
       let color: WebGLBuffer | null = null
+      let uvData: Float32Array | null = mesh.uv
       if (expanded) {
         const n = mesh.indices.length
         const xyz = new Float32Array(n * 3)
         const col = new Float32Array(n)
+        const st = mesh.uv ? new Float32Array(n * 2) : null
         for (let i = 0; i < n; i++) {
           const v = mesh.indices[i] * 3
           xyz[i * 3] = mesh.positions[v]
           xyz[i * 3 + 1] = mesh.positions[v + 1]
           xyz[i * 3 + 2] = mesh.positions[v + 2]
           col[i] = ((mesh.triColors as Uint8Array)[Math.floor(i / 3)] + 1) / 255
+          if (st && mesh.uv) {
+            st[i * 2] = mesh.uv[mesh.indices[i] * 2]
+            st[i * 2 + 1] = mesh.uv[mesh.indices[i] * 2 + 1]
+          }
         }
+        uvData = st
         gl.bufferData(gl.ARRAY_BUFFER, xyz, gl.STATIC_DRAW)
         color = gl.createBuffer()
         if (color) {
@@ -151,7 +218,15 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idx)
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW)
       }
-      b = { pos, idx, color, grain: null, grainKey: "", count: mesh.indices.length, expanded }
+      let uv: WebGLBuffer | null = null
+      if (uvData) {
+        uv = gl.createBuffer()
+        if (uv) {
+          gl.bindBuffer(gl.ARRAY_BUFFER, uv)
+          gl.bufferData(gl.ARRAY_BUFFER, uvData, gl.STATIC_DRAW)
+        }
+      }
+      b = { pos, idx, color, uv, grain: null, grainKey: "", count: mesh.indices.length, expanded }
       buffers.set(mesh, b)
     }
     const amount = style.grain ?? 0
@@ -183,6 +258,8 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
       const cols = target.width
       const rows = target.height
       handle.size(cols, rows)
+      const mrt = bindOutput(gl, handle.webgl2, Math.max(1, cols), Math.max(1, rows))
+      gl.viewport(0, 0, cols, rows)
       gl.clearColor(0, 0, 0, 0)
       gl.clearDepth(1)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -225,6 +302,15 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
             gl.disableVertexAttribArray(2)
             gl.vertexAttrib1f(2, (mesh.color + 1) / 255)
           }
+          if (b.uv) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, b.uv)
+            gl.enableVertexAttribArray(3)
+            gl.vertexAttribPointer(3, 2, gl.FLOAT, false, 0, 0)
+          } else {
+            gl.disableVertexAttribArray(3)
+            gl.vertexAttrib2f(3, 0, 0)
+          }
+          gl.uniform1f(uniforms.uHasUv, b.uv ? 1 : 0)
           const m = mesh.node >= 0 && mats ? mats[mesh.node] : null
           gl.uniformMatrix4fv(uniforms.uModel, false, m ? new Float32Array(m) : identity)
           if (mesh.solid) gl.enable(gl.CULL_FACE)
@@ -236,9 +322,19 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
           }
         }
       }
-      pixels = handle.read(pixels)
+      if (mrt) {
+        const gl2 = gl as WebGL2RenderingContext
+        const n = cols * rows * 4
+        if (pixels.length !== n) pixels = new Uint8Array(n)
+        if (uvPixels.length !== n) uvPixels = new Uint8Array(n)
+        gl2.readBuffer(gl2.COLOR_ATTACHMENT0)
+        gl2.readPixels(0, 0, cols, rows, gl2.RGBA, gl2.UNSIGNED_BYTE, pixels)
+        gl2.readBuffer(gl2.COLOR_ATTACHMENT1)
+        gl2.readPixels(0, 0, cols, rows, gl2.RGBA, gl2.UNSIGNED_BYTE, uvPixels)
+        gl2.bindFramebuffer(gl2.FRAMEBUFFER, null)
+      } else pixels = handle.read(pixels)
       // Unpack (rows bottom-up) into the target.
-      const { shade, depth, index } = target
+      const { shade, depth, index, uv } = target
       for (let y = 0; y < rows; y++) {
         const src = (rows - 1 - y) * cols
         for (let x = 0; x < cols; x++) {
@@ -249,25 +345,47 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
             index[i] = 0
             depth[i] = Infinity
             shade[i] = 0
+            uv[i * 2] = 0
+            uv[i * 2 + 1] = 0
             continue
           }
           index[i] = a
           shade[i] = pixels[s] / 255
           depth[i] = c.near + ((pixels[s + 1] * 256 + pixels[s + 2]) / 65535) * c.span
+          const te = mrt ? uvPixels[s + 2] * 256 + uvPixels[s + 3] : 0
+          uv[i * 2] = te ? (uvPixels[s] * 256 + uvPixels[s + 1]) / 65535 : -1
+          uv[i * 2 + 1] = te ? (te - 1) / 65534 : 0
         }
       }
       return true
     },
     dispose() {
-      if (handle && program) handle.gl.deleteProgram(program)
+      if (handle) {
+        const gl = handle.gl
+        if (program) gl.deleteProgram(program)
+        if (fbo) gl.deleteFramebuffer(fbo)
+        if (fboDepth) gl.deleteRenderbuffer(fboDepth)
+        for (const tex of fboTex) if (tex) gl.deleteTexture(tex)
+        if (handle !== shared) handle.dispose()
+      }
+      fbo = null
+      fboDepth = null
+      fboTex = []
       program = null
-      if (handle && handle !== shared) handle.dispose()
       handle = null
     },
   }
 }
 
-export type MaterialInputs = { time: number; color: Rgb; seed: number }
+export type MaterialInputs = {
+  time: number
+  color: Rgb
+  seed: number
+  /** `iChannel0..3`: kit surfaces (pulled at `moment`), canvases, images or videos. */
+  channels?: ChannelInput[]
+  /** The directed moment (ms) the channels are pulled at; null free-running. */
+  moment?: number | null
+}
 
 export type WorldMaterial = {
   /** Run `source` over the target; the RGBA readback (rows bottom-up) for
@@ -278,8 +396,9 @@ export type WorldMaterial = {
 }
 
 /** A GLSL material pass over a finished WorldTarget (see `wrapMaterial`):
- * the target packed into one texture, the palette into another, a
- * fullscreen triangle, a readback. Shares the component's context. */
+ * the target packed into one texture, the palette into another, the uv map
+ * into a third, the channels after them, a fullscreen triangle, a readback.
+ * Shares the component's context. */
 export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
   let handle: GlHandle | null | undefined = shared
   let program: WebGLProgram | null = null
@@ -288,7 +407,10 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
   let quad: WebGLBuffer | null = null
   let targetTex: WebGLTexture | null = null
   let paletteTex: WebGLTexture | null = null
+  let uvTex: WebGLTexture | null = null
+  let channels: Channels | null = null
   let packed = new Uint8Array(0)
+  let packedUv = new Uint8Array(0)
   let pixels = new Uint8Array(0)
   const palette = new Uint8Array(256 * 4)
   const uniforms: Record<string, WebGLUniformLocation | null> = {}
@@ -323,12 +445,13 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
       }
       program = p
       problem = ""
-      for (const name of ["dk_target", "dk_palette", "iResolution", "iTime", "iColor", "iSeed"]) uniforms[name] = gl.getUniformLocation(p, name)
+      for (const name of ["dk_target", "dk_palette", "dk_uvmap", "iResolution", "iTime", "iColor", "iSeed", "iChannel0", "iChannel1", "iChannel2", "iChannel3", "iChannelResolution", "iChannelTime"]) uniforms[name] = gl.getUniformLocation(p, name)
       quad = quad ?? gl.createBuffer()
       gl.bindBuffer(gl.ARRAY_BUFFER, quad)
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
       targetTex = targetTex ?? texture(gl)
       paletteTex = paletteTex ?? texture(gl)
+      uvTex = uvTex ?? texture(gl)
     }
     return program ? gl : null
   }
@@ -354,6 +477,15 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
       gl.bindTexture(gl.TEXTURE_2D, paletteTex)
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, palette)
+      packedUv = packUv(target, packedUv)
+      gl.activeTexture(gl.TEXTURE2)
+      gl.bindTexture(gl.TEXTURE_2D, uvTex)
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, cols, rows, 0, gl.RGBA, gl.UNSIGNED_BYTE, packedUv)
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
+      channels = channels ?? createChannels(handle)
+      const bound = channels.upload(inputs.channels, 3, inputs.time, inputs.moment ?? null)
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
       gl.disable(gl.DEPTH_TEST)
       gl.disable(gl.CULL_FACE)
       gl.disable(gl.BLEND)
@@ -365,8 +497,13 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
       gl.disableVertexAttribArray(1)
       gl.disableVertexAttribArray(2)
+      gl.disableVertexAttribArray(3)
       gl.uniform1i(uniforms.dk_target, 0)
       gl.uniform1i(uniforms.dk_palette, 1)
+      gl.uniform1i(uniforms.dk_uvmap, 2)
+      for (let i = 0; i < 4; i++) gl.uniform1i(uniforms[`iChannel${i}`], 3 + i)
+      if (uniforms.iChannelResolution) gl.uniform3fv(uniforms.iChannelResolution, bound.res)
+      if (uniforms.iChannelTime) gl.uniform1fv(uniforms.iChannelTime, bound.times)
       gl.uniform3f(uniforms.iResolution, cols, rows, 1)
       gl.uniform1f(uniforms.iTime, inputs.time)
       gl.uniform3f(uniforms.iColor, inputs.color[0] / 255, inputs.color[1] / 255, inputs.color[2] / 255)
@@ -380,6 +517,8 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
         if (program) handle.gl.deleteProgram(program)
         if (targetTex) handle.gl.deleteTexture(targetTex)
         if (paletteTex) handle.gl.deleteTexture(paletteTex)
+        if (uvTex) handle.gl.deleteTexture(uvTex)
+        channels?.dispose()
         if (quad) handle.gl.deleteBuffer(quad)
         if (handle !== shared) handle.dispose()
       }

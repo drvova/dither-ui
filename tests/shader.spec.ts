@@ -70,6 +70,14 @@ const run = (src: Uint8Array, w: number, h: number, p: Partial<ShaderDither> = {
   return buf.data
 }
 
+describe("wrapMaterial textures", () => {
+  it("gives materials the uv map, the channels and the sampling helpers", () => {
+    const { fragment } = wrapMaterial("void mainMaterial(out vec4 o, in vec2 p) { o = dk_texture(p); }", true)
+    for (const name of ["uniform sampler2D dk_uvmap;", "uniform sampler2D iChannel3;", "uniform vec3 iChannelResolution[4];", "vec2 dk_uv(vec2 p)", "bool dk_textured(vec2 p)", "vec4 dk_texture(vec2 p)"]) expect(fragment).toContain(name)
+    expect(wrapMaterial("void mainMaterial(out vec4 o, in vec2 p) { o = dk_texture(p); }", false).fragment).toContain("#define texture texture2D")
+  })
+})
+
 describe("ditherShaderPixels", () => {
   it("flips GL's bottom-up rows into the raster", () => {
     const src = new Uint8Array(2 * 2 * 4)

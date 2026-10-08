@@ -147,6 +147,10 @@ Default section order:
   is a `DitherSurface` (`pull(ms)` paints a directed moment on demand), a
   shader binds surfaces as `iChannel0..3`, and a world takes a GLSL
   `shader` material over its finished target — the chain seeks as one.
+  Textures ride the same graph: a world's `channels` skin the model through
+  the file's texture coordinates (OBJ `vt`, glTF `TEXCOORD_0`, VRML
+  `TextureCoordinate`, PLY `s`/`t`, the primitives' own) on either engine,
+  and a material samples them with `dk_texture(p)` / `dk_uv(p)`.
   Both are docs sections under Media (`world`, `shader`) and
   `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps WebGL2
   (SwiftShader), so GPU and shader frames export to MP4 too.

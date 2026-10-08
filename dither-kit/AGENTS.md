@@ -228,13 +228,19 @@ is its showcase and editor.
   through WebGL2 (WebGL1 with derivatives + uint indices), flat normals
   from derivatives, the colour index as a vertex attribute (expanded
   buffers for per-face colours), node poses as a per-mesh matrix uniform,
-  a 16-bit depth code read back into the target. Stage two `paintTarget`
+  a 16-bit depth code read back into the target — on WebGL2 through its
+  own two-attachment framebuffer, so the texture coordinates come back too
+  (`packUv`'s encoding: 16-bit s, 16-bit t offset by one, 0 = no uvs);
+  WebGL1 leaves them unset. Stage two `paintTarget`
   is shared and never knows the engine: fill mode thresholds the shade
   against the Bayer cell (lit cells take the fill at full alpha, the rest
   `shade` alpha), `material` does the same in the file's colour, `ramp`
   (the kit's `sampleRgbGradient` palette engine) picks a band by lighting
   and dithers between bands over an opaque silhouette with `dither` 0-1
-  blending to the smooth gradient, `fog` fades by depth; then outlines
+  blending to the smooth gradient, `fog` fades by depth, `texture` (a
+  RasterBuffer) wraps a raster onto the model through the target's uvs —
+  the texel under the cell (repeating), its alpha in the shade, meshes
+  without uvs keep the fill; then outlines
   (`wire`, owning-triangle facing, never a fan's diagonals), line sets and
   point sets draw depth-tested against the finished z-buffer. `paintWorld`
   = CPU stage one + stage two; same world + time + view + style → same
@@ -251,7 +257,16 @@ is its showcase and editor.
   keys (focusable `role="img"`, `data-engine` says which engine drew), and
   shows an honest note for loading/empty/error. `tests/world.spec.ts`,
   `tests/vrml.spec.ts` and `tests/models.spec.ts` pin the engine, the
-  grammars and every format.
+  grammars and every format. Texture coordinates: `Geometry.uvs` (st per
+  point; (0, 0) is the texture's top-left) or per corner through
+  `faceUvs` — `addMesh` then bakes one vertex per (point, uv), so a seam
+  splits and equal corners share; the primitives carry theirs (box faces
+  whole and upright, sphere equirectangular, cylinder and cone sides
+  unrolled with planar caps, elevation by grid), the parsers read OBJ `vt`
+  (t flipped), glTF `TEXCOORD_0` (as is), VRML `TextureCoordinate` +
+  `texCoordIndex` (t flipped; X3D through the same builder) and PLY
+  `s`/`t`; `WorldMesh.uv` per vertex interpolates perspective-correct into
+  `WorldTarget.uv` (s = -1 where a mesh has none).
 - The render graph: every surface on `use-dither-background` is a
   `DitherSurface` — `raster()` (the last painted buffer), `pull(ms)`,
   `version()`, `canvas()` — returned by the composable, exposed by
@@ -265,13 +280,21 @@ is its showcase and editor.
   Consumers: `DitherShader.channels` binds up to four sources as
   `iChannel0..3` (a surface, a component instance, a kit canvas → its
   surface; any other canvas, image or video → its current pixels, uploaded
-  upright with FLIP_Y, nearest-sampled, `iChannelResolution` set), and
+  upright with FLIP_Y, nearest-sampled, `iChannelResolution` set — all
+  through `gl.ts`'s `createChannels`), `DitherWorld.channels` skins the
+  model: without a shader the first channel is the texture (`rasterOf`
+  turns it into a raster — a surface's own at the moment, or an image,
+  canvas or video read through a 2D context at up to 512 px — and
+  `paintTarget`'s texture mode samples it per cell on either engine), and
   `DitherWorld.shader` is a GLSL material over the finished target:
   `wrapMaterial` wraps `mainMaterial(out vec4, in vec2)` (or a Shadertoy
   `mainImage`) with `dk_cell/dk_shade/dk_depth/dk_covered/dk_color` over
   the target packed by `packTarget` (R shade, G palette index + 1, B+A a
-  16-bit depth across the bounding sphere, empty cells far) and the
-  palette as a 256x1 texture; `createWorldMaterial` runs it on the
+  16-bit depth across the bounding sphere, empty cells far), the palette
+  as a 256x1 texture, and `dk_uv` (the cell's st, t flipped to GL's) /
+  `dk_textured` / `dk_texture` (iChannel0 at `dk_uv`) over the uv map
+  packed by `packUv` plus the material's own `iChannel0..3` (the
+  component's `channels`, uploaded after the three maps); `createWorldMaterial` runs it on the
   component's context (shared with the GPU engine; each pass sets its own
   GL state) and `paintMaterial` thresholds the readback's alpha against the
   Bayer cell with the readback's rgb (zero stays clear, so a material may
@@ -281,9 +304,14 @@ is its showcase and editor.
 - `gl.ts` is the kit's one piece of WebGL plumbing, shared by the GLSL
   surface, the world's GPU engine and the material pass: `createGl` (an
   offscreen WebGL2 or WebGL1 context, context-loss flag, `size`, `read`
-  back, `dispose`) and `buildProgram` (the compiler's first line as the
-  error). The GPU is only ever an evaluator — every surface still dithers
-  on the CPU.
+  back, `dispose`), `buildProgram` (the compiler's first line as the
+  error) and the channel binding: `ChannelInput` (a surface, a component
+  instance, a kit canvas → its surface; any canvas, image or video),
+  `bindChannel`, `createChannels` (the four textures of one program,
+  re-uploaded only when a surface painted, FLIP_Y upright,
+  `iChannelResolution` / `iChannelTime`) and `rasterOf` (the same input as
+  a raster for the CPU engines). The GPU is only ever an evaluator — every
+  surface still dithers on the CPU.
 - `shader.ts` + `DitherShader.vue` are the GLSL surface. The pure half:
   `wrapShader` builds a program around a user fragment shader — Shadertoy's
   `mainImage` gets the Shadertoy uniforms plus the kit's (`iColor` the

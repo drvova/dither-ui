@@ -17,6 +17,7 @@ import {
   mat4Translate,
   nodeMatrices,
   packTarget,
+  packUv,
   paintMaterial,
   paintTarget,
   paintWorld,
@@ -100,8 +101,13 @@ describe("primitives", () => {
     for (const g of geos) expect(outward(bake(g, null, true))).toBe(true)
   })
   it("box: 8 points, 6 quads → 12 triangles, 24 outline edges owned by their triangles", () => {
+    // With its per-face texture coordinates a box bakes into 20 vertices (a
+    // corner is shared only where its uv is the same); stripped of them, the
+    // 8 points stay shared.
     const mesh = bake(boxGeometry([2, 2, 2]), null, true)
-    expect(mesh.positions.length).toBe(24)
+    expect(mesh.positions.length).toBe(60)
+    expect(mesh.uv?.length).toBe(40)
+    expect(bake({ ...boxGeometry([2, 2, 2]), uvs: undefined, faceUvs: undefined }, null, true).positions.length).toBe(24)
     expect(mesh.indices.length).toBe(36)
     expect(mesh.edges.length).toBe(24 * 3)
     for (let e = 0; e < mesh.edges.length; e += 3) {
@@ -327,6 +333,107 @@ describe("kit engines in the shade", () => {
     expect(Array.from(buf.data)).toEqual(Array.from(paint(sphere)))
     expect(target.index[24 * 64 + 32]).toBe(1)
     expect(target.index[0]).toBe(0)
+  })
+})
+
+describe("textures", () => {
+  const unit = (geo: ReturnType<typeof boxGeometry>) => {
+    expect(geo.faceUvs?.length).toBe(geo.faces.length)
+    geo.faces.forEach((face, f) => expect(geo.faceUvs![f].length).toBe(face.length))
+    for (const v of geo.uvs!) {
+      expect(v).toBeGreaterThanOrEqual(0)
+      expect(v).toBeLessThanOrEqual(1)
+    }
+  }
+  it("primitives carry texture coordinates per corner, inside the unit square", () => {
+    unit(boxGeometry([1, 2, 3]))
+    unit(sphereGeometry(1, 8, 4))
+    unit(cylinderGeometry(1, 2))
+    unit(coneGeometry(1, 2))
+    // A sphere's seam: the last segment's corners reach s = 1 instead of wrapping to 0.
+    const sphere = sphereGeometry(1, 4, 3)
+    const seam = sphere.faceUvs![sphere.faceUvs!.length - 2]
+    expect(sphere.uvs![seam[1] * 2]).toBe(1)
+  })
+
+  const quad = (uvs?: number[]) => {
+    const world = emptyWorld()
+    addMesh(world, { points: [-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], faces: [[0, 1, 2, 3]], uvs }, null, [255, 255, 255], false)
+    return finishWorld(world)
+  }
+  const facing: WorldView = { yaw: 0, pitch: 0, zoom: 1, fov: 40 }
+
+  /** The covered box of a target. */
+  const bounds = (target: ReturnType<typeof createWorldTarget>) => {
+    let x0 = Infinity
+    let y0 = Infinity
+    let x1 = -1
+    let y1 = -1
+    for (let y = 0; y < target.height; y++)
+      for (let x = 0; x < target.width; x++)
+        if (target.index[y * target.width + x]) {
+          x0 = Math.min(x0, x)
+          y0 = Math.min(y0, y)
+          x1 = Math.max(x1, x)
+          y1 = Math.max(y1, y)
+        }
+    return { x0, y0, x1, y1 }
+  }
+
+  it("rasterizes the coordinates into the target, perspective-correct, and flags meshes without them", () => {
+    const target = createWorldTarget(40, 40)
+    rasterizeWorld(quad([0, 1, 1, 1, 1, 0, 0, 0]), facing, target, style)
+    const at = (x: number, y: number) => [target.uv[(y * 40 + x) * 2], target.uv[(y * 40 + x) * 2 + 1]]
+    const { x0, y0, x1, y1 } = bounds(target)
+    expect(x1 - x0).toBeGreaterThan(10)
+    const cx = Math.round((x0 + x1) / 2)
+    const cy = Math.round((y0 + y1) / 2)
+    expect(at(cx, cy)[0]).toBeCloseTo(0.5, 1)
+    expect(at(cx, cy)[1]).toBeCloseTo(0.5, 1)
+    expect(at(x0 + 1, cy)[0]).toBeLessThan(0.2)
+    expect(at(x1 - 1, cy)[0]).toBeGreaterThan(0.8)
+    // t runs down the screen: the top rows are the texture's top.
+    expect(at(cx, y0 + 1)[1]).toBeLessThan(0.2)
+    expect(at(cx, y1 - 1)[1]).toBeGreaterThan(0.8)
+    rasterizeWorld(quad(), facing, target, style)
+    expect(at(cx, cy)).toEqual([-1, 0])
+  })
+
+  it("wraps a raster onto the model by its coordinates, its alpha in the shade", () => {
+    const tex = createRasterBuffer(2, 2)
+    tex.data.set([255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 0])
+    const buf = createRasterBuffer(40, 40)
+    const target = createWorldTarget(40, 40)
+    const world = quad([0, 1, 1, 1, 1, 0, 0, 0])
+    rasterizeWorld(world, facing, target, style)
+    paintTarget(buf, target, world, facing, { ...style, shade: 0, texture: tex })
+    const px = (x: number, y: number) => Array.from(buf.data.slice((y * 40 + x) * 4, (y * 40 + x) * 4 + 4))
+    const { x0, y0, x1, y1 } = bounds(target)
+    const qx = (k: number) => Math.round(x0 + (x1 - x0) * k)
+    const qy = (k: number) => Math.round(y0 + (y1 - y0) * k)
+    expect(px(qx(0.25), qy(0.25)).slice(0, 3)).toEqual([255, 0, 0])
+    expect(px(qx(0.75), qy(0.25)).slice(0, 3)).toEqual([0, 255, 0])
+    expect(px(qx(0.25), qy(0.75)).slice(0, 3)).toEqual([0, 0, 255])
+    // The transparent texel never lights its cells.
+    for (let y = qy(0.6); y < qy(0.95); y++) for (let x = qx(0.6); x < qx(0.95); x++) expect(buf.data[(y * 40 + x) * 4 + 3]).toBe(0)
+    // Without coordinates the fill stays.
+    const plain = quad()
+    rasterizeWorld(plain, facing, target, style)
+    paintTarget(buf, target, plain, facing, { ...style, texture: tex })
+    expect(px(qx(0.25), qy(0.25)).slice(0, 3)).toEqual([255, 0, 0])
+    expect(px(qx(0.75), qy(0.25)).slice(0, 3)).toEqual([255, 0, 0])
+  })
+
+  it("packs the coordinates 16-bit for the GPU, zero where the mesh has none", () => {
+    const target = createWorldTarget(2, 1)
+    target.index.set([1, 1])
+    target.uv.set([0.25, 0.5, -1, 0])
+    expect(Array.from(packUv(target))).toEqual([0x40, 0x00, 0x80, 0x00, 0, 0, 0, 0])
+    // Tiling coordinates wrap; 1 stays 1.
+    target.uv.set([2.25, 1, 0, 0])
+    const px = packUv(target)
+    expect([px[0], px[1]]).toEqual([0x40, 0x00])
+    expect(px[2] * 256 + px[3]).toBe(65535)
   })
 })
 

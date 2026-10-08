@@ -188,15 +188,21 @@ function objMaterials(res: Record<string, ArrayBuffer | Uint8Array | string>, ob
  * vertex colours (`v x y z r g b`) averaged per face. */
 export function parseObj(text: string, materials: Record<string, Rgb> = {}): World {
   const points: number[] = []
+  const uvs: number[] = []
   const vcol: number[] = []
   let hasVcol = false
-  type Group = { material: string; faces: number[][]; lines: number[][]; pts: number[] }
+  type Group = { material: string; faces: number[][]; faceUvs: number[][]; lines: number[][]; pts: number[] }
   const groups: Group[] = []
-  let g: Group = { material: "", faces: [], lines: [], pts: [] }
+  let g: Group = { material: "", faces: [], faceUvs: [], lines: [], pts: [] }
   groups.push(g)
   const idx = (tok: string, count: number) => {
     const i = parseInt(tok, 10)
     return Number.isNaN(i) ? -1 : i < 0 ? count + i : i - 1
+  }
+  /** The `vt` of a `v/vt/vn` corner, -1 without one. */
+  const uvIdx = (tok: string) => {
+    const part = tok.split("/")[1]
+    return part ? idx(part, uvs.length / 2) : -1
   }
   for (const raw of text.split("\n")) {
     const line = raw.trim()
@@ -213,10 +219,21 @@ export function parseObj(text: string, materials: Record<string, Rgb> = {}): Wor
           } else vcol.push(0.8, 0.8, 0.8)
         }
         break
+      case "vt":
+        // OBJ's t runs upward; the kit's runs down from the top-left.
+        if (parts.length >= 3) uvs.push(+parts[1], 1 - +parts[2])
+        break
       case "f": {
         const face: number[] = []
-        for (let k = 1; k < parts.length; k++) face.push(idx(parts[k], count))
-        if (face.length >= 3) g.faces.push(face)
+        const corners: number[] = []
+        for (let k = 1; k < parts.length; k++) {
+          face.push(idx(parts[k], count))
+          corners.push(uvIdx(parts[k]))
+        }
+        if (face.length >= 3) {
+          g.faces.push(face)
+          g.faceUvs.push(corners)
+        }
         break
       }
       case "l": {
@@ -229,7 +246,7 @@ export function parseObj(text: string, materials: Record<string, Rgb> = {}): Wor
         for (let k = 1; k < parts.length; k++) g.pts.push(idx(parts[k], count))
         break
       case "usemtl":
-        g = { material: parts.slice(1).join(" "), faces: [], lines: [], pts: [] }
+        g = { material: parts.slice(1).join(" "), faces: [], faceUvs: [], lines: [], pts: [] }
         groups.push(g)
         break
     }
@@ -239,7 +256,7 @@ export function parseObj(text: string, materials: Record<string, Rgb> = {}): Wor
     const color = materials[grp.material] ?? GREY
     if (grp.faces.length) {
       const colors = hasVcol ? grp.faces.flatMap((f) => average(vcol, f)) : undefined
-      addMesh(world, { points, faces: grp.faces, colors }, null, color, true)
+      addMesh(world, { points, faces: grp.faces, colors, uvs: uvs.length ? uvs : undefined, faceUvs: uvs.length ? grp.faceUvs : undefined }, null, color, true)
     }
     if (grp.lines.length) addMesh(world, { points, faces: grp.lines }, null, color, false, { kind: "lines" })
     if (grp.pts.length) addMesh(world, { points, faces: [grp.pts] }, null, color, false, { kind: "points" })
@@ -348,6 +365,8 @@ export function parsePly(input: string | ArrayBuffer | Uint8Array): World {
     }
   }
   const points: number[] = []
+  const uvs: number[] = []
+  let hasUv = false
   const vcol: number[] = []
   let hasVcol = false
   const faces: number[][] = []
@@ -364,6 +383,12 @@ export function parsePly(input: string | ArrayBuffer | Uint8Array): World {
         hasVcol = true
         vcol.push(r / 255, g / 255, b / 255)
       } else vcol.push(0.8, 0.8, 0.8)
+      const s = row.s ?? row.u ?? row.texture_u
+      const t = row.t ?? row.v ?? row.texture_v
+      if (typeof s === "number" && typeof t === "number") {
+        hasUv = true
+        uvs.push(s, 1 - t)
+      } else uvs.push(0, 0)
     } else if (el.name === "face") {
       const idx = row.vertex_indices ?? row.vertex_index
       if (Array.isArray(idx) && idx.length >= 3) {
@@ -425,7 +450,7 @@ export function parsePly(input: string | ArrayBuffer | Uint8Array): World {
       : hasVcol
         ? faces.flatMap((f) => average(vcol, f))
         : undefined
-    addMesh(world, { points, faces, colors }, null, GREY, false)
+    addMesh(world, { points, faces, colors, uvs: hasUv ? uvs : undefined }, null, GREY, false)
   }
   if (edges.length) addMesh(world, { points, faces: edges }, null, GREY, false, { kind: "lines" })
   if (!faces.length && !edges.length && points.length) addMesh(world, { points, faces: [] }, null, GREY, false, { kind: "points" })
@@ -623,7 +648,9 @@ export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: R
     const color: Rgb = Array.isArray(base) ? [base[0] * 255, base[1] * 255, base[2] * 255] : GREY
     const vc = kind === "faces" ? accessor(prim.attributes?.COLOR_0) : null
     const colors = vc && vc.comps >= 3 ? faces.flatMap((f) => average(vc.comps === 3 ? vc.data : stripAlpha(vc.data), f)) : undefined
-    addMesh(world, { points: pos.data, faces, colors }, m, color, !material?.doubleSided, { kind, node })
+    // glTF's uv origin is the texture's top-left, like the kit's.
+    const tc = kind === "faces" ? accessor(prim.attributes?.TEXCOORD_0) : null
+    addMesh(world, { points: pos.data, faces, colors, uvs: tc && tc.comps === 2 ? tc.data : undefined }, m, color, !material?.doubleSided, { kind, node })
   }
 
   const walk = (index: number, mRel: Mat4, parent: number, depth: number) => {
@@ -1162,7 +1189,18 @@ function geometryOf(g: VrmlNode, points: number[] | null): Built {
       const coord = children(g, "coord")[0]
       const pts = points ?? (coord ? nums(coord, "point", []) : [])
       const faces = g.type === "IndexedTriangleSet" ? triplesOf(nums(g, "index", [])) : facesOf(nums(g, "coordIndex", []))
-      return { geo: { points: pts, faces, colors: faceColors(g, faces) }, solid: flag(g, "solid", true), ccw: flag(g, "ccw", true), kind: "faces" }
+      // TextureCoordinate's t runs upward; the kit's runs down from the top-left.
+      // Without a texCoordIndex the coordinates follow the points.
+      const texCoord = children(g, "texCoord")[0]
+      const st = texCoord ? nums(texCoord, "point", []) : []
+      const uvs = st.length ? st.map((v, i) => (i % 2 ? 1 - v : v)) : undefined
+      const tci = uvs && g.type === "IndexedFaceSet" ? nums(g, "texCoordIndex", []) : []
+      return {
+        geo: { points: pts, faces, colors: faceColors(g, faces), uvs, faceUvs: tci.length ? facesOf(tci) : undefined },
+        solid: flag(g, "solid", true),
+        ccw: flag(g, "ccw", true),
+        kind: "faces",
+      }
     }
     case "TriangleSet": {
       const coord = children(g, "coord")[0]

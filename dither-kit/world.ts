@@ -23,8 +23,11 @@ export type Quat = [number, number, number, number]
 export type Mat4 = number[]
 
 /** Raw geometry before baking: flat xyz triples + index rings (polygons,
- * polylines or point runs by `kind`), optional rgb (0-1) per ring. */
-export type Geometry = { points: number[]; faces: number[][]; colors?: number[] }
+ * polylines or point runs by `kind`), optional rgb (0-1) per ring, optional
+ * texture coordinates — st pairs per point (`uvs`), or per corner when
+ * `faceUvs` indexes `uvs` ring by ring (a point on a seam then bakes into
+ * one vertex per uv it is used with). (0, 0) is the texture's top-left. */
+export type Geometry = { points: number[]; faces: number[][]; colors?: number[]; uvs?: number[]; faceUvs?: number[][] }
 
 export type MeshKind = "faces" | "lines" | "points"
 
@@ -40,6 +43,8 @@ export type WorldMesh = {
   color: number
   /** Palette index per triangle when the file colours faces or vertices. */
   triColors: Uint8Array | null
+  /** Texture coordinates per vertex (st, top-left origin) when the file or primitive has them. */
+  uv: Float32Array | null
   /** Back faces are culled (the file promised outward winding). */
   solid: boolean
   kind: MeshKind
@@ -214,19 +219,32 @@ export function composeTransform(translation: Vec3, rotation: Quat, scale: Vec3,
 
 // ---- primitives (VRML conventions: y up, centred on the origin) ----------------
 
+/** Texture coordinates: a pair's index for the per-corner rings. */
+const pairs = (uvs: number[]) => (s: number, t: number) => uvs.push(s, t) / 2 - 1
+
 export function boxGeometry([sx, sy, sz]: Vec3): Geometry {
   const x = sx / 2
   const y = sy / 2
   const z = sz / 2
+  const faces = [[0, 1, 2, 3], [5, 4, 7, 6], [1, 5, 6, 2], [4, 0, 3, 7], [3, 2, 6, 7], [4, 5, 1, 0]]
+  // Every face takes the whole texture, upright as seen from outside.
   return {
     points: [-x, -y, z, x, -y, z, x, y, z, -x, y, z, -x, -y, -z, x, -y, -z, x, y, -z, -x, y, -z],
-    faces: [[0, 1, 2, 3], [5, 4, 7, 6], [1, 5, 6, 2], [4, 0, 3, 7], [3, 2, 6, 7], [4, 5, 1, 0]],
+    faces,
+    uvs: [0, 1, 1, 1, 1, 0, 0, 0],
+    faceUvs: faces.map(() => [0, 1, 2, 3]),
   }
 }
 
 export function sphereGeometry(radius: number, segments = 24, rings = 12): Geometry {
   const points: number[] = [0, radius, 0]
   const faces: number[][] = []
+  const uvs: number[] = []
+  const faceUvs: number[][] = []
+  const st = pairs(uvs)
+  // Equirectangular: s around the axis (the seam at +z), t from the top pole down.
+  const su = (j: number) => j / segments
+  const tv = (i: number) => i / rings
   const at = (ring: number, j: number) => 1 + (ring - 1) * segments + (j % segments)
   for (let i = 1; i < rings; i++) {
     const phi = (Math.PI * i) / rings
@@ -241,15 +259,30 @@ export function sphereGeometry(radius: number, segments = 24, rings = 12): Geome
   points.push(0, -radius, 0)
   for (let j = 0; j < segments; j++) {
     faces.push([at(1, j), at(1, j + 1), 0])
-    for (let i = 1; i < rings - 1; i++) faces.push([at(i + 1, j), at(i + 1, j + 1), at(i, j + 1), at(i, j)])
+    faceUvs.push([st(su(j), tv(1)), st(su(j + 1), tv(1)), st(su(j) + 0.5 / segments, 0)])
+    for (let i = 1; i < rings - 1; i++) {
+      faces.push([at(i + 1, j), at(i + 1, j + 1), at(i, j + 1), at(i, j)])
+      faceUvs.push([st(su(j), tv(i + 1)), st(su(j + 1), tv(i + 1)), st(su(j + 1), tv(i)), st(su(j), tv(i))])
+    }
     faces.push([bottom, at(rings - 1, j + 1), at(rings - 1, j)])
+    faceUvs.push([st(su(j) + 0.5 / segments, 1), st(su(j + 1), tv(rings - 1)), st(su(j), tv(rings - 1))])
   }
-  return { points, faces }
+  return { points, faces, uvs, faceUvs }
+}
+
+/** Planar cap coordinates for a ring vertex (s with x, t with z, seen from above). */
+const capUv = (st: (s: number, t: number) => number, segments: number) => (j: number) => {
+  const th = (2 * Math.PI * j) / segments
+  return st(0.5 + 0.5 * Math.sin(th), 0.5 + 0.5 * Math.cos(th))
 }
 
 export function cylinderGeometry(radius: number, height: number, side = true, top = true, bottom = true, segments = 24): Geometry {
   const points: number[] = []
   const faces: number[][] = []
+  const uvs: number[] = []
+  const faceUvs: number[][] = []
+  const st = pairs(uvs)
+  const cap = capUv(st, segments)
   const h = height / 2
   for (let j = 0; j < segments; j++) {
     const th = (2 * Math.PI * j) / segments
@@ -257,35 +290,60 @@ export function cylinderGeometry(radius: number, height: number, side = true, to
   }
   const topAt = (j: number) => (j % segments) * 2
   const botAt = (j: number) => (j % segments) * 2 + 1
-  if (side) for (let j = 0; j < segments; j++) faces.push([botAt(j), botAt(j + 1), topAt(j + 1), topAt(j)])
-  if (top) faces.push(Array.from({ length: segments }, (_, j) => topAt(j)))
-  if (bottom) faces.push(Array.from({ length: segments }, (_, j) => botAt(segments - 1 - j)))
-  return { points, faces }
+  if (side)
+    for (let j = 0; j < segments; j++) {
+      faces.push([botAt(j), botAt(j + 1), topAt(j + 1), topAt(j)])
+      faceUvs.push([st(j / segments, 1), st((j + 1) / segments, 1), st((j + 1) / segments, 0), st(j / segments, 0)])
+    }
+  if (top) {
+    faces.push(Array.from({ length: segments }, (_, j) => topAt(j)))
+    faceUvs.push(Array.from({ length: segments }, (_, j) => cap(j)))
+  }
+  if (bottom) {
+    faces.push(Array.from({ length: segments }, (_, j) => botAt(segments - 1 - j)))
+    faceUvs.push(Array.from({ length: segments }, (_, j) => cap(segments - 1 - j)))
+  }
+  return { points, faces, uvs, faceUvs }
 }
 
 export function coneGeometry(bottomRadius: number, height: number, side = true, bottom = true, segments = 24): Geometry {
   const points: number[] = [0, height / 2, 0]
   const faces: number[][] = []
+  const uvs: number[] = []
+  const faceUvs: number[][] = []
+  const st = pairs(uvs)
+  const cap = capUv(st, segments)
   for (let j = 0; j < segments; j++) {
     const th = (2 * Math.PI * j) / segments
     points.push(bottomRadius * Math.sin(th), -height / 2, bottomRadius * Math.cos(th))
   }
   const at = (j: number) => 1 + (j % segments)
-  if (side) for (let j = 0; j < segments; j++) faces.push([at(j), at(j + 1), 0])
-  if (bottom) faces.push(Array.from({ length: segments }, (_, j) => at(segments - 1 - j)))
-  return { points, faces }
+  if (side)
+    for (let j = 0; j < segments; j++) {
+      faces.push([at(j), at(j + 1), 0])
+      faceUvs.push([st(j / segments, 1), st((j + 1) / segments, 1), st((j + 0.5) / segments, 0)])
+    }
+  if (bottom) {
+    faces.push(Array.from({ length: segments }, (_, j) => at(segments - 1 - j)))
+    faceUvs.push(Array.from({ length: segments }, (_, j) => cap(segments - 1 - j)))
+  }
+  return { points, faces, uvs, faceUvs }
 }
 
 /** VRML ElevationGrid: heights row by row along z, `xDimension` per row. */
 export function elevationGeometry(xDimension: number, zDimension: number, xSpacing: number, zSpacing: number, heights: number[]): Geometry {
   const points: number[] = []
   const faces: number[][] = []
+  const uvs: number[] = []
   for (let j = 0; j < zDimension; j++)
-    for (let i = 0; i < xDimension; i++) points.push(i * xSpacing, heights[j * xDimension + i] ?? 0, j * zSpacing)
+    for (let i = 0; i < xDimension; i++) {
+      points.push(i * xSpacing, heights[j * xDimension + i] ?? 0, j * zSpacing)
+      uvs.push(xDimension > 1 ? i / (xDimension - 1) : 0, zDimension > 1 ? j / (zDimension - 1) : 0)
+    }
   const at = (i: number, j: number) => j * xDimension + i
   for (let j = 0; j + 1 < zDimension; j++)
     for (let i = 0; i + 1 < xDimension; i++) faces.push([at(i, j + 1), at(i + 1, j + 1), at(i + 1, j), at(i, j)])
-  return { points, faces }
+  return { points, faces, uvs }
 }
 
 // ---- worlds ------------------------------------------------------------------------
@@ -343,7 +401,7 @@ export function addMesh(world: World, geo: Geometry, matrix: Mat4 | null, color:
   const count = Math.floor(geo.points.length / 3)
   if (!count) return null
   const kind = opts.kind ?? "faces"
-  const positions = new Float32Array(count * 3)
+  let positions = new Float32Array(count * 3)
   for (let i = 0; i < count; i++) {
     const p: Vec3 = [geo.points[i * 3], geo.points[i * 3 + 1], geo.points[i * 3 + 2]]
     const q = matrix ? transformPoint(matrix, p) : p
@@ -354,6 +412,7 @@ export function addMesh(world: World, geo: Geometry, matrix: Mat4 | null, color:
   const indices: number[] = []
   const edges: number[] = []
   const tri: number[] = []
+  let uv: Float32Array | null = null
   const valid = (face: number[], min: number) => {
     if (face.length < min) return false
     for (let k = 0; k < face.length; k++) if (!(face[k] >= 0 && face[k] < count)) return false
@@ -361,9 +420,29 @@ export function addMesh(world: World, geo: Geometry, matrix: Mat4 | null, color:
   }
   if (kind === "faces") {
     const flip = !(opts.ccw ?? true) !== (!!matrix && det3(matrix) < 0)
+    // Texture seams: with per-corner uvs a point becomes one vertex per uv it is used with.
+    const uvs = geo.uvs
+    const corners = uvs && geo.faceUvs ? geo.faceUvs : null
+    const uvCount = uvs ? Math.floor(uvs.length / 2) : 0
+    const xyz: number[] = []
+    const st: number[] = []
+    const seen = new Map<number, number>()
+    const vertex = (p: number, u: number) => {
+      const key = p * (uvCount + 1) + (u + 1)
+      let v = seen.get(key)
+      if (v === undefined) {
+        v = xyz.length / 3
+        seen.set(key, v)
+        xyz.push(positions[p * 3], positions[p * 3 + 1], positions[p * 3 + 2])
+        const known = uvs && u >= 0 && u < uvCount
+        st.push(known ? uvs[u * 2] : 0, known ? uvs[u * 2 + 1] : 0)
+      }
+      return v
+    }
     geo.faces.forEach((face, f) => {
       if (!valid(face, 3)) return
-      const ring = flip ? face.slice().reverse() : face
+      const mapped = corners ? face.map((p, k) => vertex(p, corners[f]?.[k] ?? -1)) : face
+      const ring = flip ? mapped.slice().reverse() : mapped
       const tri0 = indices.length / 3
       const n = ring.length
       for (let k = 1; k + 1 < n; k++) {
@@ -372,6 +451,16 @@ export function addMesh(world: World, geo: Geometry, matrix: Mat4 | null, color:
       }
       for (let k = 0; k < n; k++) edges.push(ring[k], ring[(k + 1) % n], tri0 + Math.min(Math.max(k - 1, 0), n - 3))
     })
+    if (corners) {
+      positions = Float32Array.from(xyz)
+      uv = Float32Array.from(st)
+    } else if (uvs) {
+      uv = new Float32Array(count * 2)
+      for (let i = 0; i < count; i++) {
+        uv[i * 2] = uvs[i * 2] ?? 0
+        uv[i * 2 + 1] = uvs[i * 2 + 1] ?? 0
+      }
+    }
   } else if (kind === "lines") {
     for (const line of geo.faces) if (valid(line, 2)) for (let k = 0; k + 1 < line.length; k++) indices.push(line[k], line[k + 1])
   } else if (geo.faces.length) {
@@ -394,6 +483,7 @@ export function addMesh(world: World, geo: Geometry, matrix: Mat4 | null, color:
     edges: Uint32Array.from(edges),
     color: colorIndex(world, color),
     triColors,
+    uv,
     solid: kind === "faces" && solid,
     kind,
     node: opts.node ?? -1,
@@ -618,18 +708,20 @@ export function shadeOf(lights: number[], nx: number, ny: number, nz: number): n
 // ---- stage one: the target --------------------------------------------------------------
 
 /** What a rasterizer produces per cell: lighting shade (0-1), depth from the
- * eye, and the palette index + 1 (0 = nothing drawn). */
-export type WorldTarget = { width: number; height: number; shade: Float32Array; depth: Float32Array; index: Uint8Array }
+ * eye, the palette index + 1 (0 = nothing drawn), and the texture
+ * coordinates (st pairs; s = -1 where the mesh has none). */
+export type WorldTarget = { width: number; height: number; shade: Float32Array; depth: Float32Array; index: Uint8Array; uv: Float32Array }
 
 export function createWorldTarget(width: number, height: number): WorldTarget {
   const n = Math.max(0, width * height)
-  return { width, height, shade: new Float32Array(n), depth: new Float32Array(n), index: new Uint8Array(n) }
+  return { width, height, shade: new Float32Array(n), depth: new Float32Array(n), index: new Uint8Array(n), uv: new Float32Array(n * 2) }
 }
 
 export function clearWorldTarget(t: WorldTarget): void {
   t.depth.fill(Infinity)
   t.index.fill(0)
   t.shade.fill(0)
+  t.uv.fill(0)
 }
 
 export type WorldStyle = {
@@ -656,6 +748,9 @@ export type WorldStyle = {
   grainScale?: number
   /** Seed of the grain pattern. */
   seed?: number
+  /** A raster wrapped onto the model through its texture coordinates: its
+   * colour per cell, its alpha in the shade (meshes without uvs keep the fill). */
+  texture?: RasterBuffer | null
 }
 
 /** Per-vertex fbm grain for a mesh, cached by seed + scale. */
@@ -688,12 +783,13 @@ export function rasterizeWorld(world: World, view: WorldView, target: WorldTarge
   const c = cameraOf(world, view, cols, rows)
   const mats = world.nodes.length ? nodeMatrices(world, view.time ?? 0) : null
   const grainAmt = clamp01(style.grain ?? 0)
-  const { shade, depth: zbuf, index } = target
+  const { shade, depth: zbuf, index, uv: uvt } = target
 
   for (const mesh of world.meshes) {
     if (mesh.kind !== "faces") continue
     project(c, world, posedPositions(mesh, mats))
     const grain = grainAmt > 0 ? meshGrain(mesh, world, style.seed ?? 0, style.grainScale ?? 4) : null
+    const muv = mesh.uv
     const tc = mesh.indices.length / 3
     for (let t = 0; t < tc; t++) {
       const va = mesh.indices[t * 3]
@@ -736,6 +832,16 @@ export function rasterizeWorld(world: World, view: WorldView, target: WorldTarge
       const scy = scr[ic + 1]
       const scd = scr[ic + 2]
       if (sad <= 0 || sbd <= 0 || scd <= 0) continue
+      // Texture coordinates interpolate perspective-correct: weights over depth.
+      const iwa = 1 / sad
+      const iwb = 1 / sbd
+      const iwc = 1 / scd
+      const sA = muv ? muv[va * 2] : 0
+      const tA = muv ? muv[va * 2 + 1] : 0
+      const sB = muv ? muv[vb * 2] : 0
+      const tB = muv ? muv[vb * 2 + 1] : 0
+      const sC = muv ? muv[vcx * 2] : 0
+      const tC = muv ? muv[vcx * 2 + 1] : 0
       const area = (sbx - sax) * (scy - say) - (sby - say) * (scx - sax)
       if (Math.abs(area) < 1e-9) continue
       const minX = Math.max(0, Math.floor(Math.min(sax, sbx, scx)))
@@ -770,6 +876,17 @@ export function rasterizeWorld(world: World, view: WorldView, target: WorldTarge
           zbuf[i] = d
           index[i] = color
           shade[i] = grain ? lit * (1 - grainAmt * (1 - (w0 * ga + w1 * gb + w2 * gc))) : lit
+          if (muv) {
+            const q0 = w0 * iwa
+            const q1 = w1 * iwb
+            const q2 = w2 * iwc
+            const qs = q0 + q1 + q2
+            uvt[i * 2] = (q0 * sA + q1 * sB + q2 * sC) / qs
+            uvt[i * 2 + 1] = (q0 * tA + q1 * tB + q2 * tC) / qs
+          } else {
+            uvt[i * 2] = -1
+            uvt[i * 2 + 1] = 0
+          }
         }
       }
     }
@@ -847,6 +964,8 @@ export function paintTarget(buffer: RasterBuffer, target: WorldTarget, world: Wo
   const bands = ramp ? ramp.length : 0
   const smooth: [number, number, number] = [0, 0, 0]
   const [fr, fg, fb] = style.fill
+  const tex = style.texture && style.texture.width > 0 && style.texture.height > 0 ? style.texture : null
+  const uvt = target.uv
   for (let y = 0; y < rows; y++) {
     const row = mat[y & 3]
     for (let x = 0; x < cols; x++) {
@@ -857,6 +976,19 @@ export function paintTarget(buffer: RasterBuffer, target: WorldTarget, world: Wo
       let v = target.shade[i]
       if (fog > 0) v *= 1 - fog * clamp01((target.depth[i] - c.near) / c.span)
       const o = i * 4
+      if (tex && uvt[i * 2] >= 0) {
+        // The texture's texel under the cell (repeating), its alpha in the shade.
+        const tw = tex.width
+        const tl = tex.height
+        const tx = ((Math.floor(uvt[i * 2] * tw) % tw) + tw) % tw
+        const ty = ((Math.floor(uvt[i * 2 + 1] * tl) % tl) + tl) % tl
+        const s = (ty * tw + tx) * 4
+        data[o] = tex.data[s]
+        data[o + 1] = tex.data[s + 1]
+        data[o + 2] = tex.data[s + 2]
+        data[o + 3] = v * (tex.data[s + 3] / 255) > th ? 255 : shadeA
+        continue
+      }
       if (ramp) {
         const band = Math.min(bands - 1, Math.floor(v * (bands - 1) + th))
         const col = ramp[band]
@@ -994,6 +1126,30 @@ export function packTarget(target: WorldTarget, world: World, view: WorldView, o
     const code = idx ? Math.round(clamp01((target.depth[i] - c.near) / c.span) * 65535) : 65535
     px[o + 2] = code >> 8
     px[o + 3] = code & 255
+  }
+  return px
+}
+
+/** Pack a target's texture coordinates for the GPU: R + G a 16-bit s (tiling
+ * coordinates wrapped), B + A a 16-bit t offset by one — 0 where the mesh has
+ * no uvs or nothing is drawn. */
+export function packUv(target: WorldTarget, out?: Uint8Array): Uint8Array {
+  const n = target.width * target.height
+  const px = out && out.length === n * 4 ? out : new Uint8Array(n * 4)
+  const wrap = (v: number) => (v > 1 || v < 0 ? v - Math.floor(v) : v)
+  for (let i = 0; i < n; i++) {
+    const s = target.uv[i * 2]
+    const o = i * 4
+    if (s < 0 || !target.index[i]) {
+      px[o] = px[o + 1] = px[o + 2] = px[o + 3] = 0
+      continue
+    }
+    const se = Math.round(wrap(s) * 65535)
+    const te = 1 + Math.round(wrap(target.uv[i * 2 + 1]) * 65534)
+    px[o] = se >> 8
+    px[o + 1] = se & 255
+    px[o + 2] = te >> 8
+    px[o + 3] = te & 255
   }
   return px
 }

@@ -41,6 +41,10 @@ const worldGrain = ref(false)
 const worldBloom = ref(false)
 const worldEngine = ref<"cpu" | "gpu">("cpu")
 const worldInk = ref(false)
+const worldTexture = ref(false)
+/* The texture demo: a kit surface wrapped onto the probe through the
+   primitives' own texture coordinates. */
+const worldTexRef = ref<InstanceType<typeof DitherAurora> | null>(null)
 const RAMP = ["#0b1a3a", "#1f6fd6", "#9ec5ff", "#ffffff"]
 
 /* A GLSL material over the world's target: ink where depth jumps, a dimmer
@@ -55,6 +59,8 @@ const INK = `void mainMaterial(out vec4 o, in vec2 p) {
   if (edge > 0.05) { o = vec4(1.0, 1.0, 1.0, 1.0); return; }
   o = dk_covered(p) ? vec4(iColor, dk_shade(p) * 0.85) : vec4(0.0);
 }`
+/* The same ink over the skin: the channel sampled at the cell's texture coordinates. */
+const INK_SKIN = INK.replace("vec4(iColor, dk_shade(p) * 0.85)", "vec4(mix(iColor, dk_texture(p).rgb, dk_texture(p).a), dk_shade(p) * 0.85)")
 
 /* The render graph: a kit surface bound as iChannel0 of a CRT shader. */
 const auroraRef = ref<InstanceType<typeof DitherAurora> | null>(null)
@@ -104,6 +110,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "material", type: "boolean — the file's own colours (materials, face and vertex colours)", default: "false" },
     { prop: "wire", type: "boolean — polygon outlines, hidden lines removed", default: "false" },
     { prop: "shader", type: "string — a GLSL material over the finished target: mainMaterial(out vec4, in vec2) reads dk_shade · dk_depth · dk_covered · dk_color per cell and returns rgb + the shade the Bayer cell thresholds (WebGL)", default: "undefined" },
+    { prop: "channels", type: "ChannelInput[] — kit surfaces (pulled at the same clock time), canvases, images or videos; the first is the model's skin through its texture coordinates, a shader reads them as iChannel0..3 at dk_uv(p)", default: "undefined" },
     { prop: "grain / grainScale", type: "number — fbm grain over the model's own space, and its frequency", default: "0 / 4" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura" | config | seed — the glow layer', default: '"off"' },
     { prop: "animate / time", type: "boolean / number — play the file's animations (VRML ROUTEs, glTF) on the clock, or pin a moment", default: "true / undefined" },
@@ -172,6 +179,13 @@ const SNIPPET_WORLD = `<DitherWorld src="/models/rover.glb" color="blue" :auto-r
 <DitherWorld :source="world" :shader="ink" />
 <!-- a GLSL material over the finished target: dk_depth / dk_shade / dk_covered /
      dk_color per cell; its alpha is the shade the Bayer cell thresholds -->
+
+<DitherAurora ref="aurora" />
+<DitherWorld :source="world" :channels="[aurora]" />
+<!-- any kit surface (or an image, canvas, video) wrapped onto the model through
+     its texture coordinates: primitives, OBJ vt, glTF TEXCOORD_0, VRML
+     TextureCoordinate, PLY s/t. In a material the channels are iChannel0..3:
+     dk_texture(p) samples the first at the cell's dk_uv(p) -->
 
 <script setup>
 // The default content is this seeded VRML97 file, parsed like any other:
@@ -291,11 +305,14 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
       animations: this sample's arms revolve and its antenna bobs by its
       own TimeSensor and ROUTEs, on the kit clock. The shade can run through the kit's other
       engines too: a palette ramp, fbm grain, bloom, or your own GLSL
-      material over the finished target (ink from depth edges here). Drag to
-      orbit.
+      material over the finished target (ink from depth edges here). Any kit
+      surface is a texture: bound as a channel it wraps the model through the
+      file's own texture coordinates, so the aurora below skins the probe.
+      Drag to orbit.
     </p>
     <DemoCard :code="SNIPPET_WORLD">
       <div class="mx-auto max-w-md">
+        <DitherAurora v-if="worldTexture" ref="worldTexRef" :colors="['#1f6fd6', '#9ec5ff', '#ffffff']" :speed="0.8" label="Texture source: an aurora" class="mb-2 h-[48px]" />
         <DitherWorld
           :source="WORLD"
           :wire="worldWire"
@@ -303,7 +320,8 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
           :grain="worldGrain ? 0.6 : 0"
           :bloom="worldBloom ? 'low' : 'off'"
           :engine="worldEngine"
-          :shader="worldInk ? INK : undefined"
+          :shader="worldInk ? (worldTexture ? INK_SKIN : INK) : undefined"
+          :channels="worldTexture ? [worldTexRef] : undefined"
           color="blue"
           label="Sample probe, seed 7"
           class="h-[280px]"
@@ -311,6 +329,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
         <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-muted-foreground">
           <label class="flex items-center gap-2"><input v-model="worldWire" type="checkbox" class="accent-[var(--accent)]" /> wire</label>
           <label class="flex items-center gap-2"><input v-model="worldInk" type="checkbox" class="accent-[var(--accent)]" /> ink</label>
+          <label class="flex items-center gap-2"><input v-model="worldTexture" type="checkbox" class="accent-[var(--accent)]" /> texture</label>
           <label class="flex items-center gap-2"><input v-model="worldRamp" type="checkbox" class="accent-[var(--accent)]" /> ramp</label>
           <label class="flex items-center gap-2"><input v-model="worldGrain" type="checkbox" class="accent-[var(--accent)]" /> grain</label>
           <label class="flex items-center gap-2"><input v-model="worldBloom" type="checkbox" class="accent-[var(--accent)]" /> bloom</label>
