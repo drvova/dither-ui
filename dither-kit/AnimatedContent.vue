@@ -5,7 +5,9 @@ import { pixelPrefersReducedMotion } from "./pixel"
 
 const props = withDefaults(
   defineProps<{
-    distance?: number
+    /** px (number) or any CSS length — `"4cqw"` measures the nearest query
+     * container, making the reveal container-relative. */
+    distance?: number | string
     direction?: "vertical" | "horizontal"
     reverse?: boolean
     duration?: number
@@ -19,10 +21,20 @@ const el = ref<HTMLElement | null>(null)
 const shown = ref(false)
 let io: IntersectionObserver | null = null
 
-const hidden = computed(() => {
-  const d = props.distance * (props.reverse ? -1 : 1)
-  return props.direction === "horizontal" ? `translateX(${d}px)` : `translateY(${d}px)`
-})
+/** Offsets are signed: numbers are px; strings pass through as CSS lengths
+ * with the sign flipped for `reverse` (`"4cqh"` → `"-4cqh"`). */
+function offset(): string {
+  if (typeof props.distance === "number") {
+    return `${props.distance * (props.reverse ? -1 : 1)}px`
+  }
+  const negative = props.distance.startsWith("-") !== props.reverse
+  const body = props.distance.startsWith("-") ? props.distance.slice(1) : props.distance
+  return negative ? `-${body}` : body
+}
+
+const hidden = computed(() =>
+  props.direction === "horizontal" ? `translateX(${offset()})` : `translateY(${offset()})`,
+)
 
 onMounted(() => {
   if (pixelPrefersReducedMotion() || typeof IntersectionObserver === "undefined") {

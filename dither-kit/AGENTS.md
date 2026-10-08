@@ -63,8 +63,14 @@ is its showcase and editor.
   (transform-safe, `use-chart-dimensions` precedent; silent without the
   observer; a setTimeout(0) `clientWidth` guard fires only if nothing
   reported — never overwrite a real observation with the zero read), and
-  publishes `data-cq` (active bucket) + `--cq-w` (raw or quantized) +
-  `--cq-i` (ordinal) + slot props `{ width, size, index, matches }`.
+  publishes `data-cq` (active bucket) + `--cq-w`/`--cq-h` (content-box size,
+  raw or quantized together) + `--cq-i` (ordinal) + slot props
+  `{ width, height, size, index, matches }`. Its UNSCOPED style ships the
+  container-relative reference keyframes `dither-cq-traverse`
+  (translateX ±100cqw) and `dither-cq-rise` (translateY ±100cqh): motion
+  measured against the query container, small-viewport fallback when none —
+  never vw/vh, never the animated element's own box (`tests/cq-units.spec.ts`
+  guards the units and the viewport leak).
   Unmount disconnects the observer and clears the timer (leak contract).
   `tests/container.spec.ts` (boundaries, ordering, overlaps, quantize) and
   `tests/container-vue.spec.ts` (observer, var/attr writes, slot state,
@@ -172,7 +178,9 @@ is its showcase and editor.
   another DOM/CSS/pointer family: slot wrappers (reveal-on-view, animated
   borders, hover glare), timeline-driven children (`Sequence` writes
   `--seq-p`/`data-seq` — see its engine bullet), the container-query scope
-  (`DitherContainer` — `data-cq`/`--cq-*` + slot state), or area wrappers
+  (`DitherContainer` — `data-cq`/`--cq-*` + slot state; and
+  `AnimatedContent.distance` accepts CSS length strings — `"4cqw"` makes a
+  reveal measure its parent container, numbers stay px), or area wrappers
   (cursor +
   click effects on a canvas
   overlay). Same rules: `Dither*` export, `COMPONENT_REGISTRY` entry (wrappers use

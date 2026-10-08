@@ -86,10 +86,11 @@ const API: Record<string, PropRow[]> = {
     { prop: "step", type: "number — quantize --cq-w to this px (0 = continuous)", default: "0" },
     { prop: "name", type: "string — native container-name for children's @container rules", default: '"dither"' },
     { prop: "as / class", type: "element tag / passthrough class", default: '"div" / —' },
-    { prop: "slot props", type: "{ width, size, index, matches } — measured content-box width, active bucket, its ordinal, every matching bucket", default: "—" },
+    { prop: "slot props", type: "{ width, height, size, index, matches } — measured content box (what @container sees), active bucket, its ordinal, every matching bucket", default: "—" },
     { prop: "resolveCq(width, scale?)", type: "CqState — the pure resolver (active = highest matching min)", default: "CONTAINER_SCALE" },
     { prop: "quantize(value, step)", type: "number — nearest step, never negative; step ≤ 0 is identity", default: "—" },
-    { prop: "data-cq / --cq-w / --cq-i", type: "active bucket attribute + raw-or-quantized width + ordinal, published on the host for CSS", default: "—" },
+    { prop: "data-cq / --cq-w / --cq-h / --cq-i", type: "active bucket attribute + content-box width/height (raw or quantized together) + ordinal, published on the host for CSS", default: "—" },
+    { prop: "dither-cq-traverse / dither-cq-rise", type: "shipped @keyframes — translateX(±100cqw) / translateY(±100cqh); motion measured against the container (small-viewport fallback when none)", default: "—" },
   ],
   expandTabs: [
     { prop: "tabs", type: "{ value, label, color? }[]", default: "required" },
@@ -192,7 +193,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "@viewall", type: "() — view-all pressed", default: "—" },
   ],
   animatedContent: [
-    { prop: "distance", type: "number (px)", default: "40" },
+    { prop: "distance", type: "number (px) | CSS length — \"4cqw\" rides the nearest query container", default: "40" },
     { prop: "direction", type: '"vertical" | "horizontal"', default: '"vertical"' },
     { prop: "reverse", type: "boolean", default: "false" },
     { prop: "duration", type: "number (ms)", default: "800" },
@@ -440,6 +441,8 @@ const samples = sampleSequence(plan, t) // [{ id, index, progress, state }, ...]
 @container card (min-width: 520px) {
   .readout { letter-spacing: 0.12em; }
 }
+/* motion route — shipped keyframes measure the container itself */
+.scan { animation: dither-cq-traverse 2.8s ease-in-out infinite alternate; }
 /* selector route — the engine's active bucket rides the host element */
 .cq-card[data-cq="xs"] .cell { border-color: #d9a441; }
 .cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; }`,
@@ -611,7 +614,10 @@ function nudgeCq(delta: number): void {
     <h2 class="text-lg tracking-tight">Animated content</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Wrap anything to have it slide and fade into place the first time it enters
-      the viewport. Direction, distance and timing are configurable.
+      the viewport. Direction, distance and timing are configurable — and
+      <code class="text-foreground/80">distance</code> takes CSS lengths too:
+      <code class="text-foreground/80">distance="4cqw"</code> reveals from 4% of the
+      nearest query container, so the motion measures its parent instead of pixels.
     </p>
     <DemoCard :code="SNIPPETS.animatedContent">
       <DitherAnimatedContent :distance="40"><div :class="cardBox">Slides up on view</div></DitherAnimatedContent>
@@ -1504,6 +1510,7 @@ function nudgeCq(delta: number): void {
         >
           <div v-for="i in 12" :key="i" class="seq-cell">{{ i }}</div>
         </DitherSequence>
+        <div class="cq-scan" aria-hidden="true" />
       </DitherContainer>
     </DemoCard>
     <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
@@ -1516,7 +1523,12 @@ function nudgeCq(delta: number): void {
       and canvas painters hold like frames — the spatial half of the timing engine's step idea.
       This demo overrides <code class="text-foreground/80">:scale</code> so all five buckets
       fit the docs column; the default <code class="text-foreground/80">CONTAINER_SCALE</code>
-      targets wider shells.
+      targets wider shells. The blue bar runs the shipped
+      <code class="text-foreground/80">dither-cq-traverse</code> keyframe:
+      <code class="text-foreground/80">translateX(±100cqw)</code> makes its journey exactly one
+      container width, so a resize re-scales the animation live — where
+      <code class="text-foreground/80">translateX(50%)</code> would measure the bar itself and
+      <code class="text-foreground/80">vw</code> would measure the viewport.
     </p>
     <PropsTable :rows="API.containerQueries" />
   </section>
@@ -1633,5 +1645,14 @@ function nudgeCq(delta: number): void {
 }
 .cq-panel[data-cq="xl"] .seq-cell {
   border-color: #3f8ff3;
+}
+/* Motion route: the shipped keyframe measures the container (100cqw), so
+   the bar's whole journey re-scales on every resize. */
+.cq-scan {
+  height: 2px;
+  width: 28px;
+  margin-top: 0.5rem;
+  background: #3f8ff3;
+  animation: dither-cq-traverse 2.8s ease-in-out infinite alternate;
 }
 </style>

@@ -21,8 +21,8 @@ class FakeResizeObserver {
   disconnect(): void {
     this.disconnected = true
   }
-  fire(width: number): void {
-    this.cb([{ contentRect: { width } }])
+  fire(width: number, height = width): void {
+    this.cb([{ contentRect: { width, height } }])
   }
   static get last(): FakeResizeObserver | undefined {
     return FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1]
@@ -48,11 +48,12 @@ describe("DitherContainer", () => {
     const w = mount(DitherContainer)
     const ro = FakeResizeObserver.last!
     expect(ro.observed).toBe(w.element)
-    ro.fire(360) // md's min — boundaries are inclusive
+    ro.fire(360) // md's min — boundaries are inclusive (height mirrors it)
     await nextTick()
     expect(rootOf(w).getAttribute("data-cq")).toBe("md")
     expect(rootOf(w).style.getPropertyValue("--cq-i")).toBe("2")
     expect(rootOf(w).style.getPropertyValue("--cq-w")).toBe("360")
+    expect(rootOf(w).style.getPropertyValue("--cq-h")).toBe("360")
     w.unmount()
     expect(ro.disconnected).toBe(true) // observer leak contract
   })
@@ -68,10 +69,11 @@ describe("DitherContainer", () => {
         },
       },
     })
-    FakeResizeObserver.last!.fire(404) // 404/8 = 50.5 → 51 → 408
+    FakeResizeObserver.last!.fire(404, 300) // 404/8 = 50.5 → 51 → 408
     await nextTick()
-    expect(seen).toEqual({ width: 404, size: "wide", index: 1, matches: ["narrow", "wide"] })
+    expect(seen).toEqual({ width: 404, height: 300, size: "wide", index: 1, matches: ["narrow", "wide"] })
     expect(rootOf(w).style.getPropertyValue("--cq-w")).toBe("408")
+    expect(rootOf(w).style.getPropertyValue("--cq-h")).toBe("304") // 300/8 = 37.5 → 38
     expect(rootOf(w).style.getPropertyValue("--cq-i")).toBe("1")
     w.unmount()
   })
