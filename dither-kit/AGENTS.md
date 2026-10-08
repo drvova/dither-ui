@@ -12,8 +12,9 @@ is its showcase and editor.
 
 - Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
   step-timing primitives, the sequence timeline algebra, the clock director,
-  the wipe engine (ordered-dither masks), container-query scales, chart
-  roots/contexts, canvas painters, and the public component set.
+  the wipe engine (ordered-dither masks), the keyframe engine (container
+  units), container-query scales, chart roots/contexts, canvas painters,
+  and the public component set.
 - Consumers import ONLY via `index.ts` (`@dither-kit` alias).
 
 ## Local Contracts
@@ -95,6 +96,38 @@ is its showcase and editor.
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+- `keyframes.ts` + `DitherStage.vue` + `DitherLayer.vue` are the keyframe
+  engine in container units. `parseLength` turns px numbers and any CSS
+  length (`calc()` sums included) into unit terms, `lerpTerms` interpolates
+  term by term, `termsToCss` prints one unit plain or several as a
+  `calc()`, `termsToPx` resolves against a box (cq units from the box,
+  percentages by axis, viewport and font from an env); angles read in deg,
+  turn, rad or grad. A `KeyframeTrack` is keys over seconds or percentages
+  (`at`; unplaced keys spread evenly like CSS), `duration` (else the last
+  key's seconds, else 1), `delay`, `loop` (count or forever), `yoyo`, an
+  easing between keys that a key's own `easing` overrides for the segment
+  it starts (`EasingInput` or any `Easing` function, so `steps()`
+  quantizes); `compileTrack` resolves it once, `sampleKeyframes(track, t)`
+  gives state (before/active/done — `Infinity` is any track's settled
+  end), cycle, progress and every property: lengths (x, y, custom
+  lengths) as terms, numbers (angles, scales, opacity, custom numbers);
+  `keyframeTransform` prints the CSS transform with the units kept — the
+  browser measures the container — or in px against a box; `resolveSample`
+  gives every property as px/degrees (vertical names resolve percentages
+  against the height). `DitherStage` is a size query container
+  (`container-type: size`, `--cq-w/--cq-h`) owning one clock: the
+  visibility-gated rAF loop (dt capped, `frameRate` stop-motion, `speed`,
+  looping over `duration`), the kit clock's moment when directed, held
+  under reduced motion (layers then sit at their end); it provides `STAGE`
+  (time, box, reduced) and `data-stage` (playing/directed/paused/still).
+  `DitherLayer` samples its track at the stage's moment and writes
+  `transform` in the keyframes' own units, `opacity`, `--layer-p` and
+  `--layer-<name>` per property, `data-layer` state, and hands the slot
+  every property resolved to px/degrees plus progress, cycle, time, width,
+  height — the numbers a canvas painter needs; without a stage it holds
+  its first key. Pinned by `tests/keyframes.spec.ts` and
+  `tests/stage-vue.spec.ts` (fake rAF + ResizeObserver, directed seeks,
+  reduced motion).
 - `containers.ts` + `DitherContainer.vue` are the container-query engine —
   children answer to their OWN box, never the viewport (the responsive half
   of the animation stack). The pure core resolves a content-box width
@@ -387,8 +420,8 @@ is its showcase and editor.
   (CSS `@media` or `pixelPrefersReducedMotion`). Slot-based effects wrap arbitrary
   text; char/number effects take a `text`/`to` prop. Docs live in `src/pages/docs/text/`.
 - Interaction/motion effects (`AnimatedContent`, `FadeContent`, `Sequence`,
-  `Reveal`, `GradualBlur`, `StarBorder`, `ElectricBorder`, `GlareHover`,
-  `Magnet`, `ClickSpark`, ...) are
+  `Reveal`, `Stage` + `Layer`, `GradualBlur`, `StarBorder`,
+  `ElectricBorder`, `GlareHover`, `Magnet`, `ClickSpark`, ...) are
   another DOM/CSS/pointer family: slot wrappers (reveal-on-view, animated
   borders, hover glare), timeline-driven children (`Sequence` writes
   `--seq-p`/`data-seq` — see its engine bullet), the container-query scope

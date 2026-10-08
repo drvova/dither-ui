@@ -164,6 +164,11 @@ Commands (`type` and fields):
   (not through the protocol) a world's `channels` bind other kit surfaces
   or images as its skin through the file's texture coordinates, and a
   material samples them with `dk_texture(p)` / `dk_uv(p)`.
+- Layered motion is a `DitherStage`: a size query container with one clock
+  whose `DitherLayer` children run keyframes in container units (x, y in
+  `cqw`/`cqh`, rotate, scale, opacity), so a scene scales exactly with its
+  frame and seeks for video. Both are `component.add` targets (the Studio
+  composes a sample scene); the layers' keyframes themselves are code.
 - A sequence is a reel: `reel.add` cuts existing frames into one frame that
   plays them in order, each clip coming in through an ordered-dither
   dissolve or wipe (the kit's `DitherReveal` masks). Build the frames first,

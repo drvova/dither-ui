@@ -133,6 +133,12 @@ Default section order:
   ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
   and exports as one MP4 as long as its cut. Details in `src/AGENTS.md`
   and `dither-kit/AGENTS.md`.
+- Motion in container units: `dither-kit/keyframes.ts` (lengths as unit
+  terms, interpolated with their units kept, resolved to px against a box)
+  drives `DitherStage` (a size query container with one kit-clock) and
+  `DitherLayer` (keyframes per layer: canvas, SVG or DOM), so a scene
+  scales exactly with its parent and exports to video. Docs under
+  Animations (`stage`); registry rows with composed demos.
 - 3D + GLSL: the kit renders model files and fragment shaders through the
   same Bayer raster. `DitherWorld` (`dither-kit/world.ts` engine,
   `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0

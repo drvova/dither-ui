@@ -134,6 +134,30 @@ export { default as DitherTabs, type TabItem, type TabsVariant } from "./DitherT
 export { default as DitherTabPanel } from "./DitherTabPanel.vue"
 export { default as DitherCollapsible } from "./DitherCollapsible.vue"
 export { default as DitherContainer } from "./DitherContainer.vue"
+export { default as DitherStage, STAGE, type StageContext } from "./DitherStage.vue"
+export { default as DitherLayer } from "./DitherLayer.vue"
+export {
+  compileTrack,
+  keyframeTransform,
+  LENGTH_UNITS,
+  lerpTerms,
+  parseAngle,
+  parseLength,
+  resolveSample,
+  sampleKeyframes,
+  termsToCss,
+  termsToPx,
+  type CompiledTrack,
+  type CqBox,
+  type KeyEasing,
+  type Keyframe,
+  type KeyframeSample,
+  type KeyframeTrack,
+  type Length,
+  type LengthEnv,
+  type LengthUnit,
+  type Terms,
+} from "./keyframes"
 export { default as DitherDialog } from "./DitherDialog.vue"
 export { default as DitherCenterMorphModal } from "./CenterMorphModal.vue"
 export { default as DitherKbd } from "./DitherKbd.vue"

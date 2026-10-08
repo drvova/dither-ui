@@ -20,6 +20,7 @@ export const ANIMATIONS_NAV = [
   { id: "step-timing", label: "Step timing" },
   { id: "sequences", label: "Sequences" },
   { id: "container-queries", label: "Container queries" },
+  { id: "stage", label: "Stage" },
   { id: "cubes", label: "Cubes" },
   { id: "ribbons", label: "Ribbons" },
   { id: "shape-blur", label: "Shape blur" },

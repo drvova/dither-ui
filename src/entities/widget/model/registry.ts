@@ -17,6 +17,8 @@ export type ComponentDemo =
   | "field"
   | "fieldset"
   | "form"
+  | "layer"
+  | "stage"
   | "popover"
   | "preview-card"
   | "sidebar"
@@ -282,6 +284,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherFadeContent", label: "Fade content", group: "display", frame: { w: 260, h: 120 }, props: [number("duration", 1000, 100, 3000, 50), number("delay", 0, 0, 2000, 50), bool("blur")], slotText: "Fade content" },
   { is: "DitherSequence", label: "Sequence", group: "display", frame: { w: 300, h: 140 }, props: [number("stagger", 0.06, 0, 1, 0.01), select("from", "start", ["start", "center", "end", "edges"]), number("duration", 0.5, 0.1, 5, 0.1), number("delay", 0, 0, 3, 0.1), number("loop", 1, 1, 10, 1), bool("yoyo"), bool("restartOnView"), bool("paused")], slotText: "Sequence" },
   { is: "DitherContainer", label: "Container", group: "display", frame: { w: 300, h: 160 }, props: [text("name", "dither"), number("step", 0, 0, 64, 1)], slotText: "Children style themselves from this box — resize it" },
+  { is: "DitherStage", label: "Stage", group: "display", frame: { w: 320, h: 200 }, props: [number("duration", 6, 0, 60, 0.5), number("speed", 1, 0, 4, 0.1), number("frameRate", 0, 0, 60, 1), bool("paused")], demo: "stage" },
+  { is: "DitherLayer", label: "Layer", group: "display", frame: { w: 320, h: 160 }, props: [number("duration", 3, 0.1, 30, 0.1), number("delay", 0, 0, 10, 0.1), bool("loop", true), bool("yoyo", true), text("origin", "50% 50%")], slotText: "a layer in container units", demo: "layer" },
   { is: "DitherGradualBlur", label: "Gradual blur", group: "display", frame: { w: 280, h: 160 }, props: [select("position", "bottom", ["bottom", "top"]), number("height", 96, 16, 300, 4), number("strength", 4, 0, 20, 0.5)], slotText: "Content fades into a soft edge as it reaches the blur band" },
   { is: "DitherStarBorder", label: "Star border", group: "display", frame: { w: 220, h: 90 }, props: [color("green"), number("speed", 6, 1, 20, 0.5), number("thickness", 1, 1, 6, 1)], slotText: "Star border" },
   { is: "DitherElectricBorder", label: "Electric border", group: "display", frame: { w: 220, h: 90 }, props: [color(), number("speed", 1, 0.2, 4, 0.1), number("thickness", 2, 1, 6, 1)], slotText: "Electric border" },

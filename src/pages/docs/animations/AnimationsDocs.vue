@@ -7,6 +7,8 @@ import {
   DitherClickSpark,
   DitherCrosshair,
   DitherContainer,
+  DitherLayer,
+  DitherStage,
   DitherElectricBorder,
   DitherFadeContent,
   DitherGhostCursor,
@@ -70,6 +72,26 @@ const API: Record<string, PropRow[]> = {
     { prop: "frameIndex(elapsedMs, fps)", type: "number — wall-clock frame gate for drivers", default: "—" },
     { prop: "cssSteps(n, position?)", type: "string — one config serialized for CSS", default: '"jump-end"' },
     { prop: "DitherAurora frame-rate", type: "number (fps)", default: "0 (smooth)" },
+  ],
+  stage: [
+    { prop: "duration", type: "number (s) — the stage clock loops over it; unset, time runs on", default: "—" },
+    { prop: "speed", type: "number — clock multiplier", default: "1" },
+    { prop: "paused / frameRate", type: "boolean / number (fps, 0 = smooth)", default: "false / 0" },
+    { prop: "restartKey", type: "unknown — change to restart from 0", default: "—" },
+    { prop: "as / class", type: "element tag / passthrough class — give the stage a height: it is a size query container", default: '"div" / —' },
+    { prop: "slot props", type: "{ time, width, height } — the moment and the measured content box", default: "—" },
+    { prop: "data-stage / --cq-w / --cq-h", type: "playing | directed | paused | still, and the box for CSS", default: "—" },
+  ],
+  layer: [
+    { prop: "keyframes", type: "Keyframe[] — { at? (s or '50%'), easing?, x, y (lengths: px, %, cqw, cqh, cqi, cqb, cqmin, cqmax, vw…, calc()), rotate, skewX, skewY (angles), scale, scaleX, scaleY, opacity, ...custom numbers or lengths }", default: "[]" },
+    { prop: "duration", type: "number (s) — unset, the last key's at in seconds, else 1", default: "—" },
+    { prop: "delay / loop / yoyo", type: "number (s) / number | true / boolean", default: "0 / 1 / false" },
+    { prop: "easing", type: "'linear' | 'ease-out' | 'ease-in-out' | bezier points | seed | Easing — between keys; a key's own easing wins for the segment it starts", default: "linear" },
+    { prop: "origin", type: "string — transform-origin, container units welcome", default: '"50% 50%"' },
+    { prop: "as / class", type: "element tag / class (the layer is absolute, inset 0)", default: '"div" / —' },
+    { prop: "slot props", type: "every property resolved to px / degrees against the stage box, plus progress, state, cycle, time, width, height", default: "—" },
+    { prop: "style / data-layer", type: "transform in the keyframes' own units, opacity, --layer-p and --layer-<name> per property; before | active | done", default: "—" },
+    { prop: "sampleKeyframes(track, t) · keyframeTransform(sample, box?) · resolveSample(sample, box) · parseLength / termsToCss / termsToPx", type: "the engine alone, for your own painters and timelines", default: "—" },
   ],
   sequences: [
     { prop: "stagger", type: "number — seconds between neighbouring children", default: "0.06" },
@@ -430,6 +452,33 @@ const plan = planSequence({
   node: (i) => ({ kind: "track", id: String(i), duration: 0.6, loop: 3, yoyo: true }),
 })
 const samples = sampleSequence(plan, t) // [{ id, index, progress, state }, ...]`,
+  stage: `<DitherStage :duration="8" class="h-56">
+  <DitherLayer :keyframes="[{ x: '-6cqw' }, { x: '6cqw' }]" :duration="8" yoyo loop>
+    <DitherAurora class="h-full" />           <!-- a canvas layer drifts 12% of the stage, at any size -->
+  </DitherLayer>
+  <DitherLayer :keyframes="[{ x: 0 }, { x: '-24cqw' }]" :duration="8" yoyo loop>
+    <svg viewBox="0 0 120 40" preserveAspectRatio="none"><path d="…" /></svg>   <!-- SVG parallax -->
+  </DitherLayer>
+  <DitherLayer
+    :keyframes="[
+      { at: 0, x: '80cqw', y: '12cqh', rotate: 0 },
+      { at: '50%', easing: 'ease-in-out', rotate: '0.5turn' },
+      { x: '20cqw', y: '8cqh', rotate: '1turn' },
+    ]"
+    :duration="8" loop origin="0 0"
+  >
+    <svg …moon… />
+  </DitherLayer>
+  <DitherLayer v-slot="{ cx, cy }" :keyframes="[{ cx: '10cqw', cy: '70cqh' }, { cx: '90cqw', cy: '40cqh' }]" :duration="4" yoyo loop>
+    <svg :viewBox="…"><circle :cx="cx" :cy="cy" r="4" /></svg>   <!-- the same keys, resolved to px for painters -->
+  </DitherLayer>
+</DitherStage>
+
+// the engine alone
+import { sampleKeyframes, keyframeTransform, resolveSample } from "@dither-kit"
+const s = sampleKeyframes({ keyframes: [{ x: "10px" }, { x: "50cqw" }], duration: 2 }, 1)
+keyframeTransform(s)                               // "translate(calc(5px + 25cqw), 0px)"
+resolveSample(s, { width: 400, height: 200 }).x    // 105`,
   containerQueries: `import { DitherContainer, quantize } from "@dither-kit"
 
 <!-- children read THIS box's width — not the viewport's -->
@@ -630,6 +679,7 @@ const seqEasing = computed(() => (seqQuant.value ? steps(4) : linear))
 const seqKey = computed(() => `${String(seqFrom.value)}|${seqQuant.value}|${seqNonce.value}`)
 // Container demo: the panel is a native resize box; steppers are its
 // keyboard path (both feed the same ResizeObserver the engine listens to).
+const stageWidth = ref(100)
 const cqPanel = ref<InstanceType<typeof DitherContainer> | null>(null)
 function nudgeCq(delta: number): void {
   const host = cqPanel.value?.$el as HTMLElement | undefined
@@ -1600,6 +1650,82 @@ function nudgeCq(delta: number): void {
     </p>
     <PropsTable :rows="API.containerQueries" />
   </section>
+
+  <!-- Stage: layers in container units -->
+  <section id="stage" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Stage</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Layers in container units. A <code class="text-foreground/80">DitherStage</code> is a
+      size query container with one clock — the kit's, so it seeks for video — and each
+      <code class="text-foreground/80">DitherLayer</code> runs keyframes whose lengths keep
+      their units through interpolation: <code class="text-foreground/80">10cqw</code> to
+      <code class="text-foreground/80">30cqw</code> is <code class="text-foreground/80">20cqw</code>
+      halfway, mixed units become a <code class="text-foreground/80">calc()</code>. Canvas,
+      SVG and DOM layers move exactly relative to the stage at any size, and the same sample
+      resolves to px through the slot for anything that paints. Shrink the stage: every path
+      shrinks with it.
+    </p>
+    <DemoCard :code="SNIPPETS.stage">
+      <div class="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+        <label class="flex items-center gap-2">
+          stage width
+          <input v-model.number="stageWidth" type="range" min="40" max="100" step="5" name="stage-width" class="accent-foreground" />
+        </label>
+        <span class="tabular-nums">{{ stageWidth }}%</span>
+      </div>
+      <DitherStage v-slot="{ width, height }" :duration="8" class="stage-demo" :style="{ width: `${stageWidth}%` }">
+        <DitherLayer :keyframes="[{ x: '-6cqw' }, { x: '6cqw' }]" :duration="8" yoyo loop class="stage-sky">
+          <DitherAurora :colors="['#1f6fd6', '#9ec5ff', '#ffffff']" :speed="0.6" label="Sky" class="h-full" />
+        </DitherLayer>
+        <DitherLayer :keyframes="[{ x: 0 }, { x: '-10cqw' }]" :duration="8" yoyo loop>
+          <svg class="stage-hills far" viewBox="0 0 132 40" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 40 V26 Q12 14 24 22 T48 18 T72 24 T96 14 T120 22 T132 18 V40 Z" />
+          </svg>
+        </DitherLayer>
+        <DitherLayer :keyframes="[{ x: 0 }, { x: '-24cqw' }]" :duration="8" yoyo loop>
+          <svg class="stage-hills near" viewBox="0 0 148 40" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 40 V30 Q14 22 28 30 T56 24 T84 32 T112 22 T140 30 T148 26 V40 Z" />
+          </svg>
+        </DitherLayer>
+        <DitherLayer
+          :keyframes="[
+            { at: 0, x: '80cqw', y: '12cqh', rotate: 0 },
+            { at: '50%', easing: 'ease-in-out', rotate: '0.5turn' },
+            { x: '20cqw', y: '8cqh', rotate: '1turn' },
+          ]"
+          :duration="8"
+          loop
+          origin="0 0"
+          class="stage-moon"
+        >
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="9" cy="9" r="2" class="crater" />
+            <circle cx="15" cy="14" r="1.5" class="crater" />
+          </svg>
+        </DitherLayer>
+        <DitherLayer v-slot="{ cx, cy }" :keyframes="[{ cx: '10cqw', cy: '70cqh' }, { cx: '90cqw', cy: '40cqh' }]" :duration="4" yoyo loop>
+          <svg :viewBox="`0 0 ${Math.max(1, width)} ${Math.max(1, height)}`" class="stage-dot" aria-hidden="true">
+            <circle :cx="cx" :cy="cy" r="4" />
+            <text :x="cx + 8" :y="cy + 3">{{ Math.round(cx) }}, {{ Math.round(cy) }}px</text>
+          </svg>
+        </DitherLayer>
+      </DitherStage>
+    </DemoCard>
+    <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+      The aurora is a canvas surface riding a layer: it drifts twelve percent of the stage,
+      never twelve percent of the viewport. The two hills are SVGs on their own layers at two
+      speeds — parallax in container units. The moon places its keys with
+      <code class="text-foreground/80">at</code> (seconds or a percentage) and eases one segment.
+      The last layer keeps custom keys, <code class="text-foreground/80">cx</code> and
+      <code class="text-foreground/80">cy</code>, which the slot hands back resolved to px
+      against the measured box — exactly the numbers a canvas painter needs. Nothing here is a CSS
+      animation: the stage's clock samples every track, so a frame exported to video lands on
+      the same moment.
+    </p>
+    <PropsTable :rows="API.stage" />
+    <PropsTable :rows="API.layer" />
+  </section>
 </template>
 
 <style scoped>
@@ -1664,6 +1790,61 @@ function nudgeCq(delta: number): void {
 }
 /* Container-query demo — the host is a native resize box; children switch
    off its [data-cq] attribute (CSS route) while the slot drives JS. */
+.stage-demo {
+  height: 230px;
+  margin: 0 auto;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  transition: width 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+.stage-sky {
+  inset: 0 -6cqw;
+}
+.stage-hills {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 110%;
+  height: 58%;
+}
+.stage-hills.far path {
+  fill: rgba(31, 111, 214, 0.35);
+}
+.stage-hills.near {
+  width: 124%;
+  height: 42%;
+}
+.stage-hills.near path {
+  fill: rgba(11, 26, 58, 0.95);
+}
+.stage-moon {
+  inset: auto;
+  width: 28px;
+  height: 28px;
+}
+.stage-moon circle {
+  fill: rgba(255, 255, 255, 0.85);
+}
+.stage-moon .crater {
+  fill: rgba(11, 26, 58, 0.6);
+}
+.stage-dot {
+  width: 100%;
+  height: 100%;
+}
+.stage-dot circle {
+  fill: var(--color-accent);
+}
+.stage-dot text {
+  font: 10px var(--font-mono);
+  fill: var(--color-muted-foreground);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-demo {
+    transition: none;
+  }
+}
 .cq-panel {
   width: 500px;
   max-width: 100%;
