@@ -10,7 +10,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio (see `pages/AGENTS.md`).
 - `widgets/` — studio panels: toolbar, layer-tree, inspector, canvas,
-  chart-renderer, widget-renderer, data-editor, agent (the BYO-key panel).
+  chart-renderer, widget-renderer, data-editor, agent (the composer / harness
+  control plane).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
   export-code, pan-zoom, artboard-transform, agent (the Studio agent
@@ -74,21 +75,49 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     same generation. `placeGeneration` (editor store) lays a generation out as
     one row centred on the viewport and selects it — the one multi-frame
     placement, a batch insert whose midpoint is where a lone frame lands.
-  - `llm.ts`: bring-your-own-key only — Anthropic Messages (direct browser
-    calls) and the OpenAI chat-completions shape with a `baseUrl` (OpenAI,
-    OpenRouter, Groq, Gemini compat, local servers). Keys stay in the browser
-    (`dither-agent-config` in localStorage only when "remember" is on).
-    Subscription logins are NOT offered: Anthropic forbids third-party apps
-    holding Claude.ai credentials, and OpenAI plan access needs partner
-    registration — those users drive the Studio from their own harness via
-    the protocol. The loop (`runAgent`) executes tool calls through
-    `runCommand`, truncates results at 12k chars, drains `pull()` steering
-    messages after each turn's tool results (Anthropic: merged into the same
-    user turn after the `tool_result` blocks), reports `turn` events with
-    elapsed time and token usage, and stops on prose or the step budget;
-    `systemPrompt()` lists registry names by group and sends the model to
-    `get_registry` for props. Pure parts are pinned by
-    `tests/agent-protocol.spec.ts`, `agent-evolve.spec.ts`, `agent-llm.spec.ts`.
+  - `llm.ts`: the in-page agent loop and the shared vocabulary. Providers
+    are bring-your-own-key only — Anthropic Messages (direct browser calls)
+    and the OpenAI chat-completions shape with a `baseUrl` (OpenAI,
+    OpenRouter, Groq, Gemini compat, local servers). Keys stay in the
+    browser (`dither-agent-config` in localStorage only when "remember" is
+    on). Subscription logins are NOT collected: Anthropic forbids
+    third-party apps holding Claude.ai credentials and OpenAI plan access
+    needs partner registration — those users run their own harness through
+    the ACP bridge (`acp.ts`) or the protocol. Harness rules the loop
+    follows: both providers STREAM (SSE; `delta` events, a JSON reply is the
+    fallback) with usage from the final chunk; `post()` retries 408/409/429/
+    5xx/529 and network errors twice with 1s/2s backoff and surfaces
+    `retry` events, an abort ends it at once; a tool marked `destructive`
+    (`remove_artboard`) waits for `approve()` and a refusal is returned to
+    the model as `{ ok: false, error: "denied by the user" }`; tool calls run
+    through `runCommand`, and `shapeResult` elides data URIs and caps at 12k
+    chars with a hint; every turn gets a fresh `Canvas now:` line from
+    `canvasContext()` in the system prompt; `estimateTokens` + `compact()`
+    (drop old tool results, keep the last two user turns verbatim) keep the
+    transcript under `contextBudget` (60k) and emit `compact`; `pull()`
+    steering is drained after each turn's tool results (Anthropic: merged
+    into the same user turn after the `tool_result` blocks); `turn` events
+    carry step, elapsed, usage and context; the loop stops on prose or the
+    step budget. `AgentConfig` adds `backend` (`acp` | provider), `bridgeUrl`,
+    `remember`, `auto`; `loadSession`/`saveSession` persist a per-project
+    transcript (`dither-agent-session-<projectId>`, capped at 160k chars by
+    dropping oldest entries and compacting).
+  - `acp.ts`: the composer as an Agent Client Protocol client over a
+    loopback websocket to `bridge/dither-bridge.mjs` (see `bridge/AGENTS.md`
+    for the wire contract). `connectAcp` sends the Studio tools
+    (`bridge/tools`), runs `initialize` + `session/new`, maps
+    `session/update` notifications into the same `AgentEvent` stream the
+    key loop emits (`mapUpdate`: message chunks → `delta`, tool calls →
+    `activity` with a status-only update keeping its title, plans → `plan`;
+    mirrors of Studio tools are skipped because they render from the
+    `studio/call` path), answers `session/request_permission` through the
+    panel's approval UI, and executes `studio/call` through `callStudioTool`
+    so the harness's MCP tool calls land on the canvas. `prompt()` resolves
+    with the stop reason and the turn's text; abort sends `session/cancel`;
+    `bridge/exit` fails every pending request so a dead agent never leaves
+    the panel busy. Pure parts are pinned by `tests/agent-protocol.spec.ts`,
+    `agent-evolve.spec.ts`, `agent-llm.spec.ts`; the bridge chain by
+    `tests/bridge.spec.ts`.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.
 - Pointer transforms use `features/artboard-transform/startDrag`; it filters by

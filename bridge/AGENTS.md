@@ -1,0 +1,60 @@
+# bridge
+
+## Purpose
+
+- `dither-bridge.mjs` is the local half of the Studio's ACP control plane:
+  it spawns the user's own ACP agent (Claude Code, Codex, Gemini CLI, pi,
+  omp) over stdio, relays its JSON-RPC verbatim to the Studio tab over a
+  loopback websocket, injects the Studio MCP server into every session, and
+  routes that server's tool calls back to the tab.
+- `README.md` is the user-facing manual (run lines per harness, options,
+  what the bridge does and does not do).
+
+## Ownership
+
+- Owns the wire contract between the tab and the bridge; the browser side
+  lives in `src/features/agent/acp.ts`, which must change in step.
+- Does not own the ACP or MCP protocols: both are relayed as the agent
+  speaks them.
+
+## Local Contracts
+
+- Zero dependencies, one file, Node built-ins only (`http`, `child_process`,
+  `crypto`, `readline`); no npm package, no build step.
+- Bridge-only methods are prefixed `bridge/`: `bridge/tools` (tab → bridge,
+  the Studio tool list as MCP tool defs), `bridge/hello` (bridge → tab:
+  agent command, pid, cwd), `bridge/exit` (bridge → tab: exit code).
+  `studio/call` (bridge → tab, `{ name, arguments }`) is answered with the
+  protocol's `CommandResult`; relay ids are `b<N>` so they never collide
+  with the tab's `c<N>` or the agent's ids.
+- The one edit to relayed traffic is the `mcpServers` injection on
+  `session/new` / `session/load` and the default `cwd`; everything else
+  passes through untouched, line by line.
+- Loopback only, one tab at a time, agent killed on disconnect, 30s relay
+  timeout per tool call; `--mcp <port>` is the server mode the agent
+  spawns, never run by hand.
+- The agent is launched through the shell (`shell: true`) so `--agent` can
+  be any command line; it inherits the environment plus
+  `DITHER_BRIDGE_PORT`.
+
+## Work Guidance
+
+- Keep it readable as a single page: a websocket codec, the serve mode, the
+  MCP mode. New behaviour must still leave the relay verbatim.
+- Any change to a `bridge/` or `studio/call` message updates `acp.ts`, the
+  fixture agent and `README.md` together.
+
+## Verification
+
+- `tests/bridge.spec.ts` spawns the real bridge with
+  `tests/fixtures/fake-acp-agent.mjs` (a scripted ACP agent that spawns the
+  injected MCP server and calls `add_screen` through it) and plays the tab:
+  initialize, session/new, prompt with streaming, plan, permission, tool
+  relay, usage, health, second-tab refusal, cancel.
+- Lint covers the file (`npm run lint`); the browser walk is the Studio in
+  the acp backend against the same fixture (`node bridge/dither-bridge.mjs
+  --agent "node tests/fixtures/fake-acp-agent.mjs"`).
+
+## Child DOX Index
+
+- none

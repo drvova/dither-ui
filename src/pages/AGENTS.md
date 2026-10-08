@@ -315,22 +315,38 @@ widgets/features; page-specific conventions live here.
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
 - The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a COMPOSER in
-  the pi / omp / Claude Code sense, over `features/agent/llm.ts`: a
-  monospace transcript of turns — `›` your prompt, `⏺` the agent's prose,
-  `↳` a steering message, one `<details>` per tool call (`⚙ name · args ⎿
-  result`, orange `×` and auto-open when the Studio rejected it, the JSON
-  args/result inside), a `✻ working… 4.2s · turn 2` line while it runs — a
-  prompt line with slash commands (`/help /model /provider /base /key
-  /remember /settings /evolve /select /code /undo /clear /stop`; typing `/`
-  opens an autocomplete listbox, ↑/↓ + Tab/Enter pick), ↑/↓ prompt history
-  on a single-line input, Enter sends, Shift+Enter newlines, Esc stops;
-  STEERING: text sent while the agent works is queued (chips under the
-  log), delivered after the current tool results before its next turn, and
-  anything left when the run ends becomes the next prompt. The status line
-  shows provider, session tokens (in/out, summed from each turn's usage)
-  and the last turn's time. Settings (⚙ or `/settings`; open until a key
-  exists) hold provider/model/base URL/key/remember; the model chip in the
-  head opens them. Subscription users are pointed to `/agent/SKILL.md`.
+  the pi / omp / Claude Code sense and a harness control plane. Backends:
+  `acp` (default — the local bridge spawns the user's own Claude Code /
+  Codex / Gemini / pi; the panel is its ACP client via
+  `features/agent/acp.ts`, the head chip shows the agent name with a green
+  LED while connected) or `anthropic` / `openai` key loops via
+  `features/agent/llm.ts`. One transcript for both: `›` your prompt, `⏺`
+  prose streamed in place with a `▍` caret, `↳` a steering message, `⇢` a
+  follow-up that started, `⚙ name · args ⎿ result` as one `<details>` per
+  Studio tool call (orange `×` and auto-open when the Studio rejected it),
+  `⚙/✓/×` activity lines for the harness's own tool calls, `☰` plans with
+  per-step status, `⚠` approvals answered inline (destructive Studio tools
+  on key backends, `session/request_permission` on ACP; "auto" answers them
+  with the allow option), `·` system lines (compaction, retries, bridge
+  state), and a `✻ working… 4.2s · turn 2 · 1 queued (esc to stop)` line.
+  Keys: Enter sends, or STEERS a running key-backend turn (delivered after
+  the current tool results; ACP has no steering, so it queues); Alt+Enter
+  queues a FOLLOW-UP for after the task; Alt+Up takes the newest queued
+  message back into the editor; Esc stops and returns everything queued to
+  the editor (pi's rule); Shift+Enter newline; ↑/↓ prompt history on a
+  single line; Ctrl+O folds/unfolds every tool block; Ctrl+L toggles
+  settings; `/` opens the command listbox (↑/↓ + Tab/Enter pick): `/help
+  /backend /connect /disconnect /new /model /base /key /remember /auto
+  /settings /evolve /select /code /copy /compact /session /undo /clear
+  /stop`. Follow-ups run one at a time after the task, in order. The
+  status line shows backend, session tokens (summed from each turn's
+  usage), the context estimate (key backends only — an ACP agent keeps its
+  own context), the last turn's time and an `auto` badge. The conversation
+  persists per project (`loadSession`/`saveSession`) and follows the active
+  project; unanswered approvals are not saved. Settings (⚙, `/settings`,
+  Ctrl+L) hold backend, bridge url or model/base URL/key, remember and
+  auto-approve, with the bridge run line in a note; subscription users are
+  pointed to the bridge, never asked to log in.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not

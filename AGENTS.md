@@ -113,8 +113,12 @@ Default section order:
   Code, Codex, pi, omp, sitegeist-bridged browsers) to compose Studio
   documents; the build writes `dist/agent/registry.json` from the mounted
   studio; a live tab answers `dither-studio:command` DOM events and exposes
-  `window.ditherStudio`; the in-app Agent panel is bring-your-own-API-key
-  only (never subscription logins).
+  `window.ditherStudio`. The in-app Agent panel is a composer with two kinds
+  of backend: the ACP bridge (`bridge/dither-bridge.mjs`, see
+  `bridge/AGENTS.md`) drives the user's OWN Claude Code / Codex / Gemini /
+  pi process through the Agent Client Protocol, so subscriptions work with
+  no key in the browser; or a bring-your-own-API-key loop. Subscription
+  logins are never collected in-app.
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node
@@ -162,6 +166,8 @@ Default section order:
 
 ## Child DOX Index
 
+- `bridge/AGENTS.md` — the local ACP bridge: zero-dep relay between a
+  Studio tab and the user's own coding agent, Studio tools as an MCP server
 - `dither-kit/AGENTS.md` — the toolkit: dither engine, palette, component
   contracts, portability rules
 - `dither-kit-svelte/AGENTS.md` — the Svelte 5 port of the toolkit: runes-only

@@ -91,6 +91,16 @@ Rules the validator enforces:
 file*, or by dropping the file onto the canvas. Save to file round-trips the
 same shape, so you can read a user's project, edit it, and hand it back.
 
+**Live through the ACP bridge (you are Claude Code, Codex, Gemini CLI, pi,
+omp or any Agent Client Protocol agent):** the user runs
+`node bridge/dither-bridge.mjs --agent "<your command>"` from a dither-ui
+checkout and sends prompts from the Studio's Agent panel. Your session then
+has an MCP server named `dither-studio` whose tools are the commands below
+(`add_screen`, `add_component`, `add_chart`, `add_widget`, `update_artboard`,
+`remove_artboard`, `evolve`, `select`, `get_registry`, `get_document`,
+`get_code`, `list_artboards`), each applied to the live canvas and undoable.
+Prefer them over writing files; the user is watching the canvas.
+
 **Live (harness has a browser tool, e.g. the sitegeist bridge):** a Studio
 tab speaks a DOM protocol that works from any script world. Dispatch on
 `document`, always with a JSON **string** detail:
