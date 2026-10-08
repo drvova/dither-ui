@@ -308,6 +308,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherOrbitImages", label: "Orbit images", group: "display", frame: { w: 220, h: 220 }, props: [list("items", ["A", "B", "C", "D", "E"]), number("radius", 80, 20, 200, 5), number("duration", 16, 2, 60, 1), number("size", 200, 80, 400, 10)] },
   { is: "DitherPixelTransition", label: "Pixel transition", group: "display", frame: { w: 260, h: 160 }, props: [number("rows", 6, 2, 20, 1), number("cols", 10, 2, 30, 1), color()], slotText: "Hover to reveal" },
   { is: "DitherStickerPeel", label: "Sticker peel", group: "display", frame: { w: 200, h: 120 }, props: [], slotText: "Peel me" },
+  { is: "DitherFlowField", label: "Flow field", group: "display", frame: { w: 320, h: 220 }, props: [list("colors", ["#f4f8ff", "#c9dbff", "#7ba3ee"]), number("count", 2400, 200, 8000, 100), number("speed", 0.7, 0.05, 2, 0.05), number("scale", 1.4, 0.3, 6, 0.1), number("fade", 0.96, 0.5, 0.99, 0.01), number("glow", 1, 0.2, 4, 0.1), number("opacity", 1, 0, 1, 0.05), number("dither", 1, 0, 1, 0.05), select("mask", "radial", ["radial", "linear", "none"]), number("frameRate", 60, 0, 60, 1), bool("paused")] },
   { is: "DitherThumbnail", label: "Thumbnail", group: "display", frame: { w: 260, h: 160 }, props: [text("src", "/sprites.webp"), text("alt", "Sprite sheet preview"), text("href", "https://dither-ui.com/docs"), text("ratio", "1.618"), number("veilCell", 4, 2, 12, 1)] },
 ]
 

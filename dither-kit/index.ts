@@ -29,6 +29,12 @@ export {
 export { default as DitherImage } from "./DitherImage.vue"
 export { default as DitherThumbnail } from "./Thumbnail.vue"
 export {
+  default as DitherFlowField,
+  paintFlowField,
+  fadeRasterAlpha,
+  type FlowFieldParams,
+} from "./FlowField.vue"
+export {
   default as DitherAurora,
   type AuroraParams,
   paintAurora,

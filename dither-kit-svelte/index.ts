@@ -38,6 +38,7 @@ export { default as FloatingLines, type FloatingLinesParams } from "./background
 export { default as GridScan, type GridScanParams } from "./backgrounds/GridScan.svelte"
 export { default as Beams, type BeamsParams } from "./backgrounds/Beams.svelte"
 export { default as Strands, type StrandsParams } from "./backgrounds/Strands.svelte"
+export { default as FlowField, paintFlowField, fadeRasterAlpha, type FlowFieldParams } from "./backgrounds/FlowField.svelte"
 export { default as Silk, type SilkParams } from "./backgrounds/Silk.svelte"
 export { default as RippleGrid, type RippleGridParams } from "./backgrounds/RippleGrid.svelte"
 export { default as LightRays, type RaysParams } from "./backgrounds/LightRays.svelte"
