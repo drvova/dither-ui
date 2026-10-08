@@ -26,6 +26,7 @@ import {
   DitherDotField,
   DitherDotGrid,
   DitherFloatingLines,
+  DitherFlowField,
   DitherGradientBlinds,
   DitherGrainient,
   DitherPlasmaWave,
@@ -147,6 +148,7 @@ const DEMO = {
   grainient: wrap('<DitherGrainient />'),
   plasmaWave: wrap('<DitherPlasmaWave />'),
   floatingLines: wrap('<DitherFloatingLines />'),
+  flowField: wrap('<DitherFlowField />'),
   radar: wrap('<DitherRadar />'),
   dither: wrap('<DitherDither />'),
   letterGlitch: wrap('<DitherLetterGlitch />'),
@@ -561,6 +563,24 @@ const API: Record<string, PropRow[]> = {
     { prop: "dither", type: "number 0…1 | boolean", default: "1" },
     { prop: "paused", type: "boolean", default: "false" },
     { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
+    { prop: "dpr", type: "number", default: "devicePixelRatio" },
+    { prop: "mix-blend-mode", type: "string", default: "undefined" },
+    { prop: "seed", type: "number", default: "undefined" },
+    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
+  flowField: [
+    { prop: "colors", type: "string[] (≤ 8 hex)", default: "['#f4f8ff', '#c9dbff', '#7ba3ee']" },
+    { prop: "count", type: "number", default: "2400" },
+    { prop: "speed", type: "number", default: "0.7" },
+    { prop: "scale", type: "number (noise frequency)", default: "1.4" },
+    { prop: "fade", type: "number 0…1 (trail length)", default: "0.96" },
+    { prop: "glow", type: "number", default: "1" },
+    { prop: "opacity", type: "number 0…1", default: "1" },
+    { prop: "dither", type: "number 0…1 | boolean", default: "1" },
+    { prop: "mask", type: '"radial" | "linear" | "none"', default: '"radial"' },
+    { prop: "paused", type: "boolean", default: "false" },
+    { prop: "frameRate", type: "number (fps, stop-motion)", default: "60" },
     { prop: "dpr", type: "number", default: "devicePixelRatio" },
     { prop: "mix-blend-mode", type: "string", default: "undefined" },
     { prop: "seed", type: "number", default: "undefined" },
@@ -1256,6 +1276,22 @@ const API: Record<string, PropRow[]> = {
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherFloatingLines /></div>
     </DemoCard>
     <PropsTable :rows="API.floatingLines" />
+  </section>
+
+  <!-- Flow field -->
+  <section id="flow-field" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Flow field</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Thousands of tiny dots advected through seeded simplex wind — each one
+      samples the noise angle at its own position and drifts down-current while
+      the buffer's ink decays beneath it: the trail is the buffer's own decay,
+      so the streaks read as wind or water without stored geometry. Edge-masked
+      by default; deterministic per seed.
+    </p>
+    <DemoCard :code="DEMO.flowField">
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherFlowField /></div>
+    </DemoCard>
+    <PropsTable :rows="API.flowField" />
   </section>
 
   <!-- Radar -->

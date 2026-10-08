@@ -23,6 +23,7 @@ export const BACKGROUNDS_NAV = [
   { id: "grainient", label: "Grainient" },
   { id: "plasma-wave", label: "Plasma wave" },
   { id: "floating-lines", label: "Floating lines" },
+  { id: "flow-field", label: "Flow field" },
   { id: "radar-sweep", label: "Radar" },
   { id: "dither", label: "Dither" },
   { id: "letter-glitch", label: "Letter glitch" },
