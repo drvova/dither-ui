@@ -49,6 +49,21 @@ widgets/features; page-specific conventions live here.
   `.nav-a` / `.nav-pill` header links and the `.led` dot are the SITE voice,
   defined once in `app/styles.css` (`@layer components`) and shared by the
   landing and docs headers — never re-declared in a page's scoped styles.
+- The essay figure (`EssayFigure.vue` over `essay-figure.ts`): a 24x24
+  lattice of 576 `<rect>`s built once at setup (markup, prerender-able),
+  sticky beside the statement column from lg (`.essay-wrap` grid; the
+  column is its own size container so the cqi type sizing still keys off
+  the COLUMN), stacked first and small on narrow screens. `activeIdx` is
+  the stage; `stageCell(stage, x, y)` paints each scene through the house
+  `ditherTone`/`rankOf` rule (01 matrix ramp · 02 bars + avatar ring · 03
+  seven seed bands · 04 seeded scatter · 05 nested frames · 06 alias
+  arrow), `stageFills()` gives every rect's fill (`OFF` lattice ghost where
+  empty), and the CSS `fill` transition is delayed by the cell's Bayer rank
+  (`--r` × 22ms) so a scene change IS an ordered-dither wipe; none under
+  reduced motion. New scenes are field cases in `essay-figure.ts` with a
+  caption in `STAGE_CAPTIONS` — never a second lattice. Guarded by
+  `tests/essay-figure.spec.ts` (lattice ranks, determinism, lit share,
+  distinct scenes, stage wrap).
 - Closing band: the display line + two actions over a `dither-field` dot
   sea (`bandCanvas` mounted in `LandingPage.vue`: 4px cells, 12fps, the four
   dark SKY levels only so the ink keeps contrast, density 0.42 at rest →

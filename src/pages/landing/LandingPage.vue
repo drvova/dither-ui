@@ -7,6 +7,7 @@ import {
 import { assetPath, routePath } from "@/shared/lib"
 import { version } from "../../../package.json"
 import EngravedWordmark from "./EngravedWordmark.vue"
+import EssayFigure from "./EssayFigure.vue"
 import InstallBlock from "./InstallBlock.vue"
 import PixelPlate from "./PixelPlate.vue"
 import SkyOrganism from "./SkyOrganism.vue"
@@ -185,7 +186,9 @@ onMounted(() => {
         [0.18, 0.5, 0.82].map((fx, i) => ({
           x: fx * w,
           y: (0.3 + rand() * 0.4) * h,
-          r: Math.max(h, w * 0.22) * 0.9,
+          // Keyed to the SHORT side so a tall phone band stays a sparse sea
+          // (a radius keyed to height flooded it).
+          r: Math.min(h * 0.9, w * 0.3),
           fx: 0.03 + i * 0.011,
           fy: 0.025 + i * 0.009,
           px: rand() * 6.28,
@@ -386,7 +389,13 @@ function setActive(i: number) {
 
       <!-- The essay: six numbered statements that light up as you scroll.
            The index rail (01–06) turns ember and takes a rule on the in-focus one. -->
-      <section aria-label="What the kit does" class="essay-wrap mx-auto w-full max-w-4xl px-6 pb-[var(--section)]">
+      <section aria-label="What the kit does" class="essay-wrap mx-auto w-full max-w-5xl px-6 pb-[var(--section)]">
+        <!-- The figure: a 24x24 lattice that re-dithers itself into the
+             active statement's scene, sticky beside the column at lg. -->
+        <div class="essay-fig">
+          <EssayFigure :stage="activeIdx" />
+        </div>
+        <div class="essay-col">
         <ol class="essay mx-auto flex list-none flex-col p-0">
           <li
             v-for="(s, i) in STAGES"
@@ -402,6 +411,7 @@ function setActive(i: number) {
             <span v-for="line in s.lines" :key="line" class="block">{{ line }}</span>
           </li>
         </ol>
+        </div>
       </section>
 
       <!-- Closing band: full-bleed elevated surface, one display line, one CTA. -->
@@ -669,8 +679,38 @@ function setActive(i: number) {
    cubic-bezier(0.22, 1, 0.36, 1) settle; index 10px, 0.1em tracking. The
    in-focus index turns ember and takes a 2px ember rule — a quiet mark,
    where the old 1.55x spring read playful against the calmer hero. */
+/* Statements left, the figure right (sticky, centred in the viewport)
+   from lg; stacked on narrow screens with the figure first, small. The
+   statement column is its own size container so the type keeps sizing off
+   the COLUMN (cqi), not the two-column wrap. */
 .essay-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.essay-col {
   container-type: inline-size;
+  min-width: 0;
+}
+
+.essay-fig {
+  width: min(100%, 14rem);
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .essay-wrap {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+  .essay-fig {
+    order: 1;
+    width: 100%;
+    margin: 0;
+    position: sticky;
+    top: calc(50vh - 11.5rem);
+  }
 }
 
 /* The statements are authored mono lines, the longest 30 characters. The
