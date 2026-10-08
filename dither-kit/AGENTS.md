@@ -11,8 +11,8 @@ is its showcase and editor.
 ## Ownership
 
 - Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
-  step-timing primitives, the sequence timeline algebra, chart roots/contexts,
-  canvas painters, and the public component set.
+  step-timing primitives, the sequence timeline algebra, container-query
+  scales, chart roots/contexts, canvas painters, and the public component set.
 - Consumers import ONLY via `index.ts` (`@dither-kit` alias).
 
 ## Local Contracts
@@ -49,6 +49,27 @@ is its showcase and editor.
   completion checked BEFORE the gate. `tests/sequence.spec.ts` (algebra) and
   `tests/sequence-vue.spec.ts` (driver, manual-rAF fake clock — respect the
   100ms dt cap when stepping fake time) pin both halves.
+- `containers.ts` + `DitherContainer.vue` are the container-query engine —
+  children answer to their OWN box, never the viewport (the responsive half
+  of the animation stack). The pure core resolves a content-box width
+  against a named `CqScale` with CSS range semantics (min inclusive / max
+  exclusive — a boundary belongs to the wider bucket; declaration order
+  irrelevant; active = highest matching min, `matches` = every overlapping
+  bucket, null/-1/[] when nothing matches or the width is non-finite), and
+  `quantize(value, step)` is the SPATIAL half of the step idea (`timing.ts`
+  quantizes time; step ≤ 0 is identity, output never negative). The wrapper
+  sets native `container-type: inline-size` + `container-name` (stylesheet
+  `@container` route), observes itself via ResizeObserver `contentRect`
+  (transform-safe, `use-chart-dimensions` precedent; silent without the
+  observer; a setTimeout(0) `clientWidth` guard fires only if nothing
+  reported — never overwrite a real observation with the zero read), and
+  publishes `data-cq` (active bucket) + `--cq-w` (raw or quantized) +
+  `--cq-i` (ordinal) + slot props `{ width, size, index, matches }`.
+  Unmount disconnects the observer and clears the timer (leak contract).
+  `tests/container.spec.ts` (boundaries, ordering, overlaps, quantize) and
+  `tests/container-vue.spec.ts` (observer, var/attr writes, slot state,
+  silent-observer fallback) pin both halves; the docs `v-slot` snippet rides
+  the `toSvelteCode` children-snippet rule (`tests/svelte-code.spec.ts`).
 - Seed-generative contract: a `number` is a deterministic SEED everywhere a
   visual input is accepted — `VariantInput` (texture via `textureFromSeed`),
   `BloomInput`/`PixelBloomInput` (`bloomFromSeed`; pixel.ts mirrors the exact
@@ -150,7 +171,9 @@ is its showcase and editor.
   `ClickSpark`, ...) are
   another DOM/CSS/pointer family: slot wrappers (reveal-on-view, animated
   borders, hover glare), timeline-driven children (`Sequence` writes
-  `--seq-p`/`data-seq` — see its engine bullet), or area wrappers (cursor +
+  `--seq-p`/`data-seq` — see its engine bullet), the container-query scope
+  (`DitherContainer` — `data-cq`/`--cq-*` + slot state), or area wrappers
+  (cursor +
   click effects on a canvas
   overlay). Same rules: `Dither*` export, `COMPONENT_REGISTRY` entry (wrappers use
   `slotText`), reduced-motion aware. Docs live in `src/pages/docs/animations/`.

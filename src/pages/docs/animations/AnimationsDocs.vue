@@ -6,6 +6,7 @@ import {
   DitherBlobCursor,
   DitherClickSpark,
   DitherCrosshair,
+  DitherContainer,
   DitherElectricBorder,
   DitherFadeContent,
   DitherGhostCursor,
@@ -48,7 +49,7 @@ import {
   DitherWalletCard,
   DitherNotificationStack,
 } from "@dither-kit"
-import { linear, steps } from "@dither-kit"
+import { linear, quantize, steps } from "@dither-kit"
 import type { StaggerFrom } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
@@ -79,6 +80,16 @@ const API: Record<string, PropRow[]> = {
     { prop: "planSequence(node | node[])", type: "SequencePlan — flatten serial | parallel | stagger | track once", default: "—" },
     { prop: "sampleSequence(plan, t)", type: "TrackSample[] — { id, index, progress, raw, cycle, state }", default: "—" },
     { prop: "staggerDelay(i, count, each, from)", type: "number — the delay wave, testable alone", default: "—" },
+  ],
+  containerQueries: [
+    { prop: "scale", type: "CqScale — Record<name, min | { min?, max? }>; min inclusive, max exclusive, order irrelevant", default: "CONTAINER_SCALE (xs 0 · sm 240 · md 360 · lg 520 · xl 720)" },
+    { prop: "step", type: "number — quantize --cq-w to this px (0 = continuous)", default: "0" },
+    { prop: "name", type: "string — native container-name for children's @container rules", default: '"dither"' },
+    { prop: "as / class", type: "element tag / passthrough class", default: '"div" / —' },
+    { prop: "slot props", type: "{ width, size, index, matches } — measured content-box width, active bucket, its ordinal, every matching bucket", default: "—" },
+    { prop: "resolveCq(width, scale?)", type: "CqState — the pure resolver (active = highest matching min)", default: "CONTAINER_SCALE" },
+    { prop: "quantize(value, step)", type: "number — nearest step, never negative; step ≤ 0 is identity", default: "—" },
+    { prop: "data-cq / --cq-w / --cq-i", type: "active bucket attribute + raw-or-quantized width + ordinal, published on the host for CSS", default: "—" },
   ],
   expandTabs: [
     { prop: "tabs", type: "{ value, label, color? }[]", default: "required" },
@@ -404,6 +415,34 @@ const plan = planSequence({
   node: (i) => ({ kind: "track", id: String(i), duration: 0.6, loop: 3, yoyo: true }),
 })
 const samples = sampleSequence(plan, t) // [{ id, index, progress, state }, ...]`,
+  containerQueries: `import { DitherContainer, quantize } from "@dither-kit"
+
+<!-- children read THIS box's width — not the viewport's -->
+<DitherContainer
+  v-slot="{ width, size, index }"
+  :scale="{ xs: 0, sm: 260, md: 360, lg: 450, xl: 530 }"
+  :step="8"
+  name="card"
+  class="cq-card"
+>
+  <span class="readout">{{ size }} · {{ width }}px · q8 {{ quantize(width, 8) }}</span>
+  <DitherSequence
+    :stagger="0.03 + index * 0.02"
+    :from="index >= 3 ? 'center' : 'start'"
+    :restart-key="size"
+    class="cq-grid"
+  >
+    <div v-for="i in 12" :key="i" class="cell" />
+  </DitherSequence>
+</DitherContainer>
+
+/* stylesheet route — the same scope with zero JS: native @container */
+@container card (min-width: 520px) {
+  .readout { letter-spacing: 0.12em; }
+}
+/* selector route — the engine's active bucket rides the host element */
+.cq-card[data-cq="xs"] .cell { border-color: #d9a441; }
+.cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; }`,
   animatedContent: `<DitherAnimatedContent :distance="40" direction="vertical">
   <YourCard />
 </DitherAnimatedContent>`,
@@ -555,6 +594,15 @@ const seqQuant = ref(false)
 const seqNonce = ref(0)
 const seqEasing = computed(() => (seqQuant.value ? steps(4) : linear))
 const seqKey = computed(() => `${String(seqFrom.value)}|${seqQuant.value}|${seqNonce.value}`)
+// Container demo: the panel is a native resize box; steppers are its
+// keyboard path (both feed the same ResizeObserver the engine listens to).
+const cqPanel = ref<InstanceType<typeof DitherContainer> | null>(null)
+function nudgeCq(delta: number): void {
+  const host = cqPanel.value?.$el as HTMLElement | undefined
+  if (!host) return
+  const w = Math.round(host.getBoundingClientRect().width)
+  host.style.width = `${Math.min(580, Math.max(200, w + delta))}px`
+}
 </script>
 
 <template>
@@ -1353,6 +1401,7 @@ const seqKey = computed(() => `${String(seqFrom.value)}|${seqQuant.value}|${seqN
               ? 'border-accent bg-accent/80 text-accent-foreground'
               : 'border-border/60 text-muted-foreground hover:bg-accent/40'
           "
+          :aria-pressed="seqFrom === opt"
           @click="seqFrom = opt"
         >
           {{ opt }}
@@ -1364,6 +1413,7 @@ const seqKey = computed(() => `${String(seqFrom.value)}|${seqQuant.value}|${seqN
               ? 'border-accent bg-accent/80 text-accent-foreground'
               : 'border-border/60 text-muted-foreground hover:bg-accent/40'
           "
+          :aria-pressed="seqQuant"
           @click="seqQuant = !seqQuant"
         >
           {{ seqQuant ? "steps(4)" : "linear" }}
@@ -1396,6 +1446,79 @@ const seqKey = computed(() => `${String(seqFrom.value)}|${seqQuant.value}|${seqN
       with zero frames.
     </p>
     <PropsTable :rows="API.sequences" />
+  </section>
+
+  <!-- Container queries -->
+  <section id="container-queries" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Container queries</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      A card in a sidebar and the same card in a wide main column are not the same card — so
+      stop asking the viewport.
+      <code class="text-foreground/80">DitherContainer</code> makes its own box the query
+      target: it measures the content box (exactly what
+      <code class="text-foreground/80">@container</code> sees), resolves a bucket scale onto
+      <code class="text-foreground/80">data-cq</code> +
+      <code class="text-foreground/80">--cq-w</code> /
+      <code class="text-foreground/80">--cq-i</code>, and exposes the same state through the
+      scoped slot — children restyle themselves in CSS while animations re-parameterize in JS.
+    </p>
+    <DemoCard :code="SNIPPETS.containerQueries">
+      <div class="mb-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          class="rounded border border-border/60 px-2.5 py-1 text-[11px] tracking-wide text-muted-foreground hover:bg-accent/40"
+          aria-label="Narrow the container by 40 pixels"
+          @click="nudgeCq(-40)"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          class="rounded border border-border/60 px-2.5 py-1 text-[11px] tracking-wide text-muted-foreground hover:bg-accent/40"
+          aria-label="Widen the container by 40 pixels"
+          @click="nudgeCq(40)"
+        >
+          +
+        </button>
+        <span class="text-[11px] text-muted-foreground">
+          drag the corner too — every child reads this box, never the viewport
+        </span>
+      </div>
+      <DitherContainer
+        ref="cqPanel"
+        v-slot="{ width, size, index, matches }"
+        :scale="{ xs: 0, sm: 260, md: 360, lg: 450, xl: 530 }"
+        :step="8"
+        name="demo"
+        class="cq-panel"
+      >
+        <div class="cq-readout">
+          <span class="cq-bucket">{{ size }}</span>
+          <span>{{ width }}px · q8 {{ quantize(width, 8) }} · matches {{ matches.join(" ") }}</span>
+        </div>
+        <DitherSequence
+          :stagger="0.03 + index * 0.02"
+          :from="index >= 3 ? 'center' : 'start'"
+          :restart-key="size ?? 'xs'"
+          class="cq-grid"
+        >
+          <div v-for="i in 12" :key="i" class="seq-cell">{{ i }}</div>
+        </DitherSequence>
+      </DitherContainer>
+    </DemoCard>
+    <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+      The grid re-columns purely from <code class="text-foreground/80">[data-cq]</code> — CSS
+      reading the container's own state — while the Sequence's stagger, origin and replay derive
+      from the same bucket through the slot. Narrow it to
+      <code class="text-foreground/80">xs</code> and the wave tightens to 0.03s/cell; widen to
+      <code class="text-foreground/80">xl</code> and it fans from the center at 0.11s.
+      <code class="text-foreground/80">quantize()</code> rounds widths to the step so readouts
+      and canvas painters hold like frames — the spatial half of the timing engine's step idea.
+      This demo overrides <code class="text-foreground/80">:scale</code> so all five buckets
+      fit the docs column; the default <code class="text-foreground/80">CONTAINER_SCALE</code>
+      targets wider shells.
+    </p>
+    <PropsTable :rows="API.containerQueries" />
   </section>
 </template>
 
@@ -1458,5 +1581,57 @@ const seqKey = computed(() => `${String(seqFrom.value)}|${seqQuant.value}|${seqN
   color: var(--color-muted-foreground, #8a8a99);
   opacity: var(--seq-p, 0);
   transform: translateY(calc((1 - var(--seq-p, 0)) * 16px));
+}
+/* Container-query demo — the host is a native resize box; children switch
+   off its [data-cq] attribute (CSS route) while the slot drives JS. */
+.cq-panel {
+  width: 500px;
+  max-width: 100%;
+  overflow: hidden;
+  resize: horizontal; /* native corner grip; the engine's RO reports each drag */
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.cq-readout {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground, #8a8a99);
+}
+.cq-bucket {
+  color: #3f8ff3;
+  font-weight: 600;
+}
+.cq-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+/* Bucket → layout: columns come from the CONTAINER's own attribute. */
+.cq-panel[data-cq="xs"] .cq-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.cq-panel[data-cq="sm"] .cq-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cq-panel[data-cq="md"] .cq-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.cq-panel[data-cq="lg"] .cq-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.cq-panel[data-cq="xl"] .cq-grid {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+/* The extremes carry a colour marker so the attribute flip is visible. */
+.cq-panel[data-cq="xs"] .seq-cell {
+  border-color: #d9a441;
+}
+.cq-panel[data-cq="xl"] .seq-cell {
+  border-color: #3f8ff3;
 }
 </style>

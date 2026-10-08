@@ -204,4 +204,22 @@ import { DitherToaster, toast } from "@dither-kit"
     const svg = `<svg role="img" aria-label="Chart">…</svg>`
     expect(toSvelteCode(svg)).toBe(svg)
   })
+
+  it("translates scoped default slots into children snippets", () => {
+    const vue = `<DitherContainer v-slot="{ width, size }" :step="8" name="card">
+  <span>{{ size }} · {{ width }}px</span>
+</DitherContainer>`
+    expect(toSvelteCode(vue)).toBe(`<DitherContainer step={8} name="card">
+  {#snippet children({ width, size })}
+  <span>{size} · {width}px</span>
+{/snippet}</DitherContainer>`)
+    // identifier shorthand: v-slot="ctx" → children(ctx)
+    const bare = `<DitherList v-slot="ctx">
+  <i>{{ ctx.size }}</i>
+</DitherList>`
+    expect(toSvelteCode(bare)).toBe(`<DitherList>
+  {#snippet children(ctx)}
+  <i>{ctx.size}</i>
+{/snippet}</DitherList>`)
+  })
 })

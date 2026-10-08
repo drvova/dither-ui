@@ -126,6 +126,7 @@ export { default as DitherTimeline, type TimelineItem } from "./DitherTimeline.v
 export { default as DitherTabs, type TabItem, type TabsVariant } from "./DitherTabs.vue"
 export { default as DitherTabPanel } from "./DitherTabPanel.vue"
 export { default as DitherCollapsible } from "./DitherCollapsible.vue"
+export { default as DitherContainer } from "./DitherContainer.vue"
 export { default as DitherDialog } from "./DitherDialog.vue"
 export { default as DitherCenterMorphModal } from "./CenterMorphModal.vue"
 export { default as DitherKbd } from "./DitherKbd.vue"
@@ -399,6 +400,7 @@ export { default as DitherKnob } from "./Knob.vue"
 export { default as DitherSignaturePad } from "./SignaturePad.vue"
 export { linear, steps, frameSteps, frameIndex, cssSteps } from "./timing"
 export { planSequence, sampleSequence, staggerDelay } from "./sequence"
+export { CONTAINER_SCALE, resolveCq, quantize } from "./containers"
 export type {
   SequenceNode,
   SequencePlan,
@@ -412,3 +414,4 @@ export type {
   TrackState,
 } from "./sequence"
 export type { Easing, StepPosition } from "./timing"
+export type { CqRange, CqScale, CqState } from "./containers"

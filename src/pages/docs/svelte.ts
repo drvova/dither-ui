@@ -219,6 +219,27 @@ function transformSlot(code: string, at: number, name: string): string {
   return code.slice(0, at) + `{#snippet ${camel(name)}()}${inner}{/snippet}` + code.slice(end)
 }
 
+/** `v-slot="{ a, b }"` on a component → the Svelte children snippet. The
+ * binding is already destructuring syntax, so it becomes snippet params
+ * verbatim (`v-slot="state"` → `children(state)`). Runs before attribute
+ * rewriting, which would otherwise camelCase `v-slot` into a fake prop. */
+function transformScopedSlot(code: string, at: number, params: string): string {
+  const tagStart = code.lastIndexOf("<", at)
+  const tag = code.slice(tagStart).match(/^<([A-Za-z][A-Za-z0-9]*)/)![1]
+  const openEnd = findTagEnd(code, tagStart)
+  const end = elementEnd(code, tagStart, tag)
+  const open = code.slice(tagStart, openEnd + 1).replace(/\s*v-slot(?::default)?="[^"]*"/, "")
+  if (code[openEnd - 1] === "/") {
+    // self-closing: nothing to scope — drop the attribute only
+    return code.slice(0, tagStart) + open + code.slice(openEnd + 1)
+  }
+  const indent = lineIndent(code, tagStart)
+  const close = `</${tag}>`
+  const inner = code.slice(openEnd + 1, end - close.length)
+  const snippet = `\n${indent}  {#snippet children(${params})}${inner}${indent}{/snippet}`
+  return code.slice(0, tagStart) + open + snippet + close + code.slice(end)
+}
+
 function transformBlocks(code: string): string {
   for (let guard = 0; guard < 200; guard++) {
     const slot = code.match(/<template\s+#([\w-]+)>/)
@@ -229,6 +250,11 @@ function transformBlocks(code: string): string {
     const tplIf = code.match(/<template\s+v-if="([^"]+)">/)
     if (tplIf) {
       code = transformTemplateIf(code, tplIf.index!, tplIf[1])
+      continue
+    }
+    const scoped = code.match(/\sv-slot(?::default)?="([^"]+)"/)
+    if (scoped) {
+      code = transformScopedSlot(code, scoped.index!, scoped[1])
       continue
     }
     const dir = code.match(/\sv-(?:if|for)="[^"]+"/)
