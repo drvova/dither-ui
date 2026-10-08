@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue"
+import { onBeforeMount, onBeforeUnmount, onMounted, ref } from "vue"
 import {
-  DitherDarkVeil,
   DitherButton,
   DitherGradient,
 } from "@dither-kit"
@@ -9,9 +8,18 @@ import { assetPath, routePath } from "@/shared/lib"
 import { version } from "../../../package.json"
 import EngravedWordmark from "./EngravedWordmark.vue"
 import InstallBlock from "./InstallBlock.vue"
+import PixelPlate from "./PixelPlate.vue"
+import SkyOrganism from "./SkyOrganism.vue"
+import { dawnPlate } from "./plates"
 import Showcase from "./Showcase.vue"
 
+// DitherButton renders a <button>, so navigation rides its click — never an
+// <a> nested inside it (two tab stops, dead padding, invalid content model).
 const openStudio = () => location.assign(routePath("/studio"))
+const openDocs = () => location.assign(routePath("/docs"))
+
+// The hero's figure: built once at setup — deterministic markup, no runtime.
+const DAWN = dawnPlate()
 
 // Portraits + their reaction emotes, cropped from faces.webp — a thin band
 // sliced out of the source sheet (rows 766..900) so the landing loads ~70KB
@@ -49,6 +57,12 @@ const STAGES = [
   { lines: ["Layout, motion and text", "families compose from the", "same dither engine."], n: "05" },
   { lines: ["Copy the folder, alias it —", "no build step, no black box."], n: "06" },
 ]
+
+// The reveal choreography arms itself with JS: until this component's script
+// runs, every .reveal block renders visible (no-JS visitors and the
+// prerendered bytes get the complete page; the old html.js gate — a :global
+// scoped rule — white-screened every browser and is banned).
+const armed = ref(false)
 
 const stageEls = ref<HTMLElement[]>([])
 const softEls = ref<HTMLElement[]>([])
@@ -115,7 +129,20 @@ function updateAll() {
   updateSoft()
 }
 
+// Arm before the first render so the very first painted frame already
+// carries data-armed — no visible flash of unlatched content.
+onBeforeMount(() => {
+  armed.value = true
+})
+
 onMounted(() => {
+  // The landing is always-dark art (the film stage, plates and organism are
+  // ink). A light theme toggled on docs/studio persists on <html> and this is
+  // one SPA — without re-asserting dark here, token text flips to near-black
+  // over the hardcoded ink (measured 1.02:1 on the h1). Storage keeps the
+  // user's choice; docs/studio re-read it on their own mount.
+  document.documentElement.classList.add("dark")
+
   const img = new Image()
   img.src = assetPath("/faces.webp")
   img.onload = () => {
@@ -130,20 +157,21 @@ onMounted(() => {
   reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
   // Scroll choreography (reference: rise / lp-in, latched like the docs
-  // DemoCard): every .reveal / .reveal-wipe block animates the first time
-  // it crosses into view and then stays put. Without IO (jsdom) or under
-  // reduced motion everything is seen immediately.
-  const targets = Array.from(
-    pageEl.value?.querySelectorAll<HTMLElement>(".reveal, .reveal-wipe") ?? [],
-  )
+  // DemoCard): every .reveal block animates the first time it crosses into
+  // view and then stays put. Without IO (jsdom) or under reduced motion
+  // everything is seen immediately. The latch is a data attribute, never a
+  // class: Vue rewrites className whenever a component re-renders its own
+  // :class (InstallBlock's root does), which silently wiped a .seen class
+  // and left the strip invisible after a slow scroll.
+  const targets = Array.from(pageEl.value?.querySelectorAll<HTMLElement>(".reveal") ?? [])
   if (reduced || typeof IntersectionObserver === "undefined") {
-    for (const el of targets) el.classList.add("seen")
+    for (const el of targets) el.setAttribute("data-seen", "")
   } else {
     revealIO = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue
-          entry.target.classList.add("seen")
+          entry.target.setAttribute("data-seen", "")
           revealIO?.unobserve(entry.target)
         }
       },
@@ -179,13 +207,13 @@ function setActive(i: number) {
 <template>
   <div
     ref="pageEl"
-    class="flex min-h-screen flex-col bg-background font-mono text-foreground antialiased"
+    :data-armed="armed ? 'true' : undefined"
+    class="landing flex min-h-screen flex-col bg-background font-mono text-foreground antialiased"
   >
-    <!-- Skip link: first focusable element, targets the single main landmark. -->
+    <!-- Skip link: first focusable element, jumps to the single main landmark. -->
     <a
-      :href="routePath('/studio')"
+      href="#main"
       class="skip-link sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-border focus:bg-background focus:px-4 focus:py-2 focus:text-xs"
-      @click.prevent="openStudio"
     >
       Skip to content
     </a>
@@ -194,7 +222,7 @@ function setActive(i: number) {
          a positioned sibling always paints above a static one; without this
          the veil covered the header entirely (it painted zero pixels). -->
     <header
-      class="relative z-10 mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-xs"
+      class="relative z-10 mx-auto flex h-16 w-full max-w-[var(--shell)] items-center justify-between px-6 text-xs"
     >
       <div class="flex w-full items-center justify-between">
         <span class="flex items-center gap-2.5 tracking-tight">
@@ -235,50 +263,47 @@ function setActive(i: number) {
       </div>
     </header>
 
-    <main id="main" class="relative isolate flex flex-1 flex-col">
-      <!-- Page backdrop: one dithered dark veil behind the whole essay, the way
-           the reference floats statements over a fixed cell canvas. -->
-      <DitherDarkVeil
-        :colors="['#05060a', '#0c1730', '#2f6fd0']"
-        :scale="2.6"
-        :speed="0.15"
-        :intensity="1.5"
-        :vignette="0.9"
-        class="pointer-events-none fixed inset-0 -z-10"
-      />
-
-      <!-- Hero: the reference's golden ratio — statement and lede hold the
-           top band over the veil; the single action sits below, alone. -->
-      <section
-        aria-labelledby="hero-h"
-        class="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 pt-24 pb-16 sm:pt-28"
-      >
-        <h1
-          id="hero-h"
-          class="reveal max-w-3xl text-[clamp(2.75rem,7.2vw,6.25rem)] font-medium leading-[0.95] tracking-[-0.035em] text-balance"
-        >
-          A dithered UI toolkit for Vue.
-        </h1>
-        <p
-          class="reveal mt-8 max-w-2xl text-[clamp(1.05rem,1.9vw,1.3rem)] leading-[1.6] text-muted-foreground [text-wrap:pretty]"
-          style="--reveal-delay: 90ms"
-        >
-          Charts, buttons, avatars and gradients — rendered
-          <em class="text-foreground/80">pixel by pixel</em> on canvas. Built in
-          the
-          <a :href="routePath('/studio')" class="underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">studio</a>,
-          documented in the
-          <a :href="routePath('/docs')" class="underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">docs</a>.
-        </p>
-        <div class="reveal mt-12" style="--reveal-delay: 180ms">
-          <DitherButton
-            color="blue"
-            variant="gradient"
-            class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
-            @click="openStudio"
-          >
-            Open studio
-          </DitherButton>
+    <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
+      <!-- Hero: a hairline STAGE — the statement and its one action hold the
+           dark sky; the dawn plate owns the floor. The sky is alive: the
+           SkyOrganism breathes the page's own dither rule over the horizon
+           (bounded to the stage, 24fps, offscreen-paused), so the artwork
+           demos the engine the way the reference's field does. Art yields to
+           text: the horizon is lowest under the copy and crests right. -->
+      <section aria-labelledby="hero-h" class="mx-auto w-full max-w-[var(--shell)] px-6 pt-2 pb-20">
+        <div class="stage">
+          <SkyOrganism />
+          <div class="grain" aria-hidden="true"></div>
+          <div class="stage-copy">
+            <h1
+              id="hero-h"
+              class="reveal max-w-3xl text-[clamp(2.75rem,7.2vw,6.25rem)] font-medium leading-[0.95] tracking-[-0.035em] text-balance"
+            >
+              A dithered UI toolkit for Vue<span class="ember">.</span>
+            </h1>
+            <p
+              class="reveal mt-8 max-w-xl text-[clamp(1.05rem,1.9vw,1.3rem)] leading-[1.6] text-muted-foreground [text-wrap:pretty]"
+              style="--reveal-delay: 90ms"
+            >
+              Charts, buttons, avatars and gradients — rendered
+              <em class="text-foreground/80">pixel by pixel</em> on canvas. Built in
+              the
+              <a :href="routePath('/studio')" class="underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">studio</a>,
+              documented in the
+              <a :href="routePath('/docs')" class="underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">docs</a>.
+            </p>
+            <div class="reveal mt-12" style="--reveal-delay: 180ms">
+              <DitherButton
+                color="blue"
+                variant="gradient"
+                class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
+                @click="openStudio"
+              >
+                Open studio
+              </DitherButton>
+            </div>
+          </div>
+          <PixelPlate :plate="DAWN" fit="xMidYMax slice" class="stage-art" />
         </div>
       </section>
 
@@ -287,7 +312,7 @@ function setActive(i: number) {
 
       <!-- Six moods, one row — hover a face and her emote answers -->
       <p
-        class="reveal pt-20 pb-6 text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70"
+        class="reveal pt-20 pb-6 text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground"
         style="--reveal-delay: 260ms"
       >
         expressions
@@ -318,8 +343,8 @@ function setActive(i: number) {
 
       <!-- The essay: six numbered statements that light up as you scroll.
            The index rail (01–06) scales + springs on the in-focus one. -->
-      <section aria-label="What the kit does" class="mx-auto w-full max-w-4xl px-6 pb-16 sm:pb-24">
-        <ol class="essay mx-auto flex list-none flex-col p-0" style="--m-essay: 42rem">
+      <section aria-label="What the kit does" class="essay-wrap mx-auto w-full max-w-4xl px-6 pb-16 sm:pb-24">
+        <ol class="essay mx-auto flex list-none flex-col p-0">
           <li
             v-for="(s, i) in STAGES"
             :key="s.n"
@@ -355,8 +380,9 @@ function setActive(i: number) {
               color="grey"
               variant="dotted"
               class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
+              @click="openDocs"
             >
-              <a :href="routePath('/docs')">Read the docs</a>
+              Read the docs
             </DitherButton>
           </div>
         </div>
@@ -377,7 +403,7 @@ function setActive(i: number) {
       />
       <div
         :ref="(el) => { if (el) softEls[0] = el as HTMLElement }"
-        class="soft mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-[11px] text-muted-foreground"
+        class="soft mx-auto flex h-16 w-full max-w-[var(--shell)] items-center justify-between px-6 text-[11px] text-muted-foreground"
       >
         <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
         <div class="flex items-center gap-4">
@@ -403,14 +429,16 @@ function setActive(i: number) {
 </template>
 
 <style scoped>
-/* Scroll choreography: blocks sit hidden until the IO adds .seen the first
-   time they cross into view (reference: rise / lp-in, DemoCard latch). */
-.reveal {
+/* Scroll choreography: blocks sit hidden until the IO sets [data-seen] the
+   first time they cross into view (reference: rise / lp-in, DemoCard latch).
+   The hide requires the component's own data-armed — set in onBeforeMount —
+   so no-JS visitors and the prerendered bytes render the complete page. */
+.landing[data-armed] .reveal:not([data-seen]) {
   opacity: 0;
 }
 
-.reveal.seen {
-  animation: reveal 700ms cubic-bezier(0.2, 0, 0, 1) both;
+.reveal[data-seen] {
+  animation: reveal 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: var(--reveal-delay, 0ms);
 }
 
@@ -432,21 +460,113 @@ function setActive(i: number) {
   }
 }
 
+/* One shell width for header, stage, chapters and footer — the reference's
+   deck token; children read it through inheritance. */
+.landing {
+  --shell: 72rem;
+}
+
+/* The stage: a black film with a hairline edge (sharp corners — the pixel
+   identity). The copy rides the top; the dawn plate is pinned to the floor
+   and sliced from the bottom-centre, so cells stay square at every width and
+   narrow screens crop the horizon's ends, never its crest. */
+.stage {
+  --art: clamp(13rem, 29vw, 25rem);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: clamp(34rem, calc(100svh - 6.5rem), 54rem);
+  background: #05060a;
+  border: 1px solid color-mix(in oklab, var(--color-border) 90%, transparent);
+}
+
+.stage-copy {
+  position: relative;
+  z-index: 1;
+  padding: clamp(1.75rem, 5vw, 4rem);
+  padding-bottom: calc(var(--art) * 0.62);
+}
+
+.stage-art {
+  position: absolute;
+  inset: auto 0 0;
+  width: 100%;
+  height: var(--art);
+}
+
+/* Film grain: the stage is a black film, so it carries film grain — a
+   3.5%-opacity turbulence tile jittered on a steps() clock (never a smooth
+   slide; grain jitters, it doesn't drift). Above the copy like the
+   reference's page-level grain: at 3.5% it textures without touching the
+   contrast math (17:1 text loses ~4% luminance, still >16:1). */
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-jitter 1.1s steps(4) infinite;
+}
+
+@keyframes grain-jitter {
+  0% {
+    background-position: 0 0;
+  }
+  25% {
+    background-position: -37px 21px;
+  }
+  50% {
+    background-position: 19px -43px;
+  }
+  75% {
+    background-position: -23px -17px;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .grain {
+    opacity: 0;
+  }
+}
+
+/* The headline's full stop takes the ember — the sun's own color answering
+   the dawn plate's crest (reference: statement ink + signal punctuation). */
+.ember {
+  color: var(--swatch-orange);
+}
+
+
 /* The essay. Values measured from the reference: line clamp 16→46px,
    -0.03em tracking, 1.05 leading, 0.52s lit transition with the
    cubic-bezier(0.22, 1, 0.36, 1) settle; index 10px, 0.1em tracking,
    1.55× spring scale on the active one. */
+.essay-wrap {
+  container-type: inline-size;
+}
+
+/* The statements are authored mono lines, the longest 30 characters. The
+   type is sized off the column (cqi), not the viewport, so 31ch always fits
+   beside the rail — an authored line can never wrap into an orphan. */
 .essay {
   --rail: clamp(2rem, 3.6vw, 3.5rem);
-  --line: clamp(1rem, 5.3vw, 2.875rem);
+  font-size: clamp(1rem, calc((100cqi - var(--rail)) / 19), 2.875rem);
   gap: clamp(2.375rem, 4.3vw, 3.875rem);
   padding-left: var(--rail);
-  max-width: calc(42rem + var(--rail));
+  max-width: calc(31ch + var(--rail));
 }
 
 .statement {
   position: relative;
-  font-size: var(--line);
   font-weight: 500;
   line-height: 1.05;
   letter-spacing: -0.03em;

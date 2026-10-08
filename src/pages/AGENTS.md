@@ -14,10 +14,10 @@ widgets/features; page-specific conventions live here.
   hero stage · install strip · expressions · showcase chapters · essay ·
   closing band · footer. Additions must remove something or justify their
   presence.
-- Hero is a hairline STAGE panel (sharp corners, orange registration ticks
-  inset at the four corners) with the statement/action left and
-  `DitherEmblem.vue` right. The header MUST keep `relative z-10`: `main` is
-  `relative isolate` and the fixed veil lives inside it, so a positioned
+- Hero is a hairline STAGE panel (sharp corners): statement/action left, the
+  living sky right and the dawn plate (`plates.ts` `dawnPlate`, rendered by
+  `PixelPlate.vue`) pinned to the floor. The header MUST keep `relative z-10`:
+  `main` is `relative isolate` and page art lives inside it, so a positioned
   sibling always paints over a static header — without the lift the header
   renders zero visible pixels (it did, for a while; the pixel census in the
   session ledger caught it).
@@ -37,8 +37,24 @@ widgets/features; page-specific conventions live here.
   controls panel backdrop) MUST pass the page's own `colors` ramp
   (navy/blue/ice + ember) — the kit defaults (violet/green) clash with the
   dark monochrome identity.
-- Load choreography: `.reveal` stagger (0/90/180/300ms), disabled under
-  `prefers-reduced-motion`.
+- Load choreography: `.reveal` stagger (0/90/180/300ms) on the house rise
+  curve `cubic-bezier(0.16, 1, 0.3, 1)`, disabled under
+  `prefers-reduced-motion`. The hide is gated on the component's own
+  `data-armed` (set in `onBeforeMount`): no-JS visitors and the prerendered
+  bytes render the complete page. NEVER gate it via a `:global(html.js)`
+  scoped rule — that construct white-screened every browser (compositor
+  wedge; banned).
+- The living sky (`SkyOrganism.vue`) is the stage's ONE canvas exception to
+  "figures are markup": it is a backdrop creature, not a figure. Gaussian
+  blobs quantized through the same `ditherTone`/ramp rule as the plates
+  (`SKY`/`SUN` are exported from `plates.ts` — one palette), 24fps, DPR
+  clamp 2, paused offscreen + on tab-hide, static single frame under reduced
+  motion, fade-in under `no-preference`. THE COORDINATE RULE: `field()`
+  samples in DEVICE pixels (`(cx+0.5) * cell`) — blobs live in device space;
+  sampling cell indices silently starves (dpr>1) or floods (narrow) the
+  field. The landing re-asserts `html.dark` on mount: the page is always-dark
+  art while docs/studio own the persisted theme (storage keeps the user's
+  choice).
 - Pixel figures are MARKUP, not canvas: `plates.ts` paints a w×h cell field
   with the kit's ordered-dither rule (`ditherTone` on `resolveMatrix`, ranks
   via `rankOf`, seeded matrices via `matrixFromSeed`) and encodes each
