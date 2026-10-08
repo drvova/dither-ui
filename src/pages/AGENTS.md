@@ -39,6 +39,20 @@ widgets/features; page-specific conventions live here.
   dark monochrome identity.
 - Load choreography: `.reveal` stagger (0/90/180/300ms), disabled under
   `prefers-reduced-motion`.
+- Pixel figures are MARKUP, not canvas: `plates.ts` paints a w×h cell field
+  with the kit's ordered-dither rule (`ditherTone` on `resolveMatrix`, ranks
+  via `rankOf`, seeded matrices via `matrixFromSeed`) and encodes each
+  (group, colour) as dashed-stroke lattice runs (`M x y.5h n·p`, dasharray
+  `1 p-1`) — one subpath per run, not per cell; same field → same markup
+  (`tests/plates.spec.ts` round-trips every cell). `PixelPlate.vue` is the
+  one renderer: crispEdges, aria-hidden, strokes/dashes 3% long (float drift
+  opened 1px seams under crispEdges), an IO latch (`data-live`) then CSS-only
+  motion — `develop` lights groups in Bayer-rank order, `rise` climbs whole
+  cells with `steps(lift)` — with heat tiered by the cell's own luminance
+  (bright lands white-hot, mid tones glint ember, dark cells just appear),
+  `data-done` on the last animation's end, no timers, final frame under
+  reduced motion. New figures are field functions in `plates.ts`, never a
+  second renderer.
 - Sprite crops (`public/faces.webp` band + `public/sprites.webp`) use MEASURED constants
   (`FACES`, emote boxes, `FACE_Y/FACE_H`); if a sheet changes, re-measure
   programmatically in the browser (density-scan pattern) — never eyeball.

@@ -138,7 +138,11 @@ is its showcase and editor.
   lifecycle. Its optional `frameRate` getter gates painting on
   `timing.frameIndex` boundaries — between boundaries the raster is held
   (stop-motion cadence, no upload), 0/undefined keeps the smooth ~30fps
-  throttle. EVERY background component exposes the matching `frameRate` prop
+  throttle. Both cadence gates run BEFORE `measure()` — a held frame never
+  reads layout (gating the per-vsync `getBoundingClientRect`/`getContext`
+  cut script time 28% on three 8fps surfaces), and a boundary is consumed
+  only by a frame that actually paints.
+  EVERY background component exposes the matching `frameRate` prop
   (default 0) and passes it through; the studio registry row and the docs API
   table carry the same row — `scripts/frame-rate-codemod.ts` keeps all four
   surfaces in step (strict anchors, idempotent, `--dry` to preview). A new

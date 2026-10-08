@@ -95,30 +95,31 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
   function frame(now: number) {
     raf = 0
     if (!isVisible() || opts.paused()) return
+    // Cadence gates run BEFORE measure(): a held frame must not read layout.
+    // Measuring first cost one getBoundingClientRect + getContext per surface
+    // per vsync, paints or not (measured, three 8fps landing surfaces at 4x
+    // CPU: script time -28%, getBoundingClientRect self time -63%).
+    const fps = opts.frameRate?.() || 0
+    // Stop-motion gate: hold the last raster until wall time crosses the next
+    // fps boundary (dt below spans the held frames, so the clock never loses
+    // time between paints); without a frameRate, the smooth ~30fps throttle.
+    const idx = fps > 0 ? frameIndex(now - startNow, fps) : -1
+    const held = fps > 0 ? idx === lastFrame : now - lastPaint < 33
+    if (held) {
+      raf = requestAnimationFrame(frame)
+      return
+    }
     const ctx = measure()
     if (!ctx) {
-      // Canvas ref not ready yet — keep the loop alive and retry next frame.
+      // Canvas ref not ready yet — keep the loop alive and retry next frame
+      // (the boundary is consumed only by a frame that actually paints).
       raf = requestAnimationFrame(frame)
       return
     }
-    const fps = opts.frameRate?.()
-    if (fps && fps > 0) {
-      // Stop-motion gate: hold the last raster until wall time crosses the
-      // next fps boundary (dt below spans the held frames, so the clock never
-      // loses time between paints).
-      const idx = frameIndex(now - startNow, fps)
-      if (idx === lastFrame) {
-        raf = requestAnimationFrame(frame)
-        return
-      }
-      lastFrame = idx
-    } else if (now - lastPaint < 33) {
-      raf = requestAnimationFrame(frame)
-      return
-    }
+    lastFrame = idx
     // The default dt clamp survives tab stalls; at low cadence one frame can
     // span >100ms, so widen it to two frame periods when frameRate is set.
-    const cap = fps && fps > 0 ? Math.max(0.1, 2 / fps) : 0.1
+    const cap = fps > 0 ? Math.max(0.1, 2 / fps) : 0.1
     const dt = lastPaint ? Math.min(cap, (now - lastPaint) / 1000) : 0
     lastPaint = now
     clock += dt * (opts.timeScale ? opts.timeScale() : 1)

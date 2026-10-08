@@ -107,6 +107,13 @@ try {
       document.querySelector('link[rel="canonical"]')?.setAttribute("href", m.canonical)
       document.querySelector('meta[name="description"]')?.setAttribute("content", m.description)
       document.querySelector("#docs-breadcrumb")?.remove()
+      // Entrance latches are runtime state: a snapshot taken after a figure
+      // played would ship it finished, and the client — which renders fresh
+      // over these bytes — would flash the end state, hide it, and replay.
+      for (const el of document.querySelectorAll("[data-live]")) {
+        el.removeAttribute("data-live")
+        el.removeAttribute("data-done")
+      }
     }, meta)
     const html = await page.content()
     await writeFile(entry, html)

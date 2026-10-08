@@ -75,6 +75,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   measured state (chart `ctx.ready`, mount flags), so first-render vnodes
   never match the settled snapshot. Don't retry hydration without first
   making first render equal settled state.
+  Because the client renders fresh over those bytes, one-shot entrance
+  latches are runtime-only: a figure marks itself `data-live`/`data-done`,
+  and the prerender strips both before serializing, so the static page
+  ships the figure un-latched and the client plays the entrance exactly
+  once (a snapshot taken after it played flashed the finished art, hid it
+  on mount, then replayed — measured on a 4x-throttled CPU).
 - Docs sections are DIRECT children of `.docs-flow` and carry
   `content-visibility: auto` + `contain-intrinsic-size: auto 700px` — below-
   fold sections skip layout/paint until they approach the viewport (the page
