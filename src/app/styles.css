@@ -15,7 +15,9 @@
   --muted-foreground: #6b7280;
   --border: #e4e4e7;
   --ring: #0a0a0a;
-  --accent: #2f81f7;
+  /* Accent blues are tuned so white text on them clears 4.5:1 (5.6 light,
+     4.9 dark) — every active segment, picker and selected row reads. */
+  --accent: #1d63d0;
   --accent-foreground: #ffffff;
   --radius: 0.5rem;
 
@@ -42,7 +44,7 @@
   --muted-foreground: #8b8f98;
   --border: #22252b;
   --ring: #ededed;
-  --accent: #3f8ff3;
+  --accent: #1f6fd6;
   --accent-foreground: #ffffff;
 
   /* Bright swatches — the exact PALETTE fills, at home on dark. */

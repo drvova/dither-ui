@@ -14,6 +14,9 @@ widgets/features; page-specific conventions live here.
   hero stage · install strip · expressions · showcase chapters · essay ·
   closing band · footer. Additions must remove something or justify their
   presence.
+- The landing sets `--radius: 0px`: every corner on the page is square (stage,
+  pill, chapters, and the kit controls it hosts) — the pixel identity. Docs
+  and studio keep the app's 8px.
 - Hero is a hairline STAGE panel (sharp corners): eyebrow (micro-caps + led)
   → statement → lede → ONE primary action (`DitherButton` "Open studio")
   with a quiet text secondary ("Read the docs →", `.cta-quiet`) beside it —
@@ -170,7 +173,10 @@ widgets/features; page-specific conventions live here.
   Regenerate with the bake script if the wordmark text ever changes.
 - Self-engraving: the rim's contour stroke draws itself on first scroll into
   view (`RIM_DRAW` transform injects `pathLength="1"` + a namespaced
-  `wm-pen` class and an svg-INTERNAL `<style>` — v-html children escape
+  `wm-pen` class and an svg-INTERNAL `<style>`; the match string includes
+  the quote that closes the path's `d` and the replacement MUST keep it —
+  dropping it spliced the attributes into `d`, the browser rejected the
+  contour, and the rim never drew — v-html children escape
   scoped styles, so the recipe ships inside the string, gated on the
   component's own `data-armed`/`data-live`). No-JS/prerender: no attrs, the
   finished mark renders; reduced motion: full static rim.

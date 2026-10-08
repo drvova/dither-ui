@@ -818,7 +818,7 @@ const gradientCode = computed(
     <header class="chrome sticky top-0 z-40">
       <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6 text-xs">
         <div class="flex items-center gap-6">
-          <a :href="routePath('/')" class="flex items-center gap-2.5 whitespace-nowrap tracking-tight transition-colors hover:text-foreground">
+          <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap tracking-tight transition-colors hover:text-foreground">
             <!-- The brand mark: the landing's 7x7 dithered diamond, ember core. -->
             <svg viewBox="0 0 7 7" width="13" height="13" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
               <g fill="currentColor">
@@ -841,7 +841,7 @@ const gradientCode = computed(
             <button
               type="button"
               :aria-pressed="docsFramework === 'vue'"
-              class="rounded border px-2 py-0.5 text-[11px] transition-colors"
+              class="h-6 rounded border px-2 text-[11px] transition-colors"
               :class="docsFramework === 'vue' ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'"
               @click="setDocsFramework('vue')"
             >
@@ -850,7 +850,7 @@ const gradientCode = computed(
             <button
               type="button"
               :aria-pressed="docsFramework === 'svelte'"
-              class="rounded border px-2 py-0.5 text-[11px] transition-colors"
+              class="h-6 rounded border px-2 text-[11px] transition-colors"
               :class="docsFramework === 'svelte' ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'"
               @click="setDocsFramework('svelte')"
             >
@@ -859,7 +859,7 @@ const gradientCode = computed(
           </div>
           <button
             type="button"
-            class="flex items-center gap-1.5 rounded-md border border-border/60 px-2 py-1 text-[11px] transition-colors hover:text-foreground"
+            class="flex h-6 items-center gap-1.5 rounded-md border border-border/60 px-2 text-[11px] transition-colors hover:text-foreground"
             aria-label="Search docs"
             @click="searchOpen = true"
           >
@@ -868,7 +868,7 @@ const gradientCode = computed(
           </button>
           <button
             type="button"
-            class="-m-2 p-2 transition-colors hover:text-foreground"
+            class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
             :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
             @click="revealToggle($event)"
           >
@@ -1784,13 +1784,13 @@ const gradientCode = computed(
     <!-- Footer -->
     <footer class="border-t border-border/60">
       <div class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 text-[11px] text-muted-foreground">
-        <a :href="routePath('/')" class="transition-colors hover:text-foreground">← dither-ui.com</a>
+        <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">← dither-ui.com</a>
         <div class="flex items-center gap-4">
           <a
             href="https://github.com/drvova/dither-ui"
             target="_blank"
             rel="noreferrer"
-            class="transition-colors hover:text-foreground"
+            class="-my-1 py-1 transition-colors hover:text-foreground"
             >GitHub</a
           >
           <span class="tabular-nums">v{{ version }} · MIT</span>

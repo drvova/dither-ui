@@ -163,7 +163,7 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
   >
     <div
       class="absolute -top-6 left-0 flex max-w-full select-none items-center gap-1.5 truncate text-[11px]"
-      :class="[selected ? 'text-accent' : 'text-muted-foreground', artboard.locked ? 'cursor-default' : 'cursor-move']"
+      :class="[selected ? 'text-foreground' : 'text-muted-foreground', artboard.locked ? 'cursor-default' : 'cursor-move']"
       @pointerdown.stop="onMoveDown"
     >
       <svg v-if="artboard.locked" viewBox="0 0 24 24" class="size-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>

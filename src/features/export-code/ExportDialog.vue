@@ -17,11 +17,15 @@ const code = computed(() => {
 })
 
 const closeRef = ref<HTMLButtonElement | null>(null)
+// Immediate: the dialog is mounted lazily with `open` already true, so a
+// plain watch never fired and focus (and the Escape listener that rides on
+// it) never reached the dialog.
 watch(
   () => props.open,
   (v) => {
     if (v) nextTick(() => closeRef.value?.focus())
-  }
+  },
+  { immediate: true },
 )
 
 const copied = ref(false)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import type { ArtboardKind } from "@/entities/artboard"
 import {
   addArtboard, addComponentArtboard, addScreenArtboard, duplicateSelected,
@@ -39,6 +39,12 @@ watch(libraryOpen, (open) => {
   else query.value = ""
 })
 const closeMenus = () => { libraryOpen.value = false; projectOpen.value = false }
+// Menus dismiss like menus: Escape anywhere, or a pointer landing outside the toolbar.
+const rootEl = ref<HTMLElement | null>(null)
+const onWindowKey = (e: KeyboardEvent) => { if (e.key === "Escape" && (libraryOpen.value || projectOpen.value)) closeMenus() }
+const onWindowDown = (e: PointerEvent) => { if ((libraryOpen.value || projectOpen.value) && e.target instanceof Node && !rootEl.value?.contains(e.target)) closeMenus() }
+onMounted(() => { window.addEventListener("keydown", onWindowKey); window.addEventListener("pointerdown", onWindowDown) })
+onBeforeUnmount(() => { window.removeEventListener("keydown", onWindowKey); window.removeEventListener("pointerdown", onWindowDown) })
 const add = (kind: ArtboardKind) => { addArtboard(kind); closeMenus() }
 const addComponent = (entry: ComponentEntry) => { addComponentArtboard(entry); closeMenus() }
 const addScreen = () => { addScreenArtboard(); closeMenus() }
@@ -57,7 +63,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
 </script>
 
 <template>
-  <div class="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3">
+  <div ref="rootEl" class="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3">
     <div class="pointer-events-auto flex h-10 items-center rounded-lg border border-border/70 bg-background/95 px-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]">
       <a :href="routePath('/')" class="flex h-8 items-center gap-2 rounded-md px-2.5 text-xs text-foreground transition-colors hover:bg-card" aria-label="dither-ui home">
         <span class="size-2.5 rounded-[2px] bg-foreground" /><span>dither-ui</span>

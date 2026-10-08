@@ -465,7 +465,7 @@ function setActive(i: number) {
             href="https://github.com/drvova/dither-ui"
             target="_blank"
             rel="noreferrer"
-            class="transition-colors hover:text-foreground"
+            class="-my-1 py-1 transition-colors hover:text-foreground"
             >GitHub</a
           >
           <span class="tabular-nums">v{{ version }} · MIT</span>
@@ -520,6 +520,9 @@ function setActive(i: number) {
 .landing {
   --shell: 72rem;
   --section: clamp(5rem, 9vw, 8rem);
+  /* Sharp corners are the pixel identity: the stage, pill and chapters are
+     square, so kit controls on this page drop the app's 8px radius too. */
+  --radius: 0px;
 }
 
 /* (.nav-a / .nav-pill / .eyebrow / .led are the site voice in app/styles.css.) */

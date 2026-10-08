@@ -61,7 +61,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   on unmount. Route revisits must not accumulate deep watchers.
 - A11y floor: icon-only buttons carry `aria-label` (+ `aria-pressed` for
   toggles); dialogs use `role="dialog" aria-modal`, close on Escape, focus on
-  open; global `:focus-visible` ring is in `app/styles.css` — do not suppress.
+  open (a lazily mounted dialog watches `open` with `immediate: true` —
+  ExportDialog mounts with it already true); menus (toolbar project/library,
+  ContextMenu `role="menu"` + `menuitem`) dismiss on Escape and on a pointer
+  outside; global `:focus-visible` ring is in `app/styles.css` — do not
+  suppress. Interactive targets are at least 24px on their short side
+  (`h-6` / `min-h-6` / `size-6` on dense chrome); text on `bg-accent` is
+  white and the accent blues are tuned to clear 4.5:1 with it (light
+  `#1d63d0`, dark `#1f6fd6`) — do not brighten them back.
 - Layer tree is a `listbox`: every row type is a focusable `role="option"`
   with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
   don't retrigger), ↑/↓ move focus and MUST stopPropagation — the same keys

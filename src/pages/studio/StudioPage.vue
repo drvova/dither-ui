@@ -84,8 +84,8 @@ onBeforeUnmount(() => {
       desktop to design with the kit.
     </p>
     <div class="mt-2 flex items-center gap-5 text-[12px] text-muted-foreground">
-      <a :href="routePath('/docs')" class="transition-colors hover:text-foreground">browse the docs →</a>
-      <a :href="routePath('/')" class="transition-colors hover:text-foreground">home</a>
+      <a :href="routePath('/docs')" class="-my-1 py-1 transition-colors hover:text-foreground">browse the docs →</a>
+      <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">home</a>
     </div>
   </div>
 </template>
