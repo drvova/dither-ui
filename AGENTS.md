@@ -84,7 +84,8 @@ Default section order:
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links. GitHub Pages deploys through
-  `.github/workflows/pages.yml`; default deploy base is `/` because
+  `.github/workflows/pages.yml` (`vite build` + the player bundle; the
+  prerender is not part of the deploy); default deploy base is `/` because
   `public/CNAME` sets `dither-ui.com`. Set repo variable
   `VITE_BASE_PATH=/dither-ui/` only when removing the custom domain and using
   the GitHub Pages project URL.
