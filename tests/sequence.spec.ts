@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { linear, steps } from "../dither-kit/timing"
+import { steps } from "../dither-kit/timing"
 import {
   planSequence,
   sampleSequence,

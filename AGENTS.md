@@ -103,9 +103,12 @@ Default section order:
 
 ## Workflow Rules
 
-- Verification gate before any commit: `npx vue-tsc --noEmit` and
-  `npx vite build` green; visual/stateful changes also checked in a live
-  browser (vite preview + screenshots).
+- Verification gate before any commit: `npm run lint`, `npm run test`,
+  `npx vue-tsc --noEmit` and `npx vite build` green — the full package.json
+  verify set (CI runs it; a remembered subset ships red), plus
+  `npm run check` in `dither-kit-svelte/` when the kit is touched;
+  visual/stateful changes also checked in a live browser (vite preview +
+  screenshots).
 - `npm run build` ends with a headless-chromium prerender of `/`, `/docs`,
   and `/studio` (`scripts/prerender.mjs`, devDependency playwright-core) so
   non-JS crawlers read the real page DOM from bytes. It requires a chromium

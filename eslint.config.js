@@ -9,6 +9,13 @@ export default ts.config(
       "dist/**",
       "node_modules/**",
       "ui-laws/**",
+      // local scratch tooling (bake scripts, one-shot verifiers) — not
+      // product source, and CJS require() there is intentional.
+      ".scratch/**",
+      // gitignored local material that CI's checkout never contains — the
+      // lint surface must match CI or the local gate lies (469 vs 4 errors).
+      "ghostai-ref/**",
+      ".rpiv/**",
       "*.tsbuildinfo",
       "coverage/**",
     ],

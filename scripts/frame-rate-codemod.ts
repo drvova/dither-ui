@@ -131,7 +131,7 @@ const camel = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
     for (const { key, open } of list) {
       let close = -1
       for (let i = open + 1; i < lines.length; i++) {
-        if (/^  \],\r?$/.test(lines[i])) {
+        if (/^ {2}\],\r?$/.test(lines[i])) {
           close = i
           break
         }
