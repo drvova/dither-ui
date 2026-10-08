@@ -96,6 +96,20 @@ is its showcase and editor.
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+- Browser contract: web platform only, every engine. The floor is Tailwind
+  v4's (Chrome 111, Safari 16.4, Firefox 128: `@layer`, `color-mix()` in
+  oklab, container queries and units, `:has()`, `inert`); anything newer
+  is feature-detected or degrades — `requestIdleCallback` (a timeout
+  fallback), `startViewTransition` (checked), WebGL2 → WebGL1 with
+  extensions (`gl.ts`, `world-gl.ts` leaves uvs unset there), `ResizeObserver`
+  and `IntersectionObserver` guarded (no gate → play), `document.fonts`
+  optional, `text-wrap`/`content-visibility`/`scrollbar-*` progressive,
+  masks through Vue's style prefixing (`DitherReveal` sets both spellings),
+  `-webkit-background-clip` beside the standard one. `lib.ts`'s `copyText`
+  is the one clipboard path: the async clipboard where it exists, else the
+  selection + `execCommand` route (plain http, older engines, automation),
+  returning whether it copied. No engine-specific APIs (`scrollIntoViewIfNeeded`,
+  `scheduler.postTask`, file pickers) anywhere.
 - `keyframes.ts` + `DitherStage.vue` + `DitherLayer.vue` are the keyframe
   engine in container units. `parseLength` turns px numbers and any CSS
   length (`calc()` sums included) into unit terms, `lerpTerms` interpolates

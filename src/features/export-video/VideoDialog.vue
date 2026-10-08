@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
 import { selectedArtboard } from "@/entities/editor"
-import { DitherFocusScope } from "@dither-kit"
+import { copyText, DitherFocusScope } from "@dither-kit"
 import { DEFAULT_VIDEO, type VideoOptions } from "./composition"
 import { defaultSeconds, downloadComposition, playerUrl, renderCommand, videoFileName } from "./exportVideo"
 
@@ -41,10 +41,7 @@ function preview() {
 }
 async function copyCommand() {
   if (!frame.value) return
-  await navigator.clipboard.writeText(renderCommand(frame.value)).then(
-    () => (status.value = "command copied"),
-    () => (status.value = "clipboard unavailable"),
-  )
+  status.value = (await copyText(renderCommand(frame.value))) ? "command copied" : "clipboard unavailable"
 }
 const seconds = computed({
   get: () => options.value.seconds,
@@ -111,6 +108,7 @@ const seconds = computed({
             A <a href="https://github.com/heygen-com/hyperframes" target="_blank" rel="noreferrer" class="underline underline-offset-2 text-foreground">HyperFrames</a> composition: one self-contained HTML file.
             Render it with <code class="text-foreground">{{ renderCommand(frame) }}</code> (Node 22 + FFmpeg).
             Same seeds, same time, same pixels on every run; simulation backgrounds render with <code class="text-foreground">--workers 1</code>.
+            Any engine: <code class="text-foreground">npm run frames -- {{ videoFileName(frame) }} --browser webkit --mp4 out.mp4</code> seeks the file frame by frame in Playwright's WebKit, Firefox or Chromium.
             Your coding agent can do this too: ask it to export the frame as a video.
           </p>
         </div>

@@ -4,7 +4,7 @@ import type { Artboard } from "@/entities/artboard"
 import { chartCode } from "@/entities/chart"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { widgetCode } from "@/entities/widget"
-import { DitherFocusScope } from "@dither-kit"
+import { copyText, DitherFocusScope } from "@dither-kit"
 import { CodeBlock } from "@/shared/ui"
 
 const props = defineProps<{ open: boolean }>()
@@ -32,10 +32,9 @@ watch(
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | undefined
 async function copy() {
-  await navigator.clipboard.writeText(code.value)
-  copied.value = true
+  copied.value = await copyText(code.value)
   clearTimeout(copyTimer)
-  copyTimer = setTimeout(() => (copied.value = false), 1500)
+  if (copied.value) copyTimer = setTimeout(() => (copied.value = false), 1500)
 }
 
 const codeFor = (a: Artboard) =>

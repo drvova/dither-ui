@@ -19,6 +19,7 @@
 // charts through `normalizeArtboard`. Nothing here evaluates anything: an
 // agent can only produce documents the inspector could have produced.
 import { watch } from "vue"
+import { directedTime, isDirected, release, seek } from "@dither-kit"
 import { type Artboard, type ArtboardKind, createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { chartCode, createChart, createSeriesRow, LABEL_KEY } from "@/entities/chart"
 import {
@@ -88,6 +89,8 @@ export type StudioCommand =
   | { type: "code.get"; id: string }
   | { type: "registry.get"; is?: string }
   | { type: "video.export"; id?: string; seconds?: number; fps?: number; theme?: string }
+  | { type: "clock.seek"; seconds?: number }
+  | { type: "clock.release" }
 
 export type CommandResult = { ok: true; data: unknown } | { ok: false; error: string }
 
@@ -145,6 +148,8 @@ export function registrySchema() {
       "code.get": "{ id } — the frame as a Vue SFC",
       "registry.get": "{ is? } — this schema, or one component's entry",
       "video.export": "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length",
+      "clock.seek": "{ seconds? } — hold every animation on the canvas at that moment (a stable screenshot from any driver in any browser); without seconds, let time run again",
+      "clock.release": "let time run again",
     },
   }
 }
@@ -361,6 +366,19 @@ export function runCommand(input: unknown): CommandResult {
           note: `index.html + player.js + player.css in one directory: npx hyperframes render <dir> -o ${slugOf(a.name)}.mp4. Same seeds + time → same pixels; simulation backgrounds need --workers 1.`,
         })
       }
+      case "clock.seek": {
+        if (cmd.seconds === undefined || cmd.seconds === null) {
+          release()
+          return ok({ directed: false })
+        }
+        const s = Number(cmd.seconds)
+        if (!Number.isFinite(s) || s < 0) return fail("seconds must be a non-negative number")
+        seek(s * 1000)
+        return ok({ directed: true, seconds: s })
+      }
+      case "clock.release":
+        release()
+        return ok({ directed: false })
       case "registry.get": {
         if (typeof cmd.is === "string") {
           const entry = registrySchema().components.find((c) => c.is === cmd.is)
@@ -376,11 +394,31 @@ export function runCommand(input: unknown): CommandResult {
   }
 }
 
+/** The kit clock as any driver sees it: seconds in, a held moment out. */
+export type StudioClockApi = {
+  seek: (seconds: number) => void
+  release: () => void
+  directed: () => boolean
+  /** The held moment in seconds, null while time runs. */
+  time: () => number | null
+}
+
+export const clockApi = (): StudioClockApi => ({
+  seek: (seconds) => seek(Math.max(0, Number(seconds) || 0) * 1000),
+  release,
+  directed: isDirected,
+  time: () => {
+    const ms = directedTime()
+    return ms === null ? null : ms / 1000
+  },
+})
+
 export type StudioAgentApi = {
   version: number
   run: (command: unknown) => CommandResult
   registry: () => ReturnType<typeof registrySchema>
   document: () => StudioDocument
+  clock: StudioClockApi
 }
 
 declare global {
@@ -428,7 +466,7 @@ export function installStudioAgentApi(): () => void {
     { deep: true },
   )
 
-  window.ditherStudio = { version: PROTOCOL_VERSION, run: runCommand, registry: registrySchema, document: documentSnapshot }
+  window.ditherStudio = { version: PROTOCOL_VERSION, run: runCommand, registry: registrySchema, document: documentSnapshot, clock: clockApi() }
 
   return () => {
     stop()

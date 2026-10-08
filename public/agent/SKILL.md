@@ -142,6 +142,7 @@ Commands (`type` and fields):
 | `code.get` | `id` — the frame as a Vue SFC |
 | `registry.get` | `is?` — the registry, or one component |
 | `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it |
+| `clock.seek` | `seconds?` — hold every animation on the canvas at that moment, so a screenshot is stable from any driver in any browser; without `seconds` time runs again (`clock.release` does the same) |
 
 ## 4. Work like the Studio does
 
@@ -173,6 +174,11 @@ Commands (`type` and fields):
   plays them in order, each clip coming in through an ordered-dither
   dissolve or wipe (the kit's `DitherReveal` masks). Build the frames first,
   then the reel; a reel has no code of its own, it is a video.
+- Screenshots: call `clock.seek` (the `seek_clock` tool) with a moment first,
+  so every canvas holds still, then `clock.seek` with no seconds to let time
+  run. The Studio is plain web platform — the same commands work through CDP
+  (`Runtime.evaluate` on `window.ditherStudio.run(...)`), WebDriver, Playwright
+  or a DOM event, in Chromium, WebKit and Firefox alike.
 - Finish with `code.get` when the user wants code, and quote the SFC.
 
 ## 5. Render a frame to video (HyperFrames)
@@ -205,3 +211,9 @@ and the requested time (Node 22 + FFmpeg: `npx hyperframes render`).
 - The composition is a plain HyperFrames file: the HyperFrames skills apply
   if the user wants it cut into a longer piece (sub-composition, captions,
   music).
+- Any browser engine: `npm run frames -- video/<name>/index.html --browser
+  webkit --mp4 <name>.mp4` (in the dither-ui checkout; `chromium` and
+  `firefox` too) seeks the composition frame by frame through the same
+  `hf-seek` DOM event and screenshots it with Playwright, then assembles the
+  MP4 with ffmpeg — no CDP needed. The player also exposes
+  `window.ditherClock.seek(seconds)` / `.release()` for any `evaluate` call.

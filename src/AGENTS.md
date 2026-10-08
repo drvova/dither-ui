@@ -111,6 +111,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     request. Pinned by `tests/agent-protocol.spec.ts`,
     `agent-evolve.spec.ts`, `agent-tools.spec.ts`; the bridge chain by
     `tests/bridge.spec.ts`.
+- Clock for drivers: `clock.seek { seconds? }` / `clock.release` hold or
+  free the kit clock from the protocol (the `seek_clock` tool), and
+  `window.ditherStudio.clock` exposes the same four calls (`seek(seconds)`,
+  `release()`, `directed()`, `time()`), so a screenshot from any driver —
+  CDP, WebDriver, Playwright, a DOM event from an extension world — lands on
+  a held moment in any engine.
 - Video: `features/export-video` turns ONE frame into a HyperFrames
   composition (hyperframes.dev — HTML that `npx hyperframes render` turns
   into a deterministic MP4). `compositionHtml` writes the root contract
@@ -251,6 +257,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   same way shows the right clip, layers and mask state per time, requests
   no frames while directed, and its composition renders to an MP4 as long
   as the cut whose frames differ across the transitions.
+- Other engines: when Playwright's WebKit/Firefox builds cannot be fetched,
+  WebKitGTK's own WebDriver (`apt install webkit2gtk-driver xvfb`, then
+  `xvfb-run WebKitWebDriver --port=4447` and a W3C session on
+  `webkit2gtk-4.1/MiniBrowser --automation`) drives the built site over
+  plain HTTP: the same checks — container units resolved in a layer's
+  computed transform, the world's canvas and WebGL engines, the Studio
+  protocol and `clock.seek`, the player's `ditherClock` determinism — pass
+  there, which is Safari's engine.
 - Perf probes MUST use trailing-slash URLs (`/docs/`, `/studio/`): `vite
   preview` falls back to the landing HTML for slashless paths, which silently
   measures the wrong page.

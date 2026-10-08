@@ -24,7 +24,7 @@ const MASK = "*******"
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue"
 import { cssColor } from "./palette"
 import { CONTROL_BUTTON } from "./control"
-import { cn } from "./lib"
+import { cn, copyText } from "./lib"
 import type { PixelColor } from "./pixel"
 
 /** Wallet overview card — the account switcher and search morph open from
@@ -134,15 +134,11 @@ function submitSearch(q?: string) {
   emit("submit", query.value)
 }
 async function copy() {
-  try {
-    await navigator.clipboard.writeText(account.value?.address ?? "")
-    copied.value = true
+  copied.value = await copyText(account.value?.address ?? "")
+  if (copied.value)
     setTimeout(() => {
       copied.value = false
     }, 1400)
-  } catch {
-    copied.value = false
-  }
 }
 </script>
 

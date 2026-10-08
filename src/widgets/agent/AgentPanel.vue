@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { copyText } from "@dither-kit"
 import { editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
 import { type AcpClient, type AcpPermissionRequest, type BridgeHello, connectAcp } from "@/features/agent/acp"
@@ -423,7 +424,7 @@ async function slash(line: string): Promise<boolean> {
     case "copy": {
       const last = lastEntry(isAssistant)
       if (!last) return system("nothing to copy"), true
-      await navigator.clipboard.writeText(last.text).then(() => system("copied"), () => system("clipboard unavailable"))
+      system((await copyText(last.text)) ? "copied" : "clipboard unavailable")
       return true
     }
     case "session":

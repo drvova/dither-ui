@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from "vitest"
 import { editor } from "@/entities/editor"
+import { directedTime, isDirected, release } from "../dither-kit/clock"
 import {
   COMMAND_EVENT,
   installStudioAgentApi,
@@ -170,5 +171,27 @@ describe("video.export", () => {
     expect(d.assets[0].url).toMatch(/^http.*\/play\/player\.js$/)
     expect(d.render).toContain("npx hyperframes render")
     expect(runCommand({ type: "video.export", id: "nope" }).ok).toBe(false)
+  })
+})
+
+describe("clock commands", () => {
+  it("hold and free the kit clock for any driver, from the protocol and the window API", () => {
+    expect(runCommand({ type: "clock.seek", seconds: 1.5 })).toEqual({ ok: true, data: { directed: true, seconds: 1.5 } })
+    expect(isDirected()).toBe(true)
+    expect(directedTime()).toBe(1500)
+    expect(runCommand({ type: "clock.seek", seconds: -1 }).ok).toBe(false)
+    expect(runCommand({ type: "clock.seek" })).toEqual({ ok: true, data: { directed: false } })
+    expect(isDirected()).toBe(false)
+    runCommand({ type: "clock.seek", seconds: 2 })
+    expect(runCommand({ type: "clock.release" })).toEqual({ ok: true, data: { directed: false } })
+    const off = installStudioAgentApi()
+    window.ditherStudio!.clock.seek(0.25)
+    expect(window.ditherStudio!.clock.time()).toBe(0.25)
+    expect(window.ditherStudio!.clock.directed()).toBe(true)
+    window.ditherStudio!.clock.release()
+    expect(window.ditherStudio!.clock.directed()).toBe(false)
+    expect(registrySchema().commands["clock.seek"]).toContain("seconds")
+    off()
+    release()
   })
 })

@@ -9,7 +9,7 @@
 // happen when it captures one — a readiness promise that waited for a frame
 // would wait forever. Every surface paints its moment synchronously on seek.
 import { createApp, h, nextTick } from "vue"
-import { directFromHyperframes } from "@dither-kit"
+import { directedTime, directFromHyperframes, isDirected, release, seek } from "@dither-kit"
 import "@/app/styles.css"
 import PlayPage from "./PlayPage.vue"
 import { readPlaySource } from "./source"
@@ -17,12 +17,26 @@ import { readPlaySource } from "./source"
 declare global {
   interface Window {
     __hf?: { buildReady?: Record<string, Promise<unknown>> }
+    /** The clock for any driver: `ditherClock.seek(seconds)` holds the frame at a moment. */
+    ditherClock?: { seek: (seconds: number) => void; release: () => void; directed: () => boolean; time: () => number | null }
   }
 }
 
 const source = readPlaySource()
 document.documentElement.classList.toggle("dark", source.theme !== "light")
+// Two doors onto the same clock: HyperFrames' `hf-seek` DOM event (any
+// driver can dispatch it: CDP, WebDriver, Playwright, a test) and a global
+// for `evaluate` calls — both plain web platform, every engine.
 directFromHyperframes()
+window.ditherClock = {
+  seek: (seconds) => seek(Math.max(0, Number(seconds) || 0) * 1000),
+  release,
+  directed: isDirected,
+  time: () => {
+    const ms = directedTime()
+    return ms === null ? null : ms / 1000
+  },
+}
 
 const fonts = (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts
 const ready = (fonts?.ready ?? Promise.resolve())

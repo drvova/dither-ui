@@ -370,7 +370,11 @@ widgets/features; page-specific conventions live here.
   same `main.ts` is the entry of the single-file bundle
   (`vite.player.config.ts`). Nothing here reads the project store: the
   page provides `REEL_POOL` (its parsed document's artboards) so a reel
-  cuts between the frames that travel with it.
+  cuts between the frames that travel with it. Besides `hf-seek`, `main.ts`
+  exposes `window.ditherClock` (`seek(seconds)`, `release()`, `directed()`,
+  `time()`) for any driver's `evaluate`; `scripts/render-frames.mjs`
+  (`npm run frames`) renders a composition or player URL to PNGs and an MP4
+  through that contract in Playwright's Chromium, WebKit or Firefox.
 
 ## Verification
 

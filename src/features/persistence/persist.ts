@@ -32,21 +32,41 @@ export const activeProjectId = reactive({ value: "" })
 let pc = 0
 const uid = () => `p${Date.now().toString(36)}${(pc++).toString(36)}`
 
+/** Storage is best-effort everywhere: a private window, a locked-down or
+ * automation profile, or a full quota throws on access, and the Studio keeps
+ * editing in memory. */
+const store = {
+  get(key: string): string | null {
+    try {
+      return localStorage.getItem(key)
+    } catch {
+      return null
+    }
+  },
+  set(key: string, value: string): void {
+    try {
+      localStorage.setItem(key, value)
+    } catch {
+      // quota / privacy mode — keep editing, persistence is best-effort
+    }
+  },
+  remove(key: string): void {
+    try {
+      localStorage.removeItem(key)
+    } catch {
+      // nothing to forget where nothing is kept
+    }
+  },
+}
 const readJson = <T>(key: string): T | null => {
   try {
-    const raw = localStorage.getItem(key)
+    const raw = store.get(key)
     return raw ? (JSON.parse(raw) as T) : null
   } catch {
     return null
   }
 }
-const writeJson = (key: string, value: unknown) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // quota / privacy mode — keep editing, persistence is best-effort
-  }
-}
+const writeJson = (key: string, value: unknown) => store.set(key, JSON.stringify(value))
 
 const saveIndex = () => writeJson(INDEX_KEY, projects)
 const touch = (id: string) => {
@@ -145,15 +165,15 @@ export function hydrate(): void {
     projects.push(meta)
     if (legacy) {
       writeJson(DOC_PREFIX + meta.id, legacy)
-      localStorage.removeItem(LEGACY_KEY)
+      store.remove(LEGACY_KEY)
     }
     saveIndex()
   }
 
-  const requested = localStorage.getItem(ACTIVE_KEY)
+  const requested = store.get(ACTIVE_KEY)
   const active = projects.find((p) => p.id === requested) ?? projects[0]
   activeProjectId.value = active.id
-  localStorage.setItem(ACTIVE_KEY, active.id)
+  store.set(ACTIVE_KEY, active.id)
   applyDoc(readJson<Doc>(DOC_PREFIX + active.id))
 }
 
@@ -163,7 +183,7 @@ export function createProject(name: string): void {
   const meta: ProjectMeta = { id: uid(), name: clean, updatedAt: Date.now() }
   projects.push(meta)
   activeProjectId.value = meta.id
-  localStorage.setItem(ACTIVE_KEY, meta.id)
+  store.set(ACTIVE_KEY, meta.id)
   applyDoc(null) // fresh default document
   flushSave()
   resetHistory()
@@ -175,7 +195,7 @@ export function switchProject(id: string): void {
   if (!meta) return
   flushSave()
   activeProjectId.value = id
-  localStorage.setItem(ACTIVE_KEY, id)
+  store.set(ACTIVE_KEY, id)
   applyDoc(readJson<Doc>(DOC_PREFIX + id))
   resetHistory()
 }
@@ -192,7 +212,7 @@ export function deleteProject(id: string): void {
   const i = projects.findIndex((p) => p.id === id)
   if (i < 0) return
   projects.splice(i, 1)
-  localStorage.removeItem(DOC_PREFIX + id)
+  store.remove(DOC_PREFIX + id)
   if (activeProjectId.value === id) {
     if (projects.length) {
       activeProjectId.value = "" // force the switch through

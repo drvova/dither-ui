@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { ref } from "vue"
+import { copyText } from "@dither-kit"
 
 const props = defineProps<{ code: string }>()
 const copied = ref(false)
 async function copy() {
-  try {
-    await navigator.clipboard.writeText(props.code)
-    copied.value = true
+  copied.value = await copyText(props.code)
+  if (copied.value)
     setTimeout(() => {
       copied.value = false
     }, 1400)
-  } catch {
-    copied.value = false
-  }
 }
 </script>
 

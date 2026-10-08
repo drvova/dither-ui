@@ -133,6 +133,17 @@ Default section order:
   ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
   and exports as one MP4 as long as its cut. Details in `src/AGENTS.md`
   and `dither-kit/AGENTS.md`.
+- Browsers and drivers: the kit is web platform only — Chromium (Chrome,
+  Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor
+  (Chrome 111, Safari 16.4, Firefox 128); every newer API is feature-detected
+  (`requestIdleCallback`, `startViewTransition`, WebGL2 → WebGL1,
+  `ResizeObserver`/`IntersectionObserver` guards, `copyText`'s clipboard
+  fallback) and the rest degrades (`text-wrap`, `content-visibility`,
+  `scrollbar-*`). Automation is plain DOM: the player answers the `hf-seek`
+  event and `window.ditherClock`, the Studio `window.ditherStudio` (with
+  `.clock`), the `dither-studio:command` event and `clock.seek`, so CDP,
+  WebDriver and Playwright drive it in any engine; `npm run frames` renders
+  a composition to PNGs/MP4 in Chromium, WebKit or Firefox without CDP.
 - Motion in container units: `dither-kit/keyframes.ts` (lengths as unit
   terms, interpolated with their units kept, resolved to px against a box)
   drives `DitherStage` (a size query container with one kit-clock) and
