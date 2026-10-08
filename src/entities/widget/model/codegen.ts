@@ -116,6 +116,13 @@ ${rows}
 export function widgetCode(w: WidgetModel, frame: { w: number; h: number }): string {
   if (w.kind === "component") return componentCode(w)
   if (w.kind === "screen") return screenCode(w)
+  if (w.kind === "reel")
+    return `<!--
+  A reel plays other frames in order with ordered-dither transitions. It has no
+  component of its own: export it as a video (the Studio's "video" action or
+  the video.export command) for one MP4 of the whole sequence.
+${w.clips.map((c, i) => `  ${i + 1}. ${c.id} — ${c.seconds}s, in by ${c.transition.kind}${c.transition.kind === "cut" ? "" : ` over ${c.transition.seconds}s`}`).join("\n")}
+-->`
   if (w.kind === "avatar") {
     const attrs: string[] = [`name="${w.name}"`, `:size="${Math.round(Math.min(frame.w, frame.h))}"`]
     if (w.source !== "seed" && w.pattern) {

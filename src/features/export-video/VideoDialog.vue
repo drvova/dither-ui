@@ -3,7 +3,7 @@ import { computed, nextTick, ref, watch } from "vue"
 import { selectedArtboard } from "@/entities/editor"
 import { DitherFocusScope } from "@dither-kit"
 import { DEFAULT_VIDEO, type VideoOptions } from "./composition"
-import { downloadComposition, playerUrl, renderCommand, videoFileName } from "./exportVideo"
+import { defaultSeconds, downloadComposition, playerUrl, renderCommand, videoFileName } from "./exportVideo"
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -16,7 +16,10 @@ const closeRef = ref<HTMLButtonElement | null>(null)
 watch(
   () => props.open,
   (v) => {
-    if (v) nextTick(() => closeRef.value?.focus())
+    if (!v) return
+    // A reel is as long as its cut; anything else keeps the house default.
+    if (frame.value) options.value.seconds = defaultSeconds(frame.value)
+    nextTick(() => closeRef.value?.focus())
   },
   { immediate: true },
 )

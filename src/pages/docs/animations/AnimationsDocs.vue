@@ -33,6 +33,7 @@ import {
   DitherMagnetLines,
   DitherOrbitImages,
   DitherPixelTransition,
+  DitherReveal,
   DitherStickerPeel,
   DitherExpandTabs,
   DitherIsland,
@@ -377,6 +378,19 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "string (hex)", default: '"#111318"' },
     { prop: "default slot", type: "content", default: "—" },
   ],
+  ditherReveal: [
+    { prop: "progress", type: "number 0–1 (manual; unset plays on the clock)", default: "—" },
+    { prop: "duration", type: "number (s)", default: "1.2" },
+    { prop: "delay", type: "number (s)", default: "0" },
+    { prop: "direction", type: "'none' | 'right' | 'left' | 'down' | 'up'", default: "'none' (dissolve)" },
+    { prop: "cell", type: "number (px)", default: "4" },
+    { prop: "band", type: "number (cells; directional wipes)", default: "12" },
+    { prop: "seed", type: "number (a seeded 4×4 matrix)", default: "— (Bayer 8×8)" },
+    { prop: "reverse", type: "boolean (hide instead)", default: "false" },
+    { prop: "easing", type: "EasingInput", default: "'ease-in-out'" },
+    { prop: "restartKey", type: "unknown (change to replay)", default: "—" },
+    { prop: "default slot", type: "content", default: "—" },
+  ],
   stickerPeel: [{ prop: "default slot", type: "content", default: "—" }],
 }
 
@@ -481,6 +495,17 @@ const samples = sampleSequence(plan, t) // [{ id, index, progress, state }, ...]
   magnetLines: `<DitherMagnetLines class="h-52" />`,
   orbitImages: `<DitherOrbitImages :items="['A', 'B', 'C', 'D', 'E']" />`,
   pixelTransition: `<DitherPixelTransition><YourCard /></DitherPixelTransition>`,
+  ditherReveal: `<DitherReveal direction="right" :cell="4" :duration="1.4" :restart-key="nonce">
+  <YourCard />
+</DitherReveal>
+
+// or drive it from a timeline: the mask is a pure function of progress
+<DitherReveal :progress="p"><YourCard /></DitherReveal>
+
+// the masks alone, for any element
+import { wipeStyle } from "@dither-kit"
+const m = wipeStyle(0.4, { cell: 4, direction: "down", width: 320, height: 180 })
+el.style.maskImage = m?.image ?? ""`,
   stickerPeel: `<DitherStickerPeel><YourCard /></DitherStickerPeel>`,
   expandTabs: `<DitherExpandTabs v-model="tab" :tabs="[
   { value: 'home', label: 'Home' },
@@ -552,6 +577,12 @@ const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/6
 
 /* Skiper-adjacent widgets: working demo state. */
 const expandTab = ref("home")
+const revealDirection = ref<"none" | "right" | "down">("none")
+const revealNonce = ref(0)
+const replayReveal = (direction: "none" | "right" | "down") => {
+  revealDirection.value = direction
+  revealNonce.value++
+}
 const islandOpen = ref(false)
 const STACK_CARDS = [
   { title: "Prints · riso on cream", color: "purple" },
@@ -1005,6 +1036,43 @@ function nudgeCq(delta: number): void {
       </DitherPixelTransition>
     </DemoCard>
     <PropsTable :rows="API.pixelTransition" />
+  </section>
+
+  <!-- Dither reveal -->
+  <section id="dither-reveal" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Dither reveal</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Any content comes in through an ordered-dither mask. A dissolve resolves
+      cell by cell in the Bayer order; a wipe moves a solid front with a dithered
+      band behind it. The mask is a pure function of progress, so a seeked frame
+      (the player, a video export) gets the same cells every time, and the
+      Studio's reels cut between frames with it. Pass <code class="text-foreground/80">progress</code>
+      to drive it from your own timeline.
+    </p>
+    <DemoCard :code="SNIPPETS.ditherReveal">
+      <div class="flex flex-col items-center gap-3">
+        <DitherReveal :direction="revealDirection" :cell="4" :duration="1.4" :restart-key="revealNonce" class="h-32 w-56">
+          <div class="grid h-full w-full place-items-center rounded-lg border border-border/60 bg-card">
+            <span class="text-lg tracking-tight">Revealed</span>
+          </div>
+        </DitherReveal>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            v-for="opt in ([['none', 'dissolve'], ['right', 'wipe right'], ['down', 'wipe down']] as const)"
+            :key="opt[0]"
+            type="button"
+            class="rounded border px-2 py-1 text-[11px] tracking-wide"
+            :class="revealDirection === opt[0] ? 'border-accent bg-accent/80 text-accent-foreground' : 'border-border/60 text-muted-foreground hover:bg-accent/40'"
+            :aria-pressed="revealDirection === opt[0]"
+            @click="replayReveal(opt[0])"
+          >
+            {{ opt[1] }}
+          </button>
+          <button type="button" class="rounded border border-border/60 px-2 py-1 text-[11px] tracking-wide text-muted-foreground hover:bg-accent/40" @click="revealNonce++">replay</button>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.ditherReveal" />
   </section>
 
   <!-- Sticker peel -->

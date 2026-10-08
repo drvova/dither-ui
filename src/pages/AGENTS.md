@@ -368,7 +368,9 @@ widgets/features; page-specific conventions live here.
   (a chart that measures later repaints the moment through its `wake`).
   `play/index.html` is the route's entry (noindex, not prerendered) and the
   same `main.ts` is the entry of the single-file bundle
-  (`vite.player.config.ts`). Nothing here reads the project store.
+  (`vite.player.config.ts`). Nothing here reads the project store: the
+  page provides `REEL_POOL` (its parsed document's artboards) so a reel
+  cuts between the frames that travel with it.
 
 ## Verification
 

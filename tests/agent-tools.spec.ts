@@ -9,7 +9,7 @@ beforeEach(() => localStorage.clear())
 describe("studio tools", () => {
   it("map one to one onto protocol commands and carry schemas a harness can read", () => {
     const names = STUDIO_TOOLS.map((t) => t.def.name)
-    expect(names).toEqual(["list_artboards", "get_registry", "add_screen", "add_component", "add_chart", "add_widget", "update_artboard", "remove_artboard", "select", "evolve", "get_code", "get_document", "export_video"])
+    expect(names).toEqual(["list_artboards", "get_registry", "add_screen", "add_component", "add_chart", "add_widget", "add_reel", "update_artboard", "remove_artboard", "select", "evolve", "get_code", "get_document", "export_video"])
     for (const t of STUDIO_TOOLS) expect(t.def.parameters).toMatchObject({ type: "object" })
     const seen: unknown[] = []
     const run = (c: unknown): CommandResult => {

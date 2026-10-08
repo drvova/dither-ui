@@ -17,6 +17,7 @@ import {
 } from "@/entities/widget"
 import AvatarDrawGrid from "./AvatarDrawGrid.vue"
 import ComponentPropsPanel from "./ComponentPropsPanel.vue"
+import ReelPanel from "./ReelPanel.vue"
 import { CHART_TYPES, EASING_NAMES, familyOf, STACKS } from "@/shared/config"
 import { BezierEditor, BloomField, ColorField, NumberField, Segmented, TextureField, Toggle } from "@/shared/ui"
 
@@ -113,6 +114,9 @@ const image = computed(() =>
 )
 const component = computed(() =>
   ab.value?.widget?.kind === "component" ? ab.value.widget : null
+)
+const reel = computed(() =>
+  ab.value?.widget?.kind === "reel" ? ab.value.widget : null
 )
 const componentSpec = computed(() =>
   component.value ? componentEntry(component.value.is) : undefined
@@ -583,6 +587,11 @@ function setPieVariant(v: VariantInput) {
           </div>
           <BloomField :model-value="gradient.bloom" @update:model-value="gradient.bloom = $event" />
         </section>
+      </template>
+
+      <!-- REEL: the cut -->
+      <template v-else-if="reel">
+        <ReelPanel :reel="reel" :artboard-id="ab.id" />
       </template>
     </template>
 

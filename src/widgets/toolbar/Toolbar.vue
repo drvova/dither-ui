@@ -4,7 +4,7 @@ import { DitherAlertDialog } from "@dither-kit"
 import { focusFirstMenuItem, menuKeydown } from "@/shared/lib"
 import type { ArtboardKind } from "@/entities/artboard"
 import {
-  addArtboard, addComponentArtboard, addScreenArtboard, duplicateSelected,
+  addArtboard, addComponentArtboard, addReelArtboard, addScreenArtboard, duplicateSelected,
   editor, groupSelected, removeSelected, replay, selectedArtboard, ungroup,
 } from "@/entities/editor"
 import { COMPONENT_REGISTRY, type ComponentEntry, type ComponentGroup } from "@/entities/widget"
@@ -64,6 +64,9 @@ const addScreen = () => { addScreenArtboard(); closeMenus() }
 const canEdit = () => editor.selectedArtboardId !== ""
 const canData = () => !!selectedArtboard.value && !selectedArtboard.value.widget
 const canUngroup = () => !!selectedArtboard.value?.groupId
+// A reel cuts the selected frames (in selection order); reels themselves are not clips.
+const canReel = () => editor.selectedIds.some((id) => editor.artboards.find((a) => a.id === id)?.widget?.kind !== "reel")
+const makeReel = () => addReelArtboard(editor.selectedIds)
 const selectionLabel = computed(() =>
   editor.selectedIds.length > 1 ? `${editor.selectedIds.length} selected` : selectedArtboard.value?.name ?? ""
 )
@@ -188,6 +191,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
         <span class="mx-0.5 h-4 w-px bg-border" />
         <button type="button" title="Replay animation" class="tool" aria-label="Replay animation" @click="replay">↻</button>
         <button type="button" title="Evolve: four seeded variants of this frame" class="tool wide" @click="evolveSelected()">evolve</button>
+        <button v-if="canReel()" type="button" title="Reel: play the selected frames in order with dither transitions" class="tool wide" @click="makeReel">reel</button>
         <button v-if="canData()" type="button" class="tool wide" :aria-pressed="editor.dataOpen" :class="editor.dataOpen ? 'bg-card text-foreground' : ''" @click="editor.dataOpen = !editor.dataOpen">data</button>
         <button type="button" class="tool wide" @click="emit('export')">code</button>
         <button type="button" :disabled="pngBusy" class="tool wide" @click="exportPng">{{ pngBusy ? 'saving…' : 'png' }}</button>

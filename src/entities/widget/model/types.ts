@@ -75,6 +75,14 @@ export type ComponentModel = {
 
 import type { ScreenModel } from "./screen"
 
+export type ReelTransitionKind = "cut" | "dissolve" | "wipe-right" | "wipe-left" | "wipe-down" | "wipe-up"
+/** How a clip comes in over the previous one: an ordered-dither dissolve or
+ * wipe (`seconds` long, `cell` px cells, an optional seeded matrix), or a cut. */
+export type ReelTransition = { kind: ReelTransitionKind; seconds: number; cell: number; seed: number | null }
+export type ReelClip = { id: string; seconds: number; transition: ReelTransition }
+/** A reel plays other frames in order — clips by artboard id — and exports as one video. */
+export type ReelModel = { kind: "reel"; clips: ReelClip[] }
+
 export type WidgetModel =
   | AvatarModel
   | ButtonModel
@@ -82,4 +90,5 @@ export type WidgetModel =
   | ImageModel
   | ComponentModel
   | ScreenModel
+  | ReelModel
 export type WidgetKind = WidgetModel["kind"]

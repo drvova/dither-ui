@@ -353,6 +353,7 @@ export {
 } from "./DitherShader.vue"
 export { wrapMaterial } from "./shader"
 export { surfaceOf, type DitherSurface } from "./use-dither-background"
+export { default as DitherReveal, BAYER8, bayerMatrix, wipeStyle, type WipeDirection, type WipeOptions, type WipeStyle } from "./DitherReveal.vue"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"
 export { default as DitherSlideAction } from "./SlideAction.vue"

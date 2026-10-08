@@ -132,15 +132,16 @@ Commands (`type` and fields):
 | `artboard.list` | — |
 | `artboard.select` | `id` or `ids` |
 | `artboard.remove` | `id` |
-| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props` or `widget.rows`) |
+| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props`, `widget.rows` or `widget.clips`) |
 | `chart.add` | `chart`, `name?`, `data?: { labels, series: [{ key, label?, color?, values }] }`, `frame?` |
 | `widget.add` | `widget` (avatar/button/gradient/image), `name?`, `props?` |
 | `component.add` | `is`, `name?`, `props?`, `slotText?`, `frame?` |
 | `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
+| `reel.add` | `name?`, `clips` (ids, or `{ id, seconds?, transition?: { kind, seconds?, cell?, seed? } }` — kinds `cut`, `dissolve`, `wipe-right`, `wipe-left`, `wipe-down`, `wipe-up`; 3s clips in over a 0.6s dissolve by default), `frame?` — frames played in order with ordered-dither transitions |
 | `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |
 | `code.get` | `id` — the frame as a Vue SFC |
 | `registry.get` | `is?` — the registry, or one component |
-| `video.export` | `id?`, `seconds?` (1–600), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it |
+| `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it |
 
 ## 4. Work like the Studio does
 
@@ -160,6 +161,10 @@ Commands (`type` and fields):
   ramp. A world also takes `props.shader`: a GLSL material
   (`mainMaterial(out vec4, in vec2)` reading `dk_shade`, `dk_depth`,
   `dk_covered`, `dk_color` per cell) over its finished render.
+- A sequence is a reel: `reel.add` cuts existing frames into one frame that
+  plays them in order, each clip coming in through an ordered-dither
+  dissolve or wipe (the kit's `DitherReveal` masks). Build the frames first,
+  then the reel; a reel has no code of its own, it is a video.
 - Finish with `code.get` when the user wants code, and quote the SFC.
 
 ## 5. Render a frame to video (HyperFrames)
@@ -178,6 +183,8 @@ and the requested time (Node 22 + FFmpeg: `npx hyperframes render`).
   render the directory. The exported file carries the frame's document, the
   player and the root contract (`data-width/height`, `data-duration`,
   `data-fps`, `data-no-timeline`), so nothing is fetched at render time.
+- A reel exports as one video of its whole cut: its clips travel in the
+  composition's document and `seconds` defaults to the reel's length.
 - Length and frame rate are the file's `data-duration` / `data-fps`; the
   frame's size is the video's size. For 1080p, make the frame 960×540 (or
   480×270) and render with `--resolution landscape`: HyperFrames captures at

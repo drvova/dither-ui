@@ -1,6 +1,7 @@
 export {
   addArtboard,
   addComponentArtboard,
+  addReelArtboard,
   addScreenArtboard,
   artboardIdOf,
   deleteGroup,

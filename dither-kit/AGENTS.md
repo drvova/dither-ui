@@ -12,8 +12,8 @@ is its showcase and editor.
 
 - Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
   step-timing primitives, the sequence timeline algebra, the clock director,
-  container-query scales, chart roots/contexts, canvas painters, and the
-  public component set.
+  the wipe engine (ordered-dither masks), container-query scales, chart
+  roots/contexts, canvas painters, and the public component set.
 - Consumers import ONLY via `index.ts` (`@dither-kit` alias).
 
 ## Local Contracts
@@ -77,6 +77,24 @@ is its showcase and editor.
   HyperFrames' `hf-seek` events (`detail.time` seconds): the contract the
   Studio's video export and `src/pages/play` rely on. Pinned by
   `tests/clock.spec.ts` and the directed case in `tests/sequence-vue.spec.ts`.
+- `wipe.ts` is the wipe engine — ordered-dither reveal masks for any DOM.
+  `wipeStyle(progress, { cell, seed?, direction, band, width, height })`
+  turns a progress into CSS `mask-image/size/repeat/position` values: a
+  dissolve (`direction: "none"`) tiles an n·cell SVG whose cells show once
+  the threshold sweep passes them (one cell per step of the 8×8 Bayer
+  `BAYER8` / `bayerMatrix(n)`, or the kit's seeded 4×4 with `seed`); a
+  directional wipe (`right`/`left`/`down`/`up` = where the front travels)
+  is a box-sized SVG with a solid front and four dithered density bands
+  behind it (`band` cells wide), a dissolve until it knows the box. Pure
+  strings from pure numbers (cached by key): the same progress gives the
+  same mask, `null` at 1 (remove the mask), the 1×1 empty mask at 0.
+  `DitherReveal.vue` applies it to its slot: manual `progress` (a
+  timeline's — it runs no clock of its own), or a timed reveal
+  (`duration`/`delay`/`easing`, `restartKey` replays) on the IO-gated rAF
+  loop, the kit clock's moment when directed, shown at once under reduced
+  motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
+  The Studio's reels cut between frames with it. Pinned by
+  `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
 - `containers.ts` + `DitherContainer.vue` are the container-query engine —
   children answer to their OWN box, never the viewport (the responsive half
   of the animation stack). The pure core resolves a content-box width
@@ -341,8 +359,8 @@ is its showcase and editor.
   (CSS `@media` or `pixelPrefersReducedMotion`). Slot-based effects wrap arbitrary
   text; char/number effects take a `text`/`to` prop. Docs live in `src/pages/docs/text/`.
 - Interaction/motion effects (`AnimatedContent`, `FadeContent`, `Sequence`,
-  `GradualBlur`, `StarBorder`, `ElectricBorder`, `GlareHover`, `Magnet`,
-  `ClickSpark`, ...) are
+  `Reveal`, `GradualBlur`, `StarBorder`, `ElectricBorder`, `GlareHover`,
+  `Magnet`, `ClickSpark`, ...) are
   another DOM/CSS/pointer family: slot wrappers (reveal-on-view, animated
   borders, hover glare), timeline-driven children (`Sequence` writes
   `--seq-p`/`data-seq` — see its engine bullet), the container-query scope

@@ -33,7 +33,8 @@ export const embedJson = (v: unknown): string => JSON.stringify(v).replace(/</g,
 const attr = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
 const text = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 
-export function compositionHtml(artboard: Artboard, o: VideoOptions, assets: PlayerAssets): string {
+/** `extra`: frames the composition's document must carry besides the one it plays — a reel's clips. */
+export function compositionHtml(artboard: Artboard, o: VideoOptions, assets: PlayerAssets, extra: Artboard[] = []): string {
   const slug = slugOf(artboard.name)
   const w = Math.max(1, Math.round(artboard.w))
   const h = Math.max(1, Math.round(artboard.h))
@@ -65,7 +66,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 <div id="root" data-composition-id="dither-${slug}" data-start="0" data-width="${w}" data-height="${h}" data-duration="${o.seconds}" data-fps="${o.fps}" data-no-timeline>
   <div id="dither-stage" data-artboard="${attr(artboard.id)}" data-theme="${o.theme}"></div>
 </div>
-<script type="application/json" id="dither-document">${embedJson({ artboards: [artboard] })}</script>
+<script type="application/json" id="dither-document">${embedJson({ artboards: [artboard, ...extra.filter((a) => a.id !== artboard.id)] })}</script>
 ${js}
 </body>
 </html>

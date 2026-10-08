@@ -24,6 +24,7 @@ import { chartCode, createChart, createSeriesRow, LABEL_KEY } from "@/entities/c
 import {
   addArtboard,
   addComponentArtboard,
+  addReelArtboard,
   addScreenArtboard,
   editor,
   placeGeneration,
@@ -35,11 +36,15 @@ import {
   COMPONENT_REGISTRY,
   componentEntry,
   createCell,
+  createClip,
   createRow,
+  type ReelClip,
+  REEL_TRANSITIONS,
+  type ReelTransitionKind,
   sanitizeComponentProps,
   widgetCode,
 } from "@/entities/widget"
-import { compositionHtml, normalizeVideoOptions, playerAssetUrls, renderCommand, slugOf, videoFileName } from "@/features/export-video"
+import { compositionHtml, defaultSeconds, normalizeVideoOptions, playerAssetUrls, reelClips, renderCommand, slugOf, videoFileName } from "@/features/export-video"
 import { applyDocument, documentSnapshot, type StudioDocument } from "@/features/persistence"
 import { CHART_TYPES, type ChartType, familyOf } from "@/shared/config"
 import { evolveArtboard, type EvolveOptions } from "./evolve"
@@ -56,6 +61,9 @@ export type ChartData = {
   labels: string[]
   series: { key: string; label?: string; color?: string; values: number[] }[]
 }
+
+/** One clip of a reel as a command spells it: a frame, how long it plays, how it comes in. */
+export type ReelClipSpec = { id: string; seconds?: number; transition?: { kind?: ReelTransitionKind; seconds?: number; cell?: number; seed?: number } }
 
 export type StudioCommand =
   | { type: "document.get" }
@@ -75,6 +83,7 @@ export type StudioCommand =
       padding?: number
       frame?: { w?: number; h?: number }
     }
+  | { type: "reel.add"; name?: string; clips: (string | ReelClipSpec)[]; frame?: { w?: number; h?: number } }
   | { type: "evolve"; id?: string; count?: number; seed?: number; strength?: number }
   | { type: "code.get"; id: string }
   | { type: "registry.get"; is?: string }
@@ -116,7 +125,7 @@ export function registrySchema() {
       artboards: "Artboard[] — { id, name, x, y, w, h, hidden?, locked?, groupId?: null, chart: ChartModel, widget?: WidgetModel }",
       chart: "ChartModel — { type: charts[], rows: DataRow[], series: [{ key, label, color }], seed?, bloom: off|low|high|aura, stackType: default|stacked|percent, cell: 1..4 }",
       rows: { cartesian: "{ month: string, <seriesKey>: number }", pie: "{ name: string, value: number }", radar: "{ axis: string, <seriesKey>: number }" },
-      widget: "WidgetModel — { kind: avatar|button|gradient|image } | { kind: component, is, props, slotText } | { kind: screen, rows: [{ cells: [{ is, props, slotText, grow }], align, justify, gap }], gap, padding }",
+      widget: "WidgetModel — { kind: avatar|button|gradient|image } | { kind: component, is, props, slotText } | { kind: screen, rows: [{ cells: [{ is, props, slotText, grow }], align, justify, gap }], gap, padding } | { kind: reel, clips: [{ id, seconds, transition: { kind, seconds, cell, seed } }] }",
       groups: "Group[] — { id, name, collapsed }",
       viewport: "{ x, y, zoom }",
     },
@@ -126,15 +135,16 @@ export function registrySchema() {
       "artboard.list": "summaries of every frame",
       "artboard.select": "{ id } or { ids }",
       "artboard.remove": "{ id }",
-      "artboard.update": "{ id, patch } — merge name/x/y/w/h/hidden/locked, chart fields, widget props or screen rows; sanitized",
+      "artboard.update": "{ id, patch } — merge name/x/y/w/h/hidden/locked, chart fields, widget props, screen rows or reel clips; sanitized",
       "chart.add": "{ chart, name?, data?: { labels, series: [{ key, label?, color?, values }] }, frame? }",
       "widget.add": "{ widget: avatar|button|gradient|image, name?, props? }",
       "component.add": "{ is, name?, props?, slotText?, frame? } — a registry component",
       "screen.add": "{ name?, rows: [{ cells: [{ is, props?, slotText?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
+      "reel.add": `{ name?, clips: [id | { id, seconds?, transition?: { kind?: ${REEL_TRANSITIONS.join("|")}, seconds?, cell?, seed? } }], frame? } — frames played in order with ordered-dither transitions (clip 3s, dissolve 0.6s by default); video.export renders the whole cut`,
       evolve: "{ id?, count?, seed?, strength? } — seeded variants placed as a row",
       "code.get": "{ id } — the frame as a Vue SFC",
       "registry.get": "{ is? } — this schema, or one component's entry",
-      "video.export": "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`",
+      "video.export": "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length",
     },
   }
 }
@@ -169,6 +179,30 @@ export function chartFromData(type: ChartType, data: ChartData) {
     .filter((s) => !seen.has(s.key) && seen.add(s.key))
     .map((s, i) => createSeriesRow(s.key, typeof s.label === "string" ? s.label : s.key, typeof s.color === "string" ? s.color : palette[i % palette.length]))
   return chart
+}
+
+/** Clip specs (ids or { id, seconds?, transition? }) as reel clips, each frame once, with the ids a reel cannot hold. */
+function buildClips(input: unknown) {
+  const clips: ReelClip[] = []
+  const missing: string[] = []
+  const reels: string[] = []
+  for (const raw of Array.isArray(input) ? input : []) {
+    const spec = typeof raw === "string" ? { id: raw } : isPlain(raw) && typeof raw.id === "string" ? (raw as ReelClipSpec) : null
+    if (!spec) continue
+    const frame = find(spec.id)
+    if (!frame) missing.push(spec.id)
+    else if (frame.widget?.kind === "reel") reels.push(spec.id)
+    else if (!clips.some((c) => c.id === spec.id)) {
+      const clip = createClip(spec.id, typeof spec.seconds === "number" ? spec.seconds : undefined)
+      const t = isPlain(spec.transition) ? spec.transition : {}
+      if (typeof t.kind === "string") clip.transition.kind = t.kind as ReelTransitionKind
+      if (typeof t.seconds === "number") clip.transition.seconds = t.seconds
+      if (typeof t.cell === "number") clip.transition.cell = t.cell
+      if (typeof t.seed === "number") clip.transition.seed = t.seed
+      clips.push(clip)
+    }
+  }
+  return { clips, missing, reels }
 }
 
 function buildScreen(cmd: Extract<StudioCommand, { type: "screen.add" }>) {
@@ -236,7 +270,8 @@ export function runCommand(input: unknown): CommandResult {
           else if (a.widget.kind === "screen" && Array.isArray(patch.rows)) {
             const built = buildScreen({ type: "screen.add", rows: patch.rows as never })
             w.rows = built.rows
-          } else Object.assign(w, patch)
+          } else if (a.widget.kind === "reel" && Array.isArray(patch.clips)) w.clips = buildClips(patch.clips).clips
+          else Object.assign(w, patch)
           if (typeof patch.slotText === "string") w.slotText = patch.slotText
         }
         normalizeArtboard(a)
@@ -286,6 +321,18 @@ export function runCommand(input: unknown): CommandResult {
         normalizeArtboard(a)
         return ok({ ...summarize(a), dropped: built.dropped })
       }
+      case "reel.add": {
+        const built = buildClips(cmd.clips)
+        if (built.missing.length) return fail(`no artboard ${built.missing.join(", ")}`)
+        if (built.reels.length) return fail(`a reel cannot clip a reel (${built.reels.join(", ")})`)
+        if (!built.clips.length) return fail("clips must name at least one frame: [id | { id, seconds?, transition? }]")
+        const a = addReelArtboard(built.clips.map((c) => c.id))
+        if (typeof cmd.name === "string") a.name = cmd.name.slice(0, 80)
+        if (a.widget?.kind === "reel") a.widget.clips = built.clips
+        applyFrame(a, cmd.frame)
+        normalizeArtboard(a)
+        return ok({ ...summarize(a), clips: a.widget?.kind === "reel" ? a.widget.clips : [], seconds: defaultSeconds(a) })
+      }
       case "evolve": {
         const id = typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId
         const parent = find(id)
@@ -302,13 +349,13 @@ export function runCommand(input: unknown): CommandResult {
       case "video.export": {
         const a = find(typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId)
         if (!a) return fail("select an artboard or pass { id }")
-        const options = normalizeVideoOptions(cmd)
+        const options = normalizeVideoOptions({ ...cmd, seconds: cmd.seconds ?? defaultSeconds(a) })
         return ok({
           id: a.id,
           name: a.name,
           file: videoFileName(a),
           options,
-          index: compositionHtml(a, options, { jsRef: "./player.js", cssRef: "./player.css" }),
+          index: compositionHtml(a, options, { jsRef: "./player.js", cssRef: "./player.css" }, reelClips(a)),
           assets: playerAssetUrls(),
           render: renderCommand(a),
           note: `index.html + player.js + player.css in one directory: npx hyperframes render <dir> -o ${slugOf(a.name)}.mp4. Same seeds + time → same pixels; simulation backgrounds need --workers 1.`,

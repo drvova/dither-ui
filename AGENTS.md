@@ -128,8 +128,11 @@ Default section order:
   kit's clock (`dither-kit/clock.ts`) makes every animation seekable; the
   player page `/play/` (`src/pages/play`) renders one frame and is also
   built as a single file (`vite.player.config.ts` → `dist/play/player.js`)
-  that the export inlines. Details in `src/AGENTS.md` and
-  `dither-kit/AGENTS.md`.
+  that the export inlines. A reel (the `reel` widget kind, `reel.add` /
+  `add_reel`, the `reel` selection action) plays other frames in order with
+  ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
+  and exports as one MP4 as long as its cut. Details in `src/AGENTS.md`
+  and `dither-kit/AGENTS.md`.
 - 3D + GLSL: the kit renders model files and fragment shaders through the
   same Bayer raster. `DitherWorld` (`dither-kit/world.ts` engine,
   `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0

@@ -2,6 +2,7 @@ import { createChart, createSeriesRow } from "@/entities/chart"
 import {
   componentEntry,
   createWidget,
+  REEL_TRANSITIONS,
   sanitizeComponentProps,
 } from "@/entities/widget"
 import { BLOOMS, CHART_TYPES, type ChartType, STACKS } from "@/shared/config"
@@ -64,6 +65,9 @@ const oneOf = <T extends string>(v: unknown, options: readonly T[], def: T): T =
 
 const ALIGNS = ["start", "center", "end", "stretch"] as const
 const JUSTIFIES = ["start", "center", "end", "between"] as const
+
+const clampNum = (v: unknown, lo: number, hi: number, def: number): number =>
+  typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : def
 
 /** Bring an artboard from any older schema — or an untrusted file — up to the
  * current shape, in place. */
@@ -146,6 +150,25 @@ export function normalizeArtboard(a: Artboard): Artboard {
           gap: typeof row.gap === "number" && Number.isFinite(row.gap) ? row.gap : 12,
         }
       }) as typeof w.rows
+    } else if (w.kind === "reel") {
+      fill(w as unknown as Record<string, unknown>, { clips: [] })
+      w.clips = (Array.isArray(w.clips) ? w.clips : [])
+        .filter(isPlainObject)
+        .filter((c) => typeof c.id === "string" && c.id !== a.id)
+        .map((c) => {
+          const seconds = clampNum(c.seconds, 0.1, 600, 3)
+          const t: Record<string, unknown> = isPlainObject(c.transition) ? c.transition : {}
+          return {
+            id: c.id as string,
+            seconds,
+            transition: {
+              kind: oneOf(t.kind, REEL_TRANSITIONS, "dissolve"),
+              seconds: clampNum(t.seconds, 0, seconds, 0.6),
+              cell: Math.round(clampNum(t.cell, 1, 16, 4)),
+              seed: typeof t.seed === "number" && Number.isFinite(t.seed) ? t.seed : null,
+            },
+          }
+        })
     } else {
       delete a.widget // unknown widget kind entirely
     }

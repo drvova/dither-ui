@@ -120,6 +120,9 @@ function mutateWidget(w: WidgetModel, rng: Rng, strength: number) {
       if (p(0.5)) w.cell = 2 + Math.floor(rng() * 5)
       if (p(0.4)) w.fade = Math.floor(rng() * 41)
       break
+    case "reel":
+      // The cut is the author's; variants of a reel would be variants of its frames.
+      break
     case "component": {
       const entry = componentEntry(w.is)
       if (entry) w.props = mutateProps(entry.props, w.props, rng, strength)

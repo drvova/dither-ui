@@ -3,15 +3,35 @@
 // the bridge to write under the harness's project).
 import type { Artboard } from "@/entities/artboard"
 import { editor } from "@/entities/editor"
+import { reelDuration } from "@/features/reel"
 import { assetPath, routePath, toBase64Url } from "@/shared/lib"
-import { compositionHtml, normalizeVideoOptions, slugOf, type VideoOptions } from "./composition"
+import { compositionHtml, DEFAULT_VIDEO, normalizeVideoOptions, slugOf, type VideoOptions } from "./composition"
 
 export const videoFileName = (a: Artboard): string => `${slugOf(a.name)}.hyperframes.html`
 export const renderCommand = (a: Artboard): string => `npx hyperframes render -c ${videoFileName(a)} -o ${slugOf(a.name)}.mp4`
 
+/** The frames a reel cuts between (none for any other frame), each once. */
+export function reelClips(a: Artboard): Artboard[] {
+  if (a.widget?.kind !== "reel") return []
+  const seen = new Set<string>([a.id])
+  const out: Artboard[] = []
+  for (const clip of a.widget.clips) {
+    const frame = editor.artboards.find((x) => x.id === clip.id)
+    if (frame && !seen.has(frame.id) && frame.widget?.kind !== "reel") {
+      seen.add(frame.id)
+      out.push(frame)
+    }
+  }
+  return out
+}
+
+/** A reel's natural length; the house default for any other frame. */
+export const defaultSeconds = (a: Artboard): number =>
+  a.widget?.kind === "reel" ? Math.min(600, Math.max(1, Math.round(reelDuration(a.widget.clips) * 100) / 100)) : DEFAULT_VIDEO.seconds
+
 /** The player route with the frame in the hash — animations free-run there. */
 export function playerUrl(a: Artboard, theme: VideoOptions["theme"]): string {
-  return `${location.origin}${routePath("/play/")}#doc=${toBase64Url(JSON.stringify({ artboards: [a] }))}&artboard=${encodeURIComponent(a.id)}&theme=${theme}`
+  return `${location.origin}${routePath("/play/")}#doc=${toBase64Url(JSON.stringify({ artboards: [a, ...reelClips(a)] }))}&artboard=${encodeURIComponent(a.id)}&theme=${theme}`
 }
 
 /** The player's public files, as a composition that writes a directory
@@ -38,7 +58,7 @@ export function playerAssets(): Promise<{ js: string; css: string }> {
 
 /** One self-contained file: the player inline, no network at render time. */
 export async function selfContainedComposition(a: Artboard, o: VideoOptions): Promise<string> {
-  return compositionHtml(a, o, await playerAssets())
+  return compositionHtml(a, o, await playerAssets(), reelClips(a))
 }
 
 export async function downloadComposition(a: Artboard, o: VideoOptions): Promise<string> {

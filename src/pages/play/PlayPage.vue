@@ -5,20 +5,24 @@
 // seeked through `hf-seek`) and the page the Studio opens for a live preview
 // (`/play/#doc=<base64url document>`). Nothing here reads the editor's
 // project store, so the document is whatever the page was given (source.ts).
-import { computed } from "vue"
+import { computed, provide } from "vue"
 import type { Artboard } from "@/entities/artboard"
 import { parseDocument } from "@/features/persistence"
 import { ChartRenderer } from "@/widgets/chart-renderer"
+import { REEL_POOL } from "@/widgets/reel-renderer"
 import { WidgetRenderer } from "@/widgets/widget-renderer"
 import type { PlaySource } from "./source"
 
 const props = defineProps<{ source: PlaySource }>()
 
+const parsed = computed(() => parseDocument(props.source.document))
 const artboard = computed<Artboard | null>(() => {
-  const parsed = parseDocument(props.source.document)
-  if (!parsed) return null
-  return parsed.artboards.find((a) => a.id === props.source.artboardId) ?? parsed.artboards.find((a) => !a.hidden) ?? parsed.artboards[0] ?? null
+  const doc = parsed.value
+  if (!doc) return null
+  return doc.artboards.find((a) => a.id === props.source.artboardId) ?? doc.artboards.find((a) => !a.hidden) ?? doc.artboards[0] ?? null
 })
+// A reel's clips travel in the same document; the renderer cuts between them.
+provide(REEL_POOL, computed(() => parsed.value?.artboards ?? []))
 </script>
 
 <template>

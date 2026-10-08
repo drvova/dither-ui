@@ -10,12 +10,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
 - `widgets/` — studio panels: toolbar, layer-tree, inspector, canvas,
-  chart-renderer, widget-renderer, data-editor, agent (the composer / harness
-  control plane).
+  chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
+  clock), data-editor, agent (the composer / harness control plane).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
   export-code, export-image, export-video (a frame as a HyperFrames
-  composition: builder, dialog, delivery for the agent path), pan-zoom,
+  composition: builder, dialog, delivery for the agent path), reel (the
+  reel's pure timeline), pan-zoom,
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
   the Studio tools and the ACP client behind the composer).
 - `entities/` — domain stores: editor (selection/artboards, single source of
@@ -128,9 +129,48 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   finished by `finishStudioTool`, which ships `data.files` for the bridge
   to write under the harness's project as `video/<slug>/index.html`.
   Options normalize to seconds 1–600
-  (default 6), fps 24|30|60, theme dark|light. Pinned by
+  (default 6; a reel's default is its length), fps 24|30|60, theme
+  dark|light. Pinned by
   `tests/composition.spec.ts`, the `video.export` case in
   `tests/agent-protocol.spec.ts`, and the file case in `tests/bridge.spec.ts`.
+- Reel: a frame that plays other frames in order. `ReelModel`
+  (`entities/widget`: `{ kind: "reel", clips: [{ id, seconds, transition: {
+  kind: cut|dissolve|wipe-right|wipe-left|wipe-down|wipe-up, seconds, cell,
+  seed } }] }`) references other artboards by id, so history, persistence
+  and `normalizeArtboard` (string ids other than the reel's own, seconds
+  0.1–600, transition seconds ≤ the clip's, cell 1–16, kind one of
+  `REEL_TRANSITIONS`, junk replaced) cover it; `createClip`/`createReel`
+  seed 3s clips coming in over a 0.6s dissolve; `addReelArtboard(ids)`
+  (editor) cuts frames in order (reels and unknown ids dropped) into a frame
+  sized like its first clip; `removeArtboard`/`removeSelected` prune
+  dangling clips; `evolve` leaves a reel alone. `features/reel` is the pure
+  timeline on the kit's `planSequence`: `reelAt(clips, t)` → the clip on
+  screen, the outgoing clip while its transition runs (none under the first,
+  which comes in over the frame's background), the eased progress;
+  `reelDuration`, `reelLoop`, `wipeDirectionOf`. `widgets/reel-renderer`
+  plays it: one `DitherReveal` layer per clip on screen, keyed by its slot
+  so a clip's surfaces survive going from incoming to outgoing, masked by
+  the transition's progress; time is the kit clock (free-running it loops
+  and `replayToken` restarts it; directed it is the composition's moment,
+  held past the end); reduced motion cuts; `data-reel-clip/time/total` and
+  `data-reel-layer` are the walk's probes. Clips resolve from the
+  `REEL_POOL` injection (the player provides its document's frames) or the
+  editor's artboards; `ReelClip` renders a clip through `WidgetRenderer` /
+  `ChartRenderer` at its own size, scaled down (never up) to fit — the
+  import cycle `WidgetRenderer` → `ReelRenderer` → `ReelClip` →
+  `WidgetRenderer` is render-time only. Export: `compositionHtml(…, extra)`
+  embeds the reel's clips (`reelClips(a)`) in the composition's document and
+  `defaultSeconds(a)` makes a reel's video as long as its cut (the dialog,
+  `video.export` and `export_video` default to it). Protocol: `reel.add {
+  name?, clips: [id | { id, seconds?, transition? }], frame? }` (unknown ids
+  and reels fail loudly, other junk is sanitized), `artboard.update {
+  widget: { clips } }` rebuilds the cut, the `add_reel` tool; `code.get`
+  answers a comment — a reel has no SFC, it is a video. UI: the toolbar's
+  `reel` action cuts the selection in selection order (hidden when only
+  reels are selected); the inspector's `ReelPanel` edits length, transition
+  kind/seconds/cell per clip, reorders, removes, adds from a picker. Pinned
+  by `tests/reel.spec.ts` (timeline, model, protocol, the renderer on a
+  seeked clock).
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.
 - Pointer transforms use `features/artboard-transform/startDrag`; it filters by
@@ -207,7 +247,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - The video path on the built site (`vite preview`): the player seeked by
   synthetic `hf-seek` events gives identical bytes for identical times, the
   dialog's download opened from disk matches the player at the same time,
-  and `npx hyperframes lint`/`render` accept the file.
+  and `npx hyperframes lint`/`render` accept the file. A reel seeked the
+  same way shows the right clip, layers and mask state per time, requests
+  no frames while directed, and its composition renders to an MP4 as long
+  as the cut whose frames differ across the transitions.
 - Perf probes MUST use trailing-slash URLs (`/docs/`, `/studio/`): `vite
   preview` falls back to the landing HTML for slashless paths, which silently
   measures the wrong page.

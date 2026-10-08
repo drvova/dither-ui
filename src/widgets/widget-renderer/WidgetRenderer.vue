@@ -7,6 +7,7 @@ import {
   DitherAvatar, DitherButton, DitherGradient, DitherImage, toast,
 } from "@dither-kit"
 import ScreenRenderer from "./ScreenRenderer.vue"
+import ReelRenderer from "@/widgets/reel-renderer/ReelRenderer.vue"
 
 const props = defineProps<{ widget: WidgetModel; artboardId: string }>()
 const rt = computed(() => editor.replayToken)
@@ -128,6 +129,9 @@ const triggerToast = () => {
       <component :is="kit.DitherDrawer" :open="w.model as boolean" title="Nested drawer" @close="updateModel(false)">Drawer content</component>
     </template>
   </div>
+
+  <!-- REEL — plays other frames with dither transitions -->
+  <ReelRenderer v-else-if="w.kind === 'reel'" :reel="w" :artboard-id="artboardId" />
 
   <!-- IMAGE — fills the frame -->
   <div v-else-if="w.kind === 'image'" class="relative h-full w-full overflow-hidden rounded-md">
