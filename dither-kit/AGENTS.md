@@ -11,8 +11,8 @@ is its showcase and editor.
 ## Ownership
 
 - Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
-  step-timing primitives, chart roots/contexts, canvas painters, and the
-  public component set.
+  step-timing primitives, the sequence timeline algebra, chart roots/contexts,
+  canvas painters, and the public component set.
 - Consumers import ONLY via `index.ts` (`@dither-kit` alias).
 
 ## Local Contracts
@@ -32,6 +32,23 @@ is its showcase and editor.
   own the clock — the engine never reads time itself.
   `tests/timing.spec.ts` holds the MDN step-graph parity table; change code
   and table together.
+- `sequence.ts` is the pure timeline algebra — the many-animations engine.
+  Four node kinds (`track` | `serial` | `parallel` | `stagger`) flatten once
+  via `planSequence` into scheduled tracks; `sampleSequence(plan, t)` maps any
+  moment to every track (`before`/`active`/`done` + eased `progress`, `raw`,
+  `cycle`). Clock-free like `timing.ts`; easing is the same `Easing` shape, so
+  `steps()` composes into a sequence. Stagger origins (`start`/`center`/`end`/
+  `edges`/index) live in the exported `staggerDelay`. Yoyo settling is
+  continuous with the active legs: odd `loop` ends at 1, even at 0 — never
+  jump a settled track. `Sequence.vue` is the shared driver: it snapshots
+  slot children at start (rebuild via `restartKey`), writes `--seq-p` (eased,
+  `toFixed(4)`) + `data-seq` per child with change-skipping, and owns an
+  rAF clock whose first frame is dt 0 and whose wake has no time jump —
+  `use-dither-background` semantics. IO gate and reduced-motion floor mirror
+  `AnimatedContent`; the `frameRate` gate mirrors the background runtime with
+  completion checked BEFORE the gate. `tests/sequence.spec.ts` (algebra) and
+  `tests/sequence-vue.spec.ts` (driver, manual-rAF fake clock — respect the
+  100ms dt cap when stepping fake time) pin both halves.
 - Seed-generative contract: a `number` is a deterministic SEED everywhere a
   visual input is accepted — `VariantInput` (texture via `textureFromSeed`),
   `BloomInput`/`PixelBloomInput` (`bloomFromSeed`; pixel.ts mirrors the exact
@@ -128,10 +145,13 @@ is its showcase and editor.
   register in `COMPONENT_REGISTRY`, and must honour `prefers-reduced-motion`
   (CSS `@media` or `pixelPrefersReducedMotion`). Slot-based effects wrap arbitrary
   text; char/number effects take a `text`/`to` prop. Docs live in `src/pages/docs/text/`.
-- Interaction/motion effects (`AnimatedContent`, `FadeContent`, `GradualBlur`,
-  `StarBorder`, `ElectricBorder`, `GlareHover`, `Magnet`, `ClickSpark`, ...) are
+- Interaction/motion effects (`AnimatedContent`, `FadeContent`, `Sequence`,
+  `GradualBlur`, `StarBorder`, `ElectricBorder`, `GlareHover`, `Magnet`,
+  `ClickSpark`, ...) are
   another DOM/CSS/pointer family: slot wrappers (reveal-on-view, animated
-  borders, hover glare) or area wrappers (cursor + click effects on a canvas
+  borders, hover glare), timeline-driven children (`Sequence` writes
+  `--seq-p`/`data-seq` — see its engine bullet), or area wrappers (cursor +
+  click effects on a canvas
   overlay). Same rules: `Dither*` export, `COMPONENT_REGISTRY` entry (wrappers use
   `slotText`), reduced-motion aware. Docs live in `src/pages/docs/animations/`.
 - The layout family (`DitherShell`, `DitherRail`, `DitherConsole`,

@@ -22,6 +22,7 @@ import {
   DitherNoise,
   DitherCubes,
   DitherRibbons,
+  DitherSequence,
   DitherShapeBlur,
   DitherStrands,
   DitherLaserFlow,
@@ -47,6 +48,8 @@ import {
   DitherWalletCard,
   DitherNotificationStack,
 } from "@dither-kit"
+import { linear, steps } from "@dither-kit"
+import type { StaggerFrom } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -65,6 +68,17 @@ const API: Record<string, PropRow[]> = {
     { prop: "frameIndex(elapsedMs, fps)", type: "number — wall-clock frame gate for drivers", default: "—" },
     { prop: "cssSteps(n, position?)", type: "string — one config serialized for CSS", default: '"jump-end"' },
     { prop: "DitherAurora frame-rate", type: "number (fps)", default: "0 (smooth)" },
+  ],
+  sequences: [
+    { prop: "stagger", type: "number — seconds between neighbouring children", default: "0.06" },
+    { prop: "from", type: '"start" | "center" | "end" | "edges" | literal index', default: '"start"' },
+    { prop: "duration / easing", type: "number (s per cycle) / (p) => number from timing.ts", default: '0.5 / linear' },
+    { prop: "loop / yoyo / delay", type: "number / boolean / seconds before the timeline", default: "1 / false / 0" },
+    { prop: "paused / restartOnView / frameRate", type: "boolean / boolean / fps cadence", default: "false / false / 0" },
+    { prop: "restartKey / onComplete", type: "string | number — bump rebuilds and replays / () => void", default: "—" },
+    { prop: "planSequence(node | node[])", type: "SequencePlan — flatten serial | parallel | stagger | track once", default: "—" },
+    { prop: "sampleSequence(plan, t)", type: "TrackSample[] — { id, index, progress, raw, cycle, state }", default: "—" },
+    { prop: "staggerDelay(i, count, each, from)", type: "number — the delay wave, testable alone", default: "—" },
   ],
   expandTabs: [
     { prop: "tabs", type: "{ value, label, color? }[]", default: "required" },
@@ -370,6 +384,26 @@ const idx = frameIndex(elapsedMs, 12)    // same idx → skip the paint entirely
   stepTimingAurora: `<!-- the field driver's own knob: stop-motion and fewer uploads -->
 <DitherAurora />                          <!-- smooth, ~30fps paint throttle -->
 <DitherAurora :frame-rate="8" />          <!-- film: paints 8×/s, holds between -->`,
+  sequences: `import { DitherSequence, planSequence, sampleSequence, steps } from "@dither-kit"
+
+<!-- declarative: children wave in from the center, ping-pong x3, quantized -->
+<DitherSequence
+  :stagger="0.07" from="center" :duration="0.6"
+  :loop="3" yoyo :easing="steps(4)"
+  :restart-key="key" :on-complete="done"
+  class="grid grid-cols-6 gap-2"
+>
+  <div v-for="i in 12" :key="i" class="cell" />
+</DitherSequence>
+// children style themselves:  opacity: var(--seq-p, 0)
+// the driver writes that var + data-seq="before|active|done" per child
+
+// imperative: the same algebra under your own clock
+const plan = planSequence({
+  kind: "stagger", count: 12, stagger: 0.07, from: "center",
+  node: (i) => ({ kind: "track", id: String(i), duration: 0.6, loop: 3, yoyo: true }),
+})
+const samples = sampleSequence(plan, t) // [{ id, index, progress, state }, ...]`,
   animatedContent: `<DitherAnimatedContent :distance="40" direction="vertical">
   <YourCard />
 </DitherAnimatedContent>`,
@@ -514,6 +548,13 @@ const WALLET_ACCOUNTS = [
   { value: "trading", label: "Trading", address: "0x91cc4db2e87a30f6b214", balance: 3033.7, change: 0.6, color: "orange" },
 ] as { value: string; label: string; address: string; balance: number; change: number; color?: "purple" | "orange" }[]
 const gooeyPick = ref("—")
+// Sequence demo: control changes double as restart keys — the plan rebuilds
+// and replays whenever origin, easing or the replay nonce shifts.
+const seqFrom = ref<StaggerFrom>("center")
+const seqQuant = ref(false)
+const seqNonce = ref(0)
+const seqEasing = computed(() => (seqQuant.value ? steps(4) : linear))
+const seqKey = computed(() => `${String(seqFrom.value)}|${seqQuant.value}|${seqNonce.value}`)
 </script>
 
 <template>
@@ -1289,6 +1330,73 @@ const gooeyPick = ref("—")
     </DemoCard>
     <PropsTable :rows="API.stepTiming" />
   </section>
+
+  <!-- Sequences -->
+  <section id="sequences" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Sequences</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      Many animations, one clock. The timeline algebra flattens serial chains, parallel
+      groups, staggered waves and loops into a single plan; the driver samples it and writes
+      <code class="text-foreground/80">--seq-p</code> +
+      <code class="text-foreground/80">data-seq</code> onto each child — children style
+      themselves, the engine only owns time. Ease with
+      <code class="text-foreground/80">steps()</code> and the whole wave quantizes.
+    </p>
+    <DemoCard :code="SNIPPETS.sequences">
+      <div class="mb-3 flex flex-wrap items-center gap-2">
+        <button
+          v-for="opt in (['start', 'center', 'end', 'edges'] as const)"
+          :key="opt"
+          class="rounded border px-2 py-1 text-[11px] tracking-wide"
+          :class="
+            seqFrom === opt
+              ? 'border-accent bg-accent/80 text-accent-foreground'
+              : 'border-border/60 text-muted-foreground hover:bg-accent/40'
+          "
+          @click="seqFrom = opt"
+        >
+          {{ opt }}
+        </button>
+        <button
+          class="rounded border px-2 py-1 text-[11px] tracking-wide"
+          :class="
+            seqQuant
+              ? 'border-accent bg-accent/80 text-accent-foreground'
+              : 'border-border/60 text-muted-foreground hover:bg-accent/40'
+          "
+          @click="seqQuant = !seqQuant"
+        >
+          {{ seqQuant ? "steps(4)" : "linear" }}
+        </button>
+        <button
+          class="rounded border border-border/60 px-2 py-1 text-[11px] tracking-wide text-muted-foreground hover:bg-accent/40"
+          @click="seqNonce++"
+        >
+          replay
+        </button>
+      </div>
+      <DitherSequence
+        :stagger="0.07"
+        :from="seqFrom"
+        :duration="0.6"
+        :loop="3"
+        yoyo
+        :easing="seqEasing"
+        :restart-key="seqKey"
+        class="grid grid-cols-6 gap-2"
+      >
+        <div v-for="i in 12" :key="i" class="seq-cell">{{ i }}</div>
+      </DitherSequence>
+    </DemoCard>
+    <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+      Each cell reads only its own <code class="text-foreground/80">--seq-p</code>: rise on
+      the forward leg, sink on the yoyo leg, three cycles, settled at 1. Change the origin
+      and the delay wave recomputes; quantize and <code class="text-foreground/80">steps(4)</code>
+      buckets the entire group into four positions. Reduced motion gets the settled state
+      with zero frames.
+    </p>
+    <PropsTable :rows="API.sequences" />
+  </section>
 </template>
 
 <style scoped>
@@ -1335,5 +1443,20 @@ const gooeyPick = ref("—")
   to {
     transform: translateX(340%); /* 30%-wide block sweeps the whole lane */
   }
+}
+/* Sequence demo cell — the driver's per-child contract: eased progress in,
+   lifecycle state as data-seq. Fallback 0 hides the cell until first paint. */
+.seq-cell {
+  display: flex;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 10px;
+  color: var(--color-muted-foreground, #8a8a99);
+  opacity: var(--seq-p, 0);
+  transform: translateY(calc((1 - var(--seq-p, 0)) * 16px));
 }
 </style>

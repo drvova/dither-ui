@@ -273,6 +273,7 @@ export { default as DitherCurvedLoop } from "./CurvedLoop.vue"
 export { default as DitherFuzzyText } from "./FuzzyText.vue"
 export { default as DitherAsciiText } from "./AsciiText.vue"
 export { default as DitherAnimatedContent } from "./AnimatedContent.vue"
+export { default as DitherSequence } from "./Sequence.vue"
 export { default as DitherFadeContent } from "./FadeContent.vue"
 export { default as DitherGradualBlur } from "./GradualBlur.vue"
 export { default as DitherStarBorder } from "./StarBorder.vue"
@@ -397,4 +398,17 @@ export { default as DitherColorPicker } from "./ColorPicker.vue"
 export { default as DitherKnob } from "./Knob.vue"
 export { default as DitherSignaturePad } from "./SignaturePad.vue"
 export { linear, steps, frameSteps, frameIndex, cssSteps } from "./timing"
+export { planSequence, sampleSequence, staggerDelay } from "./sequence"
+export type {
+  SequenceNode,
+  SequencePlan,
+  ScheduledTrack,
+  TrackNode,
+  SerialNode,
+  ParallelNode,
+  StaggerNode,
+  StaggerFrom,
+  TrackSample,
+  TrackState,
+} from "./sequence"
 export type { Easing, StepPosition } from "./timing"
