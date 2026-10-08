@@ -377,7 +377,7 @@ function setActive(i: number) {
       <Showcase />
 
       <!-- The essay: six numbered statements that light up as you scroll.
-           The index rail (01–06) scales + springs on the in-focus one. -->
+           The index rail (01–06) turns ember and takes a rule on the in-focus one. -->
       <section aria-label="What the kit does" class="essay-wrap mx-auto w-full max-w-4xl px-6 pb-[var(--section)]">
         <ol class="essay mx-auto flex list-none flex-col p-0">
           <li
@@ -504,70 +504,7 @@ function setActive(i: number) {
   --section: clamp(5rem, 9vw, 8rem);
 }
 
-/* Header links: generous hit areas, ink on hover; the studio pill mirrors
-   the hero's one action so the page's only verb is always one click away. */
-.nav-a {
-  display: inline-flex;
-  align-items: center;
-  height: 32px;
-  padding: 0 10px;
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.nav-a:hover {
-  color: var(--color-foreground);
-}
-
-.nav-pill {
-  color: var(--color-foreground);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
-  transition:
-    box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.nav-pill:hover {
-  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 28%, transparent);
-}
-
-/* Micro-caps: the page's one label voice (eyebrow, section marks). */
-.micro,
-.eyebrow {
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0;
-  color: color-mix(in oklab, var(--color-muted-foreground) 85%, transparent);
-}
-
-.led {
-  width: 5px;
-  height: 5px;
-  background: var(--swatch-orange);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .led {
-    animation: led 2.8s ease-in-out infinite;
-  }
-  @keyframes led {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.32;
-    }
-  }
-}
+/* (.nav-a / .nav-pill / .eyebrow / .led are the site voice in app/styles.css.) */
 
 /* One primary action, one quiet way out: the docs link sits beside the
    button as text with an arrow that nudges on hover. */
@@ -721,8 +658,9 @@ function setActive(i: number) {
 
 /* The essay. Values measured from the reference: line clamp 16→46px,
    -0.03em tracking, 1.05 leading, 0.52s lit transition with the
-   cubic-bezier(0.22, 1, 0.36, 1) settle; index 10px, 0.1em tracking,
-   1.55× spring scale on the active one. */
+   cubic-bezier(0.22, 1, 0.36, 1) settle; index 10px, 0.1em tracking. The
+   in-focus index turns ember and takes a 2px ember rule — a quiet mark,
+   where the old 1.55x spring read playful against the calmer hero. */
 .essay-wrap {
   container-type: inline-size;
 }
@@ -765,10 +703,13 @@ function setActive(i: number) {
   letter-spacing: 0.1em;
   line-height: 1;
   color: color-mix(in oklab, var(--color-muted-foreground) 40%, transparent);
-  transform-origin: 100% center;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  text-decoration-color: transparent;
   transition:
     color 200ms ease,
-    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration-color 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .statement.is-lit::after {
@@ -777,7 +718,7 @@ function setActive(i: number) {
 
 .statement[data-active="true"]::after {
   color: var(--swatch-orange);
-  transform: scale(1.55);
+  text-decoration-color: var(--swatch-orange);
 }
 
 /* Closing band: an elevated, slightly lighter surface than the page, with
@@ -815,9 +756,6 @@ function setActive(i: number) {
   }
   .statement::after {
     transition: none;
-  }
-  .statement[data-active="true"]::after {
-    transform: none;
   }
 }
 

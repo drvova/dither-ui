@@ -45,8 +45,10 @@ widgets/features; page-specific conventions live here.
   the gap above/between/below the showcase chapters, under the install
   strip, and under the essay. Never stack a section's padding on a
   neighbour's margin — every breath on the page is `--section` once.
-  Micro-caps (`.micro` / `.eyebrow`: 10.5px, 0.22em, uppercase) are the
-  page's one label voice.
+  Micro-caps (`.micro` / `.eyebrow`: 10.5px, 0.22em, uppercase), the
+  `.nav-a` / `.nav-pill` header links and the `.led` dot are the SITE voice,
+  defined once in `app/styles.css` (`@layer components`) and shared by the
+  landing and docs headers — never re-declared in a page's scoped styles.
 - Closing band: the display line + two actions over a `dither-field` dot
   sea (`bandCanvas` mounted in `LandingPage.vue`: 4px cells, 12fps, the four
   dark SKY levels only so the ink keeps contrast, density 0.42 at rest →
@@ -193,8 +195,8 @@ widgets/features; page-specific conventions live here.
   `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
   deep links both restore and remain shareable.
 - Mobile chrome: the phone header keeps the brand `whitespace-nowrap`, drops
-  "studio →" (it lives on every section's "open in studio →" and returns at
-  sm+), and hides the ⌘K kbd; the section list is a grouped disclosure
+  the studio pill (it lives on every section's "open in studio →" and returns
+  at sm+) and the github link (the footer carries it), and hides the ⌘K kbd; the section list is a grouped disclosure
   (`browse sections` button with aria-expanded/aria-controls, group headings,
   two-column links, closes on tap) instead of the old flat wall of all ~220
   links.
@@ -215,7 +217,11 @@ widgets/features; page-specific conventions live here.
   Google's renderer sees unique metadata per `/docs/<id>` page. Unknown or
   empty ids fall back to the generic `/docs` metadata; keep ids unique.
 - Chrome: `.chrome` translucent header (scroll-edge fade, no hard border);
-  honors `prefers-reduced-transparency`.
+  honors `prefers-reduced-transparency`. The brand carries the landing's
+  7x7 diamond mark, and the studio link is the site's `.nav-a.nav-pill`
+  "Open studio" (sm+). The page title sits under a `.eyebrow`
+  ("Documentation"); the footer links home via `routePath('/')` and shows
+  `v<version> · MIT` like the landing footer.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
   Studio also accepts legacy `#/studio/new/<type>` links.
 - Section packs live in subfolders as self-contained components (sections +

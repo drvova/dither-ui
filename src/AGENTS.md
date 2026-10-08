@@ -68,7 +68,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   nudge artboards at window level. New row kinds follow this shape.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
-  raw hex.
+  raw hex. The same file holds the site chrome voice (`@layer components`:
+  `.nav-a`, `.nav-pill`, `.micro`, `.eyebrow`, `.led`) shared by the landing
+  and docs headers.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on

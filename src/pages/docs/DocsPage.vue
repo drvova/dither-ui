@@ -32,6 +32,7 @@ import {
 } from "@dither-kit"
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
+import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
@@ -817,7 +818,22 @@ const gradientCode = computed(
     <header class="chrome sticky top-0 z-40">
       <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6 text-xs">
         <div class="flex items-center gap-6">
-          <a :href="routePath('/')" class="whitespace-nowrap tracking-tight transition-colors hover:text-foreground">dither-ui</a>
+          <a :href="routePath('/')" class="flex items-center gap-2.5 whitespace-nowrap tracking-tight transition-colors hover:text-foreground">
+            <!-- The brand mark: the landing's 7x7 dithered diamond, ember core. -->
+            <svg viewBox="0 0 7 7" width="13" height="13" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+              <g fill="currentColor">
+                <rect x="3" y="0" width="1" height="1" />
+                <rect x="2" y="1" width="3" height="1" />
+                <rect x="1" y="2" width="5" height="1" />
+                <rect x="0" y="3" width="7" height="1" />
+                <rect x="1" y="4" width="5" height="1" />
+                <rect x="2" y="5" width="3" height="1" />
+                <rect x="3" y="6" width="1" height="1" />
+              </g>
+              <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
+            </svg>
+            dither-ui
+          </a>
           <span class="hidden text-muted-foreground sm:inline">docs</span>
         </div>
         <nav class="flex items-center gap-3 text-muted-foreground sm:gap-5">
@@ -858,16 +874,17 @@ const gradientCode = computed(
           >
             <span aria-hidden="true">{{ dark ? "☀" : "◐" }}</span>
           </button>
+          <!-- Phones keep the chrome for content: github moves to the footer
+               and the studio link stays on every section's "open in studio →";
+               both return here at sm and up. -->
           <a
             href="https://github.com/drvova/dither-ui"
             target="_blank"
             rel="noreferrer"
-            class="-m-3 whitespace-nowrap p-3 transition-colors hover:text-foreground"
+            class="-m-3 hidden whitespace-nowrap p-3 transition-colors hover:text-foreground sm:inline"
             >github</a
           >
-          <!-- Phones keep the chrome for content: the studio link stays on
-               every section's "open in studio →" and at sm and up here. -->
-          <a :href="routePath('/studio')" class="-m-3 hidden whitespace-nowrap p-3 transition-colors hover:text-foreground sm:inline">studio →</a>
+          <a :href="routePath('/studio')" class="nav-a nav-pill hidden sm:inline-flex">Open studio</a>
         </nav>
       </div>
     </header>
@@ -899,7 +916,8 @@ const gradientCode = computed(
       <!-- Content -->
       <main class="min-w-0 flex-1 pb-24 lg:pl-10">
         <div class="docs-flow max-w-2xl">
-          <h1 class="mt-12 text-2xl tracking-tight">Components</h1>
+          <p class="eyebrow mt-12">Documentation</p>
+          <h1 class="mt-4 text-2xl tracking-tight">Components</h1>
           <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
             Every component draws on canvas through the same ordered-dither engine.
             Compose charts from parts, or drop in a single primitive.
@@ -1766,8 +1784,17 @@ const gradientCode = computed(
     <!-- Footer -->
     <footer class="border-t border-border/60">
       <div class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 text-[11px] text-muted-foreground">
-        <a href="#" class="transition-colors hover:text-foreground">← dither-ui.com</a>
-        <span>MIT</span>
+        <a :href="routePath('/')" class="transition-colors hover:text-foreground">← dither-ui.com</a>
+        <div class="flex items-center gap-4">
+          <a
+            href="https://github.com/drvova/dither-ui"
+            target="_blank"
+            rel="noreferrer"
+            class="transition-colors hover:text-foreground"
+            >GitHub</a
+          >
+          <span class="tabular-nums">v{{ version }} · MIT</span>
+        </div>
       </div>
     </footer>
 
