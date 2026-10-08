@@ -1,0 +1,36 @@
+/* The kit's stylesheet for apps that style with something other than
+   Tailwind — StyleX, UnoCSS, vanilla CSS, CSS-in-JS: the tokens (theme.css),
+   the scoped base (base.css) and every utility class the kit's components
+   use, compiled from the kit's own sources by scripts/kit-css.mjs into
+   dist/kit/dither-kit.css (served at /kit/dither-kit.css). Only the kit
+   folders are scanned, so the file never grows with an app. Load it, wrap
+   the region that holds kit components in `.dither-kit`, and style
+   everything else your way: the kit's rules sit in layers, so unlayered
+   styles of yours win by cascade. */
+@layer dither-kit.theme, dither-kit.base, dither-kit.utilities;
+@import "tailwindcss/theme.css" layer(dither-kit.theme);
+@import "./theme.css" layer(dither-kit.theme);
+@import "./base.css" layer(dither-kit.base);
+@import "tailwindcss/utilities.css" layer(dither-kit.utilities) source(none);
+@source "./";
+@source "../dither-kit-svelte/";
+@custom-variant dark (&:where(.dark, .dark *));
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}

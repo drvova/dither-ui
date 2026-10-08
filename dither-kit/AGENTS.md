@@ -96,6 +96,34 @@ is its showcase and editor.
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+- Styling contract: Tailwind is the kit's authoring tool, not a requirement
+  of the app around it. `theme.css` declares the shadcn-style tokens
+  (`--background`, `--foreground`, `--card`, `--popover`, `--muted`,
+  `--border`, `--ring`, `--accent`, their `-foreground` pairs, `--radius`,
+  `--font-sans`, `--font-mono`, the `--swatch-*` mirror of PALETTE) light at
+  `:root` and dark under `.dark` — plain CSS the app's `styles.css` imports
+  under Tailwind (its `@theme inline` maps them to `--color-*` utilities and
+  must stay in step) and every other styling system themes by redefining.
+  `base.css` is the box-model and form-control base the components assume
+  (Tailwind's preflight is the global version the site uses), scoped under
+  `.dither-kit` through `:where()` at zero specificity. `kit.css` is the
+  standalone entry: the two files plus Tailwind's utilities with
+  `source(none)` and `@source` limited to `dither-kit/` and
+  `dither-kit-svelte/`, in the `dither-kit.theme/base/utilities` layers;
+  `scripts/kit-css.mjs` (`npm run build:css`, part of `npm run build` and
+  the Pages deploy) compiles it with `@tailwindcss/node` + `oxide` into
+  `dist/kit/dither-kit.css` (~56 kB, served at `/kit/dither-kit.css`), so
+  an app on StyleX, UnoCSS, vanilla CSS or any CSS-in-JS loads one file,
+  wraps the region in `.dither-kit`, and wins every cascade against the
+  kit's layered rules; `class` on any component takes any class name
+  (`cn()` merges Tailwind names, passes the rest through). `theme.ts` sets
+  the tokens from JS: `THEME_TOKENS`, `themeVars` (object of custom
+  properties for inline styles or a vars contract), `themeCss` (a `:root`
+  / `.dark` block), `applyTheme` (writes them on an element, returns the
+  undo). A component may use only Tailwind utilities, its own scoped
+  styles and the tokens above — never an app class. Pinned by
+  `tests/kit-css.spec.ts` (the compiled file: tokens, scoped base, the
+  utilities, no bare element rules) and `tests/theme.spec.ts`.
 - Browser contract: web platform only, every engine. The floor is Tailwind
   v4's (Chrome 111, Safari 16.4, Firefox 128: `@layer`, `color-mix()` in
   oklab, container queries and units, `:has()`, `inert`); anything newer

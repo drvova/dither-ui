@@ -27,7 +27,10 @@ plus generative **avatars**, **buttons**, and **gradient washes**. Charts inspir
 
 Copy-in components (shadcn-style): the library lives in `dither-kit/` with no
 imports from the app. Its runtime dependencies are Vue, `d3-scale`, `d3-shape`,
-`clsx` and `tailwind-merge`.
+`clsx` and `tailwind-merge`. Tailwind itself is optional: `npm run build:css`
+compiles the kit's own stylesheet (`dist/kit/dither-kit.css` — tokens, a scoped
+base, every class the components use) for apps styled with StyleX, UnoCSS,
+plain CSS or any CSS-in-JS.
 
 The repo ships three surfaces on one hash router:
 

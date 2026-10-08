@@ -591,6 +591,20 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
      for every prop you leave unset; explicit props always win.
      Seeds also work per prop: bloom / easing / variant / color(hue). -->
 <DitherButton :bloom="1984">Glow</DitherButton>`,
+  anyStyles: `# No Tailwind? The kit's styles ship as one plain stylesheet — its tokens, a
+# scoped base and every class its components use, compiled from the kit itself.
+<link rel="stylesheet" href="https://dither-ui.com/kit/dither-kit.css">
+#   (or from the repo: npm run build:css → dist/kit/dither-kit.css)
+
+<div class="dither-kit">                         <!-- the base applies inside this wrapper only -->
+  <DitherButton class="cta">Ship</DitherButton>  <!-- class takes anything: StyleX, UnoCSS, vanilla CSS -->
+</div>
+
+# Theme from any system: the tokens are custom properties (theme.css lists them)
+import { applyTheme, themeCss } from "@dither-kit"
+applyTheme({ accent: "#3f8ff3", radius: "4px" })   // sets --accent / --radius on <html>, returns the undo
+themeCss({ background: "#000" }, ".dark")           // ".dark { --background: #000; }" for a stylesheet
+stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: the same names`,
   styling: `/* the kit reads shadcn-style tokens — theme by overriding them */
 :root {
   --background: #08090b;   /* chart chrome: axes, legend, tooltip */
@@ -968,10 +982,18 @@ const gradientCode = computed(
                 rel="noreferrer"
                 class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
                 >GitHub repo</a
-              >, install four small runtime deps, and alias it — {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }} and Tailwind
-              you already have.
+              >, install four small runtime deps, and alias it — {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }} you already
+              have, and Tailwind if you use it.
             </p>
             <div class="mt-5"><CodeBlock :code="docsFramework === 'svelte' ? SNIPPETS.installSvelte : SNIPPETS.install" /></div>
+            <p class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
+              Styling with something else — StyleX, UnoCSS, vanilla CSS, any CSS-in-JS? The kit does not need
+              your Tailwind: its own stylesheet carries the tokens, a base scoped to a
+              <code class="text-foreground/80">.dither-kit</code> wrapper and every class its components use,
+              all in cascade layers, so your unlayered styles win. Theme it from CSS, JS or your vars contract:
+              the tokens are plain custom properties.
+            </p>
+            <div class="mt-3"><CodeBlock :code="SNIPPETS.anyStyles" /></div>
             <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
               Prefer to read the source first? Every component lives under
               <a

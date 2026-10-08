@@ -84,8 +84,8 @@ Default section order:
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links. GitHub Pages deploys through
-  `.github/workflows/pages.yml` (`vite build` + the player bundle; the
-  prerender is not part of the deploy); default deploy base is `/` because
+  `.github/workflows/pages.yml` (`vite build` + the player bundle + the kit
+  stylesheet; the prerender is not part of the deploy); default deploy base is `/` because
   `public/CNAME` sets `dither-ui.com`. Set repo variable
   `VITE_BASE_PATH=/dither-ui/` only when removing the custom domain and using
   the GitHub Pages project URL.
@@ -133,6 +133,13 @@ Default section order:
   ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
   and exports as one MP4 as long as its cut. Details in `src/AGENTS.md`
   and `dither-kit/AGENTS.md`.
+- Styling systems: the kit's tokens live in `dither-kit/theme.css` (plain
+  custom properties the app's `src/app/styles.css` imports under Tailwind);
+  `npm run build:css` (in `npm run build` and the Pages deploy) compiles
+  `dither-kit/kit.css` — tokens, the `.dither-kit`-scoped `base.css`, every
+  utility the kit uses — into `dist/kit/dither-kit.css`, so apps on StyleX,
+  UnoCSS, vanilla CSS or CSS-in-JS run the kit without Tailwind;
+  `dither-kit/theme.ts` themes from JS. Details in `dither-kit/AGENTS.md`.
 - Browsers and drivers: the kit is web platform only — Chromium (Chrome,
   Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor
   (Chrome 111, Safari 16.4, Firefox 128); every newer API is feature-detected

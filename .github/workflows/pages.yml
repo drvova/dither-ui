@@ -30,6 +30,7 @@ jobs:
           VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/' }}
       # The single-file player the video export inlines (dist/play/player.js).
       - run: npm run build:player
+      - run: npm run build:css
       - name: Prepare Pages artifact
         run: |
           cp dist/index.html dist/404.html

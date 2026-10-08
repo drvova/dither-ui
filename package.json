@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build && vite build -c vite.player.config.ts && node scripts/prerender.mjs",
+    "build": "vue-tsc -b && vite build && vite build -c vite.player.config.ts && node scripts/kit-css.mjs && node scripts/prerender.mjs",
     "build:player": "vite build -c vite.player.config.ts",
+    "build:css": "node scripts/kit-css.mjs",
     "frames": "node scripts/render-frames.mjs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
