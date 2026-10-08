@@ -320,6 +320,26 @@ export { default as DitherVideoPlayer } from "./DitherVideoPlayer.vue"
 export { default as DitherBracket, type BracketMatch } from "./DitherBracket.vue"
 export { default as DitherSchedule, type ScheduleEvent } from "./DitherSchedule.vue"
 export { default as DitherInfiniteCanvas } from "./DitherInfiniteCanvas.vue"
+export {
+  default as DitherWorld,
+  formatOf,
+  paintWorld,
+  parseWorld,
+  sampleWorld,
+  type ModelFormat,
+  type World,
+  type WorldMesh,
+  type WorldStyle,
+  type WorldView,
+} from "./DitherWorld.vue"
+export {
+  default as DitherShader,
+  ditherShaderPixels,
+  sampleShader,
+  wrapShader,
+  type ShaderDither,
+  type ShaderProgram,
+} from "./DitherShader.vue"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"
 export { default as DitherSlideAction } from "./SlideAction.vue"

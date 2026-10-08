@@ -15,8 +15,9 @@ import { useCanvasVisibility } from "./use-visibility"
 export type DitherBackgroundOptions = {
   wrapRef: Ref<HTMLElement | null>
   canvasRef: Ref<HTMLCanvasElement | null>
-  /** Backing cell size in CSS px before dpr scaling — bigger = chunkier. */
-  cell: number
+  /** Backing cell size in CSS px before dpr scaling — bigger = chunkier
+   * (a getter when it is a prop). */
+  cell: number | (() => number)
   maxCols: number
   maxRows: number
   /** Getters into reactive props (the composable never reads props directly). */
@@ -76,7 +77,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     const ctx = canvas.getContext("2d", { willReadFrequently: true })
     if (!ctx) return null
     const box = wrap.getBoundingClientRect()
-    const unit = opts.cell / dprFactor()
+    const unit = (typeof opts.cell === "function" ? opts.cell() : opts.cell) / dprFactor()
     const cols = Math.min(opts.maxCols, Math.max(8, Math.round(box.width / unit)))
     const rows = Math.min(opts.maxRows, Math.max(8, Math.round(box.height / unit)))
     if (!buffer || buffer.width !== cols || buffer.height !== rows) {
@@ -96,7 +97,11 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
 
   function frame(now: number) {
     raf = 0
-    if (!isVisible() || opts.paused() || isDirected()) return
+    if (!isVisible() || isDirected()) return
+    // Paused holds the raster but never leaves it blank: the first frame (and
+    // the one after a restart) still paints, then the loop stands down.
+    const paused = opts.paused()
+    if (paused && lastPaint) return
     // Cadence gates run BEFORE measure(): a held frame must not read layout.
     // Measuring first cost one getBoundingClientRect + getContext per surface
     // per vsync, paints or not (measured, three 8fps landing surfaces at 4x
@@ -126,7 +131,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     lastPaint = now
     clock += dt * (opts.timeScale ? opts.timeScale() : 1)
     draw(ctx, dt, now - startNow)
-    raf = requestAnimationFrame(frame)
+    if (!paused) raf = requestAnimationFrame(frame)
   }
 
   function wake() {
@@ -134,7 +139,10 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
       seekTo(directedTime() ?? 0)
       return
     }
-    if (!raf && !opts.paused() && opts.renderMode() !== "static" && isVisible()) {
+    // A still surface (static mode, reduced motion) painted its one frame in
+    // start(); the visibility wake must never start the loop behind it.
+    if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) return
+    if (!raf && !opts.paused() && isVisible()) {
       lastPaint = 0
       lastFrame = -1 // a resume paints immediately instead of waiting a boundary
       raf = requestAnimationFrame(frame)

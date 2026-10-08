@@ -130,6 +130,16 @@ Default section order:
   built as a single file (`vite.player.config.ts` → `dist/play/player.js`)
   that the export inlines. Details in `src/AGENTS.md` and
   `dither-kit/AGENTS.md`.
+- 3D + GLSL: the kit renders model files and fragment shaders through the
+  same Bayer raster. `DitherWorld` (`dither-kit/world.ts` engine,
+  `models.ts` parsers) loads VRML97 / VRML 1.0 `.wrl`, OBJ and STL by URL or
+  inline and rasterizes them on the CPU (orbit camera, z-buffer, flat Lambert,
+  1-bit dither, hidden-line wire) — no GPU, deterministic, video-safe.
+  `DitherShader` (`shader.ts`) compiles Shadertoy-style or raw GLSL in an
+  offscreen WebGL context at the cell resolution and dithers the readback;
+  `iTime` is the kit clock. Both are docs sections under Media (`world`,
+  `shader`) and `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps
+  WebGL2 (SwiftShader), so shader frames export to MP4 too.
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node

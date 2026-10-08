@@ -143,7 +143,8 @@ is its showcase and editor.
 - `FaultyTerminal` is a CRT glyph wall: `faulty-terminal.ts` lights a grid of
   glyph cells with animated value-noise/fbm, then applies scanlines, glitch,
   flicker, chromatic aberration, barrel curvature, tint and ordered dithering.
-  It is a WebGL-free reimplementation (canvas + Bayer only) — the `dither` prop
+  It is a WebGL-free reimplementation (canvas + Bayer only; `DitherShader` is
+  the one surface that uses WebGL, as a GLSL evaluator) — the `dither` prop
   is the ordered-threshold intensity (0 smooth -> 1 hard 1-bit). Its root is
   `relative h-full w-full` (self-sizing), NOT `absolute inset-0` like
   DitherGradient, so it renders filled in Studio's generic widget renderer and
@@ -160,10 +161,67 @@ is its showcase and editor.
   generative background surfaces (FaultyTerminal, Ferrofluid, Aurora, and the
   ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
   `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
+- `world.ts` + `models.ts` + `DitherWorld.vue` are the 3D surface. `models.ts`
+  parses model files into a `World` (meshes in world space with outward
+  winding, directional lights, the headlight flag, the first viewpoint, a
+  bounding sphere): VRML97 / X3D classic and VRML 1.0 `.wrl` (one lenient
+  tokenizer + generic node grammar — DEF/USE, PROTO/EXTERNPROTO/ROUTE skipped,
+  enums, bare children for 1.0's Separator state machine; Transform/Group/
+  Switch/LOD/Shape/Material/IndexedFaceSet/Box/Sphere/Cone/Cylinder/
+  ElevationGrid/Viewpoint/DirectionalLight/NavigationInfo; 1.0's Translation/
+  Rotation/Scale/MatrixTransform/Coordinate3/ShapeHints/Cube), Wavefront OBJ
+  (`v`/`f`, slashes, negative indices, polygons) and STL (ASCII + binary,
+  two-sided, z-up swung to y-up by default). `world.ts` is the engine:
+  column-major mat4 math, the VRML primitives (y up, CCW outward), `meshFrom`
+  (bakes the matrix, reverses rings for `ccw FALSE` or a mirroring matrix,
+  fan-triangulates, keeps polygon outline edges with their owning triangle),
+  `finishWorld` (bounding sphere), and `paintWorld`: an orbit camera around
+  the sphere (`yaw`/`pitch` degrees, `zoom` 1 frames the sphere, eye never
+  inside it), flat Lambert from the headlight + the file's lights, an
+  edge-function rasterizer with a z-buffer (incremental barycentrics, 2D
+  bbox clamp), 1-bit ordered dither per cell — lit cells take the fill at
+  full alpha, the rest `shade` alpha so the silhouette reads — `fog` depth
+  fade, `material` per-mesh colour, and a `wire` pass drawing the outline
+  edges depth-tested against the finished z-buffer (hidden-line removal,
+  never a fan's diagonals). CPU only on purpose: same bytes in a browser, a
+  worker, Node and a HyperFrames capture. `sampleWorld(seed)` writes the
+  default content as real VRML97 text (seed-generative like everything
+  else) so the default goes through the parser too. The component loads
+  `src` (fetch, format by name then by sniffing) or inline `source`, derives
+  the initial pose from the file's Viewpoint when `yaw`/`pitch`/`zoom` are
+  unset, orbits by pointer drag (`touch-action: pan-y`) and arrow keys
+  (focusable `role="img"`), and shows an honest note for loading/empty/
+  error. `tests/world.spec.ts` + `tests/vrml.spec.ts` pin the engine and
+  both grammars.
+- `shader.ts` + `DitherShader.vue` are the GLSL surface. The pure half:
+  `wrapShader` builds a program around a user fragment shader — Shadertoy's
+  `mainImage` gets the Shadertoy uniforms and a `main` (GLSL ES 3.00 under
+  WebGL2, 1.00 under WebGL1), a raw `main` compiles as written (default
+  float precision added when missing, `#version 300 es` honoured) — and
+  `ditherShaderPixels` turns the GPU readback (rows bottom-up) into the
+  raster: colour mode quantizes each channel to `levels` through the Bayer
+  cell (2 = the eight-colour look), mono thresholds luminance into the tint
+  with a `shade` floor; `dither` blends smooth → quantized; the shader's
+  alpha carries. The component owns one offscreen WebGL2/WebGL1 context at
+  the cell resolution (context loss handled, released on unmount), feeds
+  `iResolution/iTime/iTimeDelta/iFrame/iMouse/iDate` plus the glslsandbox
+  and Book-of-Shaders aliases (`SHADER_UNIFORMS`), reads back and dithers
+  each frame; `iTime` is the kit clock, so it seeks and renders like every
+  surface (HyperFrames' renderer has WebGL2 through SwiftShader — verified
+  by a real render). Without WebGL it shows "WebGL is not available"; a
+  compile error shows the compiler's first line. `sampleShader(seed)` is the
+  seeded default source. `tests/shader.spec.ts` pins the pure half.
 - `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
   for that family: throttled rAF loop, backing buffer + upload, visibility gate,
   resize, dpr, static/reduced-motion single frame, and the mount/restart/teardown
-  lifecycle. Its optional `frameRate` getter gates painting on
+  lifecycle. `cell` is a number or a getter (a `cell` prop). `paused` holds
+  the raster but never leaves it blank: the first frame, and the frame after
+  a restart, still paint before the loop stands down (so a paused surface
+  repaints when a `restart` source such as a drag changes). A still surface
+  (static mode, reduced motion) paints its one frame in `start()` and the
+  visibility wake never starts the loop behind it — it did once, and every
+  background animated under reduced motion as soon as it scrolled into view.
+  Its optional `frameRate` getter gates painting on
   `timing.frameIndex` boundaries — between boundaries the raster is held
   (stop-motion cadence, no upload), 0/undefined keeps the smooth ~30fps
   throttle. Both cadence gates run BEFORE `measure()` — a held frame never
