@@ -10,10 +10,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio (see `pages/AGENTS.md`).
 - `widgets/` — studio panels: toolbar, layer-tree, inspector, canvas,
-  chart-renderer, widget-renderer, data-editor.
+  chart-renderer, widget-renderer, data-editor, agent (the BYO-key panel).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
-  export-code, pan-zoom, artboard-transform.
+  export-code, pan-zoom, artboard-transform, agent (the Studio agent
+  protocol, seeded evolution, the model client + loop).
 - `entities/` — domain stores: editor (selection/artboards, single source of
   truth), chart, widget, artboard.
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
@@ -45,7 +46,46 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the deep watcher records them; never mutate artboards from a component.
 - New artboards route through `placeArtboard` after their final size is known; it
   centers every insert exactly in the current viewport. Do not restore cascading,
-  origin, or right-edge spawn logic.
+  origin, or right-edge spawn logic. A generation (several variants of one
+  parent) routes through `placeGeneration`: one centred row, the batch
+  treated as a single insert.
+- The Studio is agent-addressable through `features/agent`:
+  - `protocol.ts` is ONE command vocabulary (`runCommand`) behind three doors:
+    `window.ditherStudio.run()` (main world), `dither-studio:command` /
+    `dither-studio:result` DOM events on `document` with JSON-STRING details
+    (any script world — browser-extension agents cannot see page globals;
+    strings cross worlds, objects do not), and the `<script
+    type="application/json" id="dither-studio-document">` mirror in <head>
+    (live document, refreshed on the autosave cadence). Every command is
+    untrusted input and lands only through the same validators the inspector
+    and file imports use (`applyDocument`, `sanitizeComponentProps`,
+    `normalizeArtboard`); nothing evaluates anything. New commands are cases
+    in `runCommand` + a row in `registrySchema().commands` + the SKILL table
+    + a tool in `llm.ts` when the model should have it.
+  - `registrySchema()` is the machine-readable registry (every component's
+    prop specs, chart/widget kinds, document shape, commands); the prerender
+    reads it off the mounted studio and writes `dist/agent/registry.json`,
+    and strips the document mirror from the static bytes. The skill that
+    teaches harnesses the document shape and the protocol is
+    `public/agent/SKILL.md`; both are indexed from `llms.txt` ("Agents").
+  - `evolve.ts`: a GENERATION is `count` seeded clones of one parent, mutated
+    inside the allowlists (chart seed/texture/colour, registry props within
+    their specs, screens cell by cell) and normalized; same parent + seed →
+    same generation. `placeGeneration` (editor store) lays a generation out as
+    one row centred on the viewport and selects it — the one multi-frame
+    placement, a batch insert whose midpoint is where a lone frame lands.
+  - `llm.ts`: bring-your-own-key only — Anthropic Messages (direct browser
+    calls) and the OpenAI chat-completions shape with a `baseUrl` (OpenAI,
+    OpenRouter, Groq, Gemini compat, local servers). Keys stay in the browser
+    (`dither-agent-config` in localStorage only when "remember" is on).
+    Subscription logins are NOT offered: Anthropic forbids third-party apps
+    holding Claude.ai credentials, and OpenAI plan access needs partner
+    registration — those users drive the Studio from their own harness via
+    the protocol. The loop (`runAgent`) executes tool calls through
+    `runCommand`, truncates results at 12k chars, and stops on prose or the
+    step budget; `systemPrompt()` lists registry names by group and sends the
+    model to `get_registry` for props. Pure parts are pinned by
+    `tests/agent-protocol.spec.ts`, `agent-evolve.spec.ts`, `agent-llm.spec.ts`.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.
 - Pointer transforms use `features/artboard-transform/startDrag`; it filters by

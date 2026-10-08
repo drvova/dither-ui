@@ -51,6 +51,28 @@ export function placeArtboard(a: Artboard): Artboard {
   return a
 }
 
+/** Place a GENERATION — several variants of one parent — as one row centred
+ * on the visible canvas (the batch is a single insert: the row's midpoint is
+ * where a lone frame would land) and select all of them. */
+export function placeGeneration(boards: Artboard[], gap = 40): Artboard[] {
+  if (!boards.length) return boards
+  const zoom = editor.viewport.zoom || 1
+  const width = typeof window === "undefined" ? 1280 : window.innerWidth
+  const height = typeof window === "undefined" ? 720 : window.innerHeight
+  const cx = (width / 2 - editor.viewport.x) / zoom
+  const cy = (height / 2 - editor.viewport.y) / zoom
+  const total = boards.reduce((n, b) => n + b.w, 0) + gap * (boards.length - 1)
+  let x = cx - total / 2
+  for (const b of boards) {
+    b.x = Math.round(x)
+    b.y = Math.round(cy - b.h / 2)
+    x += b.w + gap
+    editor.artboards.push(b)
+  }
+  selectMany(boards.map((b) => b.id))
+  return boards
+}
+
 // --- selection -------------------------------------------------------------
 export function selectArtboard(id: string, additive = false) {
   if (additive) {

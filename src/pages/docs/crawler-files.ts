@@ -297,6 +297,13 @@ const LLMS_GROUPS: LlmsGroup[] = [
     ],
   },
   {
+    title: "Agents",
+    links: [
+      { title: "Studio skill", href: `${SITE_URL}/agent/SKILL.md`, desc: "How a coding agent (Claude Code, Codex, pi, omp, any harness) composes dither-ui screens and charts as Studio documents, offline or against a live Studio tab." },
+      { title: "Component registry", href: `${SITE_URL}/agent/registry.json`, desc: "Machine-readable registry: every placeable component with typed prop specs, chart and widget kinds, the document shape, and the Studio command vocabulary." },
+    ],
+  },
+  {
     title: "Optional",
     links: [
       { title: "All documentation", href: `${SITE_URL}/docs`, desc: "The complete docs IA — every section lives on this one page; deep links like /docs/avatar scroll to the section." },

@@ -210,6 +210,8 @@ try {
       document.querySelector('link[rel="canonical"]')?.setAttribute("href", m.canonical)
       document.querySelector('meta[name="description"]')?.setAttribute("content", m.description)
       document.querySelector("#docs-breadcrumb")?.remove()
+      // The agent protocol's document mirror is runtime state, not content.
+      document.querySelector("#dither-studio-document")?.remove()
       // Entrance latches are runtime state: a snapshot taken after a figure
       // played would ship it finished, and the client — which renders fresh
       // over these bytes — would flash the end state, hide it, and replay.
@@ -221,6 +223,16 @@ try {
     const html = await page.content()
     await writeFile(entry, html)
     console.log(`prerendered ${route.path} -> dist/${route.entry} (${(html.length / 1024).toFixed(0)} kB)`)
+    if (route.path === "/studio") {
+      // The agent registry is the studio's own schema, read off the mounted
+      // app so it can never drift from the registry the inspector renders.
+      const registry = await page.evaluate(() => window.ditherStudio?.registry() ?? null)
+      if (registry) {
+        await mkdir(join(DIST, "agent"), { recursive: true })
+        await writeFile(join(DIST, "agent", "registry.json"), JSON.stringify(registry, null, 2))
+        console.log(`agent: wrote ${registry.components.length} components -> dist/agent/registry.json`)
+      }
+    }
   }
   // The SEO engine's two phases, on the same browser: the per-section og
   // cards first (the section pages reference them), then the pages.

@@ -24,6 +24,7 @@ type Doc = {
   groups?: unknown[]
   viewport?: { x: number; y: number; zoom: number }
 }
+export type StudioDocument = Doc
 
 export const projects = reactive<ProjectMeta[]>([])
 export const activeProjectId = reactive({ value: "" })
@@ -212,15 +213,26 @@ export function exportDocument(): void {
   URL.revokeObjectURL(url)
 }
 
+/** A detached copy of the active document (what Save to file writes). */
+export const documentSnapshot = (): Doc => JSON.parse(JSON.stringify(snapshotDoc())) as Doc
+
+/** Replace the active project with an untrusted document object (an agent's
+ * or a file's). Envelope + field validation is the same path imports take.
+ * `keepHistory` leaves the undo stack alone so a programmatic replacement
+ * can be undone like any other edit. */
+export function applyDocument(d: unknown, opts: { keepHistory?: boolean } = {}): boolean {
+  if (!isPlain(d) || !Array.isArray(d.artboards) || !d.artboards.length) return false
+  if (!validDoc(d as Doc)) return false
+  applyDoc(d as Doc)
+  flushSave()
+  if (!opts.keepHistory) resetHistory()
+  return true
+}
+
 /** Load a project .json file into the active project. Invalid files are ignored. */
 export async function importDocument(file: File): Promise<boolean> {
   try {
-    const d = JSON.parse(await file.text()) as Doc
-    if (!Array.isArray(d.artboards) || !d.artboards.length) return false
-    applyDoc(d)
-    flushSave()
-    resetHistory()
-    return true
+    return applyDocument(JSON.parse(await file.text()))
   } catch {
     return false
   }

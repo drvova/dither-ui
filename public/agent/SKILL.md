@@ -1,0 +1,141 @@
+---
+name: dither-ui-studio
+description: Compose dither-ui screens, components and charts as Studio documents, offline or against a live Studio tab. Use when asked to build UI with dither-ui, dither-kit, or the dither-ui Studio.
+---
+
+# dither-ui Studio
+
+dither-ui is a Vue 3 toolkit (plus a Svelte 5 port) rendered on one ordered-dither
+canvas engine: charts, 55+ components, generative backgrounds, text and motion
+effects, all seed-deterministic. The **Studio** at https://dither-ui.com/studio is
+an infinite-canvas editor: every frame ("artboard") is a chart, a widget, one
+registry component, or a **screen** composed of rows of registry components.
+Studio exports every frame as a Vue single-file component.
+
+You build for the Studio by producing **documents**. A document is JSON. Studio
+validates everything it loads: unknown components are dropped, props are
+clamped to their specs, enums fall back to defaults. You cannot break the
+editor with a bad document, but you can waste a turn, so follow the registry.
+
+## 1. Read the registry first
+
+`https://dither-ui.com/agent/registry.json` lists every placeable component:
+
+```json
+{ "is": "DitherSlider", "label": "Slider", "group": "inputs",
+  "frame": { "w": 280, "h": 90 },
+  "props": [ { "key": "color", "kind": "color", "def": "blue" },
+             { "key": "min", "kind": "number", "def": 0 },
+             { "key": "max", "kind": "number", "def": 100 },
+             { "key": "disabled", "kind": "boolean", "def": false } ],
+  "slotText": null, "vmodel": { "default": 40 } }
+```
+
+Rules the validator enforces:
+
+- `is` must be a registry name exactly (`DitherTabs`, not `Tabs`).
+- Prop kinds: `text` (string), `boolean`, `number` (clamped to `min`/`max`),
+  `select` (one of `options`), `color` (`green | blue | purple | pink | orange |
+  red | grey` or `#rrggbb`), `list` (array of strings).
+- `slotText` is the component's visible text where it has a slot (buttons,
+  badges, checkboxes).
+- Screens have ONE nesting level: rows of cells. No nested containers.
+
+## 2. The document shape
+
+```json
+{
+  "artboards": [
+    {
+      "name": "Sign in",
+      "x": 0, "y": 0, "w": 380, "h": 420,
+      "chart": { "type": "area" },
+      "widget": {
+        "kind": "screen", "gap": 16, "padding": 20,
+        "rows": [
+          { "cells": [ { "is": "DitherInput", "props": { "placeholder": "Email" }, "grow": true } ],
+            "align": "center", "justify": "start", "gap": 12 },
+          { "cells": [ { "is": "DitherBadge", "slotText": "Continue", "props": { "color": "blue" } } ],
+            "justify": "end" }
+        ]
+      }
+    },
+    {
+      "name": "Signups",
+      "x": 440, "y": 0, "w": 520, "h": 360,
+      "chart": {
+        "type": "bar",
+        "rows": [ { "month": "Q1", "web": 10, "app": 5 }, { "month": "Q2", "web": 20, "app": 9 } ],
+        "series": [ { "key": "web", "label": "Web", "color": "blue" }, { "key": "app", "label": "App", "color": "pink" } ],
+        "seed": 512, "bloom": "low", "stackType": "default", "cell": 2
+      }
+    }
+  ]
+}
+```
+
+- Every artboard carries a `chart` (a stub `{ "type": "area" }` is fine for
+  widget frames) and optionally a `widget`.
+- Widget kinds: `avatar`, `button`, `gradient`, `image` (bespoke models),
+  `component` (`{ "kind": "component", "is", "props", "slotText" }`), `screen`.
+- Chart rows use the family's label key: cartesian (`area`, `line`, `bar`)
+  → `month`; `pie` → `{ "name", "value" }`; `radar` → `axis`. Series keys must
+  match the row keys. `seed` is any integer; the same seed replays the same
+  texture forever.
+- Omit `id`; Studio assigns one. Omit anything else and defaults fill in.
+
+## 3. Deliver it
+
+**Offline (any harness, no browser access):** write the document to a
+`.json` file. The user loads it in Studio through the project menu → *Open
+file*, or by dropping the file onto the canvas. Save to file round-trips the
+same shape, so you can read a user's project, edit it, and hand it back.
+
+**Live (harness has a browser tool, e.g. the sitegeist bridge):** a Studio
+tab speaks a DOM protocol that works from any script world. Dispatch on
+`document`, always with a JSON **string** detail:
+
+```js
+const id = crypto.randomUUID()
+document.addEventListener("dither-studio:result", (e) => {
+  const r = JSON.parse(e.detail)   // { id, ok, data } or { id, ok: false, error }
+  if (r.id === id) console.log(r)
+}, { once: true })
+document.dispatchEvent(new CustomEvent("dither-studio:command", {
+  detail: JSON.stringify({ id, command: { type: "component.add", is: "DitherTabs",
+    props: { tabs: ["One", "Two"], variant: "segmented" } } })
+}))
+```
+
+The live document is also mirrored in
+`document.getElementById("dither-studio-document").textContent` (JSON),
+refreshed within half a second of any edit. Main-world code can call
+`window.ditherStudio.run(command)` directly.
+
+Commands (`type` and fields):
+
+| type | fields |
+| --- | --- |
+| `document.get` | — |
+| `document.set` | `document` (validated like a file import; undoable) |
+| `artboard.list` | — |
+| `artboard.select` | `id` or `ids` |
+| `artboard.remove` | `id` |
+| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props` or `widget.rows`) |
+| `chart.add` | `chart`, `name?`, `data?: { labels, series: [{ key, label?, color?, values }] }`, `frame?` |
+| `widget.add` | `widget` (avatar/button/gradient/image), `name?`, `props?` |
+| `component.add` | `is`, `name?`, `props?`, `slotText?`, `frame?` |
+| `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
+| `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |
+| `code.get` | `id` — the frame as a Vue SFC |
+| `registry.get` | `is?` — the registry, or one component |
+
+## 4. Work like the Studio does
+
+- One idea per frame. A screen is a mockup of one view; a chart is one dataset.
+- Prefer `screen.add` for anything with more than one control; prefer
+  `component.add` to show a single control's states.
+- When the user wants options, add one good frame and call `evolve` on it.
+  Variation belongs to the engine (seeds), structure belongs to you.
+- Ask Studio for `registry.get` with `is` before guessing a prop name.
+- Finish with `code.get` when the user wants code, and quote the SFC.

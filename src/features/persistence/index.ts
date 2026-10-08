@@ -1,6 +1,8 @@
 export {
   activeProjectId,
   activeProjectName,
+  applyDocument,
+  documentSnapshot,
   createProject,
   deleteProject,
   exportDocument,
@@ -8,6 +10,7 @@ export {
   hydrate,
   importDocument,
   type ProjectMeta,
+  type StudioDocument,
   projects,
   renameProject,
   startAutosave,

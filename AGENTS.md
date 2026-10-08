@@ -108,6 +108,13 @@ Default section order:
   canonical/og/twitter/BreadcrumbList — meta derived ONLY from
   `seo.ts`'s `docsMeta`/`docsBreadcrumb`). The og surface is Disallow'd in
   robots (assets, not pages).
+- Agent surface: the Studio is agent-addressable (see `src/AGENTS.md`,
+  `features/agent`): `public/agent/SKILL.md` teaches any harness (Claude
+  Code, Codex, pi, omp, sitegeist-bridged browsers) to compose Studio
+  documents; the build writes `dist/agent/registry.json` from the mounted
+  studio; a live tab answers `dither-studio:command` DOM events and exposes
+  `window.ditherStudio`; the in-app Agent panel is bring-your-own-API-key
+  only (never subscription logins).
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node

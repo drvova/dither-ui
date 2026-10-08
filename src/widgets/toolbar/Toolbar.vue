@@ -9,6 +9,7 @@ import {
 } from "@/entities/editor"
 import { COMPONENT_REGISTRY, type ComponentEntry, type ComponentGroup } from "@/entities/widget"
 import { history, redo, undo } from "@/features/history"
+import { evolveSelected } from "@/features/agent"
 import { exportArtboardPng } from "@/features/export-image"
 import {
   activeProjectId, activeProjectName, createProject, deleteProject, exportDocument,
@@ -18,8 +19,8 @@ import { addArtboardFromPreset, presets } from "@/features/presets"
 import { CHART_TYPES } from "@/shared/config"
 import { routePath, useTheme } from "@/shared/lib"
 
-const props = defineProps<{ layersOpen: boolean; inspectorOpen: boolean }>()
-const emit = defineEmits<{ export: []; "update:layersOpen": [boolean]; "update:inspectorOpen": [boolean] }>()
+const props = defineProps<{ layersOpen: boolean; inspectorOpen: boolean; agentOpen: boolean }>()
+const emit = defineEmits<{ export: []; "update:layersOpen": [boolean]; "update:inspectorOpen": [boolean]; "update:agentOpen": [boolean] }>()
 const { dark, toggle } = useTheme()
 const libraryOpen = ref(false)
 const projectOpen = ref(false)
@@ -131,7 +132,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
         <div v-if="libraryOpen" role="dialog" aria-label="Component library" class="absolute left-1/2 top-full mt-2 flex max-h-[min(72vh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]">
         <label class="border-b border-border/60 p-2">
           <span class="sr-only">Search components</span>
-          <input ref="searchRef" v-model="query" type="search" name="component-search" placeholder="Search 55 components…" class="h-9 w-full rounded-md border border-border bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60" @keydown.esc="libraryOpen = false" />
+          <input ref="searchRef" v-model="query" type="search" name="component-search" :placeholder="`Search ${COMPONENT_REGISTRY.length} components…`" class="h-9 w-full rounded-md border border-border bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60" @keydown.esc="libraryOpen = false" />
         </label>
         <div class="overflow-y-auto p-2">
           <section v-if="!query" class="mb-3">
@@ -166,6 +167,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
       <span class="mx-1 h-4 w-px bg-border" />
       <button type="button" aria-label="Toggle layers" :aria-pressed="props.layersOpen" title="Layers" class="tool" @click="emit('update:layersOpen', !props.layersOpen)">☷</button>
       <button type="button" aria-label="Toggle properties" :aria-pressed="props.inspectorOpen" title="Properties" class="tool" @click="emit('update:inspectorOpen', !props.inspectorOpen)">◫</button>
+      <button type="button" aria-label="Toggle agent" :aria-pressed="props.agentOpen" title="Agent" class="tool wide" @click="emit('update:agentOpen', !props.agentOpen)">agent</button>
       <button type="button" :aria-label="dark ? 'Use light theme' : 'Use dark theme'" class="tool" @click="toggle">{{ dark ? '☀' : '◐' }}</button>
     </div>
 
@@ -185,6 +187,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
         <button type="button" title="Delete (⌫)" class="tool wide text-red-400" @click="removeSelected">delete</button>
         <span class="mx-0.5 h-4 w-px bg-border" />
         <button type="button" title="Replay animation" class="tool" aria-label="Replay animation" @click="replay">↻</button>
+        <button type="button" title="Evolve: four seeded variants of this frame" class="tool wide" @click="evolveSelected()">evolve</button>
         <button v-if="canData()" type="button" class="tool wide" :aria-pressed="editor.dataOpen" :class="editor.dataOpen ? 'bg-card text-foreground' : ''" @click="editor.dataOpen = !editor.dataOpen">data</button>
         <button type="button" class="tool wide" @click="emit('export')">code</button>
         <button type="button" :disabled="pngBusy" class="tool wide" @click="exportPng">{{ pngBusy ? 'saving…' : 'png' }}</button>
