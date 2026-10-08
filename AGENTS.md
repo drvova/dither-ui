@@ -113,12 +113,13 @@ Default section order:
   Code, Codex, pi, omp, sitegeist-bridged browsers) to compose Studio
   documents; the build writes `dist/agent/registry.json` from the mounted
   studio; a live tab answers `dither-studio:command` DOM events and exposes
-  `window.ditherStudio`. The in-app Agent panel is a composer with two kinds
-  of backend: the ACP bridge (`bridge/dither-bridge.mjs`, see
-  `bridge/AGENTS.md`) drives the user's OWN Claude Code / Codex / Gemini /
-  pi process through the Agent Client Protocol, so subscriptions work with
-  no key in the browser; or a bring-your-own-API-key loop. Subscription
-  logins are never collected in-app.
+  `window.ditherStudio`. The in-app Agent panel is a CONTROL PLANE for the
+  harness the user already has, nothing more: the local bridge
+  (`bridge/dither-bridge.mjs`, see `bridge/AGENTS.md`) knows the common ACP
+  harnesses (Claude Code, Codex, Gemini CLI, Qwen Code, oh-my-pi, Goose,
+  OpenCode, Auggie) plus any command, says which are on the PATH, and
+  starts the one picked in the panel as the user's OWN signed-in process.
+  No key, model setting or login is ever collected in-app.
 - Video: every Studio frame exports as a HyperFrames composition
   (`features/export-video`, the `video` selection action, the
   `video.export` command / `export_video` tool) — one self-contained HTML

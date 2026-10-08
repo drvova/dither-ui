@@ -91,10 +91,11 @@ Rules the validator enforces:
 file*, or by dropping the file onto the canvas. Save to file round-trips the
 same shape, so you can read a user's project, edit it, and hand it back.
 
-**Live through the ACP bridge (you are Claude Code, Codex, Gemini CLI, pi,
-omp or any Agent Client Protocol agent):** the user runs
-`node bridge/dither-bridge.mjs --agent "<your command>"` from a dither-ui
-checkout and sends prompts from the Studio's Agent panel. Your session then
+**Live through the ACP bridge (you are Claude Code, Codex, Gemini CLI, Qwen
+Code, oh-my-pi, Goose, OpenCode, Auggie or any Agent Client Protocol
+agent):** the user runs `node bridge/dither-bridge.mjs` from a dither-ui
+checkout, picks you in the Studio's Agent panel and sends prompts from
+there. Your session then
 has an MCP server named `dither-studio` whose tools are the commands below
 (`add_screen`, `add_component`, `add_chart`, `add_widget`, `update_artboard`,
 `remove_artboard`, `evolve`, `select`, `get_registry`, `get_document`,

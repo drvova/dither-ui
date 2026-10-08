@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// dither-bridge: the local half of the Studio's ACP control plane.
+// dither-bridge: the local half of the Studio's harness control plane.
 //
 // A browser cannot spawn a coding agent, so this one-file, zero-dependency
 // Node process does, and nothing else:
@@ -10,23 +10,23 @@
 //                       by the agent; its tools/call go back through the
 //                       bridge to the browser as `studio/call`.
 //
-// The agent is the user's own: Claude Code's ACP adapter, Codex's, Gemini
-// CLI's `--experimental-acp`, pi, omp, anything that speaks the Agent
-// Client Protocol over stdio. It keeps its own login; no credential ever
-// reaches the browser or this process. The bridge relays JSON-RPC
-// verbatim and touches exactly one thing: every `session/new` (and
-// `session/load`) gets the Studio MCP server added to `mcpServers`.
+// The agent is the user's own: Claude Code, Codex, Gemini CLI, oh-my-pi,
+// Goose, OpenCode — anything that speaks the Agent Client Protocol over
+// stdio. The bridge knows the common ones (HARNESSES below), tells the tab
+// which are on the PATH, and starts the one the tab picks; each keeps its
+// own login, and no credential ever reaches the browser or this process.
+// JSON-RPC is relayed verbatim; the one edit is that every `session/new`
+// (and `session/load`) gets the Studio MCP server added to `mcpServers`.
 //
-//   node bridge/dither-bridge.mjs --agent "npx @zed-industries/claude-code-acp"
-//   node bridge/dither-bridge.mjs --agent "codex-acp" --port 8790 --cwd ~/work
+//   node bridge/dither-bridge.mjs                 # then pick a harness in the Studio
+//   node bridge/dither-bridge.mjs --agent "omp --mode acp" --cwd ~/work
 //
-// Then in the Studio's agent panel: backend "acp bridge" → run.
 // Internal: `--mcp <port>` is the MCP server mode the agent spawns.
 import { spawn } from "node:child_process"
 import { createHash } from "node:crypto"
-import { mkdirSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import { createServer, request as httpRequest } from "node:http"
-import { dirname, join } from "node:path"
+import { delimiter, dirname, join } from "node:path"
 import { createInterface } from "node:readline"
 import { fileURLToPath } from "node:url"
 
@@ -35,6 +35,30 @@ const args = process.argv.slice(2)
 const opt = (name, def) => {
   const i = args.indexOf(`--${name}`)
   return i >= 0 && args[i + 1] !== undefined ? args[i + 1] : def
+}
+
+/** The harnesses the tab can pick. `bin` is what must be on the PATH for
+ * the preset to count as installed: the npx adapters for Claude Code and
+ * Codex run on those CLIs' own logins. */
+export const HARNESSES = [
+  { id: "claude", name: "Claude Code", command: "npx -y @zed-industries/claude-code-acp", bin: "claude", note: "your Claude Code login" },
+  { id: "codex", name: "Codex", command: "npx -y @zed-industries/codex-acp", bin: "codex", note: "your Codex login" },
+  { id: "gemini", name: "Gemini CLI", command: "gemini --experimental-acp", bin: "gemini" },
+  { id: "qwen", name: "Qwen Code", command: "qwen --experimental-acp", bin: "qwen" },
+  { id: "omp", name: "oh-my-pi", command: "omp --mode acp", bin: "omp" },
+  { id: "goose", name: "Goose", command: "goose acp", bin: "goose" },
+  { id: "opencode", name: "OpenCode", command: "opencode acp", bin: "opencode" },
+  { id: "auggie", name: "Auggie", command: "auggie --acp", bin: "auggie" },
+]
+
+/** Is a command on the PATH? (Windows: also .cmd / .exe.) */
+export function onPath(bin, env = process.env) {
+  const exts = process.platform === "win32" ? ["", ".cmd", ".exe", ".bat"] : [""]
+  for (const dir of (env.PATH ?? "").split(delimiter)) {
+    if (!dir) continue
+    for (const ext of exts) if (existsSync(join(dir, bin + ext))) return true
+  }
+  return false
 }
 
 if (args.includes("--mcp")) {
@@ -114,16 +138,20 @@ export function encodeFrame(payload, opcode) {
 /* -------------------------------- serve --------------------------------- */
 
 function serveMode({ agent, port, cwd }) {
-  if (!agent) {
-    console.error('dither-bridge: pass the agent to run, e.g. --agent "npx @zed-industries/claude-code-acp"')
-    process.exit(2)
-  }
   let browser = null // { send, close }
   let child = null
+  let running = null // { id, name, command, pid }
   let tools = []
   let relaySeq = 0
   const relayPending = new Map() // id → resolve
   const log = (...m) => console.log(new Date().toISOString().slice(11, 19), ...m)
+
+  /** A command line as a harness: named after its program until the agent
+   * introduces itself over `initialize`. */
+  const custom = (command) => ({ id: "custom", name: command.trim().split(/\s+/)[0].split(/[\\/]/).pop() || command, command })
+  const harnesses = () => HARNESSES.map(({ id, name, command, bin, note }) => ({ id, name, command, installed: onPath(bin), note }))
+  const hello = () => ({ jsonrpc: "2.0", method: "bridge/hello", params: { cwd, harnesses: harnesses(), agent: running } })
+  const sayHello = () => browser?.send(JSON.stringify(hello()))
 
   const readJson = (req) =>
     new Promise((resolve) => {
@@ -144,7 +172,7 @@ function serveMode({ agent, port, cwd }) {
 
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://x")
-    if (req.method === "GET" && url.pathname === "/") return json(res, 200, { bridge: "dither-ui", agent, connected: !!browser, tools: tools.length })
+    if (req.method === "GET" && url.pathname === "/") return json(res, 200, { bridge: "dither-ui", cwd, agent: running, connected: !!browser, tools: tools.length, harnesses: harnesses() })
     if (req.method === "POST" && url.pathname === "/relay/tools") return json(res, 200, { tools })
     if (req.method === "POST" && url.pathname === "/relay/call") {
       if (!browser) return json(res, 503, { ok: false, error: "no studio tab connected" })
@@ -179,32 +207,41 @@ function serveMode({ agent, port, cwd }) {
     )
     browser = ws
     log("studio connected")
-    startAgent()
+    // A harness named on the command line starts with the tab; otherwise
+    // the tab picks one from the hello.
+    if (agent && !child) startAgent(custom(agent))
+    else sayHello()
   })
 
-  function startAgent() {
+  function startAgent(h) {
     stopAgent()
-    log(`starting agent: ${agent}`)
-    child = spawn(agent, { cwd, shell: true, stdio: ["pipe", "pipe", "pipe"], env: { ...process.env, DITHER_BRIDGE_PORT: String(port) } })
+    log(`starting ${h.name}: ${h.command}`)
+    child = spawn(h.command, { cwd, shell: true, stdio: ["pipe", "pipe", "pipe"], env: { ...process.env, DITHER_BRIDGE_PORT: String(port) } })
+    const me = child
+    running = { id: h.id, name: h.name, command: h.command, pid: child.pid }
     const lines = createInterface({ input: child.stdout })
     lines.on("line", (line) => {
       if (!line.trim() || !browser) return
       // Verbatim relay, agent → browser.
       browser.send(line)
     })
-    child.stderr.on("data", (d) => process.stderr.write(`[agent] ${d}`))
+    child.stderr.on("data", (d) => process.stderr.write(`[${h.id}] ${d}`))
     child.on("exit", (code) => {
-      log(`agent exited (${code ?? "signal"})`)
-      browser?.send(JSON.stringify({ jsonrpc: "2.0", method: "bridge/exit", params: { code } }))
+      if (child !== me) return
+      log(`${h.name} exited (${code ?? "signal"})`)
       child = null
+      running = null
+      browser?.send(JSON.stringify({ jsonrpc: "2.0", method: "bridge/exit", params: { code } }))
     })
-    browser?.send(JSON.stringify({ jsonrpc: "2.0", method: "bridge/hello", params: { agent, pid: child.pid, cwd } }))
+    sayHello()
   }
 
   function stopAgent() {
     if (!child) return
-    child.kill()
+    const c = child
     child = null
+    running = null
+    c.kill()
   }
 
   /** A tab's tool result may carry files for the project (`data.files:
@@ -241,6 +278,23 @@ function serveMode({ agent, port, cwd }) {
       tools = Array.isArray(m.params?.tools) ? m.params.tools : []
       return
     }
+    if (m.method === "bridge/start") {
+      const p = m.params ?? {}
+      const preset = typeof p.harness === "string" ? HARNESSES.find((h) => h.id === p.harness) : null
+      const command = preset?.command ?? (typeof p.command === "string" ? p.command.trim() : "")
+      if (!command) {
+        sayHello()
+        return
+      }
+      startAgent(preset ?? custom(command))
+      return
+    }
+    if (m.method === "bridge/stop") {
+      stopAgent()
+      log("harness stopped")
+      sayHello()
+      return
+    }
     // The browser answering a studio/call.
     if (typeof m.id === "string" && m.id.startsWith("b") && m.method === undefined) {
       const resolve = relayPending.get(m.id)
@@ -250,19 +304,24 @@ function serveMode({ agent, port, cwd }) {
       }
       return
     }
+    if (!child) {
+      if (m.id !== undefined) browser?.send(JSON.stringify({ jsonrpc: "2.0", id: m.id, error: { code: -32000, message: "no harness running — pick one in the Studio" } }))
+      return
+    }
     // The one edit: every new or loaded session gets the Studio MCP server.
     if ((m.method === "session/new" || m.method === "session/load") && m.params && typeof m.params === "object") {
       const servers = Array.isArray(m.params.mcpServers) ? m.params.mcpServers : []
       m.params.mcpServers = [...servers, { name: "dither-studio", command: process.execPath, args: [SELF, "--mcp", String(port)], env: [] }]
       if (!m.params.cwd || m.params.cwd === "/") m.params.cwd = cwd
     }
-    if (!child) startAgent()
     child.stdin.write(`${JSON.stringify(m)}\n`)
   }
 
   server.listen(port, "127.0.0.1", () => {
-    log(`dither-bridge on ws://127.0.0.1:${port} — agent: ${agent}`)
-    log("open the Studio, choose the acp bridge backend, and send a prompt")
+    log(`dither-bridge on ws://127.0.0.1:${port} — cwd: ${cwd}`)
+    const found = harnesses().filter((h) => h.installed).map((h) => h.name)
+    log(found.length ? `harnesses on this PATH: ${found.join(", ")}` : "no known harness on this PATH — the Studio can still start one by command")
+    log(agent ? `starting with the tab: ${agent}` : "open the Studio's agent panel and pick a harness")
   })
   process.on("SIGINT", () => {
     stopAgent()

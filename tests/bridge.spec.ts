@@ -34,11 +34,12 @@ afterAll(() => {
 
 type Rpc = { jsonrpc: "2.0"; id?: string | number; method?: string; params?: Record<string, unknown>; result?: unknown; error?: { message: string } }
 
-function client() {
-  const ws = new WebSocket(URL_)
+function client(url = URL_) {
+  const ws = new WebSocket(url)
   let seq = 0
   const pending = new Map<string, { res: (v: unknown) => void; rej: (e: Error) => void }>()
   const notifications: Rpc[] = []
+  const hellos: Hello[] = []
   const calls: { name: string; args: Record<string, unknown> }[] = []
   const updates: string[] = []
   let permission: Rpc | null = null
@@ -67,6 +68,7 @@ function client() {
       for (const p of pending.values()) p.rej(new Error(`agent exited: ${logs}`))
       pending.clear()
     }
+    if (m.method === "bridge/hello") hellos.push(m.params as unknown as Hello)
     if (m.method === "session/request_permission") {
       permission = m
       send({ id: m.id, result: { outcome: { outcome: "selected", optionId: "allow-once" } } })
@@ -88,8 +90,10 @@ function client() {
     ws.onopen = () => res()
     ws.onerror = () => rej(new Error("no bridge"))
   })
-  return { ws, open, request, send, notifications, calls, updates, permission: () => permission }
+  return { ws, open, request, send, notifications, hellos, calls, updates, permission: () => permission }
 }
+type Hello = { cwd: string; harnesses: { id: string; name: string; command: string; installed: boolean }[]; agent: { id: string; name: string; command: string; pid: number } | null }
+const FIXTURE = `${process.execPath} ${resolve("tests/fixtures/fake-acp-agent.mjs")}`
 
 describe("dither-bridge", () => {
   it("relays ACP verbatim, injects the Studio MCP server, and routes its tool calls back to the tab", async () => {
@@ -110,6 +114,11 @@ describe("dither-bridge", () => {
     expect(c.calls).toEqual([{ name: "add_screen", args: expect.objectContaining({ name: "Sign in" }) }])
     expect(new Set(c.updates)).toEqual(new Set(["agent_message_chunk", "plan", "tool_call", "tool_call_update"]))
     expect(c.notifications.map((n) => n.method)).toEqual(["bridge/hello"])
+    // The hello names the running --agent and every known harness with its PATH status.
+    expect(c.hellos[0].agent).toMatchObject({ id: "custom", command: FIXTURE })
+    expect(c.hellos[0].cwd).toBe(CWD)
+    expect(c.hellos[0].harnesses.map((h) => h.id)).toEqual(["claude", "codex", "gemini", "qwen", "omp", "goose", "opencode", "auggie"])
+    for (const h of c.hellos[0].harnesses) expect(typeof h.installed).toBe("boolean")
 
     const health = (await fetch(`http://127.0.0.1:${PORT}/`).then((x) => x.json())) as { connected: boolean; tools: number }
     expect(health).toMatchObject({ connected: true, tools: 1 })
@@ -136,6 +145,38 @@ describe("dither-bridge", () => {
     // The agent was told the path, not handed the payload.
     expect(c.updates.filter((u) => u === "agent_message_chunk").length).toBeGreaterThan(0)
     c.ws.close()
+  }, 20_000)
+
+  it("starts the harness the tab picks when none was named on the command line", async () => {
+    const port = PORT + 1
+    let out = ""
+    const idle = spawn(process.execPath, ["bridge/dither-bridge.mjs", "--port", String(port), "--cwd", CWD], { stdio: ["ignore", "pipe", "pipe"] })
+    await new Promise<void>((res, rej) => {
+      idle.stdout!.on("data", (d: Buffer) => {
+        out += d.toString()
+        if (out.includes("dither-bridge on")) res()
+      })
+      idle.on("exit", (code) => rej(new Error(`bridge exited ${code}: ${out}`)))
+    })
+    try {
+      const c = client(`ws://127.0.0.1:${port}`)
+      await c.open
+      await new Promise((r) => setTimeout(r, 150))
+      expect(c.hellos[0].agent).toBeNull()
+      // A request before any harness runs is refused, not swallowed.
+      await expect(c.request("initialize", {})).rejects.toThrow(/no harness running/)
+      c.send({ method: "bridge/start", params: { command: FIXTURE } })
+      await new Promise((r) => setTimeout(r, 300))
+      expect(c.hellos[1].agent).toMatchObject({ id: "custom", command: FIXTURE })
+      const init = (await c.request("initialize", { protocolVersion: 1, clientCapabilities: {}, clientInfo: { name: "test", version: "1" } })) as { agentInfo: { name: string } }
+      expect(init.agentInfo.name).toBe("fake-acp")
+      c.send({ method: "bridge/stop" })
+      await new Promise((r) => setTimeout(r, 300))
+      expect(c.hellos.at(-1)?.agent).toBeNull()
+      c.ws.close()
+    } finally {
+      idle.kill()
+    }
   }, 20_000)
 
   it("cancels a running prompt", async () => {

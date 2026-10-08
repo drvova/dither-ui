@@ -15,9 +15,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
   export-code, export-image, export-video (a frame as a HyperFrames
-  composition: builder, dialog, delivery for the agent paths), pan-zoom,
+  composition: builder, dialog, delivery for the agent path), pan-zoom,
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
-  the model client + loop).
+  the Studio tools and the ACP client behind the composer).
 - `entities/` — domain stores: editor (selection/artboards, single source of
   truth), chart, widget, artboard.
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
@@ -78,48 +78,37 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     same generation. `placeGeneration` (editor store) lays a generation out as
     one row centred on the viewport and selects it — the one multi-frame
     placement, a batch insert whose midpoint is where a lone frame lands.
-  - `llm.ts`: the in-page agent loop and the shared vocabulary. Providers
-    are bring-your-own-key only — Anthropic Messages (direct browser calls)
-    and the OpenAI chat-completions shape with a `baseUrl` (OpenAI,
-    OpenRouter, Groq, Gemini compat, local servers). Keys stay in the
-    browser (`dither-agent-config` in localStorage only when "remember" is
-    on). Subscription logins are NOT collected: Anthropic forbids
-    third-party apps holding Claude.ai credentials and OpenAI plan access
-    needs partner registration — those users run their own harness through
-    the ACP bridge (`acp.ts`) or the protocol. Harness rules the loop
-    follows: both providers STREAM (SSE; `delta` events, a JSON reply is the
-    fallback) with usage from the final chunk; `post()` retries 408/409/429/
-    5xx/529 and network errors twice with 1s/2s backoff and surfaces
-    `retry` events, an abort ends it at once; a tool marked `destructive`
-    (`remove_artboard`) waits for `approve()` and a refusal is returned to
-    the model as `{ ok: false, error: "denied by the user" }`; tool calls run
-    through `runCommand`, and `shapeResult` elides data URIs and caps at 12k
-    chars with a hint; every turn gets a fresh `Canvas now:` line from
-    `canvasContext()` in the system prompt; `estimateTokens` + `compact()`
-    (drop old tool results, keep the last two user turns verbatim) keep the
-    transcript under `contextBudget` (60k) and emit `compact`; `pull()`
-    steering is drained after each turn's tool results (Anthropic: merged
-    into the same user turn after the `tool_result` blocks); `turn` events
-    carry step, elapsed, usage and context; the loop stops on prose or the
-    step budget. `AgentConfig` adds `backend` (`acp` | provider), `bridgeUrl`,
-    `remember`, `auto`; `loadSession`/`saveSession` persist a per-project
-    transcript (`dither-agent-session-<projectId>`, capped at 160k chars by
-    dropping oldest entries and compacting).
+  - `tools.ts`: the Studio as a harness sees it — `STUDIO_TOOLS` (one tool
+    per protocol command, with JSON-schema parameters; `callStudioTool` runs
+    one through `runCommand`, `finishStudioTool` turns `export_video` into
+    `data.files` for the bridge to write), the `AgentEvent` union the
+    composer renders (delta, assistant, tool, activity, plan, mode,
+    commands, turn, error, done), and the composer's state: `AgentConfig`
+    (`bridgeUrl`, the chosen `harness` id or `custom` + `command`, `auto`
+    permission answers — nothing secret, always saved) and per-project
+    sessions (`dither-agent-session-<projectId>`, entries + usage, capped
+    at 160k chars by dropping the oldest entries). There is NO model client
+    in the app: the composer never runs a model and never holds a key.
   - `acp.ts`: the composer as an Agent Client Protocol client over a
     loopback websocket to `bridge/dither-bridge.mjs` (see `bridge/AGENTS.md`
     for the wire contract). `connectAcp` sends the Studio tools
-    (`bridge/tools`), runs `initialize` + `session/new`, maps
-    `session/update` notifications into the same `AgentEvent` stream the
-    key loop emits (`mapUpdate`: message chunks → `delta`, tool calls →
-    `activity` with a status-only update keeping its title, plans → `plan`;
-    mirrors of Studio tools are skipped because they render from the
-    `studio/call` path), answers `session/request_permission` through the
-    panel's approval UI, and executes `studio/call` through `callStudioTool`
-    so the harness's MCP tool calls land on the canvas. `prompt()` resolves
-    with the stop reason and the turn's text; abort sends `session/cancel`;
-    `bridge/exit` fails every pending request so a dead agent never leaves
-    the panel busy. Pure parts are pinned by `tests/agent-protocol.spec.ts`,
-    `agent-evolve.spec.ts`, `agent-llm.spec.ts`; the bridge chain by
+    (`bridge/tools`), resolves on the bridge's `bridge/hello` (cwd, the
+    known harnesses with their PATH status, the running agent or null) and
+    boots a harness that is already running (`initialize` + `session/new`,
+    reading modes off the answer); `client.start(id | { command })` asks the
+    bridge to spawn one and boots it; `stop()`, `newSession()`,
+    `setMode()`. `mapUpdate` turns `session/update` into events (message
+    chunks → `delta`, tool calls → `activity` with a status-only update
+    keeping its title, plans, `current_mode_update` → `mode`,
+    `available_commands_update` → `commands`; mirrors of Studio tools are
+    skipped because they render from the `studio/call` path), permission
+    requests go through the panel's inline approval, `studio/call` runs
+    `callStudioTool` + `finishStudioTool` so the harness's MCP tool calls
+    land on the canvas, `prompt()` resolves with the stop reason and the
+    turn's text (one assistant entry per prose segment between tool
+    calls), abort sends `session/cancel`, `bridge/exit` fails every pending
+    request. Pinned by `tests/agent-protocol.spec.ts`,
+    `agent-evolve.spec.ts`, `agent-tools.spec.ts`; the bridge chain by
     `tests/bridge.spec.ts`.
 - Video: `features/export-video` turns ONE frame into a HyperFrames
   composition (hyperframes.dev — HTML that `npx hyperframes render` turns
@@ -136,9 +125,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the self-contained file; the `video.export` protocol command returns the
   composition referencing `./player.js` + `./player.css` and the assets'
   absolute URLs (sync, for any consumer); the `export_video` tool is
-  finished by `finishStudioTool` — the in-page loop downloads, the bridge
-  path ships `data.files` for the bridge to write under the harness's
-  project as `video/<slug>/index.html`. Options normalize to seconds 1–600
+  finished by `finishStudioTool`, which ships `data.files` for the bridge
+  to write under the harness's project as `video/<slug>/index.html`.
+  Options normalize to seconds 1–600
   (default 6), fps 24|30|60, theme dark|light. Pinned by
   `tests/composition.spec.ts`, the `video.export` case in
   `tests/agent-protocol.spec.ts`, and the file case in `tests/bridge.spec.ts`.

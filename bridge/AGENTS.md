@@ -2,11 +2,14 @@
 
 ## Purpose
 
-- `dither-bridge.mjs` is the local half of the Studio's ACP control plane:
-  it spawns the user's own ACP agent (Claude Code, Codex, Gemini CLI, pi,
-  omp) over stdio, relays its JSON-RPC verbatim to the Studio tab over a
-  loopback websocket, injects the Studio MCP server into every session, and
-  routes that server's tool calls back to the tab.
+- `dither-bridge.mjs` is the local half of the Studio's harness control
+  plane: it knows the common ACP harnesses (`HARNESSES`: Claude Code, Codex,
+  Gemini CLI, Qwen Code, oh-my-pi, Goose, OpenCode, Auggie — preset id,
+  display name, command line, the binary that must be on the PATH), reports
+  which are installed, spawns the one the tab picks (or any command) over
+  stdio as the user's own process, relays its JSON-RPC verbatim to the tab
+  over a loopback websocket, injects the Studio MCP server into every
+  session, and routes that server's tool calls back to the tab.
 - `README.md` is the user-facing manual (run lines per harness, options,
   what the bridge does and does not do).
 
@@ -22,8 +25,13 @@
 - Zero dependencies, one file, Node built-ins only (`http`, `child_process`,
   `crypto`, `readline`); no npm package, no build step.
 - Bridge-only methods are prefixed `bridge/`: `bridge/tools` (tab → bridge,
-  the Studio tool list as MCP tool defs), `bridge/hello` (bridge → tab:
-  agent command, pid, cwd), `bridge/exit` (bridge → tab: exit code).
+  the Studio tool list as MCP tool defs), `bridge/start` (tab → bridge,
+  `{ harness: id }` or `{ command }`), `bridge/stop` (tab → bridge),
+  `bridge/hello` (bridge → tab: `{ cwd, harnesses: [{ id, name, command,
+  installed, note? }], agent: { id, name, command, pid } | null }`, sent on
+  connect and after every start/stop), `bridge/exit` (bridge → tab: exit
+  code). While no harness runs, a request from the tab is answered with a
+  JSON-RPC error (`no harness running`).
   `studio/call` (bridge → tab, `{ name, arguments }`) is answered with the
   protocol's `CommandResult`; relay ids are `b<N>` so they never collide
   with the tab's `c<N>` or the agent's ids.
@@ -34,8 +42,9 @@
   timeout per tool call; `--mcp <port>` is the server mode the agent
   spawns, never run by hand.
 - The agent is launched through the shell (`shell: true`) from `--cwd`, so
-  `--agent` can be any command line (a local script by absolute path); it
-  inherits the environment plus `DITHER_BRIDGE_PORT`.
+  a preset or `--agent` can be any command line (a local script by absolute
+  path); it inherits the environment plus `DITHER_BRIDGE_PORT`. Adding a
+  harness is one row in `HARNESSES` (and the README table).
 - A tool result's `data.files` (`[{ path, content }]`) is materialized
   under `--cwd` before it reaches the agent — relative paths only, nothing
   above the directory — and replaced by the written paths plus `data.cwd`,
@@ -55,8 +64,10 @@
   `tests/fixtures/fake-acp-agent.mjs` (a scripted ACP agent that spawns the
   injected MCP server and calls `add_screen` through it) and plays the tab:
   initialize, session/new, prompt with streaming, plan, permission, tool
-  relay, usage, health, second-tab refusal, file materialization under
-  `--cwd` (and refusal of escaping paths), cancel.
+  relay, usage, health, second-tab refusal, the hello's harness list, a
+  bridge without `--agent` that refuses requests until `bridge/start` and
+  stops on `bridge/stop`, file materialization under `--cwd` (and refusal
+  of escaping paths), cancel.
 - Lint covers the file (`npm run lint`); the browser walk is the Studio in
   the acp backend against the same fixture (`node bridge/dither-bridge.mjs
   --agent "node tests/fixtures/fake-acp-agent.mjs"`).

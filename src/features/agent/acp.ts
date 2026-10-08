@@ -1,23 +1,29 @@
-// The composer as an ACP client. The Agent Client Protocol (JSON-RPC 2.0,
-// agentclientprotocol.com) is how editors drive coding agents — Claude
-// Code, Codex, Gemini CLI and others ship ACP adapters, and each one runs
-// as the user's own signed-in process, which is the arrangement every
-// vendor's terms allow. A web page cannot spawn a process, so the local
-// bridge (`bridge/dither-bridge.mjs`) does: it spawns the agent over stdio,
-// relays its JSON-RPC verbatim over a localhost websocket, injects an MCP
-// server of the Studio tools into every new session, and forwards that
-// server's tool calls back here as `studio/call` requests, which the page
-// answers through the protocol. The browser never holds a credential.
+// The composer as an Agent Client Protocol client, through the local bridge.
 //
-// Everything the agent says arrives as `session/update` notifications; the
-// panel renders them through the same AgentEvent stream the key-based loop
-// emits, so both backends look identical in the transcript.
+// ACP (JSON-RPC 2.0, agentclientprotocol.com) is how editors drive coding
+// agents, and every agent that speaks it runs as the user's own signed-in
+// process — the arrangement every vendor's terms allow. A page cannot spawn
+// a process, so `bridge/dither-bridge.mjs` does: it knows the harnesses
+// (presets + what is on the PATH), spawns the one the composer picks over
+// stdio, relays its JSON-RPC verbatim over a loopback websocket, injects an
+// MCP server of the Studio tools into every session, and forwards that
+// server's tool calls back here as `studio/call`, answered through the
+// protocol. The browser never holds a credential.
+//
+// Bridge-only methods: `bridge/hello` (the bridge's state: cwd, harnesses,
+// the running agent or null — sent on connect and after every start/stop),
+// `bridge/start` / `bridge/stop` (ours), `bridge/tools` (ours, on open),
+// `bridge/exit` (the agent died), `studio/call` (a Studio tool call).
 import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
-import { type AgentEvent, callStudioTool, finishStudioTool, STUDIO_TOOLS, type Usage } from "./llm"
+import { type AgentCommand, type AgentEvent, callStudioTool, finishStudioTool, type Mode, STUDIO_TOOLS, type Usage } from "./tools"
 
 type JsonRpcId = string | number
 type Message = { jsonrpc: "2.0"; id?: JsonRpcId; method?: string; params?: unknown; result?: unknown; error?: { code: number; message: string } }
+
+export type Harness = { id: string; name: string; command: string; installed: boolean; note?: string }
+export type BridgeAgent = { id: string; name: string; command: string; pid: number }
+export type BridgeHello = { cwd: string; harnesses: Harness[]; agent: BridgeAgent | null }
 
 export type AcpPermissionOption = { optionId: string; name: string; kind: string }
 export type AcpPermissionRequest = { title: string; options: AcpPermissionOption[]; raw: unknown }
@@ -28,21 +34,32 @@ export type AcpClientOptions = {
   permission: (req: AcpPermissionRequest) => Promise<string | null>
   run?: (command: unknown) => CommandResult
   onEvent?: (e: AgentEvent) => void
+  /** The bridge's state changed: a harness started, stopped or died. */
+  onHello?: (h: BridgeHello) => void
   onClose?: () => void
 }
 
 export type AcpClient = {
+  /** The running agent's display name (its own `agentInfo.name`, else the harness's). */
   readonly agent: string
+  readonly hello: BridgeHello | null
   readonly sessionId: string | null
   readonly busy: boolean
+  readonly modes: Mode[]
+  readonly mode: string
+  readonly commands: AgentCommand[]
+  /** Start a harness by preset id, or any command line; resolves once a session exists. */
+  start(harness: string | { command: string }): Promise<void>
+  stop(): void
+  /** A fresh agent session (new context). */
+  newSession(): Promise<string>
+  setMode(id: string): Promise<void>
   /** One task: resolves when the agent's turn ends, with its stop reason and the prose it streamed. */
   prompt(text: string, signal?: AbortSignal): Promise<{ stopReason: string; text: string }>
-  /** Start a fresh agent session (new context). */
-  newSession(): Promise<string>
   close(): void
 }
 
-/** Map one ACP `session/update` into transcript events. Pure. */
+/** Map one ACP `session/update` into composer events. Pure. */
 export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
   const kind = update.sessionUpdate
   if (kind === "agent_message_chunk") {
@@ -62,7 +79,22 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
     const entries = Array.isArray(update.entries) ? (update.entries as { content?: unknown; status?: unknown }[]) : []
     return [{ type: "plan", entries: entries.map((e) => ({ content: String(e.content ?? ""), status: String(e.status ?? "pending") })) }]
   }
+  if (kind === "current_mode_update") return [{ type: "mode", current: String(update.currentModeId ?? ""), modes: [] }]
+  if (kind === "available_commands_update") {
+    const list = Array.isArray(update.availableCommands) ? (update.availableCommands as { name?: unknown; description?: unknown; input?: { hint?: unknown } | null }[]) : []
+    return [{ type: "commands", commands: list.filter((c) => typeof c.name === "string").map((c) => ({ name: String(c.name), description: String(c.description ?? ""), input: typeof c.input?.hint === "string" ? c.input.hint : undefined })) }]
+  }
   return []
+}
+
+/** The modes a `session/new` answer offers, when the agent has any. */
+export function modesOf(v: unknown): { current: string; modes: Mode[] } | null {
+  const m = (v as { modes?: { currentModeId?: unknown; availableModes?: { id?: unknown; name?: unknown; description?: unknown }[] } } | null)?.modes
+  if (!m || !Array.isArray(m.availableModes)) return null
+  return {
+    current: String(m.currentModeId ?? ""),
+    modes: m.availableModes.filter((x) => typeof x.id === "string").map((x) => ({ id: String(x.id), name: String(x.name ?? x.id), description: typeof x.description === "string" ? x.description : undefined })),
+  }
 }
 
 /** Extract usage from an ACP prompt response or update, when an agent reports it. */
@@ -73,7 +105,8 @@ export function usageOf(v: unknown): Usage | undefined {
   return { input: u.inputTokens ?? u.input_tokens ?? 0, output: u.outputTokens ?? u.output_tokens ?? 0 }
 }
 
-/** Open the bridge and initialize the agent. Rejects when the bridge is not running. */
+/** Open the bridge. Resolves once it has said hello; a harness already
+ * running there is initialized before that. Rejects when no bridge answers. */
 export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
   const run = o.run ?? runCommand
   return new Promise<AcpClient>((resolve, reject) => {
@@ -86,15 +119,20 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
     }
     let seq = 0
     const pending = new Map<JsonRpcId, { resolve: (v: unknown) => void; reject: (e: Error) => void }>()
-    let agent = "agent"
+    let hello: BridgeHello | null = null
+    let agentName = ""
     let sessionId: string | null = null
     let busy = false
+    let modes: Mode[] = []
+    let mode = ""
+    let commands: AgentCommand[] = []
+    let opened = false
+    let settled = false
+    let waitHello: ((h: BridgeHello) => void) | null = null
     // Prose arrives in segments between the agent's tool calls; each segment
-    // becomes one assistant entry, the way each model message does in the
-    // key loop, and the whole turn's text is returned from prompt().
+    // becomes one assistant entry, and the whole turn's text is returned.
     let segment = ""
     let turnText = ""
-    let opened = false
     const flush = () => {
       if (!segment) return
       o.onEvent?.({ type: "assistant", text: segment })
@@ -110,34 +148,48 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         send({ jsonrpc: "2.0", id, method, params })
       })
     const notify = (method: string, params?: unknown) => send({ jsonrpc: "2.0", method, params })
-
-    ws.onopen = async () => {
-      opened = true
-      send({ jsonrpc: "2.0", method: "bridge/tools", params: { tools: STUDIO_TOOLS.map((t) => ({ name: t.def.name, description: t.def.description, inputSchema: t.def.parameters })) } })
-      try {
-        const init = (await request("initialize", {
-          protocolVersion: 1,
-          clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false },
-          clientInfo: { name: "dither-ui studio", version: "1" },
-        })) as { agentInfo?: { name?: string }; agentCapabilities?: unknown }
-        if (init?.agentInfo?.name) agent = init.agentInfo.name
-        const s = (await request("session/new", { cwd: "/", mcpServers: [] })) as { sessionId?: string }
-        sessionId = s?.sessionId ?? null
-        resolve(client)
-      } catch (e) {
-        reject(e instanceof Error ? e : new Error(String(e)))
-        ws.close()
-      }
-    }
-    ws.onerror = () => {
-      if (!opened) reject(new Error(`no bridge at ${o.url} — run: node bridge/dither-bridge.mjs --agent <command>`))
-    }
     const fail = (message: string) => {
       for (const p of pending.values()) p.reject(new Error(message))
       pending.clear()
     }
+    const resetAgent = () => {
+      sessionId = null
+      modes = []
+      mode = ""
+      commands = []
+    }
+
+    /** initialize + session/new against the running harness. */
+    const boot = async () => {
+      const init = (await request("initialize", {
+        protocolVersion: 1,
+        clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false },
+        clientInfo: { name: "dither-ui studio", version: "1" },
+      })) as { agentInfo?: { name?: string } }
+      if (init?.agentInfo?.name) agentName = init.agentInfo.name
+      await client.newSession()
+    }
+    const nextHello = () =>
+      new Promise<BridgeHello>((res, rej) => {
+        waitHello = res
+        setTimeout(() => {
+          if (waitHello === res) {
+            waitHello = null
+            rej(new Error("the bridge did not answer"))
+          }
+        }, 20_000)
+      })
+
+    ws.onopen = () => {
+      opened = true
+      send({ jsonrpc: "2.0", method: "bridge/tools", params: { tools: STUDIO_TOOLS.map((t) => ({ name: t.def.name, description: t.def.description, inputSchema: t.def.parameters })) } })
+    }
+    ws.onerror = () => {
+      if (!opened) reject(new Error(`no bridge at ${o.url} — run: node bridge/dither-bridge.mjs`))
+    }
     ws.onclose = () => {
       fail("bridge closed")
+      if (!settled) reject(new Error("bridge closed"))
       o.onClose?.()
     }
     ws.onmessage = async (ev) => {
@@ -147,7 +199,6 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       } catch {
         return
       }
-      // Replies to our requests.
       if (m.id !== undefined && m.method === undefined) {
         const p = pending.get(m.id)
         if (!p) return
@@ -159,20 +210,41 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       if (!m.method) return
       const params = (m.params ?? {}) as Record<string, unknown>
       switch (m.method) {
-        case "bridge/hello":
-          if (typeof params.agent === "string") agent = params.agent
+        case "bridge/hello": {
+          hello = { cwd: String(params.cwd ?? ""), harnesses: Array.isArray(params.harnesses) ? (params.harnesses as Harness[]) : [], agent: (params.agent as BridgeAgent | null) ?? null }
+          agentName = hello.agent?.name ?? ""
+          resetAgent()
+          o.onHello?.(hello)
+          if (waitHello) {
+            const w = waitHello
+            waitHello = null
+            w(hello)
+          } else if (!settled) {
+            // First hello: a harness the bridge already runs is booted now.
+            settled = true
+            if (hello.agent) boot().then(() => resolve(client), reject)
+            else resolve(client)
+          }
           return
+        }
         case "bridge/exit":
-          // The agent process died; the bridge restarts it on the next message,
-          // but this session is gone with it.
-          sessionId = null
-          fail(`agent exited (${params.code ?? "signal"})`)
+          resetAgent()
+          agentName = ""
+          if (hello) {
+            hello = { ...hello, agent: null }
+            o.onHello?.(hello)
+          }
+          fail(`harness exited (${params.code ?? "signal"})`)
           return
         case "session/update": {
           const update = (params.update ?? {}) as Record<string, unknown>
-          for (const e of mapUpdate(update)) {
+          for (let e of mapUpdate(update)) {
             if (e.type === "delta") segment += e.text
             else if (e.type === "activity") flush()
+            else if (e.type === "mode") {
+              mode = e.current
+              e = { ...e, modes }
+            } else if (e.type === "commands") commands = e.commands
             o.onEvent?.(e)
           }
           return
@@ -188,7 +260,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           // The bridge's MCP server forwarding the harness's tool call.
           const name = String(params.name ?? "")
           const args = typeof params.arguments === "object" && params.arguments !== null ? (params.arguments as Record<string, unknown>) : {}
-          const result = await finishStudioTool(name, callStudioTool(name, args, run), "files")
+          const result = await finishStudioTool(name, callStudioTool(name, args, run))
           flush()
           o.onEvent?.({ type: "tool", name, args, result })
           send({ jsonrpc: "2.0", id: m.id, result })
@@ -202,7 +274,10 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
 
     const client: AcpClient = {
       get agent() {
-        return agent
+        return agentName || hello?.agent?.name || ""
+      },
+      get hello() {
+        return hello
       },
       get sessionId() {
         return sessionId
@@ -210,10 +285,38 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       get busy() {
         return busy
       },
+      get modes() {
+        return modes
+      },
+      get mode() {
+        return mode
+      },
+      get commands() {
+        return commands
+      },
+      async start(harness) {
+        const wait = nextHello()
+        notify("bridge/start", typeof harness === "string" ? { harness } : { command: harness.command })
+        const h = await wait
+        if (!h.agent) throw new Error("the bridge could not start that harness")
+        await boot()
+      },
+      stop() {
+        notify("bridge/stop")
+      },
       async newSession() {
-        const s = (await request("session/new", { cwd: "/", mcpServers: [] })) as { sessionId?: string }
-        sessionId = s?.sessionId ?? null
+        const s = await request("session/new", { cwd: hello?.cwd || "/", mcpServers: [] })
+        sessionId = (s as { sessionId?: string })?.sessionId ?? null
+        const found = modesOf(s)
+        modes = found?.modes ?? []
+        mode = found?.current ?? ""
+        if (found) o.onEvent?.({ type: "mode", current: mode, modes })
         return sessionId ?? ""
+      },
+      async setMode(id) {
+        await request("session/set_mode", { sessionId, modeId: id })
+        mode = id
+        o.onEvent?.({ type: "mode", current: id, modes })
       },
       async prompt(goal, signal) {
         if (!sessionId) await client.newSession()
@@ -227,9 +330,9 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           const res = (await request("session/prompt", { sessionId, prompt: [{ type: "text", text: goal }] })) as { stopReason?: string }
           const stop = res?.stopReason ?? "end_turn"
           flush()
-          o.onEvent?.({ type: "turn", step: 1, elapsedMs: Date.now() - started, usage: usageOf(res), context: 0 })
+          o.onEvent?.({ type: "turn", elapsedMs: Date.now() - started, usage: usageOf(res) })
           if (stop === "cancelled") o.onEvent?.({ type: "error", message: "stopped" })
-          else o.onEvent?.({ type: "done", steps: 1 })
+          else o.onEvent?.({ type: "done" })
           return { stopReason: stop, text: turnText }
         } catch (e) {
           flush()
@@ -241,6 +344,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         }
       },
       close() {
+        settled = true
         ws.close()
       },
     }

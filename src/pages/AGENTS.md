@@ -318,39 +318,33 @@ widgets/features; page-specific conventions live here.
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
-- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a COMPOSER in
-  the pi / omp / Claude Code sense and a harness control plane. Backends:
-  `acp` (default — the local bridge spawns the user's own Claude Code /
-  Codex / Gemini / pi; the panel is its ACP client via
-  `features/agent/acp.ts`, the head chip shows the agent name with a green
-  LED while connected) or `anthropic` / `openai` key loops via
-  `features/agent/llm.ts`. One transcript for both: `›` your prompt, `⏺`
-  prose streamed in place with a `▍` caret, `↳` a steering message, `⇢` a
-  follow-up that started, `⚙ name · args ⎿ result` as one `<details>` per
-  Studio tool call (orange `×` and auto-open when the Studio rejected it),
-  `⚙/✓/×` activity lines for the harness's own tool calls, `☰` plans with
-  per-step status, `⚠` approvals answered inline (destructive Studio tools
-  on key backends, `session/request_permission` on ACP; "auto" answers them
-  with the allow option), `·` system lines (compaction, retries, bridge
-  state), and a `✻ working… 4.2s · turn 2 · 1 queued (esc to stop)` line.
-  Keys: Enter sends, or STEERS a running key-backend turn (delivered after
-  the current tool results; ACP has no steering, so it queues); Alt+Enter
-  queues a FOLLOW-UP for after the task; Alt+Up takes the newest queued
-  message back into the editor; Esc stops and returns everything queued to
-  the editor (pi's rule); Shift+Enter newline; ↑/↓ prompt history on a
-  single line; Ctrl+O folds/unfolds every tool block; Ctrl+L toggles
-  settings; `/` opens the command listbox (↑/↓ + Tab/Enter pick): `/help
-  /backend /connect /disconnect /new /model /base /key /remember /auto
-  /settings /evolve /select /code /copy /compact /session /undo /clear
-  /stop`. Follow-ups run one at a time after the task, in order. The
-  status line shows backend, session tokens (summed from each turn's
-  usage), the context estimate (key backends only — an ACP agent keeps its
-  own context), the last turn's time and an `auto` badge. The conversation
-  persists per project (`loadSession`/`saveSession`) and follows the active
-  project; unanswered approvals are not saved. Settings (⚙, `/settings`,
-  Ctrl+L) hold backend, bridge url or model/base URL/key, remember and
-  auto-approve, with the bridge run line in a note; subscription users are
-  pointed to the bridge, never asked to log in.
+- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a CONTROL
+  PLANE for the user's own harness, in the pi / omp / Claude Code composer
+  idiom, over `features/agent/acp.ts`. The head's harness chip (LED while
+  one runs) opens the picker: every harness the bridge knows with its PATH
+  status, a custom-command field, and stop; `/harness <id | command>` is
+  the same. The choice persists and starts again on the next prompt. A
+  mode chip appears when the harness has modes (click cycles, `/mode <id>`
+  sets). One transcript: `›` your prompt, `⏺` prose streamed in place with
+  a `▍` caret, `⇢` a follow-up that started, `⚙ name · args ⎿ result` as
+  one `<details>` per Studio tool call (orange `×` and auto-open when the
+  Studio rejected it), `⚙/✓/×` activity lines for the harness's own tool
+  calls, `☰` plans with per-step status, `⚠` permission prompts answered
+  inline ("auto" answers them with their allow option), `·` system lines,
+  and a `✻ working… 4.2s · 1 queued (esc to stop)` line. Keys: Enter sends,
+  or QUEUES a follow-up while the harness works (ACP has no steering);
+  Alt+Up takes the newest queued message back; Esc stops and returns the
+  queue to the editor; Shift+Enter newline; ↑/↓ prompt history on a single
+  line; Ctrl+O folds every tool block; `/` opens the command listbox (↑/↓
+  + Tab/Enter pick): ours (`/help /harness /connect /new /mode /auto
+  /evolve /select /code /copy /session /undo /clear /stop /disconnect`)
+  plus the harness's own advertised commands, which go to it as text.
+  Follow-ups run one at a time, in order. The status line shows the
+  harness, session tokens (summed from each turn's usage), the last turn's
+  time and an `auto` badge. The conversation persists per project and
+  follows the active project; unanswered approvals are not saved. ⚙ holds
+  only the bridge address and the auto switch: no key or model setting
+  exists in the app.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not
