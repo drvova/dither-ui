@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { createDitherField, type Body, type DitherField } from "./dither-field"
+import { seedFor } from "./genome"
 import { SKY, SUN } from "./plates"
+import { senses } from "./senses"
 
 // The living sky: a dither organism breathing over the dawn plate's
 // horizon, rendered by the vanilla `dither-field` engine — three seeded
@@ -11,8 +13,10 @@ import { SKY, SUN } from "./plates"
 // box is handed to the engine as a soft exclusion, so the creature can never
 // sit behind the statement at any width (the old blob did, on phones).
 //
-// Budget: 24fps, 3px cells, DPR clamp 2, paused offscreen + on tab-hide,
-// one static frame under reduced motion, scroll parallax 0.12.
+// Budget: 24fps, 3px cells, DPR clamp 2, on the page's one heartbeat
+// (paused offscreen, tab-hide and reduced motion live in `senses`), scroll
+// parallax 0.12. Its seed comes from the page genome; its rest density
+// rises a little with the daylight hormone (the sun is higher at noon).
 const props = defineProps<{ avoid?: HTMLElement | null }>()
 
 // Bodies anchor across the sky's right half (never behind the copy, never
@@ -66,7 +70,6 @@ function melt(_x: number, y: number, w: number, h: number): number {
 const canvas = ref<HTMLCanvasElement | null>(null)
 let field: DitherField | null = null
 let ro: ResizeObserver | null = null
-let ticking = false
 
 function measureAvoid() {
   const el = props.avoid
@@ -112,15 +115,6 @@ watch(
   { flush: "post" },
 )
 
-function onScroll() {
-  if (ticking) return
-  ticking = true
-  requestAnimationFrame(() => {
-    ticking = false
-    field?.setScroll(window.scrollY)
-  })
-}
-
 onMounted(() => {
   const el = canvas.value
   if (!el) return
@@ -132,7 +126,8 @@ onMounted(() => {
     cell: 3,
     fps: 24,
     matrix: 8,
-    seed: 7,
+    seed: seedFor("sky"),
+    density: 0.92 + 0.1 * senses().hormones.daylight,
     pointer: 0.62,
     pointerRadius: 56,
     scroll: 0.12,
@@ -141,11 +136,9 @@ onMounted(() => {
     mask: melt,
   })
   measureAvoid()
-  window.addEventListener("scroll", onScroll, { passive: true })
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener("scroll", onScroll)
   ro?.disconnect()
   ro = null
   field?.destroy()

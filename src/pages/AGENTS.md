@@ -68,7 +68,8 @@ widgets/features; page-specific conventions live here.
   `tests/essay-figure.spec.ts` (lattice ranks, determinism, lit share,
   distinct scenes, stage wrap).
 - Closing band: the display line + two actions over a `dither-field` dot
-  sea (`bandCanvas` mounted in `LandingPage.vue`: 4px cells, 12fps, the four
+  sea (`bandCanvas` mounted in `LandingPage.vue`, seed `seedFor("band")`:
+  4px cells, 12fps, the four
   dark SKY levels only so the ink keeps contrast, density 0.42 at rest →
   0.64 under hover, cursor body 0.4; `prefers-reduced-transparency` halves
   it). The band is `isolate; overflow: hidden`; its content wrapper stays
@@ -80,6 +81,32 @@ widgets/features; page-specific conventions live here.
   bytes render the complete page. NEVER gate it via a `:global(html.js)`
   scoped rule — that construct white-screened every browser (compositor
   wedge; banned).
+- The landing is one organism with shared organs (all vanilla modules):
+  - `senses.ts` — the nervous + endocrine system. ONE sensorium (pointer,
+    scroll, visibility, reduced motion) and ONE heartbeat rAF that ticks
+    every subscribed organism (`senses().subscribe({ tick(dt, tempo) })`).
+    Canvas creatures NEVER register their own rAF, pointer, scroll,
+    visibility or reduced-motion listeners — they read `senses()` on each
+    tick (a local pointermove on a hover target, like the shake's, is a
+    nerve ending, not a second sensorium). Hormones: `arousal` (pointer
+    speed, ~4s half-life → `tempo` = 1 + 0.6·arousal speeds every clock),
+    `drowsy` (45s idle, 30s ramp → organisms halve fps and thin density by
+    35%; any input wakes), `daylight` (local-hour cosine). Metabolism: a
+    governor EMAs the heartbeat's frame work and steps `quality`
+    1 → 0.75 → 0.5 after 30 over-budget frames (9ms), back up after 300
+    frames under 3ms; organisms scale fps by quality, and at 0.5 coarsen
+    the cell by 1px and drop sizzle. No frame clock (tests, prerender) →
+    no heartbeat, organisms still paint their static frame. Pure parts
+    (`daylight`, `stepHormones`, `createGovernor`) are pinned by
+    `tests/senses.spec.ts`.
+  - `genome.ts` — ONE site seed (`SITE_SEED`, fixed per build, never per
+    visit) and `seedFor(organ)`; every creature's seed derives from it
+    (sky, band). The essay figure's "seed 512" and the showcase slider stay
+    literal because the page displays those numbers.
+  - Memory: `LandingPage` latches `dither-landing-seen` in localStorage;
+    a returning visit renders `data-returning` and the CSS skips the
+    entrance (reveal, ember ignite, grain-in, sky fade-in) — the page
+    simply is. Scroll-in figures (plates, wordmark) still play.
 - `dither-field.ts` is the landing's living-canvas ENGINE and it is
   vanilla: no Vue, no kit imports — the same module mounts from a Vue
   component, a Svelte action, or a plain `<script type="module">`. One
@@ -91,10 +118,12 @@ widgets/features; page-specific conventions live here.
   ramp above `hotAt`), written as packed u32 pixels into ONE lattice-sized
   ImageData, put on an offscreen canvas and blitted with
   `imageSmoothingEnabled = false` — nearest-neighbour upscale is the pixel
-  look, one drawImage per frame instead of one fillRect per cell. Budget
-  rules live inside it: rAF at `fps`, IO + visibilitychange pause, DPR
-  clamp, ResizeObserver rebuild, static single frame under reduced motion
-  (and the sizzle flicker off), eased pointer body and eased
+  look, one drawImage per frame instead of one fillRect per cell. It rides
+  the `senses` heartbeat (subscribes while its own IntersectionObserver says
+  it is on screen), paints at `fps` × quality × drowsiness, advances its
+  clock by `tempo`, reads the shared pointer and scroll, DPR clamp,
+  ResizeObserver rebuild, static single frame under reduced motion (and
+  the sizzle flicker off), eased pointer body and eased
   `density`/`hoverDensity` (hover = thicker dither), `scroll` parallax, and
   `setAvoid(rect)` — a smoothstep exclusion so art yields to text. The
   raster is the pure `rasterize()`; new behaviour goes there (testable
@@ -110,6 +139,7 @@ widgets/features; page-specific conventions live here.
   ResizeObserver. Wide stages hang the bodies in the upper-right sky; narrow
   (<640) stages put them in the band between the action and the horizon at
   half weight. The cursor's body ignites ember at its core (`hotAt` 0.93).
+  Seed `seedFor("sky")`; rest density 0.92 + 0.1·daylight.
   The landing re-asserts `html.dark` on mount: the page is always-dark
   art while docs/studio own the persisted theme (storage keeps the user's
   choice).
@@ -137,9 +167,9 @@ widgets/features; page-specific conventions live here.
   pointer moves add ENERGY at the cursor, every frame re-samples the source
   through a Gaussian pool (outward push + per-cell wobble on a 46 rad/s
   clock) gated by the Bayer threshold (dense core, scattered fringe), and
-  energy decays 0.9/frame so cells spring home — the rAF exists ONLY while
-  energy is above the floor, nothing at rest, nothing under reduced motion,
-  touch pointers ignored. Faster strokes kick harder. `shakeRaster()` is the
+  energy decays 0.9/frame so cells spring home — it is on the `senses`
+  heartbeat ONLY while energy is above the floor, nothing at rest, nothing
+  under reduced motion, touch pointers ignored. Faster strokes kick harder. `shakeRaster()` is the
   pure raster (`tests/pixel-shake.spec.ts`: identity at zero energy, pool
   locality, Bayer thinning, determinism). Emote reactions stay CSS-only
   (`.emote` + `.group:hover`); no JS timers on the landing.

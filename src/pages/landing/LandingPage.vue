@@ -13,6 +13,7 @@ import PixelPlate from "./PixelPlate.vue"
 import SkyOrganism from "./SkyOrganism.vue"
 import { createDitherField, type DitherField } from "./dither-field"
 import { createPixelShake, type PixelShake } from "./pixel-shake"
+import { seedFor } from "./genome"
 import { dawnPlate, SKY } from "./plates"
 import Showcase from "./Showcase.vue"
 
@@ -70,6 +71,12 @@ const STAGES = [
 // prerendered bytes get the complete page; the old html.js gate — a :global
 // scoped rule — white-screened every browser and is banned).
 const armed = ref(false)
+// Memory: a returning visitor gets the settled page — the entrance
+// choreography (reveals, ember ignite, grain and sky fade-ins) plays once
+// per browser, then the page simply is. Figures that play on scroll-in
+// (plates, wordmark) are unaffected: they are motion, not an entrance.
+const SEEN_KEY = "dither-landing-seen"
+const returning = ref(false)
 
 const stageEls = ref<HTMLElement[]>([])
 const softEls = ref<HTMLElement[]>([])
@@ -148,6 +155,12 @@ function updateAll() {
 // carries data-armed — no visible flash of unlatched content.
 onBeforeMount(() => {
   armed.value = true
+  try {
+    returning.value = localStorage.getItem(SEEN_KEY) === "1"
+    localStorage.setItem(SEEN_KEY, "1")
+  } catch {
+    returning.value = false
+  }
 })
 
 onMounted(() => {
@@ -176,7 +189,7 @@ onMounted(() => {
       ramp: SKY.slice(0, 4),
       cell: 4,
       fps: 12,
-      seed: 21,
+      seed: seedFor("band"),
       density: 0.42,
       hoverDensity: 0.64,
       pointer: 0.4,
@@ -256,6 +269,7 @@ function setActive(i: number) {
   <div
     ref="pageEl"
     :data-armed="armed ? 'true' : undefined"
+    :data-returning="returning ? 'true' : undefined"
     class="landing flex min-h-screen flex-col bg-background font-mono text-foreground antialiased"
   >
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
@@ -512,6 +526,27 @@ function setActive(i: number) {
     animation: none;
     opacity: 1;
   }
+}
+
+/* Returning visitors: no entrance. The reveal blocks sit visible from the
+   first frame and the one-shot ignite / grain / sky fade-ins are skipped. */
+.landing[data-returning] .reveal,
+.landing[data-returning] .reveal:not([data-seen]) {
+  animation: none;
+  opacity: 1;
+}
+
+.landing[data-returning] .ember,
+.landing[data-returning] .grain {
+  animation-name: none;
+}
+
+.landing[data-returning] .grain {
+  animation: grain-jitter 1.1s steps(4) infinite;
+}
+
+.landing[data-returning] :deep(.sky-organism) {
+  animation: none;
 }
 
 /* One shell width for header, stage, chapters and footer, and ONE vertical

@@ -11,11 +11,17 @@
 // with image smoothing off — nearest-neighbour upscale is the whole
 // "pixel" look, and it costs one drawImage instead of one fillRect per cell.
 //
-// Budget: one rAF, painted at `fps` (default 24); paused while offscreen
-// (IntersectionObserver) or tab-hidden; DPR clamped; a static single frame
-// under prefers-reduced-motion. Field coordinates are CSS px of the canvas
-// box — consumers anchor bodies by fractions of (w, h) and never meet the
-// DPR. Every output is deterministic for a given (seed, size, t, pointer).
+// Budget: the organism rides the page's ONE heartbeat (`senses`): no rAF,
+// pointer, scroll, visibility or reduced-motion listener of its own — it
+// reads the shared sensorium on each tick and paints at `fps` scaled by the
+// metabolic `quality` tier and the `drowsy` hormone; `arousal` runs its
+// clock faster (tempo). Offscreen (IntersectionObserver on its own canvas)
+// it unsubscribes. DPR clamped; a static single frame under reduced
+// motion. Field coordinates are CSS px of the canvas box — consumers anchor
+// bodies by fractions of (w, h) and never meet the DPR. Every output is
+// deterministic for a given (seed, size, t, pointer).
+
+import { senses } from "./senses"
 
 export type Body = {
   x: number // anchor, css px
@@ -55,7 +61,7 @@ export type FieldOptions = {
   pointer?: number
   /** Cursor body radius, css px. Default 56. */
   pointerRadius?: number
-  /** Parallax: field y shifts by -scrollY * scroll. Default 0. */
+  /** Parallax: field y shifts by scrollY * scroll (read from senses). Default 0. */
   scroll?: number
   /** Threshold-edge flicker amount (0–1): cells sitting at a Bayer level
    * boundary sizzle between the two colours. Default 0.4. */
@@ -68,7 +74,7 @@ export type FieldOptions = {
   /** Element whose pointer events drive the cursor body and hover density.
    * Default: the canvas's parent. */
   pointerTarget?: HTMLElement | null
-  /** Pause offscreen + on tab hide. Default true. */
+  /** Pause offscreen. Default true. */
   autoPause?: boolean
 }
 
@@ -85,8 +91,6 @@ export type DitherField = {
   /** A soft exclusion (css px of the canvas box) the field fades out of —
    * the copy's own box, so art yields to text at every width. */
   setAvoid(rect: Rect | null, pad?: number): void
-  /** Feed scrollY for parallax. */
-  setScroll(y: number): void
   readonly running: boolean
 }
 
@@ -273,15 +277,11 @@ export function rasterize(buf: Uint32Array, inp: RasterInput, t: number): void {
   }
 }
 
-const reducedMotion = () =>
-  typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches
-
 /** Mount the engine on a canvas. The canvas is sized from its CSS box (keep
  * it `display:block; width:100%; height:100%` in the host's styles). */
 export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions): DitherField {
-  const cellCss = opts.cell ?? 3
+  const baseCell = opts.cell ?? 3
   const fps = opts.fps ?? 24
-  const frameMs = 1000 / fps
   const matrixSize = opts.matrix ?? 8
   const matrix = bayerMatrix(matrixSize)
   const seed = opts.seed ?? 1
@@ -296,6 +296,7 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
   const ramp = Uint32Array.from(opts.ramp, packColor)
   const hot = Uint32Array.from(opts.hot ?? [], packColor)
   const target = opts.pointerTarget === undefined ? canvas.parentElement : opts.pointerTarget
+  const body = senses()
 
   const ctx = canvas.getContext("2d")
   const off = document.createElement("canvas")
@@ -306,17 +307,16 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
   let rows = 0
   let W = 0
   let H = 0
+  let cellCss = baseCell
+  let quality = body.quality
   let bodies: Body[] = []
-  let reduced = reducedMotion()
   let running = false
-  let raf = 0
-  let last = 0
+  let unsubscribe: (() => void) | null = null
   let acc = 0
   let clock = 0
-  let scrollY = 0
   let density = restDensity
-  let densityTarget = restDensity
   let avoid: { rect: Rect; pad: number } | null = null
+  let visible = !autoPause
   const pointer = { x: 0, y: 0, tx: 0, ty: 0, w: 0, inside: false }
 
   const input = (): RasterInput => ({
@@ -328,12 +328,13 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
     ramp,
     hot,
     hotAt: opts.hotAt ?? 1,
-    sizzle: reduced ? 0 : (opts.sizzle ?? 0.4),
+    // Detail is the first thing metabolism spends: no sizzle at half quality.
+    sizzle: body.reduced || quality <= 0.5 ? 0 : (opts.sizzle ?? 0.4),
     density,
     bodies,
     pointer: pointerWeight > 0 ? { x: pointer.x, y: pointer.y, w: pointer.w, r: pointerRadius } : null,
     avoid,
-    scrollShift: scrollY * parallax,
+    scrollShift: body.scrollY * parallax,
     mask: opts.mask,
   })
 
@@ -354,6 +355,8 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
     H = Math.round(box.height * dpr)
     canvas.width = W
     canvas.height = H
+    // Half quality coarsens the lattice by a cell: a quarter of the samples.
+    cellCss = quality <= 0.5 ? baseCell + 1 : baseCell
     cols = Math.max(1, Math.round(box.width / cellCss))
     rows = Math.max(1, Math.round(box.height / cellCss))
     off.width = cols
@@ -361,18 +364,39 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
     image = octx ? octx.createImageData(cols, rows) : null
     buf = image ? new Uint32Array(image.data.buffer) : new Uint32Array(0)
     bodies = layout(cols * cellCss, rows * cellCss, mulberry32(seed))
-    paint(reduced ? 0 : clock)
+    paint(body.reduced ? 0 : clock)
   }
 
-  function tick(now: number) {
-    raf = 0
-    if (!running) return
-    if (!last) last = now
-    const dt = Math.min(now - last, 250) // clamp tab-switch jumps
-    last = now
-    acc += dt
-    clock += dt / 1000
-    // Eases run every rAF so the cursor body and the hover density glide
+  // Where the shared pointer sits relative to this canvas, and whether it
+  // is over the hover target — the organism's own proprioception.
+  function sense() {
+    if (pointerWeight <= 0) return
+    const p = body.pointer
+    const over = p.inside && target ? contains(target.getBoundingClientRect(), p.x, p.y) : false
+    if (over) {
+      const r = canvas.getBoundingClientRect()
+      pointer.tx = p.x - r.left
+      pointer.ty = p.y - r.top
+      if (!pointer.inside) {
+        pointer.x = pointer.tx
+        pointer.y = pointer.ty
+      }
+    }
+    pointer.inside = over
+  }
+
+  function tick(dt: number, tempo: number) {
+    if (body.reduced) {
+      paint(0)
+      return
+    }
+    if (body.quality !== quality) {
+      quality = body.quality
+      resize()
+    }
+    sense()
+    const h = body.hormones
+    // Eases run every beat so the cursor body and the hover density glide
     // between paints instead of stepping at the paint rate.
     const pw = pointer.inside ? pointerWeight : 0
     pointer.w += (pw - pointer.w) * 0.07
@@ -380,56 +404,34 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
       pointer.x += (pointer.tx - pointer.x) * 0.16
       pointer.y += (pointer.ty - pointer.y) * 0.16
     }
-    density += (densityTarget - density) * 0.08
+    const rest = restDensity * (1 - 0.35 * h.drowsy)
+    density += ((pointer.inside ? hoverDensity : rest) - density) * 0.08
+    clock += (dt * tempo) / 1000
+    acc += dt
+    // Metabolism: frame rate scales with quality and sinks while drowsy.
+    const frameMs = 1000 / Math.max(6, fps * quality * (1 - 0.5 * h.drowsy))
     if (acc >= frameMs) {
       paint(clock)
       acc %= frameMs
     }
-    raf = requestAnimationFrame(tick)
   }
 
   function start() {
-    if (running || reduced) return
+    if (running) return
     running = true
-    last = 0
-    if (!raf) raf = requestAnimationFrame(tick)
+    acc = 0
+    unsubscribe = body.subscribe({ tick })
   }
 
   function stop() {
     running = false
-    if (raf) cancelAnimationFrame(raf)
-    raf = 0
+    unsubscribe?.()
+    unsubscribe = null
   }
 
-  const onMove = (e: PointerEvent) => {
-    const r = canvas.getBoundingClientRect()
-    pointer.tx = e.clientX - r.left
-    pointer.ty = e.clientY - r.top
-    if (!pointer.inside) {
-      pointer.x = pointer.tx
-      pointer.y = pointer.ty
-    }
-    pointer.inside = true
-    densityTarget = hoverDensity
-  }
-  const onLeave = () => {
-    pointer.inside = false
-    densityTarget = restDensity
-  }
-  const onVisibility = () => (document.hidden ? stop() : visible && start())
-  const onMotion = (e: MediaQueryListEvent) => {
-    reduced = e.matches
-    if (reduced) {
-      stop()
-      paint(0)
-    } else if (visible) start()
-  }
-
-  let visible = !autoPause
   let io: IntersectionObserver | null = null
   let ro: ResizeObserver | null = null
   let roRaf = 0
-  const mq = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null
 
   resize()
   if (typeof ResizeObserver !== "undefined") {
@@ -443,30 +445,20 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
     })
     ro.observe(canvas)
   }
-  if (target && pointerWeight > 0) {
-    target.addEventListener("pointermove", onMove, { passive: true })
-    target.addEventListener("pointerleave", onLeave, { passive: true })
-  }
-  if (autoPause) {
-    if (typeof IntersectionObserver !== "undefined") {
-      io = new IntersectionObserver(
-        (entries) => {
-          visible = entries.some((e) => e.isIntersecting)
-          if (visible) start()
-          else stop()
-        },
-        { threshold: 0.02 },
-      )
-      io.observe(canvas)
-    } else {
-      visible = true
-      start()
-    }
-    document.addEventListener("visibilitychange", onVisibility)
+  if (autoPause && typeof IntersectionObserver !== "undefined") {
+    io = new IntersectionObserver(
+      (entries) => {
+        visible = entries.some((e) => e.isIntersecting)
+        if (visible) start()
+        else stop()
+      },
+      { threshold: 0.02 },
+    )
+    io.observe(canvas)
   } else {
+    visible = true
     start()
   }
-  mq?.addEventListener("change", onMotion)
 
   return {
     start,
@@ -486,14 +478,11 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
       pointer.inside = true
     },
     setDensity(d) {
-      densityTarget = d
+      density = d
     },
     setAvoid(rect, pad = 48) {
       avoid = rect ? { rect, pad } : null
-      if (reduced) paint(0)
-    },
-    setScroll(y) {
-      scrollY = y
+      if (body.reduced || !running) paint(body.reduced ? 0 : clock)
     },
     get running() {
       return running
@@ -503,10 +492,8 @@ export function createDitherField(canvas: HTMLCanvasElement, opts: FieldOptions)
       io?.disconnect()
       ro?.disconnect()
       if (roRaf) cancelAnimationFrame(roRaf)
-      mq?.removeEventListener("change", onMotion)
-      document.removeEventListener("visibilitychange", onVisibility)
-      target?.removeEventListener("pointermove", onMove)
-      target?.removeEventListener("pointerleave", onLeave)
     },
   }
 }
+
+const contains = (r: DOMRect, x: number, y: number) => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom

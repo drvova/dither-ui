@@ -12,12 +12,16 @@
 // dense at the cursor and thins to single scattered pixels at the fringe
 // (a smooth warp would read as a lens; the dither reads as pixels).
 //
-// Budget: the loop runs ONLY while energy is above the floor — at rest no
-// rAF exists; one lattice-sized ImageData rewritten per frame and blitted
+// Budget: the shake subscribes to the page's one heartbeat (`senses`) ONLY
+// while energy is above the floor — at rest it is not on the beat at all;
+// one lattice-sized ImageData rewritten per frame and blitted
 // nearest-neighbour; DPR clamped; nothing under prefers-reduced-motion
-// (the image simply stays). Deterministic for (source, pointer, energy, t).
+// (the image simply stays). The pointermove listener on the target is the
+// skin's own nerve ending: local contact, not a second sensorium.
+// Deterministic for (source, pointer, energy, t).
 
 import { bayerMatrix, cellHash } from "./dither-field"
+import { senses } from "./senses"
 
 export type ShakeOptions = {
   /** Pool radius in art px (the Gaussian's 2-sigma). Default 18. */
@@ -98,9 +102,6 @@ export function shakeRaster(out: Uint32Array, inp: ShakeInput): void {
   }
 }
 
-const reducedMotion = () =>
-  typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches
-
 /** Mount on a canvas whose CSS size the host owns; `crop` is the source
  * rectangle of `image` (a sprite sheet) drawn at native resolution. */
 export function createPixelShake(
@@ -134,11 +135,11 @@ export function createPixelShake(
     out = new Uint32Array(image32.data.buffer)
   }
 
-  const reduced = reducedMotion()
+  const body = senses()
+  const reduced = body.reduced
   const pointer = { x: w / 2, y: h / 2 }
   let energy = 0
-  let raf = 0
-  let last = 0
+  let unsubscribe: (() => void) | null = null
   let clock = 0
   let lastMove = 0
   let lx = 0
@@ -165,22 +166,18 @@ export function createPixelShake(
     blit()
   }
 
-  function tick(now: number) {
-    raf = 0
-    if (!last) last = now
-    const dt = Math.min(now - last, 100)
-    last = now
+  function tick(dt: number) {
     clock += dt / 1000
     // Frame-rate independent decay: `decay` is per 60fps frame.
     energy *= Math.pow(decay, dt / (1000 / 60))
     if (energy < 0.01) {
       energy = 0
       paint() // the pristine frame, exactly
-      last = 0
+      unsubscribe?.()
+      unsubscribe = null
       return
     }
     paint()
-    raf = requestAnimationFrame(tick)
   }
 
   function disturb(x: number, y: number, strength = kick) {
@@ -189,7 +186,7 @@ export function createPixelShake(
     pointer.x = (x / (box.width || w)) * w
     pointer.y = (y / (box.height || h)) * h
     energy = Math.min(1, energy + strength)
-    if (!raf) raf = requestAnimationFrame(tick)
+    if (!unsubscribe) unsubscribe = body.subscribe({ tick })
   }
 
   const onMove = (e: PointerEvent) => {
@@ -219,8 +216,8 @@ export function createPixelShake(
       return energy
     },
     destroy() {
-      if (raf) cancelAnimationFrame(raf)
-      raf = 0
+      unsubscribe?.()
+      unsubscribe = null
       target?.removeEventListener("pointermove", onMove)
     },
   }
