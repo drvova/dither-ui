@@ -506,7 +506,18 @@ function setActive(i: number) {
   pointer-events: none;
   opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain-jitter 1.1s steps(4) infinite;
+  animation:
+    grain-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) both,
+    grain-jitter 1.1s steps(4) 1.2s infinite;
+}
+
+@keyframes grain-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.035;
+  }
 }
 
 @keyframes grain-jitter {
@@ -540,9 +551,31 @@ function setActive(i: number) {
 }
 
 /* The headline's full stop takes the ember — the sun's own color answering
-   the dawn plate's crest (reference: statement ink + signal punctuation). */
+   the dawn plate's crest (reference: statement ink + signal punctuation).
+   It ignites last in the hero's entrance: a one-shot scale pulse as the
+   statement finishes landing, then it rests as plain ink. */
 .ember {
   color: var(--swatch-orange);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ember {
+    animation: ember-ignite 700ms cubic-bezier(0.16, 1, 0.3, 1) 720ms both;
+  }
+  @keyframes ember-ignite {
+    0% {
+      scale: 0.4;
+      opacity: 0;
+    }
+    60% {
+      scale: 1.3;
+      opacity: 1;
+    }
+    100% {
+      scale: 1;
+      opacity: 1;
+    }
+  }
 }
 
 

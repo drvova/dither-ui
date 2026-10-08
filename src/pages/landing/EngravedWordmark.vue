@@ -7,7 +7,7 @@
 // to the glyph shapes by a shared objectBoundingBox clipPath; a cursor-driven
 // specular sheen fills the letters on hover — purely event-driven, no timers,
 // so it is reduced-motion safe by construction.
-import { ref } from "vue"
+import { onBeforeMount, onBeforeUnmount, onMounted, ref } from "vue"
 import {
   WORDMARK_GLYPH_PATH,
   WORDMARK_LETTERS,
@@ -48,6 +48,58 @@ const MASK_TRANSFORM = `translate(${LETTER_DX} ${LETTER_DY}) scale(${MASK_SCALE_
 const sheen = ref<HTMLElement | null>(null)
 const lit = ref<HTMLElement | null>(null)
 const bloom = ref<HTMLElement | null>(null)
+
+// The self-engraving: the rim's contour stroke draws itself the first time
+// the mark scrolls into view — pathLength normalizes the compound glyph path
+// to one pen length, dashoffset 1→0 traces every contour in sequence. The
+// draw recipe ships INSIDE the svg string (v-html children escape Vue's
+// scoped styles); hiding is gated on the component's own data-armed so a
+// no-JS visit renders the finished mark. Reduced motion: full rim, static.
+const armed = ref(false)
+const live = ref(false)
+let io: IntersectionObserver | null = null
+
+const RIM_DRAW = WORDMARK_RIM.replace(
+  '" stroke="#D6EAFF"',
+  ' pathLength="1" class="wm-pen" stroke="#D6EAFF"',
+).replace(
+  /(<svg[^>]*>)/,
+  `$1<style>
+    [data-armed]:not([data-live]) .wm-pen { stroke-dasharray: 1; stroke-dashoffset: 1; }
+    [data-live] .wm-pen { stroke-dasharray: 1; stroke-dashoffset: 1; animation: wm-pen-draw 2s linear both; }
+    @keyframes wm-pen-draw { to { stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      [data-armed] .wm-pen, [data-live] .wm-pen { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+    }
+  </style>`,
+)
+
+onBeforeMount(() => {
+  armed.value = true
+})
+
+onMounted(() => {
+  if (typeof IntersectionObserver === "undefined") {
+    live.value = true
+    return
+  }
+  io = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        live.value = true
+        io?.disconnect()
+        io = null
+      }
+    },
+    { threshold: 0.35 },
+  )
+  if (sheen.value) io.observe(sheen.value)
+})
+
+onBeforeUnmount(() => {
+  io?.disconnect()
+  io = null
+})
 
 // Cursor pool that reveals the lit letter light — a soft round pool resolved
 // in EACH light layer's own box (they carry the letters' magnification, so
@@ -97,7 +149,9 @@ function onMove(e: MouseEvent) {
       aria-hidden="true"
       class="pointer-events-none absolute"
       :style="RIM_BOX"
-      v-html="WORDMARK_RIM"
+      :data-armed="armed ? 'true' : undefined"
+      :data-live="live ? 'true' : undefined"
+      v-html="RIM_DRAW"
     />
     <!-- Letter detail sits LARGER than the rim (ghost's convex-concave depth
          parallax). On hover the carve RECEDES to 45% — with the light pooling

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { routePath } from "@/shared/lib"
 import {
   DitherBadge,
@@ -18,11 +18,14 @@ import {
   YAxis,
   type DitherColor,
 } from "@dither-kit"
+import PixelPlate from "./PixelPlate.vue"
+import { rampPlate, seedPlate, skylinePlate } from "./plates"
 
 // Three chapters on the reference's exact grid: a full-width hairline panel;
-// inside it a black BAND (live canvas, statement top-left, links under) and
-// a 1px-gapped grid of black CELLS (demo left, prose right). All art runs in
-// the page's navy/blue/ice + ember ramp — kit defaults clash with the site.
+// inside it a black BAND (statement top-left, links under, a pixel strip on
+// its floor) and a 1px-gapped grid of black CELLS. Every strip is computed
+// from what its chapter shows — the chart's series, the dither matrix, the
+// controls' seed — and all art runs in the page's navy/blue/ice + ember ramp.
 const ROWS = [
   { month: "Jan", renders: 46, seeds: 28 },
   { month: "Feb", renders: 52, seeds: 31 },
@@ -41,31 +44,37 @@ const CONFIG = {
   renders: { label: "renders", color: "blue" as DitherColor },
   seeds: { label: "seeds", color: "purple" as DitherColor },
 }
+const SKYLINE = skylinePlate(ROWS.map((r) => r.renders))
+const RAMP = rampPlate()
 
 // Controls chapter — real state: the switch toggles the grid behind the
-// panel, the slider re-seeds the badge live (one integer, one personality).
+// panel, the slider re-seeds the badge AND the band's strip live (one
+// integer, one personality — down to the threshold matrix).
 const grid = ref(true)
-const seed = ref(1984)
+const seed = ref(512)
+const SEEDED = computed(() => seedPlate(seed.value))
 </script>
 
 <template>
-  <section aria-label="Inside the kit" class="figs mx-auto w-full max-w-4xl px-6">
+  <section aria-label="Inside the kit" class="figs mx-auto w-full max-w-[var(--shell)] px-6">
     <!-- Chapter 1 — charts -->
     <article aria-labelledby="ch-charts-h" class="chapter reveal">
       <div class="band">
+        <!-- The space after the ember comma sits on the same line on purpose:
+             Vue's whitespace condense drops newline-only gaps between tags. -->
         <h2 id="ch-charts-h" class="band-h">
-          Charts<span class="dot">,</span>
-          <span class="band-l">every mark placed by the same painter.</span>
+          Charts<span class="dot">,</span> <span class="band-l">every mark placed by the same painter.</span>
         </h2>
         <div class="links">
           <a :href="routePath('/docs')" class="more">Docs</a>
           <a :href="routePath('/studio')" class="more more-quiet">Open studio</a>
         </div>
+        <PixelPlate :plate="SKYLINE" motion="rise" class="strip" />
       </div>
       <div class="cells">
         <div class="cell">
           <div class="h-52 sm:h-60">
-            <LineChart :data="ROWS" :config="CONFIG" :interactive="false">
+            <LineChart :data="ROWS" :config="CONFIG" :interactive="false" :sparkles="false">
               <Grid horizontal />
               <XAxis data-key="month" :max-ticks="6" />
               <YAxis :tick-count="4" />
@@ -86,29 +95,32 @@ const seed = ref(1984)
     <article aria-labelledby="ch-surfaces-h" class="chapter reveal" style="--reveal-delay: 80ms">
       <div class="band">
         <h2 id="ch-surfaces-h" class="band-h">
-          Surfaces<span class="dot">,</span>
-          <span class="band-l">backgrounds that paint themselves.</span>
+          Surfaces<span class="dot">,</span> <span class="band-l">backgrounds that paint themselves.</span>
         </h2>
         <div class="links">
           <a :href="routePath('/docs')" class="more">Browse surfaces</a>
         </div>
+        <PixelPlate :plate="RAMP" class="strip" />
       </div>
       <div class="cells three">
         <figure class="cell">
           <div class="frame">
-            <DitherSilk :colors="['#0c1730', '#2c56c9', '#c9dbff']" />
+            <span class="live" aria-hidden="true"><i></i>live · 8 fps</span>
+            <DitherSilk :frame-rate="8" :colors="['#0c1730', '#2c56c9', '#c9dbff']" />
           </div>
           <figcaption class="cell-p">silk</figcaption>
         </figure>
         <figure class="cell">
           <div class="frame">
-            <DitherPlasma :colors="['#122a66', '#2f6fd0', '#ff9632']" />
+            <span class="live" aria-hidden="true"><i></i>live · 8 fps</span>
+            <DitherPlasma :frame-rate="8" :colors="['#122a66', '#2f6fd0', '#ff9632']" />
           </div>
           <figcaption class="cell-p">plasma</figcaption>
         </figure>
         <figure class="cell">
           <div class="frame">
-            <DitherGridScan :colors="['#1e429f', '#7ba3ee']" />
+            <span class="live" aria-hidden="true"><i></i>live · 8 fps</span>
+            <DitherGridScan :frame-rate="8" :colors="['#1e429f', '#7ba3ee']" />
           </div>
           <figcaption class="cell-p">grid scan</figcaption>
         </figure>
@@ -119,17 +131,17 @@ const seed = ref(1984)
     <article aria-labelledby="ch-controls-h" class="chapter reveal" style="--reveal-delay: 160ms">
       <div class="band">
         <h2 id="ch-controls-h" class="band-h">
-          Controls<span class="dot">,</span>
-          <span class="band-l">through the same engine.</span>
+          Controls<span class="dot">,</span> <span class="band-l">through the same engine.</span>
         </h2>
         <div class="links">
           <a :href="routePath('/docs')" class="more">Every control</a>
         </div>
+        <PixelPlate :plate="SEEDED" class="strip" />
       </div>
       <div class="cells two">
         <div class="cell stage">
           <div v-if="grid" class="grid-bg" aria-hidden="true">
-            <DitherGridScan :colors="['#1e429f', '#7ba3ee']" />
+            <DitherGridScan render-mode="static" :colors="['#1e429f', '#7ba3ee']" />
           </div>
           <div class="veil" aria-hidden="true" />
           <div class="stack">
@@ -185,10 +197,19 @@ const seed = ref(1984)
 }
 
 .band {
+  --pad: clamp(1.5rem, 3.4vw, 2.125rem);
   background: #05060a;
   position: relative;
   overflow: hidden;
-  padding: clamp(1.5rem, 3.4vw, 2.125rem);
+  padding: var(--pad);
+}
+
+/* The band's floor: its pixel strip bleeds to both edges and sits flush on
+   the bottom hairline (the reference's band field, as markup). */
+.strip {
+  width: calc(100% + 2 * var(--pad));
+  height: auto;
+  margin: clamp(1.75rem, 3.4vw, 2.5rem) calc(-1 * var(--pad)) calc(-1 * var(--pad));
 }
 
 .band-h {
@@ -306,6 +327,49 @@ const seed = ref(1984)
   aspect-ratio: 1.618;
   overflow: hidden;
   background: #000;
+}
+
+/* The live chip: the nodecode film-chip anatomy (pulsing dot + micro-caps
+   label) on our honest data — these panels ARE live kit canvases at 8fps.
+   The dot takes the reference's led cadence; it is a state label, so the
+   text stays under reduced motion and only the pulse dies. */
+.live {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-foreground) 75%, transparent);
+  background: color-mix(in oklab, #000 62%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 50%, transparent);
+}
+
+.live i {
+  width: 5px;
+  height: 5px;
+  background: var(--swatch-orange);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .live i {
+    animation: live-led 2.8s ease-in-out infinite;
+  }
+  @keyframes live-led {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.32;
+    }
+  }
 }
 
 figure {

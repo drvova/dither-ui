@@ -104,6 +104,16 @@ widgets/features; page-specific conventions live here.
   SAME bake (never a hand-held path constant: a stale copy clipped the sheen
   to garbled shapes — it surfaced as a dark cross on hover).
   Regenerate with the bake script if the wordmark text ever changes.
+- Self-engraving: the rim's contour stroke draws itself on first scroll into
+  view (`RIM_DRAW` transform injects `pathLength="1"` + a namespaced
+  `wm-pen` class and an svg-INTERNAL `<style>` — v-html children escape
+  scoped styles, so the recipe ships inside the string, gated on the
+  component's own `data-armed`/`data-live`). No-JS/prerender: no attrs, the
+  finished mark renders; reduced motion: full static rim.
+- Showcase panels carry the live chip (`.live`: pulsing ember dot +
+  micro-caps `live · 8 fps`) — the film-chip anatomy from the reference,
+  stating HONEST data: only panels running live kit canvases get one; the
+  static grid panel and plates never do.
 
 ### docs/
 
