@@ -89,7 +89,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "easing", type: "'linear' | 'ease-out' | 'ease-in-out' | bezier points | seed | Easing — between keys; a key's own easing wins for the segment it starts", default: "linear" },
     { prop: "origin", type: "string — transform-origin, container units welcome", default: '"50% 50%"' },
     { prop: "as / class", type: "element tag / class (the layer is absolute, inset 0)", default: '"div" / —' },
-    { prop: "slot props", type: "every property resolved to px / degrees against the stage box, plus progress, state, cycle, time, width, height", default: "—" },
+    { prop: "slot props", type: "every property resolved to px / degrees against the stage box, plus progress, cycle, time, width, height (the state is data-layer)", default: "—" },
     { prop: "style / data-layer", type: "transform in the keyframes' own units, opacity, --layer-p and --layer-<name> per property; before | active | done", default: "—" },
     { prop: "sampleKeyframes(track, t) · keyframeTransform(sample, box?) · resolveSample(sample, box) · parseLength / termsToCss / termsToPx", type: "the engine alone, for your own painters and timelines", default: "—" },
   ],
