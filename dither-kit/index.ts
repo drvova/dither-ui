@@ -323,8 +323,11 @@ export { default as DitherInfiniteCanvas } from "./DitherInfiniteCanvas.vue"
 export {
   default as DitherWorld,
   createWorldGpu,
+  createWorldMaterial,
   externalResources,
   formatOf,
+  packTarget,
+  paintMaterial,
   paintTarget,
   paintWorld,
   parseWorld,
@@ -333,6 +336,7 @@ export {
   type ModelFormat,
   type World,
   type WorldGpu,
+  type WorldMaterial,
   type WorldMesh,
   type WorldStyle,
   type WorldTarget,
@@ -343,9 +347,12 @@ export {
   ditherShaderPixels,
   sampleShader,
   wrapShader,
+  type ShaderChannel,
   type ShaderDither,
   type ShaderProgram,
 } from "./DitherShader.vue"
+export { wrapMaterial } from "./shader"
+export { surfaceOf, type DitherSurface } from "./use-dither-background"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"
 export { default as DitherSlideAction } from "./SlideAction.vue"

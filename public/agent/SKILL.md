@@ -157,7 +157,9 @@ Commands (`type` and fields):
   `DitherShader` takes GLSL as `props.source` (Shadertoy-style `mainImage`
   with `iTime`/`iResolution`/`iMouse`/`iColor`, or a raw `main`). Both are
   ordinary `component.add` targets; `props.colors` gives either a palette
-  ramp.
+  ramp. A world also takes `props.shader`: a GLSL material
+  (`mainMaterial(out vec4, in vec2)` reading `dk_shade`, `dk_depth`,
+  `dk_covered`, `dk_color` per cell) over its finished render.
 - Finish with `code.get` when the user wants code, and quote the SFC.
 
 ## 5. Render a frame to video (HyperFrames)

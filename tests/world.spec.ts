@@ -16,6 +16,8 @@ import {
   mat4Scale,
   mat4Translate,
   nodeMatrices,
+  packTarget,
+  paintMaterial,
   paintTarget,
   paintWorld,
   quatFromAxisAngle,
@@ -325,6 +327,49 @@ describe("kit engines in the shade", () => {
     expect(Array.from(buf.data)).toEqual(Array.from(paint(sphere)))
     expect(target.index[24 * 64 + 32]).toBe(1)
     expect(target.index[0]).toBe(0)
+  })
+})
+
+describe("materials", () => {
+  const sphere = "#VRML V2.0 utf8\nShape { geometry Sphere { radius 1 } }"
+  it("packs the target for the GPU: shade, palette index, 16-bit depth, far where empty", () => {
+    const world = parseVrml(sphere)
+    const target = createWorldTarget(64, 48)
+    rasterizeWorld(world, view, target, style)
+    const px = packTarget(target, world, view)
+    const centre = (24 * 64 + 32) * 4
+    expect(px[centre + 1]).toBe(1)
+    expect(px[centre]).toBe(Math.round(target.shade[24 * 64 + 32] * 255))
+    const code = px[centre + 2] * 256 + px[centre + 3]
+    expect(code).toBeGreaterThan(0)
+    expect(code).toBeLessThan(65535)
+    expect(Array.from(px.slice(0, 4))).toEqual([0, 0, 255, 255])
+    expect(packTarget(target, world, view, px)).toBe(px)
+  })
+  it("paints a material's output through the Bayer cell, clear where it is zero, overlays on top", () => {
+    const world = parseVrml(sphere)
+    const target = createWorldTarget(8, 8)
+    rasterizeWorld(world, view, target, style)
+    // A material: full shade in green on the top GL row (= the raster's bottom row), half on the next, nothing elsewhere.
+    const rgba = new Uint8Array(8 * 8 * 4)
+    for (let x = 0; x < 8; x++) {
+      rgba.set([0, 255, 0, 255], (7 * 8 + x) * 4)
+      rgba.set([255, 0, 0, 128], (6 * 8 + x) * 4)
+    }
+    const buf = createRasterBuffer(8, 8)
+    paintMaterial(buf, target, world, view, { ...style, shade: 0.5 }, rgba)
+    const d = buf.data
+    for (let x = 0; x < 8; x++) {
+      expect(Array.from(d.slice(x * 4, x * 4 + 4))).toEqual([0, 255, 0, 255])
+      const o = (1 * 8 + x) * 4
+      expect([d[o], d[o + 1], d[o + 2]]).toEqual([255, 0, 0])
+      expect([255, 128]).toContain(d[o + 3])
+      expect(d[(4 * 8 + x) * 4 + 3]).toBe(0)
+    }
+    const wired = createRasterBuffer(8, 8)
+    paintMaterial(wired, target, world, view, { ...style, wire: true }, new Uint8Array(8 * 8 * 4))
+    expect(count(wired.data, (al) => al === 255)).toBeGreaterThan(0)
+    expect(count(createRasterBuffer(8, 8).data, (al) => al > 0)).toBe(0)
   })
 })
 

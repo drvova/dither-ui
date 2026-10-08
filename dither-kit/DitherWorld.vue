@@ -1,13 +1,14 @@
 <script lang="ts">
 import { externalResources, formatOf, parseWorld, type ModelFormat } from "./models"
-import { paintTarget, paintWorld, rasterizeWorld, sampleWorld, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
-import { createWorldGpu, type WorldGpu } from "./world-gl"
-export type { ModelFormat, World, WorldGpu, WorldMesh, WorldStyle, WorldTarget, WorldView }
-export { createWorldGpu, externalResources, formatOf, paintTarget, paintWorld, parseWorld, rasterizeWorld, sampleWorld }
+import { packTarget, paintMaterial, paintTarget, paintWorld, rasterizeWorld, sampleWorld, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
+import { createWorldGpu, createWorldMaterial, type WorldGpu, type WorldMaterial } from "./world-gl"
+export type { ModelFormat, World, WorldGpu, WorldMaterial, WorldMesh, WorldStyle, WorldTarget, WorldView }
+export { createWorldGpu, createWorldMaterial, externalResources, formatOf, packTarget, paintMaterial, paintTarget, paintWorld, parseWorld, rasterizeWorld, sampleWorld }
 </script>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue"
+import { createGl, type GlHandle } from "./gl"
 import { cn } from "./lib"
 import { BAYER4, clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle, pixelMatrixFromSeed } from "./pixel"
 import type { DitherRenderMode } from "./precompile"
@@ -57,6 +58,10 @@ const props = withDefaults(
     material?: boolean
     /** Draw polygon outlines, hidden lines removed. */
     wire?: boolean
+    /** A GLSL material over the finished target: `mainMaterial(out vec4, in
+     * vec2)` reading dk_shade / dk_depth / dk_covered / dk_color per cell and
+     * returning rgb + the shade the Bayer cell thresholds (needs WebGL). */
+    shader?: string
     /** Glow layer: a preset, a config, or a seed. */
     bloom?: PixelBloomInput
     /** Play the file's own animations (VRML ROUTEs, glTF) on the kit clock. */
@@ -91,6 +96,7 @@ const props = withDefaults(
     grainScale: 4,
     material: false,
     wire: false,
+    shader: "",
     bloom: "off",
     animate: true,
     interactive: true,
@@ -113,6 +119,7 @@ const world = shallowRef<World | null>(null)
 const status = ref<"ready" | "loading" | "empty" | "error">("ready")
 const engineUsed = ref<"cpu" | "gpu">("cpu")
 const gpuProblem = ref("")
+const materialProblem = ref("")
 const note = computed(() =>
   status.value === "loading"
     ? "loading model"
@@ -122,7 +129,9 @@ const note = computed(() =>
         ? "no geometry"
         : props.engine === "gpu" && gpuProblem.value
           ? gpuProblem.value
-          : ""
+          : props.shader && materialProblem.value
+            ? materialProblem.value
+            : ""
 )
 
 // ---- loading ----------------------------------------------------------------
@@ -270,7 +279,12 @@ function onKey(e: KeyboardEvent) {
 // ---- the engines --------------------------------------------------------------
 
 let target: WorldTarget | null = null
+let gl: GlHandle | null | undefined
 let gpu: WorldGpu | null = null
+let materialPass: WorldMaterial | null = null
+
+/** One WebGL context per component, shared by the GPU engine and the material pass. */
+const glHandle = () => (gl === undefined ? (gl = createGl()) : gl)
 
 const triangles = (w: World) => w.meshes.reduce((n, m) => n + (m.kind === "faces" ? m.indices.length / 3 : 0), 0)
 
@@ -290,12 +304,24 @@ function render(buffer: RasterBuffer, clock: number) {
   if (!target || target.width !== buffer.width || target.height !== buffer.height) target = createWorldTarget(buffer.width, buffer.height)
   let drawn = false
   if (wantsGpu(w)) {
-    gpu = gpu ?? createWorldGpu()
-    drawn = gpu.rasterize(w, v, target, style.value)
-    gpuProblem.value = drawn ? "" : gpu.problem()
+    const h = glHandle()
+    if (h) {
+      gpu = gpu ?? createWorldGpu(h)
+      drawn = gpu.rasterize(w, v, target, style.value)
+      gpuProblem.value = drawn ? "" : gpu.problem()
+    } else gpuProblem.value = "WebGL is not available"
   }
   if (!drawn) rasterizeWorld(w, v, target, style.value)
   engineUsed.value = drawn ? "gpu" : "cpu"
+  if (props.shader) {
+    const h = glHandle()
+    const rgba = h ? (materialPass = materialPass ?? createWorldMaterial(h)).shade(props.shader, target, w, v, { time: v.time ?? 0, color: fillOf(props.color), seed: props.seed ?? 0 }) : null
+    materialProblem.value = rgba ? "" : h ? materialPass?.problem() || "the material did not compile" : "WebGL is not available"
+    if (rgba) {
+      paintMaterial(buffer, target, w, v, style.value, rgba)
+      return
+    }
+  }
   paintTarget(buffer, target, w, v, style.value)
 }
 
@@ -315,9 +341,13 @@ onBeforeUnmount(() => {
   ctl?.abort()
   gpu?.dispose()
   gpu = null
+  materialPass?.dispose()
+  materialPass = null
+  gl?.dispose()
+  gl = null
 })
 
-useDitherBackground({
+const surface = useDitherBackground({
   wrapRef,
   canvasRef,
   cell: () => Math.max(1, props.cell),
@@ -330,13 +360,15 @@ useDitherBackground({
   restart: () => [
     props.renderMode, props.dpr, props.cell, world.value, orbit.yaw, orbit.pitch, props.engine,
     props.yaw, props.pitch, props.zoom, props.fov, props.color, props.colors, props.dither, props.seed, props.shade, props.fog,
-    props.grain, props.grainScale, props.material, props.wire, props.bloom, props.animate, props.time,
+    props.grain, props.grainScale, props.material, props.wire, props.shader, props.bloom, props.animate, props.time,
   ],
   frameRate: () => props.frameRate,
   staticClock: 0,
   render,
   afterPaint,
 })
+
+defineExpose({ surface })
 </script>
 
 <template>

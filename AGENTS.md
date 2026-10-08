@@ -140,9 +140,13 @@ Default section order:
   ramp, fbm grain and bloom engines. `DitherShader` (`shader.ts`, `gl.ts`)
   compiles Shadertoy-style or raw GLSL in an offscreen WebGL context at the
   cell resolution and dithers the readback (1-bit, mono or a palette ramp);
-  `iTime` is the kit clock. Both are docs sections under Media (`world`,
-  `shader`) and `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps
-  WebGL2 (SwiftShader), so GPU and shader frames export to MP4 too.
+  `iTime` is the kit clock. Surfaces form a render graph: any kit surface
+  is a `DitherSurface` (`pull(ms)` paints a directed moment on demand), a
+  shader binds surfaces as `iChannel0..3`, and a world takes a GLSL
+  `shader` material over its finished target — the chain seeks as one.
+  Both are docs sections under Media (`world`, `shader`) and
+  `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps WebGL2
+  (SwiftShader), so GPU and shader frames export to MP4 too.
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node

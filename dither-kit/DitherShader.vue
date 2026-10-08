@@ -1,17 +1,30 @@
 <script lang="ts">
 import { ditherShaderPixels, sampleShader, SHADER_UNIFORMS, wrapShader, type ShaderDither, type ShaderProgram } from "./shader"
+import type { DitherSurface } from "./use-dither-background"
 export type { ShaderDither, ShaderProgram }
 export { ditherShaderPixels, sampleShader, wrapShader }
+
+/** What `iChannelN` may be bound to: a kit surface (a component instance,
+ * its exposed surface, or its canvas), or any canvas, image or video. */
+export type ShaderChannel =
+  | DitherSurface
+  | { surface?: DitherSurface; $el?: Element | null }
+  | HTMLCanvasElement
+  | HTMLImageElement
+  | HTMLVideoElement
+  | null
+  | undefined
 </script>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from "vue"
+import { directedTime } from "./clock"
 import { buildProgram, createGl, type GlHandle } from "./gl"
 import { cn } from "./lib"
 import { BAYER4, clamp01, fillOf, type PixelColor, pixelMatrixFromSeed } from "./pixel"
 import type { DitherRenderMode } from "./precompile"
 import type { RasterBuffer } from "./raster"
-import { useDitherBackground } from "./use-dither-background"
+import { surfaceOf, useDitherBackground } from "./use-dither-background"
 
 const props = withDefaults(
   defineProps<{
@@ -19,6 +32,9 @@ const props = withDefaults(
     src?: string
     /** Inline GLSL — Shadertoy `mainImage` or a raw `main`; wins over `src`. */
     source?: string
+    /** Up to four sources bound as `iChannel0..3`: other kit surfaces (pulled
+     * at the same clock time), or any canvas, image or video. */
+    channels?: ShaderChannel[]
     /** Tint of the mono mode, and `iColor` in the shader. */
     color?: PixelColor
     /** A palette ramp, dark to light: luminance picks the band, the Bayer cell dithers between bands. */
@@ -121,6 +137,28 @@ function load() {
 
 watch(() => [props.source, props.src, props.seed], load, { immediate: true })
 
+// ---- channels -------------------------------------------------------------------
+
+type Bound = { surface: DitherSurface | null; element: TexImageSource | null }
+type Slot = { tex: WebGLTexture | null; version: number; w: number; h: number }
+
+const slots: Slot[] = [0, 1, 2, 3].map(() => ({ tex: null, version: -1, w: 0, h: 0 }))
+
+/** A channel input → the surface to pull, or the element to upload. */
+function bind(input: ShaderChannel): Bound {
+  if (!input) return { surface: null, element: null }
+  if (typeof (input as DitherSurface).pull === "function") return { surface: input as DitherSurface, element: null }
+  const inst = input as { surface?: DitherSurface; $el?: Element | null }
+  if (inst.surface && typeof inst.surface.pull === "function") return { surface: inst.surface, element: null }
+  const el = input instanceof Element ? input : inst.$el instanceof Element ? inst.$el : null
+  if (!el) return { surface: null, element: null }
+  if (el instanceof HTMLImageElement) return { surface: null, element: el.complete && el.naturalWidth ? el : null }
+  if (el instanceof HTMLVideoElement) return { surface: null, element: el.readyState >= 2 ? el : null }
+  const canvas = el instanceof HTMLCanvasElement ? el : el.querySelector("canvas")
+  if (!canvas) return { surface: null, element: null }
+  return { surface: surfaceOf(canvas), element: canvas }
+}
+
 // ---- the GPU half ---------------------------------------------------------------
 
 let handle: GlHandle | null | undefined
@@ -158,6 +196,11 @@ function compile(h: GlHandle, source: string): void {
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
   gl.enableVertexAttribArray(0)
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
+  gl.useProgram(p)
+  for (let i = 0; i < 4; i++) {
+    const loc = locations[`iChannel${i}` as "iChannel0"]
+    if (loc) gl.uniform1i(loc, i)
+  }
 }
 
 const dither = computed<ShaderDither>(() => ({
@@ -168,6 +211,58 @@ const dither = computed<ShaderDither>(() => ({
   shade: clamp01(props.shade),
   palette: props.colors && props.colors.length >= 2 ? props.colors.map(fillOf) : null,
 }))
+
+/** Upload the channels for this frame; returns their sizes for iChannelResolution. */
+function uploadChannels(h: GlHandle, t: number): Float32Array {
+  const gl = h.gl
+  const res = new Float32Array(12)
+  const times = new Float32Array(4)
+  const ms = directedTime()
+  for (let i = 0; i < 4; i++) {
+    const slot = slots[i]
+    const { surface, element } = bind(props.channels?.[i])
+    gl.activeTexture(gl.TEXTURE0 + i)
+    if (!surface && !element) {
+      gl.bindTexture(gl.TEXTURE_2D, null)
+      continue
+    }
+    if (!slot.tex) {
+      slot.tex = gl.createTexture()
+      gl.bindTexture(gl.TEXTURE_2D, slot.tex)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+      slot.version = -1
+    } else gl.bindTexture(gl.TEXTURE_2D, slot.tex)
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
+    if (surface) {
+      // A kit surface: the same moment as this frame, painted on demand.
+      const raster = surface.pull(ms)
+      if (raster) {
+        if (surface.version() !== slot.version || slot.w !== raster.width || slot.h !== raster.height) {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, raster.width, raster.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, raster.data)
+          slot.version = surface.version()
+          slot.w = raster.width
+          slot.h = raster.height
+        }
+      }
+    } else if (element) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, element)
+      slot.w = (element as HTMLCanvasElement).width ?? 0
+      slot.h = (element as HTMLCanvasElement).height ?? 0
+    }
+    res[i * 3] = slot.w
+    res[i * 3 + 1] = slot.h
+    res[i * 3 + 2] = 1
+    times[i] = t
+  }
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
+  const u = locations
+  if (u.iChannelResolution) gl.uniform3fv(u.iChannelResolution, res)
+  if (u.iChannelTime) gl.uniform1fv(u.iChannelTime, times)
+  return res
+}
 
 function draw(buffer: RasterBuffer, clock: number, dt: number) {
   if (handle === undefined) handle = createGl()
@@ -191,6 +286,7 @@ function draw(buffer: RasterBuffer, clock: number, dt: number) {
   handle.size(w, h)
   gl.useProgram(program)
   const t = clock * props.speed
+  if (props.channels?.length) uploadChannels(handle, t)
   const u = locations
   const now = new Date()
   const [cr, cg, cb] = fillOf(props.color)
@@ -239,13 +335,16 @@ function onUp() {
 
 onBeforeUnmount(() => {
   ctl?.abort()
-  if (handle && program) handle.gl.deleteProgram(program)
+  if (handle) {
+    if (program) handle.gl.deleteProgram(program)
+    for (const s of slots) if (s.tex) handle.gl.deleteTexture(s.tex)
+  }
   program = null
   handle?.dispose()
   handle = null
 })
 
-useDitherBackground({
+const surface = useDitherBackground({
   wrapRef,
   canvasRef,
   cell: () => Math.max(1, props.cell),
@@ -255,10 +354,12 @@ useDitherBackground({
   paused: () => props.paused,
   renderMode: () => props.renderMode,
   precompiled: () => undefined,
-  restart: () => [props.renderMode, props.dpr, props.cell, code.value, props.seed, props.color, props.colors, props.mono, props.dither, props.levels, props.shade, props.speed],
+  restart: () => [props.renderMode, props.dpr, props.cell, code.value, props.seed, props.color, props.colors, props.mono, props.dither, props.levels, props.shade, props.speed, props.channels],
   frameRate: () => props.frameRate,
   render: draw,
 })
+
+defineExpose({ surface })
 </script>
 
 <template>

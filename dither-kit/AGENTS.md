@@ -234,11 +234,38 @@ is its showcase and editor.
   shows an honest note for loading/empty/error. `tests/world.spec.ts`,
   `tests/vrml.spec.ts` and `tests/models.spec.ts` pin the engine, the
   grammars and every format.
+- The render graph: every surface on `use-dither-background` is a
+  `DitherSurface` — `raster()` (the last painted buffer), `pull(ms)`,
+  `version()`, `canvas()` — returned by the composable, exposed by
+  `DitherWorld`/`DitherShader` (`defineExpose({ surface })`) and reachable
+  from any kit canvas through `surfaceOf(canvas)`. `pull(ms)` is the edge
+  contract: under direction it paints the moment `ms` on demand when the
+  source has not painted it yet (a moment paints once — the clock's own
+  call then agrees), free-running it returns the latest raster; so a
+  consumer always reads a source at its own time stamp whatever order the
+  clock reaches them in, and a chain of surfaces seeks and renders as one.
+  Consumers: `DitherShader.channels` binds up to four sources as
+  `iChannel0..3` (a surface, a component instance, a kit canvas → its
+  surface; any other canvas, image or video → its current pixels, uploaded
+  upright with FLIP_Y, nearest-sampled, `iChannelResolution` set), and
+  `DitherWorld.shader` is a GLSL material over the finished target:
+  `wrapMaterial` wraps `mainMaterial(out vec4, in vec2)` (or a Shadertoy
+  `mainImage`) with `dk_cell/dk_shade/dk_depth/dk_covered/dk_color` over
+  the target packed by `packTarget` (R shade, G palette index + 1, B+A a
+  16-bit depth across the bounding sphere, empty cells far) and the
+  palette as a 256x1 texture; `createWorldMaterial` runs it on the
+  component's context (shared with the GPU engine; each pass sets its own
+  GL state) and `paintMaterial` thresholds the readback's alpha against the
+  Bayer cell with the readback's rgb (zero stays clear, so a material may
+  ink outside the silhouette), then `drawOverlays` as usual. Pinned by
+  `tests/surface.spec.ts` (the pull contract under a fake 2D context) and
+  the material cases in `tests/world.spec.ts` / `tests/shader.spec.ts`.
 - `gl.ts` is the kit's one piece of WebGL plumbing, shared by the GLSL
-  surface and the world's GPU engine: `createGl` (an offscreen WebGL2 or
-  WebGL1 context, context-loss flag, `size`, `read` back, `dispose`) and
-  `buildProgram` (the compiler's first line as the error). The GPU is only
-  ever an evaluator — every surface still dithers on the CPU.
+  surface, the world's GPU engine and the material pass: `createGl` (an
+  offscreen WebGL2 or WebGL1 context, context-loss flag, `size`, `read`
+  back, `dispose`) and `buildProgram` (the compiler's first line as the
+  error). The GPU is only ever an evaluator — every surface still dithers
+  on the CPU.
 - `shader.ts` + `DitherShader.vue` are the GLSL surface. The pure half:
   `wrapShader` builds a program around a user fragment shader — Shadertoy's
   `mainImage` gets the Shadertoy uniforms plus the kit's (`iColor` the
@@ -263,7 +290,8 @@ is its showcase and editor.
 - `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
   for that family: throttled rAF loop, backing buffer + upload, visibility gate,
   resize, dpr, static/reduced-motion single frame, and the mount/restart/teardown
-  lifecycle. `cell` is a number or a getter (a `cell` prop); `afterPaint`
+  lifecycle. It returns the surface's `DitherSurface` (see the render
+  graph). `cell` is a number or a getter (a `cell` prop); `afterPaint`
   runs after the upload with the canvas (bloom layers copy it). `paused` holds
   the raster but never leaves it blank: the first frame, and the frame after
   a restart, still paint before the loop stands down (so a paused surface

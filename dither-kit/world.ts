@@ -881,7 +881,16 @@ export function paintTarget(buffer: RasterBuffer, target: WorldTarget, world: Wo
     }
   }
 
-  // Outlines, line sets and point sets over the finished depth.
+  drawOverlays(buffer, target, world, view, style)
+}
+
+/** Outlines (`wire`), line sets and point sets over the finished depth. */
+export function drawOverlays(buffer: RasterBuffer, target: WorldTarget, world: World, view: WorldView, style: WorldStyle): void {
+  const cols = buffer.width
+  const rows = buffer.height
+  const data = buffer.data
+  const c = cameraOf(world, view, cols, rows)
+  const ramp = !style.material && style.ramp && style.ramp.length >= 2 ? style.ramp : null
   const mats = world.nodes.length ? nodeMatrices(world, view.time ?? 0) : null
   const bias = c.span * 0.02
   const top = ramp ? ramp[ramp.length - 1] : null
@@ -937,6 +946,56 @@ export function paintTarget(buffer: RasterBuffer, target: WorldTarget, world: Wo
       }
     }
   }
+}
+
+/**
+ * Stage two with a material: `rgba` is a GLSL material's output over the
+ * target (rows bottom-up, as read back from the GPU) — its alpha is the
+ * shade the Bayer cell thresholds, its rgb the colour; cells it leaves at
+ * zero stay clear, so a material may also paint outside the silhouette
+ * (an ink halo from depth edges). The overlays follow as usual.
+ */
+export function paintMaterial(buffer: RasterBuffer, target: WorldTarget, world: World, view: WorldView, style: WorldStyle, rgba: Uint8Array): void {
+  const cols = buffer.width
+  const rows = buffer.height
+  const data = buffer.data
+  data.fill(0)
+  if (target.width !== cols || target.height !== rows || rgba.length < cols * rows * 4) return
+  const shadeA = Math.round(clamp01(style.shade) * 255)
+  const mat = style.matrix
+  for (let y = 0; y < rows; y++) {
+    const row = mat[y & 3]
+    const src = (rows - 1 - y) * cols
+    for (let x = 0; x < cols; x++) {
+      const s = (src + x) * 4
+      const a = rgba[s + 3]
+      if (!a) continue
+      const o = (y * cols + x) * 4
+      data[o] = rgba[s]
+      data[o + 1] = rgba[s + 1]
+      data[o + 2] = rgba[s + 2]
+      data[o + 3] = a / 255 > row[x & 3] ? 255 : shadeA
+    }
+  }
+  drawOverlays(buffer, target, world, view, style)
+}
+
+/** Pack a target for the GPU: R shade, G palette index + 1, B + A a 16-bit
+ * depth across the bounding sphere (empty cells read as far). */
+export function packTarget(target: WorldTarget, world: World, view: WorldView, out?: Uint8Array): Uint8Array {
+  const n = target.width * target.height
+  const px = out && out.length === n * 4 ? out : new Uint8Array(n * 4)
+  const c = cameraOf(world, view, Math.max(1, target.width), Math.max(1, target.height))
+  for (let i = 0; i < n; i++) {
+    const idx = target.index[i]
+    const o = i * 4
+    px[o] = idx ? Math.round(clamp01(target.shade[i]) * 255) : 0
+    px[o + 1] = idx
+    const code = idx ? Math.round(clamp01((target.depth[i] - c.near) / c.span) * 65535) : 65535
+    px[o + 2] = code >> 8
+    px[o + 3] = code & 255
+  }
+  return px
 }
 
 let cpuTarget: WorldTarget | null = null

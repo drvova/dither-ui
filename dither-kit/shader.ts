@@ -24,12 +24,26 @@ export type ShaderProgram = {
  * (glslsandbox `time`/`resolution`/`mouse`, Book of Shaders `u_*`). */
 export const SHADER_UNIFORMS = [
   "iResolution", "iTime", "iTimeDelta", "iFrame", "iMouse", "iDate", "iColor", "iSeed",
+  "iChannel0", "iChannel1", "iChannel2", "iChannel3", "iChannelResolution", "iChannelTime",
   "resolution", "time", "mouse", "u_resolution", "u_time", "u_mouse",
 ] as const
 
+/** The kit's helpers for any GLSL here: `dk_bayer4(fragCoord)` is the 4x4
+ * Bayer threshold for that pixel in closed form, so a shader can dither in
+ * its own terms. */
+const KIT_HELPERS = `float dk_bayer2(float x, float y) { return 2.0 * x + 3.0 * y - 4.0 * x * y; }
+float dk_bayer4(vec2 p) {
+  float x0 = mod(floor(p.x), 2.0);
+  float y0 = mod(floor(p.y), 2.0);
+  float x1 = mod(floor(p.x / 2.0), 2.0);
+  float y1 = mod(floor(p.y / 2.0), 2.0);
+  return (4.0 * dk_bayer2(x0, y0) + dk_bayer2(x1, y1) + 0.5) / 16.0;
+}
+`
+
 /** The Shadertoy set plus the kit's: `iColor` (the component's colour, 0-1)
- * and `iSeed`, and `dk_bayer4(fragCoord)` — the kit's 4x4 Bayer threshold
- * for that pixel, so a shader can dither in its own terms. */
+ * and `iSeed`; `iChannel0..3` are other kit surfaces (or any canvas, image
+ * or video) bound as textures, upright, `iChannelResolution` their sizes. */
 const SHADERTOY_UNIFORMS = `uniform vec3 iResolution;
 uniform float iTime;
 uniform float iTimeDelta;
@@ -38,14 +52,28 @@ uniform vec4 iMouse;
 uniform vec4 iDate;
 uniform vec3 iColor;
 uniform float iSeed;
-float dk_bayer2(float x, float y) { return 2.0 * x + 3.0 * y - 4.0 * x * y; }
-float dk_bayer4(vec2 p) {
-  float x0 = mod(floor(p.x), 2.0);
-  float y0 = mod(floor(p.y), 2.0);
-  float x1 = mod(floor(p.x / 2.0), 2.0);
-  float y1 = mod(floor(p.y / 2.0), 2.0);
-  return (4.0 * dk_bayer2(x0, y0) + dk_bayer2(x1, y1) + 0.5) / 16.0;
-}
+uniform sampler2D iChannel0;
+uniform sampler2D iChannel1;
+uniform sampler2D iChannel2;
+uniform sampler2D iChannel3;
+uniform vec3 iChannelResolution[4];
+uniform float iChannelTime[4];
+${KIT_HELPERS}`
+
+/** A world material's view of the finished target (`world.ts`
+ * WorldTarget, packed into one texture: R shade, G palette index / 255,
+ * B + A a 16-bit depth across the bounding sphere) and the palette. */
+const MATERIAL_UNIFORMS = `uniform sampler2D dk_target;
+uniform sampler2D dk_palette;
+uniform vec3 iResolution;
+uniform float iTime;
+uniform vec3 iColor;
+uniform float iSeed;
+${KIT_HELPERS}vec4 dk_cell(vec2 p) { return texture(dk_target, (floor(p) + 0.5) / iResolution.xy); }
+float dk_shade(vec2 p) { return dk_cell(p).r; }
+bool dk_covered(vec2 p) { return dk_cell(p).g > 0.0; }
+float dk_depth(vec2 p) { vec4 t = dk_cell(p); return t.g > 0.0 ? (t.b * 65280.0 + t.a * 255.0) / 65535.0 : 1.0; }
+vec3 dk_color(vec2 p) { float i = dk_cell(p).g * 255.0; return texture(dk_palette, vec2((i - 0.5) / 256.0, 0.5)).rgb; }
 `
 
 const VERTEX_1 = "attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }"
@@ -71,7 +99,7 @@ export function wrapShader(source: string, webgl2: boolean): ShaderProgram {
       }
     return {
       vertex: VERTEX_1,
-      fragment: `precision highp float;\nprecision highp int;\n${SHADERTOY_UNIFORMS}#line 1\n${body}\nvoid main() { vec4 c = vec4(0.0); mainImage(c, gl_FragCoord.xy); gl_FragColor = c; }\n`,
+      fragment: `precision highp float;\nprecision highp int;\n#define texture texture2D\n${SHADERTOY_UNIFORMS}#line 1\n${body}\nvoid main() { vec4 c = vec4(0.0); mainImage(c, gl_FragCoord.xy); gl_FragColor = c; }\n`,
       convention: "shadertoy",
       version: 1,
     }
@@ -82,6 +110,30 @@ export function wrapShader(source: string, webgl2: boolean): ShaderProgram {
     fragment: needsPrecision ? `precision highp float;\n#line 1\n${src}` : src,
     convention: "raw",
     version: es3 ? 2 : 1,
+  }
+}
+
+/**
+ * Build a world material: a fragment function over the finished target —
+ * `mainMaterial(out vec4 fragColor, in vec2 fragCoord)` (or a Shadertoy
+ * `mainImage`) reading `dk_shade`, `dk_depth`, `dk_covered`, `dk_color`
+ * per cell and returning rgb + the shade the dither pass thresholds.
+ */
+export function wrapMaterial(source: string, webgl2: boolean): ShaderProgram {
+  const body = source.replace(/\r\n?/g, "\n").replace(/^\s*#version[^\n]*\n/, "")
+  const entry = /\bmainMaterial\s*\(/.test(body) ? "mainMaterial" : "mainImage"
+  if (webgl2)
+    return {
+      vertex: VERTEX_2,
+      fragment: `#version 300 es\nprecision highp float;\nprecision highp int;\n${MATERIAL_UNIFORMS}out vec4 dither_FragColor;\n#line 1\n${body}\nvoid main() { ${entry}(dither_FragColor, gl_FragCoord.xy); }\n`,
+      convention: "shadertoy",
+      version: 2,
+    }
+  return {
+    vertex: VERTEX_1,
+    fragment: `precision highp float;\nprecision highp int;\n#define texture texture2D\n${MATERIAL_UNIFORMS}#line 1\n${body}\nvoid main() { vec4 c = vec4(0.0); ${entry}(c, gl_FragCoord.xy); gl_FragColor = c; }\n`,
+    convention: "shadertoy",
+    version: 1,
   }
 }
 

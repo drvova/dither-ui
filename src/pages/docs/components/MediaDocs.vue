@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue"
-import { DitherBracket, DitherSchedule, DitherShader, DitherVideoPlayer, DitherWorld, sampleShader, sampleWorld, type BracketMatch } from "@dither-kit"
+import { DitherAurora, DitherBracket, DitherSchedule, DitherShader, DitherVideoPlayer, DitherWorld, sampleShader, sampleWorld, type BracketMatch } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -40,7 +40,34 @@ const worldRamp = ref(false)
 const worldGrain = ref(false)
 const worldBloom = ref(false)
 const worldEngine = ref<"cpu" | "gpu">("cpu")
+const worldInk = ref(false)
 const RAMP = ["#0b1a3a", "#1f6fd6", "#9ec5ff", "#ffffff"]
+
+/* A GLSL material over the world's target: ink where depth jumps, a dimmer
+   body inside, nothing outside. */
+const INK = `void mainMaterial(out vec4 o, in vec2 p) {
+  float d = dk_depth(p);
+  float edge = 0.0;
+  edge = max(edge, abs(dk_depth(p + vec2(1.0, 0.0)) - d));
+  edge = max(edge, abs(dk_depth(p - vec2(1.0, 0.0)) - d));
+  edge = max(edge, abs(dk_depth(p + vec2(0.0, 1.0)) - d));
+  edge = max(edge, abs(dk_depth(p - vec2(0.0, 1.0)) - d));
+  if (edge > 0.05) { o = vec4(1.0, 1.0, 1.0, 1.0); return; }
+  o = dk_covered(p) ? vec4(iColor, dk_shade(p) * 0.85) : vec4(0.0);
+}`
+
+/* The render graph: a kit surface bound as iChannel0 of a CRT shader. */
+const auroraRef = ref<InstanceType<typeof DitherAurora> | null>(null)
+const CRT = `void mainImage(out vec4 o, in vec2 fc) {
+  vec2 c = fc / iResolution.xy * 2.0 - 1.0;
+  c *= 1.0 + 0.18 * dot(c, c);                       // barrel
+  vec2 uv = c * 0.5 + 0.5;
+  if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) { o = vec4(0.0); return; }
+  vec3 col = texture(iChannel0, uv).rgb;              // the aurora, upright
+  col *= 0.8 + 0.2 * sin(fc.y * 3.14159 + iTime * 2.0); // rolling scanlines
+  col *= 1.0 - 0.45 * dot(c, c);                      // vignette
+  o = vec4(col, 1.0);
+}`
 
 /* Shader: the seeded sample is real Shadertoy-style GLSL, shown in the code tab. */
 const SHADER = sampleShader(3)
@@ -76,6 +103,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "dither", type: "number — ramp mode: 0 smooth → 1 banded", default: "1" },
     { prop: "material", type: "boolean — the file's own colours (materials, face and vertex colours)", default: "false" },
     { prop: "wire", type: "boolean — polygon outlines, hidden lines removed", default: "false" },
+    { prop: "shader", type: "string — a GLSL material over the finished target: mainMaterial(out vec4, in vec2) reads dk_shade · dk_depth · dk_covered · dk_color per cell and returns rgb + the shade the Bayer cell thresholds (WebGL)", default: "undefined" },
     { prop: "grain / grainScale", type: "number — fbm grain over the model's own space, and its frequency", default: "0 / 4" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura" | config | seed — the glow layer', default: '"off"' },
     { prop: "animate / time", type: "boolean / number — play the file's animations (VRML ROUTEs, glTF) on the clock, or pin a moment", default: "true / undefined" },
@@ -94,7 +122,8 @@ const API: Record<string, PropRow[]> = {
   shader: [
     { prop: "src", type: "string — URL of a .frag / .glsl file", default: "undefined" },
     { prop: "source", type: "string — inline GLSL: Shadertoy mainImage or a raw main; wins over src", default: "undefined" },
-    { prop: "uniforms", type: "iResolution · iTime · iTimeDelta · iFrame · iMouse · iDate · iColor · iSeed, plus time/resolution/mouse and u_time/u_resolution/u_mouse; dk_bayer4(fragCoord) is the kit's Bayer threshold", default: "—" },
+    { prop: "channels", type: "(surface | component | canvas | image | video)[] — bound as iChannel0..3; a kit surface is pulled at the same clock time, so the graph seeks and renders as one", default: "undefined" },
+    { prop: "uniforms", type: "iResolution · iTime · iTimeDelta · iFrame · iMouse · iDate · iColor · iSeed · iChannel0..3 · iChannelResolution, plus time/resolution/mouse and u_time/u_resolution/u_mouse; dk_bayer4(fragCoord) is the kit's Bayer threshold", default: "—" },
     { prop: "color", type: "PixelColor — the mono tint and iColor", default: '"blue"' },
     { prop: "colors", type: "PixelColor[] — a palette ramp: luminance picks the band, the Bayer cell dithers between bands", default: "undefined" },
     { prop: "mono", type: "boolean — 1-bit luminance in color instead of the shader's colours", default: "false" },
@@ -140,6 +169,10 @@ const SNIPPET_WORLD = `<DitherWorld src="/models/rover.glb" color="blue" :auto-r
 <DitherWorld :source="world" :colors="['#0b1a3a', '#1f6fd6', '#9ec5ff', '#fff']" :grain="0.5" bloom="low" />
 <!-- the kit's other engines in the shade: a palette ramp, fbm grain, bloom -->
 
+<DitherWorld :source="world" :shader="ink" />
+<!-- a GLSL material over the finished target: dk_depth / dk_shade / dk_covered /
+     dk_color per cell; its alpha is the shade the Bayer cell thresholds -->
+
 <script setup>
 // The default content is this seeded VRML97 file, parsed like any other:
 const world = \`${WORLD}\`
@@ -149,6 +182,11 @@ const SNIPPET_SHADER = `<DitherShader src="/shaders/plasma.frag" :levels="2" />
 <!-- Shadertoy conventions (mainImage, iTime, iResolution, iMouse) or a raw
      main(); runs at the cell resolution, read back and ordered-dithered.
      Needs WebGL; iTime follows the kit clock, so it seeks and renders. -->
+
+<DitherAurora ref="aurora" />
+<DitherShader :channels="[aurora]" :source="crt" />
+<!-- the render graph: any kit surface (or canvas, image, video) is iChannel0..3;
+     a kit surface is pulled at the same clock time, so the chain seeks as one -->
 
 <DitherShader :source="shader" mono color="blue" />
 
@@ -252,7 +290,9 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
       Files bring their own materials, face colours, lights, viewpoint and
       animations: this sample's arms revolve and its antenna bobs by its
       own TimeSensor and ROUTEs, on the kit clock. The shade can run through the kit's other
-      engines too: a palette ramp, fbm grain, bloom. Drag to orbit.
+      engines too: a palette ramp, fbm grain, bloom, or your own GLSL
+      material over the finished target (ink from depth edges here). Drag to
+      orbit.
     </p>
     <DemoCard :code="SNIPPET_WORLD">
       <div class="mx-auto max-w-md">
@@ -263,12 +303,14 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
           :grain="worldGrain ? 0.6 : 0"
           :bloom="worldBloom ? 'low' : 'off'"
           :engine="worldEngine"
+          :shader="worldInk ? INK : undefined"
           color="blue"
           label="Sample probe, seed 7"
           class="h-[280px]"
         />
         <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-muted-foreground">
           <label class="flex items-center gap-2"><input v-model="worldWire" type="checkbox" class="accent-[var(--accent)]" /> wire</label>
+          <label class="flex items-center gap-2"><input v-model="worldInk" type="checkbox" class="accent-[var(--accent)]" /> ink</label>
           <label class="flex items-center gap-2"><input v-model="worldRamp" type="checkbox" class="accent-[var(--accent)]" /> ramp</label>
           <label class="flex items-center gap-2"><input v-model="worldGrain" type="checkbox" class="accent-[var(--accent)]" /> grain</label>
           <label class="flex items-center gap-2"><input v-model="worldBloom" type="checkbox" class="accent-[var(--accent)]" /> bloom</label>
@@ -294,7 +336,10 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
       ordered-dithered on the way back — one bit per channel for the
       eight-colour look, or luminance in a single tint. iTime follows the kit
       clock, so it seeks and renders to video like everything else, and the
-      pointer feeds iMouse.
+      pointer feeds iMouse. Surfaces chain: any kit surface can be bound as
+      iChannel0..3, pulled at the same clock time, so a background, a chart or
+      a world can be post-processed by a shader and the whole graph still
+      seeks and renders as one. Below, an aurora through a CRT.
     </p>
     <DemoCard :code="SNIPPET_SHADER">
       <div class="mx-auto max-w-md">
@@ -303,6 +348,16 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
           <input v-model="shaderMono" type="checkbox" class="accent-[var(--accent)]" />
           mono
         </label>
+        <div class="mt-4 grid grid-cols-[1fr_3fr] items-end gap-3" data-graph>
+          <div>
+            <p class="mb-1 text-[10px] text-muted-foreground">source: aurora</p>
+            <DitherAurora ref="auroraRef" :colors="['#1f6fd6', '#9ec5ff', '#ffffff']" :speed="0.8" class="h-[70px]" />
+          </div>
+          <div>
+            <p class="mb-1 text-[10px] text-muted-foreground">iChannel0 through a CRT shader</p>
+            <DitherShader :channels="[auroraRef]" :source="CRT" label="Aurora through a CRT shader" class="h-[200px]" />
+          </div>
+        </div>
       </div>
     </DemoCard>
     <PropsTable :rows="API.shader" />

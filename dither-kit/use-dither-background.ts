@@ -49,7 +49,30 @@ export type DitherBackgroundOptions = {
   afterPaint?: (canvas: HTMLCanvasElement) => void
 }
 
-export function useDitherBackground(opts: DitherBackgroundOptions): void {
+/**
+ * A painted surface as other surfaces see it — the render graph's edge. A
+ * consumer (a shader channel, a world material) reads a source through this
+ * handle: `pull(ms)` paints the directed moment on demand when the source
+ * has not painted it yet, so a consumer always reads a source at its own
+ * time stamp whatever order the clock reaches them in.
+ */
+export type DitherSurface = {
+  /** The raster as of the last paint, null before the first. */
+  raster: () => RasterBuffer | null
+  /** Paints `ms` now when directed and not yet painted; free-running or null, the latest raster. */
+  pull: (ms: number | null) => RasterBuffer | null
+  /** Bumps on every paint — consumers skip re-uploads while it is unchanged. */
+  version: () => number
+  /** The canvas the raster is uploaded to (null before mount). */
+  canvas: () => HTMLCanvasElement | null
+}
+
+const surfaces = new WeakMap<HTMLCanvasElement, DitherSurface>()
+
+/** The surface behind a kit canvas, when the canvas is one of this runtime's. */
+export const surfaceOf = (canvas: HTMLCanvasElement | null | undefined): DitherSurface | null => (canvas ? (surfaces.get(canvas) ?? null) : null)
+
+export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurface {
   let raf = 0
   let ro: ResizeObserver | null = null
   let restartToken = 0
@@ -58,9 +81,20 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
   let lastFrame = -1
   let startNow = 0
   let lastSeek = -1
+  let paintedSeek = -1
+  let version = 0
   let buffer: RasterBuffer | null = null
   let imageData: ImageData | undefined
   const isVisible = useCanvasVisibility(opts.wrapRef, () => wake())
+  const surface: DitherSurface = {
+    raster: () => buffer,
+    pull(ms) {
+      if (ms !== null && isDirected()) seekTo(ms)
+      return buffer
+    },
+    version: () => version,
+    canvas: () => opts.canvasRef.value,
+  }
 
   function dprFactor(): number {
     const raw = opts.dpr() ?? (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1)
@@ -85,9 +119,11 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     if (!buffer || buffer.width !== cols || buffer.height !== rows) {
       buffer = createRasterBuffer(cols, rows)
       imageData = undefined
+      paintedSeek = -1
       canvas.width = cols
       canvas.height = rows
     }
+    if (!surfaces.has(canvas)) surfaces.set(canvas, surface)
     return ctx
   }
 
@@ -95,6 +131,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     if (!buffer) return
     opts.render(buffer, clock, dt, elapsed)
     imageData = putRasterBuffer(ctx, buffer, imageData)
+    version++
     if (opts.afterPaint && opts.canvasRef.value) opts.afterPaint(opts.canvasRef.value)
   }
 
@@ -162,9 +199,12 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     if (opts.paused() || opts.precompiled() || opts.renderMode() === "static") return
     const ctx = measure()
     if (!ctx) return
+    // A moment paints once: a consumer's pull and the clock's own call agree.
+    if (paintedSeek === ms) return
     const scale = opts.timeScale ? opts.timeScale() : 1
     const dt = lastSeek >= 0 && ms > lastSeek ? Math.min(0.1, (ms - lastSeek) / 1000) : 0
     lastSeek = ms
+    paintedSeek = ms
     clock = (ms / 1000) * scale
     draw(ctx, dt, ms)
   }
@@ -178,6 +218,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
       startNow = typeof performance !== "undefined" ? performance.now() : 0
       lastPaint = 0
       lastSeek = -1
+      paintedSeek = -1
       if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) {
         clock = opts.staticClock ?? 4
         // Retry the one-shot until the canvas ref settles.
@@ -230,4 +271,5 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     unseek()
     stop()
   })
+  return surface
 }

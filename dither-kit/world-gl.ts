@@ -9,7 +9,9 @@
 // default. Node animation poses on the GPU through a per-mesh matrix.
 
 import { buildProgram, createGl, type Gl, type GlHandle } from "./gl"
-import { cameraOf, meshGrain, nodeMatrices, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
+import type { Rgb } from "./palette"
+import { wrapMaterial } from "./shader"
+import { cameraOf, meshGrain, nodeMatrices, packTarget, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
 
 const VERTEX = (es3: boolean) => `${es3 ? "#version 300 es\n#define IN in\n#define OUT out\n" : "#define IN attribute\n#define OUT varying\n"}
 IN vec3 p;
@@ -74,9 +76,11 @@ export type WorldGpu = {
   dispose: () => void
 }
 
-/** A GPU engine instance (one context, buffers cached per mesh). */
-export function createWorldGpu(): WorldGpu {
-  let handle: GlHandle | null | undefined
+/** A GPU engine instance (one context, buffers cached per mesh). A shared
+ * `GlHandle` (one context per component, used by the material pass too)
+ * stays the caller's to dispose. */
+export function createWorldGpu(shared?: GlHandle): WorldGpu {
+  let handle: GlHandle | null | undefined = shared
   let program: WebGLProgram | null = null
   let problem = ""
   let pixels = new Uint8Array(0)
@@ -102,12 +106,13 @@ export function createWorldGpu(): WorldGpu {
       }
       program = built
       for (const name of ["uModel", "uCenter", "uRot", "uCam", "uDepth", "uLights", "uLightCount", "uGrain"]) uniforms[name] = gl.getUniformLocation(program, name)
-      gl.enable(gl.DEPTH_TEST)
-      gl.depthFunc(gl.LESS)
-      gl.disable(gl.BLEND)
-      gl.frontFace(gl.CCW)
-      gl.cullFace(gl.BACK)
     }
+    // Per-pass state: the material pass on the same context sets its own.
+    gl.enable(gl.DEPTH_TEST)
+    gl.depthFunc(gl.LESS)
+    gl.disable(gl.BLEND)
+    gl.frontFace(gl.CCW)
+    gl.cullFace(gl.BACK)
     return gl
   }
 
@@ -256,7 +261,129 @@ export function createWorldGpu(): WorldGpu {
     dispose() {
       if (handle && program) handle.gl.deleteProgram(program)
       program = null
-      handle?.dispose()
+      if (handle && handle !== shared) handle.dispose()
+      handle = null
+    },
+  }
+}
+
+export type MaterialInputs = { time: number; color: Rgb; seed: number }
+
+export type WorldMaterial = {
+  /** Run `source` over the target; the RGBA readback (rows bottom-up) for
+   * `paintMaterial`, or null when WebGL is missing or the shader failed. */
+  shade: (source: string, target: WorldTarget, world: World, view: WorldView, inputs: MaterialInputs) => Uint8Array | null
+  problem: () => string
+  dispose: () => void
+}
+
+/** A GLSL material pass over a finished WorldTarget (see `wrapMaterial`):
+ * the target packed into one texture, the palette into another, a
+ * fullscreen triangle, a readback. Shares the component's context. */
+export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
+  let handle: GlHandle | null | undefined = shared
+  let program: WebGLProgram | null = null
+  let compiled: string | null = null
+  let problem = ""
+  let quad: WebGLBuffer | null = null
+  let targetTex: WebGLTexture | null = null
+  let paletteTex: WebGLTexture | null = null
+  let packed = new Uint8Array(0)
+  let pixels = new Uint8Array(0)
+  const palette = new Uint8Array(256 * 4)
+  const uniforms: Record<string, WebGLUniformLocation | null> = {}
+
+  const texture = (gl: Gl): WebGLTexture | null => {
+    const t = gl.createTexture()
+    if (!t) return null
+    gl.bindTexture(gl.TEXTURE_2D, t)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    return t
+  }
+
+  const setup = (source: string): Gl | null => {
+    if (handle === undefined) {
+      handle = createGl()
+      if (!handle) problem = "WebGL is not available"
+    }
+    if (!handle || handle.lost()) return null
+    const gl = handle.gl
+    if (compiled !== source) {
+      if (program) gl.deleteProgram(program)
+      program = null
+      compiled = source
+      const built = wrapMaterial(source, handle.webgl2)
+      const p = buildProgram(gl, built.vertex, built.fragment, ["p"])
+      if (typeof p === "string") {
+        problem = p
+        return null
+      }
+      program = p
+      problem = ""
+      for (const name of ["dk_target", "dk_palette", "iResolution", "iTime", "iColor", "iSeed"]) uniforms[name] = gl.getUniformLocation(p, name)
+      quad = quad ?? gl.createBuffer()
+      gl.bindBuffer(gl.ARRAY_BUFFER, quad)
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
+      targetTex = targetTex ?? texture(gl)
+      paletteTex = paletteTex ?? texture(gl)
+    }
+    return program ? gl : null
+  }
+
+  return {
+    problem: () => problem,
+    shade(source, target, world, view, inputs) {
+      const gl = setup(source)
+      if (!gl || !handle || !program) return null
+      const cols = target.width
+      const rows = target.height
+      handle.size(cols, rows)
+      packed = packTarget(target, world, view, packed)
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
+      gl.activeTexture(gl.TEXTURE0)
+      gl.bindTexture(gl.TEXTURE_2D, targetTex)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, cols, rows, 0, gl.RGBA, gl.UNSIGNED_BYTE, packed)
+      palette.fill(0)
+      world.palette.forEach((c, i) => {
+        if (i < 256) palette.set([c[0], c[1], c[2], 255], i * 4)
+      })
+      gl.activeTexture(gl.TEXTURE1)
+      gl.bindTexture(gl.TEXTURE_2D, paletteTex)
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, palette)
+      gl.disable(gl.DEPTH_TEST)
+      gl.disable(gl.CULL_FACE)
+      gl.disable(gl.BLEND)
+      gl.clearColor(0, 0, 0, 0)
+      gl.clear(gl.COLOR_BUFFER_BIT)
+      gl.useProgram(program)
+      gl.bindBuffer(gl.ARRAY_BUFFER, quad)
+      gl.enableVertexAttribArray(0)
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
+      gl.disableVertexAttribArray(1)
+      gl.disableVertexAttribArray(2)
+      gl.uniform1i(uniforms.dk_target, 0)
+      gl.uniform1i(uniforms.dk_palette, 1)
+      gl.uniform3f(uniforms.iResolution, cols, rows, 1)
+      gl.uniform1f(uniforms.iTime, inputs.time)
+      gl.uniform3f(uniforms.iColor, inputs.color[0] / 255, inputs.color[1] / 255, inputs.color[2] / 255)
+      gl.uniform1f(uniforms.iSeed, inputs.seed)
+      gl.drawArrays(gl.TRIANGLES, 0, 3)
+      pixels = handle.read(pixels)
+      return pixels
+    },
+    dispose() {
+      if (handle) {
+        if (program) handle.gl.deleteProgram(program)
+        if (targetTex) handle.gl.deleteTexture(targetTex)
+        if (paletteTex) handle.gl.deleteTexture(paletteTex)
+        if (quad) handle.gl.deleteBuffer(quad)
+        if (handle !== shared) handle.dispose()
+      }
+      program = null
       handle = null
     },
   }

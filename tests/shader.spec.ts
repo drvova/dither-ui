@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { BAYER4 } from "../dither-kit/pixel"
 import { createRasterBuffer } from "../dither-kit/raster"
-import { ditherShaderPixels, sampleShader, SHADER_UNIFORMS, wrapShader, type ShaderDither } from "../dither-kit/shader"
+import { ditherShaderPixels, sampleShader, SHADER_UNIFORMS, wrapMaterial, wrapShader, type ShaderDither } from "../dither-kit/shader"
 
 const TOY = "void mainImage(out vec4 o, in vec2 fc) { o = vec4(fc / iResolution.xy, 0.5 + 0.5 * sin(iTime), 1.0); }"
 const RAW1 = "uniform float time; void main() { gl_FragColor = vec4(sin(time)); }"
@@ -37,7 +37,24 @@ describe("wrapShader", () => {
   it("knows every uniform the runtime feeds", () => {
     expect(SHADER_UNIFORMS).toContain("iMouse")
     expect(SHADER_UNIFORMS).toContain("u_resolution")
+    expect(SHADER_UNIFORMS).toContain("iChannel3")
     expect(new Set(SHADER_UNIFORMS).size).toBe(SHADER_UNIFORMS.length)
+  })
+  it("binds channels and the kit's helpers into Shadertoy sources", () => {
+    const es3 = wrapShader(TOY, true).fragment
+    for (const line of ["uniform sampler2D iChannel0;", "uniform sampler2D iChannel3;", "uniform vec3 iChannelResolution[4];", "uniform vec3 iColor;", "float dk_bayer4(vec2 p)"]) expect(es3).toContain(line)
+    const es1 = wrapShader(TOY, false).fragment
+    expect(es1).toContain("#define texture texture2D")
+    expect(es1.indexOf("#define texture")).toBeLessThan(es1.indexOf("uniform sampler2D iChannel0"))
+  })
+  it("wraps world materials over the packed target, by either entry point", () => {
+    const m = wrapMaterial("void mainMaterial(out vec4 o, in vec2 p) { o = vec4(dk_color(p), dk_shade(p) * float(dk_covered(p)) + dk_depth(p) * 0.0); }", true)
+    expect(m.version).toBe(2)
+    for (const line of ["uniform sampler2D dk_target;", "uniform sampler2D dk_palette;", "float dk_depth(vec2 p)", "vec3 dk_color(vec2 p)", "bool dk_covered(vec2 p)", "void main() { mainMaterial(dither_FragColor, gl_FragCoord.xy); }"]) expect(m.fragment).toContain(line)
+    const toy = wrapMaterial("void mainImage(out vec4 o, in vec2 p) { o = vec4(1.0); }", false)
+    expect(toy.version).toBe(1)
+    expect(toy.fragment).toContain("mainImage(c, gl_FragCoord.xy)")
+    expect(toy.fragment).toContain("#define texture texture2D")
   })
 })
 
