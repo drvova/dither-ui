@@ -4,7 +4,7 @@
 // serialize — text, headings, props tables, and code do, which is what
 // search needs. The module scripts stay in the snapshot, so browsers
 // re-mount the interactive app on top. Runs as the last step of `npm run build`.
-import { access, readFile, stat, writeFile } from "node:fs/promises"
+import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import { createReadStream, existsSync } from "node:fs"
 import { createServer } from "node:http"
 import { extname, join, normalize } from "node:path"
@@ -84,6 +84,109 @@ const server = serve()
 await new Promise((r) => server.listen(0, "127.0.0.1", r))
 const port = server.address().port
 const browser = await chromium.launch({ executablePath: findChromium() })
+
+/* ---------------- SEO engine: og cards + per-section docs pages ---------- */
+
+// The og card renderer's data contract, emitted by the crawler plugin.
+async function renderOgCards() {
+  const manifestPath = join(DIST, "og", "sections.json")
+  let sections
+  try {
+    sections = JSON.parse(await readFile(manifestPath, "utf8"))
+  } catch {
+    console.log("og: no sections manifest — skipping og cards (crawler plugin emits it)")
+    return
+  }
+  // Card render is the build's long pole (~1s/section); a manifest-hash
+  // marker skips it when no label/title/id changed.
+  const { createHash } = await import("node:crypto")
+  const hash = createHash("sha256").update(JSON.stringify(sections)).digest("hex").slice(0, 16)
+  const marker = join(DIST, "og", ".cards-hash")
+  if (await access(marker).then(() => true, () => false)) {
+    const prev = (await readFile(marker, "utf8")).trim()
+    if (prev === hash) {
+      console.log(`og: manifest unchanged (${sections.length} cards cached) — skipping render`)
+      return
+    }
+  }
+  const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
+  let done = 0
+  for (const s of sections) {
+    await page.goto(`http://127.0.0.1:${port}/og/index.html?id=${encodeURIComponent(s.id)}`, {
+      waitUntil: "networkidle",
+    })
+    try {
+      await page.waitForFunction(() => document.title === "og-ready", { timeout: 10_000 })
+      await page.waitForTimeout(120)
+      await page.screenshot({ path: join(DIST, "og", `${s.id}.png`), clip: { x: 0, y: 0, width: 1200, height: 630 } })
+      done++
+    } catch (err) {
+      console.log(`og: card for "${s.id}" failed (${String(err).slice(0, 80)}) — embed falls back to the site og.png`)
+    }
+  }
+  await page.close()
+  await writeFile(marker, hash)
+  console.log(`og: rendered ${done}/${sections.length} section cards -> dist/og/*.png`)
+}
+
+// One prerendered docs DOM serves every section: clone the entry and swap in
+// each section's head (title/description/canonical/og/twitter/breadcrumb +
+// the section's og card). The client mounts over these bytes and re-derives
+// per-section state, so only the head differs per file.
+async function writeSectionPages() {
+  let sections
+  try {
+    sections = JSON.parse(await readFile(join(DIST, "og", "sections.json"), "utf8"))
+  } catch {
+    console.log("sections: no manifest — skipping per-section pages")
+    return
+  }
+  const entry = await readFile(join(DIST, "docs", "index.html"), "utf8")
+  const SITE = "https://dither-ui.com"
+  // The source head's STATIC assets (module scripts, stylesheets, icons) are
+  // what the section page reuses; every meta/title/canonical/ld line is
+  // stripped first so the section's own block can be injected exactly once —
+  // stripping after injection would self-clobber (the injected block matches
+  // the same patterns and sits earlier in document order).
+  const noLd = entry.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "")
+  const headMatch = noLd.match(/<head>[\s\S]*?<\/head>/)
+  if (!headMatch) {
+    console.log("sections: docs head not found — skipping per-section pages")
+    return
+  }
+  const headLines = headMatch[0]
+    .split("\n")
+    .filter((l) => !/<title>|name="description"|name="twitter:|property="og:|rel="canonical"/.test(l))
+  const strippedHead = headLines.join("\n")
+  let written = 0
+  for (const s of sections) {
+    const ogImage = `${SITE}/og/${s.id}.png`
+    const esc = (v) => v.replace(/"/g, "&quot;")
+    const headBlock =
+      `\n    <title>${esc(s.title)}</title>\n` +
+      `    <meta name="description" content="${esc(s.description)}" />\n` +
+      `    <link rel="canonical" href="${s.url}" />\n` +
+      `    <meta property="og:type" content="article" />\n` +
+      `    <meta property="og:title" content="${esc(s.title)}" />\n` +
+      `    <meta property="og:description" content="${esc(s.description)}" />\n` +
+      `    <meta property="og:url" content="${s.url}" />\n` +
+      `    <meta property="og:image" content="${ogImage}" />\n` +
+      `    <meta property="og:image:width" content="1200" />\n` +
+      `    <meta property="og:image:height" content="630" />\n` +
+      `    <meta name="twitter:card" content="summary_large_image" />\n` +
+      `    <meta name="twitter:title" content="${esc(s.title)}" />\n` +
+      `    <meta name="twitter:description" content="${esc(s.description)}" />\n` +
+      `    <meta name="twitter:image" content="${ogImage}" />\n` +
+      `    <script type="application/ld+json">${s.breadcrumb}</script>`
+    const html = noLd.replace(headMatch[0], strippedHead.replace("<head>", "<head>" + headBlock))
+    const dir = join(DIST, "docs", s.id)
+    await mkdir(dir, { recursive: true })
+    await writeFile(join(dir, "index.html"), html)
+    written++
+  }
+  console.log(`sections: wrote ${written} per-section docs pages -> dist/docs/<id>/index.html`)
+}
+
 try {
   const page = await browser.newPage()
   for (const route of ROUTES) {
@@ -119,6 +222,10 @@ try {
     await writeFile(entry, html)
     console.log(`prerendered ${route.path} -> dist/${route.entry} (${(html.length / 1024).toFixed(0)} kB)`)
   }
+  // The SEO engine's two phases, on the same browser: the per-section og
+  // cards first (the section pages reference them), then the pages.
+  await renderOgCards()
+  await writeSectionPages()
 } finally {
   await browser.close()
   server.close()

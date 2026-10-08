@@ -100,6 +100,22 @@ Default section order:
   `SITE_URL` + `GROUPS` (a dead section id fails the build), declares an
   explicit allow-all AI-crawler posture, and ships a curated llmstxt.org
   index. Guarded by `tests/crawler-files.spec.ts`.
+- SEO engine (in `scripts/prerender.mjs`, after the three routes): renders a
+  1200x630 og card per docs section (`dist/og/<id>.png`, from the
+  self-contained `ogCardPage()` renderer + `sectionsManifest()`, cached by a
+  manifest hash in `dist/og/.cards-hash`) and writes a per-section static
+  page `dist/docs/<id>/index.html` (section head: title/description/
+  canonical/og/twitter/BreadcrumbList — meta derived ONLY from
+  `seo.ts`'s `docsMeta`/`docsBreadcrumb`). The og surface is Disallow'd in
+  robots (assets, not pages).
+- Discord integration: `discord/service.mjs` (Components V2) — the
+  `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
+  point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node
+  rejects a named digest for ed25519) answers `/component <section>` with a
+  Container embed (text + the section's og card + Re-roll/Night-Day/Open-docs
+  buttons) and updates the message in place on button clicks. Stateless
+  (`dith:<id>:<seed>:<inv>` custom ids); re-rolled previews render on demand
+  via playwright over `dist/og/index.html` (see `discord/README.md`).
 
 ## Workflow Rules
 
