@@ -14,9 +14,13 @@ widgets/features; page-specific conventions live here.
   hero stage · install strip · expressions · showcase chapters · essay ·
   closing band · footer. Additions must remove something or justify their
   presence.
-- Hero is a hairline STAGE panel (sharp corners): statement/action left, the
-  living sky right and the dawn plate (`plates.ts` `dawnPlate`, rendered by
-  `PixelPlate.vue`) pinned to the floor. The header MUST keep `relative z-10`:
+- Hero is a hairline STAGE panel (sharp corners): eyebrow (micro-caps + led)
+  → statement → lede → ONE primary action (`DitherButton` "Open studio")
+  with a quiet text secondary ("Read the docs →", `.cta-quiet`) beside it —
+  the lede carries no inline links. The living sky sits right and the dawn
+  plate (`plates.ts` `dawnPlate`, rendered by `PixelPlate.vue`) is pinned to
+  the floor. The header nav mirrors the hero's verb as a hairline pill
+  (`.nav-pill` "Open studio"); `.nav-a` links keep 32px hit areas. The header MUST keep `relative z-10`:
   `main` is `relative isolate` and page art lives inside it, so a positioned
   sibling always paints over a static header — without the lift the header
   renders zero visible pixels (it did, for a while; the pixel census in the
@@ -37,22 +41,56 @@ widgets/features; page-specific conventions live here.
   controls panel backdrop) MUST pass the page's own `colors` ramp
   (navy/blue/ice + ember) — the kit defaults (violet/green) clash with the
   dark monochrome identity.
-- Load choreography: `.reveal` stagger (0/90/180/300ms) on the house rise
+- Vertical rhythm is ONE token: `.landing { --section }` (clamp 5–8rem) is
+  the gap above/between/below the showcase chapters, under the install
+  strip, and under the essay. Never stack a section's padding on a
+  neighbour's margin — every breath on the page is `--section` once.
+  Micro-caps (`.micro` / `.eyebrow`: 10.5px, 0.22em, uppercase) are the
+  page's one label voice.
+- Closing band: the display line + two actions over a `dither-field` dot
+  sea (`bandCanvas` mounted in `LandingPage.vue`: 4px cells, 12fps, the four
+  dark SKY levels only so the ink keeps contrast, density 0.42 at rest →
+  0.64 under hover, cursor body 0.4; `prefers-reduced-transparency` halves
+  it). The band is `isolate; overflow: hidden`; its content wrapper stays
+  `relative` above the canvas.
+- Load choreography: `.reveal` stagger (0/60/140/220/300ms) on the house rise
   curve `cubic-bezier(0.16, 1, 0.3, 1)`, disabled under
   `prefers-reduced-motion`. The hide is gated on the component's own
   `data-armed` (set in `onBeforeMount`): no-JS visitors and the prerendered
   bytes render the complete page. NEVER gate it via a `:global(html.js)`
   scoped rule — that construct white-screened every browser (compositor
   wedge; banned).
+- `dither-field.ts` is the landing's living-canvas ENGINE and it is
+  vanilla: no Vue, no kit imports — the same module mounts from a Vue
+  component, a Svelte action, or a plain `<script type="module">`. One
+  seeded luminance field (Gaussian bodies on incommensurate drift clocks +
+  the cursor's body) is sampled per lattice cell in CSS px, ordered-dithered
+  through a recursive Bayer matrix (8x8 default; the 4x4 equals the kit's
+  gradient matrix — `tests/dither-field.spec.ts` pins it) onto a colour
+  ramp (darkest first, below the first level = clear; an optional `hot`
+  ramp above `hotAt`), written as packed u32 pixels into ONE lattice-sized
+  ImageData, put on an offscreen canvas and blitted with
+  `imageSmoothingEnabled = false` — nearest-neighbour upscale is the pixel
+  look, one drawImage per frame instead of one fillRect per cell. Budget
+  rules live inside it: rAF at `fps`, IO + visibilitychange pause, DPR
+  clamp, ResizeObserver rebuild, static single frame under reduced motion
+  (and the sizzle flicker off), eased pointer body and eased
+  `density`/`hoverDensity` (hover = thicker dither), `scroll` parallax, and
+  `setAvoid(rect)` — a smoothstep exclusion so art yields to text. The
+  raster is the pure `rasterize()`; new behaviour goes there (testable
+  headless), never into a second per-cell loop.
 - The living sky (`SkyOrganism.vue`) is the stage's ONE canvas exception to
-  "figures are markup": it is a backdrop creature, not a figure. Gaussian
-  blobs quantized through the same `ditherTone`/ramp rule as the plates
-  (`SKY`/`SUN` are exported from `plates.ts` — one palette), 24fps, DPR
-  clamp 2, paused offscreen + on tab-hide, static single frame under reduced
-  motion, fade-in under `no-preference`. THE COORDINATE RULE: `field()`
-  samples in DEVICE pixels (`(cx+0.5) * cell`) — blobs live in device space;
-  sampling cell indices silently starves (dpr>1) or floods (narrow) the
-  field. The landing re-asserts `html.dark` on mount: the page is always-dark
+  "figures are markup": it is a backdrop creature, not a figure — a thin
+  mount of `dither-field` on the house ramps (`SKY`, and `SUN[0..1]` as the
+  hot ramp — never SUN's cream top, which read as a flat plate). It takes
+  the stage copy element as `avoid` and excludes the union of its CHILDREN'S
+  CONTENTS (a Range per child measures the line boxes — the block boxes are
+  full-width and would blank the whole sky); the ref lands after the sky
+  mounts, so the binding is a `watch` on the prop, re-measured by a
+  ResizeObserver. Wide stages hang the bodies in the upper-right sky; narrow
+  (<640) stages put them in the band between the action and the horizon at
+  half weight. The cursor's body ignites ember at its core (`hotAt` 0.93).
+  The landing re-asserts `html.dark` on mount: the page is always-dark
   art while docs/studio own the persisted theme (storage keeps the user's
   choice).
 - Pixel figures are MARKUP, not canvas: `plates.ts` paints a w×h cell field
@@ -210,7 +248,13 @@ widgets/features; page-specific conventions live here.
 
 ## Verification
 
-- Browser walk after changes: landing reveal + emote hover, canonical and legacy
+- `tests/dither-field.spec.ts` runs the engine's pure raster headless
+  (Bayer ranks, quantize monotonicity, determinism, ramp coverage, avoid
+  rect, pointer ignition, density scaling) — jsdom has no canvas, so the
+  mount path is checked in the browser walk only.
+- Browser walk after changes: landing reveal + emote hover + the sky's
+  avoid rect at desktop AND phone widths (the creature must never sit under
+  the statement or lede), the closing band's hover thickening, canonical and legacy
   docs deep links (`/docs/avatar`, `#/docs/avatar`), and Studio deep links
   (`/studio#new/pie`, `#/studio/new/pie`) each create/select exactly one artboard.
 
