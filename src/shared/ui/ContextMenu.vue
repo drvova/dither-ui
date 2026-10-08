@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from "vue"
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue"
+import { focusFirstMenuItem, menuKeydown } from "@/shared/lib"
 
 export type MenuItem = {
   label?: string
@@ -21,8 +22,10 @@ function onKey(e: KeyboardEvent) {
   if (e.key === "Escape") emit("close")
 }
 const close = () => emit("close")
+const root = ref<HTMLElement | null>(null)
 
 onMounted(() => {
+  void nextTick(() => focusFirstMenuItem(root.value))
   // defer so the opening click doesn't immediately close it
   setTimeout(() => {
     window.addEventListener("pointerdown", close)
@@ -40,8 +43,10 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <div
+      ref="root"
       role="menu"
       aria-orientation="vertical"
+      @keydown="menuKeydown"
       class="fixed z-[100] min-w-[172px] rounded-lg border border-border bg-card p-1 text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"
       :style="{ left: `${x}px`, top: `${y}px` }"
       @pointerdown.stop

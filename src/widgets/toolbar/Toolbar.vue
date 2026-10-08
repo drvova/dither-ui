@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { DitherAlertDialog } from "@dither-kit"
+import { focusFirstMenuItem, menuKeydown } from "@/shared/lib"
 import type { ArtboardKind } from "@/entities/artboard"
 import {
   addArtboard, addComponentArtboard, addScreenArtboard, duplicateSelected,
@@ -38,7 +40,15 @@ watch(libraryOpen, (open) => {
   if (open) nextTick(() => searchRef.value?.focus())
   else query.value = ""
 })
-const closeMenus = () => { libraryOpen.value = false; projectOpen.value = false }
+const closeMenus = () => { libraryOpen.value = false; projectOpen.value = false; naming.value = null }
+// The project menu is a real menu: first item focused on open, focus back
+// on the trigger when it closes, arrow keys between items.
+const projectTrigger = ref<HTMLButtonElement | null>(null)
+const projectMenu = ref<HTMLElement | null>(null)
+watch(projectOpen, (open) => {
+  if (open) nextTick(() => focusFirstMenuItem(projectMenu.value))
+  else nextTick(() => { if (!document.activeElement || document.activeElement === document.body) projectTrigger.value?.focus() })
+})
 // Menus dismiss like menus: Escape anywhere, or a pointer landing outside the toolbar.
 const rootEl = ref<HTMLElement | null>(null)
 const onWindowKey = (e: KeyboardEvent) => { if (e.key === "Escape" && (libraryOpen.value || projectOpen.value)) closeMenus() }
@@ -55,9 +65,28 @@ const selectionLabel = computed(() =>
   editor.selectedIds.length > 1 ? `${editor.selectedIds.length} selected` : selectedArtboard.value?.name ?? ""
 )
 const doUngroup = () => { const a = selectedArtboard.value; if (a?.groupId) ungroup(a.groupId) }
-function newProject() { const name = window.prompt("Project name", `Project ${projects.length + 1}`); if (name) createProject(name); closeMenus() }
-function rename() { const name = window.prompt("Rename project", activeProjectName()); if (name) renameProject(activeProjectId.value, name); closeMenus() }
-function removeProject() { if (window.confirm(`Delete “${activeProjectName()}”? This cannot be undone.`)) deleteProject(activeProjectId.value); closeMenus() }
+// Naming happens inline in the menu (no browser prompt): the row becomes a
+// field, Enter commits, Escape backs out. Deleting asks through the kit's
+// alert dialog.
+const naming = ref<"new" | "rename" | null>(null)
+const draft = ref("")
+const nameInput = ref<HTMLInputElement | null>(null)
+function startNaming(mode: "new" | "rename") {
+  naming.value = mode
+  draft.value = mode === "rename" ? activeProjectName() : `Project ${projects.length + 1}`
+  nextTick(() => nameInput.value?.select())
+}
+function commitName() {
+  const name = draft.value.trim()
+  if (name) {
+    if (naming.value === "new") createProject(name)
+    else renameProject(activeProjectId.value, name)
+  }
+  closeMenus()
+}
+const confirmDelete = ref(false)
+function removeProject() { closeMenus(); confirmDelete.value = true }
+function doDelete() { deleteProject(activeProjectId.value); confirmDelete.value = false }
 async function openFile(e: Event) { const input = e.target as HTMLInputElement; const file = input.files?.[0]; if (file) await importDocument(file); input.value = "" }
 async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy.value) return; pngBusy.value = true; await exportArtboardPng(a, 2); pngBusy.value = false }
 </script>
@@ -69,15 +98,20 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
         <span class="size-2.5 rounded-[2px] bg-foreground" /><span>dither-ui</span>
       </a>
       <div class="relative border-l border-border/60 pl-1">
-        <button type="button" aria-haspopup="menu" :aria-expanded="projectOpen" class="flex h-8 max-w-48 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground" @click="projectOpen = !projectOpen; libraryOpen = false">
+        <button ref="projectTrigger" type="button" aria-haspopup="menu" :aria-expanded="projectOpen" class="flex h-8 max-w-48 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground" @click="projectOpen = !projectOpen; libraryOpen = false">
           <span class="truncate">{{ activeProjectName() }}</span><span aria-hidden="true">⌄</span>
         </button>
         <Transition name="pop">
-          <div v-if="projectOpen" role="menu" class="absolute left-0 top-full mt-1 w-56 rounded-lg border border-border bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]">
+          <div v-if="projectOpen" ref="projectMenu" role="menu" class="absolute left-0 top-full mt-1 w-56 rounded-lg border border-border bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]" @keydown="menuKeydown">
           <button v-for="project in projects" :key="project.id" type="button" role="menuitem" class="flex w-full rounded-md px-2 py-1.5 text-left text-xs" :class="project.id === activeProjectId.value ? 'bg-accent/15 text-foreground' : 'text-muted-foreground hover:bg-background hover:text-foreground'" @click="switchProject(project.id); closeMenus()">{{ project.name }}</button>
           <div class="my-1 h-px bg-border" />
-          <button type="button" role="menuitem" class="menu-row" @click="newProject">New project</button>
-          <button type="button" role="menuitem" class="menu-row" @click="rename">Rename</button>
+          <form v-if="naming" class="px-1 py-1" @submit.prevent="commitName">
+            <input ref="nameInput" v-model="draft" type="text" :aria-label="naming === 'new' ? 'New project name' : 'Project name'" placeholder="Project name" class="h-7 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60" @keydown.esc.stop="naming = null" />
+          </form>
+          <template v-else>
+            <button type="button" role="menuitem" class="menu-row" @click="startNaming('new')">New project</button>
+            <button type="button" role="menuitem" class="menu-row" @click="startNaming('rename')">Rename</button>
+          </template>
           <button type="button" role="menuitem" class="menu-row" @click="exportDocument(); closeMenus()">Save to file</button>
           <button type="button" role="menuitem" class="menu-row" @click="fileInput?.click(); closeMenus()">Open file</button>
           <div class="my-1 h-px bg-border" />
@@ -155,6 +189,15 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
       </div>
     </Transition>
     <input ref="fileInput" type="file" accept="application/json" name="open-project" class="hidden" @change="openFile" />
+    <DitherAlertDialog
+      :open="confirmDelete"
+      title="Delete project?"
+      :description="`“${activeProjectName()}” and its artboards will be removed. This cannot be undone.`"
+      confirm-label="Delete"
+      danger
+      @confirm="doDelete"
+      @cancel="confirmDelete = false"
+    />
   </div>
 </template>
 

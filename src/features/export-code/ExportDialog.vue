@@ -4,6 +4,7 @@ import type { Artboard } from "@/entities/artboard"
 import { chartCode } from "@/entities/chart"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { widgetCode } from "@/entities/widget"
+import { DitherFocusScope } from "@dither-kit"
 import { CodeBlock } from "@/shared/ui"
 
 const props = defineProps<{ open: boolean }>()
@@ -69,7 +70,7 @@ async function downloadAll() {
       @click.self="emit('close')"
       @keydown.esc.stop="emit('close')"
     >
-      <div class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+      <DitherFocusScope :autofocus="false" class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
           <span class="text-sm font-medium">Export — Vue SFC</span>
           <div class="flex items-center gap-2">
@@ -103,7 +104,7 @@ async function downloadAll() {
         <div class="overflow-auto p-4">
           <CodeBlock :code="code" />
         </div>
-      </div>
+      </DitherFocusScope>
     </div>
   </Transition>
 </template>

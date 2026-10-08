@@ -61,10 +61,16 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   on unmount. Route revisits must not accumulate deep watchers.
 - A11y floor: icon-only buttons carry `aria-label` (+ `aria-pressed` for
   toggles); dialogs use `role="dialog" aria-modal`, close on Escape, focus on
-  open (a lazily mounted dialog watches `open` with `immediate: true` —
-  ExportDialog mounts with it already true); menus (toolbar project/library,
-  ContextMenu `role="menu"` + `menuitem`) dismiss on Escape and on a pointer
-  outside; global `:focus-visible` ring is in `app/styles.css` — do not
+  open and TRAP Tab — app dialogs wrap their panel in the kit's
+  `DitherFocusScope` (ExportDialog with `autofocus=false`, its own close
+  button takes focus via an `immediate` watch because it mounts lazily with
+  `open` already true; ShortcutsHelp with autofocus), which also restores
+  focus on close; menus (toolbar project/library, ContextMenu `role="menu"`
+  + `menuitem`) dismiss on Escape and on a pointer outside, focus their
+  first item on open, and take ArrowUp/Down/Home/End through
+  `shared/lib/menu.ts` (`menuKeydown`, `focusFirstMenuItem`); no
+  `window.prompt`/`confirm` — the project menu names inline (Enter commits,
+  Escape backs out) and deletes through `DitherAlertDialog`; global `:focus-visible` ring is in `app/styles.css` — do not
   suppress. Interactive targets are at least 24px on their short side
   (`h-6` / `min-h-6` / `size-6` on dense chrome); text on `bg-accent` is
   white and the accent blues are tuned to clear 4.5:1 with it (light

@@ -276,8 +276,10 @@ widgets/features; page-specific conventions live here.
   them to the DOM as `activeId` changes (scroll-spy, deep links, search), so
   Google's renderer sees unique metadata per `/docs/<id>` page. Unknown or
   empty ids fall back to the generic `/docs` metadata; keep ids unique.
-- Chrome: `.chrome` translucent header (scroll-edge fade, no hard border);
-  honors `prefers-reduced-transparency`. The brand carries the landing's
+- Chrome: `.chrome` translucent header (88% background + blur; scroll-edge
+  fade, no hard border); honors `prefers-reduced-transparency`. The search
+  hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
+  elsewhere — the handler accepts both). The brand carries the landing's
   7x7 diamond mark, and the studio link is the site's `.nav-a.nav-pill`
   "Open studio" (sm+). The page title sits under a `.eyebrow`
   ("Documentation"); the footer links home via `routePath('/')` and shows

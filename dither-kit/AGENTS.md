@@ -17,6 +17,10 @@ is its showcase and editor.
 
 ## Local Contracts
 
+- `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
+  returns to its input; the list is arrow-driven), focus restores to the
+  opener on close.
+
 - Zero imports from `src/` — the kit must stay copy-out portable
   (docs promise: "copy the folder, alias it"). Dependencies: vue, d3-scale,
   d3-shape, tailwind classes only.

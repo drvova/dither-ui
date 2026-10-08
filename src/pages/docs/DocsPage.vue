@@ -495,6 +495,8 @@ function searchGo(id: string) {
 
 /* Theme: dark by default, remembered, revealed as a circle from the toggle. */
 const { dark, revealToggle } = useTheme()
+/* The search hint names the modifier the visitor actually has. */
+const searchKbd = typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? "⌘K" : "Ctrl K"
 
 onMounted(() => {
   window.addEventListener("keydown", searchHotkey)
@@ -864,7 +866,7 @@ const gradientCode = computed(
             @click="searchOpen = true"
           >
             search
-            <kbd class="hidden rounded border border-border/60 px-1 text-[9px] sm:inline">⌘K</kbd>
+            <kbd class="hidden rounded border border-border/60 px-1 text-[9px] sm:inline">{{ searchKbd }}</kbd>
           </button>
           <button
             type="button"
@@ -1812,7 +1814,7 @@ const gradientCode = computed(
 /* Apple-style chrome: a floating translucent material — content scrolls under
    it, the boundary is a faded edge rather than a hard 1px divider. */
 .chrome {
-  background: color-mix(in oklab, var(--background) 82%, transparent);
+  background: color-mix(in oklab, var(--background) 88%, transparent);
   backdrop-filter: blur(14px) saturate(1.5);
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
 }
