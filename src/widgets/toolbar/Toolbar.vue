@@ -47,7 +47,9 @@ const projectTrigger = ref<HTMLButtonElement | null>(null)
 const projectMenu = ref<HTMLElement | null>(null)
 watch(projectOpen, (open) => {
   if (open) nextTick(() => focusFirstMenuItem(projectMenu.value))
-  else nextTick(() => { if (!document.activeElement || document.activeElement === document.body) projectTrigger.value?.focus() })
+  // The leave transition keeps the menu in the DOM for a beat, so "focus is
+  // still on a menu item" counts as orphaned too.
+  else nextTick(() => { const a = document.activeElement; if (!a || a === document.body || a.closest("[role=menu]")) projectTrigger.value?.focus() })
 })
 // Menus dismiss like menus: Escape anywhere, or a pointer landing outside the toolbar.
 const rootEl = ref<HTMLElement | null>(null)
