@@ -9,8 +9,34 @@ widgets/features; page-specific conventions live here.
 
 ### landing/
 
-- Direction: Japanese minimal (Ma/Kanso) — one statement, one action, one
-  visual. Additions must remove something or justify their presence.
+- Direction: Japanese minimal (Ma/Kanso) survives the richer page — one
+  statement per section, one action, one visual. Sections in order: header ·
+  hero stage · install strip · expressions · showcase chapters · essay ·
+  closing band · footer. Additions must remove something or justify their
+  presence.
+- Hero is a hairline STAGE panel (sharp corners, orange registration ticks
+  inset at the four corners) with the statement/action left and
+  `DitherEmblem.vue` right. The header MUST keep `relative z-10`: `main` is
+  `relative isolate` and the fixed veil lives inside it, so a positioned
+  sibling always paints over a static header — without the lift the header
+  renders zero visible pixels (it did, for a while; the pixel census in the
+  session ledger caught it).
+- `DitherEmblem.vue` is the generated mark: a seeded halftone sphere built
+  as real `<rect>` markup at setup (Bayer-4 dither + hash break-up, light
+  from the upper-left, navy → ice ramp + sparse ember scatter). It must stay
+  deterministic (same seed → same emblem), CSS-only twinkle, no JS timers.
+- Install strip mirrors the docs install story: its four steps (degit folder
+  + npm/pnpm/bun deps) must stay in sync with `docs/DocsPage.vue`
+  `SNIPPETS.install`; tabs are `aria-pressed` pickers, copy goes through
+  `DitherClipboard`, and the reveal/sweep is a one-shot IO → CSS (latched,
+  never re-fires).
+- Showcase chapters are LIVE kit demos only — never screenshots. Each
+  chapter: pills + one h2 statement + one panel demo. Chart/stat claims are
+  factual (270 exports · 6 chart types · 40+ surfaces — recount when the kit
+  surface changes). Canvas surfaces (silk/plasma/grid-scan, including the
+  controls panel backdrop) MUST pass the page's own `colors` ramp
+  (navy/blue/ice + ember) — the kit defaults (violet/green) clash with the
+  dark monochrome identity.
 - Load choreography: `.reveal` stagger (0/90/180/300ms), disabled under
   `prefers-reduced-motion`.
 - Sprite crops (`public/faces.webp` band + `public/sprites.webp`) use MEASURED constants

@@ -8,6 +8,8 @@ import {
 import { assetPath, routePath } from "@/shared/lib"
 import { version } from "../../../package.json"
 import EngravedWordmark from "./EngravedWordmark.vue"
+import InstallBlock from "./InstallBlock.vue"
+import Showcase from "./Showcase.vue"
 
 const openStudio = () => location.assign(routePath("/studio"))
 
@@ -50,10 +52,12 @@ const STAGES = [
 
 const stageEls = ref<HTMLElement[]>([])
 const softEls = ref<HTMLElement[]>([])
+const pageEl = ref<HTMLElement | null>(null)
 const litSet = ref<Set<number>>(new Set())
 const activeIdx = ref(-1)
 let ticking = false
 let reduced = false
+let revealIO: IntersectionObserver | null = null
 
 function updateEssay() {
   ticking = false
@@ -124,6 +128,30 @@ onMounted(() => {
   }
 
   reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+  // Scroll choreography (reference: rise / lp-in, latched like the docs
+  // DemoCard): every .reveal / .reveal-wipe block animates the first time
+  // it crosses into view and then stays put. Without IO (jsdom) or under
+  // reduced motion everything is seen immediately.
+  const targets = Array.from(
+    pageEl.value?.querySelectorAll<HTMLElement>(".reveal, .reveal-wipe") ?? [],
+  )
+  if (reduced || typeof IntersectionObserver === "undefined") {
+    for (const el of targets) el.classList.add("seen")
+  } else {
+    revealIO = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          entry.target.classList.add("seen")
+          revealIO?.unobserve(entry.target)
+        }
+      },
+      { threshold: 0.12 },
+    )
+    for (const el of targets) revealIO.observe(el)
+  }
+
   if (reduced) {
     litSet.value = new Set(STAGES.map((_, i) => i))
     // Soft focus is decorative: under reduced motion, everything is sharp.
@@ -136,6 +164,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  revealIO?.disconnect()
+  revealIO = null
   window.removeEventListener("scroll", requestUpdate)
   window.removeEventListener("resize", requestUpdate)
 })
@@ -147,24 +177,65 @@ function setActive(i: number) {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col bg-background font-mono text-foreground antialiased">
-    <!-- Header -->
-    <header class="mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-xs">
-      <span class="tracking-tight">dither-ui</span>
-      <nav class="flex items-center gap-5 text-muted-foreground">
-        <a :href="routePath('/docs')" class="-m-3 p-3 transition-colors hover:text-foreground">docs</a>
-        <a
-          href="https://github.com/drvova/dither-ui"
-          target="_blank"
-          rel="noreferrer"
-          class="-m-3 p-3 transition-colors hover:text-foreground"
-          >github</a
-        >
-        <a :href="routePath('/studio')" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
-      </nav>
+  <div
+    ref="pageEl"
+    class="flex min-h-screen flex-col bg-background font-mono text-foreground antialiased"
+  >
+    <!-- Skip link: first focusable element, targets the single main landmark. -->
+    <a
+      :href="routePath('/studio')"
+      class="skip-link sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-border focus:bg-background focus:px-4 focus:py-2 focus:text-xs"
+      @click.prevent="openStudio"
+    >
+      Skip to content
+    </a>
+
+    <!-- Header: relative + z-10 — main.relative isolates the fixed veil, and
+         a positioned sibling always paints above a static one; without this
+         the veil covered the header entirely (it painted zero pixels). -->
+    <header
+      class="relative z-10 mx-auto flex h-16 w-full max-w-4xl items-center justify-between px-6 text-xs"
+    >
+      <div class="flex w-full items-center justify-between">
+        <span class="flex items-center gap-2.5 tracking-tight">
+          <!-- Brand mark: a 7x7 dithered diamond with the ember core — crisp
+               edges so it stays a pixel shape at any zoom. -->
+          <svg
+            viewBox="0 0 7 7"
+            width="13"
+            height="13"
+            aria-hidden="true"
+            focusable="false"
+            shape-rendering="crispEdges"
+          >
+            <g fill="currentColor">
+              <rect x="3" y="0" width="1" height="1" />
+              <rect x="2" y="1" width="3" height="1" />
+              <rect x="1" y="2" width="5" height="1" />
+              <rect x="0" y="3" width="7" height="1" />
+              <rect x="1" y="4" width="5" height="1" />
+              <rect x="2" y="5" width="3" height="1" />
+              <rect x="3" y="6" width="1" height="1" />
+            </g>
+            <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
+          </svg>
+          dither-ui
+        </span>
+        <nav class="flex items-center gap-5 text-muted-foreground" aria-label="Site">
+          <a :href="routePath('/docs')" class="-m-3 p-3 transition-colors hover:text-foreground">docs</a>
+          <a
+            href="https://github.com/drvova/dither-ui"
+            target="_blank"
+            rel="noreferrer"
+            class="-m-3 p-3 transition-colors hover:text-foreground"
+            >github</a
+          >
+          <a :href="routePath('/studio')" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
+        </nav>
+      </div>
     </header>
 
-    <main class="relative isolate flex flex-1 flex-col">
+    <main id="main" class="relative isolate flex flex-1 flex-col">
       <!-- Page backdrop: one dithered dark veil behind the whole essay, the way
            the reference floats statements over a fixed cell canvas. -->
       <DitherDarkVeil
@@ -176,25 +247,30 @@ function setActive(i: number) {
         class="pointer-events-none fixed inset-0 -z-10"
       />
 
-      <!-- Hero: one statement, one action, one visual. -->
-      <section class="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pt-24 pb-14 sm:pt-28">
+      <!-- Hero: the reference's golden ratio — statement and lede hold the
+           top band over the veil; the single action sits below, alone. -->
+      <section
+        aria-labelledby="hero-h"
+        class="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 pt-24 pb-16 sm:pt-28"
+      >
         <h1
-          class="reveal max-w-xl text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.15] tracking-tight text-balance"
+          id="hero-h"
+          class="reveal max-w-3xl text-[clamp(2.75rem,7.2vw,6.25rem)] font-medium leading-[0.95] tracking-[-0.035em] text-balance"
         >
           A dithered UI toolkit for Vue.
         </h1>
         <p
-          class="reveal mt-5 max-w-md text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]"
+          class="reveal mt-8 max-w-2xl text-[clamp(1.05rem,1.9vw,1.3rem)] leading-[1.6] text-muted-foreground [text-wrap:pretty]"
           style="--reveal-delay: 90ms"
         >
           Charts, buttons, avatars and gradients — rendered
           <em class="text-foreground/80">pixel by pixel</em> on canvas. Built in
           the
-          <a :href="routePath('/studio')" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">studio</a>,
+          <a :href="routePath('/studio')" class="underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">studio</a>,
           documented in the
-          <a :href="routePath('/docs')" class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60">docs</a>.
+          <a :href="routePath('/docs')" class="underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">docs</a>.
         </p>
-        <div class="reveal mt-10" style="--reveal-delay: 180ms">
+        <div class="reveal mt-12" style="--reveal-delay: 180ms">
           <DitherButton
             color="blue"
             variant="gradient"
@@ -206,16 +282,19 @@ function setActive(i: number) {
         </div>
       </section>
 
+      <!-- Install strip: step tabs + command + copy (docs install story). -->
+      <InstallBlock />
+
       <!-- Six moods, one row — hover a face and her emote answers -->
       <p
-        class="reveal pb-6 text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70"
+        class="reveal pt-20 pb-6 text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70"
         style="--reveal-delay: 260ms"
       >
         expressions
       </p>
       <div
         role="img"
-        aria-label="Pixel-art character portraits in six expressions"
+        aria-label="Pixel-art character portraits in six expressions — hover a portrait and her reaction emote answers"
         class="reveal flex flex-wrap justify-center gap-7 pb-24"
         style="--reveal-delay: 300ms"
       >
@@ -233,6 +312,9 @@ function setActive(i: number) {
           />
         </div>
       </div>
+
+      <!-- Three chapters — the kit showing itself, live. -->
+      <Showcase />
 
       <!-- The essay: six numbered statements that light up as you scroll.
            The index rail (01–06) scales + springs on the in-focus one. -->
@@ -321,8 +403,13 @@ function setActive(i: number) {
 </template>
 
 <style scoped>
-/* One orchestrated load: soft rise, staggered per chunk, once. */
+/* Scroll choreography: blocks sit hidden until the IO adds .seen the first
+   time they cross into view (reference: rise / lp-in, DemoCard latch). */
 .reveal {
+  opacity: 0;
+}
+
+.reveal.seen {
   animation: reveal 700ms cubic-bezier(0.2, 0, 0, 1) both;
   animation-delay: var(--reveal-delay, 0ms);
 }
@@ -335,6 +422,13 @@ function setActive(i: number) {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+    opacity: 1;
   }
 }
 
@@ -400,9 +494,6 @@ function setActive(i: number) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
-    animation: none;
-  }
   .emote {
     transition: none;
   }
@@ -420,7 +511,8 @@ function setActive(i: number) {
 /* Ghost-style focus pull (measured from ghost.ai: .soft-focus whispers at
    blur(1px), resolves to blur(0), 300ms cubic-bezier(0.4, 0, 0.2, 1)):
    entering the essay softens the out-of-focus statements while the hovered
-   one stays sharp — a camera focus pull across the text. */
+   one stays sharp — a camera focus pull across the text. Hover-gated so a
+   touch tap can't leave the row stuck blurred. */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .statement {
     transition:
@@ -447,7 +539,8 @@ function setActive(i: number) {
   }
 }
 
-/* Reaction emote: rises out of her head on hover, same easing as the page. */
+/* Reaction emote: rises out of her head on hover, same easing as the page.
+   Hover-gated (touch has no hover to get stuck). */
 .emote {
   opacity: 0;
   transform: translate(-50%, 8px) scale(0.8);
@@ -456,8 +549,16 @@ function setActive(i: number) {
     transform 180ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-.group:hover .emote {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
+@media (hover: hover) {
+  .group:hover .emote {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emote {
+    transition: none;
+  }
 }
 </style>
