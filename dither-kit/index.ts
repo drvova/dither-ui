@@ -322,14 +322,20 @@ export { default as DitherSchedule, type ScheduleEvent } from "./DitherSchedule.
 export { default as DitherInfiniteCanvas } from "./DitherInfiniteCanvas.vue"
 export {
   default as DitherWorld,
+  createWorldGpu,
+  externalResources,
   formatOf,
+  paintTarget,
   paintWorld,
   parseWorld,
+  rasterizeWorld,
   sampleWorld,
   type ModelFormat,
   type World,
+  type WorldGpu,
   type WorldMesh,
   type WorldStyle,
+  type WorldTarget,
   type WorldView,
 } from "./DitherWorld.vue"
 export {

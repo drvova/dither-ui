@@ -1,30 +1,39 @@
 <script lang="ts">
-import { formatOf, parseWorld, type ModelFormat } from "./models"
-import { paintWorld, sampleWorld, type World, type WorldMesh, type WorldStyle, type WorldView } from "./world"
-export type { ModelFormat, World, WorldMesh, WorldStyle, WorldView }
-export { formatOf, paintWorld, parseWorld, sampleWorld }
+import { externalResources, formatOf, parseWorld, type ModelFormat } from "./models"
+import { paintTarget, paintWorld, rasterizeWorld, sampleWorld, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
+import { createWorldGpu, type WorldGpu } from "./world-gl"
+export type { ModelFormat, World, WorldGpu, WorldMesh, WorldStyle, WorldTarget, WorldView }
+export { createWorldGpu, externalResources, formatOf, paintTarget, paintWorld, parseWorld, rasterizeWorld, sampleWorld }
 </script>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue"
 import { cn } from "./lib"
-import { BAYER4, clamp01, fillOf, type PixelColor, pixelMatrixFromSeed } from "./pixel"
+import { BAYER4, clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle, pixelMatrixFromSeed } from "./pixel"
 import type { DitherRenderMode } from "./precompile"
 import type { RasterBuffer } from "./raster"
 import { useDitherBackground } from "./use-dither-background"
+import { createWorldTarget } from "./world"
 
 const props = withDefaults(
   defineProps<{
-    /** URL of a .wrl (VRML97 or VRML 1.0), .obj or .stl file. */
+    /** URL of a model: .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj (+ .mtl), .stl, .ply, .off. */
     src?: string
-    /** Inline model text (VRML, OBJ or ASCII STL) — wins over `src`. */
+    /** Inline model text (VRML, X3D, glTF JSON, OBJ, ASCII STL / PLY, OFF) — wins over `src`. */
     source?: string
     /** File format; "auto" reads the name, then the bytes. */
     format?: ModelFormat | "auto"
     /** The file's up axis; "auto" is y, z for STL. */
     up?: "y" | "z" | "auto"
+    /** Rasterizer: the CPU engine is byte-exact everywhere, the GPU engine
+     * (WebGL) rasterizes big meshes fast; "auto" picks the GPU above ~40k triangles. */
+    engine?: "auto" | "cpu" | "gpu"
     color?: PixelColor
-    /** Seeds the dither matrix and, without src/source, the sample world. */
+    /** A toon ramp, dark to light: lighting picks the band, the Bayer cell dithers between bands. */
+    colors?: PixelColor[]
+    /** Ramp mode: 0 smooth → 1 fully banded. */
+    dither?: number
+    /** Seeds the dither matrix, the grain, and without src/source the sample world. */
     seed?: number
     /** Backing cell size in CSS px — bigger is chunkier. */
     cell?: number
@@ -40,10 +49,20 @@ const props = withDefaults(
     shade?: number
     /** Depth fade of the lighting, 0-1. */
     fog?: number
-    /** Use the file's material colours instead of `color`. */
+    /** Noise grain over the model's own space, 0-1 (`noise.ts` fbm). */
+    grain?: number
+    /** Grain frequency relative to the model's size. */
+    grainScale?: number
+    /** Use the file's own colours instead of `color`. */
     material?: boolean
     /** Draw polygon outlines, hidden lines removed. */
     wire?: boolean
+    /** Glow layer: a preset, a config, or a seed. */
+    bloom?: PixelBloomInput
+    /** Play the file's own animations (VRML ROUTEs, glTF) on the kit clock. */
+    animate?: boolean
+    /** Pin the animation to a moment in seconds instead of the clock. */
+    time?: number
     /** Drag, or arrow keys when focused, to orbit. */
     interactive?: boolean
     /** Accessible name. */
@@ -60,14 +79,20 @@ const props = withDefaults(
     source: "",
     format: "auto",
     up: "auto",
+    engine: "auto",
     color: "blue",
+    dither: 1,
     cell: 3,
     autoRotate: 12,
     fov: 40,
     shade: 0.18,
     fog: 0.3,
+    grain: 0,
+    grainScale: 4,
     material: false,
     wire: false,
+    bloom: "off",
+    animate: true,
     interactive: true,
     label: "3D model",
     paused: false,
@@ -78,13 +103,26 @@ const props = withDefaults(
 
 const MAX_COLS = 480
 const MAX_ROWS = 320
+/** Above this many triangles "auto" prefers the GPU engine. */
+const GPU_FROM = 40000
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const bloomRef = ref<HTMLCanvasElement | null>(null)
 const world = shallowRef<World | null>(null)
 const status = ref<"ready" | "loading" | "empty" | "error">("ready")
+const engineUsed = ref<"cpu" | "gpu">("cpu")
+const gpuProblem = ref("")
 const note = computed(() =>
-  status.value === "loading" ? "loading model" : status.value === "error" ? "could not load the model" : status.value === "empty" ? "no geometry" : ""
+  status.value === "loading"
+    ? "loading model"
+    : status.value === "error"
+      ? "could not load the model"
+      : status.value === "empty"
+        ? "no geometry"
+        : props.engine === "gpu" && gpuProblem.value
+          ? gpuProblem.value
+          : ""
 )
 
 // ---- loading ----------------------------------------------------------------
@@ -102,6 +140,26 @@ function fail() {
   status.value = "error"
 }
 
+async function fetchModel(src: string, signal: AbortSignal): Promise<World> {
+  const head = await fetch(src, { signal })
+  if (!head.ok) throw new Error(String(head.status))
+  const bytes = await head.arrayBuffer()
+  const format = props.format === "auto" ? (formatOf(src) ?? "auto") : props.format
+  const resources: Record<string, ArrayBuffer> = {}
+  const base = typeof location !== "undefined" ? new URL(src, location.href) : new URL(src)
+  await Promise.all(
+    externalResources(bytes, format).map(async (uri) => {
+      try {
+        const r = await fetch(new URL(uri, base).href, { signal })
+        if (r.ok) resources[uri] = await r.arrayBuffer()
+      } catch {
+        // A missing side file costs its colours or buffers, not the model.
+      }
+    })
+  )
+  return parseWorld(bytes, format, { up: upOf(), resources })
+}
+
 function load() {
   ctl?.abort()
   ctl = null
@@ -115,14 +173,9 @@ function load() {
   const c = new AbortController()
   ctl = c
   status.value = "loading"
-  const format = props.format === "auto" ? (formatOf(props.src) ?? "auto") : props.format
-  fetch(props.src, { signal: c.signal })
-    .then((r) => {
-      if (!r.ok) throw new Error(String(r.status))
-      return r.arrayBuffer()
-    })
-    .then((bytes) => {
-      if (!c.signal.aborted) setWorld(parseWorld(bytes, format, { up: upOf() }))
+  fetchModel(props.src, c.signal)
+    .then((w) => {
+      if (!c.signal.aborted) setWorld(w)
     })
     .catch(() => {
       if (!c.signal.aborted) fail()
@@ -130,7 +183,6 @@ function load() {
 }
 
 watch(() => [props.source, props.src, props.format, props.up, props.seed], load, { immediate: true })
-onBeforeUnmount(() => ctl?.abort())
 
 // ---- the camera -------------------------------------------------------------
 
@@ -160,6 +212,7 @@ const viewAt = (clock: number): WorldView => ({
   pitch: Math.max(-89, Math.min(89, (props.pitch ?? pose.value.pitch) + orbit.pitch)),
   zoom: props.zoom ?? pose.value.zoom,
   fov: props.fov,
+  time: props.animate ? (props.time ?? clock) : 0,
 })
 
 const style = computed<WorldStyle>(() => ({
@@ -169,7 +222,14 @@ const style = computed<WorldStyle>(() => ({
   material: props.material,
   wire: props.wire,
   fog: clamp01(props.fog),
+  ramp: props.colors && props.colors.length >= 2 ? props.colors.map(fillOf) : null,
+  dither: clamp01(props.dither),
+  grain: clamp01(props.grain),
+  grainScale: Math.max(0.1, props.grainScale),
+  seed: props.seed ?? 0,
 }))
+
+const bloomStyle = computed(() => pixelBloomStyle(props.bloom))
 
 let drag: { id: number; x: number; y: number } | null = null
 
@@ -207,6 +267,56 @@ function onKey(e: KeyboardEvent) {
   e.preventDefault()
 }
 
+// ---- the engines --------------------------------------------------------------
+
+let target: WorldTarget | null = null
+let gpu: WorldGpu | null = null
+
+const triangles = (w: World) => w.meshes.reduce((n, m) => n + (m.kind === "faces" ? m.indices.length / 3 : 0), 0)
+
+function wantsGpu(w: World): boolean {
+  if (props.engine === "cpu") return false
+  if (props.engine === "gpu") return true
+  return triangles(w) >= GPU_FROM
+}
+
+function render(buffer: RasterBuffer, clock: number) {
+  const w = world.value
+  if (!w) {
+    buffer.data.fill(0)
+    return
+  }
+  const v = viewAt(clock)
+  if (!target || target.width !== buffer.width || target.height !== buffer.height) target = createWorldTarget(buffer.width, buffer.height)
+  let drawn = false
+  if (wantsGpu(w)) {
+    gpu = gpu ?? createWorldGpu()
+    drawn = gpu.rasterize(w, v, target, style.value)
+    gpuProblem.value = drawn ? "" : gpu.problem()
+  }
+  if (!drawn) rasterizeWorld(w, v, target, style.value)
+  engineUsed.value = drawn ? "gpu" : "cpu"
+  paintTarget(buffer, target, w, v, style.value)
+}
+
+function afterPaint(canvas: HTMLCanvasElement) {
+  const bloom = bloomRef.value
+  const ctx = bloom?.getContext("2d")
+  if (!bloom || !ctx) return
+  if (bloom.width !== canvas.width || bloom.height !== canvas.height) {
+    bloom.width = canvas.width
+    bloom.height = canvas.height
+  }
+  ctx.clearRect(0, 0, bloom.width, bloom.height)
+  ctx.drawImage(canvas, 0, 0)
+}
+
+onBeforeUnmount(() => {
+  ctl?.abort()
+  gpu?.dispose()
+  gpu = null
+})
+
 useDitherBackground({
   wrapRef,
   canvasRef,
@@ -218,19 +328,14 @@ useDitherBackground({
   renderMode: () => props.renderMode,
   precompiled: () => undefined,
   restart: () => [
-    props.renderMode, props.dpr, props.cell, world.value, orbit.yaw, orbit.pitch,
-    props.yaw, props.pitch, props.zoom, props.fov, props.color, props.seed, props.shade, props.fog, props.material, props.wire,
+    props.renderMode, props.dpr, props.cell, world.value, orbit.yaw, orbit.pitch, props.engine,
+    props.yaw, props.pitch, props.zoom, props.fov, props.color, props.colors, props.dither, props.seed, props.shade, props.fog,
+    props.grain, props.grainScale, props.material, props.wire, props.bloom, props.animate, props.time,
   ],
   frameRate: () => props.frameRate,
   staticClock: 0,
-  render: (buffer: RasterBuffer, clock: number) => {
-    const w = world.value
-    if (!w) {
-      buffer.data.fill(0)
-      return
-    }
-    paintWorld(buffer, w, viewAt(clock), style.value)
-  },
+  render,
+  afterPaint,
 })
 </script>
 
@@ -241,6 +346,7 @@ useDitherBackground({
     :aria-label="label"
     :tabindex="interactive ? 0 : undefined"
     :data-state="status"
+    :data-engine="engineUsed"
     :class="cn('relative block h-full w-full select-none overflow-hidden', interactive && 'cursor-grab active:cursor-grabbing', props.class)"
     :style="interactive ? { touchAction: 'pan-y' } : undefined"
     @pointerdown="onDown"
@@ -250,6 +356,13 @@ useDitherBackground({
     @keydown="onKey"
   >
     <canvas ref="canvasRef" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
-    <p v-if="note" class="absolute inset-x-0 bottom-2 text-center font-mono text-[10px] text-muted-foreground" aria-live="polite">{{ note }}</p>
+    <canvas
+      v-if="bloomStyle"
+      ref="bloomRef"
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 h-full w-full"
+      :style="{ filter: bloomStyle.filter, opacity: bloomStyle.opacity, mixBlendMode: bloomStyle.mixBlendMode, imageRendering: bloomStyle.imageRendering }"
+    />
+    <p v-if="note" class="absolute inset-x-0 bottom-2 px-2 text-center font-mono text-[10px] break-words text-muted-foreground" aria-live="polite">{{ note }}</p>
   </div>
 </template>

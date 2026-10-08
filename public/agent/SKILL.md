@@ -151,10 +151,13 @@ Commands (`type` and fields):
   Variation belongs to the engine (seeds), structure belongs to you.
 - Ask Studio for `registry.get` with `is` before guessing a prop name.
 - You can write 3D and shaders directly: `DitherWorld` takes a model as
-  `props.source` (VRML97 / VRML 1.0 `.wrl` text, OBJ or ASCII STL) or a URL
-  as `props.src`, and `DitherShader` takes GLSL as `props.source`
-  (Shadertoy-style `mainImage` with `iTime`/`iResolution`/`iMouse`, or a raw
-  `main`). Both are ordinary `component.add` targets.
+  `props.source` (VRML97 / VRML 1.0 `.wrl`, X3D XML, glTF JSON, OBJ, ASCII
+  STL / PLY or OFF text — VRML `TimeSensor` + interpolator + `ROUTE`
+  animations play on the clock) or a URL as `props.src` (also `.glb`), and
+  `DitherShader` takes GLSL as `props.source` (Shadertoy-style `mainImage`
+  with `iTime`/`iResolution`/`iMouse`/`iColor`, or a raw `main`). Both are
+  ordinary `component.add` targets; `props.colors` gives either a palette
+  ramp.
 - Finish with `code.get` when the user wants code, and quote the SFC.
 
 ## 5. Render a frame to video (HyperFrames)

@@ -45,6 +45,8 @@ export type DitherBackgroundOptions = {
    * @param elapsed ms since this run started (drives page-load fades).
    */
   render: (buffer: RasterBuffer, clock: number, dt: number, elapsed: number) => void
+  /** After the raster is on the canvas — e.g. copy it onto a bloom layer. */
+  afterPaint?: (canvas: HTMLCanvasElement) => void
 }
 
 export function useDitherBackground(opts: DitherBackgroundOptions): void {
@@ -93,6 +95,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): void {
     if (!buffer) return
     opts.render(buffer, clock, dt, elapsed)
     imageData = putRasterBuffer(ctx, buffer, imageData)
+    if (opts.afterPaint && opts.canvasRef.value) opts.afterPaint(opts.canvasRef.value)
   }
 
   function frame(now: number) {

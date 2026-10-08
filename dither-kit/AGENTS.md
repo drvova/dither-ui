@@ -161,60 +161,110 @@ is its showcase and editor.
   generative background surfaces (FaultyTerminal, Ferrofluid, Aurora, and the
   ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
   `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
-- `world.ts` + `models.ts` + `DitherWorld.vue` are the 3D surface. `models.ts`
-  parses model files into a `World` (meshes in world space with outward
-  winding, directional lights, the headlight flag, the first viewpoint, a
-  bounding sphere): VRML97 / X3D classic and VRML 1.0 `.wrl` (one lenient
-  tokenizer + generic node grammar — DEF/USE, PROTO/EXTERNPROTO/ROUTE skipped,
-  enums, bare children for 1.0's Separator state machine; Transform/Group/
-  Switch/LOD/Shape/Material/IndexedFaceSet/Box/Sphere/Cone/Cylinder/
-  ElevationGrid/Viewpoint/DirectionalLight/NavigationInfo; 1.0's Translation/
-  Rotation/Scale/MatrixTransform/Coordinate3/ShapeHints/Cube), Wavefront OBJ
-  (`v`/`f`, slashes, negative indices, polygons) and STL (ASCII + binary,
-  two-sided, z-up swung to y-up by default). `world.ts` is the engine:
-  column-major mat4 math, the VRML primitives (y up, CCW outward), `meshFrom`
-  (bakes the matrix, reverses rings for `ccw FALSE` or a mirroring matrix,
-  fan-triangulates, keeps polygon outline edges with their owning triangle),
-  `finishWorld` (bounding sphere), and `paintWorld`: an orbit camera around
-  the sphere (`yaw`/`pitch` degrees, `zoom` 1 frames the sphere, eye never
-  inside it), flat Lambert from the headlight + the file's lights, an
-  edge-function rasterizer with a z-buffer (incremental barycentrics, 2D
-  bbox clamp), 1-bit ordered dither per cell — lit cells take the fill at
-  full alpha, the rest `shade` alpha so the silhouette reads — `fog` depth
-  fade, `material` per-mesh colour, and a `wire` pass drawing the outline
-  edges depth-tested against the finished z-buffer (hidden-line removal,
-  never a fan's diagonals). CPU only on purpose: same bytes in a browser, a
-  worker, Node and a HyperFrames capture. `sampleWorld(seed)` writes the
-  default content as real VRML97 text (seed-generative like everything
-  else) so the default goes through the parser too. The component loads
-  `src` (fetch, format by name then by sniffing) or inline `source`, derives
-  the initial pose from the file's Viewpoint when `yaw`/`pitch`/`zoom` are
-  unset, orbits by pointer drag (`touch-action: pan-y`) and arrow keys
-  (focusable `role="img"`), and shows an honest note for loading/empty/
-  error. `tests/world.spec.ts` + `tests/vrml.spec.ts` pin the engine and
-  both grammars.
+- `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
+  surface. `models.ts` parses model files into a `World`: meshes (faces,
+  lines or points; positions in world space, or node space when animated;
+  palette indices for the material and, when the file colours faces or
+  vertices, per triangle — a world holds ≤ 255 colours, the rest snap),
+  nodes (animatable transforms with sampled tracks), directional lights,
+  the headlight flag, the first viewpoint, a bounding sphere at time 0 and
+  the cycle length. Formats: VRML97 / X3D classic and VRML 1.0 `.wrl` (one
+  lenient tokenizer + node grammar — DEF/USE, PROTO/EXTERNPROTO skipped,
+  ROUTEs collected, enums, bare children for 1.0's Separator state machine;
+  Transform/Group/Switch/LOD/Shape/Material/IndexedFaceSet (+ Color per
+  face or vertex)/IndexedTriangleSet/TriangleSet/IndexedLineSet/PointSet/
+  Box/Sphere/Cone/Cylinder/ElevationGrid/Viewpoint/DirectionalLight/
+  NavigationInfo; 1.0's Translation/Rotation/Scale/MatrixTransform/
+  Coordinate3/ShapeHints/Cube), X3D XML (`parseXml`, a small element +
+  attribute reader, mapped onto the same nodes by containerField), glTF 2.0
+  (`.glb` chunks or `.gltf` JSON with data: URIs; external buffers come
+  pre-fetched through `ParseOptions.resources`, listed by
+  `externalResources`; accessors with strides and normalized ints,
+  triangles/strips/fans/lines/points, baseColorFactor, doubleSided,
+  COLOR_0, node TRS or matrix, the FIRST animation's translation/rotation/
+  scale channels incl. STEP and CUBICSPLINE values), Wavefront OBJ (`v`/`f`
+  with slashes and negative indices, `l`, `p`, vertex colours, `usemtl`
+  groups coloured from the `mtllib` via `parseMtl`), STL (ASCII + binary,
+  two-sided, z-up swung to y-up by default), PLY (ASCII, binary little and
+  big endian; vertex and face colours, edges, point clouds) and OFF (face
+  colours). Animation: a VRML `TimeSensor` → `PositionInterpolator` /
+  `OrientationInterpolator` → `ROUTE … set_translation/rotation/scale`
+  chain (also X3D's `<ROUTE>`) makes that Transform a `WorldNode` whose
+  tracks hold keys in seconds (key × cycleInterval, loop, startTime);
+  everything static between nodes folds into the node's `pre` matrix and
+  static meshes stay baked. `world.ts` is the engine: column-major mat4 +
+  quaternion math (`composeTransform` = T·C·R·SR·S·-SR·-C), the VRML
+  primitives (y up, CCW outward), `addMesh` (bakes the matrix, reverses
+  rings for `ccw FALSE` or a mirroring matrix, fan-triangulates, keeps
+  polygon outline edges with their owning triangle, registers colours),
+  `sampleTrack` (lerp / step / shortest-path slerp, looping or clamped),
+  `nodeMatrices(world, t)` (cached per time), `posedPositions`,
+  `finishWorld`, `cameraOf` (orbit camera around the sphere: `yaw`/`pitch`
+  degrees, `zoom` 1 frames the sphere, eye never inside it, camera-space
+  lights) and the two-stage renderer: stage one fills a `WorldTarget`
+  (shade 0-1, depth from the eye, palette index + 1) — `rasterizeWorld` is
+  the CPU engine (edge-function rasterizer with a z-buffer, flat Lambert
+  from the headlight + the file's lights, back faces culled on solid
+  meshes, per-vertex fbm `meshGrain` interpolated into the shade) and
+  `world-gl.ts` (`createWorldGpu`) is the GPU engine: the same contract
+  through WebGL2 (WebGL1 with derivatives + uint indices), flat normals
+  from derivatives, the colour index as a vertex attribute (expanded
+  buffers for per-face colours), node poses as a per-mesh matrix uniform,
+  a 16-bit depth code read back into the target. Stage two `paintTarget`
+  is shared and never knows the engine: fill mode thresholds the shade
+  against the Bayer cell (lit cells take the fill at full alpha, the rest
+  `shade` alpha), `material` does the same in the file's colour, `ramp`
+  (the kit's `sampleRgbGradient` palette engine) picks a band by lighting
+  and dithers between bands over an opaque silhouette with `dither` 0-1
+  blending to the smooth gradient, `fog` fades by depth; then outlines
+  (`wire`, owning-triangle facing, never a fan's diagonals), line sets and
+  point sets draw depth-tested against the finished z-buffer. `paintWorld`
+  = CPU stage one + stage two; same world + time + view + style → same
+  bytes. `sampleWorld(seed)` writes the default content as real VRML97
+  text with its own TimeSensor/ROUTE animation (seed-generative like
+  everything else). The component loads `src` (fetch, format by name then
+  by sniffing, side files resolved relative to it) or inline `source`,
+  derives the initial pose from the file's Viewpoint when
+  `yaw`/`pitch`/`zoom` are unset, poses the file's animation at the kit
+  clock (`animate`, or a pinned `time`), picks the engine (`auto` = GPU
+  above ~40k triangles, CPU otherwise; a forced `gpu` that fails says why
+  and falls back), draws the bloom layer (`pixelBloomStyle`) in
+  `afterPaint`, orbits by pointer drag (`touch-action: pan-y`) and arrow
+  keys (focusable `role="img"`, `data-engine` says which engine drew), and
+  shows an honest note for loading/empty/error. `tests/world.spec.ts`,
+  `tests/vrml.spec.ts` and `tests/models.spec.ts` pin the engine, the
+  grammars and every format.
+- `gl.ts` is the kit's one piece of WebGL plumbing, shared by the GLSL
+  surface and the world's GPU engine: `createGl` (an offscreen WebGL2 or
+  WebGL1 context, context-loss flag, `size`, `read` back, `dispose`) and
+  `buildProgram` (the compiler's first line as the error). The GPU is only
+  ever an evaluator — every surface still dithers on the CPU.
 - `shader.ts` + `DitherShader.vue` are the GLSL surface. The pure half:
   `wrapShader` builds a program around a user fragment shader — Shadertoy's
-  `mainImage` gets the Shadertoy uniforms and a `main` (GLSL ES 3.00 under
-  WebGL2, 1.00 under WebGL1), a raw `main` compiles as written (default
-  float precision added when missing, `#version 300 es` honoured) — and
+  `mainImage` gets the Shadertoy uniforms plus the kit's (`iColor` the
+  component colour 0-1, `iSeed`, and `dk_bayer4(fragCoord)`, the 4x4 Bayer
+  threshold in closed form) and a `main` (GLSL ES 3.00 under WebGL2, 1.00
+  under WebGL1), a raw `main` compiles as written (default float precision
+  added when missing, `#version 300 es` honoured) — and
   `ditherShaderPixels` turns the GPU readback (rows bottom-up) into the
   raster: colour mode quantizes each channel to `levels` through the Bayer
   cell (2 = the eight-colour look), mono thresholds luminance into the tint
-  with a `shade` floor; `dither` blends smooth → quantized; the shader's
-  alpha carries. The component owns one offscreen WebGL2/WebGL1 context at
-  the cell resolution (context loss handled, released on unmount), feeds
-  `iResolution/iTime/iTimeDelta/iFrame/iMouse/iDate` plus the glslsandbox
-  and Book-of-Shaders aliases (`SHADER_UNIFORMS`), reads back and dithers
-  each frame; `iTime` is the kit clock, so it seeks and renders like every
-  surface (HyperFrames' renderer has WebGL2 through SwiftShader — verified
-  by a real render). Without WebGL it shows "WebGL is not available"; a
-  compile error shows the compiler's first line. `sampleShader(seed)` is the
-  seeded default source. `tests/shader.spec.ts` pins the pure half.
+  with a `shade` floor, a `palette` ramp dithers luminance across its bands
+  (`sampleRgbGradient` for the smooth end of `dither`); the shader's alpha
+  carries. The component owns one `gl.ts` context at the cell resolution
+  (released on unmount), feeds `SHADER_UNIFORMS` (the Shadertoy set, the
+  kit's, and the glslsandbox / Book-of-Shaders aliases), reads back and
+  dithers each frame; `iTime` is the kit clock, so it seeks and renders
+  like every surface (HyperFrames' renderer has WebGL2 through SwiftShader
+  — verified by a real render). Without WebGL it shows "WebGL is not
+  available"; a compile error shows the compiler's first line.
+  `sampleShader(seed)` is the seeded default source. `tests/shader.spec.ts`
+  pins the pure half.
 - `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
   for that family: throttled rAF loop, backing buffer + upload, visibility gate,
   resize, dpr, static/reduced-motion single frame, and the mount/restart/teardown
-  lifecycle. `cell` is a number or a getter (a `cell` prop). `paused` holds
+  lifecycle. `cell` is a number or a getter (a `cell` prop); `afterPaint`
+  runs after the upload with the canvas (bloom layers copy it). `paused` holds
   the raster but never leaves it blank: the first frame, and the frame after
   a restart, still paint before the loop stands down (so a paused surface
   repaints when a `restart` source such as a drag changes). A still surface

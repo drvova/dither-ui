@@ -132,14 +132,17 @@ Default section order:
   `dither-kit/AGENTS.md`.
 - 3D + GLSL: the kit renders model files and fragment shaders through the
   same Bayer raster. `DitherWorld` (`dither-kit/world.ts` engine,
-  `models.ts` parsers) loads VRML97 / VRML 1.0 `.wrl`, OBJ and STL by URL or
-  inline and rasterizes them on the CPU (orbit camera, z-buffer, flat Lambert,
-  1-bit dither, hidden-line wire) — no GPU, deterministic, video-safe.
-  `DitherShader` (`shader.ts`) compiles Shadertoy-style or raw GLSL in an
-  offscreen WebGL context at the cell resolution and dithers the readback;
+  `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0
+  `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY and OFF by URL or inline,
+  plays the file's animations (VRML ROUTEs, glTF) on the kit clock, and
+  rasterizes on the CPU (byte-exact, video-safe) or through WebGL for big
+  meshes — both into one shared dither pass that also runs the palette
+  ramp, fbm grain and bloom engines. `DitherShader` (`shader.ts`, `gl.ts`)
+  compiles Shadertoy-style or raw GLSL in an offscreen WebGL context at the
+  cell resolution and dithers the readback (1-bit, mono or a palette ramp);
   `iTime` is the kit clock. Both are docs sections under Media (`world`,
   `shader`) and `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps
-  WebGL2 (SwiftShader), so shader frames export to MP4 too.
+  WebGL2 (SwiftShader), so GPU and shader frames export to MP4 too.
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node

@@ -7,7 +7,7 @@
 // seeded default source so a seed alone is a complete, different shader.
 
 import { clamp01, xorshift32 } from "./pixel"
-import type { Rgb } from "./palette"
+import { sampleRgbGradient, type Rgb } from "./palette"
 import type { RasterBuffer } from "./raster"
 
 export type ShaderConvention = "shadertoy" | "raw"
@@ -23,16 +23,29 @@ export type ShaderProgram = {
 /** Uniforms the runtime feeds, Shadertoy names first then common aliases
  * (glslsandbox `time`/`resolution`/`mouse`, Book of Shaders `u_*`). */
 export const SHADER_UNIFORMS = [
-  "iResolution", "iTime", "iTimeDelta", "iFrame", "iMouse", "iDate",
+  "iResolution", "iTime", "iTimeDelta", "iFrame", "iMouse", "iDate", "iColor", "iSeed",
   "resolution", "time", "mouse", "u_resolution", "u_time", "u_mouse",
 ] as const
 
+/** The Shadertoy set plus the kit's: `iColor` (the component's colour, 0-1)
+ * and `iSeed`, and `dk_bayer4(fragCoord)` — the kit's 4x4 Bayer threshold
+ * for that pixel, so a shader can dither in its own terms. */
 const SHADERTOY_UNIFORMS = `uniform vec3 iResolution;
 uniform float iTime;
 uniform float iTimeDelta;
 uniform int iFrame;
 uniform vec4 iMouse;
 uniform vec4 iDate;
+uniform vec3 iColor;
+uniform float iSeed;
+float dk_bayer2(float x, float y) { return 2.0 * x + 3.0 * y - 4.0 * x * y; }
+float dk_bayer4(vec2 p) {
+  float x0 = mod(floor(p.x), 2.0);
+  float y0 = mod(floor(p.y), 2.0);
+  float x1 = mod(floor(p.x / 2.0), 2.0);
+  float y1 = mod(floor(p.y / 2.0), 2.0);
+  return (4.0 * dk_bayer2(x0, y0) + dk_bayer2(x1, y1) + 0.5) / 16.0;
+}
 `
 
 const VERTEX_1 = "attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }"
@@ -83,13 +96,17 @@ export type ShaderDither = {
   mono: Rgb | null
   /** Mono: alpha floor of the unlit cells, 0-1. */
   shade: number
+  /** A palette ramp, dark to light: luminance picks the band, the Bayer
+   * cell dithers between bands (wins over mono and levels). */
+  palette?: Rgb[] | null
 }
 
 /**
  * GL readback (RGBA, rows bottom-up) → the raster, ordered-dithered. Colour
  * mode quantizes each channel to `levels` through the Bayer cell; mono mode
- * thresholds luminance and paints the tint, unlit cells at `shade` alpha.
- * The shader's own alpha carries through.
+ * thresholds luminance and paints the tint, unlit cells at `shade` alpha; a
+ * palette dithers luminance across its bands. The shader's own alpha
+ * carries through.
  */
 export function ditherShaderPixels(src: Uint8Array, buffer: RasterBuffer, p: ShaderDither): void {
   const cols = buffer.width
@@ -99,6 +116,9 @@ export function ditherShaderPixels(src: Uint8Array, buffer: RasterBuffer, p: Sha
   const steps = Math.max(1, Math.round(p.levels) - 1)
   const shade = clamp01(p.shade)
   const mono = p.mono
+  const palette = p.palette && p.palette.length >= 2 ? p.palette : null
+  const bands = palette ? palette.length : 0
+  const smooth: [number, number, number] = [0, 0, 0]
   for (let y = 0; y < rows; y++) {
     const srow = (rows - 1 - y) * cols
     const my = p.matrix[y & 3]
@@ -107,6 +127,22 @@ export function ditherShaderPixels(src: Uint8Array, buffer: RasterBuffer, p: Sha
       const o = (y * cols + x) * 4
       const th = my[x & 3]
       const a = src[s + 3]
+      if (palette) {
+        const lum = (0.2126 * src[s] + 0.7152 * src[s + 1] + 0.0722 * src[s + 2]) / 255
+        const col = palette[Math.min(bands - 1, Math.floor(lum * (bands - 1) + th))]
+        if (d < 1) {
+          sampleRgbGradient(palette, lum, smooth)
+          data[o] = Math.round(smooth[0] * (1 - d) + col[0] * d)
+          data[o + 1] = Math.round(smooth[1] * (1 - d) + col[1] * d)
+          data[o + 2] = Math.round(smooth[2] * (1 - d) + col[2] * d)
+        } else {
+          data[o] = col[0]
+          data[o + 1] = col[1]
+          data[o + 2] = col[2]
+        }
+        data[o + 3] = a
+        continue
+      }
       if (mono) {
         const lum = (0.2126 * src[s] + 0.7152 * src[s + 1] + 0.0722 * src[s + 2]) / 255
         const q = lum + th >= 1 ? 1 : 0

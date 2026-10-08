@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { facesOf, parseVrml, parseVrmlNodes, tokenizeVrml, vrmlTransform } from "../dither-kit/models"
-import { transformPoint } from "../dither-kit/world"
+import { nodeMatrices, transformPoint } from "../dither-kit/world"
 
 const V2 = "#VRML V2.0 utf8\n"
 const extent = (p: Float32Array, axis: number) => Math.max(...Array.from(p).filter((_, i) => i % 3 === axis).map(Math.abs))
@@ -10,7 +10,7 @@ describe("tokenizer + generic grammar", () => {
     expect(tokenizeVrml('a,b # c { }\n"str \\"q\\" {x}" [1 2]')).toEqual(["a", "b", '"str "q" {x}', "[", "1", "2", "]"])
   })
   it("parses nested nodes, lists, enums, booleans, DEF/USE, NULL, and skips PROTO/ROUTE", () => {
-    const { version, nodes } = parseVrmlNodes(`${V2}
+    const { version, nodes, routes } = parseVrmlNodes(`${V2}
       PROTO Thing [ field SFFloat size 1 ] { Shape { geometry Box {} } }
       DEF T TimeSensor { loop TRUE cycleInterval 2 }
       ROUTE T.fraction_changed TO X.set_fraction
@@ -23,7 +23,8 @@ describe("tokenizer + generic grammar", () => {
     `)
     expect(version).toBe(2)
     expect(nodes.map((n) => n.type)).toEqual(["TimeSensor", "Transform", "WorldInfo", "ShapeHints"])
-    expect(nodes[0].fields).toEqual({ loop: true, cycleInterval: [2] })
+    expect(nodes[0]).toEqual({ type: "TimeSensor", name: "T", fields: { loop: true, cycleInterval: [2] } })
+    expect(routes).toEqual([{ from: "T", fromField: "fraction_changed", to: "X", toField: "set_fraction" }])
     const t = nodes[1]
     expect(t.fields.translation).toEqual([1, 2, 3])
     const kids = t.fields.children as { type: string; fields: Record<string, unknown> }[]
@@ -73,7 +74,7 @@ describe("VRML97 scene", () => {
   })
   it("reads materials, IndexedFaceSet winding flags and ElevationGrid", () => {
     const m = parseVrml(`${V2}Shape { appearance Appearance { material Material { diffuseColor 1 0 0.5 } } geometry Box {} }`)
-    expect(m.meshes[0].color).toEqual([255, 0, 128])
+    expect(m.palette[m.meshes[0].color]).toEqual([255, 0, 128])
     const quad = (flags: string) => `${V2}Shape { geometry IndexedFaceSet { ${flags} coord Coordinate { point [ 0 0 0, 1 0 0, 1 1 0, 0 1 0 ] } coordIndex [ 0, 1, 2, 3, -1 ] } }`
     const q = parseVrml(quad("")).meshes[0]
     expect(q.indices.length).toBe(6)
@@ -102,6 +103,45 @@ describe("VRML97 scene", () => {
   })
 })
 
+describe("VRML97 animation", () => {
+  it("TimeSensor → interpolator → ROUTE becomes a node with tracks; untouched transforms stay baked", () => {
+    const w = parseVrml(`${V2}
+      DEF Clock TimeSensor { cycleInterval 2 loop TRUE }
+      DEF Move PositionInterpolator { key [ 0 1 ] keyValue [ 0 0 0, 4 0 0 ] }
+      DEF Spin OrientationInterpolator { key [ 0 1 ] keyValue [ 0 1 0 0, 0 1 0 3.14159 ] }
+      Transform { translation 0 5 0 children DEF Mover Transform { children [ Shape { geometry Box { size 1 1 1 } } DEF Spinner Transform { translation 1 0 0 children Shape { geometry Box { size 1 1 1 } } } ] } }
+      Shape { geometry Sphere { radius 0.5 } }
+      ROUTE Clock.fraction_changed TO Move.set_fraction
+      ROUTE Move.value_changed TO Mover.set_translation
+      ROUTE Clock.fraction_changed TO Spin.set_fraction
+      ROUTE Spin.value_changed TO Spinner.set_rotation
+    `)
+    expect(w.nodes.length).toBe(2)
+    expect(w.nodes[0].parent).toBe(-1)
+    expect(w.nodes[1].parent).toBe(0)
+    expect(w.nodes[0].tracks.translation?.duration).toBe(2)
+    expect(w.nodes[1].tracks.rotation?.kind).toBe("slerp")
+    expect(w.meshes.map((m) => m.node)).toEqual([0, 1, -1])
+    expect(w.duration).toBe(2)
+    const at = (t: number) => { const mats = nodeMatrices(w, t); return transformPoint(mats[1], [0, 0, 0]) }
+    expect(at(0).map((v) => Math.round(v * 100) / 100)).toEqual([1, 5, 0])
+    expect(at(1).map((v) => Math.round(v * 100) / 100)).toEqual([3, 5, 0])
+  })
+  it("reads face colours, line sets and point sets", () => {
+    const w = parseVrml(`${V2}Shape { geometry IndexedFaceSet { colorPerVertex FALSE color Color { color [ 1 0 0, 0 0 1 ] } coord Coordinate { point [ 0 0 0, 1 0 0, 1 1 0, 0 1 0, 2 0 0, 2 1 0 ] } coordIndex [ 0 1 2 3 -1 1 4 5 2 -1 ] } }`)
+    const m = w.meshes[0]
+    expect(Array.from(m.triColors!).map((i) => w.palette[i])).toEqual([[255, 0, 0], [255, 0, 0], [0, 0, 255], [0, 0, 255]])
+    const v = parseVrml(`${V2}Shape { geometry IndexedFaceSet { color Color { color [ 1 0 0, 1 0 0, 0 0 1, 0 0 1 ] } coord Coordinate { point [ 0 0 0, 1 0 0, 1 1 0, 0 1 0 ] } coordIndex [ 0 1 2 3 -1 ] } }`)
+    expect(v.palette[v.meshes[0].triColors![0]]).toEqual([128, 0, 128])
+    const l = parseVrml(`${V2}Shape { geometry IndexedLineSet { coord Coordinate { point [ 0 0 0, 1 0 0, 1 1 0 ] } coordIndex [ 0 1 2 -1 0 2 -1 ] } }`)
+    expect(l.meshes[0].kind).toBe("lines")
+    expect(Array.from(l.meshes[0].indices)).toEqual([0, 1, 1, 2, 0, 2])
+    const p = parseVrml(`${V2}Shape { geometry PointSet { coord Coordinate { point [ 0 0 0, 1 0 0 ] } } }`)
+    expect(p.meshes[0].kind).toBe("points")
+    expect(p.meshes[0].indices.length).toBe(2)
+  })
+})
+
 describe("VRML 1.0 scene", () => {
   const V1 = "#VRML V1.0 ascii\n"
   it("runs the Separator state machine: coords, material, translation scope, Cube", () => {
@@ -116,10 +156,10 @@ describe("VRML 1.0 scene", () => {
     `)
     expect(w.meshes.length).toBe(2)
     const [quad, cube] = w.meshes
-    expect(quad.color).toEqual([255, 0, 0])
+    expect(w.palette[quad.color]).toEqual([255, 0, 0])
     expect(quad.solid).toBe(false)
     expect(Math.min(...Array.from(quad.positions).filter((_, i) => i % 3 === 0))).toBe(10)
-    expect(cube.color).toEqual([204, 204, 204])
+    expect(w.palette[cube.color]).toEqual([204, 204, 204])
     expect(extent(cube.positions, 0)).toBe(1)
     expect(extent(cube.positions, 1)).toBe(2)
     expect(extent(cube.positions, 2)).toBe(3)
