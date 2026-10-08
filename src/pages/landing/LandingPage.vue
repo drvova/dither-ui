@@ -11,6 +11,7 @@ import InstallBlock from "./InstallBlock.vue"
 import PixelPlate from "./PixelPlate.vue"
 import SkyOrganism from "./SkyOrganism.vue"
 import { createDitherField, type DitherField } from "./dither-field"
+import { createPixelShake, type PixelShake } from "./pixel-shake"
 import { dawnPlate, SKY } from "./plates"
 import Showcase from "./Showcase.vue"
 
@@ -38,6 +39,10 @@ const FACES = [
 
 const faceEls = ref<HTMLCanvasElement[]>([])
 const emoteEls = ref<HTMLCanvasElement[]>([])
+// Each portrait is a pixel-shake surface: hovering her scatters the pixels
+// under the cursor and they spring home when it leaves (vanilla module,
+// no loop at rest). Emotes stay plain blits.
+let shakers: PixelShake[] = []
 
 function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
   const dpr = Math.min(window.devicePixelRatio || 1, 3)
@@ -158,7 +163,7 @@ onMounted(() => {
     FACES.forEach((f, i) => {
       const face = faceEls.value[i]
       const emote = emoteEls.value[i]
-      if (face) blit(face, img, f.x, FACE_Y, f.w, FACE_H)
+      if (face) shakers.push(createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }))
       if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
     })
   }
@@ -228,6 +233,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  for (const sh of shakers) sh.destroy()
+  shakers = []
   bandField?.destroy()
   bandField = null
   revealIO?.disconnect()
@@ -345,7 +352,8 @@ function setActive(i: number) {
       <!-- Install strip: step tabs + command + copy (docs install story). -->
       <InstallBlock />
 
-      <!-- Six moods, one row — hover a face and her emote answers -->
+      <!-- Six moods, one row — hover a face: her pixels scatter under the
+           cursor and settle, and her emote answers -->
       <p
         class="reveal micro pt-[var(--section)] pb-6 text-center text-muted-foreground"
         style="--reveal-delay: 260ms"
@@ -354,7 +362,7 @@ function setActive(i: number) {
       </p>
       <div
         role="img"
-        aria-label="Pixel-art character portraits in six expressions — hover a portrait and her reaction emote answers"
+        aria-label="Pixel-art character portraits in six expressions — hover a portrait: her pixels stir under the cursor and her reaction emote answers"
         class="reveal flex flex-wrap justify-center gap-7"
         style="--reveal-delay: 300ms"
       >

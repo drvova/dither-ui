@@ -114,8 +114,17 @@ widgets/features; page-specific conventions live here.
   programmatically in the browser (density-scan pattern) — never eyeball.
 - `public/faces.webp` has transparency baked in; do not reintroduce runtime
   `getImageData` chroma-keying on the landing.
-- Emote hover reactions are CSS-only (`.emote` + `.group:hover`); no JS timers
-  on the landing.
+- Portrait hover is the `pixel-shake.ts` disturbance (vanilla, sibling of
+  `dither-field`): each face canvas holds its crop at NATIVE art resolution;
+  pointer moves add ENERGY at the cursor, every frame re-samples the source
+  through a Gaussian pool (outward push + per-cell wobble on a 46 rad/s
+  clock) gated by the Bayer threshold (dense core, scattered fringe), and
+  energy decays 0.9/frame so cells spring home — the rAF exists ONLY while
+  energy is above the floor, nothing at rest, nothing under reduced motion,
+  touch pointers ignored. Faster strokes kick harder. `shakeRaster()` is the
+  pure raster (`tests/pixel-shake.spec.ts`: identity at zero energy, pool
+  locality, Bayer thinning, determinism). Emote reactions stay CSS-only
+  (`.emote` + `.group:hover`); no JS timers on the landing.
 - Footer signature: engraved wordmark (`EngravedWordmark.vue`) — glyph paths
   baked from Consolas Bold via `.scratch/engrave/bake.js` into
   `src/pages/landing/wordmark-layers.ts` as EXPORTED MARKUP STRINGS the
