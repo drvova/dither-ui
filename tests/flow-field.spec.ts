@@ -61,6 +61,29 @@ describe("paintFlowField", () => {
     expect(strong).toBeGreaterThan(0)
     expect(faint).toBeGreaterThan(0)
   })
+
+  it("is born rank by rank — early stamps cover less lattice than late", () => {
+    // Two same-seed runs: one sampled at birth's start, one after the birth
+    // completes. The late field must carry strictly more ink.
+    const early = createRasterBuffer(64, 40)
+    paintFlowField(early, params, 0, 0.016, BAYER4, 0.05)
+    let earlyLit = 0
+    for (let i = 3; i < early.data.length; i += 4) if (early.data[i] > 0) earlyLit++
+    const late = createRasterBuffer(64, 40)
+    for (let f = 0; f < 40; f++) paintFlowField(late, params, f * 0.016, 0.016, BAYER4, 2 + f * 0.016)
+    let lateLit = 0
+    for (let i = 3; i < late.data.length; i += 4) if (late.data[i] > 0) lateLit++
+    expect(earlyLit).toBeGreaterThan(0) // the coarse ranks arrive immediately
+    expect(lateLit).toBeGreaterThan(earlyLit * 3) // the fine ranks follow
+  })
+
+  it("static frame reads complete — elapsed 1e6 births the whole lattice", () => {
+    const buf = createRasterBuffer(64, 40)
+    paintFlowField(buf, params, 4, 0, BAYER4, 1e6)
+    let lit = 0
+    for (let i = 3; i < buf.data.length; i += 4) if (buf.data[i] > 0) lit++
+    expect(lit).toBeGreaterThan(50)
+  })
 })
 
 describe("DitherFlowField component", () => {

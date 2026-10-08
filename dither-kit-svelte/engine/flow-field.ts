@@ -74,11 +74,20 @@ export function paintFlowField(
   time: number,
   dt: number,
   matrix: number[][],
+  /** seconds since mount — the runtime passes 1e6 for the static /
+   * reduced-motion frame so any birth reads complete. */
+  elapsed = 1e6,
 ): void {
   const w = buffer.width
   const h = buffer.height
   const data = buffer.data
   const n = Math.max(1, Math.min(20000, Math.round(p.count)))
+
+  // The creature's birth: Bayer ranks unlock as elapsed grows — the field
+  // assembles rank by rank (coarse structure first, fine texture last), the
+  // plates' develop motion in the wind. Elapsed never resets on visibility
+  // wakes, so a paused stretch skips ahead instead of replaying.
+  const born = clamp01(elapsed / 1.4)
 
   // 1) The trail decays toward transparent.
   fadeRasterAlpha(buffer, p.fade)
@@ -111,8 +120,12 @@ export function paintFlowField(
     const cy = st.py[i] | 0
     if (cx < 0 || cy < 0 || cx >= w || cy >= h) continue
     // The dither gate: the Bayer rank decides whether this stamp lands hard
-    // (lit) or faint (the half-tone) — the house texture, per cell.
-    const lit = matrix[cy & 3][cx & 3] > 0.5 ? 1 : 0.6
+    // (lit) or faint (the half-tone) — the house texture, per cell. The rank
+    // also carries the birth: cells whose rank exceeds the birth line don't
+    // stamp yet, so the creature assembles rank by rank (coarse → fine).
+    const rank = matrix[cy & 3][cx & 3]
+    if (rank > born) continue
+    const lit = rank > 0.5 ? 1 : 0.6
     const a = clamp01(0.5 * p.glow * lit) * p.opacity
     if (a <= 0) continue
     const pi = (cy * w + cx) * 4

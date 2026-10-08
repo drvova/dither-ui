@@ -88,8 +88,8 @@ useDitherBackground({
   renderMode: () => props.renderMode,
   precompiled: () => precompiled.value,
   restart: () => [props.seed, props.renderMode, precompiled.value, props.dpr, props.count],
-  render: (buffer: RasterBuffer, clock: number, dt: number, _elapsed: number) =>
-    paintFlowField(buffer, params.value, clock, dt, matrix.value),
+  render: (buffer: RasterBuffer, clock: number, dt: number, elapsed: number) =>
+    paintFlowField(buffer, params.value, clock, dt, matrix.value, elapsed),
 })
 </script>
 

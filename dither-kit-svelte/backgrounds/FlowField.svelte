@@ -88,8 +88,8 @@
     renderMode,
     precompiled,
     restartKey: JSON.stringify([seed, renderMode, precompiled, dpr, count]),
-    render: (buffer: RasterBuffer, clock: number, dt: number) =>
-      paintFlowField(buffer, params, clock, dt, matrix),
+    render: (buffer: RasterBuffer, clock: number, dt: number, elapsed: number) =>
+      paintFlowField(buffer, params, clock, dt, matrix, elapsed),
   })
 </script>
 
