@@ -11,11 +11,17 @@ is its showcase and editor.
 ## Ownership
 
 - Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
-  step-timing primitives, the sequence timeline algebra, container-query
-  scales, chart roots/contexts, canvas painters, and the public component set.
+  step-timing primitives, the sequence timeline algebra, the clock director,
+  the wipe engine (ordered-dither masks), the keyframe engine (container
+  units), container-query scales, chart roots/contexts, canvas painters,
+  and the public component set.
 - Consumers import ONLY via `index.ts` (`@dither-kit` alias).
 
 ## Local Contracts
+
+- `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
+  returns to its input; the list is arrow-driven), focus restores to the
+  opener on close.
 
 - Zero imports from `src/` — the kit must stay copy-out portable
   (docs promise: "copy the folder, alias it"). Dependencies: vue, d3-scale,
@@ -49,6 +55,121 @@ is its showcase and editor.
   completion checked BEFORE the gate. `tests/sequence.spec.ts` (algebra) and
   `tests/sequence-vue.spec.ts` (driver, manual-rAF fake clock — respect the
   100ms dt cap when stepping fake time) pin both halves.
+- `clock.ts` is the director — external ownership of time. Free-running,
+  every animated surface owns its own rAF loop on wall time. `seek(ms)`
+  directs them: the loops stand down and each surface paints exactly the
+  given moment, in any order (same seed + same time → same pixels);
+  `release()` hands time back. Surfaces subscribe with `onSeek` (a `null`
+  moment means released → resume through their own `wake`), request no
+  frames while `isDirected()`, and paint `directedTime()` when they start
+  or wake under direction. Directed semantics per surface:
+  `use-dither-background` sets `clock = ms/1000 · timeScale` (pure
+  renderers land on the exact frame) and passes `dt` = the step since the
+  last directed moment (simulations advance in capture order, so those
+  render with one worker); the chart canvases run the entrance from
+  composition time 0 and derive the sparkle tick from the moment;
+  `Sequence` samples its plan at the moment; spinner, skeleton, progress,
+  avatar, `CountUp` and `CurvedLoop` are pure functions of the moment;
+  `DecryptedText` runs its reveal at 60 frames per second of the moment with
+  a hashed glyph instead of `Math.random`. Pointer-driven motion (hover
+  lifts, cursors, `HoldAction`) stays free: a renderer has no input. CSS
+  keyframe and transition motion is not the clock's — HyperFrames seeks it
+  itself through WAAPI. `directFromHyperframes()` takes direction from
+  HyperFrames' `hf-seek` events (`detail.time` seconds): the contract the
+  Studio's video export and `src/pages/play` rely on. Pinned by
+  `tests/clock.spec.ts` and the directed case in `tests/sequence-vue.spec.ts`.
+- `wipe.ts` is the wipe engine — ordered-dither reveal masks for any DOM.
+  `wipeStyle(progress, { cell, seed?, direction, band, width, height })`
+  turns a progress into CSS `mask-image/size/repeat/position` values: a
+  dissolve (`direction: "none"`) tiles an n·cell SVG whose cells show once
+  the threshold sweep passes them (one cell per step of the 8×8 Bayer
+  `BAYER8` / `bayerMatrix(n)`, or the kit's seeded 4×4 with `seed`); a
+  directional wipe (`right`/`left`/`down`/`up` = where the front travels)
+  is a box-sized SVG with a solid front and four dithered density bands
+  behind it (`band` cells wide), a dissolve until it knows the box. Pure
+  strings from pure numbers (cached by key): the same progress gives the
+  same mask, `null` at 1 (remove the mask), the 1×1 empty mask at 0.
+  `DitherReveal.vue` applies it to its slot: manual `progress` (a
+  timeline's — it runs no clock of its own), or a timed reveal
+  (`duration`/`delay`/`easing`, `restartKey` replays) on the IO-gated rAF
+  loop, the kit clock's moment when directed, shown at once under reduced
+  motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
+  The Studio's reels cut between frames with it. Pinned by
+  `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+- Styling contract: Tailwind is the kit's authoring tool, not a requirement
+  of the app around it. `theme.css` declares the shadcn-style tokens
+  (`--background`, `--foreground`, `--card`, `--popover`, `--muted`,
+  `--border`, `--ring`, `--accent`, their `-foreground` pairs, `--radius`,
+  `--font-sans`, `--font-mono`, the `--swatch-*` mirror of PALETTE) light at
+  `:root` and dark under `.dark` — plain CSS the app's `styles.css` imports
+  under Tailwind (its `@theme inline` maps them to `--color-*` utilities and
+  must stay in step) and every other styling system themes by redefining.
+  `base.css` is the box-model and form-control base the components assume
+  (Tailwind's preflight is the global version the site uses), scoped under
+  `.dither-kit` through `:where()` at zero specificity. `kit.css` is the
+  standalone entry: the two files plus Tailwind's utilities with
+  `source(none)` and `@source` limited to `dither-kit/` and
+  `dither-kit-svelte/`, in the `dither-kit.theme/base/utilities` layers;
+  `scripts/kit-css.mjs` (`npm run build:css`, part of `npm run build` and
+  the Pages deploy) compiles it with `@tailwindcss/node` + `oxide` into
+  `dist/kit/dither-kit.css` (~56 kB, served at `/kit/dither-kit.css`), so
+  an app on StyleX, UnoCSS, vanilla CSS or any CSS-in-JS loads one file,
+  wraps the region in `.dither-kit`, and wins every cascade against the
+  kit's layered rules; `class` on any component takes any class name
+  (`cn()` merges Tailwind names, passes the rest through). `theme.ts` sets
+  the tokens from JS: `THEME_TOKENS`, `themeVars` (object of custom
+  properties for inline styles or a vars contract), `themeCss` (a `:root`
+  / `.dark` block), `applyTheme` (writes them on an element, returns the
+  undo). A component may use only Tailwind utilities, its own scoped
+  styles and the tokens above — never an app class. Pinned by
+  `tests/kit-css.spec.ts` (the compiled file: tokens, scoped base, the
+  utilities, no bare element rules) and `tests/theme.spec.ts`.
+- Browser contract: web platform only, every engine. The floor is Tailwind
+  v4's (Chrome 111, Safari 16.4, Firefox 128: `@layer`, `color-mix()` in
+  oklab, container queries and units, `:has()`, `inert`); anything newer
+  is feature-detected or degrades — `requestIdleCallback` (a timeout
+  fallback), `startViewTransition` (checked), WebGL2 → WebGL1 with
+  extensions (`gl.ts`, `world-gl.ts` leaves uvs unset there), `ResizeObserver`
+  and `IntersectionObserver` guarded (no gate → play), `document.fonts`
+  optional, `text-wrap`/`content-visibility`/`scrollbar-*` progressive,
+  masks through Vue's style prefixing (`DitherReveal` sets both spellings),
+  `-webkit-background-clip` beside the standard one. `lib.ts`'s `copyText`
+  is the one clipboard path: the async clipboard where it exists, else the
+  selection + `execCommand` route (plain http, older engines, automation),
+  returning whether it copied. No engine-specific APIs (`scrollIntoViewIfNeeded`,
+  `scheduler.postTask`, file pickers) anywhere.
+- `keyframes.ts` + `DitherStage.vue` + `DitherLayer.vue` are the keyframe
+  engine in container units. `parseLength` turns px numbers and any CSS
+  length (`calc()` sums included) into unit terms, `lerpTerms` interpolates
+  term by term, `termsToCss` prints one unit plain or several as a
+  `calc()`, `termsToPx` resolves against a box (cq units from the box,
+  percentages by axis, viewport and font from an env); angles read in deg,
+  turn, rad or grad. A `KeyframeTrack` is keys over seconds or percentages
+  (`at`; unplaced keys spread evenly like CSS), `duration` (else the last
+  key's seconds, else 1), `delay`, `loop` (count or forever), `yoyo`, an
+  easing between keys that a key's own `easing` overrides for the segment
+  it starts (`EasingInput` or any `Easing` function, so `steps()`
+  quantizes); `compileTrack` resolves it once, `sampleKeyframes(track, t)`
+  gives state (before/active/done — `Infinity` is any track's settled
+  end), cycle, progress and every property: lengths (x, y, custom
+  lengths) as terms, numbers (angles, scales, opacity, custom numbers);
+  `keyframeTransform` prints the CSS transform with the units kept — the
+  browser measures the container — or in px against a box; `resolveSample`
+  gives every property as px/degrees (vertical names resolve percentages
+  against the height). `DitherStage` is a size query container
+  (`container-type: size`, `--cq-w/--cq-h`) owning one clock: the
+  visibility-gated rAF loop (dt capped, `frameRate` stop-motion, `speed`,
+  looping over `duration`), the kit clock's moment when directed, held
+  under reduced motion (layers then sit at their end); it provides `STAGE`
+  (time, box, reduced) and `data-stage` (playing/directed/paused/still).
+  `DitherLayer` samples its track at the stage's moment and writes
+  `transform` in the keyframes' own units, `opacity`, `--layer-p` and
+  `--layer-<name>` per property, `data-layer` state, and hands the slot
+  every property resolved to px/degrees plus progress, cycle, time, width,
+  height — the numbers a canvas painter needs; without a stage it holds
+  its first key. Pinned by `tests/keyframes.spec.ts` and
+  `tests/stage-vue.spec.ts` (fake rAF + ResizeObserver, directed seeks,
+  reduced motion).
 - `containers.ts` + `DitherContainer.vue` are the container-query engine —
   children answer to their OWN box, never the viewport (the responsive half
   of the animation stack). The pure core resolves a content-box width
@@ -115,7 +236,8 @@ is its showcase and editor.
 - `FaultyTerminal` is a CRT glyph wall: `faulty-terminal.ts` lights a grid of
   glyph cells with animated value-noise/fbm, then applies scanlines, glitch,
   flicker, chromatic aberration, barrel curvature, tint and ordered dithering.
-  It is a WebGL-free reimplementation (canvas + Bayer only) — the `dither` prop
+  It is a WebGL-free reimplementation (canvas + Bayer only; `DitherShader` is
+  the one surface that uses WebGL, as a GLSL evaluator) — the `dither` prop
   is the ordered-threshold intensity (0 smooth -> 1 hard 1-bit). Its root is
   `relative h-full w-full` (self-sizing), NOT `absolute inset-0` like
   DitherGradient, so it renders filled in Studio's generic widget renderer and
@@ -132,10 +254,173 @@ is its showcase and editor.
   generative background surfaces (FaultyTerminal, Ferrofluid, Aurora, and the
   ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
   `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
+- `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
+  surface. `models.ts` parses model files into a `World`: meshes (faces,
+  lines or points; positions in world space, or node space when animated;
+  palette indices for the material and, when the file colours faces or
+  vertices, per triangle — a world holds ≤ 255 colours, the rest snap),
+  nodes (animatable transforms with sampled tracks), directional lights,
+  the headlight flag, the first viewpoint, a bounding sphere at time 0 and
+  the cycle length. Formats: VRML97 / X3D classic and VRML 1.0 `.wrl` (one
+  lenient tokenizer + node grammar — DEF/USE, PROTO/EXTERNPROTO skipped,
+  ROUTEs collected, enums, bare children for 1.0's Separator state machine;
+  Transform/Group/Switch/LOD/Shape/Material/IndexedFaceSet (+ Color per
+  face or vertex)/IndexedTriangleSet/TriangleSet/IndexedLineSet/PointSet/
+  Box/Sphere/Cone/Cylinder/ElevationGrid/Viewpoint/DirectionalLight/
+  NavigationInfo; 1.0's Translation/Rotation/Scale/MatrixTransform/
+  Coordinate3/ShapeHints/Cube), X3D XML (`parseXml`, a small element +
+  attribute reader, mapped onto the same nodes by containerField), glTF 2.0
+  (`.glb` chunks or `.gltf` JSON with data: URIs; external buffers come
+  pre-fetched through `ParseOptions.resources`, listed by
+  `externalResources`; accessors with strides and normalized ints,
+  triangles/strips/fans/lines/points, baseColorFactor, doubleSided,
+  COLOR_0, node TRS or matrix, the FIRST animation's translation/rotation/
+  scale channels incl. STEP and CUBICSPLINE values), Wavefront OBJ (`v`/`f`
+  with slashes and negative indices, `l`, `p`, vertex colours, `usemtl`
+  groups coloured from the `mtllib` via `parseMtl`), STL (ASCII + binary,
+  two-sided, z-up swung to y-up by default), PLY (ASCII, binary little and
+  big endian; vertex and face colours, edges, point clouds) and OFF (face
+  colours). Animation: a VRML `TimeSensor` → `PositionInterpolator` /
+  `OrientationInterpolator` → `ROUTE … set_translation/rotation/scale`
+  chain (also X3D's `<ROUTE>`) makes that Transform a `WorldNode` whose
+  tracks hold keys in seconds (key × cycleInterval, loop, startTime);
+  everything static between nodes folds into the node's `pre` matrix and
+  static meshes stay baked. `world.ts` is the engine: column-major mat4 +
+  quaternion math (`composeTransform` = T·C·R·SR·S·-SR·-C), the VRML
+  primitives (y up, CCW outward), `addMesh` (bakes the matrix, reverses
+  rings for `ccw FALSE` or a mirroring matrix, fan-triangulates, keeps
+  polygon outline edges with their owning triangle, registers colours),
+  `sampleTrack` (lerp / step / shortest-path slerp, looping or clamped),
+  `nodeMatrices(world, t)` (cached per time), `posedPositions`,
+  `finishWorld`, `cameraOf` (orbit camera around the sphere: `yaw`/`pitch`
+  degrees, `zoom` 1 frames the sphere, eye never inside it, camera-space
+  lights) and the two-stage renderer: stage one fills a `WorldTarget`
+  (shade 0-1, depth from the eye, palette index + 1) — `rasterizeWorld` is
+  the CPU engine (edge-function rasterizer with a z-buffer, flat Lambert
+  from the headlight + the file's lights, back faces culled on solid
+  meshes, per-vertex fbm `meshGrain` interpolated into the shade) and
+  `world-gl.ts` (`createWorldGpu`) is the GPU engine: the same contract
+  through WebGL2 (WebGL1 with derivatives + uint indices), flat normals
+  from derivatives, the colour index as a vertex attribute (expanded
+  buffers for per-face colours), node poses as a per-mesh matrix uniform,
+  a 16-bit depth code read back into the target — on WebGL2 through its
+  own two-attachment framebuffer, so the texture coordinates come back too
+  (`packUv`'s encoding: 16-bit s, 16-bit t offset by one, 0 = no uvs);
+  WebGL1 leaves them unset. Stage two `paintTarget`
+  is shared and never knows the engine: fill mode thresholds the shade
+  against the Bayer cell (lit cells take the fill at full alpha, the rest
+  `shade` alpha), `material` does the same in the file's colour, `ramp`
+  (the kit's `sampleRgbGradient` palette engine) picks a band by lighting
+  and dithers between bands over an opaque silhouette with `dither` 0-1
+  blending to the smooth gradient, `fog` fades by depth, `texture` (a
+  RasterBuffer) wraps a raster onto the model through the target's uvs —
+  the texel under the cell (repeating), its alpha in the shade, meshes
+  without uvs keep the fill; then outlines
+  (`wire`, owning-triangle facing, never a fan's diagonals), line sets and
+  point sets draw depth-tested against the finished z-buffer. `paintWorld`
+  = CPU stage one + stage two; same world + time + view + style → same
+  bytes. `sampleWorld(seed)` writes the default content as real VRML97
+  text with its own TimeSensor/ROUTE animation (seed-generative like
+  everything else). The component loads `src` (fetch, format by name then
+  by sniffing, side files resolved relative to it) or inline `source`,
+  derives the initial pose from the file's Viewpoint when
+  `yaw`/`pitch`/`zoom` are unset, poses the file's animation at the kit
+  clock (`animate`, or a pinned `time`), picks the engine (`auto` = GPU
+  above ~40k triangles, CPU otherwise; a forced `gpu` that fails says why
+  and falls back), draws the bloom layer (`pixelBloomStyle`) in
+  `afterPaint`, orbits by pointer drag (`touch-action: pan-y`) and arrow
+  keys (focusable `role="img"`, `data-engine` says which engine drew), and
+  shows an honest note for loading/empty/error. `tests/world.spec.ts`,
+  `tests/vrml.spec.ts` and `tests/models.spec.ts` pin the engine, the
+  grammars and every format. Texture coordinates: `Geometry.uvs` (st per
+  point; (0, 0) is the texture's top-left) or per corner through
+  `faceUvs` — `addMesh` then bakes one vertex per (point, uv), so a seam
+  splits and equal corners share; the primitives carry theirs (box faces
+  whole and upright, sphere equirectangular, cylinder and cone sides
+  unrolled with planar caps, elevation by grid), the parsers read OBJ `vt`
+  (t flipped), glTF `TEXCOORD_0` (as is), VRML `TextureCoordinate` +
+  `texCoordIndex` (t flipped; X3D through the same builder) and PLY
+  `s`/`t`; `WorldMesh.uv` per vertex interpolates perspective-correct into
+  `WorldTarget.uv` (s = -1 where a mesh has none).
+- The render graph: every surface on `use-dither-background` is a
+  `DitherSurface` — `raster()` (the last painted buffer), `pull(ms)`,
+  `version()`, `canvas()` — returned by the composable, exposed by
+  `DitherWorld`/`DitherShader` (`defineExpose({ surface })`) and reachable
+  from any kit canvas through `surfaceOf(canvas)`. `pull(ms)` is the edge
+  contract: under direction it paints the moment `ms` on demand when the
+  source has not painted it yet (a moment paints once — the clock's own
+  call then agrees), free-running it returns the latest raster; so a
+  consumer always reads a source at its own time stamp whatever order the
+  clock reaches them in, and a chain of surfaces seeks and renders as one.
+  Consumers: `DitherShader.channels` binds up to four sources as
+  `iChannel0..3` (a surface, a component instance, a kit canvas → its
+  surface; any other canvas, image or video → its current pixels, uploaded
+  upright with FLIP_Y, nearest-sampled, `iChannelResolution` set — all
+  through `gl.ts`'s `createChannels`), `DitherWorld.channels` skins the
+  model: without a shader the first channel is the texture (`rasterOf`
+  turns it into a raster — a surface's own at the moment, or an image,
+  canvas or video read through a 2D context at up to 512 px — and
+  `paintTarget`'s texture mode samples it per cell on either engine), and
+  `DitherWorld.shader` is a GLSL material over the finished target:
+  `wrapMaterial` wraps `mainMaterial(out vec4, in vec2)` (or a Shadertoy
+  `mainImage`) with `dk_cell/dk_shade/dk_depth/dk_covered/dk_color` over
+  the target packed by `packTarget` (R shade, G palette index + 1, B+A a
+  16-bit depth across the bounding sphere, empty cells far), the palette
+  as a 256x1 texture, and `dk_uv` (the cell's st, t flipped to GL's) /
+  `dk_textured` / `dk_texture` (iChannel0 at `dk_uv`) over the uv map
+  packed by `packUv` plus the material's own `iChannel0..3` (the
+  component's `channels`, uploaded after the three maps); `createWorldMaterial` runs it on the
+  component's context (shared with the GPU engine; each pass sets its own
+  GL state) and `paintMaterial` thresholds the readback's alpha against the
+  Bayer cell with the readback's rgb (zero stays clear, so a material may
+  ink outside the silhouette), then `drawOverlays` as usual. Pinned by
+  `tests/surface.spec.ts` (the pull contract under a fake 2D context) and
+  the material cases in `tests/world.spec.ts` / `tests/shader.spec.ts`.
+- `gl.ts` is the kit's one piece of WebGL plumbing, shared by the GLSL
+  surface, the world's GPU engine and the material pass: `createGl` (an
+  offscreen WebGL2 or WebGL1 context, context-loss flag, `size`, `read`
+  back, `dispose`), `buildProgram` (the compiler's first line as the
+  error) and the channel binding: `ChannelInput` (a surface, a component
+  instance, a kit canvas → its surface; any canvas, image or video),
+  `bindChannel`, `createChannels` (the four textures of one program,
+  re-uploaded only when a surface painted, FLIP_Y upright,
+  `iChannelResolution` / `iChannelTime`) and `rasterOf` (the same input as
+  a raster for the CPU engines). The GPU is only ever an evaluator — every
+  surface still dithers on the CPU.
+- `shader.ts` + `DitherShader.vue` are the GLSL surface. The pure half:
+  `wrapShader` builds a program around a user fragment shader — Shadertoy's
+  `mainImage` gets the Shadertoy uniforms plus the kit's (`iColor` the
+  component colour 0-1, `iSeed`, and `dk_bayer4(fragCoord)`, the 4x4 Bayer
+  threshold in closed form) and a `main` (GLSL ES 3.00 under WebGL2, 1.00
+  under WebGL1), a raw `main` compiles as written (default float precision
+  added when missing, `#version 300 es` honoured) — and
+  `ditherShaderPixels` turns the GPU readback (rows bottom-up) into the
+  raster: colour mode quantizes each channel to `levels` through the Bayer
+  cell (2 = the eight-colour look), mono thresholds luminance into the tint
+  with a `shade` floor, a `palette` ramp dithers luminance across its bands
+  (`sampleRgbGradient` for the smooth end of `dither`); the shader's alpha
+  carries. The component owns one `gl.ts` context at the cell resolution
+  (released on unmount), feeds `SHADER_UNIFORMS` (the Shadertoy set, the
+  kit's, and the glslsandbox / Book-of-Shaders aliases), reads back and
+  dithers each frame; `iTime` is the kit clock, so it seeks and renders
+  like every surface (HyperFrames' renderer has WebGL2 through SwiftShader
+  — verified by a real render). Without WebGL it shows "WebGL is not
+  available"; a compile error shows the compiler's first line.
+  `sampleShader(seed)` is the seeded default source. `tests/shader.spec.ts`
+  pins the pure half.
 - `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
   for that family: throttled rAF loop, backing buffer + upload, visibility gate,
   resize, dpr, static/reduced-motion single frame, and the mount/restart/teardown
-  lifecycle. Its optional `frameRate` getter gates painting on
+  lifecycle. It returns the surface's `DitherSurface` (see the render
+  graph). `cell` is a number or a getter (a `cell` prop); `afterPaint`
+  runs after the upload with the canvas (bloom layers copy it). `paused` holds
+  the raster but never leaves it blank: the first frame, and the frame after
+  a restart, still paint before the loop stands down (so a paused surface
+  repaints when a `restart` source such as a drag changes). A still surface
+  (static mode, reduced motion) paints its one frame in `start()` and the
+  visibility wake never starts the loop behind it — it did once, and every
+  background animated under reduced motion as soon as it scrolled into view.
+  Its optional `frameRate` getter gates painting on
   `timing.frameIndex` boundaries — between boundaries the raster is held
   (stop-motion cadence, no upload), 0/undefined keeps the smooth ~30fps
   throttle. Both cadence gates run BEFORE `measure()` — a held frame never
@@ -177,8 +462,8 @@ is its showcase and editor.
   (CSS `@media` or `pixelPrefersReducedMotion`). Slot-based effects wrap arbitrary
   text; char/number effects take a `text`/`to` prop. Docs live in `src/pages/docs/text/`.
 - Interaction/motion effects (`AnimatedContent`, `FadeContent`, `Sequence`,
-  `GradualBlur`, `StarBorder`, `ElectricBorder`, `GlareHover`, `Magnet`,
-  `ClickSpark`, ...) are
+  `Reveal`, `Stage` + `Layer`, `GradualBlur`, `StarBorder`,
+  `ElectricBorder`, `GlareHover`, `Magnet`, `ClickSpark`, ...) are
   another DOM/CSS/pointer family: slot wrappers (reveal-on-view, animated
   borders, hover glare), timeline-driven children (`Sequence` writes
   `--seq-p`/`data-seq` — see its engine bullet), the container-query scope
@@ -240,10 +525,18 @@ is its showcase and editor.
   runtime defaults — keep API tables in `src/pages/docs` in sync when defaults
   change.
 
+## Work Guidance
+
+- A new time-driven surface subscribes to the clock: paint the moment on
+  seek, request no frames while directed, resume on release.
+
 ## Verification
 
 - `npx vue-tsc --noEmit` (workspace-wide) must stay green.
 - Visual: `npx vite build && npx vite preview` and eyeball `/#/docs` demos.
+- Determinism: on the built site, `/play/#doc=…` driven by synthetic
+  `hf-seek` events must give identical bytes for identical times, in any
+  order, and request no animation frames while directed.
 
 ## Child DOX Index
 

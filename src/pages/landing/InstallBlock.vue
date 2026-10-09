@@ -501,6 +501,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 24px;
   font-size: 13px;
   color: var(--color-muted-foreground);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);

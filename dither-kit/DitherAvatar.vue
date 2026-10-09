@@ -1,4 +1,5 @@
 <script lang="ts">
+import { directedTime, isDirected, onSeek } from "./clock"
 import { rgb } from "./palette"
 import {
   type AvatarPattern,
@@ -111,14 +112,31 @@ function paintAvatar(
   }
 
   let raf = 0
-  const startTime = performance.now()
-  const tick = (now: number) => {
-    const t = clamp01((now - startTime) / duration)
-    draw(1 - (1 - t) ** 3)
-    if (t < 1) raf = requestAnimationFrame(tick)
+  const ease = (t: number) => 1 - (1 - clamp01(t)) ** 3
+  // Directed (clock.ts): the entrance is at the moment's progress, no loop.
+  const paintAt = (ms: number) => {
+    if (raf) cancelAnimationFrame(raf)
+    raf = 0
+    draw(ease(ms / duration))
   }
-  raf = requestAnimationFrame(tick)
-  return () => cancelAnimationFrame(raf)
+  const unseek = onSeek((ms) => {
+    if (ms !== null) paintAt(ms)
+  })
+  if (isDirected()) {
+    paintAt(directedTime() ?? 0)
+  } else {
+    const startTime = performance.now()
+    const tick = (now: number) => {
+      const t = clamp01((now - startTime) / duration)
+      draw(ease(t))
+      if (t < 1 && !isDirected()) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+  }
+  return () => {
+    cancelAnimationFrame(raf)
+    unseek()
+  }
 }
 </script>
 

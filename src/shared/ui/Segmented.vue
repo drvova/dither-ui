@@ -21,7 +21,7 @@ const emit = defineEmits<{ "update:modelValue": [T] }>()
         v-for="opt in options"
         :key="String(opt)"
         type="button"
-        class="rounded-[5px] px-2 py-1 text-[11px] leading-none transition-colors"
+        class="min-h-6 rounded-[5px] px-2 text-[11px] leading-none transition-colors"
         :class="
           opt === modelValue
             ? 'bg-accent text-accent-foreground'

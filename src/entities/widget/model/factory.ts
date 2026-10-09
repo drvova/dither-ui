@@ -1,9 +1,16 @@
 import { type ComponentEntry, defaultComponentProps } from "./registry"
-import type { AvatarModel, ButtonModel, ComponentModel, GradientModel, ImageModel, WidgetKind, WidgetModel } from "./types"
+import type { AvatarModel, ButtonModel, ComponentModel, GradientModel, ImageModel, ReelClip, ReelModel, ReelTransitionKind, WidgetKind, WidgetModel } from "./types"
 
 /** The fixed widget kinds with bespoke builders — registry components are
- * created from their ComponentEntry instead. */
-export type SimpleWidgetKind = Exclude<WidgetKind, "component" | "screen">
+ * created from their ComponentEntry, screens and reels from their parts. */
+export type SimpleWidgetKind = Exclude<WidgetKind, "component" | "screen" | "reel">
+
+export const REEL_TRANSITIONS: readonly ReelTransitionKind[] = ["cut", "dissolve", "wipe-right", "wipe-left", "wipe-down", "wipe-up"]
+
+/** A clip of `seconds`, coming in over a 0.6s dissolve. */
+export const createClip = (id: string, seconds = 3): ReelClip => ({ id, seconds, transition: { kind: "dissolve", seconds: 0.6, cell: 4, seed: null } })
+
+export const createReel = (ids: string[]): ReelModel => ({ kind: "reel", clips: ids.map((id) => createClip(id)) })
 
 /** A component widget seeded from its registry entry. */
 export function createComponent(entry: ComponentEntry): ComponentModel {

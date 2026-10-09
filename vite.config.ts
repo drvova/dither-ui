@@ -5,6 +5,7 @@ import vue from "@vitejs/plugin-vue"
 import tailwindcss from "@tailwindcss/vite"
 import { defineConfig, type Plugin } from "vite"
 import { llmsTxt, ogCardPage, robotsTxt, sectionsManifest, sitemapXml } from "./src/pages/docs/crawler-files"
+import { utilityMap } from "./src/shared/lib/utility-map"
 
 /* The docs deep links are the site's indexable surface beyond the three route
    entries. All three crawler files (sitemap, robots, llms.txt) are generated
@@ -30,7 +31,7 @@ function crawlFiles(): Plugin {
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH ?? "/",
-  plugins: [vue(), tailwindcss(), crawlFiles()],
+  plugins: [vue(), tailwindcss(), utilityMap(import.meta.dirname), crawlFiles()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -43,6 +44,9 @@ export default defineConfig({
         home: resolve(import.meta.dirname, "index.html"),
         docs: resolve(import.meta.dirname, "docs/index.html"),
         studio: resolve(import.meta.dirname, "studio/index.html"),
+        // The player route; its single-file bundle is a second build
+        // (vite.player.config.ts) because this one shares chunks.
+        play: resolve(import.meta.dirname, "play/index.html"),
       },
     },
   },

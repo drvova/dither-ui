@@ -7,6 +7,7 @@ import {
   DitherAvatar, DitherButton, DitherGradient, DitherImage, toast,
 } from "@dither-kit"
 import ScreenRenderer from "./ScreenRenderer.vue"
+import ReelRenderer from "@/widgets/reel-renderer/ReelRenderer.vue"
 
 const props = defineProps<{ widget: WidgetModel; artboardId: string }>()
 const rt = computed(() => editor.replayToken)
@@ -95,6 +96,17 @@ const triggerToast = () => {
       <component :is="kit.DitherField" label="Email"><component :is="kit.DitherInput" /></component>
       <component :is="kit.DitherButton">Submit</component>
     </component>
+    <component :is="comp as never" v-else-if="entry?.demo === 'stage'" v-bind="compProps" class="h-full w-full">
+      <component :is="kit.DitherLayer" :keyframes="[{ x: '-30cqw', opacity: 0.3 }, { x: '30cqw', opacity: 1 }]" :duration="3" yoyo loop class="grid place-items-center">
+        <span class="rounded-md border border-border bg-card px-3 py-1 text-xs">layer in container units</span>
+      </component>
+      <component :is="kit.DitherLayer" :keyframes="[{ rotate: 0, scale: 0.7 }, { rotate: '1turn', scale: 1 }]" :duration="6" loop class="grid place-items-center">
+        <span class="size-12 border border-border/70" />
+      </component>
+    </component>
+    <component :is="kit.DitherStage" v-else-if="entry?.demo === 'layer'" :duration="4" class="h-full w-full">
+      <component :is="comp as never" v-bind="compProps" :keyframes="[{ x: '-30cqw', y: '-20cqh' }, { x: '30cqw', y: '20cqh' }]" class="grid place-items-center text-xs">{{ w.slotText }}</component>
+    </component>
     <component :is="comp as never" v-else-if="entry?.demo === 'toolbar'" v-bind="compProps">
       <component :is="kit.DitherToggle" :model-value="false">Bold</component>
       <component :is="kit.DitherToggle" :model-value="false">Italic</component>
@@ -128,6 +140,9 @@ const triggerToast = () => {
       <component :is="kit.DitherDrawer" :open="w.model as boolean" title="Nested drawer" @close="updateModel(false)">Drawer content</component>
     </template>
   </div>
+
+  <!-- REEL — plays other frames with dither transitions -->
+  <ReelRenderer v-else-if="w.kind === 'reel'" :reel="w" :artboard-id="artboardId" />
 
   <!-- IMAGE — fills the frame -->
   <div v-else-if="w.kind === 'image'" class="relative h-full w-full overflow-hidden rounded-md">

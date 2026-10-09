@@ -1,5 +1,5 @@
 export * from "./model/types"
-export { createComponent, createWidget, type SimpleWidgetKind } from "./model/factory"
+export { createClip, createComponent, createReel, createWidget, REEL_TRANSITIONS, type SimpleWidgetKind } from "./model/factory"
 export { widgetCode } from "./model/codegen"
 export {
   COMPONENT_REGISTRY,

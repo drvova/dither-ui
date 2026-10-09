@@ -23,3 +23,5 @@ jobs:
         run: npm test
       - name: Build
         run: npx vite build
+      - name: Build the player bundle
+        run: npm run build:player

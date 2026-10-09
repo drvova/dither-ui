@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref } from "vue"
+import { copyText } from "./lib"
 
 /** Click-to-copy around any trigger content. The scoped slot gets
  * `{ copied, copy }` so the trigger can render its own feedback, and a polite
@@ -20,17 +21,16 @@ let timer = 0
 
 async function copy() {
   if (props.disabled) return
-  try {
-    await navigator.clipboard.writeText(props.value)
-    copied.value = true
-    emit("copied", props.value)
-    window.clearTimeout(timer)
-    timer = window.setTimeout(() => {
-      copied.value = false
-    }, 1500)
-  } catch {
+  if (!(await copyText(props.value))) {
     copied.value = false
+    return
   }
+  copied.value = true
+  emit("copied", props.value)
+  window.clearTimeout(timer)
+  timer = window.setTimeout(() => {
+    copied.value = false
+  }, 1500)
 }
 
 onBeforeUnmount(() => window.clearTimeout(timer))

@@ -109,6 +109,7 @@ function paintSpinner(
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useCanvasVisibility } from "./use-visibility"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "./precompile"
+import { directedTime, isDirected, onSeek } from "./clock"
 
 const props = withDefaults(
   defineProps<{
@@ -148,31 +149,46 @@ function init(): (() => void) | undefined {
   let buffer = createRasterBuffer(cells, cells)
   let imageData: ImageData | undefined
 
-  paintSpinner(buffer, cells, fill, 0, matrix.value, spin.value)
-  imageData = putRasterBuffer(ctx, buffer, imageData)
+  const paintAt = (ms: number) => {
+    paintSpinner(buffer, cells, fill, (ms * spin.value.speed) % 1, matrix.value, spin.value)
+    imageData = putRasterBuffer(ctx, buffer, imageData)
+  }
+  paintAt(0)
 
   wake = undefined
+  let unseek: (() => void) | undefined
   if (props.renderMode !== "static" && !pixelPrefersReducedMotion()) {
     const frame = (now: number) => {
       raf = 0
-      if (!isVisible()) return // off-screen: pause the loop
+      if (!isVisible() || isDirected()) return // off-screen or directed: no loop
       if (now - last < 33) {
         raf = requestAnimationFrame(frame)
         return
       }
       last = now
-      paintSpinner(buffer, cells, fill, (now * spin.value.speed) % 1, matrix.value, spin.value)
-      imageData = putRasterBuffer(ctx, buffer, imageData)
+      paintAt(now)
       raf = requestAnimationFrame(frame)
     }
     wake = () => {
-      if (!raf) raf = requestAnimationFrame(frame)
+      if (isDirected()) paintAt(directedTime() ?? 0)
+      else if (!raf) raf = requestAnimationFrame(frame)
     }
-    raf = requestAnimationFrame(frame)
+    // Directed (clock.ts): the phase is the moment's, no frames requested.
+    unseek = onSeek((ms) => {
+      if (ms === null) {
+        wake?.()
+        return
+      }
+      if (raf) cancelAnimationFrame(raf)
+      raf = 0
+      paintAt(ms)
+    })
+    wake()
   }
 
   return () => {
     if (raf) cancelAnimationFrame(raf)
+    unseek?.()
   }
 }
 

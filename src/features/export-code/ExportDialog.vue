@@ -4,37 +4,43 @@ import type { Artboard } from "@/entities/artboard"
 import { chartCode } from "@/entities/chart"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { widgetCode } from "@/entities/widget"
-import { CodeBlock } from "@/shared/ui"
+import { copyText, DitherFocusScope } from "@dither-kit"
+import { restyle, setStyling, styling, STYLINGS } from "@/shared/lib/restyle"
+import { CodeBlock, Segmented } from "@/shared/ui"
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
+// The SFC in the chosen styling system: Tailwind as generated, or a scoped
+// stylesheet, CSS Modules or StyleX (the kit components keep their own styles).
+const codeFor = (a: Artboard) => restyle(a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart), styling.value)
 const code = computed(() => {
   const a = selectedArtboard.value
   if (!a) return "// select an artboard"
-  if (a.widget) return widgetCode(a.widget, { w: a.w, h: a.h })
-  return selectedChart.value ? chartCode(selectedChart.value) : "// select an artboard"
+  if (a.widget) return codeFor(a)
+  return selectedChart.value ? restyle(chartCode(selectedChart.value), styling.value) : "// select an artboard"
 })
 
 const closeRef = ref<HTMLButtonElement | null>(null)
+// Immediate: the dialog is mounted lazily with `open` already true, so a
+// plain watch never fired and focus (and the Escape listener that rides on
+// it) never reached the dialog.
 watch(
   () => props.open,
   (v) => {
     if (v) nextTick(() => closeRef.value?.focus())
-  }
+  },
+  { immediate: true },
 )
 
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | undefined
 async function copy() {
-  await navigator.clipboard.writeText(code.value)
-  copied.value = true
+  copied.value = await copyText(code.value)
   clearTimeout(copyTimer)
-  copyTimer = setTimeout(() => (copied.value = false), 1500)
+  if (copied.value) copyTimer = setTimeout(() => (copied.value = false), 1500)
 }
 
-const codeFor = (a: Artboard) =>
-  a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart)
 const fileName = (a: Artboard) =>
   `${a.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"}.vue`
 
@@ -65,7 +71,7 @@ async function downloadAll() {
       @click.self="emit('close')"
       @keydown.esc.stop="emit('close')"
     >
-      <div class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+      <DitherFocusScope :autofocus="false" class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
           <span class="text-sm font-medium">Export — Vue SFC</span>
           <div class="flex items-center gap-2">
@@ -96,10 +102,13 @@ async function downloadAll() {
             </button>
           </div>
         </div>
+        <div class="border-b border-border/60 px-4 py-2">
+          <Segmented :options="STYLINGS" :model-value="styling" label="styling" @update:model-value="setStyling" />
+        </div>
         <div class="overflow-auto p-4">
           <CodeBlock :code="code" />
         </div>
-      </div>
+      </DitherFocusScope>
     </div>
   </Transition>
 </template>

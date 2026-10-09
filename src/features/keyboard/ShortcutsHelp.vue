@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DitherFocusScope } from "@dither-kit"
 import { onBeforeUnmount, onMounted, ref } from "vue"
 
 const open = ref(false)
@@ -69,7 +70,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, true))
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
       @click.self="open = false"
     >
-      <div class="w-full max-w-md rounded-xl border border-border bg-card p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+      <DitherFocusScope class="w-full max-w-md rounded-xl border border-border bg-card p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
         <div class="flex items-center justify-between">
           <span class="text-sm font-medium">Keyboard shortcuts</span>
           <button
@@ -93,7 +94,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, true))
           </div>
         </div>
         <p class="mt-5 text-[10px] text-muted-foreground">Press ? to toggle this panel</p>
-      </div>
+      </DitherFocusScope>
     </div>
   </Transition>
 </template>

@@ -282,10 +282,10 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         @keydown.space.self.prevent="clickArtboard(node.a, $event as unknown as MouseEvent)"
         @contextmenu.prevent.stop="open($event, artboardItems(node.a))"
       >
-        <button type="button" :aria-label="isOpen(node.a.id) ? 'Collapse layers' : 'Expand layers'" class="flex size-5 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground" @click.stop="toggleArtboard(node.a.id)">
+        <button type="button" :aria-label="isOpen(node.a.id) ? 'Collapse layers' : 'Expand layers'" class="flex size-6 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground" @click.stop="toggleArtboard(node.a.id)">
           <svg viewBox="0 0 24 24" class="size-3 transition-transform" :class="isOpen(node.a.id) ? 'rotate-90' : ''" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6" /></svg>
         </button>
-        <span class="grid size-3.5 shrink-0 place-items-center text-[13px] font-semibold leading-none" :class="isSel(node.a.id) ? 'text-accent' : 'text-muted-foreground/60'">#</span>
+        <span class="grid size-3.5 shrink-0 place-items-center text-[13px] font-semibold leading-none" :class="isSel(node.a.id) ? 'text-foreground' : 'text-muted-foreground/60'">#</span>
         <input v-if="editingId === node.a.id" ref="renameInput" v-model="editText" name="artboard-rename" autocomplete="off" class="min-w-0 flex-1 rounded border border-accent/60 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none" @click.stop @keydown.enter.prevent="commitArtboardName(node.a)" @keydown.esc.prevent="editingId = null" @blur="commitArtboardName(node.a)" />
         <span v-else class="truncate" :class="isSel(node.a.id) ? 'font-medium text-foreground' : 'text-foreground/90'" @dblclick.stop="startRename(node.a.id, node.a.name)">{{ node.a.name }}</span>
         <span class="ml-auto flex items-center gap-0.5">

@@ -1,6 +1,6 @@
 import { computed, reactive } from "vue"
 import { type Artboard, type ArtboardKind, cloneArtboard, createArtboard } from "@/entities/artboard"
-import { type ComponentEntry, createComponent, createScreen } from "@/entities/widget"
+import { type ComponentEntry, createComponent, createScreen, createReel } from "@/entities/widget"
 import { type Layer, layersOf, setChartType } from "@/entities/chart"
 import type { ChartType } from "@/shared/config"
 
@@ -49,6 +49,28 @@ export function placeArtboard(a: Artboard): Artboard {
   editor.artboards.push(a)
   selectArtboard(a.id)
   return a
+}
+
+/** Place a GENERATION — several variants of one parent — as one row centred
+ * on the visible canvas (the batch is a single insert: the row's midpoint is
+ * where a lone frame would land) and select all of them. */
+export function placeGeneration(boards: Artboard[], gap = 40): Artboard[] {
+  if (!boards.length) return boards
+  const zoom = editor.viewport.zoom || 1
+  const width = typeof window === "undefined" ? 1280 : window.innerWidth
+  const height = typeof window === "undefined" ? 720 : window.innerHeight
+  const cx = (width / 2 - editor.viewport.x) / zoom
+  const cy = (height / 2 - editor.viewport.y) / zoom
+  const total = boards.reduce((n, b) => n + b.w, 0) + gap * (boards.length - 1)
+  let x = cx - total / 2
+  for (const b of boards) {
+    b.x = Math.round(x)
+    b.y = Math.round(cy - b.h / 2)
+    x += b.w + gap
+    editor.artboards.push(b)
+  }
+  selectMany(boards.map((b) => b.id))
+  return boards
 }
 
 // --- selection -------------------------------------------------------------
@@ -129,6 +151,26 @@ export function addComponentArtboard(entry: ComponentEntry) {
   base.widget = createComponent(entry)
   return placeArtboard(base)
 }
+
+/** Cut frames (by id, in order, no reels) into a reel sized like its first clip. */
+export function addReelArtboard(ids: string[]) {
+  const clips = ids
+    .filter((id, i) => ids.indexOf(id) === i)
+    .map(find)
+    .filter((a): a is Artboard => !!a && a.widget?.kind !== "reel")
+  const base = createArtboard("button")
+  base.name = "Reel"
+  base.w = clips[0]?.w ?? 480
+  base.h = clips[0]?.h ?? 320
+  base.widget = createReel(clips.map((a) => a.id))
+  return placeArtboard(base)
+}
+
+/** Reels only reference frames that still exist. */
+function pruneReels() {
+  const ids = new Set(editor.artboards.map((a) => a.id))
+  for (const a of editor.artboards) if (a.widget?.kind === "reel") a.widget.clips = a.widget.clips.filter((c) => ids.has(c.id))
+}
 export function duplicateSelected() {
   const copies = editor.selectedIds
     .map(find)
@@ -143,12 +185,14 @@ export function duplicateSelected() {
 export function removeSelected() {
   const gone = new Set(editor.selectedIds)
   editor.artboards = editor.artboards.filter((a) => !gone.has(a.id))
+  pruneReels()
   const first = editor.artboards[0]
   if (first) selectArtboard(first.id)
   else deselect()
 }
 export function removeArtboard(id: string) {
   editor.artboards = editor.artboards.filter((a) => a.id !== id)
+  pruneReels()
   if (isSelected(id)) {
     const first = editor.artboards[0]
     first ? selectArtboard(first.id) : deselect()

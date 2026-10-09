@@ -37,6 +37,7 @@ function paintSkeleton(
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue"
+import { directedTime, isDirected, onSeek } from "./clock"
 import { cn } from "./lib"
 import { useCanvasVisibility } from "./use-visibility"
 
@@ -77,20 +78,30 @@ function init(): (() => void) | undefined {
   resize()
 
   const tick = (now: number) => {
-    if (!isVisible()) {
+    if (!isVisible() || isDirected()) {
       raf = 0
-      return // off-screen: pause the loop
+      return // off-screen or directed: no loop
     }
     phase = now * shimmer.rate
     draw()
     raf = requestAnimationFrame(tick)
   }
+  // Directed (clock.ts): the shimmer phase is the moment's.
+  const paintAt = (ms: number) => {
+    if (raf) cancelAnimationFrame(raf)
+    raf = 0
+    phase = ms * shimmer.rate
+    draw()
+  }
   wake = undefined
+  let unseek: (() => void) | undefined
   if (!reduce) {
     wake = () => {
-      if (!raf) raf = requestAnimationFrame(tick)
+      if (isDirected()) paintAt(directedTime() ?? 0)
+      else if (!raf) raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
+    unseek = onSeek((ms) => (ms === null ? wake?.() : paintAt(ms)))
+    wake()
   }
 
   const ro =
@@ -99,6 +110,7 @@ function init(): (() => void) | undefined {
 
   return () => {
     if (raf) cancelAnimationFrame(raf)
+    unseek?.()
     ro?.disconnect()
   }
 }

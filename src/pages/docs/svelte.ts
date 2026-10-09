@@ -6,8 +6,9 @@
 // you copy" in both frameworks. Export names are parsed from the Svelte kit's
 // real index (imported as raw text), so renames in the port propagate here
 // without docs maintenance.
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import svelteKitIndex from "../../../dither-kit-svelte/index.ts?raw"
+import { restyle, type Styling, styling, STYLINGS } from "@/shared/lib/restyle"
 
 export type DocsFramework = "vue" | "svelte"
 
@@ -335,4 +336,20 @@ export function toSvelteCode(vueCode: string): string {
   )
   code = code.replace(/\bv-model\b/g, "bind:value")
   return code
+}
+
+// ---- the reader's styling system ------------------------------------------
+
+/** The styling systems a snippet can be written in for the current framework:
+ * CSS Modules are a Vue SFC feature, so Svelte readers get the other three. */
+export const docsStylings = computed<readonly Styling[]>(() => STYLINGS.filter((s) => s !== "modules" || docsFramework.value === "vue"))
+
+/** The styling system the snippets are shown in — the preference, or CSS
+ * while it names CSS Modules under Svelte. */
+export const docsStyling = computed<Styling>(() => (styling.value === "modules" && docsFramework.value === "svelte" ? "css" : styling.value))
+
+/** A Vue docs snippet as the reader reads it: their framework, their styling system. */
+export function docsCode(vue: string): string {
+  const framework = docsFramework.value
+  return restyle(framework === "svelte" ? toSvelteCode(vue) : vue, docsStyling.value, framework)
 }

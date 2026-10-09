@@ -9,7 +9,13 @@ bundler compiles it with your app. Requirements:
 
 - Vite (or any bundler) with `@vitejs/plugin-vue`
 - Tailwind CSS for the chrome classes (`text-muted-foreground`, `stroke-border`, …)
-  with shadcn-style tokens (`--foreground`, `--card`, `--border`, `--popover`)
+  with shadcn-style tokens (`--foreground`, `--card`, `--border`, `--popover`;
+  `theme.css` declares them) — or no Tailwind at all: `npm run build:css`
+  compiles `kit.css` (the tokens, the `.dither-kit`-scoped `base.css`, every
+  class the components use) into `dist/kit/dither-kit.css`, also served at
+  dither-ui.com/kit/dither-kit.css. Load it, wrap the region in `.dither-kit`,
+  and style the rest with StyleX, UnoCSS, plain CSS or any CSS-in-JS;
+  `theme.ts` (`applyTheme`, `themeCss`, `themeVars`) sets the tokens from JS.
 
 ```ts
 import { AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip } from "dither-ui"

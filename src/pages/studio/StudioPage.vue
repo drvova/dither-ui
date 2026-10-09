@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onBeforeUnmount, ref } from "vue"
+import { defineAsyncComponent, onBeforeUnmount, ref, watch } from "vue"
 import { addArtboard } from "@/entities/editor"
+import { installStudioAgentApi } from "@/features/agent"
 import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp } from "@/features/keyboard"
-import { hydrate, startAutosave, stopAutosave } from "@/features/persistence"
+import { hydrate, importDocument, startAutosave, stopAutosave } from "@/features/persistence"
 import { Canvas } from "@/widgets/canvas"
 import { DataEditor } from "@/widgets/data-editor"
 import { Inspector } from "@/widgets/inspector"
 import { LayerTree } from "@/widgets/layer-tree"
 import { Toolbar } from "@/widgets/toolbar"
+
+const AgentPanel = defineAsyncComponent(() => import("@/widgets/agent").then((m) => m.AgentPanel))
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { routePath } from "@/shared/lib"
 
@@ -16,12 +19,28 @@ const ExportDialog = defineAsyncComponent(() =>
   import("@/features/export-code").then((m) => m.ExportDialog)
 )
 const exportOpen = ref(false)
+const VideoDialog = defineAsyncComponent(() => import("@/features/export-video").then((m) => m.VideoDialog))
+const videoOpen = ref(false)
 const layersOpen = ref(true)
 const inspectorOpen = ref(true)
+// The left slot holds one panel: opening the agent folds the layers away
+// and vice versa, so the canvas keeps its width.
+const agentOpen = ref(false)
+watch(agentOpen, (v) => v && (layersOpen.value = false))
+watch(layersOpen, (v) => v && (agentOpen.value = false))
 
 hydrate()
 startAutosave()
 startHistory()
+// The agent protocol (window.ditherStudio, dither-studio:* DOM events, the
+// document mirror) opens with the studio and closes with it.
+const closeAgentApi = installStudioAgentApi()
+
+// A project .json dropped anywhere on the studio loads like Open file.
+async function onDrop(e: DragEvent) {
+  const file = e.dataTransfer?.files?.[0]
+  if (file && (file.type === "application/json" || file.name.endsWith(".json"))) await importDocument(file)
+}
 
 // Deep links from docs support canonical /studio#new/<type> and legacy
 // #/studio/new/<type>; both add once after history starts, then clean the URL.
@@ -38,6 +57,7 @@ const isDesktop = ref(window.innerWidth >= 1024)
 const onResize = () => (isDesktop.value = window.innerWidth >= 1024)
 window.addEventListener("resize", onResize)
 onBeforeUnmount(() => {
+  closeAgentApi()
   stopAutosave()
   stopHistory()
   window.removeEventListener("resize", onResize)
@@ -45,18 +65,26 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="isDesktop" class="relative h-screen overflow-hidden bg-background text-[13px] text-foreground antialiased">
+  <div v-if="isDesktop" class="relative h-screen overflow-hidden bg-background text-[13px] text-foreground antialiased" @dragover.prevent @drop.prevent="onDrop">
     <Canvas />
     <Toolbar
       v-model:layers-open="layersOpen"
       v-model:inspector-open="inspectorOpen"
+      v-model:agent-open="agentOpen"
       @export="exportOpen = true"
+      @video="videoOpen = true"
     />
 
     <Transition name="panel-left">
       <aside v-if="layersOpen" class="studio-panel absolute bottom-16 left-3 top-16 z-20 w-64">
         <div class="panel-head"><span>Layers</span><button type="button" aria-label="Close layers" @click="layersOpen = false">×</button></div>
         <div class="min-h-0 flex-1 overflow-y-auto p-2"><LayerTree /></div>
+      </aside>
+    </Transition>
+
+    <Transition name="panel-left">
+      <aside v-if="agentOpen" class="studio-panel absolute bottom-16 left-3 top-16 z-20 w-80 overflow-hidden" aria-label="Agent">
+        <AgentPanel @close="agentOpen = false" />
       </aside>
     </Transition>
 
@@ -68,6 +96,7 @@ onBeforeUnmount(() => {
 
     <DataEditor />
     <ExportDialog v-if="exportOpen" :open="exportOpen" @close="exportOpen = false" />
+    <VideoDialog v-if="videoOpen" :open="videoOpen" @close="videoOpen = false" />
     <ShortcutsHelp />
   </div>
 
@@ -84,8 +113,8 @@ onBeforeUnmount(() => {
       desktop to design with the kit.
     </p>
     <div class="mt-2 flex items-center gap-5 text-[12px] text-muted-foreground">
-      <a :href="routePath('/docs')" class="transition-colors hover:text-foreground">browse the docs →</a>
-      <a :href="routePath('/')" class="transition-colors hover:text-foreground">home</a>
+      <a :href="routePath('/docs')" class="-my-1 py-1 transition-colors hover:text-foreground">browse the docs →</a>
+      <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">home</a>
     </div>
   </div>
 </template>

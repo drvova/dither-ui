@@ -179,12 +179,14 @@ const SEEDED = computed(() => seedPlate(seed.value))
 </template>
 
 <style scoped>
-/* The reference's section rhythm: 144px between chapters (89px mobile). */
+/* Chapters breathe on the page's one section rhythm (--section, set on
+   .landing): the same gap above the first chapter, between chapters, and
+   below the last. */
 .figs {
   display: flex;
   flex-direction: column;
-  gap: clamp(5.5rem, 10vw, 9rem);
-  padding-block: clamp(5.5rem, 10vw, 9rem) clamp(2rem, 4vw, 3rem);
+  gap: var(--section);
+  padding-block: var(--section);
 }
 
 /* Chapter = one panel: black band, then a 1px-gapped grid of black cells

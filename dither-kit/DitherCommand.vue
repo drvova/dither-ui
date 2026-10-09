@@ -72,6 +72,13 @@ function onKeydown(e: KeyboardEvent) {
     emit("close")
     return
   }
+  // Modal: Tab never leaves the palette — the input is its one field and
+  // the list is driven by the arrow keys.
+  if (e.key === "Tab") {
+    e.preventDefault()
+    inputRef.value?.focus()
+    return
+  }
   const n = flat.value.length
   if (!n) return
   if (e.key === "ArrowDown") (e.preventDefault(), (active.value = (active.value + 1) % n))

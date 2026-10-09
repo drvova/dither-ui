@@ -7,10 +7,14 @@ import {
 import { assetPath, routePath } from "@/shared/lib"
 import { version } from "../../../package.json"
 import EngravedWordmark from "./EngravedWordmark.vue"
+import EssayFigure from "./EssayFigure.vue"
 import InstallBlock from "./InstallBlock.vue"
 import PixelPlate from "./PixelPlate.vue"
 import SkyOrganism from "./SkyOrganism.vue"
-import { dawnPlate } from "./plates"
+import { createDitherField, type DitherField } from "./dither-field"
+import { createPixelShake, type PixelShake } from "./pixel-shake"
+import { seedFor } from "./genome"
+import { dawnPlate, SKY } from "./plates"
 import Showcase from "./Showcase.vue"
 
 // DitherButton renders a <button>, so navigation rides its click — never an
@@ -37,6 +41,10 @@ const FACES = [
 
 const faceEls = ref<HTMLCanvasElement[]>([])
 const emoteEls = ref<HTMLCanvasElement[]>([])
+// Each portrait is a pixel-shake surface: hovering her scatters the pixels
+// under the cursor and they spring home when it leaves (vanilla module,
+// no loop at rest). Emotes stay plain blits.
+let shakers: PixelShake[] = []
 
 function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
   const dpr = Math.min(window.devicePixelRatio || 1, 3)
@@ -63,10 +71,24 @@ const STAGES = [
 // prerendered bytes get the complete page; the old html.js gate — a :global
 // scoped rule — white-screened every browser and is banned).
 const armed = ref(false)
+// Memory: a returning visitor gets the settled page — the entrance
+// choreography (reveals, ember ignite, grain and sky fade-ins) plays once
+// per browser, then the page simply is. Figures that play on scroll-in
+// (plates, wordmark) are unaffected: they are motion, not an entrance.
+const SEEN_KEY = "dither-landing-seen"
+const returning = ref(false)
 
 const stageEls = ref<HTMLElement[]>([])
 const softEls = ref<HTMLElement[]>([])
 const pageEl = ref<HTMLElement | null>(null)
+// The hero copy's box: handed to the living sky as its exclusion zone.
+const copyEl = ref<HTMLElement | null>(null)
+// The closing band's backdrop: a sparse seeded dot sea on the vanilla
+// engine (12fps, 4px cells, navy-to-blue only, so the display line keeps
+// its ink). Hovering the band thickens the dither — density is the hover
+// state — and the cursor drags a soft body through it.
+const bandCanvas = ref<HTMLCanvasElement | null>(null)
+let bandField: DitherField | null = null
 const litSet = ref<Set<number>>(new Set())
 const activeIdx = ref(-1)
 let ticking = false
@@ -133,6 +155,12 @@ function updateAll() {
 // carries data-armed — no visible flash of unlatched content.
 onBeforeMount(() => {
   armed.value = true
+  try {
+    returning.value = localStorage.getItem(SEEN_KEY) === "1"
+    localStorage.setItem(SEEN_KEY, "1")
+  } catch {
+    returning.value = false
+  }
 })
 
 onMounted(() => {
@@ -149,12 +177,41 @@ onMounted(() => {
     FACES.forEach((f, i) => {
       const face = faceEls.value[i]
       const emote = emoteEls.value[i]
-      if (face) blit(face, img, f.x, FACE_Y, f.w, FACE_H)
+      if (face) shakers.push(createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }))
       if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
     })
   }
 
   reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+  if (bandCanvas.value) {
+    bandField = createDitherField(bandCanvas.value, {
+      ramp: SKY.slice(0, 4),
+      cell: 4,
+      fps: 12,
+      seed: seedFor("band"),
+      density: 0.42,
+      hoverDensity: 0.64,
+      pointer: 0.4,
+      pointerRadius: 120,
+      sizzle: 0.3,
+      bodies: (w, h, rand) =>
+        [0.18, 0.5, 0.82].map((fx, i) => ({
+          x: fx * w,
+          y: (0.3 + rand() * 0.4) * h,
+          // Keyed to the SHORT side so a tall phone band stays a sparse sea
+          // (a radius keyed to height flooded it).
+          r: Math.min(h * 0.9, w * 0.3),
+          fx: 0.03 + i * 0.011,
+          fy: 0.025 + i * 0.009,
+          px: rand() * 6.28,
+          py: rand() * 6.28,
+          w: 0.62,
+        })),
+      // Fade to the band's hairline edges so the sea never meets a border.
+      mask: (_x, y, _w, h) => Math.min(1, Math.min(y, h - y) / (h * 0.3)),
+    })
+  }
 
   // Scroll choreography (reference: rise / lp-in, latched like the docs
   // DemoCard): every .reveal block animates the first time it crosses into
@@ -192,6 +249,10 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  for (const sh of shakers) sh.destroy()
+  shakers = []
+  bandField?.destroy()
+  bandField = null
   revealIO?.disconnect()
   revealIO = null
   window.removeEventListener("scroll", requestUpdate)
@@ -208,6 +269,7 @@ function setActive(i: number) {
   <div
     ref="pageEl"
     :data-armed="armed ? 'true' : undefined"
+    :data-returning="returning ? 'true' : undefined"
     class="landing flex min-h-screen flex-col bg-background font-mono text-foreground antialiased"
   >
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
@@ -249,16 +311,10 @@ function setActive(i: number) {
           </svg>
           dither-ui
         </span>
-        <nav class="flex items-center gap-5 text-muted-foreground" aria-label="Site">
-          <a :href="routePath('/docs')" class="-m-3 p-3 transition-colors hover:text-foreground">docs</a>
-          <a
-            href="https://github.com/drvova/dither-ui"
-            target="_blank"
-            rel="noreferrer"
-            class="-m-3 p-3 transition-colors hover:text-foreground"
-            >github</a
-          >
-          <a :href="routePath('/studio')" class="-m-3 p-3 transition-colors hover:text-foreground">studio →</a>
+        <nav class="flex items-center gap-1 text-muted-foreground" aria-label="Site">
+          <a :href="routePath('/docs')" class="nav-a">docs</a>
+          <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="nav-a">github</a>
+          <a :href="routePath('/studio')" class="nav-a nav-pill ml-2">Open studio</a>
         </nav>
       </div>
     </header>
@@ -272,27 +328,29 @@ function setActive(i: number) {
            text: the horizon is lowest under the copy and crests right. -->
       <section aria-labelledby="hero-h" class="mx-auto w-full max-w-[var(--shell)] px-6 pt-2 pb-20">
         <div class="stage">
-          <SkyOrganism />
+          <SkyOrganism :avoid="copyEl" />
           <div class="grain" aria-hidden="true"></div>
-          <div class="stage-copy">
+          <div ref="copyEl" class="stage-copy">
+            <p class="reveal eyebrow" style="--reveal-delay: 0ms">
+              <span class="led" aria-hidden="true"></span>
+              Open source · Vue 3 · canvas
+            </p>
             <h1
               id="hero-h"
-              class="reveal max-w-3xl text-[clamp(2.75rem,7.2vw,6.25rem)] font-medium leading-[0.95] tracking-[-0.035em] text-balance"
+              class="reveal mt-6 max-w-3xl text-[clamp(2.5rem,6.4vw,5.5rem)] font-medium leading-[0.98] tracking-[-0.035em] text-balance"
+              style="--reveal-delay: 60ms"
             >
               A dithered UI toolkit for Vue<span class="ember">.</span>
             </h1>
             <p
-              class="reveal mt-8 max-w-xl text-[clamp(1.05rem,1.9vw,1.3rem)] leading-[1.6] text-muted-foreground [text-wrap:pretty]"
-              style="--reveal-delay: 90ms"
+              class="reveal mt-7 max-w-[34rem] text-[clamp(1rem,1.6vw,1.2rem)] leading-[1.65] text-muted-foreground [text-wrap:pretty]"
+              style="--reveal-delay: 140ms"
             >
               Charts, buttons, avatars and gradients — rendered
-              <em class="text-foreground/80">pixel by pixel</em> on canvas. Built in
-              the
-              <a :href="routePath('/studio')" class="underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">studio</a>,
-              documented in the
-              <a :href="routePath('/docs')" class="underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground">docs</a>.
+              <em class="text-foreground/80">pixel by pixel</em> on canvas, from one
+              seeded palette. Copy the folder, alias it, ship.
             </p>
-            <div class="reveal mt-12" style="--reveal-delay: 180ms">
+            <div class="reveal cta mt-10" style="--reveal-delay: 220ms">
               <DitherButton
                 color="blue"
                 variant="gradient"
@@ -301,6 +359,7 @@ function setActive(i: number) {
               >
                 Open studio
               </DitherButton>
+              <a :href="routePath('/docs')" class="cta-quiet">Read the docs<span aria-hidden="true">→</span></a>
             </div>
           </div>
           <PixelPlate :plate="DAWN" fit="xMidYMax slice" class="stage-art" />
@@ -310,17 +369,18 @@ function setActive(i: number) {
       <!-- Install strip: step tabs + command + copy (docs install story). -->
       <InstallBlock />
 
-      <!-- Six moods, one row — hover a face and her emote answers -->
+      <!-- Six moods, one row — hover a face: her pixels scatter under the
+           cursor and settle, and her emote answers -->
       <p
-        class="reveal pt-20 pb-6 text-center text-[10px] uppercase tracking-[0.25em] text-muted-foreground"
+        class="reveal micro pt-[var(--section)] pb-6 text-center text-muted-foreground"
         style="--reveal-delay: 260ms"
       >
         expressions
       </p>
       <div
         role="img"
-        aria-label="Pixel-art character portraits in six expressions — hover a portrait and her reaction emote answers"
-        class="reveal flex flex-wrap justify-center gap-7 pb-24"
+        aria-label="Pixel-art character portraits in six expressions — hover a portrait: her pixels stir under the cursor and her reaction emote answers"
+        class="reveal flex flex-wrap justify-center gap-7"
         style="--reveal-delay: 300ms"
       >
         <div v-for="(f, i) in FACES" :key="i" class="group relative pt-10">
@@ -342,8 +402,14 @@ function setActive(i: number) {
       <Showcase />
 
       <!-- The essay: six numbered statements that light up as you scroll.
-           The index rail (01–06) scales + springs on the in-focus one. -->
-      <section aria-label="What the kit does" class="essay-wrap mx-auto w-full max-w-4xl px-6 pb-16 sm:pb-24">
+           The index rail (01–06) turns ember and takes a rule on the in-focus one. -->
+      <section aria-label="What the kit does" class="essay-wrap mx-auto w-full max-w-5xl px-6 pb-[var(--section)]">
+        <!-- The figure: a 24x24 lattice that re-dithers itself into the
+             active statement's scene, sticky beside the column at lg. -->
+        <div class="essay-fig">
+          <EssayFigure :stage="activeIdx" />
+        </div>
+        <div class="essay-col">
         <ol class="essay mx-auto flex list-none flex-col p-0">
           <li
             v-for="(s, i) in STAGES"
@@ -359,11 +425,13 @@ function setActive(i: number) {
             <span v-for="line in s.lines" :key="line" class="block">{{ line }}</span>
           </li>
         </ol>
+        </div>
       </section>
 
       <!-- Closing band: full-bleed elevated surface, one display line, one CTA. -->
       <section class="bleed">
-        <div class="mx-auto flex w-full flex-col items-center gap-9 px-6 py-24 text-center">
+        <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
+        <div class="relative mx-auto flex w-full flex-col items-center gap-9 px-6 py-28 text-center">
           <h2 class="display max-w-xl text-[clamp(1.875rem,4.2vw,3.375rem)] font-normal leading-[1.08] tracking-[-0.032em]">
             Pixel by pixel,<br />on canvas.
           </h2>
@@ -411,7 +479,7 @@ function setActive(i: number) {
             href="https://github.com/drvova/dither-ui"
             target="_blank"
             rel="noreferrer"
-            class="transition-colors hover:text-foreground"
+            class="-my-1 py-1 transition-colors hover:text-foreground"
             >GitHub</a
           >
           <span class="tabular-nums">v{{ version }} · MIT</span>
@@ -460,10 +528,75 @@ function setActive(i: number) {
   }
 }
 
-/* One shell width for header, stage, chapters and footer — the reference's
-   deck token; children read it through inheritance. */
+/* Returning visitors: no entrance. The reveal blocks sit visible from the
+   first frame and the one-shot ignite / grain / sky fade-ins are skipped. */
+.landing[data-returning] .reveal,
+.landing[data-returning] .reveal:not([data-seen]) {
+  animation: none;
+  opacity: 1;
+}
+
+.landing[data-returning] .ember,
+.landing[data-returning] .grain {
+  animation-name: none;
+}
+
+.landing[data-returning] .grain {
+  animation: grain-jitter 1.1s steps(4) infinite;
+}
+
+.landing[data-returning] :deep(.sky-organism) {
+  animation: none;
+}
+
+/* One shell width for header, stage, chapters and footer, and ONE vertical
+   rhythm between sections — children read both through inheritance, so
+   every gap on the page is the same breath (never a sum of two paddings). */
 .landing {
   --shell: 72rem;
+  --section: clamp(5rem, 9vw, 8rem);
+  /* Sharp corners are the pixel identity: the stage, pill and chapters are
+     square, so kit controls on this page drop the app's 8px radius too. */
+  --radius: 0px;
+}
+
+/* (.nav-a / .nav-pill / .eyebrow / .led are the site voice in app/styles.css.) */
+
+/* One primary action, one quiet way out: the docs link sits beside the
+   button as text with an arrow that nudges on hover. */
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 22px;
+}
+
+.cta-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--color-muted-foreground);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cta-quiet span {
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cta-quiet:hover {
+  color: var(--color-foreground);
+}
+
+.cta-quiet:hover span {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-quiet span {
+    transition: none;
+  }
 }
 
 /* The stage: a black film with a hairline edge (sharp corners — the pixel
@@ -581,10 +714,41 @@ function setActive(i: number) {
 
 /* The essay. Values measured from the reference: line clamp 16→46px,
    -0.03em tracking, 1.05 leading, 0.52s lit transition with the
-   cubic-bezier(0.22, 1, 0.36, 1) settle; index 10px, 0.1em tracking,
-   1.55× spring scale on the active one. */
+   cubic-bezier(0.22, 1, 0.36, 1) settle; index 10px, 0.1em tracking. The
+   in-focus index turns ember and takes a 2px ember rule — a quiet mark,
+   where the old 1.55x spring read playful against the calmer hero. */
+/* Statements left, the figure right (sticky, centred in the viewport)
+   from lg; stacked on narrow screens with the figure first, small. The
+   statement column is its own size container so the type keeps sizing off
+   the COLUMN (cqi), not the two-column wrap. */
 .essay-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.essay-col {
   container-type: inline-size;
+  min-width: 0;
+}
+
+.essay-fig {
+  width: min(100%, 14rem);
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .essay-wrap {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+  .essay-fig {
+    order: 1;
+    width: 100%;
+    margin: 0;
+    position: sticky;
+    top: calc(50vh - 11.5rem);
+  }
 }
 
 /* The statements are authored mono lines, the longest 30 characters. The
@@ -625,10 +789,13 @@ function setActive(i: number) {
   letter-spacing: 0.1em;
   line-height: 1;
   color: color-mix(in oklab, var(--color-muted-foreground) 40%, transparent);
-  transform-origin: 100% center;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  text-decoration-color: transparent;
   transition:
     color 200ms ease,
-    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration-color 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .statement.is-lit::after {
@@ -637,13 +804,33 @@ function setActive(i: number) {
 
 .statement[data-active="true"]::after {
   color: var(--swatch-orange);
-  transform: scale(1.55);
+  text-decoration-color: var(--swatch-orange);
 }
 
-/* Closing band: an elevated, slightly lighter surface than the page. */
+/* Closing band: an elevated, slightly lighter surface than the page, with
+   the dot sea breathing under the display line. */
 .bleed {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background: color-mix(in oklab, var(--color-foreground) 4%, transparent);
   border-block: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
+.band-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .band-field {
+    opacity: 0.4;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -655,9 +842,6 @@ function setActive(i: number) {
   }
   .statement::after {
     transition: none;
-  }
-  .statement[data-active="true"]::after {
-    transform: none;
   }
 }
 

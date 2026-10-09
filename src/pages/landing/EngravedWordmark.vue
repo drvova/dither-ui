@@ -59,9 +59,12 @@ const armed = ref(false)
 const live = ref(false)
 let io: IntersectionObserver | null = null
 
+// The match includes the quote that CLOSES the path's d attribute, so the
+// replacement must put it back (dropping it spliced the attributes into d
+// and the browser rejected the whole contour — the rim never drew).
 const RIM_DRAW = WORDMARK_RIM.replace(
   '" stroke="#D6EAFF"',
-  ' pathLength="1" class="wm-pen" stroke="#D6EAFF"',
+  '" pathLength="1" class="wm-pen" stroke="#D6EAFF"',
 ).replace(
   /(<svg[^>]*>)/,
   `$1<style>

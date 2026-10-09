@@ -1,8 +1,8 @@
-# pages — landing, docs, studio
+# pages — landing, docs, studio, play
 
 ## Purpose
 
-The three routes of dither-ui.com. Each page is a thin composition over
+The routes of dither-ui.com. Each page is a thin composition over
 widgets/features; page-specific conventions live here.
 
 ## Local Contracts
@@ -14,9 +14,16 @@ widgets/features; page-specific conventions live here.
   hero stage · install strip · expressions · showcase chapters · essay ·
   closing band · footer. Additions must remove something or justify their
   presence.
-- Hero is a hairline STAGE panel (sharp corners): statement/action left, the
-  living sky right and the dawn plate (`plates.ts` `dawnPlate`, rendered by
-  `PixelPlate.vue`) pinned to the floor. The header MUST keep `relative z-10`:
+- The landing sets `--radius: 0px`: every corner on the page is square (stage,
+  pill, chapters, and the kit controls it hosts) — the pixel identity. Docs
+  and studio keep the app's 8px.
+- Hero is a hairline STAGE panel (sharp corners): eyebrow (micro-caps + led)
+  → statement → lede → ONE primary action (`DitherButton` "Open studio")
+  with a quiet text secondary ("Read the docs →", `.cta-quiet`) beside it —
+  the lede carries no inline links. The living sky sits right and the dawn
+  plate (`plates.ts` `dawnPlate`, rendered by `PixelPlate.vue`) is pinned to
+  the floor. The header nav mirrors the hero's verb as a hairline pill
+  (`.nav-pill` "Open studio"); `.nav-a` links keep 32px hit areas. The header MUST keep `relative z-10`:
   `main` is `relative isolate` and page art lives inside it, so a positioned
   sibling always paints over a static header — without the lift the header
   renders zero visible pixels (it did, for a while; the pixel census in the
@@ -37,22 +44,103 @@ widgets/features; page-specific conventions live here.
   controls panel backdrop) MUST pass the page's own `colors` ramp
   (navy/blue/ice + ember) — the kit defaults (violet/green) clash with the
   dark monochrome identity.
-- Load choreography: `.reveal` stagger (0/90/180/300ms) on the house rise
+- Vertical rhythm is ONE token: `.landing { --section }` (clamp 5–8rem) is
+  the gap above/between/below the showcase chapters, under the install
+  strip, and under the essay. Never stack a section's padding on a
+  neighbour's margin — every breath on the page is `--section` once.
+  Micro-caps (`.micro` / `.eyebrow`: 10.5px, 0.22em, uppercase), the
+  `.nav-a` / `.nav-pill` header links and the `.led` dot are the SITE voice,
+  defined once in `app/styles.css` (`@layer components`) and shared by the
+  landing and docs headers — never re-declared in a page's scoped styles.
+- The essay figure (`EssayFigure.vue` over `essay-figure.ts`): a 24x24
+  lattice of 576 `<rect>`s built once at setup (markup, prerender-able),
+  sticky beside the statement column from lg (`.essay-wrap` grid; the
+  column is its own size container so the cqi type sizing still keys off
+  the COLUMN), stacked first and small on narrow screens. `activeIdx` is
+  the stage; `stageCell(stage, x, y)` paints each scene through the house
+  `ditherTone`/`rankOf` rule (01 matrix ramp · 02 bars + avatar ring · 03
+  seven seed bands · 04 seeded scatter · 05 nested frames · 06 alias
+  arrow), `stageFills()` gives every rect's fill (`OFF` lattice ghost where
+  empty), and the CSS `fill` transition is delayed by the cell's Bayer rank
+  (`--r` × 22ms) so a scene change IS an ordered-dither wipe; none under
+  reduced motion. New scenes are field cases in `essay-figure.ts` with a
+  caption in `STAGE_CAPTIONS` — never a second lattice. Guarded by
+  `tests/essay-figure.spec.ts` (lattice ranks, determinism, lit share,
+  distinct scenes, stage wrap).
+- Closing band: the display line + two actions over a `dither-field` dot
+  sea (`bandCanvas` mounted in `LandingPage.vue`, seed `seedFor("band")`:
+  4px cells, 12fps, the four
+  dark SKY levels only so the ink keeps contrast, density 0.42 at rest →
+  0.64 under hover, cursor body 0.4; `prefers-reduced-transparency` halves
+  it). The band is `isolate; overflow: hidden`; its content wrapper stays
+  `relative` above the canvas.
+- Load choreography: `.reveal` stagger (0/60/140/220/300ms) on the house rise
   curve `cubic-bezier(0.16, 1, 0.3, 1)`, disabled under
   `prefers-reduced-motion`. The hide is gated on the component's own
   `data-armed` (set in `onBeforeMount`): no-JS visitors and the prerendered
   bytes render the complete page. NEVER gate it via a `:global(html.js)`
   scoped rule — that construct white-screened every browser (compositor
   wedge; banned).
+- The landing is one organism with shared organs (all vanilla modules):
+  - `senses.ts` — the nervous + endocrine system. ONE sensorium (pointer,
+    scroll, visibility, reduced motion) and ONE heartbeat rAF that ticks
+    every subscribed organism (`senses().subscribe({ tick(dt, tempo) })`).
+    Canvas creatures NEVER register their own rAF, pointer, scroll,
+    visibility or reduced-motion listeners — they read `senses()` on each
+    tick (a local pointermove on a hover target, like the shake's, is a
+    nerve ending, not a second sensorium). Hormones: `arousal` (pointer
+    speed, ~4s half-life → `tempo` = 1 + 0.6·arousal speeds every clock),
+    `drowsy` (45s idle, 30s ramp → organisms halve fps and thin density by
+    35%; any input wakes), `daylight` (local-hour cosine). Metabolism: a
+    governor EMAs the heartbeat's frame work and steps `quality`
+    1 → 0.75 → 0.5 after 30 over-budget frames (9ms), back up after 300
+    frames under 3ms; organisms scale fps by quality, and at 0.5 coarsen
+    the cell by 1px and drop sizzle. No frame clock (tests, prerender) →
+    no heartbeat, organisms still paint their static frame. Pure parts
+    (`daylight`, `stepHormones`, `createGovernor`) are pinned by
+    `tests/senses.spec.ts`.
+  - `genome.ts` — ONE site seed (`SITE_SEED`, fixed per build, never per
+    visit) and `seedFor(organ)`; every creature's seed derives from it
+    (sky, band). The essay figure's "seed 512" and the showcase slider stay
+    literal because the page displays those numbers.
+  - Memory: `LandingPage` latches `dither-landing-seen` in localStorage;
+    a returning visit renders `data-returning` and the CSS skips the
+    entrance (reveal, ember ignite, grain-in, sky fade-in) — the page
+    simply is. Scroll-in figures (plates, wordmark) still play.
+- `dither-field.ts` is the landing's living-canvas ENGINE and it is
+  vanilla: no Vue, no kit imports — the same module mounts from a Vue
+  component, a Svelte action, or a plain `<script type="module">`. One
+  seeded luminance field (Gaussian bodies on incommensurate drift clocks +
+  the cursor's body) is sampled per lattice cell in CSS px, ordered-dithered
+  through a recursive Bayer matrix (8x8 default; the 4x4 equals the kit's
+  gradient matrix — `tests/dither-field.spec.ts` pins it) onto a colour
+  ramp (darkest first, below the first level = clear; an optional `hot`
+  ramp above `hotAt`), written as packed u32 pixels into ONE lattice-sized
+  ImageData, put on an offscreen canvas and blitted with
+  `imageSmoothingEnabled = false` — nearest-neighbour upscale is the pixel
+  look, one drawImage per frame instead of one fillRect per cell. It rides
+  the `senses` heartbeat (subscribes while its own IntersectionObserver says
+  it is on screen), paints at `fps` × quality × drowsiness, advances its
+  clock by `tempo`, reads the shared pointer and scroll, DPR clamp,
+  ResizeObserver rebuild, static single frame under reduced motion (and
+  the sizzle flicker off), eased pointer body and eased
+  `density`/`hoverDensity` (hover = thicker dither), `scroll` parallax, and
+  `setAvoid(rect)` — a smoothstep exclusion so art yields to text. The
+  raster is the pure `rasterize()`; new behaviour goes there (testable
+  headless), never into a second per-cell loop.
 - The living sky (`SkyOrganism.vue`) is the stage's ONE canvas exception to
-  "figures are markup": it is a backdrop creature, not a figure. Gaussian
-  blobs quantized through the same `ditherTone`/ramp rule as the plates
-  (`SKY`/`SUN` are exported from `plates.ts` — one palette), 24fps, DPR
-  clamp 2, paused offscreen + on tab-hide, static single frame under reduced
-  motion, fade-in under `no-preference`. THE COORDINATE RULE: `field()`
-  samples in DEVICE pixels (`(cx+0.5) * cell`) — blobs live in device space;
-  sampling cell indices silently starves (dpr>1) or floods (narrow) the
-  field. The landing re-asserts `html.dark` on mount: the page is always-dark
+  "figures are markup": it is a backdrop creature, not a figure — a thin
+  mount of `dither-field` on the house ramps (`SKY`, and `SUN[0..1]` as the
+  hot ramp — never SUN's cream top, which read as a flat plate). It takes
+  the stage copy element as `avoid` and excludes the union of its CHILDREN'S
+  CONTENTS (a Range per child measures the line boxes — the block boxes are
+  full-width and would blank the whole sky); the ref lands after the sky
+  mounts, so the binding is a `watch` on the prop, re-measured by a
+  ResizeObserver. Wide stages hang the bodies in the upper-right sky; narrow
+  (<640) stages put them in the band between the action and the horizon at
+  half weight. The cursor's body ignites ember at its core (`hotAt` 0.93).
+  Seed `seedFor("sky")`; rest density 0.92 + 0.1·daylight.
+  The landing re-asserts `html.dark` on mount: the page is always-dark
   art while docs/studio own the persisted theme (storage keeps the user's
   choice).
 - Pixel figures are MARKUP, not canvas: `plates.ts` paints a w×h cell field
@@ -74,8 +162,17 @@ widgets/features; page-specific conventions live here.
   programmatically in the browser (density-scan pattern) — never eyeball.
 - `public/faces.webp` has transparency baked in; do not reintroduce runtime
   `getImageData` chroma-keying on the landing.
-- Emote hover reactions are CSS-only (`.emote` + `.group:hover`); no JS timers
-  on the landing.
+- Portrait hover is the `pixel-shake.ts` disturbance (vanilla, sibling of
+  `dither-field`): each face canvas holds its crop at NATIVE art resolution;
+  pointer moves add ENERGY at the cursor, every frame re-samples the source
+  through a Gaussian pool (outward push + per-cell wobble on a 46 rad/s
+  clock) gated by the Bayer threshold (dense core, scattered fringe), and
+  energy decays 0.9/frame so cells spring home — it is on the `senses`
+  heartbeat ONLY while energy is above the floor, nothing at rest, nothing
+  under reduced motion, touch pointers ignored. Faster strokes kick harder. `shakeRaster()` is the
+  pure raster (`tests/pixel-shake.spec.ts`: identity at zero energy, pool
+  locality, Bayer thinning, determinism). Emote reactions stay CSS-only
+  (`.emote` + `.group:hover`); no JS timers on the landing.
 - Footer signature: engraved wordmark (`EngravedWordmark.vue`) — glyph paths
   baked from Consolas Bold via `.scratch/engrave/bake.js` into
   `src/pages/landing/wordmark-layers.ts` as EXPORTED MARKUP STRINGS the
@@ -106,7 +203,10 @@ widgets/features; page-specific conventions live here.
   Regenerate with the bake script if the wordmark text ever changes.
 - Self-engraving: the rim's contour stroke draws itself on first scroll into
   view (`RIM_DRAW` transform injects `pathLength="1"` + a namespaced
-  `wm-pen` class and an svg-INTERNAL `<style>` — v-html children escape
+  `wm-pen` class and an svg-INTERNAL `<style>`; the match string includes
+  the quote that closes the path's `d` and the replacement MUST keep it —
+  dropping it spliced the attributes into `d`, the browser rejected the
+  contour, and the rim never drew — v-html children escape
   scoped styles, so the recipe ships inside the string, gated on the
   component's own `data-armed`/`data-live`). No-JS/prerender: no attrs, the
   finished mark renders; reduced motion: full static rim.
@@ -147,6 +247,13 @@ widgets/features; page-specific conventions live here.
   bindables (Sidebar→collapsed, SidebarSub→open). New Vue idioms in snippets
   need a translator rule + a `tests/svelte-code.spec.ts` case — never a
   hand-forked Svelte snippet.
+- Docs serve any styling system: `docs/svelte.ts` `docsCode()` is the
+  framework translation followed by `shared/lib/restyle.ts` with the
+  reader's `styling` (header switch at md+, per-card chips beside
+  Vue/Svelte; `docsStylings` hides CSS Modules under Svelte and
+  `docsStyling` shows CSS in its place). Every DemoCard code tab and
+  Handbook `fw()` block goes through it, so a snippet idiom the translator
+  mangles gets a rule in `restyle.ts` + a `tests/restyle.spec.ts` case.
 - `SNIPPETS`/computed code must match what the demo renders; API tables
   mirror actual kit prop defaults — update both when the kit API changes.
   Core form controls share Field-generated IDs, help/error relationships, and
@@ -155,8 +262,8 @@ widgets/features; page-specific conventions live here.
   `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
   deep links both restore and remain shareable.
 - Mobile chrome: the phone header keeps the brand `whitespace-nowrap`, drops
-  "studio →" (it lives on every section's "open in studio →" and returns at
-  sm+), and hides the ⌘K kbd; the section list is a grouped disclosure
+  the studio pill (it lives on every section's "open in studio →" and returns
+  at sm+) and the github link (the footer carries it), and hides the ⌘K kbd; the section list is a grouped disclosure
   (`browse sections` button with aria-expanded/aria-controls, group headings,
   two-column links, closes on tap) instead of the old flat wall of all ~220
   links.
@@ -176,8 +283,14 @@ widgets/features; page-specific conventions live here.
   them to the DOM as `activeId` changes (scroll-spy, deep links, search), so
   Google's renderer sees unique metadata per `/docs/<id>` page. Unknown or
   empty ids fall back to the generic `/docs` metadata; keep ids unique.
-- Chrome: `.chrome` translucent header (scroll-edge fade, no hard border);
-  honors `prefers-reduced-transparency`.
+- Chrome: `.chrome` translucent header (88% background + blur; scroll-edge
+  fade, no hard border); honors `prefers-reduced-transparency`. The search
+  hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
+  elsewhere — the handler accepts both). The brand carries the landing's
+  7x7 diamond mark, and the studio link is the site's `.nav-a.nav-pill`
+  "Open studio" (sm+). The page title sits under a `.eyebrow`
+  ("Documentation"); the footer links home via `routePath('/')` and shows
+  `v<version> · MIT` like the landing footer.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
   Studio also accepts legacy `#/studio/new/<type>` links.
 - Section packs live in subfolders as self-contained components (sections +
@@ -199,18 +312,88 @@ widgets/features; page-specific conventions live here.
   `startHistory()` → deep-link handling (`/studio#new/<type>` or legacy
   `#/studio/new/<type>`), so deep-link artboards are part of the restored doc
   and undoable; the URL is cleaned via `replaceState` to prevent duplication.
-- Studio is canvas-first: Toolbar floats over the full-bleed canvas; Layers and
-  Inspector are dismissible overlay panels; the searchable Library is the single
-  insertion surface for charts, bespoke widgets, every public kit component,
-  screens, and presets.
+- Studio is canvas-first: Toolbar floats over the full-bleed canvas; Layers,
+  Agent and Inspector are dismissible overlay panels (Layers and Agent share
+  the left slot — opening one folds the other); the searchable Library is the
+  single insertion surface for charts, bespoke widgets, every public kit
+  component, screens, and presets. The selection toolbar's "evolve" places a
+  generation of the primary selection.
+- `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
+  and closes it on unmount; a project `.json` dropped anywhere on the studio
+  loads through `importDocument`, the same path as Open file.
+- The selection toolbar's `video` opens `VideoDialog`
+  (`features/export-video`, lazy like `ExportDialog`): length, frame rate
+  and theme, then download the self-contained HyperFrames composition,
+  open the live player preview, or copy the render command.
+- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a CONTROL
+  PLANE for the user's own harness, in the pi / omp / Claude Code composer
+  idiom, over `features/agent/acp.ts`. The head's harness chip (LED while
+  one runs) opens the picker: every harness the bridge knows with its PATH
+  status, a custom-command field, and stop; `/harness <id | command>` is
+  the same. The choice persists and starts again on the next prompt. A
+  mode chip appears when the harness has modes (click cycles, `/mode <id>`
+  sets). One transcript: `›` your prompt, `⏺` prose streamed in place with
+  a `▍` caret, `⇢` a follow-up that started, `⚙ name · args ⎿ result` as
+  one `<details>` per Studio tool call (orange `×` and auto-open when the
+  Studio rejected it), `⚙/✓/×` activity lines for the harness's own tool
+  calls, `☰` plans with per-step status, `⚠` permission prompts answered
+  inline ("auto" answers them with their allow option), `·` system lines,
+  and a `✻ working… 4.2s · 1 queued (esc to stop)` line. Keys: Enter sends,
+  or QUEUES a follow-up while the harness works (ACP has no steering);
+  Alt+Up takes the newest queued message back; Esc stops and returns the
+  queue to the editor; Shift+Enter newline; ↑/↓ prompt history on a single
+  line; Ctrl+O folds every tool block; `/` opens the command listbox (↑/↓
+  + Tab/Enter pick): ours (`/help /harness /connect /new /mode /auto
+  /evolve /select /code /copy /session /undo /clear /stop /disconnect`)
+  plus the harness's own advertised commands, which go to it as text.
+  Follow-ups run one at a time, in order. The status line shows the
+  harness, session tokens (summed from each turn's usage), the last turn's
+  time and an `auto` badge. The conversation persists per project and
+  follows the active project; unanswered approvals are not saved. ⚙ holds
+  only the bridge address and the auto switch: no key or model setting
+  exists in the app.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not
-  inside widgets.
+  inside widgets. The export dialog's `styling` control (Segmented over
+  `STYLINGS`) writes the SFC in the reader's system — the same preference
+  the docs use.
+
+### play/
+
+- The player: ONE Studio frame rendered by the Studio's own renderers
+  (`ChartRenderer`, `WidgetRenderer`) at its frame size with no editor
+  around it — the page an exported HyperFrames composition carries and the
+  page the Studio opens for a live preview. `source.ts` reads the document
+  from the composition's embedded `#dither-document` JSON (with
+  `data-artboard` / `data-theme` on `#dither-stage`) or else from the hash
+  `#doc=<base64url document>&artboard=<id>&theme=<dark|light>`; documents
+  are untrusted and go through `parseDocument` (persistence) before they
+  render. `main.ts` installs `directFromHyperframes()` before mount and
+  registers `window.__hf.buildReady["dither-ui"]` as fonts + Vue's mount
+  flush + one macrotask — never an animation frame: the renderer drives
+  Chrome with begin-frame control, so frames and rAF only happen when it
+  captures one, and every surface paints its moment synchronously on seek
+  (a chart that measures later repaints the moment through its `wake`).
+  `play/index.html` is the route's entry (noindex, not prerendered) and the
+  same `main.ts` is the entry of the single-file bundle
+  (`vite.player.config.ts`). Nothing here reads the project store: the
+  page provides `REEL_POOL` (its parsed document's artboards) so a reel
+  cuts between the frames that travel with it. Besides `hf-seek`, `main.ts`
+  exposes `window.ditherClock` (`seek(seconds)`, `release()`, `directed()`,
+  `time()`) for any driver's `evaluate`; `scripts/render-frames.mjs`
+  (`npm run frames`) renders a composition or player URL to PNGs and an MP4
+  through that contract in Playwright's Chromium, WebKit or Firefox.
 
 ## Verification
 
-- Browser walk after changes: landing reveal + emote hover, canonical and legacy
+- `tests/dither-field.spec.ts` runs the engine's pure raster headless
+  (Bayer ranks, quantize monotonicity, determinism, ramp coverage, avoid
+  rect, pointer ignition, density scaling) — jsdom has no canvas, so the
+  mount path is checked in the browser walk only.
+- Browser walk after changes: landing reveal + emote hover + the sky's
+  avoid rect at desktop AND phone widths (the creature must never sit under
+  the statement or lede), the closing band's hover thickening, canonical and legacy
   docs deep links (`/docs/avatar`, `#/docs/avatar`), and Studio deep links
   (`/studio#new/pie`, `#/studio/new/pie`) each create/select exactly one artboard.
 

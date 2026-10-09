@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { CodeBlock } from "@/shared/ui"
-import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
+import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
+import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 
 const props = defineProps<{ code: string }>()
 const tab = ref<"preview" | "code">("preview")
@@ -35,9 +36,8 @@ onMounted(() => {
 })
 onBeforeUnmount(() => io?.disconnect())
 
-const shownCode = computed(() =>
-  docsFramework.value === "svelte" ? toSvelteCode(props.code) : props.code,
-)
+// The reader's framework and styling system, from one Vue snippet.
+const shownCode = computed(() => docsCode(props.code))
 
 const chipClass = (active: boolean) =>
   active
@@ -70,26 +70,36 @@ const chipClass = (active: boolean) =>
           Code
         </button>
       </div>
-      <div
-        v-if="tab === 'code'"
-        class="flex gap-1 pb-2 text-[11px]"
-        role="group"
-        aria-label="Framework"
-      >
-        <button
-          :aria-pressed="docsFramework === 'vue'"
-          :class="chipClass(docsFramework === 'vue')"
-          @click="setDocsFramework('vue')"
-        >
-          Vue
-        </button>
-        <button
-          :aria-pressed="docsFramework === 'svelte'"
-          :class="chipClass(docsFramework === 'svelte')"
-          @click="setDocsFramework('svelte')"
-        >
-          Svelte
-        </button>
+      <div v-if="tab === 'code'" class="flex flex-wrap justify-end gap-x-3 gap-y-1 pb-2 text-[11px]">
+        <div class="flex gap-1" role="group" aria-label="Framework">
+          <button
+            :aria-pressed="docsFramework === 'vue'"
+            :class="chipClass(docsFramework === 'vue')"
+            @click="setDocsFramework('vue')"
+          >
+            Vue
+          </button>
+          <button
+            :aria-pressed="docsFramework === 'svelte'"
+            :class="chipClass(docsFramework === 'svelte')"
+            @click="setDocsFramework('svelte')"
+          >
+            Svelte
+          </button>
+        </div>
+        <!-- The same snippet in the reader's styling system: Tailwind as
+             authored, or a scoped stylesheet, CSS Modules (Vue) or StyleX. -->
+        <div class="flex gap-1" role="group" aria-label="Styling">
+          <button
+            v-for="s in docsStylings"
+            :key="s"
+            :aria-pressed="docsStyling === s"
+            :class="chipClass(docsStyling === s)"
+            @click="setStyling(s)"
+          >
+            {{ STYLING_LABELS[s] }}
+          </button>
+        </div>
       </div>
     </div>
     <div

@@ -17,6 +17,7 @@ import {
 } from "@/entities/widget"
 import AvatarDrawGrid from "./AvatarDrawGrid.vue"
 import ComponentPropsPanel from "./ComponentPropsPanel.vue"
+import ReelPanel from "./ReelPanel.vue"
 import { CHART_TYPES, EASING_NAMES, familyOf, STACKS } from "@/shared/config"
 import { BezierEditor, BloomField, ColorField, NumberField, Segmented, TextureField, Toggle } from "@/shared/ui"
 
@@ -113,6 +114,9 @@ const image = computed(() =>
 )
 const component = computed(() =>
   ab.value?.widget?.kind === "component" ? ab.value.widget : null
+)
+const reel = computed(() =>
+  ab.value?.widget?.kind === "reel" ? ab.value.widget : null
 )
 const componentSpec = computed(() =>
   component.value ? componentEntry(component.value.is) : undefined
@@ -231,7 +235,7 @@ function setPieVariant(v: VariantInput) {
       <section v-if="!ab.widget">
         <p class="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">type</p>
         <div class="flex flex-wrap gap-0.5 rounded-md border border-border bg-background/60 p-0.5">
-          <button v-for="t in CHART_TYPES" :key="t" type="button" class="rounded-[5px] px-2.5 py-1 text-xs capitalize leading-none transition-colors" :class="chart.type === t ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'" @click="setSelectedType(t)">{{ t }}</button>
+          <button v-for="t in CHART_TYPES" :key="t" type="button" class="min-h-6 rounded-[5px] px-2.5 text-xs capitalize leading-none transition-colors" :class="chart.type === t ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'" @click="setSelectedType(t)">{{ t }}</button>
         </div>
       </section>
 
@@ -347,7 +351,7 @@ function setPieVariant(v: VariantInput) {
           </label>
         </template>
         <div class="flex flex-wrap gap-x-4 gap-y-2">
-          <button type="button" class="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="replay()">
+          <button type="button" class="flex items-center gap-1 rounded border border-border min-h-6 px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="replay()">
             <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8" /><path d="M21 3v5h-5" /></svg>
             replay
           </button>
@@ -400,7 +404,7 @@ function setPieVariant(v: VariantInput) {
               <input v-model="avatar.imageSrc" type="text" name="avatar-image-src" autocomplete="off" placeholder="https://…" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" @change="deriveAvatarImage" />
             </label>
             <div class="flex items-center gap-2">
-              <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="avatarFileInput?.click()">upload…</button>
+              <button type="button" class="rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="avatarFileInput?.click()">upload…</button>
               <input ref="avatarFileInput" type="file" accept="image/*" name="avatar-image-file" class="hidden" @change="onAvatarFile" />
               <span v-if="avatarImageError" class="text-[10px] text-red-400">couldn't read that image</span>
             </div>
@@ -444,7 +448,7 @@ function setPieVariant(v: VariantInput) {
           <NumberField v-model="avatar.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
           <div class="flex gap-4">
             <Toggle v-model="avatar.animate" label="animate" />
-            <button type="button" class="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="replay()">replay</button>
+            <button type="button" class="flex items-center gap-1 rounded border border-border min-h-6 px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="replay()">replay</button>
           </div>
         </section>
       </template>
@@ -488,9 +492,9 @@ function setPieVariant(v: VariantInput) {
           <ComponentPropsPanel v-if="componentEntry(screenSel.cell.is)" :entry="componentEntry(screenSel.cell.is)!" :target="screenSel.cell" />
           <Toggle :model-value="screenSel.cell.grow" label="grow (fill row)" @update:model-value="screenSel.cell.grow = $event" />
           <div class="flex gap-1.5 pt-1">
-            <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveCell(screenSel.row, screenSel.cell.id, -1)">← move</button>
-            <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveCell(screenSel.row, screenSel.cell.id, 1)">move →</button>
-            <button type="button" class="ml-auto rounded border border-border px-2 py-0.5 text-[11px] text-red-400 transition-colors hover:bg-red-500/10" @click="removeCell(screen, screenSel.cell.id)">delete</button>
+            <button type="button" class="rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveCell(screenSel.row, screenSel.cell.id, -1)">← move</button>
+            <button type="button" class="rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveCell(screenSel.row, screenSel.cell.id, 1)">move →</button>
+            <button type="button" class="ml-auto rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-red-400 transition-colors hover:bg-red-500/10" @click="removeCell(screen, screenSel.cell.id)">delete</button>
           </div>
         </section>
       </template>
@@ -510,9 +514,9 @@ function setPieVariant(v: VariantInput) {
             </select>
           </label>
           <div class="flex gap-1.5 pt-1">
-            <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveScreenRow(screen, screenSel.row.id, -1)">↑ move</button>
-            <button type="button" class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveScreenRow(screen, screenSel.row.id, 1)">move ↓</button>
-            <button type="button" class="ml-auto rounded border border-border px-2 py-0.5 text-[11px] text-red-400 transition-colors hover:bg-red-500/10" @click="removeScreenRow(screen, screenSel.row.id)">delete</button>
+            <button type="button" class="rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveScreenRow(screen, screenSel.row.id, -1)">↑ move</button>
+            <button type="button" class="rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="moveScreenRow(screen, screenSel.row.id, 1)">move ↓</button>
+            <button type="button" class="ml-auto rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-red-400 transition-colors hover:bg-red-500/10" @click="removeScreenRow(screen, screenSel.row.id)">delete</button>
           </div>
         </section>
       </template>
@@ -523,7 +527,7 @@ function setPieVariant(v: VariantInput) {
           <p class="text-[10px] uppercase tracking-widest text-muted-foreground">screen</p>
           <NumberField :model-value="screen.gap" label="row gap" :min="0" :max="64" @update:model-value="screen.gap = $event" />
           <NumberField :model-value="screen.padding" label="padding" :min="0" :max="64" @update:model-value="screen.padding = $event" />
-          <button type="button" class="self-start rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="addScreenRow(screen)">+ row</button>
+          <button type="button" class="self-start rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="addScreenRow(screen)">+ row</button>
         </section>
       </template>
 
@@ -583,6 +587,11 @@ function setPieVariant(v: VariantInput) {
           </div>
           <BloomField :model-value="gradient.bloom" @update:model-value="gradient.bloom = $event" />
         </section>
+      </template>
+
+      <!-- REEL: the cut -->
+      <template v-else-if="reel">
+        <ReelPanel :reel="reel" :artboard-id="ab.id" />
       </template>
     </template>
 

@@ -1,6 +1,7 @@
 export {
   addArtboard,
   addComponentArtboard,
+  addReelArtboard,
   addScreenArtboard,
   artboardIdOf,
   deleteGroup,
@@ -15,6 +16,7 @@ export {
   moveSelected,
   pasteClipboard,
   placeArtboard,
+  placeGeneration,
   removeArtboard,
   removeSelected,
   replay,

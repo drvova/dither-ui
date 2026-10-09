@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { h, nextTick } from "vue"
 import { mount, type VueWrapper } from "@vue/test-utils"
 import Sequence from "../dither-kit/Sequence.vue"
+import { release, seek } from "../dither-kit/clock"
 
 /** Manual rAF: each flush runs the currently queued frames at time `t`. */
 let queue = new Map<number, FrameRequestCallback>()
@@ -48,8 +49,33 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  release()
   vi.unstubAllGlobals()
   window.matchMedia = realMatchMedia
+})
+
+describe("Sequence — directed by the clock", () => {
+  it("paints the given moment, in any order, and requests no frames", async () => {
+    seek(0)
+    const w = mount(Sequence, { props: { stagger: 0.3, duration: 0.5 }, slots: three() })
+    await nextTick()
+    expect(queue.size).toBe(0)
+    expect(pOf(w, 0)).toBe("0.0000")
+    seek(500) // child 0 done, child 1 (starts at 0.3) at 0.2/0.5
+    expect(pOf(w, 0)).toBe("1.0000")
+    expect(pOf(w, 1)).toBe("0.4000")
+    expect(stateOf(w, 0)).toBe("done")
+    expect(queue.size).toBe(0)
+    seek(100) // backwards: a pure function of the moment
+    expect(pOf(w, 0)).toBe("0.2000")
+    expect(pOf(w, 1)).toBe("0.0000")
+    seek(5000) // past the end: everything settled, nothing requested
+    expect(pOf(w, 2)).toBe("1.0000")
+    expect(queue.size).toBe(0)
+    release() // the loop resumes from the moment
+    expect(queue.size).toBe(1)
+    w.unmount()
+  })
 })
 
 describe("Sequence — staggered drive", () => {

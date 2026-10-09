@@ -1,59 +1,7 @@
 @import "tailwindcss";
+@import "../../dither-kit/theme.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
-
-/* shadcn-style design tokens the ported components read
-   (text-foreground, bg-background, border, text-muted-foreground, …). */
-:root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --popover: #ffffff;
-  --popover-foreground: #0a0a0a;
-  --muted: #f4f4f5;
-  --muted-foreground: #6b7280;
-  --border: #e4e4e7;
-  --ring: #0a0a0a;
-  --accent: #2f81f7;
-  --accent-foreground: #ffffff;
-  --radius: 0.5rem;
-
-  /* Palette swatches — the perceptual mirror of PALETTE in palette.ts,
-     tuned per theme: deeper ink on light so text stays readable, the
-     original bright fills on dark (see .dark below). */
-  --swatch-green: rgb(20, 140, 72);
-  --swatch-blue: rgb(24, 104, 204);
-  --swatch-purple: rgb(112, 72, 220);
-  --swatch-pink: rgb(190, 42, 142);
-  --swatch-orange: rgb(198, 106, 16);
-  --swatch-red: rgb(198, 44, 44);
-  --swatch-grey: rgb(96, 100, 108);
-}
-
-.dark {
-  --background: #08090b;
-  --foreground: #ededed;
-  --card: #0d0f12;
-  --card-foreground: #ededed;
-  --popover: #0d0f12;
-  --popover-foreground: #ededed;
-  --muted: #16181d;
-  --muted-foreground: #8b8f98;
-  --border: #22252b;
-  --ring: #ededed;
-  --accent: #3f8ff3;
-  --accent-foreground: #ffffff;
-
-  /* Bright swatches — the exact PALETTE fills, at home on dark. */
-  --swatch-green: rgb(40, 210, 110);
-  --swatch-blue: rgb(53, 143, 243);
-  --swatch-purple: rgb(150, 110, 255);
-  --swatch-pink: rgb(240, 90, 190);
-  --swatch-orange: rgb(255, 150, 50);
-  --swatch-red: rgb(240, 70, 70);
-  --swatch-grey: rgb(92, 92, 100);
-}
 
 @theme inline {
   --color-background: var(--background);
@@ -71,9 +19,8 @@
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", monospace;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 @layer base {
@@ -119,6 +66,68 @@
   ::selection {
     background-color: color-mix(in oklch, var(--accent) 30%, transparent);
     color: var(--foreground);
+  }
+}
+
+/* The site's one chrome voice, shared by the landing and docs headers:
+   nav links with 32px hit areas, the hairline "Open studio" pill that
+   mirrors the page's verb, and micro-caps (eyebrow / section marks). */
+@layer components {
+  .nav-a {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 10px;
+    white-space: nowrap;
+    transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .nav-a:hover {
+    color: var(--foreground);
+  }
+  .nav-pill {
+    color: var(--foreground);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 90%, transparent);
+    transition:
+      box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .nav-pill:hover {
+    background: color-mix(in oklab, var(--foreground) 7%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 28%, transparent);
+  }
+  .micro,
+  .eyebrow {
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    color: color-mix(in oklab, var(--muted-foreground) 85%, transparent);
+  }
+  .led {
+    width: 5px;
+    height: 5px;
+    background: var(--swatch-orange);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .led {
+      animation: led 2.8s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes led {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.32;
   }
 }
 

@@ -1,0 +1,100 @@
+/* The kit's base — what its components assume of the box model and of form
+   controls when no global reset is around (Tailwind's preflight is the global
+   version the site uses). Scoped under `.dither-kit` at zero specificity with
+   :where(), so your own styles win on any element, and nothing outside the
+   wrapper changes. kit.css imports this into the dither-kit.base layer. */
+
+:where(.dither-kit, .dither-kit *, .dither-kit ::before, .dither-kit ::after) {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid var(--border);
+}
+:where(.dither-kit) {
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+:where(.dither-kit h1, .dither-kit h2, .dither-kit h3, .dither-kit h4, .dither-kit h5, .dither-kit h6) {
+  font-size: inherit;
+  font-weight: inherit;
+}
+:where(.dither-kit a) {
+  color: inherit;
+  text-decoration: inherit;
+}
+:where(.dither-kit b, .dither-kit strong) {
+  font-weight: bolder;
+}
+:where(.dither-kit code, .dither-kit kbd, .dither-kit samp, .dither-kit pre) {
+  font-family: var(--font-mono);
+  font-size: 1em;
+}
+:where(.dither-kit small) {
+  font-size: 80%;
+}
+:where(.dither-kit sub, .dither-kit sup) {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+:where(.dither-kit table) {
+  text-indent: 0;
+  border-color: inherit;
+  border-collapse: collapse;
+}
+:where(.dither-kit hr) {
+  height: 0;
+  color: inherit;
+  border-top-width: 1px;
+}
+:where(.dither-kit ol, .dither-kit ul, .dither-kit menu) {
+  list-style: none;
+}
+:where(.dither-kit img, .dither-kit svg, .dither-kit video, .dither-kit canvas, .dither-kit audio, .dither-kit iframe, .dither-kit embed, .dither-kit object) {
+  display: block;
+  vertical-align: middle;
+}
+:where(.dither-kit img, .dither-kit video) {
+  max-width: 100%;
+  height: auto;
+}
+:where(.dither-kit button, .dither-kit input, .dither-kit select, .dither-kit optgroup, .dither-kit textarea) {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background-color: transparent;
+  border-radius: 0;
+  opacity: 1;
+}
+:where(.dither-kit button, .dither-kit input:where([type="button"], [type="reset"], [type="submit"])) {
+  appearance: button;
+}
+:where(.dither-kit textarea) {
+  resize: vertical;
+}
+:where(.dither-kit ::placeholder) {
+  opacity: 1;
+  color: color-mix(in oklab, currentColor 50%, transparent);
+}
+:where(.dither-kit summary) {
+  display: list-item;
+}
+:where(.dither-kit [hidden]:where(:not([hidden="until-found"]))) {
+  display: none !important;
+}
+:where(.dither-kit :focus-visible) {
+  outline: 1px solid var(--ring);
+  outline-offset: 2px;
+}
+:where(.dither-kit ::selection) {
+  background-color: color-mix(in oklch, var(--accent) 30%, transparent);
+  color: var(--foreground);
+}

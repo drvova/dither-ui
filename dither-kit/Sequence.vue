@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { directedTime, isDirected, onSeek } from "./clock"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "./pixel"
 import { frameIndex, linear, type Easing } from "./timing"
@@ -85,7 +86,7 @@ function complete(): void {
 
 function frame(now: number): void {
   raf = 0
-  if (props.paused) return
+  if (props.paused || isDirected()) return
   // The clock ticks EVERY frame; the gates below only decide whether to write.
   // (Gating the clock itself would freeze the gate's own input.)
   const fps = props.frameRate
@@ -113,6 +114,16 @@ function stop(): void {
   if (raf) cancelAnimationFrame(raf)
   raf = 0
 }
+
+/** Directed (clock.ts): the group sits at the given moment, no frames. */
+function seekTo(ms: number): void {
+  stop()
+  if (!started) return
+  elapsed = ms / 1000
+  const t = elapsed - props.delay
+  paint(Math.min(t, plan.duration))
+}
+const unseek = onSeek((ms) => (ms === null ? wake() : seekTo(ms)))
 
 function start(): void {
   stop()
@@ -151,10 +162,18 @@ function start(): void {
     paint(0 - props.delay) // hold at the start state until released
     return
   }
+  if (isDirected()) {
+    seekTo(directedTime() ?? 0)
+    return
+  }
   raf = requestAnimationFrame(frame)
 }
 
 function wake(): void {
+  if (isDirected()) {
+    seekTo(directedTime() ?? 0)
+    return
+  }
   if (!raf && started && !finished && !props.paused) {
     lastDt = -1 // resume: the first frame back contributes dt 0 (no jump)
     raf = requestAnimationFrame(frame)
@@ -193,6 +212,7 @@ onMounted(() => {
   if (root.value) io.observe(root.value)
 })
 onBeforeUnmount(() => {
+  unseek()
   stop()
   io?.disconnect()
 })

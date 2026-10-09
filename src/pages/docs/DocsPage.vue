@@ -32,9 +32,11 @@ import {
 } from "@dither-kit"
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
+import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
-import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
+import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
+import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 import { GROUPS } from "./groups"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
@@ -494,6 +496,8 @@ function searchGo(id: string) {
 
 /* Theme: dark by default, remembered, revealed as a circle from the toggle. */
 const { dark, revealToggle } = useTheme()
+/* The search hint names the modifier the visitor actually has. */
+const searchKbd = typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? "⌘K" : "Ctrl K"
 
 onMounted(() => {
   window.addEventListener("keydown", searchHotkey)
@@ -588,6 +592,20 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
      for every prop you leave unset; explicit props always win.
      Seeds also work per prop: bloom / easing / variant / color(hue). -->
 <DitherButton :bloom="1984">Glow</DitherButton>`,
+  anyStyles: `# No Tailwind? The kit's styles ship as one plain stylesheet — its tokens, a
+# scoped base and every class its components use, compiled from the kit itself.
+<link rel="stylesheet" href="https://dither-ui.com/kit/dither-kit.css">
+#   (or from the repo: npm run build:css → dist/kit/dither-kit.css)
+
+<div class="dither-kit">                         <!-- the base applies inside this wrapper only -->
+  <DitherButton class="cta">Ship</DitherButton>  <!-- class takes anything: StyleX, UnoCSS, vanilla CSS -->
+</div>
+
+# Theme from any system: the tokens are custom properties (theme.css lists them)
+import { applyTheme, themeCss } from "@dither-kit"
+applyTheme({ accent: "#3f8ff3", radius: "4px" })   // sets --accent / --radius on <html>, returns the undo
+themeCss({ background: "#000" }, ".dark")           // ".dark { --background: #000; }" for a stylesheet
+stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: the same names`,
   styling: `/* the kit reads shadcn-style tokens — theme by overriding them */
 :root {
   --background: #08090b;   /* chart chrome: axes, legend, tooltip */
@@ -771,8 +789,8 @@ const config = {
 cssColor("blue") // rgb(53,143,243)`,
 }
 
-// Handbook code blocks follow the framework toggle like DemoCard tabs do.
-const fw = (code: string) => (docsFramework.value === "svelte" ? toSvelteCode(code) : code)
+// Handbook code blocks follow the framework and styling toggles like DemoCard tabs do.
+const fw = docsCode
 
 // Code tabs mirror the picked variant — what you see is what you copy.
 const areaCode = computed(() =>
@@ -817,7 +835,22 @@ const gradientCode = computed(
     <header class="chrome sticky top-0 z-40">
       <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6 text-xs">
         <div class="flex items-center gap-6">
-          <a :href="routePath('/')" class="whitespace-nowrap tracking-tight transition-colors hover:text-foreground">dither-ui</a>
+          <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap tracking-tight transition-colors hover:text-foreground">
+            <!-- The brand mark: the landing's 7x7 dithered diamond, ember core. -->
+            <svg viewBox="0 0 7 7" width="13" height="13" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+              <g fill="currentColor">
+                <rect x="3" y="0" width="1" height="1" />
+                <rect x="2" y="1" width="3" height="1" />
+                <rect x="1" y="2" width="5" height="1" />
+                <rect x="0" y="3" width="7" height="1" />
+                <rect x="1" y="4" width="5" height="1" />
+                <rect x="2" y="5" width="3" height="1" />
+                <rect x="3" y="6" width="1" height="1" />
+              </g>
+              <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
+            </svg>
+            dither-ui
+          </a>
           <span class="hidden text-muted-foreground sm:inline">docs</span>
         </div>
         <nav class="flex items-center gap-3 text-muted-foreground sm:gap-5">
@@ -825,7 +858,7 @@ const gradientCode = computed(
             <button
               type="button"
               :aria-pressed="docsFramework === 'vue'"
-              class="rounded border px-2 py-0.5 text-[11px] transition-colors"
+              class="h-6 rounded border px-2 text-[11px] transition-colors"
               :class="docsFramework === 'vue' ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'"
               @click="setDocsFramework('vue')"
             >
@@ -834,40 +867,54 @@ const gradientCode = computed(
             <button
               type="button"
               :aria-pressed="docsFramework === 'svelte'"
-              class="rounded border px-2 py-0.5 text-[11px] transition-colors"
+              class="h-6 rounded border px-2 text-[11px] transition-colors"
               :class="docsFramework === 'svelte' ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'"
               @click="setDocsFramework('svelte')"
             >
               svelte
             </button>
           </div>
+          <div class="hidden items-center gap-1 md:flex" role="group" aria-label="Styling">
+            <button
+              v-for="s in docsStylings"
+              :key="s"
+              type="button"
+              :aria-pressed="docsStyling === s"
+              class="h-6 rounded border px-2 text-[11px] transition-colors"
+              :class="docsStyling === s ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'"
+              @click="setStyling(s)"
+            >
+              {{ STYLING_LABELS[s].toLowerCase() }}
+            </button>
+          </div>
           <button
             type="button"
-            class="flex items-center gap-1.5 rounded-md border border-border/60 px-2 py-1 text-[11px] transition-colors hover:text-foreground"
+            class="flex h-6 items-center gap-1.5 rounded-md border border-border/60 px-2 text-[11px] transition-colors hover:text-foreground"
             aria-label="Search docs"
             @click="searchOpen = true"
           >
             search
-            <kbd class="hidden rounded border border-border/60 px-1 text-[9px] sm:inline">⌘K</kbd>
+            <kbd class="hidden rounded border border-border/60 px-1 text-[9px] sm:inline">{{ searchKbd }}</kbd>
           </button>
           <button
             type="button"
-            class="-m-2 p-2 transition-colors hover:text-foreground"
+            class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
             :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
             @click="revealToggle($event)"
           >
             <span aria-hidden="true">{{ dark ? "☀" : "◐" }}</span>
           </button>
+          <!-- Phones keep the chrome for content: github moves to the footer
+               and the studio link stays on every section's "open in studio →";
+               both return here at sm and up. -->
           <a
             href="https://github.com/drvova/dither-ui"
             target="_blank"
             rel="noreferrer"
-            class="-m-3 whitespace-nowrap p-3 transition-colors hover:text-foreground"
+            class="-m-3 hidden whitespace-nowrap p-3 transition-colors hover:text-foreground sm:inline"
             >github</a
           >
-          <!-- Phones keep the chrome for content: the studio link stays on
-               every section's "open in studio →" and at sm and up here. -->
-          <a :href="routePath('/studio')" class="-m-3 hidden whitespace-nowrap p-3 transition-colors hover:text-foreground sm:inline">studio →</a>
+          <a :href="routePath('/studio')" class="nav-a nav-pill hidden sm:inline-flex">Open studio</a>
         </nav>
       </div>
     </header>
@@ -899,7 +946,8 @@ const gradientCode = computed(
       <!-- Content -->
       <main class="min-w-0 flex-1 pb-24 lg:pl-10">
         <div class="docs-flow max-w-2xl">
-          <h1 class="mt-12 text-2xl tracking-tight">Components</h1>
+          <p class="eyebrow mt-12">Documentation</p>
+          <h1 class="mt-4 text-2xl tracking-tight">Components</h1>
           <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
             Every component draws on canvas through the same ordered-dither engine.
             Compose charts from parts, or drop in a single primitive.
@@ -948,10 +996,21 @@ const gradientCode = computed(
                 rel="noreferrer"
                 class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
                 >GitHub repo</a
-              >, install four small runtime deps, and alias it — {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }} and Tailwind
-              you already have.
+              >, install four small runtime deps, and alias it — {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }} you already
+              have, and Tailwind if you use it.
             </p>
             <div class="mt-5"><CodeBlock :code="docsFramework === 'svelte' ? SNIPPETS.installSvelte : SNIPPETS.install" /></div>
+            <p class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
+              Styling with something else — StyleX, UnoCSS, vanilla CSS, any CSS-in-JS? The kit does not need
+              your Tailwind: its own stylesheet carries the tokens, a base scoped to a
+              <code class="text-foreground/80">.dither-kit</code> wrapper and every class its components use,
+              all in cascade layers, so your unlayered styles win. Theme it from CSS, JS or your vars contract:
+              the tokens are plain custom properties. And what you write is written in your system: pick it in
+              the header or on any code tab, and every snippet on this page, every Studio export and the
+              agent's <code class="text-foreground/80">code.get</code> come out as a scoped stylesheet, CSS Modules
+              or StyleX instead of utility classes — the components keep their own styles either way.
+            </p>
+            <div class="mt-3"><CodeBlock :code="SNIPPETS.anyStyles" /></div>
             <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
               Prefer to read the source first? Every component lives under
               <a
@@ -1766,8 +1825,17 @@ const gradientCode = computed(
     <!-- Footer -->
     <footer class="border-t border-border/60">
       <div class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 text-[11px] text-muted-foreground">
-        <a href="#" class="transition-colors hover:text-foreground">← dither-ui.com</a>
-        <span>MIT</span>
+        <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">← dither-ui.com</a>
+        <div class="flex items-center gap-4">
+          <a
+            href="https://github.com/drvova/dither-ui"
+            target="_blank"
+            rel="noreferrer"
+            class="-my-1 py-1 transition-colors hover:text-foreground"
+            >GitHub</a
+          >
+          <span class="tabular-nums">v{{ version }} · MIT</span>
+        </div>
       </div>
     </footer>
 
@@ -1785,7 +1853,7 @@ const gradientCode = computed(
 /* Apple-style chrome: a floating translucent material — content scrolls under
    it, the boundary is a faded edge rather than a hard 1px divider. */
 .chrome {
-  background: color-mix(in oklab, var(--background) 82%, transparent);
+  background: color-mix(in oklab, var(--background) 88%, transparent);
   backdrop-filter: blur(14px) saturate(1.5);
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
 }

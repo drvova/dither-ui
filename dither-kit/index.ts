@@ -134,6 +134,30 @@ export { default as DitherTabs, type TabItem, type TabsVariant } from "./DitherT
 export { default as DitherTabPanel } from "./DitherTabPanel.vue"
 export { default as DitherCollapsible } from "./DitherCollapsible.vue"
 export { default as DitherContainer } from "./DitherContainer.vue"
+export { default as DitherStage, STAGE, type StageContext } from "./DitherStage.vue"
+export { default as DitherLayer } from "./DitherLayer.vue"
+export {
+  compileTrack,
+  keyframeTransform,
+  LENGTH_UNITS,
+  lerpTerms,
+  parseAngle,
+  parseLength,
+  resolveSample,
+  sampleKeyframes,
+  termsToCss,
+  termsToPx,
+  type CompiledTrack,
+  type CqBox,
+  type KeyEasing,
+  type Keyframe,
+  type KeyframeSample,
+  type KeyframeTrack,
+  type Length,
+  type LengthEnv,
+  type LengthUnit,
+  type Terms,
+} from "./keyframes"
 export { default as DitherDialog } from "./DitherDialog.vue"
 export { default as DitherCenterMorphModal } from "./CenterMorphModal.vue"
 export { default as DitherKbd } from "./DitherKbd.vue"
@@ -320,6 +344,44 @@ export { default as DitherVideoPlayer } from "./DitherVideoPlayer.vue"
 export { default as DitherBracket, type BracketMatch } from "./DitherBracket.vue"
 export { default as DitherSchedule, type ScheduleEvent } from "./DitherSchedule.vue"
 export { default as DitherInfiniteCanvas } from "./DitherInfiniteCanvas.vue"
+export {
+  default as DitherWorld,
+  createWorldGpu,
+  createWorldMaterial,
+  externalResources,
+  formatOf,
+  packTarget,
+  packUv,
+  paintMaterial,
+  paintTarget,
+  paintWorld,
+  parseWorld,
+  rasterizeWorld,
+  sampleWorld,
+  type ModelFormat,
+  type World,
+  type WorldGpu,
+  type WorldMaterial,
+  type WorldMesh,
+  type WorldStyle,
+  type WorldTarget,
+  type WorldView,
+} from "./DitherWorld.vue"
+export {
+  default as DitherShader,
+  ditherShaderPixels,
+  sampleShader,
+  wrapShader,
+  type ShaderChannel,
+  type ShaderDither,
+  type ShaderProgram,
+} from "./DitherShader.vue"
+export { wrapMaterial } from "./shader"
+export { copyText } from "./lib"
+export { applyTheme, THEME_TOKENS, themeCss, themeVars, type ThemeInput, type ThemeToken, type ThemeVars } from "./theme"
+export { bindChannel, createChannels, rasterOf, type ChannelInput, type Channels } from "./gl"
+export { surfaceOf, type DitherSurface } from "./use-dither-background"
+export { default as DitherReveal, BAYER8, bayerMatrix, wipeStyle, type WipeDirection, type WipeOptions, type WipeStyle } from "./DitherReveal.vue"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"
 export { default as DitherSlideAction } from "./SlideAction.vue"
@@ -406,6 +468,8 @@ export { default as DitherColorPicker } from "./ColorPicker.vue"
 export { default as DitherKnob } from "./Knob.vue"
 export { default as DitherSignaturePad } from "./SignaturePad.vue"
 export { linear, steps, frameSteps, frameIndex, cssSteps } from "./timing"
+export { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "./clock"
+export type { SeekListener } from "./clock"
 export { planSequence, sampleSequence, staggerDelay } from "./sequence"
 export { CONTAINER_SCALE, resolveCq, quantize } from "./containers"
 export type {

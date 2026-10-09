@@ -1,0 +1,62 @@
+/* The kit's design tokens — shadcn-style custom properties every component
+   reads (text-foreground, bg-card, border-border, …) and the swatches the
+   palette mirrors. Plain CSS, no Tailwind in it: the app imports it under
+   Tailwind, the standalone stylesheet (kit.css → dist/kit/dither-kit.css)
+   ships it, and any styling system themes the kit by redefining these
+   properties — a stylesheet, StyleX's defineVars, or theme.ts from JS.
+   Light at :root, dark under .dark. */
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --muted: #f4f4f5;
+  --muted-foreground: #6b7280;
+  --border: #e4e4e7;
+  --ring: #0a0a0a;
+  /* Accent blues are tuned so white text on them clears 4.5:1 (5.6 light,
+     4.9 dark) — every active segment, picker and selected row reads. */
+  --accent: #1d63d0;
+  --accent-foreground: #ffffff;
+  --radius: 0.5rem;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", monospace;
+
+  /* Palette swatches — the perceptual mirror of PALETTE in palette.ts,
+     tuned per theme: deeper ink on light so text stays readable, the
+     original bright fills on dark (see .dark below). */
+  --swatch-green: rgb(20, 140, 72);
+  --swatch-blue: rgb(24, 104, 204);
+  --swatch-purple: rgb(112, 72, 220);
+  --swatch-pink: rgb(190, 42, 142);
+  --swatch-orange: rgb(198, 106, 16);
+  --swatch-red: rgb(198, 44, 44);
+  --swatch-grey: rgb(96, 100, 108);
+}
+
+.dark {
+  --background: #08090b;
+  --foreground: #ededed;
+  --card: #0d0f12;
+  --card-foreground: #ededed;
+  --popover: #0d0f12;
+  --popover-foreground: #ededed;
+  --muted: #16181d;
+  --muted-foreground: #8b8f98;
+  --border: #22252b;
+  --ring: #ededed;
+  --accent: #1f6fd6;
+  --accent-foreground: #ffffff;
+
+  /* Bright swatches — the exact PALETTE fills, at home on dark. */
+  --swatch-green: rgb(40, 210, 110);
+  --swatch-blue: rgb(53, 143, 243);
+  --swatch-purple: rgb(150, 110, 255);
+  --swatch-pink: rgb(240, 90, 190);
+  --swatch-orange: rgb(255, 150, 50);
+  --swatch-red: rgb(240, 70, 70);
+  --swatch-grey: rgb(92, 92, 100);
+}
