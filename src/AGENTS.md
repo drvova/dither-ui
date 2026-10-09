@@ -22,7 +22,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `entities/` — domain stores: editor (selection/artboards, single source of
   truth), chart, widget, artboard.
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
-  ContextMenu, ...), config (CHART_TYPES), lib (theme).
+  ContextMenu, ...), config (CHART_TYPES), lib (theme, routes, base64, menu,
+  `restyle.ts` — a snippet in the reader's styling system — and the
+  node-side `utility-map.ts` that compiles its vocabulary).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
   component library, inspector controls, untrusted-prop sanitization, functional
   demo composition, and code export. Every public `Dither*` export is covered
@@ -111,6 +113,37 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     request. Pinned by `tests/agent-protocol.spec.ts`,
     `agent-evolve.spec.ts`, `agent-tools.spec.ts`; the bridge chain by
     `tests/bridge.spec.ts`.
+- Styling systems: `shared/lib/restyle.ts` is the ONE translator.
+  `restyle(code, system, framework)` rewrites the `class` / `:class` /
+  `style` attributes of a Vue snippet (or a Svelte one, `class={…}`) into
+  named styles for `css` (a `<style scoped>` block; `<style>` under Svelte),
+  `modules` (`$style` bindings + `<style module>`; CSS under Svelte) or
+  `stylex` (`stylex.create` in the script after its imports, `stylex.attrs`
+  on the element — `v-bind` in Vue, a spread in Svelte); `tailwind` returns
+  the code untouched. Its data is `virtual:dither-utilities`:
+  `utility-map.ts` (node-side only — vite.config, vitest.config, tests)
+  scans `UTILITY_SOURCES` (`pages/docs`, `entities`) with Tailwind's scanner
+  and compiles every candidate with Tailwind's compiler (theme inlined; the
+  kit's `@theme inline` tokens and dark variant read from
+  `dither-kit/kit.css`), keeping per class its cascade index, its variant
+  chains and declarations, plus the `@property` initials.
+  `compileUtilities` merges a class list in Tailwind's order (so `px-2 p-4`
+  cascades as Tailwind does), resolves every `--tw-*` input, simplifies
+  `calc()`s and drops no-op shadows. Unknown classes stay classes (the kit
+  stylesheet covers them); for StyleX so does any class whose rule needs a
+  selector it cannot express, a custom property or `!important`, and a
+  dynamic binding only becomes `attrs()` arguments when its shape allows
+  (literal / ternary / `&&` / array / object). Names come from the element
+  (`stack`, `row`, `grid`, `layer`, `frame`, `box`, `text`, a component's
+  name without `Dither`, a literal's first utility), one per distinct rule
+  set, inline `style` folded into the element's rule. The preference
+  (`styling` ref, localStorage `dither-styling`) is shared by the docs and
+  the Studio. `code.get { id, styling? }` and the `get_code` tool return the
+  SFC restyled (`tailwind` default, junk fails); the export dialog's
+  `styling` control does the same for the copy and the download. New
+  vocabulary is picked up by the next build (dev: on a hot update of a
+  scanned file). Pinned by `tests/restyle.spec.ts` and the `code.get` case
+  in `tests/agent-protocol.spec.ts`.
 - Clock for drivers: `clock.seek { seconds? }` / `clock.release` hold or
   free the kit clock from the protocol (the `seek_clock` tool), and
   `window.ditherStudio.clock` exposes the same four calls (`seek(seconds)`,

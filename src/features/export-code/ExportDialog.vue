@@ -5,16 +5,20 @@ import { chartCode } from "@/entities/chart"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { widgetCode } from "@/entities/widget"
 import { copyText, DitherFocusScope } from "@dither-kit"
-import { CodeBlock } from "@/shared/ui"
+import { restyle, setStyling, styling, STYLINGS } from "@/shared/lib/restyle"
+import { CodeBlock, Segmented } from "@/shared/ui"
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
+// The SFC in the chosen styling system: Tailwind as generated, or a scoped
+// stylesheet, CSS Modules or StyleX (the kit components keep their own styles).
+const codeFor = (a: Artboard) => restyle(a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart), styling.value)
 const code = computed(() => {
   const a = selectedArtboard.value
   if (!a) return "// select an artboard"
-  if (a.widget) return widgetCode(a.widget, { w: a.w, h: a.h })
-  return selectedChart.value ? chartCode(selectedChart.value) : "// select an artboard"
+  if (a.widget) return codeFor(a)
+  return selectedChart.value ? restyle(chartCode(selectedChart.value), styling.value) : "// select an artboard"
 })
 
 const closeRef = ref<HTMLButtonElement | null>(null)
@@ -37,8 +41,6 @@ async function copy() {
   if (copied.value) copyTimer = setTimeout(() => (copied.value = false), 1500)
 }
 
-const codeFor = (a: Artboard) =>
-  a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart)
 const fileName = (a: Artboard) =>
   `${a.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"}.vue`
 
@@ -99,6 +101,9 @@ async function downloadAll() {
               ×
             </button>
           </div>
+        </div>
+        <div class="border-b border-border/60 px-4 py-2">
+          <Segmented :options="STYLINGS" :model-value="styling" label="styling" @update:model-value="setStyling" />
         </div>
         <div class="overflow-auto p-4">
           <CodeBlock :code="code" />

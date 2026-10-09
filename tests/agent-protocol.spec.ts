@@ -106,6 +106,23 @@ describe("studio agent protocol", () => {
     expect(editor.artboards).toHaveLength(3)
   })
 
+  it("writes a frame's code in the asked styling system", () => {
+    const added = runCommand({ type: "widget.add", widget: "image" })
+    const id = (added as { data: { id: string } }).data.id
+    const css = runCommand({ type: "code.get", id, styling: "css" })
+    expect(css.ok && (css.data as { styling: string }).styling).toBe("css")
+    const code = String((css.data as { code: string }).code)
+    expect(code).toContain("<style scoped>")
+    expect(code).toContain(".box {\n  height: 16rem;\n}")
+    expect(code).not.toContain('class="h-64"')
+    const sx = runCommand({ type: "code.get", id, styling: "stylex" })
+    expect(sx.ok && String((sx.data as { code: string }).code)).toContain("stylex.create({")
+    const plain = runCommand({ type: "code.get", id })
+    expect(plain.ok && String((plain.data as { code: string }).code)).toContain('class="h-64"')
+    expect(runCommand({ type: "code.get", id, styling: "sass" }).ok).toBe(false)
+    expect(registrySchema().commands["code.get"]).toContain("stylex")
+  })
+
   it("replaces the document through the import validation path", () => {
     expect(runCommand({ type: "document.set", document: { artboards: [] } }).ok).toBe(false)
     const r = runCommand({ type: "document.set", document: { artboards: [{ name: "Imported", chart: { type: "radar" } }, "junk"] } })

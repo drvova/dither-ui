@@ -9,6 +9,7 @@
 // made of the tools below (`acp.ts` is the browser side).
 import { REEL_TRANSITIONS } from "@/entities/widget"
 import { deliverVideo, type VideoExportData } from "@/features/export-video"
+import { STYLINGS } from "@/shared/lib/restyle"
 import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
 
@@ -34,7 +35,7 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
   { def: { name: "remove_artboard", description: "Delete a frame (undoable in the Studio).", parameters: obj({ id: str("artboard id") }, ["id"]) }, command: "artboard.remove" },
   { def: { name: "select", description: "Select one frame (id) or several (ids).", parameters: obj({ id: str("artboard id"), ids: { type: "array", items: { type: "string" } } }) }, command: "artboard.select" },
   { def: { name: "evolve", description: "Produce seeded variants of a frame, placed as a row and selected. Use when the user wants options.", parameters: obj({ id: str("parent artboard id; defaults to the selection"), count: num("1–12, default 4"), seed: num("generation seed"), strength: num("0–1 mutation pressure") }) }, command: "evolve" },
-  { def: { name: "get_code", description: "The frame as a Vue single-file component.", parameters: obj({ id: str("artboard id") }, ["id"]) }, command: "code.get" },
+  { def: { name: "get_code", description: "The frame as a Vue single-file component, in the styling system asked for: tailwind (default) keeps the utility classes; css, modules (CSS Modules) or stylex write the same look that way while the kit components keep their own styles.", parameters: obj({ id: str("artboard id"), styling: { type: "string", enum: [...STYLINGS], description: "tailwind | css | modules | stylex" } }, ["id"]) }, command: "code.get" },
   { def: { name: "get_document", description: "The whole project document (large; image data is elided). Prefer list_artboards.", parameters: obj({}) }, command: "document.get" },
   { def: { name: "seek_clock", description: "Hold every animation on the canvas at a moment, in seconds, so a screenshot is stable in any browser; call it without seconds to let time run again.", parameters: obj({ seconds: num("the moment in seconds; omit to release") }) }, command: "clock.seek" },
   { def: { name: "export_video", description: "Export a frame as a HyperFrames composition — one HTML file that `npx hyperframes render` turns into a deterministic MP4 (Node 22 + FFmpeg). It is written under the project as video/<name>/index.html; the result carries the render command. A reel renders as one video of its whole cut.", parameters: obj({ id: str("artboard id; defaults to the selection"), seconds: num("length in seconds, 1–600 (default 6; a reel defaults to its length)"), fps: { type: "number", enum: [24, 30, 60] }, theme: { type: "string", enum: ["dark", "light"] } }) }, command: "video.export" },

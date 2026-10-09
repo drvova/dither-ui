@@ -35,7 +35,8 @@ import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
 import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
-import { docsFramework, setDocsFramework, toSvelteCode } from "./svelte"
+import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
+import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 import { GROUPS } from "./groups"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
@@ -788,8 +789,8 @@ const config = {
 cssColor("blue") // rgb(53,143,243)`,
 }
 
-// Handbook code blocks follow the framework toggle like DemoCard tabs do.
-const fw = (code: string) => (docsFramework.value === "svelte" ? toSvelteCode(code) : code)
+// Handbook code blocks follow the framework and styling toggles like DemoCard tabs do.
+const fw = docsCode
 
 // Code tabs mirror the picked variant — what you see is what you copy.
 const areaCode = computed(() =>
@@ -871,6 +872,19 @@ const gradientCode = computed(
               @click="setDocsFramework('svelte')"
             >
               svelte
+            </button>
+          </div>
+          <div class="hidden items-center gap-1 md:flex" role="group" aria-label="Styling">
+            <button
+              v-for="s in docsStylings"
+              :key="s"
+              type="button"
+              :aria-pressed="docsStyling === s"
+              class="h-6 rounded border px-2 text-[11px] transition-colors"
+              :class="docsStyling === s ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'"
+              @click="setStyling(s)"
+            >
+              {{ STYLING_LABELS[s].toLowerCase() }}
             </button>
           </div>
           <button
@@ -991,7 +1005,10 @@ const gradientCode = computed(
               your Tailwind: its own stylesheet carries the tokens, a base scoped to a
               <code class="text-foreground/80">.dither-kit</code> wrapper and every class its components use,
               all in cascade layers, so your unlayered styles win. Theme it from CSS, JS or your vars contract:
-              the tokens are plain custom properties.
+              the tokens are plain custom properties. And what you write is written in your system: pick it in
+              the header or on any code tab, and every snippet on this page, every Studio export and the
+              agent's <code class="text-foreground/80">code.get</code> come out as a scoped stylesheet, CSS Modules
+              or StyleX instead of utility classes — the components keep their own styles either way.
             </p>
             <div class="mt-3"><CodeBlock :code="SNIPPETS.anyStyles" /></div>
             <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">

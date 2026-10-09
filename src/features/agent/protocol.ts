@@ -48,6 +48,7 @@ import {
 import { compositionHtml, defaultSeconds, normalizeVideoOptions, playerAssetUrls, reelClips, renderCommand, slugOf, videoFileName } from "@/features/export-video"
 import { applyDocument, documentSnapshot, type StudioDocument } from "@/features/persistence"
 import { CHART_TYPES, type ChartType, familyOf } from "@/shared/config"
+import { isStyling, restyle, type Styling, STYLINGS } from "@/shared/lib/restyle"
 import { evolveArtboard, type EvolveOptions } from "./evolve"
 
 export const PROTOCOL_VERSION = 1
@@ -86,7 +87,7 @@ export type StudioCommand =
     }
   | { type: "reel.add"; name?: string; clips: (string | ReelClipSpec)[]; frame?: { w?: number; h?: number } }
   | { type: "evolve"; id?: string; count?: number; seed?: number; strength?: number }
-  | { type: "code.get"; id: string }
+  | { type: "code.get"; id: string; styling?: Styling }
   | { type: "registry.get"; is?: string }
   | { type: "video.export"; id?: string; seconds?: number; fps?: number; theme?: string }
   | { type: "clock.seek"; seconds?: number }
@@ -145,7 +146,7 @@ export function registrySchema() {
       "screen.add": "{ name?, rows: [{ cells: [{ is, props?, slotText?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
       "reel.add": `{ name?, clips: [id | { id, seconds?, transition?: { kind?: ${REEL_TRANSITIONS.join("|")}, seconds?, cell?, seed? } }], frame? } — frames played in order with ordered-dither transitions (clip 3s, dissolve 0.6s by default); video.export renders the whole cut`,
       evolve: "{ id?, count?, seed?, strength? } — seeded variants placed as a row",
-      "code.get": "{ id } — the frame as a Vue SFC",
+      "code.get": "{ id, styling? } — the frame as a Vue SFC: tailwind (default) keeps the utility classes; css (a scoped stylesheet), modules (CSS Modules) or stylex write the same look in that system",
       "registry.get": "{ is? } — this schema, or one component's entry",
       "video.export": "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length",
       "clock.seek": "{ seconds? } — hold every animation on the canvas at that moment (a stable screenshot from any driver in any browser); without seconds, let time run again",
@@ -349,7 +350,10 @@ export function runCommand(input: unknown): CommandResult {
       case "code.get": {
         const a = find(cmd.id)
         if (!a) return fail(`no artboard ${cmd.id}`)
-        return ok({ id: a.id, code: a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart) })
+        const system: unknown = cmd.styling ?? "tailwind"
+        if (!isStyling(system)) return fail(`styling must be one of ${STYLINGS.join(", ")}`)
+        const code = a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart)
+        return ok({ id: a.id, styling: system, code: restyle(code, system) })
       }
       case "video.export": {
         const a = find(typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId)

@@ -139,7 +139,7 @@ Commands (`type` and fields):
 | `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
 | `reel.add` | `name?`, `clips` (ids, or `{ id, seconds?, transition?: { kind, seconds?, cell?, seed? } }` — kinds `cut`, `dissolve`, `wipe-right`, `wipe-left`, `wipe-down`, `wipe-up`; 3s clips in over a 0.6s dissolve by default), `frame?` — frames played in order with ordered-dither transitions |
 | `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |
-| `code.get` | `id` — the frame as a Vue SFC |
+| `code.get` | `id`, `styling?` — the frame as a Vue SFC; `tailwind` (default) keeps the utility classes, `css` (a scoped stylesheet), `modules` (CSS Modules) or `stylex` write the same look in that system while the kit components keep their own styles |
 | `registry.get` | `is?` — the registry, or one component |
 | `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it |
 | `clock.seek` | `seconds?` — hold every animation on the canvas at that moment, so a screenshot is stable from any driver in any browser; without `seconds` time runs again (`clock.release` does the same) |
@@ -179,7 +179,9 @@ Commands (`type` and fields):
   run. The Studio is plain web platform — the same commands work through CDP
   (`Runtime.evaluate` on `window.ditherStudio.run(...)`), WebDriver, Playwright
   or a DOM event, in Chromium, WebKit and Firefox alike.
-- Finish with `code.get` when the user wants code, and quote the SFC.
+- Finish with `code.get` when the user wants code, and quote the SFC — in
+  their styling system (`styling: "css" | "modules" | "stylex"`) when their
+  project has one.
 
 ## 5. Render a frame to video (HyperFrames)
 

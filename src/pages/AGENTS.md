@@ -247,6 +247,13 @@ widgets/features; page-specific conventions live here.
   bindables (Sidebar→collapsed, SidebarSub→open). New Vue idioms in snippets
   need a translator rule + a `tests/svelte-code.spec.ts` case — never a
   hand-forked Svelte snippet.
+- Docs serve any styling system: `docs/svelte.ts` `docsCode()` is the
+  framework translation followed by `shared/lib/restyle.ts` with the
+  reader's `styling` (header switch at md+, per-card chips beside
+  Vue/Svelte; `docsStylings` hides CSS Modules under Svelte and
+  `docsStyling` shows CSS in its place). Every DemoCard code tab and
+  Handbook `fw()` block goes through it, so a snippet idiom the translator
+  mangles gets a rule in `restyle.ts` + a `tests/restyle.spec.ts` case.
 - `SNIPPETS`/computed code must match what the demo renders; API tables
   mirror actual kit prop defaults — update both when the kit API changes.
   Core form controls share Field-generated IDs, help/error relationships, and
@@ -348,7 +355,9 @@ widgets/features; page-specific conventions live here.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not
-  inside widgets.
+  inside widgets. The export dialog's `styling` control (Segmented over
+  `STYLINGS`) writes the SFC in the reader's system — the same preference
+  the docs use.
 
 ### play/
 

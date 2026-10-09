@@ -30,7 +30,11 @@ imports from the app. Its runtime dependencies are Vue, `d3-scale`, `d3-shape`,
 `clsx` and `tailwind-merge`. Tailwind itself is optional: `npm run build:css`
 compiles the kit's own stylesheet (`dist/kit/dither-kit.css` — tokens, a scoped
 base, every class the components use) for apps styled with StyleX, UnoCSS,
-plain CSS or any CSS-in-JS.
+plain CSS or any CSS-in-JS. What you write comes out in your system as well:
+the Studio's code export, the agent's `code.get` and every docs snippet can be
+written with Tailwind classes, as vanilla CSS, CSS Modules or StyleX —
+translated from the Tailwind form by `src/shared/lib/restyle.ts` with the
+declarations Tailwind's own compiler gives each class.
 
 The repo ships three surfaces on one hash router:
 

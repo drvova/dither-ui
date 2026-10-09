@@ -140,6 +140,13 @@ Default section order:
   utility the kit uses — into `dist/kit/dither-kit.css`, so apps on StyleX,
   UnoCSS, vanilla CSS or CSS-in-JS run the kit without Tailwind;
   `dither-kit/theme.ts` themes from JS. Details in `dither-kit/AGENTS.md`.
+  What the site writes for a reader comes in their system too:
+  `src/shared/lib/restyle.ts` rewrites a Tailwind-classed snippet into a
+  scoped stylesheet, CSS Modules or StyleX from the declarations Tailwind's
+  compiler gives each class (`virtual:dither-utilities`, compiled at build
+  from the docs + entities vocabulary by `src/shared/lib/utility-map.ts`);
+  the docs' styling switch, the Studio's export dialog and
+  `code.get { styling }` all go through it (see `src/AGENTS.md`).
 - Browsers and drivers: the kit is web platform only — Chromium (Chrome,
   Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor
   (Chrome 111, Safari 16.4, Firefox 128); every newer API is feature-detected

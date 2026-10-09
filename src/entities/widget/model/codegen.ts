@@ -101,9 +101,7 @@ function screenCode(w: Extract<WidgetModel, { kind: "screen" }>): string {
   const importRef = refs.length ? `import { ref } from "vue"\n` : ""
   return `<script setup lang="ts">
 ${importRef}import { ${[...imports].sort().join(", ")} } from "@dither-kit"
-
-${refs.join("\n")}
-</script>
+${refs.length ? `\n${refs.join("\n")}\n` : ""}</script>
 
 <template>
   <div class="flex flex-col" style="gap: ${w.gap}px; padding: ${w.padding}px">
