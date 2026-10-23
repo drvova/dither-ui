@@ -54,9 +54,7 @@ export function renderDitherGradient(options: GradientRasterOptions): RasterBuff
   const cols = Math.min(maxCols, Math.max(4, Math.round(width / cell)))
   const rows = Math.min(maxRows, Math.max(4, Math.round(height / cell)))
   const from = fillOf(options.from ?? "blue")
-  const to = options.to === "transparent" || options.to === undefined
-    ? null
-    : fillOf(options.to)
+  const to = options.to === "transparent" || options.to === undefined ? null : fillOf(options.to)
   const direction = options.direction ?? "up"
   const opacity = Math.max(0, Math.min(1, options.opacity ?? 1))
   const matrix = options.seed === undefined ? BAYER4 : pixelMatrixFromSeed(options.seed)
@@ -79,9 +77,7 @@ export function renderDitherGradient(options: GradientRasterOptions): RasterBuff
       const lit = density > matrix[y & 3][x & 3]
       const useFrom = lit || !to
       const c = useFrom ? from : (to as [number, number, number])
-      const alpha = to
-        ? opacity
-        : (lit ? 0.35 + 0.65 * density : 0.12 * density) * opacity
+      const alpha = to ? opacity : (lit ? 0.35 + 0.65 * density : 0.12 * density) * opacity
       if (alpha <= 0) continue
       const a = alpha > 1 ? 1 : alpha
       const i = (y * w + x) * 4
@@ -107,10 +103,7 @@ export type ButtonRasterOptions = {
 }
 
 /** Compile a static dither button backing store without canvas APIs. */
-export function renderDitherButton(
-  options: ButtonRasterOptions,
-  target?: RasterBuffer
-): RasterBuffer {
+export function renderDitherButton(options: ButtonRasterOptions, target?: RasterBuffer): RasterBuffer {
   const width = finiteNumber(options.width, "width")
   const height = finiteNumber(options.height, "height")
   const cell = Math.max(1, finiteOptional(options.cell, "cell", 2))
@@ -122,28 +115,21 @@ export function renderDitherButton(
   const variant = options.variant ?? "gradient"
   const intensity = options.intensity ?? 0
   const matrix = options.seed === undefined ? BAYER4 : pixelMatrixFromSeed(options.seed)
-  const buffer = target?.width === cols && target.height === rows
-    ? target
-    : createRasterBuffer(cols, rows)
+  const buffer = target?.width === cols && target.height === rows ? target : createRasterBuffer(cols, rows)
   clearRasterBuffer(buffer)
   const data = buffer.data
   const w = cols
   const bias = variant === "dotted" ? 0.12 : 0
   // Precompute fill channels to avoid array dereference in the inner loop.
-  const r0 = fill[0], g0 = fill[1], b0 = fill[2]
+  const r0 = fill[0],
+    g0 = fill[1],
+    b0 = fill[2]
 
   for (let y = 0; y < rows; y++) {
-    const density =
-      variant === "gradient"
-        ? 0.25 + 0.75 * ((y + 0.5) / rows)
-        : variant === "dotted"
-          ? 0.5
-          : 0.75
+    const density = variant === "gradient" ? 0.25 + 0.75 * ((y + 0.5) / rows) : variant === "dotted" ? 0.5 : 0.75
     for (let x = 0; x < cols; x++) {
       if (variant === "hatched" && ((x + y) & 3) >= 2) continue
-      const lit =
-        variant === "solid" ||
-        density > matrix[y & 3][x & 3] - 0.1 * intensity - bias
+      const lit = variant === "solid" || density > matrix[y & 3][x & 3] - 0.1 * intensity - bias
       if (variant === "dotted" && !lit) continue
       const k = (0.3 + density * 0.7) * (1 + 0.22 * intensity)
       const a = lit ? k : k * 0.4
@@ -158,17 +144,33 @@ export function renderDitherButton(
   }
   // Edge outline — inline writes.
   const edgeAlpha = Math.max(0, Math.min(1, 0.5 + 0.25 * intensity))
-  const ea = edgeAlpha * 255 + 0.5 | 0
+  const ea = (edgeAlpha * 255 + 0.5) | 0
   const er = (r0 * edgeAlpha + 0.5) | 0
   const eg = (g0 * edgeAlpha + 0.5) | 0
   const eb = (b0 * edgeAlpha + 0.5) | 0
   for (let x = 0; x < cols; x++) {
-    let i = x * 4; data[i] = er; data[i+1] = eg; data[i+2] = eb; data[i+3] = ea
-    i = ((rows - 1) * w + x) * 4; data[i] = er; data[i+1] = eg; data[i+2] = eb; data[i+3] = ea
+    let i = x * 4
+    data[i] = er
+    data[i + 1] = eg
+    data[i + 2] = eb
+    data[i + 3] = ea
+    i = ((rows - 1) * w + x) * 4
+    data[i] = er
+    data[i + 1] = eg
+    data[i + 2] = eb
+    data[i + 3] = ea
   }
   for (let y = 0; y < rows; y++) {
-    let i = (y * w) * 4; data[i] = er; data[i+1] = eg; data[i+2] = eb; data[i+3] = ea
-    i = (y * w + cols - 1) * 4; data[i] = er; data[i+1] = eg; data[i+2] = eb; data[i+3] = ea
+    let i = y * w * 4
+    data[i] = er
+    data[i + 1] = eg
+    data[i + 2] = eb
+    data[i + 3] = ea
+    i = (y * w + cols - 1) * 4
+    data[i] = er
+    data[i + 1] = eg
+    data[i + 2] = eb
+    data[i + 3] = ea
   }
   return buffer
 }

@@ -22,9 +22,17 @@ const props = defineProps<{ class?: string }>()
   width: 20px;
   height: 20px;
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  background: linear-gradient(135deg, rgba(120, 130, 150, 0.25), rgba(226, 232, 240, 0.55) 55%, rgba(248, 250, 252, 0.72));
+  background: linear-gradient(
+    135deg,
+    rgba(120, 130, 150, 0.25),
+    rgba(226, 232, 240, 0.55) 55%,
+    rgba(248, 250, 252, 0.72)
+  );
   box-shadow: -3px -3px 6px rgba(0, 0, 0, 0.35);
-  transition: width 320ms cubic-bezier(0.2, 0.8, 0.2, 1), height 320ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 320ms ease;
+  transition:
+    width 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 320ms ease;
 }
 .group:hover .dither-peel {
   width: 42px;

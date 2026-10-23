@@ -14,7 +14,7 @@ const props = withDefaults(
     depth?: number
     class?: string
   }>(),
-  { depth: 2 }
+  { depth: 2 },
 )
 const emit = defineEmits<{ advance: [index: number] }>()
 
@@ -105,7 +105,9 @@ const cardStyle = computed(() => (d: number) => {
       :class="d === 0 ? 'cursor-grab touch-pan-y active:cursor-grabbing' : 'pointer-events-none'"
     >
       <slot :item="props.items[itemIndex]" :index="itemIndex" :top="d === 0">
-        <div class="grid h-full w-full place-items-center rounded-lg border border-border/60 bg-card/80 font-mono text-[13px] text-foreground">
+        <div
+          class="grid h-full w-full place-items-center rounded-lg border border-border/60 bg-card/80 font-mono text-[13px] text-foreground"
+        >
           {{ String(props.items[itemIndex]) }}
         </div>
       </slot>

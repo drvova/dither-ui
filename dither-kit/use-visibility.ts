@@ -7,10 +7,7 @@ import { onBeforeUnmount, onMounted, type Ref, ref } from "vue"
  * the loop resumes its SAME closure, so preserved timing means no entrance
  * replay and no state loss — any in-progress entrance simply snaps to done.
  */
-export function useCanvasVisibility(
-  el: Ref<HTMLElement | null>,
-  onWake?: () => void
-): () => boolean {
+export function useCanvasVisibility(el: Ref<HTMLElement | null>, onWake?: () => void): () => boolean {
   const visible = ref(typeof IntersectionObserver === "undefined")
   let io: IntersectionObserver | null = null
   onMounted(() => {

@@ -9,7 +9,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
-- `widgets/` — studio panels: toolbar, layer-tree, inspector, canvas,
+- `widgets/` — the docs previews' `workbench` (inspect, measure,
+  annotate, capture; see `widgets/workbench/AGENTS.md`) and `source` (the
+  preview's files, edited and run in the page; see
+  `widgets/source/AGENTS.md`) and the studio
+  panels: toolbar, layer-tree, inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock), data-editor, agent (the composer / harness control plane).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
@@ -23,6 +27,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   truth), chart, widget, artboard.
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
   ContextMenu, ...), config (CHART_TYPES), lib (theme, routes, base64, menu,
+  `sound.ts` — Kobra's interface sounds as WebAudio voices behind one
+  remembered switch (`sounds`, localStorage `dither-sounds`) — `files.ts` —
+  `download()` and a stored .zip of text files, the ONE download path for
+  the Studio's exports, the workbench and the source panel —
   `restyle.ts` — a snippet in the reader's styling system — and the
   node-side `utility-map.ts` that compiles its vocabulary).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
@@ -120,8 +128,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `modules` (`$style` bindings + `<style module>`; CSS under Svelte) or
   `stylex` (`stylex.create` in the script after its imports, `stylex.attrs`
   on the element — `v-bind` in Vue, a spread in Svelte); `tailwind` returns
-  the code untouched. Its data is `virtual:dither-utilities`:
-  `utility-map.ts` (node-side only — vite.config, vitest.config, tests)
+  the code untouched. Its data is `virtual-dither-utilities`:
+  `utility-map.ts` (node-side only — rstack.config.ts, tests; an Rspack
+  virtual module, recompiled in watch mode when a scanned file changes)
   scans `UTILITY_SOURCES` (`pages/docs`, `entities`) with Tailwind's scanner
   and compiles every candidate with Tailwind's compiler (theme inlined; the
   kit's `@theme inline` tokens and dark variant read from
@@ -157,9 +166,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   frame), embeds the frame's document as JSON with `<` escaped, and carries
   the player inline (`{ js, css }`, `</script` escaped in the bundle) or by
   reference (`{ jsRef, cssRef }`). The player is `pages/play`; its
-  single-file bundle is a second build, `vite.player.config.ts` →
-  `dist/play/player.js` + `player.css`, which `npm run build` runs after the
-  site build because the site's entries share chunks; `playerAssets()`
+  single-file bundle is the `player` environment of `rstack.config.ts` →
+  `dist/play/player.js` + `player.css` (one classic script, no async
+  chunks, every asset a data URI), built by the same `rs build` as the site
+  because the site's entries share chunks; `playerAssets()`
   fetches it from the same origin and on a dev server, where it does not
   exist, the export says so. Delivery: the Studio's video dialog downloads
   the self-contained file; the `video.export` protocol command returns the
@@ -236,8 +246,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `window.prompt`/`confirm` — the project menu names inline (Enter commits,
   Escape backs out) and deletes through `DitherAlertDialog`; global `:focus-visible` ring is in `app/styles.css` — do not
   suppress. Interactive targets are at least 24px on their short side
-  (`h-6` / `min-h-6` / `size-6` on dense chrome); text on `bg-accent` is
-  white and the accent blues are tuned to clear 4.5:1 with it (light
+  (`h-6` / `min-h-6` / `size-6` on dense chrome). Pressed and selected
+  chrome is `.ring-on` and every toggle carries `aria-pressed` (state is
+  never colour alone); the accent blue is the CANVAS's selection colour
+  only (artboard ring, handles, snap guides, marquee, screen-cell rings).
+  The accent blues stay tuned to clear 4.5:1 against white (light
   `#1d63d0`, dark `#1f6fd6`) — do not brighten them back.
 - Layer tree is a `listbox`: every row type is a focusable `role="option"`
   with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
@@ -246,8 +259,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex. The same file holds the site chrome voice (`@layer components`:
-  `.nav-a`, `.nav-pill`, `.micro`, `.eyebrow`, `.led`) shared by the landing
-  and docs headers.
+  `.nav-a`, `.nav-pill`, `.micro`, `.eyebrow`, `.led`, and `.ring-on` — the
+  ONE pressed/selected state: ink text, a hairline ring, a breath of fill,
+  never a colour fill) shared by the landing, the docs and the Studio;
+  none of them grows a voice of its own.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on
@@ -280,10 +295,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
 ## Verification
 
-- `npx vue-tsc --noEmit` and `npx vite build` green before commit.
+- `npx vue-tsc --noEmit` and `npx rs build` green before commit.
 - Interactive checks in a real browser (agent-browser + screenshots) for
   anything visual or stateful (undo/redo walks, dialog focus, deep links).
-- The video path on the built site (`vite preview`): the player seeked by
+- The video path on the built site (`rs preview`): the player seeked by
   synthetic `hf-seek` events gives identical bytes for identical times, the
   dialog's download opened from disk matches the player at the same time,
   and `npx hyperframes lint`/`render` accept the file. A reel seeked the
@@ -298,10 +313,18 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   computed transform, the world's canvas and WebGL engines, the Studio
   protocol and `clock.seek`, the player's `ditherClock` determinism — pass
   there, which is Safari's engine.
-- Perf probes MUST use trailing-slash URLs (`/docs/`, `/studio/`): `vite
-  preview` falls back to the landing HTML for slashless paths, which silently
-  measures the wrong page.
+- Perf probes use the canonical trailing-slash URLs (`/docs/`, `/studio/`)
+  — the directories the build writes; `rs dev`/`rs preview` also rewrite
+  the slashless forms to them (`server.historyApiFallback`), static hosts
+  may not.
 
 ## Child DOX Index
 
 - `pages/AGENTS.md` — landing, docs, studio, play page contracts
+- `widgets/workbench/AGENTS.md` — the docs previews' workbench: tools and
+  keys, the stage coordinate system, the pointer surface, keyboard scope,
+  the sanitized per-preview workspace, captures, the agent hand-off
+- `widgets/source/AGENTS.md` — the docs previews' source files: the
+  example, the kit's own files, tokens and prompt as tabs; edit, Run in
+  the page (compiler-sfc, types stripped, linked to the page's Vue and the
+  kit), download as a zip

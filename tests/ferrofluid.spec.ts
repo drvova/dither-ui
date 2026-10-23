@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { BAYER4 } from "../dither-kit/pixel"
 import { createRasterBuffer } from "../dither-kit/raster"
 import { paintFerrofluid, type FerrofluidParams } from "../dither-kit/ferrofluid"
@@ -39,7 +39,7 @@ describe("paintFerrofluid", () => {
     const d = paint({})
     let lit = 0
     let clear = 0
-    for (let i = 3; i < d.length; i += 4) (d[i] > 0 ? lit++ : clear++)
+    for (let i = 3; i < d.length; i += 4) d[i] > 0 ? lit++ : clear++
     expect(lit).toBeGreaterThan(0)
     expect(clear).toBeGreaterThan(0) // a full wall of pixels would mean the rim band failed
   })

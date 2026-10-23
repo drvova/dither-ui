@@ -19,7 +19,7 @@ const props = withDefaults(
     range?: number
     class?: string
   }>(),
-  { magnify: 1.7, range: 80 }
+  { magnify: 1.7, range: 80 },
 )
 const emit = defineEmits<{ select: [value: string] }>()
 
@@ -48,7 +48,9 @@ const scaleOf = computed(() => (i: number) => {
 <template>
   <div
     ref="bar"
-    :class="cn('inline-flex items-end gap-1.5 rounded-xl border border-border/60 bg-background/60 px-2 py-1.5', props.class)"
+    :class="
+      cn('inline-flex items-end gap-1.5 rounded-xl border border-border/60 bg-background/60 px-2 py-1.5', props.class)
+    "
     role="group"
     aria-label="Dock"
     @pointermove="track"

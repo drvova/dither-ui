@@ -33,7 +33,7 @@ const brands = reactive<Record<string, boolean>>({ "Bayer & Co": false, Ordered:
 const BRAND_COUNTS: Record<string, number> = { "Bayer & Co": 45, Ordered: 38, Halftone: 29 }
 const price = ref<[number, number]>([50, 500])
 const activeFilters = computed(
-  () => Object.values(cats).filter(Boolean).length + Object.values(brands).filter(Boolean).length
+  () => Object.values(cats).filter(Boolean).length + Object.values(brands).filter(Boolean).length,
 )
 function resetFilters() {
   for (const k in cats) cats[k] = false
@@ -64,9 +64,23 @@ const docsFiltered = computed(() => {
 /* Dual layout */
 const railActive = ref("Inbox")
 const PANELS: Record<string, { title: string; items: { label: string; badge?: number }[] }> = {
-  Inbox: { title: "Inbox", items: [{ label: "All mail", badge: 24 }, { label: "Starred", badge: 3 }, { label: "Drafts" }, { label: "Archive" }] },
-  Files: { title: "Files", items: [{ label: "Recent" }, { label: "Shared with me", badge: 5 }, { label: "Exports" }, { label: "Trash" }] },
-  Tasks: { title: "Tasks", items: [{ label: "Today", badge: 4 }, { label: "Upcoming", badge: 12 }, { label: "Someday" }, { label: "Done" }] },
+  Inbox: {
+    title: "Inbox",
+    items: [
+      { label: "All mail", badge: 24 },
+      { label: "Starred", badge: 3 },
+      { label: "Drafts" },
+      { label: "Archive" },
+    ],
+  },
+  Files: {
+    title: "Files",
+    items: [{ label: "Recent" }, { label: "Shared with me", badge: 5 }, { label: "Exports" }, { label: "Trash" }],
+  },
+  Tasks: {
+    title: "Tasks",
+    items: [{ label: "Today", badge: 4 }, { label: "Upcoming", badge: 12 }, { label: "Someday" }, { label: "Done" }],
+  },
 }
 const dualActive = ref("All mail")
 
@@ -109,7 +123,11 @@ const calendars = reactive([
 ] as { label: string; color: "blue" | "green" | "purple" | "red"; on: boolean }[])
 
 /* Team switcher */
-type Team = { color: "blue" | "green" | "purple"; plan: string; groups: Record<string, { label: string; badge?: number }[]> }
+type Team = {
+  color: "blue" | "green" | "purple"
+  plan: string
+  groups: Record<string, { label: string; badge?: number }[]>
+}
 const TEAMS: Record<string, Team> = {
   "Acme Inc": {
     color: "blue",
@@ -410,9 +428,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-dashboard" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Basic dashboard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The workhorse frame — washed sidebar with a Main group, count badge,
-      an upgrade card pinned above the user row, and a breadcrumb topbar
-      whose toggle owns the icon rail.
+      The workhorse frame — washed sidebar with a Main group, count badge, an upgrade card pinned above the user row,
+      and a breadcrumb topbar whose toggle owns the icon rail.
     </p>
     <DemoCard :code="SNIPPET_DASHBOARD">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
@@ -424,8 +441,17 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
             </div>
           </template>
           <DitherSidebarGroup label="Main">
-            <DitherSidebarItem label="Dashboard" :active="dashActive === 'Dashboard'" @select="dashActive = 'Dashboard'" />
-            <DitherSidebarItem label="Projects" :badge="12" :active="dashActive === 'Projects'" @select="dashActive = 'Projects'" />
+            <DitherSidebarItem
+              label="Dashboard"
+              :active="dashActive === 'Dashboard'"
+              @select="dashActive = 'Dashboard'"
+            />
+            <DitherSidebarItem
+              label="Projects"
+              :badge="12"
+              :active="dashActive === 'Projects'"
+              @select="dashActive = 'Projects'"
+            />
             <DitherSidebarItem label="Team" :active="dashActive === 'Team'" @select="dashActive = 'Team'" />
             <DitherSidebarItem label="Settings" :active="dashActive === 'Settings'" @select="dashActive = 'Settings'" />
           </DitherSidebarGroup>
@@ -464,7 +490,15 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
             </nav>
           </div>
           <div class="grid grid-cols-3 gap-3 p-4">
-            <div v-for="s in [['Revenue', '$12,480'], ['Active', '1,204'], ['Churn', '0.8%']]" :key="s[0]" class="rounded-md border border-border/60 p-3">
+            <div
+              v-for="s in [
+                ['Revenue', '$12,480'],
+                ['Active', '1,204'],
+                ['Churn', '0.8%'],
+              ]"
+              :key="s[0]"
+              class="rounded-md border border-border/60 p-3"
+            >
               <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">{{ s[0] }}</div>
               <div class="mt-1 text-[15px] tabular-nums text-foreground">{{ s[1] }}</div>
             </div>
@@ -479,9 +513,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-admin" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Admin with profile</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A floating admin panel with a quick-actions group, a storage meter card,
-      and the signed-in profile pinned to the footer. The topbar hamburger
-      hides the whole panel; the red badge keeps triage loud.
+      A floating admin panel with a quick-actions group, a storage meter card, and the signed-in profile pinned to the
+      footer. The topbar hamburger hides the whole panel; the red badge keeps triage loud.
     </p>
     <DemoCard :code="SNIPPET_ADMIN">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
@@ -493,13 +526,33 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
             </div>
           </template>
           <DitherSidebarGroup label="Manage">
-            <DitherSidebarItem label="Members" :badge="24" :active="adminActive === 'Members'" @select="adminActive = 'Members'" />
+            <DitherSidebarItem
+              label="Members"
+              :badge="24"
+              :active="adminActive === 'Members'"
+              @select="adminActive = 'Members'"
+            />
             <DitherSidebarItem label="Roles" :active="adminActive === 'Roles'" @select="adminActive = 'Roles'" />
-            <DitherSidebarItem label="Audit log" badge="!" color="red" :active="adminActive === 'Audit log'" @select="adminActive = 'Audit log'" />
+            <DitherSidebarItem
+              label="Audit log"
+              badge="!"
+              color="red"
+              :active="adminActive === 'Audit log'"
+              @select="adminActive = 'Audit log'"
+            />
           </DitherSidebarGroup>
           <DitherSidebarGroup label="Quick actions">
-            <DitherSidebarItem label="New member" :active="adminActive === 'New member'" @select="adminActive = 'New member'" />
-            <DitherSidebarItem label="Create invite" color="green" :active="adminActive === 'Create invite'" @select="adminActive = 'Create invite'" />
+            <DitherSidebarItem
+              label="New member"
+              :active="adminActive === 'New member'"
+              @select="adminActive = 'New member'"
+            />
+            <DitherSidebarItem
+              label="Create invite"
+              color="green"
+              :active="adminActive === 'Create invite'"
+              @select="adminActive = 'Create invite'"
+            />
             <DitherSidebarItem label="Support" :active="adminActive === 'Support'" @select="adminActive = 'Support'" />
           </DitherSidebarGroup>
           <template #footer>
@@ -556,9 +609,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-filters" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">E-commerce filters</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A filter rail for a storefront — search, category and brand checkboxes
-      with result counts, a two-thumb price range, and apply/reset pinned to
-      the footer. The topbar echoes the live filter count.
+      A filter rail for a storefront — search, category and brand checkboxes with result counts, a two-thumb price
+      range, and apply/reset pinned to the footer. The topbar echoes the live filter count.
     </p>
     <DemoCard :code="SNIPPET_FILTERS">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
@@ -604,7 +656,9 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
           </DitherSidebarGroup>
           <template #footer>
             <div class="grid gap-1.5 border-t border-border/60 px-2 pt-2">
-              <DitherButton color="green" variant="gradient" class="w-full py-1.5 text-[11px]">Apply filters</DitherButton>
+              <DitherButton color="green" variant="gradient" class="w-full py-1.5 text-[11px]"
+                >Apply filters</DitherButton
+              >
               <button
                 type="button"
                 class="text-[10px] text-muted-foreground transition-colors hover:text-foreground"
@@ -638,22 +692,32 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-docs" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Documentation nav</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A docs tree — version chip, ⌘K search, one section open with the active
-      page, the rest folded behind chevrons, and a help card in the footer.
-      Compact rows, no icon rail: a docs tree needs its labels.
+      A docs tree — version chip, ⌘K search, one section open with the active page, the rest folded behind chevrons, and
+      a help card in the footer. Compact rows, no icon rail: a docs tree needs its labels.
     </p>
     <DemoCard :code="SNIPPET_DOCS">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
-        <DitherSidebar label="Docs nav" collapse="none" density="compact" variant="inset" class="w-60 border-r border-border/60">
+        <DitherSidebar
+          label="Docs nav"
+          collapse="none"
+          density="compact"
+          variant="inset"
+          class="w-60 border-r border-border/60"
+        >
           <template #header>
             <div class="px-2.5">
               <div class="flex h-8 items-center justify-between">
                 <span class="text-[12px] tracking-tight">dither-ui</span>
-                <span class="rounded border border-border/60 px-1 text-[10px] tabular-nums text-muted-foreground">v2.4</span>
+                <span class="rounded border border-border/60 px-1 text-[10px] tabular-nums text-muted-foreground"
+                  >v2.4</span
+                >
               </div>
               <div class="relative">
                 <DitherInput v-model="docsSearch" placeholder="Search docs…" class="w-full pr-8 text-[11px]" />
-                <span class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded border border-border/60 px-1 text-[9px] text-muted-foreground">⌘K</span>
+                <span
+                  class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded border border-border/60 px-1 text-[9px] text-muted-foreground"
+                  >⌘K</span
+                >
               </div>
             </div>
           </template>
@@ -678,7 +742,9 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
           <template #footer>
             <div class="rounded-md border border-border/60 bg-background/40 p-2.5">
               <div class="text-[11px] text-foreground">Need help?</div>
-              <div class="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">Ask in the community or file an issue.</div>
+              <div class="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">
+                Ask in the community or file an issue.
+              </div>
             </div>
           </template>
         </DitherSidebar>
@@ -701,9 +767,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-dual" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Dual layout</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Two tiers — a permanent icon rail picks the context, a second panel
-      shows that context's tree. The rail is a Sidebar pinned to its rail
-      state; the panel is a plain inset Sidebar beside it.
+      Two tiers — a permanent icon rail picks the context, a second panel shows that context's tree. The rail is a
+      Sidebar pinned to its rail state; the panel is a plain inset Sidebar beside it.
     </p>
     <DemoCard :code="SNIPPET_DUAL">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
@@ -718,12 +783,24 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
             :key="name"
             :label="String(name)"
             :active="railActive === name"
-            @select="railActive = String(name); dualActive = p.items[0].label"
+            @select="
+              () => {
+                railActive = String(name)
+                dualActive = p.items[0].label
+              }
+            "
           />
         </DitherSidebar>
-        <DitherSidebar label="Context panel" collapse="none" variant="inset" class="w-52 border-r border-border/60 bg-background/20">
+        <DitherSidebar
+          label="Context panel"
+          collapse="none"
+          variant="inset"
+          class="w-52 border-r border-border/60 bg-background/20"
+        >
           <template #header>
-            <div class="flex h-8 items-center px-2.5 text-[12px] tracking-tight text-foreground">{{ PANELS[railActive].title }}</div>
+            <div class="flex h-8 items-center px-2.5 text-[12px] tracking-tight text-foreground">
+              {{ PANELS[railActive].title }}
+            </div>
           </template>
           <DitherSidebarItem
             v-for="item in PANELS[railActive].items"
@@ -748,9 +825,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-personal" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Personal dashboard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A personal hub — avatar header, a mini month at a glance, and two todo
-      lists whose done items strike through. Everything is live: tick a box
-      and the footer count follows.
+      A personal hub — avatar header, a mini month at a glance, and two todo lists whose done items strike through.
+      Everything is live: tick a box and the footer count follows.
     </p>
     <DemoCard :code="SNIPPET_PERSONAL">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
@@ -767,9 +843,21 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
           <DitherSidebarGroup label="Calendar">
             <div class="px-2.5">
               <div class="flex items-center justify-between text-[10px] text-muted-foreground">
-                <button type="button" aria-label="Previous month" class="grid size-5 place-items-center rounded hover:bg-card hover:text-foreground">‹</button>
+                <button
+                  type="button"
+                  aria-label="Previous month"
+                  class="grid size-5 place-items-center rounded hover:bg-card hover:text-foreground"
+                >
+                  ‹
+                </button>
                 <span class="tracking-[0.15em] uppercase">Jul 2026</span>
-                <button type="button" aria-label="Next month" class="grid size-5 place-items-center rounded hover:bg-card hover:text-foreground">›</button>
+                <button
+                  type="button"
+                  aria-label="Next month"
+                  class="grid size-5 place-items-center rounded hover:bg-card hover:text-foreground"
+                >
+                  ›
+                </button>
               </div>
               <div class="mt-1.5 grid grid-cols-7 gap-0.5 text-center text-[9px] text-muted-foreground/70">
                 <span v-for="d in DOW" :key="d">{{ d }}</span>
@@ -779,8 +867,15 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
                   v-for="(day, i) in calCells"
                   :key="i"
                   class="grid h-5 place-items-center rounded-[3px]"
-                  :class="day === CAL_TODAY ? 'bg-card text-foreground ring-1 ring-border' : day ? 'text-muted-foreground' : ''"
-                >{{ day ?? "" }}</span>
+                  :class="
+                    day === CAL_TODAY
+                      ? 'bg-card text-foreground ring-1 ring-border'
+                      : day
+                        ? 'text-muted-foreground'
+                        : ''
+                  "
+                  >{{ day ?? "" }}</span
+                >
               </div>
             </div>
           </DitherSidebarGroup>
@@ -791,7 +886,9 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               class="flex h-7 cursor-pointer items-center rounded-md px-2.5 text-[11px] transition-colors hover:bg-card/60"
             >
               <DitherCheckbox v-model="t.done" color="purple" class="text-[11px]">
-                <span :class="t.done ? 'text-muted-foreground/60 line-through' : 'text-muted-foreground'">{{ t.label }}</span>
+                <span :class="t.done ? 'text-muted-foreground/60 line-through' : 'text-muted-foreground'">{{
+                  t.label
+                }}</span>
               </DitherCheckbox>
             </label>
           </DitherSidebarGroup>
@@ -802,14 +899,19 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               class="flex h-7 cursor-pointer items-center rounded-md px-2.5 text-[11px] transition-colors hover:bg-card/60"
             >
               <DitherCheckbox v-model="t.done" color="green" class="text-[11px]">
-                <span :class="t.done ? 'text-muted-foreground/60 line-through' : 'text-muted-foreground'">{{ t.label }}</span>
+                <span :class="t.done ? 'text-muted-foreground/60 line-through' : 'text-muted-foreground'">{{
+                  t.label
+                }}</span>
               </DitherCheckbox>
             </label>
           </DitherSidebarGroup>
           <template #footer>
-            <div class="flex items-center gap-1.5 border-t border-border/60 px-2.5 pt-2 text-[10px] text-muted-foreground">
+            <div
+              class="flex items-center gap-1.5 border-t border-border/60 px-2.5 pt-2 text-[10px] text-muted-foreground"
+            >
               <span class="size-1.5 rounded-full bg-green-500/80" aria-hidden="true" />
-              {{ [...personal, ...work].filter((t) => t.done).length }} of {{ personal.length + work.length }} done — synced
+              {{ [...personal, ...work].filter((t) => t.done).length }} of {{ personal.length + work.length }} done —
+              synced
             </div>
           </template>
         </DitherSidebar>
@@ -824,16 +926,20 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-floating" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Floating left</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A detached card over the canvas — workspace switcher up top, search,
-      primary rows with an inbox badge, and favorites that truncate
-      gracefully. Collapses to the icon rail like any other Sidebar.
+      A detached card over the canvas — workspace switcher up top, search, primary rows with an inbox badge, and
+      favorites that truncate gracefully. Collapses to the icon rail like any other Sidebar.
     </p>
     <DemoCard :code="SNIPPET_FLOATING">
       <div class="relative mx-auto h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
         <div class="absolute inset-0 grid place-items-center text-[12px] text-muted-foreground" aria-hidden="true">
           Canvas
         </div>
-        <DitherSidebar v-model="floatCollapsed" label="Workspace nav" variant="floating" class="relative h-[calc(100%-1rem)]">
+        <DitherSidebar
+          v-model="floatCollapsed"
+          label="Workspace nav"
+          variant="floating"
+          class="relative h-[calc(100%-1rem)]"
+        >
           <template #header>
             <button
               type="button"
@@ -849,16 +955,31 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
             </button>
             <DitherInput v-if="!floatCollapsed" placeholder="Search…" class="mt-2 w-full text-[11px]" />
           </template>
-          <DitherSidebarItem label="Assistant" color="purple" :active="floatActive === 'Assistant'" @select="floatActive = 'Assistant'" />
+          <DitherSidebarItem
+            label="Assistant"
+            color="purple"
+            :active="floatActive === 'Assistant'"
+            @select="floatActive = 'Assistant'"
+          />
           <DitherSidebarItem label="Home" :active="floatActive === 'Home'" @select="floatActive = 'Home'" />
-          <DitherSidebarItem label="Inbox" :badge="10" :active="floatActive === 'Inbox'" @select="floatActive = 'Inbox'" />
+          <DitherSidebarItem
+            label="Inbox"
+            :badge="10"
+            :active="floatActive === 'Inbox'"
+            @select="floatActive = 'Inbox'"
+          />
           <DitherSidebarGroup label="Favorites">
             <DitherSidebarItem
               v-for="f in FAVORITES"
               :key="f"
               :label="f"
               :active="favActive === f"
-              @select="favActive = f; floatActive = ''"
+              @select="
+                () => {
+                  favActive = f
+                  floatActive = ''
+                }
+              "
             />
           </DitherSidebarGroup>
           <template #footer>
@@ -879,9 +1000,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-right" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Right side</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The same Sidebar flipped to the right edge — a profile header, the mini
-      month, and calendar toggles with their color dots. The topbar button
-      hides the whole panel when the content needs the room.
+      The same Sidebar flipped to the right edge — a profile header, the mini month, and calendar toggles with their
+      color dots. The topbar button hides the whole panel when the content needs the room.
     </p>
     <DemoCard :code="SNIPPET_RIGHT">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
@@ -896,7 +1016,13 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
             <div v-for="i in 35" :key="i" class="bg-background/80" />
           </div>
         </main>
-        <DitherSidebar label="Calendar panel" side="right" collapse="none" variant="inset" class="w-56 border-l border-border/60 bg-card/20">
+        <DitherSidebar
+          label="Calendar panel"
+          side="right"
+          collapse="none"
+          variant="inset"
+          class="w-56 border-l border-border/60 bg-card/20"
+        >
           <template #header>
             <div class="flex items-center gap-2.5 px-2.5">
               <DitherAvatar name="Juno Bit" :size="24" color="green" />
@@ -916,8 +1042,15 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
                   v-for="(day, i) in calCells"
                   :key="i"
                   class="grid h-5 place-items-center rounded-[3px]"
-                  :class="day === CAL_TODAY ? 'bg-card text-foreground ring-1 ring-border' : day ? 'text-muted-foreground' : ''"
-                >{{ day ?? "" }}</span>
+                  :class="
+                    day === CAL_TODAY
+                      ? 'bg-card text-foreground ring-1 ring-border'
+                      : day
+                        ? 'text-muted-foreground'
+                        : ''
+                  "
+                  >{{ day ?? "" }}</span
+                >
               </div>
             </div>
           </DitherSidebarGroup>
@@ -928,7 +1061,11 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               class="flex h-7 cursor-pointer items-center gap-2 rounded-md px-2.5 text-[11px] text-muted-foreground transition-colors hover:bg-card/60 hover:text-foreground"
             >
               <DitherCheckbox v-model="c.on" :color="c.color" class="text-[11px]">{{ c.label }}</DitherCheckbox>
-              <span class="ml-auto size-1.5 rounded-full" :style="{ backgroundColor: `var(--swatch-${c.color}, currentColor)` }" aria-hidden="true" />
+              <span
+                class="ml-auto size-1.5 rounded-full"
+                :style="{ backgroundColor: `var(--swatch-${c.color}, currentColor)` }"
+                aria-hidden="true"
+              />
             </label>
           </DitherSidebarGroup>
           <template #footer>
@@ -948,16 +1085,23 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-teams" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Team switcher</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      One sidebar, three workspaces — the header dropdown swaps the whole
-      identity: wash color, accent, groups, badges. Arrow keys walk the menu;
-      Escape returns focus to the trigger.
+      One sidebar, three workspaces — the header dropdown swaps the whole identity: wash color, accent, groups, badges.
+      Arrow keys walk the menu; Escape returns focus to the trigger.
     </p>
     <DemoCard :code="SNIPPET_TEAMS">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
-        <DitherSidebar label="Workspace nav" variant="washed" :wash-color="TEAMS[team].color" collapse="none" class="w-60">
+        <DitherSidebar
+          label="Workspace nav"
+          variant="washed"
+          :wash-color="TEAMS[team].color"
+          collapse="none"
+          class="w-60"
+        >
           <template #header>
             <DitherMenu :items="teamNames.map((n) => ({ label: n }))" @select="switchTeam">
-              <span class="flex w-full items-center gap-2 rounded-md border border-border/60 bg-background/40 p-1.5 text-left transition-colors hover:bg-card">
+              <span
+                class="flex w-full items-center gap-2 rounded-md border border-border/60 bg-background/40 p-1.5 text-left transition-colors hover:bg-card"
+              >
                 <DitherAvatar :name="team" :size="22" :color="TEAMS[team].color" />
                 <span class="min-w-0 flex-1 leading-tight">
                   <span class="block truncate text-[11px] text-foreground">{{ team }}</span>
@@ -993,12 +1137,18 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-tree" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">File tree</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Sub-menus nest — an explorer three levels deep with expand/collapse
-      all, rail guides on every level, and a selected file the header echoes.
+      Sub-menus nest — an explorer three levels deep with expand/collapse all, rail guides on every level, and a
+      selected file the header echoes.
     </p>
     <DemoCard :code="SNIPPET_TREE">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
-        <DitherSidebar label="File explorer" collapse="none" density="compact" variant="inset" class="w-60 border-r border-border/60">
+        <DitherSidebar
+          label="File explorer"
+          collapse="none"
+          density="compact"
+          variant="inset"
+          class="w-60 border-r border-border/60"
+        >
           <template #header>
             <div class="flex h-8 items-center justify-between px-2.5">
               <span class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">Explorer</span>
@@ -1008,35 +1158,75 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
                   aria-label="Expand all folders"
                   class="grid size-5 place-items-center rounded text-[10px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
                   @click="treeAll(true)"
-                >+</button>
+                >
+                  +
+                </button>
                 <button
                   type="button"
                   aria-label="Collapse all folders"
                   class="grid size-5 place-items-center rounded text-[10px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
                   @click="treeAll(false)"
-                >−</button>
+                >
+                  −
+                </button>
               </span>
             </div>
           </template>
           <DitherSidebarSub v-model="treeOpen.src" label="src">
             <DitherSidebarSub v-model="treeOpen.components" label="components">
-              <DitherSidebarItem label="DitherSidebar.vue" :active="treeActive === 'DitherSidebar.vue'" @select="treeActive = 'DitherSidebar.vue'" />
-              <DitherSidebarItem label="DitherButton.vue" :active="treeActive === 'DitherButton.vue'" @select="treeActive = 'DitherButton.vue'" />
-              <DitherSidebarItem label="DitherInput.vue" :active="treeActive === 'DitherInput.vue'" @select="treeActive = 'DitherInput.vue'" />
+              <DitherSidebarItem
+                label="DitherSidebar.vue"
+                :active="treeActive === 'DitherSidebar.vue'"
+                @select="treeActive = 'DitherSidebar.vue'"
+              />
+              <DitherSidebarItem
+                label="DitherButton.vue"
+                :active="treeActive === 'DitherButton.vue'"
+                @select="treeActive = 'DitherButton.vue'"
+              />
+              <DitherSidebarItem
+                label="DitherInput.vue"
+                :active="treeActive === 'DitherInput.vue'"
+                @select="treeActive = 'DitherInput.vue'"
+              />
             </DitherSidebarSub>
             <DitherSidebarSub v-model="treeOpen.charts" label="charts">
-              <DitherSidebarItem label="AreaChart.vue" :active="treeActive === 'AreaChart.vue'" @select="treeActive = 'AreaChart.vue'" />
-              <DitherSidebarItem label="Sparkline.vue" :active="treeActive === 'Sparkline.vue'" @select="treeActive = 'Sparkline.vue'" />
+              <DitherSidebarItem
+                label="AreaChart.vue"
+                :active="treeActive === 'AreaChart.vue'"
+                @select="treeActive = 'AreaChart.vue'"
+              />
+              <DitherSidebarItem
+                label="Sparkline.vue"
+                :active="treeActive === 'Sparkline.vue'"
+                @select="treeActive = 'Sparkline.vue'"
+              />
             </DitherSidebarSub>
             <DitherSidebarSub v-model="treeOpen.lib" label="lib">
-              <DitherSidebarItem label="palette.ts" :active="treeActive === 'palette.ts'" @select="treeActive = 'palette.ts'" />
-              <DitherSidebarItem label="pixel.ts" :active="treeActive === 'pixel.ts'" @select="treeActive = 'pixel.ts'" />
+              <DitherSidebarItem
+                label="palette.ts"
+                :active="treeActive === 'palette.ts'"
+                @select="treeActive = 'palette.ts'"
+              />
+              <DitherSidebarItem
+                label="pixel.ts"
+                :active="treeActive === 'pixel.ts'"
+                @select="treeActive = 'pixel.ts'"
+              />
             </DitherSidebarSub>
             <DitherSidebarItem label="index.ts" :active="treeActive === 'index.ts'" @select="treeActive = 'index.ts'" />
           </DitherSidebarSub>
           <DitherSidebarSub v-model="treeOpen.public" label="public">
-            <DitherSidebarItem label="faces.webp" :active="treeActive === 'faces.webp'" @select="treeActive = 'faces.webp'" />
-            <DitherSidebarItem label="sprites.webp" :active="treeActive === 'sprites.webp'" @select="treeActive = 'sprites.webp'" />
+            <DitherSidebarItem
+              label="faces.webp"
+              :active="treeActive === 'faces.webp'"
+              @select="treeActive = 'faces.webp'"
+            />
+            <DitherSidebarItem
+              label="sprites.webp"
+              :active="treeActive === 'sprites.webp'"
+              @select="treeActive = 'sprites.webp'"
+            />
           </DitherSidebarSub>
         </DitherSidebar>
         <main class="flex min-w-0 flex-1 flex-col">
@@ -1044,7 +1234,12 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
             <span class="text-foreground">{{ treeActive }}</span>
           </div>
           <div class="grid flex-1 gap-1.5 p-4" aria-hidden="true">
-            <div v-for="i in 8" :key="i" class="h-2 rounded-sm bg-border/40" :class="['w-2/3', 'w-11/12', 'w-3/4', 'w-5/6', 'w-1/2', 'w-4/5', 'w-2/3', 'w-1/3'][i - 1]" />
+            <div
+              v-for="i in 8"
+              :key="i"
+              class="h-2 rounded-sm bg-border/40"
+              :class="['w-2/3', 'w-11/12', 'w-3/4', 'w-5/6', 'w-1/2', 'w-4/5', 'w-2/3', 'w-1/3'][i - 1]"
+            />
           </div>
         </main>
       </div>
@@ -1055,12 +1250,13 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-drawer" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Mobile drawer</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Below the breakpoint the sidebar rides in a drawer — hamburger opens,
-      picking a destination closes, swipe dismisses. Groups and items work
-      standalone inside any panel.
+      Below the breakpoint the sidebar rides in a drawer — hamburger opens, picking a destination closes, swipe
+      dismisses. Groups and items work standalone inside any panel.
     </p>
     <DemoCard :code="SNIPPET_DRAWER">
-      <div class="relative mx-auto flex h-96 w-64 flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40">
+      <div
+        class="relative mx-auto flex h-96 w-64 flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40"
+      >
         <div class="flex h-11 shrink-0 items-center gap-2.5 border-b border-border/60 px-3">
           <button
             type="button"
@@ -1080,11 +1276,26 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
         </div>
         <DitherDrawer :open="drawerOpen" side="left" title="Navigation" @close="drawerOpen = false">
           <DitherSidebarGroup label="Browse">
-            <DitherSidebarItem v-for="i in ['Home', 'Discover', 'Library']" :key="i" :label="i" :active="drawerActive === i" @select="drawerPick(i)" />
+            <DitherSidebarItem
+              v-for="i in ['Home', 'Discover', 'Library']"
+              :key="i"
+              :label="i"
+              :active="drawerActive === i"
+              @select="drawerPick(i)"
+            />
           </DitherSidebarGroup>
           <DitherSidebarGroup label="You">
-            <DitherSidebarItem label="Saved" :badge="8" :active="drawerActive === 'Saved'" @select="drawerPick('Saved')" />
-            <DitherSidebarItem label="Settings" :active="drawerActive === 'Settings'" @select="drawerPick('Settings')" />
+            <DitherSidebarItem
+              label="Saved"
+              :badge="8"
+              :active="drawerActive === 'Saved'"
+              @select="drawerPick('Saved')"
+            />
+            <DitherSidebarItem
+              label="Settings"
+              :active="drawerActive === 'Settings'"
+              @select="drawerPick('Settings')"
+            />
           </DitherSidebarGroup>
         </DitherDrawer>
       </div>
@@ -1095,8 +1306,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-rail" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Icon rail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The whole nav in 56 pixels — a permanent rail where tooltips carry the
-      labels, badges fold to colored dots, and the footer keeps the person.
+      The whole nav in 56 pixels — a permanent rail where tooltips carry the labels, badges fold to colored dots, and
+      the footer keeps the person.
     </p>
     <DemoCard :code="SNIPPET_RAIL">
       <div class="mx-auto flex h-80 max-w-md overflow-hidden rounded-lg border border-border/60">

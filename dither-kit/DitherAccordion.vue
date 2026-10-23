@@ -39,7 +39,7 @@ const props = withDefaults(
     type?: "single" | "multiple"
     color?: PixelColor
   }>(),
-  { type: "single", color: "blue" }
+  { type: "single", color: "blue" },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string | string[]] }>()
 
@@ -51,9 +51,7 @@ function setRail(el: unknown, i: number) {
 }
 
 function isOpen(value: string): boolean {
-  return Array.isArray(props.modelValue)
-    ? props.modelValue.includes(value)
-    : props.modelValue === value
+  return Array.isArray(props.modelValue) ? props.modelValue.includes(value) : props.modelValue === value
 }
 
 function toggle(value: string) {
@@ -61,15 +59,8 @@ function toggle(value: string) {
     emit("update:modelValue", isOpen(value) ? "" : value)
     return
   }
-  const open = Array.isArray(props.modelValue)
-    ? props.modelValue
-    : props.modelValue
-      ? [props.modelValue]
-      : []
-  emit(
-    "update:modelValue",
-    isOpen(value) ? open.filter((v) => v !== value) : [...open, value]
-  )
+  const open = Array.isArray(props.modelValue) ? props.modelValue : props.modelValue ? [props.modelValue] : []
+  emit("update:modelValue", isOpen(value) ? open.filter((v) => v !== value) : [...open, value])
 }
 
 function paintAll() {
@@ -82,8 +73,7 @@ onMounted(() => {
     paintAll()
     if (typeof ResizeObserver !== "undefined") {
       ro = new ResizeObserver((entries) => {
-        for (const entry of entries)
-          paintRail(entry.target as HTMLCanvasElement, props.color)
+        for (const entry of entries) paintRail(entry.target as HTMLCanvasElement, props.color)
       })
       for (const canvas of rails.value) if (canvas) ro.observe(canvas)
     }
@@ -95,11 +85,7 @@ onBeforeUnmount(() => ro?.disconnect())
 
 <template>
   <div>
-    <div
-      v-for="(item, i) in props.items"
-      :key="item.value"
-      class="border-t border-border/40 first:border-t-0"
-    >
+    <div v-for="(item, i) in props.items" :key="item.value" class="border-t border-border/40 first:border-t-0">
       <button
         type="button"
         :aria-expanded="isOpen(item.value)"

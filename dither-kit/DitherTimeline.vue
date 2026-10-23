@@ -38,7 +38,7 @@ const props = withDefaults(
     dotSize?: number
     class?: string
   }>(),
-  { dotSize: 12 }
+  { dotSize: 12 },
 )
 
 const dots = ref<HTMLCanvasElement[]>([])
@@ -61,22 +61,20 @@ onMounted(() => {
       <!-- rail: dot + connecting line down to the next item -->
       <div class="relative flex flex-col items-center">
         <canvas
-          :ref="(el) => { if (el) dots[i] = el as HTMLCanvasElement }"
+          :ref="
+            (el) => {
+              if (el) dots[i] = el as HTMLCanvasElement
+            }
+          "
           aria-hidden="true"
           :style="{ width: `${props.dotSize}px`, height: `${props.dotSize}px`, imageRendering: 'pixelated' }"
         />
-        <span
-          v-if="i < items.length - 1"
-          aria-hidden="true"
-          class="mt-1 w-px flex-1 bg-border"
-        />
+        <span v-if="i < items.length - 1" aria-hidden="true" class="mt-1 w-px flex-1 bg-border" />
       </div>
       <div class="flex-1 pt-px">
         <div class="flex items-baseline justify-between gap-2">
           <p class="text-[13px] text-foreground">{{ it.title }}</p>
-          <span v-if="it.time" class="shrink-0 text-[11px] tabular-nums text-muted-foreground/70">{{
-            it.time
-          }}</span>
+          <span v-if="it.time" class="shrink-0 text-[11px] tabular-nums text-muted-foreground/70">{{ it.time }}</span>
         </div>
         <p v-if="it.body" class="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
           {{ it.body }}

@@ -71,9 +71,7 @@ const weeks = computed(() => {
 })
 
 function isDisabled(iso: string): boolean {
-  return (props.min && iso < props.min) || (props.max && iso > props.max) || props.disabled
-    ? true
-    : false
+  return (props.min && iso < props.min) || (props.max && iso > props.max) || props.disabled ? true : false
 }
 
 function moveMonth(delta: number) {

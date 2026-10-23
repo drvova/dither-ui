@@ -23,9 +23,7 @@ const selected = computed(() =>
 )
 
 function isChecked(option: string): boolean {
-  return props.multiple
-    ? selected.value.includes(option)
-    : selected.value === option
+  return props.multiple ? selected.value.includes(option) : selected.value === option
 }
 
 function onChange(option: string, checked: boolean) {
@@ -41,11 +39,7 @@ function onChange(option: string, checked: boolean) {
 </script>
 
 <template>
-  <div
-    role="group"
-    :class="cn('flex flex-wrap gap-1.5', props.class)"
-    :aria-disabled="props.disabled || undefined"
-  >
+  <div role="group" :class="cn('flex flex-wrap gap-1.5', props.class)" :aria-disabled="props.disabled || undefined">
     <label
       v-for="option in props.options"
       :key="option"

@@ -11,7 +11,7 @@ const props = withDefaults(
     duration?: number
     class?: string
   }>(),
-  { color: "#7CFF67", count: 8, size: 16, duration: 420 }
+  { color: "#7CFF67", count: 8, size: 16, duration: 420 },
 )
 
 const wrap = ref<HTMLElement | null>(null)

@@ -26,7 +26,7 @@ const props = withDefaults(
     siblings?: number
     class?: string
   }>(),
-  { siblings: 1 }
+  { siblings: 1 },
 )
 const emit = defineEmits<{ (e: "update:page", v: number): void }>()
 
@@ -66,7 +66,7 @@ const cellBase =
             cellBase,
             p === page
               ? 'border-foreground/30 bg-card text-foreground'
-              : 'border-border text-muted-foreground hover:text-foreground'
+              : 'border-border text-muted-foreground hover:text-foreground',
           )
         "
         :aria-current="p === page ? 'page' : undefined"

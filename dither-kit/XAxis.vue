@@ -9,23 +9,20 @@ const props = withDefaults(
     tickMargin?: number
     maxTicks?: number
   }>(),
-  { tickMargin: 8, maxTicks: 8 }
+  { tickMargin: 8, maxTicks: 8 },
 )
 
 const ctx = useChartPart("XAxis")
 const step = computed(() => Math.max(1, Math.ceil(ctx.dataLength / props.maxTicks)))
 
-function labelAt(row: Record<string, unknown>, i: number): string {
-  const raw = props.dataKey ? row[props.dataKey] : i
+function labelAt(row: unknown, i: number): string {
+  const raw = props.dataKey ? (row as Record<string, unknown>)[props.dataKey] : i
   return props.tickFormatter ? props.tickFormatter(raw, i) : String(raw ?? "")
 }
 </script>
 
 <template>
-  <g
-    v-if="ctx.ready"
-    class="fill-current font-mono text-[10px] text-muted-foreground"
-  >
+  <g v-if="ctx.ready" class="fill-current font-mono text-[10px] text-muted-foreground">
     <template v-for="(row, i) in ctx.data" :key="i">
       <text
         v-if="i % step === 0"
@@ -35,7 +32,7 @@ function labelAt(row: Record<string, unknown>, i: number): string {
         dominant-baseline="hanging"
         fill="currentColor"
       >
-        {{ labelAt(row as Record<string, unknown>, i) }}
+        {{ labelAt(row, i) }}
       </text>
     </template>
   </g>

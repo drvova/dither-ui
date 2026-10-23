@@ -33,7 +33,7 @@ export function paintWaves(
   p: WavesParams,
   time: number,
   matrix: number[][],
-  mouse: { x: number; y: number } | null
+  mouse: { x: number; y: number } | null,
 ): void {
   const cols = buffer.width
   const rows = buffer.height

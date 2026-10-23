@@ -1,12 +1,7 @@
 <script lang="ts">
 import { directedTime, isDirected, onSeek } from "./clock"
 import { rgb } from "./palette"
-import {
-  type AvatarPattern,
-  clampGrid,
-  normalizePattern,
-  seededPattern,
-} from "./avatar-pattern"
+import { type AvatarPattern, clampGrid, normalizePattern, seededPattern } from "./avatar-pattern"
 import {
   BAYER4,
   clamp01,
@@ -36,7 +31,7 @@ function avatarModel(
   colorProp: PixelColor | undefined,
   mirrorProp: AvatarMirror,
   gridProp: number,
-  patternProp: AvatarPattern | undefined
+  patternProp: AvatarPattern | undefined,
 ): AvatarModel {
   const grid = clampGrid(gridProp)
   const seeded = seededPattern(name, grid, mirrorProp)
@@ -63,7 +58,7 @@ function paintAvatar(
   bloomCanvas: HTMLCanvasElement | null,
   model: AvatarModel,
   matrix: number[][],
-  { animate, duration, cellPx, boost, offTier }: PaintOpts
+  { animate, duration, cellPx, boost, offTier }: PaintOpts,
 ): (() => void) | undefined {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx) return undefined
@@ -177,15 +172,13 @@ const props = withDefaults(
     animate: true,
     animationDuration: 600,
     replayToken: 0,
-  }
+  },
 )
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effHue = computed(() => props.hue ?? s.value?.hue)
-const effBloom = computed(
-  () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
-)
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const effBloom = computed(() => props.bloom ?? (props.seed !== undefined ? props.seed : "off"))
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
@@ -207,18 +200,29 @@ function paint() {
       cellPx: props.cellPx,
       boost: props.density,
       offTier: props.offTier,
-    }
+    },
   )
 }
 
 onMounted(paint)
 watch(
   () => [
-    props.name, props.color, props.hue, props.mirror, props.grid, props.cellPx,
-    props.density, props.offTier, props.animate, props.animationDuration,
-    props.replayToken, props.bloom, props.pattern, props.seed,
+    props.name,
+    props.color,
+    props.hue,
+    props.mirror,
+    props.grid,
+    props.cellPx,
+    props.density,
+    props.offTier,
+    props.animate,
+    props.animationDuration,
+    props.replayToken,
+    props.bloom,
+    props.pattern,
+    props.seed,
   ],
-  paint
+  paint,
 )
 onBeforeUnmount(() => teardown?.())
 </script>
@@ -230,11 +234,7 @@ onBeforeUnmount(() => teardown?.())
     :class="cn('relative', props.class)"
     :style="props.size != null ? { width: `${props.size}px`, height: `${props.size}px` } : undefined"
   >
-    <canvas
-      ref="canvasRef"
-      class="absolute inset-0 h-full w-full"
-      style="image-rendering: pixelated"
-    />
+    <canvas ref="canvasRef" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
     <canvas
       v-if="bloomStyle"
       ref="bloomRef"

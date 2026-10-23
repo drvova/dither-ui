@@ -20,7 +20,7 @@ const props = withDefaults(
     empty?: string
     class?: string
   }>(),
-  { placeholder: "Type a command…", empty: "No results." }
+  { placeholder: "Type a command…", empty: "No results." },
 )
 const emit = defineEmits<{ close: []; select: [value: string] }>()
 
@@ -58,7 +58,7 @@ watch(
       previousFocus?.focus()
       previousFocus = null
     }
-  }
+  },
 )
 watch(query, () => (active.value = 0))
 
@@ -96,7 +96,11 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
 
 <template>
   <Teleport to="body">
-    <div v-if="props.open" class="fixed inset-0 z-50 grid place-items-start justify-center pt-[18vh]" @keydown="onKeydown">
+    <div
+      v-if="props.open"
+      class="fixed inset-0 z-50 grid place-items-start justify-center pt-[18vh]"
+      @keydown="onKeydown"
+    >
       <div class="absolute inset-0 bg-background/70 backdrop-blur-[2px]" aria-hidden="true" @click="emit('close')" />
       <div
         role="dialog"
@@ -117,12 +121,20 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
             :placeholder="props.placeholder"
             class="h-11 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground/60"
           />
-          <span class="rounded border border-border/60 px-1 text-[9px] text-muted-foreground" aria-hidden="true">esc</span>
+          <span class="rounded border border-border/60 px-1 text-[9px] text-muted-foreground" aria-hidden="true"
+            >esc</span
+          >
         </div>
         <ul :id="`${idBase}-list`" role="listbox" class="max-h-72 overflow-y-auto p-1.5">
-          <li v-if="!flat.length" class="px-2.5 py-6 text-center text-[12px] text-muted-foreground">{{ props.empty }}</li>
+          <li v-if="!flat.length" class="px-2.5 py-6 text-center text-[12px] text-muted-foreground">
+            {{ props.empty }}
+          </li>
           <template v-for="[group, groupItems] in groups" :key="group || 'top'">
-            <li v-if="group" aria-hidden="true" class="px-2.5 pt-2 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
+            <li
+              v-if="group"
+              aria-hidden="true"
+              class="px-2.5 pt-2 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60"
+            >
               {{ group }}
             </li>
             <li
@@ -135,7 +147,9 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
                 cn(
                   'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[12px] transition-colors',
                   CONTROL_BUTTON,
-                  indexOf(item) === active ? 'bg-card text-foreground' : 'text-muted-foreground hover:bg-card/60 hover:text-foreground'
+                  indexOf(item) === active
+                    ? 'bg-card text-foreground'
+                    : 'text-muted-foreground hover:bg-card/60 hover:text-foreground',
                 )
               "
               @click="pick(item.value)"
@@ -143,7 +157,11 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
             >
               <span class="size-1.5 shrink-0 rounded-[1px] bg-current opacity-60" aria-hidden="true" />
               <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
-              <kbd v-if="item.kbd" class="rounded border border-border/60 px-1 text-[9px] tabular-nums text-muted-foreground">{{ item.kbd }}</kbd>
+              <kbd
+                v-if="item.kbd"
+                class="rounded border border-border/60 px-1 text-[9px] tabular-nums text-muted-foreground"
+                >{{ item.kbd }}</kbd
+              >
             </li>
           </template>
         </ul>

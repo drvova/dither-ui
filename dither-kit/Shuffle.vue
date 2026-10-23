@@ -10,7 +10,7 @@ const props = withDefaults(
     replayToken?: number
     class?: string
   }>(),
-  { text: "Shuffle in", stagger: 55, duration: 650 }
+  { text: "Shuffle in", stagger: 55, duration: 650 },
 )
 
 // Deterministic per-character random offset so the shuffle is stable per render.
@@ -24,7 +24,7 @@ const chars = computed(() =>
     dx: (seeded(i, 1) - 0.5) * 2, // -1..1 em
     dy: (seeded(i, 2) - 0.5) * 1.4,
     rot: (seeded(i, 3) - 0.5) * 40,
-  }))
+  })),
 )
 const runKey = computed(() => `${props.text}-${props.replayToken ?? 0}`)
 </script>
@@ -43,7 +43,8 @@ const runKey = computed(() => `${props.text}-${props.replayToken ?? 0}`)
         '--dy': `${c.dy}em`,
         '--rot': `${c.rot}deg`,
       }"
-    >{{ c.ch }}</span>
+      >{{ c.ch }}</span
+    >
   </span>
 </template>
 

@@ -37,10 +37,7 @@ onBeforeUnmount(() => window.clearTimeout(timer))
 </script>
 
 <template>
-  <div
-    class="contents"
-    @click="copy"
-  >
+  <div class="contents" @click="copy">
     <slot :copied="copied" :copy="copy" />
     <span class="sr-only" role="status" aria-live="polite">{{ copied ? "Copied to clipboard" : "" }}</span>
   </div>

@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+// @rstest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { h, nextTick } from "vue"
 import { mount, type VueWrapper } from "@vue/test-utils"
 import Sequence from "../dither-kit/Sequence.vue"
@@ -28,7 +28,11 @@ const three = () => ({
 })
 
 const matchMedia = (matches: boolean) => {
-  window.matchMedia = (() => ({ matches, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia
+  window.matchMedia = (() => ({
+    matches,
+    addEventListener() {},
+    removeEventListener() {},
+  })) as unknown as typeof window.matchMedia
 }
 const realMatchMedia = window.matchMedia
 
@@ -36,21 +40,21 @@ beforeEach(() => {
   queue = new Map()
   nextId = 1
   now = 0
-  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+  rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
     const id = nextId++
     queue.set(id, cb)
     return id
   })
-  vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+  rs.stubGlobal("cancelAnimationFrame", (id: number) => {
     queue.delete(id)
   })
-  vi.stubGlobal("IntersectionObserver", undefined) // mount path plays immediately
+  rs.stubGlobal("IntersectionObserver", undefined) // mount path plays immediately
   matchMedia(false)
 })
 
 afterEach(() => {
   release()
-  vi.unstubAllGlobals()
+  rs.unstubAllGlobals()
   window.matchMedia = realMatchMedia
 })
 
@@ -80,7 +84,7 @@ describe("Sequence — directed by the clock", () => {
 
 describe("Sequence — staggered drive", () => {
   it("waves progress across children and settles all at the end", () => {
-    const onComplete = vi.fn()
+    const onComplete = rs.fn()
     const w = mount(Sequence, {
       props: { stagger: 0.3, duration: 0.5, onComplete },
       slots: three(),
@@ -170,7 +174,7 @@ describe("Sequence — staggered drive", () => {
       unobserve() {}
       disconnect() {}
     }
-    vi.stubGlobal("IntersectionObserver", CaptureIO)
+    rs.stubGlobal("IntersectionObserver", CaptureIO)
     const w = mount(Sequence, { props: { stagger: 0.3, duration: 0.5 }, slots: three() })
     expect(queue.size).toBe(0) // gated: no optimistic start at mount
 
@@ -194,7 +198,7 @@ describe("Sequence — staggered drive", () => {
 
   it("reduced motion snaps to the settled end state with zero frames", () => {
     matchMedia(true)
-    const onComplete = vi.fn()
+    const onComplete = rs.fn()
     const w = mount(Sequence, { props: { stagger: 0.3, duration: 0.5, onComplete }, slots: three() })
     expect(queue.size).toBe(0)
     expect([0, 1, 2].map((i) => stateOf(w, i))).toEqual(["done", "done", "done"])
@@ -204,7 +208,7 @@ describe("Sequence — staggered drive", () => {
   })
 
   it("an empty slot completes gracefully without frames", () => {
-    const onComplete = vi.fn()
+    const onComplete = rs.fn()
     const w = mount(Sequence, { props: { onComplete }, slots: { default: () => [] } })
     expect(queue.size).toBe(0)
     expect(onComplete).toHaveBeenCalledTimes(1)

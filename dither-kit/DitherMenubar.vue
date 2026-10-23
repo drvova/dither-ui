@@ -46,9 +46,7 @@ function pick(menu: MenubarMenu, it: MenubarItem, i: number) {
 function moveTop(dir: number) {
   const n = props.menus.length
   if (!n) return
-  const cur =
-    openIndex.value ??
-    topRefs.value.indexOf(document.activeElement as HTMLButtonElement)
+  const cur = openIndex.value ?? topRefs.value.indexOf(document.activeElement as HTMLButtonElement)
   const next = cur === -1 ? (dir > 0 ? 0 : n - 1) : (cur + dir + n) % n
   topRefs.value[next]?.focus()
   if (openIndex.value !== null) openIndex.value = next
@@ -58,8 +56,7 @@ function moveFocus(dir: number) {
   const els = itemRefs.value.filter((el): el is HTMLButtonElement => !!el)
   if (!els.length) return
   const i = els.indexOf(document.activeElement as HTMLButtonElement)
-  const next =
-    i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
+  const next = i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
   els[next]?.focus()
 }
 
@@ -94,10 +91,7 @@ watch(openIndex, (v, old) => {
   if (v !== null) itemRefs.value = []
   if (v !== null && old === null) {
     // defer so the opening click doesn't immediately close it
-    timer = window.setTimeout(
-      () => window.addEventListener("pointerdown", onOutside),
-      0
-    )
+    timer = window.setTimeout(() => window.addEventListener("pointerdown", onOutside), 0)
   } else if (v === null) {
     clearTimeout(timer)
     window.removeEventListener("pointerdown", onOutside)
@@ -116,22 +110,14 @@ onBeforeUnmount(() => {
     class="inline-flex items-center gap-0.5 rounded-lg border border-border bg-card p-0.5"
     @keydown="onKeydown"
   >
-    <div
-      v-for="(menu, mi) in props.menus"
-      :key="menu.label"
-      class="relative inline-block"
-    >
+    <div v-for="(menu, mi) in props.menus" :key="menu.label" class="relative inline-block">
       <button
         :ref="(el) => setTopRef(el, mi)"
         type="button"
         aria-haspopup="menu"
         :aria-expanded="openIndex === mi"
         class="rounded-md px-2.5 py-1 font-mono text-xs transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none"
-        :class="
-          openIndex === mi
-            ? 'bg-background text-foreground'
-            : 'text-muted-foreground hover:text-foreground'
-        "
+        :class="openIndex === mi ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground'"
         @click="toggle(mi)"
         @pointerenter="hover(mi)"
       >
@@ -152,11 +138,7 @@ onBeforeUnmount(() => {
               role="menuitem"
               :disabled="it.disabled"
               class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-[13px] transition-colors disabled:pointer-events-none disabled:opacity-40"
-              :class="
-                it.danger
-                  ? 'text-red-400 hover:bg-red-500/10'
-                  : 'text-foreground hover:bg-background'
-              "
+              :class="it.danger ? 'text-red-400 hover:bg-red-500/10' : 'text-foreground hover:bg-background'"
               @click="pick(menu, it, mi)"
             >
               {{ it.label }}

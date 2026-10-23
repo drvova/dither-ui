@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, provide, watch } from "vue"
-import {
-  type VariantInput,
-  type SeriesKind,
-  type StrokeVariant,
-  useChartPart,
-} from "./chart-context"
+import { type VariantInput, type SeriesKind, type StrokeVariant, useChartPart } from "./chart-context"
 import { SeriesKey } from "./series-context"
 
 const props = withDefaults(
@@ -18,23 +13,22 @@ const props = withDefaults(
     isClickable?: boolean
     opacity?: number
   }>(),
-  { variant: "gradient", strokeVariant: "solid", isClickable: false, opacity: 1 }
+  { variant: "gradient", strokeVariant: "solid", isClickable: false, opacity: 1 },
 )
 
 const ctx = useChartPart(props.part, props.kind === "line" ? "line" : "area")
 
 if (import.meta.env.DEV && !ctx.config[props.dataKey]) {
   console.warn(
-    `<${props.part} dataKey="${props.dataKey}" />: "${props.dataKey}" is not in the chart \`config\`. Add it so the series has a colour and label.`
+    `<${props.part} dataKey="${props.dataKey}" />: "${props.dataKey}" is not in the chart \`config\`. Add it so the series has a colour and label.`,
   )
 }
 
 watch(
-  () =>
-    [props.dataKey, props.kind, props.variant, props.strokeVariant, props.opacity] as const,
+  () => [props.dataKey, props.kind, props.variant, props.strokeVariant, props.opacity] as const,
   ([dataKey, kind, variant, strokeVariant, opacity]) =>
     ctx.registerSeries({ dataKey, kind, variant, strokeVariant, opacity }),
-  { immediate: true }
+  { immediate: true },
 )
 onBeforeUnmount(() => ctx.unregisterSeries(props.dataKey))
 
@@ -71,13 +65,7 @@ function onClick() {
 
 <template>
   <g v-if="ctx.ready && band">
-    <path
-      v-if="hitPath"
-      :d="hitPath"
-      fill="transparent"
-      style="cursor: pointer"
-      @click="onClick"
-    />
+    <path v-if="hitPath" :d="hitPath" fill="transparent" style="cursor: pointer" @click="onClick" />
     <slot />
   </g>
 </template>

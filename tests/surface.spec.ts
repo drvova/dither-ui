@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+// @rstest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { defineComponent, h, nextTick, ref } from "vue"
 import { mount } from "@vue/test-utils"
 import { release, seek } from "../dither-kit/clock"
@@ -41,14 +41,15 @@ function surfaceComponent(render: (clock: number) => void) {
 }
 
 beforeEach(() => {
-  HTMLCanvasElement.prototype.getContext = (() => fakeContext) as unknown as typeof HTMLCanvasElement.prototype.getContext
-  vi.stubGlobal("requestAnimationFrame", () => 1)
-  vi.stubGlobal("cancelAnimationFrame", () => {})
+  HTMLCanvasElement.prototype.getContext = (() =>
+    fakeContext) as unknown as typeof HTMLCanvasElement.prototype.getContext
+  rs.stubGlobal("requestAnimationFrame", () => 1)
+  rs.stubGlobal("cancelAnimationFrame", () => {})
 })
 afterEach(() => {
   release()
   HTMLCanvasElement.prototype.getContext = realGetContext
-  vi.unstubAllGlobals()
+  rs.unstubAllGlobals()
 })
 
 describe("DitherSurface: the render graph's edge", () => {

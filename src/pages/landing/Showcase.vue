@@ -4,435 +4,595 @@ import { routePath } from "@/shared/lib"
 import {
   DitherBadge,
   DitherButton,
-  DitherGridScan,
-  DitherSilk,
-  DitherPlasma,
-  DitherProgress,
   DitherSlider,
   DitherSwitch,
+  DitherWorld,
   Grid,
-  Legend,
   Line,
   LineChart,
   XAxis,
   YAxis,
+  sampleWorld,
   type DitherColor,
 } from "@dither-kit"
+import ClayzoFilm from "./ClayzoFilm.vue"
+import InstallBlock from "./InstallBlock.vue"
 import PixelPlate from "./PixelPlate.vue"
-import { rampPlate, seedPlate, skylinePlate } from "./plates"
+import { COMPONENT_COUNT } from "./facts"
+import { FAMILIES, SECTION_COUNT, SHELVES } from "./hub"
+import { catalogLayout, catalogPlate, dawnPlate } from "./plates"
 
-// Three chapters on the reference's exact grid: a full-width hairline panel;
-// inside it a black BAND (statement top-left, links under, a pixel strip on
-// its floor) and a 1px-gapped grid of black CELLS. Every strip is computed
-// from what its chapter shows — the chart's series, the dither matrix, the
-// controls' seed — and all art runs in the page's navy/blue/ice + ember ramp.
-const ROWS = [
-  { month: "Jan", renders: 46, seeds: 28 },
-  { month: "Feb", renders: 52, seeds: 31 },
-  { month: "Mar", renders: 49, seeds: 36 },
-  { month: "Apr", renders: 58, seeds: 34 },
-  { month: "May", renders: 64, seeds: 41 },
-  { month: "Jun", renders: 61, seeds: 47 },
-  { month: "Jul", renders: 72, seeds: 44 },
-  { month: "Aug", renders: 78, seeds: 52 },
-  { month: "Sep", renders: 74, seeds: 58 },
-  { month: "Oct", renders: 86, seeds: 55 },
-  { month: "Nov", renders: 92, seeds: 63 },
-  { month: "Dec", renders: 88, seeds: 70 },
-]
-const CONFIG = {
-  renders: { label: "renders", color: "blue" as DitherColor },
-  seeds: { label: "seeds", color: "purple" as DitherColor },
+// The portal (its structure after the 2000s oakley.com, its scale after
+// the dither winners on Awwwards, its voice the site's own): a full-bleed
+// art band — the films as tabbed campaigns, one mounted at a time — then
+// the statement at display scale, the install bar and three columns of
+// panels: the Studio pitch with live kit components as product tiles and
+// the portraits (a slot: their shake lives on the page); framed wells with
+// a leading link; lists into the docs under an eyebrow.
+const LAYOUT = catalogLayout(FAMILIES.map((f) => f.count))
+const FILMS = [
+  {
+    id: "hero",
+    tab: "Layers",
+    label: "Four paint layers · one dither rule",
+    aspect: "8 / 5",
+    wide: false,
+    alt: "A dithered dashboard tips into an isometric exploded view of its paint layers, re-seeds its data, flips its switch, presses its button and folds back flat.",
+  },
+  {
+    id: "studio",
+    tab: "Studio",
+    label: "An infinite canvas your agent can drive",
+    aspect: "8 / 5",
+    wide: false,
+    alt: "A cursor places three artboards on the Studio's dotted canvas — a bar chart, a line chart, a button — selects them, and they drain away.",
+  },
+  {
+    id: "reel",
+    tab: "Reel",
+    label: "Every frame exports as an MP4",
+    aspect: "8 / 5",
+    wide: false,
+    alt: "A film strip runs past an ember playhead; each frame holds one moment of a bouncing ball.",
+  },
+  {
+    id: "catalog",
+    tab: "Catalog",
+    label: `${SECTION_COUNT} sections · one window each`,
+    aspect: `${LAYOUT.w} / ${LAYOUT.h}`,
+    wide: true,
+    alt: `The docs catalog as a night skyline: ${SECTION_COUNT} lit windows, one per section, in a tower per family; windows switch on and off and a new section falls onto the tallest roof.`,
+  },
+  {
+    id: "dawn",
+    tab: "Dawn",
+    label: "Clayzo films · the kit's dither rule",
+    aspect: "168 / 46",
+    wide: true,
+    alt: "Dawn over a dithered planet: the sun breathes on the limb, an aurora sways over the far side, seed moons cross the sky and stars flicker.",
+  },
+] as const
+const picked = ref(0)
+const film = computed(() => FILMS[picked.value])
+const PLATES: Record<string, ReturnType<typeof dawnPlate>> = {
+  catalog: catalogPlate(FAMILIES.map((f) => f.count)),
+  dawn: dawnPlate(),
 }
-const SKYLINE = skylinePlate(ROWS.map((r) => r.renders))
-const RAMP = rampPlate()
 
-// Controls chapter — real state: the switch toggles the grid behind the
-// panel, the slider re-seeds the badge AND the band's strip live (one
-// integer, one personality — down to the threshold matrix).
-const grid = ref(true)
+// The product tiles' live state: the slider re-seeds the badge.
+const dither = ref(true)
 const seed = ref(512)
-const SEEDED = computed(() => seedPlate(seed.value))
+
+const WORLD = sampleWorld(7)
+const RAMP = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
+const ROWS = [46, 52, 49, 58, 64, 61, 72, 78, 74, 86, 92, 88].map((renders, i) => ({ month: String(i + 1), renders }))
+const CONFIG = { renders: { label: "renders", color: "blue" as DitherColor } }
+
+// The docs list: the shelved families, biggest first, each to its first
+// section; then the handbook.
+const DOCS = SHELVES.filter((s) => s.value !== "explore")
+  .map((s) => ({ label: s.label, count: s.count, note: s.note, href: routePath(`/docs/${s.cards[0].id}`) }))
+  .sort((a, b) => b.count - a.count)
+const HANDBOOK = [
+  { label: "Styling", note: "Tailwind, CSS, CSS Modules or StyleX", href: routePath("/docs/styling") },
+  { label: "Seeds", note: "One integer, one personality", href: routePath("/docs/seeds") },
+  { label: "Animation", note: "Every animation on one seekable clock", href: routePath("/docs/motion") },
+  { label: "Accessibility", note: "Labels, focus, reduced motion", href: routePath("/docs/accessibility") },
+]
 </script>
 
 <template>
-  <section aria-label="Inside the kit" class="figs mx-auto w-full max-w-[var(--shell)] px-6">
-    <!-- Chapter 1 — charts -->
-    <article aria-labelledby="ch-charts-h" class="chapter reveal">
-      <div class="band">
-        <!-- The space after the ember comma sits on the same line on purpose:
-             Vue's whitespace condense drops newline-only gaps between tags. -->
-        <h2 id="ch-charts-h" class="band-h">
-          Charts<span class="dot">,</span> <span class="band-l">every mark placed by the same painter.</span>
-        </h2>
-        <div class="links">
-          <a :href="routePath('/docs')" class="more">Docs</a>
-          <a :href="routePath('/studio')" class="more more-quiet">Open studio</a>
-        </div>
-        <PixelPlate :plate="SKYLINE" motion="rise" class="strip" />
+  <section aria-labelledby="hero-h" class="portal">
+    <!-- The stage: a full-bleed band, the picked film its art; the tabs and
+         the mark have their own floor row so no film ever runs under them. -->
+    <div class="stage" :data-wide="film.wide ? '' : undefined">
+      <div class="stage-view">
+        <ClayzoFilm
+          :key="film.id"
+          :film="film.id"
+          chip
+          :label="film.alt"
+          class="stage-film"
+          :style="{ aspectRatio: film.aspect }"
+        >
+          <template v-if="PLATES[film.id]" #fallback>
+            <PixelPlate :plate="PLATES[film.id]" fit="xMidYMax meet" class="block size-full" />
+          </template>
+        </ClayzoFilm>
+        <p class="micro stage-label" aria-hidden="true">{{ film.label }}</p>
       </div>
-      <div class="cells">
-        <div class="cell">
-          <div class="h-52 sm:h-60">
-            <LineChart :data="ROWS" :config="CONFIG" :interactive="false" :sparkles="false">
-              <Grid horizontal />
-              <XAxis data-key="month" :max-ticks="6" />
-              <YAxis :tick-count="4" />
-              <Line data-key="renders" />
-              <Line data-key="seeds" />
-              <Legend align="right" />
-            </LineChart>
-          </div>
-          <p class="cell-p">
-            Area, line, bar, pie, radar, sparkline — seeded, deterministic,
-            alive on scroll.
-          </p>
+      <div class="stage-foot">
+        <div role="group" aria-label="Films" class="seg stage-tabs">
+          <button v-for="(f, i) in FILMS" :key="f.id" type="button" :aria-pressed="picked === i" @click="picked = i">
+            {{ f.tab }}
+          </button>
         </div>
+        <p class="micro stage-badge" aria-hidden="true">dither-kit × Clayzo</p>
       </div>
-    </article>
+    </div>
 
-    <!-- Chapter 2 — surfaces -->
-    <article aria-labelledby="ch-surfaces-h" class="chapter reveal" style="--reveal-delay: 80ms">
-      <div class="band">
-        <h2 id="ch-surfaces-h" class="band-h">
-          Surfaces<span class="dot">,</span> <span class="band-l">backgrounds that paint themselves.</span>
-        </h2>
-        <div class="links">
-          <a :href="routePath('/docs')" class="more">Browse surfaces</a>
+    <div class="shell">
+      <!-- The statement at display scale under the art, across the shell;
+           the lede and the keys on one row under it. -->
+      <div class="intro">
+        <p class="eyebrow intro-eyebrow">Every pixel placed on purpose</p>
+        <h1 id="hero-h" class="display intro-h">A dithered UI toolkit for Vue.</h1>
+        <p class="intro-lede">
+          Charts, controls and surfaces, rendered pixel by pixel from one seeded palette — for Vue 3 or Svelte 5.
+        </p>
+        <div class="intro-keys">
+          <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
+          <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
         </div>
-        <PixelPlate :plate="RAMP" class="strip" />
       </div>
-      <div class="cells three">
-        <figure class="cell">
-          <div class="frame">
-            <span class="live" aria-hidden="true"><i></i>live · 8 fps</span>
-            <DitherSilk :frame-rate="8" :colors="['#0c1730', '#2c56c9', '#c9dbff']" />
-          </div>
-          <figcaption class="cell-p">silk</figcaption>
-        </figure>
-        <figure class="cell">
-          <div class="frame">
-            <span class="live" aria-hidden="true"><i></i>live · 8 fps</span>
-            <DitherPlasma :frame-rate="8" :colors="['#122a66', '#2f6fd0', '#ff9632']" />
-          </div>
-          <figcaption class="cell-p">plasma</figcaption>
-        </figure>
-        <figure class="cell">
-          <div class="frame">
-            <span class="live" aria-hidden="true"><i></i>live · 8 fps</span>
-            <DitherGridScan :frame-rate="8" :colors="['#1e429f', '#7ba3ee']" />
-          </div>
-          <figcaption class="cell-p">grid scan</figcaption>
-        </figure>
-      </div>
-    </article>
 
-    <!-- Chapter 3 — controls -->
-    <article aria-labelledby="ch-controls-h" class="chapter reveal" style="--reveal-delay: 160ms">
-      <div class="band">
-        <h2 id="ch-controls-h" class="band-h">
-          Controls<span class="dot">,</span> <span class="band-l">through the same engine.</span>
-        </h2>
-        <div class="links">
-          <a :href="routePath('/docs')" class="more">Every control</a>
-        </div>
-        <PixelPlate :plate="SEEDED" class="strip" />
-      </div>
-      <div class="cells two">
-        <div class="cell stage">
-          <div v-if="grid" class="grid-bg" aria-hidden="true">
-            <DitherGridScan render-mode="static" :colors="['#1e429f', '#7ba3ee']" />
-          </div>
-          <div class="veil" aria-hidden="true" />
-          <div class="stack">
-            <div class="row">
-              <DitherSwitch v-model="grid" label="grid behind this panel" />
-              <span class="row-l">grid</span>
-            </div>
-            <div class="field">
-              <span class="lbl">seed</span>
-              <DitherSlider v-model="seed" :min="0" :max="999" label="seed" show-value ticks />
-            </div>
-          </div>
-        </div>
-        <div class="cell">
-          <div class="stack">
-            <div class="btns">
-              <DitherButton color="blue" variant="gradient">gradient</DitherButton>
-              <DitherButton color="grey" variant="dotted">dotted</DitherButton>
-              <DitherButton color="purple" variant="hatched">hatched</DitherButton>
-              <DitherButton color="orange" variant="solid">solid</DitherButton>
-            </div>
-            <div class="field">
-              <span class="lbl" id="build-lbl">build</span>
-              <DitherProgress :value="Math.round(seed / 10)" aria-labelledby="build-lbl" class="w-full" />
-              <div class="row">
-                <DitherBadge :seed="seed">seed {{ seed }}</DitherBadge>
-                <span class="row-l">one integer = one personality</span>
+      <InstallBlock />
+
+      <div class="cols">
+        <!-- Column A: the Studio pitch and its products; the portraits. -->
+        <div class="col-a">
+          <article class="panel build">
+            <h2 class="display build-h">Build <span>your own screens</span></h2>
+            <p class="build-p">
+              Charts, controls and whole screens on an infinite canvas — placed by hand, or by your agent through one
+              protocol.
+            </p>
+            <div class="tiles">
+              <div class="thumb tile">
+                <div class="tile-art">
+                  <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
+                  <DitherButton color="orange" variant="solid">New frame</DitherButton>
+                </div>
+                <span class="micro tile-name">Buttons</span>
+              </div>
+              <div class="thumb tile">
+                <div class="tile-art tile-stack">
+                  <div class="tile-row">
+                    <DitherSwitch v-model="dither" label="Dither" />
+                    <DitherBadge :seed="seed">seed {{ seed }}</DitherBadge>
+                  </div>
+                  <DitherSlider v-model="seed" :min="0" :max="999" label="Seed" class="tile-slider" />
+                </div>
+                <span class="micro tile-name">Controls</span>
               </div>
             </div>
-          </div>
+            <div class="build-links">
+              <a :href="routePath('/studio')" class="lead">Open the studio</a>
+              <a :href="routePath('/docs')" class="lead">Choose from {{ COMPONENT_COUNT }} components</a>
+            </div>
+          </article>
+
+          <article class="panel feature">
+            <h3 class="display feature-h">Pixel art that answers the cursor</h3>
+            <p class="feature-p">
+              Hover a portrait: her pixels scatter under the cursor and spring home, and her emote answers.
+            </p>
+            <div class="thumb faces"><slot name="faces" /></div>
+          </article>
         </div>
+
+        <!-- Column B: framed wells. -->
+        <div class="col-b">
+          <figure class="pick">
+            <div class="thumb pick-art">
+              <span class="live micro" aria-hidden="true"><i class="led"></i>live · 12 fps</span>
+              <DitherWorld
+                :source="WORLD"
+                :colors="RAMP"
+                :auto-rotate="14"
+                :grain="0.4"
+                :frame-rate="12"
+                label="A seeded 3D probe turning slowly, rendered through the kit's Bayer cells"
+                class="h-full"
+              />
+            </div>
+            <figcaption>
+              <a :href="routePath('/docs/world')" class="lead">World 3D</a>
+              <p class="pick-p">glTF, OBJ, STL and VRML through the same Bayer cells.</p>
+            </figcaption>
+          </figure>
+          <figure class="pick">
+            <div class="thumb pick-art pick-chart">
+              <LineChart :data="ROWS" :config="CONFIG" :interactive="false" :sparkles="false">
+                <Grid horizontal />
+                <XAxis data-key="month" :max-ticks="4" />
+                <YAxis :tick-count="3" />
+                <Line data-key="renders" />
+              </LineChart>
+            </div>
+            <figcaption>
+              <a :href="routePath('/docs/area')" class="lead">Charts</a>
+              <p class="pick-p">Seeded and deterministic: a seed replays a fill forever.</p>
+            </figcaption>
+          </figure>
+        </div>
+
+        <!-- Column C: lists into the docs. -->
+        <aside class="col-c" aria-label="Docs">
+          <div class="list-head">
+            <span class="eyebrow">Docs</span>
+            <a :href="routePath('/docs')" class="more-link">all →</a>
+          </div>
+          <ul class="list">
+            <li v-for="d in DOCS" :key="d.label">
+              <a :href="d.href" class="list-t"
+                >{{ d.label }} <span>· {{ d.count }}</span></a
+              >
+              <span class="list-s">{{ d.note }}</span>
+            </li>
+          </ul>
+          <div class="list-head">
+            <span class="eyebrow">Handbook</span>
+            <a :href="routePath('/docs/styling')" class="more-link">all →</a>
+          </div>
+          <ul class="list">
+            <li v-for="h in HANDBOOK" :key="h.label">
+              <a :href="h.href" class="list-t">{{ h.label }}</a>
+              <span class="list-s">{{ h.note }}</span>
+            </li>
+          </ul>
+        </aside>
       </div>
-    </article>
+    </div>
   </section>
 </template>
 
 <style scoped>
-/* Chapters breathe on the page's one section rhythm (--section, set on
-   .landing): the same gap above the first chapter, between chapters, and
-   below the last. */
-.figs {
+.portal {
   display: flex;
   flex-direction: column;
-  gap: var(--section);
-  padding-block: var(--section);
+  gap: 36px;
 }
 
-/* Chapter = one panel: black band, then a 1px-gapped grid of black cells
-   (the reference's .lp-panel over --color-void). */
-.chapter {
-  background: color-mix(in oklab, var(--color-border) 45%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-border) 45%, transparent);
-  display: grid;
-  gap: 1px;
+/* The shell for everything under the band: the docs' width and gutter. */
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
 }
 
-.band {
-  --pad: clamp(1.5rem, 3.4vw, 2.125rem);
-  background: #05060a;
+/* The stage: a full-bleed band between hairlines, its content edge aligned
+   to the shell. 8:5 films stand centred at full height; the wide ones run
+   across the floor. The film's label sits top-right; the tabs and the mark
+   have their own row. */
+.stage {
+  --edge: max(1.5rem, calc((100% - var(--shell)) / 2 + 1.5rem));
+  background: var(--well);
+  box-shadow:
+    inset 0 1px 0 var(--line),
+    inset 0 -1px 0 var(--line);
+}
+
+.stage-view {
   position: relative;
   overflow: hidden;
-  padding: var(--pad);
+  height: clamp(20rem, 50vh, 34rem);
 }
 
-/* The band's floor: its pixel strip bleeds to both edges and sits flush on
-   the bottom hairline (the reference's band field, as markup). */
-.strip {
-  width: calc(100% + 2 * var(--pad));
+.stage-film {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  translate: -50% 0;
+}
+
+.stage[data-wide] .stage-film {
+  top: auto;
+  left: 0;
+  bottom: 0;
+  width: 100%;
   height: auto;
-  margin: clamp(1.75rem, 3.4vw, 2.5rem) calc(-1 * var(--pad)) calc(-1 * var(--pad));
+  translate: none;
 }
 
-.band-h {
+.stage-label {
+  position: absolute;
+  top: 14px;
+  right: var(--edge);
   margin: 0;
-  font-size: clamp(1.625rem, 3.2vw, 2.625rem);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
-  color: var(--color-foreground);
+  padding: 3px 7px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  background: color-mix(in oklab, var(--well) 85%, transparent);
+}
+
+.stage-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px var(--edge);
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+/* The statement: display-scale mono across the shell under the art (two
+   lines at desktop, above a 1440×900 fold), the lede and the keys on one
+   row under it. */
+.intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0 48px;
+  padding-bottom: 16px;
+}
+
+.intro-eyebrow,
+.intro-h {
+  grid-column: 1 / -1;
+}
+
+.intro-h {
+  margin: 14px 0 22px;
+  font-size: clamp(2.4rem, 5.3vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+
+.intro-lede {
+  margin: 0;
+  max-width: 30rem;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-3);
   text-wrap: pretty;
 }
 
-.dot {
-  color: var(--swatch-orange);
-}
-
-.band-l {
-  color: var(--color-muted-foreground);
-}
-
-.links {
+.intro-keys {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 26px;
 }
 
-/* The reference's .lp-more: square ember button + quiet sibling. */
-.more {
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  padding: 0 13px;
-  background: var(--swatch-orange);
-  color: #05060a;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+@media (max-width: 759px) {
+  .intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .intro-keys {
+    margin-top: 20px;
+  }
 }
 
-.more:hover {
-  background: var(--swatch-blue);
+.stage-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.more:focus-visible {
-  outline: 2px solid var(--color-foreground);
-  outline-offset: 2px;
+.stage-badge {
+  margin: 0;
+  color: var(--ink-3);
 }
 
-.more-quiet {
-  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-  color: var(--color-muted-foreground);
+/* The film's pause chip sits in the view's floor corner, clear of the
+   label. */
+.stage :deep(.film-corner) {
+  top: auto;
+  right: 14px;
+  bottom: 14px;
 }
 
-.more-quiet:hover {
-  background: color-mix(in oklab, var(--color-foreground) 14%, transparent);
-  color: var(--color-foreground);
+@media (max-width: 759px) {
+  .stage-view {
+    height: auto;
+  }
+  .stage-label,
+  .stage-badge {
+    display: none;
+  }
+  .stage-film,
+  .stage[data-wide] .stage-film {
+    position: relative;
+    left: 0;
+    width: 100%;
+    height: auto;
+    translate: none;
+  }
+  .stage-foot {
+    padding: 10px 12px;
+  }
+  .stage-tabs {
+    flex: 1;
+  }
+  .stage-tabs > button {
+    flex: 1;
+    padding: 0 4px;
+  }
 }
 
-/* Cell grid: hairline gaps come from the panel background showing through.
-   Chapter 2 is a 3-up; chapter 3 is demo + prose. */
-.cells {
+/* The columns: 2 : 1 : 1.1, collapsing to one under 900px. */
+.cols {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  background: color-mix(in oklab, var(--color-border) 45%, transparent);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 20px;
 }
 
-.cells.three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 899px) {
+  .cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
-.cells.two {
+.col-a,
+.col-b {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.build,
+.feature {
+  padding: 20px;
+}
+
+.build-h,
+.feature-h {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.build-h span {
+  color: var(--ink-3);
+}
+
+.build-p,
+.feature-p {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+.tiles {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
 }
 
-.cell {
-  background: #05060a;
-  padding: clamp(1.25rem, 2.6vw, 2.125rem);
-  min-width: 0;
+.tile {
+  display: flex;
+  flex-direction: column;
+  min-height: 9.5rem;
+  padding: 12px;
 }
 
-/* The reference's .lp-stage: 1.618 box for the demo art. */
-.stage {
-  position: relative;
-  overflow: hidden;
+.tile-art {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.tile-stack {
+  flex-direction: column;
+}
+
+.tile-row {
   display: flex;
   align-items: center;
-  background: linear-gradient(180deg, #0a0d14, #05060a 58%);
+  gap: 12px;
 }
 
-.stage .stack {
-  position: relative;
-  z-index: 1;
+.tile-slider {
   width: 100%;
 }
 
-.grid-bg {
-  position: absolute;
-  inset: 0;
-  opacity: 0.45;
-  pointer-events: none;
+.tile-name {
+  align-self: flex-end;
+  color: var(--ink-3);
 }
 
-.veil {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgb(5 6 10 / 0.4), rgb(5 6 10 / 0.86) 55%, #05060a);
-  pointer-events: none;
+.build-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin-top: 14px;
 }
 
-.frame {
-  position: relative;
-  aspect-ratio: 1.618;
-  overflow: hidden;
-  background: #000;
+.faces {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  padding: 4px 8px 16px;
 }
 
-/* The live chip: the nodecode film-chip anatomy (pulsing dot + micro-caps
-   label) on our honest data — these panels ARE live kit canvases at 8fps.
-   The dot takes the reference's led cadence; it is a state label, so the
-   text stays under reduced motion and only the pulse dies. */
-.live {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 7px;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-foreground) 75%, transparent);
-  background: color-mix(in oklab, #000 62%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 50%, transparent);
-}
-
-.live i {
-  width: 5px;
-  height: 5px;
-  background: var(--swatch-orange);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .live i {
-    animation: live-led 2.8s ease-in-out infinite;
-  }
-  @keyframes live-led {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.32;
-    }
-  }
-}
-
-figure {
+.pick {
   margin: 0;
 }
 
-figcaption {
+.pick-art {
+  aspect-ratio: 16 / 10;
+}
+
+.pick-chart {
+  padding: 10px 8px 4px;
+}
+
+.pick figcaption {
   margin-top: 10px;
 }
 
-.cell-p {
-  margin: 13px 0 0;
-  max-width: 34em;
-  font-size: 13px;
+.pick-p {
+  margin: 4px 0 0;
+  font-size: 12px;
   line-height: 1.6;
-  color: var(--color-muted-foreground);
-  text-wrap: pretty;
+  color: var(--ink-3);
 }
 
-.stack {
+/* Column C: lists under eyebrows, a hairline off the others. */
+.col-c {
+  padding-left: 20px;
+  box-shadow: inset 1px 0 0 var(--line);
+}
+
+@media (max-width: 899px) {
+  .col-c {
+    padding-left: 0;
+    box-shadow: none;
+  }
+}
+
+.list {
+  margin: 8px 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 3px;
+  padding: 10px 0;
+  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+.list-t {
+  font-size: 12.5px;
+  color: var(--ink);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.lbl {
-  font-size: 9.5px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent);
+.list-t span {
+  color: var(--ink-3);
 }
 
-.row {
-  display: flex;
-  align-items: center;
-  gap: 11px;
+.list-t:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.row-l {
-  font-size: 11px;
-  color: var(--color-muted-foreground);
-}
-
-.btns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-}
-
-@media (max-width: 900px) {
-  .cells.three {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .cells.two {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.list-s {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
 }
 </style>

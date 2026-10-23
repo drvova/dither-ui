@@ -40,9 +40,7 @@ const PUBLIC_KEY = process.env.DISCORD_PUBLIC_KEY || ""
 const PUBLIC_KEY_OBJ = (() => {
   if (!PUBLIC_KEY) return null
   const raw = Buffer.from(PUBLIC_KEY, "hex")
-  const der = raw.length === 32
-    ? Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), raw])
-    : raw
+  const der = raw.length === 32 ? Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), raw]) : raw
   return createPublicKey({ key: der, format: "der", type: "spki" })
 })()
 const DIST = process.env.DIST || join(dirname(fileURLToPath(import.meta.url)), "..", "dist")
@@ -71,7 +69,9 @@ async function loadSections() {
 
 // Fuzzy section match: exact id, then label prefix, then id prefix.
 function findSection(query) {
-  const q = String(query || "").trim().toLowerCase()
+  const q = String(query || "")
+    .trim()
+    .toLowerCase()
   if (!q || !SECTIONS) return undefined
   const all = [...SECTIONS.values()]
   return (
@@ -107,14 +107,12 @@ async function renderPreview(sectionId, seed, inv) {
   // page and short-circuit the fetch.
   const sections = await loadSections()
   const withData = html.replace(
-    "fetch(\"./sections.json\").then(r=>r.json())",
+    'fetch("./sections.json").then(r=>r.json())',
     `Promise.resolve().then(()=>(${JSON.stringify([...sections.values()])}))`,
   )
   if (!renderPage) {
     const { chromium } = await import("playwright-core")
-    const exe =
-      process.env.CHROME_PATH ||
-      "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
+    const exe = process.env.CHROME_PATH || "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
     const browser = await chromium.launch({ executablePath: exe })
     renderPage = await browser.newPage({ viewport: { width: 1200, height: 630 } })
     // Graceful shutdown: the browser must close BEFORE the loop drops, or
@@ -123,17 +121,19 @@ async function renderPreview(sectionId, seed, inv) {
     const shutdown = () => {
       if (closing) return
       closing = true
-      browser.close().catch(() => {}).finally(() => process.exit(0))
+      browser
+        .close()
+        .catch(() => {})
+        .finally(() => process.exit(0))
     }
     process.on("SIGINT", shutdown)
     process.on("SIGTERM", shutdown)
   }
   const page = renderPage
   await page.route("**/og/index.html**", (route) => route.fulfill({ body: withData, contentType: "text/html" }))
-  await page.goto(
-    `http://og.local/og/index.html?id=${encodeURIComponent(sectionId)}&seed=${seed}&inv=${inv}`,
-    { waitUntil: "networkidle" },
-  )
+  await page.goto(`http://og.local/og/index.html?id=${encodeURIComponent(sectionId)}&seed=${seed}&inv=${inv}`, {
+    waitUntil: "networkidle",
+  })
   await page.waitForFunction(() => document.title === "og-ready", undefined, { timeout: 10_000 })
   const png = await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } })
   const buf = Buffer.from(png)
@@ -145,11 +145,12 @@ async function renderPreview(sectionId, seed, inv) {
 /* --------------------------- Components V2 build -------------------------- */
 
 function componentsFor(section, seed, inv) {
-  const mediaUrl = seed === 0 && inv === 0
-    ? `${SITE}/og/${section.id}.png`
-    : PUBLIC_BASE
-      ? `${PUBLIC_BASE}/preview/${section.id}/${seed}/${inv}.png`
-      : `${SITE}/og/${section.id}.png`
+  const mediaUrl =
+    seed === 0 && inv === 0
+      ? `${SITE}/og/${section.id}.png`
+      : PUBLIC_BASE
+        ? `${PUBLIC_BASE}/preview/${section.id}/${seed}/${inv}.png`
+        : `${SITE}/og/${section.id}.png`
   return [
     {
       type: 17, // Container
@@ -197,10 +198,17 @@ const NOT_FOUND = {
   data: {
     flags: IS_COMPONENTS_V2,
     components: [
-      { type: 17, accent_color: EMBER, components: [
-        { type: 10, content: "## Unknown section" },
-        { type: 10, content: "Try `/component` with a docs section id or label — e.g. `slider`, `avatar`, `charts`." },
-      ] },
+      {
+        type: 17,
+        accent_color: EMBER,
+        components: [
+          { type: 10, content: "## Unknown section" },
+          {
+            type: 10,
+            content: "Try `/component` with a docs section id or label — e.g. `slider`, `avatar`, `charts`.",
+          },
+        ],
+      },
     ],
   },
 }
@@ -292,7 +300,11 @@ const server = createServer(async (req, res) => {
   }
 
   // Button click: re-roll / invert, updating the message in place.
-  if (interaction.type === 3 && typeof interaction.data?.custom_id === "string" && interaction.data.custom_id.startsWith("dith:")) {
+  if (
+    interaction.type === 3 &&
+    typeof interaction.data?.custom_id === "string" &&
+    interaction.data.custom_id.startsWith("dith:")
+  ) {
     const { id, seed, inv } = parseCustomId(interaction.data.custom_id)
     const section = sections.get(id)
     res.writeHead(200, { "content-type": "application/json" })
@@ -306,8 +318,12 @@ const server = createServer(async (req, res) => {
 
 // Boot: load the manifest eagerly so a bad build fails loudly at start.
 await loadSections().then((m) => {
-  if (m.size === 0) console.error("discord: no sections loaded — run the site build first (dist/og/sections.json missing)")
+  if (m.size === 0)
+    console.error("discord: no sections loaded — run the site build first (dist/og/sections.json missing)")
   else console.log(`discord: ${m.size} sections loaded`)
-  if (!process.env.DISCORD_PUBLIC_KEY) console.error("discord: DISCORD_PUBLIC_KEY not set — every interaction will 401 (set it to the application's public key)")
+  if (!process.env.DISCORD_PUBLIC_KEY)
+    console.error(
+      "discord: DISCORD_PUBLIC_KEY not set — every interaction will 401 (set it to the application's public key)",
+    )
 })
 server.listen(PORT, () => console.log(`discord: interactions on :${PORT} (POST /interactions)`))

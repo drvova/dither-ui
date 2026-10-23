@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { createArtboard } from "../src/entities/artboard/model/factory"
 import { normalizeArtboard } from "../src/entities/artboard/model/normalize"
 import type { Artboard } from "../src/entities/artboard/model/types"

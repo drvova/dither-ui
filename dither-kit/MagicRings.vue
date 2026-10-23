@@ -9,7 +9,7 @@ const props = withDefaults(
     duration?: number
     class?: string
   }>(),
-  { color: "#7CFF67", count: 4, duration: 3 }
+  { color: "#7CFF67", count: 4, duration: 3 },
 )
 
 const rings = computed(() => Math.max(1, Math.round(props.count)))

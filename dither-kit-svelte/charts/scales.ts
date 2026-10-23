@@ -8,8 +8,7 @@ export type StackType = "default" | "stacked" | "percent"
 
 type Row = Record<string, unknown>
 
-const num = (v: unknown) =>
-  typeof v === "number" && Number.isFinite(v) ? v : 0
+const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0)
 
 /**
  * Per-series [y0, y1] bands for every row. For `default` every series sits on
@@ -20,7 +19,7 @@ const num = (v: unknown) =>
 export function computeBands(
   data: Row[],
   keys: string[],
-  stackType: StackType
+  stackType: StackType,
 ): { bands: Record<string, [number, number][]>; max: number } {
   if (stackType === "default") {
     const bands: Record<string, [number, number][]> = {}
@@ -38,9 +37,7 @@ export function computeBands(
   const series = d3Stack<Row>()
     .keys(keys)
     .value((row, key) => num(row[key]))
-    .offset(stackType === "percent" ? stackOffsetExpand : (undefined as never))(
-    data
-  )
+    .offset(stackType === "percent" ? stackOffsetExpand : (undefined as never))(data)
 
   const bands: Record<string, [number, number][]> = {}
   let max = 0
@@ -62,12 +59,7 @@ export function buildXScale(length: number, plotWidth: number) {
 
 /** Banded x for bar categories — each index owns a slot of `bandwidth` width.
  * `gap` is the fraction of each slot given to spacing (d3 paddingInner). */
-export function buildBandScale(
-  length: number,
-  plotWidth: number,
-  gap = 0.28,
-  edge = 0.18
-) {
+export function buildBandScale(length: number, plotWidth: number, gap = 0.28, edge = 0.18) {
   return scaleBand<number>()
     .domain(Array.from({ length }, (_, i) => i))
     .range([0, plotWidth])

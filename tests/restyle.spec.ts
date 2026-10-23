@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest"
-import UTILITIES from "virtual:dither-utilities"
+import { describe, expect, it } from "rstack/test"
+import UTILITIES from "virtual-dither-utilities"
 import { compileUtilities, restyle } from "../src/shared/lib/restyle"
 
-const decls = (tokens: string[], strict = false) => compileUtilities(tokens, strict).chains.map((c) => [c.chain, Object.fromEntries(c.decl)] as const)
+const decls = (tokens: string[], strict = false) =>
+  compileUtilities(tokens, strict).chains.map((c) => [c.chain, Object.fromEntries(c.decl)] as const)
 
 const SNIPPET = `<script setup lang="ts">
 import { ref } from "vue"
@@ -49,7 +50,12 @@ describe("compileUtilities", () => {
     expect(JSON.stringify(d)).not.toContain("--tw-")
   })
   it("keeps variants as chains and unknown classes as classes", () => {
-    const { chains, rest } = compileUtilities(["my-thing", "text-muted-foreground", "hover:text-foreground", "sm:grid-cols-2"])
+    const { chains, rest } = compileUtilities([
+      "my-thing",
+      "text-muted-foreground",
+      "hover:text-foreground",
+      "sm:grid-cols-2",
+    ])
     expect(rest).toEqual(["my-thing"])
     expect(chains.map((c) => c.chain)).toEqual([[], ["&:hover", "@media (hover: hover)"], ["@media (width >= 40rem)"]])
     expect(chains[1].decl).toEqual([["color", "var(--foreground)"]])
@@ -151,9 +157,15 @@ const styles = stylex.create({
 
   it("names the literals of a dynamic class binding", () => {
     const code = `<button class="h-6" :class="on ? 'text-foreground' : 'text-muted-foreground'">x</button>`
-    expect(restyle(code, "css")).toContain(`<button class="button" :class="on ? 'textForeground' : 'textMutedForeground'">x</button>`)
-    expect(restyle(code, "modules")).toContain(`<button :class="[$style.button, on ? $style.textForeground : $style.textMutedForeground]">x</button>`)
-    expect(restyle(code, "stylex")).toContain(`<button v-bind="stylex.attrs(styles.button, on ? styles.textForeground : styles.textMutedForeground)">x</button>`)
+    expect(restyle(code, "css")).toContain(
+      `<button class="button" :class="on ? 'textForeground' : 'textMutedForeground'">x</button>`,
+    )
+    expect(restyle(code, "modules")).toContain(
+      `<button :class="[$style.button, on ? $style.textForeground : $style.textMutedForeground]">x</button>`,
+    )
+    expect(restyle(code, "stylex")).toContain(
+      `<button v-bind="stylex.attrs(styles.button, on ? styles.textForeground : styles.textMutedForeground)">x</button>`,
+    )
     expect(restyle(code, "css")).toContain(".textForeground {\n  color: var(--foreground);\n}")
   })
 
@@ -193,7 +205,9 @@ const styles = stylex.create({
   })
 </script>`)
     expect(sx).toContain(`<label {...stylex.attrs(styles.label)}>`)
-    expect(sx).toContain(`<span {...stylex.attrs(bloom ? styles.textForeground : styles.textMutedForeground)}>Bloom</span>`)
+    expect(sx).toContain(
+      `<span {...stylex.attrs(bloom ? styles.textForeground : styles.textMutedForeground)}>Bloom</span>`,
+    )
   })
 
   it("gives a fragment what it needs: styles appended, StyleX lines prepended", () => {
@@ -220,6 +234,8 @@ const styles = stylex.create({
   <DitherGradient from="blue" />
 </div>`)
     const sfc = `<template>\n  ${code.split("\n").join("\n  ")}\n</template>`
-    expect(restyle(sfc, "stylex")).toMatch(/^<script setup lang="ts">\nimport \* as stylex from "@stylexjs\/stylex"\n\nconst styles = stylex\.create\(\{\n {2}frame: \{ position: "relative", height: "16rem" \},\n\}\)\n<\/script>\n\n<template>/)
+    expect(restyle(sfc, "stylex")).toMatch(
+      /^<script setup lang="ts">\nimport \* as stylex from "@stylexjs\/stylex"\n\nconst styles = stylex\.create\(\{\n {2}frame: \{ position: "relative", height: "16rem" \},\n\}\)\n<\/script>\n\n<template>/,
+    )
   })
 })

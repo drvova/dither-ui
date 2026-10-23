@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { widgetCode } from "../src/entities/widget/model/codegen"
 import { componentEntry } from "../src/entities/widget/model/registry"
 import {
@@ -55,7 +55,7 @@ describe("screen codegen", () => {
     addCell(row2, entry("DitherBadge"))
     const code = widgetCode(s, frame)
     expect(code).toContain('import { DitherBadge, DitherInput, DitherSwitch } from "@dither-kit"')
-    expect(code).toContain("const value1 = ref(\"\")")
+    expect(code).toContain('const value1 = ref("")')
     expect(code).toContain("const value2 = ref(false)")
     expect(code).toContain('v-model="value1"')
     expect(code).toContain(">beta</DitherBadge>")

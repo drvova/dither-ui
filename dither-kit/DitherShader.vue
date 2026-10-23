@@ -1,6 +1,13 @@
 <script lang="ts">
 import type { ChannelInput } from "./gl"
-import { ditherShaderPixels, sampleShader, SHADER_UNIFORMS, wrapShader, type ShaderDither, type ShaderProgram } from "./shader"
+import {
+  ditherShaderPixels,
+  sampleShader,
+  SHADER_UNIFORMS,
+  wrapShader,
+  type ShaderDither,
+  type ShaderProgram,
+} from "./shader"
 export type { ShaderDither, ShaderProgram }
 export { ditherShaderPixels, sampleShader, wrapShader }
 
@@ -72,7 +79,7 @@ const props = withDefaults(
     paused: false,
     frameRate: 0,
     renderMode: "live",
-  }
+  },
 )
 
 const MAX_COLS = 480
@@ -84,7 +91,13 @@ const code = ref("")
 const status = ref<"ready" | "loading" | "error" | "unsupported">("ready")
 const problem = ref("")
 const note = computed(() =>
-  status.value === "loading" ? "loading shader" : status.value === "unsupported" ? "WebGL is not available" : status.value === "error" ? problem.value : ""
+  status.value === "loading"
+    ? "loading shader"
+    : status.value === "unsupported"
+      ? "WebGL is not available"
+      : status.value === "error"
+        ? problem.value
+        : "",
 )
 
 // ---- source -------------------------------------------------------------------
@@ -219,7 +232,8 @@ function draw(buffer: RasterBuffer, clock: number, dt: number) {
   if (u.iTime) gl.uniform1f(u.iTime, t)
   if (u.iTimeDelta) gl.uniform1f(u.iTimeDelta, dt)
   if (u.iFrame) gl.uniform1i(u.iFrame, Math.round(t * 60))
-  if (u.iMouse) gl.uniform4f(u.iMouse, mouse.x * w, mouse.y * h, mouse.down ? mouse.cx * w : 0, mouse.down ? mouse.cy * h : 0)
+  if (u.iMouse)
+    gl.uniform4f(u.iMouse, mouse.x * w, mouse.y * h, mouse.down ? mouse.cx * w : 0, mouse.down ? mouse.cy * h : 0)
   if (u.iDate) gl.uniform4f(u.iDate, now.getFullYear(), now.getMonth(), now.getDate(), t)
   if (u.iColor) gl.uniform3f(u.iColor, cr / 255, cg / 255, cb / 255)
   if (u.iSeed) gl.uniform1f(u.iSeed, props.seed ?? 0)
@@ -280,7 +294,21 @@ const surface = useDitherBackground({
   paused: () => props.paused,
   renderMode: () => props.renderMode,
   precompiled: () => undefined,
-  restart: () => [props.renderMode, props.dpr, props.cell, code.value, props.seed, props.color, props.colors, props.mono, props.dither, props.levels, props.shade, props.speed, props.channels],
+  restart: () => [
+    props.renderMode,
+    props.dpr,
+    props.cell,
+    code.value,
+    props.seed,
+    props.color,
+    props.colors,
+    props.mono,
+    props.dither,
+    props.levels,
+    props.shade,
+    props.speed,
+    props.channels,
+  ],
   frameRate: () => props.frameRate,
   render: draw,
 })
@@ -302,6 +330,12 @@ defineExpose({ surface })
     @pointerleave="onUp"
   >
     <canvas ref="canvasRef" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
-    <p v-if="note" class="absolute inset-x-0 bottom-2 px-2 text-center font-mono text-[10px] break-words text-muted-foreground" aria-live="polite">{{ note }}</p>
+    <p
+      v-if="note"
+      class="absolute inset-x-0 bottom-2 px-2 text-center font-mono text-[10px] break-words text-muted-foreground"
+      aria-live="polite"
+    >
+      {{ note }}
+    </p>
   </div>
 </template>

@@ -48,7 +48,7 @@ const props = withDefaults(
     paused: false,
     frameRate: 60,
     renderMode: "live",
-  }
+  },
 )
 
 const CELL = 3
@@ -104,7 +104,13 @@ useDitherBackground({
       mixBlendMode: props.mixBlendMode as never,
     }"
   >
-    <img v-if="precompiled" :src="precompiled" alt="" class="absolute inset-0 h-full w-full object-fill" :style="{ imageRendering: 'pixelated' }" />
+    <img
+      v-if="precompiled"
+      :src="precompiled"
+      alt=""
+      class="absolute inset-0 h-full w-full object-fill"
+      :style="{ imageRendering: 'pixelated' }"
+    />
     <canvas v-else ref="canvasRef" class="absolute inset-0 h-full w-full" :style="{ imageRendering: 'pixelated' }" />
   </div>
 </template>

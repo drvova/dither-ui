@@ -17,7 +17,12 @@ export type FloatingLinesParams = {
   dither: number
 }
 
-export function paintFloatingLines(buffer: RasterBuffer, p: FloatingLinesParams, time: number, matrix: number[][]): void {
+export function paintFloatingLines(
+  buffer: RasterBuffer,
+  p: FloatingLinesParams,
+  time: number,
+  matrix: number[][],
+): void {
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data

@@ -21,7 +21,7 @@ const props = withDefaults(
     interactive?: boolean
     class?: string
   }>(),
-  { color: "green", interactive: false }
+  { color: "green", interactive: false },
 )
 const emit = defineEmits<{ pick: [round: number, match: number, side: "a" | "b"] }>()
 
@@ -30,13 +30,21 @@ const accent = computed(() => cssColor(props.color))
 const sideClass = (m: BracketMatch, side: "a" | "b") =>
   cn(
     "flex h-7 min-w-0 items-center gap-2 px-2.5 text-left text-[11px] transition-colors",
-    m.winner === side ? "text-foreground" : m.winner ? "text-muted-foreground/50 line-through" : "text-muted-foreground",
-    props.interactive && !m.winner && "cursor-pointer hover:bg-card/60 hover:text-foreground"
+    m.winner === side
+      ? "text-foreground"
+      : m.winner
+        ? "text-muted-foreground/50 line-through"
+        : "text-muted-foreground",
+    props.interactive && !m.winner && "cursor-pointer hover:bg-card/60 hover:text-foreground",
   )
 </script>
 
 <template>
-  <div :class="cn('flex items-stretch gap-6 overflow-x-auto font-mono', props.class)" role="group" aria-label="Tournament bracket">
+  <div
+    :class="cn('flex items-stretch gap-6 overflow-x-auto font-mono', props.class)"
+    role="group"
+    aria-label="Tournament bracket"
+  >
     <div v-for="(round, r) in props.rounds" :key="r" class="flex min-w-36 flex-col justify-around gap-3">
       <div v-for="(m, i) in round" :key="i" class="relative">
         <div class="overflow-hidden rounded-md border border-border/60 bg-background/60">

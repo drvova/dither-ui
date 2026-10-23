@@ -13,25 +13,50 @@ const props = withDefaults(
     cancelLabel?: string
     danger?: boolean
   }>(),
-  { confirmLabel: "Confirm", cancelLabel: "Cancel", danger: false }
+  { confirmLabel: "Confirm", cancelLabel: "Cancel", danger: false },
 )
 const emit = defineEmits<{ confirm: []; cancel: [] }>()
 
 const panelRef = ref<HTMLElement | null>(null)
 const cancelRef = ref<HTMLButtonElement | null>(null)
 let previousFocus: HTMLElement | null = null
-const focusable = () => [...(panelRef.value?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])]
+const focusable = () => [
+  ...(panelRef.value?.querySelectorAll<HTMLElement>(
+    'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  ) ?? []),
+]
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === "Escape") { e.stopPropagation(); emit("cancel"); return }
+  if (e.key === "Escape") {
+    e.stopPropagation()
+    emit("cancel")
+    return
+  }
   if (e.key !== "Tab") return
-  const items = focusable(), first = items[0], last = items[items.length - 1]
-  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
-  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus() }
+  const items = focusable(),
+    first = items[0],
+    last = items[items.length - 1]
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault()
+    last?.focus()
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault()
+    first?.focus()
+  }
 }
-watch(() => props.open, (open) => {
-  if (open) { previousFocus = document.activeElement as HTMLElement | null; nextTick(() => cancelRef.value?.focus()) }
-  else { const restore = previousFocus; previousFocus = null; nextTick(() => restore?.focus()) }
-}, { immediate: true })
+watch(
+  () => props.open,
+  (open) => {
+    if (open) {
+      previousFocus = document.activeElement as HTMLElement | null
+      nextTick(() => cancelRef.value?.focus())
+    } else {
+      const restore = previousFocus
+      previousFocus = null
+      nextTick(() => restore?.focus())
+    }
+  },
+  { immediate: true },
+)
 onBeforeUnmount(() => previousFocus?.focus())
 </script>
 
@@ -47,13 +72,13 @@ onBeforeUnmount(() => previousFocus?.focus())
         @pointerdown.self="emit('cancel')"
         @keydown="onKeydown"
       >
-        <div ref="panelRef" class="w-full max-w-md rounded-xl border border-border/80 bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+        <div
+          ref="panelRef"
+          class="w-full max-w-md rounded-xl border border-border/80 bg-card font-mono shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
+        >
           <div class="px-4 pt-4">
             <span class="text-sm font-medium">{{ props.title }}</span>
-            <p
-              v-if="props.description"
-              class="mt-2 text-[13px] leading-relaxed text-muted-foreground"
-            >
+            <p v-if="props.description" class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               {{ props.description }}
             </p>
           </div>
@@ -61,7 +86,12 @@ onBeforeUnmount(() => previousFocus?.focus())
             <button
               ref="cancelRef"
               type="button"
-              :class="cn(CONTROL_BUTTON, 'min-h-10 rounded-md border border-border px-4 py-2 font-mono text-xs text-muted-foreground transition-colors hover:bg-background hover:text-foreground')"
+              :class="
+                cn(
+                  CONTROL_BUTTON,
+                  'min-h-10 rounded-md border border-border px-4 py-2 font-mono text-xs text-muted-foreground transition-colors hover:bg-background hover:text-foreground',
+                )
+              "
               @click="emit('cancel')"
             >
               {{ props.cancelLabel }}
@@ -86,6 +116,9 @@ onBeforeUnmount(() => previousFocus?.focus())
   opacity: 0;
 }
 @media (prefers-reduced-motion: reduce) {
-.dk-fade-enter-active, .dk-fade-leave-active { transition: none; }
+  .dk-fade-enter-active,
+  .dk-fade-leave-active {
+    transition: none;
+  }
 }
 </style>

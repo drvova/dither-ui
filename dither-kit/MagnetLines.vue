@@ -9,7 +9,7 @@ const props = withDefaults(
     lineLength?: number
     class?: string
   }>(),
-  { color: "#7CFF67", gap: 28, lineLength: 14 }
+  { color: "#7CFF67", gap: 28, lineLength: 14 },
 )
 
 const wrap = ref<HTMLElement | null>(null)

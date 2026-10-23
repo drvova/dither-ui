@@ -1,11 +1,5 @@
 import { createApp, h, nextTick, ref, type App } from "vue"
-import {
-  DitherGradient,
-  DitherButton,
-  DitherSpinner,
-  renderDitherGradient,
-  putRasterBuffer,
-} from "../dither-kit"
+import { DitherGradient, DitherButton, DitherSpinner, renderDitherGradient, putRasterBuffer } from "../dither-kit"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -43,17 +37,14 @@ function stats(values: number[], name: string, notes: string, painted: boolean):
 
 /** Aggregate a scenario across N runs: collect all individual batch times,
  *  then compute overall stats from the full pool. */
-function aggregateScenario(
-  name: string,
-  perRun: ScenarioResult[],
-): ScenarioResult {
+function aggregateScenario(name: string, perRun: ScenarioResult[]): ScenarioResult {
   // We don't have individual batch values, but we can aggregate the per-run
   // means/medians/p95s into overall stats. Use the per-run means as samples
   // for a stable cross-run picture.
-  const means = perRun.map(r => r.mean)
-  const medians = perRun.map(r => r.median)
-  const p95s = perRun.map(r => r.p95)
-  const allPainted = perRun.every(r => r.painted)
+  const means = perRun.map((r) => r.mean)
+  const medians = perRun.map((r) => r.median)
+  const p95s = perRun.map((r) => r.p95)
+  const allPainted = perRun.every((r) => r.painted)
 
   const mean = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length
   const sortedMeans = [...means].sort((a, b) => a - b)
@@ -90,7 +81,9 @@ async function waitForPaint(container: HTMLElement, timeoutMs = 1500): Promise<b
           let nz = 0
           for (let j = 0; j < data.length; j++) if (data[j] !== 0) nz++
           if (nz > 0) return true
-        } catch { /* taint or empty — keep waiting */ }
+        } catch {
+          /* taint or empty — keep waiting */
+        }
       }
     }
   }
@@ -150,13 +143,8 @@ async function rerenderAndMeasure(
 type ScenarioFn = (container: HTMLElement) => Promise<{ compute: number; full: number; painted: boolean }>
 
 function defineScenarios(): { name: string; notes: string; fn: ScenarioFn }[] {
-
   // Helper that wraps a scenario function with warmup + batch logic
-  function makeScenario(
-    name: string,
-    notes: string,
-    fn: ScenarioFn,
-  ): { name: string; notes: string; fn: ScenarioFn } {
+  function makeScenario(name: string, notes: string, fn: ScenarioFn): { name: string; notes: string; fn: ScenarioFn } {
     return { name, notes, fn }
   }
 
@@ -166,8 +154,11 @@ function defineScenarios(): { name: string; notes: string; fn: ScenarioFn }[] {
         createApp(() =>
           h("div", { style: "position:relative;width:960px;height:120px" }, [
             h(DitherGradient, {
-              from: "blue", to: "transparent", direction: "up",
-              opacity: 0.14, cell: 3,
+              from: "blue",
+              to: "transparent",
+              direction: "up",
+              opacity: 0.14,
+              cell: 3,
             }),
           ]),
         ),
@@ -178,8 +169,12 @@ function defineScenarios(): { name: string; notes: string; fn: ScenarioFn }[] {
         createApp(() =>
           h("div", { style: "position:relative;width:960px;height:120px" }, [
             h(DitherGradient, {
-              from: "blue", to: "transparent", direction: "up",
-              opacity: 0.14, cell: 4, renderMode: "static",
+              from: "blue",
+              to: "transparent",
+              direction: "up",
+              opacity: 0.14,
+              cell: 4,
+              renderMode: "static",
             }),
           ]),
         ),
@@ -193,12 +188,17 @@ function defineScenarios(): { name: string; notes: string; fn: ScenarioFn }[] {
           app: createApp(() =>
             h("div", { style: "position:relative;width:960px;height:120px" }, [
               h(DitherGradient, {
-                from: "blue", to: "transparent", direction: dir.value,
-                opacity: 0.14, cell: 3,
+                from: "blue",
+                to: "transparent",
+                direction: dir.value,
+                opacity: 0.14,
+                cell: 3,
               }),
             ]),
           ),
-          changeProp: () => { dir.value = "down" },
+          changeProp: () => {
+            dir.value = "down"
+          },
         }
       })
       return r
@@ -237,8 +237,14 @@ function defineScenarios(): { name: string; notes: string; fn: ScenarioFn }[] {
       const ctx = canvas.getContext("2d")!
       const t0 = performance.now()
       const raster = renderDitherGradient({
-        width: 960, height: 600, cell: 2, from: "blue", to: "transparent",
-        direction: "up", opacity: 1, seed: 42,
+        width: 960,
+        height: 600,
+        cell: 2,
+        from: "blue",
+        to: "transparent",
+        direction: "up",
+        opacity: 1,
+        seed: 42,
       })
       canvas.width = raster.width
       canvas.height = raster.height
@@ -296,13 +302,17 @@ async function runBenchmark(
             if (!r.painted) painted = false
           }
         } catch {
-          if (i >= WARMUPS) { painted = false; computeTimes.push(3000); fullTimes.push(3000) }
+          if (i >= WARMUPS) {
+            painted = false
+            computeTimes.push(3000)
+            fullTimes.push(3000)
+          }
         }
       }
       // Report compute time (Vue patch + onMounted) — this is the kit's
       // actual work, not the RAF frame wait.
       const result = stats(computeTimes, scenario.name, scenario.notes, painted)
-      result.notes += ` | full=${(fullTimes.reduce((a,b)=>a+b,0)/fullTimes.length).toFixed(1)}ms`
+      result.notes += ` | full=${(fullTimes.reduce((a, b) => a + b, 0) / fullTimes.length).toFixed(1)}ms`
       runResults.push(result)
 
       // Append this run's results to the table live
@@ -310,7 +320,7 @@ async function runBenchmark(
     }
 
     allRuns.push({ runIndex: run + 1, results: runResults })
-    await new Promise(r => setTimeout(r, 200))
+    await new Promise((r) => setTimeout(r, 200))
   }
 
   // ─── Aggregate across all runs ────────────────────────────────────────────
@@ -322,7 +332,7 @@ async function runBenchmark(
 
   for (let s = 0; s < scenarios.length; s++) {
     const name = scenarios[s].name
-    const perRun = allRuns.map(run => run.results[s]).filter(Boolean)
+    const perRun = allRuns.map((run) => run.results[s]).filter(Boolean)
     const agg = aggregateScenario(name, perRun)
     appendAggregateRow(resultsEl, agg)
   }
@@ -372,7 +382,13 @@ function appendAggregateRow(tbody: HTMLTableSectionElement, r: ScenarioResult): 
 }
 
 document.querySelector<HTMLButtonElement>("#run")!.addEventListener("click", () => {
-  const runCount = Math.max(1, Math.min(20, parseInt(document.querySelector<HTMLInputElement>("#runCount")!.value, 10) || 5))
-  const batches = Math.max(3, Math.min(50, parseInt(document.querySelector<HTMLInputElement>("#batchCount")!.value, 10) || 10))
+  const runCount = Math.max(
+    1,
+    Math.min(20, parseInt(document.querySelector<HTMLInputElement>("#runCount")!.value, 10) || 5),
+  )
+  const batches = Math.max(
+    3,
+    Math.min(50, parseInt(document.querySelector<HTMLInputElement>("#batchCount")!.value, 10) || 10),
+  )
   void (globalThis as any).runDitherBench(runCount, batches)
 })

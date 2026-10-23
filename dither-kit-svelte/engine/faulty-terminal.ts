@@ -66,7 +66,7 @@ export function paintFaultyTerminal(
   time: number,
   matrix: number[][],
   mouse: { x: number; y: number } | null,
-  fade: number
+  fade: number,
 ): void {
   const cols = buffer.width
   const rows = buffer.height

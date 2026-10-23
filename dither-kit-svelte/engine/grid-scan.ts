@@ -33,7 +33,7 @@ export function paintGridScan(buffer: RasterBuffer, p: GridScanParams, time: num
   const gy = Math.max(2, Math.round(gx / aspect))
   const half = Math.max(0.01, p.lineWidth)
   const scanW = Math.max(0.02, p.scanWidth)
-  const scan = ((t * 0.3) % 1 + 1) % 1
+  const scan = (((t * 0.3) % 1) + 1) % 1
   const col: [number, number, number] = [0, 0, 0]
 
   for (let y = 0; y < rows; y++) {

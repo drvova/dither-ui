@@ -101,10 +101,7 @@ export function findRow(screen: ScreenModel, rowId: string): ScreenRow | undefin
   return screen.rows.find((r) => r.id === rowId)
 }
 
-export function findCell(
-  screen: ScreenModel,
-  cellId: string
-): { row: ScreenRow; cell: ScreenCell } | undefined {
+export function findCell(screen: ScreenModel, cellId: string): { row: ScreenRow; cell: ScreenCell } | undefined {
   for (const row of screen.rows) {
     const cell = row.cells.find((c) => c.id === cellId)
     if (cell) return { row, cell }

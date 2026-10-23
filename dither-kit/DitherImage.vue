@@ -1,11 +1,6 @@
 <script lang="ts">
 import { BAYER4, pixelMatrixFromSeed } from "./pixel"
-import {
-  DEFAULT_MAX_COLS,
-  DEFAULT_MAX_ROWS,
-  STATIC_DEFAULT_MAX_COLS,
-  STATIC_DEFAULT_MAX_ROWS,
-} from "./precompile"
+import { DEFAULT_MAX_COLS, DEFAULT_MAX_ROWS, STATIC_DEFAULT_MAX_COLS, STATIC_DEFAULT_MAX_ROWS } from "./precompile"
 
 /** Ordered-dither an image into chunky cells: each cell keeps its source hue,
  * the Bayer matrix decides whether it renders lit or dimmed — the same
@@ -20,7 +15,7 @@ function paintImage(
   fade: number,
   matrix: number[][],
   maxCols: number,
-  maxRows: number
+  maxRows: number,
 ): void {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || width <= 0 || height <= 0 || !img.naturalWidth) return
@@ -88,14 +83,14 @@ const props = withDefaults(
     maxCols?: number
     maxRows?: number
   }>(),
-  { alt: "", renderMode: "live", precompiled: undefined }
+  { alt: "", renderMode: "live", precompiled: undefined },
 )
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effCell = computed(() => props.cell ?? s.value?.cell ?? 3)
 const effFocusY = computed(() => props.focusY ?? s.value?.focusY ?? 0.5)
 const effFade = computed(() => props.fade ?? s.value?.fade ?? 0)
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 
 /** Effective resolution caps: static mode auto-uses lower caps unless overridden. */
@@ -121,7 +116,18 @@ function paint() {
   const canvas = canvasRef.value
   if (!wrap || !canvas) return
   const box = wrap.getBoundingClientRect()
-  paintImage(canvas, img, box.width, box.height, effCell.value, effFocusY.value, effFade.value, matrix.value, effMaxCols.value, effMaxRows.value)
+  paintImage(
+    canvas,
+    img,
+    box.width,
+    box.height,
+    effCell.value,
+    effFocusY.value,
+    effFade.value,
+    matrix.value,
+    effMaxCols.value,
+    effMaxRows.value,
+  )
 }
 
 function load() {
@@ -162,7 +168,7 @@ function startRuntime() {
             load()
           }
         },
-        { rootMargin: "400px" }
+        { rootMargin: "400px" },
       )
       io.observe(wrapRef.value)
     } else {
@@ -195,11 +201,6 @@ onBeforeUnmount(() => {
       class="absolute inset-0 h-full w-full object-cover"
       style="image-rendering: pixelated"
     />
-    <canvas
-      v-else
-      ref="canvasRef"
-      class="absolute inset-0 h-full w-full"
-      style="image-rendering: pixelated"
-    />
+    <canvas v-else ref="canvasRef" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
   </div>
 </template>

@@ -1,6 +1,6 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, rs } from "rstack/test"
 import PasswordInput from "../../dither-kit/PasswordInput.vue"
 import SearchInput from "../../dither-kit/SearchInput.vue"
 import PhoneInput from "../../dither-kit/PhoneInput.vue"
@@ -12,7 +12,7 @@ import InputGroup from "../../dither-kit/InputGroup.vue"
 import InlineEdit from "../../dither-kit/InlineEdit.vue"
 
 afterEach(() => {
-  vi.unstubAllGlobals()
+  rs.unstubAllGlobals()
 })
 
 describe("PasswordInput", () => {

@@ -4,10 +4,7 @@ import { useChart } from "./chart-context"
 import { dotPaint, type DotVariant } from "./dot-paint"
 import { useSeries } from "./series-context"
 
-const props = withDefaults(
-  defineProps<{ variant?: DotVariant; r?: number }>(),
-  { variant: "border", r: 2 }
-)
+const props = withDefaults(defineProps<{ variant?: DotVariant; r?: number }>(), { variant: "border", r: 2 })
 
 const ctx = useChart()
 const series = useSeries("Dot")

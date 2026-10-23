@@ -25,7 +25,10 @@ function splitLine(line: string): string[] {
 }
 
 const keyOf = (header: string, i: number): string => {
-  const k = header.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")
+  const k = header
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
   return k || `col${i}`
 }
 

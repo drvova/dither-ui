@@ -14,7 +14,7 @@ const props = withDefaults(
     delay?: number
     class?: string
   }>(),
-  { distance: 40, direction: "vertical", reverse: false, duration: 800, delay: 0 }
+  { distance: 40, direction: "vertical", reverse: false, duration: 800, delay: 0 },
 )
 
 const el = ref<HTMLElement | null>(null)

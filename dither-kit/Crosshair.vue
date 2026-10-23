@@ -8,7 +8,7 @@ const props = withDefaults(
     thickness?: number
     class?: string
   }>(),
-  { color: "#7CFF67", thickness: 1 }
+  { color: "#7CFF67", thickness: 1 },
 )
 
 const area = ref<HTMLElement | null>(null)
@@ -26,12 +26,7 @@ function onMove(e: PointerEvent) {
 </script>
 
 <template>
-  <div
-    ref="area"
-    :class="cn('relative overflow-hidden', props.class)"
-    @pointermove="onMove"
-    @pointerleave="on = false"
-  >
+  <div ref="area" :class="cn('relative overflow-hidden', props.class)" @pointermove="onMove" @pointerleave="on = false">
     <slot />
     <div
       class="pointer-events-none absolute inset-y-0"

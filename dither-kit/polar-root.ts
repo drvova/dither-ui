@@ -1,13 +1,4 @@
-import {
-  type Component,
-  computed,
-  defineComponent,
-  Fragment,
-  h,
-  type PropType,
-  provide,
-  type VNode,
-} from "vue"
+import { type Component, computed, defineComponent, Fragment, h, type PropType, provide, type VNode } from "vue"
 import type { ChartConfig, Margins } from "./chart-context"
 import { CommonChartKey } from "./common-context"
 import type { BloomInput, EasingInput } from "./dither-paint"
@@ -60,11 +51,7 @@ export type PolarChartProps = {
 
 /** Builds a concrete polar chart component (PieChart, RadarChart) with the
  * family painter + optional back decoration baked in. */
-export function definePolarChart(
-  chartType: "pie" | "radar",
-  canvas: Component,
-  backDecoration?: Component
-) {
+export function definePolarChart(chartType: "pie" | "radar", canvas: Component, backDecoration?: Component) {
   return defineComponent({
     name: `${chartType[0].toUpperCase()}${chartType.slice(1)}Chart`,
     props: {
@@ -116,12 +103,8 @@ export function definePolarChart(
         ...DEFAULT_POLAR_MARGINS,
         ...props.margins,
       }))
-      const seeded = computed(() =>
-        props.seed !== undefined ? motionFromSeed(props.seed) : null
-      )
-      const geo = computed(() =>
-        props.seed !== undefined ? geometryFromSeed(props.seed) : null
-      )
+      const seeded = computed(() => (props.seed !== undefined ? motionFromSeed(props.seed) : null))
+      const geo = computed(() => (props.seed !== undefined ? geometryFromSeed(props.seed) : null))
 
       const ctx = usePolarController({
         chartType,
@@ -136,8 +119,7 @@ export function definePolarChart(
         // Explicit prop > master-seed derivation > house default.
         animationDuration: () => props.animationDuration ?? seeded.value?.duration ?? 900,
         animationDelay: () => props.animationDelay ?? seeded.value?.delay ?? 0,
-        easing: () =>
-          props.easing ?? (props.seed !== undefined ? easingFromSeed(props.seed) : "ease-in-out"),
+        easing: () => props.easing ?? (props.seed !== undefined ? easingFromSeed(props.seed) : "ease-in-out"),
         hoverLift: () => props.hoverLift,
         cell: () => props.cell,
         popOut: () => props.popOut ?? geo.value?.popOut ?? 6,
@@ -148,8 +130,7 @@ export function definePolarChart(
         startAngle: () => props.startAngle ?? seeded.value?.startAngle ?? 0,
         rings: () => props.rings ?? geo.value?.rings ?? 4,
         replayToken: () => props.replayToken,
-        bloom: () =>
-          props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),
+        bloom: () => props.bloom ?? (props.seed !== undefined ? bloomFromSeed(props.seed) : "off"),
         bloomOnHover: () => props.bloomOnHover,
         precompiled: () => precompiledSrc(props.precompiled),
         defaultSelectedDataKey: props.defaultSelectedDataKey,
@@ -209,8 +190,8 @@ export function definePolarChart(
                 "aria-hidden": "true",
                 role: "presentation",
               },
-              [h("g", { transform }, backGroup)]
-            )
+              [h("g", { transform }, backGroup)],
+            ),
           )
         }
         layers.push(h(canvas))
@@ -225,8 +206,8 @@ export function definePolarChart(
                 role: "img",
                 "aria-label": "Chart",
               },
-              [h("g", { transform }, svg)]
-            )
+              [h("g", { transform }, svg)],
+            ),
           )
         }
         layers.push(...dom)
@@ -243,7 +224,7 @@ export function definePolarChart(
               ctx.setHoverIndex(null)
             },
           },
-          layers
+          layers,
         )
       }
     },

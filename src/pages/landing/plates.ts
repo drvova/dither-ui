@@ -7,7 +7,7 @@
 // subpath instead of one per cell, and a run's length is a multiple of the
 // period so the dash phase stays on the lattice whether or not the renderer
 // restarts dashing per subpath. Same field in → same markup out.
-import { matrixFromSeed, resolveMatrix } from "@dither-kit"
+import { resolveMatrix } from "@dither-kit"
 
 export type Cell = { color: string; group: number; twinkle?: boolean }
 export type PlateLayer = { color: string; d: string }
@@ -17,12 +17,7 @@ export type Plate = { w: number; h: number; period: number; groups: PlateGroup[]
 
 type Run = { y: number; x0: number; last: number; n: number }
 
-export function buildPlate(
-  w: number,
-  h: number,
-  period: number,
-  paint: (x: number, y: number) => Cell | null,
-): Plate {
+export function buildPlate(w: number, h: number, period: number, paint: (x: number, y: number) => Cell | null): Plate {
   const groups = new Map<number, PlateGroup>()
   const paths = new Map<PlateGroup, Map<string, string[]>>()
   const open = new Map<string, Run>()
@@ -144,44 +139,81 @@ export function dawnPlate(w = 168, h = 46): Plate {
   })
 }
 
-/** Charts band: the chart's own series as a dithered skyline — one slim bar
- * per row, height on the chart's 0–100 axis, a lit cap over a body that
- * deepens toward the floor. Group = month, so the bars rise in order. */
-export function skylinePlate(values: readonly number[], w = 144, h = 12): Plate {
-  const slot = w / values.length
-  const bar = Math.max(1, Math.round(slot * 0.5))
-  return buildPlate(w, h, 1, (x, y) => {
-    const i = Math.floor(x / slot)
-    const left = Math.round(i * slot + (slot - bar) / 2)
-    if (x < left || x >= left + bar) return null
-    const top = h - Math.max(1, Math.round((values[i] / 100) * h))
-    if (y < top) return null
-    if (y === top) return { color: SKY[4], group: i }
-    const depth = (y - top) / Math.max(1, h - top)
-    const color = ditherTone(0.7 - depth * 0.62, x, y, SKY.slice(0, 4))
-    return color ? { color, group: i } : null
+/** A neutral grey ramp, darkest first — the catalog's skyline is a
+ * diagram, not art, so it sits in greys with one ember cap. */
+export const GREY = ["#1d1d1d", "#303030", "#575757", "#8a8a8a", "#c6c6c6", "#ededed"] as const
+
+export type CatalogWindow = { x: number; y: number; tower: number; row: number; top: boolean }
+
+/** The docs catalog as a skyline, in cells: one tower per family in sidebar
+ * order, one 2×2 window per section (a one-cell seam between windows),
+ * stacked bottom-up on ⌈0.75·√n⌉ columns so the big families stand tall,
+ * towers three cells apart, a margin each side, a sky above for what moves
+ * and the floor row under it all. `catalogPlate` (the figure's stand-in)
+ * and the catalog film both draw from it, so the film's still is the plate
+ * cell for cell. */
+export function catalogLayout(counts: readonly number[]) {
+  const MARGIN = 4
+  const GAP = 3
+  const SKY = 10
+  const towers: { x: number; w: number; n: number; rows: number }[] = []
+  let x = MARGIN
+  for (const n of counts) {
+    const w = Math.ceil(Math.sqrt(n) * 0.75)
+    towers.push({ x, w, n, rows: Math.ceil(n / w) })
+    x += w * 3 - 1 + GAP
+  }
+  const rows = Math.max(...towers.map((t) => t.rows))
+  const floor = SKY + rows * 3 - 1
+  const windows: CatalogWindow[] = []
+  towers.forEach((t, tower) => {
+    for (let k = 0; k < t.n; k++) {
+      const row = Math.floor(k / t.w)
+      windows.push({
+        x: t.x + (k % t.w) * 3,
+        y: floor - (row + 1) * 3 + 1,
+        tower,
+        row,
+        top: row === t.rows - 1 || k + t.w >= t.n,
+      })
+    }
   })
+  return {
+    w: x - GAP + MARGIN,
+    h: floor + 2,
+    floor,
+    rows,
+    towers,
+    windows,
+    tallest: towers.findIndex((t) => t.rows === rows),
+  }
 }
 
-/** Surfaces band: the textbook figure — a linear ramp through all seventeen
- * levels of the 4×4 matrix, one colour on void. Groups are Bayer ranks. */
-export function rampPlate(w = 144, h = 6): Plate {
-  return buildPlate(w, h, 4, (x, y) => {
-    const color = ditherTone(x / (w - 1), x, y, [SKY[3]])
-    return color ? { color, group: rankOf(x, y) } : null
-  })
-}
+/** A window's resting tone: the top of each tower lit, the rest dimmer the
+ * lower it sits. */
+export const windowTone = (win: CatalogWindow, rows: number) => (win.top ? 0.86 : 0.2 + 0.46 * (win.row / rows))
 
-/** Controls band: the controls chapter's seed, made visible — the fill runs
- * from full at the left down to nothing at seed/999, and the threshold
- * matrix itself is seeded, so dragging the slider moves the edge and
- * re-scatters every pixel of the fill. */
-export function seedPlate(seed: number, w = 144, h = 6): Plate {
-  const m = matrixFromSeed(seed)
-  const edge = (seed / 999) * w
-  return buildPlate(w, h, 4, (x, y) => {
-    const t = edge > 0 ? 0.92 * (1 - (x + 0.5) / edge) : 0
-    const color = ditherTone(t, x, y, SKY.slice(1, 4), m)
-    return color ? { color, group: rankOf(x, y, m) } : null
+/** The hub band: the catalog skyline (`catalogLayout`) in greys — a diagram,
+ * not art — each window's grey dithered from `windowTone`, the tallest
+ * tower's cap ember, the floor one dark row. Group = tower, so the towers
+ * rise in order. */
+export function catalogPlate(counts: readonly number[]): Plate {
+  const L = catalogLayout(counts)
+  const at = new Map<string, CatalogWindow>()
+  for (const win of L.windows)
+    for (const [dx, dy] of [
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [1, 1],
+    ])
+      at.set(`${win.x + dx},${win.y + dy}`, win)
+  return buildPlate(L.w, L.h, 1, (x, y) => {
+    if (y === L.floor + 1) return { color: GREY[1], group: L.towers.length }
+    const win = at.get(`${x},${y}`)
+    if (!win) return null
+    if (win.top && win.tower === L.tallest) return { color: SUN[0], group: win.tower }
+    const color = ditherTone(windowTone(win, L.rows), x, y, GREY) ?? GREY[0]
+    return { color, group: win.tower }
   })
 }

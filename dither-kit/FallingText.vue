@@ -10,7 +10,7 @@ const props = withDefaults(
     replayToken?: number
     class?: string
   }>(),
-  { text: "Falling text", stagger: 45, duration: 700 }
+  { text: "Falling text", stagger: 45, duration: 700 },
 )
 
 const chars = computed(() => [...props.text])
@@ -25,7 +25,8 @@ const runKey = computed(() => `${props.text}-${props.replayToken ?? 0}`)
       aria-hidden="true"
       class="dither-fall-char"
       :style="{ animationDelay: `${i * props.stagger}ms`, animationDuration: `${props.duration}ms` }"
-    >{{ ch === " " ? "\u00a0" : ch }}</span>
+      >{{ ch === " " ? "\u00a0" : ch }}</span
+    >
   </span>
 </template>
 

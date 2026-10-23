@@ -19,7 +19,7 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { threshold: 64, axis: "x", color: "green", disabled: false }
+  { threshold: 64, axis: "x", color: "green", disabled: false },
 )
 const emit = defineEmits<{ snap: [] }>()
 
@@ -85,7 +85,7 @@ const still = pixelPrefersReducedMotion()
         dragging ? 'cursor-grabbing' : 'cursor-grab',
         armed ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
         'bg-card/60',
-        props.class
+        props.class,
       )
     "
     :style="{

@@ -1,11 +1,19 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { BAYER4 } from "../dither-kit/pixel"
 import { createRasterBuffer } from "../dither-kit/raster"
-import { ditherShaderPixels, sampleShader, SHADER_UNIFORMS, wrapMaterial, wrapShader, type ShaderDither } from "../dither-kit/shader"
+import {
+  ditherShaderPixels,
+  sampleShader,
+  SHADER_UNIFORMS,
+  wrapMaterial,
+  wrapShader,
+  type ShaderDither,
+} from "../dither-kit/shader"
 
 const TOY = "void mainImage(out vec4 o, in vec2 fc) { o = vec4(fc / iResolution.xy, 0.5 + 0.5 * sin(iTime), 1.0); }"
 const RAW1 = "uniform float time; void main() { gl_FragColor = vec4(sin(time)); }"
-const RAW3 = "#version 300 es\nprecision mediump float;\nout vec4 o; uniform float iTime; void main() { o = vec4(iTime); }"
+const RAW3 =
+  "#version 300 es\nprecision mediump float;\nout vec4 o; uniform float iTime; void main() { o = vec4(iTime); }"
 
 describe("wrapShader", () => {
   it("wraps Shadertoy sources with the uniforms and an entry point per GLSL version", () => {
@@ -32,7 +40,11 @@ describe("wrapShader", () => {
     const r3 = wrapShader(RAW3, true)
     expect(r3).toMatchObject({ convention: "raw", version: 2, fragment: RAW3 })
     expect(r3.vertex.startsWith("#version 300 es")).toBe(true)
-    expect(wrapShader("precision lowp float; void main() { gl_FragColor = vec4(1.0); }", false).fragment.startsWith("precision lowp")).toBe(true)
+    expect(
+      wrapShader("precision lowp float; void main() { gl_FragColor = vec4(1.0); }", false).fragment.startsWith(
+        "precision lowp",
+      ),
+    ).toBe(true)
   })
   it("knows every uniform the runtime feeds", () => {
     expect(SHADER_UNIFORMS).toContain("iMouse")
@@ -42,15 +54,33 @@ describe("wrapShader", () => {
   })
   it("binds channels and the kit's helpers into Shadertoy sources", () => {
     const es3 = wrapShader(TOY, true).fragment
-    for (const line of ["uniform sampler2D iChannel0;", "uniform sampler2D iChannel3;", "uniform vec3 iChannelResolution[4];", "uniform vec3 iColor;", "float dk_bayer4(vec2 p)"]) expect(es3).toContain(line)
+    for (const line of [
+      "uniform sampler2D iChannel0;",
+      "uniform sampler2D iChannel3;",
+      "uniform vec3 iChannelResolution[4];",
+      "uniform vec3 iColor;",
+      "float dk_bayer4(vec2 p)",
+    ])
+      expect(es3).toContain(line)
     const es1 = wrapShader(TOY, false).fragment
     expect(es1).toContain("#define texture texture2D")
     expect(es1.indexOf("#define texture")).toBeLessThan(es1.indexOf("uniform sampler2D iChannel0"))
   })
   it("wraps world materials over the packed target, by either entry point", () => {
-    const m = wrapMaterial("void mainMaterial(out vec4 o, in vec2 p) { o = vec4(dk_color(p), dk_shade(p) * float(dk_covered(p)) + dk_depth(p) * 0.0); }", true)
+    const m = wrapMaterial(
+      "void mainMaterial(out vec4 o, in vec2 p) { o = vec4(dk_color(p), dk_shade(p) * float(dk_covered(p)) + dk_depth(p) * 0.0); }",
+      true,
+    )
     expect(m.version).toBe(2)
-    for (const line of ["uniform sampler2D dk_target;", "uniform sampler2D dk_palette;", "float dk_depth(vec2 p)", "vec3 dk_color(vec2 p)", "bool dk_covered(vec2 p)", "void main() { mainMaterial(dither_FragColor, gl_FragCoord.xy); }"]) expect(m.fragment).toContain(line)
+    for (const line of [
+      "uniform sampler2D dk_target;",
+      "uniform sampler2D dk_palette;",
+      "float dk_depth(vec2 p)",
+      "vec3 dk_color(vec2 p)",
+      "bool dk_covered(vec2 p)",
+      "void main() { mainMaterial(dither_FragColor, gl_FragCoord.xy); }",
+    ])
+      expect(m.fragment).toContain(line)
     const toy = wrapMaterial("void mainImage(out vec4 o, in vec2 p) { o = vec4(1.0); }", false)
     expect(toy.version).toBe(1)
     expect(toy.fragment).toContain("mainImage(c, gl_FragCoord.xy)")
@@ -73,8 +103,18 @@ const run = (src: Uint8Array, w: number, h: number, p: Partial<ShaderDither> = {
 describe("wrapMaterial textures", () => {
   it("gives materials the uv map, the channels and the sampling helpers", () => {
     const { fragment } = wrapMaterial("void mainMaterial(out vec4 o, in vec2 p) { o = dk_texture(p); }", true)
-    for (const name of ["uniform sampler2D dk_uvmap;", "uniform sampler2D iChannel3;", "uniform vec3 iChannelResolution[4];", "vec2 dk_uv(vec2 p)", "bool dk_textured(vec2 p)", "vec4 dk_texture(vec2 p)"]) expect(fragment).toContain(name)
-    expect(wrapMaterial("void mainMaterial(out vec4 o, in vec2 p) { o = dk_texture(p); }", false).fragment).toContain("#define texture texture2D")
+    for (const name of [
+      "uniform sampler2D dk_uvmap;",
+      "uniform sampler2D iChannel3;",
+      "uniform vec3 iChannelResolution[4];",
+      "vec2 dk_uv(vec2 p)",
+      "bool dk_textured(vec2 p)",
+      "vec4 dk_texture(vec2 p)",
+    ])
+      expect(fragment).toContain(name)
+    expect(wrapMaterial("void mainMaterial(out vec4 o, in vec2 p) { o = dk_texture(p); }", false).fragment).toContain(
+      "#define texture texture2D",
+    )
   })
 })
 
@@ -99,7 +139,9 @@ describe("ditherShaderPixels", () => {
     }
     expect(on).toBe(8)
     expect(off).toBe(8)
-    expect(Array.from(run(flat(4, 4, [128, 128, 128, 255]), 4, 4))).toEqual(Array.from(run(flat(4, 4, [128, 128, 128, 255]), 4, 4)))
+    expect(Array.from(run(flat(4, 4, [128, 128, 128, 255]), 4, 4))).toEqual(
+      Array.from(run(flat(4, 4, [128, 128, 128, 255]), 4, 4)),
+    )
   })
   it("dither 0 passes the shader through; levels posterize; alpha carries", () => {
     const smooth = run(flat(2, 2, [10, 200, 90, 77]), 2, 2, { dither: 0 })

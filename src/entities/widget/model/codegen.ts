@@ -7,8 +7,7 @@ const objLit = (o: Record<string, unknown>) =>
     .map(([k, v]) => `${k}: ${typeof v === "string" ? q(v) : v}`)
     .join(", ")} }`
 
-const colorAttr = (name: string, v: unknown): string =>
-  typeof v === "number" ? ` :${name}="${v}"` : ` ${name}="${v}"`
+const colorAttr = (name: string, v: unknown): string => (typeof v === "number" ? ` :${name}="${v}"` : ` ${name}="${v}"`)
 
 function bloomAttr(bloom: PixelBloomInput): string {
   if (bloom === "off") return ""
@@ -30,7 +29,9 @@ function componentCode(w: Extract<WidgetModel, { kind: "component" }>): string {
   const attrs: string[] = []
   if (entry?.vmodel) {
     const prop = entry.vmodel.prop
-    attrs.push(prop && prop !== "modelValue" ? `:${prop}="value" @${entry.vmodel.event}="value = false"` : `v-model="value"`)
+    attrs.push(
+      prop && prop !== "modelValue" ? `:${prop}="value" @${entry.vmodel.event}="value = false"` : `v-model="value"`,
+    )
   }
   const mapped = entry?.mapProps ? entry.mapProps(w.props) : w.props
   for (const spec of entry?.props ?? []) {
@@ -41,9 +42,7 @@ function componentCode(w: Extract<WidgetModel, { kind: "component" }>): string {
     attrs.push(boundAttr(spec.key, v))
   }
   const attrStr = attrs.length ? ` ${attrs.join(" ")}` : ""
-  const modelSetup = entry?.vmodel
-    ? `\nconst value = ref(${JSON.stringify(w.model)})`
-    : ""
+  const modelSetup = entry?.vmodel ? `\nconst value = ref(${JSON.stringify(w.model)})` : ""
   const importRef = entry?.vmodel ? `import { ref } from "vue"\n` : ""
   const slot = w.slotText
   return `<script setup lang="ts">
@@ -88,9 +87,7 @@ function screenCode(w: Extract<WidgetModel, { kind: "screen" }>): string {
     }
     if (cell.grow) attrs.push(`class="flex-1"`)
     const a = attrs.length ? ` ${attrs.join(" ")}` : ""
-    return cell.slotText != null
-      ? `<${cell.is}${a}>${cell.slotText}</${cell.is}>`
-      : `<${cell.is}${a} />`
+    return cell.slotText != null ? `<${cell.is}${a}>${cell.slotText}</${cell.is}>` : `<${cell.is}${a} />`
   }
   const rows = w.rows
     .map((row) => {

@@ -41,7 +41,7 @@ function paintRating(
   value: number,
   fill: Rgb,
   matrix: number[][],
-  rot: number
+  rot: number,
 ): void {
   ctx.clearRect(0, 0, cells * max, cells)
   const poly = starPoly(cells / 2, rot)
@@ -77,14 +77,12 @@ const props = withDefaults(
     label?: string
     seed?: number
   }>(),
-  { modelValue: 0, max: 5, color: "orange", size: 22, readonly: false, label: "Rating" }
+  { modelValue: 0, max: 5, color: "orange", size: 22, readonly: false, label: "Rating" },
 )
 const emit = defineEmits<{ (e: "update:modelValue", v: number): void }>()
 
 const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
-const rot = computed(() =>
-  props.seed !== undefined ? (xorshift32(Math.round(props.seed) ^ 0x51ed)() - 0.5) * 0.5 : 0
-)
+const rot = computed(() => (props.seed !== undefined ? (xorshift32(Math.round(props.seed) ^ 0x51ed)() - 0.5) * 0.5 : 0))
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const hover = ref<number | null>(null)
@@ -144,7 +142,7 @@ function onKey(e: KeyboardEvent) {
     :class="
       cn(
         'inline-flex rounded-sm outline-none',
-        !props.readonly && 'cursor-pointer focus-visible:ring-2 focus-visible:ring-ring'
+        !props.readonly && 'cursor-pointer focus-visible:ring-2 focus-visible:ring-ring',
       )
     "
     @pointermove="onMove"

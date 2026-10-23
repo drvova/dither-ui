@@ -6,10 +6,11 @@ import Icon from "./Icon.vue"
 /** One-tap copy around a piece of text: the value travels through the shared
  * Clipboard primitive (live-region announcement included), the trigger is an
  * icon button that flips Copy → Check. */
-const props = withDefaults(
-  defineProps<{ value?: string; label?: string; size?: number; class?: string }>(),
-  { value: "", label: "Copy", size: 14 },
-)
+const props = withDefaults(defineProps<{ value?: string; label?: string; size?: number; class?: string }>(), {
+  value: "",
+  label: "Copy",
+  size: 14,
+})
 </script>
 
 <template>

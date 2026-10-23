@@ -13,7 +13,14 @@ const props = withDefaults(
     cursor?: boolean
     class?: string
   }>(),
-  { texts: () => ["Type this out.", "Then this."], typingSpeed: 60, deletingSpeed: 35, pause: 1400, loop: true, cursor: true }
+  {
+    texts: () => ["Type this out.", "Then this."],
+    typingSpeed: 60,
+    deletingSpeed: 35,
+    pause: 1400,
+    loop: true,
+    cursor: true,
+  },
 )
 
 const shown = ref("")
@@ -58,8 +65,8 @@ onBeforeUnmount(() => clearTimeout(timer))
 <template>
   <span :class="cn('inline-block whitespace-pre', props.class)"
     ><span>{{ shown }}</span
-    ><span v-if="props.cursor" class="dither-caret" aria-hidden="true">|</span
-  ></span>
+    ><span v-if="props.cursor" class="dither-caret" aria-hidden="true">|</span></span
+  >
 </template>
 
 <style scoped>

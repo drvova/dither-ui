@@ -57,10 +57,7 @@ onMounted(() => {
   if (typeof ResizeObserver !== "undefined") {
     ro = new ResizeObserver((entries) => {
       const entry = entries[0]
-      update(
-        entry ? entry.contentRect.width : node.clientWidth,
-        entry ? entry.contentRect.height : node.clientHeight,
-      )
+      update(entry ? entry.contentRect.width : node.clientWidth, entry ? entry.contentRect.height : node.clientHeight)
     })
     ro.observe(node)
   }

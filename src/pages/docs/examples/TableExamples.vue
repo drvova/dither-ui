@@ -122,10 +122,9 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
   <section id="table-members" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Data table</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The whole table contract in one block — filter, sortable columns with
-      aria-sort, page-scoped select-all, a bulk remove that really removes,
-      presence dots, and dithered pagination. Filter and sort compose; the
-      range label tells the truth.
+      The whole table contract in one block — filter, sortable columns with aria-sort, page-scoped select-all, a bulk
+      remove that really removes, presence dots, and dithered pagination. Filter and sort compose; the range label tells
+      the truth.
     </p>
     <DemoCard :code="SNIPPET">
       <div class="mx-auto max-w-2xl rounded-lg border border-border/60 bg-background/40">
@@ -134,7 +133,12 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
             <div class="text-[13px] tracking-tight text-foreground">Team members</div>
             <div class="mt-0.5 text-[11px] text-muted-foreground">Everyone with workspace access.</div>
           </div>
-          <DitherInput v-model="query" placeholder="Filter members…" class="w-44 text-[11px]" @update:model-value="page = 1" />
+          <DitherInput
+            v-model="query"
+            placeholder="Filter members…"
+            class="w-44 text-[11px]"
+            @update:model-value="page = 1"
+          />
         </div>
         <div
           v-if="selected.size"
@@ -147,14 +151,14 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
           <thead>
             <tr class="border-b border-border/60 text-muted-foreground">
               <th class="w-10 px-3 py-2">
-                <DitherCheckbox
-                  :model-value="allOnPage"
-                  aria-label="Select page"
-                  @update:model-value="toggleAll"
-                />
+                <DitherCheckbox :model-value="allOnPage" aria-label="Select page" @update:model-value="toggleAll" />
               </th>
               <th class="py-2 pr-3" :aria-sort="ariaSort('name')">
-                <button type="button" class="flex items-center gap-1 transition-colors hover:text-foreground" @click="sortBy('name')">
+                <button
+                  type="button"
+                  class="flex items-center gap-1 transition-colors hover:text-foreground"
+                  @click="sortBy('name')"
+                >
                   Member
                   <span v-if="sortKey === 'name'" aria-hidden="true">{{ sortDir === 1 ? "↑" : "↓" }}</span>
                 </button>
@@ -162,7 +166,11 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
               <th class="py-2 pr-3 font-normal">Role</th>
               <th class="py-2 pr-3 font-normal">Status</th>
               <th class="py-2 pr-3" :aria-sort="ariaSort('joined')">
-                <button type="button" class="flex items-center gap-1 transition-colors hover:text-foreground" @click="sortBy('joined')">
+                <button
+                  type="button"
+                  class="flex items-center gap-1 transition-colors hover:text-foreground"
+                  @click="sortBy('joined')"
+                >
                   Joined
                   <span v-if="sortKey === 'joined'" aria-hidden="true">{{ sortDir === 1 ? "↑" : "↓" }}</span>
                 </button>

@@ -16,13 +16,7 @@ export function clearRasterBuffer(buffer: RasterBuffer): void {
 }
 
 /** Source-over blend a pixel without going through the canvas 2D API. */
-export function blendRasterPixel(
-  buffer: RasterBuffer,
-  x: number,
-  y: number,
-  color: Rgb,
-  alpha: number
-): void {
+export function blendRasterPixel(buffer: RasterBuffer, x: number, y: number, color: Rgb, alpha: number): void {
   if (x < 0 || y < 0 || x >= buffer.width || y >= buffer.height || alpha <= 0) return
   const a = Math.max(0, Math.min(1, alpha))
   const i = (y * buffer.width + x) * 4
@@ -45,7 +39,7 @@ export function setRasterPixel32(
   r: number,
   g: number,
   b: number,
-  a = 255
+  a = 255,
 ): void {
   // Little-endian ABGR pack (browsers are LE on all major platforms)
   view[y * width + x] = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0
@@ -53,13 +47,7 @@ export function setRasterPixel32(
 
 /** Fast first-write set — skips blend math when the target pixel is transparent.
  *  If the pixel already has content, falls back to source-over blend. */
-export function setOrBlendRasterPixel(
-  buffer: RasterBuffer,
-  x: number,
-  y: number,
-  color: Rgb,
-  alpha: number
-): void {
+export function setOrBlendRasterPixel(buffer: RasterBuffer, x: number, y: number, color: Rgb, alpha: number): void {
   if (x < 0 || y < 0 || x >= buffer.width || y >= buffer.height || alpha <= 0) return
   const i = (y * buffer.width + x) * 4
   // Fast path: target is transparent — direct set, no compositing math.
@@ -83,11 +71,7 @@ export function setOrBlendRasterPixel(
 }
 
 /** Upload a portable raster in one browser call. */
-export function putRasterBuffer(
-  ctx: CanvasRenderingContext2D,
-  buffer: RasterBuffer,
-  image?: ImageData
-): ImageData {
+export function putRasterBuffer(ctx: CanvasRenderingContext2D, buffer: RasterBuffer, image?: ImageData): ImageData {
   const target =
     image?.width === buffer.width && image.height === buffer.height
       ? image

@@ -29,7 +29,9 @@ const index = computed(() => String((Math.max(0, props.stage) % STAGE_CAPTIONS.l
         :style="{ fill: fills[i], '--r': c.rank }"
       />
     </svg>
-    <figcaption class="micro cap"><span class="n">{{ index }}</span> · {{ caption }}</figcaption>
+    <figcaption class="micro cap">
+      <span class="n">{{ index }}</span> · {{ caption }}
+    </figcaption>
   </figure>
 </template>
 
@@ -69,7 +71,7 @@ const index = computed(() => String((Math.max(0, props.stage) % STAGE_CAPTIONS.l
 }
 
 .n {
-  color: var(--swatch-orange);
+  color: var(--ink, var(--swatch-orange));
 }
 
 @media (prefers-reduced-motion: reduce) {

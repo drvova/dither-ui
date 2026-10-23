@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { BAYER4 } from "../dither-kit/pixel"
 import { createRasterBuffer, type RasterBuffer } from "../dither-kit/raster"
 import { paintBeams } from "../dither-kit/beams"
@@ -26,14 +26,114 @@ const alphaCount = (d: Uint8ClampedArray) => {
 const noNaN = (d: Uint8ClampedArray) => d.every((v) => Number.isFinite(v))
 
 const cases: [string, (b: RasterBuffer) => void][] = [
-  ["beams", (b) => paintBeams(b, { colors: C, count: 5, angle: 0.6, speed: 0.5, sharpness: 3, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4)],
-  ["gridMotion", (b) => paintGridMotion(b, { colors: C, count: 12, angle: 0.4, speed: 0.5, lineWidth: 0.08, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4)],
-  ["gridScan", (b) => paintGridScan(b, { colors: C, count: 12, speed: 0.5, lineWidth: 0.08, scanWidth: 0.15, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4)],
-  ["gridDistortion", (b) => paintGridDistortion(b, { colors: C, count: 12, distortion: 1, speed: 0.5, lineWidth: 0.08, glow: 1.5, opacity: 1, dither: 0, mouseStrength: 1 }, 2, BAYER4, null)],
-  ["lightRays", (b) => paintRays(b, { colors: C, sourceX: 0.5, sourceY: -0.05, rayCount: 12, speed: 0.5, spread: 1, falloff: 0.8, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4)],
-  ["sideRays", (b) => paintRays(b, { colors: C, sourceX: -0.05, sourceY: 0.5, rayCount: 10, speed: 0.5, spread: 1, falloff: 0.7, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4)],
-  ["lightPillar", (b) => paintLightPillar(b, { colors: C, count: 8, speed: 0.5, width: 0.4, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4)],
-  ["softAurora", (b) => paintSoftAurora(b, { colors: C, bands: 3, amplitude: 1, blend: 0.6, speed: 0.5, opacity: 1, dither: 0 }, 2, BAYER4)],
+  [
+    "beams",
+    (b) =>
+      paintBeams(
+        b,
+        { colors: C, count: 5, angle: 0.6, speed: 0.5, sharpness: 3, glow: 1.5, opacity: 1, dither: 0 },
+        2,
+        BAYER4,
+      ),
+  ],
+  [
+    "gridMotion",
+    (b) =>
+      paintGridMotion(
+        b,
+        { colors: C, count: 12, angle: 0.4, speed: 0.5, lineWidth: 0.08, glow: 1.5, opacity: 1, dither: 0 },
+        2,
+        BAYER4,
+      ),
+  ],
+  [
+    "gridScan",
+    (b) =>
+      paintGridScan(
+        b,
+        { colors: C, count: 12, speed: 0.5, lineWidth: 0.08, scanWidth: 0.15, glow: 1.5, opacity: 1, dither: 0 },
+        2,
+        BAYER4,
+      ),
+  ],
+  [
+    "gridDistortion",
+    (b) =>
+      paintGridDistortion(
+        b,
+        {
+          colors: C,
+          count: 12,
+          distortion: 1,
+          speed: 0.5,
+          lineWidth: 0.08,
+          glow: 1.5,
+          opacity: 1,
+          dither: 0,
+          mouseStrength: 1,
+        },
+        2,
+        BAYER4,
+        null,
+      ),
+  ],
+  [
+    "lightRays",
+    (b) =>
+      paintRays(
+        b,
+        {
+          colors: C,
+          sourceX: 0.5,
+          sourceY: -0.05,
+          rayCount: 12,
+          speed: 0.5,
+          spread: 1,
+          falloff: 0.8,
+          glow: 1.5,
+          opacity: 1,
+          dither: 0,
+        },
+        2,
+        BAYER4,
+      ),
+  ],
+  [
+    "sideRays",
+    (b) =>
+      paintRays(
+        b,
+        {
+          colors: C,
+          sourceX: -0.05,
+          sourceY: 0.5,
+          rayCount: 10,
+          speed: 0.5,
+          spread: 1,
+          falloff: 0.7,
+          glow: 1.5,
+          opacity: 1,
+          dither: 0,
+        },
+        2,
+        BAYER4,
+      ),
+  ],
+  [
+    "lightPillar",
+    (b) =>
+      paintLightPillar(b, { colors: C, count: 8, speed: 0.5, width: 0.4, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4),
+  ],
+  [
+    "softAurora",
+    (b) =>
+      paintSoftAurora(
+        b,
+        { colors: C, bands: 3, amplitude: 1, blend: 0.6, speed: 0.5, opacity: 1, dither: 0 },
+        2,
+        BAYER4,
+      ),
+  ],
 ]
 
 describe("backgrounds batch 2", () => {

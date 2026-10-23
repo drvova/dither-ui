@@ -27,7 +27,7 @@ const props = withDefaults(
     bloom: "off",
     bloomOnHover: false,
     animate: false,
-  }
+  },
 )
 
 const rows = computed(() => props.data.map((v) => ({ v })))

@@ -11,7 +11,7 @@ const props = withDefaults(
     lag?: number
     class?: string
   }>(),
-  { color: "#7CFF67", size: 48, lag: 0.18 }
+  { color: "#7CFF67", size: 48, lag: 0.18 },
 )
 
 const area = ref<HTMLElement | null>(null)
@@ -60,7 +60,13 @@ useInviewLoop(area, start, stop)
     <div
       ref="blob"
       class="pointer-events-none absolute left-0 top-0 rounded-full blur-md"
-      :style="{ width: `${props.size}px`, height: `${props.size}px`, background: props.color, mixBlendMode: 'screen', transform: 'scale(0)' }"
+      :style="{
+        width: `${props.size}px`,
+        height: `${props.size}px`,
+        background: props.color,
+        mixBlendMode: 'screen',
+        transform: 'scale(0)',
+      }"
       aria-hidden="true"
     />
   </div>

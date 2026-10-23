@@ -5,11 +5,25 @@
 // painters. Any content — a kit canvas surface, an SVG, text — rides it.
 import { computed, inject } from "vue"
 import { STAGE } from "./DitherStage.vue"
-import { compileTrack, type KeyEasing, type Keyframe, keyframeTransform, resolveSample, sampleKeyframes } from "./keyframes"
+import {
+  compileTrack,
+  type KeyEasing,
+  type Keyframe,
+  keyframeTransform,
+  resolveSample,
+  sampleKeyframes,
+} from "./keyframes"
 import { cn } from "./lib"
 
 /** What the slot receives: every property resolved to px / degrees, then the moment's shape. */
-export type LayerSlot = { [resolved: string]: number; progress: number; cycle: number; time: number; width: number; height: number }
+export type LayerSlot = {
+  [resolved: string]: number
+  progress: number
+  cycle: number
+  time: number
+  width: number
+  height: number
+}
 
 const props = withDefaults(
   defineProps<{
@@ -35,14 +49,28 @@ const stage = inject(STAGE, null)
 const NONE = { width: 0, height: 0 }
 const time = computed(() => (stage?.reduced.value ? Infinity : (stage?.time.value ?? 0)))
 const box = computed(() => stage?.box.value ?? NONE)
-const track = computed(() => compileTrack({ keyframes: props.keyframes, duration: props.duration, delay: props.delay, loop: props.loop, yoyo: props.yoyo, easing: props.easing }))
+const track = computed(() =>
+  compileTrack({
+    keyframes: props.keyframes,
+    duration: props.duration,
+    delay: props.delay,
+    loop: props.loop,
+    yoyo: props.yoyo,
+    easing: props.easing,
+  }),
+)
 const sample = computed(() => sampleKeyframes(track.value, time.value))
 const resolved = computed(() => resolveSample(sample.value, box.value))
 const fmt = (n: number) => String(Math.round(n * 1000) / 1000)
 const style = computed(() => {
-  const s: Record<string, string> = { transform: keyframeTransform(sample.value), transformOrigin: props.origin, "--layer-p": fmt(sample.value.progress) }
+  const s: Record<string, string> = {
+    transform: keyframeTransform(sample.value),
+    transformOrigin: props.origin,
+    "--layer-p": fmt(sample.value.progress),
+  }
   if (sample.value.numbers.opacity !== undefined) s.opacity = fmt(sample.value.numbers.opacity)
-  for (const [name, value] of Object.entries(resolved.value)) s[`--layer-${name}`] = name in sample.value.lengths ? `${fmt(value)}px` : fmt(value)
+  for (const [name, value] of Object.entries(resolved.value))
+    s[`--layer-${name}`] = name in sample.value.lengths ? `${fmt(value)}px` : fmt(value)
   return s
 })
 const slotProps = computed<LayerSlot>(() => ({

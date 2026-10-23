@@ -1,29 +1,32 @@
 <script setup lang="ts">
-import { onBeforeMount, onBeforeUnmount, onMounted, ref } from "vue"
-import {
-  DitherButton,
-  DitherGradient,
-} from "@dither-kit"
+import { onBeforeUnmount, onMounted, ref } from "vue"
 import { assetPath, routePath } from "@/shared/lib"
+import "./chapters.css"
 import { version } from "../../../package.json"
 import EngravedWordmark from "./EngravedWordmark.vue"
 import EssayFigure from "./EssayFigure.vue"
-import InstallBlock from "./InstallBlock.vue"
-import PixelPlate from "./PixelPlate.vue"
-import SkyOrganism from "./SkyOrganism.vue"
+import Hub from "./Hub.vue"
+import PixelWord from "./PixelWord.vue"
+import Showcase from "./Showcase.vue"
 import { createDitherField, type DitherField } from "./dither-field"
 import { createPixelShake, type PixelShake } from "./pixel-shake"
 import { seedFor } from "./genome"
-import { dawnPlate, SKY } from "./plates"
-import Showcase from "./Showcase.vue"
+import { SKY } from "./plates"
 
-// DitherButton renders a <button>, so navigation rides its click — never an
-// <a> nested inside it (two tab stops, dead padding, invalid content model).
-const openStudio = () => location.assign(routePath("/studio"))
-const openDocs = () => location.assign(routePath("/docs"))
+// The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES), in its order.
+const HARNESSES = ["Claude Code", "Codex", "Gemini CLI", "Qwen Code", "oh-my-pi", "Goose", "OpenCode", "Auggie"]
 
-// The hero's figure: built once at setup — deterministic markup, no runtime.
-const DAWN = dawnPlate()
+// The footer's links, in one row.
+const FOOTER = [
+  { label: "Docs", href: routePath("/docs") },
+  { label: "Studio", href: routePath("/studio") },
+  { label: "Quick start", href: routePath("/docs/getting-started") },
+  { label: "Styling", href: routePath("/docs/styling") },
+  { label: "Accessibility", href: routePath("/docs/accessibility") },
+  { label: "Agent skill", href: assetPath("/agent/SKILL.md") },
+  { label: "llms.txt", href: assetPath("/llms.txt") },
+  { label: "GitHub", href: "https://github.com/drvova/dither-ui", external: true },
+]
 
 // Portraits + their reaction emotes, cropped from faces.webp — a thin band
 // sliced out of the source sheet (rows 766..900) so the landing loads ~70KB
@@ -53,115 +56,45 @@ function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number,
   c.getContext("2d")?.drawImage(img, x, y, w, h, 0, 0, c.width, c.height)
 }
 
-// The essay: statements light up as they cross the viewport, the in-focus one's
-// index scales with a spring. A rAF-throttled scroll driver picks the lit set
-// (a ratchet — anything whose top crossed 85% of the viewport, never un-lit)
-// and the active one (the statement whose band is nearest the viewport middle).
-const STAGES = [
-  { lines: ["Every pixel is placed", "on purpose."], n: "01" },
-  { lines: ["Charts, buttons, avatars", "and gradients — rendered", "pixel by pixel on canvas."], n: "02" },
-  { lines: ["One palette: seven seeds;", "fill, line and sparkle hues", "resolve from the same source."], n: "03" },
-  { lines: ["Every fill is deterministic —", "a seed replays it forever, and", "explicit props always win."], n: "04" },
-  { lines: ["Layout, motion and text", "families compose from the", "same dither engine."], n: "05" },
-  { lines: ["Copy the folder, alias it —", "no build step, no black box."], n: "06" },
-]
+// The principles: six statements read as one, each a link into the docs
+// that covers it. Their words light as they rise through the viewport (CSS
+// scroll timelines, `--p` = the word's place in its line), and the
+// statement crossing the viewport's middle — or the one pointed at, by
+// hover or focus — re-dithers the figure into its scene.
+const PRINCIPLES = [
+  { text: "Every pixel is placed on purpose.", href: routePath("/docs") },
+  {
+    text: "Charts, buttons, avatars and gradients — rendered pixel by pixel on canvas.",
+    href: routePath("/docs/area"),
+  },
+  {
+    text: "One palette: seven seeds; fill, line and sparkle hues resolve from the same source.",
+    href: routePath("/docs/palette"),
+  },
+  {
+    text: "Every fill is deterministic — a seed replays it forever, and explicit props always win.",
+    href: routePath("/docs/seeds"),
+  },
+  {
+    text: "Layout, motion and text families compose from the same dither engine.",
+    href: routePath("/docs/composition"),
+  },
+  { text: "Copy the folder, alias it — no build step, no black box.", href: routePath("/docs/getting-started") },
+].map((p) => {
+  // A dash never starts a line: it is bound to the word before it.
+  const words = p.text.replace(/ —/g, "\u00a0—").split(" ")
+  return { ...p, words: words.map((w, i) => ({ w, p: words.length > 1 ? i / (words.length - 1) : 0 })) }
+})
+const principle = ref(0)
+const principleEls = ref<HTMLElement[]>([])
+let stageIO: IntersectionObserver | null = null
 
-// The reveal choreography arms itself with JS: until this component's script
-// runs, every .reveal block renders visible (no-JS visitors and the
-// prerendered bytes get the complete page; the old html.js gate — a :global
-// scoped rule — white-screened every browser and is banned).
-const armed = ref(false)
-// Memory: a returning visitor gets the settled page — the entrance
-// choreography (reveals, ember ignite, grain and sky fade-ins) plays once
-// per browser, then the page simply is. Figures that play on scroll-in
-// (plates, wordmark) are unaffected: they are motion, not an entrance.
-const SEEN_KEY = "dither-landing-seen"
-const returning = ref(false)
-
-const stageEls = ref<HTMLElement[]>([])
-const softEls = ref<HTMLElement[]>([])
-const pageEl = ref<HTMLElement | null>(null)
-// The hero copy's box: handed to the living sky as its exclusion zone.
-const copyEl = ref<HTMLElement | null>(null)
-// The closing band's backdrop: a sparse seeded dot sea on the vanilla
-// engine (12fps, 4px cells, navy-to-blue only, so the display line keeps
-// its ink). Hovering the band thickens the dither — density is the hover
+// The agents strip's backdrop: a sparse seeded dot sea on the vanilla
+// engine (12fps, 4px cells, navy-to-blue only, so the chips keep their
+// ink). Hovering the strip thickens the dither — density is the hover
 // state — and the cursor drags a soft body through it.
 const bandCanvas = ref<HTMLCanvasElement | null>(null)
 let bandField: DitherField | null = null
-const litSet = ref<Set<number>>(new Set())
-const activeIdx = ref(-1)
-let ticking = false
-let reduced = false
-let revealIO: IntersectionObserver | null = null
-
-function updateEssay() {
-  ticking = false
-  const vh = window.innerHeight
-  const focus = vh * 0.5
-  // At max scroll the lower statements sit below the 0.5vh focus line but above
-  // the fold; light anything whose top crossed 85% of the viewport (a ratchet:
-  // once lit, stays lit — the essay reads as read), and pick the active one as
-  // the statement whose band is nearest the focus line.
-  const lightLine = vh * 0.85
-  const lit = new Set<number>()
-  let active = -1
-  let bestDist = Infinity
-  stageEls.value.forEach((el, i) => {
-    const r = el.getBoundingClientRect()
-    if (r.top < lightLine) lit.add(i)
-    const dist = r.top > focus ? r.top - focus : r.bottom < focus ? focus - r.bottom : 0
-    if (dist < bestDist) {
-      bestDist = dist
-      active = i
-    }
-  })
-  litSet.value = lit
-  activeIdx.value = active
-}
-
-function requestUpdate() {
-  if (!ticking) {
-    ticking = true
-    requestAnimationFrame(updateAll)
-  }
-}
-
-// Ghost-style soft focus: footer content rests blurred and resolves into focus
-// as it scrolls into view. Measured from the reference: blur decays like
-// 12px * (1-p)^6, sharpening slowly at first then snapping clean. The footer
-// is the page's last block, so progress rides its scroll RUNWAY: the distance
-// from "footer top enters the viewport" to max scroll. That guarantees it
-// resolves to exactly 0 by the end of the page — a viewport-relative zone
-// can't, because a short footer's resting top never rises past ~75% vh.
-// --soft is 1 = fully blurred, 0 = sharp.
-function updateSoft() {
-  const footer = softEls.value[0]?.closest("footer")
-  if (!footer) return
-  const max = document.documentElement.scrollHeight - window.innerHeight
-  const footerTop = footer.getBoundingClientRect().top + window.scrollY
-  const start = Math.max(0, footerTop - window.innerHeight) // runway start
-  const p = max > start ? Math.min(1, Math.max(0, (window.scrollY - start) / (max - start))) : 1
-  const soft = (1 - p).toFixed(4)
-  for (const el of softEls.value) el.style.setProperty("--soft", soft)
-}
-
-function updateAll() {
-  updateEssay()
-  updateSoft()
-}
-
-// Arm before the first render so the very first painted frame already
-// carries data-armed — no visible flash of unlatched content.
-onBeforeMount(() => {
-  armed.value = true
-  try {
-    returning.value = localStorage.getItem(SEEN_KEY) === "1"
-    localStorage.setItem(SEEN_KEY, "1")
-  } catch {
-    returning.value = false
-  }
-})
 
 onMounted(() => {
   // The landing is always-dark art (the film stage, plates and organism are
@@ -177,12 +110,13 @@ onMounted(() => {
     FACES.forEach((f, i) => {
       const face = faceEls.value[i]
       const emote = emoteEls.value[i]
-      if (face) shakers.push(createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }))
+      if (face)
+        shakers.push(
+          createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }),
+        )
       if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
     })
   }
-
-  reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
   if (bandCanvas.value) {
     bandField = createDitherField(bandCanvas.value, {
@@ -213,65 +147,34 @@ onMounted(() => {
     })
   }
 
-  // Scroll choreography (reference: rise / lp-in, latched like the docs
-  // DemoCard): every .reveal block animates the first time it crosses into
-  // view and then stays put. Without IO (jsdom) or under reduced motion
-  // everything is seen immediately. The latch is a data attribute, never a
-  // class: Vue rewrites className whenever a component re-renders its own
-  // :class (InstallBlock's root does), which silently wiped a .seen class
-  // and left the strip invisible after a slow scroll.
-  const targets = Array.from(pageEl.value?.querySelectorAll<HTMLElement>(".reveal") ?? [])
-  if (reduced || typeof IntersectionObserver === "undefined") {
-    for (const el of targets) el.setAttribute("data-seen", "")
-  } else {
-    revealIO = new IntersectionObserver(
+  // The statement crossing the viewport's middle stages the figure: a
+  // zero-height root line, no scroll listener.
+  if (typeof IntersectionObserver !== "undefined") {
+    stageIO = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue
-          entry.target.setAttribute("data-seen", "")
-          revealIO?.unobserve(entry.target)
+        for (const e of entries) {
+          const i = principleEls.value.indexOf(e.target as HTMLElement)
+          if (e.isIntersecting && i >= 0) principle.value = i
         }
       },
-      { threshold: 0.12 },
+      { rootMargin: "-50% 0px -50% 0px" },
     )
-    for (const el of targets) revealIO.observe(el)
+    for (const el of principleEls.value) stageIO.observe(el)
   }
-
-  if (reduced) {
-    litSet.value = new Set(STAGES.map((_, i) => i))
-    // Soft focus is decorative: under reduced motion, everything is sharp.
-    for (const el of softEls.value) el.style.setProperty("--soft", "0")
-    return
-  }
-  updateAll()
-  window.addEventListener("scroll", requestUpdate, { passive: true })
-  window.addEventListener("resize", requestUpdate, { passive: true })
 })
 
 onBeforeUnmount(() => {
+  stageIO?.disconnect()
+  stageIO = null
   for (const sh of shakers) sh.destroy()
   shakers = []
   bandField?.destroy()
   bandField = null
-  revealIO?.disconnect()
-  revealIO = null
-  window.removeEventListener("scroll", requestUpdate)
-  window.removeEventListener("resize", requestUpdate)
 })
-
-function setActive(i: number) {
-  if (reduced) return
-  activeIdx.value = i
-}
 </script>
 
 <template>
-  <div
-    ref="pageEl"
-    :data-armed="armed ? 'true' : undefined"
-    :data-returning="returning ? 'true' : undefined"
-    class="landing flex min-h-screen flex-col bg-background font-mono text-foreground antialiased"
-  >
+  <div class="landing flex min-h-screen flex-col bg-background text-foreground antialiased">
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
     <a
       href="#main"
@@ -280,16 +183,15 @@ function setActive(i: number) {
       Skip to content
     </a>
 
-    <!-- Header: relative + z-10 — main.relative isolates the fixed veil, and
-         a positioned sibling always paints above a static one; without this
-         the veil covered the header entirely (it painted zero pixels). -->
-    <header
-      class="relative z-10 mx-auto flex h-16 w-full max-w-[var(--shell)] items-center justify-between px-6 text-xs"
-    >
-      <div class="flex w-full items-center justify-between">
-        <span class="flex items-center gap-2.5 tracking-tight">
-          <!-- Brand mark: a 7x7 dithered diamond with the ember core — crisp
-               edges so it stays a pixel shape at any zoom. -->
+    <!-- Header: the docs header's twin (brand, micro-caps links, the
+         "Open studio" pill) so landing → docs → studio is one site.
+         relative + z-10 — main.relative isolates the page art, and a
+         positioned sibling always paints above a static one; without this
+         the art covered the header entirely (it painted zero pixels). -->
+    <header class="site-head relative z-10">
+      <div class="mx-auto flex h-14 w-full max-w-[var(--shell)] items-center justify-between px-6 text-xs">
+        <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap tracking-tight">
+          <!-- The brand mark: the 7x7 dithered diamond, ember core. -->
           <svg
             viewBox="0 0 7 7"
             width="13"
@@ -298,198 +200,153 @@ function setActive(i: number) {
             focusable="false"
             shape-rendering="crispEdges"
           >
-            <g fill="currentColor">
-              <rect x="3" y="0" width="1" height="1" />
-              <rect x="2" y="1" width="3" height="1" />
-              <rect x="1" y="2" width="5" height="1" />
-              <rect x="0" y="3" width="7" height="1" />
-              <rect x="1" y="4" width="5" height="1" />
-              <rect x="2" y="5" width="3" height="1" />
-              <rect x="3" y="6" width="1" height="1" />
-            </g>
+            <path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="currentColor" />
             <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
           </svg>
           dither-ui
-        </span>
-        <nav class="flex items-center gap-1 text-muted-foreground" aria-label="Site">
-          <a :href="routePath('/docs')" class="nav-a">docs</a>
-          <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="nav-a">github</a>
+        </a>
+        <nav class="flex items-center text-muted-foreground" aria-label="Site">
+          <a href="#directory" class="nav-a hidden sm:inline-flex">Components</a>
+          <a :href="routePath('/docs')" class="nav-a">Docs</a>
+          <a href="#agents" class="nav-a hidden sm:inline-flex">Agents</a>
+          <a
+            href="https://github.com/drvova/dither-ui"
+            target="_blank"
+            rel="noreferrer"
+            class="nav-a hidden md:inline-flex"
+            >GitHub<span aria-hidden="true">↗</span></a
+          >
           <a :href="routePath('/studio')" class="nav-a nav-pill ml-2">Open studio</a>
         </nav>
       </div>
     </header>
 
     <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
-      <!-- Hero: a hairline STAGE — the statement and its one action hold the
-           dark sky; the dawn plate owns the floor. The sky is alive: the
-           SkyOrganism breathes the page's own dither rule over the horizon
-           (bounded to the stage, 24fps, offscreen-paused), so the artwork
-           demos the engine the way the reference's field does. Art yields to
-           text: the horizon is lowest under the copy and crests right. -->
-      <section aria-labelledby="hero-h" class="mx-auto w-full max-w-[var(--shell)] px-6 pt-2 pb-20">
-        <div class="stage">
-          <SkyOrganism :avoid="copyEl" />
-          <div class="grain" aria-hidden="true"></div>
-          <div ref="copyEl" class="stage-copy">
-            <p class="reveal eyebrow" style="--reveal-delay: 0ms">
-              <span class="led" aria-hidden="true"></span>
-              Open source · Vue 3 · canvas
-            </p>
-            <h1
-              id="hero-h"
-              class="reveal mt-6 max-w-3xl text-[clamp(2.5rem,6.4vw,5.5rem)] font-medium leading-[0.98] tracking-[-0.035em] text-balance"
-              style="--reveal-delay: 60ms"
-            >
-              A dithered UI toolkit for Vue<span class="ember">.</span>
-            </h1>
-            <p
-              class="reveal mt-7 max-w-[34rem] text-[clamp(1rem,1.6vw,1.2rem)] leading-[1.65] text-muted-foreground [text-wrap:pretty]"
-              style="--reveal-delay: 140ms"
-            >
-              Charts, buttons, avatars and gradients — rendered
-              <em class="text-foreground/80">pixel by pixel</em> on canvas, from one
-              seeded palette. Copy the folder, alias it, ship.
-            </p>
-            <div class="reveal cta mt-10" style="--reveal-delay: 220ms">
-              <DitherButton
-                color="blue"
-                variant="gradient"
-                class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
-                @click="openStudio"
-              >
-                Open studio
-              </DitherButton>
-              <a :href="routePath('/docs')" class="cta-quiet">Read the docs<span aria-hidden="true">→</span></a>
+      <!-- The portal: the full-bleed art band (the films), the statement,
+           the install bar and the panel columns — six moods in the
+           portraits' well: hover a face, her pixels scatter under the
+           cursor and settle, and her emote answers. Then, on the shell, the
+           directory, the principles and the agents. -->
+      <Showcase>
+        <template #faces>
+          <div
+            role="img"
+            aria-label="Pixel-art character portraits in six expressions — hover a portrait: her pixels stir under the cursor and her reaction emote answers"
+            class="grid grid-cols-3 gap-x-5"
+          >
+            <div v-for="(f, i) in FACES" :key="i" class="group relative flex justify-center pt-6">
+              <!-- CSS size reserves layout (no CLS); blit paints the backing store at
+                     device resolution so the portrait stays sharp on hi-DPI / 4K -->
+              <canvas
+                :ref="
+                  (el) => {
+                    if (el) faceEls[i] = el as HTMLCanvasElement
+                  }
+                "
+                :style="{ width: `${f.w}px`, height: `${FACE_H}px` }"
+              />
+              <canvas
+                :ref="
+                  (el) => {
+                    if (el) emoteEls[i] = el as HTMLCanvasElement
+                  }
+                "
+                class="emote absolute top-0 left-1/2"
+                :style="{ width: `${f.emote.w}px`, height: `${f.emote.h}px` }"
+              />
             </div>
           </div>
-          <PixelPlate :plate="DAWN" fit="xMidYMax slice" class="stage-art" />
-        </div>
-      </section>
+        </template>
+      </Showcase>
+      <div class="box mx-auto w-full max-w-[var(--shell)] px-6">
+        <Hub />
 
-      <!-- Install strip: step tabs + command + copy (docs install story). -->
-      <InstallBlock />
-
-      <!-- Six moods, one row — hover a face: her pixels scatter under the
-           cursor and settle, and her emote answers -->
-      <p
-        class="reveal micro pt-[var(--section)] pb-6 text-center text-muted-foreground"
-        style="--reveal-delay: 260ms"
-      >
-        expressions
-      </p>
-      <div
-        role="img"
-        aria-label="Pixel-art character portraits in six expressions — hover a portrait: her pixels stir under the cursor and her reaction emote answers"
-        class="reveal flex flex-wrap justify-center gap-7"
-        style="--reveal-delay: 300ms"
-      >
-        <div v-for="(f, i) in FACES" :key="i" class="group relative pt-10">
-          <!-- CSS size reserves layout (no CLS); blit paints the backing store at
-               device resolution so the portrait stays sharp on hi-DPI / 4K -->
-          <canvas
-            :ref="(el) => { if (el) faceEls[i] = el as HTMLCanvasElement }"
-            :style="{ width: `${f.w}px`, height: `${FACE_H}px` }"
-          />
-          <canvas
-            :ref="(el) => { if (el) emoteEls[i] = el as HTMLCanvasElement }"
-            class="emote absolute top-0 left-1/2"
-            :style="{ width: `${f.emote.w}px`, height: `${f.emote.h}px` }"
-          />
-        </div>
-      </div>
-
-      <!-- Three chapters — the kit showing itself, live. -->
-      <Showcase />
-
-      <!-- The essay: six numbered statements that light up as you scroll.
-           The index rail (01–06) turns ember and takes a rule on the in-focus one. -->
-      <section aria-label="What the kit does" class="essay-wrap mx-auto w-full max-w-5xl px-6 pb-[var(--section)]">
-        <!-- The figure: a 24x24 lattice that re-dithers itself into the
-             active statement's scene, sticky beside the column at lg. -->
-        <div class="essay-fig">
-          <EssayFigure :stage="activeIdx" />
-        </div>
-        <div class="essay-col">
-        <ol class="essay mx-auto flex list-none flex-col p-0">
-          <li
-            v-for="(s, i) in STAGES"
-            :key="s.n"
-            :ref="(el) => { if (el) stageEls[i] = el as HTMLElement }"
-            class="statement"
-            :class="litSet.has(i) ? 'is-lit' : ''"
-            :data-n="s.n"
-            :data-active="activeIdx === i ? 'true' : 'false'"
-            @mouseenter="setActive(i)"
-            @focusin="setActive(i)"
-          >
-            <span v-for="line in s.lines" :key="line" class="block">{{ line }}</span>
-          </li>
-        </ol>
-        </div>
-      </section>
-
-      <!-- Closing band: full-bleed elevated surface, one display line, one CTA. -->
-      <section class="bleed">
-        <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
-        <div class="relative mx-auto flex w-full flex-col items-center gap-9 px-6 py-28 text-center">
-          <h2 class="display max-w-xl text-[clamp(1.875rem,4.2vw,3.375rem)] font-normal leading-[1.08] tracking-[-0.032em]">
-            Pixel by pixel,<br />on canvas.
-          </h2>
-          <div class="flex flex-wrap justify-center gap-3">
-            <DitherButton
-              color="blue"
-              variant="gradient"
-              class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
-              @click="openStudio"
-            >
-              Open studio
-            </DitherButton>
-            <DitherButton
-              color="grey"
-              variant="dotted"
-              class="px-6 py-3 text-[13px] transition-transform active:scale-[0.96]"
-              @click="openDocs"
-            >
-              Read the docs
-            </DitherButton>
+        <!-- The principles: the figure in a sticky well (a 24x24 lattice
+             that re-dithers itself into the staged statement's scene)
+             beside six numbered statements at a large size, each a link
+             into its docs, their words lighting as they rise. -->
+        <section aria-labelledby="principles-h" class="principles">
+          <div class="section-head">
+            <p class="eyebrow">Principles</p>
+            <h2 id="principles-h" class="section-title">One rule under every pixel.</h2>
+            <a :href="routePath('/docs/getting-started')" class="more-link">quick start →</a>
           </div>
-        </div>
-      </section>
+          <div class="panel principles-body">
+            <div class="thumb principles-fig"><EssayFigure :stage="principle" /></div>
+            <ol class="principles-list">
+              <li v-for="(p, i) in PRINCIPLES" :key="p.href">
+                <a
+                  :ref="
+                    (el) => {
+                      if (el) principleEls[i] = el as HTMLElement
+                    }
+                  "
+                  :href="p.href"
+                  class="principle"
+                  :data-active="principle === i ? 'true' : undefined"
+                  @mouseenter="principle = i"
+                  @focus="principle = i"
+                >
+                  <span class="principle-n" aria-hidden="true">{{ String(i + 1).padStart(2, "0") }}</span>
+                  <span class="principle-t"
+                    ><template v-for="(w, j) in p.words" :key="j"
+                      ><span class="w" :style="{ '--p': w.p }">{{ w.w }}</span
+                      >{{ j < p.words.length - 1 ? " " : "" }}</template
+                    ></span
+                  >
+                </a>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- The agents strip: the harnesses the bridge knows, as hairline
+             chips with their ember LED under an eyebrow, over the dot sea —
+             every one drives the Studio as the user's own signed-in process. -->
+        <section id="agents" class="agents" aria-labelledby="harness-h">
+          <div class="section-head">
+            <p class="eyebrow">Agents</p>
+            <h2 id="harness-h" class="section-title">Your own agent drives the Studio.</h2>
+            <a :href="assetPath('/agent/SKILL.md')" class="more-link">agent skill →</a>
+          </div>
+          <div class="panel harness-panel">
+            <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
+            <ul class="harness">
+              <li v-for="h in HARNESSES" :key="h" class="harness-chip"><i aria-hidden="true"></i>{{ h }}</li>
+            </ul>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <!-- Footer: soft-focus like the ghost reference — blurred at rest, the
-         whole footer resolves into focus as it scrolls into view. -->
-    <footer class="relative isolate overflow-hidden border-t border-border/60">
-      <DitherGradient
-        from="blue"
-        to="transparent"
-        direction="up"
-        :opacity="0.2"
-        :cell="4"
-        render-mode="static"
-        class="-z-10"
-      />
-      <div
-        :ref="(el) => { if (el) softEls[0] = el as HTMLElement }"
-        class="soft mx-auto flex h-16 w-full max-w-[var(--shell)] items-center justify-between px-6 text-[11px] text-muted-foreground"
-      >
-        <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
-        <div class="flex items-center gap-4">
-          <a
-            href="https://github.com/drvova/dither-ui"
-            target="_blank"
-            rel="noreferrer"
-            class="-my-1 py-1 transition-colors hover:text-foreground"
-            >GitHub</a
-          >
-          <span class="tabular-nums">v{{ version }} · MIT</span>
+    <!-- Footer: the wordmark and framework badges left, bar-separated
+         links right, the copyright line under — then the engraved mark. -->
+    <footer class="foot-wrap">
+      <div class="mx-auto w-full max-w-[var(--shell)] px-6 pt-8 pb-6">
+        <div class="foot-row">
+          <div class="foot-left">
+            <PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" class="text-foreground" />
+            <span class="micro foot-badge">Vue 3</span>
+            <span class="micro foot-badge">Svelte 5</span>
+          </div>
+          <nav class="foot-links" aria-label="Footer">
+            <a
+              v-for="l in FOOTER"
+              :key="l.label"
+              :href="l.href"
+              v-bind="l.external ? { target: '_blank', rel: 'noreferrer' } : {}"
+              >{{ l.label }}<span v-if="l.external" aria-hidden="true"> ↗</span></a
+            >
+          </nav>
         </div>
+        <p class="foot-copy">
+          © {{ new Date().getFullYear() }} dither-ui.com · v{{ version }} · MIT ·
+          <a href="https://clayzo.com" target="_blank" rel="noreferrer"
+            >Films made with Clayzo<span aria-hidden="true"> ↗</span></a
+          >
+        </p>
       </div>
-      <div
-        :ref="(el) => { if (el) softEls[1] = el as HTMLElement }"
-        aria-hidden="true"
-        class="soft mx-auto w-[min(90vw,56rem)] px-6 pb-10"
-      >
+      <div aria-hidden="true" class="mx-auto w-[min(90vw,56rem)] px-6 pb-10">
         <EngravedWordmark />
       </div>
     </footer>
@@ -497,324 +354,247 @@ function setActive(i: number) {
 </template>
 
 <style scoped>
-/* Scroll choreography: blocks sit hidden until the IO sets [data-seen] the
-   first time they cross into view (reference: rise / lp-in, DemoCard latch).
-   The hide requires the component's own data-armed — set in onBeforeMount —
-   so no-JS visitors and the prerendered bytes render the complete page. */
-.landing[data-armed] .reveal:not([data-seen]) {
-  opacity: 0;
-}
-
-.reveal[data-seen] {
-  animation: reveal 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: var(--reveal-delay, 0ms);
-}
-
-@keyframes reveal {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    animation: none;
-    opacity: 1;
-  }
-}
-
-/* Returning visitors: no entrance. The reveal blocks sit visible from the
-   first frame and the one-shot ignite / grain / sky fade-ins are skipped. */
-.landing[data-returning] .reveal,
-.landing[data-returning] .reveal:not([data-seen]) {
-  animation: none;
-  opacity: 1;
-}
-
-.landing[data-returning] .ember,
-.landing[data-returning] .grain {
-  animation-name: none;
-}
-
-.landing[data-returning] .grain {
-  animation: grain-jitter 1.1s steps(4) infinite;
-}
-
-.landing[data-returning] :deep(.sky-organism) {
-  animation: none;
-}
-
-/* One shell width for header, stage, chapters and footer, and ONE vertical
-   rhythm between sections — children read both through inheritance, so
-   every gap on the page is the same breath (never a sum of two paddings). */
+/* One shell for the header, the portal and the footer — the docs' own
+   width, so the brand never jumps between pages — and one rhythm between
+   the portal's rows. The page is the theme's own background. */
 .landing {
   --shell: 72rem;
-  --section: clamp(5rem, 9vw, 8rem);
-  /* Sharp corners are the pixel identity: the stage, pill and chapters are
-     square, so kit controls on this page drop the app's 8px radius too. */
-  --radius: 0px;
+  --rhythm: 40px;
 }
 
-/* (.nav-a / .nav-pill / .eyebrow / .led are the site voice in app/styles.css.) */
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--rhythm) * 1.5);
+  padding-top: calc(var(--rhythm) * 1.5);
+  padding-bottom: calc(var(--rhythm) * 1.5);
+}
 
-/* One primary action, one quiet way out: the docs link sits beside the
-   button as text with an arrow that nudges on hover. */
-.cta {
+/* The header: the docs chrome's scroll-edge hairline, no hard border. */
+.site-head::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklab, var(--border) 80%, transparent) 20%,
+    color-mix(in oklab, var(--border) 80%, transparent) 80%,
+    transparent
+  );
+}
+
+/* The footer: the wordmark and framework badges left, bar-separated links
+   right, the copyright line under it. */
+.foot-wrap {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--border) 70%, transparent);
+}
+
+.foot-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 22px;
+  justify-content: space-between;
+  gap: 14px 24px;
 }
 
-.cta-quiet {
+.foot-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.foot-badge {
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.foot-links a {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  font-size: 13px;
-  color: var(--color-muted-foreground);
+  min-height: 28px;
+  padding: 0 10px;
+  box-shadow: inset -1px 0 0 var(--line);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.cta-quiet span {
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+.foot-links a:last-child {
+  padding-right: 0;
+  box-shadow: none;
 }
 
-.cta-quiet:hover {
-  color: var(--color-foreground);
+.foot-links a:hover,
+.foot-copy a:hover {
+  color: var(--ink);
 }
 
-.cta-quiet:hover span {
-  transform: translateX(3px);
+.foot-copy {
+  margin: 10px 0 0;
+  text-align: right;
+  font-size: 11px;
+  color: var(--ink-3);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cta-quiet span {
-    transition: none;
+@media (max-width: 759px) {
+  .foot-copy {
+    text-align: left;
   }
 }
 
-/* The stage: a black film with a hairline edge (sharp corners — the pixel
-   identity). The copy rides the top; the dawn plate is pinned to the floor
-   and sliced from the bottom-centre, so cells stay square at every width and
-   narrow screens crop the horizon's ends, never its crest. */
-.stage {
-  --art: clamp(13rem, 29vw, 25rem);
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: clamp(34rem, calc(100svh - 6.5rem), 54rem);
-  background: #05060a;
-  border: 1px solid color-mix(in oklab, var(--color-border) 90%, transparent);
+/* The principles: the figure's well, sticky at the viewport's middle,
+   beside six statements at a large size. The staged statement takes an
+   ink index and a hairline rule. */
+.principles,
+.agents {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.stage-copy {
-  position: relative;
-  z-index: 1;
-  padding: clamp(1.75rem, 5vw, 4rem);
-  padding-bottom: calc(var(--art) * 0.62);
+.principles-body {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+  padding: 28px;
 }
 
-.stage-art {
-  position: absolute;
-  inset: auto 0 0;
-  width: 100%;
-  height: var(--art);
+.principles-fig {
+  position: sticky;
+  top: calc(50vh - 9.5rem);
+  padding: 14px 14px 10px;
 }
 
-/* Film grain: the stage is a black film, so it carries film grain — a
-   3.5%-opacity turbulence tile jittered on a steps() clock (never a smooth
-   slide; grain jitters, it doesn't drift). Above the copy like the
-   reference's page-level grain: at 3.5% it textures without touching the
-   contrast math (17:1 text loses ~4% luminance, still >16:1). */
-.grain {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation:
-    grain-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) both,
-    grain-jitter 1.1s steps(4) 1.2s infinite;
+@media (max-width: 759px) {
+  .principles-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding: 20px;
+  }
+  .principles-fig {
+    position: static;
+    width: min(100%, 15rem);
+  }
 }
 
-@keyframes grain-in {
+.principles-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.principle {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding: 22px 12px 22px 16px;
+  view-timeline-name: --principle;
+  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
+  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.principle-n {
+  flex: none;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.principle-t {
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.principle[data-active] {
+  box-shadow:
+    inset 2px 0 0 var(--ink),
+    inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
+}
+
+.principle[data-active] .principle-n,
+.principle[data-active] .principle-t {
+  color: var(--ink);
+}
+
+/* The reveal (after MONOGRID): each word lights from the muted ink to the
+   full ink over its own slice of its statement's rise — later words later —
+   so a line reads itself in as it climbs to the middle. Both ends pass
+   4.5:1, so a half-lit line is still text; with no scroll timelines or
+   under reduced motion the words simply sit in their state. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .principle-t .w {
+      animation: principle-word linear both;
+      animation-timeline: --principle;
+      animation-range: cover calc(6% + var(--p) * 26%) cover calc(14% + var(--p) * 26%);
+    }
+  }
+}
+
+@keyframes principle-word {
   from {
-    opacity: 0;
+    color: var(--ink-3);
   }
   to {
-    opacity: 0.035;
+    color: var(--ink);
   }
 }
 
-@keyframes grain-jitter {
-  0% {
-    background-position: 0 0;
-  }
-  25% {
-    background-position: -37px 21px;
-  }
-  50% {
-    background-position: 19px -43px;
-  }
-  75% {
-    background-position: -23px -17px;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .grain {
-    animation: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .grain {
-    opacity: 0;
-  }
-}
-
-/* The headline's full stop takes the ember — the sun's own color answering
-   the dawn plate's crest (reference: statement ink + signal punctuation).
-   It ignites last in the hero's entrance: a one-shot scale pulse as the
-   statement finishes landing, then it rests as plain ink. */
-.ember {
-  color: var(--swatch-orange);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .ember {
-    animation: ember-ignite 700ms cubic-bezier(0.16, 1, 0.3, 1) 720ms both;
-  }
-  @keyframes ember-ignite {
-    0% {
-      scale: 0.4;
-      opacity: 0;
-    }
-    60% {
-      scale: 1.3;
-      opacity: 1;
-    }
-    100% {
-      scale: 1;
-      opacity: 1;
-    }
-  }
-}
-
-
-/* The essay. Values measured from the reference: line clamp 16→46px,
-   -0.03em tracking, 1.05 leading, 0.52s lit transition with the
-   cubic-bezier(0.22, 1, 0.36, 1) settle; index 10px, 0.1em tracking. The
-   in-focus index turns ember and takes a 2px ember rule — a quiet mark,
-   where the old 1.55x spring read playful against the calmer hero. */
-/* Statements left, the figure right (sticky, centred in the viewport)
-   from lg; stacked on narrow screens with the figure first, small. The
-   statement column is its own size container so the type keeps sizing off
-   the COLUMN (cqi), not the two-column wrap. */
-.essay-wrap {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(2rem, 5vw, 4rem);
-  align-items: start;
-}
-
-.essay-col {
-  container-type: inline-size;
-  min-width: 0;
-}
-
-.essay-fig {
-  width: min(100%, 14rem);
-  margin: 0 auto;
-}
-
-@media (min-width: 1024px) {
-  .essay-wrap {
-    grid-template-columns: minmax(0, 1fr) 20rem;
-  }
-  .essay-fig {
-    order: 1;
-    width: 100%;
-    margin: 0;
-    position: sticky;
-    top: calc(50vh - 11.5rem);
-  }
-}
-
-/* The statements are authored mono lines, the longest 30 characters. The
-   type is sized off the column (cqi), not the viewport, so 31ch always fits
-   beside the rail — an authored line can never wrap into an orphan. */
-.essay {
-  --rail: clamp(2rem, 3.6vw, 3.5rem);
-  font-size: clamp(1rem, calc((100cqi - var(--rail)) / 19), 2.875rem);
-  gap: clamp(2.375rem, 4.3vw, 3.875rem);
-  padding-left: var(--rail);
-  max-width: calc(31ch + var(--rail));
-}
-
-.statement {
-  position: relative;
-  font-weight: 500;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: var(--color-muted-foreground);
-  text-wrap: pretty;
-  transition: color 520ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.statement.is-lit {
-  color: var(--color-foreground);
-}
-
-.statement::after {
-  content: attr(data-n);
-  position: absolute;
-  top: 0.34em;
-  left: calc(-1 * var(--rail));
-  width: var(--rail);
-  padding-right: 0.8125rem;
-  text-align: right;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  line-height: 1;
-  color: color-mix(in oklab, var(--color-muted-foreground) 40%, transparent);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 5px;
-  text-decoration-color: transparent;
-  transition:
-    color 200ms ease,
-    text-decoration-color 320ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.statement.is-lit::after {
-  color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent);
-}
-
-.statement[data-active="true"]::after {
-  color: var(--swatch-orange);
-  text-decoration-color: var(--swatch-orange);
-}
-
-/* Closing band: an elevated, slightly lighter surface than the page, with
-   the dot sea breathing under the display line. */
-.bleed {
+/* The agents: a panel with the dot sea breathing under the harness chips. */
+.harness-panel {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: color-mix(in oklab, var(--color-foreground) 4%, transparent);
-  border-block: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
+.harness {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 6px;
+  min-height: 112px;
+  margin: 0;
+  padding: 24px;
+  list-style: none;
+}
+
+/* The Studio picker's chip: a square ember LED and the harness name on a
+   hairline pill. */
+.harness-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--background) 70%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.harness-chip i {
+  width: 5px;
+  height: 5px;
+  background: var(--swatch-orange);
 }
 
 .band-field {
@@ -830,49 +610,6 @@ function setActive(i: number) {
 @media (prefers-reduced-transparency: reduce) {
   .band-field {
     opacity: 0.4;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .emote {
-    transition: none;
-  }
-  .statement {
-    transition: none;
-  }
-  .statement::after {
-    transition: none;
-  }
-}
-
-/* Ghost-style focus pull (measured from ghost.ai: .soft-focus whispers at
-   blur(1px), resolves to blur(0), 300ms cubic-bezier(0.4, 0, 0.2, 1)):
-   entering the essay softens the out-of-focus statements while the hovered
-   one stays sharp — a camera focus pull across the text. Hover-gated so a
-   touch tap can't leave the row stuck blurred. */
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .statement {
-    transition:
-      filter 300ms cubic-bezier(0.4, 0, 0.2, 1),
-      opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .essay:hover .statement:not(:hover) {
-    filter: blur(1px);
-    opacity: 0.72;
-  }
-}
-
-/* Ghost-style soft focus: --soft (1 = below the fold, 0 = in focus) drives a
-   blur through filter only — the GPU-composited property, no will-change
-   needed at two elements. The sixth power makes the sharpening accelerate
-   near the end, matching the reference's measured curve. */
-.soft {
-  filter: blur(calc(var(--soft, 1) * var(--soft, 1) * var(--soft, 1) * var(--soft, 1) * var(--soft, 1) * var(--soft, 1) * 12px));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .soft {
-    filter: none;
   }
 }
 

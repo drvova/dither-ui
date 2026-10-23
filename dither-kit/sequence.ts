@@ -110,7 +110,7 @@ function durationOf(node: SequenceNode): number {
     case "track":
       return (node.delay ?? 0) + node.duration * Math.max(1, Math.floor(node.loop ?? 1))
     case "serial":
-      return node.nodes.reduce((sum, child, i) => sum + durationOf(child) + (i ? node.gap ?? 0 : 0), 0)
+      return node.nodes.reduce((sum, child, i) => sum + durationOf(child) + (i ? (node.gap ?? 0) : 0), 0)
     case "parallel":
       return Math.max(0, ...node.nodes.map(durationOf))
     case "stagger": {
@@ -187,7 +187,9 @@ export function sampleSequence(plan: SequencePlan, t: number): TrackSample[] {
     const elapsed = t - track.t0
     const settled = elapsed >= track.duration * track.loop
     const cycle = Math.min(track.loop - 1, Math.floor(elapsed / Math.max(track.duration, 1e-9)))
-    const within = settled ? 1 : Math.min(1, Math.max(0, (elapsed - cycle * track.duration) / Math.max(track.duration, 1e-9)))
+    const within = settled
+      ? 1
+      : Math.min(1, Math.max(0, (elapsed - cycle * track.duration) / Math.max(track.duration, 1e-9)))
     const reversed = track.yoyo && cycle % 2 === 1
     // Terminal value = where the LAST cycle naturally lands: forward legs end
     // at 1, a reversed (even, yoyo) last leg ends at 0 — continuous with the

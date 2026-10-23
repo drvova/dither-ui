@@ -19,5 +19,7 @@ const titleAttr = computed(() => (props.title ? props.text : undefined))
 </script>
 
 <template>
-  <span ref="root" :title="titleAttr" :class="cn('inline-block max-w-full align-bottom', props.class)">{{ shown }}</span>
+  <span ref="root" :title="titleAttr" :class="cn('inline-block max-w-full align-bottom', props.class)">{{
+    shown
+  }}</span>
 </template>

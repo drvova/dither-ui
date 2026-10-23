@@ -7,10 +7,7 @@ const props = defineProps<{ class?: string }>()
 <template>
   <kbd
     :class="
-      cn(
-        'rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground',
-        props.class
-      )
+      cn('rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground', props.class)
     "
     style="border-bottom-width: 2px"
   >

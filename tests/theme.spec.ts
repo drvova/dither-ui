@@ -1,12 +1,17 @@
-// @vitest-environment jsdom
-import { describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { describe, expect, it } from "rstack/test"
 import { applyTheme, THEME_TOKENS, themeCss, themeVars } from "../dither-kit/theme"
 
 describe("theme from JavaScript", () => {
   it("maps known tokens to custom properties and drops the rest", () => {
-    expect(themeVars({ accent: " #123 ", radius: "4px", bogus: "x", foreground: "" } as never)).toEqual({ "--accent": "#123", "--radius": "4px" })
+    expect(themeVars({ accent: " #123 ", radius: "4px", bogus: "x", foreground: "" } as never)).toEqual({
+      "--accent": "#123",
+      "--radius": "4px",
+    })
     expect(THEME_TOKENS).toContain("muted-foreground")
-    expect(themeCss({ background: "#000", foreground: "#fff" }, ".dark")).toBe(".dark {\n  --background: #000;\n  --foreground: #fff;\n}\n")
+    expect(themeCss({ background: "#000", foreground: "#fff" }, ".dark")).toBe(
+      ".dark {\n  --background: #000;\n  --foreground: #fff;\n}\n",
+    )
     expect(themeCss({})).toBe("")
   })
 

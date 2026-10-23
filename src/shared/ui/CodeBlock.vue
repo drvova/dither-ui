@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { copyText } from "@dither-kit"
+import { play } from "@/shared/lib/sound"
 
 const props = defineProps<{ code: string }>()
 const copied = ref(false)
 async function copy() {
   copied.value = await copyText(props.code)
+  if (copied.value) play("copy")
   if (copied.value)
     setTimeout(() => {
       copied.value = false
@@ -14,9 +16,7 @@ async function copy() {
 </script>
 
 <template>
-  <div
-    class="relative rounded-lg border border-transparent bg-background/60 shadow-[0_0_0_1px_rgba(255,255,255,0.07)]"
-  >
+  <div class="relative rounded-lg border border-transparent bg-background/60 shadow-[0_0_0_1px_rgba(255,255,255,0.07)]">
     <!-- Right gutter reserved under the chip (pr on the pre) plus this fade:
          horizontal overflow on phones had zero affordance — lines just ran
          off the screen under a translucent chip. -->
@@ -31,6 +31,8 @@ async function copy() {
     >
       {{ copied ? "copied" : "copy" }}
     </button>
-    <pre class="overflow-x-auto touch-pan-x p-4 pr-16 font-mono text-[12px] leading-relaxed text-foreground"><code>{{ code }}</code></pre>
+    <pre
+      class="overflow-x-auto touch-pan-x p-4 pr-16 font-mono text-[12px] leading-relaxed text-foreground"
+    ><code>{{ code }}</code></pre>
   </div>
 </template>

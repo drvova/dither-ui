@@ -1,7 +1,7 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it, rs } from "rstack/test"
 import Box from "../../dither-kit/Box.vue"
 import Text from "../../dither-kit/Text.vue"
 import Divider from "../../dither-kit/Divider.vue"
@@ -150,7 +150,7 @@ describe("Overlay", () => {
 describe("Measure", () => {
   it("emits resize from ResizeObserver and renders without one", () => {
     const instances: Array<(e: unknown[]) => void> = []
-    vi.stubGlobal(
+    rs.stubGlobal(
       "ResizeObserver",
       class {
         constructor(cb: (e: unknown[]) => void) {
@@ -164,17 +164,19 @@ describe("Measure", () => {
     expect(instances.length).toBe(1)
     instances[0]([{ contentRect: { width: 240, height: 80 } }])
     expect(w.emitted("resize")?.[0]).toEqual([{ width: 240, height: 80 }])
-    vi.unstubAllGlobals()
+    rs.unstubAllGlobals()
   })
 })
 
 describe("Clipboard", () => {
   it("writes the value, flips the slot state, and announces politely", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
+    const writeText = rs.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true })
     const w = mount(Clipboard, {
       props: { value: "hello" },
-      slots: { default: `<template #default="{ copied }"><button type="button">{{ copied ? "y" : "n" }}</button></template>` },
+      slots: {
+        default: `<template #default="{ copied }"><button type="button">{{ copied ? "y" : "n" }}</button></template>`,
+      },
     })
     await w.find("button").trigger("click")
     expect(writeText).toHaveBeenCalledWith("hello")
@@ -186,8 +188,12 @@ describe("Clipboard", () => {
 
 describe("ClickOutside", () => {
   it("emits outside for presses beyond the root and stays silent inside", async () => {
-    const onOutside = vi.fn()
-    const w = mount(ClickOutside, { slots: { default: "<button>in</button>" }, attrs: { onOutside }, attachTo: document.body })
+    const onOutside = rs.fn()
+    const w = mount(ClickOutside, {
+      slots: { default: "<button>in</button>" },
+      attrs: { onOutside },
+      attachTo: document.body,
+    })
     await w.find("button").trigger("pointerdown")
     expect(onOutside).not.toHaveBeenCalled()
     document.body.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }))
@@ -262,13 +268,13 @@ describe("Pressable", () => {
 
 describe("InView", () => {
   it("renders always without IO, latches on enter with it", async () => {
-    vi.stubGlobal("IntersectionObserver", undefined)
+    rs.stubGlobal("IntersectionObserver", undefined)
     const degraded = mount(InView, { slots: { default: `<div>{{ inView ? "in" : "out" }}</div>` } })
     expect(degraded.find("div").text()).toBe("in")
-    vi.unstubAllGlobals()
+    rs.unstubAllGlobals()
 
     let instance: { cb: (e: unknown[]) => void; disconnected: boolean } | null = null
-    vi.stubGlobal(
+    rs.stubGlobal(
       "IntersectionObserver",
       class {
         cb: (e: unknown[]) => void
@@ -292,6 +298,6 @@ describe("InView", () => {
     expect(w.find("div").text()).toBe("in")
     expect(w.emitted("enter")?.length).toBe(1)
     expect(instance!.disconnected).toBe(true) // once = latched
-    vi.unstubAllGlobals()
+    rs.unstubAllGlobals()
   })
 })

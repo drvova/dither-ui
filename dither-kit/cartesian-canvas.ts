@@ -1,12 +1,4 @@
-import {
-  computed,
-  defineComponent,
-  h,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-} from "vue"
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { type ChartContextValue, useChart } from "./chart-context"
 import { useCanvasVisibility } from "./use-visibility"
 import {
@@ -41,7 +33,17 @@ type LoopArgs = {
   state: Box<ChartContextValue>
   targets: Box<Record<string, Surface>>
   stars: Box<Star[]>
-  spark: Box<ReturnType<typeof sparklesFromSeed> | { twinkleFreq: number; starBase: number; starRange: number; burstThreshold: number; starCrossAlpha: number; crosshairAlpha: number }>
+  spark: Box<
+    | ReturnType<typeof sparklesFromSeed>
+    | {
+        twinkleFreq: number
+        starBase: number
+        starRange: number
+        burstThreshold: number
+        starCrossAlpha: number
+        crosshairAlpha: number
+      }
+  >
   effect: Box<ReturnType<typeof effectFromSeed>>
   glyph: Box<Glyph>
 }
@@ -97,13 +99,9 @@ function startCartesianLoop({
       if (!cur) return
       const seed = s.seedOf(key)
       const variant = s.seriesSpecs[key]?.variant ?? "gradient"
-      const isLine =
-        (s.seriesSpecs[key]?.kind ??
-          (s.chartType === "line" ? "line" : "area")) === "line"
+      const isLine = (s.seriesSpecs[key]?.kind ?? (s.chartType === "line" ? "line" : "area")) === "line"
       const emphasis = s.selectedDataKey ?? s.focusDataKey
-      const dim =
-        (emphasis !== null && emphasis !== key ? s.dimOpacity : 1) *
-        (s.seriesSpecs[key]?.opacity ?? 1)
+      const dim = (emphasis !== null && emphasis !== key ? s.dimOpacity : 1) * (s.seriesSpecs[key]?.opacity ?? 1)
       const sparse = stacked ? 0 : si * 0.14
       for (let x = 0; x < cols; x++) {
         if (rev.jitter === 0) {
@@ -175,9 +173,7 @@ function startCartesianLoop({
     }
     if (!animStart) animStart = now
     const origin = isDirected() ? 0 : animStart
-    const prog = animate
-      ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration))
-      : 1
+    const prog = animate ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration)) : 1
     const progChanged = prog !== lastProg
     if (prog >= 1 && !entranceReported) {
       entranceReported = true
@@ -220,8 +216,7 @@ function startCartesianLoop({
       needsFill = true
     }
 
-    const itTarget =
-      s.hoverLift && (s.isMouseInChart || s.hovered) ? s.hoverStrength : 0
+    const itTarget = s.hoverLift && (s.isMouseInChart || s.hovered) ? s.hoverStrength : 0
     let settling = false
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * 0.16
@@ -273,10 +268,7 @@ function startCartesianLoop({
     c.clearRect(0, 0, cols, rows)
     imageData = putRasterBuffer(c, frame, imageData)
 
-    const mx =
-      marker != null && s.dataLength > 1
-        ? Math.round((marker / (s.dataLength - 1)) * (cols - 1))
-        : -1
+    const mx = marker != null && s.dataLength > 1 ? Math.round((marker / (s.dataLength - 1)) * (cols - 1)) : -1
     if (s.crosshair && mx >= 0 && mx <= revealCols) {
       for (const key of s.configKeys) {
         const cur = current[key]
@@ -309,7 +301,7 @@ function startCartesianLoop({
       const cur = current[star.key]
       if (!cur) continue
       // Life clock: each particle cycles 0..1, offset by its phase.
-      const life = ((T + star.phase * 0.03) % 1 + 1) % 1
+      const life = (((T + star.phase * 0.03) % 1) + 1) % 1
       // Horizontal drift, wrapped across the revealed span.
       const reach = Math.max(1, Math.min(revealCols, cols - 1))
       const baseX = sxOf(star.xi)
@@ -322,7 +314,7 @@ function startCartesianLoop({
       // driftY + gravity push it through the band over its life.
       const scatter = star.depth * fx.spread
       const drift = fx.driftY * life + 0.5 * fx.gravity * life * life
-      const vy = ((scatter + drift) % 1 + 1) % 1
+      const vy = (((scatter + drift) % 1) + 1) % 1
       const sy = Math.round(top + fx.flow * vy * band)
       if (sy < 0 || sy >= rows) continue
       const col = s.seedOf(star.key).fill
@@ -416,9 +408,7 @@ export const CartesianCanvas = defineComponent({
         if (!band) continue
         const line = (ctx.seriesSpecs[key]?.kind ?? defaultKind) === "line"
         const top = band.map((b) => (ctx.y(b[1]) / h0) * (rows - 1))
-        const floor = band.map((b, i) =>
-          line ? Math.min(rows - 1, top[i] + glow) : (ctx.y(b[0]) / h0) * (rows - 1)
-        )
+        const floor = band.map((b, i) => (line ? Math.min(rows - 1, top[i] + glow) : (ctx.y(b[0]) / h0) * (rows - 1)))
         out[key] = { top: resample(top, cols), floor: resample(floor, cols) }
       }
       return out
@@ -426,14 +416,16 @@ export const CartesianCanvas = defineComponent({
 
     // Sparkle character — seed-derived when the chart has a master seed.
     const spark = computed(() =>
-      ctx.seed !== undefined ? sparklesFromSeed(ctx.seed) : {
-        twinkleFreq: 0.35,
-        starBase: 0.7,
-        starRange: 0.3,
-        burstThreshold: 0.9,
-        starCrossAlpha: 0.6,
-        crosshairAlpha: 0.55,
-      }
+      ctx.seed !== undefined
+        ? sparklesFromSeed(ctx.seed)
+        : {
+            twinkleFreq: 0.35,
+            starBase: 0.7,
+            starRange: 0.3,
+            burstThreshold: 0.9,
+            starCrossAlpha: 0.6,
+            crosshairAlpha: 0.55,
+          },
     )
 
     // Generative live-edge motion. A dedicated `effect` seed pins it; else the
@@ -521,25 +513,35 @@ export const CartesianCanvas = defineComponent({
         state: stateBox,
         targets: targetsBox,
         stars: starsBox,
-        spark: { get current() { return spark.value } },
-        effect: { get current() { return effect.value } },
-        glyph: { get current() { return glyph.value } },
+        spark: {
+          get current() {
+            return spark.value
+          },
+        },
+        effect: {
+          get current() {
+            return effect.value
+          },
+        },
+        glyph: {
+          get current() {
+            return glyph.value
+          },
+        },
       })
     }
 
     onMounted(restart)
-    watch(
-      () => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.plot.height, ctx.precompiled],
-      restart,
-      { flush: "post" }
-    )
+    watch(() => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.plot.height, ctx.precompiled], restart, {
+      flush: "post",
+    })
     // Ensure the loop wakes when the chart becomes ready (dimensions > 0).
     // This covers the race where IntersectionObserver fires before ResizeObserver,
     // causing restart() to skip schedule() because visible() is still false.
     watch(
       () => ctx.ready,
       () => loop?.wake(),
-      { flush: "post" }
+      { flush: "post" },
     )
     watch(
       () => [
@@ -568,7 +570,7 @@ export const CartesianCanvas = defineComponent({
         ctx.crosshair,
       ],
       () => loop?.wake(),
-      { flush: "post" }
+      { flush: "post" },
     )
     onBeforeUnmount(() => loop?.stop())
 
@@ -588,9 +590,7 @@ export const CartesianCanvas = defineComponent({
           style: { ...pos, imageRendering: "pixelated" },
         })
       }
-      const bloomActive = ctx.bloomOnHover
-        ? ctx.isMouseInChart || ctx.hovered
-        : true
+      const bloomActive = ctx.bloomOnHover ? ctx.isMouseInChart || ctx.hovered : true
       const bloom = bloomLayerStyle(ctx.bloom, bloomActive)
       return [
         h("canvas", {

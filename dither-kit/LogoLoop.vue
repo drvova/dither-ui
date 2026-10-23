@@ -9,7 +9,7 @@ const props = withDefaults(
     gap?: number
     class?: string
   }>(),
-  { items: () => ["DITHER", "BAYER", "CANVAS", "VUE", "PIXELS"], speed: 18, gap: 48 }
+  { items: () => ["DITHER", "BAYER", "CANVAS", "VUE", "PIXELS"], speed: 18, gap: 48 },
 )
 
 // Duplicated once so translateX(-50%) wraps seamlessly.
@@ -19,7 +19,13 @@ const loop = computed(() => [...props.items, ...props.items])
 <template>
   <div :class="cn('overflow-hidden', props.class)" aria-hidden="true">
     <div class="dither-logoloop flex w-max" :style="{ animationDuration: `${props.speed}s` }">
-      <span v-for="(it, i) in loop" :key="i" class="shrink-0 whitespace-nowrap" :style="{ paddingRight: `${props.gap}px` }">{{ it }}</span>
+      <span
+        v-for="(it, i) in loop"
+        :key="i"
+        class="shrink-0 whitespace-nowrap"
+        :style="{ paddingRight: `${props.gap}px` }"
+        >{{ it }}</span
+      >
     </div>
   </div>
 </template>

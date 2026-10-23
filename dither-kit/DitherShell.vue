@@ -10,7 +10,7 @@ const props = withDefaults(
     frame?: boolean
     class?: string
   }>(),
-  { frame: false }
+  { frame: false },
 )
 const slots = useSlots()
 </script>
@@ -21,7 +21,7 @@ const slots = useSlots()
       cn(
         'grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] bg-background text-foreground',
         props.frame && 'overflow-hidden rounded-lg border border-border/60',
-        props.class
+        props.class,
       )
     "
   >

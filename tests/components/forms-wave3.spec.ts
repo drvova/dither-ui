@@ -1,6 +1,6 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import ListBox from "../../dither-kit/ListBox.vue"
 import MultiSelect from "../../dither-kit/MultiSelect.vue"
 import CascadeSelect from "../../dither-kit/CascadeSelect.vue"
@@ -133,9 +133,7 @@ describe("IconPicker", () => {
     expect(names).toContain("ChevronDown")
 
     await w.find('input[type="search"]').setValue("")
-    const pick = w
-      .findAll('input[type="radio"]')
-      .find((r) => r.attributes("value") === "ChevronUp")!
+    const pick = w.findAll('input[type="radio"]').find((r) => r.attributes("value") === "ChevronUp")!
     await pick.setValue(true)
     expect(w.emitted("update:modelValue")?.at(-1)).toEqual(["ChevronUp"])
     expect(w.find("svg").exists()).toBe(true) // glyph rendered

@@ -16,10 +16,25 @@
 // `bridge/exit` (the agent died), `studio/call` (a Studio tool call).
 import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
-import { type AgentCommand, type AgentEvent, callStudioTool, finishStudioTool, type Mode, STUDIO_TOOLS, type Usage } from "./tools"
+import {
+  type AgentCommand,
+  type AgentEvent,
+  callStudioTool,
+  finishStudioTool,
+  type Mode,
+  STUDIO_TOOLS,
+  type Usage,
+} from "./tools"
 
 type JsonRpcId = string | number
-type Message = { jsonrpc: "2.0"; id?: JsonRpcId; method?: string; params?: unknown; result?: unknown; error?: { code: number; message: string } }
+type Message = {
+  jsonrpc: "2.0"
+  id?: JsonRpcId
+  method?: string
+  params?: unknown
+  result?: unknown
+  error?: { code: number; message: string }
+}
 
 export type Harness = { id: string; name: string; command: string; installed: boolean; note?: string }
 export type BridgeAgent = { id: string; name: string; command: string; pid: number }
@@ -73,34 +88,71 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
     // Studio tools reach the page through the bridge's studio/call path and
     // are rendered there with their result; skip the agent's mirror of them.
     if (STUDIO_TOOLS.some((t) => title.includes(t.def.name))) return []
-    return [{ type: "activity", id, title, status: String(update.status ?? (kind === "tool_call" ? "pending" : "in_progress")) }]
+    return [
+      {
+        type: "activity",
+        id,
+        title,
+        status: String(update.status ?? (kind === "tool_call" ? "pending" : "in_progress")),
+      },
+    ]
   }
   if (kind === "plan") {
     const entries = Array.isArray(update.entries) ? (update.entries as { content?: unknown; status?: unknown }[]) : []
-    return [{ type: "plan", entries: entries.map((e) => ({ content: String(e.content ?? ""), status: String(e.status ?? "pending") })) }]
+    return [
+      {
+        type: "plan",
+        entries: entries.map((e) => ({ content: String(e.content ?? ""), status: String(e.status ?? "pending") })),
+      },
+    ]
   }
   if (kind === "current_mode_update") return [{ type: "mode", current: String(update.currentModeId ?? ""), modes: [] }]
   if (kind === "available_commands_update") {
-    const list = Array.isArray(update.availableCommands) ? (update.availableCommands as { name?: unknown; description?: unknown; input?: { hint?: unknown } | null }[]) : []
-    return [{ type: "commands", commands: list.filter((c) => typeof c.name === "string").map((c) => ({ name: String(c.name), description: String(c.description ?? ""), input: typeof c.input?.hint === "string" ? c.input.hint : undefined })) }]
+    const list = Array.isArray(update.availableCommands)
+      ? (update.availableCommands as { name?: unknown; description?: unknown; input?: { hint?: unknown } | null }[])
+      : []
+    return [
+      {
+        type: "commands",
+        commands: list
+          .filter((c) => typeof c.name === "string")
+          .map((c) => ({
+            name: String(c.name),
+            description: String(c.description ?? ""),
+            input: typeof c.input?.hint === "string" ? c.input.hint : undefined,
+          })),
+      },
+    ]
   }
   return []
 }
 
 /** The modes a `session/new` answer offers, when the agent has any. */
 export function modesOf(v: unknown): { current: string; modes: Mode[] } | null {
-  const m = (v as { modes?: { currentModeId?: unknown; availableModes?: { id?: unknown; name?: unknown; description?: unknown }[] } } | null)?.modes
+  const m = (
+    v as {
+      modes?: { currentModeId?: unknown; availableModes?: { id?: unknown; name?: unknown; description?: unknown }[] }
+    } | null
+  )?.modes
   if (!m || !Array.isArray(m.availableModes)) return null
   return {
     current: String(m.currentModeId ?? ""),
-    modes: m.availableModes.filter((x) => typeof x.id === "string").map((x) => ({ id: String(x.id), name: String(x.name ?? x.id), description: typeof x.description === "string" ? x.description : undefined })),
+    modes: m.availableModes
+      .filter((x) => typeof x.id === "string")
+      .map((x) => ({
+        id: String(x.id),
+        name: String(x.name ?? x.id),
+        description: typeof x.description === "string" ? x.description : undefined,
+      })),
   }
 }
 
 /** Extract usage from an ACP prompt response or update, when an agent reports it. */
 export function usageOf(v: unknown): Usage | undefined {
   if (typeof v !== "object" || v === null) return undefined
-  const u = (v as { usage?: { inputTokens?: number; outputTokens?: number; input_tokens?: number; output_tokens?: number } }).usage
+  const u = (
+    v as { usage?: { inputTokens?: number; outputTokens?: number; input_tokens?: number; output_tokens?: number } }
+  ).usage
   if (!u) return undefined
   return { input: u.inputTokens ?? u.input_tokens ?? 0, output: u.outputTokens ?? u.output_tokens ?? 0 }
 }
@@ -182,7 +234,17 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
 
     ws.onopen = () => {
       opened = true
-      send({ jsonrpc: "2.0", method: "bridge/tools", params: { tools: STUDIO_TOOLS.map((t) => ({ name: t.def.name, description: t.def.description, inputSchema: t.def.parameters })) } })
+      send({
+        jsonrpc: "2.0",
+        method: "bridge/tools",
+        params: {
+          tools: STUDIO_TOOLS.map((t) => ({
+            name: t.def.name,
+            description: t.def.description,
+            inputSchema: t.def.parameters,
+          })),
+        },
+      })
     }
     ws.onerror = () => {
       if (!opened) reject(new Error(`no bridge at ${o.url} — run: node bridge/dither-bridge.mjs`))
@@ -211,7 +273,11 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       const params = (m.params ?? {}) as Record<string, unknown>
       switch (m.method) {
         case "bridge/hello": {
-          hello = { cwd: String(params.cwd ?? ""), harnesses: Array.isArray(params.harnesses) ? (params.harnesses as Harness[]) : [], agent: (params.agent as BridgeAgent | null) ?? null }
+          hello = {
+            cwd: String(params.cwd ?? ""),
+            harnesses: Array.isArray(params.harnesses) ? (params.harnesses as Harness[]) : [],
+            agent: (params.agent as BridgeAgent | null) ?? null,
+          }
           agentName = hello.agent?.name ?? ""
           resetAgent()
           o.onHello?.(hello)
@@ -253,13 +319,22 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           const tc = (params.toolCall ?? {}) as { title?: string }
           const options = Array.isArray(params.options) ? (params.options as AcpPermissionOption[]) : []
           const chosen = await o.permission({ title: String(tc.title ?? "permission"), options, raw: params })
-          send({ jsonrpc: "2.0", id: m.id, result: chosen ? { outcome: { outcome: "selected", optionId: chosen } } : { outcome: { outcome: "cancelled" } } })
+          send({
+            jsonrpc: "2.0",
+            id: m.id,
+            result: chosen
+              ? { outcome: { outcome: "selected", optionId: chosen } }
+              : { outcome: { outcome: "cancelled" } },
+          })
           return
         }
         case "studio/call": {
           // The bridge's MCP server forwarding the harness's tool call.
           const name = String(params.name ?? "")
-          const args = typeof params.arguments === "object" && params.arguments !== null ? (params.arguments as Record<string, unknown>) : {}
+          const args =
+            typeof params.arguments === "object" && params.arguments !== null
+              ? (params.arguments as Record<string, unknown>)
+              : {}
           const result = await finishStudioTool(name, callStudioTool(name, args, run))
           flush()
           o.onEvent?.({ type: "tool", name, args, result })
@@ -268,7 +343,8 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         }
         default:
           // Capabilities we declared off (fs/terminal) and anything unknown.
-          if (m.id !== undefined) send({ jsonrpc: "2.0", id: m.id, error: { code: -32601, message: `unsupported: ${m.method}` } })
+          if (m.id !== undefined)
+            send({ jsonrpc: "2.0", id: m.id, error: { code: -32601, message: `unsupported: ${m.method}` } })
       }
     }
 
@@ -327,7 +403,9 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         const onAbort = () => notify("session/cancel", { sessionId })
         signal?.addEventListener("abort", onAbort, { once: true })
         try {
-          const res = (await request("session/prompt", { sessionId, prompt: [{ type: "text", text: goal }] })) as { stopReason?: string }
+          const res = (await request("session/prompt", { sessionId, prompt: [{ type: "text", text: goal }] })) as {
+            stopReason?: string
+          }
           const stop = res?.stopReason ?? "end_turn"
           flush()
           o.onEvent?.({ type: "turn", elapsedMs: Date.now() - started, usage: usageOf(res) })
@@ -336,7 +414,10 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           return { stopReason: stop, text: turnText }
         } catch (e) {
           flush()
-          o.onEvent?.({ type: "error", message: signal?.aborted ? "stopped" : e instanceof Error ? e.message : String(e) })
+          o.onEvent?.({
+            type: "error",
+            message: signal?.aborted ? "stopped" : e instanceof Error ? e.message : String(e),
+          })
           return { stopReason: "error", text: turnText }
         } finally {
           busy = false

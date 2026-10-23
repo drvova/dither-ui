@@ -76,7 +76,7 @@ export function setPolarChart(ctx: PolarChartContextValue): void {
  */
 export function registerVariant(
   _node: Element,
-  reg: { ctx: PolarChartContextValue; key: string; variant: VariantInput }
+  reg: { ctx: PolarChartContextValue; key: string; variant: VariantInput },
 ) {
   reg.ctx.registerVariant(reg.key, reg.variant)
   return {
@@ -98,18 +98,13 @@ export function usePolarChart(): PolarChartContextValue {
 }
 
 /** Boundary guard for polar parts (`<Pie>`, `<Radar>`). */
-export function usePolarPart(
-  part: string,
-  kind: "pie" | "radar"
-): PolarChartContextValue {
+export function usePolarPart(part: string, kind: "pie" | "radar"): PolarChartContextValue {
   const ctx = getContext<PolarChartContextValue>(PolarChartKey) ?? null
   if (!ctx) {
     throw new Error(`<${part} /> must be used within ${ROOT_OF[kind]}.`)
   }
   if (ctx.chartType !== kind) {
-    throw new Error(
-      `<${part} /> is not valid inside ${ROOT_OF[ctx.chartType]} — it belongs in ${ROOT_OF[kind]}.`
-    )
+    throw new Error(`<${part} /> is not valid inside ${ROOT_OF[ctx.chartType]} — it belongs in ${ROOT_OF[kind]}.`)
   }
   return ctx
 }

@@ -184,9 +184,9 @@ const API: Record<string, PropRow[]> = {
   <section id="input" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Input</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A monospace text input on the token border stack — the border warms to
-      the accent on focus, and <code class="text-foreground/80">invalid</code>
-      swaps it for the red seed with <code class="text-foreground/80">aria-invalid</code>.
+      A monospace text input on the token border stack — the border warms to the accent on focus, and
+      <code class="text-foreground/80">invalid</code> swaps it for the red seed with
+      <code class="text-foreground/80">aria-invalid</code>.
     </p>
     <DemoCard :code="SNIPPET_INPUT">
       <div class="mx-auto grid max-w-md gap-3 sm:grid-cols-2">
@@ -200,8 +200,8 @@ const API: Record<string, PropRow[]> = {
   <section id="textarea" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Textarea</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The multiline companion to Input, with the same field context, invalid,
-      read-only, focus, and disabled contracts. Resize behavior stays explicit.
+      The multiline companion to Input, with the same field context, invalid, read-only, focus, and disabled contracts.
+      Resize behavior stays explicit.
     </p>
     <DemoCard :code="SNIPPET_TEXTAREA">
       <div class="mx-auto max-w-sm">
@@ -217,8 +217,8 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Label, control, and one line of small print — the
-      <code class="text-foreground/80">error</code> replaces the description
-      and drops a red pixel marker in front of the text.
+      <code class="text-foreground/80">error</code> replaces the description and drops a red pixel marker in front of
+      the text.
     </p>
     <DemoCard :code="SNIPPET_FIELD">
       <div class="mx-auto grid max-w-sm gap-5">
@@ -236,8 +236,8 @@ const API: Record<string, PropRow[]> = {
   <section id="fieldset" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Fieldset</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Groups related fields inside a bordered box with a tracking-spaced
-      legend — native <code class="text-foreground/80">&lt;fieldset&gt;</code>
+      Groups related fields inside a bordered box with a tracking-spaced legend — native
+      <code class="text-foreground/80">&lt;fieldset&gt;</code>
       semantics, kit skin.
     </p>
     <DemoCard :code="SNIPPET_FIELDSET">
@@ -258,9 +258,9 @@ const API: Record<string, PropRow[]> = {
   <section id="form" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Form</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A deliberately tiny wrapper: <code class="text-foreground/80">novalidate</code>
-      suppresses the browser's validation bubbles and submit is prevented and
-      re-emitted as a clean <code class="text-foreground/80">submit</code> event.
+      A deliberately tiny wrapper: <code class="text-foreground/80">novalidate</code> suppresses the browser's
+      validation bubbles and submit is prevented and re-emitted as a clean
+      <code class="text-foreground/80">submit</code> event.
     </p>
     <DemoCard :code="SNIPPET_FORM">
       <div class="mx-auto max-w-sm">
@@ -281,9 +281,8 @@ const API: Record<string, PropRow[]> = {
   <section id="number-field" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Number Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Stepper buttons around a spinbutton input — arrow keys step, typed
-      values clamp and snap to the step on blur, and the buttons disable at
-      the bounds.
+      Stepper buttons around a spinbutton input — arrow keys step, typed values clamp and snap to the step on blur, and
+      the buttons disable at the bounds.
     </p>
     <DemoCard :code="SNIPPET_NUMBER">
       <div class="mx-auto flex max-w-sm items-center justify-center gap-4">
@@ -297,17 +296,14 @@ const API: Record<string, PropRow[]> = {
   <section id="otp-field" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">OTP Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      One box per digit with auto-advancing focus — Backspace on an empty box
-      steps back, and pasting a full code distributes it across the boxes.
-      <code class="text-foreground/80">complete</code> fires once every box is
-      filled.
+      One box per digit with auto-advancing focus — Backspace on an empty box steps back, and pasting a full code
+      distributes it across the boxes.
+      <code class="text-foreground/80">complete</code> fires once every box is filled.
     </p>
     <DemoCard :code="SNIPPET_OTP">
       <div class="mx-auto grid max-w-sm justify-items-center gap-3">
         <DitherOtpField v-model="otp" :length="6" @complete="otpComplete = true" />
-        <p v-if="otpComplete" class="text-[11px]" :style="{ color: cssColor('green') }">
-          complete!
-        </p>
+        <p v-if="otpComplete" class="text-[11px]" :style="{ color: cssColor('green') }">complete!</p>
       </div>
     </DemoCard>
     <PropsTable :rows="API.otpField" />

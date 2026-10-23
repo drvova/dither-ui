@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { createArtboard } from "@/entities/artboard"
 import { addComponentArtboard, editor, placeGeneration } from "@/entities/editor"
 import { componentEntry, createCell, createRow, createScreen } from "@/entities/widget"
@@ -56,7 +56,9 @@ describe("evolve", () => {
   it("evolves screens cell by cell and normalizes the result", () => {
     const parent = createArtboard("button")
     parent.widget = createScreen()
-    parent.widget.rows = [createRow([createCell(componentEntry("DitherBadge")!), createCell(componentEntry("DitherSwitch")!)])]
+    parent.widget.rows = [
+      createRow([createCell(componentEntry("DitherBadge")!), createCell(componentEntry("DitherSwitch")!)]),
+    ]
     const gen = evolveArtboard(parent, { count: 3, seed: 11, strength: 1 })
     for (const v of gen) {
       expect(v.widget?.kind).toBe("screen")

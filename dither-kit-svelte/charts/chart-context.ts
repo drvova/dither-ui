@@ -44,11 +44,7 @@ export type ChartContextValue = {
   xCenter: (index: number) => number
   bandwidth: number
   indexAtX: (px: number) => number
-  barSlot: (
-    index: number,
-    seriesIndex: number,
-    seriesCount: number
-  ) => { x: number; width: number }
+  barSlot: (index: number, seriesIndex: number, seriesCount: number) => { x: number; width: number }
   y: ScaleLinear<number, number>
   bands: Record<string, [number, number][]>
   max: number
@@ -111,15 +107,12 @@ export function setChart(ctx: ChartContextValue): void {
 }
 
 /**
-  * Lifecycle glue for `<Bar>` / `<Line>` / `<Area>`: registers the series spec
-  * with the chart while the part is mounted and re-registers when the spec
-  * changes, unregistering on unmount. Svelte's action seam replaces the Vue
-  * part's `watch(immediate)` + `onBeforeUnmount`.
-  */
-export function registerSeries(
-  _node: Element,
-  reg: { ctx: ChartContextValue; spec: SeriesSpec }
-) {
+ * Lifecycle glue for `<Bar>` / `<Line>` / `<Area>`: registers the series spec
+ * with the chart while the part is mounted and re-registers when the spec
+ * changes, unregistering on unmount. Svelte's action seam replaces the Vue
+ * part's `watch(immediate)` + `onBeforeUnmount`.
+ */
+export function registerSeries(_node: Element, reg: { ctx: ChartContextValue; spec: SeriesSpec }) {
   reg.ctx.registerSeries(reg.spec)
   return {
     update(next: { ctx: ChartContextValue; spec: SeriesSpec }) {
@@ -135,9 +128,7 @@ export function registerSeries(
 export function useChart(): ChartContextValue {
   const ctx = getContext<ChartContextValue>(ChartKey) ?? null
   if (!ctx) {
-    throw new Error(
-      "Chart parts must be used within a chart root (e.g. <AreaChart />)."
-    )
+    throw new Error("Chart parts must be used within a chart root (e.g. <AreaChart />).")
   }
   return ctx
 }
@@ -147,10 +138,7 @@ export function useChart(): ChartContextValue {
  * a root, or inside the wrong chart type — e.g. `<Bar />` placed in an area
  * chart. `kind` omitted means the part works under any root (grid, axes, …).
  */
-export function useChartPart(
-  part: string,
-  kind?: ChartType | ChartType[]
-): ChartContextValue {
+export function useChartPart(part: string, kind?: ChartType | ChartType[]): ChartContextValue {
   const ctx = getContext<ChartContextValue>(ChartKey) ?? null
   if (!ctx) {
     const where = kind ? ROOT_OF[Array.isArray(kind) ? kind[0] : kind] : "a chart root"
@@ -162,7 +150,7 @@ export function useChartPart(
       throw new Error(
         `<${part} /> is not valid inside ${ROOT_OF[ctx.chartType]} — it belongs in ${allowed
           .map((k) => ROOT_OF[k])
-          .join(" or ")}.`
+          .join(" or ")}.`,
       )
     }
   }

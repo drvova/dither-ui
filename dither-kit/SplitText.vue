@@ -10,7 +10,7 @@ const props = withDefaults(
     replayToken?: number
     class?: string
   }>(),
-  { text: "Split text", stagger: 40, duration: 600 }
+  { text: "Split text", stagger: 40, duration: 600 },
 )
 
 const chars = computed(() => [...props.text])
@@ -27,7 +27,8 @@ const rootRef = ref<HTMLElement | null>(null)
       aria-hidden="true"
       class="dither-split-char"
       :style="{ animationDelay: `${i * props.stagger}ms`, animationDuration: `${props.duration}ms` }"
-    >{{ ch === " " ? "\u00a0" : ch }}</span>
+      >{{ ch === " " ? "\u00a0" : ch }}</span
+    >
   </span>
 </template>
 

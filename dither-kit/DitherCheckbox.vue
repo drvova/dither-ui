@@ -4,12 +4,18 @@ import { BAYER4, clamp01, fillOf, type PixelColor } from "./pixel"
 
 // Chunky pixel checkmark on the 8x8 cell grid (size-4 box at CELL=2).
 const MARK: Array<[number, number]> = [
-  [1, 3], [1, 4],
-  [2, 4], [2, 5],
-  [3, 5], [3, 6],
-  [4, 4], [4, 5],
-  [5, 3], [5, 4],
-  [6, 2], [6, 3],
+  [1, 3],
+  [1, 4],
+  [2, 4],
+  [2, 5],
+  [3, 5],
+  [3, 6],
+  [4, 4],
+  [4, 5],
+  [5, 3],
+  [5, 4],
+  [6, 2],
+  [6, 3],
 ]
 
 /** Paint the checkbox — a 1px border when unchecked, a dithered fill with a
@@ -20,7 +26,7 @@ function paintBox(
   fill: Rgb,
   muted: Rgb,
   checked: boolean,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   ctx.clearRect(0, 0, n, n)
   if (!checked) {
@@ -62,11 +68,11 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { disabled: false }
+  { disabled: false },
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -94,13 +100,7 @@ watch(() => [props.modelValue, color.value, matrix.value], paint)
     role="checkbox"
     :aria-checked="props.modelValue"
     :disabled="props.disabled"
-    :class="
-      cn(
-        CONTROL_BUTTON,
-        'relative inline-flex min-h-10 items-center gap-2 text-left',
-        props.class
-      )
-    "
+    :class="cn(CONTROL_BUTTON, 'relative inline-flex min-h-10 items-center gap-2 text-left', props.class)"
     @click="emit('update:modelValue', !props.modelValue)"
   >
     <span ref="boxRef" class="relative size-4 shrink-0">

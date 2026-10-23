@@ -5,10 +5,10 @@ import DitherKbd from "./DitherKbd.vue"
 
 /** A key combo as one readable unit: `["⌘", "K"]` renders ⌘ + K with the
  * separators Kbd uses — single keys go through DitherKbd directly. */
-const props = withDefaults(
-  defineProps<{ keys?: string[]; separator?: string; class?: string }>(),
-  { keys: () => ["⌘", "K"], separator: "+" },
-)
+const props = withDefaults(defineProps<{ keys?: string[]; separator?: string; class?: string }>(), {
+  keys: () => ["⌘", "K"],
+  separator: "+",
+})
 
 const list = computed(() => props.keys.filter(Boolean))
 </script>

@@ -37,7 +37,7 @@ const props = withDefaults(
     maxCols?: number
     maxRows?: number
   }>(),
-  { renderMode: "live", precompiled: undefined }
+  { renderMode: "live", precompiled: undefined },
 )
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
@@ -46,9 +46,7 @@ const effTo = computed(() => props.to ?? "transparent")
 const effDirection = computed(() => props.direction ?? s.value?.direction ?? "up")
 const effCell = computed(() => props.cell ?? s.value?.cell ?? 3)
 const effOpacity = computed(() => props.opacity ?? s.value?.opacity ?? 1)
-const effBloom = computed(
-  () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
-)
+const effBloom = computed(() => props.bloom ?? (props.seed !== undefined ? props.seed : "off"))
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 
 /** Effective resolution caps: static mode auto-uses lower caps unless overridden. */
@@ -122,11 +120,14 @@ function startRuntime() {
       // timeout ensures the callback fires even under heavy load (W3C spec).
       // Safari fallback: setTimeout(0) when requestIdleCallback is unavailable.
       if (typeof requestIdleCallback === "function") {
-        idleHandle = requestIdleCallback(() => {
-          idleHandle = 0
-          if (token !== restartToken || precompiled.value) return
-          paint()
-        }, { timeout: 2000 })
+        idleHandle = requestIdleCallback(
+          () => {
+            idleHandle = 0
+            if (token !== restartToken || precompiled.value) return
+            paint()
+          },
+          { timeout: 2000 },
+        )
       } else {
         timer = window.setTimeout(() => {
           if (token !== restartToken || precompiled.value) return
@@ -168,12 +169,7 @@ onBeforeUnmount(() => {
       class="absolute inset-0 h-full w-full object-fill"
       style="image-rendering: pixelated"
     />
-    <canvas
-      v-else
-      ref="canvasRef"
-      class="absolute inset-0 h-full w-full"
-      style="image-rendering: pixelated"
-    />
+    <canvas v-else ref="canvasRef" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
     <img
       v-if="precompiled && bloomStyle"
       :src="precompiled"

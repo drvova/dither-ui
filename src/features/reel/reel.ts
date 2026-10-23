@@ -23,7 +23,10 @@ export const reelDuration = (clips: ReelClip[]): number => clips.reduce((n, c) =
 /** Where `t` seconds lands: before the start is the first clip, past the end holds the last. */
 export function reelAt(clips: ReelClip[], t: number): ReelMoment | null {
   if (!clips.length) return null
-  const plan = planSequence({ kind: "serial", nodes: clips.map((c, i) => ({ kind: "track", id: String(i), duration: Math.max(0.001, c.seconds) })) })
+  const plan = planSequence({
+    kind: "serial",
+    nodes: clips.map((c, i) => ({ kind: "track", id: String(i), duration: Math.max(0.001, c.seconds) })),
+  })
   const time = Math.min(Math.max(0, Number.isFinite(t) ? t : 0), Math.max(0, plan.duration - 1e-6))
   let index = plan.tracks.findIndex((tr) => time >= tr.t0 && time < tr.end)
   if (index < 0) index = clips.length - 1
@@ -31,7 +34,12 @@ export function reelAt(clips: ReelClip[], t: number): ReelMoment | null {
   const tr = clips[index].transition
   // The first clip comes in over the frame's own background.
   const running = tr.kind !== "cut" && tr.seconds > 0 && local < tr.seconds
-  return { index, local, outgoing: running && index > 0 ? index - 1 : null, progress: running ? ease(local / tr.seconds) : 1 }
+  return {
+    index,
+    local,
+    outgoing: running && index > 0 ? index - 1 : null,
+    progress: running ? ease(local / tr.seconds) : 1,
+  }
 }
 
 /** Free-running playback wraps around. */
@@ -41,4 +49,12 @@ export const reelLoop = (clips: ReelClip[], t: number): number => {
 }
 
 export const wipeDirectionOf = (kind: ReelTransitionKind): WipeDirection =>
-  kind === "wipe-right" ? "right" : kind === "wipe-left" ? "left" : kind === "wipe-down" ? "down" : kind === "wipe-up" ? "up" : "none"
+  kind === "wipe-right"
+    ? "right"
+    : kind === "wipe-left"
+      ? "left"
+      : kind === "wipe-down"
+        ? "down"
+        : kind === "wipe-up"
+          ? "up"
+          : "none"

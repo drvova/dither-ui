@@ -1,9 +1,35 @@
 <script lang="ts">
 import { externalResources, formatOf, parseWorld, type ModelFormat } from "./models"
-import { packTarget, packUv, paintMaterial, paintTarget, paintWorld, rasterizeWorld, sampleWorld, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
+import {
+  packTarget,
+  packUv,
+  paintMaterial,
+  paintTarget,
+  paintWorld,
+  rasterizeWorld,
+  sampleWorld,
+  type World,
+  type WorldMesh,
+  type WorldStyle,
+  type WorldTarget,
+  type WorldView,
+} from "./world"
 import { createWorldGpu, createWorldMaterial, type WorldGpu, type WorldMaterial } from "./world-gl"
 export type { ModelFormat, World, WorldGpu, WorldMaterial, WorldMesh, WorldStyle, WorldTarget, WorldView }
-export { createWorldGpu, createWorldMaterial, externalResources, formatOf, packTarget, packUv, paintMaterial, paintTarget, paintWorld, parseWorld, rasterizeWorld, sampleWorld }
+export {
+  createWorldGpu,
+  createWorldMaterial,
+  externalResources,
+  formatOf,
+  packTarget,
+  packUv,
+  paintMaterial,
+  paintTarget,
+  paintWorld,
+  parseWorld,
+  rasterizeWorld,
+  sampleWorld,
+}
 </script>
 
 <script setup lang="ts">
@@ -11,7 +37,15 @@ import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue
 import { directedTime } from "./clock"
 import { type ChannelInput, createGl, type GlHandle, rasterOf } from "./gl"
 import { cn } from "./lib"
-import { BAYER4, clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle, pixelMatrixFromSeed } from "./pixel"
+import {
+  BAYER4,
+  clamp01,
+  fillOf,
+  type PixelBloomInput,
+  type PixelColor,
+  pixelBloomStyle,
+  pixelMatrixFromSeed,
+} from "./pixel"
 import type { DitherRenderMode } from "./precompile"
 import type { RasterBuffer } from "./raster"
 import { useDitherBackground } from "./use-dither-background"
@@ -111,7 +145,7 @@ const props = withDefaults(
     paused: false,
     frameRate: 0,
     renderMode: "live",
-  }
+  },
 )
 
 const MAX_COLS = 480
@@ -138,7 +172,7 @@ const note = computed(() =>
           ? gpuProblem.value
           : props.shader && materialProblem.value
             ? materialProblem.value
-            : ""
+            : "",
 )
 
 // ---- loading ----------------------------------------------------------------
@@ -171,7 +205,7 @@ async function fetchModel(src: string, signal: AbortSignal): Promise<World> {
       } catch {
         // A missing side file costs its colours or buffers, not the model.
       }
-    })
+    }),
   )
   return parseWorld(bytes, format, { up: upOf(), resources })
 }
@@ -308,7 +342,8 @@ function render(buffer: RasterBuffer, clock: number) {
     return
   }
   const v = viewAt(clock)
-  if (!target || target.width !== buffer.width || target.height !== buffer.height) target = createWorldTarget(buffer.width, buffer.height)
+  if (!target || target.width !== buffer.width || target.height !== buffer.height)
+    target = createWorldTarget(buffer.width, buffer.height)
   let drawn = false
   if (wantsGpu(w)) {
     const h = glHandle()
@@ -324,9 +359,19 @@ function render(buffer: RasterBuffer, clock: number) {
   if (props.shader) {
     const h = glHandle()
     const rgba = h
-      ? (materialPass = materialPass ?? createWorldMaterial(h)).shade(props.shader, target, w, v, { time: v.time ?? 0, color: fillOf(props.color), seed: props.seed ?? 0, channels: props.channels, moment })
+      ? (materialPass = materialPass ?? createWorldMaterial(h)).shade(props.shader, target, w, v, {
+          time: v.time ?? 0,
+          color: fillOf(props.color),
+          seed: props.seed ?? 0,
+          channels: props.channels,
+          moment,
+        })
       : null
-    materialProblem.value = rgba ? "" : h ? materialPass?.problem() || "the material did not compile" : "WebGL is not available"
+    materialProblem.value = rgba
+      ? ""
+      : h
+        ? materialPass?.problem() || "the material did not compile"
+        : "WebGL is not available"
     if (rgba) {
       paintMaterial(buffer, target, w, v, style.value, rgba)
       return
@@ -370,9 +415,32 @@ const surface = useDitherBackground({
   renderMode: () => props.renderMode,
   precompiled: () => undefined,
   restart: () => [
-    props.renderMode, props.dpr, props.cell, world.value, orbit.yaw, orbit.pitch, props.engine,
-    props.yaw, props.pitch, props.zoom, props.fov, props.color, props.colors, props.dither, props.seed, props.shade, props.fog,
-    props.grain, props.grainScale, props.material, props.wire, props.shader, props.bloom, props.animate, props.time, props.channels,
+    props.renderMode,
+    props.dpr,
+    props.cell,
+    world.value,
+    orbit.yaw,
+    orbit.pitch,
+    props.engine,
+    props.yaw,
+    props.pitch,
+    props.zoom,
+    props.fov,
+    props.color,
+    props.colors,
+    props.dither,
+    props.seed,
+    props.shade,
+    props.fog,
+    props.grain,
+    props.grainScale,
+    props.material,
+    props.wire,
+    props.shader,
+    props.bloom,
+    props.animate,
+    props.time,
+    props.channels,
   ],
   frameRate: () => props.frameRate,
   staticClock: 0,
@@ -391,7 +459,13 @@ defineExpose({ surface })
     :tabindex="interactive ? 0 : undefined"
     :data-state="status"
     :data-engine="engineUsed"
-    :class="cn('relative block h-full w-full select-none overflow-hidden', interactive && 'cursor-grab active:cursor-grabbing', props.class)"
+    :class="
+      cn(
+        'relative block h-full w-full select-none overflow-hidden',
+        interactive && 'cursor-grab active:cursor-grabbing',
+        props.class,
+      )
+    "
     :style="interactive ? { touchAction: 'pan-y' } : undefined"
     @pointerdown="onDown"
     @pointermove="onMove"
@@ -405,8 +479,19 @@ defineExpose({ surface })
       ref="bloomRef"
       aria-hidden="true"
       class="pointer-events-none absolute inset-0 h-full w-full"
-      :style="{ filter: bloomStyle.filter, opacity: bloomStyle.opacity, mixBlendMode: bloomStyle.mixBlendMode, imageRendering: bloomStyle.imageRendering }"
+      :style="{
+        filter: bloomStyle.filter,
+        opacity: bloomStyle.opacity,
+        mixBlendMode: bloomStyle.mixBlendMode,
+        imageRendering: bloomStyle.imageRendering,
+      }"
     />
-    <p v-if="note" class="absolute inset-x-0 bottom-2 px-2 text-center font-mono text-[10px] break-words text-muted-foreground" aria-live="polite">{{ note }}</p>
+    <p
+      v-if="note"
+      class="absolute inset-x-0 bottom-2 px-2 text-center font-mono text-[10px] break-words text-muted-foreground"
+      aria-live="polite"
+    >
+      {{ note }}
+    </p>
   </div>
 </template>

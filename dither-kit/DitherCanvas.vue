@@ -11,7 +11,7 @@ const props = withDefaults(
     cell?: number
     class?: string
   }>(),
-  { pattern: "dots", cell: 16 }
+  { pattern: "dots", cell: 16 },
 )
 
 const layer = computed(() => {

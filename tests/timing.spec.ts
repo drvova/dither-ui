@@ -1,7 +1,7 @@
 // Step-timing parity suite. The four position outputs are spec-locked
 // (css-easing-1) and pinned here against MDN's documented step graphs — if a
 // refactor moves a boundary or an endpoint, this table fails first.
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { cssSteps, frameIndex, frameSteps, linear, steps } from "../dither-kit/timing"
 
 describe("steps() — MDN step-graph parity", () => {

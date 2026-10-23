@@ -78,25 +78,52 @@ Default section order:
 
 - dither-ui: a dithered UI toolkit for Vue (dither-ui.com). Two halves:
   `dither-kit/` (the portable component library) and `src/` (site + studio).
-- Stack: Vue 3, TypeScript strict, Vite, Tailwind v4, d3-scale/d3-shape.
-  No vue-router; Vitest covers models/components; no emojis in code.
-- Aliases: `@` → `src/`, `@dither-kit` → `dither-kit/` (vite.config.ts +
+- Stack: Vue 3, TypeScript strict, Tailwind v4, d3-scale/d3-shape, on the
+  Rstack toolchain. No vue-router; Rstest covers models/components; no
+  emojis in code.
+- Toolchain: ONE CLI (`rs`, the `rstack` package) and ONE config,
+  `rstack.config.ts`: `define.app` is Rsbuild (Rspack) — `rs dev`,
+  `rs build`, `rs preview`; `define.test` is Rstest (`rs test`, inheriting
+  the app's plugins and aliases); `define.lint` is Rslint (`rs lint`) for
+  TS/JS; `define.fmt` is the formatter (`rs fmt`). Rslint has no Vue SFC
+  parser, so `.vue` files stay on ESLint + eslint-plugin-vue
+  (`eslint.config.js`, run by `npm run lint` after `rs lint`); type
+  checking stays on `vue-tsc`. The config file loads under Node's own
+  TypeScript, so a module it imports at runtime (`utility-map.ts`,
+  `crawler-files.ts` and its graph: `groups.ts`, `seo.ts`, the `*-nav.ts`
+  packs) writes relative imports WITH `.ts`. The web build also serves both
+  kits' own source at `kit/src/<vue|svelte>/` with a `files.json` listing
+  (`kitSources`) — what the docs' source panel shows, runs and zips.
+  `svelte-site/` runs the same CLI with its own `rstack.config.ts`.
+- Aliases: `@` → `src/`, `@dither-kit` → `dither-kit/` (rstack.config.ts +
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links. GitHub Pages deploys through
-  `.github/workflows/pages.yml` (`vite build` + the player bundle + the kit
-  stylesheet; the prerender is not part of the deploy); default deploy base is `/` because
-  `public/CNAME` sets `dither-ui.com`. Set repo variable
-  `VITE_BASE_PATH=/dither-ui/` only when removing the custom domain and using
-  the GitHub Pages project URL.
+  `.github/workflows/pages.yml` (`rs build` — the site and the player
+  bundle — + the kit stylesheet; the prerender is not part of the deploy);
+  default deploy base is `/` because `public/CNAME` sets `dither-ui.com`.
+  Set repo variable `BASE_PATH=/dither-ui/` only when removing the custom
+  domain and using the GitHub Pages project URL.
 - Assets: `public/faces.webp` is the measured portrait/emote band;
   `public/sprites.webp` is the broader character sheet. `public/emotes/`
   holds alpha-keyed per-sprite crops of that band (six faces + six emotes,
   measured coordinates in `LandingPage.vue` FACES) — regenerate from the
   sheet, don't hand-draw. They decorate the README; the landing still
   blits from the sheet directly.
+- Landing films (Clayzo): the landing's films (hero, Studio, reel,
+  catalog and dawn — the stage's five tabs) are Clayzo documents
+  (`public/films/<id>.json`) played by
+  `@clayzo/webgl-player` (a lazy chunk, landing only). They are authored in
+  `src/pages/landing/films/` against `@clayzo/animation` — NODE-SIDE ONLY:
+  Clayzo's SDK license lets a site ship the playback runtime and its
+  documents, not the authoring package, so the app never imports that
+  folder. Every film renders through the kit's own ordered-dither rule as a
+  Clayzo shader, which doubles as a cursor loupe. `npm run films` regenerates the documents
+  (`tests/films.spec.ts` is generator and drift guard); never put Clayzo in
+  `dither-kit/` (MIT, copy-out portable). Details in `src/pages/AGENTS.md`.
 - Crawler surface: `src/pages/docs/crawler-files.ts` generates `dist/sitemap.xml`,
-  `dist/robots.txt`, and `dist/llms.txt` at build (vite `crawlFiles` plugin —
+  `dist/robots.txt`, and `dist/llms.txt` at build (the `crawlFiles` plugin
+  in `rstack.config.ts`, emitted as web-build assets —
   no hand-maintained copies in `public/`). It derives every URL from
   `SITE_URL` + `GROUPS` (a dead section id fails the build), declares an
   explicit allow-all AI-crawler posture, and ships a curated llmstxt.org
@@ -127,7 +154,8 @@ Default section order:
   file that `npx hyperframes render` turns into a deterministic MP4. The
   kit's clock (`dither-kit/clock.ts`) makes every animation seekable; the
   player page `/play/` (`src/pages/play`) renders one frame and is also
-  built as a single file (`vite.player.config.ts` → `dist/play/player.js`)
+  built as a single file (the `player` environment of `rstack.config.ts` →
+  `dist/play/player.js`)
   that the export inlines. A reel (the `reel` widget kind, `reel.add` /
   `add_reel`, the `reel` selection action) plays other frames in order with
   ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
@@ -143,7 +171,7 @@ Default section order:
   What the site writes for a reader comes in their system too:
   `src/shared/lib/restyle.ts` rewrites a Tailwind-classed snippet into a
   scoped stylesheet, CSS Modules or StyleX from the declarations Tailwind's
-  compiler gives each class (`virtual:dither-utilities`, compiled at build
+  compiler gives each class (`virtual-dither-utilities`, compiled at build
   from the docs + entities vocabulary by `src/shared/lib/utility-map.ts`);
   the docs' styling switch, the Studio's export dialog and
   `code.get { styling }` all go through it (see `src/AGENTS.md`).
@@ -196,14 +224,16 @@ Default section order:
 
 ## Workflow Rules
 
-- Verification gate before any commit: `npm run lint`, `npm run test`,
-  `npx vue-tsc --noEmit` and `npx vite build` green — the full package.json
+- Verification gate before any commit: `npm run lint` (`rs lint` + ESLint
+  on `.vue`), `npx rs fmt --check`, `npm run test` (`rs test`),
+  `npx vue-tsc --noEmit` and `npx rs build` green — the full package.json
   verify set (CI runs it; a remembered subset ships red), plus
   `npm run check` in `dither-kit-svelte/` when the kit is touched;
-  visual/stateful changes also checked in a live browser (vite preview +
-  screenshots).
-- `npm run build` runs the site build, then the single-file player build
-  (`vite build -c vite.player.config.ts`, also `npm run build:player`), and
+  visual/stateful changes also checked in a live browser (`rs dev` or
+  `rs preview` + screenshots). Format what you touch with `rs fmt <paths>`.
+- `npm run build` type-checks, runs `rs build` (two Rsbuild environments in
+  one run: `web`, the four route pages; `player`, the single-file player
+  bundle in `dist/play/`), compiles the kit stylesheet, and
   ends with a headless-chromium prerender of `/`, `/docs`,
   and `/studio` (`scripts/prerender.mjs`, devDependency playwright-core) so
   non-JS crawlers read the real page DOM from bytes. It requires a chromium
@@ -221,10 +251,26 @@ Default section order:
 
 ## User Preferences
 
-- Design direction: dark, monospace, pixel/dither identity; Japanese-minimal
-  restraint (one statement / one action / one visual) on the landing.
+- Design direction: dark, monospace, pixel/dither identity.
+- One site voice: the landing, the docs and the Studio speak one language
+  (dark theme tokens, monospace, hairlines, micro-caps, ringed pressed
+  states), so the whole site reads as one product. The user's 2000s oakley.com reference lends the
+  landing its STRUCTURE (a tabbed campaign stage, dense panels in
+  columns, lists under a mark) and the dither winners on Awwwards its
+  SCALE (a full-bleed art band, display-size type), filled with the kit
+  itself, never anyone's assets, marks or names. Rejected: italics, slants and cut corners, the
+  nodecode grid, the calm single column, condensed sports caps, bevels and
+  red (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
-  tables, variant galleries) while keeping the dither skin.
+  tables, variant galleries) while keeping the dither skin; every preview
+  carries Kobra's workbench and more (Inspect: the inspect and annotate
+  tool tray, captures, comments copied for an agent — see
+  `src/widgets/workbench/AGENTS.md`) and its Code tab is Kobra's source
+  panel (the example, the kit files behind it, the tokens and a
+  `prompt.md` as tabs; edit, Run in the page, download as a zip — see
+  `src/widgets/source/AGENTS.md`); Kobra's interface sounds play on the
+  docs, switched off from the header. Docs previews are real product
+  surfaces: build real, working tools on them, never mock-ups.
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
 - Accessibility is a floor, not a feature: labels, focus rings, reduced-motion
@@ -246,3 +292,6 @@ Default section order:
 - `src/AGENTS.md` — the app: FSD layers, routing, editor/history/persistence
   contracts, a11y floor
   - `src/pages/AGENTS.md` — landing/docs/studio page conventions
+  - `src/widgets/workbench/AGENTS.md` — the docs previews' workbench
+  - `src/widgets/source/AGENTS.md` — the docs previews' source files and
+    Run

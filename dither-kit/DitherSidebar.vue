@@ -45,14 +45,17 @@ const props = withDefaults(
     density: "default",
     toggle: true,
     washColor: "blue",
-  }
+  },
 )
 const emit = defineEmits<{ "update:modelValue": [boolean] }>()
 
 /** Items only fold labels in rail mode — a hidden sidebar keeps full labels. */
 const railCollapsed = computed(() => props.collapse === "rail" && props.modelValue)
 provide(SIDEBAR_COLLAPSED, railCollapsed)
-provide(SIDEBAR_COMPACT, computed(() => props.density === "compact"))
+provide(
+  SIDEBAR_COMPACT,
+  computed(() => props.density === "compact"),
+)
 
 const hidden = computed(() => props.collapse === "hide" && props.modelValue)
 
@@ -63,12 +66,10 @@ const width = computed(() => {
 })
 
 const chrome = computed(() => {
-  if (props.variant === "floating")
-    return "m-2 h-[calc(100%-1rem)] rounded-lg border border-border/60 bg-card/50"
+  if (props.variant === "floating") return "m-2 h-[calc(100%-1rem)] rounded-lg border border-border/60 bg-card/50"
   if (props.variant === "inset") return "bg-transparent"
   const edge = props.side === "right" ? "border-l" : "border-r"
-  if (props.variant === "washed")
-    return `relative isolate overflow-hidden ${edge} border-border/60`
+  if (props.variant === "washed") return `relative isolate overflow-hidden ${edge} border-border/60`
   return `${edge} border-border/60 bg-background/40`
 })
 </script>
@@ -81,7 +82,7 @@ const chrome = computed(() => {
         'flex h-full shrink-0 flex-col p-2 transition-[width] duration-200 motion-reduce:transition-none',
         chrome,
         width,
-        props.class
+        props.class,
       )
     "
   >

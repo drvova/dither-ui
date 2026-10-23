@@ -14,9 +14,22 @@
 import { buildProgram, type ChannelInput, type Channels, createChannels, createGl, type Gl, type GlHandle } from "./gl"
 import type { Rgb } from "./palette"
 import { wrapMaterial } from "./shader"
-import { cameraOf, meshGrain, nodeMatrices, packTarget, packUv, type World, type WorldMesh, type WorldStyle, type WorldTarget, type WorldView } from "./world"
+import {
+  cameraOf,
+  meshGrain,
+  nodeMatrices,
+  packTarget,
+  packUv,
+  type World,
+  type WorldMesh,
+  type WorldStyle,
+  type WorldTarget,
+  type WorldView,
+} from "./world"
 
-const VERTEX = (es3: boolean) => `${es3 ? "#version 300 es\n#define IN in\n#define OUT out\n" : "#define IN attribute\n#define OUT varying\n"}
+const VERTEX = (
+  es3: boolean,
+) => `${es3 ? "#version 300 es\n#define IN in\n#define OUT out\n" : "#define IN attribute\n#define OUT varying\n"}
 IN vec3 p;
 IN float g;
 IN float c;
@@ -46,7 +59,9 @@ void main() {
 }
 `
 
-const FRAGMENT = (es3: boolean) => `${es3 ? "#version 300 es\nprecision highp float;\n#define IN in\nlayout(location = 0) out vec4 fragColor;\nlayout(location = 1) out vec4 uvColor;\n" : "#extension GL_OES_standard_derivatives : enable\nprecision highp float;\n#define IN varying\n#define fragColor gl_FragColor\n"}
+const FRAGMENT = (
+  es3: boolean,
+) => `${es3 ? "#version 300 es\nprecision highp float;\n#define IN in\nlayout(location = 0) out vec4 fragColor;\nlayout(location = 1) out vec4 uvColor;\n" : "#extension GL_OES_standard_derivatives : enable\nprecision highp float;\n#define IN varying\n#define fragColor gl_FragColor\n"}
 IN vec3 vPos;
 IN float vGrain;
 IN float vIndex;
@@ -85,7 +100,16 @@ ${
 }}
 `
 
-type Buffers = { pos: WebGLBuffer; idx: WebGLBuffer | null; color: WebGLBuffer | null; uv: WebGLBuffer | null; grain: WebGLBuffer | null; grainKey: string; count: number; expanded: boolean }
+type Buffers = {
+  pos: WebGLBuffer
+  idx: WebGLBuffer | null
+  color: WebGLBuffer | null
+  uv: WebGLBuffer | null
+  grain: WebGLBuffer | null
+  grainKey: string
+  count: number
+  expanded: boolean
+}
 
 export type WorldGpu = {
   /** Fill `target` for one frame; false when WebGL (or an extension) is missing. */
@@ -155,7 +179,10 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
     if (!handle || handle.lost()) return null
     const gl = handle.gl
     if (!program) {
-      if (!handle.webgl2 && !(gl.getExtension("OES_standard_derivatives") && gl.getExtension("OES_element_index_uint"))) {
+      if (
+        !handle.webgl2 &&
+        !(gl.getExtension("OES_standard_derivatives") && gl.getExtension("OES_element_index_uint"))
+      ) {
         problem = "the GPU engine needs WebGL2"
         return null
       }
@@ -165,7 +192,8 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
         return null
       }
       program = built
-      for (const name of ["uModel", "uCenter", "uRot", "uCam", "uDepth", "uLights", "uLightCount", "uGrain", "uHasUv"]) uniforms[name] = gl.getUniformLocation(program, name)
+      for (const name of ["uModel", "uCenter", "uRot", "uCam", "uDepth", "uLights", "uLightCount", "uGrain", "uHasUv"])
+        uniforms[name] = gl.getUniformLocation(program, name)
     }
     // Per-pass state: the material pass on the same context sets its own.
     gl.enable(gl.DEPTH_TEST)
@@ -390,7 +418,13 @@ export type MaterialInputs = {
 export type WorldMaterial = {
   /** Run `source` over the target; the RGBA readback (rows bottom-up) for
    * `paintMaterial`, or null when WebGL is missing or the shader failed. */
-  shade: (source: string, target: WorldTarget, world: World, view: WorldView, inputs: MaterialInputs) => Uint8Array | null
+  shade: (
+    source: string,
+    target: WorldTarget,
+    world: World,
+    view: WorldView,
+    inputs: MaterialInputs,
+  ) => Uint8Array | null
   problem: () => string
   dispose: () => void
 }
@@ -445,7 +479,22 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
       }
       program = p
       problem = ""
-      for (const name of ["dk_target", "dk_palette", "dk_uvmap", "iResolution", "iTime", "iColor", "iSeed", "iChannel0", "iChannel1", "iChannel2", "iChannel3", "iChannelResolution", "iChannelTime"]) uniforms[name] = gl.getUniformLocation(p, name)
+      for (const name of [
+        "dk_target",
+        "dk_palette",
+        "dk_uvmap",
+        "iResolution",
+        "iTime",
+        "iColor",
+        "iSeed",
+        "iChannel0",
+        "iChannel1",
+        "iChannel2",
+        "iChannel3",
+        "iChannelResolution",
+        "iChannelTime",
+      ])
+        uniforms[name] = gl.getUniformLocation(p, name)
       quad = quad ?? gl.createBuffer()
       gl.bindBuffer(gl.ARRAY_BUFFER, quad)
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)

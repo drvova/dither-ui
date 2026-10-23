@@ -15,12 +15,66 @@ type Notice = {
 }
 
 const notices = reactive<Notice[]>([
-  { id: 1, actor: "Rei Toma", color: "purple", action: "commented on", target: "Palette v3", time: "12m", day: "Today", read: false },
-  { id: 2, actor: "Kai Raster", color: "green", action: "assigned you", target: "Export bug #214", time: "1h", day: "Today", read: false },
-  { id: 3, actor: "Nia Grid", color: "blue", action: "approved", target: "Q3 budget", time: "3h", day: "Today", read: true },
-  { id: 4, actor: "Ivy Pixel", color: "orange", action: "mentioned you in", target: "Launch notes", time: "1d", day: "Earlier", read: false },
-  { id: 5, actor: "Sol Bayer", color: "green", action: "merged", target: "dither-kit #98", time: "2d", day: "Earlier", read: true },
-  { id: 6, actor: "Juno Bit", color: "blue", action: "invited you to", target: "Print run review", time: "3d", day: "Earlier", read: true },
+  {
+    id: 1,
+    actor: "Rei Toma",
+    color: "purple",
+    action: "commented on",
+    target: "Palette v3",
+    time: "12m",
+    day: "Today",
+    read: false,
+  },
+  {
+    id: 2,
+    actor: "Kai Raster",
+    color: "green",
+    action: "assigned you",
+    target: "Export bug #214",
+    time: "1h",
+    day: "Today",
+    read: false,
+  },
+  {
+    id: 3,
+    actor: "Nia Grid",
+    color: "blue",
+    action: "approved",
+    target: "Q3 budget",
+    time: "3h",
+    day: "Today",
+    read: true,
+  },
+  {
+    id: 4,
+    actor: "Ivy Pixel",
+    color: "orange",
+    action: "mentioned you in",
+    target: "Launch notes",
+    time: "1d",
+    day: "Earlier",
+    read: false,
+  },
+  {
+    id: 5,
+    actor: "Sol Bayer",
+    color: "green",
+    action: "merged",
+    target: "dither-kit #98",
+    time: "2d",
+    day: "Earlier",
+    read: true,
+  },
+  {
+    id: 6,
+    actor: "Juno Bit",
+    color: "blue",
+    action: "invited you to",
+    target: "Print run review",
+    time: "3d",
+    day: "Earlier",
+    read: true,
+  },
 ])
 
 const tab = ref("All")
@@ -59,9 +113,8 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
   <section id="notification-center" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Notifications</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A notification center — segmented All/Unread tabs, day groups, and an
-      unread dot that clears on click or all at once. Empty the unread tab
-      and it says so instead of showing nothing.
+      A notification center — segmented All/Unread tabs, day groups, and an unread dot that clears on click or all at
+      once. Empty the unread tab and it says so instead of showing nothing.
     </p>
     <DemoCard :code="SNIPPET">
       <div class="mx-auto w-80 rounded-lg border border-border/60 bg-background/40">
@@ -100,20 +153,17 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
                 <span class="text-foreground">{{ n.target }}</span>
                 <time class="ml-1 text-[9px] text-muted-foreground/70 tabular-nums">{{ n.time }}</time>
               </span>
-              <span
-                v-if="!n.read"
-                class="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent"
-                aria-hidden="true"
-              />
+              <span v-if="!n.read" class="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
               <span v-if="!n.read" class="sr-only">unread</span>
             </button>
           </section>
-          <p v-if="!shown.length" class="px-2 py-8 text-center text-[11px] text-muted-foreground">
-            All caught up.
-          </p>
+          <p v-if="!shown.length" class="px-2 py-8 text-center text-[11px] text-muted-foreground">All caught up.</p>
         </div>
         <div class="border-t border-border/60 p-2">
-          <button type="button" class="w-full rounded-md py-1.5 text-[10px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground">
+          <button
+            type="button"
+            class="w-full rounded-md py-1.5 text-[10px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+          >
             View archive
           </button>
         </div>

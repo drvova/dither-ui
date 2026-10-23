@@ -32,14 +32,24 @@ const emit = defineEmits<{
       :disabled="props.disabled"
       :class="cn('pl-8 pr-8 [&::-webkit-search-cancel-button]:appearance-none', props.class)"
       @update:model-value="emit('update:modelValue', $event)"
-      @keydown.esc.stop="emit('update:modelValue', ''); emit('clear')"
+      @keydown.esc.stop="
+        () => {
+          emit('update:modelValue', '')
+          emit('clear')
+        }
+      "
     />
     <button
       v-if="props.modelValue"
       type="button"
       aria-label="Clear search"
       class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground"
-      @click="emit('update:modelValue', ''); emit('clear')"
+      @click="
+        () => {
+          emit('update:modelValue', '')
+          emit('clear')
+        }
+      "
     >
       <Icon name="Close" :size="13" />
     </button>

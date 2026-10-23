@@ -8,7 +8,7 @@ const props = withDefaults(
     interval?: number
     class?: string
   }>(),
-  { texts: () => ["Vue", "canvas", "dither"], interval: 2000 }
+  { texts: () => ["Vue", "canvas", "dither"], interval: 2000 },
 )
 
 const list = computed(() => (props.texts.length ? props.texts : [""]))
@@ -18,13 +18,22 @@ let timer = 0
 function start() {
   clearInterval(timer)
   if (list.value.length < 2) return
-  timer = window.setInterval(() => {
-    idx.value = (idx.value + 1) % list.value.length
-  }, Math.max(300, props.interval))
+  timer = window.setInterval(
+    () => {
+      idx.value = (idx.value + 1) % list.value.length
+    },
+    Math.max(300, props.interval),
+  )
 }
 
 onMounted(start)
-watch(() => [props.texts, props.interval], () => { idx.value = 0; start() })
+watch(
+  () => [props.texts, props.interval],
+  () => {
+    idx.value = 0
+    start()
+  },
+)
 onBeforeUnmount(() => clearInterval(timer))
 </script>
 
@@ -44,7 +53,9 @@ onBeforeUnmount(() => clearInterval(timer))
 }
 .dither-rot-enter-active,
 .dither-rot-leave-active {
-  transition: opacity 300ms cubic-bezier(0.2, 0, 0, 1), transform 300ms cubic-bezier(0.2, 0, 0, 1);
+  transition:
+    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
+    transform 300ms cubic-bezier(0.2, 0, 0, 1);
 }
 .dither-rot-enter-from {
   opacity: 0;

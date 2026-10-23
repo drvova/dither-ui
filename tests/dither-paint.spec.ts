@@ -1,12 +1,5 @@
-import { describe, expect, it } from "vitest"
-import {
-  BORDER_ALPHA,
-  cubicBezier,
-  EASINGS,
-  OFF_TIER,
-  resolveEasing,
-  resolveTexture,
-} from "../dither-kit/dither-paint"
+import { describe, expect, it } from "rstack/test"
+import { BORDER_ALPHA, cubicBezier, EASINGS, OFF_TIER, resolveEasing, resolveTexture } from "../dither-kit/dither-paint"
 
 describe("cubicBezier", () => {
   it("pins the endpoints", () => {
@@ -51,7 +44,12 @@ describe("resolveTexture", () => {
     // toMatchObject: the texture config may gain fields (e.g. seed-driven
     // luminance coefficients) — these core mappings must hold regardless.
     expect(resolveTexture("gradient")).toMatchObject({
-      ramp: 1, density: 0, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA,
+      ramp: 1,
+      density: 0,
+      gaps: false,
+      hatch: 0,
+      offTier: OFF_TIER,
+      edge: BORDER_ALPHA,
     })
   })
   it("dotted = density bias + real gaps", () => {

@@ -10,7 +10,7 @@ const props = withDefaults(
     size?: number
     class?: string
   }>(),
-  { items: () => ["A", "B", "C", "D", "E"], radius: 80, duration: 16, size: 200 }
+  { items: () => ["A", "B", "C", "D", "E"], radius: 80, duration: 16, size: 200 },
 )
 
 const placed = computed(() => {

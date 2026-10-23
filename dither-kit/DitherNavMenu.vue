@@ -11,7 +11,7 @@ function paintUnderline(
   canvas: HTMLCanvasElement,
   width: number,
   color: PixelColor,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || width <= 0) return
@@ -40,7 +40,7 @@ const props = withDefaults(
     modelValue: string
     color?: PixelColor
   }>(),
-  { color: "blue" }
+  { color: "blue" },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
@@ -54,12 +54,10 @@ function setItemRef(el: unknown, i: number) {
 }
 
 function measure() {
-  const active =
-    itemRefs.value[props.items.findIndex((it) => it.label === props.modelValue)]
+  const active = itemRefs.value[props.items.findIndex((it) => it.label === props.modelValue)]
   if (!active) return
   underline.value = { left: active.offsetLeft, width: active.offsetWidth }
-  if (canvasRef.value)
-    paintUnderline(canvasRef.value, active.offsetWidth, props.color)
+  if (canvasRef.value) paintUnderline(canvasRef.value, active.offsetWidth, props.color)
 }
 
 let ro: ResizeObserver | null = null
@@ -74,7 +72,7 @@ onMounted(() => {
 })
 watch(
   () => [props.modelValue, props.items, props.color],
-  () => nextTick(measure)
+  () => nextTick(measure),
 )
 onBeforeUnmount(() => ro?.disconnect())
 </script>
@@ -89,11 +87,7 @@ onBeforeUnmount(() => ro?.disconnect())
         :href="item.href ?? '#'"
         :aria-current="item.label === props.modelValue ? 'page' : undefined"
         class="pb-2 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none"
-        :class="
-          item.label === props.modelValue
-            ? 'text-foreground'
-            : 'text-muted-foreground hover:text-foreground'
-        "
+        :class="item.label === props.modelValue ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
         @click.prevent="emit('update:modelValue', item.label)"
       >
         {{ item.label }}

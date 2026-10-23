@@ -4,7 +4,17 @@ import { copyText } from "@dither-kit"
 import { editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
 import { type AcpClient, type AcpPermissionRequest, type BridgeHello, connectAcp } from "@/features/agent/acp"
-import { type AgentCommand, type AgentConfig, type AgentEvent, loadAgentConfig, loadSession, type Mode, saveAgentConfig, saveSession, type Usage } from "@/features/agent/tools"
+import {
+  type AgentCommand,
+  type AgentConfig,
+  type AgentEvent,
+  loadAgentConfig,
+  loadSession,
+  type Mode,
+  saveAgentConfig,
+  saveSession,
+  type Usage,
+} from "@/features/agent/tools"
 import { undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
 
@@ -32,7 +42,12 @@ type Entry =
   | { kind: "tool"; name: string; summary: string; detail: string; ok: boolean; open: boolean }
   | { kind: "activity"; id: string; title: string; status: string }
   | { kind: "plan"; entries: { content: string; status: string }[] }
-  | { kind: "approval"; title: string; options: { id: string; label: string; primary?: boolean }[]; answered: string | null }
+  | {
+      kind: "approval"
+      title: string
+      options: { id: string; label: string; primary?: boolean }[]
+      answered: string | null
+    }
 
 const entries = ref<Entry[]>([])
 const usage = ref<Usage>({ input: 0, output: 0 })
@@ -72,7 +87,16 @@ watch(
   },
   { immediate: true },
 )
-watch([entries, usage], () => loadedFor && saveSession(loadedFor, { entries: entries.value.filter((e) => e.kind !== "approval" || e.answered !== null), usage: usage.value }), { deep: true })
+watch(
+  [entries, usage],
+  () =>
+    loadedFor &&
+    saveSession(loadedFor, {
+      entries: entries.value.filter((e) => e.kind !== "approval" || e.answered !== null),
+      usage: usage.value,
+    }),
+  { deep: true },
+)
 
 /* --------------------------------- status --------------------------------- */
 
@@ -149,7 +173,8 @@ async function start(choice: string | { command: string }) {
     config.value.harness = "custom"
     config.value.command = choice.command
   }
-  const label = typeof choice === "string" ? (harnesses.value.find((h) => h.id === choice)?.name ?? choice) : choice.command
+  const label =
+    typeof choice === "string" ? (harnesses.value.find((h) => h.id === choice)?.name ?? choice) : choice.command
   system(`starting ${label}…`)
   try {
     await client.start(choice)
@@ -162,7 +187,11 @@ async function start(choice: string | { command: string }) {
 
 /** The harness to run, from the saved choice: a preset id or the custom command. */
 const savedChoice = (): string | { command: string } | null =>
-  config.value.harness === "custom" ? (config.value.command ? { command: config.value.command } : null) : config.value.harness || null
+  config.value.harness === "custom"
+    ? config.value.command
+      ? { command: config.value.command }
+      : null
+    : config.value.harness || null
 
 /** Make sure a harness is running: the bridge's own, the saved choice, or ask. */
 async function ready(): Promise<AcpClient | null> {
@@ -188,7 +217,8 @@ function disconnect() {
 /* ---------------------------- tool call rendering -------------------------- */
 
 const short = (v: unknown, n = 36): string => {
-  const s = typeof v === "string" ? v : Array.isArray(v) ? `[${v.length}]` : typeof v === "object" && v ? "{…}" : String(v)
+  const s =
+    typeof v === "string" ? v : Array.isArray(v) ? `[${v.length}]` : typeof v === "object" && v ? "{…}" : String(v)
   return s.length > n ? `${s.slice(0, n - 1)}…` : s
 }
 
@@ -226,11 +256,15 @@ function describeResult(result: { ok: true; data: unknown } | { ok: false; error
   if (Array.isArray(d)) return `${d.length} ${d.length === 1 ? "item" : "items"}`
   if (d && typeof d === "object") {
     if (typeof d.code === "string") return `${d.code.split("\n").length} lines`
-    if (typeof d.name === "string") return `${d.name}${typeof d.kind === "string" ? ` · ${d.kind}` : ""}${Array.isArray(d.dropped) && d.dropped.length ? ` · dropped ${d.dropped.join(", ")}` : ""}`
+    if (typeof d.name === "string")
+      return `${d.name}${typeof d.kind === "string" ? ` · ${d.kind}` : ""}${Array.isArray(d.dropped) && d.dropped.length ? ` · dropped ${d.dropped.join(", ")}` : ""}`
     if (Array.isArray(d.components)) return `${d.components.length} components`
     if (Array.isArray(d.artboards)) return `${d.artboards.length} frames`
     if (typeof d.removed === "string") return "removed"
-    if (Array.isArray(d.files)) return d.files.map((f) => (typeof f === "object" && f && "path" in f ? String((f as { path: unknown }).path) : String(f))).join(", ")
+    if (Array.isArray(d.files))
+      return d.files
+        .map((f) => (typeof f === "object" && f && "path" in f ? String((f as { path: unknown }).path) : String(f)))
+        .join(", ")
   }
   return "ok"
 }
@@ -255,14 +289,34 @@ function onEvent(e: AgentEvent) {
     case "tool": {
       live.value = null
       // A delivered file rides the result as content; the block shows its path.
-      const data = e.result.ok && typeof e.result.data === "object" && e.result.data && Array.isArray((e.result.data as { files?: unknown }).files) ? { ...(e.result.data as object), files: ((e.result.data as { files: unknown[] }).files as { path?: unknown }[]).map((f) => f?.path ?? f) } : e.result.ok ? e.result.data : null
+      const data =
+        e.result.ok &&
+        typeof e.result.data === "object" &&
+        e.result.data &&
+        Array.isArray((e.result.data as { files?: unknown }).files)
+          ? {
+              ...(e.result.data as object),
+              files: ((e.result.data as { files: unknown[] }).files as { path?: unknown }[]).map((f) => f?.path ?? f),
+            }
+          : e.result.ok
+            ? e.result.data
+            : null
       const detail = `${JSON.stringify(e.args, null, 1)}\n→ ${e.result.ok ? JSON.stringify(data, null, 1).slice(0, 1600) : e.result.error}`
-      push({ kind: "tool", name: e.name, ok: e.result.ok, summary: `${describeArgs(e.name, e.args)}  ⎿ ${describeResult(e.result)}`, detail, open: !e.result.ok })
+      push({
+        kind: "tool",
+        name: e.name,
+        ok: e.result.ok,
+        summary: `${describeArgs(e.name, e.args)}  ⎿ ${describeResult(e.result)}`,
+        detail,
+        open: !e.result.ok,
+      })
       break
     }
     case "activity": {
       live.value = null
-      const existing = entries.value.find((x): x is Extract<Entry, { kind: "activity" }> => x.kind === "activity" && x.id === e.id)
+      const existing = entries.value.find(
+        (x): x is Extract<Entry, { kind: "activity" }> => x.kind === "activity" && x.id === e.id,
+      )
       if (existing) {
         existing.status = e.status
         if (e.title) existing.title = e.title
@@ -284,7 +338,8 @@ function onEvent(e: AgentEvent) {
       break
     case "turn":
       lastTurnMs.value = e.elapsedMs
-      if (e.usage) usage.value = { input: usage.value.input + e.usage.input, output: usage.value.output + e.usage.output }
+      if (e.usage)
+        usage.value = { input: usage.value.input + e.usage.input, output: usage.value.output + e.usage.output }
       break
     case "error":
       live.value = null
@@ -317,7 +372,15 @@ function ask(title: string, options: { id: string; label: string; primary?: bool
 const askPermission = async (req: AcpPermissionRequest): Promise<string | null> => {
   const options = req.options.map((o) => ({ id: o.optionId, label: o.name, primary: o.kind.startsWith("allow") }))
   if (config.value.auto) return options.find((o) => o.primary)?.id ?? options[0]?.id ?? null
-  return ask(req.title, options.length ? options : [{ id: "allow", label: "allow", primary: true }, { id: "reject", label: "reject" }])
+  return ask(
+    req.title,
+    options.length
+      ? options
+      : [
+          { id: "allow", label: "allow", primary: true },
+          { id: "reject", label: "reject" },
+        ],
+  )
 }
 
 function answer(entry: Extract<Entry, { kind: "approval" }>, id: string | null) {
@@ -357,7 +420,12 @@ const OURS: Slash[] = [
   { name: "disconnect", desc: "close the bridge" },
 ]
 /** Ours plus whatever the harness advertises; a harness command is sent to it as text. */
-const slashAll = computed<Slash[]>(() => [...OURS, ...commands.value.filter((c) => !OURS.some((o) => o.name === c.name)).map((c) => ({ name: c.name, args: c.input, desc: c.description, harness: true }))])
+const slashAll = computed<Slash[]>(() => [
+  ...OURS,
+  ...commands.value
+    .filter((c) => !OURS.some((o) => o.name === c.name))
+    .map((c) => ({ name: c.name, args: c.input, desc: c.description, harness: true })),
+])
 const slashOpen = computed(() => /^\/[\w-]*$/.test(input.value))
 const slashMatches = computed(() => {
   const q = input.value.slice(1).toLowerCase()
@@ -371,7 +439,14 @@ async function slash(line: string): Promise<boolean> {
   const arg = rest.join(" ").trim()
   switch (cmd) {
     case "help":
-      system(slashAll.value.map((c) => `/${c.name}${c.args ? ` ${c.args}` : ""} — ${c.desc}${c.harness ? ` (${agentName.value || "harness"})` : ""}`).join("\n"))
+      system(
+        slashAll.value
+          .map(
+            (c) =>
+              `/${c.name}${c.args ? ` ${c.args}` : ""} — ${c.desc}${c.harness ? ` (${agentName.value || "harness"})` : ""}`,
+          )
+          .join("\n"),
+      )
       return true
     case "harness":
       if (!arg) pickerOpen.value = true
@@ -388,13 +463,14 @@ async function slash(line: string): Promise<boolean> {
     case "new":
       entries.value = []
       usage.value = { input: 0, output: 0 }
-      if (acp.value?.hello?.agent) await acp.value.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
+      if (acp.value?.hello?.agent)
+        await acp.value.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
       return true
     case "mode": {
       const client = acp.value
-      if (!client || !modes.value.length) return system("the harness has no modes"), true
+      if (!client || !modes.value.length) return (system("the harness has no modes"), true)
       const m = modes.value.find((x) => x.id === arg || x.name.toLowerCase() === arg.toLowerCase())
-      if (!m) return system(`modes: ${modes.value.map((x) => x.id).join(", ")}`), true
+      if (!m) return (system(`modes: ${modes.value.map((x) => x.id).join(", ")}`), true)
       await client.setMode(m.id).catch((e: Error) => push({ kind: "error", text: e.message }))
       system(`mode ${m.name}`)
       return true
@@ -423,12 +499,14 @@ async function slash(line: string): Promise<boolean> {
     }
     case "copy": {
       const last = lastEntry(isAssistant)
-      if (!last) return system("nothing to copy"), true
+      if (!last) return (system("nothing to copy"), true)
       system((await copyText(last.text)) ? "copied" : "clipboard unavailable")
       return true
     }
     case "session":
-      system(`${agentName.value || "no harness"}${mode.value ? ` · ${mode.value}` : ""} · ${fmtTokens(usage.value.input)} in / ${fmtTokens(usage.value.output)} out · ${editor.artboards.length} frames${acp.value?.sessionId ? ` · acp ${acp.value.sessionId}` : ""}${hello.value ? ` · cwd ${hello.value.cwd}` : ""}`)
+      system(
+        `${agentName.value || "no harness"}${mode.value ? ` · ${mode.value}` : ""} · ${fmtTokens(usage.value.input)} in / ${fmtTokens(usage.value.output)} out · ${editor.artboards.length} frames${acp.value?.sessionId ? ` · acp ${acp.value.sessionId}` : ""}${hello.value ? ` · cwd ${hello.value.cwd}` : ""}`,
+      )
       return true
     case "undo":
       undo()
@@ -515,7 +593,10 @@ function onKey(e: KeyboardEvent) {
       slashIndex.value = (slashIndex.value - 1 + slashMatches.value.length) % slashMatches.value.length
       return
     }
-    if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey && `/${slashMatches.value[slashIndex.value].name}` !== input.value)) {
+    if (
+      e.key === "Tab" ||
+      (e.key === "Enter" && !e.shiftKey && `/${slashMatches.value[slashIndex.value].name}` !== input.value)
+    ) {
       e.preventDefault()
       const c = slashMatches.value[slashIndex.value]
       input.value = `/${c.name}${c.args ? " " : ""}`
@@ -584,96 +665,234 @@ onBeforeUnmount(() => {
   <div class="agent">
     <div class="head">
       <span class="title">Agent</span>
-      <button type="button" class="model" :aria-expanded="pickerOpen" aria-controls="agent-harness-picker" :title="hello ? `bridge ${config.bridgeUrl} · cwd ${hello.cwd}` : config.bridgeUrl" @click="togglePicker">
-        <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span>{{ agentName || (acp ? "pick a harness" : "harness") }}
+      <button
+        type="button"
+        class="model"
+        :aria-expanded="pickerOpen"
+        aria-controls="agent-harness-picker"
+        :title="hello ? `bridge ${config.bridgeUrl} · cwd ${hello.cwd}` : config.bridgeUrl"
+        @click="togglePicker"
+      >
+        <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
+        >{{ agentName || (acp ? "pick a harness" : "harness") }}
       </button>
-      <button v-if="modes.length" type="button" class="model" :title="modes.find((m) => m.id === mode)?.description || 'mode'" @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)">{{ modes.find((m) => m.id === mode)?.name || mode }}</button>
+      <button
+        v-if="modes.length"
+        type="button"
+        class="model"
+        :title="modes.find((m) => m.id === mode)?.description || 'mode'"
+        @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
+      >
+        {{ modes.find((m) => m.id === mode)?.name || mode }}
+      </button>
       <div class="head-actions">
-        <button type="button" class="head-btn" :aria-pressed="settingsOpen" aria-label="Bridge settings" title="Bridge settings" @click="settingsOpen = !settingsOpen">⚙</button>
+        <button
+          type="button"
+          class="head-btn"
+          :aria-pressed="settingsOpen"
+          aria-label="Bridge settings"
+          title="Bridge settings"
+          @click="settingsOpen = !settingsOpen"
+        >
+          ⚙
+        </button>
         <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">×</button>
       </div>
     </div>
 
     <div v-if="pickerOpen" id="agent-harness-picker" class="picker" role="group" aria-label="Harness">
       <template v-if="hello">
-        <button v-for="h in harnesses" :key="h.id" type="button" class="pick" :aria-pressed="agent?.id === h.id" :title="h.command" @click="start(h.id)">
+        <button
+          v-for="h in harnesses"
+          :key="h.id"
+          type="button"
+          class="pick"
+          :aria-pressed="agent?.id === h.id"
+          :title="h.command"
+          @click="start(h.id)"
+        >
           <span class="pick-name">{{ h.name }}</span>
           <span class="dim">{{ h.installed ? (h.note ?? "on this path") : "not on the path" }}</span>
         </button>
         <form class="custom" @submit.prevent="customCommand.trim() && start({ command: customCommand.trim() })">
-          <input v-model="customCommand" type="text" name="agent-command" class="input" placeholder="any ACP command, e.g. omp --mode acp" autocomplete="off" spellcheck="false" aria-label="Custom harness command" />
+          <input
+            v-model="customCommand"
+            type="text"
+            name="agent-command"
+            class="input"
+            placeholder="any ACP command, e.g. omp --mode acp"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Custom harness command"
+          />
           <button type="submit" class="chip is-primary" :disabled="!customCommand.trim()">start</button>
         </form>
-        <button v-if="agent" type="button" class="pick stop-pick" @click="acp?.stop()"><span class="pick-name">stop {{ agent.name }}</span></button>
+        <button v-if="agent" type="button" class="pick stop-pick" @click="acp?.stop()">
+          <span class="pick-name">stop {{ agent.name }}</span>
+        </button>
       </template>
       <p v-else class="note">
-        {{ connecting ? "connecting the bridge…" : "No bridge." }} Run it next to your harness, which keeps its own login:<br />
-        <code>node bridge/dither-bridge.mjs</code><br />then pick Claude Code, Codex, Gemini CLI, oh-my-pi, Goose, OpenCode — or any ACP command.
+        {{ connecting ? "connecting the bridge…" : "No bridge." }} Run it next to your harness, which keeps its own
+        login:<br />
+        <code>node bridge/dither-bridge.mjs</code><br />then pick Claude Code, Codex, Gemini CLI, oh-my-pi, Goose,
+        OpenCode — or any ACP command.
       </p>
     </div>
 
     <div v-if="settingsOpen" class="settings">
-      <label class="field"><span>bridge</span><input v-model.trim="config.bridgeUrl" name="agent-bridge-url" type="text" class="input" placeholder="ws://127.0.0.1:8790" autocomplete="off" spellcheck="false" /></label>
-      <label class="remember"><input v-model="config.auto" type="checkbox" name="agent-auto" class="accent-foreground" />answer permission prompts with their allow option</label>
-      <p class="note">The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool calls. No key, no model setting lives here.</p>
+      <label class="field"
+        ><span>bridge</span
+        ><input
+          v-model.trim="config.bridgeUrl"
+          name="agent-bridge-url"
+          type="text"
+          class="input"
+          placeholder="ws://127.0.0.1:8790"
+          autocomplete="off"
+          spellcheck="false"
+      /></label>
+      <label class="remember"
+        ><input v-model="config.auto" type="checkbox" name="agent-auto" class="accent-foreground" />answer permission
+        prompts with their allow option</label
+      >
+      <p class="note">
+        The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool calls. No
+        key, no model setting lives here.
+      </p>
     </div>
 
     <div ref="log" class="log" aria-live="polite">
       <div v-if="!entries.length" class="empty">
-        <p>Describe a screen, a chart or a control. Your harness composes it from the kit's registry through the Studio's tools; every placement is one undo away.</p>
-        <p class="dim">try: a sign-in screen with email, password and a primary button<br />/evolve on a selected frame · /help for commands</p>
+        <p>
+          Describe a screen, a chart or a control. Your harness composes it from the kit's registry through the Studio's
+          tools; every placement is one undo away.
+        </p>
+        <p class="dim">
+          try: a sign-in screen with email, password and a primary button<br />/evolve on a selected frame · /help for
+          commands
+        </p>
       </div>
       <template v-for="(e, i) in entries" :key="i">
         <details v-if="e.kind === 'tool'" class="tool" :open="e.open" :data-ok="String(e.ok)">
-          <summary><span class="mark" aria-hidden="true">{{ e.ok ? "⚙" : "×" }}</span><span class="name">{{ e.name }}</span><span class="sum">{{ e.summary }}</span></summary>
+          <summary>
+            <span class="mark" aria-hidden="true">{{ e.ok ? "⚙" : "×" }}</span
+            ><span class="name">{{ e.name }}</span
+            ><span class="sum">{{ e.summary }}</span>
+          </summary>
           <pre class="detail">{{ e.detail }}</pre>
         </details>
         <div v-else-if="e.kind === 'activity'" class="entry" data-kind="activity" :data-status="e.status">
-          <span class="mark" aria-hidden="true">{{ e.status === "completed" ? "✓" : e.status === "failed" ? "×" : "⚙" }}</span>
-          <span class="text">{{ e.title }}<span class="dim"> · {{ e.status.replace("_", " ") }}</span></span>
+          <span class="mark" aria-hidden="true">{{
+            e.status === "completed" ? "✓" : e.status === "failed" ? "×" : "⚙"
+          }}</span>
+          <span class="text"
+            >{{ e.title }}<span class="dim"> · {{ e.status.replace("_", " ") }}</span></span
+          >
         </div>
         <div v-else-if="e.kind === 'plan'" class="entry" data-kind="plan">
           <span class="mark" aria-hidden="true">☰</span>
           <ul class="plan">
-            <li v-for="(p, j) in e.entries" :key="j" :data-status="p.status"><span class="mark" aria-hidden="true">{{ p.status === "completed" ? "✓" : p.status === "in_progress" ? "›" : "·" }}</span>{{ p.content }}</li>
+            <li v-for="(p, j) in e.entries" :key="j" :data-status="p.status">
+              <span class="mark" aria-hidden="true">{{
+                p.status === "completed" ? "✓" : p.status === "in_progress" ? "›" : "·"
+              }}</span
+              >{{ p.content }}
+            </li>
           </ul>
         </div>
-        <div v-else-if="e.kind === 'approval'" class="entry approval" data-kind="approval" :data-answered="String(e.answered !== null)">
+        <div
+          v-else-if="e.kind === 'approval'"
+          class="entry approval"
+          data-kind="approval"
+          :data-answered="String(e.answered !== null)"
+        >
           <span class="mark" aria-hidden="true">⚠</span>
           <span class="text">
             {{ e.title }}
             <span v-if="e.answered === null" class="choices">
-              <button v-for="o in e.options" :key="o.id" type="button" class="chip" :class="o.primary ? 'is-primary' : ''" @click="answer(e, o.id)">{{ o.label }}</button>
+              <button
+                v-for="o in e.options"
+                :key="o.id"
+                type="button"
+                class="chip"
+                :class="o.primary ? 'is-primary' : ''"
+                @click="answer(e, o.id)"
+              >
+                {{ o.label }}
+              </button>
             </span>
             <span v-else class="dim"> · {{ e.answered }}</span>
           </span>
         </div>
         <div v-else class="entry" :data-kind="e.kind">
-          <span class="mark" aria-hidden="true">{{ e.kind === "user" ? "›" : e.kind === "assistant" ? "⏺" : e.kind === "error" ? "!" : e.kind === "followup" ? "⇢" : "·" }}</span>
+          <span class="mark" aria-hidden="true">{{
+            e.kind === "user"
+              ? "›"
+              : e.kind === "assistant"
+                ? "⏺"
+                : e.kind === "error"
+                  ? "!"
+                  : e.kind === "followup"
+                    ? "⇢"
+                    : "·"
+          }}</span>
           <span class="text">{{ e.text }}<span v-if="live === e" class="caret" aria-hidden="true">▍</span></span>
         </div>
       </template>
       <div v-if="busy && !live" class="entry working" data-kind="system">
         <span class="mark spin" aria-hidden="true">✻</span>
-        <span class="text">working… {{ fmtMs(elapsed) }}<span v-if="followUps.length"> · {{ followUps.length }} queued</span> <span class="dim">(esc to stop)</span></span>
+        <span class="text"
+          >working… {{ fmtMs(elapsed) }}<span v-if="followUps.length"> · {{ followUps.length }} queued</span>
+          <span class="dim">(esc to stop)</span></span
+        >
       </div>
     </div>
 
     <div v-if="followUps.length" class="queued">
-      <span v-for="(s, i) in followUps" :key="`f${i}`" class="chip" :title="s">⇢ {{ s.length > 32 ? `${s.slice(0, 31)}…` : s }}</span>
+      <span v-for="(s, i) in followUps" :key="`f${i}`" class="chip" :title="s"
+        >⇢ {{ s.length > 32 ? `${s.slice(0, 31)}…` : s }}</span
+      >
     </div>
 
     <div class="composer">
       <div v-if="slashOpen && slashMatches.length" class="slash" role="listbox" aria-label="Commands">
-        <button v-for="(c, i) in slashMatches" :key="c.name" type="button" role="option" :aria-selected="i === slashIndex" class="slash-row" :class="i === slashIndex ? 'is-active' : ''" @click="pickSlash(c)">
-          <span class="slash-name">/{{ c.name }}<span v-if="c.args" class="dim"> {{ c.args }}</span></span><span class="dim">{{ c.harness ? `${agentName} · ` : "" }}{{ c.desc }}</span>
+        <button
+          v-for="(c, i) in slashMatches"
+          :key="c.name"
+          type="button"
+          role="option"
+          :aria-selected="i === slashIndex"
+          class="slash-row"
+          :class="i === slashIndex ? 'is-active' : ''"
+          @click="pickSlash(c)"
+        >
+          <span class="slash-name"
+            >/{{ c.name }}<span v-if="c.args" class="dim"> {{ c.args }}</span></span
+          ><span class="dim">{{ c.harness ? `${agentName} · ` : "" }}{{ c.desc }}</span>
         </button>
       </div>
       <div class="line">
         <span class="prompt-mark" aria-hidden="true">›</span>
-        <textarea ref="box" v-model="input" name="agent-goal" :rows="rows" class="prompt" :placeholder="busy ? 'queue a follow-up…' : agent ? 'what should the studio build?' : 'pick a harness, then describe a screen'" spellcheck="false" @keydown="onKey" />
+        <textarea
+          ref="box"
+          v-model="input"
+          name="agent-goal"
+          :rows="rows"
+          class="prompt"
+          :placeholder="
+            busy
+              ? 'queue a follow-up…'
+              : agent
+                ? 'what should the studio build?'
+                : 'pick a harness, then describe a screen'
+          "
+          spellcheck="false"
+          @keydown="onKey"
+        />
         <button v-if="busy" type="button" class="run stop" title="Stop (esc)" @click="stop">stop</button>
-        <button v-else type="button" class="run" :disabled="!input.trim()" title="Run (enter)" @click="send()">run</button>
+        <button v-else type="button" class="run" :disabled="!input.trim()" title="Run (enter)" @click="send()">
+          run
+        </button>
       </div>
     </div>
 
@@ -690,88 +909,448 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.agent { display: flex; height: 100%; min-height: 0; flex-direction: column; font-family: var(--font-mono); font-size: 12px; }
-.head { display: flex; height: 2.25rem; flex-shrink: 0; align-items: center; gap: 6px; border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent); padding-inline: 0.75rem 0.5rem; font-size: 11px; color: var(--color-muted-foreground); }
-.title { color: var(--color-foreground); }
-.model { display: inline-flex; align-items: center; gap: 6px; max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 0.375rem; padding: 2px 6px; font-size: 10.5px; color: var(--color-muted-foreground); background: color-mix(in oklab, var(--color-foreground) 6%, transparent); }
-.model:hover { color: var(--color-foreground); }
-.led { width: 6px; height: 6px; flex-shrink: 0; border-radius: 1px; background: var(--color-muted-foreground); opacity: 0.5; }
-.led[data-on="true"] { background: var(--swatch-green); opacity: 1; }
-.head-actions { margin-left: auto; display: flex; gap: 2px; }
-.head-btn { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border-radius: 0.375rem; color: var(--color-muted-foreground); }
-.head-btn:hover, .head-btn[aria-pressed="true"] { background: var(--color-card); color: var(--color-foreground); }
-.picker, .settings { display: grid; gap: 4px; border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent); padding: 8px 12px; }
-.pick { display: flex; justify-content: space-between; gap: 8px; border-radius: 0.375rem; padding: 4px 6px; text-align: left; font-size: 11px; color: var(--color-foreground); }
-.pick:hover { background: var(--color-card); }
-.pick[aria-pressed="true"] .pick-name::before { content: "● "; color: var(--swatch-green); }
-.pick-name { white-space: nowrap; }
-.stop-pick { color: var(--swatch-orange); }
-.custom { display: flex; gap: 6px; margin-top: 4px; }
-.custom .input { flex: 1; }
-.field { display: grid; grid-template-columns: 4rem minmax(0, 1fr); align-items: center; gap: 8px; font-size: 11px; color: var(--color-muted-foreground); }
-.input { height: 1.625rem; min-width: 0; border: 1px solid var(--color-border); border-radius: 0.375rem; background: var(--color-background); padding-inline: 0.5rem; font: inherit; font-size: 11px; color: var(--color-foreground); outline: none; }
-.input:focus { border-color: color-mix(in oklab, var(--color-accent) 60%, transparent); }
-.remember { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--color-muted-foreground); }
-.note { margin: 0; font-size: 10.5px; line-height: 1.5; color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent); overflow-wrap: anywhere; }
-.note code { color: var(--color-foreground); }
-.log { min-height: 0; flex: 1; overflow-y: auto; padding: 10px 12px; display: grid; align-content: start; gap: 5px; }
-.empty { display: grid; gap: 8px; padding-top: 6px; line-height: 1.5; color: var(--color-muted-foreground); }
-.empty p { margin: 0; }
-.dim { color: color-mix(in oklab, var(--color-muted-foreground) 72%, transparent); }
-.entry { display: grid; grid-template-columns: 1.1rem minmax(0, 1fr); gap: 4px; line-height: 1.45; }
-.entry[data-kind="user"], .entry[data-kind="assistant"] { color: var(--color-foreground); }
-.entry[data-kind="assistant"] .mark { color: var(--swatch-blue); }
-.entry[data-kind="system"], .entry[data-kind="activity"] { color: var(--color-muted-foreground); font-size: 11px; }
-.entry[data-kind="activity"][data-status="failed"] .mark { color: var(--swatch-orange); }
-.entry[data-kind="followup"] { color: var(--color-muted-foreground); }
-.entry[data-kind="error"] { color: var(--swatch-red); }
-.entry[data-kind="plan"] { font-size: 11px; color: var(--color-muted-foreground); }
-.plan { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
-.plan li { display: grid; grid-template-columns: 1rem minmax(0, 1fr); gap: 2px; }
-.plan li[data-status="completed"] { color: color-mix(in oklab, var(--color-muted-foreground) 65%, transparent); }
-.plan li[data-status="in_progress"] { color: var(--color-foreground); }
-.approval .mark { color: var(--swatch-orange); }
-.approval[data-answered="false"] { color: var(--color-foreground); }
-.choices { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
-.mark { color: var(--color-muted-foreground); text-align: center; }
-.text { white-space: pre-wrap; overflow-wrap: anywhere; }
-.caret { color: var(--swatch-blue); }
-.working .mark { color: var(--swatch-orange); }
-@media (prefers-reduced-motion: no-preference) {
-  .spin, .caret { animation: pulse 1.2s ease-in-out infinite; }
-  @keyframes pulse { 50% { opacity: 0.3; } }
+.agent {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.tool { font-size: 11px; color: var(--color-muted-foreground); }
-.tool summary { display: grid; grid-template-columns: 1.1rem auto minmax(0, 1fr); gap: 4px; cursor: pointer; list-style: none; line-height: 1.45; border-radius: 0.25rem; }
-.tool summary::-webkit-details-marker { display: none; }
-.tool summary:hover { color: var(--color-foreground); }
-.tool .name { color: var(--color-foreground); }
-.tool .sum { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tool[open] .sum { white-space: normal; }
-.tool[data-ok="false"] .mark, .tool[data-ok="false"] .sum { color: var(--swatch-orange); }
-.detail { margin: 4px 0 4px 1.1rem; max-height: 14rem; overflow: auto; border-left: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent); padding-left: 8px; font-size: 10.5px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--color-muted-foreground); }
-.queued { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 6px; }
-.chip { max-width: 100%; min-height: 1.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 1px dashed var(--color-border); border-radius: 0.375rem; padding: 1px 6px; font-size: 10.5px; color: var(--color-muted-foreground); }
-button.chip { border-style: solid; cursor: pointer; }
-button.chip:hover:not(:disabled) { color: var(--color-foreground); background: var(--color-card); }
-button.chip.is-primary { border-color: var(--color-accent); color: var(--color-foreground); }
-button.chip:disabled { opacity: 0.5; }
-.composer { position: relative; flex-shrink: 0; border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent); padding: 8px 10px 6px; }
-.slash { position: absolute; left: 10px; right: 10px; bottom: calc(100% - 2px); display: grid; max-height: 16rem; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 0.375rem; background: var(--color-card); padding: 4px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.32); }
-.slash-row { display: flex; justify-content: space-between; gap: 10px; border-radius: 0.25rem; padding: 4px 6px; text-align: left; font-size: 11px; color: var(--color-foreground); }
-.slash-row.is-active, .slash-row:hover { background: var(--color-background); }
-.slash-name { white-space: nowrap; }
-.line { display: grid; grid-template-columns: 1rem minmax(0, 1fr) auto; align-items: end; gap: 6px; }
-.prompt-mark { padding-bottom: 6px; color: var(--swatch-orange); }
-.prompt { resize: none; border: 0; background: transparent; padding: 5px 0; font: inherit; font-size: 12px; line-height: 1.45; color: var(--color-foreground); outline: none; }
-.prompt::placeholder { color: color-mix(in oklab, var(--color-muted-foreground) 70%, transparent); }
-.run { min-height: 1.5rem; border-radius: 0.375rem; padding-inline: 0.6rem; font-size: 11px; color: var(--color-accent-foreground); background: var(--color-accent); transition: opacity 140ms ease; }
-.run:disabled { opacity: 0.35; }
-.run.stop { background: color-mix(in oklab, var(--swatch-red) 80%, black); }
-.status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent); padding: 5px 12px; font-size: 10px; color: var(--color-muted-foreground); }
-.sep { opacity: 0.5; }
-.auto { margin-left: auto; color: var(--swatch-orange); }
-.hint { flex-basis: 100%; }
-.pick:focus-visible, .model:focus-visible, .head-btn:focus-visible, .chip:focus-visible, .run:focus-visible, .slash-row:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
-@media (prefers-reduced-motion: reduce) { .run { transition: none; } }
+.head {
+  display: flex;
+  height: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+  padding-inline: 0.75rem 0.5rem;
+  font-size: 11px;
+  color: var(--color-muted-foreground);
+}
+.title {
+  color: var(--color-foreground);
+}
+.model {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  padding: 2px 6px;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+}
+.model:hover {
+  color: var(--color-foreground);
+}
+.led {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 1px;
+  background: var(--color-muted-foreground);
+  opacity: 0.5;
+}
+.led[data-on="true"] {
+  background: var(--swatch-green);
+  opacity: 1;
+}
+.head-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+}
+.head-btn {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 0.375rem;
+  color: var(--color-muted-foreground);
+}
+.head-btn:hover,
+.head-btn[aria-pressed="true"] {
+  background: var(--color-card);
+  color: var(--color-foreground);
+}
+.picker,
+.settings {
+  display: grid;
+  gap: 4px;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+  padding: 8px 12px;
+}
+.pick {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 0.375rem;
+  padding: 4px 6px;
+  text-align: left;
+  font-size: 11px;
+  color: var(--color-foreground);
+}
+.pick:hover {
+  background: var(--color-card);
+}
+.pick[aria-pressed="true"] .pick-name::before {
+  content: "● ";
+  color: var(--swatch-green);
+}
+.pick-name {
+  white-space: nowrap;
+}
+.stop-pick {
+  color: var(--swatch-orange);
+}
+.custom {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.custom .input {
+  flex: 1;
+}
+.field {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--color-muted-foreground);
+}
+.input {
+  height: 1.625rem;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background: var(--color-background);
+  padding-inline: 0.5rem;
+  font: inherit;
+  font-size: 11px;
+  color: var(--color-foreground);
+  outline: none;
+}
+.input:focus {
+  border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent);
+}
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-muted-foreground);
+}
+.note {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent);
+  overflow-wrap: anywhere;
+}
+.note code {
+  color: var(--color-foreground);
+}
+.log {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+}
+.empty {
+  display: grid;
+  gap: 8px;
+  padding-top: 6px;
+  line-height: 1.5;
+  color: var(--color-muted-foreground);
+}
+.empty p {
+  margin: 0;
+}
+.dim {
+  color: color-mix(in oklab, var(--color-muted-foreground) 72%, transparent);
+}
+.entry {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr);
+  gap: 4px;
+  line-height: 1.45;
+}
+.entry[data-kind="user"],
+.entry[data-kind="assistant"] {
+  color: var(--color-foreground);
+}
+.entry[data-kind="assistant"] .mark {
+  color: var(--swatch-blue);
+}
+.entry[data-kind="system"],
+.entry[data-kind="activity"] {
+  color: var(--color-muted-foreground);
+  font-size: 11px;
+}
+.entry[data-kind="activity"][data-status="failed"] .mark {
+  color: var(--swatch-orange);
+}
+.entry[data-kind="followup"] {
+  color: var(--color-muted-foreground);
+}
+.entry[data-kind="error"] {
+  color: var(--swatch-red);
+}
+.entry[data-kind="plan"] {
+  font-size: 11px;
+  color: var(--color-muted-foreground);
+}
+.plan {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+.plan li {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: 2px;
+}
+.plan li[data-status="completed"] {
+  color: color-mix(in oklab, var(--color-muted-foreground) 65%, transparent);
+}
+.plan li[data-status="in_progress"] {
+  color: var(--color-foreground);
+}
+.approval .mark {
+  color: var(--swatch-orange);
+}
+.approval[data-answered="false"] {
+  color: var(--color-foreground);
+}
+.choices {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.mark {
+  color: var(--color-muted-foreground);
+  text-align: center;
+}
+.text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.caret {
+  color: var(--swatch-blue);
+}
+.working .mark {
+  color: var(--swatch-orange);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .spin,
+  .caret {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.3;
+    }
+  }
+}
+.tool {
+  font-size: 11px;
+  color: var(--color-muted-foreground);
+}
+.tool summary {
+  display: grid;
+  grid-template-columns: 1.1rem auto minmax(0, 1fr);
+  gap: 4px;
+  cursor: pointer;
+  list-style: none;
+  line-height: 1.45;
+  border-radius: 0.25rem;
+}
+.tool summary::-webkit-details-marker {
+  display: none;
+}
+.tool summary:hover {
+  color: var(--color-foreground);
+}
+.tool .name {
+  color: var(--color-foreground);
+}
+.tool .sum {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tool[open] .sum {
+  white-space: normal;
+}
+.tool[data-ok="false"] .mark,
+.tool[data-ok="false"] .sum {
+  color: var(--swatch-orange);
+}
+.detail {
+  margin: 4px 0 4px 1.1rem;
+  max-height: 14rem;
+  overflow: auto;
+  border-left: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
+  padding-left: 8px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-muted-foreground);
+}
+.queued {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 12px 6px;
+}
+.chip {
+  max-width: 100%;
+  min-height: 1.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px dashed var(--color-border);
+  border-radius: 0.375rem;
+  padding: 1px 6px;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+}
+button.chip {
+  border-style: solid;
+  cursor: pointer;
+}
+button.chip:hover:not(:disabled) {
+  color: var(--color-foreground);
+  background: var(--color-card);
+}
+button.chip.is-primary {
+  border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent);
+  color: var(--color-foreground);
+}
+button.chip:disabled {
+  opacity: 0.5;
+}
+.composer {
+  position: relative;
+  flex-shrink: 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+  padding: 8px 10px 6px;
+}
+.slash {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(100% - 2px);
+  display: grid;
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background: var(--color-card);
+  padding: 4px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.32);
+}
+.slash-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 0.25rem;
+  padding: 4px 6px;
+  text-align: left;
+  font-size: 11px;
+  color: var(--color-foreground);
+}
+.slash-row.is-active,
+.slash-row:hover {
+  background: var(--color-background);
+}
+.slash-name {
+  white-space: nowrap;
+}
+.line {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 6px;
+}
+.prompt-mark {
+  padding-bottom: 6px;
+  color: var(--swatch-orange);
+}
+.prompt {
+  resize: none;
+  border: 0;
+  background: transparent;
+  padding: 5px 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-foreground);
+  outline: none;
+}
+.prompt::placeholder {
+  color: color-mix(in oklab, var(--color-muted-foreground) 70%, transparent);
+}
+.run {
+  min-height: 1.5rem;
+  border-radius: 0.375rem;
+  padding-inline: 0.6rem;
+  font-size: 11px;
+  color: var(--color-background);
+  background: var(--color-foreground);
+  transition: opacity 140ms ease;
+}
+.run:disabled {
+  opacity: 0.35;
+}
+.run.stop {
+  background: color-mix(in oklab, var(--swatch-red) 80%, black);
+}
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+  padding: 5px 12px;
+  font-size: 10px;
+  color: var(--color-muted-foreground);
+}
+.sep {
+  opacity: 0.5;
+}
+.auto {
+  margin-left: auto;
+  color: var(--swatch-orange);
+}
+.hint {
+  flex-basis: 100%;
+}
+.pick:focus-visible,
+.model:focus-visible,
+.head-btn:focus-visible,
+.chip:focus-visible,
+.run:focus-visible,
+.slash-row:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .run {
+    transition: none;
+  }
+}
 </style>

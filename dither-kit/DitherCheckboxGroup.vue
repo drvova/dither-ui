@@ -12,18 +12,13 @@ const props = withDefaults(
     label?: string
     class?: string
   }>(),
-  { color: "blue" }
+  { color: "blue" },
 )
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string[]): void }>()
 
 function toggle(value: string, on: boolean) {
-  emit(
-    "update:modelValue",
-    on
-      ? [...props.modelValue, value]
-      : props.modelValue.filter((v) => v !== value)
-  )
+  emit("update:modelValue", on ? [...props.modelValue, value] : props.modelValue.filter((v) => v !== value))
 }
 </script>
 

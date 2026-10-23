@@ -21,7 +21,7 @@ const props = withDefaults(
     side?: "left" | "right"
     class?: string
   }>(),
-  { range: 56, side: "left" }
+  { range: 56, side: "left" },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
@@ -59,12 +59,15 @@ const previewIndex = computed(() => {
     const c = centerOf(i)
     if (c === null) continue
     const d = Math.abs(py.value - c)
-    if (d < bd) { bd = d; best = i }
+    if (d < bd) {
+      bd = d
+      best = i
+    }
   }
   return best
 })
-const preview = computed(() => (previewIndex.value === null ? null : props.items[previewIndex.value] ?? null))
-const previewTop = computed(() => (previewIndex.value === null ? 0 : centerOf(previewIndex.value) ?? 0))
+const preview = computed(() => (previewIndex.value === null ? null : (props.items[previewIndex.value] ?? null)))
+const previewTop = computed(() => (previewIndex.value === null ? 0 : (centerOf(previewIndex.value) ?? 0)))
 </script>
 
 <template>
@@ -84,19 +87,33 @@ const previewTop = computed(() => (previewIndex.value === null ? 0 : centerOf(pr
       :data-i="i"
       :aria-label="it.hint ? `${it.label} — ${it.hint}` : it.label"
       :aria-current="it.value === props.modelValue ? 'page' : undefined"
-      :class="cn('flex h-4 w-9 items-center rounded-md px-1 hover:bg-card/60', props.side === 'right' ? 'justify-end' : 'justify-start')"
+      :class="
+        cn(
+          'flex h-4 w-9 items-center rounded-md px-1 hover:bg-card/60',
+          props.side === 'right' ? 'justify-end' : 'justify-start',
+        )
+      "
       @click="emit('update:modelValue', it.value)"
     >
       <span
         aria-hidden="true"
         class="h-0.5 rounded-full bg-foreground/30 transition-[width] duration-150 ease-out motion-reduce:transition-none"
-        :style="{ width: `${widthOf(i)}px`, ...(it.value === props.modelValue ? { background: cssColor(it.color ?? 'blue') } : {}) }"
+        :style="{
+          width: `${widthOf(i)}px`,
+          ...(it.value === props.modelValue ? { background: cssColor(it.color ?? 'blue') } : {}),
+        }"
       />
     </button>
     <div
       v-if="preview"
       aria-hidden="true"
-      :class="cn(POPOVER, 'pointer-events-none absolute z-10 whitespace-nowrap px-3 py-2 transition-[top] duration-150 ease-out motion-reduce:transition-none', props.side === 'right' ? 'right-full mr-2' : 'left-full ml-2')"
+      :class="
+        cn(
+          POPOVER,
+          'pointer-events-none absolute z-10 whitespace-nowrap px-3 py-2 transition-[top] duration-150 ease-out motion-reduce:transition-none',
+          props.side === 'right' ? 'right-full mr-2' : 'left-full ml-2',
+        )
+      "
       :style="{ top: `${previewTop}px`, transform: 'translateY(-50%)' }"
     >
       <slot name="preview" :item="preview">

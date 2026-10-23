@@ -1,4 +1,4 @@
-/// <reference types="vite/client" />
+/// <reference types="rstack/types" />
 
 declare module "*.vue" {
   import type { DefineComponent } from "vue"
@@ -6,7 +6,7 @@ declare module "*.vue" {
   export default component
 }
 
-declare module "virtual:dither-utilities" {
+declare module "virtual-dither-utilities" {
   const map: import("./shared/lib/restyle").UtilityMap
   export default map
 }

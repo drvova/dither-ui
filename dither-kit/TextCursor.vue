@@ -9,7 +9,7 @@ const props = withDefaults(
     text?: string
     class?: string
   }>(),
-  { text: "dither" }
+  { text: "dither" },
 )
 
 const chars = computed(() => [...props.text])
@@ -70,7 +70,8 @@ useInviewLoop(area, start, stop)
         :key="i"
         class="pointer-events-none absolute left-0 top-0 font-mono transition-opacity duration-200"
         style="opacity: 0"
-      >{{ ch === " " ? "\u00a0" : ch }}</span>
+        >{{ ch === " " ? "\u00a0" : ch }}</span
+      >
     </div>
   </div>
 </template>

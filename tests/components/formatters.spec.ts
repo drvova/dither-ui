@@ -1,7 +1,7 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, rs } from "rstack/test"
 import NumberText from "../../dither-kit/NumberText.vue"
 import CurrencyText from "../../dither-kit/CurrencyText.vue"
 import PercentText from "../../dither-kit/PercentText.vue"
@@ -13,7 +13,7 @@ import PluralText from "../../dither-kit/PluralText.vue"
 import Emoji from "../../dither-kit/Emoji.vue"
 
 afterEach(() => {
-  vi.useRealTimers()
+  rs.useRealTimers()
 })
 
 describe("NumberText", () => {
@@ -88,16 +88,16 @@ describe("RelativeTime", () => {
   })
 
   it("re-ticks on its interval while auto is on", async () => {
-    vi.useFakeTimers()
+    rs.useFakeTimers()
     const base = Date.now()
-    vi.setSystemTime(base)
+    rs.setSystemTime(base)
     const w = mount(RelativeTime, { props: { date: base - 1000, updateInterval: 30_000 } })
     expect(w.text()).toBe("1 second ago")
-    vi.advanceTimersByTime(30_000)
+    rs.advanceTimersByTime(30_000)
     await nextTick() // interval fired -> ref tick -> Vue re-render is a microtask
     expect(w.text()).toBe("31 seconds ago")
     w.unmount() // interval must be gone: advancing further must not throw
-    vi.advanceTimersByTime(60_000)
+    rs.advanceTimersByTime(60_000)
   })
 })
 

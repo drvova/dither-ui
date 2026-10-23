@@ -11,7 +11,7 @@ const props = withDefaults(
     size?: number
     class?: string
   }>(),
-  { color: "#7CFF67", count: 18, size: 10 }
+  { color: "#7CFF67", count: 18, size: 10 },
 )
 
 const wrap = ref<HTMLElement | null>(null)

@@ -15,13 +15,17 @@ onBeforeUnmount(() => stopDrag?.())
 
 const additive = (e: PointerEvent) => e.metaKey || e.ctrlKey || e.shiftKey
 const interactive = (target: EventTarget | null) =>
-  target instanceof Element && !!target.closest("button, a, input, textarea, select, [contenteditable], [role='button'], [role='link'], [data-canvas-interactive]")
+  target instanceof Element &&
+  !!target.closest(
+    "button, a, input, textarea, select, [contenteditable], [role='button'], [role='link'], [data-canvas-interactive]",
+  )
 
 function onSurfaceDown(e: PointerEvent) {
   if (e.button !== 0) return
   if (additive(e)) return selectArtboard(props.artboard.id, true)
   if (!selected.value) selectArtboard(props.artboard.id)
-  if (e.target instanceof Element && e.target.closest("[data-artboard-surface]") === e.target && !interactive(e.target)) onMoveDown(e)
+  if (e.target instanceof Element && e.target.closest("[data-artboard-surface]") === e.target && !interactive(e.target))
+    onMoveDown(e)
 }
 /** Drag with edge/center snapping against the other artboards. Moves the
  * whole selection; guides render in the canvas while a snap is active. */
@@ -29,12 +33,8 @@ function onMoveDown(e: PointerEvent) {
   if (e.button !== 0) return
   if (!selected.value) selectArtboard(props.artboard.id, additive(e))
   if (props.artboard.locked) return
-  const moving = editor.artboards.filter(
-    (a) => editor.selectedIds.includes(a.id) && !a.locked
-  )
-  const others = editor.artboards.filter(
-    (a) => !editor.selectedIds.includes(a.id) && !a.hidden
-  )
+  const moving = editor.artboards.filter((a) => editor.selectedIds.includes(a.id) && !a.locked)
+  const others = editor.artboards.filter((a) => !editor.selectedIds.includes(a.id) && !a.hidden)
   const starts = new Map(moving.map((a) => [a.id, { x: a.x, y: a.y }]))
   const meStart = { x: props.artboard.x, y: props.artboard.y }
   const { w, h } = props.artboard
@@ -91,7 +91,7 @@ function onMoveDown(e: PointerEvent) {
       editor.guides.h = null
       interacting.value = false
       stopDrag = undefined
-    }
+    },
   )
 }
 // 8-direction resize with shift-to-constrain (corner handles keep the aspect
@@ -120,32 +120,36 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
   let ay = 0
   interacting.value = true
   stopDrag?.()
-  stopDrag = startDrag(e, (dx, dy, ev) => {
-    ax += dx
-    ay += dy
-    let w = start.w
-    let h = start.h
-    if (dir.includes("e")) w = start.w + ax
-    if (dir.includes("w")) w = start.w - ax
-    if (dir.includes("s")) h = start.h + ay
-    if (dir.includes("n")) h = start.h - ay
-    // Shift on a corner: constrain to the starting aspect ratio, following
-    // whichever axis moved further.
-    if (ev.shiftKey && dir.length === 2) {
-      if (Math.abs(ax) * start.h > Math.abs(ay) * start.w) h = w / ratio
-      else w = h * ratio
-    }
-    w = Math.max(minW, Math.round(w))
-    h = Math.max(minH, Math.round(h))
-    // Anchor the opposite edge: n/w drags move the origin by the size change.
-    a.w = w
-    a.h = h
-    a.x = dir.includes("w") ? start.x + (start.w - w) : start.x
-    a.y = dir.includes("n") ? start.y + (start.h - h) : start.y
-  }, () => {
-    interacting.value = false
-    stopDrag = undefined
-  })
+  stopDrag = startDrag(
+    e,
+    (dx, dy, ev) => {
+      ax += dx
+      ay += dy
+      let w = start.w
+      let h = start.h
+      if (dir.includes("e")) w = start.w + ax
+      if (dir.includes("w")) w = start.w - ax
+      if (dir.includes("s")) h = start.h + ay
+      if (dir.includes("n")) h = start.h - ay
+      // Shift on a corner: constrain to the starting aspect ratio, following
+      // whichever axis moved further.
+      if (ev.shiftKey && dir.length === 2) {
+        if (Math.abs(ax) * start.h > Math.abs(ay) * start.w) h = w / ratio
+        else w = h * ratio
+      }
+      w = Math.max(minW, Math.round(w))
+      h = Math.max(minH, Math.round(h))
+      // Anchor the opposite edge: n/w drags move the origin by the size change.
+      a.w = w
+      a.h = h
+      a.x = dir.includes("w") ? start.x + (start.w - w) : start.x
+      a.y = dir.includes("n") ? start.y + (start.h - h) : start.y
+    },
+    () => {
+      interacting.value = false
+      stopDrag = undefined
+    },
+  )
 }
 </script>
 
@@ -163,18 +167,33 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
   >
     <div
       class="absolute -top-6 left-0 flex max-w-full select-none items-center gap-1.5 truncate text-[11px]"
-      :class="[selected ? 'text-foreground' : 'text-muted-foreground', artboard.locked ? 'cursor-default' : 'cursor-move']"
+      :class="[
+        selected ? 'text-foreground' : 'text-muted-foreground',
+        artboard.locked ? 'cursor-default' : 'cursor-move',
+      ]"
       @pointerdown.stop="onMoveDown"
     >
-      <svg v-if="artboard.locked" viewBox="0 0 24 24" class="size-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+      <svg
+        v-if="artboard.locked"
+        viewBox="0 0 24 24"
+        class="size-3 shrink-0"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <rect x="5" y="11" width="14" height="10" rx="2" />
+        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+      </svg>
       <span class="truncate">{{ artboard.name }}</span>
       <span class="tabular-nums text-muted-foreground/60">
-        <template v-if="interacting">{{ Math.round(artboard.x) }}, {{ Math.round(artboard.y) }} · </template>{{ artboard.w }}×{{ artboard.h }}</span>
+        <template v-if="interacting">{{ Math.round(artboard.x) }}, {{ Math.round(artboard.y) }} · </template
+        >{{ artboard.w }}×{{ artboard.h }}</span
+      >
     </div>
 
     <div
       data-artboard-surface
-      class="h-full w-full rounded-lg bg-card/60 p-3"
+      class="h-full w-full rounded-lg bg-card/60 p-3 font-sans"
       :class="selected ? 'ring-2 ring-accent' : 'border border-border'"
     >
       <WidgetRenderer v-if="artboard.widget" :widget="artboard.widget" :artboard-id="artboard.id" />

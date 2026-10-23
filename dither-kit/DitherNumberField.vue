@@ -11,7 +11,7 @@ const props = withDefaults(
     step?: number
     disabled?: boolean
   }>(),
-  { step: 1, disabled: false }
+  { step: 1, disabled: false },
 )
 
 const emit = defineEmits<{ (e: "update:modelValue", value: number): void }>()
@@ -21,7 +21,7 @@ watch(
   () => props.modelValue,
   (v) => {
     text.value = String(v)
-  }
+  },
 )
 
 const atMin = computed(() => props.min !== undefined && props.modelValue <= props.min)
@@ -67,7 +67,12 @@ function onKeydown(event: KeyboardEvent) {
       type="button"
       aria-label="Decrease"
       :disabled="props.disabled || atMin"
-      :class="cn(CONTROL_BUTTON, 'size-10 rounded-md border border-border text-muted-foreground transition-colors hover:bg-card hover:text-foreground')"
+      :class="
+        cn(
+          CONTROL_BUTTON,
+          'size-10 rounded-md border border-border text-muted-foreground transition-colors hover:bg-card hover:text-foreground',
+        )
+      "
       @click="set(props.modelValue - props.step)"
     >
       -
@@ -89,7 +94,12 @@ function onKeydown(event: KeyboardEvent) {
       type="button"
       aria-label="Increase"
       :disabled="props.disabled || atMax"
-      :class="cn(CONTROL_BUTTON, 'size-10 rounded-md border border-border text-muted-foreground transition-colors hover:bg-card hover:text-foreground')"
+      :class="
+        cn(
+          CONTROL_BUTTON,
+          'size-10 rounded-md border border-border text-muted-foreground transition-colors hover:bg-card hover:text-foreground',
+        )
+      "
       @click="set(props.modelValue + props.step)"
     >
       +

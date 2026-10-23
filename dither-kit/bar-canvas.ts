@@ -1,28 +1,12 @@
-import {
-  computed,
-  defineComponent,
-  h,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-} from "vue"
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { type ChartContextValue, useChart } from "./chart-context"
 import { clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { useCanvasVisibility } from "./use-visibility"
-import {
-  backingSize,
-  bloomLayerStyle,
-  clamp01,
-  resolveEasing,
-  paintColumn,
-  prefersReducedMotion,
-} from "./dither-paint"
+import { backingSize, bloomLayerStyle, clamp01, resolveEasing, paintColumn, prefersReducedMotion } from "./dither-paint"
 import { directedTime, isDirected, onSeek } from "./clock"
 
 type Bars = { top: number[]; base: number[] } // per data index, in backing rows
 type Box<T> = { readonly current: T }
-
 
 type LoopArgs = {
   canvas: HTMLCanvasElement
@@ -81,16 +65,13 @@ function startBarLoop({
       const seed = s.seedOf(key)
       const variant = s.seriesSpecs[key]?.variant ?? "gradient"
       const emphasis = s.selectedDataKey ?? s.focusDataKey
-      const selDim =
-        (emphasis !== null && emphasis !== key ? s.dimOpacity : 1) *
-        (s.seriesSpecs[key]?.opacity ?? 1)
+      const selDim = (emphasis !== null && emphasis !== key ? s.dimOpacity : 1) * (s.seriesSpecs[key]?.opacity ?? 1)
       for (let i = 0; i < s.dataLength; i++) {
         const bp = barProgress(i, s.dataLength, prog)
         const base = t.base[i] ?? rows - 1
         const top = base + ((t.top[i] ?? base) - base) * bp
         const active = s.hoverIndex === i
-        const hoverDim =
-          s.hoverIndex != null && !active && s.isMouseInChart ? 0.5 : 1
+        const hoverDim = s.hoverIndex != null && !active && s.isMouseInChart ? 0.5 : 1
         const slot = s.barSlot(i, si, keys.length)
         const c0 = Math.round(slot.x * fx)
         const c1 = Math.round((slot.x + slot.width) * fx)
@@ -147,9 +128,7 @@ function startBarLoop({
     }
     if (!animStart) animStart = now
     const origin = isDirected() ? 0 : animStart
-    const prog = animate
-      ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration))
-      : 1
+    const prog = animate ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration)) : 1
 
     if (prog !== lastProg) {
       lastProg = prog
@@ -164,8 +143,7 @@ function startBarLoop({
       lastHover = s.hoverIndex
       needsFill = true
     }
-    const itTarget =
-      s.hoverLift && (s.isMouseInChart || s.hovered) ? s.hoverStrength : 0
+    const itTarget = s.hoverLift && (s.isMouseInChart || s.hovered) ? s.hoverStrength : 0
     let settling = false
     if (Math.abs(intensity - itTarget) > 0.001) {
       intensity += (itTarget - intensity) * (reduce ? 1 : 0.16)
@@ -271,15 +249,11 @@ export const BarCanvas = defineComponent({
     }
 
     onMounted(restart)
-    watch(
-      () => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.precompiled],
-      restart,
-      { flush: "post" }
-    )
+    watch(() => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.precompiled], restart, { flush: "post" })
     watch(
       () => ctx.ready,
       () => loop?.wake(),
-      { flush: "post" }
+      { flush: "post" },
     )
     watch(
       () => [
@@ -303,7 +277,7 @@ export const BarCanvas = defineComponent({
         ctx.bloomOnHover,
       ],
       () => loop?.wake(),
-      { flush: "post" }
+      { flush: "post" },
     )
     onBeforeUnmount(() => loop?.stop())
 
@@ -323,9 +297,7 @@ export const BarCanvas = defineComponent({
           style: { ...pos, imageRendering: "pixelated" },
         })
       }
-      const bloomActive = ctx.bloomOnHover
-        ? ctx.isMouseInChart || ctx.hovered
-        : true
+      const bloomActive = ctx.bloomOnHover ? ctx.isMouseInChart || ctx.hovered : true
       const bloom = bloomLayerStyle(ctx.bloom, bloomActive)
       return [
         h("canvas", {

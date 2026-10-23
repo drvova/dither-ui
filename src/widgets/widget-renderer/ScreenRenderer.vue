@@ -64,9 +64,7 @@ const isSelected = computed(() => (id: string) => editor.selectedLayerId === id)
           <template v-if="cell.slotText != null" #default>{{ cell.slotText }}</template>
         </component>
       </div>
-      <span
-        v-if="row.cells.length === 0"
-        class="px-1 text-[10px] text-muted-foreground/50"
+      <span v-if="row.cells.length === 0" class="px-1 text-[10px] text-muted-foreground/50"
         >empty row — add a component in the inspector</span
       >
     </div>

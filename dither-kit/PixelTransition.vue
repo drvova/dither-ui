@@ -9,7 +9,7 @@ const props = withDefaults(
     color?: string
     class?: string
   }>(),
-  { rows: 6, cols: 10, color: "#111318" }
+  { rows: 6, cols: 10, color: "#111318" },
 )
 
 // Deterministic per-cell delay so the dissolve order is stable.
@@ -17,9 +17,7 @@ function seeded(i: number) {
   const s = Math.sin(i * 43.21) * 1000
   return s - Math.floor(s)
 }
-const cells = computed(() =>
-  Array.from({ length: Math.max(1, props.rows * props.cols) }, (_, i) => seeded(i) * 300)
-)
+const cells = computed(() => Array.from({ length: Math.max(1, props.rows * props.cols) }, (_, i) => seeded(i) * 300))
 </script>
 
 <template>

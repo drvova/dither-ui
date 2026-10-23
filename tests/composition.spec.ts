@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { createArtboard } from "@/entities/artboard"
 import { compositionHtml, embedJson, normalizeVideoOptions, slugOf } from "@/features/export-video/composition"
 
@@ -25,7 +25,11 @@ describe("HyperFrames composition", () => {
     expect(inline).toContain('<html lang="en">')
     expect(inline).toContain('x("<\\/script><b>")')
     expect(inline.match(/<\/script>/g)?.length).toBe(2) // the document + the bundle
-    const refs = compositionHtml(frame, { seconds: 2, fps: 24, theme: "dark" }, { jsRef: "./player.js", cssRef: "./player.css" })
+    const refs = compositionHtml(
+      frame,
+      { seconds: 2, fps: 24, theme: "dark" },
+      { jsRef: "./player.js", cssRef: "./player.css" },
+    )
     expect(refs).toContain('<link rel="stylesheet" href="./player.css" />')
     expect(refs).toContain('<script src="./player.js"></script>')
     expect(refs).toContain('data-fps="24"')
@@ -33,8 +37,16 @@ describe("HyperFrames composition", () => {
 
   it("normalizes options and names", () => {
     expect(normalizeVideoOptions(undefined)).toEqual({ seconds: 6, fps: 30, theme: "dark" })
-    expect(normalizeVideoOptions({ seconds: 9999, fps: 60, theme: "light" })).toEqual({ seconds: 600, fps: 60, theme: "light" })
-    expect(normalizeVideoOptions({ seconds: "x", fps: 50, theme: "sepia" })).toEqual({ seconds: 6, fps: 30, theme: "dark" })
+    expect(normalizeVideoOptions({ seconds: 9999, fps: 60, theme: "light" })).toEqual({
+      seconds: 600,
+      fps: 60,
+      theme: "light",
+    })
+    expect(normalizeVideoOptions({ seconds: "x", fps: 50, theme: "sepia" })).toEqual({
+      seconds: 6,
+      fps: 30,
+      theme: "dark",
+    })
     expect(normalizeVideoOptions({ seconds: 0.004 })).toEqual({ seconds: 1, fps: 30, theme: "dark" })
     expect(slugOf("  ")).toBe("frame")
     expect(embedJson({ a: "</script>" })).toBe('{"a":"\\u003c/script>"}')

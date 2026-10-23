@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { chartCode } from "../src/entities/chart/model/codegen"
 import { createChart, defaultEasing, setChartType } from "../src/entities/chart/model/factory"
 import { addRow, addSeries, removeRow, renamePieSlice } from "../src/entities/chart/model/rows"
@@ -70,7 +70,7 @@ describe("rows ops", () => {
 describe("chartCode", () => {
   it("defaults emit a minimal root tag", () => {
     const code = chartCode(createChart("area"))
-    expect(code).toContain("<AreaChart :data=\"data\" :config=\"config\" bloom=\"low\">")
+    expect(code).toContain('<AreaChart :data="data" :config="config" bloom="low">')
     expect(code).not.toContain(":cell=")
     expect(code).not.toContain("easing=")
   })
@@ -81,10 +81,10 @@ describe("chartCode", () => {
     c.easing = "linear"
     c.barGap = 0.1
     const code = chartCode(c)
-    expect(code).toContain(":cell=\"4\"")
-    expect(code).toContain(":stagger=\"0.8\"")
-    expect(code).toContain("easing=\"linear\"")
-    expect(code).toContain(":bar-gap=\"0.1\"")
+    expect(code).toContain(':cell="4"')
+    expect(code).toContain(':stagger="0.8"')
+    expect(code).toContain('easing="linear"')
+    expect(code).toContain(':bar-gap="0.1"')
   })
   it("custom bezier + texture + bloom emit object/array literals", () => {
     const c = createChart("area")
@@ -92,9 +92,9 @@ describe("chartCode", () => {
     c.bloom = { blur: 12, brightness: 1.35, opacity: 0.4, saturate: 1.4 }
     c.series[0].variant = { ramp: 0.3, hatch: 6 }
     const code = chartCode(c)
-    expect(code).toContain(":easing=\"[0.4, 0.68, 0.3, 1]\"")
-    expect(code).toContain(":bloom=\"{ blur: 12, brightness: 1.35, opacity: 0.4, saturate: 1.4 }\"")
-    expect(code).toContain(":variant=\"{ ramp: 0.3, hatch: 6 }\"")
+    expect(code).toContain(':easing="[0.4, 0.68, 0.3, 1]"')
+    expect(code).toContain(':bloom="{ blur: 12, brightness: 1.35, opacity: 0.4, saturate: 1.4 }"')
+    expect(code).toContain(':variant="{ ramp: 0.3, hatch: 6 }"')
   })
   it("markers render as children with imports", () => {
     const c = createChart("area")

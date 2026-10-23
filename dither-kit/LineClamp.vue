@@ -3,10 +3,10 @@ import { computed } from "vue"
 import { cn } from "./lib"
 
 /** Clamped block with a real ellipsis after N lines (1–6). */
-const props = withDefaults(
-  defineProps<{ lines?: 1 | 2 | 3 | 4 | 5 | 6; as?: string; class?: string }>(),
-  { lines: 3, as: "p" },
-)
+const props = withDefaults(defineProps<{ lines?: 1 | 2 | 3 | 4 | 5 | 6; as?: string; class?: string }>(), {
+  lines: 3,
+  as: "p",
+})
 
 // Literal classes so Tailwind ships every variant.
 const CLAMPS = {

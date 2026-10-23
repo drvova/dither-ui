@@ -19,15 +19,13 @@ const props = withDefaults(
     caret?: boolean
     class?: string
   }>(),
-  { lines: () => [], title: "console", follow: true, caret: true }
+  { lines: () => [], title: "console", follow: true, caret: true },
 )
 
 const slots = useSlots()
 const body = ref<HTMLDivElement | null>(null)
 
-const rows = computed<ConsoleLine[]>(() =>
-  props.lines.map((l) => (typeof l === "string" ? { text: l } : l))
-)
+const rows = computed<ConsoleLine[]>(() => props.lines.map((l) => (typeof l === "string" ? { text: l } : l)))
 
 const LEVEL_VAR: Record<ConsoleLevel, string> = {
   info: "var(--muted-foreground)",
@@ -41,12 +39,16 @@ watch(
   () => {
     if (props.follow) nextTick(() => body.value?.scrollTo({ top: body.value.scrollHeight }))
   },
-  { flush: "post" }
+  { flush: "post" },
 )
 </script>
 
 <template>
-  <div :class="cn('flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/60 bg-background/60', props.class)">
+  <div
+    :class="
+      cn('flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/60 bg-background/60', props.class)
+    "
+  >
     <div class="flex h-8 shrink-0 items-center gap-2 border-b border-border/60 px-3">
       <span class="size-1.5 rounded-full bg-muted-foreground/50" aria-hidden="true" />
       <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">{{ props.title }}</span>
@@ -54,7 +56,12 @@ watch(
         <slot name="actions" />
       </span>
     </div>
-    <div ref="body" role="log" aria-live="polite" class="min-h-0 flex-1 overflow-y-auto p-3 font-mono text-[11px] leading-relaxed">
+    <div
+      ref="body"
+      role="log"
+      aria-live="polite"
+      class="min-h-0 flex-1 overflow-y-auto p-3 font-mono text-[11px] leading-relaxed"
+    >
       <p v-if="!rows.length" class="text-muted-foreground/50">No output yet.</p>
       <p v-for="(l, i) in rows" :key="i" class="flex gap-2 whitespace-pre-wrap">
         <span v-if="l.at" class="shrink-0 text-muted-foreground/40 tabular-nums">{{ l.at }}</span>

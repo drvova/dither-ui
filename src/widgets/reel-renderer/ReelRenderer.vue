@@ -27,7 +27,11 @@ const props = defineProps<{ reel: ReelModel; artboardId: string }>()
 const provided = inject(REEL_POOL, null)
 const pool = computed(() => provided?.value ?? editor.artboards)
 const frames = computed(() =>
-  props.reel.clips.map((clip) => ({ clip, artboard: pool.value.find((a) => a.id === clip.id && a.id !== props.artboardId && a.widget?.kind !== "reel") ?? null }))
+  props.reel.clips.map((clip) => ({
+    clip,
+    artboard:
+      pool.value.find((a) => a.id === clip.id && a.id !== props.artboardId && a.widget?.kind !== "reel") ?? null,
+  })),
 )
 
 const wrapRef = ref<HTMLElement | null>(null)
@@ -46,7 +50,8 @@ const layers = computed(() => {
     .map((i) => ({ i, ...frames.value[i], progress: i === m.index ? progress : 1 }))
     .filter((l) => l.artboard)
 })
-const scaleOf = (w: number, h: number) => Math.min(1, box.value.w ? box.value.w / w : 1, box.value.h ? box.value.h / h : 1)
+const scaleOf = (w: number, h: number) =>
+  Math.min(1, box.value.w ? box.value.w / w : 1, box.value.h ? box.value.h / h : 1)
 
 let raf = 0
 let last = 0
@@ -83,7 +88,10 @@ function seekTo(ms: number) {
 }
 
 const unseek = onSeek((ms) => (ms === null ? play() : seekTo(ms)))
-watch(() => editor.replayToken, () => (time.value = 0))
+watch(
+  () => editor.replayToken,
+  () => (time.value = 0),
+)
 
 onMounted(() => {
   if (wrapRef.value && typeof ResizeObserver !== "undefined") {
@@ -102,7 +110,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="wrapRef" class="relative h-full w-full overflow-hidden" :data-reel-clip="moment?.index ?? -1" :data-reel-time="time.toFixed(2)" :data-reel-total="total">
+  <div
+    ref="wrapRef"
+    class="relative h-full w-full overflow-hidden"
+    :data-reel-clip="moment?.index ?? -1"
+    :data-reel-time="time.toFixed(2)"
+    :data-reel-total="total"
+  >
     <DitherReveal
       v-for="layer in layers"
       :key="layer.i"
@@ -115,7 +129,10 @@ onBeforeUnmount(() => {
     >
       <ReelClip :artboard="layer.artboard!" :scale="scaleOf(layer.artboard!.w, layer.artboard!.h)" />
     </DitherReveal>
-    <p v-if="!layers.length" class="absolute inset-0 grid place-items-center font-mono text-[11px] text-muted-foreground">
+    <p
+      v-if="!layers.length"
+      class="absolute inset-0 grid place-items-center font-mono text-[11px] text-muted-foreground"
+    >
       {{ reel.clips.length ? "a clip's frame is missing" : "no clips — select frames and press reel" }}
     </p>
   </div>

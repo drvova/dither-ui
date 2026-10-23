@@ -16,12 +16,17 @@ export const DEFAULT_VIDEO: VideoOptions = { seconds: 6, fps: 30, theme: "dark" 
  * reference (relative to index.html) when the consumer writes a directory. */
 export type PlayerAssets = { js: string; css: string } | { jsRef: string; cssRef: string }
 
-export const slugOf = (name: string): string => name.replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase() || "frame"
+export const slugOf = (name: string): string =>
+  name
+    .replace(/[^\w-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase() || "frame"
 
 export function normalizeVideoOptions(o?: Partial<Record<keyof VideoOptions, unknown>> | null): VideoOptions {
   const s = Number(o?.seconds)
   return {
-    seconds: Number.isFinite(s) && s > 0 ? Math.min(600, Math.max(1, Math.round(s * 100) / 100)) : DEFAULT_VIDEO.seconds,
+    seconds:
+      Number.isFinite(s) && s > 0 ? Math.min(600, Math.max(1, Math.round(s * 100) / 100)) : DEFAULT_VIDEO.seconds,
     fps: o?.fps === 24 || o?.fps === 60 ? o.fps : 30,
     theme: o?.theme === "light" ? "light" : "dark",
   }
@@ -34,14 +39,23 @@ const attr = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").rep
 const text = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 
 /** `extra`: frames the composition's document must carry besides the one it plays — a reel's clips. */
-export function compositionHtml(artboard: Artboard, o: VideoOptions, assets: PlayerAssets, extra: Artboard[] = []): string {
+export function compositionHtml(
+  artboard: Artboard,
+  o: VideoOptions,
+  assets: PlayerAssets,
+  extra: Artboard[] = [],
+): string {
   const slug = slugOf(artboard.name)
   const w = Math.max(1, Math.round(artboard.w))
   const h = Math.max(1, Math.round(artboard.h))
-  const css = "js" in assets ? `<style>${assets.css}</style>` : `<link rel="stylesheet" href="${attr(assets.cssRef)}" />`
+  const css =
+    "js" in assets ? `<style>${assets.css}</style>` : `<link rel="stylesheet" href="${attr(assets.cssRef)}" />`
   // A bundle may spell `</script>` in a string; the escaped slash is the same
   // string to JavaScript and no longer a closing tag to the parser.
-  const js = "js" in assets ? `<script>${assets.js.replace(/<\/script/gi, "<\\/script")}</script>` : `<script src="${attr(assets.jsRef)}"></script>`
+  const js =
+    "js" in assets
+      ? `<script>${assets.js.replace(/<\/script/gi, "<\\/script")}</script>`
+      : `<script src="${attr(assets.jsRef)}"></script>`
   return `<!doctype html>
 <html lang="en"${o.theme === "light" ? "" : ' class="dark"'}>
 <head>

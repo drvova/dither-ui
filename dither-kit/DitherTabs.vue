@@ -18,7 +18,13 @@ let counter = 0
 const CELL = 2
 
 /** Underline: a dither ramp along the run (same recipe as the gradient fade). */
-function paintUnderline(canvas: HTMLCanvasElement, length: number, color: PixelColor, vertical: boolean, matrix: number[][]) {
+function paintUnderline(
+  canvas: HTMLCanvasElement,
+  length: number,
+  color: PixelColor,
+  vertical: boolean,
+  matrix: number[][],
+) {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || length <= 0) return
   const cells = Math.max(4, Math.round(length / CELL))
@@ -77,20 +83,18 @@ const props = withDefaults(
     seed?: number
     class?: string
   }>(),
-  { variant: "underline", orientation: "horizontal" }
+  { variant: "underline", orientation: "horizontal" },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effColor = computed(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
 const idBase = `dk-tabs-${counter++}`
 provide(TABS_CTX, { active: toRef(props, "modelValue"), idBase })
 
-const items = computed<TabItem[]>(() =>
-  props.tabs.map((t) => (typeof t === "string" ? { value: t } : t))
-)
+const items = computed<TabItem[]>(() => props.tabs.map((t) => (typeof t === "string" ? { value: t } : t)))
 const vertical = computed(() => props.orientation === "vertical")
 
 const listRef = ref<HTMLDivElement | null>(null)
@@ -110,7 +114,14 @@ function measure() {
   if (!btn || !canvas) return
   marker.value = { left: btn.offsetLeft, top: btn.offsetTop, width: btn.offsetWidth, height: btn.offsetHeight }
   if (props.variant === "washed") paintWash(canvas, btn.offsetWidth, btn.offsetHeight, effColor.value, matrix.value)
-  else paintUnderline(canvas, vertical.value ? btn.offsetHeight : btn.offsetWidth, effColor.value, vertical.value, matrix.value)
+  else
+    paintUnderline(
+      canvas,
+      vertical.value ? btn.offsetHeight : btn.offsetWidth,
+      effColor.value,
+      vertical.value,
+      matrix.value,
+    )
 }
 
 function select(value: string) {
@@ -144,7 +155,13 @@ const markerStyle = computed(() => {
     }
   return vertical.value
     ? { left: "0px", top: `${marker.value.top}px`, width: "2px", height: `${marker.value.height}px` }
-    : { left: `${marker.value.left}px`, bottom: "0px", width: `${marker.value.width}px`, height: "2px" }
+    : // On the tab's own floor, not the container's: panels nest inside it.
+      {
+        left: `${marker.value.left}px`,
+        top: `${marker.value.top + marker.value.height - 2}px`,
+        width: `${marker.value.width}px`,
+        height: "2px",
+      }
 })
 
 let ro: ResizeObserver | null = null
@@ -159,7 +176,7 @@ onMounted(() => {
 })
 watch(
   () => [props.modelValue, props.tabs, effColor.value, props.variant, props.orientation, matrix.value],
-  () => nextTick(measure)
+  () => nextTick(measure),
 )
 onBeforeUnmount(() => ro?.disconnect())
 </script>
@@ -212,7 +229,8 @@ onBeforeUnmount(() => ro?.disconnect())
         <span
           v-if="t.badge !== undefined"
           class="rounded border border-border/60 px-1 text-[10px] text-muted-foreground tabular-nums"
-        >{{ t.badge }}</span>
+          >{{ t.badge }}</span
+        >
       </button>
     </div>
     <canvas

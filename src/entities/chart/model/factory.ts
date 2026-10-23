@@ -9,12 +9,7 @@ export function seedRows(type: ChartType): DataRow[] {
 
 function seriesFor(type: ChartType): SeriesRow[] {
   const fam = familyOf(type)
-  const mk = (
-    key: string,
-    label: string,
-    color: SeriesRow["color"],
-    on: boolean
-  ): SeriesRow => ({
+  const mk = (key: string, label: string, color: SeriesRow["color"], on: boolean): SeriesRow => ({
     key,
     label,
     color,
@@ -36,11 +31,7 @@ function seriesFor(type: ChartType): SeriesRow[] {
       mk("other", "Other", "grey", true),
     ]
   if (fam === "radar")
-    return [
-      mk("alpha", "Alpha", "pink", true),
-      mk("beta", "Beta", "blue", true),
-      mk("gamma", "Gamma", "green", false),
-    ]
+    return [mk("alpha", "Alpha", "pink", true), mk("beta", "Beta", "blue", true), mk("gamma", "Gamma", "green", false)]
   return [
     mk("desktop", "Desktop", "blue", true),
     mk("mobile", "Mobile", "purple", true),

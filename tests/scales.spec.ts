@@ -1,11 +1,5 @@
-import { describe, expect, it } from "vitest"
-import {
-  buildBandScale,
-  buildYScale,
-  computeBands,
-  indexAtBand,
-  nearestIndex,
-} from "../dither-kit/scales"
+import { describe, expect, it } from "rstack/test"
+import { buildBandScale, buildYScale, computeBands, indexAtBand, nearestIndex } from "../dither-kit/scales"
 
 const rows = [
   { m: "a", x: 10, y: 5 },
@@ -15,8 +9,14 @@ const rows = [
 describe("computeBands", () => {
   it("default: every series sits on the floor", () => {
     const { bands, max } = computeBands(rows, ["x", "y"], "default")
-    expect(bands.x).toEqual([[0, 10], [0, 20]])
-    expect(bands.y).toEqual([[0, 5], [0, 15]])
+    expect(bands.x).toEqual([
+      [0, 10],
+      [0, 20],
+    ])
+    expect(bands.y).toEqual([
+      [0, 5],
+      [0, 15],
+    ])
     expect(max).toBe(20)
   })
   it("stacked: series pile up", () => {

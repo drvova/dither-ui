@@ -32,7 +32,14 @@ export type SeriesRow = {
 
 export type Margins = { top: number; right: number; bottom: number; left: number }
 
-export type GridPart = { on: boolean; locked: boolean; horizontal: boolean; vertical: boolean; dash: string; tickCount: number }
+export type GridPart = {
+  on: boolean
+  locked: boolean
+  horizontal: boolean
+  vertical: boolean
+  dash: string
+  tickCount: number
+}
 export type XAxisPart = { on: boolean; locked: boolean; tickMargin: number; maxTicks: number }
 export type YAxisPart = { on: boolean; locked: boolean; tickCount: number; tickMargin: number }
 export type LegendPart = { on: boolean; locked: boolean; align: "left" | "center" | "right"; clickable: boolean }
@@ -82,15 +89,7 @@ export type ChartModel = {
   tooltip: TooltipPart
 }
 
-export type LayerKind =
-  | "root"
-  | "grid"
-  | "xAxis"
-  | "yAxis"
-  | "series"
-  | "pie"
-  | "legend"
-  | "tooltip"
+export type LayerKind = "root" | "grid" | "xAxis" | "yAxis" | "series" | "pie" | "legend" | "tooltip"
 
 export type Layer = {
   id: string

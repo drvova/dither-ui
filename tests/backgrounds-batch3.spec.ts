@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { BAYER4 } from "../dither-kit/pixel"
 import { createRasterBuffer, type RasterBuffer } from "../dither-kit/raster"
 import { paintDotField } from "../dither-kit/dot-field"
@@ -28,14 +28,62 @@ const noNaN = (d: Uint8ClampedArray) => d.every((v) => Number.isFinite(v))
 
 // [name, painter, expectsOpaque]
 const cases: [string, (b: RasterBuffer) => void, boolean][] = [
-  ["dotField", (b) => paintDotField(b, { colors: C, gap: 16, speed: 0.5, sizeVariation: 1, glow: 1.5, opacity: 1, dither: 0, mouseStrength: 1 }, 2, BAYER4, null), false],
-  ["colorBends", (b) => paintColorBends(b, { colors: C, scale: 2, bend: 0.4, speed: 0.5, opacity: 1, dither: 1 }, 2, BAYER4), true],
-  ["gradientBlinds", (b) => paintGradientBlinds(b, { colors: C, count: 6, angle: 0.3, speed: 0.5, gap: 0.15, opacity: 1, dither: 1 }, 2, BAYER4), false],
-  ["grainient", (b) => paintGrainient(b, { colors: C, angle: 0.6, grain: 0.4, speed: 0.5, opacity: 1, dither: 1 }, 2, BAYER4), true],
+  [
+    "dotField",
+    (b) =>
+      paintDotField(
+        b,
+        { colors: C, gap: 16, speed: 0.5, sizeVariation: 1, glow: 1.5, opacity: 1, dither: 0, mouseStrength: 1 },
+        2,
+        BAYER4,
+        null,
+      ),
+    false,
+  ],
+  [
+    "colorBends",
+    (b) => paintColorBends(b, { colors: C, scale: 2, bend: 0.4, speed: 0.5, opacity: 1, dither: 1 }, 2, BAYER4),
+    true,
+  ],
+  [
+    "gradientBlinds",
+    (b) =>
+      paintGradientBlinds(
+        b,
+        { colors: C, count: 6, angle: 0.3, speed: 0.5, gap: 0.15, opacity: 1, dither: 1 },
+        2,
+        BAYER4,
+      ),
+    false,
+  ],
+  [
+    "grainient",
+    (b) => paintGrainient(b, { colors: C, angle: 0.6, grain: 0.4, speed: 0.5, opacity: 1, dither: 1 }, 2, BAYER4),
+    true,
+  ],
   ["ditherBg", (b) => paintDitherBg(b, { colors: C, scale: 3, speed: 0.5, opacity: 1 }, 2, BAYER4), false],
-  ["floatingLines", (b) => paintFloatingLines(b, { colors: C, count: 8, amplitude: 1, speed: 0.5, lineWidth: 0.012, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4), false],
-  ["plasmaWave", (b) => paintPlasmaWave(b, { colors: C, scale: 1, speed: 0.5, angle: 0.6, opacity: 1, dither: 1 }, 2, BAYER4), true],
-  ["radar", (b) => paintRadar(b, { colors: C, rings: 4, speed: 1, sweepWidth: 0.6, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4), false],
+  [
+    "floatingLines",
+    (b) =>
+      paintFloatingLines(
+        b,
+        { colors: C, count: 8, amplitude: 1, speed: 0.5, lineWidth: 0.012, glow: 1.5, opacity: 1, dither: 0 },
+        2,
+        BAYER4,
+      ),
+    false,
+  ],
+  [
+    "plasmaWave",
+    (b) => paintPlasmaWave(b, { colors: C, scale: 1, speed: 0.5, angle: 0.6, opacity: 1, dither: 1 }, 2, BAYER4),
+    true,
+  ],
+  [
+    "radar",
+    (b) =>
+      paintRadar(b, { colors: C, rings: 4, speed: 1, sweepWidth: 0.6, glow: 1.5, opacity: 1, dither: 0 }, 2, BAYER4),
+    false,
+  ],
 ]
 
 describe("backgrounds batch 3", () => {

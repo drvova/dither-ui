@@ -33,7 +33,7 @@ const props = withDefaults(
     restartKey?: unknown
     class?: string
   }>(),
-  { duration: 1.2, delay: 0, direction: "none", cell: 4, band: 12, reverse: false, easing: "ease-in-out" }
+  { duration: 1.2, delay: 0, direction: "none", cell: 4, band: 12, reverse: false, easing: "ease-in-out" },
 )
 
 const wrapRef = ref<HTMLElement | null>(null)
@@ -104,11 +104,19 @@ onBeforeUnmount(() => {
 })
 
 const effective = computed(() => {
-  const raw = props.progress === undefined ? resolveEasing(props.easing)(played.value) : Math.max(0, Math.min(1, props.progress))
+  const raw =
+    props.progress === undefined ? resolveEasing(props.easing)(played.value) : Math.max(0, Math.min(1, props.progress))
   return props.reverse ? 1 - raw : raw
 })
 const mask = computed(() =>
-  wipeStyle(effective.value, { cell: props.cell, seed: props.seed, direction: props.direction, band: props.band, width: size.value.width, height: size.value.height })
+  wipeStyle(effective.value, {
+    cell: props.cell,
+    seed: props.seed,
+    direction: props.direction,
+    band: props.band,
+    width: size.value.width,
+    height: size.value.height,
+  }),
 )
 const style = computed(() =>
   mask.value
@@ -122,7 +130,7 @@ const style = computed(() =>
         maskPosition: mask.value.position,
         WebkitMaskPosition: mask.value.position,
       }
-    : undefined
+    : undefined,
 )
 const state = computed(() => (effective.value >= 1 ? "shown" : effective.value <= 0 ? "hidden" : "playing"))
 </script>

@@ -1,7 +1,9 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, rs } from "rstack/test"
 import { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "../dither-kit/clock"
 
-afterEach(() => release())
+afterEach(() => {
+  release()
+})
 
 describe("clock — the director", () => {
   it("broadcasts the directed moment and hands time back on release", () => {
@@ -25,7 +27,7 @@ describe("clock — the director", () => {
 
   it("takes direction from HyperFrames' hf-seek events (seconds → ms)", () => {
     const target = new EventTarget()
-    const paint = vi.fn()
+    const paint = rs.fn()
     onSeek(paint)
     const off = directFromHyperframes(target)
     target.dispatchEvent(new CustomEvent("hf-seek", { detail: { time: 1.5, waitUntil: () => {} } }))

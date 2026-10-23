@@ -2,10 +2,7 @@ import type { CommonChart, TooltipItem } from "./common-context"
 import type { VariantInput } from "../engine/dither-paint"
 import { type Seed, seedFromColor } from "../engine/palette"
 import { pieSlices, radarAxes } from "./polar"
-import {
-  type PolarChartContextValue,
-  type PolarControllerInput,
-} from "./polar-context"
+import { type PolarChartContextValue, type PolarControllerInput } from "./polar-context"
 
 type Row = Record<string, unknown>
 
@@ -16,9 +13,7 @@ type Row = Record<string, unknown>
  * change-detecting `revision` derivation in place of Vue's data/replay watcher.
  * No `$effect`.
  */
-export function usePolarController(
-  input: PolarControllerInput
-): PolarChartContextValue {
+export function usePolarController(input: PolarControllerInput): PolarChartContextValue {
   let selectedDataKey = $state<string | null>(input.defaultSelectedDataKey)
   let focusDataKey = $state<string | null>(null)
   let hoverIndex = $state<number | null>(null)
@@ -45,24 +40,15 @@ export function usePolarController(
   })
 
   const configKeys = $derived(Object.keys(input.config()))
-  const plotWidth = $derived(
-    Math.max(0, input.dimensions().width - input.margins().left - input.margins().right)
-  )
-  const plotHeight = $derived(
-    Math.max(0, input.dimensions().height - input.margins().top - input.margins().bottom)
-  )
+  const plotWidth = $derived(Math.max(0, input.dimensions().width - input.margins().left - input.margins().right))
+  const plotHeight = $derived(Math.max(0, input.dimensions().height - input.margins().top - input.margins().bottom))
   const ready = $derived(plotWidth > 0 && plotHeight > 0)
   const pad = input.chartType === "radar" ? 20 : 6
-  const outerRadius = $derived(
-    Math.max(0, Math.min(plotWidth, plotHeight) / 2 - pad)
-  )
-  const innerRadius = $derived(
-    input.chartType === "pie" ? outerRadius * input.innerRadiusRatio() : 0
-  )
+  const outerRadius = $derived(Math.max(0, Math.min(plotWidth, plotHeight) / 2 - pad))
+  const innerRadius = $derived(input.chartType === "pie" ? outerRadius * input.innerRadiusRatio() : 0)
 
   const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
-  const variantOf = (key: string): VariantInput =>
-    variants[key] ?? variants["*"] ?? "gradient"
+  const variantOf = (key: string): VariantInput => variants[key] ?? variants["*"] ?? "gradient"
   const registerVariant = (key: string, variant: VariantInput) => {
     if (variants[key] === variant) return
     variants = { ...variants, [key]: variant }
@@ -95,9 +81,7 @@ export function usePolarController(
   }
 
   const pie = $derived(
-    input.chartType === "pie"
-      ? pieSlices(input.data(), input.dataKey(), input.nameKey(), input.startAngle())
-      : null
+    input.chartType === "pie" ? pieSlices(input.data(), input.dataKey(), input.nameKey(), input.startAngle()) : null,
   )
   const radar = $derived.by(() => {
     if (input.chartType !== "radar") return null
@@ -113,9 +97,7 @@ export function usePolarController(
 
   const common: CommonChart = {
     get names() {
-      return input.chartType === "pie" && pie
-        ? pie.map((s) => s.name)
-        : configKeys
+      return input.chartType === "pie" && pie ? pie.map((s) => s.name) : configKeys
     },
     labelOf: (n: string) => input.config()[n]?.label ?? n,
     seedOf,
@@ -134,18 +116,12 @@ export function usePolarController(
       return ready
     },
     get tooltipLeft() {
-      return Math.max(
-        48,
-        Math.min(plotWidth + input.margins().left - 48, cursorX)
-      )
+      return Math.max(48, Math.min(plotWidth + input.margins().left - 48, cursorX))
     },
     get tooltipTop() {
       return Math.max(input.margins().top + 44, cursorY)
     },
-    heading: (i: number) =>
-      input.chartType === "pie"
-        ? pie?.[i]?.name ?? null
-        : radar?.axes[i]?.label ?? null,
+    heading: (i: number) => (input.chartType === "pie" ? (pie?.[i]?.name ?? null) : (radar?.axes[i]?.label ?? null)),
     itemsAt: (i: number): TooltipItem[] => {
       const emphasis = selectedDataKey ?? focusDataKey
       if (input.chartType === "pie") {

@@ -14,7 +14,7 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { placeholder: "Select…", color: "blue", disabled: false }
+  { placeholder: "Select…", color: "blue", disabled: false },
 )
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
@@ -22,9 +22,7 @@ const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
 const open = ref(false)
 const highlighted = ref(-1)
 
-const selected = computed(
-  () => props.options.find((o) => o.value === props.modelValue) ?? null
-)
+const selected = computed(() => props.options.find((o) => o.value === props.modelValue) ?? null)
 const marker = computed(() => cssColor(props.color))
 
 const query = ref(selected.value?.label ?? "")
@@ -32,7 +30,7 @@ watch(
   () => props.modelValue,
   () => {
     query.value = selected.value?.label ?? ""
-  }
+  },
 )
 
 const filtered = computed(() => {
@@ -43,9 +41,7 @@ const filtered = computed(() => {
 
 function openPanel() {
   open.value = true
-  const i = filtered.value.findIndex(
-    (o) => o.value === props.modelValue && !o.disabled
-  )
+  const i = filtered.value.findIndex((o) => o.value === props.modelValue && !o.disabled)
   highlighted.value = i >= 0 ? i : filtered.value.findIndex((o) => !o.disabled)
 }
 
@@ -115,9 +111,7 @@ function onKeydown(e: KeyboardEvent) {
       @keydown="onKeydown"
       @blur="revert"
     />
-    <span
-      aria-hidden="true"
-      class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground"
+    <span aria-hidden="true" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground"
       >▾</span
     >
     <div
@@ -125,12 +119,7 @@ function onKeydown(e: KeyboardEvent) {
       role="listbox"
       class="absolute top-full z-30 mt-1 w-full rounded-lg border border-border bg-card p-1"
     >
-      <div
-        v-if="!filtered.length"
-        class="px-2 py-1.5 text-[12px] text-muted-foreground italic"
-      >
-        no matches
-      </div>
+      <div v-if="!filtered.length" class="px-2 py-1.5 text-[12px] text-muted-foreground italic">no matches</div>
       <div
         v-for="(o, i) in filtered"
         :key="o.value"

@@ -21,10 +21,16 @@ const ROUTES = [
   { path: "/studio", entry: "studio/index.html", ready: 'a[aria-label="dither-ui home"]', settle: 1000 },
 ]
 const MIME = {
-  ".html": "text/html", ".js": "text/javascript", ".css": "text/css",
-  ".png": "image/png", ".webp": "image/webp", ".svg": "image/svg+xml",
-  ".json": "application/json", ".xml": "application/xml",
-  ".woff2": "font/woff2", ".ico": "image/x-icon",
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+  ".json": "application/json",
+  ".xml": "application/xml",
+  ".woff2": "font/woff2",
+  ".ico": "image/x-icon",
 }
 
 function findChromium() {
@@ -54,7 +60,9 @@ function findChromium() {
 function serve() {
   return createServer(async (req, res) => {
     try {
-      const path = normalize(decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname)).replace(/^[/\\]+/, "") || "index.html"
+      const path =
+        normalize(decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname)).replace(/^[/\\]+/, "") ||
+        "index.html"
       let file = join(DIST, path)
       const st = await stat(file).catch(() => null)
       if (st?.isDirectory()) file = join(file, "index.html")
@@ -102,7 +110,12 @@ async function renderOgCards() {
   const { createHash } = await import("node:crypto")
   const hash = createHash("sha256").update(JSON.stringify(sections)).digest("hex").slice(0, 16)
   const marker = join(DIST, "og", ".cards-hash")
-  if (await access(marker).then(() => true, () => false)) {
+  if (
+    await access(marker).then(
+      () => true,
+      () => false,
+    )
+  ) {
     const prev = (await readFile(marker, "utf8")).trim()
     if (prev === hash) {
       console.log(`og: manifest unchanged (${sections.length} cards cached) — skipping render`)
@@ -196,11 +209,9 @@ try {
     if (route.minSections) {
       // The docs chunk is async; wait until the full section IA is mounted,
       // then let canvas-driven layout settle before serializing.
-      await page.waitForFunction(
-        (n) => document.querySelectorAll("section[id]").length > n,
-        route.minSections,
-        { timeout: 60_000 }
-      )
+      await page.waitForFunction((n) => document.querySelectorAll("section[id]").length > n, route.minSections, {
+        timeout: 60_000,
+      })
     } else {
       await page.waitForSelector(route.ready, { timeout: 30_000 })
     }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { FIGURE_N, figureCells, OFF, STAGE_CAPTIONS, STAGE_COUNT, stageFills } from "@/pages/landing/essay-figure"
 
 describe("essay figure", () => {

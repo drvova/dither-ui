@@ -23,9 +23,26 @@ export type ShaderProgram = {
 /** Uniforms the runtime feeds, Shadertoy names first then common aliases
  * (glslsandbox `time`/`resolution`/`mouse`, Book of Shaders `u_*`). */
 export const SHADER_UNIFORMS = [
-  "iResolution", "iTime", "iTimeDelta", "iFrame", "iMouse", "iDate", "iColor", "iSeed",
-  "iChannel0", "iChannel1", "iChannel2", "iChannel3", "iChannelResolution", "iChannelTime",
-  "resolution", "time", "mouse", "u_resolution", "u_time", "u_mouse",
+  "iResolution",
+  "iTime",
+  "iTimeDelta",
+  "iFrame",
+  "iMouse",
+  "iDate",
+  "iColor",
+  "iSeed",
+  "iChannel0",
+  "iChannel1",
+  "iChannel2",
+  "iChannel3",
+  "iChannelResolution",
+  "iChannelTime",
+  "resolution",
+  "time",
+  "mouse",
+  "u_resolution",
+  "u_time",
+  "u_mouse",
 ] as const
 
 /** The kit's helpers for any GLSL here: `dk_bayer4(fragCoord)` is the 4x4

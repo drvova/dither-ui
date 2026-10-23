@@ -6,7 +6,7 @@ const props = withDefaults(
     open: boolean
     align?: "start" | "center" | "end"
   }>(),
-  { align: "start" }
+  { align: "start" },
 )
 const emit = defineEmits<{ close: [] }>()
 
@@ -41,7 +41,7 @@ watch(
       window.removeEventListener("pointerdown", onOutside)
       window.removeEventListener("keydown", onKey)
     }
-  }
+  },
 )
 onBeforeUnmount(() => {
   clearTimeout(timer)

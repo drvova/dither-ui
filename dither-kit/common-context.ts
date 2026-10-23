@@ -35,8 +35,7 @@ export type CommonChart = {
   tooltipTop: number // px — follows the hovered node (cartesian) / cursor (polar)
 }
 
-export const CommonChartKey: InjectionKey<CommonChart> =
-  Symbol("dither-common-chart")
+export const CommonChartKey: InjectionKey<CommonChart> = Symbol("dither-common-chart")
 
 export function useCommonChart() {
   const ctx = inject(CommonChartKey, null)

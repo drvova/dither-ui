@@ -10,7 +10,7 @@ const props = withDefaults(
     baseSpeed?: number
     class?: string
   }>(),
-  { text: "DITHER · UI · TOOLKIT · ", baseSpeed: 60 }
+  { text: "DITHER · UI · TOOLKIT · ", baseSpeed: 60 },
 )
 
 // Two identical halves so wrapping by half-width is seamless.

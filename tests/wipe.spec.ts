@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { BAYER8, bayerMatrix, wipeStyle } from "../dither-kit/wipe"
 
 const svgOf = (image: string) => decodeURIComponent(image.slice(image.indexOf(",") + 1, -2))
@@ -58,9 +58,13 @@ describe("wipeStyle", () => {
     expect(wipeStyle(1, { width: 203, height: 101, cell: 6, direction: "down" })).toBeNull()
     expect(wipeStyle(0.98, { width: 203, height: 101, cell: 6, direction: "down" })).not.toBeNull()
     // The opposite direction reveals from the other edge.
-    expect(svgOf(wipeStyle(0.5, { ...box, direction: "left" })!.image)).toContain('<rect x="108" y="0" width="92" height="100" fill="#000"/>')
+    expect(svgOf(wipeStyle(0.5, { ...box, direction: "left" })!.image)).toContain(
+      '<rect x="108" y="0" width="92" height="100" fill="#000"/>',
+    )
     // Vertical wipes sweep rows.
-    expect(svgOf(wipeStyle(0.5, { ...box, direction: "down" })!.image)).toContain('<rect x="0" y="0" width="200" height="40" fill="#000"/>')
+    expect(svgOf(wipeStyle(0.5, { ...box, direction: "down" })!.image)).toContain(
+      '<rect x="0" y="0" width="200" height="40" fill="#000"/>',
+    )
     // Early on, only the band is inside the box.
     expect(svgOf(wipeStyle(0.05, { ...box, direction: "right" })!.image)).not.toContain('fill="#000"')
     // Without a box size a directional wipe is a dissolve.

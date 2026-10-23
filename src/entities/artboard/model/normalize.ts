@@ -1,10 +1,5 @@
 import { createChart, createSeriesRow } from "@/entities/chart"
-import {
-  componentEntry,
-  createWidget,
-  REEL_TRANSITIONS,
-  sanitizeComponentProps,
-} from "@/entities/widget"
+import { componentEntry, createWidget, REEL_TRANSITIONS, sanitizeComponentProps } from "@/entities/widget"
 import { BLOOMS, CHART_TYPES, type ChartType, STACKS } from "@/shared/config"
 import type { Artboard } from "./types"
 
@@ -57,8 +52,7 @@ function fill(target: Record<string, unknown>, defaults: Record<string, unknown>
   }
 }
 
-const validType = (t: unknown): ChartType =>
-  CHART_TYPES.includes(t as ChartType) ? (t as ChartType) : "area"
+const validType = (t: unknown): ChartType => (CHART_TYPES.includes(t as ChartType) ? (t as ChartType) : "area")
 
 const oneOf = <T extends string>(v: unknown, options: readonly T[], def: T): T =>
   options.includes(v as T) ? (v as T) : def
@@ -93,8 +87,7 @@ export function normalizeArtboard(a: Artboard): Artboard {
     })
     // enum fields: a junk string is type-correct but still crashes downstream
     // (e.g. bloom preset lookup) — force onto the allowlists.
-    if (typeof a.chart.bloom === "string")
-      a.chart.bloom = oneOf(a.chart.bloom, BLOOMS, "low")
+    if (typeof a.chart.bloom === "string") a.chart.bloom = oneOf(a.chart.bloom, BLOOMS, "low")
     a.chart.stackType = oneOf(a.chart.stackType, STACKS, "default")
     a.chart.type = validType(a.chart.type)
     for (const s of a.chart.series) {
@@ -103,8 +96,8 @@ export function normalizeArtboard(a: Artboard): Artboard {
         createSeriesRow(
           typeof s.key === "string" ? s.key : "series",
           typeof s.label === "string" ? s.label : "Series",
-          "blue"
-        ) as unknown as Record<string, unknown>
+          "blue",
+        ) as unknown as Record<string, unknown>,
       )
     }
   }
@@ -113,10 +106,7 @@ export function normalizeArtboard(a: Artboard): Artboard {
   const w = a.widget
   if (isPlainObject(w)) {
     if (w.kind === "avatar" || w.kind === "button" || w.kind === "gradient" || w.kind === "image") {
-      fill(
-        w as unknown as Record<string, unknown>,
-        createWidget(w.kind) as unknown as Record<string, unknown>
-      )
+      fill(w as unknown as Record<string, unknown>, createWidget(w.kind) as unknown as Record<string, unknown>)
     } else if (w.kind === "component") {
       const entry = componentEntry(typeof w.is === "string" ? w.is : "")
       if (!entry) {

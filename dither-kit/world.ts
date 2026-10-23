@@ -136,10 +136,22 @@ export function mat4FromQuat([x, y, z, w]: Quat): Mat4 {
   const wy = w * y
   const wz = w * z
   return [
-    1 - 2 * (yy + zz), 2 * (xy + wz), 2 * (xz - wy), 0,
-    2 * (xy - wz), 1 - 2 * (xx + zz), 2 * (yz + wx), 0,
-    2 * (xz + wy), 2 * (yz - wx), 1 - 2 * (xx + yy), 0,
-    0, 0, 0, 1,
+    1 - 2 * (yy + zz),
+    2 * (xy + wz),
+    2 * (xz - wy),
+    0,
+    2 * (xy - wz),
+    1 - 2 * (xx + zz),
+    2 * (yz + wx),
+    0,
+    2 * (xz + wy),
+    2 * (yz - wx),
+    1 - 2 * (xx + yy),
+    0,
+    0,
+    0,
+    0,
+    1,
   ]
 }
 
@@ -206,7 +218,13 @@ const det3 = (m: Mat4) =>
   m[0] * (m[5] * m[10] - m[9] * m[6]) - m[4] * (m[1] * m[10] - m[9] * m[2]) + m[8] * (m[1] * m[6] - m[5] * m[2])
 
 /** VRML's Transform: T · C · R · SR · S · -SR · -C (glTF: center and SR identity). */
-export function composeTransform(translation: Vec3, rotation: Quat, scale: Vec3, center: Vec3 = [0, 0, 0], scaleOrientation: Quat = QUAT_IDENTITY): Mat4 {
+export function composeTransform(
+  translation: Vec3,
+  rotation: Quat,
+  scale: Vec3,
+  center: Vec3 = [0, 0, 0],
+  scaleOrientation: Quat = QUAT_IDENTITY,
+): Mat4 {
   let m = mat4Translate([translation[0] + center[0], translation[1] + center[1], translation[2] + center[2]])
   m = mat4Multiply(m, mat4FromQuat(rotation))
   const so = scaleOrientation[3] !== 1
@@ -226,7 +244,14 @@ export function boxGeometry([sx, sy, sz]: Vec3): Geometry {
   const x = sx / 2
   const y = sy / 2
   const z = sz / 2
-  const faces = [[0, 1, 2, 3], [5, 4, 7, 6], [1, 5, 6, 2], [4, 0, 3, 7], [3, 2, 6, 7], [4, 5, 1, 0]]
+  const faces = [
+    [0, 1, 2, 3],
+    [5, 4, 7, 6],
+    [1, 5, 6, 2],
+    [4, 0, 3, 7],
+    [3, 2, 6, 7],
+    [4, 5, 1, 0],
+  ]
   // Every face takes the whole texture, upright as seen from outside.
   return {
     points: [-x, -y, z, x, -y, z, x, y, z, -x, y, z, -x, -y, -z, x, -y, -z, x, y, -z, -x, y, -z],
@@ -276,7 +301,14 @@ const capUv = (st: (s: number, t: number) => number, segments: number) => (j: nu
   return st(0.5 + 0.5 * Math.sin(th), 0.5 + 0.5 * Math.cos(th))
 }
 
-export function cylinderGeometry(radius: number, height: number, side = true, top = true, bottom = true, segments = 24): Geometry {
+export function cylinderGeometry(
+  radius: number,
+  height: number,
+  side = true,
+  top = true,
+  bottom = true,
+  segments = 24,
+): Geometry {
   const points: number[] = []
   const faces: number[][] = []
   const uvs: number[] = []
@@ -306,7 +338,13 @@ export function cylinderGeometry(radius: number, height: number, side = true, to
   return { points, faces, uvs, faceUvs }
 }
 
-export function coneGeometry(bottomRadius: number, height: number, side = true, bottom = true, segments = 24): Geometry {
+export function coneGeometry(
+  bottomRadius: number,
+  height: number,
+  side = true,
+  bottom = true,
+  segments = 24,
+): Geometry {
   const points: number[] = [0, height / 2, 0]
   const faces: number[][] = []
   const uvs: number[] = []
@@ -331,7 +369,13 @@ export function coneGeometry(bottomRadius: number, height: number, side = true, 
 }
 
 /** VRML ElevationGrid: heights row by row along z, `xDimension` per row. */
-export function elevationGeometry(xDimension: number, zDimension: number, xSpacing: number, zSpacing: number, heights: number[]): Geometry {
+export function elevationGeometry(
+  xDimension: number,
+  zDimension: number,
+  xSpacing: number,
+  zSpacing: number,
+  heights: number[],
+): Geometry {
   const points: number[] = []
   const faces: number[][] = []
   const uvs: number[] = []
@@ -349,7 +393,17 @@ export function elevationGeometry(xDimension: number, zDimension: number, xSpaci
 // ---- worlds ------------------------------------------------------------------------
 
 export function emptyWorld(): World {
-  return { meshes: [], nodes: [], palette: [], lights: [], headlight: true, viewpoint: null, center: [0, 0, 0], radius: 1, duration: 0 }
+  return {
+    meshes: [],
+    nodes: [],
+    palette: [],
+    lights: [],
+    headlight: true,
+    viewpoint: null,
+    center: [0, 0, 0],
+    radius: 1,
+    duration: 0,
+  }
 }
 
 /** Palette index for a colour — at most 255 distinct colours per world, the
@@ -397,7 +451,14 @@ export type MeshOptions = { kind?: MeshKind; node?: number; ccw?: boolean }
  * the outlines for the wire pass, register colours in the palette. Lines
  * take rings as polylines, points take them as runs (or every point).
  */
-export function addMesh(world: World, geo: Geometry, matrix: Mat4 | null, color: Rgb, solid: boolean, opts: MeshOptions = {}): WorldMesh | null {
+export function addMesh(
+  world: World,
+  geo: Geometry,
+  matrix: Mat4 | null,
+  color: Rgb,
+  solid: boolean,
+  opts: MeshOptions = {},
+): WorldMesh | null {
   const count = Math.floor(geo.points.length / 3)
   if (!count) return null
   const kind = opts.kind ?? "faces"
@@ -462,7 +523,8 @@ export function addMesh(world: World, geo: Geometry, matrix: Mat4 | null, color:
       }
     }
   } else if (kind === "lines") {
-    for (const line of geo.faces) if (valid(line, 2)) for (let k = 0; k + 1 < line.length; k++) indices.push(line[k], line[k + 1])
+    for (const line of geo.faces)
+      if (valid(line, 2)) for (let k = 0; k + 1 < line.length; k++) indices.push(line[k], line[k + 1])
   } else if (geo.faces.length) {
     for (const run of geo.faces) for (const i of run) if (i >= 0 && i < count) indices.push(i)
   } else {
@@ -500,7 +562,8 @@ export function sampleTrack(track: Track, t: number, out: number[]): void {
   const s = track.stride
   if (!n) return
   let u = t - track.start
-  if (track.duration > 0) u = track.loop ? ((u % track.duration) + track.duration) % track.duration : Math.max(0, Math.min(track.duration, u))
+  if (track.duration > 0)
+    u = track.loop ? ((u % track.duration) + track.duration) % track.duration : Math.max(0, Math.min(track.duration, u))
   else u = 0
   let i = 0
   while (i + 1 < n && track.key[i + 1] <= u) i++
@@ -662,7 +725,19 @@ export function cameraOf(world: World, view: WorldView, cols: number, rows: numb
     const z1 = -dx * sy + dz * cy
     lights.push(x1, dy * cp - z1 * sp, dy * sp + z1 * cp, l.intensity)
   }
-  return { cols, rows, dist, near: dist - radius, span: Math.max(1e-6, 2 * radius), scale: rows / 2 / Math.tan(fovV / 2), cy, sy, cp, sp, lights }
+  return {
+    cols,
+    rows,
+    dist,
+    near: dist - radius,
+    span: Math.max(1e-6, 2 * radius),
+    scale: rows / 2 / Math.tan(fovV / 2),
+    cy,
+    sy,
+    cp,
+    sp,
+    lights,
+  }
 }
 
 let cam = new Float32Array(0)
@@ -710,11 +785,25 @@ export function shadeOf(lights: number[], nx: number, ny: number, nz: number): n
 /** What a rasterizer produces per cell: lighting shade (0-1), depth from the
  * eye, the palette index + 1 (0 = nothing drawn), and the texture
  * coordinates (st pairs; s = -1 where the mesh has none). */
-export type WorldTarget = { width: number; height: number; shade: Float32Array; depth: Float32Array; index: Uint8Array; uv: Float32Array }
+export type WorldTarget = {
+  width: number
+  height: number
+  shade: Float32Array
+  depth: Float32Array
+  index: Uint8Array
+  uv: Float32Array
+}
 
 export function createWorldTarget(width: number, height: number): WorldTarget {
   const n = Math.max(0, width * height)
-  return { width, height, shade: new Float32Array(n), depth: new Float32Array(n), index: new Uint8Array(n), uv: new Float32Array(n * 2) }
+  return {
+    width,
+    height,
+    shade: new Float32Array(n),
+    depth: new Float32Array(n),
+    index: new Uint8Array(n),
+    uv: new Float32Array(n * 2),
+  }
 }
 
 export function clearWorldTarget(t: WorldTarget): void {
@@ -913,7 +1002,20 @@ function clipAxis(p: number, q: number): boolean {
 }
 
 /** A depth-tested screen-space segment in one colour. */
-function segment(buffer: RasterBuffer, target: WorldTarget, bias: number, ax: number, ay: number, ad: number, bx: number, by: number, bd: number, r: number, g: number, b: number): void {
+function segment(
+  buffer: RasterBuffer,
+  target: WorldTarget,
+  bias: number,
+  ax: number,
+  ay: number,
+  ad: number,
+  bx: number,
+  by: number,
+  bd: number,
+  r: number,
+  g: number,
+  b: number,
+): void {
   const cols = target.width
   const rows = target.height
   const dx = bx - ax
@@ -949,7 +1051,13 @@ function segment(buffer: RasterBuffer, target: WorldTarget, bias: number, ax: nu
  * outlines (`wire`), line sets and point sets are drawn depth-tested against
  * the target.
  */
-export function paintTarget(buffer: RasterBuffer, target: WorldTarget, world: World, view: WorldView, style: WorldStyle): void {
+export function paintTarget(
+  buffer: RasterBuffer,
+  target: WorldTarget,
+  world: World,
+  view: WorldView,
+  style: WorldStyle,
+): void {
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data
@@ -1017,7 +1125,13 @@ export function paintTarget(buffer: RasterBuffer, target: WorldTarget, world: Wo
 }
 
 /** Outlines (`wire`), line sets and point sets over the finished depth. */
-export function drawOverlays(buffer: RasterBuffer, target: WorldTarget, world: World, view: WorldView, style: WorldStyle): void {
+export function drawOverlays(
+  buffer: RasterBuffer,
+  target: WorldTarget,
+  world: World,
+  view: WorldView,
+  style: WorldStyle,
+): void {
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data
@@ -1087,7 +1201,14 @@ export function drawOverlays(buffer: RasterBuffer, target: WorldTarget, world: W
  * zero stay clear, so a material may also paint outside the silhouette
  * (an ink halo from depth edges). The overlays follow as usual.
  */
-export function paintMaterial(buffer: RasterBuffer, target: WorldTarget, world: World, view: WorldView, style: WorldStyle, rgba: Uint8Array): void {
+export function paintMaterial(
+  buffer: RasterBuffer,
+  target: WorldTarget,
+  world: World,
+  view: WorldView,
+  style: WorldStyle,
+  rgba: Uint8Array,
+): void {
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data
@@ -1158,7 +1279,8 @@ let cpuTarget: WorldTarget | null = null
 
 /** One frame on the CPU engine: rasterize, then the shared pass. */
 export function paintWorld(buffer: RasterBuffer, world: World, view: WorldView, style: WorldStyle): void {
-  if (!cpuTarget || cpuTarget.width !== buffer.width || cpuTarget.height !== buffer.height) cpuTarget = createWorldTarget(buffer.width, buffer.height)
+  if (!cpuTarget || cpuTarget.width !== buffer.width || cpuTarget.height !== buffer.height)
+    cpuTarget = createWorldTarget(buffer.width, buffer.height)
   rasterizeWorld(world, view, cpuTarget, style)
   paintTarget(buffer, cpuTarget, world, view, style)
 }
@@ -1172,7 +1294,7 @@ export function paintWorld(buffer: RasterBuffer, world: World, view: WorldView, 
  * and the clock. */
 export function sampleWorld(seed = 0): string {
   const rand = xorshift32(Math.round(seed) || 0x2545f491)
-  const pick = <T,>(xs: T[]) => xs[Math.floor(rand() * xs.length)]
+  const pick = <T>(xs: T[]) => xs[Math.floor(rand() * xs.length)]
   const n = (v: number) => String(Math.round(v * 1000) / 1000)
   const tone = (h: number, s: number, v: number) =>
     hsvToRgb(((h % 360) + 360) % 360, s, v)
@@ -1191,15 +1313,31 @@ export function sampleWorld(seed = 0): string {
   const faces: string[] = []
   for (let j = 0; j < segments; j++) {
     const th = (2 * Math.PI * j) / segments
-    ring.push(`${n(ringR * Math.cos(th))} 0 ${n(ringR * Math.sin(th))}`, `${n((ringR - 0.22) * Math.cos(th))} 0 ${n((ringR - 0.22) * Math.sin(th))}`)
+    ring.push(
+      `${n(ringR * Math.cos(th))} 0 ${n(ringR * Math.sin(th))}`,
+      `${n((ringR - 0.22) * Math.cos(th))} 0 ${n((ringR - 0.22) * Math.sin(th))}`,
+    )
     const k = (j + 1) % segments
     faces.push(`${j * 2} ${k * 2} ${k * 2 + 1} ${j * 2 + 1} -1`)
   }
   const shape = (geometry: string, color: string) =>
     `Shape { appearance Appearance { material Material { diffuseColor ${color} } } geometry ${geometry} }`
-  const bodyGeometry = body === "sphere" ? "Sphere { radius 1 }" : body === "box" ? "Box { size 1.6 1.6 1.6 }" : "Cylinder { radius 0.9 height 1.4 }"
-  const tipGeometry = tip === "cone" ? "Cone { bottomRadius 0.22 height 0.5 }" : tip === "sphere" ? "Sphere { radius 0.24 }" : "Box { size 0.36 0.36 0.36 }"
-  const ringShape = shape(`IndexedFaceSet { solid FALSE coord Coordinate { point [ ${ring.join(", ")} ] } coordIndex [ ${faces.join(" ")} ] }`, tone(hue + 40, 0.4, 0.8))
+  const bodyGeometry =
+    body === "sphere"
+      ? "Sphere { radius 1 }"
+      : body === "box"
+        ? "Box { size 1.6 1.6 1.6 }"
+        : "Cylinder { radius 0.9 height 1.4 }"
+  const tipGeometry =
+    tip === "cone"
+      ? "Cone { bottomRadius 0.22 height 0.5 }"
+      : tip === "sphere"
+        ? "Sphere { radius 0.24 }"
+        : "Box { size 0.36 0.36 0.36 }"
+  const ringShape = shape(
+    `IndexedFaceSet { solid FALSE coord Coordinate { point [ ${ring.join(", ")} ] } coordIndex [ ${faces.join(" ")} ] }`,
+    tone(hue + 40, 0.4, 0.8),
+  )
   const top = body === "box" ? 1.1 : 1.2
   const lines = [
     "#VRML V2.0 utf8",
@@ -1212,7 +1350,8 @@ export function sampleWorld(seed = 0): string {
     `] }`,
     `DEF Arms Transform { children [ USE Arm`,
   ]
-  for (let a = 1; a < arms; a++) lines.push(`  Transform { rotation 0 1 0 ${n((2 * Math.PI * a) / arms)} children USE Arm }`)
+  for (let a = 1; a < arms; a++)
+    lines.push(`  Transform { rotation 0 1 0 ${n((2 * Math.PI * a) / arms)} children USE Arm }`)
   lines.push(
     `] }`,
     `DEF Antenna Transform { translation 0 ${n(top)} 0 children ${shape("Cone { bottomRadius 0.18 height 0.5 }", tone(hue + 20, 0.5, 1))} }`,

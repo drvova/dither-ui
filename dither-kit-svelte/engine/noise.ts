@@ -51,8 +51,14 @@ export function fbm(x: number, y: number, t: number): number {
 // a browser, SSR, or a worker.
 
 const GRAD2 = [
-  [1, 1], [-1, 1], [1, -1], [-1, -1],
-  [1, 0], [-1, 0], [0, 1], [0, -1],
+  [1, 1],
+  [-1, 1],
+  [1, -1],
+  [-1, -1],
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
 ] as const
 
 const F2 = 0.5 * (Math.sqrt(3) - 1)

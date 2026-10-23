@@ -44,12 +44,52 @@ export type TextureConfig = {
 export type VariantInput = AreaVariant | TextureConfig | number
 
 const TEXTURE_PRESET: Record<AreaVariant, Required<TextureConfig>> = {
-  gradient: { ramp: 1, density: 0, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA, alphaFloor: 0.3, alphaRange: 0.7, intensityLift: 0.22 },
-  dotted: { ramp: 1, density: 0.12, gaps: true, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA, alphaFloor: 0.35, alphaRange: 0.65, intensityLift: 0.22 },
-  hatched: { ramp: 1, density: 0, gaps: false, hatch: 4, offTier: OFF_TIER, edge: BORDER_ALPHA, alphaFloor: 0.3, alphaRange: 0.7, intensityLift: 0.22 },
+  gradient: {
+    ramp: 1,
+    density: 0,
+    gaps: false,
+    hatch: 0,
+    offTier: OFF_TIER,
+    edge: BORDER_ALPHA,
+    alphaFloor: 0.3,
+    alphaRange: 0.7,
+    intensityLift: 0.22,
+  },
+  dotted: {
+    ramp: 1,
+    density: 0.12,
+    gaps: true,
+    hatch: 0,
+    offTier: OFF_TIER,
+    edge: BORDER_ALPHA,
+    alphaFloor: 0.35,
+    alphaRange: 0.65,
+    intensityLift: 0.22,
+  },
+  hatched: {
+    ramp: 1,
+    density: 0,
+    gaps: false,
+    hatch: 4,
+    offTier: OFF_TIER,
+    edge: BORDER_ALPHA,
+    alphaFloor: 0.3,
+    alphaRange: 0.7,
+    intensityLift: 0.22,
+  },
   // density 2: outbids every threshold shift (stacked/sparse) — always lit,
   // exactly like the old hard-coded solid branch.
-  solid: { ramp: 1, density: 2, gaps: false, hatch: 0, offTier: OFF_TIER, edge: BORDER_ALPHA, alphaFloor: 0.3, alphaRange: 0.7, intensityLift: 0.22 },
+  solid: {
+    ramp: 1,
+    density: 2,
+    gaps: false,
+    hatch: 0,
+    offTier: OFF_TIER,
+    edge: BORDER_ALPHA,
+    alphaFloor: 0.3,
+    alphaRange: 0.7,
+    intensityLift: 0.22,
+  },
 }
 
 // --- seed-generative textures ------------------------------------------------
@@ -263,9 +303,7 @@ export function glyphFromSeed(seed: number): Glyph {
   const symmetric = rand() < 0.7 // most glyphs are radially even
   const seen = new Set<string>(["0,0"])
   for (let r = 0; r < rays; r++) {
-    const ang = symmetric
-      ? angle0 + (r / rays) * Math.PI * 2
-      : angle0 + rand() * Math.PI * 2
+    const ang = symmetric ? angle0 + (r / rays) * Math.PI * 2 : angle0 + rand() * Math.PI * 2
     for (let l = 1; l <= len; l++) {
       const dx = Math.round(Math.cos(ang) * l)
       const dy = Math.round(Math.sin(ang) * l)
@@ -322,7 +360,7 @@ export function matrixFromSeed(seed: number): DitherMatrix {
     row.map((v, x) => {
       const r = mulberry32(s * 7919 + y * 17 + x * 31 + 7)
       return Math.max(0, Math.min(1, v + (r() - 0.5) * jitter * 2))
-    })
+    }),
   )
 }
 
@@ -351,10 +389,7 @@ export function resolveTexture(input: VariantInput): Required<TextureConfig> {
   if (typeof input === "string") return TEXTURE_PRESET[input] ?? TEXTURE_PRESET.gradient
   if (input !== lastTexKey) {
     lastTexKey = input
-    lastTex =
-      typeof input === "number"
-        ? textureFromSeed(input)
-        : { ...TEXTURE_PRESET.gradient, ...input }
+    lastTex = typeof input === "number" ? textureFromSeed(input) : { ...TEXTURE_PRESET.gradient, ...input }
   }
   return lastTex
 }
@@ -412,7 +447,7 @@ export function paintColumn(
   top: number,
   floor: number,
   seed: Seed,
-  { variant, intensity, dim, stacked, sparse = 0, matrix }: PaintOpts
+  { variant, intensity, dim, stacked, sparse = 0, matrix }: PaintOpts,
 ) {
   const tex = resolveTexture(variant)
   const mat = matrix ?? resolveMatrix(variant)
@@ -436,8 +471,7 @@ export function paintColumn(
       const raw = (y - t) / depth
       let density = 1 - tex.ramp * (1 - raw)
       if (stacked) density = 0.5 + 0.5 * density
-      if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2)
-        continue
+      if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2) continue
       const lit = density > mat[y & 3][x & 3] - 0.1 * intensity - bias
       if (tex.gaps && !lit) continue
       const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
@@ -447,8 +481,7 @@ export function paintColumn(
     }
     if (tex.edge > 0 && t >= 0 && t < buf.height && x >= 0 && x < w) {
       setPixelInline(buf, (t * w + x) * 4, fill, tex.edge * dim)
-      if (depth > 1 && t + 1 < buf.height)
-        setPixelInline(buf, ((t + 1) * w + x) * 4, fill, tex.edge * 0.5 * dim)
+      if (depth > 1 && t + 1 < buf.height) setPixelInline(buf, ((t + 1) * w + x) * 4, fill, tex.edge * 0.5 * dim)
     }
     return
   }
@@ -462,8 +495,7 @@ export function paintColumn(
     const raw = (y - t) / depth
     let density = 1 - tex.ramp * (1 - raw)
     if (stacked) density = 0.5 + 0.5 * density
-    if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2)
-      continue
+    if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2) continue
     const lit = density > mat[y & 3][x & 3] - 0.1 * intensity - bias
     if (tex.gaps && !lit) continue
     const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
@@ -533,17 +565,9 @@ export type BloomStyle = {
 }
 
 /** Style for the bloom *layer* canvas (a blurred, additive copy). null when off. */
-export function bloomLayerStyle(
-  input: BloomInput,
-  active: boolean
-): BloomStyle | null {
+export function bloomLayerStyle(input: BloomInput, active: boolean): BloomStyle | null {
   if (!active || input === "off") return null
-  const cfg =
-    typeof input === "string"
-      ? PRESET[input]
-      : typeof input === "number"
-        ? bloomFromSeed(input)
-        : input
+  const cfg = typeof input === "string" ? PRESET[input] : typeof input === "number" ? bloomFromSeed(input) : input
   return {
     filter: `blur(${cfg.blur}px) brightness(${cfg.brightness}) saturate(${cfg.saturate ?? 1})`,
     opacity: cfg.opacity,
@@ -553,8 +577,7 @@ export function bloomLayerStyle(
 }
 
 // Easing — gentle start + soft settle so entrances don't feel linear.
-export const easeInOutCubic = (t: number) =>
-  t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
+export const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 export const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
@@ -573,12 +596,7 @@ export type EasingInput = EasingName | BezierPoints | number
 
 /** cubic-bezier(x1,y1,x2,y2) solver — Newton + bisection fallback, the same
  * approach browsers use for CSS timing functions. */
-export function cubicBezier(
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
-): (t: number) => number {
+export function cubicBezier(x1: number, y1: number, x2: number, y2: number): (t: number) => number {
   const ax = 3 * x1 - 3 * x2 + 1
   const bx = 3 * x2 - 6 * x1
   const cx = 3 * x1
@@ -632,7 +650,5 @@ export function resolveEasing(input: EasingInput): (t: number) => number {
 
 /** Whether the OS asks for reduced motion (snap + steady stars). */
 export function prefersReducedMotion() {
-  return (
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
-  )
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
 }

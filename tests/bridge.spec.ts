@@ -6,7 +6,7 @@ import { spawn, type ChildProcess } from "node:child_process"
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "rstack/test"
 
 const PORT = 18790 + (process.pid % 500)
 const URL_ = `ws://127.0.0.1:${PORT}`
@@ -16,7 +16,19 @@ let logs = ""
 
 beforeAll(async () => {
   // The agent runs from --cwd, so a script path must be absolute.
-  bridge = spawn(process.execPath, ["bridge/dither-bridge.mjs", "--agent", `${process.execPath} ${resolve("tests/fixtures/fake-acp-agent.mjs")}`, "--port", String(PORT), "--cwd", CWD], { stdio: ["ignore", "pipe", "pipe"] })
+  bridge = spawn(
+    process.execPath,
+    [
+      "bridge/dither-bridge.mjs",
+      "--agent",
+      `${process.execPath} ${resolve("tests/fixtures/fake-acp-agent.mjs")}`,
+      "--port",
+      String(PORT),
+      "--cwd",
+      CWD,
+    ],
+    { stdio: ["ignore", "pipe", "pipe"] },
+  )
   await new Promise<void>((resolve, reject) => {
     bridge.stdout!.on("data", (d: Buffer) => {
       logs += d.toString()
@@ -32,7 +44,14 @@ afterAll(() => {
   rmSync(CWD, { recursive: true, force: true })
 })
 
-type Rpc = { jsonrpc: "2.0"; id?: string | number; method?: string; params?: Record<string, unknown>; result?: unknown; error?: { message: string } }
+type Rpc = {
+  jsonrpc: "2.0"
+  id?: string | number
+  method?: string
+  params?: Record<string, unknown>
+  result?: unknown
+  error?: { message: string }
+}
 
 function client(url = URL_) {
   const ws = new WebSocket(url)
@@ -79,7 +98,14 @@ function client(url = URL_) {
       calls.push({ name, args })
       const data =
         name === "export_video"
-          ? { files: [{ path: "video/sign-in/index.html", content: "<!doctype html><title>sign in</title>" }, { path: "../escape.html", content: "no" }, { path: "/abs.html", content: "no" }], render: "npx hyperframes render video/sign-in" }
+          ? {
+              files: [
+                { path: "video/sign-in/index.html", content: "<!doctype html><title>sign in</title>" },
+                { path: "../escape.html", content: "no" },
+                { path: "/abs.html", content: "no" },
+              ],
+              render: "npx hyperframes render video/sign-in",
+            }
           : { id: "ab_1", name: args.name, kind: "screen" }
       send({ id: m.id, result: { ok: true, data } })
       return
@@ -92,22 +118,36 @@ function client(url = URL_) {
   })
   return { ws, open, request, send, notifications, hellos, calls, updates, permission: () => permission }
 }
-type Hello = { cwd: string; harnesses: { id: string; name: string; command: string; installed: boolean }[]; agent: { id: string; name: string; command: string; pid: number } | null }
+type Hello = {
+  cwd: string
+  harnesses: { id: string; name: string; command: string; installed: boolean }[]
+  agent: { id: string; name: string; command: string; pid: number } | null
+}
 const FIXTURE = `${process.execPath} ${resolve("tests/fixtures/fake-acp-agent.mjs")}`
 
 describe("dither-bridge", () => {
   it("relays ACP verbatim, injects the Studio MCP server, and routes its tool calls back to the tab", async () => {
     const c = client()
     await c.open
-    c.send({ method: "bridge/tools", params: { tools: [{ name: "add_screen", description: "place a screen", inputSchema: { type: "object" } }] } })
-    const init = (await c.request("initialize", { protocolVersion: 1, clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false }, clientInfo: { name: "test", version: "1" } })) as { agentInfo: { name: string } }
+    c.send({
+      method: "bridge/tools",
+      params: { tools: [{ name: "add_screen", description: "place a screen", inputSchema: { type: "object" } }] },
+    })
+    const init = (await c.request("initialize", {
+      protocolVersion: 1,
+      clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false },
+      clientInfo: { name: "test", version: "1" },
+    })) as { agentInfo: { name: string } }
     expect(init.agentInfo.name).toBe("fake-acp")
     const s = (await c.request("session/new", { cwd: "/", mcpServers: [] })) as { sessionId: string }
     expect(s.sessionId).toMatch(/^sess_/)
     // The agent spawned the injected server and listed the tab's tools through it.
     expect(c.updates).toContain("agent_message_chunk")
 
-    const r = (await c.request("session/prompt", { sessionId: s.sessionId, prompt: [{ type: "text", text: "a sign-in screen" }] })) as { stopReason: string; usage: { inputTokens: number } }
+    const r = (await c.request("session/prompt", {
+      sessionId: s.sessionId,
+      prompt: [{ type: "text", text: "a sign-in screen" }],
+    })) as { stopReason: string; usage: { inputTokens: number } }
     expect(r.stopReason).toBe("end_turn")
     expect(r.usage.inputTokens).toBe(2400)
     expect(c.permission()?.params?.options).toHaveLength(3)
@@ -117,10 +157,22 @@ describe("dither-bridge", () => {
     // The hello names the running --agent and every known harness with its PATH status.
     expect(c.hellos[0].agent).toMatchObject({ id: "custom", command: FIXTURE })
     expect(c.hellos[0].cwd).toBe(CWD)
-    expect(c.hellos[0].harnesses.map((h) => h.id)).toEqual(["claude", "codex", "gemini", "qwen", "omp", "goose", "opencode", "auggie"])
+    expect(c.hellos[0].harnesses.map((h) => h.id)).toEqual([
+      "claude",
+      "codex",
+      "gemini",
+      "qwen",
+      "omp",
+      "goose",
+      "opencode",
+      "auggie",
+    ])
     for (const h of c.hellos[0].harnesses) expect(typeof h.installed).toBe("boolean")
 
-    const health = (await fetch(`http://127.0.0.1:${PORT}/`).then((x) => x.json())) as { connected: boolean; tools: number }
+    const health = (await fetch(`http://127.0.0.1:${PORT}/`).then((x) => x.json())) as {
+      connected: boolean
+      tools: number
+    }
     expect(health).toMatchObject({ connected: true, tools: 1 })
 
     // A second tab is refused while one is connected.
@@ -133,9 +185,16 @@ describe("dither-bridge", () => {
     await new Promise((r) => setTimeout(r, 200))
     const c = client()
     await c.open
-    await c.request("initialize", { protocolVersion: 1, clientCapabilities: {}, clientInfo: { name: "test", version: "1" } })
+    await c.request("initialize", {
+      protocolVersion: 1,
+      clientCapabilities: {},
+      clientInfo: { name: "test", version: "1" },
+    })
     const s = (await c.request("session/new", { cwd: "/", mcpServers: [] })) as { sessionId: string }
-    const r = (await c.request("session/prompt", { sessionId: s.sessionId, prompt: [{ type: "text", text: "export the frame as a video" }] })) as { stopReason: string }
+    const r = (await c.request("session/prompt", {
+      sessionId: s.sessionId,
+      prompt: [{ type: "text", text: "export the frame as a video" }],
+    })) as { stopReason: string }
     expect(r.stopReason).toBe("end_turn")
     expect(c.calls.map((x) => x.name)).toEqual(["export_video"])
     expect(readFileSync(join(CWD, "video/sign-in/index.html"), "utf8")).toContain("sign in")
@@ -150,7 +209,9 @@ describe("dither-bridge", () => {
   it("starts the harness the tab picks when none was named on the command line", async () => {
     const port = PORT + 1
     let out = ""
-    const idle = spawn(process.execPath, ["bridge/dither-bridge.mjs", "--port", String(port), "--cwd", CWD], { stdio: ["ignore", "pipe", "pipe"] })
+    const idle = spawn(process.execPath, ["bridge/dither-bridge.mjs", "--port", String(port), "--cwd", CWD], {
+      stdio: ["ignore", "pipe", "pipe"],
+    })
     await new Promise<void>((res, rej) => {
       idle.stdout!.on("data", (d: Buffer) => {
         out += d.toString()
@@ -168,7 +229,11 @@ describe("dither-bridge", () => {
       c.send({ method: "bridge/start", params: { command: FIXTURE } })
       await new Promise((r) => setTimeout(r, 300))
       expect(c.hellos[1].agent).toMatchObject({ id: "custom", command: FIXTURE })
-      const init = (await c.request("initialize", { protocolVersion: 1, clientCapabilities: {}, clientInfo: { name: "test", version: "1" } })) as { agentInfo: { name: string } }
+      const init = (await c.request("initialize", {
+        protocolVersion: 1,
+        clientCapabilities: {},
+        clientInfo: { name: "test", version: "1" },
+      })) as { agentInfo: { name: string } }
       expect(init.agentInfo.name).toBe("fake-acp")
       c.send({ method: "bridge/stop" })
       await new Promise((r) => setTimeout(r, 300))
@@ -183,7 +248,11 @@ describe("dither-bridge", () => {
     await new Promise((r) => setTimeout(r, 200)) // the bridge frees the slot on close
     const c = client()
     await c.open
-    await c.request("initialize", { protocolVersion: 1, clientCapabilities: {}, clientInfo: { name: "test", version: "1" } })
+    await c.request("initialize", {
+      protocolVersion: 1,
+      clientCapabilities: {},
+      clientInfo: { name: "test", version: "1" },
+    })
     const s = (await c.request("session/new", { cwd: "/", mcpServers: [] })) as { sessionId: string }
     const done = c.request("session/prompt", { sessionId: s.sessionId, prompt: [{ type: "text", text: "slow" }] })
     await new Promise((r) => setTimeout(r, 30))

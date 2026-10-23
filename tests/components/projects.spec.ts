@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { beforeEach, describe, expect, it } from "rstack/test"
 import { editor } from "../../src/entities/editor"
 import {
   activeProjectId,
@@ -25,12 +25,20 @@ describe("project workspace (sequential story)", () => {
       JSON.stringify({
         artboards: [
           {
-            id: "legacy1", name: "Legacy chart", x: 0, y: 0, w: 520, h: 360,
-            hidden: false, locked: false, groupId: null, chart: { type: "bar" },
+            id: "legacy1",
+            name: "Legacy chart",
+            x: 0,
+            y: 0,
+            w: 520,
+            h: 360,
+            hidden: false,
+            locked: false,
+            groupId: null,
+            chart: { type: "bar" },
           },
         ],
         groups: [],
-      })
+      }),
     )
     hydrate()
     expect(projects).toHaveLength(1)

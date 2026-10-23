@@ -1,13 +1,15 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import {
   buildPlate,
+  catalogLayout,
+  catalogPlate,
   dawnPlate,
   ditherTone,
-  rampPlate,
-  seedPlate,
-  skylinePlate,
+  rankOf,
   type Cell,
   type Plate,
+  GREY,
+  SUN,
 } from "@/pages/landing/plates"
 
 // Decode a plate's dashed-lattice runs back into "x,y" → colour, the way the
@@ -30,10 +32,11 @@ function decode(plate: Plate): Map<string, string> {
 
 function expected(w: number, h: number, paint: (x: number, y: number) => Cell | null) {
   const cells = new Map<string, string>()
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const c = paint(x, y)
-    if (c) cells.set(`${x},${y}`, c.color)
-  }
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const c = paint(x, y)
+      if (c) cells.set(`${x},${y}`, c.color)
+    }
   return cells
 }
 
@@ -49,7 +52,11 @@ describe("pixel plates", () => {
   })
 
   it("encodes a Bayer rank as one subpath per run, not per cell", () => {
-    const plate = rampPlate(144, 8)
+    // A ramp through all seventeen levels of the 4×4 matrix, ranked.
+    const plate = buildPlate(144, 8, 4, (x, y) => {
+      const color = ditherTone(x / 143, x, y, ["#a"])
+      return color ? { color, group: rankOf(x, y) } : null
+    })
     const cells = decode(plate).size
     const subpaths = plate.groups.flatMap((g) => g.layers).reduce((n, l) => n + l.d.split("M").length - 1, 0)
     expect(subpaths).toBeLessThan(cells / 4)
@@ -57,7 +64,9 @@ describe("pixel plates", () => {
 
   it("is deterministic and ranks the hero by the Bayer matrix", () => {
     expect(dawnPlate()).toEqual(dawnPlate())
-    const ranks = dawnPlate().groups.filter((g) => !g.twinkle).map((g) => g.index)
+    const ranks = dawnPlate()
+      .groups.filter((g) => !g.twinkle)
+      .map((g) => g.index)
     expect(ranks).toEqual([...Array(16).keys()])
   })
 
@@ -70,15 +79,30 @@ describe("pixel plates", () => {
     expect(lit).toBe(8)
   })
 
-  it("rises the skyline one group per value, cap at the value's height", () => {
-    const plate = skylinePlate([50, 100], 20, 10)
-    expect(plate.groups.map((g) => [g.index, g.top])).toEqual([[0, 5], [1, 0]])
-  })
-
-  it("moves the seeded strip's fill edge and scatter with the seed", () => {
-    const a = decode(seedPlate(200))
-    const b = decode(seedPlate(800))
-    expect(b.size).toBeGreaterThan(a.size)
-    expect(decode(seedPlate(201))).not.toEqual(a)
+  it("draws the catalog as one 2×2 window per section, a tower per family", () => {
+    const counts = [1, 19, 25, 5, 32, 100, 46, 24, 49, 1]
+    const plate = catalogPlate(counts)
+    const layout = catalogLayout(counts)
+    const cells = decode(plate)
+    const sections = counts.reduce((a, b) => a + b, 0)
+    expect(layout.windows).toHaveLength(sections)
+    // Every window's four cells, plus the floor row.
+    expect(cells.size).toBe(sections * 4 + layout.w)
+    expect(plate.groups.map((g) => g.index)).toEqual([...counts.map((_, i) => i), counts.length])
+    // Windows never touch: every cell around a window is seam.
+    const owner = new Map<string, number>()
+    layout.windows.forEach((w, i) => {
+      for (const d of [0, 1, 2, 3]) owner.set(`${w.x + (d & 1)},${w.y + (d >> 1)}`, i)
+    })
+    layout.windows.forEach((w, i) => {
+      for (let dy = -1; dy <= 2; dy++)
+        for (let dx = -1; dx <= 2; dx++) expect(owner.get(`${w.x + dx},${w.y + dy}`) ?? i).toBe(i)
+    })
+    // One ember cap — on the tallest family — and every other colour grey.
+    const colours = [...cells.values()]
+    expect(colours.every((c) => c === SUN[0] || (GREY as readonly string[]).includes(c))).toBe(true)
+    expect(plate.groups[layout.tallest].layers.some((l) => l.color === SUN[0])).toBe(true)
+    expect(plate.groups.filter((g) => g.layers.some((l) => l.color === SUN[0]))).toHaveLength(1)
+    expect(catalogPlate(counts)).toEqual(plate)
   })
 })

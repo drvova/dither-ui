@@ -1,5 +1,6 @@
 // Entry of the player page — both the site's `/play/` route and the
-// single-file bundle (`vite.player.config.ts` → dist/play/player.js) that an
+// single-file bundle (the `player` environment in rstack.config.ts →
+// dist/play/player.js) that an
 // exported HyperFrames composition carries inline.
 //
 // HyperFrames' runtime dispatches `hf-seek` for every frame it captures and
@@ -18,7 +19,12 @@ declare global {
   interface Window {
     __hf?: { buildReady?: Record<string, Promise<unknown>> }
     /** The clock for any driver: `ditherClock.seek(seconds)` holds the frame at a moment. */
-    ditherClock?: { seek: (seconds: number) => void; release: () => void; directed: () => boolean; time: () => number | null }
+    ditherClock?: {
+      seek: (seconds: number) => void
+      release: () => void
+      directed: () => boolean
+      time: () => number | null
+    }
   }
 }
 

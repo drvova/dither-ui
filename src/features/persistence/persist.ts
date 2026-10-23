@@ -2,6 +2,7 @@ import { reactive, watch, type WatchHandle } from "vue"
 import { createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { editor, placeArtboard, selectArtboard } from "@/entities/editor"
 import { resetHistory } from "@/features/history"
+import { download } from "@/shared/lib/files"
 
 /**
  * Per-visitor project workspace. Every browser owns its own project list in
@@ -80,8 +81,7 @@ const snapshotDoc = (): Doc => ({
   viewport: editor.viewport,
 })
 
-const isPlain = (v: unknown): v is Record<string, unknown> =>
-  typeof v === "object" && v !== null && !Array.isArray(v)
+const isPlain = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
 
 let abFallback = 0
 /** Envelope validation for untrusted documents (imports, tampered storage):
@@ -93,16 +93,14 @@ function validDoc(d: Doc): {
   groups: typeof editor.groups
   viewport: typeof editor.viewport | null
 } | null {
-  const artboards = (Array.isArray(d.artboards) ? d.artboards : [])
-    .filter(isPlain)
-    .map((a) => {
-      if (typeof a.id !== "string" || !a.id) a.id = `ab-imported-${abFallback++}`
-      if (typeof a.name !== "string") a.name = "Artboard"
-      for (const k of ["x", "y", "w", "h"] as const) {
-        if (typeof a[k] !== "number" || !Number.isFinite(a[k])) a[k] = k === "w" ? 520 : k === "h" ? 360 : 0
-      }
-      return a as unknown as Parameters<typeof normalizeArtboard>[0]
-    })
+  const artboards = (Array.isArray(d.artboards) ? d.artboards : []).filter(isPlain).map((a) => {
+    if (typeof a.id !== "string" || !a.id) a.id = `ab-imported-${abFallback++}`
+    if (typeof a.name !== "string") a.name = "Artboard"
+    for (const k of ["x", "y", "w", "h"] as const) {
+      if (typeof a[k] !== "number" || !Number.isFinite(a[k])) a[k] = k === "w" ? 520 : k === "h" ? 360 : 0
+    }
+    return a as unknown as Parameters<typeof normalizeArtboard>[0]
+  })
   if (!artboards.length) return null
   const groups = (Array.isArray(d.groups) ? d.groups : [])
     .filter(isPlain)
@@ -110,8 +108,7 @@ function validDoc(d: Doc): {
     .map((g) => ({ id: g.id as string, name: g.name as string, collapsed: g.collapsed === true }))
   const v = d.viewport
   const viewport =
-    isPlain(v) &&
-    [v.x, v.y, v.zoom].every((n) => typeof n === "number" && Number.isFinite(n))
+    isPlain(v) && [v.x, v.y, v.zoom].every((n) => typeof n === "number" && Number.isFinite(n))
       ? { x: v.x as number, y: v.y as number, zoom: Math.min(3, Math.max(0.2, v.zoom as number)) }
       : null
   return { artboards, groups, viewport }
@@ -120,7 +117,11 @@ function validDoc(d: Doc): {
 /** Validate + normalize an untrusted document without touching the editor:
  * the shape the player renders and the import path applies. Null when no
  * artboard survives. */
-export function parseDocument(d: unknown): { artboards: ReturnType<typeof normalizeArtboard>[]; groups: typeof editor.groups; viewport: typeof editor.viewport | null } | null {
+export function parseDocument(d: unknown): {
+  artboards: ReturnType<typeof normalizeArtboard>[]
+  groups: typeof editor.groups
+  viewport: typeof editor.viewport | null
+} | null {
   if (!isPlain(d)) return null
   const valid = validDoc(d as Doc)
   return valid ? { ...valid, artboards: valid.artboards.map(normalizeArtboard) } : null
@@ -231,15 +232,13 @@ export const activeProjectName = (): string =>
 
 /** Download the active project as a .json file. */
 export function exportDocument(): void {
-  const blob = new Blob([JSON.stringify(snapshotDoc(), null, 2)], {
-    type: "application/json",
-  })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = `${activeProjectName().replace(/[^\w-]+/g, "-").toLowerCase() || "project"}.json`
-  a.click()
-  URL.revokeObjectURL(url)
+  const name = activeProjectName()
+    .replace(/[^\w-]+/g, "-")
+    .toLowerCase()
+  download(
+    new Blob([JSON.stringify(snapshotDoc(), null, 2)], { type: "application/json" }),
+    `${name || "project"}.json`,
+  )
 }
 
 /** A detached copy of the active document (what Save to file writes). */
@@ -277,10 +276,7 @@ export function startAutosave(): void {
   stopWatches.forEach((stop) => stop())
   stopWatches = [
     watch(() => [editor.artboards, editor.groups], scheduleSave, { deep: true }),
-    watch(
-      () => [editor.viewport.x, editor.viewport.y, editor.viewport.zoom],
-      scheduleSave
-    ),
+    watch(() => [editor.viewport.x, editor.viewport.y, editor.viewport.zoom], scheduleSave),
   ]
 }
 
@@ -289,4 +285,3 @@ export function stopAutosave(): void {
   stopWatches = []
   if (timer) flushSave()
 }
-

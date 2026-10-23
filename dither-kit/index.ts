@@ -22,28 +22,12 @@ export { default as Sparkline } from "./Sparkline.vue"
 
 export { default as DitherAvatar, type AvatarMirror } from "./DitherAvatar.vue"
 export { default as DitherButton, type ButtonVariant } from "./DitherButton.vue"
-export {
-  default as DitherGradient,
-  type GradientDirection,
-} from "./DitherGradient.vue"
+export { default as DitherGradient, type GradientDirection } from "./DitherGradient.vue"
 export { default as DitherImage } from "./DitherImage.vue"
 export { default as DitherThumbnail } from "./Thumbnail.vue"
-export {
-  default as DitherFlowField,
-  paintFlowField,
-  fadeRasterAlpha,
-  type FlowFieldParams,
-} from "./FlowField.vue"
-export {
-  default as DitherAurora,
-  type AuroraParams,
-  paintAurora,
-} from "./Aurora.vue"
-export {
-  default as DitherWaves,
-  type WavesParams,
-  paintWaves,
-} from "./Waves.vue"
+export { default as DitherFlowField, paintFlowField, fadeRasterAlpha, type FlowFieldParams } from "./FlowField.vue"
+export { default as DitherAurora, type AuroraParams, paintAurora } from "./Aurora.vue"
+export { default as DitherWaves, type WavesParams, paintWaves } from "./Waves.vue"
 export { default as DitherSilk, type SilkParams, paintSilk } from "./Silk.vue"
 export { default as DitherPlasma, type PlasmaParams, paintPlasma } from "./Plasma.vue"
 export { default as DitherLineWaves, type LineWavesParams, paintLineWaves } from "./LineWaves.vue"
@@ -85,11 +69,7 @@ export { default as DitherLiquidEther, type LiquidEtherParams, paintLiquidEther 
 export { default as DitherParticles, type ParticlesParams, paintParticles } from "./Particles.vue"
 export { default as DitherPixelBlast, type PixelBlastParams, paintPixelBlast } from "./PixelBlast.vue"
 export { default as DitherPrismaticBurst, type PrismaticBurstParams, paintPrismaticBurst } from "./PrismaticBurst.vue"
-export {
-  default as DitherFaultyTerminal,
-  type FaultyTerminalParams,
-  paintFaultyTerminal,
-} from "./FaultyTerminal.vue"
+export { default as DitherFaultyTerminal, type FaultyTerminalParams, paintFaultyTerminal } from "./FaultyTerminal.vue"
 export {
   default as DitherFerrofluid,
   type FerrofluidParams,
@@ -220,14 +200,7 @@ export { default as DitherNavMenu } from "./DitherNavMenu.vue"
 
 export type { CartesianChartProps } from "./cartesian-root"
 export type { PolarChartProps } from "./polar-root"
-export type {
-  AreaVariant,
-  ChartConfig,
-  ChartType,
-  Margins,
-  SeriesKind,
-  StrokeVariant,
-} from "./chart-context"
+export type { AreaVariant, ChartConfig, ChartType, Margins, SeriesKind, StrokeVariant } from "./chart-context"
 export type {
   BloomBlend,
   BloomConfig,
@@ -260,15 +233,7 @@ export {
 export { cubicBezier, EASINGS, resolveEasing } from "./dither-paint"
 export type { DotVariant } from "./dot-paint"
 export type { DitherColor } from "./palette"
-export {
-  colorToHex,
-  cssColor,
-  hexToHsv,
-  hsvToHex,
-  rgbToHex,
-  seedFromColor,
-  seedFromHue,
-} from "./palette"
+export { colorToHex, cssColor, hexToHsv, hsvToHex, rgbToHex, seedFromColor, seedFromHue } from "./palette"
 export type { PixelBloom, PixelBloomConfig, PixelBloomInput, PixelColor } from "./pixel"
 export type { StackType } from "./scales"
 export {
@@ -378,16 +343,36 @@ export {
 } from "./DitherShader.vue"
 export { wrapMaterial } from "./shader"
 export { copyText } from "./lib"
-export { applyTheme, THEME_TOKENS, themeCss, themeVars, type ThemeInput, type ThemeToken, type ThemeVars } from "./theme"
+export {
+  applyTheme,
+  THEME_TOKENS,
+  themeCss,
+  themeVars,
+  type ThemeInput,
+  type ThemeToken,
+  type ThemeVars,
+} from "./theme"
 export { bindChannel, createChannels, rasterOf, type ChannelInput, type Channels } from "./gl"
 export { surfaceOf, type DitherSurface } from "./use-dither-background"
-export { default as DitherReveal, BAYER8, bayerMatrix, wipeStyle, type WipeDirection, type WipeOptions, type WipeStyle } from "./DitherReveal.vue"
+export {
+  default as DitherReveal,
+  BAYER8,
+  bayerMatrix,
+  wipeStyle,
+  type WipeDirection,
+  type WipeOptions,
+  type WipeStyle,
+} from "./DitherReveal.vue"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"
 export { default as DitherSlideAction } from "./SlideAction.vue"
 export { default as DitherHoldAction } from "./HoldAction.vue"
 export { default as DitherWalletCard, type WalletAccount, type WalletAction } from "./WalletCard.vue"
-export { default as DitherNotificationStack, type NotificationItem, type NotificationStackVariant } from "./NotificationStack.vue"
+export {
+  default as DitherNotificationStack,
+  type NotificationItem,
+  type NotificationStackVariant,
+} from "./NotificationStack.vue"
 export { default as DitherGooeyMenu, type GooeyItem } from "./GooeyMenu.vue"
 export { default as DitherOrbitImages } from "./OrbitImages.vue"
 export { default as DitherPixelTransition } from "./PixelTransition.vue"

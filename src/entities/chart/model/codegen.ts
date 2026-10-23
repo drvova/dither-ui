@@ -4,7 +4,13 @@ import { activeSeries, dataOf } from "./derive"
 import { defaultEasing } from "./factory"
 import type { ChartModel } from "./types"
 
-const ROOT: Record<string, string> = { area: "AreaChart", line: "LineChart", bar: "BarChart", pie: "PieChart", radar: "RadarChart" }
+const ROOT: Record<string, string> = {
+  area: "AreaChart",
+  line: "LineChart",
+  bar: "BarChart",
+  pie: "PieChart",
+  radar: "RadarChart",
+}
 const SERIES: Record<string, string> = { area: "Area", line: "Line", bar: "Bar", pie: "Pie", radar: "Radar" }
 const DEFAULT_MARGINS = { top: 10, right: 12, bottom: 22, left: 36 }
 const q = (s: string) => `"${s}"`
@@ -17,10 +23,12 @@ const objLit = (o: Record<string, unknown>) =>
 function dataLiteral(chart: ChartModel): string {
   const fam = familyOf(chart.type)
   const rows = dataOf(chart) as Record<string, unknown>[]
-  const keys =
-    fam === "pie" ? ["name", "value"] : [LABEL_KEY[fam], ...activeSeries(chart).map((s) => s.key)]
+  const keys = fam === "pie" ? ["name", "value"] : [LABEL_KEY[fam], ...activeSeries(chart).map((s) => s.key)]
   const body = rows
-    .map((row) => `  { ${keys.map((k) => (typeof row[k] === "string" ? `${k}: ${q(row[k] as string)}` : `${k}: ${row[k]}`)).join(", ")} },`)
+    .map(
+      (row) =>
+        `  { ${keys.map((k) => (typeof row[k] === "string" ? `${k}: ${q(row[k] as string)}` : `${k}: ${row[k]}`)).join(", ")} },`,
+    )
     .join("\n")
   return `const data = [\n${body}\n]`
 }
@@ -37,7 +45,11 @@ export function chartCode(chart: ChartModel): string {
   const fam = familyOf(chart.type)
   const root = ROOT[chart.type]
   const series = SERIES[chart.type]
-  const g = chart.grid, x = chart.xAxis, yx = chart.yAxis, lg = chart.legend, tt = chart.tooltip
+  const g = chart.grid,
+    x = chart.xAxis,
+    yx = chart.yAxis,
+    lg = chart.legend,
+    tt = chart.tooltip
   const cart = fam === "cartesian"
 
   const parts: string[] = []
@@ -57,24 +69,20 @@ export function chartCode(chart: ChartModel): string {
   if (chart.type === "pie") {
     attrs.push(`data-key="value"`, `name-key="name"`, `:inner-radius="${chart.innerRadius}"`)
   } else if (fam === "radar") attrs.push(`name-key="axis"`)
-  if (marginsChanged) attrs.push(`:margins="{ top: ${m.top}, right: ${m.right}, bottom: ${m.bottom}, left: ${m.left} }"`)
+  if (marginsChanged)
+    attrs.push(`:margins="{ top: ${m.top}, right: ${m.right}, bottom: ${m.bottom}, left: ${m.left} }"`)
   if (cart && chart.stackType !== "default") attrs.push(`stack-type="${chart.stackType}"`)
-  if (typeof chart.bloom === "object")
-    attrs.push(`:bloom="${objLit(chart.bloom as Record<string, unknown>)}"`)
+  if (typeof chart.bloom === "object") attrs.push(`:bloom="${objLit(chart.bloom as Record<string, unknown>)}"`)
   else if (chart.bloom !== "off") attrs.push(`bloom="${chart.bloom}"`)
   if (chart.seed !== undefined) attrs.push(`:seed="${chart.seed}"`)
   if (cart && chart.effect !== undefined) attrs.push(`:effect="${chart.effect}"`)
   if (chart.animationDuration !== 900) attrs.push(`:animation-duration="${chart.animationDuration}"`)
   if (chart.animationDelay > 0) attrs.push(`:animation-delay="${chart.animationDelay}"`)
-  if (Array.isArray(chart.easing))
-    attrs.push(`:easing="[${chart.easing.join(', ')}]"`)
-  else if (chart.easing !== defaultEasing(chart.type))
-    attrs.push(`easing="${chart.easing}"`)
-  if ((chart.type === "area" || chart.type === "line") && !chart.sparkles)
-    attrs.push(`:sparkles="false"`)
+  if (Array.isArray(chart.easing)) attrs.push(`:easing="[${chart.easing.join(", ")}]"`)
+  else if (chart.easing !== defaultEasing(chart.type)) attrs.push(`easing="${chart.easing}"`)
+  if ((chart.type === "area" || chart.type === "line") && !chart.sparkles) attrs.push(`:sparkles="false"`)
   if (!chart.hoverLift) attrs.push(`:hover-lift="false"`)
-  if (chart.type === "bar" && chart.stagger !== 0.55)
-    attrs.push(`:stagger="${chart.stagger}"`)
+  if (chart.type === "bar" && chart.stagger !== 0.55) attrs.push(`:stagger="${chart.stagger}"`)
   if (!chart.animate) attrs.push(`:animate="false"`)
   if (cart && !chart.interactive) attrs.push(`:interactive="false"`)
   if (chart.cell !== 2) attrs.push(`:cell="${chart.cell}"`)
@@ -134,18 +142,23 @@ export function chartCode(chart: ChartModel): string {
   } else {
     for (const s of activeSeries(chart)) {
       const sa = [`dataKey="${s.key}"`]
-      if (typeof s.variant === "object")
-        sa.push(`:variant="${objLit(s.variant as Record<string, unknown>)}"`)
+      if (typeof s.variant === "object") sa.push(`:variant="${objLit(s.variant as Record<string, unknown>)}"`)
       else if (s.variant !== "gradient") sa.push(`variant="${s.variant}"`)
       if (s.isClickable) sa.push(`is-clickable`)
       if (cart && s.opacity !== 1) sa.push(`:opacity="${s.opacity}"`)
       const markers: string[] = []
       if (cart && s.dots.on) {
-        const da = [s.dots.variant !== "border" ? ` variant="${s.dots.variant}"` : "", s.dots.r !== 2 ? ` :r="${s.dots.r}"` : ""].join("")
+        const da = [
+          s.dots.variant !== "border" ? ` variant="${s.dots.variant}"` : "",
+          s.dots.r !== 2 ? ` :r="${s.dots.r}"` : "",
+        ].join("")
         markers.push(`  <Dot${da} />`)
       }
       if (cart && s.activeDot.on) {
-        const da = [s.activeDot.variant !== "colored-border" ? ` variant="${s.activeDot.variant}"` : "", s.activeDot.r !== 3 ? ` :r="${s.activeDot.r}"` : ""].join("")
+        const da = [
+          s.activeDot.variant !== "colored-border" ? ` variant="${s.activeDot.variant}"` : "",
+          s.activeDot.r !== 3 ? ` :r="${s.activeDot.r}"` : "",
+        ].join("")
         markers.push(`  <ActiveDot${da} />`)
       }
       if (markers.length) {

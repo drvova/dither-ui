@@ -2,10 +2,10 @@
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
 
-// The install strip, on the reference's anatomy: step pill (aria-pressed
-// pickers over a sliding thumb) → command frame (prompt in ember, one line)
-// → copy, whose success is choreographed in CSS: the line jolts, a beam
-// crosses the frame drawing an ember seal around it, the label rolls to
+// The install strip: step picker (the site's segmented aria-pressed
+// toggles) → command (ember prompt, one line) → copy, whose success is
+// choreographed in CSS: the line jolts, a beam crosses the frame drawing a
+// hairline seal around it, the label rolls to
 // "Copied" — then the steps under the frame advance (Copy done → Paste now).
 // The announcement is DitherClipboard's own live region.
 const STEPS = [
@@ -48,53 +48,50 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
-    ref="strip"
-    class="wrap reveal mx-auto w-full max-w-2xl px-6"
-    :class="shown ? 'in' : ''"
-    style="--reveal-delay: 220ms"
-  >
-    <!-- Equal columns make the thumb's travel pure arithmetic (index × its
-         own width) — nothing is measured, so it cannot drift from the tabs. -->
-    <div role="group" aria-label="Install steps" class="tabs" :style="{ '--i': active, '--n': STEPS.length }">
-      <span class="thumb" aria-hidden="true" />
-      <button
-        v-for="(s, i) in STEPS"
-        :key="s.id"
-        type="button"
-        :aria-pressed="active === i ? 'true' : 'false'"
-        class="tab"
-        @click="active = i"
-      >
-        {{ s.label }}
-      </button>
-    </div>
+  <div ref="strip" class="wrap" :class="shown ? 'in' : ''">
+    <!-- One hairline bar: the step picker on the left, the command, the
+         copy. Phones wrap the picker above. -->
+    <div class="bar">
+      <div role="group" aria-label="Install steps" class="seg">
+        <button
+          v-for="(s, i) in STEPS"
+          :key="s.id"
+          type="button"
+          :aria-pressed="active === i ? 'true' : 'false'"
+          @click="active = i"
+        >
+          {{ s.label }}
+        </button>
+      </div>
 
-    <div class="frame">
-      <code class="cmd">
-        <span class="prompt" aria-hidden="true">$</span><span :key="active" class="typed">{{
-          STEPS[active].cmd
-        }}</span><span class="caret" aria-hidden="true">▌</span>
-      </code>
-      <DitherClipboard :value="STEPS[active].cmd" @copied="taken = true">
-        <template #default="{ copied }">
-          <button
-            type="button"
-            class="copy"
-            :data-copied="copied ? 'true' : 'false'"
-            :aria-label="copied ? 'Copied' : 'Copy command'"
-          >
-            <span class="swap" aria-hidden="true">
-              <DitherIcon name="Copy" :size="13" :stroke-width="1.5" class="swap-a" />
-              <DitherIcon name="Check" :size="13" :stroke-width="1.5" class="swap-b" />
-            </span>
-            <span class="roll" aria-hidden="true"><span><span>Copy</span><span>Copied</span></span></span>
-          </button>
-        </template>
-      </DitherClipboard>
-      <!-- The seal: left edge drops, the beam crosses drawing top and bottom,
+      <div class="frame">
+        <code class="cmd">
+          <span class="prompt" aria-hidden="true">$</span
+          ><span :key="active" class="typed">{{ STEPS[active].cmd }}</span
+          ><span class="caret" aria-hidden="true">▌</span>
+        </code>
+        <DitherClipboard :value="STEPS[active].cmd" @copied="taken = true">
+          <template #default="{ copied }">
+            <button
+              type="button"
+              class="copy"
+              :data-copied="copied ? 'true' : 'false'"
+              :aria-label="copied ? 'Copied' : 'Copy command'"
+            >
+              <span class="swap" aria-hidden="true">
+                <DitherIcon name="Copy" :size="13" :stroke-width="1.5" class="swap-a" />
+                <DitherIcon name="Check" :size="13" :stroke-width="1.5" class="swap-b" />
+              </span>
+              <span class="roll" aria-hidden="true"
+                ><span><span>Copy</span><span>Copied</span></span></span
+              >
+            </button>
+          </template>
+        </DitherClipboard>
+        <!-- The seal: left edge drops, the beam crosses drawing top and bottom,
            the right edge closes it. -->
-      <span class="seal" aria-hidden="true"><i /><i /><i /><i /><b /></span>
+        <span class="seal" aria-hidden="true"><i /><i /><i /><i /><b /></span>
+      </div>
     </div>
 
     <div class="under">
@@ -102,20 +99,13 @@ onBeforeUnmount(() => {
         <li :data-s="taken ? 'done' : 'now'">
           <DitherIcon v-if="taken" name="Check" :size="12" :stroke-width="1.5" class="tick" />Copy
         </li>
-        <li :data-s="taken ? 'now' : 'next'">
-          <DitherIcon name="ArrowRight" :size="12" :stroke-width="1.5" class="sep" />Paste in a terminal
-        </li>
+        <li :data-s="taken ? 'now' : 'next'"><span class="sep" aria-hidden="true">›</span>Paste in a terminal</li>
         <li data-s="next">
-          <DitherIcon name="ArrowRight" :size="12" :stroke-width="1.5" class="sep" />Import from
+          <span class="sep" aria-hidden="true">›</span>Import from
           <code>@dither-kit</code>
         </li>
       </ol>
-      <a
-        href="https://github.com/drvova/dither-ui"
-        target="_blank"
-        rel="noreferrer"
-        class="src"
-      >
+      <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="src">
         <DitherIcon name="ExternalLink" :size="12" :stroke-width="1.5" /> Source on GitHub
       </a>
     </div>
@@ -126,54 +116,26 @@ onBeforeUnmount(() => {
 .wrap {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 14px;
   min-width: 0;
 }
 
-/* Step pill: a hairline track, equal columns, one square thumb that slides
-   to the picked step. */
-.tabs {
-  position: relative;
-  display: inline-grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  padding: 3px;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 10px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
-.thumb {
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
-  width: calc((100% - 6px) / var(--n));
-  transform: translateX(calc(var(--i) * 100%));
-  background: color-mix(in oklab, var(--color-foreground) 9%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 14%, transparent);
-  transition: transform 280ms cubic-bezier(0.3, 0.7, 0.2, 1);
+.bar .seg {
+  flex: none;
 }
 
-.tab {
-  position: relative;
-  padding: 7px 18px 6px;
-  font-size: 11.5px;
-  color: var(--color-muted-foreground);
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.tab:hover,
-.tab[aria-pressed="true"] {
-  color: var(--color-foreground);
-}
-
-.tab:focus-visible {
-  outline: 2px solid var(--swatch-blue);
-  outline-offset: -2px;
-}
-
-/* Command frame: positioned and clipped — the sweep and the seal live inside
-   it, so their parked end states can never widen the page. */
+/* Command frame: positioned and clipped — the sweep and the seal live
+   inside it, so their parked end states can never widen the page. */
 .frame {
   position: relative;
   overflow: hidden;
@@ -181,11 +143,11 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
-  height: 56px;
-  padding: 0 10px 0 18px;
-  background: color-mix(in oklab, #000 55%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
+  flex: 1 1 22rem;
+  min-width: 0;
+  height: 34px;
+  padding: 0 0 0 6px;
+  border-radius: 6px;
 }
 
 .cmd {
@@ -195,8 +157,8 @@ onBeforeUnmount(() => {
   align-self: stretch;
   display: flex;
   align-items: center;
-  font-size: 15px;
-  color: var(--color-muted-foreground);
+  font-size: 13px;
+  color: var(--ink-3);
   white-space: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
@@ -212,7 +174,7 @@ onBeforeUnmount(() => {
 }
 
 .typed {
-  color: var(--color-foreground);
+  color: var(--ink);
   animation: term-in 240ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
@@ -258,6 +220,7 @@ onBeforeUnmount(() => {
   }
 }
 
+/* Copy: the site's hairline key. */
 .copy {
   position: relative;
   z-index: 3;
@@ -265,34 +228,29 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   flex: none;
-  height: 40px;
-  padding: 0 14px 0 12px;
-  font-size: 13px;
-  color: var(--color-muted-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 80%, transparent);
+  height: 30px;
+  padding: 0 11px 0 9px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--line) 100%, transparent);
   transition:
-    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
     color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
     transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .copy:hover {
-  color: var(--color-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 12%, transparent);
+  color: var(--ink);
+  background: color-mix(in oklab, var(--foreground) 7%, transparent);
 }
 
 .copy:active {
   transform: scale(0.96);
 }
 
-.copy:focus-visible {
-  outline: 2px solid var(--swatch-blue);
-  outline-offset: 2px;
-}
-
 .copy[data-copied="true"] {
-  color: var(--swatch-orange);
+  color: var(--ink);
 }
 
 /* Label roll: both words stacked in a one-line window; copy slides the
@@ -356,7 +314,7 @@ onBeforeUnmount(() => {
   transform: translateY(-1.3em);
 }
 
-/* The seal (reference: lp-cl-seal + lp-cl-beam). Edges are 2px ember lines
+/* The seal. Edges are 1px ink lines
    drawn by scale from their origin; the beam is the pen that draws the long
    edges, so it shares their timing exactly. */
 /* The seal is its own size container: the beam's 100cqw is then the frame's
@@ -378,13 +336,13 @@ onBeforeUnmount(() => {
 .seal i,
 .seal b {
   position: absolute;
-  background: var(--swatch-orange);
+  background: var(--ink);
 }
 
 .seal i:nth-child(1),
 .seal i:nth-child(4) {
   top: 0;
-  width: 2px;
+  width: 1px;
   height: 100%;
   transform-origin: 50% 0;
   animation: seal-down 130ms cubic-bezier(0.35, 0, 0.5, 1) 135ms both;
@@ -403,7 +361,7 @@ onBeforeUnmount(() => {
 .seal i:nth-child(3) {
   left: 0;
   width: 100%;
-  height: 2px;
+  height: 1px;
   transform-origin: 0 50%;
   animation: seal-across 420ms cubic-bezier(0.4, 0, 0.75, 0.4) 135ms both;
 }
@@ -454,7 +412,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 10px 20px;
   width: 100%;
-  padding: 0 10px;
+  padding: 0 2px;
 }
 
 .steps {
@@ -465,8 +423,8 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 13.5px;
-  color: var(--color-muted-foreground);
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 .steps li {
@@ -477,24 +435,24 @@ onBeforeUnmount(() => {
 }
 
 .steps li[data-s="now"] {
-  color: var(--color-foreground);
+  color: var(--ink);
 }
 
 .steps li[data-s="done"] {
-  color: color-mix(in oklab, var(--color-muted-foreground) 70%, transparent);
+  color: var(--ink-3);
 }
 
 .steps .tick {
-  color: var(--swatch-orange);
+  color: var(--ink);
 }
 
 .steps .sep {
-  color: var(--color-muted-foreground);
-  margin-right: 2px;
+  margin: 0 6px 0 4px;
+  color: var(--ink-3);
 }
 
 .steps code {
-  color: var(--color-foreground);
+  color: var(--ink);
 }
 
 .src {
@@ -502,22 +460,17 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   min-height: 24px;
-  font-size: 13px;
-  color: var(--color-muted-foreground);
+  font-size: 12px;
+  color: var(--ink-3);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .src:hover {
-  color: var(--color-foreground);
+  color: var(--ink);
 }
 
-.src:focus-visible {
-  outline: 2px solid var(--swatch-blue);
-  outline-offset: 2px;
-}
-
-/* One-shot light sweep across the command row when the strip first shows —
-   clipped by the frame, so its parked end state never widens the page. */
+/* One-shot glint across the command when the strip first shows — clipped
+   by the frame, so its parked end state never widens the page. */
 .wrap.in .frame::after {
   content: "";
   position: absolute;
@@ -525,12 +478,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   left: 0;
   width: 36%;
-  background: linear-gradient(
-    100deg,
-    transparent,
-    color-mix(in oklab, var(--swatch-blue) 22%, transparent),
-    transparent
-  );
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.1), transparent);
   animation: sweep 900ms cubic-bezier(0.4, 0, 0.2, 1) 380ms both;
   pointer-events: none;
 }
@@ -547,7 +495,6 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .thumb,
   .roll > span,
   .steps li,
   .swap-a,

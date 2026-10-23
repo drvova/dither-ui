@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue"
-import { DitherAurora, DitherBracket, DitherSchedule, DitherShader, DitherVideoPlayer, DitherWorld, sampleShader, sampleWorld, type BracketMatch } from "@dither-kit"
+import {
+  DitherAurora,
+  DitherBracket,
+  DitherSchedule,
+  DitherShader,
+  DitherVideoPlayer,
+  DitherWorld,
+  sampleShader,
+  sampleWorld,
+  type BracketMatch,
+} from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -60,7 +70,10 @@ const INK = `void mainMaterial(out vec4 o, in vec2 p) {
   o = dk_covered(p) ? vec4(iColor, dk_shade(p) * 0.85) : vec4(0.0);
 }`
 /* The same ink over the skin: the channel sampled at the cell's texture coordinates. */
-const INK_SKIN = INK.replace("vec4(iColor, dk_shade(p) * 0.85)", "vec4(mix(iColor, dk_texture(p).rgb, dk_texture(p).a), dk_shade(p) * 0.85)")
+const INK_SKIN = INK.replace(
+  "vec4(iColor, dk_shade(p) * 0.85)",
+  "vec4(mix(iColor, dk_texture(p).rgb, dk_texture(p).a), dk_shade(p) * 0.85)",
+)
 
 /* The render graph: a kit surface bound as iChannel0 of a CRT shader. */
 const auroraRef = ref<InstanceType<typeof DitherAurora> | null>(null)
@@ -99,25 +112,61 @@ const API: Record<string, PropRow[]> = {
     { prop: "now", type: "number — draws the now line; omit to hide", default: "undefined" },
   ],
   world: [
-    { prop: "src", type: "string — URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply or .off", default: "undefined" },
+    {
+      prop: "src",
+      type: "string — URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply or .off",
+      default: "undefined",
+    },
     { prop: "source", type: "string — inline model text; wins over src", default: "undefined" },
     { prop: "format", type: '"auto" | "vrml" | "x3d" | "gltf" | "obj" | "stl" | "ply" | "off"', default: '"auto"' },
     { prop: "up", type: '"auto" | "y" | "z" — the file\'s up axis (STL defaults to z)', default: '"auto"' },
-    { prop: "engine", type: '"auto" | "cpu" | "gpu" — the CPU engine is byte-exact everywhere, the GPU (WebGL) engine rasterizes big meshes; auto picks the GPU above ~40k triangles', default: '"auto"' },
+    {
+      prop: "engine",
+      type: '"auto" | "cpu" | "gpu" — the CPU engine is byte-exact everywhere, the GPU (WebGL) engine rasterizes big meshes; auto picks the GPU above ~40k triangles',
+      default: '"auto"',
+    },
     { prop: "color", type: "PixelColor — the dither fill", default: '"blue"' },
-    { prop: "colors", type: "PixelColor[] — a toon ramp, dark to light; lighting picks the band, the Bayer cell dithers between bands", default: "undefined" },
+    {
+      prop: "colors",
+      type: "PixelColor[] — a toon ramp, dark to light; lighting picks the band, the Bayer cell dithers between bands",
+      default: "undefined",
+    },
     { prop: "dither", type: "number — ramp mode: 0 smooth → 1 banded", default: "1" },
-    { prop: "material", type: "boolean — the file's own colours (materials, face and vertex colours)", default: "false" },
+    {
+      prop: "material",
+      type: "boolean — the file's own colours (materials, face and vertex colours)",
+      default: "false",
+    },
     { prop: "wire", type: "boolean — polygon outlines, hidden lines removed", default: "false" },
-    { prop: "shader", type: "string — a GLSL material over the finished target: mainMaterial(out vec4, in vec2) reads dk_shade · dk_depth · dk_covered · dk_color per cell and returns rgb + the shade the Bayer cell thresholds (WebGL)", default: "undefined" },
-    { prop: "channels", type: "ChannelInput[] — kit surfaces (pulled at the same clock time), canvases, images or videos; the first is the model's skin through its texture coordinates, a shader reads them as iChannel0..3 at dk_uv(p)", default: "undefined" },
-    { prop: "grain / grainScale", type: "number — fbm grain over the model's own space, and its frequency", default: "0 / 4" },
+    {
+      prop: "shader",
+      type: "string — a GLSL material over the finished target: mainMaterial(out vec4, in vec2) reads dk_shade · dk_depth · dk_covered · dk_color per cell and returns rgb + the shade the Bayer cell thresholds (WebGL)",
+      default: "undefined",
+    },
+    {
+      prop: "channels",
+      type: "ChannelInput[] — kit surfaces (pulled at the same clock time), canvases, images or videos; the first is the model's skin through its texture coordinates, a shader reads them as iChannel0..3 at dk_uv(p)",
+      default: "undefined",
+    },
+    {
+      prop: "grain / grainScale",
+      type: "number — fbm grain over the model's own space, and its frequency",
+      default: "0 / 4",
+    },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura" | config | seed — the glow layer', default: '"off"' },
-    { prop: "animate / time", type: "boolean / number — play the file's animations (VRML ROUTEs, glTF) on the clock, or pin a moment", default: "true / undefined" },
+    {
+      prop: "animate / time",
+      type: "boolean / number — play the file's animations (VRML ROUTEs, glTF) on the clock, or pin a moment",
+      default: "true / undefined",
+    },
     { prop: "seed", type: "number — dither matrix, grain + the sample world", default: "undefined" },
     { prop: "cell", type: "number — backing cell in CSS px", default: "3" },
     { prop: "autoRotate", type: "number — degrees per second, 0 holds", default: "12" },
-    { prop: "yaw / pitch / zoom", type: "number — the pose; unset, the file's Viewpoint decides", default: "30 / 20 / 1" },
+    {
+      prop: "yaw / pitch / zoom",
+      type: "number — the pose; unset, the file's Viewpoint decides",
+      default: "30 / 20 / 1",
+    },
     { prop: "fov", type: "number — vertical field of view, degrees", default: "40" },
     { prop: "shade", type: "number — alpha of unlit cells inside the silhouette", default: "0.18" },
     { prop: "fog", type: "number — depth fade of the lighting", default: "0.3" },
@@ -128,11 +177,27 @@ const API: Record<string, PropRow[]> = {
   ],
   shader: [
     { prop: "src", type: "string — URL of a .frag / .glsl file", default: "undefined" },
-    { prop: "source", type: "string — inline GLSL: Shadertoy mainImage or a raw main; wins over src", default: "undefined" },
-    { prop: "channels", type: "(surface | component | canvas | image | video)[] — bound as iChannel0..3; a kit surface is pulled at the same clock time, so the graph seeks and renders as one", default: "undefined" },
-    { prop: "uniforms", type: "iResolution · iTime · iTimeDelta · iFrame · iMouse · iDate · iColor · iSeed · iChannel0..3 · iChannelResolution, plus time/resolution/mouse and u_time/u_resolution/u_mouse; dk_bayer4(fragCoord) is the kit's Bayer threshold", default: "—" },
+    {
+      prop: "source",
+      type: "string — inline GLSL: Shadertoy mainImage or a raw main; wins over src",
+      default: "undefined",
+    },
+    {
+      prop: "channels",
+      type: "(surface | component | canvas | image | video)[] — bound as iChannel0..3; a kit surface is pulled at the same clock time, so the graph seeks and renders as one",
+      default: "undefined",
+    },
+    {
+      prop: "uniforms",
+      type: "iResolution · iTime · iTimeDelta · iFrame · iMouse · iDate · iColor · iSeed · iChannel0..3 · iChannelResolution, plus time/resolution/mouse and u_time/u_resolution/u_mouse; dk_bayer4(fragCoord) is the kit's Bayer threshold",
+      default: "—",
+    },
     { prop: "color", type: "PixelColor — the mono tint and iColor", default: '"blue"' },
-    { prop: "colors", type: "PixelColor[] — a palette ramp: luminance picks the band, the Bayer cell dithers between bands", default: "undefined" },
+    {
+      prop: "colors",
+      type: "PixelColor[] — a palette ramp: luminance picks the band, the Bayer cell dithers between bands",
+      default: "undefined",
+    },
     { prop: "mono", type: "boolean — 1-bit luminance in color instead of the shader's colours", default: "false" },
     { prop: "dither", type: "number — 0 smooth → 1 fully quantized", default: "1" },
     { prop: "levels", type: "number — colour levels per channel (2 = eight colours)", default: "2" },
@@ -225,10 +290,9 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="video-player" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Video player</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A native video under dither chrome — play, a dithered scrubber that
-      really seeks, a volume slider, playback speed, mute, fullscreen, and
-      player keyboard (Space, arrows, M, F). Without a source it shows an
-      honest empty face instead of a broken box.
+      A native video under dither chrome — play, a dithered scrubber that really seeks, a volume slider, playback speed,
+      mute, fullscreen, and player keyboard (Space, arrows, M, F). Without a source it shows an honest empty face
+      instead of a broken box.
     </p>
     <DemoCard :code="SNIPPET_VIDEO">
       <div class="mx-auto max-w-md">
@@ -242,9 +306,8 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="bracket" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Bracket</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A knockout bracket — winners carry the accent, losers strike through,
-      connector rails bridge the rounds. This one is interactive: pick every
-      winner and the final fills itself.
+      A knockout bracket — winners carry the accent, losers strike through, connector rails bridge the rounds. This one
+      is interactive: pick every winner and the final fills itself.
     </p>
     <DemoCard :code="SNIPPET_BRACKET">
       <div class="grid place-items-center gap-3">
@@ -265,16 +328,24 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="schedule" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Schedule</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A day timeline — events sit proportionally on the hour rail, each with
-      its swatch rail, and the red now line slides as the day moves. Drag the
-      hour to move time.
+      A day timeline — events sit proportionally on the hour rail, each with its swatch rail, and the red now line
+      slides as the day moves. Drag the hour to move time.
     </p>
     <DemoCard :code="SNIPPET_SCHEDULE">
       <div class="mx-auto max-w-md">
         <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
           now
-          <input v-model.number="scheduleNow" type="range" min="8" max="18" step="0.25" class="w-40 accent-[var(--accent)]" />
-          <span class="tabular-nums">{{ Math.floor(scheduleNow) }}:{{ String(Math.round((scheduleNow % 1) * 60)).padStart(2, "0") }}</span>
+          <input
+            v-model.number="scheduleNow"
+            type="range"
+            min="8"
+            max="18"
+            step="0.25"
+            class="w-40 accent-[var(--accent)]"
+          />
+          <span class="tabular-nums"
+            >{{ Math.floor(scheduleNow) }}:{{ String(Math.round((scheduleNow % 1) * 60)).padStart(2, "0") }}</span
+          >
         </label>
         <DitherSchedule
           class="mt-3"
@@ -297,22 +368,25 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="world" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">World (3D)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D,
-      glTF / GLB, OBJ with its MTL, STL, PLY and OFF, by URL or inline,
-      orbited by a camera and drawn through the Bayer engine — on the CPU by
-      default, or by a WebGL engine for big meshes, into the same dither.
-      Files bring their own materials, face colours, lights, viewpoint and
-      animations: this sample's arms revolve and its antenna bobs by its
-      own TimeSensor and ROUTEs, on the kit clock. The shade can run through the kit's other
-      engines too: a palette ramp, fbm grain, bloom, or your own GLSL
-      material over the finished target (ink from depth edges here). Any kit
-      surface is a texture: bound as a channel it wraps the model through the
-      file's own texture coordinates, so the aurora below skins the probe.
-      Drag to orbit.
+      A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D, glTF / GLB, OBJ with its MTL, STL, PLY and
+      OFF, by URL or inline, orbited by a camera and drawn through the Bayer engine — on the CPU by default, or by a
+      WebGL engine for big meshes, into the same dither. Files bring their own materials, face colours, lights,
+      viewpoint and animations: this sample's arms revolve and its antenna bobs by its own TimeSensor and ROUTEs, on the
+      kit clock. The shade can run through the kit's other engines too: a palette ramp, fbm grain, bloom, or your own
+      GLSL material over the finished target (ink from depth edges here). Any kit surface is a texture: bound as a
+      channel it wraps the model through the file's own texture coordinates, so the aurora below skins the probe. Drag
+      to orbit.
     </p>
     <DemoCard :code="SNIPPET_WORLD">
       <div class="mx-auto max-w-md">
-        <DitherAurora v-if="worldTexture" ref="worldTexRef" :colors="['#1f6fd6', '#9ec5ff', '#ffffff']" :speed="0.8" label="Texture source: an aurora" class="mb-2 h-[48px]" />
+        <DitherAurora
+          v-if="worldTexture"
+          ref="worldTexRef"
+          :colors="['#1f6fd6', '#9ec5ff', '#ffffff']"
+          :speed="0.8"
+          label="Texture source: an aurora"
+          class="mb-2 h-[48px]"
+        />
         <DitherWorld
           :source="WORLD"
           :wire="worldWire"
@@ -327,15 +401,30 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
           class="h-[280px]"
         />
         <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-muted-foreground">
-          <label class="flex items-center gap-2"><input v-model="worldWire" type="checkbox" class="accent-[var(--accent)]" /> wire</label>
-          <label class="flex items-center gap-2"><input v-model="worldInk" type="checkbox" class="accent-[var(--accent)]" /> ink</label>
-          <label class="flex items-center gap-2"><input v-model="worldTexture" type="checkbox" class="accent-[var(--accent)]" /> texture</label>
-          <label class="flex items-center gap-2"><input v-model="worldRamp" type="checkbox" class="accent-[var(--accent)]" /> ramp</label>
-          <label class="flex items-center gap-2"><input v-model="worldGrain" type="checkbox" class="accent-[var(--accent)]" /> grain</label>
-          <label class="flex items-center gap-2"><input v-model="worldBloom" type="checkbox" class="accent-[var(--accent)]" /> bloom</label>
+          <label class="flex items-center gap-2"
+            ><input v-model="worldWire" type="checkbox" class="accent-[var(--accent)]" /> wire</label
+          >
+          <label class="flex items-center gap-2"
+            ><input v-model="worldInk" type="checkbox" class="accent-[var(--accent)]" /> ink</label
+          >
+          <label class="flex items-center gap-2"
+            ><input v-model="worldTexture" type="checkbox" class="accent-[var(--accent)]" /> texture</label
+          >
+          <label class="flex items-center gap-2"
+            ><input v-model="worldRamp" type="checkbox" class="accent-[var(--accent)]" /> ramp</label
+          >
+          <label class="flex items-center gap-2"
+            ><input v-model="worldGrain" type="checkbox" class="accent-[var(--accent)]" /> grain</label
+          >
+          <label class="flex items-center gap-2"
+            ><input v-model="worldBloom" type="checkbox" class="accent-[var(--accent)]" /> bloom</label
+          >
           <label class="flex items-center gap-2">
             engine
-            <select v-model="worldEngine" class="rounded border border-border bg-background px-1 py-0.5 text-[11px] text-foreground">
+            <select
+              v-model="worldEngine"
+              class="rounded border border-border bg-background px-1 py-0.5 text-[11px] text-foreground"
+            >
               <option value="cpu">cpu</option>
               <option value="gpu">gpu</option>
             </select>
@@ -350,19 +439,22 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="shader" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Shader (GLSL)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A fragment shader in the house raster: Shadertoy-style mainImage or a
-      raw main, by URL or inline, run on the GPU at the cell resolution and
-      ordered-dithered on the way back — one bit per channel for the
-      eight-colour look, or luminance in a single tint. iTime follows the kit
-      clock, so it seeks and renders to video like everything else, and the
-      pointer feeds iMouse. Surfaces chain: any kit surface can be bound as
-      iChannel0..3, pulled at the same clock time, so a background, a chart or
-      a world can be post-processed by a shader and the whole graph still
-      seeks and renders as one. Below, an aurora through a CRT.
+      A fragment shader in the house raster: Shadertoy-style mainImage or a raw main, by URL or inline, run on the GPU
+      at the cell resolution and ordered-dithered on the way back — one bit per channel for the eight-colour look, or
+      luminance in a single tint. iTime follows the kit clock, so it seeks and renders to video like everything else,
+      and the pointer feeds iMouse. Surfaces chain: any kit surface can be bound as iChannel0..3, pulled at the same
+      clock time, so a background, a chart or a world can be post-processed by a shader and the whole graph still seeks
+      and renders as one. Below, an aurora through a CRT.
     </p>
     <DemoCard :code="SNIPPET_SHADER">
       <div class="mx-auto max-w-md">
-        <DitherShader :source="SHADER" :mono="shaderMono" color="blue" label="Sample plasma, seed 3" class="h-[280px]" />
+        <DitherShader
+          :source="SHADER"
+          :mono="shaderMono"
+          color="blue"
+          label="Sample plasma, seed 3"
+          class="h-[280px]"
+        />
         <label class="mt-3 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
           <input v-model="shaderMono" type="checkbox" class="accent-[var(--accent)]" />
           mono

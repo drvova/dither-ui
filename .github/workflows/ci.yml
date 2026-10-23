@@ -17,11 +17,12 @@ jobs:
       - run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Format
+        run: npx rs fmt --check
       - name: Typecheck
         run: npx vue-tsc --noEmit
       - name: Unit tests
         run: npm test
+      # rs build makes the site and the single-file player bundle together.
       - name: Build
-        run: npx vite build
-      - name: Build the player bundle
-        run: npm run build:player
+        run: npx rs build

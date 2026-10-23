@@ -8,20 +8,17 @@ const props = withDefaults(
     speed?: number
     class?: string
   }>(),
-  { colors: () => ["#358ff3", "#7CFF67", "#358ff3"], speed: 1 }
+  { colors: () => ["#358ff3", "#7CFF67", "#358ff3"], speed: 1 },
 )
 
-const bg = computed(
-  () => `linear-gradient(90deg, ${(props.colors.length ? props.colors : ["#ffffff"]).join(", ")})`
-)
+const bg = computed(() => `linear-gradient(90deg, ${(props.colors.length ? props.colors : ["#ffffff"]).join(", ")})`)
 const dur = computed(() => `${Math.max(0.2, 6 / Math.max(0.01, props.speed))}s`)
 </script>
 
 <template>
-  <span
-    :class="cn('dither-gradient-text', props.class)"
-    :style="{ backgroundImage: bg, animationDuration: dur }"
-  ><slot /></span>
+  <span :class="cn('dither-gradient-text', props.class)" :style="{ backgroundImage: bg, animationDuration: dur }"
+    ><slot
+  /></span>
 </template>
 
 <style scoped>

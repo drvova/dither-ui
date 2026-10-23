@@ -10,7 +10,7 @@ withDefaults(
     strokeDasharray?: string
     tickCount?: number
   }>(),
-  { horizontal: true, vertical: false, strokeDasharray: "3 3", tickCount: 4 }
+  { horizontal: true, vertical: false, strokeDasharray: "3 3", tickCount: 4 },
 )
 
 const ctx = useChartPart("Grid")

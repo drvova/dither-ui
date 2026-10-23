@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+// @rstest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { defineComponent, h, nextTick } from "vue"
 import { mount } from "@vue/test-utils"
 import DitherLayer from "../dither-kit/DitherLayer.vue"
@@ -28,7 +28,11 @@ class FakeResizeObserver {
 }
 const resize = (width: number, height: number) => observers.forEach((cb) => cb([{ contentRect: { width, height } }]))
 const matchMedia = (matches: boolean) => {
-  window.matchMedia = (() => ({ matches, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia
+  window.matchMedia = (() => ({
+    matches,
+    addEventListener() {},
+    removeEventListener() {},
+  })) as unknown as typeof window.matchMedia
 }
 const realMatchMedia = window.matchMedia
 
@@ -36,8 +40,20 @@ const Scene = (layer: Record<string, unknown> = {}, stage: Record<string, unknow
   defineComponent({
     render: () =>
       h(DitherStage, { duration: 4, ...stage }, () => [
-        h(DitherLayer, { keyframes: [{ x: "-10cqw", opacity: 0 }, { x: "10cqw", opacity: 1 }], duration: 2, yoyo: true, loop: true, ...layer }, (slot: { x: number; progress: number; width: number }) =>
-          h("i", { id: "v" }, `${Math.round(slot.x)}|${slot.progress}|${slot.width}`),
+        h(
+          DitherLayer,
+          {
+            keyframes: [
+              { x: "-10cqw", opacity: 0 },
+              { x: "10cqw", opacity: 1 },
+            ],
+            duration: 2,
+            yoyo: true,
+            loop: true,
+            ...layer,
+          },
+          (slot: { x: number; progress: number; width: number }) =>
+            h("i", { id: "v" }, `${Math.round(slot.x)}|${slot.progress}|${slot.width}`),
         ),
       ]),
   })
@@ -48,21 +64,21 @@ beforeEach(() => {
   nextId = 1
   now = 1000
   observers = []
-  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+  rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
     const id = nextId++
     queue.set(id, cb)
     return id
   })
-  vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+  rs.stubGlobal("cancelAnimationFrame", (id: number) => {
     queue.delete(id)
   })
-  vi.stubGlobal("IntersectionObserver", undefined)
-  vi.stubGlobal("ResizeObserver", FakeResizeObserver)
+  rs.stubGlobal("IntersectionObserver", undefined)
+  rs.stubGlobal("ResizeObserver", FakeResizeObserver)
   matchMedia(false)
 })
 afterEach(() => {
   release()
-  vi.unstubAllGlobals()
+  rs.unstubAllGlobals()
   window.matchMedia = realMatchMedia
 })
 

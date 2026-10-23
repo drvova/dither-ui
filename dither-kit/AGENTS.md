@@ -96,6 +96,14 @@ is its showcase and editor.
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+- Type voice: the kit's controls speak `--font-mono` (Button, Badge,
+  Toaster, Command), and every overlay that TELEPORTS to `<body>` carries
+  it on its own panel — `DitherDialog`, `DitherAlertDialog`,
+  `DitherDrawer`, `DitherContextMenu`, `CenterMorphModal` — because a
+  teleport leaves the host's font behind (the body's sans, not the page's
+  voice). Where the panel takes `class`, a consumer's `font-sans` wins
+  through `cn()`. New teleported overlays follow; the Svelte port mirrors
+  each one.
 - Styling contract: Tailwind is the kit's authoring tool, not a requirement
   of the app around it. `theme.css` declares the shadcn-style tokens
   (`--background`, `--foreground`, `--card`, `--popover`, `--muted`,
@@ -533,7 +541,7 @@ is its showcase and editor.
 ## Verification
 
 - `npx vue-tsc --noEmit` (workspace-wide) must stay green.
-- Visual: `npx vite build && npx vite preview` and eyeball `/#/docs` demos.
+- Visual: `npx rs build && npx rs preview` and eyeball the `/docs/` previews.
 - Determinism: on the built site, `/play/#doc=…` driven by synthetic
   `hf-seek` events must give identical bytes for identical times, in any
   order, and request no animation frames while directed.

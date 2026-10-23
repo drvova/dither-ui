@@ -72,7 +72,10 @@ export function usePanZoom(host: Ref<HTMLElement | null>) {
     const rect = host.value?.getBoundingClientRect()
     if (!rect) return
     if (!abs.length) return resetZoom()
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity
     for (const a of abs) {
       minX = Math.min(minX, a.x)
       minY = Math.min(minY, a.y - 28) // room for the title label

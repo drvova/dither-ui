@@ -15,9 +15,7 @@ const cells = computed(() => {
   const on = avatar.value.pattern?.on ?? []
   return Array.from({ length: n }, (_, i) => !!on[i])
 })
-const fill = computed(() =>
-  avatar.value.autoColor ? "var(--color-foreground)" : cssColor(avatar.value.color)
-)
+const fill = computed(() => (avatar.value.autoColor ? "var(--color-foreground)" : cssColor(avatar.value.color)))
 
 function ensurePattern() {
   const model = avatar.value
@@ -98,10 +96,34 @@ function reseed() {
       />
     </div>
     <div class="flex flex-wrap gap-1">
-      <button type="button" class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground" @click="fillAll(0)">clear</button>
-      <button type="button" class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground" @click="fillAll(1)">fill</button>
-      <button type="button" class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground" @click="invert()">invert</button>
-      <button type="button" class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground" @click="reseed()">from seed</button>
+      <button
+        type="button"
+        class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+        @click="fillAll(0)"
+      >
+        clear
+      </button>
+      <button
+        type="button"
+        class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+        @click="fillAll(1)"
+      >
+        fill
+      </button>
+      <button
+        type="button"
+        class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+        @click="invert()"
+      >
+        invert
+      </button>
+      <button
+        type="button"
+        class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+        @click="reseed()"
+      >
+        from seed
+      </button>
     </div>
     <p class="text-[10px] leading-relaxed text-muted-foreground/70">
       click / drag to paint — mirror setting paints symmetrically

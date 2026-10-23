@@ -13,7 +13,7 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { color: "blue", disabled: false }
+  { color: "blue", disabled: false },
 )
 </script>
 
@@ -25,7 +25,7 @@ const props = withDefaults(
       cn(
         'group inline-flex items-center gap-3 rounded-md border border-border/60 bg-card/60 py-1.5 pr-1.5 pl-3.5 font-mono text-[12px] text-muted-foreground transition-colors select-none hover:text-foreground focus-visible:text-foreground',
         CONTROL_BUTTON,
-        props.class
+        props.class,
       )
     "
   >

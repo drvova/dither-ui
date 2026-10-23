@@ -9,7 +9,7 @@ const props = withDefaults(
     radius?: number
     class?: string
   }>(),
-  { strength: 0.4, radius: 200 }
+  { strength: 0.4, radius: 200 },
 )
 
 const el = ref<HTMLElement | null>(null)

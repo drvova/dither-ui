@@ -30,7 +30,6 @@ const live = ref(false)
 const done = ref(false)
 let io: IntersectionObserver | null = null
 
-
 // Heat scales with the cell's own brightness, so the develop keeps the
 // figure's tonal structure: bright cells land white-hot, mid tones glint
 // ember, dark cells simply appear (a night side must never flash).

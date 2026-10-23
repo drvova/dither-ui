@@ -3,11 +3,7 @@ import { LABEL_KEY } from "./data"
 import type { ChartModel, DataRow, SeriesRow } from "./types"
 
 /** A fresh series row with studio defaults (same shape the factory seeds). */
-export function createSeriesRow(
-  key: string,
-  label: string,
-  color: SeriesRow["color"]
-): SeriesRow {
+export function createSeriesRow(key: string, label: string, color: SeriesRow["color"]): SeriesRow {
   return {
     key,
     label,
@@ -39,9 +35,7 @@ export function addRow(chart: ChartModel): void {
     const key = uniqueKey(chart, `slice${chart.rows.length + 1}`)
     row.name = key
     row.value = 10
-    chart.series.push(
-      createSeriesRow(key, key, COLORS[chart.series.length % COLORS.length])
-    )
+    chart.series.push(createSeriesRow(key, key, COLORS[chart.series.length % COLORS.length]))
   } else {
     for (const s of chart.series) row[s.key] = 0
   }
@@ -62,11 +56,7 @@ export function removeRow(chart: ChartModel, index: number): void {
 export function addSeries(chart: ChartModel): void {
   const key = uniqueKey(chart, `series${chart.series.length + 1}`)
   chart.series.push(
-    createSeriesRow(
-      key,
-      `Series ${chart.series.length + 1}`,
-      COLORS[chart.series.length % COLORS.length]
-    )
+    createSeriesRow(key, `Series ${chart.series.length + 1}`, COLORS[chart.series.length % COLORS.length]),
   )
   for (const row of chart.rows) if (!(key in row)) row[key] = 0
 }
@@ -79,9 +69,7 @@ export function renamePieSlice(chart: ChartModel, index: number, name: string): 
   if (!clean) return
   const old = row.name as string
   if (clean === old) return
-  const unique = chart.series.some((s) => s.key === clean)
-    ? `${clean}-${index + 1}`
-    : clean
+  const unique = chart.series.some((s) => s.key === clean) ? `${clean}-${index + 1}` : clean
   row.name = unique
   const s = chart.series.find((x) => x.key === old)
   if (s) {

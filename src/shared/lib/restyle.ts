@@ -2,18 +2,27 @@
 // authored once with Tailwind classes; `restyle` rewrites a snippet so the
 // same look is written in vanilla CSS (a scoped stylesheet), CSS Modules or
 // StyleX, from the declarations Tailwind's compiler gives each class
-// (`virtual:dither-utilities`, built by `utility-map.ts`). Classes the map
+// (`virtual-dither-utilities`, built by `utility-map.ts`). Classes the map
 // does not know stay classes — the kit's own stylesheet covers them.
 import { ref } from "vue"
-import UTILITIES from "virtual:dither-utilities"
+import UTILITIES from "virtual-dither-utilities"
 
 export type UtilityRule = { chain: string[]; decl: [string, string][] }
-export type UtilityMap = { order: Record<string, number>; rules: Record<string, UtilityRule[]>; props: Record<string, string> }
+export type UtilityMap = {
+  order: Record<string, number>
+  rules: Record<string, UtilityRule[]>
+  props: Record<string, string>
+}
 
 export const STYLINGS = ["tailwind", "css", "modules", "stylex"] as const
 export type Styling = (typeof STYLINGS)[number]
 export type Framework = "vue" | "svelte"
-export const STYLING_LABELS: Record<Styling, string> = { tailwind: "Tailwind", css: "CSS", modules: "Modules", stylex: "StyleX" }
+export const STYLING_LABELS: Record<Styling, string> = {
+  tailwind: "Tailwind",
+  css: "CSS",
+  modules: "Modules",
+  stylex: "StyleX",
+}
 export const isStyling = (v: unknown): v is Styling => STYLINGS.includes(v as Styling)
 
 /* ------------------------------ the preference ---------------------------- */
@@ -87,13 +96,20 @@ const NUMBER = /^-?\d*\.?\d+$/
 
 /** `calc(0.25rem * 4)` → `1rem`, `calc(10 * -1)` → `-10`, no-op shadows gone. */
 function simplify(prop: string, value: string): string {
-  value = value.replace(/calc\((-?\d*\.?\d+)([a-z%]*) \* (-?\d*\.?\d+)\)/g, (all, a: string, unit: string, b: string) => {
-    if (!NUMBER.test(a) || !NUMBER.test(b)) return all
-    const n = Math.round(Number(a) * Number(b) * 1e6) / 1e6
-    return `${n}${unit}`
-  })
+  value = value.replace(
+    /calc\((-?\d*\.?\d+)([a-z%]*) \* (-?\d*\.?\d+)\)/g,
+    (all, a: string, unit: string, b: string) => {
+      if (!NUMBER.test(a) || !NUMBER.test(b)) return all
+      const n = Math.round(Number(a) * Number(b) * 1e6) / 1e6
+      return `${n}${unit}`
+    },
+  )
   // Tailwind's gradient inputs are not properties an app transitions.
-  if (prop === "transition-property") value = value.split(/,\s*/).filter((p) => !p.startsWith("--tw-")).join(", ")
+  if (prop === "transition-property")
+    value = value
+      .split(/,\s*/)
+      .filter((p) => !p.startsWith("--tw-"))
+      .join(", ")
   if (prop === "box-shadow" || prop === "text-shadow") {
     const parts = value.split(/,\s*(?![^(]*\))/).filter((p) => p.trim() !== "0 0 #0000")
     value = parts.length ? parts.join(", ") : "none"
@@ -115,7 +131,11 @@ export function compileUtilities(tokens: string[], strict = false): Compiled {
     const expressible =
       !!rules &&
       (!strict ||
-        rules.every((r) => r.chain.every((item) => item.startsWith("@") || SIMPLE_SELECTOR.test(item)) && r.decl.every(([k, v]) => (!k.startsWith("--") || k.startsWith("--tw-")) && !v.includes("!important"))))
+        rules.every(
+          (r) =>
+            r.chain.every((item) => item.startsWith("@") || SIMPLE_SELECTOR.test(item)) &&
+            r.decl.every(([k, v]) => (!k.startsWith("--") || k.startsWith("--tw-")) && !v.includes("!important")),
+        ))
     ;(expressible ? known : rest).push(t)
   }
   known.sort((a, b) => UTILITIES.order[a] - UTILITIES.order[b])
@@ -133,8 +153,11 @@ export function compileUtilities(tokens: string[], strict = false): Compiled {
     // A variant that only retunes a `--tw-*` input (hover:shadow-color) must
     // carry the element's declaration that reads it.
     if (chain.length)
-      for (const [k, v] of base) if (!decl.has(k) && [...decl.keys()].some((name) => name.startsWith("--tw-") && v.includes(`var(${name}`))) decl.set(k, v)
-    const lookup = (name: string) => decl.get(name) ?? (chain.length ? base.get(name) : undefined) ?? UTILITIES.props[name]
+      for (const [k, v] of base)
+        if (!decl.has(k) && [...decl.keys()].some((name) => name.startsWith("--tw-") && v.includes(`var(${name}`)))
+          decl.set(k, v)
+    const lookup = (name: string) =>
+      decl.get(name) ?? (chain.length ? base.get(name) : undefined) ?? UTILITIES.props[name]
     const resolved: [string, string][] = []
     for (const [k, v] of decl) if (!k.startsWith("--tw-")) resolved.push([k, simplify(k, resolveVars(v, lookup))])
     if (resolved.length) out.push({ chain, decl: resolved })
@@ -198,7 +221,12 @@ function attrOf(attrs: string, name: string): Attr | null {
   const m = re.exec(attrs)
   if (!m) return null
   const start = m.index + m[1].length
-  return { start, end: start + m[0].length - m[1].length, value: m[3] ?? m[4] ?? m[5] ?? "", braces: m[5] !== undefined }
+  return {
+    start,
+    end: start + m[0].length - m[1].length,
+    value: m[3] ?? m[4] ?? m[5] ?? "",
+    braces: m[5] !== undefined,
+  }
 }
 
 const parseInline = (style: string): [string, string][] =>
@@ -294,7 +322,9 @@ function rewriteTag(tag: string, attrs: string, names: Names, target: Target): s
   if (inline) {
     // Inline declarations join the element's own rule (they beat classes, so they come last).
     const base = compiled.chains.find((c) => !c.chain.length)
-    base ? base.decl.push(...parseInline(inline.value)) : compiled.chains.unshift({ chain: [], decl: parseInline(inline.value) })
+    base
+      ? base.decl.push(...parseInline(inline.value))
+      : compiled.chains.unshift({ chain: [], decl: parseInline(inline.value) })
   }
   const own = compiled.chains.length ? names.claim(baseName(tag, tokens), compiled) : null
   const bindDynamic = () => (svelte ? `class={${dynamic!.value}}` : `:class="${dynamic!.value}"`)
@@ -313,7 +343,8 @@ function rewriteTag(tag: string, attrs: string, names: Names, target: Target): s
         changed = true
       } else parts.push(bindDynamic())
     }
-    if (args.length) parts.unshift(svelte ? `{...stylex.attrs(${args.join(", ")})}` : `v-bind="stylex.attrs(${args.join(", ")})"`)
+    if (args.length)
+      parts.unshift(svelte ? `{...stylex.attrs(${args.join(", ")})}` : `v-bind="stylex.attrs(${args.join(", ")})"`)
     if (kept.length) parts.push(`class="${kept.join(" ")}"`)
   } else {
     const bound = dynamic ? nameLiterals(dynamic.value, names, target) : null
@@ -333,7 +364,8 @@ function rewriteTag(tag: string, attrs: string, names: Names, target: Target): s
   // Splice the rewritten attributes where the first of them stood.
   const removed = [fixed, dynamic, inline].filter((a): a is Attr => !!a)
   let out = attrs
-  for (const a of [...removed].sort((a, b) => b.start - a.start)) out = out.slice(0, a.start).replace(/\s+$/, "") + out.slice(a.end)
+  for (const a of [...removed].sort((a, b) => b.start - a.start))
+    out = out.slice(0, a.start).replace(/\s+$/, "") + out.slice(a.end)
   const prefix = attrs.slice(0, Math.min(...removed.map((a) => a.start))).replace(/\s+$/, "")
   const remainder = out.slice(prefix.length)
   return `${prefix} ${parts.join(" ")}${remainder.trim() ? remainder : ""}`
@@ -358,13 +390,17 @@ function cssText(styles: Named[]): string {
 
 type Cond = string | null | Map<string, Cond>
 
-const cssProp = (prop: string) => (prop.startsWith("-") ? prop.slice(1) : prop).replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
+const cssProp = (prop: string) =>
+  (prop.startsWith("-") ? prop.slice(1) : prop).replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
 
 function stylexObject(compiled: Compiled): Map<string, Cond> {
   const tree = new Map<string, Cond>()
   for (const { chain, decl } of compiled.chains) {
     // StyleX nests conditions per property: pseudo-classes first, then at-rules.
-    const keys = [...chain.filter((c) => !c.startsWith("@")).map((c) => c.slice(1)), ...chain.filter((c) => c.startsWith("@"))]
+    const keys = [
+      ...chain.filter((c) => !c.startsWith("@")).map((c) => c.slice(1)),
+      ...chain.filter((c) => c.startsWith("@")),
+    ]
     for (const [prop, value] of decl) {
       const name = cssProp(prop)
       if (!keys.length) {
@@ -412,7 +448,9 @@ function printCond(value: Cond, indent: string): string {
 }
 
 function stylexText(styles: Named[], indent: string): string {
-  const entries = styles.map(({ name, compiled }) => `${indent}  ${key(name)}: ${printCond(stylexObject(compiled), indent + "  ")},`)
+  const entries = styles.map(
+    ({ name, compiled }) => `${indent}  ${key(name)}: ${printCond(stylexObject(compiled), indent + "  ")},`,
+  )
   return `${indent}const styles = stylex.create({\n${entries.join("\n")}\n${indent}})`
 }
 
@@ -435,7 +473,10 @@ function withScript(code: string, framework: Framework, lines: (indent: string) 
     const restOut = rest.replace(/\n*$/, "")
     return `${code.slice(0, start)}${headOut}${restOut ? restOut + "\n" : ""}\n${lines(indent)}\n${code.slice(close)}`
   }
-  const block = framework === "svelte" ? `<script lang="ts">\n  ${STYLEX_IMPORT}\n\n${lines("  ")}\n</script>` : `<script setup lang="ts">\n${STYLEX_IMPORT}\n\n${lines("")}\n</script>`
+  const block =
+    framework === "svelte"
+      ? `<script lang="ts">\n  ${STYLEX_IMPORT}\n\n${lines("  ")}\n</script>`
+      : `<script setup lang="ts">\n${STYLEX_IMPORT}\n\n${lines("")}\n</script>`
   // An SFC without a script gets one; a fragment gets the lines it would add.
   if (/<template>/.test(code) || framework === "svelte") return `${block}\n\n${code}`
   return `${STYLEX_IMPORT}\n\n${lines("")}\n\n${code}`

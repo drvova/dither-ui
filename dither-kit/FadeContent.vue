@@ -10,7 +10,7 @@ const props = withDefaults(
     blur?: boolean
     class?: string
   }>(),
-  { duration: 1000, delay: 0, blur: false }
+  { duration: 1000, delay: 0, blur: false },
 )
 
 const el = ref<HTMLElement | null>(null)

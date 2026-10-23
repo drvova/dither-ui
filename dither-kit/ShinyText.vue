@@ -8,7 +8,7 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { speed: 1, disabled: false }
+  { speed: 1, disabled: false },
 )
 
 const dur = computed(() => `${Math.max(0.4, 5 / Math.max(0.01, props.speed))}s`)
@@ -18,7 +18,8 @@ const dur = computed(() => `${Math.max(0.4, 5 / Math.max(0.01, props.speed))}s`)
   <span
     :class="cn('dither-shiny-text', props.class)"
     :style="{ animationDuration: dur, animationPlayState: props.disabled ? 'paused' : 'running' }"
-  ><slot /></span>
+    ><slot
+  /></span>
 </template>
 
 <style scoped>

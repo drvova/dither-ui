@@ -17,7 +17,7 @@ provide(DRAWER_CHANNEL, { notify: (d) => (openCount.value += d) })
       cn(
         'origin-top transition-[transform,filter,border-radius] duration-200 motion-reduce:transition-none',
         openCount > 0 ? 'scale-[0.98] rounded-xl brightness-75' : '',
-        props.class
+        props.class,
       )
     "
   >

@@ -19,10 +19,7 @@ const props = withDefaults(
     :target="props.external ? '_blank' : undefined"
     :rel="props.external ? 'noreferrer' : undefined"
     :class="
-      cn(
-        'underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60',
-        props.class,
-      )
+      cn('underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60', props.class)
     "
   >
     <slot />

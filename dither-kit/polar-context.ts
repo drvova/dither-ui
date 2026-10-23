@@ -1,16 +1,5 @@
-import {
-  computed,
-  inject,
-  type InjectionKey,
-  markRaw,
-  ref,
-  watch,
-} from "vue"
-import type {
-  ChartConfig,
-  ChartType,
-  Margins,
-} from "./chart-context"
+import { computed, inject, type InjectionKey, markRaw, ref, watch } from "vue"
+import type { ChartConfig, ChartType, Margins } from "./chart-context"
 import type { CommonChart, TooltipItem } from "./common-context"
 import type { BloomInput, EasingInput, VariantInput } from "./dither-paint"
 import { type Seed, seedFromColor } from "./palette"
@@ -72,8 +61,7 @@ export type PolarChartContextValue = {
   common: CommonChart
 }
 
-export const PolarChartKey: InjectionKey<PolarChartContextValue> =
-  Symbol("dither-polar-chart")
+export const PolarChartKey: InjectionKey<PolarChartContextValue> = Symbol("dither-polar-chart")
 
 export function usePolarChart(): PolarChartContextValue {
   const ctx = inject(PolarChartKey, null)
@@ -84,18 +72,13 @@ export function usePolarChart(): PolarChartContextValue {
 }
 
 /** Boundary guard for polar parts (`<Pie>`, `<Radar>`). */
-export function usePolarPart(
-  part: string,
-  kind: "pie" | "radar"
-): PolarChartContextValue {
+export function usePolarPart(part: string, kind: "pie" | "radar"): PolarChartContextValue {
   const ctx = inject(PolarChartKey, null)
   if (!ctx) {
     throw new Error(`<${part} /> must be used within ${ROOT_OF[kind]}.`)
   }
   if (ctx.chartType !== kind) {
-    throw new Error(
-      `<${part} /> is not valid inside ${ROOT_OF[ctx.chartType]} — it belongs in ${ROOT_OF[kind]}.`
-    )
+    throw new Error(`<${part} /> is not valid inside ${ROOT_OF[ctx.chartType]} — it belongs in ${ROOT_OF[kind]}.`)
   }
   return ctx
 }
@@ -130,9 +113,7 @@ export type PolarControllerInput = {
   onSelectionChange?: (key: string | null) => void
 }
 
-export function usePolarController(
-  input: PolarControllerInput
-): PolarChartContextValue {
+export function usePolarController(input: PolarControllerInput): PolarChartContextValue {
   const selectedDataKey = ref<string | null>(input.defaultSelectedDataKey)
   const focusDataKey = ref<string | null>(null)
   const hoverIndex = ref<number | null>(null)
@@ -147,28 +128,21 @@ export function usePolarController(
     () => [input.data(), input.replayToken()] as const,
     () => {
       revision.value += 1
-    }
+    },
   )
 
   const configKeys = computed(() => Object.keys(input.config()))
-  const plotWidth = computed(() =>
-    Math.max(0, input.dimensions().width - input.margins().left - input.margins().right)
-  )
+  const plotWidth = computed(() => Math.max(0, input.dimensions().width - input.margins().left - input.margins().right))
   const plotHeight = computed(() =>
-    Math.max(0, input.dimensions().height - input.margins().top - input.margins().bottom)
+    Math.max(0, input.dimensions().height - input.margins().top - input.margins().bottom),
   )
   const ready = computed(() => plotWidth.value > 0 && plotHeight.value > 0)
   const pad = input.chartType === "radar" ? 20 : 6
-  const outerRadius = computed(() =>
-    Math.max(0, Math.min(plotWidth.value, plotHeight.value) / 2 - pad)
-  )
-  const innerRadius = computed(() =>
-    input.chartType === "pie" ? outerRadius.value * input.innerRadiusRatio() : 0
-  )
+  const outerRadius = computed(() => Math.max(0, Math.min(plotWidth.value, plotHeight.value) / 2 - pad))
+  const innerRadius = computed(() => (input.chartType === "pie" ? outerRadius.value * input.innerRadiusRatio() : 0))
 
   const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
-  const variantOf = (key: string): VariantInput =>
-    variants.value[key] ?? variants.value["*"] ?? "gradient"
+  const variantOf = (key: string): VariantInput => variants.value[key] ?? variants.value["*"] ?? "gradient"
   const registerVariant = (key: string, variant: VariantInput) => {
     if (variants.value[key] === variant) return
     variants.value = { ...variants.value, [key]: variant }
@@ -201,9 +175,7 @@ export function usePolarController(
   }
 
   const pie = computed(() =>
-    input.chartType === "pie"
-      ? pieSlices(input.data(), input.dataKey(), input.nameKey(), input.startAngle())
-      : null
+    input.chartType === "pie" ? pieSlices(input.data(), input.dataKey(), input.nameKey(), input.startAngle()) : null,
   )
   const radar = computed(() => {
     if (input.chartType !== "radar") return null
@@ -219,9 +191,7 @@ export function usePolarController(
 
   const common: CommonChart = markRaw({
     get names() {
-      return input.chartType === "pie" && pie.value
-        ? pie.value.map((s) => s.name)
-        : configKeys.value
+      return input.chartType === "pie" && pie.value ? pie.value.map((s) => s.name) : configKeys.value
     },
     labelOf: (n: string) => input.config()[n]?.label ?? n,
     seedOf,
@@ -240,18 +210,13 @@ export function usePolarController(
       return ready.value
     },
     get tooltipLeft() {
-      return Math.max(
-        48,
-        Math.min(plotWidth.value + input.margins().left - 48, cursorX.value)
-      )
+      return Math.max(48, Math.min(plotWidth.value + input.margins().left - 48, cursorX.value))
     },
     get tooltipTop() {
       return Math.max(input.margins().top + 44, cursorY.value)
     },
     heading: (i: number) =>
-      input.chartType === "pie"
-        ? pie.value?.[i]?.name ?? null
-        : radar.value?.axes[i]?.label ?? null,
+      input.chartType === "pie" ? (pie.value?.[i]?.name ?? null) : (radar.value?.axes[i]?.label ?? null),
     itemsAt: (i: number): TooltipItem[] => {
       const emphasis = selectedDataKey.value ?? focusDataKey.value
       if (input.chartType === "pie") {

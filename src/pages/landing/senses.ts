@@ -99,7 +99,11 @@ export type Senses = {
 
 export function createSenses(): Senses {
   const pointer = { x: -1e4, y: -1e4, inside: false }
-  const hormones: Hormones = { arousal: 0, drowsy: 0, daylight: daylight(new Date().getHours() + new Date().getMinutes() / 60) }
+  const hormones: Hormones = {
+    arousal: 0,
+    drowsy: 0,
+    daylight: daylight(new Date().getHours() + new Date().getMinutes() / 60),
+  }
   const governor = createGovernor()
   const organisms = new Set<Organism>()
   const mq = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null

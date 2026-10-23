@@ -13,7 +13,7 @@ function paintSeparator(
   ctx: CanvasRenderingContext2D,
   cells: number,
   vertical: boolean,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   ctx.clearRect(0, 0, vertical ? 1 : cells, vertical ? cells : 1)
   const half = cells / 2
@@ -37,7 +37,7 @@ const props = withDefaults(
     orientation?: SeparatorOrientation
     class?: string
   }>(),
-  { orientation: "horizontal" }
+  { orientation: "horizontal" },
 )
 
 const wrapRef = ref<HTMLDivElement | null>(null)
@@ -76,13 +76,7 @@ onBeforeUnmount(() => ro?.disconnect())
     ref="wrapRef"
     role="separator"
     :aria-orientation="props.orientation"
-    :class="
-      cn(
-        'relative',
-        props.orientation === 'vertical' ? 'h-full w-[2px]' : 'h-[2px] w-full',
-        props.class
-      )
-    "
+    :class="cn('relative', props.orientation === 'vertical' ? 'h-full w-[2px]' : 'h-[2px] w-full', props.class)"
   >
     <canvas
       ref="canvasRef"

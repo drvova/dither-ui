@@ -13,12 +13,7 @@ export type NoiseParams = {
   opacity: number
 }
 
-export function paintNoiseField(
-  buffer: RasterBuffer,
-  p: NoiseParams,
-  time: number,
-  matrix: number[][]
-): void {
+export function paintNoiseField(buffer: RasterBuffer, p: NoiseParams, time: number, matrix: number[][]): void {
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data

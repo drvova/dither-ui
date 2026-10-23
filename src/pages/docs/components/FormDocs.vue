@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue"
-import {
-  DitherCheckbox,
-  DitherProgress,
-  DitherSlider,
-  DitherSwitch,
-} from "@dither-kit"
+import { DitherCheckbox, DitherProgress, DitherSlider, DitherSwitch } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -110,8 +105,7 @@ const API: Record<string, PropRow[]> = {
   <section id="switch" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Switch</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A toggle whose track is a dithered canvas — the accent gradient fills in
-      when on, fades to a muted wash when off.
+      A toggle whose track is a dithered canvas — the accent gradient fills in when on, fades to a muted wash when off.
     </p>
     <DemoCard :code="SNIPPET_SWITCH">
       <div class="mx-auto max-w-sm">
@@ -127,8 +121,8 @@ const API: Record<string, PropRow[]> = {
   <section id="checkbox" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Checkbox</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A pixel-border box that fills with the Bayer texture and draws a chunky
-      near-white checkmark when checked. Label goes in the default slot.
+      A pixel-border box that fills with the Bayer texture and draws a chunky near-white checkmark when checked. Label
+      goes in the default slot.
     </p>
     <DemoCard :code="SNIPPET_CHECKBOX">
       <div class="mx-auto grid max-w-sm gap-3">
@@ -143,8 +137,8 @@ const API: Record<string, PropRow[]> = {
   <section id="slider" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Slider</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Drag or arrow-key the square thumb — the filled side of the track dithers
-      denser toward the value, the rest stays a muted rail.
+      Drag or arrow-key the square thumb — the filled side of the track dithers denser toward the value, the rest stays
+      a muted rail.
     </p>
     <DemoCard :code="SNIPPET_SLIDER">
       <div class="mx-auto grid max-w-sm gap-7">
@@ -181,10 +175,9 @@ const API: Record<string, PropRow[]> = {
   <section id="progress" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Progress</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A dithered fill that grows with <code class="text-foreground/80">value</code>;
-      set <code class="text-foreground/80">indeterminate</code> to scroll a
-      texture band instead (static under reduced motion). The bar below is bound
-      to the slider above.
+      A dithered fill that grows with <code class="text-foreground/80">value</code>; set
+      <code class="text-foreground/80">indeterminate</code> to scroll a texture band instead (static under reduced
+      motion). The bar below is bound to the slider above.
     </p>
     <DemoCard :code="SNIPPET_PROGRESS">
       <div class="mx-auto grid max-w-sm gap-6">

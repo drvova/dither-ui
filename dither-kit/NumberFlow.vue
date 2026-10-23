@@ -13,7 +13,7 @@ const props = withDefaults(
     duration?: number
     class?: string
   }>(),
-  { decimals: 0, duration: 600 }
+  { decimals: 0, duration: 600 },
 )
 
 const chars = computed(() =>
@@ -22,7 +22,7 @@ const chars = computed(() =>
       minimumFractionDigits: props.decimals,
       maximumFractionDigits: props.decimals,
     })
-    .split("")
+    .split(""),
 )
 const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 </script>

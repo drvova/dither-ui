@@ -2,7 +2,8 @@
 
 ## Purpose
 
-A Vite + Svelte 5 app that showcases `dither-kit-svelte`, mirroring the Vue `src/`
+A Svelte 5 app on the Rstack CLI (`rs dev`/`rs build`/`rs preview`, Rsbuild with
+the Svelte and Tailwind plugins, `rstack.config.ts`) that showcases `dither-kit-svelte`, mirroring the Vue `src/`
 site: a landing page and a shadcn-style docs (sidebar rail, Preview/Code tabs, API
 tables). It is the Svelte counterpart to `src/` (the Vue site):
 same dark, monospace, pixel/dither identity and one-statement/one-action/one-visual
@@ -13,15 +14,19 @@ restraint, re-expressed with the Svelte kit.
 - Owns the entry (`src/main.ts`), the hash router (`src/App.svelte`), the landing
   (`src/Landing.svelte`), the docs (`src/docs/` — `DocsPage.svelte` + `DemoCard`,
   `PropsTable`, `CodeBlock`), the design-token stylesheet (`src/app.css`), and the
-  Vite/Svelte/TS config.
+  Rstack/Svelte/TS config.
 - Does NOT own components — every visual comes from `dither-kit-svelte` via the
   `@dither-kit-svelte` alias (its `index.ts`). No component logic is duplicated here.
 
 ## Local Contracts
 
 - Svelte 5 runes only, no legacy API (same rules as `dither-kit-svelte`).
+- One Svelte runtime: the kit folder carries its own `node_modules` (for its
+  svelte-check), so `rstack.config.ts` resolves this app's `node_modules`
+  FIRST; and `verbatimModuleSyntax` is on here and in the kit's tsconfig —
+  without it the Svelte compiler's TS pass drops value imports.
 - Import kit components from `@dither-kit-svelte` (alias → `../dither-kit-svelte/index.ts`,
-  set in `vite.config.ts` + `tsconfig.json`). Deep engine imports are avoided;
+  set in `rstack.config.ts` + `tsconfig.json`). Deep engine imports are avoided;
   `cssColor`/`rgb`/`DitherColor` are surfaced on the kit barrel.
 - `src/app.css` carries the shadcn-style design tokens the kit components read
   (`--background`, `--foreground`, `--muted-foreground`, `--border`, `--accent`,
@@ -49,8 +54,8 @@ restraint, re-expressed with the Svelte kit.
 
 ## Verification
 
-- `npm run check` (svelte-check) and `npx vite build` must both be green;
-  visual changes verified in `vite preview` + a screenshot.
+- `npm run check` (svelte-check) and `npx rs build` must both be green;
+  visual changes verified in `rs preview` + a screenshot.
 
 ## Child DOX Index
 

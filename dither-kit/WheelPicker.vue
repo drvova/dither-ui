@@ -25,7 +25,7 @@ const props = withDefaults(
     color?: PixelColor
     class?: string
   }>(),
-  { rows: 5, label: "Wheel picker", color: "blue" }
+  { rows: 5, label: "Wheel picker", color: "blue" },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
@@ -76,9 +76,18 @@ function go(i: number) {
 }
 function onKeydown(e: KeyboardEvent) {
   const step = ({ ArrowUp: -1, ArrowDown: 1, PageUp: -5, PageDown: 5 } as Record<string, number>)[e.key]
-  if (step !== undefined) { e.preventDefault(); go(index.value + step); return }
-  if (e.key === "Home") { e.preventDefault(); go(0) }
-  else if (e.key === "End") { e.preventDefault(); go(opts.value.length - 1) }
+  if (step !== undefined) {
+    e.preventDefault()
+    go(index.value + step)
+    return
+  }
+  if (e.key === "Home") {
+    e.preventDefault()
+    go(0)
+  } else if (e.key === "End") {
+    e.preventDefault()
+    go(opts.value.length - 1)
+  }
 }
 function onPointerdown(e: PointerEvent) {
   if (e.pointerType !== "mouse" || e.button !== 0) return
@@ -114,10 +123,14 @@ function onPointerup(e: PointerEvent) {
 }
 
 const indexOfValue = (v: string | undefined) => opts.value.findIndex((o) => o.value === v)
-watch(() => props.modelValue, (v) => {
-  const i = indexOfValue(v)
-  if (i >= 0 && i !== index.value && !dragging) scroller.value?.scrollTo({ top: i * ITEM, behavior: still ? "auto" : "smooth" })
-})
+watch(
+  () => props.modelValue,
+  (v) => {
+    const i = indexOfValue(v)
+    if (i >= 0 && i !== index.value && !dragging)
+      scroller.value?.scrollTo({ top: i * ITEM, behavior: still ? "auto" : "smooth" })
+  },
+)
 onMounted(() => {
   const el = scroller.value
   if (!el) return
@@ -128,7 +141,10 @@ onMounted(() => {
 
 <template>
   <div :class="cn('relative inline-block', props.class)">
-    <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-7 -translate-y-1/2 rounded-md border-y border-border/70 bg-foreground/[0.04]" />
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-7 -translate-y-1/2 rounded-md border-y border-border/70 bg-foreground/[0.04]"
+    />
     <div
       ref="scroller"
       role="spinbutton"
@@ -155,7 +171,9 @@ onMounted(() => {
         :class="i === index ? 'font-medium' : 'text-muted-foreground/80'"
         :style="{ ...styleOf(i), ...(i === index ? { color: cssColor(props.color) } : {}) }"
         @click="!moved && go(i)"
-      >{{ o.label }}</div>
+      >
+        {{ o.label }}
+      </div>
     </div>
   </div>
 </template>

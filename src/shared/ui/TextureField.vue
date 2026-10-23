@@ -9,9 +9,7 @@ const props = defineProps<{ modelValue: VariantInput }>()
 const emit = defineEmits<{ "update:modelValue": [VariantInput] }>()
 
 const CHOICES = [...VARIANTS, "custom"] as const
-const choice = computed(() =>
-  typeof props.modelValue === "string" ? props.modelValue : "custom"
-)
+const choice = computed(() => (typeof props.modelValue === "string" ? props.modelValue : "custom"))
 const tex = computed<Required<TextureConfig>>(() => ({
   ...resolveTexture(props.modelValue),
 }))
@@ -44,11 +42,7 @@ const SLIDERS = [
   <div class="flex flex-col gap-2.5">
     <Segmented :model-value="choice" :options="CHOICES" label="variant" @update:model-value="setChoice" />
     <template v-if="choice === 'custom'">
-      <label
-        v-for="s in SLIDERS"
-        :key="s.key"
-        class="flex items-center gap-2 text-[11px] text-muted-foreground"
-      >
+      <label v-for="s in SLIDERS" :key="s.key" class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">{{ s.label }}</span>
         <input
           type="range"

@@ -14,7 +14,7 @@ const props = withDefaults(
     /** Open state (v-model). */
     modelValue?: boolean
   }>(),
-  { modelValue: false }
+  { modelValue: false },
 )
 const emit = defineEmits<{ "update:modelValue": [boolean] }>()
 
@@ -45,7 +45,8 @@ const id = `dk-sidebar-sub-${counter++}`
         aria-hidden="true"
         class="text-[11px] transition-transform duration-200 motion-reduce:transition-none"
         :class="props.modelValue ? 'rotate-90' : ''"
-      >›</span>
+        >›</span
+      >
     </button>
     <div
       v-if="!collapsed"

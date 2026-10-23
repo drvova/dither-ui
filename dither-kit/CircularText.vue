@@ -8,7 +8,7 @@ const props = withDefaults(
     size?: number
     class?: string
   }>(),
-  { text: "DITHER \u00b7 UI \u00b7 TOOLKIT \u00b7 ", duration: 12, size: 170 }
+  { text: "DITHER \u00b7 UI \u00b7 TOOLKIT \u00b7 ", duration: 12, size: 170 },
 )
 
 const uid = `dither-circle-${Math.floor(Math.random() * 1e9)}`

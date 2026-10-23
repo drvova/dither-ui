@@ -24,7 +24,7 @@ const props = withDefaults(
     label?: string
     class?: string
   }>(),
-  { modelValue: false, direction: "up", spacing: 52, label: "Actions" }
+  { modelValue: false, direction: "up", spacing: 52, label: "Actions" },
 )
 const emit = defineEmits<{ "update:modelValue": [boolean]; select: [value: string] }>()
 
@@ -70,7 +70,7 @@ function pick(value: string) {
           cn(
             'absolute top-0 left-0 grid size-11 place-items-center rounded-full border border-border/60 bg-card transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none',
             CONTROL_BUTTON,
-            props.modelValue ? 'opacity-100' : 'pointer-events-none opacity-0'
+            props.modelValue ? 'opacity-100' : 'pointer-events-none opacity-0',
           )
         "
         :style="{ transform: offset(i), transitionDelay: props.modelValue ? `${i * 40}ms` : '0ms' }"
@@ -82,14 +82,20 @@ function pick(value: string) {
         type="button"
         :aria-label="props.label"
         :aria-expanded="props.modelValue"
-        :class="cn('relative grid size-11 place-items-center rounded-full border border-border/60 bg-card text-foreground', CONTROL_BUTTON)"
+        :class="
+          cn(
+            'relative grid size-11 place-items-center rounded-full border border-border/60 bg-card text-foreground',
+            CONTROL_BUTTON,
+          )
+        "
         @click="emit('update:modelValue', !props.modelValue)"
       >
         <span
           aria-hidden="true"
           class="text-[15px] leading-none transition-transform duration-300 motion-reduce:transition-none"
           :class="props.modelValue ? 'rotate-45' : ''"
-        >+</span>
+          >+</span
+        >
       </button>
     </div>
   </div>

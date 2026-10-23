@@ -12,7 +12,7 @@ const props = withDefaults(
     current: number // index of the active step
     class?: string
   }>(),
-  {}
+  {},
 )
 
 const state = (i: number) => (i < props.current ? "done" : i === props.current ? "active" : "todo")
@@ -35,11 +35,18 @@ const state = (i: number) => (i < props.current ? "done" : i === props.current ?
               'inline-flex size-7 shrink-0 items-center justify-center rounded-full border text-[11px] tabular-nums transition-colors',
               state(i) === 'done' && 'border-foreground/30 bg-foreground/10 text-foreground',
               state(i) === 'active' && 'border-foreground bg-background text-foreground',
-              state(i) === 'todo' && 'border-border text-muted-foreground'
+              state(i) === 'todo' && 'border-border text-muted-foreground',
             )
           "
         >
-          <svg v-if="state(i) === 'done'" viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="3">
+          <svg
+            v-if="state(i) === 'done'"
+            viewBox="0 0 24 24"
+            class="size-3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
             <path d="M5 12l5 5L20 7" />
           </svg>
           <template v-else>{{ i + 1 }}</template>
@@ -47,16 +54,15 @@ const state = (i: number) => (i < props.current ? "done" : i === props.current ?
         <DitherSeparator
           v-if="i < steps.length - 1"
           class="flex-1"
-          :class="state(i + 1) === 'todo' && state(i) !== 'active' ? 'opacity-30' : state(i) === 'todo' ? 'opacity-30' : ''"
+          :class="
+            state(i + 1) === 'todo' && state(i) !== 'active' ? 'opacity-30' : state(i) === 'todo' ? 'opacity-30' : ''
+          "
         />
         <span v-else class="flex-1" />
       </div>
-      <span
-        :class="
-          cn('mt-2 text-center text-[12px]', i === current ? 'text-foreground' : 'text-muted-foreground')
-        "
-        >{{ s.label }}</span
-      >
+      <span :class="cn('mt-2 text-center text-[12px]', i === current ? 'text-foreground' : 'text-muted-foreground')">{{
+        s.label
+      }}</span>
       <span v-if="s.hint" class="text-center text-[11px] text-muted-foreground/60">{{ s.hint }}</span>
     </li>
   </ol>

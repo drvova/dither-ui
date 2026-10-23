@@ -10,7 +10,7 @@ const props = withDefaults(
     blur?: number
     class?: string
   }>(),
-  { text: "True focus mode", interval: 1400, blur: 5 }
+  { text: "True focus mode", interval: 1400, blur: 5 },
 )
 
 const words = computed(() => props.text.split(/\s+/).filter(Boolean))
@@ -19,9 +19,12 @@ let timer = 0
 
 onMounted(() => {
   if (pixelPrefersReducedMotion() || words.value.length < 2) return
-  timer = window.setInterval(() => {
-    active.value = (active.value + 1) % words.value.length
-  }, Math.max(300, props.interval))
+  timer = window.setInterval(
+    () => {
+      active.value = (active.value + 1) % words.value.length
+    },
+    Math.max(300, props.interval),
+  )
 })
 onBeforeUnmount(() => clearInterval(timer))
 </script>
@@ -34,6 +37,7 @@ onBeforeUnmount(() => clearInterval(timer))
       aria-hidden="true"
       class="dither-focus-word inline-block transition-[filter,opacity] duration-500"
       :style="{ filter: i === active ? 'blur(0)' : `blur(${props.blur}px)`, opacity: i === active ? 1 : 0.5 }"
-    >{{ w }}</span>
+      >{{ w }}</span
+    >
   </span>
 </template>

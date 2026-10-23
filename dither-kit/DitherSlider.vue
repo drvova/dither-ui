@@ -16,7 +16,7 @@ function paintTrack(
   hi: number,
   variant: SliderVariant,
   ticks: number[],
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const a = Math.round(cols * clamp01(lo))
@@ -25,8 +25,7 @@ function paintTrack(
     for (let x = 0; x < cols; x++) {
       if (x >= a && x < b) {
         const t = (x - a + 0.5) / Math.max(1, b - a)
-        const density =
-          variant === "gradient" ? 0.35 + 0.65 * t : variant === "dotted" ? 0.5 : 0.75
+        const density = variant === "gradient" ? 0.35 + 0.65 * t : variant === "dotted" ? 0.5 : 0.75
         if (variant === "hatched" && ((x + y) & 3) >= 2) {
           ctx.fillStyle = rgb(fill, 1, 0.12)
         } else {
@@ -89,12 +88,12 @@ const props = withDefaults(
     ticks: false,
     showValue: false,
     disabled: false,
-  }
+  },
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<SliderVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
 const emit = defineEmits<{ (e: "update:modelValue", value: number | [number, number]): void }>()
 
@@ -103,9 +102,7 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const isRange = computed(() => Array.isArray(props.modelValue))
 const lo = computed(() => (isRange.value ? (props.modelValue as [number, number])[0] : props.min))
-const hi = computed(() =>
-  isRange.value ? (props.modelValue as [number, number])[1] : (props.modelValue as number)
-)
+const hi = computed(() => (isRange.value ? (props.modelValue as [number, number])[1] : (props.modelValue as number)))
 const span = computed(() => Math.max(1e-9, props.max - props.min))
 const toRatio = (v: number) => clamp01((v - props.min) / span.value)
 
@@ -140,7 +137,7 @@ function paint() {
     toRatio(hi.value),
     variant.value,
     tickRatios.value,
-    matrix.value
+    matrix.value,
   )
 }
 
@@ -205,8 +202,20 @@ function onKeydown(which: 0 | 1, event: KeyboardEvent) {
 const thumbs = computed(() => {
   const list: { which: 0 | 1; value: number; min: number; max: number; name: string }[] = []
   if (isRange.value) {
-    list.push({ which: 0, value: lo.value, min: props.min, max: hi.value, name: props.label ? `${props.label} minimum` : "Minimum" })
-    list.push({ which: 1, value: hi.value, min: lo.value, max: props.max, name: props.label ? `${props.label} maximum` : "Maximum" })
+    list.push({
+      which: 0,
+      value: lo.value,
+      min: props.min,
+      max: hi.value,
+      name: props.label ? `${props.label} minimum` : "Minimum",
+    })
+    list.push({
+      which: 1,
+      value: hi.value,
+      min: lo.value,
+      max: props.max,
+      name: props.label ? `${props.label} maximum` : "Maximum",
+    })
   } else {
     list.push({ which: 1, value: hi.value, min: props.min, max: props.max, name: props.label ?? "" })
   }
@@ -223,10 +232,7 @@ onMounted(() => {
     }
   })
 })
-watch(
-  () => [props.modelValue, color.value, props.min, props.max, variant.value, props.ticks, matrix.value],
-  paint
-)
+watch(() => [props.modelValue, color.value, props.min, props.max, variant.value, props.ticks, matrix.value], paint)
 onBeforeUnmount(() => ro?.disconnect())
 </script>
 
@@ -237,7 +243,7 @@ onBeforeUnmount(() => ro?.disconnect())
       cn(
         'relative h-4 w-full touch-none select-none',
         props.disabled ? 'pointer-events-none opacity-40' : 'cursor-pointer',
-        props.class
+        props.class,
       )
     "
     @pointerdown="onPointerDown"

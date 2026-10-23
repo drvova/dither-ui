@@ -3,10 +3,7 @@ import { cn } from "./lib"
 
 /** A real `<label>` — pairs with controls through the `for` attr (or by
  * nesting), which is the whole point over a styled span. */
-const props = withDefaults(
-  defineProps<{ required?: boolean; class?: string }>(),
-  { required: false },
-)
+const props = withDefaults(defineProps<{ required?: boolean; class?: string }>(), { required: false })
 </script>
 
 <template>

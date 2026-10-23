@@ -7,7 +7,7 @@ const props = withDefaults(
     intensity?: number
     class?: string
   }>(),
-  { text: "FUZZY", intensity: 4 }
+  { text: "FUZZY", intensity: 4 },
 )
 
 const uid = `dither-fuzz-${Math.floor(Math.random() * 1e9)}`
@@ -27,7 +27,13 @@ const uid = `dither-fuzz-${Math.floor(Math.random() * 1e9)}`
               repeatCount="indefinite"
             />
           </feTurbulence>
-          <feDisplacementMap in="SourceGraphic" in2="n" :scale="props.intensity" xChannelSelector="R" yChannelSelector="G" />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="n"
+            :scale="props.intensity"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
         </filter>
       </defs>
     </svg>

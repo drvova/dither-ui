@@ -7,17 +7,14 @@ const props = withDefaults(
     tickCount?: number
     tickMargin?: number
   }>(),
-  { tickCount: 4, tickMargin: 8 }
+  { tickCount: 4, tickMargin: 8 },
 )
 
 const ctx = useChartPart("YAxis")
 </script>
 
 <template>
-  <g
-    v-if="ctx.ready"
-    class="fill-current font-mono text-[10px] text-muted-foreground"
-  >
+  <g v-if="ctx.ready" class="fill-current font-mono text-[10px] text-muted-foreground">
     <text
       v-for="t in ctx.y.ticks(tickCount)"
       :key="t"

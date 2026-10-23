@@ -10,7 +10,7 @@ const props = withDefaults(
     radius?: number
     class?: string
   }>(),
-  { text: "Move the cursor across this line to feel the weight shift", radius: 120 }
+  { text: "Move the cursor across this line to feel the weight shift", radius: 120 },
 )
 
 // Per-character weight ramps with pointer distance — no scale, so nothing
@@ -68,19 +68,17 @@ useInviewLoop(root, start, stop)
 
 <template>
   <span ref="root" :class="cn('inline', props.class)" :aria-label="props.text">
-    <span
-      v-for="(ch, i) in chars"
-      :key="i"
-      aria-hidden="true"
-      class="dither-proximity-char"
-      style="opacity: 0.55"
-    >{{ ch === " " ? "\u00a0" : ch }}</span>
+    <span v-for="(ch, i) in chars" :key="i" aria-hidden="true" class="dither-proximity-char" style="opacity: 0.55">{{
+      ch === " " ? "\u00a0" : ch
+    }}</span>
   </span>
 </template>
 
 <style scoped>
 .dither-proximity-char {
   white-space: pre;
-  transition: font-weight 120ms linear, opacity 120ms linear;
+  transition:
+    font-weight 120ms linear,
+    opacity 120ms linear;
 }
 </style>

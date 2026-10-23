@@ -1,10 +1,10 @@
-import { GROUPS, SECTIONS, type DocsGroup } from "./groups"
+import { GROUPS, SECTIONS, type DocsGroup } from "./groups.ts"
 
 // Per-section search metadata for the docs deep links (`/docs/<id>`). The docs
 // render client-side from one HTML entry, so Google's JS renderer is what sees
 // the actual page — this module keeps the `<title>`, canonical, description,
 // and breadcrumb structured data in sync with the section in view. It is also
-// the source for the build-time sitemap (see vite.config.ts).
+// the source for the build-time sitemap (see rstack.config.ts).
 export const SITE_URL = "https://dither-ui.com"
 
 const SITE_OVERVIEW = "dither-ui — a Vue 3 UI toolkit on one ordered-dither canvas engine."

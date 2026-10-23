@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { beforeEach, describe, expect, it } from "rstack/test"
 import { editor } from "@/entities/editor"
 import { directedTime, isDirected, release } from "../dither-kit/clock"
 import {
@@ -27,7 +27,11 @@ describe("studio agent protocol", () => {
   })
 
   it("adds registry components with sanitized props", () => {
-    const r = runCommand({ type: "component.add", is: "DitherSlider", props: { max: 9999, step: "x", disabled: true, bogus: 1 } })
+    const r = runCommand({
+      type: "component.add",
+      is: "DitherSlider",
+      props: { max: 9999, step: "x", disabled: true, bogus: 1 },
+    })
     expect(r.ok).toBe(true)
     const a = editor.artboards[0]
     expect(a.widget?.kind).toBe("component")
@@ -66,7 +70,13 @@ describe("studio agent protocol", () => {
       type: "chart.add",
       chart: "bar",
       name: "Signups",
-      data: { labels: ["Q1", "Q2", "Q3"], series: [{ key: "web", values: [10, 20, 30] }, { key: "app", label: "App", color: "pink", values: [5, "x", 9] }] },
+      data: {
+        labels: ["Q1", "Q2", "Q3"],
+        series: [
+          { key: "web", values: [10, 20, 30] },
+          { key: "app", label: "App", color: "pink", values: [5, "x", 9] },
+        ],
+      },
     })
     expect(r.ok).toBe(true)
     const a = editor.artboards[0]
@@ -76,10 +86,20 @@ describe("studio agent protocol", () => {
       { month: "Q2", web: 20, app: 0 },
       { month: "Q3", web: 30, app: 9 },
     ])
-    expect(a.chart.series.map((s) => [s.key, s.label, s.color])).toEqual([["web", "web", "blue"], ["app", "App", "pink"]])
-    const pie = runCommand({ type: "chart.add", chart: "pie", data: { labels: ["a", "b"], series: [{ key: "whatever", values: [3, 7] }] } })
+    expect(a.chart.series.map((s) => [s.key, s.label, s.color])).toEqual([
+      ["web", "web", "blue"],
+      ["app", "App", "pink"],
+    ])
+    const pie = runCommand({
+      type: "chart.add",
+      chart: "pie",
+      data: { labels: ["a", "b"], series: [{ key: "whatever", values: [3, 7] }] },
+    })
     expect(pie.ok).toBe(true)
-    expect(editor.artboards[1].chart.rows).toEqual([{ name: "a", value: 3 }, { name: "b", value: 7 }])
+    expect(editor.artboards[1].chart.rows).toEqual([
+      { name: "a", value: 3 },
+      { name: "b", value: 7 },
+    ])
   })
 
   it("updates, lists, codes, evolves and removes frames", () => {
@@ -125,7 +145,10 @@ describe("studio agent protocol", () => {
 
   it("replaces the document through the import validation path", () => {
     expect(runCommand({ type: "document.set", document: { artboards: [] } }).ok).toBe(false)
-    const r = runCommand({ type: "document.set", document: { artboards: [{ name: "Imported", chart: { type: "radar" } }, "junk"] } })
+    const r = runCommand({
+      type: "document.set",
+      document: { artboards: [{ name: "Imported", chart: { type: "radar" } }, "junk"] },
+    })
     expect(r.ok).toBe(true)
     expect(editor.artboards).toHaveLength(1)
     expect(editor.artboards[0].chart.type).toBe("radar")
@@ -147,9 +170,15 @@ describe("studio agent protocol", () => {
     const uninstall = installStudioAgentApi()
     expect(window.ditherStudio?.version).toBe(1)
     const result = new Promise<Record<string, unknown>>((resolve) => {
-      document.addEventListener(RESULT_EVENT, (e) => resolve(JSON.parse((e as CustomEvent).detail as string)), { once: true })
+      document.addEventListener(RESULT_EVENT, (e) => resolve(JSON.parse((e as CustomEvent).detail as string)), {
+        once: true,
+      })
     })
-    document.dispatchEvent(new CustomEvent(COMMAND_EVENT, { detail: JSON.stringify({ id: "r1", command: { type: "component.add", is: "DitherSwitch" } }) }))
+    document.dispatchEvent(
+      new CustomEvent(COMMAND_EVENT, {
+        detail: JSON.stringify({ id: "r1", command: { type: "component.add", is: "DitherSwitch" } }),
+      }),
+    )
     const got = await result
     expect(got.id).toBe("r1")
     expect(got.ok).toBe(true)
@@ -160,7 +189,9 @@ describe("studio agent protocol", () => {
     expect(JSON.parse(mirror.textContent || "{}").artboards).toHaveLength(1)
     // Malformed detail answers with an error instead of throwing.
     const bad = new Promise<Record<string, unknown>>((resolve) => {
-      document.addEventListener(RESULT_EVENT, (e) => resolve(JSON.parse((e as CustomEvent).detail as string)), { once: true })
+      document.addEventListener(RESULT_EVENT, (e) => resolve(JSON.parse((e as CustomEvent).detail as string)), {
+        once: true,
+      })
     })
     document.dispatchEvent(new CustomEvent(COMMAND_EVENT, { detail: "{not json" }))
     expect((await bad).ok).toBe(false)
@@ -178,7 +209,13 @@ describe("video.export", () => {
     const r = runCommand({ type: "video.export", seconds: 3, fps: 60, theme: "light" })
     expect(r.ok).toBe(true)
     if (!r.ok) return
-    const d = r.data as { file: string; index: string; assets: { path: string; url: string }[]; render: string; options: { seconds: number } }
+    const d = r.data as {
+      file: string
+      index: string
+      assets: { path: string; url: string }[]
+      render: string
+      options: { seconds: number }
+    }
     expect(d.file).toBe("hero-badge.hyperframes.html")
     expect(d.options.seconds).toBe(3)
     expect(d.index).toContain('data-composition-id="dither-hero-badge"')
@@ -193,7 +230,10 @@ describe("video.export", () => {
 
 describe("clock commands", () => {
   it("hold and free the kit clock for any driver, from the protocol and the window API", () => {
-    expect(runCommand({ type: "clock.seek", seconds: 1.5 })).toEqual({ ok: true, data: { directed: true, seconds: 1.5 } })
+    expect(runCommand({ type: "clock.seek", seconds: 1.5 })).toEqual({
+      ok: true,
+      data: { directed: true, seconds: 1.5 },
+    })
     expect(isDirected()).toBe(true)
     expect(directedTime()).toBe(1500)
     expect(runCommand({ type: "clock.seek", seconds: -1 }).ok).toBe(false)

@@ -4,7 +4,7 @@ import { editor } from "@/entities/editor"
 export function startDrag(
   e: PointerEvent,
   onDelta: (dx: number, dy: number, ev: PointerEvent) => void,
-  onEnd?: () => void
+  onEnd?: () => void,
 ): () => void {
   e.preventDefault()
   e.stopPropagation()
@@ -15,7 +15,11 @@ export function startDrag(
   let py = e.clientY
   let active = true
 
-  try { target?.setPointerCapture?.(pointerId) } catch { /* detached/synthetic pointers use window listeners */ }
+  try {
+    target?.setPointerCapture?.(pointerId)
+  } catch {
+    /* detached/synthetic pointers use window listeners */
+  }
   const move = (ev: PointerEvent) => {
     if (ev.pointerId !== pointerId) return
     onDelta((ev.clientX - px) / z, (ev.clientY - py) / z, ev)
@@ -31,7 +35,11 @@ export function startDrag(
     window.removeEventListener("pointermove", move)
     window.removeEventListener("pointerup", end)
     window.removeEventListener("pointercancel", end)
-    try { if (target?.hasPointerCapture?.(pointerId)) target.releasePointerCapture(pointerId) } catch { /* capture already gone */ }
+    try {
+      if (target?.hasPointerCapture?.(pointerId)) target.releasePointerCapture(pointerId)
+    } catch {
+      /* capture already gone */
+    }
     onEnd?.()
   }
   window.addEventListener("pointermove", move)
