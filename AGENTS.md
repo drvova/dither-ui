@@ -91,8 +91,10 @@ Default section order:
   checking stays on `vue-tsc`. The config file loads under Node's own
   TypeScript, so a module it imports at runtime (`utility-map.ts`,
   `crawler-files.ts` and its graph: `groups.ts`, `seo.ts`, the `*-nav.ts`
-  packs) writes relative imports WITH `.ts`. `svelte-site/` runs the same
-  CLI with its own `rstack.config.ts`.
+  packs) writes relative imports WITH `.ts`. The web build also serves both
+  kits' own source at `kit/src/<vue|svelte>/` with a `files.json` listing
+  (`kitSources`) — what the docs' source panel shows, runs and zips.
+  `svelte-site/` runs the same CLI with its own `rstack.config.ts`.
 - Aliases: `@` → `src/`, `@dither-kit` → `dither-kit/` (rstack.config.ts +
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
@@ -263,7 +265,11 @@ Default section order:
   tables, variant galleries) while keeping the dither skin; every preview
   carries Kobra's workbench and more (Inspect: the inspect and annotate
   tool tray, captures, comments copied for an agent — see
-  `src/widgets/workbench/AGENTS.md`). Docs previews are real product
+  `src/widgets/workbench/AGENTS.md`) and its Code tab is Kobra's source
+  panel (the example, the kit files behind it, the tokens and a
+  `prompt.md` as tabs; edit, Run in the page, download as a zip — see
+  `src/widgets/source/AGENTS.md`); Kobra's interface sounds play on the
+  docs, switched off from the header. Docs previews are real product
   surfaces: build real, working tools on them, never mock-ups.
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
@@ -287,3 +293,5 @@ Default section order:
   contracts, a11y floor
   - `src/pages/AGENTS.md` — landing/docs/studio page conventions
   - `src/widgets/workbench/AGENTS.md` — the docs previews' workbench
+  - `src/widgets/source/AGENTS.md` — the docs previews' source files and
+    Run

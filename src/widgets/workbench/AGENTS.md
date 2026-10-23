@@ -96,6 +96,10 @@ live preview — a real tool, never a mock.
   300 ms; the loupe redraws at 20 fps while visible.
 - The kit clock control (Motion) is page-wide and says so; unmounting a
   workbench releases a clock it held.
+- Sounds (`shared/lib/sound.ts`, Kobra's cues): a tool or group switch and
+  undo/redo tap, toggles sound on/off, copies (colours, CSS, selectors,
+  the image, the agent feedback) chime, settings and the minimized tray
+  fold/unfold; Settings carries the site's interface-sounds switch.
 
 ## Verification
 

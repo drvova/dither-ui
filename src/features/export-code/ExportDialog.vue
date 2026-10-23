@@ -5,6 +5,7 @@ import { chartCode } from "@/entities/chart"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { widgetCode } from "@/entities/widget"
 import { copyText, DitherFocusScope } from "@dither-kit"
+import { download } from "@/shared/lib/files"
 import { restyle, setStyling, styling, STYLINGS } from "@/shared/lib/restyle"
 import { CodeBlock, Segmented } from "@/shared/ui"
 
@@ -48,13 +49,7 @@ const fileName = (a: Artboard) => `${a.name.replace(/[^\w-]+/g, "-").toLowerCase
  * accepts the download burst as one user gesture). */
 async function downloadAll() {
   for (const a of editor.artboards) {
-    const blob = new Blob([codeFor(a)], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = fileName(a)
-    link.click()
-    URL.revokeObjectURL(url)
+    download(new Blob([codeFor(a)], { type: "text/plain" }), fileName(a))
     await new Promise((r) => setTimeout(r, 120))
   }
 }

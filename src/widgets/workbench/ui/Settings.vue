@@ -3,6 +3,8 @@
 // colours, the copy format, layout bands, snapping, measurements, keeping
 // annotations, how stills are taken; restore the defaults; clear this
 // preview's annotations.
+import { computed } from "vue"
+import { sounds } from "@/shared/lib/sound"
 import { useBench } from "../context"
 import { COLOR_FORMATS } from "../model/color"
 import { canShareTab } from "../model/capture"
@@ -23,6 +25,8 @@ const TOGGLES: { key: "layout" | "snap" | "multiMeasure" | "persist"; label: str
   { key: "persist", label: "keep annotations across visits" },
 ]
 const setColor = (key: "highlight" | "guide" | "annotate", s: Swatch) => (b.settings[key] = s)
+// The site's interface-sounds switch (the docs header has it too).
+const soundsOn = computed({ get: () => sounds.value, set: (on: boolean) => (sounds.value = on) })
 </script>
 
 <template>
@@ -66,6 +70,10 @@ const setColor = (key: "highlight" | "guide" | "annotate", s: Swatch) => (b.sett
     <label v-for="t in TOGGLES" :key="t.key" class="check">
       <input v-model="b.settings[t.key]" type="checkbox" />
       {{ t.label }}
+    </label>
+    <label class="check">
+      <input v-model="soundsOn" type="checkbox" />
+      interface sounds (the whole site)
     </label>
     <div class="row">
       <span class="label">stills</span>

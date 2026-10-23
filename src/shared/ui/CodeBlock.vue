@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { copyText } from "@dither-kit"
+import { play } from "@/shared/lib/sound"
 
 const props = defineProps<{ code: string }>()
 const copied = ref(false)
 async function copy() {
   copied.value = await copyText(props.code)
+  if (copied.value) play("copy")
   if (copied.value)
     setTimeout(() => {
       copied.value = false

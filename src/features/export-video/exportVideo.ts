@@ -5,6 +5,7 @@ import type { Artboard } from "@/entities/artboard"
 import { editor } from "@/entities/editor"
 import { reelDuration } from "@/features/reel"
 import { assetPath, routePath, toBase64Url } from "@/shared/lib"
+import { download } from "@/shared/lib/files"
 import { compositionHtml, DEFAULT_VIDEO, normalizeVideoOptions, slugOf, type VideoOptions } from "./composition"
 
 export const videoFileName = (a: Artboard): string => `${slugOf(a.name)}.hyperframes.html`
@@ -67,13 +68,7 @@ export async function selfContainedComposition(a: Artboard, o: VideoOptions): Pr
 }
 
 export async function downloadComposition(a: Artboard, o: VideoOptions): Promise<string> {
-  const html = await selfContainedComposition(a, o)
-  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }))
-  const link = document.createElement("a")
-  link.href = url
-  link.download = videoFileName(a)
-  link.click()
-  URL.revokeObjectURL(url)
+  download(new Blob([await selfContainedComposition(a, o)], { type: "text/html" }), videoFileName(a))
   return videoFileName(a)
 }
 

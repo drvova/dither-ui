@@ -6,11 +6,12 @@
 // DOM only to read the preview and to measure its own overlay.
 import { reactive, ref, shallowRef, watch } from "vue"
 import { copyText, isDirected, release } from "@dither-kit"
+import { download } from "@/shared/lib/files"
+import { play } from "@/shared/lib/sound"
 import {
   canRecord,
   canShareTab,
   durationOf,
-  download,
   grabRegion,
   recordRegion,
   renderRegion,
@@ -138,6 +139,9 @@ export function createBench(o: BenchOptions) {
   const toggles = reactive<Record<ToggleId, boolean>>({ rulers: true, responsive: false, motion: false })
   const panel = ref<"settings" | null>(null)
   const minimized = ref(false)
+  // A panel or the tray folding open or shut has its own sound, from every
+  // path (the tray, a key, Escape, a close button).
+  watch([panel, minimized], ([p, m], [wasP, wasM]) => play((p && !wasP) || (wasM && !m) ? "unfold" : "fold"))
   const status = ref("")
   let statusTimer = 0
   function say(message: string) {
@@ -167,6 +171,7 @@ export function createBench(o: BenchOptions) {
   function undo() {
     const prev = history.undo(ws.value)
     if (!prev) return say("Nothing to undo")
+    play("tap")
     ws.value = prev
     selection.value = []
     revision.value++
@@ -175,6 +180,7 @@ export function createBench(o: BenchOptions) {
   function redo() {
     const next = history.redo(ws.value)
     if (!next) return say("Nothing to redo")
+    play("tap")
     ws.value = next
     selection.value = []
     revision.value++
@@ -362,6 +368,7 @@ export function createBench(o: BenchOptions) {
 
   function setTool(id: ToolId | null) {
     const next = tool.value === id ? null : id
+    if (next !== tool.value) play("tap")
     tool.value = next
     if (next) group.value = toolById(next).group
     draft.value = null
@@ -373,12 +380,14 @@ export function createBench(o: BenchOptions) {
   }
 
   function setGroup(g: 1 | 2) {
+    if (g !== group.value) play("tap")
     group.value = g
     if (tool.value && toolById(tool.value).group !== g) setTool(null)
   }
 
   function toggle(id: ToggleId) {
     toggles[id] = !toggles[id]
+    play(toggles[id] ? "on" : "off")
     say(`${TOGGLES.find((t) => t.id === id)!.label} ${toggles[id] ? "on" : "off"}`)
   }
 
@@ -791,7 +800,9 @@ export function createBench(o: BenchOptions) {
   async function addSample(c: RGBA) {
     samples.value = [c, ...samples.value.filter((s) => !same(s, c))].slice(0, 8)
     const text = formatColor(c, settings.format)
-    say((await copyText(text)) ? `Copied ${text}` : text)
+    const ok = await copyText(text)
+    if (ok) play("copy")
+    say(ok ? `Copied ${text}` : text)
   }
 
   async function eyeDropper(): Promise<boolean> {
@@ -920,7 +931,9 @@ export function createBench(o: BenchOptions) {
       stage: size.value,
       theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
     })
-    say((await copyText(md)) ? "Copied the feedback for an agent" : "Copy failed")
+    const ok = await copyText(md)
+    if (ok) play("copy")
+    say(ok ? "Copied the feedback for an agent" : "Copy failed")
   }
 
   // --- pointer -----------------------------------------------------------------

@@ -10,7 +10,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
 - `widgets/` — the docs previews' `workbench` (inspect, measure,
-  annotate, capture; see `widgets/workbench/AGENTS.md`) and the studio
+  annotate, capture; see `widgets/workbench/AGENTS.md`) and `source` (the
+  preview's files, edited and run in the page; see
+  `widgets/source/AGENTS.md`) and the studio
   panels: toolbar, layer-tree, inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock), data-editor, agent (the composer / harness control plane).
@@ -25,6 +27,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   truth), chart, widget, artboard.
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
   ContextMenu, ...), config (CHART_TYPES), lib (theme, routes, base64, menu,
+  `sound.ts` — Kobra's interface sounds as WebAudio voices behind one
+  remembered switch (`sounds`, localStorage `dither-sounds`) — `files.ts` —
+  `download()` and a stored .zip of text files, the ONE download path for
+  the Studio's exports, the workbench and the source panel —
   `restyle.ts` — a snippet in the reader's styling system — and the
   node-side `utility-map.ts` that compiles its vocabulary).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
@@ -318,3 +324,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `widgets/workbench/AGENTS.md` — the docs previews' workbench: tools and
   keys, the stage coordinate system, the pointer surface, keyboard scope,
   the sanitized per-preview workspace, captures, the agent hand-off
+- `widgets/source/AGENTS.md` — the docs previews' source files: the
+  example, the kit's own files, tokens and prompt as tabs; edit, Run in
+  the page (compiler-sfc, types stripped, linked to the page's Vue and the
+  kit), download as a zip

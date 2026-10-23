@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { CodeBlock } from "@/shared/ui"
+import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue"
 import { routePath } from "@/shared/lib"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
+import { play } from "@/shared/lib/sound"
+import type { RunResult, SourceContext } from "@/widgets/source"
+import { INSTALL } from "./install"
 import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 
-// The workbench loads on first use: the page's ~300 cards share one chunk
-// that only a reader who inspects pays for.
+// The workbench and the source panel load on first use: the page's ~300
+// cards share their chunks, which only a reader who inspects or opens the
+// code pays for.
 const Workbench = defineAsyncComponent(() => import("@/widgets/workbench").then((m) => m.Workbench))
+const SourcePanel = defineAsyncComponent(() => import("@/widgets/source").then((m) => m.SourcePanel))
+const RunView = defineAsyncComponent(() => import("@/widgets/source").then((m) => m.RunView))
 
 const props = defineProps<{ code: string }>()
 const tab = ref<"preview" | "code">("preview")
@@ -42,46 +47,106 @@ onMounted(() => {
   )
   io.observe(host.value)
 })
-onBeforeUnmount(() => io?.disconnect())
+
+// Where this card sits — its section, its place among the section's cards,
+// the section's title and line — names its saved workspace, its files and
+// the brief an agent receives.
+const where = ref<SourceContext>({ section: "", n: 1, title: "", description: "", url: "", install: INSTALL })
+
+function locate() {
+  if (!root.value) return
+  const section = root.value.closest("section[id]")
+  const id = section?.id ?? "docs"
+  const cards = section ? [...section.querySelectorAll("[data-demo-card]")] : [root.value]
+  const n = cards.indexOf(root.value) + 1
+  const name = section?.querySelector("h2")?.textContent?.trim() || id
+  const line = [...(section?.querySelectorAll("p") ?? [])].find((p) => !p.closest("[data-demo-card]"))
+  where.value = {
+    section: id,
+    n,
+    title: `${name}${cards.length > 1 ? ` · preview ${n}` : ""}`,
+    description: line?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+    url: `${location.origin}${routePath(`/docs/${id}`)}`,
+    install: INSTALL,
+  }
+}
+
+function show(next: "preview" | "code") {
+  if (next === tab.value) return
+  play("tap")
+  tab.value = next
+}
 
 // The workbench (Inspect): Kobra's component inspector and its tray of
-// tools over this preview — see widgets/workbench. Where this card sits
-// (its section, its place among the section's cards) names its saved
-// workspace and the feedback an agent receives.
+// tools over this preview — see widgets/workbench.
 const inspecting = ref(false)
-const where = ref({ section: "", key: "", title: "", url: "" })
 
 function inspect(on: boolean) {
-  if (on && root.value) {
-    const section = root.value.closest("section[id]")
-    const id = section?.id ?? "docs"
-    const cards = section ? [...section.querySelectorAll("[data-demo-card]")] : [root.value]
-    const n = cards.indexOf(root.value) + 1
-    const name = section?.querySelector("h2")?.textContent?.trim() || id
-    where.value = {
-      section: id,
-      key: `${id}:${n}`,
-      title: `${name}${cards.length > 1 ? ` · preview ${n}` : ""} (dither-ui docs)`,
-      url: `${location.origin}${routePath(`/docs/${id}`)}`,
-    }
-  }
+  if (on) locate()
+  play(on ? "on" : "off")
   inspecting.value = on
 }
 
 function exit() {
+  play("off")
   inspecting.value = false
   nextTick(() => toggle.value?.focus())
 }
 
-watch(tab, (t) => t === "code" && (inspecting.value = false))
+// The source (Code): the example and the kit files behind it as tabs —
+// see widgets/source. The panel mounts on first open and then stays, so
+// edits survive a trip to the Preview tab.
+const opened = ref(false)
+watch(tab, (t) => {
+  if (t !== "code") return
+  inspecting.value = false
+  if (!opened.value) locate()
+  opened.value = true
+})
 
-// The reader's framework and styling system, from one Vue snippet.
-const shownCode = computed(() => docsCode(props.code))
+// A run replaces the demo with the compiled files until it is restored; the
+// frame then shows in both tabs, above the source like Kobra's.
+const ran = shallowRef<RunResult | null>(null)
+const runs = ref(0)
+let sheet: HTMLStyleElement | null = null
+
+function onRun(result: RunResult) {
+  sheet?.remove()
+  sheet = null
+  if (result.css) {
+    sheet = document.createElement("style")
+    sheet.dataset.run = where.value.section
+    sheet.textContent = result.css
+    document.head.append(sheet)
+  }
+  ran.value = result
+  runs.value++
+}
+
+function restore() {
+  play("tap")
+  sheet?.remove()
+  sheet = null
+  ran.value = null
+}
+
+onBeforeUnmount(() => {
+  io?.disconnect()
+  sheet?.remove()
+})
+
+const renderRun = () => (ran.value ? [h(RunView, { component: ran.value.component, key: runs.value })] : [])
+const runAttrs = computed(() => (ran.value ? { [ran.value.attribute]: "" } : {}))
 
 const chipClass = (active: boolean) =>
   active
     ? "rounded border border-border/60 px-2 py-0.5 text-foreground"
     : "rounded border border-transparent px-2 py-0.5 text-muted-foreground hover:text-foreground"
+
+function chip(apply: () => void, already: boolean) {
+  if (!already) play("tap")
+  apply()
+}
 </script>
 
 <template>
@@ -98,7 +163,7 @@ const chipClass = (active: boolean) =>
               ? 'border-foreground text-foreground'
               : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'
           "
-          @click="tab = 'preview'"
+          @click="show('preview')"
         >
           Preview
         </button>
@@ -112,7 +177,7 @@ const chipClass = (active: boolean) =>
               ? 'border-foreground text-foreground'
               : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'
           "
-          @click="tab = 'code'"
+          @click="show('code')"
         >
           Code
         </button>
@@ -122,14 +187,14 @@ const chipClass = (active: boolean) =>
           <button
             :aria-pressed="docsFramework === 'vue'"
             :class="chipClass(docsFramework === 'vue')"
-            @click="setDocsFramework('vue')"
+            @click="chip(() => setDocsFramework('vue'), docsFramework === 'vue')"
           >
             Vue
           </button>
           <button
             :aria-pressed="docsFramework === 'svelte'"
             :class="chipClass(docsFramework === 'svelte')"
-            @click="setDocsFramework('svelte')"
+            @click="chip(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
           >
             Svelte
           </button>
@@ -142,7 +207,7 @@ const chipClass = (active: boolean) =>
             :key="s"
             :aria-pressed="docsStyling === s"
             :class="chipClass(docsStyling === s)"
-            @click="setStyling(s)"
+            @click="chip(() => setStyling(s), docsStyling === s)"
           >
             {{ STYLING_LABELS[s] }}
           </button>
@@ -165,9 +230,20 @@ const chipClass = (active: boolean) =>
         </button>
       </div>
     </div>
+    <div v-if="ran" class="mt-3 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
+      <span class="micro">Running your files</span>
+      <button
+        type="button"
+        class="flex min-h-6 items-center rounded border border-border/60 px-2 text-foreground"
+        @click="restore"
+      >
+        Restore the demo
+      </button>
+    </div>
     <div
-      v-show="tab === 'preview'"
+      v-show="tab === 'preview' || ran"
       ref="host"
+      v-bind="runAttrs"
       class="relative mt-3 flex min-h-[280px] items-center justify-center rounded-lg border border-border/60 p-8 sm:p-10"
       :class="{ 'data-[tray=bottom]:pb-16 data-[tray=top]:pt-16': inspecting }"
       :tabindex="inspecting ? 0 : undefined"
@@ -175,7 +251,8 @@ const chipClass = (active: boolean) =>
       :aria-label="inspecting ? 'Preview, with the workbench' : undefined"
     >
       <div ref="content" class="w-full">
-        <slot v-if="revealed" />
+        <RunView v-if="ran" :key="runs" :component="ran.component" />
+        <slot v-else-if="revealed" />
         <!-- Quiet frame while the demo waits for its turn: a fast flick can
              outrun the observer, and an empty bordered box reads as broken. -->
         <div
@@ -192,18 +269,25 @@ const chipClass = (active: boolean) =>
       :host="host"
       :content="content"
       :card="root"
-      :bench-key="where.key"
+      :bench-key="`${where.section}:${where.n}`"
       :section="where.section"
-      :title="where.title"
+      :title="`${where.title} (dither-ui docs)`"
       :url="where.url"
-      :render="$slots.default"
+      :render="ran ? renderRun : $slots.default"
       @exit="exit"
     />
-    <!-- Highlighted code mounts only when its tab is first opened: under the
-         old v-show, every one of the page's ~150 hidden CodeBlocks ran at
-         initial mount. -->
-    <div v-show="tab === 'code'" class="mt-3">
-      <CodeBlock v-if="tab === 'code'" :code="shownCode" />
+    <!-- The source mounts when its tab is first opened (under the old v-show
+         every one of the page's ~150 hidden code blocks rendered at initial
+         mount) and stays, so edits survive the Preview tab. -->
+    <div v-if="opened" v-show="tab === 'code'" class="mt-3">
+      <SourcePanel
+        :code="props.code"
+        :translate="docsCode"
+        :flavor="docsFramework"
+        :styling="docsStyling"
+        :context="where"
+        @run="onRun"
+      />
     </div>
   </div>
 </template>

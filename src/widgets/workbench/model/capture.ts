@@ -327,15 +327,6 @@ export async function durationOf(video: HTMLVideoElement): Promise<number> {
   return Number.isFinite(d) ? d : 0
 }
 
-export function download(blob: Blob, name: string): void {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = name
-  a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
-
 /** Put a PNG on the clipboard; false where the browser will not. */
 export async function copyImage(blob: Blob): Promise<boolean> {
   try {

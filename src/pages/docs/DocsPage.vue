@@ -36,8 +36,10 @@ import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import DemoCard from "./DemoCard.vue"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
+import { play, sounds } from "@/shared/lib/sound"
 import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 import { GROUPS } from "./groups"
+import { INSTALL } from "./install"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
 import PrimitivesDocs from "./primitives/PrimitivesDocs.vue"
@@ -527,6 +529,20 @@ function searchGo(id: string) {
 
 /* Theme: dark by default, remembered, revealed as a circle from the toggle. */
 const { dark, revealToggle } = useTheme()
+function flipTheme(e: MouseEvent) {
+  play("theme")
+  revealToggle(e)
+}
+/* Interface sounds (Kobra's): taps, switches, copies — the reader's switch. */
+function flipSounds() {
+  sounds.value = !sounds.value
+  if (sounds.value) play("on")
+}
+/* A header toggle taps only when it changes something. */
+function choose(apply: () => void, already: boolean) {
+  if (!already) play("tap")
+  apply()
+}
 /* The search hint names the modifier the visitor actually has. */
 const searchKbd = typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? "⌘K" : "Ctrl K"
 
@@ -589,30 +605,8 @@ const effectData = MONTHS.map((month, i) => ({
 const effectConfig = { v: { label: "signal", color: "blue" as DitherColor } }
 
 const SNIPPETS = {
-  install: `# 1 — copy the kit folder straight from the repo (degit grabs just the folder)
-npx degit drvova/dither-ui/dither-kit src/dither-kit
-
-# 2 — install the four runtime deps (Vue & Tailwind you already have)
-npm i d3-scale d3-shape clsx tailwind-merge
-
-# 3 — alias @dither-kit so imports stay clean
-#     vite.config.ts → resolve.alias: { "@dither-kit": "/src/dither-kit" }
-#     tsconfig.json  → paths:        { "@dither-kit": ["./src/dither-kit"] }
-
-# 4 — use it
-import { AreaChart, Area, DitherButton } from "@dither-kit"`,
-  installSvelte: `# 1 — copy the kit folder straight from the repo (degit grabs just the folder)
-npx degit drvova/dither-ui/dither-kit-svelte src/dither-kit-svelte
-
-# 2 — install the four runtime deps (Svelte 5 & Tailwind you already have)
-npm i d3-scale d3-shape clsx tailwind-merge
-
-# 3 — alias @dither-kit-svelte so imports stay clean
-#     vite.config.ts → resolve.alias: { "@dither-kit-svelte": "/src/dither-kit-svelte" }
-#     tsconfig.json  → paths:        { "@dither-kit-svelte": ["./src/dither-kit-svelte"] }
-
-# 4 — use it
-import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
+  install: INSTALL.vue,
+  installSvelte: INSTALL.svelte,
   seeds: `<!-- one integer is a complete visual personality: -->
 <AreaChart :data="rows" :config="config" :seed="1984">
   <Area data-key="revenue" :variant="1984" />   <!-- texture  -->
@@ -730,7 +724,7 @@ const config = {
   expenses: { label: "Expenses", color: "purple" },
 }
 
-<AreaChart :data="rows" :config="config" stack-type="stacked">
+<AreaChart class="h-64" :data="rows" :config="config" stack-type="stacked">
   <Grid horizontal />
   <XAxis data-key="month" :max-ticks="6" />
   <YAxis :tick-count="4" />
@@ -739,7 +733,7 @@ const config = {
   <Legend align="right" />
   <Tooltip label-key="month" />
 </AreaChart>`,
-  line: `<LineChart :data="rows" :config="config">
+  line: `<LineChart class="h-64" :data="rows" :config="config">
   <Grid horizontal />
   <XAxis data-key="month" :max-ticks="6" />
   <Line data-key="revenue">
@@ -749,7 +743,7 @@ const config = {
   <Legend align="right" />
   <Tooltip label-key="month" />
 </LineChart>`,
-  bar: `<BarChart :data="trafficRows" :config="trafficConfig">
+  bar: `<BarChart class="h-64" :data="trafficRows" :config="trafficConfig">
   <Grid horizontal />
   <XAxis data-key="month" />
   <YAxis :tick-count="4" />
@@ -758,12 +752,12 @@ const config = {
   <Legend align="right" />
   <Tooltip label-key="month" />
 </BarChart>`,
-  pie: `<PieChart :data="pieRows" :config="pieConfig"
+  pie: `<PieChart class="h-64" :data="pieRows" :config="pieConfig"
   data-key="value" name-key="name" :inner-radius="0.55">
   <Pie variant="gradient" is-clickable />
   <Legend align="center" />
 </PieChart>`,
-  radar: `<RadarChart :data="radarRows" :config="radarConfig" name-key="axis">
+  radar: `<RadarChart class="h-72" :data="radarRows" :config="radarConfig" name-key="axis">
   <Radar data-key="current" />
   <Radar data-key="previous" />
   <Legend align="center" />
@@ -903,7 +897,7 @@ const gradientCode = computed(
                   ? 'border-border/60 text-foreground'
                   : 'border-transparent hover:text-foreground'
               "
-              @click="setDocsFramework('vue')"
+              @click="choose(() => setDocsFramework('vue'), docsFramework === 'vue')"
             >
               vue
             </button>
@@ -916,7 +910,7 @@ const gradientCode = computed(
                   ? 'border-border/60 text-foreground'
                   : 'border-transparent hover:text-foreground'
               "
-              @click="setDocsFramework('svelte')"
+              @click="choose(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
             >
               svelte
             </button>
@@ -931,7 +925,7 @@ const gradientCode = computed(
               :class="
                 docsStyling === s ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'
               "
-              @click="setStyling(s)"
+              @click="choose(() => setStyling(s), docsStyling === s)"
             >
               {{ STYLING_LABELS[s].toLowerCase() }}
             </button>
@@ -948,8 +942,26 @@ const gradientCode = computed(
           <button
             type="button"
             class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
+            aria-label="Interface sounds"
+            :aria-pressed="sounds"
+            :title="`Interface sounds: ${sounds ? 'on' : 'off'}`"
+            @click="flipSounds"
+          >
+            <svg viewBox="0 0 16 16" class="size-4" fill="none" stroke="currentColor" aria-hidden="true">
+              <path d="M2.5 6.25h2.25L8 3.5v9L4.75 9.75H2.5z" stroke-linejoin="round" />
+              <path
+                v-if="sounds"
+                d="M10.5 6a2.75 2.75 0 0 1 0 4M12.25 4.25a5.25 5.25 0 0 1 0 7.5"
+                stroke-linecap="round"
+              />
+              <path v-else d="m10.75 6.25 3.5 3.5m0-3.5-3.5 3.5" stroke-linecap="round" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
             :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
-            @click="revealToggle($event)"
+            @click="flipTheme"
           >
             <span aria-hidden="true">{{ dark ? "☀" : "◐" }}</span>
           </button>

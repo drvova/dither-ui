@@ -2,7 +2,7 @@
 // (Rsbuild: `rs dev`, `rs build`, `rs preview`), the tests (Rstest:
 // `rs test`), the lint (Rslint: `rs lint`) and the formatter (`rs fmt`).
 // Guide: https://rstack.rs/guide/configuration
-import { resolve } from "node:path"
+import { resolve, sep } from "node:path"
 import { define } from "rstack"
 import type { RsbuildPlugin } from "rstack/app"
 
@@ -42,6 +42,34 @@ function crawlFiles(): RsbuildPlugin {
   }
 }
 
+/* The kits' own source, served beside the site for the docs' source panel:
+   every .vue/.svelte/.ts/.css file of both kits at `kit/src/<vue|svelte>/`
+   plus a `files.json` listing them — what a reader reads, edits, runs and
+   downloads is the file in this repo, never a copy kept by hand. */
+function kitSources(): RsbuildPlugin {
+  const KITS = { vue: "dither-kit", svelte: "dither-kit-svelte" }
+  return {
+    name: "kit-sources",
+    setup(api) {
+      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
+        const { readdir, readFile } = await import("node:fs/promises")
+        for (const [flavor, dir] of Object.entries(KITS)) {
+          const files = (await readdir(at(dir), { recursive: true }))
+            .map((f) => f.split(sep).join("/"))
+            .filter((f) => /\.(vue|svelte|ts|css)$/.test(f) && !f.startsWith("node_modules/"))
+            .sort()
+          for (const f of files)
+            compilation.emitAsset(
+              `kit/src/${flavor}/${f}`,
+              new sources.RawSource(await readFile(at(`${dir}/${f}`), "utf8")),
+            )
+          compilation.emitAsset(`kit/src/${flavor}/files.json`, new sources.RawSource(JSON.stringify(files)))
+        }
+      })
+    },
+  }
+}
+
 define.app(async () => {
   const [{ pluginVue }, { pluginTailwindcss }, { utilityMap }] = await Promise.all([
     import("@rsbuild/plugin-vue"),
@@ -49,7 +77,7 @@ define.app(async () => {
     import("./src/shared/lib/utility-map.ts"),
   ])
   return {
-    plugins: [pluginVue(), pluginTailwindcss(), utilityMap(root), crawlFiles()],
+    plugins: [pluginVue(), pluginTailwindcss(), utilityMap(root), crawlFiles(), kitSources()],
     resolve: { alias: { "@": at("src"), "@dither-kit": at("dither-kit") } },
     server: {
       // `/` on dither-ui.com (public/CNAME); BASE_PATH=/dither-ui/ only for
@@ -67,6 +95,10 @@ define.app(async () => {
     environments: {
       web: {
         source: { entry: Object.fromEntries(Object.entries(PAGES).map(([name, page]) => [name, `./${page.main}`])) },
+        // compiler-sfc's browser build (the docs' Run, a lazy chunk) keeps
+        // `require` hooks for Sass/Less/Stylus that Run never calls — it
+        // compiles plain CSS only.
+        tools: { rspack: { ignoreWarnings: [{ module: /@vue[\\/]compiler-sfc/, message: /Critical dependency/ }] } },
       },
       /* The player as ONE classic script + one stylesheet. A HyperFrames
          composition exported by the Studio must render with no network at

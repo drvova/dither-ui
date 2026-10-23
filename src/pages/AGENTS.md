@@ -69,7 +69,8 @@ widgets/features; page-specific conventions live here.
   change that moves one fails until the page says it.
 - Install (`InstallBlock.vue`, under the stage) mirrors the docs install
   story: its four steps (degit folder + npm/pnpm/bun deps) must stay in
-  sync with `docs/DocsPage.vue` `SNIPPETS.install`. One hairline bar: the
+  sync with `docs/install.ts` `INSTALL` (the landing never imports the
+  docs). One hairline bar: the
   `.seg` step picker · the command in mono with the ember `$` · a hairline
   Copy through `DitherClipboard` (jolt, a 1px seal, label roll); the
   steps under it are separated by `›`; the glint is a one-shot IO → CSS
@@ -320,13 +321,14 @@ widgets/features; page-specific conventions live here.
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 + optional
   "open in studio →") → muted description → `DemoCard` (Preview/Code tabs,
-  Inspect → the workbench) →
+  Inspect → the workbench, Code → the source panel) →
   optional picker gallery (micro-label + grid) → `PropsTable`.
 - DemoCard is the page's perf seam: its preview `<slot>` mounts only as the
   card approaches the viewport (IO, 600px rootMargin) and LATCHES — once
   revealed it stays, so demo interaction state never resets on scroll; the
   Code tab mounts `CodeBlock` on first open (`v-if` — under the old `v-show`
-  every hidden code block highlighted at initial mount). Section text,
+  every hidden code block highlighted at initial mount; the panel then
+  stays mounted under `v-show`, so edits survive the Preview tab). Section text,
   standalone Handbook CodeBlocks and PropsTables render eagerly, and the
   preview frame keeps `min-h-[280px]` so the box exists from first paint and
   below-fold growth never shifts visible content. Without IO (jsdom) the
@@ -339,6 +341,19 @@ widgets/features; page-specific conventions live here.
   among the section's cards); while inspecting the frame takes a bottom
   lane for the tray (`pb-16`) and `role="group"` + tabindex; the Code tab
   closes it, and its exit returns focus to the chip.
+- Code: the source panel (`widgets/source`, lazy) — the example as a
+  complete file, the kit files it imports, `theme.css` and `prompt.md`,
+  editable, copied, zipped and run. The card hands it the authored
+  snippet, `docsCode`, the framework, the styling system and where it sits
+  (section, place, the section's h2 and first line, its URL, `INSTALL`). A
+  run replaces the demo in the frame (shown above the source while it
+  runs, with "Restore the demo"), carries its CSS in one `<style>` per card
+  and its tokens on the frame (`data-run-*`); the workbench inspects a run
+  like the demo.
+- Interface sounds (`shared/lib/sound.ts`): the header's "Interface sounds"
+  toggle (`aria-pressed`, remembered) beside the theme toggle (which plays
+  its own chord); the Preview/Code tabs, the framework and styling chips
+  (only when they change something), Inspect on/off and copies sound.
 - Galleries and chip rows are PICKERS, not decoration: `aria-pressed`
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs
@@ -360,7 +375,10 @@ widgets/features; page-specific conventions live here.
   `docsStyling` shows CSS in its place). Every DemoCard code tab and
   Handbook `fw()` block goes through it, so a snippet idiom the translator
   mangles gets a rule in `restyle.ts` + a `tests/restyle.spec.ts` case.
-- `SNIPPETS`/computed code must match what the demo renders; API tables
+- `SNIPPETS`/computed code must match what the demo renders — it now
+  RUNS in the source panel, so a snippet that leaves out what the demo
+  has (a chart's height: the chart snippets carry `class="h-64"`) renders
+  differently there; API tables
   mirror actual kit prop defaults — update both when the kit API changes.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.

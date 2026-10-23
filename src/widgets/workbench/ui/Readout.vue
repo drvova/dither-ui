@@ -8,7 +8,9 @@ import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { copyText } from "@dither-kit"
 import { GIF } from "../bench"
 import { useBench } from "../context"
-import { copyImage, download, MAX_SECONDS, videoTypes } from "../model/capture"
+import { download } from "@/shared/lib/files"
+import { play } from "@/shared/lib/sound"
+import { copyImage, MAX_SECONDS, videoTypes } from "../model/capture"
 import { COLOR_FORMATS, formatColor, grade } from "../model/color"
 import { cssOf, selectorOf } from "../model/measure"
 import { SWATCHES, swatch } from "../model/settings"
@@ -18,7 +20,11 @@ import Icon from "./Icon.vue"
 
 const b = useBench()
 const tool = computed(() => (b.tool.value ? toolById(b.tool.value) : null))
-const copy = async (text: string, what: string) => b.say((await copyText(text)) ? `Copied ${what}` : "Copy failed")
+async function copy(text: string, what: string) {
+  const ok = await copyText(text)
+  if (ok) play("copy")
+  b.say(ok ? `Copied ${what}` : "Copy failed")
+}
 
 // --- inspect ---------------------------------------------------------------
 const target = () => b.pinned.value ?? b.hovered.value
@@ -117,7 +123,9 @@ function saveShot() {
 async function copyShot() {
   const c = b.capture.value
   if (c?.kind !== "shot") return
-  b.say((await copyImage(c.blob)) ? "Copied the image" : "This browser cannot copy images — download it instead")
+  const ok = await copyImage(c.blob)
+  if (ok) play("copy")
+  b.say(ok ? "Copied the image" : "This browser cannot copy images — download it instead")
 }
 </script>
 

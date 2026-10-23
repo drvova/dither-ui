@@ -2,6 +2,7 @@ import { reactive, watch, type WatchHandle } from "vue"
 import { createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { editor, placeArtboard, selectArtboard } from "@/entities/editor"
 import { resetHistory } from "@/features/history"
+import { download } from "@/shared/lib/files"
 
 /**
  * Per-visitor project workspace. Every browser owns its own project list in
@@ -231,19 +232,13 @@ export const activeProjectName = (): string =>
 
 /** Download the active project as a .json file. */
 export function exportDocument(): void {
-  const blob = new Blob([JSON.stringify(snapshotDoc(), null, 2)], {
-    type: "application/json",
-  })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = `${
-    activeProjectName()
-      .replace(/[^\w-]+/g, "-")
-      .toLowerCase() || "project"
-  }.json`
-  a.click()
-  URL.revokeObjectURL(url)
+  const name = activeProjectName()
+    .replace(/[^\w-]+/g, "-")
+    .toLowerCase()
+  download(
+    new Blob([JSON.stringify(snapshotDoc(), null, 2)], { type: "application/json" }),
+    `${name || "project"}.json`,
+  )
 }
 
 /** A detached copy of the active document (what Save to file writes). */
