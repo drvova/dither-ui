@@ -23,7 +23,7 @@ const rounds = reactive<BracketMatch[][]>([
     { a: "Bayer", b: "Ordered" },
     { a: "Halftone", b: "Threshold" },
   ],
-  [{ a: "—", b: "—" }],
+  [{ a: "TBD", b: "TBD" }],
 ])
 function pick(r: number, m: number, side: "a" | "b") {
   const match = rounds[r][m]
@@ -37,7 +37,7 @@ function pick(r: number, m: number, side: "a" | "b") {
 }
 function resetBracket() {
   rounds[0].forEach((m) => delete m.winner)
-  rounds[1][0] = { a: "—", b: "—" }
+  rounds[1][0] = { a: "TBD", b: "TBD" }
 }
 
 const scheduleNow = ref(13.5)
@@ -94,120 +94,120 @@ const shaderMono = ref(false)
 
 const API: Record<string, PropRow[]> = {
   video: [
-    { prop: "src", type: "string — no src renders an honest empty face", default: "undefined" },
+    { prop: "src", type: "string: no src renders an honest empty face", default: "undefined" },
     { prop: "poster", type: "string", default: "undefined" },
-    { prop: "label", type: "string — accessible name", default: '"Video"' },
-    { prop: "color", type: "PixelColor — scrubber and volume hue", default: '"blue"' },
-    { prop: "keyboard", type: "Space/K play · ←→ seek 5s · ↑↓ volume · M mute · F fullscreen", default: "—" },
+    { prop: "label", type: "string: accessible name", default: '"Video"' },
+    { prop: "color", type: "PixelColor: scrubber and volume hue", default: '"blue"' },
+    { prop: "keyboard", type: "Space/K play, ←→ seek 5s, ↑↓ volume, M mute, F fullscreen", default: "" },
   ],
   bracket: [
-    { prop: "rounds", type: "{ a, b, winner? }[][] — columns left to right", default: "required" },
-    { prop: "color", type: "PixelColor — winner accent", default: '"green"' },
-    { prop: "interactive", type: "boolean — click a side to pick", default: "false" },
-    { prop: "@pick", type: "(round, match, side) — consumer advances the data", default: "—" },
+    { prop: "rounds", type: "{ a, b, winner? }[][]: columns left to right", default: "required" },
+    { prop: "color", type: "PixelColor: winner accent", default: '"green"' },
+    { prop: "interactive", type: "boolean: click a side to pick", default: "false" },
+    { prop: "@pick", type: "(round, match, side): consumer advances the data", default: "" },
   ],
   schedule: [
-    { prop: "events", type: "{ start, end, label, color? }[] — fractional hours", default: "required" },
-    { prop: "from / to", type: "number — day window", default: "8 / 18" },
-    { prop: "now", type: "number — draws the now line; omit to hide", default: "undefined" },
+    { prop: "events", type: "{ start, end, label, color? }[]: fractional hours", default: "required" },
+    { prop: "from / to", type: "number: day window", default: "8 / 18" },
+    { prop: "now", type: "number: draws the now line; omit to hide", default: "undefined" },
   ],
   world: [
     {
       prop: "src",
-      type: "string — URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply or .off",
+      type: "string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply or .off",
       default: "undefined",
     },
-    { prop: "source", type: "string — inline model text; wins over src", default: "undefined" },
+    { prop: "source", type: "string: inline model text; wins over src", default: "undefined" },
     { prop: "format", type: '"auto" | "vrml" | "x3d" | "gltf" | "obj" | "stl" | "ply" | "off"', default: '"auto"' },
-    { prop: "up", type: '"auto" | "y" | "z" — the file\'s up axis (STL defaults to z)', default: '"auto"' },
+    { prop: "up", type: '"auto" | "y" | "z": the file\'s up axis (STL defaults to z)', default: '"auto"' },
     {
       prop: "engine",
-      type: '"auto" | "cpu" | "gpu" — the CPU engine is byte-exact everywhere, the GPU (WebGL) engine rasterizes big meshes; auto picks the GPU above ~40k triangles',
+      type: '"auto" | "cpu" | "gpu": the CPU engine is byte-exact everywhere, the GPU (WebGL) engine rasterizes big meshes; auto picks the GPU above ~40k triangles',
       default: '"auto"',
     },
-    { prop: "color", type: "PixelColor — the dither fill", default: '"blue"' },
+    { prop: "color", type: "PixelColor: the dither fill", default: '"blue"' },
     {
       prop: "colors",
-      type: "PixelColor[] — a toon ramp, dark to light; lighting picks the band, the Bayer cell dithers between bands",
+      type: "PixelColor[]: a toon ramp, dark to light; lighting picks the band, the Bayer cell dithers between bands",
       default: "undefined",
     },
-    { prop: "dither", type: "number — ramp mode: 0 smooth → 1 banded", default: "1" },
+    { prop: "dither", type: "number: ramp mode, 0 smooth → 1 banded", default: "1" },
     {
       prop: "material",
-      type: "boolean — the file's own colours (materials, face and vertex colours)",
+      type: "boolean: the file's own colours (materials, face and vertex colours)",
       default: "false",
     },
-    { prop: "wire", type: "boolean — polygon outlines, hidden lines removed", default: "false" },
+    { prop: "wire", type: "boolean: polygon outlines, hidden lines removed", default: "false" },
     {
       prop: "shader",
-      type: "string — a GLSL material over the finished target: mainMaterial(out vec4, in vec2) reads dk_shade · dk_depth · dk_covered · dk_color per cell and returns rgb + the shade the Bayer cell thresholds (WebGL)",
+      type: "string: a GLSL material over the finished target. mainMaterial(out vec4, in vec2) reads dk_shade, dk_depth, dk_covered and dk_color per cell and returns rgb + the shade the Bayer cell thresholds (WebGL)",
       default: "undefined",
     },
     {
       prop: "channels",
-      type: "ChannelInput[] — kit surfaces (pulled at the same clock time), canvases, images or videos; the first is the model's skin through its texture coordinates, a shader reads them as iChannel0..3 at dk_uv(p)",
+      type: "ChannelInput[]: kit surfaces (pulled at the same clock time), canvases, images or videos; the first is the model's skin through its texture coordinates, a shader reads them as iChannel0..3 at dk_uv(p)",
       default: "undefined",
     },
     {
       prop: "grain / grainScale",
-      type: "number — fbm grain over the model's own space, and its frequency",
+      type: "number: fbm grain over the model's own space, and its frequency",
       default: "0 / 4",
     },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | config | seed — the glow layer', default: '"off"' },
+    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | config | seed: the glow layer', default: '"off"' },
     {
       prop: "animate / time",
-      type: "boolean / number — play the file's animations (VRML ROUTEs, glTF) on the clock, or pin a moment",
+      type: "boolean / number: play the file's animations (VRML ROUTEs, glTF) on the clock, or pin a moment",
       default: "true / undefined",
     },
-    { prop: "seed", type: "number — dither matrix, grain + the sample world", default: "undefined" },
-    { prop: "cell", type: "number — backing cell in CSS px", default: "3" },
-    { prop: "autoRotate", type: "number — degrees per second, 0 holds", default: "12" },
+    { prop: "seed", type: "number: dither matrix, grain + the sample world", default: "undefined" },
+    { prop: "cell", type: "number: backing cell in CSS px", default: "3" },
+    { prop: "autoRotate", type: "number: degrees per second, 0 holds", default: "12" },
     {
       prop: "yaw / pitch / zoom",
-      type: "number — the pose; unset, the file's Viewpoint decides",
+      type: "number: the pose; unset, the file's Viewpoint decides",
       default: "30 / 20 / 1",
     },
-    { prop: "fov", type: "number — vertical field of view, degrees", default: "40" },
-    { prop: "shade", type: "number — alpha of unlit cells inside the silhouette", default: "0.18" },
-    { prop: "fog", type: "number — depth fade of the lighting", default: "0.3" },
-    { prop: "interactive", type: "boolean — drag or arrow keys orbit", default: "true" },
-    { prop: "label", type: "string — accessible name", default: '"3D model"' },
-    { prop: "frameRate", type: "number — stop-motion cadence in fps (0 = smooth)", default: "0" },
+    { prop: "fov", type: "number: vertical field of view, degrees", default: "40" },
+    { prop: "shade", type: "number: alpha of unlit cells inside the silhouette", default: "0.18" },
+    { prop: "fog", type: "number: depth fade of the lighting", default: "0.3" },
+    { prop: "interactive", type: "boolean: drag or arrow keys orbit", default: "true" },
+    { prop: "label", type: "string: accessible name", default: '"3D model"' },
+    { prop: "frameRate", type: "number: stop-motion cadence in fps (0 = smooth)", default: "0" },
     { prop: "paused / renderMode", type: 'boolean / "live" | "static"', default: 'false / "live"' },
   ],
   shader: [
-    { prop: "src", type: "string — URL of a .frag / .glsl file", default: "undefined" },
+    { prop: "src", type: "string: URL of a .frag / .glsl file", default: "undefined" },
     {
       prop: "source",
-      type: "string — inline GLSL: Shadertoy mainImage or a raw main; wins over src",
+      type: "string: inline GLSL (Shadertoy mainImage or a raw main); wins over src",
       default: "undefined",
     },
     {
       prop: "channels",
-      type: "(surface | component | canvas | image | video)[] — bound as iChannel0..3; a kit surface is pulled at the same clock time, so the graph seeks and renders as one",
+      type: "(surface | component | canvas | image | video)[]: bound as iChannel0..3; a kit surface is pulled at the same clock time, so the graph seeks and renders as one",
       default: "undefined",
     },
     {
       prop: "uniforms",
-      type: "iResolution · iTime · iTimeDelta · iFrame · iMouse · iDate · iColor · iSeed · iChannel0..3 · iChannelResolution, plus time/resolution/mouse and u_time/u_resolution/u_mouse; dk_bayer4(fragCoord) is the kit's Bayer threshold",
-      default: "—",
+      type: "iResolution, iTime, iTimeDelta, iFrame, iMouse, iDate, iColor, iSeed, iChannel0..3 and iChannelResolution, plus time/resolution/mouse and u_time/u_resolution/u_mouse; dk_bayer4(fragCoord) is the kit's Bayer threshold",
+      default: "",
     },
-    { prop: "color", type: "PixelColor — the mono tint and iColor", default: '"blue"' },
+    { prop: "color", type: "PixelColor: the mono tint and iColor", default: '"blue"' },
     {
       prop: "colors",
-      type: "PixelColor[] — a palette ramp: luminance picks the band, the Bayer cell dithers between bands",
+      type: "PixelColor[]: a palette ramp; luminance picks the band, the Bayer cell dithers between bands",
       default: "undefined",
     },
-    { prop: "mono", type: "boolean — 1-bit luminance in color instead of the shader's colours", default: "false" },
-    { prop: "dither", type: "number — 0 smooth → 1 fully quantized", default: "1" },
-    { prop: "levels", type: "number — colour levels per channel (2 = eight colours)", default: "2" },
-    { prop: "shade", type: "number — mono: alpha floor of unlit cells", default: "0" },
-    { prop: "speed", type: "number — multiplies iTime", default: "1" },
-    { prop: "seed", type: "number — dither matrix + the sample shader", default: "undefined" },
-    { prop: "cell", type: "number — backing cell in CSS px; the shader runs at this resolution", default: "3" },
-    { prop: "interactive", type: "boolean — the pointer feeds iMouse", default: "true" },
-    { prop: "label", type: "string — accessible name", default: '"Shader"' },
-    { prop: "frameRate", type: "number — stop-motion cadence in fps (0 = smooth)", default: "0" },
+    { prop: "mono", type: "boolean: 1-bit luminance in color instead of the shader's colours", default: "false" },
+    { prop: "dither", type: "number: 0 smooth → 1 fully quantized", default: "1" },
+    { prop: "levels", type: "number: colour levels per channel (2 = eight colours)", default: "2" },
+    { prop: "shade", type: "number: in mono, the alpha floor of unlit cells", default: "0" },
+    { prop: "speed", type: "number: multiplies iTime", default: "1" },
+    { prop: "seed", type: "number: dither matrix + the sample shader", default: "undefined" },
+    { prop: "cell", type: "number: backing cell in CSS px; the shader runs at this resolution", default: "3" },
+    { prop: "interactive", type: "boolean: the pointer feeds iMouse", default: "true" },
+    { prop: "label", type: "string: accessible name", default: '"Shader"' },
+    { prop: "frameRate", type: "number: stop-motion cadence in fps (0 = smooth)", default: "0" },
     { prop: "paused / renderMode", type: 'boolean / "live" | "static"', default: 'false / "live"' },
   ],
 }
@@ -290,7 +290,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="video-player" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Video player</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A native video under dither chrome — play, a dithered scrubber that really seeks, a volume slider, playback speed,
+      A native video under dither chrome: play, a dithered scrubber that really seeks, a volume slider, playback speed,
       mute, fullscreen, and player keyboard (Space, arrows, M, F). Without a source it shows an honest empty face
       instead of a broken box.
     </p>
@@ -306,7 +306,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="bracket" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Bracket</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A knockout bracket — winners carry the accent, losers strike through, connector rails bridge the rounds. This one
+      A knockout bracket: winners carry the accent, losers strike through, connector rails bridge the rounds. This one
       is interactive: pick every winner and the final fills itself.
     </p>
     <DemoCard :code="SNIPPET_BRACKET">
@@ -328,8 +328,8 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="schedule" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Schedule</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A day timeline — events sit proportionally on the hour rail, each with its swatch rail, and the red now line
-      slides as the day moves. Drag the hour to move time.
+      A day timeline: events sit proportionally on the hour rail, each with its swatch rail, and the red now line slides
+      as the day moves. Drag the hour to move time.
     </p>
     <DemoCard :code="SNIPPET_SCHEDULE">
       <div class="mx-auto max-w-md">
@@ -369,8 +369,8 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
     <h2 class="text-lg tracking-tight">World (3D)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D, glTF / GLB, OBJ with its MTL, STL, PLY and
-      OFF, by URL or inline, orbited by a camera and drawn through the Bayer engine — on the CPU by default, or by a
-      WebGL engine for big meshes, into the same dither. Files bring their own materials, face colours, lights,
+      OFF, by URL or inline, orbited by a camera and drawn through the Bayer engine (on the CPU by default, or by a
+      WebGL engine for big meshes) into the same dither. Files bring their own materials, face colours, lights,
       viewpoint and animations: this sample's arms revolve and its antenna bobs by its own TimeSensor and ROUTEs, on the
       kit clock. The shade can run through the kit's other engines too: a palette ramp, fbm grain, bloom, or your own
       GLSL material over the finished target (ink from depth edges here). Any kit surface is a texture: bound as a
@@ -440,7 +440,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
     <h2 class="text-lg tracking-tight">Shader (GLSL)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A fragment shader in the house raster: Shadertoy-style mainImage or a raw main, by URL or inline, run on the GPU
-      at the cell resolution and ordered-dithered on the way back — one bit per channel for the eight-colour look, or
+      at the cell resolution and ordered-dithered on the way back: one bit per channel for the eight-colour look, or
       luminance in a single tint. iTime follows the kit clock, so it seeks and renders to video like everything else,
       and the pointer feeds iMouse. Surfaces chain: any kit surface can be bound as iChannel0..3, pulled at the same
       clock time, so a background, a chart or a world can be post-processed by a shader and the whole graph still seeks

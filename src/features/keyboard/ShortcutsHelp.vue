@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DitherFocusScope } from "@dither-kit"
+import { DitherFocusScope, DitherIcon } from "@dither-kit"
 import { onBeforeUnmount, onMounted, ref } from "vue"
 
 const open = ref(false)
@@ -78,12 +78,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, true))
             aria-label="Close"
             @click="open = false"
           >
-            ×
+            <DitherIcon name="Close" :size="14" :stroke-width="1.5" />
           </button>
         </div>
         <div class="mt-4 grid gap-5">
           <div v-for="g in GROUPS" :key="g.title">
-            <div class="text-[10px] uppercase tracking-wider text-muted-foreground">{{ g.title }}</div>
+            <div class="text-[11.5px] font-medium text-muted-foreground">{{ g.title }}</div>
             <dl class="mt-2 grid gap-1.5">
               <div v-for="[k, label] in g.keys" :key="k" class="flex items-center justify-between text-xs">
                 <dt class="text-muted-foreground">{{ label }}</dt>

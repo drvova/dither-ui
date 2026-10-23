@@ -265,8 +265,11 @@ Default section order:
   the user picked (design.how's `build-design-system` taste file, reviews
   by its `ui-review` criteria): no uppercase labels, no eyebrow over a
   title, no middle dots or em dashes, no link ending in an arrow. The
-  landing has them now; the docs and the Studio chrome (still micro-caps)
-  follow in a later pass. No space on a page is left empty. Icons do the
+  landing, the docs and the Studio all follow them: headings, buttons and
+  actions in sentence case; field labels and option values may keep the
+  lowercase tool voice, never uppercase; a kit component's own designed
+  look (its default strings, its label styles) is the product and stays.
+  No space on a page is left empty. Icons do the
   work of labels where they can, with attention to detail: kit glyphs
   (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
   (npm, pnpm, Bun, Node, Vue, Svelte, GitHub, each coding agent) from

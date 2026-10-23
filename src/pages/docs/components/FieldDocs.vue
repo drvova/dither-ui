@@ -146,30 +146,30 @@ const API: Record<string, PropRow[]> = {
   input: [
     { prop: "modelValue", type: "string", default: '""' },
     { prop: "type", type: "string", default: '"text"' },
-    { prop: "placeholder", type: "string", default: "—" },
+    { prop: "placeholder", type: "string", default: "" },
     { prop: "disabled / readonly / invalid", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   textarea: [
     { prop: "modelValue", type: "string", default: '""' },
-    { prop: "placeholder", type: "string", default: "—" },
+    { prop: "placeholder", type: "string", default: "" },
     { prop: "rows", type: "number", default: "4" },
     { prop: "resize", type: '"none" | "vertical" | "horizontal" | "both"', default: '"vertical"' },
     { prop: "disabled / readonly / invalid", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   field: [
-    { prop: "label", type: "string", default: "—" },
-    { prop: "description", type: "string", default: "—" },
-    { prop: "error", type: "string", default: "—" },
-    { prop: "for", type: "string", default: "—" },
+    { prop: "label", type: "string", default: "" },
+    { prop: "description", type: "string", default: "" },
+    { prop: "error", type: "string", default: "" },
+    { prop: "for", type: "string", default: "" },
   ],
-  fieldset: [{ prop: "legend", type: "string", default: "—" }],
+  fieldset: [{ prop: "legend", type: "string", default: "" }],
   form: [],
   numberField: [
-    { prop: "modelValue", type: "number", default: "—" },
-    { prop: "min", type: "number", default: "—" },
-    { prop: "max", type: "number", default: "—" },
+    { prop: "modelValue", type: "number", default: "" },
+    { prop: "min", type: "number", default: "" },
+    { prop: "max", type: "number", default: "" },
     { prop: "step", type: "number", default: "1" },
     { prop: "disabled", type: "boolean", default: "false" },
   ],
@@ -184,7 +184,7 @@ const API: Record<string, PropRow[]> = {
   <section id="input" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Input</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A monospace text input on the token border stack — the border warms to the accent on focus, and
+      A monospace text input on the token border stack: the border warms to the accent on focus, and
       <code class="text-foreground/80">invalid</code> swaps it for the red seed with
       <code class="text-foreground/80">aria-invalid</code>.
     </p>
@@ -216,7 +216,7 @@ const API: Record<string, PropRow[]> = {
   <section id="field" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Label, control, and one line of small print — the
+      Label, control, and one line of small print. The
       <code class="text-foreground/80">error</code> replaces the description and drops a red pixel marker in front of
       the text.
     </p>
@@ -236,7 +236,7 @@ const API: Record<string, PropRow[]> = {
   <section id="fieldset" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Fieldset</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Groups related fields inside a bordered box with a tracking-spaced legend — native
+      Groups related fields inside a bordered box with a tracking-spaced legend. Native
       <code class="text-foreground/80">&lt;fieldset&gt;</code>
       semantics, kit skin.
     </p>
@@ -281,7 +281,7 @@ const API: Record<string, PropRow[]> = {
   <section id="number-field" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Number Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Stepper buttons around a spinbutton input — arrow keys step, typed values clamp and snap to the step on blur, and
+      Stepper buttons around a spinbutton input: arrow keys step, typed values clamp and snap to the step on blur, and
       the buttons disable at the bounds.
     </p>
     <DemoCard :code="SNIPPET_NUMBER">
@@ -296,7 +296,7 @@ const API: Record<string, PropRow[]> = {
   <section id="otp-field" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">OTP Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      One box per digit with auto-advancing focus — Backspace on an empty box steps back, and pasting a full code
+      One box per digit with auto-advancing focus. Backspace on an empty box steps back, and pasting a full code
       distributes it across the boxes.
       <code class="text-foreground/80">complete</code> fires once every box is filled.
     </p>

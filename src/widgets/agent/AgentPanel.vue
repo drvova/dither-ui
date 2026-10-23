@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { copyText } from "@dither-kit"
+import { copyText, DitherIcon } from "@dither-kit"
 import { editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
 import { type AcpClient, type AcpPermissionRequest, type BridgeHello, connectAcp } from "@/features/agent/acp"
@@ -30,6 +30,16 @@ import { isMark } from "@/shared/ui/marks"
 // harness's own), follow-ups queued while it works, Esc to stop. Nothing
 // here is a key or a model setting.
 const emit = defineEmits<{ close: [] }>()
+// The composer's keys, each its own item under the status line.
+const HINTS = [
+  ["↵", "send"],
+  ["⇧↵", "newline"],
+  ["/", "commands"],
+  ["↑", "history"],
+  ["⌥↑", "unqueue"],
+  ["^o", "tools"],
+  ["esc", "stop"],
+] as const
 
 /* ------------------------------ configuration ----------------------------- */
 
@@ -154,7 +164,7 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
     })
     acp.value = client
     nameIt()
-    if (client.agent) system(`connected · ${client.agent}`)
+    if (client.agent) system(`connected to ${client.agent}`)
     return client
   } catch (e) {
     push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
@@ -181,7 +191,7 @@ async function start(choice: string | { command: string }) {
   try {
     await client.start(choice)
     nameIt()
-    system(`connected · ${client.agent}`)
+    system(`connected to ${client.agent}`)
   } catch (e) {
     push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
   }
@@ -227,23 +237,23 @@ const short = (v: unknown, n = 36): string => {
 function describeArgs(name: string, args: Record<string, unknown>): string {
   switch (name) {
     case "add_screen":
-      return `${short(args.name ?? "screen")} · ${Array.isArray(args.rows) ? args.rows.length : 0} rows`
+      return `${short(args.name ?? "screen")}, ${Array.isArray(args.rows) ? args.rows.length : 0} rows`
     case "add_component":
-      return `${short(args.is)}${args.name ? ` · ${short(args.name)}` : ""}`
+      return `${short(args.is)}${args.name ? `, ${short(args.name)}` : ""}`
     case "add_chart": {
       const d = args.data as { labels?: unknown[] } | undefined
-      return `${short(args.chart)}${args.name ? ` · ${short(args.name)}` : ""}${d?.labels ? ` · ${d.labels.length} points` : ""}`
+      return `${short(args.chart)}${args.name ? `, ${short(args.name)}` : ""}${d?.labels ? `, ${d.labels.length} points` : ""}`
     }
     case "add_widget":
       return short(args.widget)
     case "update_artboard":
-      return `${short(args.id, 14)} · ${Object.keys((args.patch as object) ?? {}).join(", ") || "patch"}`
+      return `${short(args.id, 14)}: ${Object.keys((args.patch as object) ?? {}).join(", ") || "patch"}`
     case "evolve":
-      return `×${args.count ?? 4}${args.strength != null ? ` · strength ${args.strength}` : ""}`
+      return `×${args.count ?? 4}${args.strength != null ? `, strength ${args.strength}` : ""}`
     case "get_registry":
       return args.is ? short(args.is) : "all"
     case "export_video":
-      return `${args.seconds ?? 6}s · ${args.fps ?? 30} fps`
+      return `${args.seconds ?? 6}s at ${args.fps ?? 30} fps`
     default:
       return Object.entries(args)
         .filter(([, v]) => v != null)
@@ -259,7 +269,7 @@ function describeResult(result: { ok: true; data: unknown } | { ok: false; error
   if (d && typeof d === "object") {
     if (typeof d.code === "string") return `${d.code.split("\n").length} lines`
     if (typeof d.name === "string")
-      return `${d.name}${typeof d.kind === "string" ? ` · ${d.kind}` : ""}${Array.isArray(d.dropped) && d.dropped.length ? ` · dropped ${d.dropped.join(", ")}` : ""}`
+      return `${d.name}${typeof d.kind === "string" ? ` (${d.kind})` : ""}${Array.isArray(d.dropped) && d.dropped.length ? `, dropped ${d.dropped.join(", ")}` : ""}`
     if (Array.isArray(d.components)) return `${d.components.length} components`
     if (Array.isArray(d.artboards)) return `${d.artboards.length} frames`
     if (typeof d.removed === "string") return "removed"
@@ -445,7 +455,7 @@ async function slash(line: string): Promise<boolean> {
         slashAll.value
           .map(
             (c) =>
-              `/${c.name}${c.args ? ` ${c.args}` : ""} — ${c.desc}${c.harness ? ` (${agentName.value || "harness"})` : ""}`,
+              `/${c.name}${c.args ? ` ${c.args}` : ""}: ${c.desc}${c.harness ? ` (${agentName.value || "harness"})` : ""}`,
           )
           .join("\n"),
       )
@@ -483,7 +493,7 @@ async function slash(line: string): Promise<boolean> {
       return true
     case "evolve": {
       const gen = evolveSelected({ count: Number(arg) || undefined })
-      system(gen.length ? `evolve → ${gen.length} variants` : "select a frame first")
+      system(gen.length ? `evolve made ${gen.length} variants` : "select a frame first")
       return true
     }
     case "select": {
@@ -507,7 +517,16 @@ async function slash(line: string): Promise<boolean> {
     }
     case "session":
       system(
-        `${agentName.value || "no harness"}${mode.value ? ` · ${mode.value}` : ""} · ${fmtTokens(usage.value.input)} in / ${fmtTokens(usage.value.output)} out · ${editor.artboards.length} frames${acp.value?.sessionId ? ` · acp ${acp.value.sessionId}` : ""}${hello.value ? ` · cwd ${hello.value.cwd}` : ""}`,
+        [
+          agentName.value || "no harness",
+          mode.value,
+          `${fmtTokens(usage.value.input)} in / ${fmtTokens(usage.value.output)} out`,
+          `${editor.artboards.length} frames`,
+          acp.value?.sessionId && `acp ${acp.value.sessionId}`,
+          hello.value && `cwd ${hello.value.cwd}`,
+        ]
+          .filter(Boolean)
+          .join(", "),
       )
       return true
     case "undo":
@@ -524,7 +543,7 @@ async function slash(line: string): Promise<boolean> {
     default:
       // The harness's own command goes to it as text.
       if (commands.value.some((c) => c.name === cmd)) return false
-      system(`unknown command /${cmd} — try /help`)
+      system(`unknown command /${cmd}. Try /help.`)
       return true
   }
 }
@@ -672,12 +691,12 @@ onBeforeUnmount(() => {
         class="model"
         :aria-expanded="pickerOpen"
         aria-controls="agent-harness-picker"
-        :title="hello ? `bridge ${config.bridgeUrl} · cwd ${hello.cwd}` : config.bridgeUrl"
+        :title="hello ? `bridge ${config.bridgeUrl}, cwd ${hello.cwd}` : config.bridgeUrl"
         @click="togglePicker"
       >
         <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
         ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" />{{
-          agentName || (acp ? "pick a harness" : "harness")
+          agentName || (acp ? "Pick a harness" : "Harness")
         }}
       </button>
       <button
@@ -698,9 +717,11 @@ onBeforeUnmount(() => {
           title="Bridge settings"
           @click="settingsOpen = !settingsOpen"
         >
-          ⚙
+          <DitherIcon name="Settings" :size="13" :stroke-width="1.5" />
         </button>
-        <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">×</button>
+        <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">
+          <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
+        </button>
       </div>
     </div>
 
@@ -729,17 +750,17 @@ onBeforeUnmount(() => {
             spellcheck="false"
             aria-label="Custom harness command"
           />
-          <button type="submit" class="chip is-primary" :disabled="!customCommand.trim()">start</button>
+          <button type="submit" class="chip is-primary" :disabled="!customCommand.trim()">Start</button>
         </form>
         <button v-if="agent" type="button" class="pick stop-pick" @click="acp?.stop()">
-          <span class="pick-name">stop {{ agent.name }}</span>
+          <span class="pick-name">Stop {{ agent.name }}</span>
         </button>
       </template>
       <p v-else class="note">
         {{ connecting ? "connecting the bridge…" : "No bridge." }} Run it next to your harness, which keeps its own
         login:<br />
         <code>node bridge/dither-bridge.mjs</code><br />then pick Claude Code, Codex, Gemini CLI, oh-my-pi, Goose,
-        OpenCode — or any ACP command.
+        OpenCode, or any ACP command.
       </p>
     </div>
 
@@ -772,8 +793,8 @@ onBeforeUnmount(() => {
           tools; every placement is one undo away.
         </p>
         <p class="dim">
-          try: a sign-in screen with email, password and a primary button<br />/evolve on a selected frame · /help for
-          commands
+          Try a sign-in screen with email, password and a primary button.<br />/evolve on a selected frame, /help for
+          commands.
         </p>
       </div>
       <template v-for="(e, i) in entries" :key="i">
@@ -790,7 +811,7 @@ onBeforeUnmount(() => {
             e.status === "completed" ? "✓" : e.status === "failed" ? "×" : "⚙"
           }}</span>
           <span class="text"
-            >{{ e.title }}<span class="dim"> · {{ e.status.replace("_", " ") }}</span></span
+            >{{ e.title }}<span class="dim"> ({{ e.status.replace("_", " ") }})</span></span
           >
         </div>
         <div v-else-if="e.kind === 'plan'" class="entry" data-kind="plan">
@@ -798,7 +819,7 @@ onBeforeUnmount(() => {
           <ul class="plan">
             <li v-for="(p, j) in e.entries" :key="j" :data-status="p.status">
               <span class="mark" aria-hidden="true">{{
-                p.status === "completed" ? "✓" : p.status === "in_progress" ? "›" : "·"
+                p.status === "completed" ? "✓" : p.status === "in_progress" ? "›" : "○"
               }}</span
               >{{ p.content }}
             </li>
@@ -825,7 +846,7 @@ onBeforeUnmount(() => {
                 {{ o.label }}
               </button>
             </span>
-            <span v-else class="dim"> · {{ e.answered }}</span>
+            <span v-else class="dim"> answered {{ e.answered }}</span>
           </span>
         </div>
         <div v-else class="entry" :data-kind="e.kind">
@@ -838,7 +859,7 @@ onBeforeUnmount(() => {
                   ? "!"
                   : e.kind === "followup"
                     ? "⇢"
-                    : "·"
+                    : "◦"
           }}</span>
           <span class="text">{{ e.text }}<span v-if="live === e" class="caret" aria-hidden="true">▍</span></span>
         </div>
@@ -846,7 +867,7 @@ onBeforeUnmount(() => {
       <div v-if="busy && !live" class="entry working" data-kind="system">
         <span class="mark spin" aria-hidden="true">✻</span>
         <span class="text"
-          >working… {{ fmtMs(elapsed) }}<span v-if="followUps.length"> · {{ followUps.length }} queued</span>
+          >working… {{ fmtMs(elapsed) }}<span v-if="followUps.length">, {{ followUps.length }} queued</span>
           <span class="dim">(esc to stop)</span></span
         >
       </div>
@@ -872,7 +893,7 @@ onBeforeUnmount(() => {
         >
           <span class="slash-name"
             >/{{ c.name }}<span v-if="c.args" class="dim"> {{ c.args }}</span></span
-          ><span class="dim">{{ c.harness ? `${agentName} · ` : "" }}{{ c.desc }}</span>
+          ><span class="dim">{{ c.harness ? `${agentName}: ` : "" }}{{ c.desc }}</span>
         </button>
       </div>
       <div class="line">
@@ -893,21 +914,24 @@ onBeforeUnmount(() => {
           spellcheck="false"
           @keydown="onKey"
         />
-        <button v-if="busy" type="button" class="run stop" title="Stop (esc)" @click="stop">stop</button>
+        <button v-if="busy" type="button" class="run stop" title="Stop (esc)" @click="stop">Stop</button>
         <button v-else type="button" class="run" :disabled="!input.trim()" title="Run (enter)" @click="send()">
-          run
+          Run
         </button>
       </div>
     </div>
 
     <div class="status">
       <span class="dim">{{ agentName || "acp" }}</span>
-      <span class="sep" aria-hidden="true">·</span>
-      <span>{{ fmtTokens(usage.input) }} in · {{ fmtTokens(usage.output) }} out</span>
-      <span v-if="lastTurnMs" class="sep" aria-hidden="true">·</span>
+      <span>{{ fmtTokens(usage.input) }} in</span>
+      <span>{{ fmtTokens(usage.output) }} out</span>
       <span v-if="lastTurnMs" class="dim">last {{ fmtMs(lastTurnMs) }}</span>
       <span v-if="config.auto" class="auto" title="permission prompts answered automatically">auto</span>
-      <span class="hint dim">↵ send · ⇧↵ newline · / commands · ↑ history · ⌥↑ unqueue · ^o tools · esc stop</span>
+      <span class="hint dim">
+        <span v-for="[k, what] in HINTS" :key="what"
+          ><kbd>{{ k }}</kbd> {{ what }}</span
+        >
+      </span>
     </div>
   </div>
 </template>
@@ -1330,21 +1354,25 @@ button.chip:disabled {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px 12px;
   border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
   padding: 5px 12px;
   font-size: 10px;
   color: var(--color-muted-foreground);
-}
-.sep {
-  opacity: 0.5;
 }
 .auto {
   margin-left: auto;
   color: var(--swatch-orange);
 }
 .hint {
+  display: flex;
   flex-basis: 100%;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+.hint kbd {
+  font-family: inherit;
+  color: var(--color-foreground);
 }
 .pick:focus-visible,
 .model:focus-visible,

@@ -185,10 +185,10 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
         <path d="M8 11V7a4 4 0 0 1 8 0v4" />
       </svg>
       <span class="truncate">{{ artboard.name }}</span>
-      <span class="tabular-nums text-muted-foreground/60">
-        <template v-if="interacting">{{ Math.round(artboard.x) }}, {{ Math.round(artboard.y) }} · </template
-        >{{ artboard.w }}×{{ artboard.h }}</span
-      >
+      <span class="flex gap-2 tabular-nums text-muted-foreground/60">
+        <span v-if="interacting">{{ Math.round(artboard.x) }}, {{ Math.round(artboard.y) }}</span>
+        <span>{{ artboard.w }}×{{ artboard.h }}</span>
+      </span>
     </div>
 
     <div

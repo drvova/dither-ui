@@ -4,7 +4,7 @@ import { addRow, addSeries, importCsv, LABEL_KEY, removeRow, renamePieSlice } fr
 import { replay } from "@/entities/editor"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { familyOf } from "@/shared/config"
-import { cssColor } from "@dither-kit"
+import { cssColor, DitherIcon } from "@dither-kit"
 
 const chart = selectedChart
 const isChartFrame = computed(() => !!selectedArtboard.value && !selectedArtboard.value.widget)
@@ -32,7 +32,7 @@ async function onCsvFile(e: Event) {
     class="absolute inset-x-0 bottom-0 z-20 max-h-64 border-t border-border bg-card/95 backdrop-blur"
   >
     <div class="flex h-9 items-center justify-between border-b border-border/60 px-3">
-      <span class="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Data</span>
+      <span class="text-[11.5px] font-medium text-muted-foreground">Data</span>
       <div class="flex items-center gap-1.5">
         <button
           type="button"
@@ -40,7 +40,7 @@ async function onCsvFile(e: Event) {
           class="rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
           @click="csvInput?.click()"
         >
-          import CSV
+          Import CSV
         </button>
         <input ref="csvInput" type="file" accept=".csv,text/csv" name="import-csv" class="hidden" @change="onCsvFile" />
         <button
@@ -64,7 +64,7 @@ async function onCsvFile(e: Event) {
           aria-label="Close data editor"
           @click="editor.dataOpen = false"
         >
-          ×
+          <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
         </button>
       </div>
     </div>
@@ -72,7 +72,7 @@ async function onCsvFile(e: Event) {
     <div class="max-h-[220px] overflow-auto p-2">
       <table class="w-full border-collapse text-xs">
         <thead>
-          <tr class="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <tr class="text-left text-[11px] text-muted-foreground">
             <th class="px-2 py-1 font-medium">{{ labelKey }}</th>
             <template v-if="fam === 'pie'">
               <th class="px-2 py-1 font-medium">value</th>
@@ -130,7 +130,7 @@ async function onCsvFile(e: Event) {
                 :aria-label="`Delete row ${i + 1}`"
                 @click="removeRow(chart, i)"
               >
-                ×
+                <DitherIcon name="Trash" :size="12" :stroke-width="1.5" />
               </button>
             </td>
           </tr>

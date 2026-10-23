@@ -83,7 +83,7 @@ onMounted(() => {
 <template>
   <div v-if="ETHICALADS_PUBLISHER" ref="root" class="ad-slot mt-8">
     <div :data-ea-publisher="ETHICALADS_PUBLISHER" data-ea-type="text" data-ea-style="adbox" />
-    <p class="mt-1.5 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50">ethical ad</p>
+    <p class="mt-1.5 text-[11px] text-muted-foreground">Ethical ad</p>
   </div>
 </template>
 

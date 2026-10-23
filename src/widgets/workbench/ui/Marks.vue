@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
       </template>
       <b class="tl" /><b class="tr" /><b class="bl" /><b class="br" />
       <span class="chip" :class="{ below: chipBelow(target.box), end: chipEnd(target.box) }"
-        >{{ target.label }} · {{ target.box.w }}×{{ target.box.h }}</span
+        >{{ target.label }} {{ target.box.w }}×{{ target.box.h }}</span
       >
     </div>
     <template v-if="target?.reading && b.settings.layout">

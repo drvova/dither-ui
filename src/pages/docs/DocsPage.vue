@@ -9,6 +9,7 @@ import {
   DitherButton,
   DitherCommand,
   DitherGradient,
+  DitherIcon,
   DitherImage,
   Dot,
   Grid,
@@ -28,17 +29,33 @@ import {
   type DitherColor,
   type DotVariant,
   type GradientDirection,
+  type IconName,
   type PixelBloom,
 } from "@dither-kit"
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
 import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
+import ToolMark from "@/shared/ui/ToolMark.vue"
 import DemoCard from "./DemoCard.vue"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
 import { play, sounds } from "@/shared/lib/sound"
 import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 import { GROUPS } from "./groups"
+
+// Each sidebar group under its glyph (the landing's family glyphs).
+const GROUP_ICON: Record<string, IconName> = {
+  Overview: "Home",
+  Primitives: "Box",
+  Typography: "Type",
+  Handbook: "Book",
+  Examples: "Layout",
+  Components: "Grid",
+  Backgrounds: "Image",
+  Text: "Sparkles",
+  Animations: "Pulse",
+  Utils: "Palette",
+}
 import { INSTALL } from "./install"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
@@ -292,7 +309,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "bloom-on-hover", type: "boolean", default: "false" },
     {
       prop: "precompiled",
-      type: "string | { src: string; width?: number; height?: number } — packaged plot URL",
+      type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
       default: "undefined",
     },
     { prop: "default-selected-data-key", type: "string | null", default: "null" },
@@ -326,7 +343,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "bloom-on-hover", type: "boolean", default: "false" },
     {
       prop: "precompiled",
-      type: "string | { src: string; width?: number; height?: number } — packaged plot URL",
+      type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
       default: "undefined",
     },
     { prop: "default-selected-data-key", type: "string | null", default: "null" },
@@ -355,15 +372,15 @@ const API: Record<string, PropRow[]> = {
     { prop: "bloom-on-hover", type: "boolean", default: "false" },
     {
       prop: "precompiled",
-      type: "string | { src: string; width?: number; height?: number } — packaged plot URL",
+      type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
       default: "undefined",
     },
     { prop: "default-selected-data-key", type: "string | null", default: "null" },
     { prop: "on-selection-change", type: "(key: string | null) => void", default: "undefined" },
   ],
   sparkline: [
-    { prop: "data", type: "number[]", default: "—" },
-    { prop: "color", type: "DitherColor", default: "—" },
+    { prop: "data", type: "number[]", default: "" },
+    { prop: "color", type: "DitherColor", default: "" },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
     { prop: "marker-index", type: "number | null", default: "null" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
@@ -373,8 +390,8 @@ const API: Record<string, PropRow[]> = {
     { prop: "animate", type: "boolean", default: "true" },
     { prop: "animation-duration", type: "number (ms)", default: "900" },
     { prop: "animation-delay", type: "number (ms)", default: "0" },
-    { prop: "replay-token", type: "number — bump to re-run", default: "0" },
-    { prop: "effect", type: "number — dedicated edge-motion seed", default: "master seed / gentle" },
+    { prop: "replay-token", type: "number (bump it to re-run)", default: "0" },
+    { prop: "effect", type: "number (its own edge-motion seed)", default: "master seed / gentle" },
   ],
   button: [
     { prop: "color", type: "PixelColor", default: "seed / blue" },
@@ -387,11 +404,11 @@ const API: Record<string, PropRow[]> = {
     { prop: "class", type: "string", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 (live) · 320 / 200 (static)" },
+    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 live, 320 / 200 static" },
   ],
   avatar: [
-    { prop: "name", type: "string", default: "—" },
-    { prop: "size", type: "number (px)", default: "—" },
+    { prop: "name", type: "string", default: "" },
+    { prop: "size", type: "number (px)", default: "" },
     { prop: "hue", type: "number 0…360", default: "from name" },
     { prop: "mirror", type: '"auto" | "on" | "off"', default: '"auto"' },
     { prop: "animate", type: "boolean", default: "true" },
@@ -408,7 +425,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "class", type: "string", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 (live) · 320 / 200 (static)" },
+    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 live, 320 / 200 static" },
   ],
   image: [
     { prop: "src", type: "string", default: "required" },
@@ -420,13 +437,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "class", type: "string", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 (live) · 320 / 200 (static)" },
+    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 live, 320 / 200 static" },
   ],
   palette: [
-    { prop: "cssColor(c)", type: "(DitherColor | number) → css string", default: "—" },
-    { prop: "seedFromColor(c)", type: "(DitherColor | number) → Seed", default: "—" },
-    { prop: "seedFromHue(h)", type: "(number 0…360) → Seed", default: "—" },
-    { prop: "DitherColor", type: '"green" … "grey" — seven seeds', default: "—" },
+    { prop: "cssColor(c)", type: "(DitherColor | number) → css string", default: "" },
+    { prop: "seedFromColor(c)", type: "(DitherColor | number) → Seed", default: "" },
+    { prop: "seedFromHue(h)", type: "(number 0…360) → Seed", default: "" },
+    { prop: "DitherColor", type: '"green" … "grey": seven seeds', default: "" },
   ],
 }
 
@@ -462,6 +479,28 @@ function applyDocMeta(id: string) {
 }
 watch(activeId, (id) => applyDocMeta(id), { flush: "post" })
 const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth")
+
+/* On this page (xl and up, the rail right of the content): the parts of the
+   section in view, read from its DOM as the scroll-spy moves: its heading,
+   each gallery heading and its props table. Headings inside a preview are
+   the demo's, not the section's. */
+const onPage = ref<{ label: string; el: HTMLElement }[]>([])
+watch(
+  activeId,
+  async (id) => {
+    await nextTick()
+    const section = id ? document.getElementById(id) : null
+    onPage.value = section
+      ? [...section.querySelectorAll<HTMLElement>("h2, h3, table")]
+          .filter((el) => !el.closest("[data-demo-card]"))
+          .map((el) => (el.tagName === "TABLE" ? { label: "API", el } : { label: el.textContent?.trim() ?? "", el }))
+      : []
+  },
+  { flush: "post" },
+)
+function goTo(el: HTMLElement) {
+  window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - 88, behavior: smooth() })
+}
 
 function docsUrl(id: string) {
   return routePath(`/docs/${id}`)
@@ -611,14 +650,14 @@ const SNIPPETS = {
 <AreaChart :data="rows" :config="config" :seed="1984">
   <Area data-key="revenue" :variant="1984" />   <!-- texture  -->
 </AreaChart>
-<!-- :seed derives duration · delay · easing · stagger · sparkles · bloom
+<!-- :seed derives duration, delay, easing, stagger, sparkles and bloom
      for every prop you leave unset; explicit props always win.
      Seeds also work per prop: bloom / easing / variant / color(hue). -->
 <DitherButton :bloom="1984">Glow</DitherButton>`,
-  anyStyles: `# No Tailwind? The kit's styles ship as one plain stylesheet — its tokens, a
+  anyStyles: `# No Tailwind? The kit's styles ship as one plain stylesheet: its tokens, a
 # scoped base and every class its components use, compiled from the kit itself.
 <link rel="stylesheet" href="https://dither-ui.com/kit/dither-kit.css">
-#   (or from the repo: npm run build:css → dist/kit/dither-kit.css)
+#   (or from the repo: npm run build:css writes dist/kit/dither-kit.css)
 
 <div class="dither-kit">                         <!-- the base applies inside this wrapper only -->
   <DitherButton class="cta">Ship</DitherButton>  <!-- class takes anything: StyleX, UnoCSS, vanilla CSS -->
@@ -629,7 +668,7 @@ import { applyTheme, themeCss } from "@dither-kit"
 applyTheme({ accent: "#3f8ff3", radius: "4px" })   // sets --accent / --radius on <html>, returns the undo
 themeCss({ background: "#000" }, ".dark")           // ".dark { --background: #000; }" for a stylesheet
 stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: the same names`,
-  styling: `/* the kit reads shadcn-style tokens — theme by overriding them */
+  styling: `/* the kit reads shadcn-style tokens: theme by overriding them */
 :root {
   --background: #08090b;   /* chart chrome: axes, legend, tooltip */
   --foreground: #ededed;
@@ -637,7 +676,7 @@ stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: 
   --accent: #3f8ff3;
 }
 
-<!-- every component forwards class — compose with your utilities -->
+<!-- every component forwards class: compose with your utilities -->
 <AreaChart class="rounded-lg border border-border/60 p-2" … />`,
   composition: `<AreaChart :data="rows" :config="config">  <!-- root: scales + context -->
   <Grid horizontal />                       <!-- chrome registers first -->
@@ -671,11 +710,11 @@ stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: 
   name-key="name" :inner-radius="0.55"><Pie /></PieChart>`,
   shell: `<div class="grid grid-cols-[160px_1fr] rounded-lg border">
   <aside class="border-r p-3">          <!-- sidebar -->
-    brand · nav (active chip) · <DitherAvatar /> footer
+    brand, nav (active chip), <DitherAvatar /> footer
   </aside>
   <div>
     <header class="border-b px-4">      <!-- topbar -->
-      title · <DitherButton>Export</DitherButton>
+      title and <DitherButton>Export</DitherButton>
     </header>
     <main class="grid gap-4 p-4">
       stat cards with <Sparkline />
@@ -697,7 +736,7 @@ stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: 
 </div>`,
   team: `<div v-for="m in team" class="flex items-center gap-4">
   <DitherAvatar :name="m.name" :size="32" />
-  {{ m.name }} · {{ m.role }}
+  <span>{{ m.name }}</span> <span>{{ m.role }}</span>
   <Sparkline :data="m.data" :color="m.color" class="h-5 flex-1" />
   <span class="tabular-nums">{{ m.commits }}</span>
 </div>`,
@@ -800,13 +839,13 @@ const config = {
 <div class="relative h-24">
   <DitherGradient render-mode="static" precompiled="/gradient.png" />
 </div>
-<!-- from/to: any DitherColor · direction: up · down · left · right
-     cell: px per dither cell · opacity: 0…1
+<!-- from/to: any DitherColor; direction: up, down, left or right
+     cell: px per dither cell; opacity: 0…1
      max-cols / max-rows: backing-resolution caps (default 960×600 live, 320×200 static) -->`,
   image: `<DitherImage src="/sprites.webp" :cell="3" :focus-y="0.62" :fade="72"
   alt="The dither-ui sprite sheet, re-dithered" class="h-64 w-full" />
 <DitherImage precompiled="/sprites-dither.png" alt="The dither-ui sprite sheet" />
-<!-- cell: px per dither cell · fade: dithered edge dissolve
+<!-- cell: px per dither cell; fade: dithered edge dissolve
      focus-y: cover-crop focus (0 top … 1 bottom) -->`,
   palette: `import { cssColor, type DitherColor } from "@dither-kit"
 cssColor("blue") // rgb(53,143,243)`,
@@ -820,7 +859,7 @@ const areaCode = computed(() =>
   SNIPPETS.area.replace(
     'data-key="revenue" variant="gradient"',
     typeof picked.area === "number"
-      ? `data-key="revenue" :variant="${picked.area}"  <!-- a seed — deterministic -->`
+      ? `data-key="revenue" :variant="${picked.area}"  <!-- a seed: deterministic -->`
       : `data-key="revenue" variant="${picked.area}"`,
   ),
 )
@@ -840,7 +879,7 @@ const buttonCode = computed(
 )
 const avatarCode = computed(
   () => `<DitherAvatar name="${avatarName.value}" :size="48" />
-<!-- same name, same face — at any size -->`,
+<!-- same name, same face, at any size -->`,
 )
 const gradientCode = computed(
   () => `<div class="relative h-40">
@@ -884,14 +923,14 @@ const gradientCode = computed(
             </svg>
             dither-ui
           </a>
-          <span class="hidden text-muted-foreground sm:inline">docs</span>
+          <span class="hidden text-muted-foreground sm:inline">Docs</span>
         </div>
         <nav class="flex items-center gap-3 text-muted-foreground sm:gap-5">
           <div class="flex items-center gap-1" role="group" aria-label="Framework">
             <button
               type="button"
               :aria-pressed="docsFramework === 'vue'"
-              class="h-6 rounded border px-2 text-[11px] transition-colors"
+              class="flex h-6 items-center gap-1.5 rounded border px-2 text-[11px] transition-colors"
               :class="
                 docsFramework === 'vue'
                   ? 'border-border/60 text-foreground'
@@ -899,12 +938,12 @@ const gradientCode = computed(
               "
               @click="choose(() => setDocsFramework('vue'), docsFramework === 'vue')"
             >
-              vue
+              <ToolMark id="vue" :size="11" /><span class="max-sm:sr-only">Vue</span>
             </button>
             <button
               type="button"
               :aria-pressed="docsFramework === 'svelte'"
-              class="h-6 rounded border px-2 text-[11px] transition-colors"
+              class="flex h-6 items-center gap-1.5 rounded border px-2 text-[11px] transition-colors"
               :class="
                 docsFramework === 'svelte'
                   ? 'border-border/60 text-foreground'
@@ -912,10 +951,10 @@ const gradientCode = computed(
               "
               @click="choose(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
             >
-              svelte
+              <ToolMark id="svelte" :size="11" /><span class="max-sm:sr-only">Svelte</span>
             </button>
           </div>
-          <div class="hidden items-center gap-1 md:flex" role="group" aria-label="Styling">
+          <div class="hidden items-center gap-1 lg:flex" role="group" aria-label="Styling">
             <button
               v-for="s in docsStylings"
               :key="s"
@@ -927,7 +966,7 @@ const gradientCode = computed(
               "
               @click="choose(() => setStyling(s), docsStyling === s)"
             >
-              {{ STYLING_LABELS[s].toLowerCase() }}
+              {{ STYLING_LABELS[s] }}
             </button>
           </div>
           <button
@@ -936,8 +975,8 @@ const gradientCode = computed(
             aria-label="Search docs"
             @click="searchOpen = true"
           >
-            search
-            <kbd class="hidden rounded border border-border/60 px-1 text-[9px] sm:inline">{{ searchKbd }}</kbd>
+            <DitherIcon name="Search" :size="12" :stroke-width="1.5" /><span class="max-sm:sr-only">Search</span>
+            <kbd class="hidden rounded border border-border/60 px-1 text-[10px] sm:inline">{{ searchKbd }}</kbd>
           </button>
           <button
             type="button"
@@ -947,15 +986,7 @@ const gradientCode = computed(
             :title="`Interface sounds: ${sounds ? 'on' : 'off'}`"
             @click="flipSounds"
           >
-            <svg viewBox="0 0 16 16" class="size-4" fill="none" stroke="currentColor" aria-hidden="true">
-              <path d="M2.5 6.25h2.25L8 3.5v9L4.75 9.75H2.5z" stroke-linejoin="round" />
-              <path
-                v-if="sounds"
-                d="M10.5 6a2.75 2.75 0 0 1 0 4M12.25 4.25a5.25 5.25 0 0 1 0 7.5"
-                stroke-linecap="round"
-              />
-              <path v-else d="m10.75 6.25 3.5 3.5m0-3.5-3.5 3.5" stroke-linecap="round" />
-            </svg>
+            <DitherIcon :name="sounds ? 'Volume' : 'VolumeOff'" :size="15" :stroke-width="1.5" />
           </button>
           <button
             type="button"
@@ -963,17 +994,17 @@ const gradientCode = computed(
             :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
             @click="flipTheme"
           >
-            <span aria-hidden="true">{{ dark ? "☀" : "◐" }}</span>
+            <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />
           </button>
-          <!-- Phones keep the chrome for content: github moves to the footer
-               and the studio link stays on every section's "open in studio →";
-               both return here at sm and up. -->
+          <!-- Narrow screens keep the chrome for content: the styling switch
+               lives on every card, GitHub in the footer (both return at lg),
+               and the Studio link on every chart section (it returns at sm). -->
           <a
             href="https://github.com/drvova/dither-ui"
             target="_blank"
             rel="noreferrer"
-            class="-m-3 hidden whitespace-nowrap p-3 transition-colors hover:text-foreground sm:inline"
-            >github</a
+            class="-m-3 hidden items-center gap-1.5 whitespace-nowrap p-3 transition-colors hover:text-foreground lg:flex"
+            ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
           >
           <a :href="routePath('/studio')" class="nav-a nav-pill hidden sm:inline-flex">Open studio</a>
         </nav>
@@ -985,7 +1016,9 @@ const gradientCode = computed(
       <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-52 shrink-0 overflow-y-auto py-10 pr-8 lg:block">
         <nav class="grid gap-7">
           <div v-for="grp in GROUPS" :key="grp.title">
-            <div class="text-[11px] font-medium text-foreground">{{ grp.title }}</div>
+            <div class="flex items-center gap-2 text-[11px] font-medium text-foreground">
+              <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
+            </div>
             <ul class="mt-2.5 grid gap-1.5 border-l border-border/60">
               <li v-for="it in grp.items" :key="it.id">
                 <a
@@ -1010,8 +1043,7 @@ const gradientCode = computed(
       <!-- Content -->
       <main class="min-w-0 flex-1 pb-24 lg:pl-10">
         <div class="docs-flow max-w-2xl">
-          <p class="eyebrow mt-12">Documentation</p>
-          <h1 class="mt-4 text-2xl tracking-tight">Components</h1>
+          <h1 class="mt-12 text-2xl tracking-tight">Documentation</h1>
           <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
             Every component draws on canvas through the same ordered-dither engine. Compose charts from parts, or drop
             in a single primitive.
@@ -1027,14 +1059,17 @@ const gradientCode = computed(
               aria-controls="docs-toc"
               @click="tocOpen = !tocOpen"
             >
-              <span>browse sections</span>
-              <span class="tabular-nums" aria-hidden="true"
-                >{{ GROUPS.flatMap((g) => g.items).length }} {{ tocOpen ? "▲" : "▼" }}</span
-              >
+              <span>Browse sections</span>
+              <span class="flex items-center gap-2 tabular-nums" aria-hidden="true"
+                >{{ GROUPS.flatMap((g) => g.items).length }}
+                <DitherIcon :name="tocOpen ? 'ChevronUp' : 'ChevronDown'" :size="13" :stroke-width="1.5"
+              /></span>
             </button>
             <div v-show="tocOpen" id="docs-toc" class="mt-4 grid gap-5">
               <div v-for="grp in GROUPS" :key="grp.title">
-                <div class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">{{ grp.title }}</div>
+                <div class="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
+                </div>
                 <ul class="mt-2 grid grid-cols-2 gap-x-4 gap-y-0.5">
                   <li v-for="it in grp.items" :key="it.id">
                     <a
@@ -1071,21 +1106,21 @@ const gradientCode = computed(
                 rel="noreferrer"
                 class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
                 >GitHub repo</a
-              >, install four small runtime deps, and alias it —
-              {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }} you already have, and Tailwind if you use it.
+              >, install four small runtime deps, and alias it. You already have
+              {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }}, and Tailwind if you use it.
             </p>
             <div class="mt-5">
               <CodeBlock :code="docsFramework === 'svelte' ? SNIPPETS.installSvelte : SNIPPETS.install" />
             </div>
             <p class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
-              Styling with something else — StyleX, UnoCSS, vanilla CSS, any CSS-in-JS? The kit does not need your
+              Styling with something else, like StyleX, UnoCSS, vanilla CSS or any CSS-in-JS? The kit does not need your
               Tailwind: its own stylesheet carries the tokens, a base scoped to a
               <code class="text-foreground/80">.dither-kit</code> wrapper and every class its components use, all in
               cascade layers, so your unlayered styles win. Theme it from CSS, JS or your vars contract: the tokens are
               plain custom properties. And what you write is written in your system: pick it in the header or on any
               code tab, and every snippet on this page, every Studio export and the agent's
               <code class="text-foreground/80">code.get</code> come out as a scoped stylesheet, CSS Modules or StyleX
-              instead of utility classes — the components keep their own styles either way.
+              instead of utility classes. The components keep their own styles either way.
             </p>
             <div class="mt-3"><CodeBlock :code="SNIPPETS.anyStyles" /></div>
             <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
@@ -1095,9 +1130,9 @@ const gradientCode = computed(
                 target="_blank"
                 rel="noreferrer"
                 class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
-                >{{ docsFramework === "svelte" ? "dither-kit-svelte/" : "dither-kit/" }}</a
-              >
-              — no build step, no black box.
+                >{{ docsFramework === "svelte" ? "dither-kit-svelte/" : "dither-kit/"
+                }}<span class="sr-only"> (opens in a new tab)</span></a
+              >. No build step, no black box.
             </p>
           </section>
 
@@ -1111,8 +1146,8 @@ const gradientCode = computed(
           <section id="styling" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Styling</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Pixels come from the palette seeds; chrome — axes, legend, tooltip, borders — reads shadcn-style CSS
-              tokens. Override the tokens to theme, pass <code class="text-foreground/80">class</code>
+              Pixels come from the palette seeds; chrome (axes, legend, tooltip, borders) reads shadcn-style CSS tokens.
+              Override the tokens to theme, pass <code class="text-foreground/80">class</code>
               to compose with your own utilities.
             </p>
             <div class="mt-5"><CodeBlock :code="fw(SNIPPETS.styling)" /></div>
@@ -1122,7 +1157,7 @@ const gradientCode = computed(
           <section id="seeds" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Seeds</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Everything visual in the kit resolves from deterministic seeds — avatars from names, colors from hues,
+              Everything visual in the kit resolves from deterministic seeds: avatars from names, colors from hues,
               textures, bloom, easing and motion from integers. Give a chart a
               <code class="text-foreground/80">seed</code> and it derives a whole personality for every prop you left
               unset; the same seed reproduces it forever. Explicit props always win.
@@ -1157,7 +1192,7 @@ const gradientCode = computed(
             <h2 class="text-lg tracking-tight">Composition</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               A chart is a root plus parts. The root measures, builds scales and provides context; children register
-              themselves — grid and axes as chrome, <code class="text-foreground/80">Area</code>/<code
+              themselves: grid and axes as chrome, <code class="text-foreground/80">Area</code>/<code
                 class="text-foreground/80"
                 >Line</code
               >/<code class="text-foreground/80">Bar</code> as series,
@@ -1172,7 +1207,7 @@ const gradientCode = computed(
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Canvases are decoration and stay <code class="text-foreground/80">aria-hidden</code>; each chart exposes a
               single labelled node instead of hundreds of shapes. Legends are real buttons. Reduced motion snaps
-              entrances and stills the sparkles; reduced transparency solidifies floating chrome — both from the OS
+              entrances and stills the sparkles; reduced transparency solidifies floating chrome. Both follow the OS
               setting, no props required.
             </p>
             <div class="mt-5"><CodeBlock :code="fw(SNIPPETS.accessibility)" /></div>
@@ -1184,7 +1219,7 @@ const gradientCode = computed(
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Entrances draw the dither field in; bump
               <code class="text-foreground/80">replay-token</code> to run one again. When the OS asks for reduced
-              motion, entrances snap and sparkles hold still — no opt-in needed.
+              motion, entrances snap and sparkles hold still. No opt-in needed.
             </p>
             <DemoCard :code="SNIPPETS.motion">
               <div class="grid gap-5">
@@ -1225,9 +1260,9 @@ const gradientCode = computed(
                 </div>
               </div>
             </DemoCard>
-            <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">live-edge motion</h3>
+            <h3 class="mt-8 text-[12px] text-muted-foreground">Live-edge motion</h3>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              The live edge isn't a preset — it's a point in a continuous space of motion (drift, gravity, twinkle,
+              The live edge isn't a preset. It's a point in a continuous space of motion (drift, gravity, twinkle,
               trail, flow) AND particle shape (a generated glyph: dot, plus, x, streak, asterisk). A dedicated
               <code class="text-foreground/80">:effect</code> seed samples one of infinitely many; roll for a fresh one.
             </p>
@@ -1255,7 +1290,7 @@ const gradientCode = computed(
           <section id="dashboard" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Dashboard example</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Everything composed: stat cards, a stacked area, a donut — one palette, one texture, zero SVG.
+              Everything composed: stat cards, a stacked area and a donut. One palette, one texture, zero SVG.
             </p>
             <DemoCard :code="SNIPPETS.dashboard">
               <div class="grid gap-4">
@@ -1306,7 +1341,7 @@ const gradientCode = computed(
           <section id="shell" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">App shell</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Sidebar, topbar, content — a whole product frame from tokens and kit primitives. The nav works; click
+              Sidebar, topbar and content: a whole product frame from tokens and kit primitives. The nav works; click
               around.
             </p>
             <DemoCard :code="SNIPPETS.shell">
@@ -1375,8 +1410,8 @@ const gradientCode = computed(
           <section id="monitoring" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Monitoring</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              An ops board: system pulse, sprint health, and per-service status rows — the grey seed marks what is
-              quiet, red what is not.
+              An ops board: system pulse, sprint health and per-service status rows. The grey seed marks what is quiet,
+              red what is not.
             </p>
             <DemoCard :code="SNIPPETS.monitoring">
               <div class="grid gap-4 lg:grid-cols-5">
@@ -1429,12 +1464,12 @@ const gradientCode = computed(
           <section id="team" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Team</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Contributors panel — deterministic avatars, a commit pulse per person, one palette seed each.
+              A contributors panel: deterministic avatars, a commit pulse per person, one palette seed each.
             </p>
             <DemoCard :code="SNIPPETS.team">
               <div class="mx-auto max-w-md rounded-lg border border-border/60">
                 <div class="flex items-center justify-between border-b border-border/60 px-4 py-2.5">
-                  <span class="text-[11px] text-muted-foreground">dither-ui · contributors</span>
+                  <span class="text-[11px] text-muted-foreground">dither-ui contributors</span>
                   <span class="text-[11px] tabular-nums text-muted-foreground">this quarter</span>
                 </div>
                 <div
@@ -1473,7 +1508,7 @@ const gradientCode = computed(
                   </div>
                 </div>
                 <div class="flex flex-col rounded-lg border border-border/60 p-4 sm:col-span-2">
-                  <div class="text-[11px] text-muted-foreground">Quota · dither-ui pro</div>
+                  <div class="text-[11px] text-muted-foreground">dither-ui pro quota</div>
                   <div class="mt-3 h-28">
                     <PieChart
                       :data="quotaRows"
@@ -1498,7 +1533,7 @@ const gradientCode = computed(
           <section id="signin" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Sign in</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              An auth card washed by a DitherGradient — the pixels do the decoration, the form stays plain.
+              An auth card washed by a DitherGradient: the pixels do the decoration, the form stays plain.
             </p>
             <DemoCard :code="SNIPPETS.signin">
               <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
@@ -1575,7 +1610,7 @@ const gradientCode = computed(
                 :href="`${routePath('/studio')}#new/area`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Open a new area chart in the studio"
-                >open in studio →</a
+                >Open in the Studio</a
               >
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
@@ -1594,7 +1629,7 @@ const gradientCode = computed(
                 </AreaChart>
               </div>
             </DemoCard>
-            <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+            <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
             <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               <button
                 v-for="v in VARIANTS"
@@ -1608,7 +1643,7 @@ const gradientCode = computed(
                 <div :class="thumbLabel(picked.area === v)">{{ v }}</div>
               </button>
             </div>
-            <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">seed-generative</h3>
+            <h3 class="mt-8 text-[12px] text-muted-foreground">Seed-generative</h3>
             <p class="mt-2 text-[12px] leading-relaxed text-muted-foreground">
               A number is a seed: the same deterministic idea as the avatar, applied to texture.
               <code class="text-foreground/80">:variant="1984"</code>
@@ -1652,7 +1687,7 @@ const gradientCode = computed(
                 :href="`${routePath('/studio')}#new/line`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Open a new line chart in the studio"
-                >open in studio →</a
+                >Open in the Studio</a
               >
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
@@ -1673,7 +1708,7 @@ const gradientCode = computed(
                 </LineChart>
               </div>
             </DemoCard>
-            <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">dot variants</h3>
+            <h3 class="mt-8 text-[12px] text-muted-foreground">Dot variants</h3>
             <div class="mt-2 grid grid-cols-3 gap-2">
               <button
                 v-for="d in DOT_VARIANTS"
@@ -1709,7 +1744,7 @@ const gradientCode = computed(
                 :href="`${routePath('/studio')}#new/bar`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Open a new bar chart in the studio"
-                >open in studio →</a
+                >Open in the Studio</a
               >
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
@@ -1729,7 +1764,7 @@ const gradientCode = computed(
                 </BarChart>
               </div>
             </DemoCard>
-            <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+            <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
             <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               <button
                 v-for="v in VARIANTS"
@@ -1763,11 +1798,11 @@ const gradientCode = computed(
                 :href="`${routePath('/studio')}#new/pie`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Open a new pie chart in the studio"
-                >open in studio →</a
+                >Open in the Studio</a
               >
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Browser share as a donut — click a slice or legend entry to isolate it.
+              Browser share as a donut. Click a slice or a legend entry to isolate it.
             </p>
             <DemoCard :code="pieCode">
               <div class="h-64">
@@ -1784,7 +1819,7 @@ const gradientCode = computed(
                 </PieChart>
               </div>
             </DemoCard>
-            <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+            <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
             <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               <button
                 v-for="v in VARIANTS"
@@ -1819,7 +1854,7 @@ const gradientCode = computed(
                 :href="`${routePath('/studio')}#new/radar`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Open a new radar chart in the studio"
-                >open in studio →</a
+                >Open in the Studio</a
               >
             </div>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
@@ -1841,7 +1876,7 @@ const gradientCode = computed(
           <section id="sparkline" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Sparkline</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              A plain numeric series with zero margins — built for stat cards, table cells and dashboard rows.
+              A plain numeric series with zero margins, built for stat cards, table cells and dashboard rows.
             </p>
             <DemoCard :code="SNIPPETS.sparkline">
               <div class="grid gap-4 sm:grid-cols-3">
@@ -1929,7 +1964,7 @@ const gradientCode = computed(
           <section id="avatar" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Avatar</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              Deterministic identicon — the same name always draws the same face, at any size.
+              A deterministic identicon: the same name always draws the same face, at any size.
             </p>
             <DemoCard :code="avatarCode">
               <div class="flex items-end justify-center gap-3">
@@ -1939,7 +1974,7 @@ const gradientCode = computed(
                 <DitherAvatar :name="avatarName" :size="64" :replay-token="avatarReplay" />
               </div>
             </DemoCard>
-            <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">names</h3>
+            <h3 class="mt-8 text-[12px] text-muted-foreground">Names</h3>
             <div class="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
               <button
                 v-for="n in AVATAR_NAMES"
@@ -1962,7 +1997,7 @@ const gradientCode = computed(
           <section id="gradient" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Gradient</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              A background wash that fades through the Bayer matrix instead of alpha — four directions, any palette
+              A background wash that fades through the Bayer matrix instead of alpha, in four directions and any palette
               color.
             </p>
             <DemoCard :code="gradientCode">
@@ -2088,6 +2123,26 @@ const gradientCode = computed(
           </section>
         </div>
       </main>
+
+      <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
+        <nav v-if="onPage.length" aria-label="On this page">
+          <p class="flex items-center gap-2 text-[11px] font-medium text-foreground">
+            <DitherIcon name="Menu" :size="13" :stroke-width="1.5" />On this page
+          </p>
+          <ul class="mt-2.5 grid gap-1.5 border-l border-border/60">
+            <li v-for="(p, i) in onPage" :key="i">
+              <button
+                type="button"
+                class="-ml-px block w-full border-l py-0.5 pl-3 text-left text-[11px] transition-colors hover:border-foreground/40 hover:text-foreground"
+                :class="i === 0 ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground'"
+                @click="goTo(p.el)"
+              >
+                {{ p.label }}
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </aside>
     </div>
 
     <!-- Footer -->
@@ -2095,16 +2150,17 @@ const gradientCode = computed(
       <div
         class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 text-[11px] text-muted-foreground"
       >
-        <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">← dither-ui.com</a>
+        <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">dither-ui.com</a>
         <div class="flex items-center gap-4">
           <a
             href="https://github.com/drvova/dither-ui"
             target="_blank"
             rel="noreferrer"
-            class="-my-1 py-1 transition-colors hover:text-foreground"
-            >GitHub</a
+            class="-my-1 flex items-center gap-1.5 py-1 transition-colors hover:text-foreground"
+            ><ToolMark id="github" :size="12" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
           >
-          <span class="tabular-nums">v{{ version }} · MIT</span>
+          <span class="tabular-nums">v{{ version }}</span>
+          <span>MIT license</span>
         </div>
       </div>
     </footer>

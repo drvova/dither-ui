@@ -1,8 +1,11 @@
 <script setup lang="ts" generic="T extends string | number">
+// `labels` names an option where its value is not how a reader writes it
+// (a styling system's proper name); unnamed options show their value.
 defineProps<{
   options: readonly T[]
   modelValue: T
   label?: string
+  labels?: Partial<Record<string, string>>
 }>()
 const emit = defineEmits<{ "update:modelValue": [T] }>()
 </script>
@@ -20,7 +23,7 @@ const emit = defineEmits<{ "update:modelValue": [T] }>()
         :class="opt === modelValue ? 'ring-on' : 'text-muted-foreground hover:text-foreground'"
         @click="emit('update:modelValue', opt)"
       >
-        {{ opt }}
+        {{ labels?.[String(opt)] ?? opt }}
       </button>
     </div>
   </div>

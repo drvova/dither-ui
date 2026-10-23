@@ -39,9 +39,11 @@ const setKind = (i: number, e: Event) => {
 
 <template>
   <section class="flex flex-col gap-3">
-    <p class="text-[10px] uppercase tracking-widest text-muted-foreground">reel · {{ fmt(total) }}</p>
+    <p class="flex gap-2 text-[11.5px] font-medium text-muted-foreground">
+      Reel<span class="tabular-nums">{{ fmt(total) }}</span>
+    </p>
     <p v-if="!reel.clips.length" class="text-[11px] leading-relaxed text-muted-foreground">
-      No clips yet: add frames below, or select frames on the canvas and press reel.
+      No clips yet: add frames below, or select frames on the canvas and press Reel.
     </p>
     <article
       v-for="(clip, i) in reel.clips"

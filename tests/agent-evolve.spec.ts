@@ -14,7 +14,7 @@ describe("evolve", () => {
     const c = evolveArtboard(parent, { count: 4, seed: 8 })
     expect(strip(a)).not.toEqual(strip(c))
     expect(a.map((v) => v.id).length).toBe(new Set(a.map((v) => v.id)).size)
-    expect(a[0].name).toBe("Area chart · v1")
+    expect(a[0].name).toBe("Area chart v1")
   })
 
   it("keeps a chart's data and only moves style within the allowlists", () => {

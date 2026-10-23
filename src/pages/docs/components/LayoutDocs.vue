@@ -62,36 +62,36 @@ const TREND = [12, 14, 13, 17, 16, 19, 22, 21, 24, 27, 26, 31]
 
 const API: Record<string, PropRow[]> = {
   shell: [
-    { prop: "frame", type: "boolean — embedded card chrome (border, rounding, clip)", default: "false" },
-    { prop: "slots", type: "topbar · aside · statusbar · default (content)", default: "—" },
+    { prop: "frame", type: "boolean (embedded card chrome: border, rounding, clip)", default: "false" },
+    { prop: "slots", type: "topbar, aside, statusbar, default (content)", default: "" },
   ],
   rail: [
-    { prop: "label", type: "string — aria-label for the nav landmark", default: '"Rail"' },
-    { prop: "side", type: '"left" | "right" — flips the border edge', default: '"left"' },
-    { prop: "slots", type: "header · footer · default (items — labels fold automatically)", default: "—" },
+    { prop: "label", type: "string (aria-label for the nav landmark)", default: '"Rail"' },
+    { prop: "side", type: '"left" | "right" (flips the border edge)', default: '"left"' },
+    { prop: "slots", type: "header, footer, default (items: labels fold automatically)", default: "" },
   ],
   console: [
-    { prop: "lines", type: "(string | { text, level?, at? })[] — level: info | success | warn | error", default: "[]" },
-    { prop: "title", type: "string — header caption", default: '"console"' },
-    { prop: "follow", type: "boolean — pin the view to the newest line", default: "true" },
-    { prop: "caret", type: "boolean — blinking block caret (still under reduced motion)", default: "true" },
-    { prop: "slots", type: "actions — right side of the header", default: "—" },
+    { prop: "lines", type: "(string | { text, level?, at? })[] (level: info | success | warn | error)", default: "[]" },
+    { prop: "title", type: "string (header caption)", default: '"console"' },
+    { prop: "follow", type: "boolean (pin the view to the newest line)", default: "true" },
+    { prop: "caret", type: "boolean (blinking block caret, still under reduced motion)", default: "true" },
+    { prop: "slots", type: "actions (right side of the header)", default: "" },
   ],
   canvas: [
     { prop: "pattern", type: '"dots" | "grid" | "plain"', default: '"dots"' },
-    { prop: "cell", type: "number — pattern pitch in px", default: "16" },
+    { prop: "cell", type: "number (pattern pitch in px)", default: "16" },
   ],
   grid: [
-    { prop: "min", type: "number — minimum card width; columns auto-fit", default: "240" },
-    { prop: "cols", type: "number — fixed column count (overrides min)", default: "—" },
-    { prop: "gap", type: "string — any CSS length", default: '"0.75rem"' },
+    { prop: "min", type: "number (minimum card width, columns auto-fit)", default: "240" },
+    { prop: "cols", type: "number (fixed column count, overrides min)", default: "" },
+    { prop: "gap", type: "string (any CSS length)", default: '"0.75rem"' },
   ],
   infinite: [
     { prop: "zoom", type: "number (v-model:zoom)", default: "1" },
-    { prop: "minZoom / maxZoom", type: "number — clamp range", default: "0.25 / 3" },
+    { prop: "minZoom / maxZoom", type: "number (clamp range)", default: "0.25 / 3" },
     { prop: "pattern", type: '"dots" | "grid" | "plain"', default: '"dots"' },
-    { prop: "cell", type: "number — pattern pitch at zoom 1, px", default: "16" },
-    { prop: "label", type: "string — aria-label for the surface", default: '"Infinite canvas"' },
+    { prop: "cell", type: "number (pattern pitch at zoom 1, px)", default: "16" },
+    { prop: "label", type: "string (aria-label for the surface)", default: '"Infinite canvas"' },
   ],
 }
 
@@ -169,8 +169,8 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="dither-shell" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Shell</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The app frame — topbar over an aside + content pair, statusbar under, every region a slot. Below: a whole SaaS
-      dashboard from the layout family — rail, canvas, grid, sparkline cards, a live console.
+      The app frame: topbar over an aside + content pair, statusbar under, every region a slot. Below, a whole SaaS
+      dashboard from the layout family: rail, canvas, grid, sparkline cards, a live console.
     </p>
     <DemoCard :code="SNIPPET_SHELL">
       <DitherShell frame class="mx-auto h-[26rem] max-w-2xl">
@@ -229,7 +229,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
         <template #statusbar>
           <div class="flex h-7 w-full items-center gap-2 px-3 text-[10px] text-muted-foreground">
             <span class="size-1.5 rounded-full" :style="{ background: 'var(--swatch-green)' }" aria-hidden="true" />
-            production — all systems normal
+            production: all systems normal
             <span class="ml-auto tabular-nums">{{ shellActive }}</span>
           </div>
         </template>
@@ -242,7 +242,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="rail" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Rail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The permanent icon rail as a first-class piece — it provides the sidebar's collapsed context, so plain sidebar
+      The permanent icon rail as a first-class piece. It provides the sidebar's collapsed context, so plain sidebar
       items fold their labels with zero extra props. Tooltips carry the words.
     </p>
     <DemoCard :code="SNIPPET_RAIL">
@@ -272,7 +272,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="console" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Console</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A monospace log surface — lines tint by level, follow mode pins the newest output, the caret blinks politely. Run
+      A monospace log surface: lines tint by level, follow mode pins the newest output, the caret blinks politely. Run
       the deploy and watch it stream.
     </p>
     <DemoCard :code="SNIPPET_CONSOLE">
@@ -293,8 +293,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="canvas" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Canvas</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The work surface a dashboard sits on — a dotted or ruled field inked with the border token, content floating
-      above.
+      The work surface a dashboard sits on: a dotted or ruled field inked with the border token, content floating above.
     </p>
     <DemoCard :code="SNIPPET_CANVAS">
       <div class="mx-auto max-w-lg">
@@ -313,7 +312,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
         </div>
         <DitherCanvas :pattern="canvasPattern" class="mt-3 h-56 rounded-lg border border-border/60 p-5">
           <div class="w-40 rounded-md border border-border/60 bg-background/80 p-3">
-            <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">Artboard</div>
+            <div class="text-[12px] text-muted-foreground">Artboard</div>
             <div class="mt-1 text-[12px] text-foreground">Floats above the field</div>
           </div>
         </DitherCanvas>
@@ -326,8 +325,8 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="grid" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Dashboard columns without media queries — cards auto-fit to a minimum width, or take a deliberate fixed count.
-      Drag the number and watch the flow.
+      Dashboard columns without media queries: cards auto-fit to a minimum width, or take a deliberate fixed count. Drag
+      the number and watch the flow.
     </p>
     <DemoCard :code="SNIPPET_GRID">
       <div class="mx-auto max-w-lg">
@@ -358,13 +357,13 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="infinite-canvas" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Infinite canvas</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A pannable, zoomable work surface — drag to pan, wheel to zoom toward the cursor, and the dot field rides the same
+      A pannable, zoomable work surface: drag to pan, wheel to zoom toward the cursor, and the dot field rides the same
       transform so space feels real. The zoom is a v-model.
     </p>
     <DemoCard :code="SNIPPET_INFINITE">
       <div class="mx-auto max-w-lg">
         <div class="flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>drag · wheel</span>
+          <span>drag to pan, wheel to zoom</span>
           <span class="tabular-nums">{{ Math.round(canvasZoom * 100) }}%</span>
         </div>
         <DitherInfiniteCanvas v-model:zoom="canvasZoom" class="mt-2 h-64 rounded-lg border border-border/60">
@@ -372,14 +371,14 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
             class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3"
             style="left: 32px; top: 32px"
           >
-            <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">Artboard A</div>
+            <div class="text-[12px] text-muted-foreground">Artboard A</div>
             <div class="mt-1 text-[12px] text-foreground">Drag the field</div>
           </div>
           <div
             class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3"
             style="left: 280px; top: 150px"
           >
-            <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">Artboard B</div>
+            <div class="text-[12px] text-muted-foreground">Artboard B</div>
             <div class="mt-1 text-[12px] text-foreground">Zoom finds me</div>
           </div>
         </DitherInfiniteCanvas>

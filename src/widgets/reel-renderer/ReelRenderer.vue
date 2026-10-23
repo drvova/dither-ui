@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
       v-if="!layers.length"
       class="absolute inset-0 grid place-items-center font-mono text-[11px] text-muted-foreground"
     >
-      {{ reel.clips.length ? "a clip's frame is missing" : "no clips — select frames and press reel" }}
+      {{ reel.clips.length ? "a clip's frame is missing" : "No clips. Select frames and press Reel." }}
     </p>
   </div>
 </template>

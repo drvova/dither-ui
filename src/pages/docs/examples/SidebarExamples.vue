@@ -428,8 +428,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-dashboard" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Basic dashboard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The workhorse frame — washed sidebar with a Main group, count badge, an upgrade card pinned above the user row,
-      and a breadcrumb topbar whose toggle owns the icon rail.
+      The workhorse frame: washed sidebar with a Main group, count badge, an upgrade card pinned above the user row, and
+      a breadcrumb topbar whose toggle owns the icon rail.
     </p>
     <DemoCard :code="SNIPPET_DASHBOARD">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
@@ -499,7 +499,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               :key="s[0]"
               class="rounded-md border border-border/60 p-3"
             >
-              <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">{{ s[0] }}</div>
+              <div class="text-[11px] text-muted-foreground">{{ s[0] }}</div>
               <div class="mt-1 text-[15px] tabular-nums text-foreground">{{ s[1] }}</div>
             </div>
           </div>
@@ -609,8 +609,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-filters" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">E-commerce filters</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A filter rail for a storefront — search, category and brand checkboxes with result counts, a two-thumb price
-      range, and apply/reset pinned to the footer. The topbar echoes the live filter count.
+      A filter rail for a storefront: search, category and brand checkboxes with result counts, a two-thumb price range,
+      and apply/reset pinned to the footer. The topbar echoes the live filter count.
     </p>
     <DemoCard :code="SNIPPET_FILTERS">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
@@ -672,8 +672,11 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
         <main class="flex min-w-0 flex-1 flex-col">
           <div class="flex h-10 items-center justify-between border-b border-border/60 px-4">
             <span class="text-[12px] text-foreground">Products</span>
-            <span class="rounded border border-border/60 px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
-              {{ activeFilters }} filters · ${{ price[0] }}–${{ price[1] }}
+            <span
+              class="flex gap-2 rounded border border-border/60 px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground"
+            >
+              <span>{{ activeFilters }} filters</span>
+              <span>${{ price[0] }}–${{ price[1] }}</span>
             </span>
           </div>
           <div class="grid grid-cols-3 gap-3 p-4" aria-hidden="true">
@@ -692,7 +695,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-docs" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Documentation nav</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A docs tree — version chip, ⌘K search, one section open with the active page, the rest folded behind chevrons, and
+      A docs tree: version chip, ⌘K search, one section open with the active page, the rest folded behind chevrons, and
       a help card in the footer. Compact rows, no icon rail: a docs tree needs its labels.
     </p>
     <DemoCard :code="SNIPPET_DOCS">
@@ -749,7 +752,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
           </template>
         </DitherSidebar>
         <main class="min-w-0 flex-1 overflow-hidden p-5">
-          <div class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">Docs / {{ docsActive }}</div>
+          <div class="text-[11px] text-muted-foreground">Docs / {{ docsActive }}</div>
           <div class="mt-2 text-[15px] tracking-tight text-foreground">{{ docsActive }}</div>
           <div class="mt-4 grid gap-2" aria-hidden="true">
             <div class="h-2 w-11/12 rounded-sm bg-border/50" />
@@ -767,7 +770,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-dual" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Dual layout</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Two tiers — a permanent icon rail picks the context, a second panel shows that context's tree. The rail is a
+      Two tiers: a permanent icon rail picks the context, a second panel shows that context's tree. The rail is a
       Sidebar pinned to its rail state; the panel is a plain inset Sidebar beside it.
     </p>
     <DemoCard :code="SNIPPET_DUAL">
@@ -813,7 +816,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
         </DitherSidebar>
         <main class="grid min-w-0 flex-1 place-items-center">
           <div class="text-center">
-            <div class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">{{ railActive }}</div>
+            <div class="text-[11px] text-muted-foreground">{{ railActive }}</div>
             <div class="mt-1 text-[13px] text-foreground">{{ dualActive }}</div>
           </div>
         </main>
@@ -825,7 +828,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-personal" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Personal dashboard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A personal hub — avatar header, a mini month at a glance, and two todo lists whose done items strike through.
+      A personal hub: avatar header, a mini month at a glance, and two todo lists whose done items strike through.
       Everything is live: tick a box and the footer count follows.
     </p>
     <DemoCard :code="SNIPPET_PERSONAL">
@@ -850,7 +853,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
                 >
                   ‹
                 </button>
-                <span class="tracking-[0.15em] uppercase">Jul 2026</span>
+                <span class="text-[11px]">Jul 2026</span>
                 <button
                   type="button"
                   aria-label="Next month"
@@ -910,7 +913,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               class="flex items-center gap-1.5 border-t border-border/60 px-2.5 pt-2 text-[10px] text-muted-foreground"
             >
               <span class="size-1.5 rounded-full bg-green-500/80" aria-hidden="true" />
-              {{ [...personal, ...work].filter((t) => t.done).length }} of {{ personal.length + work.length }} done —
+              {{ [...personal, ...work].filter((t) => t.done).length }} of {{ personal.length + work.length }} done,
               synced
             </div>
           </template>
@@ -926,7 +929,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-floating" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Floating left</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A detached card over the canvas — workspace switcher up top, search, primary rows with an inbox badge, and
+      A detached card over the canvas: workspace switcher up top, search, primary rows with an inbox badge, and
       favorites that truncate gracefully. Collapses to the icon rail like any other Sidebar.
     </p>
     <DemoCard :code="SNIPPET_FLOATING">
@@ -1000,7 +1003,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-right" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Right side</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The same Sidebar flipped to the right edge — a profile header, the mini month, and calendar toggles with their
+      The same Sidebar flipped to the right edge: a profile header, the mini month, and calendar toggles with their
       color dots. The topbar button hides the whole panel when the content needs the room.
     </p>
     <DemoCard :code="SNIPPET_RIGHT">
@@ -1085,7 +1088,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-teams" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Team switcher</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      One sidebar, three workspaces — the header dropdown swaps the whole identity: wash color, accent, groups, badges.
+      One sidebar, three workspaces. The header dropdown swaps the whole identity: wash color, accent, groups, badges.
       Arrow keys walk the menu; Escape returns focus to the trigger.
     </p>
     <DemoCard :code="SNIPPET_TEAMS">
@@ -1125,7 +1128,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
         </DitherSidebar>
         <main class="grid min-w-0 flex-1 place-items-center">
           <div class="text-center">
-            <div class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">{{ team }}</div>
+            <div class="text-[11px] text-muted-foreground">{{ team }}</div>
             <div class="mt-1 text-[13px] text-foreground">{{ teamActive }}</div>
           </div>
         </main>
@@ -1137,8 +1140,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-tree" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">File tree</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Sub-menus nest — an explorer three levels deep with expand/collapse all, rail guides on every level, and a
-      selected file the header echoes.
+      Sub-menus nest: an explorer three levels deep with expand/collapse all, rail guides on every level, and a selected
+      file the header echoes.
     </p>
     <DemoCard :code="SNIPPET_TREE">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
@@ -1151,7 +1154,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
         >
           <template #header>
             <div class="flex h-8 items-center justify-between px-2.5">
-              <span class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">Explorer</span>
+              <span class="text-[11px] text-muted-foreground">Explorer</span>
               <span class="flex gap-1">
                 <button
                   type="button"
@@ -1250,7 +1253,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-drawer" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Mobile drawer</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Below the breakpoint the sidebar rides in a drawer — hamburger opens, picking a destination closes, swipe
+      Below the breakpoint the sidebar rides in a drawer: hamburger opens, picking a destination closes, swipe
       dismisses. Groups and items work standalone inside any panel.
     </p>
     <DemoCard :code="SNIPPET_DRAWER">
@@ -1306,8 +1309,8 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
   <section id="sidebar-rail" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Icon rail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The whole nav in 56 pixels — a permanent rail where tooltips carry the labels, badges fold to colored dots, and
-      the footer keeps the person.
+      The whole nav in 56 pixels: a permanent rail where tooltips carry the labels, badges fold to colored dots, and the
+      footer keeps the person.
     </p>
     <DemoCard :code="SNIPPET_RAIL">
       <div class="mx-auto flex h-80 max-w-md overflow-hidden rounded-lg border border-border/60">

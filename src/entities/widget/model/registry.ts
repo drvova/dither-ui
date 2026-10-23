@@ -2189,7 +2189,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 280, h: 140 },
     props: [text("label", "Deploy running"), color(), bool("live", true)],
     vmodel: { def: false },
-    slotText: "Build 214 — 3 of 5 steps done.",
+    slotText: "Build 214: 3 of 5 steps done.",
   },
   {
     is: "DitherCardStack",
@@ -2305,7 +2305,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       rounds.push(first)
       let n = first.length
       while (n > 1) {
-        rounds.push(Array.from({ length: Math.floor(n / 2) }, () => ({ a: "—", b: "—" })))
+        rounds.push(Array.from({ length: Math.floor(n / 2) }, () => ({ a: "TBD", b: "TBD" })))
         n = Math.floor(n / 2)
       }
       const { teams: _teams, ...rest } = p
@@ -2349,7 +2349,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("minZoom", 0.25, 0.1, 1, 0.05),
       number("maxZoom", 3, 1, 8, 0.5),
     ],
-    slotText: "Drag to pan · wheel to zoom",
+    slotText: "Drag to pan, wheel to zoom",
   },
   {
     is: "DitherSnapButton",
@@ -2428,7 +2428,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       items: strList(p.items).map((title, i) => ({
         id: `n${i}`,
         title,
-        body: `${title} — details inside.`,
+        body: `${title}: details inside.`,
         time: ["2m", "16m", "1h", "3h", "1d"][i % 5],
         color: (["green", "blue", "orange", "purple", "red"] as const)[i % 5],
       })),
@@ -2631,7 +2631,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 300, h: 160 },
     props: [text("name", "dither"), number("step", 0, 0, 64, 1)],
-    slotText: "Children style themselves from this box — resize it",
+    slotText: "Children style themselves from this box. Resize it.",
   },
   {
     is: "DitherStage",

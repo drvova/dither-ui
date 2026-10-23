@@ -9,7 +9,7 @@
   <img src="public/emotes/emote-dots.webp" alt="" width="51" height="49">
 </p>
 
-![Dither Kit banner](public/dither-banner.webp)
+![dither-ui: copy one folder, every pixel is yours, over a dithered dawn](.github/readme/banner.webp)
 
 <p align="center">
   <img src="public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
@@ -140,6 +140,8 @@ working tool.
   **Run** compiles them in the page, or download them all as a zip.
 - Interface sounds play on taps, toggles and copies; the header switches them
   off.
+- **On this page**, the rail beside wide screens, lists the section in view:
+  its galleries and its API table, one click each.
 
 ![The source panel: an edited example running in the preview above its files](.github/readme/source.webp)
 

@@ -45,13 +45,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "colors", type: "string[] (hex)", default: "['#358ff3', '#7CFF67', '#358ff3']" },
     { prop: "speed", type: "number", default: "1" },
     { prop: "class", type: "string", default: "undefined" },
-    { prop: "default slot", type: "text", default: "—" },
+    { prop: "default slot", type: "text", default: "" },
   ],
   shinyText: [
     { prop: "speed", type: "number", default: "1" },
     { prop: "disabled", type: "boolean", default: "false" },
     { prop: "class", type: "string", default: "undefined" },
-    { prop: "default slot", type: "text", default: "—" },
+    { prop: "default slot", type: "text", default: "" },
   ],
   glitchText: [
     { prop: "text", type: "string", default: '"GLITCH"' },
@@ -80,7 +80,7 @@ const API: Record<string, PropRow[]> = {
   numberFlow: [
     { prop: "value", type: "number", default: "required" },
     { prop: "decimals", type: "number", default: "0" },
-    { prop: "duration", type: "number (ms) — roll time per change", default: "600" },
+    { prop: "duration", type: "number (ms): roll time per change", default: "600" },
     { prop: "class", type: "string", default: "undefined" },
   ],
   textType: [
@@ -203,7 +203,7 @@ const SNIPPETS = {
   <section id="gradient-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Gradient text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An animated gradient clipped to the text — the colour band drifts across the glyphs forever. Respects reduced
+      An animated gradient clipped to the text. The colour band drifts across the glyphs forever. Respects reduced
       motion.
     </p>
     <DemoCard :code="SNIPPETS.gradientText">
@@ -218,7 +218,7 @@ const SNIPPETS = {
   <section id="shiny-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Shiny text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A bright highlight sweeps across dim text on a loop — a subtle sheen for headlines and labels.
+      A bright highlight sweeps across dim text on a loop: a subtle sheen for headlines and labels.
     </p>
     <DemoCard :code="SNIPPETS.shinyText">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -272,7 +272,7 @@ const SNIPPETS = {
   <section id="rotating-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Rotating text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Cycles through a list of words, each sliding out as the next slides in — for a headline that says several things.
+      Cycles through a list of words for a headline that says several things, each sliding out as the next slides in.
     </p>
     <DemoCard :code="SNIPPETS.rotatingText">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -288,7 +288,7 @@ const SNIPPETS = {
     <h2 class="text-lg tracking-tight">Count up</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Eases a number from <code class="text-foreground/80">from</code> to
-      <code class="text-foreground/80">to</code> when it scrolls into view — locale-formatted, tabular figures. Reduced
+      <code class="text-foreground/80">to</code> when it scrolls into view. Locale-formatted, tabular figures. Reduced
       motion jumps to the final value.
     </p>
     <DemoCard :code="SNIPPETS.countUp">
@@ -303,7 +303,7 @@ const SNIPPETS = {
   <section id="number-flow" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Number flow</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An odometer for live values — every digit rides a 0-9 column that rolls to the new figure whenever
+      An odometer for live values: every digit rides a 0-9 column that rolls to the new figure whenever
       <code class="text-foreground/80">value</code>
       changes. Count up plays once; this one never stops. Reduced motion snaps.
     </p>
@@ -320,7 +320,7 @@ const SNIPPETS = {
   <section id="text-type" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Text type</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A typewriter that types each string, pauses, deletes and moves to the next — with a blinking caret. Reduced motion
+      A typewriter with a blinking caret: it types each string, pauses, deletes and moves to the next. Reduced motion
       shows the first line, no typing.
     </p>
     <DemoCard :code="SNIPPETS.textType">
@@ -426,8 +426,8 @@ const SNIPPETS = {
   <section id="scroll-reveal" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Scroll reveal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The words fade and de-blur word-by-word as the block travels up through the viewport — the reveal is tied to
-      scroll position, not a one-shot. Scroll the page.
+      The words fade and de-blur word-by-word as the block travels up through the viewport. The reveal is tied to scroll
+      position, not a one-shot. Scroll the page.
     </p>
     <DemoCard :code="SNIPPETS.scrollReveal">
       <div
@@ -443,7 +443,7 @@ const SNIPPETS = {
   <section id="scroll-float" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Scroll float</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Characters float up from an offset as the scroll progress reaches each one — a gentle parallax settle. Scroll the
+      Characters float up from an offset as the scroll progress reaches each one: a gentle parallax settle. Scroll the
       page.
     </p>
     <DemoCard :code="SNIPPETS.scrollFloat">
@@ -488,8 +488,8 @@ const SNIPPETS = {
   <section id="text-pressure" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Text pressure</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Characters bulge — scaling up and gaining weight — near the cursor, like the word is being pressed. Move your
-      cursor near the text.
+      Characters bulge (scaling up and gaining weight) near the cursor, like the word is being pressed. Move your cursor
+      near the text.
     </p>
     <DemoCard :code="SNIPPETS.textPressure">
       <div class="flex min-h-24 items-center justify-center text-4xl tracking-tight">
@@ -503,7 +503,7 @@ const SNIPPETS = {
   <section id="variable-proximity" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Variable proximity</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Each character's weight and opacity ramps with its distance to the pointer — no scaling, so a whole sentence stays
+      Each character's weight and opacity ramps with its distance to the pointer. No scaling, so a whole sentence stays
       put while the cursor lights a path through it.
     </p>
     <DemoCard :code="SNIPPETS.variableProximity">
@@ -520,7 +520,7 @@ const SNIPPETS = {
   <section id="true-focus" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">True focus</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      One word stays sharp while the rest blur, and the focus steps through the phrase on a timer — pulling the eye word
+      One word stays sharp while the rest blur, and the focus steps through the phrase on a timer, pulling the eye word
       by word.
     </p>
     <DemoCard :code="SNIPPETS.trueFocus">
@@ -535,7 +535,7 @@ const SNIPPETS = {
   <section id="circular-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Circular text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Text set around a full circle on an SVG path, rotating forever — a badge or seal. Uses
+      Text set around a full circle on an SVG path, rotating forever: a badge or seal. Uses
       <code class="text-foreground/80">currentColor</code> so it inherits type colour.
     </p>
     <DemoCard :code="SNIPPETS.circularText">
@@ -550,7 +550,7 @@ const SNIPPETS = {
   <section id="curved-loop" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Curved loop</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Text flows along a wavy SVG path as a seamless loop — the copy length is measured so the scroll wraps without a
+      Text flows along a wavy SVG path as a seamless loop. The copy length is measured so the scroll wraps without a
       visible seam.
     </p>
     <DemoCard :code="SNIPPETS.curvedLoop">
@@ -565,7 +565,7 @@ const SNIPPETS = {
   <section id="fuzzy-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Fuzzy text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An SVG turbulence + displacement filter wobbles the glyph edges into an analog fuzz — native filters, no canvas.
+      An SVG turbulence + displacement filter wobbles the glyph edges into an analog fuzz. Native filters, no canvas.
       Reduced motion drops the filter.
     </p>
     <DemoCard :code="SNIPPETS.fuzzyText">
@@ -580,7 +580,7 @@ const SNIPPETS = {
   <section id="ascii-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">ASCII text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The word is rasterised to an offscreen canvas and mapped onto an ASCII density ramp — an on-brand ASCII render of
+      The word is rasterised to an offscreen canvas and mapped onto an ASCII density ramp: an on-brand ASCII render of
       any string.
     </p>
     <DemoCard :code="SNIPPETS.asciiText">

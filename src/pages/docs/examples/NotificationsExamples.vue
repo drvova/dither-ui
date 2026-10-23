@@ -113,7 +113,7 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
   <section id="notification-center" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Notifications</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A notification center — segmented All/Unread tabs, day groups, and an unread dot that clears on click or all at
+      A notification center: segmented All/Unread tabs, day groups, and an unread dot that clears on click or all at
       once. Empty the unread tab and it says so instead of showing nothing.
     </p>
     <DemoCard :code="SNIPPET">
@@ -137,7 +137,7 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
         </div>
         <div class="max-h-72 overflow-y-auto p-1.5">
           <section v-for="day in days" :key="day" class="mt-1.5 first:mt-0">
-            <h4 class="px-2 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/70">{{ day }}</h4>
+            <h4 class="px-2 pb-1 text-[11px] text-muted-foreground">{{ day }}</h4>
             <button
               v-for="n in byDay(day)"
               :key="n.id"

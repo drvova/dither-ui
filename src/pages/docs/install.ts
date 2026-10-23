@@ -2,28 +2,28 @@
 // panel's prompt.md and (kept in sync by hand, it never imports the docs) the
 // landing's InstallBlock.
 export const INSTALL = {
-  vue: `# 1 — copy the kit folder straight from the repo (degit grabs just the folder)
+  vue: `# 1. Copy the kit folder straight from the repo (degit grabs just the folder)
 npx degit drvova/dither-ui/dither-kit src/dither-kit
 
-# 2 — install the four runtime deps (Vue & Tailwind you already have)
+# 2. Install the four runtime deps (you already have Vue, and Tailwind if you use it)
 npm i d3-scale d3-shape clsx tailwind-merge
 
-# 3 — alias @dither-kit so imports stay clean
-#     vite.config.ts → resolve.alias: { "@dither-kit": "/src/dither-kit" }
-#     tsconfig.json  → paths:        { "@dither-kit": ["./src/dither-kit"] }
+# 3. Alias @dither-kit so imports stay clean
+#    vite.config.ts  resolve.alias: { "@dither-kit": "/src/dither-kit" }
+#    tsconfig.json   paths:         { "@dither-kit": ["./src/dither-kit"] }
 
-# 4 — use it
+# 4. Use it
 import { AreaChart, Area, DitherButton } from "@dither-kit"`,
-  svelte: `# 1 — copy the kit folder straight from the repo (degit grabs just the folder)
+  svelte: `# 1. Copy the kit folder straight from the repo (degit grabs just the folder)
 npx degit drvova/dither-ui/dither-kit-svelte src/dither-kit-svelte
 
-# 2 — install the four runtime deps (Svelte 5 & Tailwind you already have)
+# 2. Install the four runtime deps (you already have Svelte 5, and Tailwind if you use it)
 npm i d3-scale d3-shape clsx tailwind-merge
 
-# 3 — alias @dither-kit-svelte so imports stay clean
-#     vite.config.ts → resolve.alias: { "@dither-kit-svelte": "/src/dither-kit-svelte" }
-#     tsconfig.json  → paths:        { "@dither-kit-svelte": ["./src/dither-kit-svelte"] }
+# 3. Alias @dither-kit-svelte so imports stay clean
+#    vite.config.ts  resolve.alias: { "@dither-kit-svelte": "/src/dither-kit-svelte" }
+#    tsconfig.json   paths:         { "@dither-kit-svelte": ["./src/dither-kit-svelte"] }
 
-# 4 — use it
+# 4. Use it
 import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
 }

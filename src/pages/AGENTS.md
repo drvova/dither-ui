@@ -29,16 +29,16 @@ widgets/features; page-specific conventions live here.
   `.nav-a` keys included), NO eyebrow over a title, NO middle dots or em
   dashes in copy (separate facts with layout; end the sentence), NO link
   that ends in an arrow (every link names where it goes; an external one
-  says "(opens in a new tab)" to screen readers). The landing applies them
-  now; the docs and the Studio follow in a later pass. No space is left
+  says "(opens in a new tab)" to screen readers). The docs and the Studio
+  follow them too (see their sections). No space is left
   empty: a column or flank that runs short gets real content (a fact, a
   live kit surface, a step), never filler. The landing never names the
   tool the films are made with (the user's call; the SDK license asks no
   attribution).
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) on top of the SITE voice in
-  `app/styles.css` (`.nav-a` set in sentence case here, `.nav-pill`,
-  `.led`; never `.eyebrow` or `.micro` on the landing), which the landing
+  `app/styles.css` (`.nav-a`, sentence case site-wide, `.nav-pill`,
+  `.led`), which the landing
   uses directly: ink levels mapped to theme tokens
   (`--ink`, `--ink-2`, `--ink-3`, `--line`, `--well`), `.display` (mono
   500, tight), `.section-head` (the `.section-title` — the
@@ -339,9 +339,15 @@ widgets/features; page-specific conventions live here.
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 + optional
-  "open in studio →") → muted description → `DemoCard` (Preview/Code tabs,
+  "Open in the Studio") → muted description → `DemoCard` (Preview/Code tabs,
   Inspect → the workbench, Code → the source panel) →
-  optional picker gallery (micro-label + grid) → `PropsTable`.
+  optional picker gallery (an `h3` in sentence case, 12px muted, + grid) →
+  `PropsTable` (a row's `default` is its value as code; "" prints "none").
+- Docs copy follows the landing's bans: no em dashes or middle dots in
+  prose, prop `type` notes as `type: note` or `type (note)`, no uppercase
+  or tracked label, no arrow-ended link; a snippet's copy matches what its
+  demo renders (change both together). Kit default strings quoted in a
+  table stay the kit's (the marquee texts keep their dots).
 - DemoCard is the page's perf seam: its preview `<slot>` mounts only as the
   card approaches the viewport (IO, 600px rootMargin) and LATCHES — once
   revealed it stays, so demo interaction state never resets on scroll; the
@@ -404,10 +410,12 @@ widgets/features; page-specific conventions live here.
 - Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
   `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
   deep links both restore and remain shareable.
-- Mobile chrome: the phone header keeps the brand `whitespace-nowrap`, drops
-  the studio pill (it lives on every section's "open in studio →" and returns
-  at sm+) and the github link (the footer carries it), and hides the ⌘K kbd; the section list is a grouped disclosure
-  (`browse sections` button with aria-expanded/aria-controls, group headings,
+- Narrow chrome: under sm the Vue/Svelte switch shows its marks and Search
+  its glyph (the words stay for screen readers), the studio pill drops (it
+  lives on every chart section's "Open in the Studio") and the ⌘K kbd
+  hides; the styling switch (on every card anyway) and GitHub (in the
+  footer) return at lg. The section list is a grouped disclosure
+  ("Browse sections" button with aria-expanded/aria-controls, group headings,
   two-column links, closes on tap) instead of the old flat wall of all ~220
   links.
 - `scrollTo(id)` is computed `window.scrollTo` + a settle loop (re-align after
@@ -432,9 +440,16 @@ widgets/features; page-specific conventions live here.
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
   elsewhere — the handler accepts both). The brand carries the landing's
   7x7 diamond mark, and the studio link is the site's `.nav-a.nav-pill`
-  "Open studio" (sm+). The page title sits under a `.eyebrow`
-  ("Documentation"); the footer links home via `routePath('/')` and shows
-  `v<version> · MIT` like the landing footer.
+  "Open studio" (sm+). The Vue/Svelte switch carries the tools' marks
+  (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
+  and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
+  mark. The sidebar's groups sit under their glyphs (`GROUP_ICON`). The
+  page title is the h1 "Documentation", no eyebrow. At xl the rail right of
+  the content is "On this page": the section in view, its gallery headings
+  and its API table, read from its DOM as the scroll-spy moves (headings
+  inside a preview are the demo's), each a button that scrolls to it. The
+  footer: dither-ui.com, GitHub (its mark), `v<version>` and MIT license as
+  separate items.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
   Studio also accepts legacy `#/studio/new/<type>` links.
 - Section packs live in subfolders as self-contained components (sections +
@@ -459,8 +474,16 @@ widgets/features; page-specific conventions live here.
 - The Studio's chrome speaks the SITE voice, like the landing and the
   docs: `font-mono` on the page root (the context menu and the kit's
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
-  section labels, 12px hairline panels and toolbars, `.ring-on` pressed
-  states, ink primary keys, neutral focus borders. The artboard SURFACE
+  section labels in sentence case, 12px hairline panels and toolbars, `.ring-on` pressed
+  states, ink primary keys, neutral focus borders. Every glyph button is a
+  kit icon (undo/redo, layers, properties, agent, theme, close, zoom, fit,
+  replay, menus); the selection actions are a glyph and a sentence-case
+  word (Duplicate, Group, Delete, Evolve, Reel, Data, Code, PNG, Video),
+  the words hidden under 1024px with the name kept. Copy follows the
+  landing's bans: no middle-dot separators (the Agent panel's status and
+  key hints are layout items; its transcript markers stay the composer's
+  glyphs), no em dashes, no uppercase label, no eyebrow (the phone notice
+  is a plain h1). The artboard SURFACE
   (`[data-artboard-surface]`) stays `font-sans`, the player's font, so
   what is designed on the canvas is what the video export renders.
 - Studio is canvas-first: Toolbar floats over the full-bleed canvas; Layers,
@@ -575,6 +598,13 @@ widgets/features; page-specific conventions live here.
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
   create/select exactly one artboard.
+- Docs and Studio copy scan (a headless page walk): the rendered text of
+  `/docs` (every section) and of `/studio` with each panel and dialog open
+  (layers, agent, library, project menu, code, video, data, shortcuts,
+  context menu) holds no em dash, middle dot, uppercase label or
+  arrow-ended link outside code, kit default strings and kit component
+  looks; the docs header fits from 360px to 1280px; the "On this page"
+  rail lists the section in view at xl.
 
 ## Child DOX Index
 

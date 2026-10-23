@@ -355,7 +355,7 @@ describe("the workbench on a docs preview", () => {
     ;(tray!.querySelector('[aria-label="Comment (M)"]') as HTMLButtonElement).click()
     await nextTick()
     expect(pressed()).toContain("Comment (M)")
-    expect(card.text()).toContain("click an element to start a thread on it")
+    expect(card.text()).toContain("Click an element to start a thread on it")
 
     // Escape: the tool goes, then the workbench closes and focus returns.
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))

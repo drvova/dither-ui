@@ -4,9 +4,9 @@ import type { Artboard } from "@/entities/artboard"
 import { chartCode } from "@/entities/chart"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { widgetCode } from "@/entities/widget"
-import { copyText, DitherFocusScope } from "@dither-kit"
+import { copyText, DitherFocusScope, DitherIcon } from "@dither-kit"
 import { download } from "@/shared/lib/files"
-import { restyle, setStyling, styling, STYLINGS } from "@/shared/lib/restyle"
+import { restyle, setStyling, styling, STYLING_LABELS, STYLINGS } from "@/shared/lib/restyle"
 import { CodeBlock, Segmented } from "@/shared/ui"
 
 const props = defineProps<{ open: boolean }>()
@@ -71,7 +71,7 @@ async function downloadAll() {
         class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
       >
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
-          <span class="text-sm font-medium">Export — Vue SFC</span>
+          <span class="text-sm font-medium">Export as a Vue SFC</span>
           <div class="flex items-center gap-2">
             <button
               type="button"
@@ -79,7 +79,7 @@ async function downloadAll() {
               class="rounded-md border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
               @click="downloadAll"
             >
-              download all ({{ editor.artboards.length }})
+              Download all ({{ editor.artboards.length }})
             </button>
             <button
               type="button"
@@ -87,7 +87,7 @@ async function downloadAll() {
               :class="copied ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
               @click="copy"
             >
-              {{ copied ? "copied" : "copy" }}
+              {{ copied ? "Copied" : "Copy" }}
             </button>
             <button
               ref="closeRef"
@@ -96,12 +96,18 @@ async function downloadAll() {
               aria-label="Close"
               @click="emit('close')"
             >
-              ×
+              <DitherIcon name="Close" :size="14" :stroke-width="1.5" />
             </button>
           </div>
         </div>
         <div class="border-b border-border/60 px-4 py-2">
-          <Segmented :options="STYLINGS" :model-value="styling" label="styling" @update:model-value="setStyling" />
+          <Segmented
+            :options="STYLINGS"
+            :labels="STYLING_LABELS"
+            :model-value="styling"
+            label="styling"
+            @update:model-value="setStyling"
+          />
         </div>
         <div class="overflow-auto p-4">
           <CodeBlock :code="code" />

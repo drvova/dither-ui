@@ -125,17 +125,17 @@ async function copyShot() {
   if (c?.kind !== "shot") return
   const ok = await copyImage(c.blob)
   if (ok) play("copy")
-  b.say(ok ? "Copied the image" : "This browser cannot copy images — download it instead")
+  b.say(ok ? "Copied the image" : "This browser cannot copy images. Download it instead.")
 }
 </script>
 
 <template>
-  <section class="wb-readout" :aria-label="`Workbench — ${tool?.label ?? 'no tool'}`">
+  <section class="wb-readout" :aria-label="`Workbench: ${tool?.label ?? 'no tool'}`">
     <header class="top">
       <span class="micro name">{{ tool?.label ?? "No tool" }}</span>
       <span class="hint">{{
         tool?.hint ??
-        "pick a tool in the tray — I inspects, X shows structure, M comments, K copies it all for an agent"
+        "Pick a tool in the tray: I inspects, X shows structure, M comments, K copies it all for an agent."
       }}</span>
     </header>
 
@@ -188,20 +188,20 @@ async function copyShot() {
       </div>
       <p v-if="b.altMeasure.value" class="row">
         <span class="label">alt</span>
-        {{ b.altMeasure.value.fromLabel }} → {{ b.altMeasure.value.toLabel }}:
+        {{ b.altMeasure.value.fromLabel }} to {{ b.altMeasure.value.toLabel }}:
         {{
           b.altMeasure.value.segments
             .filter((s) => !s.dashed)
             .map((s) => s.value)
-            .join(" · ") || "touching"
+            .join(", ") || "touching"
         }}
-        <span class="dim">· Alt+S keeps it</span>
+        <span class="dim">Alt+S keeps it</span>
       </p>
     </div>
 
     <!-- X-ray summary -->
     <p v-if="b.tool.value === 'xray'" class="row dim">
-      {{ b.xray.value.length }} elements · {{ b.xray.value.filter((x) => x.layout).length }} flex/grid (dashed) · depth
+      {{ b.xray.value.length }} elements, {{ b.xray.value.filter((x) => x.layout).length }} flex or grid (dashed), depth
       {{ Math.max(0, ...b.xray.value.map((x) => x.depth)) + 1 }}
     </p>
 
@@ -236,13 +236,13 @@ async function copyShot() {
         </div>
         <div>
           <dt class="micro">lines</dt>
-          <dd>{{ t.lines.length }} · ~{{ t.measure }} ch</dd>
+          <dd>{{ t.lines.length }}, about {{ t.measure }} ch each</dd>
         </div>
         <div>
           <dt class="micro">ink</dt>
           <dd>
             <i class="sw" :style="{ background: t.color ? formatColor(t.color, 'hex') : 'transparent' }" />{{
-              t.color ? formatColor(t.color, "hex") : "—"
+              t.color ? formatColor(t.color, "hex") : "none"
             }}
           </dd>
         </div>
@@ -331,7 +331,7 @@ async function copyShot() {
         </div>
         <div v-if="b.a11y.value.states.length">
           <dt class="micro">states</dt>
-          <dd>{{ b.a11y.value.states.join(" · ") }}</dd>
+          <dd>{{ b.a11y.value.states.join(", ") }}</dd>
         </div>
         <div>
           <dt class="micro">tab</dt>
@@ -346,7 +346,7 @@ async function copyShot() {
       </dl>
       <p class="row">
         <span class="label">stage</span>
-        {{ b.order.value.length }} tab stops · {{ b.marks.value.length }} issue{{
+        {{ b.order.value.length }} tab stops, {{ b.marks.value.length }} issue{{
           b.marks.value.length === 1 ? "" : "s"
         }}
       </p>
@@ -362,10 +362,10 @@ async function copyShot() {
       <form class="row" @submit.prevent="addGuide">
         <div class="seg" role="group" aria-label="Guide direction">
           <button type="button" :aria-pressed="b.guideAxis.value === 'x'" @click="b.guideAxis.value = 'x'">
-            vertical · V
+            Vertical (V)
           </button>
           <button type="button" :aria-pressed="b.guideAxis.value === 'y'" @click="b.guideAxis.value = 'y'">
-            horizontal · H
+            Horizontal (H)
           </button>
         </div>
         <label class="num">at <input v-model.number="guideAt" type="number" min="0" :max="9999" /> px</label>
@@ -534,7 +534,7 @@ async function copyShot() {
       <div class="row">
         <input v-model="search" type="search" class="search" placeholder="Search threads" aria-label="Search threads" />
         <span class="spacer" />
-        <button type="button" class="act" @click="b.copyForAgent()">Copy for agent · K</button>
+        <button type="button" class="act" @click="b.copyForAgent()">Copy for agent (K)</button>
       </div>
       <ol v-if="threads.length" class="threads">
         <li v-for="th in threads" :key="th.id">
@@ -542,12 +542,13 @@ async function copyShot() {
             <span class="n">{{ th.n }}</span>
             <span class="what">{{ th.messages[0]?.text }}</span>
             <span class="dim"
-              >{{ th.anchor.label }}{{ th.resolved ? " · resolved" : "" }} · {{ th.messages.length }}</span
+              >{{ th.anchor.label }}{{ th.resolved ? ", resolved" : "" }}, {{ th.messages.length }}
+              {{ th.messages.length === 1 ? "message" : "messages" }}</span
             >
           </button>
         </li>
       </ol>
-      <p v-else class="dim">{{ search ? "no thread matches" : "no threads yet — click an element on the stage" }}</p>
+      <p v-else class="dim">{{ search ? "No thread matches." : "No threads yet. Click an element on the stage." }}</p>
     </div>
 
     <!-- Capture -->
@@ -557,7 +558,7 @@ async function copyShot() {
         <span>Recording {{ clock(elapsed) }} / {{ clock(MAX_SECONDS) }}</span>
         <span class="spacer" />
         <button type="button" class="act primary" @click="b.finishRecording()">
-          <Icon :d="ICONS.stop" :size="12" /> Stop · Esc
+          <Icon :d="ICONS.stop" :size="12" /> Stop (Esc)
         </button>
       </div>
       <template v-else-if="b.capture.value.kind === 'shot'">
@@ -656,10 +657,8 @@ async function copyShot() {
 }
 
 .label {
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
 }
 
 .body {

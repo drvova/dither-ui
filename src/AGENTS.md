@@ -33,7 +33,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   owners' trademarks, shown only beside the tool's name, never restyled,
   dithered or put in the kit; imported by path, never through the
   `shared/ui` barrel, which would pull every shared component into the
-  landing's first load), config (CHART_TYPES), lib (theme, routes, base64, menu,
+  landing's first load; `Segmented` takes `labels` where an option's
+  value is not how a reader writes it), config (CHART_TYPES), lib (theme, routes, base64, menu,
   `sound.ts` — Kobra's interface sounds as WebAudio voices behind one
   remembered switch (`sounds`, localStorage `dither-sounds`) — `files.ts` —
   `download()` and a stored .zip of text files, the ONE download path for
@@ -266,7 +267,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex. The same file holds the site chrome voice (`@layer components`:
-  `.nav-a`, `.nav-pill`, `.micro`, `.eyebrow`, `.led`, and `.ring-on` — the
+  `.nav-a` and `.micro` in sentence case, `.nav-pill`, `.led`, and `.ring-on` — the
   ONE pressed/selected state: ink text, a hairline ring, a breath of fill,
   never a colour fill) shared by the landing, the docs and the Studio;
   none of them grows a voice of its own.

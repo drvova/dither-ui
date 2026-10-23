@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
 import { selectedArtboard } from "@/entities/editor"
-import { copyText, DitherFocusScope } from "@dither-kit"
+import { copyText, DitherFocusScope, DitherIcon } from "@dither-kit"
 import { DEFAULT_VIDEO, type VideoOptions } from "./composition"
 import { defaultSeconds, downloadComposition, playerUrl, renderCommand, videoFileName } from "./exportVideo"
 
@@ -41,7 +41,7 @@ function preview() {
 }
 async function copyCommand() {
   if (!frame.value) return
-  status.value = (await copyText(renderCommand(frame.value))) ? "command copied" : "clipboard unavailable"
+  status.value = (await copyText(renderCommand(frame.value))) ? "Command copied" : "Clipboard unavailable"
 }
 const seconds = computed({
   get: () => options.value.seconds,
@@ -65,7 +65,7 @@ const seconds = computed({
         class="flex w-full max-w-md flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
       >
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
-          <span class="text-sm font-medium">Export — video</span>
+          <span class="text-sm font-medium">Export as video</span>
           <button
             ref="closeRef"
             type="button"
@@ -73,15 +73,15 @@ const seconds = computed({
             aria-label="Close"
             @click="emit('close')"
           >
-            ×
+            <DitherIcon name="Close" :size="14" :stroke-width="1.5" />
           </button>
         </div>
 
         <div v-if="frame" class="grid gap-4 p-4 text-[12px]">
           <p class="m-0 text-muted-foreground">
-            <span class="text-foreground">{{ frame.name }}</span> · {{ frame.w }}×{{ frame.h }} — the frame is the video
-            frame. For 1080p, size it 960×540 and render with
-            <code class="text-foreground">--resolution landscape</code> (an integer upscale, finer dither, same design).
+            <span class="text-foreground">{{ frame.name }}</span> ({{ frame.w }}×{{ frame.h }}) is the video frame. For
+            1080p, size it 960×540 and render with <code class="text-foreground">--resolution landscape</code> (an
+            integer upscale, finer dither, same design).
           </p>
 
           <div class="grid grid-cols-[5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2">
@@ -131,10 +131,10 @@ const seconds = computed({
 
           <div class="flex flex-wrap items-center gap-2">
             <button type="button" class="action is-primary" :disabled="busy" @click="download">
-              {{ busy ? "building…" : `download ${videoFileName(frame)}` }}
+              {{ busy ? "Building…" : `Download ${videoFileName(frame)}` }}
             </button>
-            <button type="button" class="action" @click="preview">preview</button>
-            <button type="button" class="action" @click="copyCommand">copy render command</button>
+            <button type="button" class="action" @click="preview">Preview</button>
+            <button type="button" class="action" @click="copyCommand">Copy the render command</button>
           </div>
           <p class="m-0 min-h-4 text-muted-foreground" aria-live="polite">{{ status }}</p>
 

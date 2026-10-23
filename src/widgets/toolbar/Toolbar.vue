@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { DitherAlertDialog } from "@dither-kit"
+import { DitherAlertDialog, DitherIcon } from "@dither-kit"
 import { focusFirstMenuItem, menuKeydown } from "@/shared/lib"
 import type { ArtboardKind } from "@/entities/artboard"
 import {
@@ -208,7 +208,7 @@ async function exportPng() {
           "
         >
           <span class="truncate">{{ activeProjectName() }}</span
-          ><span aria-hidden="true">⌄</span>
+          ><DitherIcon name="ChevronDown" :size="12" :stroke-width="1.5" />
         </button>
         <Transition name="pop">
           <div
@@ -294,7 +294,7 @@ async function exportPng() {
         type="button"
         aria-haspopup="dialog"
         :aria-expanded="libraryOpen"
-        class="flex h-10 items-center gap-2 rounded-xl border border-border bg-background/95 px-3 text-[11.5px] font-medium uppercase tracking-[0.1em] text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.24)] transition-[background-color,scale] hover:bg-card active:scale-[0.96]"
+        class="flex h-10 items-center gap-2 rounded-xl border border-border bg-background/95 px-3 text-[12px] font-medium text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.24)] transition-[background-color,scale] hover:bg-card active:scale-[0.96]"
         @click="
           () => {
             libraryOpen = !libraryOpen
@@ -302,7 +302,7 @@ async function exportPng() {
           }
         "
       >
-        <span aria-hidden="true" class="text-base leading-none">+</span> Library
+        <DitherIcon name="Plus" :size="14" :stroke-width="1.5" />Library
       </button>
       <Transition name="pop">
         <div
@@ -392,7 +392,7 @@ async function exportPng() {
       class="pointer-events-auto flex h-10 items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
     >
       <button type="button" aria-label="Undo" title="Undo (⌘Z)" :disabled="!history.canUndo" class="tool" @click="undo">
-        ↶
+        <DitherIcon name="Undo" :size="15" :stroke-width="1.5" />
       </button>
       <button
         type="button"
@@ -402,7 +402,7 @@ async function exportPng() {
         class="tool"
         @click="redo"
       >
-        ↷
+        <DitherIcon name="Redo" :size="15" :stroke-width="1.5" />
       </button>
       <span class="mx-1 h-4 w-px bg-border" />
       <button
@@ -413,7 +413,7 @@ async function exportPng() {
         class="tool"
         @click="emit('update:layersOpen', !props.layersOpen)"
       >
-        ☷
+        <DitherIcon name="Layers" :size="15" :stroke-width="1.5" />
       </button>
       <button
         type="button"
@@ -423,7 +423,7 @@ async function exportPng() {
         class="tool"
         @click="emit('update:inspectorOpen', !props.inspectorOpen)"
       >
-        ◫
+        <DitherIcon name="Sliders" :size="15" :stroke-width="1.5" />
       </button>
       <button
         type="button"
@@ -433,10 +433,10 @@ async function exportPng() {
         class="tool wide"
         @click="emit('update:agentOpen', !props.agentOpen)"
       >
-        agent
+        <DitherIcon name="Bot" :size="15" :stroke-width="1.5" />Agent
       </button>
       <button type="button" :aria-label="dark ? 'Use light theme' : 'Use dark theme'" class="tool" @click="toggle">
-        {{ dark ? "☀" : "◐" }}
+        <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />
       </button>
     </div>
 
@@ -450,15 +450,21 @@ async function exportPng() {
       >
         <span class="max-w-36 truncate px-2 text-[11px] text-foreground" aria-live="polite">{{ selectionLabel }}</span>
         <span class="mx-0.5 h-4 w-px bg-border" />
-        <button type="button" title="Duplicate (⌘D)" class="tool wide" @click="duplicateSelected">duplicate</button>
-        <button v-if="canUngroup()" type="button" title="Ungroup (⌘⇧G)" class="tool wide" @click="doUngroup">
-          ungroup
+        <button type="button" title="Duplicate (⌘D)" class="tool wide" @click="duplicateSelected">
+          <DitherIcon name="Copy" :size="14" :stroke-width="1.5" /><span class="lbl">Duplicate</span>
         </button>
-        <button v-else type="button" title="Group (⌘G)" class="tool wide" @click="groupSelected">group</button>
-        <button type="button" title="Delete (⌫)" class="tool wide text-red-400" @click="removeSelected">delete</button>
+        <button v-if="canUngroup()" type="button" title="Ungroup (⌘⇧G)" class="tool wide" @click="doUngroup">
+          <DitherIcon name="Group" :size="14" :stroke-width="1.5" /><span class="lbl">Ungroup</span>
+        </button>
+        <button v-else type="button" title="Group (⌘G)" class="tool wide" @click="groupSelected">
+          <DitherIcon name="Group" :size="14" :stroke-width="1.5" /><span class="lbl">Group</span>
+        </button>
+        <button type="button" title="Delete (⌫)" class="tool wide text-red-400" @click="removeSelected">
+          <DitherIcon name="Trash" :size="14" :stroke-width="1.5" /><span class="lbl">Delete</span>
+        </button>
         <span class="mx-0.5 h-4 w-px bg-border" />
         <button type="button" title="Replay animation" class="tool" aria-label="Replay animation" @click="replay">
-          ↻
+          <DitherIcon name="Refresh" :size="14" :stroke-width="1.5" />
         </button>
         <button
           type="button"
@@ -466,7 +472,7 @@ async function exportPng() {
           class="tool wide"
           @click="evolveSelected()"
         >
-          evolve
+          <DitherIcon name="Dice" :size="14" :stroke-width="1.5" /><span class="lbl">Evolve</span>
         </button>
         <button
           v-if="canReel()"
@@ -475,7 +481,7 @@ async function exportPng() {
           class="tool wide"
           @click="makeReel"
         >
-          reel
+          <DitherIcon name="Film" :size="14" :stroke-width="1.5" /><span class="lbl">Reel</span>
         </button>
         <button
           v-if="canData()"
@@ -484,11 +490,15 @@ async function exportPng() {
           :aria-pressed="editor.dataOpen"
           @click="editor.dataOpen = !editor.dataOpen"
         >
-          data
+          <DitherIcon name="Table" :size="14" :stroke-width="1.5" /><span class="lbl">Data</span>
         </button>
-        <button type="button" class="tool wide" @click="emit('export')">code</button>
+        <button type="button" class="tool wide" @click="emit('export')">
+          <DitherIcon name="Code" :size="14" :stroke-width="1.5" /><span class="lbl">Code</span>
+        </button>
         <button type="button" :disabled="pngBusy" class="tool wide" @click="exportPng">
-          {{ pngBusy ? "saving…" : "png" }}
+          <DitherIcon name="Image" :size="14" :stroke-width="1.5" /><span class="lbl">{{
+            pngBusy ? "Saving…" : "PNG"
+          }}</span>
         </button>
         <button
           type="button"
@@ -496,7 +506,7 @@ async function exportPng() {
           class="tool wide"
           @click="emit('video')"
         >
-          video
+          <DitherIcon name="Video" :size="14" :stroke-width="1.5" /><span class="lbl">Video</span>
         </button>
       </div>
     </Transition>
@@ -556,10 +566,8 @@ async function exportPng() {
 }
 .library-label {
   padding: 0.25rem 0.5rem;
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
   color: var(--color-muted-foreground);
 }
 .library-item {
@@ -577,6 +585,7 @@ async function exportPng() {
 }
 .tool {
   display: flex;
+  gap: 6px;
   min-width: 2rem;
   height: 2rem;
   align-items: center;
@@ -608,6 +617,18 @@ async function exportPng() {
 }
 .tool.wide {
   padding-inline: 0.5rem;
+}
+/* Under 1024px the selection actions keep their glyphs and their names
+   (screen readers still read the label); the words step out. */
+@media (max-width: 1023px) {
+  .tool .lbl {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 .selection-tools-enter-active,
 .selection-tools-leave-active {
