@@ -43,7 +43,8 @@ widgets/features; page-specific conventions live here.
   (`--ink`, `--ink-2`, `--ink-3`, `--line`, `--well`), `.display` (mono
   500, tight), `.section-head` (the `.section-title` — the
   page's second size, mono 500 up to 2.6rem — and a `.more-link` naming
-  its destination on its baseline), `.panel` (hairline, 12px — the docs'
+  its destination on its baseline; under 560px the link sits under the
+  title, which beside it squeezed to four lines), `.panel` (hairline, 12px — the docs'
   card corner), `.thumb` (a darker well, 8px), `.list-head` (a `.list-h`
   heading left, a `.more-link` right), `.lead` and `.more-link` (links
   with a resting hairline underline that inks on hover), `.key-primary` (the
@@ -143,15 +144,25 @@ widgets/features; page-specific conventions live here.
   every pixel." and "Read the quick start") over a `.panel` — the
   figure in a `.thumb` well, sticky at the viewport's middle, beside six
   numbered statements at a large size (up to 2rem), each a LINK into the
-  docs that covers it (`PRINCIPLES`, each a sentence or two, no dashes). The words light as each statement rises (after
+  docs that covers it (`PRINCIPLES`, each a sentence or two, no dashes).
+  Under 760px the well is a strip across the top of the panel (the
+  lattice beside its caption: a container query in `EssayFigure`, the
+  well's content 14rem and up; the desktop well's is 212px) pinned to
+  the top of the screen while the statements pass under it, so the staged
+  statement and its scene stay in view together. The words light as each statement rises (after
   MONOGRID): CSS scroll timelines only — `view-timeline-name: --principle`
   per statement, every `.w` animating `--ink-3` → `--ink` over its own
   slice of the rise (`--p` = its place in the line), both ends ≥ 4.5:1 so
   a half-lit line is still text; no motion under reduced motion or
-  without `animation-timeline` support. The STAGE is the statement
-  crossing the viewport's middle (ONE IntersectionObserver on a
-  zero-height root line, no scroll listener) or the one pointed at (hover
-  or focus); the staged statement takes an ink index and an ink rule.
+  without `animation-timeline` support. The STAGE is where the figure
+  is: on a wide screen the statement crossing the viewport's middle (ONE
+  IntersectionObserver on a zero-height root line, no scroll listener);
+  under 760px, where the figure is the strip at the top, the statement
+  sitting just under the strip (the topmost one at least half inside a
+  band from the strip's foot to the middle; the observer is made again
+  when the layout flips), and there a line's words finish lighting as it
+  arrives under the strip, not at the middle. Hover or focus stages a
+  statement too; the staged one takes an ink index and an ink rule.
   The figure (`EssayFigure.vue` over `essay-figure.ts`): a 24x24 lattice of
   576 `<rect>`s built once at setup (markup, prerender-able);
   `stageCell(stage, x, y)` paints each scene through the house
@@ -185,6 +196,9 @@ widgets/features; page-specific conventions live here.
   the shell, then the `dawn` film across the band (up to 100rem; its
   `dawnPlate` the stand-in), its pause chip lined up with the shell. A
   hand on the keys (pointer or focus) swells the sun (`inputs.glow`).
+  Under 760px the film runs at twice the band's width with its sun about
+  40% across (at the band's width it was a sliver), the band clipping the
+  rest and the chip placed back in the gutter.
 - Marks: tool logos (npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the
   coding agents) come ONLY from `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
@@ -321,7 +335,11 @@ widgets/features; page-specific conventions live here.
   (Vue 3, Svelte 5, each under its mark: hairline, sentence case) left; one row of
   bar-separated links right (`FOOTER`; 28px hit areas); under it the
   copyright line as separate items with gaps (the year and dither-ui.com,
-  `v<version>`, MIT license); then the engraved wordmark.
+  `v<version>`, MIT license); then the engraved wordmark. Wrapped (under
+  ~950px) the wordmark, the first link's text and the copyright line
+  start on the shell's edge; under 760px the links are a grid with no bar
+  separators (wrapped, they hung off the ends of rows) and the engraved
+  mark spans the shell.
 - Footer signature: engraved wordmark (`EngravedWordmark.vue`) — glyph paths
   baked from Consolas Bold via `.scratch/engrave/bake.js` into
   `src/pages/landing/wordmark-layers.ts` as EXPORTED MARKUP STRINGS the
@@ -615,7 +633,10 @@ widgets/features; page-specific conventions live here.
   its id and name, the landing lists them in the bridge's order, every
   mark is path data in a positive box.
 - Browser walk after changes: the landing at desktop AND phone widths (no
-  horizontal scroll; the statement above the hero film under 900px), the
+  horizontal scroll; the statement above the hero film under 900px; at
+  320 to 430px the principles strip pinned while the statements scroll
+  with the staged one matching its scene, the dawn's sun in view, the
+  footer's edges aligned), the
   h1 (two lines) and the keys above the fold at 1440×900, 1280×800 and
   1920×1080, the three columns ending level, no uppercase label, eyebrow,
   middle dot, em dash, arrow link or the films' tool's name in the

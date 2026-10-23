@@ -47,6 +47,15 @@
   gap: 14px 24px;
 }
 
+/* On a phone the title takes the width and its link sits under it: beside
+   it, the link squeezed the title into three or four lines. */
+@media (max-width: 559px) {
+  .landing .section-head {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
 .landing .section-title {
   margin: 0;
   max-width: 22ch;
