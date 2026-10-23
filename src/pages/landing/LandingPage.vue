@@ -115,7 +115,38 @@ const PRINCIPLES = [
 })
 const principle = ref(0)
 const principleEls = ref<HTMLElement[]>([])
+const stageFig = ref<HTMLElement | null>(null)
 let stageIO: IntersectionObserver | null = null
+let phone: MediaQueryList | null = null
+
+// The stage is the statement where the figure is. On a wide screen the
+// figure sits at the viewport's middle, so it is the statement crossing
+// the middle (a zero-height root line). On a phone the figure is a strip
+// pinned to the top, so it is the statement sitting just under the strip:
+// the topmost one at least half inside a band from the strip's foot to
+// the middle. No scroll listener; the observer is made again when the
+// layout flips.
+function observeStage() {
+  stageIO?.disconnect()
+  stageIO = null
+  if (typeof IntersectionObserver === "undefined") return
+  const narrow = phone?.matches ?? false
+  const foot = narrow ? Math.ceil(stageFig.value?.getBoundingClientRect().height ?? 0) : 0
+  const inBand = new Set<number>()
+  stageIO = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        const i = principleEls.value.indexOf(e.target as HTMLElement)
+        if (i < 0) continue
+        if (narrow ? e.intersectionRatio >= 0.5 : e.isIntersecting) inBand.add(i)
+        else inBand.delete(i)
+      }
+      if (inBand.size) principle.value = Math.min(...inBand)
+    },
+    narrow ? { rootMargin: `-${foot}px 0px -50% 0px`, threshold: [0, 0.5, 1] } : { rootMargin: "-50% 0px -50% 0px" },
+  )
+  for (const el of principleEls.value) stageIO.observe(el)
+}
 let facesIO: IntersectionObserver | null = null
 
 onMounted(() => {
@@ -159,23 +190,13 @@ onMounted(() => {
     facesIO.observe(firstFace)
   }
 
-  // The statement crossing the viewport's middle stages the figure: a
-  // zero-height root line, no scroll listener.
-  if (typeof IntersectionObserver !== "undefined") {
-    stageIO = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          const i = principleEls.value.indexOf(e.target as HTMLElement)
-          if (e.isIntersecting && i >= 0) principle.value = i
-        }
-      },
-      { rootMargin: "-50% 0px -50% 0px" },
-    )
-    for (const el of principleEls.value) stageIO.observe(el)
-  }
+  phone = window.matchMedia("(max-width: 759px)")
+  phone.addEventListener("change", observeStage)
+  observeStage()
 })
 
 onBeforeUnmount(() => {
+  phone?.removeEventListener("change", observeStage)
   stageIO?.disconnect()
   stageIO = null
   facesIO?.disconnect()
@@ -283,7 +304,7 @@ onBeforeUnmount(() => {
             <a :href="routePath('/docs/getting-started')" class="more-link">Read the quick start</a>
           </div>
           <div class="panel principles-body">
-            <div class="thumb principles-fig"><EssayFigure :stage="principle" /></div>
+            <div ref="stageFig" class="thumb principles-fig"><EssayFigure :stage="principle" /></div>
             <ol class="principles-list">
               <li v-for="(p, i) in PRINCIPLES" :key="p.href">
                 <a
@@ -679,6 +700,13 @@ onBeforeUnmount(() => {
       animation: principle-word linear both;
       animation-timeline: --principle;
       animation-range: cover calc(6% + var(--p) * 26%) cover calc(14% + var(--p) * 26%);
+    }
+  }
+  /* On a phone the stage is at the top, under the pinned strip, so a line
+     finishes lighting as it arrives there rather than at the middle. */
+  @media (prefers-reduced-motion: no-preference) and (max-width: 759px) {
+    .principle-t .w {
+      animation-range: cover calc(8% + var(--p) * 38%) cover calc(16% + var(--p) * 38%);
     }
   }
 }

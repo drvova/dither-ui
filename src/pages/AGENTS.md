@@ -154,10 +154,15 @@ widgets/features; page-specific conventions live here.
   per statement, every `.w` animating `--ink-3` → `--ink` over its own
   slice of the rise (`--p` = its place in the line), both ends ≥ 4.5:1 so
   a half-lit line is still text; no motion under reduced motion or
-  without `animation-timeline` support. The STAGE is the statement
-  crossing the viewport's middle (ONE IntersectionObserver on a
-  zero-height root line, no scroll listener) or the one pointed at (hover
-  or focus); the staged statement takes an ink index and an ink rule.
+  without `animation-timeline` support. The STAGE is where the figure
+  is: on a wide screen the statement crossing the viewport's middle (ONE
+  IntersectionObserver on a zero-height root line, no scroll listener);
+  under 760px, where the figure is the strip at the top, the statement
+  sitting just under the strip (the topmost one at least half inside a
+  band from the strip's foot to the middle; the observer is made again
+  when the layout flips), and there a line's words finish lighting as it
+  arrives under the strip, not at the middle. Hover or focus stages a
+  statement too; the staged one takes an ink index and an ink rule.
   The figure (`EssayFigure.vue` over `essay-figure.ts`): a 24x24 lattice of
   576 `<rect>`s built once at setup (markup, prerender-able);
   `stageCell(stage, x, y)` paints each scene through the house
