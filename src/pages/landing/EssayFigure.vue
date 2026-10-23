@@ -78,6 +78,20 @@ const index = computed(() => String((Math.max(0, props.stage) % STAGE_CAPTIONS.l
   color: var(--ink, var(--swatch-orange));
 }
 
+/* A wide well (the principles' strip on a phone, 240px and up) sets the
+   lattice beside its caption; the desktop well's content is 212px. */
+@container (min-width: 14rem) {
+  .fig {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 16px;
+  }
+  .lattice {
+    flex: none;
+    width: 6.5rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cell {
     transition: none;

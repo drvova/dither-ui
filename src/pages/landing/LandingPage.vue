@@ -428,7 +428,7 @@ onBeforeUnmount(() => {
           <span>MIT license</span>
         </p>
       </div>
-      <div aria-hidden="true" class="mx-auto w-[min(90vw,56rem)] px-6 pb-10">
+      <div aria-hidden="true" class="foot-mark mx-auto px-6 pb-10">
         <EngravedWordmark />
       </div>
     </footer>
@@ -502,9 +502,12 @@ onBeforeUnmount(() => {
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
+/* The links' padding is pulled back so, wrapped under the wordmark, the
+   first one's text starts on the shell's edge. */
 .foot-links {
   display: flex;
   flex-wrap: wrap;
+  margin-left: -10px;
   font-size: 12px;
   color: var(--ink-3);
 }
@@ -538,9 +541,38 @@ onBeforeUnmount(() => {
   color: var(--ink-3);
 }
 
-@media (max-width: 759px) {
+/* The engraved mark: centred under the shell on a wide screen, on the
+   shell's own edges on a phone. */
+.foot-mark {
+  width: min(90vw, 56rem);
+}
+
+/* On a phone the links are a grid on the shell's edge: wrapped bar
+   separators hung off the ends of rows, and the links' padding set them
+   in from everything else. */
+/* Below ~950px the links wrap under the wordmark, so the copyright line
+   leaves the right edge too. */
+@media (max-width: 949px) {
   .foot-copy {
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 759px) {
+  .foot-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    width: 100%;
+    margin-left: 0;
+  }
+  .foot-links a,
+  .foot-links a:last-child {
+    min-height: 32px;
+    padding: 0;
+    box-shadow: none;
+  }
+  .foot-mark {
+    width: 100%;
   }
 }
 
@@ -566,17 +598,31 @@ onBeforeUnmount(() => {
   position: sticky;
   top: calc(50vh - 9.5rem);
   padding: 14px 14px 10px;
+  container-type: inline-size;
 }
 
+/* On a phone the figure becomes a strip across the panel (its lattice
+   beside its caption, see EssayFigure) pinned to the top of the screen
+   while the statements pass under it, so the staged statement and its
+   scene are always in view together. */
 @media (max-width: 759px) {
   .principles-body {
     grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-    padding: 20px;
+    gap: 0;
+    padding: 0;
   }
   .principles-fig {
-    position: static;
-    width: min(100%, 15rem);
+    top: 0;
+    z-index: 1;
+    padding: 12px 16px;
+    border-radius: 12px 12px 0 0;
+    box-shadow:
+      inset 0 0 0 1px var(--line),
+      0 1px 0 var(--line);
+  }
+  .principle {
+    gap: 14px;
+    padding: 18px 16px;
   }
 }
 
@@ -816,6 +862,7 @@ onBeforeUnmount(() => {
 /* The close: a full-bleed band between hairlines; the last line and its
    keys on the shell, the dawn film under them, edge to edge up to 100rem. */
 .dawn {
+  overflow: hidden;
   background: var(--well);
   box-shadow:
     inset 0 1px 0 var(--line),
@@ -860,9 +907,21 @@ onBeforeUnmount(() => {
   }
 }
 
+/* On a phone the band's width left the film a sliver: it runs at twice
+   the width instead, its sun about 40% across, the band clipping the rest
+   and the chip back in the gutter (the film's right edge is 68% of the
+   band past the band's). */
 @media (max-width: 759px) {
   .dawn-in {
     padding: 28px 1.5rem 0;
+  }
+  .dawn-film {
+    width: 200%;
+    max-width: none;
+    margin: 12px 0 0 -32%;
+  }
+  .dawn-film :deep(.film-corner) {
+    right: calc(34% + 1.5rem);
   }
 }
 
