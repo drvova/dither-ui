@@ -56,8 +56,11 @@ function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number,
   c.getContext("2d")?.drawImage(img, x, y, w, h, 0, 0, c.width, c.height)
 }
 
-// The principles: six statements, each a link into the docs that covers
-// it. Pointing at one (hover or focus) re-dithers the figure into its scene.
+// The principles: six statements read as one, each a link into the docs
+// that covers it. Their words light as they rise through the viewport (CSS
+// scroll timelines, `--p` = the word's place in its line), and the
+// statement crossing the viewport's middle — or the one pointed at, by
+// hover or focus — re-dithers the figure into its scene.
 const PRINCIPLES = [
   { text: "Every pixel is placed on purpose.", href: routePath("/docs") },
   { text: "Charts, buttons, avatars and gradients — rendered pixel by pixel on canvas.", href: routePath("/docs/area") },
@@ -65,8 +68,14 @@ const PRINCIPLES = [
   { text: "Every fill is deterministic — a seed replays it forever, and explicit props always win.", href: routePath("/docs/seeds") },
   { text: "Layout, motion and text families compose from the same dither engine.", href: routePath("/docs/composition") },
   { text: "Copy the folder, alias it — no build step, no black box.", href: routePath("/docs/getting-started") },
-]
+].map((p) => {
+  // A dash never starts a line: it is bound to the word before it.
+  const words = p.text.replace(/ —/g, "\u00a0—").split(" ")
+  return { ...p, words: words.map((w, i) => ({ w, p: words.length > 1 ? i / (words.length - 1) : 0 })) }
+})
 const principle = ref(0)
+const principleEls = ref<HTMLElement[]>([])
+let stageIO: IntersectionObserver | null = null
 
 // The agents strip's backdrop: a sparse seeded dot sea on the vanilla
 // engine (12fps, 4px cells, navy-to-blue only, so the chips keep their
@@ -122,9 +131,26 @@ onMounted(() => {
       mask: (_x, y, _w, h) => Math.min(1, Math.min(y, h - y) / (h * 0.3)),
     })
   }
+
+  // The statement crossing the viewport's middle stages the figure: a
+  // zero-height root line, no scroll listener.
+  if (typeof IntersectionObserver !== "undefined") {
+    stageIO = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const i = principleEls.value.indexOf(e.target as HTMLElement)
+          if (e.isIntersecting && i >= 0) principle.value = i
+        }
+      },
+      { rootMargin: "-50% 0px -50% 0px" },
+    )
+    for (const el of principleEls.value) stageIO.observe(el)
+  }
 })
 
 onBeforeUnmount(() => {
+  stageIO?.disconnect()
+  stageIO = null
   for (const sh of shakers) sh.destroy()
   shakers = []
   bandField?.destroy()
@@ -201,9 +227,10 @@ onBeforeUnmount(() => {
       <div class="box mx-auto w-full max-w-[var(--shell)] px-6">
         <Hub />
 
-        <!-- The principles: the figure in a framed well (a 24x24 lattice
-             that re-dithers itself into the pointed statement's scene) beside
-             six numbered statements, each a link into its docs. -->
+        <!-- The principles: the figure in a sticky well (a 24x24 lattice
+             that re-dithers itself into the staged statement's scene)
+             beside six numbered statements at a large size, each a link
+             into its docs, their words lighting as they rise. -->
         <section aria-labelledby="principles-h" class="principles">
           <div class="section-head">
             <p class="eyebrow">Principles</p>
@@ -215,6 +242,7 @@ onBeforeUnmount(() => {
             <ol class="principles-list">
               <li v-for="(p, i) in PRINCIPLES" :key="p.href">
                 <a
+                  :ref="(el) => { if (el) principleEls[i] = el as HTMLElement }"
                   :href="p.href"
                   class="principle"
                   :data-active="principle === i ? 'true' : undefined"
@@ -222,7 +250,11 @@ onBeforeUnmount(() => {
                   @focus="principle = i"
                 >
                   <span class="principle-n" aria-hidden="true">{{ String(i + 1).padStart(2, "0") }}</span>
-                  <span class="principle-t">{{ p.text }}</span>
+                  <span class="principle-t"
+                    ><template v-for="(w, j) in p.words" :key="j"
+                      ><span class="w" :style="{ '--p': w.p }">{{ w.w }}</span>{{ j < p.words.length - 1 ? " " : "" }}</template
+                    ></span
+                  >
                 </a>
               </li>
             </ol>
@@ -382,8 +414,9 @@ onBeforeUnmount(() => {
   }
 }
 
-/* The principles: the figure's well beside a numbered list; the pointed
-   statement takes ink and a hairline rule. */
+/* The principles: the figure's well, sticky at the viewport's middle,
+   beside six statements at a large size. The staged statement takes an
+   ink index and a hairline rule. */
 .principles,
 .agents {
   display: flex;
@@ -394,20 +427,25 @@ onBeforeUnmount(() => {
 .principles-body {
   display: grid;
   grid-template-columns: 15rem minmax(0, 1fr);
-  gap: 28px;
+  gap: 48px;
   align-items: start;
-  padding: 20px;
+  padding: 28px;
 }
 
 .principles-fig {
+  position: sticky;
+  top: calc(50vh - 9.5rem);
   padding: 14px 14px 10px;
 }
 
 @media (max-width: 759px) {
   .principles-body {
     grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding: 20px;
   }
   .principles-fig {
+    position: static;
     width: min(100%, 15rem);
   }
 }
@@ -421,8 +459,9 @@ onBeforeUnmount(() => {
 .principle {
   display: flex;
   align-items: baseline;
-  gap: 16px;
-  padding: 11px 12px;
+  gap: 20px;
+  padding: 22px 12px 22px 16px;
+  view-timeline-name: --principle;
   box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
   transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -434,11 +473,12 @@ onBeforeUnmount(() => {
 }
 
 .principle-t {
-  font-size: 13.5px;
-  line-height: 1.45;
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
   color: var(--ink-3);
   text-wrap: pretty;
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .principle[data-active] {
@@ -450,6 +490,30 @@ onBeforeUnmount(() => {
 .principle[data-active] .principle-n,
 .principle[data-active] .principle-t {
   color: var(--ink);
+}
+
+/* The reveal (after MONOGRID): each word lights from the muted ink to the
+   full ink over its own slice of its statement's rise — later words later —
+   so a line reads itself in as it climbs to the middle. Both ends pass
+   4.5:1, so a half-lit line is still text; with no scroll timelines or
+   under reduced motion the words simply sit in their state. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .principle-t .w {
+      animation: principle-word linear both;
+      animation-timeline: --principle;
+      animation-range: cover calc(6% + var(--p) * 26%) cover calc(14% + var(--p) * 26%);
+    }
+  }
+}
+
+@keyframes principle-word {
+  from {
+    color: var(--ink-3);
+  }
+  to {
+    color: var(--ink);
+  }
 }
 
 /* The agents: a panel with the dot sea breathing under the harness chips. */

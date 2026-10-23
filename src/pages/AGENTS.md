@@ -100,10 +100,19 @@ widgets/features; page-specific conventions live here.
   flex column spaced by one gap — never stack a row's padding on a
   neighbour's margin.
 - Principles (`LandingPage.vue`): a `.section-head` ("Principles" · "One
-  rule under every pixel." · "quick start →") over a `.panel` — the figure in a `.thumb` well beside
-  six numbered statements, each a LINK into the docs that covers it
-  (`PRINCIPLES`); pointing at one (hover or focus) makes it the figure's
-  stage and marks it (ink index and text, an ink rule). No scroll driver.
+  rule under every pixel." · "quick start →") over a `.panel` — the
+  figure in a `.thumb` well, sticky at the viewport's middle, beside six
+  numbered statements at a large size (up to 2rem), each a LINK into the
+  docs that covers it (`PRINCIPLES`; a dash is bound to the word before it
+  with a no-break space). The words light as each statement rises (after
+  MONOGRID): CSS scroll timelines only — `view-timeline-name: --principle`
+  per statement, every `.w` animating `--ink-3` → `--ink` over its own
+  slice of the rise (`--p` = its place in the line), both ends ≥ 4.5:1 so
+  a half-lit line is still text; no motion under reduced motion or
+  without `animation-timeline` support. The STAGE is the statement
+  crossing the viewport's middle (ONE IntersectionObserver on a
+  zero-height root line, no scroll listener) or the one pointed at (hover
+  or focus); the staged statement takes an ink index and an ink rule.
   The figure (`EssayFigure.vue` over `essay-figure.ts`): a 24x24 lattice of
   576 `<rect>`s built once at setup (markup, prerender-able);
   `stageCell(stage, x, y)` paints each scene through the house
@@ -125,9 +134,10 @@ widgets/features; page-specific conventions live here.
   the ink keeps contrast, density 0.42 at rest → 0.64 under hover, cursor
   body 0.4; `prefers-reduced-transparency` halves it). The panel is
   `isolate; overflow: hidden`; the chips stay `relative` above the canvas.
-- No entrance choreography: the page simply is (no reveal, no scroll
-  driver, no soft focus). Motion is the films, the live canvases, the
-  figure's wipe and hover answers.
+- No entrance choreography: the page simply is (no load reveal, no scroll
+  listener, no soft focus). Motion is the films, the live canvases, the
+  principles' scroll-timeline word reveal, the figure's wipe and hover
+  answers.
 - The landing is one organism with shared organs (all vanilla modules):
   - `senses.ts` — the nervous + endocrine system. ONE sensorium (pointer,
     scroll, visibility, reduced motion) and ONE heartbeat rAF that ticks
@@ -494,7 +504,8 @@ widgets/features; page-specific conventions live here.
   film over its stand-in with the round chip pausing it and the loupe
   under the cursor, reduced motion holding the film's still with the chip
   on play, the Build slider re-seeding its badge, emote hover, a principle
-  re-staging the figure on hover AND keyboard focus, the directory tabs'
+  re-staging the figure on hover, keyboard focus AND scroll (its words
+  lighting in reading order; still under reduced motion), the directory tabs'
   underline under the picked tab, the agents panel's hover thickening, canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
