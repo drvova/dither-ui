@@ -72,8 +72,9 @@ widgets/features; page-specific conventions live here.
   component count, the section count, the packages beside Vue; each
   number beside its kit glyph, hairlines between, never cards). Right:
   the `hero` film at 8:5, standing on the band's floor, with a caption
-  (the Layers glyph, "Four paint layers, one dither rule.", the loupe
-  line only where hover exists, a `.lead` into composition). Under 900px
+  (the Layers glyph, "Four paint layers, one dither rule.", the pointer
+  line only where hover exists and motion is on, a `.lead` into
+  composition). Under 900px
   the statement comes first and the film takes the band's width. The h1
   AND the keys must clear the fold at 1440×900, 1280×800 and 1920×1080.
 - Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
@@ -107,7 +108,7 @@ widgets/features; page-specific conventions live here.
   glyph, a `.lead` and a line: 3D models (Box; `DitherWorld` live at 12fps
   on the house ramp, `sampleWorld(7)`), Charts (ChartLine; a live
   `LineChart`) and Video (Film; the `reel` film across the well's middle,
-  into `/docs/stage`); live kit canvases carry the `.live` chip; C — lists
+  scrubbed by the pointer, into `/docs/stage`); live kit canvases carry the `.live` chip; C — lists
   into the docs under `.list-h` headings (the shelved families biggest
   first, each under its glyph, its count in its own element, then the
   five Handbook topics under theirs; notes align with the labels), a
@@ -118,7 +119,10 @@ widgets/features; page-specific conventions live here.
   title ("n sections, every one of them live."), one line and "Browse all
   sections"; right the `catalog` film (the docs as a skyline, its
   `catalogPlate` the stand-in) standing on the panel; one column under
-  760px, the film under the text. Then a `.panel` — the kit's own
+  760px, the film under the text. The skyline is a map of the shelf: the
+  picked tab's tower stands raised (`inputs.family`, the family's index in
+  `FAMILIES`, -1 for Explore) and a click on a shelved family's tower
+  picks its tab (`hit`, `tower<i>-hit`). Then a `.panel` — the kit's own
   `DitherTabs`
   (grey; badges = family sizes) over a horizontal snapping shelf of
   `.thumb` cards that deep-link to `/docs/<id>` (the section's seeded
@@ -179,7 +183,8 @@ widgets/features; page-specific conventions live here.
   band between hairlines, the last line ("Copy one folder. Every pixel
   is yours.") and its keys ("Read the quick start", "Open the studio") on
   the shell, then the `dawn` film across the band (up to 100rem; its
-  `dawnPlate` the stand-in), its pause chip lined up with the shell.
+  `dawnPlate` the stand-in), its pause chip lined up with the shell. A
+  hand on the keys (pointer or focus) swells the sun (`inputs.glow`).
 - Marks: tool logos (npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the
   coding agents) come ONLY from `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
@@ -245,10 +250,26 @@ widgets/features; page-specific conventions live here.
   same; a round glass icon button in its corner; with slot text it
   becomes a pill with a timecode); `FilmChip` is a toggle with a stable
   name and `aria-pressed` while paused. Reduced motion starts every film
-  paused on its `still`; pressing play is the visitor's ask and plays. The
-  pointer parts the hero's layers, the dawn's sky, the reel's strips and
-  the catalog's motes (`parallaxLayersMacro`). A film's root takes
-  its lattice's `aspect-ratio`. The player owns
+  paused on its `still`; pressing play is the visitor's ask and plays.
+  Every film answers the visitor through the document's own interaction
+  (bindings, hit areas, inputs; authored with the SDK's macros in
+  `films/`): the pointer parts the hero's layers, the dawn's sky, the
+  reel's strips and the catalog's motes (`parallaxLayersMacro`); the
+  hero's button and toggle and the Studio film's boards grow hovered and
+  squash pressed (`hoverLiftMacro` with no lift, `pressSquashMacro`); the
+  reel's playhead and the dawn's sun lean after the cursor
+  (`cursorFollowMacro`); the catalog's towers rise. The page drives them
+  through `ClayzoFilm`: `inputs` (fed to `setInput`, watched), `hit` (a
+  click on a hit area, by id) and `scrub` (a mouse or pen across the film
+  seeks it frame by frame; leaving plays on from there; touch never
+  scrubs). Input names and hit area ids are the page's handles, pinned by
+  the films spec. A hit area tracks its node's drawn bounds, which ignore
+  clips and include everything the node lifts: target an undrawn node
+  that stays put (the catalog's `t<i>.zone` columns) and grow a hovered
+  thing about its centre rather than lifting it, or its target slips from
+  under the pointer and flickers. Under reduced motion the player starts
+  non-interactive: no loupe, parallax, hover, click or scrub. A film's
+  root takes its lattice's `aspect-ratio`. The player owns
   its own rAF and offscreen pause — the one engine outside `senses`.
   The landing re-asserts `html.dark` on mount: the page is always-dark art
   while docs/studio own the persisted theme (storage keeps the user's
@@ -569,9 +590,11 @@ widgets/features; page-specific conventions live here.
   in the browser walk only.
 - `tests/films.spec.ts` is the films' guard AND generator: the SkSL lookup
   evaluated against the kit's matrix, one uniform per ramp level, the
-  uniforms in the effect parameters' order, and per
+  uniforms in the effect parameters' order, per
   film a valid deterministic document with a `still`, a frame-aligned loop
-  and byte-equality with `public/films/<id>.json`. `npm run films`
+  and byte-equality with `public/films/<id>.json`, and the page's handles
+  (the catalog's `family` input and one `tower<i>-hit` per family, a
+  pointer cursor exactly on the shelved ones; the dawn's `glow`). `npm run films`
   (`rs test -u`) rewrites the documents after a builder edit; review frames in
   a browser (the player seeked to the beats) before committing — the
   Clayzo CLI's render/review need an account, playback does not.
@@ -586,8 +609,14 @@ widgets/features; page-specific conventions live here.
   middle dot, em dash, arrow link or the films' tool's name in the
   rendered copy, every svg decorative or labelled, each of the five films
   mounting over its stand-in where it lives (scrolled into view) with its
-  own named chip pausing it and the loupe under the cursor, reduced motion
-  holding every film's still with its chip on play, the agents panel's
+  own named chip pausing it and the loupe under the cursor, the films'
+  answers (the hero's button and toggle and the Studio boards grow on
+  hover and squash on press, the reel scrubs under a mouse and plays on
+  from there, the dawn's sun swells with a key hovered or focused, a
+  catalog tower rises hovered and for the picked tab, and a click on a
+  shelved tower picks its tab while an unshelved one shows no pointer),
+  reduced motion holding every film's still with its chip on play and
+  nothing answering the pointer, the agents panel's
   film fitting beside the steps with no empty band under either, the
   marks crisp at their sizes (install picker, harness chips, footer
   badges; the Studio's harness picker with the bridge running), the

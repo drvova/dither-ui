@@ -5,6 +5,7 @@
 import { describe, expect, it } from "rstack/test"
 import { resolveMatrix } from "@dither-kit"
 import { FILMS } from "../src/pages/landing/films"
+import { FAMILIES, SHELVES } from "../src/pages/landing/hub"
 import { kitDitherSksl, THRESHOLDS } from "../src/pages/landing/films/kit-dither"
 import { SKY, SUN } from "../src/pages/landing/plates"
 
@@ -61,5 +62,27 @@ describe.each(Object.entries(FILMS))("film %s", (id, build) => {
 
   it("matches its committed document", async () => {
     await expect(JSON.stringify(build())).toMatchFileSnapshot(`../public/films/${id}.json`)
+  })
+})
+
+// What the page drives by name: the directory feeds the picked family's
+// index and reads clicks off `tower<i>-hit` (a pointer only where a shelf
+// answers), and the close raises the dawn's `glow`.
+describe("the page's handles", () => {
+  const inputs = (doc: ReturnType<typeof FILMS.hero>) => doc.interaction?.inputs.map((i) => i.name) ?? []
+
+  it("gives the catalog a family input and one target per family", () => {
+    const doc = FILMS.catalog()
+    expect(inputs(doc)).toContain("family")
+    const hits = doc.interaction?.hitAreas ?? []
+    expect(hits.map((h) => h.id)).toEqual(FAMILIES.map((_, i) => `tower${i}-hit`))
+    const shelved = SHELVES.filter((s) => s.value !== "explore").map((s) => s.label)
+    expect(FAMILIES.filter((_, i) => hits[i].cursor === "pointer").map((f) => f.title)).toEqual(
+      FAMILIES.map((f) => f.title).filter((t) => shelved.includes(t)),
+    )
+  })
+
+  it("gives the dawn a glow input", () => {
+    expect(inputs(FILMS.dawn())).toContain("glow")
   })
 })

@@ -15,12 +15,13 @@ import {
   marker,
   parallaxLayersMacro,
   type Color,
+  type InteractionContribution,
   type Key,
   type PathContour,
   type Vec3,
 } from "@clayzo/animation/authoring"
 import { mulberry32 } from "@dither-kit"
-import { FAMILIES } from "../hub"
+import { FAMILIES, SHELVES } from "../hub"
 import { catalogLayout, GREY, windowTone } from "../plates"
 import { at, cycle, FR, mixColor, mixVec3, MOVE, OUT, pixelFilm, POP, rect, SETTLE, wave, type Nodes } from "./frame"
 import { heat, tone } from "./kit-dither"
@@ -38,21 +39,23 @@ const node = (id: string, x = 0, y = 0) => base(id, { outTick: END, x, y })
 const win = (x: number, y: number) => rect(x * C, y * C, 2 * C, 2 * C)
 const v3 = (x: number, y: number): Vec3 => ({ x, y, z: 0 })
 
-/** The skyline: the floor, the steady windows by tone, the flickering ones
- * (about one in six, each on its own seeded beats), and the ember cap. */
+/** The skyline: the floor, then a group per tower (so a tower rises as
+ * one): its steady windows by tone, its flickering ones (about one in six,
+ * each on its own seeded beats), the beam crossing its glass, and on the
+ * tallest the ember cap, the mast and the new section's arrival. The
+ * tallest draws last, so its sparks land over its neighbours. */
 function skyline(nodes: Nodes): string {
-  const children: string[] = []
   nodes.floor = {
     ...node("floor"),
     type: "path",
     path: constant({ contours: [rect(0, (L.floor + 1) * C, W, C)] }),
     style: { fill: fill(tone(1 / 3)) },
   }
-  children.push("floor")
-  const steady = new Map<number, PathContour[]>()
+  const towers = L.towers.map(() => ({ steady: new Map<number, PathContour[]>(), flicker: [] as string[] }))
   const cap: PathContour[] = []
   L.windows.forEach((w, i) => {
     const t = windowTone(w, L.rows)
+    const { steady, flicker } = towers[w.tower]
     if (w.top && w.tower === L.tallest) return void cap.push(win(w.x, w.y))
     if (w.top || RAND() > 0.17) {
       steady.set(t, [...(steady.get(t) ?? []), win(w.x, w.y)])
@@ -75,18 +78,49 @@ function skyline(nodes: Nodes): string {
       path: constant({ contours: [win(w.x, w.y)] }),
       style: { fill: { color: keyed(`${id}.tone`, keys), opacity: constant(1) } },
     }
-    children.push(id)
+    flicker.push(id)
   })
-  ;[...steady.entries()].forEach(([t, contours], i) => {
-    nodes[`lit${i}`] = {
-      ...node(`lit${i}`),
+  const ids = towers.map(({ steady, flicker }, i) => {
+    const lit = [...steady.entries()].map(([t, contours], k) => {
+      const id = `t${i}.lit${k}`
+      nodes[id] = { ...node(id), type: "path", path: constant({ contours }), style: { fill: fill(tone(t)) } }
+      return id
+    })
+    const id = `tower${i}`
+    const crown = i === L.tallest ? [...beacon(nodes, cap), beam(nodes, i), ...arrival(nodes)] : [beam(nodes, i)]
+    nodes[id] = { ...node(id), type: "group", children: [...lit, ...flicker, ...crown] }
+    return id
+  })
+  nodes.skyline = {
+    ...node("skyline"),
+    type: "group",
+    children: ["floor", ...ids.filter((_, i) => i !== L.tallest), ids[L.tallest], ...zones(nodes)],
+  }
+  return "skyline"
+}
+
+/** The pointer's targets: an undrawn column per tower that stays put while
+ * its tower rises (a target that rose with it would slip out from under
+ * the pointer), from the floor to clear above the roof, halfway into the
+ * gap on each side, so the columns tile the skyline. */
+function zones(nodes: Nodes): string[] {
+  return L.towers.map((t, i) => {
+    const roof = Math.min(...L.windows.filter((w) => w.tower === i).map((w) => w.y)) - (i === L.tallest ? 5 : 0)
+    const id = `t${i}.zone`
+    nodes[id] = {
+      ...node(id),
       type: "path",
-      path: constant({ contours }),
-      style: { fill: fill(tone(t)) },
+      path: constant({
+        contours: [rect((t.x - 1.5) * C, (roof - 3) * C, (t.w * 3 + 2) * C, (L.floor + 5 - roof) * C)],
+      }),
+      style: { fill: { color: constant(tone(1)), opacity: constant(0) } },
     }
-    children.unshift(`lit${i}`)
+    return id
   })
-  // The cap breathes; the mast over it blinks.
+}
+
+/** The tallest tower's crown: the cap breathes; the mast over it blinks. */
+function beacon(nodes: Nodes, cap: PathContour[]): string[] {
   nodes.cap = {
     ...node("cap"),
     type: "path",
@@ -111,27 +145,27 @@ function skyline(nodes: Nodes): string {
     path: constant({ contours: [rect(mx * C, (top - 5) * C, C, C)] }),
     style: { fill: { color: keyed("light.tone", blink), opacity: constant(1) } },
   }
-  children.push("cap", "mast", "light")
-  nodes.skyline = { ...node("skyline"), type: "group", children }
-  return "skyline"
+  return ["cap", "mast", "light"]
 }
 
-/** The beam: a soft vertical band crossing the towers once a loop, clipped
- * to the windows so only the lit glass catches it. */
-function beam(nodes: Nodes): string {
-  nodes["beam.clip"] = {
-    ...node("beam.clip"),
+/** The beam over one tower: a soft vertical band crossing the skyline once
+ * a loop, clipped to that tower's windows so only its lit glass catches it
+ * and the light rises with the tower. */
+function beam(nodes: Nodes, tower: number): string {
+  const id = `t${tower}.beam`
+  nodes[`${id}.clip`] = {
+    ...node(`${id}.clip`),
     type: "path",
-    path: constant({ contours: L.windows.map((w) => win(w.x, w.y)) }),
+    path: constant({ contours: L.windows.filter((w) => w.tower === tower).map((w) => win(w.x, w.y)) }),
     // A clip is never drawn; its fill only satisfies the schema.
     style: { fill: fill(tone(1)) },
   }
   const span = 14 * C
-  nodes["beam.band"] = {
-    ...base("beam.band", {
+  nodes[`${id}.band`] = {
+    ...base(`${id}.band`, {
       outTick: END,
       blendMode: "lighten",
-      position: keyed("beam.position", [
+      position: keyed(`${id}.position`, [
         [0, v3(-span, H / 2), "hold"],
         [at(0.8), v3(-span, H / 2), MOVE],
         [at(3.6), v3(W + span, H / 2)],
@@ -154,8 +188,8 @@ function beam(nodes: Nodes): string {
       },
     },
   }
-  nodes.beam = { ...node("beam"), type: "group", children: ["beam.band"], clipPathId: "beam.clip" }
-  return "beam"
+  nodes[id] = { ...node(id), type: "group", children: [`${id}.band`], clipPathId: `${id}.clip` }
+  return id
 }
 
 /** One rising mote: a cell that leaves a roof, drifts up and dithers out,
@@ -306,7 +340,7 @@ export function catalogFilm() {
   RAND = mulberry32(0xca7a)
   const nodes: Nodes = {}
   const city = skyline(nodes)
-  const scene = [motes(nodes), city, beam(nodes), ...arrival(nodes)]
+  const scene = [motes(nodes), city]
   return pixelFilm({
     id: "catalog",
     name: "dither-ui catalog",
@@ -319,6 +353,48 @@ export function catalogFilm() {
     cool: GREY,
     markers: [marker("still", 0), marker("arrive", at(2.1))],
     loupe: 10 * C,
-    interaction: [parallaxLayersMacro({ nodeIds: ["motes"], span: 900, reach: 2 * C })],
+    interaction: [parallaxLayersMacro({ nodeIds: ["motes"], span: 900, reach: 2 * C }), ...rise()],
   })
+}
+
+/** A tower rises three cells while the pointer is over it, or while the
+ * page's `family` input names it (the directory's picked tab, by family
+ * index; -1 for none). Its hit area is `tower<i>-hit`, the page's cue that
+ * a click picks that family; a family with a shelf shows the pointer. */
+const SHELVED = new Set<string>(SHELVES.map((s) => s.label))
+
+function rise(): InteractionContribution[] {
+  const input: InteractionContribution = {
+    input: { id: "input-family", name: "family", kind: "number", defaultValue: -1, minimum: -1 },
+  }
+  return [
+    input,
+    ...L.towers.flatMap((_, i): InteractionContribution[] => [
+      {
+        hitArea: {
+          id: `tower${i}-hit`,
+          nodeId: `t${i}.zone`,
+          shape: "bounds",
+          // Only a family with a shelf below answers a click.
+          ...(SHELVED.has(FAMILIES[i].title) ? { cursor: "pointer" } : {}),
+        },
+      },
+      {
+        id: `tower${i}.rise`,
+        name: `tower ${i} rises while hovered or picked`,
+        target: { kind: "node-property", nodeId: `tower${i}`, property: "position", axis: "y" },
+        blend: "add",
+        steps: [
+          { id: "over", op: "pointer-over", hitAreaId: `tower${i}-hit` },
+          { id: "family", op: "input", input: "family" },
+          { id: "picked", op: "compare", operation: "equal", operand: i },
+          { id: "up", op: "constant", value: -3 * C },
+          { id: "rest", op: "constant", value: 0 },
+          { id: "chosen", op: "select", inputs: ["picked", "up", "rest"] },
+          { id: "goal", op: "select", inputs: ["over", "up", "chosen"] },
+          { id: "eased", op: "spring", stiffness: 300, damping: 24 },
+        ],
+      },
+    ]),
+  ]
 }

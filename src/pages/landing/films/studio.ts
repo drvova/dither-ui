@@ -9,8 +9,10 @@ import {
   base,
   constant,
   fill,
+  hoverLiftMacro,
   keyed,
   marker,
+  pressSquashMacro,
   stroke,
   type Key,
   type PathContour,
@@ -264,5 +266,12 @@ export function studioFilm() {
       marker("select", SELECT),
       marker("drain", DRAIN_AT),
     ],
+    // Each placed board answers the cursor as a frame on the real canvas
+    // would: a touch larger hovered (grown about its centre, so its target
+    // never slips from under the pointer), squashed pressed.
+    interaction: BOARDS.flatMap((b) => [
+      hoverLiftMacro({ nodeId: b.id, hitAreaId: `${b.id}-hit`, padding: 12, scale: 1.04, lift: 0 }),
+      pressSquashMacro({ nodeId: b.id, hitAreaId: `${b.id}-hit`, scale: 0.96 }),
+    ]),
   })
 }

@@ -9,6 +9,7 @@
 import {
   base,
   constant,
+  cursorFollowMacro,
   fill,
   keyed,
   marker,
@@ -17,6 +18,7 @@ import {
   trim,
   type Animatable,
   type BaseOptions,
+  type Binding,
   type Color,
   type GradientStop,
   type Key,
@@ -464,7 +466,32 @@ export function dawnFilm() {
     cell: C,
     markers: [marker("still", 0)],
     loupe: 9 * C,
-    // The sky turns under the cursor by depth: stars least, the low orbit most.
-    interaction: [parallaxLayersMacro({ nodeIds: [sky, high, low, sat], span: 900, reach: 3 * C })],
+    // The sky parts by depth under the cursor and the sun leans after it,
+    // slow, the way attention trails; it swells while the page's `glow`
+    // input is up (a hand on the close's keys).
+    interaction: [
+      parallaxLayersMacro({ nodeIds: [sky, high, low, sat], span: 900, reach: 3 * C }),
+      cursorFollowMacro({ nodeId: "flare", span: 700, reach: 2 * C, stiffness: 120, damping: 16 }),
+      cursorFollowMacro({ nodeId: "core", span: 700, reach: 2 * C, stiffness: 120, damping: 16 }),
+      { input: { id: "input-glow", name: "glow", kind: "number", defaultValue: 0, minimum: 0, maximum: 1 } },
+      swell("flare", 1.6, "x"),
+      swell("core", 1.3),
+    ],
   })
+}
+
+/** The sun grows toward `peak` times its size as `glow` rises, on a slow
+ * spring: the flare along the limb, the core all round. */
+function swell(nodeId: string, peak: number, axis?: "x"): Binding {
+  return {
+    id: `${nodeId}.swell`,
+    name: `${nodeId} swells with the glow input`,
+    target: { kind: "node-property", nodeId, property: "scale", ...(axis ? { axis } : {}) },
+    blend: "multiply",
+    steps: [
+      { id: "glow", op: "input", input: "glow" },
+      { id: "size", op: "map-range", inputMinimum: 0, inputMaximum: 1, outputMinimum: 1, outputMaximum: peak },
+      { id: "eased", op: "spring", stiffness: 90, damping: 14 },
+    ],
+  }
 }

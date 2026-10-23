@@ -124,7 +124,10 @@ Default section order:
   Clayzo's SDK license lets a site ship the playback runtime and its
   documents, not the authoring package, so the app never imports that
   folder. Every film renders through the kit's own ordered-dither rule as a
-  Clayzo shader, which doubles as a cursor loupe. The landing never names
+  Clayzo shader, which doubles as a cursor loupe. Every film answers the
+  visitor through the document's own interaction (hover, press, parallax,
+  cursor follow, a scrub, inputs and hit areas the page drives through
+  `ClayzoFilm`); under reduced motion none does. The landing never names
   Clayzo (the user's call; its SDK license asks no attribution). `npm run films` regenerates the documents
   (`tests/films.spec.ts` is generator and drift guard); never put Clayzo in
   `dither-kit/` (MIT, copy-out portable). Details in `src/pages/AGENTS.md`.

@@ -115,7 +115,9 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
             <DitherIcon name="Layers" :size="14" :stroke-width="1.5" class="cap-i" />
             <span class="cap-t"
               >Four paint layers, one dither rule.
-              <span class="hover-only">Point at the film and its grid halves under the cursor.</span></span
+              <span class="hover-only"
+                >Point at it: the grid halves under the cursor and the controls answer.</span
+              ></span
             >
             <a :href="routePath('/docs/composition')" class="lead">How components compose</a>
           </figcaption>
@@ -212,7 +214,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
           </figure>
           <figure class="pick">
             <div class="thumb pick-art">
-              <ClayzoFilm film="reel" chip="Pause the video film" :label="REEL_ALT" class="pick-film" />
+              <ClayzoFilm film="reel" chip="Pause the video film" :label="REEL_ALT" scrub class="pick-film" />
             </div>
             <figcaption>
               <p class="pick-h">
@@ -413,7 +415,8 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   min-width: 14rem;
 }
 
-@media (hover: none) {
+/* Only where the film answers a pointer: one that hovers, with motion on. */
+@media (hover: none), (prefers-reduced-motion: reduce) {
   .hover-only {
     display: none;
   }

@@ -39,6 +39,8 @@ const STUDIO_ALT =
 const DAWN = dawnPlate()
 const DAWN_ALT =
   "Dawn over a dithered planet: the sun breathes on the limb, an aurora sways over the far side, seed moons cross the sky and stars flicker."
+// A hand on the close's keys (the pointer or focus) swells the dawn's sun.
+const reaching = ref(false)
 
 // The footer's links, in one row.
 const FOOTER = [
@@ -354,12 +356,24 @@ onBeforeUnmount(() => {
       <section class="dawn" aria-labelledby="dawn-h">
         <div class="dawn-in">
           <h2 id="dawn-h" class="section-title">Copy one folder. Every pixel is yours.</h2>
-          <div class="dawn-keys">
+          <div
+            class="dawn-keys"
+            @pointerenter="reaching = true"
+            @pointerleave="reaching = false"
+            @focusin="reaching = true"
+            @focusout="reaching = false"
+          >
             <a :href="routePath('/docs/getting-started')" class="nav-a nav-pill key-primary">Read the quick start</a>
             <a :href="routePath('/studio')" class="nav-a nav-pill">Open the studio</a>
           </div>
         </div>
-        <ClayzoFilm film="dawn" chip="Pause the dawn film" :label="DAWN_ALT" class="dawn-film">
+        <ClayzoFilm
+          film="dawn"
+          chip="Pause the dawn film"
+          :label="DAWN_ALT"
+          :inputs="{ glow: reaching ? 1 : 0 }"
+          class="dawn-film"
+        >
           <template #fallback>
             <PixelPlate :plate="DAWN" fit="xMidYMax meet" class="block size-full" />
           </template>

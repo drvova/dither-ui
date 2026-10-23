@@ -5,7 +5,16 @@
 // other way above and below it. Every strip moves exactly one bounce (six
 // frames) per loop, so the last frame is the first. Verb: run. Geometry:
 // frames and sprockets.
-import { base, constant, fill, keyed, marker, parallaxLayersMacro, type PathContour } from "@clayzo/animation/authoring"
+import {
+  base,
+  constant,
+  cursorFollowMacro,
+  fill,
+  keyed,
+  marker,
+  parallaxLayersMacro,
+  type PathContour,
+} from "@clayzo/animation/authoring"
 import { at, pixelFilm, rect, type Nodes } from "./frame"
 import { heat, tone } from "./kit-dither"
 
@@ -125,7 +134,12 @@ export function reelFilm() {
     cell: 12,
     markers: [marker("still", 0)],
     loupe: 9 * 12,
-    // The far strips drift less than the near one under the cursor.
-    interaction: [parallaxLayersMacro({ nodeIds: [...far, near], span: 900, reach: 18 })],
+    // The far strips drift less than the near one under the cursor, and
+    // the playhead leans along the strip toward it while the page scrubs
+    // the film under the pointer.
+    interaction: [
+      parallaxLayersMacro({ nodeIds: [...far, near], span: 900, reach: 18 }),
+      cursorFollowMacro({ nodeId: "head", span: 480, reach: 6 * 12, axes: ["x"], stiffness: 120, damping: 16 }),
+    ],
   })
 }

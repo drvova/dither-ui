@@ -5,8 +5,10 @@
 // sizes) over a horizontal shelf of framed cards that deep-link into the
 // docs, each with the section's seeded identicon (the kit's avatar, from
 // the section id), its family, name, a line and its path; under the shelf,
-// what every preview in the docs lets you do.
-import { ref } from "vue"
+// what every preview in the docs lets you do. The skyline is a map of the
+// shelf: a tower rises under the pointer and while its family's tab is
+// picked, and a click on a shelved family's tower picks its tab.
+import { computed, ref } from "vue"
 import { DitherAvatar, DitherIcon, DitherTabPanel, DitherTabs, type IconName } from "@dither-kit"
 import { routePath } from "@/shared/lib"
 import ClayzoFilm from "./ClayzoFilm.vue"
@@ -20,6 +22,19 @@ const COUNTS = FAMILIES.map((f) => f.count)
 const LAYOUT = catalogLayout(COUNTS)
 const PLATE = catalogPlate(COUNTS)
 const CATALOG_ALT = `The docs catalog as a night skyline: ${SECTION_COUNT} lit windows, one per section, in a tower per family; windows switch on and off and a new section falls onto the tallest roof.`
+
+// The film's handles: the picked tab's family by its index (-1 for
+// Explore), and a click on a tower picks its family's tab when it has one.
+const FAMILY_INDEX = new Map<string, number>(FAMILIES.map((f, i) => [f.title, i]))
+const picked = computed(() => ({
+  family: FAMILY_INDEX.get(SHELVES.find((s) => s.value === tab.value)?.label ?? "") ?? -1,
+}))
+
+function onTower(area: string) {
+  const family = FAMILIES[Number(/^tower(\d+)-hit$/.exec(area)?.[1])]?.title
+  const shelf = SHELVES.find((s) => s.label === family)
+  if (shelf) tab.value = shelf.value
+}
 
 // The docs' preview tools (the workbench and the source panel), each with
 // the section that shows it best.
@@ -65,8 +80,10 @@ const TABS = SHELVES.map((s) => ({
         film="catalog"
         chip="Pause the catalog film"
         :label="CATALOG_ALT"
+        :inputs="picked"
         class="dir-film"
         :style="{ aspectRatio: `${LAYOUT.w} / ${LAYOUT.h}` }"
+        @hit="onTower"
       >
         <template #fallback>
           <PixelPlate :plate="PLATE" fit="xMidYMax meet" class="block size-full" />
