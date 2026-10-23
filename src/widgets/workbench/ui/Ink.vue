@@ -35,6 +35,24 @@ const draftShape = computed(() => {
 const outlines = computed(
   () => (b.revision.value, b.selection.value.map((item) => b.boundsOfItem(item)).filter(Boolean)),
 )
+/** The transform box with its corner and rotate handles (Select). */
+const handles = computed(() => {
+  void b.revision.value
+  void b.selection.value
+  if (b.tool.value !== "select" || b.draft.value?.kind === "marquee") return null
+  const box = b.selectionBox()
+  if (!box) return null
+  return {
+    box,
+    corners: [
+      [box.x, box.y],
+      [box.x + box.w, box.y],
+      [box.x, box.y + box.h],
+      [box.x + box.w, box.y + box.h],
+    ],
+    rotate: { x: box.x + box.w / 2, y: box.y - 20 },
+  }
+})
 const eraser = computed(() => (b.tool.value === "eraser" && b.pointer.value ? Math.max(8, b.settings.inkWidth * 2) : 0))
 </script>
 
@@ -75,6 +93,26 @@ const eraser = computed(() => (b.tool.value === "eraser" && b.pointer.value ? Ma
       :height="o!.h + 5"
       class="selected"
     />
+    <g v-if="handles" class="handles">
+      <rect
+        :x="handles.box.x + 0.5"
+        :y="handles.box.y + 0.5"
+        :width="handles.box.w"
+        :height="handles.box.h"
+        class="frame"
+      />
+      <line :x1="handles.rotate.x" :y1="handles.box.y" :x2="handles.rotate.x" :y2="handles.rotate.y + 4" class="stem" />
+      <circle :cx="handles.rotate.x" :cy="handles.rotate.y" r="4" class="knob" />
+      <rect
+        v-for="(c, i) in handles.corners"
+        :key="i"
+        :x="c[0] - 3.5"
+        :y="c[1] - 3.5"
+        width="7"
+        height="7"
+        class="knob"
+      />
+    </g>
     <circle
       v-if="eraser && b.pointer.value"
       :cx="b.pointer.value.x"
@@ -125,6 +163,22 @@ const eraser = computed(() => (b.tool.value === "eraser" && b.pointer.value ? Ma
   fill: none;
   stroke: var(--wb-hl);
   stroke-dasharray: 3 2;
+}
+
+.handles .frame {
+  fill: none;
+  stroke: var(--wb-hl);
+  stroke-width: 1;
+}
+
+.handles .stem {
+  stroke: var(--wb-hl);
+}
+
+.handles .knob {
+  fill: var(--color-background);
+  stroke: var(--wb-hl);
+  stroke-width: 1.5;
 }
 
 .eraser {

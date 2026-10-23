@@ -32,6 +32,8 @@ export type Settings = {
   persist: boolean
   /** Stills: render the DOM (no prompt) or grab the screen's exact pixels. */
   stills: "dom" | "screen"
+  /** The edge of the stage the tray docks to. */
+  tray: "bottom" | "top"
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -49,6 +51,7 @@ export const DEFAULT_SETTINGS: Settings = {
   multiMeasure: false,
   persist: true,
   stills: "dom",
+  tray: "bottom",
 }
 
 const KEY = "dither-workbench-settings"
@@ -76,6 +79,7 @@ export function normalizeSettings(raw: unknown): Settings {
     multiMeasure: bool(r.multiMeasure, s.multiMeasure),
     persist: bool(r.persist, s.persist),
     stills: r.stills === "screen" ? "screen" : "dom",
+    tray: r.tray === "top" ? "top" : "bottom",
   }
 }
 

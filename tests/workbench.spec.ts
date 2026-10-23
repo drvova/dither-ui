@@ -5,6 +5,7 @@ import { h, nextTick } from "vue"
 import DemoCard from "@/pages/docs/DemoCard.vue"
 import { contrast, formatColor, grade, hex, over, parseColor } from "@/widgets/workbench/model/color"
 import { boxFrom, distances, dock, snap } from "@/widgets/workbench/model/geometry"
+import { encodeGif, lzw, medianCut, quantize } from "@/widgets/workbench/model/gif"
 import { arrowPaths, erase, hitLine, inkOutline, pressures, type InkPoint } from "@/widgets/workbench/model/ink"
 import {
   controlOf,
@@ -120,6 +121,69 @@ describe("workbench ink", () => {
     const { shaft, head } = arrowPaths({ x: 0, y: 0 }, { x: 100, y: 0 }, 2)
     expect(shaft).toMatch(/^M0 0L\d/)
     expect(head).toMatch(/^M100 0L.*Z$/)
+  })
+})
+
+/** GIF LZW, decoded: the sub-blocks of one image back into indices. */
+function unlzw(data: Uint8Array): number[] {
+  const min = data[0]
+  const bytes: number[] = []
+  for (let i = 1; data[i]; i += data[i] + 1) bytes.push(...data.subarray(i + 1, i + 1 + data[i]))
+  const clear = 1 << min
+  let size = min + 1
+  let table: number[][] = []
+  const reset = () => {
+    table = Array.from({ length: clear + 2 }, (_, i) => [i])
+    size = min + 1
+  }
+  reset()
+  const out: number[] = []
+  let prev: number[] | null = null
+  let bit = 0
+  while (bit + size <= bytes.length * 8) {
+    let code = 0
+    for (let k = 0; k < size; k++, bit++) code |= ((bytes[bit >> 3] >> (bit & 7)) & 1) << k
+    if (code === clear) {
+      reset()
+      prev = null
+      continue
+    }
+    if (code === clear + 1) break
+    const entry: number[] = table[code] ?? (prev ? [...prev, prev[0]] : [])
+    out.push(...entry)
+    if (prev) table.push([...prev, entry[0]])
+    prev = entry
+    if (table.length === 1 << size && size < 12) size++
+  }
+  return out
+}
+
+describe("workbench GIF", () => {
+  it("round-trips LZW, including table resets", () => {
+    const short = Uint8Array.from([1, 1, 1, 2, 2, 3, 1, 1, 1, 2])
+    expect(unlzw(lzw(short))).toEqual([...short])
+    const long = Uint8Array.from({ length: 20000 }, (_, i) => (i * 7919) % 251)
+    expect(unlzw(lzw(long))).toEqual([...long])
+  })
+  it("finds the colours a frame holds and dithers between them by the Bayer matrix", () => {
+    const palette = medianCut([0x000000, 0x000000, 0xffffff, 0xffffff], 2)
+    expect(palette).toEqual([
+      [0, 0, 0],
+      [255, 255, 255],
+    ])
+    // A flat mid grey over 8×8 pixels becomes a pattern of both colours.
+    const grey = new Uint8ClampedArray(8 * 8 * 4).fill(128)
+    const idx = quantize(grey, 8, palette, 255)
+    expect(new Set(idx).size).toBe(2)
+  })
+  it("writes a looping GIF89a", () => {
+    const frame = new Uint8ClampedArray(4 * 2 * 4).fill(255)
+    const gif = encodeGif([frame, frame], 4, 2, 8)
+    expect(String.fromCharCode(...gif.subarray(0, 6))).toBe("GIF89a")
+    expect(gif[6] | (gif[7] << 8)).toBe(4)
+    expect(gif[8] | (gif[9] << 8)).toBe(2)
+    expect(String.fromCharCode(...gif.subarray(13 + 768 + 3, 13 + 768 + 14))).toBe("NETSCAPE2.0")
+    expect(gif.at(-1)).toBe(0x3b)
   })
 })
 

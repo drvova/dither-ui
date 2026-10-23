@@ -169,7 +169,7 @@ const chipClass = (active: boolean) =>
       v-show="tab === 'preview'"
       ref="host"
       class="relative mt-3 flex min-h-[280px] items-center justify-center rounded-lg border border-border/60 p-8 sm:p-10"
-      :class="{ 'pb-16 sm:pb-16': inspecting }"
+      :class="{ 'data-[tray=bottom]:pb-16 data-[tray=top]:pt-16': inspecting }"
       :tabindex="inspecting ? 0 : undefined"
       :role="inspecting ? 'group' : undefined"
       :aria-label="inspecting ? 'Preview, with the workbench' : undefined"

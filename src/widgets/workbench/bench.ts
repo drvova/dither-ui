@@ -16,10 +16,12 @@ import {
   renderRegion,
   renderStage,
   trimVideo,
+  videoFrames,
   videoTypes,
   type Recording,
 } from "./model/capture"
 import { formatColor, parseColor, type RGBA } from "./model/color"
+import { encodeGif } from "./model/gif"
 import {
   boxFrom,
   distances,
@@ -91,6 +93,11 @@ export type Draft =
   | { kind: "guide"; id: string; before: string }
   | { kind: "move"; last: Point; before: string }
   | { kind: "erase"; before: string }
+  | { kind: "scale"; handle: Handle; box: Box; origin: Workspace; before: string }
+  | { kind: "rotate"; center: Point; from: number; origin: Workspace; before: string }
+
+/** The selection box's corner handles and its rotate handle above. */
+export type Handle = "nw" | "ne" | "sw" | "se" | "rotate"
 
 export type Capture =
   | { kind: "shot"; blob: Blob; url: string }
@@ -109,6 +116,9 @@ export type A11yReading = {
 }
 export type XrayBox = { box: Box; depth: number; layout: boolean }
 export type Mark = { box: Box; kind: Issue["kind"]; note: string }
+
+/** The export format that is not a video: a GIF through the kit's dither. */
+export const GIF = "image/gif"
 
 /** The preview whose keys these are: last pointed at or focused. */
 let current: symbol | null = null
@@ -214,11 +224,15 @@ export function createBench(o: BenchOptions) {
   const pins = shallowRef<Record<string, Point>>({})
   const guideAxis = ref<"x" | "y">("x")
   const guideHover = ref<number | null>(null)
+  /** The selection handle under the pointer (Select), for its cursor. */
+  const handleHover = ref<Handle | null>(null)
   const draft = shallowRef<Draft | null>(null)
   const selection = ref<Item[]>([])
   const editing = ref<string | null>(null)
   const openThread = ref<string | null>(null)
   const draftThread = shallowRef<(Anchor & { at: Point }) | null>(null)
+  /** A thread waiting for the element it should move to. */
+  const moving = ref<string | null>(null)
   const samples = ref<RGBA[]>([])
   const capture = shallowRef<Capture | null>(null)
   const capturing = ref(false)
@@ -467,6 +481,105 @@ export function createBench(o: BenchOptions) {
 
   const isSelected = (item: Item) => selection.value.some((s) => s.kind === item.kind && s.id === item.id)
 
+  /** What a transform moves: arrows, strokes and notes (guides only move,
+   * measurements are where they were measured). */
+  const transformable = () =>
+    selection.value.filter((s) => s.kind === "arrows" || s.kind === "strokes" || s.kind === "notes")
+
+  /** The box around the transformable selection, or null. */
+  function selectionBox(): Box | null {
+    const boxes = transformable()
+      .map((item) => boundsOfItem(item))
+      .filter((b): b is Box => !!b)
+    if (!boxes.length) return null
+    const x = Math.min(...boxes.map((b) => b.x))
+    const y = Math.min(...boxes.map((b) => b.y))
+    return { x, y, w: Math.max(...boxes.map((b) => b.x + b.w)) - x, h: Math.max(...boxes.map((b) => b.y + b.h)) - y }
+  }
+
+  function handleAt(p: Point): Handle | null {
+    const b = selectionBox()
+    if (!b) return null
+    const near = (x: number, y: number) => Math.hypot(p.x - x, p.y - y) <= 7
+    if (near(b.x + b.w / 2, b.y - 20)) return "rotate"
+    if (near(b.x, b.y)) return "nw"
+    if (near(b.x + b.w, b.y)) return "ne"
+    if (near(b.x, b.y + b.h)) return "sw"
+    if (near(b.x + b.w, b.y + b.h)) return "se"
+    return null
+  }
+
+  /** Map every point of the selected items in `origin` through `f` (and
+   * scale note text by `k`) into `d`. */
+  function remap(d: Workspace, origin: Workspace, map: (p: Point) => Point, k = 1) {
+    const r1 = (v: number) => Math.round(v * 10) / 10
+    const f = (p: Point) => {
+      const q = map(p)
+      return { x: r1(q.x), y: r1(q.y) }
+    }
+    const items = transformable()
+    const has = (kind: Item["kind"], id: string) => items.some((s) => s.kind === kind && s.id === id)
+    for (const a of d.arrows) {
+      const o0 = origin.arrows.find((x) => x.id === a.id)
+      if (o0 && has("arrows", a.id)) {
+        a.from = f(o0.from)
+        a.to = f(o0.to)
+      }
+    }
+    for (const st of d.strokes) {
+      const o0 = origin.strokes.find((x) => x.id === st.id)
+      if (o0 && has("strokes", st.id))
+        st.points = o0.points.map(([x, y, t, pr]) => {
+          const q = f({ x, y })
+          return [q.x, q.y, t, pr]
+        })
+    }
+    for (const n of d.notes) {
+      const o0 = origin.notes.find((x) => x.id === n.id)
+      if (o0 && has("notes", n.id)) {
+        n.at = f(o0.at)
+        n.size = Math.min(48, Math.max(9, Math.round(o0.size * k)))
+      }
+    }
+  }
+
+  function scaleTo(d: Extract<Draft, { kind: "scale" }>, p: Point, uniform: boolean) {
+    const b = d.box
+    const ax = d.handle === "nw" || d.handle === "sw" ? b.x + b.w : b.x
+    const ay = d.handle === "nw" || d.handle === "ne" ? b.y + b.h : b.y
+    const hx = ax === b.x ? b.x + b.w : b.x
+    const hy = ay === b.y ? b.y + b.h : b.y
+    let sx = (p.x - ax) / (hx - ax || 1)
+    let sy = (p.y - ay) / (hy - ay || 1)
+    if (uniform) sx = sy = Math.max(Math.abs(sx), Math.abs(sy)) * Math.sign(sx || 1)
+    change(
+      (w) =>
+        remap(
+          w,
+          d.origin,
+          (q) => ({ x: ax + (q.x - ax) * sx, y: ay + (q.y - ay) * sy }),
+          Math.max(Math.abs(sx), Math.abs(sy)),
+        ),
+      false,
+    )
+  }
+
+  function rotateTo(d: Extract<Draft, { kind: "rotate" }>, p: Point, snapped: boolean) {
+    let a = Math.atan2(p.y - d.center.y, p.x - d.center.x) - d.from
+    if (snapped) a = Math.round(a / (Math.PI / 12)) * (Math.PI / 12)
+    const cos = Math.cos(a)
+    const sin = Math.sin(a)
+    const { x: cx, y: cy } = d.center
+    change(
+      (w) =>
+        remap(w, d.origin, (q) => ({
+          x: cx + (q.x - cx) * cos - (q.y - cy) * sin,
+          y: cy + (q.x - cx) * sin + (q.y - cy) * cos,
+        })),
+      false,
+    )
+  }
+
   function translate(d: Workspace, items: Item[], dx: number, dy: number) {
     const has = (kind: Item["kind"], id: string) => items.some((s) => s.kind === kind && s.id === id)
     for (const a of d.arrows)
@@ -532,15 +645,34 @@ export function createBench(o: BenchOptions) {
     if (!hit || !overlay.value) return
     const el = controlOf(hit, o.content)
     const box = boxOf(el, overlay.value)
-    draftThread.value = {
+    const anchor: Anchor = {
       path: pathOf(el, o.content),
       selector: `#${o.section} ${selectorOf(el, o.content)}`,
       label: labelOf(el),
       box,
       offset: { x: p.x - box.x, y: p.y - box.y },
-      at: p,
     }
+    const id = moving.value
+    if (id) {
+      moving.value = null
+      change((w) => {
+        const t = w.threads.find((x) => x.id === id)
+        if (t) t.anchor = anchor
+      })
+      openThread.value = id
+      say(`Comment moved to ${anchor.label}`)
+      return
+    }
+    draftThread.value = { ...anchor, at: p }
     openThread.value = null
+  }
+
+  /** Point a thread at another element: the next Comment click places it. */
+  function moveThread(id: string) {
+    moving.value = id
+    openThread.value = null
+    if (tool.value !== "comment") setTool("comment")
+    say("Click the element this comment is about")
   }
 
   function submitThread(text: string) {
@@ -678,7 +810,7 @@ export function createBench(o: BenchOptions) {
   // --- captures ----------------------------------------------------------------
 
   const toHost = (r: Box): Box => ({ x: r.x + o.host.clientLeft, y: r.y + o.host.clientTop, w: r.w, h: r.h })
-  const frames = (n: number) =>
+  const paints = (n: number) =>
     new Promise<void>((res) => {
       const step = (k: number) => (k ? requestAnimationFrame(() => step(k - 1)) : res())
       step(n)
@@ -691,7 +823,7 @@ export function createBench(o: BenchOptions) {
   async function shoot(region: Box) {
     busy.value = true
     capturing.value = true
-    await frames(2)
+    await paints(2)
     try {
       const blob =
         settings.stills === "screen" && canShareTab()
@@ -740,6 +872,7 @@ export function createBench(o: BenchOptions) {
   async function exportVideo() {
     const c = capture.value
     if (c?.kind !== "video") return
+    if (videoMime.value === GIF) return exportGif(c)
     const type = videoTypes().find((t) => t.mime === videoMime.value) ?? videoTypes()[0]
     if (!type) return
     busy.value = true
@@ -751,6 +884,23 @@ export function createBench(o: BenchOptions) {
           : c.blob
       download(blob, `${o.key.replace(/[^\w-]+/g, "-")}.${type.ext}`)
       say("Video saved")
+    } finally {
+      busy.value = false
+    }
+  }
+
+  /** The cut as a looping GIF, dithered with the kit's matrix. */
+  async function exportGif(c: Extract<Capture, { kind: "video" }>) {
+    busy.value = true
+    say("Encoding the GIF…")
+    try {
+      const { frames, width, height, delay } = await videoFrames(c.blob, c.start, c.end)
+      await paints(1)
+      const bytes = encodeGif(frames, width, height, delay)
+      download(new Blob([bytes as BlobPart], { type: "image/gif" }), `${o.key.replace(/[^\w-]+/g, "-")}.gif`)
+      say(`GIF saved — ${frames.length} frames, ${(bytes.length / 1024).toFixed(0)} kB`)
+    } catch {
+      say("The GIF could not be encoded")
     } finally {
       busy.value = false
     }
@@ -813,6 +963,19 @@ export function createBench(o: BenchOptions) {
         break
       }
       case "select": {
+        const handle = handleAt(p)
+        if (handle) {
+          const box = selectionBox()!
+          const before = JSON.stringify(ws.value)
+          history.record(ws.value)
+          const origin = clone(ws.value)
+          const center = { x: box.x + box.w / 2, y: box.y + box.h / 2 }
+          draft.value =
+            handle === "rotate"
+              ? { kind: "rotate", center, from: Math.atan2(p.y - center.y, p.x - center.x), origin, before }
+              : { kind: "scale", handle, box, origin, before }
+          break
+        }
         const hit = itemAt(p)
         if (hit) {
           if (!isSelected(hit)) selection.value = e.shiftKey ? [...selection.value, hit] : [hit]
@@ -881,6 +1044,7 @@ export function createBench(o: BenchOptions) {
       if (HOVER_TOOLS.has(t)) hovered.value = elementAt(e.clientX, e.clientY)
       if (t === "guides")
         guideHover.value = guideNear(p) ? null : snapGuide(guideAxis.value === "x" ? p.x : p.y, guideAxis.value)
+      if (t === "select") handleHover.value = selection.value.length ? handleAt(p) : null
       return
     }
     switch (d.kind) {
@@ -937,6 +1101,12 @@ export function createBench(o: BenchOptions) {
       case "erase":
         eraseAt(p)
         break
+      case "scale":
+        scaleTo(d, p, e.shiftKey)
+        break
+      case "rotate":
+        rotateTo(d, p, e.shiftKey)
+        break
     }
   }
 
@@ -987,6 +1157,8 @@ export function createBench(o: BenchOptions) {
       }
       case "move":
       case "erase":
+      case "scale":
+      case "rotate":
         settle(d.before)
         break
     }
@@ -1055,6 +1227,7 @@ export function createBench(o: BenchOptions) {
 
   function escape(): boolean {
     if (draft.value) draft.value = null
+    else if (moving.value) moving.value = null
     else if (capture.value?.kind === "recording") void finishRecording()
     else if (draftThread.value || openThread.value) {
       draftThread.value = null
@@ -1195,6 +1368,13 @@ export function createBench(o: BenchOptions) {
 
   // --- lifecycle ----------------------------------------------------------------
 
+  // The frame keeps a lane free on the edge the tray docks to.
+  watch(
+    () => settings.tray,
+    (at) => (o.host.dataset.tray = at),
+    { immediate: true },
+  )
+
   function start() {
     current = me
     raf = requestAnimationFrame(frame)
@@ -1221,6 +1401,7 @@ export function createBench(o: BenchOptions) {
     if (c?.kind === "recording") void c.rec.stop()
     drop(c)
     if (isDirected()) release()
+    delete o.host.dataset.tray
     if (current === me) current = null
   }
 
@@ -1260,15 +1441,20 @@ export function createBench(o: BenchOptions) {
     pins,
     guideAxis,
     guideHover,
+    handleHover,
     draft,
     selection,
     isSelected,
     boundsOfItem,
+    selectionBox,
+    handleAt,
     editing,
     commitNote,
     openThread,
     draftThread,
     submitThread,
+    moving,
+    moveThread,
     reply,
     setResolved,
     removeThread,

@@ -84,6 +84,15 @@ const setColor = (key: "highlight" | "guide" | "annotate", s: Swatch) => (b.sett
       </div>
     </div>
     <div class="row">
+      <span class="label">tray</span>
+      <div class="seg" role="group" aria-label="Where the tray docks">
+        <button type="button" :aria-pressed="b.settings.tray === 'bottom'" @click="b.settings.tray = 'bottom'">
+          bottom
+        </button>
+        <button type="button" :aria-pressed="b.settings.tray === 'top'" @click="b.settings.tray = 'top'">top</button>
+      </div>
+    </div>
+    <div class="row">
       <button type="button" class="act" @click="Object.assign(b.settings, DEFAULT_SETTINGS)">Restore defaults</button>
       <button type="button" class="act" @click="b.clearAll()">Clear this preview's annotations</button>
     </div>

@@ -279,6 +279,42 @@ export async function trimVideo(blob: Blob, start: number, end: number, mime: st
   }
 }
 
+/** Frames of a recording between `start` and `end` seconds, `fps` per
+ * second (fewer when the cut is long: at most `cap` frames), scaled to at
+ * most `maxWidth` — the input of a GIF. */
+export async function videoFrames(blob: Blob, start: number, end: number, fps = 12, maxWidth = 480, cap = 240) {
+  const url = URL.createObjectURL(blob)
+  try {
+    const video = document.createElement("video")
+    video.muted = true
+    video.src = url
+    await new Promise((r) => (video.onloadeddata = r))
+    const seek = (t: number) =>
+      new Promise<void>((r) => {
+        video.onseeked = () => r()
+        video.currentTime = t
+      })
+    await seek(start)
+    const scale = Math.min(1, maxWidth / video.videoWidth)
+    const width = Math.max(1, Math.round(video.videoWidth * scale))
+    const height = Math.max(1, Math.round(video.videoHeight * scale))
+    const canvas = document.createElement("canvas")
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!
+    const rate = Math.min(fps, cap / Math.max(0.1, end - start))
+    const frames: Uint8ClampedArray[] = []
+    for (let t = start; t < end && frames.length < cap; t += 1 / rate) {
+      await seek(t)
+      ctx.drawImage(video, 0, 0, width, height)
+      frames.push(ctx.getImageData(0, 0, width, height).data)
+    }
+    return { frames, width, height, delay: Math.max(2, Math.round(100 / rate)) }
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
 /** A recording's real length: WebM from MediaRecorder reports Infinity
  * until the browser is made to scan to the end. */
 export async function durationOf(video: HTMLVideoElement): Promise<number> {

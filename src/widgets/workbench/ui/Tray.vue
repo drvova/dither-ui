@@ -30,7 +30,15 @@ function roam(e: KeyboardEvent) {
 </script>
 
 <template>
-  <div ref="bar" class="wb-tray" role="toolbar" aria-label="Workbench tools" @pointerdown.stop @keydown="roam">
+  <div
+    ref="bar"
+    class="wb-tray"
+    :class="{ top: b.settings.tray === 'top' }"
+    role="toolbar"
+    aria-label="Workbench tools"
+    @pointerdown.stop
+    @keydown="roam"
+  >
     <template v-if="!b.minimized.value">
       <div class="wb-seg" role="group" aria-label="Tool group">
         <button
@@ -170,6 +178,11 @@ function roam(e: KeyboardEvent) {
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.28);
   pointer-events: auto;
   scrollbar-width: none;
+}
+
+.wb-tray.top {
+  top: 22px;
+  bottom: auto;
 }
 
 .wb-seg {

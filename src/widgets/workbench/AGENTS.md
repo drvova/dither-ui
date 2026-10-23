@@ -23,7 +23,9 @@ live preview — a real tool, never a mock.
   baselines, rendered font, background behind, role/name/states, Tab
   order, audit), `workspace.ts` (the annotation model, sanitizing,
   snapshot history, persistence, agent Markdown), `settings.ts`,
-  `capture.ts` (DOM render, tab grab, region recording, trim), `tools.ts`.
+  `capture.ts` (DOM render, tab grab, region recording, trim, frames for
+  a GIF), `gif.ts` (GIF89a: one median-cut palette over all frames,
+  ordered-dithered by the kit's Bayer matrix, LZW), `tools.ts`.
 - `ui/` — one component per layer or panel: `Tray`, `Rulers`, `Guides`,
   `Marks`, `Ink`, `Notes`, `Comments`, `Loupe`, `Readout`, `Motion`,
   `Responsive`, `Settings`, `Icon`.
@@ -47,6 +49,11 @@ live preview — a real tool, never a mock.
   the feedback for an agent, `,` opens settings, `⌘Z`/`⇧⌘Z` undo/redo,
   `⌘A` selects all (Select), Delete removes, arrows walk the tree (target
   tools) or nudge (Select), Alt shows distances and Alt+S keeps one.
+  Select's box has corner handles (scale from the opposite corner; Shift
+  keeps the proportion; notes scale their text) and a rotate handle
+  (Shift snaps to 15°); transforms map the gesture's ORIGIN snapshot, so
+  they never drift, and land as one undo step. A thread's Move button
+  re-anchors it to the next element clicked.
   Escape steps back one level: draft → recording → thread → selection →
   pin → panel → tool → closes the workbench (focus returns to the chip).
   New tools are rows in `TOOLS` with a key no other row uses.
@@ -78,7 +85,12 @@ live preview — a real tool, never a mock.
   to the region by Region Capture (a transparent target laid over the
   region; the track is recorded as it comes), else cut each frame out of
   the viewport on a canvas; the overlay is hidden while capturing; 60 s
-  cap; trims re-record the cut, scaling frames that change size.
+  cap; trims re-record the cut, scaling frames that change size; export
+  as WebM/MP4 (as recorded) or a GIF (12 fps, ≤ 480 px, ≤ 240 frames,
+  dithered by the kit — a GIF of the dither stays crisp).
+- The tray docks to the stage's bottom (default) or top (`settings.tray`);
+  the workbench sets `data-tray` on the frame and DemoCard keeps that
+  edge's lane free (`data-[tray=…]` padding).
 - The measuring loop runs only while the workbench is mounted and writes a
   reactive value only when it changed; X-ray and the audit refresh every
   300 ms; the loupe redraws at 20 fps while visible.
@@ -87,7 +99,9 @@ live preview — a real tool, never a mock.
 
 ## Verification
 
-- `tests/workbench.spec.ts`: colour parsing/printing/contrast, geometry,
+- `tests/workbench.spec.ts`: the GIF encoder (LZW round-trips through a
+  decoder, table resets included; median cut; Bayer dithering; the
+  GIF89a frame), colour parsing/printing/contrast, geometry,
   ink, workspace sanitizing/history/Markdown, settings, the DOM readings
   (names, roles, states, Tab order, paths, selectors, controlOf), and the
   workbench mounted on a `DemoCard` driven by keys, the tray and Escape.
@@ -97,7 +111,9 @@ live preview — a real tool, never a mock.
   arrows, ink and eraser, notes, a comment thread, Select marquee →
   Delete → undo, a screenshot, K's Markdown), a recording on
   `/docs/spinner` (Chromium flags `--auto-accept-this-tab-capture
-  --use-fake-ui-for-media-stream`) trimmed and saved (`ffprobe` the file),
+  --use-fake-ui-for-media-stream`) trimmed and saved as WebM and GIF
+  (`ffprobe` the files), Select's scale / rotate / undo, a thread moved,
+  the tray docked top,
   Motion on `/docs/shiny-text`, Responsive, Settings, persistence across a
   reload, keyboard-only use, light theme, a 390px phone with touch.
 

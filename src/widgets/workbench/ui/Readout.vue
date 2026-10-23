@@ -6,6 +6,7 @@
 // the pens, the selection, the comment threads, and a capture's result.
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { copyText } from "@dither-kit"
+import { GIF } from "../bench"
 import { useBench } from "../context"
 import { copyImage, download, MAX_SECONDS, videoTypes } from "../model/capture"
 import { COLOR_FORMATS, formatColor, grade } from "../model/color"
@@ -85,7 +86,8 @@ const threads = computed(() => {
 })
 
 // --- capture ---------------------------------------------------------------
-const types = videoTypes()
+/** WebM / MP4 as the browser records them, and a GIF dithered by the kit. */
+const types = [...videoTypes(), { mime: GIF, ext: "gif", label: "GIF" }]
 const elapsed = ref(0)
 let tick = 0
 watch(
@@ -590,7 +592,7 @@ async function copyShot() {
           >
         </div>
         <div class="row">
-          <div v-if="types.length > 1" class="seg" role="group" aria-label="Video format">
+          <div class="seg" role="group" aria-label="Export format">
             <button
               v-for="v in types"
               :key="v.mime"
@@ -603,7 +605,8 @@ async function copyShot() {
           </div>
           <span class="spacer" />
           <button type="button" class="act primary" :disabled="b.busy.value" @click="b.exportVideo()">
-            <Icon :d="ICONS.download" :size="12" /> {{ b.busy.value ? "Encoding…" : "Save video" }}
+            <Icon :d="ICONS.download" :size="12" />
+            {{ b.busy.value ? "Encoding…" : b.videoMime.value === GIF ? "Save GIF" : "Save video" }}
           </button>
           <button type="button" class="act" @click="b.discardCapture()">Discard</button>
         </div>

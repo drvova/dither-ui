@@ -142,6 +142,7 @@ const ago = (t: number) => {
           <button type="button" class="act" @click="b.setResolved(thread.id, !thread.resolved)">
             {{ thread.resolved ? "Reopen" : "Resolve" }}
           </button>
+          <button type="button" class="act" @click="b.moveThread(thread.id)">Move</button>
           <button type="button" class="act" @click="b.removeThread(thread.id)">Delete</button>
         </template>
         <button type="button" class="act primary" :disabled="!text.trim()" @click="send">

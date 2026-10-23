@@ -68,12 +68,21 @@ const CURSORS: Record<string, string> = {
   shot: "crosshair",
   video: "crosshair",
 }
+const HANDLE_CURSORS: Record<string, string> = {
+  nw: "nwse-resize",
+  se: "nwse-resize",
+  ne: "nesw-resize",
+  sw: "nesw-resize",
+  rotate: "grab",
+}
 const cursor = computed(() =>
-  b.tool.value === "guides"
-    ? b.guideAxis.value === "x"
-      ? "col-resize"
-      : "row-resize"
-    : (CURSORS[b.tool.value ?? ""] ?? "auto"),
+  b.tool.value === "select" && b.handleHover.value
+    ? HANDLE_CURSORS[b.handleHover.value]
+    : b.tool.value === "guides"
+      ? b.guideAxis.value === "x"
+        ? "col-resize"
+        : "row-resize"
+      : (CURSORS[b.tool.value ?? ""] ?? "auto"),
 )
 
 defineExpose({ bench: b })
