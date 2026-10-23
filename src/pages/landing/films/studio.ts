@@ -2,8 +2,10 @@
 // an ember cursor that places three artboards (a bar chart, a line chart,
 // a button and switch) with a click each, marquee-selects them, and lets
 // them drain away in reverse. The loop opens and closes on the empty
-// canvas. Verb: place. Geometry: frames on a dot lattice.
-import { base, constant, fill, keyed, marker, stroke, type CubicBezier, type Key, type PathContour, type Vec3 } from "@clayzo/animation/authoring"
+// canvas. The cursor carries a soft light across the dots; each board's ink
+// develops through a dithered edge after its pop. Verb: place. Geometry:
+// frames on a dot lattice.
+import { base, constant, fill, keyed, marker, stroke, type Key, type PathContour, type Vec3 } from "@clayzo/animation/authoring"
 import { at, DRAIN, FR, MOVE, OUT, pixelFilm, POP, rect, SETTLE, v, type Nodes } from "./frame"
 import { heat, tone } from "./kit-dither"
 
@@ -20,6 +22,9 @@ const BOARDS = [
 const SELECT = at(2.9)
 const DRAIN_AT = at(4.6)
 const EXIT = at(4.9)
+
+/** The marquee's box: drawn from its top-left corner around all three. */
+const MARQUEE = { x: 64, y: 48, w: W - 128, h: H - 96 }
 
 const one = { x: 1, y: 1, z: 1 }
 const none = { x: 0, y: 0, z: 1 }
@@ -38,14 +43,59 @@ function content(id: string, w: number, h: number): PathContour[] {
   return [rect(-w / 2 + 28, -12, 120, 36)]
 }
 
+/** The cursor's path: in from the lower right, click to click, the
+ * marquee's drag, and out — `dx`/`dy` offset it (the glow rides under the
+ * arrow's body). */
+function cursorTrack(id: string, dx = 0, dy = 0) {
+  const box = MARQUEE
+  const [a1, a2, a3] = BOARDS
+  const k: [number, number, number][] = [
+    [at(0.3), W + 60, H + 40],
+    [a1.click, a1.x + 10, a1.y + 8],
+    [a2.click, a2.x + 10, a2.y + 8],
+    [a3.click, a3.x + 10, a3.y + 8],
+    [SELECT, box.x, box.y],
+    [SELECT + at(0.5), box.x + box.w, box.y + box.h],
+    [EXIT, box.x + box.w, box.y + box.h],
+    [EXIT + at(0.7), W + 60, H + 40],
+  ]
+  return keyed(
+    id,
+    k.map(([t, x, y], i) => [t, { x: x + dx, y: y + dy, z: 0 }, i < k.length - 1 ? MOVE : undefined] as Key<Vec3>),
+  )
+}
+
 export function studioFilm() {
   const nodes: Nodes = {}
-  // The Studio canvas: a dot every 72 units, one cell each.
+  // The Studio canvas: a dot every 72 units, one whole lattice cell each
+  // (a dot that straddles two cells lands on neither centre).
   const dots: PathContour[] = []
-  for (let y = 36; y < H; y += 72) for (let x = 36; x < W; x += 72) dots.push(rect(x - 6, y - 6, 12, 12))
+  for (let y = 36; y < H; y += 72) for (let x = 36; x < W; x += 72) dots.push(rect(x, y, 12, 12))
   nodes.dots = { ...base("dots", { outTick: END }), type: "path", path: constant({ contours: dots }), style: { fill: fill(tone(0.3)) } }
+  // The cursor carries a soft light: the dots near it brighten as it
+  // passes (a glow clipped to the dots, so the canvas between stays dark).
+  nodes["glow.clip"] = { ...base("glow.clip", { outTick: END }), type: "path", path: constant({ contours: dots }), style: { fill: fill(tone(1)) } }
+  nodes["glow.light"] = {
+    ...base("glow.light", { outTick: END, blendMode: "lighten", position: cursorTrack("glow.position", 28, 56) }),
+    type: "ellipse",
+    size: constant({ width: 360, height: 360 }),
+    style: {
+      gradientFill: {
+        kind: "radial",
+        stops: constant([
+          { position: 0, color: tone(0.85) },
+          { position: 0.45, color: tone(0.5) },
+          { position: 1, color: tone(0) },
+        ]),
+        start: constant({ x: 0, y: 0 }),
+        end: constant({ x: 180, y: 0 }),
+        opacity: constant(1),
+      },
+    },
+  }
+  nodes.glow = { ...base("glow", { outTick: END }), type: "group", children: ["glow.light"], clipPathId: "glow.clip" }
 
-  const scene = ["dots"]
+  const scene = ["dots", "glow"]
   BOARDS.forEach((b, i) => {
     // Each board pops on its click (the one overshoot) and drains in reverse.
     const out = DRAIN_AT + (BOARDS.length - 1 - i) * at(0.12)
@@ -69,11 +119,34 @@ export function studioFilm() {
       cornerRadius: constant(0),
       style: { fill: fill(tone(0.07)), stroke: stroke(tone(0.42), 12, { cap: "square", join: "miter" }) },
     }
+    // The ink develops left to right through a dithered edge — the kit's
+    // own entrance: a gradient from the ink's tone to nothing whose span
+    // slides across the board after the pop.
+    const ink = b.id === "a3" ? heat : tone
+    const edge = b.w * 0.4
+    const sweep = (x: number) => ({ x, y: 0 })
     nodes[`${b.id}.ink`] = {
       ...base(`${b.id}.ink`, { outTick: END }),
       type: "path",
       path: constant({ contours: content(b.id, b.w, b.h) }),
-      style: { fill: fill(b.id === "a3" ? heat(0.5) : tone(0.72)) },
+      style: {
+        gradientFill: {
+          kind: "linear",
+          stops: constant([
+            { position: 0, color: ink(b.id === "a3" ? 0.5 : 0.72) },
+            { position: 1, color: ink(0) },
+          ]),
+          start: keyed(`${b.id}.ink.start`, [
+            [b.click + at(0.2), sweep(-b.w / 2 - edge), OUT],
+            [b.click + at(0.9), sweep(b.w / 2)],
+          ]),
+          end: keyed(`${b.id}.ink.end`, [
+            [b.click + at(0.2), sweep(-b.w / 2), OUT],
+            [b.click + at(0.9), sweep(b.w / 2 + edge)],
+          ]),
+          opacity: constant(1),
+        },
+      },
     }
     // The click's ring: a one-cell stroke that opens and fades.
     nodes[`${b.id}.ring`] = {
@@ -97,7 +170,7 @@ export function studioFilm() {
 
   // The marquee: drawn from the top-left corner around all three boards,
   // held, then dropped before the boards drain.
-  const box = { x: 64, y: 48, w: W - 128, h: H - 96 }
+  const box = MARQUEE
   nodes.marquee = {
     ...base("marquee", {
       outTick: END,
@@ -119,25 +192,10 @@ export function studioFilm() {
 
   // The cursor: a pixel arrow that travels click to click, dips on each
   // click, drags the marquee, and leaves.
-  const path = (ease: CubicBezier, k: [number, number, number][]): Key<Vec3>[] =>
-    k.map(([t, x, y], i) => [t, { x, y, z: 0 }, i < k.length - 1 ? ease : undefined] as Key<Vec3>)
-  const [a1, a2, a3] = BOARDS
   nodes.cursor = {
     ...base("cursor", {
       outTick: END,
-      position: keyed(
-        "cursor.position",
-        path(MOVE, [
-          [at(0.3), W + 60, H + 40],
-          [a1.click, a1.x + 10, a1.y + 8],
-          [a2.click, a2.x + 10, a2.y + 8],
-          [a3.click, a3.x + 10, a3.y + 8],
-          [SELECT, box.x, box.y],
-          [SELECT + at(0.5), box.x + box.w, box.y + box.h],
-          [EXIT, box.x + box.w, box.y + box.h],
-          [EXIT + at(0.7), W + 60, H + 40],
-        ]),
-      ),
+      position: cursorTrack("cursor.position"),
       scale: keyed(
         "cursor.scale",
         BOARDS.flatMap((b): Key<Vec3>[] => [
@@ -169,6 +227,7 @@ export function studioFilm() {
     nodes,
     scene,
     cell: 12,
+    loupe: 9 * 12,
     markers: [
       // The resting frame: all three boards placed and selected.
       marker("still", SELECT + at(1)),

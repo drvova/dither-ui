@@ -25,7 +25,8 @@ import {
   type SceneNode,
   type Vec3,
 } from "@clayzo/animation/authoring"
-import { at as s, DRAIN, FR, MOVE, OUT, pixelFilm, rect, SETTLE, v, type Nodes } from "./frame"
+import { mulberry32 } from "@dither-kit"
+import { at as s, cycle, DRAIN, FR, mixColor, mixVec3, MOVE, OUT, pixelFilm, rect, SETTLE, v, type Nodes } from "./frame"
 import { heat, tone } from "./kit-dither"
 import { BEATS, SEEDS } from "../hero-beats"
 
@@ -216,7 +217,77 @@ function fillLayer(nodes: Nodes): string[] {
     operators: [trim("arc.trim", { end: morph("arc.end", 0.62, 0.84) })],
   }
   ids.push("track", "arc")
+  // The re-seed's scan: a soft band of light runs down the board each time
+  // the data changes — the board re-dithering under it.
+  const pass = (t: number): Key<number>[] => [
+    [t - FR, 0, "hold"],
+    [t, 1, "linear"],
+    [t + s(0.9), 1, "hold"],
+    [t + s(0.9) + FR, 0, "hold"],
+  ]
+  nodes.scan = {
+    ...base("scan", {
+      outTick: HERO_END,
+      blendMode: "lighten",
+      position: keyed("scan.position", [
+        [MORPH_A - FR, { x: 0, y: -BH / 2, z: 0 }, "hold"],
+        [MORPH_A, { x: 0, y: -BH / 2, z: 0 }, "linear"],
+        [MORPH_A + s(0.9), { x: 0, y: BH / 2, z: 0 }, "hold"],
+        [MORPH_B, { x: 0, y: -BH / 2, z: 0 }, "linear"],
+        [MORPH_B + s(0.9), { x: 0, y: BH / 2, z: 0 }],
+      ]),
+    }),
+    type: "rect",
+    size: constant({ width: BW - 24, height: 72 }),
+    cornerRadius: constant(0),
+    style: {
+      gradientFill: {
+        kind: "linear",
+        stops: constant([
+          { position: 0, color: tone(0) },
+          { position: 0.8, color: tone(0.9) },
+          { position: 1, color: tone(0) },
+        ]),
+        start: constant({ x: 0, y: -36 }),
+        end: constant({ x: 0, y: 36 }),
+        opacity: keyed("scan.opacity", [[0, 0, "hold"], ...pass(MORPH_A), ...pass(MORPH_B), [HERO_END, 0]]),
+      },
+    },
+  }
+  ids.push("scan")
   return ids
+}
+
+/** Dust: cells shaken loose while the board is apart, rising through the
+ * stack and dithering out; one in six is an ember. Lives only between the
+ * explode and the fold. */
+function dust(nodes: Nodes): string {
+  const rand = mulberry32(0xd057)
+  const life = FOLD - ISO
+  const children: string[] = []
+  for (let i = 0; i < 22; i++) {
+    const id = `dust${i}`
+    const x = Math.round((260 + rand() * 760) / 8) * 8 + 4
+    const y = Math.round((330 + rand() * 360) / 8) * 8 + 4
+    const rise = (10 + Math.floor(rand() * 16)) * 8
+    const hot = rand() < 0.16
+    // Three runs across the explode, each frame-aligned (1224 / 3 = 51 frames).
+    const period = life / 3
+    const run = { period, offset: Math.round((rand() * period) / FR) * FR, life: Math.round(((0.5 + rand() * 0.4) * period) / FR) * FR }
+    // Its own little loop, laid on the explode.
+    const to = { x: x + (Math.floor(rand() * 5) - 2) * 8, y: y - rise, z: 0 }
+    nodes[id] = {
+      ...base(id, { outTick: FOLD, position: cycle(`${id}.position`, life, run, { x, y, z: 0 }, to, mixVec3, ISO) }),
+      inTick: ISO,
+      type: "rect",
+      size: constant({ width: 8, height: 8 }),
+      cornerRadius: constant(0),
+      style: { fill: { color: cycle(`${id}.tone`, life, run, hot ? heat(0.8) : tone(0.95), hot ? heat(0) : tone(0), mixColor, ISO), opacity: constant(1) } },
+    }
+    children.push(id)
+  }
+  nodes.dust = { ...node("dust"), type: "group", children }
+  return "dust"
 }
 
 /** Layer 2 — the line and its sparkle points. */
@@ -330,18 +401,31 @@ function controlLayer(nodes: Nodes): string[] {
  * stack reads as paint layers over one artboard. */
 function layer(nodes: Nodes, id: string, content: string[], order: number, lift: number): SceneNode {
   const children = [...content]
+  const up = TILT + s(0.5) + order * s(0.12)
+  const down = FOLD + (3 - order) * s(0.08)
   if (order > 0) {
+    // The sheet draws itself round as the layer lifts and undraws as it
+    // folds (an open contour that returns to its start, so the trim reaches
+    // the closing edge too).
+    const [x0, y0, x1, y1] = [-BW / 2, -BH / 2, BW / 2, BH / 2]
     nodes[`${id}.sheet`] = {
       ...node(`${id}.sheet`),
-      type: "rect",
-      size: constant({ width: BW, height: BH }),
-      cornerRadius: constant(0),
-      style: { stroke: stroke(tone(0.24), 16, { cap: "square", join: "miter" }) },
+      type: "path",
+      path: constant({ contours: [{ closed: false, vertices: [v(x0, y0), v(x1, y0), v(x1, y1), v(x0, y1), v(x0, y0)] }] }),
+      style: { stroke: stroke(tone(0.3), 16, { cap: "square", join: "miter" }) },
+      operators: [
+        trim(`${id}.sheet.trim`, {
+          end: keyed(`${id}.sheet.end`, [
+            [up, 0, OUT],
+            [up + s(0.9), 1],
+            [down, 1, DRAIN],
+            [down + s(0.45), 0],
+          ]),
+        }),
+      ],
     }
     children.unshift(`${id}.sheet`)
   }
-  const up = TILT + s(0.5) + order * s(0.12)
-  const down = FOLD + (3 - order) * s(0.08)
   return {
     ...base(id, {
       outTick: HERO_END,
@@ -392,8 +476,9 @@ export function heroFilm(): AnimationDocument {
     ...HERO,
     end: HERO_END,
     nodes,
-    scene: ["board"],
+    scene: ["board", dust(nodes)],
     cell: 8,
+    loupe: 12 * 8,
     markers: [
       marker("still", 0),
       marker("tilt", TILT),

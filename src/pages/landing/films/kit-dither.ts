@@ -14,6 +14,12 @@
 // the hot ramp (SUN) at tone t; below the ramp's first level is clear, so the
 // stage behind the canvas shows through. Each lattice cell samples its own
 // centre, so edges are cell-crisp at any rotation.
+//
+// The loupe: every coarse cell whose centre lies within `radius` of `focus`
+// renders on a lattice twice as fine, seamless and a touch brighter — under
+// the cursor the art reads at double resolution, the kit's `cell` prop as a
+// material. `radius` rests at
+// 0 (no loupe); `pixelFilm`'s `loupe` springs it open under the pointer.
 import { constant, hex, type Color, type EffectNode, type SceneNode } from "@clayzo/animation/authoring"
 import { resolveMatrix } from "@dither-kit"
 import { SKY, SUN } from "../plates"
@@ -34,8 +40,10 @@ const f = (v: number) => (Number.isInteger(v) ? `${v}.0` : String(v))
 const lookup = (index: string, values: readonly string[]) =>
   values.slice(0, -1).reduceRight((rest, v, i) => `(${index} < ${f(i + 0.5)} ? ${v} : ${rest})`, values[values.length - 1])
 
-/** The shader: uniforms `cell` and `gap` (composition units), then one
- * colour per ramp level, then the engine's appended `renderScale`. */
+/** The shader: uniforms `cell` and `gap` (composition units), the loupe's
+ * `focus` (device pixels, as the engine converts points) and `radius`
+ * (composition units), then one colour per ramp level, then the engine's
+ * appended `renderScale`. */
 export function kitDitherSksl(cool: readonly string[] = SKY, hot: readonly string[] = SUN): string {
   const k = cool.map((_, i) => `k${i}`)
   const h = hot.map((_, i) => `h${i}`)
@@ -43,6 +51,8 @@ export function kitDitherSksl(cool: readonly string[] = SKY, hot: readonly strin
     "uniform shader inputImage;",
     "uniform float cell;",
     "uniform float gap;",
+    "uniform float2 focus;",
+    "uniform float radius;",
     ...k.map((n) => `uniform half4 ${n};`),
     ...h.map((n) => `uniform half4 ${n};`),
     "uniform float2 renderScale;",
@@ -53,13 +63,19 @@ export function kitDitherSksl(cool: readonly string[] = SKY, hot: readonly strin
     "half4 main(float2 p) {",
     "  float s = cell * renderScale.x;",
     "  float2 q = floor(p / s);",
+    "  float r = radius * renderScale.x;",
+    "  bool lens = r > 0.0 && length((q + 0.5) * s - focus) < r;",
+    "  if (lens) { s = s * 0.5; q = floor(p / s); }",
     "  float2 o = p - q * s;",
-    "  float g = gap * renderScale.x;",
+    // A seam is at least one device pixel: thinner, it lands on some
+    // cells and not others and the lattice shimmers at small scales. The
+    // lens has none — its cells run together, finer and a touch brighter.
+    "  float g = gap > 0.0 && !lens ? max(gap * renderScale.x, 1.0) : 0.0;",
     "  if (o.x < g || o.y < g) { return half4(0.0); }",
     "  half4 src = unpremul(inputImage.eval((q + 0.5) * s));",
     "  if (src.a < 0.5) { return half4(0.0); }",
     "  bool warm = src.r - src.b > 0.25;",
-    "  float t = clamp(warm ? src.g : max(src.r, max(src.g, src.b)), 0.0, 1.0);",
+    "  float t = clamp((warm ? src.g : max(src.r, max(src.g, src.b))) + (lens ? 0.08 : 0.0), 0.0, 1.0);",
     `  float n = warm ? ${f(hot.length)} : ${f(cool.length)};`,
     "  float v = t * n;",
     "  float b = floor(v);",
@@ -113,6 +129,15 @@ export function kitDither(
     parameters: [
       number(`${id}.cell`, "cell", options.cell, 1, 64),
       number(`${id}.gap`, "gap", options.gap ?? 0, 0, 16),
+      {
+        id: `${id}.focus`,
+        name: "focus",
+        valueType: "point" as const,
+        value: constant({ x: -1e4, y: -1e4 }),
+        minimum: { x: -1e4, y: -1e4 },
+        maximum: { x: 1e4, y: 1e4 },
+      },
+      number(`${id}.radius`, "radius", 0, 0, 1000),
       ...cool.map((c, i) => ({ id: `${id}.k${i}`, name: `k${i}`, valueType: "color" as const, value: constant(hex(c)) })),
       ...hot.map((c, i) => ({ id: `${id}.h${i}`, name: `h${i}`, valueType: "color" as const, value: constant(hex(c)) })),
     ],

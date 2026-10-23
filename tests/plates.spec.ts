@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   buildPlate,
+  catalogLayout,
   catalogPlate,
   dawnPlate,
   ditherTone,
@@ -85,16 +86,29 @@ describe("pixel plates", () => {
     expect(decode(seedPlate(201))).not.toEqual(a)
   })
 
-  it("draws the catalog as one lit cell per section, a tower per family", () => {
+  it("draws the catalog as one 2×2 window per section, a tower per family", () => {
     const counts = [1, 19, 25, 5, 32, 100, 46, 24, 49, 1]
     const plate = catalogPlate(counts)
+    const layout = catalogLayout(counts)
     const cells = decode(plate)
-    expect(cells.size).toBe(counts.reduce((a, b) => a + b, 0))
-    expect(plate.groups.map((g) => g.index)).toEqual(counts.map((_, i) => i))
+    const sections = counts.reduce((a, b) => a + b, 0)
+    expect(layout.windows).toHaveLength(sections)
+    // Every window's four cells, plus the floor row.
+    expect(cells.size).toBe(sections * 4 + layout.w)
+    expect(plate.groups.map((g) => g.index)).toEqual([...counts.map((_, i) => i), counts.length])
+    // Windows never touch: every cell around a window is seam.
+    const owner = new Map<string, number>()
+    layout.windows.forEach((w, i) => {
+      for (const d of [0, 1, 2, 3]) owner.set(`${w.x + (d & 1)},${w.y + (d >> 1)}`, i)
+    })
+    layout.windows.forEach((w, i) => {
+      for (let dy = -1; dy <= 2; dy++)
+        for (let dx = -1; dx <= 2; dx++) expect(owner.get(`${w.x + dx},${w.y + dy}`) ?? i).toBe(i)
+    })
     // One ember cap — on the tallest family — and every other colour grey.
     const colours = [...cells.values()]
     expect(colours.every((c) => c === SUN[0] || (GREY as readonly string[]).includes(c))).toBe(true)
-    expect(plate.groups[5].layers.some((l) => l.color === SUN[0])).toBe(true)
+    expect(plate.groups[layout.tallest].layers.some((l) => l.color === SUN[0])).toBe(true)
     expect(plate.groups.filter((g) => g.layers.some((l) => l.color === SUN[0]))).toHaveLength(1)
     expect(catalogPlate(counts)).toEqual(plate)
   })

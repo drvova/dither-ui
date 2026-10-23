@@ -20,20 +20,21 @@ widgets/features; page-specific conventions live here.
 - The landing sets `--radius: 0px`: every corner on the page is square (stage,
   pill, chapters, and the kit controls it hosts) — the pixel identity. Docs
   and studio keep the app's 8px.
-- Header (72px bar, a hairline floor): brand = the diamond mark + the
-  wordmark in the pixel face (`PixelWord` "DITHER-UI", its initial ember)
-  left; micro-caps `.nav-a` links right (Kit — the page you are on,
-  `aria-current` and an ember underline on the bar's floor — · Docs ·
+- Header (72px bar, a hairline floor): brand = the diamond mark (its ember
+  core is the brand's one accent) + the wordmark in the pixel face
+  (`PixelWord` "DITHER-UI") left; micro-caps `.nav-a` links right (Docs ·
   Components → `#hub` · Surfaces · GitHub ↗), a hairline divider and the
   `.nav-pill` "Open studio".
   The header MUST keep `relative z-10`: `main` is `relative isolate` and
   page art lives inside it, so a positioned sibling always paints over a
   static header — without the lift the header renders zero visible pixels.
-- Hero is the SPLIT STAGE (the reference's terminal beside its board), one
-  hairline edge, two grounds: left `AgentTranscript.vue` — a Studio agent
-  session in the Agent panel's notation (`›` prompt, `⚙ command · args` +
-  `⎿ result`, `⏺` prose) using only real protocol commands, whose lines
-  land on the film's beats; right the board — a micro-caps top row, the 8:5
+- Hero is the SPLIT STAGE, one hairline edge, two grounds: left
+  `AgentTranscript.vue` — the Studio's own Agent panel in a session, worn
+  as in the app (head with the harness chip + LED and a mode chip, the
+  panel's notation: `›` prompt, `⚙ tool · args ⎿ result`, `⏺` prose,
+  `✻ working…` while the film runs; the composer; the status line) using
+  only real `STUDIO_TOOLS` names, whose lines land on the film's beats;
+  right the board — a micro-caps top row, the 8:5
   hero film (`ClayzoFilm` "hero", see Films) with the dawn plate as its
   stand-in and its `FilmChip` (pause + timecode) on the film's lower-right
   corner, an ember progress rule, and the HUD: 3×2 `facts.ts` figures set
@@ -44,9 +45,9 @@ widgets/features; page-specific conventions live here.
   whole session; it is `role="img"` with a summary label, never a live
   region. Under 900px the board leads and the transcript follows at a fixed
   height (its log follows its tail, the top fades). Under the stage, the
-  statement row: h1 (one ember word, `.hl`) and lede left; the studio chip
-  right (a `DitherAvatar` thumbnail + two lines — the reference's trailer
-  chip, linking to `/studio`). The h1 must clear a 1440×900 fold.
+  statement row: h1 (one ember word, `.hl`) and lede left; two keys right
+  (`.more` "Open studio", `.more-quiet` "Read the docs"). The h1 must clear
+  a 1440×900 fold.
 - Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
   bitmap face drawn as crisp SVG cells with a seam (`cell` 3, `seam` 1/3
   for whole-pixel cells) — the brand wordmark, the HUD figures and the
@@ -76,22 +77,26 @@ widgets/features; page-specific conventions live here.
   with a `›` (an `↗` when `target="_blank"`), hover ember; `.more-quiet` is
   the dark key.
 - Chapters (`Showcase.vue`) open with the BENTO: a tall band (statement +
-  Quick start/Docs, the dawn plate on its floor) over a 2×2 of hairline
+  Quick start/Docs, the dawn film on its floor — the dawn plate is its
+  stand-in, cell for cell) over a 2×2 of hairline
   cells, each a figure (8:5) → h3 →
   prose → links pinned to the cell floor: the Studio film and the reel film
   (Clayzo, with their corner `FilmChip`), the kit's `DitherWorld` live at
   12fps on the house ramp (`sampleWorld(7)`), and the six portraits (a
   `faces` slot — their pixel-shake stays in `LandingPage`). Cells are
   separated by 1px seams (`.cells { gap: 1px }`). Then the HUB (`Hub.vue`,
-  `#hub`, the reference's cells hub): a tall band with the docs catalog as a
-  grey skyline (`catalogPlate` — one cell per docs section, a tower per
-  family, the tallest capped ember), the hub row (words left; right the
-  hub window — the kit's own `DitherTabs` (badges = family sizes) over
-  shelves of cards that deep-link to `/docs/<id>`: `dk://id`, family, a
-  note, MIT · vue · svelte, the version), and the three-up how-row (a Vue
-  SFC with line numbers and `DitherClipboard`, `ditherStudio.run` calls
-  typing on a steps() clock, the `video.export` steps lighting in turn —
-  a one-shot IO latch, `data-live`, so the static bytes show it done).
+  `#hub`): a tall band with the catalog film on its floor (a night skyline,
+  `catalogLayout` in `plates.ts` — one 2×2 window per docs section, a tower
+  per family, the tallest capped ember; `catalogPlate` draws the same
+  layout as its stand-in), the hub row (words left; right the hub window —
+  the kit's own `DitherTabs` (badges = family sizes) over shelves of cards
+  that deep-link to `/docs/<id>`: the section's seeded `DitherAvatar`
+  identicon (decorative, no entrance), family, name, a note, its docs
+  path), and the how-row — three numbered steps in the essay's idiom
+  (01 Write it · 02 Drive it · 03 Ship it, each naming its API): a Vue SFC
+  with line numbers and `DitherClipboard`, `ditherStudio.run` calls typing
+  on a steps() clock, the `video.export` steps lighting in turn — a
+  one-shot IO latch, `data-live`, so the static bytes show it done).
   `hub.ts` is static data (the landing never loads the docs IA — no
   cross-page imports) held honest by `tests/hub.spec.ts`: families and
   counts equal `GROUPS`, every card id is a section of the family it names.
@@ -124,10 +129,11 @@ widgets/features; page-specific conventions live here.
   caption in `STAGE_CAPTIONS` — never a second lattice. Guarded by
   `tests/essay-figure.spec.ts` (lattice ranks, determinism, lit share,
   distinct scenes, stage wrap).
-- Works-with strip (the reference's sponsors row), the last band before the
-  footer: a micro-caps "Drives with your agent", the harnesses
-  `bridge/dither-bridge.mjs` knows (its `HARNESSES` names, in order — keep
-  in sync) and one link to the agent skill, over a `dither-field` dot sea
+- Works-with strip, the last band before the footer: a micro-caps "Drives
+  with your agent", the harnesses `bridge/dither-bridge.mjs` knows (its
+  `HARNESSES` names, in order — keep in sync) as the Studio harness
+  picker's chips (a square LED, the name, a 6% lift on black) and one link
+  to the agent skill, over a `dither-field` dot sea
   (`bandCanvas` mounted in `LandingPage.vue`, seed `seedFor("band")`: 4px
   cells, 12fps, the four dark SKY levels only so the ink keeps contrast,
   density 0.42 at rest → 0.64 under hover, cursor body 0.4;
@@ -187,8 +193,9 @@ widgets/features; page-specific conventions live here.
   raster is the pure `rasterize()`; new behaviour goes there (testable
   headless), never into a second per-cell loop.
 - Films (`ClayzoFilm.vue` over `public/films/<id>.json`) are the page's
-  Clayzo motion: documents built by `landing/films/` (hero, studio, reel)
-  and played by `@clayzo/webgl-player`. The license line is a hard rule:
+  Clayzo motion: documents built by `landing/films/` (hero; studio and
+  reel in the bento; dawn and catalog on the two bands' floors) and played
+  by `@clayzo/webgl-player`. The license line is a hard rule:
   `films/` imports the authoring package `@clayzo/animation` and is
   NODE-SIDE ONLY (tests and the generator) — the app never imports it, so
   only the JSON documents and the playback runtime ship. A film draws
@@ -196,25 +203,42 @@ widgets/features; page-specific conventions live here.
   rgb(1, t, 0) → the SUN ramp, below the first level is clear) and renders
   through ONE `custom-sksl` pass that is the kit's own rule — the 4×4
   gradient matrix and the house ramps unrolled into SkSL from kit data,
-  each lattice cell sampling its centre, a 1-unit seam between cells — so
-  Clayzo moves vector shapes (2.5D, springs, morphs, trims) and every pixel
-  lands on a screen-aligned lattice in the house palette. `frame.ts` holds
-  the time base (240 ticks/s at 30 fps, keys snapped to frames), the house
-  eases and `pixelFilm()` (scene → dither pass → stamp → validate). Every
-  film loops on the frame it opens on and marks a `still` (its resting
-  frame). Clayzo z-sorts group children (higher `z` draws FURTHER BACK) —
-  layer order comes from child order, keep z at 0. Strokes and features
-  thinner than one cell alias to dots; size them in cells.
+  each lattice cell sampling its centre, a 1-unit seam between cells (never
+  under one device pixel, or it lands on some cells and not others) — so
+  Clayzo moves vector shapes (2.5D, springs, morphs, trims, clips) and
+  every pixel lands on a screen-aligned lattice in the house palette
+  (`pixelFilm({ cool })` swaps the cool ramp: the catalog runs on `GREY`).
+  The same pass is the LOUPE: `focus`/`radius` uniforms that
+  `pixelFilm({ loupe })` wires to the pointer (`pointerFieldMacro`) —
+  under the cursor the lattice halves, loses its seam and lifts a touch;
+  at rest `radius` is 0. Uniforms bind positionally in the parameters'
+  order (pinned by the spec). `frame.ts` holds the time base (240 ticks/s
+  at 30 fps, keys snapped to frames), the house eases, `wave()` (smooth
+  periodic tracks) and `cycle()` (a recurring run — particles — whose
+  wrap opens the loop with its tail; `start` lays a loop inside one beat),
+  and `pixelFilm()` (scene → dither pass → stamp → validate). Scatter is
+  the kit's `mulberry32`, reseeded per build so a build is deterministic.
+  Every film loops on the frame it opens on and marks a `still` (its
+  resting frame). Clayzo z-sorts group children (higher `z` draws FURTHER
+  BACK) — layer order comes from child order, keep z at 0. Strokes and
+  features thinner than one cell alias to dots, and a feature must cover a
+  cell CENTRE to draw at all: size and place them in whole cells. Light
+  (glows, beams, scans) blends `lighten` so it never darkens what it
+  crosses; keep cool tones under the ember ≤ 0.7, or lighten turns its
+  heat white. A clip node is never drawn but still needs a style.
   `ClayzoFilm` fetches the player chunk (~380KB gzipped) and the document
   only after `load` and once the film is within a screen; until its first
   frame (and with no WebGL2) the `fallback` slot holds the frame, kept in
   the DOM and stepped out by the `data-live` latch (stripped by the
   prerender, so static bytes ship the stand-in). `playing` is the pause
   control (WCAG 2.2.2) — the hero binds its own `FilmChip` on the film's
-  corner, bento films show theirs (`chip`); `FilmChip` is a toggle with a stable
+  corner, bento and band films show theirs (`chip`); `FilmChip` is a toggle with a stable
   name and `aria-pressed` while paused. Reduced motion starts every film
   paused on its `still`; pressing play is the visitor's ask and plays. The
-  hero's pointer parts its layers (`parallaxLayersMacro`). The player owns
+  pointer parts the hero's layers, the dawn's sky, the reel's strips and
+  the catalog's motes (`parallaxLayersMacro`). A band film sits as the
+  band's `.band-fig` with its lattice's `aspect-ratio`; the band rule is two
+  classes deep so the film root's own `position: relative` loses. The player owns
   its own rAF and offscreen pause — the one engine outside `senses`.
   The landing re-asserts `html.dark` on mount: the page is always-dark art
   while docs/studio own the persisted theme (storage keeps the user's
@@ -475,7 +499,8 @@ widgets/features; page-specific conventions live here.
   rect, pointer ignition, density scaling) — jsdom has no canvas, so the
   mount path is checked in the browser walk only.
 - `tests/films.spec.ts` is the films' guard AND generator: the SkSL lookup
-  evaluated against the kit's matrix, one uniform per ramp level, and per
+  evaluated against the kit's matrix, one uniform per ramp level, the
+  uniforms in the effect parameters' order, and per
   film a valid deterministic document with a `still`, a frame-aligned loop
   and byte-equality with `public/films/<id>.json`. `npm run films`
   (vitest -u) rewrites the documents after a builder edit; review frames in

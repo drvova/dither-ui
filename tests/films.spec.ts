@@ -26,6 +26,14 @@ describe("kit dither shader", () => {
     expect(sksl.trim().split("\n").at(-1)).toBe("}")
     expect(sksl).toContain("uniform float2 renderScale;")
   })
+
+  it("binds its uniforms in the order the effect declares its parameters", () => {
+    const declared = [...sksl.matchAll(/uniform (?:float|float2|half4) (\w+);/g)].map((m) => m[1])
+    const node = FILMS.hero().compositions.main.nodes.pixels
+    if (node.type !== "effect") throw new Error("pixels is not an effect")
+    // The engine appends renderScale after the declared parameters.
+    expect(declared).toEqual([...node.parameters.map((p) => p.name), "renderScale"])
+  })
 })
 
 describe.each(Object.entries(FILMS))("film %s", (id, build) => {

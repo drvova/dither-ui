@@ -1,13 +1,13 @@
 <script setup lang="ts">
-// The component hub (the reference's cells hub + its three-up): a band
-// with the docs catalog as a skyline (one cell per section), the hub
-// window — the kit's own DitherTabs over shelves of cards that deep-link
-// into the docs — and three cells on how the kit is used: one import path,
-// one protocol for agents, one file per film.
+// The component hub: a band with the docs catalog as a living night
+// skyline (the catalog film — one window per section; the catalog plate is
+// its stand-in), the hub window — the kit's own DitherTabs over shelves of
+// cards that deep-link into the docs — and three numbered steps on how the
+// kit is used: one import path, one protocol for agents, one file per film.
 import { onBeforeUnmount, onMounted, ref } from "vue"
-import { DitherClipboard, DitherIcon, DitherTabPanel, DitherTabs } from "@dither-kit"
+import { DitherAvatar, DitherClipboard, DitherIcon, DitherTabPanel, DitherTabs } from "@dither-kit"
 import { routePath } from "@/shared/lib"
-import { version } from "../../../package.json"
+import ClayzoFilm from "./ClayzoFilm.vue"
 import PixelPlate from "./PixelPlate.vue"
 import { FAMILIES, SECTION_COUNT, SHELVES } from "./hub"
 import { catalogPlate } from "./plates"
@@ -75,7 +75,15 @@ function paint(line: string) {
           <a :href="routePath('/docs/composition')" class="more more-quiet">Compose one</a>
         </div>
       </div>
-      <PixelPlate :plate="CATALOG" motion="rise" fit="xMaxYMax meet" class="band-fig" />
+      <ClayzoFilm
+        film="catalog"
+        chip
+        :label="`The docs catalog as a night skyline: ${SECTION_COUNT} lit windows, one per section, in a tower per family; windows switch on and off, a beam sweeps the towers, and a new section falls onto the tallest roof.`"
+        class="band-fig"
+        :style="{ aspectRatio: `${CATALOG.w} / ${CATALOG.h}` }"
+      >
+        <template #fallback><PixelPlate :plate="CATALOG" motion="rise" fit="xMaxYMax meet" class="block size-full" /></template>
+      </ClayzoFilm>
     </div>
 
     <div class="hub">
@@ -99,16 +107,12 @@ function paint(line: string) {
               <div class="cards">
                 <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="card">
                   <span class="card-top">
-                    <span class="card-own"><i class="card-av" aria-hidden="true"></i>dither-kit</span>
+                    <span class="card-av" aria-hidden="true"><DitherAvatar :name="c.id" :size="28" :grid="6" :animate="false" color="blue" /></span>
                     <span class="card-cat">{{ c.family }}</span>
                   </span>
-                  <span class="card-name"><i>dk://</i>{{ c.id }}</span>
+                  <span class="card-name">{{ c.label }}</span>
                   <span class="card-desc">{{ c.note ?? s.note }}</span>
-                  <span class="card-tags"><span class="card-tag">MIT</span><span class="card-tag">vue · svelte</span></span>
-                  <span class="card-foot">
-                    <span class="card-pin"><i aria-hidden="true"></i>{{ c.label }}</span>
-                    <span class="tabular-nums">v{{ version }}</span>
-                  </span>
+                  <span class="card-foot">/docs/{{ c.id }}<span aria-hidden="true">›</span></span>
                 </a>
               </div>
             </DitherTabPanel>
@@ -119,7 +123,7 @@ function paint(line: string) {
 
     <div ref="how" class="cells three how" :data-live="live ? 'true' : undefined">
       <div class="cell how-cell">
-        <p class="how-h">Vue SFC <span aria-hidden="true">›</span></p>
+        <p class="how-h"><span class="how-n">01</span>Write it<span class="how-k">Vue SFC</span></p>
         <div class="code">
           <DitherClipboard :value="SFC">
             <template #default="{ copied }">
@@ -137,7 +141,7 @@ function paint(line: string) {
       </div>
 
       <div class="cell how-cell">
-        <p class="how-h">ditherStudio.run <span aria-hidden="true">›</span></p>
+        <p class="how-h"><span class="how-n">02</span>Drive it<span class="how-k">ditherStudio.run</span></p>
         <div class="code term">
           <p class="t-line" style="--n: 46; --d: 0ms">
             <span class="t-p">›</span> run({ type: "chart.add", chart: "area" })
@@ -157,7 +161,7 @@ function paint(line: string) {
       </div>
 
       <div class="cell how-cell">
-        <p class="how-h">video.export <span aria-hidden="true">›</span></p>
+        <p class="how-h"><span class="how-n">03</span>Ship it<span class="how-k">video.export</span></p>
         <ol class="code steps">
           <li class="step" style="--d: 0ms">
             <DitherIcon name="Image" :size="14" :stroke-width="1.5" class="step-ic" />
@@ -277,12 +281,13 @@ function paint(line: string) {
   color: var(--color-foreground);
 }
 
-/* Cards: the reference's .lp-card — 300 wide, 168 tall, a horizontal
-   shelf that snaps and runs off the window's edge. */
+/* Cards: a horizontal shelf that snaps and runs off the window's edge;
+   each card is one docs section — its seeded identicon (the kit's own
+   avatar, from the section id), family, name, a line on it, its path. */
 .cards {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 280px;
+  grid-auto-columns: 260px;
   gap: 8px;
   padding-right: 21px;
   overflow-x: auto;
@@ -302,48 +307,32 @@ function paint(line: string) {
   height: 172px;
   padding: 16px;
   scroll-snap-align: start;
-  background: #151515;
-  border: 1px solid #202020;
-  transition:
-    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  background: #0d0d0d;
+  box-shadow: inset 0 0 0 1px #202020;
+  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
-  background: #191919;
-  border-color: #303030;
+  box-shadow: inset 0 0 0 1px #3a3a3a;
 }
 
-.card-top,
-.card-foot {
+.card-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  line-height: 16px;
-  color: #8a8a8a;
-}
-
-.card-own,
-.card-pin {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
+  align-items: flex-start;
 }
 
 .card-av {
-  width: 11px;
-  height: 11px;
-  background: #ededed;
-  box-shadow: inset 0 -2px var(--swatch-orange);
+  display: block;
+  width: 28px;
+  height: 28px;
 }
 
 .card-cat {
   font-size: 10px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: #7d7d7d;
 }
 
 .card-name {
@@ -354,11 +343,6 @@ function paint(line: string) {
   white-space: nowrap;
   text-overflow: ellipsis;
   color: #fff;
-}
-
-.card-name i {
-  font-style: normal;
-  color: #8a8a8a;
 }
 
 .card-desc {
@@ -372,48 +356,45 @@ function paint(line: string) {
   color: #9c9c9c;
 }
 
-.card-tags {
-  display: flex;
-  gap: 4px;
-  margin-top: auto;
-}
-
-.card-tag {
-  padding: 0 6px;
-  font-size: 10px;
-  line-height: 16px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #9c9c9c;
-  background: #1d1d1d;
-}
-
 .card-foot {
-  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  font-size: 11px;
+  color: #6d6d6d;
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card-pin i {
-  width: 6px;
-  height: 6px;
-  background: var(--swatch-orange);
+.card:hover .card-foot {
+  color: var(--swatch-orange);
 }
 
-/* The how-row (the reference's Cell API · nodecode add · Upload): a
-   heading with a chevron, a dark well, one line of prose. */
+/* The how-row: three numbered steps in the essay's index idiom (01–03, a
+   verb, the API it uses), each a dark well and one line of prose. */
 .how-cell {
   display: flex;
   flex-direction: column;
 }
 
 .how-h {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
   margin: 0 0 18px;
   font-size: 15px;
   color: var(--color-foreground);
 }
 
-.how-h span {
-  margin-left: 4px;
-  color: #8a8a8a;
+.how-n {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--swatch-orange);
+}
+
+.how-k {
+  margin-left: auto;
+  font-size: 11px;
+  color: #7d7d7d;
 }
 
 .code {

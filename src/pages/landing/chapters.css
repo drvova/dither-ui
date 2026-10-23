@@ -56,7 +56,8 @@
   max-width: 46rem;
 }
 
-.landing .band-fig {
+/* Two classes deep: a film root's own `position: relative` must lose. */
+.landing .band-tall .band-fig {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -65,8 +66,8 @@
 }
 
 @media (max-width: 899px) {
-  .landing .band-fig {
-    position: static;
+  .landing .band-tall .band-fig {
+    position: relative;
     width: calc(100% + 2 * var(--pad));
     margin: 2rem calc(-1 * var(--pad)) calc(-1 * var(--pad));
   }

@@ -25,11 +25,12 @@ import Hub from "./Hub.vue"
 import PixelPlate from "./PixelPlate.vue"
 import { dawnPlate, rampPlate, seedPlate, skylinePlate } from "./plates"
 
-// The opening chapter is the reference's feature bento: four cells, each a
-// big moving figure over one statement and its links. Two figures are
-// Clayzo films (the Studio and the reel, rendered through the kit's dither
-// rule — films/), one is the kit's own 3D raster live, and one is the
-// page's pixel-art portraits (a slot: their shake lives on the page).
+// The opening chapter is the feature bento: a band with the dawn film on
+// its floor (the dawn plate is its stand-in, cell for cell), then four
+// cells, each a big moving figure over one statement and its links. Two
+// figures are Clayzo films (the Studio and the reel, rendered through the
+// kit's dither rule — films/), one is the kit's own 3D raster live, and one
+// is the page's pixel-art portraits (a slot: their shake lives on the page).
 const WORLD = sampleWorld(7)
 const DAWN = dawnPlate()
 const RAMP = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
@@ -82,7 +83,15 @@ const SEEDED = computed(() => seedPlate(seed.value))
             <a :href="routePath('/docs')" class="more more-quiet">Docs</a>
           </div>
         </div>
-        <PixelPlate :plate="DAWN" fit="xMaxYMax meet" class="band-fig" />
+        <ClayzoFilm
+          film="dawn"
+          chip
+          label="Dawn over a dithered planet: the sun breathes on the limb, an aurora sways over the far side, seed moons cross the sky and stars flicker."
+          class="band-fig"
+          style="aspect-ratio: 168 / 46"
+        >
+          <template #fallback><PixelPlate :plate="DAWN" fit="xMaxYMax meet" class="block size-full" /></template>
+        </ClayzoFilm>
       </div>
       <div class="cells two">
         <div class="cell feat">

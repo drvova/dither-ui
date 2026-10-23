@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, onBeforeUnmount, onMounted, ref } from "vue"
-import { DitherAvatar, DitherGradient } from "@dither-kit"
+import { DitherGradient } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import "./chapters.css"
 import { version } from "../../../package.json"
@@ -337,9 +337,9 @@ function setActive(i: number) {
     <header class="site-head relative z-10">
       <div class="mx-auto flex h-[72px] w-full max-w-[var(--shell)] items-center justify-between px-6">
         <a :href="routePath('/')" class="flex h-10 items-center gap-3 text-foreground" aria-label="dither-ui home">
-          <!-- Brand: the 7x7 dithered diamond (ember core) and the wordmark
-               in the page's pixel face, its initial lit — crisp edges, so
-               both stay pixel shapes at any zoom. -->
+          <!-- Brand: the 7x7 dithered diamond (its ember core is the
+               brand's one accent) and the wordmark in the page's pixel
+               face — crisp edges, so both stay pixel shapes at any zoom. -->
           <svg
             viewBox="0 0 7 7"
             width="21"
@@ -359,10 +359,9 @@ function setActive(i: number) {
             </g>
             <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
           </svg>
-          <PixelWord text="DITHER-UI" :cell="3" :seam="1 / 3" :accent="1" decorative />
+          <PixelWord text="DITHER-UI" :cell="3" :seam="1 / 3" decorative />
         </a>
         <nav class="flex h-full items-center" aria-label="Site">
-          <a :href="routePath('/')" class="nav-a nav-now hidden h-full md:inline-flex" aria-current="page">Kit</a>
           <a :href="routePath('/docs')" class="nav-a h-full">Docs</a>
           <a href="#hub" class="nav-a hidden h-full md:inline-flex">Components</a>
           <a :href="routePath('/docs/aurora')" class="nav-a hidden h-full lg:inline-flex">Surfaces</a>
@@ -439,15 +438,10 @@ function setActive(i: number) {
               <em class="text-foreground/80">pixel by pixel</em> from one seeded palette.
             </p>
           </div>
-          <a :href="routePath('/studio')" class="reveal studio-chip" style="--reveal-delay: 180ms">
-            <span class="studio-thumb" aria-hidden="true">
-              <DitherAvatar name="dither-ui" :seed="512" color="blue" :size="56" :grid="8" />
-            </span>
-            <span class="studio-txt">
-              <span class="studio-t">Open the studio</span>
-              <span class="micro text-muted-foreground">in your browser · no install</span>
-            </span>
-          </a>
+          <div class="reveal hero-keys" style="--reveal-delay: 180ms">
+            <a :href="routePath('/studio')" class="more">Open studio</a>
+            <a :href="routePath('/docs')" class="more more-quiet">Read the docs</a>
+          </div>
         </div>
       </section>
 
@@ -519,15 +513,16 @@ function setActive(i: number) {
         </div>
       </section>
 
-      <!-- The works-with strip (the reference's sponsors row): the agent
-           harnesses the bridge knows, named plainly over the dot sea —
-           every one drives the Studio as the user's own signed-in process. -->
+      <!-- The works-with strip: the agent harnesses the bridge knows, as
+           the Studio's own harness picker shows them (a chip with its LED)
+           over the dot sea — every one drives the Studio as the user's own
+           signed-in process. -->
       <section class="bleed" aria-labelledby="harness-h">
         <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
         <div class="harness mx-auto w-full max-w-[var(--shell)] px-6">
           <h2 id="harness-h" class="micro harness-h">Drives with your agent</h2>
           <ul class="harness-list">
-            <li v-for="h in HARNESSES" :key="h">{{ h }}</li>
+            <li v-for="h in HARNESSES" :key="h" class="harness-chip"><i aria-hidden="true"></i>{{ h }}</li>
           </ul>
           <a :href="assetPath('/agent/SKILL.md')" class="harness-a">Agent skill<span aria-hidden="true">›</span></a>
         </div>
@@ -552,7 +547,7 @@ function setActive(i: number) {
       >
         <div class="foot">
           <div class="foot-brand">
-            <PixelWord text="DITHER-UI" :cell="3" :seam="1 / 3" :accent="1" class="mb-6 text-foreground" />
+            <PixelWord text="DITHER-UI" :cell="3" :seam="1 / 3" class="mb-6 text-foreground" />
             <p class="text-[clamp(1.25rem,2vw,1.5rem)] tracking-[-0.02em] text-foreground">A dithered UI toolkit for Vue.</p>
             <p class="mt-2 max-w-[24rem] leading-[1.6]">Charts, controls and surfaces, pixel by pixel, from one seeded palette.</p>
           </div>
@@ -668,59 +663,8 @@ function setActive(i: number) {
   color: var(--color-foreground);
 }
 
-.nav-now {
-  position: relative;
-}
-
-.nav-now::after {
-  content: "";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 0;
-  height: 2px;
-  background: var(--swatch-orange);
-}
-
 .site-head .nav-pill {
   height: 34px;
-}
-
-/* One primary action, one quiet way out: the docs link sits beside the
-   button as text with an arrow that nudges on hover. */
-.cta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 22px;
-}
-
-.cta-quiet {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  font-size: 13px;
-  color: var(--color-muted-foreground);
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.cta-quiet span {
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.cta-quiet:hover {
-  color: var(--color-foreground);
-}
-
-.cta-quiet:hover span {
-  transform: translateX(3px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cta-quiet span {
-    transition: none;
-  }
 }
 
 /* The stage (the reference's .lp-film-frame): one hairline edge, two
@@ -825,9 +769,8 @@ function setActive(i: number) {
   bottom: 8px;
 }
 
-/* The statement row under the stage (the reference's film plate): the h1
-   and lede left, the studio chip right — a thumbnail and two lines, the
-   reference's trailer chip. Stacks under 900px. */
+/* The statement row under the stage: the h1 and lede left, the page's two
+   keys right (studio, docs). Stacks under 900px. */
 .hero-row {
   display: grid;
   gap: 1.25rem 3rem;
@@ -841,39 +784,10 @@ function setActive(i: number) {
   }
 }
 
-.studio-chip {
-  display: inline-flex;
-  align-items: stretch;
-  justify-self: start;
-  height: 64px;
-  background: #000;
-  box-shadow: inset 0 0 0 1px #30333a;
-  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.studio-chip:hover {
-  box-shadow: inset 0 0 0 1px var(--swatch-orange);
-}
-
-.studio-thumb {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  background: #0b0d12;
-  box-shadow: inset -1px 0 0 #30333a;
-}
-
-.studio-txt {
+.hero-keys {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  padding: 0 20px 0 16px;
-}
-
-.studio-t {
-  font-size: 15px;
-  color: var(--color-foreground);
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 /* The footer: the statement left, three link columns right; stacked on
@@ -1154,13 +1068,30 @@ function setActive(i: number) {
 .harness-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 32px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 15px;
-  letter-spacing: -0.01em;
-  color: color-mix(in oklab, var(--color-foreground) 86%, transparent);
+}
+
+/* The Studio picker's chip: a square LED, the harness name, a 6% lift on
+   black so the dot sea never reads through the type. */
+.harness-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 11px;
+  font-size: 12.5px;
+  color: color-mix(in oklab, var(--color-foreground) 88%, transparent);
+  background: color-mix(in oklab, var(--color-foreground) 6%, #000);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.harness-chip i {
+  width: 6px;
+  height: 6px;
+  background: #7ba3ee;
 }
 
 .harness-a {
