@@ -182,7 +182,8 @@
       return `left:${px(marker.left)};top:${px(marker.top)};width:${px(marker.width)};height:${px(marker.height)};image-rendering:pixelated`
     return vertical
       ? `left:0px;top:${px(marker.top)};width:2px;height:${px(marker.height)};image-rendering:pixelated`
-      : `left:${px(marker.left)};bottom:0px;width:${px(marker.width)};height:2px;image-rendering:pixelated`
+      : // On the tab's own floor, not the container's: panels nest inside it.
+        `left:${px(marker.left)};top:${px(marker.top + marker.height - 2)};width:${px(marker.width)};height:2px;image-rendering:pixelated`
   })
 
   // Re-measure on the same signals Vue watched; the action owns the ResizeObserver.

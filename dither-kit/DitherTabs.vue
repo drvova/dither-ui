@@ -144,7 +144,8 @@ const markerStyle = computed(() => {
     }
   return vertical.value
     ? { left: "0px", top: `${marker.value.top}px`, width: "2px", height: `${marker.value.height}px` }
-    : { left: `${marker.value.left}px`, bottom: "0px", width: `${marker.value.width}px`, height: "2px" }
+    : // On the tab's own floor, not the container's: panels nest inside it.
+      { left: `${marker.value.left}px`, top: `${marker.value.top + marker.value.height - 2}px`, width: `${marker.value.width}px`, height: "2px" }
 })
 
 let ro: ResizeObserver | null = null
