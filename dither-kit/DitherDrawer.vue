@@ -218,7 +218,7 @@ const panelStyle = computed(() => {
         role="dialog"
         :aria-modal="props.modal ? 'true' : undefined"
         :aria-label="props.title"
-        class="fixed z-50 flex flex-col border-border bg-card p-4"
+        class="fixed z-50 flex flex-col border-border bg-card p-4 font-mono"
         :class="[
           props.side === 'bottom'
             ? 'inset-x-0 bottom-0 rounded-t-xl border-t'

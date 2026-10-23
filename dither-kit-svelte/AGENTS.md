@@ -124,7 +124,9 @@ patterns and the rest follows the same mechanical translation.
 - Vue `<Teleport>` becomes the `portal` ACTION (`portal.ts`): it appends the node
   to `document.body` on mount and `node.remove()`s on destroy, so Svelte plays
   out-transitions before teardown. Overlays that Vue teleports (dialog,
-  alert-dialog, drawer, context-menu, toaster) use it; in-place popovers, menus,
+  alert-dialog, drawer, context-menu, toaster) use it — and, like the Vue
+  kit, carry `font-mono` on their own panel, since the portal leaves the
+  host's font behind; in-place popovers, menus,
   and tooltips do not. Outside-click / Escape dismissal is an always-mounted
   `<svelte:window>` listener guarded by the open flag — the opening pointerdown
   lands while open is still false, replacing the Vue `setTimeout(0)` defer. A

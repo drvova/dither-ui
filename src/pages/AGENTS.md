@@ -410,8 +410,8 @@ widgets/features; page-specific conventions live here.
   `#/studio/new/<type>`), so deep-link artboards are part of the restored doc
   and undoable; the URL is cleaned via `replaceState` to prevent duplication.
 - The Studio's chrome speaks the SITE voice, like the landing and the
-  docs: `font-mono` on the page root (the context menu, teleported to
-  body, carries it itself), the 7×7 diamond brand, `.micro` panel and
+  docs: `font-mono` on the page root (the context menu and the kit's
+  dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
   section labels, 12px hairline panels and toolbars, `.ring-on` pressed
   states, ink primary keys, neutral focus borders. The artboard SURFACE
   (`[data-artboard-surface]`) stays `font-sans`, the player's font, so

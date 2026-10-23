@@ -46,7 +46,7 @@ onBeforeUnmount(() => previousFocus?.focus())
           role="dialog"
           aria-modal="true"
           :aria-label="props.label"
-          :class="cn('dk-cmm-panel relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]', props.class)"
+          :class="cn('dk-cmm-panel relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card font-mono shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]', props.class)"
         >
           <button ref="closeRef" type="button" :class="cn(CONTROL_BUTTON, 'absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-md border border-border/70 bg-background/85 text-muted-foreground transition-colors hover:bg-background hover:text-foreground')" aria-label="Close" @click="emit('close')">×</button>
           <div class="min-h-0 flex-1 overflow-auto p-6"><slot /></div>

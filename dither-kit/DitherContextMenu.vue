@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
         ref="panelRef"
         role="menu"
         tabindex="-1"
-        class="fixed z-[100] min-w-[180px] rounded-lg border border-border bg-card p-1 text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)] outline-none"
+        class="fixed z-[100] min-w-[180px] rounded-lg border border-border bg-card p-1 font-mono text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)] outline-none"
         :style="{ left: `${pos.x}px`, top: `${pos.y}px` }"
         @pointerdown.stop
         @contextmenu.prevent

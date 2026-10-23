@@ -47,7 +47,7 @@ onBeforeUnmount(() => previousFocus?.focus())
         @pointerdown.self="emit('cancel')"
         @keydown="onKeydown"
       >
-        <div ref="panelRef" class="w-full max-w-md rounded-xl border border-border/80 bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+        <div ref="panelRef" class="w-full max-w-md rounded-xl border border-border/80 bg-card font-mono shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
           <div class="px-4 pt-4">
             <span class="text-sm font-medium">{{ props.title }}</span>
             <p

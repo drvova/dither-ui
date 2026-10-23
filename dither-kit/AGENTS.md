@@ -96,6 +96,14 @@ is its showcase and editor.
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+- Type voice: the kit's controls speak `--font-mono` (Button, Badge,
+  Toaster, Command), and every overlay that TELEPORTS to `<body>` carries
+  it on its own panel — `DitherDialog`, `DitherAlertDialog`,
+  `DitherDrawer`, `DitherContextMenu`, `CenterMorphModal` — because a
+  teleport leaves the host's font behind (the body's sans, not the page's
+  voice). Where the panel takes `class`, a consumer's `font-sans` wins
+  through `cn()`. New teleported overlays follow; the Svelte port mirrors
+  each one.
 - Styling contract: Tailwind is the kit's authoring tool, not a requirement
   of the app around it. `theme.css` declares the shadcn-style tokens
   (`--background`, `--foreground`, `--card`, `--popover`, `--muted`,

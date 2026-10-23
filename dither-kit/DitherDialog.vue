@@ -53,7 +53,7 @@ onBeforeUnmount(() => previousFocus?.focus())
           :aria-labelledby="props.title ? titleId : undefined"
           :aria-label="props.title ? undefined : 'Dialog'"
           :aria-describedby="props.description ? descriptionId : undefined"
-          :class="cn('w-full max-w-md overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]', props.class)"
+          :class="cn('w-full max-w-md overflow-hidden rounded-xl border border-border/80 bg-card font-mono shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]', props.class)"
         >
           <header class="flex min-h-12 items-start justify-between gap-4 border-b border-border/60 px-4 py-3">
             <div class="min-w-0">
