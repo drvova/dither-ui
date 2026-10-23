@@ -136,6 +136,10 @@ define.test({
   // jsdom` docblock).
   testEnvironment: "node",
   setupFiles: ["./tests/components/setup.ts"],
+  // The docs' Run ships compiler-sfc's browser build; under the node target
+  // the bundle would take its CJS build instead, whose consolidate.js
+  // requires ~40 template engines that are not installed. Test what ships.
+  resolve: { alias: { "@vue/compiler-sfc$": at("node_modules/@vue/compiler-sfc/dist/compiler-sfc.esm-browser.js") } },
 })
 
 /* Rslint lints the TypeScript and JavaScript. It has no Vue SFC parser, so
