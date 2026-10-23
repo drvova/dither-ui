@@ -1,12 +1,12 @@
-/* The landing's layer over the SITE voice. The site speaks once — the dark
-   theme tokens, monospace, hairlines and micro-caps (`.nav-a`, `.nav-pill`,
-   `.eyebrow`, `.micro`, `.led` in app/styles.css) — and the landing uses
-   that voice, so it reads as the same product as the docs and the Studio.
-   What it keeps from the 2000s oakley.com archive is STRUCTURE: a campaign
-   stage with tabs, dense panels in columns, lists under a mark. Never a
-   second type system, bevels or a hue in the chrome; the kit's ember is
-   the one warm light. Plain CSS under .landing, read by every landing
-   component. */
+/* The landing's layer over the SITE voice: the dark theme tokens,
+   monospace and hairlines (`.nav-a`, `.nav-pill`, `.led` in
+   app/styles.css), so it reads as the same product as the docs and the
+   Studio. What it keeps from the 2000s oakley.com archive is STRUCTURE:
+   dense panels in columns, lists under a heading. Its copy follows the design.how bans the user picked: no
+   uppercase labels, no eyebrow over a title, no middle dots or em dashes,
+   no link that ends in an arrow (each names where it goes). Never a second
+   type system, bevels or a hue in the chrome; the kit's ember is the one
+   warm light. Plain CSS under .landing, read by every landing component. */
 .landing {
   --ink: var(--foreground);
   --ink-2: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
@@ -16,10 +16,17 @@
   font-family: var(--font-mono);
 }
 
-/* Headings: mono 500, tight — the docs' title voice. Never italic. */
+/* Headings: mono 500, tight, the docs' title voice. Never italic. */
 .landing .display {
   font-weight: 500;
   letter-spacing: -0.02em;
+}
+
+/* The site's keys in sentence case on the landing. */
+.landing .nav-a {
+  font-size: 12.5px;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* A panel: a hairline round at the docs' card corner. */
@@ -37,18 +44,14 @@
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--line) 80%, transparent);
 }
 
-/* A section's head: the eyebrow, then the title at the docs' title voice
-   scaled up — the page's second size after the statement — and its quiet
-   "all →" on the title's baseline. */
+/* A section's head: the title at the docs' title voice scaled up (the
+   page's second size after the statement) and, on its baseline, a quiet
+   link that names where it goes. */
 .landing .section-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 14px 24px;
-}
-
-.landing .section-head .eyebrow {
-  grid-column: 1 / -1;
 }
 
 .landing .section-title {
@@ -62,43 +65,48 @@
   color: var(--ink);
 }
 
-/* A list's head: an eyebrow left, its quiet "all →" right. */
+/* A list's head: its heading left, a quiet link right. */
 .landing .list-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
+}
+
+.landing .list-h {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+/* Links that lead on name their destination and carry a resting
+   underline (a hairline that inks on hover), never an arrow. */
+.landing .more-link,
+.landing .lead {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: color-mix(in oklab, var(--ink-3) 55%, transparent);
+  transition:
+    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    text-decoration-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .landing .more-link {
   font-size: 11.5px;
   color: var(--ink-3);
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.landing .more-link:hover {
-  color: var(--ink);
-}
-
-/* A link that leads on: ink text and a quiet arrow. */
 .landing .lead {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   font-size: 12px;
   color: var(--ink);
 }
 
-.landing .lead::after {
-  content: "→" / "";
-  color: var(--ink-3);
-  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .landing .lead:hover::after {
-    transform: translateX(2px);
-  }
+.landing .more-link:hover,
+.landing .lead:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
 }
 
 /* The primary key: the site's hairline pill (`.nav-a.nav-pill`) filled
@@ -122,6 +130,9 @@
 }
 
 .landing .seg > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 26px;
   padding: 0 9px;
   border-radius: 5px;
@@ -154,8 +165,8 @@
 }
 
 /* The live chip: a state label on wells that ARE live kit canvases (an
-   `.led` and `.micro` text). The text stays under reduced motion; only the
-   LED's pulse dies. */
+   `.led` and the rate in words). The text stays under reduced motion; only
+   the LED's pulse dies. */
 .landing .live {
   position: absolute;
   top: 8px;
@@ -166,6 +177,7 @@
   gap: 7px;
   padding: 3px 7px;
   border-radius: 4px;
+  font-size: 11px;
   color: var(--ink-3);
   background: color-mix(in oklab, var(--background) 80%, transparent);
 }

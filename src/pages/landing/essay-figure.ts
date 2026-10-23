@@ -37,12 +37,12 @@ const hash = (x: number, y: number) => {
 }
 
 export const STAGE_CAPTIONS = [
-  "ordered matrix",
-  "charts · avatars",
-  "seven seeds",
-  "seed 512, replayed",
-  "layout frames",
-  "alias @dither-kit",
+  "Ordered matrix",
+  "Charts and avatars",
+  "Seven seeds",
+  "Seed 512, replayed",
+  "Layout frames",
+  "Alias @dither-kit",
 ] as const
 
 /** The colour a stage gives cell (x, y), or null for the empty floor. */

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { ref } from "vue"
 import { routePath } from "@/shared/lib"
 import {
   DitherBadge,
   DitherButton,
+  DitherIcon,
   DitherSlider,
   DitherSwitch,
   DitherWorld,
@@ -14,70 +15,30 @@ import {
   YAxis,
   sampleWorld,
   type DitherColor,
+  type IconName,
 } from "@dither-kit"
 import ClayzoFilm from "./ClayzoFilm.vue"
 import InstallBlock from "./InstallBlock.vue"
-import PixelPlate from "./PixelPlate.vue"
-import { COMPONENT_COUNT } from "./facts"
-import { FAMILIES, SECTION_COUNT, SHELVES } from "./hub"
-import { catalogLayout, catalogPlate, dawnPlate } from "./plates"
+import { COMPONENT_COUNT, RUNTIME_DEPS } from "./facts"
+import { SECTION_COUNT, SHELVES } from "./hub"
 
-// The portal (its structure after the 2000s oakley.com, its scale after
-// the dither winners on Awwwards, its voice the site's own): a full-bleed
-// art band — the films as tabbed campaigns, one mounted at a time — then
-// the statement at display scale, the install bar and three columns of
-// panels: the Studio pitch with live kit components as product tiles and
-// the portraits (a slot: their shake lives on the page); framed wells with
-// a leading link; lists into the docs under an eyebrow.
-const LAYOUT = catalogLayout(FAMILIES.map((f) => f.count))
-const FILMS = [
-  {
-    id: "hero",
-    tab: "Layers",
-    label: "Four paint layers · one dither rule",
-    aspect: "8 / 5",
-    wide: false,
-    alt: "A dithered dashboard tips into an isometric exploded view of its paint layers, re-seeds its data, flips its switch, presses its button and folds back flat.",
-  },
-  {
-    id: "studio",
-    tab: "Studio",
-    label: "An infinite canvas your agent can drive",
-    aspect: "8 / 5",
-    wide: false,
-    alt: "A cursor places three artboards on the Studio's dotted canvas — a bar chart, a line chart, a button — selects them, and they drain away.",
-  },
-  {
-    id: "reel",
-    tab: "Reel",
-    label: "Every frame exports as an MP4",
-    aspect: "8 / 5",
-    wide: false,
-    alt: "A film strip runs past an ember playhead; each frame holds one moment of a bouncing ball.",
-  },
-  {
-    id: "catalog",
-    tab: "Catalog",
-    label: `${SECTION_COUNT} sections · one window each`,
-    aspect: `${LAYOUT.w} / ${LAYOUT.h}`,
-    wide: true,
-    alt: `The docs catalog as a night skyline: ${SECTION_COUNT} lit windows, one per section, in a tower per family; windows switch on and off and a new section falls onto the tallest roof.`,
-  },
-  {
-    id: "dawn",
-    tab: "Dawn",
-    label: "Clayzo films · the kit's dither rule",
-    aspect: "168 / 46",
-    wide: true,
-    alt: "Dawn over a dithered planet: the sun breathes on the limb, an aurora sways over the far side, seed moons cross the sky and stars flicker.",
-  },
+// The portal (its scale after the dither winners on Awwwards, its voice the
+// site's own): a full-bleed hero band, the statement beside ONE film (the
+// kit's paint layers), then on the shell the install bar and three columns
+// of panels: the Studio pitch with live kit components as product tiles
+// and the portraits (a slot: their shake lives on the page); live wells
+// (a 3D model, a chart, the video film), each with the docs link that leads
+// on; lists into the docs. The other films live in the sections they show.
+const HERO_ALT =
+  "A dithered dashboard tips into an isometric exploded view of its paint layers, re-seeds its data, flips its switch, presses its button and folds back flat."
+const REEL_ALT = "A film strip runs past an ember playhead; each frame holds one moment of a bouncing ball."
+
+// The statement's numbers, each one recounted by a test.
+const FACTS = [
+  { icon: "Grid", value: COMPONENT_COUNT, label: "components, one file each" },
+  { icon: "Book", value: SECTION_COUNT, label: "docs sections, every one live" },
+  { icon: "Package", value: RUNTIME_DEPS.length, label: "packages beside Vue" },
 ] as const
-const picked = ref(0)
-const film = computed(() => FILMS[picked.value])
-const PLATES: Record<string, ReturnType<typeof dawnPlate>> = {
-  catalog: catalogPlate(FAMILIES.map((f) => f.count)),
-  dawn: dawnPlate(),
-}
 
 // The product tiles' live state: the slider re-seeds the badge.
 const dither = ref(true)
@@ -89,63 +50,80 @@ const ROWS = [46, 52, 49, 58, 64, 61, 72, 78, 74, 86, 92, 88].map((renders, i) =
 const CONFIG = { renders: { label: "renders", color: "blue" as DitherColor } }
 
 // The docs list: the shelved families, biggest first, each to its first
-// section; then the handbook.
+// section with its glyph; then the handbook.
+const FAMILY_ICON: Record<string, IconName> = {
+  Components: "Grid",
+  Animations: "Pulse",
+  Backgrounds: "Image",
+  Examples: "Layout",
+  Text: "Type",
+}
 const DOCS = SHELVES.filter((s) => s.value !== "explore")
-  .map((s) => ({ label: s.label, count: s.count, note: s.note, href: routePath(`/docs/${s.cards[0].id}`) }))
+  .map((s) => ({
+    label: s.label,
+    icon: FAMILY_ICON[s.label] ?? "Grid",
+    count: s.count,
+    note: s.note,
+    href: routePath(`/docs/${s.cards[0].id}`),
+  }))
   .sort((a, b) => b.count - a.count)
-const HANDBOOK = [
-  { label: "Styling", note: "Tailwind, CSS, CSS Modules or StyleX", href: routePath("/docs/styling") },
-  { label: "Seeds", note: "One integer, one personality", href: routePath("/docs/seeds") },
-  { label: "Animation", note: "Every animation on one seekable clock", href: routePath("/docs/motion") },
-  { label: "Accessibility", note: "Labels, focus, reduced motion", href: routePath("/docs/accessibility") },
+const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] = [
+  { label: "Styling", icon: "Palette", note: "Tailwind, CSS, CSS Modules or StyleX", href: routePath("/docs/styling") },
+  {
+    label: "Composition",
+    icon: "Layers",
+    note: "Roots hold the context, parts nest inside",
+    href: routePath("/docs/composition"),
+  },
+  { label: "Seeds", icon: "Dice", note: "One integer, one personality", href: routePath("/docs/seeds") },
+  { label: "Animation", icon: "Clock", note: "Every animation on one seekable clock", href: routePath("/docs/motion") },
+  {
+    label: "Accessibility",
+    icon: "Accessibility",
+    note: "Labels, focus, reduced motion",
+    href: routePath("/docs/accessibility"),
+  },
 ]
 </script>
 
 <template>
   <section aria-labelledby="hero-h" class="portal">
-    <!-- The stage: a full-bleed band, the picked film its art; the tabs and
-         the mark have their own floor row so no film ever runs under them. -->
-    <div class="stage" :data-wide="film.wide ? '' : undefined">
-      <div class="stage-view">
-        <ClayzoFilm
-          :key="film.id"
-          :film="film.id"
-          chip
-          :label="film.alt"
-          class="stage-film"
-          :style="{ aspectRatio: film.aspect }"
-        >
-          <template v-if="PLATES[film.id]" #fallback>
-            <PixelPlate :plate="PLATES[film.id]" fit="xMidYMax meet" class="block size-full" />
-          </template>
-        </ClayzoFilm>
-        <p class="micro stage-label" aria-hidden="true">{{ film.label }}</p>
-      </div>
-      <div class="stage-foot">
-        <div role="group" aria-label="Films" class="seg stage-tabs">
-          <button v-for="(f, i) in FILMS" :key="f.id" type="button" :aria-pressed="picked === i" @click="picked = i">
-            {{ f.tab }}
-          </button>
+    <!-- The hero: a full-bleed band; on the shell, the statement (the h1,
+         the lede, the keys, the kit's numbers) beside ONE film. -->
+    <div class="hero">
+      <div class="hero-in">
+        <div class="statement">
+          <h1 id="hero-h" class="display hero-h">A dithered UI toolkit for Vue.</h1>
+          <p class="hero-lede">
+            Charts, controls, backgrounds, text effects and 3D, each drawn pixel by pixel from one seeded palette. Copy
+            the folder into your Vue 3 or Svelte 5 app and every line is yours to change.
+          </p>
+          <div class="hero-keys">
+            <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
+            <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
+          </div>
+          <dl class="facts">
+            <div v-for="f in FACTS" :key="f.label" class="fact">
+              <dt>{{ f.label }}</dt>
+              <dd><DitherIcon :name="f.icon" :size="16" :stroke-width="1.5" class="fact-i" />{{ f.value }}</dd>
+            </div>
+          </dl>
         </div>
-        <p class="micro stage-badge" aria-hidden="true">dither-kit × Clayzo</p>
+        <figure class="hero-film">
+          <ClayzoFilm film="hero" chip="Pause the layers film" :label="HERO_ALT" class="hero-play" />
+          <figcaption class="hero-cap">
+            <DitherIcon name="Layers" :size="14" :stroke-width="1.5" class="cap-i" />
+            <span class="cap-t"
+              >Four paint layers, one dither rule.
+              <span class="hover-only">Point at the film and its grid halves under the cursor.</span></span
+            >
+            <a :href="routePath('/docs/composition')" class="lead">How components compose</a>
+          </figcaption>
+        </figure>
       </div>
     </div>
 
     <div class="shell">
-      <!-- The statement at display scale under the art, across the shell;
-           the lede and the keys on one row under it. -->
-      <div class="intro">
-        <p class="eyebrow intro-eyebrow">Every pixel placed on purpose</p>
-        <h1 id="hero-h" class="display intro-h">A dithered UI toolkit for Vue.</h1>
-        <p class="intro-lede">
-          Charts, controls and surfaces, rendered pixel by pixel from one seeded palette — for Vue 3 or Svelte 5.
-        </p>
-        <div class="intro-keys">
-          <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
-          <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
-        </div>
-      </div>
-
       <InstallBlock />
 
       <div class="cols">
@@ -154,8 +132,8 @@ const HANDBOOK = [
           <article class="panel build">
             <h2 class="display build-h">Build <span>your own screens</span></h2>
             <p class="build-p">
-              Charts, controls and whole screens on an infinite canvas — placed by hand, or by your agent through one
-              protocol.
+              Lay out charts, controls and whole screens on an infinite canvas, then export each frame as a Vue file, a
+              PNG or an MP4.
             </p>
             <div class="tiles">
               <div class="thumb tile">
@@ -163,7 +141,7 @@ const HANDBOOK = [
                   <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
                   <DitherButton color="orange" variant="solid">New frame</DitherButton>
                 </div>
-                <span class="micro tile-name">Buttons</span>
+                <span class="tile-name">Buttons</span>
               </div>
               <div class="thumb tile">
                 <div class="tile-art tile-stack">
@@ -173,12 +151,12 @@ const HANDBOOK = [
                   </div>
                   <DitherSlider v-model="seed" :min="0" :max="999" label="Seed" class="tile-slider" />
                 </div>
-                <span class="micro tile-name">Controls</span>
+                <span class="tile-name">Controls</span>
               </div>
             </div>
             <div class="build-links">
               <a :href="routePath('/studio')" class="lead">Open the studio</a>
-              <a :href="routePath('/docs')" class="lead">Choose from {{ COMPONENT_COUNT }} components</a>
+              <a :href="routePath('/docs')" class="lead">Browse all {{ COMPONENT_COUNT }} components</a>
             </div>
           </article>
 
@@ -191,11 +169,12 @@ const HANDBOOK = [
           </article>
         </div>
 
-        <!-- Column B: framed wells. -->
+        <!-- Column B: live wells and the video film, each with its glyph
+             and the docs link that leads on. -->
         <div class="col-b">
           <figure class="pick">
             <div class="thumb pick-art">
-              <span class="live micro" aria-hidden="true"><i class="led"></i>live · 12 fps</span>
+              <span class="live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
               <DitherWorld
                 :source="WORLD"
                 :colors="RAMP"
@@ -207,8 +186,11 @@ const HANDBOOK = [
               />
             </div>
             <figcaption>
-              <a :href="routePath('/docs/world')" class="lead">World 3D</a>
-              <p class="pick-p">glTF, OBJ, STL and VRML through the same Bayer cells.</p>
+              <p class="pick-h">
+                <DitherIcon name="Box" :size="14" :stroke-width="1.5" class="pick-i" />
+                <a :href="routePath('/docs/world')" class="lead">3D models</a>
+              </p>
+              <p class="pick-p">glTF, OBJ, STL and VRML files drawn through the same Bayer cells.</p>
             </figcaption>
           </figure>
           <figure class="pick">
@@ -221,33 +203,54 @@ const HANDBOOK = [
               </LineChart>
             </div>
             <figcaption>
-              <a :href="routePath('/docs/area')" class="lead">Charts</a>
-              <p class="pick-p">Seeded and deterministic: a seed replays a fill forever.</p>
+              <p class="pick-h">
+                <DitherIcon name="ChartLine" :size="14" :stroke-width="1.5" class="pick-i" />
+                <a :href="routePath('/docs/area')" class="lead">Charts</a>
+              </p>
+              <p class="pick-p">Seeded and deterministic: the same seed replays the same fill.</p>
+            </figcaption>
+          </figure>
+          <figure class="pick">
+            <div class="thumb pick-art">
+              <ClayzoFilm film="reel" chip="Pause the video film" :label="REEL_ALT" class="pick-film" />
+            </div>
+            <figcaption>
+              <p class="pick-h">
+                <DitherIcon name="Film" :size="14" :stroke-width="1.5" class="pick-i" />
+                <a :href="routePath('/docs/stage')" class="lead">Video</a>
+              </p>
+              <p class="pick-p">One seekable clock, so every frame exports as the same MP4.</p>
             </figcaption>
           </figure>
         </div>
 
-        <!-- Column C: lists into the docs. -->
+        <!-- Column C: lists into the docs, a hairline off the others. -->
         <aside class="col-c" aria-label="Docs">
           <div class="list-head">
-            <span class="eyebrow">Docs</span>
-            <a :href="routePath('/docs')" class="more-link">all →</a>
+            <h3 class="list-h">Docs</h3>
+            <a :href="routePath('/docs')" class="more-link">All sections</a>
           </div>
           <ul class="list">
             <li v-for="d in DOCS" :key="d.label">
               <a :href="d.href" class="list-t"
-                >{{ d.label }} <span>· {{ d.count }}</span></a
+                ><span class="list-l"
+                  ><DitherIcon :name="d.icon" :size="14" :stroke-width="1.5" class="list-i" />{{ d.label }}</span
+                ><span class="list-n">{{ d.count }}</span></a
               >
               <span class="list-s">{{ d.note }}</span>
             </li>
           </ul>
           <div class="list-head">
-            <span class="eyebrow">Handbook</span>
-            <a :href="routePath('/docs/styling')" class="more-link">all →</a>
+            <h3 class="list-h">Handbook</h3>
+            <a :href="routePath('/docs/getting-started')" class="more-link">Quick start</a>
           </div>
           <ul class="list">
             <li v-for="h in HANDBOOK" :key="h.label">
-              <a :href="h.href" class="list-t">{{ h.label }}</a>
+              <a :href="h.href" class="list-t"
+                ><span class="list-l"
+                  ><DitherIcon :name="h.icon" :size="14" :stroke-width="1.5" class="list-i" />{{ h.label }}</span
+                ></a
+              >
               <span class="list-s">{{ h.note }}</span>
             </li>
           </ul>
@@ -275,160 +278,173 @@ const HANDBOOK = [
   padding-inline: 1.5rem;
 }
 
-/* The stage: a full-bleed band between hairlines, its content edge aligned
-   to the shell. 8:5 films stand centred at full height; the wide ones run
-   across the floor. The film's label sits top-right; the tabs and the mark
-   have their own row. */
-.stage {
-  --edge: max(1.5rem, calc((100% - var(--shell)) / 2 + 1.5rem));
+/* The hero: a full-bleed band between hairlines; on the shell, the
+   statement (left) beside the film (right), which stands on the band's
+   floor. Under 900px the statement comes first and the film takes the
+   band's width under it. */
+.hero {
   background: var(--well);
   box-shadow:
     inset 0 1px 0 var(--line),
     inset 0 -1px 0 var(--line);
 }
 
-.stage-view {
-  position: relative;
-  overflow: hidden;
-  height: clamp(20rem, 50vh, 34rem);
-}
-
-.stage-film {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  height: 100%;
-  translate: -50% 0;
-}
-
-.stage[data-wide] .stage-film {
-  top: auto;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: auto;
-  translate: none;
-}
-
-.stage-label {
-  position: absolute;
-  top: 14px;
-  right: var(--edge);
-  margin: 0;
-  padding: 3px 7px;
-  border-radius: 4px;
-  color: var(--ink-3);
-  background: color-mix(in oklab, var(--well) 85%, transparent);
-}
-
-.stage-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px var(--edge);
-  box-shadow: inset 0 1px 0 var(--line);
-}
-
-/* The statement: display-scale mono across the shell under the art (two
-   lines at desktop, above a 1440×900 fold), the lede and the keys on one
-   row under it. */
-.intro {
+.hero-in {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  align-items: center;
   gap: 0 48px;
-  padding-bottom: 16px;
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding: 0 1.5rem;
 }
 
-.intro-eyebrow,
-.intro-h {
-  grid-column: 1 / -1;
+/* The statement: display-scale mono (two lines at desktop, capped so it
+   stays two in its column), the lede, the keys, then the kit's numbers. */
+.statement {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 36px 0;
 }
 
-.intro-h {
-  margin: 14px 0 22px;
-  font-size: clamp(2.4rem, 5.3vw, 5rem);
-  line-height: 1;
+.hero-h {
+  margin: 0;
+  font-size: clamp(2.2rem, 4.2vw, 3.25rem);
+  line-height: 1.02;
   letter-spacing: -0.05em;
   text-wrap: balance;
   color: var(--ink);
 }
 
-.intro-lede {
+.hero-lede {
   margin: 0;
-  max-width: 30rem;
+  max-width: 34rem;
   font-size: 13px;
   line-height: 1.65;
   color: var(--ink-3);
   text-wrap: pretty;
 }
 
-.intro-keys {
+.hero-keys {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-@media (max-width: 759px) {
-  .intro {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .intro-keys {
-    margin-top: 20px;
-  }
+/* One strip of numbers: each fact its own element, its glyph beside the
+   number, hairlines between. */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-self: stretch;
+  margin: 6px 0 0;
+  padding-top: 18px;
+  box-shadow: inset 0 1px 0 var(--line);
 }
 
-.stage-tabs {
-  overflow-x: auto;
-  scrollbar-width: none;
+.fact {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 0 16px;
+  box-shadow: inset 1px 0 0 var(--line);
 }
 
-.stage-badge {
+.fact:first-child {
+  padding-left: 0;
+  box-shadow: none;
+}
+
+.fact dd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
+  font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.fact-i {
+  flex: none;
   color: var(--ink-3);
 }
 
-/* The film's pause chip sits in the view's floor corner, clear of the
-   label. */
-.stage :deep(.film-corner) {
-  top: auto;
-  right: 14px;
-  bottom: 14px;
+.fact dt {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
 }
 
-@media (max-width: 759px) {
-  .stage-view {
-    height: auto;
-  }
-  .stage-label,
-  .stage-badge {
+.hero-film {
+  margin: 0;
+  align-self: end;
+}
+
+.hero-play {
+  width: 100%;
+  aspect-ratio: 8 / 5;
+}
+
+.hero-cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 0 0 16px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+.cap-i {
+  flex: none;
+}
+
+.cap-t {
+  flex: 1;
+  min-width: 14rem;
+}
+
+@media (hover: none) {
+  .hover-only {
     display: none;
   }
-  .stage-film,
-  .stage[data-wide] .stage-film {
-    position: relative;
-    left: 0;
-    width: 100%;
-    height: auto;
-    translate: none;
+}
+
+@media (max-width: 899px) {
+  .hero-in {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0;
   }
-  .stage-foot {
-    padding: 10px 12px;
+  .statement {
+    padding: 28px 1.5rem 8px;
   }
-  .stage-tabs {
-    flex: 1;
-  }
-  .stage-tabs > button {
-    flex: 1;
-    padding: 0 4px;
+  .hero-cap {
+    padding: 0 1.5rem 16px;
   }
 }
 
-/* The columns: 2 : 1 : 1.1, collapsing to one under 900px. */
+@media (max-width: 479px) {
+  .fact {
+    padding: 0 10px;
+  }
+  .fact dd {
+    gap: 6px;
+  }
+}
+
+/* The columns: 1.9 : 1 : 1.2, collapsing to one under 900px. */
 .cols {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr) minmax(0, 1.2fr);
   gap: 20px;
 }
 
@@ -508,6 +524,7 @@ const HANDBOOK = [
 
 .tile-name {
   align-self: flex-end;
+  font-size: 11.5px;
   color: var(--ink-3);
 }
 
@@ -530,15 +547,36 @@ const HANDBOOK = [
 }
 
 .pick-art {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 3 / 2;
 }
 
 .pick-chart {
   padding: 10px 8px 4px;
 }
 
+/* The 8:5 film across the well's middle. */
+.pick-film {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  aspect-ratio: 8 / 5;
+  translate: 0 -50%;
+}
+
 .pick figcaption {
   margin-top: 10px;
+}
+
+.pick-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.pick-i {
+  flex: none;
+  color: var(--ink-3);
 }
 
 .pick-p {
@@ -548,7 +586,7 @@ const HANDBOOK = [
   color: var(--ink-3);
 }
 
-/* Column C: lists under eyebrows, a hairline off the others. */
+/* Column C: lists under their headings, a hairline off the others. */
 .col-c {
   padding-left: 20px;
   box-shadow: inset 1px 0 0 var(--line);
@@ -571,17 +609,38 @@ const HANDBOOK = [
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 10px 0;
+  padding: 11px 0;
   box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
 }
 
 .list-t {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
   font-size: 12.5px;
   color: var(--ink);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.list-t span {
+.list-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.list-i {
+  flex: none;
+  color: var(--ink-3);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.list-t:hover .list-i {
+  color: var(--ink);
+}
+
+.list-n {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
   color: var(--ink-3);
 }
 
@@ -591,6 +650,7 @@ const HANDBOOK = [
 }
 
 .list-s {
+  padding-left: 23px;
   font-size: 11.5px;
   line-height: 1.5;
   color: var(--ink-3);

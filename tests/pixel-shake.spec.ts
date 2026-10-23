@@ -1,6 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import { bayerMatrix } from "@/pages/landing/dither-field"
-import { shakeRaster, type ShakeInput } from "@/pages/landing/pixel-shake"
+import { bayerMatrix, shakeRaster, type ShakeInput } from "@/pages/landing/pixel-shake"
 
 const W = 40
 const H = 30
@@ -25,6 +24,20 @@ function input(over: Partial<ShakeInput> = {}): ShakeInput {
 }
 
 describe("pixel shake", () => {
+  it("builds Bayer matrices with every rank exactly once, in (0, 1)", () => {
+    for (const n of [4, 8] as const) {
+      const m = bayerMatrix(n)
+      const ranks = Array.from(m, (v) => Math.round(v * n * n - 0.5)).sort((a, b) => a - b)
+      expect(ranks).toEqual(Array.from({ length: n * n }, (_, i) => i))
+      expect(Math.min(...m)).toBeGreaterThan(0)
+      expect(Math.max(...m)).toBeLessThan(1)
+    }
+    // The 4x4 is the kit's gradient matrix: rank 0 top-left, 15 bottom-left.
+    const b4 = bayerMatrix(4)
+    expect(Math.round(b4[0] * 16 - 0.5)).toBe(0)
+    expect(Math.round(b4[12] * 16 - 0.5)).toBe(15)
+  })
+
   it("is the identity at zero energy", () => {
     const out = new Uint32Array(W * H)
     shakeRaster(out, input({ energy: 0 }))

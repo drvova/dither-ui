@@ -1,5 +1,5 @@
 // pixel-shake: hover disturbance for a pixel image. Vanilla — no framework
-// or kit imports — a sibling of dither-field on the same Bayer rules.
+// or kit imports — on the kit's ordered-dither rule.
 //
 // The image is held at its NATIVE crop resolution (one art pixel = one
 // cell). While the cursor is over it, every frame re-samples the source
@@ -20,8 +20,40 @@
 // skin's own nerve ending: local contact, not a second sensorium.
 // Deterministic for (source, pointer, energy, t).
 
-import { bayerMatrix, cellHash } from "./dither-field"
 import { senses } from "./senses"
+
+/** Stable per-cell noise (hash, not PRNG state): each cell's own shake phase. */
+export function cellHash(x: number, y: number): number {
+  let h = Math.imul(x * 374761393 + y * 668265263, 1274126177)
+  h = Math.imul(h ^ (h >>> 13), 1274126177)
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296
+}
+
+/** The ordered-dither threshold matrix (n = 4 or 8), as a flat row-major
+ * Float32Array of (rank + 0.5) / n² thresholds — the textbook recursive
+ * Bayer construction, so the 4x4 is exactly the kit's gradient matrix. */
+export function bayerMatrix(n: 4 | 8): Float32Array {
+  let m = [
+    [0, 2],
+    [3, 1],
+  ]
+  while (m.length < n) {
+    const k = m.length
+    const next: number[][] = Array.from({ length: k * 2 }, () => new Array<number>(k * 2).fill(0))
+    for (let y = 0; y < k; y++)
+      for (let x = 0; x < k; x++) {
+        const v = m[y][x] * 4
+        next[y][x] = v
+        next[y][x + k] = v + 2
+        next[y + k][x] = v + 3
+        next[y + k][x + k] = v + 1
+      }
+    m = next
+  }
+  const out = new Float32Array(n * n)
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) out[y * n + x] = (m[y][x] + 0.5) / (n * n)
+  return out
+}
 
 export type ShakeOptions = {
   /** Pool radius in art px (the Gaussian's 2-sigma). Default 18. */

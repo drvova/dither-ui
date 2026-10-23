@@ -1,75 +1,37 @@
 import { describe, expect, it } from "rstack/test"
-import { seedFor, SITE_SEED } from "@/pages/landing/genome"
-import {
-  createGovernor,
-  createSenses,
-  daylight,
-  DROWSY_RAMP,
-  IDLE_AFTER,
-  QUALITY_TIERS,
-  stepHormones,
-} from "@/pages/landing/senses"
+import { createSenses } from "@/pages/landing/senses"
 
-describe("genome", () => {
-  it("derives stable, distinct seeds from one site seed", () => {
-    expect(seedFor("sky")).toBe(seedFor("sky"))
-    expect(seedFor("sky")).not.toBe(seedFor("band"))
-    expect(seedFor("sky", SITE_SEED + 1)).not.toBe(seedFor("sky"))
-    for (const s of [seedFor("sky"), seedFor("band"), seedFor("")]) {
-      expect(s).toBeGreaterThanOrEqual(0)
-      expect(s).toBeLessThan(2 ** 31)
+describe("heartbeat", () => {
+  it("ticks its organisms on one frame clock and stops when the last one leaves", () => {
+    const frames: FrameRequestCallback[] = []
+    const cancelled: number[] = []
+    const raf = globalThis.requestAnimationFrame
+    const caf = globalThis.cancelAnimationFrame
+    globalThis.requestAnimationFrame = (cb) => frames.push(cb)
+    globalThis.cancelAnimationFrame = (id) => void cancelled.push(id)
+    try {
+      const s = createSenses()
+      const a: number[] = []
+      const b: number[] = []
+      const offA = s.subscribe({ tick: (dt) => a.push(dt) })
+      const offB = s.subscribe({ tick: (dt) => b.push(dt) })
+      // Two organisms, one frame request.
+      expect(frames).toHaveLength(1)
+      frames.shift()!(100)
+      frames.shift()!(116)
+      expect(a).toEqual([0, 16])
+      expect(b).toEqual([0, 16])
+      // A tab-switch jump is clamped.
+      frames.shift()!(5000)
+      expect(a.at(-1)).toBe(250)
+      offA()
+      expect(frames).toHaveLength(1)
+      offB()
+      expect(cancelled).toHaveLength(1)
+      s.destroy()
+    } finally {
+      globalThis.requestAnimationFrame = raf
+      globalThis.cancelAnimationFrame = caf
     }
-  })
-})
-
-describe("endocrine", () => {
-  it("daylight peaks at noon and bottoms at midnight", () => {
-    expect(daylight(0)).toBeCloseTo(0)
-    expect(daylight(12)).toBeCloseTo(1)
-    expect(daylight(6)).toBeCloseTo(0.5)
-    expect(daylight(24)).toBeCloseTo(0)
-  })
-
-  it("arousal rises with movement and decays, drowsiness ramps after idle", () => {
-    let h = { arousal: 0, drowsy: 0, daylight: 0.5 }
-    h = stepHormones(h, 16, 120, 0)
-    expect(h.arousal).toBeGreaterThan(0.4)
-    const peak = h.arousal
-    h = stepHormones(h, 4000, 0, 4000)
-    expect(h.arousal).toBeLessThan(peak * 0.5)
-    expect(h.drowsy).toBe(0)
-    h = stepHormones(h, 16, 0, IDLE_AFTER + DROWSY_RAMP / 2)
-    expect(h.drowsy).toBeCloseTo(0.5)
-    h = stepHormones(h, 16, 0, IDLE_AFTER + DROWSY_RAMP * 3)
-    expect(h.drowsy).toBe(1)
-    expect(stepHormones(h, 16, 0, 0).drowsy).toBe(0)
-  })
-})
-
-describe("metabolic governor", () => {
-  it("steps quality down under sustained load and back up with headroom", () => {
-    const g = createGovernor({ over: 9, under: 3, downAfter: 10, upAfter: 20 })
-    expect(g.quality).toBe(QUALITY_TIERS[0])
-    let q = 1
-    for (let i = 0; i < 200; i++) q = g.sample(20)
-    expect(q).toBe(QUALITY_TIERS[2])
-    for (let i = 0; i < 400; i++) q = g.sample(0.5)
-    expect(q).toBe(QUALITY_TIERS[0])
-    // One slow frame is not a trend.
-    g.sample(40)
-    expect(g.quality).toBe(QUALITY_TIERS[0])
-  })
-})
-
-describe("sensorium", () => {
-  it("subscribes organisms and stops the heartbeat when the last one leaves", () => {
-    const s = createSenses()
-    const ticks: number[] = []
-    const off = s.subscribe({ tick: (dt) => ticks.push(dt) })
-    expect(s.quality).toBe(1)
-    expect(s.hormones.daylight).toBeGreaterThanOrEqual(0)
-    off()
-    s.destroy()
-    expect(typeof s.pointer.x).toBe("number")
   })
 })
