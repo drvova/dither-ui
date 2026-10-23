@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { routePath } from "@/shared/lib"
+import { assetPath, routePath } from "@/shared/lib"
 import {
   DitherBadge,
   DitherButton,
@@ -10,16 +10,27 @@ import {
   DitherProgress,
   DitherSlider,
   DitherSwitch,
+  DitherWorld,
   Grid,
   Legend,
   Line,
   LineChart,
   XAxis,
   YAxis,
+  sampleWorld,
   type DitherColor,
 } from "@dither-kit"
+import ClayzoFilm from "./ClayzoFilm.vue"
 import PixelPlate from "./PixelPlate.vue"
 import { rampPlate, seedPlate, skylinePlate } from "./plates"
+
+// The opening chapter is the reference's feature bento: four cells, each a
+// big moving figure over one statement and its links. Two figures are
+// Clayzo films (the Studio and the reel, rendered through the kit's dither
+// rule — films/), one is the kit's own 3D raster live, and one is the
+// page's pixel-art portraits (a slot: their shake lives on the page).
+const WORLD = sampleWorld(7)
+const RAMP = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
 
 // Three chapters on the reference's exact grid: a full-width hairline panel;
 // inside it a black BAND (statement top-left, links under, a pixel strip on
@@ -45,7 +56,7 @@ const CONFIG = {
   seeds: { label: "seeds", color: "purple" as DitherColor },
 }
 const SKYLINE = skylinePlate(ROWS.map((r) => r.renders))
-const RAMP = rampPlate()
+const STRIP = rampPlate()
 
 // Controls chapter — real state: the switch toggles the grid behind the
 // panel, the slider re-seeds the badge AND the band's strip live (one
@@ -57,6 +68,88 @@ const SEEDED = computed(() => seedPlate(seed.value))
 
 <template>
   <section aria-label="Inside the kit" class="figs mx-auto w-full max-w-[var(--shell)] px-6">
+    <!-- Chapter 0 — the bento -->
+    <article aria-labelledby="ch-kit-h" class="chapter reveal">
+      <div class="band">
+        <h2 id="ch-kit-h" class="band-h">
+          dither-ui<span class="dot">,</span> <span class="band-l">a toolkit where every pixel is placed on purpose.</span>
+        </h2>
+        <div class="links">
+          <a :href="routePath('/docs/getting-started')" class="more">Quick start</a>
+          <a :href="routePath('/docs')" class="more more-quiet">Docs</a>
+        </div>
+      </div>
+      <div class="cells two">
+        <div class="cell feat">
+          <ClayzoFilm
+            film="studio"
+            chip
+            label="An ember cursor places three artboards — a bar chart, a line chart, a button — on the Studio's dotted canvas, selects them, and they drain away."
+            class="art"
+          />
+          <h3 class="feat-h">A studio your agent can drive</h3>
+          <p class="cell-p">
+            Charts, controls and whole screens on an infinite canvas — placed by hand, or by Claude
+            Code, Codex or any ACP harness through one protocol.
+          </p>
+          <div class="links">
+            <a :href="routePath('/studio')" class="more">Open studio</a>
+            <a :href="assetPath('/agent/SKILL.md')" class="more more-quiet">Agent skill</a>
+          </div>
+        </div>
+        <div class="cell feat">
+          <ClayzoFilm
+            film="reel"
+            chip
+            label="A film strip runs past an ember playhead; each frame holds one moment of a bouncing ball."
+            class="art"
+          />
+          <h3 class="feat-h">Every frame is a film</h3>
+          <p class="cell-p">
+            Any artboard exports as one HyperFrames file that renders to a deterministic MP4; a reel
+            cuts frames together with ordered-dither wipes.
+          </p>
+          <div class="links">
+            <a :href="routePath('/docs/motion')" class="more">Animation</a>
+          </div>
+        </div>
+        <div class="cell feat">
+          <div class="art">
+            <span class="live" aria-hidden="true"><i></i>live · 12 fps</span>
+            <DitherWorld
+              :source="WORLD"
+              :colors="RAMP"
+              :auto-rotate="14"
+              :grain="0.4"
+              :frame-rate="12"
+              label="A seeded 3D probe turning slowly, rendered through the kit's Bayer cells"
+              class="h-full"
+            />
+          </div>
+          <h3 class="feat-h">3D and GLSL, one raster</h3>
+          <p class="cell-p">
+            glTF, OBJ, STL, VRML and Shadertoy-style shaders render through the same Bayer cells — on
+            the CPU, byte-exact, or through WebGL for big meshes.
+          </p>
+          <div class="links">
+            <a :href="routePath('/docs/world')" class="more">World</a>
+            <a :href="routePath('/docs/shader')" class="more more-quiet">Shader</a>
+          </div>
+        </div>
+        <div class="cell feat">
+          <div class="art faces"><slot name="faces" /></div>
+          <h3 class="feat-h">Pixel art that answers</h3>
+          <p class="cell-p">
+            Hover a portrait: her pixels scatter under the cursor and spring home, and her emote
+            answers.
+          </p>
+          <div class="links">
+            <a :href="routePath('/docs/image')" class="more">Images</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
     <!-- Chapter 1 — charts -->
     <article aria-labelledby="ch-charts-h" class="chapter reveal">
       <div class="band">
@@ -100,7 +193,7 @@ const SEEDED = computed(() => seedPlate(seed.value))
         <div class="links">
           <a :href="routePath('/docs')" class="more">Browse surfaces</a>
         </div>
-        <PixelPlate :plate="RAMP" class="strip" />
+        <PixelPlate :plate="STRIP" class="strip" />
       </div>
       <div class="cells three">
         <figure class="cell">
@@ -274,10 +367,11 @@ const SEEDED = computed(() => seedPlate(seed.value))
 }
 
 /* Cell grid: hairline gaps come from the panel background showing through.
-   Chapter 2 is a 3-up; chapter 3 is demo + prose. */
+   The bento is 2x2; chapter 2 is a 3-up; chapter 3 is demo + prose. */
 .cells {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
   background: color-mix(in oklab, var(--color-border) 45%, transparent);
 }
 
@@ -293,6 +387,40 @@ const SEEDED = computed(() => seedPlate(seed.value))
   background: #05060a;
   padding: clamp(1.25rem, 2.6vw, 2.125rem);
   min-width: 0;
+}
+
+/* Bento cells: a figure box (films are 8:5), then the statement, the
+   prose and the links. */
+.feat {
+  display: flex;
+  flex-direction: column;
+}
+
+.art {
+  position: relative;
+  aspect-ratio: 8 / 5;
+  overflow: hidden;
+  background: #000;
+  margin-bottom: clamp(1.25rem, 2.6vw, 1.75rem);
+}
+
+.faces {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feat-h {
+  margin: 0;
+  font-size: clamp(1.125rem, 1.8vw, 1.375rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--color-foreground);
+}
+
+.feat .links {
+  margin-top: auto;
+  padding-top: 20px;
 }
 
 /* The reference's .lp-stage: 1.618 box for the demo art. */

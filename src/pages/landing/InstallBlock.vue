@@ -50,10 +50,13 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="strip"
-    class="wrap reveal mx-auto w-full max-w-2xl px-6"
+    class="wrap reveal mx-auto w-full max-w-[var(--shell)] px-6"
     :class="shown ? 'in' : ''"
     style="--reveal-delay: 220ms"
   >
+    <!-- One hairline bar (the reference's install row): the step pill on the
+         left, the command, the copy. Phones stack the pill above. -->
+    <div class="bar">
     <!-- Equal columns make the thumb's travel pure arithmetic (index × its
          own width) — nothing is measured, so it cannot drift from the tabs. -->
     <div role="group" aria-label="Install steps" class="tabs" :style="{ '--i': active, '--n': STEPS.length }">
@@ -96,6 +99,7 @@ onBeforeUnmount(() => {
            the right edge closes it. -->
       <span class="seal" aria-hidden="true"><i /><i /><i /><i /><b /></span>
     </div>
+    </div>
 
     <div class="under">
       <ol class="steps" aria-label="What happens next">
@@ -126,9 +130,21 @@ onBeforeUnmount(() => {
 .wrap {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 14px;
   min-width: 0;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
+}
+
+.bar .tabs {
+  flex: none;
 }
 
 /* Step pill: a hairline track, equal columns, one square thumb that slides
@@ -181,11 +197,10 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
-  height: 56px;
-  padding: 0 10px 0 18px;
-  background: color-mix(in oklab, #000 55%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
+  flex: 1 1 22rem;
+  min-width: 0;
+  height: 44px;
+  padding: 0 0 0 12px;
 }
 
 .cmd {
@@ -454,7 +469,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 10px 20px;
   width: 100%;
-  padding: 0 10px;
+  padding: 0 2px;
 }
 
 .steps {

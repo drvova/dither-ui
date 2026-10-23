@@ -95,6 +95,16 @@ Default section order:
   measured coordinates in `LandingPage.vue` FACES) — regenerate from the
   sheet, don't hand-draw. They decorate the README; the landing still
   blits from the sheet directly.
+- Landing films (Clayzo): the landing's hero, Studio and reel films are
+  Clayzo documents (`public/films/<id>.json`) played by
+  `@clayzo/webgl-player` (a lazy chunk, landing only). They are authored in
+  `src/pages/landing/films/` against `@clayzo/animation` — NODE-SIDE ONLY:
+  Clayzo's SDK license lets a site ship the playback runtime and its
+  documents, not the authoring package, so the app never imports that
+  folder. Every film renders through the kit's own ordered-dither rule as a
+  Clayzo shader. `npm run films` regenerates the documents
+  (`tests/films.spec.ts` is generator and drift guard); never put Clayzo in
+  `dither-kit/` (MIT, copy-out portable). Details in `src/pages/AGENTS.md`.
 - Crawler surface: `src/pages/docs/crawler-files.ts` generates `dist/sitemap.xml`,
   `dist/robots.txt`, and `dist/llms.txt` at build (vite `crawlFiles` plugin —
   no hand-maintained copies in `public/`). It derives every URL from
