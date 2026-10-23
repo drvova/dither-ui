@@ -589,9 +589,13 @@ onMounted(() => {
   window.addEventListener("keydown", searchHotkey)
   const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
 
-  // Deep links support canonical /docs/<section> and legacy #/docs/<section>.
+  // Deep links support canonical /docs/<section> (and /docs/<section>/, the
+  // directory a static host serves its prerendered page from) and legacy
+  // #/docs/<section>.
   const path = appPathname()
-  const target = path.startsWith("/docs/") ? path.slice("/docs/".length) : location.hash.replace(/^#\/docs\/?/, "")
+  const target = (
+    path.startsWith("/docs/") ? path.slice("/docs/".length) : location.hash.replace(/^#\/docs\/?/, "")
+  ).replace(/\/+$/, "")
   if (ids.includes(target)) {
     activeId.value = target
     // The deep link owns the scroll: stop the browser's own restoration from

@@ -31,10 +31,20 @@ jobs:
         env:
           BASE_PATH: ${{ vars.BASE_PATH || '/' }}
       - run: npm run build:css
+      # Unknown paths get the bare app shell (copied before the snapshots
+      # land), which routes them itself.
       - name: Prepare Pages artifact
         run: |
           cp dist/index.html dist/404.html
           touch dist/.nojekyll
+      # The crawler surface: /, /docs and /studio as static DOM (the first
+      # paint, before the app mounts), the hero film's poster, the agent
+      # registry, and an og card and a page per docs section. Its server
+      # serves dist at /, so the
+      # project-URL deploy (BASE_PATH=/dither-ui/) ships the shell only.
+      - name: Prerender
+        if: ${{ (vars.BASE_PATH || '/') == '/' }}
+        run: node scripts/prerender.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

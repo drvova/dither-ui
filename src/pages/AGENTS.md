@@ -243,7 +243,13 @@ widgets/features; page-specific conventions live here.
   only after `load` and once the film is within a screen; until its first
   frame (and with no WebGL2) the `fallback` slot holds the frame, kept in
   the DOM and stepped out by the `data-live` latch (stripped by the
-  prerender, so static bytes ship the stand-in). `playing` is the pause
+  prerender, so static bytes ship the stand-in). A film with no plate (the
+  hero) takes `poster`: its still as `films/<id>.webp`, which the
+  prerender reads off the film's own canvas (the landing under reduced
+  motion, at 2x, lossless, ~15 kB) before it snapshots the routes, so the
+  landing's bytes paint it; where no build wrote one the image hides
+  itself. The poster is the still exactly at 2x; scaled to 1x it is a
+  touch softer (the cell seams blur) until the film steps in. `playing` is the pause
   control (WCAG 2.2.2) — every film shows its `FilmChip` (`chip`: the
   button's name, each film its own — "Pause the layers film", "Pause the
   video film", … — so a page of films never has two buttons called the
@@ -267,8 +273,10 @@ widgets/features; page-specific conventions live here.
   clips and include everything the node lifts: target an undrawn node
   that stays put (the catalog's `t<i>.zone` columns) and grow a hovered
   thing about its centre rather than lifting it, or its target slips from
-  under the pointer and flickers. Under reduced motion the player starts
-  non-interactive: no loupe, parallax, hover, click or scrub. A film's
+  under the pointer and flickers. Under reduced motion the player is
+  non-interactive (no loupe, parallax, hover, click or scrub), and a change
+  of the setting makes the player again on the same canvas at the same
+  moment (interactivity is fixed when a player is made). A film's
   root takes its lattice's `aspect-ratio`. The player owns
   its own rAF and offscreen pause — the one engine outside `senses`.
   The landing re-asserts `html.dark` on mount: the page is always-dark art
@@ -303,7 +311,9 @@ widgets/features; page-specific conventions live here.
   clock) gated by the Bayer threshold (dense core, scattered fringe), and
   energy decays 0.9/frame so cells spring home — it is on the `senses`
   heartbeat ONLY while energy is above the floor, nothing at rest, nothing
-  under reduced motion, touch pointers ignored. Faster strokes kick harder. `shakeRaster()` is the
+  under reduced motion, touch pointers ignored. Faster strokes kick harder.
+  The sheet itself loads only once the portraits are within a screen, so
+  it never counts toward the page's `load` (the films' cue). `shakeRaster()` is the
   pure raster (`tests/pixel-shake.spec.ts`: identity at zero energy, pool
   locality, Bayer thinning, determinism). Emote reactions stay CSS-only
   (`.emote` + `.group:hover`); no JS timers on the landing.
@@ -429,8 +439,10 @@ widgets/features; page-specific conventions live here.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.
 - Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
-  `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
-  deep links both restore and remain shareable.
+  `activeId` + `aria-current`; clean `/docs/<id>`, its directory form
+  `/docs/<id>/` (where a static host serves the section's prerendered
+  page) and legacy `#/docs/<id>` deep links all restore and remain
+  shareable.
 - Narrow chrome: under sm the Vue/Svelte switch shows its marks and Search
   its glyph (the words stay for screen readers), the studio pill drops (it
   lives on every chart section's "Open in the Studio") and the ⌘K kbd

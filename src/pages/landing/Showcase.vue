@@ -110,7 +110,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
           </dl>
         </div>
         <figure class="hero-film">
-          <ClayzoFilm film="hero" chip="Pause the layers film" :label="HERO_ALT" class="hero-play" />
+          <ClayzoFilm film="hero" chip="Pause the layers film" :label="HERO_ALT" poster class="hero-play" />
           <figcaption class="hero-cap">
             <DitherIcon name="Layers" :size="14" :stroke-width="1.5" class="cap-i" />
             <span class="cap-t"

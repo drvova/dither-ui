@@ -116,6 +116,7 @@ const PRINCIPLES = [
 const principle = ref(0)
 const principleEls = ref<HTMLElement[]>([])
 let stageIO: IntersectionObserver | null = null
+let facesIO: IntersectionObserver | null = null
 
 onMounted(() => {
   // The landing is always-dark art (the film stage, plates and organism are
@@ -125,18 +126,37 @@ onMounted(() => {
   // user's choice; docs/studio re-read it on their own mount.
   document.documentElement.classList.add("dark")
 
-  const img = new Image()
-  img.src = assetPath("/faces.webp")
-  img.onload = () => {
-    FACES.forEach((f, i) => {
-      const face = faceEls.value[i]
-      const emote = emoteEls.value[i]
-      if (face)
-        shakers.push(
-          createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }),
-        )
-      if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
-    })
+  // The portraits sit far below the fold, so their sheet waits until they
+  // are within a screen: it never counts toward the page's `load`, which
+  // is the films' cue.
+  const loadFaces = () => {
+    const img = new Image()
+    img.src = assetPath("/faces.webp")
+    img.onload = () => {
+      FACES.forEach((f, i) => {
+        const face = faceEls.value[i]
+        const emote = emoteEls.value[i]
+        if (face)
+          shakers.push(
+            createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }),
+          )
+        if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
+      })
+    }
+  }
+  const firstFace = faceEls.value[0]
+  if (typeof IntersectionObserver === "undefined" || !firstFace) loadFaces()
+  else {
+    facesIO = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return
+        facesIO?.disconnect()
+        facesIO = null
+        loadFaces()
+      },
+      { rootMargin: "100% 0px" },
+    )
+    facesIO.observe(firstFace)
   }
 
   // The statement crossing the viewport's middle stages the figure: a
@@ -158,6 +178,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   stageIO?.disconnect()
   stageIO = null
+  facesIO?.disconnect()
   for (const sh of shakers) sh.destroy()
   shakers = []
 })

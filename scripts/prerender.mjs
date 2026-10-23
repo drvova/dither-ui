@@ -93,6 +93,36 @@ await new Promise((r) => server.listen(0, "127.0.0.1", r))
 const port = server.address().port
 const browser = await chromium.launch({ executablePath: findChromium() })
 
+/* ---------------- Film posters ------------------------------------------- */
+
+// A film that asks for a poster (`data-poster`, the hero: no plate stands
+// in for it) gets its still as `films/<id>.webp`: the landing opened under
+// reduced motion, where every film rests on its still (its opening frame),
+// at 2x, read off the film's own canvas (lossless; the dithered frame
+// packs to ~15 kB). Runs before the route snapshots, so the landing's
+// bytes already carry the poster.
+async function renderPosters() {
+  const page = await browser.newPage({
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    reducedMotion: "reduce",
+  })
+  await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: "load" })
+  const ids = await page.$$eval("[data-poster]", (els) => els.map((el) => el.getAttribute("data-poster")))
+  for (const id of ids) {
+    const film = `[data-poster="${id}"]`
+    await page.$eval(film, (el) => el.scrollIntoView({ block: "center" }))
+    await page.waitForSelector(`${film}[data-live]`, { timeout: 30_000 })
+    await page.waitForTimeout(600)
+    const url = await page.$eval(`${film} canvas`, (c) => c.toDataURL("image/webp", 1))
+    const bytes = Buffer.from(url.slice(url.indexOf(",") + 1), "base64")
+    await mkdir(join(DIST, "films"), { recursive: true })
+    await writeFile(join(DIST, "films", `${id}.webp`), bytes)
+    console.log(`poster: ${id} -> dist/films/${id}.webp (${(bytes.length / 1024).toFixed(0)} kB)`)
+  }
+  await page.close()
+}
+
 /* ---------------- SEO engine: og cards + per-section docs pages ---------- */
 
 // The og card renderer's data contract, emitted by the crawler plugin.
@@ -142,11 +172,15 @@ async function renderOgCards() {
   console.log(`og: rendered ${done}/${sections.length} section cards -> dist/og/*.png`)
 }
 
-// One prerendered docs DOM serves every section: clone the entry and swap in
+// One prerendered docs DOM serves every section: clone the entry, swap in
 // each section's head (title/description/canonical/og/twitter/breadcrumb +
-// the section's og card). The client mounts over these bytes and re-derives
-// per-section state, so only the head differs per file.
-async function writeSectionPages() {
+// the section's og card) and keep only that section in the docs flow (the
+// flow's other children, the h1 and the intro, stay; so do the header and
+// the sidebar's links). A page is the shell plus its own section, not 302
+// copies of the whole docs (1.3 MB each); the client mounts the full docs
+// over these bytes and jumps to the section. An id that is not a direct
+// child of the flow keeps the whole flow.
+async function writeSectionPages(flow) {
   let sections
   try {
     sections = JSON.parse(await readFile(join(DIST, "og", "sections.json"), "utf8"))
@@ -167,6 +201,8 @@ async function writeSectionPages() {
     console.log("sections: docs head not found — skipping per-section pages")
     return
   }
+  const at = flow ? noLd.indexOf(flow.inner) : -1
+  if (flow && at < 0) console.log("sections: docs flow not found in the snapshot — pages keep the whole flow")
   const headLines = headMatch[0]
     .split("\n")
     .filter((l) => !/<title>|name="description"|name="twitter:|property="og:|rel="canonical"/.test(l))
@@ -191,7 +227,16 @@ async function writeSectionPages() {
       `    <meta name="twitter:description" content="${esc(s.description)}" />\n` +
       `    <meta name="twitter:image" content="${ogImage}" />\n` +
       `    <script type="application/ld+json">${s.breadcrumb}</script>`
-    const html = noLd.replace(headMatch[0], strippedHead.replace("<head>", "<head>" + headBlock))
+    const own = at >= 0 && flow.kids.some((k) => k.id === s.id)
+    const body = own
+      ? noLd.slice(0, at) +
+        flow.kids
+          .filter((k) => !k.id || k.id === s.id)
+          .map((k) => k.html)
+          .join("") +
+        noLd.slice(at + flow.inner.length)
+      : noLd
+    const html = body.replace(headMatch[0], () => strippedHead.replace("<head>", () => "<head>" + headBlock))
     const dir = join(DIST, "docs", s.id)
     await mkdir(dir, { recursive: true })
     await writeFile(join(dir, "index.html"), html)
@@ -200,7 +245,9 @@ async function writeSectionPages() {
   console.log(`sections: wrote ${written} per-section docs pages -> dist/docs/<id>/index.html`)
 }
 
+let docsFlow = null
 try {
+  await renderPosters()
   const page = await browser.newPage()
   for (const route of ROUTES) {
     const entry = join(DIST, route.entry)
@@ -231,6 +278,13 @@ try {
         el.removeAttribute("data-done")
       }
     }, meta)
+    if (route.minSections)
+      docsFlow = await page.evaluate(() => {
+        const flow = document.querySelector(".docs-flow")
+        if (!flow) return null
+        const kids = [...flow.children].map((c) => ({ id: c.tagName === "SECTION" ? c.id : "", html: c.outerHTML }))
+        return { inner: flow.innerHTML, kids }
+      })
     const html = await page.content()
     await writeFile(entry, html)
     console.log(`prerendered ${route.path} -> dist/${route.entry} (${(html.length / 1024).toFixed(0)} kB)`)
@@ -248,7 +302,7 @@ try {
   // The SEO engine's two phases, on the same browser: the per-section og
   // cards first (the section pages reference them), then the pages.
   await renderOgCards()
-  await writeSectionPages()
+  await writeSectionPages(docsFlow)
 } finally {
   await browser.close()
   server.close()
