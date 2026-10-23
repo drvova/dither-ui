@@ -28,7 +28,22 @@ import {
 import { mulberry32 } from "@dither-kit"
 import { at as s, cycle, DRAIN, FR, mixColor, mixVec3, MOVE, OUT, pixelFilm, rect, SETTLE, v, type Nodes } from "./frame"
 import { heat, tone } from "./kit-dither"
-import { BEATS, SEEDS } from "../hero-beats"
+
+/** The film's beats in seconds. */
+const BEATS = {
+  tilt: 0.4,
+  exploded: 1.6,
+  reseed: 2.2,
+  flipOn: 3.2,
+  press: 3.9,
+  unseed: 5.0,
+  flipOff: 5.9,
+  fold: 6.7,
+  flat: 8.0,
+  end: 9.6,
+} as const
+/** How long a re-seed's morph takes, in seconds. */
+const MORPH = 0.8
 
 export const HERO = { width: 1280, height: 800 } as const
 export const HERO_END = s(BEATS.end)
@@ -100,9 +115,9 @@ const areaPath = (data: readonly number[]): PathData => ({
 function morph<T>(id: string, a: T, b: T): Animatable<T> {
   return keyed(id, [
     [MORPH_A, a, SETTLE],
-    [MORPH_A + s(SEEDS.morph), b],
+    [MORPH_A + s(MORPH), b],
     [MORPH_B, b, SETTLE],
-    [MORPH_B + s(SEEDS.morph), a],
+    [MORPH_B + s(MORPH), a],
   ])
 }
 
@@ -171,9 +186,9 @@ function fillLayer(nodes: Nodes): string[] {
         anchor: { x: 0, y: 0 },
         scale: keyed(`${id}.scale`, [
           [MORPH_A, { x: 1, y: 1, z: 1 }, SETTLE],
-          [MORPH_A + s(SEEDS.morph) + i * FR, { x: 1, y: h(DATA_B[i]) / h(a), z: 1 }],
+          [MORPH_A + s(MORPH) + i * FR, { x: 1, y: h(DATA_B[i]) / h(a), z: 1 }],
           [MORPH_B, { x: 1, y: h(DATA_B[i]) / h(a), z: 1 }, SETTLE],
-          [MORPH_B + s(SEEDS.morph) + i * FR, { x: 1, y: 1, z: 1 }],
+          [MORPH_B + s(MORPH) + i * FR, { x: 1, y: 1, z: 1 }],
         ]),
       }),
       type: "path",

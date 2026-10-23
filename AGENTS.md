@@ -234,6 +234,13 @@ Default section order:
 
 - Design direction: dark, monospace, pixel/dither identity; Japanese-minimal
   restraint (one statement / one action / one visual) on the landing.
+- The landing must feel like its OWN brand, never a copy of a reference
+  site's anatomy. Its references are design.how (calm system: a narrow
+  centred column, upright sans type, soft buttons, real components as the
+  visuals, captioned previews) and the 2009 Oakley website (period mood;
+  taste only, never Oakley's assets, marks or names). No italic or
+  all-caps display type, no slanted or cut-corner chrome — the user
+  rejected those (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
   tables, variant galleries) while keeping the dither skin.
 - Prefer editing existing code over adding new files; avoid over-abstraction and

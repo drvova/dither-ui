@@ -1,4 +1,4 @@
-// The component hub's shelves (the reference's cells hub): a featured
+// The component hub's shelves: a featured
 // shelf, then one per docs family with its true size and its first
 // sections. Static on purpose — the landing does not load the docs IA —
 // and held honest by tests/hub.spec.ts, which checks every id resolves to

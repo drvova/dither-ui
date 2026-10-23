@@ -1,174 +1,138 @@
-/* The landing's chapter anatomy (the reference's .lp-panel / .lp-band /
-   .lp-cell / .lp-more), shared by every chapter component — Showcase, Hub.
-   Plain CSS under .landing so both read one definition. */
-/* Chapter = one panel: black band, then a 1px-gapped grid of black cells
-   (the reference's .lp-panel over --color-void). */
-.landing .chapter {
-  background: var(--color-border);
-  box-shadow: 0 0 0 1px var(--color-border);
-  display: grid;
-  gap: 1px;
+/* The landing's system: calm. A dark ground, one narrow centred column,
+   upright sans type (weights 400/500, tight tracking on titles — never
+   italic, never display caps), soft rounded buttons, and the kit shown as
+   itself: live components and films in framed previews, each captioned
+   with a name and one line. The one period touch is the frame's bezel —
+   brushed gunmetal with a rivet in each corner, after vintage Oakley's
+   bunker (taste only, never its assets). Plain CSS under .landing, read by
+   every landing component. */
+.landing {
+  --ink: #ededed;
+  --ink-2: #a3a3a8;
+  --ink-3: #6f6f75;
+  --surface: #111215;
+  --surface-2: #1b1c20;
+  --line: #24262b;
+  --steel: linear-gradient(180deg, #2a2d32 0%, #1c1e22 40%, #141518 100%);
+  --brush: repeating-linear-gradient(0deg, rgb(255 255 255 / 0.016) 0 1px, transparent 1px 3px);
+  --rivet: radial-gradient(circle, #8f959d 0 1px, #474b52 1.5px 2.1px, #08090a 2.6px, transparent 3.1px);
+  --column: 46rem;
+  font-family: var(--font-sans);
 }
 
-.landing .band {
-  --pad: clamp(1.5rem, 3.4vw, 2.125rem);
-  background: #000;
-  position: relative;
-  overflow: hidden;
-  padding: var(--pad);
-}
-
-/* The band's floor: its pixel strip bleeds to both edges and sits flush on
-   the bottom hairline (the reference's band field, as markup). */
-.landing .strip {
-  width: calc(100% + 2 * var(--pad));
-  height: auto;
-  margin: clamp(1.75rem, 3.4vw, 2.5rem) calc(-1 * var(--pad)) calc(-1 * var(--pad));
-}
-
-.landing .band-h {
+/* Section titles: the column's quiet headings. */
+.landing .section-h {
   margin: 0;
-  font-size: clamp(1.625rem, 3.2vw, 2.625rem);
+  font-size: 1.3125rem;
   font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
-  color: var(--color-foreground);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.landing .section-p {
+  margin: 6px 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--ink-2);
   text-wrap: pretty;
 }
 
-.landing .dot {
-  color: var(--swatch-orange);
-}
-
-.landing .band-l {
-  color: var(--color-muted-foreground);
-}
-
-/* The tall band (the reference's .lp-band, 340px): copy top-left, the
-   catalog skyline bleeding off the right and the floor. */
-.landing .band-tall {
-  min-height: 340px;
-}
-
-.landing .band-in {
-  position: relative;
-  z-index: 1;
-  max-width: 46rem;
-}
-
-/* Two classes deep: a film root's own `position: relative` must lose. */
-.landing .band-tall .band-fig {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: min(62%, 44rem);
-  height: auto;
-}
-
-@media (max-width: 899px) {
-  .landing .band-tall .band-fig {
-    position: relative;
-    width: calc(100% + 2 * var(--pad));
-    margin: 2rem calc(-1 * var(--pad)) calc(-1 * var(--pad));
-  }
-}
-
-.landing .links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 26px;
-}
-
-/* The reference's .lp-more: a light key with a chevron (an arrow out for
-   links that leave the site) and a dark quiet sibling; hover lights the
-   key ember. 34px tall, 3px corners — the reference's one control radius. */
-.landing .more {
+/* Buttons: soft rounded keys. The primary is light on the dark ground;
+   the rest are a step up from it. */
+.landing .btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 34px;
-  padding: 0 13px;
-  border-radius: 3px;
-  background: #ededed;
-  color: #000;
-  font-size: 11.5px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   white-space: nowrap;
-  transition:
-    .landing background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-    color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--ink);
+  background: var(--surface-2);
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.landing .more::after {
-  content: "›" / "";
-  font-size: 15px;
-  line-height: 1;
-  transform: translateY(-1px);
+.landing .btn:hover {
+  background: #25272c;
 }
 
-.landing .more[target="_blank"]::after {
-  content: "↗" / "";
-  font-size: 12px;
+.landing .btn-primary {
+  color: #0b0b0c;
+  background: #ececec;
 }
 
-.landing .more:hover {
-  background: var(--swatch-orange);
+.landing .btn-primary:hover {
+  background: #fff;
 }
 
-.landing .more:focus-visible {
-  outline: 2px solid var(--color-foreground);
+.landing .btn:focus-visible {
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
-.landing .more-quiet {
-  background: #1d1d1d;
-  color: #c6c6c6;
+@media (forced-colors: active) {
+  .landing .btn {
+    border: 1px solid ButtonText;
+  }
 }
 
-.landing .more-quiet::after {
-  content: none;
+/* A preview: the bezel (brushed gunmetal, a rivet in each corner, a lit
+   top edge) around a black screen where the kit plays, then its caption —
+   the name left, one line right. */
+.landing .frame {
+  position: relative;
+  padding: 12px;
+  border-radius: 12px;
+  background:
+    var(--rivet) left 2px top 2px / 8px 8px no-repeat,
+    var(--rivet) right 2px top 2px / 8px 8px no-repeat,
+    var(--rivet) left 2px bottom 2px / 8px 8px no-repeat,
+    var(--rivet) right 2px bottom 2px / 8px 8px no-repeat,
+    var(--brush),
+    var(--steel);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    inset 0 -1px 0 rgb(0 0 0 / 0.6),
+    0 1px 0 rgb(255 255 255 / 0.02);
 }
 
-.landing .more-quiet[target="_blank"]::after {
-  content: "↗" / "";
-}
-
-.landing .more-quiet:hover {
-  background: #262626;
-  color: #fff;
-}
-
-/* Cell grid: hairline gaps come from the panel background showing through.
-   The bento is 2x2; chapter 2 is a 3-up; chapter 3 is demo + prose. */
-.landing .cells {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  background: var(--color-border);
-}
-
-.landing .cells.three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.landing .cells.two {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.landing .cell {
+.landing .screen {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
   background: #000;
-  padding: clamp(1.25rem, 2.6vw, 2.125rem);
-  min-width: 0;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.8);
 }
 
+.landing .caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin-top: 14px;
+  padding-inline: 2px;
+  font-size: 0.9375rem;
+}
 
-/* The live chip: the nodecode film-chip anatomy (pulsing dot + micro-caps
-   label) on our honest data — these panels ARE live kit canvases at 8fps.
-   The dot takes the reference's led cadence; it is a state label, so the
-   text stays under reduced motion and only the pulse dies. */
+.landing .caption-name {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.landing a.caption-name:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing .caption-line {
+  color: var(--ink-3);
+}
+
+/* The live chip: a state label on panels that ARE live kit canvases. The
+   text stays under reduced motion; only the pulse dies. */
 .landing .live {
   position: absolute;
   top: 8px;
@@ -176,20 +140,18 @@
   z-index: 1;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 7px;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-foreground) 75%, transparent);
-  background: color-mix(in oklab, #000 62%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 50%, transparent);
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  color: var(--ink-2);
+  background: color-mix(in oklab, #000 70%, transparent);
 }
 
 .landing .live i {
   width: 5px;
   height: 5px;
+  border-radius: 50%;
   background: var(--swatch-orange);
 }
 
@@ -208,22 +170,8 @@
   }
 }
 
-
-.landing .cell-p {
-  margin: 13px 0 0;
-  max-width: 34em;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--color-muted-foreground);
-  text-wrap: pretty;
-}
-
-
-@media (max-width: 900px) {
-  .landing .cells.three {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .landing .cells.two {
-    grid-template-columns: minmax(0, 1fr);
+@media (prefers-reduced-transparency: reduce) {
+  .landing .live {
+    background: #000;
   }
 }

@@ -22,7 +22,7 @@ import {
   type SceneNode,
   type Vec3,
 } from "@clayzo/animation/authoring"
-import { kitDither, tone } from "./kit-dither"
+import { kitDither } from "./kit-dither"
 
 export const TPS = 240
 export const FPS = 30
@@ -134,7 +134,9 @@ export function pixelFilm(film: {
     version: ANIMATION_DOCUMENT_VERSION,
     id,
     name: film.name,
-    canvas: { width, height, pixelAspectRatio: 1, backgroundColor: tone(0) },
+    // Transparent: below the ramp is clear, so a film lies on whatever
+    // ground holds it (matte panels, the lens) with no black box.
+    canvas: { width, height, pixelAspectRatio: 1, backgroundColor: { r: 0, g: 0, b: 0, a: 0 } },
     timing: {
       ticksPerSecond: TPS,
       frameRate: { numerator: FPS, denominator: 1 },

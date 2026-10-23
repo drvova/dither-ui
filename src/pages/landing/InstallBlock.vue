@@ -2,8 +2,8 @@
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
 
-// The install strip, on the reference's anatomy: step pill (aria-pressed
-// pickers over a sliding thumb) → command frame (prompt in ember, one line)
+// The install strip: step picker (aria-pressed pickers over a sliding
+// slanted thumb) → command frame (prompt in ember, one line)
 // → copy, whose success is choreographed in CSS: the line jolts, a beam
 // crosses the frame drawing an ember seal around it, the label rolls to
 // "Copied" — then the steps under the frame advance (Copy done → Paste now).
@@ -54,8 +54,8 @@ onBeforeUnmount(() => {
     :class="shown ? 'in' : ''"
     style="--reveal-delay: 220ms"
   >
-    <!-- One hairline bar (the reference's install row): the step pill on the
-         left, the command, the copy. Phones stack the pill above. -->
+    <!-- One soft bar: the step picker on the left (a segmented control),
+         the command, the copy. Phones stack the picker above. -->
     <div class="bar">
     <!-- Equal columns make the thumb's travel pure arithmetic (index × its
          own width) — nothing is measured, so it cannot drift from the tabs. -->
@@ -139,23 +139,26 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 8px;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .bar .tabs {
   flex: none;
 }
 
-/* Step pill: a hairline track, equal columns, one square thumb that slides
-   to the picked step. */
+/* Step picker: a segmented control — equal columns and one soft thumb
+   that slides to the picked step. */
 .tabs {
   position: relative;
   display: inline-grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   padding: 3px;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
+  border-radius: 9px;
+  background: var(--surface-2);
 }
 
 .thumb {
@@ -165,19 +168,17 @@ onBeforeUnmount(() => {
   left: 3px;
   width: calc((100% - 6px) / var(--n));
   transform: translateX(calc(var(--i) * 100%));
-  /* The reference's picked tab: a light key under dark type. */
-  background: #ededed;
+  border-radius: 6px;
+  background: #2b2d33;
   transition: transform 280ms cubic-bezier(0.3, 0.7, 0.2, 1);
 }
 
 .tab {
   position: relative;
-  padding: 7px 18px 6px;
-  font-size: 11.5px;
+  padding: 6px 14px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-muted-foreground);
+  color: var(--ink-3);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -186,7 +187,7 @@ onBeforeUnmount(() => {
 }
 
 .tab[aria-pressed="true"] {
-  color: #000;
+  color: var(--ink);
 }
 
 .tab:focus-visible {
@@ -377,7 +378,7 @@ onBeforeUnmount(() => {
   transform: translateY(-1.3em);
 }
 
-/* The seal (reference: lp-cl-seal + lp-cl-beam). Edges are 2px ember lines
+/* The seal. Edges are 2px ember lines
    drawn by scale from their origin; the beam is the pen that draws the long
    edges, so it shares their timing exactly. */
 /* The seal is its own size container: the beam's 100cqw is then the frame's

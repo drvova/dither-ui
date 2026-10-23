@@ -7,7 +7,3 @@ export const FACTS = [
   { label: "surfaces", value: 46 },
   { label: "matrix", value: 4, text: "4×4" },
 ] as const
-
-/** The Studio tools a harness sees through the bridge (the transcript's
- * context line). */
-export const STUDIO_TOOL_COUNT = 15

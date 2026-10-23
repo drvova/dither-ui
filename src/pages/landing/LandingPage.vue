@@ -1,33 +1,40 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, ref } from "vue"
-import { DitherGradient } from "@dither-kit"
+import { onBeforeMount, onBeforeUnmount, onMounted, ref } from "vue"
+import {
+  DitherAvatar,
+  DitherBadge,
+  DitherButton,
+  DitherGradient,
+  DitherProgress,
+  DitherSlider,
+  DitherSwitch,
+  Sparkline,
+} from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import "./chapters.css"
 import { version } from "../../../package.json"
-import AgentTranscript from "./AgentTranscript.vue"
-import ClayzoFilm from "./ClayzoFilm.vue"
-import FilmChip from "./FilmChip.vue"
 import EngravedWordmark from "./EngravedWordmark.vue"
 import EssayFigure from "./EssayFigure.vue"
+import Hub from "./Hub.vue"
 import InstallBlock from "./InstallBlock.vue"
-import PixelPlate from "./PixelPlate.vue"
 import PixelWord from "./PixelWord.vue"
+import Showcase from "./Showcase.vue"
 import { createDitherField, type DitherField } from "./dither-field"
 import { createPixelShake, type PixelShake } from "./pixel-shake"
 import { FACTS } from "./facts"
-import { BEATS, SEEDS } from "./hero-beats"
 import { seedFor } from "./genome"
-import { dawnPlate, SKY } from "./plates"
-import Showcase from "./Showcase.vue"
+import { SKY } from "./plates"
 
 // The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES), in its order.
 const HARNESSES = ["Claude Code", "Codex", "Gemini CLI", "Qwen Code", "oh-my-pi", "Goose", "OpenCode", "Auggie"]
 
-// The film's stand-in: built once at setup — deterministic markup, no
-// runtime — so the stage is never empty before (or without) the player.
-const DAWN = dawnPlate()
+// The hero's live components: one switch, one seed the slider drives and
+// the badge wears, one series for the sparkline.
+const dither = ref(true)
+const seed = ref(512)
+const SPARK = [46, 52, 49, 58, 64, 61, 72, 78, 74, 86, 92, 88]
 
-// The footer's link columns (the reference's footer anatomy).
+// The footer's link columns.
 const FOOTER = [
   {
     title: "Product",
@@ -57,26 +64,6 @@ const FOOTER = [
     ],
   },
 ]
-
-// The film's pause control and timecode (ClayzoFilm owns the player).
-const filmPlaying = ref(true)
-const filmTime = ref(0)
-const filmLength = ref(0)
-const clock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`
-// Paused on its still (reduced motion before a play): the transcript shows
-// the whole session rather than the still's empty moment.
-const filmStill = computed(() => !filmPlaying.value && filmTime.value === 0)
-// The board's readouts (the reference's moves · human · context …): the
-// kit's facts, then the film's live seed and clock.
-const HUD = computed(() => {
-  const t = filmTime.value
-  const reseeded = t >= BEATS.reseed + SEEDS.morph / 2 && t < BEATS.unseed + SEEDS.morph / 2
-  return [
-    ...FACTS.map((f) => ({ label: f.label, text: "text" in f ? f.text : String(f.value) })),
-    { label: "seed", text: String(reseeded ? SEEDS.reseeded : SEEDS.rest) },
-    { label: "time", text: clock(t) },
-  ]
-})
 
 // Portraits + their reaction emotes, cropped from faces.webp — a thin band
 // sliced out of the source sheet (rows 766..900) so the landing loads ~70KB
@@ -264,8 +251,7 @@ onMounted(() => {
     })
   }
 
-  // Scroll choreography (reference: rise / lp-in, latched like the docs
-  // DemoCard): every .reveal block animates the first time it crosses into
+  // Scroll choreography (a rise, latched like the docs DemoCard): every .reveal block animates the first time it crosses into
   // view and then stays put. Without IO (jsdom) or under reduced motion
   // everything is seen immediately. The latch is a data attribute, never a
   // class: Vue rewrites className whenever a component re-renders its own
@@ -321,7 +307,7 @@ function setActive(i: number) {
     ref="pageEl"
     :data-armed="armed ? 'true' : undefined"
     :data-returning="returning ? 'true' : undefined"
-    class="landing flex min-h-screen flex-col bg-background font-mono text-foreground antialiased"
+    class="landing flex min-h-screen flex-col bg-background text-foreground antialiased"
   >
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
     <a
@@ -331,23 +317,16 @@ function setActive(i: number) {
       Skip to content
     </a>
 
-    <!-- Header: relative + z-10 — main.relative isolates the fixed veil, and
+    <!-- Header: relative + z-10 — main.relative isolates the page art, and
          a positioned sibling always paints above a static one; without this
-         the veil covered the header entirely (it painted zero pixels). -->
+         the art covered the header entirely (it painted zero pixels). The
+         brand left, the page's pill nav centred, GitHub right. -->
     <header class="site-head relative z-10">
-      <div class="mx-auto flex h-[72px] w-full max-w-[var(--shell)] items-center justify-between px-6">
-        <a :href="routePath('/')" class="flex h-10 items-center gap-3 text-foreground" aria-label="dither-ui home">
-          <!-- Brand: the 7x7 dithered diamond (its ember core is the
-               brand's one accent) and the wordmark in the page's pixel
-               face — crisp edges, so both stay pixel shapes at any zoom. -->
-          <svg
-            viewBox="0 0 7 7"
-            width="21"
-            height="21"
-            aria-hidden="true"
-            focusable="false"
-            shape-rendering="crispEdges"
-          >
+      <div class="head-row mx-auto w-full max-w-[var(--shell)] px-6">
+        <a :href="routePath('/')" class="brand" aria-label="dither-ui home">
+          <!-- The 7x7 dithered diamond with its ember core — crisp edges, so
+               it stays a pixel shape at any zoom. -->
+          <svg viewBox="0 0 7 7" width="18" height="18" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
             <g fill="currentColor">
               <rect x="3" y="0" width="1" height="1" />
               <rect x="2" y="1" width="3" height="1" />
@@ -359,109 +338,76 @@ function setActive(i: number) {
             </g>
             <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
           </svg>
-          <PixelWord text="DITHER-UI" :cell="3" :seam="1 / 3" decorative />
+          <span class="brand-name">dither-ui</span>
         </a>
-        <nav class="flex h-full items-center" aria-label="Site">
-          <a :href="routePath('/docs')" class="nav-a h-full">Docs</a>
-          <a href="#hub" class="nav-a hidden h-full md:inline-flex">Components</a>
-          <a :href="routePath('/docs/aurora')" class="nav-a hidden h-full lg:inline-flex">Surfaces</a>
-          <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="nav-a hidden h-full sm:inline-flex">
-            GitHub<span aria-hidden="true">↗</span>
-          </a>
-          <span class="mx-3 hidden h-5 w-px bg-border sm:block" aria-hidden="true"></span>
-          <a :href="routePath('/studio')" class="nav-a nav-pill">Open studio</a>
+        <nav class="pills" aria-label="Site">
+          <a :href="routePath('/')" class="pill" aria-current="page">Home</a>
+          <a :href="routePath('/docs')" class="pill">Docs</a>
+          <a href="#directory" class="pill">Components</a>
+          <a :href="routePath('/studio')" class="pill">Studio</a>
         </nav>
+        <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="head-gh">
+          GitHub<span aria-hidden="true">↗</span>
+        </a>
       </div>
     </header>
 
     <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
-      <!-- Hero: the reference's film stage — a Studio agent session on the
-           left, the board it drives on the right (a Clayzo film rendered
-           through the kit's dither rule), the board's readouts in pixel
-           figures under it. The transcript's lines and the HUD's seed and
-           time ride the film's clock (hero-beats.ts). The dawn plate stands
-           in until the film lands, and stays for no-JS, no-WebGL and the
-           prerender. Under the stage: the statement and the studio chip. -->
-      <section aria-labelledby="hero-h" class="mx-auto w-full max-w-[var(--shell)] px-6 pt-[clamp(1.25rem,3vw,2.25rem)]">
-        <div class="stage reveal">
-          <AgentTranscript :time="filmTime" :live="filmLength > 0 && !filmStill" class="stage-term" />
-          <div class="stage-board">
-            <p class="board-top micro" aria-hidden="true">
-              <span>dashboard · a1</span><span>clayzo × dither-kit</span>
-            </p>
-            <div class="film-wrap">
-            <ClayzoFilm
-              v-model:playing="filmPlaying"
-              v-model:time="filmTime"
-              film="hero"
-              label="A dithered dashboard — area chart, ring, switch and button — tips into an isometric exploded view of its paint layers, re-seeds its data, flips the switch, presses the button and folds back flat."
-              class="stage-film"
-              @ready="(d) => (filmLength = d)"
-            >
-              <template #fallback>
-                <PixelPlate :plate="DAWN" fit="xMidYMax slice" class="stage-art" />
-              </template>
-            </ClayzoFilm>
-            <FilmChip v-if="filmLength" v-model="filmPlaying" label="Pause film" class="board-chip">
-              {{ clock(filmTime) }} / {{ clock(filmLength) }}
-            </FilmChip>
-            </div>
-            <div class="board-rule" aria-hidden="true">
-              <i :style="{ transform: `scaleX(${filmLength ? filmTime / filmLength : 0})` }"></i>
-            </div>
-            <dl class="hud">
-              <div v-for="f in HUD" :key="f.label" class="hud-fact">
-                <dt class="micro">{{ f.label }}</dt>
-                <dd>
-                  <PixelWord :text="f.text" :cell="3" :seam="1 / 3" decorative />
-                  <span class="sr-only">{{ f.text }}</span>
-                </dd>
-              </div>
-            </dl>
+      <!-- Hero: the kit as itself — live components floating at slight
+           tilts (real controls: the slider re-seeds the badge) — over one
+           centred statement, its lede, two keys and the facts line. -->
+      <section aria-labelledby="hero-h" class="hero mx-auto w-full px-6">
+        <div class="field reveal" role="group" aria-label="Live kit components">
+          <div class="float" style="--x: 6%; --y: 50%; --r: -6deg; --d: 0s">
+            <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
           </div>
-          <div class="grain" aria-hidden="true"></div>
-        </div>
-        <div class="hero-row">
-          <div>
-            <h1
-              id="hero-h"
-              class="reveal text-[clamp(1.875rem,3.6vw,2.5rem)] font-medium leading-[1.05] tracking-[-0.035em] text-balance"
-              style="--reveal-delay: 60ms"
-            >
-              A <span class="hl">dithered</span> UI toolkit for Vue.
-            </h1>
-            <p
-              class="reveal mt-3 max-w-[40rem] text-[clamp(0.95rem,1.3vw,1.0625rem)] leading-[1.6] text-muted-foreground [text-wrap:pretty]"
-              style="--reveal-delay: 120ms"
-            >
-              Charts, buttons, avatars and gradients — rendered
-              <em class="text-foreground/80">pixel by pixel</em> from one seeded palette.
-            </p>
+          <div class="float tile" style="--x: 15%; --y: 8%; --r: -3deg; --d: -2s">
+            <DitherSwitch v-model="dither" label="Dither" />
+            <span class="tile-l">Dither</span>
           </div>
-          <div class="reveal hero-keys" style="--reveal-delay: 180ms">
-            <a :href="routePath('/studio')" class="more">Open studio</a>
-            <a :href="routePath('/docs')" class="more more-quiet">Read the docs</a>
+          <div class="float" style="--x: 45%; --y: 2%; --r: 4deg; --d: -4s">
+            <DitherBadge :seed="seed">seed {{ seed }}</DitherBadge>
+          </div>
+          <div class="float tile" style="--x: 74%; --y: 6%; --r: 6deg; --d: -1s">
+            <DitherAvatar name="dither-ui" :size="40" :grid="8" color="blue" />
+          </div>
+          <div class="float tile" style="--x: 36%; --y: 36%; --r: -2deg; --d: -3s">
+            <span class="tile-l">Renders</span>
+            <Sparkline :data="SPARK" color="blue" class="spark" />
+          </div>
+          <div class="float tile slider" style="--x: 63%; --y: 42%; --r: 3deg; --d: -5s">
+            <DitherSlider v-model="seed" :min="0" :max="999" label="Seed" />
+          </div>
+          <div class="float" style="--x: 82%; --y: 74%; --r: -4deg; --d: -6s">
+            <DitherButton color="orange" variant="solid">New frame</DitherButton>
+          </div>
+          <div class="float tile" style="--x: 24%; --y: 76%; --r: -4deg; --d: -2.5s">
+            <span id="hero-build" class="tile-l">Build</span>
+            <DitherProgress :value="64" aria-labelledby="hero-build" class="progress" />
           </div>
         </div>
+        <h1 id="hero-h" class="hero-h reveal" style="--reveal-delay: 60ms">A dithered UI toolkit for Vue.</h1>
+        <p class="hero-lede reveal" style="--reveal-delay: 120ms">
+          Charts, controls and surfaces, rendered pixel by pixel from one seeded palette —
+          for Vue 3 or Svelte 5, in Tailwind, CSS, CSS Modules or StyleX.
+        </p>
+        <div class="hero-keys reveal" style="--reveal-delay: 180ms">
+          <a :href="routePath('/studio')" class="btn btn-primary">Open the studio</a>
+          <a :href="routePath('/docs')" class="btn">Read the docs</a>
+        </div>
+        <p class="hero-facts reveal" style="--reveal-delay: 220ms">
+          <template v-for="(f, i) in FACTS" :key="f.label"><span v-if="i" aria-hidden="true"> · </span>{{ "text" in f ? f.text : f.value }} {{ f.label }}</template>
+        </p>
       </section>
 
-      <!-- Install strip: step tabs + command + copy (docs install story),
-           then the banner row (the reference's models banner): the kit in
-           the reader's own stack, one link to the styling handbook. -->
-      <InstallBlock class="mt-[clamp(1.75rem,3.5vw,2.75rem)]" />
-      <div class="mx-auto mt-3 w-full max-w-[var(--shell)] px-6">
-        <a :href="routePath('/docs/styling')" class="banner reveal" style="--reveal-delay: 280ms">
-          <DitherGradient from="blue" to="transparent" direction="right" :opacity="0.22" :cell="3" render-mode="static" class="-z-10" />
-          <span class="banner-l">Your stack, not ours</span>
-          <span class="banner-m">Vue 3 · Svelte 5 · Tailwind · CSS · CSS Modules · StyleX</span>
-          <span class="banner-r">Styling<span aria-hidden="true">→</span></span>
-        </a>
-      </div>
+      <!-- Install: the docs install story on one line. -->
+      <InstallBlock class="install" />
 
-      <!-- The chapters: the bento (two Clayzo films, the kit's 3D raster,
-           the portraits) then three live kit chapters. Six moods in the
-           bento's last cell — hover a face: her pixels scatter under the
-           cursor and settle, and her emote answers. -->
+
+      <!-- Inside the kit: the films, the 3D raster, a chart and the
+           portraits in framed previews. Six moods in the last frame — hover a
+           face: her pixels scatter under the cursor and settle, and her
+           emote answers. Then the directory. -->
       <Showcase>
         <template #faces>
           <div
@@ -485,6 +431,7 @@ function setActive(i: number) {
           </div>
         </template>
       </Showcase>
+      <Hub />
 
       <!-- The essay: six numbered statements that light up as you scroll.
            The index rail (01–06) turns ember and takes a rule on the in-focus one. -->
@@ -520,7 +467,7 @@ function setActive(i: number) {
       <section class="bleed" aria-labelledby="harness-h">
         <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
         <div class="harness mx-auto w-full max-w-[var(--shell)] px-6">
-          <h2 id="harness-h" class="micro harness-h">Drives with your agent</h2>
+          <h2 id="harness-h" class="harness-h">Drives with your agent</h2>
           <ul class="harness-list">
             <li v-for="h in HARNESSES" :key="h" class="harness-chip"><i aria-hidden="true"></i>{{ h }}</li>
           </ul>
@@ -548,11 +495,11 @@ function setActive(i: number) {
         <div class="foot">
           <div class="foot-brand">
             <PixelWord text="DITHER-UI" :cell="3" :seam="1 / 3" class="mb-6 text-foreground" />
-            <p class="text-[clamp(1.25rem,2vw,1.5rem)] tracking-[-0.02em] text-foreground">A dithered UI toolkit for Vue.</p>
+            <p class="foot-h">A dithered UI toolkit for Vue.</p>
             <p class="mt-2 max-w-[24rem] leading-[1.6]">Charts, controls and surfaces, pixel by pixel, from one seeded palette.</p>
           </div>
           <nav v-for="col in FOOTER" :key="col.title" class="foot-col" :aria-label="col.title">
-            <p class="micro mb-4 text-muted-foreground/70">{{ col.title }}</p>
+            <p class="foot-t">{{ col.title }}</p>
             <ul>
               <li v-for="l in col.links" :key="l.label">
                 <a
@@ -565,7 +512,7 @@ function setActive(i: number) {
             </ul>
           </nav>
         </div>
-        <p class="micro mt-14 flex flex-wrap gap-x-3 gap-y-2 text-muted-foreground/70">
+        <p class="foot-meta">
           <span>dither-ui.com</span><span aria-hidden="true">·</span>
           <span>© {{ new Date().getFullYear() }}</span><span aria-hidden="true">·</span>
           <span class="tabular-nums">v{{ version }} · MIT</span><span aria-hidden="true">·</span>
@@ -587,7 +534,7 @@ function setActive(i: number) {
 
 <style scoped>
 /* Scroll choreography: blocks sit hidden until the IO sets [data-seen] the
-   first time they cross into view (reference: rise / lp-in, DemoCard latch).
+   first time they cross into view (a rise, latched like the DemoCard).
    The hide requires the component's own data-armed — set in onBeforeMount —
    so no-JS visitors and the prerendered bytes render the complete page. */
 .landing[data-armed] .reveal:not([data-seen]) {
@@ -618,19 +565,11 @@ function setActive(i: number) {
 }
 
 /* Returning visitors: no entrance. The reveal blocks sit visible from the
-   first frame and the grain fade-in is skipped. */
+   first frame. */
 .landing[data-returning] .reveal,
 .landing[data-returning] .reveal:not([data-seen]) {
   animation: none;
   opacity: 1;
-}
-
-.landing[data-returning] .grain {
-  animation-name: none;
-}
-
-.landing[data-returning] .grain {
-  animation: grain-jitter 1.1s steps(4) infinite;
 }
 
 /* One shell width for header, stage, chapters and footer, and ONE vertical
@@ -639,155 +578,203 @@ function setActive(i: number) {
 .landing {
   --shell: 72rem;
   --section: clamp(5rem, 9vw, 8rem);
-  /* The reference's ground: pure black under the art, seams a step up so
-     every panel edge reads. */
-  --background: #000;
-  --border: #2a2d33;
-  /* Sharp corners are the pixel identity: the stage, pill and chapters are
-     square, so kit controls on this page drop the app's 8px radius too. */
-  --radius: 0px;
+  /* A soft near-black under the art; hairlines a step up. */
+  --background: #0a0a0b;
+  --border: #24262b;
 }
 
-/* (.nav-a / .nav-pill / .eyebrow / .led are the site voice in app/styles.css.)
-   The landing's bar: 72px, a hairline floor, and the page you are on
-   underlined in ember on that floor (the reference's nav). */
-.site-head {
-  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--color-border) 70%, transparent);
-}
-
-.site-head .nav-a {
-  color: color-mix(in oklab, var(--color-foreground) 88%, transparent);
-}
-
-.site-head .nav-a:hover {
-  color: var(--color-foreground);
-}
-
-.site-head .nav-pill {
-  height: 34px;
-}
-
-/* The stage (the reference's .lp-film-frame): one hairline edge, two
-   grounds — the transcript on the darker left, the board on a cool lift
-   right. The board column sets the height (film 8:5, its progress rule,
-   the HUD, the chip); the transcript stretches to it. Under 900px the
-   board leads and the transcript follows at a fixed height. */
-.stage {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
+/* The bar: brand left, the pill nav centred, GitHub right. The pills are
+   the page's nav idiom — the page you are on sits in a soft pill. */
+.head-row {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
-  border: 1px solid #30333a;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 72px;
 }
 
-.stage-term {
-  background: #111216;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
-.stage-board {
-  position: relative;
+.pills {
+  display: flex;
+  gap: 2px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+  transition:
+    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pill:hover {
+  color: var(--ink);
+}
+
+.pill[aria-current="page"] {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+.head-gh {
+  display: inline-flex;
+  gap: 4px;
+  justify-self: end;
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+}
+
+.head-gh:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 639px) {
+  .brand-name,
+  .head-gh {
+    display: none;
+  }
+  .pill {
+    padding: 0 9px;
+    font-size: 0.875rem;
+  }
+}
+
+/* The hero: the field of live components, then one centred statement. */
+.hero {
   display: flex;
   flex-direction: column;
-  padding: 14px 22px 20px;
-  background: #16181e;
+  align-items: center;
+  max-width: 60rem;
+  padding-top: clamp(2.5rem, 6vw, 4.5rem);
+  text-align: center;
 }
 
-@media (max-width: 899px) {
-  .stage {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .stage-term {
-    order: 1;
-    height: 21rem;
-  }
-}
-
-.board-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0 0 10px;
-  color: #7d7d7d;
-  font-size: 9.5px;
-}
-
-.stage-film {
-  aspect-ratio: 8 / 5;
-}
-
-.stage-art {
-  position: absolute;
-  inset: auto 0 0;
-  width: 100%;
-  height: 62%;
-}
-
-/* The film's progress: a 2px rule under the board, lit ember to the
-   playhead. */
-.board-rule {
-  height: 2px;
-  margin-top: 12px;
-  overflow: hidden;
-  background: #2a2d33;
-}
-
-.board-rule i {
-  display: block;
-  height: 100%;
-  background: var(--swatch-orange);
-  transform-origin: left;
-}
-
-/* The HUD: three by two, micro-caps label over a pixel figure. */
-.hud {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px 20px;
-  margin: 18px 0 0;
-}
-
-.hud-fact dt {
-  font-size: 9.5px;
-  color: #7d7d7d;
-}
-
-.hud-fact dd {
-  margin: 7px 0 0;
-  color: var(--color-foreground);
-}
-
-/* The pause chip rides the film's lower-right corner, like a player's
-   own control. */
-.film-wrap {
+/* The field: each component on its own spot and tilt (--x, --y, --r),
+   bobbing on its own phase (--d). Under 700px the field is a wrapped row. */
+.field {
   position: relative;
+  width: 100%;
+  height: 22rem;
 }
 
-.board-chip {
+.float {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  left: var(--x);
+  top: var(--y);
+  transform: rotate(var(--r));
 }
 
-/* The statement row under the stage: the h1 and lede left, the page's two
-   keys right (studio, docs). Stacks under 900px. */
-.hero-row {
-  display: grid;
-  gap: 1.25rem 3rem;
-  padding-block: 1.5rem 0;
-}
-
-@media (min-width: 900px) {
-  .hero-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
+@media (prefers-reduced-motion: no-preference) {
+  .float {
+    animation: bob 7s ease-in-out var(--d) infinite alternate;
   }
+  @keyframes bob {
+    to {
+      transform: translateY(-7px) rotate(var(--r));
+    }
+  }
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    0 14px 30px -12px rgb(0 0 0 / 0.8);
+}
+
+.tile-l {
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+.spark {
+  width: 120px;
+  height: 32px;
+}
+
+.slider {
+  width: 13rem;
+}
+
+.slider > * {
+  flex: 1;
+}
+
+.progress {
+  width: 9rem;
+}
+
+@media (max-width: 699px) {
+  .field {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    height: auto;
+    padding-bottom: 8px;
+  }
+  .float {
+    position: static;
+  }
+}
+
+.hero-h {
+  margin: clamp(1.5rem, 4vw, 2.5rem) 0 0;
+  font-size: clamp(2rem, 4.4vw, 2.75rem);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.hero-lede {
+  max-width: 34rem;
+  margin: 14px 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+  text-wrap: balance;
 }
 
 .hero-keys {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
+  margin-top: 26px;
+}
+
+.hero-facts {
+  margin: 22px 0 0;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+/* The install line under the hero, in the column. */
+.install {
+  max-width: calc(var(--column) + 3rem);
+  margin-top: clamp(2.5rem, 6vw, 4rem);
 }
 
 /* The footer: the statement left, three link columns right; stacked on
@@ -832,115 +819,27 @@ function setActive(i: number) {
   color: var(--color-foreground);
 }
 
-/* The banner row: a quiet dithered wash (the kit's own gradient, static)
-   behind one line of fact and one link. */
-.banner {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
+.foot-h {
+  margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.foot-t {
+  margin: 0 0 14px;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+.foot-meta {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 18px;
-  min-height: 48px;
-  padding: 10px 16px;
-  font-size: 13px;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
-  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.banner:hover {
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 28%, transparent);
-}
-
-.banner-l {
-  color: var(--color-foreground);
-}
-
-.banner-m {
-  color: var(--color-muted-foreground);
-}
-
-.banner-r {
-  display: inline-flex;
-  gap: 8px;
-  margin-left: auto;
-  color: #7ba3ee;
-}
-
-.banner-r span {
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.banner:hover .banner-r span {
-  transform: translateX(3px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .banner-r span {
-    transition: none;
-  }
-}
-
-/* The one highlighted word takes the ember (the reference's accent em). */
-.hl {
-  color: var(--swatch-orange);
-}
-
-/* Film grain: the stage is a black film, so it carries film grain — a
-   3.5%-opacity turbulence tile jittered on a steps() clock (never a smooth
-   slide; grain jitters, it doesn't drift). Above the copy like the
-   reference's page-level grain: at 3.5% it textures without touching the
-   contrast math (17:1 text loses ~4% luminance, still >16:1). */
-.grain {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation:
-    grain-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) both,
-    grain-jitter 1.1s steps(4) 1.2s infinite;
-}
-
-@keyframes grain-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 0.035;
-  }
-}
-
-@keyframes grain-jitter {
-  0% {
-    background-position: 0 0;
-  }
-  25% {
-    background-position: -37px 21px;
-  }
-  50% {
-    background-position: 19px -43px;
-  }
-  75% {
-    background-position: -23px -17px;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .grain {
-    animation: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .grain {
-    opacity: 0;
-  }
+  gap: 6px 12px;
+  margin: 3.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
 }
 
 /* The essay. Values measured from the reference: line clamp 16→46px,
@@ -1038,9 +937,8 @@ function setActive(i: number) {
   text-decoration-color: var(--swatch-orange);
 }
 
-/* The works-with strip: an elevated band (the reference's #111 sponsors
-   row) with the dot sea breathing under one row — micro-caps label, the
-   harness names, one link. */
+/* The works-with strip: an elevated band with the dot sea breathing under
+   one row — micro-caps label, the harness chips, one link. */
 .bleed {
   position: relative;
   isolation: isolate;
@@ -1061,8 +959,9 @@ function setActive(i: number) {
 
 .harness-h {
   margin: 0;
+  font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--color-muted-foreground);
+  color: var(--ink);
 }
 
 .harness-list {
@@ -1074,18 +973,19 @@ function setActive(i: number) {
   list-style: none;
 }
 
-/* The Studio picker's chip: a square LED, the harness name, a 6% lift on
-   black so the dot sea never reads through the type. */
+/* The Studio picker's chip: a square LED and the harness name on a soft
+   pill, lifted so the dot sea never reads through the type. */
 .harness-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   height: 30px;
-  padding: 0 11px;
-  font-size: 12.5px;
-  color: color-mix(in oklab, var(--color-foreground) 88%, transparent);
-  background: color-mix(in oklab, var(--color-foreground) 6%, #000);
-  box-shadow: inset 0 0 0 1px var(--border);
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .harness-chip i {

@@ -7,7 +7,7 @@
 // subpath instead of one per cell, and a run's length is a multiple of the
 // period so the dash phase stays on the lattice whether or not the renderer
 // restarts dashing per subpath. Same field in → same markup out.
-import { matrixFromSeed, resolveMatrix } from "@dither-kit"
+import { resolveMatrix } from "@dither-kit"
 
 export type Cell = { color: string; group: number; twinkle?: boolean }
 export type PlateLayer = { color: string; d: string }
@@ -144,49 +144,7 @@ export function dawnPlate(w = 168, h = 46): Plate {
   })
 }
 
-/** Charts band: the chart's own series as a dithered skyline — one slim bar
- * per row, height on the chart's 0–100 axis, a lit cap over a body that
- * deepens toward the floor. Group = month, so the bars rise in order. */
-export function skylinePlate(values: readonly number[], w = 144, h = 12): Plate {
-  const slot = w / values.length
-  const bar = Math.max(1, Math.round(slot * 0.5))
-  return buildPlate(w, h, 1, (x, y) => {
-    const i = Math.floor(x / slot)
-    const left = Math.round(i * slot + (slot - bar) / 2)
-    if (x < left || x >= left + bar) return null
-    const top = h - Math.max(1, Math.round((values[i] / 100) * h))
-    if (y < top) return null
-    if (y === top) return { color: SKY[4], group: i }
-    const depth = (y - top) / Math.max(1, h - top)
-    const color = ditherTone(0.7 - depth * 0.62, x, y, SKY.slice(0, 4))
-    return color ? { color, group: i } : null
-  })
-}
-
-/** Surfaces band: the textbook figure — a linear ramp through all seventeen
- * levels of the 4×4 matrix, one colour on void. Groups are Bayer ranks. */
-export function rampPlate(w = 144, h = 6): Plate {
-  return buildPlate(w, h, 4, (x, y) => {
-    const color = ditherTone(x / (w - 1), x, y, [SKY[3]])
-    return color ? { color, group: rankOf(x, y) } : null
-  })
-}
-
-/** Controls band: the controls chapter's seed, made visible — the fill runs
- * from full at the left down to nothing at seed/999, and the threshold
- * matrix itself is seeded, so dragging the slider moves the edge and
- * re-scatters every pixel of the fill. */
-export function seedPlate(seed: number, w = 144, h = 6): Plate {
-  const m = matrixFromSeed(seed)
-  const edge = (seed / 999) * w
-  return buildPlate(w, h, 4, (x, y) => {
-    const t = edge > 0 ? 0.92 * (1 - (x + 0.5) / edge) : 0
-    const color = ditherTone(t, x, y, SKY.slice(1, 4), m)
-    return color ? { color, group: rankOf(x, y, m) } : null
-  })
-}
-
-/** The reference's grey ramp, darkest first — the catalog's skyline is a
+/** A neutral grey ramp, darkest first — the catalog's skyline is a
  * diagram, not art, so it sits in greys with one ember cap. */
 export const GREY = ["#1d1d1d", "#303030", "#575757", "#8a8a8a", "#c6c6c6", "#ededed"] as const
 

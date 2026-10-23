@@ -5,9 +5,7 @@ import {
   catalogPlate,
   dawnPlate,
   ditherTone,
-  rampPlate,
-  seedPlate,
-  skylinePlate,
+  rankOf,
   type Cell,
   type Plate,
   GREY,
@@ -53,7 +51,11 @@ describe("pixel plates", () => {
   })
 
   it("encodes a Bayer rank as one subpath per run, not per cell", () => {
-    const plate = rampPlate(144, 8)
+    // A ramp through all seventeen levels of the 4×4 matrix, ranked.
+    const plate = buildPlate(144, 8, 4, (x, y) => {
+      const color = ditherTone(x / 143, x, y, ["#a"])
+      return color ? { color, group: rankOf(x, y) } : null
+    })
     const cells = decode(plate).size
     const subpaths = plate.groups.flatMap((g) => g.layers).reduce((n, l) => n + l.d.split("M").length - 1, 0)
     expect(subpaths).toBeLessThan(cells / 4)
@@ -72,18 +74,6 @@ describe("pixel plates", () => {
     let lit = 0
     for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) if (ditherTone(0.5, x, y, ["#a"])) lit++
     expect(lit).toBe(8)
-  })
-
-  it("rises the skyline one group per value, cap at the value's height", () => {
-    const plate = skylinePlate([50, 100], 20, 10)
-    expect(plate.groups.map((g) => [g.index, g.top])).toEqual([[0, 5], [1, 0]])
-  })
-
-  it("moves the seeded strip's fill edge and scatter with the seed", () => {
-    const a = decode(seedPlate(200))
-    const b = decode(seedPlate(800))
-    expect(b.size).toBeGreaterThan(a.size)
-    expect(decode(seedPlate(201))).not.toEqual(a)
   })
 
   it("draws the catalog as one 2×2 window per section, a tower per family", () => {

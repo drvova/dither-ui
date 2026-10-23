@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
       <slot name="fallback" />
     </div>
     <canvas ref="canvas" role="img" :aria-label="label" class="film-canvas" />
-    <FilmChip v-if="chip && ready" v-model="playing" label="Pause film" class="film-corner">film</FilmChip>
+    <FilmChip v-if="chip && ready" v-model="playing" label="Pause film" class="film-corner" />
   </div>
 </template>
 
