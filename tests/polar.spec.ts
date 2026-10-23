@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { pieSlices, radarAxes, sliceAtAngle } from "../dither-kit/polar"
 
 const TAU = Math.PI * 2

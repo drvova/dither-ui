@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { facesOf, parseVrml, parseVrmlNodes, tokenizeVrml, vrmlTransform } from "../dither-kit/models"
 import { nodeMatrices, transformPoint } from "../dither-kit/world"
 

@@ -6,7 +6,7 @@ import { spawn, type ChildProcess } from "node:child_process"
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it } from "rstack/test"
 
 const PORT = 18790 + (process.pid % 500)
 const URL_ = `ws://127.0.0.1:${PORT}`

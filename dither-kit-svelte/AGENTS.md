@@ -20,6 +20,9 @@ patterns and the rest follows the same mechanical translation.
 
 ## Local Contracts
 
+- `tsconfig.json` sets `verbatimModuleSyntax`: type-only imports say
+  `import type`, so a bundler's per-file TS pass (Rsbuild's Svelte plugin in
+  `svelte-site/`) never drops a value import.
 - Svelte 5 runes ONLY. No legacy API: no `export let`, no `$:` reactive
   statements, no `<slot>`, no `on:` directives, no `createEventDispatcher`, no
   `beforeUpdate`/`afterUpdate`, no `$$props`/`$$restProps`. Props via `$props()`,

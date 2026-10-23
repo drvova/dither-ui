@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { BAYER8, bayerMatrix, wipeStyle } from "../dither-kit/wipe"
 
 const svgOf = (image: string) => decodeURIComponent(image.slice(image.indexOf(",") + 1, -2))

@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+// @rstest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { h, nextTick } from "vue"
 import { mount, type VueWrapper } from "@vue/test-utils"
 import DitherContainer from "../dither-kit/DitherContainer.vue"
@@ -34,12 +34,12 @@ const rootOf = (w: VueWrapper) => w.element as HTMLElement
 
 beforeEach(() => {
   FakeResizeObserver.instances = []
-  vi.stubGlobal("ResizeObserver", FakeResizeObserver)
-  vi.useFakeTimers() // the silent-observer fallback rides window.setTimeout
+  rs.stubGlobal("ResizeObserver", FakeResizeObserver)
+  rs.useFakeTimers() // the silent-observer fallback rides window.setTimeout
 })
 afterEach(() => {
-  vi.useRealTimers()
-  vi.unstubAllGlobals()
+  rs.useRealTimers()
+  rs.unstubAllGlobals()
   if (realClientWidth) Object.defineProperty(HTMLElement.prototype, "clientWidth", realClientWidth)
 })
 
@@ -79,7 +79,7 @@ describe("DitherContainer", () => {
   })
 
   it("stays at the zero-width bucket without ResizeObserver", async () => {
-    vi.unstubAllGlobals() // jsdom ships none — the engine must not guess
+    rs.unstubAllGlobals() // jsdom ships none — the engine must not guess
     const w = mount(DitherContainer)
     await nextTick()
     expect(rootOf(w).getAttribute("data-cq")).toBe("xs")
@@ -91,7 +91,7 @@ describe("DitherContainer", () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get: () => 360 })
     const w = mount(DitherContainer)
     expect(rootOf(w).getAttribute("data-cq")).toBe("xs") // pre-fallback: 0-width bucket
-    vi.advanceTimersByTime(1)
+    rs.advanceTimersByTime(1)
     await nextTick()
     expect(rootOf(w).getAttribute("data-cq")).toBe("md")
     w.unmount()

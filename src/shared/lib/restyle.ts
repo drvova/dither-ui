@@ -2,10 +2,10 @@
 // authored once with Tailwind classes; `restyle` rewrites a snippet so the
 // same look is written in vanilla CSS (a scoped stylesheet), CSS Modules or
 // StyleX, from the declarations Tailwind's compiler gives each class
-// (`virtual:dither-utilities`, built by `utility-map.ts`). Classes the map
+// (`virtual-dither-utilities`, built by `utility-map.ts`). Classes the map
 // does not know stay classes — the kit's own stylesheet covers them.
 import { ref } from "vue"
-import UTILITIES from "virtual:dither-utilities"
+import UTILITIES from "virtual-dither-utilities"
 
 export type UtilityRule = { chain: string[]; decl: [string, string][] }
 export type UtilityMap = { order: Record<string, number>; rules: Record<string, UtilityRule[]>; props: Record<string, string> }

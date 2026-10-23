@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { layoutPixelText, PIXEL_CHARS, PIXEL_ROWS } from "../src/pages/landing/pixel-type"
 
 describe("pixel type", () => {

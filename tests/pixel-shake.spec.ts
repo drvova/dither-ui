@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { bayerMatrix } from "@/pages/landing/dither-field"
 import { shakeRaster, type ShakeInput } from "@/pages/landing/pixel-shake"
 

@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { COMPONENT_COUNT } from "../src/pages/landing/facts"
 
 const index = readFileSync(new URL("../dither-kit/index.ts", import.meta.url), "utf8")

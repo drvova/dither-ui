@@ -1,12 +1,14 @@
-import { GROUPS, SECTIONS } from "./groups"
-import { docsBreadcrumb, docsMeta, SITE_URL } from "./seo"
+import { GROUPS, SECTIONS } from "./groups.ts"
+import { docsBreadcrumb, docsMeta, SITE_URL } from "./seo.ts"
 
 // The crawler-surface files (`dist/sitemap.xml`, `dist/robots.txt`,
 // `dist/llms.txt`) are generated at build time from the same GROUPS/SITE_URL
 // sources the app renders, so section renames or removals can never rot a
 // sitemap entry or an llms.txt link — a dead reference fails the build.
-// These render functions are node-side only (vite.config + tests); the app
-// never imports this module.
+// These render functions are node-side only (rstack.config + tests); the app
+// never imports this module. rstack.config.ts loads it under Node's own
+// TypeScript, so this module and its graph (groups, seo, the *-nav packs)
+// write relative imports with `.ts`.
 
 const REPO_URL = "https://github.com/drvova/dither-ui"
 const REPO_SVELTE_URL = `${REPO_URL}/tree/master/dither-kit-svelte`

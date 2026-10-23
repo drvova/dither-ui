@@ -45,10 +45,12 @@ The repo ships three surfaces on one hash router:
 ```bash
 npm install
 npm run dev      # http://localhost:5173 — the site; /studio is the editor
-npm run test     # engine + model unit tests (vitest)
-npm run build    # type-check + production build
+npm run test     # engine + model unit tests (rs test — Rstest)
+npm run lint     # rs lint (Rslint) + ESLint for .vue files
+npm run format   # rs fmt
+npm run build    # type-check + rs build (Rsbuild) + kit stylesheet + prerender
 # GitHub Pages uses .github/workflows/pages.yml and builds for dither-ui.com by default.
-# public/CNAME sets the custom domain; set VITE_BASE_PATH=/dither-ui/ only for project-URL deploys.
+# public/CNAME sets the custom domain; set BASE_PATH=/dither-ui/ only for project-URL deploys.
 ```
 
 ## Studio
@@ -88,7 +90,7 @@ src/
               persistence, export-code
   entities/   chart (model/rows/codegen), widget, artboard, editor
   shared/     ui (fields, editors), lib, config
-tests/        vitest unit tests over the engine + models
+tests/        Rstest unit tests over the engine + models
 ```
 
 Imports inside `src/` only ever point downward (app → … → shared); each slice

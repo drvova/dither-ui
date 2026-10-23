@@ -1,10 +1,12 @@
-// @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { beforeEach, describe, expect, it } from "rstack/test"
 import { mapUpdate, modesOf, usageOf } from "@/features/agent/acp"
 import { callStudioTool, loadAgentConfig, loadSession, saveAgentConfig, saveSession, STUDIO_TOOLS } from "@/features/agent/tools"
 import type { CommandResult } from "@/features/agent/protocol"
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+})
 
 describe("studio tools", () => {
   it("map one to one onto protocol commands and carry schemas a harness can read", () => {

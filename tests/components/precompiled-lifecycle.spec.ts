@@ -1,7 +1,7 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, rs } from "rstack/test"
 import DitherButton from "../../dither-kit/DitherButton.vue"
 import DitherGradient from "../../dither-kit/DitherGradient.vue"
 import DitherImage from "../../dither-kit/DitherImage.vue"
@@ -9,17 +9,17 @@ import DitherSpinner from "../../dither-kit/DitherSpinner.vue"
 
 function mockCanvasRuntime() {
   const ctx = {
-    clearRect: vi.fn(),
-    drawImage: vi.fn(),
-    fillRect: vi.fn(),
-    putImageData: vi.fn(),
-    createImageData: vi.fn((width: number, height: number) => ({
+    clearRect: rs.fn(),
+    drawImage: rs.fn(),
+    fillRect: rs.fn(),
+    putImageData: rs.fn(),
+    createImageData: rs.fn((width: number, height: number) => ({
       width,
       height,
       data: new Uint8ClampedArray(width * height * 4),
     })),
   }
-  const getContext = vi
+  const getContext = rs
     .spyOn(HTMLCanvasElement.prototype, "getContext")
     .mockReturnValue(ctx as unknown as CanvasRenderingContext2D)
   return { getContext }
@@ -27,16 +27,16 @@ function mockCanvasRuntime() {
 
 class MockResizeObserver {
   static observed = 0
-  observe = vi.fn(() => {
+  observe = rs.fn(() => {
     MockResizeObserver.observed += 1
   })
-  disconnect = vi.fn()
+  disconnect = rs.fn()
 }
 
 afterEach(() => {
-  vi.useRealTimers()
-  vi.unstubAllGlobals()
-  vi.restoreAllMocks()
+  rs.useRealTimers()
+  rs.unstubAllGlobals()
+  rs.restoreAllMocks()
   MockResizeObserver.observed = 0
 })
 
@@ -62,15 +62,15 @@ describe("precompiled runtime transitions", () => {
   })
 
   it("starts gradient runtime after switching from packaged image", async () => {
-    vi.useFakeTimers()
+    rs.useFakeTimers()
     const { getContext } = mockCanvasRuntime()
-    vi.stubGlobal("ResizeObserver", MockResizeObserver)
+    rs.stubGlobal("ResizeObserver", MockResizeObserver)
     const w = mount(DitherGradient, { props: { precompiled: "/assets/gradient.webp" } })
 
     await w.setProps({ precompiled: undefined })
     await nextTick()
     await nextTick()
-    vi.runOnlyPendingTimers()
+    rs.runOnlyPendingTimers()
 
     expect(w.find("canvas").exists()).toBe(true)
     expect(getContext).toHaveBeenCalled()
@@ -79,7 +79,7 @@ describe("precompiled runtime transitions", () => {
   })
 
   it("starts image observer after switching from packaged image", async () => {
-    vi.stubGlobal("ResizeObserver", MockResizeObserver)
+    rs.stubGlobal("ResizeObserver", MockResizeObserver)
     const w = mount(DitherImage, {
       props: { src: "/sprites.webp", precompiled: "/assets/image.webp" },
     })

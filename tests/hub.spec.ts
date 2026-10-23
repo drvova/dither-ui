@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { GROUPS, SECTIONS } from "@/pages/docs/groups"
 import { FAMILIES, SECTION_COUNT, SHELVES } from "@/pages/landing/hub"
 

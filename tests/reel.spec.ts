@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+// @rstest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { nextTick } from "vue"
 import { mount } from "@vue/test-utils"
 import { createArtboard, normalizeArtboard } from "@/entities/artboard"
@@ -135,19 +135,19 @@ describe("reel renderer", () => {
   beforeEach(() => {
     queue = new Map()
     let nextId = 1
-    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+    rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
       const id = nextId++
       queue.set(id, cb)
       return id
     })
-    vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+    rs.stubGlobal("cancelAnimationFrame", (id: number) => {
       queue.delete(id)
     })
-    vi.stubGlobal("IntersectionObserver", undefined)
+    rs.stubGlobal("IntersectionObserver", undefined)
   })
   afterEach(() => {
     release()
-    vi.unstubAllGlobals()
+    rs.unstubAllGlobals()
   })
 
   // Mounts the Studio's widget renderer (the whole kit) — integration-scale budget.

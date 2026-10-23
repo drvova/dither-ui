@@ -1,9 +1,9 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 // Container units as first-class transform distances: numbers stay px,
 // strings ride the nearest query container, and the shipped keyframes must
 // measure cqw/cqh — never the viewport.
 import { readFileSync } from "node:fs"
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { mount } from "@vue/test-utils"
 import AnimatedContent from "../dither-kit/AnimatedContent.vue"
 
@@ -15,8 +15,12 @@ class NeverIntersectionObserver {
   disconnect(): void {}
 }
 
-beforeEach(() => vi.stubGlobal("IntersectionObserver", NeverIntersectionObserver))
-afterEach(() => vi.unstubAllGlobals())
+beforeEach(() => {
+  rs.stubGlobal("IntersectionObserver", NeverIntersectionObserver)
+})
+afterEach(() => {
+  rs.unstubAllGlobals()
+})
 
 describe("container units in transforms", () => {
   it("AnimatedContent: numbers stay px, direction picks the axis", () => {

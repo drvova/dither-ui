@@ -1,6 +1,6 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
-import { beforeEach, describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it } from "rstack/test"
 import { createArtboard } from "../src/entities/artboard/model/factory"
 import { editor, selectArtboard } from "../src/entities/editor/model/store"
 import Artboard from "../src/widgets/canvas/Artboard.vue"

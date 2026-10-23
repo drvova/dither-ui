@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { BAYER4 } from "../dither-kit/pixel"
 import { createRasterBuffer } from "../dither-kit/raster"
 import { paintWaves, type WavesParams } from "../dither-kit/waves"

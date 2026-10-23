@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { llmsTxt, ogCardPage, robotsTxt, sectionsManifest, sitemapXml } from "@/pages/docs/crawler-files"
 import { SECTIONS } from "@/pages/docs/groups"
 import { SITE_URL } from "@/pages/docs/seo"
 
 // All three crawler files are generated at build time from GROUPS/SITE_URL
-// (see vite.config crawlFiles plugin); these tests pin the emitted shape and
+// (see the rstack.config crawlFiles plugin); these tests pin the emitted shape and
 // prove the generators never drift from the section IA. A renamed section id
 // referenced in llms.txt or the sitemap throws from docsUrl() at render time,
 // so dead links fail the build and these tests together.

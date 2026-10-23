@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { chartCode } from "../src/entities/chart/model/codegen"
 import { createChart, defaultEasing, setChartType } from "../src/entities/chart/model/factory"
 import { addRow, addSeries, removeRow, renamePieSlice } from "../src/entities/chart/model/rows"

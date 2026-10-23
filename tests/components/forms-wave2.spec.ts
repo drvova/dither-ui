@@ -1,6 +1,6 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import TagInput from "../../dither-kit/TagInput.vue"
 import ChoiceChips from "../../dither-kit/ChoiceChips.vue"
 import CheckboxCard from "../../dither-kit/CheckboxCard.vue"

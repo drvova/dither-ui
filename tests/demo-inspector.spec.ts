@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest"
+// @rstest-environment jsdom
+import { describe, expect, it, rs } from "rstack/test"
 import { mount } from "@vue/test-utils"
 import { h, nextTick } from "vue"
 import DemoCard from "@/pages/docs/DemoCard.vue"
@@ -47,7 +47,7 @@ describe("docs inspector", () => {
   it("keeps a press from reaching the demo while inspecting, and pins its target", async () => {
     // The setup's no-op observer would never reveal the slot; without one
     // DemoCard mounts it eagerly.
-    vi.stubGlobal("IntersectionObserver", undefined)
+    rs.stubGlobal("IntersectionObserver", undefined)
     let clicks = 0
     const card = mount(DemoCard, {
       props: { code: "<DitherButton />" },
@@ -74,6 +74,6 @@ describe("docs inspector", () => {
     expect(toggle.attributes("aria-pressed")).toBe("false")
     expect(card.find("[data-inspecting]").exists()).toBe(false)
     card.unmount()
-    vi.unstubAllGlobals()
+    rs.unstubAllGlobals()
   })
 })

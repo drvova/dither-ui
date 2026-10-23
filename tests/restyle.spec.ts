@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest"
-import UTILITIES from "virtual:dither-utilities"
+import { describe, expect, it } from "rstack/test"
+import UTILITIES from "virtual-dither-utilities"
 import { compileUtilities, restyle } from "../src/shared/lib/restyle"
 
 const decls = (tokens: string[], strict = false) => compileUtilities(tokens, strict).chains.map((c) => [c.chain, Object.fromEntries(c.decl)] as const)

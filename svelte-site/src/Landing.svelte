@@ -175,7 +175,7 @@
         <a href={`${DOCS}/dither-shell`} class="group block">
           <div inert class="h-24 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-80">
             <DitherConsole
-              lines={[{ text: "$ vite build" }, { text: "built in 4.2s", level: "success" }]}
+              lines={[{ text: "$ rs build" }, { text: "built in 4.2s", level: "success" }]}
               title="console"
               caret
               follow={false}

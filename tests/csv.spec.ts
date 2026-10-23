@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { importCsv, parseCsv } from "../src/entities/chart/model/csv"
 import { createChart } from "../src/entities/chart/model/factory"
 

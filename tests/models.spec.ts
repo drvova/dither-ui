@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { externalResources, formatOf, parseGltf, parseMtl, parseObj, parseOff, parsePly, parseWorld, parseX3d, parseXml, sniffFormat } from "../dither-kit/models"
 import { nodeMatrices, transformPoint } from "../dither-kit/world"
 

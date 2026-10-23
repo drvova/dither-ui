@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+// @rstest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { defineComponent, h, nextTick } from "vue"
 import { mount } from "@vue/test-utils"
 import DitherLayer from "../dither-kit/DitherLayer.vue"
@@ -48,21 +48,21 @@ beforeEach(() => {
   nextId = 1
   now = 1000
   observers = []
-  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+  rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
     const id = nextId++
     queue.set(id, cb)
     return id
   })
-  vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+  rs.stubGlobal("cancelAnimationFrame", (id: number) => {
     queue.delete(id)
   })
-  vi.stubGlobal("IntersectionObserver", undefined)
-  vi.stubGlobal("ResizeObserver", FakeResizeObserver)
+  rs.stubGlobal("IntersectionObserver", undefined)
+  rs.stubGlobal("ResizeObserver", FakeResizeObserver)
   matchMedia(false)
 })
 afterEach(() => {
   release()
-  vi.unstubAllGlobals()
+  rs.unstubAllGlobals()
   window.matchMedia = realMatchMedia
 })
 

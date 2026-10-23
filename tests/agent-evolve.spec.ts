@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { createArtboard } from "@/entities/artboard"
 import { addComponentArtboard, editor, placeGeneration } from "@/entities/editor"
 import { componentEntry, createCell, createRow, createScreen } from "@/entities/widget"

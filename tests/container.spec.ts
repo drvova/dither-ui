@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { CONTAINER_SCALE, quantize, resolveCq, type CqScale } from "../dither-kit/containers"
 
 describe("resolveCq", () => {

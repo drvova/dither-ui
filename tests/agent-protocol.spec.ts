@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { beforeEach, describe, expect, it } from "rstack/test"
 import { editor } from "@/entities/editor"
 import { directedTime, isDirected, release } from "../dither-kit/clock"
 import {

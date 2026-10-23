@@ -1,7 +1,7 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it, rs } from "rstack/test"
 import DitherBadge from "../../dither-kit/DitherBadge.vue"
 import DitherButton from "../../dither-kit/DitherButton.vue"
 import DitherGradient from "../../dither-kit/DitherGradient.vue"
@@ -37,13 +37,13 @@ describe("DitherButton", () => {
 
 describe("DitherSwitch", () => {
   it("toggles via update:modelValue", async () => {
-    const onUpdate = vi.fn()
+    const onUpdate = rs.fn()
     const w = mount(DitherSwitch, { props: { modelValue: false, "onUpdate:modelValue": onUpdate } })
     await w.find("button").trigger("click")
     expect(onUpdate).toHaveBeenCalledWith(true)
   })
   it("does not emit when disabled", async () => {
-    const onUpdate = vi.fn()
+    const onUpdate = rs.fn()
     const w = mount(DitherSwitch, { props: { modelValue: false, disabled: true, "onUpdate:modelValue": onUpdate } })
     await w.find("button").trigger("click")
     expect(onUpdate).not.toHaveBeenCalled()
@@ -52,7 +52,7 @@ describe("DitherSwitch", () => {
 
 describe("DitherCheckbox", () => {
   it("toggles via update:modelValue", async () => {
-    const onUpdate = vi.fn()
+    const onUpdate = rs.fn()
     const w = mount(DitherCheckbox, { props: { modelValue: true, "onUpdate:modelValue": onUpdate } })
     await w.find("button").trigger("click")
     expect(onUpdate).toHaveBeenCalledWith(false)
@@ -71,7 +71,7 @@ describe("field controls", () => {
     expect(input.attributes("aria-invalid")).toBe("true")
   })
   it("forwards textarea attributes and emits input", async () => {
-    const onUpdate = vi.fn()
+    const onUpdate = rs.fn()
     const w = mount(DitherTextarea, { props: { modelValue: "", name: "bio", rows: 5, "onUpdate:modelValue": onUpdate } })
     await w.get("textarea").setValue("Hello")
     expect(w.get("textarea").attributes()).toMatchObject({ name: "bio", rows: "5" })
@@ -86,7 +86,7 @@ describe("field controls", () => {
 
 describe("DitherSelect", () => {
   it("links its listbox and skips disabled options with keyboard", async () => {
-    const onUpdate = vi.fn()
+    const onUpdate = rs.fn()
     const w = mount(DitherSelect, { props: { modelValue: "", options: [{ value: "a", label: "A", disabled: true }, { value: "b", label: "B" }], "onUpdate:modelValue": onUpdate } })
     const trigger = w.get("button")
     await trigger.trigger("keydown", { key: "ArrowDown" })
@@ -99,7 +99,7 @@ describe("DitherSelect", () => {
 describe("DitherDialog", () => {
   it("labels, traps, closes, and restores focus", async () => {
     const opener = document.createElement("button"); document.body.append(opener); opener.focus()
-    const onClose = vi.fn()
+    const onClose = rs.fn()
     const w = mount(DitherDialog, { attachTo: document.body, props: { open: false, title: "Settings", description: "Project options", onClose }, slots: { default: '<button id="last">Apply</button>' } })
     opener.focus()
     await w.setProps({ open: true }); await nextTick()
@@ -116,7 +116,7 @@ describe("DitherDialog", () => {
 
 describe("DitherTabs", () => {
   it("renders every tab and emits the clicked one", async () => {
-    const onUpdate = vi.fn()
+    const onUpdate = rs.fn()
     const w = mount(DitherTabs, {
       props: { tabs: ["One", "Two", "Three"], modelValue: "One", "onUpdate:modelValue": onUpdate },
     })
@@ -144,12 +144,12 @@ describe("toast store", () => {
     expect(toasts).toHaveLength(0)
   })
   it("auto-dismisses after its duration", () => {
-    vi.useFakeTimers()
+    rs.useFakeTimers()
     toasts.splice(0)
     toast("bye", { duration: 1000 })
     expect(toasts).toHaveLength(1)
-    vi.advanceTimersByTime(1100)
+    rs.advanceTimersByTime(1100)
     expect(toasts).toHaveLength(0)
-    vi.useRealTimers()
+    rs.useRealTimers()
   })
 })

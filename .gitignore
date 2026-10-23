@@ -2,7 +2,7 @@ node_modules
 dist
 *.local
 .DS_Store
-.vite
+.rstack/
 
 # build artifacts
 *.tsbuildinfo

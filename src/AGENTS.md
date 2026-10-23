@@ -120,8 +120,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `modules` (`$style` bindings + `<style module>`; CSS under Svelte) or
   `stylex` (`stylex.create` in the script after its imports, `stylex.attrs`
   on the element — `v-bind` in Vue, a spread in Svelte); `tailwind` returns
-  the code untouched. Its data is `virtual:dither-utilities`:
-  `utility-map.ts` (node-side only — vite.config, vitest.config, tests)
+  the code untouched. Its data is `virtual-dither-utilities`:
+  `utility-map.ts` (node-side only — rstack.config.ts, tests; an Rspack
+  virtual module, recompiled in watch mode when a scanned file changes)
   scans `UTILITY_SOURCES` (`pages/docs`, `entities`) with Tailwind's scanner
   and compiles every candidate with Tailwind's compiler (theme inlined; the
   kit's `@theme inline` tokens and dark variant read from
@@ -157,9 +158,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   frame), embeds the frame's document as JSON with `<` escaped, and carries
   the player inline (`{ js, css }`, `</script` escaped in the bundle) or by
   reference (`{ jsRef, cssRef }`). The player is `pages/play`; its
-  single-file bundle is a second build, `vite.player.config.ts` →
-  `dist/play/player.js` + `player.css`, which `npm run build` runs after the
-  site build because the site's entries share chunks; `playerAssets()`
+  single-file bundle is the `player` environment of `rstack.config.ts` →
+  `dist/play/player.js` + `player.css` (one classic script, no async
+  chunks, every asset a data URI), built by the same `rs build` as the site
+  because the site's entries share chunks; `playerAssets()`
   fetches it from the same origin and on a dev server, where it does not
   exist, the export says so. Delivery: the Studio's video dialog downloads
   the self-contained file; the `video.export` protocol command returns the
@@ -285,10 +287,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
 ## Verification
 
-- `npx vue-tsc --noEmit` and `npx vite build` green before commit.
+- `npx vue-tsc --noEmit` and `npx rs build` green before commit.
 - Interactive checks in a real browser (agent-browser + screenshots) for
   anything visual or stateful (undo/redo walks, dialog focus, deep links).
-- The video path on the built site (`vite preview`): the player seeked by
+- The video path on the built site (`rs preview`): the player seeked by
   synthetic `hf-seek` events gives identical bytes for identical times, the
   dialog's download opened from disk matches the player at the same time,
   and `npx hyperframes lint`/`render` accept the file. A reel seeked the
@@ -303,9 +305,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   computed transform, the world's canvas and WebGL engines, the Studio
   protocol and `clock.seek`, the player's `ditherClock` determinism — pass
   there, which is Safari's engine.
-- Perf probes MUST use trailing-slash URLs (`/docs/`, `/studio/`): `vite
-  preview` falls back to the landing HTML for slashless paths, which silently
-  measures the wrong page.
+- Perf probes use the canonical trailing-slash URLs (`/docs/`, `/studio/`)
+  — the directories the build writes; `rs dev`/`rs preview` also rewrite
+  the slashless forms to them (`server.historyApiFallback`), static hosts
+  may not.
 
 ## Child DOX Index
 

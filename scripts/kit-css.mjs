@@ -1,7 +1,7 @@
 // Compile the kit's standalone stylesheet: dither-kit/kit.css (the tokens,
 // the scoped base, Tailwind's utilities restricted to the kit's own sources)
 // → dist/kit/dither-kit.css, for apps that style with anything but Tailwind.
-// The same compiler and scanner @tailwindcss/vite runs, with no app around:
+// The same compiler and scanner the build's Tailwind plugin runs, with no app around:
 // the kit folders are the only sources, so the file holds exactly the
 // classes the components use. Runs in `npm run build` (and build:css).
 import { compile, optimize } from "@tailwindcss/node"

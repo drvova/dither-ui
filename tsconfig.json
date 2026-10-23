@@ -28,6 +28,6 @@
     "src/**/*.vue",
     "dither-kit/**/*.ts",
     "dither-kit/**/*.vue",
-    "vite.config.ts"
+    "rstack.config.ts"
   ]
 }

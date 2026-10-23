@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { seedFor, SITE_SEED } from "@/pages/landing/genome"
 import {
   createGovernor,

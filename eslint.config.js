@@ -1,3 +1,6 @@
+// ESLint lints the Vue SFCs only: Rslint (`rs lint`, rstack.config.ts) owns
+// the TypeScript and JavaScript but has no SFC parser. `npm run lint` runs
+// `eslint "**/*.vue"` after it, with the same rules for the script blocks.
 import js from "@eslint/js"
 import vue from "eslint-plugin-vue"
 import globals from "globals"

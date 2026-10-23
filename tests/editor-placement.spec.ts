@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it } from "rstack/test"
 import { createArtboard } from "../src/entities/artboard/model/factory"
 import { editor, placeArtboard } from "../src/entities/editor/model/store"
 

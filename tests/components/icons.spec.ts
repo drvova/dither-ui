@@ -1,6 +1,6 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import Icon from "../../dither-kit/Icon.vue"
 import IconSet from "../../dither-kit/IconSet.vue"
 import { ICONS, ICON_NAMES } from "../../dither-kit/icons"

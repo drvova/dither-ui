@@ -1,16 +1,16 @@
-// Node-side only (vite.config, vitest.config, tests): the utility vocabulary
+// Node-side only (rstack.config.ts, tests): the utility vocabulary
 // a docs snippet or a Studio export can carry, compiled by Tailwind's own
 // compiler into the declarations each class stands for, so `restyle.ts` can
 // write the same look in vanilla CSS, CSS Modules or StyleX. The theme is
 // inlined (spacing, radii, breakpoints become values) while the kit's tokens
 // stay `var(--foreground)`-style references — the contract an app themes
 // through. The app never imports this module; it reads the result as the
-// virtual module `virtual:dither-utilities`.
+// virtual module `virtual-dither-utilities`.
 import { compile } from "@tailwindcss/node"
 import { Scanner } from "@tailwindcss/oxide"
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
-import type { Plugin } from "vite"
+import type { RsbuildPlugin, Rspack } from "rstack/app"
 import type { UtilityMap, UtilityRule } from "./restyle"
 
 /** The folders whose class strings can end up in a snippet or an export. */
@@ -71,10 +71,12 @@ function flatten(block: Block, chain: string[], out: UtilityRule[]) {
   for (const child of block.children) flatten(child, [...chain, child.prelude], out)
 }
 
-/** `.hover\:text-foreground` → `hover:text-foreground`; null for any other selector. */
-function candidateOf(prelude: string): string | null {
-  const m = prelude.match(/^\.((?:\\[\s\S]|[\w-])+)$/)
-  return m ? m[1].replace(/\\(.)/g, "$1") : null
+/** `.hover\:text-foreground:hover` → the candidate `hover:text-foreground`
+ * and the selector's tail `:hover` (empty for a bare class); null for any
+ * other selector. */
+function candidateOf(prelude: string): { candidate: string; tail: string } | null {
+  const m = prelude.match(/^\.((?:\\[\s\S]|[\w-])+)([^,]*)$/)
+  return m ? { candidate: m[1].replace(/\\(.)/g, "$1"), tail: m[2].trim() } : null
 }
 
 /** The compiler's input: Tailwind's theme inlined, the kit's token mapping
@@ -94,6 +96,23 @@ export async function buildUtilityMap(root = process.cwd(), dirs = UTILITY_SOURC
   const css = compiler.build(scanner.scan())
   const map: UtilityMap = { order: {}, rules: {}, props: {} }
   let index = 0
+  // A variant reaches the output either nested in its class (`.x { &:hover
+  // { @media … } }`) or wrapped around it (`@media … { .x:hover { … } }`, how
+  // Tailwind 4.3.3+ writes `hover:`): both become ONE chain, the selector's
+  // tail first, then the at-rules outside in, then whatever nests inside.
+  const add = (block: Block, at: string[]) => {
+    if (block.prelude.startsWith("@")) {
+      for (const child of block.children) add(child, [...at, block.prelude])
+      return
+    }
+    const hit = candidateOf(block.prelude)
+    if (!hit) return
+    const rules: UtilityRule[] = []
+    flatten(block, [...(hit.tail ? [`&${hit.tail}`] : []), ...at], rules)
+    if (!rules.length) return
+    map.order[hit.candidate] ??= index++
+    ;(map.rules[hit.candidate] ??= []).push(...rules)
+  }
   for (const block of parseCss(css)) {
     const prop = block.prelude.match(/^@property\s+(--[\w-]+)$/)
     if (prop) {
@@ -101,37 +120,42 @@ export async function buildUtilityMap(root = process.cwd(), dirs = UTILITY_SOURC
       if (initial) map.props[prop[1]] = initial[1]
       continue
     }
-    const candidate = candidateOf(block.prelude)
-    if (!candidate) continue
-    const rules: UtilityRule[] = []
-    flatten(block, [], rules)
-    if (!rules.length) continue
-    map.order[candidate] = index++
-    map.rules[candidate] = rules
+    add(block, [])
   }
   return map
 }
 
-const ID = "virtual:dither-utilities"
-const RESOLVED = "\0" + ID
+const ID = "virtual-dither-utilities"
 
-/** Vite: `import map from "virtual:dither-utilities"` — compiled once per
- * build, recompiled in dev when a source under UTILITY_SOURCES changes. */
-export function utilityMap(root = process.cwd()): Plugin {
-  let cache: Promise<UtilityMap> | null = null
+/** Rsbuild: `import map from "virtual-dither-utilities"` — an Rspack virtual
+ * module compiled once per build (shared by every environment), recompiled
+ * in watch mode when a source under UTILITY_SOURCES changes. */
+export function utilityMap(root = process.cwd()): RsbuildPlugin {
+  const file = resolve(root, "src/shared/lib/dither-utilities.virtual.js")
+  const dirs = UTILITY_SOURCES.map((d) => resolve(root, d))
+  const source = async () => `export default ${JSON.stringify(await buildUtilityMap(root))}`
+  let cache: Promise<string> | null = null
   return {
     name: "dither-utilities",
-    resolveId: (source) => (source === ID ? RESOLVED : undefined),
-    async load(source) {
-      if (source !== RESOLVED) return undefined
-      cache ??= buildUtilityMap(root)
-      return `export default ${JSON.stringify(await cache)}`
-    },
-    handleHotUpdate({ file, server }) {
-      if (!UTILITY_SOURCES.some((d) => file.startsWith(resolve(root, d)))) return
-      cache = null
-      const mod = server.moduleGraph.getModuleById(RESOLVED)
-      if (mod) server.moduleGraph.invalidateModule(mod)
+    setup(api) {
+      api.modifyRsbuildConfig((config, { mergeRsbuildConfig }) =>
+        mergeRsbuildConfig(config, { resolve: { alias: { [ID]: file } } }),
+      )
+      api.modifyRspackConfig(async (_, { rspack, appendPlugins }) => {
+        const virtual = new rspack.experiments.VirtualModulesPlugin({ [file]: await (cache ??= source()) })
+        appendPlugins([
+          virtual,
+          {
+            apply(compiler: Rspack.Compiler) {
+              compiler.hooks.watchRun.tapPromise("dither-utilities", async (c) => {
+                if (![...(c.modifiedFiles ?? [])].some((f) => dirs.some((d) => f.startsWith(d)))) return
+                cache = source()
+                virtual.writeModule(file, await cache)
+              })
+            },
+          },
+        ])
+      })
     },
   }
 }

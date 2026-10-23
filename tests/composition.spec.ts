@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { createArtboard } from "@/entities/artboard"
 import { compositionHtml, embedJson, normalizeVideoOptions, slugOf } from "@/features/export-video/composition"
 

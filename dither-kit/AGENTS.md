@@ -541,7 +541,7 @@ is its showcase and editor.
 ## Verification
 
 - `npx vue-tsc --noEmit` (workspace-wide) must stay green.
-- Visual: `npx vite build && npx vite preview` and eyeball `/#/docs` demos.
+- Visual: `npx rs build && npx rs preview` and eyeball the `/docs/` previews.
 - Determinism: on the built site, `/play/#doc=…` driven by synthetic
   `hf-seek` events must give identical bytes for identical times, in any
   order, and request no animation frames while directed.

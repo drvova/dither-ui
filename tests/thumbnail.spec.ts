@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { describe, expect, it } from "rstack/test"
 import { mount } from "@vue/test-utils"
 import { DitherThumbnail } from "@dither-kit"
 import { BAYER4 } from "@dither-kit/pixel"

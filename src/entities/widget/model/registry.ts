@@ -227,7 +227,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   { is: "DitherScrollArea", label: "Scroll area", group: "structure", frame: { w: 280, h: 200 }, props: [], slotText: "Scrollable content" },
   { is: "DitherShell", label: "Shell", group: "structure", frame: { w: 360, h: 260 }, props: [bool("frame", true)], slotText: "Content" },
   { is: "DitherRail", label: "Rail", group: "structure", frame: { w: 220, h: 300 }, props: [text("label", "Rail"), select("side", "left", ["left", "right"])], demo: "sidebar" },
-  { is: "DitherConsole", label: "Console", group: "structure", frame: { w: 340, h: 220 }, props: [text("title", "console"), list("lines", ["$ vite build", "transforming…", "built in 4.2s"]), bool("follow", true), bool("caret", true)] },
+  { is: "DitherConsole", label: "Console", group: "structure", frame: { w: 340, h: 220 }, props: [text("title", "console"), list("lines", ["$ rs build", "building…", "built in 4.2s"]), bool("follow", true), bool("caret", true)] },
   { is: "DitherCanvas", label: "Canvas", group: "structure", frame: { w: 320, h: 220 }, props: [select("pattern", "dots", ["dots", "grid", "plain"]), number("cell", 16, 4, 64)], slotText: "Work surface" },
   { is: "DitherGrid", label: "Grid", group: "structure", frame: { w: 340, h: 220 }, props: [number("min", 120, 80, 400), text("gap", "0.75rem")], slotText: "Card" },
   { is: "DitherToolbar", label: "Toolbar", group: "structure", frame: { w: 360, h: 100 }, props: [text("label", "Formatting")], demo: "toolbar" },

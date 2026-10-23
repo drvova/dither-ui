@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { describe, expect, it } from "rstack/test"
 import { applyTheme, THEME_TOKENS, themeCss, themeVars } from "../dither-kit/theme"
 
 describe("theme from JavaScript", () => {

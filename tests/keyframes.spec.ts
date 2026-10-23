@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { compileTrack, keyframeTransform, lerpTerms, parseAngle, parseLength, resolveSample, sampleKeyframes, termsToCss, termsToPx } from "../dither-kit/keyframes"
 import { steps } from "../dither-kit/timing"
 

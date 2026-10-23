@@ -1,8 +1,8 @@
 // The landing's Clayzo films. This spec is also their generator: each
 // document is built from its TypeScript builder, validated, and compared
 // with the committed public/films/<id>.json — `npm run films` rewrites
-// those files (vitest -u), and a builder edit without them fails here.
-import { describe, expect, it } from "vitest"
+// those files (`npm run films`, rs test -u), and a builder edit without them fails here.
+import { describe, expect, it } from "rstack/test"
 import { resolveMatrix } from "@dither-kit"
 import { FILMS } from "../src/pages/landing/films"
 import { kitDitherSksl, THRESHOLDS } from "../src/pages/landing/films/kit-dither"

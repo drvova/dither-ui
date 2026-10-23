@@ -1,5 +1,6 @@
 // Entry of the player page — both the site's `/play/` route and the
-// single-file bundle (`vite.player.config.ts` → dist/play/player.js) that an
+// single-file bundle (the `player` environment in rstack.config.ts →
+// dist/play/player.js) that an
 // exported HyperFrames composition carries inline.
 //
 // HyperFrames' runtime dispatches `hf-seek` for every frame it captures and

@@ -1,7 +1,7 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it, rs } from "rstack/test"
 import Heading from "../../dither-kit/Heading.vue"
 import Label from "../../dither-kit/Label.vue"
 import LineClamp from "../../dither-kit/LineClamp.vue"
@@ -64,7 +64,7 @@ describe("EllipsisTooltip", () => {
       observe() {}
       disconnect() {}
     }
-    vi.stubGlobal("ResizeObserver", StubRO)
+    rs.stubGlobal("ResizeObserver", StubRO)
 
     const SENTENCE = "a sentence long enough to clip inside a narrow box"
     const w = mount(EllipsisTooltip, {
@@ -86,11 +86,11 @@ describe("EllipsisTooltip", () => {
     await nextTick()
     expect(w.attributes("title")).toBeUndefined()
     w.unmount()
-    vi.unstubAllGlobals()
+    rs.unstubAllGlobals()
   })
 
   it("never tootips when disabled", async () => {
-    vi.stubGlobal("ResizeObserver", class {
+    rs.stubGlobal("ResizeObserver", class {
       observe() {}
       disconnect() {}
     })
@@ -105,7 +105,7 @@ describe("EllipsisTooltip", () => {
     await nextTick()
     expect(w.attributes("title")).toBeUndefined()
     w.unmount()
-    vi.unstubAllGlobals()
+    rs.unstubAllGlobals()
   })
 })
 
@@ -133,7 +133,7 @@ describe("KbdCombo", () => {
 
 describe("CopyableText", () => {
   it("copies the value and flips its accessible name", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
+    const writeText = rs.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true })
     const w = mount(CopyableText, { props: { value: "token-123" }, slots: { default: "copy" } })
     await w.find("button").trigger("click")

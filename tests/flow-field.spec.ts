@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { describe, expect, it } from "rstack/test"
 import { mount } from "@vue/test-utils"
 import { paintFlowField, fadeRasterAlpha, DitherFlowField } from "@dither-kit"
 import { createRasterBuffer } from "@dither-kit/raster"

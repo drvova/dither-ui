@@ -1,6 +1,6 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import ListBox from "../../dither-kit/ListBox.vue"
 import MultiSelect from "../../dither-kit/MultiSelect.vue"
 import CascadeSelect from "../../dither-kit/CascadeSelect.vue"

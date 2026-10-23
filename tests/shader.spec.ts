@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { BAYER4 } from "../dither-kit/pixel"
 import { createRasterBuffer } from "../dither-kit/raster"
 import { ditherShaderPixels, sampleShader, SHADER_UNIFORMS, wrapMaterial, wrapShader, type ShaderDither } from "../dither-kit/shader"

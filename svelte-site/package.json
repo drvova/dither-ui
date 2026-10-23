@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
-    "preview": "vite preview",
+    "dev": "rs dev",
+    "build": "svelte-check --tsconfig ./tsconfig.json && rs build",
+    "preview": "rs preview",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
@@ -16,14 +16,14 @@
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5.0.0",
-    "@tailwindcss/vite": "^4.0.0",
+    "@rsbuild/plugin-svelte": "^2.0.1",
+    "@rsbuild/plugin-tailwindcss": "^2.0.3",
     "@types/d3-scale": "^4.0.8",
     "@types/d3-shape": "^3.1.6",
+    "rstack": "^0.8.5",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "tailwindcss": "^4.0.0",
-    "typescript": "~5.6.3",
-    "vite": "^6.0.5"
+    "typescript": "~5.6.3"
   }
 }

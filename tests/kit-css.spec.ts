@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { buildKitCss } from "../scripts/kit-css.mjs"
 
 // Compiles the kit's stylesheet with Tailwind's own compiler — integration-scale budget.

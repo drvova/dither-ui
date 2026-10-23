@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest"
+// @rstest-environment jsdom
+import { beforeEach, describe, expect, it } from "rstack/test"
 import { editor } from "../../src/entities/editor"
 import {
   activeProjectId,

@@ -392,7 +392,8 @@ widgets/features; page-specific conventions live here.
 - Section IA lives in `docs/groups.ts` — the single source for the sidebar,
   the `/docs/<id>` deep links, and the build-time crawl files
   (`crawler-files.ts` generates `dist/sitemap.xml`, `dist/robots.txt`, and
-  `dist/llms.txt` via the vite `crawlFiles` plugin; no hand-maintained
+  `dist/llms.txt` via the `crawlFiles` plugin in `rstack.config.ts`; no
+  hand-maintained
   public copies). New sections are added to a `*-nav.ts` pack and spread
   into a group there — never to the sitemap or llms.txt.
 - Search metadata: `docs/seo.ts` derives per-section title, canonical,
@@ -501,7 +502,8 @@ widgets/features; page-specific conventions live here.
   (a chart that measures later repaints the moment through its `wake`).
   `play/index.html` is the route's entry (noindex, not prerendered) and the
   same `main.ts` is the entry of the single-file bundle
-  (`vite.player.config.ts`). Nothing here reads the project store: the
+  (the `player` environment of `rstack.config.ts`). Nothing here reads the
+  project store: the
   page provides `REEL_POOL` (its parsed document's artboards) so a reel
   cuts between the frames that travel with it. Besides `hf-seek`, `main.ts`
   exposes `window.ditherClock` (`seek(seconds)`, `release()`, `directed()`,
@@ -520,7 +522,7 @@ widgets/features; page-specific conventions live here.
   uniforms in the effect parameters' order, and per
   film a valid deterministic document with a `still`, a frame-aligned loop
   and byte-equality with `public/films/<id>.json`. `npm run films`
-  (vitest -u) rewrites the documents after a builder edit; review frames in
+  (`rs test -u`) rewrites the documents after a builder edit; review frames in
   a browser (the player seeked to the beats) before committing — the
   Clayzo CLI's render/review need an account, playback does not.
 - `tests/landing-facts.spec.ts` recounts `COMPONENT_COUNT` in `facts.ts`.

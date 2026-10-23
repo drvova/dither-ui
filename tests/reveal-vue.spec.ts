@@ -1,5 +1,5 @@
-// @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+// @rstest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { h, nextTick } from "vue"
 import { mount, type VueWrapper } from "@vue/test-utils"
 import DitherReveal from "../dither-kit/DitherReveal.vue"
@@ -25,22 +25,22 @@ beforeEach(() => {
   queue = new Map()
   nextId = 1
   now = 1000
-  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+  rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
     const id = nextId++
     queue.set(id, cb)
     return id
   })
-  vi.stubGlobal("cancelAnimationFrame", (id: number) => {
+  rs.stubGlobal("cancelAnimationFrame", (id: number) => {
     queue.delete(id)
   })
-  vi.stubGlobal("IntersectionObserver", undefined) // mount path plays immediately
-  vi.spyOn(performance, "now").mockImplementation(() => now)
+  rs.stubGlobal("IntersectionObserver", undefined) // mount path plays immediately
+  rs.spyOn(performance, "now").mockImplementation(() => now)
   matchMedia(false)
 })
 afterEach(() => {
   release()
-  vi.restoreAllMocks()
-  vi.unstubAllGlobals()
+  rs.restoreAllMocks()
+  rs.unstubAllGlobals()
   window.matchMedia = realMatchMedia
 })
 

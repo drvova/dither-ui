@@ -1,6 +1,6 @@
-// @vitest-environment jsdom
+// @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import Calendar from "../../dither-kit/Calendar.vue"
 import DatePicker from "../../dither-kit/DatePicker.vue"
 import MonthPicker from "../../dither-kit/MonthPicker.vue"

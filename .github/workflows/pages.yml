@@ -25,11 +25,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx vue-tsc --noEmit
-      - run: npx vite build
+      # The site and the single-file player the video export inlines
+      # (dist/play/player.js), in one rs build.
+      - run: npx rs build
         env:
-          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/' }}
-      # The single-file player the video export inlines (dist/play/player.js).
-      - run: npm run build:player
+          BASE_PATH: ${{ vars.BASE_PATH || '/' }}
       - run: npm run build:css
       - name: Prepare Pages artifact
         run: |

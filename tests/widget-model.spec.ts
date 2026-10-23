@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "rstack/test"
 import { widgetCode } from "../src/entities/widget/model/codegen"
 import { createWidget } from "../src/entities/widget/model/factory"
 
