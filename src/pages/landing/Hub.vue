@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The directory: the docs as a browsable shelf under an eyebrow — the kit's
+// The directory: the docs as a browsable shelf under a section head — the kit's
 // own DitherTabs (badges = family sizes) over a horizontal shelf of framed
 // cards that deep-link into the docs, each with the section's seeded
 // identicon (the kit's avatar, from the section id), its family, name, a
@@ -15,9 +15,10 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 
 <template>
   <section id="directory" aria-labelledby="directory-h" class="directory">
-    <div class="list-head">
-      <h2 id="directory-h" class="eyebrow">Directory</h2>
-      <a :href="routePath('/docs')" class="more-link">all {{ SECTION_COUNT }} sections →</a>
+    <div class="section-head">
+      <p class="eyebrow">Directory</p>
+      <h2 id="directory-h" class="section-title">{{ SECTION_COUNT }} sections, every one of them live.</h2>
+      <a :href="routePath('/docs')" class="more-link">all sections →</a>
     </div>
     <p class="dir-p">
       Each section is a live demo with its props and copy-ready code. Every component is one file in
@@ -50,11 +51,12 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 .directory {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .dir-p {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
+  max-width: 44rem;
   font-size: 12px;
   line-height: 1.6;
   color: var(--ink-3);

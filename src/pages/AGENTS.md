@@ -14,7 +14,9 @@ widgets/features; page-specific conventions live here.
   hairlines, micro-caps — so landing → docs → studio reads as one
   product. From the 2000s oakley.com archive (the user's reference) it
   keeps STRUCTURE only: a campaign stage with tabs, dense panels in
-  columns, lists under a mark. Rejected and gone on purpose: the nodecode
+  columns, lists under a mark. From the dither winners on Awwwards
+  (Basement Foundry, MONOGRID, ASTRODITHER) it takes SCALE: one big
+  edge-to-edge art band, display-size type, tiny mono UI around it. Rejected and gone on purpose: the nodecode
   hairline grid, speed-italic type, slants and cut corners, the calm single
   column, condensed sports caps, bevels/chrome, and red. The kit's ember is
   the one warm light (the brand core, the install prompt, LEDs). Additions
@@ -24,7 +26,9 @@ widgets/features; page-specific conventions live here.
   `app/styles.css` (`.nav-a`, `.nav-pill`, `.eyebrow`, `.micro`, `.led`),
   which the landing uses directly: ink levels mapped to theme tokens
   (`--ink`, `--ink-2`, `--ink-3`, `--line`, `--well`), `.display` (mono
-  500, tight), `.panel` (hairline, 12px — the docs' card corner), `.thumb`
+  500, tight), `.section-head` (an `.eyebrow`, the `.section-title` — the
+  page's second size, mono 500 up to 2.6rem — and a `.more-link` on its
+  baseline), `.panel` (hairline, 12px — the docs' card corner), `.thumb`
   (a darker well, 8px), `.list-head` (an `.eyebrow` left, `.more-link`
   "all →" right), `.lead` (ink text + a quiet →), `.key-primary` (the
   `.nav-a.nav-pill` key filled with ink), `.seg` (the docs header's
@@ -41,17 +45,20 @@ widgets/features; page-specific conventions live here.
   `relative z-10`: `main` is `relative isolate` and page art lives inside
   it, so a positioned sibling always paints over a static header —
   without the lift the header renders zero visible pixels.
-- Stage (`Showcase.vue`): a `--well` panel (12px, hairline) holding the
+- Stage (`Showcase.vue`): a FULL-BLEED band (the `--well` between
+  hairlines, content edges aligned to the shell via `--edge`), its art the
   films as tabbed campaigns — ONE `ClayzoFilm` mounted at a time (`:key` =
-  the picked film), 8:5 films right at full height, the wide catalog and
-  dawn across its floor — under a left scrim with the copy top-left (an
-  `.eyebrow`, the mono h1, the lede, `.key-primary` "Open the studio" +
-  `.nav-pill` "Read the docs") and the film's label top-right (a backed
-  `.micro`) all sit in `.stage-view`; the `.seg` film tabs
-  (`role="group"`) and the "dither-kit × Clayzo" mark have their OWN floor
-  row under it (a hairline above), so no film ever runs under them. Under
-  760px the view stacks (film, copy) and the tabs share the width. The h1
-  must clear a 1440×900 fold.
+  the picked film), 8:5 films centred at the band's full height
+  (`clamp(20rem, 50vh, 34rem)`), the wide catalog and dawn across its
+  floor — with the film's label top-right (a backed `.micro`). The `.seg`
+  film tabs (`role="group"`) and the "dither-kit × Clayzo" mark have their
+  OWN floor row under the art, so no film ever runs under them. Under it,
+  on the shell, the statement (`.intro`): an `.eyebrow`, the mono h1 at
+  display scale across the shell (`clamp(2.4rem, 5.3vw, 5rem)`, two lines
+  at desktop), then one row of the lede and the keys (`.key-primary`
+  "Open the studio" + `.nav-pill` "Read the docs"). The h1 AND the keys
+  must clear the fold at 1440×900, 1280×800 and 1920×1080. Under 760px the
+  film takes the band's width and the tabs share it.
 - Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
   bitmap face drawn as crisp SVG cells with a seam — the footer's wordmark
   (`cell` 2, `seam` 1/2). A string with a glyph the face lacks throws;
@@ -77,8 +84,9 @@ widgets/features; page-specific conventions live here.
   `sampleWorld(7)`, with the `.live` chip) and Charts (a live
   `LineChart`); C — lists into the docs under eyebrows (the shelved
   families biggest first, then the Handbook), a hairline off the others.
-- Directory (`Hub.vue`, `#directory`): a `.list-head` ("Directory" · "all
-  n sections →") and one line over a `.panel` — the kit's own `DitherTabs`
+- Directory (`Hub.vue`, `#directory`): a `.section-head` ("Directory" ·
+  "n sections, every one of them live." · "all sections →") and one line
+  over a `.panel` — the kit's own `DitherTabs`
   (grey; badges = family sizes) over a horizontal snapping shelf of
   `.thumb` cards that deep-link to `/docs/<id>` (the section's seeded
   `DitherAvatar` identicon — decorative, no entrance — its family in
@@ -86,11 +94,13 @@ widgets/features; page-specific conventions live here.
   family. `hub.ts` is static data (the landing never loads the docs IA —
   no cross-page imports) held honest by `tests/hub.spec.ts`: families and
   counts equal `GROUPS`, every card id is a section of the family it names.
-- Rhythm: the portal's rows (stage, install, columns, directory,
-  principles, agents) are a flex column spaced by `--rhythm` ONCE; never
-  stack a row's padding on a neighbour's margin.
-- Principles (`LandingPage.vue`): a `.list-head` ("Principles" · "quick
-  start →") over a `.panel` — the figure in a `.thumb` well beside
+- Rhythm: the band runs full width; everything else sits on the shell
+  (`Showcase`'s `.shell` for the statement, install and columns,
+  `LandingPage`'s `.box` for directory, principles and agents), each a
+  flex column spaced by one gap — never stack a row's padding on a
+  neighbour's margin.
+- Principles (`LandingPage.vue`): a `.section-head` ("Principles" · "One
+  rule under every pixel." · "quick start →") over a `.panel` — the figure in a `.thumb` well beside
   six numbered statements, each a LINK into the docs that covers it
   (`PRINCIPLES`); pointing at one (hover or focus) makes it the figure's
   stage and marks it (ink index and text, an ink rule). No scroll driver.
@@ -106,16 +116,15 @@ widgets/features; page-specific conventions live here.
   caption in `STAGE_CAPTIONS` — never a second lattice. Guarded by
   `tests/essay-figure.spec.ts` (lattice ranks, determinism, lit share,
   distinct scenes, stage wrap).
-- Agents strip (`#agents`, a `.panel`): an eyebrow "Drives with your
-  agent", the harnesses `bridge/dither-bridge.mjs` knows (its `HARNESSES`
-  names, in order — keep in sync) as hairline chips with an ember square
-  LED, and one `.lead` to the agent skill, over a `dither-field`
-  dot sea (`bandCanvas` mounted in `LandingPage.vue`, seed
+- Agents (`#agents`): a `.section-head` ("Agents" · "Your own agent
+  drives the Studio." · "agent skill →") over a `.panel` of the harnesses
+  `bridge/dither-bridge.mjs` knows (its `HARNESSES` names, in order — keep
+  in sync) as hairline chips with an ember square LED, over a
+  `dither-field` dot sea (`bandCanvas` mounted in `LandingPage.vue`, seed
   `seedFor("band")`: 4px cells, 12fps, the four dark SKY levels only so
   the ink keeps contrast, density 0.42 at rest → 0.64 under hover, cursor
-  body 0.4; `prefers-reduced-transparency` halves it). The strip is
-  `isolate; overflow: hidden`; its content stays `relative` above the
-  canvas.
+  body 0.4; `prefers-reduced-transparency` halves it). The panel is
+  `isolate; overflow: hidden`; the chips stay `relative` above the canvas.
 - No entrance choreography: the page simply is (no reveal, no scroll
   driver, no soft focus). Motion is the films, the live canvases, the
   figure's wipe and hover answers.
@@ -479,13 +488,14 @@ widgets/features; page-specific conventions live here.
   Clayzo CLI's render/review need an account, playback does not.
 - `tests/landing-facts.spec.ts` recounts `COMPONENT_COUNT` in `facts.ts`.
 - Browser walk after changes: the landing at desktop AND phone widths (no
-  horizontal scroll; the stage stacked and its tabs sharing the width
-  under 760px), the h1 above a 1440×900 fold, each stage tab mounting its
+  horizontal scroll; the band's tabs sharing the width under 760px), the
+  h1 and the keys above the fold at 1440×900, 1280×800 and 1920×1080,
+  each stage tab mounting its
   film over its stand-in with the round chip pausing it and the loupe
   under the cursor, reduced motion holding the film's still with the chip
   on play, the Build slider re-seeding its badge, emote hover, a principle
   re-staging the figure on hover AND keyboard focus, the directory tabs'
-  underline under the picked tab, the agents strip's hover thickening, canonical
+  underline under the picked tab, the agents panel's hover thickening, canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
   create/select exactly one artboard.

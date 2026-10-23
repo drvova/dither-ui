@@ -236,9 +236,10 @@ Default section order:
 - One site voice: the landing speaks the docs' and the Studio's language
   (dark theme tokens, monospace, hairlines, micro-caps), so the whole site
   reads as one product. The user's 2000s oakley.com reference lends the
-  landing its STRUCTURE only (a tabbed campaign stage, dense panels in
-  columns, lists under a mark), filled with the kit itself, never Oakley's
-  assets, marks or names. Rejected: italics, slants and cut corners, the
+  landing its STRUCTURE (a tabbed campaign stage, dense panels in
+  columns, lists under a mark) and the dither winners on Awwwards its
+  SCALE (a full-bleed art band, display-size type), filled with the kit
+  itself, never anyone's assets, marks or names. Rejected: italics, slants and cut corners, the
   nodecode grid, the calm single column, condensed sports caps, bevels and
   red (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API

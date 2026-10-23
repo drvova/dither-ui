@@ -170,12 +170,11 @@ onBeforeUnmount(() => {
     </header>
 
     <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
-      <!-- The portal on the shell: the campaign stage (the films, the
-           statement), the install bar and the panel columns — six moods in
-           the portraits' well: hover a face, her pixels scatter under the
-           cursor and settle, and her emote answers — then the directory,
-           the principles and the agents strip. -->
-      <div class="box mx-auto w-full max-w-[var(--shell)] px-6">
+      <!-- The portal: the full-bleed art band (the films), the statement,
+           the install bar and the panel columns — six moods in the
+           portraits' well: hover a face, her pixels scatter under the
+           cursor and settle, and her emote answers. Then, on the shell, the
+           directory, the principles and the agents. -->
         <Showcase>
           <template #faces>
             <div
@@ -199,14 +198,16 @@ onBeforeUnmount(() => {
             </div>
           </template>
         </Showcase>
+      <div class="box mx-auto w-full max-w-[var(--shell)] px-6">
         <Hub />
 
         <!-- The principles: the figure in a framed well (a 24x24 lattice
              that re-dithers itself into the pointed statement's scene) beside
              six numbered statements, each a link into its docs. -->
         <section aria-labelledby="principles-h" class="principles">
-          <div class="list-head">
-            <h2 id="principles-h" class="eyebrow">Principles</h2>
+          <div class="section-head">
+            <p class="eyebrow">Principles</p>
+            <h2 id="principles-h" class="section-title">One rule under every pixel.</h2>
             <a :href="routePath('/docs/getting-started')" class="more-link">quick start →</a>
           </div>
           <div class="panel principles-body">
@@ -231,14 +232,17 @@ onBeforeUnmount(() => {
         <!-- The agents strip: the harnesses the bridge knows, as hairline
              chips with their ember LED under an eyebrow, over the dot sea —
              every one drives the Studio as the user's own signed-in process. -->
-        <section id="agents" class="panel agents" aria-labelledby="harness-h">
-          <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
-          <div class="harness">
-            <h2 id="harness-h" class="eyebrow">Drives with your agent</h2>
-            <ul class="harness-list">
+        <section id="agents" class="agents" aria-labelledby="harness-h">
+          <div class="section-head">
+            <p class="eyebrow">Agents</p>
+            <h2 id="harness-h" class="section-title">Your own agent drives the Studio.</h2>
+            <a :href="assetPath('/agent/SKILL.md')" class="more-link">agent skill →</a>
+          </div>
+          <div class="panel harness-panel">
+            <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
+            <ul class="harness">
               <li v-for="h in HARNESSES" :key="h" class="harness-chip"><i aria-hidden="true"></i>{{ h }}</li>
             </ul>
-            <a :href="assetPath('/agent/SKILL.md')" class="lead harness-a">Agent skill</a>
           </div>
         </section>
       </div>
@@ -288,9 +292,9 @@ onBeforeUnmount(() => {
 .box {
   display: flex;
   flex-direction: column;
-  gap: var(--rhythm);
-  padding-top: 8px;
-  padding-bottom: var(--rhythm);
+  gap: calc(var(--rhythm) * 1.5);
+  padding-top: calc(var(--rhythm) * 1.5);
+  padding-bottom: calc(var(--rhythm) * 1.5);
 }
 
 /* The header: the docs chrome's scroll-edge hairline, no hard border. */
@@ -380,10 +384,11 @@ onBeforeUnmount(() => {
 
 /* The principles: the figure's well beside a numbered list; the pointed
    statement takes ink and a hairline rule. */
-.principles {
+.principles,
+.agents {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 
 .principles-body {
@@ -447,9 +452,8 @@ onBeforeUnmount(() => {
   color: var(--ink);
 }
 
-/* The agents strip: a panel with the dot sea breathing under one row — an
-   eyebrow, the harness chips, one link. */
-.agents {
+/* The agents: a panel with the dot sea breathing under the harness chips. */
+.harness-panel {
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -459,18 +463,11 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 14px 24px;
-  min-height: 96px;
-  padding: 22px 24px;
-}
-
-.harness-list {
-  display: flex;
-  flex-wrap: wrap;
+  align-content: center;
   gap: 6px;
+  min-height: 112px;
   margin: 0;
-  padding: 0;
+  padding: 24px;
   list-style: none;
 }
 
@@ -493,10 +490,6 @@ onBeforeUnmount(() => {
   width: 5px;
   height: 5px;
   background: var(--swatch-orange);
-}
-
-.harness-a {
-  margin-left: auto;
 }
 
 .band-field {

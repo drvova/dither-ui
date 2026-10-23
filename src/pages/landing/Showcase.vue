@@ -22,12 +22,13 @@ import { COMPONENT_COUNT } from "./facts"
 import { FAMILIES, SECTION_COUNT, SHELVES } from "./hub"
 import { catalogLayout, catalogPlate, dawnPlate } from "./plates"
 
-// The portal (its structure after the 2000s oakley.com, its voice the
-// site's own): a campaign STAGE — the films as tabbed campaigns (one
-// mounted at a time), the statement over them — the install bar, then three
-// columns of panels: the Studio pitch with live kit components as product
-// tiles and the portraits (a slot: their shake lives on the page); framed
-// wells with a leading link; lists into the docs under an eyebrow.
+// The portal (its structure after the 2000s oakley.com, its scale after
+// the dither winners on Awwwards, its voice the site's own): a full-bleed
+// art band — the films as tabbed campaigns, one mounted at a time — then
+// the statement at display scale, the install bar and three columns of
+// panels: the Studio pitch with live kit components as product tiles and
+// the portraits (a slot: their shake lives on the page); framed wells with
+// a leading link; lists into the docs under an eyebrow.
 const LAYOUT = catalogLayout(FAMILIES.map((f) => f.count))
 const FILMS = [
   {
@@ -102,8 +103,8 @@ const HANDBOOK = [
 
 <template>
   <section aria-labelledby="hero-h" class="portal">
-    <!-- The stage: the picked film behind the statement, the tabs on their
-         own floor row so no film ever runs under them. -->
+    <!-- The stage: a full-bleed band, the picked film its art; the tabs and
+         the mark have their own floor row so no film ever runs under them. -->
     <div class="stage" :data-wide="film.wide ? '' : undefined">
       <div class="stage-view">
         <ClayzoFilm
@@ -118,19 +119,6 @@ const HANDBOOK = [
             <PixelPlate :plate="PLATES[film.id]" fit="xMidYMax meet" class="block size-full" />
           </template>
         </ClayzoFilm>
-        <div class="stage-scrim" aria-hidden="true"></div>
-        <div class="stage-copy">
-          <p class="eyebrow">Every pixel placed on purpose</p>
-          <h1 id="hero-h" class="display stage-h">A dithered UI toolkit for Vue.</h1>
-          <p class="stage-lede">
-            Charts, controls and surfaces, rendered pixel by pixel from one seeded palette — for Vue 3
-            or Svelte 5.
-          </p>
-          <div class="stage-keys">
-            <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
-            <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
-          </div>
-        </div>
         <p class="micro stage-label" aria-hidden="true">{{ film.label }}</p>
       </div>
       <div class="stage-foot">
@@ -149,111 +137,128 @@ const HANDBOOK = [
       </div>
     </div>
 
-    <InstallBlock />
+    <div class="shell">
+      <!-- The statement at display scale under the art, across the shell;
+           the lede and the keys on one row under it. -->
+      <div class="intro">
+        <p class="eyebrow intro-eyebrow">Every pixel placed on purpose</p>
+        <h1 id="hero-h" class="display intro-h">A dithered UI toolkit for Vue.</h1>
+        <p class="intro-lede">
+          Charts, controls and surfaces, rendered pixel by pixel from one seeded palette — for Vue 3
+          or Svelte 5.
+        </p>
+        <div class="intro-keys">
+          <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
+          <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
+        </div>
+      </div>
 
-    <div class="cols">
-      <!-- Column A: the Studio pitch and its products; the portraits. -->
-      <div class="col-a">
-        <article class="panel build">
-          <h2 class="display build-h">Build <span>your own screens</span></h2>
-          <p class="build-p">
-            Charts, controls and whole screens on an infinite canvas — placed by hand, or by your agent
-            through one protocol.
-          </p>
-          <div class="tiles">
-            <div class="thumb tile">
-              <div class="tile-art">
-                <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
-                <DitherButton color="orange" variant="solid">New frame</DitherButton>
-              </div>
-              <span class="micro tile-name">Buttons</span>
-            </div>
-            <div class="thumb tile">
-              <div class="tile-art tile-stack">
-                <div class="tile-row">
-                  <DitherSwitch v-model="dither" label="Dither" />
-                  <DitherBadge :seed="seed">seed {{ seed }}</DitherBadge>
+      <InstallBlock />
+
+      <div class="cols">
+        <!-- Column A: the Studio pitch and its products; the portraits. -->
+        <div class="col-a">
+          <article class="panel build">
+            <h2 class="display build-h">Build <span>your own screens</span></h2>
+            <p class="build-p">
+              Charts, controls and whole screens on an infinite canvas — placed by hand, or by your agent
+              through one protocol.
+            </p>
+            <div class="tiles">
+              <div class="thumb tile">
+                <div class="tile-art">
+                  <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
+                  <DitherButton color="orange" variant="solid">New frame</DitherButton>
                 </div>
-                <DitherSlider v-model="seed" :min="0" :max="999" label="Seed" class="tile-slider" />
+                <span class="micro tile-name">Buttons</span>
               </div>
-              <span class="micro tile-name">Controls</span>
+              <div class="thumb tile">
+                <div class="tile-art tile-stack">
+                  <div class="tile-row">
+                    <DitherSwitch v-model="dither" label="Dither" />
+                    <DitherBadge :seed="seed">seed {{ seed }}</DitherBadge>
+                  </div>
+                  <DitherSlider v-model="seed" :min="0" :max="999" label="Seed" class="tile-slider" />
+                </div>
+                <span class="micro tile-name">Controls</span>
+              </div>
             </div>
-          </div>
-          <div class="build-links">
-            <a :href="routePath('/studio')" class="lead">Open the studio</a>
-            <a :href="routePath('/docs')" class="lead">Choose from {{ COMPONENT_COUNT }} components</a>
-          </div>
-        </article>
+            <div class="build-links">
+              <a :href="routePath('/studio')" class="lead">Open the studio</a>
+              <a :href="routePath('/docs')" class="lead">Choose from {{ COMPONENT_COUNT }} components</a>
+            </div>
+          </article>
 
-        <article class="panel feature">
-          <h3 class="display feature-h">Pixel art that answers the cursor</h3>
-          <p class="feature-p">
-            Hover a portrait: her pixels scatter under the cursor and spring home, and her emote
-            answers.
-          </p>
-          <div class="thumb faces"><slot name="faces" /></div>
-        </article>
-      </div>
-
-      <!-- Column B: framed wells. -->
-      <div class="col-b">
-        <figure class="pick">
-          <div class="thumb pick-art">
-            <span class="live micro" aria-hidden="true"><i class="led"></i>live · 12 fps</span>
-            <DitherWorld
-              :source="WORLD"
-              :colors="RAMP"
-              :auto-rotate="14"
-              :grain="0.4"
-              :frame-rate="12"
-              label="A seeded 3D probe turning slowly, rendered through the kit's Bayer cells"
-              class="h-full"
-            />
-          </div>
-          <figcaption>
-            <a :href="routePath('/docs/world')" class="lead">World 3D</a>
-            <p class="pick-p">glTF, OBJ, STL and VRML through the same Bayer cells.</p>
-          </figcaption>
-        </figure>
-        <figure class="pick">
-          <div class="thumb pick-art pick-chart">
-            <LineChart :data="ROWS" :config="CONFIG" :interactive="false" :sparkles="false">
-              <Grid horizontal />
-              <XAxis data-key="month" :max-ticks="4" />
-              <YAxis :tick-count="3" />
-              <Line data-key="renders" />
-            </LineChart>
-          </div>
-          <figcaption>
-            <a :href="routePath('/docs/area')" class="lead">Charts</a>
-            <p class="pick-p">Seeded and deterministic: a seed replays a fill forever.</p>
-          </figcaption>
-        </figure>
-      </div>
-
-      <!-- Column C: lists into the docs. -->
-      <aside class="col-c" aria-label="Docs">
-        <div class="list-head">
-          <span class="eyebrow">Docs</span>
-          <a :href="routePath('/docs')" class="more-link">all →</a>
+          <article class="panel feature">
+            <h3 class="display feature-h">Pixel art that answers the cursor</h3>
+            <p class="feature-p">
+              Hover a portrait: her pixels scatter under the cursor and spring home, and her emote
+              answers.
+            </p>
+            <div class="thumb faces"><slot name="faces" /></div>
+          </article>
         </div>
-        <ul class="list">
-          <li v-for="d in DOCS" :key="d.label">
-            <a :href="d.href" class="list-t">{{ d.label }} <span>· {{ d.count }}</span></a>
-            <span class="list-s">{{ d.note }}</span>
-          </li>
-        </ul>
-        <div class="list-head">
-          <span class="eyebrow">Handbook</span>
-          <a :href="routePath('/docs/styling')" class="more-link">all →</a>
+
+        <!-- Column B: framed wells. -->
+        <div class="col-b">
+          <figure class="pick">
+            <div class="thumb pick-art">
+              <span class="live micro" aria-hidden="true"><i class="led"></i>live · 12 fps</span>
+              <DitherWorld
+                :source="WORLD"
+                :colors="RAMP"
+                :auto-rotate="14"
+                :grain="0.4"
+                :frame-rate="12"
+                label="A seeded 3D probe turning slowly, rendered through the kit's Bayer cells"
+                class="h-full"
+              />
+            </div>
+            <figcaption>
+              <a :href="routePath('/docs/world')" class="lead">World 3D</a>
+              <p class="pick-p">glTF, OBJ, STL and VRML through the same Bayer cells.</p>
+            </figcaption>
+          </figure>
+          <figure class="pick">
+            <div class="thumb pick-art pick-chart">
+              <LineChart :data="ROWS" :config="CONFIG" :interactive="false" :sparkles="false">
+                <Grid horizontal />
+                <XAxis data-key="month" :max-ticks="4" />
+                <YAxis :tick-count="3" />
+                <Line data-key="renders" />
+              </LineChart>
+            </div>
+            <figcaption>
+              <a :href="routePath('/docs/area')" class="lead">Charts</a>
+              <p class="pick-p">Seeded and deterministic: a seed replays a fill forever.</p>
+            </figcaption>
+          </figure>
         </div>
-        <ul class="list">
-          <li v-for="h in HANDBOOK" :key="h.label">
-            <a :href="h.href" class="list-t">{{ h.label }}</a>
-            <span class="list-s">{{ h.note }}</span>
-          </li>
-        </ul>
-      </aside>
+
+        <!-- Column C: lists into the docs. -->
+        <aside class="col-c" aria-label="Docs">
+          <div class="list-head">
+            <span class="eyebrow">Docs</span>
+            <a :href="routePath('/docs')" class="more-link">all →</a>
+          </div>
+          <ul class="list">
+            <li v-for="d in DOCS" :key="d.label">
+              <a :href="d.href" class="list-t">{{ d.label }} <span>· {{ d.count }}</span></a>
+              <span class="list-s">{{ d.note }}</span>
+            </li>
+          </ul>
+          <div class="list-head">
+            <span class="eyebrow">Handbook</span>
+            <a :href="routePath('/docs/styling')" class="more-link">all →</a>
+          </div>
+          <ul class="list">
+            <li v-for="h in HANDBOOK" :key="h.label">
+              <a :href="h.href" class="list-t">{{ h.label }}</a>
+              <span class="list-s">{{ h.note }}</span>
+            </li>
+          </ul>
+        </aside>
+      </div>
     </div>
   </section>
 </template>
@@ -262,31 +267,44 @@ const HANDBOOK = [
 .portal {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 36px;
 }
 
-/* The stage: a well at the docs' card corner. In its view, films of the
-   8:5 kind sit right at full height and the wide ones run across its
-   floor; a scrim keeps the copy legible, the copy sits top-left and the
-   film's label top-right. The tabs and the mark have their own row. */
+/* The shell for everything under the band: the docs' width and gutter. */
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/* The stage: a full-bleed band between hairlines, its content edge aligned
+   to the shell. 8:5 films stand centred at full height; the wide ones run
+   across the floor. The film's label sits top-right; the tabs and the mark
+   have their own row. */
 .stage {
-  overflow: hidden;
-  border-radius: 12px;
+  --edge: max(1.5rem, calc((100% - var(--shell)) / 2 + 1.5rem));
   background: var(--well);
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow:
+    inset 0 1px 0 var(--line),
+    inset 0 -1px 0 var(--line);
 }
 
 .stage-view {
   position: relative;
-  min-height: 22rem;
-  aspect-ratio: 64 / 21;
+  overflow: hidden;
+  height: clamp(20rem, 50vh, 34rem);
 }
 
 .stage-film {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 50%;
   height: 100%;
+  translate: -50% 0;
 }
 
 .stage[data-wide] .stage-film {
@@ -295,56 +313,13 @@ const HANDBOOK = [
   bottom: 0;
   width: 100%;
   height: auto;
-}
-
-.stage-scrim {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    var(--well) 0%,
-    color-mix(in oklab, var(--well) 78%, transparent) 36%,
-    transparent 62%
-  );
-}
-
-.stage-copy {
-  position: absolute;
-  top: clamp(1.5rem, 4vw, 2.75rem);
-  left: clamp(1.25rem, 3.5vw, 2.5rem);
-  max-width: 27rem;
-}
-
-.stage-h {
-  margin: 14px 0 0;
-  font-size: clamp(1.9rem, 3.4vw, 2.75rem);
-  line-height: 1.08;
-  letter-spacing: -0.035em;
-  text-wrap: balance;
-  color: var(--ink);
-}
-
-.stage-lede {
-  margin: 16px 0 0;
-  max-width: 24rem;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--ink-3);
-  text-wrap: pretty;
-}
-
-.stage-keys {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 22px;
+  translate: none;
 }
 
 .stage-label {
   position: absolute;
   top: 14px;
-  right: 14px;
+  right: var(--edge);
   margin: 0;
   padding: 3px 7px;
   border-radius: 4px;
@@ -357,8 +332,57 @@ const HANDBOOK = [
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 20px 10px clamp(1.25rem, 3.5vw, 2.5rem);
+  padding: 10px var(--edge);
   box-shadow: inset 0 1px 0 var(--line);
+}
+
+/* The statement: display-scale mono across the shell under the art (two
+   lines at desktop, above a 1440×900 fold), the lede and the keys on one
+   row under it. */
+.intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0 48px;
+  padding-bottom: 16px;
+}
+
+.intro-eyebrow,
+.intro-h {
+  grid-column: 1 / -1;
+}
+
+.intro-h {
+  margin: 14px 0 22px;
+  font-size: clamp(2.4rem, 5.3vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+
+.intro-lede {
+  margin: 0;
+  max-width: 30rem;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.intro-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 759px) {
+  .intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .intro-keys {
+    margin-top: 20px;
+  }
 }
 
 .stage-tabs {
@@ -381,18 +405,8 @@ const HANDBOOK = [
 
 @media (max-width: 759px) {
   .stage-view {
-    display: flex;
-    flex-direction: column;
-    aspect-ratio: auto;
-    min-height: 0;
+    height: auto;
   }
-  .stage-copy {
-    position: relative;
-    inset: auto;
-    max-width: none;
-    padding: 1.5rem 1.25rem 1.25rem;
-  }
-  .stage-scrim,
   .stage-label,
   .stage-badge {
     display: none;
@@ -400,11 +414,16 @@ const HANDBOOK = [
   .stage-film,
   .stage[data-wide] .stage-film {
     position: relative;
+    left: 0;
     width: 100%;
     height: auto;
+    translate: none;
   }
   .stage-foot {
     padding: 10px 12px;
+  }
+  .stage-tabs {
+    flex: 1;
   }
   .stage-tabs > button {
     flex: 1;
