@@ -1,32 +1,44 @@
 <script setup lang="ts">
-// The directory: the docs as a browsable shelf under a section head, the
-// kit's own DitherTabs (badges = family sizes) over a horizontal shelf of
-// framed cards that deep-link into the docs, each with the section's
-// seeded identicon (the kit's avatar, from the section id), its family,
-// name, a line and its path; under the shelf, what every preview in the
-// docs lets you do.
+// The directory: the docs as a browsable shelf under a head (the title,
+// one line and its link beside the catalog film: the docs as a skyline,
+// one window per section), the kit's own DitherTabs (badges = family
+// sizes) over a horizontal shelf of framed cards that deep-link into the
+// docs, each with the section's seeded identicon (the kit's avatar, from
+// the section id), its family, name, a line and its path; under the shelf,
+// what every preview in the docs lets you do.
 import { ref } from "vue"
-import { DitherAvatar, DitherTabPanel, DitherTabs } from "@dither-kit"
+import { DitherAvatar, DitherIcon, DitherTabPanel, DitherTabs, type IconName } from "@dither-kit"
 import { routePath } from "@/shared/lib"
-import { SECTION_COUNT, SHELVES } from "./hub"
+import ClayzoFilm from "./ClayzoFilm.vue"
+import PixelPlate from "./PixelPlate.vue"
+import { FAMILIES, SECTION_COUNT, SHELVES } from "./hub"
+import { catalogLayout, catalogPlate } from "./plates"
 
 const tab = ref("explore")
 
+const COUNTS = FAMILIES.map((f) => f.count)
+const LAYOUT = catalogLayout(COUNTS)
+const PLATE = catalogPlate(COUNTS)
+const CATALOG_ALT = `The docs catalog as a night skyline: ${SECTION_COUNT} lit windows, one per section, in a tower per family; windows switch on and off and a new section falls onto the tallest roof.`
+
 // The docs' preview tools (the workbench and the source panel), each with
 // the section that shows it best.
-const TOOLS = [
+const TOOLS: { title: string; icon: IconName; text: string; link: { label: string; href: string } }[] = [
   {
     title: "Inspect",
+    icon: "Crosshair",
     text: "Measure spacing, check contrast and the Tab order, annotate and record any preview.",
     link: { label: "Inspect the button", href: "/docs/button" },
   },
   {
     title: "Edit and run",
+    icon: "Code",
     text: "Open the code as files, change the example or the kit's own source, and run it in place.",
     link: { label: "Edit the switch", href: "/docs/switch" },
   },
   {
     title: "Hand it to your agent",
+    icon: "Bot",
     text: "Copy your notes as Markdown, or download the files with a prompt.md for a coding agent.",
     link: { label: "Open the area chart", href: "/docs/area" },
   },
@@ -40,14 +52,27 @@ const TABS = SHELVES.map((s) => ({
 
 <template>
   <section id="directory" aria-labelledby="directory-h" class="directory">
-    <div class="section-head">
-      <h2 id="directory-h" class="section-title">{{ SECTION_COUNT }} sections, every one of them live.</h2>
-      <a :href="routePath('/docs')" class="more-link">Browse all sections</a>
+    <div class="dir-head">
+      <div class="dir-text">
+        <h2 id="directory-h" class="section-title">{{ SECTION_COUNT }} sections, every one of them live.</h2>
+        <p class="dir-p">
+          Each section is a working demo with its props table and its code. Every component is one file in one folder,
+          so what you read is what you ship.
+        </p>
+        <a :href="routePath('/docs')" class="more-link">Browse all sections</a>
+      </div>
+      <ClayzoFilm
+        film="catalog"
+        chip="Pause the catalog film"
+        :label="CATALOG_ALT"
+        class="dir-film"
+        :style="{ aspectRatio: `${LAYOUT.w} / ${LAYOUT.h}` }"
+      >
+        <template #fallback>
+          <PixelPlate :plate="PLATE" fit="xMidYMax meet" class="block size-full" />
+        </template>
+      </ClayzoFilm>
     </div>
-    <p class="dir-p">
-      Each section is a working demo with its props table and its code. Every component is one file in one folder, so
-      what you read is what you ship.
-    </p>
     <div class="panel window">
       <DitherTabs v-model="tab" :tabs="TABS" color="grey" class="tabs">
         <DitherTabPanel v-for="s in SHELVES" :key="s.value" :value="s.value" class="shelf">
@@ -71,7 +96,9 @@ const TABS = SHELVES.map((s) => ({
       </DitherTabs>
       <ul class="tools" aria-label="In every preview">
         <li v-for="t in TOOLS" :key="t.title">
-          <h3 class="tool-h">{{ t.title }}</h3>
+          <h3 class="tool-h">
+            <DitherIcon :name="t.icon" :size="15" :stroke-width="1.5" class="tool-i" />{{ t.title }}
+          </h3>
           <p class="tool-p">{{ t.text }}</p>
           <a :href="routePath(t.link.href)" class="lead">{{ t.link.label }}</a>
         </li>
@@ -87,12 +114,40 @@ const TABS = SHELVES.map((s) => ({
   gap: 12px;
 }
 
+/* The head: the title, its line and its link on the left; the catalog
+   film on the right, its skyline standing on the panel. One column under
+   760px, the film under the text. */
+.dir-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: end;
+  gap: 20px 40px;
+}
+
+.dir-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
 .dir-p {
-  margin: 0 0 8px;
-  max-width: 44rem;
+  margin: 0;
+  max-width: 34rem;
   font-size: 12px;
   line-height: 1.6;
   color: var(--ink-3);
+}
+
+.dir-film {
+  width: 100%;
+}
+
+@media (max-width: 759px) {
+  .dir-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .window {
@@ -213,10 +268,18 @@ const TABS = SHELVES.map((s) => ({
 }
 
 .tool-h {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   margin: 0;
   font-size: 13px;
   font-weight: 500;
   color: var(--ink);
+}
+
+.tool-i {
+  flex: none;
+  color: var(--ink-3);
 }
 
 .tool-p {

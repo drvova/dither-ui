@@ -26,7 +26,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `entities/` — domain stores: editor (selection/artboards, single source of
   truth), chart, widget, artboard.
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
-  ContextMenu, ...), config (CHART_TYPES), lib (theme, routes, base64, menu,
+  ContextMenu, ...; `ToolMark` over `marks.ts` — the real one-colour
+  marks of npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the coding agents
+  the bridge starts (keyed by its harness ids), from Simple Icons (CC0),
+  LobeHub (MIT) and the tools' own site icons, paths verbatim; their
+  owners' trademarks, shown only beside the tool's name, never restyled,
+  dithered or put in the kit; imported by path, never through the
+  `shared/ui` barrel, which would pull every shared component into the
+  landing's first load), config (CHART_TYPES), lib (theme, routes, base64, menu,
   `sound.ts` — Kobra's interface sounds as WebAudio voices behind one
   remembered switch (`sounds`, localStorage `dither-sounds`) — `files.ts` —
   `download()` and a stored .zip of text files, the ONE download path for

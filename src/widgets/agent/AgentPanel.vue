@@ -17,6 +17,8 @@ import {
 } from "@/features/agent/tools"
 import { undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
+import ToolMark from "@/shared/ui/ToolMark.vue"
+import { isMark } from "@/shared/ui/marks"
 
 // The agent panel is a CONTROL PLANE for the harness the user already has.
 // One local bridge, one pick: Claude Code, Codex, Gemini CLI, oh-my-pi,
@@ -674,7 +676,9 @@ onBeforeUnmount(() => {
         @click="togglePicker"
       >
         <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
-        >{{ agentName || (acp ? "pick a harness" : "harness") }}
+        ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" />{{
+          agentName || (acp ? "pick a harness" : "harness")
+        }}
       </button>
       <button
         v-if="modes.length"
@@ -711,7 +715,7 @@ onBeforeUnmount(() => {
           :title="h.command"
           @click="start(h.id)"
         >
-          <span class="pick-name">{{ h.name }}</span>
+          <span class="pick-name"><ToolMark v-if="isMark(h.id)" :id="h.id" :size="12" />{{ h.name }}</span>
           <span class="dim">{{ h.installed ? (h.note ?? "on this path") : "not on the path" }}</span>
         </button>
         <form class="custom" @submit.prevent="customCommand.trim() && start({ command: customCommand.trim() })">
@@ -1003,6 +1007,9 @@ onBeforeUnmount(() => {
   color: var(--swatch-green);
 }
 .pick-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   white-space: nowrap;
 }
 .stop-pick {

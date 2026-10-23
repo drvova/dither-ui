@@ -1,9 +1,8 @@
 /* The landing's layer over the SITE voice: the dark theme tokens,
    monospace and hairlines (`.nav-a`, `.nav-pill`, `.led` in
    app/styles.css), so it reads as the same product as the docs and the
-   Studio. What it keeps from the 2000s oakley.com archive is STRUCTURE: a
-   campaign stage with an index, dense panels in columns, lists under a
-   heading. Its copy follows the design.how bans the user picked: no
+   Studio. What it keeps from the 2000s oakley.com archive is STRUCTURE:
+   dense panels in columns, lists under a heading. Its copy follows the design.how bans the user picked: no
    uppercase labels, no eyebrow over a title, no middle dots or em dashes,
    no link that ends in an arrow (each names where it goes). Never a second
    type system, bevels or a hue in the chrome; the kit's ember is the one
@@ -131,6 +130,9 @@
 }
 
 .landing .seg > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 26px;
   padding: 0 9px;
   border-radius: 5px;

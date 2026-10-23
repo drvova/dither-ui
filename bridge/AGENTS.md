@@ -44,8 +44,10 @@
 - The agent is launched through the shell (`shell: true`) from `--cwd`, so
   a preset or `--agent` can be any command line (a local script by absolute
   path); it inherits the environment plus `DITHER_BRIDGE_PORT`. Adding a
-  harness is one row in `HARNESSES` (and the README table, and the
-  landing's works-with strip — `HARNESSES` in `LandingPage.vue`).
+  harness is one row in `HARNESSES` (and the README table, the landing's
+  agents step — `HARNESSES` ids and names in `LandingPage.vue` — and its
+  mark in `src/shared/ui/marks.ts` under the same id, which the landing's
+  chips and the Studio's harness picker draw).
 - A tool result's `data.files` (`[{ path, content }]`) is materialized
   under `--cwd` before it reaches the agent — relative paths only, nothing
   above the directory — and replaced by the written paths plus `data.cwd`,

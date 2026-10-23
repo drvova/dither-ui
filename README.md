@@ -28,7 +28,7 @@ component, and a Studio your coding agent can drive.
 
 Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dither-ui.com/docs) and the [Studio](https://dither-ui.com/studio).
 
-![The dither-ui landing: a dithered film beside its index, the statement and the kit's numbers](.github/readme/landing.webp)
+![The dither-ui landing: the statement and the kit's numbers beside one dithered film](.github/readme/landing.webp)
 
 The kit is copy-in, shadcn-style: it lives in `dither-kit/` with no imports from
 the app, so you copy the folder into your project and own every line. Beside
@@ -107,16 +107,18 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 
 ### Landing
 
-A full-bleed band of five dithered films, each beside an index and a caption
-that says what it shows. They are vector scenes drawn live through the kit's
-own dither rule, and the grid halves under your cursor. Under the band:
+A full-bleed hero: the statement, the keys and the kit's numbers beside one
+dithered film of the kit's paint layers. The films are vector scenes drawn
+live through the kit's own dither rule, and the grid halves under your cursor.
+Each of the others plays in the section it shows:
 
-- the statement with the kit's numbers;
-- the install bar;
-- live kit panels: buttons, controls, a 3D model, a chart and a background;
-- a directory of all 302 docs sections;
+- the install bar, under the marks of npm, pnpm and Bun;
+- live kit panels: buttons, controls, a 3D model, a chart and the video film;
+- a directory of all 302 docs sections, beside the docs drawn as a skyline;
 - six principles that light up as you scroll;
-- how to hand the Studio to your own coding agent.
+- how to hand the Studio to your own coding agent, each harness under its
+  own mark, beside the Studio film;
+- a closing band with dawn over a dithered planet.
 
 ### Docs
 
@@ -416,3 +418,11 @@ inspired by [Evil Charts](https://evilcharts.com):
 
 Dithering approach and the original **Dither Kit** charts by
 [tripwire.sh/dither-kit](https://www.tripwire.sh/dither-kit).
+
+The site names the tools it works with by their own marks: npm, pnpm, Bun,
+Node.js, Vue, Svelte, GitHub, Qwen and OpenCode from
+[Simple Icons](https://simpleicons.org) (CC0; the Vue logo is by the Vue team,
+[CC BY-NC-SA 4.0](https://github.com/vuejs/art)); Claude Code, Codex, Gemini CLI
+and Goose from [LobeHub icons](https://github.com/lobehub/lobe-icons) (MIT);
+oh-my-pi and Auggie from their own sites. Each mark is its owner's trademark,
+shown only to name the tool, and none ships in `dither-kit/`.

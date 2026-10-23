@@ -7,7 +7,8 @@
 // (`data-live`, which the prerender strips), so the static bytes always
 // ship the fallback. `playing` is the pause control (WCAG 2.2.2: motion
 // longer than five seconds can be stopped) — bound by the page, or the
-// film's own corner chip with `chip`. Reduced motion starts it paused on
+// film's own corner chip with `chip`, the chip's name (each film's own, so
+// a page of films never has two buttons called the same). Reduced motion starts it paused on
 // the film's `still` marker, the resting frame every film authors; pressing
 // play is the visitor's explicit ask, so it plays. `time` reports the
 // playhead in seconds for a timecode.
@@ -16,7 +17,7 @@ import type { PlayerHandle } from "@clayzo/webgl-player"
 import { assetPath } from "@/shared/lib"
 import FilmChip from "./FilmChip.vue"
 
-const props = defineProps<{ film: string; label: string; chip?: boolean }>()
+const props = defineProps<{ film: string; label: string; chip?: string }>()
 const playing = defineModel<boolean>("playing", { default: true })
 const time = defineModel<number>("time", { default: 0 })
 const emit = defineEmits<{ ready: [duration: number] }>()
@@ -119,7 +120,7 @@ onBeforeUnmount(() => {
       <slot name="fallback" />
     </div>
     <canvas ref="canvas" role="img" :aria-label="label" class="film-canvas" />
-    <FilmChip v-if="chip && ready" v-model="playing" label="Pause film" class="film-corner" />
+    <FilmChip v-if="chip && ready" v-model="playing" :label="chip" class="film-corner" />
   </div>
 </template>
 

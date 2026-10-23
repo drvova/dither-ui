@@ -2,24 +2,43 @@
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
+import ToolMark from "@/shared/ui/ToolMark.vue"
 import "./chapters.css"
 import { version } from "../../../package.json"
+import ClayzoFilm from "./ClayzoFilm.vue"
 import EngravedWordmark from "./EngravedWordmark.vue"
 import EssayFigure from "./EssayFigure.vue"
 import Hub from "./Hub.vue"
+import PixelPlate from "./PixelPlate.vue"
 import PixelWord from "./PixelWord.vue"
 import Showcase from "./Showcase.vue"
-import { createDitherField, type DitherField } from "./dither-field"
 import { createPixelShake, type PixelShake } from "./pixel-shake"
-import { seedFor } from "./genome"
-import { SKY } from "./plates"
+import { dawnPlate } from "./plates"
 
-// The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES), in its order.
-const HARNESSES = ["Claude Code", "Codex", "Gemini CLI", "Qwen Code", "oh-my-pi", "Goose", "OpenCode", "Auggie"]
+// The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES: ids and
+// names), in its order, each chip under the tool's own mark.
+const HARNESSES = [
+  { id: "claude", name: "Claude Code" },
+  { id: "codex", name: "Codex" },
+  { id: "gemini", name: "Gemini CLI" },
+  { id: "qwen", name: "Qwen Code" },
+  { id: "omp", name: "oh-my-pi" },
+  { id: "goose", name: "Goose" },
+  { id: "opencode", name: "OpenCode" },
+  { id: "auggie", name: "Auggie" },
+] as const
 // The bridge: copy its folder, run it (one file, Node 20+). Shown as its
 // two commands, copied as one line.
 const BRIDGE_STEPS = ["npx degit drvova/dither-ui/bridge bridge", "node bridge/dither-bridge.mjs"]
 const BRIDGE = BRIDGE_STEPS.join(" && ")
+const STUDIO_ALT =
+  "A cursor places three artboards on the Studio's dotted canvas: a bar chart, a line chart and a button. It selects them, and they drain away."
+
+// The closing band: dawn over a dithered planet, its stand-in the same
+// scene as a pixel plate.
+const DAWN = dawnPlate()
+const DAWN_ALT =
+  "Dawn over a dithered planet: the sun breathes on the limb, an aurora sways over the far side, seed moons cross the sky and stars flicker."
 
 // The footer's links, in one row.
 const FOOTER = [
@@ -96,13 +115,6 @@ const principle = ref(0)
 const principleEls = ref<HTMLElement[]>([])
 let stageIO: IntersectionObserver | null = null
 
-// The agents strip's backdrop: a sparse seeded dot sea on the vanilla
-// engine (12fps, 4px cells, navy-to-blue only, so the chips keep their
-// ink). Hovering the strip thickens the dither — density is the hover
-// state — and the cursor drags a soft body through it.
-const bandCanvas = ref<HTMLCanvasElement | null>(null)
-let bandField: DitherField | null = null
-
 onMounted(() => {
   // The landing is always-dark art (the film stage, plates and organism are
   // ink). A light theme toggled on docs/studio persists on <html> and this is
@@ -122,35 +134,6 @@ onMounted(() => {
           createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }),
         )
       if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
-    })
-  }
-
-  if (bandCanvas.value) {
-    bandField = createDitherField(bandCanvas.value, {
-      ramp: SKY.slice(0, 4),
-      cell: 4,
-      fps: 12,
-      seed: seedFor("band"),
-      density: 0.42,
-      hoverDensity: 0.64,
-      pointer: 0.4,
-      pointerRadius: 120,
-      sizzle: 0.3,
-      bodies: (w, h, rand) =>
-        [0.18, 0.5, 0.82].map((fx, i) => ({
-          x: fx * w,
-          y: (0.3 + rand() * 0.4) * h,
-          // Keyed to the SHORT side so a tall phone band stays a sparse sea
-          // (a radius keyed to height flooded it).
-          r: Math.min(h * 0.9, w * 0.3),
-          fx: 0.03 + i * 0.011,
-          fy: 0.025 + i * 0.009,
-          px: rand() * 6.28,
-          py: rand() * 6.28,
-          w: 0.62,
-        })),
-      // Fade to the band's hairline edges so the sea never meets a border.
-      mask: (_x, y, _w, h) => Math.min(1, Math.min(y, h - y) / (h * 0.3)),
     })
   }
 
@@ -175,8 +158,6 @@ onBeforeUnmount(() => {
   stageIO = null
   for (const sh of shakers) sh.destroy()
   shakers = []
-  bandField?.destroy()
-  bandField = null
 })
 </script>
 
@@ -308,9 +289,10 @@ onBeforeUnmount(() => {
         </section>
 
         <!-- The agents: how to hand the Studio to the agent you already use
-             (three steps, the bridge's command to copy) beside the harnesses
-             the bridge knows, as hairline chips with their ember LED over
-             the dot sea. Each one runs as the user's own signed-in process. -->
+             (three steps, each under its glyph: the bridge's command to
+             copy under Node's mark, the harnesses it knows as hairline
+             chips under their own marks, the ask) beside the Studio film.
+             Each harness runs as the user's own signed-in process. -->
         <section id="agents" class="agents" aria-labelledby="harness-h">
           <div class="section-head">
             <h2 id="harness-h" class="section-title">Your own agent drives the Studio.</h2>
@@ -319,9 +301,9 @@ onBeforeUnmount(() => {
           <div class="panel harness-panel">
             <ol class="agent-steps">
               <li>
-                <span class="step-n" aria-hidden="true">1</span>
+                <span class="step-i"><ToolMark id="node" :size="14" /></span>
                 <div class="step-b">
-                  <p class="step-t">Run the bridge on your machine.</p>
+                  <p class="step-t">Run the bridge on your machine: one Node file, no dependencies.</p>
                   <div class="bridge">
                     <code class="bridge-cmd"
                       ><span>{{ BRIDGE_STEPS[0] }} &&</span><span>{{ BRIDGE_STEPS[1] }}</span></code
@@ -337,28 +319,52 @@ onBeforeUnmount(() => {
                 </div>
               </li>
               <li>
-                <span class="step-n" aria-hidden="true">2</span>
-                <p class="step-t step-b">
-                  Open the Studio's Agent panel and pick your harness. It lists the ones on your PATH.
-                </p>
+                <span class="step-i"><DitherIcon name="Bot" :size="14" :stroke-width="1.5" /></span>
+                <div class="step-b">
+                  <p class="step-t">
+                    Open the Studio's Agent panel and pick your harness. It lists the ones on your PATH.
+                  </p>
+                  <ul class="harness" aria-label="Harnesses the bridge starts">
+                    <li v-for="h in HARNESSES" :key="h.id" class="harness-chip">
+                      <ToolMark :id="h.id" :size="13" />{{ h.name }}
+                    </li>
+                  </ul>
+                </div>
               </li>
               <li>
-                <span class="step-n" aria-hidden="true">3</span>
+                <span class="step-i"><DitherIcon name="Sparkles" :size="14" :stroke-width="1.5" /></span>
                 <p class="step-t step-b">
                   Ask for a screen. Each tool call lands on the canvas, and undo takes it back.
                 </p>
               </li>
             </ol>
             <div class="harness-side">
-              <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
-              <ul class="harness" aria-label="Harnesses the bridge starts">
-                <li v-for="h in HARNESSES" :key="h" class="harness-chip"><i aria-hidden="true"></i>{{ h }}</li>
-              </ul>
+              <div class="studio-stage">
+                <ClayzoFilm film="studio" chip="Pause the Studio film" :label="STUDIO_ALT" class="studio-film" />
+              </div>
               <p class="harness-note">Your harness keeps its own login. The Studio never asks for a key.</p>
             </div>
           </div>
         </section>
       </div>
+
+      <!-- The close: a full-bleed band, the last line and its keys on the
+           shell, then the dawn film across the band (its stand-in the same
+           scene as a plate). -->
+      <section class="dawn" aria-labelledby="dawn-h">
+        <div class="dawn-in">
+          <h2 id="dawn-h" class="section-title">Copy one folder. Every pixel is yours.</h2>
+          <div class="dawn-keys">
+            <a :href="routePath('/docs/getting-started')" class="nav-a nav-pill key-primary">Read the quick start</a>
+            <a :href="routePath('/studio')" class="nav-a nav-pill">Open the studio</a>
+          </div>
+        </div>
+        <ClayzoFilm film="dawn" chip="Pause the dawn film" :label="DAWN_ALT" class="dawn-film">
+          <template #fallback>
+            <PixelPlate :plate="DAWN" fit="xMidYMax meet" class="block size-full" />
+          </template>
+        </ClayzoFilm>
+      </section>
     </main>
 
     <!-- Footer: the wordmark and framework badges left, bar-separated
@@ -368,8 +374,8 @@ onBeforeUnmount(() => {
         <div class="foot-row">
           <div class="foot-left">
             <PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" class="text-foreground" />
-            <span class="foot-badge">Vue 3</span>
-            <span class="foot-badge">Svelte 5</span>
+            <span class="foot-badge"><ToolMark id="vue" :size="11" />Vue 3</span>
+            <span class="foot-badge"><ToolMark id="svelte" :size="11" />Svelte 5</span>
           </div>
           <nav class="foot-links" aria-label="Footer">
             <a
@@ -451,6 +457,9 @@ onBeforeUnmount(() => {
 }
 
 .foot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 3px 7px;
   font-size: 11px;
   border-radius: 4px;
@@ -602,36 +611,39 @@ onBeforeUnmount(() => {
   }
 }
 
-/* The agents: the three steps on the left; on the right, the harness
-   chips over the dot sea breathing under them. */
+/* The agents: the three steps on the left, each under its glyph; on the
+   right, the Studio film on the well with the note under it. */
+/* A real border, not the panel's inset hairline: the well's background
+   would paint over an inset shadow. */
 .harness-panel {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: none;
 }
 
 .agent-steps {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 22px;
   margin: 0;
   padding: 26px 28px;
   list-style: none;
 }
 
-.agent-steps li {
+.agent-steps > li {
   display: flex;
   gap: 14px;
 }
 
-.step-n {
+.step-i {
   display: inline-grid;
   flex: none;
   place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  font-size: 11px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--line);
 }
@@ -642,13 +654,13 @@ onBeforeUnmount(() => {
 }
 
 .step-t {
-  margin: 2px 0 0;
+  margin: 3px 0 0;
   font-size: 13px;
   line-height: 1.55;
   color: var(--ink-2);
 }
 
-/* The bridge's command: one line in a well, copied in place. */
+/* The bridge's command: its two lines in a well, copied in place as one. */
 .bridge {
   display: flex;
   align-items: center;
@@ -686,91 +698,136 @@ onBeforeUnmount(() => {
   color: var(--ink);
 }
 
-.harness-side {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 16px;
-  padding: 26px 28px;
-  box-shadow: inset 1px 0 0 var(--line);
-}
-
 .harness {
-  position: relative;
-  flex: 1;
   display: flex;
   flex-wrap: wrap;
-  align-content: center;
   gap: 6px;
-  margin: 0;
+  margin: 12px 0 0;
   padding: 0;
   list-style: none;
 }
 
+/* The Studio picker's chip: the harness's own mark and its name on a
+   hairline pill. */
+.harness-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.harness-side {
+  display: flex;
+  flex-direction: column;
+  background: var(--well);
+  box-shadow: inset 1px 0 0 var(--line);
+}
+
+/* The steps set the panel's height; the film fits whatever the well has
+   left above the note (a size container: its own content never stretches
+   the row). */
+.studio-stage {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+
+.studio-film {
+  width: min(100cqw, 160cqh);
+  aspect-ratio: 8 / 5;
+}
+
 .harness-note {
-  position: relative;
-  margin: 0 -28px -26px;
+  margin: 0;
   padding: 12px 28px;
   font-size: 12px;
   line-height: 1.6;
   color: var(--ink-2);
+  text-wrap: balance;
   background: var(--background);
-  box-shadow: inset 0 1px 0 var(--line);
+  box-shadow:
+    inset 1px 0 0 var(--line),
+    inset 0 1px 0 var(--line);
 }
 
 @media (max-width: 759px) {
   .harness-panel {
     grid-template-columns: minmax(0, 1fr);
   }
-  .agent-steps,
-  .harness-side {
+  .agent-steps {
     padding: 20px;
-  }
-  .harness-note {
-    margin: 0 -20px -20px;
-    padding: 12px 20px;
   }
   .harness-side {
     box-shadow: inset 0 1px 0 var(--line);
   }
+  .studio-stage {
+    container-type: normal;
+  }
+  .studio-film {
+    width: 100%;
+  }
+  .harness-note {
+    padding: 12px 20px;
+    box-shadow: inset 0 1px 0 var(--line);
+  }
 }
 
-/* The Studio picker's chip: a square ember LED and the harness name on a
-   hairline pill. */
-.harness-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 6px;
-  font-size: 11.5px;
-  color: var(--ink-2);
-  background: color-mix(in oklab, var(--background) 70%, transparent);
-  box-shadow: inset 0 0 0 1px var(--line);
+/* The close: a full-bleed band between hairlines; the last line and its
+   keys on the shell, the dawn film under them, edge to edge up to 100rem. */
+.dawn {
+  background: var(--well);
+  box-shadow:
+    inset 0 1px 0 var(--line),
+    inset 0 -1px 0 var(--line);
 }
 
-.harness-chip i {
-  width: 5px;
-  height: 5px;
-  background: var(--swatch-orange);
-}
-
-.band-field {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+.dawn-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 32px;
   width: 100%;
-  height: 100%;
-  display: block;
-  opacity: 0.85;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding: 44px 1.5rem 0;
 }
 
-@media (prefers-reduced-transparency: reduce) {
-  .band-field {
-    opacity: 0.4;
+.dawn-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* The pause chip lines up with the shell's right edge. */
+.dawn-film :deep(.film-corner) {
+  right: max(8px, calc((100% - var(--shell)) / 2 + 1.5rem));
+}
+
+.dawn-film {
+  width: 100%;
+  max-width: 100rem;
+  margin-inline: auto;
+  aspect-ratio: 168 / 46;
+}
+
+/* Past 100rem the film stops growing; its sides fade into the band so the
+   planet never ends on a hard edge. */
+@media (min-width: 100rem) {
+  .dawn-film {
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
+}
+
+@media (max-width: 759px) {
+  .dawn-in {
+    padding: 28px 1.5rem 0;
   }
 }
 

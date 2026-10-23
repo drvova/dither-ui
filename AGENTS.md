@@ -114,9 +114,11 @@ Default section order:
   blits from the sheet directly. The README's screenshots live in
   `.github/readme/` (WebP, never shipped with the site), taken from a
   production build: retake the one whose page changes.
-- Landing films (Clayzo): the landing's films (hero, Studio, reel,
-  catalog and dawn — the stage's five tabs) are Clayzo documents
-  (`public/films/<id>.json`) played by
+- Landing films (Clayzo): the landing's films are Clayzo documents
+  (`public/films/<id>.json`), ONE in the hero (the user's call: more there
+  was too much) and the rest in the sections they show (the reel in the
+  Video well, the catalog beside the directory's title, the Studio film in
+  the agents panel, the dawn in the closing band), played by
   `@clayzo/webgl-player` (a lazy chunk, landing only). They are authored in
   `src/pages/landing/films/` against `@clayzo/animation` — NODE-SIDE ONLY:
   Clayzo's SDK license lets a site ship the playback runtime and its
@@ -264,11 +266,16 @@ Default section order:
   by its `ui-review` criteria): no uppercase labels, no eyebrow over a
   title, no middle dots or em dashes, no link ending in an arrow. The
   landing has them now; the docs and the Studio chrome (still micro-caps)
-  follow in a later pass. No space on a page is left empty. The user's 2000s oakley.com reference lends the
-  landing its STRUCTURE (a tabbed campaign stage, dense panels in
-  columns, lists under a mark) and the dither winners on Awwwards its
-  SCALE (a full-bleed art band, display-size type), filled with the kit
-  itself, never anyone's assets, marks or names. Rejected: italics, slants and cut corners, the
+  follow in a later pass. No space on a page is left empty. Icons do the
+  work of labels where they can, with attention to detail: kit glyphs
+  (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
+  (npm, pnpm, Bun, Node, Vue, Svelte, GitHub, each coding agent) from
+  `src/shared/ui/marks.ts`, one-colour beside their names, never
+  restyled. The user's 2000s oakley.com reference lends the landing its
+  STRUCTURE (dense panels in columns, lists under a mark) and the dither
+  winners on Awwwards its SCALE (full-bleed art bands, display-size
+  type), filled with the kit itself, never a reference site's assets,
+  marks or names. Rejected: italics, slants and cut corners, the
   nodecode grid, the calm single column, condensed sports caps, bevels and
   red (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
