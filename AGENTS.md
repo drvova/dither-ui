@@ -95,8 +95,8 @@ Default section order:
   measured coordinates in `LandingPage.vue` FACES) — regenerate from the
   sheet, don't hand-draw. They decorate the README; the landing still
   blits from the sheet directly.
-- Landing films (Clayzo): the landing's films (hero, Studio, reel, and the
-  dawn and catalog films on the two bands) are Clayzo documents
+- Landing films (Clayzo): the landing's films (hero, Studio, reel,
+  catalog and dawn — the stage's five tabs) are Clayzo documents
   (`public/films/<id>.json`) played by
   `@clayzo/webgl-player` (a lazy chunk, landing only). They are authored in
   `src/pages/landing/films/` against `@clayzo/animation` — NODE-SIDE ONLY:
@@ -232,15 +232,14 @@ Default section order:
 
 ## User Preferences
 
-- Design direction: dark, monospace, pixel/dither identity; Japanese-minimal
-  restraint (one statement / one action / one visual) on the landing.
-- The landing must feel like its OWN brand, never a copy of a reference
-  site's anatomy. Its references are design.how (calm system: a narrow
-  centred column, upright sans type, soft buttons, real components as the
-  visuals, captioned previews) and the 2009 Oakley website (period mood;
-  taste only, never Oakley's assets, marks or names). No italic or
-  all-caps display type, no slanted or cut-corner chrome — the user
-  rejected those (details in `src/pages/AGENTS.md`).
+- Design direction: dark, monospace, pixel/dither identity.
+- The landing takes its system from the 2009 oakley.com portal the user
+  picked: a black page, one charcoal box, a tabbed campaign stage, dense
+  panels in three columns, red tags and bevels, upright condensed-caps
+  display type — filled with the kit itself (live components and films as
+  the visuals), never Oakley's assets, marks or names. Never italic; no
+  slanted or cut-corner chrome; the nodecode-style grid and the calm single
+  column were rejected (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
   tables, variant galleries) while keeping the dither skin.
 - Prefer editing existing code over adding new files; avoid over-abstraction and

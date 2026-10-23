@@ -1,8 +1,9 @@
 <script setup lang="ts">
-// The directory: the docs as a browsable shelf — the kit's own DitherTabs
-// (badges = family sizes) over a horizontal shelf of cards that deep-link
-// into the docs, each with the section's seeded identicon (the kit's
-// avatar, from the section id), its family, name, a line and its path.
+// The directory: the docs as a browsable shelf under a red tag — the kit's
+// own DitherTabs (badges = family sizes) over a horizontal shelf of framed
+// cards that deep-link into the docs, each with the section's seeded
+// identicon (the kit's avatar, from the section id), its family, name, a
+// line and its path.
 import { ref } from "vue"
 import { DitherAvatar, DitherTabPanel, DitherTabs } from "@dither-kit"
 import { routePath } from "@/shared/lib"
@@ -13,19 +14,20 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 </script>
 
 <template>
-  <section id="directory" aria-labelledby="directory-h" class="directory mx-auto w-full px-6">
-    <div class="reveal">
-      <h2 id="directory-h" class="section-h">Directory</h2>
-      <p class="section-p">
-        {{ SECTION_COUNT }} sections, each a live demo with its props and copy-ready code. Every
-        component is one file in one folder: read it, copy it, change it.
-      </p>
+  <section id="directory" aria-labelledby="directory-h" class="directory">
+    <div class="list-head">
+      <h2 id="directory-h" class="tag">Directory</h2>
+      <a :href="routePath('/docs')" class="more-link">All {{ SECTION_COUNT }} sections »</a>
     </div>
-    <div class="window reveal">
-      <DitherTabs v-model="tab" :tabs="TABS" color="orange" class="tabs">
+    <p class="dir-p">
+      Each section is a live demo with its props and copy-ready code. Every component is one file in
+      one folder: read it, copy it, change it.
+    </p>
+    <div class="panel window">
+      <DitherTabs v-model="tab" :tabs="TABS" color="red" class="tabs">
         <DitherTabPanel v-for="s in SHELVES" :key="s.value" :value="s.value" class="shelf">
           <div class="cards">
-            <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="card">
+            <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="thumb card">
               <span class="card-top">
                 <span class="card-av" aria-hidden="true"><DitherAvatar :name="c.id" :size="28" :grid="6" :animate="false" color="blue" /></span>
                 <span class="card-family">{{ c.family }}</span>
@@ -35,8 +37,8 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
               <span class="card-path">/docs/{{ c.id }}</span>
             </a>
           </div>
-          <a v-if="s.value !== 'explore'" :href="routePath(`/docs/${s.cards[0].id}`)" class="shelf-all">
-            All {{ s.count }} {{ s.label.toLowerCase() }} →
+          <a v-if="s.value !== 'explore'" :href="routePath(`/docs/${s.cards[0].id}`)" class="lead shelf-all">
+            All {{ s.count }} {{ s.label.toLowerCase() }}
           </a>
         </DitherTabPanel>
       </DitherTabs>
@@ -48,36 +50,39 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 .directory {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  max-width: calc(var(--column) + 3rem);
-  padding-bottom: var(--section);
+  gap: 10px;
+  padding: var(--rhythm) var(--gutter) 0;
+}
+
+.dir-p {
+  margin: 0 0 4px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ink-3);
 }
 
 .window {
   overflow: hidden;
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .tabs :deep([role="tablist"]) {
   padding: 0 12px;
-  border-bottom: 1px solid var(--line);
+  box-shadow: inset 0 -1px 0 var(--line);
   overflow-x: auto;
   scrollbar-width: none;
 }
 
 .shelf {
-  padding: 16px 0 18px 16px;
+  padding: 14px 0 16px 14px;
 }
 
-/* A horizontal shelf that snaps and runs off the window's edge. */
+/* A horizontal shelf that snaps and runs off the panel's edge. */
 .cards {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 220px;
+  grid-auto-columns: 210px;
   gap: 8px;
-  padding-right: 16px;
+  padding-right: 14px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
@@ -92,16 +97,20 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 168px;
-  padding: 14px;
-  border-radius: 8px;
+  height: 164px;
+  padding: 12px;
   scroll-snap-align: start;
-  background: var(--surface-2);
-  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
-  background: #23252a;
+  box-shadow:
+    inset 0 0 0 1px #5a5a5a,
+    inset 0 1px 0 rgb(255 255 255 / 0.1);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .card-top {
@@ -117,15 +126,18 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 }
 
 .card-family {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--ink-3);
 }
 
 .card-name {
   margin-top: 12px;
   overflow: hidden;
-  font-size: 0.9375rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--ink);
@@ -137,7 +149,7 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1.45;
   color: var(--ink-2);
 }
@@ -150,13 +162,6 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 }
 
 .shelf-all {
-  display: inline-block;
-  margin-top: 14px;
-  font-size: 0.8125rem;
-  color: var(--ink-2);
-}
-
-.shelf-all:hover {
-  color: var(--ink);
+  margin-top: 12px;
 }
 </style>
