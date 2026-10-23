@@ -7,7 +7,7 @@ import { GROUPS, SECTIONS, type DocsGroup } from "./groups.ts"
 // the source for the build-time sitemap (see rstack.config.ts).
 export const SITE_URL = "https://dither-ui.com"
 
-const SITE_OVERVIEW = "dither-ui — a Vue 3 UI toolkit on one ordered-dither canvas engine."
+const SITE_OVERVIEW = "dither-ui: a Vue 3 UI toolkit on one ordered-dither canvas engine."
 
 export const DOCS_ROOT = {
   url: `${SITE_URL}/docs`,
@@ -40,7 +40,7 @@ export function docsMeta(id: string): DocsMeta {
     label: section.label,
     url,
     title: `${section.label} | dither-ui`,
-    description: `${section.label} — live example, props API, and copy-ready ${
+    description: `${section.label}: a live example, its props API and copy-ready ${
       group === "Overview" || group === "Handbook" || group === "Utils" ? "guide" : "code"
     } in the dither-ui ${group.toLowerCase()} docs. ${SITE_OVERVIEW}`,
   }

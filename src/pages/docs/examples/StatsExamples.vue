@@ -71,13 +71,13 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
   <section id="stats-cards" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Stat cards</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The classic KPI grid — label, corner glyph, a big tabular number, and a signed delta that knows churn falling is
+      The classic KPI grid: label, corner glyph, a big tabular number, and a signed delta that knows churn falling is
       good news. The period picker swaps the whole dataset live.
     </p>
     <DemoCard :code="SNIPPET_CARDS">
       <div class="mx-auto max-w-2xl">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">Overview</span>
+          <span class="text-[11px] text-muted-foreground">Overview</span>
           <div class="flex gap-1 rounded-md border border-border/60 p-0.5" role="group" aria-label="Period">
             <button
               v-for="p in PERIODS"
@@ -127,7 +127,7 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
   <section id="stats-charts" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Stats with charts</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Numbers with their shape — sparkline cards for trends, a meter card for progress toward a goal. Twelve points is
+      Numbers with their shape: sparkline cards for trends, a meter card for progress toward a goal. Twelve points is
       plenty; the dither does the rest.
     </p>
     <DemoCard :code="SNIPPET_CHARTS">

@@ -331,7 +331,7 @@ const ICONS = {
           :aria-disabled="!!runnable || running"
           :aria-describedby="runnable ? `${uid}-why` : undefined"
           aria-keyshortcuts="Control+Enter Meta+Enter"
-          :title="runnable || 'Run the files in the preview · ⌘↵'"
+          :title="runnable || 'Run the files in the preview (⌘↵)'"
           @click="runNow"
         >
           <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -367,7 +367,7 @@ const ICONS = {
       </li>
     </ol>
     <div class="src-foot">
-      <span :id="`${uid}-hint`">⌘↵ runs · Tab indents · Esc then Tab leaves the editor</span>
+      <span :id="`${uid}-hint`">⌘↵ runs, Tab indents, Esc then Tab leaves the editor</span>
       <span class="src-status" aria-live="polite">{{ status }}</span>
     </div>
   </div>

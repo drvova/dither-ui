@@ -47,7 +47,7 @@ function roam(e: KeyboardEvent) {
           :aria-pressed="b.group.value === 1"
           aria-label="Select and inspect tools (1)"
           aria-keyshortcuts="1"
-          title="Inspect tools · 1"
+          title="Inspect tools (1)"
           @click="b.setGroup(1)"
         >
           <Icon :d="ICONS.group1" />
@@ -58,7 +58,7 @@ function roam(e: KeyboardEvent) {
           :aria-pressed="b.group.value === 2"
           aria-label="Annotate tools (2)"
           aria-keyshortcuts="2"
-          title="Annotate tools · 2"
+          title="Annotate tools (2)"
           @click="b.setGroup(2)"
         >
           <Icon :d="ICONS.group2" />
@@ -73,7 +73,7 @@ function roam(e: KeyboardEvent) {
         :aria-pressed="b.tool.value === t.id"
         :aria-label="`${t.label} (${t.key.toUpperCase()})`"
         :aria-keyshortcuts="t.key"
-        :title="`${t.label} · ${t.key.toUpperCase()}`"
+        :title="`${t.label} (${t.key.toUpperCase()})`"
         @click="b.setTool(t.id)"
       >
         <Icon :d="t.icon" />
@@ -87,7 +87,7 @@ function roam(e: KeyboardEvent) {
         :aria-pressed="b.toggles[t.id]"
         :aria-label="`${t.label} (${t.key.toUpperCase()})`"
         :aria-keyshortcuts="t.key"
-        :title="`${t.label} · ${t.key.toUpperCase()}`"
+        :title="`${t.label} (${t.key.toUpperCase()})`"
         @click="b.toggle(t.id)"
       >
         <Icon :d="t.icon" />
@@ -99,7 +99,7 @@ function roam(e: KeyboardEvent) {
         :disabled="!canUndo"
         aria-label="Undo (⌘Z)"
         aria-keyshortcuts="Control+Z Meta+Z"
-        title="Undo · ⌘Z"
+        title="Undo (⌘Z)"
         @click="b.undo()"
       >
         <Icon :d="ICONS.undo" />
@@ -110,7 +110,7 @@ function roam(e: KeyboardEvent) {
         :disabled="!canRedo"
         aria-label="Redo (⇧⌘Z)"
         aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z"
-        title="Redo · ⇧⌘Z"
+        title="Redo (⇧⌘Z)"
         @click="b.redo()"
       >
         <Icon :d="ICONS.redo" />
@@ -120,7 +120,7 @@ function roam(e: KeyboardEvent) {
         class="wb-key"
         aria-label="Copy feedback for an agent (K)"
         aria-keyshortcuts="k"
-        title="Copy feedback for an agent · K"
+        title="Copy feedback for an agent (K)"
         @click="b.copyForAgent()"
       >
         <Icon :d="ICONS.agent" />
@@ -131,7 +131,7 @@ function roam(e: KeyboardEvent) {
         :aria-pressed="b.panel.value === 'settings'"
         aria-label="Settings (,)"
         aria-keyshortcuts=","
-        title="Settings · ,"
+        title="Settings (,)"
         @click="b.panel.value = b.panel.value === 'settings' ? null : 'settings'"
       >
         <Icon :d="ICONS.settings" />

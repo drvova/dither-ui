@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+import { DitherIcon } from "@dither-kit"
 import { addArtboard, deselect, editor, selectMany } from "@/entities/editor"
 import { useShortcuts } from "@/features/keyboard"
 import { usePanZoom } from "@/features/pan-zoom"
@@ -116,10 +117,10 @@ function onCanvasDown(e: PointerEvent) {
       <p class="text-sm text-muted-foreground">No artboards yet.</p>
       <button
         type="button"
-        class="pointer-events-auto h-8 bg-foreground px-3 text-[11.5px] font-medium uppercase tracking-[0.1em] text-background transition-opacity hover:opacity-85"
+        class="pointer-events-auto flex h-8 items-center gap-2 rounded-md bg-foreground px-3 text-[12px] font-medium text-background transition-opacity hover:opacity-85"
         @click="addArtboard('area')"
       >
-        + Add artboard
+        <DitherIcon name="Plus" :size="14" :stroke-width="1.5" />Add an artboard
       </button>
     </div>
 
@@ -127,7 +128,9 @@ function onCanvasDown(e: PointerEvent) {
     <div
       class="pointer-events-auto absolute bottom-3 left-3 flex items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 text-xs shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
     >
-      <button type="button" aria-label="Zoom out" class="zoom-tool" title="Zoom out (⌘−)" @click="zoomOut">−</button>
+      <button type="button" aria-label="Zoom out" class="zoom-tool" title="Zoom out (⌘−)" @click="zoomOut">
+        <DitherIcon name="Minus" :size="14" :stroke-width="1.5" />
+      </button>
       <button
         type="button"
         aria-label="Reset zoom to 100%"
@@ -137,12 +140,12 @@ function onCanvasDown(e: PointerEvent) {
       >
         {{ Math.round(editor.viewport.zoom * 100) }}%
       </button>
-      <button type="button" aria-label="Zoom in" class="zoom-tool" title="Zoom in (⌘+)" @click="zoomIn">+</button>
+      <button type="button" aria-label="Zoom in" class="zoom-tool" title="Zoom in (⌘+)" @click="zoomIn">
+        <DitherIcon name="Plus" :size="14" :stroke-width="1.5" />
+      </button>
       <span class="mx-0.5 h-4 w-px bg-border" />
       <button type="button" aria-label="Fit to screen" class="zoom-tool" title="Fit (⇧1)" @click="fit">
-        <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
-        </svg>
+        <DitherIcon name="Maximize" :size="14" :stroke-width="1.5" />
       </button>
     </div>
   </div>

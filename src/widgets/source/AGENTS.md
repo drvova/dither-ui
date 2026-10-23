@@ -62,7 +62,9 @@ a real tool, never a mock.
 
 ## Verification
 
-- `tests/source.spec.ts`: the kit index, snippet kinds, `asSfc`, kit files
+- `tests/source.spec.ts` (run against compiler-sfc's browser build, the one
+  Run ships: `define.test` aliases it, since the node target would take the
+  CJS build and its uninstalled template engines): the kit index, snippet kinds, `asSfc`, kit files
   per framework, names and the prompt; TypeScript stripping and refusals,
   linking (re-exports, live bindings, missing exports), SFC styles and
   located errors, scoped tokens; every kit file compiles and links, and

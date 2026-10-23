@@ -11,24 +11,45 @@
 // a page of films never has two buttons called the same). Reduced motion starts it paused on
 // the film's `still` marker, the resting frame every film authors; pressing
 // play is the visitor's explicit ask, so it plays. `time` reports the
-// playhead in seconds for a timecode.
+// playhead in seconds for a timecode. `inputs` feeds the document's own
+// inputs (the page's state the film answers), and `hit` reports a click on
+// one of its hit areas by id. With `scrub` the pointer's place across the
+// film is its moment (a mouse or pen held over it holds the film there,
+// frame by frame; leaving lets it play on from that frame). Under reduced
+// motion a film answers no pointer at all: no loupe, parallax, hover or
+// scrub, and it follows the setting live. `poster` puts the film's still
+// (`films/<id>.webp`, written by the build's prerender from the film itself)
+// in the stand-in, for a film with no plate; where the build wrote none
+// (dev, a build without the prerender) the stand-in stays empty.
 import { onBeforeUnmount, onMounted, ref, watch } from "vue"
-import type { PlayerHandle } from "@clayzo/webgl-player"
+import type { CreatePlayerOptions, PlayerHandle, PlayerInputValue, createPlayer } from "@clayzo/webgl-player"
 import { assetPath } from "@/shared/lib"
 import FilmChip from "./FilmChip.vue"
 
-const props = defineProps<{ film: string; label: string; chip?: string }>()
+const props = defineProps<{
+  film: string
+  label: string
+  chip?: string
+  inputs?: Record<string, PlayerInputValue>
+  scrub?: boolean
+  poster?: boolean
+}>()
 const playing = defineModel<boolean>("playing", { default: true })
 const time = defineModel<number>("time", { default: 0 })
-const emit = defineEmits<{ ready: [duration: number] }>()
+const emit = defineEmits<{ ready: [duration: number]; hit: [area: string] }>()
 
 const wrap = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
 const ready = ref(false)
+const posterGone = ref(false)
 
 let player: PlayerHandle | null = null
+let source: { create: typeof createPlayer; doc: CreatePlayerOptions["document"] } | null = null
 let tps = 240
 let still = 0
+let frames = 1
+let frame = 8
+let scrubbing = false
 let io: IntersectionObserver | null = null
 let motion: MediaQueryList | null = null
 let disposed = false
@@ -40,13 +61,62 @@ function sync() {
   if (motion?.matches) void player.seek(still)
 }
 
+function feed() {
+  for (const [name, value] of Object.entries(props.inputs ?? {})) player?.setInput(name, value)
+}
+
+function onScrub(e: PointerEvent) {
+  if (!props.scrub || !player || !wrap.value || e.pointerType === "touch" || motion?.matches) return
+  const box = wrap.value.getBoundingClientRect()
+  const at = Math.min(1, Math.max(0, (e.clientX - box.left) / box.width))
+  if (player.playing) player.pause()
+  scrubbing = true
+  void player.seek(Math.round(at * (frames - 1)) * frame)
+}
+
+function onScrubEnd() {
+  if (!scrubbing) return
+  scrubbing = false
+  sync()
+}
+
+// A player's interactivity is fixed when it is made, so a change of the
+// reduced-motion setting makes it again on the same canvas, at the same
+// moment (paused on the still when motion is reduced).
 function onMotion() {
   if (motion?.matches) playing.value = false
+  const old = player
+  if (!old) return
+  player = null
+  old.dispose()
+  mount(old.tick).catch(() => undefined)
+}
+
+async function mount(tick = 0) {
+  if (!source || !canvas.value) return
+  let last = -1
+  const made = await source.create({
+    canvas: canvas.value,
+    document: source.doc,
+    loop: true,
+    interactive: !motion?.matches,
+    interactionElement: wrap.value ?? undefined,
+    onPointer: (e) => e.kind === "click" && e.hitAreaId && emit("hit", e.hitAreaId),
+    onFrame: () => {
+      // A quarter-second timecode: the readout never re-renders per frame.
+      const t = Math.floor(((player?.tick ?? 0) / tps) * 4) / 4
+      if (t !== last) time.value = last = t
+    },
+  })
+  if (disposed) return made.dispose()
+  player = made
+  if (tick) await made.seek(tick)
+  feed()
   sync()
 }
 
 async function start() {
-  if (player || disposed || !canvas.value) return
+  if (source || disposed || !canvas.value) return
   try {
     const [{ createPlayer }, doc] = await Promise.all([
       import("@clayzo/webgl-player"),
@@ -57,21 +127,12 @@ async function start() {
     ])
     if (disposed || !canvas.value) return
     tps = doc.timing.ticksPerSecond
+    frame = (tps * doc.timing.frameRate.denominator) / doc.timing.frameRate.numerator
+    frames = Math.floor(doc.timing.durationTicks / frame)
     still = doc.markers.find((m: { id: string }) => m.id === "still")?.tick ?? 0
-    let last = -1
-    player = await createPlayer({
-      canvas: canvas.value,
-      document: doc,
-      loop: true,
-      interactionElement: wrap.value ?? undefined,
-      onFrame: () => {
-        // A quarter-second timecode: the readout never re-renders per frame.
-        const t = Math.floor(((player?.tick ?? 0) / tps) * 4) / 4
-        if (t !== last) time.value = last = t
-      },
-    })
-    if (disposed) return player.dispose()
-    sync()
+    source = { create: createPlayer, doc }
+    await mount()
+    if (!player) return
     ready.value = true
     emit("ready", doc.timing.durationTicks / tps)
   } catch {
@@ -104,6 +165,7 @@ onMounted(() => {
 })
 
 watch(playing, sync)
+watch(() => props.inputs, feed, { deep: true })
 
 onBeforeUnmount(() => {
   disposed = true
@@ -115,8 +177,23 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="wrap" class="film" :data-live="ready ? 'true' : undefined">
+  <div
+    ref="wrap"
+    class="film"
+    :data-live="ready ? 'true' : undefined"
+    :data-poster="poster ? film : undefined"
+    @pointermove="onScrub"
+    @pointerleave="onScrubEnd"
+  >
     <div class="film-fallback" aria-hidden="true">
+      <img
+        v-if="poster && !posterGone"
+        :src="assetPath(`/films/${film}.webp`)"
+        alt=""
+        decoding="async"
+        class="film-poster"
+        @error="posterGone = true"
+      />
       <slot name="fallback" />
     </div>
     <canvas ref="canvas" role="img" :aria-label="label" class="film-canvas" />
@@ -132,6 +209,13 @@ onBeforeUnmount(() => {
 .film-fallback {
   position: absolute;
   inset: 0;
+}
+
+.film-poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .film-corner {

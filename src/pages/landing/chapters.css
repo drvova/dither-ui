@@ -22,13 +22,6 @@
   letter-spacing: -0.02em;
 }
 
-/* The site's keys in sentence case on the landing. */
-.landing .nav-a {
-  font-size: 12.5px;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 /* A panel: a hairline round at the docs' card corner. */
 .landing .panel {
   border-radius: 12px;

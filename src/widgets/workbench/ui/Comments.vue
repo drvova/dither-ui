@@ -106,7 +106,7 @@ const ago = (t: number) => {
     >
       <header class="head">
         <span class="micro"
-          >{{ thread ? `#${thread.n}` : "New" }} · {{ thread?.anchor.label ?? b.draftThread.value?.label }}</span
+          >{{ thread ? `#${thread.n}` : "New" }} on {{ thread?.anchor.label ?? b.draftThread.value?.label }}</span
         >
         <button type="button" class="icon" aria-label="Close" @click="close">
           <Icon :d="ICONS.close" :size="14" />

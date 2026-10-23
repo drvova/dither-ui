@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onBeforeUnmount, ref, watch } from "vue"
+import { DitherIcon } from "@dither-kit"
 import { addArtboard } from "@/entities/editor"
 import { installStudioAgentApi } from "@/features/agent"
 import { startHistory, stopHistory } from "@/features/history"
@@ -82,7 +83,9 @@ onBeforeUnmount(() => {
       <aside v-if="layersOpen" class="studio-panel absolute bottom-16 left-3 top-16 z-20 w-64">
         <div class="panel-head">
           <span class="micro">Layers</span
-          ><button type="button" aria-label="Close layers" @click="layersOpen = false">×</button>
+          ><button type="button" aria-label="Close layers" @click="layersOpen = false">
+            <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
+          </button>
         </div>
         <div class="min-h-0 flex-1 overflow-y-auto p-2"><LayerTree /></div>
       </aside>
@@ -115,15 +118,14 @@ onBeforeUnmount(() => {
     v-else
     class="flex h-screen flex-col items-center justify-center gap-5 bg-background px-8 text-center font-mono text-foreground antialiased"
   >
-    <div class="text-[11px] uppercase tracking-[0.3em] text-muted-foreground/60">studio</div>
-    <h1 class="text-xl tracking-tight">Best on a desktop</h1>
+    <h1 class="text-xl tracking-tight">The Studio is best on a desktop</h1>
     <p class="max-w-xs text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
-      The studio is a Figma-style editor — layer rail, inspector and keyboard shortcuts, built for a wide screen and a
+      It is a Figma-style editor with a layer rail, an inspector and keyboard shortcuts, built for a wide screen and a
       pointer. Open it on a laptop or desktop to design with the kit.
     </p>
     <div class="mt-2 flex items-center gap-5 text-[12px] text-muted-foreground">
-      <a :href="routePath('/docs')" class="-my-1 py-1 transition-colors hover:text-foreground">browse the docs →</a>
-      <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">home</a>
+      <a :href="routePath('/docs')" class="-my-1 py-1 transition-colors hover:text-foreground">Browse the docs</a>
+      <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">dither-ui.com</a>
     </div>
   </div>
 </template>

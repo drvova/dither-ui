@@ -76,13 +76,13 @@ const items = [
 <DitherAccordion v-model="faq" :items="items" type="single" color="blue">
   <template #what>
     Ordered dithering trades smooth gradients for a fixed threshold
-    matrix — the same Bayer 4x4 behind every fill in this kit.
+    matrix: the same Bayer 4x4 behind every fill in this kit.
   </template>
   <template #why>
     One engine paints every fill, so components stay coherent.
   </template>
   <template #copy>
-    Yes — the kit folder has zero app imports; copy it and alias it.
+    Yes, the kit folder has zero app imports; copy it and alias it.
   </template>
 </DitherAccordion>`
 
@@ -180,7 +180,7 @@ const SNIPPET_METER = `<div class="grid gap-3">
 
 const SNIPPET_SCROLL_AREA = `<DitherScrollArea class="h-40 rounded-lg border border-border/60 p-3">
   <p v-for="i in 15" :key="i" class="py-1 text-[12px] text-muted-foreground">
-    Log line {{ i }} — ordered dither keeps the texture coherent.
+    Log line {{ i }}: ordered dither keeps the texture coherent.
   </p>
 </DitherScrollArea>`
 
@@ -209,49 +209,49 @@ const items = [
 
 const API: Record<string, PropRow[]> = {
   accordion: [
-    { prop: "items", type: "{ value: string; title: string }[]", default: "—" },
-    { prop: "modelValue", type: "string | string[]", default: "—" },
+    { prop: "items", type: "{ value: string; title: string }[]", default: "" },
+    { prop: "modelValue", type: "string | string[]", default: "" },
     { prop: "type", type: '"single" | "multiple"', default: '"single"' },
     { prop: "color", type: "PixelColor", default: '"blue"' },
   ],
   alertDialog: [
-    { prop: "open", type: "boolean", default: "—" },
-    { prop: "title", type: "string", default: "—" },
+    { prop: "open", type: "boolean", default: "" },
+    { prop: "title", type: "string", default: "" },
     { prop: "description", type: "string", default: "undefined" },
     { prop: "confirmLabel", type: "string", default: '"Confirm"' },
     { prop: "cancelLabel", type: "string", default: '"Cancel"' },
     { prop: "danger", type: "boolean", default: "false" },
   ],
   drawer: [
-    { prop: "open", type: "boolean", default: "—" },
+    { prop: "open", type: "boolean", default: "" },
     { prop: "side", type: '"right" | "left" | "bottom"', default: '"right"' },
     { prop: "title", type: "string", default: "undefined" },
-    { prop: "swipe", type: "boolean — drag to dismiss, momentum decides", default: "true" },
-    { prop: "snap-points", type: "number[] — ≤1 vh fraction, >1 px (bottom)", default: "undefined" },
-    { prop: "snap-point", type: "number — v-model:snap-point", default: "first snap" },
-    { prop: "modal", type: "boolean — false: no backdrop, page stays live", default: "true" },
-    { prop: "dismissible", type: "boolean — false: backdrop click ignored", default: "true" },
+    { prop: "swipe", type: "boolean: drag to dismiss, momentum decides", default: "true" },
+    { prop: "snap-points", type: "number[]: ≤1 vh fraction, >1 px (bottom)", default: "undefined" },
+    { prop: "snap-point", type: "number (v-model:snap-point)", default: "first snap" },
+    { prop: "modal", type: "boolean (false: no backdrop, page stays live)", default: "true" },
+    { prop: "dismissible", type: "boolean (false: backdrop click ignored)", default: "true" },
   ],
   sidebar: [
-    { prop: "modelValue (Sidebar)", type: "boolean — collapsed (v-model)", default: "false" },
+    { prop: "modelValue (Sidebar)", type: "boolean: collapsed (v-model)", default: "false" },
     { prop: "variant (Sidebar)", type: '"default" | "floating" | "inset" | "washed"', default: '"default"' },
     { prop: "collapse (Sidebar)", type: '"rail" | "hide" | "none"', default: '"rail"' },
     { prop: "side (Sidebar)", type: '"left" | "right"', default: '"left"' },
     { prop: "density (Sidebar)", type: '"default" | "compact"', default: '"default"' },
-    { prop: "toggle (Sidebar)", type: "boolean — false: permanent rail", default: "true" },
-    { prop: "wash-color (Sidebar)", type: 'PixelColor — for variant="washed"', default: '"blue"' },
-    { prop: "label (Group)", type: "string — folds to a hairline on the rail", default: "undefined" },
-    { prop: "label / active / color (Item)", type: "string / boolean / PixelColor", default: '— / false / "blue"' },
-    { prop: "badge (Item)", type: "string | number — dot on the rail", default: "undefined" },
-    { prop: "modelValue / label (Sub)", type: "boolean (v-model) / string", default: "false / —" },
+    { prop: "toggle (Sidebar)", type: "boolean (false: permanent rail)", default: "true" },
+    { prop: "wash-color (Sidebar)", type: 'PixelColor (for variant="washed")', default: '"blue"' },
+    { prop: "label (Group)", type: "string: folds to a hairline on the rail", default: "undefined" },
+    { prop: "label / active / color (Item)", type: "string / boolean / PixelColor", default: 'none / false / "blue"' },
+    { prop: "badge (Item)", type: "string | number: dot on the rail", default: "undefined" },
+    { prop: "modelValue / label (Sub)", type: "boolean (v-model) / string", default: "false / none" },
   ],
   toast: [
-    { prop: "message", type: "string", default: "—" },
+    { prop: "message", type: "string", default: "" },
     { prop: "opts.color", type: "PixelColor", default: '"blue"' },
     { prop: "opts.duration", type: "number", default: "3500" },
   ],
   meter: [
-    { prop: "value", type: "number", default: "—" },
+    { prop: "value", type: "number", default: "" },
     { prop: "min", type: "number", default: "0" },
     { prop: "max", type: "number", default: "100" },
     { prop: "low", type: "number", default: "0.5" },
@@ -260,8 +260,8 @@ const API: Record<string, PropRow[]> = {
   scrollArea: [{ prop: "class", type: "string", default: "undefined" }],
   toolbar: [{ prop: "label", type: "string", default: "undefined" }],
   navMenu: [
-    { prop: "items", type: "{ label: string; href?: string }[]", default: "—" },
-    { prop: "modelValue", type: "string", default: "—" },
+    { prop: "items", type: "{ label: string; href?: string }[]", default: "" },
+    { prop: "modelValue", type: "string", default: "" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
   ],
 }
@@ -278,11 +278,11 @@ const API: Record<string, PropRow[]> = {
       <div class="mx-auto max-w-sm">
         <DitherAccordion v-model="faq" :items="FAQ" type="single" color="blue">
           <template #what>
-            Ordered dithering trades smooth gradients for a fixed threshold matrix — the same Bayer 4x4 behind every
-            fill in this kit.
+            Ordered dithering trades smooth gradients for a fixed threshold matrix: the same Bayer 4x4 behind every fill
+            in this kit.
           </template>
           <template #why> One engine paints every fill, so components stay coherent. </template>
-          <template #copy> Yes — the kit folder has zero app imports; copy it and alias it. </template>
+          <template #copy> Yes, the kit folder has zero app imports; copy it and alias it. </template>
         </DitherAccordion>
       </div>
     </DemoCard>
@@ -292,7 +292,7 @@ const API: Record<string, PropRow[]> = {
   <section id="alert-dialog" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Alert Dialog</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A modal that demands an answer — overlay clicks do nothing, Escape cancels, and focus lands on the safe Cancel
+      A modal that demands an answer: overlay clicks do nothing, Escape cancels, and focus lands on the safe Cancel
       button. Danger seeds the confirm fill red.
     </p>
     <DemoCard :code="SNIPPET_ALERT_DIALOG">
@@ -316,7 +316,7 @@ const API: Record<string, PropRow[]> = {
   <section id="drawer" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Drawer</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A side panel that slides in over a scrim — Escape or scrim click closes, the close button takes focus on open.
+      A side panel that slides in over a scrim. Escape or scrim click closes, the close button takes focus on open.
     </p>
     <DemoCard :code="SNIPPET_DRAWER">
       <div class="flex flex-wrap justify-center gap-3">
@@ -347,7 +347,7 @@ const API: Record<string, PropRow[]> = {
         </DitherDrawer>
         <DitherDrawer :open="sheetOpen" side="bottom" title="Notifications" @close="sheetOpen = false">
           <p class="text-[13px] text-muted-foreground">
-            You are all caught up. Drag the handle down to dismiss — a flick counts through its momentum, a slow drag
+            You are all caught up. Drag the handle down to dismiss: a flick counts through its momentum, a slow drag
             settles back.
           </p>
         </DitherDrawer>
@@ -361,8 +361,8 @@ const API: Record<string, PropRow[]> = {
         >
           <p class="text-[13px] text-muted-foreground">
             Resting at <span class="text-foreground tabular-nums">{{ Math.round(snapAt * 100) }}vh</span>. Drag the
-            handle up for the tall snap, down to the short one — a flick's momentum can skip straight past a point.
-            Below half the smallest snap, it dismisses.
+            handle up for the tall snap, down to the short one. A flick's momentum can skip straight past a point. Below
+            half the smallest snap, it dismisses.
           </p>
         </DitherDrawer>
         <DitherDrawer :open="sheetActions" side="bottom" title="Artboard" @close="sheetActions = false">
@@ -400,7 +400,7 @@ const API: Record<string, PropRow[]> = {
         <p class="w-full text-center text-[11px] text-muted-foreground">last action: {{ lastAction }}</p>
         <DitherDrawer :open="nestedOpen" side="right" title="Account" @close="nestedOpen = false">
           <p class="pb-3 text-[13px] text-muted-foreground">
-            Opening a child pushes this drawer back — scaled, dimmed, out of reach until the child closes.
+            Opening a child pushes this drawer back: scaled, dimmed, out of reach until the child closes.
           </p>
           <DitherButton color="green" @click="nestedChild = true">Security settings</DitherButton>
           <DitherDrawer :open="nestedChild" side="right" title="Security" @close="nestedChild = false">
@@ -409,11 +409,11 @@ const API: Record<string, PropRow[]> = {
         </DitherDrawer>
       </div>
     </DemoCard>
-    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">swipe to open</h3>
+    <h3 class="mt-8 text-[12px] text-muted-foreground">Swipe to open</h3>
     <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 p-4">
       <p class="max-w-sm text-[11px] leading-relaxed text-muted-foreground">
-        <code class="text-foreground/80">DitherSwipeArea</code> is an invisible strip on the viewport edge — arm it,
-        then swipe inward from the right edge of your screen to open the drawer.
+        <code class="text-foreground/80">DitherSwipeArea</code> is an invisible strip on the viewport edge. Arm it, then
+        swipe inward from the right edge of your screen to open the drawer.
       </p>
       <div class="flex items-center gap-2 text-[12px]">
         <span class="text-muted-foreground">arm edge</span>
@@ -430,7 +430,7 @@ const API: Record<string, PropRow[]> = {
   <section id="sidebar" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Sidebar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An app sidebar that collapses to an icon rail — items keep their hit area, labels fold away, the active item
+      An app sidebar that collapses to an icon rail: items keep their hit area, labels fold away, the active item
       carries a dithered rail.
     </p>
     <DemoCard :code="SNIPPET_SIDEBAR">
@@ -483,7 +483,7 @@ const API: Record<string, PropRow[]> = {
         </div>
       </div>
     </DemoCard>
-    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+    <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
     <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
       <div v-for="v in SIDEBAR_VARIANTS" :key="v">
         <div
@@ -514,7 +514,7 @@ const API: Record<string, PropRow[]> = {
         <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
       </div>
     </div>
-    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">modes</h3>
+    <h3 class="mt-8 text-[12px] text-muted-foreground">Modes</h3>
     <div class="mt-4 grid gap-4 sm:grid-cols-2">
       <div>
         <div class="flex h-48 overflow-hidden rounded-lg border border-border/60">
@@ -548,7 +548,7 @@ const API: Record<string, PropRow[]> = {
           </DitherSidebar>
           <div class="grid min-w-0 flex-1 place-items-center text-[11px] text-muted-foreground">{{ modeActive }}</div>
         </div>
-        <div class="mt-2 text-center text-[10px] text-muted-foreground">permanent rail · :toggle="false"</div>
+        <div class="mt-2 text-center text-[10px] text-muted-foreground">permanent rail (:toggle="false")</div>
       </div>
     </div>
     <PropsTable :rows="API.sidebar" />
@@ -573,7 +573,7 @@ const API: Record<string, PropRow[]> = {
   <section id="meter" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Meter</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A static gauge on the progress track — the fill seed picks itself: green below the low mark, orange between, red
+      A static gauge on the progress track. The fill seed picks itself: green below the low mark, orange between, red
       above the high mark.
     </p>
     <DemoCard :code="SNIPPET_METER">
@@ -593,12 +593,12 @@ const API: Record<string, PropRow[]> = {
   <section id="scroll-area" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Scroll Area</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An honest overflow container — no canvas, just thin token-colored scrollbars that match the house border.
+      An honest overflow container: no canvas, just thin token-colored scrollbars that match the house border.
     </p>
     <DemoCard :code="SNIPPET_SCROLL_AREA">
       <DitherScrollArea class="mx-auto h-40 max-w-sm rounded-lg border border-border/60 p-3">
         <p v-for="i in 15" :key="i" class="py-1 text-[12px] text-muted-foreground">
-          Log line {{ i }} — ordered dither keeps the texture coherent.
+          Log line {{ i }}: ordered dither keeps the texture coherent.
         </p>
       </DitherScrollArea>
     </DemoCard>
@@ -608,7 +608,7 @@ const API: Record<string, PropRow[]> = {
   <section id="toolbar" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Toolbar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A roving-tabindex strip — one Tab stop for the whole bar, arrow keys walk the buttons, Home and End jump to the
+      A roving-tabindex strip: one Tab stop for the whole bar, arrow keys walk the buttons, Home and End jump to the
       edges.
     </p>
     <DemoCard :code="SNIPPET_TOOLBAR">
@@ -630,7 +630,7 @@ const API: Record<string, PropRow[]> = {
   <section id="nav-menu" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Navigation Menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      DitherTabs' sliding dithered underline with nav semantics — anchors instead of tabs, aria-current on the active
+      DitherTabs' sliding dithered underline with nav semantics: anchors instead of tabs, aria-current on the active
       page.
     </p>
     <DemoCard :code="SNIPPET_NAV_MENU">

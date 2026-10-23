@@ -80,8 +80,8 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
     <canvas ref="view" class="lens" :style="{ width: `${SIZE}px`, height: `${SIZE}px` }" />
     <span class="read">
       <i class="sw" :style="{ background: center ? formatColor(center, 'hex') : 'transparent' }" />
-      {{ center ? formatColor(center, b.settings.format) : "—" }}
-      <em>{{ b.pointer.value?.x }},{{ b.pointer.value?.y }} · {{ b.loupeZoom.value }}×</em>
+      {{ center ? formatColor(center, b.settings.format) : "none" }}
+      <em>{{ b.pointer.value?.x }},{{ b.pointer.value?.y }} at {{ b.loupeZoom.value }}×</em>
     </span>
   </div>
 </template>

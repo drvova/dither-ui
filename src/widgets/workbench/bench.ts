@@ -858,7 +858,7 @@ export function createBench(o: BenchOptions) {
       const rec = await recordRegion(o.host, toHost(region), videoMime.value, () => void finishRecording())
       drop(capture.value)
       capture.value = { kind: "recording", rec }
-      say("Recording — Escape or Stop ends it")
+      say("Recording. Escape or Stop ends it.")
     } catch (err) {
       capturing.value = false
       say((err as Error).name === "NotAllowedError" ? "Sharing was declined" : "Recording could not start")
@@ -909,7 +909,7 @@ export function createBench(o: BenchOptions) {
       await paints(1)
       const bytes = encodeGif(frames, width, height, delay)
       download(new Blob([bytes as BlobPart], { type: "image/gif" }), `${o.key.replace(/[^\w-]+/g, "-")}.gif`)
-      say(`GIF saved — ${frames.length} frames, ${(bytes.length / 1024).toFixed(0)} kB`)
+      say(`GIF saved: ${frames.length} frames, ${(bytes.length / 1024).toFixed(0)} kB`)
     } catch {
       say("The GIF could not be encoded")
     } finally {
@@ -1235,7 +1235,7 @@ export function createBench(o: BenchOptions) {
       if (!settings.multiMeasure) w.measures = []
       w.measures.push({ id: uid("m"), from: { label: m.fromLabel, box: m.from }, to: { label: m.toLabel, box: m.to } })
     })
-    say(`Kept ${m.fromLabel} → ${m.toLabel}`)
+    say(`Kept the distance from ${m.fromLabel} to ${m.toLabel}`)
   }
 
   function escape(): boolean {

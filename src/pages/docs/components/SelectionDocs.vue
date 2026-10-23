@@ -215,62 +215,62 @@ const STYLES = [
 
 const API: Record<string, PropRow[]> = {
   select: [
-    { prop: "options", type: "Option[]", default: "—" },
-    { prop: "modelValue", type: "string", default: "—" },
+    { prop: "options", type: "Option[]", default: "" },
+    { prop: "modelValue", type: "string", default: "" },
     { prop: "placeholder", type: "string", default: '"Select…"' },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "disabled / invalid", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   combobox: [
-    { prop: "options", type: "Option[]", default: "—" },
-    { prop: "modelValue", type: "string", default: "—" },
+    { prop: "options", type: "Option[]", default: "" },
+    { prop: "modelValue", type: "string", default: "" },
     { prop: "placeholder", type: "string", default: '"Select…"' },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   autocomplete: [
-    { prop: "suggestions", type: "string[]", default: "—" },
-    { prop: "modelValue", type: "string", default: "—" },
+    { prop: "suggestions", type: "string[]", default: "" },
+    { prop: "modelValue", type: "string", default: "" },
     { prop: "placeholder", type: "string", default: '"Search…"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   wheelPicker: [
-    { prop: "options", type: "(string | { value, label })[]", default: "—" },
-    { prop: "modelValue", type: "string (v-model)", default: "—" },
-    { prop: "rows", type: "number — visible rows (odd)", default: "5" },
-    { prop: "label", type: "string — accessible name", default: '"Wheel picker"' },
-    { prop: "color", type: "PixelColor — selected notch tint", default: '"blue"' },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "options", type: "(string | { value, label })[]", default: "" },
+    { prop: "modelValue", type: "string (v-model)", default: "" },
+    { prop: "rows", type: "number: visible rows (odd)", default: "5" },
+    { prop: "label", type: "string: accessible name", default: '"Wheel picker"' },
+    { prop: "color", type: "PixelColor: selected notch tint", default: '"blue"' },
+    { prop: "class", type: "string", default: "" },
   ],
   radio: [
-    { prop: "options", type: "Option[]", default: "—" },
-    { prop: "modelValue", type: "string", default: "—" },
+    { prop: "options", type: "Option[]", default: "" },
+    { prop: "modelValue", type: "string", default: "" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "label", type: "string", default: "—" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "label", type: "string", default: "" },
+    { prop: "class", type: "string", default: "" },
   ],
   checkboxGroup: [
-    { prop: "options", type: "Option[]", default: "—" },
-    { prop: "modelValue", type: "string[]", default: "—" },
+    { prop: "options", type: "Option[]", default: "" },
+    { prop: "modelValue", type: "string[]", default: "" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "label", type: "string", default: "—" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "label", type: "string", default: "" },
+    { prop: "class", type: "string", default: "" },
   ],
   toggle: [
-    { prop: "modelValue", type: "boolean", default: "—" },
+    { prop: "modelValue", type: "boolean", default: "" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   toggleGroup: [
-    { prop: "options", type: "Option[]", default: "—" },
-    { prop: "modelValue", type: "string | string[]", default: "—" },
+    { prop: "options", type: "Option[]", default: "" },
+    { prop: "modelValue", type: "string | string[]", default: "" },
     { prop: "type", type: '"single" | "multiple"', default: '"single"' },
     { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
 }
 </script>
@@ -279,7 +279,7 @@ const API: Record<string, PropRow[]> = {
   <section id="select" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Select</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A listbox behind an input-like trigger — Enter, Space or ArrowDown opens the panel, arrows move the highlight, and
+      A listbox behind an input-like trigger: Enter, Space or ArrowDown opens the panel, arrows move the highlight, and
       the picked row carries a small dithered swatch. Escape or an outside click closes it.
     </p>
     <DemoCard :code="SNIPPET_SELECT">
@@ -294,7 +294,7 @@ const API: Record<string, PropRow[]> = {
   <section id="combobox" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Combobox</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A select whose trigger is an input — typing filters the options (case-insensitive), Enter picks the highlighted
+      A select whose trigger is an input: typing filters the options (case-insensitive), Enter picks the highlighted
       match, and blur snaps the text back to the last valid value.
     </p>
     <DemoCard :code="SNIPPET_COMBOBOX">
@@ -309,7 +309,7 @@ const API: Record<string, PropRow[]> = {
   <section id="autocomplete" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Autocomplete</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A free-text input with suggestions — anything you type is the value; picking a row just fills the input. Try
+      A free-text input with suggestions: anything you type is the value; picking a row just fills the input. Try
       <code class="text-foreground/80">dither</code>, <code class="text-foreground/80">bayer</code> or
       <code class="text-foreground/80">pixel</code>.
     </p>
@@ -325,7 +325,7 @@ const API: Record<string, PropRow[]> = {
   <section id="wheel-picker" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Wheel Picker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An iOS-style picker wheel — a 3D drum on native momentum scroll that snaps to the nearest notch, steered by wheel,
+      An iOS-style picker wheel: a 3D drum on native momentum scroll that snaps to the nearest notch, steered by wheel,
       drag or spinbutton keys. Wheels compose side by side for date and time pickers; reduced motion flattens the drum.
     </p>
     <DemoCard :code="SNIPPET_WHEEL">
@@ -344,7 +344,7 @@ const API: Record<string, PropRow[]> = {
   <section id="radio" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Radio</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A radiogroup of pixel circles — unchecked rings are a 1px pixel border, the checked one fills its inner dot with
+      A radiogroup of pixel circles: unchecked rings are a 1px pixel border, the checked one fills its inner dot with
       the Bayer texture. Arrow keys move and select (roving tabindex).
     </p>
     <DemoCard :code="SNIPPET_RADIO">
@@ -359,8 +359,7 @@ const API: Record<string, PropRow[]> = {
   <section id="checkbox-group" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Checkbox Group</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A labelled group of DitherCheckboxes bound to one string array — toggling a box adds or removes its option's
-      value.
+      A labelled group of DitherCheckboxes bound to one string array: toggling a box adds or removes its option's value.
     </p>
     <DemoCard :code="SNIPPET_CHECKBOX_GROUP">
       <div class="mx-auto max-w-sm">
@@ -374,8 +373,8 @@ const API: Record<string, PropRow[]> = {
   <section id="toggle" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Toggle</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A pressed-state button — off is a quiet border, on fills behind the label with the badge's dithered gradient.
-      Label goes in the default slot.
+      A pressed-state button: off is a quiet border, on fills behind the label with the badge's dithered gradient. Label
+      goes in the default slot.
     </p>
     <DemoCard :code="SNIPPET_TOGGLE">
       <div class="mx-auto max-w-sm text-center">
@@ -389,7 +388,7 @@ const API: Record<string, PropRow[]> = {
   <section id="toggle-group" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Toggle Group</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A bordered row of toggles — <code class="text-foreground/80">single</code>
+      A bordered row of toggles: <code class="text-foreground/80">single</code>
       behaves like a radio group (one value, arrows move), while
       <code class="text-foreground/80">multiple</code> keeps each button independently pressed against a string array.
     </p>
@@ -398,7 +397,7 @@ const API: Record<string, PropRow[]> = {
         <DitherToggleGroup v-model="align" :options="ALIGN" />
         <DitherToggleGroup v-model="styles" :options="STYLES" type="multiple" />
         <p class="font-mono text-[11px] text-muted-foreground">
-          align: "{{ align }}" · styles: [{{ styles.join(", ") }}]
+          align: "{{ align }}", styles: [{{ styles.join(", ") }}]
         </p>
       </div>
     </DemoCard>

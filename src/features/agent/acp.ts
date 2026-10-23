@@ -247,7 +247,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       })
     }
     ws.onerror = () => {
-      if (!opened) reject(new Error(`no bridge at ${o.url} — run: node bridge/dither-bridge.mjs`))
+      if (!opened) reject(new Error(`No bridge at ${o.url}. Run node bridge/dither-bridge.mjs.`))
     }
     ws.onclose = () => {
       fail("bridge closed")

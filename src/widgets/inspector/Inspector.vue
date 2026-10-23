@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { colorToHex, patternFromImage, type VariantInput } from "@dither-kit"
+import { colorToHex, DitherIcon, patternFromImage, type VariantInput } from "@dither-kit"
 import {
   editor,
   replay,
@@ -231,10 +231,9 @@ function setPieVariant(v: VariantInput) {
       <span class="truncate text-[13px] font-medium text-foreground">{{
         ab.widget ? ab.name : (layer?.label ?? "Inspector")
       }}</span>
-      <span
-        class="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground"
-        >{{ ab.widget?.kind ?? kind }}</span
-      >
+      <span class="shrink-0 rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground">{{
+        ab.widget?.kind ?? kind
+      }}</span>
     </div>
     <div
       v-if="locked"
@@ -279,7 +278,7 @@ function setPieVariant(v: VariantInput) {
         </div>
 
         <section v-if="!ab.widget">
-          <p class="mb-2 micro text-muted-foreground">type</p>
+          <p class="mb-2 micro text-muted-foreground">Type</p>
           <div class="flex flex-wrap gap-0.5 rounded-md border border-border bg-background/60 p-0.5">
             <button
               v-for="t in CHART_TYPES"
@@ -296,7 +295,7 @@ function setPieVariant(v: VariantInput) {
         </section>
 
         <section v-if="!ab.widget" class="flex flex-col gap-3">
-          <p class="micro text-muted-foreground">style</p>
+          <p class="micro text-muted-foreground">Style</p>
           <BloomField v-model="chart.bloom" />
           <Segmented v-if="fam === 'cartesian'" v-model="chart.stackType" :options="STACKS" label="stack" />
           <label v-if="chart.type === 'pie'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -456,7 +455,7 @@ function setPieVariant(v: VariantInput) {
         </section>
 
         <section v-if="!ab.widget" class="flex flex-col gap-3">
-          <p class="micro text-muted-foreground">animation</p>
+          <p class="micro text-muted-foreground">Animation</p>
           <div class="grid grid-cols-2 gap-2">
             <NumberField v-model="chart.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
             <NumberField v-model="chart.animationDelay" label="delay" unit="ms" :min="0" :max="4000" :step="50" />
@@ -528,13 +527,13 @@ function setPieVariant(v: VariantInput) {
                 <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
                 <path d="M21 3v5h-5" />
               </svg>
-              replay
+              Replay
             </button>
           </div>
         </section>
 
         <section v-if="!ab.widget" class="flex flex-col gap-2">
-          <p class="micro text-muted-foreground">seed</p>
+          <p class="micro text-muted-foreground">Seed</p>
           <p class="text-[10px] leading-relaxed text-muted-foreground/70">
             One integer derives texture, motion, geometry and glow. Explicit controls above always win.
           </p>
@@ -545,7 +544,7 @@ function setPieVariant(v: VariantInput) {
               class="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
               @click="rollSeed"
             >
-              roll
+              Roll
             </button>
             <span class="flex-1 truncate text-[11px] tabular-nums text-foreground">{{ chart.seed ?? "off" }}</span>
             <button
@@ -564,7 +563,7 @@ function setPieVariant(v: VariantInput) {
               class="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
               @click="rollEffect"
             >
-              roll
+              Roll
             </button>
             <span class="flex-1 truncate text-[11px] tabular-nums text-foreground">{{ chart.effect ?? "seed" }}</span>
             <button
@@ -579,7 +578,7 @@ function setPieVariant(v: VariantInput) {
         </section>
 
         <section v-if="!ab.widget && fam === 'cartesian'">
-          <p class="mb-2 micro text-muted-foreground">margins</p>
+          <p class="mb-2 micro text-muted-foreground">Margins</p>
           <div class="grid grid-cols-2 gap-2">
             <NumberField v-model="chart.margins.top" label="top" :min="0" />
             <NumberField v-model="chart.margins.right" label="right" :min="0" />
@@ -591,7 +590,7 @@ function setPieVariant(v: VariantInput) {
         <!-- AVATAR builder -->
         <template v-if="avatar">
           <section class="flex flex-col gap-3">
-            <p class="micro text-muted-foreground">avatar</p>
+            <p class="micro text-muted-foreground">Avatar</p>
             <Segmented
               :model-value="avatar.source ?? 'seed'"
               :options="AVATAR_SOURCES"
@@ -718,7 +717,7 @@ function setPieVariant(v: VariantInput) {
             </label>
           </section>
           <section class="flex flex-col gap-3">
-            <p class="micro text-muted-foreground">colour</p>
+            <p class="micro text-muted-foreground">Colour</p>
             <Toggle v-model="avatar.autoColor" label="derive from seed" />
             <ColorField
               v-if="!avatar.autoColor"
@@ -728,7 +727,7 @@ function setPieVariant(v: VariantInput) {
             <BloomField :model-value="avatar.bloom" @update:model-value="avatar.bloom = $event" />
           </section>
           <section class="flex flex-col gap-3">
-            <p class="micro text-muted-foreground">animation</p>
+            <p class="micro text-muted-foreground">Animation</p>
             <NumberField v-model="avatar.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
             <div class="flex gap-4">
               <Toggle v-model="avatar.animate" label="animate" />
@@ -737,7 +736,7 @@ function setPieVariant(v: VariantInput) {
                 class="flex items-center gap-1 rounded border border-border min-h-6 px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 @click="replay()"
               >
-                replay
+                Replay
               </button>
             </div>
           </section>
@@ -746,7 +745,7 @@ function setPieVariant(v: VariantInput) {
         <!-- BUTTON builder -->
         <template v-else-if="button">
           <section class="flex flex-col gap-3">
-            <p class="micro text-muted-foreground">button</p>
+            <p class="micro text-muted-foreground">Button</p>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
               <span class="w-14 shrink-0">label</span>
               <input
@@ -806,17 +805,17 @@ function setPieVariant(v: VariantInput) {
             <div class="flex gap-1.5 pt-1">
               <button
                 type="button"
-                class="rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                class="flex min-h-6 items-center gap-1.5 rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 @click="moveCell(screenSel.row, screenSel.cell.id, -1)"
               >
-                ← move
+                <DitherIcon name="ArrowLeft" :size="12" :stroke-width="1.5" />Move left
               </button>
               <button
                 type="button"
-                class="rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                class="flex min-h-6 items-center gap-1.5 rounded border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 @click="moveCell(screenSel.row, screenSel.cell.id, 1)"
               >
-                move →
+                <DitherIcon name="ArrowRight" :size="12" :stroke-width="1.5" />Move right
               </button>
               <button
                 type="button"
@@ -832,7 +831,7 @@ function setPieVariant(v: VariantInput) {
         <!-- SCREEN: row selected -->
         <template v-else-if="screen && screenSel?.kind === 'row' && screenSel.row">
           <section class="flex flex-col gap-3">
-            <p class="micro text-muted-foreground">row</p>
+            <p class="micro text-muted-foreground">Row</p>
             <Segmented
               :model-value="screenSel.row.align"
               :options="ROW_ALIGNS"
@@ -892,7 +891,7 @@ function setPieVariant(v: VariantInput) {
         <!-- SCREEN: frame root -->
         <template v-else-if="screen">
           <section class="flex flex-col gap-3">
-            <p class="micro text-muted-foreground">screen</p>
+            <p class="micro text-muted-foreground">Screen</p>
             <NumberField
               :model-value="screen.gap"
               label="row gap"
@@ -920,7 +919,7 @@ function setPieVariant(v: VariantInput) {
         <!-- IMAGE builder -->
         <template v-else-if="image">
           <section class="flex flex-col gap-3">
-            <p class="micro text-muted-foreground">image</p>
+            <p class="micro text-muted-foreground">Image</p>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
               <span class="w-14 shrink-0">src</span>
               <input
@@ -987,7 +986,7 @@ function setPieVariant(v: VariantInput) {
         <!-- GRADIENT builder -->
         <template v-else-if="gradient">
           <section class="flex flex-col gap-3">
-            <p class="micro text-muted-foreground">gradient</p>
+            <p class="micro text-muted-foreground">Gradient</p>
             <Segmented v-model="gradient.direction" :options="GRAD_DIRS" label="direction" />
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
               <span class="w-14 shrink-0">pixel</span>
@@ -1070,7 +1069,7 @@ function setPieVariant(v: VariantInput) {
         </div>
 
         <section v-if="fam === 'cartesian'" class="flex flex-col gap-2.5 border-t border-border/60 pt-3">
-          <p class="micro text-muted-foreground">markers</p>
+          <p class="micro text-muted-foreground">Markers</p>
           <Toggle v-model="series.dots.on" label="dots at every point" />
           <template v-if="series.dots.on">
             <Segmented v-model="series.dots.variant" :options="DOT_VARIANTS" label="style" />

@@ -19,9 +19,9 @@ const threads = reactive<Thread[]>([
     name: "Rei Toma",
     color: "purple",
     unread: 0,
-    replies: ["On it — give me ten minutes.", "Pushed. Check the preview link."],
+    replies: ["On it. Give me ten minutes.", "Pushed. Check the preview link."],
     messages: [
-      { from: "them", text: "Morning — the new palette landed in staging.", at: "09:12" },
+      { from: "them", text: "Morning. The new palette landed in staging.", at: "09:12" },
       { from: "me", text: "Saw it. The green reads much better on dark.", at: "09:14" },
       { from: "them", text: "Agreed. I still want to tune the orange ramp.", at: "09:15" },
     ],
@@ -31,7 +31,7 @@ const threads = reactive<Thread[]>([
     name: "Kai Raster",
     color: "green",
     unread: 2,
-    replies: ["Ticket closed — customer confirmed.", "Done. Anything else today?"],
+    replies: ["Ticket closed. Customer confirmed.", "Done. Anything else today?"],
     messages: [
       { from: "them", text: "Two tickets left in the queue.", at: "08:40" },
       { from: "them", text: "One looks like the export bug again.", at: "08:41" },
@@ -91,16 +91,16 @@ onUnmounted(() => {
 type AiMsg = { role: "user" | "assistant"; text: string }
 const AI_ANSWERS: Record<string, string> = {
   "What can a seed do?":
-    "One integer derives a full visual personality — texture, easing, bloom, entrance, even the dither matrix. Same seed, same picture, forever.",
+    "One integer derives a full visual personality: texture, easing, bloom, entrance, even the dither matrix. Same seed, same picture, forever.",
   "Theme the charts":
-    "Override the shadcn-style tokens — background, foreground, border, accent — and every chart chrome follows. The dither reads the same vars.",
+    "Override the shadcn-style tokens (background, foreground, border, accent) and every chart chrome follows. The dither reads the same vars.",
   "Export an artboard":
-    "Open Studio, select the artboard, and use Export — PNG for pixels, or copy the Vue snippet to keep it live.",
+    "Open Studio, select the artboard, and use Export: PNG for pixels, or copy the Vue snippet to keep it live.",
 }
 const AI_FALLBACK =
-  "Try a seed — pass any integer to a chart and watch the texture, easing and bloom derive from it. Explicit props always win."
+  "Try a seed: pass any integer to a chart and watch the texture, easing and bloom derive from it. Explicit props always win."
 const aiMessages = reactive<AiMsg[]>([
-  { role: "assistant", text: "Hi — ask me about seeds, theming, or exporting. Or pick a suggestion below." },
+  { role: "assistant", text: "Hi, ask me about seeds, theming, or exporting. Or pick a suggestion below." },
 ])
 const aiDraft = ref("")
 const aiStreaming = ref(false)
@@ -136,15 +136,15 @@ function aiStop() {
   streamId = 0
   aiStreaming.value = false
   const last = aiMessages[aiMessages.length - 1]
-  if (last.role === "assistant" && !last.text) last.text = "—"
+  if (last.role === "assistant" && !last.text) last.text = "Stopped."
 }
 
 /* Support chat — quick replies, agent typing, ticket escalation */
 type SupportMsg = { from: "me" | "agent" | "system"; text: string; at: string }
 const SUPPORT_REPLIES: Record<string, string> = {
-  "Where is my order?": "Order #1187 shipped yesterday — tracking says it arrives Thursday.",
-  "Reset my password": "Done — a reset link is in your inbox. It expires in 15 minutes.",
-  "Talk to a human": "Connecting you — a teammate picks this up from here.",
+  "Where is my order?": "Order #1187 shipped yesterday. Tracking says it arrives Thursday.",
+  "Reset my password": "Done. A reset link is in your inbox. It expires in 15 minutes.",
+  "Talk to a human": "Connecting you. A teammate picks this up from here.",
 }
 const supportMessages = reactive<SupportMsg[]>([
   { from: "agent", text: "Hi, you have reached dither support. How can I help?", at: "10:02" },
@@ -164,7 +164,7 @@ function supportAsk(prompt: string) {
   supportDraft.value = ""
   supportTyping.value = true
   later(() => {
-    const reply = SUPPORT_REPLIES[text] ?? "Let me check that for you — one moment."
+    const reply = SUPPORT_REPLIES[text] ?? "Let me check that for you. One moment."
     supportMessages.push({ from: "agent", text: reply, at: stamp() })
     supportTyping.value = false
     if (text === "Talk to a human")
@@ -172,7 +172,7 @@ function supportAsk(prompt: string) {
         () =>
           supportMessages.push({
             from: "system",
-            text: "Ticket #4821 opened — Rei joined the conversation",
+            text: "Ticket #4821 opened. Rei joined the conversation.",
             at: stamp(),
           }),
         900,
@@ -192,7 +192,7 @@ const channelMessages = reactive<ChannelMsg[]>([
   {
     author: "Rei Toma",
     color: "purple",
-    text: "Palette v3 is in staging — poke at the orange ramp.",
+    text: "Palette v3 is in staging. Poke at the orange ramp.",
     at: "09:12",
     reactions: [{ label: "+1", count: 2, mine: false }],
   },
@@ -206,7 +206,7 @@ const channelMessages = reactive<ChannelMsg[]>([
   {
     author: "Kai Raster",
     color: "green",
-    text: "Export bug #214 is reproduced — fix lands today.",
+    text: "Export bug #214 is reproduced. Fix lands today.",
     at: "09:20",
     reactions: [{ label: "ship it", count: 1, mine: false }],
   },
@@ -315,15 +315,13 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
   <section id="chat-thread" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Chat thread</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Conversation list beside a live thread — unread badges clear when you open them, sending appends your bubble, and
+      Conversation list beside a live thread: unread badges clear when you open them, sending appends your bubble, and
       the other side types back. The typing dots hold still under reduced motion.
     </p>
     <DemoCard :code="SNIPPET">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-background/40">
         <aside class="flex w-52 shrink-0 flex-col border-r border-border/60" aria-label="Conversations">
-          <div class="border-b border-border/60 p-2.5 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">
-            Messages
-          </div>
+          <div class="border-b border-border/60 p-2.5 text-[11px] text-muted-foreground">Messages</div>
           <div class="grid content-start gap-0.5 p-1.5">
             <button
               v-for="t in threads"
@@ -402,7 +400,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
   <section id="chat-assistant" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">AI assistant</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An assistant thread — suggestion chips ask for you, replies stream in character by character, and Stop cancels
+      An assistant thread: suggestion chips ask for you, replies stream in character by character, and Stop cancels
       mid-sentence. Under reduced motion the answer lands whole.
     </p>
     <DemoCard :code="SNIPPET_AI">
@@ -479,7 +477,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
   <section id="chat-support" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Support chat</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A support widget — online status in the header, quick-reply chips that really answer, and “Talk to a human”
+      A support widget: online status in the header and quick-reply chips that really answer. “Talk to a human”
       escalates: the agent replies, then a system line opens the ticket.
     </p>
     <DemoCard :code="SNIPPET_SUPPORT">
@@ -491,11 +489,12 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
           <span class="text-[12px] text-foreground">Support</span>
           <span class="ml-auto flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <span class="size-1.5 rounded-full" :style="{ background: 'var(--swatch-green)' }" aria-hidden="true" />
-            online · ~2 min
+            <span>online</span>
+            <span class="ml-1.5">~2 min</span>
           </span>
         </div>
         <div ref="supportScroller" class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
-          <div class="text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">Today</div>
+          <div class="text-center text-[11px] text-muted-foreground">Today</div>
           <template v-for="(m, i) in supportMessages" :key="i">
             <p v-if="m.from === 'system'" class="px-4 text-center text-[10px] text-muted-foreground">
               {{ m.text }}
@@ -556,7 +555,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
   <section id="chat-channel" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Team channel</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A channel, not bubbles — flat rows where consecutive messages from one author group under a single name, and
+      A channel, not bubbles: flat rows where consecutive messages from one author group under a single name, and
       reactions toggle with a click. Post something and watch your rows group too.
     </p>
     <DemoCard :code="SNIPPET_CHANNEL">
@@ -568,7 +567,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
           <span class="ml-auto text-[10px] tabular-nums text-muted-foreground">4 members</span>
         </div>
         <div ref="channelScroller" class="min-h-0 flex-1 overflow-y-auto p-3">
-          <div class="pb-2 text-center text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">Today</div>
+          <div class="pb-2 text-center text-[11px] text-muted-foreground">Today</div>
           <div
             v-for="(m, i) in channelMessages"
             :key="i"

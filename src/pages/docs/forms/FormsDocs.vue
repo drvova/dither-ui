@@ -115,7 +115,7 @@ const API: Record<string, PropRow[]> = {
   ],
   searchInput: [
     { prop: "modelValue", type: "string (v-model)", default: '""' },
-    { prop: "@clear", type: "() on clear/Escape", default: "—" },
+    { prop: "@clear", type: "() on clear/Escape", default: "" },
   ],
   emailInput: [
     { prop: "modelValue", type: "string (v-model)", default: '""' },
@@ -141,12 +141,12 @@ const API: Record<string, PropRow[]> = {
   codeInput: [
     { prop: "modelValue", type: "string (v-model)", default: '""' },
     { prop: "rows", type: "number", default: "6" },
-    { prop: "@submit", type: "Ctrl/Cmd + Enter", default: "—" },
+    { prop: "@submit", type: "Ctrl/Cmd + Enter", default: "" },
   ],
   inputGroup: [],
   inlineEdit: [
     { prop: "modelValue", type: "string (v-model)", default: '""' },
-    { prop: "@save / @cancel", type: "(value) / ()", default: "—" },
+    { prop: "@save / @cancel", type: "(value) / ()", default: "" },
   ],
   tagInput: [
     { prop: "modelValue", type: "string[] (v-model)", default: "[]" },
@@ -168,23 +168,23 @@ const API: Record<string, PropRow[]> = {
   mentionInput: [
     { prop: "modelValue", type: "string (v-model)", default: '""' },
     { prop: "options", type: "string[]", default: "[]" },
-    { prop: "@mention", type: "(handle) on insert", default: "—" },
+    { prop: "@mention", type: "(handle) on insert", default: "" },
   ],
   fileInput: [
     { prop: "modelValue", type: "File[] (v-model)", default: "[]" },
     { prop: "multiple", type: "boolean", default: "false" },
-    { prop: "accept", type: "string (input accept)", default: "—" },
-    { prop: "@change", type: "(File[]) after pick/remove", default: "—" },
+    { prop: "accept", type: "string (input accept)", default: "" },
+    { prop: "@change", type: "(File[]) after pick/remove", default: "" },
   ],
   listBox: [
     { prop: "options", type: "string[]", default: "[]" },
     { prop: "value", type: "string (v-model)", default: '""' },
-    { prop: "@select", type: "(value) on commit", default: "—" },
+    { prop: "@select", type: "(value) on commit", default: "" },
   ],
   multiSelect: [
     { prop: "options", type: "string[]", default: "[]" },
     { prop: "value", type: "string[] (v-model)", default: "[]" },
-    { prop: "@search", type: "(query) as you type", default: "—" },
+    { prop: "@search", type: "(query) as you type", default: "" },
   ],
   cascadeSelect: [
     { prop: "tree", type: "{ value, children? }[]", default: "[]" },
@@ -212,12 +212,12 @@ const API: Record<string, PropRow[]> = {
   ],
   calendar: [
     { prop: "modelValue", type: "string (ISO date, v-model)", default: '""' },
-    { prop: "min / max", type: "string (ISO)", default: "—" },
+    { prop: "min / max", type: "string (ISO)", default: "" },
   ],
   datePicker: [
     { prop: "modelValue", type: "string (ISO, v-model)", default: '""' },
-    { prop: "min / max", type: "string (ISO)", default: "—" },
-    { prop: "@select", type: "(ISO) when picked", default: "—" },
+    { prop: "min / max", type: "string (ISO)", default: "" },
+    { prop: "@select", type: "(ISO) when picked", default: "" },
   ],
   monthPicker: [
     { prop: "modelValue", type: "string (YYYY-MM, v-model)", default: '""' },
@@ -241,7 +241,7 @@ const API: Record<string, PropRow[]> = {
   signaturePad: [
     { prop: "modelValue", type: "string (dataURL, v-model)", default: '""' },
     { prop: "width / height", type: "number (canvas)", default: "420 / 160" },
-    { prop: "@change", type: "(dataURL) per stroke", default: "—" },
+    { prop: "@change", type: "(dataURL) per stroke", default: "" },
   ],
 }
 </script>
@@ -268,7 +268,8 @@ const API: Record<string, PropRow[]> = {
   <section id="search-input" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">SearchInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Leading glyph, one-click clear (only when there is something to clear) and Escape empties the field — fires a
+      Leading glyph, one-click clear (only when there is something to clear) and Escape empties the field. Either way it
+      fires a
       <code class="text-foreground/80">clear</code>
       event so results can reset in the same beat.
     </p>
@@ -334,8 +335,8 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">ScrubInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The Figma-style drag gesture on a number: the grip is a real
-      <code class="text-foreground/80">role="slider"</code> — arrow keys, PageUp/Down and Home/End work without a
-      pointer — and the read-only input stays selectable for copying. Values snap to
+      <code class="text-foreground/80">role="slider"</code> (arrow keys, PageUp/Down and Home/End work without a
+      pointer), and the read-only input stays selectable for copying. Values snap to
       <code class="text-foreground/80">step</code>.
     </p>
     <DemoCard :code="SNIPPET_SCRUB_INPUT">
@@ -370,8 +371,7 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">CodeInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Code entry where Tab indents (two spaces), Shift+Tab dedents the selected lines, and Ctrl/Cmd+Enter fires
-      <code class="text-foreground/80">submit</code>
-      — the browser's tab trap handled once, here.
+      <code class="text-foreground/80">submit</code>. The browser's tab trap is handled once, here.
     </p>
     <DemoCard :code="SNIPPET_CODE_INPUT">
       <div class="mx-auto w-full max-w-md">
@@ -408,7 +408,7 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">InlineEdit</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Click-to-edit text: view mode is a real button (keyboard reachable), edit mode focus-selects. Enter or blur
-      commits — only when the value actually changed — Escape reverts.
+      commits (only when the value actually changed). Escape reverts.
     </p>
     <DemoCard :code="SNIPPET_INLINE_EDIT">
       <div class="mx-auto w-full max-w-xs">
@@ -440,7 +440,7 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">ChoiceChips</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Chip-style choice group where the chip IS the label of a real radio (or checkbox when
-      <code class="text-foreground/80">multiple</code>) — native keyboard semantics and focus come for free, no roving
+      <code class="text-foreground/80">multiple</code>). Native keyboard semantics and focus come for free: no roving
       tabindex to get wrong.
     </p>
     <DemoCard :code="SNIPPET_CHOICE_CHIPS">
@@ -456,7 +456,7 @@ const API: Record<string, PropRow[]> = {
   <section id="checkbox-card" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">CheckboxCard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The whole card is the checkbox's label — title and description ride along, one click anywhere toggles, the focus
+      The whole card is the checkbox's label: title and description ride along, one click anywhere toggles, the focus
       ring shows keyboard focus. The checkbox stays the source of truth.
     </p>
     <DemoCard :code="SNIPPET_CHECKBOX_CARD">
@@ -480,7 +480,7 @@ const API: Record<string, PropRow[]> = {
   <section id="key-value-input" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">KeyValueInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Repeatable key/value rows — headers, metadata, query params. Every edit emits the whole array (the parent owns the
+      Repeatable key/value rows: headers, metadata, query params. Every edit emits the whole array (the parent owns the
       truth), rows are added and removed from the bottom.
     </p>
     <DemoCard :code="SNIPPET_KEY_VALUE_INPUT">
@@ -501,7 +501,7 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">MentionInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Textarea with <code class="text-foreground/80">@</code>-mention autocomplete: detection is a regex on the text
-      before the caret, the list anchors to the field, Arrow keys pick, Enter/Tab inserts, Escape closes — the caret
+      before the caret, the list anchors to the field, Arrow keys pick, Enter/Tab inserts, Escape closes. The caret
       lands after the inserted handle.
     </p>
     <DemoCard :code="SNIPPET_MENTION_INPUT">
@@ -518,7 +518,7 @@ const API: Record<string, PropRow[]> = {
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       File picker with a visible selection: a hidden native input driven by its label (keyboard-reachable), files listed
       with sizes, per-file remove, clear-all, and drop-zone drag styling. The model is
-      <code class="text-foreground/80">File[]</code> — owned by the parent.
+      <code class="text-foreground/80">File[]</code>, owned by the parent.
     </p>
     <DemoCard :code="SNIPPET_FILE_INPUT">
       <div class="mx-auto w-full max-w-sm">
@@ -548,8 +548,8 @@ const API: Record<string, PropRow[]> = {
   <section id="multi-select" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">MultiSelect</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Chips for what's picked, native checkboxes for what's pickable, a filter box over the pool — keyboard semantics
-      come from the checkboxes, the selected set stays visible and individually removable.
+      Chips for what's picked, native checkboxes for what's pickable, a filter box over the pool. Keyboard semantics
+      come from the checkboxes, and the selected set stays visible and individually removable.
     </p>
     <DemoCard :code="SNIPPET_MULTI_SELECT">
       <div class="mx-auto w-full max-w-sm">
@@ -564,7 +564,7 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">CascadeSelect</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Dependent pickers: each level's options come from the tree under the current path, and changing a parent truncates
-      the deeper segments — the classic cascade rule, in one component. The model is the chosen path.
+      the deeper segments (the classic cascade rule, in one component). The model is the chosen path.
     </p>
     <DemoCard :code="SNIPPET_CASCADE_SELECT">
       <div class="mx-auto w-full max-w-md">
@@ -595,7 +595,7 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">TransferList</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Two-panel shuttle: the source pool stays put, the destination IS the model. Checkboxes select in either direction,
-      Add/Remove move the selection, Add all/Remove all flush — every control a real button.
+      Add/Remove move the selection, Add all/Remove all flush. Every control is a real button.
     </p>
     <DemoCard :code="SNIPPET_TRANSFER_LIST">
       <div class="mx-auto w-full max-w-xl">
@@ -614,7 +614,7 @@ const API: Record<string, PropRow[]> = {
   <section id="language-select" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">LanguageSelect</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Language picker over a curated BCP 47 list — the label is the human name, the value is the tag, and
+      Language picker over a curated BCP 47 list: the label is the human name, the value is the tag, and
       <code class="text-foreground/80">includeDefault</code> keeps the opt-out one option away.
     </p>
     <DemoCard :code="SNIPPET_LANGUAGE_SELECT">
@@ -629,7 +629,7 @@ const API: Record<string, PropRow[]> = {
   <section id="icon-picker" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">IconPicker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The kit's own glyphs behind a name filter — a radio grid, so arrow keys roam the whole grid as one tab stop. Value
+      The kit's own glyphs behind a name filter: a radio grid, so arrow keys roam the whole grid as one tab stop. Value
       = the icon name, ready for <code class="text-foreground/80">&lt;DitherIcon&gt;</code>.
     </p>
     <DemoCard :code="SNIPPET_ICON_PICKER">
@@ -644,7 +644,7 @@ const API: Record<string, PropRow[]> = {
   <section id="font-picker" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">FontPicker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Each option renders its own name in its own family — the preview IS the choice, so no swatch can drift from the
+      Each option renders its own name in its own family. The preview IS the choice, so no swatch can drift from the
       value. Value = the CSS font stack string.
     </p>
     <DemoCard :code="SNIPPET_FONT_PICKER">
@@ -705,7 +705,7 @@ const API: Record<string, PropRow[]> = {
   <section id="color-swatch" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">ColorSwatch</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      One color as a pickable chip — a real button with the color in its accessible name, a selected ring, a keyboard
+      One color as a pickable chip: a real button with the color in its accessible name, a selected ring, a keyboard
       focus ring. Reads as pure display when nothing listens to <code class="text-foreground/80">select</code>.
     </p>
     <DemoCard :code="SNIPPET_COLOR_SWATCH">
@@ -756,9 +756,9 @@ const API: Record<string, PropRow[]> = {
   <section id="signature-pad" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">SignaturePad</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Pointer drawing on a canvas — <code class="text-foreground/80">change</code>
-      fires the dataURL after every stroke and on clear. A context-less environment refuses strokes instead of throwing,
-      so degraded engines degrade visibly.
+      Pointer drawing on a canvas. The <code class="text-foreground/80">change</code>
+      event fires the dataURL after every stroke and on clear. A context-less environment refuses strokes instead of
+      throwing, so degraded engines degrade visibly.
     </p>
     <DemoCard :code="SNIPPET_SIGNATURE_PAD">
       <div class="mx-auto w-full max-w-md">

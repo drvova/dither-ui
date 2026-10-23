@@ -125,11 +125,11 @@ function free() {
     <table v-if="rows.length" class="list">
       <thead>
         <tr>
-          <th class="micro">animation</th>
-          <th class="micro">on</th>
-          <th class="micro">duration</th>
-          <th class="micro">loops</th>
-          <th class="micro">state</th>
+          <th class="micro">Animation</th>
+          <th class="micro">On</th>
+          <th class="micro">Duration</th>
+          <th class="micro">Loops</th>
+          <th class="micro">State</th>
         </tr>
       </thead>
       <tbody>
@@ -142,13 +142,13 @@ function free() {
         </tr>
       </tbody>
     </table>
-    <p v-else class="dim">No CSS or Web animations here — canvas surfaces run on the kit clock below.</p>
+    <p v-else class="dim">No CSS or Web animations here. Canvas surfaces run on the kit clock below.</p>
 
     <div class="clock">
       <div class="row">
         <span class="micro">Kit clock</span>
         <span class="dim"
-          >every dithered surface on the page · {{ held ? `held at ${(at / 1000).toFixed(3)} s` : "running" }}</span
+          >Every dithered surface on the page, {{ held ? `held at ${(at / 1000).toFixed(3)} s` : "running" }}</span
         >
         <span class="spacer" />
         <button type="button" class="act" aria-label="Back one frame" @click="hold(at - FRAME)">

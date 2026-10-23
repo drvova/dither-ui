@@ -60,29 +60,29 @@ const SNIPPET_TIMELINE = `<DitherTimeline
 
 const API: Record<string, PropRow[]> = {
   breadcrumb: [
-    { prop: "items", type: "{ label; href? }[]", default: "—" },
+    { prop: "items", type: "{ label; href? }[]", default: "" },
     { prop: "separator", type: "string", default: '"/"' },
   ],
   pagination: [
-    { prop: "page", type: "number (v-model)", default: "—" },
-    { prop: "total", type: "number — page count", default: "—" },
-    { prop: "siblings", type: "number — pages either side", default: "1" },
+    { prop: "page", type: "number (v-model)", default: "" },
+    { prop: "total", type: "number (page count)", default: "" },
+    { prop: "siblings", type: "number (pages either side)", default: "1" },
   ],
   rating: [
     { prop: "modelValue", type: "number (v-model)", default: "0" },
     { prop: "max", type: "number", default: "5" },
     { prop: "color", type: "PixelColor", default: '"orange"' },
     { prop: "size", type: "number (px per star)", default: "22" },
-    { prop: "readonly", type: "boolean — fractions allowed", default: "false" },
-    { prop: "label", type: "string — accessible name", default: '"Rating"' },
-    { prop: "seed", type: "number — star tilt + scatter", default: "clean" },
+    { prop: "readonly", type: "boolean (fractions allowed)", default: "false" },
+    { prop: "label", type: "string (accessible name)", default: '"Rating"' },
+    { prop: "seed", type: "number (star tilt + scatter)", default: "clean" },
   ],
   stepper: [
-    { prop: "steps", type: "{ label; hint? }[]", default: "—" },
-    { prop: "current", type: "number — active index", default: "—" },
+    { prop: "steps", type: "{ label; hint? }[]", default: "" },
+    { prop: "current", type: "number (active index)", default: "" },
   ],
   timeline: [
-    { prop: "items", type: "{ title; time?; body?; color? }[]", default: "—" },
+    { prop: "items", type: "{ title; time?; body?; color? }[]", default: "" },
     { prop: "dotSize", type: "number (px)", default: "12" },
   ],
 }
@@ -137,7 +137,7 @@ const API: Record<string, PropRow[]> = {
       <div class="grid gap-6">
         <div class="flex flex-col items-center gap-2">
           <DitherRating v-model="rating" :size="28" />
-          <p class="text-[12px] tabular-nums text-muted-foreground">{{ rating }} / 5 — click or arrow-key</p>
+          <p class="text-[12px] tabular-nums text-muted-foreground">{{ rating }} / 5 (click or arrow-key)</p>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
           <DitherRating :model-value="4.5" readonly />
@@ -175,7 +175,7 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">Stepper</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Progress through a multi-step flow. Completed steps carry a check, the current step an outlined node, and the
-      connectors are the kit's dithered rule — dissolving toward steps not yet reached.
+      connectors are the kit's dithered rule, dissolving toward steps not yet reached.
     </p>
     <DemoCard :code="SNIPPET_STEPPER">
       <div class="mx-auto max-w-md">

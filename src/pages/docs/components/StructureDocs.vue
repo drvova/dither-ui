@@ -56,7 +56,7 @@ const openB = ref(false)
 
 <DitherCollapsible v-model="openA" title="What is dithering?" color="blue">
   Ordered dithering trades smooth gradients for a fixed threshold
-  matrix — the same Bayer 4x4 behind every fill in this kit.
+  matrix: the same Bayer 4x4 behind every fill in this kit.
 </DitherCollapsible>
 <DitherCollapsible v-model="openB" title="Why canvas?" color="purple">
   One engine paints every fill, so components stay coherent.
@@ -82,7 +82,7 @@ const open = ref(false)
 <DitherButton @click="open = true">Open modal</DitherButton>
 <DitherCenterMorphModal :open="open" label="Release notes" @close="open = false">
   <div class="flex h-full flex-col justify-end gap-2">
-    <h3 class="text-sm font-medium text-foreground">v2.4 — dithered everything</h3>
+    <h3 class="text-sm font-medium text-foreground">v2.4: dithered everything</h3>
     <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">
       This full-size surface unfolded from its exact center. Press Escape,
       the backdrop, or the inset control to fold it back.
@@ -104,30 +104,30 @@ const SNIPPET_KBD = `<div class="flex items-center gap-6 text-xs">
 
 const API: Record<string, PropRow[]> = {
   tabs: [
-    { prop: "tabs", type: "(string | { value, label?, badge?, disabled? })[]", default: "—" },
-    { prop: "modelValue", type: "string", default: "—" },
+    { prop: "tabs", type: "(string | { value, label?, badge?, disabled? })[]", default: "" },
+    { prop: "modelValue", type: "string", default: "" },
     { prop: "variant", type: '"underline" | "segmented" | "washed"', default: '"underline"' },
     { prop: "orientation", type: '"horizontal" | "vertical"', default: '"horizontal"' },
     { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "value (TabPanel)", type: "string — nests inside DitherTabs", default: "—" },
+    { prop: "value (TabPanel)", type: "string (nests inside DitherTabs)", default: "" },
   ],
   collapsible: [
-    { prop: "title", type: "string", default: "—" },
+    { prop: "title", type: "string", default: "" },
     { prop: "modelValue", type: "boolean", default: "false" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
   ],
   dialog: [
-    { prop: "open", type: "boolean", default: "—" },
+    { prop: "open", type: "boolean", default: "" },
     { prop: "title", type: "string", default: "undefined" },
     { prop: "description", type: "string", default: "undefined" },
     { prop: "closeOnBackdrop", type: "boolean", default: "true" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   centerMorphModal: [
-    { prop: "open", type: "boolean", default: "—" },
-    { prop: "label", type: "string — accessible name", default: '"Modal"' },
+    { prop: "open", type: "boolean", default: "" },
+    { prop: "label", type: "string (accessible name)", default: '"Modal"' },
     { prop: "closeOnBackdrop", type: "boolean", default: "true" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   kbd: [{ prop: "class", type: "string", default: "undefined" }],
 }
@@ -148,7 +148,7 @@ const API: Record<string, PropRow[]> = {
         </DitherTabs>
       </div>
     </DemoCard>
-    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+    <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
     <div class="mt-4 grid gap-5 sm:grid-cols-3">
       <div v-for="v in TAB_VARIANTS" :key="v">
         <div class="flex h-16 items-start justify-center rounded-lg border border-border/60 p-3">
@@ -157,7 +157,7 @@ const API: Record<string, PropRow[]> = {
         <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
       </div>
     </div>
-    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">vertical · badges · disabled</h3>
+    <h3 class="mt-8 text-[12px] text-muted-foreground">Vertical, badges and disabled</h3>
     <div class="mt-4 rounded-lg border border-border/60 p-4">
       <DitherTabs
         v-model="vertTab"
@@ -173,7 +173,7 @@ const API: Record<string, PropRow[]> = {
           :value="t.value"
           class="min-w-0 flex-1 self-stretch rounded-md border border-border/40 p-3"
         >
-          <p class="text-[12px] text-muted-foreground">{{ t.value }} — {{ t.badge ?? 0 }} items.</p>
+          <p class="text-[12px] text-muted-foreground">{{ t.value }}: {{ t.badge ?? 0 }} items.</p>
         </DitherTabPanel>
       </DitherTabs>
     </div>
@@ -189,7 +189,7 @@ const API: Record<string, PropRow[]> = {
     <DemoCard :code="SNIPPET_COLLAPSIBLE">
       <div class="mx-auto max-w-sm divide-y divide-border/60">
         <DitherCollapsible v-model="openA" title="What is dithering?" color="blue">
-          Ordered dithering trades smooth gradients for a fixed threshold matrix — the same Bayer 4x4 behind every fill
+          Ordered dithering trades smooth gradients for a fixed threshold matrix: the same Bayer 4x4 behind every fill
           in this kit.
         </DitherCollapsible>
         <DitherCollapsible v-model="openB" title="Why canvas?" color="purple">
@@ -236,7 +236,7 @@ const API: Record<string, PropRow[]> = {
         <DitherButton @click="morphOpen = true">Open modal</DitherButton>
         <DitherCenterMorphModal :open="morphOpen" label="Release notes" @close="morphOpen = false">
           <div class="flex h-full flex-col justify-end gap-2">
-            <h3 class="text-sm font-medium text-foreground">v2.4 — dithered everything</h3>
+            <h3 class="text-sm font-medium text-foreground">v2.4: dithered everything</h3>
             <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">
               This full-size surface unfolded from its exact center. Press Escape, the backdrop, or the inset control to
               fold it back.
@@ -251,7 +251,7 @@ const API: Record<string, PropRow[]> = {
   <section id="kbd" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Kbd</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An honest keyboard key — no canvas, just the house border and a 2px bottom edge. Pairs with shortcut listings.
+      An honest keyboard key: no canvas, just the house border and a 2px bottom edge. Pairs with shortcut listings.
     </p>
     <DemoCard :code="SNIPPET_KBD">
       <div class="flex items-center justify-center gap-6 text-xs">

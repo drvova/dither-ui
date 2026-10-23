@@ -48,7 +48,7 @@ async function fetchText(url: string): Promise<string> {
   // A dev or preview server answers unknown paths with the app shell.
   if (!r.ok || /text\/html/.test(r.headers.get("content-type") ?? "")) {
     throw new Error(
-      `player bundle missing at ${url} — run npm run build (it ends with the player), or export from dither-ui.com`,
+      `The player bundle is missing at ${url}. Run npm run build (it ends with the player), or export from dither-ui.com.`,
     )
   }
   return r.text()

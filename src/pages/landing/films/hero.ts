@@ -11,9 +11,11 @@ import {
   base,
   constant,
   fill,
+  hoverLiftMacro,
   keyed,
   marker,
   parallaxLayersMacro,
+  pressSquashMacro,
   stroke,
   trim,
   type Animatable,
@@ -405,7 +407,7 @@ function controlLayer(nodes: Nodes): string[] {
     [FLIP_OFF + s(0.27), a],
   ]
   nodes.switch = {
-    ...node("switch", X, SY),
+    ...node("switch"),
     type: "rect",
     size: constant({ width: 140, height: 56 }),
     cornerRadius: constant(0),
@@ -422,7 +424,7 @@ function controlLayer(nodes: Nodes): string[] {
       outTick: HERO_END,
       position: keyed(
         "knob.position",
-        on(0, 1).map(([t, k, e]) => [t, { x: X - 36 + k * 72, y: SY, z: 0 }, e] as const),
+        on(0, 1).map(([t, k, e]) => [t, { x: -36 + k * 72, y: 0, z: 0 }, e] as const),
       ),
     }),
     type: "rect",
@@ -430,7 +432,9 @@ function controlLayer(nodes: Nodes): string[] {
     cornerRadius: constant(0),
     style: { fill: { color: keyed("knob.color", knobColor), opacity: constant(1) } },
   }
-  return ["switch", "knob", "button"]
+  // Track and knob are one control, so they answer the cursor together.
+  nodes.toggle = { ...node("toggle", X, SY), type: "group", children: ["switch", "knob"] }
+  return ["toggle", "button"]
 }
 
 /** One exploded layer: the board's rotation plus its own lift, both on the
@@ -532,7 +536,15 @@ export function heroFilm(): AnimationDocument {
       marker("fold", FOLD),
       marker("flat", FLAT),
     ],
-    // The cursor parts the layers a little: the front moves most.
-    interaction: [parallaxLayersMacro({ nodeIds: layers.map((l) => l.id), span: 800, reach: 28 })],
+    // The cursor parts the layers a little: the front moves most. The
+    // board's two verbs answer it: hovered they swell a touch, pressed they
+    // squash, on whatever the loop is doing underneath.
+    interaction: [
+      parallaxLayersMacro({ nodeIds: layers.map((l) => l.id), span: 800, reach: 28 }),
+      hoverLiftMacro({ nodeId: "button", hitAreaId: "button-hit", padding: 24, scale: 1.06, lift: 0 }),
+      pressSquashMacro({ nodeId: "button", hitAreaId: "button-hit", scale: 0.92 }),
+      hoverLiftMacro({ nodeId: "toggle", hitAreaId: "toggle-hit", padding: 24, scale: 1.06, lift: 0 }),
+      pressSquashMacro({ nodeId: "toggle", hitAreaId: "toggle-hit", scale: 0.94 }),
+    ],
   })
 }

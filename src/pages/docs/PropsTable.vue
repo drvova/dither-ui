@@ -2,6 +2,8 @@
 import { computed } from "vue"
 import { docsFramework } from "./svelte"
 
+// A row's `default` is the value as code; "" when the prop has none (shown
+// as "none").
 export type PropRow = { prop: string; type: string; default: string }
 
 const props = defineProps<{ rows: PropRow[] }>()
@@ -32,7 +34,7 @@ const shownRows = computed(() =>
         <tr v-for="r in shownRows" :key="r.prop" class="border-b border-border/40 last:border-0">
           <td class="px-4 py-2.5 align-top break-words text-foreground/90">{{ r.prop }}</td>
           <td class="px-4 py-2.5 align-top break-words text-muted-foreground">{{ r.type }}</td>
-          <td class="px-4 py-2.5 align-top break-words text-muted-foreground">{{ r.default }}</td>
+          <td class="px-4 py-2.5 align-top break-words text-muted-foreground">{{ r.default || "none" }}</td>
         </tr>
       </tbody>
     </table>

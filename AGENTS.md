@@ -101,11 +101,15 @@ Default section order:
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links. GitHub Pages deploys through
-  `.github/workflows/pages.yml` (`rs build` — the site and the player
-  bundle — + the kit stylesheet; the prerender is not part of the deploy);
-  default deploy base is `/` because `public/CNAME` sets `dither-ui.com`.
-  Set repo variable `BASE_PATH=/dither-ui/` only when removing the custom
-  domain and using the GitHub Pages project URL.
+  `.github/workflows/pages.yml`: `rs build` (the site and the player
+  bundle), the kit stylesheet, `404.html` copied from the bare shell, then
+  the prerender (snapshots, posters, agent registry, og cards, section
+  pages), so the live site paints from bytes and every sitemap URL is a
+  real page. Default deploy base is `/` because `public/CNAME` sets
+  `dither-ui.com`. Set repo variable `BASE_PATH=/dither-ui/` only when
+  removing the custom domain and using the GitHub Pages project URL; that
+  deploy skips the prerender (its server serves `dist` at `/`) and ships
+  the shell.
 - Assets: `public/faces.webp` is the measured portrait/emote band;
   `public/sprites.webp` is the broader character sheet. `public/emotes/`
   holds alpha-keyed per-sprite crops of that band (six faces + six emotes,
@@ -124,7 +128,10 @@ Default section order:
   Clayzo's SDK license lets a site ship the playback runtime and its
   documents, not the authoring package, so the app never imports that
   folder. Every film renders through the kit's own ordered-dither rule as a
-  Clayzo shader, which doubles as a cursor loupe. The landing never names
+  Clayzo shader, which doubles as a cursor loupe. Every film answers the
+  visitor through the document's own interaction (hover, press, parallax,
+  cursor follow, a scrub, inputs and hit areas the page drives through
+  `ClayzoFilm`); under reduced motion none does. The landing never names
   Clayzo (the user's call; its SDK license asks no attribution). `npm run films` regenerates the documents
   (`tests/films.spec.ts` is generator and drift guard); never put Clayzo in
   `dither-kit/` (MIT, copy-out portable). Details in `src/pages/AGENTS.md`.
@@ -141,8 +148,10 @@ Default section order:
   manifest hash in `dist/og/.cards-hash`) and writes a per-section static
   page `dist/docs/<id>/index.html` (section head: title/description/
   canonical/og/twitter/BreadcrumbList — meta derived ONLY from
-  `seo.ts`'s `docsMeta`/`docsBreadcrumb`). The og surface is Disallow'd in
-  robots (assets, not pages).
+  `seo.ts`'s `docsMeta`/`docsBreadcrumb`; body: the docs shell with only
+  that section in the flow, ~160 kB, never a copy of the whole docs). A
+  static host serves it at `/docs/<id>/`, which the docs deep link
+  accepts. The og surface is Disallow'd in robots (assets, not pages).
 - Agent surface: the Studio is agent-addressable (see `src/AGENTS.md`,
   `features/agent`): `public/agent/SKILL.md` teaches any harness (Claude
   Code, Codex, pi, omp, sitegeist-bridged browsers) to compose Studio
@@ -265,8 +274,11 @@ Default section order:
   the user picked (design.how's `build-design-system` taste file, reviews
   by its `ui-review` criteria): no uppercase labels, no eyebrow over a
   title, no middle dots or em dashes, no link ending in an arrow. The
-  landing has them now; the docs and the Studio chrome (still micro-caps)
-  follow in a later pass. No space on a page is left empty. Icons do the
+  landing, the docs and the Studio all follow them: headings, buttons and
+  actions in sentence case; field labels and option values may keep the
+  lowercase tool voice, never uppercase; a kit component's own designed
+  look (its default strings, its label styles) is the product and stays.
+  No space on a page is left empty. Icons do the
   work of labels where they can, with attention to detail: kit glyphs
   (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
   (npm, pnpm, Bun, Node, Vue, Svelte, GitHub, each coding agent) from

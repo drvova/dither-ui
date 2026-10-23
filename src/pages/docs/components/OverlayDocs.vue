@@ -19,7 +19,7 @@ const popoverOpen = ref(false)
 
 /* Command palette: open state, catalog, last run, and a real hotkey. */
 const commandOpen = ref(false)
-const commandRan = ref("—")
+const commandRan = ref("none")
 const COMMAND_ITEMS = [
   { value: "new-artboard", label: "New artboard", group: "Studio", kbd: "N" },
   { value: "export-image", label: "Export image", group: "Studio", kbd: "⇧E" },
@@ -73,7 +73,7 @@ const open = ref(false)
     <DitherButton @click="open = !open">Open popover</DitherButton>
   </template>
   <p class="text-[12px] leading-relaxed text-muted-foreground">
-    Anchored to its trigger — Escape or an outside press closes it.
+    Anchored to its trigger. Escape or an outside press closes it.
   </p>
 </DitherPopover>`
 
@@ -129,7 +129,7 @@ window.addEventListener("keydown", (e) => {   // the hotkey stays yours
 })
 <\/script>
 
-<DitherButton @click="open = true">⌘K · Command</DitherButton>
+<DitherButton @click="open = true">Command (⌘K)</DitherButton>
 <DitherCommand
   :open="open"
   :items="[
@@ -160,29 +160,29 @@ const SNIPPET_PREVIEW = `<DitherPreviewCard>
 
 const API: Record<string, PropRow[]> = {
   popover: [
-    { prop: "open", type: "boolean", default: "—" },
+    { prop: "open", type: "boolean", default: "" },
     { prop: "align", type: '"start" | "center" | "end"', default: '"start"' },
   ],
-  menu: [{ prop: "items", type: "MenuItem[]", default: "—" }],
-  contextMenu: [{ prop: "items", type: "ContextMenuItem[]", default: "—" }],
+  menu: [{ prop: "items", type: "MenuItem[]", default: "" }],
+  contextMenu: [{ prop: "items", type: "ContextMenuItem[]", default: "" }],
   menubar: [
     {
       prop: "menus",
       type: "{ label: string; items: MenubarItem[] }[]",
-      default: "—",
+      default: "",
     },
   ],
   tooltip: [
-    { prop: "text", type: "string", default: "—" },
+    { prop: "text", type: "string", default: "" },
     { prop: "delay", type: "number", default: "300" },
   ],
   previewCard: [{ prop: "delay", type: "number", default: "400" }],
   command: [
-    { prop: "open", type: "boolean — @close asks to leave", default: "required" },
+    { prop: "open", type: "boolean (@close asks to leave)", default: "required" },
     { prop: "items", type: "{ value, label, group?, kbd? }[]", default: "required" },
     { prop: "placeholder", type: "string", default: '"Type a command…"' },
-    { prop: "empty", type: "string — no-match line", default: '"No results."' },
-    { prop: "@select", type: "(value) — fired before close", default: "—" },
+    { prop: "empty", type: "string (no-match line)", default: '"No results."' },
+    { prop: "@select", type: "(value), fired before close", default: "" },
   ],
 }
 </script>
@@ -191,7 +191,7 @@ const API: Record<string, PropRow[]> = {
   <section id="popover" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Popover</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An anchored panel below its trigger — bring your own trigger and content. Escape or an outside press emits close.
+      An anchored panel below its trigger. Bring your own trigger and content. Escape or an outside press emits close.
     </p>
     <DemoCard :code="SNIPPET_POPOVER">
       <div class="flex justify-center">
@@ -200,7 +200,7 @@ const API: Record<string, PropRow[]> = {
             <DitherButton @click="popoverOpen = !popoverOpen"> Open popover </DitherButton>
           </template>
           <p class="text-[12px] leading-relaxed text-muted-foreground">
-            Anchored to its trigger — Escape or an outside press closes it.
+            Anchored to its trigger. Escape or an outside press closes it.
           </p>
         </DitherPopover>
       </div>
@@ -211,7 +211,7 @@ const API: Record<string, PropRow[]> = {
   <section id="menu" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A dropdown menu behind a single button — arrow keys move focus, Enter selects, Escape closes and refocuses the
+      A dropdown menu behind a single button: arrow keys move focus, Enter selects, Escape closes and refocuses the
       trigger.
     </p>
     <DemoCard :code="SNIPPET_MENU">
@@ -226,8 +226,8 @@ const API: Record<string, PropRow[]> = {
   <section id="context-menu" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Context Menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A right-click menu teleported to the pointer — same items and keyboard behavior as Menu, dismissed by Escape or
-      any outside press.
+      A right-click menu teleported to the pointer. It shares Menu's items and keyboard behavior, and Escape or any
+      outside press dismisses it.
     </p>
     <DemoCard :code="SNIPPET_CONTEXT">
       <div class="flex flex-col items-center gap-3">
@@ -247,7 +247,7 @@ const API: Record<string, PropRow[]> = {
   <section id="menubar" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Menubar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A desktop-style horizontal bar — one menu open at a time, hover switches between top items, ArrowLeft/Right move
+      A desktop-style horizontal bar: one menu open at a time, hover switches between top items, ArrowLeft/Right move
       across them.
     </p>
     <DemoCard :code="SNIPPET_MENUBAR">
@@ -262,8 +262,8 @@ const API: Record<string, PropRow[]> = {
   <section id="tooltip" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Tooltip</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A delayed hover tip above its target — also shows on focus, hides on leave, blur, or Escape. No transition under
-      reduced motion.
+      A delayed hover tip above its target. It also shows on focus and hides on leave, blur, or Escape. No transition
+      under reduced motion.
     </p>
     <DemoCard :code="SNIPPET_TOOLTIP">
       <div class="flex justify-center">
@@ -278,8 +278,8 @@ const API: Record<string, PropRow[]> = {
   <section id="preview-card" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Preview Card</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A hover preview for rich content — opens after a delay on hover or focus; a short close delay lets the pointer
-      travel into the card.
+      A hover preview for rich content. It opens after a delay on hover or focus, and a short close delay lets the
+      pointer travel into the card.
     </p>
     <DemoCard :code="SNIPPET_PREVIEW">
       <div class="flex justify-center">
@@ -305,13 +305,13 @@ const API: Record<string, PropRow[]> = {
   <section id="command" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Command</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The ⌘K palette — type to filter, arrows to walk, Enter runs, Escape leaves. Groups follow first appearance; the
+      The ⌘K palette: type to filter, arrows to walk, Enter runs, Escape leaves. Groups follow first appearance; the
       hotkey stays in your hands. Try ⌘K right here.
     </p>
     <DemoCard :code="SNIPPET_COMMAND">
       <div class="grid min-h-28 place-items-center gap-3">
         <DitherButton color="blue" class="px-3 py-1.5 text-[12px]" @click="commandOpen = true"
-          >⌘K · Command</DitherButton
+          >Command (⌘K)</DitherButton
         >
         <p class="text-[10px] text-muted-foreground">last ran: {{ commandRan }}</p>
         <DitherCommand

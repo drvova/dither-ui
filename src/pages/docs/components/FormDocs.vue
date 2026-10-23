@@ -72,23 +72,23 @@ const level = ref(40)
 
 const API: Record<string, PropRow[]> = {
   switch: [
-    { prop: "modelValue", type: "boolean", default: "—" },
+    { prop: "modelValue", type: "boolean", default: "" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   checkbox: [
-    { prop: "modelValue", type: "boolean", default: "—" },
+    { prop: "modelValue", type: "boolean", default: "" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
   slider: [
-    { prop: "modelValue", type: "number | [number, number] — array = range", default: "—" },
+    { prop: "modelValue", type: "number | [number, number] (array = range)", default: "" },
     { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
-    { prop: "ticks", type: "boolean — tick columns at steps (≤25) or tenths", default: "false" },
-    { prop: "show-value", type: "boolean — bubble while dragging or focused", default: "false" },
+    { prop: "ticks", type: "boolean (tick columns at steps if ≤25, else tenths)", default: "false" },
+    { prop: "show-value", type: "boolean (bubble while dragging or focused)", default: "false" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "disabled", type: "boolean", default: "false" },
   ],
@@ -96,7 +96,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "value", type: "number", default: "0" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "indeterminate", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "—" },
+    { prop: "class", type: "string", default: "" },
   ],
 }
 </script>
@@ -105,7 +105,7 @@ const API: Record<string, PropRow[]> = {
   <section id="switch" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Switch</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A toggle whose track is a dithered canvas — the accent gradient fills in when on, fades to a muted wash when off.
+      A toggle whose track is a dithered canvas: the accent gradient fills in when on, fades to a muted wash when off.
     </p>
     <DemoCard :code="SNIPPET_SWITCH">
       <div class="mx-auto max-w-sm">
@@ -137,8 +137,8 @@ const API: Record<string, PropRow[]> = {
   <section id="slider" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Slider</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Drag or arrow-key the square thumb — the filled side of the track dithers denser toward the value, the rest stays
-      a muted rail.
+      Drag or arrow-key the square thumb. The filled side of the track dithers denser toward the value, and the rest
+      stays a muted rail.
     </p>
     <DemoCard :code="SNIPPET_SLIDER">
       <div class="mx-auto grid max-w-sm gap-7">
@@ -155,14 +155,14 @@ const API: Record<string, PropRow[]> = {
         </div>
         <div class="grid gap-2">
           <div class="flex items-baseline justify-between text-[11px] text-muted-foreground">
-            <span>Quality · step 10 · ticks</span>
+            <span>Quality (step 10, ticks)</span>
             <span class="tabular-nums">{{ quality }}</span>
           </div>
           <DitherSlider v-model="quality" label="Quality" :step="10" ticks show-value color="purple" />
         </div>
       </div>
     </DemoCard>
-    <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+    <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
     <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
       <div v-for="v in SLIDER_VARIANTS" :key="v">
         <DitherSlider v-model="variantLevels[v]" :label="`${v} slider`" :variant="v" />

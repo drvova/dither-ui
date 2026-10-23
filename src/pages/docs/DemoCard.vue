@@ -64,7 +64,7 @@ function locate() {
   where.value = {
     section: id,
     n,
-    title: `${name}${cards.length > 1 ? ` · preview ${n}` : ""}`,
+    title: `${name}${cards.length > 1 ? `, preview ${n}` : ""}`,
     description: line?.textContent?.replace(/\s+/g, " ").trim() ?? "",
     url: `${location.origin}${routePath(`/docs/${id}`)}`,
     install: INSTALL,

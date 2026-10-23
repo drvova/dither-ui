@@ -29,16 +29,16 @@ widgets/features; page-specific conventions live here.
   `.nav-a` keys included), NO eyebrow over a title, NO middle dots or em
   dashes in copy (separate facts with layout; end the sentence), NO link
   that ends in an arrow (every link names where it goes; an external one
-  says "(opens in a new tab)" to screen readers). The landing applies them
-  now; the docs and the Studio follow in a later pass. No space is left
+  says "(opens in a new tab)" to screen readers). The docs and the Studio
+  follow them too (see their sections). No space is left
   empty: a column or flank that runs short gets real content (a fact, a
   live kit surface, a step), never filler. The landing never names the
   tool the films are made with (the user's call; the SDK license asks no
   attribution).
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) on top of the SITE voice in
-  `app/styles.css` (`.nav-a` set in sentence case here, `.nav-pill`,
-  `.led`; never `.eyebrow` or `.micro` on the landing), which the landing
+  `app/styles.css` (`.nav-a`, sentence case site-wide, `.nav-pill`,
+  `.led`), which the landing
   uses directly: ink levels mapped to theme tokens
   (`--ink`, `--ink-2`, `--ink-3`, `--line`, `--well`), `.display` (mono
   500, tight), `.section-head` (the `.section-title` — the
@@ -72,8 +72,9 @@ widgets/features; page-specific conventions live here.
   component count, the section count, the packages beside Vue; each
   number beside its kit glyph, hairlines between, never cards). Right:
   the `hero` film at 8:5, standing on the band's floor, with a caption
-  (the Layers glyph, "Four paint layers, one dither rule.", the loupe
-  line only where hover exists, a `.lead` into composition). Under 900px
+  (the Layers glyph, "Four paint layers, one dither rule.", the pointer
+  line only where hover exists and motion is on, a `.lead` into
+  composition). Under 900px
   the statement comes first and the film takes the band's width. The h1
   AND the keys must clear the fold at 1440×900, 1280×800 and 1920×1080.
 - Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
@@ -107,7 +108,7 @@ widgets/features; page-specific conventions live here.
   glyph, a `.lead` and a line: 3D models (Box; `DitherWorld` live at 12fps
   on the house ramp, `sampleWorld(7)`), Charts (ChartLine; a live
   `LineChart`) and Video (Film; the `reel` film across the well's middle,
-  into `/docs/stage`); live kit canvases carry the `.live` chip; C — lists
+  scrubbed by the pointer, into `/docs/stage`); live kit canvases carry the `.live` chip; C — lists
   into the docs under `.list-h` headings (the shelved families biggest
   first, each under its glyph, its count in its own element, then the
   five Handbook topics under theirs; notes align with the labels), a
@@ -118,7 +119,10 @@ widgets/features; page-specific conventions live here.
   title ("n sections, every one of them live."), one line and "Browse all
   sections"; right the `catalog` film (the docs as a skyline, its
   `catalogPlate` the stand-in) standing on the panel; one column under
-  760px, the film under the text. Then a `.panel` — the kit's own
+  760px, the film under the text. The skyline is a map of the shelf: the
+  picked tab's tower stands raised (`inputs.family`, the family's index in
+  `FAMILIES`, -1 for Explore) and a click on a shelved family's tower
+  picks its tab (`hit`, `tower<i>-hit`). Then a `.panel` — the kit's own
   `DitherTabs`
   (grey; badges = family sizes) over a horizontal snapping shelf of
   `.thumb` cards that deep-link to `/docs/<id>` (the section's seeded
@@ -179,7 +183,8 @@ widgets/features; page-specific conventions live here.
   band between hairlines, the last line ("Copy one folder. Every pixel
   is yours.") and its keys ("Read the quick start", "Open the studio") on
   the shell, then the `dawn` film across the band (up to 100rem; its
-  `dawnPlate` the stand-in), its pause chip lined up with the shell.
+  `dawnPlate` the stand-in), its pause chip lined up with the shell. A
+  hand on the keys (pointer or focus) swells the sun (`inputs.glow`).
 - Marks: tool logos (npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the
   coding agents) come ONLY from `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
@@ -238,17 +243,41 @@ widgets/features; page-specific conventions live here.
   only after `load` and once the film is within a screen; until its first
   frame (and with no WebGL2) the `fallback` slot holds the frame, kept in
   the DOM and stepped out by the `data-live` latch (stripped by the
-  prerender, so static bytes ship the stand-in). `playing` is the pause
+  prerender, so static bytes ship the stand-in). A film with no plate (the
+  hero) takes `poster`: its still as `films/<id>.webp`, which the
+  prerender reads off the film's own canvas (the landing under reduced
+  motion, at 2x, lossless, ~15 kB) before it snapshots the routes, so the
+  landing's bytes paint it; where no build wrote one the image hides
+  itself. The poster is the still exactly at 2x; scaled to 1x it is a
+  touch softer (the cell seams blur) until the film steps in. `playing` is the pause
   control (WCAG 2.2.2) — every film shows its `FilmChip` (`chip`: the
   button's name, each film its own — "Pause the layers film", "Pause the
   video film", … — so a page of films never has two buttons called the
   same; a round glass icon button in its corner; with slot text it
   becomes a pill with a timecode); `FilmChip` is a toggle with a stable
   name and `aria-pressed` while paused. Reduced motion starts every film
-  paused on its `still`; pressing play is the visitor's ask and plays. The
-  pointer parts the hero's layers, the dawn's sky, the reel's strips and
-  the catalog's motes (`parallaxLayersMacro`). A film's root takes
-  its lattice's `aspect-ratio`. The player owns
+  paused on its `still`; pressing play is the visitor's ask and plays.
+  Every film answers the visitor through the document's own interaction
+  (bindings, hit areas, inputs; authored with the SDK's macros in
+  `films/`): the pointer parts the hero's layers, the dawn's sky, the
+  reel's strips and the catalog's motes (`parallaxLayersMacro`); the
+  hero's button and toggle and the Studio film's boards grow hovered and
+  squash pressed (`hoverLiftMacro` with no lift, `pressSquashMacro`); the
+  reel's playhead and the dawn's sun lean after the cursor
+  (`cursorFollowMacro`); the catalog's towers rise. The page drives them
+  through `ClayzoFilm`: `inputs` (fed to `setInput`, watched), `hit` (a
+  click on a hit area, by id) and `scrub` (a mouse or pen across the film
+  seeks it frame by frame; leaving plays on from there; touch never
+  scrubs). Input names and hit area ids are the page's handles, pinned by
+  the films spec. A hit area tracks its node's drawn bounds, which ignore
+  clips and include everything the node lifts: target an undrawn node
+  that stays put (the catalog's `t<i>.zone` columns) and grow a hovered
+  thing about its centre rather than lifting it, or its target slips from
+  under the pointer and flickers. Under reduced motion the player is
+  non-interactive (no loupe, parallax, hover, click or scrub), and a change
+  of the setting makes the player again on the same canvas at the same
+  moment (interactivity is fixed when a player is made). A film's
+  root takes its lattice's `aspect-ratio`. The player owns
   its own rAF and offscreen pause — the one engine outside `senses`.
   The landing re-asserts `html.dark` on mount: the page is always-dark art
   while docs/studio own the persisted theme (storage keeps the user's
@@ -282,7 +311,9 @@ widgets/features; page-specific conventions live here.
   clock) gated by the Bayer threshold (dense core, scattered fringe), and
   energy decays 0.9/frame so cells spring home — it is on the `senses`
   heartbeat ONLY while energy is above the floor, nothing at rest, nothing
-  under reduced motion, touch pointers ignored. Faster strokes kick harder. `shakeRaster()` is the
+  under reduced motion, touch pointers ignored. Faster strokes kick harder.
+  The sheet itself loads only once the portraits are within a screen, so
+  it never counts toward the page's `load` (the films' cue). `shakeRaster()` is the
   pure raster (`tests/pixel-shake.spec.ts`: identity at zero energy, pool
   locality, Bayer thinning, determinism). Emote reactions stay CSS-only
   (`.emote` + `.group:hover`); no JS timers on the landing.
@@ -339,9 +370,15 @@ widgets/features; page-specific conventions live here.
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 + optional
-  "open in studio →") → muted description → `DemoCard` (Preview/Code tabs,
+  "Open in the Studio") → muted description → `DemoCard` (Preview/Code tabs,
   Inspect → the workbench, Code → the source panel) →
-  optional picker gallery (micro-label + grid) → `PropsTable`.
+  optional picker gallery (an `h3` in sentence case, 12px muted, + grid) →
+  `PropsTable` (a row's `default` is its value as code; "" prints "none").
+- Docs copy follows the landing's bans: no em dashes or middle dots in
+  prose, prop `type` notes as `type: note` or `type (note)`, no uppercase
+  or tracked label, no arrow-ended link; a snippet's copy matches what its
+  demo renders (change both together). Kit default strings quoted in a
+  table stay the kit's (the marquee texts keep their dots).
 - DemoCard is the page's perf seam: its preview `<slot>` mounts only as the
   card approaches the viewport (IO, 600px rootMargin) and LATCHES — once
   revealed it stays, so demo interaction state never resets on scroll; the
@@ -402,12 +439,16 @@ widgets/features; page-specific conventions live here.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.
 - Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
-  `activeId` + `aria-current`; clean `/docs/<id>` and legacy `#/docs/<id>`
-  deep links both restore and remain shareable.
-- Mobile chrome: the phone header keeps the brand `whitespace-nowrap`, drops
-  the studio pill (it lives on every section's "open in studio →" and returns
-  at sm+) and the github link (the footer carries it), and hides the ⌘K kbd; the section list is a grouped disclosure
-  (`browse sections` button with aria-expanded/aria-controls, group headings,
+  `activeId` + `aria-current`; clean `/docs/<id>`, its directory form
+  `/docs/<id>/` (where a static host serves the section's prerendered
+  page) and legacy `#/docs/<id>` deep links all restore and remain
+  shareable.
+- Narrow chrome: under sm the Vue/Svelte switch shows its marks and Search
+  its glyph (the words stay for screen readers), the studio pill drops (it
+  lives on every chart section's "Open in the Studio") and the ⌘K kbd
+  hides; the styling switch (on every card anyway) and GitHub (in the
+  footer) return at lg. The section list is a grouped disclosure
+  ("Browse sections" button with aria-expanded/aria-controls, group headings,
   two-column links, closes on tap) instead of the old flat wall of all ~220
   links.
 - `scrollTo(id)` is computed `window.scrollTo` + a settle loop (re-align after
@@ -432,9 +473,16 @@ widgets/features; page-specific conventions live here.
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
   elsewhere — the handler accepts both). The brand carries the landing's
   7x7 diamond mark, and the studio link is the site's `.nav-a.nav-pill`
-  "Open studio" (sm+). The page title sits under a `.eyebrow`
-  ("Documentation"); the footer links home via `routePath('/')` and shows
-  `v<version> · MIT` like the landing footer.
+  "Open studio" (sm+). The Vue/Svelte switch carries the tools' marks
+  (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
+  and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
+  mark. The sidebar's groups sit under their glyphs (`GROUP_ICON`). The
+  page title is the h1 "Documentation", no eyebrow. At xl the rail right of
+  the content is "On this page": the section in view, its gallery headings
+  and its API table, read from its DOM as the scroll-spy moves (headings
+  inside a preview are the demo's), each a button that scrolls to it. The
+  footer: dither-ui.com, GitHub (its mark), `v<version>` and MIT license as
+  separate items.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
   Studio also accepts legacy `#/studio/new/<type>` links.
 - Section packs live in subfolders as self-contained components (sections +
@@ -459,8 +507,16 @@ widgets/features; page-specific conventions live here.
 - The Studio's chrome speaks the SITE voice, like the landing and the
   docs: `font-mono` on the page root (the context menu and the kit's
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
-  section labels, 12px hairline panels and toolbars, `.ring-on` pressed
-  states, ink primary keys, neutral focus borders. The artboard SURFACE
+  section labels in sentence case, 12px hairline panels and toolbars, `.ring-on` pressed
+  states, ink primary keys, neutral focus borders. Every glyph button is a
+  kit icon (undo/redo, layers, properties, agent, theme, close, zoom, fit,
+  replay, menus); the selection actions are a glyph and a sentence-case
+  word (Duplicate, Group, Delete, Evolve, Reel, Data, Code, PNG, Video),
+  the words hidden under 1024px with the name kept. Copy follows the
+  landing's bans: no middle-dot separators (the Agent panel's status and
+  key hints are layout items; its transcript markers stay the composer's
+  glyphs), no em dashes, no uppercase label, no eyebrow (the phone notice
+  is a plain h1). The artboard SURFACE
   (`[data-artboard-surface]`) stays `font-sans`, the player's font, so
   what is designed on the canvas is what the video export renders.
 - Studio is canvas-first: Toolbar floats over the full-bleed canvas; Layers,
@@ -546,9 +602,11 @@ widgets/features; page-specific conventions live here.
   in the browser walk only.
 - `tests/films.spec.ts` is the films' guard AND generator: the SkSL lookup
   evaluated against the kit's matrix, one uniform per ramp level, the
-  uniforms in the effect parameters' order, and per
+  uniforms in the effect parameters' order, per
   film a valid deterministic document with a `still`, a frame-aligned loop
-  and byte-equality with `public/films/<id>.json`. `npm run films`
+  and byte-equality with `public/films/<id>.json`, and the page's handles
+  (the catalog's `family` input and one `tower<i>-hit` per family, a
+  pointer cursor exactly on the shelved ones; the dawn's `glow`). `npm run films`
   (`rs test -u`) rewrites the documents after a builder edit; review frames in
   a browser (the player seeked to the beats) before committing — the
   Clayzo CLI's render/review need an account, playback does not.
@@ -563,8 +621,14 @@ widgets/features; page-specific conventions live here.
   middle dot, em dash, arrow link or the films' tool's name in the
   rendered copy, every svg decorative or labelled, each of the five films
   mounting over its stand-in where it lives (scrolled into view) with its
-  own named chip pausing it and the loupe under the cursor, reduced motion
-  holding every film's still with its chip on play, the agents panel's
+  own named chip pausing it and the loupe under the cursor, the films'
+  answers (the hero's button and toggle and the Studio boards grow on
+  hover and squash on press, the reel scrubs under a mouse and plays on
+  from there, the dawn's sun swells with a key hovered or focused, a
+  catalog tower rises hovered and for the picked tab, and a click on a
+  shelved tower picks its tab while an unshelved one shows no pointer),
+  reduced motion holding every film's still with its chip on play and
+  nothing answering the pointer, the agents panel's
   film fitting beside the steps with no empty band under either, the
   marks crisp at their sizes (install picker, harness chips, footer
   badges; the Studio's harness picker with the bridge running), the
@@ -575,6 +639,13 @@ widgets/features; page-specific conventions live here.
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
   create/select exactly one artboard.
+- Docs and Studio copy scan (a headless page walk): the rendered text of
+  `/docs` (every section) and of `/studio` with each panel and dialog open
+  (layers, agent, library, project menu, code, video, data, shortcuts,
+  context menu) holds no em dash, middle dot, uppercase label or
+  arrow-ended link outside code, kit default strings and kit component
+  looks; the docs header fits from 360px to 1280px; the "On this page"
+  rail lists the section in view at xl.
 
 ## Child DOX Index
 
