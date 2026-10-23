@@ -45,7 +45,7 @@ export const SHELVES: HubShelf[] = [
         id: "button",
         label: "Button",
         family: "Components",
-        note: "Gradient, dotted, hatched and solid — four textures, one engine.",
+        note: "Gradient, dotted, hatched and solid: four textures, one engine.",
       },
       {
         id: "avatar",
@@ -82,7 +82,7 @@ export const SHELVES: HubShelf[] = [
         id: "dashboard",
         label: "Dashboard",
         family: "Examples",
-        note: "A whole screen composed from the kit — copy it.",
+        note: "A whole screen composed from the kit, ready to copy.",
       },
     ],
   },

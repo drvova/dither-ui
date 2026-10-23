@@ -118,7 +118,8 @@ Default section order:
   Clayzo's SDK license lets a site ship the playback runtime and its
   documents, not the authoring package, so the app never imports that
   folder. Every film renders through the kit's own ordered-dither rule as a
-  Clayzo shader, which doubles as a cursor loupe. `npm run films` regenerates the documents
+  Clayzo shader, which doubles as a cursor loupe. The landing never names
+  Clayzo (the user's call; its SDK license asks no attribution). `npm run films` regenerates the documents
   (`tests/films.spec.ts` is generator and drift guard); never put Clayzo in
   `dither-kit/` (MIT, copy-out portable). Details in `src/pages/AGENTS.md`.
 - Crawler surface: `src/pages/docs/crawler-files.ts` generates `dist/sitemap.xml`,
@@ -253,8 +254,13 @@ Default section order:
 
 - Design direction: dark, monospace, pixel/dither identity.
 - One site voice: the landing, the docs and the Studio speak one language
-  (dark theme tokens, monospace, hairlines, micro-caps, ringed pressed
-  states), so the whole site reads as one product. The user's 2000s oakley.com reference lends the
+  (dark theme tokens, monospace, hairlines, ringed pressed states), so the
+  whole site reads as one product. The copy follows the design.how bans
+  the user picked (design.how's `build-design-system` taste file, reviews
+  by its `ui-review` criteria): no uppercase labels, no eyebrow over a
+  title, no middle dots or em dashes, no link ending in an arrow. The
+  landing has them now; the docs and the Studio chrome (still micro-caps)
+  follow in a later pass. No space on a page is left empty. The user's 2000s oakley.com reference lends the
   landing its STRUCTURE (a tabbed campaign stage, dense panels in
   columns, lists under a mark) and the dither winners on Awwwards its
   SCALE (a full-bleed art band, display-size type), filled with the kit

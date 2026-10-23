@@ -29,8 +29,9 @@ const index = computed(() => String((Math.max(0, props.stage) % STAGE_CAPTIONS.l
         :style="{ fill: fills[i], '--r': c.rank }"
       />
     </svg>
-    <figcaption class="micro cap">
-      <span class="n">{{ index }}</span> · {{ caption }}
+    <figcaption class="cap">
+      <span class="n">{{ index }}</span>
+      <span>{{ caption }}</span>
     </figcaption>
   </figure>
 </template>
@@ -67,6 +68,9 @@ const index = computed(() => String((Math.max(0, props.stage) % STAGE_CAPTIONS.l
 }
 
 .cap {
+  display: flex;
+  gap: 12px;
+  font-size: 11.5px;
   color: color-mix(in oklab, var(--color-muted-foreground) 85%, transparent);
 }
 

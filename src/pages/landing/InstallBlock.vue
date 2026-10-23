@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
+import { RUNTIME_DEPS } from "./facts"
 
 // The install strip: step picker (the site's segmented aria-pressed
-// toggles) → command (ember prompt, one line) → copy, whose success is
+// toggles), the command (ember prompt, one line) and copy, whose success is
 // choreographed in CSS: the line jolts, a beam crosses the frame drawing a
-// hairline seal around it, the label rolls to
-// "Copied" — then the steps under the frame advance (Copy done → Paste now).
+// hairline seal around it, the label rolls to "Copied", and the numbered
+// steps under the frame advance (copy done, paste now).
 // The announcement is DitherClipboard's own live region.
 const STEPS = [
   { id: "folder", label: "folder", cmd: "npx degit drvova/dither-ui/dither-kit src/dither-kit" },
-  { id: "npm", label: "npm", cmd: "npm i d3-scale d3-shape clsx tailwind-merge" },
-  { id: "pnpm", label: "pnpm", cmd: "pnpm add d3-scale d3-shape clsx tailwind-merge" },
-  { id: "bun", label: "bun", cmd: "bun add d3-scale d3-shape clsx tailwind-merge" },
+  { id: "npm", label: "npm", cmd: `npm i ${RUNTIME_DEPS.join(" ")}` },
+  { id: "pnpm", label: "pnpm", cmd: `pnpm add ${RUNTIME_DEPS.join(" ")}` },
+  { id: "bun", label: "bun", cmd: `bun add ${RUNTIME_DEPS.join(" ")}` },
 ]
 
 const active = ref(0)
@@ -97,11 +98,12 @@ onBeforeUnmount(() => {
     <div class="under">
       <ol class="steps" aria-label="What happens next">
         <li :data-s="taken ? 'done' : 'now'">
-          <DitherIcon v-if="taken" name="Check" :size="12" :stroke-width="1.5" class="tick" />Copy
+          <span class="sep" aria-hidden="true">1</span
+          ><DitherIcon v-if="taken" name="Check" :size="12" :stroke-width="1.5" class="tick" />Copy the command
         </li>
-        <li :data-s="taken ? 'now' : 'next'"><span class="sep" aria-hidden="true">›</span>Paste in a terminal</li>
+        <li :data-s="taken ? 'now' : 'next'"><span class="sep" aria-hidden="true">2</span>Paste it in a terminal</li>
         <li data-s="next">
-          <span class="sep" aria-hidden="true">›</span>Import from
+          <span class="sep" aria-hidden="true">3</span>Import from
           <code>@dither-kit</code>
         </li>
       </ol>
@@ -419,7 +421,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
+  gap: 6px 22px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -447,8 +449,19 @@ onBeforeUnmount(() => {
 }
 
 .steps .sep {
-  margin: 0 6px 0 4px;
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  font-size: 10.5px;
   color: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.steps li[data-s="now"] .sep {
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink-3);
 }
 
 .steps code {

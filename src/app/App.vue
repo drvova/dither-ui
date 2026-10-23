@@ -48,7 +48,7 @@ watchEffect(() => {
       ? "Studio — Build dithered Vue interfaces | dither-ui"
       : route.value === "docs"
         ? "Vue dither components and chart documentation | dither-ui"
-        : "dither-ui — A dithered UI toolkit for Vue"
+        : "dither-ui: a dithered UI toolkit for Vue"
 })
 </script>
 
