@@ -9,7 +9,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
-- `widgets/` — studio panels: toolbar, layer-tree, inspector, canvas,
+- `widgets/` — the docs previews' `workbench` (inspect, measure,
+  annotate, capture; see `widgets/workbench/AGENTS.md`) and the studio
+  panels: toolbar, layer-tree, inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock), data-editor, agent (the composer / harness control plane).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
@@ -313,3 +315,6 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 ## Child DOX Index
 
 - `pages/AGENTS.md` — landing, docs, studio, play page contracts
+- `widgets/workbench/AGENTS.md` — the docs previews' workbench: tools and
+  keys, the stage coordinate system, the pointer surface, keyboard scope,
+  the sanitized per-preview workspace, captures, the agent hand-off

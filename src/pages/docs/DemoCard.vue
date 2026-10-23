@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from "vue"
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { CodeBlock } from "@/shared/ui"
+import { routePath } from "@/shared/lib"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
-import { boxOf, labelOf, readingOf, walk, type Box, type Reading } from "./inspector"
 import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
+
+// The workbench loads on first use: the page's ~300 cards share one chunk
+// that only a reader who inspects pays for.
+const Workbench = defineAsyncComponent(() => import("@/widgets/workbench").then((m) => m.Workbench))
 
 const props = defineProps<{ code: string }>()
 const tab = ref<"preview" | "code">("preview")
+const root = ref<HTMLElement | null>(null)
 const host = ref<HTMLElement | null>(null)
+const content = ref<HTMLElement | null>(null)
+const toggle = ref<HTMLButtonElement | null>(null)
 
 // Mount the heavy slot (canvases, charts, whole demo trees) only as the card
 // approaches the viewport — and latch: once revealed it stays, so interaction
@@ -35,108 +42,38 @@ onMounted(() => {
   )
   io.observe(host.value)
 })
-onBeforeUnmount(() => {
-  io?.disconnect()
-  cancelAnimationFrame(raf)
-})
+onBeforeUnmount(() => io?.disconnect())
 
-// Inspect (after Kobra's workbench): px rulers along the frame, the element
-// under the pointer boxed in ember with its size, a click PINS it without
-// reaching the demo, the readout under the frame gives its computed box,
-// type, colours, radius and padding; arrows walk the tree, Escape unpins and
-// then steps out. Off until asked — the measuring rAF runs only while on.
+// The workbench (Inspect): Kobra's component inspector and its tray of
+// tools over this preview — see widgets/workbench. Where this card sits
+// (its section, its place among the section's cards) names its saved
+// workspace and the feedback an agent receives.
 const inspecting = ref(false)
-const stage = ref<HTMLElement | null>(null)
-const content = ref<HTMLElement | null>(null)
-const toggle = ref<HTMLButtonElement | null>(null)
-const hovered = shallowRef<Element | null>(null)
-const pinned = shallowRef<Element | null>(null)
-const reading = ref<Reading | null>(null)
-const ghost = ref<Box | null>(null)
-const size = ref({ w: 0, h: 0 })
-const announce = ref("")
-const hintId = useId()
-let raf = 0
+const where = ref({ section: "", key: "", title: "", url: "" })
 
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
-function measure() {
-  raf = requestAnimationFrame(measure)
-  const s = stage.value
-  if (!s) return
-  if (pinned.value && !pinned.value.isConnected) pinned.value = null
-  const w = s.clientWidth
-  const h = s.clientHeight
-  if (w !== size.value.w || h !== size.value.h) size.value = { w, h }
-  const target = pinned.value ?? hovered.value
-  const next = target?.isConnected ? readingOf(target, s) : null
-  if (!same(next, reading.value)) reading.value = next
-  const other =
-    pinned.value && hovered.value !== pinned.value && hovered.value?.isConnected ? boxOf(hovered.value, s) : null
-  if (!same(other, ghost.value)) ghost.value = other
-}
-
-watch(inspecting, (on) => {
-  cancelAnimationFrame(raf)
-  hovered.value = pinned.value = reading.value = ghost.value = null
-  if (on) raf = requestAnimationFrame(measure)
-})
-watch(tab, (t) => t === "code" && (inspecting.value = false))
-watch(pinned, (el) => {
-  const b = el && stage.value ? boxOf(el, stage.value) : null
-  announce.value = el && b ? `${labelOf(el)}, ${b.w} by ${b.h} pixels` : ""
-})
-
-const inside = (t: EventTarget | null) =>
-  t instanceof Element && t !== content.value && content.value?.contains(t) ? t : null
-function onOver(e: PointerEvent) {
-  if (inspecting.value) hovered.value = inside(e.target)
-}
-// The demo never sees a press while inspecting: no drag, no focus, no click.
-function onPress(e: Event) {
-  if (!inspecting.value) return
-  e.preventDefault()
-  e.stopPropagation()
-}
-function onClick(e: MouseEvent) {
-  if (!inspecting.value) return
-  onPress(e)
-  pinned.value = inside(e.target)
-  host.value?.focus({ preventScroll: true })
-}
-const STEPS: Record<string, "up" | "down" | "next" | "prev"> = {
-  ArrowUp: "up",
-  ArrowDown: "down",
-  ArrowLeft: "prev",
-  ArrowRight: "next",
-}
-function onKey(e: KeyboardEvent) {
-  if (!inspecting.value || !content.value) return
-  if (e.key === "Escape") {
-    if (pinned.value) pinned.value = null
-    else {
-      inspecting.value = false
-      toggle.value?.focus()
+function inspect(on: boolean) {
+  if (on && root.value) {
+    const section = root.value.closest("section[id]")
+    const id = section?.id ?? "docs"
+    const cards = section ? [...section.querySelectorAll("[data-demo-card]")] : [root.value]
+    const n = cards.indexOf(root.value) + 1
+    const name = section?.querySelector("h2")?.textContent?.trim() || id
+    where.value = {
+      section: id,
+      key: `${id}:${n}`,
+      title: `${name}${cards.length > 1 ? ` · preview ${n}` : ""} (dither-ui docs)`,
+      url: `${location.origin}${routePath(`/docs/${id}`)}`,
     }
-  } else if (STEPS[e.key]) {
-    const from = pinned.value ?? hovered.value
-    pinned.value = from ? (walk(from, content.value, STEPS[e.key]) ?? from) : content.value.firstElementChild
-  } else return
-  e.preventDefault()
+  }
+  inspecting.value = on
 }
 
-const marks = (n: number) => Array.from({ length: Math.floor(n / 50) }, (_, i) => (i + 1) * 50)
-const at = (b: Box) => ({ left: `${b.x}px`, top: `${b.y}px`, width: `${b.w}px`, height: `${b.h}px` })
-const sides = (v: number[]) => v.map((n) => `${n}px`).join(" ")
-const fields = (r: Reading) => [
-  [pinned.value ? "pinned" : "el", r.label],
-  ["at", `${r.box.x}, ${r.box.y}`],
-  ["size", `${r.box.w}×${r.box.h}`],
-  ["font", r.font],
-  ["color", r.color],
-  ["bg", r.background],
-  ["radius", r.radius],
-  ["padding", r.padding],
-]
+function exit() {
+  inspecting.value = false
+  nextTick(() => toggle.value?.focus())
+}
+
+watch(tab, (t) => t === "code" && (inspecting.value = false))
 
 // The reader's framework and styling system, from one Vue snippet.
 const shownCode = computed(() => docsCode(props.code))
@@ -148,7 +85,7 @@ const chipClass = (active: boolean) =>
 </script>
 
 <template>
-  <div class="mt-6">
+  <div ref="root" class="mt-6" data-demo-card>
     <div class="flex items-center justify-between text-[12px]">
       <div class="flex gap-4" role="tablist">
         <button
@@ -218,8 +155,8 @@ const chipClass = (active: boolean) =>
           :aria-pressed="inspecting"
           :class="chipClass(inspecting)"
           class="flex min-h-6 items-center gap-1.5"
-          title="Rulers, boxes and computed styles"
-          @click="inspecting = !inspecting"
+          title="The workbench: inspect, measure, annotate, capture"
+          @click="inspect(!inspecting)"
         >
           <svg viewBox="0 0 12 12" class="size-3" fill="none" stroke="currentColor" aria-hidden="true">
             <path d="M1 4V1h3M8 1h3v3M11 8v3H8M4 11H1V8M6 4v4M4 6h4" />
@@ -232,17 +169,10 @@ const chipClass = (active: boolean) =>
       v-show="tab === 'preview'"
       ref="host"
       class="relative mt-3 flex min-h-[280px] items-center justify-center rounded-lg border border-border/60 p-8 sm:p-10"
-      :data-inspecting="inspecting || undefined"
+      :class="{ 'pb-16 sm:pb-16': inspecting }"
       :tabindex="inspecting ? 0 : undefined"
       :role="inspecting ? 'group' : undefined"
-      :aria-label="inspecting ? 'Preview, inspecting' : undefined"
-      :aria-describedby="inspecting ? hintId : undefined"
-      @pointerover="onOver"
-      @pointerleave="hovered = null"
-      @pointerdown.capture="onPress"
-      @mousedown.capture="onPress"
-      @click.capture="onClick"
-      @keydown.self="onKey"
+      :aria-label="inspecting ? 'Preview, with the workbench' : undefined"
     >
       <div ref="content" class="w-full">
         <slot v-if="revealed" />
@@ -256,43 +186,19 @@ const chipClass = (active: boolean) =>
           <span class="text-[11px] text-muted-foreground/60">preview</span>
         </div>
       </div>
-      <div v-if="inspecting" ref="stage" class="ins" aria-hidden="true">
-        <div class="rule rule-x">
-          <span v-for="n in marks(size.w)" :key="n" :style="{ left: `${n}px` }">{{ n }}</span>
-          <i v-if="reading" :style="{ left: `${reading.box.x}px`, width: `${reading.box.w}px` }" />
-        </div>
-        <div class="rule rule-y">
-          <span v-for="n in marks(size.h)" :key="n" :style="{ top: `${n}px` }">{{ n }}</span>
-          <i v-if="reading" :style="{ top: `${reading.box.y}px`, height: `${reading.box.h}px` }" />
-        </div>
-        <div class="corner" />
-        <div v-if="ghost" class="ghost" :style="at(ghost)" />
-        <div v-if="reading" class="target" :style="at(reading.box)">
-          <i class="pad" :style="{ inset: sides(reading.edge), borderWidth: sides(reading.pad) }" />
-          <b class="tl" /><b class="tr" /><b class="bl" /><b class="br" />
-          <span class="chip" :class="{ below: reading.box.y < 20, end: reading.box.x > size.w / 2 }">
-            {{ reading.label }} · {{ reading.box.w }}×{{ reading.box.h }}
-          </span>
-        </div>
-      </div>
     </div>
-    <div
-      v-if="inspecting"
-      class="mt-2 flex min-h-9 items-center rounded-lg border border-border/60 px-3 py-2 text-[11px]"
-    >
-      <dl v-if="reading" class="flex flex-wrap items-baseline gap-x-5 gap-y-1.5">
-        <div v-for="[k, v] in fields(reading)" :key="k" class="flex items-baseline gap-2">
-          <dt class="micro text-muted-foreground">{{ k }}</dt>
-          <dd class="tabular-nums text-foreground">
-            <i v-if="k === 'color' || k === 'bg'" class="sw" :style="{ background: v }" />{{ v }}
-          </dd>
-        </div>
-      </dl>
-      <p v-show="!reading" :id="hintId" class="text-muted-foreground">
-        point to measure · click to pin · arrows walk the tree · esc unpins, then exits
-      </p>
-      <p class="sr-only" aria-live="polite">{{ announce }}</p>
-    </div>
+    <Workbench
+      v-if="inspecting && tab === 'preview' && host && content && root"
+      :host="host"
+      :content="content"
+      :card="root"
+      :bench-key="where.key"
+      :section="where.section"
+      :title="where.title"
+      :url="where.url"
+      :render="$slots.default"
+      @exit="exit"
+    />
     <!-- Highlighted code mounts only when its tab is first opened: under the
          old v-show, every one of the page's ~150 hidden CodeBlocks ran at
          initial mount. -->
@@ -301,199 +207,3 @@ const chipClass = (active: boolean) =>
     </div>
   </div>
 </template>
-
-<style scoped>
-[data-inspecting],
-[data-inspecting] :deep(*) {
-  cursor: crosshair;
-}
-
-/* The inspect overlay: rulers, the target box (ember outline, corner marks,
-   the padding band, a size chip) and a dashed ghost for the pointed element
-   while another is pinned. Never hit-tested. */
-.ins {
-  --ember: var(--swatch-orange);
-  --tick: color-mix(in oklab, var(--color-muted-foreground) 55%, transparent);
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-  pointer-events: none;
-  font: 500 9px/1 var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  color: var(--color-muted-foreground);
-}
-
-.rule,
-.corner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  background-color: var(--color-background);
-}
-
-.rule-x {
-  right: 0;
-  height: 14px;
-  background-image:
-    linear-gradient(to right, var(--tick) 1px, transparent 0), linear-gradient(to right, var(--tick) 1px, transparent 0);
-  background-size:
-    10px 3px,
-    50px 7px;
-  background-position: 0 100%;
-  background-repeat: repeat-x;
-  box-shadow: inset 0 -1px 0 var(--color-border);
-}
-
-.rule-y {
-  bottom: 0;
-  width: 14px;
-  background-image:
-    linear-gradient(to bottom, var(--tick) 1px, transparent 0),
-    linear-gradient(to bottom, var(--tick) 1px, transparent 0);
-  background-size:
-    3px 10px,
-    7px 50px;
-  background-position: 100% 0;
-  background-repeat: repeat-y;
-  box-shadow: inset -1px 0 0 var(--color-border);
-}
-
-.corner {
-  width: 14px;
-  height: 14px;
-  box-shadow: inset -1px -1px 0 var(--color-border);
-}
-
-.rule > span {
-  position: absolute;
-}
-
-.rule-x > span {
-  top: 2px;
-  padding-left: 2px;
-}
-
-.rule-y > span {
-  left: 2px;
-  padding-bottom: 2px;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-}
-
-/* The target's span on each ruler. */
-.rule > i {
-  position: absolute;
-  background: color-mix(in oklab, var(--ember) 26%, transparent);
-}
-
-.rule-x > i {
-  top: 0;
-  bottom: 1px;
-  box-shadow:
-    inset 1px 0 var(--ember),
-    inset -1px 0 var(--ember);
-}
-
-.rule-y > i {
-  left: 0;
-  right: 1px;
-  box-shadow:
-    inset 0 1px var(--ember),
-    inset 0 -1px var(--ember);
-}
-
-.target,
-.ghost {
-  position: absolute;
-}
-
-.target {
-  outline: 1px solid var(--ember);
-}
-
-.ghost {
-  outline: 1px dashed color-mix(in oklab, var(--ember) 70%, transparent);
-}
-
-.pad {
-  position: absolute;
-  border-style: solid;
-  border-color: color-mix(in oklab, var(--ember) 16%, transparent);
-}
-
-.target > b {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  background: var(--ember);
-}
-
-.tl {
-  top: -3px;
-  left: -3px;
-}
-
-.tr {
-  top: -3px;
-  right: -3px;
-}
-
-.bl {
-  bottom: -3px;
-  left: -3px;
-}
-
-.br {
-  right: -3px;
-  bottom: -3px;
-}
-
-/* Black on the ember clears 5:1 on both themes. */
-.chip {
-  position: absolute;
-  bottom: calc(100% + 5px);
-  left: -1px;
-  padding: 2px 5px;
-  border-radius: 3px;
-  font-size: 10px;
-  line-height: 12px;
-  white-space: nowrap;
-  color: black;
-  background: var(--ember);
-}
-
-.chip.below {
-  top: calc(100% + 5px);
-  bottom: auto;
-}
-
-.chip.end {
-  right: -1px;
-  left: auto;
-}
-
-.sw {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-right: 6px;
-  vertical-align: -1px;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 30%, transparent);
-}
-
-@media (forced-colors: active) {
-  .ins {
-    --ember: Highlight;
-    --tick: CanvasText;
-    forced-color-adjust: none;
-  }
-  .rule,
-  .corner {
-    background-color: Canvas;
-  }
-  .chip {
-    color: HighlightText;
-  }
-}
-</style>

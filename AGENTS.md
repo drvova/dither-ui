@@ -260,9 +260,11 @@ Default section order:
   nodecode grid, the calm single column, condensed sports caps, bevels and
   red (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
-  tables, variant galleries) while keeping the dither skin; every demo
-  carries a Kobra-style Inspect (rulers, ember boxes, computed readout —
-  see `src/pages/AGENTS.md`).
+  tables, variant galleries) while keeping the dither skin; every preview
+  carries Kobra's workbench and more (Inspect: the inspect and annotate
+  tool tray, captures, comments copied for an agent — see
+  `src/widgets/workbench/AGENTS.md`). Docs previews are real product
+  surfaces: build real, working tools on them, never mock-ups.
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
 - Accessibility is a floor, not a feature: labels, focus rings, reduced-motion
@@ -284,3 +286,4 @@ Default section order:
 - `src/AGENTS.md` — the app: FSD layers, routing, editor/history/persistence
   contracts, a11y floor
   - `src/pages/AGENTS.md` — landing/docs/studio page conventions
+  - `src/widgets/workbench/AGENTS.md` — the docs previews' workbench

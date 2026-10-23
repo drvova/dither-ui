@@ -320,7 +320,7 @@ widgets/features; page-specific conventions live here.
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 + optional
   "open in studio →") → muted description → `DemoCard` (Preview/Code tabs,
-  Inspect) →
+  Inspect → the workbench) →
   optional picker gallery (micro-label + grid) → `PropsTable`.
 - DemoCard is the page's perf seam: its preview `<slot>` mounts only as the
   card approaches the viewport (IO, 600px rootMargin) and LATCHES — once
@@ -331,25 +331,14 @@ widgets/features; page-specific conventions live here.
   preview frame keeps `min-h-[280px]` so the box exists from first paint and
   below-fold growth never shifts visible content. Without IO (jsdom) the
   slot renders immediately — tests stay on the eager path.
-- Inspect (after Kobra's component workbench): the `aria-pressed` Inspect
-  chip on the Preview tab turns every demo into a measured stage —
-  14px px rulers along the frame's top and left (labels every 50), the
-  pointed element boxed in the kit's ember (outline, four corner marks,
-  its padding band, a black-on-ember `label · w×h` chip, its span lit on
-  both rulers), a dashed ghost for the pointed element while another is
-  PINNED. A press never reaches the demo while inspecting (pointerdown,
-  mousedown and click are stopped in the capture phase); a click pins its
-  target and focuses the frame (`role="group"`, described by the hint).
-  The readout under the frame is a `<dl>`: element, position, size, font,
-  colour and background with swatches, radius, padding — the pinned
-  element, else the pointed one. Arrows walk the pinned element's tree
-  (↑ parent, ↓ first child, ←/→ siblings), never leaving the demo; Escape
-  unpins, then exits and returns focus to the chip; the Code tab exits. A
-  polite live region announces pins only. The overlay is `aria-hidden`
-  and `pointer-events: none`, uses Highlight under forced colours, and its
-  rAF measures only while Inspect is on. Readings come from the pure
-  helpers in `docs/inspector.ts` (`hex`, `labelOf`, `boxOf`, `readingOf`,
-  `walk`), pinned by `tests/demo-inspector.spec.ts`.
+- Inspect: the `aria-pressed` Inspect chip on the Preview tab mounts the
+  workbench (`widgets/workbench`, loaded lazily on first use) over that
+  card's preview — Kobra's inspector and tool tray plus the kit's own
+  tools (see `src/widgets/workbench/AGENTS.md`). The card marks itself
+  `data-demo-card`; its workspace key is `<section id>:<n>` (its place
+  among the section's cards); while inspecting the frame takes a bottom
+  lane for the tray (`pb-16`) and `role="group"` + tabindex; the Code tab
+  closes it, and its exit returns focus to the chip.
 - Galleries and chip rows are PICKERS, not decoration: `aria-pressed`
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs
