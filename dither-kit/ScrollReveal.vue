@@ -8,7 +8,7 @@ const props = withDefaults(
     text?: string
     class?: string
   }>(),
-  { text: "Words reveal as you scroll into view" }
+  { text: "Words reveal as you scroll into view" },
 )
 
 const words = computed(() => props.text.split(/(\s+)/))
@@ -69,8 +69,13 @@ function reveal(i: number) {
       :key="i"
       aria-hidden="true"
       class="dither-reveal-word"
-      :style="{ opacity: reveal(i), filter: `blur(${(1 - reveal(i)) * 4}px)`, transform: `translateY(${(1 - reveal(i)) * 0.3}em)` }"
-    >{{ /^\s*$/.test(w) ? "\u00a0" : w }}</span>
+      :style="{
+        opacity: reveal(i),
+        filter: `blur(${(1 - reveal(i)) * 4}px)`,
+        transform: `translateY(${(1 - reveal(i)) * 0.3}em)`,
+      }"
+      >{{ /^\s*$/.test(w) ? "\u00a0" : w }}</span
+    >
   </span>
 </template>
 
@@ -78,6 +83,9 @@ function reveal(i: number) {
 .dither-reveal-word {
   display: inline-block;
   white-space: pre;
-  transition: opacity 120ms linear, filter 120ms linear, transform 120ms linear;
+  transition:
+    opacity 120ms linear,
+    filter 120ms linear,
+    transform 120ms linear;
 }
 </style>

@@ -5,13 +5,8 @@ import type { Artboard } from "@/entities/artboard"
  * PNG and download it. The node is located by the data attribute the canvas
  * Artboard component stamps on its frame.
  */
-export async function exportArtboardPng(
-  artboard: Artboard,
-  scale = 2
-): Promise<boolean> {
-  const node = document.querySelector<HTMLElement>(
-    `[data-artboard-id="${artboard.id}"] [data-artboard-surface]`
-  )
+export async function exportArtboardPng(artboard: Artboard, scale = 2): Promise<boolean> {
+  const node = document.querySelector<HTMLElement>(`[data-artboard-id="${artboard.id}"] [data-artboard-surface]`)
   if (!node) return false
   try {
     const { toPng } = await import("html-to-image")

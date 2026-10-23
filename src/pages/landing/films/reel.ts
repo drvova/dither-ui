@@ -31,7 +31,14 @@ const height = (k: number) => {
  * canvas through its whole run; sprockets along both edges, four a frame.
  * The group runs one bounce a loop — `dir` -1 leftward, 1 rightward — so
  * its last frame is its first. */
-function strip(nodes: Nodes, id: string, y: number, k: number, dir: 1 | -1, tones: { frame: number; floor: number; ball: number; hole: number }) {
+function strip(
+  nodes: Nodes,
+  id: string,
+  y: number,
+  k: number,
+  dir: 1 | -1,
+  tones: { frame: number; floor: number; ball: number; hole: number },
+) {
   const first = -1
   const count = Math.ceil(W / k / PITCH) + BOUNCE + 2
   const frames: PathContour[] = []
@@ -52,7 +59,12 @@ function strip(nodes: Nodes, id: string, y: number, k: number, dir: 1 | -1, tone
     }
   }
   const part = (name: string, contours: PathContour[], t: number) => {
-    nodes[`${id}.${name}`] = { ...base(`${id}.${name}`, { outTick: END }), type: "path", path: constant({ contours }), style: { fill: fill(tone(t)) } }
+    nodes[`${id}.${name}`] = {
+      ...base(`${id}.${name}`, { outTick: END }),
+      type: "path",
+      path: constant({ contours }),
+      style: { fill: fill(tone(t)) },
+    }
     return `${id}.${name}`
   }
   // Leftward strips start at 0 and run a bounce left; rightward ones start

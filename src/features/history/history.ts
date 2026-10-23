@@ -21,8 +21,7 @@ function sync() {
   history.canRedo = redoStack.length > 0
 }
 
-const snap = () =>
-  JSON.stringify({ artboards: editor.artboards, groups: editor.groups })
+const snap = () => JSON.stringify({ artboards: editor.artboards, groups: editor.groups })
 
 function push() {
   const cur = snap()
@@ -98,7 +97,7 @@ export function startHistory() {
       timer = setTimeout(flush, 300)
       sync()
     },
-    { deep: true }
+    { deep: true },
   )
 }
 

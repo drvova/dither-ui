@@ -11,7 +11,7 @@ const props = withDefaults(
     strength?: number
     class?: string
   }>(),
-  { text: "Pressure", radius: 140, strength: 1 }
+  { text: "Pressure", radius: 140, strength: 1 },
 )
 
 const chars = computed(() => [...props.text])
@@ -68,12 +68,9 @@ useInviewLoop(root, start, stop)
 
 <template>
   <span ref="root" :class="cn('inline-flex', props.class)" :aria-label="props.text">
-    <span
-      v-for="(ch, i) in chars"
-      :key="i"
-      aria-hidden="true"
-      class="dither-pressure-char inline-block"
-    >{{ ch === " " ? "\u00a0" : ch }}</span>
+    <span v-for="(ch, i) in chars" :key="i" aria-hidden="true" class="dither-pressure-char inline-block">{{
+      ch === " " ? "\u00a0" : ch
+    }}</span>
   </span>
 </template>
 
@@ -81,7 +78,9 @@ useInviewLoop(root, start, stop)
 .dither-pressure-char {
   white-space: pre;
   transform-origin: center bottom;
-  transition: transform 90ms linear, font-weight 90ms linear;
+  transition:
+    transform 90ms linear,
+    font-weight 90ms linear;
 }
 @media (prefers-reduced-motion: reduce) {
   .dither-pressure-char {

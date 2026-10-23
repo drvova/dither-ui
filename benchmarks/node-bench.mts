@@ -10,18 +10,8 @@
  * Run: npx tsx benchmarks/node-bench.mts
  */
 
-import {
-  renderDitherGradient,
-  renderDitherButton,
-  DEFAULT_MAX_COLS,
-  DEFAULT_MAX_ROWS,
-} from "../dither-kit/precompile"
-import {
-  createRasterBuffer,
-  clearRasterBuffer,
-  blendRasterPixel,
-  setOrBlendRasterPixel,
-} from "../dither-kit/raster"
+import { renderDitherGradient, renderDitherButton, DEFAULT_MAX_COLS, DEFAULT_MAX_ROWS } from "../dither-kit/precompile"
+import { createRasterBuffer, clearRasterBuffer, blendRasterPixel, setOrBlendRasterPixel } from "../dither-kit/raster"
 import { paintColumn } from "../dither-kit/dither-paint"
 import { fillOf } from "../dither-kit/pixel"
 import { seedOfColor, type Seed } from "../dither-kit/palette"
@@ -67,28 +57,29 @@ console.log()
 // --- 1. Per-pixel: blendRasterPixel vs setOrBlendRasterPixel ---
 console.log("--- 1. Per-pixel write: blend vs setOrBlend (cleared buffer) ---")
 {
-  const cols = 320, rows = 200
+  const cols = 320,
+    rows = 200
   const color = fillOf("blue")
   const buf1 = createRasterBuffer(cols, rows)
   const buf2 = createRasterBuffer(cols, rows)
 
   const blendFn = () => {
     buf1.data.fill(0)
-    for (let y = 0; y < rows; y++)
-      for (let x = 0; x < cols; x++)
-        blendRasterPixel(buf1, x, y, color, 0.5)
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) blendRasterPixel(buf1, x, y, color, 0.5)
   }
   const setOrBlendFn = () => {
     buf2.data.fill(0)
-    for (let y = 0; y < rows; y++)
-      for (let x = 0; x < cols; x++)
-        setOrBlendRasterPixel(buf2, x, y, color, 0.5)
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) setOrBlendRasterPixel(buf2, x, y, color, 0.5)
   }
 
   const blendStats = measure(blendFn, WARMUPS, BATCHES)
   const setOrBlendStats = measure(setOrBlendFn, WARMUPS, BATCHES)
-  console.log(`  blendRasterPixel:       mean=${fmt(blendStats.mean)}  median=${fmt(blendStats.median)}  p95=${fmt(blendStats.p95)}`)
-  console.log(`  setOrBlendRasterPixel:  mean=${fmt(setOrBlendStats.mean)}  median=${fmt(setOrBlendStats.median)}  p95=${fmt(setOrBlendStats.p95)}`)
+  console.log(
+    `  blendRasterPixel:       mean=${fmt(blendStats.mean)}  median=${fmt(blendStats.median)}  p95=${fmt(blendStats.p95)}`,
+  )
+  console.log(
+    `  setOrBlendRasterPixel:  mean=${fmt(setOrBlendStats.mean)}  median=${fmt(setOrBlendStats.median)}  p95=${fmt(setOrBlendStats.p95)}`,
+  )
   console.log(`  → ${pct(blendStats.mean, setOrBlendStats.mean)}`)
   console.log(`  Pixels per call: ${cols * rows}`)
 }
@@ -99,8 +90,14 @@ console.log("--- 2. renderDitherGradient (320x200, cell=3, no seed) ---")
 {
   const gradFn = () => {
     renderDitherGradient({
-      width: 960, height: 600, cell: 3, from: "blue", to: "transparent",
-      opacity: 0.14, maxCols: 320, maxRows: 200,
+      width: 960,
+      height: 600,
+      cell: 3,
+      from: "blue",
+      to: "transparent",
+      opacity: 0.14,
+      maxCols: 320,
+      maxRows: 200,
     })
   }
   const stats = measure(gradFn, WARMUPS, BATCHES)
@@ -114,8 +111,15 @@ console.log("--- 3. renderDitherGradient (960x600, cell=2, seed=42) ---")
 {
   const gradFn = () => {
     renderDitherGradient({
-      width: 960, height: 600, cell: 2, from: "blue", to: "transparent",
-      opacity: 1, seed: 42, maxCols: DEFAULT_MAX_COLS, maxRows: DEFAULT_MAX_ROWS,
+      width: 960,
+      height: 600,
+      cell: 2,
+      from: "blue",
+      to: "transparent",
+      opacity: 1,
+      seed: 42,
+      maxCols: DEFAULT_MAX_COLS,
+      maxRows: DEFAULT_MAX_ROWS,
     })
   }
   const stats = measure(gradFn, WARMUPS, BATCHES)
@@ -129,7 +133,11 @@ console.log("--- 4. renderDitherButton (240x56, cell=2, variant=gradient) ---")
 {
   const btnFn = () => {
     renderDitherButton({
-      width: 240, height: 56, cell: 2, color: "blue", variant: "gradient",
+      width: 240,
+      height: 56,
+      cell: 2,
+      color: "blue",
+      variant: "gradient",
     })
   }
   const stats = measure(btnFn, WARMUPS, BATCHES)
@@ -142,12 +150,23 @@ console.log()
 console.log("--- 5. renderDitherButton (240x56, cell=2, reused target) ---")
 {
   const target = renderDitherButton({
-    width: 240, height: 56, cell: 2, color: "blue", variant: "gradient",
+    width: 240,
+    height: 56,
+    cell: 2,
+    color: "blue",
+    variant: "gradient",
   })
   const btnFn = () => {
-    renderDitherButton({
-      width: 240, height: 56, cell: 2, color: "blue", variant: "gradient",
-    }, target)
+    renderDitherButton(
+      {
+        width: 240,
+        height: 56,
+        cell: 2,
+        color: "blue",
+        variant: "gradient",
+      },
+      target,
+    )
   }
   const stats = measure(btnFn, WARMUPS, BATCHES)
   console.log(`  renderDitherButton:     mean=${fmt(stats.mean)}  median=${fmt(stats.median)}  p95=${fmt(stats.p95)}`)
@@ -158,14 +177,18 @@ console.log()
 // --- 6. paintColumn into RasterBuffer (chart hot path) ---
 console.log("--- 6. paintColumn into RasterBuffer (chart-scale 520x200) ---")
 {
-  const cols = 520, rows = 200
+  const cols = 520,
+    rows = 200
   const frame = createRasterBuffer(cols, rows)
   const seed: Seed = seedOfColor("blue")
   const paintFn = () => {
     clearRasterBuffer(frame)
     for (let x = 0; x < cols; x++) {
       paintColumn(frame, x, 10, rows - 10, seed, {
-        variant: "gradient", intensity: 0, dim: 1, stacked: false,
+        variant: "gradient",
+        intensity: 0,
+        dim: 1,
+        stacked: false,
       })
     }
   }

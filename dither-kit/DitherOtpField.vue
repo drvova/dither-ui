@@ -6,7 +6,7 @@ const props = withDefaults(
     length?: number
     modelValue?: string
   }>(),
-  { length: 6, modelValue: "" }
+  { length: 6, modelValue: "" },
 )
 
 const emit = defineEmits<{
@@ -15,9 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const inputs = ref<HTMLInputElement[]>([])
-const digits = ref<string[]>(
-  Array.from({ length: props.length }, (_, i) => props.modelValue[i] ?? "")
-)
+const digits = ref<string[]>(Array.from({ length: props.length }, (_, i) => props.modelValue[i] ?? ""))
 
 watch(
   () => props.modelValue,
@@ -26,7 +24,7 @@ watch(
     // a partial fill would shift digits leftward.
     if (v === digits.value.join("")) return
     digits.value = Array.from({ length: props.length }, (_, i) => v[i] ?? "")
-  }
+  },
 )
 
 function commit() {
@@ -54,9 +52,7 @@ function onKeydown(i: number, event: KeyboardEvent) {
 }
 
 function onPaste(event: ClipboardEvent) {
-  const pasted = (event.clipboardData?.getData("text") ?? "")
-    .replace(/\D/g, "")
-    .slice(0, props.length)
+  const pasted = (event.clipboardData?.getData("text") ?? "").replace(/\D/g, "").slice(0, props.length)
   if (!pasted) return
   event.preventDefault()
   digits.value = Array.from({ length: props.length }, (_, i) => pasted[i] ?? "")

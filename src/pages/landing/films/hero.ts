@@ -26,7 +26,21 @@ import {
   type Vec3,
 } from "@clayzo/animation/authoring"
 import { mulberry32 } from "@dither-kit"
-import { at as s, cycle, DRAIN, FR, mixColor, mixVec3, MOVE, OUT, pixelFilm, rect, SETTLE, v, type Nodes } from "./frame"
+import {
+  at as s,
+  cycle,
+  DRAIN,
+  FR,
+  mixColor,
+  mixVec3,
+  MOVE,
+  OUT,
+  pixelFilm,
+  rect,
+  SETTLE,
+  v,
+  type Nodes,
+} from "./frame"
 import { heat, tone } from "./kit-dither"
 
 /** The film's beats in seconds. */
@@ -63,7 +77,7 @@ const FLAT = s(BEATS.flat)
 
 /** A track on the camera beats: `flat` until the tilt, `iso` while the
  * board is exploded, `flat` again after the fold. */
-const camera = <T,>(id: string, flat: T, iso: T) =>
+const camera = <T>(id: string, flat: T, iso: T) =>
   keyed(id, [
     [TILT, flat, MOVE],
     [ISO, iso],
@@ -288,7 +302,11 @@ function dust(nodes: Nodes): string {
     const hot = rand() < 0.16
     // Three runs across the explode, each frame-aligned (1224 / 3 = 51 frames).
     const period = life / 3
-    const run = { period, offset: Math.round((rand() * period) / FR) * FR, life: Math.round(((0.5 + rand() * 0.4) * period) / FR) * FR }
+    const run = {
+      period,
+      offset: Math.round((rand() * period) / FR) * FR,
+      life: Math.round(((0.5 + rand() * 0.4) * period) / FR) * FR,
+    }
     // Its own little loop, laid on the explode.
     const to = { x: x + (Math.floor(rand() * 5) - 2) * 8, y: y - rise, z: 0 }
     nodes[id] = {
@@ -297,7 +315,12 @@ function dust(nodes: Nodes): string {
       type: "rect",
       size: constant({ width: 8, height: 8 }),
       cornerRadius: constant(0),
-      style: { fill: { color: cycle(`${id}.tone`, life, run, hot ? heat(0.8) : tone(0.95), hot ? heat(0) : tone(0), mixColor, ISO), opacity: constant(1) } },
+      style: {
+        fill: {
+          color: cycle(`${id}.tone`, life, run, hot ? heat(0.8) : tone(0.95), hot ? heat(0) : tone(0), mixColor, ISO),
+          opacity: constant(1),
+        },
+      },
     }
     children.push(id)
   }
@@ -426,7 +449,9 @@ function layer(nodes: Nodes, id: string, content: string[], order: number, lift:
     nodes[`${id}.sheet`] = {
       ...node(`${id}.sheet`),
       type: "path",
-      path: constant({ contours: [{ closed: false, vertices: [v(x0, y0), v(x1, y0), v(x1, y1), v(x0, y1), v(x0, y0)] }] }),
+      path: constant({
+        contours: [{ closed: false, vertices: [v(x0, y0), v(x1, y0), v(x1, y1), v(x0, y1), v(x0, y0)] }],
+      }),
       style: { stroke: stroke(tone(0.3), 16, { cap: "square", join: "miter" }) },
       operators: [
         trim(`${id}.sheet.trim`, {
@@ -479,7 +504,11 @@ export function heroFilm(): AnimationDocument {
   nodes.board = {
     ...base("board", {
       outTick: HERO_END,
-      position: camera("board.position", { x: HERO.width / 2, y: HERO.height / 2, z: 0 }, { x: HERO.width / 2, y: HERO.height / 2 + 106, z: 0 }),
+      position: camera(
+        "board.position",
+        { x: HERO.width / 2, y: HERO.height / 2, z: 0 },
+        { x: HERO.width / 2, y: HERO.height / 2 + 106, z: 0 },
+      ),
       scale: camera("board.scale", { x: 1, y: 1, z: 1 }, { x: K, y: K * Y, z: 1 }),
     }),
     type: "group",
@@ -507,4 +536,3 @@ export function heroFilm(): AnimationDocument {
     interaction: [parallaxLayersMacro({ nodeIds: layers.map((l) => l.id), span: 800, reach: 28 })],
   })
 }
-

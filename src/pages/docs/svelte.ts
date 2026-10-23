@@ -148,9 +148,7 @@ function eachExpression(expr: string, key?: string): string {
   if (!m) return expr
   const [, alias, index, iterableRaw] = m
   const iterable = iterableRaw.trim()
-  const source = /^\d+$/.test(iterable)
-    ? `Array.from({ length: ${iterable} }, (_, k) => k + 1)`
-    : iterable
+  const source = /^\d+$/.test(iterable) ? `Array.from({ length: ${iterable} }, (_, k) => k + 1)` : iterable
   let out = `${source} as ${alias}`
   if (index) out += `, ${index}`
   if (key) out += ` (${key})`
@@ -322,17 +320,16 @@ export function toSvelteCode(vueCode: string): string {
     if (!names.includes("toast")) return all
     const rest = names.filter((n) => n !== "toast")
     const toastImport = 'import { toast } from "@dither-kit-svelte/runtime/toast.svelte"'
-    return rest.length
-      ? `import { ${rest.join(", ")} } from "@dither-kit-svelte"\n${toastImport}`
-      : toastImport
+    return rest.length ? `import { ${rest.join(", ")} } from "@dither-kit-svelte"\n${toastImport}` : toastImport
   })
   code = transformScriptSetup(code)
   code = unwrapTemplate(code)
   code = renameComponents(code)
   code = code.replace(/\{\{\s*([^}]+?)\s*\}\}/g, "{$1}")
   // Residual Vue idioms in teaching comments outside any tag.
-  code = code.replace(/:([a-z][a-z0-9-]*)="([^"]*)"/g, (_, name: string, v: string) =>
-    `${name.startsWith("aria-") ? name : camel(name)}={${v}}`,
+  code = code.replace(
+    /:([a-z][a-z0-9-]*)="([^"]*)"/g,
+    (_, name: string, v: string) => `${name.startsWith("aria-") ? name : camel(name)}={${v}}`,
   )
   code = code.replace(/\bv-model\b/g, "bind:value")
   return code
@@ -342,11 +339,15 @@ export function toSvelteCode(vueCode: string): string {
 
 /** The styling systems a snippet can be written in for the current framework:
  * CSS Modules are a Vue SFC feature, so Svelte readers get the other three. */
-export const docsStylings = computed<readonly Styling[]>(() => STYLINGS.filter((s) => s !== "modules" || docsFramework.value === "vue"))
+export const docsStylings = computed<readonly Styling[]>(() =>
+  STYLINGS.filter((s) => s !== "modules" || docsFramework.value === "vue"),
+)
 
 /** The styling system the snippets are shown in — the preference, or CSS
  * while it names CSS Modules under Svelte. */
-export const docsStyling = computed<Styling>(() => (styling.value === "modules" && docsFramework.value === "svelte" ? "css" : styling.value))
+export const docsStyling = computed<Styling>(() =>
+  styling.value === "modules" && docsFramework.value === "svelte" ? "css" : styling.value,
+)
 
 /** A Vue docs snippet as the reader reads it: their framework, their styling system. */
 export function docsCode(vue: string): string {

@@ -41,7 +41,13 @@ const opt = (name, def) => {
  * the preset to count as installed: the npx adapters for Claude Code and
  * Codex run on those CLIs' own logins. */
 export const HARNESSES = [
-  { id: "claude", name: "Claude Code", command: "npx -y @zed-industries/claude-code-acp", bin: "claude", note: "your Claude Code login" },
+  {
+    id: "claude",
+    name: "Claude Code",
+    command: "npx -y @zed-industries/claude-code-acp",
+    bin: "claude",
+    note: "your Claude Code login",
+  },
   { id: "codex", name: "Codex", command: "npx -y @zed-industries/codex-acp", bin: "codex", note: "your Codex login" },
   { id: "gemini", name: "Gemini CLI", command: "gemini --experimental-acp", bin: "gemini" },
   { id: "qwen", name: "Qwen Code", command: "qwen --experimental-acp", bin: "qwen" },
@@ -73,8 +79,19 @@ const WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 /** Minimal RFC 6455 server side: text frames, ping/pong, close. */
 export function wsAccept(socket, key, onMessage, onClose) {
-  const accept = createHash("sha1").update(key + WS_GUID).digest("base64")
-  socket.write(["HTTP/1.1 101 Switching Protocols", "Upgrade: websocket", "Connection: Upgrade", `Sec-WebSocket-Accept: ${accept}`, "", ""].join("\r\n"))
+  const accept = createHash("sha1")
+    .update(key + WS_GUID)
+    .digest("base64")
+  socket.write(
+    [
+      "HTTP/1.1 101 Switching Protocols",
+      "Upgrade: websocket",
+      "Connection: Upgrade",
+      `Sec-WebSocket-Accept: ${accept}`,
+      "",
+      "",
+    ].join("\r\n"),
+  )
   let buf = Buffer.alloc(0)
   let fragments = []
   socket.on("data", (chunk) => {
@@ -102,7 +119,10 @@ export function wsAccept(socket, key, onMessage, onClose) {
   })
   socket.on("close", onClose)
   socket.on("error", onClose)
-  return { send: (text) => socket.writable && socket.write(encodeFrame(Buffer.from(text, "utf8"), 1)), close: () => socket.end(encodeFrame(Buffer.alloc(0), 8)) }
+  return {
+    send: (text) => socket.writable && socket.write(encodeFrame(Buffer.from(text, "utf8"), 1)),
+    close: () => socket.end(encodeFrame(Buffer.alloc(0), 8)),
+  }
 }
 
 export function decodeFrame(buf) {
@@ -131,7 +151,19 @@ export function decodeFrame(buf) {
 
 export function encodeFrame(payload, opcode) {
   const len = payload.length
-  const head = len < 126 ? Buffer.from([0x80 | opcode, len]) : len < 65536 ? Buffer.from([0x80 | opcode, 126, len >> 8, len & 255]) : Buffer.concat([Buffer.from([0x80 | opcode, 127]), (() => { const b = Buffer.alloc(8); b.writeBigUInt64BE(BigInt(len)); return b })()])
+  const head =
+    len < 126
+      ? Buffer.from([0x80 | opcode, len])
+      : len < 65536
+        ? Buffer.from([0x80 | opcode, 126, len >> 8, len & 255])
+        : Buffer.concat([
+            Buffer.from([0x80 | opcode, 127]),
+            (() => {
+              const b = Buffer.alloc(8)
+              b.writeBigUInt64BE(BigInt(len))
+              return b
+            })(),
+          ])
   return Buffer.concat([head, payload])
 }
 
@@ -148,9 +180,18 @@ function serveMode({ agent, port, cwd }) {
 
   /** A command line as a harness: named after its program until the agent
    * introduces itself over `initialize`. */
-  const custom = (command) => ({ id: "custom", name: command.trim().split(/\s+/)[0].split(/[\\/]/).pop() || command, command })
-  const harnesses = () => HARNESSES.map(({ id, name, command, bin, note }) => ({ id, name, command, installed: onPath(bin), note }))
-  const hello = () => ({ jsonrpc: "2.0", method: "bridge/hello", params: { cwd, harnesses: harnesses(), agent: running } })
+  const custom = (command) => ({
+    id: "custom",
+    name: command.trim().split(/\s+/)[0].split(/[\\/]/).pop() || command,
+    command,
+  })
+  const harnesses = () =>
+    HARNESSES.map(({ id, name, command, bin, note }) => ({ id, name, command, installed: onPath(bin), note }))
+  const hello = () => ({
+    jsonrpc: "2.0",
+    method: "bridge/hello",
+    params: { cwd, harnesses: harnesses(), agent: running },
+  })
   const sayHello = () => browser?.send(JSON.stringify(hello()))
 
   const readJson = (req) =>
@@ -172,7 +213,15 @@ function serveMode({ agent, port, cwd }) {
 
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://x")
-    if (req.method === "GET" && url.pathname === "/") return json(res, 200, { bridge: "dither-ui", cwd, agent: running, connected: !!browser, tools: tools.length, harnesses: harnesses() })
+    if (req.method === "GET" && url.pathname === "/")
+      return json(res, 200, {
+        bridge: "dither-ui",
+        cwd,
+        agent: running,
+        connected: !!browser,
+        tools: tools.length,
+        harnesses: harnesses(),
+      })
     if (req.method === "POST" && url.pathname === "/relay/tools") return json(res, 200, { tools })
     if (req.method === "POST" && url.pathname === "/relay/call") {
       if (!browser) return json(res, 503, { ok: false, error: "no studio tab connected" })
@@ -180,7 +229,9 @@ function serveMode({ agent, port, cwd }) {
       const id = `b${++relaySeq}`
       const result = await new Promise((resolve) => {
         relayPending.set(id, resolve)
-        browser.send(JSON.stringify({ jsonrpc: "2.0", id, method: "studio/call", params: { name, arguments: a ?? {} } }))
+        browser.send(
+          JSON.stringify({ jsonrpc: "2.0", id, method: "studio/call", params: { name, arguments: a ?? {} } }),
+        )
         setTimeout(() => relayPending.delete(id) && resolve({ ok: false, error: "studio did not answer" }), 30_000)
       })
       return json(res, 200, materialize(result))
@@ -216,7 +267,12 @@ function serveMode({ agent, port, cwd }) {
   function startAgent(h) {
     stopAgent()
     log(`starting ${h.name}: ${h.command}`)
-    child = spawn(h.command, { cwd, shell: true, stdio: ["pipe", "pipe", "pipe"], env: { ...process.env, DITHER_BRIDGE_PORT: String(port) } })
+    child = spawn(h.command, {
+      cwd,
+      shell: true,
+      stdio: ["pipe", "pipe", "pipe"],
+      env: { ...process.env, DITHER_BRIDGE_PORT: String(port) },
+    })
     const me = child
     running = { id: h.id, name: h.name, command: h.command, pid: child.pid }
     const lines = createInterface({ input: child.stdout })
@@ -305,13 +361,23 @@ function serveMode({ agent, port, cwd }) {
       return
     }
     if (!child) {
-      if (m.id !== undefined) browser?.send(JSON.stringify({ jsonrpc: "2.0", id: m.id, error: { code: -32000, message: "no harness running — pick one in the Studio" } }))
+      if (m.id !== undefined)
+        browser?.send(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: m.id,
+            error: { code: -32000, message: "no harness running — pick one in the Studio" },
+          }),
+        )
       return
     }
     // The one edit: every new or loaded session gets the Studio MCP server.
     if ((m.method === "session/new" || m.method === "session/load") && m.params && typeof m.params === "object") {
       const servers = Array.isArray(m.params.mcpServers) ? m.params.mcpServers : []
-      m.params.mcpServers = [...servers, { name: "dither-studio", command: process.execPath, args: [SELF, "--mcp", String(port)], env: [] }]
+      m.params.mcpServers = [
+        ...servers,
+        { name: "dither-studio", command: process.execPath, args: [SELF, "--mcp", String(port)], env: [] },
+      ]
       if (!m.params.cwd || m.params.cwd === "/") m.params.cwd = cwd
     }
     child.stdin.write(`${JSON.stringify(m)}\n`)
@@ -319,8 +385,14 @@ function serveMode({ agent, port, cwd }) {
 
   server.listen(port, "127.0.0.1", () => {
     log(`dither-bridge on ws://127.0.0.1:${port} — cwd: ${cwd}`)
-    const found = harnesses().filter((h) => h.installed).map((h) => h.name)
-    log(found.length ? `harnesses on this PATH: ${found.join(", ")}` : "no known harness on this PATH — the Studio can still start one by command")
+    const found = harnesses()
+      .filter((h) => h.installed)
+      .map((h) => h.name)
+    log(
+      found.length
+        ? `harnesses on this PATH: ${found.join(", ")}`
+        : "no known harness on this PATH — the Studio can still start one by command",
+    )
     log(agent ? `starting with the tab: ${agent}` : "open the Studio's agent panel and pick a harness")
   })
   process.on("SIGINT", () => {
@@ -336,17 +408,20 @@ function serveMode({ agent, port, cwd }) {
 function mcpMode(port) {
   const post = (path, body) =>
     new Promise((resolve) => {
-      const req = httpRequest({ host: "127.0.0.1", port, path, method: "POST", headers: { "content-type": "application/json" } }, (res) => {
-        let data = ""
-        res.on("data", (c) => (data += c))
-        res.on("end", () => {
-          try {
-            resolve(JSON.parse(data || "{}"))
-          } catch {
-            resolve({ ok: false, error: "bad relay reply" })
-          }
-        })
-      })
+      const req = httpRequest(
+        { host: "127.0.0.1", port, path, method: "POST", headers: { "content-type": "application/json" } },
+        (res) => {
+          let data = ""
+          res.on("data", (c) => (data += c))
+          res.on("end", () => {
+            try {
+              resolve(JSON.parse(data || "{}"))
+            } catch {
+              resolve({ ok: false, error: "bad relay reply" })
+            }
+          })
+        },
+      )
       req.on("error", (e) => resolve({ ok: false, error: `bridge unreachable: ${e.message}` }))
       req.end(JSON.stringify(body))
     })
@@ -359,7 +434,15 @@ function mcpMode(port) {
     } catch {
       return
     }
-    if (m.method === "initialize") return out({ id: m.id, result: { protocolVersion: m.params?.protocolVersion ?? "2025-06-18", capabilities: { tools: {} }, serverInfo: { name: "dither-studio", version: "1" } } })
+    if (m.method === "initialize")
+      return out({
+        id: m.id,
+        result: {
+          protocolVersion: m.params?.protocolVersion ?? "2025-06-18",
+          capabilities: { tools: {} },
+          serverInfo: { name: "dither-studio", version: "1" },
+        },
+      })
     if (m.method === "notifications/initialized") return
     if (m.method === "ping") return out({ id: m.id, result: {} })
     if (m.method === "tools/list") {
@@ -368,7 +451,10 @@ function mcpMode(port) {
     }
     if (m.method === "tools/call") {
       const result = await post("/relay/call", { name: m.params?.name, arguments: m.params?.arguments ?? {} })
-      return out({ id: m.id, result: { content: [{ type: "text", text: JSON.stringify(result) }], isError: result?.ok === false } })
+      return out({
+        id: m.id,
+        result: { content: [{ type: "text", text: JSON.stringify(result) }], isError: result?.ok === false },
+      })
     }
     if (m.id !== undefined) out({ id: m.id, error: { code: -32601, message: `unsupported: ${m.method}` } })
   })

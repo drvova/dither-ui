@@ -26,9 +26,7 @@ const decimals = computed(() => {
   return s.includes(".") ? s.split(".")[1].length : 0
 })
 const display = computed(() =>
-  Number.isInteger(props.modelValue)
-    ? String(props.modelValue)
-    : props.modelValue.toFixed(decimals.value),
+  Number.isInteger(props.modelValue) ? String(props.modelValue) : props.modelValue.toFixed(decimals.value),
 )
 const ariaValueText = computed(() => display.value)
 

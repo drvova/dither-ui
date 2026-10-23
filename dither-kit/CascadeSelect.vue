@@ -23,12 +23,12 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ (e: "update:modelValue", value: string[]): void }>()
 
-const path = ref<string[]>([...props.value ?? []])
+const path = ref<string[]>([...(props.value ?? [])])
 
 watch(
   () => props.value,
   (v) => {
-    path.value = [...v ?? []]
+    path.value = [...(v ?? [])]
   },
 )
 

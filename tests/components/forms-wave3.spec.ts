@@ -133,9 +133,7 @@ describe("IconPicker", () => {
     expect(names).toContain("ChevronDown")
 
     await w.find('input[type="search"]').setValue("")
-    const pick = w
-      .findAll('input[type="radio"]')
-      .find((r) => r.attributes("value") === "ChevronUp")!
+    const pick = w.findAll('input[type="radio"]').find((r) => r.attributes("value") === "ChevronUp")!
     await pick.setValue(true)
     expect(w.emitted("update:modelValue")?.at(-1)).toEqual(["ChevronUp"])
     expect(w.find("svg").exists()).toBe(true) // glyph rendered

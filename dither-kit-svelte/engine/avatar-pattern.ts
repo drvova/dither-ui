@@ -22,7 +22,7 @@ export type SeededPattern = {
 export function seededPattern(
   name: string,
   gridProp: number,
-  mirror: "auto" | "horizontal" | "vertical"
+  mirror: "auto" | "horizontal" | "vertical",
 ): SeededPattern {
   const grid = clampGrid(gridProp)
   const half = (grid * grid) / 2
@@ -37,9 +37,7 @@ export function seededPattern(
   const density = new Array<number>(grid * grid)
   for (let r = 0; r < grid; r++) {
     for (let c = 0; c < grid; c++) {
-      const i = vertical
-        ? Math.min(r, grid - 1 - r) * grid + c
-        : r * (grid / 2) + Math.min(c, grid - 1 - c)
+      const i = vertical ? Math.min(r, grid - 1 - r) * grid + c : r * (grid / 2) + Math.min(c, grid - 1 - c)
       on[r * grid + c] = bits[i]
       density[r * grid + c] = halfDensity[i]
     }
@@ -47,14 +45,10 @@ export function seededPattern(
   return { on, density, drawnVertical, drawnHue }
 }
 
-export const clampGrid = (g: number): number =>
-  Math.max(4, Math.min(16, Math.round(g / 2) * 2))
+export const clampGrid = (g: number): number => Math.max(4, Math.min(16, Math.round(g / 2) * 2))
 
 /** Normalise an explicit pattern to the grid size (pad off / truncate). */
-export function normalizePattern(
-  pattern: AvatarPattern,
-  grid: number
-): { on: boolean[]; density: number[] } {
+export function normalizePattern(pattern: AvatarPattern, grid: number): { on: boolean[]; density: number[] } {
   const n = grid * grid
   const on = new Array<boolean>(n)
   const density = new Array<number>(n)
@@ -74,7 +68,7 @@ export function patternFromPixels(
   rgba: Uint8ClampedArray | number[],
   grid: number,
   threshold = 0.5,
-  invert = false
+  invert = false,
 ): { on: boolean[]; density: number[] } {
   const n = grid * grid
   const on = new Array<boolean>(n)
@@ -99,7 +93,7 @@ export async function patternFromImage(
   src: string,
   grid: number,
   threshold = 0.5,
-  invert = false
+  invert = false,
 ): Promise<{ on: boolean[]; density: number[] } | null> {
   const g = clampGrid(grid)
   const img = new Image()

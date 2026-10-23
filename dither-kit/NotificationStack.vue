@@ -15,7 +15,11 @@ const GAP = 8
 /** Collapsed silhouettes — one expansion mechanism, three summaries. */
 const VARIANTS = {
   stack: { peek: 10, origin: "50% 0%", at: (i: number) => `translateY(${i * 10}px) scale(${1 - i * 0.04})` },
-  fan: { peek: 7, origin: "50% 130%", at: (i: number) => `translateY(${i * 7}px) rotate(${(i % 2 ? -1 : 1) * i * 2.2}deg) scale(${1 - i * 0.03})` },
+  fan: {
+    peek: 7,
+    origin: "50% 130%",
+    at: (i: number) => `translateY(${i * 7}px) rotate(${(i % 2 ? -1 : 1) * i * 2.2}deg) scale(${1 - i * 0.03})`,
+  },
   condensed: { peek: 4, origin: "50% 0%", at: (i: number) => `translateY(${i * 4}px) scale(${1 - i * 0.07})` },
 } as const
 export type NotificationStackVariant = keyof typeof VARIANTS
@@ -55,7 +59,7 @@ const props = withDefaults(
     emptyLabel: "All caught up",
     variant: "stack",
     color: "blue",
-  }
+  },
 )
 const emit = defineEmits<{ "update:modelValue": [expanded: boolean]; viewall: [] }>()
 
@@ -93,13 +97,19 @@ const cardStyle = computed(() => (i: number) => ({
         <span
           v-if="props.items.length"
           class="rounded-full border border-border/60 bg-background/60 px-1.5 text-[9px] tabular-nums"
-        >{{ props.items.length }}</span>
+          >{{ props.items.length }}</span
+        >
       </span>
       <Transition name="dk-ns-fade">
         <button
           v-if="expanded && props.items.length > 0"
           type="button"
-          :class="cn(CONTROL_BUTTON, 'rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground')"
+          :class="
+            cn(
+              CONTROL_BUTTON,
+              'rounded-md px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground',
+            )
+          "
           @click="emit('viewall')"
         >
           {{ props.expandedLabel }} →
@@ -123,7 +133,9 @@ const cardStyle = computed(() => (i: number) => ({
         :is="i === 0 ? 'button' : 'div'"
         v-for="(item, i) in visible"
         :key="item.id"
-        v-bind="i === 0 ? { type: 'button', 'aria-expanded': props.modelValue, 'aria-label': props.collapsedLabel } : {}"
+        v-bind="
+          i === 0 ? { type: 'button', 'aria-expanded': props.modelValue, 'aria-label': props.collapsedLabel } : {}
+        "
         class="absolute inset-x-0 top-0 flex h-16 items-center gap-2.5 overflow-hidden rounded-lg border border-border/60 bg-card px-3 text-left transition-[transform,opacity] duration-300 motion-reduce:transition-none"
         :class="i === 0 ? CONTROL_BUTTON : ''"
         :style="{ ...cardStyle(i), transitionTimingFunction: 'cubic-bezier(0.2, 1.4, 0.4, 1)' }"

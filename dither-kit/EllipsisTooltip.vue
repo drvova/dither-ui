@@ -6,10 +6,10 @@ import { cn } from "./lib"
  * own overflow (ResizeObserver, no forced reads) and — clipped — publishes the
  * full slot text as `title`. Unclipped content gets no tooltip at all, which
  * is the point. Degraded engines just render the text. */
-const props = withDefaults(
-  defineProps<{ as?: string; enabled?: boolean; class?: string }>(),
-  { as: "span", enabled: true },
-)
+const props = withDefaults(defineProps<{ as?: string; enabled?: boolean; class?: string }>(), {
+  as: "span",
+  enabled: true,
+})
 
 const root = ref<HTMLElement | null>(null)
 const clipped = ref(false)

@@ -18,7 +18,7 @@ export function paintMetallicPaint(
   buffer: RasterBuffer,
   p: MetallicPaintParams,
   time: number,
-  matrix: number[][]
+  matrix: number[][],
 ): void {
   const cols = buffer.width
   const rows = buffer.height

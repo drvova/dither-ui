@@ -1,5 +1,15 @@
 import { describe, expect, it } from "rstack/test"
-import { compileTrack, keyframeTransform, lerpTerms, parseAngle, parseLength, resolveSample, sampleKeyframes, termsToCss, termsToPx } from "../dither-kit/keyframes"
+import {
+  compileTrack,
+  keyframeTransform,
+  lerpTerms,
+  parseAngle,
+  parseLength,
+  resolveSample,
+  sampleKeyframes,
+  termsToCss,
+  termsToPx,
+} from "../dither-kit/keyframes"
 import { steps } from "../dither-kit/timing"
 
 const box = { width: 400, height: 200 }
@@ -46,7 +56,14 @@ describe("lengths", () => {
 })
 
 describe("keyframes", () => {
-  const track = { keyframes: [{ x: "10cqw", opacity: 0 }, { at: "50%", x: "30cqw" }, { x: "50cqw", opacity: 1 }], duration: 2 }
+  const track = {
+    keyframes: [
+      { x: "10cqw", opacity: 0 },
+      { at: "50%", x: "30cqw" },
+      { x: "50cqw", opacity: 1 },
+    ],
+    duration: 2,
+  }
 
   it("spreads unplaced keys evenly and interpolates each property across the keys that define it", () => {
     const s = sampleKeyframes(track, 0.5)
@@ -59,14 +76,27 @@ describe("keyframes", () => {
   })
 
   it("holds before the delay and after the end, loops, yoyos, eases per segment", () => {
-    const t = { keyframes: [{ x: 0 }, { x: 100, easing: "linear" as const }], duration: 1, delay: 1, loop: 2, yoyo: true }
+    const t = {
+      keyframes: [{ x: 0 }, { x: 100, easing: "linear" as const }],
+      duration: 1,
+      delay: 1,
+      loop: 2,
+      yoyo: true,
+    }
     expect(sampleKeyframes(t, 0.5)).toMatchObject({ state: "before", progress: 0 })
     expect(resolveSample(sampleKeyframes(t, 1.25), box).x).toBe(25)
     expect(resolveSample(sampleKeyframes(t, 2.25), box).x).toBe(75)
     expect(sampleKeyframes(t, 3.5)).toMatchObject({ state: "done", cycle: 2, progress: 0 })
     expect(sampleKeyframes({ ...t, loop: 1 }, 9)).toMatchObject({ state: "done", cycle: 1, progress: 1 })
-    expect(sampleKeyframes({ keyframes: [{ x: 0 }, { x: 100 }], duration: 1, loop: true }, 7.5)).toMatchObject({ state: "active", cycle: 7, progress: 0.5 })
-    expect(sampleKeyframes({ keyframes: [{ x: 0 }, { x: 100 }], duration: 1, loop: true }, Infinity)).toMatchObject({ state: "done", progress: 1 })
+    expect(sampleKeyframes({ keyframes: [{ x: 0 }, { x: 100 }], duration: 1, loop: true }, 7.5)).toMatchObject({
+      state: "active",
+      cycle: 7,
+      progress: 0.5,
+    })
+    expect(sampleKeyframes({ keyframes: [{ x: 0 }, { x: 100 }], duration: 1, loop: true }, Infinity)).toMatchObject({
+      state: "done",
+      progress: 1,
+    })
     const eased = sampleKeyframes({ keyframes: [{ x: 0, easing: "ease-in-out" }, { x: 100 }], duration: 1 }, 0.25)
     expect(resolveSample(eased, box).x).toBeLessThan(25)
     const stepped = sampleKeyframes({ keyframes: [{ x: 0 }, { x: 100 }], duration: 1, easing: steps(4) }, 0.3)
@@ -74,18 +104,30 @@ describe("keyframes", () => {
   })
 
   it("places keys in seconds when the duration is theirs, takes custom keys as numbers, angles or lengths", () => {
-    const s = sampleKeyframes({ keyframes: [{ at: 0, glow: 0, cx: "0px", tilt: "0deg" }, { at: 4, glow: 2, cx: "40cqw", tilt: "1turn" }] }, 2)
+    const s = sampleKeyframes(
+      {
+        keyframes: [
+          { at: 0, glow: 0, cx: "0px", tilt: "0deg" },
+          { at: 4, glow: 2, cx: "40cqw", tilt: "1turn" },
+        ],
+      },
+      2,
+    )
     expect(s.numbers).toMatchObject({ glow: 1, tilt: 180 })
     expect(termsToCss(s.lengths.cx)).toBe("20cqw")
     expect(resolveSample(s, { width: 100, height: 50 })).toMatchObject({ glow: 1, cx: 20, tilt: 180 })
     // vertical names resolve percentages against the height
-    expect(resolveSample(sampleKeyframes({ keyframes: [{ cy: "50%", top: "10%" }] }, 0), { width: 100, height: 50 })).toEqual({ cy: 25, top: 5 })
+    expect(
+      resolveSample(sampleKeyframes({ keyframes: [{ cy: "50%", top: "10%" }] }, 0), { width: 100, height: 50 }),
+    ).toEqual({ cy: 25, top: 5 })
   })
 
   it("prints every transform part, in units or in px against a box, and samples a compiled track alike", () => {
     const s = sampleKeyframes({ keyframes: [{ x: "10px", y: "-2cqh", rotate: "0.25turn", scale: 2, skewX: 10 }] }, 0)
     expect(keyframeTransform(s)).toBe("translate(10px, -2cqh) rotate(90deg) scale(2, 2) skew(10deg, 0deg)")
-    expect(keyframeTransform(s, { width: 100, height: 50 })).toBe("translate(10px, -1px) rotate(90deg) scale(2, 2) skew(10deg, 0deg)")
+    expect(keyframeTransform(s, { width: 100, height: 50 })).toBe(
+      "translate(10px, -1px) rotate(90deg) scale(2, 2) skew(10deg, 0deg)",
+    )
     expect(keyframeTransform(sampleKeyframes({ keyframes: [{ scaleX: 2 }] }, 0))).toBe("scale(2, 1)")
     expect(keyframeTransform(sampleKeyframes({ keyframes: [{ opacity: 1 }] }, 0))).toBe("none")
     expect(sampleKeyframes({ keyframes: [] }, 0.5)).toMatchObject({ state: "active", lengths: {}, numbers: {} })

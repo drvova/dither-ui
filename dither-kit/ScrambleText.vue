@@ -9,7 +9,7 @@ const props = withDefaults(
     speed?: number
     class?: string
   }>(),
-  { text: "Hover to scramble", speed: 1 }
+  { text: "Hover to scramble", speed: 1 },
 )
 
 const CHARS = "!<>-_\\/[]{}=+*^?#$%&ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -52,5 +52,6 @@ onBeforeUnmount(() => {
     :class="cn('inline-block cursor-default whitespace-pre font-mono', props.class)"
     :aria-label="props.text"
     @mouseenter="scramble"
-  >{{ display }}</span>
+    >{{ display }}</span
+  >
 </template>

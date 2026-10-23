@@ -13,7 +13,8 @@ const emit = defineEmits<{ close: [] }>()
 
 // The SFC in the chosen styling system: Tailwind as generated, or a scoped
 // stylesheet, CSS Modules or StyleX (the kit components keep their own styles).
-const codeFor = (a: Artboard) => restyle(a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart), styling.value)
+const codeFor = (a: Artboard) =>
+  restyle(a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart), styling.value)
 const code = computed(() => {
   const a = selectedArtboard.value
   if (!a) return "// select an artboard"
@@ -41,8 +42,7 @@ async function copy() {
   if (copied.value) copyTimer = setTimeout(() => (copied.value = false), 1500)
 }
 
-const fileName = (a: Artboard) =>
-  `${a.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"}.vue`
+const fileName = (a: Artboard) => `${a.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"}.vue`
 
 /** Download every artboard as its own .vue file (staggered so the browser
  * accepts the download burst as one user gesture). */
@@ -71,7 +71,10 @@ async function downloadAll() {
       @click.self="emit('close')"
       @keydown.esc.stop="emit('close')"
     >
-      <DitherFocusScope :autofocus="false" class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+      <DitherFocusScope
+        :autofocus="false"
+        class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
+      >
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
           <span class="text-sm font-medium">Export — Vue SFC</span>
           <div class="flex items-center gap-2">

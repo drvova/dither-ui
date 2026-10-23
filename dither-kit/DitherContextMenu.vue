@@ -48,8 +48,7 @@ function moveFocus(dir: number) {
   const els = itemRefs.value.filter((el): el is HTMLButtonElement => !!el)
   if (!els.length) return
   const i = els.indexOf(document.activeElement as HTMLButtonElement)
-  const next =
-    i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
+  const next = i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
   els[next]?.focus()
 }
 
@@ -115,11 +114,7 @@ onBeforeUnmount(() => {
             role="menuitem"
             :disabled="it.disabled"
             class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-[13px] transition-colors disabled:pointer-events-none disabled:opacity-40"
-            :class="
-              it.danger
-                ? 'text-red-400 hover:bg-red-500/10'
-                : 'text-foreground hover:bg-background'
-            "
+            :class="it.danger ? 'text-red-400 hover:bg-red-500/10' : 'text-foreground hover:bg-background'"
             @click="pick(it)"
           >
             {{ it.label }}

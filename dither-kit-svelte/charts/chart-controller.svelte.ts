@@ -1,18 +1,7 @@
-import {
-  type ChartContextValue,
-  type ControllerInput,
-  type SeriesSpec,
-} from "./chart-context"
+import { type ChartContextValue, type ControllerInput, type SeriesSpec } from "./chart-context"
 import type { CommonChart, TooltipItem } from "./common-context"
 import { type Seed, seedFromColor } from "../engine/palette"
-import {
-  buildBandScale,
-  buildXScale,
-  buildYScale,
-  computeBands,
-  indexAtBand,
-  nearestIndex,
-} from "./scales"
+import { buildBandScale, buildXScale, buildYScale, computeBands, indexAtBand, nearestIndex } from "./scales"
 
 type Row = Record<string, unknown>
 
@@ -66,35 +55,22 @@ export function useChartController(input: ControllerInput): ChartContextValue {
   }
 
   const configKeys = $derived(Object.keys(input.config()))
-  const bandsInfo = $derived.by(() =>
-    computeBands(input.data(), configKeys, input.stackType())
-  )
+  const bandsInfo = $derived.by(() => computeBands(input.data(), configKeys, input.stackType()))
   const bands = $derived(bandsInfo.bands)
   const max = $derived(bandsInfo.max)
 
-  const plotWidth = $derived(
-    Math.max(0, input.dimensions().width - input.margins().left - input.margins().right)
-  )
-  const plotHeight = $derived(
-    Math.max(0, input.dimensions().height - input.margins().top - input.margins().bottom)
-  )
+  const plotWidth = $derived(Math.max(0, input.dimensions().width - input.margins().left - input.margins().right))
+  const plotHeight = $derived(Math.max(0, input.dimensions().height - input.margins().top - input.margins().bottom))
   const ready = $derived(plotWidth > 0 && plotHeight > 0)
 
   const xPoint = $derived(buildXScale(input.data().length, plotWidth))
-  const xBand = $derived(
-    buildBandScale(input.data().length, plotWidth, input.barGap(), input.barEdge())
-  )
+  const xBand = $derived(buildBandScale(input.data().length, plotWidth, input.barGap(), input.barEdge()))
   const bandwidth = $derived(isBar ? xBand.bandwidth() : 0)
   const y = $derived(buildYScale(max, plotHeight))
 
-  const xCenter = (i: number) =>
-    isBar
-      ? (xBand(i) ?? 0) + xBand.bandwidth() / 2
-      : (xPoint(i) ?? 0)
+  const xCenter = (i: number) => (isBar ? (xBand(i) ?? 0) + xBand.bandwidth() / 2 : (xPoint(i) ?? 0))
   const indexAtX = (px: number) =>
-    isBar
-      ? indexAtBand(px, input.data().length, plotWidth)
-      : nearestIndex(px, input.data().length, plotWidth)
+    isBar ? indexAtBand(px, input.data().length, plotWidth) : nearestIndex(px, input.data().length, plotWidth)
   const barSlot = (i: number, si: number, n: number) => {
     const center = xCenter(i)
     const st = input.stackType()
@@ -108,8 +84,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     return { x: center - bw / 2 + si * slot + slot * 0.08, width: slot * 0.84 }
   }
 
-  const seedOf = (key: string): Seed =>
-    seedFromColor(input.config()[key]?.color ?? "grey")
+  const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
 
   const selectDataKey = (key: string | null) => {
     selectedDataKey = key
@@ -168,10 +143,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
       return ready
     },
     get tooltipLeft() {
-      return Math.max(
-        48,
-        Math.min(plotWidth + input.margins().left - 48, cursorX)
-      )
+      return Math.max(48, Math.min(plotWidth + input.margins().left - 48, cursorX))
     },
     get tooltipTop() {
       const floor = input.margins().top + 44
@@ -185,8 +157,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
       if (!Number.isFinite(minY)) return floor
       return Math.max(floor, input.margins().top + minY)
     },
-    heading: (i: number, labelKey?: string) =>
-      labelKey ? String(input.data()[i]?.[labelKey] ?? "") : null,
+    heading: (i: number, labelKey?: string) => (labelKey ? String(input.data()[i]?.[labelKey] ?? "") : null),
     itemsAt: (i: number): TooltipItem[] =>
       configKeys.map((name) => {
         const raw = input.data()[i]?.[name]

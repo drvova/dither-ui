@@ -3,17 +3,14 @@ import { onBeforeUnmount, watch } from "vue"
 import type { VariantInput } from "./chart-context"
 import { usePolarPart } from "./polar-context"
 
-const props = withDefaults(
-  defineProps<{ variant?: VariantInput }>(),
-  { variant: "gradient" }
-)
+const props = withDefaults(defineProps<{ variant?: VariantInput }>(), { variant: "gradient" })
 
 const ctx = usePolarPart("Pie", "pie")
 
 watch(
   () => props.variant,
   (variant) => ctx.registerVariant("*", variant),
-  { immediate: true }
+  { immediate: true },
 )
 onBeforeUnmount(() => ctx.unregisterVariant("*"))
 </script>

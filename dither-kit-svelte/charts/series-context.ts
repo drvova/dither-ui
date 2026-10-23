@@ -20,9 +20,7 @@ export function setSeries(ctx: SeriesContextValue): void {
 export function useSeries(part: string): SeriesContextValue {
   const ctx = getContext<SeriesContextValue>(SeriesKey) ?? null
   if (!ctx) {
-    throw new Error(
-      `<${part} /> must be rendered inside a series (e.g. <Area />).`
-    )
+    throw new Error(`<${part} /> must be rendered inside a series (e.g. <Area />).`)
   }
   return ctx
 }

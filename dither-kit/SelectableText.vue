@@ -3,10 +3,7 @@ import { cn } from "./lib"
 
 /** Text that selects itself on click (`user-select: all`) — license keys,
  * tokens, one-tap copy targets. Wraps any inline content. */
-const props = withDefaults(
-  defineProps<{ as?: string; class?: string }>(),
-  { as: "span" },
-)
+const props = withDefaults(defineProps<{ as?: string; class?: string }>(), { as: "span" })
 </script>
 
 <template>

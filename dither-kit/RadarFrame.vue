@@ -16,16 +16,14 @@ function ring(radius: number): string {
     .map(
       (ax, i) =>
         `${i === 0 ? "M" : "L"}${polarX(ctx.center.x, radius, ax.angle).toFixed(
-          1
-        )},${polarY(ctx.center.y, radius, ax.angle).toFixed(1)}`
+          1,
+        )},${polarY(ctx.center.y, radius, ax.angle).toFixed(1)}`,
     )
     .join(" ")} Z`
 }
 
 const rings = computed(() =>
-  Array.from({ length: LEVELS.value }, (_, l) =>
-    ring((ctx.outerRadius * (l + 1)) / LEVELS.value)
-  )
+  Array.from({ length: LEVELS.value }, (_, l) => ring((ctx.outerRadius * (l + 1)) / LEVELS.value)),
 )
 
 function anchorOf(angle: number): "start" | "middle" | "end" {

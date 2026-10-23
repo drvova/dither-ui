@@ -5,7 +5,17 @@
 // canvas. The cursor carries a soft light across the dots; each board's ink
 // develops through a dithered edge after its pop. Verb: place. Geometry:
 // frames on a dot lattice.
-import { base, constant, fill, keyed, marker, stroke, type Key, type PathContour, type Vec3 } from "@clayzo/animation/authoring"
+import {
+  base,
+  constant,
+  fill,
+  keyed,
+  marker,
+  stroke,
+  type Key,
+  type PathContour,
+  type Vec3,
+} from "@clayzo/animation/authoring"
 import { at, DRAIN, FR, MOVE, OUT, pixelFilm, POP, rect, SETTLE, v, type Nodes } from "./frame"
 import { heat, tone } from "./kit-dither"
 
@@ -33,7 +43,9 @@ const none = { x: 0, y: 0, z: 1 }
 function content(id: string, w: number, h: number): PathContour[] {
   if (id === "a1") {
     // Five bars on the board's floor.
-    return [0.45, 0.7, 0.55, 0.85, 1].map((k, i) => rect(-w / 2 + 36 + i * 42, h / 2 - 28 - k * (h - 76), 24, k * (h - 76)))
+    return [0.45, 0.7, 0.55, 0.85, 1].map((k, i) =>
+      rect(-w / 2 + 36 + i * 42, h / 2 - 28 - k * (h - 76), 24, k * (h - 76)),
+    )
   }
   if (id === "a2") {
     // A stepped line: a run of cells climbing left to right.
@@ -71,10 +83,20 @@ export function studioFilm() {
   // (a dot that straddles two cells lands on neither centre).
   const dots: PathContour[] = []
   for (let y = 36; y < H; y += 72) for (let x = 36; x < W; x += 72) dots.push(rect(x, y, 12, 12))
-  nodes.dots = { ...base("dots", { outTick: END }), type: "path", path: constant({ contours: dots }), style: { fill: fill(tone(0.3)) } }
+  nodes.dots = {
+    ...base("dots", { outTick: END }),
+    type: "path",
+    path: constant({ contours: dots }),
+    style: { fill: fill(tone(0.3)) },
+  }
   // The cursor carries a soft light: the dots near it brighten as it
   // passes (a glow clipped to the dots, so the canvas between stays dark).
-  nodes["glow.clip"] = { ...base("glow.clip", { outTick: END }), type: "path", path: constant({ contours: dots }), style: { fill: fill(tone(1)) } }
+  nodes["glow.clip"] = {
+    ...base("glow.clip", { outTick: END }),
+    type: "path",
+    path: constant({ contours: dots }),
+    style: { fill: fill(tone(1)) },
+  }
   nodes["glow.light"] = {
     ...base("glow.light", { outTick: END, blendMode: "lighten", position: cursorTrack("glow.position", 28, 56) }),
     type: "ellipse",
@@ -163,7 +185,14 @@ export function studioFilm() {
       outTick: b.click + at(0.4),
       type: "ellipse",
       size: constant({ width: 120, height: 120 }),
-      style: { stroke: stroke(heat(0.7), 12, { opacity: keyed(`${b.id}.ring.o`, [[b.click, 1, OUT], [b.click + at(0.4), 0]]) }) },
+      style: {
+        stroke: stroke(heat(0.7), 12, {
+          opacity: keyed(`${b.id}.ring.o`, [
+            [b.click, 1, OUT],
+            [b.click + at(0.4), 0],
+          ]),
+        }),
+      },
     }
     scene.push(b.id, `${b.id}.ring`)
   })

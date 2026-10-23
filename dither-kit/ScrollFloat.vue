@@ -9,7 +9,7 @@ const props = withDefaults(
     amount?: number
     class?: string
   }>(),
-  { text: "Scroll float", amount: 1 }
+  { text: "Scroll float", amount: 1 },
 )
 
 const chars = computed(() => [...props.text])
@@ -54,13 +54,9 @@ function floatStyle(i: number) {
 
 <template>
   <span ref="el" :class="cn('inline-block', props.class)" :aria-label="props.text">
-    <span
-      v-for="(ch, i) in chars"
-      :key="i"
-      aria-hidden="true"
-      class="dither-float-char"
-      :style="floatStyle(i)"
-    >{{ ch === " " ? "\u00a0" : ch }}</span>
+    <span v-for="(ch, i) in chars" :key="i" aria-hidden="true" class="dither-float-char" :style="floatStyle(i)">{{
+      ch === " " ? "\u00a0" : ch
+    }}</span>
   </span>
 </template>
 
@@ -68,6 +64,8 @@ function floatStyle(i: number) {
 .dither-float-char {
   display: inline-block;
   white-space: pre;
-  transition: opacity 120ms linear, transform 120ms linear;
+  transition:
+    opacity 120ms linear,
+    transform 120ms linear;
 }
 </style>

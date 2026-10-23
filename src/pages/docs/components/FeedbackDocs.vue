@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import {
-  DitherBadge,
-  DitherButton,
-  DitherSeparator,
-  DitherSkeleton,
-  DitherSpinner,
-} from "@dither-kit"
+import { DitherBadge, DitherButton, DitherSeparator, DitherSkeleton, DitherSpinner } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -91,8 +85,7 @@ const API: Record<string, PropRow[]> = {
   <section id="badge" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Badge</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A small label chip — the button's dither fill at rest, no hover machinery,
-      any palette color and texture variant.
+      A small label chip — the button's dither fill at rest, no hover machinery, any palette color and texture variant.
     </p>
     <DemoCard :code="SNIPPET_BADGE">
       <div class="grid gap-5">
@@ -116,9 +109,8 @@ const API: Record<string, PropRow[]> = {
   <section id="skeleton" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Skeleton</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A loading placeholder that shimmers pixel-by-pixel — the field's density
-      breathes through the Bayer matrix instead of a gradient sweep. Size it
-      with classes and compose it into any layout.
+      A loading placeholder that shimmers pixel-by-pixel — the field's density breathes through the Bayer matrix instead
+      of a gradient sweep. Size it with classes and compose it into any layout.
     </p>
     <DemoCard :code="SNIPPET_SKELETON">
       <div class="mx-auto max-w-xs rounded-lg border border-border/60 p-5">
@@ -139,13 +131,12 @@ const API: Record<string, PropRow[]> = {
   <section id="spinner" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Spinner</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A dithered loader, repainted at 30fps. It's not one shape — a seed samples
-      three axes at once: the <em class="text-foreground/80 not-italic">silhouette</em>
+      A dithered loader, repainted at 30fps. It's not one shape — a seed samples three axes at once: the
+      <em class="text-foreground/80 not-italic">silhouette</em>
       (circle ring, square box-ring, or bar), the
-      <em class="text-foreground/80 not-italic">flow</em> (sweep like a comet, pulse
-      breathing, or a travelling wave), and the detail (dashes, petals, thickness).
-      So every seed is a genuinely different loader — a rotating ring, a breathing
-      square, dashes racing a bar. Static under reduced motion.
+      <em class="text-foreground/80 not-italic">flow</em> (sweep like a comet, pulse breathing, or a travelling wave),
+      and the detail (dashes, petals, thickness). So every seed is a genuinely different loader — a rotating ring, a
+      breathing square, dashes racing a bar. Static under reduced motion.
     </p>
     <DemoCard :code="SNIPPET_SPINNER">
       <div class="grid gap-6">
@@ -156,7 +147,13 @@ const API: Record<string, PropRow[]> = {
           <span class="text-[11px] text-muted-foreground">default arc</span>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-6">
-          <DitherSpinner v-for="(sd, i) in spinnerSeeds" :key="i" :seed="sd" :size="32" :color="(['blue','green','purple','orange','pink','red'] as const)[i % 6]" />
+          <DitherSpinner
+            v-for="(sd, i) in spinnerSeeds"
+            :key="i"
+            :seed="sd"
+            :size="32"
+            :color="(['blue', 'green', 'purple', 'orange', 'pink', 'red'] as const)[i % 6]"
+          />
         </div>
         <div class="flex justify-center">
           <DitherButton color="blue" variant="gradient" @click="rerollSpinners">Roll new spinners</DitherButton>
@@ -170,16 +167,14 @@ const API: Record<string, PropRow[]> = {
   <section id="separator" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Separator</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A 2px rule whose pixels dissolve toward both ends through the Bayer
-      matrix — the image component's edge fade, applied to a divider.
+      A 2px rule whose pixels dissolve toward both ends through the Bayer matrix — the image component's edge fade,
+      applied to a divider.
     </p>
     <DemoCard :code="SNIPPET_SEPARATOR">
       <div class="mx-auto max-w-sm">
         <p class="text-[12px] text-muted-foreground">Charts render on canvas.</p>
         <DitherSeparator class="my-4" />
-        <p class="text-[12px] text-muted-foreground">
-          Fills threshold the same Bayer matrix.
-        </p>
+        <p class="text-[12px] text-muted-foreground">Fills threshold the same Bayer matrix.</p>
         <div class="mt-6 flex h-5 items-center justify-center gap-4">
           <span class="text-[11px]">docs</span>
           <DitherSeparator orientation="vertical" />

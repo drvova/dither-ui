@@ -42,7 +42,8 @@ const paint = (text: string, v: Partial<WorldView> = {}, s: Partial<WorldStyle> 
   return buf.data
 }
 /** A mesh baked into a fresh world. */
-const bake = (geo: Parameters<typeof addMesh>[1], m: Parameters<typeof addMesh>[2], solid: boolean, ccw = true) => addMesh(emptyWorld(), geo, m, [0, 0, 0], solid, { ccw })!
+const bake = (geo: Parameters<typeof addMesh>[1], m: Parameters<typeof addMesh>[2], solid: boolean, ccw = true) =>
+  addMesh(emptyWorld(), geo, m, [0, 0, 0], solid, { ccw })!
 const alphaAt = (d: Uint8ClampedArray, w: number, x: number, y: number) => d[(y * w + x) * 4 + 3]
 const count = (d: Uint8ClampedArray, pred: (a: number) => boolean) => {
   let n = 0
@@ -107,7 +108,9 @@ describe("primitives", () => {
     const mesh = bake(boxGeometry([2, 2, 2]), null, true)
     expect(mesh.positions.length).toBe(60)
     expect(mesh.uv?.length).toBe(40)
-    expect(bake({ ...boxGeometry([2, 2, 2]), uvs: undefined, faceUvs: undefined }, null, true).positions.length).toBe(24)
+    expect(bake({ ...boxGeometry([2, 2, 2]), uvs: undefined, faceUvs: undefined }, null, true).positions.length).toBe(
+      24,
+    )
     expect(mesh.indices.length).toBe(36)
     expect(mesh.edges.length).toBe(24 * 3)
     for (let e = 0; e < mesh.edges.length; e += 3) {
@@ -125,15 +128,32 @@ describe("primitives", () => {
   })
   it("drops faces with out-of-range indices, bakes the matrix, registers colours", () => {
     const world = emptyWorld()
-    const mesh = addMesh(world, { points: [0, 0, 0, 1, 0, 0, 0, 1, 0], faces: [[0, 1, 2], [0, 1, 9]], colors: [1, 0, 0, 0, 1, 0] }, mat4Translate([0, 0, 5]), [1, 2, 3], true)!
+    const mesh = addMesh(
+      world,
+      {
+        points: [0, 0, 0, 1, 0, 0, 0, 1, 0],
+        faces: [
+          [0, 1, 2],
+          [0, 1, 9],
+        ],
+        colors: [1, 0, 0, 0, 1, 0],
+      },
+      mat4Translate([0, 0, 5]),
+      [1, 2, 3],
+      true,
+    )!
     expect(mesh.indices.length).toBe(3)
     expect(mesh.positions[2]).toBe(5)
     expect(world.palette[mesh.color]).toEqual([1, 2, 3])
     expect(world.palette[mesh.triColors![0]]).toEqual([255, 0, 0])
     expect(addMesh(world, { points: [], faces: [] }, null, [0, 0, 0], true)).toBeNull()
-    const lines = addMesh(world, { points: [0, 0, 0, 1, 0, 0, 2, 0, 0], faces: [[0, 1, 2]] }, null, [9, 9, 9], false, { kind: "lines" })!
+    const lines = addMesh(world, { points: [0, 0, 0, 1, 0, 0, 2, 0, 0], faces: [[0, 1, 2]] }, null, [9, 9, 9], false, {
+      kind: "lines",
+    })!
     expect(Array.from(lines.indices)).toEqual([0, 1, 1, 2])
-    const points = addMesh(world, { points: [0, 0, 0, 1, 0, 0], faces: [] }, null, [9, 9, 9], false, { kind: "points" })!
+    const points = addMesh(world, { points: [0, 0, 0, 1, 0, 0], faces: [] }, null, [9, 9, 9], false, {
+      kind: "points",
+    })!
     expect(Array.from(points.indices)).toEqual([0, 1])
   })
   it("fits a bounding sphere", () => {
@@ -155,7 +175,8 @@ describe("obj + stl", () => {
     expect(Array.from(world.meshes[0].indices.slice(6))).toEqual([0, 1, 2])
   })
   it("reads ASCII and binary STL as two-sided triangles", () => {
-    const ascii = "solid t\nfacet normal 0 0 1\nouter loop\nvertex 0 0 0\nvertex 1 0 0\nvertex 0 1 0\nendloop\nendfacet\nendsolid t\n"
+    const ascii =
+      "solid t\nfacet normal 0 0 1\nouter loop\nvertex 0 0 0\nvertex 1 0 0\nvertex 0 1 0\nendloop\nendfacet\nendsolid t\n"
     const a = parseStl(ascii)
     expect(a.meshes[0].indices.length).toBe(3)
     expect(a.meshes[0].solid).toBe(false)
@@ -180,7 +201,10 @@ describe("obj + stl", () => {
     expect(sniffFormat(enc("# made by x\nv 1 2 3\nf 1 2 3\n"))).toBe("obj")
   })
   it("parseWorld swings z-up STLs to y-up and leaves VRML alone", () => {
-    const stl = parseWorld("solid t\nfacet normal 0 0 1\nouter loop\nvertex 0 0 0\nvertex 1 0 0\nvertex 0 0 1\nendloop\nendfacet\nendsolid\n", "auto")
+    const stl = parseWorld(
+      "solid t\nfacet normal 0 0 1\nouter loop\nvertex 0 0 0\nvertex 1 0 0\nvertex 0 0 1\nendloop\nendfacet\nendsolid\n",
+      "auto",
+    )
     const p = stl.meshes[0].positions
     expect([p[6], p[7], p[8]]).toEqual([0, 1, -0])
     const wrl = parseWorld("#VRML V2.0 utf8\nShape { geometry Box { size 2 2 4 } }", "auto")
@@ -222,7 +246,8 @@ describe("paintWorld", () => {
     expect(count(paint(tri("FALSE"), { yaw: 180, pitch: 0 }), (al) => al > 0)).toBeGreaterThan(0)
   })
   it("resolves depth: a near box hides a far one", () => {
-    const two = "#VRML V2.0 utf8\nTransform { translation 0 0 2 children Shape { appearance Appearance { material Material { diffuseColor 1 0 0 } } geometry Box { size 1 1 1 } } }\nTransform { translation 0 0 -2 children Shape { appearance Appearance { material Material { diffuseColor 0 1 0 } } geometry Box { size 1 1 1 } } }"
+    const two =
+      "#VRML V2.0 utf8\nTransform { translation 0 0 2 children Shape { appearance Appearance { material Material { diffuseColor 1 0 0 } } geometry Box { size 1 1 1 } } }\nTransform { translation 0 0 -2 children Shape { appearance Appearance { material Material { diffuseColor 0 1 0 } } geometry Box { size 1 1 1 } } }"
     const d = paint(two, { yaw: 0, pitch: 0, zoom: 2 }, { material: true, shade: 1 })
     const c = (32 * 64 + 32) * 4
     expect([d[c], d[c + 1]]).toEqual([255, 0])
@@ -233,7 +258,9 @@ describe("paintWorld", () => {
     const box = "#VRML V2.0 utf8\nShape { geometry Box { size 2 1 3 } }"
     expect(Array.from(paint(box))).not.toEqual(Array.from(paint(box, { yaw: 75 })))
     expect(Array.from(paint(box))).not.toEqual(Array.from(paint(box, { pitch: -20 })))
-    expect(count(paint(box, {}, { wire: true }), (al) => al === 255)).toBeGreaterThan(count(paint(box), (al) => al === 255))
+    expect(count(paint(box, {}, { wire: true }), (al) => al === 255)).toBeGreaterThan(
+      count(paint(box), (al) => al === 255),
+    )
   })
   it("uses the file's lights and headlight flag", () => {
     const lit = paint(sphere + "\nDirectionalLight { direction 0 0 -1 }")
@@ -244,7 +271,15 @@ describe("paintWorld", () => {
 
 describe("animation", () => {
   it("samples tracks: lerp, step, looping, slerp the short way", () => {
-    const lerp: Track = { key: [0, 1, 2], value: [0, 0, 0, 10, 0, 0, 10, 10, 0], stride: 3, kind: "lerp", duration: 2, loop: true, start: 0 }
+    const lerp: Track = {
+      key: [0, 1, 2],
+      value: [0, 0, 0, 10, 0, 0, 10, 10, 0],
+      stride: 3,
+      kind: "lerp",
+      duration: 2,
+      loop: true,
+      start: 0,
+    }
     const out = [0, 0, 0]
     sampleTrack(lerp, 0.5, out)
     expect(out).toEqual([5, 0, 0])
@@ -260,7 +295,21 @@ describe("animation", () => {
   })
   it("poses nodes through parents and pre-transforms, caching per time", () => {
     const world = emptyWorld()
-    const root = addNode(world, { parent: -1, pre: mat4Translate([10, 0, 0]), tracks: { rotation: { key: [0, 1], value: [...quatFromAxisAngle([0, 0, 1], 0), ...quatFromAxisAngle([0, 0, 1], Math.PI)], stride: 4, kind: "slerp", duration: 1, loop: true, start: 0 } } })
+    const root = addNode(world, {
+      parent: -1,
+      pre: mat4Translate([10, 0, 0]),
+      tracks: {
+        rotation: {
+          key: [0, 1],
+          value: [...quatFromAxisAngle([0, 0, 1], 0), ...quatFromAxisAngle([0, 0, 1], Math.PI)],
+          stride: 4,
+          kind: "slerp",
+          duration: 1,
+          loop: true,
+          start: 0,
+        },
+      },
+    })
     const child = addNode(world, { parent: root, translation: [1, 0, 0] })
     const m0 = nodeMatrices(world, 0)
     expect(transformPoint(m0[child], [0, 0, 0]).map((v) => Math.round(v * 1000) / 1000)).toEqual([11, 0, 0])
@@ -292,12 +341,32 @@ describe("animation", () => {
 describe("kit engines in the shade", () => {
   const sphere = "#VRML V2.0 utf8\nShape { geometry Sphere { radius 1 } }"
   it("ramp mode bands the lighting across the palette over an opaque silhouette", () => {
-    const d = paint(sphere, {}, { ramp: [[0, 0, 0], [128, 0, 0], [255, 255, 255]] })
+    const d = paint(
+      sphere,
+      {},
+      {
+        ramp: [
+          [0, 0, 0],
+          [128, 0, 0],
+          [255, 255, 255],
+        ],
+      },
+    )
     const seen = new Set<string>()
     for (let i = 0; i < d.length; i += 4) if (d[i + 3]) seen.add(`${d[i]},${d[i + 1]},${d[i + 2]}`)
     expect([...seen].sort()).toEqual(["0,0,0", "128,0,0", "255,255,255"])
     for (let i = 3; i < d.length; i += 4) expect([0, 255]).toContain(d[i])
-    const soft = paint(sphere, {}, { ramp: [[0, 0, 0], [255, 255, 255]], dither: 0 })
+    const soft = paint(
+      sphere,
+      {},
+      {
+        ramp: [
+          [0, 0, 0],
+          [255, 255, 255],
+        ],
+        dither: 0,
+      },
+    )
     const greys = new Set<number>()
     for (let i = 0; i < soft.length; i += 4) if (soft[i + 3]) greys.add(soft[i])
     expect(greys.size).toBeGreaterThan(3)
@@ -310,19 +379,28 @@ describe("kit engines in the shade", () => {
     expect(Array.from(paint(sphere, {}, { grain: 0.8, seed: 4 }))).not.toEqual(Array.from(grainy))
   })
   it("line and point sets draw depth-tested over the faces", () => {
-    const lines = "#VRML V2.0 utf8\nShape { appearance Appearance { material Material { emissiveColor 0 1 0 } } geometry IndexedLineSet { coord Coordinate { point [ -2 0 0, 2 0 0, 0 2 0 ] } coordIndex [ 0 1 2 0 -1 ] } }"
+    const lines =
+      "#VRML V2.0 utf8\nShape { appearance Appearance { material Material { emissiveColor 0 1 0 } } geometry IndexedLineSet { coord Coordinate { point [ -2 0 0, 2 0 0, 0 2 0 ] } coordIndex [ 0 1 2 0 -1 ] } }"
     const d = paint(lines, { yaw: 0, pitch: 0 }, { material: true })
     let lit = 0
-    for (let i = 0; i < d.length; i += 4) if (d[i + 3]) {
-      lit++
-      expect([d[i], d[i + 1], d[i + 2]]).toEqual([0, 255, 0])
-    }
+    for (let i = 0; i < d.length; i += 4)
+      if (d[i + 3]) {
+        lit++
+        expect([d[i], d[i + 1], d[i + 2]]).toEqual([0, 255, 0])
+      }
     expect(lit).toBeGreaterThan(20)
-    const pts = "#VRML V2.0 utf8\nShape { geometry PointSet { coord Coordinate { point [ -1 0 0, 1 0 0, 0 1 0, 0 -1 0 ] } } }"
+    const pts =
+      "#VRML V2.0 utf8\nShape { geometry PointSet { coord Coordinate { point [ -1 0 0, 1 0 0, 0 1 0, 0 -1 0 ] } } }"
     expect(count(paint(pts, { yaw: 0, pitch: 0 }), (al) => al === 255)).toBe(4)
     // A point inside the box (same bounds, so the same framing) is hidden by its front face.
-    const hidden = "#VRML V2.0 utf8\nShape { geometry Box { size 2 2 2 } }\nShape { geometry PointSet { coord Coordinate { point [ 0 0 -0.5 ] } } }"
-    expect(count(paint(hidden, { yaw: 0, pitch: 0 }, { shade: 1 }), (al) => al === 255)).toBe(count(paint("#VRML V2.0 utf8\nShape { geometry Box { size 2 2 2 } }", { yaw: 0, pitch: 0 }, { shade: 1 }), (al) => al === 255))
+    const hidden =
+      "#VRML V2.0 utf8\nShape { geometry Box { size 2 2 2 } }\nShape { geometry PointSet { coord Coordinate { point [ 0 0 -0.5 ] } } }"
+    expect(count(paint(hidden, { yaw: 0, pitch: 0 }, { shade: 1 }), (al) => al === 255)).toBe(
+      count(
+        paint("#VRML V2.0 utf8\nShape { geometry Box { size 2 2 2 } }", { yaw: 0, pitch: 0 }, { shade: 1 }),
+        (al) => al === 255,
+      ),
+    )
   })
   it("the two stages compose: a target filled by the CPU engine paints like paintWorld", () => {
     const world = parseVrml(sphere)
@@ -358,7 +436,13 @@ describe("textures", () => {
 
   const quad = (uvs?: number[]) => {
     const world = emptyWorld()
-    addMesh(world, { points: [-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], faces: [[0, 1, 2, 3]], uvs }, null, [255, 255, 255], false)
+    addMesh(
+      world,
+      { points: [-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], faces: [[0, 1, 2, 3]], uvs },
+      null,
+      [255, 255, 255],
+      false,
+    )
     return finishWorld(world)
   }
   const facing: WorldView = { yaw: 0, pitch: 0, zoom: 1, fov: 40 }
@@ -415,7 +499,8 @@ describe("textures", () => {
     expect(px(qx(0.75), qy(0.25)).slice(0, 3)).toEqual([0, 255, 0])
     expect(px(qx(0.25), qy(0.75)).slice(0, 3)).toEqual([0, 0, 255])
     // The transparent texel never lights its cells.
-    for (let y = qy(0.6); y < qy(0.95); y++) for (let x = qx(0.6); x < qx(0.95); x++) expect(buf.data[(y * 40 + x) * 4 + 3]).toBe(0)
+    for (let y = qy(0.6); y < qy(0.95); y++)
+      for (let x = qx(0.6); x < qx(0.95); x++) expect(buf.data[(y * 40 + x) * 4 + 3]).toBe(0)
     // Without coordinates the fill stays.
     const plain = quad()
     rasterizeWorld(plain, facing, target, style)

@@ -17,6 +17,8 @@ jobs:
       - run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Format
+        run: npx rs fmt --check
       - name: Typecheck
         run: npx vue-tsc --noEmit
       - name: Unit tests

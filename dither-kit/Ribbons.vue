@@ -48,7 +48,7 @@ const props = withDefaults(
     paused: false,
     frameRate: 0,
     renderMode: "live",
-  }
+  },
 )
 
 const CELL = 4
@@ -106,7 +106,18 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="wrapRef" aria-hidden="true" :class="cn('relative block h-full w-full overflow-hidden', props.class)">
-    <img v-if="precompiled" :src="precompiled" alt="" class="absolute inset-0 h-full w-full object-fill" :style="{ imageRendering: 'pixelated', mixBlendMode: props.mixBlendMode as never }" />
-    <canvas v-else ref="canvasRef" class="absolute inset-0 h-full w-full" :style="{ imageRendering: 'pixelated', mixBlendMode: props.mixBlendMode as never }" />
+    <img
+      v-if="precompiled"
+      :src="precompiled"
+      alt=""
+      class="absolute inset-0 h-full w-full object-fill"
+      :style="{ imageRendering: 'pixelated', mixBlendMode: props.mixBlendMode as never }"
+    />
+    <canvas
+      v-else
+      ref="canvasRef"
+      class="absolute inset-0 h-full w-full"
+      :style="{ imageRendering: 'pixelated', mixBlendMode: props.mixBlendMode as never }"
+    />
   </div>
 </template>

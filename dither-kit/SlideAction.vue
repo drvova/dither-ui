@@ -17,7 +17,7 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { label: "Slide to confirm", color: "green", disabled: false }
+  { label: "Slide to confirm", color: "green", disabled: false },
 )
 const emit = defineEmits<{ confirm: [] }>()
 
@@ -82,7 +82,12 @@ function key(e: KeyboardEvent) {
 <template>
   <div
     ref="trackRef"
-    :class="cn('relative flex h-10 w-64 touch-none items-center rounded-full border border-border/60 bg-card/60 px-1 select-none', props.class)"
+    :class="
+      cn(
+        'relative flex h-10 w-64 touch-none items-center rounded-full border border-border/60 bg-card/60 px-1 select-none',
+        props.class,
+      )
+    "
   >
     <span
       aria-hidden="true"
@@ -100,7 +105,7 @@ function key(e: KeyboardEvent) {
         cn(
           'grid size-8 shrink-0 place-items-center rounded-full text-[14px] text-background',
           CONTROL_BUTTON,
-          dragging ? 'cursor-grabbing' : 'cursor-grab'
+          dragging ? 'cursor-grabbing' : 'cursor-grab',
         )
       "
       :style="{

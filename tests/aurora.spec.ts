@@ -30,7 +30,7 @@ describe("paintAurora", () => {
     const d = paint()
     let lit = 0
     let clear = 0
-    for (let i = 3; i < d.length; i += 4) (d[i] > 0 ? lit++ : clear++)
+    for (let i = 3; i < d.length; i += 4) d[i] > 0 ? lit++ : clear++
     expect(lit).toBeGreaterThan(0)
     expect(clear).toBeGreaterThan(0)
   })

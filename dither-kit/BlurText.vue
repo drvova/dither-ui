@@ -11,7 +11,7 @@ const props = withDefaults(
     duration?: number
     class?: string
   }>(),
-  { text: "Blur into focus", by: "words", stagger: 90, duration: 600 }
+  { text: "Blur into focus", by: "words", stagger: 90, duration: 600 },
 )
 
 const parts = computed(() => (props.by === "chars" ? [...props.text] : props.text.split(/(\s+)/)))
@@ -44,7 +44,8 @@ onBeforeUnmount(() => io?.disconnect())
       class="dither-blur-part"
       :class="{ shown }"
       :style="{ transitionDelay: `${i * props.stagger}ms`, transitionDuration: `${props.duration}ms` }"
-    >{{ /^\s*$/.test(p) ? "\u00a0" : p }}</span>
+      >{{ /^\s*$/.test(p) ? "\u00a0" : p }}</span
+    >
   </span>
 </template>
 

@@ -37,7 +37,8 @@ const known = new Set<string>(THEME_TOKENS)
 /** Token overrides as custom properties; unknown keys and empty values drop. */
 export function themeVars(theme: ThemeInput): ThemeVars {
   const out: Record<string, string> = {}
-  for (const [key, value] of Object.entries(theme)) if (known.has(key) && typeof value === "string" && value.trim()) out[`--${key}`] = value.trim()
+  for (const [key, value] of Object.entries(theme))
+    if (known.has(key) && typeof value === "string" && value.trim()) out[`--${key}`] = value.trim()
   return out as ThemeVars
 }
 
@@ -48,7 +49,10 @@ export function themeCss(theme: ThemeInput, selector = ":root"): string {
 }
 
 /** Write the overrides onto an element — the document root by default — and get the undo back. */
-export function applyTheme(theme: ThemeInput, el: HTMLElement | null = typeof document !== "undefined" ? document.documentElement : null): () => void {
+export function applyTheme(
+  theme: ThemeInput,
+  el: HTMLElement | null = typeof document !== "undefined" ? document.documentElement : null,
+): () => void {
   if (!el) return () => {}
   const previous = new Map<string, string>()
   for (const [k, v] of Object.entries(themeVars(theme))) {

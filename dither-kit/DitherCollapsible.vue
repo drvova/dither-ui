@@ -6,12 +6,7 @@ const CELL = 2
 let uid = 0
 
 /** Paint the 2px left rail — a vertical dither ramp fading downward. */
-function paintRail(
-  canvas: HTMLCanvasElement,
-  height: number,
-  color: PixelColor,
-  matrix: number[][] = BAYER4
-): void {
+function paintRail(canvas: HTMLCanvasElement, height: number, color: PixelColor, matrix: number[][] = BAYER4): void {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx || height <= 0) return
   const rows = Math.max(4, Math.round(height / CELL))
@@ -39,7 +34,7 @@ const props = withDefaults(
     modelValue?: boolean
     color?: PixelColor
   }>(),
-  { modelValue: false, color: "blue" }
+  { modelValue: false, color: "blue" },
 )
 const emit = defineEmits<{ "update:modelValue": [value: boolean] }>()
 

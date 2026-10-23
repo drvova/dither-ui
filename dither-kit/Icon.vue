@@ -25,9 +25,7 @@ const paths = computed(() => {
 })
 
 const a11y = computed(() =>
-  props.label
-    ? { role: "img", "aria-label": props.label }
-    : ({ "aria-hidden": "true", focusable: "false" } as const),
+  props.label ? { role: "img", "aria-label": props.label } : ({ "aria-hidden": "true", focusable: "false" } as const),
 )
 </script>
 

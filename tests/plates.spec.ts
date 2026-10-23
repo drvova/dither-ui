@@ -32,10 +32,11 @@ function decode(plate: Plate): Map<string, string> {
 
 function expected(w: number, h: number, paint: (x: number, y: number) => Cell | null) {
   const cells = new Map<string, string>()
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const c = paint(x, y)
-    if (c) cells.set(`${x},${y}`, c.color)
-  }
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const c = paint(x, y)
+      if (c) cells.set(`${x},${y}`, c.color)
+    }
   return cells
 }
 
@@ -63,7 +64,9 @@ describe("pixel plates", () => {
 
   it("is deterministic and ranks the hero by the Bayer matrix", () => {
     expect(dawnPlate()).toEqual(dawnPlate())
-    const ranks = dawnPlate().groups.filter((g) => !g.twinkle).map((g) => g.index)
+    const ranks = dawnPlate()
+      .groups.filter((g) => !g.twinkle)
+      .map((g) => g.index)
     expect(ranks).toEqual([...Array(16).keys()])
   })
 

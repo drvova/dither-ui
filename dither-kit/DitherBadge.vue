@@ -15,17 +15,12 @@ function paintBadge(
   rows: number,
   fill: Rgb,
   variant: BadgeVariant,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const bias = variant === "dotted" ? 0.12 : 0
   for (let y = 0; y < rows; y++) {
-    const density =
-      variant === "gradient"
-        ? 0.25 + 0.75 * ((y + 0.5) / rows)
-        : variant === "dotted"
-          ? 0.5
-          : 0.75
+    const density = variant === "gradient" ? 0.25 + 0.75 * ((y + 0.5) / rows) : variant === "dotted" ? 0.5 : 0.75
     for (let x = 0; x < cols; x++) {
       if (variant === "hatched" && ((x + y) & 3) >= 2) continue
       const lit = variant === "solid" || density > matrix[y & 3][x & 3] - bias
@@ -56,10 +51,10 @@ const props = withDefaults(
     seed?: number
     class?: string
   }>(),
-  {}
+  {},
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<BadgeVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
 
@@ -100,7 +95,7 @@ onBeforeUnmount(() => ro?.disconnect())
     :class="
       cn(
         'relative isolate inline-flex items-center overflow-hidden rounded px-2 py-0.5 font-mono text-[10px] text-foreground',
-        props.class
+        props.class,
       )
     "
   >

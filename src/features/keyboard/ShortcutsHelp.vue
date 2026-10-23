@@ -38,10 +38,7 @@ const GROUPS: { title: string; keys: [string, string][] }[] = [
 
 const isTyping = (t: EventTarget | null) => {
   const el = t as HTMLElement | null
-  return (
-    !!el &&
-    (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
-  )
+  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
 }
 
 function onKey(e: KeyboardEvent) {
@@ -70,7 +67,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, true))
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
       @click.self="open = false"
     >
-      <DitherFocusScope class="w-full max-w-md rounded-xl border border-border bg-card p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+      <DitherFocusScope
+        class="w-full max-w-md rounded-xl border border-border bg-card p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
+      >
         <div class="flex items-center justify-between">
           <span class="text-sm font-medium">Keyboard shortcuts</span>
           <button
@@ -88,7 +87,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, true))
             <dl class="mt-2 grid gap-1.5">
               <div v-for="[k, label] in g.keys" :key="k" class="flex items-center justify-between text-xs">
                 <dt class="text-muted-foreground">{{ label }}</dt>
-                <dd class="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground">{{ k }}</dd>
+                <dd
+                  class="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-foreground"
+                >
+                  {{ k }}
+                </dd>
               </div>
             </dl>
           </div>

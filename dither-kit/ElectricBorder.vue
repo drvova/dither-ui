@@ -9,7 +9,7 @@ const props = withDefaults(
     thickness?: number
     class?: string
   }>(),
-  { color: "#5227FF", speed: 1, thickness: 2 }
+  { color: "#5227FF", speed: 1, thickness: 2 },
 )
 
 const uid = `dither-electric-${Math.floor(Math.random() * 1e9)}`

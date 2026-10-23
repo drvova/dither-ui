@@ -14,7 +14,11 @@ function flush(t: number): void {
 }
 let now = 1000
 const matchMedia = (matches: boolean) => {
-  window.matchMedia = (() => ({ matches, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia
+  window.matchMedia = (() => ({
+    matches,
+    addEventListener() {},
+    removeEventListener() {},
+  })) as unknown as typeof window.matchMedia
 }
 const realMatchMedia = window.matchMedia
 const content = () => ({ default: () => h("div", { id: "c" }, "hi") })

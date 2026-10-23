@@ -15,12 +15,7 @@ export type PieSlice = {
 }
 
 /** Slice angles from each data row's value under `dataKey`, named by `nameKey`. */
-export function pieSlices(
-  data: Row[],
-  dataKey: string,
-  nameKey: string,
-  startAngleDeg = 0
-): PieSlice[] {
+export function pieSlices(data: Row[], dataKey: string, nameKey: string, startAngleDeg = 0): PieSlice[] {
   const vals = data.map((r) => Math.max(0, Number(r[dataKey]) || 0))
   const total = vals.reduce((a, b) => a + b, 0) || 1
   let a = TOP + (startAngleDeg * Math.PI) / 180
@@ -74,17 +69,11 @@ export function axisAtAngle(axes: RadarAxis[], angle: number): number {
   return best
 }
 
-export const polarX = (cx: number, r: number, angle: number) =>
-  cx + Math.cos(angle) * r
-export const polarY = (cy: number, r: number, angle: number) =>
-  cy + Math.sin(angle) * r
+export const polarX = (cx: number, r: number, angle: number) => cx + Math.cos(angle) * r
+export const polarY = (cy: number, r: number, angle: number) => cy + Math.sin(angle) * r
 
 /** Even-odd point-in-polygon test (polygon as flat [x0,y0,x1,y1,…]). */
-export function pointInPolygon(
-  px: number,
-  py: number,
-  poly: number[]
-): boolean {
+export function pointInPolygon(px: number, py: number, poly: number[]): boolean {
   let inside = false
   const n = poly.length / 2
   for (let i = 0, j = n - 1; i < n; j = i++) {
@@ -101,11 +90,7 @@ export function pointInPolygon(
 
 /** Distance from a point to the nearest edge of a polygon — drives the radial
  * dither density (dense near the edge, thinning to the centre). */
-export function distToPolygonEdge(
-  px: number,
-  py: number,
-  poly: number[]
-): number {
+export function distToPolygonEdge(px: number, py: number, poly: number[]): number {
   let best = Infinity
   const n = poly.length / 2
   for (let i = 0, j = n - 1; i < n; j = i++) {

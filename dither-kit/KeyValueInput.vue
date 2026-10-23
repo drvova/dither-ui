@@ -11,10 +11,9 @@ interface KeyValueRow {
   value: string
 }
 
-const props = withDefaults(
-  defineProps<{ modelValue?: KeyValueRow[]; disabled?: boolean; class?: string }>(),
-  { disabled: false },
-)
+const props = withDefaults(defineProps<{ modelValue?: KeyValueRow[]; disabled?: boolean; class?: string }>(), {
+  disabled: false,
+})
 const emit = defineEmits<{ (e: "update:modelValue", value: KeyValueRow[]): void }>()
 
 function clone(): KeyValueRow[] {
@@ -33,7 +32,10 @@ function addRow() {
 }
 
 function removeRow(index: number) {
-  emit("update:modelValue", clone().filter((_, i) => i !== index))
+  emit(
+    "update:modelValue",
+    clone().filter((_, i) => i !== index),
+  )
 }
 </script>
 

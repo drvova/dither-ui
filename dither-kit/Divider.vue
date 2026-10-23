@@ -20,9 +20,7 @@ const props = withDefaults(
     :aria-orientation="props.orientation"
     :class="
       cn(
-        props.orientation === 'vertical'
-          ? 'w-px self-stretch bg-border/60'
-          : 'h-px w-full border-0 bg-border/60',
+        props.orientation === 'vertical' ? 'w-px self-stretch bg-border/60' : 'h-px w-full border-0 bg-border/60',
         props.class,
       )
     "

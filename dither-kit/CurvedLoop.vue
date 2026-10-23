@@ -11,7 +11,7 @@ const props = withDefaults(
     speed?: number
     class?: string
   }>(),
-  { text: "DITHER UI · CANVAS + BAYER · ", speed: 60 }
+  { text: "DITHER UI · CANVAS + BAYER · ", speed: 60 },
 )
 
 const uid = `dither-curve-${Math.floor(Math.random() * 1e9)}`

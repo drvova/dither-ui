@@ -8,7 +8,7 @@ const props = withDefaults(
     cols?: number
     class?: string
   }>(),
-  { text: "DITHER", cols: 64 }
+  { text: "DITHER", cols: 64 },
 )
 
 const RAMP = " .:-=+*#%@"
@@ -56,7 +56,9 @@ watch(() => [props.text, props.cols], build)
 </script>
 
 <template>
-  <pre :class="cn('dither-ascii font-mono leading-[0.85] text-[7px]', props.class)" :aria-label="props.text">{{ art }}</pre>
+  <pre :class="cn('dither-ascii font-mono leading-[0.85] text-[7px]', props.class)" :aria-label="props.text">{{
+    art
+  }}</pre>
 </template>
 
 <style scoped>

@@ -95,7 +95,13 @@ export function paintFlowField(
   // 2) The state (created once per buffer; rebuilt if the count changes).
   let st = states.get(buffer)
   if (!st || st.px.length !== n) {
-    st = { noise: simplex2DFactory(p.seed), rng: mulberry32(p.seed ^ 0x9e3779b9), px: new Float32Array(n), py: new Float32Array(n), life: new Float32Array(n) }
+    st = {
+      noise: simplex2DFactory(p.seed),
+      rng: mulberry32(p.seed ^ 0x9e3779b9),
+      px: new Float32Array(n),
+      py: new Float32Array(n),
+      life: new Float32Array(n),
+    }
     for (let i = 0; i < n; i++) spawn(st, i, w, h)
     states.set(buffer, st)
   }

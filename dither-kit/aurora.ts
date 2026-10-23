@@ -23,12 +23,7 @@ export type AuroraParams = {
  * @param time   seconds (the caller has NOT pre-scaled by speed).
  * @param matrix 4x4 Bayer thresholds (seeded or default).
  */
-export function paintAurora(
-  buffer: RasterBuffer,
-  p: AuroraParams,
-  time: number,
-  matrix: number[][]
-): void {
+export function paintAurora(buffer: RasterBuffer, p: AuroraParams, time: number, matrix: number[][]): void {
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data

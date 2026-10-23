@@ -28,7 +28,11 @@ const three = () => ({
 })
 
 const matchMedia = (matches: boolean) => {
-  window.matchMedia = (() => ({ matches, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia
+  window.matchMedia = (() => ({
+    matches,
+    addEventListener() {},
+    removeEventListener() {},
+  })) as unknown as typeof window.matchMedia
 }
 const realMatchMedia = window.matchMedia
 

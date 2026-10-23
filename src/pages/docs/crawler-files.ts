@@ -17,7 +17,7 @@ const docsUrl = (id: string): string => {
   if (!SECTIONS.some((s) => s.id === id))
     throw new Error(
       `crawler-files.ts: missing docs section "${id}" referenced by a crawl file — ` +
-        "add it to a *-nav.ts pack and spread it into GROUPS."
+        "add it to a *-nav.ts pack and spread it into GROUPS.",
     )
   return `${SITE_URL}/docs/${id}`
 }
@@ -211,7 +211,7 @@ export function sitemapXml(): string {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls.map(
       (u) =>
-        `  <url>\n    <loc>${u.loc}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`
+        `  <url>\n    <loc>${u.loc}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`,
     ),
     "</urlset>",
     "",
@@ -245,16 +245,36 @@ const LLMS_GROUPS: LlmsGroup[] = [
   {
     title: "Getting started",
     links: [
-      { title: "Quick start", href: docsUrl("getting-started"), desc: "Copy the kit folder, install the four runtime dependencies, alias it, and render the first component." },
-      { title: "Landing page", href: `${SITE_URL}/`, desc: "Product overview, the dither identity, and links into docs and studio." },
-      { title: "GitHub repository", href: REPO_URL, desc: "Full source for both kits (dither-kit Vue 3, dither-kit-svelte Svelte 5), benchmarks, and this site." },
+      {
+        title: "Quick start",
+        href: docsUrl("getting-started"),
+        desc: "Copy the kit folder, install the four runtime dependencies, alias it, and render the first component.",
+      },
+      {
+        title: "Landing page",
+        href: `${SITE_URL}/`,
+        desc: "Product overview, the dither identity, and links into docs and studio.",
+      },
+      {
+        title: "GitHub repository",
+        href: REPO_URL,
+        desc: "Full source for both kits (dither-kit Vue 3, dither-kit-svelte Svelte 5), benchmarks, and this site.",
+      },
     ],
   },
   {
     title: "Charts",
     links: [
-      { title: "Area chart", href: docsUrl("area"), desc: "Composable stacked or percent area chart with gradient, dotted, and hatched variants." },
-      { title: "Line chart", href: docsUrl("line"), desc: "Multi-series line chart with dither fill, seeds, and sparkle effects." },
+      {
+        title: "Area chart",
+        href: docsUrl("area"),
+        desc: "Composable stacked or percent area chart with gradient, dotted, and hatched variants.",
+      },
+      {
+        title: "Line chart",
+        href: docsUrl("line"),
+        desc: "Multi-series line chart with dither fill, seeds, and sparkle effects.",
+      },
       { title: "Bar chart", href: docsUrl("bar"), desc: "Grouped or stacked bars with dither textures." },
       { title: "Pie chart", href: docsUrl("pie"), desc: "Seed-generative pie and donut with legend and tooltips." },
       { title: "Radar chart", href: docsUrl("radar"), desc: "Multi-line radar with per-series colors." },
@@ -264,52 +284,120 @@ const LLMS_GROUPS: LlmsGroup[] = [
   {
     title: "Components",
     links: [
-      { title: "Button", href: docsUrl("button"), desc: "Gradient, dotted, hatched, and solid fills with pixel bloom." },
+      {
+        title: "Button",
+        href: docsUrl("button"),
+        desc: "Gradient, dotted, hatched, and solid fills with pixel bloom.",
+      },
       { title: "Avatar", href: docsUrl("avatar"), desc: "Seed-generative pixel portraits with reaction emotes." },
       { title: "Gradient", href: docsUrl("gradient"), desc: "Bayer-faded background wash in four directions." },
       { title: "Image", href: docsUrl("image"), desc: "Ordered-dithers any image into chunky cells." },
-      { title: "Form controls", href: docsUrl("switch"), desc: "Switch, checkbox, slider, and progress with unified field states." },
-      { title: "Fields and selection", href: docsUrl("input"), desc: "Inputs, textareas, selects, comboboxes, radios, and toggles." },
-      { title: "Overlays and menus", href: docsUrl("dialog"), desc: "Dialogs, drawers, popovers, context menus, tooltips, and command palettes." },
-      { title: "Structure and layout", href: docsUrl("tabs"), desc: "Tabs, collapsibles, shells, rails, consoles, grids, and infinite canvas." },
-      { title: "Navigation and data", href: docsUrl("sidebar"), desc: "Sidebars, nav menus, breadcrumbs, pagination, and tables." },
+      {
+        title: "Form controls",
+        href: docsUrl("switch"),
+        desc: "Switch, checkbox, slider, and progress with unified field states.",
+      },
+      {
+        title: "Fields and selection",
+        href: docsUrl("input"),
+        desc: "Inputs, textareas, selects, comboboxes, radios, and toggles.",
+      },
+      {
+        title: "Overlays and menus",
+        href: docsUrl("dialog"),
+        desc: "Dialogs, drawers, popovers, context menus, tooltips, and command palettes.",
+      },
+      {
+        title: "Structure and layout",
+        href: docsUrl("tabs"),
+        desc: "Tabs, collapsibles, shells, rails, consoles, grids, and infinite canvas.",
+      },
+      {
+        title: "Navigation and data",
+        href: docsUrl("sidebar"),
+        desc: "Sidebars, nav menus, breadcrumbs, pagination, and tables.",
+      },
     ],
   },
   {
     title: "Backgrounds, text, and animations",
     links: [
-      { title: "Backgrounds", href: docsUrl("aurora"), desc: "Full-bleed generative canvas surfaces — aurora, waves, plasma, dark veil, particles." },
-      { title: "Text", href: docsUrl("gradient-text"), desc: "DOM and CSS text effects — gradient, shiny, glitch, split, scramble, ASCII." },
-      { title: "Animations", href: docsUrl("animated-content"), desc: "Motion and interaction effects — reveals, borders, cursors, magnets." },
+      {
+        title: "Backgrounds",
+        href: docsUrl("aurora"),
+        desc: "Full-bleed generative canvas surfaces — aurora, waves, plasma, dark veil, particles.",
+      },
+      {
+        title: "Text",
+        href: docsUrl("gradient-text"),
+        desc: "DOM and CSS text effects — gradient, shiny, glitch, split, scramble, ASCII.",
+      },
+      {
+        title: "Animations",
+        href: docsUrl("animated-content"),
+        desc: "Motion and interaction effects — reveals, borders, cursors, magnets.",
+      },
     ],
   },
   {
     title: "Handbook",
     links: [
       { title: "Styling", href: docsUrl("styling"), desc: "Theme tokens, colors, and the dither design language." },
-      { title: "Seeds", href: docsUrl("seeds"), desc: "How one integer drives texture, motion, and color deterministically." },
-      { title: "Animation", href: docsUrl("motion"), desc: "The dither entrance, replay tokens, and reduced-motion support." },
-      { title: "Accessibility", href: docsUrl("accessibility"), desc: "Labels, focus rings, and reduced-motion and reduced-transparency floors." },
+      {
+        title: "Seeds",
+        href: docsUrl("seeds"),
+        desc: "How one integer drives texture, motion, and color deterministically.",
+      },
+      {
+        title: "Animation",
+        href: docsUrl("motion"),
+        desc: "The dither entrance, replay tokens, and reduced-motion support.",
+      },
+      {
+        title: "Accessibility",
+        href: docsUrl("accessibility"),
+        desc: "Labels, focus rings, and reduced-motion and reduced-transparency floors.",
+      },
     ],
   },
   {
     title: "Studio",
     links: [
-      { title: "Studio", href: `${SITE_URL}/studio`, desc: "Infinite-canvas editor to compose, configure, and export dither-ui charts and components as code." },
+      {
+        title: "Studio",
+        href: `${SITE_URL}/studio`,
+        desc: "Infinite-canvas editor to compose, configure, and export dither-ui charts and components as code.",
+      },
     ],
   },
   {
     title: "Agents",
     links: [
-      { title: "Studio skill", href: `${SITE_URL}/agent/SKILL.md`, desc: "How a coding agent (Claude Code, Codex, pi, omp, any harness) composes dither-ui screens and charts as Studio documents, offline or against a live Studio tab." },
-      { title: "Component registry", href: `${SITE_URL}/agent/registry.json`, desc: "Machine-readable registry: every placeable component with typed prop specs, chart and widget kinds, the document shape, and the Studio command vocabulary." },
+      {
+        title: "Studio skill",
+        href: `${SITE_URL}/agent/SKILL.md`,
+        desc: "How a coding agent (Claude Code, Codex, pi, omp, any harness) composes dither-ui screens and charts as Studio documents, offline or against a live Studio tab.",
+      },
+      {
+        title: "Component registry",
+        href: `${SITE_URL}/agent/registry.json`,
+        desc: "Machine-readable registry: every placeable component with typed prop specs, chart and widget kinds, the document shape, and the Studio command vocabulary.",
+      },
     ],
   },
   {
     title: "Optional",
     links: [
-      { title: "All documentation", href: `${SITE_URL}/docs`, desc: "The complete docs IA — every section lives on this one page; deep links like /docs/avatar scroll to the section." },
-      { title: "Svelte port", href: REPO_SVELTE_URL, desc: "Runes-only Svelte 5 port with a verbatim copy of the engine." },
+      {
+        title: "All documentation",
+        href: `${SITE_URL}/docs`,
+        desc: "The complete docs IA — every section lives on this one page; deep links like /docs/avatar scroll to the section.",
+      },
+      {
+        title: "Svelte port",
+        href: REPO_SVELTE_URL,
+        desc: "Runes-only Svelte 5 port with a verbatim copy of the engine.",
+      },
     ],
   },
 ]

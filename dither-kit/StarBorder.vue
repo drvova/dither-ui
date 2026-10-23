@@ -9,7 +9,7 @@ const props = withDefaults(
     thickness?: number
     class?: string
   }>(),
-  { color: "#7CFF67", speed: 6, thickness: 1 }
+  { color: "#7CFF67", speed: 6, thickness: 1 },
 )
 
 const glint = computed(() => `radial-gradient(circle, ${props.color}, transparent 12%)`)

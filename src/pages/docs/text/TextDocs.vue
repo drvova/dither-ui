@@ -203,8 +203,8 @@ const SNIPPETS = {
   <section id="gradient-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Gradient text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An animated gradient clipped to the text — the colour band drifts across
-      the glyphs forever. Respects reduced motion.
+      An animated gradient clipped to the text — the colour band drifts across the glyphs forever. Respects reduced
+      motion.
     </p>
     <DemoCard :code="SNIPPETS.gradientText">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -218,8 +218,7 @@ const SNIPPETS = {
   <section id="shiny-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Shiny text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A bright highlight sweeps across dim text on a loop — a subtle sheen for
-      headlines and labels.
+      A bright highlight sweeps across dim text on a loop — a subtle sheen for headlines and labels.
     </p>
     <DemoCard :code="SNIPPETS.shinyText">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -233,8 +232,8 @@ const SNIPPETS = {
   <section id="glitch-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Glitch text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Two RGB-split copies jitter and clip over the base text for a broken-signal
-      effect. The base stays readable; the glitch layers hide under reduced motion.
+      Two RGB-split copies jitter and clip over the base text for a broken-signal effect. The base stays readable; the
+      glitch layers hide under reduced motion.
     </p>
     <DemoCard :code="SNIPPETS.glitchText">
       <div class="flex min-h-24 items-center justify-center text-3xl font-medium tracking-tight">
@@ -249,8 +248,8 @@ const SNIPPETS = {
     <h2 class="text-lg tracking-tight">Split text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Each character rises and settles on a stagger. Bump
-      <code class="text-foreground/80">replay-token</code> to run it again; the
-      whole word is still one labelled node for screen readers.
+      <code class="text-foreground/80">replay-token</code> to run it again; the whole word is still one labelled node
+      for screen readers.
     </p>
     <DemoCard :code="SNIPPETS.splitText">
       <div class="grid min-h-24 place-items-center gap-4">
@@ -273,8 +272,7 @@ const SNIPPETS = {
   <section id="rotating-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Rotating text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Cycles through a list of words, each sliding out as the next slides in —
-      for a headline that says several things.
+      Cycles through a list of words, each sliding out as the next slides in — for a headline that says several things.
     </p>
     <DemoCard :code="SNIPPETS.rotatingText">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -290,8 +288,8 @@ const SNIPPETS = {
     <h2 class="text-lg tracking-tight">Count up</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Eases a number from <code class="text-foreground/80">from</code> to
-      <code class="text-foreground/80">to</code> when it scrolls into view —
-      locale-formatted, tabular figures. Reduced motion jumps to the final value.
+      <code class="text-foreground/80">to</code> when it scrolls into view — locale-formatted, tabular figures. Reduced
+      motion jumps to the final value.
     </p>
     <DemoCard :code="SNIPPETS.countUp">
       <div class="flex min-h-24 items-center justify-center gap-8 text-4xl tracking-tight tabular-nums">
@@ -305,8 +303,8 @@ const SNIPPETS = {
   <section id="number-flow" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Number flow</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An odometer for live values — every digit rides a 0-9 column that rolls
-      to the new figure whenever <code class="text-foreground/80">value</code>
+      An odometer for live values — every digit rides a 0-9 column that rolls to the new figure whenever
+      <code class="text-foreground/80">value</code>
       changes. Count up plays once; this one never stops. Reduced motion snaps.
     </p>
     <DemoCard :code="SNIPPETS.numberFlow">
@@ -322,8 +320,8 @@ const SNIPPETS = {
   <section id="text-type" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Text type</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A typewriter that types each string, pauses, deletes and moves to the next —
-      with a blinking caret. Reduced motion shows the first line, no typing.
+      A typewriter that types each string, pauses, deletes and moves to the next — with a blinking caret. Reduced motion
+      shows the first line, no typing.
     </p>
     <DemoCard :code="SNIPPETS.textType">
       <div class="flex min-h-24 items-center justify-center text-2xl tracking-tight">
@@ -337,8 +335,8 @@ const SNIPPETS = {
   <section id="blur-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Blur text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Words (or characters) blur into focus on a stagger the first time they enter
-      the viewport. Still one labelled node for screen readers.
+      Words (or characters) blur into focus on a stagger the first time they enter the viewport. Still one labelled node
+      for screen readers.
     </p>
     <DemoCard :code="SNIPPETS.blurText">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -352,8 +350,8 @@ const SNIPPETS = {
   <section id="decrypted-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Decrypted text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Scrambled cipher characters resolve left-to-right into the real text when it
-      scrolls into view. Monospace keeps the width steady.
+      Scrambled cipher characters resolve left-to-right into the real text when it scrolls into view. Monospace keeps
+      the width steady.
     </p>
     <DemoCard :code="SNIPPETS.decryptedText">
       <div class="flex min-h-24 items-center justify-center text-3xl font-medium tracking-tight">
@@ -367,8 +365,7 @@ const SNIPPETS = {
   <section id="scramble-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Scramble text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Hover to burst-scramble the characters, which then settle back to the real
-      text. Repeatable on every hover.
+      Hover to burst-scramble the characters, which then settle back to the real text. Repeatable on every hover.
     </p>
     <DemoCard :code="SNIPPETS.scrambleText">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -382,13 +379,21 @@ const SNIPPETS = {
   <section id="shuffle" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Shuffle</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Characters fly in from scattered offsets and rotations, settling into place
-      on a stagger. Bump <code class="text-foreground/80">replay-token</code> to run it again.
+      Characters fly in from scattered offsets and rotations, settling into place on a stagger. Bump
+      <code class="text-foreground/80">replay-token</code> to run it again.
     </p>
     <DemoCard :code="SNIPPETS.shuffle">
       <div class="grid min-h-24 place-items-center gap-4">
-        <div class="text-3xl tracking-tight"><DitherShuffle text="Shuffled into place" :replay-token="shuffleReplay" /></div>
-        <button type="button" class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="shuffleReplay++">Replay</button>
+        <div class="text-3xl tracking-tight">
+          <DitherShuffle text="Shuffled into place" :replay-token="shuffleReplay" />
+        </div>
+        <button
+          type="button"
+          class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+          @click="shuffleReplay++"
+        >
+          Replay
+        </button>
       </div>
     </DemoCard>
     <PropsTable :rows="API.shuffle" />
@@ -398,13 +403,20 @@ const SNIPPETS = {
   <section id="falling-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Falling text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Characters drop in from above with a little overshoot bounce, staggered
-      across the line.
+      Characters drop in from above with a little overshoot bounce, staggered across the line.
     </p>
     <DemoCard :code="SNIPPETS.fallingText">
       <div class="grid min-h-24 place-items-center gap-4">
-        <div class="text-3xl tracking-tight"><DitherFallingText text="Falling into place" :replay-token="fallingReplay" /></div>
-        <button type="button" class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="fallingReplay++">Replay</button>
+        <div class="text-3xl tracking-tight">
+          <DitherFallingText text="Falling into place" :replay-token="fallingReplay" />
+        </div>
+        <button
+          type="button"
+          class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+          @click="fallingReplay++"
+        >
+          Replay
+        </button>
       </div>
     </DemoCard>
     <PropsTable :rows="API.fallingText" />
@@ -414,11 +426,13 @@ const SNIPPETS = {
   <section id="scroll-reveal" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Scroll reveal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The words fade and de-blur word-by-word as the block travels up through the
-      viewport — the reveal is tied to scroll position, not a one-shot. Scroll the page.
+      The words fade and de-blur word-by-word as the block travels up through the viewport — the reveal is tied to
+      scroll position, not a one-shot. Scroll the page.
     </p>
     <DemoCard :code="SNIPPETS.scrollReveal">
-      <div class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight">
+      <div
+        class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight"
+      >
         <DitherScrollReveal text="These words reveal as you scroll them into view" />
       </div>
     </DemoCard>
@@ -429,8 +443,8 @@ const SNIPPETS = {
   <section id="scroll-float" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Scroll float</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Characters float up from an offset as the scroll progress reaches each one —
-      a gentle parallax settle. Scroll the page.
+      Characters float up from an offset as the scroll progress reaches each one — a gentle parallax settle. Scroll the
+      page.
     </p>
     <DemoCard :code="SNIPPETS.scrollFloat">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -444,8 +458,8 @@ const SNIPPETS = {
   <section id="scroll-velocity" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Scroll velocity</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A seamless marquee band that drifts on its own and speeds up (or reverses)
-      with your scroll velocity, easing back to base speed. Scroll the page.
+      A seamless marquee band that drifts on its own and speeds up (or reverses) with your scroll velocity, easing back
+      to base speed. Scroll the page.
     </p>
     <DemoCard :code="SNIPPETS.scrollVelocity">
       <div class="w-full text-2xl font-medium tracking-tight text-muted-foreground">
@@ -459,8 +473,8 @@ const SNIPPETS = {
   <section id="text-cursor" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Text cursor</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The characters of the word trail the pointer inside the box, each lagging a
-      little further behind for a ribbon of type. Move your cursor over the preview.
+      The characters of the word trail the pointer inside the box, each lagging a little further behind for a ribbon of
+      type. Move your cursor over the preview.
     </p>
     <DemoCard :code="SNIPPETS.textCursor">
       <div class="h-40 w-full text-xl">
@@ -474,8 +488,8 @@ const SNIPPETS = {
   <section id="text-pressure" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Text pressure</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Characters bulge — scaling up and gaining weight — near the cursor, like the
-      word is being pressed. Move your cursor near the text.
+      Characters bulge — scaling up and gaining weight — near the cursor, like the word is being pressed. Move your
+      cursor near the text.
     </p>
     <DemoCard :code="SNIPPETS.textPressure">
       <div class="flex min-h-24 items-center justify-center text-4xl tracking-tight">
@@ -489,12 +503,13 @@ const SNIPPETS = {
   <section id="variable-proximity" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Variable proximity</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Each character's weight and opacity ramps with its distance to the pointer —
-      no scaling, so a whole sentence stays put while the cursor lights a path
-      through it.
+      Each character's weight and opacity ramps with its distance to the pointer — no scaling, so a whole sentence stays
+      put while the cursor lights a path through it.
     </p>
     <DemoCard :code="SNIPPETS.variableProximity">
-      <div class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight">
+      <div
+        class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight"
+      >
         <DitherVariableProximity text="Move the cursor across this line to feel the weight shift" />
       </div>
     </DemoCard>
@@ -505,8 +520,8 @@ const SNIPPETS = {
   <section id="true-focus" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">True focus</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      One word stays sharp while the rest blur, and the focus steps through the
-      phrase on a timer — pulling the eye word by word.
+      One word stays sharp while the rest blur, and the focus steps through the phrase on a timer — pulling the eye word
+      by word.
     </p>
     <DemoCard :code="SNIPPETS.trueFocus">
       <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
@@ -520,8 +535,8 @@ const SNIPPETS = {
   <section id="circular-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Circular text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Text set around a full circle on an SVG path, rotating forever — a badge or
-      seal. Uses <code class="text-foreground/80">currentColor</code> so it inherits type colour.
+      Text set around a full circle on an SVG path, rotating forever — a badge or seal. Uses
+      <code class="text-foreground/80">currentColor</code> so it inherits type colour.
     </p>
     <DemoCard :code="SNIPPETS.circularText">
       <div class="flex min-h-48 items-center justify-center text-foreground">
@@ -535,8 +550,8 @@ const SNIPPETS = {
   <section id="curved-loop" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Curved loop</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Text flows along a wavy SVG path as a seamless loop — the copy length is
-      measured so the scroll wraps without a visible seam.
+      Text flows along a wavy SVG path as a seamless loop — the copy length is measured so the scroll wraps without a
+      visible seam.
     </p>
     <DemoCard :code="SNIPPETS.curvedLoop">
       <div class="flex min-h-24 w-full items-center justify-center text-foreground">
@@ -550,8 +565,8 @@ const SNIPPETS = {
   <section id="fuzzy-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Fuzzy text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An SVG turbulence + displacement filter wobbles the glyph edges into an
-      analog fuzz — native filters, no canvas. Reduced motion drops the filter.
+      An SVG turbulence + displacement filter wobbles the glyph edges into an analog fuzz — native filters, no canvas.
+      Reduced motion drops the filter.
     </p>
     <DemoCard :code="SNIPPETS.fuzzyText">
       <div class="flex min-h-24 items-center justify-center text-5xl font-bold tracking-tight">
@@ -565,8 +580,8 @@ const SNIPPETS = {
   <section id="ascii-text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">ASCII text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The word is rasterised to an offscreen canvas and mapped onto an ASCII
-      density ramp — an on-brand ASCII render of any string.
+      The word is rasterised to an offscreen canvas and mapped onto an ASCII density ramp — an on-brand ASCII render of
+      any string.
     </p>
     <DemoCard :code="SNIPPETS.asciiText">
       <div class="flex min-h-24 items-center justify-center text-foreground">

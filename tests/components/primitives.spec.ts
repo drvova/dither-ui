@@ -174,7 +174,9 @@ describe("Clipboard", () => {
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true })
     const w = mount(Clipboard, {
       props: { value: "hello" },
-      slots: { default: `<template #default="{ copied }"><button type="button">{{ copied ? "y" : "n" }}</button></template>` },
+      slots: {
+        default: `<template #default="{ copied }"><button type="button">{{ copied ? "y" : "n" }}</button></template>`,
+      },
     })
     await w.find("button").trigger("click")
     expect(writeText).toHaveBeenCalledWith("hello")
@@ -187,7 +189,11 @@ describe("Clipboard", () => {
 describe("ClickOutside", () => {
   it("emits outside for presses beyond the root and stays silent inside", async () => {
     const onOutside = rs.fn()
-    const w = mount(ClickOutside, { slots: { default: "<button>in</button>" }, attrs: { onOutside }, attachTo: document.body })
+    const w = mount(ClickOutside, {
+      slots: { default: "<button>in</button>" },
+      attrs: { onOutside },
+      attachTo: document.body,
+    })
     await w.find("button").trigger("pointerdown")
     expect(onOutside).not.toHaveBeenCalled()
     document.body.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }))

@@ -71,7 +71,7 @@ const props = withDefaults(
     paused: false,
     frameRate: 0,
     renderMode: "live",
-  }
+  },
 )
 
 // A ~4px backing cell keeps the fbm affordable; dpr scales it for sharpness.
@@ -151,11 +151,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
-    ref="wrapRef"
-    aria-hidden="true"
-    :class="cn('relative block h-full w-full overflow-hidden', props.class)"
-  >
+  <div ref="wrapRef" aria-hidden="true" :class="cn('relative block h-full w-full overflow-hidden', props.class)">
     <img
       v-if="precompiled"
       :src="precompiled"

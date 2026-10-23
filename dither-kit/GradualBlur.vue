@@ -9,7 +9,7 @@ const props = withDefaults(
     strength?: number
     class?: string
   }>(),
-  { position: "bottom", height: 96, strength: 4 }
+  { position: "bottom", height: 96, strength: 4 },
 )
 
 // Progressive edge blur (iOS-style): a masked backdrop-filter strip so content
@@ -17,7 +17,7 @@ const props = withDefaults(
 const mask = computed(() =>
   props.position === "top"
     ? "linear-gradient(to bottom, black, transparent)"
-    : "linear-gradient(to top, black, transparent)"
+    : "linear-gradient(to top, black, transparent)",
 )
 </script>
 

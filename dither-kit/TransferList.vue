@@ -42,7 +42,10 @@ function add() {
   sourceSel.value = new Set()
 }
 function remove() {
-  emit("update:modelValue", target.value.filter((t) => !targetSel.value.has(t)))
+  emit(
+    "update:modelValue",
+    target.value.filter((t) => !targetSel.value.has(t)),
+  )
   targetSel.value = new Set()
 }
 function addAll() {
@@ -69,9 +72,7 @@ const btnClass =
         {{ props.sourceLabel }}
       </p>
       <ul :class="panelClass" :aria-disabled="props.disabled || undefined">
-        <li v-if="available.length === 0" class="px-2 py-1.5 text-[12px] text-muted-foreground">
-          Nothing left
-        </li>
+        <li v-if="available.length === 0" class="px-2 py-1.5 text-[12px] text-muted-foreground">Nothing left</li>
         <li v-for="item in available" :key="item">
           <label :class="rowClass">
             <input
@@ -107,9 +108,7 @@ const btnClass =
         {{ props.targetLabel }}
       </p>
       <ul :class="panelClass" :aria-disabled="props.disabled || undefined">
-        <li v-if="target.length === 0" class="px-2 py-1.5 text-[12px] text-muted-foreground">
-          Empty
-        </li>
+        <li v-if="target.length === 0" class="px-2 py-1.5 text-[12px] text-muted-foreground">Empty</li>
         <li v-for="item in target" :key="item">
           <label :class="rowClass">
             <input

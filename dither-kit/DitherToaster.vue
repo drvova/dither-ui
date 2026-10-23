@@ -29,8 +29,7 @@ function paintRail(canvas: HTMLCanvasElement, color: PixelColor, matrix: number[
 import { dismiss, toasts } from "./toast"
 
 function setRail(el: unknown, color: PixelColor) {
-  if (el instanceof HTMLCanvasElement)
-    requestAnimationFrame(() => paintRail(el, color))
+  if (el instanceof HTMLCanvasElement) requestAnimationFrame(() => paintRail(el, color))
 }
 </script>
 

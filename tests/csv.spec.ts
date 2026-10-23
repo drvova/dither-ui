@@ -6,7 +6,10 @@ describe("parseCsv", () => {
   it("parses headers + records", () => {
     const p = parseCsv("month,Desktop,Mobile\nJan,10,20\nFeb,30,40")
     expect(p?.headers).toEqual(["month", "Desktop", "Mobile"])
-    expect(p?.records).toEqual([["Jan", "10", "20"], ["Feb", "30", "40"]])
+    expect(p?.records).toEqual([
+      ["Jan", "10", "20"],
+      ["Feb", "30", "40"],
+    ])
   })
   it("handles quoted fields with commas", () => {
     const p = parseCsv('label,v\n"Jan, 2026",5')

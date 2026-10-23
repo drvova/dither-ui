@@ -13,10 +13,7 @@ export type ChartCanvasParams = {
   /** Builds the paint loop for the given canvas + visibility probe. Stable
    * identity: it closes over the host's live boxes, so the loop reads fresh
    * state every frame without the action touching those boxes. */
-  start: (
-    canvas: HTMLCanvasElement,
-    visible: () => boolean
-  ) => ChartCanvasLoop | undefined
+  start: (canvas: HTMLCanvasElement, visible: () => boolean) => ChartCanvasLoop | undefined
   /** Changing this rebuilds the loop (backing cols/rows, plot size, precompiled). */
   restartKey: string
   /** Changing this wakes a paused loop (interaction, data, styling). */
@@ -29,10 +26,7 @@ export type ChartCanvasParams = {
  * through requestAnimationFrame so sibling `bind:this` refs (the bloom canvas)
  * are attached before the loop reads them.
  */
-export function chartCanvas(
-  node: HTMLCanvasElement,
-  initial: ChartCanvasParams
-) {
+export function chartCanvas(node: HTMLCanvasElement, initial: ChartCanvasParams) {
   let p = initial
   let loop: ChartCanvasLoop | undefined
   let visible = typeof IntersectionObserver === "undefined"

@@ -51,9 +51,7 @@ function onCanvasDown(e: PointerEvent) {
     const wx2 = (Math.max(sx, x2) - v.x) / v.zoom
     const wy2 = (Math.max(sy, y2) - v.y) / v.zoom
     const hit = editor.artboards.filter(
-      (a) =>
-        !a.hidden && !a.locked &&
-        a.x < wx2 && a.x + a.w > wx1 && a.y < wy2 && a.y + a.h > wy1
+      (a) => !a.hidden && !a.locked && a.x < wx2 && a.x + a.w > wx1 && a.y < wy2 && a.y + a.h > wy1,
     )
     selectMany(hit.map((a) => a.id))
   }
@@ -130,11 +128,21 @@ function onCanvasDown(e: PointerEvent) {
       class="pointer-events-auto absolute bottom-3 left-3 flex items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 text-xs shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
     >
       <button type="button" aria-label="Zoom out" class="zoom-tool" title="Zoom out (⌘−)" @click="zoomOut">−</button>
-      <button type="button" aria-label="Reset zoom to 100%" class="w-12 rounded-md py-1 text-center tabular-nums text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]" title="Reset to 100% (⌘0)" @click="resetZoom">{{ Math.round(editor.viewport.zoom * 100) }}%</button>
+      <button
+        type="button"
+        aria-label="Reset zoom to 100%"
+        class="w-12 rounded-md py-1 text-center tabular-nums text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
+        title="Reset to 100% (⌘0)"
+        @click="resetZoom"
+      >
+        {{ Math.round(editor.viewport.zoom * 100) }}%
+      </button>
       <button type="button" aria-label="Zoom in" class="zoom-tool" title="Zoom in (⌘+)" @click="zoomIn">+</button>
       <span class="mx-0.5 h-4 w-px bg-border" />
       <button type="button" aria-label="Fit to screen" class="zoom-tool" title="Fit (⇧1)" @click="fit">
-        <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" /></svg>
+        <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
+        </svg>
       </button>
     </div>
   </div>
@@ -150,7 +158,24 @@ function onCanvasDown(e: PointerEvent) {
   );
   background-size: 22px 22px;
 }
-.zoom-tool { display: flex; width: 1.75rem; height: 1.75rem; align-items: center; justify-content: center; border-radius: 0.375rem; color: var(--color-muted-foreground); transition: background-color 140ms ease, color 140ms ease, scale 100ms ease; }
-.zoom-tool:hover { background: var(--color-background); color: var(--color-foreground); }
-.zoom-tool:active { scale: 0.96; }
+.zoom-tool {
+  display: flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  color: var(--color-muted-foreground);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    scale 100ms ease;
+}
+.zoom-tool:hover {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+.zoom-tool:active {
+  scale: 0.96;
+}
 </style>

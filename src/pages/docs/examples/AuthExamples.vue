@@ -59,12 +59,19 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
   <section id="signup" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Sign up</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A signup card with a working plan picker — segmented control from plain
-      aria-pressed buttons, purple wash behind.
+      A signup card with a working plan picker — segmented control from plain aria-pressed buttons, purple wash behind.
     </p>
     <DemoCard :code="SNIPPET_SIGNUP">
       <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
-        <DitherGradient from="purple" to="transparent" direction="up" :opacity="0.16" :cell="4" render-mode="static" class="-z-10" />
+        <DitherGradient
+          from="purple"
+          to="transparent"
+          direction="up"
+          :opacity="0.16"
+          :cell="4"
+          render-mode="static"
+          class="-z-10"
+        />
         <div class="flex items-center gap-2">
           <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
           <span class="text-[12px] tracking-tight">dither-ui</span>
@@ -114,12 +121,20 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
   <section id="magic-link" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Magic link</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Passwordless in two states — send the link, then echo the address back
-      with a pixel checkmark. Green wash, green button.
+      Passwordless in two states — send the link, then echo the address back with a pixel checkmark. Green wash, green
+      button.
     </p>
     <DemoCard :code="SNIPPET_MAGIC">
       <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
-        <DitherGradient from="green" to="transparent" direction="up" :opacity="0.14" :cell="4" render-mode="static" class="-z-10" />
+        <DitherGradient
+          from="green"
+          to="transparent"
+          direction="up"
+          :opacity="0.14"
+          :cell="4"
+          render-mode="static"
+          class="-z-10"
+        />
         <div class="flex items-center gap-2">
           <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
           <span class="text-[12px] tracking-tight">dither-ui</span>
@@ -135,23 +150,31 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
               autocomplete="off"
               class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
             />
-            <DitherButton color="green" variant="gradient" class="w-full py-2 text-[11px]" @click="sent = true">Send magic link</DitherButton>
+            <DitherButton color="green" variant="gradient" class="w-full py-2 text-[11px]" @click="sent = true"
+              >Send magic link</DitherButton
+            >
           </div>
         </template>
         <div v-else class="mt-5 text-center">
           <span class="inline-block" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 10 10" class="text-foreground" shape-rendering="crispEdges">
-              <path d="M1 5h1v1H1zM2 6h1v1H2zM3 7h1v1H3zM4 6h1v1H4zM5 5h1v1H5zM6 4h1v1H6zM7 3h1v1H7zM8 2h1v1H8z" fill="currentColor" />
+              <path
+                d="M1 5h1v1H1zM2 6h1v1H2zM3 7h1v1H3zM4 6h1v1H4zM5 5h1v1H5zM6 4h1v1H6zM7 3h1v1H7zM8 2h1v1H8z"
+                fill="currentColor"
+              />
             </svg>
           </span>
           <p class="mt-2 text-[12px] tracking-tight">Check your inbox</p>
-          <p class="mt-1 text-[11px] text-muted-foreground">
-            We sent a link to {{ magicEmail || "your email" }}
-          </p>
+          <p class="mt-1 text-[11px] text-muted-foreground">We sent a link to {{ magicEmail || "your email" }}</p>
           <button
             type="button"
             class="mt-4 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
-            @click="sent = false; magicEmail = ''"
+            @click="
+              () => {
+                sent = false
+                magicEmail = ''
+              }
+            "
           >
             use a different email
           </button>
@@ -163,12 +186,19 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
   <section id="twofactor" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Two-factor</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Six code cells with auto-advancing focus — plain inputs, token borders,
-      blue wash behind.
+      Six code cells with auto-advancing focus — plain inputs, token borders, blue wash behind.
     </p>
     <DemoCard :code="SNIPPET_TWOFACTOR">
       <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
-        <DitherGradient from="blue" to="transparent" direction="up" :opacity="0.14" :cell="4" render-mode="static" class="-z-10" />
+        <DitherGradient
+          from="blue"
+          to="transparent"
+          direction="up"
+          :opacity="0.14"
+          :cell="4"
+          render-mode="static"
+          class="-z-10"
+        />
         <div class="flex items-center gap-2">
           <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
           <span class="text-[12px] tracking-tight">dither-ui</span>

@@ -17,10 +17,9 @@ const FONT_STACKS: Array<{ label: string; stack: string }> = [
   { label: "Handwriting", stack: "'Segoe Script', 'Comic Sans MS', cursive" },
 ]
 
-const props = withDefaults(
-  defineProps<{ modelValue?: string; disabled?: boolean; class?: string }>(),
-  { disabled: false },
-)
+const props = withDefaults(defineProps<{ modelValue?: string; disabled?: boolean; class?: string }>(), {
+  disabled: false,
+})
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
 </script>
 

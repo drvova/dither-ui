@@ -4,10 +4,11 @@ import { cn } from "./lib"
 
 /** Bytes → human units. 1024-based (the convention disk tools actually use),
  * sub-KB sizes stay whole numbers, sign preserved. */
-const props = withDefaults(
-  defineProps<{ bytes?: number; decimals?: number; locale?: string; class?: string }>(),
-  { bytes: 0, decimals: 1, locale: "en-US" },
-)
+const props = withDefaults(defineProps<{ bytes?: number; decimals?: number; locale?: string; class?: string }>(), {
+  bytes: 0,
+  decimals: 1,
+  locale: "en-US",
+})
 
 const UNITS = ["B", "KB", "MB", "GB", "TB", "PB"] as const
 

@@ -57,13 +57,10 @@ export default ts.config(
       // Single-word names (Canvas, Toolbar, Inspector) are fine in an app.
       "vue/multi-word-component-names": "off",
       // TS already enforces unused checks; keep the escape hatch pragmatic.
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       // The canvas engine intentionally uses `as never` sentinels and
       // constrained `any` in generic plumbing — don't fight it here.
       "@typescript-eslint/no-explicit-any": "off",
     },
-  }
+  },
 )

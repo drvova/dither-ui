@@ -58,7 +58,7 @@ export function paintCubes(buffer: RasterBuffer, p: CubesParams, time: number, m
       const cx = SQRT3 * (Q + R / 2)
       const cy = 1.5 * R
       const ang = Math.atan2(py - cy, px - cx) + Math.PI / 6
-      const face = (((Math.floor(ang / ((2 * Math.PI) / 3)) % 3) + 3) % 3)
+      const face = ((Math.floor(ang / ((2 * Math.PI) / 3)) % 3) + 3) % 3
       const shade = FACE[face]
       const pulse = 0.55 + 0.45 * fbm(Q * 0.35, R * 0.35, t)
       let inten = clamp01(shade * pulse)

@@ -16,14 +16,16 @@ const props = withDefaults(
     live?: boolean
     class?: string
   }>(),
-  { modelValue: false, label: "Status", color: "green", live: true }
+  { modelValue: false, label: "Status", color: "green", live: true },
 )
 const emit = defineEmits<{ "update:modelValue": [boolean] }>()
 </script>
 
 <template>
   <div
-    :class="cn('inline-block overflow-hidden rounded-2xl border border-border/60 bg-background/80 font-mono', props.class)"
+    :class="
+      cn('inline-block overflow-hidden rounded-2xl border border-border/60 bg-background/80 font-mono', props.class)
+    "
     @keydown.escape="emit('update:modelValue', false)"
   >
     <button
@@ -39,7 +41,12 @@ const emit = defineEmits<{ "update:modelValue": [boolean] }>()
         :style="{ background: cssColor(props.color) }"
       />
       <slot name="compact">{{ props.label }}</slot>
-      <span aria-hidden="true" class="ml-auto pl-3 text-[10px] text-muted-foreground transition-transform duration-200 motion-reduce:transition-none" :class="props.modelValue ? 'rotate-180' : ''">▾</span>
+      <span
+        aria-hidden="true"
+        class="ml-auto pl-3 text-[10px] text-muted-foreground transition-transform duration-200 motion-reduce:transition-none"
+        :class="props.modelValue ? 'rotate-180' : ''"
+        >▾</span
+      >
     </button>
     <div
       class="grid transition-[grid-template-rows] duration-200 motion-reduce:transition-none"

@@ -25,7 +25,10 @@ export function hex(c: string): string {
   if (!m) return c
   const a = m[4] === undefined ? 1 : m[4].endsWith("%") ? parseFloat(m[4]) / 100 : parseFloat(m[4])
   if (a === 0) return "transparent"
-  const h = (n: number) => Math.round(Math.min(255, Math.max(0, n))).toString(16).padStart(2, "0")
+  const h = (n: number) =>
+    Math.round(Math.min(255, Math.max(0, n)))
+      .toString(16)
+      .padStart(2, "0")
   return `#${h(+m[1])}${h(+m[2])}${h(+m[3])}${a < 1 ? h(a * 255) : ""}`
 }
 
@@ -42,7 +45,12 @@ export function labelOf(el: Element): string {
 export function boxOf(el: Element, frame: Element): Box {
   const r = el.getBoundingClientRect()
   const f = frame.getBoundingClientRect()
-  return { x: Math.round(r.left - f.left), y: Math.round(r.top - f.top), w: Math.round(r.width), h: Math.round(r.height) }
+  return {
+    x: Math.round(r.left - f.left),
+    y: Math.round(r.top - f.top),
+    w: Math.round(r.width),
+    h: Math.round(r.height),
+  }
 }
 
 const px = (v: string) => v.replace(/(\d+(?:\.\d+)?)px/g, (_, n: string) => `${+parseFloat(n).toFixed(1)}`)
@@ -70,6 +78,12 @@ export function readingOf(el: Element, frame: Element): Reading {
  * the first child, across to the next or previous sibling. */
 export function walk(el: Element, root: Element, dir: "up" | "down" | "next" | "prev"): Element | null {
   const next =
-    dir === "up" ? el.parentElement : dir === "down" ? el.firstElementChild : dir === "next" ? el.nextElementSibling : el.previousElementSibling
+    dir === "up"
+      ? el.parentElement
+      : dir === "down"
+        ? el.firstElementChild
+        : dir === "next"
+          ? el.nextElementSibling
+          : el.previousElementSibling
   return next && next !== root && root.contains(next) ? next : null
 }

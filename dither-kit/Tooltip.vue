@@ -14,7 +14,7 @@ const props = withDefaults(
     valueFormatter?: (value: number, name: string) => string
     variant?: TooltipVariant
   }>(),
-  { variant: "default" }
+  { variant: "default" },
 )
 
 const VARIANT: Record<TooltipVariant, string> = {
@@ -31,7 +31,7 @@ watch(
   () => chart.hoverIndex,
   (hi) => {
     if (hi != null) lastIndex.value = hi
-  }
+  },
 )
 const index = computed(() => chart.hoverIndex ?? lastIndex.value)
 const heading = computed(() => chart.heading(index.value, props.labelKey))
@@ -45,7 +45,7 @@ const items = computed(() => chart.itemsAt(index.value))
       :class="
         cn(
           'dk-tooltip-card pointer-events-none absolute z-10 rounded-md border px-2 py-1 shadow-sm',
-          VARIANT[props.variant]
+          VARIANT[props.variant],
         )
       "
       :style="{
@@ -54,10 +54,7 @@ const items = computed(() => chart.itemsAt(index.value))
         transform: 'translate(-50%, -115%)',
       }"
     >
-      <div
-        v-if="heading"
-        class="mb-0.5 font-mono text-[10px] text-muted-foreground"
-      >
+      <div v-if="heading" class="mb-0.5 font-mono text-[10px] text-muted-foreground">
         {{ heading }}
       </div>
       <div class="flex flex-col gap-0.5">
@@ -67,17 +64,10 @@ const items = computed(() => chart.itemsAt(index.value))
           class="flex items-center gap-1.5 font-mono text-[11px] text-popover-foreground tabular-nums"
           :style="{ opacity: item.dimmed ? 0.4 : 1 }"
         >
-          <span
-            class="size-2 rounded-[1px]"
-            :style="{ backgroundColor: rgb(item.seed.fill) }"
-          />
+          <span class="size-2 rounded-[1px]" :style="{ backgroundColor: rgb(item.seed.fill) }" />
           <span class="text-muted-foreground">{{ item.label }}</span>
           <span class="ml-auto pl-2 text-foreground">
-            {{
-              props.valueFormatter
-                ? props.valueFormatter(item.value, item.name)
-                : item.value.toLocaleString()
-            }}
+            {{ props.valueFormatter ? props.valueFormatter(item.value, item.name) : item.value.toLocaleString() }}
           </span>
         </div>
       </div>

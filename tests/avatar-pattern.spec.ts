@@ -1,10 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import {
-  clampGrid,
-  normalizePattern,
-  patternFromPixels,
-  seededPattern,
-} from "../dither-kit/avatar-pattern"
+import { clampGrid, normalizePattern, patternFromPixels, seededPattern } from "../dither-kit/avatar-pattern"
 
 describe("seededPattern", () => {
   it("is deterministic per name", () => {
@@ -21,15 +16,11 @@ describe("seededPattern", () => {
   })
   it("horizontal mirror folds left/right", () => {
     const p = seededPattern("Ada", 8, "horizontal")
-    for (let r = 0; r < 8; r++)
-      for (let c = 0; c < 4; c++)
-        expect(p.on[r * 8 + c]).toBe(p.on[r * 8 + (7 - c)])
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 4; c++) expect(p.on[r * 8 + c]).toBe(p.on[r * 8 + (7 - c)])
   })
   it("vertical mirror folds top/bottom", () => {
     const p = seededPattern("Ada", 8, "vertical")
-    for (let r = 0; r < 4; r++)
-      for (let c = 0; c < 8; c++)
-        expect(p.on[r * 8 + c]).toBe(p.on[(7 - r) * 8 + c])
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 8; c++) expect(p.on[r * 8 + c]).toBe(p.on[(7 - r) * 8 + c])
   })
 })
 

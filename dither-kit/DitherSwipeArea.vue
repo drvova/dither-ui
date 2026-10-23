@@ -13,7 +13,7 @@ const props = withDefaults(
     threshold?: number
     disabled?: boolean
   }>(),
-  { side: "right", size: 16, threshold: 24 }
+  { side: "right", size: 16, threshold: 24 },
 )
 const emit = defineEmits<{ open: [] }>()
 
@@ -44,11 +44,7 @@ function onMove(e: PointerEvent) {
     aria-hidden="true"
     class="fixed z-40 touch-none"
     :class="
-      props.side === 'bottom'
-        ? 'inset-x-0 bottom-0'
-        : props.side === 'right'
-          ? 'inset-y-0 right-0'
-          : 'inset-y-0 left-0'
+      props.side === 'bottom' ? 'inset-x-0 bottom-0' : props.side === 'right' ? 'inset-y-0 right-0' : 'inset-y-0 left-0'
     "
     :style="props.side === 'bottom' ? { height: `${props.size}px` } : { width: `${props.size}px` }"
     @pointerdown="onDown"

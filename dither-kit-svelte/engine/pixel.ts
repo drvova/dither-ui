@@ -62,11 +62,7 @@ export function hueFill(hue: number): Rgb {
             : h < 300
               ? [x, 0, c]
               : [c, 0, x]
-  return [
-    Math.round((r + m) * 255),
-    Math.round((g + m) * 255),
-    Math.round((b + m) * 255),
-  ]
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)]
 }
 
 /** Resolve a {@link PixelColor} to its rgb fill. */
@@ -146,18 +142,14 @@ export function pixelMatrixFromSeed(seed: number): number[][] {
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296
       }
       return Math.max(0, Math.min(1, v + (r() - 0.5) * jitter * 2))
-    })
+    }),
   )
 }
 
 export function pixelBloomStyle(bloom: PixelBloomInput): PixelBloomStyle | null {
   if (bloom === "off") return null
   const cfg =
-    typeof bloom === "string"
-      ? BLOOM_PRESET[bloom]
-      : typeof bloom === "number"
-        ? pixelBloomFromSeed(bloom)
-        : bloom
+    typeof bloom === "string" ? BLOOM_PRESET[bloom] : typeof bloom === "number" ? pixelBloomFromSeed(bloom) : bloom
   return {
     filter: `blur(${cfg.blur}px) brightness(${cfg.brightness}) saturate(${cfg.saturate ?? 1})`,
     opacity: cfg.opacity,
@@ -168,7 +160,5 @@ export function pixelBloomStyle(bloom: PixelBloomInput): PixelBloomStyle | null 
 
 /** Whether the OS asks for reduced motion (skip entrances). */
 export function pixelPrefersReducedMotion(): boolean {
-  return (
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
-  )
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
 }

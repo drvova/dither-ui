@@ -38,7 +38,12 @@ export { default as FloatingLines, type FloatingLinesParams } from "./background
 export { default as GridScan, type GridScanParams } from "./backgrounds/GridScan.svelte"
 export { default as Beams, type BeamsParams } from "./backgrounds/Beams.svelte"
 export { default as Strands, type StrandsParams } from "./backgrounds/Strands.svelte"
-export { default as FlowField, paintFlowField, fadeRasterAlpha, type FlowFieldParams } from "./backgrounds/FlowField.svelte"
+export {
+  default as FlowField,
+  paintFlowField,
+  fadeRasterAlpha,
+  type FlowFieldParams,
+} from "./backgrounds/FlowField.svelte"
 export { default as Silk, type SilkParams } from "./backgrounds/Silk.svelte"
 export { default as RippleGrid, type RippleGridParams } from "./backgrounds/RippleGrid.svelte"
 export { default as LightRays, type RaysParams } from "./backgrounds/LightRays.svelte"
@@ -169,7 +174,13 @@ export { default as DitherStepper, type Step } from "./controls/DitherStepper.sv
 
 // Overlays, nav & sidebar
 export { default as DitherGradient, type GradientDirection } from "./overlays/DitherGradient.svelte"
-export { default as DitherSidebar, type SidebarVariant, type SidebarCollapse, type SidebarDensity, type SidebarContext } from "./overlays/DitherSidebar.svelte"
+export {
+  default as DitherSidebar,
+  type SidebarVariant,
+  type SidebarCollapse,
+  type SidebarDensity,
+  type SidebarContext,
+} from "./overlays/DitherSidebar.svelte"
 export { default as DitherSidebarGroup } from "./overlays/DitherSidebarGroup.svelte"
 export { default as DitherSidebarItem } from "./overlays/DitherSidebarItem.svelte"
 export { default as DitherSidebarSub } from "./overlays/DitherSidebarSub.svelte"
@@ -223,7 +234,11 @@ export { default as DitherExpandingArrow } from "./widgets/ExpandingArrow.svelte
 export { default as DitherSlideAction } from "./widgets/SlideAction.svelte"
 export { default as DitherHoldAction } from "./widgets/HoldAction.svelte"
 export { default as DitherWalletCard, type WalletAccount, type WalletAction } from "./widgets/WalletCard.svelte"
-export { default as DitherNotificationStack, type NotificationItem, type NotificationStackVariant } from "./widgets/NotificationStack.svelte"
+export {
+  default as DitherNotificationStack,
+  type NotificationItem,
+  type NotificationStackVariant,
+} from "./widgets/NotificationStack.svelte"
 export { default as DitherGooeyMenu, type GooeyItem } from "./widgets/GooeyMenu.svelte"
 
 // Shared runtime + tokens (also portable on their own).

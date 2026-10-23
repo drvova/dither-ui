@@ -17,7 +17,7 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { duration: 1200, direction: "vertical", color: "orange", disabled: false }
+  { duration: 1200, direction: "vertical", color: "orange", disabled: false },
 )
 const emit = defineEmits<{ complete: [] }>()
 
@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
         'relative touch-none overflow-hidden rounded-md border border-border/60 bg-card/60 px-4 py-2.5 font-mono text-[12px] text-muted-foreground transition-colors select-none hover:text-foreground',
         CONTROL_BUTTON,
         (holding || done) && 'text-foreground',
-        props.class
+        props.class,
       )
     "
     @pointerdown.prevent="start"
@@ -107,7 +107,9 @@ onBeforeUnmount(() => {
       <span class="absolute inset-0 opacity-20" :style="{ background: cssColor(props.color) }" />
       <span
         class="absolute"
-        :class="props.direction === 'vertical' ? 'inset-x-0 top-0 h-[3px]' : 'inset-y-0 left-full w-[3px] -translate-x-full'"
+        :class="
+          props.direction === 'vertical' ? 'inset-x-0 top-0 h-[3px]' : 'inset-y-0 left-full w-[3px] -translate-x-full'
+        "
         :style="{
           backgroundImage: `radial-gradient(circle, ${cssColor(props.color)} 1.2px, transparent 1.2px)`,
           backgroundSize: props.direction === 'vertical' ? '5px 3px' : '3px 5px',

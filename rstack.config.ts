@@ -57,7 +57,10 @@ define.app(async () => {
       base: process.env.BASE_PATH ?? "/",
       port: 5173,
       historyApiFallback: {
-        rewrites: ["docs", "studio", "play"].map((page) => ({ from: new RegExp(`^/${page}`), to: `/${page}/index.html` })),
+        rewrites: ["docs", "studio", "play"].map((page) => ({
+          from: new RegExp(`^/${page}`),
+          to: `/${page}/index.html`,
+        })),
       },
     },
     html: { template: ({ entryName }) => at(PAGES[entryName].html) },

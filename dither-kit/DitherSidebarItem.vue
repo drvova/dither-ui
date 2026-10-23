@@ -32,7 +32,7 @@ const props = withDefaults(
     /** Right-aligned count — folds to a colored dot on the icon rail. */
     badge?: string | number
   }>(),
-  { active: false, color: "blue" }
+  { active: false, color: "blue" },
 )
 const emit = defineEmits<{ select: [] }>()
 
@@ -45,7 +45,10 @@ function paint() {
   if (c && props.active) paintRail(c, props.color, 24)
 }
 onMounted(paint)
-watch(() => [props.active, props.color], () => requestAnimationFrame(paint))
+watch(
+  () => [props.active, props.color],
+  () => requestAnimationFrame(paint),
+)
 </script>
 
 <template>
@@ -76,7 +79,8 @@ watch(() => [props.active, props.color], () => requestAnimationFrame(paint))
     <span
       v-if="props.badge !== undefined && !collapsed"
       class="shrink-0 rounded border border-border/60 px-1 text-[10px] text-muted-foreground tabular-nums"
-    >{{ props.badge }}</span>
+      >{{ props.badge }}</span
+    >
     <span
       v-else-if="props.badge !== undefined && collapsed"
       aria-hidden="true"

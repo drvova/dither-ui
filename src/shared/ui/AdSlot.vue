@@ -64,7 +64,14 @@ onMounted(() => {
     io.observe(root.value)
     window.addEventListener(
       "load",
-      () => setTimeout(() => { if (io) { io.disconnect(); io = null; schedule() } }, 8000),
+      () =>
+        setTimeout(() => {
+          if (io) {
+            io.disconnect()
+            io = null
+            schedule()
+          }
+        }, 8000),
       { once: true },
     )
   } else {
@@ -75,11 +82,7 @@ onMounted(() => {
 
 <template>
   <div v-if="ETHICALADS_PUBLISHER" ref="root" class="ad-slot mt-8">
-    <div
-      :data-ea-publisher="ETHICALADS_PUBLISHER"
-      data-ea-type="text"
-      data-ea-style="adbox"
-    />
+    <div :data-ea-publisher="ETHICALADS_PUBLISHER" data-ea-type="text" data-ea-style="adbox" />
     <p class="mt-1.5 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50">ethical ad</p>
   </div>
 </template>

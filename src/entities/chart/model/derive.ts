@@ -2,13 +2,10 @@ import { familyOf } from "@/shared/config"
 import type { ChartConfig } from "@dither-kit"
 import type { ChartModel, SeriesRow } from "./types"
 
-export const activeSeries = (chart: ChartModel): SeriesRow[] =>
-  chart.series.filter((s) => s.on)
+export const activeSeries = (chart: ChartModel): SeriesRow[] => chart.series.filter((s) => s.on)
 
 export function configOf(chart: ChartModel): ChartConfig {
-  return Object.fromEntries(
-    activeSeries(chart).map((s) => [s.key, { label: s.label, color: s.color }])
-  )
+  return Object.fromEntries(activeSeries(chart).map((s) => [s.key, { label: s.label, color: s.color }]))
 }
 
 export function dataOf(chart: ChartModel): Record<string, unknown>[] {

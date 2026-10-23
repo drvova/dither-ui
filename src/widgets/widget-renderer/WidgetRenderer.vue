@@ -3,9 +3,7 @@ import { computed } from "vue"
 import { editor } from "@/entities/editor"
 import { componentEntry, type WidgetModel } from "@/entities/widget"
 import * as kit from "@dither-kit"
-import {
-  DitherAvatar, DitherButton, DitherGradient, DitherImage, toast,
-} from "@dither-kit"
+import { DitherAvatar, DitherButton, DitherGradient, DitherImage, toast } from "@dither-kit"
 import ScreenRenderer from "./ScreenRenderer.vue"
 import ReelRenderer from "@/widgets/reel-renderer/ReelRenderer.vue"
 
@@ -14,23 +12,19 @@ const rt = computed(() => editor.replayToken)
 const w = computed(() => props.widget)
 
 // Registry-driven kit component: resolve by export name, map list props.
-const comp = computed(() =>
-  w.value.kind === "component"
-    ? (kit as Record<string, unknown>)[w.value.is]
-    : null
-)
+const comp = computed(() => (w.value.kind === "component" ? (kit as Record<string, unknown>)[w.value.is] : null))
 const compProps = computed(() => {
   if (w.value.kind !== "component") return {}
   const entry = componentEntry(w.value.is)
   return entry?.mapProps ? entry.mapProps(w.value.props) : w.value.props
 })
-const hasModel = computed(
-  () => w.value.kind === "component" && !!componentEntry(w.value.is)?.vmodel
-)
-const entry = computed(() => w.value.kind === "component" ? componentEntry(w.value.is) : undefined)
+const hasModel = computed(() => w.value.kind === "component" && !!componentEntry(w.value.is)?.vmodel)
+const entry = computed(() => (w.value.kind === "component" ? componentEntry(w.value.is) : undefined))
 const modelProp = computed(() => entry.value?.vmodel?.prop ?? "modelValue")
 const modelEvent = computed(() => entry.value?.vmodel?.event ?? "update:modelValue")
-const updateModel = (value: unknown) => { if (w.value.kind === "component") w.value.model = value }
+const updateModel = (value: unknown) => {
+  if (w.value.kind === "component") w.value.model = value
+}
 const triggerToast = () => {
   if (w.value.kind === "component") toast(String(w.value.props.message), { color: w.value.props.color as never })
 }
@@ -97,21 +91,55 @@ const triggerToast = () => {
       <component :is="kit.DitherButton">Submit</component>
     </component>
     <component :is="comp as never" v-else-if="entry?.demo === 'stage'" v-bind="compProps" class="h-full w-full">
-      <component :is="kit.DitherLayer" :keyframes="[{ x: '-30cqw', opacity: 0.3 }, { x: '30cqw', opacity: 1 }]" :duration="3" yoyo loop class="grid place-items-center">
+      <component
+        :is="kit.DitherLayer"
+        :keyframes="[
+          { x: '-30cqw', opacity: 0.3 },
+          { x: '30cqw', opacity: 1 },
+        ]"
+        :duration="3"
+        yoyo
+        loop
+        class="grid place-items-center"
+      >
         <span class="rounded-md border border-border bg-card px-3 py-1 text-xs">layer in container units</span>
       </component>
-      <component :is="kit.DitherLayer" :keyframes="[{ rotate: 0, scale: 0.7 }, { rotate: '1turn', scale: 1 }]" :duration="6" loop class="grid place-items-center">
+      <component
+        :is="kit.DitherLayer"
+        :keyframes="[
+          { rotate: 0, scale: 0.7 },
+          { rotate: '1turn', scale: 1 },
+        ]"
+        :duration="6"
+        loop
+        class="grid place-items-center"
+      >
         <span class="size-12 border border-border/70" />
       </component>
     </component>
     <component :is="kit.DitherStage" v-else-if="entry?.demo === 'layer'" :duration="4" class="h-full w-full">
-      <component :is="comp as never" v-bind="compProps" :keyframes="[{ x: '-30cqw', y: '-20cqh' }, { x: '30cqw', y: '20cqh' }]" class="grid place-items-center text-xs">{{ w.slotText }}</component>
+      <component
+        :is="comp as never"
+        v-bind="compProps"
+        :keyframes="[
+          { x: '-30cqw', y: '-20cqh' },
+          { x: '30cqw', y: '20cqh' },
+        ]"
+        class="grid place-items-center text-xs"
+        >{{ w.slotText }}</component
+      >
     </component>
     <component :is="comp as never" v-else-if="entry?.demo === 'toolbar'" v-bind="compProps">
       <component :is="kit.DitherToggle" :model-value="false">Bold</component>
       <component :is="kit.DitherToggle" :model-value="false">Italic</component>
     </component>
-    <component :is="comp as never" v-else-if="entry?.demo === 'sidebar'" v-bind="compProps" :model-value="w.model" @update:model-value="updateModel">
+    <component
+      :is="comp as never"
+      v-else-if="entry?.demo === 'sidebar'"
+      v-bind="compProps"
+      :model-value="w.model"
+      @update:model-value="updateModel"
+    >
       <component :is="kit.DitherSidebarGroup" label="Workspace">
         <component :is="kit.DitherSidebarItem" label="Dashboard" active badge="3" />
         <component :is="kit.DitherSidebarSub" label="Projects" :model-value="true">
@@ -119,16 +147,32 @@ const triggerToast = () => {
         </component>
       </component>
     </component>
-    <button v-else-if="entry?.demo === 'toaster'" type="button" class="demo-trigger" @click="triggerToast">Show toast</button>
+    <button v-else-if="entry?.demo === 'toaster'" type="button" class="demo-trigger" @click="triggerToast">
+      Show toast
+    </button>
     <template v-else-if="entry?.demo === 'popover' || entry?.demo === 'preview-card'">
       <component :is="comp as never" v-bind="compProps" :open="w.model" @close="updateModel(false)">
-        <template #trigger><button type="button" class="demo-trigger" @click="updateModel(true)">Open {{ entry.label.toLowerCase() }}</button></template>
+        <template #trigger
+          ><button type="button" class="demo-trigger" @click="updateModel(true)">
+            Open {{ entry.label.toLowerCase() }}
+          </button></template
+        >
         {{ w.slotText }}
       </component>
     </template>
     <template v-else-if="entry?.demo === 'dialog' || entry?.demo === 'alert' || entry?.demo === 'drawer'">
-      <button type="button" class="demo-trigger" @click="updateModel(true)">Open {{ entry.label.toLowerCase() }}</button>
-      <component :is="comp as never" v-bind="compProps" :open="w.model" @close="updateModel(false)" @cancel="updateModel(false)" @confirm="updateModel(false)">{{ w.slotText }}</component>
+      <button type="button" class="demo-trigger" @click="updateModel(true)">
+        Open {{ entry.label.toLowerCase() }}
+      </button>
+      <component
+        :is="comp as never"
+        v-bind="compProps"
+        :open="w.model"
+        @close="updateModel(false)"
+        @cancel="updateModel(false)"
+        @confirm="updateModel(false)"
+        >{{ w.slotText }}</component
+      >
     </template>
     <template v-else-if="entry?.demo === 'swipe-area'">
       <span class="text-xs text-muted-foreground">Swipe inward from the {{ w.props.side }} edge</span>
@@ -137,7 +181,9 @@ const triggerToast = () => {
     <template v-else-if="entry?.demo === 'drawer-indent'">
       <component :is="comp as never" class="rounded-lg border border-border p-6">{{ w.slotText }}</component>
       <button type="button" class="demo-trigger absolute bottom-3" @click="updateModel(true)">Preview indent</button>
-      <component :is="kit.DitherDrawer" :open="w.model as boolean" title="Nested drawer" @close="updateModel(false)">Drawer content</component>
+      <component :is="kit.DitherDrawer" :open="w.model as boolean" title="Nested drawer" @close="updateModel(false)"
+        >Drawer content</component
+      >
     </template>
   </div>
 
@@ -175,7 +221,21 @@ const triggerToast = () => {
 </template>
 
 <style scoped>
-.demo-trigger { border: 1px solid var(--color-border); border-radius: 0.375rem; background: var(--color-card); padding: 0.5rem 0.75rem; font: 12px monospace; color: var(--color-foreground); transition: background-color 140ms ease, scale 100ms ease; }
-.demo-trigger:hover { background: var(--color-background); }
-.demo-trigger:active { scale: 0.96; }
+.demo-trigger {
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background: var(--color-card);
+  padding: 0.5rem 0.75rem;
+  font: 12px monospace;
+  color: var(--color-foreground);
+  transition:
+    background-color 140ms ease,
+    scale 100ms ease;
+}
+.demo-trigger:hover {
+  background: var(--color-background);
+}
+.demo-trigger:active {
+  scale: 0.96;
+}
 </style>

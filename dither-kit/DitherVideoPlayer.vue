@@ -17,7 +17,7 @@ const props = withDefaults(
     color?: PixelColor
     class?: string
   }>(),
-  { label: "Video", color: "blue" }
+  { label: "Video", color: "blue" },
 )
 
 const video = ref<HTMLVideoElement | null>(null)
@@ -94,7 +94,7 @@ const fmt = (s: number) => {
 const timeLabel = computed(() => `${fmt(time.value)} / ${fmt(duration.value)}`)
 const btn = cn(
   "grid size-8 place-items-center rounded-md text-[12px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground",
-  CONTROL_BUTTON
+  CONTROL_BUTTON,
 )
 </script>
 
@@ -104,7 +104,9 @@ const btn = cn(
     role="group"
     :aria-label="props.label"
     tabindex="0"
-    :class="cn('overflow-hidden rounded-lg border border-border/60 bg-background/80 font-mono', CONTROL_BUTTON, props.class)"
+    :class="
+      cn('overflow-hidden rounded-lg border border-border/60 bg-background/80 font-mono', CONTROL_BUTTON, props.class)
+    "
     @keydown="onKey"
   >
     <div class="relative aspect-video bg-background">
@@ -121,7 +123,7 @@ const btn = cn(
         @pause="playing = false"
         @timeupdate="time = video?.currentTime ?? 0"
         @durationchange="duration = video?.duration ?? 0"
-        @volumechange="(muted = video?.muted ?? false), (volume = video?.volume ?? 1)"
+        @volumechange="((muted = video?.muted ?? false), (volume = video?.volume ?? 1))"
       />
       <div v-else class="grid h-full w-full place-items-center" aria-hidden="true">
         <div class="text-center">
@@ -143,10 +145,22 @@ const btn = cn(
         @update:model-value="seek"
       />
       <div class="flex items-center gap-1">
-        <button type="button" :class="btn" :aria-label="playing ? 'Pause' : 'Play'" :disabled="!props.src" @click="toggle">
+        <button
+          type="button"
+          :class="btn"
+          :aria-label="playing ? 'Pause' : 'Play'"
+          :disabled="!props.src"
+          @click="toggle"
+        >
           <span aria-hidden="true">{{ playing ? "❚❚" : "▶" }}</span>
         </button>
-        <button type="button" :class="btn" :aria-label="muted ? 'Unmute' : 'Mute'" :disabled="!props.src" @click="toggleMute">
+        <button
+          type="button"
+          :class="btn"
+          :aria-label="muted ? 'Unmute' : 'Mute'"
+          :disabled="!props.src"
+          @click="toggleMute"
+        >
           <span aria-hidden="true">{{ muted ? "○" : "●" }}</span>
         </button>
         <DitherSlider
@@ -160,11 +174,23 @@ const btn = cn(
           class="w-20"
           @update:model-value="setVolume"
         />
-        <button type="button" :class="cn(btn, 'w-10 text-[10px] tabular-nums')" :aria-label="`Playback speed ${rate}x`" :disabled="!props.src" @click="cycleRate">
+        <button
+          type="button"
+          :class="cn(btn, 'w-10 text-[10px] tabular-nums')"
+          :aria-label="`Playback speed ${rate}x`"
+          :disabled="!props.src"
+          @click="cycleRate"
+        >
           {{ rate }}×
         </button>
         <span class="px-1.5 text-[10px] tabular-nums text-muted-foreground">{{ timeLabel }}</span>
-        <button type="button" :class="cn(btn, 'ml-auto')" aria-label="Fullscreen" :disabled="!props.src" @click="fullscreen">
+        <button
+          type="button"
+          :class="cn(btn, 'ml-auto')"
+          aria-label="Fullscreen"
+          :disabled="!props.src"
+          @click="fullscreen"
+        >
           <span aria-hidden="true">⛶</span>
         </button>
       </div>

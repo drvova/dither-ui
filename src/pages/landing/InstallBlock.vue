@@ -52,44 +52,46 @@ onBeforeUnmount(() => {
     <!-- One hairline bar: the step picker on the left, the command, the
          copy. Phones wrap the picker above. -->
     <div class="bar">
-    <div role="group" aria-label="Install steps" class="seg">
-      <button
-        v-for="(s, i) in STEPS"
-        :key="s.id"
-        type="button"
-        :aria-pressed="active === i ? 'true' : 'false'"
-        @click="active = i"
-      >
-        {{ s.label }}
-      </button>
-    </div>
+      <div role="group" aria-label="Install steps" class="seg">
+        <button
+          v-for="(s, i) in STEPS"
+          :key="s.id"
+          type="button"
+          :aria-pressed="active === i ? 'true' : 'false'"
+          @click="active = i"
+        >
+          {{ s.label }}
+        </button>
+      </div>
 
-    <div class="frame">
-      <code class="cmd">
-        <span class="prompt" aria-hidden="true">$</span><span :key="active" class="typed">{{
-          STEPS[active].cmd
-        }}</span><span class="caret" aria-hidden="true">▌</span>
-      </code>
-      <DitherClipboard :value="STEPS[active].cmd" @copied="taken = true">
-        <template #default="{ copied }">
-          <button
-            type="button"
-            class="copy"
-            :data-copied="copied ? 'true' : 'false'"
-            :aria-label="copied ? 'Copied' : 'Copy command'"
-          >
-            <span class="swap" aria-hidden="true">
-              <DitherIcon name="Copy" :size="13" :stroke-width="1.5" class="swap-a" />
-              <DitherIcon name="Check" :size="13" :stroke-width="1.5" class="swap-b" />
-            </span>
-            <span class="roll" aria-hidden="true"><span><span>Copy</span><span>Copied</span></span></span>
-          </button>
-        </template>
-      </DitherClipboard>
-      <!-- The seal: left edge drops, the beam crosses drawing top and bottom,
+      <div class="frame">
+        <code class="cmd">
+          <span class="prompt" aria-hidden="true">$</span
+          ><span :key="active" class="typed">{{ STEPS[active].cmd }}</span
+          ><span class="caret" aria-hidden="true">▌</span>
+        </code>
+        <DitherClipboard :value="STEPS[active].cmd" @copied="taken = true">
+          <template #default="{ copied }">
+            <button
+              type="button"
+              class="copy"
+              :data-copied="copied ? 'true' : 'false'"
+              :aria-label="copied ? 'Copied' : 'Copy command'"
+            >
+              <span class="swap" aria-hidden="true">
+                <DitherIcon name="Copy" :size="13" :stroke-width="1.5" class="swap-a" />
+                <DitherIcon name="Check" :size="13" :stroke-width="1.5" class="swap-b" />
+              </span>
+              <span class="roll" aria-hidden="true"
+                ><span><span>Copy</span><span>Copied</span></span></span
+              >
+            </button>
+          </template>
+        </DitherClipboard>
+        <!-- The seal: left edge drops, the beam crosses drawing top and bottom,
            the right edge closes it. -->
-      <span class="seal" aria-hidden="true"><i /><i /><i /><i /><b /></span>
-    </div>
+        <span class="seal" aria-hidden="true"><i /><i /><i /><i /><b /></span>
+      </div>
     </div>
 
     <div class="under">
@@ -97,20 +99,13 @@ onBeforeUnmount(() => {
         <li :data-s="taken ? 'done' : 'now'">
           <DitherIcon v-if="taken" name="Check" :size="12" :stroke-width="1.5" class="tick" />Copy
         </li>
-        <li :data-s="taken ? 'now' : 'next'">
-          <span class="sep" aria-hidden="true">›</span>Paste in a terminal
-        </li>
+        <li :data-s="taken ? 'now' : 'next'"><span class="sep" aria-hidden="true">›</span>Paste in a terminal</li>
         <li data-s="next">
           <span class="sep" aria-hidden="true">›</span>Import from
           <code>@dither-kit</code>
         </li>
       </ol>
-      <a
-        href="https://github.com/drvova/dither-ui"
-        target="_blank"
-        rel="noreferrer"
-        class="src"
-      >
+      <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="src">
         <DitherIcon name="ExternalLink" :size="12" :stroke-width="1.5" /> Source on GitHub
       </a>
     </div>
@@ -483,12 +478,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   left: 0;
   width: 36%;
-  background: linear-gradient(
-    100deg,
-    transparent,
-    rgb(255 255 255 / 0.1),
-    transparent
-  );
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.1), transparent);
   animation: sweep 900ms cubic-bezier(0.4, 0, 0.2, 1) 380ms both;
   pointer-events: none;
 }

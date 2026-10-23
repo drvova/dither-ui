@@ -6,4 +6,10 @@ import { heroFilm } from "./hero"
 import { reelFilm } from "./reel"
 import { studioFilm } from "./studio"
 
-export const FILMS = { hero: heroFilm, studio: studioFilm, reel: reelFilm, dawn: dawnFilm, catalog: catalogFilm } as const
+export const FILMS = {
+  hero: heroFilm,
+  studio: studioFilm,
+  reel: reelFilm,
+  dawn: dawnFilm,
+  catalog: catalogFilm,
+} as const

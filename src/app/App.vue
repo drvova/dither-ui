@@ -43,11 +43,12 @@ onBeforeUnmount(() => {
 })
 
 watchEffect(() => {
-  document.title = route.value === "studio"
-    ? "Studio — Build dithered Vue interfaces | dither-ui"
-    : route.value === "docs"
-      ? "Vue dither components and chart documentation | dither-ui"
-      : "dither-ui — A dithered UI toolkit for Vue"
+  document.title =
+    route.value === "studio"
+      ? "Studio — Build dithered Vue interfaces | dither-ui"
+      : route.value === "docs"
+        ? "Vue dither components and chart documentation | dither-ui"
+        : "dither-ui — A dithered UI toolkit for Vue"
 })
 </script>
 

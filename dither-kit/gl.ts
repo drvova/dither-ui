@@ -36,7 +36,15 @@ export type GlHandle = {
   dispose: () => void
 }
 
-const ATTRS: WebGLContextAttributes = { alpha: true, antialias: false, depth: true, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: "low-power" }
+const ATTRS: WebGLContextAttributes = {
+  alpha: true,
+  antialias: false,
+  depth: true,
+  stencil: false,
+  premultipliedAlpha: false,
+  preserveDrawingBuffer: false,
+  powerPreference: "low-power",
+}
 
 /** An offscreen WebGL2 (or WebGL1) context, null without WebGL or a DOM. */
 export function createGl(): GlHandle | null {
@@ -137,7 +145,12 @@ export type Channels = {
    * pulled at that moment, so it reads at the consumer's own time stamp.
    * Returns `iChannelResolution` (xyz per channel) and `iChannelTime` (`t`
    * per bound channel). Uploads are flipped so the textures read upright. */
-  upload: (inputs: ChannelInput[] | undefined, first: number, t: number, ms: number | null) => { res: Float32Array; times: Float32Array }
+  upload: (
+    inputs: ChannelInput[] | undefined,
+    first: number,
+    t: number,
+    ms: number | null,
+  ) => { res: Float32Array; times: Float32Array }
   dispose: () => void
 }
 
@@ -170,7 +183,17 @@ export function createChannels(h: GlHandle): Channels {
         if (surface) {
           const raster = surface.pull(ms)
           if (raster && (surface.version() !== slot.version || slot.w !== raster.width || slot.h !== raster.height)) {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, raster.width, raster.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, raster.data)
+            gl.texImage2D(
+              gl.TEXTURE_2D,
+              0,
+              gl.RGBA,
+              raster.width,
+              raster.height,
+              0,
+              gl.RGBA,
+              gl.UNSIGNED_BYTE,
+              raster.data,
+            )
             slot.version = surface.version()
             slot.w = raster.width
             slot.h = raster.height
@@ -212,7 +235,8 @@ export function rasterOf(input: ChannelInput, ms: number | null): RasterBuffer |
   const still = el instanceof HTMLImageElement ? stills.get(el) : undefined
   if (still) return still
   const w = el instanceof HTMLVideoElement ? el.videoWidth : el instanceof HTMLImageElement ? el.naturalWidth : el.width
-  const h = el instanceof HTMLVideoElement ? el.videoHeight : el instanceof HTMLImageElement ? el.naturalHeight : el.height
+  const h =
+    el instanceof HTMLVideoElement ? el.videoHeight : el instanceof HTMLImageElement ? el.naturalHeight : el.height
   if (!w || !h) return null
   if (!scratch) {
     const canvas = document.createElement("canvas")

@@ -39,15 +39,13 @@ const props = withDefaults(
     maxCols?: number
     maxRows?: number
   }>(),
-  { type: "button", loading: false, disabled: false, renderMode: "live", precompiled: undefined }
+  { type: "button", loading: false, disabled: false, renderMode: "live", precompiled: undefined },
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<ButtonVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
-const bloom = computed<PixelBloomInput>(
-  () => props.bloom ?? (props.seed !== undefined ? props.seed : "off")
-)
+const bloom = computed<PixelBloomInput>(() => props.bloom ?? (props.seed !== undefined ? props.seed : "off"))
 const cell = computed(() => props.cell ?? s.value?.cell ?? 2)
 
 /** Effective resolution caps: static mode auto-uses lower caps unless overridden. */
@@ -101,7 +99,7 @@ function init(): (() => void) | undefined {
         maxCols: effMaxCols.value,
         maxRows: effMaxRows.value,
       },
-      raster
+      raster,
     )
     imageData = putRasterBuffer(ctx, raster, imageData)
     if (bloomCanvas && bloomCtx) {
@@ -156,7 +154,9 @@ function init(): (() => void) | undefined {
     hovered = false
     setTarget(0)
   }
-  const down = () => { if (!button.disabled) setTarget(1.5) }
+  const down = () => {
+    if (!button.disabled) setTarget(1.5)
+  }
   const up = () => setTarget(hovered ? 1 : 0)
   if (animated) {
     button.addEventListener("pointerenter", enter)
@@ -166,10 +166,7 @@ function init(): (() => void) | undefined {
     button.addEventListener("pointercancel", up)
   }
 
-  const ro =
-    props.renderMode !== "static" && typeof ResizeObserver !== "undefined"
-      ? new ResizeObserver(resize)
-      : null
+  const ro = props.renderMode !== "static" && typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null
   ro?.observe(button)
 
   return () => {
@@ -212,7 +209,7 @@ watch(
     effMaxRows,
   ],
   restartRuntime,
-  { flush: "post" }
+  { flush: "post" },
 )
 onBeforeUnmount(() => {
   restartToken += 1
@@ -230,7 +227,7 @@ onBeforeUnmount(() => {
       cn(
         CONTROL_BUTTON,
         'relative isolate inline-flex min-h-10 items-center justify-center gap-2 overflow-hidden rounded-md px-4 py-2 font-mono text-xs text-foreground transition-[opacity,scale] active:scale-[0.96] motion-reduce:transition-none',
-        props.class
+        props.class,
       )
     "
   >

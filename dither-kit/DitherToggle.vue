@@ -13,7 +13,7 @@ export function paintToggleCanvas(
   host: HTMLElement,
   canvas: HTMLCanvasElement,
   fill: Rgb,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx) return
@@ -45,15 +45,27 @@ export function paintToggleCanvas(
   const eb = (b * edgeA + 0.5) | 0
   for (let x = 0; x < cols; x++) {
     let idx = x * 4
-    data[idx] = er; data[idx + 1] = eg; data[idx + 2] = eb; data[idx + 3] = 255
+    data[idx] = er
+    data[idx + 1] = eg
+    data[idx + 2] = eb
+    data[idx + 3] = 255
     idx = ((rows - 1) * cols + x) * 4
-    data[idx] = er; data[idx + 1] = eg; data[idx + 2] = eb; data[idx + 3] = 255
+    data[idx] = er
+    data[idx + 1] = eg
+    data[idx + 2] = eb
+    data[idx + 3] = 255
   }
   for (let y = 0; y < rows; y++) {
     let idx = y * cols * 4
-    data[idx] = er; data[idx + 1] = eg; data[idx + 2] = eb; data[idx + 3] = 255
+    data[idx] = er
+    data[idx + 1] = eg
+    data[idx + 2] = eb
+    data[idx + 3] = 255
     idx = (y * cols + cols - 1) * 4
-    data[idx] = er; data[idx + 1] = eg; data[idx + 2] = eb; data[idx + 3] = 255
+    data[idx] = er
+    data[idx + 1] = eg
+    data[idx + 2] = eb
+    data[idx + 3] = 255
   }
   putRasterBuffer(ctx, buf)
 }
@@ -73,11 +85,11 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { disabled: false }
+  { disabled: false },
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -127,7 +139,7 @@ onBeforeUnmount(() => {
         props.modelValue
           ? 'border-transparent text-foreground'
           : 'border-border text-muted-foreground hover:text-foreground',
-        props.class
+        props.class,
       )
     "
     @click="emit('update:modelValue', !props.modelValue)"

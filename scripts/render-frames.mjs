@@ -24,9 +24,13 @@ const flag = (name, fallback) => {
   const i = args.indexOf(`--${name}`)
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
 }
-const input = args.find((a) => !a.startsWith("--") && !args.includes(`--${args[args.indexOf(a) - 1]?.slice(2)}`) ) ?? args.find((a) => !a.startsWith("--"))
+const input =
+  args.find((a) => !a.startsWith("--") && !args.includes(`--${args[args.indexOf(a) - 1]?.slice(2)}`)) ??
+  args.find((a) => !a.startsWith("--"))
 if (!input || args.includes("--help")) {
-  console.error("usage: node scripts/render-frames.mjs <composition.html | url> [--browser chromium|webkit|firefox] [--fps 30] [--seconds 6] [--out frames] [--mp4 out.mp4] [--scale 1] [--executable <path>]")
+  console.error(
+    "usage: node scripts/render-frames.mjs <composition.html | url> [--browser chromium|webkit|firefox] [--fps 30] [--seconds 6] [--out frames] [--mp4 out.mp4] [--scale 1] [--executable <path>]",
+  )
   process.exit(input ? 0 : 1)
 }
 const engine = flag("browser", "chromium")
@@ -51,7 +55,13 @@ const height = contract.height || 320
 const frames = Math.max(1, Math.round(seconds * fps))
 
 function findChromium() {
-  const candidates = [process.env.CHROME_PATH, "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"].filter(Boolean)
+  const candidates = [
+    process.env.CHROME_PATH,
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+  ].filter(Boolean)
   return candidates.find((p) => existsSync(p))
 }
 
@@ -62,7 +72,9 @@ if (!type) {
   process.exit(1)
 }
 const executablePath = flag("executable", engine === "chromium" ? findChromium() : undefined)
-const browser = await type.launch(executablePath ? { executablePath, args: engine === "chromium" ? ["--no-sandbox"] : [] } : {})
+const browser = await type.launch(
+  executablePath ? { executablePath, args: engine === "chromium" ? ["--no-sandbox"] : [] } : {},
+)
 const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: scale })
 page.on("pageerror", (e) => console.error("page error:", e.message))
 await page.goto(url, { waitUntil: "load" })
@@ -78,7 +90,8 @@ for (let i = 0; i < frames; i++) {
   }, time)
   const file = resolve(out, `frame-${String(i + 1).padStart(5, "0")}.png`)
   writeFileSync(file, await page.screenshot({ clip: { x: 0, y: 0, width, height } }))
-  if (i % fps === 0 || i === frames - 1) process.stderr.write(`\r${engine}: frame ${i + 1}/${frames} (${time.toFixed(2)}s)`)
+  if (i % fps === 0 || i === frames - 1)
+    process.stderr.write(`\r${engine}: frame ${i + 1}/${frames} (${time.toFixed(2)}s)`)
 }
 process.stderr.write(`\n${frames} frames in ${((Date.now() - started) / 1000).toFixed(1)}s → ${out}\n`)
 await browser.close()
@@ -89,7 +102,26 @@ if (mp4) {
     console.error("no ffmpeg on the PATH (or FFMPEG_PATH): the frames are written, assemble them yourself")
     process.exit(2)
   }
-  const r = spawnSync(ffmpeg, ["-y", "-loglevel", "error", "-framerate", String(fps), "-i", resolve(out, "frame-%05d.png"), "-c:v", "libx264", "-pix_fmt", "yuv420p", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2", resolve(mp4)], { stdio: "inherit" })
+  const r = spawnSync(
+    ffmpeg,
+    [
+      "-y",
+      "-loglevel",
+      "error",
+      "-framerate",
+      String(fps),
+      "-i",
+      resolve(out, "frame-%05d.png"),
+      "-c:v",
+      "libx264",
+      "-pix_fmt",
+      "yuv420p",
+      "-vf",
+      "pad=ceil(iw/2)*2:ceil(ih/2)*2",
+      resolve(mp4),
+    ],
+    { stdio: "inherit" },
+  )
   if (r.status !== 0) process.exit(r.status ?? 1)
   console.error(`→ ${resolve(mp4)}`)
 }

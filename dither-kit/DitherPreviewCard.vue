@@ -41,13 +41,7 @@ onBeforeUnmount(() => {
 
 <template>
   <span class="relative inline-block" @keydown="onKeydown">
-    <span
-      class="inline-block"
-      @pointerenter="show"
-      @pointerleave="hide"
-      @focusin="show"
-      @focusout="hide"
-    >
+    <span class="inline-block" @pointerenter="show" @pointerleave="hide" @focusin="show" @focusout="hide">
       <slot name="trigger" />
     </span>
     <Transition name="dk-pop">

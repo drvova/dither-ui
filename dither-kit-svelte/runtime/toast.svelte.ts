@@ -25,16 +25,13 @@ export function dismiss(id: number): void {
   if (i >= 0) toasts.splice(i, 1)
 }
 
-export function toast(
-  message: string,
-  opts?: { color?: PixelColor; duration?: number }
-): number {
+export function toast(message: string, opts?: { color?: PixelColor; duration?: number }): number {
   const id = ++uid
   const duration = opts?.duration ?? 3500
   toasts.push({ id, message, color: opts?.color ?? "blue", duration })
   timers.set(
     id,
-    setTimeout(() => dismiss(id), duration)
+    setTimeout(() => dismiss(id), duration),
   )
   return id
 }

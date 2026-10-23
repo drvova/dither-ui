@@ -29,12 +29,7 @@ const name = computed(() => props.label ?? props.color)
     :disabled="props.disabled"
     :style="{ background: props.color, width: `${props.size}px`, height: `${props.size}px` }"
     class="rounded-md border border-border/60 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none motion-reduce:hover:scale-100"
-    :class="
-      cn(
-        props.selected && 'ring-2 ring-accent/70 ring-offset-2 ring-offset-background',
-        props.class,
-      )
-    "
+    :class="cn(props.selected && 'ring-2 ring-accent/70 ring-offset-2 ring-offset-background', props.class)"
     @click="emit('select', props.color)"
   ></button>
 </template>

@@ -13,7 +13,7 @@ const props = withDefaults(
     side?: "left" | "right"
     class?: string
   }>(),
-  { label: "Rail", side: "left" }
+  { label: "Rail", side: "left" },
 )
 
 provide(SIDEBAR_COLLAPSED, ref(true))

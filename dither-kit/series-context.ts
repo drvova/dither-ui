@@ -15,9 +15,7 @@ export const SeriesKey: InjectionKey<SeriesContextValue> = Symbol("dither-series
 export function useSeries(part: string): SeriesContextValue {
   const ctx = inject(SeriesKey, null)
   if (!ctx) {
-    throw new Error(
-      `<${part} /> must be rendered inside a series (e.g. <Area />).`
-    )
+    throw new Error(`<${part} /> must be rendered inside a series (e.g. <Area />).`)
   }
   return ctx
 }

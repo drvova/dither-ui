@@ -123,13 +123,7 @@ const HANDBOOK = [
       </div>
       <div class="stage-foot">
         <div role="group" aria-label="Films" class="seg stage-tabs">
-          <button
-            v-for="(f, i) in FILMS"
-            :key="f.id"
-            type="button"
-            :aria-pressed="picked === i"
-            @click="picked = i"
-          >
+          <button v-for="(f, i) in FILMS" :key="f.id" type="button" :aria-pressed="picked === i" @click="picked = i">
             {{ f.tab }}
           </button>
         </div>
@@ -144,8 +138,7 @@ const HANDBOOK = [
         <p class="eyebrow intro-eyebrow">Every pixel placed on purpose</p>
         <h1 id="hero-h" class="display intro-h">A dithered UI toolkit for Vue.</h1>
         <p class="intro-lede">
-          Charts, controls and surfaces, rendered pixel by pixel from one seeded palette — for Vue 3
-          or Svelte 5.
+          Charts, controls and surfaces, rendered pixel by pixel from one seeded palette — for Vue 3 or Svelte 5.
         </p>
         <div class="intro-keys">
           <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
@@ -161,8 +154,8 @@ const HANDBOOK = [
           <article class="panel build">
             <h2 class="display build-h">Build <span>your own screens</span></h2>
             <p class="build-p">
-              Charts, controls and whole screens on an infinite canvas — placed by hand, or by your agent
-              through one protocol.
+              Charts, controls and whole screens on an infinite canvas — placed by hand, or by your agent through one
+              protocol.
             </p>
             <div class="tiles">
               <div class="thumb tile">
@@ -192,8 +185,7 @@ const HANDBOOK = [
           <article class="panel feature">
             <h3 class="display feature-h">Pixel art that answers the cursor</h3>
             <p class="feature-p">
-              Hover a portrait: her pixels scatter under the cursor and spring home, and her emote
-              answers.
+              Hover a portrait: her pixels scatter under the cursor and spring home, and her emote answers.
             </p>
             <div class="thumb faces"><slot name="faces" /></div>
           </article>
@@ -243,7 +235,9 @@ const HANDBOOK = [
           </div>
           <ul class="list">
             <li v-for="d in DOCS" :key="d.label">
-              <a :href="d.href" class="list-t">{{ d.label }} <span>· {{ d.count }}</span></a>
+              <a :href="d.href" class="list-t"
+                >{{ d.label }} <span>· {{ d.count }}</span></a
+              >
               <span class="list-s">{{ d.note }}</span>
             </li>
           </ul>

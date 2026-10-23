@@ -14,7 +14,7 @@ const props = withDefaults(
     gap?: string
     class?: string
   }>(),
-  { min: 240, gap: "0.75rem" }
+  { min: 240, gap: "0.75rem" },
 )
 
 const style = computed(() => ({

@@ -41,7 +41,8 @@ function surfaceComponent(render: (clock: number) => void) {
 }
 
 beforeEach(() => {
-  HTMLCanvasElement.prototype.getContext = (() => fakeContext) as unknown as typeof HTMLCanvasElement.prototype.getContext
+  HTMLCanvasElement.prototype.getContext = (() =>
+    fakeContext) as unknown as typeof HTMLCanvasElement.prototype.getContext
   rs.stubGlobal("requestAnimationFrame", () => 1)
   rs.stubGlobal("cancelAnimationFrame", () => {})
 })

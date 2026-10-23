@@ -9,10 +9,7 @@ export type Dimensions = { width: number; height: number }
  * needed. The root binds `use:chartDimensions={onSize}` and keeps the size in
  * its own `$state`; `onSize` fires only when the rounded size actually changes.
  */
-export function chartDimensions(
-  node: HTMLElement,
-  onSize: (size: Dimensions) => void
-) {
+export function chartDimensions(node: HTMLElement, onSize: (size: Dimensions) => void) {
   let prev: Dimensions = { width: 0, height: 0 }
   let fallback = 0
 

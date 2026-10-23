@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, provide, watch } from "vue"
-import {
-  type VariantInput,
-  type StrokeVariant,
-  useChartPart,
-} from "./chart-context"
+import { type VariantInput, type StrokeVariant, useChartPart } from "./chart-context"
 import { SeriesKey } from "./series-context"
 
 const props = withDefaults(
@@ -15,14 +11,14 @@ const props = withDefaults(
     isClickable?: boolean
     opacity?: number
   }>(),
-  { variant: "gradient", strokeVariant: "solid", isClickable: false, opacity: 1 }
+  { variant: "gradient", strokeVariant: "solid", isClickable: false, opacity: 1 },
 )
 
 const ctx = useChartPart("Bar", "bar")
 
 if (import.meta.env.DEV && !ctx.config[props.dataKey]) {
   console.warn(
-    `<Bar dataKey="${props.dataKey}" />: "${props.dataKey}" is not in the chart \`config\`. Add it so the series has a colour and label.`
+    `<Bar dataKey="${props.dataKey}" />: "${props.dataKey}" is not in the chart \`config\`. Add it so the series has a colour and label.`,
   )
 }
 
@@ -30,7 +26,7 @@ watch(
   () => [props.dataKey, props.variant, props.strokeVariant, props.opacity] as const,
   ([dataKey, variant, strokeVariant, opacity]) =>
     ctx.registerSeries({ dataKey, kind: "bar", variant, strokeVariant, opacity }),
-  { immediate: true }
+  { immediate: true },
 )
 onBeforeUnmount(() => ctx.unregisterSeries(props.dataKey))
 

@@ -2,12 +2,7 @@
 import { nextTick } from "vue"
 import { afterEach, describe, expect, it, rs } from "rstack/test"
 import { editor } from "../../src/entities/editor"
-import {
-  activeProjectId,
-  hydrate,
-  startAutosave,
-  stopAutosave,
-} from "../../src/features/persistence"
+import { activeProjectId, hydrate, startAutosave, stopAutosave } from "../../src/features/persistence"
 
 afterEach(() => {
   stopAutosave()

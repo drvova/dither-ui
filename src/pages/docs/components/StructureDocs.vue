@@ -137,8 +137,7 @@ const API: Record<string, PropRow[]> = {
   <section id="tabs" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Tabs</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A roving-tabindex tablist with a dithered underline that slides to the
-      active tab. Arrow keys move selection.
+      A roving-tabindex tablist with a dithered underline that slides to the active tab. Arrow keys move selection.
     </p>
     <DemoCard :code="SNIPPET_TABS">
       <div class="mx-auto max-w-sm">
@@ -160,8 +159,20 @@ const API: Record<string, PropRow[]> = {
     </div>
     <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">vertical · badges · disabled</h3>
     <div class="mt-4 rounded-lg border border-border/60 p-4">
-      <DitherTabs v-model="vertTab" :tabs="VERT_TABS" orientation="vertical" variant="washed" color="green" class="mx-auto max-w-sm">
-        <DitherTabPanel v-for="t in VERT_TABS" :key="t.value" :value="t.value" class="min-w-0 flex-1 self-stretch rounded-md border border-border/40 p-3">
+      <DitherTabs
+        v-model="vertTab"
+        :tabs="VERT_TABS"
+        orientation="vertical"
+        variant="washed"
+        color="green"
+        class="mx-auto max-w-sm"
+      >
+        <DitherTabPanel
+          v-for="t in VERT_TABS"
+          :key="t.value"
+          :value="t.value"
+          class="min-w-0 flex-1 self-stretch rounded-md border border-border/40 p-3"
+        >
           <p class="text-[12px] text-muted-foreground">{{ t.value }} — {{ t.badge ?? 0 }} items.</p>
         </DitherTabPanel>
       </DitherTabs>
@@ -172,14 +183,14 @@ const API: Record<string, PropRow[]> = {
   <section id="collapsible" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Collapsible</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A disclosure row animated through grid-template-rows; when open, a 2px
-      dithered rail runs down the left edge of the content.
+      A disclosure row animated through grid-template-rows; when open, a 2px dithered rail runs down the left edge of
+      the content.
     </p>
     <DemoCard :code="SNIPPET_COLLAPSIBLE">
       <div class="mx-auto max-w-sm divide-y divide-border/60">
         <DitherCollapsible v-model="openA" title="What is dithering?" color="blue">
-          Ordered dithering trades smooth gradients for a fixed threshold
-          matrix — the same Bayer 4x4 behind every fill in this kit.
+          Ordered dithering trades smooth gradients for a fixed threshold matrix — the same Bayer 4x4 behind every fill
+          in this kit.
         </DitherCollapsible>
         <DitherCollapsible v-model="openB" title="Why canvas?" color="purple">
           One engine paints every fill, so components stay coherent.
@@ -192,13 +203,18 @@ const API: Record<string, PropRow[]> = {
   <section id="dialog" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Dialog</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A teleported modal with labelled title and description, trapped focus,
-      Escape/backdrop dismissal, focus restoration, and an optional action footer.
+      A teleported modal with labelled title and description, trapped focus, Escape/backdrop dismissal, focus
+      restoration, and an optional action footer.
     </p>
     <DemoCard :code="SNIPPET_DIALOG">
       <div class="flex justify-center">
         <DitherButton @click="dialogOpen = true">Open dialog</DitherButton>
-        <DitherDialog :open="dialogOpen" title="Confirm" description="Ship the dithered build to production?" @close="dialogOpen = false">
+        <DitherDialog
+          :open="dialogOpen"
+          title="Confirm"
+          description="Ship the dithered build to production?"
+          @close="dialogOpen = false"
+        >
           <p class="text-[13px] leading-relaxed text-muted-foreground">Review the release before continuing.</p>
           <template #footer>
             <DitherButton color="green" @click="dialogOpen = false">Confirm</DitherButton>
@@ -212,9 +228,8 @@ const API: Record<string, PropRow[]> = {
   <section id="center-morph-modal" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Center Morph Modal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A composable modal whose full-size surface unfolds from its exact center
-      toward every edge, then folds back the same way with an inset close
-      control. Same focus trap, Escape, and backdrop contract as Dialog.
+      A composable modal whose full-size surface unfolds from its exact center toward every edge, then folds back the
+      same way with an inset close control. Same focus trap, Escape, and backdrop contract as Dialog.
     </p>
     <DemoCard :code="SNIPPET_MORPH">
       <div class="flex justify-center">
@@ -223,8 +238,8 @@ const API: Record<string, PropRow[]> = {
           <div class="flex h-full flex-col justify-end gap-2">
             <h3 class="text-sm font-medium text-foreground">v2.4 — dithered everything</h3>
             <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">
-              This full-size surface unfolded from its exact center. Press Escape,
-              the backdrop, or the inset control to fold it back.
+              This full-size surface unfolded from its exact center. Press Escape, the backdrop, or the inset control to
+              fold it back.
             </p>
           </div>
         </DitherCenterMorphModal>
@@ -236,8 +251,7 @@ const API: Record<string, PropRow[]> = {
   <section id="kbd" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Kbd</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An honest keyboard key — no canvas, just the house border and a 2px
-      bottom edge. Pairs with shortcut listings.
+      An honest keyboard key — no canvas, just the house border and a 2px bottom edge. Pairs with shortcut listings.
     </p>
     <DemoCard :code="SNIPPET_KBD">
       <div class="flex items-center justify-center gap-6 text-xs">

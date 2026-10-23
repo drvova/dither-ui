@@ -13,11 +13,7 @@ describe("llms.txt", () => {
   const llms = llmsTxt()
 
   it("starts with an H1 then a blockquote summary", () => {
-    expect(llms.split("\n").slice(0, 3)).toEqual([
-      "# dither-ui",
-      "",
-      expect.stringMatching(/^> /),
-    ])
+    expect(llms.split("\n").slice(0, 3)).toEqual(["# dither-ui", "", expect.stringMatching(/^> /)])
   })
 
   it("emits curated absolute https links with descriptions and an Optional section", () => {

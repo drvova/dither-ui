@@ -34,7 +34,11 @@ function onInput(e: Event) {
         :class="unit ? 'pr-6' : ''"
         @input="onInput"
       />
-      <span v-if="unit" class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">{{ unit }}</span>
+      <span
+        v-if="unit"
+        class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground"
+        >{{ unit }}</span
+      >
     </span>
   </label>
 </template>

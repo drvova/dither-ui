@@ -9,7 +9,7 @@ const props = withDefaults(
     gap?: number
     class?: string
   }>(),
-  { color: "#7CFF67", gap: 24 }
+  { color: "#7CFF67", gap: 24 },
 )
 
 const wrap = ref<HTMLElement | null>(null)

@@ -6,7 +6,7 @@ const props = withDefaults(
     text: string
     delay?: number
   }>(),
-  { delay: 300 }
+  { delay: 300 },
 )
 
 const shown = ref(false)

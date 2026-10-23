@@ -19,7 +19,12 @@ declare global {
   interface Window {
     __hf?: { buildReady?: Record<string, Promise<unknown>> }
     /** The clock for any driver: `ditherClock.seek(seconds)` holds the frame at a moment. */
-    ditherClock?: { seek: (seconds: number) => void; release: () => void; directed: () => boolean; time: () => number | null }
+    ditherClock?: {
+      seek: (seconds: number) => void
+      release: () => void
+      directed: () => boolean
+      time: () => number | null
+    }
   }
 }
 

@@ -87,7 +87,12 @@ export function wipeStyle(progress: number, opts: WipeOptions = {}): WipeStyle |
     if (k >= steps) return null
     if (k <= 0) return { image: EMPTY, size: "100% 100%", repeat: "no-repeat", position: "0 0" }
     const key = `d:${cell}:${n}:${opts.seed ?? ""}:${k}`
-    const svg = cache.get(key) ?? remember(key, `<svg xmlns="${NS}" width="${tile}" height="${tile}" shape-rendering="crispEdges">${cells(matrix, (k + 0.5) / steps, cell)}</svg>`)
+    const svg =
+      cache.get(key) ??
+      remember(
+        key,
+        `<svg xmlns="${NS}" width="${tile}" height="${tile}" shape-rendering="crispEdges">${cells(matrix, (k + 0.5) / steps, cell)}</svg>`,
+      )
     return { image: url(svg), size: `${tile}px ${tile}px`, repeat: "repeat", position: "0 0" }
   }
   // A directional wipe: a solid front, then a band of four dither densities.
@@ -108,14 +113,19 @@ export function wipeStyle(progress: number, opts: WipeOptions = {}): WipeStyle |
     const rect = (a: number, len: number, fill: string) => {
       if (len <= 0) return ""
       const from = direction === "right" || direction === "down" ? a : length - a - len
-      return horizontal ? `<rect x="${from}" y="0" width="${len}" height="${height}" fill="${fill}"/>` : `<rect x="0" y="${from}" width="${width}" height="${len}" fill="${fill}"/>`
+      return horizontal
+        ? `<rect x="${from}" y="0" width="${len}" height="${height}" fill="${fill}"/>`
+        : `<rect x="0" y="${from}" width="${width}" height="${len}" fill="${fill}"/>`
     }
     body += rect(0, Math.max(0, edge), "#000")
     levels.forEach((level, i) => {
       defs += `<pattern id="p${i}" width="${tile}" height="${tile}" patternUnits="userSpaceOnUse">${cells(matrix, level, cell)}</pattern>`
       body += rect(edge + i * sub, sub, `url(#p${i})`)
     })
-    svg = remember(key, `<svg xmlns="${NS}" width="${width}" height="${height}" shape-rendering="crispEdges"><defs>${defs}</defs>${body}</svg>`)
+    svg = remember(
+      key,
+      `<svg xmlns="${NS}" width="${width}" height="${height}" shape-rendering="crispEdges"><defs>${defs}</defs>${body}</svg>`,
+    )
   }
   return { image: url(svg), size: `${width}px ${height}px`, repeat: "no-repeat", position: "0 0" }
 }

@@ -70,7 +70,8 @@ export type DitherSurface = {
 const surfaces = new WeakMap<HTMLCanvasElement, DitherSurface>()
 
 /** The surface behind a kit canvas, when the canvas is one of this runtime's. */
-export const surfaceOf = (canvas: HTMLCanvasElement | null | undefined): DitherSurface | null => (canvas ? (surfaces.get(canvas) ?? null) : null)
+export const surfaceOf = (canvas: HTMLCanvasElement | null | undefined): DitherSurface | null =>
+  canvas ? (surfaces.get(canvas) ?? null) : null
 
 export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurface {
   let raf = 0

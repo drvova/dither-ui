@@ -1,15 +1,15 @@
 <script lang="ts">
 import { rgb } from "./palette"
 import type { Rgb } from "./palette"
-import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
-import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "./dither-paint"
 import {
-  BAYER4,
-  fillOf,
-  type PixelColor,
-  pixelMatrixFromSeed,
-  pixelPrefersReducedMotion,
-} from "./pixel"
+  setOrBlendRasterPixel,
+  clearRasterBuffer,
+  createRasterBuffer,
+  putRasterBuffer,
+  type RasterBuffer,
+} from "./raster"
+import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "./dither-paint"
+import { BAYER4, fillOf, type PixelColor, pixelMatrixFromSeed, pixelPrefersReducedMotion } from "./pixel"
 
 const CELL = 2
 const TAU = Math.PI * 2
@@ -47,7 +47,7 @@ function paintSpinner(
   fill: Rgb,
   phase: number,
   matrix: number[][] = BAYER4,
-  p: SpinnerParams = SPINNER_DEFAULT
+  p: SpinnerParams = SPINNER_DEFAULT,
 ): void {
   if ("data" in ctx) clearRasterBuffer(ctx)
   else ctx.clearRect(0, 0, cells, cells)
@@ -91,8 +91,7 @@ function paintSpinner(
       }
       // DETAIL: dashes along the outline, radial petals on round shapes.
       if (p.segments > 0 && (t * p.segments) % 1 > 0.6) bright = 0
-      if (p.spokes > 0 && p.shape !== 2)
-        bright *= 0.35 + 0.65 * Math.abs(Math.cos((ang * p.spokes) / 2)) ** 2
+      if (p.spokes > 0 && p.shape !== 2) bright *= 0.35 + 0.65 * Math.abs(Math.cos((ang * p.spokes) / 2)) ** 2
       if (bright <= 0 || bright <= matrix[y & 3][x & 3]) continue
       const alpha = 0.4 + 0.6 * bright
       if ("data" in ctx) setOrBlendRasterPixel(ctx, x, y, fill, alpha)
@@ -119,7 +118,7 @@ const props = withDefaults(
     renderMode?: DitherRenderMode
     precompiled?: PrecompiledDither
   }>(),
-  { size: 20, color: "blue", renderMode: "live", precompiled: undefined }
+  { size: 20, color: "blue", renderMode: "live", precompiled: undefined },
 )
 
 const spin = computed(() => (props.seed !== undefined ? spinnerFromSeed(props.seed) : SPINNER_DEFAULT))
@@ -204,11 +203,9 @@ function restartRuntime() {
 }
 
 onMounted(restartRuntime)
-watch(
-  () => [props.size, props.color, props.seed, props.renderMode, precompiled.value],
-  restartRuntime,
-  { flush: "post" }
-)
+watch(() => [props.size, props.color, props.seed, props.renderMode, precompiled.value], restartRuntime, {
+  flush: "post",
+})
 onBeforeUnmount(() => {
   restartToken += 1
   teardown?.()

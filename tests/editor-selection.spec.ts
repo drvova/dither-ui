@@ -13,6 +13,9 @@ beforeEach(() => {
 describe("selected artboard movement", () => {
   it("moves every selected unlocked artboard", () => {
     moveSelected(5, -2)
-    expect(editor.artboards.map(({ x, y }) => [x, y])).toEqual([[15, 18], [30, 40]])
+    expect(editor.artboards.map(({ x, y }) => [x, y])).toEqual([
+      [15, 18],
+      [30, 40],
+    ])
   })
 })

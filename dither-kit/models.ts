@@ -43,7 +43,10 @@ export type ModelFormat = "vrml" | "x3d" | "obj" | "stl" | "ply" | "off" | "gltf
 
 /** Format from a file name or URL (query/hash ignored), null when unknown. */
 export function formatOf(name: string): ModelFormat | null {
-  const ext = name.split(/[?#]/)[0].toLowerCase().match(/\.([a-z0-9]+)$/)?.[1]
+  const ext = name
+    .split(/[?#]/)[0]
+    .toLowerCase()
+    .match(/\.([a-z0-9]+)$/)?.[1]
   switch (ext) {
     case "wrl":
     case "vrml":
@@ -70,7 +73,11 @@ export function formatOf(name: string): ModelFormat | null {
 const decode = (bytes: Uint8Array) => new TextDecoder().decode(bytes)
 
 const toBytes = (input: string | ArrayBuffer | Uint8Array): Uint8Array =>
-  typeof input === "string" ? new TextEncoder().encode(input) : input instanceof Uint8Array ? input : new Uint8Array(input)
+  typeof input === "string"
+    ? new TextEncoder().encode(input)
+    : input instanceof Uint8Array
+      ? input
+      : new Uint8Array(input)
 
 const GREY: Rgb = [204, 204, 204]
 
@@ -84,7 +91,8 @@ function isBinaryStl(bytes: Uint8Array): boolean {
 
 /** Sniff a format from the bytes when the name gives none. */
 export function sniffFormat(bytes: Uint8Array): ModelFormat {
-  if (bytes.length >= 12 && bytes[0] === 0x67 && bytes[1] === 0x6c && bytes[2] === 0x54 && bytes[3] === 0x46) return "gltf"
+  if (bytes.length >= 12 && bytes[0] === 0x67 && bytes[1] === 0x6c && bytes[2] === 0x54 && bytes[3] === 0x46)
+    return "gltf"
   const head = decode(bytes.subarray(0, Math.min(1024, bytes.length))).trimStart()
   if (head.startsWith("#VRML") || head.startsWith("#X3D")) return "vrml"
   if (head.startsWith("<")) return "x3d"
@@ -106,7 +114,10 @@ export type ParseOptions = {
 
 /** Relative URIs a file needs before it can be parsed completely (glTF
  * buffers without a data: URI, an OBJ's mtllib). */
-export function externalResources(input: string | ArrayBuffer | Uint8Array, format: ModelFormat | "auto" = "auto"): string[] {
+export function externalResources(
+  input: string | ArrayBuffer | Uint8Array,
+  format: ModelFormat | "auto" = "auto",
+): string[] {
   const bytes = toBytes(input)
   const fmt = format === "auto" ? sniffFormat(bytes) : format
   if (fmt === "obj") {
@@ -116,14 +127,19 @@ export function externalResources(input: string | ArrayBuffer | Uint8Array, form
   if (fmt === "gltf") {
     const json = gltfJson(bytes)?.json
     const out: string[] = []
-    for (const b of (json?.buffers ?? []) as { uri?: string }[]) if (b.uri && !b.uri.startsWith("data:")) out.push(b.uri)
+    for (const b of (json?.buffers ?? []) as { uri?: string }[])
+      if (b.uri && !b.uri.startsWith("data:")) out.push(b.uri)
     return out
   }
   return []
 }
 
 /** Parse any supported model into a World. `format` "auto" sniffs the bytes. */
-export function parseWorld(input: string | ArrayBuffer | Uint8Array, format: ModelFormat | "auto" = "auto", opts: ParseOptions = {}): World {
+export function parseWorld(
+  input: string | ArrayBuffer | Uint8Array,
+  format: ModelFormat | "auto" = "auto",
+  opts: ParseOptions = {},
+): World {
   const bytes = toBytes(input)
   const fmt = format === "auto" ? sniffFormat(bytes) : format
   const text = () => (typeof input === "string" ? input : decode(bytes))
@@ -154,7 +170,12 @@ export function parseWorld(input: string | ArrayBuffer | Uint8Array, format: Mod
         }
     for (const n of world.nodes) if (n.parent < 0) n.pre = mat4Multiply(swing, n.pre)
     for (const l of world.lights) l.direction = [l.direction[0], l.direction[2], -l.direction[1]]
-    if (world.viewpoint) world.viewpoint.position = [world.viewpoint.position[0], world.viewpoint.position[2], -world.viewpoint.position[1]]
+    if (world.viewpoint)
+      world.viewpoint.position = [
+        world.viewpoint.position[0],
+        world.viewpoint.position[2],
+        -world.viewpoint.position[1],
+      ]
     finishWorld(world)
   }
   return world
@@ -169,7 +190,8 @@ export function parseMtl(text: string): Record<string, Rgb> {
   for (const raw of text.split("\n")) {
     const parts = raw.trim().split(/\s+/)
     if (parts[0] === "newmtl") current = parts.slice(1).join(" ")
-    else if (parts[0] === "Kd" && current && parts.length >= 4) out[current] = [+parts[1] * 255, +parts[2] * 255, +parts[3] * 255]
+    else if (parts[0] === "Kd" && current && parts.length >= 4)
+      out[current] = [+parts[1] * 255, +parts[2] * 255, +parts[3] * 255]
   }
   return out
 }
@@ -256,7 +278,19 @@ export function parseObj(text: string, materials: Record<string, Rgb> = {}): Wor
     const color = materials[grp.material] ?? GREY
     if (grp.faces.length) {
       const colors = hasVcol ? grp.faces.flatMap((f) => average(vcol, f)) : undefined
-      addMesh(world, { points, faces: grp.faces, colors, uvs: uvs.length ? uvs : undefined, faceUvs: uvs.length ? grp.faceUvs : undefined }, null, color, true)
+      addMesh(
+        world,
+        {
+          points,
+          faces: grp.faces,
+          colors,
+          uvs: uvs.length ? uvs : undefined,
+          faceUvs: uvs.length ? grp.faceUvs : undefined,
+        },
+        null,
+        color,
+        true,
+      )
     }
     if (grp.lines.length) addMesh(world, { points, faces: grp.lines }, null, color, false, { kind: "lines" })
     if (grp.pts.length) addMesh(world, { points, faces: [grp.pts] }, null, color, false, { kind: "points" })
@@ -308,7 +342,24 @@ export function parseStl(input: string | ArrayBuffer | Uint8Array): World {
 
 // ---- PLY ----------------------------------------------------------------------------
 
-const PLY_SIZE: Record<string, number> = { char: 1, int8: 1, uchar: 1, uint8: 1, short: 2, int16: 2, ushort: 2, uint16: 2, int: 4, int32: 4, uint: 4, uint32: 4, float: 4, float32: 4, double: 8, float64: 8 }
+const PLY_SIZE: Record<string, number> = {
+  char: 1,
+  int8: 1,
+  uchar: 1,
+  uint8: 1,
+  short: 2,
+  int16: 2,
+  ushort: 2,
+  uint16: 2,
+  int: 4,
+  int32: 4,
+  uint: 4,
+  uint32: 4,
+  float: 4,
+  float32: 4,
+  double: 8,
+  float64: 8,
+}
 
 function plyRead(view: DataView, offset: number, type: string, little: boolean): number {
   switch (type) {
@@ -401,7 +452,8 @@ export function parsePly(input: string | ArrayBuffer | Uint8Array): World {
           fcol.push(r / 255, g / 255, b / 255)
         } else fcol.push(-1, -1, -1)
       }
-    } else if (el.name === "edge" && typeof row.vertex1 === "number" && typeof row.vertex2 === "number") edges.push([row.vertex1, row.vertex2])
+    } else if (el.name === "edge" && typeof row.vertex1 === "number" && typeof row.vertex2 === "number")
+      edges.push([row.vertex1, row.vertex2])
   }
   if (format === "ascii") {
     const toks = decode(bytes.subarray(bodyStart)).split(/\s+/).filter(Boolean)
@@ -446,14 +498,19 @@ export function parsePly(input: string | ArrayBuffer | Uint8Array): World {
   }
   if (faces.length) {
     const colors = hasFcol
-      ? faces.map((f, i) => (fcol[i * 3] >= 0 ? fcol.slice(i * 3, i * 3 + 3) : hasVcol ? average(vcol, f) : [0.8, 0.8, 0.8])).flat()
+      ? faces
+          .map((f, i) =>
+            fcol[i * 3] >= 0 ? fcol.slice(i * 3, i * 3 + 3) : hasVcol ? average(vcol, f) : [0.8, 0.8, 0.8],
+          )
+          .flat()
       : hasVcol
         ? faces.flatMap((f) => average(vcol, f))
         : undefined
     addMesh(world, { points, faces, colors, uvs: hasUv ? uvs : undefined }, null, GREY, false)
   }
   if (edges.length) addMesh(world, { points, faces: edges }, null, GREY, false, { kind: "lines" })
-  if (!faces.length && !edges.length && points.length) addMesh(world, { points, faces: [] }, null, GREY, false, { kind: "points" })
+  if (!faces.length && !edges.length && points.length)
+    addMesh(world, { points, faces: [] }, null, GREY, false, { kind: "points" })
   return finishWorld(world)
 }
 
@@ -486,7 +543,14 @@ export function parseOff(text: string): World {
     for (let k = 0; k < n; k++) face.push(+toks[i++])
     // Trailing colour: 3-4 ints (0-255) or floats (0-1) before the next count.
     const rest: number[] = []
-    while (rest.length < 4 && i < toks.length && f + 1 < nf && !Number.isNaN(+toks[i]) && !(rest.length >= 3 && Number.isInteger(+toks[i]) && +toks[i] === +toks[i] && isCountAhead(toks, i))) rest.push(+toks[i++])
+    while (
+      rest.length < 4 &&
+      i < toks.length &&
+      f + 1 < nf &&
+      !Number.isNaN(+toks[i]) &&
+      !(rest.length >= 3 && Number.isInteger(+toks[i]) && +toks[i] === +toks[i] && isCountAhead(toks, i))
+    )
+      rest.push(+toks[i++])
     if (f + 1 === nf) while (rest.length < 4 && i < toks.length && !Number.isNaN(+toks[i])) rest.push(+toks[i++])
     if (face.length >= 3) {
       faces.push(face)
@@ -551,7 +615,10 @@ const GLTF_SIZE: Record<number, number> = { 5120: 1, 5121: 1, 5122: 2, 5123: 2, 
 /** glTF 2.0 (.gltf JSON or .glb): scene nodes, mesh primitives (triangles,
  * strips, fans, lines, points), base colours and vertex colours, and the
  * first animation as node tracks. External buffers come from `resources`. */
-export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: Record<string, ArrayBuffer | Uint8Array | string> = {}): World {
+export function parseGltf(
+  input: string | ArrayBuffer | Uint8Array,
+  resources: Record<string, ArrayBuffer | Uint8Array | string> = {},
+): World {
   const world = emptyWorld()
   const parsed = gltfJson(toBytes(input))
   if (!parsed) return finishWorld(world)
@@ -617,7 +684,9 @@ export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: R
   const nodeLocal = (n: GltfJson): Mat4 => {
     if (Array.isArray(n.matrix) && n.matrix.length === 16) return n.matrix.map(Number)
     const t: Vec3 = n.translation ? [n.translation[0], n.translation[1], n.translation[2]] : [0, 0, 0]
-    const r: Quat = n.rotation ? quatNormalize([n.rotation[0], n.rotation[1], n.rotation[2], n.rotation[3]]) : QUAT_IDENTITY
+    const r: Quat = n.rotation
+      ? quatNormalize([n.rotation[0], n.rotation[1], n.rotation[2], n.rotation[3]])
+      : QUAT_IDENTITY
     const s: Vec3 = n.scale ? [n.scale[0], n.scale[1], n.scale[2]] : [1, 1, 1]
     return composeTransform(t, r, s)
   }
@@ -631,7 +700,9 @@ export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: R
     const faces: number[][] = []
     let kind: MeshKind = "faces"
     if (mode === 4) for (let i = 0; i + 2 < order.length; i += 3) faces.push([order[i], order[i + 1], order[i + 2]])
-    else if (mode === 5) for (let i = 0; i + 2 < order.length; i++) faces.push(i % 2 ? [order[i + 1], order[i], order[i + 2]] : [order[i], order[i + 1], order[i + 2]])
+    else if (mode === 5)
+      for (let i = 0; i + 2 < order.length; i++)
+        faces.push(i % 2 ? [order[i + 1], order[i], order[i + 2]] : [order[i], order[i + 1], order[i + 2]])
     else if (mode === 6) for (let i = 1; i + 1 < order.length; i++) faces.push([order[0], order[i], order[i + 1]])
     else if (mode === 1) {
       kind = "lines"
@@ -647,10 +718,18 @@ export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: R
     const base = material?.pbrMetallicRoughness?.baseColorFactor
     const color: Rgb = Array.isArray(base) ? [base[0] * 255, base[1] * 255, base[2] * 255] : GREY
     const vc = kind === "faces" ? accessor(prim.attributes?.COLOR_0) : null
-    const colors = vc && vc.comps >= 3 ? faces.flatMap((f) => average(vc.comps === 3 ? vc.data : stripAlpha(vc.data), f)) : undefined
+    const colors =
+      vc && vc.comps >= 3 ? faces.flatMap((f) => average(vc.comps === 3 ? vc.data : stripAlpha(vc.data), f)) : undefined
     // glTF's uv origin is the texture's top-left, like the kit's.
     const tc = kind === "faces" ? accessor(prim.attributes?.TEXCOORD_0) : null
-    addMesh(world, { points: pos.data, faces, colors, uvs: tc && tc.comps === 2 ? tc.data : undefined }, m, color, !material?.doubleSided, { kind, node })
+    addMesh(
+      world,
+      { points: pos.data, faces, colors, uvs: tc && tc.comps === 2 ? tc.data : undefined },
+      m,
+      color,
+      !material?.doubleSided,
+      { kind, node },
+    )
   }
 
   const walk = (index: number, mRel: Mat4, parent: number, depth: number) => {
@@ -660,9 +739,17 @@ export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: R
     let node = parent
     if (animated.has(index)) {
       const t: Vec3 = n.translation ? [n.translation[0], n.translation[1], n.translation[2]] : [0, 0, 0]
-      const r: Quat = n.rotation ? quatNormalize([n.rotation[0], n.rotation[1], n.rotation[2], n.rotation[3]]) : QUAT_IDENTITY
+      const r: Quat = n.rotation
+        ? quatNormalize([n.rotation[0], n.rotation[1], n.rotation[2], n.rotation[3]])
+        : QUAT_IDENTITY
       const s: Vec3 = n.scale ? [n.scale[0], n.scale[1], n.scale[2]] : [1, 1, 1]
-      node = addNode(world, { parent, pre: Array.isArray(n.matrix) && n.matrix.length === 16 ? mat4Multiply(mRel, n.matrix.map(Number)) : mRel, translation: t, rotation: r, scale: s })
+      node = addNode(world, {
+        parent,
+        pre: Array.isArray(n.matrix) && n.matrix.length === 16 ? mat4Multiply(mRel, n.matrix.map(Number)) : mRel,
+        translation: t,
+        rotation: r,
+        scale: s,
+      })
       nodeIndex.set(index, node)
       m = mat4Identity()
     } else m = mat4Multiply(mRel, nodeLocal(n))
@@ -671,7 +758,11 @@ export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: R
     for (const child of n.children ?? []) walk(child, m, node, depth + 1)
   }
   const scene = json.scenes?.[json.scene ?? 0]
-  const roots: number[] = scene?.nodes ?? (json.nodes ?? []).map((_: unknown, i: number) => i).filter((i: number) => !(json.nodes ?? []).some((n: GltfJson) => n.children?.includes(i)))
+  const roots: number[] =
+    scene?.nodes ??
+    (json.nodes ?? [])
+      .map((_: unknown, i: number) => i)
+      .filter((i: number) => !(json.nodes ?? []).some((n: GltfJson) => n.children?.includes(i)))
   for (const r of roots) walk(r, mat4Identity(), -1, 0)
 
   if (anim) {
@@ -686,7 +777,13 @@ export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: R
       const target = nodeIndex.get(ch.target?.node)
       const s = samplers[ch.sampler]
       const path = String(ch.target?.path) as "translation" | "rotation" | "scale"
-      if (target === undefined || !s?.input || !s.output || (path !== "translation" && path !== "rotation" && path !== "scale")) continue
+      if (
+        target === undefined ||
+        !s?.input ||
+        !s.output ||
+        (path !== "translation" && path !== "rotation" && path !== "scale")
+      )
+        continue
       const stride = path === "rotation" ? 4 : 3
       const cubic = s.interpolation === "CUBICSPLINE"
       const value: number[] = []
@@ -694,7 +791,15 @@ export function parseGltf(input: string | ArrayBuffer | Uint8Array, resources: R
         const o = cubic ? (k * 3 + 1) * stride : k * stride
         for (let c = 0; c < stride; c++) value.push(s.output.data[o + c] ?? 0)
       }
-      const track: Track = { key: s.input.data.slice(0, s.input.count), value, stride, kind: path === "rotation" ? "slerp" : s.interpolation === "STEP" ? "step" : "lerp", duration, loop: true, start: 0 }
+      const track: Track = {
+        key: s.input.data.slice(0, s.input.count),
+        value,
+        stride,
+        kind: path === "rotation" ? "slerp" : s.interpolation === "STEP" ? "step" : "lerp",
+        duration,
+        loop: true,
+        start: 0,
+      }
       world.nodes[target].tracks[path] = track
     }
   }
@@ -741,7 +846,8 @@ export function tokenizeVrml(text: string): string[] {
       i++
     } else {
       let j = i
-      while (j < n && text[j] > " " && text[j] !== "," && !BRACKETS.has(text[j]) && text[j] !== "#" && text[j] !== '"') j++
+      while (j < n && text[j] > " " && text[j] !== "," && !BRACKETS.has(text[j]) && text[j] !== "#" && text[j] !== '"')
+        j++
       out.push(text.slice(i, j))
       i = j
     }
@@ -749,7 +855,8 @@ export function tokenizeVrml(text: string): string[] {
   return out
 }
 
-const isNumber = (t: string | undefined): boolean => t !== undefined && t !== "" && /^[-+.\d]/.test(t) && !Number.isNaN(Number(t))
+const isNumber = (t: string | undefined): boolean =>
+  t !== undefined && t !== "" && /^[-+.\d]/.test(t) && !Number.isNaN(Number(t))
 
 /** The VRML header picks the grammar: `#VRML V1.0 ascii` is the old scene
  * graph (Separator state machine), everything else reads as VRML97 / X3D.
@@ -907,7 +1014,12 @@ export function parseVrmlNodes(text: string): { version: 1 | 2; nodes: VrmlNode[
 type XmlEl = { name: string; attrs: Record<string, string>; children: XmlEl[] }
 
 const XML_ENTITIES: Record<string, string> = { quot: '"', amp: "&", lt: "<", gt: ">", apos: "'" }
-const unescapeXml = (s: string) => s.replace(/&(quot|amp|lt|gt|apos|#x[0-9a-fA-F]+|#\d+);/g, (_, e: string) => (e[0] === "#" ? String.fromCodePoint(e[1] === "x" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : XML_ENTITIES[e]))
+const unescapeXml = (s: string) =>
+  s.replace(/&(quot|amp|lt|gt|apos|#x[0-9a-fA-F]+|#\d+);/g, (_, e: string) =>
+    e[0] === "#"
+      ? String.fromCodePoint(e[1] === "x" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10))
+      : XML_ENTITIES[e],
+  )
 
 /** A small XML reader: elements and attributes, no text, no namespaces. */
 export function parseXml(text: string): XmlEl {
@@ -1026,7 +1138,8 @@ function x3dNodes(el: XmlEl, defs: Map<string, VrmlNode>, routes: VrmlRoute[]): 
   for (const child of el.children) {
     if (child.name === "ROUTE") {
       const a = child.attrs
-      if (a.fromNode && a.fromField && a.toNode && a.toField) routes.push({ from: a.fromNode, fromField: a.fromField, to: a.toNode, toField: a.toField })
+      if (a.fromNode && a.fromField && a.toNode && a.toField)
+        routes.push({ from: a.fromNode, fromField: a.fromField, to: a.toNode, toField: a.toField })
       continue
     }
     if (child.name === "X3D" || child.name === "Scene") {
@@ -1049,14 +1162,18 @@ function x3dNodes(el: XmlEl, defs: Map<string, VrmlNode>, routes: VrmlRoute[]): 
     for (const sub of child.children) {
       if (sub.name === "ROUTE") {
         const a = sub.attrs
-        if (a.fromNode && a.fromField && a.toNode && a.toField) routes.push({ from: a.fromNode, fromField: a.fromField, to: a.toNode, toField: a.toField })
+        if (a.fromNode && a.fromField && a.toNode && a.toField)
+          routes.push({ from: a.fromNode, fromField: a.fromField, to: a.toNode, toField: a.toField })
         continue
       }
       const kids = x3dNodes({ name: "", attrs: {}, children: [sub] }, defs, routes)
       if (!kids.length) continue
       const field = sub.attrs.containerField || X3D_CONTAINER[sub.name] || "children"
       const existing = node.fields[field]
-      node.fields[field] = [...(Array.isArray(existing) && typeof existing[0] === "object" ? (existing as VrmlNode[]) : []), ...kids]
+      node.fields[field] = [
+        ...(Array.isArray(existing) && typeof existing[0] === "object" ? (existing as VrmlNode[]) : []),
+        ...kids,
+      ]
     }
     out.push(node)
   }
@@ -1099,11 +1216,22 @@ const rgbOf = (v: number[], def: Rgb = GREY): Rgb => (v.length >= 3 ? [v[0] * 25
 const axisAngle = (r: number[]): Quat => quatFromAxisAngle([r[0] ?? 0, r[1] ?? 0, r[2] ?? 1], r[3] ?? 0)
 
 /** VRML's Transform: T · C · R · SR · S · -SR · -C from axis-angle fields. */
-export const vrmlTransform = (translation: Vec3, rotation: number[], scale: Vec3, scaleOrientation: number[], center: Vec3): Mat4 =>
-  composeTransform(translation, axisAngle(rotation), scale, center, axisAngle(scaleOrientation))
+export const vrmlTransform = (
+  translation: Vec3,
+  rotation: number[],
+  scale: Vec3,
+  scaleOrientation: number[],
+  center: Vec3,
+): Mat4 => composeTransform(translation, axisAngle(rotation), scale, center, axisAngle(scaleOrientation))
 
 const transformOf = (n: VrmlNode, scaleKey: string) =>
-  vrmlTransform(vec(nums(n, "translation", []), [0, 0, 0]), nums(n, "rotation", [0, 0, 1, 0]), vec(nums(n, scaleKey, []), [1, 1, 1]), nums(n, "scaleOrientation", [0, 0, 1, 0]), vec(nums(n, "center", []), [0, 0, 0]))
+  vrmlTransform(
+    vec(nums(n, "translation", []), [0, 0, 0]),
+    nums(n, "rotation", [0, 0, 1, 0]),
+    vec(nums(n, scaleKey, []), [1, 1, 1]),
+    nums(n, "scaleOrientation", [0, 0, 1, 0]),
+    vec(nums(n, "center", []), [0, 0, 0]),
+  )
 
 /** `coordIndex` rings split on -1. */
 export function facesOf(coordIndex: number[]): number[][] {
@@ -1177,18 +1305,45 @@ function geometryOf(g: VrmlNode, points: number[] | null): Built {
     case "Box":
       return { geo: boxGeometry(vec(nums(g, "size", []), [2, 2, 2])), solid: true, ccw: true, kind: "faces" }
     case "Cube":
-      return { geo: boxGeometry([nums(g, "width", [2])[0], nums(g, "height", [2])[0], nums(g, "depth", [2])[0]]), solid: true, ccw: true, kind: "faces" }
+      return {
+        geo: boxGeometry([nums(g, "width", [2])[0], nums(g, "height", [2])[0], nums(g, "depth", [2])[0]]),
+        solid: true,
+        ccw: true,
+        kind: "faces",
+      }
     case "Sphere":
       return { geo: sphereGeometry(nums(g, "radius", [1])[0]), solid: true, ccw: true, kind: "faces" }
     case "Cone":
-      return { geo: coneGeometry(nums(g, "bottomRadius", [1])[0], nums(g, "height", [2])[0], flag(g, "side", true), flag(g, "bottom", true)), solid: true, ccw: true, kind: "faces" }
+      return {
+        geo: coneGeometry(
+          nums(g, "bottomRadius", [1])[0],
+          nums(g, "height", [2])[0],
+          flag(g, "side", true),
+          flag(g, "bottom", true),
+        ),
+        solid: true,
+        ccw: true,
+        kind: "faces",
+      }
     case "Cylinder":
-      return { geo: cylinderGeometry(nums(g, "radius", [1])[0], nums(g, "height", [2])[0], flag(g, "side", true), flag(g, "top", true), flag(g, "bottom", true)), solid: true, ccw: true, kind: "faces" }
+      return {
+        geo: cylinderGeometry(
+          nums(g, "radius", [1])[0],
+          nums(g, "height", [2])[0],
+          flag(g, "side", true),
+          flag(g, "top", true),
+          flag(g, "bottom", true),
+        ),
+        solid: true,
+        ccw: true,
+        kind: "faces",
+      }
     case "IndexedFaceSet":
     case "IndexedTriangleSet": {
       const coord = children(g, "coord")[0]
       const pts = points ?? (coord ? nums(coord, "point", []) : [])
-      const faces = g.type === "IndexedTriangleSet" ? triplesOf(nums(g, "index", [])) : facesOf(nums(g, "coordIndex", []))
+      const faces =
+        g.type === "IndexedTriangleSet" ? triplesOf(nums(g, "index", [])) : facesOf(nums(g, "coordIndex", []))
       // TextureCoordinate's t runs upward; the kit's runs down from the top-left.
       // Without a texCoordIndex the coordinates follow the points.
       const texCoord = children(g, "texCoord")[0]
@@ -1221,7 +1376,13 @@ function geometryOf(g: VrmlNode, points: number[] | null): Built {
     }
     case "ElevationGrid":
       return {
-        geo: elevationGeometry(nums(g, "xDimension", [0])[0], nums(g, "zDimension", [0])[0], nums(g, "xSpacing", [1])[0], nums(g, "zSpacing", [1])[0], nums(g, "height", [])),
+        geo: elevationGeometry(
+          nums(g, "xDimension", [0])[0],
+          nums(g, "zDimension", [0])[0],
+          nums(g, "xSpacing", [1])[0],
+          nums(g, "zSpacing", [1])[0],
+          nums(g, "height", []),
+        ),
         solid: flag(g, "solid", true),
         ccw: flag(g, "ccw", true),
         kind: "faces",
@@ -1258,7 +1419,11 @@ const NODE_FIELDS: Record<string, "translation" | "rotation" | "scale"> = {
 }
 
 /** The tracks ROUTEd into a DEF'd Transform: interpolators driven by TimeSensors. */
-function tracksFor(name: string, routes: VrmlRoute[], byName: Map<string, VrmlNode>): { translation?: Track; rotation?: Track; scale?: Track } {
+function tracksFor(
+  name: string,
+  routes: VrmlRoute[],
+  byName: Map<string, VrmlNode>,
+): { translation?: Track; rotation?: Track; scale?: Track } {
   const out: { translation?: Track; rotation?: Track; scale?: Track } = {}
   for (const r of routes) {
     const field = r.to === name ? NODE_FIELDS[r.toField] : undefined
@@ -1294,11 +1459,15 @@ function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): void {
   const index = (list: VrmlNode[], depth: number) => {
     for (const n of list) {
       if (n.name) byName.set(n.name, n)
-      if (depth < 64) for (const v of Object.values(n.fields)) if (Array.isArray(v) && typeof v[0] === "object") index(v as VrmlNode[], depth + 1)
+      if (depth < 64)
+        for (const v of Object.values(n.fields))
+          if (Array.isArray(v) && typeof v[0] === "object") index(v as VrmlNode[], depth + 1)
     }
   }
   index(nodes, 0)
-  const animatedNames = new Set(routes.map((r) => r.to).filter((name) => NODE_FIELDS[routes.find((r) => r.to === name)?.toField ?? ""]))
+  const animatedNames = new Set(
+    routes.map((r) => r.to).filter((name) => NODE_FIELDS[routes.find((r) => r.to === name)?.toField ?? ""]),
+  )
 
   const walk = (list: VrmlNode[], m: Mat4, parent: number, depth: number) => {
     if (depth > 64) return
@@ -1333,16 +1502,27 @@ function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): void {
         case "Shape": {
           const geometry = children(n, "geometry")[0]
           const built = geometry ? geometryOf(geometry, null) : null
-          if (built) addMesh(world, built.geo, m, materialColor(n, built.kind), built.solid, { ccw: built.ccw, kind: built.kind, node: parent })
+          if (built)
+            addMesh(world, built.geo, m, materialColor(n, built.kind), built.solid, {
+              ccw: built.ccw,
+              kind: built.kind,
+              node: parent,
+            })
           break
         }
         case "DirectionalLight":
           if (flag(n, "on", true))
-            world.lights.push({ direction: normalize(transformDirection(m, vec(nums(n, "direction", []), [0, 0, -1]))), intensity: nums(n, "intensity", [1])[0] })
+            world.lights.push({
+              direction: normalize(transformDirection(m, vec(nums(n, "direction", []), [0, 0, -1]))),
+              intensity: nums(n, "intensity", [1])[0],
+            })
           break
         case "Viewpoint":
           if (!world.viewpoint)
-            world.viewpoint = { position: transformPoint(m, vec(nums(n, "position", []), [0, 0, 10])), fov: (nums(n, "fieldOfView", [0.785398])[0] * 180) / Math.PI }
+            world.viewpoint = {
+              position: transformPoint(m, vec(nums(n, "position", []), [0, 0, 10])),
+              fov: (nums(n, "fieldOfView", [0.785398])[0] * 180) / Math.PI,
+            }
           break
         case "NavigationInfo":
           world.headlight = flag(n, "headlight", true)
@@ -1425,17 +1605,30 @@ function buildV1(nodes: VrmlNode[], world: World): void {
         case "Cone":
         case "Cylinder": {
           const faceSet = n.type === "IndexedFaceSet"
-          const built = geometryOf(n, n.type === "IndexedFaceSet" || n.type === "IndexedLineSet" || n.type === "PointSet" ? s.points : null)
-          if (built) addMesh(world, built.geo, s.m, s.color, faceSet ? s.ccw !== null && s.solid : built.solid, { ccw: faceSet ? s.ccw !== false : true, kind: built.kind })
+          const built = geometryOf(
+            n,
+            n.type === "IndexedFaceSet" || n.type === "IndexedLineSet" || n.type === "PointSet" ? s.points : null,
+          )
+          if (built)
+            addMesh(world, built.geo, s.m, s.color, faceSet ? s.ccw !== null && s.solid : built.solid, {
+              ccw: faceSet ? s.ccw !== false : true,
+              kind: built.kind,
+            })
           break
         }
         case "PerspectiveCamera":
           if (!world.viewpoint)
-            world.viewpoint = { position: transformPoint(s.m, vec(nums(n, "position", []), [0, 0, 1])), fov: (nums(n, "heightAngle", [0.785398])[0] * 180) / Math.PI }
+            world.viewpoint = {
+              position: transformPoint(s.m, vec(nums(n, "position", []), [0, 0, 1])),
+              fov: (nums(n, "heightAngle", [0.785398])[0] * 180) / Math.PI,
+            }
           break
         case "DirectionalLight":
           if (flag(n, "on", true))
-            world.lights.push({ direction: normalize(transformDirection(s.m, vec(nums(n, "direction", []), [0, 0, -1]))), intensity: nums(n, "intensity", [1])[0] })
+            world.lights.push({
+              direction: normalize(transformDirection(s.m, vec(nums(n, "direction", []), [0, 0, -1]))),
+              intensity: nums(n, "intensity", [1])[0],
+            })
           break
         default:
           walk(kids, s, depth + 1)

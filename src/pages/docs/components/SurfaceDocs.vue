@@ -55,12 +55,7 @@ const SIDEBAR_VARIANTS = ["default", "floating", "inset", "washed"] as const
 const variantActive = ref("Overview")
 const modeActive = ref("Overview")
 
-const NAV_ITEMS = [
-  { label: "Overview" },
-  { label: "Components" },
-  { label: "Pricing" },
-  { label: "Docs" },
-]
+const NAV_ITEMS = [{ label: "Overview" }, { label: "Components" }, { label: "Pricing" }, { label: "Docs" }]
 const navActive = ref("Overview")
 
 const METERS = [
@@ -276,22 +271,18 @@ const API: Record<string, PropRow[]> = {
   <section id="accordion" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Accordion</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A stack of disclosure rows animated through grid-template-rows, each with
-      the 2px dithered rail. Single type closes siblings on open.
+      A stack of disclosure rows animated through grid-template-rows, each with the 2px dithered rail. Single type
+      closes siblings on open.
     </p>
     <DemoCard :code="SNIPPET_ACCORDION">
       <div class="mx-auto max-w-sm">
         <DitherAccordion v-model="faq" :items="FAQ" type="single" color="blue">
           <template #what>
-            Ordered dithering trades smooth gradients for a fixed threshold
-            matrix — the same Bayer 4x4 behind every fill in this kit.
+            Ordered dithering trades smooth gradients for a fixed threshold matrix — the same Bayer 4x4 behind every
+            fill in this kit.
           </template>
-          <template #why>
-            One engine paints every fill, so components stay coherent.
-          </template>
-          <template #copy>
-            Yes — the kit folder has zero app imports; copy it and alias it.
-          </template>
+          <template #why> One engine paints every fill, so components stay coherent. </template>
+          <template #copy> Yes — the kit folder has zero app imports; copy it and alias it. </template>
         </DitherAccordion>
       </div>
     </DemoCard>
@@ -301,15 +292,12 @@ const API: Record<string, PropRow[]> = {
   <section id="alert-dialog" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Alert Dialog</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A modal that demands an answer — overlay clicks do nothing, Escape
-      cancels, and focus lands on the safe Cancel button. Danger seeds the
-      confirm fill red.
+      A modal that demands an answer — overlay clicks do nothing, Escape cancels, and focus lands on the safe Cancel
+      button. Danger seeds the confirm fill red.
     </p>
     <DemoCard :code="SNIPPET_ALERT_DIALOG">
       <div class="flex flex-col items-center gap-4">
-        <DitherButton color="red" @click="alertOpen = true">
-          Delete artboard…
-        </DitherButton>
+        <DitherButton color="red" @click="alertOpen = true"> Delete artboard… </DitherButton>
         <p class="text-[12px] text-muted-foreground">Last choice: {{ lastChoice }}</p>
         <DitherAlertDialog
           :open="alertOpen"
@@ -317,8 +305,8 @@ const API: Record<string, PropRow[]> = {
           title="Delete artboard?"
           description="This removes the artboard and its layers. There is no undo across sessions."
           confirm-label="Delete"
-          @confirm="(alertOpen = false), (lastChoice = 'confirmed')"
-          @cancel="(alertOpen = false), (lastChoice = 'cancelled')"
+          @confirm="((alertOpen = false), (lastChoice = 'confirmed'))"
+          @cancel="((alertOpen = false), (lastChoice = 'cancelled'))"
         />
       </div>
     </DemoCard>
@@ -328,22 +316,25 @@ const API: Record<string, PropRow[]> = {
   <section id="drawer" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Drawer</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A side panel that slides in over a scrim — Escape or scrim click closes,
-      the close button takes focus on open.
+      A side panel that slides in over a scrim — Escape or scrim click closes, the close button takes focus on open.
     </p>
     <DemoCard :code="SNIPPET_DRAWER">
       <div class="flex flex-wrap justify-center gap-3">
         <DitherButton @click="drawerOpen = true">Open settings</DitherButton>
         <DitherButton color="purple" @click="sheetOpen = true">Bottom sheet</DitherButton>
-        <DitherButton color="pink" @click="snapOpen = true; snapAt = 0.35">Snap points</DitherButton>
+        <DitherButton
+          color="pink"
+          @click="
+            () => {
+              snapOpen = true
+              snapAt = 0.35
+            }
+          "
+          >Snap points</DitherButton
+        >
         <DitherButton color="orange" @click="sheetActions = true">Action sheet</DitherButton>
         <DitherButton color="green" @click="nestedOpen = true">Nested</DitherButton>
-        <DitherDrawer
-          :open="drawerOpen"
-          side="right"
-          title="Settings"
-          @close="drawerOpen = false"
-        >
+        <DitherDrawer :open="drawerOpen" side="right" title="Settings" @close="drawerOpen = false">
           <p class="pb-2 text-[11px] text-muted-foreground">Swipe the panel right to dismiss.</p>
           <div class="flex items-center justify-between py-2 text-[13px]">
             <span>Snap to grid</span>
@@ -356,8 +347,8 @@ const API: Record<string, PropRow[]> = {
         </DitherDrawer>
         <DitherDrawer :open="sheetOpen" side="bottom" title="Notifications" @close="sheetOpen = false">
           <p class="text-[13px] text-muted-foreground">
-            You are all caught up. Drag the handle down to dismiss — a flick
-            counts through its momentum, a slow drag settles back.
+            You are all caught up. Drag the handle down to dismiss — a flick counts through its momentum, a slow drag
+            settles back.
           </p>
         </DitherDrawer>
         <DitherDrawer
@@ -369,10 +360,9 @@ const API: Record<string, PropRow[]> = {
           @close="snapOpen = false"
         >
           <p class="text-[13px] text-muted-foreground">
-            Resting at <span class="text-foreground tabular-nums">{{ Math.round(snapAt * 100) }}vh</span>.
-            Drag the handle up for the tall snap, down to the short one — a
-            flick's momentum can skip straight past a point. Below half the
-            smallest snap, it dismisses.
+            Resting at <span class="text-foreground tabular-nums">{{ Math.round(snapAt * 100) }}vh</span>. Drag the
+            handle up for the tall snap, down to the short one — a flick's momentum can skip straight past a point.
+            Below half the smallest snap, it dismisses.
           </p>
         </DitherDrawer>
         <DitherDrawer :open="sheetActions" side="bottom" title="Artboard" @close="sheetActions = false">
@@ -382,7 +372,12 @@ const API: Record<string, PropRow[]> = {
               :key="a"
               type="button"
               class="rounded-md px-3 py-2 text-left text-[13px] text-foreground/90 transition-colors hover:bg-background"
-              @click="lastAction = a; sheetActions = false"
+              @click="
+                () => {
+                  lastAction = a
+                  sheetActions = false
+                }
+              "
             >
               {{ a }}
             </button>
@@ -391,7 +386,12 @@ const API: Record<string, PropRow[]> = {
               type="button"
               class="rounded-md px-3 py-2 text-left text-[13px] transition-colors hover:bg-background"
               :style="{ color: cssColor('red') }"
-              @click="lastAction = 'Delete'; sheetActions = false"
+              @click="
+                () => {
+                  lastAction = 'Delete'
+                  sheetActions = false
+                }
+              "
             >
               Delete artboard
             </button>
@@ -400,14 +400,11 @@ const API: Record<string, PropRow[]> = {
         <p class="w-full text-center text-[11px] text-muted-foreground">last action: {{ lastAction }}</p>
         <DitherDrawer :open="nestedOpen" side="right" title="Account" @close="nestedOpen = false">
           <p class="pb-3 text-[13px] text-muted-foreground">
-            Opening a child pushes this drawer back — scaled, dimmed, out of
-            reach until the child closes.
+            Opening a child pushes this drawer back — scaled, dimmed, out of reach until the child closes.
           </p>
           <DitherButton color="green" @click="nestedChild = true">Security settings</DitherButton>
           <DitherDrawer :open="nestedChild" side="right" title="Security" @close="nestedChild = false">
-            <p class="text-[13px] text-muted-foreground">
-              Independently focus-managed; Escape closes just this one.
-            </p>
+            <p class="text-[13px] text-muted-foreground">Independently focus-managed; Escape closes just this one.</p>
           </DitherDrawer>
         </DitherDrawer>
       </div>
@@ -415,9 +412,8 @@ const API: Record<string, PropRow[]> = {
     <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">swipe to open</h3>
     <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 p-4">
       <p class="max-w-sm text-[11px] leading-relaxed text-muted-foreground">
-        <code class="text-foreground/80">DitherSwipeArea</code> is an invisible
-        strip on the viewport edge — arm it, then swipe inward from the right
-        edge of your screen to open the drawer.
+        <code class="text-foreground/80">DitherSwipeArea</code> is an invisible strip on the viewport edge — arm it,
+        then swipe inward from the right edge of your screen to open the drawer.
       </p>
       <div class="flex items-center gap-2 text-[12px]">
         <span class="text-muted-foreground">arm edge</span>
@@ -434,8 +430,8 @@ const API: Record<string, PropRow[]> = {
   <section id="sidebar" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Sidebar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An app sidebar that collapses to an icon rail — items keep their hit
-      area, labels fold away, the active item carries a dithered rail.
+      An app sidebar that collapses to an icon rail — items keep their hit area, labels fold away, the active item
+      carries a dithered rail.
     </p>
     <DemoCard :code="SNIPPET_SIDEBAR">
       <div class="mx-auto flex h-80 max-w-md overflow-hidden rounded-lg border border-border/60">
@@ -447,16 +443,39 @@ const API: Record<string, PropRow[]> = {
             </div>
           </template>
           <DitherSidebarGroup label="Platform">
-            <DitherSidebarItem label="Overview" :active="sidebarActive === 'Overview'" @select="sidebarActive = 'Overview'" />
-            <DitherSidebarItem label="Charts" :badge="12" :active="sidebarActive === 'Charts'" @select="sidebarActive = 'Charts'" />
-            <DitherSidebarItem label="Alerts" :badge="3" color="red" :active="sidebarActive === 'Alerts'" @select="sidebarActive = 'Alerts'" />
+            <DitherSidebarItem
+              label="Overview"
+              :active="sidebarActive === 'Overview'"
+              @select="sidebarActive = 'Overview'"
+            />
+            <DitherSidebarItem
+              label="Charts"
+              :badge="12"
+              :active="sidebarActive === 'Charts'"
+              @select="sidebarActive = 'Charts'"
+            />
+            <DitherSidebarItem
+              label="Alerts"
+              :badge="3"
+              color="red"
+              :active="sidebarActive === 'Alerts'"
+              @select="sidebarActive = 'Alerts'"
+            />
           </DitherSidebarGroup>
           <DitherSidebarGroup label="Library">
             <DitherSidebarSub v-model="sidebarSubOpen" label="Components">
-              <DitherSidebarItem label="Buttons" :active="sidebarActive === 'Buttons'" @select="sidebarActive = 'Buttons'" />
+              <DitherSidebarItem
+                label="Buttons"
+                :active="sidebarActive === 'Buttons'"
+                @select="sidebarActive = 'Buttons'"
+              />
               <DitherSidebarItem label="Forms" :active="sidebarActive === 'Forms'" @select="sidebarActive = 'Forms'" />
             </DitherSidebarSub>
-            <DitherSidebarItem label="Palette" :active="sidebarActive === 'Palette'" @select="sidebarActive = 'Palette'" />
+            <DitherSidebarItem
+              label="Palette"
+              :active="sidebarActive === 'Palette'"
+              @select="sidebarActive = 'Palette'"
+            />
           </DitherSidebarGroup>
         </DitherSidebar>
         <div class="grid flex-1 place-items-center text-[12px] text-muted-foreground">
@@ -467,8 +486,17 @@ const API: Record<string, PropRow[]> = {
     <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
     <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
       <div v-for="v in SIDEBAR_VARIANTS" :key="v">
-        <div class="flex h-44 overflow-hidden rounded-lg border border-border/60" :class="v === 'inset' ? 'bg-card/30 p-1.5' : ''">
-          <DitherSidebar :variant="v" collapse="none" :wash-color="v === 'washed' ? 'purple' : undefined" :label="`${v} sidebar`" class="w-32">
+        <div
+          class="flex h-44 overflow-hidden rounded-lg border border-border/60"
+          :class="v === 'inset' ? 'bg-card/30 p-1.5' : ''"
+        >
+          <DitherSidebar
+            :variant="v"
+            collapse="none"
+            :wash-color="v === 'washed' ? 'purple' : undefined"
+            :label="`${v} sidebar`"
+            class="w-32"
+          >
             <DitherSidebarItem
               v-for="item in ['Overview', 'Charts', 'Palette']"
               :key="item"
@@ -478,7 +506,10 @@ const API: Record<string, PropRow[]> = {
               @select="variantActive = item"
             />
           </DitherSidebar>
-          <div class="min-w-0 flex-1" :class="v === 'inset' ? 'm-1.5 rounded-md border border-border/60 bg-background' : ''" />
+          <div
+            class="min-w-0 flex-1"
+            :class="v === 'inset' ? 'm-1.5 rounded-md border border-border/60 bg-background' : ''"
+          />
         </div>
         <div class="mt-2 text-center text-[10px] text-muted-foreground">{{ v }}</div>
       </div>
@@ -526,19 +557,14 @@ const API: Record<string, PropRow[]> = {
   <section id="toast" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Toast</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A module-level toast() call feeds a teleported bottom-right stack; each
-      toast carries a 3px dithered rail in its color and dismisses itself after
-      its duration. API table below documents the toast() function.
+      A module-level toast() call feeds a teleported bottom-right stack; each toast carries a 3px dithered rail in its
+      color and dismisses itself after its duration. API table below documents the toast() function.
     </p>
     <DemoCard :code="SNIPPET_TOAST">
       <div class="flex justify-center gap-3">
         <DitherToaster />
-        <DitherButton color="green" @click="toast('Saved', { color: 'green' })">
-          Save
-        </DitherButton>
-        <DitherButton color="red" @click="toast('Export failed', { color: 'red' })">
-          Export
-        </DitherButton>
+        <DitherButton color="green" @click="toast('Saved', { color: 'green' })"> Save </DitherButton>
+        <DitherButton color="red" @click="toast('Export failed', { color: 'red' })"> Export </DitherButton>
       </div>
     </DemoCard>
     <PropsTable :rows="API.toast" />
@@ -547,14 +573,15 @@ const API: Record<string, PropRow[]> = {
   <section id="meter" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Meter</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A static gauge on the progress track — the fill seed picks itself: green
-      below the low mark, orange between, red above the high mark.
+      A static gauge on the progress track — the fill seed picks itself: green below the low mark, orange between, red
+      above the high mark.
     </p>
     <DemoCard :code="SNIPPET_METER">
       <div class="mx-auto grid max-w-sm gap-3">
         <div v-for="m in METERS" :key="m.label">
           <div class="mb-1 flex justify-between text-[11px] text-muted-foreground">
-            <span>{{ m.label }}</span><span>{{ m.value }}%</span>
+            <span>{{ m.label }}</span
+            ><span>{{ m.value }}%</span>
           </div>
           <DitherMeter :value="m.value" />
         </div>
@@ -566,8 +593,7 @@ const API: Record<string, PropRow[]> = {
   <section id="scroll-area" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Scroll Area</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An honest overflow container — no canvas, just thin token-colored
-      scrollbars that match the house border.
+      An honest overflow container — no canvas, just thin token-colored scrollbars that match the house border.
     </p>
     <DemoCard :code="SNIPPET_SCROLL_AREA">
       <DitherScrollArea class="mx-auto h-40 max-w-sm rounded-lg border border-border/60 p-3">
@@ -582,8 +608,8 @@ const API: Record<string, PropRow[]> = {
   <section id="toolbar" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Toolbar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A roving-tabindex strip — one Tab stop for the whole bar, arrow keys walk
-      the buttons, Home and End jump to the edges.
+      A roving-tabindex strip — one Tab stop for the whole bar, arrow keys walk the buttons, Home and End jump to the
+      edges.
     </p>
     <DemoCard :code="SNIPPET_TOOLBAR">
       <div class="flex justify-center">
@@ -604,8 +630,8 @@ const API: Record<string, PropRow[]> = {
   <section id="nav-menu" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Navigation Menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      DitherTabs' sliding dithered underline with nav semantics — anchors
-      instead of tabs, aria-current on the active page.
+      DitherTabs' sliding dithered underline with nav semantics — anchors instead of tabs, aria-current on the active
+      page.
     </p>
     <DemoCard :code="SNIPPET_NAV_MENU">
       <div class="mx-auto max-w-sm">

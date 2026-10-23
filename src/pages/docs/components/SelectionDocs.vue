@@ -23,9 +23,7 @@ const CHARTS = [
 ]
 
 const swatch = ref("blue")
-const COLORS = ["green", "blue", "purple", "pink", "orange", "red", "grey"].map(
-  (c) => ({ value: c, label: c })
-)
+const COLORS = ["green", "blue", "purple", "pink", "orange", "red", "grey"].map((c) => ({ value: c, label: c }))
 
 const term = ref("")
 const TERMS = [
@@ -281,16 +279,13 @@ const API: Record<string, PropRow[]> = {
   <section id="select" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Select</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A listbox behind an input-like trigger — Enter, Space or ArrowDown opens
-      the panel, arrows move the highlight, and the picked row carries a small
-      dithered swatch. Escape or an outside click closes it.
+      A listbox behind an input-like trigger — Enter, Space or ArrowDown opens the panel, arrows move the highlight, and
+      the picked row carries a small dithered swatch. Escape or an outside click closes it.
     </p>
     <DemoCard :code="SNIPPET_SELECT">
       <div class="mx-auto max-w-sm">
         <DitherSelect v-model="chart" :options="CHARTS" placeholder="Chart type…" />
-        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">
-          chart: "{{ chart }}"
-        </p>
+        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">chart: "{{ chart }}"</p>
       </div>
     </DemoCard>
     <PropsTable :rows="API.select" />
@@ -299,16 +294,13 @@ const API: Record<string, PropRow[]> = {
   <section id="combobox" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Combobox</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A select whose trigger is an input — typing filters the options
-      (case-insensitive), Enter picks the highlighted match, and blur snaps the
-      text back to the last valid value.
+      A select whose trigger is an input — typing filters the options (case-insensitive), Enter picks the highlighted
+      match, and blur snaps the text back to the last valid value.
     </p>
     <DemoCard :code="SNIPPET_COMBOBOX">
       <div class="mx-auto max-w-sm">
         <DitherCombobox v-model="swatch" :options="COLORS" :color="swatch" />
-        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">
-          swatch: "{{ swatch }}"
-        </p>
+        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">swatch: "{{ swatch }}"</p>
       </div>
     </DemoCard>
     <PropsTable :rows="API.combobox" />
@@ -317,18 +309,14 @@ const API: Record<string, PropRow[]> = {
   <section id="autocomplete" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Autocomplete</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A free-text input with suggestions — anything you type is the value;
-      picking a row just fills the input. Try
-      <code class="text-foreground/80">dither</code>,
-      <code class="text-foreground/80">bayer</code> or
+      A free-text input with suggestions — anything you type is the value; picking a row just fills the input. Try
+      <code class="text-foreground/80">dither</code>, <code class="text-foreground/80">bayer</code> or
       <code class="text-foreground/80">pixel</code>.
     </p>
     <DemoCard :code="SNIPPET_AUTOCOMPLETE">
       <div class="mx-auto max-w-sm">
         <DitherAutocomplete v-model="term" :suggestions="TERMS" placeholder="Search the docs…" />
-        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">
-          term: "{{ term }}"
-        </p>
+        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">term: "{{ term }}"</p>
       </div>
     </DemoCard>
     <PropsTable :rows="API.autocomplete" />
@@ -337,10 +325,8 @@ const API: Record<string, PropRow[]> = {
   <section id="wheel-picker" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Wheel Picker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An iOS-style picker wheel — a 3D drum on native momentum scroll that
-      snaps to the nearest notch, steered by wheel, drag or spinbutton keys.
-      Wheels compose side by side for date and time pickers; reduced motion
-      flattens the drum.
+      An iOS-style picker wheel — a 3D drum on native momentum scroll that snaps to the nearest notch, steered by wheel,
+      drag or spinbutton keys. Wheels compose side by side for date and time pickers; reduced motion flattens the drum.
     </p>
     <DemoCard :code="SNIPPET_WHEEL">
       <div class="flex flex-col items-center gap-4">
@@ -358,16 +344,13 @@ const API: Record<string, PropRow[]> = {
   <section id="radio" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Radio</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A radiogroup of pixel circles — unchecked rings are a 1px pixel border,
-      the checked one fills its inner dot with the Bayer texture. Arrow keys
-      move and select (roving tabindex).
+      A radiogroup of pixel circles — unchecked rings are a 1px pixel border, the checked one fills its inner dot with
+      the Bayer texture. Arrow keys move and select (roving tabindex).
     </p>
     <DemoCard :code="SNIPPET_RADIO">
       <div class="mx-auto max-w-sm">
         <DitherRadioGroup v-model="bloomLevel" :options="BLOOMS" label="Bloom level" />
-        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">
-          bloom: "{{ bloomLevel }}"
-        </p>
+        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">bloom: "{{ bloomLevel }}"</p>
       </div>
     </DemoCard>
     <PropsTable :rows="API.radio" />
@@ -376,15 +359,13 @@ const API: Record<string, PropRow[]> = {
   <section id="checkbox-group" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Checkbox Group</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A labelled group of DitherCheckboxes bound to one string array — toggling
-      a box adds or removes its option's value.
+      A labelled group of DitherCheckboxes bound to one string array — toggling a box adds or removes its option's
+      value.
     </p>
     <DemoCard :code="SNIPPET_CHECKBOX_GROUP">
       <div class="mx-auto max-w-sm">
         <DitherCheckboxGroup v-model="parts" :options="PARTS" label="Chart parts" />
-        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">
-          parts: [{{ parts.join(", ") }}]
-        </p>
+        <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">parts: [{{ parts.join(", ") }}]</p>
       </div>
     </DemoCard>
     <PropsTable :rows="API.checkboxGroup" />
@@ -393,15 +374,13 @@ const API: Record<string, PropRow[]> = {
   <section id="toggle" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Toggle</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A pressed-state button — off is a quiet border, on fills behind the label
-      with the badge's dithered gradient. Label goes in the default slot.
+      A pressed-state button — off is a quiet border, on fills behind the label with the badge's dithered gradient.
+      Label goes in the default slot.
     </p>
     <DemoCard :code="SNIPPET_TOGGLE">
       <div class="mx-auto max-w-sm text-center">
         <DitherToggle v-model="bloomOn">bloom</DitherToggle>
-        <p class="mt-4 font-mono text-[11px] text-muted-foreground">
-          bloom: {{ bloomOn }}
-        </p>
+        <p class="mt-4 font-mono text-[11px] text-muted-foreground">bloom: {{ bloomOn }}</p>
       </div>
     </DemoCard>
     <PropsTable :rows="API.toggle" />
@@ -412,8 +391,7 @@ const API: Record<string, PropRow[]> = {
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A bordered row of toggles — <code class="text-foreground/80">single</code>
       behaves like a radio group (one value, arrows move), while
-      <code class="text-foreground/80">multiple</code> keeps each button
-      independently pressed against a string array.
+      <code class="text-foreground/80">multiple</code> keeps each button independently pressed against a string array.
     </p>
     <DemoCard :code="SNIPPET_TOGGLE_GROUP">
       <div class="mx-auto grid max-w-sm justify-items-center gap-4">

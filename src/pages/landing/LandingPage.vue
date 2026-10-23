@@ -63,10 +63,22 @@ function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number,
 // hover or focus — re-dithers the figure into its scene.
 const PRINCIPLES = [
   { text: "Every pixel is placed on purpose.", href: routePath("/docs") },
-  { text: "Charts, buttons, avatars and gradients — rendered pixel by pixel on canvas.", href: routePath("/docs/area") },
-  { text: "One palette: seven seeds; fill, line and sparkle hues resolve from the same source.", href: routePath("/docs/palette") },
-  { text: "Every fill is deterministic — a seed replays it forever, and explicit props always win.", href: routePath("/docs/seeds") },
-  { text: "Layout, motion and text families compose from the same dither engine.", href: routePath("/docs/composition") },
+  {
+    text: "Charts, buttons, avatars and gradients — rendered pixel by pixel on canvas.",
+    href: routePath("/docs/area"),
+  },
+  {
+    text: "One palette: seven seeds; fill, line and sparkle hues resolve from the same source.",
+    href: routePath("/docs/palette"),
+  },
+  {
+    text: "Every fill is deterministic — a seed replays it forever, and explicit props always win.",
+    href: routePath("/docs/seeds"),
+  },
+  {
+    text: "Layout, motion and text families compose from the same dither engine.",
+    href: routePath("/docs/composition"),
+  },
   { text: "Copy the folder, alias it — no build step, no black box.", href: routePath("/docs/getting-started") },
 ].map((p) => {
   // A dash never starts a line: it is bound to the word before it.
@@ -98,7 +110,10 @@ onMounted(() => {
     FACES.forEach((f, i) => {
       const face = faceEls.value[i]
       const emote = emoteEls.value[i]
-      if (face) shakers.push(createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }))
+      if (face)
+        shakers.push(
+          createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }),
+        )
       if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
     })
   }
@@ -177,7 +192,14 @@ onBeforeUnmount(() => {
       <div class="mx-auto flex h-14 w-full max-w-[var(--shell)] items-center justify-between px-6 text-xs">
         <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap tracking-tight">
           <!-- The brand mark: the 7x7 dithered diamond, ember core. -->
-          <svg viewBox="0 0 7 7" width="13" height="13" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+          <svg
+            viewBox="0 0 7 7"
+            width="13"
+            height="13"
+            aria-hidden="true"
+            focusable="false"
+            shape-rendering="crispEdges"
+          >
             <path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="currentColor" />
             <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
           </svg>
@@ -187,7 +209,11 @@ onBeforeUnmount(() => {
           <a href="#directory" class="nav-a hidden sm:inline-flex">Components</a>
           <a :href="routePath('/docs')" class="nav-a">Docs</a>
           <a href="#agents" class="nav-a hidden sm:inline-flex">Agents</a>
-          <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="nav-a hidden md:inline-flex"
+          <a
+            href="https://github.com/drvova/dither-ui"
+            target="_blank"
+            rel="noreferrer"
+            class="nav-a hidden md:inline-flex"
             >GitHub<span aria-hidden="true">↗</span></a
           >
           <a :href="routePath('/studio')" class="nav-a nav-pill ml-2">Open studio</a>
@@ -201,29 +227,37 @@ onBeforeUnmount(() => {
            portraits' well: hover a face, her pixels scatter under the
            cursor and settle, and her emote answers. Then, on the shell, the
            directory, the principles and the agents. -->
-        <Showcase>
-          <template #faces>
-            <div
-              role="img"
-              aria-label="Pixel-art character portraits in six expressions — hover a portrait: her pixels stir under the cursor and her reaction emote answers"
-              class="grid grid-cols-3 gap-x-5"
-            >
-              <div v-for="(f, i) in FACES" :key="i" class="group relative flex justify-center pt-6">
-                <!-- CSS size reserves layout (no CLS); blit paints the backing store at
+      <Showcase>
+        <template #faces>
+          <div
+            role="img"
+            aria-label="Pixel-art character portraits in six expressions — hover a portrait: her pixels stir under the cursor and her reaction emote answers"
+            class="grid grid-cols-3 gap-x-5"
+          >
+            <div v-for="(f, i) in FACES" :key="i" class="group relative flex justify-center pt-6">
+              <!-- CSS size reserves layout (no CLS); blit paints the backing store at
                      device resolution so the portrait stays sharp on hi-DPI / 4K -->
-                <canvas
-                  :ref="(el) => { if (el) faceEls[i] = el as HTMLCanvasElement }"
-                  :style="{ width: `${f.w}px`, height: `${FACE_H}px` }"
-                />
-                <canvas
-                  :ref="(el) => { if (el) emoteEls[i] = el as HTMLCanvasElement }"
-                  class="emote absolute top-0 left-1/2"
-                  :style="{ width: `${f.emote.w}px`, height: `${f.emote.h}px` }"
-                />
-              </div>
+              <canvas
+                :ref="
+                  (el) => {
+                    if (el) faceEls[i] = el as HTMLCanvasElement
+                  }
+                "
+                :style="{ width: `${f.w}px`, height: `${FACE_H}px` }"
+              />
+              <canvas
+                :ref="
+                  (el) => {
+                    if (el) emoteEls[i] = el as HTMLCanvasElement
+                  }
+                "
+                class="emote absolute top-0 left-1/2"
+                :style="{ width: `${f.emote.w}px`, height: `${f.emote.h}px` }"
+              />
             </div>
-          </template>
-        </Showcase>
+          </div>
+        </template>
+      </Showcase>
       <div class="box mx-auto w-full max-w-[var(--shell)] px-6">
         <Hub />
 
@@ -242,7 +276,11 @@ onBeforeUnmount(() => {
             <ol class="principles-list">
               <li v-for="(p, i) in PRINCIPLES" :key="p.href">
                 <a
-                  :ref="(el) => { if (el) principleEls[i] = el as HTMLElement }"
+                  :ref="
+                    (el) => {
+                      if (el) principleEls[i] = el as HTMLElement
+                    }
+                  "
                   :href="p.href"
                   class="principle"
                   :data-active="principle === i ? 'true' : undefined"
@@ -252,7 +290,8 @@ onBeforeUnmount(() => {
                   <span class="principle-n" aria-hidden="true">{{ String(i + 1).padStart(2, "0") }}</span>
                   <span class="principle-t"
                     ><template v-for="(w, j) in p.words" :key="j"
-                      ><span class="w" :style="{ '--p': w.p }">{{ w.w }}</span>{{ j < p.words.length - 1 ? " " : "" }}</template
+                      ><span class="w" :style="{ '--p': w.p }">{{ w.w }}</span
+                      >{{ j < p.words.length - 1 ? " " : "" }}</template
                     ></span
                   >
                 </a>
@@ -302,7 +341,9 @@ onBeforeUnmount(() => {
         </div>
         <p class="foot-copy">
           © {{ new Date().getFullYear() }} dither-ui.com · v{{ version }} · MIT ·
-          <a href="https://clayzo.com" target="_blank" rel="noreferrer">Films made with Clayzo<span aria-hidden="true"> ↗</span></a>
+          <a href="https://clayzo.com" target="_blank" rel="noreferrer"
+            >Films made with Clayzo<span aria-hidden="true"> ↗</span></a
+          >
         </p>
       </div>
       <div aria-hidden="true" class="mx-auto w-[min(90vw,56rem)] px-6 pb-10">

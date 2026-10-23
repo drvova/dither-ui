@@ -8,7 +8,7 @@ const props = withDefaults(
     size?: number
     class?: string
   }>(),
-  { color: "#7CFF67", size: 36 }
+  { color: "#7CFF67", size: 36 },
 )
 
 const area = ref<HTMLElement | null>(null)
@@ -26,16 +26,17 @@ function onMove(e: PointerEvent) {
 </script>
 
 <template>
-  <div
-    ref="area"
-    :class="cn('relative overflow-hidden', props.class)"
-    @pointermove="onMove"
-    @pointerleave="on = false"
-  >
+  <div ref="area" :class="cn('relative overflow-hidden', props.class)" @pointermove="onMove" @pointerleave="on = false">
     <slot />
     <div
       class="dither-target pointer-events-none absolute left-0 top-0"
-      :style="{ width: `${props.size}px`, height: `${props.size}px`, transform: `translate(${x}px, ${y}px) translate(-50%, -50%)`, opacity: on ? 1 : 0, color: props.color }"
+      :style="{
+        width: `${props.size}px`,
+        height: `${props.size}px`,
+        transform: `translate(${x}px, ${y}px) translate(-50%, -50%)`,
+        opacity: on ? 1 : 0,
+        color: props.color,
+      }"
       aria-hidden="true"
     >
       <span class="corner tl" />

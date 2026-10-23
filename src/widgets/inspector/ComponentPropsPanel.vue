@@ -26,35 +26,78 @@ function setList(key: string, e: Event) {
     inputValue(e)
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean)
+      .filter(Boolean),
   )
 }
-const asFieldColor = (c: unknown) =>
-  (typeof c === "number" ? colorToHex(c) : c) as string
+const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c) as string
 </script>
 
 <template>
   <div class="flex flex-col gap-3">
     <label v-if="target.slotText != null" class="flex items-center gap-2 text-[11px] text-muted-foreground">
       <span class="w-14 shrink-0">text</span>
-      <input :value="target.slotText" type="text" name="component-slot" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" @input="setSlotText(inputValue($event))" />
+      <input
+        :value="target.slotText"
+        type="text"
+        name="component-slot"
+        autocomplete="off"
+        class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+        @input="setSlotText(inputValue($event))"
+      />
     </label>
     <template v-for="spec in entry.props" :key="spec.key">
       <label v-if="spec.kind === 'text'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">{{ spec.key }}</span>
-        <input :value="(target.props[spec.key] as string)" type="text" :name="`prop-${spec.key}`" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" @input="setProp(spec.key, inputValue($event))" />
+        <input
+          :value="target.props[spec.key] as string"
+          type="text"
+          :name="`prop-${spec.key}`"
+          autocomplete="off"
+          class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+          @input="setProp(spec.key, inputValue($event))"
+        />
       </label>
       <label v-else-if="spec.kind === 'list'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">{{ spec.key }}</span>
-        <input :value="listText(target.props[spec.key])" type="text" :name="`prop-${spec.key}`" autocomplete="off" placeholder="One, Two, Three" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" @change="setList(spec.key, $event)" />
+        <input
+          :value="listText(target.props[spec.key])"
+          type="text"
+          :name="`prop-${spec.key}`"
+          autocomplete="off"
+          placeholder="One, Two, Three"
+          class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+          @change="setList(spec.key, $event)"
+        />
       </label>
-      <NumberField v-else-if="spec.kind === 'number'" :model-value="(target.props[spec.key] as number)" :label="spec.key" :min="spec.min" :max="spec.max" :step="spec.step" @update:model-value="setProp(spec.key, $event)" />
-      <Segmented v-else-if="spec.kind === 'select'" :model-value="(target.props[spec.key] as string)" :options="spec.options" :label="spec.key" @update:model-value="setProp(spec.key, $event)" />
+      <NumberField
+        v-else-if="spec.kind === 'number'"
+        :model-value="target.props[spec.key] as number"
+        :label="spec.key"
+        :min="spec.min"
+        :max="spec.max"
+        :step="spec.step"
+        @update:model-value="setProp(spec.key, $event)"
+      />
+      <Segmented
+        v-else-if="spec.kind === 'select'"
+        :model-value="target.props[spec.key] as string"
+        :options="spec.options"
+        :label="spec.key"
+        @update:model-value="setProp(spec.key, $event)"
+      />
       <div v-else-if="spec.kind === 'color'" class="text-[11px] text-muted-foreground">
         <span class="mb-1 block">{{ spec.key }}</span>
-        <ColorField :model-value="asFieldColor(target.props[spec.key])" @update:model-value="setProp(spec.key, $event)" />
+        <ColorField
+          :model-value="asFieldColor(target.props[spec.key])"
+          @update:model-value="setProp(spec.key, $event)"
+        />
       </div>
-      <Toggle v-else-if="spec.kind === 'boolean'" :model-value="(target.props[spec.key] as boolean)" :label="spec.key" @update:model-value="setProp(spec.key, $event)" />
+      <Toggle
+        v-else-if="spec.kind === 'boolean'"
+        :model-value="target.props[spec.key] as boolean"
+        :label="spec.key"
+        @update:model-value="setProp(spec.key, $event)"
+      />
     </template>
   </div>
 </template>

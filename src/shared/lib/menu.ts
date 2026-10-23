@@ -12,7 +12,13 @@ export function menuKeydown(e: KeyboardEvent) {
   if (items.length === 0) return
   const i = items.indexOf(document.activeElement as HTMLElement)
   const next =
-    e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : e.key === "ArrowDown" ? (i + 1) % items.length : (i - 1 + items.length) % items.length
+    e.key === "Home"
+      ? 0
+      : e.key === "End"
+        ? items.length - 1
+        : e.key === "ArrowDown"
+          ? (i + 1) % items.length
+          : (i - 1 + items.length) % items.length
   e.preventDefault()
   items[next].focus()
 }

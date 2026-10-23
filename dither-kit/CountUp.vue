@@ -12,7 +12,7 @@ const props = withDefaults(
     decimals?: number
     class?: string
   }>(),
-  { from: 0, duration: 1500, decimals: 0 }
+  { from: 0, duration: 1500, decimals: 0 },
 )
 
 const el = ref<HTMLElement | null>(null)
@@ -75,7 +75,7 @@ const display = computed(() =>
   value.value.toLocaleString(undefined, {
     minimumFractionDigits: props.decimals,
     maximumFractionDigits: props.decimals,
-  })
+  }),
 )
 </script>
 

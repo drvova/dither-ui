@@ -19,10 +19,18 @@ const parsed = computed(() => parseDocument(props.source.document))
 const artboard = computed<Artboard | null>(() => {
   const doc = parsed.value
   if (!doc) return null
-  return doc.artboards.find((a) => a.id === props.source.artboardId) ?? doc.artboards.find((a) => !a.hidden) ?? doc.artboards[0] ?? null
+  return (
+    doc.artboards.find((a) => a.id === props.source.artboardId) ??
+    doc.artboards.find((a) => !a.hidden) ??
+    doc.artboards[0] ??
+    null
+  )
 })
 // A reel's clips travel in the same document; the renderer cuts between them.
-provide(REEL_POOL, computed(() => parsed.value?.artboards ?? []))
+provide(
+  REEL_POOL,
+  computed(() => parsed.value?.artboards ?? []),
+)
 </script>
 
 <template>
@@ -39,6 +47,16 @@ provide(REEL_POOL, computed(() => parsed.value?.artboards ?? []))
 </template>
 
 <style scoped>
-.play-surface { position: relative; overflow: hidden; box-sizing: border-box; }
-.play-empty { margin: 0; padding: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--color-muted-foreground); }
+.play-surface {
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.play-empty {
+  margin: 0;
+  padding: 24px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted-foreground);
+}
 </style>

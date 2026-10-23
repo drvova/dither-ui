@@ -55,7 +55,7 @@ describe("screen codegen", () => {
     addCell(row2, entry("DitherBadge"))
     const code = widgetCode(s, frame)
     expect(code).toContain('import { DitherBadge, DitherInput, DitherSwitch } from "@dither-kit"')
-    expect(code).toContain("const value1 = ref(\"\")")
+    expect(code).toContain('const value1 = ref("")')
     expect(code).toContain("const value2 = ref(false)")
     expect(code).toContain('v-model="value1"')
     expect(code).toContain(">beta</DitherBadge>")

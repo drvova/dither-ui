@@ -90,10 +90,13 @@ describe("EllipsisTooltip", () => {
   })
 
   it("never tootips when disabled", async () => {
-    rs.stubGlobal("ResizeObserver", class {
-      observe() {}
-      disconnect() {}
-    })
+    rs.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    )
     const w = mount(EllipsisTooltip, {
       props: { enabled: false },
       slots: { default: "clipped text" },

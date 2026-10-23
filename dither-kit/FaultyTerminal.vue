@@ -58,7 +58,7 @@ const props = withDefaults(
     pageLoadAnimation: false,
     brightness: 1,
     renderMode: "live",
-  }
+  },
 )
 
 // A background cell of ~3px keeps the fbm affordable; low caps because the
@@ -127,11 +127,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
-    ref="wrapRef"
-    aria-hidden="true"
-    :class="cn('relative block h-full w-full overflow-hidden', props.class)"
-  >
+  <div ref="wrapRef" aria-hidden="true" :class="cn('relative block h-full w-full overflow-hidden', props.class)">
     <img
       v-if="precompiled"
       :src="precompiled"

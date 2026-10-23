@@ -12,10 +12,7 @@ const props = withDefaults(defineProps<{ char?: string; label?: string; class?: 
 </script>
 
 <template>
-  <span
-    role="img"
-    :aria-label="props.label || undefined"
-    :class="cn('inline-block leading-none', props.class)"
-    >{{ props.char }}</span
-  >
+  <span role="img" :aria-label="props.label || undefined" :class="cn('inline-block leading-none', props.class)">{{
+    props.char
+  }}</span>
 </template>

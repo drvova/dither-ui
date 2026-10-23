@@ -15,7 +15,7 @@ const props = withDefaults(
     color?: PixelColor
     class?: string
   }>(),
-  { attach: "viewport", edge: "top", color: "green" }
+  { attach: "viewport", edge: "top", color: "green" },
 )
 
 const value = ref(0)
@@ -65,7 +65,7 @@ onBeforeUnmount(() => {
       cn(
         props.attach === 'viewport' ? 'fixed inset-x-0 z-50' : 'sticky z-10 -mb-1',
         props.edge === 'bottom' ? 'bottom-0' : 'top-0',
-        props.class
+        props.class,
       )
     "
   >

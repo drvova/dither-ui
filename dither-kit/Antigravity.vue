@@ -11,7 +11,7 @@ const props = withDefaults(
     speed?: number
     class?: string
   }>(),
-  { color: "#7CFF67", count: 40, speed: 1 }
+  { color: "#7CFF67", count: 40, speed: 1 },
 )
 
 const wrap = ref<HTMLElement | null>(null)

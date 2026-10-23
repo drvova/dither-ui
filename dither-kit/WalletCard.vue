@@ -52,7 +52,7 @@ const props = withDefaults(
     color?: PixelColor
     class?: string
   }>(),
-  { currency: "$", defaultHidden: false, searchPlaceholder: "Search…", notifications: false, color: "green" }
+  { currency: "$", defaultHidden: false, searchPlaceholder: "Search…", notifications: false, color: "green" },
 )
 const emit = defineEmits<{
   "update:modelValue": [value: string]
@@ -64,9 +64,7 @@ const emit = defineEmits<{
   notify: []
 }>()
 
-const account = computed(
-  () => props.accounts.find((a) => a.value === props.modelValue) ?? props.accounts[0]
-)
+const account = computed(() => props.accounts.find((a) => a.value === props.modelValue) ?? props.accounts[0])
 const rootRef = ref<HTMLElement | null>(null)
 const switcherRef = ref<HTMLButtonElement | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
@@ -79,7 +77,7 @@ const query = ref("")
 const shownBalance = computed(() => props.balance ?? account.value?.balance ?? 0)
 const change = computed(() => props.change ?? account.value?.change ?? 0)
 const digits = computed(() =>
-  hidden.value ? MASK.split("") : `${props.currency}${FMT.format(shownBalance.value)}`.split("")
+  hidden.value ? MASK.split("") : `${props.currency}${FMT.format(shownBalance.value)}`.split(""),
 )
 const changeColor = computed(() => cssColor(change.value < 0 ? "red" : "green"))
 const shortAddress = computed(() => {
@@ -153,12 +151,31 @@ async function copy() {
         type="button"
         :aria-expanded="switching"
         aria-haspopup="listbox"
-        :class="cn(CONTROL_BUTTON, 'flex min-w-0 items-center gap-2 rounded-md border border-border/60 bg-background/60 px-2.5 py-1.5 text-[12px] text-foreground transition-colors hover:bg-background')"
-        @click="switching = !switching; searching = false"
+        :class="
+          cn(
+            CONTROL_BUTTON,
+            'flex min-w-0 items-center gap-2 rounded-md border border-border/60 bg-background/60 px-2.5 py-1.5 text-[12px] text-foreground transition-colors hover:bg-background',
+          )
+        "
+        @click="
+          () => {
+            switching = !switching
+            searching = false
+          }
+        "
       >
-        <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full" :style="{ background: cssColor(account?.color ?? props.color) }" />
+        <span
+          aria-hidden="true"
+          class="size-1.5 shrink-0 rounded-full"
+          :style="{ background: cssColor(account?.color ?? props.color) }"
+        />
         <span class="truncate">{{ account?.label }}</span>
-        <span aria-hidden="true" class="text-[10px] text-muted-foreground transition-transform duration-200 motion-reduce:transition-none" :class="switching ? 'rotate-180' : ''">▾</span>
+        <span
+          aria-hidden="true"
+          class="text-[10px] text-muted-foreground transition-transform duration-200 motion-reduce:transition-none"
+          :class="switching ? 'rotate-180' : ''"
+          >▾</span
+        >
       </button>
       <div class="flex shrink-0 items-center gap-1">
         <div
@@ -169,7 +186,12 @@ async function copy() {
             v-if="!searching"
             type="button"
             aria-label="Search wallet"
-            :class="cn(CONTROL_BUTTON, 'grid size-8 shrink-0 place-items-center text-[13px] text-muted-foreground transition-colors hover:text-foreground')"
+            :class="
+              cn(
+                CONTROL_BUTTON,
+                'grid size-8 shrink-0 place-items-center text-[13px] text-muted-foreground transition-colors hover:text-foreground',
+              )
+            "
             @click="openSearch"
           >
             ⌕
@@ -191,12 +213,20 @@ async function copy() {
         <button
           type="button"
           aria-label="Notifications"
-          :class="cn(CONTROL_BUTTON, 'relative grid size-8 place-items-center rounded-md border border-border/60 bg-background/60 text-[13px] text-muted-foreground transition-colors hover:text-foreground')"
+          :class="
+            cn(
+              CONTROL_BUTTON,
+              'relative grid size-8 place-items-center rounded-md border border-border/60 bg-background/60 text-[13px] text-muted-foreground transition-colors hover:text-foreground',
+            )
+          "
           @click="emit('notify')"
         >
           ⍾
           <span v-if="props.notifications" aria-hidden="true" class="absolute top-1.5 right-1.5 flex size-1.5">
-            <span class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 motion-reduce:animate-none" :style="{ background: cssColor(props.color) }" />
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 motion-reduce:animate-none"
+              :style="{ background: cssColor(props.color) }"
+            />
             <span class="relative inline-flex size-1.5 rounded-full" :style="{ background: cssColor(props.color) }" />
           </span>
         </button>
@@ -215,10 +245,20 @@ async function copy() {
             type="button"
             role="option"
             :aria-selected="a.value === account?.value"
-            :class="cn(CONTROL_BUTTON, 'flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] transition-colors hover:bg-background/60', a.value === account?.value ? 'text-foreground' : 'text-muted-foreground')"
+            :class="
+              cn(
+                CONTROL_BUTTON,
+                'flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] transition-colors hover:bg-background/60',
+                a.value === account?.value ? 'text-foreground' : 'text-muted-foreground',
+              )
+            "
             @click="pick(a.value)"
           >
-            <span aria-hidden="true" class="size-1.5 shrink-0 rounded-full" :style="{ background: cssColor(a.color ?? props.color) }" />
+            <span
+              aria-hidden="true"
+              class="size-1.5 shrink-0 rounded-full"
+              :style="{ background: cssColor(a.color ?? props.color) }"
+            />
             <span class="min-w-0 flex-1 truncate">{{ a.label }}</span>
             <span v-if="a.value === account?.value" aria-hidden="true">✓</span>
           </button>
@@ -236,7 +276,12 @@ async function copy() {
           v-for="r in props.recent"
           :key="r"
           type="button"
-          :class="cn(CONTROL_BUTTON, 'flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground')"
+          :class="
+            cn(
+              CONTROL_BUTTON,
+              'flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground',
+            )
+          "
           @click="submitSearch(r)"
         >
           <span aria-hidden="true" class="text-[11px]">⌕</span>
@@ -264,14 +309,16 @@ async function copy() {
           :key="`${account?.value}-${hidden}-${i}-${c}`"
           class="dk-wc-digit motion-reduce:animate-none"
           :style="{ animationDelay: `${i * 36}ms` }"
-        >{{ c }}</span>
+          >{{ c }}</span
+        >
       </div>
       <div class="mt-1.5 flex h-6 items-center justify-center">
         <span
           v-if="hidden"
           class="translate-y-[2px] text-[12px] leading-none tracking-[0.3em] text-muted-foreground"
           aria-hidden="true"
-        >*****</span>
+          >*****</span
+        >
         <span
           v-else
           class="relative overflow-hidden rounded-full px-2 py-0.5 text-[10px]"
@@ -279,7 +326,11 @@ async function copy() {
         >
           <span aria-hidden="true" class="absolute inset-0 opacity-15" :style="{ background: changeColor }" />
           <span class="relative flex items-center gap-1">
-            <span aria-hidden="true" class="size-1 animate-pulse rounded-full motion-reduce:animate-none" :style="{ background: changeColor }" />
+            <span
+              aria-hidden="true"
+              class="size-1 animate-pulse rounded-full motion-reduce:animate-none"
+              :style="{ background: changeColor }"
+            />
             {{ change < 0 ? "▼" : "▲" }} {{ Math.abs(change).toFixed(1) }}%
           </span>
         </span>
@@ -287,11 +338,18 @@ async function copy() {
       <button
         type="button"
         :aria-label="copied ? 'Address copied' : 'Copy address'"
-        :class="cn(CONTROL_BUTTON, 'mt-1 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground')"
+        :class="
+          cn(
+            CONTROL_BUTTON,
+            'mt-1 flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground',
+          )
+        "
         @click="copy"
       >
         <span>{{ shortAddress }}</span>
-        <span aria-hidden="true" :style="copied ? { color: cssColor(props.color) } : undefined">{{ copied ? "✓" : "⧉" }}</span>
+        <span aria-hidden="true" :style="copied ? { color: cssColor(props.color) } : undefined">{{
+          copied ? "✓" : "⧉"
+        }}</span>
       </button>
     </div>
 
@@ -300,7 +358,12 @@ async function copy() {
         v-for="a in ACTIONS"
         :key="a.name"
         type="button"
-        :class="cn(CONTROL_BUTTON, 'flex flex-col items-center gap-1 rounded-lg border border-border/60 bg-background/60 py-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground')"
+        :class="
+          cn(
+            CONTROL_BUTTON,
+            'flex flex-col items-center gap-1 rounded-lg border border-border/60 bg-background/60 py-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground',
+          )
+        "
         @click="emit('action', a.name)"
       >
         <span aria-hidden="true" class="text-[14px]" :style="{ color: cssColor(props.color) }">{{ a.glyph }}</span>

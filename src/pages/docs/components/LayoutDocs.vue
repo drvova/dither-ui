@@ -42,11 +42,14 @@ function deploy() {
   ]
   STEPS.forEach((s, i) =>
     deployTimers.push(
-      window.setTimeout(() => {
-        consoleLines.value = [...consoleLines.value, { ...s, at: at() }]
-        if (i === STEPS.length - 1) deploying.value = false
-      }, 450 * (i + 1))
-    )
+      window.setTimeout(
+        () => {
+          consoleLines.value = [...consoleLines.value, { ...s, at: at() }]
+          if (i === STEPS.length - 1) deploying.value = false
+        },
+        450 * (i + 1),
+      ),
+    ),
   )
 }
 onUnmounted(() => deployTimers.forEach((t) => window.clearTimeout(t)))
@@ -166,9 +169,8 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="dither-shell" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Shell</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The app frame — topbar over an aside + content pair, statusbar under,
-      every region a slot. Below: a whole SaaS dashboard from the layout
-      family — rail, canvas, grid, sparkline cards, a live console.
+      The app frame — topbar over an aside + content pair, statusbar under, every region a slot. Below: a whole SaaS
+      dashboard from the layout family — rail, canvas, grid, sparkline cards, a live console.
     </p>
     <DemoCard :code="SNIPPET_SHELL">
       <DitherShell frame class="mx-auto h-[26rem] max-w-2xl">
@@ -176,7 +178,9 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
           <div class="flex h-10 w-full items-center gap-2 px-3">
             <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
             <span class="text-[12px] tracking-tight text-foreground">acme ops</span>
-            <span class="ml-auto rounded border border-border/60 px-1.5 py-0.5 text-[10px] text-muted-foreground">⌘K</span>
+            <span class="ml-auto rounded border border-border/60 px-1.5 py-0.5 text-[10px] text-muted-foreground"
+              >⌘K</span
+            >
             <DitherAvatar name="Ada Byte" :size="22" />
           </div>
         </template>
@@ -200,7 +204,15 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
         </template>
         <DitherCanvas pattern="dots" class="h-full p-3">
           <DitherGrid :min="130">
-            <div v-for="s in [['Requests', '84k', 'blue'], ['Errors', '0.2%', 'red'], ['P95', '212ms', 'green']]" :key="s[0]" class="rounded-md border border-border/60 bg-background/70 p-2.5">
+            <div
+              v-for="s in [
+                ['Requests', '84k', 'blue'],
+                ['Errors', '0.2%', 'red'],
+                ['P95', '212ms', 'green'],
+              ]"
+              :key="s[0]"
+              class="rounded-md border border-border/60 bg-background/70 p-2.5"
+            >
               <div class="flex items-baseline justify-between">
                 <span class="text-[10px] text-muted-foreground">{{ s[0] }}</span>
                 <span class="text-[13px] tabular-nums text-foreground">{{ s[1] }}</span>
@@ -230,9 +242,8 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="rail" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Rail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The permanent icon rail as a first-class piece — it provides the
-      sidebar's collapsed context, so plain sidebar items fold their labels
-      with zero extra props. Tooltips carry the words.
+      The permanent icon rail as a first-class piece — it provides the sidebar's collapsed context, so plain sidebar
+      items fold their labels with zero extra props. Tooltips carry the words.
     </p>
     <DemoCard :code="SNIPPET_RAIL">
       <div class="mx-auto flex h-72 max-w-sm overflow-hidden rounded-lg border border-border/60">
@@ -261,9 +272,8 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="console" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Console</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A monospace log surface — lines tint by level, follow mode pins the
-      newest output, the caret blinks politely. Run the deploy and watch it
-      stream.
+      A monospace log surface — lines tint by level, follow mode pins the newest output, the caret blinks politely. Run
+      the deploy and watch it stream.
     </p>
     <DemoCard :code="SNIPPET_CONSOLE">
       <div class="mx-auto max-w-lg">
@@ -283,8 +293,8 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="canvas" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Canvas</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The work surface a dashboard sits on — a dotted or ruled field inked
-      with the border token, content floating above.
+      The work surface a dashboard sits on — a dotted or ruled field inked with the border token, content floating
+      above.
     </p>
     <DemoCard :code="SNIPPET_CANVAS">
       <div class="mx-auto max-w-lg">
@@ -316,15 +326,21 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="grid" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Dashboard columns without media queries — cards auto-fit to a minimum
-      width, or take a deliberate fixed count. Drag the number and watch the
-      flow.
+      Dashboard columns without media queries — cards auto-fit to a minimum width, or take a deliberate fixed count.
+      Drag the number and watch the flow.
     </p>
     <DemoCard :code="SNIPPET_GRID">
       <div class="mx-auto max-w-lg">
         <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
           min card width
-          <input v-model.number="gridMin" type="range" min="100" max="240" step="10" class="w-40 accent-[var(--accent)]" />
+          <input
+            v-model.number="gridMin"
+            type="range"
+            min="100"
+            max="240"
+            step="10"
+            class="w-40 accent-[var(--accent)]"
+          />
           <span class="tabular-nums">{{ gridMin }}px</span>
         </label>
         <DitherGrid :min="gridMin" class="mt-3">
@@ -342,9 +358,8 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
   <section id="infinite-canvas" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Infinite canvas</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A pannable, zoomable work surface — drag to pan, wheel to zoom toward
-      the cursor, and the dot field rides the same transform so space feels
-      real. The zoom is a v-model.
+      A pannable, zoomable work surface — drag to pan, wheel to zoom toward the cursor, and the dot field rides the same
+      transform so space feels real. The zoom is a v-model.
     </p>
     <DemoCard :code="SNIPPET_INFINITE">
       <div class="mx-auto max-w-lg">
@@ -353,11 +368,17 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
           <span class="tabular-nums">{{ Math.round(canvasZoom * 100) }}%</span>
         </div>
         <DitherInfiniteCanvas v-model:zoom="canvasZoom" class="mt-2 h-64 rounded-lg border border-border/60">
-          <div class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3" style="left: 32px; top: 32px">
+          <div
+            class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3"
+            style="left: 32px; top: 32px"
+          >
             <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">Artboard A</div>
             <div class="mt-1 text-[12px] text-foreground">Drag the field</div>
           </div>
-          <div class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3" style="left: 280px; top: 150px">
+          <div
+            class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3"
+            style="left: 280px; top: 150px"
+          >
             <div class="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">Artboard B</div>
             <div class="mt-1 text-[12px] text-foreground">Zoom finds me</div>
           </div>

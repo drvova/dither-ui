@@ -10,7 +10,11 @@ import { routePath } from "@/shared/lib"
 import { SECTION_COUNT, SHELVES } from "./hub"
 
 const tab = ref("explore")
-const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.value === "explore" ? undefined : s.count }))
+const TABS = SHELVES.map((s) => ({
+  value: s.value,
+  label: s.label,
+  badge: s.value === "explore" ? undefined : s.count,
+}))
 </script>
 
 <template>
@@ -21,8 +25,8 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
       <a :href="routePath('/docs')" class="more-link">all sections →</a>
     </div>
     <p class="dir-p">
-      Each section is a live demo with its props and copy-ready code. Every component is one file in
-      one folder: read it, copy it, change it.
+      Each section is a live demo with its props and copy-ready code. Every component is one file in one folder: read
+      it, copy it, change it.
     </p>
     <div class="panel window">
       <DitherTabs v-model="tab" :tabs="TABS" color="grey" class="tabs">
@@ -30,7 +34,9 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
           <div class="cards">
             <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="thumb card">
               <span class="card-top">
-                <span class="card-av" aria-hidden="true"><DitherAvatar :name="c.id" :size="28" :grid="6" :animate="false" color="blue" /></span>
+                <span class="card-av" aria-hidden="true"
+                  ><DitherAvatar :name="c.id" :size="28" :grid="6" :animate="false" color="blue"
+                /></span>
                 <span class="micro card-family">{{ c.family }}</span>
               </span>
               <span class="card-name">{{ c.label }}</span>

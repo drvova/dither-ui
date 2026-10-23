@@ -13,9 +13,7 @@ const ROOT_LABEL: Record<string, string> = {
  * owning artboard id so layer ids are globally unique. */
 export function layersOf(chart: ChartModel, prefix: string): Layer[] {
   const fam = familyOf(chart.type)
-  const out: Layer[] = [
-    { id: `${prefix}:root`, kind: "root", label: ROOT_LABEL[chart.type] },
-  ]
+  const out: Layer[] = [{ id: `${prefix}:root`, kind: "root", label: ROOT_LABEL[chart.type] }]
   if (fam === "cartesian") {
     out.push({ id: `${prefix}:grid`, kind: "grid", label: "Grid" })
     out.push({ id: `${prefix}:xAxis`, kind: "xAxis", label: "X Axis" })

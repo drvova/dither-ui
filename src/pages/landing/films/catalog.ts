@@ -7,7 +7,18 @@
 // of the sky onto the tallest roof, lands with a spark, cools to a lit
 // window and later goes dark. Rendered on the greys with one ember. Verb:
 // arrive. Geometry: windows on a grid.
-import { base, constant, fill, keyed, marker, parallaxLayersMacro, type Color, type Key, type PathContour, type Vec3 } from "@clayzo/animation/authoring"
+import {
+  base,
+  constant,
+  fill,
+  keyed,
+  marker,
+  parallaxLayersMacro,
+  type Color,
+  type Key,
+  type PathContour,
+  type Vec3,
+} from "@clayzo/animation/authoring"
 import { mulberry32 } from "@dither-kit"
 import { FAMILIES } from "../hub"
 import { catalogLayout, GREY, windowTone } from "../plates"
@@ -31,7 +42,12 @@ const v3 = (x: number, y: number): Vec3 => ({ x, y, z: 0 })
  * (about one in six, each on its own seeded beats), and the ember cap. */
 function skyline(nodes: Nodes): string {
   const children: string[] = []
-  nodes.floor = { ...node("floor"), type: "path", path: constant({ contours: [rect(0, (L.floor + 1) * C, W, C)] }), style: { fill: fill(tone(1 / 3)) } }
+  nodes.floor = {
+    ...node("floor"),
+    type: "path",
+    path: constant({ contours: [rect(0, (L.floor + 1) * C, W, C)] }),
+    style: { fill: fill(tone(1 / 3)) },
+  }
   children.push("floor")
   const steady = new Map<number, PathContour[]>()
   const cap: PathContour[] = []
@@ -53,11 +69,21 @@ function skyline(nodes: Nodes): string {
     }
     keys.push([END, tone(t)])
     const id = `win${i}`
-    nodes[id] = { ...node(id), type: "path", path: constant({ contours: [win(w.x, w.y)] }), style: { fill: { color: keyed(`${id}.tone`, keys), opacity: constant(1) } } }
+    nodes[id] = {
+      ...node(id),
+      type: "path",
+      path: constant({ contours: [win(w.x, w.y)] }),
+      style: { fill: { color: keyed(`${id}.tone`, keys), opacity: constant(1) } },
+    }
     children.push(id)
   })
   ;[...steady.entries()].forEach(([t, contours], i) => {
-    nodes[`lit${i}`] = { ...node(`lit${i}`), type: "path", path: constant({ contours }), style: { fill: fill(tone(t)) } }
+    nodes[`lit${i}`] = {
+      ...node(`lit${i}`),
+      type: "path",
+      path: constant({ contours }),
+      style: { fill: fill(tone(t)) },
+    }
     children.unshift(`lit${i}`)
   })
   // The cap breathes; the mast over it blinks.
@@ -70,7 +96,12 @@ function skyline(nodes: Nodes): string {
   const top = Math.min(...L.windows.filter((w) => w.tower === L.tallest).map((w) => w.y))
   const t = L.towers[L.tallest]
   const mx = t.x + Math.floor((t.w * 3 - 1) / 2)
-  nodes.mast = { ...node("mast"), type: "path", path: constant({ contours: [rect(mx * C, (top - 4) * C, C, 3 * C)] }), style: { fill: fill(tone(0.5)) } }
+  nodes.mast = {
+    ...node("mast"),
+    type: "path",
+    path: constant({ contours: [rect(mx * C, (top - 4) * C, C, 3 * C)] }),
+    style: { fill: fill(tone(0.5)) },
+  }
   const blink: Key<Color>[] = []
   for (let k = 0; k < END; k += at(1.2)) blink.push([k, heat(0.8), "hold"], [k + at(0.2), heat(0), "hold"])
   blink.push([END, heat(0.8)])
@@ -129,7 +160,14 @@ function beam(nodes: Nodes): string {
 
 /** One rising mote: a cell that leaves a roof, drifts up and dithers out,
  * on a period that divides the loop. */
-function mote(nodes: Nodes, id: string, from: Vec3, to: Vec3, color: (t: number) => Color, run: { period: number; offset: number; life: number }) {
+function mote(
+  nodes: Nodes,
+  id: string,
+  from: Vec3,
+  to: Vec3,
+  color: (t: number) => Color,
+  run: { period: number; offset: number; life: number },
+) {
   nodes[id] = {
     ...base(id, { outTick: END, position: cycle(`${id}.position`, END, run, from, to, mixVec3) }),
     type: "rect",
@@ -154,7 +192,13 @@ function motes(nodes: Nodes): string {
     const life = Math.min(period - FR, at(1.4 + RAND() * 1.8))
     const offset = Math.round((RAND() * period) / FR) * FR
     const hot = RAND() < 0.2
-    children.push(mote(nodes, `mote${i}`, v3(x, (y - 0.5) * C), v3(x + drift, (y - 0.5) * C - rise), hot ? heat : tone, { period, offset, life }))
+    children.push(
+      mote(nodes, `mote${i}`, v3(x, (y - 0.5) * C), v3(x + drift, (y - 0.5) * C - rise), hot ? heat : tone, {
+        period,
+        offset,
+        life,
+      }),
+    )
   }
   nodes.motes = { ...node("motes"), type: "group", children }
   return "motes"

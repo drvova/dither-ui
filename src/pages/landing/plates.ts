@@ -17,12 +17,7 @@ export type Plate = { w: number; h: number; period: number; groups: PlateGroup[]
 
 type Run = { y: number; x0: number; last: number; n: number }
 
-export function buildPlate(
-  w: number,
-  h: number,
-  period: number,
-  paint: (x: number, y: number) => Cell | null,
-): Plate {
+export function buildPlate(w: number, h: number, period: number, paint: (x: number, y: number) => Cell | null): Plate {
   const groups = new Map<number, PlateGroup>()
   const paths = new Map<PlateGroup, Map<string, string[]>>()
   const open = new Map<string, Run>()
@@ -174,10 +169,24 @@ export function catalogLayout(counts: readonly number[]) {
   towers.forEach((t, tower) => {
     for (let k = 0; k < t.n; k++) {
       const row = Math.floor(k / t.w)
-      windows.push({ x: t.x + (k % t.w) * 3, y: floor - (row + 1) * 3 + 1, tower, row, top: row === t.rows - 1 || k + t.w >= t.n })
+      windows.push({
+        x: t.x + (k % t.w) * 3,
+        y: floor - (row + 1) * 3 + 1,
+        tower,
+        row,
+        top: row === t.rows - 1 || k + t.w >= t.n,
+      })
     }
   })
-  return { w: x - GAP + MARGIN, h: floor + 2, floor, rows, towers, windows, tallest: towers.findIndex((t) => t.rows === rows) }
+  return {
+    w: x - GAP + MARGIN,
+    h: floor + 2,
+    floor,
+    rows,
+    towers,
+    windows,
+    tallest: towers.findIndex((t) => t.rows === rows),
+  }
 }
 
 /** A window's resting tone: the top of each tower lit, the rest dimmer the
@@ -191,7 +200,14 @@ export const windowTone = (win: CatalogWindow, rows: number) => (win.top ? 0.86 
 export function catalogPlate(counts: readonly number[]): Plate {
   const L = catalogLayout(counts)
   const at = new Map<string, CatalogWindow>()
-  for (const win of L.windows) for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) at.set(`${win.x + dx},${win.y + dy}`, win)
+  for (const win of L.windows)
+    for (const [dx, dy] of [
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [1, 1],
+    ])
+      at.set(`${win.x + dx},${win.y + dy}`, win)
   return buildPlate(L.w, L.h, 1, (x, y) => {
     if (y === L.floor + 1) return { color: GREY[1], group: L.towers.length }
     const win = at.get(`${x},${y}`)

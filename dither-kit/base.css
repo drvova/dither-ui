@@ -56,7 +56,16 @@
 :where(.dither-kit ol, .dither-kit ul, .dither-kit menu) {
   list-style: none;
 }
-:where(.dither-kit img, .dither-kit svg, .dither-kit video, .dither-kit canvas, .dither-kit audio, .dither-kit iframe, .dither-kit embed, .dither-kit object) {
+:where(
+  .dither-kit img,
+  .dither-kit svg,
+  .dither-kit video,
+  .dither-kit canvas,
+  .dither-kit audio,
+  .dither-kit iframe,
+  .dither-kit embed,
+  .dither-kit object
+) {
   display: block;
   vertical-align: middle;
 }

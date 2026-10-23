@@ -5,10 +5,10 @@ import { cn } from "./lib"
 /** HSV color field: a saturation/value plane over the current hue, a hue
  * strip, and a hex readout input — pointer-driven, keyboard on the plane
  * (arrows nudge S/V). Model is the hex string. */
-const props = withDefaults(
-  defineProps<{ modelValue?: string; disabled?: boolean; class?: string }>(),
-  { modelValue: "#5227FF", disabled: false },
-)
+const props = withDefaults(defineProps<{ modelValue?: string; disabled?: boolean; class?: string }>(), {
+  modelValue: "#5227FF",
+  disabled: false,
+})
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
 
 function hexToHsv(hex: string): [number, number, number] {
@@ -37,9 +37,21 @@ function hsvToHex(h: number, s: number, v: number): string {
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
   const m = v - c
   const [r, g, b] =
-    h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x]
-    : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x]
-  const to = (n: number) => Math.round((n + m) * 255).toString(16).padStart(2, "0")
+    h < 60
+      ? [c, x, 0]
+      : h < 120
+        ? [x, c, 0]
+        : h < 180
+          ? [0, c, x]
+          : h < 240
+            ? [0, x, c]
+            : h < 300
+              ? [x, 0, c]
+              : [c, 0, x]
+  const to = (n: number) =>
+    Math.round((n + m) * 255)
+      .toString(16)
+      .padStart(2, "0")
   return `#${to(r)}${to(g)}${to(b)}`
 }
 
@@ -102,10 +114,7 @@ function onPlaneKeydown(e: KeyboardEvent) {
   else if (e.key === "ArrowDown") nv = v - d
   else return
   e.preventDefault()
-  emit(
-    "update:modelValue",
-    hsvToHex(hsv.value[0], Math.min(1, Math.max(0, ns)), Math.min(1, Math.max(0, nv))),
-  )
+  emit("update:modelValue", hsvToHex(hsv.value[0], Math.min(1, Math.max(0, ns)), Math.min(1, Math.max(0, nv))))
 }
 
 function onHexInput(raw: string) {
@@ -149,14 +158,15 @@ function onHexInput(raw: string) {
       :aria-disabled="props.disabled || undefined"
       class="relative h-4 w-full cursor-ew-resize rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
       style="
-        background: linear-gradient(
-          to right,
-          #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%
-        );
+        background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
       "
       @pointerdown.prevent="onHueDown"
-      @keydown.left.prevent="emit('update:modelValue', hsvToHex(Math.max(0, hsv[0] - (1 + +$event.shiftKey * 15)), hsv[1], hsv[2]))"
-      @keydown.right.prevent="emit('update:modelValue', hsvToHex(Math.min(360, hsv[0] + (1 + +$event.shiftKey * 15)), hsv[1], hsv[2]))"
+      @keydown.left.prevent="
+        emit('update:modelValue', hsvToHex(Math.max(0, hsv[0] - (1 + +$event.shiftKey * 15)), hsv[1], hsv[2]))
+      "
+      @keydown.right.prevent="
+        emit('update:modelValue', hsvToHex(Math.min(360, hsv[0] + (1 + +$event.shiftKey * 15)), hsv[1], hsv[2]))
+      "
     >
       <span
         class="pointer-events-none absolute left-0 top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow"

@@ -1,11 +1,7 @@
 import { describe, expect, it } from "rstack/test"
 import { widgetCode } from "../src/entities/widget/model/codegen"
 import { createComponent } from "../src/entities/widget/model/factory"
-import {
-  COMPONENT_REGISTRY,
-  componentEntry,
-  defaultComponentProps,
-} from "../src/entities/widget/model/registry"
+import { COMPONENT_REGISTRY, componentEntry, defaultComponentProps } from "../src/entities/widget/model/registry"
 
 const frame = { w: 200, h: 100 }
 
@@ -23,7 +19,9 @@ describe("component registry", () => {
   it("covers every public Dither component exactly once", { timeout: 20000 }, async () => {
     const kit = await import("../dither-kit")
     const bespoke = new Set(["DitherAvatar", "DitherButton", "DitherGradient", "DitherImage"])
-    const publicComponents = Object.keys(kit).filter((name) => /^Dither[A-Z]/.test(name) && !bespoke.has(name)).sort()
+    const publicComponents = Object.keys(kit)
+      .filter((name) => /^Dither[A-Z]/.test(name) && !bespoke.has(name))
+      .sort()
     expect(COMPONENT_REGISTRY.map((entry) => entry.is).sort()).toEqual(publicComponents)
   })
   it("defaults come straight from the specs", () => {
@@ -50,7 +48,13 @@ describe("component registry", () => {
     ])
   })
   it("gives child-only exports a valid composed demo", () => {
-    for (const name of ["DitherTabPanel", "DitherSidebarItem", "DitherSidebarGroup", "DitherSidebarSub", "DitherDrawerIndent"]) {
+    for (const name of [
+      "DitherTabPanel",
+      "DitherSidebarItem",
+      "DitherSidebarGroup",
+      "DitherSidebarSub",
+      "DitherDrawerIndent",
+    ]) {
       expect(componentEntry(name)?.demo).toBeTruthy()
     }
   })

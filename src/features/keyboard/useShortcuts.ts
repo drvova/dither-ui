@@ -24,12 +24,7 @@ type ZoomControls = {
 
 const isTyping = (t: EventTarget | null) => {
   const el = t as HTMLElement | null
-  return (
-    !!el &&
-    (el.tagName === "INPUT" ||
-      el.tagName === "TEXTAREA" ||
-      el.isContentEditable)
-  )
+  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
 }
 
 /** Familiar editor keybindings, installed at the canvas level. */
@@ -49,33 +44,27 @@ export function useShortcuts(zoom: ZoomControls) {
     }
 
     // Zoom
-    if (mod && (e.key === "=" || e.key === "+")) return e.preventDefault(), zoom.zoomIn()
-    if (mod && e.key === "-") return e.preventDefault(), zoom.zoomOut()
-    if ((mod && e.key === "0") || (e.shiftKey && e.key === "0"))
-      return e.preventDefault(), zoom.resetZoom()
-    if (e.shiftKey && e.key === "1") return e.preventDefault(), zoom.fit()
-    if (e.shiftKey && e.key === "2") return e.preventDefault(), zoom.fitSelection()
+    if (mod && (e.key === "=" || e.key === "+")) return (e.preventDefault(), zoom.zoomIn())
+    if (mod && e.key === "-") return (e.preventDefault(), zoom.zoomOut())
+    if ((mod && e.key === "0") || (e.shiftKey && e.key === "0")) return (e.preventDefault(), zoom.resetZoom())
+    if (e.shiftKey && e.key === "1") return (e.preventDefault(), zoom.fit())
+    if (e.shiftKey && e.key === "2") return (e.preventDefault(), zoom.fitSelection())
 
     // Selection
     const id = editor.selectedArtboardId
     const hasSel = id !== ""
     if (e.key === "Escape") return deselect()
-    if ((e.key === "Delete" || e.key === "Backspace") && hasSel)
-      return e.preventDefault(), removeSelected()
-    if (mod && (e.key === "d" || e.key === "D") && hasSel)
-      return e.preventDefault(), duplicateSelected()
-    if (mod && (e.key === "c" || e.key === "C") && hasSel)
-      return e.preventDefault(), copySelected()
-    if (mod && (e.key === "v" || e.key === "V"))
-      return e.preventDefault(), pasteClipboard()
+    if ((e.key === "Delete" || e.key === "Backspace") && hasSel) return (e.preventDefault(), removeSelected())
+    if (mod && (e.key === "d" || e.key === "D") && hasSel) return (e.preventDefault(), duplicateSelected())
+    if (mod && (e.key === "c" || e.key === "C") && hasSel) return (e.preventDefault(), copySelected())
+    if (mod && (e.key === "v" || e.key === "V")) return (e.preventDefault(), pasteClipboard())
     if (mod && e.shiftKey && (e.key === "g" || e.key === "G")) {
       e.preventDefault()
       const a = selectedArtboard.value
       if (a?.groupId) ungroup(a.groupId)
       return
     }
-    if (mod && (e.key === "g" || e.key === "G") && hasSel)
-      return e.preventDefault(), groupSelected()
+    if (mod && (e.key === "g" || e.key === "G") && hasSel) return (e.preventDefault(), groupSelected())
     if (mod && (e.key === "l" || e.key === "L") && hasSel) {
       e.preventDefault()
       const lock = !(selectedArtboard.value?.locked ?? false)

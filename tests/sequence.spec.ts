@@ -8,15 +8,15 @@ import {
   type SequencePlan,
 } from "../dither-kit/sequence"
 
-const at = (plan: SequencePlan, t: number, id: string) =>
-  sampleSequence(plan, t).find((s) => s.id === id)!
+const at = (plan: SequencePlan, t: number, id: string) => sampleSequence(plan, t).find((s) => s.id === id)!
 
-const track = (id: string, duration: number, extra: Record<string, unknown> = {}): SequenceNode => ({
-  kind: "track",
-  id,
-  duration,
-  ...extra,
-} as SequenceNode)
+const track = (id: string, duration: number, extra: Record<string, unknown> = {}): SequenceNode =>
+  ({
+    kind: "track",
+    id,
+    duration,
+    ...extra,
+  }) as SequenceNode
 
 describe("planSequence — serial", () => {
   it("concatenates tracks with an optional gap", () => {
@@ -67,8 +67,7 @@ describe("planSequence — parallel", () => {
 })
 
 describe("staggerDelay — the four origins", () => {
-  const delays = (from: staggerFrom) =>
-    [0, 1, 2, 3, 4].map((i) => staggerDelay(i, 5, 0.1, from))
+  const delays = (from: staggerFrom) => [0, 1, 2, 3, 4].map((i) => staggerDelay(i, 5, 0.1, from))
   type staggerFrom = Parameters<typeof staggerDelay>[3]
 
   it("start: wave from the first item", () => {

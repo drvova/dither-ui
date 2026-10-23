@@ -10,7 +10,7 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { placeholder: "Search…", disabled: false }
+  { placeholder: "Search…", disabled: false },
 )
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()

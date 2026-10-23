@@ -1,27 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import {
-  addRow,
-  addSeries,
-  importCsv,
-  LABEL_KEY,
-  removeRow,
-  renamePieSlice,
-} from "@/entities/chart"
+import { addRow, addSeries, importCsv, LABEL_KEY, removeRow, renamePieSlice } from "@/entities/chart"
 import { replay } from "@/entities/editor"
 import { editor, selectedArtboard, selectedChart } from "@/entities/editor"
 import { familyOf } from "@/shared/config"
 import { cssColor } from "@dither-kit"
 
 const chart = selectedChart
-const isChartFrame = computed(
-  () => !!selectedArtboard.value && !selectedArtboard.value.widget
-)
+const isChartFrame = computed(() => !!selectedArtboard.value && !selectedArtboard.value.widget)
 const fam = computed(() => (chart.value ? familyOf(chart.value.type) : "cartesian"))
 const labelKey = computed(() => LABEL_KEY[fam.value])
-const columns = computed(() =>
-  fam.value === "pie" ? [] : chart.value?.series.filter((s) => s.on) ?? []
-)
+const columns = computed(() => (fam.value === "pie" ? [] : (chart.value?.series.filter((s) => s.on) ?? [])))
 
 function onPieName(index: number, e: Event) {
   if (!chart.value) return

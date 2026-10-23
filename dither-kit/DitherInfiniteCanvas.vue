@@ -17,7 +17,7 @@ const props = withDefaults(
     label?: string
     class?: string
   }>(),
-  { zoom: 1, minZoom: 0.25, maxZoom: 3, pattern: "dots", cell: 16, label: "Infinite canvas" }
+  { zoom: 1, minZoom: 0.25, maxZoom: 3, pattern: "dots", cell: 16, label: "Infinite canvas" },
 )
 const emit = defineEmits<{ "update:zoom": [number] }>()
 
@@ -27,7 +27,7 @@ const ty = ref(0)
 const z = ref(props.zoom)
 watch(
   () => props.zoom,
-  (v) => (z.value = Math.min(props.maxZoom, Math.max(props.minZoom, v)))
+  (v) => (z.value = Math.min(props.maxZoom, Math.max(props.minZoom, v))),
 )
 
 let pointerId = -1
@@ -87,7 +87,13 @@ const layer = (zoomed: number) => {
     ref="el"
     role="group"
     :aria-label="props.label"
-    :class="cn('relative touch-none overflow-hidden bg-background/40 select-none', panning ? 'cursor-grabbing' : 'cursor-grab', props.class)"
+    :class="
+      cn(
+        'relative touch-none overflow-hidden bg-background/40 select-none',
+        panning ? 'cursor-grabbing' : 'cursor-grab',
+        props.class,
+      )
+    "
     @pointerdown="down"
     @pointermove="move"
     @pointerup="up"
@@ -99,7 +105,10 @@ const layer = (zoomed: number) => {
       class="pointer-events-none absolute inset-0 opacity-40"
       :style="{ ...layer(z), backgroundPosition: `${tx}px ${ty}px` }"
     />
-    <div class="absolute top-0 left-0 origin-top-left" :style="{ transform: `translate(${tx}px, ${ty}px) scale(${z})` }">
+    <div
+      class="absolute top-0 left-0 origin-top-left"
+      :style="{ transform: `translate(${tx}px, ${ty}px) scale(${z})` }"
+    >
       <slot />
     </div>
   </div>

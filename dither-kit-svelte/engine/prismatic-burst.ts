@@ -19,7 +19,12 @@ export type PrismaticBurstParams = {
   dither: number
 }
 
-export function paintPrismaticBurst(buffer: RasterBuffer, p: PrismaticBurstParams, time: number, matrix: number[][]): void {
+export function paintPrismaticBurst(
+  buffer: RasterBuffer,
+  p: PrismaticBurstParams,
+  time: number,
+  matrix: number[][],
+): void {
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data

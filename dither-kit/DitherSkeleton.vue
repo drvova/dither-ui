@@ -21,7 +21,7 @@ function paintSkeleton(
   rows: number,
   phase: number,
   matrix: number[][] = BAYER4,
-  shimmer = SHIMMER_DEFAULT
+  shimmer = SHIMMER_DEFAULT,
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const density = shimmer.base + shimmer.amp * Math.sin(phase)
@@ -104,8 +104,7 @@ function init(): (() => void) | undefined {
     wake()
   }
 
-  const ro =
-    typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null
+  const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null
   ro?.observe(wrap)
 
   return () => {
@@ -116,21 +115,15 @@ function init(): (() => void) | undefined {
 }
 
 onMounted(() => {
-  requestAnimationFrame(() => { teardown = init() })
+  requestAnimationFrame(() => {
+    teardown = init()
+  })
 })
 onBeforeUnmount(() => teardown?.())
 </script>
 
 <template>
-  <div
-    ref="wrapRef"
-    aria-hidden="true"
-    :class="cn('relative overflow-hidden', props.class)"
-  >
-    <canvas
-      ref="canvasRef"
-      class="absolute inset-0 h-full w-full"
-      style="image-rendering: pixelated"
-    />
+  <div ref="wrapRef" aria-hidden="true" :class="cn('relative overflow-hidden', props.class)">
+    <canvas ref="canvasRef" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
   </div>
 </template>

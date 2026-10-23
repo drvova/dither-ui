@@ -84,11 +84,5 @@ export type ReelClip = { id: string; seconds: number; transition: ReelTransition
 export type ReelModel = { kind: "reel"; clips: ReelClip[] }
 
 export type WidgetModel =
-  | AvatarModel
-  | ButtonModel
-  | GradientModel
-  | ImageModel
-  | ComponentModel
-  | ScreenModel
-  | ReelModel
+  AvatarModel | ButtonModel | GradientModel | ImageModel | ComponentModel | ScreenModel | ReelModel
 export type WidgetKind = WidgetModel["kind"]

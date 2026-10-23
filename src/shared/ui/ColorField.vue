@@ -24,7 +24,7 @@ watch(
   (v) => {
     // Skip re-sync when the change is our own emit (avoids thumb jitter).
     if (presets.includes(v as string) || v !== hex.value) syncFromModel()
-  }
+  },
 )
 
 const clamp = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
@@ -76,7 +76,11 @@ function enableCustom() {
         type="button"
         class="size-5 rounded-[4px] transition-transform hover:scale-110"
         :class="!isPreset ? 'ring-2 ring-foreground ring-offset-1 ring-offset-background' : 'ring-1 ring-border'"
-        :style="!isPreset ? { backgroundColor: hex } : { background: 'conic-gradient(from 0deg, red, #ff0, lime, cyan, blue, magenta, red)' }"
+        :style="
+          !isPreset
+            ? { backgroundColor: hex }
+            : { background: 'conic-gradient(from 0deg, red, #ff0, lime, cyan, blue, magenta, red)' }
+        "
         title="Custom colour"
         aria-label="Custom colour"
         @click="enableCustom"
@@ -91,8 +95,8 @@ function enableCustom() {
         :style="{ backgroundColor: `hsl(${hsv.h} 100% 50%)` }"
         @pointerdown="onSquare"
       >
-        <div class="absolute inset-0" style="background: linear-gradient(to right, #fff, rgba(255,255,255,0))" />
-        <div class="absolute inset-0" style="background: linear-gradient(to top, #000, rgba(0,0,0,0))" />
+        <div class="absolute inset-0" style="background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0))" />
+        <div class="absolute inset-0" style="background: linear-gradient(to top, #000, rgba(0, 0, 0, 0))" />
         <div
           class="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
           :style="{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%` }"
@@ -131,8 +135,13 @@ function enableCustom() {
 .dk-hue {
   background: linear-gradient(
     to right,
-    hsl(0 100% 50%), hsl(60 100% 50%), hsl(120 100% 50%),
-    hsl(180 100% 50%), hsl(240 100% 50%), hsl(300 100% 50%), hsl(360 100% 50%)
+    hsl(0 100% 50%),
+    hsl(60 100% 50%),
+    hsl(120 100% 50%),
+    hsl(180 100% 50%),
+    hsl(240 100% 50%),
+    hsl(300 100% 50%),
+    hsl(360 100% 50%)
   );
 }
 .dk-hue::-webkit-slider-thumb {

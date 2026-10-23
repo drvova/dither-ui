@@ -33,7 +33,7 @@ const props = withDefaults(
     /** false keeps the drawer open on backdrop clicks (Escape still closes). */
     dismissible?: boolean
   }>(),
-  { side: "right", swipe: true, modal: true, dismissible: true }
+  { side: "right", swipe: true, modal: true, dismissible: true },
 )
 const emit = defineEmits<{ close: []; "update:snapPoint": [number] }>()
 
@@ -43,7 +43,7 @@ watch(
   () => props.open,
   (v) => {
     if (v && props.modal) nextTick(() => closeRef.value?.focus())
-  }
+  },
 )
 
 // --- nesting: push this drawer back while a child drawer is open ------------
@@ -55,29 +55,23 @@ watch(
   (v, old) => {
     if (parent && v !== !!old) parent.notify(v ? 1 : -1)
   },
-  { immediate: true }
+  { immediate: true },
 )
 onBeforeUnmount(() => {
   if (parent && props.open) parent.notify(-1)
 })
 
 // --- snap points (bottom sheets) ---------------------------------------------
-const hasSnaps = computed(
-  () => props.side === "bottom" && !!props.snapPoints && props.snapPoints.length > 0
-)
+const hasSnaps = computed(() => props.side === "bottom" && !!props.snapPoints && props.snapPoints.length > 0)
 const internalSnap = ref<number | null>(null)
-const activeSnap = computed(
-  () => props.snapPoint ?? internalSnap.value ?? props.snapPoints?.[0] ?? 1
-)
+const activeSnap = computed(() => props.snapPoint ?? internalSnap.value ?? props.snapPoints?.[0] ?? 1)
 watch(
   () => props.open,
   (v) => {
     if (v) internalSnap.value = props.snapPoint ?? props.snapPoints?.[0] ?? null
-  }
+  },
 )
-const maxSnapPx = computed(() =>
-  hasSnaps.value ? Math.max(...props.snapPoints!.map(resolveSnap)) : 0
-)
+const maxSnapPx = computed(() => (hasSnaps.value ? Math.max(...props.snapPoints!.map(resolveSnap)) : 0))
 const activeSnapPx = computed(() => (hasSnaps.value ? resolveSnap(activeSnap.value) : 0))
 /** Resting translateY for the current snap: hide everything below it. */
 const snapBase = computed(() => (hasSnaps.value ? maxSnapPx.value - activeSnapPx.value : 0))
@@ -142,9 +136,7 @@ function onUp() {
       return
     }
     const nearest = snaps.reduce((a, b) =>
-      Math.abs(resolveSnap(b) - projectedVisible) < Math.abs(resolveSnap(a) - projectedVisible)
-        ? b
-        : a
+      Math.abs(resolveSnap(b) - projectedVisible) < Math.abs(resolveSnap(a) - projectedVisible) ? b : a,
     )
     setSnap(nearest)
     offset.value = 0
@@ -180,8 +172,7 @@ const progress = computed(() => {
 
 const panelStyle = computed(() => {
   if (childOpen.value > 0) {
-    const push =
-      props.side === "bottom" ? "translateY(10px)" : `translateX(${12 * dismissSign.value}px)`
+    const push = props.side === "bottom" ? "translateY(10px)" : `translateX(${12 * dismissSign.value}px)`
     return { transform: `${push} scale(0.97)`, filter: "brightness(0.75)" }
   }
   const style: Record<string, string> = { transitionDuration: `${settleMs.value}ms` }
@@ -189,9 +180,7 @@ const panelStyle = computed(() => {
   const delta = snapBase.value + offset.value
   if (delta !== 0) {
     style.transform =
-      axis.value === "y"
-        ? `translateY(${delta}px)`
-        : `translateX(${offset.value * dismissSign.value}px)`
+      axis.value === "y" ? `translateY(${delta}px)` : `translateX(${offset.value * dismissSign.value}px)`
   }
   return style
 })
@@ -220,9 +209,7 @@ const panelStyle = computed(() => {
         :aria-label="props.title"
         class="fixed z-50 flex flex-col border-border bg-card p-4 font-mono"
         :class="[
-          props.side === 'bottom'
-            ? 'inset-x-0 bottom-0 rounded-t-xl border-t'
-            : 'inset-y-0 w-80 max-w-[85vw]',
+          props.side === 'bottom' ? 'inset-x-0 bottom-0 rounded-t-xl border-t' : 'inset-y-0 w-80 max-w-[85vw]',
           props.side === 'bottom' && !hasSnaps ? 'max-h-[85vh]' : '',
           props.side === 'right' ? 'right-0 border-l' : props.side === 'left' ? 'left-0 border-r' : '',
           dragging ? 'select-none' : 'transition-[transform,filter] motion-reduce:transition-none',
@@ -252,10 +239,7 @@ const panelStyle = computed(() => {
             ×
           </button>
         </div>
-        <div
-          class="min-h-0 flex-1 overflow-y-auto"
-          :data-no-swipe="props.side === 'bottom' ? true : undefined"
-        >
+        <div class="min-h-0 flex-1 overflow-y-auto" :data-no-swipe="props.side === 'bottom' ? true : undefined">
           <slot />
         </div>
       </div>

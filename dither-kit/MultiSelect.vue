@@ -41,7 +41,10 @@ function toggle(option: string, checked: boolean) {
 }
 
 function remove(option: string) {
-  emit("update:modelValue", selected.value.filter((o) => o !== option))
+  emit(
+    "update:modelValue",
+    selected.value.filter((o) => o !== option),
+  )
 }
 </script>
 
@@ -83,9 +86,7 @@ function remove(option: string) {
     />
 
     <ul class="grid max-h-44 gap-0.5 overflow-auto">
-      <li v-if="filtered.length === 0" class="px-2 py-1.5 text-[12px] text-muted-foreground">
-        No matches
-      </li>
+      <li v-if="filtered.length === 0" class="px-2 py-1.5 text-[12px] text-muted-foreground">No matches</li>
       <li v-for="option in filtered" :key="option">
         <label
           class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-[13px] transition-colors hover:bg-accent/10 motion-reduce:transition-none"

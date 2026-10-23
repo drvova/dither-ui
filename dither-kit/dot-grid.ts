@@ -23,7 +23,7 @@ export function paintDotGrid(
   p: DotGridParams,
   time: number,
   matrix: number[][],
-  mouse: { x: number; y: number } | null
+  mouse: { x: number; y: number } | null,
 ): void {
   const cols = buffer.width
   const rows = buffer.height

@@ -13,7 +13,7 @@ const props = withDefaults(
     color?: PixelColor
     class?: string
   }>(),
-  { type: "single", color: "blue" }
+  { type: "single", color: "blue" },
 )
 
 const emit = defineEmits<{
@@ -33,9 +33,7 @@ function setCanvasRef(el: unknown, i: number) {
 }
 
 function isOn(o: Option): boolean {
-  return Array.isArray(props.modelValue)
-    ? props.modelValue.includes(o.value)
-    : props.modelValue === o.value
+  return Array.isArray(props.modelValue) ? props.modelValue.includes(o.value) : props.modelValue === o.value
 }
 
 const activeIndex = computed(() => {
@@ -48,12 +46,7 @@ function pick(o: Option) {
   if (o.disabled) return
   if (props.type === "multiple") {
     const cur = Array.isArray(props.modelValue) ? props.modelValue : []
-    emit(
-      "update:modelValue",
-      cur.includes(o.value)
-        ? cur.filter((v) => v !== o.value)
-        : [...cur, o.value]
-    )
+    emit("update:modelValue", cur.includes(o.value) ? cur.filter((v) => v !== o.value) : [...cur, o.value])
   } else {
     emit("update:modelValue", o.value)
   }
@@ -72,11 +65,7 @@ function paintAll() {
 function onKeydown(e: KeyboardEvent) {
   if (props.type !== "single") return
   const dir =
-    e.key === "ArrowDown" || e.key === "ArrowRight"
-      ? 1
-      : e.key === "ArrowUp" || e.key === "ArrowLeft"
-        ? -1
-        : 0
+    e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0
   if (!dir) return
   e.preventDefault()
   const n = props.options.length
@@ -102,7 +91,7 @@ onMounted(() => {
 })
 watch(
   () => [props.modelValue, props.color, props.options],
-  () => requestAnimationFrame(paintAll)
+  () => requestAnimationFrame(paintAll),
 )
 onBeforeUnmount(() => ro?.disconnect())
 </script>

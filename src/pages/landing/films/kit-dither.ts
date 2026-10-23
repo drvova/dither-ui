@@ -38,7 +38,9 @@ const f = (v: number) => (Number.isInteger(v) ? `${v}.0` : String(v))
 /** `value(i)` as a chain of ternaries on a float index — SkSL has no array
  * initialisers, so the matrix and the ramps are unrolled from kit data. */
 const lookup = (index: string, values: readonly string[]) =>
-  values.slice(0, -1).reduceRight((rest, v, i) => `(${index} < ${f(i + 0.5)} ? ${v} : ${rest})`, values[values.length - 1])
+  values
+    .slice(0, -1)
+    .reduceRight((rest, v, i) => `(${index} < ${f(i + 0.5)} ? ${v} : ${rest})`, values[values.length - 1])
 
 /** The shader: uniforms `cell` and `gap` (composition units), the loupe's
  * `focus` (device pixels, as the engine converts points) and `radius`
@@ -87,7 +89,13 @@ export function kitDitherSksl(cool: readonly string[] = SKY, hot: readonly strin
   ].join("\n")
 }
 
-const number = (id: string, name: string, value: number, minimum: number, maximum: number): EffectNode["parameters"][number] => ({
+const number = (
+  id: string,
+  name: string,
+  value: number,
+  minimum: number,
+  maximum: number,
+): EffectNode["parameters"][number] => ({
   id,
   name,
   valueType: "number",
@@ -138,8 +146,18 @@ export function kitDither(
         maximum: { x: 1e4, y: 1e4 },
       },
       number(`${id}.radius`, "radius", 0, 0, 1000),
-      ...cool.map((c, i) => ({ id: `${id}.k${i}`, name: `k${i}`, valueType: "color" as const, value: constant(hex(c)) })),
-      ...hot.map((c, i) => ({ id: `${id}.h${i}`, name: `h${i}`, valueType: "color" as const, value: constant(hex(c)) })),
+      ...cool.map((c, i) => ({
+        id: `${id}.k${i}`,
+        name: `k${i}`,
+        valueType: "color" as const,
+        value: constant(hex(c)),
+      })),
+      ...hot.map((c, i) => ({
+        id: `${id}.h${i}`,
+        name: `h${i}`,
+        valueType: "color" as const,
+        value: constant(hex(c)),
+      })),
     ],
     capability: { requires: ["runtime-effect"], fallback: "passthrough", maxTemporarySurfaces: 1 },
   }

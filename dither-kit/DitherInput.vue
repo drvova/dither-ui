@@ -16,13 +16,13 @@ const props = withDefaults(
     invalid?: boolean
     class?: string
   }>(),
-  { modelValue: "", type: "text", disabled: false, invalid: false }
+  { modelValue: "", type: "text", disabled: false, invalid: false },
 )
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
 const field = useField()
 const invalid = computed(() => props.invalid || field?.invalid.value || false)
-const invalidStyle = computed(() => invalid.value ? { borderColor: cssColor("red") } : undefined)
+const invalidStyle = computed(() => (invalid.value ? { borderColor: cssColor("red") } : undefined))
 </script>
 
 <template>
@@ -37,11 +37,7 @@ const invalidStyle = computed(() => invalid.value ? { borderColor: cssColor("red
     :aria-describedby="($attrs['aria-describedby'] as string | undefined) ?? field?.describedBy.value"
     :style="invalidStyle"
     :class="
-      cn(
-        CONTROL,
-        'w-full read-only:cursor-default read-only:bg-card/40 read-only:text-muted-foreground',
-        props.class
-      )
+      cn(CONTROL, 'w-full read-only:cursor-default read-only:bg-card/40 read-only:text-muted-foreground', props.class)
     "
     v-bind="$attrs"
     @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"

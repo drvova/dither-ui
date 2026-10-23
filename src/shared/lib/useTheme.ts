@@ -35,11 +35,12 @@ export function useTheme() {
   const apply = () => document.documentElement.classList.toggle("dark", dark.value)
   const persist = () => localStorage.setItem(STORAGE_KEY, dark.value ? "dark" : "light")
 
-  const toggle = () => withoutTransitions(() => {
-    dark.value = !dark.value
-    apply()
-    persist()
-  })
+  const toggle = () =>
+    withoutTransitions(() => {
+      dark.value = !dark.value
+      apply()
+      persist()
+    })
 
   /** Theme swap wrapped in a circular reveal from the event's control.
    * Falls back to a plain toggle without the API or under reduced motion. */
@@ -55,12 +56,14 @@ export function useTheme() {
     const cx = r ? r.left + r.width / 2 : window.innerWidth - 24
     const cy = r ? r.top + r.height / 2 : 24
     const radius = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy))
-    doc.startViewTransition(() => withoutTransitions(toggle)).ready.then(() => {
-      document.documentElement.animate(
-        { clipPath: [`circle(0px at ${cx}px ${cy}px)`, `circle(${radius}px at ${cx}px ${cy}px)`] },
-        { duration: 480, easing: "cubic-bezier(0.3, 0.9, 0.4, 1)", pseudoElement: "::view-transition-new(root)" }
-      )
-    })
+    doc
+      .startViewTransition(() => withoutTransitions(toggle))
+      .ready.then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${cx}px ${cy}px)`, `circle(${radius}px at ${cx}px ${cy}px)`] },
+          { duration: 480, easing: "cubic-bezier(0.3, 0.9, 0.4, 1)", pseudoElement: "::view-transition-new(root)" },
+        )
+      })
   }
 
   onMounted(() => {

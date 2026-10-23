@@ -1,11 +1,25 @@
 import { describe, expect, it } from "rstack/test"
-import { externalResources, formatOf, parseGltf, parseMtl, parseObj, parseOff, parsePly, parseWorld, parseX3d, parseXml, sniffFormat } from "../dither-kit/models"
+import {
+  externalResources,
+  formatOf,
+  parseGltf,
+  parseMtl,
+  parseObj,
+  parseOff,
+  parsePly,
+  parseWorld,
+  parseX3d,
+  parseXml,
+  sniffFormat,
+} from "../dither-kit/models"
 import { nodeMatrices, transformPoint } from "../dither-kit/world"
 
 const enc = (s: string) => new TextEncoder().encode(s)
 
 /** A GLB holding one triangle (+ optional colour, node transform, animation). */
-function glb(opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip?: boolean; uv?: boolean } = {}): Uint8Array {
+function glb(
+  opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip?: boolean; uv?: boolean } = {},
+): Uint8Array {
   const positions = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0])
   const colors = new Float32Array([1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0])
   const indices = new Uint16Array([0, 1, 2, 0])
@@ -27,7 +41,18 @@ function glb(opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip
     scene: 0,
     scenes: [{ nodes: [0] }],
     nodes: [{ mesh: 0, ...(opts.rotate ? { rotation: [0, 0, Math.SQRT1_2, Math.SQRT1_2] } : {}) }],
-    meshes: [{ primitives: [{ attributes: { POSITION: 0, ...(opts.color ? { COLOR_0: 1 } : {}), ...(opts.uv ? { TEXCOORD_0: 5 } : {}) }, indices: 2, material: 0, ...(opts.strip ? { mode: 5 } : {}) }] }],
+    meshes: [
+      {
+        primitives: [
+          {
+            attributes: { POSITION: 0, ...(opts.color ? { COLOR_0: 1 } : {}), ...(opts.uv ? { TEXCOORD_0: 5 } : {}) },
+            indices: 2,
+            material: 0,
+            ...(opts.strip ? { mode: 5 } : {}),
+          },
+        ],
+      },
+    ],
     materials: [{ pbrMetallicRoughness: { baseColorFactor: [0, 1, 0, 1] }, doubleSided: true }],
     buffers: [{ byteLength: total }],
     bufferViews: views,
@@ -39,7 +64,16 @@ function glb(opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip
       { bufferView: 4, componentType: 5126, count: 2, type: "VEC4" },
       { bufferView: 5, componentType: 5126, count: 4, type: "VEC2" },
     ],
-    ...(opts.animate ? { animations: [{ channels: [{ sampler: 0, target: { node: 0, path: "rotation" } }], samplers: [{ input: 3, output: 4, interpolation: "LINEAR" }] }] } : {}),
+    ...(opts.animate
+      ? {
+          animations: [
+            {
+              channels: [{ sampler: 0, target: { node: 0, path: "rotation" } }],
+              samplers: [{ input: 3, output: 4, interpolation: "LINEAR" }],
+            },
+          ],
+        }
+      : {}),
   }
   const jsonBytes = enc(JSON.stringify(json))
   const jsonPad = Math.ceil(jsonBytes.length / 4) * 4
@@ -60,7 +94,14 @@ function glb(opts: { color?: boolean; rotate?: boolean; animate?: boolean; strip
 
 describe("formats", () => {
   it("names and sniffs every format", () => {
-    expect(["a.x3d", "b.glb", "c.gltf", "d.ply", "e.off", "f.x3dv"].map(formatOf)).toEqual(["x3d", "gltf", "gltf", "ply", "off", "vrml"])
+    expect(["a.x3d", "b.glb", "c.gltf", "d.ply", "e.off", "f.x3dv"].map(formatOf)).toEqual([
+      "x3d",
+      "gltf",
+      "gltf",
+      "ply",
+      "off",
+      "vrml",
+    ])
     expect(sniffFormat(glb())).toBe("gltf")
     expect(sniffFormat(enc('{ "asset": { "version": "2.0" } }'))).toBe("gltf")
     expect(sniffFormat(enc('<?xml version="1.0"?><X3D></X3D>'))).toBe("x3d")
@@ -69,7 +110,12 @@ describe("formats", () => {
   })
   it("lists the external files a model needs", () => {
     expect(externalResources("mtllib a.mtl b.mtl\nv 0 0 0\n", "obj")).toEqual(["a.mtl", "b.mtl"])
-    expect(externalResources('{ "asset": {}, "buffers": [{ "uri": "scene.bin", "byteLength": 1 }, { "uri": "data:application/octet-stream;base64,AA==", "byteLength": 1 }] }', "gltf")).toEqual(["scene.bin"])
+    expect(
+      externalResources(
+        '{ "asset": {}, "buffers": [{ "uri": "scene.bin", "byteLength": 1 }, { "uri": "data:application/octet-stream;base64,AA==", "byteLength": 1 }] }',
+        "gltf",
+      ),
+    ).toEqual(["scene.bin"])
     expect(externalResources("#VRML V2.0 utf8\n", "vrml")).toEqual([])
   })
 })
@@ -103,9 +149,19 @@ describe("glTF", () => {
   it("reads .gltf JSON with data: URIs and pre-fetched buffers", () => {
     const pos = new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0])
     const b64 = btoa(String.fromCharCode(...new Uint8Array(pos.buffer)))
-    const json = (uri: string) => JSON.stringify({ asset: { version: "2.0" }, nodes: [{ mesh: 0 }], meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }], buffers: [{ uri, byteLength: 36 }], bufferViews: [{ buffer: 0, byteLength: 36 }], accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: "VEC3" }] })
+    const json = (uri: string) =>
+      JSON.stringify({
+        asset: { version: "2.0" },
+        nodes: [{ mesh: 0 }],
+        meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+        buffers: [{ uri, byteLength: 36 }],
+        bufferViews: [{ buffer: 0, byteLength: 36 }],
+        accessors: [{ bufferView: 0, componentType: 5126, count: 3, type: "VEC3" }],
+      })
     expect(parseWorld(json(`data:application/octet-stream;base64,${b64}`), "gltf").meshes[0].indices.length).toBe(3)
-    expect(parseWorld(json("tri.bin"), "gltf", { resources: { "tri.bin": pos.buffer } }).meshes[0].indices.length).toBe(3)
+    expect(parseWorld(json("tri.bin"), "gltf", { resources: { "tri.bin": pos.buffer } }).meshes[0].indices.length).toBe(
+      3,
+    )
     expect(parseWorld(json("missing.bin"), "gltf").meshes.length).toBe(0)
   })
 })
@@ -131,18 +187,22 @@ Shape { geometry Box {} }`,
     )
     expect(Array.from(w.meshes[0].uv!)).toEqual([0, 0, 1, 1, 0, 1])
     expect(w.meshes[1].uv?.length).toBe(40)
-    const ply = parsePly("ply\nformat ascii 1.0\nelement vertex 3\nproperty float x\nproperty float y\nproperty float z\nproperty float s\nproperty float t\nelement face 1\nproperty list uchar int vertex_indices\nend_header\n0 0 0 0 0\n1 0 0 1 0\n0 1 0 0 1\n3 0 1 2\n")
+    const ply = parsePly(
+      "ply\nformat ascii 1.0\nelement vertex 3\nproperty float x\nproperty float y\nproperty float z\nproperty float s\nproperty float t\nelement face 1\nproperty list uchar int vertex_indices\nend_header\n0 0 0 0 0\n1 0 0 1 0\n0 1 0 0 1\n3 0 1 2\n",
+    )
     expect(Array.from(ply.meshes[0].uv!)).toEqual([0, 1, 1, 1, 0, 0])
   })
 })
 
 describe("PLY + OFF", () => {
   it("reads ASCII PLY with vertex colours and binary PLY with face colours", () => {
-    const ascii = "ply\nformat ascii 1.0\nelement vertex 3\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nelement face 1\nproperty list uchar int vertex_indices\nend_header\n0 0 0 255 0 0\n1 0 0 255 0 0\n0 1 0 255 0 0\n3 0 1 2\n"
+    const ascii =
+      "ply\nformat ascii 1.0\nelement vertex 3\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nelement face 1\nproperty list uchar int vertex_indices\nend_header\n0 0 0 255 0 0\n1 0 0 255 0 0\n0 1 0 255 0 0\n3 0 1 2\n"
     const a = parsePly(ascii)
     expect(a.meshes[0].indices.length).toBe(3)
     expect(a.palette[a.meshes[0].triColors![0]]).toEqual([255, 0, 0])
-    const header = "ply\nformat binary_little_endian 1.0\nelement vertex 3\nproperty float x\nproperty float y\nproperty float z\nelement face 1\nproperty list uchar uint vertex_indices\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n"
+    const header =
+      "ply\nformat binary_little_endian 1.0\nelement vertex 3\nproperty float x\nproperty float y\nproperty float z\nelement face 1\nproperty list uchar uint vertex_indices\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n"
     const body = new Uint8Array(36 + 1 + 12 + 3)
     const dv = new DataView(body.buffer)
     ;[0, 0, 0, 2, 0, 0, 0, 2, 0].forEach((v, i) => dv.setFloat32(i * 4, v, true))
@@ -158,7 +218,9 @@ describe("PLY + OFF", () => {
     expect(b.meshes[0].indices.length).toBe(3)
     expect(b.palette[b.meshes[0].triColors![0]]).toEqual([0, 0, 255])
     expect(b.radius).toBeCloseTo(Math.SQRT2)
-    const cloud = parsePly("ply\nformat ascii 1.0\nelement vertex 2\nproperty float x\nproperty float y\nproperty float z\nend_header\n0 0 0\n1 1 1\n")
+    const cloud = parsePly(
+      "ply\nformat ascii 1.0\nelement vertex 2\nproperty float x\nproperty float y\nproperty float z\nend_header\n0 0 0\n1 1 1\n",
+    )
     expect(cloud.meshes[0].kind).toBe("points")
   })
   it("reads OFF with optional face colours", () => {
@@ -176,9 +238,15 @@ describe("OBJ + MTL", () => {
   it("colours usemtl groups from the material library and keeps lines and points", () => {
     const mtl = "newmtl red\nKd 1 0 0\nnewmtl blue\nKd 0 0 1\n"
     expect(parseMtl(mtl)).toEqual({ red: [255, 0, 0], blue: [0, 0, 255] })
-    const obj = "mtllib m.mtl\nv 0 0 0\nv 1 0 0\nv 1 1 0\nv 0 1 0\nusemtl red\nf 1 2 3\nusemtl blue\nf 1 3 4\nl 1 2 3\np 4\n"
+    const obj =
+      "mtllib m.mtl\nv 0 0 0\nv 1 0 0\nv 1 1 0\nv 0 1 0\nusemtl red\nf 1 2 3\nusemtl blue\nf 1 3 4\nl 1 2 3\np 4\n"
     const w = parseWorld(obj, "obj", { resources: { "m.mtl": mtl } })
-    expect(w.meshes.map((m) => [m.kind, w.palette[m.color]])).toEqual([["faces", [255, 0, 0]], ["faces", [0, 0, 255]], ["lines", [0, 0, 255]], ["points", [0, 0, 255]]])
+    expect(w.meshes.map((m) => [m.kind, w.palette[m.color]])).toEqual([
+      ["faces", [255, 0, 0]],
+      ["faces", [0, 0, 255]],
+      ["lines", [0, 0, 255]],
+      ["points", [0, 0, 255]],
+    ])
     const bare = parseObj("v 0 0 0 1 0 0\nv 1 0 0 1 0 0\nv 0 1 0 1 0 0\nf 1 2 3\n")
     expect(bare.palette[bare.meshes[0].triColors![0]]).toEqual([255, 0, 0])
   })
@@ -186,7 +254,9 @@ describe("OBJ + MTL", () => {
 
 describe("X3D XML", () => {
   it("reads elements into the VRML scene builder, with DEF/USE and ROUTEs", () => {
-    const root = parseXml('<?xml version="1.0"?><!DOCTYPE X3D PUBLIC "x" "y"><X3D><head><meta name="a" content="b"/></head><Scene><Transform DEF="T" translation="2 0 0"><Shape><Appearance><Material diffuseColor="1 0 0"/></Appearance><Box size="2 2 2"/></Shape></Transform></Scene></X3D>')
+    const root = parseXml(
+      '<?xml version="1.0"?><!DOCTYPE X3D PUBLIC "x" "y"><X3D><head><meta name="a" content="b"/></head><Scene><Transform DEF="T" translation="2 0 0"><Shape><Appearance><Material diffuseColor="1 0 0"/></Appearance><Box size="2 2 2"/></Shape></Transform></Scene></X3D>',
+    )
     expect(root.children[0].name).toBe("X3D")
     expect(root.children[0].children[1].children[0].attrs).toEqual({ DEF: "T", translation: "2 0 0" })
     const w = parseX3d(`<X3D><Scene>
@@ -206,6 +276,6 @@ describe("X3D XML", () => {
     const p = transformPoint(nodeMatrices(w, 1.5)[0], [0, 0, 0])
     expect(p[0]).toBeCloseTo(0)
     expect(p[1]).toBeCloseTo(2)
-    expect(parseWorld('<X3D><Scene><Shape><Box/></Shape></Scene></X3D>', "auto").meshes.length).toBe(1)
+    expect(parseWorld("<X3D><Scene><Shape><Box/></Shape></Scene></X3D>", "auto").meshes.length).toBe(1)
   })
 })

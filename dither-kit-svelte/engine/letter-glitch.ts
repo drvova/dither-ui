@@ -38,7 +38,7 @@ export function paintLetterGlitch(buffer: RasterBuffer, p: LetterGlitchParams, t
       const fu = ((x + 0.5) / cols) * gx
       const cellX = Math.floor(fu)
       const speedVar = 0.7 + hash21(cellX, 7) * 0.8
-      const phase = ((t * speedVar + hash21(cellX, 3) * 3) % 2)
+      const phase = (t * speedVar + hash21(cellX, 3) * 3) % 2
       const headCell = phase * gy
       const below = headCell - cellY
       let bright = below >= 0 && below < trail ? 1 - below / trail : 0

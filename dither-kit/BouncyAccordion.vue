@@ -68,7 +68,7 @@ const props = withDefaults(
     color?: PixelColor
     class?: string
   }>(),
-  { modelValue: "", color: "blue" }
+  { modelValue: "", color: "blue" },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
@@ -88,13 +88,13 @@ function settle(el: HTMLElement | null, open: boolean) {
 }
 watch(
   () => props.modelValue,
-  () => props.items.forEach((item, i) => settle(panels.value[i] ?? null, isOpen(item.value)))
+  () => props.items.forEach((item, i) => settle(panels.value[i] ?? null, isOpen(item.value))),
 )
 onMounted(() =>
   props.items.forEach((item, i) => {
     const el = panels.value[i]
     if (el) el.style.height = isOpen(item.value) ? "auto" : "0px"
-  })
+  }),
 )
 </script>
 

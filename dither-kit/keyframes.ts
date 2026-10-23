@@ -12,7 +12,22 @@ import type { Easing } from "./timing"
 
 /** A query container's content box, px. */
 export type CqBox = { width: number; height: number }
-export const LENGTH_UNITS = ["px", "%", "cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax", "vw", "vh", "vmin", "vmax", "em", "rem"] as const
+export const LENGTH_UNITS = [
+  "px",
+  "%",
+  "cqw",
+  "cqh",
+  "cqi",
+  "cqb",
+  "cqmin",
+  "cqmax",
+  "vw",
+  "vh",
+  "vmin",
+  "vmax",
+  "em",
+  "rem",
+] as const
 export type LengthUnit = (typeof LENGTH_UNITS)[number]
 /** A length as a sum of unit terms — what interpolation operates on. */
 export type Terms = Partial<Record<LengthUnit, number>>
@@ -163,13 +178,21 @@ export type KeyframeSample = {
 type Key<V> = { at: number; value: V; easing: Easing }
 type Prop = { kind: "length"; keys: Key<Terms>[] } | { kind: "number"; keys: Key<number>[] }
 const COMPILED = Symbol("compiled-track")
-export type CompiledTrack = { [COMPILED]: true; duration: number; delay: number; loop: number; yoyo: boolean; props: Map<string, Prop> }
+export type CompiledTrack = {
+  [COMPILED]: true
+  duration: number
+  delay: number
+  loop: number
+  yoyo: boolean
+  props: Map<string, Prop>
+}
 
 const ANGLE_KEYS = new Set(["rotate", "skewX", "skewY"])
 const NUMBER_KEYS = new Set(["scale", "scaleX", "scaleY", "opacity"])
 const isCompiled = (t: KeyframeTrack | CompiledTrack): t is CompiledTrack => COMPILED in t
 
-const easingOf = (e: KeyEasing | undefined): Easing => (typeof e === "function" ? e : e === undefined ? (p) => p : resolveEasing(e))
+const easingOf = (e: KeyEasing | undefined): Easing =>
+  typeof e === "function" ? e : e === undefined ? (p) => p : resolveEasing(e)
 
 /** Resolve the keys' positions, 0-1, and each property's own key list — once per track. */
 export function compileTrack(track: KeyframeTrack): CompiledTrack {
@@ -212,7 +235,11 @@ export function compileTrack(track: KeyframeTrack): CompiledTrack {
       if (name === "at" || name === "easing") continue
       const raw = k[name]
       if (typeof raw !== "number" && typeof raw !== "string") continue
-      const numeric = NUMBER_KEYS.has(name) || ANGLE_KEYS.has(name) || typeof raw === "number" || (ANGLE.test(raw) && /[a-z]/i.test(raw) && !UNITS.has(raw.replace(/[^a-z%]/gi, "").toLowerCase()))
+      const numeric =
+        NUMBER_KEYS.has(name) ||
+        ANGLE_KEYS.has(name) ||
+        typeof raw === "number" ||
+        (ANGLE.test(raw) && /[a-z]/i.test(raw) && !UNITS.has(raw.replace(/[^a-z%]/gi, "").toLowerCase()))
       const pos = at[i] as number
       if (numeric && name !== "x" && name !== "y") {
         const value = ANGLE_KEYS.has(name) || typeof raw === "string" ? parseAngle(raw) : (raw as number)
@@ -288,7 +315,8 @@ const vertical = (name: string) => name === "y" || /[yY]$/.test(name) || /height
 /** Every property as a number: lengths in px against `box` (percentages by axis), angles in degrees. */
 export function resolveSample(s: KeyframeSample, box: CqBox, env?: LengthEnv): Record<string, number> {
   const out: Record<string, number> = { ...s.numbers }
-  for (const [name, terms] of Object.entries(s.lengths)) out[name] = termsToPx(terms, box, vertical(name) ? "y" : "x", env)
+  for (const [name, terms] of Object.entries(s.lengths))
+    out[name] = termsToPx(terms, box, vertical(name) ? "y" : "x", env)
   return out
 }
 
@@ -307,6 +335,7 @@ export function keyframeTransform(s: KeyframeSample, box?: CqBox, env?: LengthEn
   const sx = s.numbers.scaleX ?? s.numbers.scale
   const sy = s.numbers.scaleY ?? s.numbers.scale
   if (sx !== undefined || sy !== undefined) parts.push(`scale(${fmt(sx ?? 1)}, ${fmt(sy ?? 1)})`)
-  if (s.numbers.skewX || s.numbers.skewY) parts.push(`skew(${fmt(s.numbers.skewX ?? 0)}deg, ${fmt(s.numbers.skewY ?? 0)}deg)`)
+  if (s.numbers.skewX || s.numbers.skewY)
+    parts.push(`skew(${fmt(s.numbers.skewX ?? 0)}deg, ${fmt(s.numbers.skewY ?? 0)}deg)`)
   return parts.join(" ") || "none"
 }

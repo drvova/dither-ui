@@ -15,7 +15,7 @@ function paintProgress(
   muted: Rgb,
   ratio: number,
   band: number | null,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const bandW = Math.max(2, Math.round(cols * BAND_RATIO))
@@ -66,11 +66,11 @@ const props = withDefaults(
     indeterminate?: boolean
     class?: string
   }>(),
-  { value: 0, indeterminate: false }
+  { value: 0, indeterminate: false },
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
 const rootRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -85,16 +85,7 @@ function paint(band: number | null) {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!canvas || !ctx || cols <= 0) return
-  paintProgress(
-    ctx,
-    cols,
-    rows,
-    fillOf(color.value),
-    fillOf("grey"),
-    clamp01(props.value / 100),
-    band,
-    matrix.value
-  )
+  paintProgress(ctx, cols, rows, fillOf(color.value), fillOf("grey"), clamp01(props.value / 100), band, matrix.value)
 }
 
 function repaint() {

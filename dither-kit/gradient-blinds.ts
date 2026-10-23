@@ -16,7 +16,12 @@ export type GradientBlindsParams = {
   dither: number
 }
 
-export function paintGradientBlinds(buffer: RasterBuffer, p: GradientBlindsParams, time: number, matrix: number[][]): void {
+export function paintGradientBlinds(
+  buffer: RasterBuffer,
+  p: GradientBlindsParams,
+  time: number,
+  matrix: number[][],
+): void {
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data
@@ -35,7 +40,7 @@ export function paintGradientBlinds(buffer: RasterBuffer, p: GradientBlindsParam
       const i = (y * cols + x) * 4
       const u = (x + 0.5) / cols
       const c = (u - 0.5) * aspect * ca + py * sa
-      const f = ((c * p.count - t) % 1 + 1) % 1
+      const f = (((c * p.count - t) % 1) + 1) % 1
       if (f < gap) {
         data[i] = data[i + 1] = data[i + 2] = data[i + 3] = 0
         continue

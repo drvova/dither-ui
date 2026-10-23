@@ -71,9 +71,8 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
   <section id="stats-cards" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Stat cards</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The classic KPI grid — label, corner glyph, a big tabular number, and a
-      signed delta that knows churn falling is good news. The period picker
-      swaps the whole dataset live.
+      The classic KPI grid — label, corner glyph, a big tabular number, and a signed delta that knows churn falling is
+      good news. The period picker swaps the whole dataset live.
     </p>
     <DemoCard :code="SNIPPET_CARDS">
       <div class="mx-auto max-w-2xl">
@@ -97,7 +96,11 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
           <div v-for="k in kpis" :key="k.label" class="rounded-lg border border-border/60 bg-background/40 p-3.5">
             <div class="flex items-center justify-between">
               <span class="text-[11px] text-muted-foreground">{{ k.label }}</span>
-              <span class="grid size-6 place-items-center rounded-md border border-border/60 text-[11px] text-muted-foreground" aria-hidden="true">{{ k.icon }}</span>
+              <span
+                class="grid size-6 place-items-center rounded-md border border-border/60 text-[11px] text-muted-foreground"
+                aria-hidden="true"
+                >{{ k.icon }}</span
+              >
             </div>
             <div class="mt-2 text-[19px] leading-none tracking-tight tabular-nums text-foreground">{{ k.value }}</div>
             <div class="mt-2 flex items-baseline gap-1.5">
@@ -124,16 +127,22 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
   <section id="stats-charts" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Stats with charts</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Numbers with their shape — sparkline cards for trends, a meter card for
-      progress toward a goal. Twelve points is plenty; the dither does the
-      rest.
+      Numbers with their shape — sparkline cards for trends, a meter card for progress toward a goal. Twelve points is
+      plenty; the dither does the rest.
     </p>
     <DemoCard :code="SNIPPET_CHARTS">
       <div class="mx-auto grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
         <div class="rounded-lg border border-border/60 bg-background/40 p-3.5">
           <div class="flex items-baseline justify-between">
             <span class="text-[11px] text-muted-foreground">MRR</span>
-            <span class="rounded border px-1 py-px text-[10px] tabular-nums" :style="{ color: 'var(--swatch-green)', borderColor: 'color-mix(in oklab, var(--swatch-green) 35%, transparent)' }">▲ 18.9%</span>
+            <span
+              class="rounded border px-1 py-px text-[10px] tabular-nums"
+              :style="{
+                color: 'var(--swatch-green)',
+                borderColor: 'color-mix(in oklab, var(--swatch-green) 35%, transparent)',
+              }"
+              >▲ 18.9%</span
+            >
           </div>
           <div class="mt-1.5 text-[19px] leading-none tracking-tight tabular-nums text-foreground">$31,204</div>
           <Sparkline :data="TRENDS.revenue" color="green" class="mt-3 h-10" />
@@ -141,7 +150,14 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
         <div class="rounded-lg border border-border/60 bg-background/40 p-3.5">
           <div class="flex items-baseline justify-between">
             <span class="text-[11px] text-muted-foreground">Sessions</span>
-            <span class="rounded border px-1 py-px text-[10px] tabular-nums" :style="{ color: 'var(--swatch-blue)', borderColor: 'color-mix(in oklab, var(--swatch-blue) 35%, transparent)' }">▲ 9.6%</span>
+            <span
+              class="rounded border px-1 py-px text-[10px] tabular-nums"
+              :style="{
+                color: 'var(--swatch-blue)',
+                borderColor: 'color-mix(in oklab, var(--swatch-blue) 35%, transparent)',
+              }"
+              >▲ 9.6%</span
+            >
           </div>
           <div class="mt-1.5 text-[19px] leading-none tracking-tight tabular-nums text-foreground">690k</div>
           <Sparkline :data="TRENDS.sessions" color="blue" variant="dotted" class="mt-3 h-10" />

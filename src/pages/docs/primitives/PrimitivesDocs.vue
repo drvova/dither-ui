@@ -51,7 +51,6 @@ const SNIPPET_HIDDEN = `<DitherVisuallyHidden>
 <!-- focusable: the skip-link pattern — Tab reveals it -->
 <DitherVisuallyHidden focusable>Skip to content</DitherVisuallyHidden>`
 
-
 // Demo state for the interactive primitive sections.
 const measured = ref("—")
 const onMeasure = (size: { width: number; height: number }) => {
@@ -138,7 +137,6 @@ const SNIPPET_IN_VIEW = `<DitherInView v-slot="{ inView }" :once="true">
     Reveals its state when it approaches the viewport.
   </div>
 </DitherInView>`
-
 
 const SNIPPET_ICON = `<!-- decorative by default -->
 <DitherIcon name="Search" :size="20" />
@@ -228,9 +226,8 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">Box</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       One element, one job: a typed container whose whole style arrives as
-      <code class="text-foreground/80">class</code>. Swap the tag with
-      <code class="text-foreground/80">as</code> — landmarks for structure,
-      spans for inline flow — and the slot never notices.
+      <code class="text-foreground/80">class</code>. Swap the tag with <code class="text-foreground/80">as</code> —
+      landmarks for structure, spans for inline flow — and the slot never notices.
     </p>
     <DemoCard :code="SNIPPET_BOX">
       <DitherBox as="section" class="rounded-lg border border-border/60 bg-card/40 p-5 text-center">
@@ -244,9 +241,8 @@ const API: Record<string, PropRow[]> = {
   <section id="text" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The type scale the whole site speaks: three token tones, four sizes from
-      11 to 15px, and <code class="text-foreground/80">as</code> for the
-      element. Leading, tracking and weight stay yours in
+      The type scale the whole site speaks: three token tones, four sizes from 11 to 15px, and
+      <code class="text-foreground/80">as</code> for the element. Leading, tracking and weight stay yours in
       <code class="text-foreground/80">class</code>.
     </p>
     <DemoCard :code="SNIPPET_TEXT">
@@ -264,8 +260,8 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">Divider</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A hairline rule with real separator semantics. Horizontal renders an
-      <code class="text-foreground/80">hr</code>; vertical lives in flex rows
-      and stretches to their height. Both announce their orientation.
+      <code class="text-foreground/80">hr</code>; vertical lives in flex rows and stretches to their height. Both
+      announce their orientation.
     </p>
     <DemoCard :code="SNIPPET_DIVIDER">
       <div class="mx-auto w-full max-w-sm">
@@ -286,10 +282,9 @@ const API: Record<string, PropRow[]> = {
   <section id="visually-hidden" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">VisuallyHidden</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Content for screen readers only — labels that must exist in the reading
-      order without painting anything. Flip on
-      <code class="text-foreground/80">focusable</code> for the skip-link
-      pattern: Tab reveals it, styled as a chip over the page.
+      Content for screen readers only — labels that must exist in the reading order without painting anything. Flip on
+      <code class="text-foreground/80">focusable</code> for the skip-link pattern: Tab reveals it, styled as a chip over
+      the page.
     </p>
     <DemoCard :code="SNIPPET_HIDDEN">
       <div class="grid justify-items-center gap-3">
@@ -297,7 +292,10 @@ const API: Record<string, PropRow[]> = {
           Extra context that only a screen reader should read
           <DitherVisuallyHidden> — this sentence is announced, not painted.</DitherVisuallyHidden>
         </p>
-        <a href="#box" class="rounded border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+        <a
+          href="#box"
+          class="rounded border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+        >
           Tab to reveal the skip link
         </a>
         <DitherVisuallyHidden focusable>Skip to content</DitherVisuallyHidden>
@@ -310,9 +308,8 @@ const API: Record<string, PropRow[]> = {
   <section id="svg" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Svg</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A neutral SVG shell: no imposed stroke language, so the kit's art
-      direction stays inside the components. Decorative by default
-      (<code class="text-foreground/80">aria-hidden</code>); a
+      A neutral SVG shell: no imposed stroke language, so the kit's art direction stays inside the components.
+      Decorative by default (<code class="text-foreground/80">aria-hidden</code>); a
       <code class="text-foreground/80">label</code> promotes it to
       <code class="text-foreground/80">role="img"</code> with a name.
     </p>
@@ -333,15 +330,22 @@ const API: Record<string, PropRow[]> = {
   <section id="img" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Image</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The plain <code class="text-foreground/80">img</code> with the modern
-      loading contract baked in — lazy, async decode, and a required
-      <code class="text-foreground/80">alt</code> (empty string is the
-      explicit decorative choice). For the ordered-dither renderer see
-      <a href="#image" class="text-foreground/80 underline decoration-border underline-offset-4 hover:decoration-foreground/60">Image</a>
+      The plain <code class="text-foreground/80">img</code> with the modern loading contract baked in — lazy, async
+      decode, and a required <code class="text-foreground/80">alt</code> (empty string is the explicit decorative
+      choice). For the ordered-dither renderer see
+      <a
+        href="#image"
+        class="text-foreground/80 underline decoration-border underline-offset-4 hover:decoration-foreground/60"
+        >Image</a
+      >
       in Components.
     </p>
     <DemoCard :code="SNIPPET_IMG">
-      <DitherImg :src="assetPath('/sprites.webp')" alt="The dither-ui sprite sheet" class="h-40 w-full rounded-md object-cover" />
+      <DitherImg
+        :src="assetPath('/sprites.webp')"
+        alt="The dither-ui sprite sheet"
+        class="h-40 w-full rounded-md object-cover"
+      />
     </DemoCard>
     <PropsTable :rows="API.img" />
   </section>
@@ -350,8 +354,8 @@ const API: Record<string, PropRow[]> = {
   <section id="spacer" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Spacer</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Sized empty space for flex and grid rows — the alternative to magic
-      margins. Two axes, five steps from 4 to 40px, always decorative.
+      Sized empty space for flex and grid rows — the alternative to magic margins. Two axes, five steps from 4 to 40px,
+      always decorative.
     </p>
     <DemoCard :code="SNIPPET_SPACER">
       <div class="flex items-center justify-center rounded-md border border-border/60 p-4">
@@ -369,18 +373,19 @@ const API: Record<string, PropRow[]> = {
   <section id="portal" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Portal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Teleport by name: render a slot elsewhere in the DOM so popovers and
-      toasts escape <code class="text-foreground/80">overflow: hidden</code>.
-      <code class="text-foreground/80">disabled</code> keeps it in place —
-      the switch for tests and environments where the target does not exist.
+      Teleport by name: render a slot elsewhere in the DOM so popovers and toasts escape
+      <code class="text-foreground/80">overflow: hidden</code>. <code class="text-foreground/80">disabled</code> keeps
+      it in place — the switch for tests and environments where the target does not exist.
     </p>
     <DemoCard :code="SNIPPET_PORTAL">
       <div class="rounded-md border border-border/60 p-4 text-center text-[12px] text-muted-foreground">
-        The demo renders a chip into <code class="text-foreground/80">body</code>,
-        outside every scroll container on this page.
+        The demo renders a chip into <code class="text-foreground/80">body</code>, outside every scroll container on
+        this page.
       </div>
       <DitherPortal to="body">
-        <div class="pointer-events-none fixed bottom-4 right-4 z-30 rounded-md border border-border/60 bg-card px-3 py-1.5 text-[11px] text-muted-foreground">
+        <div
+          class="pointer-events-none fixed bottom-4 right-4 z-30 rounded-md border border-border/60 bg-card px-3 py-1.5 text-[11px] text-muted-foreground"
+        >
           teleported to body
         </div>
       </DitherPortal>
@@ -392,10 +397,9 @@ const API: Record<string, PropRow[]> = {
   <section id="overlay" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Overlay</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A full-cover layer in four dim weights. Decorative and click-transparent
-      by default; <code class="text-foreground/80">interactive</code> makes it
-      catch presses (dismissible scrims) and lifts the aria-hidden so its slot
-      stays reachable.
+      A full-cover layer in four dim weights. Decorative and click-transparent by default;
+      <code class="text-foreground/80">interactive</code> makes it catch presses (dismissible scrims) and lifts the
+      aria-hidden so its slot stays reachable.
     </p>
     <DemoCard :code="SNIPPET_OVERLAY">
       <div class="grid h-40 place-items-center rounded-md border border-border/60 bg-card/40 text-center">
@@ -413,9 +417,8 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">Measure</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Reports its own box: a plain block that emits
-      <code class="text-foreground/80">resize</code> with width and height on
-      every change. ResizeObserver only — without it the slot still renders
-      and simply stays silent.
+      <code class="text-foreground/80">resize</code> with width and height on every change. ResizeObserver only —
+      without it the slot still renders and simply stays silent.
     </p>
     <DemoCard :code="SNIPPET_MEASURE">
       <div class="grid justify-items-center gap-3">
@@ -433,16 +436,17 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">Clipboard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Clipboard behavior around any trigger: the scoped slot gets
-      <code class="text-foreground/80">copied</code> and
-      <code class="text-foreground/80">copy</code>, and a polite live region
-      announces the result. Your trigger keeps its own semantics — this adds
-      the behavior and the announcement.
+      <code class="text-foreground/80">copied</code> and <code class="text-foreground/80">copy</code>, and a polite live
+      region announces the result. Your trigger keeps its own semantics — this adds the behavior and the announcement.
     </p>
     <DemoCard :code="SNIPPET_CLIPBOARD">
       <div class="flex justify-center">
         <DitherClipboard value="npm i d3-scale d3-shape clsx">
           <template #default="{ copied }">
-            <button type="button" class="rounded-md border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+            <button
+              type="button"
+              class="rounded-md border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+            >
               {{ copied ? "copied ✓" : "copy install command" }}
             </button>
           </template>
@@ -456,11 +460,9 @@ const API: Record<string, PropRow[]> = {
   <section id="click-outside" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">ClickOutside</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      One <code class="text-foreground/80">outside</code> event when a primary
-      press lands anywhere beyond the wrapped content — capture-phase
-      <code class="text-foreground/80">pointerdown</code>, so nested scroll
-      containers and shadowed children are handled by containment, not by
-      guessing.
+      One <code class="text-foreground/80">outside</code> event when a primary press lands anywhere beyond the wrapped
+      content — capture-phase <code class="text-foreground/80">pointerdown</code>, so nested scroll containers and
+      shadowed children are handled by containment, not by guessing.
     </p>
     <DemoCard :code="SNIPPET_CLICK_OUTSIDE">
       <div class="flex justify-center">
@@ -473,7 +475,10 @@ const API: Record<string, PropRow[]> = {
             >
               {{ demoMenuOpen ? "menu open — click anywhere outside" : "open the menu" }}
             </button>
-            <div v-if="demoMenuOpen" class="rounded-md border border-border/60 bg-card p-2 text-[11px] text-muted-foreground">
+            <div
+              v-if="demoMenuOpen"
+              class="rounded-md border border-border/60 bg-card p-2 text-[11px] text-muted-foreground"
+            >
               Pressing outside closes this.
             </div>
           </div>
@@ -487,16 +492,19 @@ const API: Record<string, PropRow[]> = {
   <section id="focus-ring" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">FocusRing</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Container-level focus: wraps a control group and rings while anything
-      inside holds focus, so keyboard users see which group is active. The
-      individual control keeps the global
+      Container-level focus: wraps a control group and rings while anything inside holds focus, so keyboard users see
+      which group is active. The individual control keeps the global
       <code class="text-foreground/80">:focus-visible</code> floor.
     </p>
     <DemoCard :code="SNIPPET_FOCUS_RING">
       <div class="flex justify-center">
         <DitherFocusRing class="inline-flex gap-2 rounded-md p-1">
-          <button type="button" class="rounded border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground">First</button>
-          <button type="button" class="rounded border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground">Second</button>
+          <button type="button" class="rounded border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground">
+            First
+          </button>
+          <button type="button" class="rounded border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground">
+            Second
+          </button>
         </DitherFocusRing>
       </div>
     </DemoCard>
@@ -508,9 +516,8 @@ const API: Record<string, PropRow[]> = {
     <h2 class="text-lg tracking-tight">FocusScope</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The modal focus contract in one component: focus enters on mount,
-      <code class="text-foreground/80">Tab</code> cycles inside the scope, and
-      closing hands focus back to whatever had it. Every dialog in the kit
-      obeys exactly these three rules.
+      <code class="text-foreground/80">Tab</code> cycles inside the scope, and closing hands focus back to whatever had
+      it. Every dialog in the kit obeys exactly these three rules.
     </p>
     <DemoCard :code="SNIPPET_FOCUS_SCOPE">
       <div class="grid justify-items-center gap-3">
@@ -521,7 +528,10 @@ const API: Record<string, PropRow[]> = {
         >
           {{ scopeOpen ? "close (focus returns to me)" : "open a focus scope" }}
         </button>
-        <DitherFocusScope v-if="scopeOpen" class="grid gap-2 rounded-md border border-border/60 bg-card p-4 text-center">
+        <DitherFocusScope
+          v-if="scopeOpen"
+          class="grid gap-2 rounded-md border border-border/60 bg-card p-4 text-center"
+        >
           <h3 tabindex="-1" class="text-[12px] text-foreground">Scope active</h3>
           <div class="flex justify-center gap-2">
             <button type="button" class="rounded border border-border/60 px-3 py-1 text-[11px]">Yes</button>
@@ -538,9 +548,8 @@ const API: Record<string, PropRow[]> = {
   <section id="hover-area" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">HoverArea</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Hover state as scoped-slot data — no refs, no listener bookkeeping.
-      Keyboard focus tracks alongside the pointer so the reveal is the same
-      for everyone.
+      Hover state as scoped-slot data — no refs, no listener bookkeeping. Keyboard focus tracks alongside the pointer so
+      the reveal is the same for everyone.
     </p>
     <DemoCard :code="SNIPPET_HOVER_AREA">
       <DitherHoverArea v-slot="{ hovered, focused }" class="mx-auto max-w-sm">
@@ -559,14 +568,19 @@ const API: Record<string, PropRow[]> = {
   <section id="pressable" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Pressable</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The plainest interactive base: a native button — never submits a form by
-      accident — with the house press affordance and the global focus floor.
-      For the dithered, blooming version see
-      <a href="#button" class="text-foreground/80 underline decoration-border underline-offset-4 hover:decoration-foreground/60">DitherButton</a>.
+      The plainest interactive base: a native button — never submits a form by accident — with the house press
+      affordance and the global focus floor. For the dithered, blooming version see
+      <a
+        href="#button"
+        class="text-foreground/80 underline decoration-border underline-offset-4 hover:decoration-foreground/60"
+        >DitherButton</a
+      >.
     </p>
     <DemoCard :code="SNIPPET_PRESSABLE">
       <div class="flex justify-center gap-3">
-        <DitherPressable class="rounded-md border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground hover:text-foreground">
+        <DitherPressable
+          class="rounded-md border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+        >
           Plain, native, presses down
         </DitherPressable>
         <DitherPressable disabled class="rounded-md border border-border/60 px-3 py-1.5 text-[11px] opacity-50">
@@ -581,10 +595,10 @@ const API: Record<string, PropRow[]> = {
   <section id="in-view" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">InView</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The taxonomy's IntersectionObserver primitive, named for what it does:
-      visibility as scoped-slot state. <code class="text-foreground/80">once</code>
-      latches after the first enter — the lazy-reveal shape this whole page
-      runs on. Degraded engines see content, never an empty box.
+      The taxonomy's IntersectionObserver primitive, named for what it does: visibility as scoped-slot state.
+      <code class="text-foreground/80">once</code>
+      latches after the first enter — the lazy-reveal shape this whole page runs on. Degraded engines see content, never
+      an empty box.
     </p>
     <DemoCard :code="SNIPPET_IN_VIEW">
       <DitherInView v-slot="{ inView }" :once="true" class="grid h-40 place-items-center">
@@ -592,7 +606,9 @@ const API: Record<string, PropRow[]> = {
           class="grid h-full w-full place-items-center rounded-md border border-border/60 transition-opacity duration-500"
           :class="inView ? 'bg-card/40 opacity-100' : 'opacity-0'"
         >
-          <span class="text-[12px] text-muted-foreground">{{ inView ? "in view ✓" : "waiting for the viewport…" }}</span>
+          <span class="text-[12px] text-muted-foreground">{{
+            inView ? "in view ✓" : "waiting for the viewport…"
+          }}</span>
         </div>
       </DitherInView>
     </DemoCard>
@@ -606,11 +622,10 @@ const API: Record<string, PropRow[]> = {
       <span class="text-[11px] tabular-nums text-muted-foreground">{{ ICON_NAMES.length }} glyphs</span>
     </div>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The hand-rolled set: 24×24 stroke geometry, currentColor, round caps —
-      one source in <code class="text-foreground/80">icons.ts</code>, no
-      dependencies. Decorative by default; a
-      <code class="text-foreground/80">label</code> names it for screen
-      readers. Unknown names throw instead of rendering an empty box.
+      The hand-rolled set: 24×24 stroke geometry, currentColor, round caps — one source in
+      <code class="text-foreground/80">icons.ts</code>, no dependencies. Decorative by default; a
+      <code class="text-foreground/80">label</code> names it for screen readers. Unknown names throw instead of
+      rendering an empty box.
     </p>
     <DemoCard :code="SNIPPET_ICON">
       <div class="grid grid-cols-4 gap-2 sm:grid-cols-6">

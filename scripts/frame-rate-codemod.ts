@@ -12,12 +12,16 @@ const report: string[] = []
 const fail: string[] = []
 
 const gitFiles = (glob: string): string[] =>
-  execSync(`git ls-files "${glob}"`, { encoding: "utf8" })
-    .trim()
-    .split("\n")
-    .filter(Boolean)
+  execSync(`git ls-files "${glob}"`, { encoding: "utf8" }).trim().split("\n").filter(Boolean)
 
-function insertOnce(file: string, src: string, anchorRe: string, insertLine: string, guard: string, label: string): string {
+function insertOnce(
+  file: string,
+  src: string,
+  anchorRe: string,
+  insertLine: string,
+  guard: string,
+  label: string,
+): string {
   if (guard && src.includes(guard)) {
     report.push(`skip(${label},present): ${file}`)
     return src
@@ -39,9 +43,7 @@ function insertOnce(file: string, src: string, anchorRe: string, insertLine: str
 }
 
 // --- A. Vue components: props iface / defaults / runtime options --------------
-const vueFiles = gitFiles(`${KIT}/*.vue`).filter((f) =>
-  readFileSync(f, "utf8").includes("useDitherBackground"),
-)
+const vueFiles = gitFiles(`${KIT}/*.vue`).filter((f) => readFileSync(f, "utf8").includes("useDitherBackground"))
 
 for (const file of vueFiles) {
   const faulty = file.includes("FaultyTerminal")
@@ -51,7 +53,14 @@ for (const file of vueFiles) {
   let src = readFileSync(file, "utf8")
   src = insertOnce(file, src, ifaceAnchor, "    frameRate?: number", "frameRate?: number", "iface")
   src = insertOnce(file, src, defaultsAnchor, "    frameRate: 0,", "    frameRate: 0,", "defaults")
-  src = insertOnce(file, src, optsAnchor, "  frameRate: () => props.frameRate,", "frameRate: () => props.frameRate,", "opts")
+  src = insertOnce(
+    file,
+    src,
+    optsAnchor,
+    "  frameRate: () => props.frameRate,",
+    "frameRate: () => props.frameRate,",
+    "opts",
+  )
   if (!DRY) writeFileSync(file, src)
 }
 
@@ -66,11 +75,15 @@ for (const file of vueFiles) {
     if (name) basenameByExport.set(name, m[2])
   }
   const consumerBasenames = new Set(
-    vueFiles.map((f) => f.replace(/\\/g, "/").split("/").pop()!.replace(/\.vue$/, "")),
+    vueFiles.map((f) =>
+      f
+        .replace(/\\/g, "/")
+        .split("/")
+        .pop()!
+        .replace(/\.vue$/, ""),
+    ),
   )
-  const inScope = [...basenameByExport.entries()]
-    .filter(([, base]) => consumerBasenames.has(base))
-    .map(([exp]) => exp)
+  const inScope = [...basenameByExport.entries()].filter(([, base]) => consumerBasenames.has(base)).map(([exp]) => exp)
 
   const eol = src.includes("\r\n") ? "\r\n" : "\n"
   const lines = src.split(/\r\n|\n/)
@@ -83,9 +96,7 @@ for (const file of vueFiles) {
       continue
     }
     const idx =
-      lines[i].indexOf('bool("paused")') !== -1
-        ? lines[i].indexOf('bool("paused")')
-        : lines[i].indexOf('bool("pause")') // FaultyTerminal's prop is `pause`
+      lines[i].indexOf('bool("paused")') !== -1 ? lines[i].indexOf('bool("paused")') : lines[i].indexOf('bool("pause")') // FaultyTerminal's prop is `pause`
     if (idx === -1) {
       fail.push(`registry ${m[1]}: no paused/pause anchor`)
       continue
@@ -102,12 +113,17 @@ for (const file of vueFiles) {
 //        table anchors) ---------------------------------------------------------
 const camel = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
 {
-  const docsFiles = [
-    "src/pages/docs/backgrounds/BackgroundsDocs.vue",
-    "src/pages/docs/animations/AnimationsDocs.vue",
-  ]
+  const docsFiles = ["src/pages/docs/backgrounds/BackgroundsDocs.vue", "src/pages/docs/animations/AnimationsDocs.vue"]
   const consumerKeys = new Set(
-    vueFiles.map((f) => camel(f.replace(/\\/g, "/").split("/").pop()!.replace(/\.vue$/, ""))),
+    vueFiles.map((f) =>
+      camel(
+        f
+          .replace(/\\/g, "/")
+          .split("/")
+          .pop()!
+          .replace(/\.vue$/, ""),
+      ),
+    ),
   )
   const hits: { file: string; key: string; open: number }[] = []
   for (const file of docsFiles) {

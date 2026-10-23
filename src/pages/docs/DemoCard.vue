@@ -70,7 +70,8 @@ function measure() {
   const target = pinned.value ?? hovered.value
   const next = target?.isConnected ? readingOf(target, s) : null
   if (!same(next, reading.value)) reading.value = next
-  const other = pinned.value && hovered.value !== pinned.value && hovered.value?.isConnected ? boxOf(hovered.value, s) : null
+  const other =
+    pinned.value && hovered.value !== pinned.value && hovered.value?.isConnected ? boxOf(hovered.value, s) : null
   if (!same(other, ghost.value)) ghost.value = other
 }
 
@@ -85,7 +86,8 @@ watch(pinned, (el) => {
   announce.value = el && b ? `${labelOf(el)}, ${b.w} by ${b.h} pixels` : ""
 })
 
-const inside = (t: EventTarget | null) => (t instanceof Element && t !== content.value && content.value?.contains(t) ? t : null)
+const inside = (t: EventTarget | null) =>
+  t instanceof Element && t !== content.value && content.value?.contains(t) ? t : null
 function onOver(e: PointerEvent) {
   if (inspecting.value) hovered.value = inside(e.target)
 }
@@ -101,7 +103,12 @@ function onClick(e: MouseEvent) {
   pinned.value = inside(e.target)
   host.value?.focus({ preventScroll: true })
 }
-const STEPS: Record<string, "up" | "down" | "next" | "prev"> = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "prev", ArrowRight: "next" }
+const STEPS: Record<string, "up" | "down" | "next" | "prev"> = {
+  ArrowUp: "up",
+  ArrowDown: "down",
+  ArrowLeft: "prev",
+  ArrowRight: "next",
+}
 function onKey(e: KeyboardEvent) {
   if (!inspecting.value || !content.value) return
   if (e.key === "Escape") {
@@ -149,7 +156,11 @@ const chipClass = (active: boolean) =>
           role="tab"
           :aria-selected="tab === 'preview'"
           class="border-b pb-2 transition-colors"
-          :class="tab === 'preview' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'"
+          :class="
+            tab === 'preview'
+              ? 'border-foreground text-foreground'
+              : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'
+          "
           @click="tab = 'preview'"
         >
           Preview
@@ -159,7 +170,11 @@ const chipClass = (active: boolean) =>
           role="tab"
           :aria-selected="tab === 'code'"
           class="border-b pb-2 transition-colors"
-          :class="tab === 'code' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'"
+          :class="
+            tab === 'code'
+              ? 'border-foreground text-foreground'
+              : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'
+          "
           @click="tab = 'code'"
         >
           Code
@@ -261,7 +276,10 @@ const chipClass = (active: boolean) =>
         </div>
       </div>
     </div>
-    <div v-if="inspecting" class="mt-2 flex min-h-9 items-center rounded-lg border border-border/60 px-3 py-2 text-[11px]">
+    <div
+      v-if="inspecting"
+      class="mt-2 flex min-h-9 items-center rounded-lg border border-border/60 px-3 py-2 text-[11px]"
+    >
       <dl v-if="reading" class="flex flex-wrap items-baseline gap-x-5 gap-y-1.5">
         <div v-for="[k, v] in fields(reading)" :key="k" class="flex items-baseline gap-2">
           <dt class="micro text-muted-foreground">{{ k }}</dt>
@@ -318,9 +336,10 @@ const chipClass = (active: boolean) =>
   right: 0;
   height: 14px;
   background-image:
-    linear-gradient(to right, var(--tick) 1px, transparent 0),
-    linear-gradient(to right, var(--tick) 1px, transparent 0);
-  background-size: 10px 3px, 50px 7px;
+    linear-gradient(to right, var(--tick) 1px, transparent 0), linear-gradient(to right, var(--tick) 1px, transparent 0);
+  background-size:
+    10px 3px,
+    50px 7px;
   background-position: 0 100%;
   background-repeat: repeat-x;
   box-shadow: inset 0 -1px 0 var(--color-border);
@@ -332,7 +351,9 @@ const chipClass = (active: boolean) =>
   background-image:
     linear-gradient(to bottom, var(--tick) 1px, transparent 0),
     linear-gradient(to bottom, var(--tick) 1px, transparent 0);
-  background-size: 3px 10px, 7px 50px;
+  background-size:
+    3px 10px,
+    7px 50px;
   background-position: 100% 0;
   background-repeat: repeat-y;
   box-shadow: inset -1px 0 0 var(--color-border);
@@ -369,13 +390,17 @@ const chipClass = (active: boolean) =>
 .rule-x > i {
   top: 0;
   bottom: 1px;
-  box-shadow: inset 1px 0 var(--ember), inset -1px 0 var(--ember);
+  box-shadow:
+    inset 1px 0 var(--ember),
+    inset -1px 0 var(--ember);
 }
 
 .rule-y > i {
   left: 0;
   right: 1px;
-  box-shadow: inset 0 1px var(--ember), inset 0 -1px var(--ember);
+  box-shadow:
+    inset 0 1px var(--ember),
+    inset 0 -1px var(--ember);
 }
 
 .target,

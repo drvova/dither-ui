@@ -46,7 +46,8 @@ export type Nodes = Record<string, SceneNode>
  * `lo`, or on `hi` when `inverse`. */
 export function wave<T>(id: string, end: number, count: number, lo: T, hi: T, inverse = false): Animatable<T> {
   const keys: Key<T>[] = []
-  for (let i = 0; i <= count * 2; i++) keys.push([Math.round((i * end) / (count * 2) / FR) * FR, (i % 2 === 0) !== inverse ? lo : hi, MOVE])
+  for (let i = 0; i <= count * 2; i++)
+    keys.push([Math.round((i * end) / (count * 2) / FR) * FR, (i % 2 === 0) !== inverse ? lo : hi, MOVE])
   return keyed(id, keys)
 }
 
@@ -66,7 +67,8 @@ export function cycle<T>(
   start = 0,
 ): Animatable<T> {
   const { period, offset, life } = run
-  if (end % period !== 0 || life >= period) throw new Error(`cycle ${id}: period ${period}, life ${life} do not fit a ${end}-tick loop`)
+  if (end % period !== 0 || life >= period)
+    throw new Error(`cycle ${id}: period ${period}, life ${life} do not fit a ${end}-tick loop`)
   const phase = (t: number) => (((t - offset) % period) + period) % period
   const valueAt = (t: number) => (phase(t) < life ? mix(from, to, phase(t) / life) : to)
   const ticks = new Set([0, end])
@@ -86,7 +88,11 @@ export function cycle<T>(
 
 /** Mixers for `cycle`. */
 export const mixNumber = (a: number, b: number, f: number) => a + (b - a) * f
-export const mixVec3 = (a: Vec3, b: Vec3, f: number): Vec3 => ({ x: mixNumber(a.x, b.x, f), y: mixNumber(a.y, b.y, f), z: mixNumber(a.z, b.z, f) })
+export const mixVec3 = (a: Vec3, b: Vec3, f: number): Vec3 => ({
+  x: mixNumber(a.x, b.x, f),
+  y: mixNumber(a.y, b.y, f),
+  z: mixNumber(a.z, b.z, f),
+})
 export const mixColor = (a: Color, b: Color, f: number): Color => ({
   r: mixNumber(a.r, b.r, f),
   g: mixNumber(a.g, b.g, f),
@@ -144,7 +150,9 @@ export function pixelFilm(film: {
       displayStartTick: 0,
     },
     assets: {},
-    compositions: { main: { id: "main", name: "Main", width, height, durationTicks: end, nodes, rootNodeIds: ["pixels"] } },
+    compositions: {
+      main: { id: "main", name: "Main", width, height, durationTicks: end, nodes, rootNodeIds: ["pixels"] },
+    },
     rootCompositionId: "main",
     components: {},
     markers: film.markers ?? [],

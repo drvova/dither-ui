@@ -52,7 +52,13 @@ const node = (id: string, x = 0, y = 0, extra: Pick<BaseOptions, "scale" | "rota
   base(id, { outTick: END, x, y, ...extra })
 /** Light: a glow that only ever brightens what is under it. */
 const LIGHT = { blendMode: "lighten" } as const
-const radial = (cx: number, cy: number, r: number, stops: GradientStop[], opacity: Animatable<number> = constant(1)) => ({
+const radial = (
+  cx: number,
+  cy: number,
+  r: number,
+  stops: GradientStop[],
+  opacity: Animatable<number> = constant(1),
+) => ({
   kind: "radial" as const,
   stops: constant(stops),
   start: constant({ x: cx, y: cy }),
@@ -112,7 +118,11 @@ function planet(nodes: Nodes): string[] {
   // The rim brightens toward the sun and breathes with it — never past
   // 0.7, so the sun's heat stays warm where it lightens over it.
   nodes.crescent = {
-    ...node("crescent", SUN_X, SUN_Y, { ...LIGHT, rotation: TANGENT, scale: wave("crescent.scale", END, 4, { x: 1, y: 1, z: 1 }, { x: 1.2, y: 1, z: 1 }) }),
+    ...node("crescent", SUN_X, SUN_Y, {
+      ...LIGHT,
+      rotation: TANGENT,
+      scale: wave("crescent.scale", END, 4, { x: 1, y: 1, z: 1 }, { x: 1.2, y: 1, z: 1 }),
+    }),
     type: "ellipse",
     size: constant({ width: 120 * C, height: 4 * C }),
     style: {
@@ -130,7 +140,11 @@ function planet(nodes: Nodes): string[] {
  * tangent that stretches against it. */
 function sun(nodes: Nodes): string[] {
   nodes.flare = {
-    ...node("flare", SUN_X, SUN_Y, { ...LIGHT, rotation: TANGENT, scale: wave("flare.scale", END, 4, { x: 1.2, y: 1, z: 1 }, { x: 0.75, y: 1, z: 1 }) }),
+    ...node("flare", SUN_X, SUN_Y, {
+      ...LIGHT,
+      rotation: TANGENT,
+      scale: wave("flare.scale", END, 4, { x: 1.2, y: 1, z: 1 }, { x: 0.75, y: 1, z: 1 }),
+    }),
     type: "ellipse",
     size: constant({ width: 64 * C, height: 2.2 * C }),
     style: {
@@ -142,7 +156,10 @@ function sun(nodes: Nodes): string[] {
     },
   }
   nodes.core = {
-    ...node("core", SUN_X, SUN_Y, { ...LIGHT, scale: wave("core.scale", END, 4, { x: 0.84, y: 0.84, z: 1 }, { x: 1.12, y: 1.12, z: 1 }) }),
+    ...node("core", SUN_X, SUN_Y, {
+      ...LIGHT,
+      scale: wave("core.scale", END, 4, { x: 0.84, y: 0.84, z: 1 }, { x: 1.12, y: 1.12, z: 1 }),
+    }),
     type: "ellipse",
     size: constant({ width: 12 * C, height: 9 * C }),
     style: {
@@ -166,7 +183,11 @@ function aurora(nodes: Nodes): string[] {
     const xs = Array.from({ length: n }, (_, i) => x0 + ((x1 - x0) * i) / (n - 1))
     const shape = (crest: number[]): PathData => {
       const dx = (x1 - x0) / (n - 1) / 3
-      const top = xs.map((x, i) => ({ point: { x, y: limb(x) - lift - crest[i] * C }, inTangent: { x: -dx, y: 0 }, outTangent: { x: dx, y: 0 } }))
+      const top = xs.map((x, i) => ({
+        point: { x, y: limb(x) - lift - crest[i] * C },
+        inTangent: { x: -dx, y: 0 },
+        outTangent: { x: dx, y: 0 },
+      }))
       const floor = [...xs].reverse().map((x) => v(x, limb(x) - C))
       return { contours: [{ closed: true, vertices: [...top, ...floor] }] }
     }
@@ -191,7 +212,12 @@ function aurora(nodes: Nodes): string[] {
     })
     // A clip is never drawn; its fill only satisfies the schema.
     nodes[`${id}.clip`] = { ...node(`${id}.clip`), type: "path", path: sway(), style: { fill: fill(tone(1)) } }
-    nodes[`${id}.glow`] = { ...node(`${id}.glow`, 0, 0, LIGHT), type: "path", path: sway(), style: { gradientFill: glow(top, limb((x0 + x1) / 2), t) } }
+    nodes[`${id}.glow`] = {
+      ...node(`${id}.glow`, 0, 0, LIGHT),
+      type: "path",
+      path: sway(),
+      style: { gradientFill: glow(top, limb((x0 + x1) / 2), t) },
+    }
     const rand = mulberry32(seed)
     const rays: string[] = []
     for (let x = Math.ceil(x0 / C) * C; x < x1; x += 2 * C) {
@@ -264,10 +290,13 @@ function stars(nodes: Nodes): string {
     }
     keys.push([END, tone(rest)])
     const id = `star${ids.length}`
-    const contours: PathContour[] = bright
-      ? [rect(x, y - C, C, 3 * C), rect(x - C, y, 3 * C, C)]
-      : [rect(x, y, C, C)]
-    nodes[id] = { ...node(id), type: "path", path: constant({ contours }), style: { fill: { color: keyed(`${id}.tone`, keys), opacity: constant(1) } } }
+    const contours: PathContour[] = bright ? [rect(x, y - C, C, 3 * C), rect(x - C, y, 3 * C, C)] : [rect(x, y, C, C)]
+    nodes[id] = {
+      ...node(id),
+      type: "path",
+      path: constant({ contours }),
+      style: { fill: { color: keyed(`${id}.tone`, keys), opacity: constant(1) } },
+    }
     ids.push(id)
   }
   nodes.stars = { ...node("stars"), type: "group", children: ids }
@@ -307,7 +336,14 @@ function pass(id: string, a0: number, a1: number, start: number, travel: number)
 /** The seed moons: each its own size, tone, height and speed, crossing the
  * sky on its own pass (a seeded scatter, so no two moons keep step). Lit
  * from the sun's side, the night side lost to the sky. */
-function moons(nodes: Nodes, id: string, seed: number, count: number, lift: [number, number], size: [number, number]): string {
+function moons(
+  nodes: Nodes,
+  id: string,
+  seed: number,
+  count: number,
+  lift: [number, number],
+  size: [number, number],
+): string {
   const rand = mulberry32(seed)
   const children: string[] = []
   for (let i = 0; i < count; i++) {
@@ -387,7 +423,11 @@ function meteor(nodes: Nodes): string {
     inTick: t0,
     outTick: t0 + len,
     type: "path",
-    path: constant({ contours: [{ closed: false, vertices: [v(W * 0.5, 3 * C), v(W * 0.5 + 16 * C, 7 * C), v(W * 0.5 + 32 * C, 11 * C)] }] }),
+    path: constant({
+      contours: [
+        { closed: false, vertices: [v(W * 0.5, 3 * C), v(W * 0.5 + 16 * C, 7 * C), v(W * 0.5 + 32 * C, 11 * C)] },
+      ],
+    }),
     style: { stroke: stroke(tone(0.95), C, { cap: "butt" }) },
     operators: [
       trim("meteor.trim", {

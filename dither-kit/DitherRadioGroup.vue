@@ -13,7 +13,7 @@ function paintDot(
   fill: Rgb,
   muted: Rgb,
   checked: boolean,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   ctx.clearRect(0, 0, n, n)
   const c = (n - 1) / 2
@@ -51,7 +51,7 @@ const props = withDefaults(
     label?: string
     class?: string
   }>(),
-  { color: "blue" }
+  { color: "blue" },
 )
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
@@ -87,11 +87,7 @@ function paintAll() {
 
 function onKeydown(e: KeyboardEvent) {
   const dir =
-    e.key === "ArrowDown" || e.key === "ArrowRight"
-      ? 1
-      : e.key === "ArrowUp" || e.key === "ArrowLeft"
-        ? -1
-        : 0
+    e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0
   if (!dir) return
   e.preventDefault()
   const n = props.options.length
@@ -109,17 +105,12 @@ function onKeydown(e: KeyboardEvent) {
 onMounted(() => requestAnimationFrame(paintAll))
 watch(
   () => [props.modelValue, props.color, props.options],
-  () => nextTick(paintAll)
+  () => nextTick(paintAll),
 )
 </script>
 
 <template>
-  <div
-    role="radiogroup"
-    :aria-label="props.label"
-    :class="cn('grid gap-3', props.class)"
-    @keydown="onKeydown"
-  >
+  <div role="radiogroup" :aria-label="props.label" :class="cn('grid gap-3', props.class)" @keydown="onKeydown">
     <button
       v-for="(o, i) in props.options"
       :key="o.value"

@@ -25,7 +25,8 @@ export const FAMILIES = [
 export const SECTION_COUNT = FAMILIES.reduce((n, f) => n + f.count, 0)
 
 const count = (title: string) => FAMILIES.find((f) => f.title === title)?.count ?? 0
-const cards = (family: string, list: [string, string][]): HubCard[] => list.map(([id, label]) => ({ id, label, family }))
+const cards = (family: string, list: [string, string][]): HubCard[] =>
+  list.map(([id, label]) => ({ id, label, family }))
 
 export const SHELVES: HubShelf[] = [
   {
@@ -34,15 +35,55 @@ export const SHELVES: HubShelf[] = [
     count: 9,
     note: "",
     cards: [
-      { id: "area", label: "Area chart", family: "Components", note: "A seeded dithered fill under a smooth line; hover reads every point." },
-      { id: "button", label: "Button", family: "Components", note: "Gradient, dotted, hatched and solid — four textures, one engine." },
-      { id: "avatar", label: "Avatar", family: "Components", note: "An identicon from a name: mirrored, seeded, dithered." },
-      { id: "aurora", label: "Aurora", family: "Backgrounds", note: "A backdrop that paints itself, at 8 fps or at 60." },
-      { id: "world", label: "World (3D)", family: "Components", note: "glTF, OBJ, STL or VRML through the same Bayer cells." },
-      { id: "shader", label: "Shader (GLSL)", family: "Components", note: "Shadertoy-style GLSL at cell resolution, then dithered." },
-      { id: "decrypted-text", label: "Decrypted text", family: "Text", note: "Text that resolves, character by character." },
+      {
+        id: "area",
+        label: "Area chart",
+        family: "Components",
+        note: "A seeded dithered fill under a smooth line; hover reads every point.",
+      },
+      {
+        id: "button",
+        label: "Button",
+        family: "Components",
+        note: "Gradient, dotted, hatched and solid — four textures, one engine.",
+      },
+      {
+        id: "avatar",
+        label: "Avatar",
+        family: "Components",
+        note: "An identicon from a name: mirrored, seeded, dithered.",
+      },
+      {
+        id: "aurora",
+        label: "Aurora",
+        family: "Backgrounds",
+        note: "A backdrop that paints itself, at 8 fps or at 60.",
+      },
+      {
+        id: "world",
+        label: "World (3D)",
+        family: "Components",
+        note: "glTF, OBJ, STL or VRML through the same Bayer cells.",
+      },
+      {
+        id: "shader",
+        label: "Shader (GLSL)",
+        family: "Components",
+        note: "Shadertoy-style GLSL at cell resolution, then dithered.",
+      },
+      {
+        id: "decrypted-text",
+        label: "Decrypted text",
+        family: "Text",
+        note: "Text that resolves, character by character.",
+      },
       { id: "switch", label: "Switch", family: "Components", note: "A toggle with a dithered track and a real label." },
-      { id: "dashboard", label: "Dashboard", family: "Examples", note: "A whole screen composed from the kit — copy it." },
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        family: "Examples",
+        note: "A whole screen composed from the kit — copy it.",
+      },
     ],
   },
   {

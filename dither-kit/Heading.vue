@@ -4,10 +4,7 @@ import { cn } from "./lib"
 
 /** Semantic heading with the site's scale baked in: h1–h6 pick their own
  * size/weight from the level, `class` overrides anything below. */
-const props = withDefaults(
-  defineProps<{ level?: "1" | "2" | "3" | "4" | "5" | "6"; class?: string }>(),
-  { level: "2" },
-)
+const props = withDefaults(defineProps<{ level?: "1" | "2" | "3" | "4" | "5" | "6"; class?: string }>(), { level: "2" })
 
 const LEVELS = {
   "1": "text-2xl tracking-tight font-medium",

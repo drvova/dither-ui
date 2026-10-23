@@ -11,7 +11,7 @@ const props = withDefaults(
     separator?: string
     class?: string
   }>(),
-  { separator: "/" }
+  { separator: "/" },
 )
 </script>
 
@@ -31,12 +31,9 @@ const props = withDefaults(
           :class="i === items.length - 1 ? 'text-foreground' : 'text-muted-foreground'"
           >{{ c.label }}</span
         >
-        <span
-          v-if="i < items.length - 1"
-          aria-hidden="true"
-          class="select-none text-muted-foreground/40"
-          >{{ props.separator }}</span
-        >
+        <span v-if="i < items.length - 1" aria-hidden="true" class="select-none text-muted-foreground/40">{{
+          props.separator
+        }}</span>
       </li>
     </ol>
   </nav>

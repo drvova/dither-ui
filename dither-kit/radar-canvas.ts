@@ -1,12 +1,4 @@
-import {
-  computed,
-  defineComponent,
-  h,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-} from "vue"
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import {
   backingSize,
   bloomLayerStyle,
@@ -125,9 +117,8 @@ function startRadarLoop({
           const raw = 1 - Math.min(1, dist / band)
           const density = 1 - tex.ramp * (1 - raw)
           const sparse = pi * 0.2
-          if (tex.hatch >= 2 && ((x + y) % tex.hatch) >= tex.hatch / 2) continue
-          const lit =
-            density > mat[y & 3][x & 3] - 0.1 * intensity - tex.density + sparse
+          if (tex.hatch >= 2 && (x + y) % tex.hatch >= tex.hatch / 2) continue
+          const lit = density > mat[y & 3][x & 3] - 0.1 * intensity - tex.density + sparse
           if (!lit && (tex.gaps || covered)) continue
           const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
           const alpha = Math.min(1, (lit ? k : k * tex.offTier) * selDim)
@@ -187,9 +178,7 @@ function startRadarLoop({
     }
     if (!animStart) animStart = now
     const origin = isDirected() ? 0 : animStart
-    const prog = animate
-      ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration))
-      : 1
+    const prog = animate ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration)) : 1
 
     const emphasisNow = s.selectedDataKey ?? s.focusDataKey
     if (emphasisNow !== lastSelected) {
@@ -285,21 +274,13 @@ export const RadarCanvas = defineComponent({
     }
 
     onMounted(restart)
-    watch(
-      () => [
-        backing.value.cols,
-        backing.value.rows,
-        ctx.plot.width,
-        ctx.plot.height,
-        ctx.precompiled,
-      ],
-      restart,
-      { flush: "post" }
-    )
+    watch(() => [backing.value.cols, backing.value.rows, ctx.plot.width, ctx.plot.height, ctx.precompiled], restart, {
+      flush: "post",
+    })
     watch(
       () => ctx.ready,
       () => loop?.wake(),
-      { flush: "post" }
+      { flush: "post" },
     )
     watch(
       () => [
@@ -324,7 +305,7 @@ export const RadarCanvas = defineComponent({
         ctx.bloomOnHover,
       ],
       () => loop?.wake(),
-      { flush: "post" }
+      { flush: "post" },
     )
     onBeforeUnmount(() => loop?.stop())
 
@@ -344,10 +325,7 @@ export const RadarCanvas = defineComponent({
           style: { ...pos, imageRendering: "pixelated" },
         })
       }
-      const bloom = bloomLayerStyle(
-        ctx.bloom,
-        ctx.bloomOnHover ? ctx.isMouseInChart : true
-      )
+      const bloom = bloomLayerStyle(ctx.bloom, ctx.bloomOnHover ? ctx.isMouseInChart : true)
       return [
         h("canvas", {
           ref: canvasRef,

@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import {
-  DitherBreadcrumb,
-  DitherPagination,
-  DitherRating,
-  DitherStepper,
-  DitherTimeline,
-} from "@dither-kit"
+import { DitherBreadcrumb, DitherPagination, DitherRating, DitherStepper, DitherTimeline } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -106,11 +100,7 @@ const API: Record<string, PropRow[]> = {
     <DemoCard :code="SNIPPET_BREADCRUMB">
       <div class="flex justify-center">
         <DitherBreadcrumb
-          :items="[
-            { label: 'Home', href: '#/' },
-            { label: 'Components', href: '#/docs' },
-            { label: 'Breadcrumb' },
-          ]"
+          :items="[{ label: 'Home', href: '#/' }, { label: 'Components', href: '#/docs' }, { label: 'Breadcrumb' }]"
         />
       </div>
     </DemoCard>
@@ -121,8 +111,8 @@ const API: Record<string, PropRow[]> = {
   <section id="pagination" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Pagination</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Page navigation that always shows the first, last and current page, collapsing
-      the rest to ellipses. Two-way bound with <code class="text-foreground/80">v-model:page</code>.
+      Page navigation that always shows the first, last and current page, collapsing the rest to ellipses. Two-way bound
+      with <code class="text-foreground/80">v-model:page</code>.
     </p>
     <DemoCard :code="SNIPPET_PAGINATION">
       <div class="grid gap-4">
@@ -139,10 +129,9 @@ const API: Record<string, PropRow[]> = {
   <section id="rating" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Rating</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Dithered stars, rasterised from a 5-point polygon and scattered through the Bayer
-      matrix. Interactive as a <code class="text-foreground/80">slider</code> (click or arrow
-      keys); read-only mode fills fractionally. A seed tilts the star and reshuffles the
-      scatter, so no two ratings look stamped from the same die.
+      Dithered stars, rasterised from a 5-point polygon and scattered through the Bayer matrix. Interactive as a
+      <code class="text-foreground/80">slider</code> (click or arrow keys); read-only mode fills fractionally. A seed
+      tilts the star and reshuffles the scatter, so no two ratings look stamped from the same die.
     </p>
     <DemoCard :code="SNIPPET_RATING">
       <div class="grid gap-6">
@@ -185,20 +174,14 @@ const API: Record<string, PropRow[]> = {
   <section id="stepper" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Stepper</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Progress through a multi-step flow. Completed steps carry a check, the current step
-      an outlined node, and the connectors are the kit's dithered rule — dissolving toward
-      steps not yet reached.
+      Progress through a multi-step flow. Completed steps carry a check, the current step an outlined node, and the
+      connectors are the kit's dithered rule — dissolving toward steps not yet reached.
     </p>
     <DemoCard :code="SNIPPET_STEPPER">
       <div class="mx-auto max-w-md">
         <DitherStepper
           :current="1"
-          :steps="[
-            { label: 'Cart' },
-            { label: 'Shipping' },
-            { label: 'Payment' },
-            { label: 'Done' },
-          ]"
+          :steps="[{ label: 'Cart' }, { label: 'Shipping' }, { label: 'Payment' }, { label: 'Done' }]"
         />
       </div>
     </DemoCard>
@@ -209,14 +192,19 @@ const API: Record<string, PropRow[]> = {
   <section id="timeline" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Timeline</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A vertical run of events, each pinned by a dithered dot whose density fades at the
-      rim. Give a title, an optional timestamp, body and palette colour per node.
+      A vertical run of events, each pinned by a dithered dot whose density fades at the rim. Give a title, an optional
+      timestamp, body and palette colour per node.
     </p>
     <DemoCard :code="SNIPPET_TIMELINE">
       <div class="mx-auto max-w-sm">
         <DitherTimeline
           :items="[
-            { title: 'Deployed v0.3.0', time: '2h ago', color: 'green', body: 'Rolled out to production behind a flag.' },
+            {
+              title: 'Deployed v0.3.0',
+              time: '2h ago',
+              color: 'green',
+              body: 'Rolled out to production behind a flag.',
+            },
             { title: 'Merged #482', time: 'Yesterday', color: 'blue', body: 'Seeded the spinner form space.' },
             { title: 'Opened milestone', time: 'Mon', color: 'purple', body: 'Navigation & data components.' },
             { title: 'Kicked off', time: 'Last week', color: 'orange' },

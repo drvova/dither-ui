@@ -55,7 +55,7 @@ const typing = ref(false)
 watch(
   [() => active.value.messages.length, typing, activeId],
   () => nextTick(() => scroller.value?.scrollTo({ top: scroller.value.scrollHeight })),
-  { flush: "post" }
+  { flush: "post" },
 )
 let timer = 0
 function send() {
@@ -90,11 +90,15 @@ onUnmounted(() => {
 /* AI assistant — streamed replies, suggestion chips, stop control */
 type AiMsg = { role: "user" | "assistant"; text: string }
 const AI_ANSWERS: Record<string, string> = {
-  "What can a seed do?": "One integer derives a full visual personality — texture, easing, bloom, entrance, even the dither matrix. Same seed, same picture, forever.",
-  "Theme the charts": "Override the shadcn-style tokens — background, foreground, border, accent — and every chart chrome follows. The dither reads the same vars.",
-  "Export an artboard": "Open Studio, select the artboard, and use Export — PNG for pixels, or copy the Vue snippet to keep it live.",
+  "What can a seed do?":
+    "One integer derives a full visual personality — texture, easing, bloom, entrance, even the dither matrix. Same seed, same picture, forever.",
+  "Theme the charts":
+    "Override the shadcn-style tokens — background, foreground, border, accent — and every chart chrome follows. The dither reads the same vars.",
+  "Export an artboard":
+    "Open Studio, select the artboard, and use Export — PNG for pixels, or copy the Vue snippet to keep it live.",
 }
-const AI_FALLBACK = "Try a seed — pass any integer to a chart and watch the texture, easing and bloom derive from it. Explicit props always win."
+const AI_FALLBACK =
+  "Try a seed — pass any integer to a chart and watch the texture, easing and bloom derive from it. Explicit props always win."
 const aiMessages = reactive<AiMsg[]>([
   { role: "assistant", text: "Hi — ask me about seeds, theming, or exporting. Or pick a suggestion below." },
 ])
@@ -105,7 +109,7 @@ const aiScroller = ref<HTMLDivElement | null>(null)
 watch(
   [() => aiMessages.length, () => aiMessages[aiMessages.length - 1]?.text],
   () => nextTick(() => aiScroller.value?.scrollTo({ top: aiScroller.value.scrollHeight })),
-  { flush: "post" }
+  { flush: "post" },
 )
 function aiAsk(prompt: string) {
   const text = prompt.trim()
@@ -151,7 +155,7 @@ const supportScroller = ref<HTMLDivElement | null>(null)
 watch(
   [() => supportMessages.length, supportTyping],
   () => nextTick(() => supportScroller.value?.scrollTo({ top: supportScroller.value.scrollHeight })),
-  { flush: "post" }
+  { flush: "post" },
 )
 function supportAsk(prompt: string) {
   const text = prompt.trim()
@@ -163,16 +167,49 @@ function supportAsk(prompt: string) {
     const reply = SUPPORT_REPLIES[text] ?? "Let me check that for you — one moment."
     supportMessages.push({ from: "agent", text: reply, at: stamp() })
     supportTyping.value = false
-    if (text === "Talk to a human") later(() => supportMessages.push({ from: "system", text: "Ticket #4821 opened — Rei joined the conversation", at: stamp() }), 900)
+    if (text === "Talk to a human")
+      later(
+        () =>
+          supportMessages.push({
+            from: "system",
+            text: "Ticket #4821 opened — Rei joined the conversation",
+            at: stamp(),
+          }),
+        900,
+      )
   }, 1100)
 }
 
 /* Team channel — flat rows, author grouping, toggleable reactions */
-type ChannelMsg = { author: string; color: "blue" | "green" | "purple"; text: string; at: string; reactions: { label: string; count: number; mine: boolean }[] }
+type ChannelMsg = {
+  author: string
+  color: "blue" | "green" | "purple"
+  text: string
+  at: string
+  reactions: { label: string; count: number; mine: boolean }[]
+}
 const channelMessages = reactive<ChannelMsg[]>([
-  { author: "Rei Toma", color: "purple", text: "Palette v3 is in staging — poke at the orange ramp.", at: "09:12", reactions: [{ label: "+1", count: 2, mine: false }] },
-  { author: "Rei Toma", color: "purple", text: "Charts pick it up automatically, no prop changes.", at: "09:12", reactions: [] },
-  { author: "Kai Raster", color: "green", text: "Export bug #214 is reproduced — fix lands today.", at: "09:20", reactions: [{ label: "ship it", count: 1, mine: false }] },
+  {
+    author: "Rei Toma",
+    color: "purple",
+    text: "Palette v3 is in staging — poke at the orange ramp.",
+    at: "09:12",
+    reactions: [{ label: "+1", count: 2, mine: false }],
+  },
+  {
+    author: "Rei Toma",
+    color: "purple",
+    text: "Charts pick it up automatically, no prop changes.",
+    at: "09:12",
+    reactions: [],
+  },
+  {
+    author: "Kai Raster",
+    color: "green",
+    text: "Export bug #214 is reproduced — fix lands today.",
+    at: "09:20",
+    reactions: [{ label: "ship it", count: 1, mine: false }],
+  },
   { author: "You", color: "blue", text: "I will take the docs pass once both land.", at: "09:24", reactions: [] },
 ])
 const channelDraft = ref("")
@@ -180,7 +217,7 @@ const channelScroller = ref<HTMLDivElement | null>(null)
 watch(
   () => channelMessages.length,
   () => nextTick(() => channelScroller.value?.scrollTo({ top: channelScroller.value.scrollHeight })),
-  { flush: "post" }
+  { flush: "post" },
 )
 /** Consecutive rows from one author collapse — avatar and name print once. */
 const grouped = (i: number) => i > 0 && channelMessages[i - 1].author === channelMessages[i].author
@@ -278,9 +315,8 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
   <section id="chat-thread" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Chat thread</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Conversation list beside a live thread — unread badges clear when you
-      open them, sending appends your bubble, and the other side types back.
-      The typing dots hold still under reduced motion.
+      Conversation list beside a live thread — unread badges clear when you open them, sending appends your bubble, and
+      the other side types back. The typing dots hold still under reduced motion.
     </p>
     <DemoCard :code="SNIPPET">
       <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-background/40">
@@ -322,7 +358,13 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
               class="flex items-end gap-2"
               :class="m.from === 'me' ? 'justify-end' : 'justify-start'"
             >
-              <DitherAvatar v-if="m.from === 'them'" :name="active.name" :size="20" :color="active.color" class="shrink-0" />
+              <DitherAvatar
+                v-if="m.from === 'them'"
+                :name="active.name"
+                :size="20"
+                :color="active.color"
+                class="shrink-0"
+              />
               <div
                 class="max-w-[75%] rounded-lg border px-2.5 py-1.5"
                 :class="m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'border-border/60 bg-card/40'"
@@ -335,7 +377,12 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
               <DitherAvatar :name="active.name" :size="20" :color="active.color" class="shrink-0" />
               <div class="rounded-lg border border-border/60 bg-card/40 px-2.5 py-2" aria-label="Typing">
                 <span class="flex gap-1">
-                  <span v-for="d in 3" :key="d" class="size-1 animate-pulse rounded-full bg-muted-foreground motion-reduce:animate-none" :style="{ animationDelay: `${d * 150}ms` }" />
+                  <span
+                    v-for="d in 3"
+                    :key="d"
+                    class="size-1 animate-pulse rounded-full bg-muted-foreground motion-reduce:animate-none"
+                    :style="{ animationDelay: `${d * 150}ms` }"
+                  />
                 </span>
               </div>
             </div>
@@ -355,12 +402,13 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
   <section id="chat-assistant" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">AI assistant</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An assistant thread — suggestion chips ask for you, replies stream in
-      character by character, and Stop cancels mid-sentence. Under reduced
-      motion the answer lands whole.
+      An assistant thread — suggestion chips ask for you, replies stream in character by character, and Stop cancels
+      mid-sentence. Under reduced motion the answer lands whole.
     </p>
     <DemoCard :code="SNIPPET_AI">
-      <div class="mx-auto flex h-96 max-w-md flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40">
+      <div
+        class="mx-auto flex h-96 max-w-md flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40"
+      >
         <div class="flex h-10 shrink-0 items-center gap-2 border-b border-border/60 px-3">
           <DitherAvatar name="dither assistant" :size="20" color="purple" />
           <span class="text-[12px] text-foreground">Assistant</span>
@@ -370,12 +418,25 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
           </span>
         </div>
         <div ref="aiScroller" class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3" aria-live="polite">
-          <div v-for="(m, i) in aiMessages" :key="i" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
+          <div
+            v-for="(m, i) in aiMessages"
+            :key="i"
+            class="flex"
+            :class="m.role === 'user' ? 'justify-end' : 'justify-start'"
+          >
             <div
               class="max-w-[80%] rounded-lg border px-2.5 py-1.5"
               :class="m.role === 'user' ? 'border-accent/40 bg-accent/10' : 'border-border/60 bg-card/40'"
             >
-              <p class="text-[11px] leading-relaxed whitespace-pre-wrap text-foreground">{{ m.text }}<span v-if="aiStreaming && i === aiMessages.length - 1" class="animate-pulse motion-reduce:animate-none" aria-hidden="true">▍</span></p>
+              <p class="text-[11px] leading-relaxed whitespace-pre-wrap text-foreground">
+                {{ m.text
+                }}<span
+                  v-if="aiStreaming && i === aiMessages.length - 1"
+                  class="animate-pulse motion-reduce:animate-none"
+                  aria-hidden="true"
+                  >▍</span
+                >
+              </p>
             </div>
           </div>
         </div>
@@ -402,7 +463,12 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
           </div>
           <form class="flex items-center gap-2" @submit.prevent="aiAsk(aiDraft)">
             <DitherInput v-model="aiDraft" placeholder="Ask about the kit…" class="min-w-0 flex-1 text-[11px]" />
-            <DitherButton color="purple" class="shrink-0 px-3 py-1.5 text-[11px]" :disabled="!aiDraft.trim() || aiStreaming">Ask</DitherButton>
+            <DitherButton
+              color="purple"
+              class="shrink-0 px-3 py-1.5 text-[11px]"
+              :disabled="!aiDraft.trim() || aiStreaming"
+              >Ask</DitherButton
+            >
           </form>
         </div>
       </div>
@@ -413,12 +479,13 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
   <section id="chat-support" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Support chat</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A support widget — online status in the header, quick-reply chips that
-      really answer, and “Talk to a human” escalates: the agent replies, then
-      a system line opens the ticket.
+      A support widget — online status in the header, quick-reply chips that really answer, and “Talk to a human”
+      escalates: the agent replies, then a system line opens the ticket.
     </p>
     <DemoCard :code="SNIPPET_SUPPORT">
-      <div class="mx-auto flex h-96 max-w-md flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40">
+      <div
+        class="mx-auto flex h-96 max-w-md flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40"
+      >
         <div class="flex h-10 shrink-0 items-center gap-2 border-b border-border/60 px-3">
           <DitherAvatar name="Nia Grid" :size="20" color="green" />
           <span class="text-[12px] text-foreground">Support</span>
@@ -448,7 +515,12 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
             <DitherAvatar name="Nia Grid" :size="20" color="green" class="shrink-0" />
             <div class="rounded-lg border border-border/60 bg-card/40 px-2.5 py-2" aria-label="Agent typing">
               <span class="flex gap-1">
-                <span v-for="d in 3" :key="d" class="size-1 animate-pulse rounded-full bg-muted-foreground motion-reduce:animate-none" :style="{ animationDelay: `${d * 150}ms` }" />
+                <span
+                  v-for="d in 3"
+                  :key="d"
+                  class="size-1 animate-pulse rounded-full bg-muted-foreground motion-reduce:animate-none"
+                  :style="{ animationDelay: `${d * 150}ms` }"
+                />
               </span>
             </div>
           </div>
@@ -468,7 +540,12 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
           </div>
           <form class="flex items-center gap-2" @submit.prevent="supportAsk(supportDraft)">
             <DitherInput v-model="supportDraft" placeholder="Write a message…" class="min-w-0 flex-1 text-[11px]" />
-            <DitherButton color="green" class="shrink-0 px-3 py-1.5 text-[11px]" :disabled="!supportDraft.trim() || supportTyping">Send</DitherButton>
+            <DitherButton
+              color="green"
+              class="shrink-0 px-3 py-1.5 text-[11px]"
+              :disabled="!supportDraft.trim() || supportTyping"
+              >Send</DitherButton
+            >
           </form>
         </div>
       </div>
@@ -479,12 +556,13 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
   <section id="chat-channel" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Team channel</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A channel, not bubbles — flat rows where consecutive messages from one
-      author group under a single name, and reactions toggle with a click.
-      Post something and watch your rows group too.
+      A channel, not bubbles — flat rows where consecutive messages from one author group under a single name, and
+      reactions toggle with a click. Post something and watch your rows group too.
     </p>
     <DemoCard :code="SNIPPET_CHANNEL">
-      <div class="mx-auto flex h-96 max-w-lg flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40">
+      <div
+        class="mx-auto flex h-96 max-w-lg flex-col overflow-hidden rounded-lg border border-border/60 bg-background/40"
+      >
         <div class="flex h-10 shrink-0 items-center gap-2 border-b border-border/60 px-3">
           <span class="text-[12px] text-foreground">#dither-dev</span>
           <span class="ml-auto text-[10px] tabular-nums text-muted-foreground">4 members</span>
@@ -512,7 +590,11 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
                   type="button"
                   :aria-pressed="r.mine"
                   class="rounded-full border px-1.5 py-px text-[9px] tabular-nums transition-colors"
-                  :class="r.mine ? 'border-accent/50 bg-accent/10 text-foreground' : 'border-border/60 text-muted-foreground hover:text-foreground'"
+                  :class="
+                    r.mine
+                      ? 'border-accent/50 bg-accent/10 text-foreground'
+                      : 'border-border/60 text-muted-foreground hover:text-foreground'
+                  "
                   @click="react(m, r.label)"
                 >
                   {{ r.label }} {{ r.count }}
@@ -522,14 +604,18 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
                   aria-label="Add reaction"
                   class="rounded-full border border-border/60 px-1.5 py-px text-[9px] text-muted-foreground transition-colors hover:text-foreground"
                   @click="react(m, '+1')"
-                >+</button>
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
         </div>
         <form class="flex shrink-0 items-center gap-2 border-t border-border/60 p-2.5" @submit.prevent="channelPost">
           <DitherInput v-model="channelDraft" placeholder="Message #dither-dev…" class="min-w-0 flex-1 text-[11px]" />
-          <DitherButton color="blue" class="shrink-0 px-3 py-1.5 text-[11px]" :disabled="!channelDraft.trim()">Post</DitherButton>
+          <DitherButton color="blue" class="shrink-0 px-3 py-1.5 text-[11px]" :disabled="!channelDraft.trim()"
+            >Post</DitherButton
+          >
         </form>
       </div>
     </DemoCard>

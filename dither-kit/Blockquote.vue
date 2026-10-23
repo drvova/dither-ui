@@ -8,7 +8,9 @@ const props = defineProps<{ class?: string }>()
 </script>
 
 <template>
-  <blockquote :class="cn('border-l-2 border-border/60 pl-4 text-[13px] leading-relaxed text-muted-foreground', props.class)">
+  <blockquote
+    :class="cn('border-l-2 border-border/60 pl-4 text-[13px] leading-relaxed text-muted-foreground', props.class)"
+  >
     <slot />
   </blockquote>
 </template>

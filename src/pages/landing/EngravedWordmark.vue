@@ -62,10 +62,7 @@ let io: IntersectionObserver | null = null
 // The match includes the quote that CLOSES the path's d attribute, so the
 // replacement must put it back (dropping it spliced the attributes into d
 // and the browser rejected the whole contour — the rim never drew).
-const RIM_DRAW = WORDMARK_RIM.replace(
-  '" stroke="#D6EAFF"',
-  '" pathLength="1" class="wm-pen" stroke="#D6EAFF"',
-).replace(
+const RIM_DRAW = WORDMARK_RIM.replace('" stroke="#D6EAFF"', '" pathLength="1" class="wm-pen" stroke="#D6EAFF"').replace(
   /(<svg[^>]*>)/,
   `$1<style>
     [data-armed]:not([data-live]) .wm-pen { stroke-dasharray: 1; stroke-dashoffset: 1; }
@@ -172,7 +169,11 @@ function onMove(e: MouseEvent) {
          grain). No glyph clip — like theirs, the light layer's own letterforms
          shape it; both are bounded only by the cursor pool (mask-image) -->
     <div
-      :ref="(el) => { if (el) bloom = el as HTMLElement }"
+      :ref="
+        (el) => {
+          if (el) bloom = el as HTMLElement
+        }
+      "
       aria-hidden="true"
       class="pointer-events-none absolute opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100"
       :style="{
@@ -184,7 +185,11 @@ function onMove(e: MouseEvent) {
       v-html="WORDMARK_LIGHT_BLOOM"
     />
     <div
-      :ref="(el) => { if (el) lit = el as HTMLElement }"
+      :ref="
+        (el) => {
+          if (el) lit = el as HTMLElement
+        }
+      "
       aria-hidden="true"
       class="pointer-events-none absolute opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100"
       :style="{
@@ -199,7 +204,11 @@ function onMove(e: MouseEvent) {
     <!-- Faint halo bloom trailing the cursor (the lit bodies above carry the
          shape; this only bleeds a little light past their edges) -->
     <span
-      :ref="(el) => { if (el) sheen = el as HTMLElement }"
+      :ref="
+        (el) => {
+          if (el) sheen = el as HTMLElement
+        }
+      "
       class="absolute inset-0 opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100"
       style="
         clip-path: url(#wordmark-letters);

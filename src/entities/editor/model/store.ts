@@ -26,18 +26,15 @@ selectArtboard(editor.artboards[0].id)
 
 // --- getters ---------------------------------------------------------------
 export const selectedArtboard = computed<Artboard | null>(
-  () => editor.artboards.find((a) => a.id === editor.selectedArtboardId) ?? null
+  () => editor.artboards.find((a) => a.id === editor.selectedArtboardId) ?? null,
 )
 export const selectedChart = computed(() => selectedArtboard.value?.chart ?? null)
 export const selectedLayers = computed<Layer[]>(() =>
-  selectedArtboard.value
-    ? layersOf(selectedArtboard.value.chart, selectedArtboard.value.id)
-    : []
+  selectedArtboard.value ? layersOf(selectedArtboard.value.chart, selectedArtboard.value.id) : [],
 )
 export const artboardIdOf = (layerId: string) => layerId.split(":")[0]
 const find = (id: string) => editor.artboards.find((a) => a.id === id)
-const membersOf = (groupId: string) =>
-  editor.artboards.filter((a) => a.groupId === groupId)
+const membersOf = (groupId: string) => editor.artboards.filter((a) => a.groupId === groupId)
 
 /** Place a new frame at the visible canvas center, not document origin/right edge. */
 export function placeArtboard(a: Artboard): Artboard {
@@ -101,9 +98,7 @@ export function selectLayer(id: string) {
 export function selectMany(ids: string[]) {
   editor.selectedIds = [...ids]
   editor.selectedArtboardId = ids[ids.length - 1] ?? ""
-  editor.selectedLayerId = editor.selectedArtboardId
-    ? `${editor.selectedArtboardId}:root`
-    : ""
+  editor.selectedLayerId = editor.selectedArtboardId ? `${editor.selectedArtboardId}:root` : ""
 }
 
 // Internal clipboard — a JSON snapshot so paste still works after a delete.
@@ -169,7 +164,8 @@ export function addReelArtboard(ids: string[]) {
 /** Reels only reference frames that still exist. */
 function pruneReels() {
   const ids = new Set(editor.artboards.map((a) => a.id))
-  for (const a of editor.artboards) if (a.widget?.kind === "reel") a.widget.clips = a.widget.clips.filter((c) => ids.has(c.id))
+  for (const a of editor.artboards)
+    if (a.widget?.kind === "reel") a.widget.clips = a.widget.clips.filter((c) => ids.has(c.id))
 }
 export function duplicateSelected() {
   const copies = editor.selectedIds
@@ -264,8 +260,7 @@ export function deleteSeries(key: string) {
   const c = selectedChart.value
   if (!c) return
   c.series = c.series.filter((s) => s.key !== key)
-  if (editor.selectedLayerId.endsWith(`:series:${key}`))
-    editor.selectedLayerId = `${editor.selectedArtboardId}:root`
+  if (editor.selectedLayerId.endsWith(`:series:${key}`)) editor.selectedLayerId = `${editor.selectedArtboardId}:root`
 }
 
 export function replay() {

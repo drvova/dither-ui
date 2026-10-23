@@ -58,12 +58,7 @@ function onSelect(value: string) {
         </span>
         <Icon name="Calendar" :size="14" class="shrink-0 text-muted-foreground" />
       </button>
-      <div
-        v-if="open"
-        role="dialog"
-        aria-label="Pick a date"
-        class="absolute left-0 top-full z-30 mt-1 shadow-lg"
-      >
+      <div v-if="open" role="dialog" aria-label="Pick a date" class="absolute left-0 top-full z-30 mt-1 shadow-lg">
         <Calendar
           :model-value="props.modelValue"
           :min="props.min"

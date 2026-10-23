@@ -45,7 +45,16 @@ import {
   sanitizeComponentProps,
   widgetCode,
 } from "@/entities/widget"
-import { compositionHtml, defaultSeconds, normalizeVideoOptions, playerAssetUrls, reelClips, renderCommand, slugOf, videoFileName } from "@/features/export-video"
+import {
+  compositionHtml,
+  defaultSeconds,
+  normalizeVideoOptions,
+  playerAssetUrls,
+  reelClips,
+  renderCommand,
+  slugOf,
+  videoFileName,
+} from "@/features/export-video"
 import { applyDocument, documentSnapshot, type StudioDocument } from "@/features/persistence"
 import { CHART_TYPES, type ChartType, familyOf } from "@/shared/config"
 import { isStyling, restyle, type Styling, STYLINGS } from "@/shared/lib/restyle"
@@ -65,7 +74,11 @@ export type ChartData = {
 }
 
 /** One clip of a reel as a command spells it: a frame, how long it plays, how it comes in. */
-export type ReelClipSpec = { id: string; seconds?: number; transition?: { kind?: ReelTransitionKind; seconds?: number; cell?: number; seed?: number } }
+export type ReelClipSpec = {
+  id: string
+  seconds?: number
+  transition?: { kind?: ReelTransitionKind; seconds?: number; cell?: number; seed?: number }
+}
 
 export type StudioCommand =
   | { type: "document.get" }
@@ -76,11 +89,23 @@ export type StudioCommand =
   | { type: "artboard.update"; id: string; patch: Record<string, unknown> }
   | { type: "chart.add"; chart: ChartType; name?: string; data?: ChartData; frame?: { w?: number; h?: number } }
   | { type: "widget.add"; widget: (typeof WIDGET_KINDS)[number]; name?: string; props?: Record<string, unknown> }
-  | { type: "component.add"; is: string; name?: string; props?: Record<string, unknown>; slotText?: string; frame?: { w?: number; h?: number } }
+  | {
+      type: "component.add"
+      is: string
+      name?: string
+      props?: Record<string, unknown>
+      slotText?: string
+      frame?: { w?: number; h?: number }
+    }
   | {
       type: "screen.add"
       name?: string
-      rows: { cells: { is: string; props?: Record<string, unknown>; slotText?: string; grow?: boolean }[]; align?: string; justify?: string; gap?: number }[]
+      rows: {
+        cells: { is: string; props?: Record<string, unknown>; slotText?: string; grow?: boolean }[]
+        align?: string
+        justify?: string
+        gap?: number
+      }[]
       gap?: number
       padding?: number
       frame?: { w?: number; h?: number }
@@ -103,7 +128,18 @@ const find = (id: string) => editor.artboards.find((a) => a.id === id)
 /** A compact description of one artboard for listings. */
 export function summarize(a: Artboard) {
   const kind = a.widget ? (a.widget.kind === "component" ? a.widget.is : a.widget.kind) : `${a.chart.type} chart`
-  return { id: a.id, name: a.name, kind, x: a.x, y: a.y, w: a.w, h: a.h, hidden: a.hidden, locked: a.locked, selected: editor.selectedIds.includes(a.id) }
+  return {
+    id: a.id,
+    name: a.name,
+    kind,
+    x: a.x,
+    y: a.y,
+    w: a.w,
+    h: a.h,
+    hidden: a.hidden,
+    locked: a.locked,
+    selected: editor.selectedIds.includes(a.id),
+  }
 }
 
 /** The machine-readable registry: every component the studio can place,
@@ -126,10 +162,17 @@ export function registrySchema() {
       vmodel: e.vmodel ? { default: e.vmodel.def } : null,
     })),
     document: {
-      artboards: "Artboard[] — { id, name, x, y, w, h, hidden?, locked?, groupId?: null, chart: ChartModel, widget?: WidgetModel }",
-      chart: "ChartModel — { type: charts[], rows: DataRow[], series: [{ key, label, color }], seed?, bloom: off|low|high|aura, stackType: default|stacked|percent, cell: 1..4 }",
-      rows: { cartesian: "{ month: string, <seriesKey>: number }", pie: "{ name: string, value: number }", radar: "{ axis: string, <seriesKey>: number }" },
-      widget: "WidgetModel — { kind: avatar|button|gradient|image } | { kind: component, is, props, slotText } | { kind: screen, rows: [{ cells: [{ is, props, slotText, grow }], align, justify, gap }], gap, padding } | { kind: reel, clips: [{ id, seconds, transition: { kind, seconds, cell, seed } }] }",
+      artboards:
+        "Artboard[] — { id, name, x, y, w, h, hidden?, locked?, groupId?: null, chart: ChartModel, widget?: WidgetModel }",
+      chart:
+        "ChartModel — { type: charts[], rows: DataRow[], series: [{ key, label, color }], seed?, bloom: off|low|high|aura, stackType: default|stacked|percent, cell: 1..4 }",
+      rows: {
+        cartesian: "{ month: string, <seriesKey>: number }",
+        pie: "{ name: string, value: number }",
+        radar: "{ axis: string, <seriesKey>: number }",
+      },
+      widget:
+        "WidgetModel — { kind: avatar|button|gradient|image } | { kind: component, is, props, slotText } | { kind: screen, rows: [{ cells: [{ is, props, slotText, grow }], align, justify, gap }], gap, padding } | { kind: reel, clips: [{ id, seconds, transition: { kind, seconds, cell, seed } }] }",
       groups: "Group[] — { id, name, collapsed }",
       viewport: "{ x, y, zoom }",
     },
@@ -139,17 +182,22 @@ export function registrySchema() {
       "artboard.list": "summaries of every frame",
       "artboard.select": "{ id } or { ids }",
       "artboard.remove": "{ id }",
-      "artboard.update": "{ id, patch } — merge name/x/y/w/h/hidden/locked, chart fields, widget props, screen rows or reel clips; sanitized",
+      "artboard.update":
+        "{ id, patch } — merge name/x/y/w/h/hidden/locked, chart fields, widget props, screen rows or reel clips; sanitized",
       "chart.add": "{ chart, name?, data?: { labels, series: [{ key, label?, color?, values }] }, frame? }",
       "widget.add": "{ widget: avatar|button|gradient|image, name?, props? }",
       "component.add": "{ is, name?, props?, slotText?, frame? } — a registry component",
-      "screen.add": "{ name?, rows: [{ cells: [{ is, props?, slotText?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
+      "screen.add":
+        "{ name?, rows: [{ cells: [{ is, props?, slotText?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
       "reel.add": `{ name?, clips: [id | { id, seconds?, transition?: { kind?: ${REEL_TRANSITIONS.join("|")}, seconds?, cell?, seed? } }], frame? } — frames played in order with ordered-dither transitions (clip 3s, dissolve 0.6s by default); video.export renders the whole cut`,
       evolve: "{ id?, count?, seed?, strength? } — seeded variants placed as a row",
-      "code.get": "{ id, styling? } — the frame as a Vue SFC: tailwind (default) keeps the utility classes; css (a scoped stylesheet), modules (CSS Modules) or stylex write the same look in that system",
+      "code.get":
+        "{ id, styling? } — the frame as a Vue SFC: tailwind (default) keeps the utility classes; css (a scoped stylesheet), modules (CSS Modules) or stylex write the same look in that system",
       "registry.get": "{ is? } — this schema, or one component's entry",
-      "video.export": "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length",
-      "clock.seek": "{ seconds? } — hold every animation on the canvas at that moment (a stable screenshot from any driver in any browser); without seconds, let time run again",
+      "video.export":
+        "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length",
+      "clock.seek":
+        "{ seconds? } — hold every animation on the canvas at that moment (a stable screenshot from any driver in any browser); without seconds, let time run again",
       "clock.release": "let time run again",
     },
   }
@@ -183,7 +231,13 @@ export function chartFromData(type: ChartType, data: ChartData) {
   const palette = ["blue", "purple", "green", "orange", "pink", "red", "grey"]
   chart.series = series
     .filter((s) => !seen.has(s.key) && seen.add(s.key))
-    .map((s, i) => createSeriesRow(s.key, typeof s.label === "string" ? s.label : s.key, typeof s.color === "string" ? s.color : palette[i % palette.length]))
+    .map((s, i) =>
+      createSeriesRow(
+        s.key,
+        typeof s.label === "string" ? s.label : s.key,
+        typeof s.color === "string" ? s.color : palette[i % palette.length],
+      ),
+    )
   return chart
 }
 
@@ -193,7 +247,8 @@ function buildClips(input: unknown) {
   const missing: string[] = []
   const reels: string[] = []
   for (const raw of Array.isArray(input) ? input : []) {
-    const spec = typeof raw === "string" ? { id: raw } : isPlain(raw) && typeof raw.id === "string" ? (raw as ReelClipSpec) : null
+    const spec =
+      typeof raw === "string" ? { id: raw } : isPlain(raw) && typeof raw.id === "string" ? (raw as ReelClipSpec) : null
     if (!spec) continue
     const frame = find(spec.id)
     if (!frame) missing.push(spec.id)
@@ -244,11 +299,17 @@ export function runCommand(input: unknown): CommandResult {
       case "document.get":
         return ok(documentSnapshot())
       case "document.set":
-        return applyDocument(cmd.document, { keepHistory: true }) ? ok({ artboards: editor.artboards.map(summarize) }) : fail("document rejected: needs { artboards: [...] } with at least one artboard")
+        return applyDocument(cmd.document, { keepHistory: true })
+          ? ok({ artboards: editor.artboards.map(summarize) })
+          : fail("document rejected: needs { artboards: [...] } with at least one artboard")
       case "artboard.list":
         return ok(editor.artboards.map(summarize))
       case "artboard.select": {
-        const ids = Array.isArray(cmd.ids) ? cmd.ids.filter((i): i is string => typeof i === "string") : typeof cmd.id === "string" ? [cmd.id] : []
+        const ids = Array.isArray(cmd.ids)
+          ? cmd.ids.filter((i): i is string => typeof i === "string")
+          : typeof cmd.id === "string"
+            ? [cmd.id]
+            : []
         const known = ids.filter(find)
         if (!known.length) return fail("no such artboard")
         if (known.length === 1) selectArtboard(known[0])
@@ -265,14 +326,16 @@ export function runCommand(input: unknown): CommandResult {
         if (!isPlain(cmd.patch)) return fail("patch must be an object")
         const p = cmd.patch
         if (typeof p.name === "string") a.name = p.name.slice(0, 80)
-        for (const k of ["x", "y", "w", "h"] as const) if (typeof p[k] === "number" && Number.isFinite(p[k])) a[k] = Math.round(p[k] as number)
+        for (const k of ["x", "y", "w", "h"] as const)
+          if (typeof p[k] === "number" && Number.isFinite(p[k])) a[k] = Math.round(p[k] as number)
         if (typeof p.hidden === "boolean") a.hidden = p.hidden
         if (typeof p.locked === "boolean") a.locked = p.locked
         if (isPlain(p.chart) && !a.widget) Object.assign(a.chart, p.chart)
         if (isPlain(p.widget) && a.widget) {
           const w = a.widget as unknown as Record<string, unknown>
           const patch = p.widget
-          if (a.widget.kind === "component" && isPlain(patch.props)) w.props = { ...(w.props as object), ...patch.props }
+          if (a.widget.kind === "component" && isPlain(patch.props))
+            w.props = { ...(w.props as object), ...patch.props }
           else if (a.widget.kind === "screen" && Array.isArray(patch.rows)) {
             const built = buildScreen({ type: "screen.add", rows: patch.rows as never })
             w.rows = built.rows
@@ -307,7 +370,10 @@ export function runCommand(input: unknown): CommandResult {
         const a = addComponentArtboard(entry)
         if (typeof cmd.name === "string") a.name = cmd.name.slice(0, 80)
         if (a.widget?.kind === "component") {
-          a.widget.props = sanitizeComponentProps(entry, { ...a.widget.props, ...(isPlain(cmd.props) ? cmd.props : {}) })
+          a.widget.props = sanitizeComponentProps(entry, {
+            ...a.widget.props,
+            ...(isPlain(cmd.props) ? cmd.props : {}),
+          })
           if (typeof cmd.slotText === "string") a.widget.slotText = cmd.slotText
         }
         applyFrame(a, cmd.frame)
@@ -315,7 +381,10 @@ export function runCommand(input: unknown): CommandResult {
       }
       case "screen.add": {
         const built = buildScreen(cmd)
-        if (!built.rows.some((r) => r.cells.length)) return fail(`screen has no placeable cells${built.dropped.length ? ` (unknown: ${built.dropped.join(", ")})` : ""}`)
+        if (!built.rows.some((r) => r.cells.length))
+          return fail(
+            `screen has no placeable cells${built.dropped.length ? ` (unknown: ${built.dropped.join(", ")})` : ""}`,
+          )
         const a = addScreenArtboard()
         if (typeof cmd.name === "string") a.name = cmd.name.slice(0, 80)
         if (a.widget?.kind === "screen") {
@@ -337,7 +406,11 @@ export function runCommand(input: unknown): CommandResult {
         if (a.widget?.kind === "reel") a.widget.clips = built.clips
         applyFrame(a, cmd.frame)
         normalizeArtboard(a)
-        return ok({ ...summarize(a), clips: a.widget?.kind === "reel" ? a.widget.clips : [], seconds: defaultSeconds(a) })
+        return ok({
+          ...summarize(a),
+          clips: a.widget?.kind === "reel" ? a.widget.clips : [],
+          seconds: defaultSeconds(a),
+        })
       }
       case "evolve": {
         const id = typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId
@@ -470,7 +543,13 @@ export function installStudioAgentApi(): () => void {
     { deep: true },
   )
 
-  window.ditherStudio = { version: PROTOCOL_VERSION, run: runCommand, registry: registrySchema, document: documentSnapshot, clock: clockApi() }
+  window.ditherStudio = {
+    version: PROTOCOL_VERSION,
+    run: runCommand,
+    registry: registrySchema,
+    document: documentSnapshot,
+    clock: clockApi(),
+  }
 
   return () => {
     stop()

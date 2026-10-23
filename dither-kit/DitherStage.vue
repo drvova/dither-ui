@@ -52,7 +52,8 @@ let elapsed = 0
 let lastFrame = -1
 let ro: ResizeObserver | null = null
 
-const wrap = (t: number): number => (props.duration && props.duration > 0 ? ((t % props.duration) + props.duration) % props.duration : t)
+const wrap = (t: number): number =>
+  props.duration && props.duration > 0 ? ((t % props.duration) + props.duration) % props.duration : t
 
 function frame(now: number): void {
   raf = 0
@@ -127,12 +128,26 @@ onBeforeUnmount(() => {
   ro = null
 })
 
-const state = computed(() => (reduced.value ? "still" : props.paused ? "paused" : directed.value ? "directed" : "playing"))
-const style = computed(() => ({ containerType: "size", containerName: "stage", "--cq-w": String(Math.round(box.value.width)), "--cq-h": String(Math.round(box.value.height)) }))
+const state = computed(() =>
+  reduced.value ? "still" : props.paused ? "paused" : directed.value ? "directed" : "playing",
+)
+const style = computed(() => ({
+  containerType: "size",
+  containerName: "stage",
+  "--cq-w": String(Math.round(box.value.width)),
+  "--cq-h": String(Math.round(box.value.height)),
+}))
 </script>
 
 <template>
-  <component :is="props.as" ref="root" :class="cn('dither-stage', props.class)" :style="style" :data-stage="state" :data-stage-time="time.toFixed(2)">
+  <component
+    :is="props.as"
+    ref="root"
+    :class="cn('dither-stage', props.class)"
+    :style="style"
+    :data-stage="state"
+    :data-stage-time="time.toFixed(2)"
+  >
     <slot :time="time" :width="box.width" :height="box.height" />
   </component>
 </template>

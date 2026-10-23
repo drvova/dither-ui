@@ -10,7 +10,7 @@ function paintMeter(
   fill: Rgb,
   muted: Rgb,
   ratio: number,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   const filled = Math.round(cols * clamp01(ratio))
@@ -47,14 +47,12 @@ const props = withDefaults(
     high?: number
     class?: string
   }>(),
-  { min: 0, max: 100, low: 0.5, high: 0.8 }
+  { min: 0, max: 100, low: 0.5, high: 0.8 },
 )
 
-const ratio = computed(() =>
-  clamp01((props.value - props.min) / (props.max - props.min || 1))
-)
+const ratio = computed(() => clamp01((props.value - props.min) / (props.max - props.min || 1)))
 const zone = computed<DitherColor>(() =>
-  ratio.value < props.low ? "green" : ratio.value > props.high ? "red" : "orange"
+  ratio.value < props.low ? "green" : ratio.value > props.high ? "red" : "orange",
 )
 
 const rootRef = ref<HTMLDivElement | null>(null)

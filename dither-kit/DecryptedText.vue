@@ -11,7 +11,7 @@ const props = withDefaults(
     trigger?: "view" | "hover"
     class?: string
   }>(),
-  { text: "DECRYPTED", speed: 1, trigger: "view" }
+  { text: "DECRYPTED", speed: 1, trigger: "view" },
 )
 
 const CHARS = "!<>-_\\/[]{}=+*^?#ABCDEF0123456789"
@@ -24,7 +24,8 @@ let running = false
 
 const rand = () => CHARS[Math.floor(Math.random() * CHARS.length)]
 /** A directed render must repeat: the glyph is a hash of (frame, slot). */
-const seededChar = (frame: number, i: number) => CHARS[((Math.imul(frame + 1, 2654435761) ^ Math.imul(i + 1, 40503)) >>> 0) % CHARS.length]
+const seededChar = (frame: number, i: number) =>
+  CHARS[((Math.imul(frame + 1, 2654435761) ^ Math.imul(i + 1, 40503)) >>> 0) % CHARS.length]
 
 /** The text at a decrypt frame, or null once the reveal is complete. */
 function frameText(frame: number, seeded: boolean): string | null {
@@ -33,7 +34,8 @@ function frameText(frame: number, seeded: boolean): string | null {
   if (frame >= t.length * revealEvery + 8) return null
   const revealed = Math.floor(frame / revealEvery)
   let out = ""
-  for (let i = 0; i < t.length; i++) out += i < revealed ? t[i] : t[i] === " " ? " " : seeded ? seededChar(frame, i) : rand()
+  for (let i = 0; i < t.length; i++)
+    out += i < revealed ? t[i] : t[i] === " " ? " " : seeded ? seededChar(frame, i) : rand()
   return out
 }
 
@@ -102,5 +104,6 @@ onBeforeUnmount(() => {
     :class="cn('inline-block whitespace-pre font-mono', props.class)"
     :aria-label="props.text"
     @mouseenter="props.trigger === 'hover' && scramble()"
-  >{{ display }}</span>
+    >{{ display }}</span
+  >
 </template>

@@ -72,13 +72,19 @@ describe("field controls", () => {
   })
   it("forwards textarea attributes and emits input", async () => {
     const onUpdate = rs.fn()
-    const w = mount(DitherTextarea, { props: { modelValue: "", name: "bio", rows: 5, "onUpdate:modelValue": onUpdate } })
+    const w = mount(DitherTextarea, {
+      props: { modelValue: "", name: "bio", rows: 5, "onUpdate:modelValue": onUpdate },
+    })
     await w.get("textarea").setValue("Hello")
     expect(w.get("textarea").attributes()).toMatchObject({ name: "bio", rows: "5" })
     expect(onUpdate).toHaveBeenCalledWith("Hello")
   })
   it("generates unique field relationships", () => {
-    const w = mount({ components: { DitherField, DitherInput }, template: '<div><DitherField label="One"><DitherInput /></DitherField><DitherField label="Two"><DitherInput /></DitherField></div>' })
+    const w = mount({
+      components: { DitherField, DitherInput },
+      template:
+        '<div><DitherField label="One"><DitherInput /></DitherField><DitherField label="Two"><DitherInput /></DitherField></div>',
+    })
     const ids = w.findAll("input").map((input) => input.attributes("id"))
     expect(new Set(ids).size).toBe(2)
   })
@@ -87,7 +93,16 @@ describe("field controls", () => {
 describe("DitherSelect", () => {
   it("links its listbox and skips disabled options with keyboard", async () => {
     const onUpdate = rs.fn()
-    const w = mount(DitherSelect, { props: { modelValue: "", options: [{ value: "a", label: "A", disabled: true }, { value: "b", label: "B" }], "onUpdate:modelValue": onUpdate } })
+    const w = mount(DitherSelect, {
+      props: {
+        modelValue: "",
+        options: [
+          { value: "a", label: "A", disabled: true },
+          { value: "b", label: "B" },
+        ],
+        "onUpdate:modelValue": onUpdate,
+      },
+    })
     const trigger = w.get("button")
     await trigger.trigger("keydown", { key: "ArrowDown" })
     expect(trigger.attributes("aria-controls")).toBe(w.get('[role="listbox"]').attributes("id"))
@@ -98,19 +113,32 @@ describe("DitherSelect", () => {
 
 describe("DitherDialog", () => {
   it("labels, traps, closes, and restores focus", async () => {
-    const opener = document.createElement("button"); document.body.append(opener); opener.focus()
-    const onClose = rs.fn()
-    const w = mount(DitherDialog, { attachTo: document.body, props: { open: false, title: "Settings", description: "Project options", onClose }, slots: { default: '<button id="last">Apply</button>' } })
+    const opener = document.createElement("button")
+    document.body.append(opener)
     opener.focus()
-    await w.setProps({ open: true }); await nextTick()
+    const onClose = rs.fn()
+    const w = mount(DitherDialog, {
+      attachTo: document.body,
+      props: { open: false, title: "Settings", description: "Project options", onClose },
+      slots: { default: '<button id="last">Apply</button>' },
+    })
+    opener.focus()
+    await w.setProps({ open: true })
+    await nextTick()
     const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
     expect(dialog.getAttribute("aria-labelledby")).toBe(dialog.querySelector("h2")?.id)
-    const close = dialog.querySelector<HTMLButtonElement>('[aria-label="Close"]')!; expect(document.activeElement).toBe(close)
-    dialog.querySelector<HTMLButtonElement>("#last")!.focus(); dialog.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true }))
+    const close = dialog.querySelector<HTMLButtonElement>('[aria-label="Close"]')!
     expect(document.activeElement).toBe(close)
-    close.click(); expect(onClose).toHaveBeenCalledTimes(1)
-    await w.setProps({ open: false }); await nextTick(); expect(document.activeElement).toBe(opener)
-    w.unmount(); opener.remove()
+    dialog.querySelector<HTMLButtonElement>("#last")!.focus()
+    dialog.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true }))
+    expect(document.activeElement).toBe(close)
+    close.click()
+    expect(onClose).toHaveBeenCalledTimes(1)
+    await w.setProps({ open: false })
+    await nextTick()
+    expect(document.activeElement).toBe(opener)
+    w.unmount()
+    opener.remove()
   })
 })
 

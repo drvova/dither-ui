@@ -117,7 +117,10 @@ export function cellHash(x: number, y: number): number {
  * Float32Array of (rank + 0.5) / n² thresholds — the textbook recursive
  * Bayer construction, so the 4x4 is exactly the kit's gradient matrix. */
 export function bayerMatrix(n: 4 | 8): Float32Array {
-  let m = [[0, 2], [3, 1]]
+  let m = [
+    [0, 2],
+    [3, 1],
+  ]
   while (m.length < n) {
     const k = m.length
     const next: number[][] = Array.from({ length: k * 2 }, () => new Array<number>(k * 2).fill(0))

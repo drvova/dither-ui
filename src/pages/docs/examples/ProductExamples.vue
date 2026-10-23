@@ -100,8 +100,7 @@ const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
   <section id="pricing" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Pricing</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Three tiers from tokens and kit primitives — the popular plan gets a
-      dither wash, nothing else shouts.
+      Three tiers from tokens and kit primitives — the popular plan gets a dither wash, nothing else shouts.
     </p>
     <DemoCard :code="SNIPPET_PRICING">
       <div class="grid gap-4 text-left sm:grid-cols-3">
@@ -110,7 +109,14 @@ const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
           :key="tier.name"
           class="relative isolate flex flex-col overflow-hidden rounded-lg border border-border/60 p-4"
         >
-          <DitherGradient v-if="tier.popular" from="blue" :opacity="0.12" :cell="4" render-mode="static" class="-z-10" />
+          <DitherGradient
+            v-if="tier.popular"
+            from="blue"
+            :opacity="0.12"
+            :cell="4"
+            render-mode="static"
+            class="-z-10"
+          />
           <div class="flex items-center justify-between">
             <span class="text-[11px] text-muted-foreground">{{ tier.name }}</span>
             <span
@@ -142,8 +148,7 @@ const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
   <section id="activity" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Activity feed</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A team feed — deterministic avatars, one accent dot per unread row,
-      times right-aligned.
+      A team feed — deterministic avatars, one accent dot per unread row, times right-aligned.
     </p>
     <DemoCard :code="SNIPPET_ACTIVITY">
       <div class="mx-auto max-w-md rounded-lg border border-border/60 text-left">
@@ -177,8 +182,7 @@ const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
   <section id="changelog" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Changelog</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A release timeline — square markers on a thin rail, the newest release
-      seeded green.
+      A release timeline — square markers on a thin rail, the newest release seeded green.
     </p>
     <DemoCard :code="SNIPPET_CHANGELOG">
       <div class="mx-auto max-w-md text-left">

@@ -11,7 +11,7 @@ function paintTrack(
   fill: Rgb,
   muted: Rgb,
   on: boolean,
-  matrix: number[][] = BAYER4
+  matrix: number[][] = BAYER4,
 ): void {
   ctx.clearRect(0, 0, cols, rows)
   for (let y = 0; y < rows; y++) {
@@ -49,11 +49,11 @@ const props = withDefaults(
     disabled?: boolean
     class?: string
   }>(),
-  { disabled: false }
+  { disabled: false },
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4)
+const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
@@ -88,14 +88,24 @@ watch(() => [props.modelValue, color.value, matrix.value], paint)
     :aria-label="props.label"
     :aria-checked="props.modelValue"
     :disabled="props.disabled"
-    :class="cn(CONTROL_BUTTON, 'relative inline-flex size-10 shrink-0 items-center justify-center rounded-md', props.class)"
+    :class="
+      cn(CONTROL_BUTTON, 'relative inline-flex size-10 shrink-0 items-center justify-center rounded-md', props.class)
+    "
     @click="emit('update:modelValue', !props.modelValue)"
   >
     <span ref="trackRef" class="relative inline-flex h-5 w-9 items-center overflow-hidden rounded-[3px]">
-      <canvas ref="canvasRef" aria-hidden="true" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
+      <canvas
+        ref="canvasRef"
+        aria-hidden="true"
+        class="absolute inset-0 h-full w-full"
+        style="image-rendering: pixelated"
+      />
       <span
         class="relative size-3.5 rounded-[2px] bg-foreground"
-        :class="[props.modelValue ? 'translate-x-[19px]' : 'translate-x-[3px]', reduce ? '' : 'transition-transform duration-150']"
+        :class="[
+          props.modelValue ? 'translate-x-[19px]' : 'translate-x-[3px]',
+          reduce ? '' : 'transition-transform duration-150',
+        ]"
       />
     </span>
   </button>

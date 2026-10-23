@@ -1,12 +1,5 @@
 import type { ScaleLinear } from "d3-scale"
-import {
-  computed,
-  inject,
-  type InjectionKey,
-  markRaw,
-  ref,
-  watch,
-} from "vue"
+import { computed, inject, type InjectionKey, markRaw, ref, watch } from "vue"
 import type { CommonChart, TooltipItem } from "./common-context"
 import type { BloomInput, EasingInput, VariantInput } from "./dither-paint"
 import { type DitherColor, type Seed, seedFromColor } from "./palette"
@@ -58,11 +51,7 @@ export type ChartContextValue = {
   xCenter: (index: number) => number
   bandwidth: number
   indexAtX: (px: number) => number
-  barSlot: (
-    index: number,
-    seriesIndex: number,
-    seriesCount: number
-  ) => { x: number; width: number }
+  barSlot: (index: number, seriesIndex: number, seriesCount: number) => { x: number; width: number }
   y: ScaleLinear<number, number>
   bands: Record<string, [number, number][]>
   max: number
@@ -123,9 +112,7 @@ const ROOT_OF: Record<ChartType, string> = {
 export function useChart(): ChartContextValue {
   const ctx = inject(ChartKey, null)
   if (!ctx) {
-    throw new Error(
-      "Chart parts must be used within a chart root (e.g. <AreaChart />)."
-    )
+    throw new Error("Chart parts must be used within a chart root (e.g. <AreaChart />).")
   }
   return ctx
 }
@@ -135,10 +122,7 @@ export function useChart(): ChartContextValue {
  * a root, or inside the wrong chart type — e.g. `<Bar />` placed in an area
  * chart. `kind` omitted means the part works under any root (grid, axes, …).
  */
-export function useChartPart(
-  part: string,
-  kind?: ChartType | ChartType[]
-): ChartContextValue {
+export function useChartPart(part: string, kind?: ChartType | ChartType[]): ChartContextValue {
   const ctx = inject(ChartKey, null)
   if (!ctx) {
     const where = kind ? ROOT_OF[Array.isArray(kind) ? kind[0] : kind] : "a chart root"
@@ -150,7 +134,7 @@ export function useChartPart(
       throw new Error(
         `<${part} /> is not valid inside ${ROOT_OF[ctx.chartType]} — it belongs in ${allowed
           .map((k) => ROOT_OF[k])
-          .join(" or ")}.`
+          .join(" or ")}.`,
       )
     }
   }
@@ -215,7 +199,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     () => [input.data(), input.replayToken()] as const,
     () => {
       revision.value += 1
-    }
+    },
   )
 
   const entranceDone = ref(!input.animate())
@@ -227,31 +211,22 @@ export function useChartController(input: ControllerInput): ChartContextValue {
   }
 
   const configKeys = computed(() => Object.keys(input.config()))
-  const derived = computed(() =>
-    computeBands(input.data(), configKeys.value, input.stackType())
-  )
+  const derived = computed(() => computeBands(input.data(), configKeys.value, input.stackType()))
   const bands = computed(() => derived.value.bands)
   const max = computed(() => derived.value.max)
 
-  const plotWidth = computed(() =>
-    Math.max(0, input.dimensions().width - input.margins().left - input.margins().right)
-  )
+  const plotWidth = computed(() => Math.max(0, input.dimensions().width - input.margins().left - input.margins().right))
   const plotHeight = computed(() =>
-    Math.max(0, input.dimensions().height - input.margins().top - input.margins().bottom)
+    Math.max(0, input.dimensions().height - input.margins().top - input.margins().bottom),
   )
   const ready = computed(() => plotWidth.value > 0 && plotHeight.value > 0)
 
   const xPoint = computed(() => buildXScale(input.data().length, plotWidth.value))
-  const xBand = computed(() =>
-    buildBandScale(input.data().length, plotWidth.value, input.barGap(), input.barEdge())
-  )
+  const xBand = computed(() => buildBandScale(input.data().length, plotWidth.value, input.barGap(), input.barEdge()))
   const bandwidth = computed(() => (isBar ? xBand.value.bandwidth() : 0))
   const y = computed(() => buildYScale(max.value, plotHeight.value))
 
-  const xCenter = (i: number) =>
-    isBar
-      ? (xBand.value(i) ?? 0) + xBand.value.bandwidth() / 2
-      : (xPoint.value(i) ?? 0)
+  const xCenter = (i: number) => (isBar ? (xBand.value(i) ?? 0) + xBand.value.bandwidth() / 2 : (xPoint.value(i) ?? 0))
   const indexAtX = (px: number) =>
     isBar
       ? indexAtBand(px, input.data().length, plotWidth.value)
@@ -269,8 +244,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     return { x: center - bw / 2 + si * slot + slot * 0.08, width: slot * 0.84 }
   }
 
-  const seedOf = (key: string): Seed =>
-    seedFromColor(input.config()[key]?.color ?? "grey")
+  const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
 
   const selectDataKey = (key: string | null) => {
     selectedDataKey.value = key
@@ -329,10 +303,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
       return ready.value
     },
     get tooltipLeft() {
-      return Math.max(
-        48,
-        Math.min(plotWidth.value + input.margins().left - 48, cursorX.value)
-      )
+      return Math.max(48, Math.min(plotWidth.value + input.margins().left - 48, cursorX.value))
     },
     get tooltipTop() {
       const floor = input.margins().top + 44
@@ -346,8 +317,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
       if (!Number.isFinite(minY)) return floor
       return Math.max(floor, input.margins().top + minY)
     },
-    heading: (i: number, labelKey?: string) =>
-      labelKey ? String(input.data()[i]?.[labelKey] ?? "") : null,
+    heading: (i: number, labelKey?: string) => (labelKey ? String(input.data()[i]?.[labelKey] ?? "") : null),
     itemsAt: (i: number): TooltipItem[] =>
       configKeys.value.map((name) => {
         const raw = input.data()[i]?.[name]

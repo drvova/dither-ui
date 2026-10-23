@@ -18,31 +18,241 @@ export type Usage = { input: number; output: number }
 
 /* ------------------------------ studio tools ----------------------------- */
 
-const obj = (properties: Record<string, unknown>, required: string[] = []) => ({ type: "object", properties, required, additionalProperties: true })
+const obj = (properties: Record<string, unknown>, required: string[] = []) => ({
+  type: "object",
+  properties,
+  required,
+  additionalProperties: true,
+})
 const str = (description: string) => ({ type: "string", description })
 const num = (description: string) => ({ type: "number", description })
 
 /** The protocol as tools: one per command the harness should have. */
 export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
-  { def: { name: "list_artboards", description: "List every frame on the canvas with id, name, kind, position and size.", parameters: obj({}) }, command: "artboard.list" },
-  { def: { name: "get_registry", description: "The component registry. Pass `is` for one component's full prop specs; omit it for the names of every component.", parameters: obj({ is: str("registry component name, e.g. DitherTabs") }) }, command: "registry.get" },
-  { def: { name: "add_screen", description: "Add a composed screen: rows of registry components (one nesting level). Each cell: { is, props?, slotText?, grow? }. Row: { cells, align?, justify?, gap? }.", parameters: obj({ name: str("frame name"), rows: { type: "array", items: obj({ cells: { type: "array", items: obj({ is: str("registry name") }, ["is"]) } }, ["cells"]) }, gap: num("row gap px"), padding: num("padding px"), frame: obj({ w: num("width"), h: num("height") }) }, ["rows"]) }, command: "screen.add" },
-  { def: { name: "add_component", description: "Add one registry component as its own frame.", parameters: obj({ is: str("registry name"), name: str("frame name"), props: obj({}), slotText: str("visible text for slot components"), frame: obj({ w: num("width"), h: num("height") }) }, ["is"]) }, command: "component.add" },
-  { def: { name: "add_chart", description: "Add a chart. data: { labels: string[], series: [{ key, label?, color?, values: number[] }] }.", parameters: obj({ chart: { type: "string", enum: ["area", "line", "bar", "pie", "radar"] }, name: str("frame name"), data: obj({ labels: { type: "array", items: { type: "string" } }, series: { type: "array", items: obj({ key: str("series key"), values: { type: "array", items: { type: "number" } } }, ["key", "values"]) } }), frame: obj({ w: num("width"), h: num("height") }) }, ["chart"]) }, command: "chart.add" },
-  { def: { name: "add_widget", description: "Add a bespoke widget: avatar, button, gradient or image, with optional model props (button: label, color, variant; avatar: name, grid; gradient: from, to, direction; image: src, alt).", parameters: obj({ widget: { type: "string", enum: ["avatar", "button", "gradient", "image"] }, name: str("frame name"), props: obj({}) }, ["widget"]) }, command: "widget.add" },
-  { def: { name: "add_reel", description: "Cut frames into a reel: a frame that plays other frames in order with ordered-dither transitions and exports as one video. Clips are ids or { id, seconds?, transition?: { kind, seconds?, cell?, seed? } } (3s clips coming in over a 0.6s dissolve by default).", parameters: obj({ name: str("frame name"), clips: { type: "array", items: { anyOf: [str("artboard id"), obj({ id: str("artboard id"), seconds: num("clip length in seconds, 0.1–600"), transition: obj({ kind: { type: "string", enum: [...REEL_TRANSITIONS] }, seconds: num("transition length in seconds"), cell: num("dither cell size in px, 1–16"), seed: num("a seeded dither matrix instead of the Bayer order") }) }, ["id"])] } }, frame: obj({ w: num("width"), h: num("height") }) }, ["clips"]) }, command: "reel.add" },
-  { def: { name: "update_artboard", description: "Patch a frame: name, x, y, w, h, hidden, locked; `chart` fields (seed, bloom, cell, stackType, series…); `widget` { props } for components, { rows } for screens or { clips } for reels.", parameters: obj({ id: str("artboard id"), patch: obj({}) }, ["id", "patch"]) }, command: "artboard.update" },
-  { def: { name: "remove_artboard", description: "Delete a frame (undoable in the Studio).", parameters: obj({ id: str("artboard id") }, ["id"]) }, command: "artboard.remove" },
-  { def: { name: "select", description: "Select one frame (id) or several (ids).", parameters: obj({ id: str("artboard id"), ids: { type: "array", items: { type: "string" } } }) }, command: "artboard.select" },
-  { def: { name: "evolve", description: "Produce seeded variants of a frame, placed as a row and selected. Use when the user wants options.", parameters: obj({ id: str("parent artboard id; defaults to the selection"), count: num("1–12, default 4"), seed: num("generation seed"), strength: num("0–1 mutation pressure") }) }, command: "evolve" },
-  { def: { name: "get_code", description: "The frame as a Vue single-file component, in the styling system asked for: tailwind (default) keeps the utility classes; css, modules (CSS Modules) or stylex write the same look that way while the kit components keep their own styles.", parameters: obj({ id: str("artboard id"), styling: { type: "string", enum: [...STYLINGS], description: "tailwind | css | modules | stylex" } }, ["id"]) }, command: "code.get" },
-  { def: { name: "get_document", description: "The whole project document (large; image data is elided). Prefer list_artboards.", parameters: obj({}) }, command: "document.get" },
-  { def: { name: "seek_clock", description: "Hold every animation on the canvas at a moment, in seconds, so a screenshot is stable in any browser; call it without seconds to let time run again.", parameters: obj({ seconds: num("the moment in seconds; omit to release") }) }, command: "clock.seek" },
-  { def: { name: "export_video", description: "Export a frame as a HyperFrames composition — one HTML file that `npx hyperframes render` turns into a deterministic MP4 (Node 22 + FFmpeg). It is written under the project as video/<name>/index.html; the result carries the render command. A reel renders as one video of its whole cut.", parameters: obj({ id: str("artboard id; defaults to the selection"), seconds: num("length in seconds, 1–600 (default 6; a reel defaults to its length)"), fps: { type: "number", enum: [24, 30, 60] }, theme: { type: "string", enum: ["dark", "light"] } }) }, command: "video.export" },
+  {
+    def: {
+      name: "list_artboards",
+      description: "List every frame on the canvas with id, name, kind, position and size.",
+      parameters: obj({}),
+    },
+    command: "artboard.list",
+  },
+  {
+    def: {
+      name: "get_registry",
+      description:
+        "The component registry. Pass `is` for one component's full prop specs; omit it for the names of every component.",
+      parameters: obj({ is: str("registry component name, e.g. DitherTabs") }),
+    },
+    command: "registry.get",
+  },
+  {
+    def: {
+      name: "add_screen",
+      description:
+        "Add a composed screen: rows of registry components (one nesting level). Each cell: { is, props?, slotText?, grow? }. Row: { cells, align?, justify?, gap? }.",
+      parameters: obj(
+        {
+          name: str("frame name"),
+          rows: {
+            type: "array",
+            items: obj({ cells: { type: "array", items: obj({ is: str("registry name") }, ["is"]) } }, ["cells"]),
+          },
+          gap: num("row gap px"),
+          padding: num("padding px"),
+          frame: obj({ w: num("width"), h: num("height") }),
+        },
+        ["rows"],
+      ),
+    },
+    command: "screen.add",
+  },
+  {
+    def: {
+      name: "add_component",
+      description: "Add one registry component as its own frame.",
+      parameters: obj(
+        {
+          is: str("registry name"),
+          name: str("frame name"),
+          props: obj({}),
+          slotText: str("visible text for slot components"),
+          frame: obj({ w: num("width"), h: num("height") }),
+        },
+        ["is"],
+      ),
+    },
+    command: "component.add",
+  },
+  {
+    def: {
+      name: "add_chart",
+      description: "Add a chart. data: { labels: string[], series: [{ key, label?, color?, values: number[] }] }.",
+      parameters: obj(
+        {
+          chart: { type: "string", enum: ["area", "line", "bar", "pie", "radar"] },
+          name: str("frame name"),
+          data: obj({
+            labels: { type: "array", items: { type: "string" } },
+            series: {
+              type: "array",
+              items: obj({ key: str("series key"), values: { type: "array", items: { type: "number" } } }, [
+                "key",
+                "values",
+              ]),
+            },
+          }),
+          frame: obj({ w: num("width"), h: num("height") }),
+        },
+        ["chart"],
+      ),
+    },
+    command: "chart.add",
+  },
+  {
+    def: {
+      name: "add_widget",
+      description:
+        "Add a bespoke widget: avatar, button, gradient or image, with optional model props (button: label, color, variant; avatar: name, grid; gradient: from, to, direction; image: src, alt).",
+      parameters: obj(
+        {
+          widget: { type: "string", enum: ["avatar", "button", "gradient", "image"] },
+          name: str("frame name"),
+          props: obj({}),
+        },
+        ["widget"],
+      ),
+    },
+    command: "widget.add",
+  },
+  {
+    def: {
+      name: "add_reel",
+      description:
+        "Cut frames into a reel: a frame that plays other frames in order with ordered-dither transitions and exports as one video. Clips are ids or { id, seconds?, transition?: { kind, seconds?, cell?, seed? } } (3s clips coming in over a 0.6s dissolve by default).",
+      parameters: obj(
+        {
+          name: str("frame name"),
+          clips: {
+            type: "array",
+            items: {
+              anyOf: [
+                str("artboard id"),
+                obj(
+                  {
+                    id: str("artboard id"),
+                    seconds: num("clip length in seconds, 0.1–600"),
+                    transition: obj({
+                      kind: { type: "string", enum: [...REEL_TRANSITIONS] },
+                      seconds: num("transition length in seconds"),
+                      cell: num("dither cell size in px, 1–16"),
+                      seed: num("a seeded dither matrix instead of the Bayer order"),
+                    }),
+                  },
+                  ["id"],
+                ),
+              ],
+            },
+          },
+          frame: obj({ w: num("width"), h: num("height") }),
+        },
+        ["clips"],
+      ),
+    },
+    command: "reel.add",
+  },
+  {
+    def: {
+      name: "update_artboard",
+      description:
+        "Patch a frame: name, x, y, w, h, hidden, locked; `chart` fields (seed, bloom, cell, stackType, series…); `widget` { props } for components, { rows } for screens or { clips } for reels.",
+      parameters: obj({ id: str("artboard id"), patch: obj({}) }, ["id", "patch"]),
+    },
+    command: "artboard.update",
+  },
+  {
+    def: {
+      name: "remove_artboard",
+      description: "Delete a frame (undoable in the Studio).",
+      parameters: obj({ id: str("artboard id") }, ["id"]),
+    },
+    command: "artboard.remove",
+  },
+  {
+    def: {
+      name: "select",
+      description: "Select one frame (id) or several (ids).",
+      parameters: obj({ id: str("artboard id"), ids: { type: "array", items: { type: "string" } } }),
+    },
+    command: "artboard.select",
+  },
+  {
+    def: {
+      name: "evolve",
+      description: "Produce seeded variants of a frame, placed as a row and selected. Use when the user wants options.",
+      parameters: obj({
+        id: str("parent artboard id; defaults to the selection"),
+        count: num("1–12, default 4"),
+        seed: num("generation seed"),
+        strength: num("0–1 mutation pressure"),
+      }),
+    },
+    command: "evolve",
+  },
+  {
+    def: {
+      name: "get_code",
+      description:
+        "The frame as a Vue single-file component, in the styling system asked for: tailwind (default) keeps the utility classes; css, modules (CSS Modules) or stylex write the same look that way while the kit components keep their own styles.",
+      parameters: obj(
+        {
+          id: str("artboard id"),
+          styling: { type: "string", enum: [...STYLINGS], description: "tailwind | css | modules | stylex" },
+        },
+        ["id"],
+      ),
+    },
+    command: "code.get",
+  },
+  {
+    def: {
+      name: "get_document",
+      description: "The whole project document (large; image data is elided). Prefer list_artboards.",
+      parameters: obj({}),
+    },
+    command: "document.get",
+  },
+  {
+    def: {
+      name: "seek_clock",
+      description:
+        "Hold every animation on the canvas at a moment, in seconds, so a screenshot is stable in any browser; call it without seconds to let time run again.",
+      parameters: obj({ seconds: num("the moment in seconds; omit to release") }),
+    },
+    command: "clock.seek",
+  },
+  {
+    def: {
+      name: "export_video",
+      description:
+        "Export a frame as a HyperFrames composition — one HTML file that `npx hyperframes render` turns into a deterministic MP4 (Node 22 + FFmpeg). It is written under the project as video/<name>/index.html; the result carries the render command. A reel renders as one video of its whole cut.",
+      parameters: obj({
+        id: str("artboard id; defaults to the selection"),
+        seconds: num("length in seconds, 1–600 (default 6; a reel defaults to its length)"),
+        fps: { type: "number", enum: [24, 30, 60] },
+        theme: { type: "string", enum: ["dark", "light"] },
+      }),
+    },
+    command: "video.export",
+  },
 ]
 
 /** Execute a named studio tool with raw arguments. Unknown names come back as errors. */
-export function callStudioTool(name: string, args: Record<string, unknown>, run: (command: unknown) => CommandResult = runCommand): CommandResult {
+export function callStudioTool(
+  name: string,
+  args: Record<string, unknown>,
+  run: (command: unknown) => CommandResult = runCommand,
+): CommandResult {
   const tool = STUDIO_TOOLS.find((t) => t.def.name === name)
   return tool ? run({ ...args, type: tool.command }) : { ok: false, error: `unknown tool ${name}` }
 }

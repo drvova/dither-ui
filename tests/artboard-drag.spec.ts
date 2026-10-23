@@ -14,12 +14,20 @@ beforeEach(() => {
 describe("artboard surface drag", () => {
   it("moves from passive space but leaves controls interactive", () => {
     const wrapper = mount(Artboard, { props: { artboard: editor.artboards[0] } })
-    wrapper.get("[data-artboard-surface]").element.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, button: 0, pointerId: 1, clientX: 50, clientY: 50 }))
+    wrapper
+      .get("[data-artboard-surface]")
+      .element.dispatchEvent(
+        new PointerEvent("pointerdown", { bubbles: true, button: 0, pointerId: 1, clientX: 50, clientY: 50 }),
+      )
     window.dispatchEvent(new PointerEvent("pointermove", { pointerId: 1, clientX: 60, clientY: 55 }))
     window.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1 }))
     expect([editor.artboards[0].x, editor.artboards[0].y]).toEqual([20, 25])
 
-    wrapper.get("button").element.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, button: 0, pointerId: 2, clientX: 60, clientY: 55 }))
+    wrapper
+      .get("button")
+      .element.dispatchEvent(
+        new PointerEvent("pointerdown", { bubbles: true, button: 0, pointerId: 2, clientX: 60, clientY: 55 }),
+      )
     window.dispatchEvent(new PointerEvent("pointermove", { pointerId: 2, clientX: 80, clientY: 75 }))
     expect([editor.artboards[0].x, editor.artboards[0].y]).toEqual([20, 25])
     wrapper.unmount()

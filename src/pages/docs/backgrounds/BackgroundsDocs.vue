@@ -69,7 +69,8 @@ const AURORA_PALETTE_NAMES = Object.keys(AURORA_PALETTES) as AuroraPalette[]
 const aurora = reactive({ palette: "polar" as AuroraPalette })
 const auroraColors = computed(() => [...AURORA_PALETTES[aurora.palette]])
 const auroraCode = computed(
-  () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherAurora :colors='${JSON.stringify(auroraColors.value)}' />\n</div>`
+  () =>
+    `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherAurora :colors='${JSON.stringify(auroraColors.value)}' />\n</div>`,
 )
 
 // Waves playground — a colour ramp preset; the code tab mirrors it.
@@ -83,7 +84,8 @@ const WAVES_PALETTE_NAMES = Object.keys(WAVES_PALETTES) as WavesPalette[]
 const waves = reactive({ palette: "aurora" as WavesPalette })
 const wavesColors = computed(() => [...WAVES_PALETTES[waves.palette]])
 const wavesCode = computed(
-  () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherWaves :colors='${JSON.stringify(wavesColors.value)}' />\n</div>`
+  () =>
+    `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherWaves :colors='${JSON.stringify(wavesColors.value)}' />\n</div>`,
 )
 
 // Faulty-terminal playground — a tint swatch plus feel presets that swap the
@@ -100,7 +102,12 @@ const term = reactive({ tint: "green" as DitherColor, preset: "signal" as TermPr
 const termParams = computed(() => TERM_PRESETS[term.preset])
 const termCode = computed(() => {
   const p = termParams.value
-  const attrs = [`tint="${term.tint}"`, `:scale="${p.scale}"`, `:glitch-amount="${p.glitchAmount}"`, `:scanline-intensity="${p.scanlineIntensity}"`]
+  const attrs = [
+    `tint="${term.tint}"`,
+    `:scale="${p.scale}"`,
+    `:glitch-amount="${p.glitchAmount}"`,
+    `:scanline-intensity="${p.scanlineIntensity}"`,
+  ]
   if (p.dither) attrs.push(`:dither="${p.dither}"`)
   if (p.curvature) attrs.push(`:curvature="${p.curvature}"`)
   if (p.chromaticAberration) attrs.push(`:chromatic-aberration="${p.chromaticAberration}"`)
@@ -121,53 +128,54 @@ const FLOW_DIRS: FlowDirection[] = ["up", "down", "left", "right"]
 const fluid = reactive({ palette: "acid" as FluidPalette, flow: "down" as FlowDirection })
 const fluidColors = computed(() => [...FLUID_PALETTES[fluid.palette]])
 const fluidCode = computed(
-  () => `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherFerrofluid :colors='${JSON.stringify(fluidColors.value)}' flow-direction="${fluid.flow}" />\n</div>`
+  () =>
+    `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherFerrofluid :colors='${JSON.stringify(fluidColors.value)}' flow-direction="${fluid.flow}" />\n</div>`,
 )
 
 const wrap = (tag: string) => `<div class="relative h-64 overflow-hidden rounded-md">\n  ${tag}\n</div>`
 const DEMO = {
-  lineWaves: wrap('<DitherLineWaves />'),
-  threads: wrap('<DitherThreads />'),
-  silk: wrap('<DitherSilk />'),
-  plasma: wrap('<DitherPlasma />'),
-  iridescence: wrap('<DitherIridescence />'),
-  dotGrid: wrap('<DitherDotGrid />'),
-  rippleGrid: wrap('<DitherRippleGrid />'),
-  pixelSnow: wrap('<DitherPixelSnow />'),
-  beams: wrap('<DitherBeams />'),
-  lightRays: wrap('<DitherLightRays />'),
-  sideRays: wrap('<DitherSideRays />'),
-  lightPillar: wrap('<DitherLightPillar />'),
-  softAurora: wrap('<DitherSoftAurora />'),
-  gridMotion: wrap('<DitherGridMotion />'),
-  gridScan: wrap('<DitherGridScan />'),
-  gridDistortion: wrap('<DitherGridDistortion />'),
-  dotField: wrap('<DitherDotField />'),
-  colorBends: wrap('<DitherColorBends />'),
-  gradientBlinds: wrap('<DitherGradientBlinds />'),
-  grainient: wrap('<DitherGrainient />'),
-  plasmaWave: wrap('<DitherPlasmaWave />'),
-  floatingLines: wrap('<DitherFloatingLines />'),
-  flowField: wrap('<DitherFlowField />'),
-  radar: wrap('<DitherRadar />'),
-  dither: wrap('<DitherDither />'),
-  letterGlitch: wrap('<DitherLetterGlitch />'),
-  shapeGrid: wrap('<DitherShapeGrid />'),
-  lightning: wrap('<DitherLightning />'),
-  orb: wrap('<DitherOrb />'),
-  prism: wrap('<DitherPrism />'),
-  galaxy: wrap('<DitherGalaxy />'),
-  liquidChrome: wrap('<DitherLiquidChrome />'),
-  darkVeil: wrap('<DitherDarkVeil />'),
-  balatro: wrap('<DitherBalatro />'),
-  liquidEther: wrap('<DitherLiquidEther />'),
-  ballpit: wrap('<DitherBallpit />'),
-  particles: wrap('<DitherParticles />'),
-  hyperspeed: wrap('<DitherHyperspeed />'),
-  lightfall: wrap('<DitherLightfall />'),
-  pixelBlast: wrap('<DitherPixelBlast />'),
-  prismaticBurst: wrap('<DitherPrismaticBurst />'),
-  evilEye: wrap('<DitherEvilEye />'),
+  lineWaves: wrap("<DitherLineWaves />"),
+  threads: wrap("<DitherThreads />"),
+  silk: wrap("<DitherSilk />"),
+  plasma: wrap("<DitherPlasma />"),
+  iridescence: wrap("<DitherIridescence />"),
+  dotGrid: wrap("<DitherDotGrid />"),
+  rippleGrid: wrap("<DitherRippleGrid />"),
+  pixelSnow: wrap("<DitherPixelSnow />"),
+  beams: wrap("<DitherBeams />"),
+  lightRays: wrap("<DitherLightRays />"),
+  sideRays: wrap("<DitherSideRays />"),
+  lightPillar: wrap("<DitherLightPillar />"),
+  softAurora: wrap("<DitherSoftAurora />"),
+  gridMotion: wrap("<DitherGridMotion />"),
+  gridScan: wrap("<DitherGridScan />"),
+  gridDistortion: wrap("<DitherGridDistortion />"),
+  dotField: wrap("<DitherDotField />"),
+  colorBends: wrap("<DitherColorBends />"),
+  gradientBlinds: wrap("<DitherGradientBlinds />"),
+  grainient: wrap("<DitherGrainient />"),
+  plasmaWave: wrap("<DitherPlasmaWave />"),
+  floatingLines: wrap("<DitherFloatingLines />"),
+  flowField: wrap("<DitherFlowField />"),
+  radar: wrap("<DitherRadar />"),
+  dither: wrap("<DitherDither />"),
+  letterGlitch: wrap("<DitherLetterGlitch />"),
+  shapeGrid: wrap("<DitherShapeGrid />"),
+  lightning: wrap("<DitherLightning />"),
+  orb: wrap("<DitherOrb />"),
+  prism: wrap("<DitherPrism />"),
+  galaxy: wrap("<DitherGalaxy />"),
+  liquidChrome: wrap("<DitherLiquidChrome />"),
+  darkVeil: wrap("<DitherDarkVeil />"),
+  balatro: wrap("<DitherBalatro />"),
+  liquidEther: wrap("<DitherLiquidEther />"),
+  ballpit: wrap("<DitherBallpit />"),
+  particles: wrap("<DitherParticles />"),
+  hyperspeed: wrap("<DitherHyperspeed />"),
+  lightfall: wrap("<DitherLightfall />"),
+  pixelBlast: wrap("<DitherPixelBlast />"),
+  prismaticBurst: wrap("<DitherPrismaticBurst />"),
+  evilEye: wrap("<DitherEvilEye />"),
 }
 
 const API: Record<string, PropRow[]> = {
@@ -952,10 +960,9 @@ const API: Record<string, PropRow[]> = {
   <section id="aurora" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Aurora</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Glowing polar curtains — a wavy light band hangs near the top, broken into
-      vertical rays and tinted across the colour ramp by width. No WebGL: it
-      draws through the same Bayer engine, so the glow comes out dithered.
-      Fills its box.
+      Glowing polar curtains — a wavy light band hangs near the top, broken into vertical rays and tinted across the
+      colour ramp by width. No WebGL: it draws through the same Bayer engine, so the glow comes out dithered. Fills its
+      box.
     </p>
     <DemoCard :code="auroraCode">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
@@ -963,7 +970,16 @@ const API: Record<string, PropRow[]> = {
       </div>
       <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
         <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
-          <button v-for="pName in AURORA_PALETTE_NAMES" :key="pName" type="button" :aria-pressed="aurora.palette === pName" :class="chipClass(aurora.palette === pName)" @click="aurora.palette = pName">{{ pName }}</button>
+          <button
+            v-for="pName in AURORA_PALETTE_NAMES"
+            :key="pName"
+            type="button"
+            :aria-pressed="aurora.palette === pName"
+            :class="chipClass(aurora.palette === pName)"
+            @click="aurora.palette = pName"
+          >
+            {{ pName }}
+          </button>
         </div>
       </div>
     </DemoCard>
@@ -974,10 +990,9 @@ const API: Record<string, PropRow[]> = {
   <section id="waves" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Waves</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A stack of horizontal contour lines flowing on an fbm field — each a thin
-      glowing band that ripples with noise, tinted across the colour ramp by
-      depth. Move the pointer to bend the nearest lines toward it. No WebGL: it
-      draws through the same Bayer engine, so the lines come out dithered.
+      A stack of horizontal contour lines flowing on an fbm field — each a thin glowing band that ripples with noise,
+      tinted across the colour ramp by depth. Move the pointer to bend the nearest lines toward it. No WebGL: it draws
+      through the same Bayer engine, so the lines come out dithered.
     </p>
     <DemoCard :code="wavesCode">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
@@ -985,7 +1000,16 @@ const API: Record<string, PropRow[]> = {
       </div>
       <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
         <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
-          <button v-for="pName in WAVES_PALETTE_NAMES" :key="pName" type="button" :aria-pressed="waves.palette === pName" :class="chipClass(waves.palette === pName)" @click="waves.palette = pName">{{ pName }}</button>
+          <button
+            v-for="pName in WAVES_PALETTE_NAMES"
+            :key="pName"
+            type="button"
+            :aria-pressed="waves.palette === pName"
+            :class="chipClass(waves.palette === pName)"
+            @click="waves.palette = pName"
+          >
+            {{ pName }}
+          </button>
         </div>
       </div>
     </DemoCard>
@@ -996,8 +1020,8 @@ const API: Record<string, PropRow[]> = {
   <section id="line-waves" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Line waves</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A clean sinusoidal contour stack — like Waves but purely sine, each line
-      phase-shifted into a travelling interference pattern. Dithered.
+      A clean sinusoidal contour stack — like Waves but purely sine, each line phase-shifted into a travelling
+      interference pattern. Dithered.
     </p>
     <DemoCard :code="DEMO.lineWaves">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLineWaves /></div>
@@ -1009,8 +1033,8 @@ const API: Record<string, PropRow[]> = {
   <section id="threads" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Threads</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Vertical filaments drifting on an fbm flow — thin glowing threads whose x
-      wanders with noise, tinted across the ramp by depth. Dithered.
+      Vertical filaments drifting on an fbm flow — thin glowing threads whose x wanders with noise, tinted across the
+      ramp by depth. Dithered.
     </p>
     <DemoCard :code="DEMO.threads">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherThreads /></div>
@@ -1022,8 +1046,8 @@ const API: Record<string, PropRow[]> = {
   <section id="silk" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Silk</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Flowing anisotropic sheen — fbm warps a rotated sine into liquid ribbons,
-      tinted across the colour ramp. No WebGL; the sheen comes out dithered.
+      Flowing anisotropic sheen — fbm warps a rotated sine into liquid ribbons, tinted across the colour ramp. No WebGL;
+      the sheen comes out dithered.
     </p>
     <DemoCard :code="DEMO.silk">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherSilk /></div>
@@ -1035,8 +1059,8 @@ const API: Record<string, PropRow[]> = {
   <section id="plasma" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Plasma</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The classic layered-sine plasma, mapped across the colour ramp. Ordered
-      dithering bands the gradient into the kit's crunch instead of a smooth blend.
+      The classic layered-sine plasma, mapped across the colour ramp. Ordered dithering bands the gradient into the
+      kit's crunch instead of a smooth blend.
     </p>
     <DemoCard :code="DEMO.plasma">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherPlasma /></div>
@@ -1048,8 +1072,8 @@ const API: Record<string, PropRow[]> = {
   <section id="iridescence" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Iridescence</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A shifting soap-bubble sheen — fbm perturbs an HSV hue swept across the
-      surface; ordered dithering bands the rainbow. Self-tinting, no colours prop.
+      A shifting soap-bubble sheen — fbm perturbs an HSV hue swept across the surface; ordered dithering bands the
+      rainbow. Self-tinting, no colours prop.
     </p>
     <DemoCard :code="DEMO.iridescence">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherIridescence /></div>
@@ -1061,8 +1085,8 @@ const API: Record<string, PropRow[]> = {
   <section id="dot-grid" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Dot grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A lattice of round dots pulsing on fbm, brightened under the cursor — cells
-      stay square via the aspect ratio, tinted across the ramp by row. Move the pointer.
+      A lattice of round dots pulsing on fbm, brightened under the cursor — cells stay square via the aspect ratio,
+      tinted across the ramp by row. Move the pointer.
     </p>
     <DemoCard :code="DEMO.dotGrid">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherDotGrid /></div>
@@ -1074,8 +1098,8 @@ const API: Record<string, PropRow[]> = {
   <section id="ripple-grid" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Ripple grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A lattice of dots brightened by concentric ripples expanding from the
-      centre — tinted across the ramp by ring. Dithered.
+      A lattice of dots brightened by concentric ripples expanding from the centre — tinted across the ramp by ring.
+      Dithered.
     </p>
     <DemoCard :code="DEMO.rippleGrid">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherRippleGrid /></div>
@@ -1087,8 +1111,8 @@ const API: Record<string, PropRow[]> = {
   <section id="pixel-snow" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Pixel snow</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Sparse flakes drifting down a hashed grid — each cell hashes to a flake or
-      empty, falling as time advances. Tinted across the ramp by depth, dithered.
+      Sparse flakes drifting down a hashed grid — each cell hashes to a flake or empty, falling as time advances. Tinted
+      across the ramp by depth, dithered.
     </p>
     <DemoCard :code="DEMO.pixelSnow">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPixelSnow /></div>
@@ -1100,8 +1124,8 @@ const API: Record<string, PropRow[]> = {
   <section id="beams" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Beams</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Parallel light beams sweeping at an angle — a rotated coordinate banded by a
-      sharpened sine that scrolls over time, tinted across the ramp. Dithered.
+      Parallel light beams sweeping at an angle — a rotated coordinate banded by a sharpened sine that scrolls over
+      time, tinted across the ramp. Dithered.
     </p>
     <DemoCard :code="DEMO.beams">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherBeams /></div>
@@ -1113,8 +1137,8 @@ const API: Record<string, PropRow[]> = {
   <section id="light-rays" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Light rays</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      God rays fanning from a source above — the angle to the source is banded by
-      a sharpened sine, jittered with fbm and faded by distance. Dithered.
+      God rays fanning from a source above — the angle to the source is banded by a sharpened sine, jittered with fbm
+      and faded by distance. Dithered.
     </p>
     <DemoCard :code="DEMO.lightRays">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLightRays /></div>
@@ -1126,8 +1150,8 @@ const API: Record<string, PropRow[]> = {
   <section id="side-rays" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Side rays</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The same god-ray fan, but the source sits off a side edge for horizontal
-      streaks — flip <code class="text-foreground/80">side</code> to left or right.
+      The same god-ray fan, but the source sits off a side edge for horizontal streaks — flip
+      <code class="text-foreground/80">side</code> to left or right.
     </p>
     <DemoCard :code="DEMO.sideRays">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherSideRays /></div>
@@ -1139,8 +1163,8 @@ const API: Record<string, PropRow[]> = {
   <section id="light-pillar" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Light pillar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Vertical light columns shimmering upward — fbm nudges the positions, a
-      sharpened sine makes the pillars, brighter at the base. Dithered.
+      Vertical light columns shimmering upward — fbm nudges the positions, a sharpened sine makes the pillars, brighter
+      at the base. Dithered.
     </p>
     <DemoCard :code="DEMO.lightPillar">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLightPillar /></div>
@@ -1152,8 +1176,8 @@ const API: Record<string, PropRow[]> = {
   <section id="soft-aurora" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Soft aurora</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Several overlapping soft curtains accumulating into a gentle glow — wider
-      falloff and a lower default dither than Aurora for a hazier look.
+      Several overlapping soft curtains accumulating into a gentle glow — wider falloff and a lower default dither than
+      Aurora for a hazier look.
     </p>
     <DemoCard :code="DEMO.softAurora">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherSoftAurora /></div>
@@ -1165,8 +1189,8 @@ const API: Record<string, PropRow[]> = {
   <section id="grid-motion" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Grid motion</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A scrolling line grid drifting in a direction — cells stay square via the
-      aspect ratio, tinted across the ramp by depth. Dithered.
+      A scrolling line grid drifting in a direction — cells stay square via the aspect ratio, tinted across the ramp by
+      depth. Dithered.
     </p>
     <DemoCard :code="DEMO.gridMotion">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGridMotion /></div>
@@ -1178,8 +1202,7 @@ const API: Record<string, PropRow[]> = {
   <section id="grid-scan" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Grid scan</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A faint static grid with a bright bar sweeping down it, boosting gridline
-      intensity as it passes. Dithered.
+      A faint static grid with a bright bar sweeping down it, boosting gridline intensity as it passes. Dithered.
     </p>
     <DemoCard :code="DEMO.gridScan">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGridScan /></div>
@@ -1191,11 +1214,13 @@ const API: Record<string, PropRow[]> = {
   <section id="grid-distortion" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Grid distortion</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A line grid warped by an fbm flow and the cursor — coordinates are displaced
-      before the grid is sampled. Move the pointer to push it around.
+      A line grid warped by an fbm flow and the cursor — coordinates are displaced before the grid is sampled. Move the
+      pointer to push it around.
     </p>
     <DemoCard :code="DEMO.gridDistortion">
-      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGridDistortion /></div>
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherGridDistortion />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.gridDistortion" />
   </section>
@@ -1204,8 +1229,8 @@ const API: Record<string, PropRow[]> = {
   <section id="dot-field" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Dot field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A lattice of dots whose radius breathes with fbm and swells under the
-      cursor — tinted across the ramp by row. Move the pointer to bloom them.
+      A lattice of dots whose radius breathes with fbm and swells under the cursor — tinted across the ramp by row. Move
+      the pointer to bloom them.
     </p>
     <DemoCard :code="DEMO.dotField">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherDotField /></div>
@@ -1217,8 +1242,8 @@ const API: Record<string, PropRow[]> = {
   <section id="color-bends" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Color bends</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Smooth colour bands undulating on an fbm warp — the ramp index is bent by
-      noise so the bands ripple. Ordered dithering crunches the gradient.
+      Smooth colour bands undulating on an fbm warp — the ramp index is bent by noise so the bands ripple. Ordered
+      dithering crunches the gradient.
     </p>
     <DemoCard :code="DEMO.colorBends">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherColorBends /></div>
@@ -1230,11 +1255,13 @@ const API: Record<string, PropRow[]> = {
   <section id="gradient-blinds" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Gradient blinds</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Angled slats each showing a colour-ramp gradient, separated by thin
-      transparent gaps and sliding over time. Dithered within each slat.
+      Angled slats each showing a colour-ramp gradient, separated by thin transparent gaps and sliding over time.
+      Dithered within each slat.
     </p>
     <DemoCard :code="DEMO.gradientBlinds">
-      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGradientBlinds /></div>
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherGradientBlinds />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.gradientBlinds" />
   </section>
@@ -1243,8 +1270,8 @@ const API: Record<string, PropRow[]> = {
   <section id="grainient" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Grainient</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A directional colour gradient dusted with animated grain — per-pixel hash
-      noise breaks up the ramp; ordered dithering adds the crunch on top.
+      A directional colour gradient dusted with animated grain — per-pixel hash noise breaks up the ramp; ordered
+      dithering adds the crunch on top.
     </p>
     <DemoCard :code="DEMO.grainient">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherGrainient /></div>
@@ -1256,8 +1283,8 @@ const API: Record<string, PropRow[]> = {
   <section id="plasma-wave" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Plasma wave</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Directional plasma with wavefronts travelling along an axis — sines along
-      and across the flow sum into a value mapped across the ramp. Dithered.
+      Directional plasma with wavefronts travelling along an axis — sines along and across the flow sum into a value
+      mapped across the ramp. Dithered.
     </p>
     <DemoCard :code="DEMO.plasmaWave">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherPlasmaWave /></div>
@@ -1269,11 +1296,13 @@ const API: Record<string, PropRow[]> = {
   <section id="floating-lines" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Floating lines</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A few thin horizontal lines bobbing and drifting independently, each with
-      its own phase — tinted across the ramp by line. Dithered.
+      A few thin horizontal lines bobbing and drifting independently, each with its own phase — tinted across the ramp
+      by line. Dithered.
     </p>
     <DemoCard :code="DEMO.floatingLines">
-      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherFloatingLines /></div>
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherFloatingLines />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.floatingLines" />
   </section>
@@ -1282,11 +1311,9 @@ const API: Record<string, PropRow[]> = {
   <section id="flow-field" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Flow field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Thousands of tiny dots advected through seeded simplex wind — each one
-      samples the noise angle at its own position and drifts down-current while
-      the buffer's ink decays beneath it: the trail is the buffer's own decay,
-      so the streaks read as wind or water without stored geometry. Edge-masked
-      by default; deterministic per seed.
+      Thousands of tiny dots advected through seeded simplex wind — each one samples the noise angle at its own position
+      and drifts down-current while the buffer's ink decays beneath it: the trail is the buffer's own decay, so the
+      streaks read as wind or water without stored geometry. Edge-masked by default; deterministic per seed.
     </p>
     <DemoCard :code="DEMO.flowField">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherFlowField /></div>
@@ -1298,11 +1325,13 @@ const API: Record<string, PropRow[]> = {
   <section id="radar-sweep" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Radar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A rotating sweep with an afterglow trail over concentric rings — the scope
-      is circular, tinted across the ramp by radius. Dithered.
+      A rotating sweep with an afterglow trail over concentric rings — the scope is circular, tinted across the ramp by
+      radius. Dithered.
     </p>
     <DemoCard :code="DEMO.radar">
-      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherRadar /></div>
+      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherRadar />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.radar" />
   </section>
@@ -1311,8 +1340,8 @@ const API: Record<string, PropRow[]> = {
   <section id="dither" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Dither</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The kit's signature at its purest — an animated fbm cloud thresholded 1-bit
-      against the Bayer matrix, so the whole surface IS the ordered dither.
+      The kit's signature at its purest — an animated fbm cloud thresholded 1-bit against the Bayer matrix, so the whole
+      surface IS the ordered dither.
     </p>
     <DemoCard :code="DEMO.dither">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherDither /></div>
@@ -1324,11 +1353,13 @@ const API: Record<string, PropRow[]> = {
   <section id="letter-glitch" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Letter glitch</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Matrix-style glyph rain — each column drops a bright head with a trailing
-      fade; every cell holds a hashed 3x5 glyph. Tinted by brightness, dithered.
+      Matrix-style glyph rain — each column drops a bright head with a trailing fade; every cell holds a hashed 3x5
+      glyph. Tinted by brightness, dithered.
     </p>
     <DemoCard :code="DEMO.letterGlitch">
-      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLetterGlitch /></div>
+      <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherLetterGlitch />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.letterGlitch" />
   </section>
@@ -1337,8 +1368,8 @@ const API: Record<string, PropRow[]> = {
   <section id="shape-grid" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Shape grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A lattice where each cell holds a hashed shape — square, diamond, plus or
-      ring — pulsing on its own phase. Tinted across the ramp, dithered.
+      A lattice where each cell holds a hashed shape — square, diamond, plus or ring — pulsing on its own phase. Tinted
+      across the ramp, dithered.
     </p>
     <DemoCard :code="DEMO.shapeGrid">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherShapeGrid /></div>
@@ -1350,8 +1381,8 @@ const API: Record<string, PropRow[]> = {
   <section id="lightning" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Lightning</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Jagged fbm-displaced bolts flickering in bursts — each a thin glowing line
-      wandering vertically, wider toward the ground. Dithered.
+      Jagged fbm-displaced bolts flickering in bursts — each a thin glowing line wandering vertically, wider toward the
+      ground. Dithered.
     </p>
     <DemoCard :code="DEMO.lightning">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLightning /></div>
@@ -1363,11 +1394,13 @@ const API: Record<string, PropRow[]> = {
   <section id="orb" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Orb</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A glowing pulsing sphere with a wobbling rim — fbm perturbs the radius for
-      a plasma edge; a core glow plus a rim ring tint across the ramp by radius.
+      A glowing pulsing sphere with a wobbling rim — fbm perturbs the radius for a plasma edge; a core glow plus a rim
+      ring tint across the ramp by radius.
     </p>
     <DemoCard :code="DEMO.orb">
-      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherOrb /></div>
+      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherOrb />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.orb" />
   </section>
@@ -1376,8 +1409,8 @@ const API: Record<string, PropRow[]> = {
   <section id="prism" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Prism</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A spectral light fan dispersing from above — the angle across the fan maps
-      to an HSV hue, so the beam splits into a rainbow. Self-colouring, dithered.
+      A spectral light fan dispersing from above — the angle across the fan maps to an HSV hue, so the beam splits into
+      a rainbow. Self-colouring, dithered.
     </p>
     <DemoCard :code="DEMO.prism">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPrism /></div>
@@ -1389,11 +1422,13 @@ const API: Record<string, PropRow[]> = {
   <section id="galaxy" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Galaxy</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A rotating spiral of twinkling stars with a bright core — spiral arms
-      modulate a hashed star density; inner stars rotate faster. Dithered.
+      A rotating spiral of twinkling stars with a bright core — spiral arms modulate a hashed star density; inner stars
+      rotate faster. Dithered.
     </p>
     <DemoCard :code="DEMO.galaxy">
-      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherGalaxy /></div>
+      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherGalaxy />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.galaxy" />
   </section>
@@ -1402,8 +1437,8 @@ const API: Record<string, PropRow[]> = {
   <section id="liquid-chrome" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Liquid chrome</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Molten metal — iterative domain warping folds the coordinates into rippled
-      reflective bands; a high-contrast sine reads them as chrome. Dithered.
+      Molten metal — iterative domain warping folds the coordinates into rippled reflective bands; a high-contrast sine
+      reads them as chrome. Dithered.
     </p>
     <DemoCard :code="DEMO.liquidChrome">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherLiquidChrome /></div>
@@ -1415,8 +1450,8 @@ const API: Record<string, PropRow[]> = {
   <section id="dark-veil" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Dark veil</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A moody near-black wash with faint colour wisps and an edge vignette —
-      sparse fbm highlights climb the ramp; dithering crunches the low light.
+      A moody near-black wash with faint colour wisps and an edge vignette — sparse fbm highlights climb the ramp;
+      dithering crunches the low light.
     </p>
     <DemoCard :code="DEMO.darkVeil">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherDarkVeil /></div>
@@ -1428,8 +1463,8 @@ const API: Record<string, PropRow[]> = {
   <section id="balatro" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Balatro</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A swirling psychedelic paint vortex — polar coordinates twisted by a
-      radius-dependent spin, then layered sines paint the swirl. Dithered.
+      A swirling psychedelic paint vortex — polar coordinates twisted by a radius-dependent spin, then layered sines
+      paint the swirl. Dithered.
     </p>
     <DemoCard :code="DEMO.balatro">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherBalatro /></div>
@@ -1441,8 +1476,8 @@ const API: Record<string, PropRow[]> = {
   <section id="liquid-ether" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Liquid ether</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      An ethereal flowing colour fluid — coordinates are advected by an fbm flow
-      and stirred by the cursor before sampling the ramp. Move the pointer.
+      An ethereal flowing colour fluid — coordinates are advected by an fbm flow and stirred by the cursor before
+      sampling the ramp. Move the pointer.
     </p>
     <DemoCard :code="DEMO.liquidEther">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60"><DitherLiquidEther /></div>
@@ -1454,8 +1489,8 @@ const API: Record<string, PropRow[]> = {
   <section id="ballpit" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Ballpit</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A pit of shaded spheres bobbing on a grid — sphere shading gives depth, and
-      the balls repel from the cursor. Move the pointer to part them.
+      A pit of shaded spheres bobbing on a grid — sphere shading gives depth, and the balls repel from the cursor. Move
+      the pointer to part them.
     </p>
     <DemoCard :code="DEMO.ballpit">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherBallpit /></div>
@@ -1467,8 +1502,8 @@ const API: Record<string, PropRow[]> = {
   <section id="particles" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Particles</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A drifting, twinkling point cloud — each particle wanders on a sine orbit
-      and drifts toward the cursor. Move the pointer to gather them.
+      A drifting, twinkling point cloud — each particle wanders on a sine orbit and drifts toward the cursor. Move the
+      pointer to gather them.
     </p>
     <DemoCard :code="DEMO.particles">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherParticles /></div>
@@ -1480,8 +1515,8 @@ const API: Record<string, PropRow[]> = {
   <section id="hyperspeed" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Hyperspeed</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A warp-drive starfield streaking radially from the centre — angular lanes
-      carry hashed star heads rushing outward with trailing tails. Dithered.
+      A warp-drive starfield streaking radially from the centre — angular lanes carry hashed star heads rushing outward
+      with trailing tails. Dithered.
     </p>
     <DemoCard :code="DEMO.hyperspeed">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherHyperspeed /></div>
@@ -1493,8 +1528,8 @@ const API: Record<string, PropRow[]> = {
   <section id="lightfall" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Lightfall</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Soft columns of light drifting downward with long fading trails — each
-      column drops a hashed head; the trail fades upward. Dithered.
+      Soft columns of light drifting downward with long fading trails — each column drops a hashed head; the trail fades
+      upward. Dithered.
     </p>
     <DemoCard :code="DEMO.lightfall">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherLightfall /></div>
@@ -1506,8 +1541,8 @@ const API: Record<string, PropRow[]> = {
   <section id="pixel-blast" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Pixel blast</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Expanding shockwave rings broken into chunky pixels — several rings pulse
-      outward from the centre and fade; a coarse hash grid pixelates them.
+      Expanding shockwave rings broken into chunky pixels — several rings pulse outward from the centre and fade; a
+      coarse hash grid pixelates them.
     </p>
     <DemoCard :code="DEMO.pixelBlast">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPixelBlast /></div>
@@ -1519,11 +1554,13 @@ const API: Record<string, PropRow[]> = {
   <section id="prismatic-burst" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Prismatic burst</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A rainbow starburst radiating from the centre — sharpened angular rays take
-      an HSV hue from angle and radius, so the burst is a spectrum. Self-colouring.
+      A rainbow starburst radiating from the centre — sharpened angular rays take an HSV hue from angle and radius, so
+      the burst is a spectrum. Self-colouring.
     </p>
     <DemoCard :code="DEMO.prismaticBurst">
-      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherPrismaticBurst /></div>
+      <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherPrismaticBurst />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.prismaticBurst" />
   </section>
@@ -1532,8 +1569,8 @@ const API: Record<string, PropRow[]> = {
   <section id="evil-eye" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Evil eye</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A glowing eye whose iris tracks the cursor and that blinks — a lens mask
-      carves the eye; iris rings pulse around a dark pupil. Move the pointer.
+      A glowing eye whose iris tracks the cursor and that blinks — a lens mask carves the eye; iris rings pulse around a
+      dark pupil. Move the pointer.
     </p>
     <DemoCard :code="DEMO.evilEye">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black"><DitherEvilEye /></div>
@@ -1545,11 +1582,10 @@ const API: Record<string, PropRow[]> = {
   <section id="faulty-terminal" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Faulty terminal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A CRT glyph wall — animated value-noise lights a grid of characters, then
-      scanlines, glitch, flicker, chromatic aberration and barrel curvature run
-      over it. No WebGL: it draws through the same Bayer engine as everything
-      else, so <code class="text-foreground/80">dither</code> is just an
-      intensity from smooth to hard 1-bit. Fills its box; move the pointer over it.
+      A CRT glyph wall — animated value-noise lights a grid of characters, then scanlines, glitch, flicker, chromatic
+      aberration and barrel curvature run over it. No WebGL: it draws through the same Bayer engine as everything else,
+      so <code class="text-foreground/80">dither</code> is just an intensity from smooth to hard 1-bit. Fills its box;
+      move the pointer over it.
     </p>
     <DemoCard :code="termCode">
       <div class="relative h-56 overflow-hidden rounded-md border border-border/60">
@@ -1565,7 +1601,16 @@ const API: Record<string, PropRow[]> = {
       </div>
       <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
         <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
-          <button v-for="pName in TERM_PRESET_NAMES" :key="pName" type="button" :aria-pressed="term.preset === pName" :class="chipClass(term.preset === pName)" @click="term.preset = pName">{{ pName }}</button>
+          <button
+            v-for="pName in TERM_PRESET_NAMES"
+            :key="pName"
+            type="button"
+            :aria-pressed="term.preset === pName"
+            :class="chipClass(term.preset === pName)"
+            @click="term.preset = pName"
+          >
+            {{ pName }}
+          </button>
         </div>
         <div class="flex items-center gap-2">
           <button
@@ -1589,11 +1634,9 @@ const API: Record<string, PropRow[]> = {
   <section id="ferrofluid" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Ferrofluid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Two fluid layers merge into metaball blobs; their contour rim glows,
-      tinted across the array of colors by height. Turbulence swirls the domain,
-      shimmer grains the lines, and the pointer raises a magnetic spike. No
-      WebGL — it draws through the same Bayer engine, so the rim comes out
-      crunchy. Fills its box.
+      Two fluid layers merge into metaball blobs; their contour rim glows, tinted across the array of colors by height.
+      Turbulence swirls the domain, shimmer grains the lines, and the pointer raises a magnetic spike. No WebGL — it
+      draws through the same Bayer engine, so the rim comes out crunchy. Fills its box.
     </p>
     <DemoCard :code="fluidCode">
       <div class="relative h-64 overflow-hidden rounded-md border border-border/60">
@@ -1601,10 +1644,28 @@ const API: Record<string, PropRow[]> = {
       </div>
       <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
         <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
-          <button v-for="pName in FLUID_PALETTE_NAMES" :key="pName" type="button" :aria-pressed="fluid.palette === pName" :class="chipClass(fluid.palette === pName)" @click="fluid.palette = pName">{{ pName }}</button>
+          <button
+            v-for="pName in FLUID_PALETTE_NAMES"
+            :key="pName"
+            type="button"
+            :aria-pressed="fluid.palette === pName"
+            :class="chipClass(fluid.palette === pName)"
+            @click="fluid.palette = pName"
+          >
+            {{ pName }}
+          </button>
         </div>
         <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
-          <button v-for="dir in FLOW_DIRS" :key="dir" type="button" :aria-pressed="fluid.flow === dir" :class="chipClass(fluid.flow === dir)" @click="fluid.flow = dir">{{ dir }}</button>
+          <button
+            v-for="dir in FLOW_DIRS"
+            :key="dir"
+            type="button"
+            :aria-pressed="fluid.flow === dir"
+            :class="chipClass(fluid.flow === dir)"
+            @click="fluid.flow = dir"
+          >
+            {{ dir }}
+          </button>
         </div>
       </div>
     </DemoCard>

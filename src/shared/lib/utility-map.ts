@@ -85,14 +85,22 @@ function entryCss(root: string): string {
   const kit = readFileSync(resolve(root, "dither-kit/kit.css"), "utf8")
   const theme = kit.match(/@theme inline \{[\s\S]*?\n\}/)?.[0]
   const dark = kit.match(/@custom-variant dark[^;]*;/)?.[0]
-  if (!theme || !dark) throw new Error("utility-map: dither-kit/kit.css lost its @theme inline block or its dark variant")
-  return [`@import "tailwindcss/theme.css" theme(inline reference);`, `@import "tailwindcss/utilities.css" source(none);`, dark, theme].join("\n")
+  if (!theme || !dark)
+    throw new Error("utility-map: dither-kit/kit.css lost its @theme inline block or its dark variant")
+  return [
+    `@import "tailwindcss/theme.css" theme(inline reference);`,
+    `@import "tailwindcss/utilities.css" source(none);`,
+    dark,
+    theme,
+  ].join("\n")
 }
 
 /** Scan `dirs` for class candidates and compile every valid one. */
 export async function buildUtilityMap(root = process.cwd(), dirs = UTILITY_SOURCES): Promise<UtilityMap> {
   const compiler = await compile(entryCss(root), { base: resolve(root, "src"), onDependency() {} })
-  const scanner = new Scanner({ sources: dirs.map((d) => ({ base: resolve(root, d), pattern: "**/*", negated: false })) })
+  const scanner = new Scanner({
+    sources: dirs.map((d) => ({ base: resolve(root, d), pattern: "**/*", negated: false })),
+  })
   const css = compiler.build(scanner.scan())
   const map: UtilityMap = { order: {}, rules: {}, props: {} }
   let index = 0

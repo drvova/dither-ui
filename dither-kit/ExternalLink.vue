@@ -6,10 +6,7 @@ import Icon from "./Icon.vue"
 /** External link: new-tab semantics done right (`target=_blank rel=noreferrer`)
  * plus the ExternalLink glyph after the label — the pattern every outbound
  * link in this kit follows. */
-const props = withDefaults(
-  defineProps<{ href: string; iconSize?: number; class?: string }>(),
-  { iconSize: 12 },
-)
+const props = withDefaults(defineProps<{ href: string; iconSize?: number; class?: string }>(), { iconSize: 12 })
 </script>
 
 <template>
