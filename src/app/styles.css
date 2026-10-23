@@ -115,6 +115,14 @@
     margin: 0;
     color: color-mix(in oklab, var(--muted-foreground) 85%, transparent);
   }
+  /* The site's pressed / selected state: ink text in a hairline ring and a
+     breath of fill — never a colour fill. The landing's .seg, the docs'
+     toggles and every Studio control read the same. */
+  .ring-on {
+    color: var(--foreground);
+    background: color-mix(in oklab, var(--foreground) 6%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 24%, transparent);
+  }
   .led {
     width: 5px;
     height: 5px;

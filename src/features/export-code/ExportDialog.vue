@@ -86,7 +86,7 @@ async function downloadAll() {
             <button
               type="button"
               class="rounded-md border border-border px-2.5 py-1 text-[11px] transition-colors"
-              :class="copied ? 'text-accent' : 'text-muted-foreground hover:text-foreground'"
+              :class="copied ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
               @click="copy"
             >
               {{ copied ? "copied" : "copy" }}

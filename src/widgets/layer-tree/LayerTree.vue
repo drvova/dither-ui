@@ -231,7 +231,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         v-if="node.t === 'snode'"
         class="flex h-7 cursor-pointer items-center gap-2 rounded pr-1.5 transition-colors"
         :style="{ paddingLeft: `${8 + node.depth * 16}px` }"
-        :class="editor.selectedLayerId === node.id ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-card'"
+        :class="editor.selectedLayerId === node.id ? 'ring-on' : 'text-muted-foreground hover:bg-card'"
         @click="selectLayer(node.id)"
       >
         <span class="truncate text-[12px]">{{ node.label }}</span>
@@ -244,7 +244,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         :aria-selected="members(node.group).some((m) => isSel(m.id))"
         :aria-label="`Group ${node.group.name}`"
         class="group/row flex h-7 items-center gap-1 rounded pl-1 pr-1.5 transition-colors"
-        :class="members(node.group).some((m) => isSel(m.id)) ? 'bg-accent/10' : 'hover:bg-card'"
+        :class="members(node.group).some((m) => isSel(m.id)) ? 'bg-foreground/[0.04]' : 'hover:bg-card'"
         @click="selectGroup(node.group.id)"
         @keydown.enter.self.prevent="selectGroup(node.group.id)"
         @keydown.space.self.prevent="selectGroup(node.group.id)"
@@ -254,10 +254,10 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
           <svg viewBox="0 0 24 24" class="size-3 transition-transform" :class="!node.group.collapsed ? 'rotate-90' : ''" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6" /></svg>
         </button>
         <svg viewBox="0 0 24 24" class="size-3.5 shrink-0 text-muted-foreground/70" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
-        <input v-if="editingId === node.group.id" ref="renameInput" v-model="editText" name="group-rename" autocomplete="off" class="min-w-0 flex-1 rounded border border-accent/60 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none" @click.stop @keydown.enter.prevent="commitGroupName(node.group)" @keydown.esc.prevent="editingId = null" @blur="commitGroupName(node.group)" />
+        <input v-if="editingId === node.group.id" ref="renameInput" v-model="editText" name="group-rename" autocomplete="off" class="min-w-0 flex-1 rounded border border-foreground/40 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none" @click.stop @keydown.enter.prevent="commitGroupName(node.group)" @keydown.esc.prevent="editingId = null" @blur="commitGroupName(node.group)" />
         <span v-else class="truncate font-medium text-foreground/90" @dblclick.stop="startRename(node.group.id, node.group.name)">{{ node.group.name }}</span>
         <span class="ml-auto flex items-center gap-0.5">
-          <button type="button" :aria-label="groupLocked(node.group) ? 'Unlock group' : 'Lock group'" :aria-pressed="groupLocked(node.group)" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="groupLocked(node.group) ? 'text-accent' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setGroupLocked(node.group.id, !groupLocked(node.group))">
+          <button type="button" :aria-label="groupLocked(node.group) ? 'Unlock group' : 'Lock group'" :aria-pressed="groupLocked(node.group)" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="groupLocked(node.group) ? 'text-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setGroupLocked(node.group.id, !groupLocked(node.group))">
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path v-if="groupLocked(node.group)" d="M8 11V7a4 4 0 0 1 8 0v4" /><path v-else d="M8 11V7a4 4 0 0 1 7-2.6" /></svg>
           </button>
           <button type="button" :aria-label="groupHidden(node.group) ? 'Show group' : 'Hide group'" :aria-pressed="groupHidden(node.group)" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="groupHidden(node.group) ? 'text-muted-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setGroupHidden(node.group.id, !groupHidden(node.group))">
@@ -276,7 +276,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         :aria-label="node.a.name"
         class="group/row flex h-7 items-center gap-1 rounded pr-1.5 transition-colors"
         :style="{ paddingLeft: `${4 + node.depth * 16}px` }"
-        :class="[isSel(node.a.id) ? 'bg-accent/15' : 'hover:bg-card', node.a.hidden ? 'opacity-45' : '']"
+        :class="[isSel(node.a.id) ? 'ring-on' : 'hover:bg-card', node.a.hidden ? 'opacity-45' : '']"
         @click="clickArtboard(node.a, $event)"
         @keydown.enter.self.prevent="clickArtboard(node.a, $event as unknown as MouseEvent)"
         @keydown.space.self.prevent="clickArtboard(node.a, $event as unknown as MouseEvent)"
@@ -286,10 +286,10 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
           <svg viewBox="0 0 24 24" class="size-3 transition-transform" :class="isOpen(node.a.id) ? 'rotate-90' : ''" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6" /></svg>
         </button>
         <span class="grid size-3.5 shrink-0 place-items-center text-[13px] font-semibold leading-none" :class="isSel(node.a.id) ? 'text-foreground' : 'text-muted-foreground/60'">#</span>
-        <input v-if="editingId === node.a.id" ref="renameInput" v-model="editText" name="artboard-rename" autocomplete="off" class="min-w-0 flex-1 rounded border border-accent/60 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none" @click.stop @keydown.enter.prevent="commitArtboardName(node.a)" @keydown.esc.prevent="editingId = null" @blur="commitArtboardName(node.a)" />
+        <input v-if="editingId === node.a.id" ref="renameInput" v-model="editText" name="artboard-rename" autocomplete="off" class="min-w-0 flex-1 rounded border border-foreground/40 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none" @click.stop @keydown.enter.prevent="commitArtboardName(node.a)" @keydown.esc.prevent="editingId = null" @blur="commitArtboardName(node.a)" />
         <span v-else class="truncate" :class="isSel(node.a.id) ? 'font-medium text-foreground' : 'text-foreground/90'" @dblclick.stop="startRename(node.a.id, node.a.name)">{{ node.a.name }}</span>
         <span class="ml-auto flex items-center gap-0.5">
-          <button type="button" :aria-label="node.a.locked ? 'Unlock artboard' : 'Lock artboard'" :aria-pressed="node.a.locked" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="node.a.locked ? 'text-accent' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setArtboardLocked(node.a.id, !node.a.locked)">
+          <button type="button" :aria-label="node.a.locked ? 'Unlock artboard' : 'Lock artboard'" :aria-pressed="node.a.locked" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="node.a.locked ? 'text-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setArtboardLocked(node.a.id, !node.a.locked)">
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path v-if="node.a.locked" d="M8 11V7a4 4 0 0 1 8 0v4" /><path v-else d="M8 11V7a4 4 0 0 1 7-2.6" /></svg>
           </button>
           <button type="button" :aria-label="node.a.hidden ? 'Show artboard' : 'Hide artboard'" :aria-pressed="node.a.hidden" class="flex size-6 items-center justify-center rounded hover:bg-background" :class="node.a.hidden ? 'text-muted-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'" @click.stop="setArtboardHidden(node.a.id, !node.a.hidden)">
@@ -310,7 +310,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         class="group/row flex h-7 items-center gap-2 rounded pr-1.5 transition-colors"
         :style="{ paddingLeft: `${8 + node.depth * 16}px` }"
         :class="[
-          editor.selectedLayerId === node.layer.id ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-card',
+          editor.selectedLayerId === node.layer.id ? 'ring-on' : 'text-muted-foreground hover:bg-card',
           !layerVisible(node.a, node.layer) && togglable(node.layer) ? 'opacity-45' : '',
         ]"
         @click="selectLayer(node.layer.id)"

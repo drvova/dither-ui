@@ -71,8 +71,8 @@ const PRESETS: { name: string; pts: BezierPoints }[] = [
       <rect :x="sx(0)" :y="sy(1)" :width="W" :height="sy(0) - sy(1)" class="fill-none stroke-border" stroke-dasharray="3 3" />
       <line :x1="sx(0)" :y1="sy(0)" :x2="sx(1)" :y2="sy(1)" class="stroke-border" stroke-dasharray="2 4" />
       <!-- control arms -->
-      <line :x1="sx(0)" :y1="sy(0)" :x2="sx(p[0])" :y2="sy(p[1])" class="stroke-accent/50" />
-      <line :x1="sx(1)" :y1="sy(1)" :x2="sx(p[2])" :y2="sy(p[3])" class="stroke-accent/50" />
+      <line :x1="sx(0)" :y1="sy(0)" :x2="sx(p[0])" :y2="sy(p[1])" class="stroke-foreground/40" />
+      <line :x1="sx(1)" :y1="sy(1)" :x2="sx(p[2])" :y2="sy(p[3])" class="stroke-foreground/40" />
       <!-- curve -->
       <path :d="path" fill="none" class="stroke-foreground" stroke-width="2" />
       <!-- endpoints -->
@@ -81,12 +81,12 @@ const PRESETS: { name: string; pts: BezierPoints }[] = [
       <!-- draggable control points -->
       <circle
         :cx="sx(p[0])" :cy="sy(p[1])" r="6"
-        class="cursor-grab fill-accent stroke-background active:cursor-grabbing" stroke-width="2"
+        class="cursor-grab fill-foreground stroke-background active:cursor-grabbing" stroke-width="2"
         @pointerdown="dragHandle(0, $event)"
       />
       <circle
         :cx="sx(p[2])" :cy="sy(p[3])" r="6"
-        class="cursor-grab fill-accent stroke-background active:cursor-grabbing" stroke-width="2"
+        class="cursor-grab fill-foreground stroke-background active:cursor-grabbing" stroke-width="2"
         @pointerdown="dragHandle(1, $event)"
       />
     </svg>
@@ -100,7 +100,7 @@ const PRESETS: { name: string; pts: BezierPoints }[] = [
         :name="`bezier-${i}`"
         step="0.01"
         :value="v"
-        class="w-full min-w-0 rounded border border-border bg-background/60 px-1 py-0.5 text-center text-[11px] tabular-nums text-foreground outline-none [appearance:textfield] focus:border-accent/60 [&::-webkit-inner-spin-button]:appearance-none"
+        class="w-full min-w-0 rounded border border-border bg-background/60 px-1 py-0.5 text-center text-[11px] tabular-nums text-foreground outline-none [appearance:textfield] focus:border-foreground/40 [&::-webkit-inner-spin-button]:appearance-none"
         @change="setNum(i, $event)"
       />
       <span class="shrink-0 text-[10px] text-muted-foreground">)</span>

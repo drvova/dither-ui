@@ -119,7 +119,7 @@ function enableCustom() {
           spellcheck="false"
           autocomplete="off"
           :value="hex"
-          class="w-full rounded-md border border-border bg-background/60 px-2 py-1 font-mono text-xs uppercase text-foreground outline-none focus:border-accent/60"
+          class="w-full rounded-md border border-border bg-background/60 px-2 py-1 font-mono text-xs uppercase text-foreground outline-none focus:border-foreground/40"
           @change="onHex"
         />
       </div>

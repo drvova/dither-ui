@@ -106,7 +106,7 @@ async function onCsvFile(e: Event) {
                 type="text"
                 :name="`row-${i}-name`"
                 autocomplete="off"
-                class="w-full min-w-24 rounded border border-transparent bg-transparent px-1 py-0.5 text-foreground outline-none hover:border-border focus:border-accent/60"
+                class="w-full min-w-24 rounded border border-transparent bg-transparent px-1 py-0.5 text-foreground outline-none hover:border-border focus:border-foreground/40"
                 @change="onPieName(i, $event)"
               />
               <input
@@ -115,7 +115,7 @@ async function onCsvFile(e: Event) {
                 type="text"
                 :name="`row-${i}-label`"
                 autocomplete="off"
-                class="w-full min-w-24 rounded border border-transparent bg-transparent px-1 py-0.5 text-foreground outline-none hover:border-border focus:border-accent/60"
+                class="w-full min-w-24 rounded border border-transparent bg-transparent px-1 py-0.5 text-foreground outline-none hover:border-border focus:border-foreground/40"
               />
             </td>
             <td v-if="fam === 'pie'" class="px-1 py-0.5">
@@ -123,7 +123,7 @@ async function onCsvFile(e: Event) {
                 v-model.number="row.value"
                 type="number"
                 :name="`row-${i}-value`"
-                class="w-24 rounded border border-transparent bg-transparent px-1 py-0.5 tabular-nums text-foreground outline-none [appearance:textfield] hover:border-border focus:border-accent/60 [&::-webkit-inner-spin-button]:appearance-none"
+                class="w-24 rounded border border-transparent bg-transparent px-1 py-0.5 tabular-nums text-foreground outline-none [appearance:textfield] hover:border-border focus:border-foreground/40 [&::-webkit-inner-spin-button]:appearance-none"
               />
             </td>
             <td v-for="s in columns" :key="s.key" class="px-1 py-0.5">
@@ -131,7 +131,7 @@ async function onCsvFile(e: Event) {
                 v-model.number="row[s.key]"
                 type="number"
                 :name="`row-${i}-${s.key}`"
-                class="w-20 rounded border border-transparent bg-transparent px-1 py-0.5 tabular-nums text-foreground outline-none [appearance:textfield] hover:border-border focus:border-accent/60 [&::-webkit-inner-spin-button]:appearance-none"
+                class="w-20 rounded border border-transparent bg-transparent px-1 py-0.5 tabular-nums text-foreground outline-none [appearance:textfield] hover:border-border focus:border-foreground/40 [&::-webkit-inner-spin-button]:appearance-none"
               />
             </td>
             <td class="px-1 text-right">

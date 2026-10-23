@@ -65,7 +65,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="isDesktop" class="relative h-screen overflow-hidden bg-background text-[13px] text-foreground antialiased" @dragover.prevent @drop.prevent="onDrop">
+  <div v-if="isDesktop" class="relative h-screen overflow-hidden bg-background font-mono text-[13px] text-foreground antialiased" @dragover.prevent @drop.prevent="onDrop">
     <Canvas />
     <Toolbar
       v-model:layers-open="layersOpen"
@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
 
     <Transition name="panel-left">
       <aside v-if="layersOpen" class="studio-panel absolute bottom-16 left-3 top-16 z-20 w-64">
-        <div class="panel-head"><span>Layers</span><button type="button" aria-label="Close layers" @click="layersOpen = false">×</button></div>
+        <div class="panel-head"><span class="micro">Layers</span><button type="button" aria-label="Close layers" @click="layersOpen = false">×</button></div>
         <div class="min-h-0 flex-1 overflow-y-auto p-2"><LayerTree /></div>
       </aside>
     </Transition>
@@ -120,7 +120,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.studio-panel { display: flex; flex-direction: column; border: 1px solid color-mix(in oklab, var(--color-border) 72%, transparent); border-radius: 0.5rem; background: color-mix(in oklab, var(--color-background) 96%, transparent); box-shadow: 0 4px 16px rgb(0 0 0 / 0.28); }
+.studio-panel { display: flex; flex-direction: column; border: 1px solid var(--color-border); border-radius: 0.75rem; background: color-mix(in oklab, var(--color-background) 96%, transparent); box-shadow: 0 4px 16px rgb(0 0 0 / 0.28); }
 .panel-head { display: flex; height: 2.25rem; flex-shrink: 0; align-items: center; justify-content: space-between; border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent); padding-inline: 0.75rem; font-size: 11px; color: var(--color-muted-foreground); }
 .panel-head button { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border-radius: 0.375rem; }
 .panel-head button:hover { background: var(--color-card); color: var(--color-foreground); }

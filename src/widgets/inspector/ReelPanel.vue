@@ -72,10 +72,10 @@ const setKind = (i: number, e: Event) => {
 
 <style scoped>
 .field { border-radius: 0.375rem; border: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-background) 60%, transparent); padding: 0.25rem 0.5rem; font-size: 0.75rem; color: var(--color-foreground); outline: none; }
-.field:focus-visible { border-color: color-mix(in oklab, var(--color-accent) 60%, transparent); }
+.field:focus-visible { border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent); }
 .clip-tool { display: grid; place-items: center; min-width: 1.5rem; min-height: 1.5rem; border-radius: 0.25rem; border: 1px solid var(--color-border); color: var(--color-muted-foreground); transition: color 120ms ease, background-color 120ms ease; }
 .clip-tool:hover:not(:disabled) { color: var(--color-foreground); }
 .clip-tool:disabled { opacity: 0.35; }
-.clip-tool:focus-visible, .field:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.clip-tool:focus-visible, .field:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 1px; }
 @media (prefers-reduced-motion: reduce) { .clip-tool { transition: none; } }
 </style>

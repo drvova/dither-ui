@@ -21,10 +21,11 @@ const emit = defineEmits<{ "update:modelValue": [T] }>()
         v-for="opt in options"
         :key="String(opt)"
         type="button"
+        :aria-pressed="opt === modelValue"
         class="min-h-6 rounded-[5px] px-2 text-[11px] leading-none transition-colors"
         :class="
           opt === modelValue
-            ? 'bg-accent text-accent-foreground'
+            ? 'ring-on'
             : 'text-muted-foreground hover:text-foreground'
         "
         @click="emit('update:modelValue', opt)"

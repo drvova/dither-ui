@@ -99,20 +99,20 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
 
 <template>
   <div ref="rootEl" class="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3">
-    <div class="pointer-events-auto flex h-10 items-center rounded-lg border border-border/70 bg-background/95 px-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]">
+    <div class="pointer-events-auto flex h-10 items-center rounded-xl border border-border bg-background/95 px-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]">
       <a :href="routePath('/')" class="flex h-8 items-center gap-2 rounded-md px-2.5 text-xs text-foreground transition-colors hover:bg-card" aria-label="dither-ui home">
-        <span class="size-2.5 rounded-[2px] bg-foreground" /><span>dither-ui</span>
+        <svg viewBox="0 0 7 7" width="13" height="13" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="currentColor" /><rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" /></svg><span>dither-ui</span>
       </a>
       <div class="relative border-l border-border/60 pl-1">
         <button ref="projectTrigger" type="button" aria-haspopup="menu" :aria-expanded="projectOpen" class="flex h-8 max-w-48 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground" @click="projectOpen = !projectOpen; libraryOpen = false">
           <span class="truncate">{{ activeProjectName() }}</span><span aria-hidden="true">⌄</span>
         </button>
         <Transition name="pop">
-          <div v-if="projectOpen" ref="projectMenu" role="menu" class="absolute left-0 top-full mt-1 w-56 rounded-lg border border-border bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]" @keydown="menuKeydown">
-          <button v-for="project in projects" :key="project.id" type="button" role="menuitem" class="flex w-full rounded-md px-2 py-1.5 text-left text-xs" :class="project.id === activeProjectId.value ? 'bg-accent/15 text-foreground' : 'text-muted-foreground hover:bg-background hover:text-foreground'" @click="switchProject(project.id); closeMenus()">{{ project.name }}</button>
+          <div v-if="projectOpen" ref="projectMenu" role="menu" class="absolute left-0 top-full mt-1 w-56 rounded-xl border border-border bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]" @keydown="menuKeydown">
+          <button v-for="project in projects" :key="project.id" type="button" role="menuitem" class="flex w-full rounded-md px-2 py-1.5 text-left text-xs" :class="project.id === activeProjectId.value ? 'ring-on' : 'text-muted-foreground hover:bg-background hover:text-foreground'" @click="switchProject(project.id); closeMenus()">{{ project.name }}</button>
           <div class="my-1 h-px bg-border" />
           <form v-if="naming" class="px-1 py-1" @submit.prevent="commitName">
-            <input ref="nameInput" v-model="draft" type="text" :aria-label="naming === 'new' ? 'New project name' : 'Project name'" placeholder="Project name" class="h-7 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60" @keydown.esc.stop="naming = null" />
+            <input ref="nameInput" v-model="draft" type="text" :aria-label="naming === 'new' ? 'New project name' : 'Project name'" placeholder="Project name" class="h-7 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40" @keydown.esc.stop="naming = null" />
           </form>
           <template v-else>
             <button type="button" role="menuitem" class="menu-row" @click="startNaming('new')">New project</button>
@@ -128,14 +128,14 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
     </div>
 
     <div class="pointer-events-auto relative">
-      <button type="button" aria-haspopup="dialog" :aria-expanded="libraryOpen" class="flex h-10 items-center gap-2 rounded-lg border border-border/70 bg-background/95 px-3 text-xs text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.24)] transition-[background-color,scale] hover:bg-card active:scale-[0.96]" @click="libraryOpen = !libraryOpen; projectOpen = false">
+      <button type="button" aria-haspopup="dialog" :aria-expanded="libraryOpen" class="flex h-10 items-center gap-2 rounded-xl border border-border bg-background/95 px-3 text-[11.5px] font-medium uppercase tracking-[0.1em] text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.24)] transition-[background-color,scale] hover:bg-card active:scale-[0.96]" @click="libraryOpen = !libraryOpen; projectOpen = false">
         <span aria-hidden="true" class="text-base leading-none">+</span> Library
       </button>
       <Transition name="pop">
-        <div v-if="libraryOpen" role="dialog" aria-label="Component library" class="absolute left-1/2 top-full mt-2 flex max-h-[min(72vh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]">
+        <div v-if="libraryOpen" role="dialog" aria-label="Component library" class="absolute left-1/2 top-full mt-2 flex max-h-[min(72vh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]">
         <label class="border-b border-border/60 p-2">
           <span class="sr-only">Search components</span>
-          <input ref="searchRef" v-model="query" type="search" name="component-search" :placeholder="`Search ${COMPONENT_REGISTRY.length} components…`" class="h-9 w-full rounded-md border border-border bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60" @keydown.esc="libraryOpen = false" />
+          <input ref="searchRef" v-model="query" type="search" name="component-search" :placeholder="`Search ${COMPONENT_REGISTRY.length} components…`" class="h-9 w-full rounded-md border border-border bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40" @keydown.esc="libraryOpen = false" />
         </label>
         <div class="overflow-y-auto p-2">
           <section v-if="!query" class="mb-3">
@@ -164,7 +164,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
       </Transition>
     </div>
 
-    <div class="pointer-events-auto flex h-10 items-center gap-0.5 rounded-lg border border-border/70 bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]">
+    <div class="pointer-events-auto flex h-10 items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]">
       <button type="button" aria-label="Undo" title="Undo (⌘Z)" :disabled="!history.canUndo" class="tool" @click="undo">↶</button>
       <button type="button" aria-label="Redo" title="Redo (⌘⇧Z)" :disabled="!history.canRedo" class="tool" @click="redo">↷</button>
       <span class="mx-1 h-4 w-px bg-border" />
@@ -177,7 +177,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
     <Transition name="selection-tools">
       <div
         v-if="canEdit()"
-        class="pointer-events-auto fixed left-1/2 z-30 flex h-10 -translate-x-1/2 items-center gap-0.5 rounded-lg border border-border/70 bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
+        class="pointer-events-auto fixed left-1/2 z-30 flex h-10 -translate-x-1/2 items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
         :class="editor.dataOpen ? 'bottom-[17rem]' : 'bottom-3'"
         role="toolbar"
         aria-label="Selection actions"
@@ -192,7 +192,7 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
         <button type="button" title="Replay animation" class="tool" aria-label="Replay animation" @click="replay">↻</button>
         <button type="button" title="Evolve: four seeded variants of this frame" class="tool wide" @click="evolveSelected()">evolve</button>
         <button v-if="canReel()" type="button" title="Reel: play the selected frames in order with dither transitions" class="tool wide" @click="makeReel">reel</button>
-        <button v-if="canData()" type="button" class="tool wide" :aria-pressed="editor.dataOpen" :class="editor.dataOpen ? 'bg-card text-foreground' : ''" @click="editor.dataOpen = !editor.dataOpen">data</button>
+        <button v-if="canData()" type="button" class="tool wide" :aria-pressed="editor.dataOpen" @click="editor.dataOpen = !editor.dataOpen">data</button>
         <button type="button" class="tool wide" @click="emit('export')">code</button>
         <button type="button" :disabled="pngBusy" class="tool wide" @click="exportPng">{{ pngBusy ? 'saving…' : 'png' }}</button>
         <button type="button" title="Export as a HyperFrames video composition" class="tool wide" @click="emit('video')">video</button>
@@ -220,13 +220,15 @@ async function exportPng() { const a = selectedArtboard.value; if (!a || pngBusy
 .pop-leave-active { transition: opacity 100ms ease, transform 100ms ease; }
 .pop-enter-from { opacity: 0; transform: translateY(-4px) scale(0.98); }
 .pop-leave-to { opacity: 0; transform: translateY(-2px) scale(0.99); }
-.library-label { padding: 0.25rem 0.5rem; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: color-mix(in oklab, var(--color-muted-foreground) 72%, transparent); }
+.library-label { padding: 0.25rem 0.5rem; font-size: 10.5px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-muted-foreground); }
 .library-item { border-radius: 0.375rem; padding: 0.5rem; font-size: 11px; color: var(--color-muted-foreground); transition: background-color 140ms ease, color 140ms ease; }
 .library-item:hover { background: var(--color-background); color: var(--color-foreground); }
 .tool { display: flex; min-width: 2rem; height: 2rem; align-items: center; justify-content: center; border-radius: 0.375rem; color: var(--color-muted-foreground); font-size: 12px; transition: background-color 140ms ease, color 140ms ease, scale 100ms ease; }
 .tool:hover { background: var(--color-card); color: var(--color-foreground); }
 .tool:active { scale: 0.96; }
 .tool:disabled { pointer-events: none; opacity: 0.35; }
+/* A pressed tool (an open panel, the data editor) wears the site's ring. */
+.tool[aria-pressed="true"] { color: var(--color-foreground); background: color-mix(in oklab, var(--color-foreground) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 24%, transparent); }
 .tool.wide { padding-inline: 0.5rem; }
 .selection-tools-enter-active, .selection-tools-leave-active { transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), opacity 120ms ease; }
 .selection-tools-enter-from, .selection-tools-leave-to { transform: translate(-50%, 6px); opacity: 0; }

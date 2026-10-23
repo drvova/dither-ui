@@ -233,9 +233,9 @@ Default section order:
 ## User Preferences
 
 - Design direction: dark, monospace, pixel/dither identity.
-- One site voice: the landing speaks the docs' and the Studio's language
-  (dark theme tokens, monospace, hairlines, micro-caps), so the whole site
-  reads as one product. The user's 2000s oakley.com reference lends the
+- One site voice: the landing, the docs and the Studio speak one language
+  (dark theme tokens, monospace, hairlines, micro-caps, ringed pressed
+  states), so the whole site reads as one product. The user's 2000s oakley.com reference lends the
   landing its STRUCTURE (a tabbed campaign stage, dense panels in
   columns, lists under a mark) and the dither winners on Awwwards its
   SCALE (a full-bleed art band, display-size type), filled with the kit

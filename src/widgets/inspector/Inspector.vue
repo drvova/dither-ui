@@ -212,7 +212,7 @@ function setPieVariant(v: VariantInput) {
     </div>
     <div v-if="locked" class="mx-4 mt-3 flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] text-muted-foreground">
       <span class="flex items-center gap-1.5">
-        <svg viewBox="0 0 24 24" class="size-3.5 text-accent" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+        <svg viewBox="0 0 24 24" class="size-3.5 text-foreground" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
         Locked
       </span>
       <button type="button" class="rounded border border-border px-1.5 py-0.5 text-foreground transition-colors hover:bg-background" @click="unlock">Unlock</button>
@@ -223,7 +223,7 @@ function setPieVariant(v: VariantInput) {
     <template v-if="kind === 'root'">
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">name</span>
-        <input v-model="ab.name" type="text" name="artboard-name" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+        <input v-model="ab.name" type="text" name="artboard-name" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" />
       </label>
       <div class="grid grid-cols-2 gap-2">
         <NumberField v-model="ab.x" label="X" />
@@ -233,14 +233,14 @@ function setPieVariant(v: VariantInput) {
       </div>
 
       <section v-if="!ab.widget">
-        <p class="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">type</p>
+        <p class="mb-2 micro text-muted-foreground">type</p>
         <div class="flex flex-wrap gap-0.5 rounded-md border border-border bg-background/60 p-0.5">
-          <button v-for="t in CHART_TYPES" :key="t" type="button" class="min-h-6 rounded-[5px] px-2.5 text-xs capitalize leading-none transition-colors" :class="chart.type === t ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'" @click="setSelectedType(t)">{{ t }}</button>
+          <button v-for="t in CHART_TYPES" :key="t" type="button" class="min-h-6 rounded-[5px] px-2.5 text-xs capitalize leading-none transition-colors" :aria-pressed="chart.type === t" :class="chart.type === t ? 'ring-on' : 'text-muted-foreground hover:text-foreground'" @click="setSelectedType(t)">{{ t }}</button>
         </div>
       </section>
 
       <section v-if="!ab.widget" class="flex flex-col gap-3">
-        <p class="text-[10px] uppercase tracking-widest text-muted-foreground">style</p>
+        <p class="micro text-muted-foreground">style</p>
         <BloomField v-model="chart.bloom" />
         <Segmented v-if="fam === 'cartesian'" v-model="chart.stackType" :options="STACKS" label="stack" />
         <label v-if="chart.type === 'pie'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -312,7 +312,7 @@ function setPieVariant(v: VariantInput) {
       </section>
 
       <section v-if="!ab.widget" class="flex flex-col gap-3">
-        <p class="text-[10px] uppercase tracking-widest text-muted-foreground">animation</p>
+        <p class="micro text-muted-foreground">animation</p>
         <div class="grid grid-cols-2 gap-2">
           <NumberField v-model="chart.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
           <NumberField v-model="chart.animationDelay" label="delay" unit="ms" :min="0" :max="4000" :step="50" />
@@ -359,7 +359,7 @@ function setPieVariant(v: VariantInput) {
       </section>
 
       <section v-if="!ab.widget" class="flex flex-col gap-2">
-        <p class="text-[10px] uppercase tracking-widest text-muted-foreground">seed</p>
+        <p class="micro text-muted-foreground">seed</p>
         <p class="text-[10px] leading-relaxed text-muted-foreground/70">
           One integer derives texture, motion, geometry and glow. Explicit
           controls above always win.
@@ -379,7 +379,7 @@ function setPieVariant(v: VariantInput) {
       </section>
 
       <section v-if="!ab.widget && fam === 'cartesian'">
-        <p class="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">margins</p>
+        <p class="mb-2 micro text-muted-foreground">margins</p>
         <div class="grid grid-cols-2 gap-2">
           <NumberField v-model="chart.margins.top" label="top" :min="0" />
           <NumberField v-model="chart.margins.right" label="right" :min="0" />
@@ -391,17 +391,17 @@ function setPieVariant(v: VariantInput) {
       <!-- AVATAR builder -->
       <template v-if="avatar">
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">avatar</p>
+          <p class="micro text-muted-foreground">avatar</p>
           <Segmented :model-value="avatar.source ?? 'seed'" :options="AVATAR_SOURCES" label="source" @update:model-value="setAvatarSource" />
           <label v-if="(avatar.source ?? 'seed') === 'seed'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span class="w-14 shrink-0">seed</span>
-            <input v-model="avatar.name" type="text" name="avatar-seed" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+            <input v-model="avatar.name" type="text" name="avatar-seed" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" />
           </label>
           <AvatarDrawGrid v-if="avatar.source === 'draw'" :avatar="avatar" />
           <template v-if="avatar.source === 'image'">
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
               <span class="w-14 shrink-0">src</span>
-              <input v-model="avatar.imageSrc" type="text" name="avatar-image-src" autocomplete="off" placeholder="https://…" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" @change="deriveAvatarImage" />
+              <input v-model="avatar.imageSrc" type="text" name="avatar-image-src" autocomplete="off" placeholder="https://…" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" @change="deriveAvatarImage" />
             </label>
             <div class="flex items-center gap-2">
               <button type="button" class="rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="avatarFileInput?.click()">upload…</button>
@@ -438,13 +438,13 @@ function setPieVariant(v: VariantInput) {
           </label>
         </section>
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">colour</p>
+          <p class="micro text-muted-foreground">colour</p>
           <Toggle v-model="avatar.autoColor" label="derive from seed" />
           <ColorField v-if="!avatar.autoColor" :model-value="asFieldColor(avatar.color)" @update:model-value="avatar.color = $event" />
           <BloomField :model-value="avatar.bloom" @update:model-value="avatar.bloom = $event" />
         </section>
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">animation</p>
+          <p class="micro text-muted-foreground">animation</p>
           <NumberField v-model="avatar.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
           <div class="flex gap-4">
             <Toggle v-model="avatar.animate" label="animate" />
@@ -456,10 +456,10 @@ function setPieVariant(v: VariantInput) {
       <!-- BUTTON builder -->
       <template v-else-if="button">
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">button</p>
+          <p class="micro text-muted-foreground">button</p>
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span class="w-14 shrink-0">label</span>
-            <input v-model="button.label" type="text" name="button-label" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+            <input v-model="button.label" type="text" name="button-label" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" />
           </label>
           <Segmented v-model="button.variant" :options="BUTTON_VARIANTS" label="variant" />
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -478,7 +478,7 @@ function setPieVariant(v: VariantInput) {
       <!-- REGISTRY COMPONENT — generic panel rendered from the spec -->
       <template v-else-if="component && componentSpec">
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">{{ componentSpec.label }}</p>
+          <p class="micro text-muted-foreground">{{ componentSpec.label }}</p>
           <ComponentPropsPanel :entry="componentSpec" :target="component" />
         </section>
       </template>
@@ -486,7 +486,7 @@ function setPieVariant(v: VariantInput) {
       <!-- SCREEN: cell selected -->
       <template v-else-if="screen && screenSel?.kind === 'cell'">
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">
+          <p class="micro text-muted-foreground">
             {{ componentEntry(screenSel.cell.is)?.label ?? screenSel.cell.is }}
           </p>
           <ComponentPropsPanel v-if="componentEntry(screenSel.cell.is)" :entry="componentEntry(screenSel.cell.is)!" :target="screenSel.cell" />
@@ -502,13 +502,13 @@ function setPieVariant(v: VariantInput) {
       <!-- SCREEN: row selected -->
       <template v-else-if="screen && screenSel?.kind === 'row' && screenSel.row">
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">row</p>
+          <p class="micro text-muted-foreground">row</p>
           <Segmented :model-value="screenSel.row.align" :options="ROW_ALIGNS" label="align" @update:model-value="screenSel.row.align = $event" />
           <Segmented :model-value="screenSel.row.justify" :options="ROW_JUSTIFY" label="justify" @update:model-value="screenSel.row.justify = $event" />
           <NumberField :model-value="screenSel.row.gap" label="gap" :min="0" :max="64" @update:model-value="screenSel.row.gap = $event" />
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span class="w-14 shrink-0">add</span>
-            <select name="add-cell" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" @change="addCellFromPicker(screenSel.row, $event)">
+            <select name="add-cell" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" @change="addCellFromPicker(screenSel.row, $event)">
               <option value="">component…</option>
               <option v-for="c in COMPONENT_REGISTRY" :key="c.is" :value="c.is">{{ c.label }}</option>
             </select>
@@ -524,7 +524,7 @@ function setPieVariant(v: VariantInput) {
       <!-- SCREEN: frame root -->
       <template v-else-if="screen">
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">screen</p>
+          <p class="micro text-muted-foreground">screen</p>
           <NumberField :model-value="screen.gap" label="row gap" :min="0" :max="64" @update:model-value="screen.gap = $event" />
           <NumberField :model-value="screen.padding" label="padding" :min="0" :max="64" @update:model-value="screen.padding = $event" />
           <button type="button" class="self-start rounded border border-border min-h-6 px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground" @click="addScreenRow(screen)">+ row</button>
@@ -534,14 +534,14 @@ function setPieVariant(v: VariantInput) {
       <!-- IMAGE builder -->
       <template v-else-if="image">
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">image</p>
+          <p class="micro text-muted-foreground">image</p>
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span class="w-14 shrink-0">src</span>
-            <input v-model="image.src" type="text" name="image-src" autocomplete="off" placeholder="https://…" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+            <input v-model="image.src" type="text" name="image-src" autocomplete="off" placeholder="https://…" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" />
           </label>
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span class="w-14 shrink-0">alt</span>
-            <input v-model="image.alt" type="text" name="image-alt" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+            <input v-model="image.alt" type="text" name="image-alt" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" />
           </label>
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span class="w-14 shrink-0">pixel</span>
@@ -564,7 +564,7 @@ function setPieVariant(v: VariantInput) {
       <!-- GRADIENT builder -->
       <template v-else-if="gradient">
         <section class="flex flex-col gap-3">
-          <p class="text-[10px] uppercase tracking-widest text-muted-foreground">gradient</p>
+          <p class="micro text-muted-foreground">gradient</p>
           <Segmented v-model="gradient.direction" :options="GRAD_DIRS" label="direction" />
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span class="w-14 shrink-0">pixel</span>
@@ -599,7 +599,7 @@ function setPieVariant(v: VariantInput) {
     <template v-else-if="kind === 'series' && series">
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">label</span>
-        <input v-model="series.label" type="text" name="series-label" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" />
+        <input v-model="series.label" type="text" name="series-label" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" />
       </label>
       <div class="text-[11px] text-muted-foreground">
         <span class="mb-1 block">color</span>
@@ -617,7 +617,7 @@ function setPieVariant(v: VariantInput) {
       </div>
 
       <section v-if="fam === 'cartesian'" class="flex flex-col gap-2.5 border-t border-border/60 pt-3">
-        <p class="text-[10px] uppercase tracking-widest text-muted-foreground">markers</p>
+        <p class="micro text-muted-foreground">markers</p>
         <Toggle v-model="series.dots.on" label="dots at every point" />
         <template v-if="series.dots.on">
           <Segmented v-model="series.dots.variant" :options="DOT_VARIANTS" label="style" />
@@ -649,7 +649,7 @@ function setPieVariant(v: VariantInput) {
       </div>
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         <span class="w-14 shrink-0">dash</span>
-        <input v-model="chart.grid.dash" type="text" name="grid-dash" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-accent/60" placeholder="3 3" />
+        <input v-model="chart.grid.dash" type="text" name="grid-dash" autocomplete="off" class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40" placeholder="3 3" />
       </label>
       <NumberField v-model="chart.grid.tickCount" label="lines" :min="1" :max="12" />
     </template>

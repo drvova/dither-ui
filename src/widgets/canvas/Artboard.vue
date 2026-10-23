@@ -174,7 +174,7 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
 
     <div
       data-artboard-surface
-      class="h-full w-full rounded-lg bg-card/60 p-3"
+      class="h-full w-full rounded-lg bg-card/60 p-3 font-sans"
       :class="selected ? 'ring-2 ring-accent' : 'border border-border'"
     >
       <WidgetRenderer v-if="artboard.widget" :widget="artboard.widget" :artboard-id="artboard.id" />

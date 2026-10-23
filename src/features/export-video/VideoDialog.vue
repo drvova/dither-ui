@@ -120,15 +120,15 @@ const seconds = computed({
 
 <style scoped>
 .field { height: 1.75rem; border: 1px solid var(--color-border); border-radius: 0.375rem; background: var(--color-background); padding-inline: 0.5rem; font: inherit; color: var(--color-foreground); outline: none; }
-.field:focus-visible { border-color: color-mix(in oklab, var(--color-accent) 60%, transparent); }
+.field:focus-visible { border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent); }
 .chip { border: 1px solid var(--color-border); border-radius: 0.375rem; padding: 3px 9px; color: var(--color-muted-foreground); transition: color 120ms ease, background-color 120ms ease; }
 .chip:hover { color: var(--color-foreground); }
-.chip[aria-pressed="true"] { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-foreground); }
+.chip[aria-pressed="true"] { color: var(--color-foreground); background: color-mix(in oklab, var(--color-foreground) 6%, transparent); border-color: color-mix(in oklab, var(--color-foreground) 24%, transparent); }
 .action { border: 1px solid var(--color-border); border-radius: 0.375rem; padding: 5px 10px; color: var(--color-muted-foreground); transition: color 120ms ease; }
 .action:hover:not(:disabled) { color: var(--color-foreground); }
 .action:disabled { opacity: 0.6; }
-.action.is-primary { color: var(--color-foreground); border-color: color-mix(in oklab, var(--color-accent) 60%, transparent); }
-.chip:focus-visible, .action:focus-visible, .field:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.action.is-primary { color: var(--color-background); background: var(--color-foreground); border-color: var(--color-foreground); }
+.chip:focus-visible, .action:focus-visible, .field:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
 .dk-fade-enter-active, .dk-fade-leave-active { transition: opacity 160ms ease; }
 .dk-fade-enter-from, .dk-fade-leave-to { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .dk-fade-enter-active, .dk-fade-leave-active, .chip, .action { transition: none; } }

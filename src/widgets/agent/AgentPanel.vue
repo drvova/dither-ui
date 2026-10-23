@@ -710,7 +710,7 @@ onBeforeUnmount(() => {
 .custom .input { flex: 1; }
 .field { display: grid; grid-template-columns: 4rem minmax(0, 1fr); align-items: center; gap: 8px; font-size: 11px; color: var(--color-muted-foreground); }
 .input { height: 1.625rem; min-width: 0; border: 1px solid var(--color-border); border-radius: 0.375rem; background: var(--color-background); padding-inline: 0.5rem; font: inherit; font-size: 11px; color: var(--color-foreground); outline: none; }
-.input:focus { border-color: color-mix(in oklab, var(--color-accent) 60%, transparent); }
+.input:focus { border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent); }
 .remember { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--color-muted-foreground); }
 .note { margin: 0; font-size: 10.5px; line-height: 1.5; color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent); overflow-wrap: anywhere; }
 .note code { color: var(--color-foreground); }
@@ -754,7 +754,7 @@ onBeforeUnmount(() => {
 .chip { max-width: 100%; min-height: 1.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 1px dashed var(--color-border); border-radius: 0.375rem; padding: 1px 6px; font-size: 10.5px; color: var(--color-muted-foreground); }
 button.chip { border-style: solid; cursor: pointer; }
 button.chip:hover:not(:disabled) { color: var(--color-foreground); background: var(--color-card); }
-button.chip.is-primary { border-color: var(--color-accent); color: var(--color-foreground); }
+button.chip.is-primary { border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent); color: var(--color-foreground); }
 button.chip:disabled { opacity: 0.5; }
 .composer { position: relative; flex-shrink: 0; border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent); padding: 8px 10px 6px; }
 .slash { position: absolute; left: 10px; right: 10px; bottom: calc(100% - 2px); display: grid; max-height: 16rem; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 0.375rem; background: var(--color-card); padding: 4px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.32); }
@@ -765,13 +765,13 @@ button.chip:disabled { opacity: 0.5; }
 .prompt-mark { padding-bottom: 6px; color: var(--swatch-orange); }
 .prompt { resize: none; border: 0; background: transparent; padding: 5px 0; font: inherit; font-size: 12px; line-height: 1.45; color: var(--color-foreground); outline: none; }
 .prompt::placeholder { color: color-mix(in oklab, var(--color-muted-foreground) 70%, transparent); }
-.run { min-height: 1.5rem; border-radius: 0.375rem; padding-inline: 0.6rem; font-size: 11px; color: var(--color-accent-foreground); background: var(--color-accent); transition: opacity 140ms ease; }
+.run { min-height: 1.5rem; border-radius: 0.375rem; padding-inline: 0.6rem; font-size: 11px; color: var(--color-background); background: var(--color-foreground); transition: opacity 140ms ease; }
 .run:disabled { opacity: 0.35; }
 .run.stop { background: color-mix(in oklab, var(--swatch-red) 80%, black); }
 .status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent); padding: 5px 12px; font-size: 10px; color: var(--color-muted-foreground); }
 .sep { opacity: 0.5; }
 .auto { margin-left: auto; color: var(--swatch-orange); }
 .hint { flex-basis: 100%; }
-.pick:focus-visible, .model:focus-visible, .head-btn:focus-visible, .chip:focus-visible, .run:focus-visible, .slash-row:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.pick:focus-visible, .model:focus-visible, .head-btn:focus-visible, .chip:focus-visible, .run:focus-visible, .slash-row:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 1px; }
 @media (prefers-reduced-motion: reduce) { .run { transition: none; } }
 </style>

@@ -236,8 +236,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `window.prompt`/`confirm` — the project menu names inline (Enter commits,
   Escape backs out) and deletes through `DitherAlertDialog`; global `:focus-visible` ring is in `app/styles.css` — do not
   suppress. Interactive targets are at least 24px on their short side
-  (`h-6` / `min-h-6` / `size-6` on dense chrome); text on `bg-accent` is
-  white and the accent blues are tuned to clear 4.5:1 with it (light
+  (`h-6` / `min-h-6` / `size-6` on dense chrome). Pressed and selected
+  chrome is `.ring-on` and every toggle carries `aria-pressed` (state is
+  never colour alone); the accent blue is the CANVAS's selection colour
+  only (artboard ring, handles, snap guides, marquee, screen-cell rings).
+  The accent blues stay tuned to clear 4.5:1 against white (light
   `#1d63d0`, dark `#1f6fd6`) — do not brighten them back.
 - Layer tree is a `listbox`: every row type is a focusable `role="option"`
   with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
@@ -246,8 +249,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex. The same file holds the site chrome voice (`@layer components`:
-  `.nav-a`, `.nav-pill`, `.micro`, `.eyebrow`, `.led`) shared by the landing
-  and the docs — the landing builds on it rather than a voice of its own.
+  `.nav-a`, `.nav-pill`, `.micro`, `.eyebrow`, `.led`, and `.ring-on` — the
+  ONE pressed/selected state: ink text, a hairline ring, a breath of fill,
+  never a colour fill) shared by the landing, the docs and the Studio;
+  none of them grows a voice of its own.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on

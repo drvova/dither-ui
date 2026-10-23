@@ -118,7 +118,7 @@ function onCanvasDown(e: PointerEvent) {
       <p class="text-sm text-muted-foreground">No artboards yet.</p>
       <button
         type="button"
-        class="pointer-events-auto rounded-md bg-accent px-3 py-1.5 text-xs text-accent-foreground transition-opacity hover:opacity-90"
+        class="pointer-events-auto h-8 bg-foreground px-3 text-[11.5px] font-medium uppercase tracking-[0.1em] text-background transition-opacity hover:opacity-85"
         @click="addArtboard('area')"
       >
         + Add artboard
@@ -127,7 +127,7 @@ function onCanvasDown(e: PointerEvent) {
 
     <!-- Zoom controls -->
     <div
-      class="pointer-events-auto absolute bottom-3 left-3 flex items-center gap-0.5 rounded-lg border border-border/70 bg-background/95 p-1 text-xs shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
+      class="pointer-events-auto absolute bottom-3 left-3 flex items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 text-xs shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
     >
       <button type="button" aria-label="Zoom out" class="zoom-tool" title="Zoom out (⌘−)" @click="zoomOut">−</button>
       <button type="button" aria-label="Reset zoom to 100%" class="w-12 rounded-md py-1 text-center tabular-nums text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]" title="Reset to 100% (⌘0)" @click="resetZoom">{{ Math.round(editor.viewport.zoom * 100) }}%</button>
