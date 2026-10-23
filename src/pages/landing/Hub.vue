@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The directory: the docs as a browsable shelf under a red tag — the kit's
+// The directory: the docs as a browsable shelf under an eyebrow — the kit's
 // own DitherTabs (badges = family sizes) over a horizontal shelf of framed
 // cards that deep-link into the docs, each with the section's seeded
 // identicon (the kit's avatar, from the section id), its family, name, a
@@ -16,8 +16,8 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 <template>
   <section id="directory" aria-labelledby="directory-h" class="directory">
     <div class="list-head">
-      <h2 id="directory-h" class="tag">Directory</h2>
-      <a :href="routePath('/docs')" class="more-link">All {{ SECTION_COUNT }} sections »</a>
+      <h2 id="directory-h" class="eyebrow">Directory</h2>
+      <a :href="routePath('/docs')" class="more-link">all {{ SECTION_COUNT }} sections →</a>
     </div>
     <p class="dir-p">
       Each section is a live demo with its props and copy-ready code. Every component is one file in
@@ -30,7 +30,7 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
             <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="thumb card">
               <span class="card-top">
                 <span class="card-av" aria-hidden="true"><DitherAvatar :name="c.id" :size="28" :grid="6" :animate="false" color="blue" /></span>
-                <span class="card-family">{{ c.family }}</span>
+                <span class="micro card-family">{{ c.family }}</span>
               </span>
               <span class="card-name">{{ c.label }}</span>
               <span class="card-note">{{ c.note ?? s.note }}</span>
@@ -51,13 +51,12 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: var(--rhythm) var(--gutter) 0;
 }
 
 .dir-p {
-  margin: 0 0 4px;
-  font-size: 0.8125rem;
-  line-height: 1.5;
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--ink-3);
 }
 
@@ -66,7 +65,7 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 }
 
 .tabs :deep([role="tablist"]) {
-  padding: 0 12px;
+  padding: 0 14px;
   box-shadow: inset 0 -1px 0 var(--line);
   overflow-x: auto;
   scrollbar-width: none;
@@ -80,7 +79,7 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 .cards {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 210px;
+  grid-auto-columns: 220px;
   gap: 8px;
   padding-right: 14px;
   overflow-x: auto;
@@ -98,19 +97,13 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
   flex-direction: column;
   min-width: 0;
   height: 164px;
-  padding: 12px;
+  padding: 14px;
   scroll-snap-align: start;
+  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
-  box-shadow:
-    inset 0 0 0 1px #5a5a5a,
-    inset 0 1px 0 rgb(255 255 255 / 0.1);
-}
-
-.card:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 22%, transparent);
 }
 
 .card-top {
@@ -126,18 +119,14 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 }
 
 .card-family {
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--ink-3);
 }
 
 .card-name {
-  margin-top: 12px;
+  margin-top: 14px;
   overflow: hidden;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  text-transform: uppercase;
+  font-size: 12.5px;
+  font-weight: 500;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--ink);
@@ -145,19 +134,18 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
 
 .card-note {
   display: -webkit-box;
-  margin-top: 3px;
+  margin-top: 4px;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  color: var(--ink-2);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
 }
 
 .card-path {
   margin-top: auto;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 11px;
   color: var(--ink-3);
 }
 

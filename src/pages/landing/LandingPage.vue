@@ -142,56 +142,40 @@ onBeforeUnmount(() => {
       Skip to content
     </a>
 
-    <!-- Header: relative + z-10 — main.relative isolates the page art, and
-         a positioned sibling always paints above a static one; without this
-         the art covered the header entirely (it painted zero pixels). The
-         2009 portal's bar: the chrome mark left; right, a tiny grey utility
-         row over the condensed-caps nav. -->
+    <!-- Header: the docs header's twin (brand, micro-caps links, the
+         "Open studio" pill) so landing → docs → studio is one site.
+         relative + z-10 — main.relative isolates the page art, and a
+         positioned sibling always paints above a static one; without this
+         the art covered the header entirely (it painted zero pixels). -->
     <header class="site-head relative z-10">
-      <div class="head-row mx-auto w-full max-w-[var(--shell)] px-6">
-        <a :href="routePath('/')" class="brand" aria-label="dither-ui home">
-          <!-- The 7x7 dithered diamond in chrome, its ember core — crisp
-               edges, so it stays a pixel shape at any zoom. -->
-          <svg viewBox="0 0 7 7" width="30" height="30" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
-            <defs>
-              <linearGradient id="brand-chrome" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#f6f6f6" />
-                <stop offset="0.48" stop-color="#a3a3a3" />
-                <stop offset="0.52" stop-color="#5c5c5c" />
-                <stop offset="1" stop-color="#dcdcdc" />
-              </linearGradient>
-            </defs>
-            <path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="url(#brand-chrome)" />
+      <div class="mx-auto flex h-14 w-full max-w-[var(--shell)] items-center justify-between px-6 text-xs">
+        <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap tracking-tight">
+          <!-- The brand mark: the 7x7 dithered diamond, ember core. -->
+          <svg viewBox="0 0 7 7" width="13" height="13" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+            <path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="currentColor" />
             <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
           </svg>
-          <span class="display brand-name">dither-ui</span>
+          dither-ui
         </a>
-        <div class="head-right">
-          <nav class="util" aria-label="Utility">
-            <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer">GitHub ↗</a>
-            <a :href="assetPath('/agent/SKILL.md')">Agent skill</a>
-            <a :href="assetPath('/llms.txt')">llms.txt</a>
-            <span class="tabular-nums">v{{ version }} · MIT</span>
-            <a :href="routePath('/docs')" class="util-search">Search the docs…</a>
-          </nav>
-          <nav class="mainnav" aria-label="Site">
-            <a href="#directory" class="display">Components</a>
-            <a :href="routePath('/docs')" class="display">Docs</a>
-            <a :href="routePath('/studio')" class="display">Studio</a>
-            <a href="#agents" class="display">Agents</a>
-          </nav>
-        </div>
+        <nav class="flex items-center text-muted-foreground" aria-label="Site">
+          <a href="#directory" class="nav-a hidden sm:inline-flex">Components</a>
+          <a :href="routePath('/docs')" class="nav-a">Docs</a>
+          <a href="#agents" class="nav-a hidden sm:inline-flex">Agents</a>
+          <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="nav-a hidden md:inline-flex"
+            >GitHub<span aria-hidden="true">↗</span></a
+          >
+          <a :href="routePath('/studio')" class="nav-a nav-pill ml-2">Open studio</a>
+        </nav>
       </div>
     </header>
 
     <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
-      <!-- The box: the 2009 portal's one charcoal container on the black
-           page. The campaign stage runs flush across its top (the films,
-           the statement), then the install bar and the panel columns — six
-           moods in the portraits' well: hover a face, her pixels scatter
-           under the cursor and settle, and her emote answers — the
-           directory, the principles and the agents strip. -->
-      <div class="box mx-auto w-full max-w-[var(--shell)]">
+      <!-- The portal on the shell: the campaign stage (the films, the
+           statement), the install bar and the panel columns — six moods in
+           the portraits' well: hover a face, her pixels scatter under the
+           cursor and settle, and her emote answers — then the directory,
+           the principles and the agents strip. -->
+      <div class="box mx-auto w-full max-w-[var(--shell)] px-6">
         <Showcase>
           <template #faces>
             <div
@@ -222,8 +206,8 @@ onBeforeUnmount(() => {
              six numbered statements, each a link into its docs. -->
         <section aria-labelledby="principles-h" class="principles">
           <div class="list-head">
-            <h2 id="principles-h" class="tag">Principles</h2>
-            <a :href="routePath('/docs/getting-started')" class="more-link">Quick start »</a>
+            <h2 id="principles-h" class="eyebrow">Principles</h2>
+            <a :href="routePath('/docs/getting-started')" class="more-link">quick start →</a>
           </div>
           <div class="panel principles-body">
             <div class="thumb principles-fig"><EssayFigure :stage="principle" /></div>
@@ -237,22 +221,22 @@ onBeforeUnmount(() => {
                   @focus="principle = i"
                 >
                   <span class="principle-n" aria-hidden="true">{{ String(i + 1).padStart(2, "0") }}</span>
-                  <span class="display principle-t">{{ p.text }}</span>
+                  <span class="principle-t">{{ p.text }}</span>
                 </a>
               </li>
             </ol>
           </div>
         </section>
 
-        <!-- The agents strip: the harnesses the bridge knows, as bevelled
-             chips with their ember LED under a tag, over the dot sea — every
-             one drives the Studio as the user's own signed-in process. -->
-        <section id="agents" class="agents" aria-labelledby="harness-h">
+        <!-- The agents strip: the harnesses the bridge knows, as hairline
+             chips with their ember LED under an eyebrow, over the dot sea —
+             every one drives the Studio as the user's own signed-in process. -->
+        <section id="agents" class="panel agents" aria-labelledby="harness-h">
           <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
           <div class="harness">
-            <h2 id="harness-h" class="tag">Drives with your agent</h2>
+            <h2 id="harness-h" class="eyebrow">Drives with your agent</h2>
             <ul class="harness-list">
-              <li v-for="h in HARNESSES" :key="h" class="display harness-chip"><i aria-hidden="true"></i>{{ h }}</li>
+              <li v-for="h in HARNESSES" :key="h" class="harness-chip"><i aria-hidden="true"></i>{{ h }}</li>
             </ul>
             <a :href="assetPath('/agent/SKILL.md')" class="lead harness-a">Agent skill</a>
           </div>
@@ -260,16 +244,15 @@ onBeforeUnmount(() => {
       </div>
     </main>
 
-    <!-- Footer: the period's row on the black page — the wordmark and
-         framework badges left, bar-separated links right, the copyright line
-         under — then the engraved mark. -->
+    <!-- Footer: the wordmark and framework badges left, bar-separated
+         links right, the copyright line under — then the engraved mark. -->
     <footer class="foot-wrap">
       <div class="mx-auto w-full max-w-[var(--shell)] px-6 pt-8 pb-6">
         <div class="foot-row">
           <div class="foot-left">
             <PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" class="text-foreground" />
-            <span class="display foot-badge">Vue 3</span>
-            <span class="display foot-badge">Svelte 5</span>
+            <span class="micro foot-badge">Vue 3</span>
+            <span class="micro foot-badge">Svelte 5</span>
           </div>
           <nav class="foot-links" aria-label="Footer">
             <a
@@ -294,140 +277,36 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* One shell width for the header, the box and the footer; inside the box,
-   one gutter and one rhythm between its rows. The page is black, the box
-   charcoal, hairlines a step up. */
+/* One shell for the header, the portal and the footer — the docs' own
+   width, so the brand never jumps between pages — and one rhythm between
+   the portal's rows. The page is the theme's own background. */
 .landing {
-  --shell: 64rem;
-  --gutter: 24px;
-  --rhythm: 32px;
-  --background: #0b0b0b;
-  --border: #303030;
+  --shell: 72rem;
+  --rhythm: 40px;
 }
 
-@media (max-width: 759px) {
-  .landing {
-    --gutter: 16px;
-  }
-}
-
-/* The box: the stage flush across its top, its rows in the gutter, a soft
-   corner at the floor. */
 .box {
   display: flex;
   flex-direction: column;
-  background: #151515;
-  border-radius: 0 0 6px 6px;
-  box-shadow:
-    inset 1px 0 0 #232323,
-    inset -1px 0 0 #232323,
-    inset 0 -1px 0 #232323;
+  gap: var(--rhythm);
+  padding-top: 8px;
+  padding-bottom: var(--rhythm);
 }
 
-/* The bar: near-black under a faint lift, the chrome mark left; right, the
-   tiny grey utility row over the condensed-caps nav. */
-.site-head {
-  background: linear-gradient(180deg, #1c1c1c 0%, #0b0b0b 100%);
-  box-shadow: inset 0 -1px 0 #2a2a2a;
-}
-
-.head-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 76px;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--ink);
-}
-
-.brand-name {
-  font-size: 1.375rem;
-  letter-spacing: 0.08em;
-  color: #e6e6e6;
-}
-
-.head-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.util {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 2px 0;
-  font-size: 0.75rem;
-  color: #8f8f8f;
-}
-
-.util > * {
-  padding: 0 9px;
-  box-shadow: inset -1px 0 0 #3a3a3a;
-}
-
-.util > :nth-last-child(2) {
-  box-shadow: none;
-}
-
-.util a:hover {
-  color: var(--ink);
-}
-
-.util-search {
-  margin-left: 6px;
-  padding: 3px 10px;
-  border-radius: 2px;
-  color: #8a8a8a;
-  background: #262626;
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6), 0 0 0 1px #3a3a3a;
-}
-
-.mainnav {
-  display: flex;
-  gap: 22px;
-}
-
-.mainnav a {
-  font-size: 1.0625rem;
-  letter-spacing: 0.06em;
-  color: #f0f0f0;
-  text-shadow: 0 1px 0 #000;
-}
-
-.mainnav a:hover {
-  color: #fff;
-  text-decoration: underline;
-  text-decoration-color: var(--mark);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 6px;
-}
-
-.util a:focus-visible,
-.mainnav a:focus-visible,
-.brand:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
-}
-
-@media (max-width: 759px) {
-  .util {
-    display: none;
-  }
-  .brand-name {
-    display: none;
-  }
-  .mainnav {
-    gap: 14px;
-  }
+/* The header: the docs chrome's scroll-edge hairline, no hard border. */
+.site-head::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklab, var(--border) 80%, transparent) 20%,
+    color-mix(in oklab, var(--border) 80%, transparent) 80%,
+    transparent
+  );
 }
 
 /* The footer: the wordmark and framework badges left, bar-separated links
@@ -436,6 +315,7 @@ onBeforeUnmount(() => {
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--border) 70%, transparent);
 }
 
 .foot-row {
@@ -453,20 +333,17 @@ onBeforeUnmount(() => {
 }
 
 .foot-badge {
-  padding: 1px 6px;
-  border-radius: 2px;
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  color: #cfcfcf;
-  background: linear-gradient(180deg, #3a3a3a 0%, #262626 100%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 0 0 1px #0c0c0c;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .foot-links {
   display: flex;
   flex-wrap: wrap;
-  font-size: 0.8125rem;
-  color: #a0a0a0;
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 .foot-links a {
@@ -474,7 +351,8 @@ onBeforeUnmount(() => {
   align-items: center;
   min-height: 28px;
   padding: 0 10px;
-  box-shadow: inset -1px 0 0 #3a3a3a;
+  box-shadow: inset -1px 0 0 var(--line);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .foot-links a:last-child {
@@ -484,14 +362,14 @@ onBeforeUnmount(() => {
 
 .foot-links a:hover,
 .foot-copy a:hover {
-  color: #fff;
+  color: var(--ink);
 }
 
 .foot-copy {
   margin: 10px 0 0;
   text-align: right;
-  font-size: 0.75rem;
-  color: #8a8a8a;
+  font-size: 11px;
+  color: var(--ink-3);
 }
 
 @media (max-width: 759px) {
@@ -500,21 +378,20 @@ onBeforeUnmount(() => {
   }
 }
 
-/* The principles: the figure's framed well beside a numbered list; the
-   pointed statement takes a white index, white ink and a silver rule. */
+/* The principles: the figure's well beside a numbered list; the pointed
+   statement takes ink and a hairline rule. */
 .principles {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: var(--rhythm) var(--gutter) 0;
+  gap: 12px;
 }
 
 .principles-body {
   display: grid;
   grid-template-columns: 15rem minmax(0, 1fr);
-  gap: 24px;
+  gap: 28px;
   align-items: start;
-  padding: 18px;
+  padding: 20px;
 }
 
 .principles-fig {
@@ -539,63 +416,43 @@ onBeforeUnmount(() => {
 .principle {
   display: flex;
   align-items: baseline;
-  gap: 14px;
-  padding: 10px 12px;
-  box-shadow: inset 0 -1px 0 #262626;
-  transition:
-    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 16px;
+  padding: 11px 12px;
+  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
+  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .principle-n {
   flex: none;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 11px;
   color: var(--ink-3);
 }
 
 .principle-t {
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--ink-2);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
   text-wrap: pretty;
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .principle[data-active] {
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.04), transparent 70%);
   box-shadow:
-    inset 3px 0 0 var(--mark),
-    inset 0 -1px 0 #262626;
+    inset 2px 0 0 var(--ink),
+    inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
 }
 
-.principle[data-active] .principle-n {
-  color: #fff;
-}
-
+.principle[data-active] .principle-n,
 .principle[data-active] .principle-t {
-  color: #fff;
+  color: var(--ink);
 }
 
-.principle:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-}
-
-/* The agents strip: the box's floor — the dot sea breathing under one row:
-   a tag, the harness chips, one link. */
+/* The agents strip: a panel with the dot sea breathing under one row — an
+   eyebrow, the harness chips, one link. */
 .agents {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  margin-top: var(--rhythm);
-  border-radius: 0 0 6px 6px;
-  background: #101010;
-  box-shadow:
-    inset 0 1px 0 #262626,
-    inset 1px 0 0 #232323,
-    inset -1px 0 0 #232323,
-    inset 0 -1px 0 #232323;
 }
 
 .harness {
@@ -603,13 +460,9 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 14px 28px;
+  gap: 14px 24px;
   min-height: 96px;
-  padding: 22px var(--gutter);
-}
-
-.harness .tag {
-  margin: 0;
+  padding: 22px 24px;
 }
 
 .harness-list {
@@ -621,28 +474,25 @@ onBeforeUnmount(() => {
   list-style: none;
 }
 
-/* The Studio picker's chip as a bevelled period tab: a square LED and the
-   harness name in display caps. */
+/* The Studio picker's chip: a square ember LED and the harness name on a
+   hairline pill. */
 .harness-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 28px;
-  padding: 0 11px;
-  border-radius: 2px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #d8d8d8;
-  background: linear-gradient(180deg, #3a3a3a 0%, #232323 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.12),
-    0 0 0 1px #0c0c0c;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--background) 70%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .harness-chip i {
-  width: 6px;
-  height: 6px;
-  background: var(--ember);
+  width: 5px;
+  height: 5px;
+  background: var(--swatch-orange);
 }
 
 .harness-a {

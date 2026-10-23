@@ -247,7 +247,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex. The same file holds the site chrome voice (`@layer components`:
   `.nav-a`, `.nav-pill`, `.micro`, `.eyebrow`, `.led`) shared by the landing
-  and docs headers.
+  and the docs — the landing builds on it rather than a voice of its own.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on

@@ -1,94 +1,43 @@
-/* The landing's system, after the 2009 oakley.com (the user's reference —
-   its taste, never its assets, marks or names): a compact dark portal on
-   one ~64rem shell. A charcoal page, a near-black header, a campaign STAGE
-   with bevelled tabs, then dense panels in three columns — product tiles,
-   framed thumbnails with triangle links, tagged lists. Display text is
-   upright condensed caps (Barlow Condensed, self-hosted under the SIL
-   OFL); body text is small sans in greys. No hue in the chrome: keys, tabs
-   and tags wear machined metal (the archive's gunmetal bars, chrome O and
-   silver Elite pages); the kit's ember is the one warm light.
-   Plain CSS under .landing, read by every landing component. */
-@font-face {
-  font-family: "Barlow Condensed";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("./fonts/barlow-condensed-500.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "Barlow Condensed";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("./fonts/barlow-condensed-600.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "Barlow Condensed";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("./fonts/barlow-condensed-700.woff2") format("woff2");
-}
-
+/* The landing's layer over the SITE voice. The site speaks once — the dark
+   theme tokens, monospace, hairlines and micro-caps (`.nav-a`, `.nav-pill`,
+   `.eyebrow`, `.micro`, `.led` in app/styles.css) — and the landing uses
+   that voice, so it reads as the same product as the docs and the Studio.
+   What it keeps from the 2000s oakley.com archive is STRUCTURE: a campaign
+   stage with tabs, dense panels in columns, lists under a mark. Never a
+   second type system, bevels or a hue in the chrome; the kit's ember is
+   the one warm light. Plain CSS under .landing, read by every landing
+   component. */
 .landing {
-  --display: "Barlow Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
-  --ink: #f2f2f2;
-  --ink-2: #c4c4c4;
-  --ink-3: #8f8f8f;
-  --page: #141414;
-  --panel: #1b1b1b;
-  --panel-2: #222;
-  --line: #303030;
-  /* Chrome: the finish every key, picked tab and tag wears, dark ink on it. */
-  --chrome: linear-gradient(180deg, #f6f6f6 0%, #d2d2d2 46%, #8f8f8f 54%, #d6d6d6 100%);
-  --chrome-hover: linear-gradient(180deg, #fff 0%, #e2e2e2 46%, #a3a3a3 54%, #e4e4e4 100%);
-  --chrome-lift: inset 0 1px 0 rgb(255 255 255 / 0.7), 0 0 0 1px #0c0c0c;
-  --on-chrome: #111;
-  /* Silver marks: link triangles, the pointed rule, the copy seal. */
-  --mark: #d6d6d6;
-  /* The one warm light: LEDs and live dots. */
-  --ember: var(--swatch-orange);
-  font-family: var(--font-sans);
+  --ink: var(--foreground);
+  --ink-2: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
+  --ink-3: var(--muted-foreground);
+  --line: var(--border);
+  --well: color-mix(in oklab, var(--background) 60%, #000);
+  font-family: var(--font-mono);
 }
 
-/* Display type: upright condensed caps — the period's nav, tabs, tags and
-   headlines. Never italic. */
+/* Headings: mono 500, tight — the docs' title voice. Never italic. */
 .landing .display {
-  font-family: var(--display);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 
-/* A panel: the portal's box — a 1px rule, a soft 4px corner, a faint lift
-   at the top. */
+/* A panel: a hairline round at the docs' card corner. */
 .landing .panel {
-  border-radius: 4px;
-  background: linear-gradient(180deg, #202020 0%, var(--panel) 60%);
-  box-shadow:
-    inset 0 0 0 1px var(--line),
-    inset 0 1px 0 rgb(255 255 255 / 0.04);
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
-/* A tag: a chrome label over a list. */
-.landing .tag {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  padding: 0 9px;
-  font-family: var(--display);
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--on-chrome);
-  background: var(--chrome);
-  box-shadow: var(--chrome-lift);
+/* A framed well for a live surface: darker than the page, a fainter rule. */
+.landing .thumb {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--well);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--line) 80%, transparent);
 }
 
-/* A list's head: a tag left, its quiet "View all »" right. */
+/* A list's head: an eyebrow left, its quiet "all →" right. */
 .landing .list-head {
   display: flex;
   align-items: center;
@@ -96,140 +45,102 @@
   gap: 12px;
 }
 
-.landing .list-head .tag {
-  margin: 0;
-}
-
-/* A link that leads on: grey text, a silver triangle after it. */
-.landing .lead {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
-  color: var(--ink);
-}
-
-.landing .lead::after {
-  content: "" / "";
-  width: 0;
-  height: 0;
-  border-block: 4px solid transparent;
-  border-left: 5px solid var(--mark);
-}
-
-.landing .lead:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-/* "View all »": the quiet link opposite a tag. */
 .landing .more-link {
-  font-size: 0.8125rem;
-  color: var(--ink-2);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .landing .more-link:hover {
   color: var(--ink);
 }
 
-/* Keys: the primary is a chrome bevelled button, the other a dark one — both
-   in display caps. */
-.landing .btn {
+/* A link that leads on: ink text and a quiet arrow. */
+.landing .lead {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 3px;
-  font-family: var(--display);
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  gap: 6px;
+  font-size: 12px;
   color: var(--ink);
-  background: linear-gradient(180deg, #3a3a3a 0%, #262626 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.12),
-    0 0 0 1px #0c0c0c;
 }
 
-.landing .btn:hover {
-  background: linear-gradient(180deg, #454545 0%, #2e2e2e 100%);
-}
-
-.landing .btn-primary {
-  color: var(--on-chrome);
-  background: var(--chrome);
-  box-shadow: var(--chrome-lift);
-}
-
-.landing .btn-primary:hover {
-  background: var(--chrome-hover);
-}
-
-.landing .btn:focus-visible,
-.landing .lead:focus-visible,
-.landing .more-link:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-@media (forced-colors: active) {
-  .landing .btn,
-  .landing .tag {
-    border: 1px solid ButtonText;
-  }
-}
-
-/* A framed thumbnail: a light bevel round a black well. */
-.landing .thumb {
-  position: relative;
-  overflow: hidden;
-  border-radius: 4px;
-  background: radial-gradient(120% 90% at 50% 20%, #2a2a2a 0%, #0b0b0b 70%);
-  box-shadow:
-    inset 0 0 0 1px #3a3a3a,
-    inset 0 1px 0 rgb(255 255 255 / 0.08);
-}
-
-/* The live chip: a state label on panels that ARE live kit canvases. The
-   text stays under reduced motion; only the pulse dies. */
-.landing .live {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-family: var(--display);
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  background: rgb(0 0 0 / 0.7);
-}
-
-.landing .live i {
-  width: 5px;
-  height: 5px;
-  background: var(--ember);
+.landing .lead::after {
+  content: "→" / "";
+  color: var(--ink-3);
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .landing .live i {
-    animation: live-led 2.8s ease-in-out infinite;
+  .landing .lead:hover::after {
+    transform: translateX(2px);
   }
-  @keyframes live-led {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.32;
-    }
+}
+
+/* The primary key: the site's hairline pill (`.nav-a.nav-pill`) filled
+   with ink. */
+.landing .key-primary,
+.landing .key-primary:hover {
+  color: var(--background);
+  background: var(--foreground);
+  box-shadow: none;
+}
+
+.landing .key-primary:hover {
+  background: color-mix(in oklab, var(--foreground) 86%, var(--background));
+}
+
+/* Segmented toggles, as in the docs header: quiet labels, the pressed one
+   ringed. */
+.landing .seg {
+  display: flex;
+  gap: 4px;
+}
+
+.landing .seg > button {
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--ink-3);
+  transition:
+    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing .seg > button:hover {
+  color: var(--ink);
+}
+
+.landing .seg > button[aria-pressed="true"] {
+  color: var(--ink);
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 20%, transparent);
+}
+
+@media (forced-colors: active) {
+  .landing .seg > button[aria-pressed="true"] {
+    outline: 1px solid Highlight;
   }
+  .landing .panel,
+  .landing .thumb {
+    border: 1px solid CanvasText;
+  }
+}
+
+/* The live chip: a state label on wells that ARE live kit canvases (an
+   `.led` and `.micro` text). The text stays under reduced motion; only the
+   LED's pulse dies. */
+.landing .live {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  color: var(--ink-3);
+  background: color-mix(in oklab, var(--background) 80%, transparent);
 }
