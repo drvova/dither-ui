@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   buildPlate,
+  catalogPlate,
   dawnPlate,
   ditherTone,
   rampPlate,
@@ -8,6 +9,8 @@ import {
   skylinePlate,
   type Cell,
   type Plate,
+  GREY,
+  SUN,
 } from "@/pages/landing/plates"
 
 // Decode a plate's dashed-lattice runs back into "x,y" → colour, the way the
@@ -80,5 +83,19 @@ describe("pixel plates", () => {
     const b = decode(seedPlate(800))
     expect(b.size).toBeGreaterThan(a.size)
     expect(decode(seedPlate(201))).not.toEqual(a)
+  })
+
+  it("draws the catalog as one lit cell per section, a tower per family", () => {
+    const counts = [1, 19, 25, 5, 32, 100, 46, 24, 49, 1]
+    const plate = catalogPlate(counts)
+    const cells = decode(plate)
+    expect(cells.size).toBe(counts.reduce((a, b) => a + b, 0))
+    expect(plate.groups.map((g) => g.index)).toEqual(counts.map((_, i) => i))
+    // One ember cap — on the tallest family — and every other colour grey.
+    const colours = [...cells.values()]
+    expect(colours.every((c) => c === SUN[0] || (GREY as readonly string[]).includes(c))).toBe(true)
+    expect(plate.groups[5].layers.some((l) => l.color === SUN[0])).toBe(true)
+    expect(plate.groups.filter((g) => g.layers.some((l) => l.color === SUN[0]))).toHaveLength(1)
+    expect(catalogPlate(counts)).toEqual(plate)
   })
 })

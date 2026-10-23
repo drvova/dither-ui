@@ -107,10 +107,10 @@ onBeforeUnmount(() => {
           <DitherIcon v-if="taken" name="Check" :size="12" :stroke-width="1.5" class="tick" />Copy
         </li>
         <li :data-s="taken ? 'now' : 'next'">
-          <DitherIcon name="ArrowRight" :size="12" :stroke-width="1.5" class="sep" />Paste in a terminal
+          <span class="sep" aria-hidden="true">›</span>Paste in a terminal
         </li>
         <li data-s="next">
-          <DitherIcon name="ArrowRight" :size="12" :stroke-width="1.5" class="sep" />Import from
+          <span class="sep" aria-hidden="true">›</span>Import from
           <code>@dither-kit</code>
         </li>
       </ol>
@@ -165,8 +165,8 @@ onBeforeUnmount(() => {
   left: 3px;
   width: calc((100% - 6px) / var(--n));
   transform: translateX(calc(var(--i) * 100%));
-  background: color-mix(in oklab, var(--color-foreground) 9%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 14%, transparent);
+  /* The reference's picked tab: a light key under dark type. */
+  background: #ededed;
   transition: transform 280ms cubic-bezier(0.3, 0.7, 0.2, 1);
 }
 
@@ -174,13 +174,19 @@ onBeforeUnmount(() => {
   position: relative;
   padding: 7px 18px 6px;
   font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--color-muted-foreground);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tab:hover,
-.tab[aria-pressed="true"] {
+.tab:hover {
   color: var(--color-foreground);
+}
+
+.tab[aria-pressed="true"] {
+  color: #000;
 }
 
 .tab:focus-visible {
@@ -504,8 +510,8 @@ onBeforeUnmount(() => {
 }
 
 .steps .sep {
-  color: var(--color-muted-foreground);
-  margin-right: 2px;
+  margin: 0 6px 0 4px;
+  color: color-mix(in oklab, var(--color-muted-foreground) 60%, transparent);
 }
 
 .steps code {

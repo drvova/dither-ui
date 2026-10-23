@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 import { resolveMatrix } from "@dither-kit"
-import { FACTS } from "../src/pages/landing/facts"
+import { FACTS, STUDIO_TOOL_COUNT } from "../src/pages/landing/facts"
+import { STUDIO_TOOLS } from "../src/features/agent/tools"
 import { BACKGROUNDS_NAV } from "../src/pages/docs/backgrounds/backgrounds-nav"
 
 const fact = (label: string) => FACTS.find((f) => f.label === label)?.value
@@ -21,6 +22,10 @@ describe("landing facts", () => {
 
   it("counts the background surfaces the docs list", () => {
     expect(fact("surfaces")).toBe(BACKGROUNDS_NAV.length)
+  })
+
+  it("counts the Studio tools a harness sees", () => {
+    expect(STUDIO_TOOL_COUNT).toBe(STUDIO_TOOLS.length)
   })
 
   it("names the matrix every surface thresholds against", () => {

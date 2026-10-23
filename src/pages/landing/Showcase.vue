@@ -21,8 +21,9 @@ import {
   type DitherColor,
 } from "@dither-kit"
 import ClayzoFilm from "./ClayzoFilm.vue"
+import Hub from "./Hub.vue"
 import PixelPlate from "./PixelPlate.vue"
-import { rampPlate, seedPlate, skylinePlate } from "./plates"
+import { dawnPlate, rampPlate, seedPlate, skylinePlate } from "./plates"
 
 // The opening chapter is the reference's feature bento: four cells, each a
 // big moving figure over one statement and its links. Two figures are
@@ -30,6 +31,7 @@ import { rampPlate, seedPlate, skylinePlate } from "./plates"
 // rule — films/), one is the kit's own 3D raster live, and one is the
 // page's pixel-art portraits (a slot: their shake lives on the page).
 const WORLD = sampleWorld(7)
+const DAWN = dawnPlate()
 const RAMP = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
 
 // Three chapters on the reference's exact grid: a full-width hairline panel;
@@ -70,14 +72,17 @@ const SEEDED = computed(() => seedPlate(seed.value))
   <section aria-label="Inside the kit" class="figs mx-auto w-full max-w-[var(--shell)] px-6">
     <!-- Chapter 0 — the bento -->
     <article aria-labelledby="ch-kit-h" class="chapter reveal">
-      <div class="band">
-        <h2 id="ch-kit-h" class="band-h">
-          dither-ui<span class="dot">,</span> <span class="band-l">a toolkit where every pixel is placed on purpose.</span>
-        </h2>
-        <div class="links">
-          <a :href="routePath('/docs/getting-started')" class="more">Quick start</a>
-          <a :href="routePath('/docs')" class="more more-quiet">Docs</a>
+      <div class="band band-tall">
+        <div class="band-in">
+          <h2 id="ch-kit-h" class="band-h">
+            dither-ui<span class="dot">,</span> <span class="band-l">a toolkit where every pixel is placed on purpose.</span>
+          </h2>
+          <div class="links">
+            <a :href="routePath('/docs/getting-started')" class="more">Quick start</a>
+            <a :href="routePath('/docs')" class="more more-quiet">Docs</a>
+          </div>
         </div>
+        <PixelPlate :plate="DAWN" fit="xMaxYMax meet" class="band-fig" />
       </div>
       <div class="cells two">
         <div class="cell feat">
@@ -149,6 +154,9 @@ const SEEDED = computed(() => seedPlate(seed.value))
         </div>
       </div>
     </article>
+
+    <!-- The component hub and its how-row (the reference's cells hub). -->
+    <Hub />
 
     <!-- Chapter 1 — charts -->
     <article aria-labelledby="ch-charts-h" class="chapter reveal">
@@ -282,113 +290,6 @@ const SEEDED = computed(() => seedPlate(seed.value))
   padding-block: var(--section);
 }
 
-/* Chapter = one panel: black band, then a 1px-gapped grid of black cells
-   (the reference's .lp-panel over --color-void). */
-.chapter {
-  background: color-mix(in oklab, var(--color-border) 45%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-border) 45%, transparent);
-  display: grid;
-  gap: 1px;
-}
-
-.band {
-  --pad: clamp(1.5rem, 3.4vw, 2.125rem);
-  background: #05060a;
-  position: relative;
-  overflow: hidden;
-  padding: var(--pad);
-}
-
-/* The band's floor: its pixel strip bleeds to both edges and sits flush on
-   the bottom hairline (the reference's band field, as markup). */
-.strip {
-  width: calc(100% + 2 * var(--pad));
-  height: auto;
-  margin: clamp(1.75rem, 3.4vw, 2.5rem) calc(-1 * var(--pad)) calc(-1 * var(--pad));
-}
-
-.band-h {
-  margin: 0;
-  font-size: clamp(1.625rem, 3.2vw, 2.625rem);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
-  color: var(--color-foreground);
-  text-wrap: pretty;
-}
-
-.dot {
-  color: var(--swatch-orange);
-}
-
-.band-l {
-  color: var(--color-muted-foreground);
-}
-
-.links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 26px;
-}
-
-/* The reference's .lp-more: square ember button + quiet sibling. */
-.more {
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  padding: 0 13px;
-  background: var(--swatch-orange);
-  color: #05060a;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.more:hover {
-  background: var(--swatch-blue);
-}
-
-.more:focus-visible {
-  outline: 2px solid var(--color-foreground);
-  outline-offset: 2px;
-}
-
-.more-quiet {
-  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-  color: var(--color-muted-foreground);
-}
-
-.more-quiet:hover {
-  background: color-mix(in oklab, var(--color-foreground) 14%, transparent);
-  color: var(--color-foreground);
-}
-
-/* Cell grid: hairline gaps come from the panel background showing through.
-   The bento is 2x2; chapter 2 is a 3-up; chapter 3 is demo + prose. */
-.cells {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  background: color-mix(in oklab, var(--color-border) 45%, transparent);
-}
-
-.cells.three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.cells.two {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.cell {
-  background: #05060a;
-  padding: clamp(1.25rem, 2.6vw, 2.125rem);
-  min-width: 0;
-}
-
 /* Bento cells: a figure box (films are 8:5), then the statement, the
    prose and the links. */
 .feat {
@@ -429,7 +330,7 @@ const SEEDED = computed(() => seedPlate(seed.value))
   overflow: hidden;
   display: flex;
   align-items: center;
-  background: linear-gradient(180deg, #0a0d14, #05060a 58%);
+  background: linear-gradient(180deg, #0a0d14, #000 58%);
 }
 
 .stage .stack {
@@ -448,7 +349,7 @@ const SEEDED = computed(() => seedPlate(seed.value))
 .veil {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgb(5 6 10 / 0.4), rgb(5 6 10 / 0.86) 55%, #05060a);
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.86) 55%, #000);
   pointer-events: none;
 }
 
@@ -459,64 +360,12 @@ const SEEDED = computed(() => seedPlate(seed.value))
   background: #000;
 }
 
-/* The live chip: the nodecode film-chip anatomy (pulsing dot + micro-caps
-   label) on our honest data — these panels ARE live kit canvases at 8fps.
-   The dot takes the reference's led cadence; it is a state label, so the
-   text stays under reduced motion and only the pulse dies. */
-.live {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 7px;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--color-foreground) 75%, transparent);
-  background: color-mix(in oklab, #000 62%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 50%, transparent);
-}
-
-.live i {
-  width: 5px;
-  height: 5px;
-  background: var(--swatch-orange);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .live i {
-    animation: live-led 2.8s ease-in-out infinite;
-  }
-  @keyframes live-led {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.32;
-    }
-  }
-}
-
 figure {
   margin: 0;
 }
 
 figcaption {
   margin-top: 10px;
-}
-
-.cell-p {
-  margin: 13px 0 0;
-  max-width: 34em;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--color-muted-foreground);
-  text-wrap: pretty;
 }
 
 .stack {
@@ -555,12 +404,4 @@ figcaption {
   gap: 9px;
 }
 
-@media (max-width: 900px) {
-  .cells.three {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .cells.two {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 </style>

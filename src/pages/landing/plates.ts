@@ -185,3 +185,37 @@ export function seedPlate(seed: number, w = 144, h = 6): Plate {
     return color ? { color, group: rankOf(x, y, m) } : null
   })
 }
+
+/** The reference's grey ramp, darkest first — the catalog's skyline is a
+ * diagram, not art, so it sits in greys with one ember cap. */
+export const GREY = ["#1d1d1d", "#303030", "#575757", "#8a8a8a", "#c6c6c6", "#ededed"] as const
+
+/** The hub band: the docs catalog as a skyline — one tower per family in
+ * sidebar order, one cell per section, stacked bottom-up on ⌈0.75·√n⌉
+ * columns so the big families stand tall. Every cell is lit (a section exists); its grey is
+ * dithered from its height in the skyline, the top row of each tower is
+ * capped light and the tallest tower's cap is ember. Group = tower, so the
+ * towers rise in order. */
+export function catalogPlate(counts: readonly number[]): Plate {
+  const towers: { x: number; w: number; n: number; h: number }[] = []
+  let x = 0
+  for (const n of counts) {
+    const w = Math.ceil(Math.sqrt(n) * 0.75)
+    towers.push({ x, w, n, h: Math.ceil(n / w) })
+    x += w + 1
+  }
+  const H = Math.max(...towers.map((t) => t.h))
+  const tallest = towers.findIndex((t) => t.h === H)
+  return buildPlate(x - 1, H, 1, (cx, cy) => {
+    const i = towers.findIndex((t) => cx >= t.x && cx < t.x + t.w)
+    if (i < 0) return null
+    const t = towers[i]
+    const row = H - 1 - cy // 0 at the floor
+    const k = row * t.w + (cx - t.x) // this cell's section index, bottom-up
+    if (row >= t.h || k >= t.n) return null
+    const top = row === t.h - 1 || k + t.w >= t.n
+    if (top) return { color: i === tallest ? SUN[0] : GREY[5], group: i }
+    const color = ditherTone(0.18 + 0.7 * (row / H), cx, cy, GREY.slice(0, 5)) ?? GREY[0]
+    return { color, group: i }
+  })
+}

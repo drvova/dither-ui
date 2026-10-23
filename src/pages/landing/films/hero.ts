@@ -27,22 +27,23 @@ import {
 } from "@clayzo/animation/authoring"
 import { at as s, DRAIN, FR, MOVE, OUT, pixelFilm, rect, SETTLE, v, type Nodes } from "./frame"
 import { heat, tone } from "./kit-dither"
+import { BEATS, SEEDS } from "../hero-beats"
 
-export const HERO = { width: 1600, height: 800 } as const
-export const HERO_END = s(9.6)
+export const HERO = { width: 1280, height: 800 } as const
+export const HERO_END = s(BEATS.end)
 
 const LIFT = { mass: 1, stiffness: 140, damping: 15 }
 
 // The beats.
-const TILT = s(0.4)
-const ISO = s(1.6)
-const MORPH_A = s(2.2)
-const FLIP_ON = s(3.2)
-const PRESS = s(3.9)
-const MORPH_B = s(5.0)
-const FLIP_OFF = s(5.9)
-const FOLD = s(6.7)
-const FLAT = s(8.0)
+const TILT = s(BEATS.tilt)
+const ISO = s(BEATS.exploded)
+const MORPH_A = s(BEATS.reseed)
+const FLIP_ON = s(BEATS.flipOn)
+const PRESS = s(BEATS.press)
+const MORPH_B = s(BEATS.unseed)
+const FLIP_OFF = s(BEATS.flipOff)
+const FOLD = s(BEATS.fold)
+const FLAT = s(BEATS.flat)
 
 /** A track on the camera beats: `flat` until the tilt, `iso` while the
  * board is exploded, `flat` again after the fold. */
@@ -55,7 +56,7 @@ const camera = <T,>(id: string, flat: T, iso: T) =>
   ])
 
 // The board, in its own space (origin at its centre), and its margin.
-const BW = 1100
+const BW = 1040
 const BH = 600
 const PAD = 52
 /** The right column's centre: the ring, the switch and the button. */
@@ -64,7 +65,7 @@ const COL = BW / 2 - PAD - 120
 // The chart panel and its two datasets (the second is the re-seed).
 const CX = -BW / 2 + PAD
 const CY = -BH / 2 + 118
-const CW = 690
+const CW = 640
 const CH = 300
 const DATA_A = [46, 52, 49, 58, 64, 61, 72, 78, 74, 86, 92, 88]
 const DATA_B = [38, 47, 60, 54, 66, 75, 69, 77, 88, 81, 90, 97]
@@ -98,9 +99,9 @@ const areaPath = (data: readonly number[]): PathData => ({
 function morph<T>(id: string, a: T, b: T): Animatable<T> {
   return keyed(id, [
     [MORPH_A, a, SETTLE],
-    [MORPH_A + s(0.8), b],
+    [MORPH_A + s(SEEDS.morph), b],
     [MORPH_B, b, SETTLE],
-    [MORPH_B + s(0.8), a],
+    [MORPH_B + s(SEEDS.morph), a],
   ])
 }
 
@@ -169,9 +170,9 @@ function fillLayer(nodes: Nodes): string[] {
         anchor: { x: 0, y: 0 },
         scale: keyed(`${id}.scale`, [
           [MORPH_A, { x: 1, y: 1, z: 1 }, SETTLE],
-          [MORPH_A + s(0.8) + i * FR, { x: 1, y: h(DATA_B[i]) / h(a), z: 1 }],
+          [MORPH_A + s(SEEDS.morph) + i * FR, { x: 1, y: h(DATA_B[i]) / h(a), z: 1 }],
           [MORPH_B, { x: 1, y: h(DATA_B[i]) / h(a), z: 1 }, SETTLE],
-          [MORPH_B + s(0.8) + i * FR, { x: 1, y: 1, z: 1 }],
+          [MORPH_B + s(SEEDS.morph) + i * FR, { x: 1, y: 1, z: 1 }],
         ]),
       }),
       type: "path",
@@ -375,11 +376,11 @@ export function heroFilm(): AnimationDocument {
   // The camera: the board squashes into isometric (rotate 45°, scale y by
   // tan 30°), steps back and drops so the exploded stack sits centred.
   const Y = Math.tan(Math.PI / 6)
-  const K = 0.8
+  const K = 0.82
   nodes.board = {
     ...base("board", {
       outTick: HERO_END,
-      position: camera("board.position", { x: HERO.width / 2, y: HERO.height / 2, z: 0 }, { x: HERO.width / 2, y: HERO.height / 2 + 100, z: 0 }),
+      position: camera("board.position", { x: HERO.width / 2, y: HERO.height / 2, z: 0 }, { x: HERO.width / 2, y: HERO.height / 2 + 106, z: 0 }),
       scale: camera("board.scale", { x: 1, y: 1, z: 1 }, { x: K, y: K * Y, z: 1 }),
     }),
     type: "group",

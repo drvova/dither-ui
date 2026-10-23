@@ -21,7 +21,7 @@ defineProps<{ label: string }>()
   height: 32px;
   padding: 0 12px 0 10px;
   color: var(--color-foreground);
-  background: #05060a;
+  background: #000;
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-border) 90%, transparent);
   transition:
     box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -29,7 +29,7 @@ defineProps<{ label: string }>()
 }
 
 .film-chip:hover {
-  background: color-mix(in oklab, var(--color-foreground) 7%, #05060a);
+  background: color-mix(in oklab, var(--color-foreground) 7%, #000);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 28%, transparent);
 }
 
