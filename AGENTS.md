@@ -94,6 +94,8 @@ Default section order:
   packs) writes relative imports WITH `.ts`. The web build also serves both
   kits' own source at `kit/src/<vue|svelte>/` with a `files.json` listing
   (`kitSources`) — what the docs' source panel shows, runs and zips.
+  `benchmarks/` (the kit's raster benchmark) is an entry for `rs dev`
+  only: `/benchmarks/` there, never in a build.
   `svelte-site/` runs the same CLI with its own `rstack.config.ts`.
 - Aliases: `@` → `src/`, `@dither-kit` → `dither-kit/` (rstack.config.ts +
   tsconfig paths — change both together).
@@ -109,7 +111,9 @@ Default section order:
   holds alpha-keyed per-sprite crops of that band (six faces + six emotes,
   measured coordinates in `LandingPage.vue` FACES) — regenerate from the
   sheet, don't hand-draw. They decorate the README; the landing still
-  blits from the sheet directly.
+  blits from the sheet directly. The README's screenshots live in
+  `.github/readme/` (WebP, never shipped with the site), taken from a
+  production build: retake the one whose page changes.
 - Landing films (Clayzo): the landing's films (hero, Studio, reel,
   catalog and dawn — the stage's five tabs) are Clayzo documents
   (`public/films/<id>.json`) played by

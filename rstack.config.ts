@@ -70,7 +70,14 @@ function kitSources(): RsbuildPlugin {
   }
 }
 
-define.app(async () => {
+/* The kit's raster benchmark (`benchmarks/`) is a page for `rs dev` only,
+   never built or deployed. */
+const DEV_PAGES: typeof PAGES = {
+  "benchmarks/index": { html: "benchmarks/index.html", main: "benchmarks/raster.ts" },
+}
+
+define.app(async ({ command }) => {
+  const pages = command === "dev" ? { ...PAGES, ...DEV_PAGES } : PAGES
   const [{ pluginVue }, { pluginTailwindcss }, { utilityMap }] = await Promise.all([
     import("@rsbuild/plugin-vue"),
     import("@rsbuild/plugin-tailwindcss"),
@@ -85,16 +92,16 @@ define.app(async () => {
       base: process.env.BASE_PATH ?? "/",
       port: 5173,
       historyApiFallback: {
-        rewrites: ["docs", "studio", "play"].map((page) => ({
+        rewrites: ["docs", "studio", "play", "benchmarks"].map((page) => ({
           from: new RegExp(`^/${page}`),
           to: `/${page}/index.html`,
         })),
       },
     },
-    html: { template: ({ entryName }) => at(PAGES[entryName].html) },
+    html: { template: ({ entryName }) => at(pages[entryName].html) },
     environments: {
       web: {
-        source: { entry: Object.fromEntries(Object.entries(PAGES).map(([name, page]) => [name, `./${page.main}`])) },
+        source: { entry: Object.fromEntries(Object.entries(pages).map(([name, page]) => [name, `./${page.main}`])) },
         // compiler-sfc's browser build (the docs' Run, a lazy chunk) keeps
         // `require` hooks for Sass/Less/Stylus that Run never calls — it
         // compiles plain CSS only.

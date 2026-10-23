@@ -20,86 +20,54 @@
   <img src="public/emotes/face-excited.webp" alt="Excited dither face" width="94" height="126">
 </p>
 
-A faithful **Vue 3** port of [Dither Kit](https://tripwire.sh/dither-kit) — composable
-ordered-dither **area, line, bar, pie and radar** charts on one tiny canvas engine,
-plus generative **avatars**, **buttons**, and **gradient washes**. Charts inspired by
-[Evil Charts](https://evilcharts.com).
+A dithered UI toolkit for Vue. 264 components draw themselves pixel by pixel
+from one seeded palette: charts, controls, forms, overlays, backgrounds, text
+effects, 3D models and GLSL shaders, all through the same ordered-dither
+(Bayer) engine. It has a Svelte 5 port, a live docs section for every
+component, and a Studio your coding agent can drive.
 
-Copy-in components (shadcn-style): the library lives in `dither-kit/` with no
-imports from the app. Its runtime dependencies are Vue, `d3-scale`, `d3-shape`,
-`clsx` and `tailwind-merge`. Tailwind itself is optional: `npm run build:css`
-compiles the kit's own stylesheet (`dist/kit/dither-kit.css` — tokens, a scoped
-base, every class the components use) for apps styled with StyleX, UnoCSS,
-plain CSS or any CSS-in-JS. What you write comes out in your system as well:
-the Studio's code export, the agent's `code.get` and every docs snippet can be
-written with Tailwind classes, as vanilla CSS, CSS Modules or StyleX —
-translated from the Tailwind form by `src/shared/lib/restyle.ts` with the
-declarations Tailwind's own compiler gives each class.
+Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dither-ui.com/docs) and the [Studio](https://dither-ui.com/studio).
 
-The repo ships three surfaces on one hash router:
+![The dither-ui landing: a dithered film beside its index, the statement and the kit's numbers](.github/readme/landing.webp)
 
-- **Landing** (`/#/`) — marketing page
-- **Docs** (`/#/docs`) — component docs, interactive playgrounds, example blocks
-- **Studio** (`/#/studio`) — a Figma-style multi-artboard editor
+The kit is copy-in, shadcn-style: it lives in `dither-kit/` with no imports from
+the app, so you copy the folder into your project and own every line. Beside
+Vue it needs four packages: `d3-scale`, `d3-shape`, `clsx` and
+`tailwind-merge`. Tailwind is optional. `npm run build:css` compiles the kit's
+own stylesheet (`dist/kit/dither-kit.css`: tokens, a scoped base and every
+class the components use) for apps on StyleX, UnoCSS, plain CSS or CSS-in-JS.
+
+## Quick start
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173 — the site; /studio is the editor
-npm run test     # engine + model unit tests (rs test — Rstest)
+npm run dev      # rs dev: http://localhost:5173 (/, /docs, /studio)
+npm run test     # rs test (Rstest)
 npm run lint     # rs lint (Rslint) + ESLint for .vue files
 npm run format   # rs fmt
-npm run build    # type-check + rs build (Rsbuild) + kit stylesheet + prerender
-# GitHub Pages uses .github/workflows/pages.yml and builds for dither-ui.com by default.
-# public/CNAME sets the custom domain; set BASE_PATH=/dither-ui/ only for project-URL deploys.
+npm run build    # type-check, rs build, the kit stylesheet, then the prerender
 ```
 
-## Studio
+The prerender at the end of `npm run build` drives headless Chromium; point
+`CHROME_PATH` at a Chromium binary if it is not in a standard place. CI and the
+GitHub Pages deploy run on Node 22.
 
-A full design-tool editor for every component in the kit:
+## Use the kit in your app
 
-- **Canvas** — infinite pan/zoom (wheel pan, ⌘-wheel zoom, ⇧1 fit), multiple
-  artboards: drag, resize, duplicate (⌘D), group (⌘G), lock (⌘L), hide, delete.
-- **Layer tree** — frames expand to their chart layers; visibility/lock
-  toggles, right-click context menus, inline rename, keyboard operable.
-- **Inspector — full granularity.** Charts: type, per-series colour (presets +
-  HSV/hex picker), texture (preset variants or custom ramp/density/gaps/hatch/
-  off-tier/edge), bloom (presets or custom blur/brightness/opacity/saturate),
-  easing (presets or a draggable cubic-bézier curve editor with overshoot),
-  animation time/delay/stagger/sparkles/hover-lift, dither pixel size, margins,
-  axes/grid/legend/tooltip settings, per-series opacity + dot markers, and
-  per-type geometry (bar gap/edge, pie start angle/pop/rim, radar rings/falloff).
-- **Widget builders** — avatar (seed, mirror, grid, cell resolution, density,
-  colour, bloom, entrance), button (label, variant, pixel, colour, bloom),
-  gradient (direction, pixel, opacity, from/two-tone-to, bloom).
-- **Data editor** — a spreadsheet drawer per chart: edit any cell, add/remove
-  rows and series; pie rows are slices (name/series stay synced).
-- **Code export** — a runnable Vue SFC per artboard reflecting every setting.
-- **Projects** — autosave to localStorage, save/open `.json` project files,
-  undo/redo (⌘Z/⌘⇧Z), shortcuts overlay (?).
+```bash
+# 1. copy the kit folder straight from the repo
+npx degit drvova/dither-ui/dither-kit src/dither-kit
 
-## Architecture (Feature-Sliced Design)
+# 2. install the four packages it needs beside Vue
+npm i d3-scale d3-shape clsx tailwind-merge
 
-```
-dither-kit/   the component library (@dither-kit)
-src/
-  app/        root + styles + hash routing
-  pages/      landing, docs, studio
-  widgets/    canvas, layer-tree, inspector, toolbar, data-editor,
-              chart-renderer, widget-renderer
-  features/   pan-zoom, artboard-transform, keyboard, history,
-              persistence, export-code
-  entities/   chart (model/rows/codegen), widget, artboard, editor
-  shared/     ui (fields, editors), lib, config
-tests/        Rstest unit tests over the engine + models
+# 3. alias @dither-kit (bundler resolve.alias and tsconfig paths)
+#    "@dither-kit" -> "./src/dither-kit"
 ```
 
-Imports inside `src/` only ever point downward (app → … → shared); each slice
-exposes a public `index.ts` barrel. The app imports the portable kit through
-`@dither-kit`.
-
-## Usage
-
-Charts use a **children-as-config** API — compose parts inside a root:
+Svelte 5 apps copy `drvova/dither-ui/dither-kit-svelte` instead and import from
+`@dither-kit-svelte`. Charts use a children-as-config API: compose parts inside
+a root.
 
 ```vue
 <script setup lang="ts">
@@ -119,23 +87,112 @@ const config: ChartConfig = {
 </script>
 
 <template>
-  <div class="h-80">
-    <AreaChart :data="data" :config="config" bloom="low">
-      <Grid />
-      <XAxis dataKey="month" />
-      <YAxis />
-      <Area dataKey="desktop" is-clickable />
-      <Area dataKey="mobile" variant="hatched" is-clickable />
-      <Legend is-clickable />
-      <Tooltip labelKey="month" />
-    </AreaChart>
-  </div>
+  <AreaChart class="h-80" :data="data" :config="config" bloom="low">
+    <Grid />
+    <XAxis dataKey="month" />
+    <YAxis />
+    <Area dataKey="desktop" is-clickable />
+    <Area dataKey="mobile" variant="hatched" is-clickable />
+    <Legend is-clickable />
+    <Tooltip labelKey="month" />
+  </AreaChart>
 </template>
 ```
 
-Roots must be given a sized container (the canvas measures its parent).
+Give every root a height: the canvas measures its box. Theme the kit by
+overriding its tokens (`dither-kit/theme.css` lists them: light at `:root`,
+dark under `.dark`), from CSS or with `applyTheme()` from JS.
 
-### Fast And Precompiled Rendering
+## The site
+
+### Landing
+
+A full-bleed band of five dithered films, each beside an index and a caption
+that says what it shows. They are vector scenes drawn live through the kit's
+own dither rule, and the grid halves under your cursor. Under the band:
+
+- the statement with the kit's numbers;
+- the install bar;
+- live kit panels: buttons, controls, a 3D model, a chart and a background;
+- a directory of all 302 docs sections;
+- six principles that light up as you scroll;
+- how to hand the Studio to your own coding agent.
+
+### Docs
+
+Every component has a section at `/docs/<id>`: a live preview, its props table,
+pickers for its variants and the code. The code comes in Vue or Svelte, written
+with Tailwind classes, plain CSS, CSS Modules or StyleX. Every preview is also a
+working tool.
+
+![The workbench over a docs preview: rulers, a pinned element's box model and the tool tray](.github/readme/workbench.webp)
+
+- **Inspect** opens a workbench over the preview:
+  - measure: box model, distances, X-ray, rulers and guides, type and WCAG contrast, colour sampling, a pixel loupe;
+  - check: the accessibility view and the Tab order;
+  - annotate: arrows, ink, notes and comment threads;
+  - capture: screenshots, video, or a GIF dithered with the kit's own matrix.
+  `K` copies everything as Markdown for a coding agent.
+- **Code** shows the preview as files: the example, the kit's own source for
+  each component it imports, the tokens and a `prompt.md`. Edit any of them and
+  **Run** compiles them in the page, or download them all as a zip.
+- Interface sounds play on taps, toggles and copies; the header switches them
+  off.
+
+![The source panel: an edited example running in the preview above its files](.github/readme/source.webp)
+
+### Studio
+
+![The Studio: an area chart on the canvas, the layer tree and the inspector](.github/readme/studio.webp)
+
+A canvas-first editor for every component in the kit:
+
+- **Canvas:** pan and zoom, artboards you move, resize, group, lock and hide.
+- **Library:** one searchable place for charts, components, screens and presets.
+- **Inspector:** colour, texture, bloom, easing and animation for every part.
+- **Data editor:** a spreadsheet for each chart.
+- **Evolve:** seeded variations of whatever you have selected.
+- **Reels:** a sequence of frames with ordered-dither transitions between them.
+- **Export:**
+  - code as a Vue SFC, in your styling system;
+  - PNG;
+  - MP4, through a HyperFrames composition that renders the same video every time.
+- **Projects:** autosave, `.json` files, undo and redo.
+
+## Agents
+
+The Studio is addressable by the coding agent you already use:
+
+- `public/agent/SKILL.md` teaches any harness the document shape and the
+  commands.
+- The build writes every component's props to `/agent/registry.json`.
+- A live tab answers `dither-studio:command` DOM events and exposes
+  `window.ditherStudio`.
+
+To drive it from the Studio's Agent panel, run the local bridge:
+
+```bash
+npx degit drvova/dither-ui/bridge bridge && node bridge/dither-bridge.mjs
+```
+
+The bridge finds the harnesses on your PATH and starts the one you pick as your
+own signed-in process. It works with:
+
+- Claude Code
+- Codex
+- Gemini CLI
+- Qwen Code
+- oh-my-pi
+- Goose
+- OpenCode
+- Auggie
+- any other command that speaks the Agent Client Protocol
+
+No key is ever asked for in the app. See [bridge/README.md](bridge/README.md).
+
+## Performance
+
+### Fast and precompiled rendering
 
 For deterministic server-rendered surfaces, compile the dither backing store on
 the server and send its encoded image URL to the kit. The compiler has no DOM,
@@ -238,7 +295,7 @@ bloom, or precompilation policy.
 
 ### Benchmark
 
-Open `http://localhost:5173/benchmarks/` after `npm run dev`. The browser
+Open `http://localhost:5173/benchmarks/` after `npm run dev` (a dev-only page; it is not built or deployed). The browser
 benchmark performs 3 warmups, then 6 measured batches × 2 repetitions.
 Gradient samples run at 960×600 CSS px with 2 px cells and compare the legacy
 per-cell `fillRect` painter with RGBA generation plus one `putImageData` upload.
@@ -278,32 +335,74 @@ measurements on one desktop, not a device-independent latency promise. Re-run
 the page on target low-power devices before choosing `cell`, animation, bloom,
 or precompilation policy.
 
-### Components
+## Components
 
-Selected public exports:
+264 public `Dither*` components plus the chart roots and parts. Selected
+exports:
 
 | Charts | Parts | Standalone |
 | --- | --- | --- |
-| `AreaChart` `LineChart` | `Area` `Line` `Bar` `Pie` `Radar` | `DitherButton` |
+| `AreaChart` `LineChart` | `Area` `Line` `Bar` `Pie` `Radar` | `DitherButton` `DitherSwitch` |
 | `BarChart` | `Grid` `XAxis` `YAxis` | `DitherAvatar` `DitherImage` |
 | `PieChart` `RadarChart` | `Dot` `ActiveDot` `Legend` `Tooltip` | `DitherGradient` `DitherSpinner` |
-| | `Sparkline` `RadarFrame` | |
+| | `Sparkline` `RadarFrame` | `DitherWorld` `DitherShader` |
 
-The barrel also exports the rest of the control, feedback, navigation, overlay,
-and surface set. Shared props: `bloom` (`off`/`low`/`high`/`aura`),
-`bloomOnHover`, `animate`, `stackType` (`default`/`stacked`/`percent`),
-`hovered`, `markerIndex`, `defaultSelectedDataKey`, `onSelectionChange`,
-`onHoverChange`. Fill `variant`: `gradient`/`dotted`/`hatched`/`solid`.
-Palette colors: `green` `blue` `purple` `pink` `orange` `red` `grey`.
+The barrel also exports the control, form, feedback, navigation, overlay and
+surface families, 46 generative backgrounds, 24 text effects and 49
+interaction and motion effects. Shared chart props:
+
+- `bloom` (`off`, `low`, `high`, `aura`), `bloomOnHover`, `animate`;
+- `stackType` (`default`, `stacked`, `percent`);
+- `hovered`, `markerIndex`, `defaultSelectedDataKey`, `onSelectionChange`, `onHoverChange`.
+
+Fill `variant`: `gradient`, `dotted`, `hatched`, `solid`. Palette colours:
+`green`, `blue`, `purple`, `pink`, `orange`, `red`, `grey`.
+
+## Repository
+
+```
+dither-kit/          the Vue kit (@dither-kit): copy-in, MIT, no imports from the app
+dither-kit-svelte/   the Svelte 5 port (runes)
+svelte-site/         a Svelte showcase built on the port
+bridge/              the local bridge between the Studio and your coding agent
+discord/             the /component slash command for Discord
+benchmarks/          the raster benchmark page (rs dev only)
+scripts/             prerender, kit stylesheet, frame renderer
+src/
+  app/        entry, the site's styles, the path and legacy-hash router
+  pages/      landing, docs, studio, play (the video player page)
+  widgets/    the docs workbench and source panel; the Studio's toolbar,
+              layer tree, inspector, canvas, renderers, data editor, agent panel
+  features/   history, keyboard, persistence, code, image and video export,
+              reels, pan and zoom, artboard transforms, the agent protocol
+  entities/   editor, chart, widget, artboard
+  shared/     ui, config, lib
+tests/        Rstest specs
+```
+
+The app follows Feature-Sliced Design: imports only point down (app, pages,
+widgets, features, entities, shared), and everything reaches the kit through
+`@dither-kit`. The whole toolchain is the Rstack CLI (`rs`) with one config,
+`rstack.config.ts`: Rsbuild for dev and build, Rstest, Rslint and the
+formatter. Routes are `/`, `/docs/<section>` and `/studio`; old hash links
+still resolve. GitHub Pages deploys through `.github/workflows/pages.yml` to
+`dither-ui.com`.
+
+Every folder that owns rules has an `AGENTS.md`: the contract for that part of
+the tree, for people and agents alike. Read the chain from the root down before
+changing something.
 
 ## Port notes
 
-- React context → Vue `provide`/`inject` with a reactive getter-facade controller.
-- React `useMemo`/`useCallback` ceremony → Vue `computed`/`ref` (reactivity handles it).
-- The `chartLayer` children-routing → render-function vnode inspection.
-- The framework-agnostic `requestAnimationFrame` canvas painters port ~verbatim.
-- The tooltip's `motion` spring → Vue `<Transition>` + a CSS glide (no extra dep).
-- Tailwind v4 with shadcn-style tokens (`--foreground`, `--card`, …) in `src/styles.css`.
+The charts began as a Vue port of [Dither Kit](https://tripwire.sh/dither-kit),
+inspired by [Evil Charts](https://evilcharts.com):
+
+- React context became Vue `provide`/`inject` with a reactive getter-facade controller.
+- `useMemo`/`useCallback` ceremony became `computed`/`ref`.
+- The `chartLayer` children routing became render-function vnode inspection.
+- The framework-agnostic `requestAnimationFrame` canvas painters ported almost verbatim.
+- The tooltip's `motion` spring became Vue `<Transition>` and a CSS glide.
+- The shadcn-style tokens (`--foreground`, `--card`, …) live in `dither-kit/theme.css`.
 
 ## Creator
 
