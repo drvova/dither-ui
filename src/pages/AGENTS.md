@@ -18,20 +18,24 @@ widgets/features; page-specific conventions live here.
   panels in three columns, the directory, the principles and the agents
   strip as its floor. Display type is UPRIGHT condensed caps (Barlow
   Condensed, `.display`) for nav, tabs, tags, keys and headlines; never
-  italic. Body text is small sans in greys; the one colour is a deep red
-  (bevel `--red`/`--red-2`, text `--red-ink`, which passes 4.5:1 on the
-  panels); mono only for code, commands, paths and figures. Additions must
+  italic. Body text is small sans in greys. No hue in the chrome (the
+  user rejected red): keys, picked tabs and tags wear machined metal
+  (`--chrome`, dark `--on-chrome` ink), link triangles and rules are
+  silver (`--mark`), and the kit's ember (`--ember`) is the one warm light
+  — LEDs and live dots only. Mono only for code, commands, paths and
+  figures. Additions must
   remove something or justify their presence.
 - The design layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`): the Barlow Condensed
   `@font-face`s (self-hosted woff2 in `landing/fonts/` under the SIL OFL,
   `OFL-barlow.txt` beside them; RELATIVE `url()` so Vite hashes them under
   the base path), tokens (`--display`, `--ink`/`--ink-2`/`--ink-3`,
-  `--page`, `--panel`/`--panel-2`, `--line`, `--red`/`--red-2`/`--red-ink`),
+  `--page`, `--panel`/`--panel-2`, `--line`, `--chrome`/`--chrome-hover`/
+  `--chrome-lift`/`--on-chrome`, `--mark`, `--ember`),
   `.display`, `.panel` (1px rule, 4px corner, faint top lift), `.tag` (the
-  red bevelled label), `.list-head` (tag left, `.more-link` "View all »"
-  right), `.lead` (a link with a red CSS triangle), `.btn` (dark bevel) /
-  `.btn-primary` (red bevel), `.thumb` (a framed black well) and the
+  chrome label), `.list-head` (tag left, `.more-link` "View all »"
+  right), `.lead` (a link with a silver CSS triangle), `.btn` (dark bevel) /
+  `.btn-primary` (chrome bevel), `.thumb` (a framed black well) and the
   `.live` chip. Components read it, never redeclare it. Page geometry
   (`--shell`, `--gutter` 24px → 16px on phones, `--rhythm` 32px between
   the box's rows, the black `--background`) lives on `LandingPage`'s
@@ -41,7 +45,7 @@ widgets/features; page-specific conventions live here.
   ember core + "dither-ui" in display caps); right, a tiny grey utility row
   (GitHub ↗ · Agent skill · llms.txt · version · a sunken "Search the
   docs…" link to `/docs`, bar-separated) over the condensed-caps main nav
-  (Components → `#directory` · Docs · Studio · Agents → `#agents`; a red
+  (Components → `#directory` · Docs · Studio · Agents → `#agents`; a silver
   underline on hover). Under 760px the utility row and brand name drop.
   The header MUST keep `relative z-10`: `main` is `relative isolate` and
   page art lives inside it, so a positioned sibling always paints over a
@@ -49,11 +53,11 @@ widgets/features; page-specific conventions live here.
 - Stage (`Showcase.vue`, the box's top, flush): the films as tabbed
   campaigns — ONE `ClayzoFilm` mounted at a time (`:key` = the picked
   film), 8:5 films right at full height, the wide catalog and dawn across
-  its floor — under a left scrim with the copy top-left (a red kicker, the
+  its floor — under a left scrim with the copy top-left (a grey kicker, the
   h1 in display caps, the lede, `.btn-primary` "Open the studio" + `.btn`
   "Read the docs"), the film's label top-right, and along the floor the
   bevelled tabs (`role="group"` of `aria-pressed` buttons; the picked one
-  red) and the "dither-kit × Clayzo" badge. Under 760px it stacks: copy,
+  chrome) and the "dither-kit × Clayzo" badge. Under 760px it stacks: copy,
   film, tabs sharing the width. The h1 must clear a 1440×900 fold.
 - Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
   bitmap face drawn as crisp SVG cells with a seam — the footer's wordmark
@@ -67,24 +71,24 @@ widgets/features; page-specific conventions live here.
   docs install story: its four steps (degit folder + npm/pnpm/bun deps)
   must stay in sync with `docs/DocsPage.vue` `SNIPPETS.install`. One
   bevelled bar: the step picker (bevelled display-caps tabs over a sliding
-  red `.pill`; `aria-pressed`) · the command in a sunken mono well · a
-  bevelled Copy through `DitherClipboard` (jolt, red seal, label roll);
-  the steps under it are separated by red `›`; the chrome glint is a
+  chrome `.pill`; `aria-pressed`) · the command in a sunken mono well · a
+  bevelled Copy through `DitherClipboard` (jolt, silver seal, label roll);
+  the steps under it are separated by `›`; the chrome glint is a
   one-shot IO → CSS (latched, never re-fires).
 - Columns (`Showcase.vue`, `.cols` 2 : 1 : 1.1, one column under 900px):
   A — the Build panel ("Build your own screens", the chrome diamond, two
   `.thumb` product tiles of live kit components: Buttons and Controls, the
   slider re-seeding the badge; `.lead` links to the Studio and the docs)
-  over the portraits panel (a red display heading, one line, the `faces`
+  over the portraits panel (a display heading, one line, the `faces`
   slot in a well — the pixel-shake stays in `LandingPage`); B — framed
   thumbnails with a `.lead` and a line: World 3D (`DitherWorld` live at
   12fps on the house ramp, `sampleWorld(7)`, with the `.live` chip) and
-  Charts (a live `LineChart`); C — red-tagged lists into the docs (the
+  Charts (a live `LineChart`); C — tagged lists into the docs (the
   shelved families biggest first, then the Handbook), hairline off the
   others.
 - Directory (`Hub.vue`, `#directory`): a `.list-head` (tag "Directory" ·
   "All n sections »") and one line over a `.panel` — the kit's own
-  `DitherTabs` (red; badges = family sizes) over a horizontal snapping
+  `DitherTabs` (grey; badges = family sizes) over a horizontal snapping
   shelf of `.thumb` cards that deep-link to `/docs/<id>` (the section's
   seeded `DitherAvatar` identicon — decorative, no entrance — its family,
   its name in caps, a line, its path in mono), and an "All n …" `.lead`
@@ -102,7 +106,7 @@ widgets/features; page-specific conventions live here.
   "Quick start »") over a `.panel` — the figure in a `.thumb` well beside
   six numbered statements, each a LINK into the docs that covers it
   (`PRINCIPLES`); pointing at one (hover or focus) makes it the figure's
-  stage and marks it (red index, white ink, a red rule). No scroll driver.
+  stage and marks it (white index and ink, a silver rule). No scroll driver.
   The figure (`EssayFigure.vue` over `essay-figure.ts`): a 24x24 lattice of
   576 `<rect>`s built once at setup (markup, prerender-able);
   `stageCell(stage, x, y)` paints each scene through the house
@@ -115,10 +119,10 @@ widgets/features; page-specific conventions live here.
   caption in `STAGE_CAPTIONS` — never a second lattice. Guarded by
   `tests/essay-figure.spec.ts` (lattice ranks, determinism, lit share,
   distinct scenes, stage wrap).
-- Agents strip (`#agents`, the box's floor): a red tag "Drives with your
+- Agents strip (`#agents`, the box's floor): a tag "Drives with your
   agent", the harnesses `bridge/dither-bridge.mjs` knows (its `HARNESSES`
-  names, in order — keep in sync) as bevelled display-caps chips with a
-  square LED, and one `.lead` to the agent skill, over a `dither-field`
+  names, in order — keep in sync) as bevelled display-caps chips with an
+  ember square LED, and one `.lead` to the agent skill, over a `dither-field`
   dot sea (`bandCanvas` mounted in `LandingPage.vue`, seed
   `seedFor("band")`: 4px cells, 12fps, the four dark SKY levels only so
   the ink keeps contrast, density 0.42 at rest → 0.64 under hover, cursor
@@ -299,7 +303,7 @@ widgets/features; page-specific conventions live here.
   component's own `data-armed`/`data-live`). No-JS/prerender: no attrs, the
   finished mark renders; reduced motion: full static rim.
 - Thumbnails running live kit canvases carry the live chip (`.live`: a
-  pulsing red square + `live · 12 fps` in display caps on black), stating
+  pulsing ember square + `live · 12 fps` in display caps on black), stating
   HONEST data: films and plates never do.
 
 ### docs/

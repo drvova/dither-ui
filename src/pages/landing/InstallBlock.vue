@@ -3,9 +3,9 @@ import { onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
 
 // The install strip, a 2009 portal bar: step picker (bevelled aria-pressed
-// tabs over a sliding red pill) → command well (prompt in red, one line)
+// tabs over a sliding chrome pill) → command well (silver prompt, one line)
 // → copy, whose success is choreographed in CSS: the line jolts, a beam
-// crosses the well drawing a red seal around it, the label rolls to
+// crosses the well drawing a silver seal around it, the label rolls to
 // "Copied" — then the steps under the frame advance (Copy done → Paste now).
 // The announcement is DitherClipboard's own live region.
 const STEPS = [
@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
   flex: none;
 }
 
-/* Step picker: bevelled tabs in equal columns, one red pill that slides
+/* Step picker: bevelled tabs in equal columns, one chrome pill that slides
    to the picked step. */
 .tabs {
   position: relative;
@@ -168,8 +168,8 @@ onBeforeUnmount(() => {
   left: 0;
   width: calc(100% / var(--n));
   transform: translateX(calc(var(--i) * 100%));
-  background: linear-gradient(180deg, #cf2429 0%, var(--red) 50%, var(--red-2) 100%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
+  background: var(--chrome);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7);
   transition: transform 280ms cubic-bezier(0.3, 0.7, 0.2, 1);
 }
 
@@ -191,14 +191,21 @@ onBeforeUnmount(() => {
   box-shadow: none;
 }
 
-.tab:hover,
-.tab[aria-pressed="true"] {
+.tab:hover {
   color: #fff;
+}
+
+.tab[aria-pressed="true"] {
+  color: var(--on-chrome);
 }
 
 .tab:focus-visible {
   outline: 2px solid #fff;
   outline-offset: -2px;
+}
+
+.tab[aria-pressed="true"]:focus-visible {
+  outline-color: var(--on-chrome);
 }
 
 /* Command well: sunk into the bar, positioned and clipped — the sweep and
@@ -241,7 +248,7 @@ onBeforeUnmount(() => {
 }
 
 .prompt {
-  color: var(--red-ink);
+  color: var(--mark);
   margin-right: 10px;
 }
 
@@ -260,7 +267,7 @@ onBeforeUnmount(() => {
 .caret {
   margin-left: 2px;
   font-size: 11px;
-  color: var(--red-ink);
+  color: var(--mark);
   animation: blink 1.1s steps(2, jump-none) infinite;
 }
 
@@ -333,7 +340,7 @@ onBeforeUnmount(() => {
 }
 
 .copy[data-copied="true"] {
-  color: var(--red-ink);
+  color: #fff;
 }
 
 /* Label roll: both words stacked in a one-line window; copy slides the
@@ -397,7 +404,7 @@ onBeforeUnmount(() => {
   transform: translateY(-1.3em);
 }
 
-/* The seal. Edges are 2px red lines
+/* The seal. Edges are 2px silver lines
    drawn by scale from their origin; the beam is the pen that draws the long
    edges, so it shares their timing exactly. */
 /* The seal is its own size container: the beam's 100cqw is then the frame's
@@ -419,7 +426,7 @@ onBeforeUnmount(() => {
 .seal i,
 .seal b {
   position: absolute;
-  background: var(--red-ink);
+  background: var(--mark);
 }
 
 .seal i:nth-child(1),
@@ -526,12 +533,12 @@ onBeforeUnmount(() => {
 }
 
 .steps .tick {
-  color: var(--red-ink);
+  color: var(--mark);
 }
 
 .steps .sep {
   margin: 0 6px 0 4px;
-  color: var(--red-ink);
+  color: var(--ink-3);
 }
 
 .steps code {

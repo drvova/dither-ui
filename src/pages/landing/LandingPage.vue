@@ -245,7 +245,7 @@ onBeforeUnmount(() => {
         </section>
 
         <!-- The agents strip: the harnesses the bridge knows, as bevelled
-             chips with their LED under a red tag, over the dot sea — every
+             chips with their ember LED under a tag, over the dot sea — every
              one drives the Studio as the user's own signed-in process. -->
         <section id="agents" class="agents" aria-labelledby="harness-h">
           <canvas ref="bandCanvas" aria-hidden="true" class="band-field"></canvas>
@@ -406,7 +406,7 @@ onBeforeUnmount(() => {
 .mainnav a:hover {
   color: #fff;
   text-decoration: underline;
-  text-decoration-color: var(--red);
+  text-decoration-color: var(--mark);
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
 }
@@ -501,7 +501,7 @@ onBeforeUnmount(() => {
 }
 
 /* The principles: the figure's framed well beside a numbered list; the
-   pointed statement takes the red index, white ink and a red rule. */
+   pointed statement takes a white index, white ink and a silver rule. */
 .principles {
   display: flex;
   flex-direction: column;
@@ -565,12 +565,12 @@ onBeforeUnmount(() => {
 .principle[data-active] {
   background: linear-gradient(90deg, rgb(255 255 255 / 0.04), transparent 70%);
   box-shadow:
-    inset 3px 0 0 var(--red),
+    inset 3px 0 0 var(--mark),
     inset 0 -1px 0 #262626;
 }
 
 .principle[data-active] .principle-n {
-  color: var(--red-ink);
+  color: #fff;
 }
 
 .principle[data-active] .principle-t {
@@ -583,7 +583,7 @@ onBeforeUnmount(() => {
 }
 
 /* The agents strip: the box's floor — the dot sea breathing under one row:
-   a red tag, the harness chips, one link. */
+   a tag, the harness chips, one link. */
 .agents {
   position: relative;
   isolation: isolate;
@@ -642,7 +642,7 @@ onBeforeUnmount(() => {
 .harness-chip i {
   width: 6px;
   height: 6px;
-  background: #7ba3ee;
+  background: var(--ember);
 }
 
 .harness-a {

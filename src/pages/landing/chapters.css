@@ -2,9 +2,11 @@
    its taste, never its assets, marks or names): a compact dark portal on
    one ~64rem shell. A charcoal page, a near-black header, a campaign STAGE
    with bevelled tabs, then dense panels in three columns — product tiles,
-   framed thumbnails with red-triangle links, red-tagged lists. Display text
-   is upright condensed caps (Barlow Condensed, self-hosted under the SIL
-   OFL); body text is small sans in greys; the one colour is a deep red.
+   framed thumbnails with triangle links, tagged lists. Display text is
+   upright condensed caps (Barlow Condensed, self-hosted under the SIL
+   OFL); body text is small sans in greys. No hue in the chrome: keys, tabs
+   and tags wear machined metal (the archive's gunmetal bars, chrome O and
+   silver Elite pages); the kit's ember is the one warm light.
    Plain CSS under .landing, read by every landing component. */
 @font-face {
   font-family: "Barlow Condensed";
@@ -39,10 +41,15 @@
   --panel: #1b1b1b;
   --panel-2: #222;
   --line: #303030;
-  --red: #b3191d;
-  --red-2: #7c0e11;
-  /* Red as TEXT: the bevel red fails 4.5:1 on the panels; this passes. */
-  --red-ink: #f04a4e;
+  /* Chrome: the finish every key, picked tab and tag wears, dark ink on it. */
+  --chrome: linear-gradient(180deg, #f6f6f6 0%, #d2d2d2 46%, #8f8f8f 54%, #d6d6d6 100%);
+  --chrome-hover: linear-gradient(180deg, #fff 0%, #e2e2e2 46%, #a3a3a3 54%, #e4e4e4 100%);
+  --chrome-lift: inset 0 1px 0 rgb(255 255 255 / 0.7), 0 0 0 1px #0c0c0c;
+  --on-chrome: #111;
+  /* Silver marks: link triangles, the pointed rule, the copy seal. */
+  --mark: #d6d6d6;
+  /* The one warm light: LEDs and live dots. */
+  --ember: var(--swatch-orange);
   font-family: var(--font-sans);
 }
 
@@ -65,7 +72,7 @@
     inset 0 1px 0 rgb(255 255 255 / 0.04);
 }
 
-/* A red tag: a bevelled label over a list. */
+/* A tag: a chrome label over a list. */
 .landing .tag {
   display: inline-flex;
   align-items: center;
@@ -76,14 +83,12 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #fff;
-  background: linear-gradient(180deg, #c62226 0%, var(--red) 50%, var(--red-2) 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.25),
-    0 0 0 1px #4a0709;
+  color: var(--on-chrome);
+  background: var(--chrome);
+  box-shadow: var(--chrome-lift);
 }
 
-/* A list's head: a red tag left, its quiet "View all »" right. */
+/* A list's head: a tag left, its quiet "View all »" right. */
 .landing .list-head {
   display: flex;
   align-items: center;
@@ -95,7 +100,7 @@
   margin: 0;
 }
 
-/* A link that leads on: grey text, a red triangle after it. */
+/* A link that leads on: grey text, a silver triangle after it. */
 .landing .lead {
   display: inline-flex;
   align-items: center;
@@ -109,7 +114,7 @@
   width: 0;
   height: 0;
   border-block: 4px solid transparent;
-  border-left: 5px solid var(--red);
+  border-left: 5px solid var(--mark);
 }
 
 .landing .lead:hover {
@@ -127,7 +132,7 @@
   color: var(--ink);
 }
 
-/* Keys: the primary is a red bevelled button, the other a dark one — both
+/* Keys: the primary is a chrome bevelled button, the other a dark one — both
    in display caps. */
 .landing .btn {
   display: inline-flex;
@@ -154,15 +159,13 @@
 }
 
 .landing .btn-primary {
-  color: #fff;
-  background: linear-gradient(180deg, #cf2429 0%, var(--red) 50%, var(--red-2) 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.25),
-    0 0 0 1px #3d0507;
+  color: var(--on-chrome);
+  background: var(--chrome);
+  box-shadow: var(--chrome-lift);
 }
 
 .landing .btn-primary:hover {
-  background: linear-gradient(180deg, #df2b30 0%, #c41d22 50%, #8c1013 100%);
+  background: var(--chrome-hover);
 }
 
 .landing .btn:focus-visible,
@@ -213,7 +216,7 @@
 .landing .live i {
   width: 5px;
   height: 5px;
-  background: var(--red);
+  background: var(--ember);
 }
 
 @media (prefers-reduced-motion: no-preference) {

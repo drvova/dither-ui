@@ -246,7 +246,7 @@ const HANDBOOK = [
           </figure>
         </div>
 
-        <!-- Column C: red-tagged lists into the docs. -->
+        <!-- Column C: tagged lists into the docs. -->
         <aside class="col-c" aria-label="Docs">
           <div class="list-head">
             <span class="tag">Docs</span>
@@ -331,7 +331,7 @@ const HANDBOOK = [
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.12em;
-  color: var(--red-ink);
+  color: var(--ink-2);
 }
 
 .stage-h {
@@ -382,7 +382,7 @@ const HANDBOOK = [
   padding: 0 14px 0 0;
 }
 
-/* Bevelled tabs; the picked one is red. */
+/* Bevelled tabs; the picked one is chrome. */
 .stage-tabs {
   display: flex;
   overflow-x: auto;
@@ -409,13 +409,20 @@ const HANDBOOK = [
 }
 
 .stage-tab[aria-pressed="true"] {
-  color: #fff;
-  background: linear-gradient(180deg, #cf2429 0%, var(--red) 50%, var(--red-2) 100%);
+  color: var(--on-chrome);
+  background: var(--chrome);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset -1px 0 0 #0c0c0c;
 }
 
 .stage-tab:focus-visible {
   outline: 2px solid #fff;
   outline-offset: -2px;
+}
+
+.stage-tab[aria-pressed="true"]:focus-visible {
+  outline-color: var(--on-chrome);
 }
 
 .stage-badge {
@@ -426,7 +433,7 @@ const HANDBOOK = [
 }
 
 .stage-badge span {
-  color: var(--red);
+  color: var(--mark);
 }
 
 /* The film's pause chip sits clear of the label. */
@@ -589,7 +596,7 @@ const HANDBOOK = [
   margin: 0;
   font-size: 1.25rem;
   font-weight: 500;
-  color: var(--red-ink);
+  color: var(--ink);
 }
 
 .feature-p {
@@ -629,7 +636,7 @@ const HANDBOOK = [
   color: var(--ink-3);
 }
 
-/* Column C: a hairline off the others, lists under red tags. */
+/* Column C: a hairline off the others, lists under tags. */
 .col-c {
   padding-left: 18px;
   box-shadow: inset 1px 0 0 var(--line);

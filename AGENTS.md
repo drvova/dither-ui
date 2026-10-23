@@ -235,7 +235,8 @@ Default section order:
 - Design direction: dark, monospace, pixel/dither identity.
 - The landing takes its system from the 2009 oakley.com portal the user
   picked: a black page, one charcoal box, a tabbed campaign stage, dense
-  panels in three columns, red tags and bevels, upright condensed-caps
+  panels in three columns, chrome tags and bevels (never red — the user
+  rejected it), upright condensed-caps
   display type — filled with the kit itself (live components and films as
   the visuals), never Oakley's assets, marks or names. Never italic; no
   slanted or cut-corner chrome; the nodecode-style grid and the calm single

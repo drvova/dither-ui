@@ -24,7 +24,7 @@ const TABS = SHELVES.map((s) => ({ value: s.value, label: s.label, badge: s.valu
       one folder: read it, copy it, change it.
     </p>
     <div class="panel window">
-      <DitherTabs v-model="tab" :tabs="TABS" color="red" class="tabs">
+      <DitherTabs v-model="tab" :tabs="TABS" color="grey" class="tabs">
         <DitherTabPanel v-for="s in SHELVES" :key="s.value" :value="s.value" class="shelf">
           <div class="cards">
             <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="thumb card">

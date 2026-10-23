@@ -69,7 +69,7 @@ const index = computed(() => String((Math.max(0, props.stage) % STAGE_CAPTIONS.l
 }
 
 .n {
-  color: var(--red-ink, var(--swatch-orange));
+  color: var(--ink, var(--swatch-orange));
 }
 
 @media (prefers-reduced-motion: reduce) {
