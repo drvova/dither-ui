@@ -24,8 +24,9 @@ live preview — a real tool, never a mock.
   order, audit), `workspace.ts` (the annotation model, sanitizing,
   snapshot history, persistence, agent Markdown), `settings.ts`,
   `capture.ts` (DOM render, tab grab, region recording, trim, frames for
-  a GIF), `gif.ts` (GIF89a: one median-cut palette over all frames,
-  ordered-dithered by the kit's Bayer matrix, LZW), `tools.ts`.
+  a GIF; encoded by `shared/lib/gif.ts` with the kit's `BAYER8`: one
+  palette over all frames, ordered-dithered, only the changed box after
+  the first frame), `tools.ts`.
 - `ui/` — one component per layer or panel: `Tray`, `Rulers`, `Guides`,
   `Marks`, `Ink`, `Notes`, `Comments`, `Loupe`, `Readout`, `Motion`,
   `Responsive`, `Settings`, `Icon`.
@@ -105,7 +106,7 @@ live preview — a real tool, never a mock.
 
 - `tests/workbench.spec.ts`: the GIF encoder (LZW round-trips through a
   decoder, table resets included; median cut; Bayer dithering; the
-  GIF89a frame), colour parsing/printing/contrast, geometry,
+  GIF89a frame; delta frames decoded back exactly; kept colours exact), colour parsing/printing/contrast, geometry,
   ink, workspace sanitizing/history/Markdown, settings, the DOM readings
   (names, roles, states, Tab order, paths, selectors, controlOf), and the
   workbench mounted on a `DemoCard` driven by keys, the tray and Escape.

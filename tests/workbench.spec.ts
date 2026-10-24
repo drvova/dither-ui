@@ -2,10 +2,11 @@
 import { describe, expect, it, rs } from "rstack/test"
 import { flushPromises, mount } from "@vue/test-utils"
 import { h, nextTick } from "vue"
+import { bayerMatrix } from "@dither-kit"
 import DemoCard from "@/pages/docs/DemoCard.vue"
 import { contrast, formatColor, grade, hex, over, parseColor } from "@/widgets/workbench/model/color"
 import { boxFrom, distances, dock, snap } from "@/widgets/workbench/model/geometry"
-import { encodeGif, lzw, medianCut, quantize } from "@/widgets/workbench/model/gif"
+import { encodeGif, lzw, medianCut, quantize } from "@/shared/lib/gif"
 import { arrowPaths, erase, hitLine, inkOutline, pressures, type InkPoint } from "@/widgets/workbench/model/ink"
 import {
   controlOf,
@@ -158,6 +159,37 @@ function unlzw(data: Uint8Array): number[] {
   return out
 }
 
+/** Decodes a GIF's frames as they show (each one over the one before,
+ * see-through pixels keeping it), in RGB. */
+function decodeGif(gif: Uint8Array): number[][] {
+  const width = gif[6] | (gif[7] << 8)
+  const height = gif[8] | (gif[9] << 8)
+  const palette = gif.subarray(13, 13 + 768)
+  const shown = new Uint8Array(width * height)
+  const frames: number[][] = []
+  let see = -1
+  let p = 13 + 768
+  while (gif[p] !== 0x3b) {
+    if (gif[p] === 0x21) {
+      if (gif[p + 1] === 0xf9) see = gif[p + 3] & 1 ? gif[p + 6] : -1
+      p += 2
+      while (gif[p]) p += gif[p] + 1
+      p++
+      continue
+    }
+    const word = (at: number) => gif[at] | (gif[at + 1] << 8)
+    const [x, y, w] = [word(p + 1), word(p + 3), word(p + 5)]
+    p += 10
+    const start = p++
+    while (gif[p]) p += gif[p] + 1
+    unlzw(gif.subarray(start, ++p)).forEach((idx, i) => {
+      if (idx !== see) shown[(y + Math.floor(i / w)) * width + x + (i % w)] = idx
+    })
+    frames.push([...shown].flatMap((idx) => [...palette.subarray(idx * 3, idx * 3 + 3)]))
+  }
+  return frames
+}
+
 describe("workbench GIF", () => {
   it("round-trips LZW, including table resets", () => {
     const short = Uint8Array.from([1, 1, 1, 2, 2, 3, 1, 1, 1, 2])
@@ -173,7 +205,7 @@ describe("workbench GIF", () => {
     ])
     // A flat mid grey over 8×8 pixels becomes a pattern of both colours.
     const grey = new Uint8ClampedArray(8 * 8 * 4).fill(128)
-    const idx = quantize(grey, 8, palette, 255)
+    const idx = quantize(grey, 8, palette, bayerMatrix(8), 255)
     expect(new Set(idx).size).toBe(2)
   })
   it("writes a looping GIF89a", () => {
@@ -184,6 +216,33 @@ describe("workbench GIF", () => {
     expect(gif[8] | (gif[9] << 8)).toBe(2)
     expect(String.fromCharCode(...gif.subarray(13 + 768 + 3, 13 + 768 + 14))).toBe("NETSCAPE2.0")
     expect(gif.at(-1)).toBe(0x3b)
+  })
+  it("writes only what changed after the first frame, and shows every frame exactly", () => {
+    // 8×6 frames of two colours, a 2×2 block moving one pixel per frame:
+    // few enough colours to keep them as they are, so the decode is exact.
+    const frames = [0, 1, 2].map((step) => {
+      const f = new Uint8ClampedArray(8 * 6 * 4)
+      for (let p = 0; p < 48; p++) {
+        const lit = p % 8 >= 2 + step && p % 8 < 4 + step && p >= 16 && p < 32
+        f.set(lit ? [255, 150, 50, 255] : [5, 6, 10, 255], p * 4)
+      }
+      return f
+    })
+    const gif = encodeGif(frames, 8, 6, 8)
+    const rgb = (f: Uint8ClampedArray) => [...f].filter((_, i) => i % 4 !== 3)
+    expect(decodeGif(gif)).toEqual(frames.map(rgb))
+    // The later frames are the 3×2 boxes the block left and entered.
+    const full = encodeGif([frames[0]], 8, 6, 8).length
+    expect(gif.length).toBeLessThan(full * 3)
+    expect(decodeGif(encodeGif([frames[0], frames[0]], 8, 6, 8))).toEqual([rgb(frames[0]), rgb(frames[0])])
+  })
+  it("holds the colours it is asked to keep exactly, however few pixels wear them", () => {
+    // 1,024 distinct blues (more than a palette holds) and one ember pixel.
+    const frame = new Uint8ClampedArray(32 * 32 * 4)
+    for (let p = 0; p < 1024; p++) frame.set([p >> 6, (p >> 3) & 7, 128 + (p & 127), 255], p * 4)
+    frame.set([255, 150, 50, 255], 517 * 4)
+    const shown = decodeGif(encodeGif([frame], 32, 32, 8, { keep: [[255, 150, 50]] }))[0]
+    expect(shown.slice(517 * 3, 517 * 3 + 3)).toEqual([255, 150, 50])
   })
 })
 

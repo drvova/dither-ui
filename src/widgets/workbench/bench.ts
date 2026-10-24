@@ -5,8 +5,9 @@
 // hand-off. The components render from it and call into it; it touches the
 // DOM only to read the preview and to measure its own overlay.
 import { reactive, ref, shallowRef, watch } from "vue"
-import { copyText, isDirected, release } from "@dither-kit"
+import { BAYER8, copyText, isDirected, release } from "@dither-kit"
 import { download } from "@/shared/lib/files"
+import { encodeGif } from "@/shared/lib/gif"
 import { play } from "@/shared/lib/sound"
 import {
   canRecord,
@@ -22,7 +23,6 @@ import {
   type Recording,
 } from "./model/capture"
 import { formatColor, parseColor, type RGBA } from "./model/color"
-import { encodeGif } from "./model/gif"
 import {
   boxFrom,
   distances,
@@ -907,7 +907,7 @@ export function createBench(o: BenchOptions) {
     try {
       const { frames, width, height, delay } = await videoFrames(c.blob, c.start, c.end)
       await paints(1)
-      const bytes = encodeGif(frames, width, height, delay)
+      const bytes = encodeGif(frames, width, height, delay, { matrix: BAYER8 })
       download(new Blob([bytes as BlobPart], { type: "image/gif" }), `${o.key.replace(/[^\w-]+/g, "-")}.gif`)
       say(`GIF saved: ${frames.length} frames, ${(bytes.length / 1024).toFixed(0)} kB`)
     } catch {

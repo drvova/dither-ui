@@ -35,13 +35,13 @@
       content="264 Vue components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed."
     />
     <meta property="og:url" content="https://dither-ui.com/" />
-    <meta property="og:image" content="https://dither-ui.com/og.png" />
+    <meta property="og:image" content="https://dither-ui.com/og/home.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="dither-ui wordmark over a dithered blue and purple area-chart horizon"
+      content="dither-ui over two dithered horizons, blue and purple, under a few stars"
     />
     <meta property="og:locale" content="en_US" />
 
@@ -52,11 +52,14 @@
       name="twitter:description"
       content="264 Vue components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed."
     />
-    <meta name="twitter:image" content="https://dither-ui.com/og.png" />
+    <meta name="twitter:image" content="https://dither-ui.com/og/home.png" />
     <meta
       name="twitter:image:alt"
-      content="dither-ui wordmark over a dithered blue and purple area-chart horizon"
+      content="dither-ui over two dithered horizons, blue and purple, under a few stars"
     />
+    <!-- Discord plays the card in its component embed; oEmbed readers (Slack first) take the playing card as a photo -->
+    <link rel="discord:component-embed" type="application/json" href="https://dither-ui.com/embed/home.json" />
+    <link rel="alternate" type="application/json+oembed" href="https://dither-ui.com/oembed/home.json" title="dither-ui" />
 
     <!-- Structured data for search engines -->
     <script type="application/ld+json">
@@ -68,7 +71,7 @@
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Web",
         "url": "https://dither-ui.com/",
-        "image": "https://dither-ui.com/og.png",
+        "image": "https://dither-ui.com/og/home.png",
         "license": "https://opensource.org/licenses/MIT",
         "author": { "@type": "Organization", "name": "dither-ui" },
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
