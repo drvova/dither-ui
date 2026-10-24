@@ -8,8 +8,9 @@
 // what every preview in the docs lets you do. The skyline is a map of the
 // shelf: a tower rises under the pointer and while its family's tab is
 // picked, and a click on a shelved family's tower picks its tab. The tab
-// row (on a narrow screen) and the shelf scroll sideways; each edge with
-// more beyond it fades and carries a chevron that pages it.
+// row (on a narrow screen) scrolls sideways under an edge fade and chevron;
+// the shelf shows whole cards a view at a time and pages from the pager
+// under it, so nothing ever lies over a card.
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import { DitherAvatar, DitherIcon, DitherTabPanel, DitherTabs, type IconName } from "@dither-kit"
 import { routePath } from "@/shared/lib"
@@ -39,8 +40,8 @@ function onTower(area: string) {
 }
 
 /** A sideways scroller's cue: which of its edges have more past them, its
- * height, and a page step for the chevrons. */
-function rail() {
+ * height, and a page step (`step`, 80% of its width unless given). */
+function rail(step = (el: HTMLElement) => el.clientWidth * 0.8) {
   const more = reactive({ start: false, end: false, height: 0 })
   let el: HTMLElement | null = null
   let ro: ResizeObserver | null = null
@@ -63,14 +64,18 @@ function rail() {
     },
     page(dir: 1 | -1) {
       const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      el?.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: still ? "auto" : "smooth" })
+      if (el) el.scrollBy({ left: dir * step(el), behavior: still ? "auto" : "smooth" })
     },
   }
 }
 
 const panel = ref<HTMLElement | null>(null)
 const tabRail = rail()
-const shelfRail = rail()
+// The shelf pages a whole view: the cards it shows and the gap after them.
+const shelfRail = rail((el) => {
+  const css = getComputedStyle(el)
+  return el.clientWidth - parseFloat(css.paddingRight) + parseFloat(css.columnGap)
+})
 const shelves = new Map<string, HTMLElement>()
 
 // The open shelf is the one the cue follows (the others are hidden).
@@ -180,18 +185,31 @@ const TABS = SHELVES.map((s) => ({
                 <span class="card-path">/docs/{{ c.id }}</span>
               </a>
             </div>
-            <span v-show="shelfRail.more.start" class="edge edge-start" aria-hidden="true"
-              ><span class="chev knob" @click="shelfRail.page(-1)"
-                ><DitherIcon name="ChevronLeft" :size="14" :stroke-width="1.5" /></span
-            ></span>
-            <span v-show="shelfRail.more.end" class="edge edge-end" aria-hidden="true"
-              ><span class="chev knob" @click="shelfRail.page(1)"
-                ><DitherIcon name="ChevronRight" :size="14" :stroke-width="1.5" /></span
-            ></span>
           </div>
-          <a v-if="s.value !== 'explore'" :href="routePath(`/docs/${s.cards[0].id}`)" class="lead shelf-all">
-            All {{ s.count }} {{ s.label.toLowerCase() }}
-          </a>
+          <div class="shelf-foot">
+            <a v-if="s.value === 'explore'" :href="routePath('/docs')" class="lead">All {{ SECTION_COUNT }} sections</a>
+            <a v-else :href="routePath(`/docs/${s.cards[0].id}`)" class="lead">
+              All {{ s.count }} {{ s.label.toLowerCase() }}
+            </a>
+            <div
+              v-show="shelfRail.more.start || shelfRail.more.end"
+              role="group"
+              aria-label="Page the cards"
+              class="pager"
+            >
+              <button
+                type="button"
+                aria-label="Earlier cards"
+                :disabled="!shelfRail.more.start"
+                @click="shelfRail.page(-1)"
+              >
+                <DitherIcon name="ChevronLeft" :size="14" :stroke-width="1.5" />
+              </button>
+              <button type="button" aria-label="More cards" :disabled="!shelfRail.more.end" @click="shelfRail.page(1)">
+                <DitherIcon name="ChevronRight" :size="14" :stroke-width="1.5" />
+              </button>
+            </div>
+          </div>
         </DitherTabPanel>
       </DitherTabs>
       <ul class="tools" aria-label="In every preview">
@@ -255,11 +273,11 @@ const TABS = SHELVES.map((s) => ({
   overflow: hidden;
 }
 
-/* What lies past a sideways scroller's edge: a fade in the panel's own
-   ground and a chevron that pages it, shown only on an edge with more.
-   The chevron is the pointer's way (touch swipes; the keyboard moves
-   focus, which scrolls), so it is hidden from assistive tech, and only it
-   takes the pointer: a tab or card under the fade still takes a click. */
+/* What lies past the tab row's edge on a narrow screen: a fade in the
+   panel's own ground and a chevron that pages it, shown only on an edge
+   with more. The chevron is the pointer's way (touch swipes; the keyboard
+   moves focus, which scrolls), so it is hidden from assistive tech, and
+   only it takes the pointer: a tab under the fade still takes a click. */
 .edge {
   position: absolute;
   top: 0;
@@ -291,14 +309,6 @@ const TABS = SHELVES.map((s) => ({
   padding-bottom: 8px;
 }
 
-.rail {
-  position: relative;
-}
-
-.rail .edge {
-  bottom: 0;
-}
-
 .chev {
   display: grid;
   place-items: center;
@@ -314,15 +324,6 @@ const TABS = SHELVES.map((s) => ({
   color: var(--ink);
 }
 
-/* On the shelf, a round knob over the cards. */
-.knob {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--background) 85%, transparent);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
 /* The tabs sit a step in from the panel's top: flush, their labels and
    badges ran into its hairline and read as clipped. */
 .tabs :deep([role="tablist"]) {
@@ -336,11 +337,18 @@ const TABS = SHELVES.map((s) => ({
   padding: 14px 0 16px 14px;
 }
 
-/* A horizontal shelf that snaps and runs off the panel's edge. */
+/* A horizontal shelf that snaps a card at a time and shows whole cards: as
+   many as its width holds (five, four, three), the scroller ending 14px in
+   from the panel's edge so a view holds exactly them, and on a phone one
+   card with the next one's edge running off the panel. */
+.rail {
+  container-type: inline-size;
+}
+
 .cards {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 220px;
+  grid-auto-columns: 74cqw;
   gap: 8px;
   padding-right: 14px;
   overflow-x: auto;
@@ -351,6 +359,30 @@ const TABS = SHELVES.map((s) => ({
 
 .cards::-webkit-scrollbar {
   display: none;
+}
+
+@container (min-width: 520px) {
+  .cards {
+    grid-auto-columns: calc((100cqw - 14px - 2 * 8px) / 3);
+    margin-right: 14px;
+    padding-right: 0;
+  }
+}
+
+@container (min-width: 760px) {
+  .cards {
+    grid-auto-columns: calc((100cqw - 14px - 3 * 8px) / 4);
+    margin-right: 14px;
+    padding-right: 0;
+  }
+}
+
+@container (min-width: 1000px) {
+  .cards {
+    grid-auto-columns: calc((100cqw - 14px - 4 * 8px) / 5);
+    margin-right: 14px;
+    padding-right: 0;
+  }
 }
 
 .card {
@@ -411,8 +443,44 @@ const TABS = SHELVES.map((s) => ({
   color: var(--ink-3);
 }
 
-.shelf-all {
+/* Under the shelf: where the family goes on, and the pager (real,
+   named buttons, each off at its end) when the shelf runs past a view. */
+.shelf-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 28px;
   margin-top: 12px;
+  padding-right: 14px;
+}
+
+.pager {
+  display: flex;
+  gap: 6px;
+}
+
+.pager button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition:
+    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pager button:not(:disabled):hover {
+  color: var(--ink);
+  background: color-mix(in oklab, var(--foreground) 7%, transparent);
+}
+
+.pager button:disabled {
+  color: var(--ink-3);
+  opacity: 0.45;
 }
 
 /* What every preview offers: three columns under the shelf, split by

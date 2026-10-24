@@ -135,18 +135,25 @@ widgets/features; page-specific conventions live here.
   scrolls sideways, its underline with it) over a horizontal snapping shelf of
   `.thumb` cards that deep-link to `/docs/<id>` (the section's seeded
   `DitherAvatar` identicon — decorative, no entrance — its family, its
-  name, up to three lines, its path), and an "All n …" `.lead` per
-  family; under the shelf, inside the panel, `TOOLS`: what every docs
+  name, up to three lines, its path). The shelf shows WHOLE cards, as many
+  as its width holds (a size container: five, four, three; the scroller
+  ends 14px in from the panel's edge so a view holds exactly them), and on
+  a phone one card with the next one's edge running off the panel; nothing
+  ever lies over a card (a fade and a knob over the last card read as
+  garbled text). Under it a foot: an "All n …" `.lead` (all sections on
+  Explore) and, while the shelf runs past a view, the pager: two real,
+  named buttons ("Earlier cards", "More cards"), each disabled at its end,
+  paging a whole view (the cards it shows and the gap after them). Under
+  that, inside the panel, `TOOLS`: what every docs
   preview offers (Inspect, Edit and run, Hand it to your agent, each
   under its glyph: Crosshair, Code, Bot), three columns split by
-  hairlines, each with the section that shows it. The tab row and the open
-  shelf scroll sideways, so each edge with more past it shows a fade in
-  the panel's ground and a chevron (a round knob on the shelf) that pages
-  it by 80% (`rail()` in `Hub.vue`: scroll and ResizeObserver, no polling;
-  instant under reduced motion). The chevrons are the pointer's way
-  (touch swipes, the keyboard's focus scrolls), hidden from assistive
-  tech, and only they take the pointer: what lies under a fade still takes
-  a click. `hub.ts` is static data (the landing never loads the docs IA —
+  hairlines, each with the section that shows it. The tab row scrolls
+  sideways on a narrow screen, so each edge with more past it shows a
+  fade in the panel's ground and a chevron that pages it by 80%; the
+  chevron is the pointer's way (touch swipes, the keyboard's focus
+  scrolls), hidden from assistive tech, and only it takes the pointer.
+  `rail()` in `Hub.vue` follows both scrollers (scroll and
+  ResizeObserver, no polling; instant under reduced motion). `hub.ts` is static data (the landing never loads the docs IA —
   no cross-page imports) held honest by `tests/hub.spec.ts`: families and
   counts equal `GROUPS`, every card id is a section of the family it names.
 - Rhythm: the hero and the close run full width; everything else sits on
@@ -693,8 +700,10 @@ widgets/features; page-specific conventions live here.
   the figure on hover, keyboard focus AND scroll (its words lighting in
   reading order; still under reduced motion), the directory tabs'
   underline under the picked tab (also after swiping the row on a phone),
-  the scroll cues (only the edges with more show, a chevron pages its row;
-  the tab row shows none at desktop width), canonical
+  the scroll cues (the tab row's edges only where more lies past them, and
+  none at desktop width; the shelf whole cards at 1440, 1024 and 700px,
+  one and a peek on a phone, its pager landing the next view's first card
+  flush and each button off at its end), canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
   create/select exactly one artboard.
