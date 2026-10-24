@@ -7,10 +7,11 @@ import { RUNTIME_DEPS } from "./facts"
 // The install strip: step picker (the site's segmented aria-pressed
 // toggles, each under its mark: the kit's folder glyph, then npm, pnpm and
 // Bun's own), the command (ember prompt, one line) and copy, whose success is
-// choreographed in CSS: the line jolts, a beam crosses the frame drawing a
-// hairline seal around it, the label rolls to "Copied", and the steps
-// under the frame, each under its glyph, advance (copy done, paste now).
-// The announcement is DitherClipboard's own live region.
+// one gesture in CSS: the command shows selected while the key, ringed,
+// rolls to "Copied" under a check; both let go together when the copy
+// settles, the selection stepping out like the films' pixel fade. The
+// steps under the frame, each under its glyph, advance (copy done, paste
+// now). The announcement is DitherClipboard's own live region.
 const STEPS = [
   { id: "folder", label: "folder", cmd: "npx degit drvova/dither-ui/dither-kit src/dither-kit" },
   { id: "npm", label: "npm", cmd: `npm i ${RUNTIME_DEPS.join(" ")}` },
@@ -93,9 +94,6 @@ onBeforeUnmount(() => {
             </button>
           </template>
         </DitherClipboard>
-        <!-- The seal: left edge drops, the beam crosses drawing top and bottom,
-           the right edge closes it. -->
-        <span class="seal" aria-hidden="true"><i /><i /><i /><i /><b /></span>
       </div>
     </div>
 
@@ -142,8 +140,8 @@ onBeforeUnmount(() => {
   flex: none;
 }
 
-/* Command frame: positioned and clipped — the sweep and the seal live
-   inside it, so their parked end states can never widen the page. */
+/* Command frame: positioned and clipped; the glint lives inside it, so its
+   parked end state can never widen the page. */
 .frame {
   position: relative;
   overflow: hidden;
@@ -193,8 +191,24 @@ onBeforeUnmount(() => {
   }
 }
 
+/* Copied: the command shows selected, a breath of ink behind the text the
+   clipboard now holds (the shadow pads it without moving a glyph). It
+   lands at once and steps out in three when the copy settles. */
+.typed {
+  border-radius: 2px;
+  transition:
+    background-color 360ms steps(3, jump-end),
+    box-shadow 360ms steps(3, jump-end);
+}
+
+.frame:has(.copy[data-copied="true"]) .typed {
+  background-color: color-mix(in oklab, var(--foreground) 16%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--foreground) 16%, transparent);
+  transition-duration: 0s;
+}
+
 .caret {
-  margin-left: 2px;
+  margin-left: 4px;
   font-size: 11px;
   color: var(--swatch-orange);
   animation: blink 1.1s steps(2, jump-none) infinite;
@@ -206,32 +220,10 @@ onBeforeUnmount(() => {
   }
 }
 
-/* The measured lp-cl-jolt: an elastic sideways kick of the whole line on
-   copy; :has() re-arms it on every fresh flag. */
-.frame:has(.copy[data-copied="true"]) .cmd {
-  animation: jolt 420ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes jolt {
-  0%,
-  100% {
-    transform: translateX(0) skewX(0);
-  }
-  16% {
-    transform: translateX(12px) skewX(-14deg);
-  }
-  48% {
-    transform: translateX(-4px) skewX(5deg);
-  }
-  72% {
-    transform: translateX(1px) skewX(-1deg);
-  }
-}
-
 /* Copy: the site's hairline key. */
 .copy {
   position: relative;
-  z-index: 3;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -245,6 +237,7 @@ onBeforeUnmount(() => {
   transition:
     color 150ms cubic-bezier(0.4, 0, 0.2, 1),
     background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
     transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -257,8 +250,11 @@ onBeforeUnmount(() => {
   transform: scale(0.96);
 }
 
+/* While copied the key is the site's pressed state (.ring-on). */
 .copy[data-copied="true"] {
-  color: var(--ink);
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--foreground) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 24%, transparent);
 }
 
 /* Label roll: both words stacked in a one-line window; copy slides the
@@ -277,8 +273,8 @@ onBeforeUnmount(() => {
 }
 
 /* Icon swap: both glyphs stay in the DOM, stacked; copy cross-fades them
-   (scale 0.25→1, opacity 0→1, blur 4px→0) so the swap breathes with the
-   label roll instead of popping between two mounted icons. */
+   (opacity and a little scale) on the label roll's beat instead of popping
+   between two mounted icons. */
 .swap {
   position: relative;
   display: block;
@@ -290,28 +286,24 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
+  scale: 0.6;
 }
 
 .swap-a,
 .swap-b {
   transition:
-    opacity 380ms cubic-bezier(0.2, 0, 0, 1),
-    scale 380ms cubic-bezier(0.2, 0, 0, 1),
-    filter 380ms cubic-bezier(0.2, 0, 0, 1);
+    opacity 380ms cubic-bezier(0.16, 1, 0.3, 1),
+    scale 380ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .copy[data-copied="true"] .swap-a {
   opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
+  scale: 0.6;
 }
 
 .copy[data-copied="true"] .swap-b {
   opacity: 1;
   scale: 1;
-  filter: blur(0px);
 }
 
 .roll > span > span {
@@ -320,95 +312,6 @@ onBeforeUnmount(() => {
 
 .copy[data-copied="true"] .roll > span {
   transform: translateY(-1.3em);
-}
-
-/* The seal. Edges are 1px ink lines
-   drawn by scale from their origin; the beam is the pen that draws the long
-   edges, so it shares their timing exactly. */
-/* The seal is its own size container: the beam's 100cqw is then the frame's
-   full padding box (the frame's content box is narrowed by its padding, and
-   the beam would park inside the edge, over the button). */
-.seal {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: none;
-  container-type: inline-size;
-  pointer-events: none;
-}
-
-.frame:has(.copy[data-copied="true"]) .seal {
-  display: block;
-}
-
-.seal i,
-.seal b {
-  position: absolute;
-  background: var(--ink);
-}
-
-.seal i:nth-child(1),
-.seal i:nth-child(4) {
-  top: 0;
-  width: 1px;
-  height: 100%;
-  transform-origin: 50% 0;
-  animation: seal-down 130ms cubic-bezier(0.35, 0, 0.5, 1) 135ms both;
-}
-
-.seal i:nth-child(1) {
-  left: 0;
-}
-
-.seal i:nth-child(4) {
-  right: 0;
-  animation-delay: 430ms;
-}
-
-.seal i:nth-child(2),
-.seal i:nth-child(3) {
-  left: 0;
-  width: 100%;
-  height: 1px;
-  transform-origin: 0 50%;
-  animation: seal-across 420ms cubic-bezier(0.4, 0, 0.75, 0.4) 135ms both;
-}
-
-.seal i:nth-child(2) {
-  top: 0;
-}
-
-.seal i:nth-child(3) {
-  bottom: 0;
-}
-
-.seal b {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 3px;
-  animation: seal-beam 420ms cubic-bezier(0.4, 0, 0.75, 0.4) 135ms both;
-}
-
-@keyframes seal-down {
-  from {
-    transform: scaleY(0);
-  }
-}
-
-@keyframes seal-across {
-  from {
-    transform: scaleX(0);
-  }
-}
-
-@keyframes seal-beam {
-  from {
-    transform: translateX(-6px);
-  }
-  to {
-    transform: translateX(calc(100cqw + 6px));
-  }
 }
 
 /* Under-row: steps advance on the first copy (done → now → next), source
@@ -512,20 +415,14 @@ onBeforeUnmount(() => {
   .roll > span,
   .steps li,
   .swap-a,
-  .swap-b {
+  .swap-b,
+  .typed {
     transition: none;
   }
   .caret,
-  .typed,
-  .frame:has(.copy[data-copied="true"]) .cmd {
+  .typed {
     animation: none;
   }
-  /* The seal still marks success — drawn whole, without travel. */
-  .seal i,
-  .seal b {
-    animation: none;
-  }
-  .seal b,
   .wrap.in .frame::after {
     display: none;
   }

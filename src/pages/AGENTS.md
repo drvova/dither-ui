@@ -95,9 +95,14 @@ widgets/features; page-specific conventions live here.
   docs). One hairline bar: the
   `.seg` step picker (each step under its mark: the kit's Folder glyph,
   then npm, pnpm and Bun's own marks), the command in mono with the ember
-  `$`, a hairline Copy through `DitherClipboard` (jolt, a 1px seal, label
-  roll); the steps under it sit in glyph squares (Copy, then Check once
-  copied; Terminal; Code) and advance on copy; "Source on GitHub" carries
+  `$`, a hairline Copy through `DitherClipboard`. A copy is ONE gesture:
+  while copied the command shows selected (a breath of ink behind it,
+  padded by a shadow so no glyph moves) and the key is ringed (the
+  `.ring-on` look) as its label rolls to "Copied" under a check; both let
+  go together, the selection stepping out in three; nothing kicks, slants
+  or draws over the bar, and reduced motion swaps both at once. The steps
+  under it sit in glyph squares (Copy, then Check once copied; Terminal;
+  Code) and advance on copy; "Source on GitHub" carries
   GitHub's mark; the glint is a one-shot IO → CSS (latched, never
   re-fires).
 - Columns (`Showcase.vue`, `.cols` 1.9 : 1 : 1.2, one column under 900px):
