@@ -171,8 +171,10 @@ const TABS = SHELVES.map((s) => ({
   overflow: hidden;
 }
 
+/* The tabs sit a step in from the panel's top: flush, their labels and
+   badges ran into its hairline and read as clipped. */
 .tabs :deep([role="tablist"]) {
-  padding: 0 14px;
+  padding: 12px 14px 0;
   box-shadow: inset 0 -1px 0 var(--line);
   overflow-x: auto;
   scrollbar-width: none;

@@ -125,7 +125,9 @@ widgets/features; page-specific conventions live here.
   `FAMILIES`, -1 for Explore) and a click on a shelved family's tower
   picks its tab (`hit`, `tower<i>-hit`). Then a `.panel` — the kit's own
   `DitherTabs`
-  (grey; badges = family sizes) over a horizontal snapping shelf of
+  (grey; badges = family sizes; the row 12px in from the panel's top, as
+  flush its labels and badges ran into the hairline; on a phone it
+  scrolls sideways, its underline with it) over a horizontal snapping shelf of
   `.thumb` cards that deep-link to `/docs/<id>` (the section's seeded
   `DitherAvatar` identicon — decorative, no entrance — its family, its
   name, up to three lines, its path), and an "All n …" `.lead` per
@@ -656,7 +658,7 @@ widgets/features; page-specific conventions live here.
   Build slider re-seeding its badge, emote hover, a principle re-staging
   the figure on hover, keyboard focus AND scroll (its words lighting in
   reading order; still under reduced motion), the directory tabs'
-  underline under the picked tab, canonical
+  underline under the picked tab (also after swiping the row on a phone), canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
   create/select exactly one artboard.

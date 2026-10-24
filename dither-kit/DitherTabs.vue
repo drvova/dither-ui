@@ -188,7 +188,7 @@ onBeforeUnmount(() => ro?.disconnect())
       role="tablist"
       :aria-orientation="props.orientation"
       :class="[
-        vertical ? 'flex flex-col' : 'flex',
+        vertical ? 'relative flex flex-col' : 'relative flex',
         props.variant === 'segmented'
           ? 'gap-1 rounded-md border border-border/60 p-1' + (vertical ? '' : ' items-center')
           : props.variant === 'underline'
@@ -232,15 +232,17 @@ onBeforeUnmount(() => ro?.disconnect())
           >{{ t.badge }}</span
         >
       </button>
+      <!-- The marker lives in the list, so a list that scrolls (more tabs
+           than width) carries it with its tab and clips it at its edges. -->
+      <canvas
+        v-if="props.variant !== 'segmented'"
+        ref="canvasRef"
+        aria-hidden="true"
+        class="absolute transition-[left,top,width,height] duration-200 motion-reduce:transition-none"
+        :class="props.variant === 'washed' ? 'rounded' : ''"
+        :style="{ ...markerStyle, imageRendering: 'pixelated' }"
+      />
     </div>
-    <canvas
-      v-if="props.variant !== 'segmented'"
-      ref="canvasRef"
-      aria-hidden="true"
-      class="absolute transition-[left,top,width,height] duration-200 motion-reduce:transition-none"
-      :class="props.variant === 'washed' ? 'rounded' : ''"
-      :style="{ ...markerStyle, imageRendering: 'pixelated' }"
-    />
     <!-- Panels: put DitherTabPanel children here so they inherit the context. -->
     <slot />
   </div>

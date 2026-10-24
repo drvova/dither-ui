@@ -22,6 +22,11 @@ is its showcase and editor.
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
   returns to its input; the list is arrow-driven), focus restores to the
   opener on close.
+- `DitherTabs` (both kits) keeps its marker canvas (the underline or the
+  wash) INSIDE the `relative` tablist, positioned from the selected tab's
+  offsets: a list that scrolls (more tabs than width) carries the marker
+  with its tab and clips it at its edges. Outside the list, it stayed put
+  while the tabs scrolled.
 
 - Zero imports from `src/` — the kit must stay copy-out portable
   (docs promise: "copy the folder, alias it"). Dependencies: vue, d3-scale,
