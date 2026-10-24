@@ -187,8 +187,7 @@ define.lint(({ js, ts }) => [
 
 /* `rs fmt` (Prettier options): the house style — no semicolons, double
    quotes, trailing commas, 120 columns. Hand-wrapped prose (Markdown), the
-   HTML route templates (Rsbuild template syntax), generated documents
-   (public/: the films are byte-compared by tests/films.spec.ts) and local
+   HTML route templates (Rsbuild template syntax), public assets and local
    scratch stay as they are. */
 define.fmt({
   semi: false,

@@ -1,7 +1,24 @@
 import { describe, expect, it } from "rstack/test"
-import { FIGURE_N, figureCells, OFF, STAGE_CAPTIONS, STAGE_COUNT, stageFills } from "@/pages/landing/essay-figure"
+import {
+  ditherTone,
+  FIGURE_N,
+  figureCells,
+  OFF,
+  STAGE_CAPTIONS,
+  STAGE_COUNT,
+  stageFills,
+} from "@/pages/landing/essay-figure"
 
 describe("essay figure", () => {
+  it("ordered-dithers tone onto the ramp with an empty floor", () => {
+    expect(ditherTone(0, 0, 0, ["#a", "#b"])).toBeNull()
+    expect(ditherTone(1, 3, 3, ["#a", "#b"])).toBe("#b")
+    // Half tone on a one-colour ramp lights exactly half of every 4×4 tile.
+    let lit = 0
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) if (ditherTone(0.5, x, y, ["#a"])) lit++
+    expect(lit).toBe(8)
+  })
+
   it("lays out a row-major lattice with Bayer ranks", () => {
     const cells = figureCells()
     expect(cells).toHaveLength(FIGURE_N * FIGURE_N)

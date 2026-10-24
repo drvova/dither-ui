@@ -1,5 +1,13 @@
 import { createChart, createSeriesRow } from "@/entities/chart"
-import { componentEntry, createWidget, REEL_TRANSITIONS, sanitizeComponentProps } from "@/entities/widget"
+import {
+  componentEntry,
+  createWidget,
+  REEL_TRANSITIONS,
+  type ReelCallout,
+  type ReelCameraKey,
+  type ReelChapter,
+  sanitizeComponentProps,
+} from "@/entities/widget"
 import { BLOOMS, CHART_TYPES, type ChartType, STACKS } from "@/shared/config"
 import type { Artboard } from "./types"
 
@@ -62,6 +70,61 @@ const JUSTIFIES = ["start", "center", "end", "between"] as const
 
 const clampNum = (v: unknown, lo: number, hi: number, def: number): number =>
   typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : def
+
+/** Plain text for a film's words: control characters out, trimmed, capped. */
+const textOf = (v: unknown, max: number): string =>
+  typeof v === "string"
+    ? Array.from(v, (ch) => (ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127 ? " " : ch))
+        .join("")
+        .trim()
+        .slice(0, max)
+    : ""
+
+/** At most 16 keys, each inside the frame and a sane zoom and lean, in time order. */
+const cameraOf = (v: unknown): ReelCameraKey[] =>
+  (Array.isArray(v) ? v : [])
+    .filter(isPlainObject)
+    .slice(0, 16)
+    .map((k) => ({
+      t: clampNum(k.t, 0, 1, 0),
+      x: clampNum(k.x, 0, 1, 0.5),
+      y: clampNum(k.y, 0, 1, 0.5),
+      zoom: clampNum(k.zoom, 0.25, 8, 1),
+      tilt: clampNum(k.tilt, -30, 30, 0),
+    }))
+    .sort((a, b) => a.t - b.t)
+
+/** At most 8 callouts with a label, each up inside its clip. */
+const calloutsOf = (v: unknown, seconds: number): ReelCallout[] =>
+  (Array.isArray(v) ? v : [])
+    .filter(isPlainObject)
+    .slice(0, 8)
+    .map((c) => {
+      const from = clampNum(c.from, 0, seconds, 0)
+      return {
+        x: clampNum(c.x, 0, 1, 0.5),
+        y: clampNum(c.y, 0, 1, 0.5),
+        label: textOf(c.label, 48),
+        note: textOf(c.note, 64),
+        side: oneOf(c.side, ["left", "right"] as const, "right"),
+        from,
+        to: clampNum(c.to, from, seconds, seconds),
+      }
+    })
+    .filter((c) => c.label)
+
+/** A line (none without one) and at most four [figure, words] rows. */
+function chapterOf(v: unknown): ReelChapter | null {
+  if (!isPlainObject(v)) return null
+  const line = textOf(v.line, 80)
+  if (!line) return null
+  const spec = (Array.isArray(v.spec) ? v.spec : [])
+    .filter(Array.isArray)
+    .slice(0, 4)
+    .map((r): [string, string] => [textOf(r[0], 12), textOf(r[1], 32)])
+    .filter(([fig, words]) => fig || words)
+  return { line, spec }
+}
 
 /** Bring an artboard from any older schema — or an untrusted file — up to the
  * current shape, in place. */
@@ -142,6 +205,8 @@ export function normalizeArtboard(a: Artboard): Artboard {
       }) as typeof w.rows
     } else if (w.kind === "reel") {
       fill(w as unknown as Record<string, unknown>, { clips: [] })
+      const score: unknown = w.score
+      w.score = isPlainObject(score) ? { seed: Math.round(clampNum(score.seed, 0, 2 ** 31 - 1, 1)) } : null
       w.clips = (Array.isArray(w.clips) ? w.clips : [])
         .filter(isPlainObject)
         .filter((c) => typeof c.id === "string" && c.id !== a.id)
@@ -157,6 +222,9 @@ export function normalizeArtboard(a: Artboard): Artboard {
               cell: Math.round(clampNum(t.cell, 1, 16, 4)),
               seed: typeof t.seed === "number" && Number.isFinite(t.seed) ? t.seed : null,
             },
+            camera: cameraOf(c.camera),
+            callouts: calloutsOf(c.callouts, seconds),
+            chapter: chapterOf(c.chapter),
           }
         })
     } else {

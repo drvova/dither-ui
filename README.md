@@ -9,7 +9,7 @@
   <img src="public/emotes/emote-dots.webp" alt="" width="51" height="49">
 </p>
 
-![dither-ui: copy one folder, every pixel is yours, over a dithered dawn](.github/readme/banner.webp)
+![dither-ui: copy one folder, every pixel is yours, over the kit's dithered light rays](.github/readme/banner.webp)
 
 <p align="center">
   <img src="public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
@@ -28,7 +28,7 @@ component, and a Studio your coding agent can drive.
 
 Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dither-ui.com/docs) and the [Studio](https://dither-ui.com/studio).
 
-![The dither-ui landing: the statement and the kit's numbers beside one dithered film](.github/readme/landing.webp)
+![The dither-ui landing: the statement and the kit's numbers beside the component stage](.github/readme/landing.webp)
 
 The kit is copy-in, shadcn-style: it lives in `dither-kit/` with no imports from
 the app, so you copy the folder into your project and own every line. Beside
@@ -107,18 +107,19 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 
 ### Landing
 
-A full-bleed hero: the statement, the keys and the kit's numbers beside one
-dithered film of the kit's paint layers. The films are vector scenes drawn
-live through the kit's own dither rule, and the grid halves under your cursor.
-Each of the others plays in the section it shows:
+A full-bleed hero: the statement, the keys and the kit's numbers beside a
+stage that tours real components (a button, a slide, a hold, text pressure and
+a ferrofluid), each one live with the controls its docs demo has. "Watch the
+film" opens the trailer. Everything else on the page is the kit too:
 
 - the install bar, under the marks of npm, pnpm and Bun;
-- live kit panels: buttons, controls, a 3D model, a chart and the video film;
-- a directory of all 302 docs sections, beside the docs drawn as a skyline;
+- live kit panels: buttons, controls, a 3D model, a chart and a keyframed stage;
+- a directory of all 302 docs sections, beside a bar chart of the families that
+  picks their shelf;
 - six principles that light up as you scroll;
 - how to hand the Studio to your own coding agent, each harness under its
-  own mark, beside the Studio film;
-- a closing band with dawn over a dithered planet.
+  own mark, beside the screen an ask makes;
+- a closing band under the kit's light rays.
 
 ### Docs
 

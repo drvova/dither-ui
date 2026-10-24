@@ -32,9 +32,9 @@ widgets/features; page-specific conventions live here.
   says "(opens in a new tab)" to screen readers). The docs and the Studio
   follow them too (see their sections). No space is left
   empty: a column or flank that runs short gets real content (a fact, a
-  live kit surface, a step), never filler. The landing never names the
-  tool the films are made with (the user's call; the SDK license asks no
-  attribution).
+  live kit surface, a step), never filler. Everything that moves is the
+  kit itself (the user's call after the trailer: real components, hands
+  on, never drawings of them); no film player or animation runtime ships.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) on top of the SITE voice in
   `app/styles.css` (`.nav-a`, sentence case site-wide, `.nav-pill`,
@@ -64,20 +64,40 @@ widgets/features; page-specific conventions live here.
   it, so a positioned sibling always paints over a static header —
   without the lift the header renders zero visible pixels.
 - Hero (`Showcase.vue`): a FULL-BLEED band (the `--well` between
-  hairlines) holding, on the shell, the statement beside ONE film (the
-  user's call: one film in the hero, the others in the sections they
-  show). Left (`.statement`): the mono h1 at display scale
+  hairlines) holding, on the shell, the statement beside the stage. Left
+  (`.statement`): the mono h1 at display scale
   (`clamp(2.2rem, 4.2vw, 3.25rem)`, two lines in its column), the lede,
-  the keys (`.key-primary` "Open the studio" + `.nav-pill` "Read the
-  docs"), then the facts strip under a hairline (`.facts`, a `dl`: the
+  the keys (`.key-primary` "Open the studio", `.nav-pill` "Read the
+  docs" and "Watch the film" under the Play glyph, which opens the
+  trailer), then the facts strip under a hairline (`.facts`, a `dl`: the
   component count, the section count, the packages beside Vue; each
   number beside its kit glyph, hairlines between, never cards). Right:
-  the `hero` film at 8:5, standing on the band's floor, with a caption
-  (the Layers glyph, "Four paint layers, one dither rule.", the pointer
-  line only where hover exists and motion is on, a `.lead` into
-  composition). Under 900px
-  the statement comes first and the film takes the band's width. The h1
-  AND the keys must clear the fold at 1440×900, 1280×800 and 1920×1080.
+  `HeroStage.vue`, the kit by hand as the trailer shows it: one real
+  component at a time in an 8:5 `.thumb` well (a size container), its
+  name top left on a chip of the well's ground, with the controls its
+  docs demo has (`SCENES`: button with its fills and five hues, slide
+  action, hold actions, text pressure, ferrofluid with its palettes; the
+  fluid's engine an async chunk). Under the well a `.seg` picker and the
+  tour's progress hairline, then a caption (the scene's glyph, one line,
+  a `.lead` to its docs section). The tour advances on the progress
+  rule's CSS `animationend` (6s, no timer), paused while the stage is
+  hovered or holds focus; its pause chip stops it, and picking a scene or
+  using one (a pointer down or a key other than Tab inside the well) stops
+  it on that scene; under reduced motion it starts paused. A new scene
+  dissolves in through `DitherReveal` (cell 6, 0.6s; shown at once under
+  reduced motion); the first scene simply is (manual progress 1), and it
+  is the only scene in the static page. Under 900px the statement comes
+  first and the stage takes the band's width. The h1 AND the keys must
+  clear the fold at 1440×900, 1280×800 and 1920×1080.
+- The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
+  trapped and handed back, Escape and the backdrop close it) titled "The
+  dither-ui film", its description the film in words (no speech in it).
+  The `<video>` exists only while the dialog is open: `public/trailer/`
+  `dither-ui.mp4` (H.264 + AAC) first, `dither-ui.webm` (VP9 + Opus) for a
+  browser built without H.264, `poster.webp`; it autoplays (opening it
+  was the ask) except under reduced motion, where it waits for play.
+  Retake all three from the trailer's edit when the film changes (1080p,
+  each about 8 MB).
 - Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
   bitmap face drawn as crisp SVG cells with a seam — the footer's wordmark
   (`cell` 2, `seam` 1/2). A string with a glyph the face lacks throws;
@@ -113,8 +133,10 @@ widgets/features; page-specific conventions live here.
   pixel-shake stays in `LandingPage`); B — three 3:2 wells, each with its
   glyph, a `.lead` and a line: 3D models (Box; `DitherWorld` live at 12fps
   on the house ramp, `sampleWorld(7)`), Charts (ChartLine; a live
-  `LineChart`) and Video (Film; the `reel` film across the well's middle,
-  scrubbed by the pointer, into `/docs/stage`); live kit canvases carry the `.live` chip; C — lists
+  `LineChart`) and Video (Film; the docs' stage scene in a `DitherStage` at
+  12fps: an aurora sky and two hills drifting in container units, a moon
+  on its arc, with its pause chip, into `/docs/stage`); live kit canvases
+  carry the `.live` chip; C — lists
   into the docs under `.list-h` headings (the shelved families biggest
   first, each under its glyph, its count in its own element, then the
   five Handbook topics under theirs; notes align with the labels), a
@@ -123,12 +145,15 @@ widgets/features; page-specific conventions live here.
   column's height is balanced in the others.
 - Directory (`Hub.vue`, `#directory`): a head (`.dir-head`): left the
   title ("n sections, every one of them live."), one line and "Browse all
-  sections"; right the `catalog` film (the docs as a skyline, its
-  `catalogPlate` the stand-in) standing on the panel; one column under
-  760px, the film under the text. The skyline is a map of the shelf: the
-  picked tab's tower stands raised (`inputs.family`, the family's index in
-  `FAMILIES`, -1 for Explore) and a click on a shelved family's tower
-  picks its tab (`hit`, `tower<i>-hit`). Then a `.panel` — the kit's own
+  sections"; right the kit's `BarChart` of the docs (13rem): one row,
+  every `FAMILIES` entry its own series in sidebar order, the shelved
+  families in a hue and the rest grey, a hover tooltip; one column under
+  760px, the chart under the text. The chart is a map of the shelf: the
+  picked tab's family is the selected series (`defaultSelectedDataKey`;
+  the chart is keyed by the tab, so the kit's entrance is the change) and
+  a click on a shelved family's bar picks its tab (`isClickable` on the
+  shelved bars only; clicking the picked one again goes back to Explore).
+  The tab row is the keyboard's way. Then a `.panel` — the kit's own
   `DitherTabs`
   (grey; badges = family sizes; the row 12px in from the panel's top, as
   flush its labels and badges ran into the hairline; on a phone it
@@ -187,7 +212,7 @@ widgets/features; page-specific conventions live here.
   The figure (`EssayFigure.vue` over `essay-figure.ts`): a 24x24 lattice of
   576 `<rect>`s built once at setup (markup, prerender-able);
   `stageCell(stage, x, y)` paints each scene through the house
-  `ditherTone`/`rankOf` rule (01 matrix ramp · 02 bars + avatar ring · 03
+  `ditherTone`/`rankOf` rule (defined there, on the kit's 4×4 matrix; 01 matrix ramp · 02 bars + avatar ring · 03
   seven seed bands · 04 seeded scatter · 05 nested frames · 06 alias
   arrow), `stageFills()` gives every rect's fill (`OFF` lattice ghost where
   empty), and the CSS `fill` transition is delayed by the cell's Bayer rank
@@ -206,28 +231,35 @@ widgets/features; page-specific conventions live here.
   panel (Bot; the harnesses `bridge/dither-bridge.mjs` knows, its
   `HARNESSES` ids and names in order — keep in sync — as hairline chips
   each under the harness's own mark), ask for a screen (Sparkles); right,
-  on the well, the `studio` film over a solid strip (the harness keeps
-  its own login, the Studio never asks for a key). The steps set the
-  panel's height: the film's stage is a size container and the film fits
-  what it leaves (`min(100cqw, 160cqh)` at 8:5). One column under 760px,
-  the film at the band's width.
+  on the well, what the ask makes: the Studio's dotted canvas holding the
+  ask in the composer's idiom (`›`, `ASK`) and an artboard (its name over
+  its frame) of live kit parts, a `DitherHeading`, a count beside a
+  `Sparkline`, a `DitherSwitch` with its visible label and a
+  `DitherButton`; under it a solid strip (the harness keeps its own login,
+  the Studio never asks for a key). The steps set the panel's height. One
+  column under 760px.
 - The close (`LandingPage.vue`, `.dawn`, after the agents): a FULL-BLEED
   band between hairlines, the last line ("Copy one folder. Every pixel
   is yours.") and its keys ("Read the quick start", "Open the studio") on
-  the shell, then the `dawn` film across the band (up to 100rem; its
-  `dawnPlate` the stand-in), its pause chip lined up with the shell. A
-  hand on the keys (pointer or focus) swells the sun (`inputs.glow`).
-  Under 760px the film runs at twice the band's width with its sun about
-  40% across (at the band's width it was a sliver), the band clipping the
-  rest and the chip placed back in the gutter.
+  the shell, then the kit's `DitherLightRays` across the band (up to
+  100rem, its top edge fading in and its sides past that; `clamp(12rem,
+  26vw, 24rem)` tall,
+  12fps), its pause chip lined up with the shell. A hand on the keys
+  (pointer or focus) brightens the rays (`glow` 1.5 to 2.4).
 - Marks: tool logos (npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the
   coding agents) come ONLY from `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
   restyled or dithered; everything else is a kit glyph (`DitherIcon`).
 - No entrance choreography: the page simply is (no load reveal, no scroll
-  listener, no soft focus). Motion is the films, the live canvases, the
-  principles' scroll-timeline word reveal, the figure's wipe and hover
-  answers.
+  listener, no soft focus). Motion is the live kit surfaces (the stage's
+  tour and dissolves, the wells, the rays), the principles'
+  scroll-timeline word reveal, the figure's wipe and hover answers.
+- Pause chips (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by
+  itself for more than five seconds carries one, a round glass toggle in
+  its corner with its own name ("Pause the component tour", "Pause the
+  stage", "Pause the light") and `aria-pressed` while paused, wired to the
+  surface's `paused`. Where reduced motion already holds a surface still
+  (the stage, the rays) its chip is hidden.
 - `senses.ts` is the landing's ONE heartbeat (vanilla): one rAF ticks
   every subscribed organism (`senses().subscribe({ tick(dt) })`, today
   the portraits' shake), paused while the tab is hidden or under reduced
@@ -237,100 +269,6 @@ widgets/features; page-specific conventions live here.
   prerender) → no heartbeat; organisms still paint their static frame.
   Pinned by `tests/senses.spec.ts`. The figure's "seed 512" and the Build
   panel's slider are literal because the page displays those numbers.
-- Films (`ClayzoFilm.vue` over `public/films/<id>.json`) are the page's
-  Clayzo motion: documents built by `landing/films/`, each in the section
-  it shows (hero → the hero, reel → column B's Video well, catalog → the
-  directory's head, studio → the agents panel, dawn → the close) and played
-  by `@clayzo/webgl-player`. The license line is a hard rule:
-  `films/` imports the authoring package `@clayzo/animation` and is
-  NODE-SIDE ONLY (tests and the generator) — the app never imports it, so
-  only the JSON documents and the playback runtime ship. A film draws
-  TONES, not colours (`kit-dither.ts`: grey t → the SKY ramp at tone t,
-  rgb(1, t, 0) → the SUN ramp, below the first level is clear) and renders
-  through ONE `custom-sksl` pass that is the kit's own rule — the 4×4
-  gradient matrix and the house ramps unrolled into SkSL from kit data,
-  each lattice cell sampling its centre, a 1-unit seam between cells (never
-  under one device pixel, or it lands on some cells and not others) — so
-  Clayzo moves vector shapes (2.5D, springs, morphs, trims, clips) and
-  every pixel lands on a screen-aligned lattice in the house palette
-  (`pixelFilm({ cool })` swaps the cool ramp: the catalog runs on `GREY`).
-  The same pass is the LOUPE: `focus`/`radius` uniforms that
-  `pixelFilm({ loupe })` wires to the pointer (`pointerFieldMacro`) —
-  under the cursor the lattice halves, loses its seam and lifts a touch;
-  at rest `radius` is 0. Uniforms bind positionally in the parameters'
-  order (pinned by the spec). `frame.ts` holds the time base (240 ticks/s
-  at 30 fps, keys snapped to frames), the house eases, `wave()` (smooth
-  periodic tracks) and `cycle()` (a recurring run — particles — whose
-  wrap opens the loop with its tail; `start` lays a loop inside one beat),
-  and `pixelFilm()` (scene → dither pass → stamp → validate; the document
-  background is TRANSPARENT, so a film lies on whatever ground holds it
-  (a band, a well, the page) with no black box). Scatter is
-  the kit's `mulberry32`, reseeded per build so a build is deterministic.
-  Every film loops on the frame it opens on and marks a `still` (its
-  resting frame). Clayzo z-sorts group children (higher `z` draws FURTHER
-  BACK) — layer order comes from child order, keep z at 0. Strokes and
-  features thinner than one cell alias to dots, and a feature must cover a
-  cell CENTRE to draw at all: size and place them in whole cells. Light
-  (glows, beams, scans) blends `lighten` so it never darkens what it
-  crosses; keep cool tones under the ember ≤ 0.7, or lighten turns its
-  heat white. A clip node is never drawn but still needs a style.
-  `ClayzoFilm` fetches the player chunk (~380KB gzipped) and the document
-  only after `load` and once the film is within a screen; until its first
-  frame (and with no WebGL2) the `fallback` slot holds the frame, kept in
-  the DOM and stepped out by the `data-live` latch (stripped by the
-  prerender, so static bytes ship the stand-in). A film with no plate (the
-  hero) takes `poster`: its still as `films/<id>.webp`, which the
-  prerender reads off the film's own canvas (the landing under reduced
-  motion, at 2x, lossless, ~15 kB) before it snapshots the routes, so the
-  landing's bytes paint it; where no build wrote one the image hides
-  itself. The poster is the still exactly at 2x; scaled to 1x it is a
-  touch softer (the cell seams blur) until the film steps in. `playing` is the pause
-  control (WCAG 2.2.2) — every film shows its `FilmChip` (`chip`: the
-  button's name, each film its own — "Pause the layers film", "Pause the
-  video film", … — so a page of films never has two buttons called the
-  same; a round glass icon button in its corner; with slot text it
-  becomes a pill with a timecode); `FilmChip` is a toggle with a stable
-  name and `aria-pressed` while paused. Reduced motion starts every film
-  paused on its `still`; pressing play is the visitor's ask and plays.
-  Every film answers the visitor through the document's own interaction
-  (bindings, hit areas, inputs; authored with the SDK's macros in
-  `films/`): the pointer parts the hero's layers, the dawn's sky, the
-  reel's strips and the catalog's motes (`parallaxLayersMacro`); the
-  hero's button and toggle and the Studio film's boards grow hovered and
-  squash pressed (`hoverLiftMacro` with no lift, `pressSquashMacro`); the
-  reel's playhead and the dawn's sun lean after the cursor
-  (`cursorFollowMacro`); the catalog's towers rise. The page drives them
-  through `ClayzoFilm`: `inputs` (fed to `setInput`, watched), `hit` (a
-  click on a hit area, by id) and `scrub` (a mouse or pen across the film
-  seeks it frame by frame; leaving plays on from there; touch never
-  scrubs). Input names and hit area ids are the page's handles, pinned by
-  the films spec. A hit area tracks its node's drawn bounds, which ignore
-  clips and include everything the node lifts: target an undrawn node
-  that stays put (the catalog's `t<i>.zone` columns) and grow a hovered
-  thing about its centre rather than lifting it, or its target slips from
-  under the pointer and flickers. Under reduced motion the player is
-  non-interactive (no loupe, parallax, hover, click or scrub), and a change
-  of the setting makes the player again on the same canvas at the same
-  moment (interactivity is fixed when a player is made). A film's
-  root takes its lattice's `aspect-ratio`. The player owns
-  its own rAF and offscreen pause — the one engine outside `senses`.
-  The landing re-asserts `html.dark` on mount: the page is always-dark art
-  while docs/studio own the persisted theme (storage keeps the user's
-  choice).
-- Pixel figures are MARKUP, not canvas: `plates.ts` paints a w×h cell field
-  with the kit's ordered-dither rule (`ditherTone` on `resolveMatrix`, ranks
-  via `rankOf`) and encodes each
-  (group, colour) as dashed-stroke lattice runs (`M x y.5h n·p`, dasharray
-  `1 p-1`) — one subpath per run, not per cell; same field → same markup
-  (`tests/plates.spec.ts` round-trips every cell). `PixelPlate.vue` is the
-  one renderer: crispEdges, aria-hidden, strokes/dashes 3% long (float drift
-  opened 1px seams under crispEdges), an IO latch (`data-live`) then CSS-only
-  motion — `develop` lights groups in Bayer-rank order, `rise` climbs whole
-  cells with `steps(lift)` — with heat tiered by the cell's own luminance
-  (bright lands white-hot, mid tones glint ember, dark cells just appear),
-  `data-done` on the last animation's end, no timers, final frame under
-  reduced motion. New figures are field functions in `plates.ts`, never a
-  second renderer.
 - Sprite crops (`public/faces.webp` band + `public/sprites.webp`) use MEASURED constants
   (`FACES`, emote boxes, `FACE_Y/FACE_H`); if a sheet changes, re-measure
   programmatically in the browser (density-scan pattern) — never eyeball.
@@ -348,7 +286,7 @@ widgets/features; page-specific conventions live here.
   heartbeat ONLY while energy is above the floor, nothing at rest, nothing
   under reduced motion, touch pointers ignored. Faster strokes kick harder.
   The sheet itself loads only once the portraits are within a screen, so
-  it never counts toward the page's `load` (the films' cue). `shakeRaster()` is the
+  it never counts toward the page's `load`. `shakeRaster()` is the
   pure raster (`tests/pixel-shake.spec.ts`: identity at zero energy, pool
   locality, Bayer thinning, determinism). Emote reactions stay CSS-only
   (`.emote` + `.group:hover`); no JS timers on the landing.
@@ -399,8 +337,8 @@ widgets/features; page-specific conventions live here.
   component's own `data-armed`/`data-live`). No-JS/prerender: no attrs, the
   finished mark renders; reduced motion: full static rim.
 - Wells running live kit canvases carry the live chip (`.live`: an
-  `.led` + "Live at 12 fps"), stating HONEST data: films and plates never
-  do.
+  `.led` + "Live at 12 fps"), stating honest data: only a well whose
+  surface runs at that rate carries it.
 
 ### docs/
 
@@ -565,6 +503,8 @@ widgets/features; page-specific conventions live here.
   `startHistory()` → deep-link handling (`/studio#new/<type>` or legacy
   `#/studio/new/<type>`), so deep-link artboards are part of the restored doc
   and undoable; the URL is cleaned via `replaceState` to prevent duplication.
+  `#new/film` builds the launch film (`addLaunchFilm`, see `src/AGENTS.md`):
+  five kit frames and the film cut from them, selected.
 - The Studio's chrome speaks the SITE voice, like the landing and the
   docs: `font-mono` on the page root (the context menu and the kit's
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
@@ -661,39 +601,30 @@ widgets/features; page-specific conventions live here.
   the heartbeat (one frame request for many organisms, dt clamp, stop
   when the last leaves). jsdom has no canvas, so mount paths are checked
   in the browser walk only.
-- `tests/films.spec.ts` is the films' guard AND generator: the SkSL lookup
-  evaluated against the kit's matrix, one uniform per ramp level, the
-  uniforms in the effect parameters' order, per
-  film a valid deterministic document with a `still`, a frame-aligned loop
-  and byte-equality with `public/films/<id>.json`, and the page's handles
-  (the catalog's `family` input and one `tower<i>-hit` per family, a
-  pointer cursor exactly on the shelved ones; the dawn's `glow`). `npm run films`
-  (`rs test -u`) rewrites the documents after a builder edit; review frames in
-  a browser (the player seeked to the beats) before committing — the
-  Clayzo CLI's render/review need an account, playback does not.
 - `tests/landing-facts.spec.ts` recounts `COMPONENT_COUNT` in `facts.ts`.
 - `tests/marks.spec.ts`: every harness the bridge starts has a mark under
   its id and name, the landing lists them in the bridge's order, every
   mark is path data in a positive box.
 - Browser walk after changes: the landing at desktop AND phone widths (no
-  horizontal scroll; the statement above the hero film under 900px; at
+  horizontal scroll; the statement above the stage under 900px; at
   320 to 430px the principles strip pinned while the statements scroll
-  with the staged one matching its scene, the dawn's sun in view, the
-  footer's edges aligned), the
+  with the staged one matching its scene, the footer's edges aligned), the
   h1 (two lines) and the keys above the fold at 1440×900, 1280×800 and
   1920×1080, the three columns ending level, no uppercase label, eyebrow,
-  middle dot, em dash, arrow link or the films' tool's name in the
-  rendered copy, every svg decorative or labelled, each of the five films
-  mounting over its stand-in where it lives (scrolled into view) with its
-  own named chip pausing it and the loupe under the cursor, the films'
-  answers (the hero's button and toggle and the Studio boards grow on
-  hover and squash on press, the reel scrubs under a mouse and plays on
-  from there, the dawn's sun swells with a key hovered or focused, a
-  catalog tower rises hovered and for the picked tab, and a click on a
-  shelved tower picks its tab while an unshelved one shows no pointer),
-  reduced motion holding every film's still with its chip on play and
-  nothing answering the pointer, the agents panel's
-  film fitting beside the steps with no empty band under either, the
+  middle dot, em dash or arrow link in the rendered copy, every svg
+  decorative or labelled, the stage's tour (it advances after 6s, holds
+  while hovered, stops on a pick or a press inside the well, its chip
+  pauses it, every scene works with its controls and dissolves in; the
+  scene already shown never blanks when picked again), "Watch the film"
+  (the dialog opens with focus in it, the film plays with sound,
+  Escape closes it, focus returns to the key, the video leaves the DOM),
+  the directory chart (a tab selects its bar, a shelved bar picks its
+  tab, an unshelved one is not clickable), each pause chip stopping its
+  surface, the rays brightening with a key hovered or focused, reduced
+  motion (the tour paused, the stage and the rays still with their chips
+  hidden, a picked scene shown at once, the film waiting on its poster),
+  the agents panel's screen beside the steps with no empty band under
+  either, the
   marks crisp at their sizes (install picker, harness chips, footer
   badges; the Studio's harness picker with the bridge running), the
   Build slider re-seeding its badge, emote hover, a principle re-staging
@@ -706,7 +637,8 @@ widgets/features; page-specific conventions live here.
   flush and each button off at its end), canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
-  create/select exactly one artboard.
+  create/select exactly one artboard (`#new/film` six: the film and its
+  five frames).
 - Docs and Studio copy scan (a headless page walk): the rendered text of
   `/docs` (every section) and of `/studio` with each panel and dialog open
   (layers, agent, library, project menu, code, video, data, shortcuts,

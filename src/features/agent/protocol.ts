@@ -40,6 +40,7 @@ import {
   createClip,
   createRow,
   type ReelClip,
+  type ReelScore,
   REEL_TRANSITIONS,
   type ReelTransitionKind,
   sanitizeComponentProps,
@@ -52,11 +53,13 @@ import {
   playerAssetUrls,
   reelClips,
   renderCommand,
+  scoreWav,
   slugOf,
   videoFileName,
 } from "@/features/export-video"
 import { applyDocument, documentSnapshot, type StudioDocument } from "@/features/persistence"
 import { CHART_TYPES, type ChartType, familyOf } from "@/shared/config"
+import { bytesToBase64 } from "@/shared/lib"
 import { isStyling, restyle, type Styling, STYLINGS } from "@/shared/lib/restyle"
 import { evolveArtboard, type EvolveOptions } from "./evolve"
 
@@ -73,12 +76,26 @@ export type ChartData = {
   series: { key: string; label?: string; color?: string; values: number[] }[]
 }
 
-/** One clip of a reel as a command spells it: a frame, how long it plays, how it comes in. */
+/** One clip of a reel as a command spells it: a frame, how long it plays, how
+ * it comes in, and the film over it (camera keys, callouts, a chapter). */
 export type ReelClipSpec = {
   id: string
   seconds?: number
   transition?: { kind?: ReelTransitionKind; seconds?: number; cell?: number; seed?: number }
+  camera?: { t?: number; x?: number; y?: number; zoom?: number; tilt?: number }[]
+  callouts?: {
+    x?: number
+    y?: number
+    label: string
+    note?: string
+    side?: "left" | "right"
+    from?: number
+    to?: number
+  }[]
+  chapter?: { line: string; spec?: [string, string][] } | null
 }
+/** A reel's score as a command spells it: on, or on with a seed. */
+export type ScoreSpec = boolean | { seed?: number } | null
 
 export type StudioCommand =
   | { type: "document.get" }
@@ -110,7 +127,13 @@ export type StudioCommand =
       padding?: number
       frame?: { w?: number; h?: number }
     }
-  | { type: "reel.add"; name?: string; clips: (string | ReelClipSpec)[]; frame?: { w?: number; h?: number } }
+  | {
+      type: "reel.add"
+      name?: string
+      clips: (string | ReelClipSpec)[]
+      score?: ScoreSpec
+      frame?: { w?: number; h?: number }
+    }
   | { type: "evolve"; id?: string; count?: number; seed?: number; strength?: number }
   | { type: "code.get"; id: string; styling?: Styling }
   | { type: "registry.get"; is?: string }
@@ -172,7 +195,7 @@ export function registrySchema() {
         radar: "{ axis: string, <seriesKey>: number }",
       },
       widget:
-        "WidgetModel — { kind: avatar|button|gradient|image } | { kind: component, is, props, slotText } | { kind: screen, rows: [{ cells: [{ is, props, slotText, grow }], align, justify, gap }], gap, padding } | { kind: reel, clips: [{ id, seconds, transition: { kind, seconds, cell, seed } }] }",
+        "WidgetModel — { kind: avatar|button|gradient|image } | { kind: component, is, props, slotText } | { kind: screen, rows: [{ cells: [{ is, props, slotText, grow }], align, justify, gap }], gap, padding } | { kind: reel, clips: [{ id, seconds, transition: { kind, seconds, cell, seed }, camera: [{ t, x, y, zoom, tilt }], callouts: [{ x, y, label, note, side, from, to }], chapter: { line, spec: [[figure, words]] } | null }], score: { seed } | null }",
       groups: "Group[] — { id, name, collapsed }",
       viewport: "{ x, y, zoom }",
     },
@@ -183,19 +206,19 @@ export function registrySchema() {
       "artboard.select": "{ id } or { ids }",
       "artboard.remove": "{ id }",
       "artboard.update":
-        "{ id, patch } — merge name/x/y/w/h/hidden/locked, chart fields, widget props, screen rows or reel clips; sanitized",
+        "{ id, patch } — merge name/x/y/w/h/hidden/locked, chart fields, widget props, screen rows, or a reel's clips and score; sanitized",
       "chart.add": "{ chart, name?, data?: { labels, series: [{ key, label?, color?, values }] }, frame? }",
       "widget.add": "{ widget: avatar|button|gradient|image, name?, props? }",
       "component.add": "{ is, name?, props?, slotText?, frame? } — a registry component",
       "screen.add":
         "{ name?, rows: [{ cells: [{ is, props?, slotText?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
-      "reel.add": `{ name?, clips: [id | { id, seconds?, transition?: { kind?: ${REEL_TRANSITIONS.join("|")}, seconds?, cell?, seed? } }], frame? } — frames played in order with ordered-dither transitions (clip 3s, dissolve 0.6s by default); video.export renders the whole cut`,
+      "reel.add": `{ name?, clips: [id | { id, seconds?, transition?: { kind?: ${REEL_TRANSITIONS.join("|")}, seconds?, cell?, seed? }, camera?: [{ t: 0-1 of the clip, x, y: the frame point looked at (0-1), zoom: 1 fitted, tilt: degrees }], callouts?: [{ x, y: a frame point (0-1), label, note?, side?: left|right, from?, to?: seconds into the clip }], chapter?: { line, spec?: [[figure, words]] } }], score?: true | { seed }, frame? } — frames played in order with ordered-dither transitions (clip 3s, dissolve 0.6s by default); a film when clips carry camera moves, callouts and chapters (a band under the stage), with a score synthesized from the cut; video.export renders the whole cut with its score`,
       evolve: "{ id?, count?, seed?, strength? } — seeded variants placed as a row",
       "code.get":
         "{ id, styling? } — the frame as a Vue SFC: tailwind (default) keeps the utility classes; css (a scoped stylesheet), modules (CSS Modules) or stylex write the same look in that system",
       "registry.get": "{ is? } — this schema, or one component's entry",
       "video.export":
-        "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length",
+        "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length; a reel with a score adds score: { path: score.wav, base64 } for the index's audio track",
       "clock.seek":
         "{ seconds? } — hold every animation on the canvas at that moment (a stable screenshot from any driver in any browser); without seconds, let time run again",
       "clock.release": "let time run again",
@@ -241,6 +264,10 @@ export function chartFromData(type: ChartType, data: ChartData) {
   return chart
 }
 
+/** A score spec as the model's: `true` or `{ seed }` is on, anything else off. */
+const scoreOf = (v: unknown): ReelScore | null =>
+  v === true ? { seed: 1 } : isPlain(v) ? { seed: typeof v.seed === "number" ? v.seed : 1 } : null
+
 /** Clip specs (ids or { id, seconds?, transition? }) as reel clips, each frame once, with the ids a reel cannot hold. */
 function buildClips(input: unknown) {
   const clips: ReelClip[] = []
@@ -260,6 +287,10 @@ function buildClips(input: unknown) {
       if (typeof t.seconds === "number") clip.transition.seconds = t.seconds
       if (typeof t.cell === "number") clip.transition.cell = t.cell
       if (typeof t.seed === "number") clip.transition.seed = t.seed
+      // The film rides through raw; normalizeArtboard sanitizes it.
+      if (Array.isArray(spec.camera)) clip.camera = spec.camera as never
+      if (Array.isArray(spec.callouts)) clip.callouts = spec.callouts as never
+      if (spec.chapter !== undefined) clip.chapter = spec.chapter as never
       clips.push(clip)
     }
   }
@@ -339,8 +370,10 @@ export function runCommand(input: unknown): CommandResult {
           else if (a.widget.kind === "screen" && Array.isArray(patch.rows)) {
             const built = buildScreen({ type: "screen.add", rows: patch.rows as never })
             w.rows = built.rows
-          } else if (a.widget.kind === "reel" && Array.isArray(patch.clips)) w.clips = buildClips(patch.clips).clips
-          else Object.assign(w, patch)
+          } else if (a.widget.kind === "reel" && (Array.isArray(patch.clips) || "score" in patch)) {
+            if (Array.isArray(patch.clips)) w.clips = buildClips(patch.clips).clips
+            if ("score" in patch) w.score = scoreOf(patch.score)
+          } else Object.assign(w, patch)
           if (typeof patch.slotText === "string") w.slotText = patch.slotText
         }
         normalizeArtboard(a)
@@ -403,12 +436,16 @@ export function runCommand(input: unknown): CommandResult {
         if (!built.clips.length) return fail("clips must name at least one frame: [id | { id, seconds?, transition? }]")
         const a = addReelArtboard(built.clips.map((c) => c.id))
         if (typeof cmd.name === "string") a.name = cmd.name.slice(0, 80)
-        if (a.widget?.kind === "reel") a.widget.clips = built.clips
+        if (a.widget?.kind === "reel") {
+          a.widget.clips = built.clips
+          a.widget.score = scoreOf(cmd.score)
+        }
         applyFrame(a, cmd.frame)
         normalizeArtboard(a)
         return ok({
           ...summarize(a),
           clips: a.widget?.kind === "reel" ? a.widget.clips : [],
+          score: a.widget?.kind === "reel" ? a.widget.score : null,
           seconds: defaultSeconds(a),
         })
       }
@@ -432,15 +469,23 @@ export function runCommand(input: unknown): CommandResult {
         const a = find(typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId)
         if (!a) return fail("select an artboard or pass { id }")
         const options = normalizeVideoOptions({ ...cmd, seconds: cmd.seconds ?? defaultSeconds(a) })
+        const wav = scoreWav(a, options.seconds)
         return ok({
           id: a.id,
           name: a.name,
           file: videoFileName(a),
           options,
-          index: compositionHtml(a, options, { jsRef: "./player.js", cssRef: "./player.css" }, reelClips(a)),
+          index: compositionHtml(
+            a,
+            options,
+            { jsRef: "./player.js", cssRef: "./player.css" },
+            reelClips(a),
+            wav ? "./score.wav" : undefined,
+          ),
           assets: playerAssetUrls(),
+          ...(wav ? { score: { path: "score.wav", base64: bytesToBase64(wav) } } : {}),
           render: renderCommand(a),
-          note: `index.html + player.js + player.css in one directory: npx hyperframes render <dir> -o ${slugOf(a.name)}.mp4. Same seeds + time → same pixels; simulation backgrounds need --workers 1.`,
+          note: `index.html + player.js + player.css${wav ? " + score.wav (decode score.base64)" : ""} in one directory: npx hyperframes render <dir> -o ${slugOf(a.name)}.mp4. Same seeds + time → same pixels; simulation backgrounds need --workers 1.`,
         })
       }
       case "clock.seek": {

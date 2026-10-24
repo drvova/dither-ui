@@ -25,14 +25,21 @@ export const REEL_TRANSITIONS: readonly ReelTransitionKind[] = [
   "wipe-up",
 ]
 
-/** A clip of `seconds`, coming in over a 0.6s dissolve. */
+/** A clip of `seconds`, coming in over a 0.6s dissolve, the frame held still. */
 export const createClip = (id: string, seconds = 3): ReelClip => ({
   id,
   seconds,
   transition: { kind: "dissolve", seconds: 0.6, cell: 4, seed: null },
+  camera: [],
+  callouts: [],
+  chapter: null,
 })
 
-export const createReel = (ids: string[]): ReelModel => ({ kind: "reel", clips: ids.map((id) => createClip(id)) })
+export const createReel = (ids: string[]): ReelModel => ({
+  kind: "reel",
+  clips: ids.map((id) => createClip(id)),
+  score: null,
+})
 
 /** A component widget seeded from its registry entry. */
 export function createComponent(entry: ComponentEntry): ComponentModel {

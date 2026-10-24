@@ -2,10 +2,13 @@
 import { ref } from "vue"
 import { routePath } from "@/shared/lib"
 import {
+  DitherAurora,
   DitherBadge,
   DitherButton,
   DitherIcon,
+  DitherLayer,
   DitherSlider,
+  DitherStage,
   DitherSwitch,
   DitherWorld,
   Grid,
@@ -17,21 +20,23 @@ import {
   type DitherColor,
   type IconName,
 } from "@dither-kit"
-import ClayzoFilm from "./ClayzoFilm.vue"
+import HeroStage from "./HeroStage.vue"
 import InstallBlock from "./InstallBlock.vue"
+import PauseChip from "./PauseChip.vue"
+import TrailerDialog from "./TrailerDialog.vue"
 import { COMPONENT_COUNT, RUNTIME_DEPS } from "./facts"
 import { SECTION_COUNT, SHELVES } from "./hub"
 
 // The portal (its scale after the dither winners on Awwwards, its voice the
-// site's own): a full-bleed hero band, the statement beside ONE film (the
-// kit's paint layers), then on the shell the install bar and three columns
-// of panels: the Studio pitch with live kit components as product tiles
-// and the portraits (a slot: their shake lives on the page); live wells
-// (a 3D model, a chart, the video film), each with the docs link that leads
-// on; lists into the docs. The other films live in the sections they show.
-const HERO_ALT =
-  "A dithered dashboard tips into an isometric exploded view of its paint layers, re-seeds its data, flips its switch, presses its button and folds back flat."
-const REEL_ALT = "A film strip runs past an ember playhead; each frame holds one moment of a bouncing ball."
+// site's own): a full-bleed hero band, the statement beside the stage (the
+// kit by hand, one real component at a time), then on the shell the install
+// bar and three columns of panels: the Studio pitch with live kit components
+// as product tiles and the portraits (a slot: their shake lives on the
+// page); live wells (a 3D model, a chart, a keyframed stage), each with the
+// docs link that leads on; lists into the docs. Every surface on the page
+// is the kit itself; the film is a key away.
+const film = ref(false)
+const stagePlaying = ref(true)
 
 // The statement's numbers, each one recounted by a test.
 const FACTS = [
@@ -89,7 +94,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
 <template>
   <section aria-labelledby="hero-h" class="portal">
     <!-- The hero: a full-bleed band; on the shell, the statement (the h1,
-         the lede, the keys, the kit's numbers) beside ONE film. -->
+         the lede, the keys, the kit's numbers) beside the stage. -->
     <div class="hero">
       <div class="hero-in">
         <div class="statement">
@@ -101,6 +106,9 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
           <div class="hero-keys">
             <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
             <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
+            <button type="button" class="nav-a nav-pill" @click="film = true">
+              <DitherIcon name="Play" :size="12" :stroke-width="1.5" />Watch the film
+            </button>
           </div>
           <dl class="facts">
             <div v-for="f in FACTS" :key="f.label" class="fact">
@@ -109,21 +117,10 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
             </div>
           </dl>
         </div>
-        <figure class="hero-film">
-          <ClayzoFilm film="hero" chip="Pause the layers film" :label="HERO_ALT" poster class="hero-play" />
-          <figcaption class="hero-cap">
-            <DitherIcon name="Layers" :size="14" :stroke-width="1.5" class="cap-i" />
-            <span class="cap-t"
-              >Four paint layers, one dither rule.
-              <span class="hover-only"
-                >Point at it: the grid halves under the cursor and the controls answer.</span
-              ></span
-            >
-            <a :href="routePath('/docs/composition')" class="lead">How components compose</a>
-          </figcaption>
-        </figure>
+        <HeroStage />
       </div>
     </div>
+    <TrailerDialog v-model="film" />
 
     <div class="shell">
       <InstallBlock />
@@ -171,7 +168,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
           </article>
         </div>
 
-        <!-- Column B: live wells and the video film, each with its glyph
+        <!-- Column B: live wells (a model, a chart, a stage), each with its glyph
              and the docs link that leads on. -->
         <div class="col-b">
           <figure class="pick">
@@ -214,14 +211,64 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
           </figure>
           <figure class="pick">
             <div class="thumb pick-art">
-              <ClayzoFilm film="reel" chip="Pause the video film" :label="REEL_ALT" scrub class="pick-film" />
+              <span class="live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
+              <!-- The docs' stage at well size: an aurora sky and two hills
+                   drifting in container units, a moon on its arc. -->
+              <DitherStage
+                :duration="8"
+                :frame-rate="12"
+                :paused="!stagePlaying"
+                role="img"
+                aria-label="A keyframed night scene: an aurora drifts over two hills while a moon crosses the sky"
+                class="scene"
+              >
+                <DitherLayer :keyframes="[{ x: '-6cqw' }, { x: '6cqw' }]" :duration="8" yoyo loop class="sky">
+                  <DitherAurora
+                    :colors="['#1f6fd6', '#9ec5ff', '#ffffff']"
+                    :speed="0.6"
+                    :frame-rate="12"
+                    :paused="!stagePlaying"
+                    class="h-full"
+                  />
+                </DitherLayer>
+                <DitherLayer :keyframes="[{ x: 0 }, { x: '-10cqw' }]" :duration="8" yoyo loop>
+                  <svg class="hills far" viewBox="0 0 132 40" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M0 40 V26 Q12 14 24 22 T48 18 T72 24 T96 14 T120 22 T132 18 V40 Z" />
+                  </svg>
+                </DitherLayer>
+                <DitherLayer :keyframes="[{ x: 0 }, { x: '-24cqw' }]" :duration="8" yoyo loop>
+                  <svg class="hills near" viewBox="0 0 148 40" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M0 40 V30 Q14 22 28 30 T56 24 T84 32 T112 22 T140 30 T148 26 V40 Z" />
+                  </svg>
+                </DitherLayer>
+                <DitherLayer
+                  :keyframes="[
+                    { at: 0, x: '80cqw', y: '12cqh', rotate: 0 },
+                    { at: '50%', easing: 'ease-in-out', rotate: '0.5turn' },
+                    { x: '20cqw', y: '8cqh', rotate: '1turn' },
+                  ]"
+                  :duration="8"
+                  loop
+                  origin="0 0"
+                  class="moon"
+                >
+                  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="9" cy="9" r="2" class="crater" />
+                    <circle cx="15" cy="14" r="1.5" class="crater" />
+                  </svg>
+                </DitherLayer>
+              </DitherStage>
+              <PauseChip v-model="stagePlaying" label="Pause the stage" class="pick-chip" />
             </div>
             <figcaption>
               <p class="pick-h">
                 <DitherIcon name="Film" :size="14" :stroke-width="1.5" class="pick-i" />
                 <a :href="routePath('/docs/stage')" class="lead">Video</a>
               </p>
-              <p class="pick-p">One seekable clock, so every frame exports as the same MP4.</p>
+              <p class="pick-p">
+                Keyframes in container units on one seekable clock, so every frame exports as an MP4.
+              </p>
             </figcaption>
           </figure>
         </div>
@@ -281,9 +328,8 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
 }
 
 /* The hero: a full-bleed band between hairlines; on the shell, the
-   statement (left) beside the film (right), which stands on the band's
-   floor. Under 900px the statement comes first and the film takes the
-   band's width under it. */
+   statement (left) beside the stage (right). Under 900px the statement
+   comes first and the stage takes the band's width under it. */
 .hero {
   background: var(--well);
   box-shadow:
@@ -385,43 +431,6 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   color: var(--ink-3);
 }
 
-.hero-film {
-  margin: 0;
-  align-self: end;
-}
-
-.hero-play {
-  width: 100%;
-  aspect-ratio: 8 / 5;
-}
-
-.hero-cap {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  padding: 0 0 16px;
-  font-size: 11.5px;
-  line-height: 1.6;
-  color: var(--ink-3);
-}
-
-.cap-i {
-  flex: none;
-}
-
-.cap-t {
-  flex: 1;
-  min-width: 14rem;
-}
-
-/* Only where the film answers a pointer: one that hovers, with motion on. */
-@media (hover: none), (prefers-reduced-motion: reduce) {
-  .hover-only {
-    display: none;
-  }
-}
-
 @media (max-width: 899px) {
   .hero-in {
     grid-template-columns: minmax(0, 1fr);
@@ -429,9 +438,6 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   }
   .statement {
     padding: 28px 1.5rem 8px;
-  }
-  .hero-cap {
-    padding: 0 1.5rem 16px;
   }
 }
 
@@ -557,13 +563,64 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   padding: 10px 8px 4px;
 }
 
-/* The 8:5 film across the well's middle. */
-.pick-film {
+/* The stage fills its well: a sky, two hills in container units, a moon. */
+.scene {
   position: absolute;
-  top: 50%;
-  width: 100%;
-  aspect-ratio: 8 / 5;
-  translate: 0 -50%;
+  inset: 0;
+}
+
+.sky {
+  inset: 0 -6cqw;
+}
+
+.hills {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 110%;
+  height: 58%;
+}
+
+.hills.far path {
+  fill: rgba(31, 111, 214, 0.35);
+}
+
+.hills.near {
+  width: 124%;
+  height: 42%;
+}
+
+.hills.near path {
+  fill: rgba(11, 26, 58, 0.95);
+}
+
+.moon {
+  inset: auto;
+  width: 22px;
+  height: 22px;
+}
+
+.moon circle {
+  fill: rgba(255, 255, 255, 0.85);
+}
+
+.moon .crater {
+  fill: rgba(11, 26, 58, 0.6);
+}
+
+.pick-chip {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1;
+}
+
+/* Under reduced motion the stage holds its end and the sky one frame:
+   nothing moves, so nothing needs pausing. */
+@media (prefers-reduced-motion: reduce) {
+  .pick-chip {
+    display: none;
+  }
 }
 
 .pick figcaption {

@@ -13,8 +13,9 @@ is its showcase and editor.
 - Owns every rendering primitive: palette seeds, Bayer matrix, bloom presets,
   step-timing primitives, the sequence timeline algebra, the clock director,
   the wipe engine (ordered-dither masks), the keyframe engine (container
-  units), container-query scales, chart roots/contexts, canvas painters,
-  and the public component set.
+  units), the score engine (a film's soundtrack from its cut),
+  container-query scales, chart roots/contexts, canvas painters, and the
+  public component set.
 - Consumers import ONLY via `index.ts` (`@dither-kit` alias).
 
 ## Local Contracts
@@ -101,6 +102,24 @@ is its showcase and editor.
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+- `score.ts` is the score engine: a film's soundtrack synthesized from its
+  cut, sample by sample, in plain arithmetic (polyBLEP oscillators, a
+  state-variable filter, a ping-pong echo, Freeverb's hall; no Web Audio,
+  no clock). `scoreCut(plan)` takes `{ seconds, clips (where each clip
+  begins), marks? (chapter turns: a blip), ticks? (callouts landing: a
+  tick), seed?, sampleRate? (44100) }` and returns stereo Float32 PCM: a
+  pad that changes chord on every clip (a progression the seed picks) and
+  resolves to D major on the last, the Bayer 4x4 as the arpeggio (its
+  ranks pick the notes, the grid restarting on every cut) and as the motif
+  over the first clip, a pulse that builds with the film and never plays
+  under the last clip, a riser, an impact, a crushed noise wipe and the
+  interface blip on every cut, the pad and bass pumped by the kick, nothing
+  under 25 Hz, a soft clip to a 0.89 peak. `wavBytes(audio, seed)` writes a
+  16-bit stereo WAV with seeded triangular dither. The same plan and seed
+  give the same samples (it reads no time and no entropy). The Studio's
+  films carry it into their videos and preview it; not ported to the Svelte
+  kit (nor are the wipe and keyframe engines). Pinned by
+  `tests/score.spec.ts`.
 - Type voice: the kit's controls speak `--font-mono` (Button, Badge,
   Toaster, Command), and every overlay that TELEPORTS to `<body>` carries
   it on its own panel — `DitherDialog`, `DitherAlertDialog`,

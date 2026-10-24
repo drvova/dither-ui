@@ -16,6 +16,7 @@ export {
   playerUrl,
   reelClips,
   renderCommand,
+  scoreWav,
   selfContainedComposition,
   type VideoExportData,
   videoFileName,

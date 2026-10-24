@@ -7,8 +7,8 @@
 export type HubCard = { id: string; label: string; family: string; note?: string }
 export type HubShelf = { value: string; label: string; count: number; note: string; cards: HubCard[] }
 
-/** Every docs family in sidebar order with its section count — the catalog
- * plate draws one cell per section. */
+/** Every docs family in sidebar order with its section count: the
+ * directory's chart draws one bar per family. */
 export const FAMILIES = [
   { title: "Overview", count: 1 },
   { title: "Primitives", count: 19 },

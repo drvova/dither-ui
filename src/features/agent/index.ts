@@ -2,6 +2,7 @@ import { editor, placeGeneration, selectedArtboard } from "@/entities/editor"
 import { evolveArtboard, type EvolveOptions } from "./evolve"
 
 export { evolveArtboard, mutateProps, type EvolveOptions } from "./evolve"
+export { addLaunchFilm } from "./film"
 export {
   COMMAND_EVENT,
   chartFromData,

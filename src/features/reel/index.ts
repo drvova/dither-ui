@@ -1,1 +1,21 @@
-export { reelAt, reelDuration, reelLoop, wipeDirectionOf, type ReelMoment } from "./reel"
+export {
+  CAMERA_MOVES,
+  type Camera,
+  cameraAt,
+  cameraMoveOf,
+  cameraPoint,
+  cameraTransform,
+  type CalloutState,
+  calloutsAt,
+  chapterAt,
+  type ChapterState,
+  hasChapters,
+  reelAt,
+  reelDuration,
+  reelLoop,
+  type ReelMoment,
+  scorePlanOf,
+  STILL,
+  wipeDirectionOf,
+} from "./reel"
+export { playScore } from "./preview"

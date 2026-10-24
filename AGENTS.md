@@ -103,7 +103,7 @@ Default section order:
   routes remain supported for old links. GitHub Pages deploys through
   `.github/workflows/pages.yml`: `rs build` (the site and the player
   bundle), the kit stylesheet, `404.html` copied from the bare shell, then
-  the prerender (snapshots, posters, agent registry, share cards, section
+  the prerender (snapshots, agent registry, share cards, section
   pages), so the live site paints from bytes and every sitemap URL is a
   real page. Default deploy base is `/` because `public/CNAME` sets
   `dither-ui.com`. Set repo variable `BASE_PATH=/dither-ui/` only when
@@ -118,23 +118,15 @@ Default section order:
   blits from the sheet directly. The README's screenshots live in
   `.github/readme/` (WebP, never shipped with the site), taken from a
   production build: retake the one whose page changes.
-- Landing films (Clayzo): the landing's films are Clayzo documents
-  (`public/films/<id>.json`), ONE in the hero (the user's call: more there
-  was too much) and the rest in the sections they show (the reel in the
-  Video well, the catalog beside the directory's title, the Studio film in
-  the agents panel, the dawn in the closing band), played by
-  `@clayzo/webgl-player` (a lazy chunk, landing only). They are authored in
-  `src/pages/landing/films/` against `@clayzo/animation` — NODE-SIDE ONLY:
-  Clayzo's SDK license lets a site ship the playback runtime and its
-  documents, not the authoring package, so the app never imports that
-  folder. Every film renders through the kit's own ordered-dither rule as a
-  Clayzo shader, which doubles as a cursor loupe. Every film answers the
-  visitor through the document's own interaction (hover, press, parallax,
-  cursor follow, a scrub, inputs and hit areas the page drives through
-  `ClayzoFilm`); under reduced motion none does. The landing never names
-  Clayzo (the user's call; its SDK license asks no attribution). `npm run films` regenerates the documents
-  (`tests/films.spec.ts` is generator and drift guard); never put Clayzo in
-  `dither-kit/` (MIT, copy-out portable). Details in `src/pages/AGENTS.md`.
+- Landing surfaces: everything that moves on the landing is the kit
+  itself (the user's call after the trailer: show the real components,
+  hands on, never drawings of them). The hero is a stage touring real
+  components (`HeroStage.vue`); the sections hold live kit charts, a
+  keyframed `DitherStage`, a screen of kit parts and a kit background. No
+  film player or animation runtime ships with the page. The trailer
+  (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
+  hero's "Watch the film" key and is fetched only when its dialog opens.
+  Details in `src/pages/AGENTS.md`.
 - Crawler surface: `src/pages/docs/crawler-files.ts` generates `dist/sitemap.xml`,
   `dist/robots.txt`, and `dist/llms.txt` at build (the `crawlFiles` plugin
   in `rstack.config.ts`, emitted as web-build assets —
@@ -188,8 +180,13 @@ Default section order:
   that the export inlines. A reel (the `reel` widget kind, `reel.add` /
   `add_reel`, the `reel` selection action) plays other frames in order with
   ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
-  and exports as one MP4 as long as its cut. Details in `src/AGENTS.md`
-  and `dither-kit/AGENTS.md`.
+  and exports as one MP4 as long as its cut. A reel whose clips carry
+  camera keys, callouts and chapters is a film (`/studio#new/film` builds
+  the kit's own, `reel.add` takes them from any agent), with a soundtrack
+  the kit synthesizes from the cut (`dither-kit/score.ts`: a chord per
+  clip, the Bayer motif, a riser and an impact on every cut) that the
+  export carries as the composition's audio track. Details in
+  `src/AGENTS.md` and `dither-kit/AGENTS.md`.
 - Styling systems: the kit's tokens live in `dither-kit/theme.css` (plain
   custom properties the app's `src/app/styles.css` imports under Tailwind);
   `npm run build:css` (in `npm run build` and the Pages deploy) compiles

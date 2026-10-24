@@ -363,6 +363,7 @@ export {
   type WipeOptions,
   type WipeStyle,
 } from "./DitherReveal.vue"
+export { scoreCut, wavBytes, type ScoreAudio, type ScorePlan } from "./score"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"
 export { default as DitherSlideAction } from "./SlideAction.vue"
