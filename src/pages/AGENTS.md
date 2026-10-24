@@ -95,9 +95,14 @@ widgets/features; page-specific conventions live here.
   docs). One hairline bar: the
   `.seg` step picker (each step under its mark: the kit's Folder glyph,
   then npm, pnpm and Bun's own marks), the command in mono with the ember
-  `$`, a hairline Copy through `DitherClipboard` (jolt, a 1px seal, label
-  roll); the steps under it sit in glyph squares (Copy, then Check once
-  copied; Terminal; Code) and advance on copy; "Source on GitHub" carries
+  `$`, a hairline Copy through `DitherClipboard`. A copy is ONE gesture:
+  while copied the command shows selected (a breath of ink behind it,
+  padded by a shadow so no glyph moves) and the key is ringed (the
+  `.ring-on` look) as its label rolls to "Copied" under a check; both let
+  go together, the selection stepping out in three; nothing kicks, slants
+  or draws over the bar, and reduced motion swaps both at once. The steps
+  under it sit in glyph squares (Copy, then Check once copied; Terminal;
+  Code) and advance on copy; "Source on GitHub" carries
   GitHub's mark; the glint is a one-shot IO → CSS (latched, never
   re-fires).
 - Columns (`Showcase.vue`, `.cols` 1.9 : 1 : 1.2, one column under 900px):
@@ -125,14 +130,23 @@ widgets/features; page-specific conventions live here.
   `FAMILIES`, -1 for Explore) and a click on a shelved family's tower
   picks its tab (`hit`, `tower<i>-hit`). Then a `.panel` — the kit's own
   `DitherTabs`
-  (grey; badges = family sizes) over a horizontal snapping shelf of
+  (grey; badges = family sizes; the row 12px in from the panel's top, as
+  flush its labels and badges ran into the hairline; on a phone it
+  scrolls sideways, its underline with it) over a horizontal snapping shelf of
   `.thumb` cards that deep-link to `/docs/<id>` (the section's seeded
   `DitherAvatar` identicon — decorative, no entrance — its family, its
   name, up to three lines, its path), and an "All n …" `.lead` per
   family; under the shelf, inside the panel, `TOOLS`: what every docs
   preview offers (Inspect, Edit and run, Hand it to your agent, each
   under its glyph: Crosshair, Code, Bot), three columns split by
-  hairlines, each with the section that shows it. `hub.ts` is static data (the landing never loads the docs IA —
+  hairlines, each with the section that shows it. The tab row and the open
+  shelf scroll sideways, so each edge with more past it shows a fade in
+  the panel's ground and a chevron (a round knob on the shelf) that pages
+  it by 80% (`rail()` in `Hub.vue`: scroll and ResizeObserver, no polling;
+  instant under reduced motion). The chevrons are the pointer's way
+  (touch swipes, the keyboard's focus scrolls), hidden from assistive
+  tech, and only they take the pointer: what lies under a fade still takes
+  a click. `hub.ts` is static data (the landing never loads the docs IA —
   no cross-page imports) held honest by `tests/hub.spec.ts`: families and
   counts equal `GROUPS`, every card id is a section of the family it names.
 - Rhythm: the hero and the close run full width; everything else sits on
@@ -656,7 +670,9 @@ widgets/features; page-specific conventions live here.
   Build slider re-seeding its badge, emote hover, a principle re-staging
   the figure on hover, keyboard focus AND scroll (its words lighting in
   reading order; still under reduced motion), the directory tabs'
-  underline under the picked tab, canonical
+  underline under the picked tab (also after swiping the row on a phone),
+  the scroll cues (only the edges with more show, a chevron pages its row;
+  the tab row shows none at desktop width), canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
   create/select exactly one artboard.

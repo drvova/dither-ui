@@ -7,8 +7,10 @@
 // the section id), its family, name, a line and its path; under the shelf,
 // what every preview in the docs lets you do. The skyline is a map of the
 // shelf: a tower rises under the pointer and while its family's tab is
-// picked, and a click on a shelved family's tower picks its tab.
-import { computed, ref } from "vue"
+// picked, and a click on a shelved family's tower picks its tab. The tab
+// row (on a narrow screen) and the shelf scroll sideways; each edge with
+// more beyond it fades and carries a chevron that pages it.
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import { DitherAvatar, DitherIcon, DitherTabPanel, DitherTabs, type IconName } from "@dither-kit"
 import { routePath } from "@/shared/lib"
 import ClayzoFilm from "./ClayzoFilm.vue"
@@ -35,6 +37,54 @@ function onTower(area: string) {
   const shelf = SHELVES.find((s) => s.label === family)
   if (shelf) tab.value = shelf.value
 }
+
+/** A sideways scroller's cue: which of its edges have more past them, its
+ * height, and a page step for the chevrons. */
+function rail() {
+  const more = reactive({ start: false, end: false, height: 0 })
+  let el: HTMLElement | null = null
+  let ro: ResizeObserver | null = null
+  const read = () => {
+    more.start = !!el && el.scrollLeft > 1
+    more.end = !!el && el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+    more.height = el?.offsetHeight ?? 0
+  }
+  return {
+    more,
+    bind(next: HTMLElement | null | undefined) {
+      if (el !== (next ?? null)) {
+        el?.removeEventListener("scroll", read)
+        ro?.disconnect()
+        el = next ?? null
+        el?.addEventListener("scroll", read, { passive: true })
+        if (el && typeof ResizeObserver !== "undefined") (ro = new ResizeObserver(read)).observe(el)
+      }
+      read()
+    },
+    page(dir: 1 | -1) {
+      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      el?.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: still ? "auto" : "smooth" })
+    },
+  }
+}
+
+const panel = ref<HTMLElement | null>(null)
+const tabRail = rail()
+const shelfRail = rail()
+const shelves = new Map<string, HTMLElement>()
+
+// The open shelf is the one the cue follows (the others are hidden).
+function bindRails() {
+  tabRail.bind(panel.value?.querySelector<HTMLElement>('[role="tablist"]'))
+  shelfRail.bind(shelves.get(tab.value))
+}
+
+onMounted(bindRails)
+watch(tab, () => nextTick(bindRails))
+onBeforeUnmount(() => {
+  tabRail.bind(null)
+  shelfRail.bind(null)
+})
 
 // The docs' preview tools (the workbench and the source panel), each with
 // the section that shows it best.
@@ -90,21 +140,54 @@ const TABS = SHELVES.map((s) => ({
         </template>
       </ClayzoFilm>
     </div>
-    <div class="panel window">
+    <div ref="panel" class="panel window">
+      <span
+        v-show="tabRail.more.start"
+        class="edge edge-start tab-edge"
+        :style="{ height: `${tabRail.more.height - 1}px` }"
+        aria-hidden="true"
+        ><span class="chev" @click="tabRail.page(-1)"
+          ><DitherIcon name="ChevronLeft" :size="14" :stroke-width="1.5" /></span
+      ></span>
+      <span
+        v-show="tabRail.more.end"
+        class="edge edge-end tab-edge"
+        :style="{ height: `${tabRail.more.height - 1}px` }"
+        aria-hidden="true"
+        ><span class="chev" @click="tabRail.page(1)"
+          ><DitherIcon name="ChevronRight" :size="14" :stroke-width="1.5" /></span
+      ></span>
       <DitherTabs v-model="tab" :tabs="TABS" color="grey" class="tabs">
         <DitherTabPanel v-for="s in SHELVES" :key="s.value" :value="s.value" class="shelf">
-          <div class="cards">
-            <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="thumb card">
-              <span class="card-top">
-                <span class="card-av" aria-hidden="true"
-                  ><DitherAvatar :name="c.id" :size="28" :grid="6" :animate="false" color="blue"
-                /></span>
-                <span class="card-family">{{ c.family }}</span>
-              </span>
-              <span class="card-name">{{ c.label }}</span>
-              <span class="card-note">{{ c.note ?? s.note }}</span>
-              <span class="card-path">/docs/{{ c.id }}</span>
-            </a>
+          <div class="rail">
+            <div
+              :ref="
+                (el) => {
+                  if (el) shelves.set(s.value, el as HTMLElement)
+                }
+              "
+              class="cards"
+            >
+              <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="thumb card">
+                <span class="card-top">
+                  <span class="card-av" aria-hidden="true"
+                    ><DitherAvatar :name="c.id" :size="28" :grid="6" :animate="false" color="blue"
+                  /></span>
+                  <span class="card-family">{{ c.family }}</span>
+                </span>
+                <span class="card-name">{{ c.label }}</span>
+                <span class="card-note">{{ c.note ?? s.note }}</span>
+                <span class="card-path">/docs/{{ c.id }}</span>
+              </a>
+            </div>
+            <span v-show="shelfRail.more.start" class="edge edge-start" aria-hidden="true"
+              ><span class="chev knob" @click="shelfRail.page(-1)"
+                ><DitherIcon name="ChevronLeft" :size="14" :stroke-width="1.5" /></span
+            ></span>
+            <span v-show="shelfRail.more.end" class="edge edge-end" aria-hidden="true"
+              ><span class="chev knob" @click="shelfRail.page(1)"
+                ><DitherIcon name="ChevronRight" :size="14" :stroke-width="1.5" /></span
+            ></span>
           </div>
           <a v-if="s.value !== 'explore'" :href="routePath(`/docs/${s.cards[0].id}`)" class="lead shelf-all">
             All {{ s.count }} {{ s.label.toLowerCase() }}
@@ -168,11 +251,82 @@ const TABS = SHELVES.map((s) => ({
 }
 
 .window {
+  position: relative;
   overflow: hidden;
 }
 
+/* What lies past a sideways scroller's edge: a fade in the panel's own
+   ground and a chevron that pages it, shown only on an edge with more.
+   The chevron is the pointer's way (touch swipes; the keyboard moves
+   focus, which scrolls), so it is hidden from assistive tech, and only it
+   takes the pointer: a tab or card under the fade still takes a click. */
+.edge {
+  position: absolute;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  width: 56px;
+  pointer-events: none;
+}
+
+.edge-start {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: 6px;
+  background: linear-gradient(to right, var(--background) 35%, transparent);
+}
+
+.edge-end {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: 6px;
+  background: linear-gradient(to left, var(--background) 35%, transparent);
+}
+
+/* On the tab row the chevron sits on the labels' line (the row's 12px top
+   and the tabs' 8px floor), above the hairline. */
+.tab-edge {
+  padding-top: 12px;
+  padding-bottom: 8px;
+}
+
+.rail {
+  position: relative;
+}
+
+.rail .edge {
+  bottom: 0;
+}
+
+.chev {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--ink-2);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chev:hover {
+  color: var(--ink);
+}
+
+/* On the shelf, a round knob over the cards. */
+.knob {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--background) 85%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* The tabs sit a step in from the panel's top: flush, their labels and
+   badges ran into its hairline and read as clipped. */
 .tabs :deep([role="tablist"]) {
-  padding: 0 14px;
+  padding: 12px 14px 0;
   box-shadow: inset 0 -1px 0 var(--line);
   overflow-x: auto;
   scrollbar-width: none;

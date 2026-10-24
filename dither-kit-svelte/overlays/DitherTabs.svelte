@@ -210,7 +210,7 @@
 
   const listClass = $derived(
     cn(
-      vertical ? "flex flex-col" : "flex",
+      vertical ? "relative flex flex-col" : "relative flex",
       variant === "segmented"
         ? "gap-1 rounded-md border border-border/60 p-1" + (vertical ? "" : " items-center")
         : variant === "underline"
@@ -269,18 +269,20 @@
         {/if}
       </button>
     {/each}
+    <!-- The marker lives in the list, so a list that scrolls (more tabs
+         than width) carries it with its tab and clips it at its edges. -->
+    {#if variant !== "segmented"}
+      <canvas
+        bind:this={canvasEl}
+        aria-hidden="true"
+        class={cn(
+          "absolute transition-[left,top,width,height] duration-200 motion-reduce:transition-none",
+          variant === "washed" ? "rounded" : ""
+        )}
+        style={markerStyle}
+      ></canvas>
+    {/if}
   </div>
-  {#if variant !== "segmented"}
-    <canvas
-      bind:this={canvasEl}
-      aria-hidden="true"
-      class={cn(
-        "absolute transition-[left,top,width,height] duration-200 motion-reduce:transition-none",
-        variant === "washed" ? "rounded" : ""
-      )}
-      style={markerStyle}
-    ></canvas>
-  {/if}
   <!-- Panels: put DitherTabPanel children here so they inherit the context. -->
   {@render children?.()}
 </div>
