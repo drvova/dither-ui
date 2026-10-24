@@ -34,9 +34,15 @@ function crawlFiles(): RsbuildPlugin {
         emit("robots.txt", crawl.robotsTxt())
         emit("llms.txt", crawl.llmsTxt())
         // The og engine's surface: the 1200x630 card renderer + the section
-        // manifest (also the prerender's data contract for per-section pages).
+        // manifest (also the prerender's data contract for per-section pages),
+        // and per card its Discord component embed and oEmbed photo (the
+        // prerender draws the PNG and GIF they point at).
         emit("og/index.html", crawl.ogCardPage())
         emit("og/sections.json", crawl.sectionsManifest())
+        for (const card of crawl.shareCards()) {
+          emit(`embed/${card.id}.json`, crawl.componentEmbed(card))
+          emit(`oembed/${card.id}.json`, crawl.oembed(card))
+        }
       })
     },
   }

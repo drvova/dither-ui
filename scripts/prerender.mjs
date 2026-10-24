@@ -25,6 +25,7 @@ const MIME = {
   ".js": "text/javascript",
   ".css": "text/css",
   ".png": "image/png",
+  ".gif": "image/gif",
   ".webp": "image/webp",
   ".svg": "image/svg+xml",
   ".json": "application/json",
@@ -125,51 +126,63 @@ async function renderPosters() {
 
 /* ---------------- SEO engine: og cards + per-section docs pages ---------- */
 
-// The og card renderer's data contract, emitted by the crawler plugin.
+// Every share card (the three routes, then each docs section) drawn by the
+// build's own renderer page (dist/og/index.html, from crawler-files.ts):
+// its still as og/<id>.png and its loop as og/<id>.gif, which the pages'
+// og tags, Discord component embeds and oEmbed photos point at. A few pages
+// draw at once (encoding is CPU-bound, one card about a second).
 async function renderOgCards() {
-  const manifestPath = join(DIST, "og", "sections.json")
-  let sections
-  try {
-    sections = JSON.parse(await readFile(manifestPath, "utf8"))
-  } catch {
-    console.log("og: no sections manifest — skipping og cards (crawler plugin emits it)")
+  const renderer = join(DIST, "og", "index.html")
+  if (!existsSync(renderer)) {
+    console.log("og: no renderer page — skipping cards (the crawler plugin emits it)")
     return
   }
-  // Card render is the build's long pole (~1s/section); a manifest-hash
-  // marker skips it when no label/title/id changed.
+  // A marker skips the render when neither the renderer nor the manifest
+  // changed and the cards are still there (a prerender run on its own).
   const { createHash } = await import("node:crypto")
-  const hash = createHash("sha256").update(JSON.stringify(sections)).digest("hex").slice(0, 16)
+  const hash = createHash("sha256")
+    .update(await readFile(renderer))
+    .update(await readFile(join(DIST, "og", "sections.json")))
+    .digest("hex")
+    .slice(0, 16)
   const marker = join(DIST, "og", ".cards-hash")
-  if (
-    await access(marker).then(
-      () => true,
-      () => false,
-    )
-  ) {
-    const prev = (await readFile(marker, "utf8")).trim()
-    if (prev === hash) {
-      console.log(`og: manifest unchanged (${sections.length} cards cached) — skipping render`)
-      return
-    }
+  const prev = await readFile(marker, "utf8").catch(() => "")
+  if (prev.trim() === hash && existsSync(join(DIST, "og", "home.gif"))) {
+    console.log("og: renderer and manifest unchanged — cards cached, skipping render")
+    return
   }
-  const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
+  const open = async () => {
+    const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
+    await page.goto(`http://127.0.0.1:${port}/og/index.html`, { waitUntil: "load" })
+    await page.waitForFunction(() => document.title !== "og-loading", undefined, { timeout: 15_000 })
+    if ((await page.title()) !== "og-ready") throw new Error("og: the renderer failed to load its cards")
+    return page
+  }
+  const first = await open()
+  const queue = await first.evaluate(() => window.og.ids())
+  const total = queue.length
   let done = 0
-  for (const s of sections) {
-    await page.goto(`http://127.0.0.1:${port}/og/index.html?id=${encodeURIComponent(s.id)}`, {
-      waitUntil: "networkidle",
-    })
-    try {
-      await page.waitForFunction(() => document.title === "og-ready", { timeout: 10_000 })
-      await page.waitForTimeout(120)
-      await page.screenshot({ path: join(DIST, "og", `${s.id}.png`), clip: { x: 0, y: 0, width: 1200, height: 630 } })
+  let bytes = 0
+  const started = Date.now()
+  const work = async (page) => {
+    for (let id = queue.shift(); id; id = queue.shift()) {
+      const files = await page.evaluate((id) => window.og.files(id), id)
+      const png = Buffer.from(files.png, "base64")
+      const gif = Buffer.from(files.gif, "base64")
+      await writeFile(join(DIST, "og", `${id}.png`), png)
+      await writeFile(join(DIST, "og", `${id}.gif`), gif)
+      bytes += png.length + gif.length
       done++
-    } catch (err) {
-      console.log(`og: card for "${s.id}" failed (${String(err).slice(0, 80)}) — embed falls back to the site og.png`)
     }
+    await page.close()
   }
-  await page.close()
+  const pages = [first, ...(await Promise.all([1, 2, 3].map(open)))]
+  await Promise.all(pages.map(work))
   await writeFile(marker, hash)
-  console.log(`og: rendered ${done}/${sections.length} section cards -> dist/og/*.png`)
+  const seconds = ((Date.now() - started) / 1000).toFixed(0)
+  console.log(
+    `og: drew ${done}/${total} share cards -> dist/og/<id>.png + .gif (${(bytes / 1048576).toFixed(1)} MB, ${seconds}s)`,
+  )
 }
 
 // One prerendered docs DOM serves every section: clone the entry, swap in
@@ -189,7 +202,6 @@ async function writeSectionPages(flow) {
     return
   }
   const entry = await readFile(join(DIST, "docs", "index.html"), "utf8")
-  const SITE = "https://dither-ui.com"
   // The source head's STATIC assets (module scripts, stylesheets, icons) are
   // what the section page reuses; every meta/title/canonical/ld line is
   // stripped first so the section's own block can be injected exactly once —
@@ -205,28 +217,18 @@ async function writeSectionPages(flow) {
   if (flow && at < 0) console.log("sections: docs flow not found in the snapshot — pages keep the whole flow")
   const headLines = headMatch[0]
     .split("\n")
-    .filter((l) => !/<title>|name="description"|name="twitter:|property="og:|rel="canonical"/.test(l))
+    .filter(
+      (l) =>
+        !/<title>|name="description"|name="twitter:|property="og:|rel="canonical"|rel="discord:component-embed"|application\/json\+oembed/.test(
+          l,
+        ),
+    )
   const strippedHead = headLines.join("\n")
   let written = 0
   for (const s of sections) {
-    const ogImage = `${SITE}/og/${s.id}.png`
-    const esc = (v) => v.replace(/"/g, "&quot;")
-    const headBlock =
-      `\n    <title>${esc(s.title)}</title>\n` +
-      `    <meta name="description" content="${esc(s.description)}" />\n` +
-      `    <link rel="canonical" href="${s.url}" />\n` +
-      `    <meta property="og:type" content="article" />\n` +
-      `    <meta property="og:title" content="${esc(s.title)}" />\n` +
-      `    <meta property="og:description" content="${esc(s.description)}" />\n` +
-      `    <meta property="og:url" content="${s.url}" />\n` +
-      `    <meta property="og:image" content="${ogImage}" />\n` +
-      `    <meta property="og:image:width" content="1200" />\n` +
-      `    <meta property="og:image:height" content="630" />\n` +
-      `    <meta name="twitter:card" content="summary_large_image" />\n` +
-      `    <meta name="twitter:title" content="${esc(s.title)}" />\n` +
-      `    <meta name="twitter:description" content="${esc(s.description)}" />\n` +
-      `    <meta name="twitter:image" content="${ogImage}" />\n` +
-      `    <script type="application/ld+json">${s.breadcrumb}</script>`
+    // The section's own head (meta, its share card's tags, its breadcrumb),
+    // composed by the manifest from seo.ts.
+    const headBlock = `\n    ${s.head}`
     const own = at >= 0 && flow.kids.some((k) => k.id === s.id)
     const body = own
       ? noLd.slice(0, at) +
@@ -241,8 +243,29 @@ async function writeSectionPages(flow) {
     await mkdir(dir, { recursive: true })
     await writeFile(join(dir, "index.html"), html)
     written++
+    await refineEmbed(s, flow?.kids.find((k) => k.id === s.id)?.lede ?? "")
   }
   console.log(`sections: wrote ${written} per-section docs pages -> dist/docs/<id>/index.html`)
+}
+
+// A section's Discord embed says what the section says first (its lede, cut
+// at a sentence within ~280 characters) in place of the generic meta
+// description it was built with, under the embed's 3,000 byte cap.
+async function refineEmbed(section, lede) {
+  if (!lede) return
+  const path = join(DIST, "embed", `${section.id}.json`)
+  const embed = JSON.parse(await readFile(path, "utf8").catch(() => "null"))
+  const text = embed?.component?.components?.[0]
+  if (!text?.content?.includes(section.description)) return
+  const sentences = lede.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [lede]
+  let said = ""
+  for (const sentence of sentences) {
+    if (said && (said + sentence).length > 280) break
+    said += sentence
+  }
+  text.content = text.content.replace(section.description, () => said.trim())
+  const json = JSON.stringify(embed)
+  if (Buffer.byteLength(json) <= 3000) await writeFile(path, json)
 }
 
 let docsFlow = null
@@ -282,7 +305,12 @@ try {
       docsFlow = await page.evaluate(() => {
         const flow = document.querySelector(".docs-flow")
         if (!flow) return null
-        const kids = [...flow.children].map((c) => ({ id: c.tagName === "SECTION" ? c.id : "", html: c.outerHTML }))
+        // A section's lede is its first paragraph (the anatomy's muted line).
+        const kids = [...flow.children].map((c) => ({
+          id: c.tagName === "SECTION" ? c.id : "",
+          html: c.outerHTML,
+          lede: c.querySelector("p")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+        }))
         return { inner: flow.innerHTML, kids }
       })
     const html = await page.content()

@@ -1,4 +1,6 @@
+import * as gif from "../../shared/lib/gif.ts"
 import { GROUPS, SECTIONS } from "./groups.ts"
+import * as card from "./og-card.ts"
 import { docsBreadcrumb, docsMeta, SITE_URL } from "./seo.ts"
 
 // The crawler-surface files (`dist/sitemap.xml`, `dist/robots.txt`,
@@ -50,9 +52,12 @@ export function robotsTxt(): string {
     "",
     "User-agent: *",
     "Allow: /",
-    "# /og/ renders the social-embed cards (1200x630) the meta tags point at;",
-    "they are assets, not content pages.",
-    "Disallow: /og/",
+    "# /og/ holds the share cards the meta tags point at, which every link",
+    "# preview must be able to fetch (X's bot obeys this file), beside the",
+    "# renderer that draws them, which is no page to index.",
+    "Disallow: /og/$",
+    "Disallow: /og/index.html",
+    "Disallow: /og/sections.json",
     "",
     `Sitemap: ${SITE_URL}/sitemap.xml`,
     "",
@@ -62,9 +67,11 @@ export function robotsTxt(): string {
 /* ----------------------- sections manifest (og engine) -------------------- */
 
 // The SEO engine's data contract: one JSON record per docs section, consumed
-// by scripts/prerender.mjs (per-section static pages + og images) and by the
-// /og/ renderer itself. Same single source as the sitemap — meta derives
-// from seo.ts's docsMeta/docsBreadcrumb, never a reimplementation.
+// by scripts/prerender.mjs (per-section static pages + og images), by the
+// /og/ renderer itself and by the Discord service. Same single source as
+// the sitemap — meta derives from seo.ts's docsMeta/docsBreadcrumb, never a
+// reimplementation. `head` is the section page's whole head block (its
+// meta, its card's tags and its breadcrumb), so the prerender only places it.
 export interface SectionRecord {
   id: string
   label: string
@@ -73,30 +80,216 @@ export interface SectionRecord {
   title: string
   description: string
   breadcrumb: string
+  head: string
 }
 
 export function sectionsManifest(): string {
   return JSON.stringify(
-    SECTIONS.map((s) => {
+    SECTIONS.map((s): SectionRecord => {
+      const meta = docsMeta(s.id)
       const group = GROUPS.find((g) => g.items.some((i) => i.id === s.id))?.title ?? "Docs"
-      return {
-        ...docsMeta(s.id),
-        group,
-        breadcrumb: docsBreadcrumb(s.id),
-      }
+      const breadcrumb = docsBreadcrumb(s.id)
+      const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
+      const head = [
+        `<title>${esc(meta.title)}</title>`,
+        `<meta name="description" content="${esc(meta.description)}" />`,
+        `<link rel="canonical" href="${meta.url}" />`,
+        `<meta property="og:type" content="article" />`,
+        `<meta property="og:title" content="${esc(meta.title)}" />`,
+        `<meta property="og:description" content="${esc(meta.description)}" />`,
+        `<meta property="og:url" content="${meta.url}" />`,
+        `<meta name="twitter:card" content="summary_large_image" />`,
+        `<meta name="twitter:title" content="${esc(meta.title)}" />`,
+        `<meta name="twitter:description" content="${esc(meta.description)}" />`,
+        shareHead(sectionCard(s.id)),
+        `<script type="application/ld+json">${breadcrumb}</script>`,
+      ].join("\n    ")
+      return { ...meta, group, breadcrumb, head }
     }),
   )
 }
 
+/* ------------------------------ share cards ------------------------------- */
+
+// Every page the site shares has a card: the three routes and each docs
+// section. The build writes each one as `og/<id>.png` (the og:image every
+// link preview can show), `og/<id>.gif` (the same card looping, for what
+// plays an image: Discord, Slack, a README), `embed/<id>.json` (Discord's
+// component embed: the title, the line, the playing card and link buttons,
+// which Discord shows in place of the og preview) and `oembed/<id>.json`
+// (an oEmbed photo of the playing card, which Slack reads first). Copy
+// follows the site's bans: sentence case, no eyebrow, no middle dot or em
+// dash, buttons that name where they go.
+
+export interface ShareCard {
+  id: string
+  url: string
+  title: string
+  /** The page's description, as its og tags carry it. */
+  description: string
+  /** What the card shows, for its image's alt text. */
+  alt: string
+  links: { label: string; url: string }[]
+}
+
+/** The route cards (their art is the horizon). The ids share `og/` with the
+ * section ids, so none may be one (the tests hold this). */
+export const ROUTE_CARDS = [
+  {
+    id: "home",
+    url: `${SITE_URL}/`,
+    title: "dither-ui",
+    line: "A dithered UI toolkit for Vue and Svelte",
+    description:
+      "264 Vue components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
+    links: [
+      { label: "Read the docs", url: `${SITE_URL}/docs` },
+      { label: "Open the studio", url: `${SITE_URL}/studio` },
+      { label: "Source on GitHub", url: REPO_URL },
+    ],
+  },
+  {
+    id: "docs",
+    url: `${SITE_URL}/docs`,
+    title: "Documentation",
+    line: "Every component live, with its source and its API",
+    description:
+      "Explore live Vue examples, API references, component galleries, chart variants, and copy-ready code for dither-ui.",
+    links: [
+      { label: "Read the quick start", url: `${SITE_URL}/docs/getting-started` },
+      { label: "Source on GitHub", url: REPO_URL },
+    ],
+  },
+  {
+    id: "studio",
+    url: `${SITE_URL}/studio`,
+    title: "Studio",
+    line: "Compose screens from the kit, or have your agent do it",
+    description:
+      "Design dithered charts and screens in the browser, export Vue code, images or video, or hand the canvas to your own coding agent.",
+    links: [
+      { label: "Open the studio", url: `${SITE_URL}/studio` },
+      { label: "Read the agent skill", url: `${SITE_URL}/agent/SKILL.md` },
+    ],
+  },
+] as const
+
+export function sectionCard(id: string): ShareCard {
+  const meta = docsMeta(id)
+  return {
+    id,
+    url: meta.url,
+    title: meta.label,
+    description: meta.description,
+    alt: `${meta.label} in the dither-ui docs, over a drifting field of dithered blue`,
+    links: [
+      { label: "Open the docs", url: meta.url },
+      { label: "Source on GitHub", url: REPO_URL },
+    ],
+  }
+}
+
+export function shareCards(): ShareCard[] {
+  const routes = ROUTE_CARDS.map((r) => ({
+    id: r.id,
+    url: r.url,
+    title: r.title,
+    description: r.description,
+    alt: `${r.title} over two dithered horizons, blue and purple, under a few stars`,
+    links: [...r.links],
+  }))
+  return [...routes, ...SECTIONS.map((s) => sectionCard(s.id))]
+}
+
+/** The side bar: the theme-color every page declares, as Discord's integer
+ * colour, so the component embed and its og fallback wear the same one. */
+const THEME = 0x3f8ff3
+
+/** Discord's component embed for a card: one Container holding the title
+ * and description, the playing card and its links (link buttons only, as
+ * component embeds allow). Under Discord's 3,000 byte cap. */
+export function componentEmbed(card: ShareCard): string {
+  const group = GROUPS.find((g) => g.items.some((i) => i.id === card.id))?.title
+  const note = group ? `${group}, in the dither-ui docs` : "dither-ui.com"
+  return JSON.stringify({
+    component: {
+      type: 17,
+      accent_color: THEME,
+      components: [
+        { type: 10, content: `## ${card.title}\n${card.description}\n-# ${note}` },
+        { type: 12, items: [{ media: { url: `${SITE_URL}/og/${card.id}.gif` }, description: card.alt }] },
+        { type: 1, components: card.links.map((l) => ({ type: 2, style: 5, label: l.label, url: l.url })) },
+      ],
+    },
+  })
+}
+
+/** An oEmbed photo of the playing card, its still as the thumbnail. */
+export function oembed(card: ShareCard): string {
+  return JSON.stringify({
+    version: "1.0",
+    type: "photo",
+    title: card.title === "dither-ui" ? card.title : `${card.title} | dither-ui`,
+    url: `${SITE_URL}/og/${card.id}.gif`,
+    width: 1200,
+    height: 630,
+    provider_name: "dither-ui",
+    provider_url: `${SITE_URL}/`,
+    thumbnail_url: `${SITE_URL}/og/${card.id}.png`,
+    thumbnail_width: 1200,
+    thumbnail_height: 630,
+  })
+}
+
+/** The head tags that point a page's previews at its card: the og and X
+ * images (the still), Discord's component embed and the oEmbed photo. */
+export function shareHead(card: ShareCard): string {
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
+  return [
+    `<meta property="og:image" content="${SITE_URL}/og/${card.id}.png" />`,
+    `<meta property="og:image:type" content="image/png" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:image:alt" content="${esc(card.alt)}" />`,
+    `<meta name="twitter:image" content="${SITE_URL}/og/${card.id}.png" />`,
+    `<meta name="twitter:image:alt" content="${esc(card.alt)}" />`,
+    `<link rel="discord:component-embed" type="application/json" href="${SITE_URL}/embed/${card.id}.json" />`,
+    `<link rel="alternate" type="application/json+oembed" href="${SITE_URL}/oembed/${card.id}.json" title="${esc(card.title)}" />`,
+  ].join("\n    ")
+}
+
 /* --------------------------- og card renderer page ------------------------- */
 
-// A self-contained 1200x630 card renderer written to dist/og/index.html by
-// the build: reads ?id=<section>&seed=<n>&inv=<0|1>, draws the section's
-// title over a seeded ordered-dither field (the house Bayer 4x4 + ramp), and
-// flips document.title to "og-ready" when done. The prerender screenshots it
-// per section; the Discord interaction service re-renders it per seed. No
-// app bundle, no fonts to load — the browser's default mono is the identity.
+// The renderer the build draws every card with, written to dist/og/index.html:
+// one 1200x630 canvas, the art from og-card.ts and the GIF encoder from
+// shared/lib/gif.ts carried inline as their own source (so the page needs
+// no bundle and the Discord service can load it from a file), the type set
+// on top. `window.og.files(id)` answers a card's PNG and GIF as base64 (the
+// prerender's call); `?id=<card>&seed=<n>&inv=<0|1>` draws its first frame
+// and flips document.title to "og-ready" (the Discord service's
+// screenshot), `&play` loops it in place for a look. Sections come from
+// ./sections.json, routes from ROUTE_CARDS.
 export function ogCardPage(): string {
+  const data = {
+    OG_W: card.OG_W,
+    OG_H: card.OG_H,
+    OG_CELL: card.OG_CELL,
+    OG_FRAMES: card.OG_FRAMES,
+    OG_DELAY: card.OG_DELAY,
+    OG_GROUND: card.OG_GROUND,
+    OG_NIGHT: card.OG_NIGHT,
+    OG_SKY: card.OG_SKY,
+    OG_DUSK: card.OG_DUSK,
+    OG_BAYER: card.OG_BAYER,
+    TRANSPARENT: gif.TRANSPARENT,
+    ROUTES: ROUTE_CARDS.map(({ id, title, line }) => ({ id, title, line })),
+  }
+  const source = [
+    ...Object.entries(data).map(([name, value]) => `const ${name} = ${JSON.stringify(value)}`),
+    ...[card.ogSeed, card.ogRandom, card.ogPixel, card.ogLevel, card.ogBodies, card.ogFieldTone, card.ogCrests],
+    ...[card.ogArt, card.ogWrap, gif.byteBuffer, gif.medianCut, gif.distinctColours, gif.sample, gif.quantize],
+    ...[gif.lzw, gif.deltaBox, gif.encodeGif],
+  ].join("\n\n")
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -105,92 +298,147 @@ export function ogCardPage(): string {
 <meta name="robots" content="noindex" />
 <title>og-loading</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1200px; height: 630px; overflow: hidden; }
-  body {
-    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace;
-    background: #05060a;
-    color: #ededed;
-    position: relative;
-  }
-  canvas { position: absolute; inset: 0; width: 1200px; height: 630px; }
-  .card {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 0 64px 56px;
-  }
-  .kicker {
-    font-size: 15px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: #ff9632; margin-bottom: 18px;
-  }
-  h1 {
-    font-size: 64px; font-weight: 500; letter-spacing: -0.03em;
-    line-height: 1.05; max-width: 900px; color: #ededed;
-    text-wrap: balance;
-  }
-  h1 .stop { color: #ff9632; }
-  .foot {
-    position: absolute; left: 64px; right: 64px; bottom: 24px;
-    display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 16px; color: #8b8f98;
-  }
-  .foot b { color: #ededed; font-weight: 500; }
-  .group-chip {
-    position: absolute; top: 40px; left: 64px;
-    font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: #8b8f98; border: 1px solid #22252b; padding: 6px 12px;
-  }
+  * { margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; background: ${card.OG_GROUND}; }
+  canvas { display: block; }
 </style>
 </head>
 <body>
 <canvas id="dith" width="1200" height="630"></canvas>
-<div class="card">
-  <span class="group-chip" id="grp"></span>
-  <div class="kicker" id="kick"></div>
-  <h1 id="t"></h1>
-</div>
-<div class="foot"><span><b>dither-ui</b> · a dithered UI toolkit for Vue</span><span>dither-ui.com</span></div>
 <script>
-  // The house Bayer 4x4 (gradient seed) as 0-1 thresholds.
-  const B = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]].map(r=>r.map(v=>(v+0.5)/16));
-  // Deterministic per-section seed: the id hashed the same way everywhere.
-  function seedOf(id){ let h=2166136261; for(const ch of id){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619) } return (h>>>0) }
-  // Mulberry32 PRNG — small, stable, no deps.
-  function rng(seed){ return function(){ seed|=0; seed=(seed+0x6D2B79F5)|0; let t=Math.imul(seed^(seed>>>15),1|seed); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296 } }
-  const SKY = ["#0c1730","#1e429f","#2f6fd0","#7ba3ee","#c9dbff","#f4f8ff"];
-  function hex(c){ return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)] }
-  const SKYC = SKY.map(hex);
-  function draw(seed, inv){
-    const cv=document.getElementById("dith"), ctx=cv.getContext("2d");
-    const R=rng(seed), CS=12, cols=Math.ceil(1200/CS), rows=Math.ceil(630/CS);
-    // Three drifting gaussian bodies, seeded per section.
-    const blobs=[0,1,2].map(i=>({x:(0.25+R()*0.5)*1200, y:(0.15+R()*0.55)*630, r:(90+R()*110)*(inv?1.15:1), f:0.4+i*0.23, p:R()*6.28}));
-    const field=(px,py,t)=>{ let v=0; for(const b of blobs){ const dx=px-(b.x+Math.sin(t*b.f+b.p)*60), dy=py-(b.y+Math.cos(t*b.f*1.3+b.p)*40); const s=b.r; v+=1.1*Math.exp(-(dx*dx+dy*dy)/(2*s*s/4)) } return Math.min(v,1.15) };
-    ctx.fillStyle = inv ? "#0a0a0c" : "#05060a"; ctx.fillRect(0,0,1200,630);
-    for(let cy=0;cy<rows;cy++) for(let cx=0;cx<cols;cx++){
-      const L=field((cx+0.5)*CS,(cy+0.5)*CS,1.0);
-      if(L<0.22) continue;
-      const v=Math.min(1,L/0.9)*SKYC.length, base=Math.floor(v), i=base+((v-base)>B[cy&3][cx&3]?1:0);
-      if(i<=0) continue;
-      const c=SKYC[Math.min(i,SKYC.length)-1];
-      ctx.fillStyle="rgb("+c[0]+","+c[1]+","+c[2]+")";
-      ctx.fillRect(cx*CS,cy*CS,CS-1,CS-1);
-    }
+${source}
+
+const MONO = 'ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace'
+const INK = "#ededed", INK2 = "#b4b8c0", INK3 = "#8b8f98", LINE = "#2c3038", EMBER = "#ff9632"
+const canvas = document.getElementById("dith")
+const ctx = canvas.getContext("2d", { willReadFrequently: true })
+let SECTIONS = []
+const ready = fetch("./sections.json").then(r=>r.json()).then((s) => { SECTIONS = s })
+
+function cardOf(id, seed, inv) {
+  const route = ROUTES.find((r) => r.id === id)
+  if (route) return { id, art: "horizon", title: route.title, line: route.line, tag: "", seed: seed || ogSeed(id), inv: !!inv }
+  const s = SECTIONS.find((x) => x.id === id) || SECTIONS[0]
+  return {
+    id: s.id, art: "field", title: s.label.replace(/\\.+$/, ""), line: s.url.replace(/^https?:\\/\\//, ""),
+    tag: s.group, seed: seed || ogSeed(s.id), inv: !!inv,
   }
-  fetch("./sections.json").then(r=>r.json()).then(sections=>{
-    const id=new URLSearchParams(location.search).get("id")||"getting-started";
-    const seed=parseInt(new URLSearchParams(location.search).get("seed")||"0")||seedOf(id);
-    const inv=new URLSearchParams(location.search).get("inv")==="1";
-    const s=sections.find(x=>x.id===id)||sections[0];
-    draw(seed, inv);
-    document.getElementById("grp").textContent=s.group;
-    document.getElementById("kick").textContent=s.group+" — docs";
-    const h1=document.getElementById("t");
-    h1.textContent=s.label.replace(/\\.+$/,"");
-    const stop=document.createElement("span"); stop.className="stop"; stop.textContent=".";
-    h1.appendChild(stop);
-    document.title="og-ready";
-  }).catch(()=>{ document.title="og-error" });
+}
+
+function font(size, weight) {
+  ctx.font = (weight || 400) + " " + size + "px " + MONO
+}
+
+// The brand: the 7x7 diamond (ember core) and the name, top left.
+function brand() {
+  ctx.fillStyle = INK
+  ;[1, 3, 5, 7, 5, 3, 1].forEach((w, row) => ctx.fillRect(64 + (7 - w) * 1.5, 46 + row * 3, w * 3, 3))
+  ctx.fillStyle = EMBER
+  ctx.fillRect(64 + 9, 46 + 9, 3, 3)
+  ctx.fillStyle = INK
+  font(22, 500)
+  ctx.letterSpacing = "0px"
+  ctx.fillText("dither-ui", 97, 64)
+}
+
+// A hairline tag in the top right corner: a section's family.
+function tag(text, ground) {
+  font(15)
+  ctx.letterSpacing = "0px"
+  const w = ctx.measureText(text).width + 24
+  ctx.fillStyle = ground
+  ctx.beginPath()
+  ctx.roundRect(1136 - w + 0.5, 40.5, w - 1, 29, 6)
+  ctx.fill()
+  ctx.strokeStyle = LINE
+  ctx.lineWidth = 1
+  ctx.stroke()
+  ctx.fillStyle = INK3
+  ctx.fillText(text, 1136 - w + 12, 60)
+}
+
+// The title in as few lines as fit (shrinking a size when three would not),
+// its ember stop after the last word; then its line in a quieter ink.
+function title(card) {
+  const route = card.art === "horizon"
+  const max = route ? 760 : 700
+  let size = route ? 104 : 64
+  let lines
+  for (;;) {
+    font(size, 500)
+    ctx.letterSpacing = (-0.03 * size).toFixed(1) + "px"
+    lines = route ? [card.title] : ogWrap(card.title.split(" "), (t) => ctx.measureText(t).width, max)
+    const widest = Math.max(...lines.map((l) => ctx.measureText(l + ".").width))
+    if ((lines.length <= 2 || size <= 52) && widest <= max) break
+    size -= 4
+  }
+  const lead = Math.round(size * 1.06)
+  const last = route ? 318 : 520
+  lines.forEach((l, i) => {
+    const y = last - (lines.length - 1 - i) * lead
+    ctx.fillStyle = INK
+    ctx.fillText(l, 64, y)
+    if (i === lines.length - 1) {
+      ctx.fillStyle = EMBER
+      ctx.fillText(".", 64 + ctx.measureText(l).width, y)
+    }
+  })
+  font(route ? 26 : 22)
+  ctx.letterSpacing = "0px"
+  ctx.fillStyle = route ? INK2 : INK3
+  ogWrap(card.line.split(" "), (t) => ctx.measureText(t).width, 720)
+    .slice(0, 2)
+    .forEach((l, i) => ctx.fillText(l, 64, last + (route ? 60 : 54) + i * 36))
+}
+
+function draw(card, t) {
+  ctx.putImageData(new ImageData(ogArt(card, t), OG_W, OG_H), 0, 0)
+  brand()
+  if (card.tag) tag(card.tag, card.inv ? OG_NIGHT : OG_GROUND)
+  title(card)
+}
+
+function base64(bytes) {
+  let s = ""
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000))
+  return btoa(s)
+}
+
+window.og = {
+  ready,
+  card: cardOf,
+  // Every card the build draws: the routes, then each section.
+  ids: () => [...ROUTES.map((r) => r.id), ...SECTIONS.map((s) => s.id)],
+  // A card's still (its first frame) as a PNG and its loop as a GIF, base64.
+  async files(id, seed, inv) {
+    await ready
+    const card = cardOf(id, seed, inv)
+    const frames = []
+    for (let i = 0; i < OG_FRAMES; i++) {
+      draw(card, i / OG_FRAMES)
+      frames.push(ctx.getImageData(0, 0, OG_W, OG_H).data)
+    }
+    draw(card, 0)
+    // The card's own colours stay exact in the GIF (the ember stop is a
+    // few hundred pixels of 756,000); its type's antialiasing shares the rest.
+    const keep = [OG_GROUND, OG_NIGHT, ...OG_SKY, ...OG_DUSK, INK, INK2, INK3, LINE, EMBER].map((h) =>
+      [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)),
+    )
+    const gif = encodeGif(frames, OG_W, OG_H, OG_DELAY, { keep })
+    return { png: canvas.toDataURL("image/png").split(",")[1], gif: base64(gif) }
+  },
+}
+
+ready.then(() => {
+  const q = new URLSearchParams(location.search)
+  const card = cardOf(q.get("id") || "getting-started", parseInt(q.get("seed") || "0") || 0, q.get("inv") === "1")
+  draw(card, 0)
+  document.title = "og-ready"
+  if (q.has("play")) {
+    let i = 0
+    setInterval(() => draw(card, (++i % OG_FRAMES) / OG_FRAMES), OG_DELAY * 10)
+  }
+}).catch(() => { document.title = "og-error" })
 </script>
 </body>
 </html>

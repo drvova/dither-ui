@@ -103,7 +103,7 @@ Default section order:
   routes remain supported for old links. GitHub Pages deploys through
   `.github/workflows/pages.yml`: `rs build` (the site and the player
   bundle), the kit stylesheet, `404.html` copied from the bare shell, then
-  the prerender (snapshots, posters, agent registry, og cards, section
+  the prerender (snapshots, posters, agent registry, share cards, section
   pages), so the live site paints from bytes and every sitemap URL is a
   real page. Default deploy base is `/` because `public/CNAME` sets
   `dither-ui.com`. Set repo variable `BASE_PATH=/dither-ui/` only when
@@ -142,16 +142,29 @@ Default section order:
   `SITE_URL` + `GROUPS` (a dead section id fails the build), declares an
   explicit allow-all AI-crawler posture, and ships a curated llmstxt.org
   index. Guarded by `tests/crawler-files.spec.ts`.
-- SEO engine (in `scripts/prerender.mjs`, after the three routes): renders a
-  1200x630 og card per docs section (`dist/og/<id>.png`, from the
-  self-contained `ogCardPage()` renderer + `sectionsManifest()`, cached by a
-  manifest hash in `dist/og/.cards-hash`) and writes a per-section static
-  page `dist/docs/<id>/index.html` (section head: title/description/
-  canonical/og/twitter/BreadcrumbList — meta derived ONLY from
-  `seo.ts`'s `docsMeta`/`docsBreadcrumb`; body: the docs shell with only
-  that section in the flow, ~160 kB, never a copy of the whole docs). A
-  static host serves it at `/docs/<id>/`, which the docs deep link
-  accepts. The og surface is Disallow'd in robots (assets, not pages).
+- SEO engine (in `scripts/prerender.mjs`, after the three routes): draws a
+  1200x630 SHARE CARD per page the site shares (`home`, `docs`, `studio`
+  and every docs section) as `dist/og/<id>.png` (its still: the og/X image
+  every link preview shows) and `dist/og/<id>.gif` (the same card looping,
+  3.6s), with four pages of the self-contained `ogCardPage()` renderer
+  (`window.og.files(id)`; the art is `src/pages/docs/og-card.ts`, the
+  encoder `src/shared/lib/gif.ts`, both carried inline as their source), and
+  writes a per-section static page `dist/docs/<id>/index.html` (its head is
+  the manifest's `head`: title/description/canonical/og/twitter, the card's
+  tags, BreadcrumbList — meta derived ONLY from `seo.ts`'s
+  `docsMeta`/`docsBreadcrumb`; body: the docs shell with only that section
+  in the flow, ~160 kB, never a copy of the whole docs). A static host
+  serves it at `/docs/<id>/`, which the docs deep link accepts. Where an
+  app plays images, the card plays: every page's head (the route entries
+  by hand, the sections from the manifest) links Discord's component embed
+  `dist/embed/<id>.json` (title, a line, the playing GIF, link buttons;
+  Discord shows it in place of the og preview, the og tags its fallback; a
+  section's line is its own lede from the snapshot) and an oEmbed photo
+  `dist/oembed/<id>.json` of the GIF (Slack reads oEmbed first), both
+  emitted by the crawler plugin. The og:image stays the PNG: WhatsApp and
+  Telegram do not take a GIF. robots disallows only the renderer
+  (`/og/$`, `/og/index.html`, `/og/sections.json`): X's bot obeys it and
+  fetches the cards.
 - Agent surface: the Studio is agent-addressable (see `src/AGENTS.md`,
   `features/agent`): `public/agent/SKILL.md` teaches any harness (Claude
   Code, Codex, pi, omp, sitegeist-bridged browsers) to compose Studio
@@ -233,10 +246,12 @@ Default section order:
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node
   rejects a named digest for ed25519) answers `/component <section>` with a
-  Container embed (text + the section's og card + Re-roll/Night-Day/Open-docs
-  buttons) and updates the message in place on button clicks. Stateless
-  (`dith:<id>:<seed>:<inv>` custom ids); re-rolled previews render on demand
-  via playwright over `dist/og/index.html` (see `discord/README.md`).
+  Container embed (text + the section's share card, playing, +
+  Re-roll/Night-Day/Open-docs buttons) and updates the message in place on
+  button clicks. Stateless (`dith:<id>:<seed>:<inv>` custom ids); re-rolled
+  cards are drawn on demand as GIFs by `window.og.files` over
+  `dist/og/index.html` in playwright (see `discord/README.md`). A plain link
+  to the site needs no bot: its component embed does that.
 
 ## Workflow Rules
 

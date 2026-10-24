@@ -1,42 +1,60 @@
-// Animated GIF (89a) the kit's way: every frame quantized to ONE 256-colour
-// palette (median cut over samples of all frames) and ordered-dithered with
-// the kit's own Bayer matrix — so a recording of a dithered UI stays crisp
-// and stable from frame to frame instead of crawling with error-diffusion
-// noise. Pure: RGBA in, bytes out.
-import { bayerMatrix } from "@dither-kit"
+// Animated GIF (89a) the kit's way: every frame quantized to ONE palette
+// (the frames' own colours when they are few enough, else a median cut over
+// samples of all frames) and, given a threshold matrix, ordered-dithered by
+// it, so a recording of a dithered UI stays crisp and stable from frame to
+// frame instead of crawling with error-diffusion noise. After the first
+// frame only what changed is written (the changed box, the rest of it
+// transparent over the frame before), so a loop whose art moves in cells
+// costs a fraction of its full frames. Pure and import-free: RGBA in, bytes
+// out. The og card renderer carries these functions inline (crawler-files.ts
+// writes their source into its page), so each one is a plain declaration
+// that names only the others.
 
 export type Frame = Uint8ClampedArray
 
+/** `matrix` ordered-dithers each pixel by up to ±`spread`/2 before it is
+ * matched (default 24 with a matrix); without one every pixel takes its
+ * nearest palette colour. `keep` are colours (RGB triples) the palette holds
+ * exactly however few pixels wear them: a design's own colours, which a
+ * sample of a large frame can miss (a one-glyph accent). */
+export type GifOptions = { matrix?: number[][]; spread?: number; keep?: number[][] }
+
+/** The palette slot a delta frame leaves see-through. */
+export const TRANSPARENT = 255
+
 /** A growable byte buffer. */
-class Bytes {
-  buf = new Uint8Array(1 << 16)
-  length = 0
-  private room(n: number) {
-    if (this.length + n <= this.buf.length) return
-    let size = this.buf.length * 2
-    while (size < this.length + n) size *= 2
+export function byteBuffer() {
+  let buf = new Uint8Array(1 << 16)
+  let length = 0
+  const room = (n: number) => {
+    if (length + n <= buf.length) return
+    let size = buf.length * 2
+    while (size < length + n) size *= 2
     const next = new Uint8Array(size)
-    next.set(this.buf.subarray(0, this.length))
-    this.buf = next
+    next.set(buf.subarray(0, length))
+    buf = next
   }
-  byte(b: number) {
-    this.room(1)
-    this.buf[this.length++] = b
+  const byte = (b: number) => {
+    room(1)
+    buf[length++] = b
   }
-  word(w: number) {
-    this.byte(w & 255)
-    this.byte((w >> 8) & 255)
-  }
-  text(s: string) {
-    for (const ch of s) this.byte(ch.charCodeAt(0))
-  }
-  bytes(src: ArrayLike<number>) {
-    this.room(src.length)
-    this.buf.set(src, this.length)
-    this.length += src.length
-  }
-  done() {
-    return this.buf.slice(0, this.length)
+  return {
+    byte,
+    word(w: number) {
+      byte(w & 255)
+      byte((w >> 8) & 255)
+    },
+    text(s: string) {
+      for (const ch of s) byte(ch.charCodeAt(0))
+    },
+    bytes(src: ArrayLike<number>) {
+      room(src.length)
+      buf.set(src, length)
+      length += src.length
+    },
+    done() {
+      return buf.slice(0, length)
+    },
   }
 }
 
@@ -79,6 +97,16 @@ export function medianCut(pixels: number[], max = 256): number[][] {
   })
 }
 
+/** The sampled colours themselves, when there are at most `max` of them. */
+export function distinctColours(pixels: number[], max = 256): number[][] | null {
+  const seen = new Set<number>()
+  for (const p of pixels) {
+    seen.add(p)
+    if (seen.size > max) return null
+  }
+  return [...seen].sort((a, b) => a - b).map((p) => [(p >> 16) & 255, (p >> 8) & 255, p & 255])
+}
+
 /** Pixels sampled across every frame (at most ~`budget`), packed RGB. */
 export function sample(frames: Frame[], budget = 60000): number[] {
   const total = frames.reduce((n, f) => n + f.length / 4, 0)
@@ -89,20 +117,22 @@ export function sample(frames: Frame[], budget = 60000): number[] {
   return out
 }
 
-/** One frame's palette indices, ordered-dithered by the Bayer matrix:
- * each pixel nudged by its cell's threshold (± spread/2) before the
- * nearest palette colour is found (cached per 6-bit RGB). */
+/** One frame's palette indices. With a threshold `matrix` each pixel is
+ * nudged by its cell's threshold (± spread/2) first, so flat tones between
+ * two palette colours become the matrix's pattern; the nearest colour is
+ * cached per 6-bit RGB. */
 export function quantize(
   frame: Frame,
   width: number,
   palette: number[][],
+  matrix: number[][] | null = null,
   spread = 24,
   cache = new Int16Array(1 << 18).fill(-1),
 ): Uint8Array {
-  const m = bayerMatrix(8)
+  const n = matrix ? matrix.length : 1
   const out = new Uint8Array(frame.length / 4)
   for (let i = 0, p = 0; i < frame.length; i += 4, p++) {
-    const t = (m[Math.floor(p / width) & 7][(p % width) & 7] - 0.5) * spread
+    const t = matrix ? (matrix[Math.floor(p / width) % n][(p % width) % n] - 0.5) * spread : 0
     const r = Math.min(255, Math.max(0, frame[i] + t))
     const g = Math.min(255, Math.max(0, frame[i + 1] + t))
     const b = Math.min(255, Math.max(0, frame[i + 2] + t))
@@ -128,7 +158,7 @@ export function quantize(
 /** GIF's variable-width LZW over palette indices, in ≤255-byte sub-blocks
  * ending with the zero block. */
 export function lzw(indices: Uint8Array, minCodeSize = 8): Uint8Array {
-  const out = new Bytes()
+  const out = byteBuffer()
   out.byte(minCodeSize)
   const clear = 1 << minCodeSize
   const eoi = clear + 1
@@ -183,11 +213,48 @@ export function lzw(indices: Uint8Array, minCodeSize = 8): Uint8Array {
   return out.done()
 }
 
+/** The box of `next` that differs from `prev`, every unchanged pixel in it
+ * see-through; a 1×1 see-through box when nothing changed. */
+export function deltaBox(prev: Uint8Array, next: Uint8Array, width: number) {
+  const height = next.length / width
+  let x0 = width
+  let y0 = height
+  let x1 = -1
+  let y1 = -1
+  for (let y = 0, p = 0; y < height; y++)
+    for (let x = 0; x < width; x++, p++)
+      if (prev[p] !== next[p]) {
+        if (x < x0) x0 = x
+        if (x > x1) x1 = x
+        if (y < y0) y0 = y
+        y1 = y
+      }
+  if (x1 < 0) return { x: 0, y: 0, w: 1, h: 1, indices: Uint8Array.of(TRANSPARENT) }
+  const w = x1 - x0 + 1
+  const h = y1 - y0 + 1
+  const indices = new Uint8Array(w * h)
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const p = (y0 + y) * width + x0 + x
+      indices[y * w + x] = prev[p] === next[p] ? TRANSPARENT : next[p]
+    }
+  return { x: x0, y: y0, w, h, indices }
+}
+
 /** A looping GIF of RGBA frames, `delay` centiseconds apart. */
-export function encodeGif(frames: Frame[], width: number, height: number, delay: number): Uint8Array {
-  const palette = medianCut(sample(frames), 256)
+export function encodeGif(
+  frames: Frame[],
+  width: number,
+  height: number,
+  delay: number,
+  { matrix, spread = matrix ? 24 : 0, keep = [] }: GifOptions = {},
+): Uint8Array {
+  // 255 colours: the last slot is the delta frames' see-through.
+  const pixels = sample(frames)
+  const room = TRANSPARENT - keep.length
+  const palette = [...keep, ...(distinctColours(pixels, room) ?? medianCut(pixels, room))]
   while (palette.length < 256) palette.push([0, 0, 0])
-  const out = new Bytes()
+  const out = byteBuffer()
   out.text("GIF89a")
   out.word(width)
   out.word(height)
@@ -204,17 +271,23 @@ export function encodeGif(frames: Frame[], width: number, height: number, delay:
   out.text("NETSCAPE2.0")
   out.bytes([0x03, 0x01, 0x00, 0x00, 0x00])
   const cache = new Int16Array(1 << 18).fill(-1)
+  let prev: Uint8Array | null = null
   for (const frame of frames) {
-    out.bytes([0x21, 0xf9, 0x04, 0x00])
+    const indices = quantize(frame, width, palette, matrix ?? null, spread, cache)
+    const box = prev ? deltaBox(prev, indices, width) : { x: 0, y: 0, w: width, h: height, indices }
+    // Graphic control: each frame stays under the next (disposal 1); a
+    // delta frame's see-through slot shows the one before through it.
+    out.bytes([0x21, 0xf9, 0x04, prev ? 0x05 : 0x04])
     out.word(delay)
-    out.bytes([0x00, 0x00])
+    out.bytes([TRANSPARENT, 0x00])
     out.byte(0x2c)
-    out.word(0)
-    out.word(0)
-    out.word(width)
-    out.word(height)
+    out.word(box.x)
+    out.word(box.y)
+    out.word(box.w)
+    out.word(box.h)
     out.byte(0)
-    out.bytes(lzw(quantize(frame, width, palette, 24, cache)))
+    out.bytes(lzw(box.indices))
+    prev = indices
   }
   out.byte(0x3b)
   return out.done()

@@ -40,7 +40,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `download()` and a stored .zip of text files, the ONE download path for
   the Studio's exports, the workbench and the source panel —
   `restyle.ts` — a snippet in the reader's styling system — and the
-  node-side `utility-map.ts` that compiles its vocabulary).
+  node-side `utility-map.ts` that compiles its vocabulary; `gif.ts` — the
+  ONE GIF encoder (one palette, `keep` colours held exact, optional
+  ordered dither, delta frames), import-free because the share-card
+  renderer carries its source inline: the workbench's captures and the
+  share cards both go through it).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
   component library, inspector controls, untrusted-prop sanitization, functional
   demo composition, and code export. Every public `Dither*` export is covered

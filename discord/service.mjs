@@ -1,9 +1,9 @@
 // dither-ui Discord interaction service — Components V2.
 //
 // Serves Discord's interaction webhook: a /component slash command posts a
-// Components V2 message (text + the section's og card + buttons), and the
-// buttons (Re-roll / Invert / Docs) UPDATE that message in place — the embed
-// itself is the interactive component demo. Stateless: the button custom_id
+// Components V2 message (text + the section's share card, playing, +
+// buttons), and the buttons (Re-roll / Invert / Docs) UPDATE that message in
+// place — the embed itself is the interactive component demo. Stateless: the button custom_id
 // carries (section, seed, invert), so any node can answer any click.
 //
 // Discord setup (one time, in the developer portal):
@@ -20,8 +20,8 @@
 //   DISCORD_PUBLIC_KEY  required — the application's public key (hex).
 //   PORT                default 8787.
 //   PUBLIC_BASE         public base URL serving this process (for re-rolled
-//                       preview URLs). Empty -> re-rolls respond with text
-//                       only (the initial card still uses the site og png).
+//                       preview URLs). Empty -> re-rolls keep the site's own
+//                       card (dither-ui.com/og/<id>.gif).
 //   DIST                dist folder to serve og assets from (default ../dist).
 //
 // Run: node discord/service.mjs
@@ -93,8 +93,10 @@ function encodeCustomId(sectionId, seed, inv) {
 
 /* --------------------------- og card rendering ---------------------------- */
 
-// The site's built /og/index.html renderer, reused per seed/invert. Renders
-// on demand and caches the PNG bytes in memory.
+// The site's built /og/index.html renderer, reused per seed/invert: its
+// window.og.files() draws the card's loop and encodes it as a GIF, the same
+// way the build draws dither-ui.com/og/<id>.gif. Renders on demand and caches
+// the GIF bytes in memory.
 const previewCache = new Map() // key -> Buffer
 
 async function renderPreview(sectionId, seed, inv) {
@@ -106,10 +108,9 @@ async function renderPreview(sectionId, seed, inv) {
   // path is not possible with fetch(); instead inline the manifest into the
   // page and short-circuit the fetch.
   const sections = await loadSections()
-  const withData = html.replace(
-    'fetch("./sections.json").then(r=>r.json())',
-    `Promise.resolve().then(()=>(${JSON.stringify([...sections.values()])}))`,
-  )
+  // (Escaped: a record's head carries a </script> that would close the page's.)
+  const inline = JSON.stringify([...sections.values()]).replace(/</g, "\\u003c")
+  const withData = html.replace('fetch("./sections.json").then(r=>r.json())', () => `Promise.resolve(${inline})`)
   if (!renderPage) {
     const { chromium } = await import("playwright-core")
     const exe = process.env.CHROME_PATH || "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
@@ -135,8 +136,8 @@ async function renderPreview(sectionId, seed, inv) {
     waitUntil: "networkidle",
   })
   await page.waitForFunction(() => document.title === "og-ready", undefined, { timeout: 10_000 })
-  const png = await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } })
-  const buf = Buffer.from(png)
+  const files = await page.evaluate(([id, seed, inv]) => window.og.files(id, seed, inv === 1), [sectionId, seed, inv])
+  const buf = Buffer.from(files.gif, "base64")
   previewCache.set(key, buf)
   if (previewCache.size > 256) previewCache.delete(previewCache.keys().next().value)
   return buf
@@ -146,19 +147,17 @@ async function renderPreview(sectionId, seed, inv) {
 
 function componentsFor(section, seed, inv) {
   const mediaUrl =
-    seed === 0 && inv === 0
-      ? `${SITE}/og/${section.id}.png`
-      : PUBLIC_BASE
-        ? `${PUBLIC_BASE}/preview/${section.id}/${seed}/${inv}.png`
-        : `${SITE}/og/${section.id}.png`
+    (seed !== 0 || inv !== 0) && PUBLIC_BASE
+      ? `${PUBLIC_BASE}/preview/${section.id}/${seed}/${inv}.gif`
+      : `${SITE}/og/${section.id}.gif`
   return [
     {
       type: 17, // Container
       accent_color: EMBER,
       components: [
         { type: 10, content: `## ${section.label}` }, // TextDisplay
-        { type: 10, content: `${section.description}\n-# ${section.group} · dither-ui docs` },
-        { type: 13, items: [{ media: { url: mediaUrl } }] }, // MediaGallery
+        { type: 10, content: `${section.description}\n-# ${section.group}, in the dither-ui docs` },
+        { type: 12, items: [{ media: { url: mediaUrl } }] }, // MediaGallery
         {
           type: 1, // ActionRow
           components: [
@@ -167,7 +166,6 @@ function componentsFor(section, seed, inv) {
               style: 1, // Primary
               label: "Re-roll seed",
               custom_id: encodeCustomId(section.id, seed === 0 ? 1 : seed + 1 + (seed % 7), inv),
-              emoji: { name: "🎲" },
             },
             {
               type: 2,
@@ -205,7 +203,7 @@ const NOT_FOUND = {
           { type: 10, content: "## Unknown section" },
           {
             type: 10,
-            content: "Try `/component` with a docs section id or label — e.g. `slider`, `avatar`, `charts`.",
+            content: "Try `/component` with a docs section id or label, like `slider`, `avatar` or `charts`.",
           },
         ],
       },
@@ -243,7 +241,7 @@ const server = createServer(async (req, res) => {
   }
 
   // Re-rolled preview images (public, referenced by Components V2 media).
-  const pv = url.pathname.match(/^\/preview\/([\w-]+)\/(\d+)\/(\d)\.png$/)
+  const pv = url.pathname.match(/^\/preview\/([\w-]+)\/(\d+)\/(\d)\.gif$/)
   if (req.method === "GET" && pv) {
     const sections = await loadSections()
     const section = sections.get(pv[1])
@@ -252,14 +250,14 @@ const server = createServer(async (req, res) => {
       res.end()
       return
     }
-    const png = await renderPreview(pv[1], Number(pv[2]), Number(pv[3])).catch(() => null)
-    if (!png) {
+    const gif = await renderPreview(pv[1], Number(pv[2]), Number(pv[3])).catch(() => null)
+    if (!gif) {
       res.writeHead(500)
       res.end()
       return
     }
-    res.writeHead(200, { "content-type": "image/png", "cache-control": "public, max-age=86400" })
-    res.end(png)
+    res.writeHead(200, { "content-type": "image/gif", "cache-control": "public, max-age=86400" })
+    res.end(gif)
     return
   }
 

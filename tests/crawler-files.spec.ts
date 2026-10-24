@@ -1,5 +1,17 @@
+import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
-import { llmsTxt, ogCardPage, robotsTxt, sectionsManifest, sitemapXml } from "@/pages/docs/crawler-files"
+import {
+  componentEmbed,
+  llmsTxt,
+  oembed,
+  ogCardPage,
+  ROUTE_CARDS,
+  robotsTxt,
+  sectionsManifest,
+  shareCards,
+  shareHead,
+  sitemapXml,
+} from "@/pages/docs/crawler-files"
 import { SECTIONS } from "@/pages/docs/groups"
 import { SITE_URL } from "@/pages/docs/seo"
 
@@ -39,13 +51,13 @@ describe("robots.txt", () => {
     expect(robots).toMatch(new RegExp(`Sitemap: ${SITE_URL}/sitemap\\.xml`))
   })
 
-  it("disallows only the og card surface, for the wildcard agent alone", () => {
+  it("disallows only the card renderer, for the wildcard agent alone, never the cards", () => {
     const disallows = [...robots.matchAll(/^Disallow: (.+)$/gm)].map((m) => m[1])
-    expect(disallows).toEqual(["/og/"])
-    const wildcard = robots.slice(robots.indexOf("User-agent: *"))
-    expect(wildcard).toMatch(/Disallow: \/og\//)
+    expect(disallows).toEqual(["/og/$", "/og/index.html", "/og/sections.json"])
     const namedBlock = robots.slice(0, robots.indexOf("User-agent: *"))
     expect(namedBlock).not.toMatch(/Disallow/)
+    // Every line is a directive, a comment or blank.
+    for (const line of robots.split("\n")) expect(line).toMatch(/^($|#|[A-Za-z-]+: )/)
   })
 })
 
@@ -71,6 +83,10 @@ describe("sections manifest (og engine)", () => {
     expect(manifest.map((s) => s.id)).toEqual(SECTIONS.map((s) => s.id))
     for (const s of manifest) {
       expect(s.url).toBe(`${SITE_URL}/docs/${s.id}`)
+      expect(s.head).toContain(`<link rel="canonical" href="${s.url}" />`)
+      expect(s.head).toContain(`${SITE_URL}/og/${s.id}.png`)
+      expect(s.head).toContain(`${SITE_URL}/embed/${s.id}.json`)
+      expect(s.head).toContain(`${SITE_URL}/oembed/${s.id}.json`)
       expect(s.title).toBe(`${s.label} | dither-ui`)
       expect(s.description.length).toBeGreaterThan(20)
       expect(s.group.length).toBeGreaterThan(0)
@@ -80,20 +96,76 @@ describe("sections manifest (og engine)", () => {
   })
 })
 
+describe("share cards", () => {
+  const cards = shareCards()
+
+  it("covers the routes then every section, with ids unique across both", () => {
+    expect(cards.map((c) => c.id)).toEqual([...ROUTE_CARDS.map((r) => r.id), ...SECTIONS.map((s) => s.id)])
+    expect(new Set(cards.map((c) => c.id)).size).toBe(cards.length)
+  })
+
+  it("gives Discord a component embed of the playing card under its 3,000 byte cap", () => {
+    for (const card of cards) {
+      const json = componentEmbed(card)
+      expect(new TextEncoder().encode(json).length).toBeLessThanOrEqual(3000)
+      const { component } = JSON.parse(json)
+      expect(component.type).toBe(17)
+      const kinds = component.components.map((c: { type: number }) => c.type)
+      expect(kinds).toEqual([10, 12, 1])
+      expect(component.components[1].items[0].media.url).toBe(`${SITE_URL}/og/${card.id}.gif`)
+      // Component embeds allow link buttons only, each with a label and a url.
+      for (const b of component.components[2].components) {
+        expect(Object.keys(b).sort()).toEqual(["label", "style", "type", "url"])
+        expect(b.style).toBe(5)
+        expect(b.label).not.toMatch(/[→›»]$/)
+      }
+    }
+  })
+
+  it("gives oEmbed readers the playing card as a photo, its still as the thumbnail", () => {
+    const o = JSON.parse(oembed(cards[0]))
+    expect(o).toMatchObject({ version: "1.0", type: "photo", width: 1200, height: 630 })
+    expect(o.url).toBe(`${SITE_URL}/og/home.gif`)
+    expect(o.thumbnail_url).toBe(`${SITE_URL}/og/home.png`)
+  })
+
+  it("is what each route's own head points at", () => {
+    const files = { home: "index.html", docs: "docs/index.html", studio: "studio/index.html" }
+    for (const card of cards.slice(0, ROUTE_CARDS.length)) {
+      const html = readFileSync(files[card.id as keyof typeof files], "utf8").replace(/\s+/g, " ")
+      for (const tag of shareHead(card)
+        .split("\n")
+        .map((t) => t.trim()))
+        expect(html).toContain(tag)
+    }
+  })
+
+  it("keeps the copy bans: no middle dot, em dash or uppercase label", () => {
+    for (const card of cards) {
+      const text = [card.title, card.description, card.alt, ...card.links.map((l) => l.label)].join(" ")
+      expect(text).not.toMatch(/[\u00b7\u2014]/)
+    }
+    expect(ogCardPage()).not.toMatch(/text-transform|toUpperCase|[\u00b7\u2014]/)
+  })
+})
+
 describe("og card page", () => {
   const page = ogCardPage()
+  const script = page.slice(page.indexOf("<script>") + 8, page.indexOf("</script>"))
 
-  it("is a self-contained renderer gated on og-ready with seed and invert params", () => {
+  it("is one self-contained script: the art and the GIF encoder inline, no imports", () => {
+    expect(() => new Function(script)).not.toThrow()
+    expect(script).not.toMatch(/\bimport\b|\brequire\(/)
+    for (const name of ["ogArt", "ogWrap", "encodeGif", "lzw", "deltaBox", "quantize"])
+      expect(script).toMatch(new RegExp(`function ${name}\\(`))
     expect(page).toMatch(/<canvas id="dith" width="1200" height="630">/)
-    expect(page).toMatch(/document\.title="og-ready"/)
-    expect(page).toMatch(/seedOf\(id\)/)
-    expect(page).toMatch(/inv/)
-    expect(page).toMatch(/Bayer|const B = \[/)
     expect(page).toMatch(/noindex/)
   })
 
-  it("draws through the house ramp and never solid discs (density cap)", () => {
-    expect(page).toMatch(/SKY = \["#0c1730"/)
-    expect(page).toMatch(/Math\.min\(v, ?1\.15\)/)
+  it("answers the prerender and the Discord service", () => {
+    expect(script).toContain("files(id, seed, inv)")
+    expect(script).toContain('document.title = "og-ready"')
+    // The Discord service swaps this exact read for the manifest inline.
+    expect(script).toContain('fetch("./sections.json").then(r=>r.json())')
   })
 })

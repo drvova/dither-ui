@@ -488,6 +488,22 @@ widgets/features; page-specific conventions live here.
   content-visibility seeds move the target while the smooth flight is still
   running, and Chromium's `scrollIntoView` refused the short re-aligns — taps
   landed a screen short. Deep links keep the `jump()` path.
+- Share cards (`docs/og-card.ts`, the art; `crawler-files.ts`, the cards,
+  their embeds and the renderer page): a card is the page's title (ember
+  stop) over the house dither in motion, the brand top left, a section's
+  family as a hairline tag top right, its address under the title; a
+  section's field of three seeded bodies stays out of the title's corner,
+  the routes roll two horizons (SKY, then the kit's purple seed as a
+  ramp) under stars. Every motion turns a whole number of times per loop
+  (36 frames at 10 fps), so the GIF's last frame meets its first; the PNG
+  is frame 0. Copy follows the bans (no uppercase, no eyebrow over the
+  title, no middle dot or em dash, buttons that name where they go).
+  `ROUTE_CARDS` holds the route cards' copy; their ids may never be
+  section ids. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
+  clear title corner, the lattice, Bayer order, balanced wrap) and the
+  share-card cases in `tests/crawler-files.spec.ts` (every page's embed
+  under Discord's 3,000 byte cap with link buttons only, the oEmbed photo,
+  each route head carrying its card's tags, the bans).
 - Section IA lives in `docs/groups.ts` — the single source for the sidebar,
   the `/docs/<id>` deep links, and the build-time crawl files
   (`crawler-files.ts` generates `dist/sitemap.xml`, `dist/robots.txt`, and
@@ -512,7 +528,13 @@ widgets/features; page-specific conventions live here.
   page title is the h1 "Documentation", no eyebrow. At xl the rail right of
   the content is "On this page": the section in view, its gallery headings
   and its API table, read from its DOM as the scroll-spy moves (headings
-  inside a preview are the demo's), each a button that scrolls to it. The
+  inside a preview are the demo's), each a button that scrolls to it.
+  Under it, Share (`SectionShare.vue`, a disclosure: `aria-expanded`, the
+  name "Share this section"): opened, the section's share card playing
+  (`og/<id>.gif`, loaded only then, hidden where no build drew it) and
+  three copies with the copy sound and a polite announcement: the link,
+  the card as a Markdown image and as an HTML image, each linking back to
+  the section (absolute `dither-ui.com` URLs, so they embed anywhere). The
   footer: dither-ui.com, GitHub (its mark), `v<version>` and MIT license as
   separate items.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
@@ -682,7 +704,14 @@ widgets/features; page-specific conventions live here.
   context menu) holds no em dash, middle dot, uppercase label or
   arrow-ended link outside code, kit default strings and kit component
   looks; the docs header fits from 360px to 1280px; the "On this page"
-  rail lists the section in view at xl.
+  rail lists the section in view at xl, and its Share opens on the
+  section's card playing and copies its link, Markdown and HTML.
+- Share cards after a full `npm run build`: every id `window.og.ids()`
+  lists has `dist/og/<id>.png` and `.gif` (the GIF's frames move and its
+  first is the PNG's card, the ember stop and the mark's core included),
+  `dist/embed/<id>.json` and `dist/oembed/<id>.json`, and a section page's
+  head points at its own (Discord's Embed Debugger,
+  discord.com/developers/embeds, reads a deployed URL as Discord will).
 
 ## Child DOX Index
 

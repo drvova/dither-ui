@@ -38,6 +38,7 @@ import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import DemoCard from "./DemoCard.vue"
+import SectionShare from "./SectionShare.vue"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
 import { play, sounds } from "@/shared/lib/sound"
 import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
@@ -2146,6 +2147,7 @@ const gradientCode = computed(
             </li>
           </ul>
         </nav>
+        <SectionShare v-if="activeId && docsMeta(activeId).id" :id="activeId" />
       </aside>
     </div>
 
