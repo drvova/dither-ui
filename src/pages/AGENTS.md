@@ -134,7 +134,14 @@ widgets/features; page-specific conventions live here.
   family; under the shelf, inside the panel, `TOOLS`: what every docs
   preview offers (Inspect, Edit and run, Hand it to your agent, each
   under its glyph: Crosshair, Code, Bot), three columns split by
-  hairlines, each with the section that shows it. `hub.ts` is static data (the landing never loads the docs IA —
+  hairlines, each with the section that shows it. The tab row and the open
+  shelf scroll sideways, so each edge with more past it shows a fade in
+  the panel's ground and a chevron (a round knob on the shelf) that pages
+  it by 80% (`rail()` in `Hub.vue`: scroll and ResizeObserver, no polling;
+  instant under reduced motion). The chevrons are the pointer's way
+  (touch swipes, the keyboard's focus scrolls), hidden from assistive
+  tech, and only they take the pointer: what lies under a fade still takes
+  a click. `hub.ts` is static data (the landing never loads the docs IA —
   no cross-page imports) held honest by `tests/hub.spec.ts`: families and
   counts equal `GROUPS`, every card id is a section of the family it names.
 - Rhythm: the hero and the close run full width; everything else sits on
@@ -658,7 +665,9 @@ widgets/features; page-specific conventions live here.
   Build slider re-seeding its badge, emote hover, a principle re-staging
   the figure on hover, keyboard focus AND scroll (its words lighting in
   reading order; still under reduced motion), the directory tabs'
-  underline under the picked tab (also after swiping the row on a phone), canonical
+  underline under the picked tab (also after swiping the row on a phone),
+  the scroll cues (only the edges with more show, a chevron pages its row;
+  the tab row shows none at desktop width), canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
   create/select exactly one artboard.
