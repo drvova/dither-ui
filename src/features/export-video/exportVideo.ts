@@ -3,8 +3,9 @@
 // the bridge to write under the harness's project).
 import type { Artboard } from "@/entities/artboard"
 import { editor } from "@/entities/editor"
-import { reelDuration } from "@/features/reel"
-import { assetPath, routePath, toBase64Url } from "@/shared/lib"
+import { reelDuration, scorePlanOf } from "@/features/reel"
+import { scoreCut, wavBytes } from "@dither-kit"
+import { assetPath, bytesToBase64, routePath, toBase64Url } from "@/shared/lib"
 import { download } from "@/shared/lib/files"
 import { compositionHtml, DEFAULT_VIDEO, normalizeVideoOptions, slugOf, type VideoOptions } from "./composition"
 
@@ -62,9 +63,24 @@ export function playerAssets(): Promise<{ js: string; css: string }> {
   return assets
 }
 
-/** One self-contained file: the player inline, no network at render time. */
+/** A reel's score for a video `seconds` long, as a WAV (null without one):
+ * the kit's synthesis of the cut, so every export of the reel sounds the same. */
+export function scoreWav(a: Artboard, seconds: number): Uint8Array | null {
+  if (a.widget?.kind !== "reel" || !a.widget.score) return null
+  return wavBytes(scoreCut(scorePlanOf(a.widget, seconds)), a.widget.score.seed)
+}
+
+/** One self-contained file: the player inline, the score as a data URI, no
+ * network at render time. */
 export async function selfContainedComposition(a: Artboard, o: VideoOptions): Promise<string> {
-  return compositionHtml(a, o, await playerAssets(), reelClips(a))
+  const wav = scoreWav(a, o.seconds)
+  return compositionHtml(
+    a,
+    o,
+    await playerAssets(),
+    reelClips(a),
+    wav ? `data:audio/wav;base64,${bytesToBase64(wav)}` : undefined,
+  )
 }
 
 export async function downloadComposition(a: Artboard, o: VideoOptions): Promise<string> {
@@ -80,6 +96,8 @@ export type VideoExportData = {
   options: VideoOptions
   index: string
   assets: { path: string; url: string }[]
+  /** A reel's score: the file the index plays, as base64. */
+  score?: { path: string; base64: string }
   render: string
 }
 

@@ -79,9 +79,37 @@ export type ReelTransitionKind = "cut" | "dissolve" | "wipe-right" | "wipe-left"
 /** How a clip comes in over the previous one: an ordered-dither dissolve or
  * wipe (`seconds` long, `cell` px cells, an optional seeded matrix), or a cut. */
 export type ReelTransition = { kind: ReelTransitionKind; seconds: number; cell: number; seed: number | null }
-export type ReelClip = { id: string; seconds: number; transition: ReelTransition }
-/** A reel plays other frames in order — clips by artboard id — and exports as one video. */
-export type ReelModel = { kind: "reel"; clips: ReelClip[] }
+/** A camera key over a clip: at `t` (0-1 of the clip) the camera looks at
+ * the point `x`, `y` of the frame (fractions), at `zoom` (1 = the frame
+ * fitted), leaning `tilt` degrees about the vertical. Keys ease between. */
+export type ReelCameraKey = { t: number; x: number; y: number; zoom: number; tilt: number }
+/** A spec callout: a point of the frame (fractions), its label and note, the
+ * side the label sits on, and when it is up (seconds into the clip). */
+export type ReelCallout = {
+  x: number
+  y: number
+  label: string
+  note: string
+  side: "left" | "right"
+  from: number
+  to: number
+}
+/** A chapter of the film from this clip on: one line and a spec list of
+ * [figure, words] rows, the figure first. */
+export type ReelChapter = { line: string; spec: [string, string][] }
+export type ReelClip = {
+  id: string
+  seconds: number
+  transition: ReelTransition
+  camera: ReelCameraKey[]
+  callouts: ReelCallout[]
+  chapter: ReelChapter | null
+}
+/** The film's soundtrack, synthesized from the cut (`scoreCut`). */
+export type ReelScore = { seed: number }
+/** A reel plays other frames in order — clips by artboard id — and exports as
+ * one video; with camera moves, callouts, chapters and a score it is a film. */
+export type ReelModel = { kind: "reel"; clips: ReelClip[]; score: ReelScore | null }
 
 export type WidgetModel =
   AvatarModel | ButtonModel | GradientModel | ImageModel | ComponentModel | ScreenModel | ReelModel

@@ -188,8 +188,13 @@ Default section order:
   that the export inlines. A reel (the `reel` widget kind, `reel.add` /
   `add_reel`, the `reel` selection action) plays other frames in order with
   ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
-  and exports as one MP4 as long as its cut. Details in `src/AGENTS.md`
-  and `dither-kit/AGENTS.md`.
+  and exports as one MP4 as long as its cut. A reel whose clips carry
+  camera keys, callouts and chapters is a film (`/studio#new/film` builds
+  the kit's own, `reel.add` takes them from any agent), with a soundtrack
+  the kit synthesizes from the cut (`dither-kit/score.ts`: a chord per
+  clip, the Bayer motif, a riser and an impact on every cut) that the
+  export carries as the composition's audio track. Details in
+  `src/AGENTS.md` and `dither-kit/AGENTS.md`.
 - Styling systems: the kit's tokens live in `dither-kit/theme.css` (plain
   custom properties the app's `src/app/styles.css` imports under Tailwind);
   `npm run build:css` (in `npm run build` and the Pages deploy) compiles

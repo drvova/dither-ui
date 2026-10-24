@@ -15,12 +15,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `widgets/source/AGENTS.md`) and the studio
   panels: toolbar, layer-tree, inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
-  clock), data-editor, agent (the composer / harness control plane).
+  clock; a film's camera, callouts and chapter band), data-editor, agent
+  (the composer / harness control plane).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
   export-code, export-image, export-video (a frame as a HyperFrames
-  composition: builder, dialog, delivery for the agent path), reel (the
-  reel's pure timeline), pan-zoom,
+  composition: builder, dialog, delivery for the agent path; a film's score
+  as its audio track), reel (the reel's and the film's pure timeline, the
+  score preview), pan-zoom,
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
   the Studio tools and the ACP client behind the composer).
 - `entities/` — domain stores: editor (selection/artboards, single source of
@@ -232,6 +234,57 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   kind/seconds/cell per clip, reorders, removes, adds from a picker. Pinned
   by `tests/reel.spec.ts` (timeline, model, protocol, the renderer on a
   seeked clock).
+- Film: a reel with a camera, callouts, chapters and a score. Each clip
+  carries `camera: [{ t, x, y, zoom, tilt }]` (t 0-1 of the clip; the frame
+  point looked at, 0-1; zoom 1 = the frame fitted, 0.25-8; tilt ±30
+  degrees; at most 16, sorted), `callouts: [{ x, y, label, note, side, from,
+  to }]` (a frame point, a 48/64-character label and note, left|right, up
+  inside the clip; at most 8, none without a label) and `chapter: { line,
+  spec: [[figure, words]] } | null` (80 characters; up to 4 rows of 12/32;
+  a blank line is none); the reel carries `score: { seed } | null`.
+  `createClip`/`createReel` start them empty and `normalizeArtboard` fills
+  and sanitizes them (control characters out), so reels from before films
+  load as still reels. `features/reel` adds the film's pure timeline:
+  `cameraAt(keys, t)` (eased like the transitions, the first key held
+  before and the last after), `cameraTransform(cam, w, h, lens)` (the CSS
+  transform about the stage's centre: `perspective() rotateY() translate()
+  scale()`), `cameraPoint(…)` (the same arithmetic for one frame point, so
+  a callout tracks it exactly; no DOM measuring, which could not be
+  frame-exact under the renderer), `CAMERA_MOVES` + `cameraMoveOf` (the
+  inspector's still / push in / pull out / pan right / pan left / drift),
+  `calloutsAt(clip, local)` (drawn over 0.9s from `from`, faded over 0.3s
+  to `to`), `chapterAt(clips, moment)` (the last chapter at or before the
+  clip on screen, the one before it while it comes in over 0.5s),
+  `hasChapters`, `scorePlanOf(reel, seconds)` (clip starts, chapter turns,
+  callout landings, the seed) and `playScore` (the Studio's preview: the
+  kit's samples through Web Audio, once). `ReelRenderer` (opaque, the page
+  background) runs each clip layer through its camera, draws the callouts
+  over a stage that is a size container (an SVG leader drawn by its dash,
+  a ring with an ember core, the label and note in `cqh`), and puts
+  `ReelBand` (22% of the frame, a size container: the line and the
+  figure-first spec list, a new chapter dissolving in through
+  `DitherReveal`) under the stage once any clip sets a chapter; reduced
+  motion holds the first key, draws callouts at once and turns chapters
+  without the dissolve; `data-reel-camera`, `data-reel-callout` and
+  `data-reel-chapter` are the walk's probes. The inspector's `ReelPanel`
+  sets a clip's camera move, chapter line and three spec rows, and its
+  callouts; the reel's score (on, seed) and "Play with score" (the reel
+  replayed with the preview). Protocol: `reel.add` takes `camera`,
+  `callouts`, `chapter` per clip and `score` (`true` | `{ seed }`), passed
+  raw to `normalizeArtboard`; `artboard.update { widget: { clips?, score? } }`
+  patches either; `add_reel` describes them. Export: `scoreWav(a, seconds)`
+  synthesizes the cut at the video's length (`scoreCut` + `wavBytes`); the
+  self-contained composition (the dialog, the bridge's file) inlines it as
+  a data URI and `video.export` references `./score.wav` and returns
+  `score: { path, base64 }`; either way `compositionHtml` adds `<audio
+  id="dither-score" data-start="0" data-duration data-track-index="1">`,
+  which HyperFrames mixes into the MP4. `features/agent/film.ts`
+  (`addLaunchFilm`, the Studio's `#new/film`) builds the film's own demo
+  through `runCommand`: an area chart, a galaxy, a 640x360 dashboard
+  screen, a bar chart and an ASCII "dither-ui", cut into a 21s 960x540 film
+  (chapters, camera moves, three callouts, score seed 7), its frames in a
+  row under it. Pinned by `tests/reel.spec.ts` (the "film", "launch film"
+  and renderer cases) and `tests/score.spec.ts`.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
   shortcut also gets a row in `ShortcutsHelp.vue`.
 - Pointer transforms use `features/artboard-transform/startDrag`; it filters by

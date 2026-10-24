@@ -1,4 +1,5 @@
-// UTF-8 text ⇄ base64url, for carrying a document in a URL fragment.
+// UTF-8 text ⇄ base64url, for carrying a document in a URL fragment; bytes
+// as plain base64, for a data URI or a file riding a JSON result.
 
 export function toBase64Url(text: string): string {
   const bytes = new TextEncoder().encode(text)
@@ -11,4 +12,10 @@ export function fromBase64Url(b64: string): string {
   const bin = atob(b64.replace(/-/g, "+").replace(/_/g, "/"))
   const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0))
   return new TextDecoder().decode(bytes)
+}
+
+export function bytesToBase64(bytes: Uint8Array): string {
+  let bin = ""
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+  return btoa(bin)
 }

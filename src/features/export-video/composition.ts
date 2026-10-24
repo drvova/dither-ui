@@ -38,12 +38,15 @@ export const embedJson = (v: unknown): string => JSON.stringify(v).replace(/</g,
 const attr = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
 const text = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 
-/** `extra`: frames the composition's document must carry besides the one it plays — a reel's clips. */
+/** `extra`: frames the composition's document must carry besides the one it
+ * plays (a reel's clips). `audio`: the soundtrack's source (a reel's score,
+ * a file beside the composition or a data URI), mixed in by the renderer. */
 export function compositionHtml(
   artboard: Artboard,
   o: VideoOptions,
   assets: PlayerAssets,
   extra: Artboard[] = [],
+  audio?: string,
 ): string {
   const slug = slugOf(artboard.name)
   const w = Math.max(1, Math.round(artboard.w))
@@ -78,7 +81,11 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 </head>
 <body>
 <div id="root" data-composition-id="dither-${slug}" data-start="0" data-width="${w}" data-height="${h}" data-duration="${o.seconds}" data-fps="${o.fps}" data-no-timeline>
-  <div id="dither-stage" data-artboard="${attr(artboard.id)}" data-theme="${o.theme}"></div>
+  <div id="dither-stage" data-artboard="${attr(artboard.id)}" data-theme="${o.theme}"></div>${
+    audio
+      ? `\n  <audio id="dither-score" src="${attr(audio)}" data-start="0" data-duration="${o.seconds}" data-track-index="1"></audio>`
+      : ""
+  }
 </div>
 <script type="application/json" id="dither-document">${embedJson({ artboards: [artboard, ...extra.filter((a) => a.id !== artboard.id)] })}</script>
 ${js}

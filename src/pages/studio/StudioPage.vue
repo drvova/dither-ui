@@ -2,7 +2,7 @@
 import { defineAsyncComponent, onBeforeUnmount, ref, watch } from "vue"
 import { DitherIcon } from "@dither-kit"
 import { addArtboard } from "@/entities/editor"
-import { installStudioAgentApi } from "@/features/agent"
+import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
 import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp } from "@/features/keyboard"
 import { hydrate, importDocument, startAutosave, stopAutosave } from "@/features/persistence"
@@ -43,9 +43,13 @@ async function onDrop(e: DragEvent) {
 
 // Deep links from docs support canonical /studio#new/<type> and legacy
 // #/studio/new/<type>; both add once after history starts, then clean the URL.
+// #new/film builds the launch film: the kit's frames cut into a film.
 const wanted = location.hash.match(/^(?:#new\/|#\/studio\/new\/)([a-z]+)/)?.[1]
 if (wanted && (CHART_TYPES as readonly string[]).includes(wanted)) {
   addArtboard(wanted as ChartType)
+  history.replaceState(null, "", routePath("/studio"))
+} else if (wanted === "film") {
+  addLaunchFilm()
   history.replaceState(null, "", routePath("/studio"))
 }
 

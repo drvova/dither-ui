@@ -565,6 +565,8 @@ widgets/features; page-specific conventions live here.
   `startHistory()` → deep-link handling (`/studio#new/<type>` or legacy
   `#/studio/new/<type>`), so deep-link artboards are part of the restored doc
   and undoable; the URL is cleaned via `replaceState` to prevent duplication.
+  `#new/film` builds the launch film (`addLaunchFilm`, see `src/AGENTS.md`):
+  five kit frames and the film cut from them, selected.
 - The Studio's chrome speaks the SITE voice, like the landing and the
   docs: `font-mono` on the page root (the context menu and the kit's
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
@@ -706,7 +708,8 @@ widgets/features; page-specific conventions live here.
   flush and each button off at its end), canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
-  create/select exactly one artboard.
+  create/select exactly one artboard (`#new/film` six: the film and its
+  five frames).
 - Docs and Studio copy scan (a headless page walk): the rendered text of
   `/docs` (every section) and of `/studio` with each panel and dialog open
   (layers, agent, library, project menu, code, video, data, shortcuts,

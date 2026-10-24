@@ -137,11 +137,11 @@ Commands (`type` and fields):
 | `widget.add` | `widget` (avatar/button/gradient/image), `name?`, `props?` |
 | `component.add` | `is`, `name?`, `props?`, `slotText?`, `frame?` |
 | `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
-| `reel.add` | `name?`, `clips` (ids, or `{ id, seconds?, transition?: { kind, seconds?, cell?, seed? } }` — kinds `cut`, `dissolve`, `wipe-right`, `wipe-left`, `wipe-down`, `wipe-up`; 3s clips in over a 0.6s dissolve by default), `frame?` — frames played in order with ordered-dither transitions |
+| `reel.add` | `name?`, `clips` (ids, or `{ id, seconds?, transition?: { kind, seconds?, cell?, seed? }, camera?, callouts?, chapter? }` — kinds `cut`, `dissolve`, `wipe-right`, `wipe-left`, `wipe-down`, `wipe-up`; 3s clips in over a 0.6s dissolve by default), `score?` (`true` or `{ seed }`), `frame?` — frames played in order with ordered-dither transitions; a film with camera moves, callouts, chapters and a score (see below) |
 | `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |
 | `code.get` | `id`, `styling?` — the frame as a Vue SFC; `tailwind` (default) keeps the utility classes, `css` (a scoped stylesheet), `modules` (CSS Modules) or `stylex` write the same look in that system while the kit components keep their own styles |
 | `registry.get` | `is?` — the registry, or one component |
-| `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it |
+| `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it; a reel with a score adds `score: { path: "score.wav", base64 }` for the index's audio track |
 | `clock.seek` | `seconds?` — hold every animation on the canvas at that moment, so a screenshot is stable from any driver in any browser; without `seconds` time runs again (`clock.release` does the same) |
 
 ## 4. Work like the Studio does
@@ -174,6 +174,21 @@ Commands (`type` and fields):
   plays them in order, each clip coming in through an ordered-dither
   dissolve or wipe (the kit's `DitherReveal` masks). Build the frames first,
   then the reel; a reel has no code of its own, it is a video.
+- A reel becomes a film (a launch video of the frames) with four things,
+  all optional and all sanitized:
+  - `camera` per clip: keys `{ t, x, y, zoom, tilt }` eased between. `t` is
+    0–1 of the clip, `x`/`y` the point of the frame the camera looks at
+    (0–1), `zoom` 1 is the frame fitted, `tilt` a lean in degrees (±30). Two
+    keys make a move: `{ t: 0, zoom: 1 }` to `{ t: 1, zoom: 1.3 }` pushes in.
+  - `callouts` per clip: `{ x, y, label, note?, side?, from?, to? }`, a
+    point of the frame with a label on a leader; the camera carries it.
+    Keep labels short facts ("glTF, OBJ, STL") and notes shorter.
+  - `chapter` per clip: `{ line, spec?: [[figure, words]] }`, the band
+    under the stage from that clip on: one line, then up to four rows with
+    the measured figure first (`["264", "components"]`).
+  - `score` on the reel: `true` or `{ seed }`. A soundtrack synthesized
+    from the cut (a chord per clip, a riser and an impact on every cut, a
+    tick per callout, a blip per chapter); the video export carries it.
 - Screenshots: call `clock.seek` (the `seek_clock` tool) with a moment first,
   so every canvas holds still, then `clock.seek` with no seconds to let time
   run. The Studio is plain web platform — the same commands work through CDP
@@ -200,7 +215,9 @@ and the requested time (Node 22 + FFmpeg: `npx hyperframes render`).
   player and the root contract (`data-width/height`, `data-duration`,
   `data-fps`, `data-no-timeline`), so nothing is fetched at render time.
 - A reel exports as one video of its whole cut: its clips travel in the
-  composition's document and `seconds` defaults to the reel's length.
+  composition's document and `seconds` defaults to the reel's length. A
+  reel with a score carries it as the composition's audio track (inline in
+  the bridge's file; `score.wav` beside `index.html` through the protocol).
 - Length and frame rate are the file's `data-duration` / `data-fps`; the
   frame's size is the video's size. For 1080p, make the frame 960×540 (or
   480×270) and render with `--resolution landscape`: HyperFrames captures at

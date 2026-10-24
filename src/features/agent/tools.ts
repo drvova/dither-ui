@@ -129,7 +129,7 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
     def: {
       name: "add_reel",
       description:
-        "Cut frames into a reel: a frame that plays other frames in order with ordered-dither transitions and exports as one video. Clips are ids or { id, seconds?, transition?: { kind, seconds?, cell?, seed? } } (3s clips coming in over a 0.6s dissolve by default).",
+        "Cut frames into a reel: a frame that plays other frames in order with ordered-dither transitions and exports as one video. Clips are ids or { id, seconds?, transition?, camera?, callouts?, chapter? } (3s clips coming in over a 0.6s dissolve by default). Make it a film: camera keys move each clip (t is 0-1 of the clip; x, y the frame point looked at, 0-1; zoom 1 is the frame fitted; tilt in degrees), callouts point at frame points with a label and a note, a chapter sets the band's line and figure-first spec rows from that clip on, and score: true (or { seed }) synthesizes a soundtrack from the cut that the video export carries.",
       parameters: obj(
         {
           name: str("frame name"),
@@ -148,11 +148,52 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
                       cell: num("dither cell size in px, 1–16"),
                       seed: num("a seeded dither matrix instead of the Bayer order"),
                     }),
+                    camera: {
+                      type: "array",
+                      description: "camera keys, eased between; none holds the frame fitted",
+                      items: obj({
+                        t: num("when, 0–1 of the clip"),
+                        x: num("the frame point looked at, 0–1 across"),
+                        y: num("the frame point looked at, 0–1 down"),
+                        zoom: num("1 is the frame fitted, up to 8"),
+                        tilt: num("lean about the vertical in degrees, ±30"),
+                      }),
+                    },
+                    callouts: {
+                      type: "array",
+                      description: "spec callouts on leaders, at most 8",
+                      items: obj(
+                        {
+                          x: num("the frame point, 0–1 across"),
+                          y: num("the frame point, 0–1 down"),
+                          label: str("the label, up to 48 characters"),
+                          note: str("a note under it, up to 64 characters"),
+                          side: { type: "string", enum: ["left", "right"] },
+                          from: num("seconds into the clip it draws in"),
+                          to: num("seconds into the clip it fades by"),
+                        },
+                        ["label"],
+                      ),
+                    },
+                    chapter: obj(
+                      {
+                        line: str("the band's line from this clip on, up to 80 characters"),
+                        spec: {
+                          type: "array",
+                          description: "up to 4 [figure, words] rows, the figure first",
+                          items: { type: "array", items: { type: "string" } },
+                        },
+                      },
+                      ["line"],
+                    ),
                   },
                   ["id"],
                 ),
               ],
             },
+          },
+          score: {
+            anyOf: [{ type: "boolean" }, obj({ seed: num("the score's seed: another seed, another arrangement") })],
           },
           frame: obj({ w: num("width"), h: num("height") }),
         },

@@ -111,13 +111,25 @@ ${rows}
 export function widgetCode(w: WidgetModel, frame: { w: number; h: number }): string {
   if (w.kind === "component") return componentCode(w)
   if (w.kind === "screen") return screenCode(w)
-  if (w.kind === "reel")
+  if (w.kind === "reel") {
+    // A film's words may hold "--", which would close the comment.
+    const safe = (v: string) => v.replace(/--/g, "- -")
+    const film = (c: (typeof w.clips)[number]) =>
+      [
+        c.camera.length ? `camera over ${c.camera.length} keys` : "",
+        c.callouts.length ? `${c.callouts.length} callout${c.callouts.length > 1 ? "s" : ""}` : "",
+        c.chapter ? `chapter "${safe(c.chapter.line)}"` : "",
+      ]
+        .filter(Boolean)
+        .map((part) => `; ${part}`)
+        .join("")
     return `<!--
   A reel plays other frames in order with ordered-dither transitions. It has no
   component of its own: export it as a video (the Studio's "video" action or
   the video.export command) for one MP4 of the whole sequence.
-${w.clips.map((c, i) => `  ${i + 1}. ${c.id} — ${c.seconds}s, in by ${c.transition.kind}${c.transition.kind === "cut" ? "" : ` over ${c.transition.seconds}s`}`).join("\n")}
+${w.clips.map((c, i) => `  ${i + 1}. ${c.id} — ${c.seconds}s, in by ${c.transition.kind}${c.transition.kind === "cut" ? "" : ` over ${c.transition.seconds}s`}${film(c)}`).join("\n")}${w.score ? `\n  Score: synthesized from the cut, seed ${w.score.seed}.` : ""}
 -->`
+  }
   if (w.kind === "avatar") {
     const attrs: string[] = [`name="${w.name}"`, `:size="${Math.round(Math.min(frame.w, frame.h))}"`]
     if (w.source !== "seed" && w.pattern) {
