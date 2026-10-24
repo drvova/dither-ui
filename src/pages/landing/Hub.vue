@@ -1,42 +1,57 @@
 <script setup lang="ts">
 // The directory: the docs as a browsable shelf under a head (the title,
-// one line and its link beside the catalog film: the docs as a skyline,
-// one window per section), the kit's own DitherTabs (badges = family
-// sizes) over a horizontal shelf of framed cards that deep-link into the
-// docs, each with the section's seeded identicon (the kit's avatar, from
-// the section id), its family, name, a line and its path; under the shelf,
-// what every preview in the docs lets you do. The skyline is a map of the
-// shelf: a tower rises under the pointer and while its family's tab is
-// picked, and a click on a shelved family's tower picks its tab. The tab
+// one line and its link beside the kit's own bar chart of the docs, one
+// bar per family sized by its sections), the kit's own DitherTabs (badges
+// = family sizes) over a horizontal shelf of framed cards that deep-link
+// into the docs, each with the section's seeded identicon (the kit's
+// avatar, from the section id), its family, name, a line and its path;
+// under the shelf, what every preview in the docs lets you do. The chart is
+// a map of the shelf: the picked tab's family is its selected series (the
+// rest dim), and a click on a shelved family's bar picks its tab. The tab
 // row (on a narrow screen) scrolls sideways under an edge fade and chevron;
 // the shelf shows whole cards a view at a time and pages from the pager
 // under it, so nothing ever lies over a card.
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
-import { DitherAvatar, DitherIcon, DitherTabPanel, DitherTabs, type IconName } from "@dither-kit"
+import {
+  Bar,
+  BarChart,
+  DitherAvatar,
+  DitherIcon,
+  DitherTabPanel,
+  DitherTabs,
+  Grid,
+  Tooltip,
+  YAxis,
+  type DitherColor,
+  type IconName,
+} from "@dither-kit"
 import { routePath } from "@/shared/lib"
-import ClayzoFilm from "./ClayzoFilm.vue"
-import PixelPlate from "./PixelPlate.vue"
 import { FAMILIES, SECTION_COUNT, SHELVES } from "./hub"
-import { catalogLayout, catalogPlate } from "./plates"
 
 const tab = ref("explore")
 
-const COUNTS = FAMILIES.map((f) => f.count)
-const LAYOUT = catalogLayout(COUNTS)
-const PLATE = catalogPlate(COUNTS)
-const CATALOG_ALT = `The docs catalog as a night skyline: ${SECTION_COUNT} lit windows, one per section, in a tower per family; windows switch on and off and a new section falls onto the tallest roof.`
-
-// The film's handles: the picked tab's family by its index (-1 for
-// Explore), and a click on a tower picks its family's tab when it has one.
-const FAMILY_INDEX = new Map<string, number>(FAMILIES.map((f, i) => [f.title, i]))
-const picked = computed(() => ({
-  family: FAMILY_INDEX.get(SHELVES.find((s) => s.value === tab.value)?.label ?? "") ?? -1,
-}))
-
-function onTower(area: string) {
-  const family = FAMILIES[Number(/^tower(\d+)-hit$/.exec(area)?.[1])]?.title
-  const shelf = SHELVES.find((s) => s.label === family)
-  if (shelf) tab.value = shelf.value
+// The head's chart: one row, every family its own series in sidebar order
+// (so each bar can be selected), the shelved ones in a hue, the rest grey.
+const SHELF_HUE: Record<string, DitherColor> = {
+  Components: "blue",
+  Backgrounds: "purple",
+  Text: "green",
+  Animations: "orange",
+  Examples: "pink",
+}
+const ROWS = [{ docs: "Sections", ...Object.fromEntries(FAMILIES.map((f) => [f.title, f.count])) }]
+const CONFIG = Object.fromEntries(
+  FAMILIES.map((f) => [f.title, { label: f.title, color: SHELF_HUE[f.title] ?? "grey" }]),
+)
+const SHELVED = new Set(SHELVES.map((s) => s.label))
+const pickedFamily = computed(() =>
+  tab.value === "explore" ? null : SHELVES.find((s) => s.value === tab.value)?.label,
+)
+// A click on a shelved family's bar picks its tab; clicking it again goes
+// back to Explore. The chart is keyed by the tab, so a tab picked in the row
+// selects its bar the same way (the kit's dither entrance is the change).
+function onBar(family: string | null) {
+  tab.value = SHELVES.find((s) => s.label === family)?.value ?? "explore"
 }
 
 /** A sideways scroller's cue: which of its edges have more past them, its
@@ -131,19 +146,21 @@ const TABS = SHELVES.map((s) => ({
         </p>
         <a :href="routePath('/docs')" class="more-link">Browse all sections</a>
       </div>
-      <ClayzoFilm
-        film="catalog"
-        chip="Pause the catalog film"
-        :label="CATALOG_ALT"
-        :inputs="picked"
-        class="dir-film"
-        :style="{ aspectRatio: `${LAYOUT.w} / ${LAYOUT.h}` }"
-        @hit="onTower"
-      >
-        <template #fallback>
-          <PixelPlate :plate="PLATE" fit="xMidYMax meet" class="block size-full" />
-        </template>
-      </ClayzoFilm>
+      <div class="dir-chart">
+        <BarChart
+          :key="tab"
+          :data="ROWS"
+          :config="CONFIG"
+          :default-selected-data-key="pickedFamily ?? null"
+          :on-selection-change="onBar"
+          class="h-full"
+        >
+          <Grid horizontal />
+          <YAxis :tick-count="3" />
+          <Bar v-for="f in FAMILIES" :key="f.title" :data-key="f.title" :is-clickable="SHELVED.has(f.title)" />
+          <Tooltip label-key="docs" />
+        </BarChart>
+      </div>
     </div>
     <div ref="panel" class="panel window">
       <span
@@ -232,9 +249,9 @@ const TABS = SHELVES.map((s) => ({
   gap: 12px;
 }
 
-/* The head: the title, its line and its link on the left; the catalog
-   film on the right, its skyline standing on the panel. One column under
-   760px, the film under the text. */
+/* The head: the title, its line and its link on the left; the families'
+   chart on the right, standing on the panel. One column under 760px, the
+   chart under the text. */
 .dir-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
@@ -258,8 +275,8 @@ const TABS = SHELVES.map((s) => ({
   color: var(--ink-3);
 }
 
-.dir-film {
-  width: 100%;
+.dir-chart {
+  height: 13rem;
 }
 
 @media (max-width: 759px) {

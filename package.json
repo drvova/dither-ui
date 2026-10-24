@@ -8,7 +8,6 @@
     "build": "vue-tsc -b && rs build && node scripts/kit-css.mjs && node scripts/prerender.mjs",
     "build:css": "node scripts/kit-css.mjs",
     "frames": "node scripts/render-frames.mjs",
-    "films": "rs test tests/films.spec.ts -u",
     "preview": "rs preview",
     "typecheck": "vue-tsc --noEmit",
     "test": "rs test",
@@ -18,7 +17,6 @@
     "check": "rs check && eslint \"**/*.vue\" && vue-tsc --noEmit"
   },
   "dependencies": {
-    "@clayzo/webgl-player": "0.3.18",
     "clsx": "^2.1.1",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
@@ -27,7 +25,6 @@
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@clayzo/animation": "0.3.18",
     "@eslint/js": "^10.0.1",
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
     "@rsbuild/plugin-vue": "^2.0.1",

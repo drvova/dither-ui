@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue"
-import { DitherClipboard, DitherIcon } from "@dither-kit"
+import {
+  DitherButton,
+  DitherClipboard,
+  DitherHeading,
+  DitherIcon,
+  DitherLightRays,
+  DitherSwitch,
+  Sparkline,
+} from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import "./chapters.css"
 import { version } from "../../../package.json"
-import ClayzoFilm from "./ClayzoFilm.vue"
 import EngravedWordmark from "./EngravedWordmark.vue"
 import EssayFigure from "./EssayFigure.vue"
 import Hub from "./Hub.vue"
-import PixelPlate from "./PixelPlate.vue"
+import PauseChip from "./PauseChip.vue"
 import PixelWord from "./PixelWord.vue"
 import Showcase from "./Showcase.vue"
 import { createPixelShake, type PixelShake } from "./pixel-shake"
-import { dawnPlate } from "./plates"
 
 // The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES: ids and
 // names), in its order, each chip under the tool's own mark.
@@ -31,16 +37,16 @@ const HARNESSES = [
 // two commands, copied as one line.
 const BRIDGE_STEPS = ["npx degit drvova/dither-ui/bridge bridge", "node bridge/dither-bridge.mjs"]
 const BRIDGE = BRIDGE_STEPS.join(" && ")
-const STUDIO_ALT =
-  "A cursor places three artboards on the Studio's dotted canvas: a bar chart, a line chart and a button. It selects them, and they drain away."
+// What the third step's ask makes: a screen of real kit components, as the
+// Studio's add_screen lays it out on its canvas.
+const ASK = "a deploy panel with this week's deploys, an auto deploy switch and a deploy key"
+const DEPLOYS = [4, 6, 5, 8, 7, 11, 9, 12, 10, 14, 13, 16]
+const auto = ref(true)
 
-// The closing band: dawn over a dithered planet, its stand-in the same
-// scene as a pixel plate.
-const DAWN = dawnPlate()
-const DAWN_ALT =
-  "Dawn over a dithered planet: the sun breathes on the limb, an aurora sways over the far side, seed moons cross the sky and stars flicker."
-// A hand on the close's keys (the pointer or focus) swells the dawn's sun.
+// The close: the kit's light rays falling over the band. A hand on the
+// keys (the pointer or focus) brightens them.
 const reaching = ref(false)
+const raysPlaying = ref(true)
 
 // The footer's links, in one row.
 const FOOTER = [
@@ -150,16 +156,15 @@ function observeStage() {
 let facesIO: IntersectionObserver | null = null
 
 onMounted(() => {
-  // The landing is always-dark art (the film stage, plates and organism are
-  // ink). A light theme toggled on docs/studio persists on <html> and this is
+  // The landing is always-dark art (the stage, the wells and the organism
+  // are ink). A light theme toggled on docs/studio persists on <html> and this is
   // one SPA — without re-asserting dark here, token text flips to near-black
   // over the hardcoded ink (measured 1.02:1 on the h1). Storage keeps the
   // user's choice; docs/studio re-read it on their own mount.
   document.documentElement.classList.add("dark")
 
   // The portraits sit far below the fold, so their sheet waits until they
-  // are within a screen: it never counts toward the page's `load`, which
-  // is the films' cue.
+  // are within a screen: it never counts toward the page's `load`.
   const loadFaces = () => {
     const img = new Image()
     img.src = assetPath("/faces.webp")
@@ -255,7 +260,7 @@ onBeforeUnmount(() => {
     </header>
 
     <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
-      <!-- The portal: the full-bleed art band (the films), the statement,
+      <!-- The portal: the full-bleed hero band (the stage), the statement,
            the install bar and the panel columns, with six moods in the
            portraits' well: hover a face, her pixels scatter under the
            cursor and settle, and her emote answers. Then, on the shell, the
@@ -335,7 +340,7 @@ onBeforeUnmount(() => {
         <!-- The agents: how to hand the Studio to the agent you already use
              (three steps, each under its glyph: the bridge's command to
              copy under Node's mark, the harnesses it knows as hairline
-             chips under their own marks, the ask) beside the Studio film.
+             chips under their own marks, the ask) beside the screen it makes.
              Each harness runs as the user's own signed-in process. -->
         <section id="agents" class="agents" aria-labelledby="harness-h">
           <div class="section-head">
@@ -383,8 +388,26 @@ onBeforeUnmount(() => {
               </li>
             </ol>
             <div class="harness-side">
+              <!-- The ask and the screen it lands as: an artboard on the
+                   Studio's dotted canvas, every part of it live. -->
               <div class="studio-stage">
-                <ClayzoFilm film="studio" chip="Pause the Studio film" :label="STUDIO_ALT" class="studio-film" />
+                <p class="ask"><span aria-hidden="true">›</span> {{ ASK }}</p>
+                <div class="board">
+                  <span class="board-name">Deploys</span>
+                  <div class="board-frame">
+                    <DitherHeading level="3">Deploys</DitherHeading>
+                    <div class="board-row">
+                      <span class="board-n">16</span>
+                      <span class="board-l">this week</span>
+                      <Sparkline :data="DEPLOYS" color="blue" class="board-spark" />
+                    </div>
+                    <div class="board-switch">
+                      <DitherSwitch v-model="auto" label="Auto deploy" />
+                      <span aria-hidden="true">Auto deploy</span>
+                    </div>
+                    <DitherButton color="blue" variant="gradient" class="board-key">Deploy now</DitherButton>
+                  </div>
+                </div>
               </div>
               <p class="harness-note">Your harness keeps its own login. The Studio never asks for a key.</p>
             </div>
@@ -393,8 +416,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- The close: a full-bleed band, the last line and its keys on the
-           shell, then the dawn film across the band (its stand-in the same
-           scene as a plate). -->
+           shell, then the kit's light rays across the band. -->
       <section class="dawn" aria-labelledby="dawn-h">
         <div class="dawn-in">
           <h2 id="dawn-h" class="section-title">Copy one folder. Every pixel is yours.</h2>
@@ -409,17 +431,16 @@ onBeforeUnmount(() => {
             <a :href="routePath('/studio')" class="nav-a nav-pill">Open the studio</a>
           </div>
         </div>
-        <ClayzoFilm
-          film="dawn"
-          chip="Pause the dawn film"
-          :label="DAWN_ALT"
-          :inputs="{ glow: reaching ? 1 : 0 }"
-          class="dawn-film"
-        >
-          <template #fallback>
-            <PixelPlate :plate="DAWN" fit="xMidYMax meet" class="block size-full" />
-          </template>
-        </ClayzoFilm>
+        <div class="dawn-art">
+          <DitherLightRays
+            :glow="reaching ? 2.4 : 1.5"
+            :speed="0.3"
+            :frame-rate="12"
+            :paused="!raysPlaying"
+            class="dawn-rays"
+          />
+          <PauseChip v-model="raysPlaying" label="Pause the light" class="dawn-chip" />
+        </div>
       </section>
     </main>
 
@@ -721,7 +742,7 @@ onBeforeUnmount(() => {
 }
 
 /* The agents: the three steps on the left, each under its glyph; on the
-   right, the Studio film on the well with the note under it. */
+   right, the screen the ask makes on the well with the note under it. */
 /* A real border, not the panel's inset hairline: the well's background
    would paint over an inset shadow. */
 .harness-panel {
@@ -837,19 +858,92 @@ onBeforeUnmount(() => {
   box-shadow: inset 1px 0 0 var(--line);
 }
 
-/* The steps set the panel's height; the film fits whatever the well has
-   left above the note (a size container: its own content never stretches
-   the row). */
+/* The steps set the panel's height; the canvas takes what the well has
+   above the note: the Studio's dots, the ask, then the artboard (its name
+   over its frame, as the Studio draws one). */
 .studio-stage {
   flex: 1;
-  display: grid;
-  place-items: center;
-  container-type: size;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding: 22px 28px;
+  background-image: radial-gradient(circle, color-mix(in oklab, var(--line) 90%, transparent) 1px, transparent 1.2px);
+  background-size: 16px 16px;
 }
 
-.studio-film {
-  width: min(100cqw, 160cqh);
-  aspect-ratio: 8 / 5;
+.ask {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.ask span {
+  color: var(--ink-3);
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(100%, 20rem);
+}
+
+.board-name {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.board-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--background);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.board-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: end;
+  gap: 2px 14px;
+}
+
+.board-n {
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.board-l {
+  grid-row: 2;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.board-spark {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  height: 3rem;
+}
+
+.board-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.board-key {
+  align-self: flex-start;
 }
 
 .harness-note {
@@ -876,10 +970,7 @@ onBeforeUnmount(() => {
     box-shadow: inset 0 1px 0 var(--line);
   }
   .studio-stage {
-    container-type: normal;
-  }
-  .studio-film {
-    width: 100%;
+    padding: 20px;
   }
   .harness-note {
     padding: 12px 20px;
@@ -888,7 +979,7 @@ onBeforeUnmount(() => {
 }
 
 /* The close: a full-bleed band between hairlines; the last line and its
-   keys on the shell, the dawn film under them, edge to edge up to 100rem. */
+   keys on the shell, the light rays under them, edge to edge up to 100rem. */
 .dawn {
   overflow: hidden;
   background: var(--well);
@@ -915,41 +1006,50 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 
-/* The pause chip lines up with the shell's right edge. */
-.dawn-film :deep(.film-corner) {
-  right: max(8px, calc((100% - var(--shell)) / 2 + 1.5rem));
-}
-
-.dawn-film {
+/* The rays fall across the band from its top edge's middle, up to
+   100rem, their sides fading into the band past that. */
+.dawn-art {
+  position: relative;
   width: 100%;
   max-width: 100rem;
+  height: clamp(12rem, 26vw, 24rem);
   margin-inline: auto;
-  aspect-ratio: 168 / 46;
 }
 
-/* Past 100rem the film stops growing; its sides fade into the band so the
-   planet never ends on a hard edge. */
+/* The light comes from above the band: its top edge fades in. */
+.dawn-rays {
+  position: absolute;
+  inset: 0;
+  mask-image: linear-gradient(to bottom, transparent, #000 30%);
+}
+
 @media (min-width: 100rem) {
-  .dawn-film {
+  .dawn-art {
     mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
   }
 }
 
-/* On a phone the band's width left the film a sliver: it runs at twice
-   the width instead, its sun about 40% across, the band clipping the rest
-   and the chip back in the gutter (the film's right edge is 68% of the
-   band past the band's). */
+/* The pause chip lines up with the shell's right edge. */
+.dawn-chip {
+  position: absolute;
+  right: max(8px, calc((100% - var(--shell)) / 2 + 1.5rem));
+  bottom: 12px;
+  z-index: 1;
+}
+
+/* Under reduced motion the rays are one still frame: nothing to pause. */
+@media (prefers-reduced-motion: reduce) {
+  .dawn-chip {
+    display: none;
+  }
+}
+
 @media (max-width: 759px) {
   .dawn-in {
     padding: 28px 1.5rem 0;
   }
-  .dawn-film {
-    width: 200%;
-    max-width: none;
-    margin: 12px 0 0 -32%;
-  }
-  .dawn-film :deep(.film-corner) {
-    right: calc(34% + 1.5rem);
+  .dawn-chip {
+    right: 1.5rem;
   }
 }
 

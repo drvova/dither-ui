@@ -94,36 +94,6 @@ await new Promise((r) => server.listen(0, "127.0.0.1", r))
 const port = server.address().port
 const browser = await chromium.launch({ executablePath: findChromium() })
 
-/* ---------------- Film posters ------------------------------------------- */
-
-// A film that asks for a poster (`data-poster`, the hero: no plate stands
-// in for it) gets its still as `films/<id>.webp`: the landing opened under
-// reduced motion, where every film rests on its still (its opening frame),
-// at 2x, read off the film's own canvas (lossless; the dithered frame
-// packs to ~15 kB). Runs before the route snapshots, so the landing's
-// bytes already carry the poster.
-async function renderPosters() {
-  const page = await browser.newPage({
-    viewport: { width: 1440, height: 900 },
-    deviceScaleFactor: 2,
-    reducedMotion: "reduce",
-  })
-  await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: "load" })
-  const ids = await page.$$eval("[data-poster]", (els) => els.map((el) => el.getAttribute("data-poster")))
-  for (const id of ids) {
-    const film = `[data-poster="${id}"]`
-    await page.$eval(film, (el) => el.scrollIntoView({ block: "center" }))
-    await page.waitForSelector(`${film}[data-live]`, { timeout: 30_000 })
-    await page.waitForTimeout(600)
-    const url = await page.$eval(`${film} canvas`, (c) => c.toDataURL("image/webp", 1))
-    const bytes = Buffer.from(url.slice(url.indexOf(",") + 1), "base64")
-    await mkdir(join(DIST, "films"), { recursive: true })
-    await writeFile(join(DIST, "films", `${id}.webp`), bytes)
-    console.log(`poster: ${id} -> dist/films/${id}.webp (${(bytes.length / 1024).toFixed(0)} kB)`)
-  }
-  await page.close()
-}
-
 /* ---------------- SEO engine: og cards + per-section docs pages ---------- */
 
 // Every share card (the three routes, then each docs section) drawn by the
@@ -270,7 +240,6 @@ async function refineEmbed(section, lede) {
 
 let docsFlow = null
 try {
-  await renderPosters()
   const page = await browser.newPage()
   for (const route of ROUTES) {
     const entry = join(DIST, route.entry)
