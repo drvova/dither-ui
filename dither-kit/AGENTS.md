@@ -251,7 +251,9 @@ is its showcase and editor.
   `ChartContextValue.seed` so star positions AND render coefficients derive
   from it. The ENTRANCE reveal is seeded (`revealFromSeed`): jitter=0 is a
   clean sweep (optionally reversed), higher jitter dissolves the fill so it
-  develops out of order — half of all seeds stay a clean sweep.
+  develops out of order — half of all seeds stay a clean sweep. A column's
+  dissolve threshold is `revealThreshold` (capped at 1, so the finished
+  reveal holds every column; both kits' cartesian canvases call it).
   Chart roots take a master `seed` prop deriving duration, delay,
   easing, stagger, sparkle character, geometry, matrix, bloom (+ startAngle on
   polar) with precedence: explicit prop > seed derivation > house default. All
