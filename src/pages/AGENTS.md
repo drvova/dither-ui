@@ -75,9 +75,15 @@ widgets/features; page-specific conventions live here.
   `HeroStage.vue`, the kit by hand as the trailer shows it: one real
   component at a time in an 8:5 `.thumb` well (a size container), its
   name top left on a chip of the well's ground, with the controls its
-  docs demo has (`SCENES`: button with its fills and five hues, slide
-  action, hold actions, text pressure, ferrofluid with its palettes; the
-  fluid's engine an async chunk). Under the well a `.seg` picker and the
+  docs demo has. `SCENES` lead with what nothing else does (the user's
+  call: dithered charts, shaders, StyleX): an `AreaChart` from one seed
+  with "Roll a seed"; the kit's seeded sample `DitherShader` (mono blue,
+  a palette ramp or its own colours; "New shader" is the next seed);
+  "StyleX", `ExportScene.vue`: one snippet rendered live beside its code
+  in the picked system through `restyle` (StyleX first); then the button
+  with its fills and five hues, the slide action and the ferrofluid with
+  its palettes. The shader, the export (the translator's utility map) and
+  the fluid are async chunks. Under the well a `.seg` picker and the
   tour's progress hairline, then a caption (the scene's glyph, one line,
   a `.lead` to its docs section). The tour advances on the progress
   rule's CSS `animationend` (6s, no timer), paused while the stage is

@@ -100,8 +100,9 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
         <div class="statement">
           <h1 id="hero-h" class="display hero-h">A dithered UI toolkit for Vue.</h1>
           <p class="hero-lede">
-            Charts, controls, backgrounds, text effects and 3D, each drawn pixel by pixel from one seeded palette. Copy
-            the folder into your Vue 3 or Svelte 5 app and every line is yours to change.
+            Charts, GLSL shaders, controls, backgrounds and 3D, each drawn pixel by pixel from one seeded palette. Copy
+            the folder into your Vue 3 or Svelte 5 app, write it as Tailwind, CSS Modules or StyleX, and every line is
+            yours to change.
           </p>
           <div class="hero-keys">
             <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>

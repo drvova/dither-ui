@@ -108,9 +108,11 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 ### Landing
 
 A full-bleed hero: the statement, the keys and the kit's numbers beside a
-stage that tours real components (a button, a slide, a hold, text pressure and
-a ferrofluid), each one live with the controls its docs demo has. "Watch the
-film" opens the trailer. Everything else on the page is the kit too:
+stage that tours real components, each one live with the controls its docs
+demo has: a dithered chart you reseed, a GLSL shader, one snippet written as
+StyleX, CSS Modules, CSS or Tailwind beside the card it renders, a button, a
+slide and a ferrofluid. "Watch the film" opens the trailer. Everything else on
+the page is the kit too:
 
 - the install bar, under the marks of npm, pnpm and Bun;
 - live kit panels: buttons, controls, a 3D model, a chart and a keyframed stage;
