@@ -1,0 +1,10 @@
+// Generated from ../tailwind/area-chart.ts by src/shared/lib/stylex-layer.ts: edit that
+// file, then npx rs test -u tests/stylex-layer.spec.ts
+import { CartesianCanvas } from "../engine/cartesian-canvas"
+import { defineCartesianChart } from "./cartesian-root"
+
+/** Composable dither **area** chart. Compose `<Area>`, `<Grid>`, axes, … inside. */
+export const AreaChart = defineCartesianChart("area", CartesianCanvas)
+
+/** Composable dither **line** chart — `<Line>` series with a glow under the line. */
+export const LineChart = defineCartesianChart("line", CartesianCanvas)

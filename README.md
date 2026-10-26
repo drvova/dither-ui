@@ -33,8 +33,10 @@ Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dith
 The kit is copy-in, shadcn-style: it lives in `dither-kit/` with no imports from
 the app, so you copy the folder into your project and own every line. It is one
 kit in layers: `engine/` holds the styling-free logic (rasters, painters,
-contexts, the clock, the tokens) and `tailwind/` the components styled with
-Tailwind classes, the layer `@dither-kit` points at. Beside
+contexts, the clock, the tokens), `tailwind/` the components styled with
+Tailwind classes and `stylex/` the same components in StyleX, generated from
+the Tailwind ones so the two never drift. `@dither-kit` points at the layer
+your app styles with. Beside
 Vue it needs four packages: `d3-scale`, `d3-shape`, `clsx` and
 `tailwind-merge`. Tailwind is optional. `npm run build:css` compiles the kit's
 own stylesheet (`dist/kit/dither-kit.css`: tokens, a scoped base and every
@@ -67,6 +69,12 @@ npm i d3-scale d3-shape clsx tailwind-merge
 # 3. alias @dither-kit (bundler resolve.alias and tsconfig paths)
 #    "@dither-kit" -> "./src/dither-kit/tailwind"
 ```
+
+On StyleX, alias `"@dither-kit"` to `./src/dither-kit/stylex` instead, install
+`@stylexjs/stylex` (with your bundler's StyleX plugin) in place of `clsx` and
+`tailwind-merge`, and load `engine/theme.css` and `engine/base.css`. Every
+component that takes `class` also takes `xstyle`: your StyleX styles, merged
+after its own.
 
 Svelte 5 apps copy `drvova/dither-ui/dither-kit-svelte` instead and import from
 `@dither-kit-svelte`. Charts use a children-as-config API: compose parts inside
@@ -374,6 +382,7 @@ Fill `variant`: `gradient`, `dotted`, `hatched`, `solid`. Palette colours:
 dither-kit/          the Vue kit (@dither-kit): copy-in, MIT, no imports from the app
   engine/     styling-free logic: rasters, painters, contexts, clock, tokens
   tailwind/   the components, styled with Tailwind (what @dither-kit points at)
+  stylex/     the same components in StyleX, generated from tailwind/
 dither-kit-svelte/   the Svelte 5 port (runes)
 svelte-site/         a Svelte showcase built on the port
 bridge/              the local bridge between the Studio and your coding agent

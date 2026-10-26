@@ -1,4 +1,5 @@
 // @rstest-environment jsdom
+import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { mount } from "@vue/test-utils"
 import { DitherThumbnail } from "@dither-kit"
@@ -6,8 +7,11 @@ import { BAYER4 } from "@dither-kit/engine/pixel"
 
 // The interactive thumbnail's contract: a parent link trigger, a masked
 // frame (radius + hairline + clipped), a recessed cover image that wakes on
-// the group's hover (scale + opacity on the exact recipe values), and the
-// Bayer veil that dissolves. The link's accessible name is the image alt.
+// the link's hover (scale + opacity on the exact recipe values, in its scoped
+// CSS: a descendant of the hover, which no element's own classes can say),
+// and the Bayer veil that dissolves. The link's accessible name is the alt.
+const SOURCE = readFileSync("dither-kit/tailwind/Thumbnail.vue", "utf8")
+const hover = SOURCE.slice(SOURCE.indexOf("@media (hover: hover)"))
 
 describe("DitherThumbnail", () => {
   const mountThumb = (overrides = {}) =>
@@ -26,13 +30,13 @@ describe("DitherThumbnail", () => {
     expect(img.attributes("decoding")).toBe("async")
   })
 
-  it("recesses the image at 70% and wakes it on the parent hover", async () => {
+  it("recesses the image at 70% and wakes it on the parent hover", () => {
     const w = mountThumb()
     const img = w.find("img")
     expect(img.classes()).toContain("opacity-70")
-    await w.trigger("mouseenter")
-    expect(img.classes()).toContain("group-hover:scale-[1.04]")
-    expect(img.classes()).toContain("group-hover:opacity-100")
+    expect(w.classes()).toContain("dk-thumb")
+    expect(img.classes()).toContain("dk-thumb-img")
+    expect(hover).toMatch(/\.dk-thumb:hover \.dk-thumb-img \{\s*scale: 1\.04;\s*opacity: 1;/)
   })
 
   it("rides the house curve inside the 0.25-0.4s window, transition named", () => {
@@ -60,7 +64,7 @@ describe("DitherThumbnail", () => {
     const veil = w.find(".dither-veil")
     expect(veil.exists()).toBe(true)
     expect(veil.attributes("style")).toContain("background-size: 24px 24px") // 6 * 4
-    expect(veil.classes()).toContain("group-hover:opacity-0")
+    expect(hover).toMatch(/\.dk-thumb:hover \.dither-veil \{\s*opacity: 0;/)
   })
 
   it("drops all motion under reduced motion", () => {

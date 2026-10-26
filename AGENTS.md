@@ -99,8 +99,8 @@ Default section order:
   `svelte-site/` runs the same CLI with its own `rstack.config.ts`.
 - Aliases: `@` → `src/`; `@dither-kit` → the kit's Tailwind layer
   (`dither-kit/tailwind/index.ts`), `@dither-kit/<layer>/<file>` → a file
-  of a layer (`engine/`, `tailwind/`) (rstack.config.ts + tsconfig paths —
-  change both together).
+  of a layer (`engine/`, `tailwind/`, `stylex/`) (rstack.config.ts +
+  tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links. GitHub Pages deploys through
   `.github/workflows/pages.yml`: `rs build` (the site and the player
@@ -189,12 +189,19 @@ Default section order:
   clip, the Bayer motif, a riser and an impact on every cut) that the
   export carries as the composition's audio track. Details in
   `src/AGENTS.md` and `dither-kit/AGENTS.md`.
-- Styling systems: the kit's tokens live in `dither-kit/engine/theme.css` (plain
-  custom properties the app's `src/app/styles.css` imports under Tailwind);
+- Styling systems: the kit is one kit in styling layers: `dither-kit/engine/`
+  (styling-free logic), `dither-kit/tailwind/` (the components, authored
+  with Tailwind) and `dither-kit/stylex/` (the same components in StyleX,
+  GENERATED from the Tailwind layer by `src/shared/lib/stylex-layer.ts`;
+  after editing a Tailwind file, `npx rs test -u tests/stylex-layer.spec.ts`
+  rewrites its StyleX twin, and the spec fails on any drift). The tokens
+  live in `dither-kit/engine/theme.css` (plain custom properties the app's
+  `src/app/styles.css` imports under Tailwind);
   `npm run build:css` (in `npm run build` and the Pages deploy) compiles
-  `dither-kit/tailwind/kit.css` — tokens, the `.dither-kit`-scoped `base.css`, every
-  utility the kit uses — into `dist/kit/dither-kit.css`, so apps on StyleX,
-  UnoCSS, vanilla CSS or CSS-in-JS run the kit without Tailwind;
+  `dither-kit/tailwind/kit.css` — tokens, the `.dither-kit`-scoped base, every
+  utility the kit uses — into `dist/kit/dither-kit.css`, so apps on
+  UnoCSS, vanilla CSS or CSS-in-JS run the Tailwind layer without Tailwind;
+  StyleX apps alias `@dither-kit` to the StyleX layer;
   `dither-kit/engine/theme.ts` themes from JS. Details in `dither-kit/AGENTS.md`.
   What the site writes for a reader comes in their system too:
   `src/shared/lib/restyle.ts` rewrites a Tailwind-classed snippet into a

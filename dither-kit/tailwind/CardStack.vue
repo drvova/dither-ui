@@ -78,12 +78,11 @@ const cardStyle = computed(() => (d: number) => {
   if (d === 0)
     return {
       transform: `translateX(${dx.value}px) rotate(${dx.value / 24}deg)`,
-      transition: dragging.value ? "none" : "transform 200ms ease",
+      transition: dragging.value ? "none" : undefined,
       zIndex: 10,
     }
   return {
     transform: `translateY(${d * 9}px) scale(${1 - d * 0.05})`,
-    transition: "transform 200ms ease",
     zIndex: 10 - d,
     opacity: 1 - d * 0.25,
   }
@@ -95,7 +94,7 @@ const cardStyle = computed(() => (d: number) => {
     <div
       v-for="(itemIndex, d) in order"
       :key="itemIndex"
-      class="absolute inset-0 motion-reduce:!transition-none"
+      class="absolute inset-0 transition-transform duration-200 ease-[ease] motion-reduce:transition-none"
       :style="cardStyle(d)"
       :aria-hidden="d !== 0"
       :role="d === 0 ? 'group' : undefined"

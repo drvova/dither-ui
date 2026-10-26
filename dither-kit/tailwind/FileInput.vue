@@ -60,7 +60,7 @@ function onDrop(e: DragEvent) {
 <template>
   <div class="grid gap-2" :class="cn(props.class)">
     <label
-      class="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-border/70 bg-card/30 px-4 py-6 text-center transition-colors has-[:focus-visible]:border-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/30 motion-reduce:transition-none"
+      class="dk-file-drop flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-border/70 bg-card/30 px-4 py-6 text-center transition-colors motion-reduce:transition-none"
       :class="cn(dragOver && 'border-accent/70 bg-accent/10', props.disabled && 'pointer-events-none opacity-40')"
       @dragover.prevent="dragOver = !props.disabled"
       @dragleave="dragOver = false"
@@ -115,3 +115,11 @@ function onDrop(e: DragEvent) {
     </DitherButton>
   </div>
 </template>
+
+<style scoped>
+/* The drop zone rings while the file input inside it has keyboard focus. */
+.dk-file-drop:has(:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+</style>

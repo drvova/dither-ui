@@ -63,9 +63,9 @@ function write(id: string, css: string, conditional: boolean) {
 }
 
 /** The rule for one declaration under its conditions: pseudo-classes and
- * pseudo-elements join the selector, at-rules wrap it. */
+ * then the pseudo-element join the selector, at-rules wrap it. */
 function rule(selector: string, path: string[], decl: string): string {
-  const pseudo = path.filter((c) => c.startsWith(":")).join("")
+  const pseudo = [...path.filter((c) => /^:[^:]/.test(c)), ...path.filter((c) => c.startsWith("::"))].join("")
   let css = `${selector}${pseudo}{${decl}}`
   for (const at of path.filter((c) => c.startsWith("@")).reverse()) css = `${at}{${css}}`
   return css
@@ -98,21 +98,28 @@ export function create<T extends Record<string, Style>>(namespaces: T): T {
 }
 
 /** The class names for the styles given, in order (falsy ones skipped,
- * arrays flattened): the last style to set a property wins it. */
+ * arrays flattened): the last style to set a property wins it. A
+ * pseudo-element key (`"::before": { content: "''" }`) holds properties of
+ * its own, merged per property under it. */
 function classesOf(args: readonly Arg[]): string {
-  const merged = new Map<string, StyleValue>()
+  const merged = new Map<string, [string[], string, StyleValue]>()
+  const set = (key: string, entry: [string[], string, StyleValue]) => {
+    merged.delete(key)
+    merged.set(key, entry)
+  }
   const visit = (a: Arg) => {
     if (!a) return
     if (Array.isArray(a)) return a.forEach(visit)
     for (const [prop, value] of Object.entries(a as Style)) {
-      merged.delete(prop)
-      merged.set(prop, value)
+      if (prop.startsWith("::") && value && typeof value === "object" && !Array.isArray(value))
+        for (const [inner, v] of Object.entries(value as Style)) set(`${prop} ${inner}`, [[prop], inner, v])
+      else set(prop, [[], prop, value])
     }
   }
   args.forEach(visit)
   const names: string[] = []
-  for (const [prop, value] of merged)
-    for (const [path, v] of leaves(value, [], [])) {
+  for (const [at, prop, value] of merged.values())
+    for (const [path, v] of leaves(value, at, [])) {
       const decl = declOf(prop, v)
       const name = `x${hash(`${path.join("|")}{${decl}}`)}`
       write(name, rule(`.${name}`, path, decl), path.length > 0)

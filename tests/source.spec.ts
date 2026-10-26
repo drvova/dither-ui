@@ -418,12 +418,14 @@ describe("StyleX at run time", () => {
   it("writes conditions after plain rules: pseudo-classes in the selector, at-rules around it", () => {
     const styles = stylex.create({
       link: { color: { default: "gray", ":hover": { default: null, "@media (hover: hover)": "white" } } },
-      mark: { content: { "::before": "'>'" } },
+      mark: { "::before": { content: "'>'", color: { default: "gray", ":hover": "red" } } },
     })
     stylex.attrs(styles.link, styles.mark)
     expect(sheet("plain")).toContain("color:gray")
     expect(sheet("conditional")).toMatch(/@media \(hover: hover\)\{\.x\w+:hover\{color:white\}\}/)
     expect(sheet("conditional")).toMatch(/\.x\w+::before\{content:'>'\}/)
+    // The pseudo-element is last in the selector, after the pseudo-class.
+    expect(sheet("conditional")).toMatch(/\.x\w+:hover::before\{color:red\}/)
   })
 
   it("defines variables and keyframes, and keeps fallbacks in order", () => {

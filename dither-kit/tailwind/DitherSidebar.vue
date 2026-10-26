@@ -69,8 +69,8 @@ const chrome = computed(() => {
   if (props.variant === "floating") return "m-2 h-[calc(100%-1rem)] rounded-lg border border-border/60 bg-card/50"
   if (props.variant === "inset") return "bg-transparent"
   const edge = props.side === "right" ? "border-l" : "border-r"
-  if (props.variant === "washed") return `relative isolate overflow-hidden ${edge} border-border/60`
-  return `${edge} border-border/60 bg-background/40`
+  if (props.variant === "washed") return ["relative isolate overflow-hidden border-border/60", edge]
+  return [edge, "border-border/60 bg-background/40"]
 })
 </script>
 

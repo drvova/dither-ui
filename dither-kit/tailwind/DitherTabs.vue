@@ -190,7 +190,7 @@ onBeforeUnmount(() => ro?.disconnect())
       :class="[
         vertical ? 'relative flex flex-col' : 'relative flex',
         props.variant === 'segmented'
-          ? 'gap-1 rounded-md border border-border/60 p-1' + (vertical ? '' : ' items-center')
+          ? ['gap-1 rounded-md border border-border/60 p-1', !vertical && 'items-center']
           : props.variant === 'underline'
             ? vertical
               ? 'gap-1 pl-3'

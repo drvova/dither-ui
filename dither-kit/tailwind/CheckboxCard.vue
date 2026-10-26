@@ -20,7 +20,7 @@ const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 
 <template>
   <label
-    class="flex cursor-pointer items-start gap-3 rounded-md border border-border/70 bg-card/40 p-3 transition-colors hover:border-foreground/30 has-[:checked]:border-accent/60 has-[:checked]:bg-accent/10 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/30 motion-reduce:transition-none"
+    class="dk-check-card flex cursor-pointer items-start gap-3 rounded-md border border-border/70 bg-card/40 p-3 transition-colors hover:border-foreground/30 motion-reduce:transition-none"
     :class="cn(props.disabled && 'pointer-events-none opacity-40', props.class)"
   >
     <DitherCheckbox
@@ -40,3 +40,15 @@ const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
     </span>
   </label>
 </template>
+
+<style scoped>
+/* The card answers the checkbox inside it (a button with role="checkbox",
+   whose state is aria-checked): checked tints it, keyboard focus rings it. */
+.dk-check-card:has([aria-checked="true"]) {
+  border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+  background-color: color-mix(in oklab, var(--accent) 10%, transparent);
+}
+.dk-check-card:has(:focus-visible) {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+</style>

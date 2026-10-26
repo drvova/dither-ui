@@ -61,13 +61,18 @@ export type Compiled = {
 /** `&:hover`, `&::before`, `&:not(:last-child)`: a selector StyleX can say. */
 const SIMPLE_SELECTOR = /^&(::?[\w-]+(\([^()]*\))?)+$/
 const TW_VAR = "var(--tw-"
+/** Tailwind's guard around a `color-mix()` value: every browser the kit
+ * supports passes it, so the value joins its rule and the fallback before
+ * it is overridden. */
+const COLOR_MIX = "@supports (color: color-mix(in lab, red, red))"
 
 /** `var(--tw-x, fallback)` → the value the chain gives `--tw-x`, the
  * registered initial, or the fallback; Tailwind's internals never reach the
  * output. */
 function resolveVars(value: string, lookup: (name: string) => string | undefined): string {
-  for (let pass = 0; pass < 8; pass++) {
-    const at = value.indexOf(TW_VAR)
+  // Each pass replaces the first reference; a ring with an offset nests a dozen.
+  for (let from = 0, pass = 0; pass < 256; pass++) {
+    const at = value.indexOf(TW_VAR, from)
     if (at < 0) return value
     let depth = 0
     let comma = -1
@@ -86,8 +91,9 @@ function resolveVars(value: string, lookup: (name: string) => string | undefined
     const name = value.slice(at + 4, comma < 0 ? end : comma).trim()
     const fallback = comma < 0 ? undefined : value.slice(comma + 1, end).trim()
     const found = lookup(name) ?? fallback
-    if (found === undefined) return value
-    value = value.slice(0, at) + found + value.slice(end + 1)
+    // An input nothing sets stays, and the search moves past it.
+    if (found === undefined) from = end + 1
+    else value = value.slice(0, at) + found + value.slice(end + 1)
   }
   return value
 }
@@ -119,15 +125,16 @@ function simplify(prop: string, value: string): string {
 
 /** The declarations a class string stands for, in Tailwind's cascade order.
  * `strict` (StyleX) sends classes whose rules need a selector StyleX cannot
- * express, a custom property or `!important` to `rest` instead. */
-export function compileUtilities(tokens: string[], strict = false): Compiled {
+ * express, a custom property or `!important` to `rest` instead. `map` is the
+ * vocabulary (the docs' by default; the kit layer generator passes the kit's). */
+export function compileUtilities(tokens: string[], strict = false, map: UtilityMap = UTILITIES): Compiled {
   const seen = new Set<string>()
   const known: string[] = []
   const rest: string[] = []
   for (const t of tokens) {
     if (!t || seen.has(t)) continue
     seen.add(t)
-    const rules = UTILITIES.rules[t]
+    const rules = map.rules[t]
     const expressible =
       !!rules &&
       (!strict ||
@@ -138,13 +145,14 @@ export function compileUtilities(tokens: string[], strict = false): Compiled {
         ))
     ;(expressible ? known : rest).push(t)
   }
-  known.sort((a, b) => UTILITIES.order[a] - UTILITIES.order[b])
+  known.sort((a, b) => map.order[a] - map.order[b])
   const chains = new Map<string, { chain: string[]; decl: Map<string, string> }>()
   for (const t of known)
-    for (const rule of UTILITIES.rules[t]) {
-      const key = rule.chain.join("\u0000")
+    for (const rule of map.rules[t]) {
+      const chain = rule.chain.filter((c) => c !== COLOR_MIX)
+      const key = chain.join("\u0000")
       let entry = chains.get(key)
-      if (!entry) chains.set(key, (entry = { chain: rule.chain, decl: new Map() }))
+      if (!entry) chains.set(key, (entry = { chain, decl: new Map() }))
       for (const [k, v] of rule.decl) entry.decl.set(k, v)
     }
   const base = chains.get("")?.decl ?? new Map<string, string>()
@@ -156,8 +164,7 @@ export function compileUtilities(tokens: string[], strict = false): Compiled {
       for (const [k, v] of base)
         if (!decl.has(k) && [...decl.keys()].some((name) => name.startsWith("--tw-") && v.includes(`var(${name}`)))
           decl.set(k, v)
-    const lookup = (name: string) =>
-      decl.get(name) ?? (chain.length ? base.get(name) : undefined) ?? UTILITIES.props[name]
+    const lookup = (name: string) => decl.get(name) ?? (chain.length ? base.get(name) : undefined) ?? map.props[name]
     const resolved: [string, string][] = []
     for (const [k, v] of decl) if (!k.startsWith("--tw-")) resolved.push([k, simplify(k, resolveVars(v, lookup))])
     if (resolved.length) out.push({ chain, decl: resolved })
@@ -167,9 +174,9 @@ export function compileUtilities(tokens: string[], strict = false): Compiled {
 
 /* ------------------------------ the rewrite ------------------------------- */
 
-type Named = { name: string; compiled: Compiled }
+export type Named = { name: string; compiled: Compiled }
 
-const camel = (s: string) => s.replace(/[^A-Za-z0-9]+(.)?/g, (_, c?: string) => (c ? c.toUpperCase() : ""))
+export const camel = (s: string) => s.replace(/[^A-Za-z0-9]+(.)?/g, (_, c?: string) => (c ? c.toUpperCase() : ""))
 const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
 
 const HINTS: [RegExp, string][] = [
@@ -180,7 +187,7 @@ const HINTS: [RegExp, string][] = [
   [/^relative$/, "frame"],
 ]
 
-function baseName(tag: string, tokens: string[]): string {
+export function baseName(tag: string, tokens: string[]): string {
   if (/^[A-Z]/.test(tag)) return lowerFirst(tag.replace(/^Dither/, "")) || "item"
   if (tag === "div" || tag === "span") {
     for (const [re, name] of HINTS) if (tokens.some((t) => re.test(t))) return name
@@ -189,7 +196,7 @@ function baseName(tag: string, tokens: string[]): string {
   return camel(tag)
 }
 
-class Names {
+export class Names {
   private styles: Named[] = []
   private byKey = new Map<string, string>()
   private used = new Set<string>()
@@ -483,17 +490,29 @@ function cssText(styles: Named[]): string {
 
 type Cond = string | null | Map<string, Cond>
 
-const cssProp = (prop: string) =>
-  (prop.startsWith("-") ? prop.slice(1) : prop).replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
+/** `background-color` → `backgroundColor`; a vendor prefix is capitalized
+ * the way StyleX spells it (`-webkit-line-clamp` → `WebkitLineClamp`). */
+const cssProp = (prop: string) => prop.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
 
 function stylexObject(compiled: Compiled): Map<string, Cond> {
-  const tree = new Map<string, Cond>()
+  const root = new Map<string, Cond>()
   for (const { chain, decl } of compiled.chains) {
-    // StyleX nests conditions per property: pseudo-classes first, then at-rules.
-    const keys = [
-      ...chain.filter((c) => !c.startsWith("@")).map((c) => c.slice(1)),
-      ...chain.filter((c) => c.startsWith("@")),
-    ]
+    // StyleX nests conditions per property: pseudo-classes first, then
+    // at-rules. A pseudo-element is a key of its own at the top, holding the
+    // properties it styles (`&:hover::before` → `"::before"`, then `:hover`).
+    const selector = chain
+      .filter((c) => !c.startsWith("@"))
+      .join("")
+      .replace(/&/g, "")
+    const element = selector.match(/::[\w-]+$/)?.[0]
+    const classes = (element ? selector.slice(0, -element.length) : selector).match(/:[\w-]+(\([^()]*\))?/g) ?? []
+    const keys = [...classes, ...chain.filter((c) => c.startsWith("@"))]
+    let tree = root
+    if (element) {
+      const had = root.get(element)
+      if (!(had instanceof Map)) root.set(element, (tree = new Map()))
+      else tree = had
+    }
     for (const [prop, value] of decl) {
       const name = cssProp(prop)
       if (!keys.length) {
@@ -525,7 +544,7 @@ function stylexObject(compiled: Compiled): Map<string, Cond> {
       }
     }
   }
-  return tree
+  return root
 }
 
 const key = (k: string) => (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k))
@@ -540,7 +559,7 @@ function printCond(value: Cond, indent: string): string {
   return `{\n${entries.map((e) => `${indent}  ${e},`).join("\n")}\n${indent}}`
 }
 
-function stylexText(styles: Named[], indent: string): string {
+export function stylexText(styles: Named[], indent: string): string {
   const entries = styles.map(
     ({ name, compiled }) => `${indent}  ${key(name)}: ${printCond(stylexObject(compiled), indent + "  ")},`,
   )

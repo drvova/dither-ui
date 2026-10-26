@@ -1,4 +1,4 @@
-import { CartesianCanvas } from "./cartesian-canvas"
+import { CartesianCanvas } from "../engine/cartesian-canvas"
 import { defineCartesianChart } from "./cartesian-root"
 
 /** Composable dither **area** chart. Compose `<Area>`, `<Grid>`, axes, … inside. */

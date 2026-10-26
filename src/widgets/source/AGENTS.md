@@ -32,9 +32,12 @@ a real tool, never a mock.
   plugin: `create`, `attrs` (Vue), `props`, `defineVars`, `keyframes`,
   `firstThatWorks`. Every property and condition becomes one atomic class
   (`x` + a hash of its rule) written once into `style[data-run-stylex]` in
-  the head (`plain`, then `conditional`: pseudo-classes and pseudo-elements
-  join the selector, at-rules wrap it); the last style to set a property
-  wins; numbers are px except the unitless properties.
+  the head (`plain`, then `conditional`: pseudo-classes and then the
+  pseudo-element join the selector, at-rules wrap it); a pseudo-element is
+  a top-level key holding its own properties, as StyleX writes it
+  (`"::before": { content }`); the last style to set a property wins;
+  numbers are px except the unitless properties. The kit's StyleX layer
+  runs on it in the tests (`tests/components/stylex-layer.spec.ts`).
 
 ## Local Contracts
 

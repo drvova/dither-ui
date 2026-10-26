@@ -42,7 +42,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `download()` and a stored .zip of text files, the ONE download path for
   the Studio's exports, the workbench and the source panel —
   `restyle.ts` — a snippet in the reader's styling system — and the
-  node-side `utility-map.ts` that compiles its vocabulary; `gif.ts` — the
+  node-side `utility-map.ts` that compiles its vocabulary and
+  `stylex-layer.ts` that writes the kit's StyleX layer from its Tailwind
+  layer (see `dither-kit/AGENTS.md`); `gif.ts` — the
   ONE GIF encoder (one palette, `keep` colours held exact, optional
   ordered dither, delta frames), import-free because the share-card
   renderer carries its source inline: the workbench's captures and the
@@ -150,9 +152,17 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   kit's `@theme inline` tokens and dark variant read from
   `dither-kit/tailwind/kit.css`), keeping per class its cascade index, its variant
   chains and declarations, plus the `@property` initials.
-  `compileUtilities` merges a class list in Tailwind's order (so `px-2 p-4`
-  cascades as Tailwind does), resolves every `--tw-*` input, simplifies
-  `calc()`s and drops no-op shadows. Unknown classes stay classes (the kit
+  `compileUtilities(tokens, strict, map)` merges a class list in
+  Tailwind's order (so `px-2 p-4` cascades as Tailwind does), resolves
+  every `--tw-*` input to the end (a ring with an offset nests a dozen),
+  folds Tailwind's `@supports (color: color-mix(...))` guard into its rule
+  (every supported browser passes it), simplifies `calc()`s and drops
+  no-op shadows; `map` defaults to the docs' vocabulary, and the kit
+  layer generator passes the kit's (`buildUtilityMap(root,
+  ["dither-kit/tailwind"])`). StyleX comes out as its compiler takes it:
+  a pseudo-element is a top-level key holding its own properties
+  (`"::placeholder": { color }`), vendor properties are spelled
+  `WebkitLineClamp`. Unknown classes stay classes (the kit
   stylesheet covers them); for StyleX so does any class whose rule needs a
   selector it cannot express, a custom property or `!important`, and a
   dynamic binding only becomes `attrs()` arguments when its shape allows

@@ -5,7 +5,7 @@ const props = defineProps<{ class?: string }>()
 </script>
 
 <template>
-  <div :class="cn('dither-sticker group relative inline-block', props.class)">
+  <div :class="cn('dither-sticker relative inline-block', props.class)">
     <div class="relative z-[1]">
       <slot />
     </div>
@@ -34,7 +34,7 @@ const props = defineProps<{ class?: string }>()
     height 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 320ms ease;
 }
-.group:hover .dither-peel {
+.dither-sticker:hover .dither-peel {
   width: 42px;
   height: 42px;
   box-shadow: -6px -6px 14px rgba(0, 0, 0, 0.5);

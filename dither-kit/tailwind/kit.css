@@ -10,7 +10,7 @@
 @layer dither-kit.theme, dither-kit.base, dither-kit.utilities;
 @import "tailwindcss/theme.css" layer(dither-kit.theme);
 @import "../engine/theme.css" layer(dither-kit.theme);
-@import "./base.css" layer(dither-kit.base);
+@import "../engine/base.css" layer(dither-kit.base);
 @import "tailwindcss/utilities.css" layer(dither-kit.utilities) source(none);
 @source "./";
 @source "../../dither-kit-svelte/";

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "rstack/test"
 import UTILITIES from "virtual-dither-utilities"
-import { compileUtilities, restyle } from "../src/shared/lib/restyle"
+import { compileUtilities, Names, restyle, stylexText } from "../src/shared/lib/restyle"
+import { buildUtilityMap } from "../src/shared/lib/utility-map"
 
 const decls = (tokens: string[], strict = false) =>
   compileUtilities(tokens, strict).chains.map((c) => [c.chain, Object.fromEntries(c.decl)] as const)
@@ -59,6 +60,43 @@ describe("compileUtilities", () => {
     expect(rest).toEqual(["my-thing"])
     expect(chains.map((c) => c.chain)).toEqual([[], ["&:hover", "@media (hover: hover)"], ["@media (width >= 40rem)"]])
     expect(chains[1].decl).toEqual([["color", "var(--foreground)"]])
+  })
+})
+
+describe("StyleX as its compiler takes it", () => {
+  // The kit's vocabulary (what the StyleX layer is generated from) holds the
+  // shapes the docs' does not: a placeholder, a clamp, a ring with an offset.
+  const kit = buildUtilityMap(process.cwd(), ["dither-kit/tailwind"])
+  const create = async (tokens: string) => {
+    const names = new Names()
+    names.claim("box", compileUtilities(tokens.split(" "), true, await kit))
+    return stylexText(names.all, "")
+  }
+
+  it("puts a pseudo-element at the top, with its own properties", async () => {
+    const out = await create("text-foreground placeholder:text-muted-foreground/60")
+    expect(out).toContain('color: "var(--foreground)"')
+    expect(out).toContain('"::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" }')
+  })
+
+  it("spells a vendor property the way StyleX does", async () => {
+    expect(await create("line-clamp-2")).toContain('WebkitLineClamp: "2"')
+  })
+
+  it("writes color-mix() without Tailwind's fallback guard, which every supported browser passes", async () => {
+    const out = await create("bg-accent/10")
+    expect(out).toContain('backgroundColor: "color-mix(in oklab, var(--accent) 10%, transparent)"')
+    expect(out).not.toContain("@supports")
+  }, 30_000)
+
+  it("resolves a ring with an offset to the end: no Tailwind variable is left", async () => {
+    const out = await create(
+      "focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+    )
+    expect(out).toContain(
+      '"0 0 0 2px var(--background), 0 0 0 calc(2px + 2px) color-mix(in oklab, var(--accent) 30%, transparent)"',
+    )
+    expect(out).not.toContain("--tw-")
   })
 })
 

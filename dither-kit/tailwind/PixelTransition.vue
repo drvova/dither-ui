@@ -21,7 +21,7 @@ const cells = computed(() => Array.from({ length: Math.max(1, props.rows * props
 </script>
 
 <template>
-  <div :class="cn('dither-pixeltrans group relative overflow-hidden', props.class)">
+  <div :class="cn('dither-pixeltrans relative overflow-hidden', props.class)">
     <slot />
     <div
       class="pointer-events-none absolute inset-0 grid"
@@ -42,7 +42,7 @@ const cells = computed(() => Array.from({ length: Math.max(1, props.rows * props
 .dither-cell {
   transition: opacity 260ms ease;
 }
-.group:hover .dither-cell {
+.dither-pixeltrans:hover .dither-cell {
   opacity: 0;
 }
 @media (prefers-reduced-motion: reduce) {

@@ -17,7 +17,7 @@ is its showcase and editor.
   container-query scales, chart roots/contexts, canvas painters, and the
   public component set.
 - Consumers import ONLY via a layer's `index.ts` (`@dither-kit` aliases
-  `tailwind/index.ts`).
+  `tailwind/index.ts`; a StyleX app aliases `stylex/index.ts`).
 
 ## Layers
 
@@ -25,17 +25,42 @@ One kit, folders by styling. File names are unique across layers; inside
 the kit every import is relative (`../engine/pixel`).
 
 - `engine/` — every module that carries no class name: palette, pixel,
-  raster, the painters and backgrounds' renderers, timing, sequence,
-  clock, wipe, keyframes, score, the chart/field/common contexts
-  (`chart-context.ts`, `field.ts`), parsers and GL engines, `copy-text.ts`,
-  `theme.css` and `theme.ts`. It imports only `vue`, `d3-*` and itself,
-  never a styling layer, and is what the Svelte port copies verbatim.
-- `tailwind/` — the styling layer: every `.vue` component and the `.ts`
-  modules that write Tailwind classes (`lib.ts`'s `cn`, `control.ts`'s
-  `CONTROL` / `CONTROL_BUTTON` / `POPOVER`, the chart roots and canvases),
-  its `index.ts` (the public API), `base.css` and `kit.css`.
+  raster, the painters and backgrounds' renderers, the chart canvases
+  (their layers styled inline), timing, sequence, clock, wipe, keyframes,
+  score, the chart/field/common contexts (`chart-context.ts`, `field.ts`),
+  parsers and GL engines, `copy-text.ts`, `theme.css`, `theme.ts` and
+  `base.css` (the scoped box-model base every layer assumes). It imports
+  only `vue`, `d3-*` and itself, never a styling layer, and is what the
+  Svelte port copies verbatim.
+- `tailwind/` — the source styling layer: every `.vue` component and the
+  `.ts` modules that write Tailwind classes (`lib.ts`'s `cn`,
+  `control.ts`'s `CONTROL` / `CONTROL_BUTTON` / `POPOVER`, the chart
+  roots), its `index.ts` (the public API) and `kit.css`.
+- `stylex/` — the same components in StyleX, GENERATED from `tailwind/`
+  by `src/shared/lib/stylex-layer.ts`: never edit a generated file (each
+  says so in its first line); edit the Tailwind file and run
+  `npx rs test -u tests/stylex-layer.spec.ts`. Every class string in
+  class position (`class` / `:class`, `cn()` arguments, `class:` in `h()`,
+  and the constants, records, computeds and functions those reach)
+  becomes a named style in ONE `stylex.create` per file, at module level
+  in a plain `<script>` (where StyleX compiles it); an element's own
+  styles bind with `v-bind="stylex.attrs(...)"`, merged ones with
+  `:class="cn(...)"`. A component that takes `class` takes `xstyle` too
+  (StyleX styles or class names, merged after its own, so the last style
+  to set a property wins; Vue flattens any object given as `class`), and
+  kit components hand each other styles through it. Only `lib.ts` (`cn`
+  over `stylex.attrs`, `StyleProp`) is written by hand.
 - A module that stops carrying classes moves to `engine/`; a new component
-  goes in a styling layer and reaches shared logic through `../engine/`.
+  goes in `tailwind/` and reaches shared logic through `../engine/`.
+- What the generator can carry, so the Tailwind source keeps to it: class
+  strings in class position (never a template literal or `+`: an array),
+  a composition returns classes or arrays (never a `cn()` string fed into
+  another `cn()`, which would merge twice), no `!important`, and a rule
+  about another element's state (a parent's hover, a `:has()`) lives in
+  the component's scoped `<style>` on its own hook classes, which both
+  layers carry verbatim. A utility that needs a selector StyleX cannot say
+  (`group-*`, `peer-*`, `has-*`, `*:`, an arbitrary `[&...]`) stays out of
+  class strings.
 
 ## Local Contracts
 
@@ -155,7 +180,7 @@ the kit every import is relative (`../engine/pixel`).
   `:root` and dark under `.dark` — plain CSS the app's `styles.css` imports
   under Tailwind (its `@theme inline` maps them to `--color-*` utilities and
   must stay in step) and every other styling system themes by redefining.
-  `base.css` is the box-model and form-control base the components assume
+  `engine/base.css` is the box-model and form-control base the components assume
   (Tailwind's preflight is the global version the site uses), scoped under
   `.dither-kit` through `:where()` at zero specificity. `tailwind/kit.css` is
   the standalone entry: the two files plus Tailwind's utilities with
@@ -163,10 +188,11 @@ the kit every import is relative (`../engine/pixel`).
   `dither-kit-svelte/`, in the `dither-kit.theme/base/utilities` layers;
   `scripts/kit-css.mjs` (`npm run build:css`, part of `npm run build` and
   the Pages deploy) compiles it with `@tailwindcss/node` + `oxide` into
-  `dist/kit/dither-kit.css` (~56 kB, served at `/kit/dither-kit.css`), so
-  an app on StyleX, UnoCSS, vanilla CSS or any CSS-in-JS loads one file,
-  wraps the region in `.dither-kit`, and wins every cascade against the
-  kit's layered rules; `class` on any component takes any class name
+  `dist/kit/dither-kit.css` (~55 kB, served at `/kit/dither-kit.css`), so
+  an app on UnoCSS, vanilla CSS or any CSS-in-JS runs the Tailwind layer
+  by loading one file, wraps the region in `.dither-kit`, and wins every
+  cascade against the kit's layered rules (a StyleX app takes `stylex/`
+  instead, with `engine/theme.css` and `engine/base.css`); `class` on any component takes any class name
   (`cn()` merges Tailwind names, passes the rest through). `engine/theme.ts` sets
   the tokens from JS: `THEME_TOKENS`, `themeVars` (object of custom
   properties for inline styles or a vars contract), `themeCss` (a `:root`
@@ -588,6 +614,13 @@ the kit every import is relative (`../engine/pixel`).
 
 - `npx vue-tsc --noEmit` (workspace-wide) must stay green.
 - Visual: `npx rs build && npx rs preview` and eyeball the `/docs/` previews.
+- The StyleX layer: `tests/stylex-layer.spec.ts` regenerates it and fails on
+  any drift, any Tailwind class left (only the components' own hooks stay
+  class names) and any utility input whose effect was lost;
+  `tests/components/stylex-layer.spec.ts` mounts it on the docs' StyleX
+  runtime. After a generator change, compile the layer once with the real
+  `@stylexjs/babel-plugin` (Vue's `compileScript`, then Babel): it must take
+  every file.
 - Determinism: on the built site, `/play/#doc=…` driven by synthetic
   `hf-seek` events must give identical bytes for identical times, in any
   order, and request no animation frames while directed.

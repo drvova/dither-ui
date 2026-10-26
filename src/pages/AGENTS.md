@@ -113,7 +113,7 @@ widgets/features; page-specific conventions live here.
   Vue, which the install bar's commands are built from);
   `tests/landing-facts.spec.ts` recounts the first from
   `dither-kit/tailwind/index.ts` and holds the second to the kit's
-  `peerDependencies`; section counts come from `hub.ts`. A change that
+  required `peerDependencies` (a styling layer's optional one aside); section counts come from `hub.ts`. A change that
   moves one fails until the page says it.
 - Install (`InstallBlock.vue`, under the hero) mirrors the docs install
   story: its four steps (degit folder + npm/pnpm/bun deps) must stay in

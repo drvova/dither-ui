@@ -35,6 +35,7 @@ import DitherField from "@dither-kit/tailwind/DitherField.vue"
 import DitherInput from "@dither-kit/tailwind/DitherInput.vue"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
+import { ref } from "vue"
 
 const SNIPPET_PASSWORD_INPUT = `<DitherField label="Password">
   <DitherPasswordInput v-model="pw" placeholder="At least 12 characters" />
@@ -66,6 +67,10 @@ const SNIPPET_TAG_INPUT = `<DitherTagInput v-model="tags" :max="8" placeholder="
 
 const SNIPPET_CHOICE_CHIPS = `<DitherChoiceChips v-model="size" :options="['S', 'M', 'L', 'XL']" />
 <DitherChoiceChips v-model="tags" multiple :options="['bug', 'feat', 'docs']" />`
+
+// The checkbox cards' demo answers clicks: each card is its own toggle.
+const telemetry = ref(true)
+const beta = ref(false)
 
 const SNIPPET_CHECKBOX_CARD = `<DitherCheckboxCard v-model="on"
   label="Telemetry"
@@ -462,12 +467,12 @@ const API: Record<string, PropRow[]> = {
     <DemoCard :code="SNIPPET_CHECKBOX_CARD">
       <div class="mx-auto grid max-w-sm gap-2">
         <DitherCheckboxCard
-          :model-value="true"
+          v-model="telemetry"
           label="Telemetry"
           description="Anonymous usage stats help pick the next components"
         />
         <DitherCheckboxCard
-          :model-value="false"
+          v-model="beta"
           label="Beta channel"
           description="Get breaking changes before everyone else"
         />

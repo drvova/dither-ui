@@ -29,7 +29,7 @@ const props = withDefaults(
     :aria-label="props.alt"
     :class="
       cn(
-        'group relative block cursor-zoom-in overflow-hidden rounded-md outline-none focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'dk-thumb relative block cursor-zoom-in overflow-hidden rounded-md outline-none focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         props.class,
       )
     "
@@ -41,14 +41,14 @@ const props = withDefaults(
         :alt="props.alt"
         loading="lazy"
         decoding="async"
-        class="h-full w-full object-cover opacity-70 transition-[opacity,scale] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:opacity-100 motion-reduce:transition-none"
+        class="dk-thumb-img h-full w-full object-cover opacity-70 transition-[opacity,scale] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
       />
       <!-- The recessed veil: the house Bayer lattice as a dot overlay. It is
            what makes the resting state feel sunk into the page rather than
            merely dimmed, and it dissolves as the image wakes. -->
       <span
         aria-hidden="true"
-        class="dither-veil pointer-events-none absolute inset-0 opacity-100 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-0 motion-reduce:transition-none"
+        class="dither-veil pointer-events-none absolute inset-0 opacity-100 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
         :style="{ backgroundSize: `${props.veilCell * 4}px ${props.veilCell * 4}px` }"
       />
     </span>
@@ -61,6 +61,18 @@ const props = withDefaults(
 .dither-veil {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cg fill='%23000' fill-opacity='0.5'%3E%3Crect x='0' y='0' width='2' height='2'/%3E%3Crect x='8' y='8' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23fff' fill-opacity='0.35'%3E%3Crect x='8' y='0' width='2' height='2'/%3E%3Crect x='0' y='8' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
   mix-blend-mode: overlay;
+}
+
+/* Hover wakes the image and dissolves the veil: the link's descendants,
+   which no single element's styles can say. */
+@media (hover: hover) {
+  .dk-thumb:hover .dk-thumb-img {
+    scale: 1.04;
+    opacity: 1;
+  }
+  .dk-thumb:hover .dither-veil {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
