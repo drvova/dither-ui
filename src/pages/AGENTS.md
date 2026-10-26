@@ -113,12 +113,16 @@ widgets/features; page-specific conventions live here.
   Vue, which the install bar's commands are built from);
   `tests/landing-facts.spec.ts` recounts the first from
   `dither-kit/tailwind/index.ts` and holds the second to the kit's
-  required `peerDependencies` (a styling layer's optional one aside); section counts come from `hub.ts`. A change that
-  moves one fails until the page says it.
+  required `peerDependencies` (a styling layer's optional one aside);
+  section counts come from `hub.ts`. A change that moves one fails until
+  the page says it.
 - Install (`InstallBlock.vue`, under the hero) mirrors the docs install
   story: its four steps (degit folder + npm/pnpm/bun deps) must stay in
-  sync with `docs/install.ts` `INSTALL` (the landing never imports the
-  docs). One hairline bar: the
+  sync with `docs/install.ts` `INSTALL.vue`, the Tailwind layer's steps
+  (the landing never imports the docs). `INSTALL.stylex` is the StyleX
+  layer's (its deps, its alias, the tokens and base imported once,
+  `xstyle`): the docs' Quick start and the source panel's prompt show it
+  when the reader picks StyleX on Vue. One hairline bar: the
   `.seg` step picker (each step under its mark: the kit's Folder glyph,
   then npm, pnpm and Bun's own marks), the command in mono with the ember
   `$`, a hairline Copy through `DitherClipboard`. A copy is ONE gesture:

@@ -52,10 +52,13 @@ a real tool, never a mock.
   tokens (`engine/theme.css`) and `prompt.md`. Kit files are the repo's,
   served by the build at `kit/src/<vue|svelte>/` with a recursive
   `files.json` listing (`kitSources` in `rstack.config.ts`) — never a copy
-  kept by hand. `KIT_INDEX` names each kit's public entry (the Vue kit's
-  `tailwind/index.ts`); `kitIndex` maps its exports to files relative to
-  it and `resolveKitFile` resolves a kit import against its importer's
-  folder, across layers. Zip paths mirror the install: the example and
+  kept by hand. The reader's styling system picks the Vue kit's layer
+  (`layerOf`: StyleX takes `stylex/`, every other system `tailwind/`);
+  `kitEntry` names the public entry of a kit and layer, `kitIndex` maps its
+  exports to files relative to it, and `resolveKitFile` resolves a kit
+  import against its importer's folder, across layers. So on StyleX the
+  tabs, the zip and `prompt.md` (`installFor`: the StyleX layer's install
+  steps) are the StyleX layer's. Zip paths mirror the install: the example and
   prompt at the root, kit files under `dither-kit/` (`dither-kit-svelte/`)
   in their layer folders.
 - Edits are kept per file (the example's per framework and styling
@@ -63,7 +66,8 @@ a real tool, never a mock.
 - Run (Vue, in any styling system: Tailwind, CSS, CSS Modules, and StyleX
   through `model/stylex.ts`; Svelte says why not):
   an example that edits only itself links to the page's kit (the very
-  modules the docs run on). Once a kit file is edited, the example links to
+  modules the docs run on). Once a kit file is edited, or on StyleX (the
+  page carries only the Tailwind layer; `fromSource`), the example links to
   a kit evaluated from its source — the edits and every kit file the run
   reaches — so a compound component and its contexts (chart, series,
   field, drawer) share one set of modules. Problems come back located
@@ -88,14 +92,16 @@ a real tool, never a mock.
   (atomic classes, last style wins, conditions after plain rules,
   variables, keyframes, fallbacks); a DemoCard opened to its files, an
   example edited and run, a kit file edited and run, a broken edit located,
-  the demo restored, and the example run as StyleX (its elements carry the
-  runtime's classes, their rules in the head).
+  the demo restored, and the example run as StyleX (the StyleX layer's
+  files in the tabs and the prompt, its elements and the kit component's
+  carrying the runtime's classes, their rules in the head).
 - Browser walk (`rs dev`): `/docs/switch` and `/docs/button` — tabs by
   keyboard, edit and Run, a kit file edited (`DitherSwitch.vue`), tokens
   edited (`theme.css`), CSS, CSS Modules and StyleX runs, the Svelte
   refusal, the zip (`unzip -t`), copy; `/docs/area` — the `…` sketch
   located, data filled in, `Area.vue` edited and the chart drawn; a 390px
-  phone and light theme.
+  phone and light theme. On the built site, an example Run on Tailwind
+  and on StyleX renders the same pixels (the two layers side by side).
 
 ## Child DOX Index
 

@@ -648,8 +648,12 @@ const effectData = MONTHS.map((month, i) => ({
 }))
 const effectConfig = { v: { label: "signal", color: "blue" as DitherColor } }
 
+// The Vue kit on StyleX installs its StyleX layer.
+const onStylex = computed(() => docsFramework.value === "vue" && docsStyling.value === "stylex")
+
 const SNIPPETS = {
   install: INSTALL.vue,
+  installStylex: INSTALL.stylex,
   installSvelte: INSTALL.svelte,
   seeds: `<!-- one integer is a complete visual personality: -->
 <AreaChart :data="rows" :config="config" :seed="1984">
@@ -665,7 +669,7 @@ const SNIPPETS = {
 #   (or from the repo: npm run build:css writes dist/kit/dither-kit.css)
 
 <div class="dither-kit">                         <!-- the base applies inside this wrapper only -->
-  <DitherButton class="cta">Ship</DitherButton>  <!-- class takes anything: StyleX, UnoCSS, vanilla CSS -->
+  <DitherButton class="cta">Ship</DitherButton>  <!-- class takes any class name: UnoCSS, vanilla CSS -->
 </div>
 
 # Theme from any system: the tokens are custom properties (theme.css lists them)
@@ -1111,14 +1115,32 @@ const gradientCode = computed(
                 rel="noreferrer"
                 class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
                 >GitHub repo</a
-              >, install four small runtime deps, and alias it. You already have
-              {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }}, and Tailwind if you use it.
+              >, install {{ onStylex ? "three" : "four" }} small runtime deps, and alias it. You already have
+              {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3"
+              }}{{ onStylex ? " and StyleX." : ", and Tailwind if you use it." }}
             </p>
             <div class="mt-5">
-              <CodeBlock :code="docsFramework === 'svelte' ? SNIPPETS.installSvelte : SNIPPETS.install" />
+              <CodeBlock
+                :code="
+                  docsFramework === 'svelte'
+                    ? SNIPPETS.installSvelte
+                    : onStylex
+                      ? SNIPPETS.installStylex
+                      : SNIPPETS.install
+                "
+              />
             </div>
+            <p v-if="docsFramework === 'vue'" class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
+              On StyleX, the Vue kit has a layer of its own:
+              <code class="text-foreground/80">dither-kit/stylex/</code> holds every component written in StyleX,
+              generated from the Tailwind ones so the two never drift, and your StyleX plugin compiles it with your app.
+              Alias <code class="text-foreground/80">@dither-kit</code> to it, and every component that takes
+              <code class="text-foreground/80">class</code> takes your styles as
+              <code class="text-foreground/80">xstyle</code>, merged after its own. Pick StyleX in the header and the
+              steps above, the code tabs and Run all use that layer.
+            </p>
             <p class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
-              Styling with something else, like StyleX, UnoCSS, vanilla CSS or any CSS-in-JS? The kit does not need your
+              Styling with something else, like UnoCSS, vanilla CSS or any CSS-in-JS? The kit does not need your
               Tailwind: its own stylesheet carries the tokens, a base scoped to a
               <code class="text-foreground/80">.dither-kit</code> wrapper and every class its components use, all in
               cascade layers, so your unlayered styles win. Theme it from CSS, JS or your vars contract: the tokens are

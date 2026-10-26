@@ -210,7 +210,9 @@ Default section order:
   from the docs + entities vocabulary by `src/shared/lib/utility-map.ts`);
   the docs' styling switch, the Studio's export dialog and
   `code.get { styling }` all go through it, and the docs' Run plays the
-  result in the page, StyleX included (see `src/AGENTS.md`).
+  result in the page, StyleX included (on the kit's StyleX layer, which
+  the source panel and the Quick start also show then; see
+  `src/AGENTS.md`).
 - Browsers and drivers: the kit is web platform only — Chromium (Chrome,
   Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor
   (Chrome 111, Safari 16.4, Firefox 128); every newer API is feature-detected

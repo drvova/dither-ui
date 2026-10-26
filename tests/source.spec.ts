@@ -564,6 +564,18 @@ describe("the source panel on a docs preview", () => {
       .trigger("click")
     await settle()
     expect((card.get("textarea").element as HTMLTextAreaElement).value).toContain("const styles = stylex.create({")
+    // The kit's own files are its StyleX layer, and the prompt installs that.
+    const tab = (name: string) => card.findAll('[role="tab"]').find((t) => t.text().startsWith(name))!
+    await tab("DitherSwitch.vue").trigger("click")
+    await settle()
+    const kitText = (card.get("textarea").element as HTMLTextAreaElement).value
+    expect(kitText).toContain('import * as stylex from "@stylexjs/stylex"')
+    expect(kitText).toContain("xstyle?: StyleProp")
+    await tab("prompt.md").trigger("click")
+    await settle()
+    const prompt = (card.get("textarea").element as HTMLTextAreaElement).value
+    expect(prompt).toContain("`dither-kit/stylex/DitherSwitch.vue`")
+    expect(prompt).toContain("npm i d3-scale d3-shape @stylexjs/stylex")
     await card.get("button.src-run").trigger("click")
     await settle()
     expect(card.find('ol[aria-label="Run problems"]').exists()).toBe(false)
@@ -573,6 +585,10 @@ describe("the source panel on a docs preview", () => {
     const css = [...document.head.querySelectorAll("style[data-run-stylex]")].map((s) => s.textContent).join("")
     for (const c of label.classes()) expect(css).toContain(`.${c}{`)
     expect(css).toContain("display:flex")
+    // The switch itself is the StyleX layer's, styled by the same runtime.
+    const toggle = card.get('[role="switch"]')
+    expect(toggle.classes().length).toBeGreaterThan(0)
+    for (const c of toggle.classes()) expect(css).toContain(`.${c}`)
     card.unmount()
     section.remove()
     setStyling("tailwind")

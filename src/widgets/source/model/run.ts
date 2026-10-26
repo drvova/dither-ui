@@ -1,11 +1,12 @@
 // The runtime half of Run: compiled files evaluated against the page's own
 // Vue (so the result mounts inside the docs app). An example that only
 // edits itself links to the page's kit, the very modules the docs run on.
-// Once a kit file is edited, the example links to a kit evaluated from its
-// source instead — the edited files and everything they and the example
-// reach — so a compound component and its contexts (chart, series, field,
-// drawer) share one consistent set of modules. Loaded with the compiler on
-// the first Run.
+// Once a kit file is edited, or the run takes a layer the page does not
+// carry (StyleX), the example links to a kit evaluated from its source
+// instead — the edited files and everything they and the example reach —
+// so a compound component and its contexts (chart, series, field, drawer)
+// share one consistent set of modules. Loaded with the compiler on the
+// first Run.
 import {
   BaseTransition,
   camelize,
@@ -276,6 +277,8 @@ export interface RunInput {
   /** The kit's public exports (`kitIndex`) and its file list. */
   index: Map<string, { file: string; name: string }>
   files: readonly string[]
+  /** Link the kit evaluated from its source even when no kit file is edited. */
+  fromSource?: boolean
   /** A kit file's original text (for the types `defineProps` reads). */
   source(file: string): Promise<string>
 }
@@ -290,7 +293,7 @@ export interface RunResult {
 /** Compile and link a run. Throws `CompileError` with every problem found. */
 export async function run(input: RunInput): Promise<RunResult> {
   const edited = new Map(input.kit.map((f) => [f.file, f.text]))
-  const fresh = edited.size > 0
+  const fresh = edited.size > 0 || !!input.fromSource
   // The kit files the run reaches — from the edited files and, for a kit
   // evaluated from source, from what the example imports — read up front:
   // the compiler resolves types and the linker evaluates synchronously.

@@ -22,9 +22,13 @@ export interface SourceFile {
 }
 
 export const KIT_FOLDER: Record<Flavor, string> = { vue: "dither-kit", svelte: "dither-kit-svelte" }
+/** The Vue kit's layer a styling system takes: StyleX has its own (`stylex/`,
+ * generated from the Tailwind one); every other system runs `tailwind/`. */
+export type Layer = "tailwind" | "stylex"
+export const layerOf = (styling: string): Layer => (styling === "stylex" ? "stylex" : "tailwind")
 /** Each kit's public index, inside its folder: the Vue kit's components
- * live in a styling layer (`tailwind/`) over the shared `engine/`. */
-export const KIT_INDEX: Record<Flavor, string> = { vue: "tailwind/index.ts", svelte: "index.ts" }
+ * live in a styling layer over the shared `engine/`. */
+export const kitEntry = (flavor: Flavor, layer: Layer): string => (flavor === "vue" ? `${layer}/index.ts` : "index.ts")
 const PACKAGE: Record<Flavor, string> = { vue: "@dither-kit", svelte: "@dither-kit-svelte" }
 
 /** A kit index (`export { default as X, y } from "./file"`) as export name →
@@ -143,8 +147,13 @@ export interface SourceContext {
   title: string
   description: string
   url: string
-  install: Record<Flavor, string>
+  /** The install steps per framework, and the Vue kit's on StyleX. */
+  install: Record<Flavor | "stylex", string>
 }
+
+/** The install steps a reader follows: the StyleX layer's on Vue + StyleX. */
+export const installFor = (install: SourceContext["install"], flavor: Flavor, styling: string): string =>
+  flavor === "vue" && layerOf(styling) === "stylex" ? install.stylex : install[flavor]
 
 export interface PromptContext {
   title: string
@@ -160,8 +169,10 @@ const STYLE_NOTES: Record<string, string> = {
   css: "plain CSS — the example's own `<style>` block; the kit's components read the tokens in `theme.css`",
   modules: "CSS Modules — the example's `<style module>`; the kit's components read the tokens in `theme.css`",
   stylex:
-    "StyleX (`@stylexjs/stylex`, compiled by its bundler plugin); the kit's components read the tokens in `theme.css`",
+    "StyleX (`@stylexjs/stylex`, compiled by its bundler plugin) with the kit's StyleX layer (`dither-kit/stylex/`, the same components written in StyleX): pass your own styles to a component as `xstyle`, and load `engine/theme.css` (the tokens) and `engine/base.css` (the base, inside a `.dither-kit` wrapper) once",
 }
+/** Where a system without Tailwind gets the kit's own classes. */
+const NO_TAILWIND = ". Without Tailwind, link the compiled kit stylesheet: https://dither-ui.com/kit/dither-kit.css"
 
 /** prompt.md: the files handed to a coding agent — what to build, with
  * what, and how to check it against the live preview. */
@@ -180,7 +191,7 @@ export function promptFor(ctx: PromptContext, files: SourceFile[]): string {
     "## Build it",
     "",
     `- Stack: ${framework} with TypeScript, and dither-kit (MIT) copied into the project — the kit is source you own, not a package.`,
-    `- Styling: ${STYLE_NOTES[ctx.styling] ?? STYLE_NOTES.tailwind}. Without Tailwind, link the compiled kit stylesheet: https://dither-ui.com/kit/dither-kit.css`,
+    `- Styling: ${STYLE_NOTES[ctx.styling] ?? STYLE_NOTES.tailwind}${ctx.flavor === "vue" && layerOf(ctx.styling) === "stylex" ? "." : NO_TAILWIND}`,
     kit.length
       ? `- Uses: ${kit.map((f) => `\`${f.name}\` (\`${f.path}\`)`).join(", ")} — the kit's own source, included here so you read the real props, slots and defaults.`
       : "",
