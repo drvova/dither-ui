@@ -9,24 +9,38 @@ widgets/features; page-specific conventions live here.
 
 ### landing/
 
-- Direction: ONE site voice. The landing speaks the docs' and the
-  Studio's language — the dark theme tokens, monospace (`--font-mono`),
-  hairlines — so landing → docs → studio reads as one
-  product. From the 2000s oakley.com archive (the user's reference) it
-  keeps STRUCTURE only: dense panels in columns, lists under a heading.
-  From the dither winners on Awwwards (Basement Foundry, MONOGRID,
-  ASTRODITHER) it takes SCALE: edge-to-edge art bands (the hero and the
-  close), display-size type, tiny mono UI around it. Rejected and gone on purpose: the nodecode
-  hairline grid, speed-italic type, slants and cut corners, the calm single
-  column, condensed sports caps, bevels/chrome, and red. The kit's ember is
-  the one warm light (the brand core, the install prompt, LEDs). Icons
-  do the work of labels where they can: kit glyphs for ideas, the tools'
-  own marks for tools (see Marks). Additions
-  must remove something or justify their presence.
+- Direction (the user's look): Y2K retrofuturism, biomorphic form and
+  technical sportswear, on the dither and mono base (the Bayer dither and
+  `--font-mono` stay the signature). The landing leads; the docs and the
+  Studio take the look next, so the site reads as one product again.
+  Its materials: liquid CHROME (`--chrome`: the statement, every section
+  title and the facts' numerals cast in it, one horizon per line; the
+  primary key a chrome capsule) and a faint PEARL sheen. Its forms: the
+  HARDSHELL panel (two opposite corners cut, a chrome-glint hairline that
+  follows the cut) holding the soft core, the GEL well (an asymmetric
+  pebble, a chrome rim, a gloss across its top), capsule keys and
+  toggles, and a BIOME of the kit's own liquid chrome (`DitherLiquidChrome`,
+  one static frame in a pebble and a droplet) behind the hero stage. Its
+  sportswear: SPEC labels (uppercase, tracked) and slanted speed tags
+  naming what a section is made of, the facts as a spec sheet with
+  slanted readouts, and a seam-tape ruler (`.ticks`) along the hero's
+  foot. The user lifted three earlier bans for it: chrome and gloss, cut
+  corners, caps and slants for spec labels. Still banned: red (the kit's
+  ember is the one warm light: brand core, install prompt, LEDs), the
+  nodecode hairline grid, the calm single column, an eyebrow over a
+  title (a spec label sits beside or under what it names), and in copy
+  middle dots, em dashes and arrow-ended links. From the 2000s oakley.com
+  archive the page keeps its STRUCTURE (dense panels in columns, lists
+  under a heading); from the dither winners on Awwwards its SCALE
+  (edge-to-edge art bands, display-size type). Icons do the work of
+  labels where they can: kit glyphs for ideas, the tools' own marks for
+  tools (see Marks). Additions must remove something or justify their
+  presence.
 - Copy and markup follow the design.how bans the user picked (from its
   `build-design-system` taste file; reviews follow its `ui-review`
-  criteria): NO uppercase or tracked labels (sentence case, the site's
-  `.nav-a` keys included), NO eyebrow over a title, NO middle dots or em
+  criteria): sentence case for headings, keys and links (the site's
+  `.nav-a` keys included; uppercase and tracking only on spec labels and
+  speed tags, the user's lift), NO eyebrow over a title, NO middle dots or em
   dashes in copy (separate facts with layout; end the sentence), NO link
   that ends in an arrow (every link names where it goes; an external one
   says "(opens in a new tab)" to screen readers). The docs and the Studio
@@ -37,20 +51,30 @@ widgets/features; page-specific conventions live here.
   on, never drawings of them); no film player or animation runtime ships.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) on top of the SITE voice in
-  `app/styles.css` (`.nav-a`, sentence case site-wide, `.nav-pill`,
-  `.led`), which the landing
+  `app/styles.css` (`.nav-a`, `.nav-pill`, `.led`), which the landing
   uses directly: ink levels mapped to theme tokens
-  (`--ink`, `--ink-2`, `--ink-3`, `--line`, `--well`), `.display` (mono
-  500, tight), `.section-head` (the `.section-title` — the
-  page's second size, mono 500 up to 2.6rem — and a `.more-link` naming
-  its destination on its baseline; under 560px the link sits under the
-  title, which beside it squeezed to four lines), `.panel` (hairline, 12px — the docs'
-  card corner), `.thumb` (a darker well, 8px), `.list-head` (a `.list-h`
-  heading left, a `.more-link` right), `.lead` and `.more-link` (links
-  with a resting hairline underline that inks on hover), `.key-primary` (the
-  `.nav-a.nav-pill` key filled with ink), `.seg` (the docs header's
-  segmented toggles: `aria-pressed` buttons, the pressed one ringed) and
-  the `.live` chip. Components read it, never redeclare it; focus rings
+  (`--ink`, `--ink-2`, `--ink-3`, `--line`, `--well`), the materials
+  (`--chrome`, `--chrome-rim`, `--pearl`, `--signal` the ember, `--cut`
+  16px), `.chrome` (chrome type; `.section-title` is cast in it too),
+  `.display` (mono 500, tight), `.section-head` (the `.section-title` —
+  the page's second size, mono 500 up to 2.6rem — and, on its baseline, a
+  `.head-side`: a `.tags` row of speed tags over a `.more-link` naming its
+  destination; under 560px they sit under the title, which beside them
+  squeezed to four lines), `.panel` (the hardshell: `clip-path` cuts the
+  top-left and bottom-right corners, which also clips what it holds, and
+  its `::after` draws the chrome hairline along the cut as an evenodd
+  ring), `.thumb` (the gel well: an asymmetric pebble radius, a chrome rim
+  through a masked `::after`, a gloss `::before` on its top 38%; chips in
+  a well sit at z-index 4, over both), `.spec` (a spec label), `.tag` (a
+  slanted plate; its edges cut, its type upright), `.ticks` (the ruler),
+  `.list-head` (a `.list-h` heading left, a `.more-link` right), `.lead`
+  and `.more-link` (links with a resting hairline underline that inks on
+  hover), `.key-primary` (the chrome capsule, ink on it), the landing's
+  `.nav-pill` (a capsule with a gloss on its top edge), `.seg` (capsule
+  toggles: `aria-pressed` buttons, the pressed one ringed) and the `.live`
+  speed tag. Reduced transparency drops the pearl, the gloss and the
+  biome; forced colors drop the cut and the rims for a plain border and
+  show chrome type in the system colour. Components read it, never redeclare it; focus rings
   are the global `:focus-visible`. Page geometry (`--shell` 72rem — the
   docs' width, so the brand never jumps — and `--rhythm`) lives on
   `LandingPage`'s `.landing`.
@@ -65,17 +89,23 @@ widgets/features; page-specific conventions live here.
   without the lift the header renders zero visible pixels.
 - Hero (`Showcase.vue`): a FULL-BLEED band (the `--well` between
   hairlines) holding, on the shell, the statement beside the stage. Left
-  (`.statement`): the mono h1 at display scale
+  (`.statement`): the mono h1 in chrome at display scale
   (`clamp(2.2rem, 4.2vw, 3.25rem)`, two lines in its column), the lede,
   the keys (`.key-primary` "Open the studio", `.nav-pill` "Read the
   docs" and "Watch the film" under the Play glyph, which opens the
-  trailer), then the facts strip under a hairline (`.facts`, a `dl`: the
-  component count, the section count, the packages beside Vue; each
-  number beside its kit glyph, hairlines between, never cards). Right:
+  trailer), then the facts as a spec sheet under a hairline (`.facts`, a
+  `dl`: the component count, the section count, the packages beside Vue;
+  each a `.spec` label under its glyph and a slanted chrome readout,
+  hairlines between, never cards). Right, in `.stage-col`:
   `HeroStage.vue`, the kit by hand as the trailer shows it: one real
   component at a time in an 8:5 `.thumb` well (a size container), its
-  name top left on a chip of the well's ground, with the controls its
-  docs demo has. `SCENES` lead with what nothing else does (the user's
+  name top left on a speed plate of the well's ground, with the controls
+  its docs demo has; behind it the biome (`aria-hidden`, under 900px and
+  under reduced transparency gone): a `DitherLiquidChrome` pebble past the
+  well's top and outer edge (never under its tabs or caption) and a
+  droplet off its inner side, each one static frame (`render-mode="static"`,
+  so nothing moves and no pause chip is owed), gel-lit. Along the band's
+  foot, the `.ticks` ruler. `SCENES` lead with what nothing else does (the user's
   call: dithered charts, shaders, StyleX): an `AreaChart` from one seed
   with "Roll a seed"; the kit's seeded sample `DitherShader` (mono blue,
   a palette ramp or its own colours; "New shader" is the next seed);
@@ -116,7 +146,8 @@ widgets/features; page-specific conventions live here.
   required `peerDependencies` (a styling layer's optional one aside);
   section counts come from `hub.ts`. A change that moves one fails until
   the page says it.
-- Install (`InstallBlock.vue`, under the hero) mirrors the docs install
+- Install (`InstallBlock.vue`, under the hero; its bar a capsule, a
+  rounded slab once it wraps under 640px) mirrors the docs install
   story: its four steps (degit folder + npm/pnpm/bun deps) must stay in
   sync with `docs/install.ts` `INSTALL.vue`, the Tailwind layer's steps
   (the landing never imports the docs). `INSTALL.stylex` is the StyleX
@@ -197,7 +228,8 @@ widgets/features; page-specific conventions live here.
   flex column spaced by one gap — never stack a row's padding on a
   neighbour's margin.
 - Principles (`LandingPage.vue`): a `.section-head` ("One rule under
-  every pixel." and "Read the quick start") over a `.panel` — the
+  every pixel."; tags Bayer 4x4, 7 seed hues, One engine; "Read the
+  quick start") over a `.panel` — the
   figure in a `.thumb` well, sticky at the viewport's middle, beside six
   numbered statements at a large size (up to 2rem), each a LINK into the
   docs that covers it (`PRINCIPLES`, each a sentence or two, no dashes).
@@ -233,7 +265,8 @@ widgets/features; page-specific conventions live here.
   `tests/essay-figure.spec.ts` (lattice ranks, determinism, lit share,
   distinct scenes, stage wrap).
 - Agents (`#agents`): a `.section-head` ("Your own agent drives the
-  Studio." and "Read the agent skill") over a two-column `.panel` (a real
+  Studio."; tags the harness count, ACP, No keys; "Read the agent
+  skill") over a two-column `.panel` (a real
   border: the well would paint over an inset hairline): left three steps,
   each in a glyph square (an `ol`, so the order is the list's) — run the
   bridge (Node's mark; its command shown as its two lines and copied as

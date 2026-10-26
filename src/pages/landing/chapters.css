@@ -1,19 +1,102 @@
-/* The landing's layer over the SITE voice: the dark theme tokens,
-   monospace and hairlines (`.nav-a`, `.nav-pill`, `.led` in
-   app/styles.css), so it reads as the same product as the docs and the
-   Studio. What it keeps from the 2000s oakley.com archive is STRUCTURE:
-   dense panels in columns, lists under a heading. Its copy follows the design.how bans the user picked: no
-   uppercase labels, no eyebrow over a title, no middle dots or em dashes,
-   no link that ends in an arrow (each names where it goes). Never a second
-   type system, bevels or a hue in the chrome; the kit's ember is the one
-   warm light. Plain CSS under .landing, read by every landing component. */
+/* The landing's layer over the SITE voice (the dark theme tokens,
+   monospace, `.nav-a`, `.nav-pill`, `.led` in app/styles.css). The look is
+   Y2K retrofuturism, biomorphic form and technical sportswear on the
+   dither and mono base: liquid chrome and a pearl sheen as the materials,
+   hardshell panels cut at two corners holding soft gel wells, capsule
+   keys, and spec labels (uppercase, tracked, a slanted tag) where a
+   sportswear spec sheet would put them, never as an eyebrow over a title.
+   The kit's ember is the signal light; never red. Copy keeps the other
+   bans: no middle dots or em dashes, no link that ends in an arrow.
+   Plain CSS under .landing, read by every landing component. */
 .landing {
   --ink: var(--foreground);
   --ink-2: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
   --ink-3: var(--muted-foreground);
   --line: var(--border);
   --well: color-mix(in oklab, var(--background) 60%, #000);
+  --signal: var(--swatch-orange);
+  /* Liquid chrome: a bright ramp broken by a dark horizon, as polished
+     metal reflects one. The type ramp stays light (its darkest stop clears
+     6:1 on the ground); the rim ramp is a glint for hairlines. */
+  --chrome: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #dfe6ee 36%,
+    #8e98a8 48%,
+    #7d8798 50.5%,
+    #fbfcfd 53%,
+    #c2cad5 74%,
+    #edf1f5 100%
+  );
+  --chrome-rim: linear-gradient(
+    135deg,
+    rgb(240 245 251 / 0.55) 0%,
+    rgb(150 162 180 / 0.18) 28%,
+    rgb(255 255 255 / 0.5) 52%,
+    rgb(130 142 160 / 0.16) 76%,
+    rgb(220 230 244 / 0.42) 100%
+  );
+  /* Pearl: the iridescent sheen of a Y2K shell, always faint. */
+  --pearl: linear-gradient(
+    115deg,
+    rgb(185 236 255 / 0.1),
+    rgb(214 200 255 / 0.08) 35%,
+    rgb(255 214 240 / 0.07) 60%,
+    rgb(220 255 200 / 0.08)
+  );
+  /* The hardshell's cut: two opposite corners chamfered. */
+  --cut: 16px;
   font-family: var(--font-mono);
+}
+
+/* Chrome type: the ramp clipped to the glyphs, one horizon per line. The
+   statement and every section title are cast in it. */
+.landing .chrome,
+.landing .section-title {
+  color: #e6ebf1;
+  background: var(--chrome);
+  background-size: 100% 1lh;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Spec labels: a sportswear spec sheet's small caps, tracked. Always an
+   annotation beside or under what it names, never an eyebrow. */
+.landing .spec {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* A speed tag: a slanted plate (its edges cut, the type upright). */
+.landing .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 18px;
+  padding: 0 10px;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+
+/* A ruler: minor ticks every 8px, a major one every 64px, as printed on
+   a technical shell's seam tape. */
+.landing .ticks {
+  height: 9px;
+  background:
+    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 34%, transparent) 1px, transparent 1px) 0 100% / 64px
+      9px repeat-x,
+    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 16%, transparent) 1px, transparent 1px) 0 100% / 8px
+      4px repeat-x;
 }
 
 /* Headings: mono 500, tight, the docs' title voice. Never italic. */
@@ -22,19 +105,95 @@
   letter-spacing: -0.02em;
 }
 
-/* A panel: a hairline round at the docs' card corner. */
+/* A panel is a hardshell: two corners cut, a chrome-glint hairline that
+   follows the cut, a breath of pearl in its ground. The cut clips what it
+   holds (nothing in a panel is meant to escape it). */
 .landing .panel {
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 1px var(--line);
+  position: relative;
+  background: var(--pearl);
+  clip-path: polygon(
+    var(--cut) 0,
+    100% 0,
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    0 100%,
+    0 var(--cut)
+  );
 }
 
-/* A framed well for a live surface: darker than the page, a fainter rule. */
+.landing .panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: var(--chrome-rim);
+  /* The ring: the outline, then the same outline 1px in, the hole. */
+  clip-path: polygon(
+    evenodd,
+    var(--cut) 0,
+    100% 0,
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    0 100%,
+    0 var(--cut),
+    var(--cut) 0,
+    calc(var(--cut) + 0.414px) 1px,
+    1px calc(var(--cut) + 0.414px),
+    1px calc(100% - 1px),
+    calc(100% - var(--cut) - 0.414px) calc(100% - 1px),
+    calc(100% - 1px) calc(100% - var(--cut) - 0.414px),
+    calc(100% - 1px) 1px,
+    calc(var(--cut) + 0.414px) 1px
+  );
+}
+
+/* A well for a live surface is the soft core: a gel pebble, darker than
+   the page, its rim a chrome glint and a gloss across its top. */
 .landing .thumb {
   position: relative;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 22px 16px 22px 16px / 18px 22px 16px 22px;
   background: var(--well);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--line) 80%, transparent);
+  box-shadow: inset 0 -18px 30px -24px rgb(190 214 255 / 0.16);
+}
+
+.landing .thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--chrome-rim);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+
+.landing .thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  height: 38%;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .landing .panel {
+    background: none;
+  }
+  .landing .thumb::before {
+    display: none;
+  }
 }
 
 /* A section's head: the title at the docs' title voice scaled up (the
@@ -64,7 +223,34 @@
   line-height: 1.08;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  color: var(--ink);
+}
+
+/* Beside the title's link, the section's spec: a row of speed tags naming
+   what the section is made of, as a sportswear label lists its build. */
+.landing .head-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.landing .tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 559px) {
+  .landing .head-side {
+    align-items: flex-start;
+  }
+  .landing .tags {
+    justify-content: flex-start;
+  }
 }
 
 /* A list's head: its heading left, a quiet link right. */
@@ -111,17 +297,50 @@
   text-decoration-color: currentColor;
 }
 
-/* The primary key: the site's hairline pill (`.nav-a.nav-pill`) filled
-   with ink. */
+/* Keys are capsules. The others keep the site's hairline with a gloss on
+   top; the primary key is liquid chrome with ink on it. */
+.landing .nav-pill {
+  border-radius: 999px;
+  padding-inline: 14px;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--border) 90%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.landing .nav-pill:hover {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--foreground) 30%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.14);
+}
+
 .landing .key-primary,
 .landing .key-primary:hover {
-  color: var(--background);
-  background: var(--foreground);
-  box-shadow: none;
+  color: #0a0b0d;
+  background: var(--chrome);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 -1px 0 rgb(0 0 0 / 0.28),
+    0 0 0 1px rgb(255 255 255 / 0.18);
 }
 
 .landing .key-primary:hover {
-  background: color-mix(in oklab, var(--foreground) 86%, var(--background));
+  filter: brightness(1.06);
+}
+
+@media (forced-colors: active) {
+  .landing .chrome,
+  .landing .section-title {
+    -webkit-text-fill-color: currentColor;
+    background: none;
+  }
+  .landing .panel {
+    clip-path: none;
+  }
+  .landing .panel::after,
+  .landing .thumb::after,
+  .landing .thumb::before {
+    display: none;
+  }
 }
 
 /* Segmented toggles, as in the docs header: quiet labels, the pressed one
@@ -136,8 +355,8 @@
   align-items: center;
   gap: 6px;
   height: 26px;
-  padding: 0 9px;
-  border-radius: 5px;
+  padding: 0 11px;
+  border-radius: 999px;
   font-size: 11px;
   white-space: nowrap;
   color: var(--ink-3);
@@ -166,20 +385,24 @@
   }
 }
 
-/* The live chip: a state label on wells that ARE live kit canvases (an
-   `.led` and the rate in words). The text stays under reduced motion; only
-   the LED's pulse dies. */
+/* The live chip: a speed tag on wells that ARE live kit canvases (an
+   `.led` and the rate). The text stays under reduced motion; only the
+   LED's pulse dies. */
 .landing .live {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1;
+  top: 10px;
+  right: 12px;
+  z-index: 4;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 3px 7px;
-  border-radius: 4px;
-  font-size: 11px;
-  color: var(--ink-3);
-  background: color-mix(in oklab, var(--background) 80%, transparent);
+  height: 18px;
+  padding: 0 11px;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--background) 82%, transparent);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
 }

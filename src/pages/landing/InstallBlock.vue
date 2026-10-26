@@ -126,14 +126,26 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
+/* A capsule, as a Y2K device's command strip: the hairline with a gloss
+   on its top edge. */
 .bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   padding: 8px 8px 8px 10px;
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 1px var(--line);
+  border-radius: 999px;
+  background: var(--pearl);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+
+/* Wrapped onto two rows, the capsule eases to a rounded slab. */
+@media (max-width: 639px) {
+  .bar {
+    border-radius: 24px;
+  }
 }
 
 .bar .seg {
@@ -153,7 +165,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   height: 34px;
   padding: 0 0 0 6px;
-  border-radius: 6px;
+  border-radius: 999px;
 }
 
 .cmd {

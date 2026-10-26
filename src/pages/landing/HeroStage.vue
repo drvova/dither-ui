@@ -270,11 +270,11 @@ const fluid = ref<Fluid>("acid")
    that fills the well. */
 .stage-name {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1;
-  padding: 2px 6px;
-  border-radius: 4px;
+  top: 12px;
+  left: 14px;
+  z-index: 4;
+  padding: 2px 12px;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
   font-size: 11.5px;
   color: var(--ink-3);
   background: var(--well);
@@ -283,9 +283,9 @@ const fluid = ref<Fluid>("acid")
 
 .stage-chip {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
+  top: 10px;
+  right: 12px;
+  z-index: 4;
 }
 
 .scene-wrap,

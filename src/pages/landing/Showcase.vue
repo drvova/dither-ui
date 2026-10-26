@@ -7,6 +7,7 @@ import {
   DitherButton,
   DitherIcon,
   DitherLayer,
+  DitherLiquidChrome,
   DitherSlider,
   DitherStage,
   DitherSwitch,
@@ -98,7 +99,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
     <div class="hero">
       <div class="hero-in">
         <div class="statement">
-          <h1 id="hero-h" class="display hero-h">A dithered UI toolkit for Vue.</h1>
+          <h1 id="hero-h" class="display hero-h chrome">A dithered UI toolkit for Vue.</h1>
           <p class="hero-lede">
             Charts, GLSL shaders, controls, backgrounds and 3D, each drawn pixel by pixel from one seeded palette. Copy
             the folder into your Vue 3 or Svelte 5 app, write it as Tailwind, CSS Modules or StyleX, and every line is
@@ -113,13 +114,32 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
           </div>
           <dl class="facts">
             <div v-for="f in FACTS" :key="f.label" class="fact">
-              <dt>{{ f.label }}</dt>
-              <dd><DitherIcon :name="f.icon" :size="16" :stroke-width="1.5" class="fact-i" />{{ f.value }}</dd>
+              <dt class="spec">{{ f.label }}</dt>
+              <dd>
+                <DitherIcon :name="f.icon" :size="16" :stroke-width="1.5" class="fact-i" /><span
+                  class="fact-n chrome"
+                  >{{ f.value }}</span
+                >
+              </dd>
             </div>
           </dl>
         </div>
-        <HeroStage />
+        <div class="stage-col">
+          <!-- The biome: a pebble of the kit's liquid chrome (one still frame
+               through the Bayer cells) that the stage sits in, past its top
+               and outer edges, and a droplet thrown off it. -->
+          <div class="biome" aria-hidden="true">
+            <div class="pebble">
+              <DitherLiquidChrome :scale="1.7" :distortion="1.3" :seed="2002" render-mode="static" class="h-full" />
+            </div>
+            <div class="pebble drop">
+              <DitherLiquidChrome :scale="1.2" :distortion="0.8" :seed="7" render-mode="static" class="h-full" />
+            </div>
+          </div>
+          <HeroStage />
+        </div>
       </div>
+      <div class="ticks hero-ticks" aria-hidden="true"></div>
     </div>
     <TrailerDialog v-model="film" />
 
@@ -332,10 +352,85 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
    statement (left) beside the stage (right). Under 900px the statement
    comes first and the stage takes the band's width under it. */
 .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background: var(--well);
   box-shadow:
     inset 0 1px 0 var(--line),
     inset 0 -1px 0 var(--line);
+}
+
+/* The stage's column holds the biome behind the stage: a chrome pebble
+   that shows past the well's top and outer edge (never under its tabs or
+   caption), and a droplet off its inner side. Gel-lit: a rim of light and
+   a gloss inside. */
+.stage-col {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+}
+
+.biome {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.pebble {
+  position: absolute;
+  top: -6%;
+  right: -12%;
+  width: 70%;
+  aspect-ratio: 1.15;
+  overflow: hidden;
+  border-radius: 58% 42% 47% 53% / 46% 55% 45% 54%;
+  opacity: 0.42;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.3),
+    inset 14px 18px 40px rgb(255 255 255 / 0.16);
+}
+
+/* The gel's specular: a soft oval of light high on the form. */
+.pebble::after {
+  content: "";
+  position: absolute;
+  top: 9%;
+  left: 14%;
+  width: 34%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 0.55), transparent);
+  transform: rotate(-24deg);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .biome {
+    display: none;
+  }
+}
+
+.pebble.drop {
+  top: 44%;
+  right: auto;
+  left: -7%;
+  width: 12%;
+  border-radius: 52% 48% 61% 39% / 44% 58% 42% 56%;
+  opacity: 0.5;
+}
+
+@media (max-width: 899px) {
+  .biome {
+    display: none;
+  }
+}
+
+/* The seam tape along the band's foot. */
+.hero-ticks {
+  position: absolute;
+  inset: auto 0 1px;
+  opacity: 0.8;
 }
 
 .hero-in {
@@ -421,15 +516,20 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   color: var(--ink);
 }
 
+/* The readout: chrome numerals leaning forward, as on a sportswear spec. */
+.fact-n {
+  display: inline-block;
+  padding-right: 0.1em;
+  transform: skewX(-9deg);
+}
+
 .fact-i {
   flex: none;
   color: var(--ink-3);
 }
 
 .fact dt {
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: var(--ink-3);
+  line-height: 1.55;
 }
 
 @media (max-width: 899px) {
@@ -611,9 +711,9 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
 
 .pick-chip {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
-  z-index: 1;
+  right: 12px;
+  bottom: 10px;
+  z-index: 4;
 }
 
 /* Under reduced motion the stage holds its end and the sky one frame:

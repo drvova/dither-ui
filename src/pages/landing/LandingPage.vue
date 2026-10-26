@@ -306,7 +306,14 @@ onBeforeUnmount(() => {
         <section aria-labelledby="principles-h" class="principles">
           <div class="section-head">
             <h2 id="principles-h" class="section-title">One rule under every pixel.</h2>
-            <a :href="routePath('/docs/getting-started')" class="more-link">Read the quick start</a>
+            <div class="head-side">
+              <ul class="tags" aria-label="Built on">
+                <li class="tag">Bayer 4x4</li>
+                <li class="tag">7 seed hues</li>
+                <li class="tag">One engine</li>
+              </ul>
+              <a :href="routePath('/docs/getting-started')" class="more-link">Read the quick start</a>
+            </div>
           </div>
           <div class="panel principles-body">
             <div ref="stageFig" class="thumb principles-fig"><EssayFigure :stage="principle" /></div>
@@ -345,7 +352,14 @@ onBeforeUnmount(() => {
         <section id="agents" class="agents" aria-labelledby="harness-h">
           <div class="section-head">
             <h2 id="harness-h" class="section-title">Your own agent drives the Studio.</h2>
-            <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
+            <div class="head-side">
+              <ul class="tags" aria-label="Works with">
+                <li class="tag">{{ HARNESSES.length }} harnesses</li>
+                <li class="tag">ACP</li>
+                <li class="tag">No keys</li>
+              </ul>
+              <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
+            </div>
           </div>
           <div class="panel harness-panel">
             <ol class="agent-steps">
@@ -537,11 +551,13 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 7px;
+  padding: 3px 9px;
   font-size: 11px;
-  border-radius: 4px;
+  border-radius: 999px;
   color: var(--ink-3);
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
 /* The links' padding is pulled back so, wrapped under the wordmark, the

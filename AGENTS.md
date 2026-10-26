@@ -291,7 +291,12 @@ Default section order:
 
 ## User Preferences
 
-- Design direction: dark, monospace, pixel/dither identity.
+- Design direction: dark, monospace, pixel/dither identity, worn as the
+  user's look: Y2K retrofuturism, biomorphic form and technical
+  sportswear (liquid chrome and pearl, hardshell panels with cut corners
+  holding soft gel wells, capsule keys, spec labels and slanted speed
+  tags). The landing leads it (`src/pages/AGENTS.md`); the docs and the
+  Studio take it next.
 - One site voice: the landing, the docs and the Studio speak one language
   (dark theme tokens, monospace, hairlines, ringed pressed states), so the
   whole site reads as one product. The copy follows the design.how bans
@@ -300,7 +305,8 @@ Default section order:
   title, no middle dots or em dashes, no link ending in an arrow. The
   landing, the docs and the Studio all follow them: headings, buttons and
   actions in sentence case; field labels and option values may keep the
-  lowercase tool voice, never uppercase; a kit component's own designed
+  lowercase tool voice, never uppercase (uppercase and tracking belong
+  only to spec labels and speed tags, the user's lift for the new look); a kit component's own designed
   look (its default strings, its label styles) is the product and stays.
   No space on a page is left empty. Icons do the
   work of labels where they can, with attention to detail: kit glyphs
@@ -311,9 +317,9 @@ Default section order:
   STRUCTURE (dense panels in columns, lists under a mark) and the dither
   winners on Awwwards its SCALE (full-bleed art bands, display-size
   type), filled with the kit itself, never a reference site's assets,
-  marks or names. Rejected: italics, slants and cut corners, the
-  nodecode grid, the calm single column, condensed sports caps, bevels and
-  red (details in `src/pages/AGENTS.md`).
+  marks or names. The user lifted chrome and gloss, cut corners, and caps
+  and slants for spec labels for the new look; still rejected: red, the
+  nodecode grid, the calm single column (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
   tables, variant galleries) while keeping the dither skin; every preview
   carries Kobra's workbench and more (Inspect: the inspect and annotate
