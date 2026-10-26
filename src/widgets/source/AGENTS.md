@@ -46,11 +46,15 @@ a real tool, never a mock.
   with its imports and template, in the reader's framework and styling
   system; non-component snippets keep their language: `.sh`, `.ts`,
   `.css`), the kit's own source for each kit export it imports, the kit's
-  tokens (`theme.css`) and `prompt.md`. Kit files are the repo's, served by
-  the build at `kit/src/<vue|svelte>/` with a `files.json` listing
-  (`kitSources` in `rstack.config.ts`) — never a copy kept by hand. Zip
-  paths mirror the install: the example and prompt at the root, kit files
-  under `dither-kit/` (`dither-kit-svelte/`).
+  tokens (`engine/theme.css`) and `prompt.md`. Kit files are the repo's,
+  served by the build at `kit/src/<vue|svelte>/` with a recursive
+  `files.json` listing (`kitSources` in `rstack.config.ts`) — never a copy
+  kept by hand. `KIT_INDEX` names each kit's public entry (the Vue kit's
+  `tailwind/index.ts`); `kitIndex` maps its exports to files relative to
+  it and `resolveKitFile` resolves a kit import against its importer's
+  folder, across layers. Zip paths mirror the install: the example and
+  prompt at the root, kit files under `dither-kit/` (`dither-kit-svelte/`)
+  in their layer folders.
 - Edits are kept per file (the example's per framework and styling
   system); a tab marks an edited file; Revert restores the original.
 - Run (Vue, in any styling system: Tailwind, CSS, CSS Modules, and StyleX

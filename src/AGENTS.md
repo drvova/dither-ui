@@ -148,7 +148,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   scans `UTILITY_SOURCES` (`pages/docs`, `entities`) with Tailwind's scanner
   and compiles every candidate with Tailwind's compiler (theme inlined; the
   kit's `@theme inline` tokens and dark variant read from
-  `dither-kit/kit.css`), keeping per class its cascade index, its variant
+  `dither-kit/tailwind/kit.css`), keeping per class its cascade index, its variant
   chains and declarations, plus the `@property` initials.
   `compileUtilities` merges a class list in Tailwind's order (so `px-2 p-4`
   cascades as Tailwind does), resolves every `--tw-*` input, simplifies

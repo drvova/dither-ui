@@ -2,8 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { defineComponent, h, nextTick, ref } from "vue"
 import { mount } from "@vue/test-utils"
-import { release, seek } from "../dither-kit/clock"
-import { surfaceOf, useDitherBackground, type DitherSurface } from "../dither-kit/use-dither-background"
+import { release, seek } from "../dither-kit/engine/clock"
+import { surfaceOf, useDitherBackground, type DitherSurface } from "../dither-kit/engine/use-dither-background"
 
 /** jsdom has no canvas: a 2D context that can take an upload. */
 const fakeContext = {

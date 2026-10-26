@@ -97,8 +97,10 @@ Default section order:
   `benchmarks/` (the kit's raster benchmark) is an entry for `rs dev`
   only: `/benchmarks/` there, never in a build.
   `svelte-site/` runs the same CLI with its own `rstack.config.ts`.
-- Aliases: `@` → `src/`, `@dither-kit` → `dither-kit/` (rstack.config.ts +
-  tsconfig paths — change both together).
+- Aliases: `@` → `src/`; `@dither-kit` → the kit's Tailwind layer
+  (`dither-kit/tailwind/index.ts`), `@dither-kit/<layer>/<file>` → a file
+  of a layer (`engine/`, `tailwind/`) (rstack.config.ts + tsconfig paths —
+  change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links. GitHub Pages deploys through
   `.github/workflows/pages.yml`: `rs build` (the site and the player
@@ -173,27 +175,27 @@ Default section order:
   (`features/export-video`, the `video` selection action, the
   `video.export` command / `export_video` tool) — one self-contained HTML
   file that `npx hyperframes render` turns into a deterministic MP4. The
-  kit's clock (`dither-kit/clock.ts`) makes every animation seekable; the
+  kit's clock (`dither-kit/engine/clock.ts`) makes every animation seekable; the
   player page `/play/` (`src/pages/play`) renders one frame and is also
   built as a single file (the `player` environment of `rstack.config.ts` →
   `dist/play/player.js`)
   that the export inlines. A reel (the `reel` widget kind, `reel.add` /
   `add_reel`, the `reel` selection action) plays other frames in order with
-  ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
+  ordered-dither transitions (`dither-kit/engine/wipe.ts` masks, `DitherReveal`)
   and exports as one MP4 as long as its cut. A reel whose clips carry
   camera keys, callouts and chapters is a film (`/studio#new/film` builds
   the kit's own, `reel.add` takes them from any agent), with a soundtrack
-  the kit synthesizes from the cut (`dither-kit/score.ts`: a chord per
+  the kit synthesizes from the cut (`dither-kit/engine/score.ts`: a chord per
   clip, the Bayer motif, a riser and an impact on every cut) that the
   export carries as the composition's audio track. Details in
   `src/AGENTS.md` and `dither-kit/AGENTS.md`.
-- Styling systems: the kit's tokens live in `dither-kit/theme.css` (plain
+- Styling systems: the kit's tokens live in `dither-kit/engine/theme.css` (plain
   custom properties the app's `src/app/styles.css` imports under Tailwind);
   `npm run build:css` (in `npm run build` and the Pages deploy) compiles
-  `dither-kit/kit.css` — tokens, the `.dither-kit`-scoped `base.css`, every
+  `dither-kit/tailwind/kit.css` — tokens, the `.dither-kit`-scoped `base.css`, every
   utility the kit uses — into `dist/kit/dither-kit.css`, so apps on StyleX,
   UnoCSS, vanilla CSS or CSS-in-JS run the kit without Tailwind;
-  `dither-kit/theme.ts` themes from JS. Details in `dither-kit/AGENTS.md`.
+  `dither-kit/engine/theme.ts` themes from JS. Details in `dither-kit/AGENTS.md`.
   What the site writes for a reader comes in their system too:
   `src/shared/lib/restyle.ts` rewrites a Tailwind-classed snippet into a
   scoped stylesheet, CSS Modules or StyleX from the declarations Tailwind's
@@ -213,14 +215,14 @@ Default section order:
   `.clock`), the `dither-studio:command` event and `clock.seek`, so CDP,
   WebDriver and Playwright drive it in any engine; `npm run frames` renders
   a composition to PNGs/MP4 in Chromium, WebKit or Firefox without CDP.
-- Motion in container units: `dither-kit/keyframes.ts` (lengths as unit
+- Motion in container units: `dither-kit/engine/keyframes.ts` (lengths as unit
   terms, interpolated with their units kept, resolved to px against a box)
   drives `DitherStage` (a size query container with one kit-clock) and
   `DitherLayer` (keyframes per layer: canvas, SVG or DOM), so a scene
   scales exactly with its parent and exports to video. Docs under
   Animations (`stage`); registry rows with composed demos.
 - 3D + GLSL: the kit renders model files and fragment shaders through the
-  same Bayer raster. `DitherWorld` (`dither-kit/world.ts` engine,
+  same Bayer raster. `DitherWorld` (`dither-kit/engine/world.ts` engine,
   `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0
   `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY and OFF by URL or inline,
   plays the file's animations (VRML ROUTEs, glTF) on the kit clock, and

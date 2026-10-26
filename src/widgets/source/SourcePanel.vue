@@ -16,6 +16,7 @@ import {
   exampleName,
   type Flavor,
   KIT_FOLDER,
+  KIT_INDEX,
   kitFilesOf,
   kitIndex,
   promptFor,
@@ -59,12 +60,13 @@ const failed = ref("")
 async function loadKit(flavor: Flavor): Promise<KitMeta> {
   const have = kits[flavor]
   if (have) return have
+  const at = KIT_INDEX[flavor]
   const [list, index] = await Promise.all([
     fetchText(`kit/src/${flavor}/files.json`),
-    fetchText(`kit/src/${flavor}/index.ts`),
+    fetchText(`kit/src/${flavor}/${at}`),
   ])
   const files = JSON.parse(list) as string[]
-  return (kits[flavor] = { files, index: kitIndex(index, files) })
+  return (kits[flavor] = { files, index: kitIndex(index, files, at) })
 }
 // The Vue kit's index names what a fragment imports, in either framework.
 watch(
@@ -104,11 +106,11 @@ const files = computed<SourceFile[]>(() => {
         }))
       : []
   const tokens: SourceFile = {
-    path: flavor === "vue" ? "dither-kit/theme.css" : "theme.css",
+    path: flavor === "vue" ? "dither-kit/engine/theme.css" : "theme.css",
     name: "theme.css",
     lang: "css",
     role: "tokens",
-    src: "kit/src/vue/theme.css",
+    src: "kit/src/vue/engine/theme.css",
   }
   const prompt: SourceFile = { path: "prompt.md", name: "prompt.md", lang: "md", role: "prompt" }
   const all = [example, ...used, tokens, prompt]

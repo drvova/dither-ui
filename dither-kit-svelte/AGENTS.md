@@ -14,9 +14,9 @@ patterns and the rest follows the same mechanical translation.
   Vue kit expresses with the Composition API (lifecycle, reactivity, context).
 - The rendering ENGINE is NOT owned here. The Vue kit's Vue-free `.ts` engine
   modules (palette, pixel, raster, noise, precompile, dither-paint, timing, the
-  `paint*` families) are copied VERBATIM. `../dither-kit` stays the single
+  `paint*` families) are copied VERBATIM. `../dither-kit/engine` stays the single
   source of truth for engine math; a change there is re-copied here
-  (`cp ../dither-kit/timing.ts engine/timing.ts`), not re-invented.
+  (`cp ../dither-kit/engine/timing.ts engine/timing.ts`), not re-invented.
 
 ## Local Contracts
 
@@ -168,7 +168,7 @@ and re-exports everything. Internal imports are relative across folders
 - `engine/` — framework-agnostic paint & math `.ts` (palette, pixel, raster,
   noise, precompile, dither-paint, timing, scales, polar, dot-paint, every
   `paint*` module). Copied verbatim from `dither-kit`; re-copy with
-  `cp ../dither-kit/X.ts engine/X.ts`.
+  `cp ../dither-kit/engine/X.ts engine/X.ts`.
 - `runtime/` — shared Svelte seams reused across families: `lib` (cn),
   `control` (tokens + field context), `in-view`, `portal`, `canvas-mount`,
   `use-dither-background`, `toast.svelte`, `gesture`.

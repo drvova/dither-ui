@@ -22,14 +22,21 @@ export interface SourceFile {
 }
 
 export const KIT_FOLDER: Record<Flavor, string> = { vue: "dither-kit", svelte: "dither-kit-svelte" }
+/** Each kit's public index, inside its folder: the Vue kit's components
+ * live in a styling layer (`tailwind/`) over the shared `engine/`. */
+export const KIT_INDEX: Record<Flavor, string> = { vue: "tailwind/index.ts", svelte: "index.ts" }
 const PACKAGE: Record<Flavor, string> = { vue: "@dither-kit", svelte: "@dither-kit-svelte" }
 
 /** A kit index (`export { default as X, y } from "./file"`) as export name →
  * the file that defines it (a path inside the kit) and its name there. */
-export function kitIndex(index: string, files: readonly string[]): Map<string, { file: string; name: string }> {
+export function kitIndex(
+  index: string,
+  files: readonly string[],
+  at = "index.ts",
+): Map<string, { file: string; name: string }> {
   const out = new Map<string, { file: string; name: string }>()
   for (const m of index.matchAll(/export\s*\{([^}]*)\}\s*from\s*["'](\.[^"']+)["']/g)) {
-    const file = resolveKitFile(m[2], files)
+    const file = resolveKitFile(m[2], files, at)
     if (!file) continue
     for (const raw of m[1].split(",")) {
       const spec = raw.trim()
@@ -41,10 +48,16 @@ export function kitIndex(index: string, files: readonly string[]): Map<string, {
   return out
 }
 
-/** A relative kit import (`./pixel`, `./controls/Button.svelte`) as the kit
- * file it names, if the kit has it. */
-export function resolveKitFile(spec: string, files: readonly string[]): string | undefined {
-  const p = spec.replace(/^\.\//, "")
+/** A relative kit import (`./pixel`, `../engine/pixel`,
+ * `./controls/Button.svelte`) made in the kit file `from` (the kit's root
+ * when omitted) as the kit file it names, if the kit has it. */
+export function resolveKitFile(spec: string, files: readonly string[], from = ""): string | undefined {
+  const parts = from.split("/").slice(0, -1)
+  for (const seg of spec.split("/")) {
+    if (seg === "..") parts.pop()
+    else if (seg !== ".") parts.push(seg)
+  }
+  const p = parts.join("/")
   return [p, `${p}.ts`, `${p}/index.ts`].find((f) => files.includes(f))
 }
 

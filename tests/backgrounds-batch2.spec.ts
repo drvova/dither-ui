@@ -1,13 +1,13 @@
 import { describe, expect, it } from "rstack/test"
-import { BAYER4 } from "../dither-kit/pixel"
-import { createRasterBuffer, type RasterBuffer } from "../dither-kit/raster"
-import { paintBeams } from "../dither-kit/beams"
-import { paintGridMotion } from "../dither-kit/grid-motion"
-import { paintGridScan } from "../dither-kit/grid-scan"
-import { paintGridDistortion } from "../dither-kit/grid-distortion"
-import { paintRays } from "../dither-kit/rays"
-import { paintLightPillar } from "../dither-kit/light-pillar"
-import { paintSoftAurora } from "../dither-kit/soft-aurora"
+import { BAYER4 } from "../dither-kit/engine/pixel"
+import { createRasterBuffer, type RasterBuffer } from "../dither-kit/engine/raster"
+import { paintBeams } from "../dither-kit/engine/beams"
+import { paintGridMotion } from "../dither-kit/engine/grid-motion"
+import { paintGridScan } from "../dither-kit/engine/grid-scan"
+import { paintGridDistortion } from "../dither-kit/engine/grid-distortion"
+import { paintRays } from "../dither-kit/engine/rays"
+import { paintLightPillar } from "../dither-kit/engine/light-pillar"
+import { paintSoftAurora } from "../dither-kit/engine/soft-aurora"
 
 const C: [number, number, number][] = [
   [255, 0, 0],

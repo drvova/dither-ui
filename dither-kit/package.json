@@ -3,16 +3,18 @@
   "version": "0.1.0",
   "description": "Dithered UI toolkit for Vue 3 — composable ordered-dither charts (area, line, bar, pie, radar) on one tiny canvas engine, plus generative avatars, buttons, gradient washes and more.",
   "type": "module",
-  "main": "./index.ts",
-  "module": "./index.ts",
-  "types": "./index.ts",
+  "main": "./tailwind/index.ts",
+  "module": "./tailwind/index.ts",
+  "types": "./tailwind/index.ts",
   "exports": {
-    ".": "./index.ts",
-    "./*": "./*"
+    ".": "./tailwind/index.ts",
+    "./tailwind": "./tailwind/index.ts",
+    "./engine/*": "./engine/*",
+    "./tailwind/*": "./tailwind/*"
   },
   "files": [
-    "*.ts",
-    "*.vue",
+    "engine",
+    "tailwind",
     "README.md"
   ],
   "sideEffects": false,

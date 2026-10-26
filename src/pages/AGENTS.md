@@ -112,7 +112,7 @@ widgets/features; page-specific conventions live here.
   "Browse all 264 components") and `RUNTIME_DEPS` (the packages beside
   Vue, which the install bar's commands are built from);
   `tests/landing-facts.spec.ts` recounts the first from
-  `dither-kit/index.ts` and holds the second to the kit's
+  `dither-kit/tailwind/index.ts` and holds the second to the kit's
   `peerDependencies`; section counts come from `hub.ts`. A change that
   moves one fails until the page says it.
 - Install (`InstallBlock.vue`, under the hero) mirrors the docs install

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "rstack/test"
-import { steps } from "../dither-kit/timing"
+import { steps } from "../dither-kit/engine/timing"
 import {
   planSequence,
   sampleSequence,
   staggerDelay,
   type SequenceNode,
   type SequencePlan,
-} from "../dither-kit/sequence"
+} from "../dither-kit/engine/sequence"
 
 const at = (plan: SequencePlan, t: number, id: string) => sampleSequence(plan, t).find((s) => s.id === id)!
 

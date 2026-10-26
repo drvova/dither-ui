@@ -12,7 +12,7 @@ import {
   seedFromColor,
   seedFromHex,
   seedFromHue,
-} from "../dither-kit/palette"
+} from "../dither-kit/engine/palette"
 
 describe("hex <-> rgb", () => {
   it("parses 6-digit hex", () => {

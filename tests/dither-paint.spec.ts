@@ -8,7 +8,7 @@ import {
   resolveTexture,
   revealFromSeed,
   revealThreshold,
-} from "../dither-kit/dither-paint"
+} from "../dither-kit/engine/dither-paint"
 
 describe("cubicBezier", () => {
   it("pins the endpoints", () => {

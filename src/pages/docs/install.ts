@@ -9,8 +9,8 @@ npx degit drvova/dither-ui/dither-kit src/dither-kit
 npm i d3-scale d3-shape clsx tailwind-merge
 
 # 3. Alias @dither-kit so imports stay clean
-#    vite.config.ts  resolve.alias: { "@dither-kit": "/src/dither-kit" }
-#    tsconfig.json   paths:         { "@dither-kit": ["./src/dither-kit"] }
+#    vite.config.ts  resolve.alias: { "@dither-kit": "/src/dither-kit/tailwind" }
+#    tsconfig.json   paths:         { "@dither-kit": ["./src/dither-kit/tailwind"] }
 
 # 4. Use it
 import { AreaChart, Area, DitherButton } from "@dither-kit"`,

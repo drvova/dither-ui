@@ -2,7 +2,7 @@
 // (css-easing-1) and pinned here against MDN's documented step graphs — if a
 // refactor moves a boundary or an endpoint, this table fails first.
 import { describe, expect, it } from "rstack/test"
-import { cssSteps, frameIndex, frameSteps, linear, steps } from "../dither-kit/timing"
+import { cssSteps, frameIndex, frameSteps, linear, steps } from "../dither-kit/engine/timing"
 
 describe("steps() — MDN step-graph parity", () => {
   // steps(4, jump-end): segments (0,0) (0.25,0.25) (0.5,0.5) (0.75,0.75),

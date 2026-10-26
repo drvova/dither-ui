@@ -1,15 +1,15 @@
 // @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { afterEach, describe, expect, it, rs } from "rstack/test"
-import PasswordInput from "../../dither-kit/PasswordInput.vue"
-import SearchInput from "../../dither-kit/SearchInput.vue"
-import PhoneInput from "../../dither-kit/PhoneInput.vue"
-import CurrencyInput from "../../dither-kit/CurrencyInput.vue"
-import ScrubInput from "../../dither-kit/ScrubInput.vue"
-import HotkeyInput from "../../dither-kit/HotkeyInput.vue"
-import CodeInput from "../../dither-kit/CodeInput.vue"
-import InputGroup from "../../dither-kit/InputGroup.vue"
-import InlineEdit from "../../dither-kit/InlineEdit.vue"
+import PasswordInput from "../../dither-kit/tailwind/PasswordInput.vue"
+import SearchInput from "../../dither-kit/tailwind/SearchInput.vue"
+import PhoneInput from "../../dither-kit/tailwind/PhoneInput.vue"
+import CurrencyInput from "../../dither-kit/tailwind/CurrencyInput.vue"
+import ScrubInput from "../../dither-kit/tailwind/ScrubInput.vue"
+import HotkeyInput from "../../dither-kit/tailwind/HotkeyInput.vue"
+import CodeInput from "../../dither-kit/tailwind/CodeInput.vue"
+import InputGroup from "../../dither-kit/tailwind/InputGroup.vue"
+import InlineEdit from "../../dither-kit/tailwind/InlineEdit.vue"
 
 afterEach(() => {
   rs.unstubAllGlobals()

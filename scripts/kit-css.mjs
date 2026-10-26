@@ -1,4 +1,4 @@
-// Compile the kit's standalone stylesheet: dither-kit/kit.css (the tokens,
+// Compile the kit's standalone stylesheet: dither-kit/tailwind/kit.css (the tokens,
 // the scoped base, Tailwind's utilities restricted to the kit's own sources)
 // → dist/kit/dither-kit.css, for apps that style with anything but Tailwind.
 // The same compiler and scanner the build's Tailwind plugin runs, with no app around:
@@ -10,7 +10,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-const ENTRY = fileURLToPath(new URL("../dither-kit/kit.css", import.meta.url))
+const ENTRY = fileURLToPath(new URL("../dither-kit/tailwind/kit.css", import.meta.url))
 
 /** The compiled stylesheet, minified unless asked otherwise. */
 export async function buildKitCss({ minify = true } = {}) {

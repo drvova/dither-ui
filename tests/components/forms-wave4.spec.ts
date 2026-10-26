@@ -1,13 +1,13 @@
 // @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { describe, expect, it } from "rstack/test"
-import Calendar from "../../dither-kit/Calendar.vue"
-import DatePicker from "../../dither-kit/DatePicker.vue"
-import MonthPicker from "../../dither-kit/MonthPicker.vue"
-import ColorSwatch from "../../dither-kit/ColorSwatch.vue"
-import ColorPicker from "../../dither-kit/ColorPicker.vue"
-import Knob from "../../dither-kit/Knob.vue"
-import SignaturePad from "../../dither-kit/SignaturePad.vue"
+import Calendar from "../../dither-kit/tailwind/Calendar.vue"
+import DatePicker from "../../dither-kit/tailwind/DatePicker.vue"
+import MonthPicker from "../../dither-kit/tailwind/MonthPicker.vue"
+import ColorSwatch from "../../dither-kit/tailwind/ColorSwatch.vue"
+import ColorPicker from "../../dither-kit/tailwind/ColorPicker.vue"
+import Knob from "../../dither-kit/tailwind/Knob.vue"
+import SignaturePad from "../../dither-kit/tailwind/SignaturePad.vue"
 
 describe("Calendar", () => {
   it("renders a Monday-first 6x7 grid with the value selected", () => {

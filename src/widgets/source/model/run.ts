@@ -301,7 +301,7 @@ export async function run(input: RunInput): Promise<RunResult> {
     for (const file of wave) {
       if (!texts.has(file)) next.add(file)
       for (const m of (texts.get(file) ?? "").matchAll(IMPORTS)) {
-        const dep = resolveKitFile(m[1], input.files)
+        const dep = resolveKitFile(m[1], input.files, file)
         if (dep && !texts.has(dep)) next.add(dep)
       }
     }
@@ -369,7 +369,7 @@ export async function run(input: RunInput): Promise<RunResult> {
       return api
     }
     if (from && spec.startsWith(".")) {
-      const file = resolveKitFile(spec, input.files)
+      const file = resolveKitFile(spec, input.files, from)
       if (file) return kitFile(file)
     }
     throw new Error(

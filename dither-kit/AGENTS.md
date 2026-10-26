@@ -16,7 +16,26 @@ is its showcase and editor.
   units), the score engine (a film's soundtrack from its cut),
   container-query scales, chart roots/contexts, canvas painters, and the
   public component set.
-- Consumers import ONLY via `index.ts` (`@dither-kit` alias).
+- Consumers import ONLY via a layer's `index.ts` (`@dither-kit` aliases
+  `tailwind/index.ts`).
+
+## Layers
+
+One kit, folders by styling. File names are unique across layers; inside
+the kit every import is relative (`../engine/pixel`).
+
+- `engine/` — every module that carries no class name: palette, pixel,
+  raster, the painters and backgrounds' renderers, timing, sequence,
+  clock, wipe, keyframes, score, the chart/field/common contexts
+  (`chart-context.ts`, `field.ts`), parsers and GL engines, `copy-text.ts`,
+  `theme.css` and `theme.ts`. It imports only `vue`, `d3-*` and itself,
+  never a styling layer, and is what the Svelte port copies verbatim.
+- `tailwind/` — the styling layer: every `.vue` component and the `.ts`
+  modules that write Tailwind classes (`lib.ts`'s `cn`, `control.ts`'s
+  `CONTROL` / `CONTROL_BUTTON` / `POPOVER`, the chart roots and canvases),
+  its `index.ts` (the public API), `base.css` and `kit.css`.
+- A module that stops carrying classes moves to `engine/`; a new component
+  goes in a styling layer and reaches shared logic through `../engine/`.
 
 ## Local Contracts
 
@@ -129,7 +148,7 @@ is its showcase and editor.
   through `cn()`. New teleported overlays follow; the Svelte port mirrors
   each one.
 - Styling contract: Tailwind is the kit's authoring tool, not a requirement
-  of the app around it. `theme.css` declares the shadcn-style tokens
+  of the app around it. `engine/theme.css` declares the shadcn-style tokens
   (`--background`, `--foreground`, `--card`, `--popover`, `--muted`,
   `--border`, `--ring`, `--accent`, their `-foreground` pairs, `--radius`,
   `--font-sans`, `--font-mono`, the `--swatch-*` mirror of PALETTE) light at
@@ -138,9 +157,9 @@ is its showcase and editor.
   must stay in step) and every other styling system themes by redefining.
   `base.css` is the box-model and form-control base the components assume
   (Tailwind's preflight is the global version the site uses), scoped under
-  `.dither-kit` through `:where()` at zero specificity. `kit.css` is the
-  standalone entry: the two files plus Tailwind's utilities with
-  `source(none)` and `@source` limited to `dither-kit/` and
+  `.dither-kit` through `:where()` at zero specificity. `tailwind/kit.css` is
+  the standalone entry: the two files plus Tailwind's utilities with
+  `source(none)` and `@source` limited to `dither-kit/tailwind/` and
   `dither-kit-svelte/`, in the `dither-kit.theme/base/utilities` layers;
   `scripts/kit-css.mjs` (`npm run build:css`, part of `npm run build` and
   the Pages deploy) compiles it with `@tailwindcss/node` + `oxide` into
@@ -148,7 +167,7 @@ is its showcase and editor.
   an app on StyleX, UnoCSS, vanilla CSS or any CSS-in-JS loads one file,
   wraps the region in `.dither-kit`, and wins every cascade against the
   kit's layered rules; `class` on any component takes any class name
-  (`cn()` merges Tailwind names, passes the rest through). `theme.ts` sets
+  (`cn()` merges Tailwind names, passes the rest through). `engine/theme.ts` sets
   the tokens from JS: `THEME_TOKENS`, `themeVars` (object of custom
   properties for inline styles or a vars contract), `themeCss` (a `:root`
   / `.dark` block), `applyTheme` (writes them on an element, returns the
@@ -165,7 +184,7 @@ is its showcase and editor.
   and `IntersectionObserver` guarded (no gate → play), `document.fonts`
   optional, `text-wrap`/`content-visibility`/`scrollbar-*` progressive,
   masks through Vue's style prefixing (`DitherReveal` sets both spellings),
-  `-webkit-background-clip` beside the standard one. `lib.ts`'s `copyText`
+  `-webkit-background-clip` beside the standard one. `copy-text.ts`'s `copyText`
   is the one clipboard path: the async clipboard where it exists, else the
   selection + `execCommand` route (plain http, older engines, automation),
   returning whether it copied. No engine-specific APIs (`scrollIntoViewIfNeeded`,
@@ -529,7 +548,8 @@ is its showcase and editor.
   `paintToggleCanvas` (shared by DitherToggle and DitherToggleGroup) must use
   `RasterBuffer` + `putRasterBuffer`, not per-pixel `fillRect`.
 - `control.ts` is the internal source for native-control geometry, focus rings,
-  disabled states, elevated popovers, and `DitherField` context. Inputs, textarea,
+  disabled states and elevated popovers; `engine/field.ts` holds the
+  `DitherField` context. Inputs, textarea,
   select, number field, button, checkbox, switch, and modal controls reuse it;
   keep native elements and public component APIs rather than adding a base class.
 - `DitherField` supplies generated control/help IDs and error state to compatible
@@ -574,4 +594,4 @@ is its showcase and editor.
 
 ## Child DOX Index
 
-- none (flat folder by design)
+- none (the layers are folders of this one contract)

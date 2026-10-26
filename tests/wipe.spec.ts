@@ -1,5 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import { BAYER8, bayerMatrix, wipeStyle } from "../dither-kit/wipe"
+import { BAYER8, bayerMatrix, wipeStyle } from "../dither-kit/engine/wipe"
 
 const svgOf = (image: string) => decodeURIComponent(image.slice(image.indexOf(",") + 1, -2))
 const rects = (image: string) => (svgOf(image).match(/<rect /g) ?? []).length

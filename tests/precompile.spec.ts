@@ -6,8 +6,8 @@ import {
   DEFAULT_MAX_ROWS,
   STATIC_DEFAULT_MAX_COLS,
   STATIC_DEFAULT_MAX_ROWS,
-} from "../dither-kit/precompile"
-import { createRasterBuffer, setRasterPixel32 } from "../dither-kit/raster"
+} from "../dither-kit/engine/precompile"
+import { createRasterBuffer, setRasterPixel32 } from "../dither-kit/engine/raster"
 
 describe("server-safe raster compiler", () => {
   it("returns a bounded deterministic gradient raster", () => {

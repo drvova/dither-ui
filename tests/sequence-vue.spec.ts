@@ -2,8 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { h, nextTick } from "vue"
 import { mount, type VueWrapper } from "@vue/test-utils"
-import Sequence from "../dither-kit/Sequence.vue"
-import { release, seek } from "../dither-kit/clock"
+import Sequence from "../dither-kit/tailwind/Sequence.vue"
+import { release, seek } from "../dither-kit/engine/clock"
 
 /** Manual rAF: each flush runs the currently queued frames at time `t`. */
 let queue = new Map<number, FrameRequestCallback>()

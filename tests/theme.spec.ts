@@ -1,6 +1,6 @@
 // @rstest-environment jsdom
 import { describe, expect, it } from "rstack/test"
-import { applyTheme, THEME_TOKENS, themeCss, themeVars } from "../dither-kit/theme"
+import { applyTheme, THEME_TOKENS, themeCss, themeVars } from "../dither-kit/engine/theme"
 
 describe("theme from JavaScript", () => {
   it("maps known tokens to custom properties and drops the rest", () => {

@@ -9,8 +9,8 @@ import {
   sampleKeyframes,
   termsToCss,
   termsToPx,
-} from "../dither-kit/keyframes"
-import { steps } from "../dither-kit/timing"
+} from "../dither-kit/engine/keyframes"
+import { steps } from "../dither-kit/engine/timing"
 
 const box = { width: 400, height: 200 }
 

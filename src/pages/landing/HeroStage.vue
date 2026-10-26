@@ -30,9 +30,9 @@ import PauseChip from "./PauseChip.vue"
 // The heavy scenes are their own chunks, fetched when first shown: the
 // shader's WebGL engine, the code translator's utility map, the fluid's
 // canvas engine.
-const DitherShader = defineAsyncComponent(() => import("@dither-kit/DitherShader.vue"))
+const DitherShader = defineAsyncComponent(() => import("@dither-kit/tailwind/DitherShader.vue"))
 const ExportScene = defineAsyncComponent(() => import("./ExportScene.vue"))
-const DitherFerrofluid = defineAsyncComponent(() => import("@dither-kit/Ferrofluid.vue"))
+const DitherFerrofluid = defineAsyncComponent(() => import("@dither-kit/tailwind/Ferrofluid.vue"))
 
 type Scene = { id: string; short: string; name: string; icon: IconName; line: string; docs: string; link: string }
 const SCENES: Scene[] = [

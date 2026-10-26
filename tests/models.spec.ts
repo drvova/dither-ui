@@ -11,8 +11,8 @@ import {
   parseX3d,
   parseXml,
   sniffFormat,
-} from "../dither-kit/models"
-import { nodeMatrices, transformPoint } from "../dither-kit/world"
+} from "../dither-kit/engine/models"
+import { nodeMatrices, transformPoint } from "../dither-kit/engine/world"
 
 const enc = (s: string) => new TextEncoder().encode(s)
 

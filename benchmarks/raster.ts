@@ -1,5 +1,11 @@
 import { createApp, h, nextTick, ref, type App } from "vue"
-import { DitherGradient, DitherButton, DitherSpinner, renderDitherGradient, putRasterBuffer } from "../dither-kit"
+import {
+  DitherGradient,
+  DitherButton,
+  DitherSpinner,
+  renderDitherGradient,
+  putRasterBuffer,
+} from "../dither-kit/tailwind"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

@@ -10,11 +10,21 @@
  * Run: npx tsx benchmarks/node-bench.mts
  */
 
-import { renderDitherGradient, renderDitherButton, DEFAULT_MAX_COLS, DEFAULT_MAX_ROWS } from "../dither-kit/precompile"
-import { createRasterBuffer, clearRasterBuffer, blendRasterPixel, setOrBlendRasterPixel } from "../dither-kit/raster"
-import { paintColumn } from "../dither-kit/dither-paint"
-import { fillOf } from "../dither-kit/pixel"
-import { seedOfColor, type Seed } from "../dither-kit/palette"
+import {
+  renderDitherGradient,
+  renderDitherButton,
+  DEFAULT_MAX_COLS,
+  DEFAULT_MAX_ROWS,
+} from "../dither-kit/engine/precompile"
+import {
+  createRasterBuffer,
+  clearRasterBuffer,
+  blendRasterPixel,
+  setOrBlendRasterPixel,
+} from "../dither-kit/engine/raster"
+import { paintColumn } from "../dither-kit/engine/dither-paint"
+import { fillOf } from "../dither-kit/engine/pixel"
+import { seedOfColor, type Seed } from "../dither-kit/engine/palette"
 
 type Stats = { mean: number; median: number; p95: number; min: number; max: number }
 
@@ -223,7 +233,7 @@ console.log()
 // --- 8. rgb() string allocation (sparkle path) ---
 console.log("--- 8. rgb() string allocation (sparkle per-pixel) ---")
 {
-  const { rgb } = await import("../dither-kit/palette")
+  const { rgb } = await import("../dither-kit/engine/palette")
   const col = fillOf("blue")
   const rgbFn = () => {
     for (let i = 0; i < 100; i++) {

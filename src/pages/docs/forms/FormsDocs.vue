@@ -31,8 +31,8 @@ import {
   DitherTagInput,
   DitherTransferList,
 } from "@dither-kit"
-import DitherField from "@dither-kit/DitherField.vue"
-import DitherInput from "@dither-kit/DitherInput.vue"
+import DitherField from "@dither-kit/tailwind/DitherField.vue"
+import DitherInput from "@dither-kit/tailwind/DitherInput.vue"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 

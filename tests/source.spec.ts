@@ -32,12 +32,14 @@ import * as stylex from "@/widgets/source/model/stylex"
 
 const ROOT = process.cwd()
 const KIT = join(ROOT, "dither-kit")
-const kitFiles = readdirSync(KIT).filter((f) => /\.(vue|ts|css)$/.test(f))
+const kitFiles = (readdirSync(KIT, { recursive: true }) as string[])
+  .map((f) => f.split("\\").join("/"))
+  .filter((f) => /\.(vue|ts|css)$/.test(f))
 const svelteFiles = (readdirSync(join(ROOT, "dither-kit-svelte"), { recursive: true }) as string[])
   .filter((f) => /\.(svelte|ts|css)$/.test(f) && !f.startsWith("node_modules"))
   .map((f) => f.split("\\").join("/"))
 const read = (dir: string, f: string) => readFileSync(join(ROOT, dir, f), "utf8")
-const VUE_INDEX = kitIndex(read("dither-kit", "index.ts"), kitFiles)
+const VUE_INDEX = kitIndex(read("dither-kit", "tailwind/index.ts"), kitFiles, "tailwind/index.ts")
 const SVELTE_INDEX = kitIndex(read("dither-kit-svelte", "index.ts"), svelteFiles)
 
 const SWITCH = `<script setup lang="ts">
@@ -56,13 +58,16 @@ const bloom = ref(true)
 
 describe("source files", () => {
   it("reads a kit index as export name → the file that defines it", () => {
-    expect(VUE_INDEX.get("DitherSwitch")).toEqual({ file: "DitherSwitch.vue", name: "default" })
-    expect(VUE_INDEX.get("DitherAurora")).toEqual({ file: "Aurora.vue", name: "default" })
-    expect(VUE_INDEX.get("AreaChart")).toEqual({ file: "area-chart.ts", name: "AreaChart" })
+    expect(VUE_INDEX.get("DitherSwitch")).toEqual({ file: "tailwind/DitherSwitch.vue", name: "default" })
+    expect(VUE_INDEX.get("DitherAurora")).toEqual({ file: "tailwind/Aurora.vue", name: "default" })
+    expect(VUE_INDEX.get("AreaChart")).toEqual({ file: "tailwind/area-chart.ts", name: "AreaChart" })
+    expect(VUE_INDEX.get("copyText")).toEqual({ file: "engine/copy-text.ts", name: "copyText" })
     expect(VUE_INDEX.has("TooltipVariant")).toBe(false)
     expect(SVELTE_INDEX.get("Aurora")?.file).toBe("backgrounds/Aurora.svelte")
-    expect(resolveKitFile("./pixel", kitFiles)).toBe("pixel.ts")
-    expect(resolveKitFile("./nope", kitFiles)).toBeUndefined()
+    expect(resolveKitFile("../engine/pixel", kitFiles, "tailwind/DitherButton.vue")).toBe("engine/pixel.ts")
+    expect(resolveKitFile("./lib", kitFiles, "tailwind/DitherButton.vue")).toBe("tailwind/lib.ts")
+    expect(resolveKitFile("./engine/pixel", kitFiles)).toBe("engine/pixel.ts")
+    expect(resolveKitFile("./nope", kitFiles, "tailwind/x.vue")).toBeUndefined()
   })
 
   it("tells a snippet's kind", () => {
@@ -104,7 +109,10 @@ const level = ref(40)
 
   it("lists the kit files an example imports, per framework", () => {
     const vue = 'import { DitherSwitch, DitherButton, type DitherColor } from "@dither-kit"\nimport { ref } from "vue"'
-    expect(kitFilesOf(vue, "vue", VUE_INDEX, kitFiles)).toEqual(["DitherSwitch.vue", "DitherButton.vue"])
+    expect(kitFilesOf(vue, "vue", VUE_INDEX, kitFiles)).toEqual([
+      "tailwind/DitherSwitch.vue",
+      "tailwind/DitherButton.vue",
+    ])
     const svelte =
       'import { Aurora } from "@dither-kit-svelte"\nimport { toast } from "@dither-kit-svelte/runtime/toast.svelte"'
     expect(kitFilesOf(svelte, "svelte", SVELTE_INDEX, svelteFiles)).toEqual([
@@ -119,8 +127,8 @@ const level = ref(40)
     expect(exampleName("install", 1, "sh", "vue")).toBe("install.sh")
     const files: SourceFile[] = [
       { path: "SwitchExample.vue", name: "SwitchExample.vue", lang: "vue", role: "example" },
-      { path: "dither-kit/DitherSwitch.vue", name: "DitherSwitch.vue", lang: "vue", role: "kit" },
-      { path: "dither-kit/theme.css", name: "theme.css", lang: "css", role: "tokens" },
+      { path: "dither-kit/tailwind/DitherSwitch.vue", name: "DitherSwitch.vue", lang: "vue", role: "kit" },
+      { path: "dither-kit/engine/theme.css", name: "theme.css", lang: "css", role: "tokens" },
       { path: "prompt.md", name: "prompt.md", lang: "md", role: "prompt" },
     ]
     const md = promptFor(
@@ -136,7 +144,7 @@ const level = ref(40)
     )
     expect(md).toMatch(/^# Switch\n\nA dithered toggle\.\n\nLive preview: https:\/\/dither-ui\.com\/docs\/switch/)
     expect(md).toContain("```sh\nnpx degit drvova/dither-ui/dither-kit src/dither-kit\n```")
-    expect(md).toContain("- `dither-kit/DitherSwitch.vue` — a kit file the example imports")
+    expect(md).toContain("- `dither-kit/tailwind/DitherSwitch.vue` — a kit file the example imports")
     expect(md).toContain("plain CSS — the example's own `<style>` block")
     expect(md).toContain("Render `SwitchExample.vue`")
     expect(md).not.toMatch(/\n\n\n/)
@@ -500,7 +508,7 @@ describe("the source panel on a docs preview", () => {
       .trigger("click")
     const prompt = (card.get("textarea").element as HTMLTextAreaElement).value
     expect(prompt).toMatch(/^# Switch\n\nA toggle whose track is a dithered canvas\./)
-    expect(prompt).toContain("- `dither-kit/DitherSwitch.vue` — a kit file the example imports")
+    expect(prompt).toContain("- `dither-kit/tailwind/DitherSwitch.vue` — a kit file the example imports")
 
     // A broken example reports where, and the last good run stays up.
     await card

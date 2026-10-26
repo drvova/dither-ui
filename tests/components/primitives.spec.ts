@@ -2,10 +2,10 @@
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
 import { describe, expect, it, rs } from "rstack/test"
-import Box from "../../dither-kit/Box.vue"
-import Text from "../../dither-kit/Text.vue"
-import Divider from "../../dither-kit/Divider.vue"
-import VisuallyHidden from "../../dither-kit/VisuallyHidden.vue"
+import Box from "../../dither-kit/tailwind/Box.vue"
+import Text from "../../dither-kit/tailwind/Text.vue"
+import Divider from "../../dither-kit/tailwind/Divider.vue"
+import VisuallyHidden from "../../dither-kit/tailwind/VisuallyHidden.vue"
 
 describe("Box", () => {
   it("renders the default div and swaps tags via as", () => {
@@ -77,19 +77,19 @@ describe("VisuallyHidden", () => {
 // ---------------------------------------------------------------------------
 // Batch 2: interaction and a11y primitives
 // ---------------------------------------------------------------------------
-import Svg from "../../dither-kit/Svg.vue"
-import Img from "../../dither-kit/Image.vue"
-import Spacer from "../../dither-kit/Spacer.vue"
-import Portal from "../../dither-kit/Portal.vue"
-import Overlay from "../../dither-kit/Overlay.vue"
-import Measure from "../../dither-kit/Measure.vue"
-import Clipboard from "../../dither-kit/Clipboard.vue"
-import ClickOutside from "../../dither-kit/ClickOutside.vue"
-import FocusRing from "../../dither-kit/FocusRing.vue"
-import FocusScope from "../../dither-kit/FocusScope.vue"
-import HoverArea from "../../dither-kit/HoverArea.vue"
-import Pressable from "../../dither-kit/Pressable.vue"
-import InView from "../../dither-kit/InView.vue"
+import Svg from "../../dither-kit/tailwind/Svg.vue"
+import Img from "../../dither-kit/tailwind/Image.vue"
+import Spacer from "../../dither-kit/tailwind/Spacer.vue"
+import Portal from "../../dither-kit/tailwind/Portal.vue"
+import Overlay from "../../dither-kit/tailwind/Overlay.vue"
+import Measure from "../../dither-kit/tailwind/Measure.vue"
+import Clipboard from "../../dither-kit/tailwind/Clipboard.vue"
+import ClickOutside from "../../dither-kit/tailwind/ClickOutside.vue"
+import FocusRing from "../../dither-kit/tailwind/FocusRing.vue"
+import FocusScope from "../../dither-kit/tailwind/FocusScope.vue"
+import HoverArea from "../../dither-kit/tailwind/HoverArea.vue"
+import Pressable from "../../dither-kit/tailwind/Pressable.vue"
+import InView from "../../dither-kit/tailwind/InView.vue"
 
 describe("Svg", () => {
   it("is aria-hidden by default and labeled when given a name", () => {

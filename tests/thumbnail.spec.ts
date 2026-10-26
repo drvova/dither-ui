@@ -2,7 +2,7 @@
 import { describe, expect, it } from "rstack/test"
 import { mount } from "@vue/test-utils"
 import { DitherThumbnail } from "@dither-kit"
-import { BAYER4 } from "@dither-kit/pixel"
+import { BAYER4 } from "@dither-kit/engine/pixel"
 
 // The interactive thumbnail's contract: a parent link trigger, a masked
 // frame (radius + hairline + clipped), a recessed cover image that wakes on
