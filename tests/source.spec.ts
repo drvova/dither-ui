@@ -7,6 +7,7 @@ import { h, nextTick } from "vue"
 import { babelParse } from "vue/compiler-sfc"
 import DemoCard from "@/pages/docs/DemoCard.vue"
 import { crc32, zip } from "@/shared/lib/files"
+import { setStyling } from "@/shared/lib/restyle"
 import { CUES, play, schedule, sounds } from "@/shared/lib/sound"
 import {
   CompileError,
@@ -27,6 +28,7 @@ import {
   snippetKind,
   type SourceFile,
 } from "@/widgets/source/model/files"
+import * as stylex from "@/widgets/source/model/stylex"
 
 const ROOT = process.cwd()
 const KIT = join(ROOT, "dither-kit")
@@ -382,6 +384,53 @@ describe("interface sounds", () => {
   })
 })
 
+describe("StyleX at run time", () => {
+  const sheet = (kind: string) => document.head.querySelector(`style[data-run-stylex="${kind}"]`)?.textContent ?? ""
+
+  it("applies styles as atomic classes, the last style to set a property winning", () => {
+    const styles = stylex.create({
+      a: { display: "flex", color: "red" },
+      b: { color: "blue", padding: 8, opacity: 0.5 },
+    })
+    const names = stylex.attrs(styles.a, false, [null, styles.b]).class!.split(" ")
+    expect(names).toHaveLength(4)
+    expect(sheet("plain")).toContain(`.${names[0]}{display:flex}`)
+    expect(sheet("plain")).toContain("color:blue")
+    expect(sheet("plain")).not.toContain("color:red")
+    expect(sheet("plain")).toContain("padding:8px")
+    expect(sheet("plain")).toContain("opacity:0.5")
+    // The same styles are the same classes, written once; React's spelling agrees.
+    expect(stylex.attrs(styles.a, styles.b).class).toBe(names.join(" "))
+    expect(stylex.props(styles.a, styles.b).className).toBe(names.join(" "))
+    expect(sheet("plain").split(`.${names[0]}{`)).toHaveLength(2)
+    expect(stylex.attrs(null, false)).toEqual({})
+    expect(stylex.cssName("WebkitLineClamp")).toBe("-webkit-line-clamp")
+  })
+
+  it("writes conditions after plain rules: pseudo-classes in the selector, at-rules around it", () => {
+    const styles = stylex.create({
+      link: { color: { default: "gray", ":hover": { default: null, "@media (hover: hover)": "white" } } },
+      mark: { content: { "::before": "'>'" } },
+    })
+    stylex.attrs(styles.link, styles.mark)
+    expect(sheet("plain")).toContain("color:gray")
+    expect(sheet("conditional")).toMatch(/@media \(hover: hover\)\{\.x\w+:hover\{color:white\}\}/)
+    expect(sheet("conditional")).toMatch(/\.x\w+::before\{content:'>'\}/)
+  })
+
+  it("defines variables and keyframes, and keeps fallbacks in order", () => {
+    const vars = stylex.defineVars({ accent: { default: "blue", "@media (prefers-color-scheme: light)": "navy" } })
+    expect(vars.accent).toMatch(/^var\(--x\w+-accent\)$/)
+    expect(sheet("plain")).toMatch(/:root\{--x\w+-accent:blue\}/)
+    expect(sheet("conditional")).toMatch(/@media \(prefers-color-scheme: light\)\{:root\{--x\w+-accent:navy\}\}/)
+    const spin = stylex.keyframes({ from: { rotate: "0deg" }, to: { rotate: "360deg" } })
+    expect(sheet("plain")).toContain(`@keyframes ${spin}{from{rotate:0deg}to{rotate:360deg}}`)
+    const styles = stylex.create({ box: { position: stylex.firstThatWorks("sticky", "fixed") } })
+    const [name] = stylex.attrs(styles.box).class!.split(" ")
+    expect(sheet("plain")).toContain(`.${name}{position:fixed;position:sticky}`)
+  })
+})
+
 describe("the source panel on a docs preview", () => {
   it("shows the files, runs an edit in the preview and restores the demo", async () => {
     rs.stubGlobal("IntersectionObserver", undefined)
@@ -473,6 +522,50 @@ describe("the source panel on a docs preview", () => {
     expect(card.html()).toContain("the docs demo")
     card.unmount()
     section.remove()
+    rs.unstubAllGlobals()
+  })
+
+  it("runs the example written as StyleX", async () => {
+    rs.stubGlobal("IntersectionObserver", undefined)
+    rs.stubGlobal("fetch", async (url: string) => {
+      const m = /kit\/src\/vue\/(.+)$/.exec(String(url))
+      const text = !m ? undefined : m[1] === "files.json" ? JSON.stringify(kitFiles) : read("dither-kit", m[1])
+      return { ok: !!text, status: text ? 200 : 404, text: async () => text ?? "" }
+    })
+    setStyling("stylex")
+    const section = document.createElement("section")
+    section.id = "switch"
+    section.innerHTML = "<h2>Switch</h2><p>A toggle.</p><div></div>"
+    document.body.append(section)
+    const card = mount(DemoCard, {
+      props: { code: SWITCH },
+      slots: { default: () => h("p", "the docs demo") },
+      attachTo: section.lastElementChild as HTMLElement,
+    })
+    const settle = async () => {
+      for (let i = 0; i < 12; i++) {
+        await flushPromises()
+        await new Promise((r) => setTimeout(r, 0))
+      }
+    }
+    await card
+      .findAll('[role="tab"]')
+      .find((t) => t.text() === "Code")!
+      .trigger("click")
+    await settle()
+    expect((card.get("textarea").element as HTMLTextAreaElement).value).toContain("const styles = stylex.create({")
+    await card.get("button.src-run").trigger("click")
+    await settle()
+    expect(card.find('ol[aria-label="Run problems"]').exists()).toBe(false)
+    expect(card.text()).toContain("Running your files")
+    const label = card.get("label")
+    expect(label.classes().every((c) => /^x\w+$/.test(c))).toBe(true)
+    const css = [...document.head.querySelectorAll("style[data-run-stylex]")].map((s) => s.textContent).join("")
+    for (const c of label.classes()) expect(css).toContain(`.${c}{`)
+    expect(css).toContain("display:flex")
+    card.unmount()
+    section.remove()
+    setStyling("tailwind")
     rs.unstubAllGlobals()
   })
 })

@@ -281,7 +281,7 @@ const SNIPPET_AI = `<!-- assistant thread: chips ask, replies stream, stop cance
 <!-- reduced motion: the reply lands whole instead of streaming -->`
 
 const SNIPPET_SUPPORT = `<!-- support: status header · quick replies · escalation -->
-<header>Support · <span class="size-1.5 rounded-full bg-green" /> online</header>
+<header>Support · <span class="size-1.5 rounded-full" :style="{ background: 'var(--swatch-green)' }" /> online</header>
 
 <div v-for="m in messages">
   <p v-if="m.from === 'system'" class="text-center">{{ m.text }}</p>  <!-- ticket line -->

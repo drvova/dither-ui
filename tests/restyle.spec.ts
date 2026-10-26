@@ -169,6 +169,28 @@ const styles = stylex.create({
     expect(restyle(code, "css")).toContain(".textForeground {\n  color: var(--foreground);\n}")
   })
 
+  it("names only a binding's class strings: its condition is code, whatever it holds", () => {
+    const sx = (b: string) => restyle(`<div :class="${b}">x</div>`, "stylex")
+    expect(sx(`m.from === 'me' ? 'justify-end' : 'justify-start'`)).toContain(
+      `<div v-bind="stylex.attrs(m.from === 'me' ? styles.justifyEnd : styles.justifyStart)">`,
+    )
+    expect(sx(`selected.has(m.email) && 'bg-card/50'`)).toContain(
+      `<div v-bind="stylex.attrs(selected.has(m.email) && styles.bgCard50)">`,
+    )
+    expect(sx(`hovered || focused ? 'border-foreground' : 'border-border/60'`)).toContain(
+      `<div v-bind="stylex.attrs(hovered || focused ? styles.borderForeground : styles.borderBorder60)">`,
+    )
+    expect(sx(`m.role === 'user' ? 'justify-end' : ''`)).toContain(
+      `<div v-bind="stylex.attrs(m.role === 'user' ? styles.justifyEnd : null)">`,
+    )
+    // A condition's string that is also a utility stays the value it is.
+    const view = `view === 'grid' ? 'grid grid-cols-3' : 'flex flex-col'`
+    expect(sx(view)).toContain(`stylex.attrs(view === 'grid' ? styles.grid : styles.flex)`)
+    expect(restyle(`<div :class="${view}">x</div>`, "css")).toContain(`:class="view === 'grid' ? 'grid' : 'flex'"`)
+    // An array converts only whole: a class StyleX cannot name keeps the binding.
+    expect(sx(`['p-4', on && 'cta']`)).toContain(`:class="['p-4', on && 'cta']"`)
+  })
+
   it("keeps a binding StyleX cannot take, and a self-closing tag's slash", () => {
     const code = `<DitherBadge class="flex-1" :class="classFor(item)" />`
     const sx = restyle(code, "stylex")

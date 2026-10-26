@@ -135,6 +135,7 @@ import { scaleBand, scaleLinear, scalePoint } from "d3-scale"
 import { stack, stackOffsetExpand } from "d3-shape"
 import { twMerge } from "tailwind-merge"
 import { kitFilesOf, resolveKitFile } from "./files"
+import * as StyleX from "./stylex"
 
 // Vue as a component's code sees it: everything a template compiles to and a
 // script can call — not the app, SSR, hydration or custom-element builders,
@@ -251,6 +252,8 @@ const VUE: Record<string, unknown> = {
 // The packages the kit's own files import (tests/source.spec.ts holds this
 // list to every import in the kit).
 export const PACKAGES: Record<string, Record<string, unknown>> = {
+  // StyleX done at run time (see stylex.ts): what an app's bundler plugin compiles.
+  "@stylexjs/stylex": StyleX,
   clsx: { clsx },
   "d3-scale": { scaleBand, scaleLinear, scalePoint },
   "d3-shape": { stack, stackOffsetExpand },
@@ -369,7 +372,9 @@ export async function run(input: RunInput): Promise<RunResult> {
       const file = resolveKitFile(spec, input.files)
       if (file) return kitFile(file)
     }
-    throw new Error(`Run links "vue", "@dither-kit" and the kit's own files; "${spec}" is none of them`)
+    throw new Error(
+      `Run links "vue", "@dither-kit", "@stylexjs/stylex" and the kit's own files; "${spec}" is none of them`,
+    )
   }
   const component = evaluate(example, (spec) => load(spec), META).default as Component
   const attribute = `data-run-${hashId(input.scope)}`

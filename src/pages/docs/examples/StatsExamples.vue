@@ -42,7 +42,7 @@ const SNIPPET_CARDS = `<div role="group" aria-label="Period">   <!-- period pick
       <span class="grid size-7 place-items-center rounded-md border">{{ k.icon }}</span>
     </div>
     <div class="mt-2 text-xl tabular-nums">{{ k.value }}</div>
-    <span :class="k.good ? 'text-green' : 'text-red'">   <!-- delta chip -->
+    <span :style="{ color: k.good ? 'var(--swatch-green)' : 'var(--swatch-red)' }">   <!-- delta chip -->
       {{ k.delta > 0 ? "▲" : "▼" }} {{ Math.abs(k.delta) }}%
     </span>
     <span>{{ k.note }}</span>

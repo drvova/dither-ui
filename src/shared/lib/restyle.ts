@@ -242,14 +242,66 @@ const parseInline = (style: string): [string, string][] =>
 
 type Target = { system: Exclude<Styling, "tailwind">; framework: Framework }
 
-/** The expression of a dynamic class binding with its literals named: each
- * string literal with known utilities becomes a style, referenced the way
- * the target spells it. `lossy` says a literal also held classes the target
+/** Where a class binding's class strings are: the string literals in class
+ * position (the bare expression, array items, object keys, a ternary's arms,
+ * the right of `&&`), as offsets. A literal in a condition (`tab === 'grid'`)
+ * is a value, never a class. */
+function classPositions(expr: string, base = 0, out = new Set<number>()): Set<number> {
+  const lead = expr.length - expr.trimStart().length
+  const e = expr.trim()
+  const at = base + lead
+  if (/^(['"])(?:(?!\1)[^\\]|\\.)*\1$/.test(e)) out.add(at)
+  else if (/^\[[\s\S]*\]$/.test(e))
+    for (const [s, part] of partsOf(e.slice(1, -1))) classPositions(part, at + 1 + s, out)
+  else if (/^\{[\s\S]*\}$/.test(e))
+    for (const [s, pair] of partsOf(e.slice(1, -1))) {
+      const key = pair.trimStart()
+      if (/^['"]/.test(key)) out.add(at + 1 + s + pair.length - key.length)
+    }
+  else {
+    const t = topLevel(e)
+    if (t.question > 0 && t.colon > t.question) {
+      classPositions(e.slice(t.question + 1, t.colon), at + t.question + 1, out)
+      classPositions(e.slice(t.colon + 1), at + t.colon + 1, out)
+    } else if (t.and > 0) classPositions(e.slice(t.and + 2), at + t.and + 2, out)
+  }
+  return out
+}
+
+/** A comma list's top-level parts with their offsets. */
+function partsOf(list: string): [number, string][] {
+  const parts: [number, string][] = []
+  let depth = 0
+  let quote: string | null = null
+  let from = 0
+  for (let i = 0; i <= list.length; i++) {
+    const c = list[i]
+    if (quote) {
+      if (c === "\\") i++
+      else if (c === quote) quote = null
+      continue
+    }
+    if (c === "'" || c === '"' || c === "`") quote = c
+    else if (c && "([{".includes(c)) depth++
+    else if (c && ")]}".includes(c)) depth--
+    if (i === list.length || (c === "," && depth === 0)) {
+      if (list.slice(from, i).trim()) parts.push([from, list.slice(from, i)])
+      from = i + 1
+    }
+  }
+  return parts
+}
+
+/** The expression of a dynamic class binding with its class strings named:
+ * each one with known utilities becomes a style, referenced the way the
+ * target spells it. `lossy` says a literal also held classes the target
  * could not take. */
 function nameLiterals(expr: string, names: Names, target: Target): { expr: string; found: boolean; lossy: boolean } {
   let found = false
   let lossy = false
-  const out = expr.replace(STRING_RE, (all, single?: string, double?: string) => {
+  const classes = classPositions(expr)
+  const out = expr.replace(STRING_RE, (all, single: string | undefined, double: string | undefined, at: number) => {
+    if (!classes.has(at)) return all
     const text = single ?? double ?? ""
     const tokens = text.split(/\s+/).filter(Boolean)
     const compiled = compileUtilities(tokens, target.system === "stylex")
@@ -267,18 +319,59 @@ function nameLiterals(expr: string, names: Names, target: Target): { expr: strin
 }
 
 /** StyleX takes styles, not class strings: the common binding shapes become
- * `stylex.attrs` arguments; anything else keeps its class binding. */
+ * `stylex.attrs` arguments; anything else keeps its class binding. A ternary
+ * or `&&` takes any condition (comparisons with strings, calls, `||`): only
+ * its branches must be named styles, and an empty string is no style. */
 function stylexArgs(expr: string): string[] | null {
   const e = expr.trim()
-  if (/^\[[\s\S]*\]$/.test(e)) return splitTop(e.slice(1, -1)).flatMap((part) => stylexArgs(part) ?? [part])
+  if (/^\[[\s\S]*\]$/.test(e)) {
+    const items = splitTop(e.slice(1, -1)).map(stylexArgs)
+    return items.every(Boolean) ? items.flatMap((a) => a!) : null
+  }
   if (/^\{[\s\S]*\}$/.test(e))
     return splitTop(e.slice(1, -1)).map((pair) => {
       const k = pair.indexOf(":")
       return `${pair.slice(k + 1).trim()} && ${pair.slice(0, k).trim()}`
     })
   if (/^styles\.\w+$/.test(e)) return [e]
-  if (/^[\w$.!]+\s*(\?|&&)/.test(e) && /styles\.\w+/.test(e) && !/['"]/.test(e)) return [e]
+  const arm = (x: string) => (/^styles\.\w+$/.test(x) ? x : /^(''|"")$/.test(x) ? "null" : null)
+  const at = topLevel(e)
+  if (at.question > 0 && at.colon > at.question) {
+    const yes = arm(e.slice(at.question + 1, at.colon).trim())
+    const no = arm(e.slice(at.colon + 1).trim())
+    return yes && no ? [`${e.slice(0, at.question).trim()} ? ${yes} : ${no}`] : null
+  }
+  if (at.and > 0) {
+    const yes = arm(e.slice(at.and + 2).trim())
+    return yes && yes !== "null" ? [`${e.slice(0, at.and).trim()} && ${yes}`] : null
+  }
   return null
+}
+
+/** Where an expression's top-level ternary `?` and `:` and its last
+ * top-level `&&` are (-1 when absent): outside strings and brackets, `?.`
+ * and `??` not counted. */
+function topLevel(e: string): { question: number; colon: number; and: number } {
+  const at = { question: -1, colon: -1, and: -1 }
+  let depth = 0
+  let quote: string | null = null
+  for (let i = 0; i < e.length; i++) {
+    const c = e[i]
+    if (quote) {
+      if (c === "\\") i++
+      else if (c === quote) quote = null
+      continue
+    }
+    if (c === "'" || c === '"' || c === "`") quote = c
+    else if ("([{".includes(c)) depth++
+    else if (")]}".includes(c)) depth--
+    else if (depth) continue
+    else if (c === "?" && e[i + 1] !== "." && e[i + 1] !== "?" && e[i - 1] !== "?") {
+      if (at.question < 0) at.question = i
+    } else if (c === ":" && at.question >= 0 && at.colon < 0) at.colon = i
+    else if (c === "&" && e[i + 1] === "&") at.and = i++
+  }
+  return at
 }
 
 function splitTop(list: string): string[] {

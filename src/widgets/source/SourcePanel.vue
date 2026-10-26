@@ -214,11 +214,11 @@ async function downloadAll() {
   say(`Downloaded ${archive.value}`)
 }
 
-// Run: the Vue flavor in a styling system the page can apply.
+// Run: the Vue flavor, in any styling system (StyleX through its run-time
+// stand-in, `model/stylex.ts`).
 const runnable = computed(() => {
   if (kind.value !== "sfc" && kind.value !== "fragment") return "Nothing to render: this example isn't a component."
   if (props.flavor !== "vue") return "The preview runs the Vue kit; switch the framework to Vue to run."
-  if (props.styling === "stylex") return "StyleX is compiled at build time; Run takes Tailwind, CSS or CSS Modules."
   return ""
 })
 const problems = shallowRef<Problem[]>([])

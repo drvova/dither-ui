@@ -735,7 +735,7 @@ stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: 
 <RadarChart … />                        <!-- sprint health -->
 
 <div v-for="s in services">             <!-- status rows -->
-  <span :class="s.ok ? 'bg-green' : 'bg-red'" />  <!-- dot -->
+  <span class="size-1.5 rounded-full" :style="{ backgroundColor: cssColor(s.ok ? 'green' : 'red') }" />
   {{ s.name }} <Sparkline :data="s.data" :color="s.color" />
   {{ s.uptime }}
 </div>`,
@@ -1125,7 +1125,8 @@ const gradientCode = computed(
               plain custom properties. And what you write is written in your system: pick it in the header or on any
               code tab, and every snippet on this page, every Studio export and the agent's
               <code class="text-foreground/80">code.get</code> come out as a scoped stylesheet, CSS Modules or StyleX
-              instead of utility classes. The components keep their own styles either way.
+              instead of utility classes. Run plays them in the page in that system too, StyleX included. The components
+              keep their own styles either way.
             </p>
             <div class="mt-3"><CodeBlock :code="SNIPPETS.anyStyles" /></div>
             <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">

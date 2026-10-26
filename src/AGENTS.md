@@ -156,7 +156,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   stylesheet covers them); for StyleX so does any class whose rule needs a
   selector it cannot express, a custom property or `!important`, and a
   dynamic binding only becomes `attrs()` arguments when its shape allows
-  (literal / ternary / `&&` / array / object). Names come from the element
+  (literal / ternary / `&&` / array / object; a ternary or `&&` takes any
+  condition, an empty branch is `null`, an array converts whole or not at
+  all). In every target only the literals in class position are named (a
+  ternary's arms, the right of `&&`, array items, object keys), so a
+  condition's string (`view === 'grid'`) stays a value. Names come from the element
   (`stack`, `row`, `grid`, `layer`, `frame`, `box`, `text`, a component's
   name without `Dither`, a literal's first utility), one per distinct rule
   set, inline `style` folded into the element's rule. The preference
@@ -165,8 +169,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   SFC restyled (`tailwind` default, junk fails); the export dialog's
   `styling` control does the same for the copy and the download. New
   vocabulary is picked up by the next build (dev: on a hot update of a
-  scanned file). Pinned by `tests/restyle.spec.ts` and the `code.get` case
-  in `tests/agent-protocol.spec.ts`.
+  scanned file). The docs' Run plays the restyled example in any system,
+  StyleX through `widgets/source/model/stylex.ts`. Pinned by
+  `tests/restyle.spec.ts`, `tests/stylex-coverage.spec.ts` (every Studio
+  export and every docs snippet written as StyleX leaves no Tailwind class;
+  only a snippet's own CSS hooks stay classes) and the `code.get` case in
+  `tests/agent-protocol.spec.ts`.
 - Clock for drivers: `clock.seek { seconds? }` / `clock.release` hold or
   free the kit clock from the protocol (the `seek_clock` tool), and
   `window.ditherStudio.clock` exposes the same four calls (`seek(seconds)`,
