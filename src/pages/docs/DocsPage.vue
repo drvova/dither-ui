@@ -36,6 +36,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
 import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
+import "@/shared/fonts/display.css"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import DemoCard from "./DemoCard.vue"
 import SectionShare from "./SectionShare.vue"
@@ -1047,7 +1048,7 @@ const gradientCode = computed(
           <!-- The title in chrome; on its baseline, the kit's spec as speed
                tags (beside the title, never an eyebrow over it). -->
           <div class="mt-12 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-            <h1 class="chrome-type text-3xl font-medium tracking-tight">Documentation</h1>
+            <h1 class="chrome-type font-display text-[1.6rem] leading-tight font-normal">Documentation</h1>
             <ul class="flex flex-wrap gap-1 pb-1" aria-label="The kit">
               <li class="speed-tag">{{ GROUPS.flatMap((g) => g.items).length }} sections</li>
               <li class="speed-tag">Vue 3</li>

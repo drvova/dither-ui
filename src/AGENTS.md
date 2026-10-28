@@ -27,6 +27,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the Studio tools and the ACP client behind the composer).
 - `entities/` — domain stores: editor (selection/artboards, single source of
   truth), chart, widget, artboard.
+- `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
+  subset, self-hosted), its license `OFL.txt` (keep them together) and
+  `display.css` (its `@font-face`, `font-display: swap`; the mono and
+  Michroma set the statement on the same number of lines, so the swap
+  shifts nothing).
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
   ContextMenu, ...; `ToolMark` over `marks.ts` — the real one-colour
   marks of npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the coding agents
@@ -355,7 +360,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   ceramic on light, lit from the top left), `--well`, `--gloss`,
   `--recess` and `--recess-sm` (a surface pressed in, shadowed from the
   top left), `--smoke` (smoked polymer: graphite on dark, bone on light),
-  `--float-shadow`, `--ease-settle`, `--cut` (16px). Classes:
+  `--float-shadow`, `--ease-settle`, `--cut` (16px), `--display-face`
+  (Michroma, then the mono; the `font-display` utility reads it; its
+  `@font-face` is `shared/fonts/display.css`, imported by the landing and
+  the docs only, never by the player, whose bundle inlines every asset).
+  Classes:
   `.chrome-type` (the ramp clipped to the glyphs, one horizon per line),
   `.spec` (spec label: uppercase, tracked, 10px) and `.speed-tag` (a
   slanted plate), the ONLY uppercase in the site's own chrome;

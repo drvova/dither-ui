@@ -21,6 +21,7 @@
   --radius-lg: calc(var(--radius) + 2px);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-display: var(--display-face);
 }
 
 @layer base {
@@ -399,6 +400,10 @@
   --float-shadow: 0 10px 30px -14px rgb(16 18 20 / 0.3);
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
   --cut: 16px;
+  /* Display type: Michroma (shared/fonts/display.css), extended and
+     geometric, one weight; the mono until it loads or where it is not
+     imported. Body, labels, data and code stay mono. */
+  --display-face: "Michroma", var(--font-mono);
 }
 
 .dark {

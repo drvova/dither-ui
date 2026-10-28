@@ -62,7 +62,8 @@ widgets/features; page-specific conventions live here.
   levels mapped to theme tokens (`--ink`, `--ink-2`, `--ink-3`, `--line`,
   `--signal` the ember), `.display` (mono 500, tight), `.section-head`
   (the `.section-title`, cast in `.chrome-type` —
-  the page's second size, mono 500 up to 2.6rem — and, on its baseline, a
+  the page's second size, the display face (Michroma 400) up to 2rem,
+  19ch at most — and, on its baseline, a
   `.head-side`: a `.tags` row of speed tags over a `.more-link` naming its
   destination; under 560px they sit under the title, which beside them
   squeezed to four lines), `.ticks` (the ruler), `.list-head` (a
@@ -91,8 +92,9 @@ widgets/features; page-specific conventions live here.
   renders zero visible pixels.
 - Hero (`Showcase.vue`): a FULL-BLEED band (the `--well` between
   hairlines) holding, on the shell, the statement beside the stage. Left
-  (`.statement`): the mono h1 in chrome at display scale
-  (`clamp(2.2rem, 4.2vw, 3.25rem)`, two lines in its column), the lede,
+  (`.statement`): the h1 in the display face (Michroma 400) and chrome at
+  display scale (`clamp(1.7rem, 3.1vw, 2.45rem)`, two lines in its column
+  at every width), the lede,
   the keys (`.key-chrome` "Open the studio", `.nav-pill` "Read the
   docs" and "Watch the film" under the Play glyph, which opens the
   trailer), then the facts as a spec sheet under a hairline (`.facts`, a
@@ -528,7 +530,8 @@ widgets/features; page-specific conventions live here.
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
   mark. The sidebar's groups sit under their glyphs (`GROUP_ICON`), each
   with its section count as a `.spec`. The page title is the h1
-  "Documentation" in `.chrome-type` (text-3xl), no eyebrow; on its
+  "Documentation" in the display face (`font-display`, 1.6rem) and
+  `.chrome-type`, no eyebrow; on its
   baseline, the kit's spec as `.speed-tag`s (the section count, Vue 3,
   Svelte 5, Tailwind or StyleX). The "Browse sections" disclosure is a
   `.nav-pill`. At xl the rail right of

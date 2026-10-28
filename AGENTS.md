@@ -310,9 +310,11 @@ Default section order:
   metal finishes on display type and the primary key only, never on body
   text or every heading; soft shells against a few sharp machined
   boundaries, never uniform pills; motion 120-200ms micro, 240-400ms
-  panels, settle easing `cubic-bezier(.22,1,.36,1)`. Its suggested faces
-  (an extended display, a squared heading sans) are not used: the user
-  kept the mono identity.
+  panels, settle easing `cubic-bezier(.22,1,.36,1)`. Display type wears
+  its suggested extended face, Michroma (SIL OFL, self-hosted in
+  `src/shared/fonts/`): the landing's statement and section titles and the
+  docs' page title. Its squared heading sans is not used; headings, body,
+  labels, figures and code stay mono, the user's identity.
 - One site voice: the landing, the docs and the Studio speak one language
   (dark theme tokens, monospace, hairlines, ringed pressed states), so the
   whole site reads as one product. The copy follows the design.how bans

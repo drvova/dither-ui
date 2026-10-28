@@ -58,11 +58,12 @@
 
 .landing .section-title {
   margin: 0;
-  max-width: 22ch;
-  font-size: clamp(1.6rem, 3vw, 2.6rem);
-  font-weight: 500;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  max-width: 19ch;
+  font-family: var(--display-face);
+  font-size: clamp(1.3rem, 2.4vw, 2rem);
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 

@@ -452,11 +452,15 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   padding: 36px 0;
 }
 
+/* The statement in the display face (extended, one weight), sized so it
+   holds two lines in its column. */
 .hero-h {
   margin: 0;
-  font-size: clamp(2.2rem, 4.2vw, 3.25rem);
-  line-height: 1.02;
-  letter-spacing: -0.05em;
+  font-family: var(--display-face);
+  font-size: clamp(1.7rem, 3.1vw, 2.45rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
   text-wrap: balance;
   color: var(--ink);
 }
