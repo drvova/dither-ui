@@ -66,11 +66,15 @@ onBeforeUnmount(() => {
 useInviewLoop(root, start, stop)
 </script>
 
+<!-- A space stays a plain space between the letters' spans, so the line
+     breaks between words (never inside one); the letters are the root's
+     only element children, which the frame walks. -->
 <template>
   <span ref="root" :class="cn('inline', props.class)" :aria-label="props.text">
-    <span v-for="(ch, i) in chars" :key="i" aria-hidden="true" class="dither-proximity-char" style="opacity: 0.55">{{
-      ch === " " ? "\u00a0" : ch
-    }}</span>
+    <template v-for="(ch, i) in chars" :key="i"
+      ><template v-if="ch === ' '">{{ " " }}</template
+      ><span v-else aria-hidden="true" class="dither-proximity-char" style="opacity: 0.55">{{ ch }}</span></template
+    >
   </span>
 </template>
 

@@ -119,6 +119,9 @@
    underline (a hairline that inks on hover), never an arrow. */
 .landing .more-link,
 .landing .lead {
+  /* A 24px target around the line, without moving it. */
+  margin-block: -4px;
+  padding-block: 4px;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;

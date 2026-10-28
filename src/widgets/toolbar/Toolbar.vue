@@ -178,9 +178,9 @@ async function exportPng() {
 <template>
   <div
     ref="rootEl"
-    class="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3"
+    class="pointer-events-none absolute inset-x-0 top-0 z-30 grid grid-cols-[1fr_auto_1fr] items-start gap-3 p-3"
   >
-    <div class="capsule pointer-events-auto flex h-10 items-center px-1">
+    <div class="capsule pointer-events-auto flex h-10 items-center justify-self-start px-1">
       <a
         :href="routePath('/')"
         class="flex h-8 items-center gap-2 rounded-lg px-2.5 text-xs text-foreground transition-colors hover:bg-card"
@@ -386,7 +386,7 @@ async function exportPng() {
       </Transition>
     </div>
 
-    <div class="capsule pointer-events-auto flex h-10 items-center gap-0.5 p-1">
+    <div class="capsule pointer-events-auto flex h-10 items-center gap-0.5 justify-self-end p-1">
       <button type="button" aria-label="Undo" title="Undo (⌘Z)" :disabled="!history.canUndo" class="tool" @click="undo">
         <DitherIcon name="Undo" :size="15" :stroke-width="1.5" />
       </button>

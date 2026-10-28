@@ -150,7 +150,7 @@ const VISITS_CONFIG = { visits: { label: "Visits", color: "blue" as DitherColor 
   flex-direction: column;
   justify-content: center;
   gap: 12px;
-  min-height: 13.5rem;
+  min-height: 12rem;
   padding: 18px;
   border-radius: 8px;
   background: var(--background);
@@ -187,7 +187,7 @@ const VISITS_CONFIG = { visits: { label: "Visits", color: "blue" as DitherColor 
 }
 
 .board-chart {
-  height: 10.5rem;
+  height: 9.5rem;
 }
 
 .drew {

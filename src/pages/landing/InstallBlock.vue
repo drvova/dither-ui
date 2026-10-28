@@ -459,7 +459,7 @@ onBeforeUnmount(() => {
 }
 
 /* What lands in your repo: four columns split by hairlines (two under
-   900px, one under 560px), each a mono path under its glyph and a line. */
+   1100px, where a path would break, one under 560px), each a mono path under its glyph and a line. */
 .lands {
   display: flex;
   flex-direction: column;
@@ -513,7 +513,7 @@ onBeforeUnmount(() => {
   text-wrap: pretty;
 }
 
-@media (max-width: 899px) {
+@media (max-width: 1099px) {
   .lands-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

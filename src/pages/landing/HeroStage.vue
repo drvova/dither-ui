@@ -423,10 +423,11 @@ const fluid = ref<Fluid>("acid")
   }
 }
 
+/* The caption: the glyph and the link on the first line of the text. */
 .stage-cap {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px 10px;
   font-size: 11.5px;
   line-height: 1.6;
@@ -435,11 +436,13 @@ const fluid = ref<Fluid>("acid")
 
 .cap-i {
   flex: none;
+  margin-top: 2px;
 }
 
 .cap-t {
   flex: 1;
   min-width: 14rem;
+  text-wrap: pretty;
 }
 
 @media (max-width: 899px) {

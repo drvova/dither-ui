@@ -118,8 +118,9 @@ widgets/features; page-specific conventions live here.
   with its fills and five hues, the slide action and the ferrofluid with
   its palettes. The shader, the export (the translator's utility map) and
   the fluid are async chunks. Under the well a `.seg` picker and the
-  tour's progress hairline, then a caption (the scene's glyph, one line,
-  a `.lead` to its docs section). The tour advances on the progress
+  tour's progress hairline, then a caption (the scene's glyph, its line
+  wrapping with `text-wrap: pretty`, a `.lead` to its docs section; the
+  glyph and the link sit on the first line). The tour advances on the progress
   rule's CSS `animationend` (6s, no timer), paused while the stage is
   hovered or holds focus; its pause chip stops it, and picking a scene or
   using one (a pointer down or a key other than Tab inside the well) stops
@@ -150,7 +151,8 @@ widgets/features; page-specific conventions live here.
   required `peerDependencies` (a styling layer's optional one aside);
   section counts come from `hub.ts`. A change that moves one fails until
   the page says it.
-- Install (`InstallBlock.vue`, under the hero; its bar a capsule on the
+- Install (`InstallBlock.vue`, under the hero; "What lands in your repo"
+  in two columns under 1100px, where a path would break; its bar a capsule on the
   shell ground, a rounded slab once it wraps under 640px, its step
   picker a `.track`) mirrors the docs install
   story: its four steps (degit folder + npm/pnpm/bun deps) must stay in
@@ -191,9 +193,15 @@ widgets/features; page-specific conventions live here.
   into the docs under `.list-h` headings (the big families of `DOCS_FAMILIES`, biggest
   first, each under its glyph, its count in its own element, then the
   five Handbook topics under theirs; notes align with the labels), a
-  hairline off the others. The three columns
-  end within a few px of each other at desktop: content that changes one
-  column's height is balanced in the others.
+  hairline off the others. The three columns END LEVEL at every width:
+  each fills the grid row and one part takes the slack (column A's
+  portraits panel and its well, the faces centred; the space between
+  column B's wells; the space above column C's Handbook), so a change to
+  one column's content never needs balancing in the others. Between 600
+  and 899px column B's wells sit three across under the stacked columns
+  (stacked full width each stood half a screen tall). Every link on the
+  landing (`.lead`, `.more-link`, a list row) takes a 24px target through
+  padding cancelled by a negative margin, so nothing moves.
 - Directory (`Hub.vue`, `#directory`): a head (`.dir-head`): left the
   title ("n sections, every one of them live."), one line and "Browse all
   sections"; right the kit's `BarChart` of the docs (13rem): one row,
@@ -278,10 +286,11 @@ widgets/features; page-specific conventions live here.
   ones `add_screen` lays out; a chart is `add_chart`), so the caption is
   true: a deploy panel, a sign-up card, a visits bar chart. Every ask's
   words sit in one grid cell with only the picked one visible, and the
-  frames share one height, so a pick never moves the page. Under it a
-  solid strip (the harness keeps its own login, the Studio never asks for
-  a key). The stage sets the panel's height and the steps spread over
-  it. One column under 760px.
+  frames share one height (12rem), so a pick never moves the page. The
+  steps and the stage stand level (the steps spread over any slack), and
+  the panel's full-width foot is a solid strip under the Lock glyph (the
+  harness keeps its own login, the Studio never asks for a key). One
+  column under 760px.
 - The close (`LandingPage.vue`, `.dawn`, after the agents): a FULL-BLEED
   band between hairlines, the last line ("Copy one folder. Every pixel
   is yours.") and its keys ("Read the quick start", "Open the studio") on
@@ -403,7 +412,14 @@ widgets/features; page-specific conventions live here.
   colour (the workbench's contrast reads the background through
   `backgroundBehind`, which gives up on any ancestor's image), that never
   clips (the workbench draws past it) and keeps its 1px border, clear
-  (captures add it). Chips (framework, styling, Inspect) sit in tracks.
+  (captures add it). Its padding is 16px on phones and 40px from sm (the
+  docs column is 16px from the screen's edge on phones, 24px from sm, as
+  the user's design system sets), and every demo fits its well from
+  320px up: a wide one (pagination, the bracket, the ASCII art) is
+  centred inside an `overflow-x-auto` row by an `mx-auto w-max` box, so
+  it centres while it fits and scrolls on the narrowest phones; a fixed
+  width becomes `w-full max-w-*`. Chips (framework, styling, Inspect) sit
+  in tracks.
 - Docs copy follows the landing's bans: no em dashes or middle dots in
   prose, prop `type` notes as `type: note` or `type (note)`, no uppercase
   or tracked label, no arrow-ended link; a snippet's copy matches what its
@@ -482,7 +498,8 @@ widgets/features; page-specific conventions live here.
   footer) return at lg. The section list is a grouped disclosure
   ("Browse sections" button with aria-expanded/aria-controls, group headings,
   two-column links, closes on tap) instead of the old flat wall of all ~220
-  links.
+  links. A `CodeBlock`'s copy chip takes its own band over the first line
+  under sm (a long first line ran under it there).
 - `scrollTo(id)` is computed `window.scrollTo` + a settle loop (re-align after
   motion stops, ≤8 tries, bottom-clamp aware): lazy demo reveals and
   content-visibility seeds move the target while the smooth flight is still
@@ -529,7 +546,8 @@ widgets/features; page-specific conventions live here.
   (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
   mark. The sidebar's groups sit under their glyphs (`GROUP_ICON`), each
-  with its section count as a `.spec`. The page title is the h1
+  with its section count as a `.spec`; its links and the "On this page"
+  rail's are 25px targets at a 27px pitch. The page title is the h1
   "Documentation" in the display face (`font-display`, 1.6rem) and
   `.chrome-type`, no eyebrow; on its
   baseline, the kit's spec as `.speed-tag`s (the section count, Vue 3,
@@ -592,7 +610,9 @@ widgets/features; page-specific conventions live here.
   is a plain h1). The artboard SURFACE
   (`[data-artboard-surface]`) stays `font-sans`, the player's font, so
   what is designed on the canvas is what the video export renders.
-- Studio is canvas-first: Toolbar floats over the full-bleed canvas; Layers,
+- Studio is canvas-first: Toolbar floats over the full-bleed canvas (a
+  `1fr auto 1fr` grid, so the Library key stands at the true centre
+  between the two capsules); Layers,
   Agent and Inspector are dismissible overlay panels (Layers and Agent share
   the left slot — opening one folds the other); the searchable Library is the
   single insertion surface for charts, bespoke widgets, every public kit

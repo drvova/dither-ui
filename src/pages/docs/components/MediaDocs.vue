@@ -310,8 +310,13 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
       is interactive: pick every winner and the final fills itself.
     </p>
     <DemoCard :code="SNIPPET_BRACKET">
-      <div class="grid place-items-center gap-3">
-        <DitherBracket :rounds="rounds" interactive color="green" @pick="pick" />
+      <div class="grid justify-items-center gap-3">
+        <!-- Centred while it fits; on the narrowest phones it scrolls. -->
+        <div class="w-full overflow-x-auto">
+          <div class="mx-auto w-max">
+            <DitherBracket :rounds="rounds" interactive color="green" @pick="pick" />
+          </div>
+        </div>
         <button
           type="button"
           class="text-[10px] text-muted-foreground transition-colors hover:text-foreground"

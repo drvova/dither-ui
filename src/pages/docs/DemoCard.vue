@@ -232,7 +232,7 @@ function chip(apply: () => void, already: boolean) {
       v-show="tab === 'preview' || ran"
       ref="host"
       v-bind="runAttrs"
-      class="demo-well rim relative mt-3 flex min-h-[280px] items-center justify-center border p-8 sm:p-10"
+      class="demo-well rim relative mt-3 flex min-h-[280px] items-center justify-center border p-4 sm:p-10"
       :class="{ 'data-[tray=bottom]:pb-16 data-[tray=top]:pt-16': inspecting }"
       :tabindex="inspecting ? 0 : undefined"
       :role="inspecting ? 'group' : undefined"

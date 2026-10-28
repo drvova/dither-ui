@@ -116,8 +116,11 @@ const API: Record<string, PropRow[]> = {
     </p>
     <DemoCard :code="SNIPPET_PAGINATION">
       <div class="grid gap-4">
-        <div class="flex justify-center">
-          <DitherPagination v-model:page="page" :total="12" />
+        <!-- Centred while it fits; on the narrowest phones it scrolls. -->
+        <div class="overflow-x-auto">
+          <div class="mx-auto w-max">
+            <DitherPagination v-model:page="page" :total="12" />
+          </div>
         </div>
         <p class="text-center text-[12px] text-muted-foreground">on page {{ page }} of 12</p>
       </div>

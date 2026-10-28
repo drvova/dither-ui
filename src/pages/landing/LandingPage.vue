@@ -398,8 +398,11 @@ onBeforeUnmount(() => {
             </ol>
             <div class="harness-side">
               <AgentAsks :at="ask" />
-              <p class="harness-note">Your harness keeps its own login. The Studio never asks for a key.</p>
             </div>
+            <p class="harness-note">
+              <DitherIcon name="Lock" :size="13" :stroke-width="1.5" class="harness-note-i" />Your harness keeps its own
+              login. The Studio never asks for a key.
+            </p>
           </div>
         </section>
       </div>
@@ -862,17 +865,25 @@ onBeforeUnmount(() => {
   box-shadow: inset 1px 0 0 var(--line);
 }
 
+/* The panel's foot, across both columns: the harness keeps its login. */
 .harness-note {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   margin: 0;
   padding: 12px 28px;
   font-size: 12px;
   line-height: 1.6;
   color: var(--ink-2);
-  text-wrap: balance;
   background: var(--background);
-  box-shadow:
-    inset 1px 0 0 var(--line),
-    inset 0 1px 0 var(--line);
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.harness-note-i {
+  flex: none;
+  margin-top: 3px;
+  color: var(--ink-3);
 }
 
 @media (max-width: 759px) {
@@ -887,7 +898,6 @@ onBeforeUnmount(() => {
   }
   .harness-note {
     padding: 12px 20px;
-    box-shadow: inset 0 1px 0 var(--line);
   }
 }
 

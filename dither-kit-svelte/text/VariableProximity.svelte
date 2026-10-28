@@ -59,10 +59,15 @@
   })
 </script>
 
+<!-- A space stays a plain space between the letters' spans, so the line
+     breaks between words (never inside one); the letters are the root's
+     only element children, which the frame walks. -->
 <span bind:this={root} class={cn("inline", className)} aria-label={text}>
-  {#each chars as ch, i (i)}
-    <span aria-hidden="true" class="dither-proximity-char" style="opacity: 0.55">{ch === " " ? "\u00a0" : ch}</span>
-  {/each}
+  {#each chars as ch, i (i)}{#if ch === " "}{" "}{:else}<span
+        aria-hidden="true"
+        class="dither-proximity-char"
+        style="opacity: 0.55">{ch}</span
+      >{/if}{/each}
 </span>
 
 <style>

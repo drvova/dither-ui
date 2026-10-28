@@ -86,7 +86,7 @@ function markAll() {
   notices.forEach((n) => (n.read = true))
 }
 
-const SNIPPET = `<div class="w-80 rounded-lg border">
+const SNIPPET = `<div class="w-full max-w-80 rounded-lg border">
   <header class="flex items-center justify-between border-b p-3">
     Notifications <DitherBadge v-if="unread" color="green">{{ unread }}</DitherBadge>
     <button @click="markAll">Mark all read</button>
@@ -117,7 +117,7 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
       once. Empty the unread tab and it says so instead of showing nothing.
     </p>
     <DemoCard :code="SNIPPET">
-      <div class="mx-auto w-80 rounded-lg border border-border/60 bg-background/40">
+      <div class="mx-auto w-full max-w-80 rounded-lg border border-border/60 bg-background/40">
         <div class="flex items-center justify-between border-b border-border/60 p-3">
           <span class="flex items-center gap-2 text-[12px] text-foreground">
             Notifications

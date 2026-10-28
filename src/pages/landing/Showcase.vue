@@ -573,6 +573,28 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   gap: 20px;
 }
 
+/* The three columns end level at every width: each fills the row, and one
+   part of it takes the slack (the portraits' well, the space between the
+   wells, the space above the handbook). */
+.feature {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.col-b {
+  justify-content: space-between;
+}
+
+/* Between 600 and 899px the wells sit three across under the other
+   columns; stacked full width each one stood half a screen tall. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .col-b {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .build,
 .feature {
   padding: 20px;
@@ -648,7 +670,9 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
 }
 
 .faces {
+  flex: 1;
   display: flex;
+  align-items: center;
   justify-content: center;
   margin-top: 16px;
   padding: 4px 8px 16px;
@@ -751,8 +775,18 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
 
 /* Column C: lists under their headings, a hairline off the others. */
 .col-c {
+  display: flex;
+  flex-direction: column;
   padding-left: 20px;
   box-shadow: inset 1px 0 0 var(--line);
+}
+
+.col-c > .list:last-child {
+  margin-bottom: 0;
+}
+
+.col-c > .list + .list-head {
+  margin-top: auto;
 }
 
 @media (max-width: 899px) {
@@ -776,10 +810,13 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
 }
 
+/* A row's link takes a 25px target without moving the row. */
 .list-t {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  margin-block: -3px;
+  padding-block: 3px;
   font-size: 12.5px;
   color: var(--ink);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);

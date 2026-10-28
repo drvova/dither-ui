@@ -905,7 +905,7 @@ const gradientCode = computed(
   <div class="min-h-screen bg-background font-mono text-foreground antialiased">
     <!-- Header: the site's floating capsule (glass, chrome rim), 56px with
          its margin, so the rails' top-14 and the scroll-spy line hold. -->
-    <header class="sticky top-0 z-40 mx-auto w-full max-w-6xl px-3 py-1.5 sm:px-4">
+    <header class="sticky top-0 z-40 mx-auto w-full max-w-6xl px-4 py-1.5">
       <div class="capsule docs-capsule flex h-11 w-full items-center justify-between pr-1.5 pl-4 text-xs sm:pl-5">
         <div class="flex items-center gap-6">
           <a
@@ -1012,7 +1012,7 @@ const gradientCode = computed(
       </div>
     </header>
 
-    <div class="mx-auto flex w-full max-w-6xl px-6">
+    <div class="mx-auto flex w-full max-w-6xl px-4 sm:px-6">
       <!-- Sidebar -->
       <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-52 shrink-0 overflow-y-auto py-10 pr-8 lg:block">
         <nav class="grid gap-7">
@@ -1021,12 +1021,12 @@ const gradientCode = computed(
               <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
               <span class="spec ml-auto tabular-nums">{{ grp.items.length }}</span>
             </div>
-            <ul class="mt-2.5 grid gap-1.5 border-l border-border/60">
+            <ul class="mt-2.5 grid gap-0.5 border-l border-border/60">
               <li v-for="it in grp.items" :key="it.id">
                 <a
                   :href="docsUrl(it.id)"
                   :aria-current="activeId === it.id ? 'true' : undefined"
-                  class="-ml-px block border-l py-0.5 pl-3 text-[11px] transition-colors"
+                  class="-ml-px block border-l py-1 pl-3 text-[11px] transition-colors"
                   :class="
                     activeId === it.id
                       ? 'border-foreground text-foreground'
@@ -1944,7 +1944,7 @@ const gradientCode = computed(
                   Deploy
                 </DitherButton>
                 <div class="grid justify-items-center gap-3">
-                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                  <div class="flex flex-wrap items-center justify-center gap-1 rounded-md border border-border/60 p-1">
                     <button
                       v-for="v in VARIANTS"
                       :key="v"
@@ -1956,7 +1956,7 @@ const gradientCode = computed(
                       {{ v }}
                     </button>
                   </div>
-                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                  <div class="flex flex-wrap items-center justify-center gap-1 rounded-md border border-border/60 p-1">
                     <button
                       v-for="b in BLOOMS"
                       :key="b"
@@ -2160,11 +2160,11 @@ const gradientCode = computed(
           <p class="flex items-center gap-2 text-[11px] font-medium text-foreground">
             <DitherIcon name="Menu" :size="13" :stroke-width="1.5" />On this page
           </p>
-          <ul class="mt-2.5 grid gap-1.5 border-l border-border/60">
+          <ul class="mt-2.5 grid gap-0.5 border-l border-border/60">
             <li v-for="(p, i) in onPage" :key="i">
               <button
                 type="button"
-                class="-ml-px block w-full border-l py-0.5 pl-3 text-left text-[11px] transition-colors hover:border-foreground/40 hover:text-foreground"
+                class="-ml-px block w-full border-l py-1 pl-3 text-left text-[11px] transition-colors hover:border-foreground/40 hover:text-foreground"
                 :class="i === 0 ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground'"
                 @click="goTo(p.el)"
               >
@@ -2180,7 +2180,7 @@ const gradientCode = computed(
     <!-- Footer -->
     <footer class="border-t border-border/60">
       <div
-        class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 text-[11px] text-muted-foreground"
+        class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 text-[11px] text-muted-foreground sm:px-6"
       >
         <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">dither-ui.com</a>
         <div class="flex items-center gap-4">

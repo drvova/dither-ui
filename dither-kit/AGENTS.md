@@ -534,6 +534,10 @@ the kit every import is relative (`../engine/pixel`).
   Without IO the loop is always-on — the old behaviour, which is what jsdom
   tests get. A new looping component uses this composable, never a bare
   mount-time `requestAnimationFrame` chain.
+- Per-letter text keeps its words wrappable: `VariableProximity` (both
+  ports) renders a space as a plain space between the letters' spans (no
+  `\u00a0`), so a sentence breaks between words, never inside one, and
+  the letters stay the root's only element children for the frame walk.
 - Text animations (`GradientText`, `ShinyText`, `GlitchText`, `SplitText`,
   `RotatingText`, `CountUp`, ...) are a separate family: pure DOM/CSS (or a small
   rAF for counting), NOT canvas/Bayer. They still ship as `Dither*` exports,
