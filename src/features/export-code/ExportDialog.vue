@@ -73,14 +73,14 @@ async function downloadAll() {
             <button
               type="button"
               :title="`Download every artboard as its own .vue file (${editor.artboards.length})`"
-              class="rounded-full border border-border px-3 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              class="rounded-lg border border-border px-3 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
               @click="downloadAll"
             >
               Download all ({{ editor.artboards.length }})
             </button>
             <button
               type="button"
-              class="rounded-full border border-border px-3 py-1 text-[11px] transition-colors"
+              class="rounded-lg border border-border px-3 py-1 text-[11px] transition-colors"
               :class="copied ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
               @click="copy"
             >
@@ -89,7 +89,7 @@ async function downloadAll() {
             <button
               ref="closeRef"
               type="button"
-              class="flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground"
+              class="flex size-7 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Close"
               @click="emit('close')"
             >

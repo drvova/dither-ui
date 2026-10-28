@@ -387,7 +387,7 @@ onBeforeUnmount(() => {
                 <span class="step-i"><DitherIcon name="Sparkles" :size="14" :stroke-width="1.5" /></span>
                 <div class="step-b">
                   <p class="step-t">Ask for a screen. Each tool call lands on the canvas, and undo takes it back.</p>
-                  <div class="seg ask-pick" role="group" aria-label="Asks" aria-controls="agent-ask">
+                  <div class="seg track ask-pick" role="group" aria-label="Asks" aria-controls="agent-ask">
                     <button v-for="(a, i) in ASKS" :key="a.id" type="button" :aria-pressed="ask === i" @click="ask = i">
                       {{ a.label }}
                     </button>

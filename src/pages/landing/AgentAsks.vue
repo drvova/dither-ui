@@ -122,7 +122,7 @@ const VISITS_CONFIG = { visits: { label: "Visits", color: "blue" as DitherColor 
   font-size: 12px;
   line-height: 1.55;
   color: var(--ink);
-  background: var(--pearl), var(--background);
+  background: var(--shell-ground), var(--background);
   box-shadow:
     inset 0 0 0 1px var(--line),
     inset 0 1px 0 rgb(255 255 255 / 0.08);

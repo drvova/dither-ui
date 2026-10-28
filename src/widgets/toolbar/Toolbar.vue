@@ -183,7 +183,7 @@ async function exportPng() {
     <div class="capsule pointer-events-auto flex h-10 items-center px-1">
       <a
         :href="routePath('/')"
-        class="flex h-8 items-center gap-2 rounded-full px-2.5 text-xs text-foreground transition-colors hover:bg-card"
+        class="flex h-8 items-center gap-2 rounded-lg px-2.5 text-xs text-foreground transition-colors hover:bg-card"
         aria-label="dither-ui home"
       >
         <svg viewBox="0 0 7 7" width="13" height="13" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
@@ -197,7 +197,7 @@ async function exportPng() {
           type="button"
           aria-haspopup="menu"
           :aria-expanded="projectOpen"
-          class="flex h-8 max-w-48 items-center gap-1.5 rounded-full px-2.5 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground"
+          class="flex h-8 max-w-48 items-center gap-1.5 rounded-lg px-2.5 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground"
           @click="
             () => {
               projectOpen = !projectOpen
@@ -586,7 +586,7 @@ async function exportPng() {
   height: 2rem;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 8px;
   color: var(--color-muted-foreground);
   font-size: 12px;
   transition:

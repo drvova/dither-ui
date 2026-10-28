@@ -398,7 +398,7 @@ const ICONS = {
 .src {
   --cut: 12px;
   overflow: hidden;
-  background: var(--pearl), color-mix(in oklab, var(--color-background) 60%, transparent);
+  background: var(--shell-ground), color-mix(in oklab, var(--color-background) 60%, transparent);
 }
 
 @media (prefers-reduced-transparency: reduce) {

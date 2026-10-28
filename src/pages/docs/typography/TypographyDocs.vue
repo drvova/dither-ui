@@ -194,7 +194,7 @@ const API: Record<string, PropRow[]> = {
 <template>
   <!-- Heading -->
   <section id="heading" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Heading</h2>
+    <h2 class="text-lg tracking-tight">Heading</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Semantic h1–h6 on the site's scale: level picks the size and weight,
       <code class="text-foreground/80">class</code> overrides anything below.
@@ -211,7 +211,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Label -->
   <section id="label" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Label</h2>
+    <h2 class="text-lg tracking-tight">Label</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A real <code class="text-foreground/80">&lt;label&gt;</code> that pairs with controls through
       <code class="text-foreground/80">for</code> (or by nesting), which is the whole point over a styled span. A
@@ -230,7 +230,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Caption -->
   <section id="caption" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Caption</h2>
+    <h2 class="text-lg tracking-tight">Caption</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Supporting text in the caption register: 11px and muted, with a fainter tier for the quietest asides.
     </p>
@@ -246,7 +246,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Overline -->
   <section id="overline" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Overline</h2>
+    <h2 class="text-lg tracking-tight">Overline</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The tiny uppercase eyebrow above a section: 10px, open tracking, muted. Editorial structure without a heading's
       weight.
@@ -262,7 +262,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Code -->
   <section id="code" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Code</h2>
+    <h2 class="text-lg tracking-tight">Code</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Inline code: the <code class="text-foreground/80">&lt;code&gt;</code>
       element in house chrome. For the copyable block form, that's CodeBlock in the app layer; this one lives inside
@@ -279,7 +279,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- KbdCombo -->
   <section id="kbd-combo" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">KbdCombo</h2>
+    <h2 class="text-lg tracking-tight">KbdCombo</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A shortcut as one readable unit: keys in Kbd chips with the separator between them. Single keys go through
       DitherKbd directly.
@@ -295,7 +295,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Blockquote -->
   <section id="blockquote" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Blockquote</h2>
+    <h2 class="text-lg tracking-tight">Blockquote</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Real <code class="text-foreground/80">&lt;blockquote&gt;</code>
       semantics with the editorial treatment: hairline left rule, muted register. Citations ride in the slot.
@@ -311,7 +311,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Highlight -->
   <section id="highlight" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Highlight</h2>
+    <h2 class="text-lg tracking-tight">Highlight</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The <code class="text-foreground/80">&lt;mark&gt;</code> element with a neutral token wash. Colored variants
       belong in <code class="text-foreground/80">class</code> because house color comes from palette seeds.
@@ -326,7 +326,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Truncate -->
   <section id="truncate" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Truncate</h2>
+    <h2 class="text-lg tracking-tight">Truncate</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       One-line ellipsis around any content. The native
       <code class="text-foreground/80">title</code> attr rides through, so native tooltips stay one attribute away.
@@ -343,7 +343,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- LineClamp -->
   <section id="line-clamp" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">LineClamp</h2>
+    <h2 class="text-lg tracking-tight">LineClamp</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A block clamped after N lines (1–6) with a real ellipsis: excerpts, card bodies, previews that must not grow.
     </p>
@@ -361,7 +361,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- MiddleEllipsis -->
   <section id="middle-ellipsis" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">MiddleEllipsis</h2>
+    <h2 class="text-lg tracking-tight">MiddleEllipsis</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Center-ellipsis for identifiers: paths, keys and hashes keep both ends, which is where recognition happens. The
       full string stays in
@@ -388,7 +388,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- EllipsisTooltip -->
   <section id="ellipsis-tooltip" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">EllipsisTooltip</h2>
+    <h2 class="text-lg tracking-tight">EllipsisTooltip</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Truncation with a tooltip that only earns itself: observes its own overflow (ResizeObserver, zero forced reads)
       and publishes
@@ -407,7 +407,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Link -->
   <section id="link" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Link</h2>
+    <h2 class="text-lg tracking-tight">Link</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The anchor, dressed in house chrome: hairline underline that grows its offset and brightens on hover, color
       inherited from wherever it sits.
@@ -423,7 +423,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- ExternalLink -->
   <section id="external-link" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">ExternalLink</h2>
+    <h2 class="text-lg tracking-tight">ExternalLink</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       New-tab semantics done right: <code class="text-foreground/80">_blank</code> with
       <code class="text-foreground/80">rel=noreferrer</code>, plus the ExternalLink glyph after the label.
@@ -441,7 +441,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- SelectableText -->
   <section id="selectable-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">SelectableText</h2>
+    <h2 class="text-lg tracking-tight">SelectableText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Text that selects itself on click (<code class="text-foreground/80">user-select: all</code>) for license keys,
       tokens and one-tap copy targets. Wraps any inline content.
@@ -457,7 +457,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- CopyableText -->
   <section id="copyable-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">CopyableText</h2>
+    <h2 class="text-lg tracking-tight">CopyableText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       One-tap copy around a piece of text. The value goes through the shared Clipboard primitive (live region included);
       the trigger flips from Copy to Check.
@@ -472,7 +472,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- NumberText -->
   <section id="number-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">NumberText</h2>
+    <h2 class="text-lg tracking-tight">NumberText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Locale-aware numbers: grouping, decimals and locale through Intl, and
       <code class="text-foreground/80">tabular-nums</code> so columns line up.
@@ -489,7 +489,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- CurrencyText -->
   <section id="currency-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">CurrencyText</h2>
+    <h2 class="text-lg tracking-tight">CurrencyText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Money through Intl. Symbol placement and grammar are the runtime's job; ours is picking currency, locale and
       decimals.
@@ -506,7 +506,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- PercentText -->
   <section id="percent-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">PercentText</h2>
+    <h2 class="text-lg tracking-tight">PercentText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Ratio to percent. The input is the <b>fraction</b> (<code class="text-foreground/80">0.42</code> becomes 42%)
       because that is what Intl's percent style expects; decimals default to zero for the clean read.
@@ -523,7 +523,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- FileSizeText -->
   <section id="file-size-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">FileSizeText</h2>
+    <h2 class="text-lg tracking-tight">FileSizeText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Bytes to human units, 1024-based the way disk tools actually count. Sub-KB sizes stay whole numbers, signs
       survive.
@@ -540,7 +540,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- DurationText -->
   <section id="duration-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">DurationText</h2>
+    <h2 class="text-lg tracking-tight">DurationText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Milliseconds to a smart human duration: precision drops as magnitude grows. No zero-padding, no clutter.
     </p>
@@ -556,7 +556,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- RelativeTime -->
   <section id="relative-time" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">RelativeTime</h2>
+    <h2 class="text-lg tracking-tight">RelativeTime</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       <code class="text-foreground/80">&lt;time&gt;</code> in the relative register: Intl.RelativeTimeFormat picks the
       largest sane unit and <code class="text-foreground/80">numeric: "auto"</code> turns zero into "now". It re-ticks
@@ -574,7 +574,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- DateTimeText -->
   <section id="date-time-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">DateTimeText</h2>
+    <h2 class="text-lg tracking-tight">DateTimeText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Date to localized text with the medium-date + short-time register by default; any Intl.DateTimeFormatOptions shape
       overrides it (bring
@@ -597,7 +597,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- PluralText -->
   <section id="plural-text" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">PluralText</h2>
+    <h2 class="text-lg tracking-tight">PluralText</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Intl.PluralRules as a slot switch: the plural category picks the slot, the default slot is the fallback, and every
       slot receives
@@ -623,7 +623,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Emoji -->
   <section id="emoji" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Emoji</h2>
+    <h2 class="text-lg tracking-tight">Emoji</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An emoji as an <b>image</b> with a real accessible name: <code class="text-foreground/80">role="img"</code> +
       <code class="text-foreground/80">aria-label</code> gives screen readers one predictable announcement instead of

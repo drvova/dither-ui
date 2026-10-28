@@ -144,7 +144,7 @@ onBeforeUnmount(() => {
   --cut: 12px;
   display: flex;
   flex-direction: column;
-  background: var(--pearl), color-mix(in oklab, var(--color-background) 96%, transparent);
+  background: var(--shell-ground), color-mix(in oklab, var(--color-background) 96%, transparent);
 }
 @media (prefers-reduced-transparency: reduce) {
   .studio-panel {

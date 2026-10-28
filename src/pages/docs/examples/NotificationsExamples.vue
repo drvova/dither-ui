@@ -111,7 +111,7 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
 
 <template>
   <section id="notification-center" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Notifications</h2>
+    <h2 class="text-lg tracking-tight">Notifications</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A notification center: segmented All/Unread tabs, day groups, and an unread dot that clears on click or all at
       once. Empty the unread tab and it says so instead of showing nothing.

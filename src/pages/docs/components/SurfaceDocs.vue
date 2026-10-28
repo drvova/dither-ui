@@ -269,7 +269,7 @@ const API: Record<string, PropRow[]> = {
 
 <template>
   <section id="accordion" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Accordion</h2>
+    <h2 class="text-lg tracking-tight">Accordion</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A stack of disclosure rows animated through grid-template-rows, each with the 2px dithered rail. Single type
       closes siblings on open.
@@ -290,7 +290,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="alert-dialog" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Alert Dialog</h2>
+    <h2 class="text-lg tracking-tight">Alert Dialog</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A modal that demands an answer: overlay clicks do nothing, Escape cancels, and focus lands on the safe Cancel
       button. Danger seeds the confirm fill red.
@@ -314,7 +314,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="drawer" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Drawer</h2>
+    <h2 class="text-lg tracking-tight">Drawer</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A side panel that slides in over a scrim. Escape or scrim click closes, the close button takes focus on open.
     </p>
@@ -428,7 +428,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="sidebar" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Sidebar</h2>
+    <h2 class="text-lg tracking-tight">Sidebar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An app sidebar that collapses to an icon rail: items keep their hit area, labels fold away, the active item
       carries a dithered rail.
@@ -555,7 +555,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="toast" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Toast</h2>
+    <h2 class="text-lg tracking-tight">Toast</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A module-level toast() call feeds a teleported bottom-right stack; each toast carries a 3px dithered rail in its
       color and dismisses itself after its duration. API table below documents the toast() function.
@@ -571,7 +571,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="meter" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Meter</h2>
+    <h2 class="text-lg tracking-tight">Meter</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A static gauge on the progress track. The fill seed picks itself: green below the low mark, orange between, red
       above the high mark.
@@ -591,7 +591,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="scroll-area" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Scroll Area</h2>
+    <h2 class="text-lg tracking-tight">Scroll Area</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An honest overflow container: no canvas, just thin token-colored scrollbars that match the house border.
     </p>
@@ -606,7 +606,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="toolbar" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Toolbar</h2>
+    <h2 class="text-lg tracking-tight">Toolbar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A roving-tabindex strip: one Tab stop for the whole bar, arrow keys walk the buttons, Home and End jump to the
       edges.
@@ -628,7 +628,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="nav-menu" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Navigation Menu</h2>
+    <h2 class="text-lg tracking-tight">Navigation Menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       DitherTabs' sliding dithered underline with nav semantics: anchors instead of tabs, aria-current on the active
       page.

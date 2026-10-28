@@ -132,7 +132,7 @@ function onCanvasDown(e: PointerEvent) {
       <button
         type="button"
         aria-label="Reset zoom to 100%"
-        class="w-12 rounded-full py-1 text-center tabular-nums text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
+        class="w-12 rounded-lg py-1 text-center tabular-nums text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
         title="Reset to 100% (⌘0)"
         @click="resetZoom"
       >
@@ -165,7 +165,7 @@ function onCanvasDown(e: PointerEvent) {
   height: 1.75rem;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 8px;
   color: var(--color-muted-foreground);
   transition:
     background-color 140ms ease,

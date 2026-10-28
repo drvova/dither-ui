@@ -138,11 +138,10 @@ onBeforeUnmount(() => {
 const renderRun = () => (ran.value ? [h(RunView, { component: ran.value.component, key: runs.value })] : [])
 const runAttrs = computed(() => (ran.value ? { [ran.value.attribute]: "" } : {}))
 
-// Chips are capsules; the picked one wears the site's pressed state.
+// Chips are machined segments in a track; the picked one wears the site's
+// pressed state.
 const chipClass = (active: boolean) =>
-  active
-    ? "rounded-full px-2.5 py-0.5 ring-on"
-    : "rounded-full px-2.5 py-0.5 text-muted-foreground hover:text-foreground"
+  active ? "px-2.5 py-0.5 ring-on" : "px-2.5 py-0.5 text-muted-foreground hover:text-foreground"
 
 function chip(apply: () => void, already: boolean) {
   if (!already) play("tap")
@@ -153,12 +152,12 @@ function chip(apply: () => void, already: boolean) {
 <template>
   <div ref="root" class="mt-6" data-demo-card>
     <div class="flex items-center justify-between text-[12px]">
-      <div class="flex gap-1 pb-2" role="tablist">
+      <div class="track mb-2" role="tablist">
         <button
           type="button"
           role="tab"
           :aria-selected="tab === 'preview'"
-          class="h-7 rounded-full px-3.5 transition-colors"
+          class="h-7 px-3.5 transition-colors"
           :class="tab === 'preview' ? 'ring-on' : 'text-muted-foreground hover:text-foreground'"
           @click="show('preview')"
         >
@@ -168,7 +167,7 @@ function chip(apply: () => void, already: boolean) {
           type="button"
           role="tab"
           :aria-selected="tab === 'code'"
-          class="h-7 rounded-full px-3.5 transition-colors"
+          class="h-7 px-3.5 transition-colors"
           :class="tab === 'code' ? 'ring-on' : 'text-muted-foreground hover:text-foreground'"
           @click="show('code')"
         >
@@ -176,7 +175,7 @@ function chip(apply: () => void, already: boolean) {
         </button>
       </div>
       <div v-if="tab === 'code'" class="flex flex-wrap justify-end gap-x-3 gap-y-1 pb-2 text-[11px]">
-        <div class="flex gap-1" role="group" aria-label="Framework">
+        <div class="track" role="group" aria-label="Framework">
           <button
             :aria-pressed="docsFramework === 'vue'"
             :class="chipClass(docsFramework === 'vue')"
@@ -194,7 +193,7 @@ function chip(apply: () => void, already: boolean) {
         </div>
         <!-- The same snippet in the reader's styling system: Tailwind as
              authored, or a scoped stylesheet, CSS Modules (Vue) or StyleX. -->
-        <div class="flex gap-1" role="group" aria-label="Styling">
+        <div class="track" role="group" aria-label="Styling">
           <button
             v-for="s in docsStylings"
             :key="s"
@@ -206,7 +205,7 @@ function chip(apply: () => void, already: boolean) {
           </button>
         </div>
       </div>
-      <div v-else class="pb-2 text-[11px]">
+      <div v-else class="track mb-2 text-[11px]">
         <button
           ref="toggle"
           type="button"
@@ -295,7 +294,7 @@ function chip(apply: () => void, already: boolean) {
   background-clip: padding-box;
   box-shadow:
     inset 0 1px 0 var(--gloss),
-    inset 0 -18px 30px -24px var(--gel-glow);
+    var(--recess);
 }
 
 @media (forced-colors: active) {

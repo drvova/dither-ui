@@ -27,7 +27,7 @@ const code = computed(() => restyle(SNIPPET, system.value))
       </div>
     </div>
     <div class="export-side">
-      <div class="seg" role="group" aria-label="Styling system">
+      <div class="seg track" role="group" aria-label="Styling system">
         <button v-for="s in STYLINGS" :key="s" type="button" :aria-pressed="system === s" @click="system = s">
           {{ STYLING_LABELS[s] }}
         </button>

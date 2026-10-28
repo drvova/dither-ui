@@ -135,7 +135,7 @@ const API: Record<string, PropRow[]> = {
 
 <template>
   <section id="tabs" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Tabs</h2>
+    <h2 class="text-lg tracking-tight">Tabs</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A roving-tabindex tablist with a dithered underline that slides to the active tab. Arrow keys move selection.
     </p>
@@ -181,7 +181,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="collapsible" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Collapsible</h2>
+    <h2 class="text-lg tracking-tight">Collapsible</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A disclosure row animated through grid-template-rows; when open, a 2px dithered rail runs down the left edge of
       the content.
@@ -201,7 +201,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="dialog" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Dialog</h2>
+    <h2 class="text-lg tracking-tight">Dialog</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A teleported modal with labelled title and description, trapped focus, Escape/backdrop dismissal, focus
       restoration, and an optional action footer.
@@ -226,7 +226,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="center-morph-modal" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Center Morph Modal</h2>
+    <h2 class="text-lg tracking-tight">Center Morph Modal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A composable modal whose full-size surface unfolds from its exact center toward every edge, then folds back the
       same way with an inset close control. Same focus trap, Escape, and backdrop contract as Dialog.
@@ -249,7 +249,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="kbd" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Kbd</h2>
+    <h2 class="text-lg tracking-tight">Kbd</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An honest keyboard key: no canvas, just the house border and a 2px bottom edge. Pairs with shortcut listings.
     </p>

@@ -66,7 +66,7 @@ const seconds = computed({
           <button
             ref="closeRef"
             type="button"
-            class="flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground"
+            class="flex size-7 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Close"
             @click="emit('close')"
           >
@@ -194,7 +194,7 @@ const seconds = computed({
 }
 .action {
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 5px 10px;
   color: var(--color-muted-foreground);
   transition: color 120ms ease;
@@ -205,11 +205,12 @@ const seconds = computed({
 .action:disabled {
   opacity: 0.6;
 }
-/* The primary action is the site's chrome key. */
+/* The primary action is the site's chrome key: the one capsule. */
 .action.key-chrome,
 .action.key-chrome:hover:not(:disabled) {
-  color: #0a0b0d;
   border-color: transparent;
+  border-radius: 999px;
+  color: #101214;
 }
 .chip:focus-visible,
 .action:focus-visible,

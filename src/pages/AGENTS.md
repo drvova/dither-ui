@@ -15,13 +15,15 @@ widgets/features; page-specific conventions live here.
   and the Studio wear it from the same materials (the site voice in
   `app/styles.css`, see `src/AGENTS.md`), so the site reads as one
   product.
-  Its materials: liquid CHROME (`--chrome`: the statement, every section
-  title and the facts' numerals cast in it, one horizon per line; the
-  primary key a chrome capsule) and a faint PEARL sheen. Its forms: the
-  HARDSHELL panel (two opposite corners cut, a chrome-glint hairline that
-  follows the cut) holding the soft core, the GEL well (an asymmetric
-  pebble, a chrome rim, a gloss across its top), capsule keys and
-  toggles, and a BIOME of the kit's own liquid chrome (`DitherLiquidChrome`,
+  Its materials (after the user's Y2K design system V5, root
+  `AGENTS.md`): CHROME type (`--chrome`: the statement, every section
+  title and the facts' numerals cast in it, one horizon per line), the
+  satin aluminum primary key, anodized graphite shells and smoked-polymer
+  overlays. Its forms: the HARDSHELL panel (two opposite corners cut, a
+  chrome-glint hairline that follows the cut) holding the soft core, the
+  GEL well (an asymmetric pebble recessed into the shell, a chrome rim, a
+  highlight across its top), the primary key a capsule against machined
+  secondary keys and segment tracks, and a BIOME of the kit's own liquid chrome (`DitherLiquidChrome`,
   one static frame in a pebble and a droplet) behind the hero stage. Its
   sportswear: SPEC labels (uppercase, tracked) and slanted speed tags
   naming what a section is made of, the facts as a spec sheet with
@@ -66,7 +68,8 @@ widgets/features; page-specific conventions live here.
   squeezed to four lines), `.ticks` (the ruler), `.list-head` (a
   `.list-h` heading left, a `.more-link` right), `.lead` and `.more-link`
   (links with a resting hairline underline that inks on hover), `.seg`
-  (capsule toggles: `aria-pressed` buttons, the pressed one ringed) and
+  (`aria-pressed` buttons, machined 7px segments in a `.track`, the
+  pressed one ringed; the fluid's palette keeps its own housing) and
   the `.live` speed tag. Panels are `.hardshell`, wells `.gel`, the
   primary keys `.key-chrome`, spec labels `.spec`, a section's tags
   `.speed-tag`. Reduced transparency drops the biome too. Components
@@ -145,8 +148,9 @@ widgets/features; page-specific conventions live here.
   required `peerDependencies` (a styling layer's optional one aside);
   section counts come from `hub.ts`. A change that moves one fails until
   the page says it.
-- Install (`InstallBlock.vue`, under the hero; its bar a capsule, a
-  rounded slab once it wraps under 640px) mirrors the docs install
+- Install (`InstallBlock.vue`, under the hero; its bar a capsule on the
+  shell ground, a rounded slab once it wraps under 640px, its step
+  picker a `.track`) mirrors the docs install
   story: its four steps (degit folder + npm/pnpm/bun deps) must stay in
   sync with `docs/install.ts` `INSTALL.vue`, the Tailwind layer's steps
   (the landing never imports the docs). `INSTALL.stylex` is the StyleX
@@ -384,20 +388,20 @@ widgets/features; page-specific conventions live here.
   Animation, Accessibility — prose + CodeBlock, no DemoCard) · Examples ·
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
-- Component section anatomy: `<section id>` → heading row (h2 in
-  `.chrome-type`, `text-lg`, + optional "Open in the Studio") → muted
-  description → `DemoCard` (Preview/Code tabs as capsules, the picked one
-  `.ring-on`; Inspect → the workbench, Code → the source panel, a
+- Component section anatomy: `<section id>` → heading row (h2 in ink,
+  `text-lg`, + optional "Open in the Studio") → muted description →
+  `DemoCard` (Preview/Code tabs as machined segments in a `.track`, the
+  picked one `.ring-on`; Inspect → the workbench, Code → the source panel, a
   `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
   sentence case, 12px muted, + grid) → `PropsTable`, a spec sheet (a
   `.hardshell` cut at 10px, its column heads `.spec`; a row's `default` is
   its value as code; "" prints "none"). The preview frame is a gel well
   (`.demo-well` + `.rim`: the pebble radius, the well's ground, a gloss on
-  its top edge, the glow at its foot) whose ground MUST stay one plain
+  its top edge, recessed into the page) whose ground MUST stay one plain
   colour (the workbench's contrast reads the background through
   `backgroundBehind`, which gives up on any ancestor's image), that never
   clips (the workbench draws past it) and keeps its 1px border, clear
-  (captures add it). Chips (framework, styling, Inspect) are capsules.
+  (captures add it). Chips (framework, styling, Inspect) sit in tracks.
 - Docs copy follows the landing's bans: no em dashes or middle dots in
   prose, prop `type` notes as `type: note` or `type (note)`, no uppercase
   or tracked label, no arrow-ended link; a snippet's copy matches what its
@@ -512,8 +516,8 @@ widgets/features; page-specific conventions live here.
   empty ids fall back to the generic `/docs` metadata; keep ids unique.
 - Chrome: the header is the site's floating `.capsule` (`.docs-capsule`,
   44px in a 56px band so the rails' `top-14` and the scroll-spy line
-  hold; its glass frosted to 93% under 640px, where dense tables pass
-  under it); the toggles in it are capsules, the picked one `.ring-on`,
+  hold; its smoked polymer at 93% under 640px, where dense tables pass
+  under it); the toggles in it are tracks, the picked one `.ring-on`,
   Search a `.nav-pill`, "Open studio" the `.key-chrome`; the "Docs" label
   shows from xl, so the capsule fits from 360px up. The search
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
@@ -567,7 +571,8 @@ widgets/features; page-specific conventions live here.
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
   section labels in sentence case, `.ring-on` pressed states, neutral
   focus borders, and the look's materials: the floating toolbars, the
-  selection toolbar and the zoom bar are `.capsule`s (their tools round),
+  selection toolbar and the zoom bar are `.capsule`s (their tools
+  machined, 8px),
   the Library key and the empty canvas's "Add an artboard" are the
   `.key-chrome`, the Layers/Agent/Inspector panels and the dialogs
   (export, video, shortcuts) are `.hardshell`s (12px cut on panels;

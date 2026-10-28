@@ -288,7 +288,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
 <template>
   <!-- Video player -->
   <section id="video-player" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Video player</h2>
+    <h2 class="text-lg tracking-tight">Video player</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A native video under dither chrome: play, a dithered scrubber that really seeks, a volume slider, playback speed,
       mute, fullscreen, and player keyboard (Space, arrows, M, F). Without a source it shows an honest empty face
@@ -304,7 +304,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
 
   <!-- Bracket -->
   <section id="bracket" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Bracket</h2>
+    <h2 class="text-lg tracking-tight">Bracket</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A knockout bracket: winners carry the accent, losers strike through, connector rails bridge the rounds. This one
       is interactive: pick every winner and the final fills itself.
@@ -326,7 +326,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
 
   <!-- Schedule -->
   <section id="schedule" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Schedule</h2>
+    <h2 class="text-lg tracking-tight">Schedule</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A day timeline: events sit proportionally on the hour rail, each with its swatch rail, and the red now line slides
       as the day moves. Drag the hour to move time.
@@ -366,7 +366,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
 
   <!-- World (3D) -->
   <section id="world" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">World (3D)</h2>
+    <h2 class="text-lg tracking-tight">World (3D)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D, glTF / GLB, OBJ with its MTL, STL, PLY and
       OFF, by URL or inline, orbited by a camera and drawn through the Bayer engine (on the CPU by default, or by a
@@ -437,7 +437,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
 
   <!-- Shader (GLSL) -->
   <section id="shader" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Shader (GLSL)</h2>
+    <h2 class="text-lg tracking-tight">Shader (GLSL)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A fragment shader in the house raster: Shadertoy-style mainImage or a raw main, by URL or inline, run on the GPU
       at the cell resolution and ordered-dithered on the way back: one bit per channel for the eight-colour look, or

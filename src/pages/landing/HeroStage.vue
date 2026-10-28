@@ -184,7 +184,7 @@ const fluid = ref<Fluid>("acid")
             class="fluid"
           />
           <div class="fluid-pick">
-            <div class="seg" role="group" aria-label="Output">
+            <div class="seg track" role="group" aria-label="Output">
               <button v-for="m in MODES" :key="m" type="button" :aria-pressed="mode === m" @click="mode = m">
                 {{ m }}
               </button>
@@ -195,7 +195,7 @@ const fluid = ref<Fluid>("acid")
         <ExportScene v-else-if="SCENES[at].id === 'export'" />
         <div v-else-if="SCENES[at].id === 'button'" class="scene">
           <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-14 px-9 text-sm">Deploy</DitherButton>
-          <div class="seg" role="group" aria-label="Fill">
+          <div class="seg track" role="group" aria-label="Fill">
             <button
               v-for="v in VARIANTS"
               :key="v"
@@ -234,7 +234,7 @@ const fluid = ref<Fluid>("acid")
       </DitherReveal>
     </div>
     <div class="tour" :data-running="playing ? 'true' : undefined">
-      <div class="seg tour-pick" role="group" aria-label="Pick a component">
+      <div class="seg track tour-pick" role="group" aria-label="Pick a component">
         <button v-for="(s, i) in SCENES" :key="s.id" type="button" :aria-pressed="at === i" @click="pick(i)">
           {{ s.short }}
         </button>

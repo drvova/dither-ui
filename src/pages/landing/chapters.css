@@ -143,20 +143,16 @@
   text-decoration-color: currentColor;
 }
 
-/* Segmented toggles, as in the docs header: quiet labels, the pressed one
+/* Segmented toggles, as in the docs header: machined segments in a
+   `.track` (the site voice's housing), quiet labels, the pressed one
    ringed. */
-.landing .seg {
-  display: flex;
-  gap: 4px;
-}
-
 .landing .seg > button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 26px;
   padding: 0 11px;
-  border-radius: 999px;
+  border-radius: 7px;
   font-size: 11px;
   white-space: nowrap;
   color: var(--ink-3);

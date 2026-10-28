@@ -294,11 +294,25 @@ Default section order:
 
 - Design direction: dark, monospace, pixel/dither identity, worn as the
   user's look: Y2K retrofuturism, biomorphic form and technical
-  sportswear (liquid chrome and pearl, hardshell panels with cut corners
-  holding soft gel wells, capsule keys, spec labels and slanted speed
-  tags), worn by the landing, the docs and the Studio alike: its
-  materials are the site voice's (`src/app/styles.css`, both themes; see
-  `src/AGENTS.md`), the pages' uses in `src/pages/AGENTS.md`.
+  sportswear (chrome display type, hardshell panels with cut corners
+  holding recessed gel wells, a satin chrome primary key, machined
+  secondary keys and segment tracks, smoked-polymer overlays, spec labels
+  and slanted speed tags), worn by the landing, the docs and the Studio
+  alike: its materials are the site voice's (`src/app/styles.css`, both
+  themes; see `src/AGENTS.md`), the pages' uses in
+  `src/pages/AGENTS.md`. The user's reference is their "Y2K / Biomorphic
+  Retrofuturism" design system (V5, a private kit, not in the repo); its
+  rules for this site: the palette obsidian `#101214`, graphite
+  `#25292D`, titanium `#A6ABB1`, chrome `#D4DCE1`, bone `#E4E1D8` with ONE
+  signal accent (the kit's ember); one structural material per surface
+  (anodized graphite, bone ceramic, titanium edges, smoked polymer), no
+  iridescent pearl, no frosted glassmorphism, no arbitrary glow, no neon;
+  metal finishes on display type and the primary key only, never on body
+  text or every heading; soft shells against a few sharp machined
+  boundaries, never uniform pills; motion 120-200ms micro, 240-400ms
+  panels, settle easing `cubic-bezier(.22,1,.36,1)`. Its suggested faces
+  (an extended display, a squared heading sans) are not used: the user
+  kept the mono identity.
 - One site voice: the landing, the docs and the Studio speak one language
   (dark theme tokens, monospace, hairlines, ringed pressed states), so the
   whole site reads as one product. The copy follows the design.how bans

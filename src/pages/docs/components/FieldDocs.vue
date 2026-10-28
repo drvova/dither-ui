@@ -182,7 +182,7 @@ const API: Record<string, PropRow[]> = {
 
 <template>
   <section id="input" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Input</h2>
+    <h2 class="text-lg tracking-tight">Input</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A monospace text input on the token border stack: the border warms to the accent on focus, and
       <code class="text-foreground/80">invalid</code> swaps it for the red seed with
@@ -198,7 +198,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="textarea" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Textarea</h2>
+    <h2 class="text-lg tracking-tight">Textarea</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The multiline companion to Input, with the same field context, invalid, read-only, focus, and disabled contracts.
       Resize behavior stays explicit.
@@ -214,7 +214,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="field" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Field</h2>
+    <h2 class="text-lg tracking-tight">Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Label, control, and one line of small print. The
       <code class="text-foreground/80">error</code> replaces the description and drops a red pixel marker in front of
@@ -234,7 +234,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="fieldset" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Fieldset</h2>
+    <h2 class="text-lg tracking-tight">Fieldset</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Groups related fields inside a bordered box with a tracking-spaced legend. Native
       <code class="text-foreground/80">&lt;fieldset&gt;</code>
@@ -256,7 +256,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="form" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Form</h2>
+    <h2 class="text-lg tracking-tight">Form</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A deliberately tiny wrapper: <code class="text-foreground/80">novalidate</code> suppresses the browser's
       validation bubbles and submit is prevented and re-emitted as a clean
@@ -279,7 +279,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="number-field" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Number Field</h2>
+    <h2 class="text-lg tracking-tight">Number Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Stepper buttons around a spinbutton input: arrow keys step, typed values clamp and snap to the step on blur, and
       the buttons disable at the bounds.
@@ -294,7 +294,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="otp-field" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">OTP Field</h2>
+    <h2 class="text-lg tracking-tight">OTP Field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       One box per digit with auto-advancing focus. Backspace on an empty box steps back, and pasting a full code
       distributes it across the boxes.

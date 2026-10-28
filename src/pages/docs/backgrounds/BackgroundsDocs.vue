@@ -958,7 +958,7 @@ const API: Record<string, PropRow[]> = {
 <template>
   <!-- Aurora -->
   <section id="aurora" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Aurora</h2>
+    <h2 class="text-lg tracking-tight">Aurora</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Glowing polar curtains: a wavy light band hangs near the top, broken into vertical rays and tinted across the
       colour ramp by width. No WebGL: it draws through the same Bayer engine, so the glow comes out dithered. Fills its
@@ -988,7 +988,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Waves -->
   <section id="waves" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Waves</h2>
+    <h2 class="text-lg tracking-tight">Waves</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A stack of horizontal contour lines flowing on an fbm field, each a thin glowing band that ripples with noise,
       tinted across the colour ramp by depth. Move the pointer to bend the nearest lines toward it. No WebGL: it draws
@@ -1018,7 +1018,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Line waves -->
   <section id="line-waves" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Line waves</h2>
+    <h2 class="text-lg tracking-tight">Line waves</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A clean sinusoidal contour stack: like Waves but purely sine, each line phase-shifted into a travelling
       interference pattern. Dithered.
@@ -1031,7 +1031,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Threads -->
   <section id="threads" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Threads</h2>
+    <h2 class="text-lg tracking-tight">Threads</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Vertical filaments drifting on an fbm flow: thin glowing threads whose x wanders with noise, tinted across the
       ramp by depth. Dithered.
@@ -1044,7 +1044,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Silk -->
   <section id="silk" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Silk</h2>
+    <h2 class="text-lg tracking-tight">Silk</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Flowing anisotropic sheen: fbm warps a rotated sine into liquid ribbons, tinted across the colour ramp. No WebGL;
       the sheen comes out dithered.
@@ -1057,7 +1057,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Plasma -->
   <section id="plasma" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Plasma</h2>
+    <h2 class="text-lg tracking-tight">Plasma</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The classic layered-sine plasma, mapped across the colour ramp. Ordered dithering bands the gradient into the
       kit's crunch instead of a smooth blend.
@@ -1070,7 +1070,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Iridescence -->
   <section id="iridescence" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Iridescence</h2>
+    <h2 class="text-lg tracking-tight">Iridescence</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A shifting soap-bubble sheen: fbm perturbs an HSV hue swept across the surface; ordered dithering bands the
       rainbow. Self-tinting, no colours prop.
@@ -1083,7 +1083,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Dot grid -->
   <section id="dot-grid" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Dot grid</h2>
+    <h2 class="text-lg tracking-tight">Dot grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A lattice of round dots pulsing on fbm, brightened under the cursor. Cells stay square via the aspect ratio,
       tinted across the ramp by row. Move the pointer.
@@ -1096,7 +1096,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Ripple grid -->
   <section id="ripple-grid" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Ripple grid</h2>
+    <h2 class="text-lg tracking-tight">Ripple grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A lattice of dots brightened by concentric ripples expanding from the centre, tinted across the ramp by ring.
       Dithered.
@@ -1109,7 +1109,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Pixel snow -->
   <section id="pixel-snow" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Pixel snow</h2>
+    <h2 class="text-lg tracking-tight">Pixel snow</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Sparse flakes drifting down a hashed grid: each cell hashes to a flake or empty, falling as time advances. Tinted
       across the ramp by depth, dithered.
@@ -1122,7 +1122,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Beams -->
   <section id="beams" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Beams</h2>
+    <h2 class="text-lg tracking-tight">Beams</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Parallel light beams sweeping at an angle: a rotated coordinate banded by a sharpened sine that scrolls over time,
       tinted across the ramp. Dithered.
@@ -1135,7 +1135,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Light rays -->
   <section id="light-rays" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Light rays</h2>
+    <h2 class="text-lg tracking-tight">Light rays</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       God rays fanning from a source above: the angle to the source is banded by a sharpened sine, jittered with fbm and
       faded by distance. Dithered.
@@ -1148,7 +1148,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Side rays -->
   <section id="side-rays" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Side rays</h2>
+    <h2 class="text-lg tracking-tight">Side rays</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The same god-ray fan, but the source sits off a side edge for horizontal streaks. Flip
       <code class="text-foreground/80">side</code> to left or right.
@@ -1161,7 +1161,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Light pillar -->
   <section id="light-pillar" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Light pillar</h2>
+    <h2 class="text-lg tracking-tight">Light pillar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Vertical light columns shimmering upward: fbm nudges the positions, a sharpened sine makes the pillars, brighter
       at the base. Dithered.
@@ -1174,7 +1174,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Soft aurora -->
   <section id="soft-aurora" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Soft aurora</h2>
+    <h2 class="text-lg tracking-tight">Soft aurora</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Several overlapping soft curtains accumulating into a gentle glow: wider falloff and a lower default dither than
       Aurora for a hazier look.
@@ -1187,7 +1187,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Grid motion -->
   <section id="grid-motion" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Grid motion</h2>
+    <h2 class="text-lg tracking-tight">Grid motion</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A scrolling line grid drifting in a direction. Cells stay square via the aspect ratio, tinted across the ramp by
       depth. Dithered.
@@ -1200,7 +1200,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Grid scan -->
   <section id="grid-scan" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Grid scan</h2>
+    <h2 class="text-lg tracking-tight">Grid scan</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A faint static grid with a bright bar sweeping down it, boosting gridline intensity as it passes. Dithered.
     </p>
@@ -1212,7 +1212,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Grid distortion -->
   <section id="grid-distortion" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Grid distortion</h2>
+    <h2 class="text-lg tracking-tight">Grid distortion</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A line grid warped by an fbm flow and the cursor: coordinates are displaced before the grid is sampled. Move the
       pointer to push it around.
@@ -1227,7 +1227,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Dot field -->
   <section id="dot-field" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Dot field</h2>
+    <h2 class="text-lg tracking-tight">Dot field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A lattice of dots whose radius breathes with fbm and swells under the cursor, tinted across the ramp by row. Move
       the pointer to bloom them.
@@ -1240,7 +1240,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Color bends -->
   <section id="color-bends" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Color bends</h2>
+    <h2 class="text-lg tracking-tight">Color bends</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Smooth colour bands undulating on an fbm warp: the ramp index is bent by noise so the bands ripple. Ordered
       dithering crunches the gradient.
@@ -1253,7 +1253,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Gradient blinds -->
   <section id="gradient-blinds" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Gradient blinds</h2>
+    <h2 class="text-lg tracking-tight">Gradient blinds</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Angled slats each showing a colour-ramp gradient, separated by thin transparent gaps and sliding over time.
       Dithered within each slat.
@@ -1268,7 +1268,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Grainient -->
   <section id="grainient" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Grainient</h2>
+    <h2 class="text-lg tracking-tight">Grainient</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A directional colour gradient dusted with animated grain: per-pixel hash noise breaks up the ramp; ordered
       dithering adds the crunch on top.
@@ -1281,7 +1281,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Plasma wave -->
   <section id="plasma-wave" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Plasma wave</h2>
+    <h2 class="text-lg tracking-tight">Plasma wave</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Directional plasma with wavefronts travelling along an axis: sines along and across the flow sum into a value
       mapped across the ramp. Dithered.
@@ -1294,7 +1294,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Floating lines -->
   <section id="floating-lines" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Floating lines</h2>
+    <h2 class="text-lg tracking-tight">Floating lines</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A few thin horizontal lines bobbing and drifting independently, each with its own phase. Tinted across the ramp by
       line. Dithered.
@@ -1309,7 +1309,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Flow field -->
   <section id="flow-field" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Flow field</h2>
+    <h2 class="text-lg tracking-tight">Flow field</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Thousands of tiny dots advected through seeded simplex wind. Each one samples the noise angle at its own position
       and drifts down-current while the buffer's ink decays beneath it: the trail is the buffer's own decay, so the
@@ -1323,7 +1323,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Radar -->
   <section id="radar-sweep" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Radar</h2>
+    <h2 class="text-lg tracking-tight">Radar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A rotating sweep with an afterglow trail over concentric rings. The scope is circular, tinted across the ramp by
       radius. Dithered.
@@ -1338,7 +1338,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Dither -->
   <section id="dither" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Dither</h2>
+    <h2 class="text-lg tracking-tight">Dither</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The kit's signature at its purest: an animated fbm cloud thresholded 1-bit against the Bayer matrix, so the whole
       surface IS the ordered dither.
@@ -1351,7 +1351,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Letter glitch -->
   <section id="letter-glitch" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Letter glitch</h2>
+    <h2 class="text-lg tracking-tight">Letter glitch</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Matrix-style glyph rain: each column drops a bright head with a trailing fade; every cell holds a hashed 3x5
       glyph. Tinted by brightness, dithered.
@@ -1366,7 +1366,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Shape grid -->
   <section id="shape-grid" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Shape grid</h2>
+    <h2 class="text-lg tracking-tight">Shape grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A lattice where each cell holds a hashed shape (square, diamond, plus or ring) pulsing on its own phase. Tinted
       across the ramp, dithered.
@@ -1379,7 +1379,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Lightning -->
   <section id="lightning" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Lightning</h2>
+    <h2 class="text-lg tracking-tight">Lightning</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Jagged fbm-displaced bolts flickering in bursts, each a thin glowing line wandering vertically, wider toward the
       ground. Dithered.
@@ -1392,7 +1392,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Orb -->
   <section id="orb" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Orb</h2>
+    <h2 class="text-lg tracking-tight">Orb</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A glowing pulsing sphere with a wobbling rim: fbm perturbs the radius for a plasma edge; a core glow plus a rim
       ring tint across the ramp by radius.
@@ -1407,7 +1407,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Prism -->
   <section id="prism" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Prism</h2>
+    <h2 class="text-lg tracking-tight">Prism</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A spectral light fan dispersing from above: the angle across the fan maps to an HSV hue, so the beam splits into a
       rainbow. Self-colouring, dithered.
@@ -1420,7 +1420,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Galaxy -->
   <section id="galaxy" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Galaxy</h2>
+    <h2 class="text-lg tracking-tight">Galaxy</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A rotating spiral of twinkling stars with a bright core: spiral arms modulate a hashed star density; inner stars
       rotate faster. Dithered.
@@ -1435,7 +1435,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Liquid chrome -->
   <section id="liquid-chrome" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Liquid chrome</h2>
+    <h2 class="text-lg tracking-tight">Liquid chrome</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Molten metal: iterative domain warping folds the coordinates into rippled reflective bands; a high-contrast sine
       reads them as chrome. Dithered.
@@ -1448,7 +1448,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Dark veil -->
   <section id="dark-veil" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Dark veil</h2>
+    <h2 class="text-lg tracking-tight">Dark veil</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A moody near-black wash with faint colour wisps and an edge vignette: sparse fbm highlights climb the ramp;
       dithering crunches the low light.
@@ -1461,7 +1461,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Balatro -->
   <section id="balatro" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Balatro</h2>
+    <h2 class="text-lg tracking-tight">Balatro</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A swirling psychedelic paint vortex: polar coordinates twisted by a radius-dependent spin, then layered sines
       paint the swirl. Dithered.
@@ -1474,7 +1474,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Liquid ether -->
   <section id="liquid-ether" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Liquid ether</h2>
+    <h2 class="text-lg tracking-tight">Liquid ether</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An ethereal flowing colour fluid: coordinates are advected by an fbm flow and stirred by the cursor before
       sampling the ramp. Move the pointer.
@@ -1487,7 +1487,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Ballpit -->
   <section id="ballpit" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Ballpit</h2>
+    <h2 class="text-lg tracking-tight">Ballpit</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A pit of shaded spheres bobbing on a grid: sphere shading gives depth, and the balls repel from the cursor. Move
       the pointer to part them.
@@ -1500,7 +1500,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Particles -->
   <section id="particles" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Particles</h2>
+    <h2 class="text-lg tracking-tight">Particles</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A drifting, twinkling point cloud: each particle wanders on a sine orbit and drifts toward the cursor. Move the
       pointer to gather them.
@@ -1513,7 +1513,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Hyperspeed -->
   <section id="hyperspeed" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Hyperspeed</h2>
+    <h2 class="text-lg tracking-tight">Hyperspeed</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A warp-drive starfield streaking radially from the centre: angular lanes carry hashed star heads rushing outward
       with trailing tails. Dithered.
@@ -1526,7 +1526,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Lightfall -->
   <section id="lightfall" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Lightfall</h2>
+    <h2 class="text-lg tracking-tight">Lightfall</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Soft columns of light drifting downward with long fading trails: each column drops a hashed head; the trail fades
       upward. Dithered.
@@ -1539,7 +1539,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Pixel blast -->
   <section id="pixel-blast" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Pixel blast</h2>
+    <h2 class="text-lg tracking-tight">Pixel blast</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Expanding shockwave rings broken into chunky pixels: several rings pulse outward from the centre and fade; a
       coarse hash grid pixelates them.
@@ -1552,7 +1552,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Prismatic burst -->
   <section id="prismatic-burst" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Prismatic burst</h2>
+    <h2 class="text-lg tracking-tight">Prismatic burst</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A rainbow starburst radiating from the centre: sharpened angular rays take an HSV hue from angle and radius, so
       the burst is a spectrum. Self-colouring.
@@ -1567,7 +1567,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Evil eye -->
   <section id="evil-eye" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Evil eye</h2>
+    <h2 class="text-lg tracking-tight">Evil eye</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A glowing eye whose iris tracks the cursor and that blinks: a lens mask carves the eye; iris rings pulse around a
       dark pupil. Move the pointer.
@@ -1580,7 +1580,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Faulty terminal -->
   <section id="faulty-terminal" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Faulty terminal</h2>
+    <h2 class="text-lg tracking-tight">Faulty terminal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A CRT glyph wall: animated value-noise lights a grid of characters, then scanlines, glitch, flicker, chromatic
       aberration and barrel curvature run over it. No WebGL: it draws through the same Bayer engine as everything else,
@@ -1632,7 +1632,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Ferrofluid -->
   <section id="ferrofluid" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Ferrofluid</h2>
+    <h2 class="text-lg tracking-tight">Ferrofluid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Two fluid layers merge into metaball blobs; their contour rim glows, tinted across the array of colors by height.
       Turbulence swirls the domain, shimmer grains the lines, and the pointer raises a magnetic spike. No WebGL: it

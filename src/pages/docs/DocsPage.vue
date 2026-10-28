@@ -936,11 +936,11 @@ const gradientCode = computed(
           <span class="hidden text-muted-foreground xl:inline">Docs</span>
         </div>
         <nav class="flex items-center gap-3 text-muted-foreground sm:gap-3.5 xl:gap-5">
-          <div class="flex items-center gap-1" role="group" aria-label="Framework">
+          <div class="track" role="group" aria-label="Framework">
             <button
               type="button"
               :aria-pressed="docsFramework === 'vue'"
-              class="flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11px] transition-colors"
+              class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
               :class="docsFramework === 'vue' ? 'ring-on' : 'hover:text-foreground'"
               @click="choose(() => setDocsFramework('vue'), docsFramework === 'vue')"
             >
@@ -949,20 +949,20 @@ const gradientCode = computed(
             <button
               type="button"
               :aria-pressed="docsFramework === 'svelte'"
-              class="flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11px] transition-colors"
+              class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
               :class="docsFramework === 'svelte' ? 'ring-on' : 'hover:text-foreground'"
               @click="choose(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
             >
               <ToolMark id="svelte" :size="11" /><span class="max-sm:sr-only">Svelte</span>
             </button>
           </div>
-          <div class="hidden items-center gap-1 lg:flex" role="group" aria-label="Styling">
+          <div class="track max-lg:hidden" role="group" aria-label="Styling">
             <button
               v-for="s in docsStylings"
               :key="s"
               type="button"
               :aria-pressed="docsStyling === s"
-              class="h-6 rounded-full px-2.5 text-[11px] transition-colors"
+              class="h-6 px-2.5 text-[11px] transition-colors"
               :class="docsStyling === s ? 'ring-on' : 'hover:text-foreground'"
               @click="choose(() => setStyling(s), docsStyling === s)"
             >
@@ -976,7 +976,7 @@ const gradientCode = computed(
             @click="searchOpen = true"
           >
             <DitherIcon name="Search" :size="12" :stroke-width="1.5" /><span class="max-sm:sr-only">Search</span>
-            <kbd class="hidden rounded-full border border-border/60 px-1.5 text-[10px] sm:inline">{{ searchKbd }}</kbd>
+            <kbd class="hidden rounded border border-border/60 px-1 text-[10px] sm:inline">{{ searchKbd }}</kbd>
           </button>
           <button
             type="button"
@@ -1104,7 +1104,7 @@ const gradientCode = computed(
 
           <!-- Quick start -->
           <section id="getting-started" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Quick start</h2>
+            <h2 class="text-lg tracking-tight">Quick start</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               The kit is a folder, not a package. Copy
               <code class="text-foreground/80">{{
@@ -1174,7 +1174,7 @@ const gradientCode = computed(
 
           <!-- Styling -->
           <section id="styling" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Styling</h2>
+            <h2 class="text-lg tracking-tight">Styling</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Pixels come from the palette seeds; chrome (axes, legend, tooltip, borders) reads shadcn-style CSS tokens.
               Override the tokens to theme, pass <code class="text-foreground/80">class</code>
@@ -1185,7 +1185,7 @@ const gradientCode = computed(
 
           <!-- Seeds -->
           <section id="seeds" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Seeds</h2>
+            <h2 class="text-lg tracking-tight">Seeds</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Everything visual in the kit resolves from deterministic seeds: avatars from names, colors from hues,
               textures, bloom, easing and motion from integers. Give a chart a
@@ -1219,7 +1219,7 @@ const gradientCode = computed(
 
           <!-- Composition -->
           <section id="composition" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Composition</h2>
+            <h2 class="text-lg tracking-tight">Composition</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               A chart is a root plus parts. The root measures, builds scales and provides context; children register
               themselves: grid and axes as chrome, <code class="text-foreground/80">Area</code>/<code
@@ -1233,7 +1233,7 @@ const gradientCode = computed(
 
           <!-- Accessibility -->
           <section id="accessibility" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Accessibility</h2>
+            <h2 class="text-lg tracking-tight">Accessibility</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Canvases are decoration and stay <code class="text-foreground/80">aria-hidden</code>; each chart exposes a
               single labelled node instead of hundreds of shapes. Legends are real buttons. Reduced motion snaps
@@ -1245,7 +1245,7 @@ const gradientCode = computed(
 
           <!-- Motion -->
           <section id="motion" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Motion</h2>
+            <h2 class="text-lg tracking-tight">Motion</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Entrances draw the dither field in; bump
               <code class="text-foreground/80">replay-token</code> to run one again. When the OS asks for reduced
@@ -1318,7 +1318,7 @@ const gradientCode = computed(
 
           <!-- Dashboard -->
           <section id="dashboard" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Dashboard example</h2>
+            <h2 class="text-lg tracking-tight">Dashboard example</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Everything composed: stat cards, a stacked area and a donut. One palette, one texture, zero SVG.
             </p>
@@ -1369,7 +1369,7 @@ const gradientCode = computed(
 
           <!-- App shell -->
           <section id="shell" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">App shell</h2>
+            <h2 class="text-lg tracking-tight">App shell</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Sidebar, topbar and content: a whole product frame from tokens and kit primitives. The nav works; click
               around.
@@ -1438,7 +1438,7 @@ const gradientCode = computed(
 
           <!-- Monitoring -->
           <section id="monitoring" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Monitoring</h2>
+            <h2 class="text-lg tracking-tight">Monitoring</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               An ops board: system pulse, sprint health and per-service status rows. The grey seed marks what is quiet,
               red what is not.
@@ -1492,7 +1492,7 @@ const gradientCode = computed(
 
           <!-- Team -->
           <section id="team" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Team</h2>
+            <h2 class="text-lg tracking-tight">Team</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               A contributors panel: deterministic avatars, a commit pulse per person, one palette seed each.
             </p>
@@ -1522,7 +1522,7 @@ const gradientCode = computed(
 
           <!-- Usage & billing -->
           <section id="usage" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Usage &amp; billing</h2>
+            <h2 class="text-lg tracking-tight">Usage &amp; billing</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Renders per month, quota as a donut, and the one button every billing page needs.
             </p>
@@ -1561,7 +1561,7 @@ const gradientCode = computed(
 
           <!-- Sign in -->
           <section id="signin" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Sign in</h2>
+            <h2 class="text-lg tracking-tight">Sign in</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               An auth card washed by a DitherGradient: the pixels do the decoration, the form stays plain.
             </p>
@@ -1635,7 +1635,7 @@ const gradientCode = computed(
           <!-- Area -->
           <section id="area" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="chrome-type text-lg tracking-tight">Area Chart</h2>
+              <h2 class="text-lg tracking-tight">Area Chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/area`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1712,7 +1712,7 @@ const gradientCode = computed(
           <!-- Line -->
           <section id="line" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="chrome-type text-lg tracking-tight">Line Chart</h2>
+              <h2 class="text-lg tracking-tight">Line Chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/line`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1769,7 +1769,7 @@ const gradientCode = computed(
           <!-- Bar -->
           <section id="bar" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="chrome-type text-lg tracking-tight">Bar Chart</h2>
+              <h2 class="text-lg tracking-tight">Bar Chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/bar`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1823,7 +1823,7 @@ const gradientCode = computed(
           <!-- Pie -->
           <section id="pie" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="chrome-type text-lg tracking-tight">Pie Chart</h2>
+              <h2 class="text-lg tracking-tight">Pie Chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/pie`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1879,7 +1879,7 @@ const gradientCode = computed(
           <!-- Radar -->
           <section id="radar" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="chrome-type text-lg tracking-tight">Radar Chart</h2>
+              <h2 class="text-lg tracking-tight">Radar Chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/radar`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1904,7 +1904,7 @@ const gradientCode = computed(
 
           <!-- Sparkline -->
           <section id="sparkline" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Sparkline</h2>
+            <h2 class="text-lg tracking-tight">Sparkline</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               A plain numeric series with zero margins, built for stat cards, table cells and dashboard rows.
             </p>
@@ -1927,7 +1927,7 @@ const gradientCode = computed(
 
           <!-- Button -->
           <section id="button" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Button</h2>
+            <h2 class="text-lg tracking-tight">Button</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Canvas-filled button; density lifts on hover, blooms on press. Four fills, seven colors, optional
               <code class="text-foreground/80">bloom</code>, and static/precompiled raster paths.
@@ -1992,7 +1992,7 @@ const gradientCode = computed(
 
           <!-- Avatar -->
           <section id="avatar" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Avatar</h2>
+            <h2 class="text-lg tracking-tight">Avatar</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               A deterministic identicon: the same name always draws the same face, at any size.
             </p>
@@ -2025,7 +2025,7 @@ const gradientCode = computed(
 
           <!-- Gradient -->
           <section id="gradient" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Gradient</h2>
+            <h2 class="text-lg tracking-tight">Gradient</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               A background wash that fades through the Bayer matrix instead of alpha, in four directions and any palette
               color.
@@ -2073,7 +2073,7 @@ const gradientCode = computed(
 
           <!-- Image -->
           <section id="image" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Image</h2>
+            <h2 class="text-lg tracking-tight">Image</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Ordered-dithers any image into chunky cells; edges can dissolve into the page. Below: the site's own
               sprite sheet run through it.
@@ -2135,7 +2135,7 @@ const gradientCode = computed(
 
           <!-- Palette -->
           <section id="palette" class="mt-16 scroll-mt-24">
-            <h2 class="chrome-type text-lg tracking-tight">Palette</h2>
+            <h2 class="text-lg tracking-tight">Palette</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               Seven seeded colors; every component resolves fill, line and sparkle hues from the same seed, so a
               dashboard stays coherent for free.

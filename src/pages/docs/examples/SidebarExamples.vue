@@ -426,7 +426,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 <template>
   <!-- Basic dashboard -->
   <section id="sidebar-dashboard" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Basic dashboard</h2>
+    <h2 class="text-lg tracking-tight">Basic dashboard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The workhorse frame: washed sidebar with a Main group, count badge, an upgrade card pinned above the user row, and
       a breadcrumb topbar whose toggle owns the icon rail.
@@ -511,7 +511,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Admin with profile -->
   <section id="sidebar-admin" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Admin with profile</h2>
+    <h2 class="text-lg tracking-tight">Admin with profile</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A floating admin panel with a quick-actions group, a storage meter card, and the signed-in profile pinned to the
       footer. The topbar hamburger hides the whole panel; the red badge keeps triage loud.
@@ -607,7 +607,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- E-commerce filters -->
   <section id="sidebar-filters" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">E-commerce filters</h2>
+    <h2 class="text-lg tracking-tight">E-commerce filters</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A filter rail for a storefront: search, category and brand checkboxes with result counts, a two-thumb price range,
       and apply/reset pinned to the footer. The topbar echoes the live filter count.
@@ -693,7 +693,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Documentation nav -->
   <section id="sidebar-docs" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Documentation nav</h2>
+    <h2 class="text-lg tracking-tight">Documentation nav</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A docs tree: version chip, ⌘K search, one section open with the active page, the rest folded behind chevrons, and
       a help card in the footer. Compact rows, no icon rail: a docs tree needs its labels.
@@ -768,7 +768,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Dual layout -->
   <section id="sidebar-dual" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Dual layout</h2>
+    <h2 class="text-lg tracking-tight">Dual layout</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Two tiers: a permanent icon rail picks the context, a second panel shows that context's tree. The rail is a
       Sidebar pinned to its rail state; the panel is a plain inset Sidebar beside it.
@@ -826,7 +826,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Personal dashboard -->
   <section id="sidebar-personal" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Personal dashboard</h2>
+    <h2 class="text-lg tracking-tight">Personal dashboard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A personal hub: avatar header, a mini month at a glance, and two todo lists whose done items strike through.
       Everything is live: tick a box and the footer count follows.
@@ -927,7 +927,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Floating left -->
   <section id="sidebar-floating" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Floating left</h2>
+    <h2 class="text-lg tracking-tight">Floating left</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A detached card over the canvas: workspace switcher up top, search, primary rows with an inbox badge, and
       favorites that truncate gracefully. Collapses to the icon rail like any other Sidebar.
@@ -1001,7 +1001,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Right side -->
   <section id="sidebar-right" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Right side</h2>
+    <h2 class="text-lg tracking-tight">Right side</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The same Sidebar flipped to the right edge: a profile header, the mini month, and calendar toggles with their
       color dots. The topbar button hides the whole panel when the content needs the room.
@@ -1086,7 +1086,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Team switcher -->
   <section id="sidebar-teams" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Team switcher</h2>
+    <h2 class="text-lg tracking-tight">Team switcher</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       One sidebar, three workspaces. The header dropdown swaps the whole identity: wash color, accent, groups, badges.
       Arrow keys walk the menu; Escape returns focus to the trigger.
@@ -1138,7 +1138,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- File tree -->
   <section id="sidebar-tree" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">File tree</h2>
+    <h2 class="text-lg tracking-tight">File tree</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Sub-menus nest: an explorer three levels deep with expand/collapse all, rail guides on every level, and a selected
       file the header echoes.
@@ -1251,7 +1251,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Mobile drawer -->
   <section id="sidebar-drawer" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Mobile drawer</h2>
+    <h2 class="text-lg tracking-tight">Mobile drawer</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Below the breakpoint the sidebar rides in a drawer: hamburger opens, picking a destination closes, swipe
       dismisses. Groups and items work standalone inside any panel.
@@ -1307,7 +1307,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
 
   <!-- Icon rail -->
   <section id="sidebar-rail" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Icon rail</h2>
+    <h2 class="text-lg tracking-tight">Icon rail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The whole nav in 56 pixels: a permanent rail where tooltips carry the labels, badges fold to colored dots, and the
       footer keeps the person.

@@ -120,7 +120,7 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
 
 <template>
   <section id="table-members" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Data table</h2>
+    <h2 class="text-lg tracking-tight">Data table</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The whole table contract in one block: filter, sortable columns with aria-sort, page-scoped select-all, a bulk
       remove that really removes, presence dots, and dithered pagination. Filter and sort compose; the range label tells

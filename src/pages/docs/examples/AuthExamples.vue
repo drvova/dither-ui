@@ -57,7 +57,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
 
 <template>
   <section id="signup" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Sign up</h2>
+    <h2 class="text-lg tracking-tight">Sign up</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A signup card with a working plan picker: a segmented control from plain aria-pressed buttons, over a purple wash.
     </p>
@@ -119,7 +119,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
   </section>
 
   <section id="magic-link" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Magic link</h2>
+    <h2 class="text-lg tracking-tight">Magic link</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Passwordless in two states: send the link, then echo the address back with a pixel checkmark. Green wash, green
       button.
@@ -184,7 +184,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
   </section>
 
   <section id="twofactor" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Two-factor</h2>
+    <h2 class="text-lg tracking-tight">Two-factor</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Six code cells with auto-advancing focus: plain inputs, token borders, blue wash behind.
     </p>

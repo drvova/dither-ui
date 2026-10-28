@@ -98,7 +98,7 @@ const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
 <template>
   <!-- Pricing -->
   <section id="pricing" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Pricing</h2>
+    <h2 class="text-lg tracking-tight">Pricing</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Three tiers from tokens and kit primitives. The popular plan gets a dither wash, and nothing else shouts.
     </p>
@@ -146,7 +146,7 @@ const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
 
   <!-- Activity feed -->
   <section id="activity" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Activity feed</h2>
+    <h2 class="text-lg tracking-tight">Activity feed</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A team feed: deterministic avatars, one accent dot per unread row, times right-aligned.
     </p>
@@ -180,7 +180,7 @@ const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
 
   <!-- Changelog -->
   <section id="changelog" class="mt-16 scroll-mt-24">
-    <h2 class="chrome-type text-lg tracking-tight">Changelog</h2>
+    <h2 class="text-lg tracking-tight">Changelog</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A release timeline: square markers on a thin rail, the newest release seeded green.
     </p>
