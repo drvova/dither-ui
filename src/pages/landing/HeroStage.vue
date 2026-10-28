@@ -149,7 +149,7 @@ const fluid = ref<Fluid>("acid")
 
 <template>
   <figure class="hero-stage">
-    <div class="thumb stage" @pointerdown="hold" @keydown="hold">
+    <div class="gel stage" @pointerdown="hold" @keydown="hold">
       <span class="stage-name">{{ SCENES[at].name }}</span>
       <PauseChip
         v-model="playing"

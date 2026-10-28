@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
          Sticky is positioned, and z-10 keeps it over main, which isolates
          the page art: a static header painted under the art, zero pixels. -->
     <header class="site-head sticky top-0 z-10">
-      <div class="capsule text-xs">
+      <div class="capsule site-capsule text-xs">
         <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap pl-2 tracking-tight">
           <!-- The brand mark: the 7x7 dithered diamond, ember core. -->
           <svg
@@ -244,7 +244,7 @@ onBeforeUnmount(() => {
             ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
           >
         </nav>
-        <a :href="routePath('/studio')" class="nav-a key-primary studio-key">Open studio</a>
+        <a :href="routePath('/studio')" class="nav-a key-chrome studio-key">Open studio</a>
       </div>
     </header>
 
@@ -294,18 +294,18 @@ onBeforeUnmount(() => {
              into its docs, their words lighting as they rise. -->
         <section aria-labelledby="principles-h" class="principles">
           <div class="section-head">
-            <h2 id="principles-h" class="section-title">One rule under every pixel.</h2>
+            <h2 id="principles-h" class="section-title chrome-type">One rule under every pixel.</h2>
             <div class="head-side">
               <ul class="tags" aria-label="Built on">
-                <li class="tag">Bayer 4x4</li>
-                <li class="tag">7 seed hues</li>
-                <li class="tag">One engine</li>
+                <li class="speed-tag">Bayer 4x4</li>
+                <li class="speed-tag">7 seed hues</li>
+                <li class="speed-tag">One engine</li>
               </ul>
               <a :href="routePath('/docs/getting-started')" class="more-link">Read the quick start</a>
             </div>
           </div>
-          <div class="panel principles-body">
-            <div ref="stageFig" class="thumb principles-fig"><EssayFigure :stage="principle" /></div>
+          <div class="hardshell principles-body">
+            <div ref="stageFig" class="gel principles-fig"><EssayFigure :stage="principle" /></div>
             <ol class="principles-list">
               <li v-for="(p, i) in PRINCIPLES" :key="p.href">
                 <a
@@ -340,17 +340,17 @@ onBeforeUnmount(() => {
              Each harness runs as the user's own signed-in process. -->
         <section id="agents" class="agents" aria-labelledby="harness-h">
           <div class="section-head">
-            <h2 id="harness-h" class="section-title">Your own agent drives the Studio.</h2>
+            <h2 id="harness-h" class="section-title chrome-type">Your own agent drives the Studio.</h2>
             <div class="head-side">
               <ul class="tags" aria-label="Works with">
-                <li class="tag">{{ HARNESSES.length }} harnesses</li>
-                <li class="tag">ACP</li>
-                <li class="tag">No keys</li>
+                <li class="speed-tag">{{ HARNESSES.length }} harnesses</li>
+                <li class="speed-tag">ACP</li>
+                <li class="speed-tag">No keys</li>
               </ul>
               <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
             </div>
           </div>
-          <div class="panel harness-panel">
+          <div class="hardshell harness-panel">
             <ol class="agent-steps">
               <li>
                 <span class="step-i"><ToolMark id="node" :size="14" /></span>
@@ -407,7 +407,7 @@ onBeforeUnmount(() => {
            shell, then the kit's light rays across the band. -->
       <section class="dawn" aria-labelledby="dawn-h">
         <div class="dawn-in">
-          <h2 id="dawn-h" class="section-title">Copy one folder. Every pixel is yours.</h2>
+          <h2 id="dawn-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
           <div
             class="dawn-keys"
             @pointerenter="reaching = true"
@@ -415,7 +415,7 @@ onBeforeUnmount(() => {
             @focusin="reaching = true"
             @focusout="reaching = false"
           >
-            <a :href="routePath('/docs/getting-started')" class="nav-a nav-pill key-primary">Read the quick start</a>
+            <a :href="routePath('/docs/getting-started')" class="nav-a nav-pill key-chrome">Read the quick start</a>
             <a :href="routePath('/studio')" class="nav-a nav-pill">Open the studio</a>
           </div>
         </div>
@@ -482,15 +482,13 @@ onBeforeUnmount(() => {
   padding-bottom: calc(var(--rhythm) * 1.5);
 }
 
-/* The header: a capsule floating on the page, centred on the shell, its
-   glass the page ground under a blur, with the panels' chrome rim and the
-   gel's gloss along its top. Solid under reduced transparency. */
+/* The header: a capsule (the site voice's glass) floating on the page,
+   centred on the shell. */
 .site-head {
   padding: 8px 16px;
 }
 
-.capsule {
-  position: relative;
+.site-capsule {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -499,56 +497,11 @@ onBeforeUnmount(() => {
   height: 48px;
   margin-inline: auto;
   padding: 0 7px 0 10px;
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.07), transparent 46%),
-    color-mix(in oklab, var(--background) 82%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
-  box-shadow:
-    0 10px 30px -12px rgb(0 0 0 / 0.7),
-    inset 0 1px 0 rgb(255 255 255 / 0.1);
-}
-
-.capsule::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: var(--chrome-rim);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box exclude,
-    linear-gradient(#000 0 0);
-  opacity: 0.55;
-  pointer-events: none;
 }
 
 .studio-key {
   height: 34px;
   padding-inline: 16px;
-  border-radius: 999px;
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .capsule {
-    background: var(--background);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-}
-
-@media (forced-colors: active) {
-  .capsule {
-    border: 1px solid CanvasText;
-  }
-  .capsule::after {
-    display: none;
-  }
 }
 
 /* The footer: the wordmark and framework badges left, bar-separated links

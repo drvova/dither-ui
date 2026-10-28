@@ -254,7 +254,7 @@ const API: Record<string, PropRow[]> = {
 <template>
   <!-- PasswordInput -->
   <section id="password-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">PasswordInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">PasswordInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Password field with a reveal toggle: the type flips text/password, the button carries its own accessible name and
       never submits (<code class="text-foreground/80">type="button"</code>).
@@ -271,7 +271,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- SearchInput -->
   <section id="search-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">SearchInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">SearchInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Leading glyph, one-click clear (only when there is something to clear) and Escape empties the field. Either way it
       fires a
@@ -288,7 +288,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- EmailInput -->
   <section id="email-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">EmailInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">EmailInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The three things a bare text input gets wrong, fixed in one place:
       <code class="text-foreground/80">type=email</code>, <code class="text-foreground/80">inputmode=email</code>,
@@ -304,7 +304,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- PhoneInput -->
   <section id="phone-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">PhoneInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">PhoneInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Digits normalized into the <code class="text-foreground/80">(415) 555-2671</code>
       shape while you type (10-digit NANP), tel keyboard on mobile. The model is always the formatted string; the caret
@@ -320,7 +320,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- CurrencyInput -->
   <section id="currency-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">CurrencyInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">CurrencyInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Money entry with predictable mechanics: the model stays a plain decimal string (<code class="text-foreground/80"
         >"1234.56"</code
@@ -337,7 +337,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- ScrubInput -->
   <section id="scrub-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">ScrubInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">ScrubInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The Figma-style drag gesture on a number: the grip is a real
       <code class="text-foreground/80">role="slider"</code> (arrow keys, PageUp/Down and Home/End work without a
@@ -356,7 +356,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- HotkeyInput -->
   <section id="hotkey-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">HotkeyInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">HotkeyInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Shortcut capture: modifiers hold until a non-modifier key arrives, repeat is ignored, Escape clears. Value shape:
       <code class="text-foreground/80">Ctrl+Shift+K</code> (order Ctrl, Alt, Shift, Meta, then the key).
@@ -373,7 +373,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- CodeInput -->
   <section id="code-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">CodeInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">CodeInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Code entry where Tab indents (two spaces), Shift+Tab dedents the selected lines, and Ctrl/Cmd+Enter fires
       <code class="text-foreground/80">submit</code>. The browser's tab trap is handled once, here.
@@ -388,7 +388,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- InputGroup -->
   <section id="input-group" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">InputGroup</h2>
+    <h2 class="chrome-type text-lg tracking-tight">InputGroup</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Addon slots around a control in one bordered group: the group owns the border and the focus-within ring, the inner
       control drops its own chrome (the code tab shows the exact class set).
@@ -410,7 +410,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- InlineEdit -->
   <section id="inline-edit" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">InlineEdit</h2>
+    <h2 class="chrome-type text-lg tracking-tight">InlineEdit</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Click-to-edit text: view mode is a real button (keyboard reachable), edit mode focus-selects. Enter or blur
       commits (only when the value actually changed). Escape reverts.
@@ -427,7 +427,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- TagInput -->
   <section id="tag-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">TagInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">TagInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Tags as chips in one field: Enter or comma commits, Backspace on an empty input pulls the last chip back in,
       per-chip × removes. Trimmed, case-deduped, <code class="text-foreground/80">max</code>-capped.
@@ -442,7 +442,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- ChoiceChips -->
   <section id="choice-chips" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">ChoiceChips</h2>
+    <h2 class="chrome-type text-lg tracking-tight">ChoiceChips</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Chip-style choice group where the chip IS the label of a real radio (or checkbox when
       <code class="text-foreground/80">multiple</code>). Native keyboard semantics and focus come for free: no roving
@@ -459,7 +459,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- CheckboxCard -->
   <section id="checkbox-card" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">CheckboxCard</h2>
+    <h2 class="chrome-type text-lg tracking-tight">CheckboxCard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The whole card is the checkbox's label: title and description ride along, one click anywhere toggles, the focus
       ring shows keyboard focus. The checkbox stays the source of truth.
@@ -483,7 +483,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- KeyValueInput -->
   <section id="key-value-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">KeyValueInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">KeyValueInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Repeatable key/value rows: headers, metadata, query params. Every edit emits the whole array (the parent owns the
       truth), rows are added and removed from the bottom.
@@ -503,7 +503,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- MentionInput -->
   <section id="mention-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">MentionInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">MentionInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Textarea with <code class="text-foreground/80">@</code>-mention autocomplete: detection is a regex on the text
       before the caret, the list anchors to the field, Arrow keys pick, Enter/Tab inserts, Escape closes. The caret
@@ -519,7 +519,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- FileInput -->
   <section id="file-input" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">FileInput</h2>
+    <h2 class="chrome-type text-lg tracking-tight">FileInput</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       File picker with a visible selection: a hidden native input driven by its label (keyboard-reachable), files listed
       with sizes, per-file remove, clear-all, and drop-zone drag styling. The model is
@@ -535,7 +535,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- ListBox -->
   <section id="list-box" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">ListBox</h2>
+    <h2 class="chrome-type text-lg tracking-tight">ListBox</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Single-select with the full WAI-ARIA keyboard contract: arrows move the active option, Home/End jump, Enter/Space
       selects, and the active row carries <code class="text-foreground/80">aria-activedescendant</code>
@@ -551,7 +551,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- MultiSelect -->
   <section id="multi-select" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">MultiSelect</h2>
+    <h2 class="chrome-type text-lg tracking-tight">MultiSelect</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Chips for what's picked, native checkboxes for what's pickable, a filter box over the pool. Keyboard semantics
       come from the checkboxes, and the selected set stays visible and individually removable.
@@ -566,7 +566,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- CascadeSelect -->
   <section id="cascade-select" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">CascadeSelect</h2>
+    <h2 class="chrome-type text-lg tracking-tight">CascadeSelect</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Dependent pickers: each level's options come from the tree under the current path, and changing a parent truncates
       the deeper segments (the classic cascade rule, in one component). The model is the chosen path.
@@ -597,7 +597,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- TransferList -->
   <section id="transfer-list" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">TransferList</h2>
+    <h2 class="chrome-type text-lg tracking-tight">TransferList</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Two-panel shuttle: the source pool stays put, the destination IS the model. Checkboxes select in either direction,
       Add/Remove move the selection, Add all/Remove all flush. Every control is a real button.
@@ -617,7 +617,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- LanguageSelect -->
   <section id="language-select" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">LanguageSelect</h2>
+    <h2 class="chrome-type text-lg tracking-tight">LanguageSelect</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Language picker over a curated BCP 47 list: the label is the human name, the value is the tag, and
       <code class="text-foreground/80">includeDefault</code> keeps the opt-out one option away.
@@ -632,7 +632,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- IconPicker -->
   <section id="icon-picker" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">IconPicker</h2>
+    <h2 class="chrome-type text-lg tracking-tight">IconPicker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The kit's own glyphs behind a name filter: a radio grid, so arrow keys roam the whole grid as one tab stop. Value
       = the icon name, ready for <code class="text-foreground/80">&lt;DitherIcon&gt;</code>.
@@ -647,7 +647,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- FontPicker -->
   <section id="font-picker" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">FontPicker</h2>
+    <h2 class="chrome-type text-lg tracking-tight">FontPicker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Each option renders its own name in its own family. The preview IS the choice, so no swatch can drift from the
       value. Value = the CSS font stack string.
@@ -662,7 +662,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Calendar -->
   <section id="calendar" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Calendar</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Calendar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Month grid with real grid semantics: arrows move the day, PageUp/PageDown change month, Home/End jump to week
       edges, and the model is ISO <code class="text-foreground/80">YYYY-MM-DD</code> so timezone math never enters the
@@ -678,7 +678,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- DatePicker -->
   <section id="date-picker" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">DatePicker</h2>
+    <h2 class="chrome-type text-lg tracking-tight">DatePicker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Date field + calendar popover: the input shows a human format, the calendar opens on click/focus, select closes,
       Escape and outside-click dismiss. The model stays ISO.
@@ -693,7 +693,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- MonthPicker -->
   <section id="month-picker" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">MonthPicker</h2>
+    <h2 class="chrome-type text-lg tracking-tight">MonthPicker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Year + twelve-month grid: model is <code class="text-foreground/80">YYYY-MM</code>, arrows roam the grid (three
       columns), PageUp/PageDown shift the year, the current month keeps a ring.
@@ -708,7 +708,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- ColorSwatch -->
   <section id="color-swatch" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">ColorSwatch</h2>
+    <h2 class="chrome-type text-lg tracking-tight">ColorSwatch</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       One color as a pickable chip: a real button with the color in its accessible name, a selected ring, a keyboard
       focus ring. Reads as pure display when nothing listens to <code class="text-foreground/80">select</code>.
@@ -727,7 +727,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- ColorPicker -->
   <section id="color-picker" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">ColorPicker</h2>
+    <h2 class="chrome-type text-lg tracking-tight">ColorPicker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       HSV field + hue strip + hex readout: the plane is pointer-driven (arrows nudge S/V, Shift for coarse), the hue
       strip is a slider of its own, and the hex input accepts what you type. Model = hex string.
@@ -742,7 +742,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Knob -->
   <section id="knob" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Knob</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Knob</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Rotary control with the reliable gesture: drag VERTICALLY to change the value (angle-following wraps badly at the
       detent), arrows / PageUp-Down / Home-End on the keyboard, full slider semantics. The indicator sweeps 270°.
@@ -759,7 +759,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- SignaturePad -->
   <section id="signature-pad" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">SignaturePad</h2>
+    <h2 class="chrome-type text-lg tracking-tight">SignaturePad</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Pointer drawing on a canvas. The <code class="text-foreground/80">change</code>
       event fires the dataURL after every stroke and on clear. A context-less environment refuses strokes instead of

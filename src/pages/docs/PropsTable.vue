@@ -21,13 +21,15 @@ const shownRows = computed(() =>
 </script>
 
 <template>
-  <div class="mt-6 overflow-x-auto rounded-lg border border-border/60">
+  <!-- The API as a spec sheet: a hardshell (two corners cut, the chrome
+       glint along them) under spec-label column heads. -->
+  <div class="hardshell mt-6 overflow-x-auto [--cut:10px]">
     <table class="w-full table-fixed border-collapse text-left text-[11px]">
       <thead>
         <tr class="border-b border-border/60 text-muted-foreground">
-          <th class="w-1/3 px-4 py-2.5 font-medium">Prop</th>
-          <th class="px-4 py-2.5 font-medium">Type</th>
-          <th class="w-1/4 px-4 py-2.5 font-medium">Default</th>
+          <th class="spec w-1/3 px-4 py-2.5">Prop</th>
+          <th class="spec px-4 py-2.5">Type</th>
+          <th class="spec w-1/4 px-4 py-2.5">Default</th>
         </tr>
       </thead>
       <tbody>

@@ -97,14 +97,14 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
     <div class="hero">
       <div class="hero-in">
         <div class="statement">
-          <h1 id="hero-h" class="display hero-h chrome">A dithered UI toolkit for Vue.</h1>
+          <h1 id="hero-h" class="display hero-h chrome-type">A dithered UI toolkit for Vue.</h1>
           <p class="hero-lede">
             Charts, GLSL shaders, controls, backgrounds and 3D, each drawn pixel by pixel from one seeded palette. Copy
             the folder into your Vue 3 or Svelte 5 app, write it as Tailwind, CSS Modules or StyleX, and every line is
             yours to change.
           </p>
           <div class="hero-keys">
-            <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
+            <a :href="routePath('/studio')" class="nav-a nav-pill key-chrome">Open the studio</a>
             <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
             <button type="button" class="nav-a nav-pill" @click="film = true">
               <DitherIcon name="Play" :size="12" :stroke-width="1.5" />Watch the film
@@ -115,7 +115,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
               <dt class="spec">{{ f.label }}</dt>
               <dd>
                 <DitherIcon :name="f.icon" :size="16" :stroke-width="1.5" class="fact-i" /><span
-                  class="fact-n chrome"
+                  class="fact-n chrome-type"
                   >{{ f.value }}</span
                 >
               </dd>
@@ -147,21 +147,21 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
       <div class="cols">
         <!-- Column A: the Studio pitch and its products; the portraits. -->
         <div class="col-a">
-          <article class="panel build">
+          <article class="hardshell build">
             <h2 class="display build-h">Build <span>your own screens</span></h2>
             <p class="build-p">
               Lay out charts, controls and whole screens on an infinite canvas, then export each frame as a Vue file, a
               PNG or an MP4.
             </p>
             <div class="tiles">
-              <div class="thumb tile">
+              <div class="gel tile">
                 <div class="tile-art">
                   <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
                   <DitherButton color="orange" variant="solid">New frame</DitherButton>
                 </div>
                 <span class="tile-name">Buttons</span>
               </div>
-              <div class="thumb tile">
+              <div class="gel tile">
                 <div class="tile-art tile-stack">
                   <div class="tile-row">
                     <DitherSwitch v-model="dither" label="Dither" />
@@ -178,12 +178,12 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
             </div>
           </article>
 
-          <article class="panel feature">
+          <article class="hardshell feature">
             <h3 class="display feature-h">Pixel art that answers the cursor</h3>
             <p class="feature-p">
               Hover a portrait: her pixels scatter under the cursor and spring home, and her emote answers.
             </p>
-            <div class="thumb faces"><slot name="faces" /></div>
+            <div class="gel faces"><slot name="faces" /></div>
           </article>
         </div>
 
@@ -191,7 +191,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
              and the docs link that leads on. -->
         <div class="col-b">
           <figure class="pick">
-            <div class="thumb pick-art">
+            <div class="gel pick-art">
               <span class="live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
               <DitherWorld
                 :source="WORLD"
@@ -212,7 +212,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
             </figcaption>
           </figure>
           <figure class="pick">
-            <div class="thumb pick-art pick-chart">
+            <div class="gel pick-art pick-chart">
               <LineChart :data="ROWS" :config="CONFIG" :interactive="false" :sparkles="false">
                 <Grid horizontal />
                 <XAxis data-key="month" :max-ticks="4" />
@@ -229,7 +229,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
             </figcaption>
           </figure>
           <figure class="pick">
-            <div class="thumb pick-art">
+            <div class="gel pick-art">
               <span class="live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
               <!-- The docs' stage at well size: an aurora sky and two hills
                    drifting in container units, a moon on its arc. -->

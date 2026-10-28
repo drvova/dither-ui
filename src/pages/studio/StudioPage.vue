@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
     />
 
     <Transition name="panel-left">
-      <aside v-if="layersOpen" class="studio-panel absolute bottom-16 left-3 top-16 z-20 w-64">
+      <aside v-if="layersOpen" class="studio-panel hardshell absolute bottom-16 left-3 top-16 z-20 w-64">
         <div class="panel-head">
           <span class="micro">Layers</span
           ><button type="button" aria-label="Close layers" @click="layersOpen = false">
@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
     <Transition name="panel-left">
       <aside
         v-if="agentOpen"
-        class="studio-panel absolute bottom-16 left-3 top-16 z-20 w-80 overflow-hidden"
+        class="studio-panel hardshell absolute bottom-16 left-3 top-16 z-20 w-80 overflow-hidden"
         aria-label="Agent"
       >
         <AgentPanel @close="agentOpen = false" />
@@ -106,7 +106,10 @@ onBeforeUnmount(() => {
     </Transition>
 
     <Transition name="panel-right">
-      <aside v-if="inspectorOpen" class="studio-panel absolute bottom-16 right-3 top-16 z-20 w-72 overflow-hidden">
+      <aside
+        v-if="inspectorOpen"
+        class="studio-panel hardshell absolute bottom-16 right-3 top-16 z-20 w-72 overflow-hidden"
+      >
         <Inspector />
       </aside>
     </Transition>
@@ -135,13 +138,18 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* A panel is the site's hardshell (two corners cut, the chrome glint along
+   them) over the page's ground; solid under reduced transparency. */
 .studio-panel {
+  --cut: 12px;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  background: color-mix(in oklab, var(--color-background) 96%, transparent);
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.28);
+  background: var(--pearl), color-mix(in oklab, var(--color-background) 96%, transparent);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .studio-panel {
+    background: var(--color-background);
+  }
 }
 .panel-head {
   display: flex;

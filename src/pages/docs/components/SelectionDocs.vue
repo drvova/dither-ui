@@ -277,7 +277,7 @@ const API: Record<string, PropRow[]> = {
 
 <template>
   <section id="select" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Select</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Select</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A listbox behind an input-like trigger: Enter, Space or ArrowDown opens the panel, arrows move the highlight, and
       the picked row carries a small dithered swatch. Escape or an outside click closes it.
@@ -292,7 +292,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="combobox" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Combobox</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Combobox</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A select whose trigger is an input: typing filters the options (case-insensitive), Enter picks the highlighted
       match, and blur snaps the text back to the last valid value.
@@ -307,7 +307,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="autocomplete" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Autocomplete</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Autocomplete</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A free-text input with suggestions: anything you type is the value; picking a row just fills the input. Try
       <code class="text-foreground/80">dither</code>, <code class="text-foreground/80">bayer</code> or
@@ -323,7 +323,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="wheel-picker" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Wheel Picker</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Wheel Picker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An iOS-style picker wheel: a 3D drum on native momentum scroll that snaps to the nearest notch, steered by wheel,
       drag or spinbutton keys. Wheels compose side by side for date and time pickers; reduced motion flattens the drum.
@@ -342,7 +342,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="radio" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Radio</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Radio</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A radiogroup of pixel circles: unchecked rings are a 1px pixel border, the checked one fills its inner dot with
       the Bayer texture. Arrow keys move and select (roving tabindex).
@@ -357,7 +357,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="checkbox-group" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Checkbox Group</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Checkbox Group</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A labelled group of DitherCheckboxes bound to one string array: toggling a box adds or removes its option's value.
     </p>
@@ -371,7 +371,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="toggle" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Toggle</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Toggle</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A pressed-state button: off is a quiet border, on fills behind the label with the badge's dithered gradient. Label
       goes in the default slot.
@@ -386,7 +386,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="toggle-group" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Toggle Group</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Toggle Group</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A bordered row of toggles: <code class="text-foreground/80">single</code>
       behaves like a radio group (one value, arrows move), while

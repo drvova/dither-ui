@@ -72,12 +72,13 @@
 }
 
 /* The site's one chrome voice, shared by the landing, the docs and the
-   Studio: nav links in sentence case with 32px hit areas, the hairline
-   "Open studio" pill that mirrors the page's verb, and `.micro`, the small
-   sentence-case label over a group of controls. Copy follows the
-   design.how bans the user picked: no uppercase or tracked labels, no
-   eyebrow over a title, no middle dots or em dashes, no link that ends in
-   an arrow. */
+   Studio: nav links in sentence case with 32px hit areas, capsule keys
+   (the "Open studio" pill mirrors the page's verb), `.micro`, the small
+   sentence-case label over a group of controls, the ringed pressed state,
+   and the look's materials. Copy follows the design.how bans the user
+   picked: no eyebrow over a title, no middle dots or em dashes, no link
+   that ends in an arrow, and uppercase or tracking only on a spec label
+   or a speed tag. */
 @layer components {
   .nav-a {
     display: inline-flex;
@@ -93,16 +94,23 @@
   .nav-a:hover {
     color: var(--foreground);
   }
+  /* A key is a capsule: the hairline with a gloss on its top edge. */
   .nav-pill {
+    padding-inline: 14px;
+    border-radius: 999px;
     color: var(--foreground);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 90%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--border) 90%, transparent),
+      inset 0 1px 0 var(--gloss);
     transition:
       box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
       background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   .nav-pill:hover {
     background: color-mix(in oklab, var(--foreground) 7%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 28%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--foreground) 28%, transparent),
+      inset 0 1px 0 var(--gloss);
   }
   .micro {
     font-size: 11.5px;
@@ -126,6 +134,271 @@
       animation: led 2.8s ease-in-out infinite;
     }
   }
+
+  /* The look's materials (Y2K retrofuturism, biomorphic form, technical
+     sportswear), worn by the landing, the docs and the Studio alike. */
+
+  /* Chrome type: the ramp clipped to the glyphs, one horizon per line. */
+  .chrome-type {
+    color: var(--chrome-ink);
+    background: var(--chrome);
+    background-size: 100% 1lh;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  /* A spec label: a sportswear spec sheet's small caps, tracked. Always an
+     annotation beside or under what it names, never an eyebrow. */
+  .spec {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  /* A speed tag: a slanted plate, its edges cut, its type upright. */
+  .speed-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 18px;
+    padding: 0 10px;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
+    background: color-mix(in oklab, var(--foreground) 8%, transparent);
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  }
+  /* A hardshell: two opposite corners cut, a chrome-glint hairline that
+     follows the cut, a breath of pearl in its ground. The cut clips what
+     it holds. */
+  .hardshell {
+    position: relative;
+    background: var(--pearl);
+    clip-path: polygon(
+      var(--cut) 0,
+      100% 0,
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      0 100%,
+      0 var(--cut)
+    );
+  }
+  .hardshell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    background: var(--chrome-rim);
+    /* The ring: the outline, then the same outline 1px in, the hole. */
+    clip-path: polygon(
+      evenodd,
+      var(--cut) 0,
+      100% 0,
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      0 100%,
+      0 var(--cut),
+      var(--cut) 0,
+      calc(var(--cut) + 0.414px) 1px,
+      1px calc(var(--cut) + 0.414px),
+      1px calc(100% - 1px),
+      calc(100% - var(--cut) - 0.414px) calc(100% - 1px),
+      calc(100% - 1px) calc(100% - var(--cut) - 0.414px),
+      calc(100% - 1px) 1px,
+      calc(var(--cut) + 0.414px) 1px
+    );
+  }
+  /* A gel well for a live surface: an asymmetric pebble, its rim a chrome
+     glint and a gloss across its top. Anything that must sit over both
+     (a chip, a control) takes z-index 4. */
+  .gel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px 16px 22px 16px / 18px 22px 16px 22px;
+    background: var(--well);
+    box-shadow: inset 0 -18px 30px -24px var(--gel-glow);
+  }
+  /* The chrome rim: a 1px glint over an element's edge (a gel, a capsule,
+     or any positioned `.rim`), drawn by a masked ring that takes no
+     pointer. */
+  .gel::after,
+  .capsule::after,
+  .rim::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--chrome-rim);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+  .gel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 3;
+    height: 38%;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(180deg, var(--gloss), transparent);
+  }
+  /* A capsule of glass floating over the page (a header, a toolbar): the
+     ground under a blur, the gloss on its top, the chrome rim. */
+  .capsule {
+    position: relative;
+    border-radius: 999px;
+    background:
+      linear-gradient(180deg, var(--gloss), transparent 46%), color-mix(in oklab, var(--background) 82%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: var(--float-shadow);
+  }
+  .capsule::after {
+    opacity: 0.6;
+  }
+  /* The primary key: liquid chrome with ink on it, in either theme. */
+  .key-chrome,
+  .key-chrome:hover {
+    border-radius: 999px;
+    color: #0a0b0d;
+    background: var(--chrome-key);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 0 -1px 0 rgb(0 0 0 / 0.28),
+      0 0 0 1px var(--chrome-key-ring);
+  }
+  .key-chrome:hover {
+    filter: brightness(1.06);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .hardshell {
+      background: none;
+    }
+    .gel::before {
+      display: none;
+    }
+    .capsule {
+      background: var(--background);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .chrome-type {
+      -webkit-text-fill-color: currentColor;
+      background: none;
+    }
+    .hardshell {
+      clip-path: none;
+      border: 1px solid CanvasText;
+    }
+    .gel,
+    .capsule {
+      border: 1px solid CanvasText;
+    }
+    .hardshell::after,
+    .gel::after,
+    .gel::before,
+    .capsule::after,
+    .rim::after {
+      display: none;
+    }
+    .key-chrome {
+      border: 1px solid ButtonText;
+    }
+    /* The pressed ring is a shadow, which forced colors drop. */
+    .ring-on {
+      outline: 1px solid Highlight;
+    }
+  }
+}
+
+/* The materials' tokens, per theme. Light: gunmetal chrome type (its
+   lightest stop clears 4.5:1 on white), dark glints, a pale cool well.
+   Dark: bright chrome type (its darkest stop clears 6:1), light glints, a
+   well darker than the page. The chrome key is the bright ramp in both. */
+:root {
+  --chrome: linear-gradient(
+    180deg,
+    #11151b 0%,
+    #2d343e 36%,
+    #5d6674 48%,
+    #6b7482 50.5%,
+    #0e1116 53%,
+    #2a3039 74%,
+    #3d4450 100%
+  );
+  --chrome-ink: #1d2229;
+  --chrome-key: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #dfe6ee 36%,
+    #8e98a8 48%,
+    #7d8798 50.5%,
+    #fbfcfd 53%,
+    #c2cad5 74%,
+    #edf1f5 100%
+  );
+  --chrome-key-ring: rgb(0 0 0 / 0.2);
+  --chrome-rim: linear-gradient(
+    135deg,
+    rgb(30 38 50 / 0.34) 0%,
+    rgb(120 130 146 / 0.14) 28%,
+    rgb(20 26 36 / 0.3) 52%,
+    rgb(140 150 166 / 0.12) 76%,
+    rgb(30 40 56 / 0.26) 100%
+  );
+  /* Pearl: the iridescent sheen of a Y2K shell, always faint. */
+  --pearl: linear-gradient(
+    115deg,
+    rgb(120 200 240 / 0.08),
+    rgb(170 150 240 / 0.06) 35%,
+    rgb(240 160 210 / 0.05) 60%,
+    rgb(170 230 150 / 0.06)
+  );
+  --well: color-mix(in oklab, var(--background) 93%, #9fb2cc);
+  --gloss: rgb(255 255 255 / 0.55);
+  --gel-glow: rgb(60 90 140 / 0.14);
+  --float-shadow: 0 10px 30px -14px rgb(20 30 50 / 0.3);
+  --cut: 16px;
+}
+
+.dark {
+  --chrome: var(--chrome-key);
+  --chrome-ink: #e6ebf1;
+  --chrome-key-ring: rgb(255 255 255 / 0.18);
+  --chrome-rim: linear-gradient(
+    135deg,
+    rgb(240 245 251 / 0.55) 0%,
+    rgb(150 162 180 / 0.18) 28%,
+    rgb(255 255 255 / 0.5) 52%,
+    rgb(130 142 160 / 0.16) 76%,
+    rgb(220 230 244 / 0.42) 100%
+  );
+  --pearl: linear-gradient(
+    115deg,
+    rgb(185 236 255 / 0.1),
+    rgb(214 200 255 / 0.08) 35%,
+    rgb(255 214 240 / 0.07) 60%,
+    rgb(220 255 200 / 0.08)
+  );
+  --well: color-mix(in oklab, var(--background) 60%, #000);
+  --gloss: rgb(255 255 255 / 0.07);
+  --gel-glow: rgb(190 214 255 / 0.16);
+  --float-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.1);
 }
 
 @keyframes led {

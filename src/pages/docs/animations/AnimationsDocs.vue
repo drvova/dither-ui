@@ -772,7 +772,7 @@ function nudgeCq(delta: number): void {
 <template>
   <!-- Animated content -->
   <section id="animated-content" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Animated content</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Animated content</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Wrap anything to have it slide and fade into place the first time it enters the viewport. Direction, distance and
       timing are configurable, and
@@ -788,7 +788,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Fade content -->
   <section id="fade-content" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Fade content</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Fade content</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A pure fade-in on view, optionally de-blurring as it appears. The lighter cousin of Animated content when you only
       want opacity.
@@ -801,7 +801,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Gradual blur -->
   <section id="gradual-blur" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Gradual blur</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Gradual blur</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A masked <code class="text-foreground/80">backdrop-filter</code> strip that progressively blurs toward an edge:
       the iOS-style soft fade over a scroll region.
@@ -818,7 +818,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Star border -->
   <section id="star-border" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Star border</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Star border</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A rounded frame with two bright glints traveling its top and bottom edges: a subtle animated outline for a CTA or
       badge.
@@ -831,7 +831,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Electric border -->
   <section id="electric-border" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Electric border</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Electric border</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An SVG turbulence filter jitters the frame edge into a crackling electric outline. Reduced motion drops the
       displacement.
@@ -844,7 +844,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Glare hover -->
   <section id="glare-hover" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Glare hover</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Glare hover</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A diagonal sheen sweeps across the surface on hover: the glossy-card reflection, done with a single masked
       gradient. Hover the card.
@@ -857,7 +857,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Magnet -->
   <section id="magnet" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Magnet</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Magnet</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The wrapped element is pulled toward the pointer while it is within range, easing back when the cursor leaves.
       Move your cursor near the button.
@@ -872,7 +872,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Click spark -->
   <section id="click-spark" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Click spark</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Click spark</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A burst of spark lines radiates from every click inside the area, drawn on a lightweight canvas overlay. Click
       anywhere in the preview.
@@ -887,7 +887,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Blob cursor -->
   <section id="blob-cursor" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Blob cursor</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Blob cursor</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A soft, screen-blended blob eases toward the pointer inside the area: a gooey cursor companion. Move your cursor
       over the box.
@@ -900,7 +900,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Crosshair -->
   <section id="crosshair" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Crosshair</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Crosshair</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Full-height and full-width guide lines track the pointer across the area: a precision reticle. Move your cursor
       over the box.
@@ -913,7 +913,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Ghost cursor -->
   <section id="ghost-cursor" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Ghost cursor</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Ghost cursor</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A tapering trail of fading dots chases the pointer on a canvas overlay. Move your cursor over the box.
     </p>
@@ -925,7 +925,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Splash cursor -->
   <section id="splash-cursor" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Splash cursor</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Splash cursor</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Expanding ripple rings bloom along the pointer path, like drops on water. Move your cursor over the box.
     </p>
@@ -937,7 +937,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Target cursor -->
   <section id="target-cursor" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Target cursor</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Target cursor</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A slowly rotating corner-bracket reticle locks onto the pointer: a HUD targeting frame. Move your cursor over the
       box.
@@ -950,7 +950,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Pixel trail -->
   <section id="pixel-trail" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Pixel trail</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Pixel trail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The pointer lights up cells of a pixel grid that then fade back out: a glowing wake across the lattice. Move your
       cursor over the box.
@@ -963,7 +963,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Image trail -->
   <section id="image-trail" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Image trail</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Image trail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Tiles from a palette drop along the pointer path, rotating and shrinking as they fade. Pass real image URLs via
       <code class="text-foreground/80">colors</code>
@@ -980,7 +980,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Meta balls -->
   <section id="meta-balls" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Meta balls</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Meta balls</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Orbiting blobs fuse into a gooey metaball iso-surface, tinted and ordered-dithered through the kit engine. The
       pointer adds a blob.
@@ -993,7 +993,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Metallic paint -->
   <section id="metallic-paint" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Metallic paint</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Metallic paint</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Iterative domain-warped reflections read as flowing liquid chrome. Fully opaque, dithered across a metallic ramp.
     </p>
@@ -1005,7 +1005,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Noise -->
   <section id="noise" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Noise</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Noise</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Animated hashed grain thresholded against the Bayer matrix: living static for a texture overlay. Tune
       <code class="text-foreground/80">density</code> and blend it over content.
@@ -1018,7 +1018,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Cubes -->
   <section id="cubes" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Cubes</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Cubes</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A rhombille tiling shades into a field of isometric cubes, each face lit and pulsing on noise. Tinted and
       ordered-dithered.
@@ -1031,7 +1031,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Ribbons -->
   <section id="ribbons" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Ribbons</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Ribbons</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Thick flowing bands ride wavy fbm centerlines, bright at the core and tinted per ribbon. The pointer bends nearby
       ribbons toward it.
@@ -1044,7 +1044,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Shape blur -->
   <section id="shape-blur" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Shape blur</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Shape blur</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A big soft blob morphs on noise and drifts toward the pointer: a gentle out-of-focus shape. Move your cursor over
       it.
@@ -1057,7 +1057,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Strands -->
   <section id="strands" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Strands</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Strands</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Dozens of thin filaments sway on fbm like blown hair, tinted by depth and ordered-dithered with transparent gaps.
     </p>
@@ -1069,7 +1069,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Laser flow -->
   <section id="laser-flow" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Laser flow</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Laser flow</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Sharp horizontal beams sweep with additive bloom and a faint jitter, tinted per beam: a scanning laser array.
     </p>
@@ -1081,7 +1081,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Antigravity -->
   <section id="antigravity" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Antigravity</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Antigravity</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A field of motes drifts upward and wraps: gravity in reverse, layered behind your content.
     </p>
@@ -1093,7 +1093,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Logo loop -->
   <section id="logo-loop" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Logo loop</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Logo loop</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A seamless infinite marquee of items. Pass logos or wordmarks and it loops forever with a measured wrap.
     </p>
@@ -1107,7 +1107,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Magic rings -->
   <section id="magic-rings" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Magic rings</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Magic rings</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Concentric rings pulse outward from the center on a stagger: a radar-ping halo around whatever you wrap.
     </p>
@@ -1124,7 +1124,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Magnet lines -->
   <section id="magnet-lines" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Magnet lines</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Magnet lines</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A grid of little needles all swivel to point at the pointer, like iron filings over a magnet. Move your cursor
       over the box.
@@ -1137,7 +1137,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Orbit images -->
   <section id="orbit-images" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Orbit images</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Orbit images</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Items ride a circular orbit around a center point. Pass avatars, logos or labels. Counter-rotated so they stay
       upright.
@@ -1152,7 +1152,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Pixel transition -->
   <section id="pixel-transition" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Pixel transition</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Pixel transition</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A grid of pixel cells covers the content and dissolves in a scattered order on hover, revealing what is
       underneath. Hover the card.
@@ -1170,7 +1170,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Dither reveal -->
   <section id="dither-reveal" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Dither reveal</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Dither reveal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Any content comes in through an ordered-dither mask. A dissolve resolves cell by cell in the Bayer order; a wipe
       moves a solid front with a dithered band behind it. The mask is a pure function of progress, so a seeked frame
@@ -1226,7 +1226,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Sticker peel -->
   <section id="sticker-peel" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Sticker peel</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Sticker peel</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A corner of the card peels up on hover with a soft curl shadow: the sticker lift. Hover the card.
     </p>
@@ -1243,7 +1243,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="expand-tabs" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Expand tabs</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Expand tabs</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An icon bar where only the active tab unfolds its label. The rest stay square glyphs. The label slides through the
       house 0fr grid trick.
@@ -1264,7 +1264,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="island" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Island</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Island</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A morphing status pill: the compact row keeps its pulse while the detail unfolds beneath. Escape collapses;
       reduced motion snaps.
@@ -1280,7 +1280,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="card-stack" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Card stack</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Card stack</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A swipe deck on the kit's own gesture math: 1:1 tracking, rubber-band past the edge, a flick or a far drag sends
       the card flying and the stack rises. Drag the top card.
@@ -1310,7 +1310,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="dock" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Dock</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Dock</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A hover-magnifying dock: items swell on a gaussian falloff around the pointer and settle when it leaves. Reduced
       motion keeps the row still.
@@ -1335,7 +1335,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="preview-rail" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Preview rail</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Preview rail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A Codex app-inspired navigation rail: compact ticks form a pyramid around the pointer and reveal a floating
       destination preview beside the rail. Keyboard focus previews too; reduced motion keeps the ticks still.
@@ -1359,7 +1359,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="scroll-progress" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Scroll progress</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Scroll progress</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Reading progress as a dithered bar. It composes DitherProgress and rides the viewport edge, or the top of any
       scrollable parent. Scroll the box.
@@ -1376,7 +1376,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="snap-button" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Snap button</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Snap button</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Pull to confirm: drag past the line and the border arms; release fires and the button springs home. Short pulls
       just spring. Enter and Space fire without the pull; reduced motion skips the spring.
@@ -1391,7 +1391,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="gooey-menu" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Gooey menu</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Gooey menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Actions that melt out of one trigger: an SVG goo filter fuses the circles while they travel, then they settle
       apart. Escape collapses; reduced motion drops the travel.
@@ -1417,7 +1417,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="bouncy-accordion" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Bouncy accordion</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Bouncy accordion</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A single-open accordion with a weighted spring layout: panels overshoot and settle on a sampled damped-spring
       easing, icon rows lead each header, and content rises into view. Reduced motion reveals instantly.
@@ -1457,7 +1457,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="expanding-arrow" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Expanding arrow</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Expanding arrow</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An accent tile that expands into a dotted-arrow trail on hover or focus. The trail is stamped from the same accent
       hue. Reduced motion reveals it instantly.
@@ -1471,7 +1471,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="slide-action" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Slide action</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Slide action</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Drag the thumb to the end of the track to confirm (flick momentum counts), or release early and it springs back.
       Enter or Space confirms without the slide.
@@ -1486,7 +1486,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="hold-action" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Hold action</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Hold action</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Hold to complete: a liquid fill with a dotted crest rises (or slides) while you press; release early and it drains
       back. A held Enter or Space works the same way.
@@ -1506,7 +1506,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="wallet-card" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Wallet card</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Wallet card</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A wallet overview card: the account switcher and search morph open from their triggers (recents listed in the
       panel), the balance cascades in with a change pill and privacy toggle, the address copies with feedback, the bell
@@ -1530,7 +1530,7 @@ function nudgeCq(delta: number): void {
   </section>
 
   <section id="notification-stack" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Notification stack</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Notification stack</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Compact notification cards that spring from a stacked summary into a readable list on hover, focus or tap. Tap
       pins the list open, and the view-all row appears with the expansion. Reduced motion snaps.
@@ -1589,7 +1589,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Step timing -->
   <section id="step-timing" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Step timing</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Step timing</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Quantized time for a quantized renderer: <code class="text-foreground/80">steps()</code>
       samples progress instead of interpolating it, the temporal twin of the Bayer threshold. One keyframe run, three
@@ -1633,7 +1633,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Sequences -->
   <section id="sequences" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Sequences</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Sequences</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Many animations, one clock. The timeline algebra flattens serial chains, parallel groups, staggered waves and
       loops into a single plan; the driver samples it and writes
@@ -1700,7 +1700,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Container queries -->
   <section id="container-queries" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Container queries</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Container queries</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A card in a sidebar and the same card in a wide main column are not the same card, so stop asking the viewport.
       <code class="text-foreground/80">DitherContainer</code> makes its own box the query target: it measures the
@@ -1774,7 +1774,7 @@ function nudgeCq(delta: number): void {
 
   <!-- Stage: layers in container units -->
   <section id="stage" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Stage</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Stage</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Layers in container units. A <code class="text-foreground/80">DitherStage</code> is a size query container with
       one clock (the kit's, so it seeks for video), and each <code class="text-foreground/80">DitherLayer</code> runs

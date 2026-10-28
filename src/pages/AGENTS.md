@@ -11,8 +11,10 @@ widgets/features; page-specific conventions live here.
 
 - Direction (the user's look): Y2K retrofuturism, biomorphic form and
   technical sportswear, on the dither and mono base (the Bayer dither and
-  `--font-mono` stay the signature). The landing leads; the docs and the
-  Studio take the look next, so the site reads as one product again.
+  `--font-mono` stay the signature). The landing leads it, and the docs
+  and the Studio wear it from the same materials (the site voice in
+  `app/styles.css`, see `src/AGENTS.md`), so the site reads as one
+  product.
   Its materials: liquid CHROME (`--chrome`: the statement, every section
   title and the facts' numerals cast in it, one horizon per line; the
   primary key a chrome capsule) and a faint PEARL sheen. Its forms: the
@@ -51,41 +53,33 @@ widgets/features; page-specific conventions live here.
   on, never drawings of them); no film player or animation runtime ships.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) on top of the SITE voice in
-  `app/styles.css` (`.nav-a`, `.nav-pill`, `.led`), which the landing
-  uses directly: ink levels mapped to theme tokens
-  (`--ink`, `--ink-2`, `--ink-3`, `--line`, `--well`), the materials
-  (`--chrome`, `--chrome-rim`, `--pearl`, `--signal` the ember, `--cut`
-  16px), `.chrome` (chrome type; `.section-title` is cast in it too),
-  `.display` (mono 500, tight), `.section-head` (the `.section-title` —
+  `app/styles.css` (`.nav-a`, `.nav-pill`, `.led`, `.ring-on` and the
+  materials: `.chrome-type`, `.hardshell`, `.gel`, `.capsule`, `.rim`,
+  `.key-chrome`, `.spec`, `.speed-tag`), which the landing uses directly
+  (the landing is always dark, so it wears the dark materials): ink
+  levels mapped to theme tokens (`--ink`, `--ink-2`, `--ink-3`, `--line`,
+  `--signal` the ember), `.display` (mono 500, tight), `.section-head`
+  (the `.section-title`, cast in `.chrome-type` —
   the page's second size, mono 500 up to 2.6rem — and, on its baseline, a
   `.head-side`: a `.tags` row of speed tags over a `.more-link` naming its
   destination; under 560px they sit under the title, which beside them
-  squeezed to four lines), `.panel` (the hardshell: `clip-path` cuts the
-  top-left and bottom-right corners, which also clips what it holds, and
-  its `::after` draws the chrome hairline along the cut as an evenodd
-  ring), `.thumb` (the gel well: an asymmetric pebble radius, a chrome rim
-  through a masked `::after`, a gloss `::before` on its top 38%; chips in
-  a well sit at z-index 4, over both), `.spec` (a spec label), `.tag` (a
-  slanted plate; its edges cut, its type upright), `.ticks` (the ruler),
-  `.list-head` (a `.list-h` heading left, a `.more-link` right), `.lead`
-  and `.more-link` (links with a resting hairline underline that inks on
-  hover), `.key-primary` (the chrome capsule, ink on it), the landing's
-  `.nav-pill` (a capsule with a gloss on its top edge), `.seg` (capsule
-  toggles: `aria-pressed` buttons, the pressed one ringed) and the `.live`
-  speed tag. Reduced transparency drops the pearl, the gloss and the
-  biome; forced colors drop the cut and the rims for a plain border and
-  show chrome type in the system colour. Components read it, never redeclare it; focus rings
+  squeezed to four lines), `.ticks` (the ruler), `.list-head` (a
+  `.list-h` heading left, a `.more-link` right), `.lead` and `.more-link`
+  (links with a resting hairline underline that inks on hover), `.seg`
+  (capsule toggles: `aria-pressed` buttons, the pressed one ringed) and
+  the `.live` speed tag. Panels are `.hardshell`, wells `.gel`, the
+  primary keys `.key-chrome`, spec labels `.spec`, a section's tags
+  `.speed-tag`. Reduced transparency drops the biome too. Components
+  read it, never redeclare it; focus rings
   are the global `:focus-visible`. Page geometry (`--shell` 72rem — the
   docs' width, so the brand never jumps — and `--rhythm`) lives on
   `LandingPage`'s `.landing`.
-- Header: a floating capsule (after dithercn.dev), sticky 8px under the
-  top of the viewport and centred on the shell (up to 48rem): the page
-  ground at 82% under a blur, a chrome rim through a masked `::after`, a
-  gloss across its top; solid under reduced transparency, a plain border
-  under forced colors. It holds the 13px diamond mark (ember core) +
+- Header: a floating `.capsule` (after dithercn.dev), sticky 8px under
+  the top of the viewport and centred on the shell (up to 48rem). It
+  holds the 13px diamond mark (ember core) +
   "dither-ui", the `.nav-a` links in sentence case (Components →
   `#directory`, Docs, Agents → `#agents`, GitHub under its mark in a new
-  tab) and the chrome `.key-primary` capsule "Open studio";
+  tab) and the `.key-chrome` "Open studio";
   Components/Agents drop under sm, GitHub under md. Every `[id]` on the
   landing carries `scroll-margin-top` (76px) so an anchor lands clear of
   it. The header MUST stay positioned with `z-10` (sticky is): `main` is
@@ -96,14 +90,14 @@ widgets/features; page-specific conventions live here.
   hairlines) holding, on the shell, the statement beside the stage. Left
   (`.statement`): the mono h1 in chrome at display scale
   (`clamp(2.2rem, 4.2vw, 3.25rem)`, two lines in its column), the lede,
-  the keys (`.key-primary` "Open the studio", `.nav-pill` "Read the
+  the keys (`.key-chrome` "Open the studio", `.nav-pill` "Read the
   docs" and "Watch the film" under the Play glyph, which opens the
   trailer), then the facts as a spec sheet under a hairline (`.facts`, a
   `dl`: the component count, the section count, the packages beside Vue;
   each a `.spec` label under its glyph and a slanted chrome readout,
   hairlines between, never cards). Right, in `.stage-col`:
   `HeroStage.vue`, the kit by hand as the trailer shows it: one real
-  component at a time in an 8:5 `.thumb` well (a size container), its
+  component at a time in an 8:5 `.gel` well (a size container), its
   name top left on a speed plate of the well's ground, with the controls
   its docs demo has; behind it the biome (`aria-hidden`, under 900px and
   under reduced transparency gone): a `DitherLiquidChrome` pebble past the
@@ -177,7 +171,7 @@ widgets/features; page-specific conventions live here.
   `engine/theme.css` (Palette), as `docs/install.ts` aliases and imports
   them; change both together.
 - Columns (`Showcase.vue`, `.cols` 1.9 : 1 : 1.2, one column under 900px):
-  A — the Build panel ("Build your own screens", two `.thumb` product
+  A — the Build panel ("Build your own screens", two `.gel` product
   tiles of live kit components: Buttons and Controls, the slider re-seeding
   the badge; `.lead` links to the Studio and the docs) over the portraits
   panel (a heading, one line, the `faces` slot in a well — the
@@ -199,12 +193,12 @@ widgets/features; page-specific conventions live here.
   sections"; right the kit's `BarChart` of the docs (13rem): one row,
   every `FAMILIES` entry its own series in sidebar order, the big families
   in a hue and the rest grey, a hover tooltip, nothing to click; one
-  column under 760px, the chart under the text. Then a `.panel` holding
+  column under 760px, the chart under the text. Then a `.hardshell` holding
   the bento (after dithercn.dev): `BENTO`, big live kit components the
   rest of the page does not show, on a 12-column grid in three rows
   (radar 7 + meta balls 5; decrypted text, stat card, rating 4 each; pie
   4, progress 3, galaxy 5), two columns under 900px, one under 560px.
-  Each tile is its surface in a `.thumb` gel well (13rem; the first row
+  Each tile is its surface in a `.gel` well (13rem; the first row
   18rem; the two canvases flush, each with its pause chip, hidden under
   reduced motion, where the kit holds them still) and, under it, a strip:
   the name as a `.lead` into `/docs/<id>`, the family as a `.spec`. Under
@@ -224,8 +218,8 @@ widgets/features; page-specific conventions live here.
   neighbour's margin.
 - Principles (`LandingPage.vue`): a `.section-head` ("One rule under
   every pixel."; tags Bayer 4x4, 7 seed hues, One engine; "Read the
-  quick start") over a `.panel` — the
-  figure in a `.thumb` well, sticky at the viewport's middle, beside six
+  quick start") over a `.hardshell` — the
+  figure in a `.gel` well, sticky at the viewport's middle, beside six
   numbered statements at a large size (up to 2rem), each a LINK into the
   docs that covers it (`PRINCIPLES`, each a sentence or two, no dashes).
   Under 760px the well is a strip across the top of the panel (the
@@ -261,7 +255,7 @@ widgets/features; page-specific conventions live here.
   distinct scenes, stage wrap).
 - Agents (`#agents`): a `.section-head` ("Your own agent drives the
   Studio."; tags the harness count, ACP, No keys; "Read the agent
-  skill") over a two-column `.panel` (a real
+  skill") over a two-column `.hardshell` (a real
   border: the well would paint over an inset hairline): left three steps,
   each in a glyph square (an `ol`, so the order is the list's) — run the
   bridge (Node's mark; its command shown as its two lines and copied as
@@ -390,16 +384,27 @@ widgets/features; page-specific conventions live here.
   Animation, Accessibility — prose + CodeBlock, no DemoCard) · Examples ·
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
-- Component section anatomy: `<section id>` → heading row (h2 + optional
-  "Open in the Studio") → muted description → `DemoCard` (Preview/Code tabs,
-  Inspect → the workbench, Code → the source panel) →
-  optional picker gallery (an `h3` in sentence case, 12px muted, + grid) →
-  `PropsTable` (a row's `default` is its value as code; "" prints "none").
+- Component section anatomy: `<section id>` → heading row (h2 in
+  `.chrome-type`, `text-lg`, + optional "Open in the Studio") → muted
+  description → `DemoCard` (Preview/Code tabs as capsules, the picked one
+  `.ring-on`; Inspect → the workbench, Code → the source panel, a
+  `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
+  sentence case, 12px muted, + grid) → `PropsTable`, a spec sheet (a
+  `.hardshell` cut at 10px, its column heads `.spec`; a row's `default` is
+  its value as code; "" prints "none"). The preview frame is a gel well
+  (`.demo-well` + `.rim`: the pebble radius, the well's ground, a gloss on
+  its top edge, the glow at its foot) whose ground MUST stay one plain
+  colour (the workbench's contrast reads the background through
+  `backgroundBehind`, which gives up on any ancestor's image), that never
+  clips (the workbench draws past it) and keeps its 1px border, clear
+  (captures add it). Chips (framework, styling, Inspect) are capsules.
 - Docs copy follows the landing's bans: no em dashes or middle dots in
   prose, prop `type` notes as `type: note` or `type (note)`, no uppercase
   or tracked label, no arrow-ended link; a snippet's copy matches what its
   demo renders (change both together). Kit default strings quoted in a
-  table stay the kit's (the marquee texts keep their dots).
+  table stay the kit's (the marquee texts keep their dots). The only
+  uppercase in the docs' own chrome is `.spec` (the sidebar's group
+  counts, the API table's heads) and `.speed-tag` (the title's tags).
 - DemoCard is the page's perf seam: its preview `<slot>` mounts only as the
   card approaches the viewport (IO, 600px rootMargin) and LATCHES — once
   revealed it stays, so demo interaction state never resets on scroll; the
@@ -505,16 +510,24 @@ widgets/features; page-specific conventions live here.
   them to the DOM as `activeId` changes (scroll-spy, deep links, search), so
   Google's renderer sees unique metadata per `/docs/<id>` page. Unknown or
   empty ids fall back to the generic `/docs` metadata; keep ids unique.
-- Chrome: `.chrome` translucent header (88% background + blur; scroll-edge
-  fade, no hard border); honors `prefers-reduced-transparency`. The search
+- Chrome: the header is the site's floating `.capsule` (`.docs-capsule`,
+  44px in a 56px band so the rails' `top-14` and the scroll-spy line
+  hold; its glass frosted to 93% under 640px, where dense tables pass
+  under it); the toggles in it are capsules, the picked one `.ring-on`,
+  Search a `.nav-pill`, "Open studio" the `.key-chrome`; the "Docs" label
+  shows from xl, so the capsule fits from 360px up. The search
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
   elsewhere — the handler accepts both). The brand carries the landing's
-  7x7 diamond mark, and the studio link is the site's `.nav-a.nav-pill`
-  "Open studio" (sm+). The Vue/Svelte switch carries the tools' marks
+  7x7 diamond mark, and the studio link shows from sm. The Vue/Svelte
+  switch carries the tools' marks
   (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
-  mark. The sidebar's groups sit under their glyphs (`GROUP_ICON`). The
-  page title is the h1 "Documentation", no eyebrow. At xl the rail right of
+  mark. The sidebar's groups sit under their glyphs (`GROUP_ICON`), each
+  with its section count as a `.spec`. The page title is the h1
+  "Documentation" in `.chrome-type` (text-3xl), no eyebrow; on its
+  baseline, the kit's spec as `.speed-tag`s (the section count, Vue 3,
+  Svelte 5, Tailwind or StyleX). The "Browse sections" disclosure is a
+  `.nav-pill`. At xl the rail right of
   the content is "On this page": the section in view, its gallery headings
   and its API table, read from its DOM as the scroll-spy moves (headings
   inside a preview are the demo's), each a button that scrolls to it.
@@ -552,8 +565,15 @@ widgets/features; page-specific conventions live here.
 - The Studio's chrome speaks the SITE voice, like the landing and the
   docs: `font-mono` on the page root (the context menu and the kit's
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
-  section labels in sentence case, 12px hairline panels and toolbars, `.ring-on` pressed
-  states, ink primary keys, neutral focus borders. Every glyph button is a
+  section labels in sentence case, `.ring-on` pressed states, neutral
+  focus borders, and the look's materials: the floating toolbars, the
+  selection toolbar and the zoom bar are `.capsule`s (their tools round),
+  the Library key and the empty canvas's "Add an artboard" are the
+  `.key-chrome`, the Layers/Agent/Inspector panels and the dialogs
+  (export, video, shortcuts) are `.hardshell`s (12px cut on panels;
+  nothing in them pops out, the context menu is teleported), the video
+  dialog's download is the `.key-chrome`, and the menus (project, library,
+  context menu) are rounded cards with a `.rim`. Every glyph button is a
   kit icon (undo/redo, layers, properties, agent, theme, close, zoom, fit,
   replay, menus); the selection actions are a glyph and a sentence-case
   word (Duplicate, Group, Delete, Evolve, Reel, Data, Code, PNG, Video),

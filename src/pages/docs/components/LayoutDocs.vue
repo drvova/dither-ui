@@ -167,7 +167,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
 <template>
   <!-- Shell -->
   <section id="dither-shell" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Shell</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Shell</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The app frame: topbar over an aside + content pair, statusbar under, every region a slot. Below, a whole SaaS
       dashboard from the layout family: rail, canvas, grid, sparkline cards, a live console.
@@ -240,7 +240,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
 
   <!-- Rail -->
   <section id="rail" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Rail</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Rail</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The permanent icon rail as a first-class piece. It provides the sidebar's collapsed context, so plain sidebar
       items fold their labels with zero extra props. Tooltips carry the words.
@@ -270,7 +270,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
 
   <!-- Console -->
   <section id="console" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Console</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Console</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A monospace log surface: lines tint by level, follow mode pins the newest output, the caret blinks politely. Run
       the deploy and watch it stream.
@@ -291,7 +291,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
 
   <!-- Canvas -->
   <section id="canvas" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Canvas</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Canvas</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The work surface a dashboard sits on: a dotted or ruled field inked with the border token, content floating above.
     </p>
@@ -323,7 +323,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
 
   <!-- Grid -->
   <section id="grid" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Grid</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Grid</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Dashboard columns without media queries: cards auto-fit to a minimum width, or take a deliberate fixed count. Drag
       the number and watch the flow.
@@ -355,7 +355,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
 
   <!-- Infinite canvas -->
   <section id="infinite-canvas" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Infinite canvas</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Infinite canvas</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A pannable, zoomable work surface: drag to pan, wheel to zoom toward the cursor, and the dot field rides the same
       transform so space feels real. The zoom is a v-model.

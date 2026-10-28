@@ -69,7 +69,7 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
 <template>
   <!-- Stat cards -->
   <section id="stats-cards" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Stat cards</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Stat cards</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The classic KPI grid: label, corner glyph, a big tabular number, and a signed delta that knows churn falling is
       good news. The period picker swaps the whole dataset live.
@@ -125,7 +125,7 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
 
   <!-- Stats with charts -->
   <section id="stats-charts" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Stats with charts</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Stats with charts</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Numbers with their shape: sparkline cards for trends, a meter card for progress toward a goal. Twelve points is
       plenty; the dither does the rest.

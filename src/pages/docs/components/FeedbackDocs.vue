@@ -83,7 +83,7 @@ const API: Record<string, PropRow[]> = {
 <template>
   <!-- Badge -->
   <section id="badge" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Badge</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Badge</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A small label chip: the button's dither fill at rest, no hover machinery, any palette color and texture variant.
     </p>
@@ -107,7 +107,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Skeleton -->
   <section id="skeleton" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Skeleton</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Skeleton</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A loading placeholder that shimmers pixel-by-pixel: the field's density breathes through the Bayer matrix instead
       of a gradient sweep. Size it with classes and compose it into any layout.
@@ -129,7 +129,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Spinner -->
   <section id="spinner" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Spinner</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Spinner</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A dithered loader, repainted at 30fps. It's not one shape. A seed samples three axes at once: the
       <em class="text-foreground/80 not-italic">silhouette</em>
@@ -165,7 +165,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Separator -->
   <section id="separator" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Separator</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Separator</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A 2px rule whose pixels dissolve toward both ends through the Bayer matrix: the image component's edge fade,
       applied to a divider.

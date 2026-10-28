@@ -180,12 +180,10 @@ async function exportPng() {
     ref="rootEl"
     class="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3"
   >
-    <div
-      class="pointer-events-auto flex h-10 items-center rounded-xl border border-border bg-background/95 px-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
-    >
+    <div class="capsule pointer-events-auto flex h-10 items-center px-1">
       <a
         :href="routePath('/')"
-        class="flex h-8 items-center gap-2 rounded-md px-2.5 text-xs text-foreground transition-colors hover:bg-card"
+        class="flex h-8 items-center gap-2 rounded-full px-2.5 text-xs text-foreground transition-colors hover:bg-card"
         aria-label="dither-ui home"
       >
         <svg viewBox="0 0 7 7" width="13" height="13" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
@@ -199,7 +197,7 @@ async function exportPng() {
           type="button"
           aria-haspopup="menu"
           :aria-expanded="projectOpen"
-          class="flex h-8 max-w-48 items-center gap-1.5 rounded-md px-2 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground"
+          class="flex h-8 max-w-48 items-center gap-1.5 rounded-full px-2.5 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground"
           @click="
             () => {
               projectOpen = !projectOpen
@@ -215,7 +213,7 @@ async function exportPng() {
             v-if="projectOpen"
             ref="projectMenu"
             role="menu"
-            class="absolute left-0 top-full mt-1 w-56 rounded-xl border border-border bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]"
+            class="rim absolute left-0 top-full mt-1 w-56 rounded-2xl bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]"
             @keydown="menuKeydown"
           >
             <button
@@ -294,7 +292,7 @@ async function exportPng() {
         type="button"
         aria-haspopup="dialog"
         :aria-expanded="libraryOpen"
-        class="flex h-10 items-center gap-2 rounded-xl border border-border bg-background/95 px-3 text-[12px] font-medium text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.24)] transition-[background-color,scale] hover:bg-card active:scale-[0.96]"
+        class="key-chrome flex h-10 items-center gap-2 px-4 text-[12px] font-medium transition-[filter,scale] active:scale-[0.96]"
         @click="
           () => {
             libraryOpen = !libraryOpen
@@ -309,7 +307,7 @@ async function exportPng() {
           v-if="libraryOpen"
           role="dialog"
           aria-label="Component library"
-          class="absolute left-1/2 top-full mt-2 flex max-h-[min(72vh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]"
+          class="absolute left-1/2 top-full mt-2 flex max-h-[min(72vh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rim rounded-2xl bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]"
         >
           <label class="border-b border-border/60 p-2">
             <span class="sr-only">Search components</span>
@@ -388,9 +386,7 @@ async function exportPng() {
       </Transition>
     </div>
 
-    <div
-      class="pointer-events-auto flex h-10 items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
-    >
+    <div class="capsule pointer-events-auto flex h-10 items-center gap-0.5 p-1">
       <button type="button" aria-label="Undo" title="Undo (⌘Z)" :disabled="!history.canUndo" class="tool" @click="undo">
         <DitherIcon name="Undo" :size="15" :stroke-width="1.5" />
       </button>
@@ -443,7 +439,7 @@ async function exportPng() {
     <Transition name="selection-tools">
       <div
         v-if="canEdit()"
-        class="pointer-events-auto fixed left-1/2 z-30 flex h-10 -translate-x-1/2 items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
+        class="capsule pointer-events-auto fixed left-1/2 z-30 flex h-10 -translate-x-1/2 items-center gap-0.5 p-1"
         :class="editor.dataOpen ? 'bottom-[17rem]' : 'bottom-3'"
         role="toolbar"
         aria-label="Selection actions"
@@ -534,7 +530,7 @@ async function exportPng() {
 .menu-row {
   display: block;
   width: 100%;
-  border-radius: 0.375rem;
+  border-radius: 0.625rem;
   padding: 0.375rem 0.5rem;
   text-align: left;
   font-size: 0.75rem;
@@ -590,7 +586,7 @@ async function exportPng() {
   height: 2rem;
   align-items: center;
   justify-content: center;
-  border-radius: 0.375rem;
+  border-radius: 999px;
   color: var(--color-muted-foreground);
   font-size: 12px;
   transition:

@@ -103,7 +103,7 @@ const API: Record<string, PropRow[]> = {
 
 <template>
   <section id="switch" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Switch</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Switch</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A toggle whose track is a dithered canvas: the accent gradient fills in when on, fades to a muted wash when off.
     </p>
@@ -119,7 +119,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="checkbox" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Checkbox</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Checkbox</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A pixel-border box that fills with the Bayer texture and draws a chunky near-white checkmark when checked. Label
       goes in the default slot.
@@ -135,7 +135,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="slider" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Slider</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Slider</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Drag or arrow-key the square thumb. The filled side of the track dithers denser toward the value, and the rest
       stays a muted rail.
@@ -173,7 +173,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="progress" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Progress</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Progress</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A dithered fill that grows with <code class="text-foreground/80">value</code>; set
       <code class="text-foreground/80">indeterminate</code> to scroll a texture band instead (static under reduced

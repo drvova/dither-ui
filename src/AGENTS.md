@@ -342,9 +342,28 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex. The same file holds the site chrome voice (`@layer components`:
-  `.nav-a` and `.micro` in sentence case, `.nav-pill`, `.led`, and `.ring-on` — the
-  ONE pressed/selected state: ink text, a hairline ring, a breath of fill,
-  never a colour fill) shared by the landing, the docs and the Studio;
+  `.nav-a` and `.micro` in sentence case, `.nav-pill` (a capsule key with a
+  gloss on its top edge), `.led`, and `.ring-on` — the ONE pressed/selected
+  state: ink text, a hairline ring, a breath of fill, never a colour fill;
+  an outline in forced colors) and the look's MATERIALS, per theme on
+  `:root` (light) and `.dark`: `--chrome` (chrome type: gunmetal on light,
+  its lightest stop 4.5:1 on white; bright on dark), `--chrome-key` (the
+  bright ramp, both themes), `--chrome-rim`, `--pearl`, `--well`,
+  `--gloss`, `--gel-glow`, `--float-shadow`, `--cut` (16px). Classes:
+  `.chrome-type` (the ramp clipped to the glyphs, one horizon per line),
+  `.spec` (spec label: uppercase, tracked, 10px) and `.speed-tag` (a
+  slanted plate), the ONLY uppercase in the site's own chrome;
+  `.hardshell` (two corners cut by `clip-path`, which clips what it
+  holds, fixed descendants included; a chrome-glint ring along the cut;
+  pearl in its ground; set `--cut` locally for a smaller cut); `.gel` (an
+  asymmetric pebble, `overflow: hidden`, a gloss over its top 38%; chips
+  in it take z-index 4); `.capsule` (floating glass: the ground at 82%
+  under a blur, a gloss, the float shadow); `.rim` (the chrome rim on
+  any positioned element; `.gel` and `.capsule` carry it); `.key-chrome`
+  (the primary key: a chrome capsule with ink on it). Reduced
+  transparency drops the pearl and the gloss and makes the capsule solid;
+  forced colors drop the cuts, rims and chrome type for system colours
+  and plain borders. Shared by the landing, the docs and the Studio;
   none of them grows a voice of its own.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler

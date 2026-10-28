@@ -98,7 +98,9 @@ const TOOLS: { title: string; icon: IconName; text: string; link: { label: strin
   <section id="directory" aria-labelledby="directory-h" class="directory">
     <div class="dir-head">
       <div class="dir-text">
-        <h2 id="directory-h" class="section-title">{{ SECTION_COUNT }} sections, every one of them live.</h2>
+        <h2 id="directory-h" class="section-title chrome-type">
+          {{ SECTION_COUNT }} sections, every one of them live.
+        </h2>
         <p class="dir-p">
           Each section is a working demo with its props table and its code. Every component is one file in one folder,
           so what you read is what you ship.
@@ -114,10 +116,10 @@ const TOOLS: { title: string; icon: IconName; text: string; link: { label: strin
         </BarChart>
       </div>
     </div>
-    <div class="panel window">
+    <div class="hardshell window">
       <ul class="bento" aria-label="Examples from the docs">
         <li v-for="t in BENTO" :key="t.id" class="tile" :class="`t-${t.id}`">
-          <div class="thumb tile-art" :class="{ flush: t.id === 'meta-balls' || t.id === 'galaxy' }">
+          <div class="gel tile-art" :class="{ flush: t.id === 'meta-balls' || t.id === 'galaxy' }">
             <RadarChart
               v-if="t.id === 'radar'"
               :data="RADAR_ROWS"

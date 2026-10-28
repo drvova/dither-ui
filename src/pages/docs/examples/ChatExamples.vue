@@ -313,7 +313,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
 
 <template>
   <section id="chat-thread" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Chat thread</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Chat thread</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Conversation list beside a live thread: unread badges clear when you open them, sending appends your bubble, and
       the other side types back. The typing dots hold still under reduced motion.
@@ -398,7 +398,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
 
   <!-- AI assistant -->
   <section id="chat-assistant" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">AI assistant</h2>
+    <h2 class="chrome-type text-lg tracking-tight">AI assistant</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An assistant thread: suggestion chips ask for you, replies stream in character by character, and Stop cancels
       mid-sentence. Under reduced motion the answer lands whole.
@@ -475,7 +475,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
 
   <!-- Support chat -->
   <section id="chat-support" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Support chat</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Support chat</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A support widget: online status in the header and quick-reply chips that really answer. “Talk to a human”
       escalates: the agent replies, then a system line opens the ticket.
@@ -553,7 +553,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
 
   <!-- Team channel -->
   <section id="chat-channel" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Team channel</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Team channel</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A channel, not bubbles: flat rows where consecutive messages from one author group under a single name, and
       reactions toggle with a click. Post something and watch your rows group too.

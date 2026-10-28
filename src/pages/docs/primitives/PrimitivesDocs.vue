@@ -223,7 +223,7 @@ const API: Record<string, PropRow[]> = {
 <template>
   <!-- Box -->
   <section id="box" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Box</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Box</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       One element, one job: a typed container whose whole style arrives as
       <code class="text-foreground/80">class</code>. Swap the tag with <code class="text-foreground/80">as</code>
@@ -239,7 +239,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Text -->
   <section id="text" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Text</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Text</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The type scale the whole site speaks: three token tones, four sizes from 11 to 15px, and
       <code class="text-foreground/80">as</code> for the element. Leading, tracking and weight stay yours in
@@ -257,7 +257,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Divider -->
   <section id="divider" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Divider</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Divider</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A hairline rule with real separator semantics. Horizontal renders an
       <code class="text-foreground/80">hr</code>; vertical lives in flex rows and stretches to their height. Both
@@ -280,7 +280,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- VisuallyHidden -->
   <section id="visually-hidden" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">VisuallyHidden</h2>
+    <h2 class="chrome-type text-lg tracking-tight">VisuallyHidden</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Content for screen readers only: labels that must exist in the reading order without painting anything. Flip on
       <code class="text-foreground/80">focusable</code> for the skip-link pattern: Tab reveals it, styled as a chip over
@@ -306,7 +306,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Svg -->
   <section id="svg" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Svg</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Svg</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A neutral SVG shell: no imposed stroke language, so the kit's art direction stays inside the components.
       Decorative by default (<code class="text-foreground/80">aria-hidden</code>); a
@@ -328,7 +328,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Image -->
   <section id="img" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Image</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Image</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The plain <code class="text-foreground/80">img</code> with the modern loading contract baked in: lazy, async
       decode, and a required <code class="text-foreground/80">alt</code> (empty string is the explicit decorative
@@ -352,7 +352,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Spacer -->
   <section id="spacer" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Spacer</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Spacer</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Sized empty space for flex and grid rows, the alternative to magic margins. Two axes, five steps from 4 to 40px,
       always decorative.
@@ -371,7 +371,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Portal -->
   <section id="portal" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Portal</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Portal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Teleport by name: render a slot elsewhere in the DOM so popovers and toasts escape
       <code class="text-foreground/80">overflow: hidden</code>. <code class="text-foreground/80">disabled</code> keeps
@@ -395,7 +395,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Overlay -->
   <section id="overlay" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Overlay</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Overlay</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A full-cover layer in four dim weights. Decorative and click-transparent by default;
       <code class="text-foreground/80">interactive</code> makes it catch presses (dismissible scrims) and lifts the
@@ -414,7 +414,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Measure -->
   <section id="measure" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Measure</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Measure</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Reports its own box: a plain block that emits
       <code class="text-foreground/80">resize</code> with width and height on every change. ResizeObserver only: without
@@ -433,7 +433,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Clipboard -->
   <section id="clipboard" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Clipboard</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Clipboard</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Clipboard behavior around any trigger: the scoped slot gets
       <code class="text-foreground/80">copied</code> and <code class="text-foreground/80">copy</code>, and a polite live
@@ -458,7 +458,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- ClickOutside -->
   <section id="click-outside" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">ClickOutside</h2>
+    <h2 class="chrome-type text-lg tracking-tight">ClickOutside</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       One <code class="text-foreground/80">outside</code> event when a primary press lands anywhere beyond the wrapped
       content: capture-phase <code class="text-foreground/80">pointerdown</code>, so nested scroll containers and
@@ -490,7 +490,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- FocusRing -->
   <section id="focus-ring" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">FocusRing</h2>
+    <h2 class="chrome-type text-lg tracking-tight">FocusRing</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Container-level focus: wraps a control group and rings while anything inside holds focus, so keyboard users see
       which group is active. The individual control keeps the global
@@ -513,7 +513,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- FocusScope -->
   <section id="focus-scope" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">FocusScope</h2>
+    <h2 class="chrome-type text-lg tracking-tight">FocusScope</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The modal focus contract in one component: focus enters on mount,
       <code class="text-foreground/80">Tab</code> cycles inside the scope, and closing hands focus back to whatever had
@@ -546,7 +546,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- HoverArea -->
   <section id="hover-area" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">HoverArea</h2>
+    <h2 class="chrome-type text-lg tracking-tight">HoverArea</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Hover state as scoped-slot data: no refs, no listener bookkeeping. Keyboard focus tracks alongside the pointer so
       the reveal is the same for everyone.
@@ -566,7 +566,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- Pressable -->
   <section id="pressable" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Pressable</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Pressable</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The plainest interactive base: a native button (never submits a form by accident) with the house press affordance
       and the global focus floor. For the dithered, blooming version see
@@ -593,7 +593,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- InView -->
   <section id="in-view" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">InView</h2>
+    <h2 class="chrome-type text-lg tracking-tight">InView</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The taxonomy's IntersectionObserver primitive, named for what it does: visibility as scoped-slot state.
       <code class="text-foreground/80">once</code>
@@ -618,7 +618,7 @@ const API: Record<string, PropRow[]> = {
   <!-- Icon -->
   <section id="icon" class="mt-16 scroll-mt-24">
     <div class="flex items-baseline justify-between gap-4">
-      <h2 class="text-lg tracking-tight">Icon</h2>
+      <h2 class="chrome-type text-lg tracking-tight">Icon</h2>
       <span class="text-[11px] tabular-nums text-muted-foreground">{{ ICON_NAMES.length }} glyphs</span>
     </div>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
@@ -644,7 +644,7 @@ const API: Record<string, PropRow[]> = {
 
   <!-- IconSet -->
   <section id="icon-set" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">IconSet</h2>
+    <h2 class="chrome-type text-lg tracking-tight">IconSet</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The same set as <code class="text-foreground/80">&lt;symbol&gt;</code>
       sheets: mount once and reference glyphs with

@@ -293,7 +293,7 @@ const ICONS = {
 </script>
 
 <template>
-  <div class="src">
+  <div class="src hardshell">
     <div class="src-bar">
       <div ref="tabs" class="src-tabs" role="tablist" aria-label="Source files" @keydown="roam">
         <button
@@ -393,11 +393,18 @@ const ICONS = {
 </template>
 
 <style scoped>
+/* A hardshell (the site's material: two corners cut, the chrome glint
+   along them) over the page's ground. */
 .src {
+  --cut: 12px;
   overflow: hidden;
-  border-radius: 8px;
-  background: color-mix(in oklab, var(--color-background) 60%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-foreground) 7%, transparent);
+  background: var(--pearl), color-mix(in oklab, var(--color-background) 60%, transparent);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .src {
+    background: var(--color-background);
+  }
 }
 
 .src-bar {

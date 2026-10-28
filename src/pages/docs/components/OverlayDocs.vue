@@ -189,7 +189,7 @@ const API: Record<string, PropRow[]> = {
 
 <template>
   <section id="popover" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Popover</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Popover</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An anchored panel below its trigger. Bring your own trigger and content. Escape or an outside press emits close.
     </p>
@@ -209,7 +209,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="menu" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Menu</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A dropdown menu behind a single button: arrow keys move focus, Enter selects, Escape closes and refocuses the
       trigger.
@@ -224,7 +224,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="context-menu" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Context Menu</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Context Menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A right-click menu teleported to the pointer. It shares Menu's items and keyboard behavior, and Escape or any
       outside press dismisses it.
@@ -245,7 +245,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="menubar" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Menubar</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Menubar</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A desktop-style horizontal bar: one menu open at a time, hover switches between top items, ArrowLeft/Right move
       across them.
@@ -260,7 +260,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="tooltip" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Tooltip</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Tooltip</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A delayed hover tip above its target. It also shows on focus and hides on leave, blur, or Escape. No transition
       under reduced motion.
@@ -276,7 +276,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="preview-card" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Preview Card</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Preview Card</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A hover preview for rich content. It opens after a delay on hover or focus, and a short close delay lets the
       pointer travel into the card.
@@ -303,7 +303,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="command" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Command</h2>
+    <h2 class="chrome-type text-lg tracking-tight">Command</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       The ⌘K palette: type to filter, arrows to walk, Enter runs, Escape leaves. Groups follow first appearance; the
       hotkey stays in your hands. Try ⌘K right here.

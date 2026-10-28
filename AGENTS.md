@@ -296,8 +296,9 @@ Default section order:
   user's look: Y2K retrofuturism, biomorphic form and technical
   sportswear (liquid chrome and pearl, hardshell panels with cut corners
   holding soft gel wells, capsule keys, spec labels and slanted speed
-  tags). The landing leads it (`src/pages/AGENTS.md`); the docs and the
-  Studio take it next.
+  tags), worn by the landing, the docs and the Studio alike: its
+  materials are the site voice's (`src/app/styles.css`, both themes; see
+  `src/AGENTS.md`), the pages' uses in `src/pages/AGENTS.md`.
 - One site voice: the landing, the docs and the Studio speak one language
   (dark theme tokens, monospace, hairlines, ringed pressed states), so the
   whole site reads as one product. The copy follows the design.how bans
