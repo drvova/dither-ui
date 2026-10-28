@@ -124,7 +124,8 @@ Default section order:
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). The hero is a stage touring real
   components (`HeroStage.vue`); the sections hold live kit charts, a
-  keyframed `DitherStage`, a screen of kit parts and a kit background. No
+  keyframed `DitherStage`, a bento of live examples, the screens an
+  agent's asks make from kit parts and a kit background. No
   film player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
   hero's "Watch the film" key and is fetched only when its dialog opens.

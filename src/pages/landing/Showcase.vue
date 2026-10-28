@@ -26,7 +26,7 @@ import InstallBlock from "./InstallBlock.vue"
 import PauseChip from "./PauseChip.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 import { COMPONENT_COUNT, RUNTIME_DEPS } from "./facts"
-import { SECTION_COUNT, SHELVES } from "./hub"
+import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 
 // The portal (its scale after the dither winners on Awwwards, its voice the
 // site's own): a full-bleed hero band, the statement beside the stage (the
@@ -55,7 +55,7 @@ const RAMP = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
 const ROWS = [46, 52, 49, 58, 64, 61, 72, 78, 74, 86, 92, 88].map((renders, i) => ({ month: String(i + 1), renders }))
 const CONFIG = { renders: { label: "renders", color: "blue" as DitherColor } }
 
-// The docs list: the shelved families, biggest first, each to its first
+// The docs list: the big families, biggest first, each to its first
 // section with its glyph; then the handbook.
 const FAMILY_ICON: Record<string, IconName> = {
   Components: "Grid",
@@ -64,15 +64,13 @@ const FAMILY_ICON: Record<string, IconName> = {
   Examples: "Layout",
   Text: "Type",
 }
-const DOCS = SHELVES.filter((s) => s.value !== "explore")
-  .map((s) => ({
-    label: s.label,
-    icon: FAMILY_ICON[s.label] ?? "Grid",
-    count: s.count,
-    note: s.note,
-    href: routePath(`/docs/${s.cards[0].id}`),
-  }))
-  .sort((a, b) => b.count - a.count)
+const DOCS = DOCS_FAMILIES.map((f) => ({
+  label: f.label,
+  icon: FAMILY_ICON[f.label] ?? "Grid",
+  count: f.count,
+  note: f.note,
+  href: routePath(`/docs/${f.first}`),
+})).sort((a, b) => b.count - a.count)
 const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] = [
   { label: "Styling", icon: "Palette", note: "Tailwind, CSS, CSS Modules or StyleX", href: routePath("/docs/styling") },
   {

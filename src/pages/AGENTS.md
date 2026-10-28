@@ -78,15 +78,20 @@ widgets/features; page-specific conventions live here.
   are the global `:focus-visible`. Page geometry (`--shell` 72rem — the
   docs' width, so the brand never jumps — and `--rhythm`) lives on
   `LandingPage`'s `.landing`.
-- Header: the docs header's twin — h-14 on the shell, the 13px diamond
-  mark (ember core) + "dither-ui", then `.nav-a` links in sentence case
-  (Components → `#directory`, Docs, Agents → `#agents`, GitHub, a new
-  tab) and the `.nav-pill` "Open studio"; Components/Agents drop under sm,
-  GitHub under md. The
-  docs chrome's scroll-edge hairline, no hard border. The header MUST keep
-  `relative z-10`: `main` is `relative isolate` and page art lives inside
-  it, so a positioned sibling always paints over a static header —
-  without the lift the header renders zero visible pixels.
+- Header: a floating capsule (after dithercn.dev), sticky 8px under the
+  top of the viewport and centred on the shell (up to 48rem): the page
+  ground at 82% under a blur, a chrome rim through a masked `::after`, a
+  gloss across its top; solid under reduced transparency, a plain border
+  under forced colors. It holds the 13px diamond mark (ember core) +
+  "dither-ui", the `.nav-a` links in sentence case (Components →
+  `#directory`, Docs, Agents → `#agents`, GitHub under its mark in a new
+  tab) and the chrome `.key-primary` capsule "Open studio";
+  Components/Agents drop under sm, GitHub under md. Every `[id]` on the
+  landing carries `scroll-margin-top` (76px) so an anchor lands clear of
+  it. The header MUST stay positioned with `z-10` (sticky is): `main` is
+  `relative isolate` and page art lives inside it, so a positioned sibling
+  always paints over a static header — without the lift the header
+  renders zero visible pixels.
 - Hero (`Showcase.vue`): a FULL-BLEED band (the `--well` between
   hairlines) holding, on the shell, the statement beside the stage. Left
   (`.statement`): the mono h1 in chrome at display scale
@@ -165,7 +170,12 @@ widgets/features; page-specific conventions live here.
   under it sit in glyph squares (Copy, then Check once copied; Terminal;
   Code) and advance on copy; "Source on GitHub" carries
   GitHub's mark; the glint is a one-shot IO → CSS (latched, never
-  re-fires).
+  re-fires). Under them, "What lands in your repo" (`LANDS`, after
+  dithercn.dev): four columns split by hairlines (two under 900px, one
+  under 560px), each a mono path under its glyph and one line:
+  `dither-kit/engine/`, `tailwind/`, `stylex/` (Folder) and
+  `engine/theme.css` (Palette), as `docs/install.ts` aliases and imports
+  them; change both together.
 - Columns (`Showcase.vue`, `.cols` 1.9 : 1 : 1.2, one column under 900px):
   A — the Build panel ("Build your own screens", two `.thumb` product
   tiles of live kit components: Buttons and Controls, the slider re-seeding
@@ -178,7 +188,7 @@ widgets/features; page-specific conventions live here.
   12fps: an aurora sky and two hills drifting in container units, a moon
   on its arc, with its pause chip, into `/docs/stage`); live kit canvases
   carry the `.live` chip; C — lists
-  into the docs under `.list-h` headings (the shelved families biggest
+  into the docs under `.list-h` headings (the big families of `DOCS_FAMILIES`, biggest
   first, each under its glyph, its count in its own element, then the
   five Handbook topics under theirs; notes align with the labels), a
   hairline off the others. The three columns
@@ -187,41 +197,26 @@ widgets/features; page-specific conventions live here.
 - Directory (`Hub.vue`, `#directory`): a head (`.dir-head`): left the
   title ("n sections, every one of them live."), one line and "Browse all
   sections"; right the kit's `BarChart` of the docs (13rem): one row,
-  every `FAMILIES` entry its own series in sidebar order, the shelved
-  families in a hue and the rest grey, a hover tooltip; one column under
-  760px, the chart under the text. The chart is a map of the shelf: the
-  picked tab's family is the selected series (`defaultSelectedDataKey`;
-  the chart is keyed by the tab, so the kit's entrance is the change) and
-  a click on a shelved family's bar picks its tab (`isClickable` on the
-  shelved bars only; clicking the picked one again goes back to Explore).
-  The tab row is the keyboard's way. Then a `.panel` — the kit's own
-  `DitherTabs`
-  (grey; badges = family sizes; the row 12px in from the panel's top, as
-  flush its labels and badges ran into the hairline; on a phone it
-  scrolls sideways, its underline with it) over a horizontal snapping shelf of
-  `.thumb` cards that deep-link to `/docs/<id>` (the section's seeded
-  `DitherAvatar` identicon — decorative, no entrance — its family, its
-  name, up to three lines, its path). The shelf shows WHOLE cards, as many
-  as its width holds (a size container: five, four, three; the scroller
-  ends 14px in from the panel's edge so a view holds exactly them), and on
-  a phone one card with the next one's edge running off the panel; nothing
-  ever lies over a card (a fade and a knob over the last card read as
-  garbled text). Under it a foot: an "All n …" `.lead` (all sections on
-  Explore) and, while the shelf runs past a view, the pager: two real,
-  named buttons ("Earlier cards", "More cards"), each disabled at its end,
-  paging a whole view (the cards it shows and the gap after them). Under
-  that, inside the panel, `TOOLS`: what every docs
-  preview offers (Inspect, Edit and run, Hand it to your agent, each
-  under its glyph: Crosshair, Code, Bot), three columns split by
-  hairlines, each with the section that shows it. The tab row scrolls
-  sideways on a narrow screen, so each edge with more past it shows a
-  fade in the panel's ground and a chevron that pages it by 80%; the
-  chevron is the pointer's way (touch swipes, the keyboard's focus
-  scrolls), hidden from assistive tech, and only it takes the pointer.
-  `rail()` in `Hub.vue` follows both scrollers (scroll and
-  ResizeObserver, no polling; instant under reduced motion). `hub.ts` is static data (the landing never loads the docs IA —
-  no cross-page imports) held honest by `tests/hub.spec.ts`: families and
-  counts equal `GROUPS`, every card id is a section of the family it names.
+  every `FAMILIES` entry its own series in sidebar order, the big families
+  in a hue and the rest grey, a hover tooltip, nothing to click; one
+  column under 760px, the chart under the text. Then a `.panel` holding
+  the bento (after dithercn.dev): `BENTO`, big live kit components the
+  rest of the page does not show, on a 12-column grid in three rows
+  (radar 7 + meta balls 5; decrypted text, stat card, rating 4 each; pie
+  4, progress 3, galaxy 5), two columns under 900px, one under 560px.
+  Each tile is its surface in a `.thumb` gel well (13rem; the first row
+  18rem; the two canvases flush, each with its pause chip, hidden under
+  reduced motion, where the kit holds them still) and, under it, a strip:
+  the name as a `.lead` into `/docs/<id>`, the family as a `.spec`. Under
+  the bento, inside the panel, `TOOLS`: what every docs preview offers
+  (Inspect, Edit and run, Hand it to your agent, each under its glyph:
+  Crosshair, Code, Bot), three columns split by hairlines, each with the
+  section that shows it. `hub.ts` is static data (the landing never loads
+  the docs IA — no cross-page imports): `FAMILIES`, `DOCS_FAMILIES` (the
+  hero's docs list: the big families, their notes and first sections) and
+  `BENTO`, held honest by `tests/hub.spec.ts`: families and counts equal
+  `GROUPS`, every tile and first section is a section of the family it
+  names.
 - Rhythm: the hero and the close run full width; everything else sits on
   the shell (`Showcase`'s `.shell` for install and columns,
   `LandingPage`'s `.box` for directory, principles and agents), each a
@@ -273,14 +268,20 @@ widgets/features; page-specific conventions live here.
   one through `DitherClipboard`), pick a harness in the Studio's Agent
   panel (Bot; the harnesses `bridge/dither-bridge.mjs` knows, its
   `HARNESSES` ids and names in order — keep in sync — as hairline chips
-  each under the harness's own mark), ask for a screen (Sparkles); right,
-  on the well, what the ask makes: the Studio's dotted canvas holding the
-  ask in the composer's idiom (`›`, `ASK`) and an artboard (its name over
-  its frame) of live kit parts, a `DitherHeading`, a count beside a
-  `Sparkline`, a `DitherSwitch` with its visible label and a
-  `DitherButton`; under it a solid strip (the harness keeps its own login,
-  the Studio never asks for a key). The steps set the panel's height. One
-  column under 760px.
+  each under the harness's own mark), ask for a screen (Sparkles; under it
+  the `.seg` picker of the asks, after dithercn.dev). Right, on the well,
+  `AgentAsks.vue`: the picked ask (`asks.ts`: its words, the frame's
+  name, what drew it) in a prompt bubble (the ember `›`) on the Studio's
+  dotted canvas over the frame it lands as (its name over it, every part
+  live), then a caption under the Sparkles glyph naming the Studio tool
+  call that drew it. A screen is made ONLY of registry components (the
+  ones `add_screen` lays out; a chart is `add_chart`), so the caption is
+  true: a deploy panel, a sign-up card, a visits bar chart. Every ask's
+  words sit in one grid cell with only the picked one visible, and the
+  frames share one height, so a pick never moves the page. Under it a
+  solid strip (the harness keeps its own login, the Studio never asks for
+  a key). The stage sets the panel's height and the steps spread over
+  it. One column under 760px.
 - The close (`LandingPage.vue`, `.dawn`, after the agents): a FULL-BLEED
   band between hairlines, the last line ("Copy one folder. Every pixel
   is yours.") and its keys ("Read the quick start", "Open the studio") on
@@ -661,23 +662,21 @@ widgets/features; page-specific conventions live here.
   scene already shown never blanks when picked again), "Watch the film"
   (the dialog opens with focus in it, the film plays with sound,
   Escape closes it, focus returns to the key, the video leaves the DOM),
-  the directory chart (a tab selects its bar, a shelved bar picks its
-  tab, an unshelved one is not clickable), each pause chip stopping its
-  surface, the rays brightening with a key hovered or focused, reduced
+  the directory chart's tooltip, the bento's tiles drawn (charts after
+  their entrance) and leading into their sections, the header capsule
+  floating over the page with every key focusable and an anchor landing
+  clear of it, each pause chip stopping its surface, the rays brightening with a key hovered or focused, reduced
   motion (the tour paused, the stage and the rays still with their chips
   hidden, a picked scene shown at once, the film waiting on its poster),
   the agents panel's screen beside the steps with no empty band under
-  either, the
+  either and the same height for every ask, the
   marks crisp at their sizes (install picker, harness chips, footer
   badges; the Studio's harness picker with the bridge running), the
   Build slider re-seeding its badge, emote hover, a principle re-staging
   the figure on hover, keyboard focus AND scroll (its words lighting in
-  reading order; still under reduced motion), the directory tabs'
-  underline under the picked tab (also after swiping the row on a phone),
-  the scroll cues (the tab row's edges only where more lies past them, and
-  none at desktop width; the shelf whole cards at 1440, 1024 and 700px,
-  one and a peek on a phone, its pager landing the next view's first card
-  flush and each button off at its end), canonical
+  reading order; still under reduced motion), the bento's rows whole at
+  1440, 800 and 390px and "What lands in your repo" in four, two and one
+  columns, canonical
   and legacy docs deep links (`/docs/avatar`, `#/docs/avatar`), and
   Studio deep links (`/studio#new/pie`, `#/studio/new/pie`) each
   create/select exactly one artboard (`#new/film` six: the film and its

@@ -253,6 +253,11 @@
   }
 }
 
+/* An anchor lands clear of the floating header. */
+.landing [id] {
+  scroll-margin-top: 76px;
+}
+
 /* A list's head: its heading left, a quiet link right. */
 .landing .list-head {
   display: flex;

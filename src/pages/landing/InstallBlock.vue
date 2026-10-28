@@ -19,6 +19,31 @@ const STEPS = [
   { id: "bun", label: "bun", cmd: `bun add ${RUNTIME_DEPS.join(" ")}` },
 ] as const
 
+// What the folder step lands in a repo: the kit's layers and its tokens,
+// as the docs' Quick start aliases and imports them (`docs/install.ts`).
+const LANDS = [
+  {
+    path: "dither-kit/engine/",
+    icon: "Folder",
+    line: "The dither, the palettes, the clock and every canvas. Plain TypeScript, no styling.",
+  },
+  {
+    path: "dither-kit/tailwind/",
+    icon: "Folder",
+    line: "Every component, authored with Tailwind. Point the @dither-kit alias here.",
+  },
+  {
+    path: "dither-kit/stylex/",
+    icon: "Folder",
+    line: "The same components in StyleX, generated from the Tailwind layer. Or alias here.",
+  },
+  {
+    path: "dither-kit/engine/theme.css",
+    icon: "Palette",
+    line: "The tokens as plain custom properties. Import it once and retheme the whole kit.",
+  },
+] as const
+
 const active = ref(0)
 // Latched on the first successful copy: the next step is pasting it.
 const taken = ref(false)
@@ -115,6 +140,16 @@ onBeforeUnmount(() => {
         <ToolMark id="github" :size="13" />Source on GitHub<span class="sr-only"> (opens in a new tab)</span>
       </a>
     </div>
+
+    <section class="lands" aria-labelledby="lands-h">
+      <h2 id="lands-h" class="list-h">What lands in your repo</h2>
+      <ul class="lands-list">
+        <li v-for="f in LANDS" :key="f.path">
+          <code class="lands-path"><DitherIcon :name="f.icon" :size="13" :stroke-width="1.5" />{{ f.path }}</code>
+          <p class="lands-p">{{ f.line }}</p>
+        </li>
+      </ul>
+    </section>
   </div>
 </template>
 
@@ -420,6 +455,89 @@ onBeforeUnmount(() => {
   to {
     transform: translateX(calc(100cqw + 100%));
     opacity: 0;
+  }
+}
+
+/* What lands in your repo: four columns split by hairlines (two under
+   900px, one under 560px), each a mono path under its glyph and a line. */
+.lands {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 0 2px;
+}
+
+.lands-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.lands-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 18px 4px;
+}
+
+.lands-list li:first-child {
+  padding-left: 0;
+}
+
+.lands-list li + li {
+  box-shadow: inset 1px 0 0 var(--line);
+}
+
+.lands-path {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.lands-path :deep(svg) {
+  flex: none;
+  color: var(--ink-3);
+}
+
+.lands-p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+@media (max-width: 899px) {
+  .lands-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lands-list li:nth-child(odd) {
+    padding-left: 0;
+    box-shadow: none;
+  }
+  .lands-list li:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 559px) {
+  .lands-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lands-list li,
+  .lands-list li + li {
+    padding-left: 0;
+    padding-right: 0;
+    box-shadow: none;
+  }
+  .lands-list li + li {
+    border-top: 1px solid var(--line);
   }
 }
 
