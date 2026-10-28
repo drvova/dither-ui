@@ -31,7 +31,7 @@ const styles = stylex.create({
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },
   },
-  textMutedForeground70: { color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)" },
+  textMutedForeground: { color: "var(--muted-foreground)" },
   button2: { fontFamily: "var(--font-mono)", fontSize: "13px" },
   input: { paddingBlock: "0.25rem" },
 })
@@ -108,7 +108,7 @@ function cancel() {
       v-if="!editing"
       type="button"
       :disabled="props.disabled"
-      :class="cn(styles.button, !props.modelValue && styles.textMutedForeground70, styles.button2)"
+      :class="cn(styles.button, !props.modelValue && styles.textMutedForeground, styles.button2)"
       @click="enterEdit"
     >
       {{ props.modelValue || props.placeholder }}

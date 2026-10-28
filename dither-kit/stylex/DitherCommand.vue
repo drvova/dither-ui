@@ -45,7 +45,7 @@ const styles = stylex.create({
     fontSize: "13px",
     color: "var(--foreground)",
     outlineStyle: "none",
-    "::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
+    "::placeholder": { color: "var(--muted-foreground)" },
   },
   text2: {
     borderRadius: "0.25rem",
@@ -70,7 +70,7 @@ const styles = stylex.create({
     paddingBottom: "0.25rem",
     fontSize: "9px",
     letterSpacing: "0.2em",
-    color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)",
+    color: "var(--muted-foreground)",
     textTransform: "uppercase",
   },
   li3: {

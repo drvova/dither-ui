@@ -27,7 +27,7 @@ const styles = stylex.create({
     transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
     transitionDuration: "150ms",
     outlineStyle: "none",
-    "::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
+    "::placeholder": { color: "var(--muted-foreground)" },
     boxShadow: {
       default: null,
       ":focus-visible": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 20%, transparent)",

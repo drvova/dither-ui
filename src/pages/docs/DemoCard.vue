@@ -248,7 +248,7 @@ function chip(apply: () => void, already: boolean) {
           class="flex h-40 animate-pulse items-center justify-center rounded-md bg-card/40 motion-reduce:animate-none"
           aria-hidden="true"
         >
-          <span class="text-[11px] text-muted-foreground/60">preview</span>
+          <span class="text-[11px] text-muted-foreground">preview</span>
         </div>
       </div>
     </div>

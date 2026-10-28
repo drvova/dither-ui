@@ -13,7 +13,7 @@ const collapsed = inject(SIDEBAR_COLLAPSED, ref(false))
   <div class="mt-4 first:mt-0" role="group" :aria-label="props.label">
     <div
       v-if="props.label && !collapsed"
-      class="px-2.5 pb-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70"
+      class="px-2.5 pb-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground"
     >
       {{ props.label }}
     </div>

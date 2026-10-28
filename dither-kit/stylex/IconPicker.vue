@@ -30,7 +30,7 @@ const styles = stylex.create({
     fontSize: "12.5px",
     color: "var(--foreground)",
     outlineStyle: "none",
-    "::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
+    "::placeholder": { color: "var(--muted-foreground)" },
     transitionProperty: { default: null, "@media (prefers-reduced-motion: reduce)": "none" },
   },
   grid2: {
@@ -145,6 +145,7 @@ const filtered = computed(() => {
           v-bind="stylex.attrs(styles.input2)"
           type="radio"
           name="dk-icon-picker"
+          :aria-label="name"
           :value="name"
           :checked="modelValue === name"
           :disabled="props.disabled"

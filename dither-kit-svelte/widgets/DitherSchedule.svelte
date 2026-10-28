@@ -30,7 +30,7 @@
 <div class={cn("flex gap-2 font-mono", className)} role="group" aria-label="Day schedule">
   <div class="relative w-10 shrink-0 text-right" aria-hidden="true">
     {#each hours as h (h)}
-      <span class="absolute right-0 -translate-y-1/2 text-[9px] tabular-nums text-muted-foreground/60" style:top={pct(h)}>
+      <span class="absolute right-0 -translate-y-1/2 text-[9px] tabular-nums text-muted-foreground" style:top={pct(h)}>
         {String(h).padStart(2, "0")}
       </span>
     {/each}
@@ -47,7 +47,7 @@
       >
         <span aria-hidden="true" class="absolute inset-y-0 left-0 w-[2px]" style:background={cssColor(e.color ?? "blue")}></span>
         <p class="truncate pl-1.5 text-[10px] text-foreground">{e.label}</p>
-        <p class="truncate pl-1.5 text-[9px] tabular-nums text-muted-foreground/70">{fmt(e.start)}–{fmt(e.end)}</p>
+        <p class="truncate pl-1.5 text-[9px] tabular-nums text-muted-foreground">{fmt(e.start)}–{fmt(e.end)}</p>
       </div>
     {/each}
     {#if now !== undefined && now >= from && now <= to}

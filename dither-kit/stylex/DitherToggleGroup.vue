@@ -34,8 +34,9 @@ const styles = stylex.create({
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },
   },
-  button2: { borderColor: "transparent", color: "var(--foreground)" },
-  button3: {
+  borderTransparent: { borderColor: "transparent", color: "#000" },
+  borderTransparent2: { borderColor: "transparent", color: "var(--foreground)" },
+  button2: {
     borderColor: "transparent",
     color: {
       default: "var(--muted-foreground)",
@@ -53,6 +54,7 @@ import type { Option } from "./DitherSelect.vue"
 import { paintToggleCanvas } from "./DitherToggle.vue"
 import { cn, type StyleProp } from "./lib"
 import { fillOf, type PixelColor } from "../engine/pixel"
+import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
 
 const props = withDefaults(
   defineProps<{
@@ -65,6 +67,9 @@ const props = withDefaults(
   }>(),
   { type: "single", color: "blue" },
 )
+
+// A bright fill takes black ink: white on it would sink under AA.
+const darkInk = computed(() => darkInkOnDark(fillOf(props.color), LABEL_COVERAGE.gradient))
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: string | string[]): void
@@ -163,7 +168,9 @@ onBeforeUnmount(() => ro?.disconnect())
       :aria-pressed="props.type === 'multiple' ? isOn(o) : undefined"
       :tabindex="props.type === 'single' ? (i === activeIndex ? 0 : -1) : undefined"
       :disabled="o.disabled"
-      :class="cn(styles.button, isOn(o) ? styles.button2 : styles.button3)"
+      :class="
+        cn(styles.button, isOn(o) ? (darkInk ? styles.borderTransparent : styles.borderTransparent2) : styles.button2)
+      "
       @click="pick(o)"
     >
       <canvas

@@ -21,6 +21,7 @@ const styles = stylex.create({
     paddingInline: "0.25rem",
   },
   button: {
+    minWidth: "1.5rem",
     borderRadius: "0.25rem",
     padding: "0.375rem",
     color: {

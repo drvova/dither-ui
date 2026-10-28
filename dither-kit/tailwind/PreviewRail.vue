@@ -73,7 +73,7 @@ const previewTop = computed(() => (previewIndex.value === null ? 0 : (centerOf(p
 <template>
   <nav
     ref="rail"
-    :class="cn('relative inline-flex flex-col gap-1 py-1', props.class)"
+    :class="cn('relative inline-flex flex-col gap-2 py-1', props.class)"
     aria-label="Preview rail"
     @pointermove="track"
     @pointerleave="py = null"

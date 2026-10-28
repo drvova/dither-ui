@@ -16,10 +16,12 @@ const styles = stylex.create({
   justifyEnd: { justifyContent: "flex-end" },
   justifyCenter: { justifyContent: "center" },
   justifyStart: { justifyContent: "flex-start" },
-  button: {
+  component: {
+    marginBlock: "-0.25rem",
     display: "flex",
     alignItems: "center",
     gap: "0.375rem",
+    paddingBlock: "0.25rem",
     fontFamily: "var(--font-mono)",
     fontSize: "11px",
     color: "var(--muted-foreground)",
@@ -71,13 +73,16 @@ function dimmed(name: string): boolean {
       )
     "
   >
-    <button
+    <!-- A key you can press is a button; a plain key is a label, never a
+         disabled button. The padding pulled back by the margin gives the
+         button a 24px target without moving a pixel. -->
+    <component
+      :is="props.isClickable ? 'button' : 'span'"
       v-for="name in chart.names"
       :key="name"
-      type="button"
-      :disabled="!props.isClickable"
-      :class="cn(styles.button, props.isClickable && styles.pointerEventsAuto, dimmed(name) && styles.opacity40)"
-      @click="chart.selectDataKey(chart.selectedDataKey === name ? null : name)"
+      :type="props.isClickable ? 'button' : undefined"
+      :class="cn(styles.component, props.isClickable && styles.pointerEventsAuto, dimmed(name) && styles.opacity40)"
+      @click="props.isClickable && chart.selectDataKey(chart.selectedDataKey === name ? null : name)"
       @pointerenter="chart.setFocusDataKey(name)"
       @pointerleave="chart.setFocusDataKey(null)"
       @focus="chart.setFocusDataKey(name)"
@@ -85,6 +90,6 @@ function dimmed(name: string): boolean {
     >
       <span v-bind="stylex.attrs(styles.text)" :style="{ backgroundColor: rgb(chart.seedOf(name).fill) }" />
       {{ chart.labelOf(name) }}
-    </button>
+    </component>
   </div>
 </template>

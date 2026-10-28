@@ -205,7 +205,7 @@ async function copy() {
               type="text"
               aria-label="Search wallet"
               :placeholder="props.searchPlaceholder"
-              class="w-full bg-transparent px-2 text-[12px] text-foreground outline-none placeholder:text-muted-foreground/60"
+              class="w-full bg-transparent px-2 text-[12px] text-foreground outline-none placeholder:text-muted-foreground"
               @input="type"
               @keydown.enter="submitSearch()"
             />
@@ -272,7 +272,7 @@ async function copy() {
         v-if="searching && props.recent?.length && !query"
         class="absolute top-12 right-14 z-20 min-w-40 origin-top-right rounded-lg border border-border bg-card p-1 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"
       >
-        <div class="px-2.5 pt-1 pb-0.5 text-[9px] tracking-[0.2em] text-muted-foreground/70 uppercase">Recent</div>
+        <div class="px-2.5 pt-1 pb-0.5 text-[9px] tracking-[0.2em] text-muted-foreground uppercase">Recent</div>
         <button
           v-for="r in props.recent"
           :key="r"

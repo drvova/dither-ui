@@ -1154,7 +1154,7 @@ const gradientCode = computed(
               keep their own styles either way.
             </p>
             <div class="mt-3"><CodeBlock :code="SNIPPETS.anyStyles" /></div>
-            <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
+            <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground">
               Prefer to read the source first? Every component lives under
               <a
                 :href="`https://github.com/drvova/dither-ui/tree/master/${docsFramework === 'svelte' ? 'dither-kit-svelte' : 'dither-kit'}`"
@@ -1588,14 +1588,14 @@ const gradientCode = computed(
                     name="demo-email"
                     placeholder="you@dither-ui.com"
                     autocomplete="off"
-                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
                   />
                   <input
                     type="password"
                     name="demo-password"
                     placeholder="••••••••"
                     autocomplete="off"
-                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
                   />
                   <DitherButton color="blue" variant="gradient" class="w-full py-2 text-[11px]">Sign in</DitherButton>
                 </div>

@@ -43,6 +43,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelMatrixFromSeed } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
+import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
 
 const props = withDefaults(
   defineProps<{
@@ -57,6 +58,8 @@ const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : n
 const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<BadgeVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
+// A bright fill takes black ink: white on it would sink under AA.
+const darkInk = computed(() => darkInkOnDark(fillOf(color.value), LABEL_COVERAGE[variant.value]))
 
 const wrapRef = ref<HTMLSpanElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -95,6 +98,7 @@ onBeforeUnmount(() => ro?.disconnect())
     :class="
       cn(
         'relative isolate inline-flex items-center overflow-hidden rounded px-2 py-0.5 font-mono text-[10px] text-foreground',
+        darkInk && 'text-black',
         props.class,
       )
     "

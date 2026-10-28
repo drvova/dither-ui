@@ -25,13 +25,13 @@
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", monospace;
 
   /* Palette swatches — the perceptual mirror of PALETTE in palette.ts,
-     tuned per theme: deeper ink on light so text stays readable, the
-     original bright fills on dark (see .dark below). */
-  --swatch-green: rgb(20, 140, 72);
+     tuned per theme: deeper ink on light so text in any swatch clears AA
+     (5:1 on white), the original bright fills on dark (see .dark below). */
+  --swatch-green: rgb(14, 122, 60);
   --swatch-blue: rgb(24, 104, 204);
   --swatch-purple: rgb(112, 72, 220);
   --swatch-pink: rgb(190, 42, 142);
-  --swatch-orange: rgb(198, 106, 16);
+  --swatch-orange: rgb(160, 82, 6);
   --swatch-red: rgb(198, 44, 44);
   --swatch-grey: rgb(96, 100, 108);
 }

@@ -80,7 +80,7 @@ function onDrop(e: DragEvent) {
         Drop files here or
         <span class="text-foreground underline underline-offset-2">{{ props.buttonLabel }}</span>
       </span>
-      <span v-if="props.accept" class="text-[11px] text-muted-foreground/70">{{ props.accept }}</span>
+      <span v-if="props.accept" class="text-[11px] text-muted-foreground">{{ props.accept }}</span>
     </label>
 
     <ul v-if="files.length > 0" class="grid gap-1.5">

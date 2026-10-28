@@ -59,7 +59,7 @@ const styles = stylex.create({
     borderWidth: "0",
   },
   text: { fontSize: "13px" },
-  text2: { fontSize: "11px", color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)" },
+  text2: { fontSize: "11px", color: "var(--muted-foreground)" },
 })
 </script>
 

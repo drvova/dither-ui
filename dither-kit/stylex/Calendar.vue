@@ -21,6 +21,7 @@ const styles = stylex.create({
     paddingInline: "0.25rem",
   },
   button: {
+    minWidth: "1.5rem",
     borderRadius: "0.25rem",
     padding: "0.375rem",
     color: {
@@ -75,8 +76,8 @@ const styles = stylex.create({
       },
     },
   },
-  textMutedForeground50: {
-    color: "color-mix(in oklab, var(--muted-foreground) 50%, transparent)",
+  textMutedForeground: {
+    color: "var(--muted-foreground)",
     backgroundColor: {
       default: null,
       ":hover": {
@@ -246,7 +247,7 @@ watch(
                   ? styles.textForeground
                   : cell.inMonth
                     ? styles.textForeground90
-                    : styles.textMutedForeground50,
+                    : styles.textMutedForeground,
             )
           "
           @click="pick(cell.iso)"

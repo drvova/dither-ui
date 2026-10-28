@@ -357,7 +357,7 @@ async function exportPng() {
                   @click="addComponent(entry)"
                 >
                   <span class="block truncate text-foreground">{{ entry.label }}</span
-                  ><span class="block truncate text-[9px] text-muted-foreground/60">{{ entry.is }}</span>
+                  ><span class="block truncate text-[9px] text-muted-foreground">{{ entry.is }}</span>
                 </button>
               </div>
             </section>

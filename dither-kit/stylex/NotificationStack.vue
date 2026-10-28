@@ -129,11 +129,7 @@ const styles = stylex.create({
     fontSize: "12px",
     color: "var(--foreground)",
   },
-  text5: {
-    flexShrink: "0",
-    fontSize: "9px",
-    color: "color-mix(in oklab, var(--muted-foreground) 80%, transparent)",
-  },
+  text5: { flexShrink: "0", fontSize: "9px", color: "var(--muted-foreground)" },
   text6: {
     marginTop: "0.125rem",
     display: "block",

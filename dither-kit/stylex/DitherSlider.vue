@@ -57,7 +57,8 @@ function paintTrack(
 const styles = stylex.create({
   frame: {
     position: "relative",
-    height: "1rem",
+    marginBlock: "-0.25rem",
+    height: "1.5rem",
     width: "100%",
     touchAction: "none",
     WebkitUserSelect: "none",
@@ -75,19 +76,21 @@ const styles = stylex.create({
     borderRadius: "2px",
   },
   canvas: { position: "absolute", inset: "0px", height: "100%", width: "100%" },
-  layer2: {
+  grid: {
     position: "absolute",
     top: "calc(1 / 2 * 100%)",
-    width: "0.75rem",
-    height: "0.75rem",
+    display: "grid",
+    width: "1.5rem",
+    height: "1.5rem",
     translate: "calc(calc(1 / 2 * 100%) * -1) calc(calc(1 / 2 * 100%) * -1)",
-    borderRadius: "2px",
-    backgroundColor: "var(--foreground)",
+    placeItems: "center",
+    borderRadius: "4px",
   },
-  layer3: {
+  text: { width: "0.75rem", height: "0.75rem", borderRadius: "2px", backgroundColor: "var(--foreground)" },
+  layer2: {
     pointerEvents: "none",
     position: "absolute",
-    top: "-1.5rem",
+    top: "-1.25rem",
     translate: "calc(calc(1 / 2 * 100%) * -1) 0",
     borderRadius: "0.25rem",
     borderStyle: "solid",
@@ -308,6 +311,7 @@ onBeforeUnmount(() => ro?.disconnect())
       />
     </div>
     <template v-for="t in thumbs" :key="t.which">
+      <!-- The thumb is a 24px target around its 12px mark. -->
       <div
         role="slider"
         :aria-label="t.name || undefined"
@@ -316,16 +320,18 @@ onBeforeUnmount(() => ro?.disconnect())
         :aria-valuemax="t.max"
         :aria-valuenow="t.value"
         :aria-disabled="props.disabled || undefined"
-        v-bind="stylex.attrs(styles.layer2)"
+        v-bind="stylex.attrs(styles.grid)"
         :style="{ left: `${toRatio(t.value) * 100}%` }"
         @keydown="onKeydown(t.which, $event)"
         @focus="focused = t.which"
         @blur="focused = -1"
-      />
+      >
+        <span v-bind="stylex.attrs(styles.text)" />
+      </div>
       <div
         v-if="props.showValue && (active === t.which || focused === t.which)"
         aria-hidden="true"
-        v-bind="stylex.attrs(styles.layer3)"
+        v-bind="stylex.attrs(styles.layer2)"
         :style="{ left: `${toRatio(t.value) * 100}%` }"
       >
         {{ t.value }}

@@ -62,6 +62,7 @@ const options = computed(() =>
 
 <template>
   <select
+    aria-label="Language"
     :value="props.modelValue"
     :disabled="props.disabled"
     :class="

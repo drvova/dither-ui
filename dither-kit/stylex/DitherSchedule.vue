@@ -12,7 +12,7 @@ const styles = stylex.create({
     right: "0px",
     translate: "0 calc(calc(1 / 2 * 100%) * -1)",
     fontSize: "9px",
-    color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)",
+    color: "var(--muted-foreground)",
     fontVariantNumeric: "   tabular-nums ",
   },
   frame2: {
@@ -59,7 +59,7 @@ const styles = stylex.create({
     whiteSpace: "nowrap",
     paddingLeft: "0.375rem",
     fontSize: "9px",
-    color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
+    color: "var(--muted-foreground)",
     fontVariantNumeric: "   tabular-nums ",
   },
   layer5: { position: "absolute", insetInline: "0px", zIndex: "10" },

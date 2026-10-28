@@ -4,7 +4,7 @@ import { cn } from "./lib"
 
 /** Text primitive on the site's native type scale. `as` picks the element
  * (p default; span/h3/li/… for context), `tone` maps to the shadcn token
- * utilities, `size` to the 11–15px scale the docs use — anything else
+ * utilities (`faint` shares the muted ink: no text drops under AA), `size` to the 11–15px scale the docs use — anything else
  * (leading, tracking, weight) rides along in `class`. */
 const props = withDefaults(
   defineProps<{
@@ -19,7 +19,7 @@ const props = withDefaults(
 const TONES = {
   default: "text-foreground",
   muted: "text-muted-foreground",
-  faint: "text-muted-foreground/70",
+  faint: "text-muted-foreground",
 } as const
 
 const SIZES = {

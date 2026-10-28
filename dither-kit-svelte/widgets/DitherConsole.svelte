@@ -44,7 +44,7 @@
 <div class={cn("flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/60 bg-background/60", className)}>
   <div class="flex h-8 shrink-0 items-center gap-2 border-b border-border/60 px-3">
     <span class="size-1.5 rounded-full bg-muted-foreground/50" aria-hidden="true"></span>
-    <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">{title}</span>
+    <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{title}</span>
     {#if actions}
       <span class="ml-auto flex items-center gap-1.5">
         {@render actions()}
@@ -58,12 +58,12 @@
     use:followBottom={{ count: rows.length, follow }}
   >
     {#if !rows.length}
-      <p class="text-muted-foreground/50">No output yet.</p>
+      <p class="text-muted-foreground">No output yet.</p>
     {/if}
     {#each rows as l, i (i)}
       <p class="flex gap-2 whitespace-pre-wrap">
         {#if l.at}
-          <span class="shrink-0 text-muted-foreground/40 tabular-nums">{l.at}</span>
+          <span class="shrink-0 text-muted-foreground tabular-nums">{l.at}</span>
         {/if}
         <span style:color={LEVEL_VAR[l.level ?? "info"]}>{l.text}</span>
       </p>

@@ -41,11 +41,7 @@ const styles = stylex.create({
   text: { marginTop: "0.5rem", textAlign: "center", fontSize: "12px" },
   textForeground: { color: "var(--foreground)" },
   textMutedForeground: { color: "var(--muted-foreground)" },
-  text2: {
-    textAlign: "center",
-    fontSize: "11px",
-    color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)",
-  },
+  text2: { textAlign: "center", fontSize: "11px", color: "var(--muted-foreground)" },
 })
 </script>
 

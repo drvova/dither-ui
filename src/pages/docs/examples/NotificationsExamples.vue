@@ -151,7 +151,7 @@ const SNIPPET = `<div class="w-full max-w-80 rounded-lg border">
                 <span class="text-foreground">{{ n.actor }}</span>
                 {{ n.action }}
                 <span class="text-foreground">{{ n.target }}</span>
-                <time class="ml-1 text-[9px] text-muted-foreground/70 tabular-nums">{{ n.time }}</time>
+                <time class="ml-1 text-[9px] text-muted-foreground tabular-nums">{{ n.time }}</time>
               </span>
               <span v-if="!n.read" class="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
               <span v-if="!n.read" class="sr-only">unread</span>

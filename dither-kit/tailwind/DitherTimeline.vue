@@ -74,7 +74,7 @@ onMounted(() => {
       <div class="flex-1 pt-px">
         <div class="flex items-baseline justify-between gap-2">
           <p class="text-[13px] text-foreground">{{ it.title }}</p>
-          <span v-if="it.time" class="shrink-0 text-[11px] tabular-nums text-muted-foreground/70">{{ it.time }}</span>
+          <span v-if="it.time" class="shrink-0 text-[11px] tabular-nums text-muted-foreground">{{ it.time }}</span>
         </div>
         <p v-if="it.body" class="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
           {{ it.body }}

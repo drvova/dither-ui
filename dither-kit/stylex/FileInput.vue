@@ -45,7 +45,7 @@ const styles = stylex.create({
   icon: { color: "var(--muted-foreground)" },
   text: { fontSize: "12.5px", color: "var(--muted-foreground)" },
   text2: { color: "var(--foreground)", textDecorationLine: "underline", textUnderlineOffset: "2px" },
-  text3: { fontSize: "11px", color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)" },
+  text3: { fontSize: "11px", color: "var(--muted-foreground)" },
   ul: { display: "grid", gap: "0.375rem" },
   li: {
     display: "flex",

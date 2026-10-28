@@ -7,7 +7,7 @@ const styles = stylex.create({
     position: "relative",
     display: "inline-flex",
     flexDirection: "column",
-    gap: "0.25rem",
+    gap: "0.5rem",
     paddingBlock: "0.25rem",
   },
   button: {

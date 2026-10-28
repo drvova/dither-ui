@@ -36,6 +36,8 @@ const props = withDefaults(
     max?: number
     step?: number
     disabled?: boolean
+    /** The input's accessible name. */
+    label?: string
   }>(),
   { step: 1, disabled: false },
 )
@@ -103,6 +105,7 @@ function onKeydown(event: KeyboardEvent) {
       type="text"
       inputmode="numeric"
       role="spinbutton"
+      :aria-label="props.label"
       :aria-valuenow="props.modelValue"
       :aria-valuemin="props.min"
       :aria-valuemax="props.max"

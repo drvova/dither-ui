@@ -109,7 +109,7 @@ const styles = stylex.create({
     fontSize: "12px",
     color: "var(--foreground)",
     outlineStyle: "none",
-    "::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
+    "::placeholder": { color: "var(--muted-foreground)" },
   },
   button3: {
     position: "relative",
@@ -218,7 +218,7 @@ const styles = stylex.create({
     paddingBottom: "0.125rem",
     fontSize: "9px",
     letterSpacing: "0.2em",
-    color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
+    color: "var(--muted-foreground)",
     textTransform: "uppercase",
   },
   button5: {

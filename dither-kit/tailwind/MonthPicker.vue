@@ -76,7 +76,7 @@ function onKeydown(e: KeyboardEvent) {
       <button
         type="button"
         aria-label="Previous year"
-        class="rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+        class="min-w-6 rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
         @click="shiftYear(-1)"
       >
         ‹
@@ -85,7 +85,7 @@ function onKeydown(e: KeyboardEvent) {
       <button
         type="button"
         aria-label="Next year"
-        class="rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+        class="min-w-6 rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
         @click="shiftYear(1)"
       >
         ›

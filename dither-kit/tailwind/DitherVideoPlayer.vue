@@ -128,7 +128,7 @@ const btn = cn(
       <div v-else class="grid h-full w-full place-items-center" aria-hidden="true">
         <div class="text-center">
           <span class="mx-auto block size-3 rounded-[2px] bg-border" />
-          <p class="mt-2 text-[11px] text-muted-foreground/60">No source.</p>
+          <p class="mt-2 text-[11px] text-muted-foreground">No source.</p>
         </div>
       </div>
     </div>

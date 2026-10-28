@@ -30,11 +30,7 @@ const accent = computed(() => cssColor(props.color))
 const sideClass = (m: BracketMatch, side: "a" | "b") =>
   cn(
     "flex h-7 min-w-0 items-center gap-2 px-2.5 text-left text-[11px] transition-colors",
-    m.winner === side
-      ? "text-foreground"
-      : m.winner
-        ? "text-muted-foreground/50 line-through"
-        : "text-muted-foreground",
+    m.winner === side ? "text-foreground" : m.winner ? "text-muted-foreground line-through" : "text-muted-foreground",
     props.interactive && !m.winner && "cursor-pointer hover:bg-card/60 hover:text-foreground",
   )
 </script>

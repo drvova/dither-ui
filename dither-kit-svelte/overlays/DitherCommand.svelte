@@ -118,7 +118,7 @@
           aria-controls={`${idBase}-list`}
           aria-activedescendant={flat[active] ? `${idBase}-${flat.indexOf(flat[active])}` : undefined}
           {placeholder}
-          class="h-11 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground/60"
+          class="h-11 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
         />
         <span class="rounded border border-border/60 px-1 text-[9px] text-muted-foreground" aria-hidden="true">esc</span>
       </div>
@@ -128,7 +128,7 @@
         {/if}
         {#each groups as [group, groupItems] (group || "top")}
           {#if group}
-            <li aria-hidden="true" class="px-2.5 pt-2 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">{group}</li>
+            <li aria-hidden="true" class="px-2.5 pt-2 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">{group}</li>
           {/if}
           {#each groupItems as item (item.value)}
             <!-- svelte-ignore a11y_click_events_have_key_events (listbox options are pointer targets; the keyboard lives on the combobox input via aria-activedescendant) -->

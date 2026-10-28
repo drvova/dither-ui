@@ -343,7 +343,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Layer tree is a `listbox`: every row type is a focusable `role="option"`
   with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
   don't retrigger), ↑/↓ move focus and MUST stopPropagation — the same keys
-  nudge artboards at window level. New row kinds follow this shape.
+  nudge artboards at window level. A row's lock and hide keys show on hover
+  AND while the row holds focus (a key Tabbed to is never invisible); a
+  hidden row says so with its eye-off key and an italic name, its text
+  kept at AA, never dimmed. New row kinds follow this shape.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex. The same file holds the site chrome voice (`@layer components`:
@@ -360,6 +363,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   ceramic on light, lit from the top left), `--well`, `--gloss`,
   `--recess` and `--recess-sm` (a surface pressed in, shadowed from the
   top left), `--smoke` (smoked polymer: graphite on dark, bone on light),
+  a light `--muted-foreground` a step deeper than the kit's (`#5b6270`,
+  AA on the bone grounds, not only on white),
   `--float-shadow`, `--ease-settle`, `--cut` (16px), `--display-face`
   (Michroma, then the mono; the `font-display` utility reads it; its
   `@font-face` is `shared/fonts/display.css`, imported by the landing and

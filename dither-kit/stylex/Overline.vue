@@ -3,9 +3,13 @@
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
-  text: { display: "block", fontSize: "10px", letterSpacing: "0.2em", textTransform: "uppercase" },
-  textMutedForeground70: { color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)" },
-  textMutedForeground: { color: "var(--muted-foreground)" },
+  text: {
+    display: "block",
+    fontSize: "10px",
+    letterSpacing: "0.2em",
+    color: "var(--muted-foreground)",
+    textTransform: "uppercase",
+  },
 })
 </script>
 
@@ -13,23 +17,15 @@ const styles = stylex.create({
 import { cn, type StyleProp } from "./lib"
 
 /** The tiny uppercase eyebrow above section titles — 10px, open tracking,
- * muted; the editorial "OVERLINE" register. */
+ * muted; the editorial "OVERLINE" register. `faint` shares the muted ink:
+ * no text in the kit drops under AA (4.5:1). */
 const props = withDefaults(defineProps<{ tone?: "muted" | "faint"; class?: string; xstyle?: StyleProp }>(), {
   tone: "muted",
 })
 </script>
 
 <template>
-  <span
-    :class="
-      cn(
-        styles.text,
-        props.tone === 'faint' ? styles.textMutedForeground70 : styles.textMutedForeground,
-        props.xstyle,
-        props.class,
-      )
-    "
-  >
+  <span :class="cn(styles.text, props.xstyle, props.class)">
     <slot />
   </span>
 </template>

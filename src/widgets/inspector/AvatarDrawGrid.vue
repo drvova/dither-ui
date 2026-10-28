@@ -125,7 +125,7 @@ function reseed() {
         from seed
       </button>
     </div>
-    <p class="text-[10px] leading-relaxed text-muted-foreground/70">
+    <p class="text-[10px] leading-relaxed text-muted-foreground">
       Click or drag to paint. The mirror setting paints symmetrically.
     </p>
   </div>

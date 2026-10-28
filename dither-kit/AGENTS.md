@@ -587,6 +587,23 @@ the kit every import is relative (`../engine/pixel`).
 - Respect `prefers-reduced-motion` inside the kit (see
   `pixelPrefersReducedMotion` / `prefersReducedMotion`) — consumers must not
   need to opt in.
+- Text and targets hold WCAG AA in both themes, measured on the rendered
+  page. No readable text fades under 4.5:1: `faint` tones share the muted
+  ink, and only `aria-hidden` separators and the wheel picker's masked edge
+  rows keep a fade. The light `--swatch-*` inks clear 5:1 on white. A label
+  on a dithered fill (badge, button, toggle, toggle group) takes the ink
+  `darkInkOnDark(fill, LABEL_COVERAGE[variant])` (`engine/palette.ts`)
+  picks: pure black on a bright fill (on the solid orange key `#0a0a0a`
+  stops at 4.4:1), the theme's ink otherwise; the button's raster stores
+  its colour pre-scaled by alpha, so it passes coverage². The toggle paints
+  its fill with alpha as the badge does, so a light page sees a pastel.
+  Every target is 24px or spaced per WCAG 2.5.8: a legend key is a label
+  unless clickable, then a button with a 24px hit (`-my-1 py-1`); a slider
+  thumb is a 24px box around its 12px mark on a 24px track (`-my-1 h-6`);
+  the preview rail's pitch is 24px; radio rows are `min-h-6`. A focusable
+  surface (`DitherWorld`) draws its own inset ring as a last child on
+  keyboard focus: an outline sits under its canvases, and its well clips
+  an outer one.
 - Canvas visibility defaults to paused until IntersectionObserver reports the
   element visible; do not start chart animation loops optimistically before the
   first visibility observation. The IO callback must set `visible.value` before

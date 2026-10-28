@@ -39,6 +39,7 @@ const styles = stylex.create({
     transitionDuration: "150ms",
     scale: { default: null, ":active": "0.96" },
   },
+  textBlack: { color: "#000" },
   img: {
     position: "absolute",
     inset: "0px",
@@ -81,6 +82,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn, type StyleProp } from "./lib"
 import { pixelBloomStyle, pixelPrefersReducedMotion } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
+import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
+import { fillOf } from "../engine/pixel"
 import { CONTROL_BUTTON } from "./control"
 
 const props = withDefaults(
@@ -106,6 +109,9 @@ const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : n
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<ButtonVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
+// A bright fill takes black ink: white on it would sink under AA. The
+// raster stores its colour already scaled by alpha: the band is coverage².
+const darkInk = computed(() => darkInkOnDark(fillOf(color.value), LABEL_COVERAGE[variant.value] ** 2))
 const bloom = computed<PixelBloomInput>(() => props.bloom ?? (props.seed !== undefined ? props.seed : "off"))
 const cell = computed(() => props.cell ?? s.value?.cell ?? 2)
 
@@ -284,7 +290,7 @@ onBeforeUnmount(() => {
     :type="props.type"
     :disabled="props.loading || props.disabled"
     :aria-busy="props.loading || undefined"
-    :class="cn(CONTROL_BUTTON, styles.button, props.xstyle, props.class)"
+    :class="cn(CONTROL_BUTTON, styles.button, darkInk && styles.textBlack, props.xstyle, props.class)"
   >
     <img
       v-if="precompiled"

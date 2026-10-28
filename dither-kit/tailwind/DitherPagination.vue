@@ -55,7 +55,7 @@ const cellBase =
       <span
         v-if="p === '…'"
         aria-hidden="true"
-        class="inline-flex h-8 min-w-8 items-center justify-center text-[12px] text-muted-foreground/50"
+        class="inline-flex h-8 min-w-8 items-center justify-center text-[12px] text-muted-foreground"
         >…</span
       >
       <button

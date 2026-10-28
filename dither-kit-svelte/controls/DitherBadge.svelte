@@ -47,6 +47,7 @@
   import type { Snippet } from "svelte"
   import { cn } from "../runtime/lib"
   import { pixelMatrixFromSeed } from "../engine/pixel"
+  import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
   import { kitFromSeed } from "../engine/dither-paint"
   import { paintOnResize, type CanvasPaint } from "../runtime/canvas-mount"
 
@@ -70,6 +71,8 @@
   const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
   const color = $derived<PixelColor>(colorProp ?? s?.hue ?? "blue")
   const variant = $derived<BadgeVariant>(variantProp ?? s?.variant ?? "gradient")
+  // A bright fill takes black ink: white on it would sink under AA.
+  const darkInk = $derived(darkInkOnDark(fillOf(color), LABEL_COVERAGE[variant]))
 
   const paint = $derived<CanvasPaint>((canvas, host) => {
     const ctx = canvas.getContext("2d", { willReadFrequently: true })
@@ -86,6 +89,7 @@
 <span
   class={cn(
     "relative isolate inline-flex items-center overflow-hidden rounded px-2 py-0.5 font-mono text-[10px] text-foreground",
+    darkInk && "text-black",
     className
   )}
 >

@@ -192,7 +192,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
         <div class="col-b">
           <figure class="pick">
             <div class="gel pick-art">
-              <span class="live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
+              <span class="speed-tag live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
               <DitherWorld
                 :source="WORLD"
                 :colors="RAMP"
@@ -230,7 +230,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
           </figure>
           <figure class="pick">
             <div class="gel pick-art">
-              <span class="live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
+              <span class="speed-tag live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
               <!-- The docs' stage at well size: an aurora sky and two hills
                    drifting in container units, a moon on its arc. -->
               <DitherStage

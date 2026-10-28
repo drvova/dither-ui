@@ -4,6 +4,7 @@ import type { Option } from "./DitherSelect.vue"
 import { paintToggleCanvas } from "./DitherToggle.vue"
 import { cn } from "./lib"
 import { fillOf, type PixelColor } from "../engine/pixel"
+import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
 
 const props = withDefaults(
   defineProps<{
@@ -15,6 +16,9 @@ const props = withDefaults(
   }>(),
   { type: "single", color: "blue" },
 )
+
+// A bright fill takes black ink: white on it would sink under AA.
+const darkInk = computed(() => darkInkOnDark(fillOf(props.color), LABEL_COVERAGE.gradient))
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: string | string[]): void
@@ -116,7 +120,9 @@ onBeforeUnmount(() => ro?.disconnect())
       class="relative isolate overflow-hidden rounded-md border px-2.5 py-1.5 font-mono text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
       :class="
         isOn(o)
-          ? 'border-transparent text-foreground'
+          ? darkInk
+            ? 'border-transparent text-black'
+            : 'border-transparent text-foreground'
           : 'border-transparent text-muted-foreground hover:text-foreground'
       "
       @click="pick(o)"

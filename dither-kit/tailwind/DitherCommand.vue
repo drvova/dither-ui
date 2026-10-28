@@ -119,7 +119,7 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
             :aria-controls="`${idBase}-list`"
             :aria-activedescendant="flat[active] ? `${idBase}-${indexOf(flat[active])}` : undefined"
             :placeholder="props.placeholder"
-            class="h-11 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground/60"
+            class="h-11 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
           />
           <span class="rounded border border-border/60 px-1 text-[9px] text-muted-foreground" aria-hidden="true"
             >esc</span
@@ -133,7 +133,7 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
             <li
               v-if="group"
               aria-hidden="true"
-              class="px-2.5 pt-2 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60"
+              class="px-2.5 pt-2 pb-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground"
             >
               {{ group }}
             </li>

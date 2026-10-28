@@ -36,7 +36,7 @@ const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
       <span v-if="props.description" class="text-[12px] leading-snug text-muted-foreground">
         {{ props.description }}
       </span>
-      <span class="text-[12px] leading-snug text-muted-foreground/70"><slot /></span>
+      <span class="text-[12px] leading-snug text-muted-foreground"><slot /></span>
     </span>
   </label>
 </template>

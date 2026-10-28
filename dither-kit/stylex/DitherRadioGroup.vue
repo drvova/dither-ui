@@ -42,6 +42,7 @@ const styles = stylex.create({
   grid: { display: "grid", gap: "0.75rem" },
   button: {
     display: "inline-flex",
+    minHeight: "1.5rem",
     alignItems: "center",
     gap: "0.5rem",
     textAlign: "left",

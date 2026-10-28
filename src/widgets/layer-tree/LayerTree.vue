@@ -321,7 +321,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         <button
           type="button"
           :aria-label="node.group.collapsed ? 'Expand group' : 'Collapse group'"
-          class="flex size-5 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground"
+          class="flex size-5 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
           @click.stop="node.group.collapsed = !node.group.collapsed"
         >
           <svg
@@ -337,7 +337,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         </button>
         <svg
           viewBox="0 0 24 24"
-          class="size-3.5 shrink-0 text-muted-foreground/70"
+          class="size-3.5 shrink-0 text-muted-foreground"
           fill="none"
           stroke="currentColor"
           stroke-width="2"
@@ -369,7 +369,9 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :aria-pressed="groupLocked(node.group)"
             class="flex size-6 items-center justify-center rounded hover:bg-background"
             :class="
-              groupLocked(node.group) ? 'text-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'
+              groupLocked(node.group)
+                ? 'text-foreground'
+                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="setGroupLocked(node.group.id, !groupLocked(node.group))"
           >
@@ -387,7 +389,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :class="
               groupHidden(node.group)
                 ? 'text-muted-foreground'
-                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'
+                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="setGroupHidden(node.group.id, !groupHidden(node.group))"
           >
@@ -418,7 +420,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         :aria-label="node.a.name"
         class="group/row flex h-7 items-center gap-1 rounded pr-1.5 transition-colors"
         :style="{ paddingLeft: `${4 + node.depth * 16}px` }"
-        :class="[isSel(node.a.id) ? 'ring-on' : 'hover:bg-card', node.a.hidden ? 'opacity-45' : '']"
+        :class="isSel(node.a.id) ? 'ring-on' : 'hover:bg-card'"
         @click="clickArtboard(node.a, $event)"
         @keydown.enter.self.prevent="clickArtboard(node.a, $event as unknown as MouseEvent)"
         @keydown.space.self.prevent="clickArtboard(node.a, $event as unknown as MouseEvent)"
@@ -427,7 +429,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         <button
           type="button"
           :aria-label="isOpen(node.a.id) ? 'Collapse layers' : 'Expand layers'"
-          class="flex size-6 shrink-0 items-center justify-center text-muted-foreground/70 hover:text-foreground"
+          class="flex size-6 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
           @click.stop="toggleArtboard(node.a.id)"
         >
           <svg
@@ -443,7 +445,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         </button>
         <span
           class="grid size-3.5 shrink-0 place-items-center text-[13px] font-semibold leading-none"
-          :class="isSel(node.a.id) ? 'text-foreground' : 'text-muted-foreground/60'"
+          :class="isSel(node.a.id) ? 'text-foreground' : 'text-muted-foreground'"
           >#</span
         >
         <input
@@ -461,7 +463,13 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         <span
           v-else
           class="truncate"
-          :class="isSel(node.a.id) ? 'font-medium text-foreground' : 'text-foreground/90'"
+          :class="
+            isSel(node.a.id)
+              ? 'font-medium text-foreground'
+              : node.a.hidden
+                ? 'italic text-muted-foreground'
+                : 'text-foreground/90'
+          "
           @dblclick.stop="startRename(node.a.id, node.a.name)"
           >{{ node.a.name }}</span
         >
@@ -471,7 +479,11 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :aria-label="node.a.locked ? 'Unlock artboard' : 'Lock artboard'"
             :aria-pressed="node.a.locked"
             class="flex size-6 items-center justify-center rounded hover:bg-background"
-            :class="node.a.locked ? 'text-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'"
+            :class="
+              node.a.locked
+                ? 'text-foreground'
+                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+            "
             @click.stop="setArtboardLocked(node.a.id, !node.a.locked)"
           >
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2">
@@ -486,7 +498,9 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :aria-pressed="node.a.hidden"
             class="flex size-6 items-center justify-center rounded hover:bg-background"
             :class="
-              node.a.hidden ? 'text-muted-foreground' : 'text-muted-foreground opacity-0 group-hover/row:opacity-70'
+              node.a.hidden
+                ? 'text-muted-foreground'
+                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="setArtboardHidden(node.a.id, !node.a.hidden)"
           >
@@ -506,7 +520,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             </svg>
           </button>
         </span>
-        <span v-if="editingId !== node.a.id" class="shrink-0 text-[11px] capitalize text-muted-foreground/50">{{
+        <span v-if="editingId !== node.a.id" class="shrink-0 text-[11px] capitalize text-muted-foreground">{{
           node.a.widget?.kind ?? node.a.chart.type
         }}</span>
       </div>
@@ -520,19 +534,21 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
         :aria-label="node.layer.label"
         class="group/row flex h-7 items-center gap-2 rounded pr-1.5 transition-colors"
         :style="{ paddingLeft: `${8 + node.depth * 16}px` }"
-        :class="[
-          editor.selectedLayerId === node.layer.id ? 'ring-on' : 'text-muted-foreground hover:bg-card',
-          !layerVisible(node.a, node.layer) && togglable(node.layer) ? 'opacity-45' : '',
-        ]"
+        :class="[editor.selectedLayerId === node.layer.id ? 'ring-on' : 'text-muted-foreground hover:bg-card']"
         @click="selectLayer(node.layer.id)"
         @keydown.enter.self.prevent="selectLayer(node.layer.id)"
         @keydown.space.self.prevent="selectLayer(node.layer.id)"
         @contextmenu.prevent.stop="open($event, layerItems(node.a, node.layer))"
       >
-        <span class="truncate text-[12px]">{{ node.layer.label }}</span>
+        <span
+          class="truncate text-[12px]"
+          :class="!layerVisible(node.a, node.layer) && togglable(node.layer) ? 'italic' : ''"
+          >{{ node.layer.label }}</span
+        >
         <span
           v-if="node.layer.kind === 'series' && seriesOf(node.a, node.layer)"
           class="ml-auto size-2.5 shrink-0 rounded-[2px]"
+          :class="!layerVisible(node.a, node.layer) ? 'opacity-45' : ''"
           :style="{ backgroundColor: cssColor(seriesOf(node.a, node.layer)!.color) }"
         />
         <span
@@ -545,7 +561,11 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :aria-label="layerLocked(node.a, node.layer) ? 'Unlock layer' : 'Lock layer'"
             :aria-pressed="layerLocked(node.a, node.layer)"
             class="flex size-6 items-center justify-center rounded hover:bg-black/10"
-            :class="layerLocked(node.a, node.layer) ? 'opacity-90' : 'opacity-0 group-hover/row:opacity-70'"
+            :class="
+              layerLocked(node.a, node.layer)
+                ? 'opacity-90'
+                : 'opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+            "
             @click.stop="toggleLayerLock(node.a, node.layer)"
           >
             <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2">
@@ -559,7 +579,11 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :aria-label="layerVisible(node.a, node.layer) ? 'Hide layer' : 'Show layer'"
             :aria-pressed="!layerVisible(node.a, node.layer)"
             class="flex size-6 items-center justify-center rounded hover:bg-black/10"
-            :class="!layerVisible(node.a, node.layer) ? 'opacity-90' : 'opacity-0 group-hover/row:opacity-70'"
+            :class="
+              !layerVisible(node.a, node.layer)
+                ? 'opacity-90'
+                : 'opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+            "
             @click.stop="toggleLayerVis(node.a, node.layer)"
           >
             <svg

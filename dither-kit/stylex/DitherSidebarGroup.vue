@@ -9,7 +9,7 @@ const styles = stylex.create({
     paddingBottom: "0.375rem",
     fontSize: "10px",
     letterSpacing: "0.2em",
-    color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
+    color: "var(--muted-foreground)",
     textTransform: "uppercase",
   },
   box3: {

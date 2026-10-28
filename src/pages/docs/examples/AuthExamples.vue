@@ -83,21 +83,21 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
             name="signup-name"
             placeholder="Ada Byte"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
           />
           <input
             type="email"
             name="signup-email"
             placeholder="you@dither-ui.com"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
           />
           <input
             type="password"
             name="signup-password"
             placeholder="••••••••"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
           />
           <div class="grid grid-cols-3 gap-1 rounded-md border border-border/60 p-1" role="group" aria-label="Plan">
             <button
@@ -148,7 +148,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
               name="magic-email"
               placeholder="you@dither-ui.com"
               autocomplete="off"
-              class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+              class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
             />
             <DitherButton color="green" variant="gradient" class="w-full py-2 text-[11px]" @click="sent = true"
               >Send magic link</DitherButton

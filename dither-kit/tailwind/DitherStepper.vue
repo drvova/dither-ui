@@ -63,7 +63,7 @@ const state = (i: number) => (i < props.current ? "done" : i === props.current ?
       <span :class="cn('mt-2 text-center text-[12px]', i === current ? 'text-foreground' : 'text-muted-foreground')">{{
         s.label
       }}</span>
-      <span v-if="s.hint" class="text-center text-[11px] text-muted-foreground/60">{{ s.hint }}</span>
+      <span v-if="s.hint" class="text-center text-[11px] text-muted-foreground">{{ s.hint }}</span>
     </li>
   </ol>
 </template>

@@ -351,7 +351,9 @@ Default section order:
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
 - Accessibility is a floor, not a feature: labels, focus rings, reduced-motion
-  and reduced-transparency support are expected in every change.
+  and reduced-transparency support are expected in every change, and the
+  user's design system asks it too: text at AA (4.5:1) on the rendered
+  page, gradients and materials included, and 24px targets (WCAG 2.5.8).
 - Studio serves Vue developers and visual designers equally. Use the durable
   audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 

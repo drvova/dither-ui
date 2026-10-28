@@ -45,7 +45,7 @@ const styles = stylex.create({
   text2: {
     flexShrink: "0",
     fontSize: "11px",
-    color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
+    color: "var(--muted-foreground)",
     fontVariantNumeric: "   tabular-nums ",
   },
   p2: { marginTop: "0.125rem", fontSize: "12px", lineHeight: "1.625", color: "var(--muted-foreground)" },

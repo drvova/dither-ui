@@ -241,7 +241,7 @@ onBeforeUnmount(() => ro?.disconnect())
     ref="rootRef"
     :class="
       cn(
-        'relative h-4 w-full touch-none select-none',
+        'relative -my-1 h-6 w-full touch-none select-none',
         props.disabled ? 'pointer-events-none opacity-40' : 'cursor-pointer',
         props.class,
       )
@@ -260,6 +260,7 @@ onBeforeUnmount(() => ro?.disconnect())
       />
     </div>
     <template v-for="t in thumbs" :key="t.which">
+      <!-- The thumb is a 24px target around its 12px mark. -->
       <div
         role="slider"
         :aria-label="t.name || undefined"
@@ -268,16 +269,18 @@ onBeforeUnmount(() => ro?.disconnect())
         :aria-valuemax="t.max"
         :aria-valuenow="t.value"
         :aria-disabled="props.disabled || undefined"
-        class="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-[2px] bg-foreground"
+        class="absolute top-1/2 grid size-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[4px]"
         :style="{ left: `${toRatio(t.value) * 100}%` }"
         @keydown="onKeydown(t.which, $event)"
         @focus="focused = t.which"
         @blur="focused = -1"
-      />
+      >
+        <span class="size-3 rounded-[2px] bg-foreground" />
+      </div>
       <div
         v-if="props.showValue && (active === t.which || focused === t.which)"
         aria-hidden="true"
-        class="pointer-events-none absolute -top-6 -translate-x-1/2 rounded border border-border bg-card px-1 py-0.5 font-mono text-[10px] text-foreground tabular-nums"
+        class="pointer-events-none absolute -top-5 -translate-x-1/2 rounded border border-border bg-card px-1 py-0.5 font-mono text-[10px] text-foreground tabular-nums"
         :style="{ left: `${toRatio(t.value) * 100}%` }"
       >
         {{ t.value }}

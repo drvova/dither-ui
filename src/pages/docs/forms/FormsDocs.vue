@@ -57,7 +57,7 @@ const SNIPPET_CODE_INPUT = `<DitherCodeInput v-model="snippet" @submit="run" :ro
 
 const SNIPPET_INPUT_GROUP = `<DitherInputGroup>
   <template #prefix>https://</template>
-  <DitherInput v-model="host" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
+  <DitherInput v-model="host" aria-label="Site address" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
   <template #suffix>/docs</template>
 </DitherInputGroup>`
 
@@ -82,7 +82,7 @@ const SNIPPET_MENTION_INPUT = `<DitherMentionInput v-model="body" :options="hand
 
 const SNIPPET_FILE_INPUT = `<DitherFileInput v-model="picked" multiple accept="image/*" />`
 
-const SNIPPET_LIST_BOX = `<DitherListBox v-model="city" :options="['Kyoto', 'Seoul', 'Taipei']" @select="go" />`
+const SNIPPET_LIST_BOX = `<DitherListBox v-model="city" :options="['Kyoto', 'Seoul', 'Taipei']" aria-label="City" @select="go" />`
 
 const SNIPPET_MULTI_SELECT = `<DitherMultiSelect v-model="tags" :options="ALL_TAGS" @search="filter" />`
 
@@ -399,6 +399,7 @@ const API: Record<string, PropRow[]> = {
           <template #prefix>https://</template>
           <DitherInput
             model-value="dither-ui.com"
+            aria-label="Site address"
             class="min-h-8 border-0 bg-transparent px-0 py-1 shadow-none hover:border-0 focus-visible:ring-0"
           />
           <template #suffix>/docs</template>
@@ -543,7 +544,11 @@ const API: Record<string, PropRow[]> = {
     </p>
     <DemoCard :code="SNIPPET_LIST_BOX">
       <div class="mx-auto w-full max-w-[16rem]">
-        <DitherListBox :model-value="'Seoul'" :options="['Kyoto', 'Seoul', 'Taipei', 'Osaka', 'Busan']" />
+        <DitherListBox
+          :model-value="'Seoul'"
+          :options="['Kyoto', 'Seoul', 'Taipei', 'Osaka', 'Busan']"
+          aria-label="City"
+        />
       </div>
     </DemoCard>
     <PropsTable :rows="API.listBox" />

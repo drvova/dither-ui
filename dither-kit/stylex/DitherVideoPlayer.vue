@@ -24,11 +24,7 @@ const styles = stylex.create({
     borderRadius: "2px",
     backgroundColor: "var(--border)",
   },
-  p: {
-    marginTop: "0.5rem",
-    fontSize: "11px",
-    color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)",
-  },
+  p: { marginTop: "0.5rem", fontSize: "11px", color: "var(--muted-foreground)" },
   grid2: {
     display: "grid",
     gap: "0.375rem",

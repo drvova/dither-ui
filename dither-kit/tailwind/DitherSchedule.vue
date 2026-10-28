@@ -38,7 +38,7 @@ const fmt = (h: number) =>
       <span
         v-for="h in hours"
         :key="h"
-        class="absolute right-0 -translate-y-1/2 text-[9px] tabular-nums text-muted-foreground/60"
+        class="absolute right-0 -translate-y-1/2 text-[9px] tabular-nums text-muted-foreground"
         :style="{ top: pct(h) }"
         >{{ String(h).padStart(2, "0") }}</span
       >
@@ -66,9 +66,7 @@ const fmt = (h: number) =>
           :style="{ background: cssColor(e.color ?? 'blue') }"
         />
         <p class="truncate pl-1.5 text-[10px] text-foreground">{{ e.label }}</p>
-        <p class="truncate pl-1.5 text-[9px] tabular-nums text-muted-foreground/70">
-          {{ fmt(e.start) }}–{{ fmt(e.end) }}
-        </p>
+        <p class="truncate pl-1.5 text-[9px] tabular-nums text-muted-foreground">{{ fmt(e.start) }}–{{ fmt(e.end) }}</p>
       </div>
       <div
         v-if="props.now !== undefined && props.now >= props.from && props.now <= props.to"

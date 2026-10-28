@@ -173,3 +173,20 @@ export function colorToHex(color: DitherColor | number | string): string {
   if (isDitherColor(color)) return rgbToHex(PALETTE[color].fill)
   return color
 }
+
+/** A dithered fill's mean coverage behind a centred label, per variant: the
+ * kit's button, badge and toggle raster at rest (density at mid height, lit
+ * cells at k, unlit at 0.4k, the dotted and hatched gaps empty). */
+export const LABEL_COVERAGE = { gradient: 0.57, solid: 0.825, dotted: 0.4, hatched: 0.35 } as const
+
+/** Whether a label on `fill` laid over a dark page at `coverage` reads better
+ * in dark ink than light: the band's relative luminance is past 0.168, where
+ * black and near-white text reach the same contrast. Over a light page
+ * the fill turns pastel and the theme's dark ink always wins. */
+export function darkInkOnDark(fill: Rgb, coverage: number): boolean {
+  const lin = (c: number) => {
+    const v = (c * coverage) / 255
+    return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+  }
+  return 0.2126 * lin(fill[0]) + 0.7152 * lin(fill[1]) + 0.0722 * lin(fill[2]) > 0.168
+}

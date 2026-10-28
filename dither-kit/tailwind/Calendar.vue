@@ -136,7 +136,7 @@ watch(
       <button
         type="button"
         aria-label="Previous month"
-        class="rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+        class="min-w-6 rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
         @click="moveMonth(-1)"
       >
         ‹
@@ -145,7 +145,7 @@ watch(
       <button
         type="button"
         aria-label="Next month"
-        class="rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+        class="min-w-6 rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
         @click="moveMonth(1)"
       >
         ›
@@ -178,7 +178,7 @@ watch(
                 ? 'text-foreground ring-1 ring-foreground/30'
                 : cell.inMonth
                   ? 'text-foreground/90 hover:bg-accent/10'
-                  : 'text-muted-foreground/50 hover:bg-accent/10'
+                  : 'text-muted-foreground hover:bg-accent/10'
           "
           @click="pick(cell.iso)"
         >

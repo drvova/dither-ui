@@ -81,7 +81,7 @@
 
 <nav
   bind:this={rail}
-  class={cn("relative inline-flex flex-col gap-1 py-1", className)}
+  class={cn("relative inline-flex flex-col gap-2 py-1", className)}
   aria-label="Preview rail"
   onpointermove={track}
   onpointerleave={() => (py = null)}

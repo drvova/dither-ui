@@ -5,7 +5,6 @@ import * as stylex from "@stylexjs/stylex"
 const styles = stylex.create({
   tonesDefault: { color: "var(--foreground)" },
   tonesMuted: { color: "var(--muted-foreground)" },
-  tonesFaint: { color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)" },
   sizesXs: { fontSize: "11px" },
   sizesSm: { fontSize: "12px" },
   sizesMd: { fontSize: "13px" },
@@ -19,7 +18,7 @@ import { cn, type StyleProp } from "./lib"
 
 /** Text primitive on the site's native type scale. `as` picks the element
  * (p default; span/h3/li/… for context), `tone` maps to the shadcn token
- * utilities, `size` to the 11–15px scale the docs use — anything else
+ * utilities (`faint` shares the muted ink: no text drops under AA), `size` to the 11–15px scale the docs use — anything else
  * (leading, tracking, weight) rides along in `class`. */
 const props = withDefaults(
   defineProps<{
@@ -35,7 +34,7 @@ const props = withDefaults(
 const TONES = {
   default: styles.tonesDefault,
   muted: styles.tonesMuted,
-  faint: styles.tonesFaint,
+  faint: styles.tonesMuted,
 } as const
 
 const SIZES = {

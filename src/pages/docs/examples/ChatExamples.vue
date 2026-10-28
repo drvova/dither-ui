@@ -368,7 +368,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
                 :class="m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'border-border/60 bg-card/40'"
               >
                 <p class="text-[11px] leading-relaxed text-foreground">{{ m.text }}</p>
-                <span class="mt-0.5 block text-right text-[9px] text-muted-foreground/70 tabular-nums">{{ m.at }}</span>
+                <span class="mt-0.5 block text-right text-[9px] text-muted-foreground tabular-nums">{{ m.at }}</span>
               </div>
             </div>
             <div v-if="typing" class="flex items-end gap-2" aria-live="polite">
@@ -506,7 +506,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
                 :class="m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'border-border/60 bg-card/40'"
               >
                 <p class="text-[11px] leading-relaxed text-foreground">{{ m.text }}</p>
-                <span class="mt-0.5 block text-right text-[9px] text-muted-foreground/70 tabular-nums">{{ m.at }}</span>
+                <span class="mt-0.5 block text-right text-[9px] text-muted-foreground tabular-nums">{{ m.at }}</span>
               </div>
             </div>
           </template>
@@ -579,7 +579,7 @@ const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions
             <div class="min-w-0 flex-1">
               <p v-if="!grouped(i)" class="flex items-baseline gap-2">
                 <span class="text-[11px] text-foreground">{{ m.author }}</span>
-                <time class="text-[9px] tabular-nums text-muted-foreground/70">{{ m.at }}</time>
+                <time class="text-[9px] tabular-nums text-muted-foreground">{{ m.at }}</time>
               </p>
               <p class="text-[11px] leading-relaxed text-muted-foreground">{{ m.text }}</p>
               <div v-if="m.reactions.length" class="mt-1 flex flex-wrap gap-1">

@@ -17,7 +17,7 @@ const styles = stylex.create({
   },
   text: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   text2: { color: "var(--foreground)" },
-  text3: { color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)" },
+  text3: { color: "var(--muted-foreground)" },
   text4: {
     color: "var(--muted-foreground)",
     transitionProperty: {

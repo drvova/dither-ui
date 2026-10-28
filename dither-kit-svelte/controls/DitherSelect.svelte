@@ -135,7 +135,7 @@
     onkeydown={onKeydown}
     {...rest}
   >
-    <span class="truncate {selected ? 'text-foreground' : 'text-muted-foreground/70'}"
+    <span class="truncate {selected ? 'text-foreground' : 'text-muted-foreground'}"
       >{selected?.label ?? placeholder}</span
     >
     <span

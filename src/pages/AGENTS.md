@@ -389,9 +389,10 @@ widgets/features; page-specific conventions live here.
   scoped styles, so the recipe ships inside the string, gated on the
   component's own `data-armed`/`data-live`). No-JS/prerender: no attrs, the
   finished mark renders; reduced motion: full static rim.
-- Wells running live kit canvases carry the live chip (`.live`: an
-  `.led` + "Live at 12 fps"), stating honest data: only a well whose
-  surface runs at that rate carries it.
+- Wells running live kit canvases carry the live chip (`.speed-tag.live`:
+  the site's speed tag, placed over the well on a smoked ground, an `.led`
+  + "Live at 12 fps"), stating honest data: only a well whose surface runs
+  at that rate carries it.
 
 ### docs/
 

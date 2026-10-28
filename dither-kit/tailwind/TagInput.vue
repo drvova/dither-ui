@@ -68,7 +68,7 @@ function onKeydown(e: KeyboardEvent) {
       <button
         type="button"
         :aria-label="`Remove ${tag}`"
-        class="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+        class="-m-[5px] rounded p-[7px] text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
         @click="remove(i)"
       >
         <Icon name="Close" :size="10" />
@@ -78,7 +78,8 @@ function onKeydown(e: KeyboardEvent) {
       v-if="!props.disabled"
       v-model="draft"
       :placeholder="(props.modelValue ?? []).length === 0 ? props.placeholder : ''"
-      class="min-w-20 flex-1 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground/60"
+      :aria-label="props.placeholder || 'Add a tag'"
+      class="min-w-20 flex-1 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
       @keydown="onKeydown"
       @blur="add(draft)"
     />

@@ -9,6 +9,7 @@ import { boxFrom, distances, dock, snap } from "@/widgets/workbench/model/geomet
 import { encodeGif, lzw, medianCut, quantize } from "@/shared/lib/gif"
 import { arrowPaths, erase, hitLine, inkOutline, pressures, type InkPoint } from "@/widgets/workbench/model/ink"
 import {
+  audit,
   controlOf,
   focusOrder,
   labelOf,
@@ -360,6 +361,10 @@ describe("workbench DOM readings", () => {
     expect(nameOf(img)).toBe("")
     expect(roleOf(a)).toBe("link")
     expect(nameOf(sw)).toBe("")
+    const cell = document.createElement("button")
+    cell.setAttribute("role", "gridcell")
+    cell.textContent = "28"
+    expect(nameOf(cell)).toBe("28")
   })
 
   it("orders Tab stops: positive tabindex first, then the document", () => {
@@ -378,6 +383,22 @@ describe("workbench DOM readings", () => {
       toJSON() {},
     } as DOMRect)
     expect(focusOrder(r).map((el) => el.textContent)).toEqual(["e", "b", "a", "d"])
+    rs.restoreAllMocks()
+  })
+
+  it("audits targets through their label, skipping disabled keys, hidden links and skip-link targets", () => {
+    document.body.innerHTML = `<div id="r"><main tabindex="-1"><label data-box="90,24"><input type="checkbox" data-box="13,13"> Bold</label>
+      <button aria-label="Legend" data-box="60,17"></button><button disabled data-box="40,17">Off</button><a href="#main" style="clip: rect(0px, 0px, 0px, 0px)" data-box="1,1">Skip</a></main></div>`
+    const r = document.getElementById("r")!
+    rs.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+      const [w, h] = (this.getAttribute("data-box") ?? "100,100").split(",").map(Number)
+      return { width: w, height: h, x: 0, y: 0, top: 0, left: 0, right: w, bottom: h, toJSON() {} } as DOMRect
+    })
+    const found = audit(r, r).map((i) => `${i.kind} ${i.el.tagName.toLowerCase()}`)
+    expect(found).toEqual(["target button"])
+    // Alone, the small key passes on spacing (its 24px circle meets nothing).
+    r.querySelector("label")!.remove()
+    expect(audit(r, r).filter((i) => i.kind === "target")).toEqual([])
     rs.restoreAllMocks()
   })
 })

@@ -55,7 +55,7 @@ const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>()
         @change="emit('update:modelValue', font.stack)"
       />
       <span class="text-[13px]" :style="{ fontFamily: font.stack }">{{ font.label }}</span>
-      <span class="text-[11px] text-muted-foreground/70">Aa 123</span>
+      <span class="text-[11px] text-muted-foreground">Aa 123</span>
     </label>
   </div>
 </template>

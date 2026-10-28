@@ -32,11 +32,6 @@ const styles = stylex.create({
   grid: { display: "grid", gap: "0.25rem" },
   text: { fontSize: "13px", lineHeight: "1", fontWeight: "500", color: "var(--foreground)" },
   text2: { fontSize: "12px", lineHeight: "1.375", color: "var(--muted-foreground)" },
-  text3: {
-    fontSize: "12px",
-    lineHeight: "1.375",
-    color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
-  },
 })
 </script>
 
@@ -78,7 +73,7 @@ const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
       <span v-if="props.description" v-bind="stylex.attrs(styles.text2)">
         {{ props.description }}
       </span>
-      <span v-bind="stylex.attrs(styles.text3)"><slot /></span>
+      <span v-bind="stylex.attrs(styles.text2)"><slot /></span>
     </span>
   </label>
 </template>

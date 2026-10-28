@@ -216,7 +216,7 @@
 <div
   bind:this={rootEl}
   class={cn(
-    "relative h-4 w-full touch-none select-none",
+    "relative -my-1 h-6 w-full touch-none select-none",
     disabled ? "pointer-events-none opacity-40" : "cursor-pointer",
     className
   )}
@@ -234,6 +234,7 @@
     ></canvas>
   </div>
   {#each thumbs as t (t.which)}
+    <!-- The thumb is a 24px target around its 12px mark. -->
     <div
       role="slider"
       aria-label={t.name || undefined}
@@ -242,16 +243,18 @@
       aria-valuemax={t.max}
       aria-valuenow={t.value}
       aria-disabled={disabled || undefined}
-      class="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-[2px] bg-foreground"
+      class="absolute top-1/2 grid size-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[4px]"
       style:left={`${toRatio(t.value) * 100}%`}
       onkeydown={(e) => onKeydown(t.which, e)}
       onfocus={() => (focused = t.which)}
       onblur={() => (focused = -1)}
-    ></div>
+    >
+      <span class="size-3 rounded-[2px] bg-foreground"></span>
+    </div>
     {#if showValue && (active === t.which || focused === t.which)}
       <div
         aria-hidden="true"
-        class="pointer-events-none absolute -top-6 -translate-x-1/2 rounded border border-border bg-card px-1 py-0.5 font-mono text-[10px] text-foreground tabular-nums"
+        class="pointer-events-none absolute -top-5 -translate-x-1/2 rounded border border-border bg-card px-1 py-0.5 font-mono text-[10px] text-foreground tabular-nums"
         style:left={`${toRatio(t.value) * 100}%`}
       >
         {t.value}

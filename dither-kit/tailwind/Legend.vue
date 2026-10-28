@@ -32,19 +32,22 @@ function dimmed(name: string): boolean {
       )
     "
   >
-    <button
+    <!-- A key you can press is a button; a plain key is a label, never a
+         disabled button. The padding pulled back by the margin gives the
+         button a 24px target without moving a pixel. -->
+    <component
+      :is="props.isClickable ? 'button' : 'span'"
       v-for="name in chart.names"
       :key="name"
-      type="button"
-      :disabled="!props.isClickable"
+      :type="props.isClickable ? 'button' : undefined"
       :class="
         cn(
-          'flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground transition-opacity',
+          '-my-1 flex items-center gap-1.5 py-1 font-mono text-[11px] text-muted-foreground transition-opacity',
           props.isClickable && 'pointer-events-auto cursor-pointer hover:text-foreground',
           dimmed(name) && 'opacity-40',
         )
       "
-      @click="chart.selectDataKey(chart.selectedDataKey === name ? null : name)"
+      @click="props.isClickable && chart.selectDataKey(chart.selectedDataKey === name ? null : name)"
       @pointerenter="chart.setFocusDataKey(name)"
       @pointerleave="chart.setFocusDataKey(null)"
       @focus="chart.setFocusDataKey(name)"
@@ -52,6 +55,6 @@ function dimmed(name: string): boolean {
     >
       <span class="size-2 rounded-[1px]" :style="{ backgroundColor: rgb(chart.seedOf(name).fill) }" />
       {{ chart.labelOf(name) }}
-    </button>
+    </component>
   </div>
 </template>

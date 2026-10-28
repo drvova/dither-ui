@@ -8,6 +8,8 @@
     max?: number
     step?: number
     disabled?: boolean
+    /** The input's accessible name. */
+    label?: string
   }
 
   let {
@@ -16,6 +18,7 @@
     max,
     step = 1,
     disabled = false,
+    label,
   }: Props = $props()
 
   // `typed` holds the in-progress buffer; when null the field shows the model
@@ -79,6 +82,7 @@
     type="text"
     inputmode="numeric"
     role="spinbutton"
+    aria-label={label}
     aria-valuenow={value}
     aria-valuemin={min}
     aria-valuemax={max}

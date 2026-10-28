@@ -22,7 +22,7 @@ const props = withDefaults(
         <a
           v-if="c.href && i < items.length - 1"
           :href="c.href"
-          class="rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground"
+          class="-my-0.5 rounded-sm py-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground"
           >{{ c.label }}</a
         >
         <span

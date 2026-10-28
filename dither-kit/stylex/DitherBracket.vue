@@ -70,11 +70,8 @@ const styles = stylex.create({
     transitionDuration: "150ms",
   },
   textForeground: { color: "var(--foreground)" },
-  textMutedForeground50: {
-    color: "color-mix(in oklab, var(--muted-foreground) 50%, transparent)",
-    textDecorationLine: "line-through",
-  },
-  textMutedForeground: { color: "var(--muted-foreground)" },
+  textMutedForeground: { color: "var(--muted-foreground)", textDecorationLine: "line-through" },
+  textMutedForeground2: { color: "var(--muted-foreground)" },
   cursorPointer: {
     cursor: "pointer",
     backgroundColor: {
@@ -118,7 +115,7 @@ const accent = computed(() => cssColor(props.color))
 const sideClass = (m: BracketMatch, side: "a" | "b") =>
   cn(
     styles.flex,
-    m.winner === side ? styles.textForeground : m.winner ? styles.textMutedForeground50 : styles.textMutedForeground,
+    m.winner === side ? styles.textForeground : m.winner ? styles.textMutedForeground : styles.textMutedForeground2,
     props.interactive && !m.winner && styles.cursorPointer,
   )
 </script>

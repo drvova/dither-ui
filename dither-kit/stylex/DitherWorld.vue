@@ -44,7 +44,7 @@ const styles = stylex.create({
     WebkitUserSelect: "none",
     userSelect: "none",
   },
-  cursorGrab: { cursor: { default: "grab", ":active": "grabbing" } },
+  cursorGrab: { cursor: { default: "grab", ":active": "grabbing" }, outlineStyle: "none" },
   canvas: { position: "absolute", inset: "0px", height: "100%", width: "100%" },
   canvas2: { pointerEvents: "none", position: "absolute", inset: "0px", height: "100%", width: "100%" },
   p: {
@@ -57,6 +57,12 @@ const styles = stylex.create({
     fontSize: "10px",
     overflowWrap: "break-word",
     color: "var(--muted-foreground)",
+  },
+  layer: {
+    pointerEvents: "none",
+    position: "absolute",
+    inset: "0px",
+    boxShadow: "inset 0 0 0 calc(2px + 0px) color-mix(in oklab, var(--foreground) 60%, transparent)",
   },
 })
 </script>
@@ -184,6 +190,9 @@ const MAX_ROWS = 320
 const GPU_FROM = 40000
 
 const wrapRef = ref<HTMLDivElement | null>(null)
+// Keyboard focus draws a ring over the canvases (an outline sits under
+// them, and the well around a world clips an outer one).
+const ring = ref(false)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
 const world = shallowRef<World | null>(null)
@@ -496,6 +505,8 @@ defineExpose({ surface })
     @pointerup="onUp"
     @pointercancel="onUp"
     @keydown="onKey"
+    @focus="ring = ($event.currentTarget as Element).matches(':focus-visible')"
+    @blur="ring = false"
   >
     <canvas ref="canvasRef" v-bind="stylex.attrs(styles.canvas)" style="image-rendering: pixelated" />
     <canvas
@@ -513,5 +524,6 @@ defineExpose({ surface })
     <p v-if="note" v-bind="stylex.attrs(styles.p)" aria-live="polite">
       {{ note }}
     </p>
+    <span v-if="ring" aria-hidden="true" v-bind="stylex.attrs(styles.layer)" />
   </div>
 </template>

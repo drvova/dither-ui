@@ -113,7 +113,7 @@ onBeforeUnmount(() => document.removeEventListener("pointerdown", onOutside))
       @click="open ? close() : openPanel()"
       @keydown="onKeydown"
     >
-      <span class="truncate" :class="selected ? 'text-foreground' : 'text-muted-foreground/70'">{{
+      <span class="truncate" :class="selected ? 'text-foreground' : 'text-muted-foreground'">{{
         selected?.label ?? props.placeholder
       }}</span>
       <span

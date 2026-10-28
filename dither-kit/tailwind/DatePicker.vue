@@ -49,11 +49,11 @@ function onSelect(value: string) {
         :disabled="props.disabled"
         aria-haspopup="dialog"
         :aria-expanded="open"
-        class="flex min-h-10 w-full items-center gap-2 rounded-md border border-border bg-background/60 px-3 py-2 text-left font-mono text-[13px] text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground/60 hover:border-foreground/25 focus-visible:border-accent/70 focus-visible:ring-2 focus-visible:ring-accent/20 disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none"
+        class="flex min-h-10 w-full items-center gap-2 rounded-md border border-border bg-background/60 px-3 py-2 text-left font-mono text-[13px] text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground hover:border-foreground/25 focus-visible:border-accent/70 focus-visible:ring-2 focus-visible:ring-accent/20 disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none"
         @click="open = !open"
         @focus="open = true"
       >
-        <span class="flex-1" :class="!props.modelValue && 'text-muted-foreground/60'">
+        <span class="flex-1" :class="!props.modelValue && 'text-muted-foreground'">
           {{ human || props.placeholder }}
         </span>
         <Icon name="Calendar" :size="14" class="shrink-0 text-muted-foreground" />

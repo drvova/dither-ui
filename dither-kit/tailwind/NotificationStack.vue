@@ -153,7 +153,7 @@ const cardStyle = computed(() => (i: number) => ({
         <span class="min-w-0 flex-1">
           <span class="flex items-baseline justify-between gap-2">
             <span class="truncate text-[12px] text-foreground">{{ item.title }}</span>
-            <span v-if="item.time" class="shrink-0 text-[9px] text-muted-foreground/80">{{ item.time }}</span>
+            <span v-if="item.time" class="shrink-0 text-[9px] text-muted-foreground">{{ item.time }}</span>
           </span>
           <span v-if="item.body" class="mt-0.5 block truncate text-[11px] text-muted-foreground">{{ item.body }}</span>
         </span>

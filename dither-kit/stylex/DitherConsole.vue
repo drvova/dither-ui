@@ -37,7 +37,7 @@ const styles = stylex.create({
   text2: {
     fontSize: "10px",
     letterSpacing: "0.2em",
-    color: "color-mix(in oklab, var(--muted-foreground) 70%, transparent)",
+    color: "var(--muted-foreground)",
     textTransform: "uppercase",
   },
   row2: { marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.375rem" },
@@ -50,13 +50,9 @@ const styles = stylex.create({
     fontSize: "11px",
     lineHeight: "1.625",
   },
-  p: { color: "color-mix(in oklab, var(--muted-foreground) 50%, transparent)" },
+  p: { color: "var(--muted-foreground)" },
   p2: { display: "flex", gap: "0.5rem", whiteSpace: "pre-wrap" },
-  text3: {
-    flexShrink: "0",
-    color: "color-mix(in oklab, var(--muted-foreground) 40%, transparent)",
-    fontVariantNumeric: "   tabular-nums ",
-  },
+  text3: { flexShrink: "0", color: "var(--muted-foreground)", fontVariantNumeric: "   tabular-nums " },
   text4: {
     marginTop: "0.125rem",
     display: "inline-block",

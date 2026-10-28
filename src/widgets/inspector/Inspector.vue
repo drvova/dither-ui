@@ -534,7 +534,7 @@ function setPieVariant(v: VariantInput) {
 
         <section v-if="!ab.widget" class="flex flex-col gap-2">
           <p class="micro text-muted-foreground">Seed</p>
-          <p class="text-[10px] leading-relaxed text-muted-foreground/70">
+          <p class="text-[10px] leading-relaxed text-muted-foreground">
             One integer derives texture, motion, geometry and glow. Explicit controls above always win.
           </p>
           <div class="flex items-center gap-2">

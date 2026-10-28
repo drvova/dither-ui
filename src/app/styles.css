@@ -406,6 +406,12 @@
   --display-face: "Michroma", var(--font-mono);
 }
 
+/* Muted text a step deeper than the kit's white-ground default, so it
+   holds AA (4.5:1) on the light materials too: bone shells, smoke, wells. */
+:root:not(.dark) {
+  --muted-foreground: #5b6270;
+}
+
 .dark {
   --chrome: linear-gradient(
     180deg,

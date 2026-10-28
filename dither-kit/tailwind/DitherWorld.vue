@@ -154,6 +154,9 @@ const MAX_ROWS = 320
 const GPU_FROM = 40000
 
 const wrapRef = ref<HTMLDivElement | null>(null)
+// Keyboard focus draws a ring over the canvases (an outline sits under
+// them, and the well around a world clips an outer one).
+const ring = ref(false)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)
 const world = shallowRef<World | null>(null)
@@ -462,7 +465,7 @@ defineExpose({ surface })
     :class="
       cn(
         'relative block h-full w-full select-none overflow-hidden',
-        interactive && 'cursor-grab active:cursor-grabbing',
+        interactive && 'cursor-grab outline-none active:cursor-grabbing',
         props.class,
       )
     "
@@ -472,6 +475,8 @@ defineExpose({ surface })
     @pointerup="onUp"
     @pointercancel="onUp"
     @keydown="onKey"
+    @focus="ring = ($event.currentTarget as Element).matches(':focus-visible')"
+    @blur="ring = false"
   >
     <canvas ref="canvasRef" class="absolute inset-0 h-full w-full" style="image-rendering: pixelated" />
     <canvas
@@ -493,5 +498,10 @@ defineExpose({ surface })
     >
       {{ note }}
     </p>
+    <span
+      v-if="ring"
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 ring-2 ring-foreground/60 ring-inset"
+    />
   </div>
 </template>

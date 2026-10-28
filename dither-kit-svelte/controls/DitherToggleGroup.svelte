@@ -4,6 +4,7 @@
   import { paintToggleCanvas } from "./DitherToggle.svelte"
   import { cn } from "../runtime/lib"
   import { fillOf, type PixelColor } from "../engine/pixel"
+  import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
   import { paintOnResize, type CanvasPaint } from "../runtime/canvas-mount"
 
   type Props = {
@@ -26,6 +27,8 @@
     return Array.isArray(value) ? value.includes(o.value) : value === o.value
   }
 
+  // A bright fill takes black ink: white on it would sink under AA.
+  const darkInk = $derived(darkInkOnDark(fillOf(color), LABEL_COVERAGE.gradient))
   const activeIndex = $derived.by(() => {
     if (Array.isArray(value)) return 0
     const i = options.findIndex((o) => o.value === value)
@@ -98,7 +101,9 @@
       class={cn(
         "relative isolate overflow-hidden rounded-md border px-2.5 py-1.5 font-mono text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
         isOn(o)
-          ? "border-transparent text-foreground"
+          ? darkInk
+            ? "border-transparent text-black"
+            : "border-transparent text-foreground"
           : "border-transparent text-muted-foreground hover:text-foreground"
       )}
       onclick={() => pick(o)}

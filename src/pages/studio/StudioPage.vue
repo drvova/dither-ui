@@ -74,7 +74,8 @@ onBeforeUnmount(() => {
     @dragover.prevent
     @drop.prevent="onDrop"
   >
-    <Canvas />
+    <!-- The toolbar first: Tab reads the top bar and the selection's actions
+         before the canvas (it paints above the canvas by its z-30). -->
     <Toolbar
       v-model:layers-open="layersOpen"
       v-model:inspector-open="inspectorOpen"
@@ -82,6 +83,7 @@ onBeforeUnmount(() => {
       @export="exportOpen = true"
       @video="videoOpen = true"
     />
+    <Canvas />
 
     <Transition name="panel-left">
       <aside v-if="layersOpen" class="studio-panel hardshell absolute bottom-16 left-3 top-16 z-20 w-64">

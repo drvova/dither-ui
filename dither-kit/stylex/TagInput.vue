@@ -43,8 +43,9 @@ const styles = stylex.create({
     fontSize: "12px",
   },
   button: {
+    margin: "-5px",
     borderRadius: "0.25rem",
-    padding: "0.125rem",
+    padding: "7px",
     color: {
       default: "var(--muted-foreground)",
       ":hover": { default: null, "@media (hover: hover)": "var(--foreground)" },
@@ -63,7 +64,7 @@ const styles = stylex.create({
     fontSize: "13px",
     color: "var(--foreground)",
     outlineStyle: "none",
-    "::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
+    "::placeholder": { color: "var(--muted-foreground)" },
   },
 })
 </script>
@@ -132,6 +133,7 @@ function onKeydown(e: KeyboardEvent) {
       v-if="!props.disabled"
       v-model="draft"
       :placeholder="(props.modelValue ?? []).length === 0 ? props.placeholder : ''"
+      :aria-label="props.placeholder || 'Add a tag'"
       v-bind="stylex.attrs(styles.input)"
       @keydown="onKeydown"
       @blur="add(draft)"

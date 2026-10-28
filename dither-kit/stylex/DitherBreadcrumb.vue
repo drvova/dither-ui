@@ -9,7 +9,9 @@ const styles = stylex.create({
   ol: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.375rem" },
   li: { display: "flex", alignItems: "center", gap: "0.375rem" },
   a: {
+    marginBlock: "-0.125rem",
     borderRadius: "calc(var(--radius) - 2px)",
+    paddingBlock: "0.125rem",
     color: {
       default: "var(--muted-foreground)",
       ":hover": { default: null, "@media (hover: hover)": "var(--foreground)" },

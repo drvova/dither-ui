@@ -91,7 +91,7 @@
         <div class="flex items-baseline justify-between gap-2">
           <p class="text-[13px] text-foreground">{it.title}</p>
           {#if it.time}
-            <span class="shrink-0 text-[11px] tabular-nums text-muted-foreground/70">{it.time}</span>
+            <span class="shrink-0 text-[11px] tabular-nums text-muted-foreground">{it.time}</span>
           {/if}
         </div>
         {#if it.body}

@@ -32,7 +32,7 @@ const styles = stylex.create({
     transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
     transitionDuration: "150ms",
     outlineStyle: "none",
-    "::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
+    "::placeholder": { color: "var(--muted-foreground)" },
     boxShadow: {
       default: null,
       ":focus-visible": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 20%, transparent)",
@@ -41,7 +41,7 @@ const styles = stylex.create({
     opacity: { default: null, ":disabled": "40%" },
   },
   text: { flex: "1" },
-  text2: { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
+  text2: { color: "var(--muted-foreground)" },
   icon: { flexShrink: "0", color: "var(--muted-foreground)" },
   layer: {
     position: "absolute",

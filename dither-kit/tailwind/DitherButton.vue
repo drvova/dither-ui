@@ -21,6 +21,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { pixelBloomStyle, pixelPrefersReducedMotion } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
+import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
+import { fillOf } from "../engine/pixel"
 import { CONTROL_BUTTON } from "./control"
 
 const props = withDefaults(
@@ -45,6 +47,9 @@ const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : n
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<ButtonVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
+// A bright fill takes black ink: white on it would sink under AA. The
+// raster stores its colour already scaled by alpha: the band is coverage².
+const darkInk = computed(() => darkInkOnDark(fillOf(color.value), LABEL_COVERAGE[variant.value] ** 2))
 const bloom = computed<PixelBloomInput>(() => props.bloom ?? (props.seed !== undefined ? props.seed : "off"))
 const cell = computed(() => props.cell ?? s.value?.cell ?? 2)
 
@@ -227,6 +232,7 @@ onBeforeUnmount(() => {
       cn(
         CONTROL_BUTTON,
         'relative isolate inline-flex min-h-10 items-center justify-center gap-2 overflow-hidden rounded-md px-4 py-2 font-mono text-xs text-foreground transition-[opacity,scale] active:scale-[0.96] motion-reduce:transition-none',
+        darkInk && 'text-black',
         props.class,
       )
     "

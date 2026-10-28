@@ -53,6 +53,7 @@ const styles = stylex.create({
     fontSize: "10px",
     color: "var(--foreground)",
   },
+  textBlack: { color: "#000" },
   canvas: { position: "absolute", inset: "0px", zIndex: "-10", height: "100%", width: "100%" },
 })
 </script>
@@ -62,6 +63,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn, type StyleProp } from "./lib"
 import { pixelMatrixFromSeed } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
+import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
 
 const props = withDefaults(
   defineProps<{
@@ -77,6 +79,8 @@ const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : n
 const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<BadgeVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
+// A bright fill takes black ink: white on it would sink under AA.
+const darkInk = computed(() => darkInkOnDark(fillOf(color.value), LABEL_COVERAGE[variant.value]))
 
 const wrapRef = ref<HTMLSpanElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -110,7 +114,7 @@ onBeforeUnmount(() => ro?.disconnect())
 </script>
 
 <template>
-  <span ref="wrapRef" :class="cn(styles.row, props.xstyle, props.class)">
+  <span ref="wrapRef" :class="cn(styles.row, darkInk && styles.textBlack, props.xstyle, props.class)">
     <canvas
       ref="canvasRef"
       aria-hidden="true"

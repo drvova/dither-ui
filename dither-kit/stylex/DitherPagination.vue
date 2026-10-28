@@ -34,7 +34,7 @@ const styles = stylex.create({
     alignItems: "center",
     justifyContent: "center",
     fontSize: "12px",
-    color: "color-mix(in oklab, var(--muted-foreground) 50%, transparent)",
+    color: "var(--muted-foreground)",
   },
   borderForeground30: {
     borderColor: "color-mix(in oklab, var(--foreground) 30%, transparent)",

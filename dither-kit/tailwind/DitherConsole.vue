@@ -51,7 +51,7 @@ watch(
   >
     <div class="flex h-8 shrink-0 items-center gap-2 border-b border-border/60 px-3">
       <span class="size-1.5 rounded-full bg-muted-foreground/50" aria-hidden="true" />
-      <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">{{ props.title }}</span>
+      <span class="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{{ props.title }}</span>
       <span v-if="slots.actions" class="ml-auto flex items-center gap-1.5">
         <slot name="actions" />
       </span>
@@ -62,9 +62,9 @@ watch(
       aria-live="polite"
       class="min-h-0 flex-1 overflow-y-auto p-3 font-mono text-[11px] leading-relaxed"
     >
-      <p v-if="!rows.length" class="text-muted-foreground/50">No output yet.</p>
+      <p v-if="!rows.length" class="text-muted-foreground">No output yet.</p>
       <p v-for="(l, i) in rows" :key="i" class="flex gap-2 whitespace-pre-wrap">
-        <span v-if="l.at" class="shrink-0 text-muted-foreground/40 tabular-nums">{{ l.at }}</span>
+        <span v-if="l.at" class="shrink-0 text-muted-foreground tabular-nums">{{ l.at }}</span>
         <span :style="{ color: LEVEL_VAR[l.level ?? 'info'] }">{{ l.text }}</span>
       </p>
       <span
