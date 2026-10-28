@@ -143,7 +143,7 @@ const SNIPPET = `<div class="w-full max-w-80 rounded-lg border">
               :key="n.id"
               type="button"
               class="flex w-full items-start gap-2.5 rounded-md p-2 text-left transition-colors hover:bg-card/60"
-              :class="n.read ? 'opacity-70' : ''"
+              :class="n.read ? '' : 'bg-card/40'"
               @click="n.read = true"
             >
               <DitherAvatar :name="n.actor" :size="24" :color="n.color" class="mt-0.5 shrink-0" />
