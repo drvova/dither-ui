@@ -1,7 +1,7 @@
 import { describe, expect, it } from "rstack/test"
-import { BAYER4 } from "../dither-kit/pixel"
-import { createRasterBuffer } from "../dither-kit/raster"
-import { paintFaultyTerminal, type FaultyTerminalParams } from "../dither-kit/faulty-terminal"
+import { BAYER4 } from "../dither-kit/engine/pixel"
+import { createRasterBuffer } from "../dither-kit/engine/raster"
+import { paintFaultyTerminal, type FaultyTerminalParams } from "../dither-kit/engine/faulty-terminal"
 
 const base: FaultyTerminalParams = {
   scale: 1.5,

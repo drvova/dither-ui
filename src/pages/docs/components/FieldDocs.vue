@@ -122,7 +122,7 @@ const qty = ref(3)
 
 <template>
   <div class="flex items-center gap-4">
-    <DitherNumberField v-model="qty" :min="0" :max="10" />
+    <DitherNumberField v-model="qty" :min="0" :max="10" label="Quantity" />
     <span class="text-[13px] tabular-nums">{{ qty }} / 10</span>
   </div>
 </template>`
@@ -171,6 +171,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "min", type: "number", default: "" },
     { prop: "max", type: "number", default: "" },
     { prop: "step", type: "number", default: "1" },
+    { prop: "label", type: "string", default: "" },
     { prop: "disabled", type: "boolean", default: "false" },
   ],
   otpField: [
@@ -286,7 +287,7 @@ const API: Record<string, PropRow[]> = {
     </p>
     <DemoCard :code="SNIPPET_NUMBER">
       <div class="mx-auto flex max-w-sm items-center justify-center gap-4">
-        <DitherNumberField v-model="qty" :min="0" :max="10" />
+        <DitherNumberField v-model="qty" :min="0" :max="10" label="Quantity" />
         <span class="text-[13px] tabular-nums">{{ qty }} / 10</span>
       </div>
     </DemoCard>

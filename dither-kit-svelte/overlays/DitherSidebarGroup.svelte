@@ -12,7 +12,7 @@
 
 <div class="mt-4 first:mt-0" role="group" aria-label={label}>
   {#if label && !sidebar.collapsed}
-    <div class="px-2.5 pb-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+    <div class="px-2.5 pb-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
       {label}
     </div>
   {:else if label && sidebar.collapsed}

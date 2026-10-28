@@ -1,5 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import { clampGrid, normalizePattern, patternFromPixels, seededPattern } from "../dither-kit/avatar-pattern"
+import { clampGrid, normalizePattern, patternFromPixels, seededPattern } from "../dither-kit/engine/avatar-pattern"
 
 describe("seededPattern", () => {
   it("is deterministic per name", () => {

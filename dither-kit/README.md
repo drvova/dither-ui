@@ -5,17 +5,25 @@ line, bar, pie, radar) on one tiny canvas engine, plus generative **avatars**,
 **buttons**, **gradient washes** and friends.
 
 This package ships **source** (`.ts` + `.vue`), like shadcn-style kits: your
-bundler compiles it with your app. Requirements:
+bundler compiles it with your app. It is one kit in styling layers:
+`engine/` is the styling-free logic every layer shares (rasters, painters,
+chart and field contexts, the clock, `theme.css` and `theme.ts`), and
+`tailwind/` holds the components styled with Tailwind classes, the package's
+main entry (`tailwind/index.ts`), and `stylex/` the same components in
+StyleX (`dither-ui/stylex`), generated from the Tailwind ones. A StyleX app
+imports from `dither-ui/stylex`, compiles it with its StyleX plugin, loads
+`engine/theme.css` and `engine/base.css`, and passes its own styles to any
+component as `xstyle`. Requirements for the Tailwind layer:
 
 - Vite (or any bundler) with `@vitejs/plugin-vue`
 - Tailwind CSS for the chrome classes (`text-muted-foreground`, `stroke-border`, …)
   with shadcn-style tokens (`--foreground`, `--card`, `--border`, `--popover`;
-  `theme.css` declares them) — or no Tailwind at all: `npm run build:css`
-  compiles `kit.css` (the tokens, the `.dither-kit`-scoped `base.css`, every
+  `engine/theme.css` declares them) — or no Tailwind at all: `npm run build:css`
+  compiles `tailwind/kit.css` (the tokens, the `.dither-kit`-scoped `base.css`, every
   class the components use) into `dist/kit/dither-kit.css`, also served at
   dither-ui.com/kit/dither-kit.css. Load it, wrap the region in `.dither-kit`,
   and style the rest with StyleX, UnoCSS, plain CSS or any CSS-in-JS;
-  `theme.ts` (`applyTheme`, `themeCss`, `themeVars`) sets the tokens from JS.
+  `engine/theme.ts` (`applyTheme`, `themeCss`, `themeVars`) sets the tokens from JS.
 
 ```ts
 import { AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip } from "dither-ui"

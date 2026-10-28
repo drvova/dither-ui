@@ -15,9 +15,13 @@ import {
   asSfc,
   exampleName,
   type Flavor,
+  installFor,
   KIT_FOLDER,
+  kitEntry,
   kitFilesOf,
   kitIndex,
+  type Layer,
+  layerOf,
   promptFor,
   snippetKind,
   type SourceContext,
@@ -54,23 +58,30 @@ interface KitMeta {
   files: string[]
   index: Map<string, { file: string; name: string }>
 }
-const kits = reactive<Partial<Record<Flavor, KitMeta>>>({})
+// The kit the reader takes: a framework's, and on Vue the styling system's
+// layer (StyleX has its own; every other system runs the Tailwind one).
+const kits = reactive(new Map<string, KitMeta>())
 const failed = ref("")
-async function loadKit(flavor: Flavor): Promise<KitMeta> {
-  const have = kits[flavor]
+const layer = computed<Layer>(() => layerOf(props.styling))
+const kitKey = (flavor: Flavor, l: Layer) => `${flavor}/${kitEntry(flavor, l)}`
+async function loadKit(flavor: Flavor, l: Layer): Promise<KitMeta> {
+  const have = kits.get(kitKey(flavor, l))
   if (have) return have
+  const at = kitEntry(flavor, l)
   const [list, index] = await Promise.all([
     fetchText(`kit/src/${flavor}/files.json`),
-    fetchText(`kit/src/${flavor}/index.ts`),
+    fetchText(`kit/src/${flavor}/${at}`),
   ])
   const files = JSON.parse(list) as string[]
-  return (kits[flavor] = { files, index: kitIndex(index, files) })
+  const meta = { files, index: kitIndex(index, files, at) }
+  kits.set(kitKey(flavor, l), meta)
+  return meta
 }
 // The Vue kit's index names what a fragment imports, in either framework.
 watch(
-  () => props.flavor,
-  (f) =>
-    Promise.all([loadKit("vue"), loadKit(f)]).catch(
+  () => [props.flavor, layer.value] as const,
+  ([f, l]) =>
+    Promise.all([loadKit("vue", l), loadKit(f, l)]).catch(
       (e: Error) => (failed.value = `Couldn't load the kit's file list (${e.message}).`),
     ),
   { immediate: true },
@@ -82,7 +93,8 @@ const kind = computed(() => snippetKind(props.code))
 const files = computed<SourceFile[]>(() => {
   const flavor = props.flavor
   const markup = kind.value === "sfc" || kind.value === "fragment"
-  const names = kits.vue && new Set(kits.vue.index.keys())
+  const vue = kits.get(kitKey("vue", layer.value))
+  const names = vue && new Set(vue.index.keys())
   const text = !markup ? props.translate(props.code) : names ? props.translate(asSfc(props.code, names)) : undefined
   const name = exampleName(props.context.section, props.context.n, kind.value, flavor)
   const example: SourceFile = {
@@ -92,7 +104,7 @@ const files = computed<SourceFile[]>(() => {
     role: "example",
     text,
   }
-  const kit = kits[flavor]
+  const kit = kits.get(kitKey(flavor, layer.value))
   const used: SourceFile[] =
     kit && text
       ? kitFilesOf(text, flavor, kit.index, kit.files).map((f) => ({
@@ -104,16 +116,21 @@ const files = computed<SourceFile[]>(() => {
         }))
       : []
   const tokens: SourceFile = {
-    path: flavor === "vue" ? "dither-kit/theme.css" : "theme.css",
+    path: flavor === "vue" ? "dither-kit/engine/theme.css" : "theme.css",
     name: "theme.css",
     lang: "css",
     role: "tokens",
-    src: "kit/src/vue/theme.css",
+    src: "kit/src/vue/engine/theme.css",
   }
   const prompt: SourceFile = { path: "prompt.md", name: "prompt.md", lang: "md", role: "prompt" }
   const all = [example, ...used, tokens, prompt]
   prompt.text = promptFor(
-    { ...props.context, install: props.context.install[flavor], flavor, styling: props.styling },
+    {
+      ...props.context,
+      install: installFor(props.context.install, flavor, props.styling),
+      flavor,
+      styling: props.styling,
+    },
     all,
   )
   return all
@@ -214,11 +231,12 @@ async function downloadAll() {
   say(`Downloaded ${archive.value}`)
 }
 
-// Run: the Vue flavor in a styling system the page can apply.
+// Run: the Vue flavor, in any styling system (StyleX through its run-time
+// stand-in, `model/stylex.ts`, on the kit's StyleX layer evaluated from
+// its source, since the page itself runs the Tailwind one).
 const runnable = computed(() => {
   if (kind.value !== "sfc" && kind.value !== "fragment") return "Nothing to render: this example isn't a component."
   if (props.flavor !== "vue") return "The preview runs the Vue kit; switch the framework to Vue to run."
-  if (props.styling === "stylex") return "StyleX is compiled at build time; Run takes Tailwind, CSS or CSS Modules."
   return ""
 })
 const problems = shallowRef<Problem[]>([])
@@ -233,7 +251,7 @@ async function runNow() {
   problems.value = []
   const example = files.value[0]
   try {
-    const [{ run }, kit] = await Promise.all([import("./model/run"), loadKit("vue")])
+    const [{ run }, kit] = await Promise.all([import("./model/run"), loadKit("vue", layer.value)])
     const edited = (role: SourceFile["role"]) => files.value.filter((f) => f.role === role && dirty(f))
     const tokens = edited("tokens")[0]
     const result = await run({
@@ -243,6 +261,7 @@ async function runNow() {
       tokens: tokens ? textOf(tokens) : undefined,
       index: kit.index,
       files: kit.files,
+      fromSource: layer.value === "stylex",
       source: (f) => fetchText(`kit/src/vue/${f}`),
     })
     emit("run", result)
@@ -274,7 +293,7 @@ const ICONS = {
 </script>
 
 <template>
-  <div class="src">
+  <div class="src hardshell">
     <div class="src-bar">
       <div ref="tabs" class="src-tabs" role="tablist" aria-label="Source files" @keydown="roam">
         <button
@@ -374,11 +393,18 @@ const ICONS = {
 </template>
 
 <style scoped>
+/* A hardshell (the site's material: two corners cut, the chrome glint
+   along them) over the page's ground. */
 .src {
+  --cut: 12px;
   overflow: hidden;
-  border-radius: 8px;
-  background: color-mix(in oklab, var(--color-background) 60%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-foreground) 7%, transparent);
+  background: var(--shell-ground), color-mix(in oklab, var(--color-background) 60%, transparent);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .src {
+    background: var(--color-background);
+  }
 }
 
 .src-bar {

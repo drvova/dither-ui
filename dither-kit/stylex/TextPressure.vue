@@ -1,0 +1,106 @@
+<!-- Generated from ../tailwind/TextPressure.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
+<script lang="ts">
+import * as stylex from "@stylexjs/stylex"
+
+const styles = stylex.create({
+  row: { display: "inline-flex" },
+  text: { display: "inline-block" },
+})
+</script>
+
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from "vue"
+import { cn, type StyleProp } from "./lib"
+import { pixelPrefersReducedMotion } from "../engine/pixel"
+import { useInviewLoop } from "../engine/use-inview-loop"
+
+const props = withDefaults(
+  defineProps<{
+    text?: string
+    radius?: number
+    strength?: number
+    class?: string
+    xstyle?: StyleProp
+  }>(),
+  { text: "Pressure", radius: 140, strength: 1 },
+)
+
+const chars = computed(() => [...props.text])
+const root = ref<HTMLElement | null>(null)
+let raf = 0
+let mx = -1e9
+let my = -1e9
+
+function onMove(e: PointerEvent) {
+  mx = e.clientX
+  my = e.clientY
+}
+function onLeave() {
+  mx = -1e9
+  my = -1e9
+}
+function frame() {
+  raf = requestAnimationFrame(frame)
+  const kids = root.value?.children
+  if (!kids) return
+  for (let i = 0; i < kids.length; i++) {
+    const el = kids[i] as HTMLElement
+    const r = el.getBoundingClientRect()
+    const cx = r.left + r.width / 2
+    const cy = r.top + r.height / 2
+    const t = Math.max(0, 1 - Math.hypot(mx - cx, my - cy) / props.radius)
+    const k = t * props.strength
+    el.style.transform = `scale(${1 + k * 0.6})`
+    el.style.fontWeight = String(Math.round(400 + k * 500))
+  }
+}
+
+function start() {
+  if (raf || pixelPrefersReducedMotion()) return
+  raf = requestAnimationFrame(frame)
+}
+function stop() {
+  if (!raf) return
+  cancelAnimationFrame(raf)
+  raf = 0
+}
+
+onMounted(() => {
+  if (pixelPrefersReducedMotion()) return
+  window.addEventListener("pointermove", onMove, { passive: true })
+  window.addEventListener("pointerleave", onLeave)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener("pointermove", onMove)
+  window.removeEventListener("pointerleave", onLeave)
+})
+useInviewLoop(root, start, stop)
+</script>
+
+<template>
+  <span ref="root" :class="cn(styles.row, props.xstyle, props.class)" :aria-label="props.text">
+    <span
+      v-for="(ch, i) in chars"
+      :key="i"
+      aria-hidden="true"
+      v-bind="stylex.attrs(styles.text)"
+      class="dither-pressure-char"
+      >{{ ch === " " ? "\u00a0" : ch }}</span
+    >
+  </span>
+</template>
+
+<style scoped>
+.dither-pressure-char {
+  white-space: pre;
+  transform-origin: center bottom;
+  transition:
+    transform 90ms linear,
+    font-weight 90ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-pressure-char {
+    transition: none;
+  }
+}
+</style>

@@ -117,7 +117,7 @@ function onCanvasDown(e: PointerEvent) {
       <p class="text-sm text-muted-foreground">No artboards yet.</p>
       <button
         type="button"
-        class="pointer-events-auto flex h-8 items-center gap-2 rounded-md bg-foreground px-3 text-[12px] font-medium text-background transition-opacity hover:opacity-85"
+        class="key-chrome pointer-events-auto flex h-8 items-center gap-2 px-4 text-[12px] font-medium"
         @click="addArtboard('area')"
       >
         <DitherIcon name="Plus" :size="14" :stroke-width="1.5" />Add an artboard
@@ -125,16 +125,14 @@ function onCanvasDown(e: PointerEvent) {
     </div>
 
     <!-- Zoom controls -->
-    <div
-      class="pointer-events-auto absolute bottom-3 left-3 flex items-center gap-0.5 rounded-xl border border-border bg-background/95 p-1 text-xs shadow-[0_2px_8px_rgba(0,0,0,0.24)]"
-    >
+    <div class="capsule pointer-events-auto absolute bottom-3 left-3 flex items-center gap-0.5 p-1 text-xs">
       <button type="button" aria-label="Zoom out" class="zoom-tool" title="Zoom out (⌘−)" @click="zoomOut">
         <DitherIcon name="Minus" :size="14" :stroke-width="1.5" />
       </button>
       <button
         type="button"
         aria-label="Reset zoom to 100%"
-        class="w-12 rounded-md py-1 text-center tabular-nums text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
+        class="w-12 rounded-lg py-1 text-center tabular-nums text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
         title="Reset to 100% (⌘0)"
         @click="resetZoom"
       >
@@ -167,7 +165,7 @@ function onCanvasDown(e: PointerEvent) {
   height: 1.75rem;
   align-items: center;
   justify-content: center;
-  border-radius: 0.375rem;
+  border-radius: 8px;
   color: var(--color-muted-foreground);
   transition:
     background-color 140ms ease,

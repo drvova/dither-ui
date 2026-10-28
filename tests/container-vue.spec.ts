@@ -2,8 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { h, nextTick } from "vue"
 import { mount, type VueWrapper } from "@vue/test-utils"
-import DitherContainer from "../dither-kit/DitherContainer.vue"
-import type { CqState } from "../dither-kit/containers"
+import DitherContainer from "../dither-kit/tailwind/DitherContainer.vue"
+import type { CqState } from "../dither-kit/engine/containers"
 
 class FakeResizeObserver {
   static instances: FakeResizeObserver[] = []

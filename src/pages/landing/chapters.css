@@ -1,40 +1,40 @@
-/* The landing's layer over the SITE voice: the dark theme tokens,
-   monospace and hairlines (`.nav-a`, `.nav-pill`, `.led` in
-   app/styles.css), so it reads as the same product as the docs and the
-   Studio. What it keeps from the 2000s oakley.com archive is STRUCTURE:
-   dense panels in columns, lists under a heading. Its copy follows the design.how bans the user picked: no
-   uppercase labels, no eyebrow over a title, no middle dots or em dashes,
-   no link that ends in an arrow (each names where it goes). Never a second
-   type system, bevels or a hue in the chrome; the kit's ember is the one
-   warm light. Plain CSS under .landing, read by every landing component. */
+/* The landing's layer over the SITE voice (the dark theme tokens,
+   monospace, `.nav-a`, `.nav-pill`, `.led` in app/styles.css). The look is
+   Y2K retrofuturism, biomorphic form and technical sportswear on the
+   dither and mono base: liquid chrome and a pearl sheen as the materials,
+   hardshell panels cut at two corners holding soft gel wells, capsule
+   keys, and spec labels (uppercase, tracked, a slanted tag) where a
+   sportswear spec sheet would put them, never as an eyebrow over a title.
+   The kit's ember is the signal light; never red. Copy keeps the other
+   bans: no middle dots or em dashes, no link that ends in an arrow.
+   Plain CSS under .landing, read by every landing component. */
 .landing {
   --ink: var(--foreground);
   --ink-2: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
   --ink-3: var(--muted-foreground);
   --line: var(--border);
-  --well: color-mix(in oklab, var(--background) 60%, #000);
+  --signal: var(--swatch-orange);
   font-family: var(--font-mono);
 }
 
-/* Headings: mono 500, tight, the docs' title voice. Never italic. */
+/* A ruler: minor ticks every 8px, a major one every 64px, as printed on
+   a technical shell's seam tape. */
+.landing .ticks {
+  height: 9px;
+  background:
+    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 34%, transparent) 1px, transparent 1px) 0 100% / 64px
+      9px repeat-x,
+    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 16%, transparent) 1px, transparent 1px) 0 100% / 8px
+      4px repeat-x;
+}
+
+/* Headings: mono 500, tight, the docs' title voice. Never italic. The
+   materials (`.chrome-type`, `.hardshell`, `.gel`, `.capsule`,
+   `.key-chrome`, `.spec`, `.speed-tag`) are the site voice's, in
+   app/styles.css. */
 .landing .display {
   font-weight: 500;
   letter-spacing: -0.02em;
-}
-
-/* A panel: a hairline round at the docs' card corner. */
-.landing .panel {
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-/* A framed well for a live surface: darker than the page, a fainter rule. */
-.landing .thumb {
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  background: var(--well);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--line) 80%, transparent);
 }
 
 /* A section's head: the title at the docs' title voice scaled up (the
@@ -58,13 +58,46 @@
 
 .landing .section-title {
   margin: 0;
-  max-width: 22ch;
-  font-size: clamp(1.6rem, 3vw, 2.6rem);
-  font-weight: 500;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  max-width: 19ch;
+  font-family: var(--display-face);
+  font-size: clamp(1.3rem, 2.4vw, 2rem);
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: -0.01em;
   text-wrap: balance;
-  color: var(--ink);
+}
+
+/* Beside the title's link, the section's spec: a row of speed tags naming
+   what the section is made of, as a sportswear label lists its build. */
+.landing .head-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.landing .tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 559px) {
+  .landing .head-side {
+    align-items: flex-start;
+  }
+  .landing .tags {
+    justify-content: flex-start;
+  }
+}
+
+/* An anchor lands clear of the floating header. */
+.landing [id] {
+  scroll-margin-top: 76px;
 }
 
 /* A list's head: its heading left, a quiet link right. */
@@ -86,6 +119,9 @@
    underline (a hairline that inks on hover), never an arrow. */
 .landing .more-link,
 .landing .lead {
+  /* A 24px target around the line, without moving it. */
+  margin-block: -4px;
+  padding-block: 4px;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
@@ -111,33 +147,16 @@
   text-decoration-color: currentColor;
 }
 
-/* The primary key: the site's hairline pill (`.nav-a.nav-pill`) filled
-   with ink. */
-.landing .key-primary,
-.landing .key-primary:hover {
-  color: var(--background);
-  background: var(--foreground);
-  box-shadow: none;
-}
-
-.landing .key-primary:hover {
-  background: color-mix(in oklab, var(--foreground) 86%, var(--background));
-}
-
-/* Segmented toggles, as in the docs header: quiet labels, the pressed one
+/* Segmented toggles, as in the docs header: machined segments in a
+   `.track` (the site voice's housing), quiet labels, the pressed one
    ringed. */
-.landing .seg {
-  display: flex;
-  gap: 4px;
-}
-
 .landing .seg > button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 26px;
-  padding: 0 9px;
-  border-radius: 5px;
+  padding: 0 11px;
+  border-radius: 7px;
   font-size: 11px;
   white-space: nowrap;
   color: var(--ink-3);
@@ -160,26 +179,16 @@
   .landing .seg > button[aria-pressed="true"] {
     outline: 1px solid Highlight;
   }
-  .landing .panel,
-  .landing .thumb {
-    border: 1px solid CanvasText;
-  }
 }
 
-/* The live chip: a state label on wells that ARE live kit canvases (an
-   `.led` and the rate in words). The text stays under reduced motion; only
-   the LED's pulse dies. */
+/* The live chip: a speed tag on wells that ARE live kit canvases (an
+   `.led` and the rate). The text stays under reduced motion; only the
+   LED's pulse dies. */
 .landing .live {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 3px 7px;
-  border-radius: 4px;
-  font-size: 11px;
-  color: var(--ink-3);
-  background: color-mix(in oklab, var(--background) 80%, transparent);
+  top: 10px;
+  right: 12px;
+  z-index: 4;
+  color: var(--ink-2);
+  background: color-mix(in oklab, var(--background) 82%, transparent);
 }

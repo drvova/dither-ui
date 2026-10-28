@@ -2,8 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { h, nextTick } from "vue"
 import { mount, type VueWrapper } from "@vue/test-utils"
-import DitherReveal from "../dither-kit/DitherReveal.vue"
-import { release, seek } from "../dither-kit/clock"
+import DitherReveal from "../dither-kit/tailwind/DitherReveal.vue"
+import { release, seek } from "../dither-kit/engine/clock"
 
 let queue = new Map<number, FrameRequestCallback>()
 let nextId = 1

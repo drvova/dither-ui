@@ -20,7 +20,8 @@
   import type { Snippet } from "svelte"
   import type { HTMLButtonAttributes } from "svelte/elements"
   import { cn } from "../runtime/lib"
-  import { pixelBloomStyle, pixelPrefersReducedMotion } from "../engine/pixel"
+  import { fillOf, pixelBloomStyle, pixelPrefersReducedMotion } from "../engine/pixel"
+  import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
   import { kitFromSeed } from "../engine/dither-paint"
   import { CONTROL_BUTTON } from "../runtime/control"
 
@@ -63,6 +64,9 @@
   const precompiled = $derived(precompiledSrc(precompiledProp))
   const color = $derived<PixelColor>(colorProp ?? s?.hue ?? "blue")
   const variant = $derived<ButtonVariant>(variantProp ?? s?.variant ?? "gradient")
+  // A bright fill takes black ink: white on it would sink under AA. The
+  // raster stores its colour already scaled by alpha: the band is coverage².
+  const darkInk = $derived(darkInkOnDark(fillOf(color), LABEL_COVERAGE[variant] ** 2))
   const bloom = $derived<PixelBloomInput>(bloomProp ?? (seed !== undefined ? seed : "off"))
   const cell = $derived(cellProp ?? s?.cell ?? 2)
 
@@ -281,6 +285,7 @@
   class={cn(
     CONTROL_BUTTON,
     "relative isolate inline-flex min-h-10 items-center justify-center gap-2 overflow-hidden rounded-md px-4 py-2 font-mono text-xs text-foreground transition-[opacity,scale] active:scale-[0.96] motion-reduce:transition-none",
+    darkInk && "text-black",
     className
   )}
   {...rest}

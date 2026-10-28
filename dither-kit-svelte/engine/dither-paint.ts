@@ -257,6 +257,19 @@ export function colNoise(x: number, seed: number): number {
   return (((x + seed) * 2654435761) >>> 0) / 4294967296
 }
 
+/** When column `x` of `cols` develops in a seeded reveal (0-1): its place in
+ * the sweep, jittered by the seed for a dissolve and capped at 1, so the
+ * reveal's last frame always holds every column. */
+export function revealThreshold(
+  x: number,
+  cols: number,
+  seed: number,
+  rev: { reverse: boolean; jitter: number },
+): number {
+  const base = rev.reverse ? 1 - x / cols : x / cols
+  return Math.min(1, base + (colNoise(x, seed) - 0.5) * rev.jitter)
+}
+
 /** Seeded sparkle character — twinkle frequency, brightness range, star
  * burst threshold, and crosshair opacity. The personality of the live edge. */
 export function sparklesFromSeed(seed: number) {

@@ -98,7 +98,7 @@
     <span class="flex items-baseline justify-between gap-2">
       <span class="truncate text-[12px] text-foreground">{item.title}</span>
       {#if item.time}
-        <span class="shrink-0 text-[9px] text-muted-foreground/80">{item.time}</span>
+        <span class="shrink-0 text-[9px] text-muted-foreground">{item.time}</span>
       {/if}
     </span>
     {#if item.body}

@@ -632,7 +632,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               class="flex h-7 cursor-pointer items-center gap-2 rounded-md px-2.5 text-[11px] text-muted-foreground transition-colors hover:bg-card/60 hover:text-foreground"
             >
               <DitherCheckbox v-model="cats[c]" class="text-[11px]">{{ c }}</DitherCheckbox>
-              <span class="ml-auto tabular-nums text-muted-foreground/70">({{ count }})</span>
+              <span class="ml-auto tabular-nums text-muted-foreground">({{ count }})</span>
             </label>
           </DitherSidebarGroup>
           <DitherSidebarGroup label="Price">
@@ -651,7 +651,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               class="flex h-7 cursor-pointer items-center gap-2 rounded-md px-2.5 text-[11px] text-muted-foreground transition-colors hover:bg-card/60 hover:text-foreground"
             >
               <DitherCheckbox v-model="brands[b]" class="text-[11px]">{{ b }}</DitherCheckbox>
-              <span class="ml-auto tabular-nums text-muted-foreground/70">({{ count }})</span>
+              <span class="ml-auto tabular-nums text-muted-foreground">({{ count }})</span>
             </label>
           </DitherSidebarGroup>
           <template #footer>
@@ -661,7 +661,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               >
               <button
                 type="button"
-                class="text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+                class="min-h-6 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
                 @click="resetFilters"
               >
                 Reset all
@@ -862,7 +862,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
                   ›
                 </button>
               </div>
-              <div class="mt-1.5 grid grid-cols-7 gap-0.5 text-center text-[9px] text-muted-foreground/70">
+              <div class="mt-1.5 grid grid-cols-7 gap-0.5 text-center text-[9px] text-muted-foreground">
                 <span v-for="d in DOW" :key="d">{{ d }}</span>
               </div>
               <div class="mt-0.5 grid grid-cols-7 gap-0.5 text-center text-[10px] tabular-nums">
@@ -889,7 +889,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               class="flex h-7 cursor-pointer items-center rounded-md px-2.5 text-[11px] transition-colors hover:bg-card/60"
             >
               <DitherCheckbox v-model="t.done" color="purple" class="text-[11px]">
-                <span :class="t.done ? 'text-muted-foreground/60 line-through' : 'text-muted-foreground'">{{
+                <span :class="t.done ? 'text-muted-foreground line-through' : 'text-muted-foreground'">{{
                   t.label
                 }}</span>
               </DitherCheckbox>
@@ -902,7 +902,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
               class="flex h-7 cursor-pointer items-center rounded-md px-2.5 text-[11px] transition-colors hover:bg-card/60"
             >
               <DitherCheckbox v-model="t.done" color="green" class="text-[11px]">
-                <span :class="t.done ? 'text-muted-foreground/60 line-through' : 'text-muted-foreground'">{{
+                <span :class="t.done ? 'text-muted-foreground line-through' : 'text-muted-foreground'">{{
                   t.label
                 }}</span>
               </DitherCheckbox>
@@ -1037,7 +1037,7 @@ const SNIPPET_RAIL = `<!-- the whole nav in 56px — tooltips carry the labels -
           </template>
           <DitherSidebarGroup label="Calendar">
             <div class="px-2.5">
-              <div class="grid grid-cols-7 gap-0.5 text-center text-[9px] text-muted-foreground/70">
+              <div class="grid grid-cols-7 gap-0.5 text-center text-[9px] text-muted-foreground">
                 <span v-for="d in DOW" :key="d">{{ d }}</span>
               </div>
               <div class="mt-0.5 grid grid-cols-7 gap-0.5 text-center text-[10px] tabular-nums">

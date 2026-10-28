@@ -42,7 +42,7 @@ const SNIPPET_CARDS = `<div role="group" aria-label="Period">   <!-- period pick
       <span class="grid size-7 place-items-center rounded-md border">{{ k.icon }}</span>
     </div>
     <div class="mt-2 text-xl tabular-nums">{{ k.value }}</div>
-    <span :class="k.good ? 'text-green' : 'text-red'">   <!-- delta chip -->
+    <span :style="{ color: k.good ? 'var(--swatch-green)' : 'var(--swatch-red)' }">   <!-- delta chip -->
       {{ k.delta > 0 ? "▲" : "▼" }} {{ Math.abs(k.delta) }}%
     </span>
     <span>{{ k.note }}</span>
@@ -115,7 +115,7 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
                 <span class="sr-only">{{ k.delta > 0 ? "up" : "down" }}</span>
                 {{ Math.abs(k.delta) }}%
               </span>
-              <span class="text-[10px] text-muted-foreground/70">{{ k.note }}</span>
+              <span class="text-[10px] text-muted-foreground">{{ k.note }}</span>
             </div>
           </div>
         </div>
@@ -169,7 +169,7 @@ const SNIPPET_CHARTS = `<div class="grid grid-cols-3 gap-3">
           </div>
           <div class="mt-1.5 text-[19px] leading-none tracking-tight tabular-nums text-foreground">$34,000</div>
           <DitherMeter :value="68" class="mt-4 h-2 w-full" />
-          <div class="mt-2 text-[10px] text-muted-foreground/70">of $50,000 booked</div>
+          <div class="mt-2 text-[10px] text-muted-foreground">of $50,000 booked</div>
         </div>
       </div>
     </DemoCard>

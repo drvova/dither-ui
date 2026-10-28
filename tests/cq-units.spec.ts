@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs"
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { mount } from "@vue/test-utils"
-import AnimatedContent from "../dither-kit/AnimatedContent.vue"
+import AnimatedContent from "../dither-kit/tailwind/AnimatedContent.vue"
 
 /** IO that never fires: reveal-on-view components must keep their hidden
  * transform so the offset string stays observable. */
@@ -46,7 +46,7 @@ describe("container units in transforms", () => {
   })
 
   it("DitherContainer ships container-relative keyframes with no viewport units", () => {
-    const src = readFileSync("dither-kit/DitherContainer.vue", "utf8")
+    const src = readFileSync("dither-kit/tailwind/DitherContainer.vue", "utf8")
     const start = src.indexOf("@keyframes dither-cq-traverse")
     expect(start).toBeGreaterThan(-1)
     const keyframes = src.slice(start)

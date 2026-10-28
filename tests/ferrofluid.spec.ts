@@ -1,7 +1,7 @@
 import { describe, expect, it } from "rstack/test"
-import { BAYER4 } from "../dither-kit/pixel"
-import { createRasterBuffer } from "../dither-kit/raster"
-import { paintFerrofluid, type FerrofluidParams } from "../dither-kit/ferrofluid"
+import { BAYER4 } from "../dither-kit/engine/pixel"
+import { createRasterBuffer } from "../dither-kit/engine/raster"
+import { paintFerrofluid, type FerrofluidParams } from "../dither-kit/engine/ferrofluid"
 
 const base: FerrofluidParams = {
   colors: [

@@ -232,7 +232,7 @@ const API: Record<string, PropRow[]> = {
   <section id="caption" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Caption</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      Supporting text in the caption register: 11px and muted, with a fainter tier for the quietest asides.
+      Supporting text in the caption register: 11px and muted, at AA contrast in either tone.
     </p>
     <DemoCard :code="SNIPPET_CAPTION">
       <div class="grid gap-1">
@@ -303,7 +303,7 @@ const API: Record<string, PropRow[]> = {
     <DemoCard :code="SNIPPET_BLOCKQUOTE">
       <DitherBlockquote class="mx-auto max-w-md">
         Dithering trades smooth gradients for a fixed threshold, and the threshold is the style.
-        <span class="mt-2 block text-[11px] text-muted-foreground/70">From palette.ts</span>
+        <span class="mt-2 block text-[11px] text-muted-foreground">From palette.ts</span>
       </DitherBlockquote>
     </DemoCard>
     <!-- no props: the element or behavior is the API -->

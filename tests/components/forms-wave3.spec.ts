@@ -1,13 +1,13 @@
 // @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { describe, expect, it } from "rstack/test"
-import ListBox from "../../dither-kit/ListBox.vue"
-import MultiSelect from "../../dither-kit/MultiSelect.vue"
-import CascadeSelect from "../../dither-kit/CascadeSelect.vue"
-import TransferList from "../../dither-kit/TransferList.vue"
-import LanguageSelect from "../../dither-kit/LanguageSelect.vue"
-import IconPicker from "../../dither-kit/IconPicker.vue"
-import FontPicker from "../../dither-kit/FontPicker.vue"
+import ListBox from "../../dither-kit/tailwind/ListBox.vue"
+import MultiSelect from "../../dither-kit/tailwind/MultiSelect.vue"
+import CascadeSelect from "../../dither-kit/tailwind/CascadeSelect.vue"
+import TransferList from "../../dither-kit/tailwind/TransferList.vue"
+import LanguageSelect from "../../dither-kit/tailwind/LanguageSelect.vue"
+import IconPicker from "../../dither-kit/tailwind/IconPicker.vue"
+import FontPicker from "../../dither-kit/tailwind/FontPicker.vue"
 
 describe("ListBox", () => {
   it("roves with arrows and commits on Enter", async () => {

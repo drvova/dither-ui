@@ -145,9 +145,7 @@ window.addEventListener("keydown", (e) => {   // the hotkey stays yours
 
 const SNIPPET_PREVIEW = `<DitherPreviewCard>
   <template #trigger>
-    <span class="underline decoration-border underline-offset-4" tabindex="0">
-      @ada
-    </span>
+    <button type="button" class="underline decoration-border underline-offset-4">@ada</button>
   </template>
   <div class="flex items-center gap-3">
     <DitherAvatar name="Ada Lovelace" :size="40" />
@@ -285,9 +283,7 @@ const API: Record<string, PropRow[]> = {
       <div class="flex justify-center">
         <DitherPreviewCard>
           <template #trigger>
-            <span class="cursor-pointer text-[13px] underline decoration-border underline-offset-4" tabindex="0">
-              @ada
-            </span>
+            <button type="button" class="text-[13px] underline decoration-border underline-offset-4">@ada</button>
           </template>
           <div class="flex items-center gap-3">
             <DitherAvatar name="Ada Lovelace" :size="40" />

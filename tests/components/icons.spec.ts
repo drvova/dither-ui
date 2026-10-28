@@ -1,9 +1,9 @@
 // @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { describe, expect, it } from "rstack/test"
-import Icon from "../../dither-kit/Icon.vue"
-import IconSet from "../../dither-kit/IconSet.vue"
-import { ICONS, ICON_NAMES } from "../../dither-kit/icons"
+import Icon from "../../dither-kit/tailwind/Icon.vue"
+import IconSet from "../../dither-kit/tailwind/IconSet.vue"
+import { ICONS, ICON_NAMES } from "../../dither-kit/engine/icons"
 
 describe("icon set data", () => {
   it("every glyph is a non-empty list of path strings", () => {

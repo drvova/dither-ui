@@ -1,7 +1,7 @@
 import { describe, expect, it } from "rstack/test"
-import { BAYER4 } from "../dither-kit/pixel"
-import { createRasterBuffer } from "../dither-kit/raster"
-import { formatOf, parseObj, parseStl, parseVrml, parseWorld, sniffFormat } from "../dither-kit/models"
+import { BAYER4 } from "../dither-kit/engine/pixel"
+import { createRasterBuffer } from "../dither-kit/engine/raster"
+import { formatOf, parseObj, parseStl, parseVrml, parseWorld, sniffFormat } from "../dither-kit/engine/models"
 import {
   addMesh,
   addNode,
@@ -32,7 +32,7 @@ import {
   type WorldMesh,
   type WorldStyle,
   type WorldView,
-} from "../dither-kit/world"
+} from "../dither-kit/engine/world"
 
 const view: WorldView = { yaw: 30, pitch: 20, zoom: 1, fov: 40 }
 const style: WorldStyle = { fill: [255, 0, 0], matrix: BAYER4, shade: 0.2, material: false, wire: false, fog: 0 }

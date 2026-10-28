@@ -21,7 +21,11 @@ live preview — a real tool, never a mock.
   marker lines, erase, arrows, hit tests), `measure.ts` (DOM readings:
   box/box model/gaps, CSS block, selectors and child paths, type lines and
   baselines, rendered font, background behind, role/name/states, Tab
-  order, audit), `workspace.ts` (the annotation model, sanitizing,
+  order, audit: a control is an interactive role or a Tab stop (a
+  negative tabindex alone makes none); a target is pressed through its
+  `<label>`, passes at 24×24 or when a 24px circle on it meets no other
+  target (WCAG 2.5.8), and disabled or visually hidden controls are not
+  targets; grid cells and rows take their name from content), `workspace.ts` (the annotation model, sanitizing,
   snapshot history, persistence, agent Markdown), `settings.ts`,
   `capture.ts` (DOM render, tab grab, region recording, trim, frames for
   a GIF; encoded by `shared/lib/gif.ts` with the kit's `BAYER8`: one
@@ -108,7 +112,8 @@ live preview — a real tool, never a mock.
   decoder, table resets included; median cut; Bayer dithering; the
   GIF89a frame; delta frames decoded back exactly; kept colours exact), colour parsing/printing/contrast, geometry,
   ink, workspace sanitizing/history/Markdown, settings, the DOM readings
-  (names, roles, states, Tab order, paths, selectors, controlOf), and the
+  (names, roles, states, Tab order, paths, selectors, controlOf, the
+  audit's targets: labels, spacing, disabled, hidden), and the
   workbench mounted on a `DemoCard` driven by keys, the tray and Escape.
 - Browser walk (`rs dev`): every tool on `/docs/button` (hover, pin, Alt
   distances and Alt+S, X-ray, Typography's contrast, Accessibility's Tab

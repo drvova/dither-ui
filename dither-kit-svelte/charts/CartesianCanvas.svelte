@@ -9,7 +9,7 @@
     paintColumn,
     prefersReducedMotion,
     revealFromSeed,
-    colNoise,
+    revealThreshold,
     sparklesFromSeed,
     effectFromSeed,
     type Glyph,
@@ -102,8 +102,7 @@
           } else {
             // Dissolve: per-column threshold jittered around its sweep position,
             // so columns develop out of order into the final fill.
-            const base = rev.reverse ? 1 - x / cols : x / cols
-            if (base + (colNoise(x, seedInt) - 0.5) * rev.jitter > reveal) continue
+            if (revealThreshold(x, cols, seedInt, rev) > reveal) continue
           }
           paintColumn(frame, x, cur.top[x] ?? 0, cur.floor[x] ?? 0, seed, {
             variant,

@@ -7,6 +7,7 @@ import { h, nextTick } from "vue"
 import { babelParse } from "vue/compiler-sfc"
 import DemoCard from "@/pages/docs/DemoCard.vue"
 import { crc32, zip } from "@/shared/lib/files"
+import { setStyling } from "@/shared/lib/restyle"
 import { CUES, play, schedule, sounds } from "@/shared/lib/sound"
 import {
   CompileError,
@@ -27,15 +28,18 @@ import {
   snippetKind,
   type SourceFile,
 } from "@/widgets/source/model/files"
+import * as stylex from "@/widgets/source/model/stylex"
 
 const ROOT = process.cwd()
 const KIT = join(ROOT, "dither-kit")
-const kitFiles = readdirSync(KIT).filter((f) => /\.(vue|ts|css)$/.test(f))
+const kitFiles = (readdirSync(KIT, { recursive: true }) as string[])
+  .map((f) => f.split("\\").join("/"))
+  .filter((f) => /\.(vue|ts|css)$/.test(f))
 const svelteFiles = (readdirSync(join(ROOT, "dither-kit-svelte"), { recursive: true }) as string[])
   .filter((f) => /\.(svelte|ts|css)$/.test(f) && !f.startsWith("node_modules"))
   .map((f) => f.split("\\").join("/"))
 const read = (dir: string, f: string) => readFileSync(join(ROOT, dir, f), "utf8")
-const VUE_INDEX = kitIndex(read("dither-kit", "index.ts"), kitFiles)
+const VUE_INDEX = kitIndex(read("dither-kit", "tailwind/index.ts"), kitFiles, "tailwind/index.ts")
 const SVELTE_INDEX = kitIndex(read("dither-kit-svelte", "index.ts"), svelteFiles)
 
 const SWITCH = `<script setup lang="ts">
@@ -54,13 +58,16 @@ const bloom = ref(true)
 
 describe("source files", () => {
   it("reads a kit index as export name → the file that defines it", () => {
-    expect(VUE_INDEX.get("DitherSwitch")).toEqual({ file: "DitherSwitch.vue", name: "default" })
-    expect(VUE_INDEX.get("DitherAurora")).toEqual({ file: "Aurora.vue", name: "default" })
-    expect(VUE_INDEX.get("AreaChart")).toEqual({ file: "area-chart.ts", name: "AreaChart" })
+    expect(VUE_INDEX.get("DitherSwitch")).toEqual({ file: "tailwind/DitherSwitch.vue", name: "default" })
+    expect(VUE_INDEX.get("DitherAurora")).toEqual({ file: "tailwind/Aurora.vue", name: "default" })
+    expect(VUE_INDEX.get("AreaChart")).toEqual({ file: "tailwind/area-chart.ts", name: "AreaChart" })
+    expect(VUE_INDEX.get("copyText")).toEqual({ file: "engine/copy-text.ts", name: "copyText" })
     expect(VUE_INDEX.has("TooltipVariant")).toBe(false)
     expect(SVELTE_INDEX.get("Aurora")?.file).toBe("backgrounds/Aurora.svelte")
-    expect(resolveKitFile("./pixel", kitFiles)).toBe("pixel.ts")
-    expect(resolveKitFile("./nope", kitFiles)).toBeUndefined()
+    expect(resolveKitFile("../engine/pixel", kitFiles, "tailwind/DitherButton.vue")).toBe("engine/pixel.ts")
+    expect(resolveKitFile("./lib", kitFiles, "tailwind/DitherButton.vue")).toBe("tailwind/lib.ts")
+    expect(resolveKitFile("./engine/pixel", kitFiles)).toBe("engine/pixel.ts")
+    expect(resolveKitFile("./nope", kitFiles, "tailwind/x.vue")).toBeUndefined()
   })
 
   it("tells a snippet's kind", () => {
@@ -102,7 +109,10 @@ const level = ref(40)
 
   it("lists the kit files an example imports, per framework", () => {
     const vue = 'import { DitherSwitch, DitherButton, type DitherColor } from "@dither-kit"\nimport { ref } from "vue"'
-    expect(kitFilesOf(vue, "vue", VUE_INDEX, kitFiles)).toEqual(["DitherSwitch.vue", "DitherButton.vue"])
+    expect(kitFilesOf(vue, "vue", VUE_INDEX, kitFiles)).toEqual([
+      "tailwind/DitherSwitch.vue",
+      "tailwind/DitherButton.vue",
+    ])
     const svelte =
       'import { Aurora } from "@dither-kit-svelte"\nimport { toast } from "@dither-kit-svelte/runtime/toast.svelte"'
     expect(kitFilesOf(svelte, "svelte", SVELTE_INDEX, svelteFiles)).toEqual([
@@ -117,8 +127,8 @@ const level = ref(40)
     expect(exampleName("install", 1, "sh", "vue")).toBe("install.sh")
     const files: SourceFile[] = [
       { path: "SwitchExample.vue", name: "SwitchExample.vue", lang: "vue", role: "example" },
-      { path: "dither-kit/DitherSwitch.vue", name: "DitherSwitch.vue", lang: "vue", role: "kit" },
-      { path: "dither-kit/theme.css", name: "theme.css", lang: "css", role: "tokens" },
+      { path: "dither-kit/tailwind/DitherSwitch.vue", name: "DitherSwitch.vue", lang: "vue", role: "kit" },
+      { path: "dither-kit/engine/theme.css", name: "theme.css", lang: "css", role: "tokens" },
       { path: "prompt.md", name: "prompt.md", lang: "md", role: "prompt" },
     ]
     const md = promptFor(
@@ -134,7 +144,7 @@ const level = ref(40)
     )
     expect(md).toMatch(/^# Switch\n\nA dithered toggle\.\n\nLive preview: https:\/\/dither-ui\.com\/docs\/switch/)
     expect(md).toContain("```sh\nnpx degit drvova/dither-ui/dither-kit src/dither-kit\n```")
-    expect(md).toContain("- `dither-kit/DitherSwitch.vue` — a kit file the example imports")
+    expect(md).toContain("- `dither-kit/tailwind/DitherSwitch.vue` — a kit file the example imports")
     expect(md).toContain("plain CSS — the example's own `<style>` block")
     expect(md).toContain("Render `SwitchExample.vue`")
     expect(md).not.toMatch(/\n\n\n/)
@@ -382,6 +392,55 @@ describe("interface sounds", () => {
   })
 })
 
+describe("StyleX at run time", () => {
+  const sheet = (kind: string) => document.head.querySelector(`style[data-run-stylex="${kind}"]`)?.textContent ?? ""
+
+  it("applies styles as atomic classes, the last style to set a property winning", () => {
+    const styles = stylex.create({
+      a: { display: "flex", color: "red" },
+      b: { color: "blue", padding: 8, opacity: 0.5 },
+    })
+    const names = stylex.attrs(styles.a, false, [null, styles.b]).class!.split(" ")
+    expect(names).toHaveLength(4)
+    expect(sheet("plain")).toContain(`.${names[0]}{display:flex}`)
+    expect(sheet("plain")).toContain("color:blue")
+    expect(sheet("plain")).not.toContain("color:red")
+    expect(sheet("plain")).toContain("padding:8px")
+    expect(sheet("plain")).toContain("opacity:0.5")
+    // The same styles are the same classes, written once; React's spelling agrees.
+    expect(stylex.attrs(styles.a, styles.b).class).toBe(names.join(" "))
+    expect(stylex.props(styles.a, styles.b).className).toBe(names.join(" "))
+    expect(sheet("plain").split(`.${names[0]}{`)).toHaveLength(2)
+    expect(stylex.attrs(null, false)).toEqual({})
+    expect(stylex.cssName("WebkitLineClamp")).toBe("-webkit-line-clamp")
+  })
+
+  it("writes conditions after plain rules: pseudo-classes in the selector, at-rules around it", () => {
+    const styles = stylex.create({
+      link: { color: { default: "gray", ":hover": { default: null, "@media (hover: hover)": "white" } } },
+      mark: { "::before": { content: "'>'", color: { default: "gray", ":hover": "red" } } },
+    })
+    stylex.attrs(styles.link, styles.mark)
+    expect(sheet("plain")).toContain("color:gray")
+    expect(sheet("conditional")).toMatch(/@media \(hover: hover\)\{\.x\w+:hover\{color:white\}\}/)
+    expect(sheet("conditional")).toMatch(/\.x\w+::before\{content:'>'\}/)
+    // The pseudo-element is last in the selector, after the pseudo-class.
+    expect(sheet("conditional")).toMatch(/\.x\w+:hover::before\{color:red\}/)
+  })
+
+  it("defines variables and keyframes, and keeps fallbacks in order", () => {
+    const vars = stylex.defineVars({ accent: { default: "blue", "@media (prefers-color-scheme: light)": "navy" } })
+    expect(vars.accent).toMatch(/^var\(--x\w+-accent\)$/)
+    expect(sheet("plain")).toMatch(/:root\{--x\w+-accent:blue\}/)
+    expect(sheet("conditional")).toMatch(/@media \(prefers-color-scheme: light\)\{:root\{--x\w+-accent:navy\}\}/)
+    const spin = stylex.keyframes({ from: { rotate: "0deg" }, to: { rotate: "360deg" } })
+    expect(sheet("plain")).toContain(`@keyframes ${spin}{from{rotate:0deg}to{rotate:360deg}}`)
+    const styles = stylex.create({ box: { position: stylex.firstThatWorks("sticky", "fixed") } })
+    const [name] = stylex.attrs(styles.box).class!.split(" ")
+    expect(sheet("plain")).toContain(`.${name}{position:fixed;position:sticky}`)
+  })
+})
+
 describe("the source panel on a docs preview", () => {
   it("shows the files, runs an edit in the preview and restores the demo", async () => {
     rs.stubGlobal("IntersectionObserver", undefined)
@@ -451,7 +510,7 @@ describe("the source panel on a docs preview", () => {
       .trigger("click")
     const prompt = (card.get("textarea").element as HTMLTextAreaElement).value
     expect(prompt).toMatch(/^# Switch\n\nA toggle whose track is a dithered canvas\./)
-    expect(prompt).toContain("- `dither-kit/DitherSwitch.vue` — a kit file the example imports")
+    expect(prompt).toContain("- `dither-kit/tailwind/DitherSwitch.vue` — a kit file the example imports")
 
     // A broken example reports where, and the last good run stays up.
     await card
@@ -473,6 +532,66 @@ describe("the source panel on a docs preview", () => {
     expect(card.html()).toContain("the docs demo")
     card.unmount()
     section.remove()
+    rs.unstubAllGlobals()
+  })
+
+  it("runs the example written as StyleX", async () => {
+    rs.stubGlobal("IntersectionObserver", undefined)
+    rs.stubGlobal("fetch", async (url: string) => {
+      const m = /kit\/src\/vue\/(.+)$/.exec(String(url))
+      const text = !m ? undefined : m[1] === "files.json" ? JSON.stringify(kitFiles) : read("dither-kit", m[1])
+      return { ok: !!text, status: text ? 200 : 404, text: async () => text ?? "" }
+    })
+    setStyling("stylex")
+    const section = document.createElement("section")
+    section.id = "switch"
+    section.innerHTML = "<h2>Switch</h2><p>A toggle.</p><div></div>"
+    document.body.append(section)
+    const card = mount(DemoCard, {
+      props: { code: SWITCH },
+      slots: { default: () => h("p", "the docs demo") },
+      attachTo: section.lastElementChild as HTMLElement,
+    })
+    const settle = async () => {
+      for (let i = 0; i < 12; i++) {
+        await flushPromises()
+        await new Promise((r) => setTimeout(r, 0))
+      }
+    }
+    await card
+      .findAll('[role="tab"]')
+      .find((t) => t.text() === "Code")!
+      .trigger("click")
+    await settle()
+    expect((card.get("textarea").element as HTMLTextAreaElement).value).toContain("const styles = stylex.create({")
+    // The kit's own files are its StyleX layer, and the prompt installs that.
+    const tab = (name: string) => card.findAll('[role="tab"]').find((t) => t.text().startsWith(name))!
+    await tab("DitherSwitch.vue").trigger("click")
+    await settle()
+    const kitText = (card.get("textarea").element as HTMLTextAreaElement).value
+    expect(kitText).toContain('import * as stylex from "@stylexjs/stylex"')
+    expect(kitText).toContain("xstyle?: StyleProp")
+    await tab("prompt.md").trigger("click")
+    await settle()
+    const prompt = (card.get("textarea").element as HTMLTextAreaElement).value
+    expect(prompt).toContain("`dither-kit/stylex/DitherSwitch.vue`")
+    expect(prompt).toContain("npm i d3-scale d3-shape @stylexjs/stylex")
+    await card.get("button.src-run").trigger("click")
+    await settle()
+    expect(card.find('ol[aria-label="Run problems"]').exists()).toBe(false)
+    expect(card.text()).toContain("Running your files")
+    const label = card.get("label")
+    expect(label.classes().every((c) => /^x\w+$/.test(c))).toBe(true)
+    const css = [...document.head.querySelectorAll("style[data-run-stylex]")].map((s) => s.textContent).join("")
+    for (const c of label.classes()) expect(css).toContain(`.${c}{`)
+    expect(css).toContain("display:flex")
+    // The switch itself is the StyleX layer's, styled by the same runtime.
+    const toggle = card.get('[role="switch"]')
+    expect(toggle.classes().length).toBeGreaterThan(0)
+    for (const c of toggle.classes()) expect(css).toContain(`.${c}`)
+    card.unmount()
+    section.remove()
+    setStyling("tailwind")
     rs.unstubAllGlobals()
   })
 })

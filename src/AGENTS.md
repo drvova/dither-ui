@@ -27,6 +27,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the Studio tools and the ACP client behind the composer).
 - `entities/` — domain stores: editor (selection/artboards, single source of
   truth), chart, widget, artboard.
+- `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
+  subset, self-hosted), its license `OFL.txt` (keep them together) and
+  `display.css` (its `@font-face`, `font-display: swap`; the mono and
+  Michroma set the statement on the same number of lines, so the swap
+  shifts nothing).
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
   ContextMenu, ...; `ToolMark` over `marks.ts` — the real one-colour
   marks of npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the coding agents
@@ -42,7 +47,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `download()` and a stored .zip of text files, the ONE download path for
   the Studio's exports, the workbench and the source panel —
   `restyle.ts` — a snippet in the reader's styling system — and the
-  node-side `utility-map.ts` that compiles its vocabulary; `gif.ts` — the
+  node-side `utility-map.ts` that compiles its vocabulary and
+  `stylex-layer.ts` that writes the kit's StyleX layer from its Tailwind
+  layer (see `dither-kit/AGENTS.md`); `gif.ts` — the
   ONE GIF encoder (one palette, `keep` colours held exact, optional
   ordered dither, delta frames), import-free because the share-card
   renderer carries its source inline: the workbench's captures and the
@@ -148,15 +155,27 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   scans `UTILITY_SOURCES` (`pages/docs`, `entities`) with Tailwind's scanner
   and compiles every candidate with Tailwind's compiler (theme inlined; the
   kit's `@theme inline` tokens and dark variant read from
-  `dither-kit/kit.css`), keeping per class its cascade index, its variant
+  `dither-kit/tailwind/kit.css`), keeping per class its cascade index, its variant
   chains and declarations, plus the `@property` initials.
-  `compileUtilities` merges a class list in Tailwind's order (so `px-2 p-4`
-  cascades as Tailwind does), resolves every `--tw-*` input, simplifies
-  `calc()`s and drops no-op shadows. Unknown classes stay classes (the kit
+  `compileUtilities(tokens, strict, map)` merges a class list in
+  Tailwind's order (so `px-2 p-4` cascades as Tailwind does), resolves
+  every `--tw-*` input to the end (a ring with an offset nests a dozen),
+  folds Tailwind's `@supports (color: color-mix(...))` guard into its rule
+  (every supported browser passes it), simplifies `calc()`s and drops
+  no-op shadows; `map` defaults to the docs' vocabulary, and the kit
+  layer generator passes the kit's (`buildUtilityMap(root,
+  ["dither-kit/tailwind"])`). StyleX comes out as its compiler takes it:
+  a pseudo-element is a top-level key holding its own properties
+  (`"::placeholder": { color }`), vendor properties are spelled
+  `WebkitLineClamp`. Unknown classes stay classes (the kit
   stylesheet covers them); for StyleX so does any class whose rule needs a
   selector it cannot express, a custom property or `!important`, and a
   dynamic binding only becomes `attrs()` arguments when its shape allows
-  (literal / ternary / `&&` / array / object). Names come from the element
+  (literal / ternary / `&&` / array / object; a ternary or `&&` takes any
+  condition, an empty branch is `null`, an array converts whole or not at
+  all). In every target only the literals in class position are named (a
+  ternary's arms, the right of `&&`, array items, object keys), so a
+  condition's string (`view === 'grid'`) stays a value. Names come from the element
   (`stack`, `row`, `grid`, `layer`, `frame`, `box`, `text`, a component's
   name without `Dither`, a literal's first utility), one per distinct rule
   set, inline `style` folded into the element's rule. The preference
@@ -165,8 +184,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   SFC restyled (`tailwind` default, junk fails); the export dialog's
   `styling` control does the same for the copy and the download. New
   vocabulary is picked up by the next build (dev: on a hot update of a
-  scanned file). Pinned by `tests/restyle.spec.ts` and the `code.get` case
-  in `tests/agent-protocol.spec.ts`.
+  scanned file). The docs' Run plays the restyled example in any system,
+  StyleX through `widgets/source/model/stylex.ts`. Pinned by
+  `tests/restyle.spec.ts`, `tests/stylex-coverage.spec.ts` (every Studio
+  export and every docs snippet written as StyleX leaves no Tailwind class;
+  only a snippet's own CSS hooks stay classes) and the `code.get` case in
+  `tests/agent-protocol.spec.ts`.
 - Clock for drivers: `clock.seek { seconds? }` / `clock.release` hold or
   free the kit clock from the protocol (the `seek_clock` tool), and
   `window.ditherStudio.clock` exposes the same four calls (`seek(seconds)`,
@@ -320,14 +343,56 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Layer tree is a `listbox`: every row type is a focusable `role="option"`
   with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
   don't retrigger), ↑/↓ move focus and MUST stopPropagation — the same keys
-  nudge artboards at window level. New row kinds follow this shape.
+  nudge artboards at window level. A row's lock and hide keys show on hover
+  AND while the row holds focus (a key Tabbed to is never invisible); a
+  hidden row says so with its eye-off key and an italic name, its text
+  kept at AA, never dimmed. New row kinds follow this shape.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
   token utilities (bg-background, text-muted-foreground, border-border), never
   raw hex. The same file holds the site chrome voice (`@layer components`:
-  `.nav-a` and `.micro` in sentence case, `.nav-pill`, `.led`, and `.ring-on` — the
-  ONE pressed/selected state: ink text, a hairline ring, a breath of fill,
-  never a colour fill) shared by the landing, the docs and the Studio;
-  none of them grows a voice of its own.
+  `.nav-a` and `.micro` in sentence case, `.nav-pill` (a machined
+  secondary key: 10px radius, the hairline, a narrow reflection on its
+  top edge), `.led`, and `.ring-on` — the ONE pressed/selected state: ink
+  text, a hairline ring, a breath of fill, never a colour fill; an
+  outline in forced colors) and the look's MATERIALS, after the user's Y2K
+  design system V5 (root `AGENTS.md`), per theme on `:root` (light) and
+  `.dark`: `--chrome` (chrome type: gunmetal on light, its lightest stop
+  4.5:1 on white; bright on dark), `--chrome-key` (satin aluminum, both
+  themes: chrome `#D4DCE1` with a narrow reflection, no hard band),
+  `--chrome-rim`, `--shell-ground` (anodized graphite on dark, bone
+  ceramic on light, lit from the top left), `--well`, `--gloss`,
+  `--recess` and `--recess-sm` (a surface pressed in, shadowed from the
+  top left), `--smoke` (smoked polymer: graphite on dark, bone on light),
+  a light `--muted-foreground` a step deeper than the kit's (`#5b6270`,
+  AA on the bone grounds, not only on white),
+  `--float-shadow`, `--ease-settle`, `--cut` (16px), `--display-face`
+  (Michroma, then the mono; the `font-display` utility reads it; its
+  `@font-face` is `shared/fonts/display.css`, imported by the landing and
+  the docs only, never by the player, whose bundle inlines every asset).
+  Classes:
+  `.chrome-type` (the ramp clipped to the glyphs, one horizon per line),
+  `.spec` (spec label: uppercase, tracked, 10px) and `.speed-tag` (a
+  slanted plate), the ONLY uppercase in the site's own chrome;
+  `.hardshell` (two corners cut by `clip-path`, which clips what it
+  holds, fixed descendants included; a chrome-glint ring along the cut;
+  the shell ground; set `--cut` locally for a smaller cut); `.gel` (an
+  asymmetric pebble recessed into its shell, `overflow: hidden`, a
+  directional highlight over its top 38%; chips in it take z-index 4);
+  `.capsule` (a floating smoked-polymer shell: `--smoke` under a light
+  8px blur, a narrow reflection, the float shadow; never frosted glass);
+  `.rim` (the chrome rim on any positioned element; `.gel` and `.capsule`
+  carry it); `.key-chrome` (the primary key: a satin aluminum capsule
+  with obsidian ink, lifting 1px on hover except under reduced motion;
+  the ONLY capsule key, every other key is machined); `.track` (machined
+  segments recessed into the surface: 2px padding, 10px radius, its keys
+  7px; the picked one `.ring-on`). Chrome type goes on display type only
+  (the landing's statement, section titles and figures, the docs' page
+  title), never on body text or every heading. Reduced transparency
+  drops the shell ground and the highlight and makes the capsule solid;
+  forced colors drop the cuts, rims and chrome type for system colours
+  and plain borders (tracks bordered, the pressed segment outlined).
+  Shared by the landing, the docs and the Studio; none of them grows a
+  voice of its own.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on

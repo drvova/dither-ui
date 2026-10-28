@@ -2,9 +2,9 @@
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { defineComponent, h, nextTick } from "vue"
 import { mount } from "@vue/test-utils"
-import DitherLayer from "../dither-kit/DitherLayer.vue"
-import DitherStage from "../dither-kit/DitherStage.vue"
-import { release, seek } from "../dither-kit/clock"
+import DitherLayer from "../dither-kit/tailwind/DitherLayer.vue"
+import DitherStage from "../dither-kit/tailwind/DitherStage.vue"
+import { release, seek } from "../dither-kit/engine/clock"
 
 let queue = new Map<number, FrameRequestCallback>()
 let nextId = 1

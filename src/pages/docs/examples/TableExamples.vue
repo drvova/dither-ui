@@ -80,34 +80,36 @@ const STATUS: Record<Member["status"], { color: "green" | "orange" | "grey"; lab
 
 const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
 
-<table class="w-full text-left">
-  <thead>
-    <tr class="border-b">
-      <th><DitherCheckbox :model-value="allOnPage"
-        @update:model-value="toggleAll" /></th>
-      <th aria-sort="ascending">
-        <button @click="sortBy('name')">Name ↑</button>
-      </th>
-      <th>Role</th>
-      <th>Status</th>
-      <th><button @click="sortBy('joined')">Joined</button></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="m in paged" :class="selected.has(m.email) && 'bg-card/50'">
-      <td><DitherCheckbox :model-value="selected.has(m.email)"
-        @update:model-value="toggleRow(m.email)" /></td>
-      <td>{{ m.name }} — {{ m.email }}</td>
-      <td>{{ m.role }}</td>
-      <td>   <!-- presence dot from the palette swatch vars -->
-        <span class="size-1.5 rounded-full"
-          :style="{ background: \`var(--swatch-\${STATUS[m.status].color})\` }" />
-        {{ STATUS[m.status].label }}
-      </td>
-      <td>{{ m.joined }}</td>
-    </tr>
-  </tbody>
-</table>
+<div class="overflow-x-auto">
+  <table class="w-full text-left">
+    <thead>
+      <tr class="border-b">
+        <th><DitherCheckbox :model-value="allOnPage"
+          @update:model-value="toggleAll" /></th>
+        <th aria-sort="ascending">
+          <button @click="sortBy('name')">Name ↑</button>
+        </th>
+        <th>Role</th>
+        <th>Status</th>
+        <th><button @click="sortBy('joined')">Joined</button></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="m in paged" :class="selected.has(m.email) && 'bg-card/50'">
+        <td><DitherCheckbox :model-value="selected.has(m.email)"
+          @update:model-value="toggleRow(m.email)" /></td>
+        <td>{{ m.name }} — {{ m.email }}</td>
+        <td>{{ m.role }}</td>
+        <td>   <!-- presence dot from the palette swatch vars -->
+          <span class="size-1.5 rounded-full"
+            :style="{ background: \`var(--swatch-\${STATUS[m.status].color})\` }" />
+          {{ STATUS[m.status].label }}
+        </td>
+        <td>{{ m.joined }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <footer class="flex items-center justify-between">
   {{ rangeLabel }}
@@ -128,7 +130,7 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
     </p>
     <DemoCard :code="SNIPPET">
       <div class="mx-auto max-w-2xl rounded-lg border border-border/60 bg-background/40">
-        <div class="flex items-center justify-between gap-3 border-b border-border/60 p-3">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 p-3">
           <div>
             <div class="text-[13px] tracking-tight text-foreground">Team members</div>
             <div class="mt-0.5 text-[11px] text-muted-foreground">Everyone with workspace access.</div>
@@ -147,72 +149,74 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
           <span class="text-[11px] tabular-nums text-muted-foreground">{{ selected.size }} selected</span>
           <DitherButton color="red" class="px-2.5 py-1 text-[10px]" @click="removeSelected">Remove</DitherButton>
         </div>
-        <table class="w-full text-left text-[11px]">
-          <thead>
-            <tr class="border-b border-border/60 text-muted-foreground">
-              <th class="w-10 px-3 py-2">
-                <DitherCheckbox :model-value="allOnPage" aria-label="Select page" @update:model-value="toggleAll" />
-              </th>
-              <th class="py-2 pr-3" :aria-sort="ariaSort('name')">
-                <button
-                  type="button"
-                  class="flex items-center gap-1 transition-colors hover:text-foreground"
-                  @click="sortBy('name')"
-                >
-                  Member
-                  <span v-if="sortKey === 'name'" aria-hidden="true">{{ sortDir === 1 ? "↑" : "↓" }}</span>
-                </button>
-              </th>
-              <th class="py-2 pr-3 font-normal">Role</th>
-              <th class="py-2 pr-3 font-normal">Status</th>
-              <th class="py-2 pr-3" :aria-sort="ariaSort('joined')">
-                <button
-                  type="button"
-                  class="flex items-center gap-1 transition-colors hover:text-foreground"
-                  @click="sortBy('joined')"
-                >
-                  Joined
-                  <span v-if="sortKey === 'joined'" aria-hidden="true">{{ sortDir === 1 ? "↑" : "↓" }}</span>
-                </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="m in paged"
-              :key="m.email"
-              class="border-b border-border/40 transition-colors last:border-0 hover:bg-card/40"
-              :class="selected.has(m.email) ? 'bg-card/50' : ''"
-            >
-              <td class="px-3 py-2">
-                <DitherCheckbox
-                  :model-value="selected.has(m.email)"
-                  :aria-label="`Select ${m.name}`"
-                  @update:model-value="toggleRow(m.email)"
-                />
-              </td>
-              <td class="py-2 pr-3">
-                <div class="text-foreground">{{ m.name }}</div>
-                <div class="text-[10px] text-muted-foreground">{{ m.email }}</div>
-              </td>
-              <td class="py-2 pr-3 text-muted-foreground">{{ m.role }}</td>
-              <td class="py-2 pr-3">
-                <span class="inline-flex items-center gap-1.5 text-muted-foreground">
-                  <span
-                    class="size-1.5 shrink-0 rounded-full"
-                    :style="{ backgroundColor: `var(--swatch-${STATUS[m.status].color})` }"
-                    aria-hidden="true"
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[11px]">
+            <thead>
+              <tr class="border-b border-border/60 text-muted-foreground">
+                <th class="w-10 px-3 py-2">
+                  <DitherCheckbox :model-value="allOnPage" aria-label="Select page" @update:model-value="toggleAll" />
+                </th>
+                <th class="py-2 pr-3" :aria-sort="ariaSort('name')">
+                  <button
+                    type="button"
+                    class="flex items-center gap-1 transition-colors hover:text-foreground"
+                    @click="sortBy('name')"
+                  >
+                    Member
+                    <span v-if="sortKey === 'name'" aria-hidden="true">{{ sortDir === 1 ? "↑" : "↓" }}</span>
+                  </button>
+                </th>
+                <th class="py-2 pr-3 font-normal">Role</th>
+                <th class="py-2 pr-3 font-normal">Status</th>
+                <th class="py-2 pr-3" :aria-sort="ariaSort('joined')">
+                  <button
+                    type="button"
+                    class="flex items-center gap-1 transition-colors hover:text-foreground"
+                    @click="sortBy('joined')"
+                  >
+                    Joined
+                    <span v-if="sortKey === 'joined'" aria-hidden="true">{{ sortDir === 1 ? "↑" : "↓" }}</span>
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="m in paged"
+                :key="m.email"
+                class="border-b border-border/40 transition-colors last:border-0 hover:bg-card/40"
+                :class="selected.has(m.email) ? 'bg-card/50' : ''"
+              >
+                <td class="px-3 py-2">
+                  <DitherCheckbox
+                    :model-value="selected.has(m.email)"
+                    :aria-label="`Select ${m.name}`"
+                    @update:model-value="toggleRow(m.email)"
                   />
-                  {{ STATUS[m.status].label }}
-                </span>
-              </td>
-              <td class="py-2 pr-3 tabular-nums text-muted-foreground">{{ m.joined }}</td>
-            </tr>
-            <tr v-if="!paged.length">
-              <td colspan="5" class="px-3 py-8 text-center text-muted-foreground">No members match “{{ query }}”.</td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+                <td class="py-2 pr-3">
+                  <div class="text-foreground">{{ m.name }}</div>
+                  <div class="text-[10px] text-muted-foreground">{{ m.email }}</div>
+                </td>
+                <td class="py-2 pr-3 text-muted-foreground">{{ m.role }}</td>
+                <td class="py-2 pr-3">
+                  <span class="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <span
+                      class="size-1.5 shrink-0 rounded-full"
+                      :style="{ backgroundColor: `var(--swatch-${STATUS[m.status].color})` }"
+                      aria-hidden="true"
+                    />
+                    {{ STATUS[m.status].label }}
+                  </span>
+                </td>
+                <td class="py-2 pr-3 tabular-nums text-muted-foreground">{{ m.joined }}</td>
+              </tr>
+              <tr v-if="!paged.length">
+                <td colspan="5" class="px-3 py-8 text-center text-muted-foreground">No members match “{{ query }}”.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="flex items-center justify-between border-t border-border/60 p-3">
           <span class="text-[10px] tabular-nums text-muted-foreground">{{ rangeLabel }}</span>
           <DitherPagination v-model:page="page" :total="pages" />

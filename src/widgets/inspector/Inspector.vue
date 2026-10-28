@@ -307,7 +307,7 @@ function setPieVariant(v: VariantInput) {
               min="0"
               max="0.85"
               step="0.05"
-              class="flex-1 accent-foreground"
+              class="h-6 flex-1 accent-foreground"
             />
             <span class="w-8 tabular-nums text-foreground">{{ chart.innerRadius.toFixed(2) }}</span>
           </label>
@@ -320,7 +320,7 @@ function setPieVariant(v: VariantInput) {
               min="1"
               max="6"
               step="1"
-              class="flex-1 accent-foreground"
+              class="h-6 flex-1 accent-foreground"
             />
             <span class="w-8 tabular-nums text-foreground">{{ chart.cell }}px</span>
           </label>
@@ -334,7 +334,7 @@ function setPieVariant(v: VariantInput) {
                 min="0"
                 max="0.7"
                 step="0.02"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ chart.barGap.toFixed(2) }}</span>
             </label>
@@ -347,7 +347,7 @@ function setPieVariant(v: VariantInput) {
                 min="0"
                 max="1"
                 step="0.02"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ chart.barEdge.toFixed(2) }}</span>
             </label>
@@ -361,7 +361,7 @@ function setPieVariant(v: VariantInput) {
               min="0.05"
               max="0.4"
               step="0.01"
-              class="flex-1 accent-foreground"
+              class="h-6 flex-1 accent-foreground"
             />
             <span class="w-8 tabular-nums text-foreground">{{ chart.glowSize.toFixed(2) }}</span>
           </label>
@@ -375,7 +375,7 @@ function setPieVariant(v: VariantInput) {
                 min="0"
                 max="20"
                 step="1"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ chart.popOut }}px</span>
             </label>
@@ -388,7 +388,7 @@ function setPieVariant(v: VariantInput) {
                 min="0"
                 max="5"
                 step="0.2"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ chart.rimWidth.toFixed(1) }}</span>
             </label>
@@ -403,7 +403,7 @@ function setPieVariant(v: VariantInput) {
                 min="0.1"
                 max="1"
                 step="0.05"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ chart.falloff.toFixed(2) }}</span>
             </label>
@@ -418,7 +418,7 @@ function setPieVariant(v: VariantInput) {
               min="0"
               max="359"
               step="1"
-              class="flex-1 accent-foreground"
+              class="h-6 flex-1 accent-foreground"
             />
             <span class="w-8 tabular-nums text-foreground">{{ chart.startAngle }}°</span>
           </label>
@@ -431,7 +431,7 @@ function setPieVariant(v: VariantInput) {
               min="0"
               max="1"
               step="0.05"
-              class="flex-1 accent-foreground"
+              class="h-6 flex-1 accent-foreground"
             />
             <span class="w-8 tabular-nums text-foreground">{{ chart.dimOpacity.toFixed(2) }}</span>
           </label>
@@ -444,7 +444,7 @@ function setPieVariant(v: VariantInput) {
               min="0"
               max="2"
               step="0.1"
-              class="flex-1 accent-foreground"
+              class="h-6 flex-1 accent-foreground"
             />
             <span class="w-8 tabular-nums text-foreground">{{ chart.hoverStrength.toFixed(1) }}×</span>
           </label>
@@ -480,7 +480,7 @@ function setPieVariant(v: VariantInput) {
               min="0"
               max="0.9"
               step="0.05"
-              class="flex-1 accent-foreground"
+              class="h-6 flex-1 accent-foreground"
             />
             <span class="w-8 tabular-nums text-foreground">{{ chart.stagger.toFixed(2) }}</span>
           </label>
@@ -499,7 +499,7 @@ function setPieVariant(v: VariantInput) {
                 min="0.2"
                 max="3"
                 step="0.1"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ chart.sparkleDensity.toFixed(1) }}×</span>
             </label>
@@ -512,7 +512,7 @@ function setPieVariant(v: VariantInput) {
                 min="0.2"
                 max="3"
                 step="0.1"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ chart.sparkleSpeed.toFixed(1) }}×</span>
             </label>
@@ -534,7 +534,7 @@ function setPieVariant(v: VariantInput) {
 
         <section v-if="!ab.widget" class="flex flex-col gap-2">
           <p class="micro text-muted-foreground">Seed</p>
-          <p class="text-[10px] leading-relaxed text-muted-foreground/70">
+          <p class="text-[10px] leading-relaxed text-muted-foreground">
             One integer derives texture, motion, geometry and glow. Explicit controls above always win.
           </p>
           <div class="flex items-center gap-2">
@@ -651,7 +651,7 @@ function setPieVariant(v: VariantInput) {
                   min="0.1"
                   max="0.9"
                   step="0.05"
-                  class="flex-1 accent-foreground"
+                  class="h-6 flex-1 accent-foreground"
                   @input="deriveAvatarImage"
                 />
                 <span class="w-8 tabular-nums text-foreground">{{ avatar.imageThreshold.toFixed(2) }}</span>
@@ -672,7 +672,7 @@ function setPieVariant(v: VariantInput) {
                 min="4"
                 max="16"
                 step="2"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ avatar.grid }}×{{ avatar.grid }}</span>
             </label>
@@ -685,7 +685,7 @@ function setPieVariant(v: VariantInput) {
                 min="1"
                 max="8"
                 step="1"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ avatar.cellPx }}px</span>
             </label>
@@ -698,7 +698,7 @@ function setPieVariant(v: VariantInput) {
                 min="-0.5"
                 max="0.5"
                 step="0.05"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ avatar.density.toFixed(2) }}</span>
             </label>
@@ -711,7 +711,7 @@ function setPieVariant(v: VariantInput) {
                 min="0"
                 max="1"
                 step="0.05"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ avatar.offTier.toFixed(2) }}</span>
             </label>
@@ -766,7 +766,7 @@ function setPieVariant(v: VariantInput) {
                 min="1"
                 max="6"
                 step="1"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ button.cell }}px</span>
             </label>
@@ -950,7 +950,7 @@ function setPieVariant(v: VariantInput) {
                 min="1"
                 max="8"
                 step="1"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ image.cell }}px</span>
             </label>
@@ -963,7 +963,7 @@ function setPieVariant(v: VariantInput) {
                 min="0"
                 max="1"
                 step="0.05"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ image.focusY.toFixed(2) }}</span>
             </label>
@@ -976,7 +976,7 @@ function setPieVariant(v: VariantInput) {
                 min="0"
                 max="80"
                 step="2"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ image.fade }}px</span>
             </label>
@@ -997,7 +997,7 @@ function setPieVariant(v: VariantInput) {
                 min="1"
                 max="8"
                 step="1"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ gradient.cell }}px</span>
             </label>
@@ -1010,7 +1010,7 @@ function setPieVariant(v: VariantInput) {
                 min="0"
                 max="1"
                 step="0.05"
-                class="flex-1 accent-foreground"
+                class="h-6 flex-1 accent-foreground"
               />
               <span class="w-8 tabular-nums text-foreground">{{ gradient.opacity.toFixed(2) }}</span>
             </label>
@@ -1059,7 +1059,7 @@ function setPieVariant(v: VariantInput) {
             min="0"
             max="1"
             step="0.05"
-            class="flex-1 accent-foreground"
+            class="h-6 flex-1 accent-foreground"
           />
           <span class="w-8 tabular-nums text-foreground">{{ series.opacity.toFixed(2) }}</span>
         </label>
@@ -1095,7 +1095,7 @@ function setPieVariant(v: VariantInput) {
             min="0"
             max="0.85"
             step="0.05"
-            class="flex-1 accent-foreground"
+            class="h-6 flex-1 accent-foreground"
           />
           <span class="w-8 tabular-nums text-foreground">{{ chart.innerRadius.toFixed(2) }}</span>
         </label>

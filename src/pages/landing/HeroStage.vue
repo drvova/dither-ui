@@ -1,7 +1,9 @@
 <script setup lang="ts">
 // The hero's stage: the kit by hand, one real component at a time, the way
 // the film shows it (each framed alone in a docs-style well, its name in the
-// corner, the controls its docs demo has). The picker under the well
+// corner, the controls its docs demo has), leading with what nothing else
+// does: a dithered chart, a GLSL shader, one snippet written as StyleX.
+// The picker under the well
 // chooses a scene and the tour moves on by itself: a CSS animation on the
 // progress rule whose end advances it (no timer), paused while the stage is
 // hovered or holds focus. The chip pauses it; using a scene or picking one
@@ -10,12 +12,13 @@
 // first one is simply there, and it is the only one in the static page.
 import { defineAsyncComponent, onMounted, reactive, ref } from "vue"
 import {
+  Area,
+  AreaChart,
   DitherButton,
-  DitherHoldAction,
   DitherIcon,
   DitherReveal,
   DitherSlideAction,
-  DitherTextPressure,
+  XAxis,
   cssColor,
   type ButtonVariant,
   type DitherColor,
@@ -24,12 +27,42 @@ import {
 import { routePath } from "@/shared/lib"
 import PauseChip from "./PauseChip.vue"
 
-// The fluid's canvas engine is the heaviest scene: its own chunk, fetched
-// when the scene is first picked.
-const DitherFerrofluid = defineAsyncComponent(() => import("@dither-kit/Ferrofluid.vue"))
+// The heavy scenes are their own chunks, fetched when first shown: the
+// shader's WebGL engine, the code translator's utility map, the fluid's
+// canvas engine.
+const DitherShader = defineAsyncComponent(() => import("@dither-kit/tailwind/DitherShader.vue"))
+const ExportScene = defineAsyncComponent(() => import("./ExportScene.vue"))
+const DitherFerrofluid = defineAsyncComponent(() => import("@dither-kit/tailwind/Ferrofluid.vue"))
 
 type Scene = { id: string; short: string; name: string; icon: IconName; line: string; docs: string; link: string }
 const SCENES: Scene[] = [
+  {
+    id: "chart",
+    short: "Chart",
+    name: "AreaChart",
+    icon: "ChartLine",
+    line: "A dithered chart from one seed. Roll it and every fill changes with it.",
+    docs: "/docs/seeds",
+    link: "Seeds docs",
+  },
+  {
+    id: "shader",
+    short: "Shader",
+    name: "DitherShader",
+    icon: "Sparkles",
+    line: "Real GLSL on your GPU, read back and dithered on the kit's cells.",
+    docs: "/docs/shader",
+    link: "Shader docs",
+  },
+  {
+    id: "export",
+    short: "StyleX",
+    name: "Code export",
+    icon: "Code",
+    line: "One snippet, written as StyleX, CSS Modules, CSS or Tailwind from the same look.",
+    docs: "/docs/styling",
+    link: "Styling docs",
+  },
   {
     id: "button",
     short: "Button",
@@ -47,24 +80,6 @@ const SCENES: Scene[] = [
     line: "Drag the thumb to the end, or focus it and press Enter.",
     docs: "/docs/slide-action",
     link: "Slide action docs",
-  },
-  {
-    id: "hold",
-    short: "Hold",
-    name: "DitherHoldAction",
-    icon: "Clock",
-    line: "Hold to finish. Let go early and the fill drains back.",
-    docs: "/docs/hold-action",
-    link: "Hold action docs",
-  },
-  {
-    id: "pressure",
-    short: "Pressure",
-    name: "DitherTextPressure",
-    icon: "Type",
-    line: "Each letter swells as the cursor comes near.",
-    docs: "/docs/text-pressure",
-    link: "Text pressure docs",
   },
   {
     id: "ferrofluid",
@@ -101,11 +116,27 @@ onMounted(() => {
 })
 
 // Each scene's own state, as in its docs demo.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const REVENUE = [42, 51, 48, 63, 71, 68, 79, 86, 82, 94, 102, 118]
+const EXPENSES = [31, 34, 33, 39, 44, 47, 46, 52, 55, 58, 61, 67]
+const ROWS = MONTHS.map((month, i) => ({ month, revenue: REVENUE[i], expenses: EXPENSES[i] }))
+const CHART = {
+  revenue: { label: "Revenue", color: "blue" as DitherColor },
+  expenses: { label: "Expenses", color: "purple" as DitherColor },
+}
+const seed = ref(1984)
+const roll = () => (seed.value = Math.floor(Math.random() * 1_000_000))
+// The shader: the kit's seeded sample (every seed is a different GLSL
+// program), 1-bit in the kit's blue, on a palette ramp, or in its own colours.
+const MODES = ["mono", "ramp", "colour"] as const
+type Mode = (typeof MODES)[number]
+const mode = ref<Mode>("mono")
+const program = ref(3)
+const RAMP: DitherColor[] = ["blue", "purple", "pink", "orange"]
 const VARIANTS: ButtonVariant[] = ["gradient", "dotted", "hatched", "solid"]
 const COLORS: DitherColor[] = ["blue", "green", "purple", "pink", "orange"]
 const btn = reactive({ variant: "gradient" as ButtonVariant, color: "blue" as DitherColor })
 const deploys = ref(0)
-const holds = ref(0)
 const FLUIDS = {
   acid: ["#27FF64", "#7CFF67", "#A8FFB6"],
   ice: ["#3DA5FF", "#7CE0FF", "#CFF6FF"],
@@ -118,7 +149,7 @@ const fluid = ref<Fluid>("acid")
 
 <template>
   <figure class="hero-stage">
-    <div class="thumb stage" @pointerdown="hold" @keydown="hold">
+    <div class="gel stage" @pointerdown="hold" @keydown="hold">
       <span class="stage-name">{{ SCENES[at].name }}</span>
       <PauseChip
         v-model="playing"
@@ -128,9 +159,43 @@ const fluid = ref<Fluid>("acid")
         @keydown.stop
       />
       <DitherReveal :key="at" :progress="moved ? undefined : 1" :duration="0.6" :cell="6" class="scene-wrap">
-        <div v-if="SCENES[at].id === 'button'" class="scene">
+        <div v-if="SCENES[at].id === 'chart'" class="scene scene-chart">
+          <div class="chart">
+            <AreaChart :key="seed" :data="ROWS" :config="CHART" :seed="seed" class="h-full">
+              <XAxis data-key="month" :max-ticks="6" />
+              <Area data-key="expenses" :variant="seed + 1" />
+              <Area data-key="revenue" :variant="seed" />
+            </AreaChart>
+          </div>
+          <div class="row">
+            <DitherButton color="blue" variant="gradient" @click="roll">Roll a seed</DitherButton>
+            <span class="count">seed: {{ seed }}</span>
+          </div>
+        </div>
+        <div v-else-if="SCENES[at].id === 'shader'" class="scene scene-fill">
+          <DitherShader
+            :seed="program"
+            :mono="mode === 'mono'"
+            :colors="mode === 'ramp' ? RAMP : undefined"
+            color="blue"
+            :cell="4"
+            interactive
+            :label="`The kit's sample shader, seed ${program}`"
+            class="fluid"
+          />
+          <div class="fluid-pick">
+            <div class="seg track" role="group" aria-label="Output">
+              <button v-for="m in MODES" :key="m" type="button" :aria-pressed="mode === m" @click="mode = m">
+                {{ m }}
+              </button>
+            </div>
+            <button type="button" class="new-program" @click="program++">New shader</button>
+          </div>
+        </div>
+        <ExportScene v-else-if="SCENES[at].id === 'export'" />
+        <div v-else-if="SCENES[at].id === 'button'" class="scene">
           <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-14 px-9 text-sm">Deploy</DitherButton>
-          <div class="seg" role="group" aria-label="Fill">
+          <div class="seg track" role="group" aria-label="Fill">
             <button
               v-for="v in VARIANTS"
               :key="v"
@@ -158,25 +223,6 @@ const fluid = ref<Fluid>("acid")
           <DitherSlideAction label="Slide to deploy" color="green" class="w-80" @confirm="deploys++" />
           <p class="count">deploys: {{ deploys }}</p>
         </div>
-        <div v-else-if="SCENES[at].id === 'hold'" class="scene">
-          <div class="holds">
-            <DitherHoldAction color="orange" class="px-6 py-4 text-[13px]" @complete="holds++"
-              >Hold to purge cache</DitherHoldAction
-            >
-            <DitherHoldAction
-              direction="horizontal"
-              color="blue"
-              :duration="900"
-              class="px-6 py-4 text-[13px]"
-              @complete="holds++"
-              >Hold to archive</DitherHoldAction
-            >
-          </div>
-          <p class="count">completed: {{ holds }}</p>
-        </div>
-        <div v-else-if="SCENES[at].id === 'pressure'" class="scene">
-          <DitherTextPressure text="dither-ui" class="pressure" />
-        </div>
         <div v-else class="scene scene-fill">
           <DitherFerrofluid :colors="[...FLUIDS[fluid]]" class="fluid" />
           <div class="seg fluid-pick" role="group" aria-label="Palette">
@@ -188,7 +234,7 @@ const fluid = ref<Fluid>("acid")
       </DitherReveal>
     </div>
     <div class="tour" :data-running="playing ? 'true' : undefined">
-      <div class="seg tour-pick" role="group" aria-label="Pick a component">
+      <div class="seg track tour-pick" role="group" aria-label="Pick a component">
         <button v-for="(s, i) in SCENES" :key="s.id" type="button" :aria-pressed="at === i" @click="pick(i)">
           {{ s.short }}
         </button>
@@ -224,11 +270,11 @@ const fluid = ref<Fluid>("acid")
    that fills the well. */
 .stage-name {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1;
-  padding: 2px 6px;
-  border-radius: 4px;
+  top: 12px;
+  left: 14px;
+  z-index: 4;
+  padding: 2px 12px;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
   font-size: 11.5px;
   color: var(--ink-3);
   background: var(--well);
@@ -237,9 +283,9 @@ const fluid = ref<Fluid>("acid")
 
 .stage-chip {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
+  top: 10px;
+  right: 12px;
+  z-index: 4;
 }
 
 .scene-wrap,
@@ -274,13 +320,6 @@ const fluid = ref<Fluid>("acid")
     0 0 0 3px var(--ink);
 }
 
-.holds {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-}
-
 .count {
   margin: 0;
   font-size: 11.5px;
@@ -288,12 +327,22 @@ const fluid = ref<Fluid>("acid")
   color: var(--ink-3);
 }
 
-.pressure {
-  font-size: min(14cqw, 6.5rem);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--ink);
+/* The chart takes the well above its roll. */
+.scene-chart {
+  align-items: stretch;
+  gap: 12px;
+}
+
+.chart {
+  flex: 1;
+  min-height: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
 }
 
 /* The fluid fills the well; its palette sits on a strip of the well's
@@ -311,9 +360,25 @@ const fluid = ref<Fluid>("acid")
   position: absolute;
   bottom: 10px;
   left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px;
   border-radius: 7px;
   background: var(--well);
+}
+
+.new-program {
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.new-program:hover {
+  background: color-mix(in oklab, var(--foreground) 6%, transparent);
 }
 
 /* The picker, and under it the tour's progress: a hairline that fills over
@@ -358,10 +423,11 @@ const fluid = ref<Fluid>("acid")
   }
 }
 
+/* The caption: the glyph and the link on the first line of the text. */
 .stage-cap {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px 10px;
   font-size: 11.5px;
   line-height: 1.6;
@@ -370,11 +436,13 @@ const fluid = ref<Fluid>("acid")
 
 .cap-i {
   flex: none;
+  margin-top: 2px;
 }
 
 .cap-t {
   flex: 1;
   min-width: 14rem;
+  text-wrap: pretty;
 }
 
 @media (max-width: 899px) {

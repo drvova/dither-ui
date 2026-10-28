@@ -66,24 +66,21 @@ async function downloadAll() {
       @click.self="emit('close')"
       @keydown.esc.stop="emit('close')"
     >
-      <DitherFocusScope
-        :autofocus="false"
-        class="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
-      >
+      <DitherFocusScope :autofocus="false" class="hardshell flex max-h-[80vh] w-full max-w-2xl flex-col bg-card">
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
           <span class="text-sm font-medium">Export as a Vue SFC</span>
           <div class="flex items-center gap-2">
             <button
               type="button"
               :title="`Download every artboard as its own .vue file (${editor.artboards.length})`"
-              class="rounded-md border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              class="rounded-lg border border-border px-3 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
               @click="downloadAll"
             >
               Download all ({{ editor.artboards.length }})
             </button>
             <button
               type="button"
-              class="rounded-md border border-border px-2.5 py-1 text-[11px] transition-colors"
+              class="rounded-lg border border-border px-3 py-1 text-[11px] transition-colors"
               :class="copied ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
               @click="copy"
             >
@@ -92,7 +89,7 @@ async function downloadAll() {
             <button
               ref="closeRef"
               type="button"
-              class="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground"
+              class="flex size-7 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Close"
               @click="emit('close')"
             >

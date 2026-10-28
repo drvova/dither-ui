@@ -77,7 +77,7 @@
         )}>{s.label}</span
       >
       {#if s.hint}
-        <span class="text-center text-[11px] text-muted-foreground/60">{s.hint}</span>
+        <span class="text-center text-[11px] text-muted-foreground">{s.hint}</span>
       {/if}
     </li>
   {/each}

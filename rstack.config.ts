@@ -91,7 +91,10 @@ define.app(async ({ command }) => {
   ])
   return {
     plugins: [pluginVue(), pluginTailwindcss(), utilityMap(root), crawlFiles(), kitSources()],
-    resolve: { alias: { "@": at("src"), "@dither-kit": at("dither-kit") } },
+    // `@dither-kit` is the Tailwind layer's index; `@dither-kit/<layer>/…` any kit file.
+    resolve: {
+      alias: { "@": at("src"), "@dither-kit$": at("dither-kit/tailwind/index.ts"), "@dither-kit": at("dither-kit") },
+    },
     server: {
       // `/` on dither-ui.com (public/CNAME); BASE_PATH=/dither-ui/ only for
       // a GitHub Pages project-URL deploy.

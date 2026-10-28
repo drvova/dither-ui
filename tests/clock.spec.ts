@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, rs } from "rstack/test"
-import { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "../dither-kit/clock"
+import { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "../dither-kit/engine/clock"
 
 afterEach(() => {
   release()

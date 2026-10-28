@@ -1,5 +1,14 @@
 import { describe, expect, it } from "rstack/test"
-import { BORDER_ALPHA, cubicBezier, EASINGS, OFF_TIER, resolveEasing, resolveTexture } from "../dither-kit/dither-paint"
+import {
+  BORDER_ALPHA,
+  cubicBezier,
+  EASINGS,
+  OFF_TIER,
+  resolveEasing,
+  resolveTexture,
+  revealFromSeed,
+  revealThreshold,
+} from "../dither-kit/engine/dither-paint"
 
 describe("cubicBezier", () => {
   it("pins the endpoints", () => {
@@ -71,5 +80,22 @@ describe("resolveTexture", () => {
     expect(t.hatch).toBe(6)
     expect(t.gaps).toBe(false)
     expect(t.edge).toBe(BORDER_ALPHA)
+  })
+})
+
+describe("revealThreshold", () => {
+  it("lets the last frame of every seeded reveal hold every column", () => {
+    let latest = 0
+    for (let seed = 0; seed < 600; seed++) {
+      const rev = revealFromSeed(seed)
+      for (let x = 0; x < 240; x++) latest = Math.max(latest, revealThreshold(x, 240, seed, rev))
+    }
+    expect(latest).toBeLessThanOrEqual(1)
+  })
+  it("keeps the dissolve: a jittered seed develops its columns out of order", () => {
+    const rev = revealFromSeed(1984)
+    expect(rev.jitter).toBeGreaterThan(0)
+    const t = Array.from({ length: 240 }, (_, x) => revealThreshold(x, 240, 1984, rev))
+    expect(t.some((v, i) => i > 0 && (rev.reverse ? v > t[i - 1] : v < t[i - 1]))).toBe(true)
   })
 })

@@ -126,7 +126,7 @@ async function onCsvFile(e: Event) {
             <td class="px-1 text-right">
               <button
                 type="button"
-                class="rounded px-1 text-muted-foreground/60 transition-colors hover:text-red-400"
+                class="rounded px-1 text-muted-foreground transition-colors hover:text-red-400"
                 :aria-label="`Delete row ${i + 1}`"
                 @click="removeRow(chart, i)"
               >

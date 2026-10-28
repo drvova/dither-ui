@@ -1,6 +1,6 @@
 import { describe, expect, it } from "rstack/test"
-import { facesOf, parseVrml, parseVrmlNodes, tokenizeVrml, vrmlTransform } from "../dither-kit/models"
-import { nodeMatrices, transformPoint } from "../dither-kit/world"
+import { facesOf, parseVrml, parseVrmlNodes, tokenizeVrml, vrmlTransform } from "../dither-kit/engine/models"
+import { nodeMatrices, transformPoint } from "../dither-kit/engine/world"
 
 const V2 = "#VRML V2.0 utf8\n"
 const extent = (p: Float32Array, axis: number) =>

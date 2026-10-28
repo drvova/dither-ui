@@ -1,6 +1,6 @@
 // @rstest-environment jsdom
 import { describe, expect, it, rs } from "rstack/test"
-import { copyText } from "../dither-kit/lib"
+import { copyText } from "../dither-kit/engine/copy-text"
 
 const clipboard = (value: unknown) => Object.defineProperty(navigator, "clipboard", { value, configurable: true })
 

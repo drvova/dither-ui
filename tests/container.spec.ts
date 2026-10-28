@@ -1,5 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import { CONTAINER_SCALE, quantize, resolveCq, type CqScale } from "../dither-kit/containers"
+import { CONTAINER_SCALE, quantize, resolveCq, type CqScale } from "../dither-kit/engine/containers"
 
 describe("resolveCq", () => {
   it("ships a component-sized default scale", () => {

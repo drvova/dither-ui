@@ -86,7 +86,7 @@ function markAll() {
   notices.forEach((n) => (n.read = true))
 }
 
-const SNIPPET = `<div class="w-80 rounded-lg border">
+const SNIPPET = `<div class="w-full max-w-80 rounded-lg border">
   <header class="flex items-center justify-between border-b p-3">
     Notifications <DitherBadge v-if="unread" color="green">{{ unread }}</DitherBadge>
     <button @click="markAll">Mark all read</button>
@@ -117,7 +117,7 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
       once. Empty the unread tab and it says so instead of showing nothing.
     </p>
     <DemoCard :code="SNIPPET">
-      <div class="mx-auto w-80 rounded-lg border border-border/60 bg-background/40">
+      <div class="mx-auto w-full max-w-80 rounded-lg border border-border/60 bg-background/40">
         <div class="flex items-center justify-between border-b border-border/60 p-3">
           <span class="flex items-center gap-2 text-[12px] text-foreground">
             Notifications
@@ -143,7 +143,7 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
               :key="n.id"
               type="button"
               class="flex w-full items-start gap-2.5 rounded-md p-2 text-left transition-colors hover:bg-card/60"
-              :class="n.read ? 'opacity-70' : ''"
+              :class="n.read ? '' : 'bg-card/40'"
               @click="n.read = true"
             >
               <DitherAvatar :name="n.actor" :size="24" :color="n.color" class="mt-0.5 shrink-0" />
@@ -151,7 +151,7 @@ const SNIPPET = `<div class="w-80 rounded-lg border">
                 <span class="text-foreground">{{ n.actor }}</span>
                 {{ n.action }}
                 <span class="text-foreground">{{ n.target }}</span>
-                <time class="ml-1 text-[9px] text-muted-foreground/70 tabular-nums">{{ n.time }}</time>
+                <time class="ml-1 text-[9px] text-muted-foreground tabular-nums">{{ n.time }}</time>
               </span>
               <span v-if="!n.read" class="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
               <span v-if="!n.read" class="sr-only">unread</span>

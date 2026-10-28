@@ -21,7 +21,7 @@ import {
   scorePlanOf,
   wipeDirectionOf,
 } from "@/features/reel"
-import { release, seek } from "../dither-kit/clock"
+import { release, seek } from "../dither-kit/engine/clock"
 
 const clips = [
   createClip("a", 3),

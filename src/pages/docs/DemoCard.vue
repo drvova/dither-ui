@@ -138,10 +138,10 @@ onBeforeUnmount(() => {
 const renderRun = () => (ran.value ? [h(RunView, { component: ran.value.component, key: runs.value })] : [])
 const runAttrs = computed(() => (ran.value ? { [ran.value.attribute]: "" } : {}))
 
+// Chips are machined segments in a track; the picked one wears the site's
+// pressed state.
 const chipClass = (active: boolean) =>
-  active
-    ? "rounded border border-border/60 px-2 py-0.5 text-foreground"
-    : "rounded border border-transparent px-2 py-0.5 text-muted-foreground hover:text-foreground"
+  active ? "px-2.5 py-0.5 ring-on" : "px-2.5 py-0.5 text-muted-foreground hover:text-foreground"
 
 function chip(apply: () => void, already: boolean) {
   if (!already) play("tap")
@@ -152,17 +152,13 @@ function chip(apply: () => void, already: boolean) {
 <template>
   <div ref="root" class="mt-6" data-demo-card>
     <div class="flex items-center justify-between text-[12px]">
-      <div class="flex gap-4" role="tablist">
+      <div class="track mb-2" role="tablist">
         <button
           type="button"
           role="tab"
           :aria-selected="tab === 'preview'"
-          class="border-b pb-2 transition-colors"
-          :class="
-            tab === 'preview'
-              ? 'border-foreground text-foreground'
-              : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'
-          "
+          class="h-7 px-3.5 transition-colors"
+          :class="tab === 'preview' ? 'ring-on' : 'text-muted-foreground hover:text-foreground'"
           @click="show('preview')"
         >
           Preview
@@ -171,19 +167,15 @@ function chip(apply: () => void, already: boolean) {
           type="button"
           role="tab"
           :aria-selected="tab === 'code'"
-          class="border-b pb-2 transition-colors"
-          :class="
-            tab === 'code'
-              ? 'border-foreground text-foreground'
-              : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'
-          "
+          class="h-7 px-3.5 transition-colors"
+          :class="tab === 'code' ? 'ring-on' : 'text-muted-foreground hover:text-foreground'"
           @click="show('code')"
         >
           Code
         </button>
       </div>
       <div v-if="tab === 'code'" class="flex flex-wrap justify-end gap-x-3 gap-y-1 pb-2 text-[11px]">
-        <div class="flex gap-1" role="group" aria-label="Framework">
+        <div class="track" role="group" aria-label="Framework">
           <button
             :aria-pressed="docsFramework === 'vue'"
             :class="chipClass(docsFramework === 'vue')"
@@ -201,7 +193,7 @@ function chip(apply: () => void, already: boolean) {
         </div>
         <!-- The same snippet in the reader's styling system: Tailwind as
              authored, or a scoped stylesheet, CSS Modules (Vue) or StyleX. -->
-        <div class="flex gap-1" role="group" aria-label="Styling">
+        <div class="track" role="group" aria-label="Styling">
           <button
             v-for="s in docsStylings"
             :key="s"
@@ -213,7 +205,7 @@ function chip(apply: () => void, already: boolean) {
           </button>
         </div>
       </div>
-      <div v-else class="pb-2 text-[11px]">
+      <div v-else class="track mb-2 text-[11px]">
         <button
           ref="toggle"
           type="button"
@@ -232,11 +224,7 @@ function chip(apply: () => void, already: boolean) {
     </div>
     <div v-if="ran" class="mt-3 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
       <span class="micro">Running your files</span>
-      <button
-        type="button"
-        class="flex min-h-6 items-center rounded border border-border/60 px-2 text-foreground"
-        @click="restore"
-      >
+      <button type="button" class="nav-pill flex min-h-6 items-center px-3 text-foreground" @click="restore">
         Restore the demo
       </button>
     </div>
@@ -244,7 +232,7 @@ function chip(apply: () => void, already: boolean) {
       v-show="tab === 'preview' || ran"
       ref="host"
       v-bind="runAttrs"
-      class="relative mt-3 flex min-h-[280px] items-center justify-center rounded-lg border border-border/60 p-8 sm:p-10"
+      class="demo-well rim relative mt-3 flex min-h-[280px] items-center justify-center border p-4 sm:p-10"
       :class="{ 'data-[tray=bottom]:pb-16 data-[tray=top]:pt-16': inspecting }"
       :tabindex="inspecting ? 0 : undefined"
       :role="inspecting ? 'group' : undefined"
@@ -260,7 +248,7 @@ function chip(apply: () => void, already: boolean) {
           class="flex h-40 animate-pulse items-center justify-center rounded-md bg-card/40 motion-reduce:animate-none"
           aria-hidden="true"
         >
-          <span class="text-[11px] text-muted-foreground/60">preview</span>
+          <span class="text-[11px] text-muted-foreground">preview</span>
         </div>
       </div>
     </div>
@@ -291,3 +279,27 @@ function chip(apply: () => void, already: boolean) {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* The preview is a gel well: an asymmetric pebble of the well's ground, a
+   gloss on its top edge, the gel's glow at its foot and the chrome rim at
+   its edge. The ground stays one plain colour (a gradient there would hide
+   the background from Inspect's contrast check) and nothing clips (the
+   workbench draws past the frame); the 1px border stays, clear, because
+   captures add it. */
+.demo-well {
+  border-color: transparent;
+  border-radius: 22px 16px 22px 16px / 18px 22px 16px 22px;
+  background-color: var(--well);
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 1px 0 var(--gloss),
+    var(--recess);
+}
+
+@media (forced-colors: active) {
+  .demo-well {
+    border-color: CanvasText;
+  }
+}
+</style>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "rstack/test"
 import UTILITIES from "virtual-dither-utilities"
-import { compileUtilities, restyle } from "../src/shared/lib/restyle"
+import { compileUtilities, Names, restyle, stylexText } from "../src/shared/lib/restyle"
+import { buildUtilityMap } from "../src/shared/lib/utility-map"
 
 const decls = (tokens: string[], strict = false) =>
   compileUtilities(tokens, strict).chains.map((c) => [c.chain, Object.fromEntries(c.decl)] as const)
@@ -59,6 +60,43 @@ describe("compileUtilities", () => {
     expect(rest).toEqual(["my-thing"])
     expect(chains.map((c) => c.chain)).toEqual([[], ["&:hover", "@media (hover: hover)"], ["@media (width >= 40rem)"]])
     expect(chains[1].decl).toEqual([["color", "var(--foreground)"]])
+  })
+})
+
+describe("StyleX as its compiler takes it", () => {
+  // The kit's vocabulary (what the StyleX layer is generated from) holds the
+  // shapes the docs' does not: a placeholder, a clamp, a ring with an offset.
+  const kit = buildUtilityMap(process.cwd(), ["dither-kit/tailwind"])
+  const create = async (tokens: string) => {
+    const names = new Names()
+    names.claim("box", compileUtilities(tokens.split(" "), true, await kit))
+    return stylexText(names.all, "")
+  }
+
+  it("puts a pseudo-element at the top, with its own properties", async () => {
+    const out = await create("text-foreground placeholder:text-muted-foreground/60")
+    expect(out).toContain('color: "var(--foreground)"')
+    expect(out).toContain('"::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" }')
+  })
+
+  it("spells a vendor property the way StyleX does", async () => {
+    expect(await create("line-clamp-2")).toContain('WebkitLineClamp: "2"')
+  })
+
+  it("writes color-mix() without Tailwind's fallback guard, which every supported browser passes", async () => {
+    const out = await create("bg-accent/10")
+    expect(out).toContain('backgroundColor: "color-mix(in oklab, var(--accent) 10%, transparent)"')
+    expect(out).not.toContain("@supports")
+  }, 30_000)
+
+  it("resolves a ring with an offset to the end: no Tailwind variable is left", async () => {
+    const out = await create(
+      "focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+    )
+    expect(out).toContain(
+      '"0 0 0 2px var(--background), 0 0 0 calc(2px + 2px) color-mix(in oklab, var(--accent) 30%, transparent)"',
+    )
+    expect(out).not.toContain("--tw-")
   })
 })
 
@@ -167,6 +205,28 @@ const styles = stylex.create({
       `<button v-bind="stylex.attrs(styles.button, on ? styles.textForeground : styles.textMutedForeground)">x</button>`,
     )
     expect(restyle(code, "css")).toContain(".textForeground {\n  color: var(--foreground);\n}")
+  })
+
+  it("names only a binding's class strings: its condition is code, whatever it holds", () => {
+    const sx = (b: string) => restyle(`<div :class="${b}">x</div>`, "stylex")
+    expect(sx(`m.from === 'me' ? 'justify-end' : 'justify-start'`)).toContain(
+      `<div v-bind="stylex.attrs(m.from === 'me' ? styles.justifyEnd : styles.justifyStart)">`,
+    )
+    expect(sx(`selected.has(m.email) && 'bg-card/50'`)).toContain(
+      `<div v-bind="stylex.attrs(selected.has(m.email) && styles.bgCard50)">`,
+    )
+    expect(sx(`hovered || focused ? 'border-foreground' : 'border-border/60'`)).toContain(
+      `<div v-bind="stylex.attrs(hovered || focused ? styles.borderForeground : styles.borderBorder60)">`,
+    )
+    expect(sx(`m.role === 'user' ? 'justify-end' : ''`)).toContain(
+      `<div v-bind="stylex.attrs(m.role === 'user' ? styles.justifyEnd : null)">`,
+    )
+    // A condition's string that is also a utility stays the value it is.
+    const view = `view === 'grid' ? 'grid grid-cols-3' : 'flex flex-col'`
+    expect(sx(view)).toContain(`stylex.attrs(view === 'grid' ? styles.grid : styles.flex)`)
+    expect(restyle(`<div :class="${view}">x</div>`, "css")).toContain(`:class="view === 'grid' ? 'grid' : 'flex'"`)
+    // An array converts only whole: a class StyleX cannot name keeps the binding.
+    expect(sx(`['p-4', on && 'cta']`)).toContain(`:class="['p-4', on && 'cta']"`)
   })
 
   it("keeps a binding StyleX cannot take, and a self-closing tag's slash", () => {

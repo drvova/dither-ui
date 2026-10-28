@@ -1,0 +1,92 @@
+<!-- Generated from ../tailwind/SplashCursor.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
+<script lang="ts">
+import * as stylex from "@stylexjs/stylex"
+
+const styles = stylex.create({
+  frame: { position: "relative", overflow: "hidden" },
+  canvas: { pointerEvents: "none", position: "absolute", inset: "0px", height: "100%", width: "100%" },
+})
+</script>
+
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from "vue"
+import { cn, type StyleProp } from "./lib"
+import { pixelPrefersReducedMotion } from "../engine/pixel"
+
+const props = withDefaults(
+  defineProps<{
+    color?: string
+    maxRadius?: number
+    duration?: number
+    class?: string
+    xstyle?: StyleProp
+  }>(),
+  { color: "#3DA5FF", maxRadius: 60, duration: 700 },
+)
+
+const wrap = ref<HTMLElement | null>(null)
+const canvas = ref<HTMLCanvasElement | null>(null)
+type Ripple = { x: number; y: number; t0: number }
+let ripples: Ripple[] = []
+let raf = 0
+let ro: ResizeObserver | null = null
+let last = { x: 0, y: 0 }
+
+function resize() {
+  const c = canvas.value
+  const w = wrap.value
+  if (!c || !w) return
+  const r = w.getBoundingClientRect()
+  c.width = Math.max(1, r.width)
+  c.height = Math.max(1, r.height)
+}
+function onMove(e: PointerEvent) {
+  if (pixelPrefersReducedMotion()) return
+  const r = wrap.value?.getBoundingClientRect()
+  if (!r) return
+  const x = e.clientX - r.left
+  const y = e.clientY - r.top
+  if (Math.hypot(x - last.x, y - last.y) < 22) return
+  last = { x, y }
+  ripples.push({ x, y, t0: performance.now() })
+  if (!raf) raf = requestAnimationFrame(frame)
+}
+function frame(now: number) {
+  const c = canvas.value
+  const ctx = c?.getContext("2d")
+  if (!c || !ctx) {
+    raf = 0
+    return
+  }
+  ctx.clearRect(0, 0, c.width, c.height)
+  ripples = ripples.filter((r) => now - r.t0 < props.duration)
+  ctx.strokeStyle = props.color
+  for (const r of ripples) {
+    const p = (now - r.t0) / props.duration
+    ctx.globalAlpha = (1 - p) * 0.7
+    ctx.lineWidth = 2 * (1 - p)
+    ctx.beginPath()
+    ctx.arc(r.x, r.y, p * props.maxRadius, 0, Math.PI * 2)
+    ctx.stroke()
+  }
+  ctx.globalAlpha = 1
+  raf = ripples.length ? requestAnimationFrame(frame) : 0
+}
+
+onMounted(() => {
+  resize()
+  ro = new ResizeObserver(resize)
+  if (wrap.value) ro.observe(wrap.value)
+})
+onBeforeUnmount(() => {
+  if (raf) cancelAnimationFrame(raf)
+  ro?.disconnect()
+})
+</script>
+
+<template>
+  <div ref="wrap" :class="cn(styles.frame, props.xstyle, props.class)" @pointermove="onMove">
+    <slot />
+    <canvas ref="canvas" v-bind="stylex.attrs(styles.canvas)" aria-hidden="true" />
+  </div>
+</template>

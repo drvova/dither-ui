@@ -2,10 +2,10 @@
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
 import { afterEach, describe, expect, it, rs } from "rstack/test"
-import DitherButton from "../../dither-kit/DitherButton.vue"
-import DitherGradient from "../../dither-kit/DitherGradient.vue"
-import DitherImage from "../../dither-kit/DitherImage.vue"
-import DitherSpinner from "../../dither-kit/DitherSpinner.vue"
+import DitherButton from "../../dither-kit/tailwind/DitherButton.vue"
+import DitherGradient from "../../dither-kit/tailwind/DitherGradient.vue"
+import DitherImage from "../../dither-kit/tailwind/DitherImage.vue"
+import DitherSpinner from "../../dither-kit/tailwind/DitherSpinner.vue"
 
 function mockCanvasRuntime() {
   const ctx = {

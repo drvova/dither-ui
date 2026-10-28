@@ -416,6 +416,8 @@ const NAME_FROM_CONTENT = new Set([
   "radio",
   "switch",
   "cell",
+  "gridcell",
+  "row",
   "columnheader",
   "rowheader",
   "tooltip",
@@ -515,9 +517,11 @@ const INTERACTIVE_ROLES = new Set([
   "treeitem",
 ])
 
+/** A control: an interactive role, or a Tab stop. A negative tabindex
+ * alone (a skip link's target, a focusable region) makes none. */
 export function interactive(el: Element): boolean {
   const role = roleOf(el)
-  return el.matches(TABBABLE) || (!!role && INTERACTIVE_ROLES.has(role))
+  return (!!role && INTERACTIVE_ROLES.has(role)) || (el.matches(TABBABLE) && (el as HTMLElement).tabIndex >= 0)
 }
 
 /** The control an element belongs to (a canvas or label inside a button
@@ -546,22 +550,52 @@ export function focusOrder(root: Element): Element[] {
   return [...positive, ...all.filter((el) => (el as HTMLElement).tabIndex === 0)]
 }
 
+/** Clipped to nothing until focused: a skip link, a screen-reader label. */
+function visuallyHidden(el: Element): boolean {
+  const cs = getComputedStyle(el)
+  return cs.clip === "rect(0px, 0px, 0px, 0px)" || cs.clipPath === "inset(50%)"
+}
+
 export type Issue = { el: Element; box: Box; kind: "name" | "target" | "contrast" | "alt" | "tabindex"; note: string }
 
+type Target = { el: Element; box: Box; hit: Box; small: boolean }
+
+const centre = (b: Box) => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 })
+
+/** WCAG 2.5.8's spacing rule: a 24px circle on an undersized target's centre
+ * meets another target, or another undersized target's circle. */
+function crowded(t: Target, all: Target[]): boolean {
+  const c = centre(t.hit)
+  return all.some((o) => {
+    if (o === t || o.el.contains(t.el) || t.el.contains(o.el)) return false
+    if (o.small) {
+      const d = centre(o.hit)
+      return Math.hypot(d.x - c.x, d.y - c.y) < 24
+    }
+    const nx = Math.max(o.hit.x, Math.min(c.x, right(o.hit)))
+    const ny = Math.max(o.hit.y, Math.min(c.y, bottom(o.hit)))
+    return Math.hypot(nx - c.x, ny - c.y) < 12
+  })
+}
+
 /** The floor the site holds itself to, checked across a stage: every
- * control named, every target at least 24×24 (WCAG 2.5.8), text at AA
- * contrast where its background is knowable, images with alt, no positive
- * tabindex. */
+ * control named, every target 24×24 or spaced so a 24px circle on it meets
+ * no other (WCAG 2.5.8), text at AA contrast where its background is
+ * knowable, images with alt, no positive tabindex. */
 export function audit(root: Element, frame: Element): Issue[] {
   const issues: Issue[] = []
+  const targets: Target[] = []
   for (const el of root.querySelectorAll("*")) {
     if (hidden(el) || (el.closest("svg") !== null && el.tagName.toLowerCase() !== "svg")) continue
     const box = boxOf(el, frame)
     if (interactive(el)) {
       if (!nameOf(el)) issues.push({ el, box, kind: "name", note: `${labelOf(el)} has no accessible name` })
       const inlineLink = el.tagName === "A" && getComputedStyle(el).display === "inline"
-      if (!inlineLink && (box.w < 24 || box.h < 24) && box.w > 0)
-        issues.push({ el, box, kind: "target", note: `${labelOf(el)} is ${box.w}×${box.h}, under 24×24` })
+      // A control inside its <label> is pressed through the whole label.
+      const hit = boxOf(el.closest("label") ?? el, frame)
+      const off = (el as HTMLButtonElement).disabled || el.getAttribute("aria-disabled") === "true"
+      if (!inlineLink && !off && !visuallyHidden(el) && hit.w > 0)
+        targets.push({ el, box, hit, small: hit.w < 24 || hit.h < 24 })
       if ((el as HTMLElement).tabIndex > 0)
         issues.push({ el, box, kind: "tabindex", note: `${labelOf(el)} has tabindex=${(el as HTMLElement).tabIndex}` })
     }
@@ -580,5 +614,13 @@ export function audit(root: Element, frame: Element): Issue[] {
       }
     }
   }
+  for (const t of targets)
+    if (t.small && crowded(t, targets))
+      issues.push({
+        el: t.el,
+        box: t.box,
+        kind: "target",
+        note: `${labelOf(t.el)} is ${t.hit.w}×${t.hit.h}, crowded under 24×24`,
+      })
   return issues
 }

@@ -1,12 +1,12 @@
 // @rstest-environment jsdom
 import { mount } from "@vue/test-utils"
 import { describe, expect, it } from "rstack/test"
-import TagInput from "../../dither-kit/TagInput.vue"
-import ChoiceChips from "../../dither-kit/ChoiceChips.vue"
-import CheckboxCard from "../../dither-kit/CheckboxCard.vue"
-import KeyValueInput from "../../dither-kit/KeyValueInput.vue"
-import MentionInput from "../../dither-kit/MentionInput.vue"
-import FileInput from "../../dither-kit/FileInput.vue"
+import TagInput from "../../dither-kit/tailwind/TagInput.vue"
+import ChoiceChips from "../../dither-kit/tailwind/ChoiceChips.vue"
+import CheckboxCard from "../../dither-kit/tailwind/CheckboxCard.vue"
+import KeyValueInput from "../../dither-kit/tailwind/KeyValueInput.vue"
+import MentionInput from "../../dither-kit/tailwind/MentionInput.vue"
+import FileInput from "../../dither-kit/tailwind/FileInput.vue"
 
 describe("TagInput", () => {
   it("commits on Enter and comma, dedupes, backspace pulls the last chip", async () => {

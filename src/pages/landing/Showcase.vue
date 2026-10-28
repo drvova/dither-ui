@@ -7,6 +7,7 @@ import {
   DitherButton,
   DitherIcon,
   DitherLayer,
+  DitherLiquidChrome,
   DitherSlider,
   DitherStage,
   DitherSwitch,
@@ -25,7 +26,7 @@ import InstallBlock from "./InstallBlock.vue"
 import PauseChip from "./PauseChip.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 import { COMPONENT_COUNT, RUNTIME_DEPS } from "./facts"
-import { SECTION_COUNT, SHELVES } from "./hub"
+import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 
 // The portal (its scale after the dither winners on Awwwards, its voice the
 // site's own): a full-bleed hero band, the statement beside the stage (the
@@ -54,7 +55,7 @@ const RAMP = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
 const ROWS = [46, 52, 49, 58, 64, 61, 72, 78, 74, 86, 92, 88].map((renders, i) => ({ month: String(i + 1), renders }))
 const CONFIG = { renders: { label: "renders", color: "blue" as DitherColor } }
 
-// The docs list: the shelved families, biggest first, each to its first
+// The docs list: the big families, biggest first, each to its first
 // section with its glyph; then the handbook.
 const FAMILY_ICON: Record<string, IconName> = {
   Components: "Grid",
@@ -63,15 +64,13 @@ const FAMILY_ICON: Record<string, IconName> = {
   Examples: "Layout",
   Text: "Type",
 }
-const DOCS = SHELVES.filter((s) => s.value !== "explore")
-  .map((s) => ({
-    label: s.label,
-    icon: FAMILY_ICON[s.label] ?? "Grid",
-    count: s.count,
-    note: s.note,
-    href: routePath(`/docs/${s.cards[0].id}`),
-  }))
-  .sort((a, b) => b.count - a.count)
+const DOCS = DOCS_FAMILIES.map((f) => ({
+  label: f.label,
+  icon: FAMILY_ICON[f.label] ?? "Grid",
+  count: f.count,
+  note: f.note,
+  href: routePath(`/docs/${f.first}`),
+})).sort((a, b) => b.count - a.count)
 const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] = [
   { label: "Styling", icon: "Palette", note: "Tailwind, CSS, CSS Modules or StyleX", href: routePath("/docs/styling") },
   {
@@ -98,13 +97,14 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
     <div class="hero">
       <div class="hero-in">
         <div class="statement">
-          <h1 id="hero-h" class="display hero-h">A dithered UI toolkit for Vue.</h1>
+          <h1 id="hero-h" class="display hero-h chrome-type">A dithered UI toolkit for Vue.</h1>
           <p class="hero-lede">
-            Charts, controls, backgrounds, text effects and 3D, each drawn pixel by pixel from one seeded palette. Copy
-            the folder into your Vue 3 or Svelte 5 app and every line is yours to change.
+            Charts, GLSL shaders, controls, backgrounds and 3D, each drawn pixel by pixel from one seeded palette. Copy
+            the folder into your Vue 3 or Svelte 5 app, write it as Tailwind, CSS Modules or StyleX, and every line is
+            yours to change.
           </p>
           <div class="hero-keys">
-            <a :href="routePath('/studio')" class="nav-a nav-pill key-primary">Open the studio</a>
+            <a :href="routePath('/studio')" class="nav-a nav-pill key-chrome">Open the studio</a>
             <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
             <button type="button" class="nav-a nav-pill" @click="film = true">
               <DitherIcon name="Play" :size="12" :stroke-width="1.5" />Watch the film
@@ -112,13 +112,32 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
           </div>
           <dl class="facts">
             <div v-for="f in FACTS" :key="f.label" class="fact">
-              <dt>{{ f.label }}</dt>
-              <dd><DitherIcon :name="f.icon" :size="16" :stroke-width="1.5" class="fact-i" />{{ f.value }}</dd>
+              <dt class="spec">{{ f.label }}</dt>
+              <dd>
+                <DitherIcon :name="f.icon" :size="16" :stroke-width="1.5" class="fact-i" /><span
+                  class="fact-n chrome-type"
+                  >{{ f.value }}</span
+                >
+              </dd>
             </div>
           </dl>
         </div>
-        <HeroStage />
+        <div class="stage-col">
+          <!-- The biome: a pebble of the kit's liquid chrome (one still frame
+               through the Bayer cells) that the stage sits in, past its top
+               and outer edges, and a droplet thrown off it. -->
+          <div class="biome" aria-hidden="true">
+            <div class="pebble">
+              <DitherLiquidChrome :scale="1.7" :distortion="1.3" :seed="2002" render-mode="static" class="h-full" />
+            </div>
+            <div class="pebble drop">
+              <DitherLiquidChrome :scale="1.2" :distortion="0.8" :seed="7" render-mode="static" class="h-full" />
+            </div>
+          </div>
+          <HeroStage />
+        </div>
       </div>
+      <div class="ticks hero-ticks" aria-hidden="true"></div>
     </div>
     <TrailerDialog v-model="film" />
 
@@ -128,21 +147,21 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
       <div class="cols">
         <!-- Column A: the Studio pitch and its products; the portraits. -->
         <div class="col-a">
-          <article class="panel build">
+          <article class="hardshell build">
             <h2 class="display build-h">Build <span>your own screens</span></h2>
             <p class="build-p">
               Lay out charts, controls and whole screens on an infinite canvas, then export each frame as a Vue file, a
               PNG or an MP4.
             </p>
             <div class="tiles">
-              <div class="thumb tile">
+              <div class="gel tile">
                 <div class="tile-art">
                   <DitherButton color="blue" variant="gradient">Deploy</DitherButton>
                   <DitherButton color="orange" variant="solid">New frame</DitherButton>
                 </div>
                 <span class="tile-name">Buttons</span>
               </div>
-              <div class="thumb tile">
+              <div class="gel tile">
                 <div class="tile-art tile-stack">
                   <div class="tile-row">
                     <DitherSwitch v-model="dither" label="Dither" />
@@ -159,12 +178,12 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
             </div>
           </article>
 
-          <article class="panel feature">
+          <article class="hardshell feature">
             <h3 class="display feature-h">Pixel art that answers the cursor</h3>
             <p class="feature-p">
               Hover a portrait: her pixels scatter under the cursor and spring home, and her emote answers.
             </p>
-            <div class="thumb faces"><slot name="faces" /></div>
+            <div class="gel faces"><slot name="faces" /></div>
           </article>
         </div>
 
@@ -172,8 +191,8 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
              and the docs link that leads on. -->
         <div class="col-b">
           <figure class="pick">
-            <div class="thumb pick-art">
-              <span class="live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
+            <div class="gel pick-art">
+              <span class="speed-tag live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
               <DitherWorld
                 :source="WORLD"
                 :colors="RAMP"
@@ -193,7 +212,7 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
             </figcaption>
           </figure>
           <figure class="pick">
-            <div class="thumb pick-art pick-chart">
+            <div class="gel pick-art pick-chart">
               <LineChart :data="ROWS" :config="CONFIG" :interactive="false" :sparkles="false">
                 <Grid horizontal />
                 <XAxis data-key="month" :max-ticks="4" />
@@ -210,8 +229,8 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
             </figcaption>
           </figure>
           <figure class="pick">
-            <div class="thumb pick-art">
-              <span class="live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
+            <div class="gel pick-art">
+              <span class="speed-tag live" aria-hidden="true"><i class="led"></i>Live at 12 fps</span>
               <!-- The docs' stage at well size: an aurora sky and two hills
                    drifting in container units, a moon on its arc. -->
               <DitherStage
@@ -331,10 +350,85 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
    statement (left) beside the stage (right). Under 900px the statement
    comes first and the stage takes the band's width under it. */
 .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background: var(--well);
   box-shadow:
     inset 0 1px 0 var(--line),
     inset 0 -1px 0 var(--line);
+}
+
+/* The stage's column holds the biome behind the stage: a chrome pebble
+   that shows past the well's top and outer edge (never under its tabs or
+   caption), and a droplet off its inner side. Gel-lit: a rim of light and
+   a gloss inside. */
+.stage-col {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+}
+
+.biome {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.pebble {
+  position: absolute;
+  top: -6%;
+  right: -12%;
+  width: 70%;
+  aspect-ratio: 1.15;
+  overflow: hidden;
+  border-radius: 58% 42% 47% 53% / 46% 55% 45% 54%;
+  opacity: 0.42;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.3),
+    inset 14px 18px 40px rgb(255 255 255 / 0.16);
+}
+
+/* The gel's specular: a soft oval of light high on the form. */
+.pebble::after {
+  content: "";
+  position: absolute;
+  top: 9%;
+  left: 14%;
+  width: 34%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 0.55), transparent);
+  transform: rotate(-24deg);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .biome {
+    display: none;
+  }
+}
+
+.pebble.drop {
+  top: 44%;
+  right: auto;
+  left: -7%;
+  width: 12%;
+  border-radius: 52% 48% 61% 39% / 44% 58% 42% 56%;
+  opacity: 0.5;
+}
+
+@media (max-width: 899px) {
+  .biome {
+    display: none;
+  }
+}
+
+/* The seam tape along the band's foot. */
+.hero-ticks {
+  position: absolute;
+  inset: auto 0 1px;
+  opacity: 0.8;
 }
 
 .hero-in {
@@ -358,11 +452,15 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   padding: 36px 0;
 }
 
+/* The statement in the display face (extended, one weight), sized so it
+   holds two lines in its column. */
 .hero-h {
   margin: 0;
-  font-size: clamp(2.2rem, 4.2vw, 3.25rem);
-  line-height: 1.02;
-  letter-spacing: -0.05em;
+  font-family: var(--display-face);
+  font-size: clamp(1.7rem, 3.1vw, 2.45rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
   text-wrap: balance;
   color: var(--ink);
 }
@@ -420,15 +518,20 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   color: var(--ink);
 }
 
+/* The readout: chrome numerals leaning forward, as on a sportswear spec. */
+.fact-n {
+  display: inline-block;
+  padding-right: 0.1em;
+  transform: skewX(-9deg);
+}
+
 .fact-i {
   flex: none;
   color: var(--ink-3);
 }
 
 .fact dt {
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: var(--ink-3);
+  line-height: 1.55;
 }
 
 @media (max-width: 899px) {
@@ -468,6 +571,28 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* The three columns end level at every width: each fills the row, and one
+   part of it takes the slack (the portraits' well, the space between the
+   wells, the space above the handbook). */
+.feature {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.col-b {
+  justify-content: space-between;
+}
+
+/* Between 600 and 899px the wells sit three across under the other
+   columns; stacked full width each one stood half a screen tall. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .col-b {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .build,
@@ -545,7 +670,9 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
 }
 
 .faces {
+  flex: 1;
   display: flex;
+  align-items: center;
   justify-content: center;
   margin-top: 16px;
   padding: 4px 8px 16px;
@@ -610,9 +737,9 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
 
 .pick-chip {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
-  z-index: 1;
+  right: 12px;
+  bottom: 10px;
+  z-index: 4;
 }
 
 /* Under reduced motion the stage holds its end and the sky one frame:
@@ -648,8 +775,18 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
 
 /* Column C: lists under their headings, a hairline off the others. */
 .col-c {
+  display: flex;
+  flex-direction: column;
   padding-left: 20px;
   box-shadow: inset 1px 0 0 var(--line);
+}
+
+.col-c > .list:last-child {
+  margin-bottom: 0;
+}
+
+.col-c > .list + .list-head {
+  margin-top: auto;
 }
 
 @media (max-width: 899px) {
@@ -673,10 +810,13 @@ const HANDBOOK: { label: string; icon: IconName; note: string; href: string }[] 
   box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
 }
 
+/* A row's link takes a 25px target without moving the row. */
 .list-t {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  margin-block: -3px;
+  padding-block: 3px;
   font-size: 12.5px;
   color: var(--ink);
   transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);

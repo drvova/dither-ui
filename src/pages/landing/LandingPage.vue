@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue"
-import {
-  DitherButton,
-  DitherClipboard,
-  DitherHeading,
-  DitherIcon,
-  DitherLightRays,
-  DitherSwitch,
-  Sparkline,
-} from "@dither-kit"
+import { DitherClipboard, DitherIcon, DitherLightRays } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import "@/shared/fonts/display.css"
 import "./chapters.css"
 import { version } from "../../../package.json"
+import AgentAsks from "./AgentAsks.vue"
+import { ASKS } from "./asks"
 import EngravedWordmark from "./EngravedWordmark.vue"
 import EssayFigure from "./EssayFigure.vue"
 import Hub from "./Hub.vue"
@@ -37,11 +32,8 @@ const HARNESSES = [
 // two commands, copied as one line.
 const BRIDGE_STEPS = ["npx degit drvova/dither-ui/bridge bridge", "node bridge/dither-bridge.mjs"]
 const BRIDGE = BRIDGE_STEPS.join(" && ")
-// What the third step's ask makes: a screen of real kit components, as the
-// Studio's add_screen lays it out on its canvas.
-const ASK = "a deploy panel with this week's deploys, an auto deploy switch and a deploy key"
-const DEPLOYS = [4, 6, 5, 8, 7, 11, 9, 12, 10, 14, 13, 16]
-const auto = ref(true)
+// The ask the agents' stage shows, picked under the third step.
+const ask = ref(0)
 
 // The close: the kit's light rays falling over the band. A hand on the
 // keys (the pointer or focus) brightens them.
@@ -220,15 +212,13 @@ onBeforeUnmount(() => {
       Skip to content
     </a>
 
-    <!-- Header: the docs header's twin (brand, the site's links, the
-         "Open studio" pill, in sentence case here) so landing, docs and
-         studio read as one site.
-         relative + z-10 — main.relative isolates the page art, and a
-         positioned sibling always paints above a static one; without this
-         the art covered the header entirely (it painted zero pixels). -->
-    <header class="site-head relative z-10">
-      <div class="mx-auto flex h-14 w-full max-w-[var(--shell)] items-center justify-between px-6 text-xs">
-        <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap tracking-tight">
+    <!-- Header: a floating capsule, sticky over the page (brand, the
+         site's links, GitHub under its mark, the chrome "Open studio" key).
+         Sticky is positioned, and z-10 keeps it over main, which isolates
+         the page art: a static header painted under the art, zero pixels. -->
+    <header class="site-head sticky top-0 z-10">
+      <div class="capsule site-capsule text-xs">
+        <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap pl-2 tracking-tight">
           <!-- The brand mark: the 7x7 dithered diamond, ember core. -->
           <svg
             viewBox="0 0 7 7"
@@ -252,10 +242,10 @@ onBeforeUnmount(() => {
             target="_blank"
             rel="noreferrer"
             class="nav-a hidden md:inline-flex"
-            >GitHub<span class="sr-only"> (opens in a new tab)</span></a
+            ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
           >
-          <a :href="routePath('/studio')" class="nav-a nav-pill ml-2">Open studio</a>
         </nav>
+        <a :href="routePath('/studio')" class="nav-a key-chrome studio-key">Open studio</a>
       </div>
     </header>
 
@@ -305,11 +295,18 @@ onBeforeUnmount(() => {
              into its docs, their words lighting as they rise. -->
         <section aria-labelledby="principles-h" class="principles">
           <div class="section-head">
-            <h2 id="principles-h" class="section-title">One rule under every pixel.</h2>
-            <a :href="routePath('/docs/getting-started')" class="more-link">Read the quick start</a>
+            <h2 id="principles-h" class="section-title chrome-type">One rule under every pixel.</h2>
+            <div class="head-side">
+              <ul class="tags" aria-label="Built on">
+                <li class="speed-tag">Bayer 4x4</li>
+                <li class="speed-tag">7 seed hues</li>
+                <li class="speed-tag">One engine</li>
+              </ul>
+              <a :href="routePath('/docs/getting-started')" class="more-link">Read the quick start</a>
+            </div>
           </div>
-          <div class="panel principles-body">
-            <div ref="stageFig" class="thumb principles-fig"><EssayFigure :stage="principle" /></div>
+          <div class="hardshell principles-body">
+            <div ref="stageFig" class="gel principles-fig"><EssayFigure :stage="principle" /></div>
             <ol class="principles-list">
               <li v-for="(p, i) in PRINCIPLES" :key="p.href">
                 <a
@@ -344,10 +341,17 @@ onBeforeUnmount(() => {
              Each harness runs as the user's own signed-in process. -->
         <section id="agents" class="agents" aria-labelledby="harness-h">
           <div class="section-head">
-            <h2 id="harness-h" class="section-title">Your own agent drives the Studio.</h2>
-            <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
+            <h2 id="harness-h" class="section-title chrome-type">Your own agent drives the Studio.</h2>
+            <div class="head-side">
+              <ul class="tags" aria-label="Works with">
+                <li class="speed-tag">{{ HARNESSES.length }} harnesses</li>
+                <li class="speed-tag">ACP</li>
+                <li class="speed-tag">No keys</li>
+              </ul>
+              <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
+            </div>
           </div>
-          <div class="panel harness-panel">
+          <div class="hardshell harness-panel">
             <ol class="agent-steps">
               <li>
                 <span class="step-i"><ToolMark id="node" :size="14" /></span>
@@ -382,35 +386,23 @@ onBeforeUnmount(() => {
               </li>
               <li>
                 <span class="step-i"><DitherIcon name="Sparkles" :size="14" :stroke-width="1.5" /></span>
-                <p class="step-t step-b">
-                  Ask for a screen. Each tool call lands on the canvas, and undo takes it back.
-                </p>
+                <div class="step-b">
+                  <p class="step-t">Ask for a screen. Each tool call lands on the canvas, and undo takes it back.</p>
+                  <div class="seg track ask-pick" role="group" aria-label="Asks" aria-controls="agent-ask">
+                    <button v-for="(a, i) in ASKS" :key="a.id" type="button" :aria-pressed="ask === i" @click="ask = i">
+                      {{ a.label }}
+                    </button>
+                  </div>
+                </div>
               </li>
             </ol>
             <div class="harness-side">
-              <!-- The ask and the screen it lands as: an artboard on the
-                   Studio's dotted canvas, every part of it live. -->
-              <div class="studio-stage">
-                <p class="ask"><span aria-hidden="true">›</span> {{ ASK }}</p>
-                <div class="board">
-                  <span class="board-name">Deploys</span>
-                  <div class="board-frame">
-                    <DitherHeading level="3">Deploys</DitherHeading>
-                    <div class="board-row">
-                      <span class="board-n">16</span>
-                      <span class="board-l">this week</span>
-                      <Sparkline :data="DEPLOYS" color="blue" class="board-spark" />
-                    </div>
-                    <div class="board-switch">
-                      <DitherSwitch v-model="auto" label="Auto deploy" />
-                      <span aria-hidden="true">Auto deploy</span>
-                    </div>
-                    <DitherButton color="blue" variant="gradient" class="board-key">Deploy now</DitherButton>
-                  </div>
-                </div>
-              </div>
-              <p class="harness-note">Your harness keeps its own login. The Studio never asks for a key.</p>
+              <AgentAsks :at="ask" />
             </div>
+            <p class="harness-note">
+              <DitherIcon name="Lock" :size="13" :stroke-width="1.5" class="harness-note-i" />Your harness keeps its own
+              login. The Studio never asks for a key.
+            </p>
           </div>
         </section>
       </div>
@@ -419,7 +411,7 @@ onBeforeUnmount(() => {
            shell, then the kit's light rays across the band. -->
       <section class="dawn" aria-labelledby="dawn-h">
         <div class="dawn-in">
-          <h2 id="dawn-h" class="section-title">Copy one folder. Every pixel is yours.</h2>
+          <h2 id="dawn-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
           <div
             class="dawn-keys"
             @pointerenter="reaching = true"
@@ -427,7 +419,7 @@ onBeforeUnmount(() => {
             @focusin="reaching = true"
             @focusout="reaching = false"
           >
-            <a :href="routePath('/docs/getting-started')" class="nav-a nav-pill key-primary">Read the quick start</a>
+            <a :href="routePath('/docs/getting-started')" class="nav-a nav-pill key-chrome">Read the quick start</a>
             <a :href="routePath('/studio')" class="nav-a nav-pill">Open the studio</a>
           </div>
         </div>
@@ -494,20 +486,26 @@ onBeforeUnmount(() => {
   padding-bottom: calc(var(--rhythm) * 1.5);
 }
 
-/* The header: the docs chrome's scroll-edge hairline, no hard border. */
-.site-head::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 100%;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    color-mix(in oklab, var(--border) 80%, transparent) 20%,
-    color-mix(in oklab, var(--border) 80%, transparent) 80%,
-    transparent
-  );
+/* The header: a capsule (the site voice's glass) floating on the page,
+   centred on the shell. */
+.site-head {
+  padding: 8px 16px;
+}
+
+.site-capsule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: min(100%, 48rem);
+  height: 48px;
+  margin-inline: auto;
+  padding: 0 7px 0 10px;
+}
+
+.studio-key {
+  height: 34px;
+  padding-inline: 16px;
 }
 
 /* The footer: the wordmark and framework badges left, bar-separated links
@@ -537,11 +535,13 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 7px;
+  padding: 3px 9px;
   font-size: 11px;
-  border-radius: 4px;
+  border-radius: 999px;
   color: var(--ink-3);
-  box-shadow: inset 0 0 0 1px var(--line);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
 /* The links' padding is pulled back so, wrapped under the wordmark, the
@@ -753,9 +753,11 @@ onBeforeUnmount(() => {
   box-shadow: none;
 }
 
+/* The stage sets the panel's height; the steps spread over it. */
 .agent-steps {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 22px;
   margin: 0;
   padding: 26px 28px;
@@ -781,6 +783,11 @@ onBeforeUnmount(() => {
 .step-b {
   min-width: 0;
   flex: 1;
+}
+
+.ask-pick {
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
 
 .step-t {
@@ -858,105 +865,25 @@ onBeforeUnmount(() => {
   box-shadow: inset 1px 0 0 var(--line);
 }
 
-/* The steps set the panel's height; the canvas takes what the well has
-   above the note: the Studio's dots, the ask, then the artboard (its name
-   over its frame, as the Studio draws one). */
-.studio-stage {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 14px;
-  padding: 22px 28px;
-  background-image: radial-gradient(circle, color-mix(in oklab, var(--line) 90%, transparent) 1px, transparent 1.2px);
-  background-size: 16px 16px;
-}
-
-.ask {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-
-.ask span {
-  color: var(--ink-3);
-}
-
-.board {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: min(100%, 20rem);
-}
-
-.board-name {
-  font-size: 11px;
-  color: var(--ink-3);
-}
-
-.board-frame {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 18px;
-  border-radius: 8px;
-  background: var(--background);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.board-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  align-items: end;
-  gap: 2px 14px;
-}
-
-.board-n {
-  font-size: 1.6rem;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-}
-
-.board-l {
-  grid-row: 2;
-  font-size: 11px;
-  color: var(--ink-3);
-}
-
-.board-spark {
-  grid-row: 1 / 3;
-  grid-column: 2;
-  height: 3rem;
-}
-
-.board-switch {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  color: var(--ink-2);
-}
-
-.board-key {
-  align-self: flex-start;
-}
-
+/* The panel's foot, across both columns: the harness keeps its login. */
 .harness-note {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   margin: 0;
   padding: 12px 28px;
   font-size: 12px;
   line-height: 1.6;
   color: var(--ink-2);
-  text-wrap: balance;
   background: var(--background);
-  box-shadow:
-    inset 1px 0 0 var(--line),
-    inset 0 1px 0 var(--line);
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.harness-note-i {
+  flex: none;
+  margin-top: 3px;
+  color: var(--ink-3);
 }
 
 @media (max-width: 759px) {
@@ -969,12 +896,8 @@ onBeforeUnmount(() => {
   .harness-side {
     box-shadow: inset 0 1px 0 var(--line);
   }
-  .studio-stage {
-    padding: 20px;
-  }
   .harness-note {
     padding: 12px 20px;
-    box-shadow: inset 0 1px 0 var(--line);
   }
 }
 

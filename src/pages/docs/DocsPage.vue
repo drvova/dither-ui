@@ -36,6 +36,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
 import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
+import "@/shared/fonts/display.css"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import DemoCard from "./DemoCard.vue"
 import SectionShare from "./SectionShare.vue"
@@ -648,8 +649,12 @@ const effectData = MONTHS.map((month, i) => ({
 }))
 const effectConfig = { v: { label: "signal", color: "blue" as DitherColor } }
 
+// The Vue kit on StyleX installs its StyleX layer.
+const onStylex = computed(() => docsFramework.value === "vue" && docsStyling.value === "stylex")
+
 const SNIPPETS = {
   install: INSTALL.vue,
+  installStylex: INSTALL.stylex,
   installSvelte: INSTALL.svelte,
   seeds: `<!-- one integer is a complete visual personality: -->
 <AreaChart :data="rows" :config="config" :seed="1984">
@@ -665,7 +670,7 @@ const SNIPPETS = {
 #   (or from the repo: npm run build:css writes dist/kit/dither-kit.css)
 
 <div class="dither-kit">                         <!-- the base applies inside this wrapper only -->
-  <DitherButton class="cta">Ship</DitherButton>  <!-- class takes anything: StyleX, UnoCSS, vanilla CSS -->
+  <DitherButton class="cta">Ship</DitherButton>  <!-- class takes any class name: UnoCSS, vanilla CSS -->
 </div>
 
 # Theme from any system: the tokens are custom properties (theme.css lists them)
@@ -735,7 +740,7 @@ stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: 
 <RadarChart … />                        <!-- sprint health -->
 
 <div v-for="s in services">             <!-- status rows -->
-  <span :class="s.ok ? 'bg-green' : 'bg-red'" />  <!-- dot -->
+  <span class="size-1.5 rounded-full" :style="{ backgroundColor: cssColor(s.ok ? 'green' : 'red') }" />
   {{ s.name }} <Sparkline :data="s.data" :color="s.color" />
   {{ s.uptime }}
 </div>`,
@@ -898,9 +903,10 @@ const gradientCode = computed(
 
 <template>
   <div class="min-h-screen bg-background font-mono text-foreground antialiased">
-    <!-- Header: translucent material, scroll-edge fade instead of a hard divider -->
-    <header class="chrome sticky top-0 z-40">
-      <div class="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6 text-xs">
+    <!-- Header: the site's floating capsule (glass, chrome rim), 56px with
+         its margin, so the rails' top-14 and the scroll-spy line hold. -->
+    <header class="sticky top-0 z-40 mx-auto w-full max-w-6xl px-4 py-1.5">
+      <div class="capsule docs-capsule flex h-11 w-full items-center justify-between pr-1.5 pl-4 text-xs sm:pl-5">
         <div class="flex items-center gap-6">
           <a
             :href="routePath('/')"
@@ -928,19 +934,15 @@ const gradientCode = computed(
             </svg>
             dither-ui
           </a>
-          <span class="hidden text-muted-foreground sm:inline">Docs</span>
+          <span class="hidden text-muted-foreground xl:inline">Docs</span>
         </div>
-        <nav class="flex items-center gap-3 text-muted-foreground sm:gap-5">
-          <div class="flex items-center gap-1" role="group" aria-label="Framework">
+        <nav class="flex items-center gap-3 text-muted-foreground sm:gap-3.5 xl:gap-5">
+          <div class="track" role="group" aria-label="Framework">
             <button
               type="button"
               :aria-pressed="docsFramework === 'vue'"
-              class="flex h-6 items-center gap-1.5 rounded border px-2 text-[11px] transition-colors"
-              :class="
-                docsFramework === 'vue'
-                  ? 'border-border/60 text-foreground'
-                  : 'border-transparent hover:text-foreground'
-              "
+              class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
+              :class="docsFramework === 'vue' ? 'ring-on' : 'hover:text-foreground'"
               @click="choose(() => setDocsFramework('vue'), docsFramework === 'vue')"
             >
               <ToolMark id="vue" :size="11" /><span class="max-sm:sr-only">Vue</span>
@@ -948,27 +950,21 @@ const gradientCode = computed(
             <button
               type="button"
               :aria-pressed="docsFramework === 'svelte'"
-              class="flex h-6 items-center gap-1.5 rounded border px-2 text-[11px] transition-colors"
-              :class="
-                docsFramework === 'svelte'
-                  ? 'border-border/60 text-foreground'
-                  : 'border-transparent hover:text-foreground'
-              "
+              class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
+              :class="docsFramework === 'svelte' ? 'ring-on' : 'hover:text-foreground'"
               @click="choose(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
             >
               <ToolMark id="svelte" :size="11" /><span class="max-sm:sr-only">Svelte</span>
             </button>
           </div>
-          <div class="hidden items-center gap-1 lg:flex" role="group" aria-label="Styling">
+          <div class="track max-lg:hidden" role="group" aria-label="Styling">
             <button
               v-for="s in docsStylings"
               :key="s"
               type="button"
               :aria-pressed="docsStyling === s"
-              class="h-6 rounded border px-2 text-[11px] transition-colors"
-              :class="
-                docsStyling === s ? 'border-border/60 text-foreground' : 'border-transparent hover:text-foreground'
-              "
+              class="h-6 px-2.5 text-[11px] transition-colors"
+              :class="docsStyling === s ? 'ring-on' : 'hover:text-foreground'"
               @click="choose(() => setStyling(s), docsStyling === s)"
             >
               {{ STYLING_LABELS[s] }}
@@ -976,7 +972,7 @@ const gradientCode = computed(
           </div>
           <button
             type="button"
-            class="flex h-6 items-center gap-1.5 rounded-md border border-border/60 px-2 text-[11px] transition-colors hover:text-foreground"
+            class="nav-pill flex h-7 items-center gap-1.5 px-3 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Search docs"
             @click="searchOpen = true"
           >
@@ -1011,25 +1007,26 @@ const gradientCode = computed(
             class="-m-3 hidden items-center gap-1.5 whitespace-nowrap p-3 transition-colors hover:text-foreground lg:flex"
             ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
           >
-          <a :href="routePath('/studio')" class="nav-a nav-pill hidden sm:inline-flex">Open studio</a>
+          <a :href="routePath('/studio')" class="nav-a key-chrome hidden h-8 px-4 sm:inline-flex">Open studio</a>
         </nav>
       </div>
     </header>
 
-    <div class="mx-auto flex w-full max-w-6xl px-6">
+    <div class="mx-auto flex w-full max-w-6xl px-4 sm:px-6">
       <!-- Sidebar -->
       <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-52 shrink-0 overflow-y-auto py-10 pr-8 lg:block">
         <nav class="grid gap-7">
           <div v-for="grp in GROUPS" :key="grp.title">
             <div class="flex items-center gap-2 text-[11px] font-medium text-foreground">
               <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
+              <span class="spec ml-auto tabular-nums">{{ grp.items.length }}</span>
             </div>
-            <ul class="mt-2.5 grid gap-1.5 border-l border-border/60">
+            <ul class="mt-2.5 grid gap-0.5 border-l border-border/60">
               <li v-for="it in grp.items" :key="it.id">
                 <a
                   :href="docsUrl(it.id)"
                   :aria-current="activeId === it.id ? 'true' : undefined"
-                  class="-ml-px block border-l py-0.5 pl-3 text-[11px] transition-colors"
+                  class="-ml-px block border-l py-1 pl-3 text-[11px] transition-colors"
                   :class="
                     activeId === it.id
                       ? 'border-foreground text-foreground'
@@ -1048,7 +1045,17 @@ const gradientCode = computed(
       <!-- Content -->
       <main class="min-w-0 flex-1 pb-24 lg:pl-10">
         <div class="docs-flow max-w-2xl">
-          <h1 class="mt-12 text-2xl tracking-tight">Documentation</h1>
+          <!-- The title in chrome; on its baseline, the kit's spec as speed
+               tags (beside the title, never an eyebrow over it). -->
+          <div class="mt-12 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+            <h1 class="chrome-type font-display text-[1.6rem] leading-tight font-normal">Documentation</h1>
+            <ul class="flex flex-wrap gap-1 pb-1" aria-label="The kit">
+              <li class="speed-tag">{{ GROUPS.flatMap((g) => g.items).length }} sections</li>
+              <li class="speed-tag">Vue 3</li>
+              <li class="speed-tag">Svelte 5</li>
+              <li class="speed-tag">Tailwind or StyleX</li>
+            </ul>
+          </div>
           <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
             Every component draws on canvas through the same ordered-dither engine. Compose charts from parts, or drop
             in a single primitive.
@@ -1059,7 +1066,7 @@ const gradientCode = computed(
           <nav class="mt-6 lg:hidden" aria-label="Docs sections">
             <button
               type="button"
-              class="flex w-full items-center justify-between rounded-md border border-border/60 px-3 py-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              class="nav-pill flex w-full items-center justify-between px-4 py-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
               :aria-expanded="tocOpen"
               aria-controls="docs-toc"
               @click="tocOpen = !tocOpen"
@@ -1111,24 +1118,43 @@ const gradientCode = computed(
                 rel="noreferrer"
                 class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
                 >GitHub repo</a
-              >, install four small runtime deps, and alias it. You already have
-              {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3" }}, and Tailwind if you use it.
+              >, install {{ onStylex ? "three" : "four" }} small runtime deps, and alias it. You already have
+              {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3"
+              }}{{ onStylex ? " and StyleX." : ", and Tailwind if you use it." }}
             </p>
             <div class="mt-5">
-              <CodeBlock :code="docsFramework === 'svelte' ? SNIPPETS.installSvelte : SNIPPETS.install" />
+              <CodeBlock
+                :code="
+                  docsFramework === 'svelte'
+                    ? SNIPPETS.installSvelte
+                    : onStylex
+                      ? SNIPPETS.installStylex
+                      : SNIPPETS.install
+                "
+              />
             </div>
+            <p v-if="docsFramework === 'vue'" class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
+              On StyleX, the Vue kit has a layer of its own:
+              <code class="text-foreground/80">dither-kit/stylex/</code> holds every component written in StyleX,
+              generated from the Tailwind ones so the two never drift, and your StyleX plugin compiles it with your app.
+              Alias <code class="text-foreground/80">@dither-kit</code> to it, and every component that takes
+              <code class="text-foreground/80">class</code> takes your styles as
+              <code class="text-foreground/80">xstyle</code>, merged after its own. Pick StyleX in the header and the
+              steps above, the code tabs and Run all use that layer.
+            </p>
             <p class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
-              Styling with something else, like StyleX, UnoCSS, vanilla CSS or any CSS-in-JS? The kit does not need your
+              Styling with something else, like UnoCSS, vanilla CSS or any CSS-in-JS? The kit does not need your
               Tailwind: its own stylesheet carries the tokens, a base scoped to a
               <code class="text-foreground/80">.dither-kit</code> wrapper and every class its components use, all in
               cascade layers, so your unlayered styles win. Theme it from CSS, JS or your vars contract: the tokens are
               plain custom properties. And what you write is written in your system: pick it in the header or on any
               code tab, and every snippet on this page, every Studio export and the agent's
               <code class="text-foreground/80">code.get</code> come out as a scoped stylesheet, CSS Modules or StyleX
-              instead of utility classes. The components keep their own styles either way.
+              instead of utility classes. Run plays them in the page in that system too, StyleX included. The components
+              keep their own styles either way.
             </p>
             <div class="mt-3"><CodeBlock :code="SNIPPETS.anyStyles" /></div>
-            <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
+            <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground">
               Prefer to read the source first? Every component lives under
               <a
                 :href="`https://github.com/drvova/dither-ui/tree/master/${docsFramework === 'svelte' ? 'dither-kit-svelte' : 'dither-kit'}`"
@@ -1562,14 +1588,14 @@ const gradientCode = computed(
                     name="demo-email"
                     placeholder="you@dither-ui.com"
                     autocomplete="off"
-                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
                   />
                   <input
                     type="password"
                     name="demo-password"
                     placeholder="••••••••"
                     autocomplete="off"
-                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+                    class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
                   />
                   <DitherButton color="blue" variant="gradient" class="w-full py-2 text-[11px]">Sign in</DitherButton>
                 </div>
@@ -1918,7 +1944,7 @@ const gradientCode = computed(
                   Deploy
                 </DitherButton>
                 <div class="grid justify-items-center gap-3">
-                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                  <div class="flex flex-wrap items-center justify-center gap-1 rounded-md border border-border/60 p-1">
                     <button
                       v-for="v in VARIANTS"
                       :key="v"
@@ -1930,7 +1956,7 @@ const gradientCode = computed(
                       {{ v }}
                     </button>
                   </div>
-                  <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+                  <div class="flex flex-wrap items-center justify-center gap-1 rounded-md border border-border/60 p-1">
                     <button
                       v-for="b in BLOOMS"
                       :key="b"
@@ -2134,11 +2160,11 @@ const gradientCode = computed(
           <p class="flex items-center gap-2 text-[11px] font-medium text-foreground">
             <DitherIcon name="Menu" :size="13" :stroke-width="1.5" />On this page
           </p>
-          <ul class="mt-2.5 grid gap-1.5 border-l border-border/60">
+          <ul class="mt-2.5 grid gap-0.5 border-l border-border/60">
             <li v-for="(p, i) in onPage" :key="i">
               <button
                 type="button"
-                class="-ml-px block w-full border-l py-0.5 pl-3 text-left text-[11px] transition-colors hover:border-foreground/40 hover:text-foreground"
+                class="-ml-px block w-full border-l py-1 pl-3 text-left text-[11px] transition-colors hover:border-foreground/40 hover:text-foreground"
                 :class="i === 0 ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground'"
                 @click="goTo(p.el)"
               >
@@ -2154,7 +2180,7 @@ const gradientCode = computed(
     <!-- Footer -->
     <footer class="border-t border-border/60">
       <div
-        class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6 text-[11px] text-muted-foreground"
+        class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 text-[11px] text-muted-foreground sm:px-6"
       >
         <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">dither-ui.com</a>
         <div class="flex items-center gap-4">
@@ -2182,42 +2208,11 @@ const gradientCode = computed(
 </template>
 
 <style scoped>
-/* Apple-style chrome: a floating translucent material — content scrolls under
-   it, the boundary is a faded edge rather than a hard 1px divider. */
-.chrome {
-  background: color-mix(in oklab, var(--background) 88%, transparent);
-  backdrop-filter: blur(14px) saturate(1.5);
-  -webkit-backdrop-filter: blur(14px) saturate(1.5);
-}
-
-/* Narrow screens put dense tables right under the chrome — frost it harder
-   so high-contrast text cannot silhouette through. */
+/* Narrow screens put dense tables right under the header: frost its glass
+   harder so high-contrast text cannot silhouette through. */
 @media (max-width: 640px) {
-  .chrome {
-    background: color-mix(in oklab, var(--background) 93%, transparent);
-  }
-}
-
-.chrome::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 100%;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    color-mix(in oklab, var(--border) 80%, transparent) 20%,
-    color-mix(in oklab, var(--border) 80%, transparent) 80%,
-    transparent
-  );
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .chrome {
-    background: var(--background);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+  .docs-capsule {
+    background-color: color-mix(in oklab, var(--background) 93%, transparent);
   }
 }
 </style>

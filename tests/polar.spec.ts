@@ -1,5 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import { pieSlices, radarAxes, sliceAtAngle } from "../dither-kit/polar"
+import { pieSlices, radarAxes, sliceAtAngle } from "../dither-kit/engine/polar"
 
 const TAU = Math.PI * 2
 const TOP = -Math.PI / 2

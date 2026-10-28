@@ -1,7 +1,7 @@
 import { describe, expect, it } from "rstack/test"
-import { BAYER4 } from "../dither-kit/pixel"
-import { createRasterBuffer } from "../dither-kit/raster"
-import { paintAurora, type AuroraParams } from "../dither-kit/aurora"
+import { BAYER4 } from "../dither-kit/engine/pixel"
+import { createRasterBuffer } from "../dither-kit/engine/raster"
+import { paintAurora, type AuroraParams } from "../dither-kit/engine/aurora"
 
 const base: AuroraParams = {
   colors: [

@@ -31,10 +31,11 @@ import {
   DitherTagInput,
   DitherTransferList,
 } from "@dither-kit"
-import DitherField from "@dither-kit/DitherField.vue"
-import DitherInput from "@dither-kit/DitherInput.vue"
+import DitherField from "@dither-kit/tailwind/DitherField.vue"
+import DitherInput from "@dither-kit/tailwind/DitherInput.vue"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
+import { ref } from "vue"
 
 const SNIPPET_PASSWORD_INPUT = `<DitherField label="Password">
   <DitherPasswordInput v-model="pw" placeholder="At least 12 characters" />
@@ -56,7 +57,7 @@ const SNIPPET_CODE_INPUT = `<DitherCodeInput v-model="snippet" @submit="run" :ro
 
 const SNIPPET_INPUT_GROUP = `<DitherInputGroup>
   <template #prefix>https://</template>
-  <DitherInput v-model="host" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
+  <DitherInput v-model="host" aria-label="Site address" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
   <template #suffix>/docs</template>
 </DitherInputGroup>`
 
@@ -66,6 +67,10 @@ const SNIPPET_TAG_INPUT = `<DitherTagInput v-model="tags" :max="8" placeholder="
 
 const SNIPPET_CHOICE_CHIPS = `<DitherChoiceChips v-model="size" :options="['S', 'M', 'L', 'XL']" />
 <DitherChoiceChips v-model="tags" multiple :options="['bug', 'feat', 'docs']" />`
+
+// The checkbox cards' demo answers clicks: each card is its own toggle.
+const telemetry = ref(true)
+const beta = ref(false)
 
 const SNIPPET_CHECKBOX_CARD = `<DitherCheckboxCard v-model="on"
   label="Telemetry"
@@ -77,7 +82,7 @@ const SNIPPET_MENTION_INPUT = `<DitherMentionInput v-model="body" :options="hand
 
 const SNIPPET_FILE_INPUT = `<DitherFileInput v-model="picked" multiple accept="image/*" />`
 
-const SNIPPET_LIST_BOX = `<DitherListBox v-model="city" :options="['Kyoto', 'Seoul', 'Taipei']" @select="go" />`
+const SNIPPET_LIST_BOX = `<DitherListBox v-model="city" :options="['Kyoto', 'Seoul', 'Taipei']" aria-label="City" @select="go" />`
 
 const SNIPPET_MULTI_SELECT = `<DitherMultiSelect v-model="tags" :options="ALL_TAGS" @search="filter" />`
 
@@ -394,6 +399,7 @@ const API: Record<string, PropRow[]> = {
           <template #prefix>https://</template>
           <DitherInput
             model-value="dither-ui.com"
+            aria-label="Site address"
             class="min-h-8 border-0 bg-transparent px-0 py-1 shadow-none hover:border-0 focus-visible:ring-0"
           />
           <template #suffix>/docs</template>
@@ -462,12 +468,12 @@ const API: Record<string, PropRow[]> = {
     <DemoCard :code="SNIPPET_CHECKBOX_CARD">
       <div class="mx-auto grid max-w-sm gap-2">
         <DitherCheckboxCard
-          :model-value="true"
+          v-model="telemetry"
           label="Telemetry"
           description="Anonymous usage stats help pick the next components"
         />
         <DitherCheckboxCard
-          :model-value="false"
+          v-model="beta"
           label="Beta channel"
           description="Get breaking changes before everyone else"
         />
@@ -538,7 +544,11 @@ const API: Record<string, PropRow[]> = {
     </p>
     <DemoCard :code="SNIPPET_LIST_BOX">
       <div class="mx-auto w-full max-w-[16rem]">
-        <DitherListBox :model-value="'Seoul'" :options="['Kyoto', 'Seoul', 'Taipei', 'Osaka', 'Busan']" />
+        <DitherListBox
+          :model-value="'Seoul'"
+          :options="['Kyoto', 'Seoul', 'Taipei', 'Osaka', 'Busan']"
+          aria-label="City"
+        />
       </div>
     </DemoCard>
     <PropsTable :rows="API.listBox" />

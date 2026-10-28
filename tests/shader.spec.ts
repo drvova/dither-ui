@@ -1,6 +1,6 @@
 import { describe, expect, it } from "rstack/test"
-import { BAYER4 } from "../dither-kit/pixel"
-import { createRasterBuffer } from "../dither-kit/raster"
+import { BAYER4 } from "../dither-kit/engine/pixel"
+import { createRasterBuffer } from "../dither-kit/engine/raster"
 import {
   ditherShaderPixels,
   sampleShader,
@@ -8,7 +8,7 @@ import {
   wrapMaterial,
   wrapShader,
   type ShaderDither,
-} from "../dither-kit/shader"
+} from "../dither-kit/engine/shader"
 
 const TOY = "void mainImage(out vec4 o, in vec2 fc) { o = vec4(fc / iResolution.xy, 0.5 + 0.5 * sin(iTime), 1.0); }"
 const RAW1 = "uniform float time; void main() { gl_FragColor = vec4(sin(time)); }"

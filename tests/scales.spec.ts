@@ -1,5 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import { buildBandScale, buildYScale, computeBands, indexAtBand, nearestIndex } from "../dither-kit/scales"
+import { buildBandScale, buildYScale, computeBands, indexAtBand, nearestIndex } from "../dither-kit/engine/scales"
 
 const rows = [
   { m: "a", x: 10, y: 5 },

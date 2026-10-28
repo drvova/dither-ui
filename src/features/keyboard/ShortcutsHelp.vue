@@ -67,9 +67,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey, true))
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
       @click.self="open = false"
     >
-      <DitherFocusScope
-        class="w-full max-w-md rounded-xl border border-border bg-card p-5 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
-      >
+      <DitherFocusScope class="hardshell w-full max-w-md bg-card p-5">
         <div class="flex items-center justify-between">
           <span class="text-sm font-medium">Keyboard shortcuts</span>
           <button

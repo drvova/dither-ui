@@ -1,7 +1,7 @@
 // @rstest-environment jsdom
 import { beforeEach, describe, expect, it } from "rstack/test"
 import { editor } from "@/entities/editor"
-import { directedTime, isDirected, release } from "../dither-kit/clock"
+import { directedTime, isDirected, release } from "../dither-kit/engine/clock"
 import {
   COMMAND_EVENT,
   installStudioAgentApi,

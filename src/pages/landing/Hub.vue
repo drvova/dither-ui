@@ -1,38 +1,38 @@
 <script setup lang="ts">
-// The directory: the docs as a browsable shelf under a head (the title,
-// one line and its link beside the kit's own bar chart of the docs, one
-// bar per family sized by its sections), the kit's own DitherTabs (badges
-// = family sizes) over a horizontal shelf of framed cards that deep-link
-// into the docs, each with the section's seeded identicon (the kit's
-// avatar, from the section id), its family, name, a line and its path;
-// under the shelf, what every preview in the docs lets you do. The chart is
-// a map of the shelf: the picked tab's family is its selected series (the
-// rest dim), and a click on a shelved family's bar picks its tab. The tab
-// row (on a narrow screen) scrolls sideways under an edge fade and chevron;
-// the shelf shows whole cards a view at a time and pages from the pager
-// under it, so nothing ever lies over a card.
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
+// The directory: the docs under a head (the title, one line and its link
+// beside the kit's own bar chart of the docs, one bar per family sized by
+// its sections), then a bento of big live kit components the rest of the
+// page does not show, each leading into its docs section by name, and
+// under it what every preview in the docs lets you do.
+import { ref } from "vue"
 import {
   Bar,
   BarChart,
-  DitherAvatar,
+  DitherDecryptedText,
+  DitherGalaxy,
   DitherIcon,
-  DitherTabPanel,
-  DitherTabs,
+  DitherMetaBalls,
+  DitherProgress,
+  DitherRating,
   Grid,
+  Legend,
+  Pie,
+  PieChart,
+  Radar,
+  RadarChart,
+  Sparkline,
   Tooltip,
   YAxis,
   type DitherColor,
   type IconName,
 } from "@dither-kit"
 import { routePath } from "@/shared/lib"
-import { FAMILIES, SECTION_COUNT, SHELVES } from "./hub"
+import PauseChip from "./PauseChip.vue"
+import { BENTO, FAMILIES, SECTION_COUNT } from "./hub"
 
-const tab = ref("explore")
-
-// The head's chart: one row, every family its own series in sidebar order
-// (so each bar can be selected), the shelved ones in a hue, the rest grey.
-const SHELF_HUE: Record<string, DitherColor> = {
+// The head's chart: one row, every family its own series in sidebar order,
+// the big families in a hue, the rest grey.
+const HUE: Record<string, DitherColor> = {
   Components: "blue",
   Backgrounds: "purple",
   Text: "green",
@@ -40,71 +40,36 @@ const SHELF_HUE: Record<string, DitherColor> = {
   Examples: "pink",
 }
 const ROWS = [{ docs: "Sections", ...Object.fromEntries(FAMILIES.map((f) => [f.title, f.count])) }]
-const CONFIG = Object.fromEntries(
-  FAMILIES.map((f) => [f.title, { label: f.title, color: SHELF_HUE[f.title] ?? "grey" }]),
-)
-const SHELVED = new Set(SHELVES.map((s) => s.label))
-const pickedFamily = computed(() =>
-  tab.value === "explore" ? null : SHELVES.find((s) => s.value === tab.value)?.label,
-)
-// A click on a shelved family's bar picks its tab; clicking it again goes
-// back to Explore. The chart is keyed by the tab, so a tab picked in the row
-// selects its bar the same way (the kit's dither entrance is the change).
-function onBar(family: string | null) {
-  tab.value = SHELVES.find((s) => s.label === family)?.value ?? "explore"
+const CONFIG = Object.fromEntries(FAMILIES.map((f) => [f.title, { label: f.title, color: HUE[f.title] ?? "grey" }]))
+
+// The tiles' own state: what each live example shows, and the two surfaces
+// that move by themselves, each with its pause.
+const RADAR_ROWS = [
+  { axis: "shipped", current: 9, previous: 6 },
+  { axis: "reviewed", current: 7, previous: 7 },
+  { axis: "tested", current: 8, previous: 5 },
+  { axis: "documented", current: 6, previous: 3 },
+  { axis: "on time", current: 8, previous: 6 },
+]
+const RADAR_CONFIG = {
+  current: { label: "This sprint", color: "blue" as DitherColor },
+  previous: { label: "Last sprint", color: "grey" as DitherColor },
 }
-
-/** A sideways scroller's cue: which of its edges have more past them, its
- * height, and a page step (`step`, 80% of its width unless given). */
-function rail(step = (el: HTMLElement) => el.clientWidth * 0.8) {
-  const more = reactive({ start: false, end: false, height: 0 })
-  let el: HTMLElement | null = null
-  let ro: ResizeObserver | null = null
-  const read = () => {
-    more.start = !!el && el.scrollLeft > 1
-    more.end = !!el && el.scrollLeft + el.clientWidth < el.scrollWidth - 1
-    more.height = el?.offsetHeight ?? 0
-  }
-  return {
-    more,
-    bind(next: HTMLElement | null | undefined) {
-      if (el !== (next ?? null)) {
-        el?.removeEventListener("scroll", read)
-        ro?.disconnect()
-        el = next ?? null
-        el?.addEventListener("scroll", read, { passive: true })
-        if (el && typeof ResizeObserver !== "undefined") (ro = new ResizeObserver(read)).observe(el)
-      }
-      read()
-    },
-    page(dir: 1 | -1) {
-      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      if (el) el.scrollBy({ left: dir * step(el), behavior: still ? "auto" : "smooth" })
-    },
-  }
+const PIE_ROWS = [
+  { name: "Vue", value: 58 },
+  { name: "Svelte", value: 27 },
+  { name: "Other", value: 15 },
+]
+const PIE_CONFIG = {
+  Vue: { label: "Vue", color: "green" as DitherColor },
+  Svelte: { label: "Svelte", color: "orange" as DitherColor },
+  Other: { label: "Other", color: "grey" as DitherColor },
 }
-
-const panel = ref<HTMLElement | null>(null)
-const tabRail = rail()
-// The shelf pages a whole view: the cards it shows and the gap after them.
-const shelfRail = rail((el) => {
-  const css = getComputedStyle(el)
-  return el.clientWidth - parseFloat(css.paddingRight) + parseFloat(css.columnGap)
-})
-const shelves = new Map<string, HTMLElement>()
-
-// The open shelf is the one the cue follows (the others are hidden).
-function bindRails() {
-  tabRail.bind(panel.value?.querySelector<HTMLElement>('[role="tablist"]'))
-  shelfRail.bind(shelves.get(tab.value))
-}
-
-onMounted(bindRails)
-watch(tab, () => nextTick(bindRails))
-onBeforeUnmount(() => {
-  tabRail.bind(null)
-  shelfRail.bind(null)
-})
+const SPARK = [12, 14, 13, 17, 16, 19, 18, 22, 21, 24, 23, 27, 26, 29, 31, 30, 33, 35]
+const BLOBS = ["#3f8ff3", "#9b7bff", "#7fe3ff"]
+const stars = ref(4)
+const ballsPlaying = ref(true)
+const galaxyPlaying = ref(true)
 
 // The docs' preview tools (the workbench and the source panel), each with
 // the section that shows it best.
@@ -128,18 +93,14 @@ const TOOLS: { title: string; icon: IconName; text: string; link: { label: strin
     link: { label: "Open the area chart", href: "/docs/area" },
   },
 ]
-const TABS = SHELVES.map((s) => ({
-  value: s.value,
-  label: s.label,
-  badge: s.value === "explore" ? undefined : s.count,
-}))
 </script>
-
 <template>
   <section id="directory" aria-labelledby="directory-h" class="directory">
     <div class="dir-head">
       <div class="dir-text">
-        <h2 id="directory-h" class="section-title">{{ SECTION_COUNT }} sections, every one of them live.</h2>
+        <h2 id="directory-h" class="section-title chrome-type">
+          {{ SECTION_COUNT }} sections, every one of them live.
+        </h2>
         <p class="dir-p">
           Each section is a working demo with its props table and its code. Every component is one file in one folder,
           so what you read is what you ship.
@@ -147,88 +108,84 @@ const TABS = SHELVES.map((s) => ({
         <a :href="routePath('/docs')" class="more-link">Browse all sections</a>
       </div>
       <div class="dir-chart">
-        <BarChart
-          :key="tab"
-          :data="ROWS"
-          :config="CONFIG"
-          :default-selected-data-key="pickedFamily ?? null"
-          :on-selection-change="onBar"
-          class="h-full"
-        >
+        <BarChart :data="ROWS" :config="CONFIG" class="h-full">
           <Grid horizontal />
           <YAxis :tick-count="3" />
-          <Bar v-for="f in FAMILIES" :key="f.title" :data-key="f.title" :is-clickable="SHELVED.has(f.title)" />
+          <Bar v-for="f in FAMILIES" :key="f.title" :data-key="f.title" />
           <Tooltip label-key="docs" />
         </BarChart>
       </div>
     </div>
-    <div ref="panel" class="panel window">
-      <span
-        v-show="tabRail.more.start"
-        class="edge edge-start tab-edge"
-        :style="{ height: `${tabRail.more.height - 1}px` }"
-        aria-hidden="true"
-        ><span class="chev" @click="tabRail.page(-1)"
-          ><DitherIcon name="ChevronLeft" :size="14" :stroke-width="1.5" /></span
-      ></span>
-      <span
-        v-show="tabRail.more.end"
-        class="edge edge-end tab-edge"
-        :style="{ height: `${tabRail.more.height - 1}px` }"
-        aria-hidden="true"
-        ><span class="chev" @click="tabRail.page(1)"
-          ><DitherIcon name="ChevronRight" :size="14" :stroke-width="1.5" /></span
-      ></span>
-      <DitherTabs v-model="tab" :tabs="TABS" color="grey" class="tabs">
-        <DitherTabPanel v-for="s in SHELVES" :key="s.value" :value="s.value" class="shelf">
-          <div class="rail">
-            <div
-              :ref="
-                (el) => {
-                  if (el) shelves.set(s.value, el as HTMLElement)
-                }
-              "
-              class="cards"
+    <div class="hardshell window">
+      <ul class="bento" aria-label="Examples from the docs">
+        <li v-for="t in BENTO" :key="t.id" class="tile" :class="`t-${t.id}`">
+          <div class="gel tile-art" :class="{ flush: t.id === 'meta-balls' || t.id === 'galaxy' }">
+            <RadarChart
+              v-if="t.id === 'radar'"
+              :data="RADAR_ROWS"
+              :config="RADAR_CONFIG"
+              name-key="axis"
+              :sparkles="false"
+              class="chart"
             >
-              <a v-for="c in s.cards" :key="c.id" :href="routePath(`/docs/${c.id}`)" class="thumb card">
-                <span class="card-top">
-                  <span class="card-av" aria-hidden="true"
-                    ><DitherAvatar :name="c.id" :size="28" :grid="6" :animate="false" color="blue"
-                  /></span>
-                  <span class="card-family">{{ c.family }}</span>
-                </span>
-                <span class="card-name">{{ c.label }}</span>
-                <span class="card-note">{{ c.note ?? s.note }}</span>
-                <span class="card-path">/docs/{{ c.id }}</span>
-              </a>
+              <Radar data-key="current" />
+              <Radar data-key="previous" />
+              <Legend align="center" />
+            </RadarChart>
+            <template v-else-if="t.id === 'meta-balls'">
+              <DitherMetaBalls
+                :colors="BLOBS"
+                :count="5"
+                :frame-rate="12"
+                :paused="!ballsPlaying"
+                class="h-full w-full"
+              />
+              <PauseChip v-model="ballsPlaying" label="Pause the meta balls" class="chip" />
+            </template>
+            <p v-else-if="t.id === 'decrypted-text'" class="cipher">
+              <DitherDecryptedText text="Every pixel," />
+              <DitherDecryptedText text="on purpose." />
+            </p>
+            <div v-else-if="t.id === 'stats-cards'" class="stat">
+              <span class="stat-d">Frames exported</span>
+              <span class="stat-v">12,480</span>
+              <span class="stat-d"><b>+8.2%</b> on last week</span>
+              <Sparkline :data="SPARK" color="blue" class="stat-spark" />
             </div>
-          </div>
-          <div class="shelf-foot">
-            <a v-if="s.value === 'explore'" :href="routePath('/docs')" class="lead">All {{ SECTION_COUNT }} sections</a>
-            <a v-else :href="routePath(`/docs/${s.cards[0].id}`)" class="lead">
-              All {{ s.count }} {{ s.label.toLowerCase() }}
-            </a>
-            <div
-              v-show="shelfRail.more.start || shelfRail.more.end"
-              role="group"
-              aria-label="Page the cards"
-              class="pager"
+            <DitherRating v-else-if="t.id === 'rating'" v-model="stars" :size="28" label="Rate the kit" />
+            <PieChart
+              v-else-if="t.id === 'pie'"
+              :data="PIE_ROWS"
+              :config="PIE_CONFIG"
+              data-key="value"
+              name-key="name"
+              :inner-radius="0.55"
+              class="chart chart-sm"
             >
-              <button
-                type="button"
-                aria-label="Earlier cards"
-                :disabled="!shelfRail.more.start"
-                @click="shelfRail.page(-1)"
-              >
-                <DitherIcon name="ChevronLeft" :size="14" :stroke-width="1.5" />
-              </button>
-              <button type="button" aria-label="More cards" :disabled="!shelfRail.more.end" @click="shelfRail.page(1)">
-                <DitherIcon name="ChevronRight" :size="14" :stroke-width="1.5" />
-              </button>
+              <Pie variant="gradient" />
+              <Legend align="center" />
+            </PieChart>
+            <div v-else-if="t.id === 'progress'" class="bars">
+              <div class="bar-row">
+                <span class="bar-l"><span>Build</span><span>72%</span></span>
+                <DitherProgress :value="72" color="blue" />
+              </div>
+              <div class="bar-row">
+                <span class="bar-l"><span>Tests</span><span>100%</span></span>
+                <DitherProgress :value="100" color="green" />
+              </div>
             </div>
+            <template v-else-if="t.id === 'galaxy'">
+              <DitherGalaxy :frame-rate="12" :paused="!galaxyPlaying" class="h-full w-full" />
+              <PauseChip v-model="galaxyPlaying" label="Pause the galaxy" class="chip" />
+            </template>
           </div>
-        </DitherTabPanel>
-      </DitherTabs>
+          <p class="tile-foot">
+            <a :href="routePath(`/docs/${t.id}`)" class="lead">{{ t.label }}</a>
+            <span class="spec">{{ t.family }}</span>
+          </p>
+        </li>
+      </ul>
       <ul class="tools" aria-label="In every preview">
         <li v-for="t in TOOLS" :key="t.title">
           <h3 class="tool-h">
@@ -290,217 +247,174 @@ const TABS = SHELVES.map((s) => ({
   overflow: hidden;
 }
 
-/* What lies past the tab row's edge on a narrow screen: a fade in the
-   panel's own ground and a chevron that pages it, shown only on an edge
-   with more. The chevron is the pointer's way (touch swipes; the keyboard
-   moves focus, which scrolls), so it is hidden from assistive tech, and
-   only it takes the pointer: a tab under the fade still takes a click. */
-.edge {
-  position: absolute;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  width: 56px;
-  pointer-events: none;
-}
-
-.edge-start {
-  left: 0;
-  justify-content: flex-start;
-  padding-left: 6px;
-  background: linear-gradient(to right, var(--background) 35%, transparent);
-}
-
-.edge-end {
-  right: 0;
-  justify-content: flex-end;
-  padding-right: 6px;
-  background: linear-gradient(to left, var(--background) 35%, transparent);
-}
-
-/* On the tab row the chevron sits on the labels' line (the row's 12px top
-   and the tabs' 8px floor), above the hairline. */
-.tab-edge {
-  padding-top: 12px;
-  padding-bottom: 8px;
-}
-
-.chev {
+/* The bento: big live tiles on a 12-column grid, three rows of mixed
+   widths; two columns under 900px, one under 560px. A tile is its live
+   surface in a gel well and, under it, a strip: the name (a link into the
+   docs) left, the family right. */
+.bento {
   display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  color: var(--ink-2);
-  cursor: pointer;
-  pointer-events: auto;
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 22px 14px;
+  padding: 16px 16px 22px;
 }
 
-.chev:hover {
-  color: var(--ink);
-}
-
-/* The tabs sit a step in from the panel's top: flush, their labels and
-   badges ran into its hairline and read as clipped. */
-.tabs :deep([role="tablist"]) {
-  padding: 12px 14px 0;
-  box-shadow: inset 0 -1px 0 var(--line);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.shelf {
-  padding: 14px 0 16px 14px;
-}
-
-/* A horizontal shelf that snaps a card at a time and shows whole cards: as
-   many as its width holds (five, four, three), the scroller ending 14px in
-   from the panel's edge so a view holds exactly them, and on a phone one
-   card with the next one's edge running off the panel. */
-.rail {
-  container-type: inline-size;
-}
-
-.cards {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 74cqw;
-  gap: 8px;
-  padding-right: 14px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.cards::-webkit-scrollbar {
-  display: none;
-}
-
-@container (min-width: 520px) {
-  .cards {
-    grid-auto-columns: calc((100cqw - 14px - 2 * 8px) / 3);
-    margin-right: 14px;
-    padding-right: 0;
-  }
-}
-
-@container (min-width: 760px) {
-  .cards {
-    grid-auto-columns: calc((100cqw - 14px - 3 * 8px) / 4);
-    margin-right: 14px;
-    padding-right: 0;
-  }
-}
-
-@container (min-width: 1000px) {
-  .cards {
-    grid-auto-columns: calc((100cqw - 14px - 4 * 8px) / 5);
-    margin-right: 14px;
-    padding-right: 0;
-  }
-}
-
-.card {
+.tile {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 180px;
-  padding: 14px;
-  scroll-snap-align: start;
-  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card:hover {
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 22%, transparent);
-}
-
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.card-av {
-  display: block;
-  width: 28px;
-  height: 28px;
-}
-
-.card-family {
-  font-size: 11px;
-  color: var(--ink-3);
-}
-
-.card-name {
-  margin-top: 14px;
-  overflow: hidden;
-  font-size: 12.5px;
-  font-weight: 500;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: var(--ink);
-}
-
-.card-note {
-  display: -webkit-box;
-  margin-top: 4px;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  font-size: 11.5px;
-  line-height: 1.5;
-  color: var(--ink-3);
-}
-
-.card-path {
-  margin-top: auto;
-  font-size: 11px;
-  color: var(--ink-3);
-}
-
-/* Under the shelf: where the family goes on, and the pager (real,
-   named buttons, each off at its end) when the shelf runs past a view. */
-.shelf-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 28px;
-  margin-top: 12px;
-  padding-right: 14px;
-}
-
-.pager {
-  display: flex;
-  gap: 6px;
-}
-
-.pager button {
+.tile-art {
+  flex: 1;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  color: var(--ink-2);
-  box-shadow: inset 0 0 0 1px var(--line);
-  transition:
-    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 13rem;
+  padding: 14px;
 }
 
-.pager button:not(:disabled):hover {
+.tile-art.flush {
+  padding: 0;
+}
+
+.tile-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 4px 0;
+}
+
+/* Three rows on twelve columns: the radar beside the meta balls; the
+   cipher, the stat card and the rating; the pie, the progress and the
+   galaxy. */
+.t-radar {
+  grid-column: span 7;
+}
+
+.t-meta-balls,
+.t-galaxy {
+  grid-column: span 5;
+}
+
+.t-radar .tile-art,
+.t-meta-balls .tile-art {
+  min-height: 18rem;
+}
+
+.t-decrypted-text,
+.t-stats-cards,
+.t-rating,
+.t-pie {
+  grid-column: span 4;
+}
+
+.t-progress {
+  grid-column: span 3;
+}
+
+.chart {
+  width: 100%;
+  height: 100%;
+  min-height: 15rem;
+}
+
+.chart-sm {
+  min-height: 11rem;
+}
+
+.chip {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  z-index: 4;
+}
+
+.cipher {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  text-align: center;
   color: var(--ink);
-  background: color-mix(in oklab, var(--foreground) 7%, transparent);
 }
 
-.pager button:disabled {
+/* The stat card: a small screen of kit parts, as the examples compose. */
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.stat-v {
+  font-size: 1.7rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.stat-d {
+  font-size: 11px;
   color: var(--ink-3);
-  opacity: 0.45;
 }
 
-/* What every preview offers: three columns under the shelf, split by
+.stat-d b {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.stat-spark {
+  height: 44px;
+  margin-top: 6px;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.bar-l {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+@media (max-width: 899px) {
+  .bento > .tile {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 559px) {
+  .bento {
+    padding: 12px 12px 18px;
+  }
+  .bento > .tile {
+    grid-column: span 12;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    display: none;
+  }
+}
+
+/* What every preview offers: three columns under the bento, split by
    hairlines (no boxes inside the panel). */
 .tools {
   display: grid;

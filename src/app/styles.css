@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "../../dither-kit/theme.css";
+@import "../../dither-kit/engine/theme.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -21,6 +21,7 @@
   --radius-lg: calc(var(--radius) + 2px);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-display: var(--display-face);
 }
 
 @layer base {
@@ -72,12 +73,13 @@
 }
 
 /* The site's one chrome voice, shared by the landing, the docs and the
-   Studio: nav links in sentence case with 32px hit areas, the hairline
-   "Open studio" pill that mirrors the page's verb, and `.micro`, the small
-   sentence-case label over a group of controls. Copy follows the
-   design.how bans the user picked: no uppercase or tracked labels, no
-   eyebrow over a title, no middle dots or em dashes, no link that ends in
-   an arrow. */
+   Studio: nav links in sentence case with 32px hit areas, machined keys
+   and the one capsule key (the primary chrome key), `.micro`, the small
+   sentence-case label over a group of controls, the ringed pressed state,
+   and the look's materials. Copy follows the design.how bans the user
+   picked: no eyebrow over a title, no middle dots or em dashes, no link
+   that ends in an arrow, and uppercase or tracking only on a spec label
+   or a speed tag. */
 @layer components {
   .nav-a {
     display: inline-flex;
@@ -93,16 +95,24 @@
   .nav-a:hover {
     color: var(--foreground);
   }
+  /* A secondary key: machined (a 10px radius, the hairline, a narrow
+     reflection on its top edge). Only the primary key is a capsule. */
   .nav-pill {
+    padding-inline: 14px;
+    border-radius: 10px;
     color: var(--foreground);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 90%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--border) 90%, transparent),
+      inset 0 1px 0 var(--gloss);
     transition:
       box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
       background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   .nav-pill:hover {
     background: color-mix(in oklab, var(--foreground) 7%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 28%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--foreground) 28%, transparent),
+      inset 0 1px 0 var(--gloss);
   }
   .micro {
     font-size: 11.5px;
@@ -126,6 +136,311 @@
       animation: led 2.8s ease-in-out infinite;
     }
   }
+
+  /* The look's materials (Y2K retrofuturism, biomorphic form, technical
+     sportswear), worn by the landing, the docs and the Studio alike. */
+
+  /* Chrome type: the ramp clipped to the glyphs, one horizon per line. */
+  .chrome-type {
+    color: var(--chrome-ink);
+    background: var(--chrome);
+    background-size: 100% 1lh;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  /* A spec label: a sportswear spec sheet's small caps, tracked. Always an
+     annotation beside or under what it names, never an eyebrow. */
+  .spec {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  /* A speed tag: a slanted plate, its edges cut, its type upright. */
+  .speed-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 18px;
+    padding: 0 10px;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
+    background: color-mix(in oklab, var(--foreground) 8%, transparent);
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  }
+  /* A hardshell: two opposite corners cut, a chrome-glint hairline that
+     follows the cut, its ground the theme's shell material (anodized
+     graphite, bone ceramic) lit from the top left. The cut clips what it
+     holds. */
+  .hardshell {
+    position: relative;
+    background: var(--shell-ground);
+    clip-path: polygon(
+      var(--cut) 0,
+      100% 0,
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      0 100%,
+      0 var(--cut)
+    );
+  }
+  .hardshell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    background: var(--chrome-rim);
+    /* The ring: the outline, then the same outline 1px in, the hole. */
+    clip-path: polygon(
+      evenodd,
+      var(--cut) 0,
+      100% 0,
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      0 100%,
+      0 var(--cut),
+      var(--cut) 0,
+      calc(var(--cut) + 0.414px) 1px,
+      1px calc(var(--cut) + 0.414px),
+      1px calc(100% - 1px),
+      calc(100% - var(--cut) - 0.414px) calc(100% - 1px),
+      calc(100% - 1px) calc(100% - var(--cut) - 0.414px),
+      calc(100% - 1px) 1px,
+      calc(var(--cut) + 0.414px) 1px
+    );
+  }
+  /* A gel well for a live surface: an asymmetric pebble recessed into
+     its shell, its rim a chrome glint and a directional highlight across
+     its top. Anything that must sit over both (a chip, a control) takes
+     z-index 4. */
+  .gel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px 16px 22px 16px / 18px 22px 16px 22px;
+    background: var(--well);
+    box-shadow: var(--recess);
+  }
+  /* The chrome rim: a 1px glint over an element's edge (a gel, a capsule,
+     or any positioned `.rim`), drawn by a masked ring that takes no
+     pointer. */
+  .gel::after,
+  .capsule::after,
+  .rim::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--chrome-rim);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+  .gel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 3;
+    height: 38%;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(180deg, var(--gloss), transparent);
+  }
+  /* A capsule of smoked polymer floating over the page (a header, a
+     toolbar): a tinted shell that keeps what passes under it quiet, a
+     narrow reflection on its top, the chrome rim. Never frosted glass. */
+  .capsule {
+    position: relative;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--gloss), transparent 30%), var(--smoke);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--float-shadow);
+  }
+  .capsule::after {
+    opacity: 0.6;
+  }
+  /* The primary key: a capsule of satin aluminum with
+     obsidian ink on it, in either theme. Hover lifts it a pixel. */
+  .key-chrome,
+  .key-chrome:hover {
+    border-radius: 999px;
+    color: #101214;
+    background: var(--chrome-key);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 0 -1px 0 rgb(16 18 20 / 0.18),
+      0 0 0 1px var(--chrome-key-ring);
+  }
+  .key-chrome {
+    transition:
+      filter 160ms var(--ease-settle),
+      translate 160ms var(--ease-settle);
+  }
+  .key-chrome:hover {
+    filter: brightness(1.04);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .key-chrome:hover {
+      translate: 0 -1px;
+    }
+  }
+  /* A track: machined segments recessed into the surface, as a hardware
+     switch sits in its housing (the hard boundary against the soft
+     shells). Its keys are 7px segments; the picked one wears `.ring-on`. */
+  .track {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--foreground) 3%, transparent);
+    box-shadow: var(--recess-sm);
+  }
+  .track > * {
+    border-radius: 7px;
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .hardshell {
+      background: none;
+    }
+    .gel::before {
+      display: none;
+    }
+    .capsule {
+      background: var(--background);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .chrome-type {
+      -webkit-text-fill-color: currentColor;
+      background: none;
+    }
+    .hardshell {
+      clip-path: none;
+      border: 1px solid CanvasText;
+    }
+    .gel,
+    .capsule,
+    .track {
+      border: 1px solid CanvasText;
+    }
+    .hardshell::after,
+    .gel::after,
+    .gel::before,
+    .capsule::after,
+    .rim::after {
+      display: none;
+    }
+    .key-chrome {
+      border: 1px solid ButtonText;
+    }
+    /* The pressed ring is a shadow, which forced colors drop. */
+    .ring-on {
+      outline: 1px solid Highlight;
+    }
+  }
+}
+
+/* The materials' tokens, per theme, from the user's Y2K design system
+   (V5): its palette (obsidian #101214, graphite #25292D, titanium #A6ABB1,
+   chrome #D4DCE1, bone #E4E1D8, one signal accent: the kit's ember), one
+   structural material per surface and its finish recipes. Light: gunmetal
+   chrome type (its lightest stop clears 4.5:1 on white), bone ceramic
+   shells, titanium-tinted wells, a bone smoked-polymer overlay. Dark:
+   chrome type (its darkest stop clears 6:1), anodized graphite shells,
+   obsidian wells, a graphite smoked-polymer overlay. Both: the satin
+   aluminum key (chrome #D4DCE1 with a narrow reflection, no hard band). */
+:root {
+  --chrome: linear-gradient(
+    180deg,
+    #11151b 0%,
+    #2d343e 36%,
+    #5d6674 48%,
+    #6b7482 50.5%,
+    #0e1116 53%,
+    #2a3039 74%,
+    #3d4450 100%
+  );
+  --chrome-ink: #1d2229;
+  --chrome-key: linear-gradient(180deg, #f4f7f8 0%, #dde4e8 38%, #d4dce1 52%, #c2cad0 100%);
+  --chrome-key-ring: rgb(16 18 20 / 0.28);
+  --chrome-rim: linear-gradient(
+    135deg,
+    rgb(30 38 50 / 0.34) 0%,
+    rgb(120 130 146 / 0.14) 28%,
+    rgb(20 26 36 / 0.3) 52%,
+    rgb(140 150 166 / 0.12) 76%,
+    rgb(30 40 56 / 0.26) 100%
+  );
+  /* A shell's ground: bone ceramic, lit from the top left. */
+  --shell-ground: linear-gradient(145deg, rgb(249 247 239 / 0.9), rgb(228 225 216 / 0.45) 65%);
+  --well: color-mix(in oklab, var(--background) 92%, #a6abb1);
+  --gloss: rgb(255 255 255 / 0.55);
+  /* A recess: the surface pressed in, shadowed from the top left. */
+  --recess: inset 2px 3px 7px rgb(16 18 20 / 0.1), inset -1px -1px 0 rgb(255 255 255 / 0.7);
+  --recess-sm: inset 1px 1px 3px rgb(16 18 20 / 0.1), inset -1px -1px 0 rgb(255 255 255 / 0.8);
+  /* Smoked polymer: a tinted overlay that keeps what is under it legible. */
+  --smoke: rgb(244 243 239 / 0.92);
+  --float-shadow: 0 10px 30px -14px rgb(16 18 20 / 0.3);
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+  --cut: 16px;
+  /* Display type: Michroma (shared/fonts/display.css), extended and
+     geometric, one weight; the mono until it loads or where it is not
+     imported. Body, labels, data and code stay mono. */
+  --display-face: "Michroma", var(--font-mono);
+}
+
+/* Muted text a step deeper than the kit's white-ground default, so it
+   holds AA (4.5:1) on the light materials too: bone shells, smoke, wells. */
+:root:not(.dark) {
+  --muted-foreground: #5b6270;
+}
+
+.dark {
+  --chrome: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #dfe6ee 36%,
+    #8e98a8 48%,
+    #7d8798 50.5%,
+    #fbfcfd 53%,
+    #c2cad5 74%,
+    #edf1f5 100%
+  );
+  --chrome-ink: #e6ebf1;
+  --chrome-key-ring: rgb(255 255 255 / 0.18);
+  --chrome-rim: linear-gradient(
+    135deg,
+    rgb(240 245 251 / 0.55) 0%,
+    rgb(150 162 180 / 0.18) 28%,
+    rgb(255 255 255 / 0.5) 52%,
+    rgb(130 142 160 / 0.16) 76%,
+    rgb(220 230 244 / 0.42) 100%
+  );
+  /* Anodized graphite, lit from the top left. */
+  --shell-ground: linear-gradient(145deg, rgb(52 59 64 / 0.34), rgb(21 25 28 / 0) 65%);
+  --well: color-mix(in oklab, var(--background) 60%, #000);
+  --gloss: rgb(255 255 255 / 0.07);
+  --recess: inset 3px 4px 9px rgb(0 0 0 / 0.55), inset -1px -1px 1px rgb(255 255 255 / 0.07);
+  --recess-sm: inset 1px 2px 4px rgb(0 0 0 / 0.5), inset -1px -1px 0 rgb(255 255 255 / 0.05);
+  --smoke: rgb(21 25 28 / 0.9);
+  --float-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(212 220 225 / 0.14);
 }
 
 @keyframes led {

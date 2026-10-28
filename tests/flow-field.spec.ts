@@ -2,8 +2,8 @@
 import { describe, expect, it } from "rstack/test"
 import { mount } from "@vue/test-utils"
 import { paintFlowField, fadeRasterAlpha, DitherFlowField } from "@dither-kit"
-import { createRasterBuffer } from "@dither-kit/raster"
-import { BAYER4 } from "@dither-kit/pixel"
+import { createRasterBuffer } from "@dither-kit/engine/raster"
+import { BAYER4 } from "@dither-kit/engine/pixel"
 
 // The flow field's contract: seeded determinism, a trail that decays to a
 // full clear (no ghost residue), a stamped dither cell per particle per

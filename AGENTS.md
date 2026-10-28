@@ -97,7 +97,9 @@ Default section order:
   `benchmarks/` (the kit's raster benchmark) is an entry for `rs dev`
   only: `/benchmarks/` there, never in a build.
   `svelte-site/` runs the same CLI with its own `rstack.config.ts`.
-- Aliases: `@` → `src/`, `@dither-kit` → `dither-kit/` (rstack.config.ts +
+- Aliases: `@` → `src/`; `@dither-kit` → the kit's Tailwind layer
+  (`dither-kit/tailwind/index.ts`), `@dither-kit/<layer>/<file>` → a file
+  of a layer (`engine/`, `tailwind/`, `stylex/`) (rstack.config.ts +
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links. GitHub Pages deploys through
@@ -122,7 +124,8 @@ Default section order:
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). The hero is a stage touring real
   components (`HeroStage.vue`); the sections hold live kit charts, a
-  keyframed `DitherStage`, a screen of kit parts and a kit background. No
+  keyframed `DitherStage`, a bento of live examples, the screens an
+  agent's asks make from kit parts and a kit background. No
   film player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
   hero's "Watch the film" key and is fetched only when its dialog opens.
@@ -173,34 +176,44 @@ Default section order:
   (`features/export-video`, the `video` selection action, the
   `video.export` command / `export_video` tool) — one self-contained HTML
   file that `npx hyperframes render` turns into a deterministic MP4. The
-  kit's clock (`dither-kit/clock.ts`) makes every animation seekable; the
+  kit's clock (`dither-kit/engine/clock.ts`) makes every animation seekable; the
   player page `/play/` (`src/pages/play`) renders one frame and is also
   built as a single file (the `player` environment of `rstack.config.ts` →
   `dist/play/player.js`)
   that the export inlines. A reel (the `reel` widget kind, `reel.add` /
   `add_reel`, the `reel` selection action) plays other frames in order with
-  ordered-dither transitions (`dither-kit/wipe.ts` masks, `DitherReveal`)
+  ordered-dither transitions (`dither-kit/engine/wipe.ts` masks, `DitherReveal`)
   and exports as one MP4 as long as its cut. A reel whose clips carry
   camera keys, callouts and chapters is a film (`/studio#new/film` builds
   the kit's own, `reel.add` takes them from any agent), with a soundtrack
-  the kit synthesizes from the cut (`dither-kit/score.ts`: a chord per
+  the kit synthesizes from the cut (`dither-kit/engine/score.ts`: a chord per
   clip, the Bayer motif, a riser and an impact on every cut) that the
   export carries as the composition's audio track. Details in
   `src/AGENTS.md` and `dither-kit/AGENTS.md`.
-- Styling systems: the kit's tokens live in `dither-kit/theme.css` (plain
-  custom properties the app's `src/app/styles.css` imports under Tailwind);
+- Styling systems: the kit is one kit in styling layers: `dither-kit/engine/`
+  (styling-free logic), `dither-kit/tailwind/` (the components, authored
+  with Tailwind) and `dither-kit/stylex/` (the same components in StyleX,
+  GENERATED from the Tailwind layer by `src/shared/lib/stylex-layer.ts`;
+  after editing a Tailwind file, `npx rs test -u tests/stylex-layer.spec.ts`
+  rewrites its StyleX twin, and the spec fails on any drift). The tokens
+  live in `dither-kit/engine/theme.css` (plain custom properties the app's
+  `src/app/styles.css` imports under Tailwind);
   `npm run build:css` (in `npm run build` and the Pages deploy) compiles
-  `dither-kit/kit.css` — tokens, the `.dither-kit`-scoped `base.css`, every
-  utility the kit uses — into `dist/kit/dither-kit.css`, so apps on StyleX,
-  UnoCSS, vanilla CSS or CSS-in-JS run the kit without Tailwind;
-  `dither-kit/theme.ts` themes from JS. Details in `dither-kit/AGENTS.md`.
+  `dither-kit/tailwind/kit.css` — tokens, the `.dither-kit`-scoped base, every
+  utility the kit uses — into `dist/kit/dither-kit.css`, so apps on
+  UnoCSS, vanilla CSS or CSS-in-JS run the Tailwind layer without Tailwind;
+  StyleX apps alias `@dither-kit` to the StyleX layer;
+  `dither-kit/engine/theme.ts` themes from JS. Details in `dither-kit/AGENTS.md`.
   What the site writes for a reader comes in their system too:
   `src/shared/lib/restyle.ts` rewrites a Tailwind-classed snippet into a
   scoped stylesheet, CSS Modules or StyleX from the declarations Tailwind's
   compiler gives each class (`virtual-dither-utilities`, compiled at build
   from the docs + entities vocabulary by `src/shared/lib/utility-map.ts`);
   the docs' styling switch, the Studio's export dialog and
-  `code.get { styling }` all go through it (see `src/AGENTS.md`).
+  `code.get { styling }` all go through it, and the docs' Run plays the
+  result in the page, StyleX included (on the kit's StyleX layer, which
+  the source panel and the Quick start also show then; see
+  `src/AGENTS.md`).
 - Browsers and drivers: the kit is web platform only — Chromium (Chrome,
   Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor
   (Chrome 111, Safari 16.4, Firefox 128); every newer API is feature-detected
@@ -212,14 +225,14 @@ Default section order:
   `.clock`), the `dither-studio:command` event and `clock.seek`, so CDP,
   WebDriver and Playwright drive it in any engine; `npm run frames` renders
   a composition to PNGs/MP4 in Chromium, WebKit or Firefox without CDP.
-- Motion in container units: `dither-kit/keyframes.ts` (lengths as unit
+- Motion in container units: `dither-kit/engine/keyframes.ts` (lengths as unit
   terms, interpolated with their units kept, resolved to px against a box)
   drives `DitherStage` (a size query container with one kit-clock) and
   `DitherLayer` (keyframes per layer: canvas, SVG or DOM), so a scene
   scales exactly with its parent and exports to video. Docs under
   Animations (`stage`); registry rows with composed demos.
 - 3D + GLSL: the kit renders model files and fragment shaders through the
-  same Bayer raster. `DitherWorld` (`dither-kit/world.ts` engine,
+  same Bayer raster. `DitherWorld` (`dither-kit/engine/world.ts` engine,
   `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0
   `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY and OFF by URL or inline,
   plays the file's animations (VRML ROUTEs, glTF) on the kit clock, and
@@ -279,7 +292,29 @@ Default section order:
 
 ## User Preferences
 
-- Design direction: dark, monospace, pixel/dither identity.
+- Design direction: dark, monospace, pixel/dither identity, worn as the
+  user's look: Y2K retrofuturism, biomorphic form and technical
+  sportswear (chrome display type, hardshell panels with cut corners
+  holding recessed gel wells, a satin chrome primary key, machined
+  secondary keys and segment tracks, smoked-polymer overlays, spec labels
+  and slanted speed tags), worn by the landing, the docs and the Studio
+  alike: its materials are the site voice's (`src/app/styles.css`, both
+  themes; see `src/AGENTS.md`), the pages' uses in
+  `src/pages/AGENTS.md`. The user's reference is their "Y2K / Biomorphic
+  Retrofuturism" design system (V5, a private kit, not in the repo); its
+  rules for this site: the palette obsidian `#101214`, graphite
+  `#25292D`, titanium `#A6ABB1`, chrome `#D4DCE1`, bone `#E4E1D8` with ONE
+  signal accent (the kit's ember); one structural material per surface
+  (anodized graphite, bone ceramic, titanium edges, smoked polymer), no
+  iridescent pearl, no frosted glassmorphism, no arbitrary glow, no neon;
+  metal finishes on display type and the primary key only, never on body
+  text or every heading; soft shells against a few sharp machined
+  boundaries, never uniform pills; motion 120-200ms micro, 240-400ms
+  panels, settle easing `cubic-bezier(.22,1,.36,1)`. Display type wears
+  its suggested extended face, Michroma (SIL OFL, self-hosted in
+  `src/shared/fonts/`): the landing's statement and section titles and the
+  docs' page title. Its squared heading sans is not used; headings, body,
+  labels, figures and code stay mono, the user's identity.
 - One site voice: the landing, the docs and the Studio speak one language
   (dark theme tokens, monospace, hairlines, ringed pressed states), so the
   whole site reads as one product. The copy follows the design.how bans
@@ -288,7 +323,8 @@ Default section order:
   title, no middle dots or em dashes, no link ending in an arrow. The
   landing, the docs and the Studio all follow them: headings, buttons and
   actions in sentence case; field labels and option values may keep the
-  lowercase tool voice, never uppercase; a kit component's own designed
+  lowercase tool voice, never uppercase (uppercase and tracking belong
+  only to spec labels and speed tags, the user's lift for the new look); a kit component's own designed
   look (its default strings, its label styles) is the product and stays.
   No space on a page is left empty. Icons do the
   work of labels where they can, with attention to detail: kit glyphs
@@ -299,9 +335,9 @@ Default section order:
   STRUCTURE (dense panels in columns, lists under a mark) and the dither
   winners on Awwwards its SCALE (full-bleed art bands, display-size
   type), filled with the kit itself, never a reference site's assets,
-  marks or names. Rejected: italics, slants and cut corners, the
-  nodecode grid, the calm single column, condensed sports caps, bevels and
-  red (details in `src/pages/AGENTS.md`).
+  marks or names. The user lifted chrome and gloss, cut corners, and caps
+  and slants for spec labels for the new look; still rejected: red, the
+  nodecode grid, the calm single column (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
   tables, variant galleries) while keeping the dither skin; every preview
   carries Kobra's workbench and more (Inspect: the inspect and annotate
@@ -315,7 +351,9 @@ Default section order:
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
 - Accessibility is a floor, not a feature: labels, focus rings, reduced-motion
-  and reduced-transparency support are expected in every change.
+  and reduced-transparency support are expected in every change, and the
+  user's design system asks it too: text at AA (4.5:1) on the rendered
+  page, gradients and materials included, and 24px targets (WCAG 2.5.8).
 - Studio serves Vue developers and visual designers equally. Use the durable
   audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 

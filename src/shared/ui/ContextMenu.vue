@@ -47,7 +47,7 @@ onBeforeUnmount(() => {
       role="menu"
       aria-orientation="vertical"
       @keydown="menuKeydown"
-      class="fixed z-[100] min-w-[172px] rounded-xl border border-border bg-card p-1 font-mono text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"
+      class="fixed z-[100] min-w-[172px] rim rounded-2xl bg-card p-1 font-mono text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"
       :style="{ left: `${x}px`, top: `${y}px` }"
       @pointerdown.stop
       @contextmenu.prevent

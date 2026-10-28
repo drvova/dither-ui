@@ -82,11 +82,11 @@ function candidateOf(prelude: string): { candidate: string; tail: string } | nul
 /** The compiler's input: Tailwind's theme inlined, the kit's token mapping
  * and dark variant read from kit.css itself (one source of truth). */
 function entryCss(root: string): string {
-  const kit = readFileSync(resolve(root, "dither-kit/kit.css"), "utf8")
+  const kit = readFileSync(resolve(root, "dither-kit/tailwind/kit.css"), "utf8")
   const theme = kit.match(/@theme inline \{[\s\S]*?\n\}/)?.[0]
   const dark = kit.match(/@custom-variant dark[^;]*;/)?.[0]
   if (!theme || !dark)
-    throw new Error("utility-map: dither-kit/kit.css lost its @theme inline block or its dark variant")
+    throw new Error("utility-map: dither-kit/tailwind/kit.css lost its @theme inline block or its dark variant")
   return [
     `@import "tailwindcss/theme.css" theme(inline reference);`,
     `@import "tailwindcss/utilities.css" source(none);`,

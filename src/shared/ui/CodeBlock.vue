@@ -19,7 +19,8 @@ async function copy() {
   <div class="relative rounded-lg border border-transparent bg-background/60 shadow-[0_0_0_1px_rgba(255,255,255,0.07)]">
     <!-- Right gutter reserved under the chip (pr on the pre) plus this fade:
          horizontal overflow on phones had zero affordance — lines just ran
-         off the screen under a translucent chip. -->
+         off the screen under a translucent chip. On phones the chip also
+         takes its own band over the first line (pt on the pre). -->
     <div
       class="pointer-events-none absolute inset-y-0 right-0 w-10 rounded-r-lg bg-gradient-to-l from-background to-transparent"
       aria-hidden="true"
@@ -32,7 +33,7 @@ async function copy() {
       {{ copied ? "copied" : "copy" }}
     </button>
     <pre
-      class="overflow-x-auto touch-pan-x p-4 pr-16 font-mono text-[12px] leading-relaxed text-foreground"
+      class="overflow-x-auto touch-pan-x p-4 pt-11 pr-16 font-mono text-[12px] leading-relaxed text-foreground sm:pt-4"
     ><code>{{ code }}</code></pre>
   </div>
 </template>

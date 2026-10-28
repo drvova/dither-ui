@@ -31,7 +31,12 @@ Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dith
 ![The dither-ui landing: the statement and the kit's numbers beside the component stage](.github/readme/landing.webp)
 
 The kit is copy-in, shadcn-style: it lives in `dither-kit/` with no imports from
-the app, so you copy the folder into your project and own every line. Beside
+the app, so you copy the folder into your project and own every line. It is one
+kit in layers: `engine/` holds the styling-free logic (rasters, painters,
+contexts, the clock, the tokens), `tailwind/` the components styled with
+Tailwind classes and `stylex/` the same components in StyleX, generated from
+the Tailwind ones so the two never drift. `@dither-kit` points at the layer
+your app styles with. Beside
 Vue it needs four packages: `d3-scale`, `d3-shape`, `clsx` and
 `tailwind-merge`. Tailwind is optional. `npm run build:css` compiles the kit's
 own stylesheet (`dist/kit/dither-kit.css`: tokens, a scoped base and every
@@ -62,8 +67,14 @@ npx degit drvova/dither-ui/dither-kit src/dither-kit
 npm i d3-scale d3-shape clsx tailwind-merge
 
 # 3. alias @dither-kit (bundler resolve.alias and tsconfig paths)
-#    "@dither-kit" -> "./src/dither-kit"
+#    "@dither-kit" -> "./src/dither-kit/tailwind"
 ```
+
+On StyleX, alias `"@dither-kit"` to `./src/dither-kit/stylex` instead, install
+`@stylexjs/stylex` (with your bundler's StyleX plugin) in place of `clsx` and
+`tailwind-merge`, and load `engine/theme.css` and `engine/base.css`. Every
+component that takes `class` also takes `xstyle`: your StyleX styles, merged
+after its own.
 
 Svelte 5 apps copy `drvova/dither-ui/dither-kit-svelte` instead and import from
 `@dither-kit-svelte`. Charts use a children-as-config API: compose parts inside
@@ -100,7 +111,7 @@ const config: ChartConfig = {
 ```
 
 Give every root a height: the canvas measures its box. Theme the kit by
-overriding its tokens (`dither-kit/theme.css` lists them: light at `:root`,
+overriding its tokens (`dither-kit/engine/theme.css` lists them: light at `:root`,
 dark under `.dark`), from CSS or with `applyTheme()` from JS.
 
 ## The site
@@ -108,9 +119,11 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 ### Landing
 
 A full-bleed hero: the statement, the keys and the kit's numbers beside a
-stage that tours real components (a button, a slide, a hold, text pressure and
-a ferrofluid), each one live with the controls its docs demo has. "Watch the
-film" opens the trailer. Everything else on the page is the kit too:
+stage that tours real components, each one live with the controls its docs
+demo has: a dithered chart you reseed, a GLSL shader, one snippet written as
+StyleX, CSS Modules, CSS or Tailwind beside the card it renders, a button, a
+slide and a ferrofluid. "Watch the film" opens the trailer. Everything else on
+the page is the kit too:
 
 - the install bar, under the marks of npm, pnpm and Bun;
 - live kit panels: buttons, controls, a 3D model, a chart and a keyframed stage;
@@ -367,6 +380,9 @@ Fill `variant`: `gradient`, `dotted`, `hatched`, `solid`. Palette colours:
 
 ```
 dither-kit/          the Vue kit (@dither-kit): copy-in, MIT, no imports from the app
+  engine/     styling-free logic: rasters, painters, contexts, clock, tokens
+  tailwind/   the components, styled with Tailwind (what @dither-kit points at)
+  stylex/     the same components in StyleX, generated from tailwind/
 dither-kit-svelte/   the Svelte 5 port (runes)
 svelte-site/         a Svelte showcase built on the port
 bridge/              the local bridge between the Studio and your coding agent
@@ -407,7 +423,7 @@ inspired by [Evil Charts](https://evilcharts.com):
 - The `chartLayer` children routing became render-function vnode inspection.
 - The framework-agnostic `requestAnimationFrame` canvas painters ported almost verbatim.
 - The tooltip's `motion` spring became Vue `<Transition>` and a CSS glide.
-- The shadcn-style tokens (`--foreground`, `--card`, …) live in `dither-kit/theme.css`.
+- The shadcn-style tokens (`--foreground`, `--card`, …) live in `dither-kit/engine/theme.css`.
 
 ## Creator
 

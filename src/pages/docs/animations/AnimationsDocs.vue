@@ -679,7 +679,7 @@ el.style.maskImage = m?.image ?? ""`,
   { value: 'savings', label: 'Savings', address: '0x8b21e0c4a6f9d1327e55', balance: 8210.11, change: -1.1, color: 'purple' },
   { value: 'trading', label: 'Trading', address: '0x91cc4db2e87a30f6b214', balance: 3033.7, change: 0.6, color: 'orange' },
 ]" :recent="['gas fees', 'swap history']" notifications
-  @action="run" @submit="find" @notify="openInbox" />
+  @action="run" @submit="find" @notify="openInbox" class="w-full max-w-80" />
 <!-- switcher + search morph from their triggers (recents listed) · digits
      cascade · privacy masks to ******* · copy-address gives a ✓ · bell pulses -->`,
 }
@@ -1522,6 +1522,7 @@ function nudgeCq(delta: number): void {
           @action="walletNote = $event"
           @submit="walletNote = 'search: ' + $event"
           @notify="walletNote = 'notifications'"
+          class="w-full max-w-80"
         />
         <p class="font-mono text-[10px] text-muted-foreground">last: {{ walletNote }}</p>
       </div>

@@ -60,16 +60,13 @@ const seconds = computed({
       @click.self="emit('close')"
       @keydown.esc.stop="emit('close')"
     >
-      <DitherFocusScope
-        :autofocus="false"
-        class="flex w-full max-w-md flex-col rounded-xl border border-border bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]"
-      >
+      <DitherFocusScope :autofocus="false" class="hardshell flex w-full max-w-md flex-col bg-card">
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
           <span class="text-sm font-medium">Export as video</span>
           <button
             ref="closeRef"
             type="button"
-            class="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground"
+            class="flex size-7 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Close"
             @click="emit('close')"
           >
@@ -130,7 +127,7 @@ const seconds = computed({
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button type="button" class="action is-primary" :disabled="busy" @click="download">
+            <button type="button" class="action key-chrome" :disabled="busy" @click="download">
               {{ busy ? "Building…" : `Download ${videoFileName(frame)}` }}
             </button>
             <button type="button" class="action" @click="preview">Preview</button>
@@ -197,7 +194,7 @@ const seconds = computed({
 }
 .action {
   border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
+  border-radius: 8px;
   padding: 5px 10px;
   color: var(--color-muted-foreground);
   transition: color 120ms ease;
@@ -208,10 +205,12 @@ const seconds = computed({
 .action:disabled {
   opacity: 0.6;
 }
-.action.is-primary {
-  color: var(--color-background);
-  background: var(--color-foreground);
-  border-color: var(--color-foreground);
+/* The primary action is the site's chrome key: the one capsule. */
+.action.key-chrome,
+.action.key-chrome:hover:not(:disabled) {
+  border-color: transparent;
+  border-radius: 999px;
+  color: #101214;
 }
 .chip:focus-visible,
 .action:focus-visible,

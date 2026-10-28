@@ -1,11 +1,12 @@
 // The runtime half of Run: compiled files evaluated against the page's own
 // Vue (so the result mounts inside the docs app). An example that only
 // edits itself links to the page's kit, the very modules the docs run on.
-// Once a kit file is edited, the example links to a kit evaluated from its
-// source instead — the edited files and everything they and the example
-// reach — so a compound component and its contexts (chart, series, field,
-// drawer) share one consistent set of modules. Loaded with the compiler on
-// the first Run.
+// Once a kit file is edited, or the run takes a layer the page does not
+// carry (StyleX), the example links to a kit evaluated from its source
+// instead — the edited files and everything they and the example reach —
+// so a compound component and its contexts (chart, series, field, drawer)
+// share one consistent set of modules. Loaded with the compiler on the
+// first Run.
 import {
   BaseTransition,
   camelize,
@@ -135,6 +136,7 @@ import { scaleBand, scaleLinear, scalePoint } from "d3-scale"
 import { stack, stackOffsetExpand } from "d3-shape"
 import { twMerge } from "tailwind-merge"
 import { kitFilesOf, resolveKitFile } from "./files"
+import * as StyleX from "./stylex"
 
 // Vue as a component's code sees it: everything a template compiles to and a
 // script can call — not the app, SSR, hydration or custom-element builders,
@@ -251,6 +253,8 @@ const VUE: Record<string, unknown> = {
 // The packages the kit's own files import (tests/source.spec.ts holds this
 // list to every import in the kit).
 export const PACKAGES: Record<string, Record<string, unknown>> = {
+  // StyleX done at run time (see stylex.ts): what an app's bundler plugin compiles.
+  "@stylexjs/stylex": StyleX,
   clsx: { clsx },
   "d3-scale": { scaleBand, scaleLinear, scalePoint },
   "d3-shape": { stack, stackOffsetExpand },
@@ -273,6 +277,8 @@ export interface RunInput {
   /** The kit's public exports (`kitIndex`) and its file list. */
   index: Map<string, { file: string; name: string }>
   files: readonly string[]
+  /** Link the kit evaluated from its source even when no kit file is edited. */
+  fromSource?: boolean
   /** A kit file's original text (for the types `defineProps` reads). */
   source(file: string): Promise<string>
 }
@@ -287,7 +293,7 @@ export interface RunResult {
 /** Compile and link a run. Throws `CompileError` with every problem found. */
 export async function run(input: RunInput): Promise<RunResult> {
   const edited = new Map(input.kit.map((f) => [f.file, f.text]))
-  const fresh = edited.size > 0
+  const fresh = edited.size > 0 || !!input.fromSource
   // The kit files the run reaches — from the edited files and, for a kit
   // evaluated from source, from what the example imports — read up front:
   // the compiler resolves types and the linker evaluates synchronously.
@@ -298,7 +304,7 @@ export async function run(input: RunInput): Promise<RunResult> {
     for (const file of wave) {
       if (!texts.has(file)) next.add(file)
       for (const m of (texts.get(file) ?? "").matchAll(IMPORTS)) {
-        const dep = resolveKitFile(m[1], input.files)
+        const dep = resolveKitFile(m[1], input.files, file)
         if (dep && !texts.has(dep)) next.add(dep)
       }
     }
@@ -366,10 +372,12 @@ export async function run(input: RunInput): Promise<RunResult> {
       return api
     }
     if (from && spec.startsWith(".")) {
-      const file = resolveKitFile(spec, input.files)
+      const file = resolveKitFile(spec, input.files, from)
       if (file) return kitFile(file)
     }
-    throw new Error(`Run links "vue", "@dither-kit" and the kit's own files; "${spec}" is none of them`)
+    throw new Error(
+      `Run links "vue", "@dither-kit", "@stylexjs/stylex" and the kit's own files; "${spec}" is none of them`,
+    )
   }
   const component = evaluate(example, (spec) => load(spec), META).default as Component
   const attribute = `data-run-${hashId(input.scope)}`

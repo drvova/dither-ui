@@ -368,7 +368,7 @@ const SNIPPETS = {
       Hover to burst-scramble the characters, which then settle back to the real text. Repeatable on every hover.
     </p>
     <DemoCard :code="SNIPPETS.scrambleText">
-      <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
+      <div class="flex min-h-24 items-center justify-center text-2xl tracking-tight sm:text-3xl">
         <DitherScrambleText text="Hover to scramble" />
       </div>
     </DemoCard>
@@ -584,8 +584,9 @@ const SNIPPETS = {
       any string.
     </p>
     <DemoCard :code="SNIPPETS.asciiText">
-      <div class="flex min-h-24 items-center justify-center text-foreground">
-        <DitherAsciiText text="DITHER" />
+      <!-- Centred while it fits; on the narrowest phones it scrolls. -->
+      <div class="flex min-h-24 items-center overflow-x-auto text-foreground">
+        <div class="mx-auto w-max"><DitherAsciiText text="DITHER" /></div>
       </div>
     </DemoCard>
     <PropsTable :rows="API.asciiText" />

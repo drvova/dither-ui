@@ -3,7 +3,7 @@
 // as one-colour filled paths in currentColor, the way their owners' press
 // kits show a single-colour mark. Each is its owner's trademark, shown only
 // to name the tool written beside it: never restyled, dithered or tinted
-// into the kit's hues. These are NOT kit glyphs (`dither-kit/icons.ts` holds
+// into the kit's hues. These are NOT kit glyphs (`dither-kit/engine/icons.ts` holds
 // the kit's own MIT stroke icons, copied into apps); they stay in the site.
 // Paths are the sources' own, verbatim (arc flags make rounding unsafe);
 // only a viewBox may pad a mark that fills its box, so every mark sits at

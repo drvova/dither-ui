@@ -1,6 +1,6 @@
 import { describe, expect, it } from "rstack/test"
 import { GROUPS, SECTIONS } from "@/pages/docs/groups"
-import { FAMILIES, SECTION_COUNT, SHELVES } from "@/pages/landing/hub"
+import { BENTO, DOCS_FAMILIES, FAMILIES, SECTION_COUNT } from "@/pages/landing/hub"
 
 const family = (title: string) => GROUPS.find((g) => g.title === title)
 
@@ -11,22 +11,17 @@ describe("component hub", () => {
     expect(SECTION_COUNT).toBe(SECTIONS.length)
   })
 
-  it("deep-links every card to a docs section of the family it names", () => {
-    for (const shelf of SHELVES) {
-      for (const card of shelf.cards) {
-        const ids = family(card.family)?.items.map((i) => i.id) ?? []
-        expect(ids, `${shelf.value}: ${card.id}`).toContain(card.id)
-      }
+  it("leads every bento tile and family link into a docs section of the family it names", () => {
+    for (const tile of BENTO) {
+      const ids = family(tile.family)?.items.map((i) => i.id) ?? []
+      expect(ids, tile.id).toContain(tile.id)
     }
-  })
-
-  it("counts each family shelf as its family", () => {
-    for (const shelf of SHELVES.filter((s) => s.value !== "explore")) {
-      expect(shelf.count).toBe(family(shelf.label)?.items.length)
-      expect(shelf.cards.every((c) => c.family === shelf.label)).toBe(true)
+    for (const f of DOCS_FAMILIES) {
+      expect(
+        family(f.label)?.items.map((i) => i.id),
+        f.label,
+      ).toContain(f.first)
+      expect(f.count, f.label).toBe(family(f.label)?.items.length)
     }
-    const explore = SHELVES.find((s) => s.value === "explore")
-    expect(explore?.count).toBe(explore?.cards.length)
-    expect(explore?.cards.every((c) => c.note)).toBe(true)
   })
 })
