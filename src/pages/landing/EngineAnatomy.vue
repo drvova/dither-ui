@@ -2,13 +2,17 @@
 // The engine's anatomy: one real kit button pulled apart into the layers
 // that draw it, each painted by the engine itself (the variant's tone ramp,
 // the seed's 4x4 threshold matrix, the cells that pass it), under the live
-// component, with a spec callout on a leader line for each layer. The
-// layers spread as the figure crosses the viewport (a CSS scroll timeline;
-// spread at rest without one, or under reduced motion). The button rolls
-// the seed: a new matrix and a new hue, every layer redrawn.
-import { computed, onMounted, ref, watch } from "vue"
+// component, with a spec callout on a leader line for each layer. It plays
+// a 10s loop in CSS (no timer): the layers burst apart, hold while a pulse
+// climbs the stack from the tone to the component, ringing each layer and
+// its leader's point, then fold back into the button; each fold builds the
+// next one from a new seed (the loop's `animationiteration`). It runs only
+// in view, its pause chip stops it apart, and under reduced motion it holds
+// still, apart. The button rolls the seed by hand too.
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { DitherButton, kitFromSeed, putRasterBuffer, renderDitherButton } from "@dither-kit"
 import { pixelMatrixFromSeed } from "@dither-kit/engine/pixel"
+import PauseChip from "./PauseChip.vue"
 
 // One layer's size and cell, the button's own (`variant` gradient).
 const CELL = 6
@@ -58,8 +62,26 @@ function paint() {
   )
 }
 
-onMounted(paint)
+const figure = ref<HTMLElement | null>(null)
+const playing = ref(true)
+// Out of view the loop holds where it is; without an observer it just runs.
+const away = ref(typeof IntersectionObserver !== "undefined")
+let io: IntersectionObserver | null = null
+
+onMounted(() => {
+  paint()
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) playing.value = false
+  if (!away.value || !figure.value) return
+  io = new IntersectionObserver((entries) => (away.value = !entries.some((e) => e.isIntersecting)))
+  io.observe(figure.value)
+})
+onBeforeUnmount(() => io?.disconnect())
 watch(seed, paint)
+
+// The loop's turn: the layers are folded, so the next button is built.
+function turn(e: AnimationEvent) {
+  if (e.target === e.currentTarget && e.animationName.includes("anat-cycle")) roll()
+}
 // The next seed whose hue is not red (the page's one warm light is the
 // ember; red stays out).
 function roll() {
@@ -79,7 +101,15 @@ const LAYERS = [
 </script>
 
 <template>
-  <figure class="anat" :style="{ '--w': `${W}px`, '--h': `${H}px` }">
+  <figure
+    ref="figure"
+    class="anat"
+    :data-still="playing ? undefined : 'true'"
+    :data-away="away ? 'true' : undefined"
+    :style="{ '--w': `${W}px`, '--h': `${H}px` }"
+    @animationiteration="turn"
+  >
+    <PauseChip v-model="playing" label="Pause the anatomy" class="anat-chip" />
     <div class="stack">
       <div class="layer" style="--i: 0" aria-hidden="true"><canvas ref="toneEl" /></div>
       <div class="layer" style="--i: 1" aria-hidden="true"><canvas ref="matrixEl" /></div>
@@ -106,7 +136,7 @@ const LAYERS = [
         </span>
       </p>
       <span class="spec-line"
-        ><span aria-live="polite">seed {{ seed }}</span
+        ><span>seed {{ seed }}</span
         ><span>{{ COLS }} × {{ ROWS }} cells</span><span>{{ CELL }}px each</span></span
       >
     </figcaption>
@@ -114,8 +144,15 @@ const LAYERS = [
 </template>
 
 <style scoped>
-/* How far the layers have parted: 0 stacked, 1 apart. */
+/* How far the layers have parted (0 stacked, 1 apart) and how present the
+   callouts are; both rest at 1, the still, readable state. */
 @property --anat-spread {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --anat-show {
   syntax: "<number>";
   inherits: true;
   initial-value: 1;
@@ -140,22 +177,112 @@ const LAYERS = [
   border: 1px solid var(--line);
 }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .anat {
-      animation: anat-part linear both;
-      animation-timeline: view();
-      animation-range: entry 20% cover 45%;
-    }
+/* The loop, 10s: folded (0 to 8%), the burst (to 22%, settling; the
+   callouts arrive once the layers have parted), apart with a breath while
+   the pulse climbs (to 80%; the callouts leave first), the fold (to 94%).
+   A layer's ring and its leader's ring fire 1s apart, the tone first. */
+@media (prefers-reduced-motion: no-preference) {
+  .anat {
+    animation: anat-cycle 10s infinite;
+  }
+  .layer::after {
+    animation: anat-ping 10s calc(var(--i) * 1s) infinite;
+  }
+  .leader::after {
+    animation: anat-dot 10s calc(var(--i) * 1s) infinite;
+  }
+  .anat[data-away] {
+    animation-play-state: paused;
+  }
+  .anat[data-away] .layer::after,
+  .anat[data-away] .leader::after {
+    animation-play-state: paused;
+  }
+  .anat[data-still],
+  .anat[data-still] .layer::after,
+  .anat[data-still] .leader::after {
+    animation: none;
   }
 }
 
-@keyframes anat-part {
-  from {
-    --anat-spread: 0.12;
+@keyframes anat-cycle {
+  0%,
+  8% {
+    --anat-spread: 0.06;
+    --anat-show: 0;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
-  to {
+  14% {
+    --anat-show: 0;
+  }
+  22% {
     --anat-spread: 1;
+    --anat-show: 1;
+    animation-timing-function: ease-in-out;
+  }
+  51% {
+    --anat-spread: 0.94;
+    animation-timing-function: ease-in-out;
+  }
+  76% {
+    --anat-show: 1;
+  }
+  80% {
+    --anat-spread: 1;
+    --anat-show: 0;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  94%,
+  100% {
+    --anat-spread: 0.06;
+    --anat-show: 0;
+  }
+}
+
+/* The pulse: at 26% of its own turn (the delay staggers it by layer). */
+@keyframes anat-ping {
+  0%,
+  23% {
+    opacity: 0;
+    scale: 1;
+  }
+  26% {
+    opacity: 1;
+  }
+  34%,
+  100% {
+    opacity: 0;
+    scale: 1.06;
+  }
+}
+
+/* The leader's ring: from the point outward, then gone. */
+@keyframes anat-dot {
+  0%,
+  23% {
+    opacity: 0;
+    scale: 0.6;
+  }
+  26% {
+    opacity: 1;
+  }
+  36%,
+  100% {
+    opacity: 0;
+    scale: 2.2;
+  }
+}
+
+.anat-chip {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anat-chip {
+    display: none;
   }
 }
 
@@ -170,6 +297,17 @@ const LAYERS = [
   box-shadow:
     0 0 0 1px color-mix(in oklab, var(--foreground) 22%, transparent),
     0 30px 40px -24px rgb(0 0 0 / 0.9);
+}
+
+/* A layer's ring: the signal's outline, lit as the pulse passes. */
+.layer::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  pointer-events: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--signal);
+  opacity: 0;
 }
 
 .layer canvas {
@@ -205,6 +343,7 @@ const LAYERS = [
   align-items: flex-start;
   gap: 14px;
   margin: 0;
+  opacity: var(--anat-show);
   transform: translateY(-10px);
 }
 
@@ -216,6 +355,19 @@ const LAYERS = [
   height: 1px;
   margin-top: 10px;
   background: color-mix(in oklab, var(--foreground) 30%, transparent);
+}
+
+/* The leader's point rings with its layer. */
+.leader::after {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--signal);
+  opacity: 0;
 }
 
 .leader::before {
@@ -287,6 +439,7 @@ const LAYERS = [
   }
   .callout {
     position: static;
+    opacity: 1;
     transform: none;
   }
   .leader {

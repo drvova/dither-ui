@@ -173,10 +173,17 @@ widgets/features; page-specific conventions live here.
   `DitherButton` on top. A spec callout per layer (a `.speed-tag` and a
   line) sits on a hairline leader from the layer's right corner, an ember
   point on the corner; the stack's spec (seed, cells, cell size) runs
-  along the figure's foot. The layers part as the figure crosses the
-  viewport (`--anat-spread` through a CSS scroll timeline; apart at rest
-  without one or under reduced motion). The button, "New seed", re-seeds
-  every layer (a new matrix and hue; a red hue is skipped). Notes drop
+  along the figure's foot. It plays a 10s loop in CSS, no timer
+  (`anat-cycle` on `--anat-spread` and `--anat-show`): folded, the burst
+  (the callouts arrive once the layers have parted), apart with a breath
+  while a pulse climbs the stack (each layer's ring and its leader point's
+  ring, 1s apart, the tone first), the callouts leave, the fold; each
+  turn (`animationiteration`) builds the next button from a new seed. It
+  runs only in view (an IntersectionObserver holds it out of view), its
+  pause chip ("Pause the anatomy") stops it apart and readable, and under
+  reduced motion it holds still, apart, with no chip. The button, "New
+  seed", re-seeds every layer by hand too (a new matrix and hue; a red
+  hue is skipped). Notes drop
   under 1024px; on a phone the stack sits centred over the callouts as a
   list. Then three columns under
   their own hairlines (one under 900px), each under its kit glyph in the
@@ -211,7 +218,7 @@ widgets/features; page-specific conventions live here.
   surfaces. Pause chips (`PauseChip.vue`, WCAG 2.2.2): every surface that
   moves by itself for more than five seconds carries one in its corner,
   named for it ("Pause the component tour", "Pause the model", "Pause the
-  meta balls", "Pause the silk"), `aria-pressed` while paused, wired to
+  meta balls", "Pause the silk", "Pause the anatomy"), `aria-pressed` while paused, wired to
   the surface's `paused` (the model's turn is its `auto-rotate`); hidden
   where reduced motion already holds the surface still.
 - Footer (under a hairline, on the page width): the brand (the pixel
@@ -573,8 +580,9 @@ widgets/features; page-specific conventions live here.
   the stage's tour (every scene drawn, its controls working), the bento's
   rows whole at 1440, 800 and 390px with every card drawn and its controls
   working (the model's ramps and "New model", the rating, the sliders'
-  values, the hold action's count), the anatomy's layers parting on scroll
-  with each leader on its layer's corner and "New seed" redrawing all four,
+  values, the hold action's count), the anatomy's loop (burst, the pulse
+  climbing, the fold, a new seed each turn; held out of view) with each
+  leader on its layer's corner and "New seed" redrawing all four,
   each pause chip stopping its surface,
   the asks' stage keeping one height across the asks, "What lands in your
   repo" in four, two and one columns, the header capsule floating over the
