@@ -130,8 +130,10 @@ Tailwind beside the card it renders, a button, a slide and a ferrofluid.
   sliders, a pie, avatars, silk, decrypted text, progress, a radar and a hold
   action;
 - the screen an agent's ask makes in the Studio, ask by ask;
-- what's inside: the kit, the Studio and the agent bridge, each harness under
-  its own mark, and the docs family by family;
+- what's inside: a kit button pulled apart into the layers the engine draws
+  it from (its tone, the seed's threshold matrix, the cells, the component),
+  each with its spec, then the kit, the Studio and the agent bridge, each
+  harness under its own mark, and the docs family by family;
 - the install, under the marks of npm, pnpm and Bun, with a key that copies a
   prompt for your coding agent, and what lands in your repo.
 

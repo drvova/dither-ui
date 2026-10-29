@@ -22,6 +22,9 @@ import {
 import { ASKS } from "./asks"
 
 const props = defineProps<{ at: number }>()
+// The frame shows selected, as the Studio draws a selection: the canvas's
+// accent ring and a handle on each corner.
+const HANDLES = ["tl", "tr", "bl", "br"] as const
 const ask = computed(() => ASKS[props.at] ?? ASKS[0])
 
 const auto = ref(true)
@@ -45,6 +48,7 @@ const VISITS_CONFIG = { visits: { label: "Visits", color: "blue" as DitherColor 
       <div class="board">
         <span class="board-name">{{ ask.frame }}</span>
         <div class="board-frame">
+          <span v-for="c in HANDLES" :key="c" class="handle" :class="c" aria-hidden="true"></span>
           <template v-if="ask.id === 'deploys'">
             <DitherHeading level="3">Deploys</DitherHeading>
             <div class="board-row">
@@ -140,6 +144,7 @@ const VISITS_CONFIG = { visits: { label: "Visits", color: "blue" as DitherColor 
 
 /* One height for every frame. */
 .board-frame {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -149,8 +154,37 @@ const VISITS_CONFIG = { visits: { label: "Visits", color: "blue" as DitherColor 
   border-radius: 10px;
   background: var(--background);
   box-shadow:
-    inset 0 0 0 1px var(--line),
+    0 0 0 2px var(--accent),
     var(--float-shadow);
+}
+
+.handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  background: var(--background);
+}
+
+.handle.tl {
+  top: -6px;
+  left: -6px;
+}
+
+.handle.tr {
+  top: -6px;
+  right: -6px;
+}
+
+.handle.bl {
+  bottom: -6px;
+  left: -6px;
+}
+
+.handle.br {
+  right: -6px;
+  bottom: -6px;
 }
 
 .board-row {

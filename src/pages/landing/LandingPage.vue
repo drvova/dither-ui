@@ -15,6 +15,7 @@ import { version } from "../../../package.json"
 import AgentAsks from "./AgentAsks.vue"
 import { ASKS } from "./asks"
 import EngravedWordmark from "./EngravedWordmark.vue"
+import EngineAnatomy from "./EngineAnatomy.vue"
 import Examples from "./Examples.vue"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
@@ -190,6 +191,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
               </p>
             </div>
           </div>
+          <EngineAnatomy />
           <ul class="inside">
             <li v-for="c in INSIDE" :key="c.title">
               <h3 class="inside-h"><DitherIcon :name="c.icon" :size="15" :stroke-width="1.5" />{{ c.title }}</h3>

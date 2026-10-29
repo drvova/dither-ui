@@ -155,14 +155,30 @@ widgets/features; page-specific conventions live here.
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), the `.seg` picker of the asks, and `AgentAsks.vue`: on a
   wide stage of the Studio's dotted canvas the frame the picked ask lands
-  as (its name over it, every part live, one height for all), the ask in
+  as (its name over it, every part live, one height for all), drawn
+  selected as the Studio draws a selection (the canvas's accent ring, a
+  handle on each corner; the accent blue stays the canvas's), the ask in
   a smoked capsule prompt bar across the stage's foot with the chrome send
   glyph (a picture of the sent message, not a field), and under the stage
   the Studio tool call that drew it (Sparkles). `asks.ts`: a screen is
   made ONLY of registry components (`add_screen`; a chart is `add_chart`),
   so the caption is true. Every ask's words and caption sit in one grid
   cell with only the picked one visible, so a pick never moves the page.
-- Inside (`#inside`, "Three parts, one engine."): three columns under
+- Inside (`#inside`, "Three parts, one engine."): first the engine's
+  anatomy (`EngineAnatomy.vue`): one real kit button pulled apart in
+  isometric planes (turned 45 degrees, tipped 60) into the layers that
+  draw it, each painted by the engine: 01 the gradient variant's tone
+  ramp, 02 the seed's 4x4 threshold matrix (`pixelMatrixFromSeed`), 03
+  the cells (`renderDitherButton`, the button's own raster), 04 the live
+  `DitherButton` on top. A spec callout per layer (a `.speed-tag` and a
+  line) sits on a hairline leader from the layer's right corner, an ember
+  point on the corner; the stack's spec (seed, cells, cell size) runs
+  along the figure's foot. The layers part as the figure crosses the
+  viewport (`--anat-spread` through a CSS scroll timeline; apart at rest
+  without one or under reduced motion). The button, "New seed", re-seeds
+  every layer (a new matrix and hue; a red hue is skipped). Notes drop
+  under 1024px; on a phone the stack sits centred over the callouts as a
+  list. Then three columns under
   their own hairlines (one under 900px), each under its kit glyph in the
   ember with a paragraph and its link: the kit, the Studio, the agent
   bridge (with the harnesses `bridge/dither-bridge.mjs` knows, its
@@ -557,7 +573,9 @@ widgets/features; page-specific conventions live here.
   the stage's tour (every scene drawn, its controls working), the bento's
   rows whole at 1440, 800 and 390px with every card drawn and its controls
   working (the model's ramps and "New model", the rating, the sliders'
-  values, the hold action's count), each pause chip stopping its surface,
+  values, the hold action's count), the anatomy's layers parting on scroll
+  with each leader on its layer's corner and "New seed" redrawing all four,
+  each pause chip stopping its surface,
   the asks' stage keeping one height across the asks, "What lands in your
   repo" in four, two and one columns, the header capsule floating over the
   page with an anchor landing clear of it, reduced motion (the surfaces

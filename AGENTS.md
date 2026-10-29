@@ -129,8 +129,9 @@ Default section order:
   stage touring real components, seated in a form of the kit's liquid
   chrome), then sections under a title with a lead beside it: a bento of
   live components,
-  the screen an agent's ask makes, what's inside (the kit, the Studio, the
-  bridge, the docs' families), a centred install, and link columns over
+  the screen an agent's ask makes, what's inside (the engine's anatomy:
+  a kit button pulled apart into the layers that draw it; the kit, the
+  Studio, the bridge, the docs' families), a centred install, and link columns over
   the engraved wordmark. No film player or animation runtime ships with
   the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
