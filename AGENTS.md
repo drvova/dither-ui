@@ -132,7 +132,7 @@ Default section order:
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
-  families), a centred install, and link columns over the engraved
+  families), a centred install, and link columns over a line-screen
   wordmark. It keeps the user's slop bans (User Preferences). No film
   player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the

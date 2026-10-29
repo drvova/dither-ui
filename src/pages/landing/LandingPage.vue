@@ -14,10 +14,10 @@ import "@/shared/fonts/display.css"
 import "./chapters.css"
 import { version } from "../../../package.json"
 import AgentStory from "./AgentStory.vue"
-import EngravedWordmark from "./EngravedWordmark.vue"
 import Examples from "./Examples.vue"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
+import LineWordmark from "./LineWordmark.vue"
 import PixelWord from "./PixelWord.vue"
 import Showcase from "./Showcase.vue"
 
@@ -262,7 +262,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
         <span>MIT license</span>
       </p>
       <div aria-hidden="true" class="foot-mark">
-        <EngravedWordmark />
+        <LineWordmark />
       </div>
     </footer>
   </div>
@@ -578,11 +578,11 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   color: var(--ink-3);
 }
 
-/* The engraved mark: centred under the page on a wide screen, on the
-   page's own edges on a phone. */
+/* The wordmark: the page's full width, on its edges. */
 .foot-mark {
-  width: min(90vw, 56rem);
-  margin: 24px auto 0;
+  width: 100%;
+  max-width: var(--page);
+  margin: 40px auto 0;
   padding: 0 1.5rem 40px;
 }
 
