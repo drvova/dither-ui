@@ -127,10 +127,12 @@ Default section order:
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). Our own hero (the statement beside a
   stage touring real components, seated in a form of the kit's liquid
-  chrome), then sections under a title with a lead beside it: a bento of
-  live components,
-  the screen an agent's ask makes, what's inside (the kit, the Studio, the
-  bridge, the docs' families), a centred install, and link columns over
+  chrome; the spec bar of what it runs on and is styled with at its foot),
+  then sections under a title with a lead beside it: a bento of live
+  components, one agent session played as the page scrolls (a pinned
+  stage: the ask, the Studio tool calls, the frame building, the export), what's inside (the engine's anatomy:
+  a kit button pulled apart into the layers that draw it; the kit, the
+  Studio, the bridge, the docs' families), a centred install, and link columns over
   the engraved wordmark. No film player or animation runtime ships with
   the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
@@ -335,7 +337,8 @@ Default section order:
   No space on a page is left empty. Icons do the
   work of labels where they can, with attention to detail: kit glyphs
   (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
-  (npm, pnpm, Bun, Node, Vue, Svelte, GitHub, each coding agent) from
+  (npm, pnpm, Bun, Node, Vue, Svelte, Tailwind, StyleX, CSS Modules, CSS,
+  GitHub, each coding agent) from
   `src/shared/ui/marks.ts`, one-colour beside their names, never
   restyled. Under its own hero the landing keeps the page layout the
   user picked from a reference (sections in the order and anatomy

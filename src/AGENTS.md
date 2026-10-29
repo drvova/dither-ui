@@ -34,7 +34,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   shifts nothing).
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
   ContextMenu, ...; `ToolMark` over `marks.ts` — the real one-colour
-  marks of npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the coding agents
+  marks of npm, pnpm, Bun, Node, Vue, Svelte, Tailwind, StyleX, CSS
+  Modules, CSS, GitHub and the coding agents
   the bridge starts (keyed by its harness ids), from Simple Icons (CC0),
   LobeHub (MIT) and the tools' own site icons, paths verbatim; their
   owners' trademarks, shown only beside the tool's name, never restyled,

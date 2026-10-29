@@ -2,6 +2,8 @@
 import { ref } from "vue"
 import { routePath } from "@/shared/lib"
 import { DitherIcon } from "@dither-kit"
+import ToolMark from "@/shared/ui/ToolMark.vue"
+import type { MarkId } from "@/shared/ui/marks"
 import HeroStage from "./HeroStage.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 import { COMPONENT_COUNT, RUNTIME_DEPS } from "./facts"
@@ -20,6 +22,27 @@ const FACTS = [
   { icon: "Book", value: SECTION_COUNT, label: "Docs sections" },
   { icon: "Package", value: RUNTIME_DEPS.length, label: "Dependencies" },
 ] as const
+
+// The spec bar along the band's foot: what the kit runs on and what it is
+// styled with, each under its own mark.
+const RUNS: { label: string; tools: { id: MarkId; name: string }[] }[] = [
+  {
+    label: "Runs on",
+    tools: [
+      { id: "vue", name: "Vue 3" },
+      { id: "svelte", name: "Svelte 5" },
+    ],
+  },
+  {
+    label: "Styled with",
+    tools: [
+      { id: "tailwind", name: "Tailwind" },
+      { id: "stylex", name: "StyleX" },
+      { id: "cssmodules", name: "CSS Modules" },
+      { id: "css", name: "CSS" },
+    ],
+  },
+]
 </script>
 
 <template>
@@ -56,6 +79,12 @@ const FACTS = [
         <HeroStage />
       </div>
     </div>
+    <dl class="runs">
+      <div v-for="g in RUNS" :key="g.label" class="runs-g">
+        <dt class="speed-tag">{{ g.label }}</dt>
+        <dd v-for="t in g.tools" :key="t.id"><ToolMark :id="t.id" :size="14" />{{ t.name }}</dd>
+      </div>
+    </dl>
     <div class="ticks hero-ticks" aria-hidden="true"></div>
     <TrailerDialog v-model="film" />
   </section>
@@ -70,6 +99,7 @@ const FACTS = [
   position: relative;
   isolation: isolate;
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   align-items: center;
   min-height: clamp(34rem, calc(100svh - 64px), 52rem);
   overflow: hidden;
@@ -77,6 +107,53 @@ const FACTS = [
   box-shadow:
     inset 0 1px 0 var(--line),
     inset 0 -1px 0 var(--line);
+}
+
+/* The spec bar: two machined groups on the page width, each a speed tag
+   and its tools under their marks, split by hairlines. */
+.runs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  width: 100%;
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 0 1.5rem 34px;
+}
+
+.runs-g {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 4px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--background) 60%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.runs dt {
+  margin: 0 8px 0 2px;
+}
+
+.runs dd {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  margin: 0;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.runs dd + dd {
+  box-shadow: inset 1px 0 0 var(--line);
+}
+
+@media (max-width: 639px) {
+  .runs {
+    padding-inline: 16px;
+  }
 }
 
 /* The stage's column: the stage seats its own chrome form. */

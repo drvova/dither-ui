@@ -12,9 +12,9 @@ import ToolMark from "@/shared/ui/ToolMark.vue"
 import "@/shared/fonts/display.css"
 import "./chapters.css"
 import { version } from "../../../package.json"
-import AgentAsks from "./AgentAsks.vue"
-import { ASKS } from "./asks"
+import AgentStory from "./AgentStory.vue"
 import EngravedWordmark from "./EngravedWordmark.vue"
+import EngineAnatomy from "./EngineAnatomy.vue"
 import Examples from "./Examples.vue"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
@@ -36,9 +36,6 @@ onMounted(() => {
     "then build what I ask from its components.",
   ].join(" ")
 })
-
-// The asks the stage shows, picked by the tabs over it.
-const ask = ref(0)
 
 // The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES: ids and
 // names), in its order, each under the tool's own mark.
@@ -158,7 +155,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       <div class="page">
         <Examples />
 
-        <!-- Ask: the screen an agent's ask makes, picked by the tabs. -->
+        <!-- Ask: one agent session, played as the page scrolls past it. -->
         <section id="ask" aria-labelledby="ask-h" class="sec">
           <div class="sec-head">
             <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
@@ -170,12 +167,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
               <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
             </div>
           </div>
-          <div class="seg track ask-pick" role="group" aria-label="Asks" aria-controls="agent-ask">
-            <button v-for="(a, i) in ASKS" :key="a.id" type="button" :aria-pressed="ask === i" @click="ask = i">
-              {{ a.label }}
-            </button>
-          </div>
-          <AgentAsks :at="ask" />
+          <AgentStory />
         </section>
 
         <!-- What's inside: the kit, the Studio, the bridge; then the docs'
@@ -190,6 +182,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
               </p>
             </div>
           </div>
+          <EngineAnatomy />
           <ul class="inside">
             <li v-for="c in INSIDE" :key="c.title">
               <h3 class="inside-h"><DitherIcon :name="c.icon" :size="15" :stroke-width="1.5" />{{ c.title }}</h3>
@@ -328,10 +321,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   display: flex;
   flex-direction: column;
   gap: 28px;
-}
-
-.ask-pick {
-  align-self: flex-start;
 }
 
 /* What's inside: three columns, each under its own hairline. */
