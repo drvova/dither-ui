@@ -119,11 +119,11 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 ### Landing
 
 A full-bleed hero: the statement, the keys and the kit's numbers beside a
-stage that tours real components in a pebble of the kit's liquid chrome, each
-one live with the controls its docs demo has: a dithered chart you reseed, a
-GLSL shader, one snippet written as StyleX, CSS Modules, CSS or Tailwind beside
-the card it renders, a button, a slide and a ferrofluid. "Watch the film" opens
-the trailer. Everything else on the page is the kit too:
+stage that tours real components, seated in a form of the kit's liquid
+chrome, each one live with the controls its docs demo has: a dithered chart
+you reseed, a GLSL shader, one snippet written as StyleX, CSS Modules, CSS or
+Tailwind beside the card it renders, a button, a slide and a ferrofluid.
+"Watch the film" opens the trailer. Everything else on the page is the kit too:
 
 - the install bar, under the marks of npm, pnpm and Bun, and what lands in your
   repo;

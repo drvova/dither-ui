@@ -10,12 +10,16 @@
 // stops it there; under reduced motion it starts paused. A new scene
 // dissolves in through the kit's own ordered dither (`DitherReveal`); the
 // first one is simply there, and it is the only one in the static page.
+// The well is seated in a form of the kit's liquid chrome in the design
+// system's metals (one still frame, so nothing moves there), with a droplet
+// thrown off it.
 import { defineAsyncComponent, onMounted, reactive, ref } from "vue"
 import {
   Area,
   AreaChart,
   DitherButton,
   DitherIcon,
+  DitherLiquidChrome,
   DitherReveal,
   DitherSlideAction,
   XAxis,
@@ -83,7 +87,7 @@ const SCENES: Scene[] = [
   },
   {
     id: "ferrofluid",
-    short: "Ferrofluid",
+    short: "Fluid",
     name: "DitherFerrofluid",
     icon: "Pulse",
     line: "A fluid surface that parts around the cursor.",
@@ -91,6 +95,10 @@ const SCENES: Scene[] = [
     link: "Ferrofluid docs",
   },
 ]
+
+// The chrome's ramp: the design system's metals, weighted to the dark end
+// so the well stays the brightest thing on it.
+const METALS = ["#101214", "#1b1e21", "#25292D", "#5d6268", "#A6ABB1", "#D4DCE1", "#E4E1D8"]
 
 const at = ref(0)
 // Until the scene first changes, it is simply there: no entrance.
@@ -149,89 +157,99 @@ const fluid = ref<Fluid>("acid")
 
 <template>
   <figure class="hero-stage">
-    <div class="gel stage" @pointerdown="hold" @keydown="hold">
-      <span class="stage-name">{{ SCENES[at].name }}</span>
-      <PauseChip
-        v-model="playing"
-        label="Pause the component tour"
-        class="stage-chip"
-        @pointerdown.stop
-        @keydown.stop
-      />
-      <DitherReveal :key="at" :progress="moved ? undefined : 1" :duration="0.6" :cell="6" class="scene-wrap">
-        <div v-if="SCENES[at].id === 'chart'" class="scene scene-chart">
-          <div class="chart">
-            <AreaChart :key="seed" :data="ROWS" :config="CHART" :seed="seed" class="h-full">
-              <XAxis data-key="month" :max-ticks="6" />
-              <Area data-key="expenses" :variant="seed + 1" />
-              <Area data-key="revenue" :variant="seed" />
-            </AreaChart>
-          </div>
-          <div class="row">
-            <DitherButton color="blue" variant="gradient" @click="roll">Roll a seed</DitherButton>
-            <span class="count">seed: {{ seed }}</span>
-          </div>
+    <div class="seat">
+      <div class="biome" aria-hidden="true">
+        <div class="pebble">
+          <DitherLiquidChrome :colors="METALS" :scale="1.5" :distortion="1.2" :seed="2002" render-mode="static" />
         </div>
-        <div v-else-if="SCENES[at].id === 'shader'" class="scene scene-fill">
-          <DitherShader
-            :seed="program"
-            :mono="mode === 'mono'"
-            :colors="mode === 'ramp' ? RAMP : undefined"
-            color="blue"
-            :cell="4"
-            interactive
-            :label="`The kit's sample shader, seed ${program}`"
-            class="fluid"
-          />
-          <div class="fluid-pick">
-            <div class="seg track" role="group" aria-label="Output">
-              <button v-for="m in MODES" :key="m" type="button" :aria-pressed="mode === m" @click="mode = m">
-                {{ m }}
+        <div class="pebble drop">
+          <DitherLiquidChrome :colors="METALS" :scale="1.1" :distortion="0.8" :seed="7" render-mode="static" />
+        </div>
+      </div>
+      <div class="gel stage" @pointerdown="hold" @keydown="hold">
+        <span class="stage-name">{{ SCENES[at].name }}</span>
+        <PauseChip
+          v-model="playing"
+          label="Pause the component tour"
+          class="stage-chip"
+          @pointerdown.stop
+          @keydown.stop
+        />
+        <DitherReveal :key="at" :progress="moved ? undefined : 1" :duration="0.6" :cell="6" class="scene-wrap">
+          <div v-if="SCENES[at].id === 'chart'" class="scene scene-chart">
+            <div class="chart">
+              <AreaChart :key="seed" :data="ROWS" :config="CHART" :seed="seed" class="h-full">
+                <XAxis data-key="month" :max-ticks="6" />
+                <Area data-key="expenses" :variant="seed + 1" />
+                <Area data-key="revenue" :variant="seed" />
+              </AreaChart>
+            </div>
+            <div class="row">
+              <DitherButton color="blue" variant="gradient" @click="roll">Roll a seed</DitherButton>
+              <span class="count">seed: {{ seed }}</span>
+            </div>
+          </div>
+          <div v-else-if="SCENES[at].id === 'shader'" class="scene scene-fill">
+            <DitherShader
+              :seed="program"
+              :mono="mode === 'mono'"
+              :colors="mode === 'ramp' ? RAMP : undefined"
+              color="blue"
+              :cell="4"
+              interactive
+              :label="`The kit's sample shader, seed ${program}`"
+              class="fluid"
+            />
+            <div class="fluid-pick">
+              <div class="seg track" role="group" aria-label="Output">
+                <button v-for="m in MODES" :key="m" type="button" :aria-pressed="mode === m" @click="mode = m">
+                  {{ m }}
+                </button>
+              </div>
+              <button type="button" class="new-program" @click="program++">New shader</button>
+            </div>
+          </div>
+          <ExportScene v-else-if="SCENES[at].id === 'export'" />
+          <div v-else-if="SCENES[at].id === 'button'" class="scene">
+            <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-14 px-9 text-sm">Deploy</DitherButton>
+            <div class="seg track" role="group" aria-label="Fill">
+              <button
+                v-for="v in VARIANTS"
+                :key="v"
+                type="button"
+                :aria-pressed="btn.variant === v"
+                @click="btn.variant = v"
+              >
+                {{ v }}
               </button>
             </div>
-            <button type="button" class="new-program" @click="program++">New shader</button>
+            <div class="swatches" role="group" aria-label="Colour">
+              <button
+                v-for="c in COLORS"
+                :key="c"
+                type="button"
+                class="swatch"
+                :aria-label="c"
+                :aria-pressed="btn.color === c"
+                :style="{ backgroundColor: cssColor(c) }"
+                @click="btn.color = c"
+              />
+            </div>
           </div>
-        </div>
-        <ExportScene v-else-if="SCENES[at].id === 'export'" />
-        <div v-else-if="SCENES[at].id === 'button'" class="scene">
-          <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-14 px-9 text-sm">Deploy</DitherButton>
-          <div class="seg track" role="group" aria-label="Fill">
-            <button
-              v-for="v in VARIANTS"
-              :key="v"
-              type="button"
-              :aria-pressed="btn.variant === v"
-              @click="btn.variant = v"
-            >
-              {{ v }}
-            </button>
+          <div v-else-if="SCENES[at].id === 'slide'" class="scene">
+            <DitherSlideAction label="Slide to deploy" color="green" class="w-80" @confirm="deploys++" />
+            <p class="count">deploys: {{ deploys }}</p>
           </div>
-          <div class="swatches" role="group" aria-label="Colour">
-            <button
-              v-for="c in COLORS"
-              :key="c"
-              type="button"
-              class="swatch"
-              :aria-label="c"
-              :aria-pressed="btn.color === c"
-              :style="{ backgroundColor: cssColor(c) }"
-              @click="btn.color = c"
-            />
+          <div v-else class="scene scene-fill">
+            <DitherFerrofluid :colors="[...FLUIDS[fluid]]" class="fluid" />
+            <div class="seg fluid-pick" role="group" aria-label="Palette">
+              <button v-for="p in FLUID_NAMES" :key="p" type="button" :aria-pressed="fluid === p" @click="fluid = p">
+                {{ p }}
+              </button>
+            </div>
           </div>
-        </div>
-        <div v-else-if="SCENES[at].id === 'slide'" class="scene">
-          <DitherSlideAction label="Slide to deploy" color="green" class="w-80" @confirm="deploys++" />
-          <p class="count">deploys: {{ deploys }}</p>
-        </div>
-        <div v-else class="scene scene-fill">
-          <DitherFerrofluid :colors="[...FLUIDS[fluid]]" class="fluid" />
-          <div class="seg fluid-pick" role="group" aria-label="Palette">
-            <button v-for="p in FLUID_NAMES" :key="p" type="button" :aria-pressed="fluid === p" @click="fluid = p">
-              {{ p }}
-            </button>
-          </div>
-        </div>
-      </DitherReveal>
+        </DitherReveal>
+      </div>
     </div>
     <div class="tour" :data-running="playing ? 'true' : undefined">
       <div class="seg track tour-pick" role="group" aria-label="Pick a component">
@@ -260,10 +278,70 @@ const fluid = ref<Fluid>("acid")
   padding: 36px 0;
 }
 
-/* The well: 8:5, a size container so a scene answers to it. */
+/* The seat: the well floating on its chrome form. The form rises past the
+   well's top and runs out past the band's right edge, an object cropped by
+   the frame at every width; it stops short of the well's foot, so it never
+   sits under the picker or the caption. A droplet sits off the well's top
+   corner. Each is one still frame, gel-lit by an overlay above the canvas
+   (an inset shadow would paint under it). Gone under 900px and under
+   reduced transparency. */
+.seat {
+  position: relative;
+  isolation: isolate;
+}
+
+.biome {
+  position: absolute;
+  top: -15%;
+  bottom: 9%;
+  left: 6%;
+  right: calc((min(100vw, var(--shell)) - 3rem - 100vw) / 2 - 5rem);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.pebble {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 46% 54% 40% 60% / 58% 46% 54% 42%;
+}
+
+.pebble::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(34% 22% at 30% 16%, rgb(255 255 255 / 0.4), transparent),
+    linear-gradient(200deg, transparent 40%, rgb(16 18 20 / 0.55));
+  box-shadow:
+    inset 0 0 0 1px rgb(228 225 216 / 0.35),
+    inset 18px 22px 40px rgb(255 255 255 / 0.12),
+    inset -24px -30px 60px rgb(0 0 0 / 0.55);
+}
+
+.pebble.drop {
+  inset: 2% auto auto -9%;
+  width: clamp(44px, 4.6vw, 72px);
+  aspect-ratio: 1.1;
+  border-radius: 52% 48% 61% 39% / 44% 58% 42% 56%;
+}
+
+@media (max-width: 899px), (prefers-reduced-transparency: reduce) {
+  .biome {
+    display: none;
+  }
+}
+
+/* The well: 8:5, a size container so a scene answers to it, lifted off
+   the chrome by its shadow. */
 .stage {
   aspect-ratio: 8 / 5;
   container-type: size;
+  box-shadow:
+    var(--recess),
+    0 28px 50px -22px rgb(0 0 0 / 0.9);
 }
 
 /* The component's name, on the well's own ground so it reads over a scene
@@ -391,6 +469,17 @@ const fluid = ref<Fluid>("acid")
 
 .tour-pick {
   flex-wrap: wrap;
+}
+
+/* On a phone the six keys keep one row. */
+@media (max-width: 479px) {
+  .tour-pick {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+  .tour-pick > button {
+    padding-inline: 7px;
+  }
 }
 
 .tour-rule {

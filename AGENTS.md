@@ -126,7 +126,7 @@ Default section order:
 - Landing surfaces: everything that moves on the landing is the kit
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). In order: the statement beside a
-  stage touring real components in a pebble of the kit's liquid chrome,
+  stage touring real components seated in a form of the kit's liquid chrome,
   the install, the directory of the docs with its bento of live
   components in a hardshell window, the principles, the three parts
   inside, the agents panel with the screen an ask makes, the light-rays

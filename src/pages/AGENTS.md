@@ -97,36 +97,46 @@ widgets/features; page-specific conventions live here.
   always paints over a static header; without the lift the header
   renders zero visible pixels.
 - Hero (`Showcase.vue`): a FULL-BLEED band (the `--well` between
-  hairlines) holding, on the shell, the statement beside the stage. Left
+  hairlines) the first screen's height under the header less a glimpse of
+  the install bar (`clamp(34rem, 100svh - 64px - 7rem, 48rem)`), holding
+  on the shell, centred in it, the statement beside the stage (columns
+  1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
   (`.statement`): the h1 in the display face (Michroma 400) and chrome at
-  display scale (`clamp(1.7rem, 3.1vw, 2.45rem)`, two lines in its column
-  at every width), the lede,
-  the keys (`.key-chrome` "Open the studio", `.nav-pill` "Read the
-  docs" and "Watch the film" under the Play glyph, which opens the
-  trailer), then the facts as a spec sheet under a hairline (`.facts`, a
-  `dl`: the component count, the section count, the packages beside Vue;
-  each a `.spec` label under its glyph and a slanted chrome readout,
-  hairlines between, never cards). Right, in `.stage-col`:
+  display size (`clamp(2rem, 3.9vw, 3.5rem)`: three short lines at 1440
+  and up, two below), the lede (three or four lines), the keys
+  (`.key-chrome` "Open the studio", `.nav-pill` "Read the docs" and
+  "Watch the film" under the Play glyph, which opens the trailer), then
+  the facts as a spec sheet under a hairline (`.facts`, a `dl`: the
+  component count, the section count, the dependencies beside Vue; each a
+  one-word or two-word `.spec` label under its slanted chrome readout and
+  glyph, hairlines between, never cards). Right, in `.stage-col`:
   `HeroStage.vue`, the kit by hand as the trailer shows it: one real
-  component at a time in an 8:5 `.gel` well (a size container), its
-  name top left on a speed plate of the well's ground, with the controls
-  its docs demo has; behind it the biome (`aria-hidden`, under 900px and
-  under reduced transparency gone): a `DitherLiquidChrome` pebble past the
-  well's top and outer edge (never under its tabs or caption) and a
-  droplet off its inner side, each one static frame (`render-mode="static"`,
-  so nothing moves and no pause chip is owed), gel-lit. Along the band's
-  foot, the `.ticks` ruler. `SCENES` lead with what nothing else does (the user's
-  call: dithered charts, shaders, StyleX): an `AreaChart` from one seed
-  with "Roll a seed"; the kit's seeded sample `DitherShader` (mono blue,
-  a palette ramp or its own colours; "New shader" is the next seed);
+  component at a time in an 8:5 `.gel` well (a size container, lifted by
+  its shadow), its name top left on a speed plate of the well's ground,
+  with the controls its docs demo has. The well is SEATED in a form of the
+  kit's liquid chrome (`.seat` > `.biome`, `aria-hidden`; under 900px and
+  under reduced transparency gone): a `DitherLiquidChrome` in the design
+  system's metals weighted to the dark end (`METALS`), rising past the
+  well's top and running out past the band's right edge (an object
+  cropped by the frame at every width), stopping short of the well's
+  foot so it never sits under the picker or the caption; a droplet off
+  the well's top corner. Each is one static frame (`render-mode="static"`,
+  so nothing moves and no pause chip is owed), gel-lit by an overlay above
+  its canvas (rim, highlight, shade). Along the band's foot, the `.ticks`
+  ruler. `SCENES` lead with what nothing else does (the user's call:
+  dithered charts, shaders, StyleX): an `AreaChart` from one seed with
+  "Roll a seed"; the kit's seeded sample `DitherShader` (mono blue, a
+  palette ramp or its own colours; "New shader" is the next seed);
   "StyleX", `ExportScene.vue`: one snippet rendered live beside its code
   in the picked system through `restyle` (StyleX first); then the button
-  with its fills and five hues, the slide action and the ferrofluid with
-  its palettes. The shader, the export (the translator's utility map) and
-  the fluid are async chunks. Under the well a `.seg` picker and the
-  tour's progress hairline, then a caption (the scene's glyph, its line
-  wrapping with `text-wrap: pretty`, a `.lead` to its docs section; the
-  glyph and the link sit on the first line). The tour advances on the progress
+  with its fills and five hues, the slide action and the ferrofluid
+  ("Fluid" in the picker) with its palettes. The shader, the export (the
+  translator's utility map) and the fluid are async chunks. Under the well
+  a `.seg` picker (one row at every width: under 480px its keys pack
+  tighter) and the tour's progress hairline, then a caption (the scene's
+  glyph, its line wrapping with `text-wrap: pretty`, a `.lead` to its docs
+  section; the glyph and the link sit on the first line). The tour
+  advances on the progress
   rule's CSS `animationend` (6s, no timer), paused while the stage is
   hovered or holds focus; its pause chip stops it, and picking a scene or
   using one (a pointer down or a key other than Tab inside the well) stops

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { routePath } from "@/shared/lib"
-import { DitherIcon, DitherLiquidChrome } from "@dither-kit"
+import { DitherIcon } from "@dither-kit"
 import HeroStage from "./HeroStage.vue"
 import InstallBlock from "./InstallBlock.vue"
 import TrailerDialog from "./TrailerDialog.vue"
@@ -10,16 +10,16 @@ import { SECTION_COUNT } from "./hub"
 
 // The portal (its scale after the dither winners on Awwwards, its voice the
 // site's own): a full-bleed hero band, the statement beside the stage (the
-// kit by hand, one real component at a time, sitting in a pebble of the
-// kit's liquid chrome), then on the shell the install bar. Every surface on
+// kit by hand, one real component at a time, seated in a form of the kit's
+// liquid chrome), then on the shell the install bar. Every surface on
 // the page is the kit itself; the film is a key away.
 const film = ref(false)
 
 // The statement's numbers, each one recounted by a test.
 const FACTS = [
-  { icon: "Grid", value: COMPONENT_COUNT, label: "components, one file each" },
-  { icon: "Book", value: SECTION_COUNT, label: "docs sections, every one live" },
-  { icon: "Package", value: RUNTIME_DEPS.length, label: "packages beside Vue" },
+  { icon: "Grid", value: COMPONENT_COUNT, label: "Components" },
+  { icon: "Book", value: SECTION_COUNT, label: "Docs sections" },
+  { icon: "Package", value: RUNTIME_DEPS.length, label: "Dependencies" },
 ] as const
 </script>
 
@@ -33,8 +33,7 @@ const FACTS = [
           <h1 id="hero-h" class="display hero-h chrome-type">A dithered UI toolkit for Vue.</h1>
           <p class="hero-lede">
             Charts, GLSL shaders, controls, backgrounds and 3D, each drawn pixel by pixel from one seeded palette. Copy
-            the folder into your Vue 3 or Svelte 5 app, write it as Tailwind, CSS Modules or StyleX, and every line is
-            yours to change.
+            the folder into your Vue 3 or Svelte 5 app and every line is yours.
           </p>
           <div class="hero-keys">
             <a :href="routePath('/studio')" class="nav-a nav-pill key-chrome">Open the studio</a>
@@ -56,17 +55,6 @@ const FACTS = [
           </dl>
         </div>
         <div class="stage-col">
-          <!-- The biome: a pebble of the kit's liquid chrome (one still frame
-               through the Bayer cells) that the stage sits in, past its top
-               and outer edges, and a droplet thrown off it. -->
-          <div class="biome" aria-hidden="true">
-            <div class="pebble">
-              <DitherLiquidChrome :scale="1.7" :distortion="1.3" :seed="2002" render-mode="static" class="h-full" />
-            </div>
-            <div class="pebble drop">
-              <DitherLiquidChrome :scale="1.2" :distortion="0.8" :seed="7" render-mode="static" class="h-full" />
-            </div>
-          </div>
           <HeroStage />
         </div>
       </div>
@@ -104,6 +92,10 @@ const FACTS = [
 .hero {
   position: relative;
   isolation: isolate;
+  display: grid;
+  align-items: center;
+  /* The first screen under the header, less a glimpse of the install bar. */
+  min-height: clamp(34rem, calc(100svh - 64px - 7rem), 48rem);
   overflow: hidden;
   background: var(--well);
   box-shadow:
@@ -111,69 +103,9 @@ const FACTS = [
     inset 0 -1px 0 var(--line);
 }
 
-/* The stage's column holds the biome behind the stage: a chrome pebble
-   that shows past the well's top and outer edge (never under its tabs or
-   caption), and a droplet off its inner side. Gel-lit: a rim of light and
-   a gloss inside. */
+/* The stage's column: the stage seats its own chrome form. */
 .stage-col {
-  position: relative;
-  isolation: isolate;
   min-width: 0;
-}
-
-.biome {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-
-.pebble {
-  position: absolute;
-  top: -6%;
-  right: -12%;
-  width: 70%;
-  aspect-ratio: 1.15;
-  overflow: hidden;
-  border-radius: 58% 42% 47% 53% / 46% 55% 45% 54%;
-  opacity: 0.42;
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.3),
-    inset 14px 18px 40px rgb(255 255 255 / 0.16);
-}
-
-/* The gel's specular: a soft oval of light high on the form. */
-.pebble::after {
-  content: "";
-  position: absolute;
-  top: 9%;
-  left: 14%;
-  width: 34%;
-  height: 22%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(255 255 255 / 0.55), transparent);
-  transform: rotate(-24deg);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .biome {
-    display: none;
-  }
-}
-
-.pebble.drop {
-  top: 44%;
-  right: auto;
-  left: -7%;
-  width: 12%;
-  border-radius: 52% 48% 61% 39% / 44% 58% 42% 56%;
-  opacity: 0.5;
-}
-
-@media (max-width: 899px) {
-  .biome {
-    display: none;
-  }
 }
 
 /* The seam tape along the band's foot. */
@@ -194,8 +126,8 @@ const FACTS = [
   padding: 0 1.5rem;
 }
 
-/* The statement: display-scale mono (two lines at desktop, capped so it
-   stays two in its column), the lede, the keys, then the kit's numbers. */
+/* The statement: the h1 at display size, the lede, the keys, then the
+   kit's numbers. */
 .statement {
   display: flex;
   flex-direction: column;
@@ -204,14 +136,14 @@ const FACTS = [
   padding: 36px 0;
 }
 
-/* The statement in the display face (extended, one weight), sized so it
-   holds two lines in its column. */
+/* The statement in the display face (extended, one weight) at display
+   size: three short lines in its column on a wide screen. */
 .hero-h {
   margin: 0;
   font-family: var(--display-face);
-  font-size: clamp(1.7rem, 3.1vw, 2.45rem);
+  font-size: clamp(2rem, 3.9vw, 3.5rem);
   font-weight: 400;
-  line-height: 1.12;
+  line-height: 1.08;
   letter-spacing: -0.01em;
   text-wrap: balance;
   color: var(--ink);
@@ -219,10 +151,10 @@ const FACTS = [
 
 .hero-lede {
   margin: 0;
-  max-width: 34rem;
-  font-size: 13px;
+  max-width: 30rem;
+  font-size: 14px;
   line-height: 1.65;
-  color: var(--ink-3);
+  color: var(--ink-2);
   text-wrap: pretty;
 }
 
@@ -284,6 +216,14 @@ const FACTS = [
 
 .fact dt {
   line-height: 1.55;
+}
+
+/* Between 900 and 1199px the columns share the width evenly, so the keys
+   keep one row. */
+@media (max-width: 1199px) {
+  .hero-in {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 899px) {
