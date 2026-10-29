@@ -1,9 +1,10 @@
 <script setup lang="ts">
-// "Every component, live.": the title beside a line and the docs link, then a bento of live kit components the hero's
-// stage does not show, row by row (`BENTO`), each a card of its art over a
-// footer naming it and its docs family. The name leads into the docs
-// section; the art is the component itself, hands on. Everything that moves
-// has its pause.
+// "Every component, live.": the title beside a line and the docs link, then
+// a bento of live kit components the hero's stage does not show, row by row
+// (`BENTO`), each a card of its art over its name. The name leads into the
+// docs section; the art is the component itself, hands on, in the kit's
+// blue with the ember for a second voice. Everything that moves has its
+// pause.
 import { computed, ref } from "vue"
 import {
   Bar,
@@ -17,7 +18,6 @@ import {
   DitherSilk,
   DitherSlider,
   DitherWorld,
-  Grid,
   Legend,
   Pie,
   PieChart,
@@ -34,8 +34,9 @@ import { BENTO } from "./hub"
 import PauseChip from "./PauseChip.vue"
 
 // 3D model: a seeded probe on a picked ramp; "New model" is the next seed.
+const BLUE = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
 const RAMPS = {
-  blue: ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"],
+  blue: BLUE,
   metal: ["#101214", "#25292d", "#5d6268", "#a6abb1", "#e4e1d8"],
   ember: ["#170b04", "#4f240b", "#a84d17", "#f08a3c", "#ffd9b0"],
 }
@@ -57,7 +58,7 @@ const WEEKS = [38, 44, 41, 52, 47, 58, 55, 63, 49, 61, 68, 74].map((deploys, i) 
 const BAR_CONFIG = { deploys: { label: "Deploys", color: "blue" as DitherColor } }
 
 // Meta balls.
-const BLOBS = ["#3f8ff3", "#9b7bff", "#7fe3ff"]
+const BLOBS = ["#2f6fd0", "#7ba3ee", "#c9dbff"]
 const ballsPlaying = ref(true)
 
 // Slider: a dither's settings, each with its value.
@@ -71,7 +72,7 @@ const PIE_ROWS = [
   { name: "Other", value: 15 },
 ]
 const PIE_CONFIG = {
-  Vue: { label: "Vue", color: "green" as DitherColor },
+  Vue: { label: "Vue", color: "blue" as DitherColor },
   Svelte: { label: "Svelte", color: "orange" as DitherColor },
   Other: { label: "Other", color: "grey" as DitherColor },
 }
@@ -79,7 +80,8 @@ const PIE_CONFIG = {
 // Avatar: one seeded face from each name.
 const TEAM = ["Ada Byte", "Rei Toma", "Ola Nord", "Kit Vale", "Ines Roa", "Teo Park"]
 
-// Silk.
+// Silk, in the kit's blue.
+const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 const silkPlaying = ref(true)
 
 // Radar chart.
@@ -97,7 +99,7 @@ const RADAR_CONFIG = {
 
 // Progress: a deploy, step by step.
 const STEPS = [
-  { label: "Install", value: 100, color: "green" as DitherColor },
+  { label: "Install", value: 100, color: "blue" as DitherColor },
   { label: "Build", value: 72, color: "blue" as DitherColor },
   { label: "Upload", value: 28, color: "blue" as DitherColor },
 ]
@@ -134,12 +136,12 @@ const purged = ref(0)
             />
             <PauseChip v-model="worldPlaying" label="Pause the model" class="chip" />
             <div class="art-tools">
-              <div class="seg track" role="group" aria-label="Model ramp">
+              <div class="seg" role="group" aria-label="Model ramp">
                 <button v-for="r in RAMP_NAMES" :key="r" type="button" :aria-pressed="ramp === r" @click="ramp = r">
                   {{ r }}
                 </button>
               </div>
-              <button type="button" class="nav-a nav-pill tool-key" @click="model++">New model</button>
+              <button type="button" class="key" @click="model++">New model</button>
             </div>
           </template>
 
@@ -162,7 +164,6 @@ const purged = ref(0)
             </div>
             <span class="stat-v">74</span>
             <BarChart :data="WEEKS" :config="BAR_CONFIG" class="bar-chart">
-              <Grid horizontal />
               <XAxis data-key="week" :max-ticks="6" />
               <Bar data-key="deploys" />
             </BarChart>
@@ -191,7 +192,7 @@ const purged = ref(0)
               <span class="step-l"
                 ><span>Contrast</span><span>{{ contrast }}%</span></span
               >
-              <DitherSlider v-model="contrast" :min="0" :max="100" label="Contrast" color="purple" class="w-full" />
+              <DitherSlider v-model="contrast" :min="0" :max="100" label="Contrast" color="blue" class="w-full" />
             </div>
           </div>
 
@@ -210,19 +211,19 @@ const purged = ref(0)
 
           <div v-else-if="t.id === 'avatar'" class="people">
             <div class="who">
-              <DitherAvatar name="Ada Lovelace" :size="56" />
+              <DitherAvatar name="Ada Lovelace" color="blue" :size="56" />
               <span class="who-n">Ada Lovelace</span>
               <span class="who-s"><i class="led" aria-hidden="true"></i>Online</span>
             </div>
             <ul class="team" aria-label="Team">
               <li v-for="n in TEAM" :key="n">
-                <DitherAvatar :name="n" :size="28" /><span class="sr-only">{{ n }}</span>
+                <DitherAvatar :name="n" color="blue" :size="28" /><span class="sr-only">{{ n }}</span>
               </li>
             </ul>
           </div>
 
           <template v-else-if="t.id === 'silk'">
-            <DitherSilk :frame-rate="12" :paused="!silkPlaying" class="h-full w-full" />
+            <DitherSilk :colors="SILK" :frame-rate="12" :paused="!silkPlaying" class="h-full w-full" />
             <PauseChip v-model="silkPlaying" label="Pause the silk" class="chip" />
           </template>
 
@@ -232,10 +233,7 @@ const purged = ref(0)
           </p>
 
           <div v-else-if="t.id === 'progress'" class="panel steps">
-            <div class="panel-top">
-              <span class="panel-h">Deploying web</span>
-              <span class="panel-d">4f2a1c9</span>
-            </div>
+            <span class="panel-h">Deploying web</span>
             <div v-for="s in STEPS" :key="s.label" class="step">
               <span class="step-l"
                 ><span>{{ s.label }}</span
@@ -265,7 +263,6 @@ const purged = ref(0)
         </div>
         <p class="card-foot">
           <a :href="routePath(`/docs/${t.id}`)" class="card-name">{{ t.label }}</a>
-          <span class="spec">{{ t.family }}</span>
         </p>
       </li>
     </ul>
@@ -292,21 +289,17 @@ const purged = ref(0)
   list-style: none;
 }
 
+/* A card: the raised ground, no border. Its art hands its keys and picked
+   segments the page's ground, so they stay shapes on it. */
 .card {
+  --card: var(--surface);
   grid-column: span 4;
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--line);
   border-radius: 20px;
-  background: var(--shell-ground), color-mix(in oklab, var(--background) 94%, #a6abb1);
-  transition: border-color 160ms var(--ease-settle);
-}
-
-.card:hover,
-.card:focus-within {
-  border-color: color-mix(in oklab, var(--foreground) 22%, transparent);
+  background: var(--card);
 }
 
 .t-world {
@@ -322,6 +315,7 @@ const purged = ref(0)
 }
 
 .card-art {
+  --surface: var(--background);
   position: relative;
   display: grid;
   place-items: center;
@@ -358,17 +352,13 @@ const purged = ref(0)
   inset: 0;
 }
 
-/* The footer: the name (the docs link) and the family. */
+/* The footer: the name, the docs link. */
 .card-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 52px;
+  min-height: 48px;
   margin: 0;
-  padding: 0 20px;
-  border-top: 1px solid var(--line);
-  background: color-mix(in oklab, var(--background) 55%, transparent);
+  padding: 0 20px 4px;
 }
 
 .card-name {
@@ -385,7 +375,7 @@ const purged = ref(0)
 
 .card-name:hover,
 .card:hover .card-name {
-  text-decoration-color: color-mix(in oklab, var(--ink-3) 70%, transparent);
+  text-decoration-color: currentColor;
 }
 
 /* Over the flush art: the model's tools along its foot, a pause chip at
@@ -401,14 +391,10 @@ const purged = ref(0)
   gap: 8px;
 }
 
-.art-tools .track {
-  background: color-mix(in oklab, var(--background) 82%, transparent);
-}
-
-.tool-key {
-  height: 32px;
-  padding-inline: 12px;
-  background: color-mix(in oklab, var(--background) 82%, transparent);
+.art-tools .seg {
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--card);
 }
 
 .chip {
@@ -495,7 +481,6 @@ const purged = ref(0)
   font-size: 1.9rem;
   font-weight: 500;
   line-height: 1.1;
-  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }

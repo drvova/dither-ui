@@ -392,8 +392,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   drops the shell ground and the highlight and makes the capsule solid;
   forced colors drop the cuts, rims and chrome type for system colours
   and plain borders (tracks bordered, the pressed segment outlined).
-  Shared by the landing, the docs and the Studio; none of them grows a
-  voice of its own.
+  Shared by the docs and the Studio; none of them grows a voice of its
+  own. The landing takes only `.nav-a`, `.chrome-type`, `.key-chrome` and
+  the tokens from it, under the user's slop bans (root `AGENTS.md`): its
+  keys, picked segments, cards and panels are fills on one raised ground
+  (`pages/landing/chapters.css`), never rings, hairlines or tags.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on

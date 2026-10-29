@@ -1,7 +1,7 @@
 // Pixel type: a 5×7 bitmap face (proportional — I, the hyphen and the
-// punctuation are narrower) for the brand wordmark and the figures the page
-// sets in cells (the spec row's figures). Pure: a string in, a
-// list of lit cells out; `PixelWord.vue` draws them as crisp SVG squares.
+// punctuation are narrower) for the footer's brand wordmark. Pure: a string
+// in, a list of lit cells out; `PixelWord.vue` draws them as crisp SVG
+// squares.
 
 /** Rows top to bottom; `#` is a lit cell. Every row of a glyph is as wide
  * as the glyph. */

@@ -1,25 +1,21 @@
 <script setup lang="ts">
 // The ask as a story: a stage pinned while the page scrolls past it plays
-// one agent session (`story.ts`), a step per notch. The ask arrives in the
-// session panel, each Studio tool call lands there with its time and what it
-// returned, the frame builds on the Studio's dotted canvas part by part
-// (drawn selected, as the Studio draws a selection), and it leaves as a Vue
-// file and an MP4. Chapter tabs under the stage (Ask, Tool calls, Frame,
-// Export) show where the story is and jump to a chapter. The step is the
-// marker crossing the viewport's middle (one IntersectionObserver, no
-// scroll listener). Under 900px, or without an observer, the stage is not
-// pinned and shows the whole session at once. Screen readers get the whole
-// session as a list; the panel that plays it is decoration.
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue"
+// one agent session (`story.ts`), a step per notch. The ask comes first,
+// then what the agent does, a line at a time, while the screen it lays out
+// builds on the left part by part. The step is the marker crossing the
+// viewport's middle (one IntersectionObserver, no scroll listener). Under
+// 900px, or without an observer, the stage is not pinned and shows the
+// whole session at once. Screen readers get the whole session as a
+// caption; the stage that plays it is decoration.
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherHeading, DitherIcon, DitherNumberText, DitherProgress, DitherSwitch, DitherText } from "@dither-kit"
-import { ASK, CALLS, CHAPTERS, CODE, PARTS, STEPS } from "./story"
+import { ASK, DOES, PARTS, STEPS } from "./story"
 
-const HANDLES = ["tl", "tr", "bl", "br"] as const
 const LAST = STEPS - 1
+const TOLD = DOES.map((d) => d.line[0].toLowerCase() + d.line.slice(1))
 
 const step = ref(LAST)
 const pinned = ref(false)
-const chapter = computed(() => CHAPTERS.reduce((at, c) => (step.value >= c.from ? c : at), CHAPTERS[0]))
 const auto = ref(true)
 
 const markers = ref<HTMLElement[]>([])
@@ -63,12 +59,6 @@ onBeforeUnmount(() => {
   wide?.removeEventListener("change", arm)
   io?.disconnect()
 })
-
-// A chapter tab scrolls its first step to the viewport's middle.
-function go(from: number) {
-  const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  markers.value[from]?.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" })
-}
 </script>
 
 <template>
@@ -76,75 +66,39 @@ function go(from: number) {
     <figure id="agent-ask" class="pin">
       <div class="stage">
         <div class="canvas">
-          <div class="board" :class="{ on: step >= PARTS.count }">
-            <span class="board-name"
-              ><span>Deploys</span
-              ><span class="board-tags"
-                ><span class="speed-tag" :class="{ off: step < 6 }">Vue file</span
-                ><span class="speed-tag" :class="{ off: step < 7 }">MP4</span></span
-              ></span
-            >
-            <div class="board-frame">
-              <span v-for="c in HANDLES" :key="c" class="handle" :class="c" aria-hidden="true"></span>
-              <div class="part" :class="{ off: step < PARTS.count }">
-                <DitherHeading level="3">Deploys</DitherHeading>
-                <div class="board-row">
-                  <DitherNumberText :value="16" class="board-n" />
-                  <DitherText tone="muted" size="xs">deploys this week</DitherText>
-                </div>
-              </div>
-              <div class="part board-meter" :class="{ off: step < PARTS.meter }">
-                <DitherText tone="muted" size="xs">Build minutes, 64% used</DitherText>
-                <DitherProgress :value="64" color="blue" aria-label="Build minutes" />
-              </div>
-              <div class="part board-switch" :class="{ off: step < PARTS.toggle }">
-                <DitherSwitch v-model="auto" label="Auto deploy" />
-                <span aria-hidden="true">Auto deploy</span>
+          <div class="frame" :class="{ on: step >= PARTS.count }">
+            <div class="part" :class="{ off: step < PARTS.count }">
+              <DitherHeading level="3">Deploys</DitherHeading>
+              <div class="frame-row">
+                <DitherNumberText :value="16" class="frame-n" />
+                <DitherText tone="muted" size="xs">deploys this week</DitherText>
               </div>
             </div>
+            <div class="part frame-meter" :class="{ off: step < PARTS.meter }">
+              <DitherText tone="muted" size="xs">Build minutes, 64% used</DitherText>
+              <DitherProgress :value="64" color="blue" aria-label="Build minutes" />
+            </div>
+            <div class="part frame-switch" :class="{ off: step < PARTS.toggle }">
+              <DitherSwitch v-model="auto" label="Auto deploy" />
+              <span aria-hidden="true">Auto deploy</span>
+            </div>
           </div>
-          <p class="wait" :class="{ off: step >= PARTS.count }" aria-hidden="true">
-            <DitherIcon name="Sparkles" :size="13" :stroke-width="1.5" />The canvas waits for the first frame.
-          </p>
+          <p class="wait" :class="{ off: step >= PARTS.count }" aria-hidden="true">The screen lands here.</p>
         </div>
 
-        <!-- The session as it plays: decoration over the list under it. -->
+        <!-- The session as it plays: decoration over the caption. -->
         <div class="session" aria-hidden="true">
-          <p class="bubble"><span class="caret">›</span>{{ ASK }}</p>
-          <ol class="calls">
-            <li v-for="c in CALLS" :key="c.tool" class="call" :class="{ off: step < c.step, done: step >= c.done }">
-              <span class="call-head"
-                ><span class="call-at">{{ c.at }}</span
-                ><code class="call-t">{{ c.tool }}</code
-                ><code class="call-args">{{ c.args }}</code></span
-              >
-              <span class="call-r"
-                ><DitherIcon :name="step >= c.done ? 'Check' : 'Clock'" :size="12" :stroke-width="1.75" />{{
-                  step >= c.done ? c.result : "running"
-                }}</span
-              >
-              <pre v-if="c.tool === 'get_code'" class="code"><code v-for="l in CODE" :key="l">{{ l }}</code></pre>
-              <code v-if="c.tool === 'export_video'" class="cmd"
-                ><span class="cmd-p">$</span> npx hyperframes render</code
-              >
+          <p class="ask">{{ ASK }}</p>
+          <ol class="does">
+            <li v-for="d in DOES" :key="d.line" :class="{ off: step < d.step }">
+              <DitherIcon name="Check" :size="13" :stroke-width="1.75" />{{ d.line }}
             </li>
           </ol>
         </div>
       </div>
 
-      <div class="foot">
-        <div class="seg track chapters" role="group" aria-label="Chapters">
-          <button v-for="c in CHAPTERS" :key="c.label" type="button" :aria-pressed="chapter === c" @click="go(c.from)">
-            {{ c.label }}
-          </button>
-        </div>
-        <span class="rule" aria-hidden="true"><span class="fill" :style="{ scale: `${(step + 1) / STEPS} 1` }" /></span>
-      </div>
-
       <figcaption class="sr-only">
-        The session: you ask for {{ ASK }}.
-        <span v-for="c in CALLS" :key="c.tool">The agent calls {{ c.tool }} and gets {{ c.result }}. </span>
-        The frame lands on the canvas, then leaves as a Vue file and an MP4.
+        The ask: {{ ASK }} Your agent {{ TOLD.slice(0, -1).join(", ") }} and {{ TOLD[TOLD.length - 1] }}.
       </figcaption>
     </figure>
     <div v-if="pinned" class="markers" aria-hidden="true">
@@ -166,7 +120,7 @@ function go(from: number) {
    height, so the last step holds a beat before the stage lets go. */
 .story {
   --notch: 40svh;
-  --pin: min(calc(100svh - 96px), 40rem);
+  --pin: min(calc(100svh - 96px), 30rem);
   position: relative;
 }
 
@@ -175,9 +129,6 @@ function go(from: number) {
 }
 
 .pin {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
   margin: 0;
 }
 
@@ -201,16 +152,15 @@ function go(from: number) {
   flex: 1;
 }
 
-/* The stage: the canvas (the Studio's dots) beside the session panel. */
+/* The stage: one raised ground, the screen's canvas beside the session. */
 .stage {
-  flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+  height: 100%;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--line);
   border-radius: 24px;
-  background: var(--well);
+  background: var(--surface);
 }
 
 .canvas {
@@ -218,15 +168,19 @@ function go(from: number) {
   display: grid;
   place-items: center;
   padding: 32px 24px;
-  background: radial-gradient(circle, color-mix(in oklab, var(--line) 90%, transparent) 1px, transparent 1.2px) 0 0 /
-    16px 16px;
 }
 
-.board {
+/* The screen the agent lays out: the page's ground on the stage. */
+.frame {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: center;
+  gap: 14px;
   width: min(100%, 28rem);
+  min-height: 15rem;
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--background);
   opacity: 0;
   translate: 0 8px;
   transition:
@@ -234,68 +188,9 @@ function go(from: number) {
     translate 300ms var(--ease-settle);
 }
 
-.board.on {
+.frame.on {
   opacity: 1;
   translate: 0;
-}
-
-.board-name {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 20px;
-  font-size: 11px;
-  color: var(--ink-3);
-}
-
-.board-tags {
-  display: flex;
-  gap: 4px;
-}
-
-.board-frame {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 14px;
-  min-height: 15rem;
-  padding: 24px;
-  border-radius: 10px;
-  background: var(--background);
-  box-shadow:
-    0 0 0 2px var(--accent),
-    var(--float-shadow);
-}
-
-.handle {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border: 1px solid var(--accent);
-  border-radius: 2px;
-  background: var(--background);
-}
-
-.handle.tl {
-  top: -6px;
-  left: -6px;
-}
-
-.handle.tr {
-  top: -6px;
-  right: -6px;
-}
-
-.handle.bl {
-  bottom: -6px;
-  left: -6px;
-}
-
-.handle.br {
-  right: -6px;
-  bottom: -6px;
 }
 
 .part {
@@ -314,194 +209,90 @@ function go(from: number) {
   translate: 0 6px;
 }
 
-.board-row {
+.frame-row {
   display: flex;
   align-items: baseline;
   gap: 10px;
 }
 
-.board-n {
+.frame-n {
   font-size: 1.6rem;
   font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
-.board-meter {
+.frame-meter {
   gap: 7px;
 }
 
-.board-switch {
+.frame-switch {
   flex-direction: row;
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: var(--ink-2);
+  color: var(--ink);
 }
 
 .wait {
   position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin: 0;
   font-size: 12px;
   color: var(--ink-3);
   transition: opacity 240ms var(--ease-settle);
 }
 
-/* The session panel: the ask in a bubble, then each call as a card. */
+/* The session: the ask, then what the agent does, a line at a time. */
 .session {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: center;
+  gap: 24px;
   min-height: 0;
-  padding: 22px 20px;
-  overflow: hidden;
-  background: var(--shell-ground), var(--background);
-  box-shadow: inset 1px 0 0 var(--line);
+  padding: 32px 32px 32px 8px;
 }
 
-.bubble {
-  display: flex;
-  gap: 8px;
+.ask {
   margin: 0;
-  padding: 10px 14px;
-  border-radius: 14px 14px 14px 4px;
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.6;
   color: var(--ink);
-  background: color-mix(in oklab, var(--foreground) 6%, transparent);
-  box-shadow: inset 0 0 0 1px var(--line);
+  text-wrap: pretty;
 }
 
-.caret {
-  color: var(--signal);
-}
-
-.calls {
+.does {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.call {
+.does li {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--well);
-  box-shadow: inset 0 0 0 1px var(--line);
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--ink-3);
   transition:
     opacity 240ms var(--ease-settle),
     translate 240ms var(--ease-settle);
 }
 
-.call-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
-  font-size: 11.5px;
-}
-
-.call-at {
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-3);
-}
-
-.call-t {
-  color: var(--ink);
-}
-
-.call-args {
-  color: var(--ink-3);
-}
-
-.call-r {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  color: var(--ink-2);
-}
-
-.call.done .call-r :deep(svg) {
+.does :deep(svg) {
+  flex: none;
   color: var(--signal);
-}
-
-.code {
-  margin: 2px 0 0;
-  padding: 8px 10px;
-  overflow: hidden;
-  border-radius: 6px;
-  font-size: 10.5px;
-  line-height: 1.6;
-  white-space: pre;
-  text-overflow: ellipsis;
-  color: var(--ink-2);
-  background: color-mix(in oklab, var(--background) 70%, transparent);
-}
-
-.code code {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cmd {
-  font-size: 11px;
-  color: var(--ink-2);
-}
-
-.cmd-p {
-  color: var(--signal);
-}
-
-/* The foot: the chapter tabs, and the story's progress under them. */
-.foot {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.rule {
-  position: relative;
-  align-self: stretch;
-  height: 1px;
-  overflow: hidden;
-  background: var(--line);
-}
-
-.fill {
-  position: absolute;
-  inset: 0;
-  transform-origin: left;
-  background: var(--ink-3);
-  transition: scale 300ms var(--ease-settle);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .board,
+  .frame,
   .part,
-  .call,
-  .wait,
-  .fill {
+  .does li,
+  .wait {
     transition: none;
   }
-}
-
-/* Unpinned (under 900px, or without an observer): the whole session, the
-   canvas over the panel, the tabs and the rule gone. */
-.story:not(.pinned) .foot {
-  display: none;
 }
 
 @media (max-width: 899px) {
@@ -509,10 +300,10 @@ function go(from: number) {
     grid-template-columns: minmax(0, 1fr);
   }
   .canvas {
-    padding: 28px 16px;
+    padding: 24px 16px 8px;
   }
   .session {
-    box-shadow: inset 0 1px 0 var(--line);
+    padding: 16px 24px 28px;
   }
 }
 </style>
