@@ -8,7 +8,7 @@ import { DitherButton, DitherHeading } from "@dither-kit"
 import { STYLINGS, STYLING_LABELS, restyle, type Styling } from "@/shared/lib/restyle"
 
 // The snippet is the live card's own markup, so what is shown is what runs.
-const SNIPPET = `<div class="flex flex-col gap-3 rounded-lg border border-border p-4">
+const SNIPPET = `<div class="flex flex-col gap-3 rounded-lg bg-background p-4">
   <DitherHeading level="4">Deploys</DitherHeading>
   <p class="text-xs text-muted-foreground">16 this week, none rolled back.</p>
   <DitherButton color="blue" class="w-full">Deploy now</DitherButton>
@@ -20,14 +20,14 @@ const code = computed(() => restyle(SNIPPET, system.value))
 <template>
   <div class="export">
     <div class="export-live">
-      <div class="flex flex-col gap-3 rounded-lg border border-border p-4">
+      <div class="flex flex-col gap-3 rounded-lg bg-background p-4">
         <DitherHeading level="4">Deploys</DitherHeading>
         <p class="text-xs text-muted-foreground">16 this week, none rolled back.</p>
         <DitherButton color="blue" class="w-full">Deploy now</DitherButton>
       </div>
     </div>
     <div class="export-side">
-      <div class="seg track" role="group" aria-label="Styling system">
+      <div class="seg" role="group" aria-label="Styling system">
         <button v-for="s in STYLINGS" :key="s" type="button" :aria-pressed="system === s" @click="system = s">
           {{ STYLING_LABELS[s] }}
         </button>
@@ -38,7 +38,7 @@ const code = computed(() => restyle(SNIPPET, system.value))
 </template>
 
 <style scoped>
-/* The card on the left, its code on the right; stacked in a narrow well. */
+/* The card on the left, its code on the right; stacked on a narrow stage. */
 .export {
   position: absolute;
   inset: 0;
@@ -69,9 +69,8 @@ const code = computed(() => restyle(SNIPPET, system.value))
   border-radius: 6px;
   font-size: 10.5px;
   line-height: 1.55;
-  color: var(--ink-2);
+  color: var(--ink-3);
   background: var(--background);
-  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 @container (max-width: 30rem) {

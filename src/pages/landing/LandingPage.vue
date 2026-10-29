@@ -1,10 +1,11 @@
 <script setup lang="ts">
 // The landing: the hero (the statement beside the stage seated in liquid
 // chrome), then sections under a title with a lead beside it: a bento of
-// live kit components, the screen an agent's ask makes, what's inside (the kit, the Studio, the bridge; the
-// docs' families), the install, and a footer of link columns over the
-// engraved wordmark. Its look is the site's own (the Y2K materials,
-// Michroma for display, mono for the rest); everything that moves is the kit.
+// live kit components, the screen an agent's ask makes, what's inside (the
+// kit, the Studio, the bridge; the docs' families), the install, and a
+// footer of link columns over the engraved wordmark. Michroma for display,
+// mono for the rest, two inks on two grounds; everything that moves is the
+// kit.
 import { onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
@@ -14,7 +15,6 @@ import "./chapters.css"
 import { version } from "../../../package.json"
 import AgentStory from "./AgentStory.vue"
 import EngravedWordmark from "./EngravedWordmark.vue"
-import EngineAnatomy from "./EngineAnatomy.vue"
 import Examples from "./Examples.vue"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
@@ -110,13 +110,14 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       Skip to content
     </a>
 
-    <!-- Header: a floating capsule, sticky over the page (brand, the
-         site's links, GitHub under its mark, the chrome "Open studio" key).
+    <!-- Header: a floating capsule on the raised ground, sticky over the
+         page (brand, the site's links, GitHub under its mark, the chrome
+         "Open studio" key).
          Sticky is positioned, and z-10 keeps it over main, which isolates
          the page art: a static header painted under the art, zero pixels. -->
     <header class="site-head sticky top-0 z-10">
-      <div class="capsule site-capsule text-xs">
-        <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap pl-2 tracking-tight">
+      <div class="site-capsule text-xs">
+        <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap pl-2">
           <!-- The brand mark: the 7x7 dithered diamond, ember core. -->
           <svg
             viewBox="0 0 7 7"
@@ -182,7 +183,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
               </p>
             </div>
           </div>
-          <EngineAnatomy />
           <ul class="inside">
             <li v-for="c in INSIDE" :key="c.title">
               <h3 class="inside-h"><DitherIcon :name="c.icon" :size="15" :stroke-width="1.5" />{{ c.title }}</h3>
@@ -216,11 +216,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             </p>
             <DitherClipboard :value="prompt">
               <template #default="{ copied }">
-                <button
-                  type="button"
-                  class="nav-a nav-pill prompt-key"
-                  :aria-label="copied ? 'Agent prompt copied' : undefined"
-                >
+                <button type="button" class="key prompt-key" :aria-label="copied ? 'Agent prompt copied' : undefined">
                   <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />{{
                     copied ? "Copied" : "Copy agent prompt"
                   }}
@@ -237,18 +233,14 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       </div>
     </main>
 
-    <!-- Footer: the pixel wordmark, the framework badges and a line beside
-         three link columns, the copyright line, then the engraved mark. -->
+    <!-- Footer: the pixel wordmark and a line beside three link columns, the
+         copyright line, then the engraved mark. -->
     <footer class="foot">
       <div class="foot-in">
         <div class="foot-brand">
           <a :href="routePath('/')" class="foot-name"
             ><PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" decorative /><span class="sr-only">dither-ui</span></a
           >
-          <p class="foot-badges">
-            <span class="foot-badge"><ToolMark id="vue" :size="11" />Vue 3</span>
-            <span class="foot-badge"><ToolMark id="svelte" :size="11" />Svelte 5</span>
-          </p>
           <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
           <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
             ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
@@ -285,8 +277,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   --rhythm: 40px;
 }
 
-/* The header: a capsule (the site voice's smoked polymer) floating on the
-   page, centred. */
+/* The header: a capsule on the raised ground floating over the page,
+   centred, lifted by its shadow alone. */
 .site-head {
   padding: 8px 16px;
 }
@@ -300,6 +292,15 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   height: 48px;
   margin-inline: auto;
   padding: 0 7px 0 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7);
+}
+
+@media (forced-colors: active) {
+  .site-capsule {
+    border: 1px solid CanvasText;
+  }
 }
 
 .studio-key {
@@ -323,7 +324,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   gap: 28px;
 }
 
-/* What's inside: three columns, each under its own hairline. */
+/* What's inside: three columns. */
 .inside {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -338,8 +339,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
-  padding-top: 22px;
-  box-shadow: inset 0 1px 0 var(--line);
 }
 
 .inside-h {
@@ -373,7 +372,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   padding: 0;
   list-style: none;
   font-size: 11.5px;
-  color: var(--ink-2);
+  color: var(--ink-3);
 }
 
 .marks li {
@@ -382,8 +381,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   gap: 6px;
 }
 
-/* The families: five columns, each under its hairline: the name and its
-   size (the docs link), a line. */
+/* The families: five columns, each the name and its size (the docs
+   link), a line. */
 .families {
   display: flex;
   flex-direction: column;
@@ -411,8 +410,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-top: 18px;
-  box-shadow: inset 0 1px 0 var(--line);
 }
 
 .family-t {
@@ -443,7 +440,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   text-wrap: pretty;
 }
 
-/* The install: its head centred, the box and what lands under it. */
+/* The install: its head centred, the box under it. */
 .install {
   width: min(100%, 64rem);
   margin-inline: auto;
@@ -482,15 +479,13 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   color: var(--ink);
 }
 
-/* The footer: the brand (the pixel wordmark, the framework badges, a line,
-   GitHub) beside three link columns, the copyright line, the engraved
-   wordmark under all. Three columns under the brand under 900px, two
-   under 640px. */
+/* The footer: the brand (the pixel wordmark, a line, GitHub) beside three
+   link columns, the copyright line, the engraved wordmark under all.
+   Three columns under the brand under 900px, two under 640px. */
 .foot {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--border) 70%, transparent);
 }
 
 .foot-in {
@@ -515,25 +510,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   min-height: 24px;
   align-items: center;
   color: var(--ink);
-}
-
-.foot-badges {
-  display: flex;
-  gap: 6px;
-  margin: 0;
-}
-
-.foot-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 9px;
-  font-size: 11px;
-  border-radius: 999px;
-  color: var(--ink-3);
-  box-shadow:
-    inset 0 0 0 1px var(--line),
-    inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
 .foot-line {

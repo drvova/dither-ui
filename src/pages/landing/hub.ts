@@ -4,8 +4,7 @@
 // honest by tests/hub.spec.ts, which checks every id resolves to a docs
 // section of the family it names and every count against the family's size.
 
-/** Every docs family in sidebar order with its section count: the
- * directory's chart draws one bar per family. */
+/** Every docs family in sidebar order with its section count. */
 export const FAMILIES = [
   { title: "Overview", count: 1 },
   { title: "Primitives", count: 19 },

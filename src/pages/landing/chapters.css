@@ -1,29 +1,20 @@
 /* The landing's layer over the SITE voice (the dark theme tokens,
-   monospace, `.nav-a`, `.nav-pill`, `.led` and the materials in
-   app/styles.css). Under the hero, the page is sections under a title
-   with a lead beside it; its look is the site's Y2K one: chrome display type in Michroma, soft shells on the
-   shell ground, smoked capsules, the satin chrome key, spec labels. The
-   kit's ember is the signal light; never red. Copy keeps the bans: no
-   eyebrow, no middle dots or em dashes, no link that ends in an arrow.
-   Plain CSS under .landing, read by every landing component. */
+   monospace, `.nav-a`, `.led` and the materials in app/styles.css).
+   Under the hero, the page is sections under a title with a lead beside
+   it. It keeps the user's slop bans: no tags, no italic or slanted type,
+   no negative tracking, no dividers, no bordered containers, no
+   diagrams, no code paths as labels, no numbered sections, and only the
+   two inks and the two grounds below (no alpha tints). The kit's ember is
+   the signal light; never red. Copy keeps the bans: no eyebrow, no middle
+   dots or em dashes, no link that ends in an arrow. Plain CSS under
+   .landing, read by every landing component. */
 .landing {
   --ink: var(--foreground);
-  --ink-2: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
   --ink-3: var(--muted-foreground);
-  --line: var(--border);
+  /* The one raised ground: a card, a panel, a picked key, a secondary key. */
+  --surface: color-mix(in oklab, var(--foreground) 6%, var(--background));
   --signal: var(--swatch-orange);
   font-family: var(--font-mono);
-}
-
-/* A ruler: minor ticks every 8px, a major one every 64px, as printed on
-   a technical shell's seam tape (the hero band's foot). */
-.landing .ticks {
-  height: 9px;
-  background:
-    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 34%, transparent) 1px, transparent 1px) 0 100% / 64px
-      9px repeat-x,
-    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 16%, transparent) 1px, transparent 1px) 0 100% / 8px
-      4px repeat-x;
 }
 
 /* A section's head: the title left, at the page's
@@ -64,7 +55,6 @@
   font-size: clamp(1.6rem, 3.4vw, 2.75rem);
   font-weight: 400;
   line-height: 1.12;
-  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 
@@ -73,8 +63,8 @@
   scroll-margin-top: 76px;
 }
 
-/* Links that lead on name their destination and carry a resting
-   underline (a hairline that inks on hover), never an arrow. */
+/* Links that lead on name their destination and carry an underline that
+   inks on hover, never an arrow. */
 .landing .more-link,
 .landing .lead {
   /* A 24px target around the line, without moving it. */
@@ -83,10 +73,7 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  text-decoration-color: color-mix(in oklab, var(--ink-3) 55%, transparent);
-  transition:
-    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-    text-decoration-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .landing .more-link {
@@ -102,12 +89,38 @@
 .landing .more-link:hover,
 .landing .lead:hover {
   color: var(--ink);
-  text-decoration-color: currentColor;
 }
 
-/* Segmented toggles, as in the docs header: machined segments in a
-   `.track` (the site voice's housing), quiet labels, the pressed one
-   ringed. */
+/* A key: a filled shape, never a ring. Inside a card, whose ground is the
+   surface, the card's art sets `--surface` to the page's ground, so its
+   keys and picked segments stay shapes. */
+.landing .key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--surface);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing .key:hover {
+  color: var(--signal);
+}
+
+/* Segmented toggles: quiet labels, the pressed one filled in the raised
+   ground (a shape, not a colour alone). */
+.landing .seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .landing .seg > button {
   display: inline-flex;
   align-items: center;
@@ -118,9 +131,7 @@
   font-size: 11px;
   white-space: nowrap;
   color: var(--ink-3);
-  transition:
-    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .landing .seg > button:hover {
@@ -129,11 +140,13 @@
 
 .landing .seg > button[aria-pressed="true"] {
   color: var(--ink);
-  background: color-mix(in oklab, var(--foreground) 4%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 20%, transparent);
+  background: var(--surface);
 }
 
 @media (forced-colors: active) {
+  .landing .key {
+    border: 1px solid ButtonText;
+  }
   .landing .seg > button[aria-pressed="true"] {
     outline: 1px solid Highlight;
   }

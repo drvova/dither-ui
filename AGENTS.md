@@ -127,14 +127,14 @@ Default section order:
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). Our own hero (the statement beside a
   stage touring real components, seated in a form of the kit's liquid
-  chrome; the spec bar of what it runs on and is styled with at its foot),
-  then sections under a title with a lead beside it: a bento of live
+  chrome; a quiet line of what it works with under the keys), then
+  sections under a title with a lead beside it: a bento of live
   components, one agent session played as the page scrolls (a pinned
-  stage: the ask, the Studio tool calls, the frame building, the export), what's inside (the engine's anatomy:
-  a kit button pulled apart into the layers that draw it; the kit, the
-  Studio, the bridge, the docs' families), a centred install, and link columns over
-  the engraved wordmark. No film player or animation runtime ships with
-  the page. The trailer
+  stage: the ask, what the agent does said in words, the screen building
+  beside it), what's inside (the kit, the Studio, the bridge, the docs'
+  families), a centred install, and link columns over the engraved
+  wordmark. It keeps the user's slop bans (User Preferences). No film
+  player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
   hero's "Watch the film" key and is fetched only when its dialog opens.
   Details in `src/pages/AGENTS.md`.
@@ -305,8 +305,10 @@ Default section order:
   sportswear (chrome display type, hardshell panels with cut corners
   holding recessed gel wells, a satin chrome primary key, machined
   secondary keys and segment tracks, smoked-polymer overlays, spec labels
-  and slanted speed tags), worn by the landing, the docs and the Studio
-  alike: its materials are the site voice's (`src/app/styles.css`, both
+  and slanted speed tags), worn by the docs and the Studio; the landing
+  keeps the chrome display type, the chrome primary key and the liquid
+  chrome, and sheds what the slop bans below name. Its materials are the
+  site voice's (`src/app/styles.css`, both
   themes; see `src/AGENTS.md`), the pages' uses in
   `src/pages/AGENTS.md`. The user's reference is their "Y2K / Biomorphic
   Retrofuturism" design system (V5, a private kit, not in the repo); its
@@ -323,6 +325,18 @@ Default section order:
   `src/shared/fonts/`): the landing's statement and section titles and the
   docs' page title. Its squared heading sans is not used; headings, body,
   labels, figures and code stay mono, the user's identity.
+- Design slop the user bans (their list; the landing is held to it, the
+  docs and the Studio keep their tool chrome until the user extends it):
+  tags (no `.spec` labels, speed tags or badges), italic or slanted type,
+  a trendy serif display or negative tracking, over-detailed UI (call
+  times, arguments, rulers, selection handles, decorative dot grids),
+  dividers and hairlines, more than two inks on two grounds or alpha-tinted
+  fills, containers with borders (a card or panel is a filled ground, a
+  key a filled shape, the pressed segment filled), diagrams (the more
+  detailed, the worse), code breadcrumbs (file paths, tool names or a
+  command as a label; a command the reader copies is content), and
+  numbered sections. A kit component's own look inside a demo is the
+  product and stays.
 - One site voice: the landing, the docs and the Studio speak one language
   (dark theme tokens, monospace, hairlines, ringed pressed states), so the
   whole site reads as one product. The copy follows the design.how bans
