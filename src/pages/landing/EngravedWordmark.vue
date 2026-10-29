@@ -16,7 +16,7 @@ import {
   WORDMARK_RIM,
 } from "./wordmark-layers"
 
-// Ghost.ai's measured registration (DevTools): the rim bleeds 0.96% while the
+// Depth registration: the rim bleeds 0.96% while the
 // letter-detail layer sits LARGER (103.32%, shifted -1.66%/-3.47%) — convex
 // light behind a magnified concave surface. The glyph mask compensates with
 // the letters' exact transform so the sheen stays registered to the visible
@@ -153,7 +153,7 @@ function onMove(e: MouseEvent) {
       :data-live="live ? 'true' : undefined"
       v-html="RIM_DRAW"
     />
-    <!-- Letter detail sits LARGER than the rim (ghost's convex-concave depth
+    <!-- Letter detail sits LARGER than the rim (a convex-concave depth
          parallax). On hover the carve RECEDES to 45% — with the light pooling
          over it, the dark fill + inner shadows must not sit around the pool
          edge as a shadow plate; un-lit areas fall back to plain background -->
@@ -164,9 +164,9 @@ function onMove(e: MouseEvent) {
       v-html="WORDMARK_LETTERS"
     />
 
-    <!-- Hover light, ghost's stacking: a BLOOM (heavier blur — the halation
+    <!-- Hover light: a BLOOM (heavier blur — the halation
          that bleeds past the letter edges) under a CORE (sharper ramp fill +
-         grain). No glyph clip — like theirs, the light layer's own letterforms
+         grain). No glyph clip — the light layer's own letterforms
          shape it; both are bounded only by the cursor pool (mask-image) -->
     <div
       :ref="

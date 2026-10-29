@@ -252,16 +252,14 @@ widgets/features; page-specific conventions live here.
   `src/pages/landing/wordmark-layers.ts` as EXPORTED MARKUP STRINGS the
   component renders INLINE via `v-html` (img-embedded svg rasterizes filters
   in isolation = blocky layer artifacts; inline renders in-document at page
-  resolution — never move these layers back to `<img src>`). A scale-accurate
-  port of ghost.ai's footer recipe (their assets under `gitignored
-  ghostai-ref/`, k = H/524.804):
-  rim = glyph-masked inside-stroke `#D6EAFF` @0.7 blurred 1.49; letters =
-  their ddii filter — two white under-glows + `#00050A` fill at feFuncA
-  slope 0.1 + two black inner shadows from above; the letters layer RECEDES
+  resolution — never move these layers back to `<img src>`). The recipe, at
+  scale k = H/524.804: rim = glyph-masked inside-stroke `#D6EAFF` @0.7
+  blurred 1.49; letters = a ddii filter — two white under-glows + `#00050A`
+  fill at feFuncA slope 0.1 + two black inner shadows from above; the letters layer RECEDES
   to 45% opacity on hover — with light pooling over the carve, the dark fill
   and inner shadows must not appear as shadow plates at the pool edge
   (un-lit areas fall back to plain background); hover light = TWO
-  pool-masked layers in ghost's stacking — bloom (ramp glyphs, blur 7.5·k +
+  pool-masked layers — bloom (ramp glyphs, blur 7.5·k +
   feOffset down-right halo) under core (sharper ramp + fine grain), both
   `plus-lighter`, NO glyph clip — the light layer's own letterforms shape it,
   only the cursor pool bounds it (pool focus sits up-left of the cursor; the
