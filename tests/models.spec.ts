@@ -2,6 +2,7 @@ import { describe, expect, it } from "rstack/test"
 import {
   externalResources,
   formatOf,
+  MAX_NODES,
   parseGltf,
   parseMtl,
   parseObj,
@@ -277,5 +278,42 @@ describe("X3D XML", () => {
     expect(p[0]).toBeCloseTo(0)
     expect(p[1]).toBeCloseTo(2)
     expect(parseWorld("<X3D><Scene><Shape><Box/></Shape></Scene></X3D>", "auto").meshes.length).toBe(1)
+  })
+})
+
+describe("hostile files stay bounded", () => {
+  it("a DEF/USE fan-out that doubles 40 times parses at once", () => {
+    // L0 is a box; each Ln is a group that uses Ln-1 twice: 2^40 shapes if
+    // every instance were walked.
+    let text = "#VRML V2.0 utf8\nDEF L0 Shape { geometry Box {} }\n"
+    for (let n = 1; n <= 40; n++) text += `DEF L${n} Group { children [ USE L${n - 1} USE L${n - 1} ] }\n`
+    const t0 = performance.now()
+    const world = parseWorld(text, "vrml")
+    expect(performance.now() - t0).toBeLessThan(5000)
+    expect(world.meshes.length).toBeLessThanOrEqual(MAX_NODES)
+  })
+  it("counts a file claims are held to the data it carries", () => {
+    const ply = [
+      "ply",
+      "format ascii 1.0",
+      "element vertex 3",
+      "property float x",
+      "property float y",
+      "property float z",
+    ]
+    ply.push(
+      "element face 1",
+      "property list uchar int vertex_indices",
+      "end_header",
+      "0 0 0",
+      "1 0 0",
+      "0 1 0",
+      "1000000000 0 1 2",
+    )
+    const t0 = performance.now()
+    parseWorld(ply.join("\n"), "ply")
+    const off = "OFF\n3 1 0\n0 0 0\n1 0 0\n0 1 0\n999999999 0 1 2\n"
+    parseWorld(off, "off")
+    expect(performance.now() - t0).toBeLessThan(2000)
   })
 })

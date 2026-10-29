@@ -10,6 +10,7 @@
 import { REEL_TRANSITIONS } from "@/entities/widget"
 import { deliverVideo, type VideoExportData } from "@/features/export-video"
 import { STYLINGS } from "@/shared/lib/restyle"
+import { readJson, storage, writeJson } from "@/shared/lib/storage"
 import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
 
@@ -333,62 +334,41 @@ export type AgentConfig = { bridgeUrl: string; harness: string; command: string;
 export const DEFAULT_BRIDGE_URL = "ws://127.0.0.1:8790"
 
 export function loadAgentConfig(): AgentConfig {
-  const fallback: AgentConfig = { bridgeUrl: DEFAULT_BRIDGE_URL, harness: "", command: "", auto: false }
-  try {
-    const raw = localStorage.getItem(CONFIG_KEY)
-    if (!raw) return fallback
-    const d = JSON.parse(raw) as Partial<AgentConfig>
-    return {
-      bridgeUrl: typeof d.bridgeUrl === "string" && d.bridgeUrl ? d.bridgeUrl : DEFAULT_BRIDGE_URL,
-      harness: typeof d.harness === "string" ? d.harness : "",
-      command: typeof d.command === "string" ? d.command : "",
-      auto: d.auto === true,
-    }
-  } catch {
-    return fallback
+  const d = (readJson(CONFIG_KEY) ?? {}) as Partial<Record<keyof AgentConfig, unknown>>
+  return {
+    bridgeUrl: typeof d.bridgeUrl === "string" && d.bridgeUrl ? d.bridgeUrl : DEFAULT_BRIDGE_URL,
+    harness: typeof d.harness === "string" ? d.harness : "",
+    command: typeof d.command === "string" ? d.command : "",
+    auto: d.auto === true,
   }
 }
 
-export function saveAgentConfig(c: AgentConfig): void {
-  try {
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(c))
-  } catch {
-    // privacy mode: the session keeps it in memory only
-  }
-}
+export const saveAgentConfig = (c: AgentConfig): void => writeJson(CONFIG_KEY, c)
 
 const SESSION_PREFIX = "dither-agent-session-"
 const SESSION_CAP = 160_000
 
 export type AgentSession<E> = { entries: E[]; usage: Usage }
 
-/** A project's conversation survives reloads (capped; oldest entries go first). */
+const count = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : 0)
+
+/** A project's conversation survives reloads (capped; oldest entries go
+ * first). Read back, an entry is kept only as an object with a `kind`, and
+ * the token counts are numbers. */
 export function loadSession<E>(projectId: string): AgentSession<E> | null {
-  try {
-    const raw = localStorage.getItem(SESSION_PREFIX + projectId)
-    if (!raw) return null
-    const d = JSON.parse(raw) as Partial<AgentSession<E>>
-    if (!Array.isArray(d.entries)) return null
-    return { entries: d.entries, usage: d.usage ?? { input: 0, output: 0 } }
-  } catch {
-    return null
-  }
+  const d = readJson(SESSION_PREFIX + projectId) as { entries?: unknown; usage?: Partial<Usage> } | null
+  if (!d || !Array.isArray(d.entries)) return null
+  const entries = d.entries.filter((e) => !!e && typeof e === "object" && typeof e.kind === "string") as E[]
+  return { entries, usage: { input: count(d.usage?.input), output: count(d.usage?.output) } }
 }
 
 export function saveSession<E>(projectId: string, s: AgentSession<E>): void {
-  try {
-    if (!s.entries.length) {
-      localStorage.removeItem(SESSION_PREFIX + projectId)
-      return
-    }
-    const entries = [...s.entries]
-    let json = JSON.stringify({ ...s, entries })
-    while (json.length > SESSION_CAP && entries.length) {
-      entries.shift()
-      json = JSON.stringify({ ...s, entries })
-    }
-    localStorage.setItem(SESSION_PREFIX + projectId, json)
-  } catch {
-    // quota / privacy mode — the conversation lives in memory only
+  if (!s.entries.length) return storage.remove(SESSION_PREFIX + projectId)
+  const entries = [...s.entries]
+  let json = JSON.stringify({ ...s, entries })
+  while (json.length > SESSION_CAP && entries.length) {
+    entries.shift()
+    json = JSON.stringify({ ...s, entries })
   }
+  storage.set(SESSION_PREFIX + projectId, json)
 }

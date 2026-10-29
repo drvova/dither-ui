@@ -1,4 +1,4 @@
-import { createChart, createSeriesRow } from "@/entities/chart"
+import { createChart, createSeriesRow, defaultEasing, type ChartModel } from "@/entities/chart"
 import {
   componentEntry,
   createWidget,
@@ -9,6 +9,8 @@ import {
   sanitizeComponentProps,
 } from "@/entities/widget"
 import { BLOOMS, CHART_TYPES, type ChartType, STACKS } from "@/shared/config"
+import { safeUrl } from "@/shared/lib/routes"
+import type { BloomConfig, BloomLevel, TextureConfig, VariantInput } from "@dither-kit"
 import type { Artboard } from "./types"
 
 /**
@@ -68,8 +70,53 @@ const oneOf = <T extends string>(v: unknown, options: readonly T[], def: T): T =
 const ALIGNS = ["start", "center", "end", "stretch"] as const
 const JUSTIFIES = ["start", "center", "end", "between"] as const
 
+const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v)
+
 const clampNum = (v: unknown, lo: number, hi: number, def: number): number =>
-  typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : def
+  finite(v) ? Math.min(hi, Math.max(lo, v)) : def
+
+/* The fields a value of several shapes may take: `fill` would reset any
+ * shape but the factory default's, so each is parsed whole instead, every
+ * shape the editors write kept and its numbers held in range. */
+
+const BLENDS = ["plus-lighter", "screen", "lighten"] as const
+
+/** A glow: a preset name, or a custom config. */
+function glowOf(v: unknown, def: BloomLevel): BloomLevel | BloomConfig {
+  if (!isPlainObject(v)) return oneOf(v, BLOOMS, def)
+  return {
+    blur: clampNum(v.blur, 0, 64, 3),
+    brightness: clampNum(v.brightness, 0, 5, 1.35),
+    opacity: clampNum(v.opacity, 0, 1, 0.7),
+    ...(finite(v.saturate) && { saturate: clampNum(v.saturate, 0, 5, 1) }),
+    ...(BLENDS.includes(v.blend as never) && { blend: v.blend as BloomConfig["blend"] }),
+  }
+}
+
+const AREA_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
+const TEXTURE_UNITS = ["ramp", "density", "offTier", "edge", "alphaFloor", "alphaRange", "intensityLift"] as const
+
+/** A series texture: a preset name, a seed, or a custom texture. */
+function variantOf(v: unknown): VariantInput {
+  if (finite(v)) return Math.round(v)
+  if (!isPlainObject(v)) return oneOf(v, AREA_VARIANTS, "gradient")
+  const t: TextureConfig = {}
+  for (const k of TEXTURE_UNITS) if (finite(v[k])) t[k] = clampNum(v[k], 0, 2, 0)
+  if (finite(v.hatch)) t.hatch = v.hatch < 2 ? 0 : Math.min(32, Math.round(v.hatch))
+  if (typeof v.gaps === "boolean") t.gaps = v.gaps
+  return t
+}
+
+const EASING_NAMES = ["linear", "ease-out", "ease-in-out"] as const
+
+/** An easing: a preset name, a seed, or cubic-bezier points (x in 0-1, as
+ * CSS has it; y free for overshoot within reason). */
+function easingOf(v: unknown, type: ChartType): ChartModel["easing"] {
+  if (finite(v)) return Math.round(v)
+  if (Array.isArray(v) && v.length === 4 && v.every(finite))
+    return [clampNum(v[0], 0, 1, 0), clampNum(v[1], -2, 3, 0), clampNum(v[2], 0, 1, 1), clampNum(v[3], -2, 3, 1)]
+  return oneOf(v, EASING_NAMES, defaultEasing(type) as (typeof EASING_NAMES)[number])
+}
 
 /** Plain text for a film's words: control characters out, trimmed, capped. */
 const textOf = (v: unknown, max: number): string =>
@@ -142,6 +189,7 @@ export function normalizeArtboard(a: Artboard): Artboard {
   if (!isPlainObject(a.chart)) a.chart = createChart("area")
   else {
     const defaults = createChart(validType((a.chart as { type?: unknown }).type))
+    const { bloom, easing } = a.chart as { bloom?: unknown; easing?: unknown }
     fill(a.chart as unknown as Record<string, unknown>, {
       ...defaults,
       // arrays fill only when missing/mistyped — never overwrite data
@@ -150,10 +198,15 @@ export function normalizeArtboard(a: Artboard): Artboard {
     })
     // enum fields: a junk string is type-correct but still crashes downstream
     // (e.g. bloom preset lookup) — force onto the allowlists.
-    if (typeof a.chart.bloom === "string") a.chart.bloom = oneOf(a.chart.bloom, BLOOMS, "low")
-    a.chart.stackType = oneOf(a.chart.stackType, STACKS, "default")
     a.chart.type = validType(a.chart.type)
+    a.chart.bloom = glowOf(bloom, "low")
+    a.chart.easing = easingOf(easing, a.chart.type)
+    a.chart.stackType = oneOf(a.chart.stackType, STACKS, "default")
+    // The optional seeds are numbers or absent, never a string to splice.
+    if (a.chart.seed !== undefined && !finite(a.chart.seed)) delete a.chart.seed
+    if (a.chart.effect !== undefined && !finite(a.chart.effect)) delete a.chart.effect
     for (const s of a.chart.series) {
+      const variant: unknown = s.variant
       fill(
         s as unknown as Record<string, unknown>,
         createSeriesRow(
@@ -162,6 +215,7 @@ export function normalizeArtboard(a: Artboard): Artboard {
           "blue",
         ) as unknown as Record<string, unknown>,
       )
+      s.variant = variantOf(variant)
     }
   }
 
@@ -169,7 +223,12 @@ export function normalizeArtboard(a: Artboard): Artboard {
   const w = a.widget
   if (isPlainObject(w)) {
     if (w.kind === "avatar" || w.kind === "button" || w.kind === "gradient" || w.kind === "image") {
+      const bloom: unknown = "bloom" in w ? w.bloom : undefined
       fill(w as unknown as Record<string, unknown>, createWidget(w.kind) as unknown as Record<string, unknown>)
+      if (w.kind !== "image") w.bloom = finite(bloom) ? Math.round(bloom) : (glowOf(bloom, "off") as typeof w.bloom)
+      // An image's address reaches an <img src>: a script URL never does.
+      if (w.kind === "image" && !safeUrl(w.src)) w.src = ""
+      if (w.kind === "avatar" && !safeUrl(w.imageSrc)) w.imageSrc = ""
     } else if (w.kind === "component") {
       const entry = componentEntry(typeof w.is === "string" ? w.is : "")
       if (!entry) {

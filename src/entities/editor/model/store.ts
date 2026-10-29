@@ -256,11 +256,13 @@ export function deleteGroup(groupId: string) {
 }
 
 // --- series ----------------------------------------------------------------
-export function deleteSeries(key: string) {
-  const c = selectedChart.value
-  if (!c) return
-  c.series = c.series.filter((s) => s.key !== key)
-  if (editor.selectedLayerId.endsWith(`:series:${key}`)) editor.selectedLayerId = `${editor.selectedArtboardId}:root`
+/** Delete a series from the frame named, never from whichever is selected:
+ * a layer's menu opens on any frame's rows. */
+export function deleteSeries(artboardId: string, key: string) {
+  const a = editor.artboards.find((x) => x.id === artboardId)
+  if (!a || a.widget) return
+  a.chart.series = a.chart.series.filter((s) => s.key !== key)
+  if (editor.selectedLayerId === `${artboardId}:series:${key}`) editor.selectedLayerId = `${artboardId}:root`
 }
 
 export function replay() {

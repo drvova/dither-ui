@@ -4,6 +4,7 @@
 // comes back here as `studio/call`.
 import { spawn, type ChildProcess } from "node:child_process"
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { request } from "node:http"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "rstack/test"
@@ -260,5 +261,36 @@ describe("dither-bridge", () => {
     expect(await done).toEqual({ stopReason: "cancelled" })
     expect(c.calls).toEqual([])
     c.ws.close()
+  }, 20_000)
+
+  it("refuses other origins, rebound hosts and relay calls without the run's token", async () => {
+    await new Promise((r) => setTimeout(r, 200))
+    // The status a request gets, sent as a browser page would send it.
+    const status = (method: string, path: string, headers: Record<string, string>) =>
+      new Promise<number>((res, rej) => {
+        const req = request({ host: "127.0.0.1", port: PORT, method, path, headers }, (r) => {
+          r.resume()
+          res(r.statusCode ?? 0)
+        })
+        req.on("upgrade", (r, socket) => {
+          socket.destroy()
+          res(r.statusCode ?? 0)
+        })
+        req.on("error", rej)
+        req.end(method === "POST" ? JSON.stringify({ name: "get_document", arguments: {} }) : undefined)
+      })
+    const upgrade = { Connection: "Upgrade", Upgrade: "websocket", "Sec-WebSocket-Version": "13" }
+    const key = { "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==" }
+    // A page on another site cannot open the socket that starts commands.
+    expect(await status("GET", "/", { ...upgrade, ...key, Origin: "https://evil.example" })).toBe(403)
+    // Nor can a rebound DNS name that resolves to the loopback.
+    expect(await status("GET", "/", { ...upgrade, ...key, Host: `evil.example:${PORT}` })).toBe(403)
+    // The relay answers only the MCP server the bridge injected.
+    expect(await status("POST", "/relay/call", { "content-type": "text/plain" })).toBe(403)
+    expect(await status("POST", "/relay/call", { "x-dither-bridge-token": "guess" })).toBe(403)
+    expect(await status("GET", "/", { Origin: "https://evil.example" })).toBe(403)
+    // The Studio served from a local dev server is let in.
+    expect(await status("GET", "/", { ...upgrade, ...key, Origin: "http://localhost:5173" })).toBe(101)
+    expect(logs).toContain("refused a websocket from https://evil.example")
   }, 20_000)
 })

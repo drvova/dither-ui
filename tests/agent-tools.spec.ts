@@ -1,6 +1,6 @@
 // @rstest-environment jsdom
 import { beforeEach, describe, expect, it } from "rstack/test"
-import { mapUpdate, modesOf, usageOf } from "@/features/agent/acp"
+import { mapUpdate, modesOf, permissionOptions, usageOf } from "@/features/agent/acp"
 import {
   callStudioTool,
   loadAgentConfig,
@@ -48,6 +48,21 @@ describe("studio tools", () => {
 })
 
 describe("acp mapping", () => {
+  it("reads a harness's permission options once, whatever it sends", () => {
+    expect(
+      permissionOptions([
+        { optionId: "allow-once", name: "Allow", kind: "allow_once" },
+        { optionId: "reject", kind: 7 },
+        { name: "no id" },
+        null,
+        "x",
+      ]),
+    ).toEqual([
+      { optionId: "allow-once", name: "Allow", kind: "allow_once" },
+      { optionId: "reject", name: "reject", kind: "" },
+    ])
+    expect(permissionOptions(undefined)).toEqual([])
+  })
   it("turns session updates into composer events", () => {
     expect(mapUpdate({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })).toEqual([
       { type: "delta", text: "hi" },

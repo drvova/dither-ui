@@ -36,6 +36,11 @@ the kit every import is relative (`../engine/pixel`).
   `.ts` modules that write Tailwind classes (`lib.ts`'s `cn`,
   `control.ts`'s `CONTROL` / `CONTROL_BUTTON` / `POPOVER`, the chart
   roots), its `index.ts` (the public API) and `kit.css`.
+- A file name is one component across both layers: a chart's series part
+  and a background never share one (`Radar.vue` is the radar chart's
+  series part, which registers its texture with the chart; the sweep
+  background is `RadarSweep.vue`, exported as `DitherRadar`;
+  `tests/components/radar-series.spec.ts` holds it).
 - `stylex/` — the same components in StyleX, GENERATED from `tailwind/`
   by `src/shared/lib/stylex-layer.ts`: never edit a generated file (each
   says so in its first line); edit the Tailwind file and run
@@ -334,7 +339,11 @@ the kit every import is relative (`../engine/pixel`).
   ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
   `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
 - `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
-  surface. `models.ts` parses model files into a `World`: meshes (faces,
+  surface. `models.ts` parses model files into a `World`, bounded against
+  a hostile file: a scene graph is walked for at most `MAX_NODES` (shared
+  DEF/USE instances counted each time), a list or face a file declares is
+  held to the tokens it carries, an ElevationGrid to 1024 posts a side;
+  meshes (faces,
   lines or points; positions in world space, or node space when animated;
   palette indices for the material and, when the file colours faces or
   vertices, per triangle — a world holds ≤ 255 colours, the rest snap),

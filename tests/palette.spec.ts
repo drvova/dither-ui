@@ -80,3 +80,15 @@ describe("css/hex helpers", () => {
     expect(colorToHex("#123456")).toBe("#123456")
   })
 })
+
+describe("colour names", () => {
+  it("are the palette's own keys, never an inherited name", async () => {
+    const { isDitherColor } = await import("../dither-kit/engine/palette")
+    const { fillOf } = await import("../dither-kit/engine/pixel")
+    expect(isDitherColor("blue")).toBe(true)
+    for (const name of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+      expect(isDitherColor(name)).toBe(false)
+      expect(Array.isArray(fillOf(name))).toBe(true)
+    }
+  })
+})

@@ -337,6 +337,19 @@ Default section order:
   command as a label; a command the reader copies is content), and
   numbered sections. A kit component's own look inside a demo is the
   product and stays.
+- Codebase slop the user bans (their list), held in every change:
+  implicit coupling (modules agreeing through a string, a global or a call
+  order instead of a shared constant or type), layer-first folders (a
+  feature scattered across `components/`, `utils/`, `types/`),
+  duplication (one rule written twice drifts: extract it, or generate the
+  copy and pin it with a test), representable illegal states (a union, not
+  flags or parallel fields that must agree), god files, shotgun surgery
+  (one change touching many files: one table drives the rest), layering
+  violations (imports flow down, never sideways into another slice, up or
+  in a cycle), pass-through wrappers, and errors or validation away from
+  the boundary (untrusted input parsed once where it enters, into a type
+  nothing past it re-checks). A fix comes with the test that would have
+  caught it.
 - One site voice: the landing, the docs and the Studio speak one language
   (dark theme tokens, monospace, hairlines, ringed pressed states), so the
   whole site reads as one product. The copy follows the design.how bans

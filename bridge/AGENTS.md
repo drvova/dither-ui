@@ -39,8 +39,18 @@
   `session/new` / `session/load` and the default `cwd`; everything else
   passes through untouched, line by line.
 - Loopback only, one tab at a time, agent killed on disconnect, 30s relay
-  timeout per tool call; `--mcp <port>` is the server mode the agent
-  spawns, never run by hand.
+  timeout per tool call; `--mcp <port> --token <token>` is the server mode
+  the agent spawns, never run by hand.
+- The trust boundary is the browser: the websocket upgrade and every HTTP
+  request are refused (403) unless `Host` names the loopback
+  (`allowedHost`, against DNS rebinding) and any `Origin` is dither-ui.com,
+  a localhost or 127.0.0.1 page, or one `--origin` adds (`allowedOrigin`; a
+  client without an Origin is a local process). `/relay/*` also needs the
+  run's random token (`x-dither-bridge-token`), which only the injected MCP
+  server is given; no response carries a CORS header. A client frame must
+  be masked, a message is at most 64 MB and a relay body 1 MB. An agent
+  stdout line carrying a `bridge/` method is dropped, never relayed as the
+  bridge's own.
 - The agent is launched through the shell (`shell: true`) from `--cwd`, so
   a preset or `--agent` can be any command line (a local script by absolute
   path); it inherits the environment plus `DITHER_BRIDGE_PORT`. Adding a
@@ -49,10 +59,11 @@
   mark in `src/shared/ui/marks.ts` under the same id, which the landing's
   chips and the Studio's harness picker draw).
 - A tool result's `data.files` (`[{ path, content }]`) is materialized
-  under `--cwd` before it reaches the agent — relative paths only, nothing
-  above the directory — and replaced by the written paths plus `data.cwd`,
-  so the agent gets a location, never a payload (`export_video` ships a
-  self-contained HyperFrames composition this way).
+  under `--cwd` before it reaches the agent — only `video/<slug>/index.html`
+  (`VIDEO_PATH`), a file that cannot be written skipped and logged — and
+  replaced by the written paths plus `data.cwd`, so the agent gets a
+  location, never a payload (`export_video` ships a self-contained
+  HyperFrames composition this way).
 
 ## Work Guidance
 
@@ -70,7 +81,9 @@
   relay, usage, health, second-tab refusal, the hello's harness list, a
   bridge without `--agent` that refuses requests until `bridge/start` and
   stops on `bridge/stop`, file materialization under `--cwd` (and refusal
-  of escaping paths), cancel.
+  of escaping paths), cancel, and the trust boundary (a foreign Origin, a
+  rebound Host and a relay call without the token refused; a localhost
+  page let in).
 - Lint covers the file (`npm run lint`); the browser walk is the Studio in
   the acp backend against the same fixture (`node bridge/dither-bridge.mjs
   --agent "node tests/fixtures/fake-acp-agent.mjs"`).

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import type { ComponentEntry } from "@/entities/widget"
+import type { ComponentEntry, PropSpec } from "@/entities/widget"
 import { colorToHex } from "@dither-kit"
+import { safeUrl } from "@/shared/lib"
 import { ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
 
 /** Spec-driven prop controls for a registry component — shared between the
@@ -17,6 +18,9 @@ const listText = (v: unknown) => (Array.isArray(v) ? v.join(", ") : String(v ?? 
 const setProp = (key: string, value: unknown) => {
   target.value.props[key] = value
 }
+/** A url prop takes only what the document's sanitizer would keep; a
+ * script URL typed here never reaches the component. */
+const setText = (spec: PropSpec, value: string) => setProp(spec.key, spec.kind !== "url" || safeUrl(value) ? value : "")
 const setSlotText = (value: string) => {
   target.value.slotText = value
 }
@@ -46,15 +50,18 @@ const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c)
       />
     </label>
     <template v-for="spec in entry.props" :key="spec.key">
-      <label v-if="spec.kind === 'text'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
+      <label
+        v-if="spec.kind === 'text' || spec.kind === 'url'"
+        class="flex items-center gap-2 text-[11px] text-muted-foreground"
+      >
         <span class="w-14 shrink-0">{{ spec.key }}</span>
         <input
           :value="target.props[spec.key] as string"
-          type="text"
+          :type="spec.kind === 'url' ? 'url' : 'text'"
           :name="`prop-${spec.key}`"
           autocomplete="off"
           class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
-          @input="setProp(spec.key, inputValue($event))"
+          @input="setText(spec, inputValue($event))"
         />
       </label>
       <label v-else-if="spec.kind === 'list'" class="flex items-center gap-2 text-[11px] text-muted-foreground">

@@ -42,7 +42,17 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   dithered or put in the kit; imported by path, never through the
   `shared/ui` barrel, which would pull every shared component into the
   landing's first load; `Segmented` takes `labels` where an option's
-  value is not how a reader writes it), config (CHART_TYPES), lib (theme, routes, base64, menu,
+  value is not how a reader writes it), config (CHART_TYPES), lib (theme,
+  routes (with `safeUrl`, the ONE test of a URL a document may carry into
+  an href or a src: http(s), mailto, a raster `data:` image or a relative
+  path, read as the browser reads it), base64, menu,
+  `storage.ts` — the ONE path to localStorage (`storage.get/set/remove`,
+  `readJson` → `unknown` for the caller to parse, `writeJson`), never
+  throwing where storage is blocked or full —
+  `sfc.ts` — the ONE way the code generators put a document value into an
+  SFC (`attr` for a static attribute, `js` for a literal in script or a
+  single-quoted binding, `key`, `objectLiteral`, `text` for template text),
+  so exported code carries values as data, never as code —
   `sound.ts` — Kobra's interface sounds as WebAudio voices behind one
   remembered switch (`sounds`, localStorage `dither-sounds`) — `files.ts` —
   `download()` and a stored .zip of text files, the ONE download path for
@@ -55,6 +65,15 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   ordered dither, delta frames), import-free because the share-card
   renderer carries its source inline: the workbench's captures and the
   share cards both go through it).
+- Untrusted input is parsed ONCE where it enters, into a type nothing past
+  it re-checks: documents through `parseDocument` / `normalizeArtboard`
+  (each field of several shapes, a glow, a texture, an easing, parsed whole
+  so every shape the editors write survives; a `url` prop, an image's or an
+  avatar's address through `safeUrl`), stored values through `storage.ts`
+  and a parser at the reader, bridge messages through a parser in `acp.ts`
+  (`permissionOptions`). Pinned by `tests/security.spec.ts` and
+  `tests/codegen-escape.spec.ts` (hostile labels, keys, props and slot text
+  through both code generators and Vue's own compiler).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
   component library, inspector controls, untrusted-prop sanitization, functional
   demo composition, and code export. Every public `Dither*` export is covered

@@ -376,6 +376,9 @@ export function elevationGeometry(
   zSpacing: number,
   heights: number[],
 ): Geometry {
+  // A grid is at most 1024 posts a side, whatever the file claims.
+  xDimension = Math.max(0, Math.min(1024, Math.floor(xDimension) || 0))
+  zDimension = Math.max(0, Math.min(1024, Math.floor(zDimension) || 0))
   const points: number[] = []
   const faces: number[][] = []
   const uvs: number[] = []

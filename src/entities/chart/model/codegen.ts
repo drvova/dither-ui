@@ -1,4 +1,5 @@
 import { familyOf } from "@/shared/config"
+import { attr, js, key, objectLiteral } from "@/shared/lib/sfc"
 import { LABEL_KEY } from "./data"
 import { activeSeries, dataOf } from "./derive"
 import { defaultEasing } from "./factory"
@@ -13,31 +14,28 @@ const ROOT: Record<string, string> = {
 }
 const SERIES: Record<string, string> = { area: "Area", line: "Line", bar: "Bar", pie: "Pie", radar: "Radar" }
 const DEFAULT_MARGINS = { top: 10, right: 12, bottom: 22, left: 36 }
-const q = (s: string) => `"${s}"`
-/** { blur: 5, opacity: 0.8 } — a JS object literal for a bound attribute. */
-const objLit = (o: Record<string, unknown>) =>
-  `{ ${Object.entries(o)
-    .map(([k, v]) => `${k}: ${typeof v === "string" ? q(v) : v}`)
-    .join(", ")} }`
+
+// Every document value reaches the SFC through `@/shared/lib/sfc`: rows,
+// labels and keys as JS literals, strings in attributes escaped.
+
+/** A value that is a preset name, a seed or a custom object, as an attribute. */
+const shapeAttr = (name: string, v: unknown): string =>
+  typeof v === "object" && v
+    ? `:${name}='${objectLiteral(v)}'`
+    : typeof v === "number"
+      ? `:${name}="${v}"`
+      : `${name}="${attr(v)}"`
 
 function dataLiteral(chart: ChartModel): string {
   const fam = familyOf(chart.type)
   const rows = dataOf(chart) as Record<string, unknown>[]
   const keys = fam === "pie" ? ["name", "value"] : [LABEL_KEY[fam], ...activeSeries(chart).map((s) => s.key)]
-  const body = rows
-    .map(
-      (row) =>
-        `  { ${keys.map((k) => (typeof row[k] === "string" ? `${k}: ${q(row[k] as string)}` : `${k}: ${row[k]}`)).join(", ")} },`,
-    )
-    .join("\n")
+  const body = rows.map((row) => `  { ${keys.map((k) => `${key(k)}: ${js(row[k])}`).join(", ")} },`).join("\n")
   return `const data = [\n${body}\n]`
 }
 
 function configLiteral(chart: ChartModel): string {
-  const entries = activeSeries(chart).map((s) => {
-    const color = typeof s.color === "number" ? String(s.color) : q(s.color)
-    return `  ${s.key}: { label: ${q(s.label)}, color: ${color} },`
-  })
+  const entries = activeSeries(chart).map((s) => `  ${key(s.key)}: { label: ${js(s.label)}, color: ${js(s.color)} },`)
   return `const config: ChartConfig = {\n${entries.join("\n")}\n}`
 }
 
@@ -71,15 +69,14 @@ export function chartCode(chart: ChartModel): string {
   } else if (fam === "radar") attrs.push(`name-key="axis"`)
   if (marginsChanged)
     attrs.push(`:margins="{ top: ${m.top}, right: ${m.right}, bottom: ${m.bottom}, left: ${m.left} }"`)
-  if (cart && chart.stackType !== "default") attrs.push(`stack-type="${chart.stackType}"`)
-  if (typeof chart.bloom === "object") attrs.push(`:bloom="${objLit(chart.bloom as Record<string, unknown>)}"`)
-  else if (chart.bloom !== "off") attrs.push(`bloom="${chart.bloom}"`)
-  if (chart.seed !== undefined) attrs.push(`:seed="${chart.seed}"`)
-  if (cart && chart.effect !== undefined) attrs.push(`:effect="${chart.effect}"`)
+  if (cart && chart.stackType !== "default") attrs.push(`stack-type="${attr(chart.stackType)}"`)
+  if (chart.bloom !== "off") attrs.push(shapeAttr("bloom", chart.bloom))
+  if (Number.isFinite(chart.seed)) attrs.push(`:seed="${chart.seed}"`)
+  if (cart && Number.isFinite(chart.effect)) attrs.push(`:effect="${chart.effect}"`)
   if (chart.animationDuration !== 900) attrs.push(`:animation-duration="${chart.animationDuration}"`)
   if (chart.animationDelay > 0) attrs.push(`:animation-delay="${chart.animationDelay}"`)
   if (Array.isArray(chart.easing)) attrs.push(`:easing="[${chart.easing.join(", ")}]"`)
-  else if (chart.easing !== defaultEasing(chart.type)) attrs.push(`easing="${chart.easing}"`)
+  else if (chart.easing !== defaultEasing(chart.type)) attrs.push(shapeAttr("easing", chart.easing))
   if ((chart.type === "area" || chart.type === "line") && !chart.sparkles) attrs.push(`:sparkles="false"`)
   if (!chart.hoverLift) attrs.push(`:hover-lift="false"`)
   if (chart.type === "bar" && chart.stagger !== 0.55) attrs.push(`:stagger="${chart.stagger}"`)
@@ -114,7 +111,7 @@ export function chartCode(chart: ChartModel): string {
     const ga: string[] = []
     if (!g.horizontal) ga.push(`:horizontal="false"`)
     if (g.vertical) ga.push(`:vertical="true"`)
-    if (g.dash !== "3 3") ga.push(`stroke-dasharray="${g.dash}"`)
+    if (g.dash !== "3 3") ga.push(`stroke-dasharray="${attr(g.dash)}"`)
     if (g.tickCount !== 4) ga.push(`:tick-count="${g.tickCount}"`)
     kids.push(`<Grid${ga.length ? " " + ga.join(" ") : ""} />`)
   }
@@ -132,31 +129,24 @@ export function chartCode(chart: ChartModel): string {
   }
   if (chart.type === "pie") {
     const v = chart.series[0]?.variant ?? "gradient"
-    const va =
-      typeof v === "object"
-        ? ` :variant="${objLit(v as Record<string, unknown>)}"`
-        : v !== "gradient"
-          ? ` variant="${v}"`
-          : ""
-    kids.push(`<Pie${va} />`)
+    kids.push(`<Pie${v !== "gradient" ? ` ${shapeAttr("variant", v)}` : ""} />`)
   } else {
     for (const s of activeSeries(chart)) {
-      const sa = [`dataKey="${s.key}"`]
-      if (typeof s.variant === "object") sa.push(`:variant="${objLit(s.variant as Record<string, unknown>)}"`)
-      else if (s.variant !== "gradient") sa.push(`variant="${s.variant}"`)
+      const sa = [`dataKey="${attr(s.key)}"`]
+      if (s.variant !== "gradient") sa.push(shapeAttr("variant", s.variant))
       if (s.isClickable) sa.push(`is-clickable`)
       if (cart && s.opacity !== 1) sa.push(`:opacity="${s.opacity}"`)
       const markers: string[] = []
       if (cart && s.dots.on) {
         const da = [
-          s.dots.variant !== "border" ? ` variant="${s.dots.variant}"` : "",
+          s.dots.variant !== "border" ? ` variant="${attr(s.dots.variant)}"` : "",
           s.dots.r !== 2 ? ` :r="${s.dots.r}"` : "",
         ].join("")
         markers.push(`  <Dot${da} />`)
       }
       if (cart && s.activeDot.on) {
         const da = [
-          s.activeDot.variant !== "colored-border" ? ` variant="${s.activeDot.variant}"` : "",
+          s.activeDot.variant !== "colored-border" ? ` variant="${attr(s.activeDot.variant)}"` : "",
           s.activeDot.r !== 3 ? ` :r="${s.activeDot.r}"` : "",
         ].join("")
         markers.push(`  <ActiveDot${da} />`)
@@ -170,14 +160,14 @@ export function chartCode(chart: ChartModel): string {
   }
   if (lg.on) {
     const la: string[] = []
-    if (lg.align !== (cart ? "right" : "center")) la.push(`align="${lg.align}"`)
+    if (lg.align !== (cart ? "right" : "center")) la.push(`align="${attr(lg.align)}"`)
     if (lg.clickable) la.push(`is-clickable`)
     kids.push(`<Legend${la.length ? " " + la.join(" ") : ""} />`)
   }
   if (tt.on) {
     const ta: string[] = []
     if (cart) ta.push(`labelKey="${LABEL_KEY.cartesian}"`)
-    if (tt.variant !== "default") ta.push(`variant="${tt.variant}"`)
+    if (tt.variant !== "default") ta.push(`variant="${attr(tt.variant)}"`)
     kids.push(`<Tooltip${ta.length ? " " + ta.join(" ") : ""} />`)
   }
 

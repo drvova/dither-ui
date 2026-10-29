@@ -20,10 +20,17 @@
 //
 //   node bridge/dither-bridge.mjs                 # then pick a harness in the Studio
 //   node bridge/dither-bridge.mjs --agent "omp --mode acp" --cwd ~/work
+//   node bridge/dither-bridge.mjs --origin https://studio.example.com
 //
-// Internal: `--mcp <port>` is the MCP server mode the agent spawns.
+// Only the Studio's own pages may drive it: a websocket from any other
+// origin, a request for any other host (DNS rebinding) and a relay call
+// without this run's token are refused, so a web page open in the same
+// browser can neither start a command nor reach the tab through it.
+//
+// Internal: `--mcp <port> --token <token>` is the MCP server mode the agent
+// spawns.
 import { spawn } from "node:child_process"
-import { createHash } from "node:crypto"
+import { createHash, randomBytes } from "node:crypto"
 import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 import { createServer, request as httpRequest } from "node:http"
 import { delimiter, dirname, join } from "node:path"
@@ -67,8 +74,30 @@ export function onPath(bin, env = process.env) {
   return false
 }
 
+/** The pages that may open the websocket: the site, any loopback dev
+ * server, and whatever `--origin` adds (comma-separated). A client that
+ * sends no Origin is not a browser page, so it is a local process. */
+const ORIGINS = ["https://dither-ui.com", ...opt("origin", "").split(",").filter(Boolean)]
+export function allowedOrigin(origin, extra = ORIGINS) {
+  if (origin === undefined) return true
+  if (extra.includes(origin)) return true
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+}
+
+/** The bridge answers only as itself: a Host naming anything but the
+ * loopback (a rebound DNS name) is refused. */
+export const allowedHost = (host, port) => host === `127.0.0.1:${port}` || host === `localhost:${port}`
+
+/** The one kind of file a tool result may write: a video composition. */
+export const VIDEO_PATH = /^video\/[\w-]+\/index\.html$/
+
+/** Upper bounds on what a peer may send: one websocket message (a
+ * composition with its player inlined is a few MB) and one relay body. */
+const MAX_MESSAGE = 64 * 1024 * 1024
+const MAX_BODY = 1024 * 1024
+
 if (args.includes("--mcp")) {
-  mcpMode(Number(opt("mcp", "8790")))
+  mcpMode(Number(opt("mcp", "8790")), opt("token", ""))
 } else {
   serveMode({ agent: opt("agent", ""), port: Number(opt("port", "8790")), cwd: opt("cwd", process.cwd()) })
 }
@@ -77,7 +106,8 @@ if (args.includes("--mcp")) {
 
 const WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
-/** Minimal RFC 6455 server side: text frames, ping/pong, close. */
+/** Minimal RFC 6455 server side: text frames, ping/pong, close. A frame
+ * the client did not mask, or a message past MAX_MESSAGE, closes it. */
 export function wsAccept(socket, key, onMessage, onClose) {
   const accept = createHash("sha1")
     .update(key + WS_GUID)
@@ -94,11 +124,21 @@ export function wsAccept(socket, key, onMessage, onClose) {
   )
   let buf = Buffer.alloc(0)
   let fragments = []
+  let held = 0
+  let refused = false
+  const refuse = () => {
+    refused = true
+    buf = Buffer.alloc(0)
+    socket.end(encodeFrame(Buffer.alloc(0), 8))
+  }
   socket.on("data", (chunk) => {
+    if (refused) return
     buf = Buffer.concat([buf, chunk])
     for (;;) {
+      if (frameLength(buf) > MAX_MESSAGE - held) return refuse()
       const frame = decodeFrame(buf)
       if (!frame) return
+      if (!frame.masked) return refuse()
       buf = buf.subarray(frame.size)
       if (frame.opcode === 8) {
         socket.end(encodeFrame(Buffer.alloc(0), 8))
@@ -110,9 +150,11 @@ export function wsAccept(socket, key, onMessage, onClose) {
       }
       if (frame.opcode === 10) continue
       fragments.push(frame.payload)
+      held += frame.payload.length
       if (frame.fin) {
         const text = Buffer.concat(fragments).toString("utf8")
         fragments = []
+        held = 0
         onMessage(text)
       }
     }
@@ -123,6 +165,16 @@ export function wsAccept(socket, key, onMessage, onClose) {
     send: (text) => socket.writable && socket.write(encodeFrame(Buffer.from(text, "utf8"), 1)),
     close: () => socket.end(encodeFrame(Buffer.alloc(0), 8)),
   }
+}
+
+/** A frame's declared payload length, once its header has arrived (0
+ * before), so an oversized frame is refused before it is buffered. */
+function frameLength(buf) {
+  if (buf.length < 2) return 0
+  const len = buf[1] & 0x7f
+  if (len === 126) return buf.length < 4 ? 0 : buf.readUInt16BE(2)
+  if (len === 127) return buf.length < 10 ? 0 : Number(buf.readBigUInt64BE(2))
+  return len
 }
 
 export function decodeFrame(buf) {
@@ -146,7 +198,7 @@ export function decodeFrame(buf) {
   if (buf.length < off + len) return null
   const payload = Buffer.from(buf.subarray(off, off + len))
   if (maskKey) for (let i = 0; i < payload.length; i++) payload[i] ^= maskKey[i & 3]
-  return { fin, opcode, payload, size: off + len }
+  return { fin, opcode, masked, payload, size: off + len }
 }
 
 export function encodeFrame(payload, opcode) {
@@ -170,6 +222,8 @@ export function encodeFrame(payload, opcode) {
 /* -------------------------------- serve --------------------------------- */
 
 function serveMode({ agent, port, cwd }) {
+  // This run's secret: only the MCP server the bridge injects is told it.
+  const token = randomBytes(24).toString("hex")
   let browser = null // { send, close }
   let child = null
   let running = null // { id, name, command, pid }
@@ -197,7 +251,10 @@ function serveMode({ agent, port, cwd }) {
   const readJson = (req) =>
     new Promise((resolve) => {
       let body = ""
-      req.on("data", (c) => (body += c))
+      req.on("data", (c) => {
+        body += c
+        if (body.length > MAX_BODY) req.destroy()
+      })
       req.on("end", () => {
         try {
           resolve(JSON.parse(body || "{}"))
@@ -207,12 +264,16 @@ function serveMode({ agent, port, cwd }) {
       })
     })
   const json = (res, status, body) => {
-    res.writeHead(status, { "content-type": "application/json", "access-control-allow-origin": "*" })
+    res.writeHead(status, { "content-type": "application/json" })
     res.end(JSON.stringify(body))
   }
 
   const server = createServer(async (req, res) => {
+    if (!allowedHost(req.headers.host, port) || !allowedOrigin(req.headers.origin))
+      return json(res, 403, { error: "forbidden" })
     const url = new URL(req.url ?? "/", "http://x")
+    if (url.pathname.startsWith("/relay/") && req.headers["x-dither-bridge-token"] !== token)
+      return json(res, 403, { error: "forbidden" })
     if (req.method === "GET" && url.pathname === "/")
       return json(res, 200, {
         bridge: "dither-ui",
@@ -241,6 +302,11 @@ function serveMode({ agent, port, cwd }) {
 
   server.on("upgrade", (req, socket) => {
     const key = req.headers["sec-websocket-key"]
+    if (!allowedHost(req.headers.host, port) || !allowedOrigin(req.headers.origin)) {
+      log(`refused a websocket from ${req.headers.origin ?? "?"} for ${req.headers.host ?? "?"}`)
+      socket.end("HTTP/1.1 403 Forbidden\r\n\r\n")
+      return
+    }
     if (!key || browser) {
       socket.end("HTTP/1.1 409 Conflict\r\n\r\n")
       return
@@ -278,7 +344,9 @@ function serveMode({ agent, port, cwd }) {
     const lines = createInterface({ input: child.stdout })
     lines.on("line", (line) => {
       if (!line.trim() || !browser) return
-      // Verbatim relay, agent → browser.
+      // Verbatim relay, agent → browser; `bridge/` messages are the
+      // bridge's own, so an agent line wearing that name is dropped.
+      if (/"method"\s*:\s*"bridge\//.test(line)) return log(`dropped an agent line posing as the bridge`)
       browser.send(line)
     })
     child.stderr.on("data", (d) => process.stderr.write(`[${h.id}] ${d}`))
@@ -301,22 +369,26 @@ function serveMode({ agent, port, cwd }) {
   }
 
   /** A tab's tool result may carry files for the project (`data.files:
-   * [{ path, content }]`, e.g. a video composition): they are written under
-   * --cwd — relative paths only, never above it — and replaced by their
-   * paths, so the agent gets a location, not a payload. */
+   * [{ path, content }]`): a video composition, the only kind there is, so
+   * a path must be `video/<slug>/index.html` (VIDEO_PATH) under --cwd. They
+   * are written and replaced by their paths, so the agent gets a location,
+   * not a payload; a file that cannot be written is skipped and logged. */
   function materialize(result) {
     const files = result?.data?.files
     if (!Array.isArray(files)) return result
     const written = []
     for (const f of files) {
-      if (!f || typeof f.path !== "string" || typeof f.content !== "string") continue
-      const rel = f.path.replace(/\\/g, "/")
-      if (rel.startsWith("/") || /^[a-z]:/i.test(rel) || rel.split("/").includes("..")) continue
-      const abs = join(cwd, rel)
-      mkdirSync(dirname(abs), { recursive: true })
-      writeFileSync(abs, f.content)
-      written.push(rel)
-      log(`wrote ${rel} (${f.content.length} chars)`)
+      if (!f || typeof f.path !== "string" || typeof f.content !== "string" || !VIDEO_PATH.test(f.path)) continue
+      const abs = join(cwd, f.path)
+      try {
+        mkdirSync(dirname(abs), { recursive: true })
+        writeFileSync(abs, f.content)
+      } catch (e) {
+        log(`could not write ${f.path}: ${e.message}`)
+        continue
+      }
+      written.push(f.path)
+      log(`wrote ${f.path} (${f.content.length} chars)`)
     }
     result.data.files = written
     result.data.cwd = cwd
@@ -376,7 +448,12 @@ function serveMode({ agent, port, cwd }) {
       const servers = Array.isArray(m.params.mcpServers) ? m.params.mcpServers : []
       m.params.mcpServers = [
         ...servers,
-        { name: "dither-studio", command: process.execPath, args: [SELF, "--mcp", String(port)], env: [] },
+        {
+          name: "dither-studio",
+          command: process.execPath,
+          args: [SELF, "--mcp", String(port), "--token", token],
+          env: [],
+        },
       ]
       if (!m.params.cwd || m.params.cwd === "/") m.params.cwd = cwd
     }
@@ -405,11 +482,17 @@ function serveMode({ agent, port, cwd }) {
 
 /** The MCP stdio server the agent spawns. Every tool is relayed to the
  * bridge over local HTTP, which forwards it to the browser. */
-function mcpMode(port) {
+function mcpMode(port, token) {
   const post = (path, body) =>
     new Promise((resolve) => {
       const req = httpRequest(
-        { host: "127.0.0.1", port, path, method: "POST", headers: { "content-type": "application/json" } },
+        {
+          host: "127.0.0.1",
+          port,
+          path,
+          method: "POST",
+          headers: { "content-type": "application/json", "x-dither-bridge-token": token },
+        },
         (res) => {
           let data = ""
           res.on("data", (c) => (data += c))

@@ -3,7 +3,7 @@
 // without `core` — only palette.ts is shared. The Bayer matrix and bloom
 // presets mirror dither-paint.ts so everything reads as one texture.
 
-import { type DitherColor, hexToRgb, PALETTE, type Rgb } from "./palette"
+import { type DitherColor, hexToRgb, isDitherColor, PALETTE, type Rgb } from "./palette"
 
 // 4×4 ordered (Bayer) matrix, normalized to 0–1 thresholds — the same matrix
 // the charts dither with.
@@ -68,7 +68,7 @@ export function hueFill(hue: number): Rgb {
 /** Resolve a {@link PixelColor} to its rgb fill. */
 export function fillOf(color: PixelColor): Rgb {
   if (typeof color === "number") return hueFill(color)
-  if (color in PALETTE) return PALETTE[color as DitherColor].fill
+  if (isDitherColor(color)) return PALETTE[color].fill
   return hexToRgb(color)
 }
 

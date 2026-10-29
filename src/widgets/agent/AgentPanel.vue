@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowReactive, toRaw, watch } from "vue"
 import { copyText, DitherIcon } from "@dither-kit"
 import { editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
@@ -365,19 +365,20 @@ function onEvent(e: AgentEvent) {
 
 /* -------------------------------- approvals ------------------------------- */
 
-const pendingApproval = ref<{ resolve: (id: string | null) => void } | null>(null)
+type Approval = Extract<Entry, { kind: "approval" }>
+/** Every open permission prompt and how it is settled, keyed by its own
+ * transcript entry: two prompts at once are each answered on their row. */
+const pending = shallowReactive(new Map<Approval, (id: string | null) => void>())
 
 function ask(title: string, options: { id: string; label: string; primary?: boolean }[]): Promise<string | null> {
-  const entry: Extract<Entry, { kind: "approval" }> = { kind: "approval", title, options, answered: null }
-  push(entry)
+  push({ kind: "approval", title, options, answered: null })
+  const entry = entries.value[entries.value.length - 1] as Approval
   return new Promise((resolve) => {
-    pendingApproval.value = {
-      resolve: (id) => {
-        entry.answered = id ?? "cancelled"
-        pendingApproval.value = null
-        resolve(id)
-      },
-    }
+    pending.set(toRaw(entry), (id) => {
+      entry.answered = id ?? "cancelled"
+      pending.delete(toRaw(entry))
+      resolve(id)
+    })
   })
 }
 
@@ -395,9 +396,8 @@ const askPermission = async (req: AcpPermissionRequest): Promise<string | null> 
   )
 }
 
-function answer(entry: Extract<Entry, { kind: "approval" }>, id: string | null) {
-  if (entry.answered !== null) return
-  pendingApproval.value?.resolve(id)
+function answer(entry: Approval, id: string | null) {
+  pending.get(toRaw(entry))?.(id)
 }
 
 /* -------------------------------- composer -------------------------------- */
@@ -590,7 +590,7 @@ async function run(text: string) {
 }
 
 function stop() {
-  if (pendingApproval.value) pendingApproval.value.resolve(null)
+  for (const settle of [...pending.values()]) settle(null)
   controller?.abort()
   // Stopping returns queued messages to the editor.
   const queued = followUps.value.splice(0)
@@ -639,7 +639,7 @@ function onKey(e: KeyboardEvent) {
       pickerOpen.value = false
       return
     }
-    if (busy.value || pendingApproval.value) {
+    if (busy.value || pending.size) {
       e.preventDefault()
       stop()
     }

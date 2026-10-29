@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, watch } from "vue"
+import { nextTick, onBeforeUnmount, ref, useId, watch } from "vue"
 import { CONTROL_BUTTON } from "./control"
 import { cn } from "./lib"
 
-let dialogCount = 0
 const props = withDefaults(
   defineProps<{
     open: boolean
@@ -17,7 +16,8 @@ const props = withDefaults(
 const emit = defineEmits<{ close: [] }>()
 const panelRef = ref<HTMLElement | null>(null)
 const closeRef = ref<HTMLButtonElement | null>(null)
-const idBase = `dk-dialog-${dialogCount++}`
+// One id per instance, so two open dialogs never share a label.
+const idBase = `dk-dialog-${useId()}`
 const titleId = `${idBase}-title`
 const descriptionId = `${idBase}-description`
 let previousFocus: HTMLElement | null = null

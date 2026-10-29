@@ -5,6 +5,7 @@
 // `sounds` is the reader's switch, remembered across visits, and nothing
 // plays while it is off.
 import { ref, watch } from "vue"
+import { storage } from "./storage"
 
 export type Cue = "on" | "off" | "tap" | "copy" | "theme" | "fold" | "unfold"
 
@@ -92,24 +93,10 @@ export const CUES: Record<Cue, Voice[]> = {
 
 const KEY = "dither-sounds"
 
-function stored(): boolean {
-  try {
-    return localStorage.getItem(KEY) !== "off"
-  } catch {
-    return true
-  }
-}
-
 /** The reader's switch for interface sounds (on unless they turned it off). */
-export const sounds = ref(stored())
+export const sounds = ref(storage.get(KEY) !== "off")
 
-watch(sounds, (on) => {
-  try {
-    localStorage.setItem(KEY, on ? "on" : "off")
-  } catch {
-    // storage blocked: the switch still holds for this visit
-  }
-})
+watch(sounds, (on) => storage.set(KEY, on ? "on" : "off"))
 
 let ctx: AudioContext | null = null
 

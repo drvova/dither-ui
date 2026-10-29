@@ -1,4 +1,5 @@
 import { onMounted, ref } from "vue"
+import { storage } from "./storage"
 
 const STORAGE_KEY = "dither-theme"
 
@@ -33,7 +34,7 @@ function withoutTransitions(fn: () => void) {
 export function useTheme() {
   const dark = ref(true)
   const apply = () => document.documentElement.classList.toggle("dark", dark.value)
-  const persist = () => localStorage.setItem(STORAGE_KEY, dark.value ? "dark" : "light")
+  const persist = () => storage.set(STORAGE_KEY, dark.value ? "dark" : "light")
 
   const toggle = () =>
     withoutTransitions(() => {
@@ -67,7 +68,7 @@ export function useTheme() {
   }
 
   onMounted(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = storage.get(STORAGE_KEY)
     if (stored) dark.value = stored === "dark"
     apply()
   })

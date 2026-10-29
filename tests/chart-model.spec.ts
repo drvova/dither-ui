@@ -93,8 +93,8 @@ describe("chartCode", () => {
     c.series[0].variant = { ramp: 0.3, hatch: 6 }
     const code = chartCode(c)
     expect(code).toContain(':easing="[0.4, 0.68, 0.3, 1]"')
-    expect(code).toContain(':bloom="{ blur: 12, brightness: 1.35, opacity: 0.4, saturate: 1.4 }"')
-    expect(code).toContain(':variant="{ ramp: 0.3, hatch: 6 }"')
+    expect(code).toContain(":bloom='{ blur: 12, brightness: 1.35, opacity: 0.4, saturate: 1.4 }'")
+    expect(code).toContain(":variant='{ ramp: 0.3, hatch: 6 }'")
   })
   it("markers render as children with imports", () => {
     const c = createChart("area")

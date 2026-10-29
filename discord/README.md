@@ -48,12 +48,15 @@ DISCORD_PUBLIC_KEY=<hex> PUBLIC_BASE=https://<host> node discord/service.mjs
 
 ## Routes
 
-- `POST /interactions` — the Discord webhook (Ed25519-verified). Handles
+- `POST /interactions` — the Discord webhook (Ed25519-verified; a body
+  over 64 KB is refused unread, a body that is not JSON gets 400). Handles
   `PING`, the `component` slash command (type 4 + IsComponentsV2), and
   button clicks (type 7, message updated in place).
 - `GET /preview/:id/:seed/:inv.gif` — on-demand share card re-render, its
   whole loop (playwright over `dist/og/index.html`'s `window.og.files`,
-  memory-cached, 24h browser-cache headers).
+  memory-cached, 24h browser-cache headers). A seed is up to nine digits
+  and an invert 0 or 1, read the same way as a button's custom id; renders
+  run one at a time on one page, and past eight waiting a request gets 503.
 - `GET /health`.
 
 ## Components V2 layout

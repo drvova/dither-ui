@@ -33,7 +33,10 @@ export const rgb = ([r, g, b]: Rgb, k = 1, a = 1) =>
 
 export const seedOfColor = (color: DitherColor): Seed => PALETTE[color]
 
-export const isDitherColor = (value: unknown): value is DitherColor => typeof value === "string" && value in PALETTE
+/** A preset name: an own key of the palette, so "constructor" or
+ * "toString" (which `in` would let through) are never a colour. */
+export const isDitherColor = (value: unknown): value is DitherColor =>
+  typeof value === "string" && Object.prototype.hasOwnProperty.call(PALETTE, value)
 
 // Arbitrary-hue support so a series can be any colour, not just the 7 presets.
 // Local HSL→RGB (mirrors pixel.hueFill) to avoid a palette→pixel import cycle.
