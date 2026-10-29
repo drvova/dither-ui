@@ -112,21 +112,27 @@ Default section order:
   removing the custom domain and using the GitHub Pages project URL; that
   deploy skips the prerender (its server serves `dist` at `/`) and ships
   the shell.
-- Assets: `public/faces.webp` is the measured portrait/emote band;
-  `public/sprites.webp` is the broader character sheet. `public/emotes/`
-  holds alpha-keyed per-sprite crops of that band (six faces + six emotes,
-  measured coordinates in `LandingPage.vue` FACES) — regenerate from the
-  sheet, don't hand-draw. They decorate the README; the landing still
-  blits from the sheet directly. The README's screenshots live in
+- Assets: `public/faces.webp` is the measured portrait/emote band (rows
+  766..900 of the source sheet, transparency baked in; the Studio's image
+  widget defaults to it); `public/sprites.webp` is the broader character
+  sheet. `public/emotes/` holds alpha-keyed per-sprite crops of that band,
+  measured in the browser, never eyeballed: the faces at y 0, 126 tall,
+  x/width 29/97, 147/97, 262/95, 378/98, 497/96, 832/94; their emotes
+  x,y,w,h 1503,25,51,49; 1273,27,42,38; 1270,92,36,41; 1529,98,25,27;
+  1458,24,20,47; 1334,23,40,40. Regenerate from the sheet, don't
+  hand-draw. They decorate the README. The README's screenshots live in
   `.github/readme/` (WebP, never shipped with the site), taken from a
   production build: retake the one whose page changes.
 - Landing surfaces: everything that moves on the landing is the kit
   itself (the user's call after the trailer: show the real components,
-  hands on, never drawings of them). The hero is a stage touring real
-  components (`HeroStage.vue`); the sections hold live kit charts, a
-  keyframed `DitherStage`, a bento of live examples, the screens an
-  agent's asks make from kit parts and a kit background. No
-  film player or animation runtime ships with the page. The trailer
+  hands on, never drawings of them). Our own hero (the statement beside a
+  stage touring real components, seated in a form of the kit's liquid
+  chrome), then sections under a title with a lead beside it: a bento of
+  live components,
+  the screen an agent's ask makes, what's inside (the kit, the Studio, the
+  bridge, the docs' families), a centred install, and link columns over
+  the engraved wordmark. No film player or animation runtime ships with
+  the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
   hero's "Watch the film" key and is fetched only when its dialog opens.
   Details in `src/pages/AGENTS.md`.
@@ -331,13 +337,18 @@ Default section order:
   (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
   (npm, pnpm, Bun, Node, Vue, Svelte, GitHub, each coding agent) from
   `src/shared/ui/marks.ts`, one-colour beside their names, never
-  restyled. The user's 2000s oakley.com reference lends the landing its
-  STRUCTURE (dense panels in columns, lists under a mark) and the dither
-  winners on Awwwards its SCALE (full-bleed art bands, display-size
-  type), filled with the kit itself, never a reference site's assets,
-  marks or names. The user lifted chrome and gloss, cut corners, and caps
-  and slants for spec labels for the new look; still rejected: red, the
-  nodecode grid, the calm single column (details in `src/pages/AGENTS.md`).
+  restyled. Under its own hero the landing keeps the page layout the
+  user picked from a reference (sections in the order and anatomy
+  `src/pages/AGENTS.md` sets), never a reference's hero, and the dither
+  winners on Awwwards lend the SCALE (full-bleed art, display-size type);
+  the page is filled with the kit itself and our own copy, never a
+  reference site's assets, marks, names or words. Reference sites stay
+  UNNAMED in everything that ships or is public: code, docs, commit
+  messages and pull requests (the user's call); describe the layout
+  itself instead. The user
+  lifted chrome and gloss, cut corners, and caps and slants for spec
+  labels for the new look; still rejected: red, the
+  nodecode grid (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
   tables, variant galleries) while keeping the dither skin; every preview
   carries Kobra's workbench and more (Inspect: the inspect and annotate

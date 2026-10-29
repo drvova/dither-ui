@@ -9,7 +9,7 @@
   <img src="public/emotes/emote-dots.webp" alt="" width="51" height="49">
 </p>
 
-![dither-ui: copy one folder, every pixel is yours, over the kit's dithered light rays](.github/readme/banner.webp)
+![dither-ui: a dithered UI toolkit for Vue, the statement beside a live component stage seated in liquid chrome](.github/readme/banner.webp)
 
 <p align="center">
   <img src="public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
@@ -28,7 +28,7 @@ component, and a Studio your coding agent can drive.
 
 Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dither-ui.com/docs) and the [Studio](https://dither-ui.com/studio).
 
-![The dither-ui landing: the statement and the kit's numbers beside the component stage](.github/readme/landing.webp)
+![The dither-ui landing: a bento of live kit components under "Every component, live."](.github/readme/landing.webp)
 
 The kit is copy-in, shadcn-style: it lives in `dither-kit/` with no imports from
 the app, so you copy the folder into your project and own every line. It is one
@@ -119,20 +119,21 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 ### Landing
 
 A full-bleed hero: the statement, the keys and the kit's numbers beside a
-stage that tours real components, each one live with the controls its docs
-demo has: a dithered chart you reseed, a GLSL shader, one snippet written as
-StyleX, CSS Modules, CSS or Tailwind beside the card it renders, a button, a
-slide and a ferrofluid. "Watch the film" opens the trailer. Everything else on
-the page is the kit too:
+stage that tours real components, seated in a form of the kit's liquid
+chrome, each one live with the controls its docs demo has: a dithered chart
+you reseed, a GLSL shader, one snippet written as StyleX, CSS Modules, CSS or
+Tailwind beside the card it renders, a button, a slide and a ferrofluid.
+"Watch the film" opens the trailer. Everything else on the page is the kit too:
 
-- the install bar, under the marks of npm, pnpm and Bun;
-- live kit panels: buttons, controls, a 3D model, a chart and a keyframed stage;
-- a directory of all 302 docs sections, beside a bar chart of the families that
-  picks their shelf;
-- six principles that light up as you scroll;
-- how to hand the Studio to your own coding agent, each harness under its
-  own mark, beside the screen an ask makes;
-- a closing band under the kit's light rays.
+- a bento of live components, each leading into its docs section: a 3D model
+  you re-roll and recolour, a rating, a stat card, a bar chart, meta balls,
+  sliders, a pie, avatars, silk, decrypted text, progress, a radar and a hold
+  action;
+- the screen an agent's ask makes in the Studio, ask by ask;
+- what's inside: the kit, the Studio and the agent bridge, each harness under
+  its own mark, and the docs family by family;
+- the install, under the marks of npm, pnpm and Bun, with a key that copies a
+  prompt for your coding agent, and what lands in your repo.
 
 ### Docs
 

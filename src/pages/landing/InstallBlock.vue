@@ -4,14 +4,13 @@ import { DitherClipboard, DitherIcon } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { RUNTIME_DEPS } from "./facts"
 
-// The install strip: step picker (the site's segmented aria-pressed
-// toggles, each under its mark: the kit's folder glyph, then npm, pnpm and
-// Bun's own), the command (ember prompt, one line) and copy, whose success is
-// one gesture in CSS: the command shows selected while the key, ringed,
-// rolls to "Copied" under a check; both let go together when the copy
-// settles, the selection stepping out like the films' pixel fade. The
-// steps under the frame, each under its glyph, advance (copy done, paste
-// now). The announcement is DitherClipboard's own live region.
+// The command box: its top row the step picker (the
+// site's segmented aria-pressed toggles, each under its mark: the kit's
+// folder glyph, then npm, pnpm and Bun's own) and the copy key, the command
+// under them (the ember prompt, one line). A copy is one gesture in CSS:
+// the command shows selected while the key, ringed, rolls to "Copied" under
+// a check; both let go together when the copy settles. The announcement is
+// DitherClipboard's own live region. Under the box, what lands in the repo.
 const STEPS = [
   { id: "folder", label: "folder", cmd: "npx degit drvova/dither-ui/dither-kit src/dither-kit" },
   { id: "npm", label: "npm", cmd: `npm i ${RUNTIME_DEPS.join(" ")}` },
@@ -45,8 +44,6 @@ const LANDS = [
 ] as const
 
 const active = ref(0)
-// Latched on the first successful copy: the next step is pasting it.
-const taken = ref(false)
 const strip = ref<HTMLElement | null>(null)
 const shown = ref(false)
 let io: IntersectionObserver | null = null
@@ -78,30 +75,22 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="strip" class="wrap" :class="shown ? 'in' : ''">
-    <!-- One hairline bar: the step picker on the left, the command, the
-         copy. Phones wrap the picker above. -->
-    <div class="bar">
-      <div role="group" aria-label="Install steps" class="seg track">
-        <button
-          v-for="(s, i) in STEPS"
-          :key="s.id"
-          type="button"
-          :aria-pressed="active === i ? 'true' : 'false'"
-          @click="active = i"
-        >
-          <DitherIcon v-if="s.id === 'folder'" name="Folder" :size="12" :stroke-width="1.5" />
-          <ToolMark v-else :id="s.id" :size="12" />
-          {{ s.label }}
-        </button>
-      </div>
-
-      <div class="frame">
-        <code class="cmd">
-          <span class="prompt" aria-hidden="true">$</span
-          ><span :key="active" class="typed">{{ STEPS[active].cmd }}</span
-          ><span class="caret" aria-hidden="true">▌</span>
-        </code>
-        <DitherClipboard :value="STEPS[active].cmd" @copied="taken = true">
+    <div class="box">
+      <div class="box-top">
+        <div role="group" aria-label="Install steps" class="seg track">
+          <button
+            v-for="(s, i) in STEPS"
+            :key="s.id"
+            type="button"
+            :aria-pressed="active === i ? 'true' : 'false'"
+            @click="active = i"
+          >
+            <DitherIcon v-if="s.id === 'folder'" name="Folder" :size="12" :stroke-width="1.5" />
+            <ToolMark v-else :id="s.id" :size="12" />
+            {{ s.label }}
+          </button>
+        </div>
+        <DitherClipboard :value="STEPS[active].cmd">
           <template #default="{ copied }">
             <button
               type="button"
@@ -120,36 +109,21 @@ onBeforeUnmount(() => {
           </template>
         </DitherClipboard>
       </div>
+      <div class="frame">
+        <code class="cmd">
+          <span class="prompt" aria-hidden="true">$</span
+          ><span :key="active" class="typed">{{ STEPS[active].cmd }}</span
+          ><span class="caret" aria-hidden="true">▌</span>
+        </code>
+      </div>
     </div>
 
-    <div class="under">
-      <ol class="steps" aria-label="What happens next">
-        <li :data-s="taken ? 'done' : 'now'">
-          <span class="sep"><DitherIcon :name="taken ? 'Check' : 'Copy'" :size="11" :stroke-width="1.5" /></span>Copy
-          the command
-        </li>
-        <li :data-s="taken ? 'now' : 'next'">
-          <span class="sep"><DitherIcon name="Terminal" :size="11" :stroke-width="1.5" /></span>Paste it in a terminal
-        </li>
-        <li data-s="next">
-          <span class="sep"><DitherIcon name="Code" :size="11" :stroke-width="1.5" /></span>Import from
-          <code>@dither-kit</code>
-        </li>
-      </ol>
-      <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="src">
-        <ToolMark id="github" :size="13" />Source on GitHub<span class="sr-only"> (opens in a new tab)</span>
-      </a>
-    </div>
-
-    <section class="lands" aria-labelledby="lands-h">
-      <h2 id="lands-h" class="list-h">What lands in your repo</h2>
-      <ul class="lands-list">
-        <li v-for="f in LANDS" :key="f.path">
-          <code class="lands-path"><DitherIcon :name="f.icon" :size="13" :stroke-width="1.5" />{{ f.path }}</code>
-          <p class="lands-p">{{ f.line }}</p>
-        </li>
-      </ul>
-    </section>
+    <ul class="lands-list" aria-label="What lands in your repo">
+      <li v-for="f in LANDS" :key="f.path">
+        <code class="lands-path"><DitherIcon :name="f.icon" :size="13" :stroke-width="1.5" />{{ f.path }}</code>
+        <p class="lands-p">{{ f.line }}</p>
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -157,34 +131,29 @@ onBeforeUnmount(() => {
 .wrap {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 28px;
   min-width: 0;
 }
 
-/* A capsule, as a Y2K device's command strip: the hairline with a gloss
-   on its top edge. */
-.bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 8px 8px 10px;
-  border-radius: 999px;
-  background: var(--shell-ground);
+/* The box: a soft shell on the shell ground (its hairline, a gloss on its
+   top edge), the picker and the copy key on its top row, the command under
+   a hairline. */
+.box {
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--shell-ground), color-mix(in oklab, var(--background) 94%, #a6abb1);
   box-shadow:
     inset 0 0 0 1px var(--line),
     inset 0 1px 0 rgb(255 255 255 / 0.07);
 }
 
-/* Wrapped onto two rows, the capsule eases to a rounded slab. */
-@media (max-width: 639px) {
-  .bar {
-    border-radius: 24px;
-  }
-}
-
-.bar .seg {
-  flex: none;
+.box-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 8px 8px 10px;
 }
 
 /* Command frame: positioned and clipped; the glint lives inside it, so its
@@ -195,12 +164,10 @@ onBeforeUnmount(() => {
   container-type: inline-size;
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex: 1 1 22rem;
   min-width: 0;
-  height: 34px;
-  padding: 0 0 0 6px;
-  border-radius: 999px;
+  height: 52px;
+  padding: 0 18px;
+  box-shadow: inset 0 1px 0 var(--line);
 }
 
 .cmd {
@@ -248,7 +215,7 @@ onBeforeUnmount(() => {
     box-shadow 360ms steps(3, jump-end);
 }
 
-.frame:has(.copy[data-copied="true"]) .typed {
+.box:has(.copy[data-copied="true"]) .typed {
   background-color: color-mix(in oklab, var(--foreground) 16%, transparent);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--foreground) 16%, transparent);
   transition-duration: 0s;
@@ -361,78 +328,6 @@ onBeforeUnmount(() => {
   transform: translateY(-1.3em);
 }
 
-/* Under-row: steps advance on the first copy (done → now → next), source
-   link sits quiet at the right. */
-.under {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 20px;
-  width: 100%;
-  padding: 0 2px;
-}
-
-.steps {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 22px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 12px;
-  color: var(--ink-3);
-}
-
-.steps li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: color 300ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.steps li[data-s="now"] {
-  color: var(--ink);
-}
-
-.steps li[data-s="done"] {
-  color: var(--ink-3);
-}
-
-.steps .sep {
-  display: inline-grid;
-  place-items: center;
-  width: 19px;
-  height: 19px;
-  border-radius: 4px;
-  color: var(--ink-3);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.steps li[data-s="now"] .sep {
-  color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink-3);
-}
-
-.steps code {
-  color: var(--ink);
-}
-
-.src {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 24px;
-  font-size: 12px;
-  color: var(--ink-3);
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.src:hover {
-  color: var(--ink);
-}
-
 /* One-shot glint across the command when the strip first shows — clipped
    by the frame, so its parked end state never widens the page. */
 .wrap.in .frame::after {
@@ -458,38 +353,24 @@ onBeforeUnmount(() => {
   }
 }
 
-/* What lands in your repo: four columns split by hairlines (two under
-   1100px, where a path would break, one under 560px), each a mono path under its glyph and a line. */
-.lands {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 8px;
-  padding: 0 2px;
-}
-
+/* What lands in your repo: four columns, each under its own hairline (two
+   under 1100px, where a path would break, one under 560px), a mono path
+   under its glyph and a line. */
 .lands-list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0 32px;
   margin: 0;
   padding: 0;
   list-style: none;
-  box-shadow: inset 0 1px 0 var(--line);
 }
 
 .lands-list li {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px 18px 4px;
-}
-
-.lands-list li:first-child {
-  padding-left: 0;
-}
-
-.lands-list li + li {
-  box-shadow: inset 1px 0 0 var(--line);
+  padding: 16px 0 8px;
+  box-shadow: inset 0 1px 0 var(--line);
 }
 
 .lands-path {
@@ -517,33 +398,16 @@ onBeforeUnmount(() => {
   .lands-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .lands-list li:nth-child(odd) {
-    padding-left: 0;
-    box-shadow: none;
-  }
-  .lands-list li:nth-child(n + 3) {
-    border-top: 1px solid var(--line);
-  }
 }
 
 @media (max-width: 559px) {
   .lands-list {
     grid-template-columns: minmax(0, 1fr);
   }
-  .lands-list li,
-  .lands-list li + li {
-    padding-left: 0;
-    padding-right: 0;
-    box-shadow: none;
-  }
-  .lands-list li + li {
-    border-top: 1px solid var(--line);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .roll > span,
-  .steps li,
   .swap-a,
   .swap-b,
   .typed {

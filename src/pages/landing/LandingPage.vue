@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue"
-import { DitherClipboard, DitherIcon, DitherLightRays } from "@dither-kit"
+// The landing: the hero (the statement beside the stage seated in liquid
+// chrome), then sections under a title with a lead beside it: a bento of
+// live kit components, the screen an agent's ask makes, what's inside (the kit, the Studio, the bridge; the
+// docs' families), the install, and a footer of link columns over the
+// engraved wordmark. Its look is the site's own (the Y2K materials,
+// Michroma for display, mono for the rest); everything that moves is the kit.
+import { onMounted, ref } from "vue"
+import { DitherClipboard, DitherIcon } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import "@/shared/fonts/display.css"
@@ -9,15 +15,33 @@ import { version } from "../../../package.json"
 import AgentAsks from "./AgentAsks.vue"
 import { ASKS } from "./asks"
 import EngravedWordmark from "./EngravedWordmark.vue"
-import EssayFigure from "./EssayFigure.vue"
-import Hub from "./Hub.vue"
-import PauseChip from "./PauseChip.vue"
+import Examples from "./Examples.vue"
+import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
+import InstallBlock from "./InstallBlock.vue"
 import PixelWord from "./PixelWord.vue"
 import Showcase from "./Showcase.vue"
-import { createPixelShake, type PixelShake } from "./pixel-shake"
+
+// What "Copy agent prompt" puts on the clipboard: the skill to read and the
+// install to run, pointed at wherever this page is served from.
+const prompt = ref("")
+onMounted(() => {
+  // The landing is always-dark art. A light theme toggled on docs/studio
+  // persists on <html> and this is one SPA, so dark is re-asserted here;
+  // storage keeps the user's choice and docs/studio re-read it on mount.
+  document.documentElement.classList.add("dark")
+  prompt.value = [
+    `Read ${location.origin}${assetPath("/agent/SKILL.md")} and add dither-ui to this project:`,
+    "copy the kit with `npx degit drvova/dither-ui/dither-kit src/dither-kit`,",
+    "install d3-scale, d3-shape, clsx and tailwind-merge, alias @dither-kit to src/dither-kit/tailwind,",
+    "then build what I ask from its components.",
+  ].join(" ")
+})
+
+// The asks the stage shows, picked by the tabs over it.
+const ask = ref(0)
 
 // The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES: ids and
-// names), in its order, each chip under the tool's own mark.
+// names), in its order, each under the tool's own mark.
 const HARNESSES = [
   { id: "claude", name: "Claude Code" },
   { id: "codex", name: "Codex" },
@@ -28,178 +52,55 @@ const HARNESSES = [
   { id: "opencode", name: "OpenCode" },
   { id: "auggie", name: "Auggie" },
 ] as const
-// The bridge: copy its folder, run it (one file, Node 20+). Shown as its
-// two commands, copied as one line.
-const BRIDGE_STEPS = ["npx degit drvova/dither-ui/bridge bridge", "node bridge/dither-bridge.mjs"]
-const BRIDGE = BRIDGE_STEPS.join(" && ")
-// The ask the agents' stage shows, picked under the third step.
-const ask = ref(0)
 
-// The close: the kit's light rays falling over the band. A hand on the
-// keys (the pointer or focus) brightens them.
-const reaching = ref(false)
-const raysPlaying = ref(true)
+// What's inside: the kit, the Studio and the bridge, each a paragraph and
+// the link that leads on.
+const INSIDE = [
+  {
+    title: "The kit",
+    icon: "Grid",
+    text: "Plain source you own: an engine of rasters, palettes and one seekable clock under every component, authored in Tailwind with a StyleX twin generated from it. Charts, controls, text, backgrounds, 3D and GLSL all dither through the same Bayer cells from one seed, pause offscreen and honour reduced motion. A Svelte 5 port ships beside it.",
+    link: { label: "Read the quick start", href: routePath("/docs/getting-started") },
+  },
+  {
+    title: "The Studio",
+    icon: "Layout",
+    text: "An infinite canvas for screens made of kit parts. Lay out charts, controls and whole screens, theme them from the palette, and export each frame as a Vue file, a PNG or an MP4. A reel of frames cuts into a film with its own score.",
+    link: { label: "Open the studio", href: routePath("/studio") },
+  },
+  {
+    title: "The agent bridge",
+    icon: "Bot",
+    text: "A SKILL.md teaches your coding agent to compose Studio documents. The bridge, one Node file, starts the harness you already use as your own signed-in process, so the Studio never asks for a key.",
+    link: { label: "Read the agent skill", href: assetPath("/agent/SKILL.md") },
+  },
+] as const
 
-// The footer's links, in one row.
-const FOOTER = [
-  { label: "Docs", href: routePath("/docs") },
-  { label: "Studio", href: routePath("/studio") },
-  { label: "Quick start", href: routePath("/docs/getting-started") },
-  { label: "Styling", href: routePath("/docs/styling") },
-  { label: "Accessibility", href: routePath("/docs/accessibility") },
-  { label: "Agent skill", href: assetPath("/agent/SKILL.md") },
-  { label: "llms.txt", href: assetPath("/llms.txt") },
-  { label: "GitHub", href: "https://github.com/drvova/dither-ui", external: true },
+// The footer's columns; the docs families carry their size.
+const COLUMNS: { title: string; links: { label: string; href: string; n?: number }[] }[] = [
+  {
+    title: "Get started",
+    links: [
+      { label: "Quick start", href: routePath("/docs/getting-started") },
+      { label: "Styling", href: routePath("/docs/styling") },
+      { label: "Seeds", href: routePath("/docs/seeds") },
+      { label: "Accessibility", href: routePath("/docs/accessibility") },
+    ],
+  },
+  {
+    title: "Docs",
+    links: DOCS_FAMILIES.map((f) => ({ label: f.label, href: routePath(`/docs/${f.first}`), n: f.count })),
+  },
+  {
+    title: "For agents",
+    links: [
+      { label: "SKILL.md", href: assetPath("/agent/SKILL.md") },
+      { label: "llms.txt", href: assetPath("/llms.txt") },
+      { label: "Registry", href: assetPath("/agent/registry.json") },
+      { label: "Studio", href: routePath("/studio") },
+    ],
+  },
 ]
-
-// Portraits + their reaction emotes, cropped from faces.webp — a thin band
-// sliced out of the source sheet (rows 766..900) so the landing loads ~70KB
-// instead of the full 2MB sheet. Y boxes are relative to the band (source − 766).
-const FACE_Y = 0
-const FACE_H = 126
-const FACES = [
-  { x: 29, w: 97, emote: { x: 1503, y: 25, w: 51, h: 49 } }, // neutral → …
-  { x: 147, w: 97, emote: { x: 1273, y: 27, w: 42, h: 38 } }, // smile → heart
-  { x: 262, w: 95, emote: { x: 1270, y: 92, w: 36, h: 41 } }, // blush → sparkles
-  { x: 378, w: 98, emote: { x: 1529, y: 98, w: 25, h: 27 } }, // wink → note
-  { x: 497, w: 96, emote: { x: 1458, y: 24, w: 20, h: 47 } }, // surprised → !
-  { x: 832, w: 94, emote: { x: 1334, y: 23, w: 40, h: 40 } }, // excited → star
-]
-
-const faceEls = ref<HTMLCanvasElement[]>([])
-const emoteEls = ref<HTMLCanvasElement[]>([])
-// Each portrait is a pixel-shake surface: hovering her scatters the pixels
-// under the cursor and they spring home when it leaves (vanilla module,
-// no loop at rest). Emotes stay plain blits.
-let shakers: PixelShake[] = []
-
-function blit(c: HTMLCanvasElement, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 3)
-  c.width = Math.round(w * dpr)
-  c.height = Math.round(h * dpr)
-  c.getContext("2d")?.drawImage(img, x, y, w, h, 0, 0, c.width, c.height)
-}
-
-// The principles: six statements read as one, each a link into the docs
-// that covers it. Their words light as they rise through the viewport (CSS
-// scroll timelines, `--p` = the word's place in its line), and the
-// statement crossing the viewport's middle — or the one pointed at, by
-// hover or focus — re-dithers the figure into its scene.
-const PRINCIPLES = [
-  { text: "Every pixel is placed on purpose.", href: routePath("/docs") },
-  {
-    text: "Each component draws its own pixels, so a chart and a button share one texture.",
-    href: routePath("/docs/area"),
-  },
-  {
-    text: "Seven hues in one palette. Fills, lines and sparkles all resolve from it.",
-    href: routePath("/docs/palette"),
-  },
-  {
-    text: "A seed replays a fill exactly, forever. An explicit prop always wins over it.",
-    href: routePath("/docs/seeds"),
-  },
-  {
-    text: "Layout, motion, text effects and 3D share one ordered-dither engine.",
-    href: routePath("/docs/composition"),
-  },
-  {
-    text: "Copy the folder and alias it. No package to update, no code you cannot read.",
-    href: routePath("/docs/getting-started"),
-  },
-].map((p) => {
-  const words = p.text.split(" ")
-  return { ...p, words: words.map((w, i) => ({ w, p: words.length > 1 ? i / (words.length - 1) : 0 })) }
-})
-const principle = ref(0)
-const principleEls = ref<HTMLElement[]>([])
-const stageFig = ref<HTMLElement | null>(null)
-let stageIO: IntersectionObserver | null = null
-let phone: MediaQueryList | null = null
-
-// The stage is the statement where the figure is. On a wide screen the
-// figure sits at the viewport's middle, so it is the statement crossing
-// the middle (a zero-height root line). On a phone the figure is a strip
-// pinned to the top, so it is the statement sitting just under the strip:
-// the topmost one at least half inside a band from the strip's foot to
-// the middle. No scroll listener; the observer is made again when the
-// layout flips.
-function observeStage() {
-  stageIO?.disconnect()
-  stageIO = null
-  if (typeof IntersectionObserver === "undefined") return
-  const narrow = phone?.matches ?? false
-  const foot = narrow ? Math.ceil(stageFig.value?.getBoundingClientRect().height ?? 0) : 0
-  const inBand = new Set<number>()
-  stageIO = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) {
-        const i = principleEls.value.indexOf(e.target as HTMLElement)
-        if (i < 0) continue
-        if (narrow ? e.intersectionRatio >= 0.5 : e.isIntersecting) inBand.add(i)
-        else inBand.delete(i)
-      }
-      if (inBand.size) principle.value = Math.min(...inBand)
-    },
-    narrow ? { rootMargin: `-${foot}px 0px -50% 0px`, threshold: [0, 0.5, 1] } : { rootMargin: "-50% 0px -50% 0px" },
-  )
-  for (const el of principleEls.value) stageIO.observe(el)
-}
-let facesIO: IntersectionObserver | null = null
-
-onMounted(() => {
-  // The landing is always-dark art (the stage, the wells and the organism
-  // are ink). A light theme toggled on docs/studio persists on <html> and this is
-  // one SPA — without re-asserting dark here, token text flips to near-black
-  // over the hardcoded ink (measured 1.02:1 on the h1). Storage keeps the
-  // user's choice; docs/studio re-read it on their own mount.
-  document.documentElement.classList.add("dark")
-
-  // The portraits sit far below the fold, so their sheet waits until they
-  // are within a screen: it never counts toward the page's `load`.
-  const loadFaces = () => {
-    const img = new Image()
-    img.src = assetPath("/faces.webp")
-    img.onload = () => {
-      FACES.forEach((f, i) => {
-        const face = faceEls.value[i]
-        const emote = emoteEls.value[i]
-        if (face)
-          shakers.push(
-            createPixelShake(face, img, { x: f.x, y: FACE_Y, w: f.w, h: FACE_H }, { radius: 18, amplitude: 6 }),
-          )
-        if (emote) blit(emote, img, f.emote.x, f.emote.y, f.emote.w, f.emote.h)
-      })
-    }
-  }
-  const firstFace = faceEls.value[0]
-  if (typeof IntersectionObserver === "undefined" || !firstFace) loadFaces()
-  else {
-    facesIO = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return
-        facesIO?.disconnect()
-        facesIO = null
-        loadFaces()
-      },
-      { rootMargin: "100% 0px" },
-    )
-    facesIO.observe(firstFace)
-  }
-
-  phone = window.matchMedia("(max-width: 759px)")
-  phone.addEventListener("change", observeStage)
-  observeStage()
-})
-
-onBeforeUnmount(() => {
-  phone?.removeEventListener("change", observeStage)
-  stageIO?.disconnect()
-  stageIO = null
-  facesIO?.disconnect()
-  for (const sh of shakers) sh.destroy()
-  shakers = []
-})
 </script>
 
 <template>
@@ -234,9 +135,9 @@ onBeforeUnmount(() => {
           dither-ui
         </a>
         <nav class="flex items-center text-muted-foreground" aria-label="Site">
-          <a href="#directory" class="nav-a hidden sm:inline-flex">Components</a>
+          <a href="#examples" class="nav-a hidden sm:inline-flex">Components</a>
           <a :href="routePath('/docs')" class="nav-a">Docs</a>
-          <a href="#agents" class="nav-a hidden sm:inline-flex">Agents</a>
+          <a href="#ask" class="nav-a hidden sm:inline-flex">Agents</a>
           <a
             href="https://github.com/drvova/dither-ui"
             target="_blank"
@@ -250,219 +151,132 @@ onBeforeUnmount(() => {
     </header>
 
     <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
-      <!-- The portal: the full-bleed hero band (the stage), the statement,
-           the install bar and the panel columns, with six moods in the
-           portraits' well: hover a face, her pixels scatter under the
-           cursor and settle, and her emote answers. Then, on the shell, the
-           directory, the principles and the agents. -->
-      <Showcase>
-        <template #faces>
-          <div
-            role="img"
-            aria-label="Pixel-art character portraits in six expressions. Hover a portrait: her pixels stir under the cursor and her reaction emote answers."
-            class="grid grid-cols-3 gap-x-5"
-          >
-            <div v-for="(f, i) in FACES" :key="i" class="group relative flex justify-center pt-6">
-              <!-- CSS size reserves layout (no CLS); blit paints the backing store at
-                     device resolution so the portrait stays sharp on hi-DPI / 4K -->
-              <canvas
-                :ref="
-                  (el) => {
-                    if (el) faceEls[i] = el as HTMLCanvasElement
-                  }
-                "
-                :style="{ width: `${f.w}px`, height: `${FACE_H}px` }"
-              />
-              <canvas
-                :ref="
-                  (el) => {
-                    if (el) emoteEls[i] = el as HTMLCanvasElement
-                  }
-                "
-                class="emote absolute top-0 left-1/2"
-                :style="{ width: `${f.emote.w}px`, height: `${f.emote.h}px` }"
-              />
-            </div>
-          </div>
-        </template>
-      </Showcase>
-      <div class="box mx-auto w-full max-w-[var(--shell)] px-6">
-        <Hub />
+      <!-- The hero, our own: the statement beside the stage, seated in
+           the kit's liquid chrome. -->
+      <Showcase />
 
-        <!-- The principles: the figure in a sticky well (a 24x24 lattice
-             that re-dithers itself into the staged statement's scene)
-             beside six numbered statements at a large size, each a link
-             into its docs, their words lighting as they rise. -->
-        <section aria-labelledby="principles-h" class="principles">
-          <div class="section-head">
-            <h2 id="principles-h" class="section-title chrome-type">One rule under every pixel.</h2>
-            <div class="head-side">
-              <ul class="tags" aria-label="Built on">
-                <li class="speed-tag">Bayer 4x4</li>
-                <li class="speed-tag">7 seed hues</li>
-                <li class="speed-tag">One engine</li>
-              </ul>
-              <a :href="routePath('/docs/getting-started')" class="more-link">Read the quick start</a>
-            </div>
-          </div>
-          <div class="hardshell principles-body">
-            <div ref="stageFig" class="gel principles-fig"><EssayFigure :stage="principle" /></div>
-            <ol class="principles-list">
-              <li v-for="(p, i) in PRINCIPLES" :key="p.href">
-                <a
-                  :ref="
-                    (el) => {
-                      if (el) principleEls[i] = el as HTMLElement
-                    }
-                  "
-                  :href="p.href"
-                  class="principle"
-                  :data-active="principle === i ? 'true' : undefined"
-                  @mouseenter="principle = i"
-                  @focus="principle = i"
-                >
-                  <span class="principle-n" aria-hidden="true">{{ String(i + 1).padStart(2, "0") }}</span>
-                  <span class="principle-t"
-                    ><template v-for="(w, j) in p.words" :key="j"
-                      ><span class="w" :style="{ '--p': w.p }">{{ w.w }}</span
-                      >{{ j < p.words.length - 1 ? " " : "" }}</template
-                    ></span
-                  >
-                </a>
-              </li>
-            </ol>
-          </div>
-        </section>
+      <div class="page">
+        <Examples />
 
-        <!-- The agents: how to hand the Studio to the agent you already use
-             (three steps, each under its glyph: the bridge's command to
-             copy under Node's mark, the harnesses it knows as hairline
-             chips under their own marks, the ask) beside the screen it makes.
-             Each harness runs as the user's own signed-in process. -->
-        <section id="agents" class="agents" aria-labelledby="harness-h">
-          <div class="section-head">
-            <h2 id="harness-h" class="section-title chrome-type">Your own agent drives the Studio.</h2>
-            <div class="head-side">
-              <ul class="tags" aria-label="Works with">
-                <li class="speed-tag">{{ HARNESSES.length }} harnesses</li>
-                <li class="speed-tag">ACP</li>
-                <li class="speed-tag">No keys</li>
-              </ul>
+        <!-- Ask: the screen an agent's ask makes, picked by the tabs. -->
+        <section id="ask" aria-labelledby="ask-h" class="sec">
+          <div class="sec-head">
+            <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
+            <div class="sec-side">
+              <p class="sec-lede">
+                The agent skill teaches your harness the Studio's tools, so one sentence is enough. Every tool call
+                lands on the canvas as a frame of kit parts, and undo takes it back.
+              </p>
               <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
             </div>
           </div>
-          <div class="hardshell harness-panel">
-            <ol class="agent-steps">
-              <li>
-                <span class="step-i"><ToolMark id="node" :size="14" /></span>
-                <div class="step-b">
-                  <p class="step-t">Run the bridge on your machine: one Node file, no dependencies.</p>
-                  <div class="bridge">
-                    <code class="bridge-cmd"
-                      ><span>{{ BRIDGE_STEPS[0] }} &&</span><span>{{ BRIDGE_STEPS[1] }}</span></code
-                    >
-                    <DitherClipboard :value="BRIDGE">
-                      <template #default="{ copied }">
-                        <button type="button" class="bridge-copy" :aria-label="copied ? 'Copied' : 'Copy the command'">
-                          <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="13" :stroke-width="1.5" />
-                        </button>
-                      </template>
-                    </DitherClipboard>
-                  </div>
-                </div>
-              </li>
-              <li>
-                <span class="step-i"><DitherIcon name="Bot" :size="14" :stroke-width="1.5" /></span>
-                <div class="step-b">
-                  <p class="step-t">
-                    Open the Studio's Agent panel and pick your harness. It lists the ones on your PATH.
-                  </p>
-                  <ul class="harness" aria-label="Harnesses the bridge starts">
-                    <li v-for="h in HARNESSES" :key="h.id" class="harness-chip">
-                      <ToolMark :id="h.id" :size="13" />{{ h.name }}
-                    </li>
-                  </ul>
-                </div>
-              </li>
-              <li>
-                <span class="step-i"><DitherIcon name="Sparkles" :size="14" :stroke-width="1.5" /></span>
-                <div class="step-b">
-                  <p class="step-t">Ask for a screen. Each tool call lands on the canvas, and undo takes it back.</p>
-                  <div class="seg track ask-pick" role="group" aria-label="Asks" aria-controls="agent-ask">
-                    <button v-for="(a, i) in ASKS" :key="a.id" type="button" :aria-pressed="ask === i" @click="ask = i">
-                      {{ a.label }}
-                    </button>
-                  </div>
-                </div>
-              </li>
-            </ol>
-            <div class="harness-side">
-              <AgentAsks :at="ask" />
+          <div class="seg track ask-pick" role="group" aria-label="Asks" aria-controls="agent-ask">
+            <button v-for="(a, i) in ASKS" :key="a.id" type="button" :aria-pressed="ask === i" @click="ask = i">
+              {{ a.label }}
+            </button>
+          </div>
+          <AgentAsks :at="ask" />
+        </section>
+
+        <!-- What's inside: the kit, the Studio, the bridge; then the docs'
+             big families, each with its size and a line. -->
+        <section id="inside" aria-labelledby="inside-h" class="sec">
+          <div class="sec-head">
+            <h2 id="inside-h" class="section-title chrome-type">Three parts, one engine.</h2>
+            <div class="sec-side">
+              <p class="sec-lede">
+                A toolkit you copy into your repo, a Studio to compose with it, and a bridge that hands the Studio to
+                the coding agent you already use. All of it is code you can read.
+              </p>
             </div>
-            <p class="harness-note">
-              <DitherIcon name="Lock" :size="13" :stroke-width="1.5" class="harness-note-i" />Your harness keeps its own
-              login. The Studio never asks for a key.
-            </p>
+          </div>
+          <ul class="inside">
+            <li v-for="c in INSIDE" :key="c.title">
+              <h3 class="inside-h"><DitherIcon :name="c.icon" :size="15" :stroke-width="1.5" />{{ c.title }}</h3>
+              <p class="inside-p">{{ c.text }}</p>
+              <ul v-if="c.title === 'The agent bridge'" class="marks" aria-label="Harnesses the bridge starts">
+                <li v-for="h in HARNESSES" :key="h.id"><ToolMark :id="h.id" :size="13" />{{ h.name }}</li>
+              </ul>
+              <a :href="c.link.href" class="more-link">{{ c.link.label }}</a>
+            </li>
+          </ul>
+          <div class="families">
+            <h3 class="families-h">{{ SECTION_COUNT }} docs sections, the five biggest families</h3>
+            <ul class="families-list">
+              <li v-for="f in DOCS_FAMILIES" :key="f.label">
+                <a :href="routePath(`/docs/${f.first}`)" class="family-t"
+                  >{{ f.label }}<span class="family-n">{{ f.count }}</span></a
+                >
+                <p class="family-p">{{ f.note }}</p>
+              </li>
+            </ul>
           </div>
         </section>
-      </div>
 
-      <!-- The close: a full-bleed band, the last line and its keys on the
-           shell, then the kit's light rays across the band. -->
-      <section class="dawn" aria-labelledby="dawn-h">
-        <div class="dawn-in">
-          <h2 id="dawn-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
-          <div
-            class="dawn-keys"
-            @pointerenter="reaching = true"
-            @pointerleave="reaching = false"
-            @focusin="reaching = true"
-            @focusout="reaching = false"
-          >
-            <a :href="routePath('/docs/getting-started')" class="nav-a nav-pill key-chrome">Read the quick start</a>
-            <a :href="routePath('/studio')" class="nav-a nav-pill">Open the studio</a>
+        <!-- The install, centred. -->
+        <section id="install" aria-labelledby="install-h" class="sec install">
+          <div class="install-head">
+            <h2 id="install-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
+            <p class="sec-lede">
+              Copy the kit into your app, add its four packages and import from <code>@dither-kit</code>. Or paste the
+              agent prompt and let your agent do all three.
+            </p>
+            <DitherClipboard :value="prompt">
+              <template #default="{ copied }">
+                <button
+                  type="button"
+                  class="nav-a nav-pill prompt-key"
+                  :aria-label="copied ? 'Agent prompt copied' : undefined"
+                >
+                  <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />{{
+                    copied ? "Copied" : "Copy agent prompt"
+                  }}
+                </button>
+              </template>
+            </DitherClipboard>
           </div>
-        </div>
-        <div class="dawn-art">
-          <DitherLightRays
-            :glow="reaching ? 2.4 : 1.5"
-            :speed="0.3"
-            :frame-rate="12"
-            :paused="!raysPlaying"
-            class="dawn-rays"
-          />
-          <PauseChip v-model="raysPlaying" label="Pause the light" class="dawn-chip" />
-        </div>
-      </section>
+          <InstallBlock />
+          <p class="install-note">
+            On Svelte 5? The same kit ships as <code>dither-kit-svelte</code>, and the
+            <a :href="routePath('/docs/getting-started')" class="lead">quick start</a> has its steps.
+          </p>
+        </section>
+      </div>
     </main>
 
-    <!-- Footer: the wordmark and framework badges left, bar-separated
-         links right, the copyright line under, then the engraved mark. -->
-    <footer class="foot-wrap">
-      <div class="mx-auto w-full max-w-[var(--shell)] px-6 pt-8 pb-6">
-        <div class="foot-row">
-          <div class="foot-left">
-            <PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" class="text-foreground" />
+    <!-- Footer: the pixel wordmark, the framework badges and a line beside
+         three link columns, the copyright line, then the engraved mark. -->
+    <footer class="foot">
+      <div class="foot-in">
+        <div class="foot-brand">
+          <a :href="routePath('/')" class="foot-name"
+            ><PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" decorative /><span class="sr-only">dither-ui</span></a
+          >
+          <p class="foot-badges">
             <span class="foot-badge"><ToolMark id="vue" :size="11" />Vue 3</span>
             <span class="foot-badge"><ToolMark id="svelte" :size="11" />Svelte 5</span>
-          </div>
-          <nav class="foot-links" aria-label="Footer">
-            <a
-              v-for="l in FOOTER"
-              :key="l.label"
-              :href="l.href"
-              v-bind="l.external ? { target: '_blank', rel: 'noreferrer' } : {}"
-              >{{ l.label }}<span v-if="l.external" class="sr-only"> (opens in a new tab)</span></a
-            >
-          </nav>
+          </p>
+          <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
+          <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
+            ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
+          >
         </div>
-        <p class="foot-copy">
-          <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
-          <span>v{{ version }}</span>
-          <span>MIT license</span>
-        </p>
+        <nav v-for="col in COLUMNS" :key="col.title" class="foot-col" :aria-label="col.title">
+          <h2 class="foot-h">{{ col.title }}</h2>
+          <a v-for="l in col.links" :key="l.label" :href="l.href"
+            >{{ l.label
+            }}<span v-if="l.n" class="foot-n"
+              ><span class="sr-only">, </span>{{ l.n }}<span class="sr-only"> sections</span></span
+            ></a
+          >
+        </nav>
       </div>
-      <div aria-hidden="true" class="foot-mark mx-auto px-6 pb-10">
+      <p class="foot-copy">
+        <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
+        <span>v{{ version }}</span>
+        <span>MIT license</span>
+      </p>
+      <div aria-hidden="true" class="foot-mark">
         <EngravedWordmark />
       </div>
     </footer>
@@ -470,24 +284,16 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* One shell for the header, the portal and the footer — the docs' own
-   width, so the brand never jumps between pages — and one rhythm between
-   the portal's rows. The page is the theme's own background. */
+/* One wide page width for the hero, the sections and the footer, one
+   rhythm between sections. The page is the theme's own
+   background. */
 .landing {
-  --shell: 72rem;
+  --page: 80rem;
   --rhythm: 40px;
 }
 
-.box {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--rhythm) * 1.5);
-  padding-top: calc(var(--rhythm) * 1.5);
-  padding-bottom: calc(var(--rhythm) * 1.5);
-}
-
-/* The header: a capsule (the site voice's glass) floating on the page,
-   centred on the shell. */
+/* The header: a capsule (the site voice's smoked polymer) floating on the
+   page, centred. */
 .site-head {
   padding: 8px 16px;
 }
@@ -508,27 +314,224 @@ onBeforeUnmount(() => {
   padding-inline: 16px;
 }
 
-/* The footer: the wordmark and framework badges left, bar-separated links
-   right, the copyright line under it. */
-.foot-wrap {
+/* The sections, on the page width with the rhythm between them. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--rhythm) * 3.5);
+  width: min(100%, var(--page));
+  margin-inline: auto;
+  padding: calc(var(--rhythm) * 2) 24px calc(var(--rhythm) * 3);
+}
+
+.sec {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.ask-pick {
+  align-self: flex-start;
+}
+
+/* What's inside: three columns, each under its own hairline. */
+.inside {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inside > li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding-top: 22px;
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.inside-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.inside-h :deep(svg) {
+  color: var(--signal);
+}
+
+.inside-p {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+
+.marks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* The families: five columns, each under its hairline: the name and its
+   size (the docs link), a line. */
+.families {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.families-h {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.families-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.families-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 18px;
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+.family-t {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 24px;
+  font-size: 13px;
+  color: var(--ink);
+  transition: color 150ms var(--ease-settle);
+}
+
+.family-t:hover {
+  color: var(--signal);
+}
+
+.family-n {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.family-p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+/* The install: its head centred, the box and what lands under it. */
+.install {
+  width: min(100%, 64rem);
+  margin-inline: auto;
+}
+
+.install-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.install-head .section-title {
+  max-width: none;
+}
+
+.install-head .sec-lede {
+  max-width: 34rem;
+}
+
+.prompt-key {
+  height: 36px;
+  padding-inline: 16px;
+}
+
+.install-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--ink-3);
+}
+
+.landing code {
+  color: var(--ink);
+}
+
+/* The footer: the brand (the pixel wordmark, the framework badges, a line,
+   GitHub) beside three link columns, the copyright line, the engraved
+   wordmark under all. Three columns under the brand under 900px, two
+   under 640px. */
+.foot {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   box-shadow: inset 0 1px 0 color-mix(in oklab, var(--border) 70%, transparent);
 }
 
-.foot-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px 24px;
+.foot-in {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  width: 100%;
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: 48px 1.5rem 24px;
 }
 
-.foot-left {
+.foot-brand {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.foot-name {
+  display: inline-flex;
+  min-height: 24px;
   align-items: center;
-  gap: 10px;
+  color: var(--ink);
+}
+
+.foot-badges {
+  display: flex;
+  gap: 6px;
+  margin: 0;
 }
 
 .foot-badge {
@@ -544,458 +547,118 @@ onBeforeUnmount(() => {
     inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
-/* The links' padding is pulled back so, wrapped under the wordmark, the
-   first one's text starts on the shell's edge. */
-.foot-links {
-  display: flex;
-  flex-wrap: wrap;
-  margin-left: -10px;
+.foot-line {
+  max-width: 22rem;
+  margin: 0;
   font-size: 12px;
+  line-height: 1.6;
   color: var(--ink-3);
 }
 
-.foot-links a {
+.foot-gh {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  font-size: 12px;
+  color: var(--ink-3);
+  transition: color 150ms var(--ease-settle);
+}
+
+.foot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.foot-h {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.foot-col a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
   min-height: 28px;
-  padding: 0 10px;
-  box-shadow: inset -1px 0 0 var(--line);
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding-top: 6px;
+  color: var(--ink-3);
+  transition: color 150ms var(--ease-settle);
 }
 
-.foot-links a:last-child {
-  padding-right: 0;
-  box-shadow: none;
+.foot-n {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
 }
 
-.foot-links a:hover,
-.foot-copy a:hover {
+.foot-col a:hover,
+.foot-gh:hover {
   color: var(--ink);
 }
 
 .foot-copy {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
   gap: 4px 18px;
-  margin: 10px 0 0;
+  width: 100%;
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 0 1.5rem;
   font-size: 11px;
   color: var(--ink-3);
 }
 
-/* The engraved mark: centred under the shell on a wide screen, on the
-   shell's own edges on a phone. */
+/* The engraved mark: centred under the page on a wide screen, on the
+   page's own edges on a phone. */
 .foot-mark {
   width: min(90vw, 56rem);
+  margin: 24px auto 0;
+  padding: 0 1.5rem 40px;
 }
 
-/* On a phone the links are a grid on the shell's edge: wrapped bar
-   separators hung off the ends of rows, and the links' padding set them
-   in from everything else. */
-/* Below ~950px the links wrap under the wordmark, so the copyright line
-   leaves the right edge too. */
-@media (max-width: 949px) {
+@media (max-width: 1023px) {
+  .families-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 24px;
+  }
+}
+
+@media (max-width: 899px) {
+  .inside {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 28px;
+  }
+  .foot-in {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .foot-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 639px) {
+  .page {
+    gap: calc(var(--rhythm) * 2.5);
+    padding-inline: 16px;
+  }
+  .families-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .foot-in {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-inline: 16px;
+  }
   .foot-copy {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 759px) {
-  .foot-links {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-    width: 100%;
-    margin-left: 0;
-  }
-  .foot-links a,
-  .foot-links a:last-child {
-    min-height: 32px;
-    padding: 0;
-    box-shadow: none;
+    padding-inline: 16px;
   }
   .foot-mark {
     width: 100%;
-  }
-}
-
-/* The principles: the figure's well, sticky at the viewport's middle,
-   beside six statements at a large size. The staged statement takes an
-   ink index and a hairline rule. */
-.principles,
-.agents {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.principles-body {
-  display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr);
-  gap: 48px;
-  align-items: start;
-  padding: 28px;
-}
-
-.principles-fig {
-  position: sticky;
-  top: calc(50vh - 9.5rem);
-  padding: 14px 14px 10px;
-  container-type: inline-size;
-}
-
-/* On a phone the figure becomes a strip across the panel (its lattice
-   beside its caption, see EssayFigure) pinned to the top of the screen
-   while the statements pass under it, so the staged statement and its
-   scene are always in view together. */
-@media (max-width: 759px) {
-  .principles-body {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-    padding: 0;
-  }
-  .principles-fig {
-    top: 0;
-    z-index: 1;
-    padding: 12px 16px;
-    border-radius: 12px 12px 0 0;
-    box-shadow:
-      inset 0 0 0 1px var(--line),
-      0 1px 0 var(--line);
-  }
-  .principle {
-    gap: 14px;
-    padding: 18px 16px;
-  }
-}
-
-.principles-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.principle {
-  display: flex;
-  align-items: baseline;
-  gap: 20px;
-  padding: 22px 12px 22px 16px;
-  view-timeline-name: --principle;
-  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
-  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.principle-n {
-  flex: none;
-  font-size: 11px;
-  color: var(--ink-3);
-}
-
-.principle-t {
-  font-size: clamp(1.2rem, 2.2vw, 2rem);
-  font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: -0.035em;
-  color: var(--ink-3);
-  text-wrap: pretty;
-}
-
-.principle[data-active] {
-  box-shadow:
-    inset 2px 0 0 var(--ink),
-    inset 0 -1px 0 color-mix(in oklab, var(--line) 70%, transparent);
-}
-
-.principle[data-active] .principle-n,
-.principle[data-active] .principle-t {
-  color: var(--ink);
-}
-
-/* The reveal (after MONOGRID): each word lights from the muted ink to the
-   full ink over its own slice of its statement's rise — later words later —
-   so a line reads itself in as it climbs to the middle. Both ends pass
-   4.5:1, so a half-lit line is still text; with no scroll timelines or
-   under reduced motion the words simply sit in their state. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .principle-t .w {
-      animation: principle-word linear both;
-      animation-timeline: --principle;
-      animation-range: cover calc(6% + var(--p) * 26%) cover calc(14% + var(--p) * 26%);
-    }
-  }
-  /* On a phone the stage is at the top, under the pinned strip, so a line
-     finishes lighting as it arrives there rather than at the middle. */
-  @media (prefers-reduced-motion: no-preference) and (max-width: 759px) {
-    .principle-t .w {
-      animation-range: cover calc(8% + var(--p) * 38%) cover calc(16% + var(--p) * 38%);
-    }
-  }
-}
-
-@keyframes principle-word {
-  from {
-    color: var(--ink-3);
-  }
-  to {
-    color: var(--ink);
-  }
-}
-
-/* The agents: the three steps on the left, each under its glyph; on the
-   right, the screen the ask makes on the well with the note under it. */
-/* A real border, not the panel's inset hairline: the well's background
-   would paint over an inset shadow. */
-.harness-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  box-shadow: none;
-}
-
-/* The stage sets the panel's height; the steps spread over it. */
-.agent-steps {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 22px;
-  margin: 0;
-  padding: 26px 28px;
-  list-style: none;
-}
-
-.agent-steps > li {
-  display: flex;
-  gap: 14px;
-}
-
-.step-i {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.step-b {
-  min-width: 0;
-  flex: 1;
-}
-
-.ask-pick {
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-
-.step-t {
-  margin: 3px 0 0;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-
-/* The bridge's command: its two lines in a well, copied in place as one. */
-.bridge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 6px 6px 6px 12px;
-  border-radius: 8px;
-  background: var(--well);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--line) 80%, transparent);
-}
-
-.bridge-cmd {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-  font-size: 11.5px;
-  line-height: 1.7;
-  overflow-wrap: anywhere;
-  color: var(--ink);
-}
-
-.bridge-copy {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  color: var(--ink-3);
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.bridge-copy:hover {
-  color: var(--ink);
-}
-
-.harness {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* The Studio picker's chip: the harness's own mark and its name on a
-   hairline pill. */
-.harness-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 6px;
-  font-size: 11.5px;
-  color: var(--ink-2);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.harness-side {
-  display: flex;
-  flex-direction: column;
-  background: var(--well);
-  box-shadow: inset 1px 0 0 var(--line);
-}
-
-/* The panel's foot, across both columns: the harness keeps its login. */
-.harness-note {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 0;
-  padding: 12px 28px;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--ink-2);
-  background: var(--background);
-  box-shadow: inset 0 1px 0 var(--line);
-}
-
-.harness-note-i {
-  flex: none;
-  margin-top: 3px;
-  color: var(--ink-3);
-}
-
-@media (max-width: 759px) {
-  .harness-panel {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .agent-steps {
-    padding: 20px;
-  }
-  .harness-side {
-    box-shadow: inset 0 1px 0 var(--line);
-  }
-  .harness-note {
-    padding: 12px 20px;
-  }
-}
-
-/* The close: a full-bleed band between hairlines; the last line and its
-   keys on the shell, the light rays under them, edge to edge up to 100rem. */
-.dawn {
-  overflow: hidden;
-  background: var(--well);
-  box-shadow:
-    inset 0 1px 0 var(--line),
-    inset 0 -1px 0 var(--line);
-}
-
-.dawn-in {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px 32px;
-  width: 100%;
-  max-width: var(--shell);
-  margin-inline: auto;
-  padding: 44px 1.5rem 0;
-}
-
-.dawn-keys {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* The rays fall across the band from its top edge's middle, up to
-   100rem, their sides fading into the band past that. */
-.dawn-art {
-  position: relative;
-  width: 100%;
-  max-width: 100rem;
-  height: clamp(12rem, 26vw, 24rem);
-  margin-inline: auto;
-}
-
-/* The light comes from above the band: its top edge fades in. */
-.dawn-rays {
-  position: absolute;
-  inset: 0;
-  mask-image: linear-gradient(to bottom, transparent, #000 30%);
-}
-
-@media (min-width: 100rem) {
-  .dawn-art {
-    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
-  }
-}
-
-/* The pause chip lines up with the shell's right edge. */
-.dawn-chip {
-  position: absolute;
-  right: max(8px, calc((100% - var(--shell)) / 2 + 1.5rem));
-  bottom: 12px;
-  z-index: 1;
-}
-
-/* Under reduced motion the rays are one still frame: nothing to pause. */
-@media (prefers-reduced-motion: reduce) {
-  .dawn-chip {
-    display: none;
-  }
-}
-
-@media (max-width: 759px) {
-  .dawn-in {
-    padding: 28px 1.5rem 0;
-  }
-  .dawn-chip {
-    right: 1.5rem;
-  }
-}
-
-/* Reaction emote: rises out of her head on hover, same easing as the page.
-   Hover-gated (touch has no hover to get stuck). */
-.emote {
-  opacity: 0;
-  transform: translate(-50%, 8px) scale(0.8);
-  transition:
-    opacity 180ms cubic-bezier(0.2, 0, 0, 1),
-    transform 180ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-@media (hover: hover) {
-  .group:hover .emote {
-    opacity: 1;
-    transform: translate(-50%, 0) scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .emote {
-    transition: none;
+    padding-inline: 16px;
   }
 }
 </style>
