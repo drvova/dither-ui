@@ -123,13 +123,17 @@ stage that tours real components, seated in a form of the kit's liquid
 chrome, each one live with the controls its docs demo has: a dithered chart
 you reseed, a GLSL shader, one snippet written as StyleX, CSS Modules, CSS or
 Tailwind beside the card it renders, a button, a slide and a ferrofluid.
-"Watch the film" opens the trailer. Everything else on the page is the kit too:
+"Watch the film" opens the trailer, and a spec bar along its foot names what
+the kit runs on and is styled with, each under its own mark. Everything else on
+the page is the kit too:
 
 - a bento of live components, each leading into its docs section: a 3D model
   you re-roll and recolour, a rating, a stat card, a bar chart, meta balls,
   sliders, a pie, avatars, silk, decrypted text, progress, a radar and a hold
   action;
-- the screen an agent's ask makes in the Studio, ask by ask;
+- one agent session, played as you scroll: the ask, each Studio tool call with
+  its time and result, the frame building on the canvas row by row, and the
+  export as a Vue file and an MP4;
 - what's inside: a kit button bursting apart into the layers the engine draws
   it from (its tone, the seed's threshold matrix, the cells, the component),
   each with its spec, then folding back into a new one from a new seed, then the kit, the Studio and the agent bridge, each
@@ -442,9 +446,9 @@ Dithering approach and the original **Dither Kit** charts by
 [tripwire.sh/dither-kit](https://www.tripwire.sh/dither-kit).
 
 The site names the tools it works with by their own marks: npm, pnpm, Bun,
-Node.js, Vue, Svelte, GitHub, Qwen and OpenCode from
-[Simple Icons](https://simpleicons.org) (CC0; the Vue logo is by the Vue team,
-[CC BY-NC-SA 4.0](https://github.com/vuejs/art)); Claude Code, Codex, Gemini CLI
-and Goose from [LobeHub icons](https://github.com/lobehub/lobe-icons) (MIT);
-oh-my-pi and Auggie from their own sites. Each mark is its owner's trademark,
+Node.js, Vue, Svelte, Tailwind CSS, CSS Modules, CSS, GitHub, Qwen and OpenCode
+from [Simple Icons](https://simpleicons.org) (CC0; the Vue logo is by the Vue
+team, [CC BY-NC-SA 4.0](https://github.com/vuejs/art)); Claude Code, Codex,
+Gemini CLI and Goose from [LobeHub icons](https://github.com/lobehub/lobe-icons)
+(MIT); oh-my-pi, Auggie and StyleX from their own sites. Each mark is its owner's trademark,
 shown only to name the tool, and none ships in `dither-kit/`.

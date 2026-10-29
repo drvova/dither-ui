@@ -82,8 +82,11 @@ widgets/features; page-specific conventions live here.
   the well's top corner. Each is one static frame (`render-mode="static"`,
   so nothing moves and no pause chip is owed), gel-lit by an overlay above
   its canvas (rim, highlight, shade). Along the band's foot, the `.ticks`
-  ruler; on a phone the statement and the stage keep the page's 16px
-  gutter. `SCENES` lead with what nothing else does (the user's call:
+  ruler, and above it the spec bar (`RUNS`, a `dl`): two machined
+  groups on the page width, each a `.speed-tag` ("Runs on": Vue 3, Svelte
+  5; "Styled with": Tailwind, StyleX, CSS Modules, CSS) and its tools
+  under their marks, split by hairlines; on a phone the statement and the
+  stage keep the page's 16px gutter. `SCENES` lead with what nothing else does (the user's call:
   dithered charts, shaders, StyleX): an `AreaChart` from one seed with
   "Roll a seed"; the kit's seeded sample `DitherShader` (mono blue, a
   palette ramp or its own colours; "New shader" is the next seed);
@@ -153,17 +156,30 @@ widgets/features; page-specific conventions live here.
   honest by `tests/hub.spec.ts` (families and counts equal `GROUPS`, every
   card and first section is a section of the family it names).
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
-  agent skill"), the `.seg` picker of the asks, and `AgentAsks.vue`: on a
-  wide stage of the Studio's dotted canvas the frame the picked ask lands
-  as (its name over it, every part live, one height for all), drawn
-  selected as the Studio draws a selection (the canvas's accent ring, a
-  handle on each corner; the accent blue stays the canvas's), the ask in
-  a smoked capsule prompt bar across the stage's foot with the chrome send
-  glyph (a picture of the sent message, not a field), and under the stage
-  the Studio tool call that drew it (Sparkles). `asks.ts`: a screen is
-  made ONLY of registry components (`add_screen`; a chart is `add_chart`),
-  so the caption is true. Every ask's words and caption sit in one grid
-  cell with only the picked one visible, so a pick never moves the page.
+  agent skill"), then `AgentStory.vue`, one agent session played as the
+  page scrolls: a stage pinned under the header (`--pin`, at most 40rem)
+  for a run of a notch of scroll (40svh) per step, eight steps
+  (`story.ts`). Left, the Studio's dotted canvas, where the frame builds
+  row by row (the heading and count, the meter, the switch; every part a
+  live kit component), drawn selected as the Studio draws a selection
+  (the canvas's accent ring, a handle on each corner; the accent blue
+  stays the canvas's), with "Vue file" and "MP4" speed tags on its name
+  row once exported; before it lands, a line says the canvas waits.
+  Right, the session panel: the ask in a bubble, then each Studio tool
+  call as a card (its time, its real name and arguments from
+  `features/agent/tools.ts`, "running" until it returns, then its result
+  under a check): `get_registry`, `add_screen`, `get_code` (with the
+  template's parts) and `export_video` (with the render command). Under
+  the stage, the chapter tabs (Ask, Tool calls, Frame, Export; a `.seg`
+  in a `.track`, the current one pressed) jump to their first step, and a
+  hairline fills with the story. The step is the marker crossing the
+  viewport's middle (one IntersectionObserver, armed after the markers
+  render; no scroll listener). What has not happened yet keeps its place,
+  hidden and out of reach. Under 900px, or without an observer, nothing
+  pins: the whole session shows at once, the canvas over the panel, no
+  tabs. Screen readers get the whole session as a caption; the panel is
+  decoration. A screen is made ONLY of registry components (`add_screen`
+  lays them out), so every line is true.
 - Inside (`#inside`, "Three parts, one engine."): first the engine's
   anatomy (`EngineAnatomy.vue`): one real kit button pulled apart in
   isometric planes (turned 45 degrees, tipped 60) into the layers that
@@ -211,7 +227,9 @@ widgets/features; page-specific conventions live here.
   one under 560px), a mono path under its glyph and a line, as
   `docs/install.ts` aliases them; change both together. Then one centred
   line for Svelte 5 (`dither-kit-svelte`, the quick start).
-- Marks: tool logos come ONLY from `src/shared/ui/marks.ts` through
+- Marks: tool logos (the package managers, Node, Vue, Svelte, Tailwind,
+  StyleX, CSS Modules, CSS, GitHub and the coding agents) come ONLY from
+  `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
   restyled or dithered; everything else is a kit glyph (`DitherIcon`).
 - No entrance choreography: the page simply is. Motion is the live kit
@@ -584,7 +602,9 @@ widgets/features; page-specific conventions live here.
   climbing, the fold, a new seed each turn; held out of view) with each
   leader on its layer's corner and "New seed" redrawing all four,
   each pause chip stopping its surface,
-  the asks' stage keeping one height across the asks, "What lands in your
+  the ask story pinned and stepping through Ask, Tool calls, Frame and
+  Export as the page scrolls (each tab jumping to its chapter; the whole
+  session at once under 900px), the spec bar's marks, "What lands in your
   repo" in four, two and one columns, the header capsule floating over the
   page with an anchor landing clear of it, reduced motion (the surfaces
   still, the film waiting on its poster), and the workbench readings over
