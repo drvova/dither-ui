@@ -127,7 +127,8 @@ Default section order:
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). Our own hero (the statement beside a
   stage touring real components, seated in a form of the kit's liquid
-  chrome), then dithercn.dev's page layout: a bento of live components,
+  chrome), then sections under a title with a lead beside it: a bento of
+  live components,
   the screen an agent's ask makes, what's inside (the kit, the Studio, the
   bridge, the docs' families), a centred install, and link columns over
   the engraved wordmark. No film player or animation runtime ships with
@@ -336,12 +337,15 @@ Default section order:
   (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
   (npm, pnpm, Bun, Node, Vue, Svelte, GitHub, each coding agent) from
   `src/shared/ui/marks.ts`, one-colour beside their names, never
-  restyled. The landing takes dithercn.dev's PAGE LAYOUT but never its
-  hero (the user's call: "I like the layout of the page but don't copy
-  the hero"): our own hero, then its sections in its order and anatomy,
-  and the dither winners on Awwwards lend the SCALE (full-bleed art,
-  display-size type); the page is filled with the kit itself and our own
-  copy, never a reference site's assets, marks, names or words. The user
+  restyled. Under its own hero the landing keeps the page layout the
+  user picked from a reference (sections in the order and anatomy
+  `src/pages/AGENTS.md` sets), never a reference's hero, and the dither
+  winners on Awwwards lend the SCALE (full-bleed art, display-size type);
+  the page is filled with the kit itself and our own copy, never a
+  reference site's assets, marks, names or words. Reference sites stay
+  UNNAMED in everything that ships or is public: code, docs, commit
+  messages and pull requests (the user's call); describe the layout
+  itself instead. The user
   lifted chrome and gloss, cut corners, and caps and slants for spec
   labels for the new look; still rejected: red, the
   nodecode grid (details in `src/pages/AGENTS.md`).

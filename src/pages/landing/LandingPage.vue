@@ -1,8 +1,7 @@
 <script setup lang="ts">
-// The landing: our own hero (the statement beside the stage seated in liquid
-// chrome), then the page laid out after dithercn.dev's (the user's call: its
-// layout, never its hero): a bento of live kit components, the screen an
-// agent's ask makes, what's inside (the kit, the Studio, the bridge; the
+// The landing: the hero (the statement beside the stage seated in liquid
+// chrome), then sections under a title with a lead beside it: a bento of
+// live kit components, the screen an agent's ask makes, what's inside (the kit, the Studio, the bridge; the
 // docs' families), the install, and a footer of link columns over the
 // engraved wordmark. Its look is the site's own (the Y2K materials,
 // Michroma for display, mono for the rest); everything that moves is the kit.
@@ -285,8 +284,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 </template>
 
 <style scoped>
-/* One page width for the sections and the footer (dithercn.dev's wide
-   measure), one rhythm between sections. The page is the theme's own
+/* One wide page width for the hero, the sections and the footer, one
+   rhythm between sections. The page is the theme's own
    background. */
 .landing {
   --page: 80rem;

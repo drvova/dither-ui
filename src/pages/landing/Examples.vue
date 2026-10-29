@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// "Every component, live." (laid out after dithercn.dev): the title beside a
-// line and the docs link, then a bento of live kit components the hero's
+// "Every component, live.": the title beside a line and the docs link, then a bento of live kit components the hero's
 // stage does not show, row by row (`BENTO`), each a card of its art over a
 // footer naming it and its docs family. The name leads into the docs
 // section; the art is the component itself, hands on. Everything that moves
@@ -280,8 +279,8 @@ const purged = ref(0)
   gap: 32px;
 }
 
-/* The bento: twelve columns, row by row as dithercn.dev lays its own: a
-   tall lead card (8) beside two stacked (4); two halves; three thirds;
+/* The bento: twelve columns, row by row: a tall lead card (8) beside two
+   stacked (4); two halves; three thirds;
    two halves; three thirds. Two columns under 1024px (the wide cards
    take both, the rest pack densely), one under 640px. */
 .bento {

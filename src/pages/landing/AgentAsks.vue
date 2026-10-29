@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// What an ask makes (after dithercn.dev's stage): the frame the picked ask
+// What an ask makes: the frame the picked ask
 // (`asks.ts`) lands as, on the Studio's dotted canvas, its name over it and
 // every part live; the ask in a prompt bar across the stage's foot; under
 // the stage, the Studio tool call that drew it.

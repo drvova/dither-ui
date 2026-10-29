@@ -1,8 +1,7 @@
 /* The landing's layer over the SITE voice (the dark theme tokens,
    monospace, `.nav-a`, `.nav-pill`, `.led` and the materials in
-   app/styles.css). Under our own hero, the page follows dithercn.dev's
-   layout (sections under a title with a lead beside it); its look is the
-   site's Y2K one: chrome display type in Michroma, soft shells on the
+   app/styles.css). Under the hero, the page is sections under a title
+   with a lead beside it; its look is the site's Y2K one: chrome display type in Michroma, soft shells on the
    shell ground, smoked capsules, the satin chrome key, spec labels. The
    kit's ember is the signal light; never red. Copy keeps the bans: no
    eyebrow, no middle dots or em dashes, no link that ends in an arrow.
@@ -27,7 +26,7 @@
       4px repeat-x;
 }
 
-/* A section's head (after dithercn.dev): the title left, at the page's
+/* A section's head: the title left, at the page's
    second size in the display face; right, on the title's baseline, a lead
    and the link that names where it goes. Stacked under 900px. */
 .landing .sec-head {

@@ -4,7 +4,7 @@ import { DitherClipboard, DitherIcon } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { RUNTIME_DEPS } from "./facts"
 
-// The command box (after dithercn.dev): its top row the step picker (the
+// The command box: its top row the step picker (the
 // site's segmented aria-pressed toggles, each under its mark: the kit's
 // folder glyph, then npm, pnpm and Bun's own) and the copy key, the command
 // under them (the ember prompt, one line). A copy is one gesture in CSS:

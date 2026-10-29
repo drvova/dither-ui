@@ -14,13 +14,13 @@ widgets/features; page-specific conventions live here.
   `--font-mono` stay the signature), from the site voice's materials
   (`app/styles.css`, see `src/AGENTS.md`), worn by the docs and the Studio
   too. The page is always dark. Its HERO is our own (the statement beside
-  a live stage seated in the kit's liquid chrome); under it the page
-  follows dithercn.dev's LAYOUT (the user's call: "I like the layout of
-  the page but don't copy the hero"): sections under a title with a lead
-  beside it, a bento of example cards, a stage of what an ask makes,
-  columns under hairlines, a centred install, link columns over a giant
-  wordmark. Never its hero (a centred statement over a planet horizon), its
-  assets, marks, names or words: filled with the kit and our own copy.
+  a live stage seated in the kit's liquid chrome); under it, the page
+  layout the user picked from a reference, kept unnamed (see root
+  `AGENTS.md`): sections under a title with a lead beside it, a bento of
+  example cards, a stage of what an ask makes, columns under hairlines, a
+  centred install, link columns over a giant wordmark. Never a
+  reference's hero, assets, marks, names or words: filled with the kit
+  and our own copy.
   Still banned: red (the kit's ember is the one warm light: brand core,
   install prompt, glyphs in "What's inside"), the nodecode hairline grid,
   an eyebrow over a title, and in copy middle dots, em dashes and
