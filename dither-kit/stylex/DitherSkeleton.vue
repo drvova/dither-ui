@@ -1,6 +1,6 @@
 <!-- Generated from ../tailwind/DitherSkeleton.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
 <script lang="ts">
-import { rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, fillOf, pixelMatrixFromSeed, pixelPrefersReducedMotion, xorshift32 } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
@@ -15,25 +15,34 @@ function shimmerFromSeed(seed: number) {
 }
 const SHIMMER_DEFAULT = { base: 0.45, amp: 0.1, rate: 0.0015 }
 
-/** One frame of the muted field — density breathes around a baseline so pixels
- * flip on and off through their Bayer thresholds as the sine sweeps. */
+/** The muted field's density at a phase: it breathes around a baseline so
+ * pixels flip on and off through their Bayer thresholds as the sine sweeps. */
+const densityAt = (shimmer: typeof SHIMMER_DEFAULT, phase: number) => shimmer.base + shimmer.amp * Math.sin(phase)
+
+/** How many of the matrix's thresholds a density clears: the frame depends
+ * on nothing else, so a shimmer has at most 17 distinct frames. */
+const levelOf = (thresholds: number[], density: number) => {
+  let n = 0
+  for (const t of thresholds) if (density > t) n++
+  return n
+}
+
+/** One frame of the muted field at a density. */
 function paintSkeleton(
   ctx: CanvasRenderingContext2D,
   cols: number,
   rows: number,
-  phase: number,
+  density: number,
   matrix: number[][] = BAYER4,
-  shimmer = SHIMMER_DEFAULT,
 ): void {
-  ctx.clearRect(0, 0, cols, rows)
-  const density = shimmer.base + shimmer.amp * Math.sin(phase)
+  const px = cellCanvas(ctx, cols, rows)
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const lit = density > matrix[y & 3][x & 3]
-      ctx.fillStyle = rgb(GREY, 0.8, lit ? 0.5 : 0.18)
-      ctx.fillRect(x, y, 1, 1)
+      px.cell(x, y, GREY, lit ? 0.5 : 0.18, 0.8)
     }
   }
+  px.flush()
 }
 
 const styles = stylex.create({
@@ -71,8 +80,19 @@ function init(): (() => void) | undefined {
   let rows = 0
   let phase = 0
   let raf = 0
+  // A frame is painted only when the count of thresholds the density clears
+  // changes (at most 17 frames); between crossings the canvas already holds
+  // it, so the loop costs a sine and a count.
+  const thresholds = matrix.flat()
+  let painted = -1
 
-  const draw = () => paintSkeleton(ctx, cols, rows, phase, matrix, shimmer)
+  const draw = () => {
+    const density = densityAt(shimmer, phase)
+    const level = levelOf(thresholds, density)
+    if (level === painted) return
+    painted = level
+    paintSkeleton(ctx, cols, rows, density, matrix)
+  }
 
   const resize = () => {
     const box = wrap.getBoundingClientRect()
@@ -80,6 +100,7 @@ function init(): (() => void) | undefined {
     rows = Math.max(2, Math.round(box.height / CELL))
     canvas.width = cols
     canvas.height = rows
+    painted = -1
     draw()
   }
   resize()

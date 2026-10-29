@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import { rgb } from "../engine/palette"
+  import { cellCanvas } from "../engine/raster"
   import type { Rgb } from "../engine/palette"
   import { BAYER4, fillOf, type PixelColor, pixelMatrixFromSeed, xorshift32 } from "../engine/pixel"
 
@@ -43,7 +43,7 @@
     matrix: number[][],
     rot: number
   ): void {
-    ctx.clearRect(0, 0, cells * max, cells)
+    const px = cellCanvas(ctx, cells * max, cells)
     const poly = starPoly(cells / 2, rot)
     for (let s = 0; s < max; s++) {
       const level = Math.min(Math.max(value - s, 0), 1)
@@ -55,11 +55,12 @@
           const on = frac <= level
           const density = on ? 0.92 : 0.16
           if (density <= matrix[y & 3][x & 3]) continue
-          ctx.fillStyle = on ? rgb(fill, 1, 1) : rgb(fill, 0.55, 0.5)
-          ctx.fillRect(ox + x, y, 1, 1)
+          if (on) px.cell(ox + x, y, fill, 1)
+          else px.cell(ox + x, y, fill, 0.5, 0.55)
         }
       }
     }
+    px.flush()
   }
 </script>
 

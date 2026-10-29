@@ -1,5 +1,6 @@
 <script lang="ts" module>
-  import { rgb, type Rgb } from "../engine/palette"
+  import { type Rgb } from "../engine/palette"
+  import { cellCanvas } from "../engine/raster"
   import { BAYER4, clamp01 } from "../engine/pixel"
 
   const CELL = 2
@@ -15,7 +16,7 @@
     checked: boolean,
     matrix: number[][] = BAYER4
   ): void {
-    ctx.clearRect(0, 0, n, n)
+    const px = cellCanvas(ctx, n, n)
     const c = (n - 1) / 2
     const edge = n / 2
     for (let y = 0; y < n; y++) {
@@ -23,17 +24,16 @@
         const d = Math.hypot(x - c, y - c)
         if (d > edge) continue
         if (d > edge - 1.2) {
-          ctx.fillStyle = rgb(checked ? fill : muted, 1, 0.6)
-          ctx.fillRect(x, y, 1, 1)
+          px.cell(x, y, checked ? fill : muted, 0.6)
         } else if (checked && d <= edge - 2.4) {
           const density = 0.8
           const lit = density > matrix[y & 3][x & 3]
           const k = 0.3 + density * 0.7
-          ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
-          ctx.fillRect(x, y, 1, 1)
+          px.cell(x, y, fill, clamp01(lit ? k : k * 0.4))
         }
       }
     }
+    px.flush()
   }
 </script>
 

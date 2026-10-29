@@ -1,6 +1,6 @@
 <!-- Generated from ../tailwind/DitherNavMenu.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
 <script lang="ts">
-import { rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, fillOf, type PixelColor } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
@@ -21,15 +21,15 @@ function paintUnderline(
   canvas.width = cols
   canvas.height = 1
   const fill = fillOf(color)
-  ctx.clearRect(0, 0, cols, 1)
+  const px = cellCanvas(ctx, cols, 1)
   for (let x = 0; x < cols; x++) {
     const density = (x + 0.5) / cols
     const lit = density > matrix[0][x & 3]
     const alpha = lit ? 0.35 + 0.65 * density : 0.12 * density
     if (alpha <= 0.004) continue
-    ctx.fillStyle = rgb(fill, 1, alpha)
-    ctx.fillRect(x, 0, 1, 1)
+    px.cell(x, 0, fill, alpha)
   }
+  px.flush()
 }
 
 const styles = stylex.create({

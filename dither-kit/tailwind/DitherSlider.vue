@@ -1,5 +1,6 @@
 <script lang="ts">
-import { rgb, type Rgb } from "../engine/palette"
+import { type Rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, clamp01, fillOf, type PixelColor } from "../engine/pixel"
 
 export type SliderVariant = "gradient" | "dotted" | "hatched" | "solid"
@@ -18,7 +19,7 @@ function paintTrack(
   ticks: number[],
   matrix: number[][] = BAYER4,
 ): void {
-  ctx.clearRect(0, 0, cols, rows)
+  const px = cellCanvas(ctx, cols, rows)
   const a = Math.round(cols * clamp01(lo))
   const b = Math.round(cols * clamp01(hi))
   for (let y = 0; y < rows; y++) {
@@ -27,29 +28,28 @@ function paintTrack(
         const t = (x - a + 0.5) / Math.max(1, b - a)
         const density = variant === "gradient" ? 0.35 + 0.65 * t : variant === "dotted" ? 0.5 : 0.75
         if (variant === "hatched" && ((x + y) & 3) >= 2) {
-          ctx.fillStyle = rgb(fill, 1, 0.12)
+          px.cell(x, y, fill, 0.12)
         } else {
           const lit = variant === "solid" || density > matrix[y & 3][x & 3] - (variant === "dotted" ? 0.12 : 0)
           if (variant === "dotted" && !lit) {
-            ctx.fillStyle = rgb(fill, 1, 0.1)
+            px.cell(x, y, fill, 0.1)
           } else {
             const k = 0.3 + density * 0.7
-            ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
+            px.cell(x, y, fill, clamp01(lit ? k : k * 0.4))
           }
         }
       } else {
         const lit = 0.25 > matrix[y & 3][x & 3]
-        ctx.fillStyle = rgb(muted, 1, lit ? 0.2 : 0.06)
+        px.cell(x, y, muted, lit ? 0.2 : 0.06)
       }
-      ctx.fillRect(x, y, 1, 1)
     }
   }
   for (const t of ticks) {
     const x = Math.min(cols - 1, Math.round(cols * t))
     const inFill = x >= a && x < b
-    ctx.fillStyle = rgb(muted, 2, inFill ? 0.9 : 0.45)
-    ctx.fillRect(x, 0, 1, rows)
+    px.rect(x, 0, 1, rows, muted, inFill ? 0.9 : 0.45, 2)
   }
+  px.flush()
 }
 </script>
 

@@ -1,8 +1,11 @@
 <script lang="ts">
-import { rgb, type Rgb } from "../engine/palette"
+import { type Rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, clamp01, fillOf, type PixelColor } from "../engine/pixel"
 
 // Chunky pixel checkmark on the 8x8 cell grid (size-4 box at CELL=2).
+/** The checkmark's near-white ink. */
+const MARK_INK: Rgb = [245, 245, 248]
 const MARK: Array<[number, number]> = [
   [1, 3],
   [1, 4],
@@ -28,13 +31,13 @@ function paintBox(
   checked: boolean,
   matrix: number[][] = BAYER4,
 ): void {
-  ctx.clearRect(0, 0, n, n)
+  const px = cellCanvas(ctx, n, n)
   if (!checked) {
-    ctx.fillStyle = rgb(muted, 1, 0.6)
-    ctx.fillRect(0, 0, n, 1)
-    ctx.fillRect(0, n - 1, n, 1)
-    ctx.fillRect(0, 0, 1, n)
-    ctx.fillRect(n - 1, 0, 1, n)
+    px.rect(0, 0, n, 1, muted, 0.6)
+    px.rect(0, n - 1, n, 1, muted, 0.6)
+    px.rect(0, 0, 1, n, muted, 0.6)
+    px.rect(n - 1, 0, 1, n, muted, 0.6)
+    px.flush()
     return
   }
   const density = 0.8
@@ -42,12 +45,11 @@ function paintBox(
     for (let x = 0; x < n; x++) {
       const lit = density > matrix[y & 3][x & 3]
       const k = 0.3 + density * 0.7
-      ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
-      ctx.fillRect(x, y, 1, 1)
+      px.cell(x, y, fill, clamp01(lit ? k : k * 0.4))
     }
   }
-  ctx.fillStyle = "rgba(245,245,248,0.95)"
-  for (const [x, y] of MARK) ctx.fillRect(x, y, 1, 1)
+  for (const [x, y] of MARK) px.cell(x, y, MARK_INK, 0.95)
+  px.flush()
 }
 </script>
 

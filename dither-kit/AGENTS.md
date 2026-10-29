@@ -527,6 +527,9 @@ the kit every import is relative (`../engine/pixel`).
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
   re-derive hash/valueNoise/fbm or a per-pixel gradient lerp per component.
+  `fbm` keeps each octave's last lattice cell and its four corner hashes, so
+  a raster walk hashes once per cell crossed; its output stays bit-identical
+  to summing `valueNoise`.
 - Perf seams (measured on the docs page, 6x-throttled mobile):
   `ScrollReveal` measures via `getBoundingClientRect` at most once per frame
   (rAF-coalesced; its first measure lands before first paint — a direct
@@ -584,8 +587,18 @@ the kit every import is relative (`../engine/pixel`).
   `requestAnimationFrame` to avoid forced reflow inside Vue's `flushJobs` when
   many components mount simultaneously. `DitherButton` defers `init()` via RAF
   with a `restartToken` guard. `DitherToggleGroup` defers `paintAll()` via RAF.
-  `paintToggleCanvas` (shared by DitherToggle and DitherToggleGroup) must use
-  `RasterBuffer` + `putRasterBuffer`, not per-pixel `fillRect`.
+- A canvas painted cell by cell writes a raster and uploads it once: a
+  RasterBuffer + `putRasterBuffer` (`paintToggleCanvas`, the spinner's
+  loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
+  `rect` lay exactly the pixel an `rgb()` fillStyle and a 1x1 `fillRect`
+  over the cleared canvas leave (unpremultiplied, source-over on a second
+  write) and whose `flush` puts it, one raster and ImageData per context.
+  Never a fillStyle string and a `fillRect` per cell: measured 13-100x
+  slower. Draws over the cells (a bloom `drawImage`) come after `flush`.
+- A loop skips a frame its dither cannot change: the skeleton paints only
+  when the count of matrix thresholds its density clears moves (at most 17
+  frames), the indeterminate progress only when its band steps (every
+  50ms).
 - `control.ts` is the internal source for native-control geometry, focus rings,
   disabled states and elevated popovers; `engine/field.ts` holds the
   `DitherField` context. Inputs, textarea,
@@ -651,6 +664,8 @@ the kit every import is relative (`../engine/pixel`).
   runtime. After a generator change, compile the layer once with the real
   `@stylexjs/babel-plugin` (Vue's `compileScript`, then Babel): it must take
   every file.
+- Painting at memory speed: `tests/paint-limits.spec.ts` pins `cellCanvas`
+  to the fillRect pixel and `fbm`'s cache to the plain sum.
 - Determinism: on the built site, `/play/#doc=…` driven by synthetic
   `hf-seek` events must give identical bytes for identical times, in any
   order, and request no animation frames while directed.

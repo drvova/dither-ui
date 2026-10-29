@@ -25,6 +25,38 @@ export function valueNoise(x: number, y: number): number {
   return a * (1 - u) * (1 - v) + b * u * (1 - v) + c * (1 - u) * v + d * u * v
 }
 
+/* Each octave of fbm keeps the lattice cell it sampled last and that cell's
+ * four corner hashes (a sine each): the cells of a raster are sampled in
+ * order and neighbours share a lattice cell in every octave, so the corners
+ * are reused instead of recomputed. A cache only, never a result: the values
+ * and the arithmetic are valueNoise's, so fbm is bit-identical to summing
+ * valueNoise, whatever the call order. */
+const OCTAVES = 3
+const cellX = new Float64Array(OCTAVES).fill(Number.NaN)
+const cellY = new Float64Array(OCTAVES).fill(Number.NaN)
+const cellCorners = new Float64Array(OCTAVES * 4)
+
+function octaveNoise(o: number, x: number, y: number): number {
+  const xi = Math.floor(x)
+  const yi = Math.floor(y)
+  const k = o * 4
+  if (cellX[o] !== xi || cellY[o] !== yi) {
+    cellX[o] = xi
+    cellY[o] = yi
+    cellCorners[k] = hash21(xi, yi)
+    cellCorners[k + 1] = hash21(xi + 1, yi)
+    cellCorners[k + 2] = hash21(xi, yi + 1)
+    cellCorners[k + 3] = hash21(xi + 1, yi + 1)
+  }
+  const u = smooth(x - xi)
+  const v = smooth(y - yi)
+  const a = cellCorners[k]
+  const b = cellCorners[k + 1]
+  const c = cellCorners[k + 2]
+  const d = cellCorners[k + 3]
+  return a * (1 - u) * (1 - v) + b * u * (1 - v) + c * (1 - u) * v + d * u * v
+}
+
 /** Three-octave fbm, drifted by time. */
 export function fbm(x: number, y: number, t: number): number {
   let sum = 0
@@ -32,8 +64,8 @@ export function fbm(x: number, y: number, t: number): number {
   let fx = x
   let fy = y
   let ft = t
-  for (let o = 0; o < 3; o++) {
-    sum += amp * valueNoise(fx + ft, fy - ft * 0.5)
+  for (let o = 0; o < OCTAVES; o++) {
+    sum += amp * octaveNoise(o, fx + ft, fy - ft * 0.5)
     fx *= 2
     fy *= 2
     ft *= 1.7
