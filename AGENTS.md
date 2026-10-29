@@ -125,13 +125,13 @@ Default section order:
   production build: retake the one whose page changes.
 - Landing surfaces: everything that moves on the landing is the kit
   itself (the user's call after the trailer: show the real components,
-  hands on, never drawings of them). In order: the statement beside a
-  stage touring real components seated in a form of the kit's liquid chrome,
-  the install, the directory of the docs with its bento of live
-  components in a hardshell window, the principles, the three parts
-  inside, the agents panel with the screen an ask makes, the light-rays
-  close, and link columns over the engraved wordmark. No
-  film player or animation runtime ships with the page. The trailer
+  hands on, never drawings of them). Our own hero (the statement beside a
+  stage touring real components, seated in a form of the kit's liquid
+  chrome), then dithercn.dev's page layout: a bento of live components,
+  the screen an agent's ask makes, what's inside (the kit, the Studio, the
+  bridge, the docs' families), a centred install, and link columns over
+  the engraved wordmark. No film player or animation runtime ships with
+  the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
   hero's "Watch the film" key and is fetched only when its dialog opens.
   Details in `src/pages/AGENTS.md`.
@@ -336,15 +336,14 @@ Default section order:
   (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
   (npm, pnpm, Bun, Node, Vue, Svelte, GitHub, each coding agent) from
   `src/shared/ui/marks.ts`, one-colour beside their names, never
-  restyled. Reference sites are inspiration, never a copy (the user's
-  call after a near-clone of dithercn.dev was rolled back): dithercn.dev
-  lends ideas (a floating header capsule, a bento of live components,
-  the screen an ask makes, link columns in the footer) that the landing
-  rebuilds in its own shapes and order, and the dither winners on
-  Awwwards lend its SCALE (full-bleed art, display-size type); the page
-  is filled with the kit itself and our own copy, never a reference
-  site's layout wholesale, assets, marks, names or words. The user lifted chrome and gloss, cut corners, and caps and
-  slants for spec labels for the new look; still rejected: red, the
+  restyled. The landing takes dithercn.dev's PAGE LAYOUT but never its
+  hero (the user's call: "I like the layout of the page but don't copy
+  the hero"): our own hero, then its sections in its order and anatomy,
+  and the dither winners on Awwwards lend the SCALE (full-bleed art,
+  display-size type); the page is filled with the kit itself and our own
+  copy, never a reference site's assets, marks, names or words. The user
+  lifted chrome and gloss, cut corners, and caps and slants for spec
+  labels for the new look; still rejected: red, the
   nodecode grid (details in `src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
   tables, variant galleries) while keeping the dither skin; every preview

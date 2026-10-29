@@ -295,7 +295,7 @@ const fluid = ref<Fluid>("acid")
   top: -15%;
   bottom: 9%;
   left: 6%;
-  right: calc((min(100vw, var(--shell)) - 3rem - 100vw) / 2 - 5rem);
+  right: calc((min(100vw, var(--page)) - 3rem - 100vw) / 2 - 5rem);
   z-index: -1;
   pointer-events: none;
 }
@@ -537,6 +537,12 @@ const fluid = ref<Fluid>("acid")
 @media (max-width: 899px) {
   .hero-stage {
     padding: 8px 1.5rem 28px;
+  }
+}
+
+@media (max-width: 639px) {
+  .hero-stage {
+    padding-inline: 16px;
   }
 }
 </style>

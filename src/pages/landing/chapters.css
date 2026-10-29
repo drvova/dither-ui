@@ -1,12 +1,11 @@
 /* The landing's layer over the SITE voice (the dark theme tokens,
-   monospace, `.nav-a`, `.nav-pill`, `.led` in app/styles.css). The look is
-   Y2K retrofuturism, biomorphic form and technical sportswear on the
-   dither and mono base: liquid chrome as the art's material, hardshell
-   panels cut at two corners holding soft gel wells, a satin chrome key,
-   and spec labels (uppercase, tracked, a slanted tag) where a
-   sportswear spec sheet would put them, never as an eyebrow over a title.
-   The kit's ember is the signal light; never red. Copy keeps the other
-   bans: no middle dots or em dashes, no link that ends in an arrow.
+   monospace, `.nav-a`, `.nav-pill`, `.led` and the materials in
+   app/styles.css). Under our own hero, the page follows dithercn.dev's
+   layout (sections under a title with a lead beside it); its look is the
+   site's Y2K one: chrome display type in Michroma, soft shells on the
+   shell ground, smoked capsules, the satin chrome key, spec labels. The
+   kit's ember is the signal light; never red. Copy keeps the bans: no
+   eyebrow, no middle dots or em dashes, no link that ends in an arrow.
    Plain CSS under .landing, read by every landing component. */
 .landing {
   --ink: var(--foreground);
@@ -18,7 +17,7 @@
 }
 
 /* A ruler: minor ticks every 8px, a major one every 64px, as printed on
-   a technical shell's seam tape. */
+   a technical shell's seam tape (the hero band's foot). */
 .landing .ticks {
   height: 9px;
   background:
@@ -28,29 +27,33 @@
       4px repeat-x;
 }
 
-/* Headings: mono 500, tight, the docs' title voice. Never italic. The
-   materials (`.chrome-type`, `.hardshell`, `.gel`, `.capsule`,
-   `.key-chrome`, `.spec`, `.speed-tag`) are the site voice's, in
-   app/styles.css. */
-.landing .display {
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-/* A section's head: the title at the docs' title voice scaled up (the
-   page's second size after the statement) and, on its baseline, a quiet
-   link that names where it goes. */
-.landing .section-head {
+/* A section's head (after dithercn.dev): the title left, at the page's
+   second size in the display face; right, on the title's baseline, a lead
+   and the link that names where it goes. Stacked under 900px. */
+.landing .sec-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
   align-items: end;
-  gap: 14px 24px;
+  gap: 16px 48px;
 }
 
-/* On a phone the title takes the width and its link sits under it: beside
-   it, the link squeezed the title into three or four lines. */
-@media (max-width: 559px) {
-  .landing .section-head {
+.landing .sec-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.landing .sec-lede {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+@media (max-width: 899px) {
+  .landing .sec-head {
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
   }
@@ -58,54 +61,17 @@
 
 .landing .section-title {
   margin: 0;
-  max-width: 19ch;
   font-family: var(--display-face);
-  font-size: clamp(1.3rem, 2.4vw, 2rem);
+  font-size: clamp(1.6rem, 3.4vw, 2.75rem);
   font-weight: 400;
-  line-height: 1.14;
+  line-height: 1.12;
   letter-spacing: -0.01em;
   text-wrap: balance;
-}
-
-/* Beside the title's link, the section's spec: a row of speed tags naming
-   what the section is made of, as a sportswear label lists its build. */
-.landing .head-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.landing .tags {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-@media (max-width: 559px) {
-  .landing .head-side {
-    align-items: flex-start;
-  }
-  .landing .tags {
-    justify-content: flex-start;
-  }
 }
 
 /* An anchor lands clear of the floating header. */
 .landing [id] {
   scroll-margin-top: 76px;
-}
-
-/* A list's heading, as the install's "What lands in your repo". */
-.landing .list-h {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--ink-2);
 }
 
 /* Links that lead on name their destination and carry a resting

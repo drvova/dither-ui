@@ -3,16 +3,15 @@ import { ref } from "vue"
 import { routePath } from "@/shared/lib"
 import { DitherIcon } from "@dither-kit"
 import HeroStage from "./HeroStage.vue"
-import InstallBlock from "./InstallBlock.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 import { COMPONENT_COUNT, RUNTIME_DEPS } from "./facts"
 import { SECTION_COUNT } from "./hub"
 
-// The portal (its scale after the dither winners on Awwwards, its voice the
-// site's own): a full-bleed hero band, the statement beside the stage (the
-// kit by hand, one real component at a time, seated in a form of the kit's
-// liquid chrome), then on the shell the install bar. Every surface on
-// the page is the kit itself; the film is a key away.
+// The hero, our own (its scale after the dither winners on Awwwards, its
+// voice the site's): a full-bleed band the first screen tall, the statement
+// beside the stage (the kit by hand, one real component at a time, seated
+// in a form of the kit's liquid chrome). Every surface on it is the kit
+// itself; the film is a key away.
 const film = ref(false)
 
 // The statement's numbers, each one recounted by a test.
@@ -24,78 +23,55 @@ const FACTS = [
 </script>
 
 <template>
-  <section aria-labelledby="hero-h" class="portal">
-    <!-- The hero: a full-bleed band; on the shell, the statement (the h1,
-         the lede, the keys, the kit's numbers) beside the stage. -->
-    <div class="hero">
-      <div class="hero-in">
-        <div class="statement">
-          <h1 id="hero-h" class="display hero-h chrome-type">A dithered UI toolkit for Vue.</h1>
-          <p class="hero-lede">
-            Charts, GLSL shaders, controls, backgrounds and 3D, each drawn pixel by pixel from one seeded palette. Copy
-            the folder into your Vue 3 or Svelte 5 app and every line is yours.
-          </p>
-          <div class="hero-keys">
-            <a :href="routePath('/studio')" class="nav-a nav-pill key-chrome">Open the studio</a>
-            <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
-            <button type="button" class="nav-a nav-pill" @click="film = true">
-              <DitherIcon name="Play" :size="12" :stroke-width="1.5" />Watch the film
-            </button>
+  <section aria-labelledby="hero-h" class="hero">
+    <!-- On the page width, the statement (the h1, the lede, the keys, the
+         kit's numbers) beside the stage. -->
+    <div class="hero-in">
+      <div class="statement">
+        <h1 id="hero-h" class="hero-h chrome-type">A dithered UI toolkit for Vue.</h1>
+        <p class="hero-lede">
+          Charts, GLSL shaders, controls, backgrounds and 3D, each drawn pixel by pixel from one seeded palette. Copy
+          the folder into your Vue 3 or Svelte 5 app and every line is yours.
+        </p>
+        <div class="hero-keys">
+          <a :href="routePath('/studio')" class="nav-a nav-pill key-chrome">Open the studio</a>
+          <a :href="routePath('/docs')" class="nav-a nav-pill">Read the docs</a>
+          <button type="button" class="nav-a nav-pill" @click="film = true">
+            <DitherIcon name="Play" :size="12" :stroke-width="1.5" />Watch the film
+          </button>
+        </div>
+        <dl class="facts">
+          <div v-for="f in FACTS" :key="f.label" class="fact">
+            <dt class="spec">{{ f.label }}</dt>
+            <dd>
+              <DitherIcon :name="f.icon" :size="16" :stroke-width="1.5" class="fact-i" /><span
+                class="fact-n chrome-type"
+                >{{ f.value }}</span
+              >
+            </dd>
           </div>
-          <dl class="facts">
-            <div v-for="f in FACTS" :key="f.label" class="fact">
-              <dt class="spec">{{ f.label }}</dt>
-              <dd>
-                <DitherIcon :name="f.icon" :size="16" :stroke-width="1.5" class="fact-i" /><span
-                  class="fact-n chrome-type"
-                  >{{ f.value }}</span
-                >
-              </dd>
-            </div>
-          </dl>
-        </div>
-        <div class="stage-col">
-          <HeroStage />
-        </div>
+        </dl>
       </div>
-      <div class="ticks hero-ticks" aria-hidden="true"></div>
+      <div class="stage-col">
+        <HeroStage />
+      </div>
     </div>
+    <div class="ticks hero-ticks" aria-hidden="true"></div>
     <TrailerDialog v-model="film" />
-
-    <div class="shell">
-      <InstallBlock />
-    </div>
   </section>
 </template>
 
 <style scoped>
-.portal {
-  display: flex;
-  flex-direction: column;
-  gap: 36px;
-}
-
-/* The shell for everything under the band: the docs' width and gutter. */
-.shell {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-  max-width: var(--shell);
-  margin-inline: auto;
-  padding-inline: 1.5rem;
-}
-
-/* The hero: a full-bleed band between hairlines; on the shell, the
-   statement (left) beside the stage (right). Under 900px the statement
-   comes first and the stage takes the band's width under it. */
+/* The hero: a full-bleed band between hairlines, the first screen under
+   the header; on the page width, the statement (left) beside the stage
+   (right). Under 900px the statement comes first and the stage takes the
+   band's width under it. */
 .hero {
   position: relative;
   isolation: isolate;
   display: grid;
   align-items: center;
-  /* The first screen under the header, less a glimpse of the install bar. */
-  min-height: clamp(34rem, calc(100svh - 64px - 7rem), 48rem);
+  min-height: clamp(34rem, calc(100svh - 64px), 52rem);
   overflow: hidden;
   background: var(--well);
   box-shadow:
@@ -121,7 +97,7 @@ const FACTS = [
   align-items: center;
   gap: 0 48px;
   width: 100%;
-  max-width: var(--shell);
+  max-width: var(--page);
   margin-inline: auto;
   padding: 0 1.5rem;
 }
@@ -233,6 +209,13 @@ const FACTS = [
   }
   .statement {
     padding: 28px 1.5rem 8px;
+  }
+}
+
+/* On a phone the page's gutter is 16px, as the sections' and the docs'. */
+@media (max-width: 639px) {
+  .statement {
+    padding-inline: 16px;
   }
 }
 
