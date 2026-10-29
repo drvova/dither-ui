@@ -11,140 +11,314 @@ widgets/features; page-specific conventions live here.
 
 - Direction (the user's look): Y2K retrofuturism, biomorphic form and
   technical sportswear, on the dither and mono base (the Bayer dither and
-  `--font-mono` stay the signature), from the site voice's materials
-  (`app/styles.css`, see `src/AGENTS.md`), worn by the docs and the Studio
-  too. The page is always dark. Its STRUCTURE follows dithercn.dev (the
-  user's call): a full-height statement centred over a dithered field,
-  then sections under a title with a lead beside it, a bento of example
-  cards, a stage of what an ask makes, columns under hairlines, a centred
-  install, link columns over a giant wordmark. Filled with the kit and our
-  own copy, never its assets, marks, names or words. Still banned: red
-  (the kit's ember is the one warm light: brand core, install prompt,
-  glyphs in "What's inside"), the nodecode hairline grid, an eyebrow over
-  a title, and in copy middle dots, em dashes and arrow-ended links.
-  Additions must remove something or justify their presence.
-- Copy and markup follow the design.how bans the user picked: sentence
-  case for headings, keys and links (uppercase and tracking only on
-  `.spec` labels and speed tags); every link names where it goes (an
-  external one says "(opens in a new tab)" to screen readers). No space
-  is left empty. Everything that moves is the kit itself (real
-  components, hands on); no film player or animation runtime ships.
+  `--font-mono` stay the signature). The landing leads it, and the docs
+  and the Studio wear it from the same materials (the site voice in
+  `app/styles.css`, see `src/AGENTS.md`), so the site reads as one
+  product.
+  Its materials (after the user's Y2K design system V5, root
+  `AGENTS.md`): CHROME type (`--chrome`: the statement, every section
+  title and the facts' numerals cast in it, one horizon per line), the
+  satin aluminum primary key, anodized graphite shells and smoked-polymer
+  overlays. Its forms: the HARDSHELL panel (two opposite corners cut, a
+  chrome-glint hairline that follows the cut) holding the soft core, the
+  GEL well (an asymmetric pebble recessed into the shell, a chrome rim, a
+  highlight across its top), the primary key a capsule against machined
+  secondary keys and segment tracks, and a BIOME of the kit's own liquid
+  chrome (`DitherLiquidChrome`, one static frame in a pebble and a
+  droplet) behind the hero stage. Its sportswear: SPEC labels (uppercase,
+  tracked) and slanted speed tags naming what a section is made of, the
+  facts and the parts as spec sheets, and a seam-tape ruler (`.ticks`)
+  along the hero's foot. The user lifted three earlier bans for it:
+  chrome and gloss, cut corners, caps and slants for spec labels. Still
+  banned: red (the kit's ember is the one warm light: brand core, install
+  prompt, the parts' glyphs, LEDs), the nodecode hairline grid, the calm
+  single column, an eyebrow over a title (a spec label sits beside or
+  under what it names), and in copy middle dots, em dashes and
+  arrow-ended links. References lend ideas, never the page: dithercn.dev
+  is a REFERENCE, not a template (the user's call after a near-copy of
+  it was rolled back: inspiration, never a full copy). From it the page
+  keeps a floating header capsule, a bento of live components, the
+  screen an ask makes, what lands in your repo and link columns in the
+  footer, each rebuilt in our shapes and order; never its hero (a
+  centred statement over a planet horizon), its card grid, its section
+  heads with a lead beside the title, or its assets, marks, names or
+  words. From the 2000s oakley.com archive the page keeps its STRUCTURE
+  (dense panels, lists under a heading); from the dither winners on
+  Awwwards its SCALE (edge-to-edge art bands, display-size type). Icons
+  do the work of labels where they can: kit glyphs for ideas, the tools'
+  own marks for tools (see Marks). Additions must remove something or
+  justify their presence.
+- Copy and markup follow the design.how bans the user picked (from its
+  `build-design-system` taste file; reviews follow its `ui-review`
+  criteria): sentence case for headings, keys and links (the site's
+  `.nav-a` keys included; uppercase and tracking only on spec labels and
+  speed tags, the user's lift), NO eyebrow over a title, NO middle dots or
+  em dashes in copy (separate facts with layout; end the sentence), NO
+  link that ends in an arrow (every link names where it goes; an
+  external one says "(opens in a new tab)" to screen readers; a count
+  beside a link is read as ", n sections"). No space is left empty: a
+  column that runs short gets real content (a fact, a live kit surface, a
+  step), never filler. Everything that moves is the kit itself (the
+  user's call after the trailer: real components, hands on, never
+  drawings of them); no film player or animation runtime ships.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
-  `.landing`, imported by `LandingPage`) over the site voice (`.nav-a`,
-  `.nav-pill`, `.led`, `.ring-on`, `.chrome-type`, `.capsule`,
-  `.key-chrome`, `.spec`, `.track`): ink levels mapped to theme tokens
-  (`--ink`, `--ink-2`, `--ink-3`, `--line`, `--signal` the ember), the
-  section head (`.sec-head`: the `.section-title` left, in the display
-  face (Michroma 400, `clamp(1.6rem, 3.4vw, 2.75rem)`) cast in
-  `.chrome-type`; `.sec-side` right, on its baseline, a `.sec-lede` and a
-  `.more-link`; stacked under 900px), `.lead` and `.more-link` (a resting
-  hairline underline that inks on hover, a 24px target through padding
-  cancelled by a negative margin), `.seg` (`aria-pressed` buttons,
-  machined 7px segments in a `.track`), and `[id]` scroll margins (76px)
-  clear of the header. Page geometry (`--page` 80rem, `--rhythm`) lives on
-  `LandingPage`'s `.landing`; the sections are one flex column on it.
-- Header: a floating `.capsule`, sticky 8px under the top and centred (up
-  to 48rem): the 13px diamond mark (ember core) + "dither-ui", the `.nav-a`
-  links (Components → `#examples`, Docs, Agents → `#ask`, GitHub under its
-  mark in a new tab; Components/Agents drop under sm, GitHub under md) and
-  the `.key-chrome` "Open studio". It MUST stay positioned with `z-10`:
-  `main` is `relative isolate`, so a positioned sibling paints over a
-  static header.
-- Hero (`LandingPage.vue`): the band is the viewport's height under the
-  header (`clamp(34rem, 100svh - 64px, 56rem)`), pulled up under the
-  header so the field runs behind it. The statement centred: the h1 in
-  the display face and chrome (`clamp(2.1rem, 6.2vw, 4.6rem)`, two lines),
-  a lede, the keys (`.key-chrome` "Read the docs"; "Copy agent prompt"
-  through `DitherClipboard`, the prompt naming this origin's `SKILL.md`,
-  the degit command, the four packages and the alias; "Watch the film"
-  under the Play glyph, which opens the trailer). Behind it, `aria-hidden`,
-  the field: the kit's `DitherShader` (its own chunk) running
-  `hero-field.ts`'s GLSL (a horizon arc of light under blinking stars; a
-  sin-free hash, since `sin` of a large argument loses its precision on
-  the GPU) on the design system's metals ramp (`HERO_RAMP`: obsidian,
-  graphite, titanium, chrome) at cell 3, 12fps, with its pause chip; the
-  shader's own notes are hidden there. The h1 AND the keys clear the fold
-  at 1440x900, 1280x800 and 1920x1080.
-- The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` titled "The
-  dither-ui film", its description the film in words. The `<video>`
-  exists only while the dialog is open: `public/trailer/` `dither-ui.mp4`
-  (H.264 + AAC) first, `dither-ui.webm` (VP9 + Opus), `poster.webp`; it
-  autoplays except under reduced motion. Retake all three from the
-  trailer's edit when the film changes.
-- Examples (`Examples.vue`, `#examples`, "Every component, live."): a
-  section head (the component count from `facts.ts`, "See every section in
-  the docs"), then the bento: `BENTO` (`hub.ts`), thirteen live kit
-  components on a 12-column grid row by row: the shader (8, two rows tall;
-  the kit's seeded sample, ramp/mono/colour and "New shader") beside the
-  area chart ("Roll a seed") and the stat card; the bar chart and the
-  StyleX export (`ExportScene.vue`, its own chunk: one snippet live beside
-  its code written by `restyle`, StyleX first; the card's art is its size
-  container); the 3D model, the pie chart and the avatars; silk and the
-  decrypted text; progress, the radar chart and the dither button. Two
-  columns under 1024px (the wide cards span both, the rest pack densely),
-  one under 640px. A card is a soft shell (a real border: full-bleed art
-  would cover an inset ring, `--shell-ground` on a titanium-tinted base,
-  20px radius) of its art over a footer strip: the name as the link into
-  `/docs/<id>` and the family as a `.spec`. Interactive art keeps its own
-  controls, so the card itself is never a link.
-- `hub.ts` is static data (the landing never loads the docs IA): `FAMILIES`
-  (every docs family and its size), `DOCS_FAMILIES` (the five big
-  families, a line each and the section each opens on) and `BENTO`, held
-  honest by `tests/hub.spec.ts` (families and counts equal `GROUPS`, every
-  card and first section is a section of the family it names). Facts are
-  claims: `facts.ts` holds `COMPONENT_COUNT` and `RUNTIME_DEPS` (the
-  packages beside Vue, which the install's commands are built from);
+  `.landing`, imported by `LandingPage`) on top of the SITE voice in
+  `app/styles.css` (`.nav-a`, `.nav-pill`, `.led`, `.ring-on` and the
+  materials: `.chrome-type`, `.hardshell`, `.gel`, `.capsule`, `.rim`,
+  `.key-chrome`, `.spec`, `.speed-tag`), which the landing uses directly
+  (the landing is always dark, so it wears the dark materials): ink
+  levels mapped to theme tokens (`--ink`, `--ink-2`, `--ink-3`, `--line`,
+  `--signal` the ember), `.display` (mono 500, tight), `.section-head`
+  (the `.section-title`, cast in `.chrome-type` —
+  the page's second size, the display face (Michroma 400) up to 2rem,
+  19ch at most — and, on its baseline, a
+  `.head-side`: a `.tags` row of speed tags over a `.more-link` naming its
+  destination; under 560px they sit under the title, which beside them
+  squeezed to four lines), `.ticks` (the ruler), `.list-h` (a
+  list's heading), `.lead` and `.more-link`
+  (links with a resting hairline underline that inks on hover), `.seg`
+  (`aria-pressed` buttons, machined 7px segments in a `.track`, the
+  pressed one ringed; the fluid's palette keeps its own housing). Panels are `.hardshell`, wells `.gel`, the
+  primary keys `.key-chrome`, spec labels `.spec`, a section's tags
+  `.speed-tag`. Reduced transparency drops the biome too. Components
+  read it, never redeclare it; focus rings
+  are the global `:focus-visible`. Page geometry (`--shell` 72rem — the
+  docs' width, so the brand never jumps — and `--rhythm`) lives on
+  `LandingPage`'s `.landing`.
+- Header: a floating `.capsule`, sticky 8px under the top of the
+  viewport and centred on the shell (up to 48rem). It holds the 13px
+  diamond mark (ember core) + "dither-ui", the `.nav-a` links in sentence
+  case (Components → `#directory`, Docs, Agents → `#agents`, GitHub under
+  its mark in a new tab) and the `.key-chrome` "Open studio";
+  Components/Agents drop under sm, GitHub under md. Every `[id]` on the
+  landing carries `scroll-margin-top` (76px) so an anchor lands clear of
+  it. The header MUST stay positioned with `z-10` (sticky is): `main` is
+  `relative isolate` and page art lives inside it, so a positioned sibling
+  always paints over a static header; without the lift the header
+  renders zero visible pixels.
+- Hero (`Showcase.vue`): a FULL-BLEED band (the `--well` between
+  hairlines) holding, on the shell, the statement beside the stage. Left
+  (`.statement`): the h1 in the display face (Michroma 400) and chrome at
+  display scale (`clamp(1.7rem, 3.1vw, 2.45rem)`, two lines in its column
+  at every width), the lede,
+  the keys (`.key-chrome` "Open the studio", `.nav-pill` "Read the
+  docs" and "Watch the film" under the Play glyph, which opens the
+  trailer), then the facts as a spec sheet under a hairline (`.facts`, a
+  `dl`: the component count, the section count, the packages beside Vue;
+  each a `.spec` label under its glyph and a slanted chrome readout,
+  hairlines between, never cards). Right, in `.stage-col`:
+  `HeroStage.vue`, the kit by hand as the trailer shows it: one real
+  component at a time in an 8:5 `.gel` well (a size container), its
+  name top left on a speed plate of the well's ground, with the controls
+  its docs demo has; behind it the biome (`aria-hidden`, under 900px and
+  under reduced transparency gone): a `DitherLiquidChrome` pebble past the
+  well's top and outer edge (never under its tabs or caption) and a
+  droplet off its inner side, each one static frame (`render-mode="static"`,
+  so nothing moves and no pause chip is owed), gel-lit. Along the band's
+  foot, the `.ticks` ruler. `SCENES` lead with what nothing else does (the user's
+  call: dithered charts, shaders, StyleX): an `AreaChart` from one seed
+  with "Roll a seed"; the kit's seeded sample `DitherShader` (mono blue,
+  a palette ramp or its own colours; "New shader" is the next seed);
+  "StyleX", `ExportScene.vue`: one snippet rendered live beside its code
+  in the picked system through `restyle` (StyleX first); then the button
+  with its fills and five hues, the slide action and the ferrofluid with
+  its palettes. The shader, the export (the translator's utility map) and
+  the fluid are async chunks. Under the well a `.seg` picker and the
+  tour's progress hairline, then a caption (the scene's glyph, its line
+  wrapping with `text-wrap: pretty`, a `.lead` to its docs section; the
+  glyph and the link sit on the first line). The tour advances on the progress
+  rule's CSS `animationend` (6s, no timer), paused while the stage is
+  hovered or holds focus; its pause chip stops it, and picking a scene or
+  using one (a pointer down or a key other than Tab inside the well) stops
+  it on that scene; under reduced motion it starts paused. A new scene
+  dissolves in through `DitherReveal` (cell 6, 0.6s; shown at once under
+  reduced motion); the first scene simply is (manual progress 1), and it
+  is the only scene in the static page. Under 900px the statement comes
+  first and the stage takes the band's width. The h1 AND the keys must
+  clear the fold at 1440×900, 1280×800 and 1920×1080.
+- The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
+  trapped and handed back, Escape and the backdrop close it) titled "The
+  dither-ui film", its description the film in words (no speech in it).
+  The `<video>` exists only while the dialog is open: `public/trailer/`
+  `dither-ui.mp4` (H.264 + AAC) first, `dither-ui.webm` (VP9 + Opus) for a
+  browser built without H.264, `poster.webp`; it autoplays (opening it
+  was the ask) except under reduced motion, where it waits for play.
+  Retake all three from the trailer's edit when the film changes (1080p,
+  each about 8 MB).
+- Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
+  bitmap face drawn as crisp SVG cells with a seam: the footer's brand
+  (`cell` 2, `seam` 1/2, `decorative` inside the home link, whose name is
+  "dither-ui"). A string with a glyph the face lacks throws; every string
+  the page sets is covered by `tests/pixel-type.spec.ts`.
+- Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the facts strip)
+  and `RUNTIME_DEPS` (the packages beside Vue, which the install bar's
+  commands, the facts strip and the parts' "n deps" tag are built from);
   `tests/landing-facts.spec.ts` recounts the first from
   `dither-kit/tailwind/index.ts` and holds the second to the kit's
-  required `peerDependencies`.
-- Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
-  agent skill"), the `.seg` picker of the asks, and `AgentAsks.vue`: on a
-  wide stage of the Studio's dotted canvas the frame the picked ask lands
-  as (its name over it, every part live, one height for all), the ask in
-  a smoked capsule prompt bar across the stage's foot with the chrome send
-  glyph (a picture of the sent message, not a field), and under the stage
-  the Studio tool call that drew it (Sparkles). `asks.ts`: a screen is
-  made ONLY of registry components (`add_screen`; a chart is `add_chart`),
-  so the caption is true. Every ask's words and caption sit in one grid
-  cell with only the picked one visible, so a pick never moves the page.
-- Inside (`#inside`, "Three parts, one engine."): three columns under
-  their own hairlines (one under 900px), each under its kit glyph in the
-  ember with a paragraph and its link: the kit, the Studio, the agent
-  bridge (with the harnesses `bridge/dither-bridge.mjs` knows, its
-  `HARNESSES` ids and names in order, each under its own mark; keep in
-  sync, `tests/marks.spec.ts` checks it). Under them the five big
-  families (`DOCS_FAMILIES`): five columns under hairlines (three under
-  1024px, two under 640px), each the family's name and size as the link
-  to its first section, and its line.
-- Install (`#install`, "Copy one folder. Every pixel is yours."): the
-  head centred, then `InstallBlock.vue`: a box (a soft shell) whose top
-  row is the `.seg` step picker (the kit's Folder glyph, then npm, pnpm
-  and Bun's own marks) and the hairline Copy key, the command under a
-  hairline in mono with the ember `$`. A copy is ONE gesture: while copied
-  the command shows selected and the key is ringed as its label rolls to
-  "Copied" under a check; both let go together; reduced motion swaps both
-  at once; the glint is one-shot. Its four steps (degit folder + npm/pnpm/
-  bun deps) stay in sync with `docs/install.ts` `INSTALL.vue` (the landing
-  never imports the docs). Under the box, what lands in your repo
-  (`LANDS`): four columns under their own hairlines (two under 1100px,
-  one under 560px), a mono path under its glyph and a line, as
-  `docs/install.ts` aliases them; change both together. Then one centred
-  line for Svelte 5 (`dither-kit-svelte`, the quick start).
-- Marks: tool logos come ONLY from `src/shared/ui/marks.ts` through
+  required `peerDependencies` (a styling layer's optional one aside);
+  section counts come from `hub.ts`. A change that moves one fails until
+  the page says it.
+- Install (`InstallBlock.vue`, under the hero band on the shell; "What
+  lands in your repo" in two columns under 1100px, where a path would
+  break; its bar a capsule on the shell ground, a rounded slab once it
+  wraps under 640px, its step picker a `.track`) mirrors the docs install
+  story: its four steps (degit folder + npm/pnpm/bun deps) must stay in
+  sync with `docs/install.ts` `INSTALL.vue`, the Tailwind layer's steps
+  (the landing never imports the docs). `INSTALL.stylex` is the StyleX
+  layer's (its deps, its alias, the tokens and base imported once,
+  `xstyle`): the docs' Quick start and the source panel's prompt show it
+  when the reader picks StyleX on Vue. One hairline bar: the
+  `.seg` step picker (each step under its mark: the kit's Folder glyph,
+  then npm, pnpm and Bun's own marks), the command in mono with the ember
+  `$`, a hairline Copy through `DitherClipboard`. A copy is ONE gesture:
+  while copied the command shows selected (a breath of ink behind it,
+  padded by a shadow so no glyph moves) and the key is ringed (the
+  `.ring-on` look) as its label rolls to "Copied" under a check; both let
+  go together, the selection stepping out in three; nothing kicks, slants
+  or draws over the bar, and reduced motion swaps both at once. The steps
+  under it sit in glyph squares (Copy, then Check once copied; Terminal;
+  Code) and advance on copy; "Source on GitHub" carries
+  GitHub's mark; the glint is a one-shot IO → CSS (latched, never
+  re-fires). Under them, "What lands in your repo" (`LANDS`): four columns split by hairlines (two under 900px, one
+  under 560px), each a mono path under its glyph and one line:
+  `dither-kit/engine/`, `tailwind/`, `stylex/` (Folder) and
+  `engine/theme.css` (Palette), as `docs/install.ts` aliases and imports
+  them; change both together.
+- Directory (`Hub.vue`, `#directory`): a head (`.dir-head`): left the
+  title ("n sections, every one of them live."), one line and "Browse all
+  sections"; right the kit's `BarChart` of the docs (13rem): one row,
+  every `FAMILIES` entry its own series in sidebar order, the big families
+  in a hue and the rest grey, a hover tooltip, nothing to click; one
+  column under 760px, the chart under the text. Then the `.hardshell`
+  window holding the bento: `BENTO`, nine big live kit components the
+  hero's stage does not show, on a 12-column grid in three rows whose
+  widest tile steps right a place each row (radar 5, 3D model 4, meta
+  balls 3; decrypted text 4, stat card 5, rating 3; pie 3, progress 4,
+  galaxy 5); under 900px the radar takes the width and the rest pair up,
+  one column under 560px. Each tile is its surface in a `.gel` well
+  (13rem; the first row 18rem; the model and the two canvases flush, each
+  with its pause chip, hidden under reduced motion, where the kit holds
+  them still; the model's pause stops its turn, `auto-rotate` 0) and,
+  under it, a strip: the name as a `.lead` into `/docs/<id>`, the family
+  as a `.spec`. Under the bento, inside the panel, `TOOLS`: what every
+  docs preview offers (Inspect, Edit and run, Hand it to your agent, each
+  under its glyph: Crosshair, Code, Bot), three columns split by
+  hairlines, each with the section that shows it. `hub.ts` is static data
+  (the landing never loads the docs IA, no cross-page imports):
+  `FAMILIES`, `DOCS_FAMILIES` (the big families with their sizes and
+  first sections: the footer's Docs column) and `BENTO`, held honest by
+  `tests/hub.spec.ts`: families and counts equal `GROUPS`, every tile and
+  first section is a section of the family it names.
+- Rhythm: the hero and the close run full width; everything else sits on
+  the shell (`Showcase`'s `.shell` for the install, `LandingPage`'s
+  `.box` for the directory, principles, parts and agents), each a flex
+  column spaced by one gap; never stack a row's padding on a neighbour's
+  margin.
+- Principles (`LandingPage.vue`): a `.section-head` ("One rule under
+  every pixel."; tags Bayer 4x4, 7 seed hues, One engine; "Read the
+  quick start") over a `.hardshell` — the
+  figure in a `.gel` well, sticky at the viewport's middle, beside six
+  numbered statements at a large size (up to 2rem), each a LINK into the
+  docs that covers it (`PRINCIPLES`, each a sentence or two, no dashes).
+  Under 760px the well is a strip across the top of the panel (the
+  lattice beside its caption: a container query in `EssayFigure`, the
+  well's content 14rem and up; the desktop well's is 212px) pinned to
+  the top of the screen while the statements pass under it, so the staged
+  statement and its scene stay in view together. The words light as each statement rises (after
+  MONOGRID): CSS scroll timelines only — `view-timeline-name: --principle`
+  per statement, every `.w` animating `--ink-3` → `--ink` over its own
+  slice of the rise (`--p` = its place in the line), both ends ≥ 4.5:1 so
+  a half-lit line is still text; no motion under reduced motion or
+  without `animation-timeline` support. The STAGE is where the figure
+  is: on a wide screen the statement crossing the viewport's middle (ONE
+  IntersectionObserver on a zero-height root line, no scroll listener);
+  under 760px, where the figure is the strip at the top, the statement
+  sitting just under the strip (the topmost one at least half inside a
+  band from the strip's foot to the middle; the observer is made again
+  when the layout flips), and there a line's words finish lighting as it
+  arrives under the strip, not at the middle. Hover or focus stages a
+  statement too; the staged one takes an ink index and an ink rule.
+  The figure (`EssayFigure.vue` over `essay-figure.ts`): a 24x24 lattice of
+  576 `<rect>`s built once at setup (markup, prerender-able);
+  `stageCell(stage, x, y)` paints each scene through the house
+  `ditherTone`/`rankOf` rule (defined there, on the kit's 4×4 matrix; 01 matrix ramp · 02 bars + avatar ring · 03
+  seven seed bands · 04 seeded scatter · 05 nested frames · 06 alias
+  arrow), `stageFills()` gives every rect's fill (`OFF` lattice ghost where
+  empty), and the CSS `fill` transition is delayed by the cell's Bayer rank
+  (`--r` × 22ms) so a scene change IS an ordered-dither wipe; none under
+  reduced motion. New scenes are field cases in `essay-figure.ts` with a
+  sentence-case caption in `STAGE_CAPTIONS` (shown beside the scene's
+  number, no separator) — never a second lattice. Guarded by
+  `tests/essay-figure.spec.ts` (lattice ranks, determinism, lit share,
+  distinct scenes, stage wrap).
+- Parts (`LandingPage.vue`, `#inside`): a `.section-head` ("Three parts,
+  one engine."; tags Plain source, MIT, the `RUNTIME_DEPS` count as "n
+  deps"; "Read the source on GitHub" in a new tab) over a `.hardshell`
+  `ol` of three numbered columns split by hairlines (`INSIDE`: the kit,
+  the Studio, the agent bridge), each its glyph in a small `.gel` in the
+  ember beside its `.spec` part number, the title, a paragraph, a spec
+  sheet (a `dl` of two rows under hairlines, the label a `.spec`: the
+  kit's layers and ports, the Studio's exports and reels, the bridge's
+  protocols and runtime) and the `.lead` that leads on (the quick start,
+  the Studio, the agent skill). One column under 900px, split by rules.
+- Agents (`#agents`): a `.section-head` ("Your own agent drives the
+  Studio."; tags the harness count, ACP, No keys; "Read the agent
+  skill") over a two-column `.hardshell` (a real
+  border: the well would paint over an inset hairline): left three steps,
+  each in a glyph square (an `ol`, so the order is the list's) — run the
+  bridge (Node's mark; its command shown as its two lines and copied as
+  one through `DitherClipboard`), pick a harness in the Studio's Agent
+  panel (Bot; the harnesses `bridge/dither-bridge.mjs` knows, its
+  `HARNESSES` ids and names in order — keep in sync — as hairline chips
+  each under the harness's own mark), ask for a screen (Sparkles; under it
+  the `.seg` picker of the asks). Right, on the well,
+  `AgentAsks.vue`: the picked ask (`asks.ts`: its words, the frame's
+  name, what drew it) in a prompt bubble (the ember `›`) on the Studio's
+  dotted canvas over the frame it lands as (its name over it, every part
+  live), then a caption under the Sparkles glyph naming the Studio tool
+  call that drew it. A screen is made ONLY of registry components (the
+  ones `add_screen` lays out; a chart is `add_chart`), so the caption is
+  true: a deploy panel, a sign-up card, a visits bar chart. Every ask's
+  words sit in one grid cell with only the picked one visible, and the
+  frames share one height (12rem), so a pick never moves the page. The
+  steps and the stage stand level (the steps spread over any slack), and
+  the panel's full-width foot is a solid strip under the Lock glyph (the
+  harness keeps its own login, the Studio never asks for a key). One
+  column under 760px.
+- The close (`LandingPage.vue`, `.dawn`, after the agents): a FULL-BLEED
+  band between hairlines, the last line ("Copy one folder. Every pixel
+  is yours.") and its keys on the shell (`.key-chrome` "Read the quick
+  start"; "Copy agent prompt" through `DitherClipboard`, the prompt naming
+  this origin's `SKILL.md`, the degit command, the four packages and the
+  alias; "Open the studio"), then the kit's `DitherLightRays` across the
+  band (up to 100rem, its top edge fading in and its sides past that;
+  `clamp(12rem, 26vw, 24rem)` tall, 12fps), its pause chip lined up with
+  the shell. A hand on the keys (pointer or focus) brightens the rays
+  (`glow` 1.5 to 2.4).
+- Marks: tool logos (npm, pnpm, Bun, Node, Vue, Svelte, GitHub and the
+  coding agents) come ONLY from `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
   restyled or dithered; everything else is a kit glyph (`DitherIcon`).
-- No entrance choreography: the page simply is. Motion is the live kit
-  surfaces. Pause chips (`PauseChip.vue`, WCAG 2.2.2): every surface that
-  moves by itself for more than five seconds carries one in its corner,
-  named for it ("Pause the horizon", "Pause the shader", "Pause the
-  model", "Pause the silk"), `aria-pressed` while paused, wired to the
-  surface's `paused` (the model's turn is its `auto-rotate`).
-- Footer (under a hairline, on the page width): the brand (mark and name,
-  one line, GitHub under its mark) beside three link columns (Get started,
-  Docs: the big families, For agents: SKILL.md, llms.txt, the registry,
-  the Studio; 28px hit areas), the copyright line as separate items (the
-  year and dither-ui.com, `v<version>`, MIT license), then the engraved
-  wordmark. Three columns under the brand under 900px, two under 640px.
+- No entrance choreography: the page simply is (no load reveal, no scroll
+  listener, no soft focus). Motion is the live kit surfaces (the stage's
+  tour and dissolves, the bento's model and canvases, the rays), the
+  principles' scroll-timeline word reveal, the figure's wipe and hover
+  answers.
+- Pause chips (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by
+  itself for more than five seconds carries one, a round toggle in its
+  corner with its own name ("Pause the component tour", "Pause the
+  model", "Pause the meta balls", "Pause the galaxy", "Pause the light")
+  and `aria-pressed` while paused, wired to the surface's `paused` (the
+  model's turn is its `auto-rotate`). Where reduced motion already holds a
+  surface still its chip is hidden.
+- Footer (under a hairline, on the shell): the brand (the pixel wordmark
+  in the home link, the framework badges Vue 3 and Svelte 5 each under
+  its mark, one line, GitHub under its mark) beside three link columns
+  (`COLUMNS`: Get started; Docs, the big families each with its size;
+  For agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit
+  areas), the copyright line as separate items (the year and
+  dither-ui.com, `v<version>`, MIT license), then the engraved wordmark.
+  Three columns under the brand under 900px, two under 640px.
 - Footer signature: engraved wordmark (`EngravedWordmark.vue`) — glyph paths
   baked from Consolas Bold via `.scratch/engrave/bake.js` into
   `src/pages/landing/wordmark-layers.ts` as EXPORTED MARKUP STRINGS the
@@ -480,22 +654,25 @@ widgets/features; page-specific conventions live here.
 
 - `tests/landing-facts.spec.ts` recounts `COMPONENT_COUNT` in `facts.ts`;
   `tests/hub.spec.ts` holds `FAMILIES`, `DOCS_FAMILIES` and `BENTO` to the
-  docs' `GROUPS`.
+  docs' `GROUPS`; `tests/essay-figure.spec.ts` the principles' figure;
+  `tests/pixel-type.spec.ts` every string the pixel face sets.
 - `tests/marks.spec.ts`: every harness the bridge starts has a mark under
   its id and name, the landing lists them in the bridge's order, every
   mark is path data in a positive box.
 - Browser walk after changes: the landing at desktop AND phone widths (no
   horizontal scroll), the h1 (two lines) and the keys above the fold at
-  1440x900, 1280x800 and 1920x1080 with the horizon arc and its stars
-  drawn under them, "Copy agent prompt" copying a prompt that names this
-  origin's SKILL.md, no uppercase label, eyebrow, middle dot, em dash or
+  1440x900, 1280x800 and 1920x1080 with the stage beside them in its
+  liquid chrome biome, "Copy agent prompt" (the close) copying a prompt
+  that names this origin's SKILL.md, no uppercase label, eyebrow, middle dot, em dash or
   arrow link in the rendered copy, every svg decorative or labelled,
   "Watch the film" (the dialog opens with focus in it, the film plays,
   Escape closes it, focus returns to the key, the video leaves the DOM),
-  the bento's rows whole at 1440, 800 and 390px with every card drawn and
-  its controls working ("New shader", the output modes, "Roll a seed", the
-  styling picker, the dither button's count), each pause chip stopping its
-  surface, the asks' stage keeping one height across the asks, "What lands
+  the stage's tour (every scene drawn, its controls working: "Roll a
+  seed", "New shader" and the output modes, the styling picker, the
+  button's fills and hues, the slide, the fluid's palettes), the bento's
+  rows whole at 1440, 800 and 390px with every tile drawn, the principles'
+  stage following the scroll at desktop and phone widths, each pause chip
+  stopping its surface, the asks' stage keeping one height across the asks, "What lands
   in your repo" in four, two and one columns, the header capsule floating
   over the page with an anchor landing clear of it, reduced motion (the
   surfaces still, the film waiting on its poster), and the workbench
