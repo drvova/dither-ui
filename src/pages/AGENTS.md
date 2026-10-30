@@ -228,7 +228,7 @@ widgets/features; page-specific conventions live here.
 - Footer (on the page width, no rule above it): the brand (the pixel
   wordmark in the home link, one line, GitHub under its mark) beside three
   link columns
-  (`COLUMNS`: Get started; Docs, the big families each with its size; For
+  (`COLUMNS`: Get started, closing on Verification; Docs, the big families each with its size; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,
   `v<version>`, MIT license), then the line-screen wordmark. Three columns
@@ -245,10 +245,17 @@ widgets/features; page-specific conventions live here.
 ### docs/
 
 - Sidebar IA (after Base UI): Overview · Handbook (Styling, Composition,
-  Seeds, Engine, Animation, Accessibility — prose + CodeBlock, no DemoCard;
-  Engine, `handbook/EngineSection.vue`, names the parts under every surface,
-  each with a figure read from the kit's own constants and a link to its
-  section, a dead id failing the render) · Examples ·
+  Seeds, Engine, Verification, Animation, Accessibility — prose +
+  CodeBlock, no DemoCard; Engine, `handbook/EngineSection.vue`, names the
+  parts under every surface, each with a figure read from the kit's own
+  constants and a link to its section, a dead id failing the render;
+  Verification, `handbook/VerificationSection.vue`, is a lab report: each
+  claim of the kit (`CHECKS` in `handbook/lab.ts`: what, how, against
+  what, the spec that holds it) measured with the kit's engine in the
+  reader's browser as the section nears, one check per task, again on
+  "Measure again", the engine and time as its conditions, the results
+  copied as a Markdown table; the static page ships it unmeasured, and
+  linked from the landing footer) · Examples ·
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,
@@ -552,6 +559,10 @@ widgets/features; page-specific conventions live here.
   `tests/hub.spec.ts` holds `FAMILIES`, `DOCS_FAMILIES` and `BENTO` to the
   docs' `GROUPS`; `tests/pixel-type.spec.ts` every string the pixel face
   sets.
+- `tests/lab.spec.ts` runs the Verification section's checks in Node,
+  each one holding, every named spec existing, and pins `POSTER_HASH`
+  (the poster's bytes, the cross-engine row): a change to the poster's
+  arithmetic fails it until the hash is recorded again.
 - `tests/marks.spec.ts`: every harness the bridge starts has a mark under
   its id and name, the landing lists them in the bridge's order, every
   mark is path data in a positive box.

@@ -63,6 +63,7 @@ import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
 import PrimitivesDocs from "./primitives/PrimitivesDocs.vue"
 import EngineSection from "./handbook/EngineSection.vue"
+import VerificationSection from "./handbook/VerificationSection.vue"
 import ScreensSection from "./utils/ScreensSection.vue"
 import TypographyDocs from "./typography/TypographyDocs.vue"
 import FeedbackDocs from "./components/FeedbackDocs.vue"
@@ -1222,6 +1223,9 @@ const gradientCode = computed(
 
           <!-- Engine: the parts under every surface, a figure each -->
           <EngineSection />
+
+          <!-- Verification: the kit's claims measured in the reader's browser -->
+          <VerificationSection />
 
           <!-- Composition -->
           <section id="composition" class="mt-16 scroll-mt-24">

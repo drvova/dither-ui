@@ -1,7 +1,7 @@
 import * as gif from "../../shared/lib/gif.ts"
 import { GROUPS, SECTIONS } from "./groups.ts"
 import * as card from "./og-card.ts"
-import { docsBreadcrumb, docsMeta, SITE_URL } from "./seo.ts"
+import { docsBreadcrumb, docsMeta, REPO_URL, SITE_URL } from "./seo.ts"
 
 // The crawler-surface files (`dist/sitemap.xml`, `dist/robots.txt`,
 // `dist/llms.txt`) are generated at build time from the same GROUPS/SITE_URL
@@ -12,7 +12,6 @@ import { docsBreadcrumb, docsMeta, SITE_URL } from "./seo.ts"
 // TypeScript, so this module and its graph (groups, seo, the *-nav packs)
 // write relative imports with `.ts`.
 
-const REPO_URL = "https://github.com/drvova/dither-ui"
 const REPO_SVELTE_URL = `${REPO_URL}/tree/master/dither-kit-svelte`
 
 const docsUrl = (id: string): string => {

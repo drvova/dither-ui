@@ -85,6 +85,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       { label: "Styling", href: routePath("/docs/styling") },
       { label: "Seeds", href: routePath("/docs/seeds") },
       { label: "Accessibility", href: routePath("/docs/accessibility") },
+      { label: "Verification", href: routePath("/docs/verification") },
     ],
   },
   {

@@ -7,6 +7,7 @@ import { GROUPS, SECTIONS, type DocsGroup } from "./groups.ts"
 // and breadcrumb structured data in sync with the section in view. It is also
 // the source for the build-time sitemap (see rstack.config.ts).
 export const SITE_URL = "https://dither-ui.com"
+export const REPO_URL = "https://github.com/drvova/dither-ui"
 
 const SITE_OVERVIEW = "dither-ui: a Vue 3 UI toolkit on one ordered-dither canvas engine."
 

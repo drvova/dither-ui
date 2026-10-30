@@ -33,7 +33,7 @@ export function addLaunchFilm(): string | null {
         {
           cells: [
             { is: "DitherCountUp", props: { to: 266, duration: 2400 } },
-            { is: "DitherCountUp", props: { to: 306, duration: 2400 } },
+            { is: "DitherCountUp", props: { to: 307, duration: 2400 } },
             { is: "DitherCountUp", props: { to: 47, duration: 2400 } },
           ],
           justify: "between",
@@ -73,7 +73,7 @@ export function addLaunchFilm(): string | null {
           line: "A UI kit drawn pixel by pixel.",
           spec: [
             ["266", "components"],
-            ["306", "docs sections"],
+            ["307", "docs sections"],
             ["1", "dither rule"],
           ],
         },
