@@ -15,10 +15,7 @@ const styles = stylex.create({
     borderWidth: "1px",
     borderColor: "var(--border)",
     outlineStyle: "none",
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 50%, transparent)",
-    },
+    boxShadow: { default: null, ":focus-visible": "0 0 0 calc(2px + 0px) var(--ring)" },
   },
   layer: {
     pointerEvents: "none",
@@ -42,10 +39,7 @@ const styles = stylex.create({
     borderWidth: "1px",
     borderColor: "var(--border)",
     outlineStyle: "none",
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 50%, transparent)",
-    },
+    boxShadow: { default: null, ":focus-visible": "0 0 0 calc(2px + 0px) var(--ring)" },
   },
   layer2: {
     pointerEvents: "none",
@@ -76,7 +70,7 @@ const styles = stylex.create({
     borderWidth: "1px",
     borderColor: {
       default: "color-mix(in oklab, var(--border) 70%, transparent)",
-      ":focus-visible": "color-mix(in oklab, var(--accent) 70%, transparent)",
+      ":focus-visible": "var(--ring)",
     },
     backgroundColor: "transparent",
     paddingInline: "0.5rem",

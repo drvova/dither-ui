@@ -29,6 +29,14 @@ export { default as DitherFlowField, paintFlowField, fadeRasterAlpha, type FlowF
 export { default as DitherAurora, type AuroraParams, paintAurora } from "./Aurora.vue"
 export { default as DitherWaves, type WavesParams, paintWaves } from "./Waves.vue"
 export { default as DitherSilk, type SilkParams, paintSilk } from "./Silk.vue"
+export {
+  default as DitherPoster,
+  type PosterTile,
+  type PosterLayout,
+  type PosterParams,
+  paintPoster,
+  posterLayout,
+} from "./DitherPoster.vue"
 export { default as DitherPlasma, type PlasmaParams, paintPlasma } from "./Plasma.vue"
 export { default as DitherLineWaves, type LineWavesParams, paintLineWaves } from "./LineWaves.vue"
 export { default as DitherThreads, type ThreadsParams, paintThreads } from "./Threads.vue"
@@ -88,6 +96,9 @@ export {
 } from "../engine/precompile"
 export type { ButtonRasterOptions, GradientRasterOptions } from "../engine/precompile"
 export { createRasterBuffer, putRasterBuffer, setRasterPixel32, setOrBlendRasterPixel } from "../engine/raster"
+export { SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "../engine/pixel"
+export { useDitherMatrix, useLabelMatrix, useScreen } from "../engine/use-screen"
+export { default as DitherScreen } from "./DitherScreen.vue"
 export type { RasterBuffer } from "../engine/raster"
 
 // Form controls

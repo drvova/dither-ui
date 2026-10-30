@@ -90,6 +90,9 @@ const triggerToast = () => {
       <component :is="kit.DitherField" label="Email"><component :is="kit.DitherInput" /></component>
       <component :is="kit.DitherButton">Submit</component>
     </component>
+    <component :is="comp as never" v-else-if="entry?.demo === 'screen'" v-bind="compProps">
+      <div class="relative h-full w-full overflow-hidden"><component :is="kit.DitherGradient" from="purple" /></div>
+    </component>
     <component :is="comp as never" v-else-if="entry?.demo === 'stage'" v-bind="compProps" class="h-full w-full">
       <component
         :is="kit.DitherLayer"

@@ -187,7 +187,7 @@ Commands (`type` and fields):
     Keep labels short facts ("glTF, OBJ, STL") and notes shorter.
   - `chapter` per clip: `{ line, spec?: [[figure, words]] }`, the band
     under the stage from that clip on: one line, then up to four rows with
-    the measured figure first (`["264", "components"]`).
+    the measured figure first (`["266", "components"]`).
   - `score` on the reel: `true` or `{ seed }`. A soundtrack synthesized
     from the cut (a chord per clip, a riser and an impact on every cut, a
     tick per callout, a blip per chapter); the video export carries it.

@@ -83,21 +83,21 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
             name="signup-name"
             placeholder="Ada Byte"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
+            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
           />
           <input
             type="email"
             name="signup-email"
             placeholder="you@dither-ui.com"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
+            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
           />
           <input
             type="password"
             name="signup-password"
             placeholder="••••••••"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
+            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
           />
           <div class="grid grid-cols-3 gap-1 rounded-md border border-border/60 p-1" role="group" aria-label="Plan">
             <button
@@ -148,7 +148,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
               name="magic-email"
               placeholder="you@dither-ui.com"
               autocomplete="off"
-              class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent/60"
+              class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
             />
             <DitherButton color="green" variant="gradient" class="w-full py-2 text-[11px]" @click="sent = true"
               >Send magic link</DitherButton
@@ -216,7 +216,7 @@ const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg borde
               :name="`twofactor-digit-${i}`"
               autocomplete="off"
               :aria-label="`Digit ${i}`"
-              class="h-11 w-9 rounded-md border border-border bg-background/60 text-center text-[13px] text-foreground outline-none focus:border-accent/60"
+              class="h-11 w-9 rounded-md border border-border bg-background/60 text-center text-[13px] text-foreground outline-none focus:border-ring"
               @input="onCodeInput(i - 1)"
             />
           </div>

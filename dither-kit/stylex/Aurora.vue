@@ -16,11 +16,12 @@ const styles = stylex.create({
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { cn, type StyleProp } from "./lib"
-import { BAYER4, clamp01, pixelMatrixFromSeed } from "../engine/pixel"
+import { clamp01 } from "../engine/pixel"
 import { hexToRgb } from "../engine/palette"
 import type { RasterBuffer } from "../engine/raster"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
 import { useDitherBackground } from "../engine/use-dither-background"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -68,7 +69,7 @@ const params = computed<AuroraParams>(() => ({
   opacity: clamp01(props.opacity),
   dither: props.dither === true ? 1 : props.dither === false ? 0 : clamp01(props.dither),
 }))
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)

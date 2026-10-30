@@ -1,3 +1,4 @@
+import { ROUTE_TITLES } from "../../shared/config/titles.ts"
 import { GROUPS, SECTIONS, type DocsGroup } from "./groups.ts"
 
 // Per-section search metadata for the docs deep links (`/docs/<id>`). The docs
@@ -11,7 +12,7 @@ const SITE_OVERVIEW = "dither-ui: a Vue 3 UI toolkit on one ordered-dither canva
 
 export const DOCS_ROOT = {
   url: `${SITE_URL}/docs`,
-  title: "Vue dither components and chart documentation | dither-ui",
+  title: ROUTE_TITLES.docs,
   description:
     "Documentation, live examples, API references, and copy-ready Vue code for dither-ui charts, components, composition, animation, and accessibility.",
 }

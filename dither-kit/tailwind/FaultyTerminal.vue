@@ -7,10 +7,11 @@ export { paintFaultyTerminal }
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
-import { BAYER4, clamp01, fillOf, pixelMatrixFromSeed, type PixelColor } from "../engine/pixel"
+import { clamp01, fillOf, type PixelColor } from "../engine/pixel"
 import type { RasterBuffer } from "../engine/raster"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
 import { useDitherBackground } from "../engine/use-dither-background"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -84,7 +85,7 @@ const params = computed<FaultyTerminalParams>(() => ({
   brightness: props.brightness,
   mouseStrength: props.mouseStrength,
 }))
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)

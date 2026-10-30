@@ -42,7 +42,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   dithered or put in the kit; imported by path, never through the
   `shared/ui` barrel, which would pull every shared component into the
   landing's first load; `Segmented` takes `labels` where an option's
-  value is not how a reader writes it), config (CHART_TYPES), lib (theme,
+  value is not how a reader writes it), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf
+  the landing can load without the docs IA), lib (theme,
   routes (with `safeUrl`, the ONE test of a URL a document may carry into
   an href or a src: http(s), mailto, a raster `data:` image or a relative
   path, read as the browser reads it), base64, menu,
@@ -87,7 +88,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
   `noindex` player at `/play/` (not prerendered); legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported. Route
-  entry HTML files own static crawler-visible metadata; docs sections refine
+  entry HTML files own static crawler-visible metadata (their titles are
+  `shared/config/titles.ts` `ROUTE_TITLES`, which App.vue sets as the route
+  changes; `tests/titles.spec.ts` holds each page's three copies to it); docs sections refine
   it at runtime per `/docs/<id>` (see `pages/AGENTS.md`). `app/App.vue`
   resolves both path styles. Internal app links and public asset URLs use
   `routePath()` /
@@ -413,9 +416,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   and plain borders (tracks bordered, the pressed segment outlined).
   Shared by the docs and the Studio; none of them grows a voice of its
   own. The landing takes only `.nav-a`, `.chrome-type`, `.key-chrome` and
-  the tokens from it, under the user's slop bans (root `AGENTS.md`): its
-  keys, picked segments, cards and panels are fills on one raised ground
-  (`pages/landing/chapters.css`), never rings, hairlines or tags.
+  the light theme's tokens from it, printed on its own paper (root
+  `AGENTS.md`, `pages/landing/chapters.css`): its keys, picked segments,
+  cards and panels are fills on one raised ground, never rings or tags;
+  its only hairlines are the frame's.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on

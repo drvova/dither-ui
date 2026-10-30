@@ -7,8 +7,7 @@ const styles = stylex.create({
     borderRadius: "var(--radius)",
     boxShadow: {
       default: null,
-      ":focus-within":
-        "0 0 0 2px var(--background), 0 0 0 calc(2px + 2px) color-mix(in oklab, var(--foreground) 70%, transparent)",
+      ":focus-within": "0 0 0 2px var(--background), 0 0 0 calc(2px + 2px) var(--ring)",
     },
   },
 })

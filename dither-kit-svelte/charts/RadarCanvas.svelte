@@ -4,7 +4,6 @@
   import type { PolarChartContextValue } from "./polar-context"
   import {
     resolveEasing,
-    resolveMatrix,
     resolveTexture,
     prefersReducedMotion,
   } from "../engine/dither-paint"
@@ -111,7 +110,7 @@
               continue
             }
             const tex = resolveTexture(variant)
-            const mat = resolveMatrix(variant)
+            const mat = s.matrixOf(variant)
             const raw = 1 - Math.min(1, dist / band)
             const density = 1 - tex.ramp * (1 - raw)
             const sparse = pi * 0.2

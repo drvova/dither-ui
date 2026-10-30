@@ -101,7 +101,7 @@
         aria-haspopup="menu"
         aria-expanded={openIndex === mi}
         class={cn(
-          "rounded-md px-2.5 py-1 font-mono text-xs transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none",
+          "rounded-md px-2.5 py-1 font-mono text-xs transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
           openIndex === mi
             ? "bg-background text-foreground"
             : "text-muted-foreground hover:text-foreground"

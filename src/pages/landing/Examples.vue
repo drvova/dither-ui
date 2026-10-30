@@ -1,21 +1,24 @@
 <script setup lang="ts">
 // "Every component, live.": the title beside a line and the docs link, then
-// a bento of live kit components the hero's stage does not show, row by row
-// (`BENTO`), each a card of its art over its name. The name leads into the
-// docs section; the art is the component itself, hands on, in the kit's
-// blue with the ember for a second voice. Everything that moves has its
-// pause.
-import { computed, ref } from "vue"
+// a bento of live kit components, row by row (`BENTO`), each a card of its
+// art over its name. The name leads into the docs section; the art is the
+// component itself, hands on, in the kit's blue with the ember for a second
+// voice. Everything that moves has its pause.
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, reactive, ref } from "vue"
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   DitherAvatar,
+  DitherButton,
   DitherDecryptedText,
   DitherHoldAction,
   DitherMetaBalls,
   DitherProgress,
   DitherRating,
   DitherSilk,
+  DitherSlideAction,
   DitherSlider,
   DitherWorld,
   Legend,
@@ -25,13 +28,42 @@ import {
   RadarChart,
   Sparkline,
   XAxis,
+  cssColor,
   sampleWorld,
+  type ButtonVariant,
   type DitherColor,
 } from "@dither-kit"
 import { routePath } from "@/shared/lib"
 import { COMPONENT_COUNT } from "./facts"
 import { BENTO } from "./hub"
 import PauseChip from "./PauseChip.vue"
+
+// The heavy cards are their own chunks, fetched as the card nears the
+// viewport: the shader's WebGL engine, the translator's utility map, the
+// fluid's canvas engine.
+const DitherShader = defineAsyncComponent(() => import("@dither-kit/tailwind/DitherShader.vue"))
+const ExportScene = defineAsyncComponent(() => import("./ExportScene.vue"))
+const DitherFerrofluid = defineAsyncComponent(() => import("@dither-kit/tailwind/Ferrofluid.vue"))
+const LAZY = new Set(["shader", "styling", "ferrofluid"])
+const near = reactive(new Set<string>())
+const bento = ref<HTMLElement | null>(null)
+let io: IntersectionObserver | null = null
+onMounted(() => {
+  const cards = [...(bento.value?.querySelectorAll<HTMLElement>("[data-lazy]") ?? [])]
+  if (typeof IntersectionObserver === "undefined") return cards.forEach((c) => near.add(c.dataset.lazy ?? ""))
+  io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries)
+        if (e.isIntersecting) {
+          near.add((e.target as HTMLElement).dataset.lazy ?? "")
+          io?.unobserve(e.target)
+        }
+    },
+    { rootMargin: "600px 0px" },
+  )
+  for (const c of cards) io.observe(c)
+})
+onBeforeUnmount(() => io?.disconnect())
 
 // 3D model: a seeded probe on a picked ramp; "New model" is the next seed.
 const BLUE = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
@@ -49,6 +81,47 @@ const worldPlaying = ref(true)
 
 // Rating.
 const stars = ref(4)
+
+// Area chart: one seed sets every fill; roll it and every fill changes.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const REVENUE = [42, 51, 48, 63, 71, 68, 79, 86, 82, 94, 102, 118]
+const EXPENSES = [31, 34, 33, 39, 44, 47, 46, 52, 55, 58, 61, 67]
+const AREA_ROWS = MONTHS.map((month, i) => ({ month, revenue: REVENUE[i], expenses: EXPENSES[i] }))
+const AREA_CONFIG = {
+  revenue: { label: "Revenue", color: "blue" as DitherColor },
+  expenses: { label: "Expenses", color: "grey" as DitherColor },
+}
+const fills = ref(1984)
+const roll = () => (fills.value = Math.floor(Math.random() * 1_000_000))
+
+// Button: four fills, five hues.
+const FILLS: ButtonVariant[] = ["gradient", "dotted", "hatched", "solid"]
+const HUES: DitherColor[] = ["blue", "orange", "green", "purple", "pink"]
+const btn = reactive({ variant: "gradient" as ButtonVariant, color: "blue" as DitherColor })
+
+// Shader: the kit's seeded sample (every seed a different GLSL program),
+// 1-bit in the kit's blue, on a palette ramp, or in its own colours.
+const OUTPUTS = ["mono", "ramp", "colour"] as const
+const output = ref<(typeof OUTPUTS)[number]>("mono")
+const program = ref(3)
+const SHADER_RAMP: DitherColor[] = ["blue", "purple", "pink", "orange"]
+const shaderPlaying = ref(true)
+
+// Ferrofluid: the kit's blue, the ember, or the page's grey.
+const FLUIDS = {
+  blue: ["#2f6fd0", "#7ba3ee", "#c9dbff"],
+  ember: ["#a84d17", "#f08a3c", "#ffd9b0"],
+  grey: ["#25292d", "#5d6268", "#a6abb1"],
+} as const
+type Fluid = keyof typeof FLUIDS
+const FLUID_NAMES = Object.keys(FLUIDS) as Fluid[]
+const fluid = ref<Fluid>("blue")
+const fluidPlaying = ref(true)
+
+// Slide action: deploys confirmed. Its thumb takes the blue ramp's deep
+// stop: the kit draws the arrow in the page's ground, and on the paper (a
+// shade under white) the kit's own blue holds it under AA.
+const deploys = ref(0)
 
 // Stat card.
 const SPARK = [12, 14, 13, 17, 16, 19, 18, 22, 21, 24, 23, 27, 26, 29, 31, 30, 33, 35]
@@ -121,9 +194,18 @@ const purged = ref(0)
       </div>
     </div>
 
-    <ul class="bento" aria-label="Examples from the docs">
-      <li v-for="t in BENTO" :key="t.id" class="card" :class="`t-${t.id}`">
-        <div class="card-art" :class="{ flush: ['world', 'meta-balls', 'silk'].includes(t.id) }">
+    <ul ref="bento" class="bento" aria-label="Examples from the docs">
+      <li
+        v-for="t in BENTO"
+        :key="t.id"
+        class="card"
+        :class="`t-${t.id}`"
+        :data-lazy="LAZY.has(t.id) ? t.id : undefined"
+      >
+        <div
+          class="card-art"
+          :class="{ flush: ['world', 'meta-balls', 'silk', 'shader', 'ferrofluid', 'styling'].includes(t.id) }"
+        >
           <template v-if="t.id === 'world'">
             <DitherWorld
               :source="world"
@@ -148,6 +230,98 @@ const purged = ref(0)
           <div v-else-if="t.id === 'rating'" class="stack">
             <DitherRating v-model="stars" :size="30" label="Rate the kit" />
             <span class="readout">{{ stars }} of 5</span>
+          </div>
+
+          <div v-else-if="t.id === 'area'" class="panel">
+            <AreaChart :key="fills" :data="AREA_ROWS" :config="AREA_CONFIG" :seed="fills" class="area-chart">
+              <XAxis data-key="month" :max-ticks="6" />
+              <Area data-key="expenses" :variant="fills + 1" />
+              <Area data-key="revenue" :variant="fills" />
+            </AreaChart>
+            <div class="row">
+              <button type="button" class="key" @click="roll">Roll a seed</button>
+              <span class="readout">seed {{ fills }}</span>
+            </div>
+          </div>
+
+          <div v-else-if="t.id === 'button'" class="stack">
+            <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-12 px-8 text-sm">Deploy</DitherButton>
+            <div class="seg" role="group" aria-label="Fill">
+              <button
+                v-for="v in FILLS"
+                :key="v"
+                type="button"
+                :aria-pressed="btn.variant === v"
+                @click="btn.variant = v"
+              >
+                {{ v }}
+              </button>
+            </div>
+            <div class="swatches" role="group" aria-label="Hue">
+              <button
+                v-for="c in HUES"
+                :key="c"
+                type="button"
+                class="swatch"
+                :aria-label="c"
+                :aria-pressed="btn.color === c"
+                :style="{ backgroundColor: cssColor(c) }"
+                @click="btn.color = c"
+              />
+            </div>
+          </div>
+
+          <template v-else-if="t.id === 'shader'">
+            <div>
+              <DitherShader
+                v-if="near.has('shader')"
+                :seed="program"
+                :mono="output === 'mono'"
+                :colors="output === 'ramp' ? SHADER_RAMP : undefined"
+                color="blue"
+                :cell="4"
+                :paused="!shaderPlaying"
+                :label="`The kit's sample shader, seed ${program}`"
+                class="h-full w-full"
+              />
+            </div>
+            <PauseChip v-model="shaderPlaying" label="Pause the shader" class="chip" />
+            <div class="art-tools">
+              <div class="seg" role="group" aria-label="Shader output">
+                <button v-for="m in OUTPUTS" :key="m" type="button" :aria-pressed="output === m" @click="output = m">
+                  {{ m }}
+                </button>
+              </div>
+              <button type="button" class="key" @click="program++">New shader</button>
+            </div>
+          </template>
+
+          <template v-else-if="t.id === 'ferrofluid'">
+            <div>
+              <DitherFerrofluid
+                v-if="near.has('ferrofluid')"
+                :colors="[...FLUIDS[fluid]]"
+                :paused="!fluidPlaying"
+                class="h-full w-full"
+              />
+            </div>
+            <PauseChip v-model="fluidPlaying" label="Pause the fluid" class="chip" />
+            <div class="art-tools">
+              <div class="seg" role="group" aria-label="Fluid palette">
+                <button v-for="f in FLUID_NAMES" :key="f" type="button" :aria-pressed="fluid === f" @click="fluid = f">
+                  {{ f }}
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <div v-else-if="t.id === 'styling'">
+            <ExportScene v-if="near.has('styling')" />
+          </div>
+
+          <div v-else-if="t.id === 'slide-action'" class="stack">
+            <DitherSlideAction label="Slide to deploy" :color="BLUE[1]" class="w-full max-w-80" @confirm="deploys++" />
+            <span class="readout">deploys {{ deploys }}</span>
           </div>
 
           <div v-else-if="t.id === 'stats-cards'" class="panel stat">
@@ -277,9 +451,10 @@ const purged = ref(0)
 }
 
 /* The bento: twelve columns, row by row: a tall lead card (8) beside two
-   stacked (4); two halves; three thirds;
-   two halves; three thirds. Two columns under 1024px (the wide cards
-   take both, the rest pack densely), one under 640px. */
+   stacked (4); a wide card (8) beside a third; three thirds; two halves; a
+   wide card beside a third; two halves; three thirds; two halves. Two
+   columns under 1024px (the wide cards and the halves take both, the rest
+   pack densely), one under 640px. */
 .bento {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -307,10 +482,17 @@ const purged = ref(0)
   grid-row: span 2;
 }
 
+.t-area,
+.t-styling {
+  grid-column: span 8;
+}
+
 .t-bar,
 .t-meta-balls,
 .t-silk,
-.t-decrypted-text {
+.t-decrypted-text,
+.t-shader,
+.t-ferrofluid {
   grid-column: span 6;
 }
 
@@ -339,8 +521,19 @@ const purged = ref(0)
 .t-bar .card-art,
 .t-meta-balls .card-art,
 .t-silk .card-art,
-.t-decrypted-text .card-art {
+.t-decrypted-text .card-art,
+.t-area .card-art,
+.t-button .card-art,
+.t-shader .card-art,
+.t-ferrofluid .card-art,
+.t-styling .card-art,
+.t-slide-action .card-art {
   height: 300px;
+}
+
+/* The export card answers to its own width: its code alone when narrow. */
+.t-styling .card-art {
+  container-type: inline-size;
 }
 
 .card-art.flush {
@@ -414,7 +607,9 @@ const purged = ref(0)
 }
 
 .t-rating .stack,
-.t-hold-action .stack {
+.t-hold-action .stack,
+.t-button .stack,
+.t-slide-action .stack {
   justify-content: center;
 }
 
@@ -424,6 +619,28 @@ const purged = ref(0)
   align-items: center;
   justify-content: center;
   gap: 10px;
+}
+
+.area-chart {
+  flex: 1;
+  min-height: 0;
+}
+
+.swatches {
+  display: flex;
+  gap: 8px;
+}
+
+.swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.swatch[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px var(--card),
+    0 0 0 3px var(--ink);
 }
 
 .readout {
@@ -571,10 +788,14 @@ const purged = ref(0)
     grid-column: span 1;
   }
   .t-world,
+  .t-area,
+  .t-styling,
   .t-bar,
   .t-meta-balls,
   .t-silk,
-  .t-decrypted-text {
+  .t-decrypted-text,
+  .t-shader,
+  .t-ferrofluid {
     grid-column: span 2;
     grid-row: auto;
   }
@@ -588,10 +809,14 @@ const purged = ref(0)
     grid-template-columns: minmax(0, 1fr);
   }
   .t-world,
+  .t-area,
+  .t-styling,
   .t-bar,
   .t-meta-balls,
   .t-silk,
-  .t-decrypted-text {
+  .t-decrypted-text,
+  .t-shader,
+  .t-ferrofluid {
     grid-column: auto;
   }
   .t-world .card-art {

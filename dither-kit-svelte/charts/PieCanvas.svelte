@@ -4,7 +4,6 @@
   import type { PolarChartContextValue } from "./polar-context"
   import {
     resolveEasing,
-    resolveMatrix,
     resolveTexture,
     prefersReducedMotion,
   } from "../engine/dither-paint"
@@ -109,7 +108,7 @@
             continue
           }
           const tex = resolveTexture(variant)
-          const mat = resolveMatrix(variant)
+          const mat = s.matrixOf(variant)
           const raw = (r - innerR) / Math.max(localOuter - innerR, 1)
           const density = 1 - tex.ramp * (1 - raw)
           if (tex.hatch >= 2 && ((x + y) % tex.hatch) >= tex.hatch / 2) continue

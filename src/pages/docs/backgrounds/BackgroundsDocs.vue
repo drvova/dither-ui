@@ -52,6 +52,7 @@ import {
   type FlowDirection,
 } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
+import PosterSection from "./PosterSection.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
 const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
@@ -1671,4 +1672,7 @@ const API: Record<string, PropRow[]> = {
     </DemoCard>
     <PropsTable :rows="API.ferrofluid" />
   </section>
+
+  <!-- Poster -->
+  <PosterSection />
 </template>

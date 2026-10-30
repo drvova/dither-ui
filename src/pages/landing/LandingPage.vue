@@ -1,11 +1,12 @@
 <script setup lang="ts">
-// The landing: the hero (the statement beside the stage seated in liquid
-// chrome), then sections under a title with a lead beside it: a bento of
-// live kit components, the screen an agent's ask makes, what's inside (the
-// kit, the Studio, the bridge; the docs' families), the install, and a
-// footer of link columns over the engraved wordmark. Michroma for display,
-// mono for the rest, two inks on two grounds; everything that moves is the
-// kit.
+// The landing, printed: one ink on bone paper inside a hairline frame, the
+// kit's art the only colour on it. The hero (the statement beside the
+// stage, seated on a poster the kit prints), then sections under a title
+// with a lead beside it: a bento of live kit components, the screen an
+// agent's ask makes, what's inside (the kit, the Studio, the bridge; the
+// docs' families), the install, and a footer of link columns over the
+// line-screen wordmark. Michroma for display, mono for the rest; everything
+// that moves is the kit.
 import { onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
@@ -25,10 +26,10 @@ import Showcase from "./Showcase.vue"
 // install to run, pointed at wherever this page is served from.
 const prompt = ref("")
 onMounted(() => {
-  // The landing is always-dark art. A light theme toggled on docs/studio
-  // persists on <html> and this is one SPA, so dark is re-asserted here;
-  // storage keeps the user's choice and docs/studio re-read it on mount.
-  document.documentElement.classList.add("dark")
+  // The landing is paper in either theme: a dark theme toggled on the docs
+  // or the Studio persists on <html> in this one SPA, so it is dropped here;
+  // storage keeps the user's choice and the docs and the Studio re-read it.
+  document.documentElement.classList.remove("dark")
   prompt.value = [
     `Read ${location.origin}${assetPath("/agent/SKILL.md")} and add dither-ui to this project:`,
     "copy the kit with `npx degit drvova/dither-ui/dither-kit src/dither-kit`,",
@@ -105,7 +106,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
     <a
       href="#main"
-      class="skip-link sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-border focus:bg-background focus:px-4 focus:py-2 focus:text-xs"
+      class="skip-link sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-ring focus:bg-background focus:px-4 focus:py-2 focus:text-xs"
     >
       Skip to content
     </a>
@@ -128,7 +129,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             shape-rendering="crispEdges"
           >
             <path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="currentColor" />
-            <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
+            <rect x="3" y="3" width="1" height="1" fill="var(--signal)" />
           </svg>
           dither-ui
         </a>
@@ -149,8 +150,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     </header>
 
     <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
-      <!-- The hero, our own: the statement beside the stage, seated in
-           the kit's liquid chrome. -->
+      <!-- The hero, our own: the statement beside the stage, seated on a
+           poster the kit prints. -->
       <Showcase />
 
       <div class="page">
@@ -234,7 +235,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     </main>
 
     <!-- Footer: the pixel wordmark and a line beside three link columns, the
-         copyright line, then the engraved mark. -->
+         copyright line, then the line-screen wordmark. -->
     <footer class="foot">
       <div class="foot-in">
         <div class="foot-brand">
@@ -294,7 +295,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   padding: 0 7px 0 10px;
   border-radius: 999px;
   background: var(--surface);
-  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7);
+  box-shadow: var(--float-shadow);
 }
 
 @media (forced-colors: active) {
@@ -480,7 +481,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 }
 
 /* The footer: the brand (the pixel wordmark, a line, GitHub) beside three
-   link columns, the copyright line, the engraved wordmark under all.
+   link columns, the copyright line, the line-screen wordmark under all.
    Three columns under the brand under 900px, two under 640px. */
 .foot {
   position: relative;

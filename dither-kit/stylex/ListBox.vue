@@ -11,17 +11,10 @@ const styles = stylex.create({
     borderRadius: "var(--radius)",
     borderStyle: "solid",
     borderWidth: "1px",
-    borderColor: {
-      default: "var(--border)",
-      ":focus-visible": "color-mix(in oklab, var(--accent) 70%, transparent)",
-    },
+    borderColor: { default: "var(--border)", ":focus-visible": "var(--ring)" },
     backgroundColor: "color-mix(in oklab, var(--background) 60%, transparent)",
     padding: "0.25rem",
     outlineStyle: "none",
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 20%, transparent)",
-    },
   },
   pointerEventsNone: { pointerEvents: "none", opacity: "40%" },
   li: {

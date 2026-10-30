@@ -82,7 +82,7 @@
         href={item.href ?? "#"}
         aria-current={item.label === value ? "page" : undefined}
         class={cn(
-          "pb-2 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none",
+          "pb-2 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
           item.label === value ? "text-foreground" : "text-muted-foreground hover:text-foreground"
         )}
         onclick={(e) => {

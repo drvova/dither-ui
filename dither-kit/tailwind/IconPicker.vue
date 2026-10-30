@@ -43,7 +43,7 @@ const filtered = computed(() => {
       type="search"
       :placeholder="props.placeholder"
       :disabled="props.disabled"
-      class="min-h-8 w-full rounded border border-border/70 bg-transparent px-2 py-1 text-[12.5px] text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-accent/70 motion-reduce:transition-none"
+      class="min-h-8 w-full rounded border border-border/70 bg-transparent px-2 py-1 text-[12.5px] text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring motion-reduce:transition-none"
     />
     <div class="grid max-h-48 grid-cols-6 gap-1 overflow-auto sm:grid-cols-8">
       <label

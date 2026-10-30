@@ -1,7 +1,7 @@
 import type { ScaleLinear } from "d3-scale"
 import { getContext, setContext } from "svelte"
 import type { CommonChart } from "./common-context"
-import type { BloomInput, EasingInput, VariantInput } from "../engine/dither-paint"
+import type { BloomInput, DitherMatrix, EasingInput, VariantInput } from "../engine/dither-paint"
 import type { DitherColor, Seed } from "../engine/palette"
 import type { StackType } from "./scales"
 import type { Dimensions } from "./use-chart-dimensions"
@@ -88,6 +88,8 @@ export type ChartContextValue = {
   entranceDone: boolean
   markEntranceDone: () => void
   seedOf: (key: string) => Seed
+  /** A series' threshold matrix from its variant, through any `DitherScreen` around the chart. */
+  matrixOf: (variant: VariantInput) => DitherMatrix
   common: CommonChart
 }
 

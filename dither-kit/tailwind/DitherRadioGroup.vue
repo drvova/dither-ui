@@ -120,7 +120,7 @@ watch(
       :aria-checked="o.value === props.modelValue"
       :tabindex="i === activeIndex ? 0 : -1"
       :disabled="o.disabled"
-      class="inline-flex min-h-6 items-center gap-2 text-left focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
+      class="inline-flex min-h-6 items-center gap-2 text-left focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
       @click="emit('update:modelValue', o.value)"
     >
       <span class="relative size-4 shrink-0">

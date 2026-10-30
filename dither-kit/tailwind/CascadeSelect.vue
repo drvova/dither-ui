@@ -64,7 +64,7 @@ function onChange(depth: number, chosen: string) {
         :value="path[depth - 1] ?? ''"
         :disabled="props.disabled"
         :aria-label="props.placeholders[depth - 1] ?? `Level ${depth}`"
-        class="min-h-10 rounded-md border border-border bg-background/60 px-3 py-2 font-mono text-[13px] text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground hover:border-foreground/25 focus-visible:border-accent/70 focus-visible:ring-2 focus-visible:ring-accent/20 disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none"
+        class="min-h-10 rounded-md border border-border bg-background/60 px-3 py-2 font-mono text-[13px] text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground hover:border-foreground/25 focus-visible:border-ring disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none"
         @change="onChange(depth - 1, ($event.target as HTMLSelectElement).value)"
       >
         <option value="" disabled>

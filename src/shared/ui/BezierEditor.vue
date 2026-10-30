@@ -113,7 +113,7 @@ const PRESETS: { name: string; pts: BezierPoints }[] = [
         :name="`bezier-${i}`"
         step="0.01"
         :value="v"
-        class="w-full min-w-0 rounded border border-border bg-background/60 px-1 py-0.5 text-center text-[11px] tabular-nums text-foreground outline-none [appearance:textfield] focus:border-foreground/40 [&::-webkit-inner-spin-button]:appearance-none"
+        class="w-full min-w-0 rounded border border-border bg-background/60 px-1 py-0.5 text-center text-[11px] tabular-nums text-foreground outline-none [appearance:textfield] focus:border-ring [&::-webkit-inner-spin-button]:appearance-none"
         @change="setNum(i, $event)"
       />
       <span class="shrink-0 text-[10px] text-muted-foreground">)</span>

@@ -1,7 +1,7 @@
 <script lang="ts" module>
   import { getContext, setContext } from "svelte"
   import { cellCanvas } from "../engine/raster"
-  import { BAYER4, fillOf, pixelMatrixFromSeed, type PixelColor } from "../engine/pixel"
+  import { fillOf, type PixelColor } from "../engine/pixel"
 
   export type TabsVariant = "underline" | "segmented" | "washed"
   export type TabItem = {
@@ -82,6 +82,7 @@
 <script lang="ts">
   import { cn } from "../runtime/lib"
   import { kitFromSeed } from "../engine/dither-paint"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = {
     /** Plain strings or { value, label, badge, disabled } items. */
@@ -109,7 +110,8 @@
 
   const s = $derived(seed !== undefined ? kitFromSeed(seed) : null)
   const effColor = $derived<PixelColor>(color ?? s?.hue ?? "blue")
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useDitherMatrix()
+  const matrix = $derived(ditherMatrix(seed))
 
   const idBase = `dk-tabs-${counter++}`
   setTabs({
@@ -223,7 +225,7 @@
 
   function tabClass(t: TabItem): string {
     return cn(
-      "relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
+      "relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
       variant === "underline"
         ? vertical
           ? "rounded-md px-2 py-1.5 text-left"

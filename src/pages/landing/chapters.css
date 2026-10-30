@@ -1,20 +1,59 @@
-/* The landing's layer over the SITE voice (the dark theme tokens,
-   monospace, `.nav-a`, `.led` and the materials in app/styles.css).
-   Under the hero, the page is sections under a title with a lead beside
-   it. It keeps the user's slop bans: no tags, no italic or slanted type,
-   no negative tracking, no dividers, no bordered containers, no
-   diagrams, no code paths as labels, no numbered sections, and only the
-   two inks and the two grounds below (no alpha tints). The kit's ember is
-   the signal light; never red. Copy keeps the bans: no eyebrow, no middle
-   dots or em dashes, no link that ends in an arrow. Plain CSS under
-   .landing, read by every landing component. */
+/* The landing's layer over the SITE voice (monospace, `.nav-a` and the
+   light materials in app/styles.css), printed: one obsidian ink on bone
+   paper with a fine grain, a hairline frame down the page, and colour only
+   in the kit's own art (the poster, the live components). Two inks
+   (`--ink`, `--ink-3`) on two grounds (the paper, `--surface`) with no
+   alpha tints. The kit's ember is the signal light; never red. Copy keeps
+   the bans: sentence case, no eyebrow, no middle dots or em dashes, no
+   link that ends in an arrow. Plain CSS under .landing, read by every
+   landing component. */
+
+/* The paper, on the root while the landing is up, so what it teleports to
+   the body (the film's dialog) is printed on it too: the user's V5 bone and
+   obsidian, a muted ink at AA on both grounds. */
+:root:has(.landing) {
+  color-scheme: light;
+  --background: #e4e1d8;
+  --foreground: #101214;
+  --card: #e4e1d8;
+  --card-foreground: #101214;
+  --popover: #ebe8e0;
+  --popover-foreground: #101214;
+  --muted: #d6d2c6;
+  --muted-foreground: #484c53;
+  --border: #101214;
+  --float-shadow: 0 12px 30px -16px rgb(16 18 20 / 0.45);
+}
+
 .landing {
   --ink: var(--foreground);
   --ink-3: var(--muted-foreground);
   /* The one raised ground: a card, a panel, a picked key, a secondary key. */
-  --surface: color-mix(in oklab, var(--foreground) 6%, var(--background));
-  --signal: var(--swatch-orange);
+  --surface: color-mix(in oklab, var(--foreground) 7%, var(--background));
+  /* The ember, a burnt step deeper on paper: 5.5:1 on the paper, 4.8:1 on
+     the raised ground (the light theme's own ember fails both). */
+  --signal: #8a4404;
+  /* Where the frame's hairlines run: just outside the page's column. */
+  --frame: max(8px, calc((100vw - var(--page)) / 2 + 8px));
   font-family: var(--font-mono);
+  /* The paper's grain: a fixed tile of single cells a tone under and over
+     the paper, never a grid. */
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAADA0lEQVR42u1dyW0DMQx0UkKQR5A80n8jLsAPd5BfkBacr2HYa3HFY4YavRcrHsNDIiUdDlfj7/fnckgc59MxdT66MaqQbMW1B8MeYoRmIEDeI8CiIKsy2QBjmttKKIo7yqZjZL7bb+jdXmtXslcgiAF5lqZwcEQJLZrw8+l4eUT73rmVTHTPUCrclpVpobAIZdeCj1KC939hLEqolVApfH4boO4RbLQyLMK9S4vcSOH2RkbOLrUKySYweIEGwjK8mK6yJEv8aLnY8xQ8koBeV/Tfb+9fL7AoXzFYLpsgZDI+E4yfWYEbHzM/ihJmVhUpi/4wQiMY6O4a4Pl7hB74Clf3lDRS2BHKcVPC6I9QTIuN3t3I8tLw+XS8ZMYYDaOgpYRJc2dJIUf/d8vzlgzMNGZEb6ZifXo2s9XfKVfQ2F97VqK2/uWBaNiEIZsAmk5n9iCemRJDxohZbWurG1TzbK2Lpfs73pNX1QSyC/Mye9EmRiXgFRSMmAaOCGsJi+nCpNJxhu2AwfFqWWEi1mI/Pr97WjPC8l4ZDdMKsYgHl+YspjJgZeWtleVubQt4ZBm0bgt5Y2z5JicW88uYG9bCEBt8hXQS4cO5uGiCnv2fqQmX1mLuCZk92KYo3nMSVKTSAsF6ZL+jq3BZMGbvNEberOhFz7VgKYCDfKWkx3VncErI9Jvea46oI1EwSuvq6+H5WiFjap8xdFkjUPn9mW1qhNOR7kLw3joYvT6gg9uhPDOw0jkDMYeYam/dzRytKMtJRcSLxqkAtxVskeoEXmfOnvLkubiAfrRA7lUj3Ed3D7Kl+zodqluQ9EUQVX0/XCszRERNpNBdL+HojijPu4tauTmlasql1+Yh+8AHmjB0CFCjJjg92lZpdc632/O30A3HqsnK/ZSjMcx6s470V7gfBejmQnK1aO9TixmKyXrYbfaip6FqWAef3y2GwbiorBhE8+pqdp/+zFO5VahtlQCgtIqnCHU1P7ds1Q5J0TMXl0A8ZyWka9BYnml+lH77kVYYJqv5B5ir9UkdMNh4AAAAAElFTkSuQmCC");
+  background-size: 96px 96px;
+}
+
+/* The frame: a hairline down each side of the page's column, from the top
+   to the foot, the page printed inside it. From 900px; a phone's gutter is
+   its own margin. */
+@media (min-width: 900px) {
+  .landing::before {
+    content: "";
+    position: fixed;
+    inset: 0 var(--frame);
+    z-index: 20;
+    border-inline: 1px solid var(--ink);
+    pointer-events: none;
+  }
 }
 
 /* A section's head: the title left, at the page's

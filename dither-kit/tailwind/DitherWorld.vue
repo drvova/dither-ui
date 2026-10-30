@@ -37,19 +37,12 @@ import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue
 import { directedTime } from "../engine/clock"
 import { type ChannelInput, createGl, type GlHandle, rasterOf } from "../engine/gl"
 import { cn } from "./lib"
-import {
-  BAYER4,
-  clamp01,
-  fillOf,
-  type PixelBloomInput,
-  type PixelColor,
-  pixelBloomStyle,
-  pixelMatrixFromSeed,
-} from "../engine/pixel"
+import { clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle } from "../engine/pixel"
 import type { DitherRenderMode } from "../engine/precompile"
 import type { RasterBuffer } from "../engine/raster"
 import { useDitherBackground } from "../engine/use-dither-background"
 import { createWorldTarget } from "../engine/world"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -268,9 +261,10 @@ const viewAt = (clock: number): WorldView => ({
   time: props.animate ? (props.time ?? clock) : 0,
 })
 
+const matrix = useDitherMatrix(() => props.seed)
 const style = computed<WorldStyle>(() => ({
   fill: fillOf(props.color),
-  matrix: props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4,
+  matrix: matrix.value,
   shade: clamp01(props.shade),
   material: props.material,
   wire: props.wire,

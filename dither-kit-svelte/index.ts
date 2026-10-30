@@ -7,6 +7,14 @@ export { default as Aurora, type AuroraParams } from "./backgrounds/Aurora.svelt
 
 // Generative canvas backgrounds (self-sizing `relative h-full w-full` roots).
 export { default as Noise, type NoiseParams } from "./backgrounds/Noise.svelte"
+export {
+  default as Poster,
+  type PosterTile,
+  type PosterLayout,
+  type PosterParams,
+  paintPoster,
+  posterLayout,
+} from "./backgrounds/Poster.svelte"
 export { default as Dither, type DitherBgParams } from "./backgrounds/Dither.svelte"
 export { default as Cubes, type CubesParams } from "./backgrounds/Cubes.svelte"
 export { default as PixelSnow, type PixelSnowParams } from "./backgrounds/PixelSnow.svelte"
@@ -203,6 +211,9 @@ export { default as DitherToaster } from "./overlays/DitherToaster.svelte"
 
 // Widgets & layout
 export { default as DitherImage } from "./widgets/DitherImage.svelte"
+export { default as DitherScreen } from "./widgets/DitherScreen.svelte"
+export { SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "./engine/pixel"
+export { setScreen, useDitherMatrix, useLabelMatrix, useVariantMatrix } from "./runtime/screen"
 export { default as DitherAvatar, type AvatarMirror } from "./widgets/DitherAvatar.svelte"
 export { default as DitherSpinner } from "./widgets/DitherSpinner.svelte"
 export { default as DitherAccordion, type AccordionItem } from "./widgets/DitherAccordion.svelte"

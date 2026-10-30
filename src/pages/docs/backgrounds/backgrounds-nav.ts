@@ -45,4 +45,5 @@ export const BACKGROUNDS_NAV = [
   { id: "evil-eye", label: "Evil eye" },
   { id: "faulty-terminal", label: "Faulty terminal" },
   { id: "ferrofluid", label: "Ferrofluid" },
+  { id: "poster", label: "Poster" },
 ]

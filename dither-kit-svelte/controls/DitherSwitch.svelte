@@ -36,10 +36,11 @@
 <script lang="ts">
   import { onMount } from "svelte"
   import { cn } from "../runtime/lib"
-  import { pixelPrefersReducedMotion, pixelMatrixFromSeed } from "../engine/pixel"
+  import { pixelPrefersReducedMotion } from "../engine/pixel"
   import { kitFromSeed } from "../engine/dither-paint"
   import { CONTROL_BUTTON } from "../runtime/control"
   import { paintOnResize, type CanvasPaint } from "../runtime/canvas-mount"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = {
     value?: boolean
@@ -62,7 +63,8 @@
 
   const s = $derived(seed !== undefined ? kitFromSeed(seed) : null)
   const color = $derived<PixelColor>(colorProp ?? s?.hue ?? "blue")
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useDitherMatrix()
+  const matrix = $derived(ditherMatrix(seed))
 
   let reduce = $state(false)
   onMount(() => {

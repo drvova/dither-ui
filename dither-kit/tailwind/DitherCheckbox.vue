@@ -56,9 +56,9 @@ function paintBox(
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
-import { pixelMatrixFromSeed } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
 import { CONTROL_BUTTON } from "./control"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const CELL = 2
 
@@ -74,7 +74,7 @@ const props = withDefaults(
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
 

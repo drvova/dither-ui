@@ -29,6 +29,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn, type StyleProp } from "./lib"
 import { pixelBloomStyle } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
+import { useScreen } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -48,6 +49,7 @@ const props = withDefaults(
   }>(),
   { renderMode: "live", precompiled: undefined },
 )
+const screen = useScreen()
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effFrom = computed(() => props.from ?? s.value?.hue ?? "blue")
@@ -93,6 +95,7 @@ function paint() {
     cell: effCell.value,
     opacity: effOpacity.value,
     seed: props.seed,
+    screen: screen?.value,
     maxCols: effMaxCols.value,
     maxRows: effMaxRows.value,
   })
@@ -158,7 +161,11 @@ function startRuntime() {
 
 onMounted(startRuntime)
 watch(() => [precompiled.value, props.renderMode], startRuntime, { flush: "post" })
-watch([effFrom, effTo, effDirection, effCell, effOpacity, effBloom, effMaxCols, effMaxRows], paint, { flush: "post" })
+watch(
+  [effFrom, effTo, effDirection, effCell, effOpacity, effBloom, effMaxCols, effMaxRows, () => screen?.value],
+  paint,
+  { flush: "post" },
+)
 onBeforeUnmount(() => {
   restartToken += 1
   stopRuntime()

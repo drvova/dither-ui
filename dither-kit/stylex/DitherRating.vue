@@ -2,7 +2,7 @@
 <script lang="ts">
 import { cellCanvas } from "../engine/raster"
 import type { Rgb } from "../engine/palette"
-import { BAYER4, fillOf, type PixelColor, pixelMatrixFromSeed, xorshift32 } from "../engine/pixel"
+import { fillOf, type PixelColor, xorshift32 } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
 const CELL = 2
@@ -77,6 +77,7 @@ const styles = stylex.create({
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -92,7 +93,7 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ (e: "update:modelValue", v: number): void }>()
 
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 const rot = computed(() => (props.seed !== undefined ? (xorshift32(Math.round(props.seed) ^ 0x51ed)() - 0.5) * 0.5 : 0))
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)

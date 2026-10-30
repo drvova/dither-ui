@@ -14,6 +14,44 @@ export const BAYER4 = [
   [15, 7, 13, 5],
 ].map((row) => row.map((v) => (v + 0.5) / 16))
 
+/** The print screens a surface can threshold through: the Bayer matrix, or a
+ * screen a printer would use. Each is a 4x4 of the 16 ranks, so any painter
+ * reading `matrix[y & 3][x & 3]` takes one; a density lights its ranks in
+ * order. `line` grows one horizontal line per four rows, `diagonal` one
+ * falling (top-left to bottom-right) hatch line, `dot` a clustered dot from
+ * the tile's centre, `cross` the falling hatch, then the rising one, then
+ * the rest in Bayer order. */
+export type ScreenKind = "bayer" | "line" | "diagonal" | "dot" | "cross"
+const ranks = (rows: number[][]) => rows.map((row) => row.map((v) => (v + 0.5) / 16))
+export const SCREENS: Readonly<Record<ScreenKind, number[][]>> = {
+  bayer: BAYER4,
+  line: ranks([
+    [8, 10, 9, 11],
+    [0, 2, 1, 3],
+    [4, 6, 5, 7],
+    [12, 14, 13, 15],
+  ]),
+  diagonal: ranks([
+    [0, 4, 12, 8],
+    [10, 2, 6, 14],
+    [13, 9, 1, 5],
+    [7, 15, 11, 3],
+  ]),
+  dot: ranks([
+    [12, 5, 6, 13],
+    [4, 0, 1, 7],
+    [11, 3, 2, 8],
+    [15, 10, 9, 14],
+  ]),
+  cross: ranks([
+    [0, 12, 8, 4],
+    [14, 2, 6, 10],
+    [9, 5, 1, 13],
+    [7, 11, 15, 3],
+  ]),
+}
+export const SCREEN_KINDS = Object.keys(SCREENS) as ScreenKind[]
+
 export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
 /** 32-bit FNV-1a hash — turns any string seed into a stable uint32. */
@@ -121,6 +159,18 @@ function pixelBloomFromSeed(seed: number): PixelBloomConfig {
  * PRNG, same xor, same BAYER baseline, same jitter ranges) so one seed
  * scatters pixels identically in both engines. */
 export function pixelMatrixFromSeed(seed: number): number[][] {
+  return jitterMatrix(BAYER4, seed)
+}
+
+/** A screen's matrix, seeded the way `pixelMatrixFromSeed` seeds the Bayer
+ * one when there is a seed: `screenMatrix("bayer", s)` is that matrix. */
+export function screenMatrix(screen: ScreenKind, seed?: number): number[][] {
+  const base = SCREENS[screen] ?? BAYER4
+  return seed === undefined ? base : jitterMatrix(base, seed)
+}
+
+/** Every threshold moved by the seed's own jitter, per cell. */
+function jitterMatrix(base: number[][], seed: number): number[][] {
   const s = Math.round(seed)
   let a = (s ^ 0x1b873593) >>> 0
   const rand = () => {
@@ -131,7 +181,7 @@ export function pixelMatrixFromSeed(seed: number): number[][] {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
   const jitter = 0.02 + rand() * 0.13
-  return BAYER4.map((row, y) =>
+  return base.map((row, y) =>
     row.map((v, x) => {
       let b = (s * 7919 + y * 17 + x * 31 + 7) >>> 0
       const r = () => {

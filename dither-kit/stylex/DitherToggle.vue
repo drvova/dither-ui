@@ -87,10 +87,7 @@ const styles = stylex.create({
     transitionProperty: "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke",
     transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
     transitionDuration: "150ms",
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(1px + 0px) color-mix(in oklab, var(--foreground) 40%, transparent)",
-    },
+    boxShadow: { default: null, ":focus-visible": "0 0 0 calc(1px + 0px) var(--ring)" },
     outlineStyle: { default: null, ":focus-visible": "none" },
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },
@@ -112,9 +109,10 @@ const styles = stylex.create({
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn, type StyleProp } from "./lib"
-import { fillOf, type PixelColor, pixelMatrixFromSeed } from "../engine/pixel"
+import { fillOf, type PixelColor } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
 import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
+import { useLabelMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -129,7 +127,7 @@ const props = withDefaults(
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useLabelMatrix(() => props.seed)
 // A bright fill takes black ink: white on it would sink under AA.
 const darkInk = computed(() => darkInkOnDark(fillOf(color.value), LABEL_COVERAGE.gradient))
 

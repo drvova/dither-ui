@@ -69,6 +69,7 @@
         if (!t) return
         const seed = s.seedOf(key)
         const variant = s.seriesSpecs[key]?.variant ?? "gradient"
+        const matrix = s.matrixOf(variant)
         const emphasis = s.selectedDataKey ?? s.focusDataKey
         const selDim =
           (emphasis !== null && emphasis !== key ? s.dimOpacity : 1) *
@@ -86,6 +87,7 @@
           for (let x = c0; x < c1; x++) {
             paintColumn(frame, x, top, base, seed, {
               variant,
+              matrix,
               intensity: intensity + (active ? 0.4 : 0),
               dim: selDim * hoverDim,
               stacked,

@@ -53,7 +53,7 @@ function onKeydown(e: KeyboardEvent) {
   <div
     :class="
       cn(
-        'flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-md border border-border bg-background/60 px-2 py-1.5 transition-[border-color,box-shadow] focus-within:border-accent/70 focus-within:ring-2 focus-within:ring-accent/20 motion-reduce:transition-none',
+        'flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-md border border-border bg-background/60 px-2 py-1.5 transition-[border-color,box-shadow] focus-within:border-ring motion-reduce:transition-none',
         props.disabled && 'pointer-events-none opacity-40',
         props.class,
       )

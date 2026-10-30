@@ -74,9 +74,10 @@ export function paintToggleCanvas(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
-import { fillOf, type PixelColor, pixelMatrixFromSeed } from "../engine/pixel"
+import { fillOf, type PixelColor } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
 import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
+import { useLabelMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -90,7 +91,7 @@ const props = withDefaults(
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useLabelMatrix(() => props.seed)
 // A bright fill takes black ink: white on it would sink under AA.
 const darkInk = computed(() => darkInkOnDark(fillOf(color.value), LABEL_COVERAGE.gradient))
 
@@ -138,7 +139,7 @@ onBeforeUnmount(() => {
     :disabled="props.disabled"
     :class="
       cn(
-        'relative isolate overflow-hidden rounded-md border px-2.5 py-1.5 font-mono text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40',
+        'relative isolate overflow-hidden rounded-md border px-2.5 py-1.5 font-mono text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40',
         props.modelValue
           ? darkInk
             ? 'border-transparent text-black'

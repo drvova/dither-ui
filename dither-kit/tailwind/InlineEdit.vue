@@ -68,7 +68,7 @@ function cancel() {
       v-if="!editing"
       type="button"
       :disabled="props.disabled"
-      class="max-w-full truncate rounded px-1.5 py-1 text-left transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 disabled:pointer-events-none disabled:opacity-40"
+      class="max-w-full truncate rounded px-1.5 py-1 text-left transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
       :class="cn(!props.modelValue && 'text-muted-foreground', 'font-mono text-[13px]')"
       @click="enterEdit"
     >

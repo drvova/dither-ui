@@ -2,7 +2,7 @@
 <script lang="ts">
 import type { InjectionKey, Ref } from "vue"
 import { cellCanvas } from "../engine/raster"
-import { BAYER4, fillOf, pixelMatrixFromSeed, type PixelColor } from "../engine/pixel"
+import { fillOf, type PixelColor } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
 export type TabsVariant = "underline" | "segmented" | "washed"
@@ -94,10 +94,7 @@ const styles = stylex.create({
     transitionProperty: "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke",
     transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
     transitionDuration: "150ms",
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(1px + 0px) color-mix(in oklab, var(--foreground) 40%, transparent)",
-    },
+    boxShadow: { default: null, ":focus-visible": "0 0 0 calc(1px + 0px) var(--ring)" },
     outlineStyle: { default: null, ":focus-visible": "none" },
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },
@@ -142,6 +139,7 @@ const styles = stylex.create({
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, toRef, watch } from "vue"
 import { cn, type StyleProp } from "./lib"
 import { kitFromSeed } from "../engine/dither-paint"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -162,7 +160,7 @@ const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effColor = computed(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 
 const idBase = `dk-tabs-${counter++}`
 provide(TABS_CTX, { active: toRef(props, "modelValue"), idBase })

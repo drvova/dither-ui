@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { InjectionKey, Ref } from "vue"
 import { cellCanvas } from "../engine/raster"
-import { BAYER4, fillOf, pixelMatrixFromSeed, type PixelColor } from "../engine/pixel"
+import { fillOf, type PixelColor } from "../engine/pixel"
 
 export type TabsVariant = "underline" | "segmented" | "washed"
 export type TabItem = {
@@ -70,6 +70,7 @@ function paintWash(canvas: HTMLCanvasElement, w: number, h: number, color: Pixel
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, toRef, watch } from "vue"
 import { cn } from "./lib"
 import { kitFromSeed } from "../engine/dither-paint"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -89,7 +90,7 @@ const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effColor = computed(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 
 const idBase = `dk-tabs-${counter++}`
 provide(TABS_CTX, { active: toRef(props, "modelValue"), idBase })
@@ -210,7 +211,7 @@ onBeforeUnmount(() => ro?.disconnect())
         :aria-controls="`${idBase}-panel-${t.value}`"
         :tabindex="t.value === props.modelValue ? 0 : -1"
         :disabled="t.disabled"
-        class="relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
+        class="relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
         :class="[
           props.variant === 'underline'
             ? vertical

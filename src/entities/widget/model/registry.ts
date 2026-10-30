@@ -1,4 +1,4 @@
-import { ICON_NAMES, type PixelColor } from "@dither-kit"
+import { ICON_NAMES, type PixelColor, SCREEN_KINDS } from "@dither-kit"
 import { safeUrl } from "@/shared/lib/routes"
 
 export type PropSpec =
@@ -21,6 +21,7 @@ export type ComponentDemo =
   | "fieldset"
   | "form"
   | "layer"
+  | "screen"
   | "stage"
   | "popover"
   | "preview-card"
@@ -1026,6 +1027,29 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("frameRate", 0, 0, 60, 1),
       bool("paused"),
     ],
+  },
+  {
+    is: "DitherPoster",
+    label: "Poster",
+    group: "display",
+    frame: { w: 320, h: 220 },
+    props: [
+      list("inks", ["blue", "orange", "grey"]),
+      select("screen", "bayer", SCREEN_KINDS),
+      number("seed", 7, 0, 99999, 1),
+      number("speed", 2, 0, 12, 0.5),
+      number("cell", 2, 1, 10, 1),
+      number("frameRate", 0, 0, 60, 1),
+      bool("paused"),
+    ],
+  },
+  {
+    is: "DitherScreen",
+    label: "Print screen",
+    group: "display",
+    frame: { w: 260, h: 140 },
+    props: [select("screen", "diagonal", SCREEN_KINDS)],
+    demo: "screen",
   },
   {
     is: "DitherSilk",

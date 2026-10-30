@@ -68,7 +68,7 @@ const describedBy = computed(() => (active.value >= 0 ? optionId(active.value) :
     :tabindex="props.disabled ? -1 : 0"
     :class="
       cn(
-        'grid max-h-56 w-full overflow-auto rounded-md border border-border bg-background/60 p-1 outline-none focus-visible:border-accent/70 focus-visible:ring-2 focus-visible:ring-accent/20',
+        'grid max-h-56 w-full overflow-auto rounded-md border border-border bg-background/60 p-1 outline-none focus-visible:border-ring',
         props.disabled && 'pointer-events-none opacity-40',
         props.class,
       )

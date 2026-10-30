@@ -275,7 +275,7 @@
         <button
           bind:this={closeEl}
           type="button"
-          class="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none"
+          class="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
           aria-label="Close"
           onclick={() => onclose?.()}
         >

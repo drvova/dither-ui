@@ -267,7 +267,7 @@ function setPieVariant(v: VariantInput) {
             type="text"
             name="artboard-name"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+            class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
           />
         </label>
         <div class="grid grid-cols-2 gap-2">
@@ -607,7 +607,7 @@ function setPieVariant(v: VariantInput) {
                 type="text"
                 name="avatar-seed"
                 autocomplete="off"
-                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
               />
             </label>
             <AvatarDrawGrid v-if="avatar.source === 'draw'" :avatar="avatar" />
@@ -620,7 +620,7 @@ function setPieVariant(v: VariantInput) {
                   name="avatar-image-src"
                   autocomplete="off"
                   placeholder="https://…"
-                  class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+                  class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
                   @change="deriveAvatarImage"
                 />
               </label>
@@ -753,7 +753,7 @@ function setPieVariant(v: VariantInput) {
                 type="text"
                 name="button-label"
                 autocomplete="off"
-                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
               />
             </label>
             <Segmented v-model="button.variant" :options="BUTTON_VARIANTS" label="variant" />
@@ -855,7 +855,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-14 shrink-0">add</span>
               <select
                 name="add-cell"
-                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
                 @change="addCellFromPicker(screenSel.row, $event)"
               >
                 <option value="">component…</option>
@@ -928,7 +928,7 @@ function setPieVariant(v: VariantInput) {
                 name="image-src"
                 autocomplete="off"
                 placeholder="https://…"
-                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
               />
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -938,7 +938,7 @@ function setPieVariant(v: VariantInput) {
                 type="text"
                 name="image-alt"
                 autocomplete="off"
-                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+                class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
               />
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -1042,7 +1042,7 @@ function setPieVariant(v: VariantInput) {
             type="text"
             name="series-label"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+            class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
           />
         </label>
         <div class="text-[11px] text-muted-foreground">
@@ -1114,7 +1114,7 @@ function setPieVariant(v: VariantInput) {
             type="text"
             name="grid-dash"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+            class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
             placeholder="3 3"
           />
         </label>

@@ -1,8 +1,9 @@
 import type { ScaleLinear } from "d3-scale"
 import { computed, inject, type InjectionKey, markRaw, ref, watch } from "vue"
 import type { CommonChart, TooltipItem } from "./common-context"
-import type { BloomInput, EasingInput, VariantInput } from "./dither-paint"
+import type { BloomInput, DitherMatrix, EasingInput, VariantInput } from "./dither-paint"
 import { type DitherColor, type Seed, seedFromColor } from "./palette"
+import { useVariantMatrix } from "./use-screen"
 import {
   buildBandScale,
   buildXScale,
@@ -95,6 +96,8 @@ export type ChartContextValue = {
   entranceDone: boolean
   markEntranceDone: () => void
   seedOf: (key: string) => Seed
+  /** A series' threshold matrix from its variant, through any `DitherScreen` around the chart. */
+  matrixOf: (variant: VariantInput) => DitherMatrix
   common: CommonChart
 }
 
@@ -245,6 +248,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
   }
 
   const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
+  const matrixOf = useVariantMatrix()
 
   const selectDataKey = (key: string | null) => {
     selectedDataKey.value = key
@@ -475,6 +479,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     },
     markEntranceDone,
     seedOf,
+    matrixOf,
     common,
   })
 }

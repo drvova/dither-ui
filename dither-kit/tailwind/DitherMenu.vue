@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
       type="button"
       aria-haspopup="menu"
       :aria-expanded="open"
-      class="rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs text-foreground transition-colors hover:bg-background focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none"
+      class="rounded-md border border-border bg-card px-3 py-1.5 font-mono text-xs text-foreground transition-colors hover:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
       @click="open = !open"
     >
       <slot />

@@ -62,10 +62,11 @@
 <script lang="ts">
   import type { Snippet } from "svelte"
   import { cn } from "../runtime/lib"
-  import { fillOf, type PixelColor, pixelMatrixFromSeed } from "../engine/pixel"
+  import { fillOf, type PixelColor } from "../engine/pixel"
   import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
   import { kitFromSeed } from "../engine/dither-paint"
   import { paintOnResize, type CanvasPaint } from "../runtime/canvas-mount"
+  import { useLabelMatrix } from "../runtime/screen"
 
   type Props = {
     value?: boolean
@@ -87,7 +88,8 @@
 
   const s = $derived(seed !== undefined ? kitFromSeed(seed) : null)
   const color = $derived<PixelColor>(colorProp ?? s?.hue ?? "blue")
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useLabelMatrix()
+  const matrix = $derived(ditherMatrix(seed))
   // A bright fill takes black ink: white on it would sink under AA.
   const darkInk = $derived(darkInkOnDark(fillOf(color), LABEL_COVERAGE.gradient))
 
@@ -102,7 +104,7 @@
   aria-pressed={value}
   {disabled}
   class={cn(
-    "relative isolate overflow-hidden rounded-md border px-2.5 py-1.5 font-mono text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
+    "relative isolate overflow-hidden rounded-md border px-2.5 py-1.5 font-mono text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
     value
       ? darkInk
         ? "border-transparent text-black"

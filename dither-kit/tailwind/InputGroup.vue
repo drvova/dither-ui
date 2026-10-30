@@ -12,7 +12,7 @@ const props = defineProps<{ class?: string }>()
   <div
     :class="
       cn(
-        'flex w-full items-center gap-1.5 rounded-md border border-border bg-background/60 px-2 transition-[border-color,box-shadow] focus-within:border-accent/70 focus-within:ring-2 focus-within:ring-accent/20 motion-reduce:transition-none',
+        'flex w-full items-center gap-1.5 rounded-md border border-border bg-background/60 px-2 transition-[border-color,box-shadow] focus-within:border-ring motion-reduce:transition-none',
         props.class,
       )
     "

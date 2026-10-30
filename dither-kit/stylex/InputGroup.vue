@@ -11,19 +11,12 @@ const styles = stylex.create({
     borderRadius: "var(--radius)",
     borderStyle: "solid",
     borderWidth: "1px",
-    borderColor: {
-      default: "var(--border)",
-      ":focus-within": "color-mix(in oklab, var(--accent) 70%, transparent)",
-    },
+    borderColor: { default: "var(--border)", ":focus-within": "var(--ring)" },
     backgroundColor: "color-mix(in oklab, var(--background) 60%, transparent)",
     paddingInline: "0.5rem",
     transitionProperty: { default: "border-color, box-shadow", "@media (prefers-reduced-motion: reduce)": "none" },
     transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
     transitionDuration: "150ms",
-    boxShadow: {
-      default: null,
-      ":focus-within": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 20%, transparent)",
-    },
   },
   text: { flexShrink: "0", fontSize: "12px", color: "var(--muted-foreground)" },
 })

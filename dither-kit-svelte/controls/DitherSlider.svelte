@@ -58,9 +58,9 @@
 
 <script lang="ts">
   import { cn } from "../runtime/lib"
-  import { pixelMatrixFromSeed } from "../engine/pixel"
-  import { kitFromSeed } from "../engine/dither-paint"
+    import { kitFromSeed } from "../engine/dither-paint"
   import { paintOnResize, type CanvasPaint } from "../runtime/canvas-mount"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = {
     /** A number, or a [lo, hi] pair for a range slider. */
@@ -100,7 +100,8 @@
   const s = $derived(seed !== undefined ? kitFromSeed(seed) : null)
   const color = $derived<PixelColor>(colorProp ?? s?.hue ?? "blue")
   const variant = $derived<SliderVariant>(variantProp ?? s?.variant ?? "gradient")
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useDitherMatrix()
+  const matrix = $derived(ditherMatrix(seed))
 
   let rootEl = $state<HTMLDivElement | null>(null)
   let active = $state<-1 | 0 | 1>(-1)

@@ -13,7 +13,6 @@
     BAYER4,
     fillOf,
     type PixelColor,
-    pixelMatrixFromSeed,
     pixelPrefersReducedMotion,
   } from "../engine/pixel"
 
@@ -111,6 +110,7 @@
 
 <script lang="ts">
   import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = {
     size?: number
@@ -129,7 +129,8 @@
   }: Props = $props()
 
   const spin = $derived(seed !== undefined ? spinnerFromSeed(seed) : SPINNER_DEFAULT)
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useDitherMatrix()
+  const matrix = $derived(ditherMatrix(seed))
   const precompiled = $derived(precompiledSrc(precompiledProp))
 
   type SpinnerRun = {

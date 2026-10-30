@@ -62,7 +62,7 @@
       <button
         type="button"
         aria-label="Dismiss"
-        class="self-center text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none"
+        class="self-center text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
         onclick={() => dismiss(t.id)}
       >
         ×

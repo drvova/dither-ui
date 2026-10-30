@@ -9,7 +9,7 @@ import {
   type RasterBuffer,
 } from "../engine/raster"
 import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "../engine/dither-paint"
-import { BAYER4, fillOf, type PixelColor, pixelMatrixFromSeed, pixelPrefersReducedMotion } from "../engine/pixel"
+import { BAYER4, fillOf, type PixelColor, pixelPrefersReducedMotion } from "../engine/pixel"
 
 const CELL = 2
 const TAU = Math.PI * 2
@@ -107,6 +107,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useCanvasVisibility } from "../engine/use-visibility"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -120,7 +121,7 @@ const props = withDefaults(
 )
 
 const spin = computed(() => (props.seed !== undefined ? spinnerFromSeed(props.seed) : SPINNER_DEFAULT))
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 const canvasRef = ref<HTMLCanvasElement | null>(null)

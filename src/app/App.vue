@@ -2,9 +2,10 @@
 import { defineAsyncComponent, onBeforeUnmount, ref, watchEffect } from "vue"
 import { LandingPage } from "@/pages/landing"
 import { appPathname, routePath } from "@/shared/lib"
+import { ROUTE_TITLES, type RouteName } from "@/shared/config/titles"
 import PageLoader from "./PageLoader.vue"
 
-// Landing paints immediately — it is the entry and the shared link target.
+// Landing paints immediately: it is the entry and the shared link target.
 // Docs (200+ canvas demos) and Studio (a Figma-style editor) are heavy, so they
 // load on demand as their own chunks. While a chunk downloads we show a spinner
 // (after a 150ms delay, so cached/instant loads never flash one) instead of a
@@ -21,13 +22,12 @@ const StudioPage = defineAsyncComponent({
 })
 
 // Clean paths are canonical for crawlers; migrate legacy hash links in place.
-type Route = "landing" | "docs" | "studio"
 if (appPathname() === "/" && location.hash.startsWith("#/docs"))
   history.replaceState(null, "", routePath(location.hash.replace(/^#/, "")))
 else if (appPathname() === "/" && location.hash.startsWith("#/studio"))
   history.replaceState(null, "", routePath(location.hash.replace(/^#\/studio\/?/, "/studio#")))
 
-const resolveRoute = (): Route => {
+const resolveRoute = (): RouteName => {
   const path = appPathname()
   if (path.startsWith("/studio")) return "studio"
   if (path.startsWith("/docs")) return "docs"
@@ -43,12 +43,7 @@ onBeforeUnmount(() => {
 })
 
 watchEffect(() => {
-  document.title =
-    route.value === "studio"
-      ? "Studio — Build dithered Vue interfaces | dither-ui"
-      : route.value === "docs"
-        ? "Vue dither components and chart documentation | dither-ui"
-        : "dither-ui: a dithered UI toolkit for Vue"
+  document.title = ROUTE_TITLES[route.value]
 })
 </script>
 

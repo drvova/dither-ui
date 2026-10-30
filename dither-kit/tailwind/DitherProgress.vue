@@ -54,8 +54,9 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { useCanvasVisibility } from "../engine/use-visibility"
 import { cn } from "./lib"
-import { pixelPrefersReducedMotion, pixelMatrixFromSeed } from "../engine/pixel"
+import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const CELL = 2
 
@@ -71,7 +72,7 @@ const props = withDefaults(
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 
 const rootRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
