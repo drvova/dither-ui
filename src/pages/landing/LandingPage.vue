@@ -16,7 +16,7 @@ import "./chapters.css"
 import { version } from "../../../package.json"
 import AgentStory from "./AgentStory.vue"
 import Examples from "./Examples.vue"
-import { SPECS } from "./facts"
+import { RUNTIME_DEPS, SPECS } from "./facts"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
@@ -174,8 +174,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
             <div class="sec-side">
               <p class="sec-lede">
-                The agent skill teaches your harness the Studio's tools, so one sentence is enough. Every tool call
-                lands on the canvas as a frame of kit parts, and undo takes it back.
+                Give your coding agent the skill file, then ask for a screen. Each tool call lands on the canvas as a
+                frame of kit parts, and undo takes it back.
               </p>
               <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
             </div>
@@ -240,8 +240,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           <div class="install-head">
             <h2 id="install-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
             <p class="sec-lede">
-              Copy the kit into your app, add its four packages and import from <code>@dither-kit</code>. Or paste the
-              agent prompt and let your agent do all three.
+              Copy the kit into your app, add its {{ RUNTIME_DEPS.length }} packages and import from
+              <code>@dither-kit</code>. Or paste the agent prompt and your agent does all three.
             </p>
             <DitherClipboard :value="prompt">
               <template #default="{ copied }">

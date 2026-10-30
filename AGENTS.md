@@ -132,7 +132,9 @@ Default section order:
   user picked, kept unnamed, worn so it never reads as a copy: none of
   its devices). Our own hero (the statement beside a live print the kit
   makes, no component tour: the user's call; a poster of tone fields and the
-  kit's diamond; a quiet line of what it works with under the keys), then
+  kit's diamond standing over its own dithered floor; a quiet line of what
+  it works with under the keys; copy calm and procedural, every figure
+  read from the kit), then
   sections under a title with a lead beside it: a bento of live
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building

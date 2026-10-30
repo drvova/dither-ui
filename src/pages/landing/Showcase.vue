@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { routePath } from "@/shared/lib"
-import { DitherIcon, DitherPoster, type PixelColor } from "@dither-kit"
+import { DitherIcon, DitherPoster, DitherReveal, type PixelColor } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import type { MarkId } from "@/shared/ui/marks"
+import { COMPONENT_COUNT, MATRIX } from "./facts"
 import PauseChip from "./PauseChip.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 
@@ -35,8 +36,8 @@ const WORKS: { id: MarkId; name: string }[] = [
       <div class="statement">
         <h1 id="hero-h" class="hero-h chrome-type">A dithered UI toolkit for Vue.</h1>
         <p class="hero-lede">
-          Charts, GLSL shaders, controls, backgrounds and 3D, each drawn pixel by pixel from one seeded palette. Copy
-          the folder into your Vue 3 or Svelte 5 app and every line is yours.
+          {{ COMPONENT_COUNT }} components, from charts and controls to GLSL and 3D, each printed cell by cell through
+          one seeded {{ MATRIX }} matrix. Copy the folder into a Vue 3 or Svelte 5 app and change what you need.
         </p>
         <div class="hero-keys">
           <a :href="routePath('/studio')" class="nav-a key-chrome primary">Open the studio</a>
@@ -56,6 +57,14 @@ const WORKS: { id: MarkId; name: string }[] = [
         <div class="print">
           <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!printing" />
           <PauseChip v-model="printing" label="Pause the print" class="print-chip" />
+          <!-- The print stands over its own reflection on the obsidian: the
+               same print at the same moment, turned over and thinned through
+               the kit's wipe to two-fifths, then a fifth, of its cells. A
+               shadow cannot show on black; a floor of the print's own cells
+               can, and it is never a tint. -->
+          <DitherReveal class="print-floor" :progress="1 / 3" direction="down" :band="20" aria-hidden="true">
+            <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!printing" class="print-mirror" />
+          </DitherReveal>
         </div>
       </div>
     </div>
@@ -168,6 +177,30 @@ const WORKS: { id: MarkId; name: string }[] = [
   position: relative;
   width: min(100%, 30rem);
   aspect-ratio: 4 / 5;
+  container-type: inline-size;
+}
+
+/* The floor: 40px under the print (ten cells; the wipe's band runs twice
+   that, so at a third of its travel only its two thinnest steps show),
+   holding the print's mirror, as tall as the print and turned over so its
+   foot meets the print's. */
+.print-floor {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.print-mirror {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 125cqw;
+  transform: scaleY(-1);
 }
 
 .print-chip {
@@ -194,11 +227,14 @@ const WORKS: { id: MarkId; name: string }[] = [
   }
   .print-col {
     justify-items: stretch;
-    padding: 16px 1.5rem 0;
+    padding: 16px 1.5rem 48px;
   }
   .print {
     width: 100%;
     aspect-ratio: 5 / 4;
+  }
+  .print-mirror {
+    height: 80cqw;
   }
 }
 

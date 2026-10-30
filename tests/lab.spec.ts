@@ -1,9 +1,9 @@
 // The Verification section's checks hold in CI as they do in the reader's
 // browser, the poster's hash is the one the page sets beside the reader's,
 // and every check names a spec that exists.
-import { existsSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
-import { CHECKS, engineOf, POSTER_HASH } from "../src/pages/docs/handbook/lab"
+import { CHECKS, engineOf, LANDING, POSTER_HASH } from "../src/pages/docs/handbook/lab"
 
 describe("the lab", () => {
   for (const check of CHECKS)
@@ -23,6 +23,19 @@ describe("the lab", () => {
       expect(existsSync(new URL(`../${c.test}`, import.meta.url))).toBe(true)
       for (const text of [c.claim, c.method, c.against]) expect(text).not.toMatch(/[—·]/)
     }
+  })
+
+  it("measures the landing's own inks and ground", () => {
+    const read = (f: string) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8")
+    const landing = read("src/pages/landing/chapters.css")
+    const token = (name: string) => landing.match(new RegExp(`${name}: (#[0-9a-f]{6});`))![1]
+    expect(LANDING.ground).toBe(token("--background"))
+    expect(LANDING.inks.bone).toBe(token("--foreground"))
+    expect(LANDING.inks["muted bone"]).toBe(token("--muted-foreground"))
+    const [, r, g, b] = read("dither-kit/engine/theme.css").match(
+      /^\.dark \{[^}]*--swatch-orange: rgb\((\d+), (\d+), (\d+)\)/m,
+    )!
+    expect(LANDING.inks.ember).toBe(`#${[r, g, b].map((v) => Number(v).toString(16).padStart(2, "0")).join("")}`)
   })
 
   it("reads the engine from a user agent", () => {

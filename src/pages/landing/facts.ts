@@ -1,11 +1,14 @@
 // The kit as the landing states it. Claims are facts:
 // tests/landing-facts.spec.ts recounts each one from the kit, so a kit
 // change that moves one fails until the page says it.
-import { SCREEN_KINDS } from "@dither-kit"
+import { SCREEN_KINDS, SCREENS } from "@dither-kit"
 import kit from "../../../dither-kit/package.json"
 import { SECTION_COUNT } from "./hub"
 
 export const COMPONENT_COUNT = 266
+
+/** The threshold matrix every surface prints through, as the page writes it. */
+export const MATRIX = `${SCREENS.bayer.length}×${SCREENS.bayer[0].length}`
 
 /** The packages the kit needs beside Vue (its peer dependencies), in the
  * order the install step names them. */
@@ -16,7 +19,7 @@ export const RUNTIME_DEPS = ["d3-scale", "d3-shape", "clsx", "tailwind-merge"] a
 export const SPECS: readonly { label: string; value: string }[] = [
   { label: "Components", value: `${COMPONENT_COUNT} for Vue 3, ported to Svelte 5` },
   { label: "Docs", value: `${SECTION_COUNT} live sections, each with its props and code` },
-  { label: "Engine", value: "One seeded 4×4 threshold matrix under every surface" },
+  { label: "Engine", value: `One seeded ${MATRIX} threshold matrix under every surface` },
   { label: "Screens", value: SCREEN_KINDS.join(", ") },
   { label: "Rendering", value: "Canvas on the CPU, WebGL for big meshes and GLSL" },
   { label: "Styling", value: "Tailwind, StyleX, CSS Modules or CSS" },
