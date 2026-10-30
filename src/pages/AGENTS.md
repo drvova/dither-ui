@@ -136,7 +136,7 @@ widgets/features; page-specific conventions live here.
   matrices and styling systems); `tests/landing-facts.spec.ts` recounts
   the first from `dither-kit/tailwind/index.ts` and holds the second to
   the kit's required `peerDependencies` (a styling layer's optional one
-  aside), and the plate's stock to the raised ground's mix; section counts
+  aside), and the plates' stock to the raised ground's mix; section counts
   come from `hub.ts`. A change that moves one
   fails until the page says it.
 - Examples (`Examples.vue`, `#examples`, "Every component, live."): a
@@ -218,17 +218,19 @@ widgets/features; page-specific conventions live here.
   checks it). Under them the five big families (`DOCS_FAMILIES`): five
   columns (three under 1024px, two under 640px), each the family's name
   and size as the link to its first section, and its line.
-- The plate (between Inside and Install, decorative): a print sheet at
-  2.35:1 on the page's width, square cornered and flat like the hero's
-  print, its stock the raised ground (`STOCK` in `LandingPage`, the
-  `--surface` mix as a colour the kit prints with, held to the token by
-  `tests/landing-facts.spec.ts`, so its open cells are the plate, never a
-  tint). Two `DitherGradient`s in the bone ink through the Bayer screen
-  show only the thin ends of their ramps: the tone thins from a quarter
-  at the top edge to nothing, and rises from nothing to three tenths at
-  the foot; between them a clear band holds the brand mark (`MARK`, the
-  header's path), 28px, small in the wide field. The quiet before the
-  install; nothing moves.
+- The plates (decorative): a series of print sheets between the sections,
+  after the bento, after the ask and before the install, each the kit's
+  diamond small in a wide field. ONE table, `PLATES` in `plate.ts`, sets
+  each plate's tone at the top edge, its clear band and its tone at the
+  foot, and where the mark (`MARK`, the header's path too) stands in the
+  band; `Plate.vue` prints a row: a 2.35:1 sheet on the page's width,
+  square cornered and flat like the hero's print, on `STOCK` (the
+  `--surface` mix as a colour the kit prints with, so its open cells are
+  the plate, never a tint), two `DitherGradient`s in the bone ink through
+  the Bayer screen showing only the thin ends of their ramps, the mark
+  28px. `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and
+  every plate's mark inside its band, its tones thin. Nothing moves. A new
+  plate is a row in the table and a `<Plate>` at a section break.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit

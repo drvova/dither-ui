@@ -4,6 +4,7 @@ import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
 import { STYLING_LABELS } from "../src/shared/lib/restyle"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
+import { PLATES, STOCK } from "../src/pages/landing/plate"
 
 const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
 const components = [...index.matchAll(/default as (\w+)/g)].map((m) => m[1])
@@ -61,12 +62,24 @@ describe("landing facts", () => {
     // The plate's stock is `--surface` as a colour the kit can print with:
     // the token's oklab mix of the landing's ink into its ground.
     const css = readFileSync(new URL("../src/pages/landing/chapters.css", import.meta.url), "utf8")
-    const page = readFileSync(new URL("../src/pages/landing/LandingPage.vue", import.meta.url), "utf8")
     const token = (name: string) => css.match(new RegExp(`${name}: (#[0-9a-f]{6});`))![1]
     const [, share] = css.match(/--surface: color-mix\(in oklab, var\(--foreground\) (\d+)%, var\(--background\)\);/)!
-    const stock = page.match(/const STOCK = "(#[0-9a-f]{6})"/)![1]
     const mixed = mixOklab(token("--foreground"), token("--background"), Number(share) / 100)
-    rgb(stock).forEach((c, i) => expect(Math.abs(c - mixed[i])).toBeLessThanOrEqual(1))
+    rgb(STOCK).forEach((c, i) => expect(Math.abs(c - mixed[i])).toBeLessThanOrEqual(1))
+  })
+
+  it("stands each plate's mark in its clear band, its tones thin", () => {
+    for (const { sky, band, ground, mark } of Object.values(PLATES)) {
+      expect(band[0]).toBeLessThan(band[1])
+      expect(mark[1]).toBeGreaterThan(band[0])
+      expect(mark[1]).toBeLessThan(band[1])
+      expect(mark[0]).toBeGreaterThan(0.1)
+      expect(mark[0]).toBeLessThan(0.9)
+      for (const tone of [sky, ground]) {
+        expect(tone).toBeGreaterThan(0)
+        expect(tone).toBeLessThanOrEqual(0.4)
+      }
+    }
   })
 })
 

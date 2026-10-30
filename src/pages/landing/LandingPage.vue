@@ -4,11 +4,12 @@
 // stage, seated on a poster the kit prints), then sections under a title
 // with a lead beside it: a bento of live kit components, the screen an
 // agent's ask makes, what's inside (the kit, the Studio, the bridge; the
-// docs' families), a print plate with the diamond small in it, the
-// install, and a footer of link columns over the line-screen wordmark. Michroma for display, mono for the rest; everything
+// docs' families) and the install, with a plate of the kit's diamond small
+// in a wide field between them, and a footer of link columns over the
+// line-screen wordmark. Michroma for display, mono for the rest; everything
 // that moves is the kit.
 import { onMounted, ref } from "vue"
-import { DitherClipboard, DitherGradient, DitherIcon } from "@dither-kit"
+import { DitherClipboard, DitherIcon } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import "@/shared/fonts/display.css"
@@ -21,15 +22,9 @@ import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
 import PixelWord from "./PixelWord.vue"
+import Plate from "./Plate.vue"
+import { MARK, PLATES } from "./plate"
 import Showcase from "./Showcase.vue"
-
-// The brand mark: the kit's 7x7 dithered diamond (its ember core drawn
-// apart), in the header and small on the plate before the install.
-const MARK = "M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z"
-// The plate's stock: the raised ground (`--surface`) as a colour the kit
-// prints with, so the open cells of its print are the plate itself, never
-// a tint. `tests/landing-facts.spec.ts` holds it to the token's mix.
-const STOCK = "#1c1e1f"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the
 // install to run, pointed at wherever this page is served from.
@@ -168,6 +163,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       <div class="page">
         <Examples />
 
+        <Plate :plate="PLATES.afterExamples" />
+
         <!-- Ask: one agent session, played as the page scrolls past it. -->
         <section id="ask" aria-labelledby="ask-h" class="sec">
           <div class="sec-head">
@@ -182,6 +179,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           </div>
           <AgentStory />
         </section>
+
+        <Plate :plate="PLATES.afterAsk" />
 
         <!-- What's inside: the kit, the Studio, the bridge; then the docs'
              big families, each with its size and a line. -->
@@ -218,22 +217,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           </div>
         </section>
 
-        <!-- A print plate, the subject small in a wide field: on the raised
-             ground, the bone ink's tone thinning from the top edge, a clear
-             band where the kit's diamond stands, and the tone rising again
-             to the foot. The quiet before the install. -->
-        <div class="plate" :style="{ background: STOCK }" aria-hidden="true">
-          <div class="plate-tone plate-sky">
-            <DitherGradient from="#e4e1d8" :to="STOCK" direction="down" :cell="4" class="plate-ramp" />
-          </div>
-          <div class="plate-tone plate-ground">
-            <DitherGradient from="#e4e1d8" :to="STOCK" direction="up" :cell="4" class="plate-ramp" />
-          </div>
-          <svg viewBox="0 0 7 7" class="plate-mark" focusable="false" shape-rendering="crispEdges">
-            <path :d="MARK" fill="currentColor" />
-            <rect x="3" y="3" width="1" height="1" fill="var(--signal)" />
-          </svg>
-        </div>
+        <!-- The plates: print sheets between the sections, the kit's diamond
+             small in a wide field (plate.ts). -->
+        <Plate :plate="PLATES.beforeInstall" />
 
         <!-- The install, centred. -->
         <section id="install" aria-labelledby="install-h" class="sec install">
@@ -473,58 +459,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   line-height: 1.6;
   color: var(--ink-3);
   text-wrap: pretty;
-}
-
-/* The plate: the page's width at 2.35:1, square cornered and flat like the
-   hero's print. Each half shows only the thin end of its ramp (the sky
-   runs 4x its depth, so it thins from a quarter of the ink at the top edge
-   to nothing; the ground 3.33x, rising from nothing to three tenths at the
-   foot), through the kit's Bayer screen like the hero's print; between
-   them a clear band holds the mark, 28px (seven 4px cells). */
-.plate {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  aspect-ratio: 2.35;
-  overflow: hidden;
-  color: var(--ink);
-}
-
-.plate-tone {
-  position: absolute;
-  inset-inline: 0;
-  overflow: hidden;
-}
-
-.plate-sky {
-  top: 0;
-  height: 38%;
-}
-
-.plate-ground {
-  top: 62%;
-  bottom: 0;
-}
-
-/* Both ramps are positioned on every side: the kit's own inset-0 would
-   otherwise pin the ramp's top. */
-.plate-sky .plate-ramp {
-  inset: auto 0 0;
-  height: 400%;
-}
-
-.plate-ground .plate-ramp {
-  inset: 0 0 auto;
-  height: 333%;
-}
-
-.plate-mark {
-  position: absolute;
-  left: 68%;
-  top: 50%;
-  width: 28px;
-  height: 28px;
-  transform: translate(-50%, -50%);
 }
 
 /* The install: its head centred, the box under it. */
