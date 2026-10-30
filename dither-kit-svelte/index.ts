@@ -9,7 +9,7 @@ export { default as Aurora, type AuroraParams } from "./backgrounds/Aurora.svelt
 export { default as Noise, type NoiseParams } from "./backgrounds/Noise.svelte"
 export {
   default as Poster,
-  type PosterBand,
+  type PosterTile,
   type PosterLayout,
   type PosterParams,
   paintPoster,

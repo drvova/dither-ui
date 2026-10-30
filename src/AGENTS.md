@@ -416,7 +416,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the light theme's tokens from it, printed on its own paper (root
   `AGENTS.md`, `pages/landing/chapters.css`): its keys, picked segments,
   cards and panels are fills on one raised ground, never rings or tags;
-  its hairlines are the frame and the footer's grid only.
+  its only hairlines are the frame's.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on

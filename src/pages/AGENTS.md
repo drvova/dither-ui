@@ -11,36 +11,34 @@ widgets/features; page-specific conventions live here.
 
 - Direction (the user's pick): the page is PRINTED, in either theme: one
   obsidian ink on bone paper with a fine grain inside a hairline frame,
-  labels in mono capitals, and colour only in the kit's own art, printed
-  through the diagonal screen (a `DitherScreen` around the main and the
-  footer). The dither and `--font-mono` stay the signature; it keeps the
+  and colour only in the kit's own art, which keeps its Bayer screen. It
+  wears a reference print site's TASTE, never its devices (the user's
+  call: it must not read as a copy; see root `AGENTS.md`). The dither and
+  `--font-mono` stay the signature; it keeps the
   chrome display type and the chrome primary key in the light finish of
   the site voice (`app/styles.css`, see `src/AGENTS.md`). Its HERO is our
   own (the statement beside a live stage seated on a poster the kit
   prints); under it, the page layout the user picked from a reference,
   kept unnamed (see root `AGENTS.md`): sections under a title with a lead
   beside it, a bento of example cards, a stage of what an ask makes,
-  columns, a centred install, the footer's poster band and link columns
-  over a giant wordmark. Never a reference's hero, assets, marks, names or
-  words: filled with the kit and our own copy. The user's slop bans (root
-  `AGENTS.md`) hold here as lifted for the print: the hairline frame and
-  the footer's hairline grid are the page's only rules, the footer's
-  column heads are numbered, labels are mono capitals, and the kit's art
-  (the posters among it) may print more than two inks. Otherwise: no tags,
+  columns, a centred install, link columns over a giant wordmark. Never a
+  reference's hero, art, devices, assets, marks, names or words: filled
+  with the kit and our own copy. The user's slop bans (root `AGENTS.md`)
+  hold here as lifted for the print: the hairline frame is the page's
+  only rule, and the kit's art (the poster among it) may print more than
+  two inks. Otherwise: no tags,
   no italic or slanted type, no negative tracking, no over-detailed UI, no
   other dividers, two inks (`--ink`, `--ink-3`) on two grounds (the paper,
   `--surface`) with no alpha tints, no bordered containers, no diagrams,
   no code paths, tool names or commands as labels, no numbered sections.
   Still banned too: red (the kit's ember is the one warm light: brand
-  core, install prompt, the agent's checks, glyphs in "What's inside",
-  a footer link's hover), an eyebrow over a title, and in copy middle
+  core, install prompt, the agent's checks, glyphs in "What's inside"),
+  an eyebrow over a title, and in copy middle
   dots, em dashes and arrow-ended links. Additions must remove something
   or justify their presence.
 - Copy and markup follow the design.how bans the user picked: sentence
-  case for headings, leads and body copy; the labels (`.nav-a`, `.key`,
-  `.key-chrome`, `.label`: the header's links and keys, the keys, the
-  footer's heads, links and imprint) are set in mono capitals by CSS
-  alone, the markup keeps them in sentence case; every link names where it goes (an
+  case for headings, keys and links, no uppercase anywhere in the page's
+  own copy; every link names where it goes (an
   external one says "(opens in a new tab)" to screen readers). No space
   is left empty. Everything that moves is the kit itself (real
   components, hands on); no film player or animation runtime ships.
@@ -56,8 +54,7 @@ widgets/features; page-specific conventions live here.
   and `--signal` (the ember); the grain (a 96px PNG tile of single cells
   a tone under and over the paper, never a grid); the frame (`--frame`,
   a fixed hairline down each side of the page's column from 900px, above
-  the page, never taking a pointer); the label voice (11.5px, 500, 0.08em,
-  uppercase); the section head (`.sec-head`: the
+  the page, never taking a pointer); the section head (`.sec-head`: the
   `.section-title` left, in the display face (Michroma 400,
   `clamp(1.6rem, 3.4vw, 2.75rem)`) cast in `.chrome-type`; `.sec-side`
   right, on its baseline, a `.sec-lede` and a `.more-link`; stacked under
@@ -93,7 +90,8 @@ widgets/features; page-specific conventions live here.
   the keys and pressed segments take the page's ground) with the controls
   its docs demo has. The stage is SEATED on a poster (`.seat` >
   `.seat-art`, `aria-hidden`; gone under 900px): a `DitherPoster` (seed
-  36, cell 3, the palette's five hues, `INKS`) rising past the stage's top
+  12, cell 3, `INKS`: the kit's blue, the ember and the page's ink; its
+  diamond's tip shows above the stage) rising past the stage's top
   and running out to the frame's hairline on the right, stopping short of
   the stage's foot so it never sits under the picker or the caption; a
   flat print, square-cornered, one static frame (`render-mode="static"`,
@@ -221,18 +219,14 @@ widgets/features; page-specific conventions live here.
   meta balls", "Pause the silk"), `aria-pressed` while paused, wired to
   the surface's `paused` (the model's turn is its `auto-rotate`); hidden
   where reduced motion already holds the surface still.
-- Footer, printed (inside the page's column): a poster band (a static
-  `DitherPoster`, seed 39, cell 3, 160px, between two hairlines), then a
-  grid ruled in hairlines: the brand's cell (the pixel wordmark in the
-  home link, one line, GitHub under its mark) beside three link columns,
-  each ruled off on its left under a numbered head ("01 / Get started")
+- Footer (on the page width, no rule above it): the brand (the pixel
+  wordmark in the home link, one line, GitHub under its mark) beside three
+  link columns
   (`COLUMNS`: Get started; Docs, the big families each with its size; For
-  agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas,
-  the ember on hover), the line-screen wordmark ruled off under all, then
-  the imprint on the raised ground (the year and dither-ui.com,
-  `v<version>`, MIT license, separate items). Under 900px the brand's
-  cell spans the grid over three columns; under 640px two columns, the
-  third spanning both under its own hairline.
+  agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
+  copyright line as separate items (the year and dither-ui.com,
+  `v<version>`, MIT license), then the line-screen wordmark. Three columns
+  under the brand under 900px, two under 640px.
 - Footer signature: the line-screen wordmark (`LineWordmark.vue`):
   "dither-ui" in the display face across the page width, filled by 24
   rows of ink that thicken toward the baseline (30% of the row's pitch at
@@ -557,8 +551,7 @@ widgets/features; page-specific conventions live here.
   1280x800 and 1920x1080 with the stage beside them on its poster, the
   paper, its grain and the frame's hairlines in either theme,
   "Copy agent prompt" (the install's head) copying a prompt that names
-  this origin's SKILL.md, no uppercase in the markup's own copy (the
-  labels are capitals by CSS alone), no eyebrow, middle dot, em dash
+  this origin's SKILL.md, no uppercase label, eyebrow, middle dot, em dash
   or arrow link in the rendered copy, every svg decorative or labelled,
   "Watch the film" (the dialog opens with focus in it, the film plays,
   Escape closes it, focus returns to the key, the video leaves the DOM),
@@ -569,8 +562,8 @@ widgets/features; page-specific conventions live here.
   the ask story pinned and stepping its lines and the screen's parts as
   the page scrolls (the whole session at once under 900px), the "Works
   with" marks, none of the slop bans in the rendered page (no tag, italic
-  or negative tracking outside a kit component, no rule but the frame and
-  the footer's grid, no bordered container), the header capsule floating over the page with an anchor
+  or negative tracking outside a kit component, no rule but the frame, no
+  bordered container), the header capsule floating over the page with an anchor
   landing clear of it, reduced motion (the surfaces
   still, the film waiting on its poster), and the workbench readings over
   the page (the inspection runner's contrast, audit and Tab walk) clean;

@@ -558,15 +558,15 @@ the kit every import is relative (`../engine/pixel`).
   that resolves props and passes a `render(buffer, clock, dt, elapsed)` callback —
   never re-implement the loop per component. Per-frame extras stay in `render`:
   page-load fade reads `elapsed`, eased pointers read `dt`.
-- `poster.ts` + `DitherPoster`: flat fields of the palette printed as a
-  screen print. `posterLayout(seed, inkCount)` lays out 4 to 6 bands (each
-  ink differs from the band above; most solid, some meeting a second ink
-  or the ground through the line screen) and a disc whose inside hatches
-  every band in one ink through the poster's screen (another where a
-  band is that ink); `paintPoster` prints a frame, the hatch sliding
-  `speed` cells a second on the clock; `ground` `transparent` leaves open
-  cells clear. Its screen defaults to the one around it, else diagonal.
-  Pinned by `tests/poster.spec.ts`.
+- `poster.ts` + `DitherPoster`: the palette printed as tone.
+  `posterLayout(seed, inkCount)` cuts the surface into 3 or 4 columns of 1
+  or 2 tiles (a tile's ink never the one above it, nor with three inks or
+  more the one beside it), each running its ink along a ramp (down or
+  across; some solid) through the screen into a second ink or the ground,
+  and places the kit's diamond, inside which every tone turns over (the
+  tiles' negative) and the screen slides `speed` cells a second on the
+  clock; `ground` `transparent` leaves open cells clear. Its screen is the
+  one around it, else Bayer. Pinned by `tests/poster.spec.ts`.
 - `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never

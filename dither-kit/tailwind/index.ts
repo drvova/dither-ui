@@ -31,7 +31,7 @@ export { default as DitherWaves, type WavesParams, paintWaves } from "./Waves.vu
 export { default as DitherSilk, type SilkParams, paintSilk } from "./Silk.vue"
 export {
   default as DitherPoster,
-  type PosterBand,
+  type PosterTile,
   type PosterLayout,
   type PosterParams,
   paintPoster,

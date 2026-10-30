@@ -1,60 +1,90 @@
-// The poster: flat fields of ink, printed the way a screen print is. Bands
-// of the palette run across the surface, each one ink or two inks met
-// through the line screen, and a disc crosses them where every band turns
-// to a hatch of another ink through a screen (the diagonal one unless told
-// otherwise). The hatch slides along its lines with the clock. A seed lays
-// out the bands, their inks and densities and the disc, so the same seed at
-// the same moment gives the same raster.
+// The poster: the palette printed as tone, the way the kit prints everything.
+// The surface is cut into columns and each column into tiles; a tile is one
+// ink run along a tone ramp through a screen into a second ink (or the
+// ground), so neighbouring fields dissolve into each other cell by cell.
+// Over them sits the kit's mark, a diamond, printed as their negative:
+// inside it every ramp turns over, and its screen slides with the clock. A
+// seed lays out the columns, the tiles, their inks and ramps and the mark,
+// so the same seed at the same moment gives the same raster.
 
 import { SCREENS, type ScreenKind, xorshift32 } from "./pixel"
 import type { Rgb } from "./palette"
 import type { RasterBuffer } from "./raster"
 
 export type PosterParams = {
-  /** The inks the fields are printed in (two or more). */
+  /** The inks the tiles are printed in (two or more). */
   inks: Rgb[]
-  /** What a field's open screen cells show: a paper colour, or clear. */
+  /** What a tile's open screen cells show where it has no second ink: a paper colour, or clear. */
   ground: Rgb | null
-  /** The disc's screen. */
+  /** The screen every tone is printed through. */
   screen: ScreenKind
-  /** How fast the hatch slides, in cells per second. */
+  /** How fast the screen slides inside the mark, in cells per second. */
   speed: number
 }
 
-/** A band: rows `from`..`to` (fractions of the height), its ink, the second
- * ink its line screen meets (-1: the ground), the line screen's density (1
- * is a solid field) and the ink of its hatch inside the disc. */
-export type PosterBand = { from: number; to: number; ink: number; alt: number; density: number; hatch: number }
-/** The disc's centre as fractions of the width and height, its radius as
- * a fraction of the height. */
-export type PosterLayout = { bands: PosterBand[]; disc: { x: number; y: number; r: number } }
+/** A tile: its box as fractions of the surface, its ink, what its open cells
+ * show (an ink, or -1: the ground) and its tone: the ink's density `from` at
+ * the tile's start to `to` at its end, down (`y`) or across (`x`). */
+export type PosterTile = {
+  x0: number
+  x1: number
+  y0: number
+  y1: number
+  ink: number
+  under: number
+  from: number
+  to: number
+  axis: "x" | "y"
+}
+/** The mark's centre as fractions of the width and height, its half
+ * diagonal as a fraction of the height. */
+export type PosterLayout = { tiles: PosterTile[]; mark: { x: number; y: number; r: number } }
 
-/** Most fields are solid; some meet a second ink (or the ground) through the line screen. */
-const DENSITIES = [1, 1, 1, 0.5]
+/** `count` seeded weights summing to 1, as cut points from 0 to 1. */
+function cuts(rand: () => number, count: number): number[] {
+  const weights = Array.from({ length: count }, () => 0.6 + rand() * 1.4)
+  const total = weights.reduce((a, b) => a + b, 0)
+  let at = 0
+  return [0, ...weights.map((w, i) => (i === count - 1 ? 1 : (at += w / total)))]
+}
 
 /** The composition a seed prints, for `inkCount` inks. */
 export function posterLayout(seed: number, inkCount: number): PosterLayout {
   const rand = xorshift32(Math.round(seed) ^ 0x2545f491)
   const inks = Math.max(1, inkCount)
   const other = (not: number) => (inks < 2 ? not : (not + 1 + Math.floor(rand() * (inks - 1))) % inks)
-  // The disc hatches every band in one ink (another where a band is that ink).
-  const discInk = Math.floor(rand() * inks)
-  const count = 4 + Math.floor(rand() * 3)
-  const weights = Array.from({ length: count }, () => 0.5 + rand() * 1.5)
-  const total = weights.reduce((a, b) => a + b, 0)
-  let at = 0
-  let prev = -1
-  const bands = weights.map((w) => {
-    const from = at
-    at += w / total
-    const ink = prev < 0 ? Math.floor(rand() * inks) : other(prev)
-    prev = ink
-    const density = DENSITIES[Math.floor(rand() * DENSITIES.length)]
-    const alt = rand() < 0.65 ? -1 : other(ink)
-    return { from, to: at, ink, alt, density, hatch: ink === discInk ? other(ink) : discInk }
-  })
-  bands[bands.length - 1].to = 1
-  return { bands, disc: { x: 0.56 + rand() * 0.2, y: 0.45 + rand() * 0.15, r: 0.42 + rand() * 0.16 } }
+  const columns = cuts(rand, 3 + Math.floor(rand() * 2))
+  const tiles: PosterTile[] = []
+  let left: number[] = []
+  for (let c = 0; c + 1 < columns.length; c++) {
+    const rows = cuts(rand, 1 + Math.floor(rand() * 2))
+    const column: number[] = []
+    for (let r = 0; r + 1 < rows.length; r++) {
+      // Never the ink above it, nor (with three inks or more) the ink beside it.
+      const above = r ? column[r - 1] : -1
+      const beside = left.length ? left[Math.min(r, left.length - 1)] : -1
+      let ink = Math.floor(rand() * inks)
+      for (let k = 0; k < inks && (ink === above || (ink === beside && inks > 2)); k++) ink = (ink + 1) % inks
+      column.push(ink)
+      // Most tiles run a ramp; some are solid; a ramp starts dark or light.
+      const solid = rand() < 0.3
+      const low = 0.1 + rand() * 0.25
+      const fall = rand() < 0.5
+      tiles.push({
+        x0: columns[c],
+        x1: columns[c + 1],
+        y0: rows[r],
+        y1: rows[r + 1],
+        ink,
+        under: rand() < 0.45 ? -1 : other(ink),
+        from: solid || fall ? 1 : low,
+        to: solid || !fall ? 1 : low,
+        axis: rand() < 0.7 ? "y" : "x",
+      })
+    }
+    left = column
+  }
+  return { tiles, mark: { x: 0.5 + rand() * 0.2, y: 0.42 + rand() * 0.16, r: 0.32 + rand() * 0.12 } }
 }
 
 /** One frame of the poster at `time` seconds. */
@@ -62,29 +92,38 @@ export function paintPoster(buffer: RasterBuffer, layout: PosterLayout, p: Poste
   const cols = buffer.width
   const rows = buffer.height
   const data = buffer.data
-  const line = SCREENS.line
-  const hatch = SCREENS[p.screen] ?? SCREENS.diagonal
+  const screen = SCREENS[p.screen] ?? SCREENS.bayer
   const drift = Math.floor(time * p.speed)
-  const cx = layout.disc.x * cols
-  const cy = layout.disc.y * rows
-  const r = layout.disc.r * rows
-  const r2 = r * r
+  const cx = layout.mark.x * cols
+  const cy = layout.mark.y * rows
+  const r = Math.max(1, layout.mark.r * rows)
   const ink = (i: number) => p.inks[((i % p.inks.length) + p.inks.length) % p.inks.length]
-  let b = 0
+  // The tiles each column holds, top to bottom, and the column under each x.
+  const columns = [...new Set(layout.tiles.map((t) => t.x0))].sort((a, b) => a - b)
+  const stacks = columns.map((x0) => layout.tiles.filter((t) => t.x0 === x0).sort((a, b) => a.y0 - b.y0))
+  const columnOf = new Int32Array(cols)
+  for (let x = 0, c = 0; x < cols; x++) {
+    const fx = (x + 0.5) / cols
+    while (c < stacks.length - 1 && fx >= stacks[c][0].x1) c++
+    columnOf[x] = c
+  }
+  const at = new Array<PosterTile>(stacks.length)
+  const step = new Int32Array(stacks.length)
   for (let y = 0; y < rows; y++) {
     const fy = (y + 0.5) / rows
-    while (b < layout.bands.length - 1 && fy > layout.bands[b].to) b++
-    const band = layout.bands[b]
-    const fill = ink(band.ink)
-    const alt = band.alt < 0 ? p.ground : ink(band.alt)
-    const crossing = ink(band.hatch)
-    const ly = line[y & 3]
-    const hy = hatch[y & 3]
-    const dy = y + 0.5 - cy
+    for (let c = 0; c < stacks.length; c++) {
+      while (step[c] < stacks[c].length - 1 && fy >= stacks[c][step[c]].y1) step[c]++
+      at[c] = stacks[c][step[c]]
+    }
+    const sy = screen[y & 3]
+    const ay = Math.abs(y + 0.5 - cy)
     for (let x = 0; x < cols; x++) {
-      const dx = x + 0.5 - cx
-      const c =
-        dx * dx + dy * dy < r2 ? (0.5 > hy[(x + drift) & 3] ? crossing : fill) : band.density > ly[x & 3] ? fill : alt
+      const t = at[columnOf[x]]
+      const along = t.axis === "y" ? (fy - t.y0) / (t.y1 - t.y0) : ((x + 0.5) / cols - t.x0) / (t.x1 - t.x0)
+      const tone = t.from + (t.to - t.from) * along
+      const inside = Math.abs(x + 0.5 - cx) + ay < r
+      const lit = inside ? 1 - tone > sy[(x + drift) & 3] : tone > sy[x & 3]
+      const c = lit ? ink(t.ink) : t.under < 0 ? p.ground : ink(t.under)
       const i = (y * cols + x) * 4
       if (c) {
         data[i] = c[0]

@@ -1,7 +1,7 @@
 <script lang="ts" module>
-  import { paintPoster, posterLayout, type PosterBand, type PosterLayout, type PosterParams } from "../engine/poster"
+  import { paintPoster, posterLayout, type PosterLayout, type PosterParams, type PosterTile } from "../engine/poster"
   export { paintPoster, posterLayout }
-  export type { PosterBand, PosterLayout, PosterParams }
+  export type { PosterLayout, PosterParams, PosterTile }
 </script>
 
 <script lang="ts">
@@ -13,14 +13,14 @@
   import { useScreen } from "../runtime/screen"
 
   type Props = {
-    /** The inks the fields are printed in. */
+    /** The inks the tiles are printed in. */
     inks?: PixelColor[]
-    /** What a field's open screen cells show: a colour, or the page beneath. */
+    /** What a tile's open screen cells show where it has no second ink: a colour, or the page beneath. */
     ground?: PixelColor | "transparent"
-    /** The disc's screen; default the screen of a `DitherScreen` around it, else diagonal. */
+    /** The screen every tone prints through; default the screen of a `DitherScreen` around it, else Bayer. */
     screen?: ScreenKind
     seed?: number
-    /** How fast the hatch slides, in cells per second. */
+    /** How fast the screen slides inside the mark, in cells per second. */
     speed?: number
     /** Cell size in CSS px. */
     cell?: number
@@ -33,7 +33,7 @@
   }
 
   let {
-    inks = ["orange", "blue", "green", "pink", "purple"],
+    inks = ["blue", "orange", "grey"],
     ground = "transparent",
     screen,
     seed = 7,
@@ -53,7 +53,7 @@
   const params = $derived<PosterParams>({
     inks: (inks.length ? inks : ["grey"]).map(fillOf),
     ground: ground === "transparent" ? null : fillOf(ground),
-    screen: screen ?? around() ?? "diagonal",
+    screen: screen ?? around() ?? "bayer",
     speed,
   })
 

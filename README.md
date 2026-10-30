@@ -119,11 +119,11 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 ### Landing
 
 The page is printed: one ink on bone paper inside a hairline frame, the kit's
-art in colour through a diagonal print screen. The hero: the statement and the
-keys beside a stage that tours real components, seated on a poster the kit
-prints, each one live with the controls its docs demo has: a dithered chart
-you reseed, a GLSL shader, one snippet written as StyleX, CSS Modules, CSS or
-Tailwind beside the card it renders, a button, a slide and a ferrofluid. "Watch the film" opens the
+art its only colour. The hero: the statement and the keys beside a stage that
+tours real components, seated on a poster the kit prints in tone, each one live
+with the controls its docs demo has: a dithered chart you reseed, a GLSL
+shader, one snippet written as StyleX, CSS Modules, CSS or Tailwind beside the
+card it renders, a button, a slide and a ferrofluid. "Watch the film" opens the
 trailer, and under the keys a quiet line names what the kit works with, each
 tool under its own mark. Everything else on the page is the kit too, on plain
 filled grounds with no tags or borders:
@@ -138,8 +138,7 @@ filled grounds with no tags or borders:
   its own mark, and the docs family by family;
 - the install, under the marks of npm, pnpm and Bun, with a key that copies a
   prompt for your coding agent;
-- the footer: a poster band, then numbered link columns ruled in hairlines
-  over the line-screen wordmark.
+- the footer: link columns over the line-screen wordmark.
 
 ### Docs
 

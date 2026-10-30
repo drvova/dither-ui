@@ -9,9 +9,10 @@
 // stops it there; under reduced motion it starts paused. A new scene
 // dissolves in through the kit's own ordered dither (`DitherReveal`); the
 // first one is simply there, and it is the only one in the static page.
-// The stage is seated on a poster: flat fields of the palette printed
-// through the line screen and a hatched disc (one still frame, so nothing
-// moves there), rising past the stage's top and running to the frame.
+// The stage is seated on a poster: the kit's blue, its ember and the page's
+// ink printed as tone through the Bayer screen, the kit's diamond knocked
+// out of them (one still frame, so nothing moves there), rising past the
+// stage's top and running to the frame.
 import { defineAsyncComponent, onMounted, reactive, ref } from "vue"
 import {
   Area,
@@ -24,6 +25,7 @@ import {
   cssColor,
   type ButtonVariant,
   type DitherColor,
+  type PixelColor,
 } from "@dither-kit"
 import { routePath } from "@/shared/lib"
 import PauseChip from "./PauseChip.vue"
@@ -81,8 +83,8 @@ const SCENES: Scene[] = [
   },
 ]
 
-// The poster's inks: the kit's palette, printed flat.
-const INKS: DitherColor[] = ["orange", "blue", "green", "pink", "purple"]
+// The poster's inks: the kit's blue, the ember and the page's own ink.
+const INKS: PixelColor[] = ["blue", "orange", "#101214"]
 
 const at = ref(0)
 // Until the scene first changes, it is simply there: no entrance.
@@ -143,7 +145,7 @@ const fluid = ref<Fluid>("acid")
   <figure class="hero-stage">
     <div class="seat">
       <div class="seat-art" aria-hidden="true">
-        <DitherPoster :seed="36" :inks="INKS" :cell="3" render-mode="static" />
+        <DitherPoster :seed="12" :inks="INKS" :cell="3" render-mode="static" />
       </div>
       <div class="stage" @pointerdown="hold" @keydown="hold">
         <PauseChip

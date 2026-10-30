@@ -1,6 +1,6 @@
 <script lang="ts">
-import { paintPoster, posterLayout, type PosterBand, type PosterLayout, type PosterParams } from "../engine/poster"
-export type { PosterBand, PosterLayout, PosterParams }
+import { paintPoster, posterLayout, type PosterLayout, type PosterParams, type PosterTile } from "../engine/poster"
+export type { PosterLayout, PosterParams, PosterTile }
 export { paintPoster, posterLayout }
 </script>
 
@@ -15,14 +15,14 @@ import { useScreen } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
-    /** The inks the fields are printed in. */
+    /** The inks the tiles are printed in. */
     inks?: PixelColor[]
-    /** What a field's open screen cells show: a colour, or the page beneath. */
+    /** What a tile's open screen cells show where it has no second ink: a colour, or the page beneath. */
     ground?: PixelColor | "transparent"
-    /** The disc's screen; default the screen of a `DitherScreen` around it, else diagonal. */
+    /** The screen every tone prints through; default the screen of a `DitherScreen` around it, else Bayer. */
     screen?: ScreenKind
     seed?: number
-    /** How fast the hatch slides, in cells per second. */
+    /** How fast the screen slides inside the mark, in cells per second. */
     speed?: number
     /** Cell size in CSS px. */
     cell?: number
@@ -34,7 +34,7 @@ const props = withDefaults(
     class?: string
   }>(),
   {
-    inks: () => ["orange", "blue", "green", "pink", "purple"],
+    inks: () => ["blue", "orange", "grey"],
     ground: "transparent",
     seed: 7,
     speed: 2,
@@ -51,7 +51,7 @@ const layout = computed(() => posterLayout(props.seed, Math.max(1, props.inks.le
 const params = computed<PosterParams>(() => ({
   inks: (props.inks.length ? props.inks : ["grey"]).map(fillOf),
   ground: props.ground === "transparent" ? null : fillOf(props.ground),
-  screen: props.screen ?? around?.value ?? "diagonal",
+  screen: props.screen ?? around?.value ?? "bayer",
   speed: props.speed,
 }))
 const wrapRef = ref<HTMLDivElement | null>(null)

@@ -1034,8 +1034,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 320, h: 220 },
     props: [
-      list("inks", ["orange", "blue", "green", "pink", "purple"]),
-      select("screen", "diagonal", SCREEN_KINDS),
+      list("inks", ["blue", "orange", "grey"]),
+      select("screen", "bayer", SCREEN_KINDS),
       number("seed", 7, 0, 99999, 1),
       number("speed", 2, 0, 12, 0.5),
       number("cell", 2, 1, 10, 1),

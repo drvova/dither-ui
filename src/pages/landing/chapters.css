@@ -1,13 +1,12 @@
 /* The landing's layer over the SITE voice (monospace, `.nav-a` and the
    light materials in app/styles.css), printed: one obsidian ink on bone
-   paper with a fine grain, a hairline frame down the page, labels in mono
-   capitals, the footer a grid of hairlines with numbered heads, and colour
-   only in the kit's own art (the posters, the live components), printed
-   through a screen. Two inks (`--ink`, `--ink-3`) on two grounds (the
-   paper, `--surface`) with no alpha tints. The kit's ember is the signal
-   light; never red. Copy keeps the bans: no eyebrow, no middle dots or em
-   dashes, no link that ends in an arrow. Plain CSS under .landing, read
-   by every landing component. */
+   paper with a fine grain, a hairline frame down the page, and colour only
+   in the kit's own art (the poster, the live components). Two inks
+   (`--ink`, `--ink-3`) on two grounds (the paper, `--surface`) with no
+   alpha tints. The kit's ember is the signal light; never red. Copy keeps
+   the bans: sentence case, no eyebrow, no middle dots or em dashes, no
+   link that ends in an arrow. Plain CSS under .landing, read by every
+   landing component. */
 
 /* The paper, on the root while the landing is up, so what it teleports to
    the body (the film's dialog) is printed on it too: the user's V5 bone and
@@ -53,19 +52,6 @@
     border-inline: 1px solid var(--ink);
     pointer-events: none;
   }
-}
-
-/* Labels in the printer's voice: the header's links and keys, the keys and
-   the footer's heads, links and imprint in mono capitals, tracked. Titles,
-   leads and body copy stay in sentence case. */
-.landing .nav-a,
-.landing .key,
-.landing .key-chrome,
-.landing .label {
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 /* A section's head: the title left, at the page's
