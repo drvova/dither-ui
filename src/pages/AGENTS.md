@@ -36,6 +36,10 @@ widgets/features; page-specific conventions live here.
   an eyebrow over a title, and in copy middle
   dots, em dashes and arrow-ended links. Additions must remove something
   or justify their presence.
+- Voice: calm and procedural. Copy says what the kit is and what to do
+  next ("Copy the folder", "use it here", "ask for a screen"), never what
+  it will feel like; every figure it states is read from the kit through
+  `facts.ts` or `hub.ts`, never typed.
 - Copy and markup follow the design.how bans the user picked: sentence
   case for headings, keys and links, no uppercase anywhere in the page's
   own copy; every link names where it goes (an
@@ -94,7 +98,13 @@ widgets/features; page-specific conventions live here.
   most 30rem wide) set on the obsidian at the column's right edge with
   breathing room above and below, square cornered and flat: never a
   panel run to the frame or under the header (that is the reference's
-  hero). Its pause ("Pause the print") sits on its top right corner. No
+  hero). Its pause ("Pause the print") sits on its top right corner.
+  Under it the print stands over its own floor (`.print-floor`, 40px,
+  out of the flow): the same poster at the same moment, turned over and
+  thinned through `DitherReveal`'s down wipe held at a third of its travel
+  (band 20 cells), so only the wipe's 40% and 20% steps show. A shadow
+  cannot show on black; the floor is the print's own cells, never a tint.
+  The column keeps 48px under the print below 900px for it. No
   component tour, slides or picker in the hero (the user's call: they
   took the love out of it); the components live in the bento. Under
   900px the statement comes first and the print takes the width under
@@ -115,16 +125,19 @@ widgets/features; page-specific conventions live here.
   (`cell` 2, `seam` 1/2, `decorative` inside the home link, whose name is
   "dither-ui"). A string with a glyph the face lacks throws; every string
   the page sets is covered by `tests/pixel-type.spec.ts`.
-- Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the examples'
-  lede), `RUNTIME_DEPS` (the packages beside Vue, which the install
-  bar's commands are built from) and `SPECS` (the spec sheet closing the
+- Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the hero's and
+  the examples' ledes), `MATRIX` (the threshold matrix as the page writes
+  it, read from `SCREENS`), `RUNTIME_DEPS` (the packages beside Vue, which
+  the install bar's commands and the install lede's count are built from)
+  and `SPECS` (the spec sheet closing the
   install: label and value rows on the raised ground, two columns from
   640px, values read from the kit where they can be: the counts, the
   screens, the license; the facts spec holds the rest to the kit's peers,
   matrices and styling systems); `tests/landing-facts.spec.ts` recounts
   the first from `dither-kit/tailwind/index.ts` and holds the second to
   the kit's required `peerDependencies` (a styling layer's optional one
-  aside); section counts come from `hub.ts`. A change that moves one
+  aside), and the plate's stock to the raised ground's mix; section counts
+  come from `hub.ts`. A change that moves one
   fails until the page says it.
 - Examples (`Examples.vue`, `#examples`, "Every component, live."): a
   section head (the component count from `facts.ts`, "See every section in
@@ -205,6 +218,17 @@ widgets/features; page-specific conventions live here.
   checks it). Under them the five big families (`DOCS_FAMILIES`): five
   columns (three under 1024px, two under 640px), each the family's name
   and size as the link to its first section, and its line.
+- The plate (between Inside and Install, decorative): a print sheet at
+  2.35:1 on the page's width, square cornered and flat like the hero's
+  print, its stock the raised ground (`STOCK` in `LandingPage`, the
+  `--surface` mix as a colour the kit prints with, held to the token by
+  `tests/landing-facts.spec.ts`, so its open cells are the plate, never a
+  tint). Two `DitherGradient`s in the bone ink through the Bayer screen
+  show only the thin ends of their ramps: the tone thins from a quarter
+  at the top edge to nothing, and rises from nothing to three tenths at
+  the foot; between them a clear band holds the brand mark (`MARK`, the
+  header's path), 28px, small in the wide field. The quiet before the
+  install; nothing moves.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit
@@ -577,7 +601,10 @@ widgets/features; page-specific conventions live here.
   pointed card, the reader's choice while it shows, the first crossing
   the middle, the last that played).
 - `tests/lab.spec.ts` runs the Verification section's checks in Node,
-  each one holding, every named spec existing, and pins `POSTER_HASH`
+  each one holding (the inks check among them: the landing's bone, muted
+  bone and ember printed through the matrix on the obsidian, 4.5:1 at
+  full tone and 3:1 at half, its colours held to `chapters.css` and the
+  dark theme's ember), every named spec existing, and pins `POSTER_HASH`
   (the poster's bytes, the cross-engine row): a change to the poster's
   arithmetic fails it until the hash is recorded again.
 - `tests/marks.spec.ts`: every harness the bridge starts has a mark under

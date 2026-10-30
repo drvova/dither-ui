@@ -10,6 +10,7 @@ import { paintPoster, posterLayout, type PosterParams } from "@dither-kit/engine
 import { createRasterBuffer } from "@dither-kit/engine/raster"
 import { BAYER8, wipeStyle } from "@dither-kit/engine/wipe"
 import { paintWorld, type WorldStyle, type WorldView } from "@dither-kit/engine/world"
+import { luminance, parseColor } from "@/widgets/workbench/model/color"
 
 export type Reading = { holds: boolean; figure: string }
 
@@ -75,6 +76,24 @@ const TRACK: KeyframeTrack = {
     { x: "0cqw", y: "10cqh", left: "25%", top: "30%", inset: "4cqmin" },
     { x: "40cqw", y: "-5cqh", left: "60%", top: "5%", inset: "12cqmax" },
   ],
+}
+
+// The landing's inks and its ground (chapters.css; the ember is the dark
+// theme's swatch), held to the stylesheets by tests/lab.spec.ts.
+export const LANDING = {
+  ground: "#101214",
+  inks: { bone: "#e4e1d8", "muted bone": "#9c998f", ember: "#ff9632" },
+} as const
+const lum = (css: string) => luminance(parseColor(css)!)
+const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+/** An ink printed through the Bayer matrix at `tone` on the ground, its
+ * contrast taken from the patch's pixels in linear light. */
+const printed = (ink: string, tone: number) => {
+  const side = 16
+  let sum = 0
+  for (let y = 0; y < side; y++)
+    for (let x = 0; x < side; x++) sum += lum(tone > BAYER4[y & 3][x & 3] ? ink : LANDING.ground)
+  return ratio(sum / (side * side), lum(LANDING.ground))
 }
 
 const steps = BAYER8.length * BAYER8[0].length
@@ -211,6 +230,20 @@ export const CHECKS: readonly Check[] = [
       const files = triangle()
       const read = MODEL_FORMATS.filter((f) => parseWorld(files[f], f).meshes.some((m) => m.indices.length >= 3)).length
       return { holds: read === MODEL_FORMATS.length, figure: `${read} of ${MODEL_FORMATS.length} formats` }
+    },
+  },
+  {
+    id: "inks",
+    claim: "The landing's inks hold their contrast as printed",
+    method:
+      "Bone, muted bone and the ember are printed through the Bayer matrix on the obsidian at full and half tone, and each patch is measured from its pixels in linear light.",
+    against: "4.5:1 full, 3:1 at half",
+    test: "tests/lab.spec.ts",
+    run: () => {
+      const inks = Object.values(LANDING.inks)
+      const full = Math.min(...inks.map((ink) => printed(ink, 1)))
+      const half = Math.min(...inks.map((ink) => printed(ink, 0.5)))
+      return { holds: full >= 4.5 && half >= 3, figure: `lowest ${full.toFixed(1)} full, ${half.toFixed(1)} half` }
     },
   },
 ]

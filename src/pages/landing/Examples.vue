@@ -277,8 +277,8 @@ const purged = ref(0)
       <h2 id="examples-h" class="section-title chrome-type">Every component, live.</h2>
       <div class="sec-side">
         <p class="sec-lede">
-          {{ COMPONENT_COUNT }} components on one engine, each live in its docs section with its props and its code.
-          Copy one as it is, or have your agent change it.
+          {{ COMPONENT_COUNT }} components on one engine. Each card is the component itself: use it here, then open its
+          docs section for its props and its code.
         </p>
         <a :href="routePath('/docs')" class="more-link">See every section in the docs</a>
       </div>
