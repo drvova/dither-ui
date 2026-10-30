@@ -147,7 +147,15 @@ widgets/features; page-specific conventions live here.
   card is narrow, a size container) and the slide action ("Slide to
   deploy", its count); the bar chart and the meta balls; progress, the
   radar chart and the hold action ("Hold to purge cache", its count);
-  silk and the decrypted text. The shader's WebGL engine, the
+  silk and the decrypted text. Each card's art is a `DitherReveal` (the
+  8×8 Bayer dissolve, 0.72s, linear): it prints itself once as it comes
+  into view, at once under reduced motion. Of the surfaces that move by
+  themselves (`MOVING`: the model, the shader, the fluid, the meta balls,
+  the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen
+  hovers or keyboard focus is in; else the reader's last choice while any
+  of it shows; else the first, in page order, crossing the middle tenth of
+  the viewport; else the last that played. The rest hold a still frame.
+  The shader's WebGL engine, the
   translator's utility map and the fluid's engine are async chunks a
   card loads as it nears the viewport (one IntersectionObserver, 600px
   ahead; without one, at once); their card art keeps a wrapper so the
@@ -216,15 +224,21 @@ widgets/features; page-specific conventions live here.
   `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
   restyled or dithered; everything else is a kit glyph (`DitherIcon`).
-- No entrance choreography: the page simply is. Motion is the live kit
-  surfaces. Pause chips (`PauseChip.vue`, WCAG 2.2.2): every surface that
-  moves by itself for more than five seconds carries one in its corner,
-  named for it ("Pause the print", "Pause the model", "Pause the shader",
-  "Pause the fluid", "Pause the meta balls", "Pause the silk"),
-  `aria-pressed` while paused, wired to the surface's `paused` (the
-  model's turn is its `auto-rotate`): a disc of the page's ink with its
-  glyph in the ground. Chips stay under reduced motion: the model and the
-  shader keep moving there.
+- No entrance choreography but the bento's art printing itself once as it
+  nears; the hero and the type simply are. Motion is the live kit
+  surfaces, one moving layer at a time in the bento. Pause chips
+  (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
+  more than five seconds carries one in its corner, named for it ("Pause
+  the print", "Pause the model", "Pause the shader", "Pause the fluid",
+  "Pause the meta balls", "Pause the silk"), `aria-pressed` while the
+  surface is still, wired to its `paused` (the model's turn is its
+  `auto-rotate`): a disc of the page's ink with its glyph in the ground.
+  In the bento a chip shows whether its surface plays: a pause is the
+  reader's and outlasts the spotlight; play on a surface the spotlight
+  holds makes it the reader's choice. A touch chooses only through the
+  chip, since a tap also focuses and would point at the card and then
+  toggle what it just started. Chips stay under reduced motion: the model
+  and the shader keep moving there.
 - Footer (on the page width, no rule above it): the brand (the pixel
   wordmark in the home link, one line, GitHub under its mark) beside three
   link columns
@@ -559,6 +573,9 @@ widgets/features; page-specific conventions live here.
   `tests/hub.spec.ts` holds `FAMILIES`, `DOCS_FAMILIES` and `BENTO` to the
   docs' `GROUPS`; `tests/pixel-type.spec.ts` every string the pixel face
   sets.
+- `tests/spotlight.spec.ts` holds the bento's one-moving-layer rule (the
+  pointed card, the reader's choice while it shows, the first crossing
+  the middle, the last that played).
 - `tests/lab.spec.ts` runs the Verification section's checks in Node,
   each one holding, every named spec existing, and pins `POSTER_HASH`
   (the poster's bytes, the cross-engine row): a change to the poster's
@@ -581,7 +598,9 @@ widgets/features; page-specific conventions live here.
   the button's fills and hues, "New shader" and its outputs, the fluid's
   palettes, the styling systems, the slide and hold counts, the sliders'
   values, the rating), the lazy cards loading as they near, each pause
-  chip stopping its surface,
+  chip stopping its surface, at most one bento surface playing at every
+  scroll stop (a mouse hover, keyboard focus and a chip tap each taking
+  it as set above), each card's art printing once as it nears,
   the ask story pinned and stepping its lines and the screen's parts as
   the page scrolls (the whole session at once under 900px), the "Works
   with" marks, none of the slop bans in the rendered page (no tag, italic

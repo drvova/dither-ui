@@ -348,7 +348,11 @@ Default section order:
   metal finishes on display type and the primary key only, never on body
   text or every heading; soft shells against a few sharp machined
   boundaries, never uniform pills; motion 120-200ms micro, 240-400ms
-  panels, settle easing `cubic-bezier(.22,1,.36,1)`. Display type wears
+  panels, settle easing `cubic-bezier(.22,1,.36,1)` for what a hand does
+  (a press, a drag, a hover), while the kit's driven motion (wipes,
+  reveals, the clock) runs at one steady speed; one moving layer at a
+  time against a still ground (the user's call after the still ground
+  study). Display type wears
   its suggested extended face, Michroma (SIL OFL, self-hosted in
   `src/shared/fonts/`): the landing's statement and section titles and the
   docs' page title. Its squared heading sans is not used; headings, body,

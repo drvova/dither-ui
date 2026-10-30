@@ -443,7 +443,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (`@view-transition`, none under reduced motion), and the arriving page
   dithers from the old one through the kit's `ditherViewTransition`: a
   right wipe (left going back through history) with a band of the signal
-  ink. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
+  ink, at one steady speed (linear: driven motion; the settle curve
+  answers a hand). `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
   inlined first in each route's head by `rstack.config.ts` (`html.tags`,
   with the `PAGE_END_ID` marker it appends to each body), parks the
   `pagereveal` transition and holds the old page on screen until the app
