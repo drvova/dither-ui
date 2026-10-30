@@ -13,10 +13,13 @@ import {
   DitherAvatar,
   DitherButton,
   DitherDecryptedText,
+  DitherGradient,
   DitherHoldAction,
+  DitherIcon,
   DitherMetaBalls,
   DitherProgress,
   DitherRating,
+  DitherScreen,
   DitherSilk,
   DitherSlideAction,
   DitherSlider,
@@ -26,12 +29,14 @@ import {
   PieChart,
   Radar,
   RadarChart,
+  SCREEN_KINDS,
   Sparkline,
   XAxis,
   cssColor,
   sampleWorld,
   type ButtonVariant,
   type DitherColor,
+  type ScreenKind,
 } from "@dither-kit"
 import { routePath } from "@/shared/lib"
 import { COMPONENT_COUNT } from "./facts"
@@ -81,6 +86,13 @@ const worldPlaying = ref(true)
 
 // Rating.
 const stars = ref(4)
+
+// Print screens: one tone ramp, raw on the left and printed on the right,
+// the split dragged (or stepped by keyboard) and the screen switched in
+// place. The raw ramp runs in linear light, so the printed cells average to
+// it: from a step back the two halves are one tone.
+const screen = ref<ScreenKind>("bayer")
+const split = ref(42)
 
 // Area chart: one seed sets every fill; roll it and every fill changes.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -202,7 +214,9 @@ const purged = ref(0)
       >
         <div
           class="card-art"
-          :class="{ flush: ['world', 'meta-balls', 'silk', 'shader', 'ferrofluid', 'styling'].includes(t.id) }"
+          :class="{
+            flush: ['world', 'print-screens', 'meta-balls', 'silk', 'shader', 'ferrofluid', 'styling'].includes(t.id),
+          }"
         >
           <template v-if="t.id === 'world'">
             <DitherWorld
@@ -228,6 +242,37 @@ const purged = ref(0)
           <div v-else-if="t.id === 'rating'" class="stack">
             <DitherRating v-model="stars" :size="30" label="Rate the kit" />
             <span class="readout">{{ stars }} of 5</span>
+          </div>
+
+          <div v-else-if="t.id === 'print-screens'" class="split" :style="{ '--split': `${split}%` }">
+            <DitherScreen :screen="screen">
+              <DitherGradient from="#e4e1d8" to="#101214" direction="down" :cell="5" class="split-layer" />
+            </DitherScreen>
+            <div class="split-layer split-raw" aria-hidden="true"></div>
+            <input
+              v-model.number="split"
+              type="range"
+              min="0"
+              max="100"
+              class="split-range"
+              aria-label="The ramp raw on the left, printed on the right: move the split"
+            />
+            <span class="split-handle" aria-hidden="true"
+              ><span class="split-grip"><DitherIcon name="GripVertical" :size="14" :stroke-width="1.75" /></span
+            ></span>
+            <div class="art-tools">
+              <div class="seg" role="group" aria-label="Screen">
+                <button
+                  v-for="k in SCREEN_KINDS"
+                  :key="k"
+                  type="button"
+                  :aria-pressed="screen === k"
+                  @click="screen = k"
+                >
+                  {{ k }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div v-else-if="t.id === 'area'" class="panel">
@@ -480,6 +525,10 @@ const purged = ref(0)
   grid-row: span 2;
 }
 
+.t-print-screens {
+  grid-column: 1 / -1;
+}
+
 .t-area,
 .t-styling {
   grid-column: span 8;
@@ -516,6 +565,7 @@ const purged = ref(0)
   padding: 18px 20px;
 }
 
+.t-print-screens .card-art,
 .t-bar .card-art,
 .t-meta-balls .card-art,
 .t-silk .card-art,
@@ -593,6 +643,61 @@ const purged = ref(0)
   top: 12px;
   right: 12px;
   z-index: 2;
+}
+
+/* Print screens: the printed ramp under the raw one, the raw clipped at the
+   split; a full-size range takes the drag (vertical swipes still scroll) and
+   the keys, its handle a bone disc on a bone line. */
+.split-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.split-raw {
+  background: linear-gradient(in srgb-linear to bottom, #e4e1d8, #101214);
+  clip-path: inset(0 calc(100% - var(--split)) 0 0);
+}
+
+.split-range {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  touch-action: pan-y;
+}
+
+.split-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--split);
+  z-index: 1;
+  width: 1px;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+.split-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--background);
+  background: var(--ink);
+  translate: -50% -50%;
+}
+
+.split-range:focus-visible + .split-handle .split-grip {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
 }
 
 .stack {
@@ -786,6 +891,7 @@ const purged = ref(0)
     grid-column: span 1;
   }
   .t-world,
+  .t-print-screens,
   .t-area,
   .t-styling,
   .t-bar,
@@ -807,6 +913,7 @@ const purged = ref(0)
     grid-template-columns: minmax(0, 1fr);
   }
   .t-world,
+  .t-print-screens,
   .t-area,
   .t-styling,
   .t-bar,

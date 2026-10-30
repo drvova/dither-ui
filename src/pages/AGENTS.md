@@ -116,19 +116,27 @@ widgets/features; page-specific conventions live here.
   "dither-ui"). A string with a glyph the face lacks throws; every string
   the page sets is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the examples'
-  lede) and `RUNTIME_DEPS` (the packages beside Vue, which the install
-  bar's commands are built from); `tests/landing-facts.spec.ts` recounts
+  lede), `RUNTIME_DEPS` (the packages beside Vue, which the install
+  bar's commands are built from) and `SPECS` (the spec sheet closing the
+  install: label and value rows on the raised ground, two columns from
+  640px, values read from the kit where they can be: the counts, the
+  screens, the license; the facts spec holds the rest to the kit's peers,
+  matrices and styling systems); `tests/landing-facts.spec.ts` recounts
   the first from `dither-kit/tailwind/index.ts` and holds the second to
   the kit's required `peerDependencies` (a styling layer's optional one
   aside); section counts come from `hub.ts`. A change that moves one
   fails until the page says it.
 - Examples (`Examples.vue`, `#examples`, "Every component, live."): a
   section head (the component count from `facts.ts`, "See every section in
-  the docs"), then the bento: `BENTO` (`hub.ts`), nineteen live kit
+  the docs"), then the bento: `BENTO` (`hub.ts`), twenty live kit
   components on a 12-column grid row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
   ember, and "New model" for the next seed) beside the rating and the
-  stat card; the area chart (8; one seed for every fill, "Roll a seed")
+  stat card; print screens (the full row, flush: one bone-to-obsidian
+  `DitherGradient` printed through a `DitherScreen` under the same ramp
+  raw, the raw one in linear light so the printed cells average to it,
+  clipped at a split a full-size range drags or the arrows step, its
+  handle a bone disc; the five screens switched in place); the area chart (8; one seed for every fill, "Roll a seed")
   and the button (its four fills and five hues); the slider (a dither's
   settings: cell size with ticks, contrast, each with its value), the pie
   chart and the avatars; the shader (flush; the kit's seeded sample, mono

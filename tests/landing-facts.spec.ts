@@ -1,13 +1,19 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
-import { COMPONENT_COUNT, RUNTIME_DEPS } from "../src/pages/landing/facts"
+import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
+import { STYLING_LABELS } from "../src/shared/lib/restyle"
+import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
 
 const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
 const components = [...index.matchAll(/default as (\w+)/g)].map((m) => m[1])
 const kit = JSON.parse(readFileSync(new URL("../dither-kit/package.json", import.meta.url), "utf8")) as {
+  license: string
   peerDependencies: Record<string, string>
   peerDependenciesMeta: Record<string, { optional?: boolean }>
+}
+const port = JSON.parse(readFileSync(new URL("../dither-kit-svelte/package.json", import.meta.url), "utf8")) as {
+  peerDependencies: Record<string, string>
 }
 
 describe("landing facts", () => {
@@ -31,6 +37,19 @@ describe("landing facts", () => {
     expect(counts).toEqual([COMPONENT_COUNT, SECTION_COUNT, FAMILIES.find((f) => f.title === "Backgrounds")?.count])
     expect(film).toContain(`["${COMPONENT_COUNT}", "components"]`)
     expect(film).toContain(`["${SECTION_COUNT}", "docs sections"]`)
+  })
+
+  it("keeps a spec sheet the kit bears out", () => {
+    const spec = (label: string) => SPECS.find((s) => s.label === label)?.value ?? ""
+    expect(spec("Components")).toContain("Vue 3")
+    expect(kit.peerDependencies.vue).toMatch(/^\^3\./)
+    expect(spec("Components")).toContain("Svelte 5")
+    expect(port.peerDependencies.svelte).toMatch(/^\^5\./)
+    expect(spec("Engine")).toContain(`${SCREENS.bayer.length}×${SCREENS.bayer[0].length}`)
+    expect(spec("Screens")).toBe(SCREEN_KINDS.join(", "))
+    for (const name of Object.values(STYLING_LABELS)) expect(spec("Styling")).toContain(name)
+    expect(spec("License")).toBe(kit.license)
+    for (const s of SPECS) expect(`${s.label} ${s.value}`).not.toMatch(/[—·]/)
   })
 
   it("names every package the kit needs beside Vue (a styling layer's own, optional, aside)", () => {

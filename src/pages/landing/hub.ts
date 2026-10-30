@@ -60,6 +60,7 @@ export const BENTO: BentoTile[] = [
   { id: "world", label: "3D model", family: "Components" },
   { id: "rating", label: "Rating", family: "Components" },
   { id: "stats-cards", label: "Stat card", family: "Examples" },
+  { id: "print-screens", label: "Print screens", family: "Utils" },
   { id: "area", label: "Area chart", family: "Components" },
   { id: "button", label: "Button", family: "Components" },
   { id: "slider", label: "Slider", family: "Components" },
