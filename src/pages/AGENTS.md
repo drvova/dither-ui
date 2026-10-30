@@ -104,7 +104,13 @@ widgets/features; page-specific conventions live here.
   thinned through `DitherReveal`'s down wipe held at a third of its travel
   (band 20 cells), so only the wipe's 40% and 20% steps show. A shadow
   cannot show on black; the floor is the print's own cells, never a tint.
-  The column keeps 48px under the print below 900px for it. No
+  The column keeps 48px under the print below 900px for it. The
+  statement signs off with the brand's moment (`.hero-brand`, 20px under
+  the works line), its field the page's column (`.hero-in`, positioned):
+  loose in the open rows under it (some cells under the print, which
+  paints over them), thrown no higher than just above it, clear of the
+  copy; it plays as the page opens, and the print (and its floor) hold
+  their frame until it is home, one moving layer at a time. No
   component tour, slides or picker in the hero (the user's call: they
   took the love out of it); the components live in the bento. Under
   900px the statement comes first and the print takes the width under
@@ -123,7 +129,7 @@ widgets/features; page-specific conventions live here.
 - Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
   bitmap face drawn as crisp SVG cells with a seam: the footer's brand
   (`cell` 2, `seam` 1/2, `decorative` inside the home link, whose name is
-  "dither-ui"); the plates' lockup sets the same word in its cells. A
+  "dither-ui"); the brand's lockup sets the same word in its cells. A
   string with a glyph the face lacks throws; every string
   the page sets is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the hero's and
@@ -219,38 +225,49 @@ widgets/features; page-specific conventions live here.
   checks it). Under them the five big families (`DOCS_FAMILIES`): five
   columns (three under 1024px, two under 640px), each the family's name
   and size as the link to its first section, and its line.
+- The brand's moment (`brand.ts` + `BrandGather.vue`, decorative): the
+  brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
+  core, which the header draws too), three clear columns, then the
+  footer's pixel "DITHER-UI", 4px cells seven tall, as spans. Its parent
+  places and positions it; its FIELD is its nearest positioned ancestor,
+  and the parent hands it a `Scene` (in px of that field: the rows its
+  cells lie loose in, the rows the burst may throw them to, a seed).
+  Once, when the lockup stands in view clear of the viewport's bottom
+  tenth: the mark's cells lie loose like stars; they gather left to right
+  into the mark, matched to its cells in order across; the mark holds a
+  beat and bursts to the right in a widening cone (a cell thrown past the
+  burst rows is turned back into them), the wordmark's cells, carried
+  unseen on its bone cells until then, flying out with it; then each cell
+  settles home, in order across, into the whole brand, which stays.
+  `choreograph` is pure (a path of waypoints per cell, each a whole number
+  of cells from its slot) on `MOMENT`'s clock, played as two stepped
+  animations per cell (an axis each, `steps()` one cell a step). Home by
+  4.6s: under five seconds, so no pause; under reduced motion, without
+  `IntersectionObserver` or `animate`, and in the prerendered bytes, the
+  brand is simply assembled. It emits `settled` when home (at once when it
+  does not move), so a parent keeps one moving layer at a time.
+  `tests/landing-facts.spec.ts` holds the mark's cells to the diamond and
+  the moment, for every plate's scene and one like the hero's: its phases
+  in order inside five seconds, every path in time order, on its grid,
+  inside the field and home at the end, loose and thrown inside its
+  scene's rows, each wordmark cell on its host's squares until the burst.
 - The plates (decorative): a series of print sheets between the sections,
   after the bento, after the ask and before the install, each the brand
   small in a wide field. ONE table, `PLATES` in `plate.ts`, sets each
   plate's tone at the top edge, its clear band and its tone at the foot,
   and where the mark's centre stands in the band (left of 0.7, the
-  wordmark reading on to its right). The brand is `LOCKUP`: `MARK_CELLS`
-  (the diamond's 25 cells around its ember core, which the header draws
-  too), three clear columns, then the footer's pixel "DITHER-UI", 4px cells
-  seven tall. `Plate.vue` prints a row: a 2.35:1 sheet on the page's width,
-  square cornered and flat like the hero's print, on `STOCK` (the
-  `--surface` mix as a colour the kit prints with, so its open cells are
-  the plate, never a tint), two `DitherGradient`s in the bone ink through
-  the Bayer screen showing only the thin ends of their ramps, the lockup's
-  cells as spans, pulled in from the right edge (16px clear) where the
-  plate is narrow. Its one moment, once, at 60% in view, is
-  `choreograph` (pure, seeded per plate: a path of waypoints per cell, each
-  a whole number of cells from its slot) on `MOMENT`'s clock, played as two
-  stepped animations per cell (an axis each, `steps()` one cell a step):
-  the tone prints in through `DitherReveal` (0.72s, linear, the lights
-  coming on) while the mark's cells lie loose like stars across the band
-  and the tone's thin edges; they gather left to right into the mark,
-  matched to its cells in order across; the mark holds a beat and bursts
-  to the right in a widening cone, the wordmark's cells, carried unseen
-  on its bone cells until then, flying out with it; then each cell settles
-  home, in order across, into the whole brand, which stays. Home by 4.6s:
-  under five seconds, so no pause; under reduced motion, and in the
-  prerendered bytes, the brand is simply assembled.
-  `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix, every
-  plate's mark inside its band and its tones thin, the mark's cells to the
-  diamond, and the moment: its phases in order inside five seconds, every
-  path in time order, on its grid, inside the plate and home at the end,
-  each wordmark cell on its host's squares until the burst.
+  wordmark reading on to its right); `sceneOf` gives its scene (loose in
+  the band and the tone's thin edges, thrown anywhere on the sheet,
+  seeded by where the mark stands). `Plate.vue` prints a row: a 2.35:1
+  sheet on the page's width, square cornered and flat like the hero's
+  print, on `STOCK` (the `--surface` mix as a colour the kit prints with,
+  so its open cells are the plate, never a tint), two `DitherGradient`s in
+  the bone ink through the Bayer screen showing only the thin ends of
+  their ramps, and the brand's moment in the band, pulled in from the
+  right edge (16px clear) where the plate is narrow, while the tone prints
+  in through `DitherReveal` (0.72s, linear, the lights coming on).
+  `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and every
+  plate's mark inside its band, its tones thin.
   A new plate is a row in the table and a `<Plate>` at a section break.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
@@ -272,8 +289,9 @@ widgets/features; page-specific conventions live here.
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
   restyled or dithered; everything else is a kit glyph (`DitherIcon`).
 - No entrance choreography but the bento's art printing itself once as it
-  nears and each plate's brand gathering; the hero and the type simply
-  are. Motion is the live kit
+  nears and the brand's moment (the hero's sign-off as the page opens,
+  each plate's as it nears); the hero's print waits for it, and the type
+  simply is. Motion is the live kit
   surfaces, one moving layer at a time in the bento. Pause chips
   (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
