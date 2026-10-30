@@ -46,7 +46,9 @@ import {
   type World,
 } from "./world"
 
-export type ModelFormat = "vrml" | "x3d" | "obj" | "stl" | "ply" | "off" | "gltf"
+/** Every format the kit reads (VRML covers 97 and 1.0, glTF covers GLB). */
+export const MODEL_FORMATS = ["vrml", "x3d", "obj", "stl", "ply", "off", "gltf"] as const
+export type ModelFormat = (typeof MODEL_FORMATS)[number]
 
 /** Format from a file name or URL (query/hash ignored), null when unknown. */
 export function formatOf(name: string): ModelFormat | null {

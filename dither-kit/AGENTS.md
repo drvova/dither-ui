@@ -384,7 +384,9 @@ the kit every import is relative (`../engine/pixel`).
   vertices, per triangle — a world holds ≤ 255 colours, the rest snap),
   nodes (animatable transforms with sampled tracks), directional lights,
   the headlight flag, the first viewpoint, a bounding sphere at time 0 and
-  the cycle length. Formats: VRML97 / X3D classic and VRML 1.0 `.wrl` (one
+  the cycle length. `MODEL_FORMATS` lists them, the one source of
+  `ModelFormat` (the docs' Engine index counts it). Formats: VRML97 / X3D
+  classic and VRML 1.0 `.wrl` (one
   lenient tokenizer + node grammar — DEF/USE, PROTO/EXTERNPROTO skipped,
   ROUTEs collected, enums, bare children for 1.0's Separator state machine;
   Transform/Group/Switch/LOD/Shape/Material/IndexedFaceSet (+ Color per

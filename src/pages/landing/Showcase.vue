@@ -9,13 +9,13 @@ import TrailerDialog from "./TrailerDialog.vue"
 
 // The hero, our own: the first screen tall, the statement beside a print
 // the kit makes (a live DitherPoster: the palette as tone, the kit's
-// diamond knocked out of it, its screen sliding inside the mark). The film
-// is a key away.
+// diamond knocked out of it, its screen sliding inside the mark), on the
+// obsidian like a print on black stock. The film is a key away.
 const film = ref(false)
 
-// The print's inks: the kit's blue, the ember and the page's own ink. Its
-// screen slides by itself, so it carries a pause (WCAG 2.2.2).
-const INKS: PixelColor[] = ["blue", "orange", "#101214"]
+// The print's inks: the kit's blue, the ember and the page's own bone ink.
+// Its screen slides by itself, so it carries a pause (WCAG 2.2.2).
+const INKS: PixelColor[] = ["blue", "orange", "#e4e1d8"]
 const printing = ref(true)
 
 // What the kit works with, each under its own mark.
@@ -154,7 +154,7 @@ const WORKS: { id: MarkId; name: string }[] = [
   gap: 7px;
 }
 
-/* The print: a portrait sheet set on the paper inside its column, square
+/* The print: a portrait sheet set on the obsidian inside its column, square
    cornered and flat, never a panel run to the frame. Its pause sits on its
    top right corner. */
 .print-col {

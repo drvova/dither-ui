@@ -13,7 +13,7 @@ defineProps<{ label: string }>()
 </template>
 
 <style scoped>
-/* A disc of the page's ink over the surface, its glyph in the paper. */
+/* A disc of the page's ink over the surface, its glyph in the page's ground. */
 .pause-chip {
   display: inline-grid;
   place-items: center;

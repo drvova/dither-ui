@@ -9,13 +9,14 @@ widgets/features; page-specific conventions live here.
 
 ### landing/
 
-- Direction (the user's pick): the page is PRINTED, in either theme: one
-  obsidian ink on bone paper with a fine grain inside a hairline frame,
+- Direction (the user's picks): the page is PRINTED in the dark, ALWAYS,
+  whatever theme the docs or the Studio saved: one bone ink on obsidian
+  with a fine grain inside a hairline frame,
   and colour only in the kit's own art, which keeps its Bayer screen. It
   wears a reference print site's TASTE, never its devices (the user's
   call: it must not read as a copy; see root `AGENTS.md`). The dither and
   `--font-mono` stay the signature; it keeps the
-  chrome display type and the chrome primary key in the light finish of
+  chrome display type and the chrome primary key in the dark finish of
   the site voice (`app/styles.css`, see `src/AGENTS.md`). Its HERO is our
   own (the statement beside a live print the kit makes); under it, the page layout the user picked from a reference,
   kept unnamed (see root `AGENTS.md`): sections under a title with a lead
@@ -27,7 +28,7 @@ widgets/features; page-specific conventions live here.
   only rule, and the kit's art (the poster among it) may print more than
   two inks. Otherwise: no tags,
   no italic or slanted type, no negative tracking, no over-detailed UI, no
-  other dividers, two inks (`--ink`, `--ink-3`) on two grounds (the paper,
+  other dividers, two inks (`--ink`, `--ink-3`) on two grounds (the obsidian,
   `--surface`) with no alpha tints, no bordered containers, no diagrams,
   no code paths, tool names or commands as labels, no numbered sections.
   Still banned too: red (the kit's ember is the one warm light: brand
@@ -43,16 +44,17 @@ widgets/features; page-specific conventions live here.
   components, hands on); no film player or animation runtime ships.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) over the site voice (only
-  `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the paper
-  on `:root:has(.landing)` (bone `#e4e1d8`, obsidian `#101214`, the muted
-  ink `#484c53` at AA on both grounds, `color-scheme: light`, a lighter
-  `--float-shadow`), so what the page teleports to the body (the film's
-  dialog) is printed too, and `LandingPage` drops the `dark` class on
-  mount; the two inks mapped to theme tokens (`--ink`, `--ink-3`),
-  `--surface` (the one raised ground, 7% of the ink mixed into the paper)
-  and `--signal` (the ember a burnt step deeper on paper, `#8a4404`: the
-  light theme's own fails AA on both grounds there); the grain (a 96px PNG tile of single cells
-  a tone under and over the paper, never a grid); the frame (`--frame`,
+  `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the ground
+  on `:root:has(.landing)` (obsidian `#101214`, bone `#e4e1d8`, the muted
+  bone `#9c998f` at AA on both grounds, `color-scheme: dark`), so what the
+  page teleports to the body (the film's dialog) is printed too; the dark
+  theme stays on (`index.html` ships `class="dark"` and `LandingPage`
+  re-adds it on mount, since a light theme saved on the docs or the Studio
+  persists on `<html>` in this one SPA); the two inks mapped to theme
+  tokens (`--ink`, `--ink-3`), `--surface` (the one raised ground, 7% of
+  the ink mixed into the obsidian) and `--signal` (the dark theme's ember,
+  8.6:1 on the obsidian); the grain (a 96px PNG tile of single cells a
+  tone under and over the obsidian, never a grid); the frame (`--frame`,
   a fixed hairline down each side of the page's column from 900px, above
   the page, never taking a pointer); the section head (`.sec-head`: the
   `.section-title` left, in the display face (Michroma 400,
@@ -85,10 +87,11 @@ widgets/features; page-specific conventions live here.
   then a quiet line of what the kit works with (`WORKS`: Vue 3, Svelte 5,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
   with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
-  5, cell 4, `INKS`: the kit's blue, the ember and the page's ink; the
-  ember diamond whole on the blue, half knocked out in ink; its screen
+  5, cell 4, `INKS`: the kit's blue, the ember and the page's bone ink;
+  the ember diamond whole on the blue, half knocked out in bone, the open
+  cells showing the obsidian like a print on black stock; its screen
   slides 1.5 cells a second inside the mark) as a portrait sheet (4:5, at
-  most 30rem wide) set on the paper at the column's right edge with
+  most 30rem wide) set on the obsidian at the column's right edge with
   breathing room above and below, square cornered and flat: never a
   panel run to the frame or under the header (that is the reference's
   hero). Its pause ("Pause the print") sits on its top right corner. No
@@ -113,19 +116,27 @@ widgets/features; page-specific conventions live here.
   "dither-ui"). A string with a glyph the face lacks throws; every string
   the page sets is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the examples'
-  lede) and `RUNTIME_DEPS` (the packages beside Vue, which the install
-  bar's commands are built from); `tests/landing-facts.spec.ts` recounts
+  lede), `RUNTIME_DEPS` (the packages beside Vue, which the install
+  bar's commands are built from) and `SPECS` (the spec sheet closing the
+  install: label and value rows on the raised ground, two columns from
+  640px, values read from the kit where they can be: the counts, the
+  screens, the license; the facts spec holds the rest to the kit's peers,
+  matrices and styling systems); `tests/landing-facts.spec.ts` recounts
   the first from `dither-kit/tailwind/index.ts` and holds the second to
   the kit's required `peerDependencies` (a styling layer's optional one
   aside); section counts come from `hub.ts`. A change that moves one
   fails until the page says it.
 - Examples (`Examples.vue`, `#examples`, "Every component, live."): a
   section head (the component count from `facts.ts`, "See every section in
-  the docs"), then the bento: `BENTO` (`hub.ts`), nineteen live kit
+  the docs"), then the bento: `BENTO` (`hub.ts`), twenty live kit
   components on a 12-column grid row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
   ember, and "New model" for the next seed) beside the rating and the
-  stat card; the area chart (8; one seed for every fill, "Roll a seed")
+  stat card; print screens (the full row, flush: one bone-to-obsidian
+  `DitherGradient` printed through a `DitherScreen` under the same ramp
+  raw, the raw one in linear light so the printed cells average to it,
+  clipped at a split a full-size range drags or the arrows step, its
+  handle a bone disc; the five screens switched in place); the area chart (8; one seed for every fill, "Roll a seed")
   and the button (its four fills and five hues); the slider (a dither's
   settings: cell size with ticks, contrast, each with its value), the pie
   chart and the avatars; the shader (flush; the kit's seeded sample, mono
@@ -136,7 +147,15 @@ widgets/features; page-specific conventions live here.
   card is narrow, a size container) and the slide action ("Slide to
   deploy", its count); the bar chart and the meta balls; progress, the
   radar chart and the hold action ("Hold to purge cache", its count);
-  silk and the decrypted text. The shader's WebGL engine, the
+  silk and the decrypted text. Each card's art is a `DitherReveal` (the
+  8×8 Bayer dissolve, 0.72s, linear): it prints itself once as it comes
+  into view, at once under reduced motion. Of the surfaces that move by
+  themselves (`MOVING`: the model, the shader, the fluid, the meta balls,
+  the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen
+  hovers or keyboard focus is in; else the reader's last choice while any
+  of it shows; else the first, in page order, crossing the middle tenth of
+  the viewport; else the last that played. The rest hold a still frame.
+  The shader's WebGL engine, the
   translator's utility map and the fluid's engine are async chunks a
   card loads as it nears the viewport (one IntersectionObserver, 600px
   ahead; without one, at once); their card art keeps a wrapper so the
@@ -205,19 +224,25 @@ widgets/features; page-specific conventions live here.
   `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
   restyled or dithered; everything else is a kit glyph (`DitherIcon`).
-- No entrance choreography: the page simply is. Motion is the live kit
-  surfaces. Pause chips (`PauseChip.vue`, WCAG 2.2.2): every surface that
-  moves by itself for more than five seconds carries one in its corner,
-  named for it ("Pause the print", "Pause the model", "Pause the shader",
-  "Pause the fluid", "Pause the meta balls", "Pause the silk"),
-  `aria-pressed` while paused, wired to the surface's `paused` (the
-  model's turn is its `auto-rotate`): a disc of the page's ink with its
-  glyph in the paper. Chips stay under reduced motion: the model and the
-  shader keep moving there.
+- No entrance choreography but the bento's art printing itself once as it
+  nears; the hero and the type simply are. Motion is the live kit
+  surfaces, one moving layer at a time in the bento. Pause chips
+  (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
+  more than five seconds carries one in its corner, named for it ("Pause
+  the print", "Pause the model", "Pause the shader", "Pause the fluid",
+  "Pause the meta balls", "Pause the silk"), `aria-pressed` while the
+  surface is still, wired to its `paused` (the model's turn is its
+  `auto-rotate`): a disc of the page's ink with its glyph in the ground.
+  In the bento a chip shows whether its surface plays: a pause is the
+  reader's and outlasts the spotlight; play on a surface the spotlight
+  holds makes it the reader's choice. A touch chooses only through the
+  chip, since a tap also focuses and would point at the card and then
+  toggle what it just started. Chips stay under reduced motion, where
+  every surface paints one frame and holds it.
 - Footer (on the page width, no rule above it): the brand (the pixel
   wordmark in the home link, one line, GitHub under its mark) beside three
   link columns
-  (`COLUMNS`: Get started; Docs, the big families each with its size; For
+  (`COLUMNS`: Get started, closing on Verification; Docs, the big families each with its size; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,
   `v<version>`, MIT license), then the line-screen wordmark. Three columns
@@ -234,7 +259,17 @@ widgets/features; page-specific conventions live here.
 ### docs/
 
 - Sidebar IA (after Base UI): Overview · Handbook (Styling, Composition,
-  Animation, Accessibility — prose + CodeBlock, no DemoCard) · Examples ·
+  Seeds, Engine, Verification, Animation, Accessibility — prose +
+  CodeBlock, no DemoCard; Engine, `handbook/EngineSection.vue`, names the
+  parts under every surface, each with a figure read from the kit's own
+  constants and a link to its section, a dead id failing the render;
+  Verification, `handbook/VerificationSection.vue`, is a lab report: each
+  claim of the kit (`CHECKS` in `handbook/lab.ts`: what, how, against
+  what, the spec that holds it) measured with the kit's engine in the
+  reader's browser as the section nears, one check per task, again on
+  "Measure again", the engine and time as its conditions, the results
+  copied as a Markdown table; the static page ships it unmeasured, and
+  linked from the landing footer) · Examples ·
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,
@@ -538,13 +573,21 @@ widgets/features; page-specific conventions live here.
   `tests/hub.spec.ts` holds `FAMILIES`, `DOCS_FAMILIES` and `BENTO` to the
   docs' `GROUPS`; `tests/pixel-type.spec.ts` every string the pixel face
   sets.
+- `tests/spotlight.spec.ts` holds the bento's one-moving-layer rule (the
+  pointed card, the reader's choice while it shows, the first crossing
+  the middle, the last that played).
+- `tests/lab.spec.ts` runs the Verification section's checks in Node,
+  each one holding, every named spec existing, and pins `POSTER_HASH`
+  (the poster's bytes, the cross-engine row): a change to the poster's
+  arithmetic fails it until the hash is recorded again.
 - `tests/marks.spec.ts`: every harness the bridge starts has a mark under
   its id and name, the landing lists them in the bridge's order, every
   mark is path data in a positive box.
 - Browser walk after changes: the landing at desktop AND phone widths (no
   horizontal scroll), the h1 and the keys above the fold at 1440x900,
   1280x800 and 1920x1080 with the print beside them, the
-  paper, its grain and the frame's hairlines in either theme,
+  obsidian, its grain and the frame's hairlines whatever theme the docs
+  saved (dark on a light preference too),
   "Copy agent prompt" (the install's head) copying a prompt that names
   this origin's SKILL.md, no uppercase label, eyebrow, middle dot, em dash
   or arrow link in the rendered copy, every svg decorative or labelled,
@@ -555,7 +598,9 @@ widgets/features; page-specific conventions live here.
   the button's fills and hues, "New shader" and its outputs, the fluid's
   palettes, the styling systems, the slide and hold counts, the sliders'
   values, the rating), the lazy cards loading as they near, each pause
-  chip stopping its surface,
+  chip stopping its surface, at most one bento surface playing at every
+  scroll stop (a mouse hover, keyboard focus and a chip tap each taking
+  it as set above), each card's art printing once as it nears,
   the ask story pinned and stepping its lines and the screen's parts as
   the page scrolls (the whole session at once under 900px), the "Works
   with" marks, none of the slop bans in the rendered page (no tag, italic

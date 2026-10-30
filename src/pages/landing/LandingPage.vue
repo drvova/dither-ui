@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// The landing, printed: one ink on bone paper inside a hairline frame, the
-// kit's art the only colour on it. The hero (the statement beside the
+// The landing, printed in the dark, always: one bone ink on obsidian
+// inside a hairline frame, the kit's art the only colour on it. The hero (the statement beside the
 // stage, seated on a poster the kit prints), then sections under a title
 // with a lead beside it: a bento of live kit components, the screen an
 // agent's ask makes, what's inside (the kit, the Studio, the bridge; the
@@ -16,6 +16,7 @@ import "./chapters.css"
 import { version } from "../../../package.json"
 import AgentStory from "./AgentStory.vue"
 import Examples from "./Examples.vue"
+import { SPECS } from "./facts"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
@@ -26,10 +27,11 @@ import Showcase from "./Showcase.vue"
 // install to run, pointed at wherever this page is served from.
 const prompt = ref("")
 onMounted(() => {
-  // The landing is paper in either theme: a dark theme toggled on the docs
-  // or the Studio persists on <html> in this one SPA, so it is dropped here;
-  // storage keeps the user's choice and the docs and the Studio re-read it.
-  document.documentElement.classList.remove("dark")
+  // The landing is always dark (the user's call): a light theme toggled on
+  // the docs or the Studio persists on <html> in this one SPA, so dark is
+  // re-asserted here; storage keeps the user's choice and the docs and the
+  // Studio re-read it.
+  document.documentElement.classList.add("dark")
   prompt.value = [
     `Read ${location.origin}${assetPath("/agent/SKILL.md")} and add dither-ui to this project:`,
     "copy the kit with `npx degit drvova/dither-ui/dither-kit src/dither-kit`,",
@@ -83,6 +85,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       { label: "Styling", href: routePath("/docs/styling") },
       { label: "Seeds", href: routePath("/docs/seeds") },
       { label: "Accessibility", href: routePath("/docs/accessibility") },
+      { label: "Verification", href: routePath("/docs/verification") },
     ],
   },
   {
@@ -230,6 +233,12 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             On Svelte 5? The same kit ships as <code>dither-kit-svelte</code>, and the
             <a :href="routePath('/docs/getting-started')" class="lead">quick start</a> has its steps.
           </p>
+          <dl class="sheet" aria-label="The kit in brief">
+            <div v-for="s in SPECS" :key="s.label" class="sheet-row">
+              <dt>{{ s.label }}</dt>
+              <dd>{{ s.value }}</dd>
+            </div>
+          </dl>
         </section>
       </div>
     </main>
@@ -468,6 +477,37 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   padding-inline: 16px;
 }
 
+/* The spec sheet closing the install: label and value rows on the raised
+   ground, two columns of rows from 640px, no rules between them. (Not
+   `.spec`: that is the site voice's uppercase label, banned here.) */
+.sheet {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 40px;
+  margin: 8px 0 0;
+  padding: 18px 24px;
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.sheet-row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 12px;
+  padding-block: 7px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.sheet-row dt {
+  color: var(--ink-3);
+}
+
+.sheet-row dd {
+  margin: 0;
+  color: var(--ink);
+}
+
 .install-note {
   margin: 0;
   font-size: 12px;
@@ -618,6 +658,10 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   .foot-in {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     padding-inline: 16px;
+  }
+  .sheet {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px 16px;
   }
   .foot-copy {
     padding-inline: 16px;

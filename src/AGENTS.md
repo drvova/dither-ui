@@ -416,7 +416,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   and plain borders (tracks bordered, the pressed segment outlined).
   Shared by the docs and the Studio; none of them grows a voice of its
   own. The landing takes only `.nav-a`, `.chrome-type`, `.key-chrome` and
-  the light theme's tokens from it, printed on its own paper (root
+  the dark theme's tokens from it (always dark), printed on its own
+  obsidian (root
   `AGENTS.md`, `pages/landing/chapters.css`): its keys, picked segments,
   cards and panels are fills on one raised ground, never rings or tags;
   its only hairlines are the frame's.
@@ -442,7 +443,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (`@view-transition`, none under reduced motion), and the arriving page
   dithers from the old one through the kit's `ditherViewTransition`: a
   right wipe (left going back through history) with a band of the signal
-  ink. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
+  ink, at one steady speed (linear: driven motion; the settle curve
+  answers a hand). `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
   inlined first in each route's head by `rstack.config.ts` (`html.tags`,
   with the `PAGE_END_ID` marker it appends to each body), parks the
   `pagereveal` transition and holds the old page on screen until the app

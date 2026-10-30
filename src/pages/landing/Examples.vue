@@ -3,8 +3,19 @@
 // a bento of live kit components, row by row (`BENTO`), each a card of its
 // art over its name. The name leads into the docs section; the art is the
 // component itself, hands on, in the kit's blue with the ember for a second
-// voice. Everything that moves has its pause.
-import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, reactive, ref } from "vue"
+// voice. Each card's art prints itself once as it comes into view; of the
+// surfaces that move by themselves one plays at a time; everything that
+// moves has its pause.
+import {
+  computed,
+  defineAsyncComponent,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+  type WritableComputedRef,
+} from "vue"
 import {
   Area,
   AreaChart,
@@ -13,10 +24,14 @@ import {
   DitherAvatar,
   DitherButton,
   DitherDecryptedText,
+  DitherGradient,
   DitherHoldAction,
+  DitherIcon,
   DitherMetaBalls,
   DitherProgress,
   DitherRating,
+  DitherReveal,
+  DitherScreen,
   DitherSilk,
   DitherSlideAction,
   DitherSlider,
@@ -26,17 +41,20 @@ import {
   PieChart,
   Radar,
   RadarChart,
+  SCREEN_KINDS,
   Sparkline,
   XAxis,
   cssColor,
   sampleWorld,
   type ButtonVariant,
   type DitherColor,
+  type ScreenKind,
 } from "@dither-kit"
 import { routePath } from "@/shared/lib"
 import { COMPONENT_COUNT } from "./facts"
 import { BENTO } from "./hub"
 import PauseChip from "./PauseChip.vue"
+import { spotlight } from "./spotlight"
 
 // The heavy cards are their own chunks, fetched as the card nears the
 // viewport: the shader's WebGL engine, the translator's utility map, the
@@ -46,24 +64,96 @@ const ExportScene = defineAsyncComponent(() => import("./ExportScene.vue"))
 const DitherFerrofluid = defineAsyncComponent(() => import("@dither-kit/tailwind/Ferrofluid.vue"))
 const LAZY = new Set(["shader", "styling", "ferrofluid"])
 const near = reactive(new Set<string>())
+// Cards whose art runs to the card's edges.
+const FLUSH = new Set(["world", "print-screens", "meta-balls", "silk", "shader", "ferrofluid", "styling"])
 const bento = ref<HTMLElement | null>(null)
-let io: IntersectionObserver | null = null
-onMounted(() => {
-  const cards = [...(bento.value?.querySelectorAll<HTMLElement>("[data-lazy]") ?? [])]
-  if (typeof IntersectionObserver === "undefined") return cards.forEach((c) => near.add(c.dataset.lazy ?? ""))
-  io = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries)
-        if (e.isIntersecting) {
-          near.add((e.target as HTMLElement).dataset.lazy ?? "")
-          io?.unobserve(e.target)
-        }
-    },
-    { rootMargin: "600px 0px" },
-  )
+
+// One moving layer at a time (`spotlight.ts`): of the surfaces that move by
+// themselves only the spotlit one plays, the rest hold a still frame. A
+// chip says whether its surface plays: a pause is the reader's and outlasts
+// the spotlight, and play on a held surface makes it the reader's choice.
+// A mouse or pen hovering a card, or keyboard focus inside it, points at
+// it; a touch chooses through the chip, since a tap (which also focuses)
+// would point at the card and then toggle what it just started.
+const MOVING = ["world", "shader", "ferrofluid", "meta-balls", "silk"] as const
+type Moving = (typeof MOVING)[number]
+const isMoving = (id: string): id is Moving => (MOVING as readonly string[]).includes(id)
+const stilled = reactive(new Set<Moving>())
+const pointed = ref<Moving | null>(null)
+const chosen = ref<Moving | null>(null)
+const visible = reactive(new Set<Moving>())
+const centred = reactive(new Set<Moving>())
+const last = ref<Moving | null>(null)
+const lit = computed(() =>
+  spotlight(MOVING, { pointed: pointed.value, chosen: chosen.value, visible, centred, last: last.value }),
+)
+watch(lit, (id) => (last.value = id))
+const playing = reactive(
+  Object.fromEntries(
+    MOVING.map((id) => [
+      id,
+      computed({
+        get: () => lit.value === id && !stilled.has(id),
+        set: (on: boolean) => {
+          if (!on) return stilled.add(id)
+          stilled.delete(id)
+          chosen.value = id
+        },
+      }),
+    ]),
+  ) as Record<Moving, WritableComputedRef<boolean>>,
+)
+const aim = (id: string) => {
+  if (!isMoving(id)) return
+  pointed.value = id
+  chosen.value = id
+}
+const hover = (e: PointerEvent, id: string) => {
+  if (e.pointerType !== "touch") aim(id)
+}
+const focus = (e: FocusEvent, id: string) => {
+  if (e.target instanceof Element && e.target.matches(":focus-visible")) aim(id)
+}
+const leave = (id: string) => {
+  if (pointed.value === id) pointed.value = null
+}
+
+const observers: IntersectionObserver[] = []
+const watchCards = (
+  selector: string,
+  init: IntersectionObserverInit,
+  on: (el: HTMLElement, inside: boolean, io: IntersectionObserver) => void,
+) => {
+  const cards = [...(bento.value?.querySelectorAll<HTMLElement>(selector) ?? [])]
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) on(e.target as HTMLElement, e.isIntersecting, io)
+  }, init)
   for (const c of cards) io.observe(c)
+  observers.push(io)
+}
+const movingOf = (el: HTMLElement) => el.dataset.moving as Moving
+onMounted(() => {
+  if (typeof IntersectionObserver === "undefined") {
+    bento.value?.querySelectorAll<HTMLElement>("[data-lazy]").forEach((c) => near.add(c.dataset.lazy ?? ""))
+    for (const id of MOVING) {
+      visible.add(id)
+      centred.add(id)
+    }
+    return
+  }
+  // The heavy cards load 600px ahead; each moving card is tracked on screen
+  // and across the middle tenth of the viewport.
+  watchCards("[data-lazy]", { rootMargin: "600px 0px" }, (el, inside, io) => {
+    if (!inside) return
+    near.add(el.dataset.lazy ?? "")
+    io.unobserve(el)
+  })
+  watchCards("[data-moving]", {}, (el, inside) => (inside ? visible.add(movingOf(el)) : visible.delete(movingOf(el))))
+  watchCards("[data-moving]", { rootMargin: "-45% 0px -45% 0px" }, (el, inside) =>
+    inside ? centred.add(movingOf(el)) : centred.delete(movingOf(el)),
+  )
 })
-onBeforeUnmount(() => io?.disconnect())
+onBeforeUnmount(() => observers.forEach((io) => io.disconnect()))
 
 // 3D model: a seeded probe on a picked ramp; "New model" is the next seed.
 const BLUE = ["#0c1730", "#1e429f", "#2f6fd0", "#7ba3ee", "#c9dbff"]
@@ -77,10 +167,16 @@ const RAMP_NAMES = Object.keys(RAMPS) as Ramp[]
 const ramp = ref<Ramp>("blue")
 const model = ref(7)
 const world = computed(() => sampleWorld(model.value))
-const worldPlaying = ref(true)
 
 // Rating.
 const stars = ref(4)
+
+// Print screens: one tone ramp, raw on the left and printed on the right,
+// the split dragged (or stepped by keyboard) and the screen switched in
+// place. The raw ramp runs in linear light, so the printed cells average to
+// it: from a step back the two halves are one tone.
+const screen = ref<ScreenKind>("bayer")
+const split = ref(42)
 
 // Area chart: one seed sets every fill; roll it and every fill changes.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -105,7 +201,6 @@ const OUTPUTS = ["mono", "ramp", "colour"] as const
 const output = ref<(typeof OUTPUTS)[number]>("mono")
 const program = ref(3)
 const SHADER_RAMP: DitherColor[] = ["blue", "purple", "pink", "orange"]
-const shaderPlaying = ref(true)
 
 // Ferrofluid: the kit's blue, the ember, or the page's grey.
 const FLUIDS = {
@@ -116,11 +211,8 @@ const FLUIDS = {
 type Fluid = keyof typeof FLUIDS
 const FLUID_NAMES = Object.keys(FLUIDS) as Fluid[]
 const fluid = ref<Fluid>("blue")
-const fluidPlaying = ref(true)
 
-// Slide action: deploys confirmed. Its thumb takes the blue ramp's deep
-// stop: the kit draws the arrow in the page's ground, and on the paper (a
-// shade under white) the kit's own blue holds it under AA.
+// Slide action: deploys confirmed.
 const deploys = ref(0)
 
 // Stat card.
@@ -132,7 +224,6 @@ const BAR_CONFIG = { deploys: { label: "Deploys", color: "blue" as DitherColor }
 
 // Meta balls.
 const BLOBS = ["#2f6fd0", "#7ba3ee", "#c9dbff"]
-const ballsPlaying = ref(true)
 
 // Slider: a dither's settings, each with its value.
 const cellSize = ref(4)
@@ -155,7 +246,6 @@ const TEAM = ["Ada Byte", "Rei Toma", "Ola Nord", "Kit Vale", "Ines Roa", "Teo P
 
 // Silk, in the kit's blue.
 const SILK = [BLUE[2], BLUE[4], BLUE[2]]
-const silkPlaying = ref(true)
 
 // Radar chart.
 const RADAR_ROWS = [
@@ -201,22 +291,24 @@ const purged = ref(0)
         class="card"
         :class="`t-${t.id}`"
         :data-lazy="LAZY.has(t.id) ? t.id : undefined"
+        :data-moving="isMoving(t.id) ? t.id : undefined"
+        @pointerenter="hover($event, t.id)"
+        @pointerleave="leave(t.id)"
+        @focusin="focus($event, t.id)"
+        @focusout="leave(t.id)"
       >
-        <div
-          class="card-art"
-          :class="{ flush: ['world', 'meta-balls', 'silk', 'shader', 'ferrofluid', 'styling'].includes(t.id) }"
-        >
+        <DitherReveal :class="FLUSH.has(t.id) ? 'card-art flush' : 'card-art'" :duration="0.72" easing="linear">
           <template v-if="t.id === 'world'">
             <DitherWorld
               :source="world"
               :colors="RAMPS[ramp]"
-              :auto-rotate="worldPlaying ? 14 : 0"
+              :auto-rotate="playing.world ? 14 : 0"
               :grain="0.4"
               :frame-rate="12"
               :label="`A seeded 3D probe, model ${model}, turning slowly through the kit's Bayer cells`"
               class="h-full w-full"
             />
-            <PauseChip v-model="worldPlaying" label="Pause the model" class="chip" />
+            <PauseChip v-model="playing.world" label="Pause the model" class="chip" />
             <div class="art-tools">
               <div class="seg" role="group" aria-label="Model ramp">
                 <button v-for="r in RAMP_NAMES" :key="r" type="button" :aria-pressed="ramp === r" @click="ramp = r">
@@ -230,6 +322,37 @@ const purged = ref(0)
           <div v-else-if="t.id === 'rating'" class="stack">
             <DitherRating v-model="stars" :size="30" label="Rate the kit" />
             <span class="readout">{{ stars }} of 5</span>
+          </div>
+
+          <div v-else-if="t.id === 'print-screens'" class="split" :style="{ '--split': `${split}%` }">
+            <DitherScreen :screen="screen">
+              <DitherGradient from="#e4e1d8" to="#101214" direction="down" :cell="5" class="split-layer" />
+            </DitherScreen>
+            <div class="split-layer split-raw" aria-hidden="true"></div>
+            <input
+              v-model.number="split"
+              type="range"
+              min="0"
+              max="100"
+              class="split-range"
+              aria-label="The ramp raw on the left, printed on the right: move the split"
+            />
+            <span class="split-handle" aria-hidden="true"
+              ><span class="split-grip"><DitherIcon name="GripVertical" :size="14" :stroke-width="1.75" /></span
+            ></span>
+            <div class="art-tools">
+              <div class="seg" role="group" aria-label="Screen">
+                <button
+                  v-for="k in SCREEN_KINDS"
+                  :key="k"
+                  type="button"
+                  :aria-pressed="screen === k"
+                  @click="screen = k"
+                >
+                  {{ k }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div v-else-if="t.id === 'area'" class="panel">
@@ -280,12 +403,12 @@ const purged = ref(0)
                 :colors="output === 'ramp' ? SHADER_RAMP : undefined"
                 color="blue"
                 :cell="4"
-                :paused="!shaderPlaying"
+                :paused="!playing.shader"
                 :label="`The kit's sample shader, seed ${program}`"
                 class="h-full w-full"
               />
             </div>
-            <PauseChip v-model="shaderPlaying" label="Pause the shader" class="chip" />
+            <PauseChip v-model="playing.shader" label="Pause the shader" class="chip" />
             <div class="art-tools">
               <div class="seg" role="group" aria-label="Shader output">
                 <button v-for="m in OUTPUTS" :key="m" type="button" :aria-pressed="output === m" @click="output = m">
@@ -301,11 +424,11 @@ const purged = ref(0)
               <DitherFerrofluid
                 v-if="near.has('ferrofluid')"
                 :colors="[...FLUIDS[fluid]]"
-                :paused="!fluidPlaying"
+                :paused="!playing.ferrofluid"
                 class="h-full w-full"
               />
             </div>
-            <PauseChip v-model="fluidPlaying" label="Pause the fluid" class="chip" />
+            <PauseChip v-model="playing.ferrofluid" label="Pause the fluid" class="chip" />
             <div class="art-tools">
               <div class="seg" role="group" aria-label="Fluid palette">
                 <button v-for="f in FLUID_NAMES" :key="f" type="button" :aria-pressed="fluid === f" @click="fluid = f">
@@ -320,7 +443,7 @@ const purged = ref(0)
           </div>
 
           <div v-else-if="t.id === 'slide-action'" class="stack">
-            <DitherSlideAction label="Slide to deploy" :color="BLUE[1]" class="w-full max-w-80" @confirm="deploys++" />
+            <DitherSlideAction label="Slide to deploy" color="blue" class="w-full max-w-80" @confirm="deploys++" />
             <span class="readout">deploys {{ deploys }}</span>
           </div>
 
@@ -348,10 +471,10 @@ const purged = ref(0)
               :colors="BLOBS"
               :count="5"
               :frame-rate="12"
-              :paused="!ballsPlaying"
+              :paused="!playing['meta-balls']"
               class="h-full w-full"
             />
-            <PauseChip v-model="ballsPlaying" label="Pause the meta balls" class="chip" />
+            <PauseChip v-model="playing['meta-balls']" label="Pause the meta balls" class="chip" />
           </template>
 
           <div v-else-if="t.id === 'slider'" class="panel steps">
@@ -397,8 +520,8 @@ const purged = ref(0)
           </div>
 
           <template v-else-if="t.id === 'silk'">
-            <DitherSilk :colors="SILK" :frame-rate="12" :paused="!silkPlaying" class="h-full w-full" />
-            <PauseChip v-model="silkPlaying" label="Pause the silk" class="chip" />
+            <DitherSilk :colors="SILK" :frame-rate="12" :paused="!playing.silk" class="h-full w-full" />
+            <PauseChip v-model="playing.silk" label="Pause the silk" class="chip" />
           </template>
 
           <p v-else-if="t.id === 'decrypted-text'" class="cipher">
@@ -434,7 +557,7 @@ const purged = ref(0)
             <DitherHoldAction color="orange" @complete="purged++">Hold to purge cache</DitherHoldAction>
             <span class="readout">purged {{ purged }}</span>
           </div>
-        </div>
+        </DitherReveal>
         <p class="card-foot">
           <a :href="routePath(`/docs/${t.id}`)" class="card-name">{{ t.label }}</a>
         </p>
@@ -482,6 +605,10 @@ const purged = ref(0)
   grid-row: span 2;
 }
 
+.t-print-screens {
+  grid-column: 1 / -1;
+}
+
 .t-area,
 .t-styling {
   grid-column: span 8;
@@ -518,6 +645,7 @@ const purged = ref(0)
   padding: 18px 20px;
 }
 
+.t-print-screens .card-art,
 .t-bar .card-art,
 .t-meta-balls .card-art,
 .t-silk .card-art,
@@ -590,11 +718,76 @@ const purged = ref(0)
   background: var(--card);
 }
 
+/* The five screens keep inside the card on the narrowest phones. */
+@media (max-width: 359px) {
+  .art-tools .seg > button {
+    padding-inline: 8px;
+  }
+}
+
 .chip {
   position: absolute;
   top: 12px;
   right: 12px;
   z-index: 2;
+}
+
+/* Print screens: the printed ramp under the raw one, the raw clipped at the
+   split; a full-size range takes the drag (vertical swipes still scroll) and
+   the keys, its handle a bone disc on a bone line. */
+.split-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.split-raw {
+  background: linear-gradient(in srgb-linear to bottom, #e4e1d8, #101214);
+  clip-path: inset(0 calc(100% - var(--split)) 0 0);
+}
+
+.split-range {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  touch-action: pan-y;
+}
+
+.split-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--split);
+  z-index: 1;
+  width: 1px;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+.split-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--background);
+  background: var(--ink);
+  translate: -50% -50%;
+}
+
+/* The ring sits on a band of the ground, so it shows on the light end of
+   the ramp as on the dark. */
+.split-range:focus-visible + .split-handle .split-grip {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--background);
 }
 
 .stack {
@@ -788,6 +981,7 @@ const purged = ref(0)
     grid-column: span 1;
   }
   .t-world,
+  .t-print-screens,
   .t-area,
   .t-styling,
   .t-bar,
@@ -809,6 +1003,7 @@ const purged = ref(0)
     grid-template-columns: minmax(0, 1fr);
   }
   .t-world,
+  .t-print-screens,
   .t-area,
   .t-styling,
   .t-bar,
