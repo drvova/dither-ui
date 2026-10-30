@@ -118,12 +118,13 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 
 ### Landing
 
-The page is printed: one ink on bone paper inside a hairline frame, the kit's
-art its only colour. The hero: the statement and the keys beside a live print
-the kit makes, the palette as tone with the kit's diamond knocked out of it.
-"Watch the film" opens the trailer, and under the keys a quiet line names what
-the kit works with, each tool under its own mark. Everything else on the page
-is the kit too, on plain filled grounds with no tags or borders:
+The page is printed in the dark, always: one bone ink on obsidian inside a
+hairline frame, the kit's art its only colour. The hero: the statement and the
+keys beside a live print the kit makes, the palette as tone with the kit's
+diamond knocked out of it. "Watch the film" opens the trailer, and under the
+keys a quiet line names what the kit works with, each tool under its own mark.
+Everything else on the page is the kit too, on plain filled grounds with no
+tags or borders:
 
 - a bento of live components, each leading into its docs section: a 3D model
   you re-roll and recolour, a rating, a stat card, an area chart you reseed,

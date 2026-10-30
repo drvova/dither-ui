@@ -118,9 +118,7 @@ const FLUID_NAMES = Object.keys(FLUIDS) as Fluid[]
 const fluid = ref<Fluid>("blue")
 const fluidPlaying = ref(true)
 
-// Slide action: deploys confirmed. Its thumb takes the blue ramp's deep
-// stop: the kit draws the arrow in the page's ground, and on the paper (a
-// shade under white) the kit's own blue holds it under AA.
+// Slide action: deploys confirmed.
 const deploys = ref(0)
 
 // Stat card.
@@ -320,7 +318,7 @@ const purged = ref(0)
           </div>
 
           <div v-else-if="t.id === 'slide-action'" class="stack">
-            <DitherSlideAction label="Slide to deploy" :color="BLUE[1]" class="w-full max-w-80" @confirm="deploys++" />
+            <DitherSlideAction label="Slide to deploy" color="blue" class="w-full max-w-80" @confirm="deploys++" />
             <span class="readout">deploys {{ deploys }}</span>
           </div>
 

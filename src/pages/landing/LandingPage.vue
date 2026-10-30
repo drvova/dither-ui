@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// The landing, printed: one ink on bone paper inside a hairline frame, the
-// kit's art the only colour on it. The hero (the statement beside the
+// The landing, printed in the dark, always: one bone ink on obsidian
+// inside a hairline frame, the kit's art the only colour on it. The hero (the statement beside the
 // stage, seated on a poster the kit prints), then sections under a title
 // with a lead beside it: a bento of live kit components, the screen an
 // agent's ask makes, what's inside (the kit, the Studio, the bridge; the
@@ -26,10 +26,11 @@ import Showcase from "./Showcase.vue"
 // install to run, pointed at wherever this page is served from.
 const prompt = ref("")
 onMounted(() => {
-  // The landing is paper in either theme: a dark theme toggled on the docs
-  // or the Studio persists on <html> in this one SPA, so it is dropped here;
-  // storage keeps the user's choice and the docs and the Studio re-read it.
-  document.documentElement.classList.remove("dark")
+  // The landing is always dark (the user's call): a light theme toggled on
+  // the docs or the Studio persists on <html> in this one SPA, so dark is
+  // re-asserted here; storage keeps the user's choice and the docs and the
+  // Studio re-read it.
+  document.documentElement.classList.add("dark")
   prompt.value = [
     `Read ${location.origin}${assetPath("/agent/SKILL.md")} and add dither-ui to this project:`,
     "copy the kit with `npx degit drvova/dither-ui/dither-kit src/dither-kit`,",

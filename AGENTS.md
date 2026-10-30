@@ -126,7 +126,8 @@ Default section order:
 - Landing surfaces: everything that moves on the landing is the kit
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). The page is printed: one obsidian
-  ink on bone paper with a fine grain inside a hairline frame, the kit's
+  in the dark, ALWAYS (the user's call): one bone ink on obsidian with a
+  fine grain inside a hairline frame, the kit's
   art the only colour on it (the taste of a reference print site the
   user picked, kept unnamed, worn so it never reads as a copy: none of
   its devices). Our own hero (the statement beside a live print the kit
@@ -326,13 +327,14 @@ Default section order:
   holding recessed gel wells, a satin chrome primary key, machined
   secondary keys and segment tracks, smoked-polymer overlays, spec labels
   and slanted speed tags), worn by the docs and the Studio; the landing
-  is printed (the user's pick): bone paper (`#E4E1D8`) with one obsidian
-  ink and a fine grain, a hairline frame, colour only in the kit's own
+  is printed in the dark, always (the user's calls): obsidian (`#101214`)
+  with one bone ink (`#E4E1D8`) and a fine grain, a hairline frame, colour
+  only in the kit's own
   art; the reference's taste, never its devices (the user's call: a
   borrowing must not read as a copy, so no banded poster with a hatched
   disc, no striped band over the footer, no numbered hairline grid, no
   capitals for labels; our art is the kit's Bayer tone); it keeps the chrome
-  display type and the chrome primary key in their light finish, and
+  display type and the chrome primary key in their dark finish, and
   sheds what the slop bans below still name. Its materials are the
   site voice's (`src/app/styles.css`, both
   themes; see `src/AGENTS.md`), the pages' uses in

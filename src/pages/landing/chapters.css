@@ -1,28 +1,29 @@
 /* The landing's layer over the SITE voice (monospace, `.nav-a` and the
-   light materials in app/styles.css), printed: one obsidian ink on bone
-   paper with a fine grain, a hairline frame down the page, and colour only
-   in the kit's own art (the poster, the live components). Two inks
-   (`--ink`, `--ink-3`) on two grounds (the paper, `--surface`) with no
-   alpha tints. The kit's ember is the signal light; never red. Copy keeps
+   dark materials in app/styles.css), printed in the dark, always: one bone
+   ink on obsidian with a fine grain, a hairline frame down the page, and
+   colour only in the kit's own art (the poster, the live components). Two
+   inks (`--ink`, `--ink-3`) on two grounds (the obsidian, `--surface`)
+   with no alpha tints. The kit's ember is the signal light; never red. Copy keeps
    the bans: sentence case, no eyebrow, no middle dots or em dashes, no
    link that ends in an arrow. Plain CSS under .landing, read by every
    landing component. */
 
-/* The paper, on the root while the landing is up, so what it teleports to
-   the body (the film's dialog) is printed on it too: the user's V5 bone and
-   obsidian, a muted ink at AA on both grounds. */
+/* The ground, on the root while the landing is up (the dark theme, which
+   LandingPage keeps on), so what it teleports to the body (the film's
+   dialog) is printed on it too: the user's V5 obsidian and bone, a muted
+   bone at AA on both grounds (6.6:1 on the obsidian, 5.7:1 raised). */
 :root:has(.landing) {
-  color-scheme: light;
-  --background: #e4e1d8;
-  --foreground: #101214;
-  --card: #e4e1d8;
-  --card-foreground: #101214;
-  --popover: #ebe8e0;
-  --popover-foreground: #101214;
-  --muted: #d6d2c6;
-  --muted-foreground: #484c53;
-  --border: #101214;
-  --float-shadow: 0 12px 30px -16px rgb(16 18 20 / 0.45);
+  color-scheme: dark;
+  --background: #101214;
+  --foreground: #e4e1d8;
+  --card: #101214;
+  --card-foreground: #e4e1d8;
+  --popover: #17191c;
+  --popover-foreground: #e4e1d8;
+  --muted: #1f2022;
+  --muted-foreground: #9c998f;
+  --border: #e4e1d8;
+  --float-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.7);
 }
 
 .landing {
@@ -30,15 +31,14 @@
   --ink-3: var(--muted-foreground);
   /* The one raised ground: a card, a panel, a picked key, a secondary key. */
   --surface: color-mix(in oklab, var(--foreground) 7%, var(--background));
-  /* The ember, a burnt step deeper on paper: 5.5:1 on the paper, 4.8:1 on
-     the raised ground (the light theme's own ember fails both). */
-  --signal: #8a4404;
+  /* The dark theme's ember: 8.6:1 on the obsidian, 7.5:1 raised. */
+  --signal: var(--swatch-orange);
   /* Where the frame's hairlines run: just outside the page's column. */
   --frame: max(8px, calc((100vw - var(--page)) / 2 + 8px));
   font-family: var(--font-mono);
-  /* The paper's grain: a fixed tile of single cells a tone under and over
-     the paper, never a grid. */
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAADA0lEQVR42u1dyW0DMQx0UkKQR5A80n8jLsAPd5BfkBacr2HYa3HFY4YavRcrHsNDIiUdDlfj7/fnckgc59MxdT66MaqQbMW1B8MeYoRmIEDeI8CiIKsy2QBjmttKKIo7yqZjZL7bb+jdXmtXslcgiAF5lqZwcEQJLZrw8+l4eUT73rmVTHTPUCrclpVpobAIZdeCj1KC939hLEqolVApfH4boO4RbLQyLMK9S4vcSOH2RkbOLrUKySYweIEGwjK8mK6yJEv8aLnY8xQ8koBeV/Tfb+9fL7AoXzFYLpsgZDI+E4yfWYEbHzM/ihJmVhUpi/4wQiMY6O4a4Pl7hB74Clf3lDRS2BHKcVPC6I9QTIuN3t3I8tLw+XS8ZMYYDaOgpYRJc2dJIUf/d8vzlgzMNGZEb6ZifXo2s9XfKVfQ2F97VqK2/uWBaNiEIZsAmk5n9iCemRJDxohZbWurG1TzbK2Lpfs73pNX1QSyC/Mye9EmRiXgFRSMmAaOCGsJi+nCpNJxhu2AwfFqWWEi1mI/Pr97WjPC8l4ZDdMKsYgHl+YspjJgZeWtleVubQt4ZBm0bgt5Y2z5JicW88uYG9bCEBt8hXQS4cO5uGiCnv2fqQmX1mLuCZk92KYo3nMSVKTSAsF6ZL+jq3BZMGbvNEberOhFz7VgKYCDfKWkx3VncErI9Jvea46oI1EwSuvq6+H5WiFjap8xdFkjUPn9mW1qhNOR7kLw3joYvT6gg9uhPDOw0jkDMYeYam/dzRytKMtJRcSLxqkAtxVskeoEXmfOnvLkubiAfrRA7lUj3Ed3D7Kl+zodqluQ9EUQVX0/XCszRERNpNBdL+HojijPu4tauTmlasql1+Yh+8AHmjB0CFCjJjg92lZpdc632/O30A3HqsnK/ZSjMcx6s470V7gfBejmQnK1aO9TixmKyXrYbfaip6FqWAef3y2GwbiorBhE8+pqdp/+zFO5VahtlQCgtIqnCHU1P7ds1Q5J0TMXl0A8ZyWka9BYnml+lH77kVYYJqv5B5ir9UkdMNh4AAAAAElFTkSuQmCC");
+  /* The grain: a fixed tile of single cells a tone under and over the
+     obsidian, never a grid. */
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAC+ElEQVR42u1dSW7DMAwMekrgc9tTUaD//6N7DYLEES0uM9TobFhchotESrpc7sbP799+SRzX25Y6H90YVUi24tqD4QwxQjMQIJ8RYFGQVZlsgDHNbSUUxR1l0zEy3+M39G6vtSs5KxDEgDxLUzg4ooQWTfj1tu2vaD87t5KJ7hlKhduyMi0UFqHsXvBRSvD+L4xFCbUSKoXPbwPUM4KNVoZFuE9pkRsp3N7IyNmlViHZBAYv0EBYhhfTVZZkiR8tF3uegqcTEIL/zqABAuUrBstlE4RMxmeC8TsrcONj5kdRwsyqImXRH0ZoBAPdXQM8f6/QA1/h6p6SRgo7QjluShj9EYppsdF7GlleGr7etj0zxmgYBS0lTJo7Swo5+r9Hno9kYKYxI3ozFevTs5mj/k65gsb+2rMSdfQvD0TDJgzZBNB0OrMH8cyUGDJGzGpbW92gmmdrXSzd3/GevKomkF2Yl9mLNjEqAa+gYMQ0cERYS1hMFyaVjjNsBwyOD8sKE7EW+/n13dOaEZb3ymiYVohFPLg0ZzGVASsrb60s92hbwCPLoHVbyBtjyzc5sZhfxtywFobY4CukkwgfzsVFE/Tu/0xNuLQW80zI7ME2RfGek6AilRYI1iP7HV2Fy4Ixe6cx8mZFL3ruBUsBHOQrJT2uO4NTQqbf9F5zRB2JglFaV18Pz9cKGVP7jKHLGoHK789sUyOcjnQXgvfWwej1AR3cDuWZgZXOGYg5xFT76G7maEVZTioiXjROBbijYItUJ/A6c/aWJ8/FBfSjBXKvGuE+unuQLd3X6VDdgqQvgqjq++FamSEiaiKF7noJR3dEed5d1MrNKVVTLr02D9kHPtCEoUOAGjXB6dW2Sqtzvt2ev4VuOFZNVu6nHI1h1pt1pL/C/ShANxeSq0V7n1rMUEzWw26zFz0NVcM6+PxuMQzGRWXFIJpXV7P79Geeyq1CbasEAKVVPEWoq/m5Zat2SIqeubgE4jkrIV2DxvJM86P024+0wjBZzT/dUK3AHWUKTwAAAABJRU5ErkJggg==");
   background-size: 96px 96px;
 }
 

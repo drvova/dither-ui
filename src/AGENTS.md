@@ -416,7 +416,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   and plain borders (tracks bordered, the pressed segment outlined).
   Shared by the docs and the Studio; none of them grows a voice of its
   own. The landing takes only `.nav-a`, `.chrome-type`, `.key-chrome` and
-  the light theme's tokens from it, printed on its own paper (root
+  the dark theme's tokens from it (always dark), printed on its own
+  obsidian (root
   `AGENTS.md`, `pages/landing/chapters.css`): its keys, picked segments,
   cards and panels are fills on one raised ground, never rings or tags;
   its only hairlines are the frame's.

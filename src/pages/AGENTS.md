@@ -9,13 +9,14 @@ widgets/features; page-specific conventions live here.
 
 ### landing/
 
-- Direction (the user's pick): the page is PRINTED, in either theme: one
-  obsidian ink on bone paper with a fine grain inside a hairline frame,
+- Direction (the user's picks): the page is PRINTED in the dark, ALWAYS,
+  whatever theme the docs or the Studio saved: one bone ink on obsidian
+  with a fine grain inside a hairline frame,
   and colour only in the kit's own art, which keeps its Bayer screen. It
   wears a reference print site's TASTE, never its devices (the user's
   call: it must not read as a copy; see root `AGENTS.md`). The dither and
   `--font-mono` stay the signature; it keeps the
-  chrome display type and the chrome primary key in the light finish of
+  chrome display type and the chrome primary key in the dark finish of
   the site voice (`app/styles.css`, see `src/AGENTS.md`). Its HERO is our
   own (the statement beside a live print the kit makes); under it, the page layout the user picked from a reference,
   kept unnamed (see root `AGENTS.md`): sections under a title with a lead
@@ -27,7 +28,7 @@ widgets/features; page-specific conventions live here.
   only rule, and the kit's art (the poster among it) may print more than
   two inks. Otherwise: no tags,
   no italic or slanted type, no negative tracking, no over-detailed UI, no
-  other dividers, two inks (`--ink`, `--ink-3`) on two grounds (the paper,
+  other dividers, two inks (`--ink`, `--ink-3`) on two grounds (the obsidian,
   `--surface`) with no alpha tints, no bordered containers, no diagrams,
   no code paths, tool names or commands as labels, no numbered sections.
   Still banned too: red (the kit's ember is the one warm light: brand
@@ -43,16 +44,17 @@ widgets/features; page-specific conventions live here.
   components, hands on); no film player or animation runtime ships.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) over the site voice (only
-  `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the paper
-  on `:root:has(.landing)` (bone `#e4e1d8`, obsidian `#101214`, the muted
-  ink `#484c53` at AA on both grounds, `color-scheme: light`, a lighter
-  `--float-shadow`), so what the page teleports to the body (the film's
-  dialog) is printed too, and `LandingPage` drops the `dark` class on
-  mount; the two inks mapped to theme tokens (`--ink`, `--ink-3`),
-  `--surface` (the one raised ground, 7% of the ink mixed into the paper)
-  and `--signal` (the ember a burnt step deeper on paper, `#8a4404`: the
-  light theme's own fails AA on both grounds there); the grain (a 96px PNG tile of single cells
-  a tone under and over the paper, never a grid); the frame (`--frame`,
+  `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the ground
+  on `:root:has(.landing)` (obsidian `#101214`, bone `#e4e1d8`, the muted
+  bone `#9c998f` at AA on both grounds, `color-scheme: dark`), so what the
+  page teleports to the body (the film's dialog) is printed too; the dark
+  theme stays on (`index.html` ships `class="dark"` and `LandingPage`
+  re-adds it on mount, since a light theme saved on the docs or the Studio
+  persists on `<html>` in this one SPA); the two inks mapped to theme
+  tokens (`--ink`, `--ink-3`), `--surface` (the one raised ground, 7% of
+  the ink mixed into the obsidian) and `--signal` (the dark theme's ember,
+  8.6:1 on the obsidian); the grain (a 96px PNG tile of single cells a
+  tone under and over the obsidian, never a grid); the frame (`--frame`,
   a fixed hairline down each side of the page's column from 900px, above
   the page, never taking a pointer); the section head (`.sec-head`: the
   `.section-title` left, in the display face (Michroma 400,
@@ -85,10 +87,11 @@ widgets/features; page-specific conventions live here.
   then a quiet line of what the kit works with (`WORKS`: Vue 3, Svelte 5,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
   with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
-  5, cell 4, `INKS`: the kit's blue, the ember and the page's ink; the
-  ember diamond whole on the blue, half knocked out in ink; its screen
+  5, cell 4, `INKS`: the kit's blue, the ember and the page's bone ink;
+  the ember diamond whole on the blue, half knocked out in bone, the open
+  cells showing the obsidian like a print on black stock; its screen
   slides 1.5 cells a second inside the mark) as a portrait sheet (4:5, at
-  most 30rem wide) set on the paper at the column's right edge with
+  most 30rem wide) set on the obsidian at the column's right edge with
   breathing room above and below, square cornered and flat: never a
   panel run to the frame or under the header (that is the reference's
   hero). Its pause ("Pause the print") sits on its top right corner. No
@@ -212,7 +215,7 @@ widgets/features; page-specific conventions live here.
   "Pause the fluid", "Pause the meta balls", "Pause the silk"),
   `aria-pressed` while paused, wired to the surface's `paused` (the
   model's turn is its `auto-rotate`): a disc of the page's ink with its
-  glyph in the paper. Chips stay under reduced motion: the model and the
+  glyph in the ground. Chips stay under reduced motion: the model and the
   shader keep moving there.
 - Footer (on the page width, no rule above it): the brand (the pixel
   wordmark in the home link, one line, GitHub under its mark) beside three
@@ -544,7 +547,8 @@ widgets/features; page-specific conventions live here.
 - Browser walk after changes: the landing at desktop AND phone widths (no
   horizontal scroll), the h1 and the keys above the fold at 1440x900,
   1280x800 and 1920x1080 with the print beside them, the
-  paper, its grain and the frame's hairlines in either theme,
+  obsidian, its grain and the frame's hairlines whatever theme the docs
+  saved (dark on a light preference too),
   "Copy agent prompt" (the install's head) copying a prompt that names
   this origin's SKILL.md, no uppercase label, eyebrow, middle dot, em dash
   or arrow link in the rendered copy, every svg decorative or labelled,
