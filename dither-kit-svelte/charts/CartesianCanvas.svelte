@@ -86,6 +86,7 @@
         if (!cur) return
         const seed = s.seedOf(key)
         const variant = s.seriesSpecs[key]?.variant ?? "gradient"
+        const matrix = s.matrixOf(variant)
         const isLine =
           (s.seriesSpecs[key]?.kind ??
             (s.chartType === "line" ? "line" : "area")) === "line"
@@ -106,6 +107,7 @@
           }
           paintColumn(frame, x, cur.top[x] ?? 0, cur.floor[x] ?? 0, seed, {
             variant,
+            matrix,
             intensity,
             dim,
             stacked: stacked && !isLine,

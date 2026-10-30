@@ -1,12 +1,5 @@
 import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import {
-  backingSize,
-  bloomLayerStyle,
-  resolveEasing,
-  resolveMatrix,
-  resolveTexture,
-  prefersReducedMotion,
-} from "./dither-paint"
+import { backingSize, bloomLayerStyle, resolveEasing, resolveTexture, prefersReducedMotion } from "./dither-paint"
 import { sliceAtAngle } from "./polar"
 import { type PolarChartContextValue, usePolarChart } from "./polar-context"
 import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
@@ -111,7 +104,7 @@ function startPieLoop({
           continue
         }
         const tex = resolveTexture(variant)
-        const mat = resolveMatrix(variant)
+        const mat = s.matrixOf(variant)
         const raw = (r - innerR) / Math.max(localOuter - innerR, 1)
         const density = 1 - tex.ramp * (1 - raw)
         if (tex.hatch >= 2 && (x + y) % tex.hatch >= tex.hatch / 2) continue

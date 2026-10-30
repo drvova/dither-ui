@@ -62,10 +62,11 @@
 <script lang="ts">
   import type { Snippet } from "svelte"
   import { cn } from "../runtime/lib"
-  import { fillOf, type PixelColor, pixelMatrixFromSeed } from "../engine/pixel"
+  import { fillOf, type PixelColor } from "../engine/pixel"
   import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
   import { kitFromSeed } from "../engine/dither-paint"
   import { paintOnResize, type CanvasPaint } from "../runtime/canvas-mount"
+  import { useLabelMatrix } from "../runtime/screen"
 
   type Props = {
     value?: boolean
@@ -87,7 +88,8 @@
 
   const s = $derived(seed !== undefined ? kitFromSeed(seed) : null)
   const color = $derived<PixelColor>(colorProp ?? s?.hue ?? "blue")
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useLabelMatrix()
+  const matrix = $derived(ditherMatrix(seed))
   // A bright fill takes black ink: white on it would sink under AA.
   const darkInk = $derived(darkInkOnDark(fillOf(color), LABEL_COVERAGE.gradient))
 

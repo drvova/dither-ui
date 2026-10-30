@@ -1,12 +1,5 @@
 import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import {
-  backingSize,
-  bloomLayerStyle,
-  resolveEasing,
-  resolveMatrix,
-  resolveTexture,
-  prefersReducedMotion,
-} from "./dither-paint"
+import { backingSize, bloomLayerStyle, resolveEasing, resolveTexture, prefersReducedMotion } from "./dither-paint"
 import { distToPolygonEdge, pointInPolygon, polarX, polarY } from "./polar"
 import { type PolarChartContextValue, usePolarChart } from "./polar-context"
 import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
@@ -113,7 +106,7 @@ function startRadarLoop({
             continue
           }
           const tex = resolveTexture(variant)
-          const mat = resolveMatrix(variant)
+          const mat = s.matrixOf(variant)
           const raw = 1 - Math.min(1, dist / band)
           const density = 1 - tex.ramp * (1 - raw)
           const sparse = pi * 0.2

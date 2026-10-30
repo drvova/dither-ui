@@ -40,10 +40,11 @@ import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { directedTime } from "../engine/clock"
 import { buildProgram, type Channels, createChannels, createGl, type GlHandle } from "../engine/gl"
 import { cn, type StyleProp } from "./lib"
-import { BAYER4, clamp01, fillOf, type PixelColor, pixelMatrixFromSeed } from "../engine/pixel"
+import { clamp01, fillOf, type PixelColor } from "../engine/pixel"
 import type { DitherRenderMode } from "../engine/precompile"
 import type { RasterBuffer } from "../engine/raster"
 import { useDitherBackground } from "../engine/use-dither-background"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -208,8 +209,9 @@ function compile(h: GlHandle, source: string): void {
   }
 }
 
+const matrix = useDitherMatrix(() => props.seed)
 const dither = computed<ShaderDither>(() => ({
-  matrix: props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4,
+  matrix: matrix.value,
   dither: clamp01(props.dither),
   levels: Math.max(2, Math.round(props.levels)),
   mono: props.mono ? fillOf(props.color) : null,

@@ -413,9 +413,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   and plain borders (tracks bordered, the pressed segment outlined).
   Shared by the docs and the Studio; none of them grows a voice of its
   own. The landing takes only `.nav-a`, `.chrome-type`, `.key-chrome` and
-  the tokens from it, under the user's slop bans (root `AGENTS.md`): its
-  keys, picked segments, cards and panels are fills on one raised ground
-  (`pages/landing/chapters.css`), never rings, hairlines or tags.
+  the light theme's tokens from it, printed on its own paper (root
+  `AGENTS.md`, `pages/landing/chapters.css`): its keys, picked segments,
+  cards and panels are fills on one raised ground, never rings or tags;
+  its hairlines are the frame and the footer's grid only.
 - Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
   hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
   surface, and hydrating it corrupts DOM because kit components gate on

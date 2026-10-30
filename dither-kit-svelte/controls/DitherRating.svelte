@@ -1,7 +1,7 @@
 <script lang="ts" module>
   import { cellCanvas } from "../engine/raster"
   import type { Rgb } from "../engine/palette"
-  import { BAYER4, fillOf, type PixelColor, pixelMatrixFromSeed, xorshift32 } from "../engine/pixel"
+  import { fillOf, type PixelColor, xorshift32 } from "../engine/pixel"
 
   const CELL = 2
 
@@ -67,6 +67,7 @@
 <script lang="ts">
   import { cn } from "../runtime/lib"
   import { paintOnResize, type CanvasPaint } from "../runtime/canvas-mount"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = {
     value?: number
@@ -88,7 +89,8 @@
     seed,
   }: Props = $props()
 
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useDitherMatrix()
+  const matrix = $derived(ditherMatrix(seed))
   const rot = $derived(
     seed !== undefined ? (xorshift32(Math.round(seed) ^ 0x51ed)() - 0.5) * 0.5 : 0
   )

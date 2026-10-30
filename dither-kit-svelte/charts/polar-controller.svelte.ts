@@ -1,6 +1,7 @@
 import type { CommonChart, TooltipItem } from "./common-context"
 import type { VariantInput } from "../engine/dither-paint"
 import { type Seed, seedFromColor } from "../engine/palette"
+import { useVariantMatrix } from "../runtime/screen"
 import { pieSlices, radarAxes } from "./polar"
 import { type PolarChartContextValue, type PolarControllerInput } from "./polar-context"
 
@@ -48,6 +49,7 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
   const innerRadius = $derived(input.chartType === "pie" ? outerRadius * input.innerRadiusRatio() : 0)
 
   const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
+  const matrixOf = useVariantMatrix()
   const variantOf = (key: string): VariantInput => variants[key] ?? variants["*"] ?? "gradient"
   const registerVariant = (key: string, variant: VariantInput) => {
     if (variants[key] === variant) return
@@ -237,6 +239,7 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
       return input.precompiled()
     },
     seedOf,
+    matrixOf,
     variantOf,
     registerVariant,
     unregisterVariant,

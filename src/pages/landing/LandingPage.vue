@@ -1,13 +1,15 @@
 <script setup lang="ts">
-// The landing: the hero (the statement beside the stage seated in liquid
-// chrome), then sections under a title with a lead beside it: a bento of
-// live kit components, the screen an agent's ask makes, what's inside (the
-// kit, the Studio, the bridge; the docs' families), the install, and a
-// footer of link columns over the engraved wordmark. Michroma for display,
-// mono for the rest, two inks on two grounds; everything that moves is the
-// kit.
+// The landing, printed: one ink on bone paper inside a hairline frame, and
+// everything the kit draws on it printed through the diagonal screen. The
+// hero (the statement beside the stage, seated on a poster), then sections
+// under a title with a lead beside it: a bento of live kit components, the
+// screen an agent's ask makes, what's inside (the kit, the Studio, the
+// bridge; the docs' families), the install, and the footer: a poster band,
+// a grid of hairlines with numbered columns, the line-screen wordmark and
+// the imprint. Michroma for display, mono for the rest; everything that
+// moves is the kit.
 import { onMounted, ref } from "vue"
-import { DitherClipboard, DitherIcon } from "@dither-kit"
+import { DitherClipboard, DitherIcon, DitherPoster, DitherScreen, type DitherColor } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import "@/shared/fonts/display.css"
@@ -25,10 +27,10 @@ import Showcase from "./Showcase.vue"
 // install to run, pointed at wherever this page is served from.
 const prompt = ref("")
 onMounted(() => {
-  // The landing is always-dark art. A light theme toggled on docs/studio
-  // persists on <html> and this is one SPA, so dark is re-asserted here;
-  // storage keeps the user's choice and docs/studio re-read it on mount.
-  document.documentElement.classList.add("dark")
+  // The landing is paper in either theme: a dark theme toggled on the docs
+  // or the Studio persists on <html> in this one SPA, so it is dropped here;
+  // storage keeps the user's choice and the docs and the Studio re-read it.
+  document.documentElement.classList.remove("dark")
   prompt.value = [
     `Read ${location.origin}${assetPath("/agent/SKILL.md")} and add dither-ui to this project:`,
     "copy the kit with `npx degit drvova/dither-ui/dither-kit src/dither-kit`,",
@@ -98,6 +100,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     ],
   },
 ]
+
+// The posters' inks: the kit's palette, printed flat.
+const POSTER_INKS: DitherColor[] = ["orange", "blue", "green", "pink", "purple"]
 </script>
 
 <template>
@@ -148,123 +153,133 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       </div>
     </header>
 
-    <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
-      <!-- The hero, our own: the statement beside the stage, seated in
+    <!-- Everything the kit draws below prints through the diagonal screen. -->
+    <DitherScreen screen="diagonal">
+      <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
+        <!-- The hero, our own: the statement beside the stage, seated in
            the kit's liquid chrome. -->
-      <Showcase />
+        <Showcase />
 
-      <div class="page">
-        <Examples />
+        <div class="page">
+          <Examples />
 
-        <!-- Ask: one agent session, played as the page scrolls past it. -->
-        <section id="ask" aria-labelledby="ask-h" class="sec">
-          <div class="sec-head">
-            <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
-            <div class="sec-side">
-              <p class="sec-lede">
-                The agent skill teaches your harness the Studio's tools, so one sentence is enough. Every tool call
-                lands on the canvas as a frame of kit parts, and undo takes it back.
-              </p>
-              <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
+          <!-- Ask: one agent session, played as the page scrolls past it. -->
+          <section id="ask" aria-labelledby="ask-h" class="sec">
+            <div class="sec-head">
+              <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
+              <div class="sec-side">
+                <p class="sec-lede">
+                  The agent skill teaches your harness the Studio's tools, so one sentence is enough. Every tool call
+                  lands on the canvas as a frame of kit parts, and undo takes it back.
+                </p>
+                <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
+              </div>
             </div>
-          </div>
-          <AgentStory />
-        </section>
+            <AgentStory />
+          </section>
 
-        <!-- What's inside: the kit, the Studio, the bridge; then the docs'
+          <!-- What's inside: the kit, the Studio, the bridge; then the docs'
              big families, each with its size and a line. -->
-        <section id="inside" aria-labelledby="inside-h" class="sec">
-          <div class="sec-head">
-            <h2 id="inside-h" class="section-title chrome-type">Three parts, one engine.</h2>
-            <div class="sec-side">
-              <p class="sec-lede">
-                A toolkit you copy into your repo, a Studio to compose with it, and a bridge that hands the Studio to
-                the coding agent you already use. All of it is code you can read.
-              </p>
+          <section id="inside" aria-labelledby="inside-h" class="sec">
+            <div class="sec-head">
+              <h2 id="inside-h" class="section-title chrome-type">Three parts, one engine.</h2>
+              <div class="sec-side">
+                <p class="sec-lede">
+                  A toolkit you copy into your repo, a Studio to compose with it, and a bridge that hands the Studio to
+                  the coding agent you already use. All of it is code you can read.
+                </p>
+              </div>
             </div>
-          </div>
-          <ul class="inside">
-            <li v-for="c in INSIDE" :key="c.title">
-              <h3 class="inside-h"><DitherIcon :name="c.icon" :size="15" :stroke-width="1.5" />{{ c.title }}</h3>
-              <p class="inside-p">{{ c.text }}</p>
-              <ul v-if="c.title === 'The agent bridge'" class="marks" aria-label="Harnesses the bridge starts">
-                <li v-for="h in HARNESSES" :key="h.id"><ToolMark :id="h.id" :size="13" />{{ h.name }}</li>
-              </ul>
-              <a :href="c.link.href" class="more-link">{{ c.link.label }}</a>
-            </li>
-          </ul>
-          <div class="families">
-            <h3 class="families-h">{{ SECTION_COUNT }} docs sections, the five biggest families</h3>
-            <ul class="families-list">
-              <li v-for="f in DOCS_FAMILIES" :key="f.label">
-                <a :href="routePath(`/docs/${f.first}`)" class="family-t"
-                  >{{ f.label }}<span class="family-n">{{ f.count }}</span></a
-                >
-                <p class="family-p">{{ f.note }}</p>
+            <ul class="inside">
+              <li v-for="c in INSIDE" :key="c.title">
+                <h3 class="inside-h"><DitherIcon :name="c.icon" :size="15" :stroke-width="1.5" />{{ c.title }}</h3>
+                <p class="inside-p">{{ c.text }}</p>
+                <ul v-if="c.title === 'The agent bridge'" class="marks" aria-label="Harnesses the bridge starts">
+                  <li v-for="h in HARNESSES" :key="h.id"><ToolMark :id="h.id" :size="13" />{{ h.name }}</li>
+                </ul>
+                <a :href="c.link.href" class="more-link">{{ c.link.label }}</a>
               </li>
             </ul>
-          </div>
-        </section>
+            <div class="families">
+              <h3 class="families-h">{{ SECTION_COUNT }} docs sections, the five biggest families</h3>
+              <ul class="families-list">
+                <li v-for="f in DOCS_FAMILIES" :key="f.label">
+                  <a :href="routePath(`/docs/${f.first}`)" class="family-t"
+                    >{{ f.label }}<span class="family-n">{{ f.count }}</span></a
+                  >
+                  <p class="family-p">{{ f.note }}</p>
+                </li>
+              </ul>
+            </div>
+          </section>
 
-        <!-- The install, centred. -->
-        <section id="install" aria-labelledby="install-h" class="sec install">
-          <div class="install-head">
-            <h2 id="install-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
-            <p class="sec-lede">
-              Copy the kit into your app, add its four packages and import from <code>@dither-kit</code>. Or paste the
-              agent prompt and let your agent do all three.
+          <!-- The install, centred. -->
+          <section id="install" aria-labelledby="install-h" class="sec install">
+            <div class="install-head">
+              <h2 id="install-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
+              <p class="sec-lede">
+                Copy the kit into your app, add its four packages and import from <code>@dither-kit</code>. Or paste the
+                agent prompt and let your agent do all three.
+              </p>
+              <DitherClipboard :value="prompt">
+                <template #default="{ copied }">
+                  <button type="button" class="key prompt-key" :aria-label="copied ? 'Agent prompt copied' : undefined">
+                    <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />{{
+                      copied ? "Copied" : "Copy agent prompt"
+                    }}
+                  </button>
+                </template>
+              </DitherClipboard>
+            </div>
+            <InstallBlock />
+            <p class="install-note">
+              On Svelte 5? The same kit ships as <code>dither-kit-svelte</code>, and the
+              <a :href="routePath('/docs/getting-started')" class="lead">quick start</a> has its steps.
             </p>
-            <DitherClipboard :value="prompt">
-              <template #default="{ copied }">
-                <button type="button" class="key prompt-key" :aria-label="copied ? 'Agent prompt copied' : undefined">
-                  <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />{{
-                    copied ? "Copied" : "Copy agent prompt"
-                  }}
-                </button>
-              </template>
-            </DitherClipboard>
-          </div>
-          <InstallBlock />
-          <p class="install-note">
-            On Svelte 5? The same kit ships as <code>dither-kit-svelte</code>, and the
-            <a :href="routePath('/docs/getting-started')" class="lead">quick start</a> has its steps.
-          </p>
-        </section>
-      </div>
-    </main>
-
-    <!-- Footer: the pixel wordmark and a line beside three link columns, the
-         copyright line, then the engraved mark. -->
-    <footer class="foot">
-      <div class="foot-in">
-        <div class="foot-brand">
-          <a :href="routePath('/')" class="foot-name"
-            ><PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" decorative /><span class="sr-only">dither-ui</span></a
-          >
-          <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
-          <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
-            ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
-          >
+          </section>
         </div>
-        <nav v-for="col in COLUMNS" :key="col.title" class="foot-col" :aria-label="col.title">
-          <h2 class="foot-h">{{ col.title }}</h2>
-          <a v-for="l in col.links" :key="l.label" :href="l.href"
-            >{{ l.label
-            }}<span v-if="l.n" class="foot-n"
-              ><span class="sr-only">, </span>{{ l.n }}<span class="sr-only"> sections</span></span
-            ></a
-          >
-        </nav>
-      </div>
-      <p class="foot-copy">
-        <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
-        <span>v{{ version }}</span>
-        <span>MIT license</span>
-      </p>
-      <div aria-hidden="true" class="foot-mark">
-        <LineWordmark />
-      </div>
-    </footer>
+      </main>
+
+      <!-- Footer: a poster band, then a grid of hairlines: the brand beside
+         the numbered link columns, the line-screen wordmark, the imprint. -->
+      <footer class="foot">
+        <div class="foot-poster" aria-hidden="true">
+          <DitherPoster :seed="39" :inks="POSTER_INKS" :cell="3" render-mode="static" />
+        </div>
+        <div class="foot-in">
+          <div class="foot-brand">
+            <a :href="routePath('/')" class="foot-name"
+              ><PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" decorative /><span class="sr-only"
+                >dither-ui</span
+              ></a
+            >
+            <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
+            <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh label"
+              ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
+            >
+          </div>
+          <nav v-for="(col, i) in COLUMNS" :key="col.title" class="foot-col" :aria-label="col.title">
+            <h2 class="foot-h label">
+              <span class="foot-no">{{ String(i + 1).padStart(2, "0") }} /</span> {{ col.title }}
+            </h2>
+            <a v-for="l in col.links" :key="l.label" :href="l.href" class="label"
+              >{{ l.label
+              }}<span v-if="l.n" class="foot-n"
+                ><span class="sr-only">, </span>{{ l.n }}<span class="sr-only"> sections</span></span
+              ></a
+            >
+          </nav>
+        </div>
+        <div aria-hidden="true" class="foot-mark">
+          <LineWordmark />
+        </div>
+        <p class="foot-copy label">
+          <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
+          <span>v{{ version }}</span>
+          <span>MIT license</span>
+        </p>
+      </footer>
+    </DitherScreen>
   </div>
 </template>
 
@@ -294,7 +309,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   padding: 0 7px 0 10px;
   border-radius: 999px;
   background: var(--surface);
-  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7);
+  box-shadow: var(--float-shadow);
 }
 
 @media (forced-colors: active) {
@@ -479,30 +494,45 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   color: var(--ink);
 }
 
-/* The footer: the brand (the pixel wordmark, a line, GitHub) beside three
-   link columns, the copyright line, the engraved wordmark under all.
-   Three columns under the brand under 900px, two under 640px. */
+/* The footer, printed: inside the page's column, a poster band, then a
+   grid ruled in hairlines (the brand's cell beside the three numbered
+   link columns), the line-screen wordmark under all, and the imprint on
+   the raised ground. Three columns under the brand under 900px, two under
+   640px. */
 .foot {
+  width: min(100%, var(--page));
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+.foot-poster {
   position: relative;
-  isolation: isolate;
-  overflow: hidden;
+  height: 160px;
+  border-block: 1px solid var(--ink);
 }
 
 .foot-in {
   display: grid;
   grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
-  gap: 32px;
-  width: 100%;
-  max-width: var(--page);
-  margin-inline: auto;
-  padding: 48px 1.5rem 24px;
+  border-bottom: 1px solid var(--ink);
 }
 
-.foot-brand {
+.foot-brand,
+.foot-col {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  padding: 32px 24px 36px;
+}
+
+.foot-brand {
   gap: 12px;
+  padding-left: 0;
+}
+
+.foot-col {
+  gap: 2px;
+  border-left: 1px solid var(--ink);
 }
 
 .foot-name {
@@ -525,24 +555,17 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   align-items: center;
   gap: 8px;
   min-height: 24px;
-  font-size: 12px;
   color: var(--ink-3);
   transition: color 150ms var(--ease-settle);
 }
 
-.foot-col {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  font-size: 12px;
+.foot-h {
+  margin: 0 0 10px;
+  color: var(--ink-3);
 }
 
-.foot-h {
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink);
+.foot-no {
+  font-variant-numeric: tabular-nums;
 }
 
 .foot-col a {
@@ -551,39 +574,35 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   gap: 8px;
   min-height: 28px;
   padding-top: 6px;
-  color: var(--ink-3);
+  color: var(--ink);
   transition: color 150ms var(--ease-settle);
 }
 
 .foot-n {
-  font-size: 10.5px;
   font-variant-numeric: tabular-nums;
   color: var(--ink-3);
 }
 
 .foot-col a:hover,
 .foot-gh:hover {
-  color: var(--ink);
+  color: var(--signal);
 }
 
+/* The wordmark: the column's full width, ruled off under it. */
+.foot-mark {
+  padding: 40px 0;
+  border-bottom: 1px solid var(--ink);
+}
+
+/* The imprint: the copyright line on the raised ground at the foot. */
 .foot-copy {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 18px;
-  width: 100%;
-  max-width: var(--page);
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  font-size: 11px;
+  gap: 4px 28px;
+  margin: 0 0 40px;
+  padding: 12px 16px;
   color: var(--ink-3);
-}
-
-/* The wordmark: the page's full width, on its edges. */
-.foot-mark {
-  width: 100%;
-  max-width: var(--page);
-  margin: 40px auto 0;
-  padding: 0 1.5rem 40px;
+  background: var(--surface);
 }
 
 @media (max-width: 1023px) {
@@ -603,6 +622,11 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   }
   .foot-brand {
     grid-column: 1 / -1;
+    border-bottom: 1px solid var(--ink);
+  }
+  .foot-col:nth-child(2) {
+    border-left: 0;
+    padding-left: 0;
   }
 }
 
@@ -614,16 +638,17 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   .families-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .foot {
+    padding-inline: 16px;
+  }
   .foot-in {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding-inline: 16px;
   }
-  .foot-copy {
-    padding-inline: 16px;
-  }
-  .foot-mark {
-    width: 100%;
-    padding-inline: 16px;
+  .foot-col:nth-child(4) {
+    grid-column: 1 / -1;
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--ink);
   }
 }
 </style>

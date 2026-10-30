@@ -9,15 +9,15 @@
 // stops it there; under reduced motion it starts paused. A new scene
 // dissolves in through the kit's own ordered dither (`DitherReveal`); the
 // first one is simply there, and it is the only one in the static page.
-// The stage is seated in a form of the kit's liquid chrome in the design
-// system's metals (one still frame, so nothing moves there), with a droplet
-// thrown off it.
+// The stage is seated on a poster: flat fields of the palette printed
+// through the line screen and a hatched disc (one still frame, so nothing
+// moves there), rising past the stage's top and running to the frame.
 import { defineAsyncComponent, onMounted, reactive, ref } from "vue"
 import {
   Area,
   AreaChart,
   DitherButton,
-  DitherLiquidChrome,
+  DitherPoster,
   DitherReveal,
   DitherSlideAction,
   XAxis,
@@ -81,9 +81,8 @@ const SCENES: Scene[] = [
   },
 ]
 
-// The chrome's ramp: the design system's metals, weighted to the dark end
-// so the stage stays the brightest thing on it.
-const METALS = ["#101214", "#1b1e21", "#25292D", "#5d6268", "#A6ABB1", "#D4DCE1", "#E4E1D8"]
+// The poster's inks: the kit's palette, printed flat.
+const INKS: DitherColor[] = ["orange", "blue", "green", "pink", "purple"]
 
 const at = ref(0)
 // Until the scene first changes, it is simply there: no entrance.
@@ -143,13 +142,8 @@ const fluid = ref<Fluid>("acid")
 <template>
   <figure class="hero-stage">
     <div class="seat">
-      <div class="biome" aria-hidden="true">
-        <div class="pebble">
-          <DitherLiquidChrome :colors="METALS" :scale="1.5" :distortion="1.2" :seed="2002" render-mode="static" />
-        </div>
-        <div class="pebble drop">
-          <DitherLiquidChrome :colors="METALS" :scale="1.1" :distortion="0.8" :seed="7" render-mode="static" />
-        </div>
+      <div class="seat-art" aria-hidden="true">
+        <DitherPoster :seed="36" :inks="INKS" :cell="3" render-mode="static" />
       </div>
       <div class="stage" @pointerdown="hold" @keydown="hold">
         <PauseChip
@@ -259,57 +253,27 @@ const fluid = ref<Fluid>("acid")
   padding: 36px 0;
 }
 
-/* The seat: the stage floating on its chrome form. The form rises past the
-   stage's top and runs out past the hero's right edge, an object cropped by
-   the frame at every width; it stops short of the stage's foot, so it never
-   sits under the picker or the caption. A droplet sits off the stage's top
-   corner. Each is one still frame, gel-lit by an overlay above the canvas
-   (an inset shadow would paint under it). Gone under 900px and under
-   reduced transparency. */
+/* The seat: the stage floating on its poster. The poster rises past the
+   stage's top and runs out to the frame's hairline on the right; it stops
+   short of the stage's foot, so it never sits under the picker or the
+   caption. A flat print, square-cornered. Gone under 900px. */
 .seat {
   position: relative;
   isolation: isolate;
 }
 
-.biome {
+.seat-art {
   position: absolute;
-  top: -15%;
+  top: -24%;
   bottom: 9%;
-  left: 6%;
-  right: calc((min(100vw, var(--page)) - 3rem - 100vw) / 2 - 5rem);
+  left: 12%;
+  right: calc(8px - 1.5rem);
   z-index: -1;
   pointer-events: none;
 }
 
-.pebble {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 46% 54% 40% 60% / 58% 46% 54% 42%;
-}
-
-.pebble::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    radial-gradient(34% 22% at 30% 16%, rgb(255 255 255 / 0.4), transparent),
-    linear-gradient(200deg, transparent 40%, rgb(16 18 20 / 0.55));
-  box-shadow:
-    inset 18px 22px 40px rgb(255 255 255 / 0.12),
-    inset -24px -30px 60px rgb(0 0 0 / 0.55);
-}
-
-.pebble.drop {
-  inset: 2% auto auto -9%;
-  width: clamp(44px, 4.6vw, 72px);
-  aspect-ratio: 1.1;
-  border-radius: 52% 48% 61% 39% / 44% 58% 42% 56%;
-}
-
-@media (max-width: 899px), (prefers-reduced-transparency: reduce) {
-  .biome {
+@media (max-width: 899px) {
+  .seat-art {
     display: none;
   }
 }
@@ -325,7 +289,7 @@ const fluid = ref<Fluid>("acid")
   container-type: size;
   border-radius: 20px;
   background: var(--stage);
-  box-shadow: 0 28px 50px -22px rgb(0 0 0 / 0.9);
+  box-shadow: 0 26px 44px -24px rgb(16 18 20 / 0.6);
 }
 
 .scene-wrap {

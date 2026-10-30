@@ -1,6 +1,6 @@
 <script lang="ts">
 import { cellCanvas } from "../engine/raster"
-import { BAYER4, fillOf, pixelMatrixFromSeed, pixelPrefersReducedMotion, xorshift32 } from "../engine/pixel"
+import { BAYER4, fillOf, pixelPrefersReducedMotion, xorshift32 } from "../engine/pixel"
 
 const CELL = 2
 const GREY = fillOf("grey")
@@ -49,10 +49,11 @@ import { onBeforeUnmount, onMounted, ref } from "vue"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { cn } from "./lib"
 import { useCanvasVisibility } from "../engine/use-visibility"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = defineProps<{ seed?: number; class?: string }>()
 const shimmer = props.seed !== undefined ? shimmerFromSeed(props.seed) : SHIMMER_DEFAULT
-const matrix = props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4
+const matrix = useDitherMatrix(() => props.seed).value
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)

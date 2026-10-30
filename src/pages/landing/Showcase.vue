@@ -8,9 +8,9 @@ import HeroStage from "./HeroStage.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 
 // The hero, our own: the first screen tall, the statement beside the stage
-// (the kit by hand, one real component at a time, seated in a form of the
-// kit's liquid chrome). Every surface on it is the kit itself; the film is
-// a key away.
+// (the kit by hand, one real component at a time, seated on a poster the
+// kit prints). Every surface on it is the kit itself; the film is a key
+// away.
 const film = ref(false)
 
 // What the kit works with, each under its own mark.
@@ -146,7 +146,7 @@ const WORKS: { id: MarkId; name: string }[] = [
   gap: 7px;
 }
 
-/* The stage's column: the stage seats its own chrome form. */
+/* The stage's column: the stage seats its own poster. */
 .stage-col {
   min-width: 0;
 }

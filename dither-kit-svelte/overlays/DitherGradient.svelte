@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import type { PixelBloomInput, PixelColor } from "../engine/pixel"
+  import type { PixelBloomInput, PixelColor, ScreenKind } from "../engine/pixel"
   import {
     precompiledSrc,
     renderDitherGradient,
@@ -20,6 +20,7 @@
   import { cn } from "../runtime/lib"
   import { pixelBloomStyle } from "../engine/pixel"
   import { kitFromSeed } from "../engine/dither-paint"
+  import { useScreen } from "../runtime/screen"
 
   type Props = {
     from?: PixelColor
@@ -50,6 +51,7 @@
     maxCols: maxColsProp,
     maxRows: maxRowsProp,
   }: Props = $props()
+  const screen = useScreen()
 
   const s = $derived(seed !== undefined ? kitFromSeed(seed) : null)
   const effFrom = $derived<PixelColor>(from ?? s?.hue ?? "blue")
@@ -81,6 +83,7 @@
     cell: number
     opacity: number
     seed: number | undefined
+    screen: ScreenKind | undefined
     maxCols: number
     maxRows: number
     renderMode: DitherRenderMode
@@ -117,6 +120,7 @@
         cell: p.cell,
         opacity: p.opacity,
         seed: p.seed,
+        screen: p.screen,
         maxCols: p.maxCols,
         maxRows: p.maxRows,
       })
@@ -204,6 +208,7 @@
     cell: effCell,
     opacity: effOpacity,
     seed,
+    screen: screen(),
     maxCols: effMaxCols,
     maxRows: effMaxRows,
     renderMode,
@@ -218,6 +223,7 @@
       effBloom,
       effMaxCols,
       effMaxRows,
+      screen(),
       !!bloomEl,
     ]),
   })

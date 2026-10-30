@@ -109,7 +109,13 @@ export const GROUPS: DocsGroup[] = [
     title: "Animations",
     items: [...ANIMATIONS_NAV],
   },
-  { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
+  {
+    title: "Utils",
+    items: [
+      { id: "palette", label: "Palette" },
+      { id: "print-screens", label: "Print screens" },
+    ],
+  },
 ]
 
 export const SECTIONS = GROUPS.flatMap((g) => g.items)

@@ -84,6 +84,14 @@ patterns and the rest follows the same mechanical translation.
   `setContext`/`getContext` replace Vue `provide`/`inject`; the context value
   exposes live GETTERS (backed by `$derived`) instead of Vue `Ref`s, so
   descendants read `field.controlId`, not `field.controlId.value`.
+- Print screens: `runtime/screen.ts` is the Vue kit's `use-screen.ts` on
+  context: `widgets/DitherScreen.svelte` calls `setScreen(() => screen)`,
+  and a surface takes `const ditherMatrix = useDitherMatrix()` in its
+  setup with `const matrix = $derived(ditherMatrix(seed))` (the getter
+  read inside the derivation, so a screen change repaints); a labelled
+  fill (badge, toggle, button) keeps Bayer through `useLabelMatrix`, and
+  the chart controllers' `matrixOf` feeds every canvas. `backgrounds/
+  Poster.svelte` is `DitherPoster` over the verbatim `engine/poster.ts`.
 - Charts: roots provide reactive context via `setContext` getters; parts (`Area`,
   `Line`, `Bar`, ...) self-register through `register*` Svelte ACTIONS (init ->
   register, param change -> re-register, unmount -> unregister) instead of Vue's
@@ -173,8 +181,10 @@ and re-exports everything. Internal imports are relative across folders
   `cp ../dither-kit/engine/X.ts engine/X.ts`.
 - `runtime/` — shared Svelte seams reused across families: `lib` (cn),
   `control` (tokens + field context), `in-view`, `portal`, `canvas-mount`,
-  `use-dither-background`, `toast.svelte`, `gesture`.
-- `backgrounds/` — the 53 generative canvas backgrounds.
+  `use-dither-background`, `toast.svelte`, `gesture`, `screen` (the
+  print screen's context).
+- `backgrounds/` — the 55 generative canvas backgrounds (the poster among
+  them).
 - `text/` — text & cursor/pointer effects.
 - `controls/` — form/input controls (reuse `runtime/control`).
 - `overlays/` — dialogs, menus, popovers, tooltips, sidebar, toaster.

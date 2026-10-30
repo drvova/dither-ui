@@ -4,11 +4,9 @@ import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { cellCanvas } from "../engine/raster"
 import { type AvatarPattern, clampGrid, normalizePattern, seededPattern } from "../engine/avatar-pattern"
 import {
-  BAYER4,
   clamp01,
   fillOf,
   hueFill,
-  pixelMatrixFromSeed,
   type PixelBloomInput,
   type PixelColor,
   pixelPrefersReducedMotion,
@@ -148,6 +146,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn, type StyleProp } from "./lib"
 import { pixelBloomStyle } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -187,7 +186,7 @@ const props = withDefaults(
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
 const effHue = computed(() => props.hue ?? s.value?.hue)
 const effBloom = computed(() => props.bloom ?? (props.seed !== undefined ? props.seed : "off"))
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const bloomRef = ref<HTMLCanvasElement | null>(null)

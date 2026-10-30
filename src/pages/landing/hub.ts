@@ -12,10 +12,10 @@ export const FAMILIES = [
   { title: "Handbook", count: 5 },
   { title: "Examples", count: 32 },
   { title: "Components", count: 100 },
-  { title: "Backgrounds", count: 46 },
+  { title: "Backgrounds", count: 47 },
   { title: "Text", count: 24 },
   { title: "Animations", count: 50 },
-  { title: "Utils", count: 1 },
+  { title: "Utils", count: 2 },
 ] as const
 
 export const SECTION_COUNT = FAMILIES.reduce((n, f) => n + f.count, 0)

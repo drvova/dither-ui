@@ -1,7 +1,7 @@
 <!-- Generated from ../tailwind/DitherSkeleton.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
 <script lang="ts">
 import { cellCanvas } from "../engine/raster"
-import { BAYER4, fillOf, pixelMatrixFromSeed, pixelPrefersReducedMotion, xorshift32 } from "../engine/pixel"
+import { BAYER4, fillOf, pixelPrefersReducedMotion, xorshift32 } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
 const CELL = 2
@@ -56,10 +56,11 @@ import { onBeforeUnmount, onMounted, ref } from "vue"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { cn, type StyleProp } from "./lib"
 import { useCanvasVisibility } from "../engine/use-visibility"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = defineProps<{ seed?: number; class?: string; xstyle?: StyleProp }>()
 const shimmer = props.seed !== undefined ? shimmerFromSeed(props.seed) : SHIMMER_DEFAULT
-const matrix = props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4
+const matrix = useDitherMatrix(() => props.seed).value
 
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)

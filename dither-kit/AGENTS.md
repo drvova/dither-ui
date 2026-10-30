@@ -83,8 +83,23 @@ the kit every import is relative (`../engine/pixel`).
   d3-shape, tailwind classes only.
 - `palette.ts` is the single source of color truth: 7 seeds, each resolving
   fill/line/star hues. Swatch CSS vars in `src/app/styles.css` mirror it.
-- `pixel.ts` owns BAYER4 and bloom presets; every dithered surface thresholds
-  against the same matrix.
+- `pixel.ts` owns BAYER4, the print screens and bloom presets. `SCREENS`
+  (`bayer`, `line`, `diagonal`, `dot`, `cross`; `SCREEN_KINDS`) are 4x4
+  rank matrices, each a permutation of the sixteen ranks, so every
+  `matrix[y & 3][x & 3]` painter takes any of them; `screenMatrix(screen,
+  seed?)` jitters one exactly as `pixelMatrixFromSeed` jitters Bayer (the
+  same bytes for `bayer`).
+- `use-screen.ts` is the ONE way a surface gets its matrix:
+  `useDitherMatrix(() => seed)` reads the screen a `DitherScreen` around
+  it provides (`SCREEN`, an inject; Bayer without one), seeded as ever;
+  the charts' contexts expose the same as `matrixOf(variant)`
+  (`useVariantMatrix`, `resolveMatrix` when no screen is around); a fill
+  that carries a label (badge, toggle, button) keeps Bayer through
+  `useLabelMatrix`, because a hatch under type breaks its letters.
+  `precompile.ts` takes a `screen` option for surfaces that raster
+  through it (the gradient passes its screen, the button does not).
+  `DitherScreen` is only the provider (`screen`, default `diagonal`, a
+  slot). Pinned by `tests/screens.spec.ts`.
 - `timing.ts` is the pure temporal core: DOM-free and clock-free. `steps()` is
   spec-locked to the css-easing-1 positions (jump-end/start/none/both),
   `frameSteps` derives a `frame(fps)` cadence, `frameIndex` is the wall-clock
@@ -543,6 +558,15 @@ the kit every import is relative (`../engine/pixel`).
   that resolves props and passes a `render(buffer, clock, dt, elapsed)` callback —
   never re-implement the loop per component. Per-frame extras stay in `render`:
   page-load fade reads `elapsed`, eased pointers read `dt`.
+- `poster.ts` + `DitherPoster`: flat fields of the palette printed as a
+  screen print. `posterLayout(seed, inkCount)` lays out 4 to 6 bands (each
+  ink differs from the band above; most solid, some meeting a second ink
+  or the ground through the line screen) and a disc whose inside hatches
+  every band in one ink through the poster's screen (another where a
+  band is that ink); `paintPoster` prints a frame, the hatch sliding
+  `speed` cells a second on the clock; `ground` `transparent` leaves open
+  cells clear. Its screen defaults to the one around it, else diagonal.
+  Pinned by `tests/poster.spec.ts`.
 - `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
@@ -684,6 +708,9 @@ the kit every import is relative (`../engine/pixel`).
   runtime. After a generator change, compile the layer once with the real
   `@stylexjs/babel-plugin` (Vue's `compileScript`, then Babel): it must take
   every file.
+- Print screens: `tests/screens.spec.ts` (each screen a permutation, the
+  seeded jitter equal to Bayer's, a `DitherScreen` reaching a surface,
+  labelled fills on Bayer); the poster: `tests/poster.spec.ts`.
 - Painting at memory speed: `tests/paint-limits.spec.ts` pins `cellCanvas`
   to the fillRect pixel and `fbm`'s cache to the plain sum.
 - Determinism: on the built site, `/play/#doc=…` driven by synthetic

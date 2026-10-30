@@ -7,11 +7,9 @@
     seededPattern,
   } from "../engine/avatar-pattern"
   import {
-    BAYER4,
     clamp01,
     fillOf,
     hueFill,
-    pixelMatrixFromSeed,
     type PixelBloomInput,
     type PixelColor,
     pixelPrefersReducedMotion,
@@ -126,6 +124,7 @@
   import { cn } from "../runtime/lib"
   import { pixelBloomStyle } from "../engine/pixel"
   import { kitFromSeed } from "../engine/dither-paint"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = {
     name: string
@@ -172,7 +171,8 @@
   const effHue = $derived(hue ?? s?.hue)
   const colorOrHue = $derived<PixelColor | undefined>(color ?? effHue)
   const effBloom = $derived<PixelBloomInput>(bloom ?? (seed !== undefined ? seed : "off"))
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useDitherMatrix()
+  const matrix = $derived(ditherMatrix(seed))
   const bloomStyle = $derived(pixelBloomStyle(effBloom))
 
   let canvasEl = $state<HTMLCanvasElement | null>(null)

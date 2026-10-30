@@ -1,6 +1,6 @@
 <script lang="ts" module>
   import { cellCanvas } from "../engine/raster"
-  import { BAYER4, fillOf, pixelMatrixFromSeed, pixelPrefersReducedMotion, xorshift32 } from "../engine/pixel"
+  import { BAYER4, fillOf, pixelPrefersReducedMotion, xorshift32 } from "../engine/pixel"
 
   const CELL = 2
   const GREY = fillOf("grey")
@@ -49,6 +49,7 @@
 <script lang="ts">
   import { untrack } from "svelte"
   import { cn } from "../runtime/lib"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = { seed?: number; class?: string }
 
@@ -58,9 +59,8 @@
   const shimmer = untrack(() =>
     seed !== undefined ? shimmerFromSeed(seed) : SHIMMER_DEFAULT
   )
-  const matrix = untrack(() =>
-    seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4
-  )
+  const ditherMatrix = useDitherMatrix()
+  const matrix = untrack(() => ditherMatrix(seed))
 
   /**
    * Owns the shimmer rAF loop, the resize sizing and the visibility pause.

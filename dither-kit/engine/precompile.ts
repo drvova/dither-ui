@@ -1,4 +1,4 @@
-import { fillOf, pixelMatrixFromSeed, BAYER4, type PixelColor } from "./pixel"
+import { fillOf, screenMatrix, type PixelColor, type ScreenKind } from "./pixel"
 import type { RasterBuffer } from "./raster"
 import { clearRasterBuffer, createRasterBuffer } from "./raster"
 
@@ -17,6 +17,8 @@ export type GradientRasterOptions = {
   cell?: number
   opacity?: number
   seed?: number
+  /** The print screen to threshold through (`SCREENS`); default the Bayer matrix. */
+  screen?: ScreenKind
   maxCols?: number
   maxRows?: number
 }
@@ -57,7 +59,7 @@ export function renderDitherGradient(options: GradientRasterOptions): RasterBuff
   const to = options.to === "transparent" || options.to === undefined ? null : fillOf(options.to)
   const direction = options.direction ?? "up"
   const opacity = Math.max(0, Math.min(1, options.opacity ?? 1))
-  const matrix = options.seed === undefined ? BAYER4 : pixelMatrixFromSeed(options.seed)
+  const matrix = screenMatrix(options.screen ?? "bayer", options.seed)
   const buffer = createRasterBuffer(cols, rows)
   const data = buffer.data
   const w = cols
@@ -98,6 +100,8 @@ export type ButtonRasterOptions = {
   cell?: number
   intensity?: number
   seed?: number
+  /** The print screen to threshold through (`SCREENS`); default the Bayer matrix. */
+  screen?: ScreenKind
   maxCols?: number
   maxRows?: number
 }
@@ -114,7 +118,7 @@ export function renderDitherButton(options: ButtonRasterOptions, target?: Raster
   const fill = fillOf(options.color ?? "blue")
   const variant = options.variant ?? "gradient"
   const intensity = options.intensity ?? 0
-  const matrix = options.seed === undefined ? BAYER4 : pixelMatrixFromSeed(options.seed)
+  const matrix = screenMatrix(options.screen ?? "bayer", options.seed)
   const buffer = target?.width === cols && target.height === rows ? target : createRasterBuffer(cols, rows)
   clearRasterBuffer(buffer)
   const data = buffer.data

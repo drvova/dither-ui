@@ -141,7 +141,7 @@ export const ROUTE_CARDS = [
     title: "dither-ui",
     line: "A dithered UI toolkit for Vue and Svelte",
     description:
-      "264 Vue components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
+      "266 Vue components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
     links: [
       { label: "Read the docs", url: `${SITE_URL}/docs` },
       { label: "Open the studio", url: `${SITE_URL}/studio` },

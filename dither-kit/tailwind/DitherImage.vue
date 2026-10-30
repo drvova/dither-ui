@@ -1,5 +1,4 @@
 <script lang="ts">
-import { BAYER4, pixelMatrixFromSeed } from "../engine/pixel"
 import {
   DEFAULT_MAX_COLS,
   DEFAULT_MAX_ROWS,
@@ -70,6 +69,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
 import { kitFromSeed } from "../engine/dither-paint"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -95,7 +95,7 @@ const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : n
 const effCell = computed(() => props.cell ?? s.value?.cell ?? 3)
 const effFocusY = computed(() => props.focusY ?? s.value?.focusY ?? 0.5)
 const effFade = computed(() => props.fade ?? s.value?.fade ?? 0)
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 
 /** Effective resolution caps: static mode auto-uses lower caps unless overridden. */

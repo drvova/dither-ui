@@ -1,6 +1,5 @@
 <script lang="ts" module>
-  import { BAYER4, pixelMatrixFromSeed } from "../engine/pixel"
-  import {
+    import {
     DEFAULT_MAX_COLS,
     DEFAULT_MAX_ROWS,
     STATIC_DEFAULT_MAX_COLS,
@@ -69,6 +68,7 @@
   import { cn } from "../runtime/lib"
   import { kitFromSeed } from "../engine/dither-paint"
   import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = {
     src: string
@@ -105,7 +105,8 @@
   const effCell = $derived(cellProp ?? s?.cell ?? 3)
   const effFocusY = $derived(focusYProp ?? s?.focusY ?? 0.5)
   const effFade = $derived(fadeProp ?? s?.fade ?? 0)
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useDitherMatrix()
+  const matrix = $derived(ditherMatrix(seed))
   const precompiled = $derived(precompiledSrc(precompiledProp))
 
   /** Effective resolution caps: static mode auto-uses lower caps unless overridden. */

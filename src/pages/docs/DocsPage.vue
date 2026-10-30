@@ -62,6 +62,7 @@ import { INSTALL } from "./install"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
 import PrimitivesDocs from "./primitives/PrimitivesDocs.vue"
+import ScreensSection from "./utils/ScreensSection.vue"
 import TypographyDocs from "./typography/TypographyDocs.vue"
 import FeedbackDocs from "./components/FeedbackDocs.vue"
 import StructureDocs from "./components/StructureDocs.vue"
@@ -2152,6 +2153,9 @@ const gradientCode = computed(
             </DemoCard>
             <PropsTable :rows="API.palette" />
           </section>
+
+          <!-- Print screens -->
+          <ScreensSection />
         </div>
       </main>
 

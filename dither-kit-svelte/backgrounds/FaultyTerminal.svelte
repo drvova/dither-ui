@@ -6,10 +6,11 @@
 
 <script lang="ts">
   import { cn } from "../runtime/lib"
-  import { BAYER4, clamp01, fillOf, pixelMatrixFromSeed, type PixelColor } from "../engine/pixel"
+  import { clamp01, fillOf, type PixelColor } from "../engine/pixel"
   import type { RasterBuffer } from "../engine/raster"
   import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
   import { ditherBackground } from "../runtime/use-dither-background"
+  import { useDitherMatrix } from "../runtime/screen"
 
   type Props = {
     scale?: number
@@ -86,7 +87,8 @@
     brightness,
     mouseStrength,
   })
-  const matrix = $derived(seed !== undefined ? pixelMatrixFromSeed(seed) : BAYER4)
+  const ditherMatrix = useDitherMatrix()
+  const matrix = $derived(ditherMatrix(seed))
 
   let canvasEl = $state<HTMLCanvasElement | null>(null)
   const mouse = { x: 0.5, y: 0.5 }

@@ -40,9 +40,9 @@ function paintBadge(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { cn } from "./lib"
-import { pixelMatrixFromSeed } from "../engine/pixel"
 import { kitFromSeed } from "../engine/dither-paint"
 import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
+import { useLabelMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -54,7 +54,7 @@ const props = withDefaults(
   {},
 )
 const s = computed(() => (props.seed !== undefined ? kitFromSeed(props.seed) : null))
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useLabelMatrix(() => props.seed)
 const color = computed<PixelColor>(() => props.color ?? s.value?.hue ?? "blue")
 const variant = computed<BadgeVariant>(() => props.variant ?? s.value?.variant ?? "gradient")
 // A bright fill takes black ink: white on it would sink under AA.

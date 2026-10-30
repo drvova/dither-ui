@@ -9,7 +9,7 @@
   <img src="public/emotes/emote-dots.webp" alt="" width="51" height="49">
 </p>
 
-![dither-ui: a dithered UI toolkit for Vue, the statement beside a live component stage seated in liquid chrome](.github/readme/banner.webp)
+![dither-ui: a dithered UI toolkit for Vue, the statement beside a live component stage seated on a printed poster](.github/readme/banner.webp)
 
 <p align="center">
   <img src="public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
@@ -20,7 +20,7 @@
   <img src="public/emotes/face-excited.webp" alt="Excited dither face" width="94" height="126">
 </p>
 
-A dithered UI toolkit for Vue. 264 components draw themselves pixel by pixel
+A dithered UI toolkit for Vue. 266 components draw themselves pixel by pixel
 from one seeded palette: charts, controls, forms, overlays, backgrounds, text
 effects, 3D models and GLSL shaders, all through the same ordered-dither
 (Bayer) engine. It has a Svelte 5 port, a live docs section for every
@@ -118,14 +118,15 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 
 ### Landing
 
-The hero: the statement and the keys beside a stage that tours real
-components, seated in a form of the kit's liquid chrome, each one live with the
-controls its docs demo has: a dithered chart you reseed, a GLSL shader, one
-snippet written as StyleX, CSS Modules, CSS or Tailwind beside the card it
-renders, a button, a slide and a ferrofluid. "Watch the film" opens the
+The page is printed: one ink on bone paper inside a hairline frame, the kit's
+art in colour through a diagonal print screen. The hero: the statement and the
+keys beside a stage that tours real components, seated on a poster the kit
+prints, each one live with the controls its docs demo has: a dithered chart
+you reseed, a GLSL shader, one snippet written as StyleX, CSS Modules, CSS or
+Tailwind beside the card it renders, a button, a slide and a ferrofluid. "Watch the film" opens the
 trailer, and under the keys a quiet line names what the kit works with, each
 tool under its own mark. Everything else on the page is the kit too, on plain
-filled grounds with no tags, rules or borders:
+filled grounds with no tags or borders:
 
 - a bento of live components, each leading into its docs section: a 3D model
   you re-roll and recolour, a rating, a stat card, a bar chart, meta balls,
@@ -136,7 +137,9 @@ filled grounds with no tags, rules or borders:
 - what's inside: the kit, the Studio and the agent bridge, each harness under
   its own mark, and the docs family by family;
 - the install, under the marks of npm, pnpm and Bun, with a key that copies a
-  prompt for your coding agent.
+  prompt for your coding agent;
+- the footer: a poster band, then numbered link columns ruled in hairlines
+  over the line-screen wordmark.
 
 ### Docs
 
@@ -359,7 +362,7 @@ or precompilation policy.
 
 ## Components
 
-264 public `Dither*` components plus the chart roots and parts. Selected
+266 public `Dither*` components plus the chart roots and parts. Selected
 exports:
 
 | Charts | Parts | Standalone |
@@ -370,8 +373,11 @@ exports:
 | | `Sparkline` `RadarFrame` | `DitherWorld` `DitherShader` |
 
 The barrel also exports the control, form, feedback, navigation, overlay and
-surface families, 46 generative backgrounds, 24 text effects and 49
-interaction and motion effects. Shared chart props:
+surface families, 47 generative backgrounds (the poster among them), 24 text
+effects and 49 interaction and motion effects. Every surface thresholds
+through a 4x4 screen: Bayer, unless a `DitherScreen` around it picks a
+printer's `line`, `diagonal`, `dot` or `cross` (a fill that carries a label
+keeps Bayer). Shared chart props:
 
 - `bloom` (`off`, `low`, `high`, `aura`), `bloomOnHover`, `animate`;
 - `stackType` (`default`, `stacked`, `percent`);

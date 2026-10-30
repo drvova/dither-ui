@@ -7,11 +7,12 @@ export { paintLiquidEther }
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { cn } from "./lib"
-import { BAYER4, clamp01, pixelMatrixFromSeed } from "../engine/pixel"
+import { clamp01 } from "../engine/pixel"
 import { hexToRgb } from "../engine/palette"
 import type { RasterBuffer } from "../engine/raster"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
 import { useDitherBackground } from "../engine/use-dither-background"
+import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
@@ -61,7 +62,7 @@ const params = computed<LiquidEtherParams>(() => ({
   dither: props.dither === true ? 1 : props.dither === false ? 0 : clamp01(props.dither),
   mouseStrength: props.mouseStrength,
 }))
-const matrix = computed(() => (props.seed !== undefined ? pixelMatrixFromSeed(props.seed) : BAYER4))
+const matrix = useDitherMatrix(() => props.seed)
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const mouse = { x: 0.5, y: 0.5 }

@@ -1,8 +1,9 @@
 import { computed, inject, type InjectionKey, markRaw, ref, watch } from "vue"
 import type { ChartConfig, ChartType, Margins } from "./chart-context"
 import type { CommonChart, TooltipItem } from "./common-context"
-import type { BloomInput, EasingInput, VariantInput } from "./dither-paint"
+import type { BloomInput, DitherMatrix, EasingInput, VariantInput } from "./dither-paint"
 import { type Seed, seedFromColor } from "./palette"
+import { useVariantMatrix } from "./use-screen"
 import { type PieSlice, pieSlices, type RadarAxis, radarAxes } from "./polar"
 import type { Dimensions } from "./use-chart-dimensions"
 
@@ -44,6 +45,8 @@ export type PolarChartContextValue = {
   bloomOnHover: boolean
   precompiled: string | undefined
   seedOf: (key: string) => Seed
+  /** A series' threshold matrix from its variant, through any `DitherScreen` around the chart. */
+  matrixOf: (variant: VariantInput) => DitherMatrix
   variantOf: (key: string) => VariantInput
   registerVariant: (key: string, variant: VariantInput) => void
   unregisterVariant: (key: string) => void
@@ -142,6 +145,7 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
   const innerRadius = computed(() => (input.chartType === "pie" ? outerRadius.value * input.innerRadiusRatio() : 0))
 
   const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
+  const matrixOf = useVariantMatrix()
   const variantOf = (key: string): VariantInput => variants.value[key] ?? variants.value["*"] ?? "gradient"
   const registerVariant = (key: string, variant: VariantInput) => {
     if (variants.value[key] === variant) return
@@ -332,6 +336,7 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
       return input.precompiled()
     },
     seedOf,
+    matrixOf,
     variantOf,
     registerVariant,
     unregisterVariant,

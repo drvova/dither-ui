@@ -1,6 +1,7 @@
 import { type ChartContextValue, type ControllerInput, type SeriesSpec } from "./chart-context"
 import type { CommonChart, TooltipItem } from "./common-context"
 import { type Seed, seedFromColor } from "../engine/palette"
+import { useVariantMatrix } from "../runtime/screen"
 import { buildBandScale, buildXScale, buildYScale, computeBands, indexAtBand, nearestIndex } from "./scales"
 
 type Row = Record<string, unknown>
@@ -85,6 +86,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
   }
 
   const seedOf = (key: string): Seed => seedFromColor(input.config()[key]?.color ?? "grey")
+  const matrixOf = useVariantMatrix()
 
   const selectDataKey = (key: string | null) => {
     selectedDataKey = key
@@ -315,6 +317,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     },
     markEntranceDone,
     seedOf,
+    matrixOf,
     common,
   }
 }

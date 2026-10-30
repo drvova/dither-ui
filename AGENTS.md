@@ -125,15 +125,20 @@ Default section order:
   production build: retake the one whose page changes.
 - Landing surfaces: everything that moves on the landing is the kit
   itself (the user's call after the trailer: show the real components,
-  hands on, never drawings of them). Our own hero (the statement beside a
-  stage touring real components, seated in a form of the kit's liquid
-  chrome; a quiet line of what it works with under the keys), then
+  hands on, never drawings of them). The page is printed: one obsidian
+  ink on bone paper with a fine grain inside a hairline frame, everything
+  the kit draws on it through the diagonal print screen (the user's pick
+  from a reference print site, kept unnamed). Our own hero (the statement
+  beside a stage touring real components, seated on a poster the kit
+  prints; a quiet line of what it works with under the keys), then
   sections under a title with a lead beside it: a bento of live
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
-  families), a centred install, and link columns over a line-screen
-  wordmark. It keeps the user's slop bans (User Preferences). No film
+  families), a centred install, and the footer: a poster band, a grid of
+  hairlines with numbered link columns, the line-screen wordmark and the
+  imprint. It keeps the user's slop bans as lifted for it (User
+  Preferences). No film
   player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
   hero's "Watch the film" key and is fetched only when its dialog opens.
@@ -228,6 +233,15 @@ Default section order:
   result in the page, StyleX included (on the kit's StyleX layer, which
   the source panel and the Quick start also show then; see
   `src/AGENTS.md`).
+- Print screens: every kit surface thresholds its density through a 4x4
+  matrix, the Bayer one unless a `DitherScreen` around it picks a
+  printer's screen (`line`, `diagonal`, `dot`, `cross`; `SCREENS` in
+  `dither-kit/engine/pixel.ts`): each surface reads it through one
+  function, `useDitherMatrix` (charts through their context's
+  `matrixOf`), seeded as ever; a fill that carries a label keeps Bayer.
+  `DitherPoster` prints flat palette fields and a hatched disc through
+  them. Docs: Utils (`print-screens`), Backgrounds (`poster`). Details in
+  `dither-kit/AGENTS.md`.
 - Browsers and drivers: the kit is web platform only — Chromium (Chrome,
   Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor
   (Chrome 111, Safari 16.4, Firefox 128); every newer API is feature-detected
@@ -312,8 +326,11 @@ Default section order:
   holding recessed gel wells, a satin chrome primary key, machined
   secondary keys and segment tracks, smoked-polymer overlays, spec labels
   and slanted speed tags), worn by the docs and the Studio; the landing
-  keeps the chrome display type, the chrome primary key and the liquid
-  chrome, and sheds what the slop bans below name. Its materials are the
+  is printed (the user's pick): bone paper (`#E4E1D8`) with one obsidian
+  ink and a fine grain, a hairline frame, labels in mono capitals, colour
+  only in the kit's own art printed through screens; it keeps the chrome
+  display type and the chrome primary key in their light finish, and
+  sheds what the slop bans below still name. Its materials are the
   site voice's (`src/app/styles.css`, both
   themes; see `src/AGENTS.md`), the pages' uses in
   `src/pages/AGENTS.md`. The user's reference is their "Y2K / Biomorphic
@@ -332,7 +349,11 @@ Default section order:
   docs' page title. Its squared heading sans is not used; headings, body,
   labels, figures and code stay mono, the user's identity.
 - Design slop the user bans (their list; the landing is held to it, the
-  docs and the Studio keep their tool chrome until the user extends it):
+  docs and the Studio keep their tool chrome until the user extends it;
+  for the printed landing the user lifted four: the hairline frame and
+  the footer's hairline grid, its numbered column heads, labels in mono
+  capitals (the header's links and keys, the keys, the footer), and more
+  than two inks inside the kit's art, the posters among it):
   tags (no `.spec` labels, speed tags or badges), italic or slanted type,
   a trendy serif display or negative tracking, over-detailed UI (call
   times, arguments, rulers, selection handles, decorative dot grids),
@@ -365,7 +386,8 @@ Default section order:
   landing, the docs and the Studio all follow them: headings, buttons and
   actions in sentence case; field labels and option values may keep the
   lowercase tool voice, never uppercase (uppercase and tracking belong
-  only to spec labels and speed tags, the user's lift for the new look); a kit component's own designed
+  only to spec labels and speed tags, the user's lift for the new look,
+  and to the printed landing's labels); a kit component's own designed
   look (its default strings, its label styles) is the product and stays.
   No space on a page is left empty. Icons do the
   work of labels where they can, with attention to detail: kit glyphs
