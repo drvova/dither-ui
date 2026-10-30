@@ -9,7 +9,7 @@ export const FAMILIES = [
   { title: "Overview", count: 1 },
   { title: "Primitives", count: 19 },
   { title: "Typography", count: 25 },
-  { title: "Handbook", count: 5 },
+  { title: "Handbook", count: 6 },
   { title: "Examples", count: 32 },
   { title: "Components", count: 100 },
   { title: "Backgrounds", count: 47 },

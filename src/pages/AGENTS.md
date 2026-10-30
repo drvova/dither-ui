@@ -245,7 +245,10 @@ widgets/features; page-specific conventions live here.
 ### docs/
 
 - Sidebar IA (after Base UI): Overview · Handbook (Styling, Composition,
-  Animation, Accessibility — prose + CodeBlock, no DemoCard) · Examples ·
+  Seeds, Engine, Animation, Accessibility — prose + CodeBlock, no DemoCard;
+  Engine, `handbook/EngineSection.vue`, names the parts under every surface,
+  each with a figure read from the kit's own constants and a link to its
+  section, a dead id failing the render) · Examples ·
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,

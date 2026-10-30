@@ -62,6 +62,7 @@ import { INSTALL } from "./install"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
 import PrimitivesDocs from "./primitives/PrimitivesDocs.vue"
+import EngineSection from "./handbook/EngineSection.vue"
 import ScreensSection from "./utils/ScreensSection.vue"
 import TypographyDocs from "./typography/TypographyDocs.vue"
 import FeedbackDocs from "./components/FeedbackDocs.vue"
@@ -1218,6 +1219,9 @@ const gradientCode = computed(
               </div>
             </DemoCard>
           </section>
+
+          <!-- Engine: the parts under every surface, a figure each -->
+          <EngineSection />
 
           <!-- Composition -->
           <section id="composition" class="mt-16 scroll-mt-24">

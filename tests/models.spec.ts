@@ -3,6 +3,7 @@ import {
   externalResources,
   formatOf,
   MAX_NODES,
+  MODEL_FORMATS,
   parseGltf,
   parseMtl,
   parseObj,
@@ -92,6 +93,15 @@ function glb(
   out.set(bin, 28 + jsonPad)
   return out
 }
+
+describe("the format list", () => {
+  it("is every format a file name can name", () => {
+    const named = ["a.wrl", "a.vrml", "a.x3dv", "a.x3d", "a.obj", "a.stl", "a.ply", "a.off", "a.gltf", "a.glb"].map(
+      formatOf,
+    )
+    expect(new Set(named)).toEqual(new Set(MODEL_FORMATS))
+  })
+})
 
 describe("formats", () => {
   it("names and sniffs every format", () => {

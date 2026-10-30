@@ -49,6 +49,7 @@ export const GROUPS: DocsGroup[] = [
       { id: "styling", label: "Styling" },
       { id: "composition", label: "Composition" },
       { id: "seeds", label: "Seeds" },
+      { id: "engine", label: "Engine" },
       { id: "motion", label: "Animation" },
       { id: "accessibility", label: "Accessibility" },
     ],
