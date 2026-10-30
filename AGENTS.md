@@ -142,8 +142,9 @@ Default section order:
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
-  families), a centred install closed by the kit's spec sheet, and the footer: the brand beside link
-  columns, the copyright line and the line-screen wordmark. It keeps the
+  families), a centred install closed by the kit's spec sheet, and the
+  footer: the brand (gathering as it nears, as in the hero and on the
+  plates) beside link columns, the copyright line and the line-screen wordmark. It keeps the
   user's slop bans as lifted for it (User Preferences). No film
   player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the

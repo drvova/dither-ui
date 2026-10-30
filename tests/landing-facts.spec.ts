@@ -4,7 +4,7 @@ import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
 import { STYLING_LABELS } from "../src/shared/lib/restyle"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
-import { choreograph, LOCKUP, LOCKUP_SIZE, MARK_CELLS, MOMENT, type Scene } from "../src/pages/landing/brand"
+import { choreograph, LOCKUP, LOCKUP_SIZE, MARK_CELLS, MOMENT, type Scene, STAGINGS } from "../src/pages/landing/brand"
 import { PLATES, sceneOf, STOCK } from "../src/pages/landing/plate"
 
 const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
@@ -87,14 +87,20 @@ describe("landing facts", () => {
     expect(gather.lift + gather.sweep + gather.span[1]).toBeLessThanOrEqual(burst.at)
     expect(burst.at + burst.span).toBeLessThanOrEqual(settle.at)
     expect(settle.at + settle.sweep + settle.span).toBeLessThanOrEqual(MOMENT.end)
-    // Every plate, and a scene with rows like the hero's: the brand near the
-    // field's foot, the burst kept off the copy above it.
-    const top = 200
-    const scenes: [number, Scene][] = [
-      ...Object.values(PLATES).map((plate): [number, Scene] => [plate.mark[0], sceneOf(plate, box.height)]),
-      [0, { seed: 5, loose: [top - 24, top + 160], burst: [top - 24, box.height] }],
+    // Every plate, and the hero's and the footer's stagings, each with its
+    // lockup where the page sets it: mid-field, near the hero's foot, under
+    // the footer's top padding.
+    const scenes: [string, number, number, Scene][] = [
+      ...Object.entries(PLATES).map(([id, plate]): [string, number, number, Scene] => [
+        id,
+        plate.mark[0],
+        200,
+        sceneOf(plate, box.height),
+      ]),
+      ["hero", 0, 300, STAGINGS.hero(box.height, 300)],
+      ["foot", 0, 48, STAGINGS.foot(box.height, 48)],
     ]
-    for (const [at, scene] of scenes) {
+    for (const [, at, top, scene] of scenes) {
       const left = 16 + Math.round(at * (box.width - 32 - LOCKUP_SIZE.width * cell))
       const slots = LOCKUP.map((c) => ({ x: left + c.x * cell, y: top + c.y * cell }))
       const paths = choreograph(scene, box, slots, cell)

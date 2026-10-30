@@ -5,7 +5,7 @@ import { DitherIcon, DitherPoster, DitherReveal, type PixelColor } from "@dither
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import type { MarkId } from "@/shared/ui/marks"
 import { COMPONENT_COUNT, MATRIX } from "./facts"
-import type { Scene } from "./brand"
+import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
 import PauseChip from "./PauseChip.vue"
 import TrailerDialog from "./TrailerDialog.vue"
@@ -16,16 +16,11 @@ import TrailerDialog from "./TrailerDialog.vue"
 // obsidian like a print on black stock. The film is a key away.
 const film = ref(false)
 
-// The statement signs off with the brand, gathering out of the open field
-// of the page's column under it (some of its cells from under the print)
-// as the page opens, its burst kept off the copy above it. One
-// moving layer at a time: the print holds its frame until the brand is home.
+// The statement signs off with the brand (`STAGINGS.hero`), gathering out
+// of the open field of the page's column under it (some of its cells from
+// under the print) as the page opens. One moving layer at a time: the print
+// holds its frame until the brand is home.
 const gathered = ref(false)
-const scene = (height: number, top: number): Scene => ({
-  seed: 5,
-  loose: [top - 24, Math.min(height - 8, top + 160)],
-  burst: [top - 24, height],
-})
 
 // The print's inks: the kit's blue, the ember and the page's own bone ink.
 // Its screen slides by itself, so it carries a pause (WCAG 2.2.2).
@@ -65,7 +60,7 @@ const WORKS: { id: MarkId; name: string }[] = [
             <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="13" />{{ t.name }}</li>
           </ul>
         </div>
-        <BrandGather class="hero-brand" :scene="scene" @settled="gathered = true" />
+        <BrandGather class="hero-brand" :scene="STAGINGS.hero" @settled="gathered = true" />
       </div>
       <div class="print-col">
         <div class="print">
