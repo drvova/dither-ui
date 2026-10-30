@@ -1,7 +1,10 @@
 import { ICON_NAMES, type PixelColor } from "@dither-kit"
+import { safeUrl } from "@/shared/lib/routes"
 
 export type PropSpec =
   | { key: string; kind: "text"; def: string }
+  /** An href or a src: a string that `safeUrl` accepts, never a script. */
+  | { key: string; kind: "url"; def: string }
   | { key: string; kind: "boolean"; def: boolean }
   | { key: string; kind: "number"; def: number; min?: number; max?: number; step?: number }
   | { key: string; kind: "select"; def: string; options: readonly string[] }
@@ -42,6 +45,7 @@ export type ComponentEntry = {
 const color = (def: PixelColor = "blue"): PropSpec => ({ key: "color", kind: "color", def })
 const bool = (key: string, def = false): PropSpec => ({ key, kind: "boolean", def })
 const text = (key: string, def: string): PropSpec => ({ key, kind: "text", def })
+const url = (key: string, def: string): PropSpec => ({ key, kind: "url", def })
 const number = (key: string, def: number, min?: number, max?: number, step?: number): PropSpec => ({
   key,
   kind: "number",
@@ -414,7 +418,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Image",
     group: "display",
     frame: { w: 240, h: 140 },
-    props: [text("src", "/faces.webp"), text("alt", "Portrait"), select("loading", "lazy", ["lazy", "eager"])],
+    props: [url("src", "/faces.webp"), text("alt", "Portrait"), select("loading", "lazy", ["lazy", "eager"])],
   },
   {
     is: "DitherSpacer",
@@ -428,7 +432,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Portal",
     group: "structure",
     frame: { w: 240, h: 100 },
-    props: [text("to", "body"), bool("disabled", true)],
+    props: [select("to", "body", ["body"]), bool("disabled", true)],
     slotText: "Teleported content",
   },
   {
@@ -609,7 +613,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Link",
     group: "display",
     frame: { w: 220, h: 80 },
-    props: [text("href", "#"), bool("external")],
+    props: [url("href", "#"), bool("external")],
     slotText: "Docs home",
   },
   {
@@ -617,7 +621,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "External link",
     group: "display",
     frame: { w: 240, h: 80 },
-    props: [text("href", "https://vuejs.org"), number("iconSize", 12, 8, 20)],
+    props: [url("href", "https://vuejs.org"), number("iconSize", 12, 8, 20)],
     slotText: "Vue docs",
   },
   {
@@ -2235,7 +2239,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Video player",
     group: "display",
     frame: { w: 360, h: 280 },
-    props: [text("src", ""), text("label", "Video"), color()],
+    props: [url("src", ""), text("label", "Video"), color()],
   },
   {
     is: "DitherWorld",
@@ -2243,7 +2247,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 320, h: 240 },
     props: [
-      text("src", ""),
+      url("src", ""),
       text("source", ""),
       select("format", "auto", ["auto", "vrml", "x3d", "gltf", "obj", "stl", "ply", "off"]),
       select("engine", "auto", ["auto", "cpu", "gpu"]),
@@ -2276,7 +2280,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 320, h: 240 },
     props: [
-      text("src", ""),
+      url("src", ""),
       text("source", ""),
       color(),
       list("colors", []),
@@ -2985,7 +2989,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [
       number("duration", 1.2, 0.1, 10, 0.1),
       number("delay", 0, 0, 10, 0.1),
-      select("direction", "none", ["none", "right", "left", "down", "up"]),
+      select("direction", "none", ["none", "right", "left", "down", "up", "iris"]),
       number("cell", 4, 1, 16, 1),
       number("band", 12, 0, 40, 1),
       bool("reverse"),
@@ -3025,9 +3029,9 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 260, h: 160 },
     props: [
-      text("src", "/sprites.webp"),
+      url("src", "/sprites.webp"),
       text("alt", "Sprite sheet preview"),
-      text("href", "https://dither-ui.com/docs"),
+      url("href", "https://dither-ui.com/docs"),
       text("ratio", "1.618"),
       number("veilCell", 4, 2, 12, 1),
     ],
@@ -3050,6 +3054,9 @@ export function sanitizeComponentProps(entry: ComponentEntry, raw: unknown): Rec
     switch (spec.kind) {
       case "text":
         out[spec.key] = typeof v === "string" ? v : spec.def
+        break
+      case "url":
+        out[spec.key] = typeof v === "string" && safeUrl(v) ? v : spec.def
         break
       case "boolean":
         out[spec.key] = typeof v === "boolean" ? v : spec.def

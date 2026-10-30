@@ -42,7 +42,10 @@ the bridge found on your PATH:
 Options: `--agent "<command>"` starts that command with the tab instead of
 waiting for a pick; `--port 8790` (websocket + relay port, loopback only);
 `--cwd <dir>` (the agent's working directory and where exported files land,
-default: where you ran the bridge). Commands run from `--cwd`, so a local
+default: where you ran the bridge); `--origin <url>` (more pages that may
+connect, comma-separated, beside dither-ui.com and any localhost or
+127.0.0.1 port: the Studio deployed anywhere else, e.g.
+`--origin https://you.github.io`). Commands run from `--cwd`, so a local
 script needs an absolute path.
 
 The harness's prose, plan, tool calls and permission prompts stream into the
@@ -55,8 +58,8 @@ away.
 
 - Relays every ACP message verbatim in both directions. The one edit: each
   `session/new` and `session/load` gets `{ name: "dither-studio", command:
-  node, args: [this file, "--mcp", port] }` appended to `mcpServers`, and an
-  empty `cwd` is filled with `--cwd`.
+  node, args: [this file, "--mcp", port, "--token", token] }` appended to
+  `mcpServers`, and an empty `cwd` is filled with `--cwd`.
 - Serves the MCP server the agent spawns (`--mcp` mode): `tools/list` and
   `tools/call` are forwarded over local HTTP (`/relay/tools`, `/relay/call`)
   to the bridge, which sends `studio/call` to the tab and returns the
@@ -68,14 +71,20 @@ away.
   swallowed.
 - Listens on 127.0.0.1 only, accepts one tab at a time (a second gets 409),
   and kills the agent when the tab disconnects.
+- Lets only the Studio's own pages in: a websocket or request from any other
+  origin, or naming any host but the loopback, gets 403, so a page open in
+  the same browser can neither start a command nor drive the tab. The relay
+  answers only the MCP server it injected, which carries this run's random
+  token; no response carries a CORS header.
 - Never sees a credential: the agent authenticates itself the way it always
   does (its own login, keychain or env), and nothing goes to dither-ui.com.
 
 ## Files from the Studio
 
 Some tools answer with files for the project instead of data — `export_video`
-hands back a HyperFrames composition. The bridge writes them under `--cwd`
-(relative paths only, never above it) and the agent receives their paths:
+hands back a HyperFrames composition. The bridge writes it under `--cwd` at
+`video/<name>/index.html`, the one path a file may take, and the agent
+receives the path:
 
 ```
 export_video → video/sign-in/index.html

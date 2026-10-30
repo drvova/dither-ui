@@ -1,5 +1,6 @@
 <script lang="ts" module>
-  import { rgb, type Rgb } from "../engine/palette"
+  import { type Rgb } from "../engine/palette"
+  import { cellCanvas } from "../engine/raster"
   import { BAYER4, clamp01, fillOf } from "../engine/pixel"
 
   const CELL = 2
@@ -14,7 +15,7 @@
     ratio: number,
     matrix: number[][] = BAYER4
   ): void {
-    ctx.clearRect(0, 0, cols, rows)
+    const px = cellCanvas(ctx, cols, rows)
     const filled = Math.round(cols * clamp01(ratio))
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
@@ -22,14 +23,14 @@
           const density = 0.35 + 0.65 * ((x + 0.5) / Math.max(1, filled))
           const lit = density > matrix[y & 3][x & 3]
           const k = 0.3 + density * 0.7
-          ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
+          px.cell(x, y, fill, clamp01(lit ? k : k * 0.4))
         } else {
           const lit = 0.25 > matrix[y & 3][x & 3]
-          ctx.fillStyle = rgb(muted, 1, lit ? 0.2 : 0.06)
+          px.cell(x, y, muted, lit ? 0.2 : 0.06)
         }
-        ctx.fillRect(x, y, 1, 1)
       }
     }
+    px.flush()
   }
 </script>
 

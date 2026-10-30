@@ -6,6 +6,7 @@
 // does not know stay classes — the kit's own stylesheet covers them.
 import { ref } from "vue"
 import UTILITIES from "virtual-dither-utilities"
+import { storage } from "./storage"
 
 export type UtilityRule = { chain: string[]; decl: [string, string][] }
 export type UtilityMap = {
@@ -29,12 +30,8 @@ export const isStyling = (v: unknown): v is Styling => STYLINGS.includes(v as St
 
 const STORAGE_KEY = "dither-styling"
 const stored = (): Styling => {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY)
-    return isStyling(v) ? v : "tailwind"
-  } catch {
-    return "tailwind"
-  }
+  const v = storage.get(STORAGE_KEY)
+  return isStyling(v) ? v : "tailwind"
 }
 
 /** The reader's styling system — one choice for the docs and the Studio. */
@@ -42,11 +39,7 @@ export const styling = ref<Styling>(stored())
 
 export function setStyling(next: Styling): void {
   styling.value = next
-  try {
-    localStorage.setItem(STORAGE_KEY, next)
-  } catch {
-    // privacy mode: the choice lives for the session
-  }
+  storage.set(STORAGE_KEY, next)
 }
 
 /* ------------------------------ compiling classes ------------------------- */

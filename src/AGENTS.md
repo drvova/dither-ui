@@ -42,7 +42,17 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   dithered or put in the kit; imported by path, never through the
   `shared/ui` barrel, which would pull every shared component into the
   landing's first load; `Segmented` takes `labels` where an option's
-  value is not how a reader writes it), config (CHART_TYPES), lib (theme, routes, base64, menu,
+  value is not how a reader writes it), config (CHART_TYPES), lib (theme,
+  routes (with `safeUrl`, the ONE test of a URL a document may carry into
+  an href or a src: http(s), mailto, a raster `data:` image or a relative
+  path, read as the browser reads it), base64, menu,
+  `storage.ts` — the ONE path to localStorage (`storage.get/set/remove`,
+  `readJson` → `unknown` for the caller to parse, `writeJson`), never
+  throwing where storage is blocked or full —
+  `sfc.ts` — the ONE way the code generators put a document value into an
+  SFC (`attr` for a static attribute, `js` for a literal in script or a
+  single-quoted binding, `key`, `objectLiteral`, `text` for template text),
+  so exported code carries values as data, never as code —
   `sound.ts` — Kobra's interface sounds as WebAudio voices behind one
   remembered switch (`sounds`, localStorage `dither-sounds`) — `files.ts` —
   `download()` and a stored .zip of text files, the ONE download path for
@@ -55,6 +65,15 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   ordered dither, delta frames), import-free because the share-card
   renderer carries its source inline: the workbench's captures and the
   share cards both go through it).
+- Untrusted input is parsed ONCE where it enters, into a type nothing past
+  it re-checks: documents through `parseDocument` / `normalizeArtboard`
+  (each field of several shapes, a glow, a texture, an easing, parsed whole
+  so every shape the editors write survives; a `url` prop, an image's or an
+  avatar's address through `safeUrl`), stored values through `storage.ts`
+  and a parser at the reader, bridge messages through a parser in `acp.ts`
+  (`permissionOptions`). Pinned by `tests/security.spec.ts` and
+  `tests/codegen-escape.spec.ts` (hostile labels, keys, props and slot text
+  through both code generators and Vue's own compiler).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
   component library, inspector controls, untrusted-prop sanitization, functional
   demo composition, and code export. Every public `Dither*` export is covered
@@ -414,6 +433,22 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   fold sections skip layout/paint until they approach the viewport (the page
   is 220 sections / ~180k px; first layout of everything cost seconds). New
   section wrappers must stay inside `.docs-flow` to keep the rule applying.
+- Page transitions: the routes (`/`, `/docs`, `/studio` and the section
+  pages) opt into cross-document view transitions in `app/styles.css`
+  (`@view-transition`, none under reduced motion), and the arriving page
+  dithers from the old one through the kit's `ditherViewTransition`: a
+  right wipe (left going back through history) with a band of the signal
+  ink. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
+  inlined first in each route's head by `rstack.config.ts` (`html.tags`,
+  with the `PAGE_END_ID` marker it appends to each body), parks the
+  `pagereveal` transition and holds the old page on screen until the app
+  takes it; arriving from one of the pages it also holds the first frame
+  to the marker (`<link rel=expect blocking=render>`), since Chromium drops
+  a transition into a page it paints mid-parse (the 1.4 MB docs);
+  `takePageTransition` hands it to main.ts in either order (that hold lets
+  the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
+  runs the inline script both ways. The theme toggle (`useTheme`'s
+  `revealToggle`) dithers the new theme in as an iris from its control.
 - Engine gate: `app/main.ts` adds `html.engine-webkit` when the UA is WebKit
   by ENGINE (`AppleWebKit` without `Chrome`/`Android` — so iOS skins like
   CriOS/FxiOS/EdGiOS count), and the docs sections then opt OUT of

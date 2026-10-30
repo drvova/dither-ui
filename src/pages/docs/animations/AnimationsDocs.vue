@@ -55,6 +55,7 @@ import {
 import { linear, quantize, steps } from "@dither-kit"
 import type { StaggerFrom } from "@dither-kit"
 import DemoCard from "../DemoCard.vue"
+import TransitionSection from "./TransitionSection.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
 const SHARED_CANVAS: PropRow[] = [
@@ -468,7 +469,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "progress", type: "number 0–1 (manual; unset plays on the clock)", default: "" },
     { prop: "duration", type: "number (s)", default: "1.2" },
     { prop: "delay", type: "number (s)", default: "0" },
-    { prop: "direction", type: "'none' | 'right' | 'left' | 'down' | 'up'", default: "'none' (dissolve)" },
+    { prop: "direction", type: "'none' | 'right' | 'left' | 'down' | 'up' | 'iris'", default: "'none' (dissolve)" },
     { prop: "cell", type: "number (px)", default: "4" },
     { prop: "band", type: "number (cells; directional wipes)", default: "12" },
     { prop: "seed", type: "number (a seeded 4×4 matrix)", default: "none (Bayer 8×8)" },
@@ -692,9 +693,9 @@ const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/6
 
 /* Skiper-adjacent widgets: working demo state. */
 const expandTab = ref("home")
-const revealDirection = ref<"none" | "right" | "down">("none")
+const revealDirection = ref<"none" | "right" | "down" | "iris">("none")
 const revealNonce = ref(0)
-const replayReveal = (direction: "none" | "right" | "down") => {
+const replayReveal = (direction: "none" | "right" | "down" | "iris") => {
   revealDirection.value = direction
   revealNonce.value++
 }
@@ -1197,6 +1198,7 @@ function nudgeCq(delta: number): void {
               ['none', 'Dissolve'],
               ['right', 'Wipe right'],
               ['down', 'Wipe down'],
+              ['iris', 'Iris'],
             ] as const"
             :key="opt[0]"
             type="button"
@@ -1223,6 +1225,9 @@ function nudgeCq(delta: number): void {
     </DemoCard>
     <PropsTable :rows="API.ditherReveal" />
   </section>
+
+  <!-- Page transition -->
+  <TransitionSection />
 
   <!-- Sticker peel -->
   <section id="sticker-peel" class="mt-16 scroll-mt-24">

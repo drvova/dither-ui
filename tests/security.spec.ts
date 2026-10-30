@@ -3,6 +3,8 @@ import { createArtboard } from "../src/entities/artboard/model/factory"
 import { normalizeArtboard } from "../src/entities/artboard/model/normalize"
 import type { Artboard } from "../src/entities/artboard/model/types"
 import { componentEntry, sanitizeComponentProps } from "../src/entities/widget/model/registry"
+import { createWidget } from "../src/entities/widget/model/factory"
+import { safeUrl } from "../src/shared/lib/routes"
 
 /** Craft an artboard the way a malicious/tampered project file would. */
 const crafted = (mutate: (json: any) => void): Artboard => {
@@ -136,5 +138,88 @@ describe("normalizeArtboard as sanitiser", () => {
       j.widget = { kind: "totally-new-thing", payload: "x" }
     })
     expect(normalizeArtboard(a).widget).toBeUndefined()
+  })
+})
+
+describe("URLs a document carries (href, src)", () => {
+  const SCRIPTS = [
+    "javascript:alert(1)",
+    "JavaScript:alert(1)",
+    " javascript:alert(1)",
+    "java\tscript:alert(1)",
+    "java\nscript:alert(1)",
+    "\u0001javascript:alert(1)",
+    "vbscript:msgbox(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "data:image/svg+xml,<svg onload=alert(1)>",
+  ]
+  it("keeps http(s), mailto, raster data images and relative paths", () => {
+    for (const u of [
+      "https://dither-ui.com/docs",
+      "http://x.test",
+      "mailto:a@b.c",
+      "/faces.webp",
+      "#top",
+      "docs/x",
+      "?q=1",
+    ])
+      expect(safeUrl(u)).toBe(true)
+    expect(safeUrl("data:image/png;base64,AAAA")).toBe(true)
+  })
+  it("refuses a script URL however it is spelled", () => {
+    for (const u of SCRIPTS) expect(safeUrl(u)).toBe(false)
+  })
+  it("never lets one into a component's href or src", () => {
+    for (const is of ["DitherLink", "DitherExternalLink"]) {
+      const entry = componentEntry(is)!
+      for (const u of SCRIPTS) expect(sanitizeComponentProps(entry, { href: u }).href).not.toBe(u)
+    }
+    const thumb = componentEntry("DitherThumbnail")!
+    const out = sanitizeComponentProps(thumb, { src: "javascript:alert(1)", href: "javascript:alert(1)" })
+    expect(out.src).toBe("/sprites.webp")
+    expect(out.href).toBe("https://dither-ui.com/docs")
+  })
+  it("pins a portal to the page body", () => {
+    expect(sanitizeComponentProps(componentEntry("DitherPortal")!, { to: "#app" }).to).toBe("body")
+  })
+  it("clears a script URL from an image or an avatar's picture", () => {
+    const img = crafted((j) => (j.widget = { ...createWidget("image"), src: "javascript:alert(1)" }))
+    expect((normalizeArtboard(img).widget as { src: string }).src).toBe("")
+    const face = crafted((j) => (j.widget = { ...createWidget("avatar"), imageSrc: "data:text/html,x" }))
+    expect((normalizeArtboard(face).widget as { imageSrc: string }).imageSrc).toBe("")
+  })
+})
+
+describe("normalizeArtboard keeps every shape the editors write", () => {
+  it("a custom glow, a seeded or custom texture and a cubic-bezier easing survive a reload", () => {
+    const glow = { blur: 6, brightness: 1.8, opacity: 0.5, saturate: 2, blend: "screen" }
+    const texture = { ramp: 0.4, density: 0.2, gaps: true, hatch: 4 }
+    const a = crafted((j) => {
+      j.chart.bloom = glow
+      j.chart.easing = [0.2, 1.4, 0.4, 1]
+      j.chart.series[0].variant = texture
+      if (j.chart.series[1]) j.chart.series[1].variant = 42
+    })
+    const n = normalizeArtboard(JSON.parse(JSON.stringify(a)))
+    expect(n.chart.bloom).toEqual(glow)
+    expect(n.chart.easing).toEqual([0.2, 1.4, 0.4, 1])
+    expect(n.chart.series[0].variant).toEqual(texture)
+    if (n.chart.series[1]) expect(n.chart.series[1].variant).toBe(42)
+  })
+  it("holds their numbers in range and drops what is not theirs", () => {
+    const a = crafted((j) => {
+      j.chart.bloom = { blur: 1e9, brightness: "x", opacity: -1, onload: "alert(1)" }
+      j.chart.easing = [5, 0, -3, 1]
+      j.chart.series[0].variant = { ramp: 9, hatch: 1, evil: "x" }
+    })
+    const n = normalizeArtboard(a)
+    expect(n.chart.bloom).toEqual({ blur: 64, brightness: 1.35, opacity: 0 })
+    expect(n.chart.easing).toEqual([1, 0, 0, 1])
+    expect(n.chart.series[0].variant).toEqual({ ramp: 2, hatch: 0 })
+  })
+  it("a widget's custom glow survives too", () => {
+    const glow = { blur: 4, brightness: 1.2, opacity: 0.6 }
+    const a = crafted((j) => (j.widget = { ...createWidget("button"), bloom: glow }))
+    expect((normalizeArtboard(a).widget as { bloom: unknown }).bloom).toEqual(glow)
   })
 })

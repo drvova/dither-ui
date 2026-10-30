@@ -140,6 +140,21 @@ describe("DitherDialog", () => {
     w.unmount()
     opener.remove()
   })
+  it("gives each open dialog its own title id", async () => {
+    // Two dialogs in one app, as on a page.
+    const w = mount(
+      {
+        components: { DitherDialog },
+        template: `<DitherDialog open title="First" /><DitherDialog open title="Second" />`,
+      },
+      { attachTo: document.body },
+    )
+    await nextTick()
+    const [one, two] = [...document.querySelectorAll<HTMLElement>('[role="dialog"]')]
+    expect(one.getAttribute("aria-labelledby")).not.toBe(two.getAttribute("aria-labelledby"))
+    expect(document.getElementById(two.getAttribute("aria-labelledby")!)?.textContent).toBe("Second")
+    w.unmount()
+  })
 })
 
 describe("DitherTabs", () => {

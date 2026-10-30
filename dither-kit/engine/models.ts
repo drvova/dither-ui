@@ -3,11 +3,18 @@
 // with data: URIs or pre-fetched buffers, .glb), Wavefront OBJ (+ MTL
 // colours), STL (ASCII + binary), PLY (ASCII + binary) and OFF. Lenient by
 // design — unknown nodes are walked for children and otherwise ignored, bad
-// indices are dropped, nothing throws on a file that is merely odd. Files
+// indices are dropped, nothing throws on a file that is merely odd. Bounded
+// too: a file's counts are held to the data it carries and a scene graph is
+// walked for at most MAX_NODES nodes, so a small hostile file (a DEF/USE
+// fan-out, a list that claims a billion entries) cannot hang the page. Files
 // that animate (VRML TimeSensor → interpolator → ROUTE, glTF animations)
 // become tracks on world nodes, sampled by the renderer at the kit clock.
 
 import type { Rgb } from "./palette"
+
+/** The most scene-graph nodes one parse visits, shared instances counted
+ * each time they are reached. */
+export const MAX_NODES = 50_000
 import {
   addMesh,
   addNode,
@@ -463,7 +470,7 @@ export function parsePly(input: string | ArrayBuffer | Uint8Array): World {
         const row: Record<string, number | number[]> = {}
         for (const prop of el.props) {
           if (prop.list) {
-            const count = +toks[i++]
+            const count = Math.min(+toks[i++] || 0, toks.length - i)
             const list: number[] = []
             for (let k = 0; k < count; k++) list.push(+toks[i++])
             row[prop.name] = list
@@ -538,7 +545,7 @@ export function parseOff(text: string): World {
   const colors: number[] = []
   let hasColor = false
   for (let f = 0; f < nf && i < toks.length; f++) {
-    const n = +toks[i++] || 0
+    const n = Math.min(+toks[i++] || 0, toks.length - i)
     const face: number[] = []
     for (let k = 0; k < n; k++) face.push(+toks[i++])
     // Trailing colour: 3-4 ints (0-255) or floats (0-1) before the next count.
@@ -732,9 +739,10 @@ export function parseGltf(
     )
   }
 
+  let visits = 0
   const walk = (index: number, mRel: Mat4, parent: number, depth: number) => {
     const n = json.nodes?.[index]
-    if (!n || depth > 64) return
+    if (!n || depth > 64 || ++visits > MAX_NODES) return
     let m: Mat4
     let node = parent
     if (animated.has(index)) {
@@ -1456,8 +1464,10 @@ function tracksFor(
 
 function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): void {
   const byName = new Map<string, VrmlNode>()
+  let visits = 0
   const index = (list: VrmlNode[], depth: number) => {
     for (const n of list) {
+      if (++visits > MAX_NODES) return
       if (n.name) byName.set(n.name, n)
       if (depth < 64)
         for (const v of Object.values(n.fields))
@@ -1465,6 +1475,7 @@ function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): void {
     }
   }
   index(nodes, 0)
+  visits = 0
   const animatedNames = new Set(
     routes.map((r) => r.to).filter((name) => NODE_FIELDS[routes.find((r) => r.to === name)?.toField ?? ""]),
   )
@@ -1472,6 +1483,7 @@ function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): void {
   const walk = (list: VrmlNode[], m: Mat4, parent: number, depth: number) => {
     if (depth > 64) return
     for (const n of list) {
+      if (++visits > MAX_NODES) return
       switch (n.type) {
         case "Transform": {
           const tracks = n.name && animatedNames.has(n.name) ? tracksFor(n.name, routes, byName) : {}
@@ -1539,9 +1551,11 @@ function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): void {
 type V1State = { m: Mat4; points: number[]; color: Rgb; ccw: boolean | null; solid: boolean }
 
 function buildV1(nodes: VrmlNode[], world: World): void {
+  let visits = 0
   const walk = (list: VrmlNode[], s: V1State, depth: number) => {
     if (depth > 64) return
     for (const n of list) {
+      if (++visits > MAX_NODES) return
       const kids = children(n, "children")
       switch (n.type) {
         case "Separator":

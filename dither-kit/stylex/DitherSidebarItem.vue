@@ -1,7 +1,8 @@
 <!-- Generated from ../tailwind/DitherSidebarItem.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
 <script lang="ts">
 import { BAYER4, fillOf, type PixelColor } from "../engine/pixel"
-import { cssColor, rgb } from "../engine/palette"
+import { cssColor } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import * as stylex from "@stylexjs/stylex"
 
 /** 2px dithered rail marking the active item — same recipe as the tabs underline. */
@@ -12,13 +13,12 @@ function paintRail(canvas: HTMLCanvasElement, color: PixelColor, cssHeight: numb
   canvas.width = 1
   canvas.height = rows
   const fill = fillOf(color)
+  const px = cellCanvas(ctx, 1, rows)
   for (let y = 0; y < rows; y++) {
     const k = 0.55 + 0.45 * (1 - Math.abs(y / rows - 0.5) * 2)
-    if (k > matrix[y & 3][0] * 0.9) {
-      ctx.fillStyle = rgb(fill, 1, k)
-      ctx.fillRect(0, y, 1, 1)
-    }
+    if (k > matrix[y & 3][0] * 0.9) px.cell(0, y, fill, k)
   }
+  px.flush()
 }
 
 const styles = stylex.create({

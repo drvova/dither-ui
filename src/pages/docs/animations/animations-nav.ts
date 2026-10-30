@@ -33,6 +33,7 @@ export const ANIMATIONS_NAV = [
   { id: "orbit-images", label: "Orbit images" },
   { id: "pixel-transition", label: "Pixel transition" },
   { id: "dither-reveal", label: "Dither reveal" },
+  { id: "dither-transition", label: "Page transition" },
   { id: "sticker-peel", label: "Sticker peel" },
   { id: "expand-tabs", label: "Expand tabs" },
   { id: "island", label: "Island" },

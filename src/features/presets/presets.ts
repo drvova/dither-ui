@@ -2,31 +2,24 @@ import { reactive } from "vue"
 import { type Artboard, normalizeArtboard } from "@/entities/artboard"
 import type { ChartModel } from "@/entities/chart"
 import { placeArtboard } from "@/entities/editor"
+import { readJson, writeJson } from "@/shared/lib/storage"
 
 const KEY = "dither-presets-v1"
 
 export type Preset = { name: string; chart: ChartModel }
 
+/** The stored presets, each a name and a chart (normalised when applied). */
 const load = (): Preset[] => {
-  try {
-    const raw = localStorage.getItem(KEY)
-    const d = raw ? JSON.parse(raw) : []
-    return Array.isArray(d) ? d : []
-  } catch {
-    return []
-  }
+  const d = readJson(KEY)
+  return (Array.isArray(d) ? d : []).filter(
+    (p): p is Preset => !!p && typeof p.name === "string" && !!p.chart && typeof p.chart === "object",
+  )
 }
 
 /** Reactive preset list, persisted to localStorage on every change. */
 export const presets = reactive<Preset[]>(load())
 
-const save = () => {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(presets))
-  } catch {
-    // quota / privacy mode — presets just stay session-local
-  }
-}
+const save = () => writeJson(KEY, presets)
 
 /** Snapshot an artboard's chart under a name (replaces a same-named preset). */
 export function savePreset(name: string, artboard: Artboard): void {

@@ -3,6 +3,7 @@ import { createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { editor, placeArtboard, selectArtboard } from "@/entities/editor"
 import { resetHistory } from "@/features/history"
 import { download } from "@/shared/lib/files"
+import { readJson, storage as store, writeJson } from "@/shared/lib/storage"
 
 /**
  * Per-visitor project workspace. Every browser owns its own project list in
@@ -32,42 +33,6 @@ export const activeProjectId = reactive({ value: "" })
 
 let pc = 0
 const uid = () => `p${Date.now().toString(36)}${(pc++).toString(36)}`
-
-/** Storage is best-effort everywhere: a private window, a locked-down or
- * automation profile, or a full quota throws on access, and the Studio keeps
- * editing in memory. */
-const store = {
-  get(key: string): string | null {
-    try {
-      return localStorage.getItem(key)
-    } catch {
-      return null
-    }
-  },
-  set(key: string, value: string): void {
-    try {
-      localStorage.setItem(key, value)
-    } catch {
-      // quota / privacy mode — keep editing, persistence is best-effort
-    }
-  },
-  remove(key: string): void {
-    try {
-      localStorage.removeItem(key)
-    } catch {
-      // nothing to forget where nothing is kept
-    }
-  },
-}
-const readJson = <T>(key: string): T | null => {
-  try {
-    const raw = store.get(key)
-    return raw ? (JSON.parse(raw) as T) : null
-  } catch {
-    return null
-  }
-}
-const writeJson = (key: string, value: unknown) => store.set(key, JSON.stringify(value))
 
 const saveIndex = () => writeJson(INDEX_KEY, projects)
 const touch = (id: string) => {
@@ -127,7 +92,19 @@ export function parseDocument(d: unknown): {
   return valid ? { ...valid, artboards: valid.artboards.map(normalizeArtboard) } : null
 }
 
-function applyDoc(d: Doc | null): void {
+/** The project list as stored, read once: an entry needs a string id; its
+ * name and time fall back, and a duplicate id is dropped. */
+function parseProjects(v: unknown): ProjectMeta[] {
+  const seen = new Set<string>()
+  return (Array.isArray(v) ? v : []).filter(isPlain).flatMap((p) => {
+    if (typeof p.id !== "string" || !p.id || seen.has(p.id)) return []
+    seen.add(p.id)
+    const name = typeof p.name === "string" && p.name.trim() ? p.name : "Untitled"
+    return [{ id: p.id, name, updatedAt: typeof p.updatedAt === "number" ? p.updatedAt : 0 }]
+  })
+}
+
+function applyDoc(d: unknown): void {
   const valid = d ? parseDocument(d) : null
   if (valid) {
     editor.artboards = valid.artboards
@@ -156,12 +133,11 @@ export function flushSave(): void {
 
 /** Restore the workspace (run in setup, before first paint). */
 export function hydrate(): void {
-  const index = readJson<ProjectMeta[]>(INDEX_KEY)
-  if (Array.isArray(index)) projects.splice(0, projects.length, ...index)
+  projects.splice(0, projects.length, ...parseProjects(readJson(INDEX_KEY)))
 
   // Migrate the legacy single-document world into the first project.
   if (!projects.length) {
-    const legacy = readJson<Doc>(LEGACY_KEY)
+    const legacy = readJson(LEGACY_KEY)
     const meta: ProjectMeta = { id: uid(), name: "My project", updatedAt: Date.now() }
     projects.push(meta)
     if (legacy) {
@@ -175,7 +151,7 @@ export function hydrate(): void {
   const active = projects.find((p) => p.id === requested) ?? projects[0]
   activeProjectId.value = active.id
   store.set(ACTIVE_KEY, active.id)
-  applyDoc(readJson<Doc>(DOC_PREFIX + active.id))
+  applyDoc(readJson(DOC_PREFIX + active.id))
 }
 
 export function createProject(name: string): void {
@@ -197,7 +173,7 @@ export function switchProject(id: string): void {
   flushSave()
   activeProjectId.value = id
   store.set(ACTIVE_KEY, id)
-  applyDoc(readJson<Doc>(DOC_PREFIX + id))
+  applyDoc(readJson(DOC_PREFIX + id))
   resetHistory()
 }
 

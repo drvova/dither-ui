@@ -1,5 +1,5 @@
 <script lang="ts">
-import { rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, fillOf } from "../engine/pixel"
 
 export type SeparatorOrientation = "horizontal" | "vertical"
@@ -15,16 +15,16 @@ function paintSeparator(
   vertical: boolean,
   matrix: number[][] = BAYER4,
 ): void {
-  ctx.clearRect(0, 0, vertical ? 1 : cells, vertical ? cells : 1)
+  const px = cellCanvas(ctx, vertical ? 1 : cells, vertical ? cells : 1)
   const half = cells / 2
   for (let i = 0; i < cells; i++) {
     const e = 1 - Math.abs(i + 0.5 - half) / half // 1 at center, 0 at ends
     const x = vertical ? 0 : i
     const y = vertical ? i : 0
     if (e < 1 && e * e <= matrix[y & 3][x & 3]) continue
-    ctx.fillStyle = rgb(GREY, 1, 0.35 + 0.45 * e)
-    ctx.fillRect(x, y, 1, 1)
+    px.cell(x, y, GREY, 0.35 + 0.45 * e)
   }
+  px.flush()
 }
 </script>
 

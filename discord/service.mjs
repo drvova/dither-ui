@@ -32,6 +32,7 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const PORT = Number(process.env.PORT || 8787)
+const MAX_BODY = 64 * 1024
 const PUBLIC_BASE = (process.env.PUBLIC_BASE || "").replace(/\/$/, "")
 const PUBLIC_KEY = process.env.DISCORD_PUBLIC_KEY || ""
 // Discord's dashboard public key is the RAW 32-byte Ed25519 point (hex);
@@ -81,10 +82,18 @@ function findSection(query) {
   )
 }
 
+/** A card's seed and invert, read the one way both doors take them (a
+ * button's custom id and a preview URL): a seed is up to nine digits, an
+ * invert 0 or 1, anything else the plain card. */
+const SEED = /^\d{1,9}$/
+const MAX_SEED = 1e9
+const parseSeed = (seed) => (SEED.test(String(seed)) ? Number(seed) : 0)
+const parseInv = (inv) => (String(inv) === "1" ? 1 : 0)
+
 function parseCustomId(id) {
   // dith:<sectionId>:<seed>:<inv>
   const [, id_, seed, inv] = String(id).split(":")
-  return { id: id_, seed: Number(seed) || 0, inv: inv === "1" ? 1 : 0 }
+  return { id: id_, seed: parseSeed(seed), inv: parseInv(inv) }
 }
 
 function encodeCustomId(sectionId, seed, inv) {
@@ -95,27 +104,36 @@ function encodeCustomId(sectionId, seed, inv) {
 
 // The site's built /og/index.html renderer, reused per seed/invert: its
 // window.og.files() draws the card's loop and encodes it as a GIF, the same
-// way the build draws dither-ui.com/og/<id>.gif. Renders on demand and caches
-// the GIF bytes in memory.
+// way the build draws dither-ui.com/og/<id>.gif. Renders on demand, one at a
+// time on one page (a queue of at most MAX_QUEUE; past it a request is turned
+// away), and caches the GIF bytes in memory.
 const previewCache = new Map() // key -> Buffer
+const MAX_QUEUE = 8
+let queue = Promise.resolve()
+let queued = 0
+let browserStart = null
 
-async function renderPreview(sectionId, seed, inv) {
+/** Renders one card after the ones before it, or null when the queue is full. */
+function renderPreview(sectionId, seed, inv) {
   const key = `${sectionId}:${seed}:${inv}`
-  if (previewCache.has(key)) return previewCache.get(key)
-  const html = await readFile(join(DIST, "og", "index.html"), "utf8").catch(() => null)
-  if (!html) return null
-  // The og page fetches ./sections.json — serve it via the file:// module
-  // path is not possible with fetch(); instead inline the manifest into the
-  // page and short-circuit the fetch.
-  const sections = await loadSections()
-  // (Escaped: a record's head carries a </script> that would close the page's.)
-  const inline = JSON.stringify([...sections.values()]).replace(/</g, "\\u003c")
-  const withData = html.replace('fetch("./sections.json").then(r=>r.json())', () => `Promise.resolve(${inline})`)
-  if (!renderPage) {
+  if (previewCache.has(key)) return Promise.resolve(previewCache.get(key))
+  if (queued >= MAX_QUEUE) return Promise.resolve(null)
+  queued++
+  const turn = queue.then(() => drawPreview(sectionId, seed, inv, key)).finally(() => queued--)
+  queue = turn.catch(() => {})
+  return turn
+}
+
+/** The renderer page, launched once however many requests ask at once. */
+async function rendererPage(withData) {
+  if (renderPage) return renderPage
+  browserStart ??= (async () => {
     const { chromium } = await import("playwright-core")
     const exe = process.env.CHROME_PATH || "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
     const browser = await chromium.launch({ executablePath: exe })
-    renderPage = await browser.newPage({ viewport: { width: 1200, height: 630 } })
+    const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
+    // The page asks for the renderer by URL; it is served from memory, once.
+    await page.route("**/og/index.html**", (route) => route.fulfill({ body: withData, contentType: "text/html" }))
     // Graceful shutdown: the browser must close BEFORE the loop drops, or
     // libuv asserts on the half-closed async handle under process managers.
     let closing = false
@@ -129,9 +147,24 @@ async function renderPreview(sectionId, seed, inv) {
     }
     process.on("SIGINT", shutdown)
     process.on("SIGTERM", shutdown)
-  }
-  const page = renderPage
-  await page.route("**/og/index.html**", (route) => route.fulfill({ body: withData, contentType: "text/html" }))
+    return page
+  })()
+  renderPage = await browserStart
+  return renderPage
+}
+
+async function drawPreview(sectionId, seed, inv, key) {
+  if (previewCache.has(key)) return previewCache.get(key)
+  const html = await readFile(join(DIST, "og", "index.html"), "utf8").catch(() => null)
+  if (!html) return null
+  // The og page fetches ./sections.json — serve it via the file:// module
+  // path is not possible with fetch(); instead inline the manifest into the
+  // page and short-circuit the fetch.
+  const sections = await loadSections()
+  // (Escaped: a record's head carries a </script> that would close the page's.)
+  const inline = JSON.stringify([...sections.values()]).replace(/</g, "\\u003c")
+  const withData = html.replace('fetch("./sections.json").then(r=>r.json())', () => `Promise.resolve(${inline})`)
+  const page = await rendererPage(withData)
   await page.goto(`http://og.local/og/index.html?id=${encodeURIComponent(sectionId)}&seed=${seed}&inv=${inv}`, {
     waitUntil: "networkidle",
   })
@@ -165,7 +198,7 @@ function componentsFor(section, seed, inv) {
               type: 2, // Button
               style: 1, // Primary
               label: "Re-roll seed",
-              custom_id: encodeCustomId(section.id, seed === 0 ? 1 : seed + 1 + (seed % 7), inv),
+              custom_id: encodeCustomId(section.id, (seed === 0 ? 1 : seed + 1 + (seed % 7)) % MAX_SEED || 1, inv),
             },
             {
               type: 2,
@@ -241,7 +274,7 @@ const server = createServer(async (req, res) => {
   }
 
   // Re-rolled preview images (public, referenced by Components V2 media).
-  const pv = url.pathname.match(/^\/preview\/([\w-]+)\/(\d+)\/(\d)\.gif$/)
+  const pv = url.pathname.match(/^\/preview\/([\w-]+)\/(\d{1,9})\/([01])\.gif$/)
   if (req.method === "GET" && pv) {
     const sections = await loadSections()
     const section = sections.get(pv[1])
@@ -250,9 +283,9 @@ const server = createServer(async (req, res) => {
       res.end()
       return
     }
-    const gif = await renderPreview(pv[1], Number(pv[2]), Number(pv[3])).catch(() => null)
+    const gif = await renderPreview(pv[1], parseSeed(pv[2]), parseInv(pv[3])).catch(() => null)
     if (!gif) {
-      res.writeHead(500)
+      res.writeHead(queued >= MAX_QUEUE ? 503 : 500)
       res.end()
       return
     }
@@ -267,8 +300,19 @@ const server = createServer(async (req, res) => {
     return
   }
 
+  // An interaction is a small JSON body; a larger one is refused unread.
   const chunks = []
-  for await (const chunk of req) chunks.push(chunk)
+  let size = 0
+  for await (const chunk of req) {
+    size += chunk.length
+    if (size > MAX_BODY) {
+      res.writeHead(413)
+      res.end()
+      req.destroy()
+      return
+    }
+    chunks.push(chunk)
+  }
   const body = Buffer.concat(chunks)
 
   if (!verifySignature(req, body)) {
@@ -277,7 +321,14 @@ const server = createServer(async (req, res) => {
     return
   }
 
-  const interaction = JSON.parse(body.toString("utf8"))
+  let interaction
+  try {
+    interaction = JSON.parse(body.toString("utf8"))
+  } catch {
+    res.writeHead(400)
+    res.end()
+    return
+  }
 
   // Discord's webhook validation ping.
   if (interaction.type === 1) {

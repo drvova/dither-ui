@@ -126,7 +126,10 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
   }
 
   function wake() {
-    if (!raf && !p.paused && p.renderMode !== "static" && visible) {
+    // A still surface (static mode, reduced motion) painted its one frame in
+    // start(); the visibility wake must never start the loop behind it.
+    if (p.renderMode === "static" || pixelPrefersReducedMotion()) return
+    if (!raf && !p.paused && visible) {
       lastPaint = 0
       lastFrame = -1 // a resume paints immediately instead of waiting a boundary
       raf = requestAnimationFrame(frame)

@@ -5,6 +5,7 @@
 // in: storage is untrusted), and written out as Markdown for an agent.
 import type { Box, Point } from "./geometry"
 import type { InkPoint } from "./ink"
+import { readJson, storage, writeJson } from "@/shared/lib/storage"
 
 export type Guide = { id: string; axis: "x" | "y"; at: number }
 export type Arrow = { id: string; from: Point; to: Point; color: string; width: number }
@@ -231,21 +232,13 @@ export function createHistory(limit = 100) {
 const PREFIX = "dither-workbench:"
 
 export function loadWorkspace(key: string): Workspace {
-  try {
-    const raw = localStorage.getItem(PREFIX + key)
-    return raw ? normalizeWorkspace(JSON.parse(raw)) : emptyWorkspace()
-  } catch {
-    return emptyWorkspace()
-  }
+  const d = readJson(PREFIX + key)
+  return d === null ? emptyWorkspace() : normalizeWorkspace(d)
 }
 
 export function saveWorkspace(key: string, ws: Workspace): void {
-  try {
-    if (isEmpty(ws) && !Object.values(ws.grid.show).some(Boolean)) localStorage.removeItem(PREFIX + key)
-    else localStorage.setItem(PREFIX + key, JSON.stringify(ws))
-  } catch {
-    // Storage full or blocked: the workspace lives for the visit only.
-  }
+  if (isEmpty(ws) && !Object.values(ws.grid.show).some(Boolean)) storage.remove(PREFIX + key)
+  else writeJson(PREFIX + key, ws)
 }
 
 // --- agent hand-off ---------------------------------------------------------

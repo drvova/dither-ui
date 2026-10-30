@@ -213,43 +213,16 @@ widgets/features; page-specific conventions live here.
   (`COLUMNS`: Get started; Docs, the big families each with its size; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,
-  `v<version>`, MIT license), then the engraved wordmark. Three columns
+  `v<version>`, MIT license), then the line-screen wordmark. Three columns
   under the brand under 900px, two under 640px.
-- Footer signature: engraved wordmark (`EngravedWordmark.vue`) — glyph paths
-  baked from Consolas Bold via `.scratch/engrave/bake.js` into
-  `src/pages/landing/wordmark-layers.ts` as EXPORTED MARKUP STRINGS the
-  component renders INLINE via `v-html` (img-embedded svg rasterizes filters
-  in isolation = blocky layer artifacts; inline renders in-document at page
-  resolution — never move these layers back to `<img src>`). The recipe, at
-  scale k = H/524.804: rim = glyph-masked inside-stroke `#D6EAFF` @0.7
-  blurred 1.49; letters = a ddii filter — two white under-glows + `#00050A`
-  fill at feFuncA slope 0.1 + two black inner shadows from above; the letters layer RECEDES
-  to 45% opacity on hover — with light pooling over the carve, the dark fill
-  and inner shadows must not appear as shadow plates at the pool edge
-  (un-lit areas fall back to plain background); hover light = TWO
-  pool-masked layers — bloom (ramp glyphs, blur 7.5·k +
-  feOffset down-right halo) under core (sharper ramp + fine grain), both
-  `plus-lighter`, NO glyph clip — the light layer's own letterforms shape it,
-  only the cursor pool bounds it (pool focus sits up-left of the cursor; the
-  ramp is diagonal — light enters from the upper-left, halo offset down-right
-  — white bodies easing to pale ice `#CFF4FF`→`#9EEBFF` at the letter
-  bottoms; the ramp tail must stay luminous, a dark end reads as a shadow
-  plate). Because all four layers share one DOM, every filter/gradient/mask
-  id in the baked module MUST be layer-namespaced (`wm-*-c` / `wm-*-b`).
-  Depth registration: rim ×1.0096 centered, letters ×1.0332 at
-  -1.66%/-3.47% — the sheen's clipPath takes `WORDMARK_GLYPH_PATH` from the
-  SAME bake (never a hand-held path constant: a stale copy clipped the sheen
-  to garbled shapes — it surfaced as a dark cross on hover).
-  Regenerate with the bake script if the wordmark text ever changes.
-- Self-engraving: the rim's contour stroke draws itself on first scroll into
-  view (`RIM_DRAW` transform injects `pathLength="1"` + a namespaced
-  `wm-pen` class and an svg-INTERNAL `<style>`; the match string includes
-  the quote that closes the path's `d` and the replacement MUST keep it —
-  dropping it spliced the attributes into `d`, the browser rejected the
-  contour, and the rim never drew — v-html children escape
-  scoped styles, so the recipe ships inside the string, gated on the
-  component's own `data-armed`/`data-live`). No-JS/prerender: no attrs, the
-  finished mark renders; reduced motion: full static rim.
+- Footer signature: the line-screen wordmark (`LineWordmark.vue`):
+  "dither-ui" in the display face across the page width, filled by 24
+  rows of ink that thicken toward the baseline (30% of the row's pitch at
+  the top to 92% at the foot, each bar at the foot of its pitch), a
+  vertical ramp printed through a screen of lines. One SVG: the text is a
+  `clipPath` (its `textLength` holds the word to the box's width whichever
+  face has loaded) and the rows are rects in `--ink`; flat, one ink,
+  decorative (`aria-hidden`), nothing that glows or moves.
 
 ### docs/
 
@@ -432,7 +405,9 @@ widgets/features; page-specific conventions live here.
   generative canvas surfaces (aurora, faulty-terminal, ferrofluid, ...),
   `docs/text/` = DOM/CSS text animations (gradient/shiny/glitch/split/...),
   `docs/animations/` = interaction/motion effects (content reveals, animated
-  borders, cursor + hover effects). New
+  borders, cursor + hover effects; a section with its own state lives in
+  its own file, as `TransitionSection.vue`, the page transition's stage,
+  mounted where the nav orders it). New
   packs follow this shape instead of growing DocsPage. `docs/primitives/` =
   the Primitives pack (Box, Text, Divider, VisuallyHidden — the paste-list
   foundation family; new plain primitives extend it + PRIMITIVES_NAV).

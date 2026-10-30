@@ -1,6 +1,6 @@
 <!-- Generated from ../tailwind/DitherTimeline.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
 <script lang="ts">
-import { rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, fillOf, type PixelColor } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
@@ -15,7 +15,7 @@ const CELL = 2
 
 /** A small dithered filled dot — dense core fading at the rim through Bayer. */
 function paintDot(ctx: CanvasRenderingContext2D, cells: number, color: PixelColor): void {
-  ctx.clearRect(0, 0, cells, cells)
+  const px = cellCanvas(ctx, cells, cells)
   const c = cells / 2
   const fill = fillOf(color)
   for (let y = 0; y < cells; y++) {
@@ -23,10 +23,10 @@ function paintDot(ctx: CanvasRenderingContext2D, cells: number, color: PixelColo
       const r = Math.hypot(x + 0.5 - c, y + 0.5 - c) / c // 0 center → 1 rim
       const density = 1 - r
       if (density <= 0 || density <= BAYER4[y & 3][x & 3]) continue
-      ctx.fillStyle = rgb(fill, 1, 0.5 + 0.5 * density)
-      ctx.fillRect(x, y, 1, 1)
+      px.cell(x, y, fill, 0.5 + 0.5 * density)
     }
   }
+  px.flush()
 }
 
 const styles = stylex.create({

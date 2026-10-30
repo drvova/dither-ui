@@ -1,7 +1,7 @@
 <script lang="ts">
-import { rgb } from "../engine/palette"
 import type { Rgb } from "../engine/palette"
 import {
+  cellCanvas,
   setOrBlendRasterPixel,
   clearRasterBuffer,
   createRasterBuffer,
@@ -50,7 +50,7 @@ function paintSpinner(
   p: SpinnerParams = SPINNER_DEFAULT,
 ): void {
   if ("data" in ctx) clearRasterBuffer(ctx)
-  else ctx.clearRect(0, 0, cells, cells)
+  const px = "data" in ctx ? null : cellCanvas(ctx, cells, cells)
   const c = cells / 2
   const half = c - 0.5
   const arc = Math.max(0.05, Math.min(1, p.arc))
@@ -94,13 +94,11 @@ function paintSpinner(
       if (p.spokes > 0 && p.shape !== 2) bright *= 0.35 + 0.65 * Math.abs(Math.cos((ang * p.spokes) / 2)) ** 2
       if (bright <= 0 || bright <= matrix[y & 3][x & 3]) continue
       const alpha = 0.4 + 0.6 * bright
-      if ("data" in ctx) setOrBlendRasterPixel(ctx, x, y, fill, alpha)
-      else {
-        ctx.fillStyle = rgb(fill, 1, alpha)
-        ctx.fillRect(x, y, 1, 1)
-      }
+      if (px) px.cell(x, y, fill, alpha)
+      else setOrBlendRasterPixel(ctx as RasterBuffer, x, y, fill, alpha)
     }
   }
+  px?.flush()
 }
 </script>
 

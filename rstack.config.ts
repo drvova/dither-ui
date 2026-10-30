@@ -5,16 +5,18 @@
 import { resolve, sep } from "node:path"
 import { define } from "rstack"
 import type { RsbuildPlugin } from "rstack/app"
+import { PAGE_END_ID, PAGE_REVEAL_SCRIPT } from "./src/app/page-reveal.ts"
 
 const root = import.meta.dirname
 const at = (path: string) => resolve(root, path)
 
 /* The routes. An entry's name is its HTML's path in dist, so the canonical
    URLs (`/`, `/docs/`, `/studio/`, `/play/`) are plain directories. */
+const SITE_MAIN = "src/app/main.ts"
 const PAGES: Record<string, { html: string; main: string }> = {
-  index: { html: "index.html", main: "src/app/main.ts" },
-  "docs/index": { html: "docs/index.html", main: "src/app/main.ts" },
-  "studio/index": { html: "studio/index.html", main: "src/app/main.ts" },
+  index: { html: "index.html", main: SITE_MAIN },
+  "docs/index": { html: "docs/index.html", main: SITE_MAIN },
+  "studio/index": { html: "studio/index.html", main: SITE_MAIN },
   "play/index": { html: "play/index.html", main: "src/pages/play/main.ts" },
 }
 
@@ -107,7 +109,19 @@ define.app(async ({ command }) => {
         })),
       },
     },
-    html: { template: ({ entryName }) => at(pages[entryName].html) },
+    html: {
+      template: ({ entryName }) => at(pages[entryName].html),
+      // The site's routes take a page transition over before their first
+      // frame (src/app/page-reveal.ts).
+      tags: (tags, { entryName }) =>
+        pages[entryName].main === SITE_MAIN
+          ? [
+              { tag: "script", children: PAGE_REVEAL_SCRIPT, head: true, append: false },
+              ...tags,
+              { tag: "span", attrs: { id: PAGE_END_ID, hidden: true }, head: false, append: true },
+            ]
+          : tags,
+    },
     environments: {
       web: {
         source: { entry: Object.fromEntries(Object.entries(pages).map(([name, page]) => [name, `./${page.main}`])) },

@@ -14,7 +14,7 @@ export const FAMILIES = [
   { title: "Components", count: 100 },
   { title: "Backgrounds", count: 46 },
   { title: "Text", count: 24 },
-  { title: "Animations", count: 49 },
+  { title: "Animations", count: 50 },
   { title: "Utils", count: 1 },
 ] as const
 

@@ -275,7 +275,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
     { label: layerLocked(a, l) ? "Unlock" : "Lock", onClick: () => toggleLayerLock(a, l) },
   ]
   if (l.kind === "series")
-    base.push({ divider: true }, { label: "Delete", danger: true, onClick: () => deleteSeries(l.seriesKey!) })
+    base.push({ divider: true }, { label: "Delete", danger: true, onClick: () => deleteSeries(a.id, l.seriesKey!) })
   return base
 }
 </script>

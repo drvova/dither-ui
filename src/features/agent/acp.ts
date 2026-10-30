@@ -41,6 +41,23 @@ export type BridgeAgent = { id: string; name: string; command: string; pid: numb
 export type BridgeHello = { cwd: string; harnesses: Harness[]; agent: BridgeAgent | null }
 
 export type AcpPermissionOption = { optionId: string; name: string; kind: string }
+
+/** A harness's permission options, read once as they arrive: an option is
+ * kept only with a string id; its name falls back to the id and its kind to
+ * "", so the panel never meets a missing field mid-prompt. */
+export function permissionOptions(raw: unknown): AcpPermissionOption[] {
+  return (Array.isArray(raw) ? raw : []).flatMap((o) =>
+    o && typeof o === "object" && typeof o.optionId === "string" && o.optionId
+      ? [
+          {
+            optionId: o.optionId,
+            name: typeof o.name === "string" && o.name ? o.name : o.optionId,
+            kind: typeof o.kind === "string" ? o.kind : "",
+          },
+        ]
+      : [],
+  )
+}
 export type AcpPermissionRequest = { title: string; options: AcpPermissionOption[]; raw: unknown }
 
 export type AcpClientOptions = {
@@ -317,7 +334,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         }
         case "session/request_permission": {
           const tc = (params.toolCall ?? {}) as { title?: string }
-          const options = Array.isArray(params.options) ? (params.options as AcpPermissionOption[]) : []
+          const options = permissionOptions(params.options)
           const chosen = await o.permission({ title: String(tc.title ?? "permission"), options, raw: params })
           send({
             jsonrpc: "2.0",

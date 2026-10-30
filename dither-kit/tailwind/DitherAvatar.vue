@@ -1,6 +1,6 @@
 <script lang="ts">
 import { directedTime, isDirected, onSeek } from "../engine/clock"
-import { rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { type AvatarPattern, clampGrid, normalizePattern, seededPattern } from "../engine/avatar-pattern"
 import {
   BAYER4,
@@ -74,7 +74,7 @@ function paintAvatar(
   }
 
   const draw = (progress: number) => {
-    ctx.clearRect(0, 0, px, px)
+    const cells = cellCanvas(ctx, px, px)
     for (let r = 0; r < grid; r++) {
       for (let c = 0; c < grid; c++) {
         if (!model.on[r * grid + c]) continue
@@ -89,12 +89,12 @@ function paintAvatar(
             const gy = r * cp + py
             const lit = density > matrix[gy & 3][gx & 3]
             const alpha = (lit ? base : base * offTier) * cellAlpha
-            ctx.fillStyle = rgb(model.fill, 1, alpha)
-            ctx.fillRect(gx, gy, 1, 1)
+            cells.cell(gx, gy, model.fill, alpha)
           }
         }
       }
     }
+    cells.flush()
     if (bloomCtx) {
       bloomCtx.clearRect(0, 0, px, px)
       bloomCtx.drawImage(canvas, 0, 0)

@@ -2,6 +2,7 @@
 // `dither-workbench-settings`). Colours are the theme's swatch tokens, so
 // the overlay follows the theme and stays legible in both.
 import { COLOR_FORMATS, type ColorFormat } from "./color"
+import { readJson, writeJson } from "@/shared/lib/storage"
 
 export const SWATCHES = ["orange", "purple", "pink", "green", "blue", "grey"] as const
 export type Swatch = (typeof SWATCHES)[number]
@@ -83,18 +84,6 @@ export function normalizeSettings(raw: unknown): Settings {
   }
 }
 
-export function loadSettings(): Settings {
-  try {
-    return normalizeSettings(JSON.parse(localStorage.getItem(KEY) ?? "null"))
-  } catch {
-    return { ...DEFAULT_SETTINGS }
-  }
-}
+export const loadSettings = (): Settings => normalizeSettings(readJson(KEY))
 
-export function saveSettings(s: Settings): void {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(s))
-  } catch {
-    // Blocked storage: the settings last for the visit.
-  }
-}
+export const saveSettings = (s: Settings): void => writeJson(KEY, s)

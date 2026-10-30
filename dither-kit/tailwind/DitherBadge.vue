@@ -1,5 +1,5 @@
 <script lang="ts">
-import { rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, clamp01, fillOf, type PixelColor } from "../engine/pixel"
 import type { Rgb } from "../engine/palette"
 
@@ -17,7 +17,7 @@ function paintBadge(
   variant: BadgeVariant,
   matrix: number[][] = BAYER4,
 ): void {
-  ctx.clearRect(0, 0, cols, rows)
+  const px = cellCanvas(ctx, cols, rows)
   const bias = variant === "dotted" ? 0.12 : 0
   for (let y = 0; y < rows; y++) {
     const density = variant === "gradient" ? 0.25 + 0.75 * ((y + 0.5) / rows) : variant === "dotted" ? 0.5 : 0.75
@@ -26,15 +26,14 @@ function paintBadge(
       const lit = variant === "solid" || density > matrix[y & 3][x & 3] - bias
       if (variant === "dotted" && !lit) continue
       const k = 0.3 + density * 0.7
-      ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
-      ctx.fillRect(x, y, 1, 1)
+      px.cell(x, y, fill, clamp01(lit ? k : k * 0.4))
     }
   }
-  ctx.fillStyle = rgb(fill, 1, 0.5)
-  ctx.fillRect(0, 0, cols, 1)
-  ctx.fillRect(0, rows - 1, cols, 1)
-  ctx.fillRect(0, 0, 1, rows)
-  ctx.fillRect(cols - 1, 0, 1, rows)
+  px.rect(0, 0, cols, 1, fill, 0.5)
+  px.rect(0, rows - 1, cols, 1, fill, 0.5)
+  px.rect(0, 0, 1, rows, fill, 0.5)
+  px.rect(cols - 1, 0, 1, rows, fill, 0.5)
+  px.flush()
 }
 </script>
 

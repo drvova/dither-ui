@@ -34,9 +34,11 @@ editor with a bad document, but you can waste a turn, so follow the registry.
 Rules the validator enforces:
 
 - `is` must be a registry name exactly (`DitherTabs`, not `Tabs`).
-- Prop kinds: `text` (string), `boolean`, `number` (clamped to `min`/`max`),
-  `select` (one of `options`), `color` (`green | blue | purple | pink | orange |
-  red | grey` or `#rrggbb`), `list` (array of strings).
+- Prop kinds: `text` (string), `url` (an http(s), mailto, raster `data:` image
+  or relative address; any other scheme falls back to the default),
+  `boolean`, `number` (clamped to `min`/`max`), `select` (one of `options`),
+  `color` (`green | blue | purple | pink | orange | red | grey` or `#rrggbb`),
+  `list` (array of strings).
 - `slotText` is the component's visible text where it has a slot (buttons,
   badges, checkboxes).
 - Screens have ONE nesting level: rows of cells. No nested containers.

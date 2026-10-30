@@ -1,6 +1,7 @@
 <!-- Generated from ../tailwind/DitherProgress.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
 <script lang="ts">
-import { rgb, type Rgb } from "../engine/palette"
+import { type Rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, clamp01, fillOf, type PixelColor } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
@@ -19,7 +20,7 @@ function paintProgress(
   band: number | null,
   matrix: number[][] = BAYER4,
 ): void {
-  ctx.clearRect(0, 0, cols, rows)
+  const px = cellCanvas(ctx, cols, rows)
   const bandW = Math.max(2, Math.round(cols * BAND_RATIO))
   const span = cols + bandW
   const filled = Math.round(cols * clamp01(ratio))
@@ -39,14 +40,14 @@ function paintProgress(
       if (density !== null) {
         const lit = density > matrix[y & 3][((bx % 4) + 4) & 3]
         const k = 0.3 + density * 0.7
-        ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
+        px.cell(x, y, fill, clamp01(lit ? k : k * 0.4))
       } else {
         const lit = 0.25 > matrix[y & 3][x & 3]
-        ctx.fillStyle = rgb(muted, 1, lit ? 0.2 : 0.06)
+        px.cell(x, y, muted, lit ? 0.2 : 0.06)
       }
-      ctx.fillRect(x, y, 1, 1)
     }
   }
+  px.flush()
 }
 
 const styles = stylex.create({
@@ -94,15 +95,20 @@ const isVisible = useCanvasVisibility(canvasRef, () => syncLoop())
 let raf = 0
 let cols = 0
 const rows = 3 // h-1.5 track at CELL=2
+// The band the canvas holds: it moves one cell per 50ms while the loop runs
+// every frame, so a frame whose band has not moved is not painted again.
+let shown: number | null | undefined
 
 function paint(band: number | null) {
   const canvas = canvasRef.value
   const ctx = canvas?.getContext("2d", { willReadFrequently: true })
   if (!canvas || !ctx || cols <= 0) return
   paintProgress(ctx, cols, rows, fillOf(color.value), fillOf("grey"), clamp01(props.value / 100), band, matrix.value)
+  shown = band
 }
 
 function repaint() {
+  shown = undefined
   if (props.indeterminate && !raf) {
     // Reduced motion: a static 40% band, no animation loop.
     const bandW = Math.max(2, Math.round(cols * 0.4))
@@ -123,7 +129,8 @@ function tick() {
     raf = 0
     return // off-screen or directed: no loop
   }
-  paint(bandAt(performance.now()))
+  const band = bandAt(performance.now())
+  if (band !== shown) paint(band)
   raf = requestAnimationFrame(tick)
 }
 

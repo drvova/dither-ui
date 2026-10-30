@@ -1,6 +1,6 @@
 <!-- Generated from ../tailwind/DitherCollapsible.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
 <script lang="ts">
-import { rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, fillOf, type PixelColor } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
@@ -15,15 +15,15 @@ function paintRail(canvas: HTMLCanvasElement, height: number, color: PixelColor,
   canvas.width = 1
   canvas.height = rows
   const fill = fillOf(color)
-  ctx.clearRect(0, 0, 1, rows)
+  const px = cellCanvas(ctx, 1, rows)
   for (let y = 0; y < rows; y++) {
     const density = 1 - (y + 0.5) / rows
     const lit = density > matrix[y & 3][0]
     const alpha = lit ? 0.35 + 0.65 * density : 0.12 * density
     if (alpha <= 0.004) continue
-    ctx.fillStyle = rgb(fill, 1, alpha)
-    ctx.fillRect(0, y, 1, 1)
+    px.cell(0, y, fill, alpha)
   }
+  px.flush()
 }
 
 const styles = stylex.create({

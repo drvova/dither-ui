@@ -1,6 +1,6 @@
 <script lang="ts" module>
   import { getContext, setContext } from "svelte"
-  import { rgb } from "../engine/palette"
+  import { cellCanvas } from "../engine/raster"
   import { BAYER4, fillOf, pixelMatrixFromSeed, type PixelColor } from "../engine/pixel"
 
   export type TabsVariant = "underline" | "segmented" | "washed"
@@ -38,16 +38,16 @@
     canvas.width = vertical ? 1 : cells
     canvas.height = vertical ? cells : 1
     const fill = fillOf(color)
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    const px = cellCanvas(ctx, canvas.width, canvas.height)
     for (let i = 0; i < cells; i++) {
       const density = (i + 0.5) / cells
       const lit = density > matrix[0][i & 3]
       const alpha = lit ? 0.35 + 0.65 * density : 0.12 * density
       if (alpha <= 0.004) continue
-      ctx.fillStyle = rgb(fill, 1, alpha)
-      if (vertical) ctx.fillRect(0, i, 1, 1)
-      else ctx.fillRect(i, 0, 1, 1)
+      if (vertical) px.cell(0, i, fill, alpha)
+      else px.cell(i, 0, fill, alpha)
     }
+    px.flush()
   }
 
   /** Washed: a quiet rest-intensity fill behind the active tab. */
@@ -65,17 +65,17 @@
     canvas.width = cols
     canvas.height = rows
     const fill = fillOf(color)
-    ctx.clearRect(0, 0, cols, rows)
+    const px = cellCanvas(ctx, cols, rows)
     for (let y = 0; y < rows; y++) {
       const density = 0.2 + 0.5 * ((y + 0.5) / rows)
       for (let x = 0; x < cols; x++) {
         const lit = density > matrix[y & 3][x & 3]
-        ctx.fillStyle = rgb(fill, 1, lit ? 0.32 : 0.08)
-        ctx.fillRect(x, y, 1, 1)
+        px.cell(x, y, fill, lit ? 0.32 : 0.08)
       }
     }
-    ctx.fillStyle = rgb(fill, 1, 0.5)
-    ctx.fillRect(0, rows - 1, cols, 1)
+    // The rule along the foot, over the wash.
+    px.rect(0, rows - 1, cols, 1, fill, 0.5)
+    px.flush()
   }
 </script>
 

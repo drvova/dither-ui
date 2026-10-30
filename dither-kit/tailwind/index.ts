@@ -51,7 +51,7 @@ export { default as DitherGrainient, type GrainientParams, paintGrainient } from
 export { default as DitherDither, type DitherBgParams, paintDitherBg } from "./Dither.vue"
 export { default as DitherFloatingLines, type FloatingLinesParams, paintFloatingLines } from "./FloatingLines.vue"
 export { default as DitherPlasmaWave, type PlasmaWaveParams, paintPlasmaWave } from "./PlasmaWave.vue"
-export { default as DitherRadar, type RadarParams, paintRadar } from "./Radar.vue"
+export { default as DitherRadar, type RadarParams, paintRadar } from "./RadarSweep.vue"
 export { default as DitherLetterGlitch, type LetterGlitchParams, paintLetterGlitch } from "./LetterGlitch.vue"
 export { default as DitherShapeGrid, type ShapeGridParams, paintShapeGrid } from "./ShapeGrid.vue"
 export { default as DitherLightning, type LightningParams, paintLightning } from "./Lightning.vue"
@@ -363,6 +363,12 @@ export {
   type WipeOptions,
   type WipeStyle,
 } from "./DitherReveal.vue"
+export {
+  ditherTransition,
+  ditherViewTransition,
+  type DitherTransitionOptions,
+  type ViewTransitionLike,
+} from "../engine/transition"
 export { scoreCut, wavBytes, type ScoreAudio, type ScorePlan } from "../engine/score"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"

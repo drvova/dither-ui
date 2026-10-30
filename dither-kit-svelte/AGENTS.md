@@ -17,6 +17,8 @@ patterns and the rest follows the same mechanical translation.
   `paint*` families) are copied VERBATIM. `../dither-kit/engine` stays the single
   source of truth for engine math; a change there is re-copied here
   (`cp ../dither-kit/engine/timing.ts engine/timing.ts`), not re-invented.
+  `tests/paint-limits.spec.ts` in the Vue tree fails on any copy that
+  drifts (`dither-paint.ts` excepted, below).
 
 ## Local Contracts
 

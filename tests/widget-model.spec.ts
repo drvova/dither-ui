@@ -42,7 +42,7 @@ describe("widgetCode", () => {
     b.bloom = { blur: 5, brightness: 1.5, opacity: 0.78, saturate: 1.5 }
     const code = widgetCode(b, frame)
     expect(code).toContain(">Deploy</DitherButton>")
-    expect(code).toContain(':bloom="{ blur: 5, brightness: 1.5, opacity: 0.78, saturate: 1.5 }"')
+    expect(code).toContain(":bloom='{ blur: 5, brightness: 1.5, opacity: 0.78, saturate: 1.5 }'")
   })
   it("gradient two-tone emits from + to", () => {
     const g = createWidget("gradient")

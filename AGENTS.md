@@ -132,12 +132,18 @@ Default section order:
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
-  families), a centred install, and link columns over the engraved
+  families), a centred install, and link columns over a line-screen
   wordmark. It keeps the user's slop bans (User Preferences). No film
   player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
   hero's "Watch the film" key and is fetched only when its dialog opens.
   Details in `src/pages/AGENTS.md`.
+- Page transitions: moving between the site's pages is a cross-document
+  view transition the arriving page dithers through the kit's transition
+  engine (`dither-kit/engine/transition.ts`, a band of the signal ink on
+  the wipe's front); an inline head script from `src/app/page-reveal.ts`
+  (added by `rstack.config.ts`) catches it before the app runs. The theme
+  turns through the same engine as an iris. Details in `src/AGENTS.md`.
 - Crawler surface: `src/pages/docs/crawler-files.ts` generates `dist/sitemap.xml`,
   `dist/robots.txt`, and `dist/llms.txt` at build (the `crawlFiles` plugin
   in `rstack.config.ts`, emitted as web-build assets —
@@ -337,6 +343,19 @@ Default section order:
   command as a label; a command the reader copies is content), and
   numbered sections. A kit component's own look inside a demo is the
   product and stays.
+- Codebase slop the user bans (their list), held in every change:
+  implicit coupling (modules agreeing through a string, a global or a call
+  order instead of a shared constant or type), layer-first folders (a
+  feature scattered across `components/`, `utils/`, `types/`),
+  duplication (one rule written twice drifts: extract it, or generate the
+  copy and pin it with a test), representable illegal states (a union, not
+  flags or parallel fields that must agree), god files, shotgun surgery
+  (one change touching many files: one table drives the rest), layering
+  violations (imports flow down, never sideways into another slice, up or
+  in a cycle), pass-through wrappers, and errors or validation away from
+  the boundary (untrusted input parsed once where it enters, into a type
+  nothing past it re-checks). A fix comes with the test that would have
+  caught it.
 - One site voice: the landing, the docs and the Studio speak one language
   (dark theme tokens, monospace, hairlines, ringed pressed states), so the
   whole site reads as one product. The copy follows the design.how bans

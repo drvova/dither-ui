@@ -1,6 +1,7 @@
 <!-- Generated from ../tailwind/DitherSwitch.vue by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->
 <script lang="ts">
-import { rgb, type Rgb } from "../engine/palette"
+import { type Rgb } from "../engine/palette"
+import { cellCanvas } from "../engine/raster"
 import { BAYER4, clamp01, fillOf, type PixelColor } from "../engine/pixel"
 import * as stylex from "@stylexjs/stylex"
 
@@ -15,20 +16,20 @@ function paintTrack(
   on: boolean,
   matrix: number[][] = BAYER4,
 ): void {
-  ctx.clearRect(0, 0, cols, rows)
+  const px = cellCanvas(ctx, cols, rows)
   for (let y = 0; y < rows; y++) {
     const density = on ? 0.25 + 0.75 * ((y + 0.5) / rows) : 0.2
     for (let x = 0; x < cols; x++) {
       const lit = density > matrix[y & 3][x & 3]
       if (on) {
         const k = 0.3 + density * 0.7
-        ctx.fillStyle = rgb(fill, 1, clamp01(lit ? k : k * 0.4))
+        px.cell(x, y, fill, clamp01(lit ? k : k * 0.4))
       } else {
-        ctx.fillStyle = rgb(muted, 1, lit ? 0.18 : 0.06)
+        px.cell(x, y, muted, lit ? 0.18 : 0.06)
       }
-      ctx.fillRect(x, y, 1, 1)
     }
   }
+  px.flush()
 }
 
 const styles = stylex.create({

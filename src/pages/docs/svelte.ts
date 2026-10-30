@@ -9,19 +9,17 @@
 import { computed, ref } from "vue"
 import svelteKitIndex from "../../../dither-kit-svelte/index.ts?raw"
 import { restyle, type Styling, styling, STYLINGS } from "@/shared/lib/restyle"
+import { storage } from "@/shared/lib/storage"
 
 export type DocsFramework = "vue" | "svelte"
 
 const STORAGE_KEY = "dither-docs-framework"
-const canPersist = typeof localStorage !== "undefined"
 
-export const docsFramework = ref<DocsFramework>(
-  canPersist && localStorage.getItem(STORAGE_KEY) === "svelte" ? "svelte" : "vue",
-)
+export const docsFramework = ref<DocsFramework>(storage.get(STORAGE_KEY) === "svelte" ? "svelte" : "vue")
 
 export function setDocsFramework(next: DocsFramework) {
   docsFramework.value = next
-  if (canPersist) localStorage.setItem(STORAGE_KEY, next)
+  storage.set(STORAGE_KEY, next)
 }
 
 // ---- Svelte kit export surface (single source of truth: its index.ts) ------
