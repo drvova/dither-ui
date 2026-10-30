@@ -106,10 +106,10 @@ widgets/features; page-specific conventions live here.
   cannot show on black; the floor is the print's own cells, never a tint.
   The column keeps 48px under the print below 900px for it. The
   statement signs off with the brand's moment (`.hero-brand`, 20px under
-  the works line), its field the page's column (`.hero-in`, positioned):
-  loose in the open rows under it (some cells under the print, which
-  paints over them), thrown no higher than just above it, clear of the
-  copy; it plays as the page opens, and the print (and its floor) hold
+  the works line, `STAGINGS.hero`), its field the page's column
+  (`.hero-in`, positioned): loose in the open rows under it (some cells
+  under the print, which paints over them), thrown no higher than just
+  above it, clear of the copy; it plays as the page opens, and the print (and its floor) hold
   their frame until it is home, one moving layer at a time. No
   component tour, slides or picker in the hero (the user's call: they
   took the love out of it); the components live in the bento. Under
@@ -126,12 +126,10 @@ widgets/features; page-specific conventions live here.
   was the ask) except under reduced motion, where it waits for play.
   Retake all three from the trailer's edit when the film changes (1080p,
   each about 8 MB).
-- Pixel type (`pixel-type.ts` + `PixelWord.vue`): a proportional 5×7
-  bitmap face drawn as crisp SVG cells with a seam: the footer's brand
-  (`cell` 2, `seam` 1/2, `decorative` inside the home link, whose name is
-  "dither-ui"); the brand's lockup sets the same word in its cells. A
-  string with a glyph the face lacks throws; every string
-  the page sets is covered by `tests/pixel-type.spec.ts`.
+- Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
+  in and its lit cells out; the brand's lockup sets "DITHER-UI" in it. A
+  string with a glyph the face lacks throws; every string the page sets
+  is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the hero's and
   the examples' ledes), `MATRIX` (the threshold matrix as the page writes
   it, read from `SCREENS`), `RUNTIME_DEPS` (the packages beside Vue, which
@@ -227,12 +225,16 @@ widgets/features; page-specific conventions live here.
   and size as the link to its first section, and its line.
 - The brand's moment (`brand.ts` + `BrandGather.vue`, decorative): the
   brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
-  core, which the header draws too), three clear columns, then the
-  footer's pixel "DITHER-UI", 4px cells seven tall, as spans. Its parent
-  places and positions it; its FIELD is its nearest positioned ancestor,
-  and the parent hands it a `Scene` (in px of that field: the rows its
-  cells lie loose in, the rows the burst may throw them to, a seed).
-  Once, when the lockup stands in view clear of the viewport's bottom
+  core, which the header draws too), three clear columns, then
+  "DITHER-UI" in the pixel face, 4px cells seven tall, as spans. Its
+  parent places and positions it; its FIELD is its nearest positioned
+  ancestor, and the parent stages it (`Staging`: the field's height and
+  the lockup's top in, a `Scene` out, in px of that field: the rows its
+  cells lie loose in, the rows the burst may throw them to, a seed). ONE
+  table, `STAGINGS` in `brand.ts`, stages the hero's and the footer's;
+  `plate.ts`'s `sceneOf` the plates'. It plays the same at every width,
+  phones included (touch, small screens: nothing gates it on pointer or
+  size). Once, when the lockup stands in view clear of the viewport's bottom
   tenth: the mark's cells lie loose like stars; they gather left to right
   into the mark, matched to its cells in order across; the mark holds a
   beat and bursts to the right in a widening cone (a cell thrown past the
@@ -247,7 +249,7 @@ widgets/features; page-specific conventions live here.
   brand is simply assembled. It emits `settled` when home (at once when it
   does not move), so a parent keeps one moving layer at a time.
   `tests/landing-facts.spec.ts` holds the mark's cells to the diamond and
-  the moment, for every plate's scene and one like the hero's: its phases
+  the moment, for every plate's scene and every `STAGINGS` row: its phases
   in order inside five seconds, every path in time order, on its grid,
   inside the field and home at the end, loose and thrown inside its
   scene's rows, each wordmark cell on its host's squares until the burst.
@@ -290,7 +292,7 @@ widgets/features; page-specific conventions live here.
   restyled or dithered; everything else is a kit glyph (`DitherIcon`).
 - No entrance choreography but the bento's art printing itself once as it
   nears and the brand's moment (the hero's sign-off as the page opens,
-  each plate's as it nears); the hero's print waits for it, and the type
+  each plate's and the footer's brand as it nears); the hero's print waits for it, and the type
   simply is. Motion is the live kit
   surfaces, one moving layer at a time in the bento. Pause chips
   (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
@@ -305,9 +307,12 @@ widgets/features; page-specific conventions live here.
   chip, since a tap also focuses and would point at the card and then
   toggle what it just started. Chips stay under reduced motion, where
   every surface paints one frame and holds it.
-- Footer (on the page width, no rule above it): the brand (the pixel
-  wordmark in the home link, one line, GitHub under its mark) beside three
-  link columns
+- Footer (on the page width, no rule above it): the brand (the brand's
+  moment in the home link, whose name is "dither-ui", `STAGINGS.foot`: its
+  field the page's column, `.foot-in`, positioned; loose in the clear band
+  above it, the footer's top padding, its burst held to that band and the
+  brand's row, clear of every line of text; then one line, GitHub under
+  its mark) beside three link columns
   (`COLUMNS`: Get started, closing on Verification; Docs, the big families each with its size; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,

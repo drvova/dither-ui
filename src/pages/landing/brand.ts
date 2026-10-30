@@ -15,7 +15,7 @@ export const MARK_CELLS = Array.from({ length: 49 }, (_, i) => ({ x: i % 7, y: M
 const WORD = layoutPixelText("DITHER-UI")
 const GAP = 3
 /** The brand as one lockup of cells: the mark, three clear columns, then the
- * footer's pixel wordmark, all seven cells tall. The mark's cells come
+ * wordmark in the pixel face, all seven cells tall. The mark's cells come
  * first, in `MARK_CELLS` order. */
 export const LOCKUP = [...MARK_CELLS, ...WORD.cells.map((c) => ({ x: 7 + GAP + c.x, y: c.y, core: false }))]
 export const LOCKUP_SIZE = { width: 7 + GAP + WORD.width, height: PIXEL_ROWS } as const
@@ -40,6 +40,19 @@ export type Waypoint = { t: number; x: number; y: number }
  * the rows the mark's cells lie loose in, the rows the burst may throw a
  * cell to, and the seed that places them, the same on every visit. */
 export type Scene = { seed: number; loose: readonly [number, number]; burst: readonly [number, number] }
+
+/** A scene in a field of `height` px whose lockup stands `top` px down it. */
+export type Staging = (height: number, top: number) => Scene
+
+/** Where the brand stands outside the plates (`plate.ts` stages those):
+ * the hero's sign-off, loose in the open rows under the statement, its
+ * burst kept off the copy above; the footer's brand, loose in the clear
+ * band above it (the footer's top padding, above every line of text), its
+ * burst held to that band and the brand's own row. */
+export const STAGINGS = {
+  hero: (height, top) => ({ seed: 5, loose: [top - 24, Math.min(height - 8, top + 160)], burst: [top - 24, height] }),
+  foot: (_height, top) => ({ seed: 9, loose: [4, top - 4], burst: [4, top + 32] }),
+} as const satisfies Record<string, Staging>
 
 /** Each lockup cell's path through the moment, in px within a field of
  * `box`, for cells that stand at `slots` (the lockup's cells, in order) and

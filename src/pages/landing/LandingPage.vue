@@ -4,9 +4,9 @@
 // stage, seated on a poster the kit prints), then sections under a title
 // with a lead beside it: a bento of live kit components, the screen an
 // agent's ask makes, what's inside (the kit, the Studio, the bridge; the
-// docs' families) and the install, with a plate of the kit's diamond small
-// in a wide field between them, and a footer of link columns over the
-// line-screen wordmark. Michroma for display, mono for the rest; everything
+// docs' families) and the install, with a plate of the brand small in a
+// wide field between them, and a footer of the brand and link columns over
+// the line-screen wordmark. Michroma for display, mono for the rest; everything
 // that moves is the kit.
 import { onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
@@ -21,9 +21,9 @@ import { RUNTIME_DEPS, SPECS } from "./facts"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
-import PixelWord from "./PixelWord.vue"
 import Plate from "./Plate.vue"
-import { MARK_CELLS } from "./brand"
+import { MARK_CELLS, STAGINGS } from "./brand"
+import BrandGather from "./BrandGather.vue"
 import { PLATES } from "./plate"
 import Showcase from "./Showcase.vue"
 
@@ -262,13 +262,13 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       </div>
     </main>
 
-    <!-- Footer: the pixel wordmark and a line beside three link columns, the
+    <!-- Footer: the brand and a line beside three link columns, the
          copyright line, then the line-screen wordmark. -->
     <footer class="foot">
       <div class="foot-in">
         <div class="foot-brand">
           <a :href="routePath('/')" class="foot-name"
-            ><PixelWord text="DITHER-UI" :cell="2" :seam="1 / 2" decorative /><span class="sr-only">dither-ui</span></a
+            ><BrandGather class="foot-lockup" :scene="STAGINGS.foot" /><span class="sr-only">dither-ui</span></a
           >
           <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
           <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
@@ -539,7 +539,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   color: var(--ink);
 }
 
-/* The footer: the brand (the pixel wordmark, a line, GitHub) beside three
+/* The footer: the brand (the lockup, a line, GitHub) beside three
    link columns, the copyright line, the line-screen wordmark under all.
    Three columns under the brand under 900px, two under 640px. */
 .foot {
@@ -548,7 +548,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   overflow: hidden;
 }
 
+/* Positioned: the brand's field is the page's column. */
 .foot-in {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
   gap: 32px;
@@ -570,6 +572,10 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   min-height: 24px;
   align-items: center;
   color: var(--ink);
+}
+
+.foot-lockup {
+  position: relative;
 }
 
 .foot-line {

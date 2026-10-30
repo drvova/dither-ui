@@ -11,11 +11,10 @@
 // runs) the brand is simply there. `settled` says when it is home (at once
 // when it does not move), so a parent can keep one moving layer at a time.
 import { onBeforeUnmount, onMounted, ref } from "vue"
-import { choreograph, LOCKUP, LOCKUP_SIZE, MOMENT, type Scene, type Waypoint } from "./brand"
+import { choreograph, LOCKUP, LOCKUP_SIZE, MOMENT, type Staging, type Waypoint } from "./brand"
 
 const { scene } = defineProps<{
-  /** The scene in a field of `height` px, the lockup's top `top` px down it. */
-  scene: (height: number, top: number) => Scene
+  scene: Staging
 }>()
 const emit = defineEmits<{ settled: [] }>()
 
