@@ -237,8 +237,8 @@ widgets/features; page-specific conventions live here.
   reader's and outlasts the spotlight; play on a surface the spotlight
   holds makes it the reader's choice. A touch chooses only through the
   chip, since a tap also focuses and would point at the card and then
-  toggle what it just started. Chips stay under reduced motion: the model
-  and the shader keep moving there.
+  toggle what it just started. Chips stay under reduced motion, where
+  every surface paints one frame and holds it.
 - Footer (on the page width, no rule above it): the brand (the pixel
   wordmark in the home link, one line, GitHub under its mark) beside three
   link columns

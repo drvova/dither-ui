@@ -718,6 +718,13 @@ const purged = ref(0)
   background: var(--card);
 }
 
+/* The five screens keep inside the card on the narrowest phones. */
+@media (max-width: 359px) {
+  .art-tools .seg > button {
+    padding-inline: 8px;
+  }
+}
+
 .chip {
   position: absolute;
   top: 12px;
@@ -775,9 +782,12 @@ const purged = ref(0)
   translate: -50% -50%;
 }
 
+/* The ring sits on a band of the ground, so it shows on the light end of
+   the ramp as on the dark. */
 .split-range:focus-visible + .split-handle .split-grip {
   outline: 2px solid var(--ring);
   outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--background);
 }
 
 .stack {

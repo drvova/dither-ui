@@ -16,7 +16,13 @@ type Report = { conditions: string; readings: ReadonlyMap<string, Reading> }
 
 const root = ref<HTMLElement | null>(null)
 const report = shallowRef<Report | null>(null)
-const copied = ref(false)
+// The copy key in each state: its glyph, its label, what a screen reader hears.
+const COPY_KEY = {
+  idle: { icon: "Copy", label: "Copy the results", said: "" },
+  copied: { icon: "Check", label: "Copied", said: "Results copied" },
+  failed: { icon: "Close", label: "Copy failed", said: "The results could not be copied" },
+} as const
+const copyState = ref<keyof typeof COPY_KEY>("idle")
 let timer: ReturnType<typeof setTimeout> | undefined
 
 function measure(check: Check): Reading {
@@ -69,11 +75,11 @@ async function copy() {
     "| --- | --- | --- | --- |",
     ...table,
   ].join("\n")
-  if (!(await copyText(text))) return
-  play("copy")
-  copied.value = true
+  const ok = await copyText(text)
+  if (ok) play("copy")
+  copyState.value = ok ? "copied" : "failed"
   clearTimeout(timer)
-  timer = setTimeout(() => (copied.value = false), 1500)
+  timer = setTimeout(() => (copyState.value = "idle"), 1500)
 }
 
 let io: IntersectionObserver | null = null
@@ -115,10 +121,9 @@ onBeforeUnmount(() => {
           :disabled="!report || measuring"
           @click="copy"
         >
-          <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />{{
-            copied ? "Copied" : "Copy the results"
-          }}
+          <DitherIcon :name="COPY_KEY[copyState].icon" :size="12" :stroke-width="1.5" />{{ COPY_KEY[copyState].label }}
         </button>
+        <span class="sr-only" aria-live="polite">{{ COPY_KEY[copyState].said }}</span>
       </div>
     </div>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">

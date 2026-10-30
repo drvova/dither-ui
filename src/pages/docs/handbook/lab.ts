@@ -136,7 +136,7 @@ export const CHECKS: readonly Check[] = [
   {
     id: "tones",
     claim: `Every screen prints ${tones} tones`,
-    method: `A ${size} block is printed at each of ${tones} even tone steps through each screen and its lit cells counted.`,
+    method: `Each screen's ${size} thresholds are set against ${tones} even tone steps by the rule every surface prints with, a cell lighting when the tone passes its threshold, and the lit cells counted.`,
     against: "step k lights k cells",
     test: "tests/screens.spec.ts",
     run: () => {
