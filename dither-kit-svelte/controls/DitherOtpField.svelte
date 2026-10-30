@@ -64,7 +64,7 @@
       autocomplete="one-time-code"
       aria-label={`Digit ${i + 1}`}
       value={digits[i]}
-      class="h-11 w-9 rounded-md border border-border bg-background/60 text-center font-mono text-[13px] text-foreground outline-none transition-colors focus:border-accent/60"
+      class="h-11 w-9 rounded-md border border-border bg-background/60 text-center font-mono text-[13px] text-foreground outline-none transition-colors focus:border-ring"
       oninput={(e) => onInput(i, e)}
       onkeydown={(e) => onKeydown(i, e)}
       onpaste={onPaste}

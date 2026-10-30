@@ -22,7 +22,7 @@ const styles = stylex.create({
     borderWidth: "1px",
     borderColor: {
       default: "color-mix(in oklab, var(--border) 70%, transparent)",
-      ":focus-visible": "color-mix(in oklab, var(--accent) 70%, transparent)",
+      ":focus-visible": "var(--ring)",
     },
     backgroundColor: "transparent",
     paddingInline: "0.5rem",

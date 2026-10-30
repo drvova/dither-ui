@@ -73,7 +73,7 @@ function onKeydown(e: KeyboardEvent) {
       :disabled="props.disabled"
       :placeholder="props.placeholder"
       :value="props.modelValue"
-      class="w-full rounded-md border border-border bg-background/60 px-3 py-2 font-mono text-[13px] text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
+      class="w-full rounded-md border border-border bg-background/60 px-3 py-2 font-mono text-[13px] text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
       @input="onInput"
       @click="open = true"
       @keydown="onKeydown"

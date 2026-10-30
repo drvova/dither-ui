@@ -13,10 +13,7 @@ const styles = stylex.create({
     borderColor: "var(--border)",
     backgroundColor: "color-mix(in oklab, var(--card) 80%, transparent)",
     outlineStyle: "none",
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 50%, transparent)",
-    },
+    boxShadow: { default: null, ":focus-visible": "0 0 0 calc(2px + 0px) var(--ring)" },
     pointerEvents: { default: null, ":disabled": "none" },
   },
   box: { pointerEvents: "none", opacity: "40%" },

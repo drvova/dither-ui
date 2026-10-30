@@ -209,6 +209,27 @@ onBeforeUnmount(() => {
   translate: 0 6px;
 }
 
+/* Except the screen's switch, a real control: it keeps its place in the tab
+   order whatever the scroll, out of the pointer's reach until it shows, and
+   a keyboard that reaches it lands the whole screen at once. */
+.frame-switch.off {
+  visibility: visible;
+  pointer-events: none;
+}
+
+.canvas:focus-within .wait {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.frame:focus-within,
+.frame:focus-within .part.off {
+  visibility: visible;
+  opacity: 1;
+  translate: 0;
+  pointer-events: auto;
+}
+
 .frame-row {
   display: flex;
   align-items: baseline;

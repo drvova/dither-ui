@@ -86,7 +86,7 @@ onBeforeUnmount(() => ro?.disconnect())
         :ref="(el) => setItemRef(el, i)"
         :href="item.href ?? '#'"
         :aria-current="item.label === props.modelValue ? 'page' : undefined"
-        class="pb-2 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none"
+        class="pb-2 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
         :class="item.label === props.modelValue ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
         @click.prevent="emit('update:modelValue', item.label)"
       >

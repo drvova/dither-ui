@@ -225,7 +225,7 @@
 
   function tabClass(t: TabItem): string {
     return cn(
-      "relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
+      "relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
       variant === "underline"
         ? vertical
           ? "rounded-md px-2 py-1.5 text-left"

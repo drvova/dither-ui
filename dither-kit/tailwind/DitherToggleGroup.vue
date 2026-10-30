@@ -117,7 +117,7 @@ onBeforeUnmount(() => ro?.disconnect())
       :aria-pressed="props.type === 'multiple' ? isOn(o) : undefined"
       :tabindex="props.type === 'single' ? (i === activeIndex ? 0 : -1) : undefined"
       :disabled="o.disabled"
-      class="relative isolate overflow-hidden rounded-md border px-2.5 py-1.5 font-mono text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
+      class="relative isolate overflow-hidden rounded-md border px-2.5 py-1.5 font-mono text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
       :class="
         isOn(o)
           ? darkInk

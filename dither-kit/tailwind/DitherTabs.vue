@@ -211,7 +211,7 @@ onBeforeUnmount(() => ro?.disconnect())
         :aria-controls="`${idBase}-panel-${t.value}`"
         :tabindex="t.value === props.modelValue ? 0 : -1"
         :disabled="t.disabled"
-        class="relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
+        class="relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
         :class="[
           props.variant === 'underline'
             ? vertical

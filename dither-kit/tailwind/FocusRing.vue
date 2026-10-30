@@ -12,7 +12,7 @@ const props = defineProps<{ class?: string }>()
   <div
     :class="
       cn(
-        'rounded-md focus-within:ring-2 focus-within:ring-foreground/70 focus-within:ring-offset-2 focus-within:ring-offset-background',
+        'rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background',
         props.class,
       )
     "

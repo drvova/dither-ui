@@ -134,7 +134,7 @@ function onHexInput(raw: string) {
       aria-label="Saturation and brightness"
       :aria-valuetext="props.modelValue"
       :aria-disabled="props.disabled || undefined"
-      class="relative h-36 w-full cursor-crosshair rounded-md border border-border outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+      class="relative h-36 w-full cursor-crosshair rounded-md border border-border outline-none focus-visible:ring-2 focus-visible:ring-ring"
       :style="{
         background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), ${hueColor}`,
       }"
@@ -156,7 +156,7 @@ function onHexInput(raw: string) {
       :aria-valuemax="360"
       :aria-valuenow="Math.round(hsv[0])"
       :aria-disabled="props.disabled || undefined"
-      class="relative h-4 w-full cursor-ew-resize rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+      class="relative h-4 w-full cursor-ew-resize rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style="
         background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
       "
@@ -180,7 +180,7 @@ function onHexInput(raw: string) {
         :value="props.modelValue"
         :disabled="props.disabled"
         spellcheck="false"
-        class="min-h-8 flex-1 rounded border border-border/70 bg-transparent px-2 font-mono text-[12.5px] uppercase text-foreground outline-none focus-visible:border-accent/70 motion-reduce:transition-none"
+        class="min-h-8 flex-1 rounded border border-border/70 bg-transparent px-2 font-mono text-[12.5px] uppercase text-foreground outline-none focus-visible:border-ring motion-reduce:transition-none"
         @input="onHexInput(($event.target as HTMLInputElement).value)"
       />
     </label>

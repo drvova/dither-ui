@@ -563,14 +563,14 @@
           name="demo-email"
           placeholder="you@dither-ui.com"
           autocomplete="off"
-          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-ring"
         />
         <input
           type="password"
           name="demo-password"
           placeholder="••••••••"
           autocomplete="off"
-          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-ring"
         />
         <DitherButton color="blue" variant="gradient" class="w-full py-2 text-[11px]">Sign in</DitherButton>
       </div>
@@ -602,21 +602,21 @@
           name="signup-name"
           placeholder="Ada Byte"
           autocomplete="off"
-          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-ring"
         />
         <input
           type="email"
           name="signup-email"
           placeholder="you@dither-ui.com"
           autocomplete="off"
-          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-ring"
         />
         <input
           type="password"
           name="signup-password"
           placeholder="••••••••"
           autocomplete="off"
-          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+          class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-ring"
         />
         <div class="grid grid-cols-3 gap-1 rounded-md border border-border/60 p-1" role="group" aria-label="Plan">
           {#each PLANS as p (p)}
@@ -660,7 +660,7 @@
             name="magic-email"
             placeholder="you@dither-ui.com"
             autocomplete="off"
-            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-accent/60"
+            class="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-ring"
           />
           <DitherButton color="green" variant="gradient" class="w-full py-2 text-[11px]" onclick={() => (sent = true)}>Send magic link</DitherButton>
         </div>
@@ -716,7 +716,7 @@
               name={`twofactor-digit-${i + 1}`}
               autocomplete="off"
               aria-label={`Digit ${i + 1}`}
-              class="h-11 w-9 rounded-md border border-border bg-background/60 text-center text-[13px] text-foreground outline-none focus:border-accent/60"
+              class="h-11 w-9 rounded-md border border-border bg-background/60 text-center text-[13px] text-foreground outline-none focus:border-ring"
               oninput={() => onCodeInput(i)}
             />
           {/each}

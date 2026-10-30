@@ -106,7 +106,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
     <a
       href="#main"
-      class="skip-link sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-border focus:bg-background focus:px-4 focus:py-2 focus:text-xs"
+      class="skip-link sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-ring focus:bg-background focus:px-4 focus:py-2 focus:text-xs"
     >
       Skip to content
     </a>
@@ -129,7 +129,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             shape-rendering="crispEdges"
           >
             <path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="currentColor" />
-            <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
+            <rect x="3" y="3" width="1" height="1" fill="var(--signal)" />
           </svg>
           dither-ui
         </a>

@@ -109,7 +109,7 @@
         type="button"
         aria-expanded={isOpen(item.value)}
         aria-controls={`${id}-${i}`}
-        class="flex w-full items-center gap-3 py-2 text-left text-[13px] text-foreground transition-colors focus-visible:ring-1 focus-visible:ring-foreground/40 focus-visible:outline-none"
+        class="flex w-full items-center gap-3 py-2 text-left text-[13px] text-foreground transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
         onclick={() => toggle(item.value)}
       >
         <span

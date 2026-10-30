@@ -74,7 +74,7 @@ function onPaste(event: ClipboardEvent) {
       autocomplete="one-time-code"
       :aria-label="`Digit ${i}`"
       :value="digits[i - 1]"
-      class="h-11 w-9 rounded-md border border-border bg-background/60 text-center font-mono text-[13px] text-foreground outline-none transition-colors focus:border-accent/60"
+      class="h-11 w-9 rounded-md border border-border bg-background/60 text-center font-mono text-[13px] text-foreground outline-none transition-colors focus:border-ring"
       @input="onInput(i - 1, $event)"
       @keydown="onKeydown(i - 1, $event)"
       @paste="onPaste"

@@ -46,10 +46,7 @@ const styles = stylex.create({
     alignItems: "center",
     gap: "0.5rem",
     textAlign: "left",
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(1px + 0px) color-mix(in oklab, var(--foreground) 40%, transparent)",
-    },
+    boxShadow: { default: null, ":focus-visible": "0 0 0 calc(1px + 0px) var(--ring)" },
     outlineStyle: { default: null, ":focus-visible": "none" },
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },

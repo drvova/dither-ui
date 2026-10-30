@@ -91,11 +91,9 @@ describe("StyleX as its compiler takes it", () => {
 
   it("resolves a ring with an offset to the end: no Tailwind variable is left", async () => {
     const out = await create(
-      "focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+      "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     )
-    expect(out).toContain(
-      '"0 0 0 2px var(--background), 0 0 0 calc(2px + 2px) color-mix(in oklab, var(--accent) 30%, transparent)"',
-    )
+    expect(out).toContain('"0 0 0 2px var(--background), 0 0 0 calc(2px + 2px) var(--ring)"')
     expect(out).not.toContain("--tw-")
   })
 })

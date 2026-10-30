@@ -42,7 +42,7 @@ const AI_CRAWLERS = [
 export function robotsTxt(): string {
   const named = AI_CRAWLERS.map((a) => `User-agent: ${a}\nAllow: /`).join("\n\n")
   return [
-    "# dither-ui — everything on this site is public and MIT licensed; no paths",
+    "# dither-ui: everything on this site is public and MIT licensed; no paths",
     "# are restricted. The named AI-crawler allows below make that open posture",
     "# explicit and intentional (the wildcard already permits all crawlers), so",
     "# the policy stays correct if defaults are ever tightened. See also the",
@@ -475,7 +475,7 @@ export function sitemapXml(): string {
 const LLMS_SUMMARY =
   "dither-ui is a Vue 3 UI toolkit (plus a Svelte 5 port, dither-kit-svelte) rendered on one " +
   "ordered-dither canvas engine: composable area, line, bar, pie, radar and sparkline charts, " +
-  "55+ Base UI-parity components, generative backgrounds, text and animation effects — all " +
+  "55+ Base UI-parity components, generative backgrounds, text and animation effects, all " +
   "seed-generative, MIT licensed, and free to use."
 
 interface LlmsLink {
@@ -573,17 +573,17 @@ const LLMS_GROUPS: LlmsGroup[] = [
       {
         title: "Backgrounds",
         href: docsUrl("aurora"),
-        desc: "Full-bleed generative canvas surfaces — aurora, waves, plasma, dark veil, particles.",
+        desc: "Full-bleed generative canvas surfaces: aurora, waves, plasma, dark veil, particles.",
       },
       {
         title: "Text",
         href: docsUrl("gradient-text"),
-        desc: "DOM and CSS text effects — gradient, shiny, glitch, split, scramble, ASCII.",
+        desc: "DOM and CSS text effects: gradient, shiny, glitch, split, scramble, ASCII.",
       },
       {
         title: "Animations",
         href: docsUrl("animated-content"),
-        desc: "Motion and interaction effects — reveals, borders, cursors, magnets.",
+        desc: "Motion and interaction effects: reveals, borders, cursors, magnets.",
       },
     ],
   },
@@ -639,7 +639,7 @@ const LLMS_GROUPS: LlmsGroup[] = [
       {
         title: "All documentation",
         href: `${SITE_URL}/docs`,
-        desc: "The complete docs IA — every section lives on this one page; deep links like /docs/avatar scroll to the section.",
+        desc: "The complete docs IA: every section lives on this one page, and deep links like /docs/avatar scroll to the section.",
       },
       {
         title: "Svelte port",

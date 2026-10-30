@@ -30,7 +30,7 @@ function onInput(e: Event) {
         :min="min"
         :max="max"
         :step="step ?? 1"
-        class="w-full min-w-0 rounded-md border border-border bg-background/60 px-2 py-1 text-xs tabular-nums text-foreground outline-none [appearance:textfield] focus:border-foreground/40 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        class="w-full min-w-0 rounded-md border border-border bg-background/60 px-2 py-1 text-xs tabular-nums text-foreground outline-none [appearance:textfield] focus:border-ring [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         :class="unit ? 'pr-6' : ''"
         @input="onInput"
       />

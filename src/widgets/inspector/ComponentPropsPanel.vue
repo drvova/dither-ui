@@ -45,7 +45,7 @@ const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c)
         type="text"
         name="component-slot"
         autocomplete="off"
-        class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+        class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
         @input="setSlotText(inputValue($event))"
       />
     </label>
@@ -60,7 +60,7 @@ const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c)
           :type="spec.kind === 'url' ? 'url' : 'text'"
           :name="`prop-${spec.key}`"
           autocomplete="off"
-          class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+          class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
           @input="setText(spec, inputValue($event))"
         />
       </label>
@@ -72,7 +72,7 @@ const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c)
           :name="`prop-${spec.key}`"
           autocomplete="off"
           placeholder="One, Two, Three"
-          class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-foreground/40"
+          class="w-full rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
           @change="setList(spec.key, $event)"
         />
       </label>

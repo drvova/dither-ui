@@ -29,7 +29,7 @@ const props = withDefaults(
     :aria-label="props.alt"
     :class="
       cn(
-        'dk-thumb relative block cursor-zoom-in overflow-hidden rounded-md outline-none focus-visible:ring-2 focus-visible:ring-accent/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'dk-thumb relative block cursor-zoom-in overflow-hidden rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         props.class,
       )
     "

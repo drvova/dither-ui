@@ -94,7 +94,7 @@ function clear() {
       :height="props.height"
       :aria-label="props.placeholder"
       role="img"
-      class="w-full cursor-crosshair touch-none rounded-md border border-border bg-background/60 outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+      class="w-full cursor-crosshair touch-none rounded-md border border-border bg-background/60 outline-none focus-visible:ring-2 focus-visible:ring-ring"
       :class="props.disabled && 'pointer-events-none opacity-40'"
       @pointerdown.prevent="onPointerDown"
       @pointermove="onPointerMove"

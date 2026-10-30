@@ -424,6 +424,11 @@ Default section order:
   and reduced-transparency support are expected in every change, and the
   user's design system asks it too: text at AA (4.5:1) on the rendered
   page, gradients and materials included, and 24px targets (WCAG 2.5.8).
+  One focus colour everywhere (the kit, its Svelte port, the site): a
+  control that draws its own indicator draws it in the theme's ring ink
+  (`ring-ring`, a field's `border-ring`), never a tinted accent or a faded
+  foreground, which vanish on some ground; `tests/focus-ring.spec.ts`
+  scans all three.
 - Studio serves Vue developers and visual designers equally. Use the durable
   audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 

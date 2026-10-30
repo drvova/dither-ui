@@ -14,7 +14,7 @@ const styles = stylex.create({
         default: null,
         "@media (hover: hover)": "color-mix(in oklab, var(--foreground) 25%, transparent)",
       },
-      ":focus-visible": "color-mix(in oklab, var(--accent) 70%, transparent)",
+      ":focus-visible": "var(--ring)",
     },
     backgroundColor: "color-mix(in oklab, var(--background) 60%, transparent)",
     paddingInline: "0.75rem",
@@ -30,18 +30,13 @@ const styles = stylex.create({
     transitionDuration: "150ms",
     outlineStyle: "none",
     "::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 20%, transparent)",
-    },
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },
   },
   controlButton: {
     boxShadow: {
       default: null,
-      ":focus-visible":
-        "0 0 0 2px var(--background), 0 0 0 calc(2px + 2px) color-mix(in oklab, var(--accent) 30%, transparent)",
+      ":focus-visible": "0 0 0 2px var(--background), 0 0 0 calc(2px + 2px) var(--ring)",
     },
     outlineStyle: { default: null, ":focus-visible": "none" },
     pointerEvents: { default: null, ":disabled": "none" },

@@ -30,7 +30,9 @@
   --ink-3: var(--muted-foreground);
   /* The one raised ground: a card, a panel, a picked key, a secondary key. */
   --surface: color-mix(in oklab, var(--foreground) 7%, var(--background));
-  --signal: var(--swatch-orange);
+  /* The ember, a burnt step deeper on paper: 5.5:1 on the paper, 4.8:1 on
+     the raised ground (the light theme's own ember fails both). */
+  --signal: #8a4404;
   /* Where the frame's hairlines run: just outside the page's column. */
   --frame: max(8px, calc((100vw - var(--page)) / 2 + 8px));
   font-family: var(--font-mono);

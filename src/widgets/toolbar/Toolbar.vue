@@ -244,7 +244,7 @@ async function exportPng() {
                 type="text"
                 :aria-label="naming === 'new' ? 'New project name' : 'Project name'"
                 placeholder="Project name"
-                class="h-7 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+                class="h-7 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
                 @keydown.esc.stop="naming = null"
               />
             </form>
@@ -317,7 +317,7 @@ async function exportPng() {
               type="search"
               name="component-search"
               :placeholder="`Search ${COMPONENT_REGISTRY.length} components…`"
-              class="h-9 w-full rounded-md border border-border bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+              class="h-9 w-full rounded-md border border-border bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
               @keydown.esc="libraryOpen = false"
             />
           </label>

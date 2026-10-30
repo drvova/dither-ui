@@ -23,10 +23,7 @@ const styles = stylex.create({
         "@media (hover: hover)": "color-mix(in oklab, var(--accent) 10%, transparent)",
       },
     },
-    boxShadow: {
-      default: null,
-      ":focus-visible": "0 0 0 calc(2px + 0px) color-mix(in oklab, var(--accent) 30%, transparent)",
-    },
+    boxShadow: { default: null, ":focus-visible": "0 0 0 calc(2px + 0px) var(--ring)" },
     outlineStyle: { default: null, ":focus-visible": "none" },
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },

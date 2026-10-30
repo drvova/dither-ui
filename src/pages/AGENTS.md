@@ -51,7 +51,8 @@ widgets/features; page-specific conventions live here.
   dialog) is printed too, and `LandingPage` drops the `dark` class on
   mount; the two inks mapped to theme tokens (`--ink`, `--ink-3`),
   `--surface` (the one raised ground, 7% of the ink mixed into the paper)
-  and `--signal` (the ember); the grain (a 96px PNG tile of single cells
+  and `--signal` (the ember a burnt step deeper on paper, `#8a4404`: the
+  light theme's own fails AA on both grounds there); the grain (a 96px PNG tile of single cells
   a tone under and over the paper, never a grid); the frame (`--frame`,
   a fixed hairline down each side of the page's column from 900px, above
   the page, never taking a pointer); the section head (`.sec-head`: the
@@ -180,7 +181,9 @@ widgets/features; page-specific conventions live here.
   commands show. The step is the marker crossing the viewport's middle
   (one IntersectionObserver, armed after the markers render; no scroll
   listener). What has not happened yet keeps its place, hidden and out of
-  reach. Under 900px, or without an observer, nothing pins: the whole
+  reach, except the screen's switch: a real control, it keeps its tab stop
+  whatever the scroll (out of the pointer's reach until it shows), and a
+  keyboard that reaches it lands the whole screen at once. Under 900px, or without an observer, nothing pins: the whole
   session shows at once, the screen over the session. Screen readers get
   the whole session as a caption; the stage is decoration. A screen is
   made ONLY of registry components (`add_screen` lays them out), so every

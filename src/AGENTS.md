@@ -42,7 +42,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   dithered or put in the kit; imported by path, never through the
   `shared/ui` barrel, which would pull every shared component into the
   landing's first load; `Segmented` takes `labels` where an option's
-  value is not how a reader writes it), config (CHART_TYPES), lib (theme,
+  value is not how a reader writes it), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf
+  the landing can load without the docs IA), lib (theme,
   routes (with `safeUrl`, the ONE test of a URL a document may carry into
   an href or a src: http(s), mailto, a raster `data:` image or a relative
   path, read as the browser reads it), base64, menu,
@@ -87,7 +88,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
   `noindex` player at `/play/` (not prerendered); legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported. Route
-  entry HTML files own static crawler-visible metadata; docs sections refine
+  entry HTML files own static crawler-visible metadata (their titles are
+  `shared/config/titles.ts` `ROUTE_TITLES`, which App.vue sets as the route
+  changes; `tests/titles.spec.ts` holds each page's three copies to it); docs sections refine
   it at runtime per `/docs/<id>` (see `pages/AGENTS.md`). `app/App.vue`
   resolves both path styles. Internal app links and public asset URLs use
   `routePath()` /
