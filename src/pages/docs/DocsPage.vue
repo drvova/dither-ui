@@ -1017,7 +1017,7 @@ const gradientCode = computed(
 
     <div class="mx-auto flex w-full max-w-6xl px-4 sm:px-6">
       <!-- Sidebar -->
-      <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-52 shrink-0 overflow-y-auto py-10 pr-8 lg:block">
+      <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-52 shrink-0 overflow-y-auto py-10 pr-8 lg:block">
         <nav class="grid gap-7">
           <div v-for="grp in GROUPS" :key="grp.title">
             <div class="flex items-center gap-2 text-[11px] font-medium text-foreground">
@@ -2167,7 +2167,7 @@ const gradientCode = computed(
         </div>
       </main>
 
-      <aside class="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
+      <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
         <nav v-if="onPage.length" aria-label="On this page">
           <p class="flex items-center gap-2 text-[11px] font-medium text-foreground">
             <DitherIcon name="Menu" :size="13" :stroke-width="1.5" />On this page

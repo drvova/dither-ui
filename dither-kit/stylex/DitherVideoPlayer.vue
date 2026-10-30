@@ -95,6 +95,14 @@ const duration = ref(0)
 const volume = ref(1)
 const rate = ref(1)
 const RATES = [1, 1.25, 1.5, 2]
+// iOS ties a media element's volume to the hardware buttons and ignores a
+// write, so the volume slider shows only where a write sticks.
+const volumeWritable = (() => {
+  if (typeof document === "undefined") return true
+  const probe = document.createElement("video")
+  probe.volume = 0.5
+  return probe.volume === 0.5
+})()
 
 function toggle() {
   const v = video.value
@@ -149,7 +157,9 @@ function onKey(e: KeyboardEvent) {
   else if (k === "f") fullscreen()
 }
 function fullscreen() {
-  host.value?.requestFullscreen?.()
+  // An iPhone has no element fullscreen; its video takes the system's own.
+  if (host.value?.requestFullscreen) void host.value.requestFullscreen()
+  else (video.value as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null)?.webkitEnterFullscreen?.()
 }
 
 const fmt = (s: number) => {
@@ -225,6 +235,7 @@ const btn = cn(styles.grid3, CONTROL_BUTTON)
           <span aria-hidden="true">{{ muted ? "○" : "●" }}</span>
         </button>
         <DitherSlider
+          v-if="volumeWritable"
           :model-value="muted ? 0 : volume"
           :min="0"
           :max="1"

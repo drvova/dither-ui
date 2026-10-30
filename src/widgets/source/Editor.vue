@@ -113,6 +113,14 @@ defineExpose({
   line-height: 1.65;
 }
 
+/* iOS sets its fields at 16px at least (app/styles.css): the gutter, which
+   inherits the editor's size, grows with the textarea it numbers. */
+@supports (-webkit-touch-callout: none) {
+  .src-editor {
+    font-size: 16px;
+  }
+}
+
 .src-gutter {
   position: absolute;
   inset: 2px auto 2px 2px;
@@ -142,7 +150,7 @@ defineExpose({
 .src-area {
   display: block;
   width: 100%;
-  max-height: 70vh;
+  max-height: 70dvh;
   padding: 14px 14px 14px calc(var(--gutter) + 8px);
   resize: none;
   overflow: auto;

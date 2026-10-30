@@ -8,7 +8,7 @@
 import { computed, onBeforeUnmount, ref } from "vue"
 import { editor, replay } from "@/entities/editor"
 import { createClip, REEL_TRANSITIONS, type ReelClip, type ReelModel, type ReelTransitionKind } from "@/entities/widget"
-import { CAMERA_MOVES, cameraMoveOf, playScore, reelDuration } from "@/features/reel"
+import { CAMERA_MOVES, cameraMoveOf, openScoreAudio, playScore, reelDuration } from "@/features/reel"
 import { NumberField, Toggle } from "@/shared/ui"
 
 const props = defineProps<{ reel: ReelModel; artboardId: string }>()
@@ -85,17 +85,16 @@ async function preview() {
     previewing.value = "idle"
     return
   }
+  // The audio opens here, in the click (see `openScoreAudio`).
+  const audio = openScoreAudio()
+  if (!audio) return
   previewing.value = "making"
   // Let the panel paint its state before the synthesis holds the thread.
   await new Promise((r) => setTimeout(r, 30))
-  stopPreview = playScore(reel.value, () => {
+  stopPreview = playScore(reel.value, audio, () => {
     previewing.value = "idle"
     stopPreview = null
   })
-  if (!stopPreview) {
-    previewing.value = "idle"
-    return
-  }
   replay()
   previewing.value = "playing"
 }

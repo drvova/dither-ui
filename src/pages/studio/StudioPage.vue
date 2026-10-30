@@ -14,7 +14,7 @@ import { Toolbar } from "@/widgets/toolbar"
 
 const AgentPanel = defineAsyncComponent(() => import("@/widgets/agent").then((m) => m.AgentPanel))
 import { CHART_TYPES, type ChartType } from "@/shared/config"
-import { routePath } from "@/shared/lib"
+import { installLongPress, routePath } from "@/shared/lib"
 
 const ExportDialog = defineAsyncComponent(() => import("@/features/export-code").then((m) => m.ExportDialog))
 const exportOpen = ref(false)
@@ -34,6 +34,9 @@ startHistory()
 // The agent protocol (window.ditherStudio, dither-studio:* DOM events, the
 // document mirror) opens with the studio and closes with it.
 const closeAgentApi = installStudioAgentApi()
+// Every right-click menu (the layer rows') opens on a long press too, for a
+// finger on an iPad, where WebKit fires no contextmenu.
+const closeLongPress = installLongPress()
 
 // A project .json dropped anywhere on the studio loads like Open file.
 async function onDrop(e: DragEvent) {
@@ -61,6 +64,7 @@ const onResize = () => (isDesktop.value = window.innerWidth >= 1024)
 window.addEventListener("resize", onResize)
 onBeforeUnmount(() => {
   closeAgentApi()
+  closeLongPress()
   stopAutosave()
   stopHistory()
   window.removeEventListener("resize", onResize)
@@ -70,7 +74,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     v-if="isDesktop"
-    class="relative h-screen overflow-hidden bg-background font-mono text-[13px] text-foreground antialiased"
+    class="relative h-dvh overflow-hidden bg-background font-mono text-[13px] text-foreground antialiased"
     @dragover.prevent
     @drop.prevent="onDrop"
   >
@@ -125,7 +129,7 @@ onBeforeUnmount(() => {
   <!-- Small screens: the editor needs a desktop, so guide instead of breaking. -->
   <div
     v-else
-    class="flex h-screen flex-col items-center justify-center gap-5 bg-background px-8 text-center font-mono text-foreground antialiased"
+    class="flex h-dvh flex-col items-center justify-center gap-5 bg-background px-8 text-center font-mono text-foreground antialiased"
   >
     <h1 class="text-xl tracking-tight">The Studio is best on a desktop</h1>
     <p class="max-w-xs text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">

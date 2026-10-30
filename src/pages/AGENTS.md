@@ -122,8 +122,10 @@ widgets/features; page-specific conventions live here.
   dither-ui film", its description the film in words (no speech in it).
   The `<video>` exists only while the dialog is open: `public/trailer/`
   `dither-ui.mp4` (H.264 + AAC) first, `dither-ui.webm` (VP9 + Opus) for a
-  browser built without H.264, `poster.webp`; it autoplays (opening it
-  was the ask) except under reduced motion, where it waits for play.
+  browser built without H.264, `poster.webp`; it starts with `play()` in
+  the opening tap's own tick (opening it was the ask, and iOS lets a film
+  with sound start only from a gesture), `playsinline`, except under
+  reduced motion, where it waits on its poster for play.
   Retake all three from the trailer's edit when the film changes (1080p,
   each about 8 MB).
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string

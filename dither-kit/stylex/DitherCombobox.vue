@@ -209,7 +209,8 @@ function onKeydown(e: KeyboardEvent) {
           ])
         "
         @pointerenter="!o.disabled && (highlighted = i)"
-        @pointerdown.prevent="pick(o)"
+        @pointerdown.prevent
+        @click="pick(o)"
       >
         <span>{{ o.label }}</span>
         <span

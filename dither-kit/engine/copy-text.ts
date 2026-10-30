@@ -21,6 +21,8 @@ export async function copyText(text: string): Promise<boolean> {
   area.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0"
   document.body.appendChild(area)
   area.select()
+  // iOS WebKit selects nothing in a readonly field through select().
+  area.setSelectionRange(0, text.length)
   let copied: boolean
   try {
     copied = document.execCommand("copy")

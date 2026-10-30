@@ -27,6 +27,14 @@
   let volume = $state(1)
   let rate = $state(1)
   const RATES = [1, 1.25, 1.5, 2]
+  // iOS ties a media element's volume to the hardware buttons and ignores a
+  // write, so the volume slider shows only where a write sticks.
+  const volumeWritable = (() => {
+    if (typeof document === "undefined") return true
+    const probe = document.createElement("video")
+    probe.volume = 0.5
+    return probe.volume === 0.5
+  })()
 
   function toggle() {
     if (!video) return
@@ -84,7 +92,9 @@
     else if (k === "f") fullscreen()
   }
   function fullscreen() {
-    host?.requestFullscreen?.()
+    // An iPhone has no element fullscreen; its video takes the system's own.
+    if (host?.requestFullscreen) void host.requestFullscreen()
+    else (video as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null)?.webkitEnterFullscreen?.()
   }
 
   const fmt = (s: number) => {
@@ -147,16 +157,18 @@
       <button type="button" class={btn} aria-label={muted ? "Unmute" : "Mute"} disabled={!src} onclick={toggleMute}>
         <span aria-hidden="true">{muted ? "○" : "●"}</span>
       </button>
-      <DitherSlider
-        bind:value={() => (muted ? 0 : volume), (v) => setVolume(v)}
-        min={0}
-        max={1}
-        step={0.05}
-        label="Volume"
-        {color}
-        disabled={!src}
-        class="w-20"
-      />
+      {#if volumeWritable}
+        <DitherSlider
+          bind:value={() => (muted ? 0 : volume), (v) => setVolume(v)}
+          min={0}
+          max={1}
+          step={0.05}
+          label="Volume"
+          {color}
+          disabled={!src}
+          class="w-20"
+        />
+      {/if}
       <button type="button" class={cn(btn, "w-10 text-[10px] tabular-nums")} aria-label={`Playback speed ${rate}x`} disabled={!src} onclick={cycleRate}>
         {rate}×
       </button>

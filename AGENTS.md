@@ -255,7 +255,16 @@ Default section order:
   (`requestIdleCallback`, `startViewTransition`, WebGL2 → WebGL1,
   `ResizeObserver`/`IntersectionObserver` guards, `copyText`'s clipboard
   fallback) and the rest degrades (`text-wrap`, `content-visibility`,
-  `scrollbar-*`). Automation is plain DOM: the player answers the `hf-seek`
+  `scrollbar-*`). iOS (every browser there is WebKit) is a first-class
+  target for the whole site, iPhone and iPad: fingers drag every control
+  (`touch-action` set, `pointercancel` handled), the Studio canvas pans
+  under a finger and pinches under two, and every right-click menu opens on
+  a long press (`src/shared/lib/long-press.ts`); fields read at 16px there
+  so focusing one never zooms the page (pinch zoom stays the reader's);
+  full-height layouts are `dvh`; audio opens in the tap that asks for it;
+  `theme-color` is each page's ground. The Studio's editor needs a 1024px
+  width (iPad landscape); narrower screens get its notice. Details in
+  `src/AGENTS.md` and `dither-kit/AGENTS.md`. Automation is plain DOM: the player answers the `hf-seek`
   event and `window.ditherClock`, the Studio `window.ditherStudio` (with
   `.clock`), the `dither-studio:command` event and `clock.seek`, so CDP,
   WebDriver and Playwright drive it in any engine; `npm run frames` renders

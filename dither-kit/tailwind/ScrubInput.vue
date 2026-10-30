@@ -96,7 +96,7 @@ function onKeydown(e: KeyboardEvent) {
       :aria-valuetext="ariaValueText"
       :aria-disabled="props.disabled"
       :disabled="props.disabled"
-      class="grid w-7 shrink-0 cursor-ew-resize place-items-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+      class="grid w-7 shrink-0 cursor-ew-resize touch-none place-items-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
       @pointerdown.prevent="onPointerDown"
       @keydown="onKeydown"
     >

@@ -10,6 +10,7 @@ const styles = stylex.create({
     width: "1.75rem",
     flexShrink: "0",
     cursor: "ew-resize",
+    touchAction: "none",
     placeItems: "center",
     borderRadius: "var(--radius)",
     borderStyle: "solid",

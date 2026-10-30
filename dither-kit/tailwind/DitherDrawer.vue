@@ -210,7 +210,7 @@ const panelStyle = computed(() => {
         class="fixed z-50 flex flex-col border-border bg-card p-4 font-mono"
         :class="[
           props.side === 'bottom' ? 'inset-x-0 bottom-0 rounded-t-xl border-t' : 'inset-y-0 w-80 max-w-[85vw]',
-          props.side === 'bottom' && !hasSnaps ? 'max-h-[85vh]' : '',
+          props.side === 'bottom' && !hasSnaps ? 'max-h-[85dvh]' : '',
           props.side === 'right' ? 'right-0 border-l' : props.side === 'left' ? 'left-0 border-r' : '',
           dragging ? 'select-none' : 'transition-[transform,filter] motion-reduce:transition-none',
           props.swipe && props.side !== 'bottom' ? 'touch-pan-y' : '',

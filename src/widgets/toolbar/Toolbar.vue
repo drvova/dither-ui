@@ -307,7 +307,7 @@ async function exportPng() {
           v-if="libraryOpen"
           role="dialog"
           aria-label="Component library"
-          class="absolute left-1/2 top-full mt-2 flex max-h-[min(72vh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rim rounded-2xl bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]"
+          class="absolute left-1/2 top-full mt-2 flex max-h-[min(72dvh,640px)] w-[420px] -translate-x-1/2 flex-col overflow-hidden rim rounded-2xl bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]"
         >
           <label class="border-b border-border/60 p-2">
             <span class="sr-only">Search components</span>

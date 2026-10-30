@@ -66,7 +66,7 @@ async function downloadAll() {
       @click.self="emit('close')"
       @keydown.esc.stop="emit('close')"
     >
-      <DitherFocusScope :autofocus="false" class="hardshell flex max-h-[80vh] w-full max-w-2xl flex-col bg-card">
+      <DitherFocusScope :autofocus="false" class="hardshell flex max-h-[80dvh] w-full max-w-2xl flex-col bg-card">
         <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
           <span class="text-sm font-medium">Export as a Vue SFC</span>
           <div class="flex items-center gap-2">

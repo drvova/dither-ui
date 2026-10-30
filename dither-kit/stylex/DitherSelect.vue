@@ -194,7 +194,8 @@ onBeforeUnmount(() => document.removeEventListener("pointerdown", onOutside))
             ])
           "
           @pointerenter="!o.disabled && (highlighted = i)"
-          @pointerdown.prevent="pick(o)"
+          @pointerdown.prevent
+          @click="pick(o)"
         >
           <span>{{ o.label }}</span>
           <span

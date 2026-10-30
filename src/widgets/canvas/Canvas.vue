@@ -7,7 +7,7 @@ import { usePanZoom } from "@/features/pan-zoom"
 import Artboard from "./Artboard.vue"
 
 const host = ref<HTMLElement | null>(null)
-const { onWheel, startPan, zoomIn, zoomOut, resetZoom, fit, fitSelection } = usePanZoom(host)
+const { onWheel, startPan, onTouchDown, zoomIn, zoomOut, resetZoom, fit, fitSelection } = usePanZoom(host)
 useShortcuts({ fit, fitSelection, zoomIn, zoomOut, resetZoom })
 const visible = computed(() => editor.artboards.filter((a) => !a.hidden))
 
@@ -32,10 +32,11 @@ onBeforeUnmount(() => {
   window.removeEventListener("keyup", onKeyUp)
 })
 
-// Marquee selection on empty-canvas drag.
+// Marquee selection on empty-canvas drag; a finger on empty canvas pans
+// instead (a touch screen has no Space or middle button).
 const marquee = ref<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
 function onCanvasDown(e: PointerEvent) {
-  if (e.button === 1 || spaceHeld.value) return startPan(e)
+  if (e.button === 1 || spaceHeld.value || e.pointerType === "touch") return startPan(e)
   if (e.button !== 0) return
   const rect = host.value?.getBoundingClientRect()
   if (!rect) return
@@ -57,24 +58,29 @@ function onCanvasDown(e: PointerEvent) {
     selectMany(hit.map((a) => a.id))
   }
   const up = (ev: PointerEvent) => {
+    if (ev.pointerId !== e.pointerId) return
     window.removeEventListener("pointermove", move)
     window.removeEventListener("pointerup", up)
+    window.removeEventListener("pointercancel", up)
     const moved = Math.hypot(ev.clientX - rect.left - sx, ev.clientY - rect.top - sy)
-    if (moved < 3) deselect() // plain click on empty canvas
+    if (ev.type === "pointerup" && moved < 3) deselect() // plain click on empty canvas
     marquee.value = null
   }
   window.addEventListener("pointermove", move)
   window.addEventListener("pointerup", up)
+  window.addEventListener("pointercancel", up)
 }
 </script>
 
 <template>
   <div
     ref="host"
-    class="dk-canvas relative h-full w-full overflow-hidden"
+    class="dk-canvas relative h-full w-full touch-none overflow-hidden"
     :class="spaceHeld ? 'cursor-grab' : ''"
     @wheel.prevent="onWheel"
+    @pointerdown.capture="onTouchDown"
     @pointerdown.self="onCanvasDown"
+    @gesturestart.prevent
   >
     <div
       class="absolute left-0 top-0 origin-top-left"

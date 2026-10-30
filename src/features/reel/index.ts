@@ -18,4 +18,4 @@ export {
   STILL,
   wipeDirectionOf,
 } from "./reel"
-export { playScore } from "./preview"
+export { openScoreAudio, playScore } from "./preview"

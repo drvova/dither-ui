@@ -143,7 +143,8 @@ function onKeydown(e: KeyboardEvent) {
         :aria-selected="s === props.modelValue"
         :class="cn(styles.box, i === highlighted ? styles.box2 : styles.box3)"
         @pointerenter="highlighted = i"
-        @pointerdown.prevent="pick(s)"
+        @pointerdown.prevent
+        @click="pick(s)"
       >
         {{ s }}
       </div>

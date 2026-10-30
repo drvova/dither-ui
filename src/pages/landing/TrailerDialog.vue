@@ -11,6 +11,12 @@ import { assetPath } from "@/shared/lib"
 
 const open = defineModel<boolean>({ required: true })
 const still = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
+// Played in the open's own tick, inside the visitor's tap: iOS WebKit lets
+// a film with sound start only from a gesture, and refuses `autoplay` on
+// one. Refused anyway, it waits on its poster with its controls.
+const start = (el: unknown) => {
+  if (el instanceof HTMLVideoElement && !still()) el.play().catch(() => {})
+}
 </script>
 
 <template>
@@ -24,8 +30,8 @@ const still = () => window.matchMedia("(prefers-reduced-motion: reduce)").matche
     <video
       v-if="open"
       class="trailer"
+      :ref="start"
       :poster="assetPath('/trailer/poster.webp')"
-      :autoplay="!still()"
       controls
       playsinline
       preload="metadata"

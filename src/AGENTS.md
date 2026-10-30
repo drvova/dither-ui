@@ -22,7 +22,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   export-code, export-image, export-video (a frame as a HyperFrames
   composition: builder, dialog, delivery for the agent path; a film's score
   as its audio track), reel (the reel's and the film's pure timeline, the
-  score preview), pan-zoom,
+  score preview, its audio opened in the click that asks for it, as iOS
+  needs), pan-zoom (wheel, middle or Space drag, one finger on empty
+  canvas pans, two fingers pinch about their midpoint; a second finger ends
+  the first finger's drag with a `pointercancel`; `tests/canvas-touch.spec.ts`),
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
   the Studio tools and the ACP client behind the composer).
 - `entities/` — domain stores: editor (selection/artboards, single source of
@@ -55,7 +58,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   single-quoted binding, `key`, `objectLiteral`, `text` for template text),
   so exported code carries values as data, never as code —
   `sound.ts` — Kobra's interface sounds as WebAudio voices behind one
-  remembered switch (`sounds`, localStorage `dither-sounds`) — `files.ts` —
+  remembered switch (`sounds`, localStorage `dither-sounds`; a context
+  WebKit left suspended or interrupted resumes on the next cue) —
+  `long-press.ts` — `installLongPress`, the Studio's polyfill for the
+  contextmenu iOS never fires: a touch held still 500ms dispatches one at
+  the finger and swallows its release's click; a moving finger, a mouse, a
+  text field and the platform's own menu (Android) are left alone
+  (`tests/long-press.spec.ts`) — `files.ts` —
   `download()` and a stored .zip of text files, the ONE download path for
   the Studio's exports, the workbench and the source panel —
   `restyle.ts` — a snippet in the reader's styling system — and the
@@ -363,11 +372,22 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   only (artboard ring, handles, snap guides, marquee, screen-cell rings).
   The accent blues stay tuned to clear 4.5:1 against white (light
   `#1d63d0`, dark `#1f6fd6`) — do not brighten them back.
+- Touch and iOS: the app's stylesheet sets every field to 16px at least on
+  iOS WebKit only (`@supports (-webkit-touch-callout: none)`, unlayered so
+  it outranks the utilities; the source editor grows its gutter with it),
+  so focusing one never zooms the page; full-height layouts use `dvh`
+  (the Studio, the docs rails, dialogs and menus capped in height), never
+  `vh`, which hides their foot under Safari's toolbar. The Studio's canvas
+  is `touch-none` and the Studio installs the long press for its menus;
+  keys shown on hover show on a screen without hover
+  (`[@media(hover:none)]`).
 - Layer tree is a `listbox`: every row type is a focusable `role="option"`
   with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
   don't retrigger), ↑/↓ move focus and MUST stopPropagation — the same keys
-  nudge artboards at window level. A row's lock and hide keys show on hover
-  AND while the row holds focus (a key Tabbed to is never invisible); a
+  nudge artboards at window level. A row's lock and hide keys show on hover,
+  while the row holds focus (a key Tabbed to is never invisible) and
+  always on a screen without hover; its menu opens on a right click or a
+  long press, the rows taking no text selection (the rename field does); a
   hidden row says so with its eye-off key and an italic name, its text
   kept at AA, never dimmed. New row kinds follow this shape.
 - Design tokens: shadcn-style CSS vars in `app/styles.css`; components use
@@ -480,6 +500,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   same way shows the right clip, layers and mask state per time, requests
   no frames while directed, and its composition renders to an MP4 as long
   as the cut whose frames differ across the transitions.
+- iOS: walk the built site in WebKitGTK (below) at an iPhone's size
+  (390x844, an iPhone user agent) and an iPad's (1180x820, the Studio):
+  no error on the landing, the docs or the Studio (a pass-through proxy
+  that puts an error recorder first in each page's head reads them back,
+  since classic WebDriver has no console), every brand moment playing
+  home. A real device or the iOS Simulator remains the check for touch,
+  audio and input zoom.
 - Other engines: when Playwright's WebKit/Firefox builds cannot be fetched,
   WebKitGTK's own WebDriver (`apt install webkit2gtk-driver xvfb`, then
   `xvfb-run WebKitWebDriver --port=4447` and a W3C session on
