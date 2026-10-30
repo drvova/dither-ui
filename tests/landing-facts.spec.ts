@@ -4,6 +4,7 @@ import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
 import { STYLING_LABELS } from "../src/shared/lib/restyle"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
+import { choreograph, LOCKUP, LOCKUP_SIZE, MARK_CELLS, MOMENT, PLATES, STOCK } from "../src/pages/landing/plate"
 
 const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
 const components = [...index.matchAll(/default as (\w+)/g)].map((m) => m[1])
@@ -61,12 +62,72 @@ describe("landing facts", () => {
     // The plate's stock is `--surface` as a colour the kit can print with:
     // the token's oklab mix of the landing's ink into its ground.
     const css = readFileSync(new URL("../src/pages/landing/chapters.css", import.meta.url), "utf8")
-    const page = readFileSync(new URL("../src/pages/landing/LandingPage.vue", import.meta.url), "utf8")
     const token = (name: string) => css.match(new RegExp(`${name}: (#[0-9a-f]{6});`))![1]
     const [, share] = css.match(/--surface: color-mix\(in oklab, var\(--foreground\) (\d+)%, var\(--background\)\);/)!
-    const stock = page.match(/const STOCK = "(#[0-9a-f]{6})"/)![1]
     const mixed = mixOklab(token("--foreground"), token("--background"), Number(share) / 100)
-    rgb(stock).forEach((c, i) => expect(Math.abs(c - mixed[i])).toBeLessThanOrEqual(1))
+    rgb(STOCK).forEach((c, i) => expect(Math.abs(c - mixed[i])).toBeLessThanOrEqual(1))
+  })
+
+  it("draws the mark as the diamond's cells around one ember core", () => {
+    // 1 + 4 + 8 + 12 cells within three steps of the centre of a 7x7 grid.
+    expect(MARK_CELLS).toHaveLength(25)
+    expect(MARK_CELLS.filter((c) => c.core)).toEqual([{ x: 3, y: 3, core: true }])
+    for (const { x, y } of MARK_CELLS) expect(Math.abs(x - 3) + Math.abs(y - 3)).toBeLessThanOrEqual(3)
+  })
+
+  it("plays each plate's moment on the grid, home inside five seconds", () => {
+    const cell = 4
+    const box = { width: 1232, height: 524 }
+    const marks = MARK_CELLS.length
+    expect(LOCKUP).toHaveLength(marks + LOCKUP.filter((c) => c.x >= 10).length)
+    expect(new Set(LOCKUP.map((c) => `${c.x}.${c.y}`)).size).toBe(LOCKUP.length)
+    expect(MOMENT.end).toBeLessThanOrEqual(5000)
+    const { gather, burst, settle } = MOMENT
+    expect(gather.lift + gather.sweep + gather.span[1]).toBeLessThanOrEqual(burst.at)
+    expect(burst.at + burst.span).toBeLessThanOrEqual(settle.at)
+    expect(settle.at + settle.sweep + settle.span).toBeLessThanOrEqual(MOMENT.end)
+    for (const plate of Object.values(PLATES)) {
+      const left = 16 + Math.round(plate.mark[0] * (box.width - 32 - LOCKUP_SIZE.width * cell))
+      const slots = LOCKUP.map((c) => ({ x: left + c.x * cell, y: 200 + c.y * cell }))
+      const paths = choreograph(plate, box, slots, cell)
+      expect(choreograph(plate, box, slots, cell)).toEqual(paths)
+      paths.forEach((path, i) => {
+        // In time order, on the cell's own grid, inside the plate, home at the end.
+        path.forEach((p, k) => {
+          if (k) expect(p.t).toBeGreaterThanOrEqual(path[k - 1].t)
+          expect(Math.abs((p.x - slots[i].x) % cell)).toBe(0)
+          expect(Math.abs((p.y - slots[i].y) % cell)).toBe(0)
+          expect(p.x).toBeGreaterThanOrEqual(0)
+          expect(p.x).toBeLessThan(box.width)
+          expect(p.y).toBeGreaterThanOrEqual(0)
+          expect(p.y).toBeLessThan(box.height)
+        })
+        expect(path.at(-1)).toEqual({ ...slots[i], t: MOMENT.end })
+        // Until the burst a wordmark cell shares a bone mark cell's square.
+        if (i >= marks) {
+          const before = path.filter((p) => p.t <= burst.at)
+          const host = paths
+            .slice(0, marks)
+            .find((h, j) => !MARK_CELLS[j].core && h[0].x === path[0].x && h[0].y === path[0].y)
+          expect(host).toBeDefined()
+          expect(before).toEqual(host!.filter((p) => p.t <= burst.at))
+        }
+      })
+    }
+  })
+
+  it("stands each plate's mark in its clear band, its tones thin", () => {
+    for (const { sky, band, ground, mark } of Object.values(PLATES)) {
+      expect(band[0]).toBeLessThan(band[1])
+      expect(mark[1]).toBeGreaterThan(band[0])
+      expect(mark[1]).toBeLessThan(band[1])
+      expect(mark[0]).toBeGreaterThan(0.1)
+      expect(mark[0]).toBeLessThan(0.7)
+      for (const tone of [sky, ground]) {
+        expect(tone).toBeGreaterThan(0)
+        expect(tone).toBeLessThanOrEqual(0.4)
+      }
+    }
   })
 })
 

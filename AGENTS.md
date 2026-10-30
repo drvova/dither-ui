@@ -135,12 +135,13 @@ Default section order:
   kit's diamond standing over its own dithered floor; a quiet line of what
   it works with under the keys; copy calm and procedural, every figure
   read from the kit), then
-  sections under a title with a lead beside it: a bento of live
+  sections under a title with a lead beside it, print plates of the brand
+  small in a wide field between them (after the bento, after the
+  ask, before the install): a bento of live
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
-  families), a print plate with the kit's diamond small in a wide field,
-  a centred install closed by the kit's spec sheet, and the footer: the brand beside link
+  families), a centred install closed by the kit's spec sheet, and the footer: the brand beside link
   columns, the copyright line and the line-screen wordmark. It keeps the
   user's slop bans as lifted for it (User Preferences). No film
   player or animation runtime ships with the page. The trailer
