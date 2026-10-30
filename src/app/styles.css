@@ -453,10 +453,11 @@
   }
 }
 
-/* Theme swap rides a circular reveal (useTheme.revealToggle): the default
-   view-transition crossfade is disabled so the clip circle owns the frame. */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
+/* Page to page, the site dithers: a same-origin navigation is a view
+   transition, which the new page hands to the kit's engine (app/page-reveal.ts).
+   None under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
 }

@@ -1,4 +1,5 @@
 import { onMounted, ref } from "vue"
+import { ditherTransition } from "@dither-kit/engine/transition"
 import { storage } from "./storage"
 
 const STORAGE_KEY = "dither-theme"
@@ -29,8 +30,8 @@ function withoutTransitions(fn: () => void) {
 }
 
 /** Dark/light toggle on <html>. Defaults to dark (the dither aesthetic),
- * remembers the choice, and can reveal the new theme as a circle growing
- * from the control that asked for it (View Transitions API). */
+ * remembers the choice, and can reveal the new theme as a dithered iris
+ * growing from the control that asked for it (the kit's transition engine). */
 export function useTheme() {
   const dark = ref(true)
   const apply = () => document.documentElement.classList.toggle("dark", dark.value)
@@ -43,28 +44,17 @@ export function useTheme() {
       persist()
     })
 
-  /** Theme swap wrapped in a circular reveal from the event's control.
-   * Falls back to a plain toggle without the API or under reduced motion. */
+  /** Theme swap through an iris from the event's control. A plain toggle
+   * without the View Transitions API or under reduced motion. */
   const revealToggle = (e?: MouseEvent) => {
-    const doc = document as Document & { startViewTransition?: (fn: () => void) => { ready: Promise<void> } }
-    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (!doc.startViewTransition || still) {
-      toggle()
-      return
-    }
-    const target = e?.currentTarget instanceof HTMLElement ? e.currentTarget : null
-    const r = target?.getBoundingClientRect()
-    const cx = r ? r.left + r.width / 2 : window.innerWidth - 24
-    const cy = r ? r.top + r.height / 2 : 24
-    const radius = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy))
-    doc
-      .startViewTransition(() => withoutTransitions(toggle))
-      .ready.then(() => {
-        document.documentElement.animate(
-          { clipPath: [`circle(0px at ${cx}px ${cy}px)`, `circle(${radius}px at ${cx}px ${cy}px)`] },
-          { duration: 480, easing: "cubic-bezier(0.3, 0.9, 0.4, 1)", pseudoElement: "::view-transition-new(root)" },
-        )
-      })
+    const r = e?.currentTarget instanceof HTMLElement ? e.currentTarget.getBoundingClientRect() : null
+    void ditherTransition(toggle, {
+      direction: "iris",
+      origin: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: innerWidth - 24, y: 24 },
+      band: 8,
+      duration: 480,
+      easing: [0.22, 1, 0.36, 1],
+    })
   }
 
   onMounted(() => {

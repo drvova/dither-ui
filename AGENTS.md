@@ -138,6 +138,12 @@ Default section order:
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
   hero's "Watch the film" key and is fetched only when its dialog opens.
   Details in `src/pages/AGENTS.md`.
+- Page transitions: moving between the site's pages is a cross-document
+  view transition the arriving page dithers through the kit's transition
+  engine (`dither-kit/engine/transition.ts`, a band of the signal ink on
+  the wipe's front); an inline head script from `src/app/page-reveal.ts`
+  (added by `rstack.config.ts`) catches it before the app runs. The theme
+  turns through the same engine as an iris. Details in `src/AGENTS.md`.
 - Crawler surface: `src/pages/docs/crawler-files.ts` generates `dist/sitemap.xml`,
   `dist/robots.txt`, and `dist/llms.txt` at build (the `crawlFiles` plugin
   in `rstack.config.ts`, emitted as web-build assets —

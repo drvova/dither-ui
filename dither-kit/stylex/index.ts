@@ -365,6 +365,12 @@ export {
   type WipeOptions,
   type WipeStyle,
 } from "./DitherReveal.vue"
+export {
+  ditherTransition,
+  ditherViewTransition,
+  type DitherTransitionOptions,
+  type ViewTransitionLike,
+} from "../engine/transition"
 export { scoreCut, wavBytes, type ScoreAudio, type ScorePlan } from "../engine/score"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"

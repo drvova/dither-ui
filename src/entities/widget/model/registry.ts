@@ -2989,7 +2989,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [
       number("duration", 1.2, 0.1, 10, 0.1),
       number("delay", 0, 0, 10, 0.1),
-      select("direction", "none", ["none", "right", "left", "down", "up"]),
+      select("direction", "none", ["none", "right", "left", "down", "up", "iris"]),
       number("cell", 4, 1, 16, 1),
       number("band", 12, 0, 40, 1),
       bool("reverse"),

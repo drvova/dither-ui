@@ -405,7 +405,9 @@ widgets/features; page-specific conventions live here.
   generative canvas surfaces (aurora, faulty-terminal, ferrofluid, ...),
   `docs/text/` = DOM/CSS text animations (gradient/shiny/glitch/split/...),
   `docs/animations/` = interaction/motion effects (content reveals, animated
-  borders, cursor + hover effects). New
+  borders, cursor + hover effects; a section with its own state lives in
+  its own file, as `TransitionSection.vue`, the page transition's stage,
+  mounted where the nav orders it). New
   packs follow this shape instead of growing DocsPage. `docs/primitives/` =
   the Primitives pack (Box, Text, Divider, VisuallyHidden — the paste-list
   foundation family; new plain primitives extend it + PRIMITIVES_NAV).

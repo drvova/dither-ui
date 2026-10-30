@@ -70,4 +70,40 @@ describe("wipeStyle", () => {
     // Without a box size a directional wipe is a dissolve.
     expect(wipeStyle(0.5, { direction: "down", cell: 4 })!.repeat).toBe("repeat")
   })
+
+  it("inverts: the outgoing side, never sharing a cell with the incoming one", () => {
+    expect(wipeStyle(0, { cell: 4, invert: true })).toBeNull()
+    expect(rects(wipeStyle(1, { cell: 4, invert: true })!.image)).toBe(0)
+    for (const k of [1, 17, 40, 63]) {
+      const p = k / 64 + 1e-6
+      const shown = svgOf(wipeStyle(p, { cell: 4 })!.image).match(/<rect [^>]+>/g) ?? []
+      const hidden = svgOf(wipeStyle(p, { cell: 4, invert: true })!.image).match(/<rect [^>]+>/g) ?? []
+      expect(hidden).toHaveLength(64 - k)
+      expect(new Set([...shown, ...hidden]).size).toBe(64)
+    }
+    const box = { width: 200, height: 100, cell: 4, band: 5, direction: "right" as const }
+    expect(wipeStyle(0, { ...box, invert: true })).toBeNull()
+    expect(rects(wipeStyle(1, { ...box, invert: true })!.image)).toBe(0)
+    // Solid beyond the band, the band's patterns the complement of the incoming ones.
+    const svg = svgOf(wipeStyle(0.5, { ...box, invert: true })!.image)
+    expect(svg).toContain('<rect x="112" y="0" width="88" height="100" fill="#000"/>')
+    expect(svg).toContain('<rect x="92" y="0" width="5" height="100" fill="url(#p0)"/>')
+    const p0 = (image: string) => image.match(/<pattern id="p0"[^>]*>(.*?)<\/pattern>/)![1].match(/<rect /g)!.length
+    expect(p0(svg) + p0(svgOf(wipeStyle(0.5, box)!.image))).toBe(64)
+  })
+
+  it("grows an iris from its origin to the farthest corner", () => {
+    const iris = { width: 200, height: 100, cell: 4, band: 5, direction: "iris" as const, origin: { x: 50, y: 50 } }
+    const svg = svgOf(wipeStyle(0.5, iris)!.image)
+    expect(svg).toContain('<circle cx="50" cy="50" r="68" fill="#000"/>')
+    expect(svg).toContain('<circle cx="50" cy="50" r="70.5" fill="none" stroke="url(#p0)" stroke-width="5"/>')
+    expect(svgOf(wipeStyle(0.5, { ...iris, invert: true })!.image)).toContain(
+      '<path fill-rule="evenodd" fill="#000" d="M0 0H200V100H0Z M-38 50a88 88 0 1 0 176 0a88 88 0 1 0 -176 0Z"/>',
+    )
+    // Centred by default; shown at 1, nothing at 0.
+    expect(svgOf(wipeStyle(0.5, { ...iris, origin: undefined })!.image)).toContain('cx="100" cy="50"')
+    expect(wipeStyle(1, iris)).toBeNull()
+    expect(rects(wipeStyle(0, iris)!.image)).toBe(0)
+    expect(wipeStyle(0.9, iris)).not.toBeNull()
+  })
 })

@@ -1,14 +1,16 @@
 // The wipe engine: ordered-dither reveal masks for any DOM. A threshold sweep
 // through a Bayer (or seeded) matrix turns `progress` into a CSS mask image:
 // a cell shows once the sweep passes its threshold, so a dissolve resolves
-// cell by cell in the kit's own pattern, and a directional wipe moves a solid
-// front with a dithered band behind it. Pure strings from pure numbers — the
-// same progress gives the same mask, which is what a seeked frame needs.
+// cell by cell in the kit's own pattern, a directional wipe moves a solid
+// front with a dithered band behind it, and an iris grows that front as a
+// circle. `invert` gives the complement, the outgoing side of a transition.
+// Pure strings from pure numbers — the same progress gives the same mask,
+// which is what a seeked frame needs.
 
 import { pixelMatrixFromSeed } from "./pixel"
 
-/** Where the front travels: "right" reveals from the left edge, "down" from the top; "none" dissolves in place. */
-export type WipeDirection = "none" | "right" | "left" | "down" | "up"
+/** Where the front travels: "right" reveals from the left edge, "down" from the top, "iris" grows a circle from `origin`; "none" dissolves in place. */
+export type WipeDirection = "none" | "right" | "left" | "down" | "up" | "iris"
 
 export type WipeOptions = {
   /** Cell size in CSS px. */
@@ -22,6 +24,11 @@ export type WipeOptions = {
   /** Directional wipes: the element's size in CSS px (a dissolve without it). */
   width?: number
   height?: number
+  /** The iris's centre in CSS px from the box's top left; default the centre. */
+  origin?: { x: number; y: number }
+  /** Show what the mask at this progress hides: the outgoing side, so the
+   * two masks of one progress tile the box with no cell in both. */
+  invert?: boolean
 }
 
 /** Values for `mask-image` / `mask-size` / `mask-repeat` / `mask-position`
@@ -59,18 +66,24 @@ function remember(key: string, svg: string): string {
   return svg
 }
 const url = (svg: string) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
-const EMPTY = url(`<svg xmlns="${NS}" width="1" height="1"></svg>`)
+const EMPTY: WipeStyle = {
+  image: url(`<svg xmlns="${NS}" width="1" height="1"></svg>`),
+  size: "100% 100%",
+  repeat: "no-repeat",
+  position: "0 0",
+}
 
-/** Rects for every cell whose threshold is below `level`. */
-function cells(matrix: number[][], level: number, cell: number): string {
+/** Rects for every cell whose threshold is below `level` (at or above it, inverted). */
+function cells(matrix: number[][], level: number, cell: number, invert: boolean): string {
   let out = ""
   for (let y = 0; y < matrix.length; y++)
     for (let x = 0; x < matrix[y].length; x++)
-      if (matrix[y][x] < level) out += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"/>`
+      if (matrix[y][x] < level !== invert)
+        out += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"/>`
   return out
 }
 
-/** The mask for `progress` (0 hidden → 1 shown). */
+/** The mask for `progress` (0 hidden → 1 shown; inverted, 0 shown → 1 hidden). */
 export function wipeStyle(progress: number, opts: WipeOptions = {}): WipeStyle | null {
   const p = Number.isFinite(progress) ? Math.max(0, Math.min(1, progress)) : 1
   const cell = Math.max(1, Math.round(opts.cell ?? 4))
@@ -78,49 +91,77 @@ export function wipeStyle(progress: number, opts: WipeOptions = {}): WipeStyle |
   const n = matrix.length
   const tile = n * cell
   const direction = opts.direction ?? "none"
+  const invert = opts.invert === true
   const width = Math.round(opts.width ?? 0)
   const height = Math.round(opts.height ?? 0)
+  // Every cell shown is no mask; none shown is the empty one.
+  const all = invert ? EMPTY : null
+  const none = invert ? null : EMPTY
   if (direction === "none" || width <= 0 || height <= 0) {
     // A dissolve: the tile repeats; cell k of n² shows at step k.
     const steps = n * n
     const k = Math.floor(p * steps + 1e-9)
-    if (k >= steps) return null
-    if (k <= 0) return { image: EMPTY, size: "100% 100%", repeat: "no-repeat", position: "0 0" }
-    const key = `d:${cell}:${n}:${opts.seed ?? ""}:${k}`
+    if (k >= steps) return all
+    if (k <= 0) return none
+    const key = `d:${cell}:${n}:${opts.seed ?? ""}:${invert}:${k}`
     const svg =
       cache.get(key) ??
       remember(
         key,
-        `<svg xmlns="${NS}" width="${tile}" height="${tile}" shape-rendering="crispEdges">${cells(matrix, (k + 0.5) / steps, cell)}</svg>`,
+        `<svg xmlns="${NS}" width="${tile}" height="${tile}" shape-rendering="crispEdges">${cells(matrix, (k + 0.5) / steps, cell, invert)}</svg>`,
       )
     return { image: url(svg), size: `${tile}px ${tile}px`, repeat: "repeat", position: "0 0" }
   }
-  // A directional wipe: a solid front, then a band of four dither densities.
+  // A front: solid inside it, then a band of four dither densities. A line
+  // across the box for a direction, a circle around `origin` for the iris.
+  const iris = direction === "iris"
   const horizontal = direction === "right" || direction === "left"
-  const length = horizontal ? width : height
+  const ox = Math.round(opts.origin?.x ?? width / 2)
+  const oy = Math.round(opts.origin?.y ?? height / 2)
+  const length = iris
+    ? Math.ceil(Math.hypot(Math.max(ox, width - ox), Math.max(oy, height - oy)))
+    : horizontal
+      ? width
+      : height
   const band = Math.max(0, Math.round(opts.band ?? 12)) * cell
   const edge = Math.round((p * (length + band) - band) / cell) * cell
   // Fully shown at 1 whatever the box's size modulo the cell.
-  if (p >= 1 || edge >= length) return null
-  if (edge + band <= 0) return { image: EMPTY, size: "100% 100%", repeat: "no-repeat", position: "0 0" }
-  const key = `w:${cell}:${n}:${opts.seed ?? ""}:${direction}:${width}:${height}:${band}:${edge}`
+  if (p >= 1 || edge >= length) return all
+  if (edge + band <= 0) return none
+  const key = `w:${cell}:${n}:${opts.seed ?? ""}:${direction}:${width}:${height}:${ox}:${oy}:${band}:${invert}:${edge}`
   let svg = cache.get(key)
   if (!svg) {
     const levels = [0.8, 0.6, 0.4, 0.2]
     const sub = band / levels.length
-    let defs = ""
-    let body = ""
-    const rect = (a: number, len: number, fill: string) => {
-      if (len <= 0) return ""
-      const from = direction === "right" || direction === "down" ? a : length - a - len
+    // A run from `a` along the front's travel, `len` long.
+    const run = (a: number, len: number, fill: string) => {
+      const from = Math.max(0, a)
+      const to = a + len
+      if (to <= from) return ""
+      if (iris) {
+        const r = (from + to) / 2
+        return `<circle cx="${ox}" cy="${oy}" r="${r}" fill="none" stroke="${fill}" stroke-width="${to - from}"/>`
+      }
+      const at = direction === "right" || direction === "down" ? from : length - to
       return horizontal
-        ? `<rect x="${from}" y="0" width="${len}" height="${height}" fill="${fill}"/>`
-        : `<rect x="0" y="${from}" width="${width}" height="${len}" fill="${fill}"/>`
+        ? `<rect x="${at}" y="0" width="${to - from}" height="${height}" fill="${fill}"/>`
+        : `<rect x="0" y="${at}" width="${width}" height="${to - from}" fill="${fill}"/>`
     }
-    body += rect(0, Math.max(0, edge), "#000")
+    // The solid side: inside the front, or (inverted) beyond its band.
+    const beyond = edge + band
+    let body = ""
+    if (!invert)
+      body += iris ? (edge > 0 ? `<circle cx="${ox}" cy="${oy}" r="${edge}" fill="#000"/>` : "") : run(0, edge, "#000")
+    else if (iris)
+      body +=
+        beyond > 0
+          ? `<path fill-rule="evenodd" fill="#000" d="M0 0H${width}V${height}H0Z M${ox - beyond} ${oy}a${beyond} ${beyond} 0 1 0 ${2 * beyond} 0a${beyond} ${beyond} 0 1 0 ${-2 * beyond} 0Z"/>`
+          : `<rect width="${width}" height="${height}" fill="#000"/>`
+    else body += run(beyond, length - beyond, "#000")
+    let defs = ""
     levels.forEach((level, i) => {
-      defs += `<pattern id="p${i}" width="${tile}" height="${tile}" patternUnits="userSpaceOnUse">${cells(matrix, level, cell)}</pattern>`
-      body += rect(edge + i * sub, sub, `url(#p${i})`)
+      defs += `<pattern id="p${i}" width="${tile}" height="${tile}" patternUnits="userSpaceOnUse">${cells(matrix, level, cell, invert)}</pattern>`
+      body += run(edge + i * sub, sub, `url(#p${i})`)
     })
     svg = remember(
       key,

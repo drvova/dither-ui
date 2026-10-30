@@ -433,6 +433,22 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   fold sections skip layout/paint until they approach the viewport (the page
   is 220 sections / ~180k px; first layout of everything cost seconds). New
   section wrappers must stay inside `.docs-flow` to keep the rule applying.
+- Page transitions: the routes (`/`, `/docs`, `/studio` and the section
+  pages) opt into cross-document view transitions in `app/styles.css`
+  (`@view-transition`, none under reduced motion), and the arriving page
+  dithers from the old one through the kit's `ditherViewTransition`: a
+  right wipe (left going back through history) with a band of the signal
+  ink. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
+  inlined first in each route's head by `rstack.config.ts` (`html.tags`,
+  with the `PAGE_END_ID` marker it appends to each body), parks the
+  `pagereveal` transition and holds the old page on screen until the app
+  takes it; arriving from one of the pages it also holds the first frame
+  to the marker (`<link rel=expect blocking=render>`), since Chromium drops
+  a transition into a page it paints mid-parse (the 1.4 MB docs);
+  `takePageTransition` hands it to main.ts in either order (that hold lets
+  the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
+  runs the inline script both ways. The theme toggle (`useTheme`'s
+  `revealToggle`) dithers the new theme in as an iris from its control.
 - Engine gate: `app/main.ts` adds `html.engine-webkit` when the UA is WebKit
   by ENGINE (`AppleWebKit` without `Chrome`/`Android` — so iOS skins like
   CriOS/FxiOS/EdGiOS count), and the docs sections then opt OUT of

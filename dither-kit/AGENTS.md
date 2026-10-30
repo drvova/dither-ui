@@ -141,9 +141,13 @@ the kit every import is relative (`../engine/pixel`).
   `BAYER8` / `bayerMatrix(n)`, or the kit's seeded 4×4 with `seed`); a
   directional wipe (`right`/`left`/`down`/`up` = where the front travels)
   is a box-sized SVG with a solid front and four dithered density bands
-  behind it (`band` cells wide), a dissolve until it knows the box. Pure
+  behind it (`band` cells wide), a dissolve until it knows the box; `iris`
+  grows the front as a circle from `origin` (default the box's centre) to
+  the farthest corner, its bands as rings. `invert` is the complement (the
+  outgoing side): the two masks of one progress share no cell. Pure
   strings from pure numbers (cached by key): the same progress gives the
-  same mask, `null` at 1 (remove the mask), the 1×1 empty mask at 0.
+  same mask, `null` at 1 (remove the mask), the 1×1 empty mask at 0 (the
+  other way round inverted).
   `DitherReveal.vue` applies it to its slot: manual `progress` (a
   timeline's — it runs no clock of its own), or a timed reveal
   (`duration`/`delay`/`easing`, `restartKey` replays) on the IO-gated rAF
@@ -151,6 +155,22 @@ the kit every import is relative (`../engine/pixel`).
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+- `transition.ts` is the transition engine: view transitions whose two
+  snapshots meet through the wipe. `ditherTransition(update, opts)` runs a
+  DOM change through `document.startViewTransition` and masks the new
+  snapshot (and, with an `ink`, the old one inverted, its front leading by
+  a fifth of the run, over the ink as the group's ground) every frame
+  through one injected sheet; `target` scopes it to one element (a
+  generated `view-transition-name`; the page leaves the snapshots and
+  stays clickable, the ink takes the target's radius), else the page.
+  `ditherViewTransition(transition, opts)` drives one the browser started
+  (a cross-document navigation's, from `pagereveal`). The snapshots' own
+  animations stop; a no-op animation holds the transition open until the
+  first frame (whose clock starts the run, so a long task first holds the
+  first state), then for the run, which drops it to end the transition.
+  Without the API, under reduced motion or while the clock is directed,
+  `update` just runs (a browser-started one is skipped). Pinned by
+  `tests/transition.spec.ts`; not in the Svelte kit, like the wipe.
 - `score.ts` is the score engine: a film's soundtrack synthesized from its
   cut, sample by sample, in plain arithmetic (polyBLEP oscillators, a
   state-variable filter, a ping-pong echo, Freeverb's hall; no Web Audio,
