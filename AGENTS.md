@@ -133,7 +133,8 @@ Default section order:
   its devices). Our own hero (the statement beside a live print the kit
   makes, no component tour: the user's call; a poster of tone fields and the
   kit's diamond standing over its own dithered floor; a quiet line of what
-  it works with under the keys; copy calm and procedural, every figure
+  it works with under the keys, signed off with the brand gathering out of
+  the open field before the print starts; copy calm and procedural, every figure
   read from the kit), then
   sections under a title with a lead beside it, print plates of the brand
   small in a wide field between them (after the bento, after the

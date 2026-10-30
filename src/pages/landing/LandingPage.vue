@@ -23,7 +23,8 @@ import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
 import PixelWord from "./PixelWord.vue"
 import Plate from "./Plate.vue"
-import { MARK_CELLS, PLATES } from "./plate"
+import { MARK_CELLS } from "./brand"
+import { PLATES } from "./plate"
 import Showcase from "./Showcase.vue"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the

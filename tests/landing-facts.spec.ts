@@ -4,7 +4,8 @@ import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
 import { STYLING_LABELS } from "../src/shared/lib/restyle"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
-import { choreograph, LOCKUP, LOCKUP_SIZE, MARK_CELLS, MOMENT, PLATES, STOCK } from "../src/pages/landing/plate"
+import { choreograph, LOCKUP, LOCKUP_SIZE, MARK_CELLS, MOMENT, type Scene } from "../src/pages/landing/brand"
+import { PLATES, sceneOf, STOCK } from "../src/pages/landing/plate"
 
 const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
 const components = [...index.matchAll(/default as (\w+)/g)].map((m) => m[1])
@@ -75,7 +76,7 @@ describe("landing facts", () => {
     for (const { x, y } of MARK_CELLS) expect(Math.abs(x - 3) + Math.abs(y - 3)).toBeLessThanOrEqual(3)
   })
 
-  it("plays each plate's moment on the grid, home inside five seconds", () => {
+  it("plays the brand's moment on the grid in its scene, home inside five seconds", () => {
     const cell = 4
     const box = { width: 1232, height: 524 }
     const marks = MARK_CELLS.length
@@ -86,11 +87,22 @@ describe("landing facts", () => {
     expect(gather.lift + gather.sweep + gather.span[1]).toBeLessThanOrEqual(burst.at)
     expect(burst.at + burst.span).toBeLessThanOrEqual(settle.at)
     expect(settle.at + settle.sweep + settle.span).toBeLessThanOrEqual(MOMENT.end)
-    for (const plate of Object.values(PLATES)) {
-      const left = 16 + Math.round(plate.mark[0] * (box.width - 32 - LOCKUP_SIZE.width * cell))
-      const slots = LOCKUP.map((c) => ({ x: left + c.x * cell, y: 200 + c.y * cell }))
-      const paths = choreograph(plate, box, slots, cell)
-      expect(choreograph(plate, box, slots, cell)).toEqual(paths)
+    // Every plate, and a scene with rows like the hero's: the brand near the
+    // field's foot, the burst kept off the copy above it.
+    const top = 200
+    const scenes: [number, Scene][] = [
+      ...Object.values(PLATES).map((plate): [number, Scene] => [plate.mark[0], sceneOf(plate, box.height)]),
+      [0, { seed: 5, loose: [top - 24, top + 160], burst: [top - 24, box.height] }],
+    ]
+    for (const [at, scene] of scenes) {
+      const left = 16 + Math.round(at * (box.width - 32 - LOCKUP_SIZE.width * cell))
+      const slots = LOCKUP.map((c) => ({ x: left + c.x * cell, y: top + c.y * cell }))
+      const paths = choreograph(scene, box, slots, cell)
+      expect(choreograph(scene, box, slots, cell)).toEqual(paths)
+      const within = (y: number, [lo, hi]: readonly [number, number]) => {
+        expect(y).toBeGreaterThanOrEqual(lo - cell)
+        expect(y).toBeLessThanOrEqual(hi + cell)
+      }
       paths.forEach((path, i) => {
         // In time order, on the cell's own grid, inside the plate, home at the end.
         path.forEach((p, k) => {
@@ -103,6 +115,9 @@ describe("landing facts", () => {
           expect(p.y).toBeLessThan(box.height)
         })
         expect(path.at(-1)).toEqual({ ...slots[i], t: MOMENT.end })
+        // Loose in the scene's rows; thrown inside its burst rows.
+        within(path[0].y, scene.loose)
+        within(path.find((p) => p.t === burst.at + burst.span)!.y, scene.burst)
         // Until the burst a wordmark cell shares a bone mark cell's square.
         if (i >= marks) {
           const before = path.filter((p) => p.t <= burst.at)

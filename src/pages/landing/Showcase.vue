@@ -5,6 +5,8 @@ import { DitherIcon, DitherPoster, DitherReveal, type PixelColor } from "@dither
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import type { MarkId } from "@/shared/ui/marks"
 import { COMPONENT_COUNT, MATRIX } from "./facts"
+import type { Scene } from "./brand"
+import BrandGather from "./BrandGather.vue"
 import PauseChip from "./PauseChip.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 
@@ -13,6 +15,17 @@ import TrailerDialog from "./TrailerDialog.vue"
 // diamond knocked out of it, its screen sliding inside the mark), on the
 // obsidian like a print on black stock. The film is a key away.
 const film = ref(false)
+
+// The statement signs off with the brand, gathering out of the open field
+// of the page's column under it (some of its cells from under the print)
+// as the page opens, its burst kept off the copy above it. One
+// moving layer at a time: the print holds its frame until the brand is home.
+const gathered = ref(false)
+const scene = (height: number, top: number): Scene => ({
+  seed: 5,
+  loose: [top - 24, Math.min(height - 8, top + 160)],
+  burst: [top - 24, height],
+})
 
 // The print's inks: the kit's blue, the ember and the page's own bone ink.
 // Its screen slides by itself, so it carries a pause (WCAG 2.2.2).
@@ -52,10 +65,11 @@ const WORKS: { id: MarkId; name: string }[] = [
             <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="13" />{{ t.name }}</li>
           </ul>
         </div>
+        <BrandGather class="hero-brand" :scene="scene" @settled="gathered = true" />
       </div>
       <div class="print-col">
         <div class="print">
-          <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!printing" />
+          <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!printing || !gathered" />
           <PauseChip v-model="printing" label="Pause the print" class="print-chip" />
           <!-- The print stands over its own reflection on the obsidian: the
                same print at the same moment, turned over and thinned through
@@ -63,7 +77,14 @@ const WORKS: { id: MarkId; name: string }[] = [
                shadow cannot show on black; a floor of the print's own cells
                can, and it is never a tint. -->
           <DitherReveal class="print-floor" :progress="1 / 3" direction="down" :band="20" aria-hidden="true">
-            <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!printing" class="print-mirror" />
+            <DitherPoster
+              :seed="5"
+              :inks="INKS"
+              :cell="4"
+              :speed="1.5"
+              :paused="!printing || !gathered"
+              class="print-mirror"
+            />
           </DitherReveal>
         </div>
       </div>
@@ -85,7 +106,9 @@ const WORKS: { id: MarkId; name: string }[] = [
   overflow: hidden;
 }
 
+/* Positioned: the brand's field is the page's column. */
 .hero-in {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   align-items: center;
@@ -161,6 +184,13 @@ const WORKS: { id: MarkId; name: string }[] = [
   display: inline-flex;
   align-items: center;
   gap: 7px;
+}
+
+/* The brand at the statement's foot, its sign-off; its cells travel the
+   page's column (`.hero-in`), the nearest positioned ancestor. */
+.hero-brand {
+  position: relative;
+  margin-top: 20px;
 }
 
 /* The print: a portrait sheet set on the obsidian inside its column, square
