@@ -4,7 +4,7 @@ import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
 import { STYLING_LABELS } from "../src/shared/lib/restyle"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
-import { PLATES, STOCK } from "../src/pages/landing/plate"
+import { MARK_CELLS, PLATES, STOCK } from "../src/pages/landing/plate"
 
 const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
 const components = [...index.matchAll(/default as (\w+)/g)].map((m) => m[1])
@@ -66,6 +66,13 @@ describe("landing facts", () => {
     const [, share] = css.match(/--surface: color-mix\(in oklab, var\(--foreground\) (\d+)%, var\(--background\)\);/)!
     const mixed = mixOklab(token("--foreground"), token("--background"), Number(share) / 100)
     rgb(STOCK).forEach((c, i) => expect(Math.abs(c - mixed[i])).toBeLessThanOrEqual(1))
+  })
+
+  it("draws the mark as the diamond's cells around one ember core", () => {
+    // 1 + 4 + 8 + 12 cells within three steps of the centre of a 7x7 grid.
+    expect(MARK_CELLS).toHaveLength(25)
+    expect(MARK_CELLS.filter((c) => c.core)).toEqual([{ x: 3, y: 3, core: true }])
+    for (const { x, y } of MARK_CELLS) expect(Math.abs(x - 3) + Math.abs(y - 3)).toBeLessThanOrEqual(3)
   })
 
   it("stands each plate's mark in its clear band, its tones thin", () => {

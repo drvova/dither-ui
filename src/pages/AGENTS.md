@@ -222,19 +222,23 @@ widgets/features; page-specific conventions live here.
   after the bento, after the ask and before the install, each the kit's
   diamond small in a wide field. ONE table, `PLATES` in `plate.ts`, sets
   each plate's tone at the top edge, its clear band and its tone at the
-  foot, and where the mark (`MARK`, the header's path too) stands in the
-  band; `Plate.vue` prints a row: a 2.35:1 sheet on the page's width,
+  foot, and where the mark (`MARK_CELLS`, the diamond's 25 cells around
+  its ember core, which the header draws too) stands in the band; `Plate.vue` prints a row: a 2.35:1 sheet on the page's width,
   square cornered and flat like the hero's print, on `STOCK` (the
   `--surface` mix as a colour the kit prints with, so its open cells are
   the plate, never a tint), two `DitherGradient`s in the bone ink through
   the Bayer screen showing only the thin ends of their ramps, the mark
-  28px. `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and
-  every plate's mark inside its band, its tones thin. Its one moment,
-  once, at 60% in view: the tone prints in through `DitherReveal` (0.72s,
-  linear, the lights coming on), then the mark walks in from the nearer
-  side edge to its stand, one 4px cell a step (`steps()`, 18 cells a
-  second, at most 4.2s, after a 0.8s beat), and stays: under five
-  seconds, so no pause; under reduced motion the plate is simply there.
+  28px, its cells 4px spans. `tests/landing-facts.spec.ts` holds `STOCK`
+  to the token's mix, every plate's mark inside its band, its tones thin,
+  and the mark's cells to the diamond. Its one moment, once, at 60% in
+  view: the tone prints in through `DitherReveal` (0.72s, linear, the
+  lights coming on) while the mark's cells lie loose like stars across
+  the band and the tone's thin edges (seeded per plate, on the 4px grid),
+  then they gather left to right into the mark, matched to its cells in
+  order across, each axis stepping whole cells (`steps()`, 60 cells a
+  second, 1.2 to 2.4s each, lifting from 0.8s over a 1.6s sweep), and it
+  stays: under five seconds, so no pause; under reduced motion, and in
+  the prerendered bytes, the mark is simply assembled.
   A new plate is a row in the table and a `<Plate>` at a section break.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through

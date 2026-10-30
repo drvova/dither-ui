@@ -23,7 +23,7 @@ import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
 import PixelWord from "./PixelWord.vue"
 import Plate from "./Plate.vue"
-import { MARK, PLATES } from "./plate"
+import { MARK_CELLS, PLATES } from "./plate"
 import Showcase from "./Showcase.vue"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the
@@ -134,8 +134,15 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             focusable="false"
             shape-rendering="crispEdges"
           >
-            <path :d="MARK" fill="currentColor" />
-            <rect x="3" y="3" width="1" height="1" fill="var(--signal)" />
+            <rect
+              v-for="c in MARK_CELLS"
+              :key="`${c.x}.${c.y}`"
+              :x="c.x"
+              :y="c.y"
+              width="1"
+              height="1"
+              :fill="c.core ? 'var(--signal)' : 'currentColor'"
+            />
           </svg>
           dither-ui
         </a>
