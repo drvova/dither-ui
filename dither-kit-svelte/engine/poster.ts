@@ -37,7 +37,8 @@ export type PosterTile = {
   axis: "x" | "y"
 }
 /** The mark's centre as fractions of the width and height, its half
- * diagonal as a fraction of the height. */
+ * diagonal as a fraction of the shorter side; it always lands whole on the
+ * surface, whatever its shape. */
 export type PosterLayout = { tiles: PosterTile[]; mark: { x: number; y: number; r: number } }
 
 /** `count` seeded weights summing to 1, as cut points from 0 to 1. */
@@ -94,9 +95,9 @@ export function paintPoster(buffer: RasterBuffer, layout: PosterLayout, p: Poste
   const data = buffer.data
   const screen = SCREENS[p.screen] ?? SCREENS.bayer
   const drift = Math.floor(time * p.speed)
-  const cx = layout.mark.x * cols
-  const cy = layout.mark.y * rows
-  const r = Math.max(1, layout.mark.r * rows)
+  const r = Math.max(1, layout.mark.r * Math.min(cols, rows))
+  const cx = Math.min(Math.max(layout.mark.x * cols, r), cols - r)
+  const cy = Math.min(Math.max(layout.mark.y * rows, r), rows - r)
   const ink = (i: number) => p.inks[((i % p.inks.length) + p.inks.length) % p.inks.length]
   // The tiles each column holds, top to bottom, and the column under each x.
   const columns = [...new Set(layout.tiles.map((t) => t.x0))].sort((a, b) => a - b)

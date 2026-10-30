@@ -17,8 +17,7 @@ widgets/features; page-specific conventions live here.
   `--font-mono` stay the signature; it keeps the
   chrome display type and the chrome primary key in the light finish of
   the site voice (`app/styles.css`, see `src/AGENTS.md`). Its HERO is our
-  own (the statement beside a live stage seated on a poster the kit
-  prints); under it, the page layout the user picked from a reference,
+  own (the statement beside a live print the kit makes); under it, the page layout the user picked from a reference,
   kept unnamed (see root `AGENTS.md`): sections under a title with a lead
   beside it, a bento of example cards, a stage of what an ask makes,
   columns, a centred install, link columns over a giant wordmark. Never a
@@ -76,7 +75,7 @@ widgets/features; page-specific conventions live here.
   static header.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
-  holding on the page width the statement beside the stage (columns
+  holding on the page width the statement beside the print (columns
   1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
   (`.statement`): the h1 in the display face (Michroma 400) and chrome at
   display size (`clamp(2rem, 3.9vw, 3.5rem)`, two or three short lines),
@@ -85,40 +84,20 @@ widgets/features; page-specific conventions live here.
   glyph, which opens the trailer; `TrailerDialog` lives in the hero),
   then a quiet line of what the kit works with (`WORKS`: Vue 3, Svelte 5,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
-  with"). Right, in `.stage-col`: `HeroStage.vue`, the kit by hand as the
-  trailer shows it: one real component at a time on an 8:5 stage (the
-  raised ground, a size container, lifted by its shadow; inside a scene
-  the keys and pressed segments take the page's ground) with the controls
-  its docs demo has. The stage is SEATED on a poster (`.seat` >
-  `.seat-art`, `aria-hidden`; gone under 900px): a `DitherPoster` (seed
-  12, cell 3, `INKS`: the kit's blue, the ember and the page's ink; its
-  diamond's tip shows above the stage) rising past the stage's top
-  and running out to the frame's hairline on the right, stopping short of
-  the stage's foot so it never sits under the picker or the caption; a
-  flat print, square-cornered, one static frame (`render-mode="static"`,
-  so nothing moves and no pause chip is owed). `SCENES` lead with what nothing else
-  does (the user's call: dithered charts, shaders, StyleX): an
-  `AreaChart` from one seed (blue over grey) with "Roll a seed"; the
-  kit's seeded sample `DitherShader` (mono blue, a palette ramp or its
-  own colours; "New shader" is the next seed); "StyleX",
-  `ExportScene.vue`: one snippet rendered live beside its code in the
-  picked system through `restyle` (StyleX first); then the button with
-  its fills and five hues, the slide action and the ferrofluid ("Fluid"
-  in the picker) with its palettes. The shader, the export (the
-  translator's utility map) and the fluid are async chunks. Under the
-  stage a `.seg` picker (one row at every width: under 480px its keys pack
-  tighter), then a caption (the scene's line wrapping with `text-wrap:
-  pretty`, a `.lead` to its docs section on its first line). The tour
-  advances on the CSS `animationend` of an unseen clock element (6s, no
-  timer), paused while the stage is hovered or holds focus; its pause chip
-  stops it, and picking a scene or using one (a pointer down or a key
-  other than Tab inside the stage) stops it on that scene; under reduced
-  motion it starts paused. A new scene dissolves in through
-  `DitherReveal` (cell 6, 0.6s; shown at once under reduced motion); the
-  first scene simply is (manual progress 1), and it is the only scene in
-  the static page. Under 900px the statement comes first and the stage
-  takes the width; on a phone both keep the page's 16px gutter. The h1
-  AND the keys must clear the fold at 1440×900, 1280×800 and 1920×1080.
+  with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
+  5, cell 4, `INKS`: the kit's blue, the ember and the page's ink; the
+  ember diamond whole on the blue, half knocked out in ink; its screen
+  slides 1.5 cells a second inside the mark) as a portrait sheet (4:5, at
+  most 30rem wide) set on the paper at the column's right edge with
+  breathing room above and below, square cornered and flat: never a
+  panel run to the frame or under the header (that is the reference's
+  hero). Its pause ("Pause the print") sits on its top right corner. No
+  component tour, slides or picker in the hero (the user's call: they
+  took the love out of it); the components live in the bento. Under
+  900px the statement comes first and the print takes the width under
+  it, landscape (5:4); on a phone both keep the page's 16px gutter. The
+  h1 AND the keys must clear the fold at 1440×900, 1280×800 and
+  1920×1080.
 - The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
   trapped and handed back, Escape and the backdrop close it) titled "The
   dither-ui film", its description the film in words (no speech in it).
@@ -142,24 +121,35 @@ widgets/features; page-specific conventions live here.
   fails until the page says it.
 - Examples (`Examples.vue`, `#examples`, "Every component, live."): a
   section head (the component count from `facts.ts`, "See every section in
-  the docs"), then the bento: `BENTO` (`hub.ts`), thirteen live kit
-  components the hero's stage does NOT show (no shader, area chart, StyleX
-  export or button there: the stage has them), on a 12-column grid row by
-  row: the 3D model (8, two rows tall, flush; `sampleWorld` of a seed on a
-  picked ramp: blue, metal or ember, and "New model" for the next seed)
-  beside the rating and the stat card; the bar chart and the meta balls;
-  the slider (a dither's settings: cell size with ticks, contrast, each
-  with its value), the pie chart and the avatars; silk and the decrypted
-  text; progress, the radar chart and the hold action ("Hold to purge
-  cache", its count). The demos speak the kit's blue, the ember for a
-  second voice and grey for a third (avatars `color="blue"`, the silk and
-  meta balls on blue stops); no chart grid. Two columns under 1024px (the
-  wide cards span both, the rest pack densely), one under 640px. A card
-  is the raised ground (`--surface`, no border, 20px radius) holding its
-  art over its name, the link into `/docs/<id>` (no family label).
-  Interactive art keeps its own controls, so the card itself is never a
-  link; on flush art the pause chip comes before the tools in the DOM, as
-  it sits above them.
+  the docs"), then the bento: `BENTO` (`hub.ts`), nineteen live kit
+  components on a 12-column grid row by row: the 3D model (8, two rows
+  tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
+  ember, and "New model" for the next seed) beside the rating and the
+  stat card; the area chart (8; one seed for every fill, "Roll a seed")
+  and the button (its four fills and five hues); the slider (a dither's
+  settings: cell size with ticks, contrast, each with its value), the pie
+  chart and the avatars; the shader (flush; the kit's seeded sample, mono
+  blue, a palette ramp or its own colours, "New shader" the next seed) and
+  the ferrofluid (flush; blue, ember or grey); the styling card (8, flush,
+  `ExportScene.vue`: one snippet rendered live beside its code in the
+  picked system through `restyle`, StyleX first; its code alone when the
+  card is narrow, a size container) and the slide action ("Slide to
+  deploy", its count); the bar chart and the meta balls; progress, the
+  radar chart and the hold action ("Hold to purge cache", its count);
+  silk and the decrypted text. The shader's WebGL engine, the
+  translator's utility map and the fluid's engine are async chunks a
+  card loads as it nears the viewport (one IntersectionObserver, 600px
+  ahead; without one, at once); their card art keeps a wrapper so the
+  flush rule never stretches the pause chip. The demos speak the kit's
+  blue, the ember for a second voice and grey for a third (avatars
+  `color="blue"`, the silk and meta balls on blue stops; the button's hues
+  are its subject); no chart grid. Two columns under 1024px (the wide
+  cards and the halves span both, the rest pack densely), one under
+  640px. A card is the raised ground (`--surface`, no border, 20px
+  radius) holding its art over its name, the link into `/docs/<id>` (no
+  family label). Interactive art keeps its own controls, so the card
+  itself is never a link; on flush art the pause chip comes before the
+  tools in the DOM, as it sits above them.
 - `hub.ts` is static data (the landing never loads the docs IA): `FAMILIES`
   (every docs family and its size), `DOCS_FAMILIES` (the five big
   families, a line each and the section each opens on) and `BENTO`, held
@@ -218,10 +208,12 @@ widgets/features; page-specific conventions live here.
 - No entrance choreography: the page simply is. Motion is the live kit
   surfaces. Pause chips (`PauseChip.vue`, WCAG 2.2.2): every surface that
   moves by itself for more than five seconds carries one in its corner,
-  named for it ("Pause the component tour", "Pause the model", "Pause the
-  meta balls", "Pause the silk"), `aria-pressed` while paused, wired to
-  the surface's `paused` (the model's turn is its `auto-rotate`); hidden
-  where reduced motion already holds the surface still.
+  named for it ("Pause the print", "Pause the model", "Pause the shader",
+  "Pause the fluid", "Pause the meta balls", "Pause the silk"),
+  `aria-pressed` while paused, wired to the surface's `paused` (the
+  model's turn is its `auto-rotate`): a disc of the page's ink with its
+  glyph in the paper. Chips stay under reduced motion: the model and the
+  shader keep moving there.
 - Footer (on the page width, no rule above it): the brand (the pixel
   wordmark in the home link, one line, GitHub under its mark) beside three
   link columns
@@ -551,17 +543,19 @@ widgets/features; page-specific conventions live here.
   mark is path data in a positive box.
 - Browser walk after changes: the landing at desktop AND phone widths (no
   horizontal scroll), the h1 and the keys above the fold at 1440x900,
-  1280x800 and 1920x1080 with the stage beside them on its poster, the
+  1280x800 and 1920x1080 with the print beside them, the
   paper, its grain and the frame's hairlines in either theme,
   "Copy agent prompt" (the install's head) copying a prompt that names
   this origin's SKILL.md, no uppercase label, eyebrow, middle dot, em dash
   or arrow link in the rendered copy, every svg decorative or labelled,
   "Watch the film" (the dialog opens with focus in it, the film plays,
   Escape closes it, focus returns to the key, the video leaves the DOM),
-  the stage's tour (every scene drawn, its controls working), the bento's
-  rows whole at 1440, 800 and 390px with every card drawn and its controls
-  working (the model's ramps and "New model", the rating, the sliders'
-  values, the hold action's count), each pause chip stopping its surface,
+  the bento's rows whole at 1440, 800 and 390px with every card drawn and
+  its controls working (the model's ramps and "New model", "Roll a seed",
+  the button's fills and hues, "New shader" and its outputs, the fluid's
+  palettes, the styling systems, the slide and hold counts, the sliders'
+  values, the rating), the lazy cards loading as they near, each pause
+  chip stopping its surface,
   the ask story pinned and stepping its lines and the screen's parts as
   the page scrolls (the whole session at once under 900px), the "Works
   with" marks, none of the slop bans in the rendered page (no tag, italic

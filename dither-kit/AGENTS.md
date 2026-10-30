@@ -563,8 +563,9 @@ the kit every import is relative (`../engine/pixel`).
   or 2 tiles (a tile's ink never the one above it, nor with three inks or
   more the one beside it), each running its ink along a ramp (down or
   across; some solid) through the screen into a second ink or the ground,
-  and places the kit's diamond, inside which every tone turns over (the
-  tiles' negative) and the screen slides `speed` cells a second on the
+  and places the kit's diamond (sized by the surface's shorter side and
+  always landing whole, so a portrait print keeps it), inside which every
+  tone turns over (the tiles' negative) and the screen slides `speed` cells a second on the
   clock; `ground` `transparent` leaves open cells clear. Its screen is the
   one around it, else Bayer. Pinned by `tests/poster.spec.ts`.
 - `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-// The stage's export scene: one snippet of kit components, rendered live
-// on the left and written on the right in the picked styling system by the
+// The bento's styling card: one snippet of kit components, rendered live on
+// the left and written on the right in the picked styling system by the
 // translator the docs and the Studio's export use (`restyle`), StyleX
-// first. Its own chunk: the translator carries the compiled utility map.
+// first. Its own chunk, fetched as the card nears the viewport: the
+// translator carries the compiled utility map.
 import { computed, ref } from "vue"
 import { DitherButton, DitherHeading } from "@dither-kit"
 import { STYLINGS, STYLING_LABELS, restyle, type Styling } from "@/shared/lib/restyle"
@@ -38,14 +39,15 @@ const code = computed(() => restyle(SNIPPET, system.value))
 </template>
 
 <style scoped>
-/* The card on the left, its code on the right; stacked on a narrow stage. */
+/* The card on the left, its code on the right; the code alone on a narrow
+   card. */
 .export {
   position: absolute;
   inset: 0;
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: 16px;
-  padding: 44px 16px 16px;
+  padding: 20px;
 }
 
 .export-live {

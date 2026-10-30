@@ -9,7 +9,7 @@
   <img src="public/emotes/emote-dots.webp" alt="" width="51" height="49">
 </p>
 
-![dither-ui: a dithered UI toolkit for Vue, the statement beside a live component stage seated on a printed poster](.github/readme/banner.webp)
+![dither-ui: a dithered UI toolkit for Vue, the statement beside a live print the kit makes](.github/readme/banner.webp)
 
 <p align="center">
   <img src="public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
@@ -119,19 +119,18 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 ### Landing
 
 The page is printed: one ink on bone paper inside a hairline frame, the kit's
-art its only colour. The hero: the statement and the keys beside a stage that
-tours real components, seated on a poster the kit prints in tone, each one live
-with the controls its docs demo has: a dithered chart you reseed, a GLSL
-shader, one snippet written as StyleX, CSS Modules, CSS or Tailwind beside the
-card it renders, a button, a slide and a ferrofluid. "Watch the film" opens the
-trailer, and under the keys a quiet line names what the kit works with, each
-tool under its own mark. Everything else on the page is the kit too, on plain
-filled grounds with no tags or borders:
+art its only colour. The hero: the statement and the keys beside a live print
+the kit makes, the palette as tone with the kit's diamond knocked out of it.
+"Watch the film" opens the trailer, and under the keys a quiet line names what
+the kit works with, each tool under its own mark. Everything else on the page
+is the kit too, on plain filled grounds with no tags or borders:
 
 - a bento of live components, each leading into its docs section: a 3D model
-  you re-roll and recolour, a rating, a stat card, a bar chart, meta balls,
-  sliders, a pie, avatars, silk, decrypted text, progress, a radar and a hold
-  action;
+  you re-roll and recolour, a rating, a stat card, an area chart you reseed,
+  the button's fills and hues, sliders, a pie, avatars, a GLSL shader, a
+  ferrofluid, one snippet written as StyleX, CSS Modules, CSS or Tailwind
+  beside the card it renders, a slide action, a bar chart, meta balls,
+  progress, a radar, a hold action, silk and decrypted text;
 - one agent session, played as you scroll: the ask, what the agent does said
   in plain words, and the screen it lays out building beside it row by row;
 - what's inside: the kit, the Studio and the agent bridge, each harness under

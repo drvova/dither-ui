@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { routePath } from "@/shared/lib"
-import { DitherIcon } from "@dither-kit"
+import { DitherIcon, DitherPoster, type PixelColor } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import type { MarkId } from "@/shared/ui/marks"
-import HeroStage from "./HeroStage.vue"
+import PauseChip from "./PauseChip.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 
-// The hero, our own: the first screen tall, the statement beside the stage
-// (the kit by hand, one real component at a time, seated on a poster the
-// kit prints). Every surface on it is the kit itself; the film is a key
-// away.
+// The hero, our own: the first screen tall, the statement beside a print
+// the kit makes (a live DitherPoster: the palette as tone, the kit's
+// diamond knocked out of it, its screen sliding inside the mark). The film
+// is a key away.
 const film = ref(false)
+
+// The print's inks: the kit's blue, the ember and the page's own ink. Its
+// screen slides by itself, so it carries a pause (WCAG 2.2.2).
+const INKS: PixelColor[] = ["blue", "orange", "#101214"]
+const printing = ref(true)
 
 // What the kit works with, each under its own mark.
 const WORKS: { id: MarkId; name: string }[] = [
@@ -47,8 +52,11 @@ const WORKS: { id: MarkId; name: string }[] = [
           </ul>
         </div>
       </div>
-      <div class="stage-col">
-        <HeroStage />
+      <div class="print-col">
+        <div class="print">
+          <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!printing" />
+          <PauseChip v-model="printing" label="Pause the print" class="print-chip" />
+        </div>
       </div>
     </div>
     <TrailerDialog v-model="film" />
@@ -57,8 +65,8 @@ const WORKS: { id: MarkId; name: string }[] = [
 
 <style scoped>
 /* The hero: the first screen under the header; on the page width, the
-   statement (left) beside the stage (right). Under 900px the statement
-   comes first and the stage takes the width under it. */
+   statement (left) beside the print (right). Under 900px the statement
+   comes first and the print takes the width under it, landscape. */
 .hero {
   position: relative;
   isolation: isolate;
@@ -146,9 +154,26 @@ const WORKS: { id: MarkId; name: string }[] = [
   gap: 7px;
 }
 
-/* The stage's column: the stage seats its own poster. */
-.stage-col {
+/* The print: a portrait sheet set on the paper inside its column, square
+   cornered and flat, never a panel run to the frame. Its pause sits on its
+   top right corner. */
+.print-col {
+  display: grid;
+  justify-items: end;
   min-width: 0;
+  padding: 40px 0;
+}
+
+.print {
+  position: relative;
+  width: min(100%, 30rem);
+  aspect-ratio: 4 / 5;
+}
+
+.print-chip {
+  position: absolute;
+  top: 12px;
+  right: 12px;
 }
 
 /* Between 900 and 1199px the columns share the width evenly, so the keys
@@ -167,11 +192,20 @@ const WORKS: { id: MarkId; name: string }[] = [
   .statement {
     padding: 28px 1.5rem 8px;
   }
+  .print-col {
+    justify-items: stretch;
+    padding: 16px 1.5rem 0;
+  }
+  .print {
+    width: 100%;
+    aspect-ratio: 5 / 4;
+  }
 }
 
 /* On a phone the page's gutter is 16px, as the sections' and the docs'. */
 @media (max-width: 639px) {
-  .statement {
+  .statement,
+  .print-col {
     padding-inline: 16px;
   }
 }

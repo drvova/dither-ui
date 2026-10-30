@@ -13,26 +13,20 @@ defineProps<{ label: string }>()
 </template>
 
 <style scoped>
-/* Soft glass over the surface. */
+/* A disc of the page's ink over the surface, its glyph in the paper. */
 .pause-chip {
   display: inline-grid;
   place-items: center;
   width: 32px;
   height: 32px;
   border-radius: 999px;
-  color: var(--color-foreground);
-  background: color-mix(in oklab, #000 62%, transparent);
+  color: var(--background);
+  background: var(--ink);
   transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pause-chip:hover {
-  background: color-mix(in oklab, #000 40%, transparent);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .pause-chip {
-    background-color: #000;
-  }
+  background: color-mix(in oklab, var(--ink) 78%, var(--background));
 }
 
 /* Pause: two bars. Play: a triangle. */

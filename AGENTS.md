@@ -129,8 +129,8 @@ Default section order:
   ink on bone paper with a fine grain inside a hairline frame, the kit's
   art the only colour on it (the taste of a reference print site the
   user picked, kept unnamed, worn so it never reads as a copy: none of
-  its devices). Our own hero (the statement beside a stage touring real
-  components, seated on a poster the kit prints: tone fields and the
+  its devices). Our own hero (the statement beside a live print the kit
+  makes, no component tour: the user's call; a poster of tone fields and the
   kit's diamond; a quiet line of what it works with under the keys), then
   sections under a title with a lead beside it: a bento of live
   components, one agent session played as the page scrolls (a pinned
