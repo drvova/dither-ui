@@ -229,8 +229,13 @@ widgets/features; page-specific conventions live here.
   the plate, never a tint), two `DitherGradient`s in the bone ink through
   the Bayer screen showing only the thin ends of their ramps, the mark
   28px. `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and
-  every plate's mark inside its band, its tones thin. Nothing moves. A new
-  plate is a row in the table and a `<Plate>` at a section break.
+  every plate's mark inside its band, its tones thin. Its one moment,
+  once, at 60% in view: the tone prints in through `DitherReveal` (0.72s,
+  linear, the lights coming on), then the mark walks in from the nearer
+  side edge to its stand, one 4px cell a step (`steps()`, 18 cells a
+  second, at most 4.2s, after a 0.8s beat), and stays: under five
+  seconds, so no pause; under reduced motion the plate is simply there.
+  A new plate is a row in the table and a `<Plate>` at a section break.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit
@@ -251,7 +256,7 @@ widgets/features; page-specific conventions live here.
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
   restyled or dithered; everything else is a kit glyph (`DitherIcon`).
 - No entrance choreography but the bento's art printing itself once as it
-  nears; the hero and the type simply are. Motion is the live kit
+  nears and each plate's arrival; the hero and the type simply are. Motion is the live kit
   surfaces, one moving layer at a time in the bento. Pause chips
   (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
