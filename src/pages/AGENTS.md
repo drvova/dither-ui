@@ -124,7 +124,8 @@ widgets/features; page-specific conventions live here.
   matrices and styling systems); `tests/landing-facts.spec.ts` recounts
   the first from `dither-kit/tailwind/index.ts` and holds the second to
   the kit's required `peerDependencies` (a styling layer's optional one
-  aside); section counts come from `hub.ts`. A change that moves one
+  aside), and the plate's stock to the raised ground's mix; section counts
+  come from `hub.ts`. A change that moves one
   fails until the page says it.
 - Examples (`Examples.vue`, `#examples`, "Every component, live."): a
   section head (the component count from `facts.ts`, "See every section in
@@ -205,6 +206,17 @@ widgets/features; page-specific conventions live here.
   checks it). Under them the five big families (`DOCS_FAMILIES`): five
   columns (three under 1024px, two under 640px), each the family's name
   and size as the link to its first section, and its line.
+- The plate (between Inside and Install, decorative): a print sheet at
+  2.35:1 on the page's width, square cornered and flat like the hero's
+  print, its stock the raised ground (`STOCK` in `LandingPage`, the
+  `--surface` mix as a colour the kit prints with, held to the token by
+  `tests/landing-facts.spec.ts`, so its open cells are the plate, never a
+  tint). Two `DitherGradient`s in the bone ink through the Bayer screen
+  show only the thin ends of their ramps: the tone thins from a quarter
+  at the top edge to nothing, and rises from nothing to three tenths at
+  the foot; between them a clear band holds the brand mark (`MARK`, the
+  header's path), 28px, small in the wide field. The quiet before the
+  install; nothing moves.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit

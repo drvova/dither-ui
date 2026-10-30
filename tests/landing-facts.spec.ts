@@ -56,4 +56,44 @@ describe("landing facts", () => {
     const peers = Object.keys(kit.peerDependencies).filter((p) => p !== "vue" && !kit.peerDependenciesMeta[p]?.optional)
     expect([...RUNTIME_DEPS].sort()).toEqual(peers.sort())
   })
+
+  it("prints the plate on the raised ground", () => {
+    // The plate's stock is `--surface` as a colour the kit can print with:
+    // the token's oklab mix of the landing's ink into its ground.
+    const css = readFileSync(new URL("../src/pages/landing/chapters.css", import.meta.url), "utf8")
+    const page = readFileSync(new URL("../src/pages/landing/LandingPage.vue", import.meta.url), "utf8")
+    const token = (name: string) => css.match(new RegExp(`${name}: (#[0-9a-f]{6});`))![1]
+    const [, share] = css.match(/--surface: color-mix\(in oklab, var\(--foreground\) (\d+)%, var\(--background\)\);/)!
+    const stock = page.match(/const STOCK = "(#[0-9a-f]{6})"/)![1]
+    const mixed = mixOklab(token("--foreground"), token("--background"), Number(share) / 100)
+    rgb(stock).forEach((c, i) => expect(Math.abs(c - mixed[i])).toBeLessThanOrEqual(1))
+  })
 })
+
+const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+
+/** CSS `color-mix(in oklab, a share, b)` of two sRGB hexes, back in sRGB 0-255. */
+function mixOklab(a: string, b: string, share: number): number[] {
+  const toLin = (c: number) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+  const toSrgb = (c: number) => 255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055)
+  const lab = (hex: string) => {
+    const [r, g, bl] = rgb(hex).map(toLin)
+    const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * bl)
+    const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * bl)
+    const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * bl)
+    return [
+      0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+      1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+      0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+    ]
+  }
+  const [L, A, B] = lab(a).map((v, i) => v * share + lab(b)[i] * (1 - share))
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3
+  const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3
+  const s = (L - 0.0894841775 * A - 1.291485548 * B) ** 3
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ].map((c) => Math.round(toSrgb(c)))
+}
