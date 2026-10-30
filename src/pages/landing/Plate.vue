@@ -2,80 +2,61 @@
 // One plate of the series (`plate.ts`): a 2.35:1 sheet on the page's width,
 // square cornered and flat like the hero's print, on the raised ground as
 // its stock. Each half shows only the thin end of its ramp (the ramp runs
-// 1/tone times the half's depth), through the kit's Bayer screen; the mark,
-// 28px (seven 4px cells), stands in the clear band. Decorative.
+// 1/tone times the half's depth), through the kit's Bayer screen; the brand,
+// the mark and the pixel wordmark in 4px cells, stands in the clear band,
+// pulled in from the right edge where the plate is narrow. Decorative.
 //
 // Its one moment, once, as it comes into view: the tone prints in through
 // the kit's reveal (the lights coming on) while the mark's cells lie loose
-// across the field, then they lift out of the field left to right and travel, a cell
-// at a time on the 4px grid, into the mark, which stays. Under five
-// seconds, so it needs no pause; under reduced motion (and before the app
-// runs) the plate is simply there, the mark assembled.
+// across the field; they gather left to right into the mark, which holds a
+// beat, bursts to the right and settles, in order across, into the whole
+// brand. Each cell steps whole cells on the grid. Under five seconds, so it
+// needs no pause; under reduced motion (and before the app runs) the plate
+// is simply there, the brand assembled.
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherGradient, DitherReveal } from "@dither-kit"
-import { xorshift32 } from "@dither-kit/engine/pixel"
-import { MARK_CELLS, STOCK, type Plate } from "./plate"
+import { choreograph, LOCKUP, LOCKUP_SIZE, MOMENT, STOCK, type Plate, type Waypoint } from "./plate"
 
 const { plate } = defineProps<{ plate: Plate }>()
 const pct = (f: number) => `${f * 100}%`
 
 const CELL = 4
-// The gather: cells lift from 0.8 s, the leftmost first, the last 1.6 s
-// later; each travels at PACE cells a second, held to SPAN seconds. They
-// lie loose up to EDGE of the plate's depth into the tone.
-const LIFT = 800
-const SWEEP = 1600
-const PACE = 60
-const SPAN: readonly [number, number] = [1.2, 2.4]
-const EDGE = 0.08
+const WIDTH = LOCKUP_SIZE.width * CELL
+const HALF = 3.5 * CELL
 const root = ref<HTMLElement | null>(null)
-const cells = ref<HTMLElement[]>([])
+const lockup = ref<HTMLElement | null>(null)
+// Indexed by the lockup's order: a v-for ref array keeps no order.
+const cells: HTMLElement[] = []
 let io: IntersectionObserver | null = null
 
-const at = (c: { x: number; y: number }) => ({
-  left: `calc(${pct(plate.mark[0])} + ${(c.x - 3.5) * CELL}px)`,
-  top: `calc(${pct(plate.mark[1])} + ${(c.y - 3.5) * CELL}px)`,
-})
+/** One axis of a path as keyframes, each leg stepped one cell at a time. */
+const legs = (path: Waypoint[], axis: "x" | "y", home: number, value: (d: number) => Keyframe): Keyframe[] =>
+  path.map((p, k) => {
+    const next = path[k + 1]
+    const steps = next ? Math.round(Math.abs(next[axis] - p[axis]) / CELL) : 0
+    return { ...value(p[axis] - home), offset: p.t / MOMENT.end, easing: `steps(${Math.max(1, steps)}, end)` }
+  })
 
 onMounted(() => {
   const box = root.value
-  const els = cells.value
-  if (!box || !els[0] || typeof IntersectionObserver === "undefined" || typeof els[0].animate !== "function") return
+  const set = lockup.value
+  const els = cells
+  if (!box || !set || !els[0] || typeof IntersectionObserver === "undefined" || typeof els[0].animate !== "function")
+    return
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return
-  const { clientWidth: w, clientHeight: h } = box
-  const snap = (v: number) => Math.round(v / CELL) * CELL
-  // Where each cell lies at first: on the grid, loose in the field, the
-  // same for a plate on every visit.
-  const rand = xorshift32(Math.round((plate.mark[0] * 997 + plate.mark[1] * 131) * 1e3))
-  const loose = MARK_CELLS.map(() => {
-    // The clear band and the thin edges of the tone either side of it.
-    const [lo, hi] = [plate.band[0] - EDGE, plate.band[1] + EDGE]
-    return { x: snap((0.02 + rand() * 0.96) * w), y: snap((lo + rand() * (hi - lo)) * h) }
-  }).sort((a, b) => a.x - b.x)
-  // Matched to the mark's cells in the same order across, so paths seldom cross.
-  const slots = els.map((el) => ({ el, x: el.offsetLeft, y: el.offsetTop })).sort((a, b) => a.x - b.x || a.y - b.y)
-  const moves = slots.flatMap((slot, i) => {
-    const from = loose[i]
-    const dx = snap(from.x - slot.x)
-    const dy = snap(from.y - slot.y)
-    const n = Math.max(Math.abs(dx), Math.abs(dy)) / CELL
-    const timing = {
-      delay: LIFT + (from.x / w) * SWEEP,
-      duration: Math.min(SPAN[1], Math.max(SPAN[0], n / PACE)) * 1000,
-      fill: "backwards" as const,
-    }
-    // Each axis steps whole cells, so the cell never leaves the grid.
-    return [
-      slot.el.animate([{ translate: `${dx}px 0` }, { translate: "0 0" }], {
-        ...timing,
-        easing: `steps(${Math.max(1, Math.abs(dx) / CELL)}, end)`,
-      }),
-      slot.el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], {
-        ...timing,
-        easing: `steps(${Math.max(1, Math.abs(dy) / CELL)}, end)`,
-      }),
-    ]
-  })
+  const slots = LOCKUP.map((c) => ({ x: set.offsetLeft + c.x * CELL, y: set.offsetTop + c.y * CELL }))
+  const paths = choreograph(plate, { width: box.clientWidth, height: box.clientHeight }, slots, CELL)
+  // Each axis its own animation, so each steps whole cells.
+  const moves = els.flatMap((el, i) => [
+    el.animate(
+      legs(paths[i], "x", slots[i].x, (d) => ({ translate: `${d}px 0` })),
+      MOMENT.end,
+    ),
+    el.animate(
+      legs(paths[i], "y", slots[i].y, (d) => ({ transform: `translateY(${d}px)` })),
+      MOMENT.end,
+    ),
+  ])
   // Held loose, out of sight, until the plate is in view.
   for (const move of moves) move.pause()
   io = new IntersectionObserver(
@@ -114,14 +95,24 @@ onBeforeUnmount(() => io?.disconnect())
         />
       </div>
     </DitherReveal>
-    <span
-      v-for="c in MARK_CELLS"
-      ref="cells"
-      :key="`${c.x}.${c.y}`"
-      class="plate-cell"
-      :class="{ core: c.core }"
-      :style="at(c)"
-    />
+    <div
+      ref="lockup"
+      class="plate-lockup"
+      :style="{
+        left: `clamp(16px, calc(${pct(plate.mark[0])} - ${HALF}px), calc(100% - ${WIDTH + 16}px))`,
+        top: `calc(${pct(plate.mark[1])} - ${HALF}px)`,
+        width: `${WIDTH}px`,
+      }"
+    >
+      <span
+        v-for="(c, i) in LOCKUP"
+        :ref="(el) => (cells[i] = el as HTMLElement)"
+        :key="`${c.x}.${c.y}`"
+        class="plate-cell"
+        :class="{ core: c.core }"
+        :style="{ left: `${c.x * CELL}px`, top: `${c.y * CELL}px` }"
+      />
+    </div>
   </div>
 </template>
 
@@ -143,6 +134,11 @@ onBeforeUnmount(() => io?.disconnect())
   position: absolute;
   inset-inline: 0;
   overflow: hidden;
+}
+
+.plate-lockup {
+  position: absolute;
+  height: 28px;
 }
 
 .plate-cell {

@@ -135,8 +135,8 @@ Default section order:
   kit's diamond standing over its own dithered floor; a quiet line of what
   it works with under the keys; copy calm and procedural, every figure
   read from the kit), then
-  sections under a title with a lead beside it, print plates of the kit's
-  diamond small in a wide field between them (after the bento, after the
+  sections under a title with a lead beside it, print plates of the brand
+  small in a wide field between them (after the bento, after the
   ask, before the install): a bento of live
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
