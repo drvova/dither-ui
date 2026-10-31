@@ -47,14 +47,12 @@ export type Waypoint = { t: number; x: number; y: number }
  * - `rain`: the cells hang in one dotted line along the scene's first row
  *   and fall column by column, left to right, each column landing from the
  *   bottom up.
- * - `sort`: a scrambled cloud collapses into the lockup's seven rows, then
- *   each row sorts sideways into place, in order across (a refinement).
  * - `converge`: the seven rows slide in whole, alternately from the
  *   field's left and right edges, top row first, and interlock.
  * - `strike`: a typewriter: the glyphs wait stacked at the carriage on the
  *   scene's first row, and one by one each slides out to its column and
  *   strikes down into place. */
-export const MOVES = ["gather", "rain", "sort", "converge", "strike"] as const
+export const MOVES = ["gather", "rain", "converge", "strike"] as const
 export type Move = (typeof MOVES)[number]
 
 /** Where in its field the brand's moment plays, in px from the field's top:
@@ -168,31 +166,6 @@ function rain({ scene, slots, cell, at, left, width }: Stage): Waypoint[][] {
   })
 }
 
-function sort({ scene, slots, cell, rand, at, left, width }: Stage): Waypoint[][] {
-  // The cloud: anywhere across the lockup's width, from eight cells above it
-  // to fourteen below, inside the scene's rows.
-  const top = Math.min(...slots.map((s) => s.y))
-  const [lo, hi] = [Math.max(scene.loose[0], top - 8 * cell), Math.min(scene.loose[1], top + 14 * cell)]
-  return ids(slots.length).map((i) => {
-    const start = at(i, left + rand() * width, lo + rand() * (hi - lo), 0)
-    // Collapse: to its own row (x kept), the top row first, 600 to 1200ms.
-    const row = (slots[i].y - top) / cell
-    const down = 600 + (row / 6) * 600
-    const banded = { ...start, y: slots[i].y }
-    const collapse = leg(Math.abs(start.y - slots[i].y) / cell, 30, [150, 900])
-    // Sort: sideways to its own column, in order across, 2400 to 3200ms.
-    const across = 2400 + ((slots[i].x - left) / width) * 800
-    const slide = leg(Math.abs(start.x - slots[i].x) / cell, 40, [150, 1200])
-    return [
-      start,
-      { ...start, t: down },
-      { ...banded, t: down + collapse },
-      { ...banded, t: across },
-      { ...slots[i], t: across + slide },
-    ]
-  })
-}
-
 function converge({ w, slots, cell, at, left, width }: Stage): Waypoint[][] {
   // Even rows from the left edge, odd rows from the right, each whole; the
   // top row moves at 400ms, each next 300ms after.
@@ -222,7 +195,7 @@ function strike({ scene, slots, at, left }: Stage): Waypoint[][] {
   })
 }
 
-const PLAY: Record<Move, (stage: Stage) => Waypoint[][]> = { gather, rain, sort, converge, strike }
+const PLAY: Record<Move, (stage: Stage) => Waypoint[][]> = { gather, rain, converge, strike }
 
 /** Each lockup cell's path through the scene's move, in px within a field of
  * `box`, for cells that stand at `slots` (the lockup's cells, in order) and

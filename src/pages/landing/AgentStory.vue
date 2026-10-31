@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // The ask as a story: a stage pinned while the page scrolls past it plays
-// one agent session (`story.ts`), a step per notch. The ask comes first,
-// then what the agent does, a line at a time, while the screen it lays out
-// builds on the left part by part. The step is the marker crossing the
+// one agent session (`story.ts`), a step per notch. The ask and the screen's
+// frame are there from the first step; then what the agent does, a line at
+// a time, while the screen it lays out fills in on the left part by part. The step is the marker crossing the
 // viewport's middle (one IntersectionObserver, no scroll listener). Under
 // 900px, or without an observer, the stage is not pinned and shows the
 // whole session at once. Screen readers get the whole session as a
@@ -66,9 +66,9 @@ onBeforeUnmount(() => {
     <figure id="agent-ask" class="pin">
       <div class="stage">
         <div class="canvas">
-          <div class="frame" :class="{ on: step >= PARTS.count }">
+          <div class="frame">
+            <DitherHeading level="3">Deploys</DitherHeading>
             <div class="part" :class="{ off: step < PARTS.count }">
-              <DitherHeading level="3">Deploys</DitherHeading>
               <div class="frame-row">
                 <DitherNumberText :value="16" class="frame-n" />
                 <DitherText tone="muted" size="xs">deploys this week</DitherText>
@@ -83,7 +83,6 @@ onBeforeUnmount(() => {
               <span aria-hidden="true">Auto deploy</span>
             </div>
           </div>
-          <p class="wait" :class="{ off: step >= PARTS.count }" aria-hidden="true">The screen lands here.</p>
         </div>
 
         <!-- The session as it plays: decoration over the caption. -->
@@ -119,8 +118,8 @@ onBeforeUnmount(() => {
 /* The story's run: a notch of scroll per step, then the pinned stage's own
    height, so the last step holds a beat before the stage lets go. */
 .story {
-  --notch: 40svh;
-  --pin: min(calc(100svh - 96px), 30rem);
+  --notch: 32svh;
+  --pin: min(calc(100svh - 96px), 23rem);
   position: relative;
 }
 
@@ -152,10 +151,11 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 
-/* The stage: one raised ground, the screen's canvas beside the session. */
+/* The stage: one raised ground, the screen's canvas beside the session,
+   halves, so the screen fills its side. */
 .stage {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -176,21 +176,11 @@ onBeforeUnmount(() => {
   flex-direction: column;
   justify-content: center;
   gap: 14px;
-  width: min(100%, 28rem);
+  width: min(100%, 32rem);
   min-height: 15rem;
   padding: 28px;
   border-radius: 16px;
   background: var(--background);
-  opacity: 0;
-  translate: 0 8px;
-  transition:
-    opacity 300ms var(--ease-settle),
-    translate 300ms var(--ease-settle);
-}
-
-.frame.on {
-  opacity: 1;
-  translate: 0;
 }
 
 .part {
@@ -215,11 +205,6 @@ onBeforeUnmount(() => {
 .frame-switch.off {
   visibility: visible;
   pointer-events: none;
-}
-
-.canvas:focus-within .wait {
-  visibility: hidden;
-  opacity: 0;
 }
 
 .frame:focus-within,
@@ -256,14 +241,6 @@ onBeforeUnmount(() => {
   color: var(--ink);
 }
 
-.wait {
-  position: absolute;
-  margin: 0;
-  font-size: 12px;
-  color: var(--ink-3);
-  transition: opacity 240ms var(--ease-settle);
-}
-
 /* The session: the ask, then what the agent does, a line at a time. */
 .session {
   display: flex;
@@ -271,12 +248,12 @@ onBeforeUnmount(() => {
   justify-content: center;
   gap: 24px;
   min-height: 0;
-  padding: 32px 32px 32px 8px;
+  padding: 32px 40px 32px 16px;
 }
 
 .ask {
   margin: 0;
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--ink);
   text-wrap: pretty;
@@ -308,10 +285,8 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .frame,
   .part,
-  .does li,
-  .wait {
+  .does li {
     transition: none;
   }
 }

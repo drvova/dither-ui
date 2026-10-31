@@ -19,28 +19,16 @@ import {
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
-  DitherAvatar,
   DitherButton,
   DitherDecryptedText,
   DitherGradient,
-  DitherHoldAction,
   DitherIcon,
-  DitherMetaBalls,
-  DitherProgress,
   DitherRating,
   DitherReveal,
   DitherScreen,
   DitherSilk,
   DitherSlideAction,
-  DitherSlider,
   DitherWorld,
-  Legend,
-  Pie,
-  PieChart,
-  Radar,
-  RadarChart,
   SCREEN_KINDS,
   Sparkline,
   XAxis,
@@ -65,7 +53,7 @@ const DitherFerrofluid = defineAsyncComponent(() => import("@dither-kit/tailwind
 const LAZY = new Set(["shader", "styling", "ferrofluid"])
 const near = reactive(new Set<string>())
 // Cards whose art runs to the card's edges.
-const FLUSH = new Set(["world", "print-screens", "meta-balls", "silk", "shader", "ferrofluid", "styling"])
+const FLUSH = new Set(["world", "print-screens", "silk", "shader", "ferrofluid", "styling"])
 const bento = ref<HTMLElement | null>(null)
 
 // One moving layer at a time (`spotlight.ts`): of the surfaces that move by
@@ -75,7 +63,7 @@ const bento = ref<HTMLElement | null>(null)
 // A mouse or pen hovering a card, or keyboard focus inside it, points at
 // it; a touch chooses through the chip, since a tap (which also focuses)
 // would point at the card and then toggle what it just started.
-const MOVING = ["world", "shader", "ferrofluid", "meta-balls", "silk"] as const
+const MOVING = ["world", "shader", "ferrofluid", "silk"] as const
 type Moving = (typeof MOVING)[number]
 const isMoving = (id: string): id is Moving => (MOVING as readonly string[]).includes(id)
 const stilled = reactive(new Set<Moving>())
@@ -218,57 +206,8 @@ const deploys = ref(0)
 // Stat card.
 const SPARK = [12, 14, 13, 17, 16, 19, 18, 22, 21, 24, 23, 27, 26, 29, 31, 30, 33, 35]
 
-// Bar chart: deploys a week, the last week the tallest.
-const WEEKS = [38, 44, 41, 52, 47, 58, 55, 63, 49, 61, 68, 74].map((deploys, i) => ({ week: `W${27 + i}`, deploys }))
-const BAR_CONFIG = { deploys: { label: "Deploys", color: "blue" as DitherColor } }
-
-// Meta balls.
-const BLOBS = ["#2f6fd0", "#7ba3ee", "#c9dbff"]
-
-// Slider: a dither's settings, each with its value.
-const cellSize = ref(4)
-const contrast = ref(62)
-
-// Pie chart.
-const PIE_ROWS = [
-  { name: "Vue", value: 58 },
-  { name: "Svelte", value: 27 },
-  { name: "Other", value: 15 },
-]
-const PIE_CONFIG = {
-  Vue: { label: "Vue", color: "blue" as DitherColor },
-  Svelte: { label: "Svelte", color: "orange" as DitherColor },
-  Other: { label: "Other", color: "grey" as DitherColor },
-}
-
-// Avatar: one seeded face from each name.
-const TEAM = ["Ada Byte", "Rei Toma", "Ola Nord", "Kit Vale", "Ines Roa", "Teo Park"]
-
 // Silk, in the kit's blue.
 const SILK = [BLUE[2], BLUE[4], BLUE[2]]
-
-// Radar chart.
-const RADAR_ROWS = [
-  { axis: "shipped", current: 9, previous: 6 },
-  { axis: "reviewed", current: 7, previous: 7 },
-  { axis: "tested", current: 8, previous: 5 },
-  { axis: "documented", current: 6, previous: 3 },
-  { axis: "on time", current: 8, previous: 6 },
-]
-const RADAR_CONFIG = {
-  current: { label: "This sprint", color: "blue" as DitherColor },
-  previous: { label: "Last sprint", color: "grey" as DitherColor },
-}
-
-// Progress: a deploy, step by step.
-const STEPS = [
-  { label: "Install", value: 100, color: "blue" as DitherColor },
-  { label: "Build", value: 72, color: "blue" as DitherColor },
-  { label: "Upload", value: 28, color: "blue" as DitherColor },
-]
-
-// Hold action: caches purged.
-const purged = ref(0)
 </script>
 
 <template>
@@ -454,71 +393,6 @@ const purged = ref(0)
             <Sparkline :data="SPARK" color="blue" class="stat-spark" />
           </div>
 
-          <div v-else-if="t.id === 'bar'" class="panel bars">
-            <div class="panel-top">
-              <span class="panel-d">Deploys to production</span>
-              <span class="panel-d"><b>+8.8%</b> on last week</span>
-            </div>
-            <span class="stat-v">74</span>
-            <BarChart :data="WEEKS" :config="BAR_CONFIG" class="bar-chart">
-              <XAxis data-key="week" :max-ticks="6" />
-              <Bar data-key="deploys" />
-            </BarChart>
-          </div>
-
-          <template v-else-if="t.id === 'meta-balls'">
-            <DitherMetaBalls
-              :colors="BLOBS"
-              :count="5"
-              :frame-rate="12"
-              :paused="!playing['meta-balls']"
-              class="h-full w-full"
-            />
-            <PauseChip v-model="playing['meta-balls']" label="Pause the meta balls" class="chip" />
-          </template>
-
-          <div v-else-if="t.id === 'slider'" class="panel steps">
-            <span class="panel-h">Dither settings</span>
-            <div class="step">
-              <span class="step-l"
-                ><span>Cell size</span><span>{{ cellSize }}px</span></span
-              >
-              <DitherSlider v-model="cellSize" :min="1" :max="8" label="Cell size" ticks class="w-full" />
-            </div>
-            <div class="step">
-              <span class="step-l"
-                ><span>Contrast</span><span>{{ contrast }}%</span></span
-              >
-              <DitherSlider v-model="contrast" :min="0" :max="100" label="Contrast" color="blue" class="w-full" />
-            </div>
-          </div>
-
-          <PieChart
-            v-else-if="t.id === 'pie'"
-            :data="PIE_ROWS"
-            :config="PIE_CONFIG"
-            data-key="value"
-            name-key="name"
-            :inner-radius="0.55"
-            class="chart chart-sm"
-          >
-            <Pie variant="gradient" />
-            <Legend align="center" />
-          </PieChart>
-
-          <div v-else-if="t.id === 'avatar'" class="people">
-            <div class="who">
-              <DitherAvatar name="Ada Lovelace" color="blue" :size="56" />
-              <span class="who-n">Ada Lovelace</span>
-              <span class="who-s"><i class="led" aria-hidden="true"></i>Online</span>
-            </div>
-            <ul class="team" aria-label="Team">
-              <li v-for="n in TEAM" :key="n">
-                <DitherAvatar :name="n" color="blue" :size="28" /><span class="sr-only">{{ n }}</span>
-              </li>
-            </ul>
-          </div>
-
           <template v-else-if="t.id === 'silk'">
             <DitherSilk :colors="SILK" :frame-rate="12" :paused="!playing.silk" class="h-full w-full" />
             <PauseChip v-model="playing.silk" label="Pause the silk" class="chip" />
@@ -528,35 +402,6 @@ const purged = ref(0)
             <DitherDecryptedText text="Every pixel," />
             <DitherDecryptedText text="on purpose." />
           </p>
-
-          <div v-else-if="t.id === 'progress'" class="panel steps">
-            <span class="panel-h">Deploying web</span>
-            <div v-for="s in STEPS" :key="s.label" class="step">
-              <span class="step-l"
-                ><span>{{ s.label }}</span
-                ><span>{{ s.value }}%</span></span
-              >
-              <DitherProgress :value="s.value" :color="s.color" :aria-label="s.label" />
-            </div>
-          </div>
-
-          <RadarChart
-            v-else-if="t.id === 'radar'"
-            :data="RADAR_ROWS"
-            :config="RADAR_CONFIG"
-            name-key="axis"
-            :sparkles="false"
-            class="chart"
-          >
-            <Radar data-key="current" />
-            <Radar data-key="previous" />
-            <Legend align="center" />
-          </RadarChart>
-
-          <div v-else-if="t.id === 'hold-action'" class="stack">
-            <DitherHoldAction color="orange" @complete="purged++">Hold to purge cache</DitherHoldAction>
-            <span class="readout">purged {{ purged }}</span>
-          </div>
         </DitherReveal>
         <p class="card-foot">
           <a :href="routePath(`/docs/${t.id}`)" class="card-name">{{ t.label }}</a>
@@ -574,10 +419,9 @@ const purged = ref(0)
 }
 
 /* The bento: twelve columns, row by row: a tall lead card (8) beside two
-   stacked (4); a wide card (8) beside a third; three thirds; two halves; a
-   wide card beside a third; two halves; three thirds; two halves. Two
-   columns under 1024px (the wide cards and the halves take both, the rest
-   pack densely), one under 640px. */
+   stacked (4); a full row; a wide card (8) beside a third; two halves; a
+   wide card beside a third; two halves. Under 1024px a rail (below), so
+   the whole bento takes one screen. */
 .bento {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -614,8 +458,6 @@ const purged = ref(0)
   grid-column: span 8;
 }
 
-.t-bar,
-.t-meta-balls,
 .t-silk,
 .t-decrypted-text,
 .t-shader,
@@ -646,8 +488,6 @@ const purged = ref(0)
 }
 
 .t-print-screens .card-art,
-.t-bar .card-art,
-.t-meta-balls .card-art,
 .t-silk .card-art,
 .t-decrypted-text .card-art,
 .t-area .card-art,
@@ -800,7 +640,6 @@ const purged = ref(0)
 }
 
 .t-rating .stack,
-.t-hold-action .stack,
 .t-button .stack,
 .t-slide-action .stack {
   justify-content: center;
@@ -842,16 +681,6 @@ const purged = ref(0)
   font-variant-numeric: tabular-nums;
 }
 
-.chart {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-}
-
-.chart-sm {
-  max-width: 260px;
-}
-
 /* A small app panel: a label line, a big figure, then its chart. */
 .panel {
   display: flex;
@@ -861,13 +690,6 @@ const purged = ref(0)
   height: 100%;
 }
 
-.panel-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .panel-d {
   font-size: 11.5px;
   color: var(--ink-3);
@@ -875,11 +697,6 @@ const purged = ref(0)
 
 .panel-d b {
   font-weight: 500;
-  color: var(--ink);
-}
-
-.panel-h {
-  font-size: 13px;
   color: var(--ink);
 }
 
@@ -900,47 +717,6 @@ const purged = ref(0)
   margin-top: 8px;
 }
 
-.bar-chart {
-  flex: 1;
-  min-height: 0;
-  margin-top: 6px;
-}
-
-.people {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.who {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.who-n {
-  font-size: 12px;
-  color: var(--ink);
-}
-
-.who-s {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--ink-3);
-}
-
-.team {
-  display: flex;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .cipher {
   display: flex;
   flex-direction: column;
@@ -953,69 +729,40 @@ const purged = ref(0)
   color: var(--ink);
 }
 
-.steps {
-  justify-content: center;
-  gap: 14px;
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.step-l {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11.5px;
-  color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
-}
-
+/* Under 1024px a rail the reader swipes: a card and the next one's edge
+   in view (a phone's card most of its width), the rail running out to the
+   page's edges past its gutter (24px, 16px on a phone). */
 @media (max-width: 1023px) {
   .bento {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-flow: row dense;
+    --gutter: 24px;
+    display: flex;
+    gap: 12px;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 0 var(--gutter) 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .bento::-webkit-scrollbar {
+    display: none;
   }
   .card {
-    grid-column: span 1;
+    flex: 0 0 min(86%, 440px);
+    scroll-snap-align: start;
   }
-  .t-world,
-  .t-print-screens,
-  .t-area,
-  .t-styling,
-  .t-bar,
-  .t-meta-balls,
-  .t-silk,
-  .t-decrypted-text,
-  .t-shader,
-  .t-ferrofluid {
-    grid-column: span 2;
-    grid-row: auto;
-  }
-  .t-world .card-art {
-    min-height: 360px;
+  /* Every card the rail's height: the art takes what the name leaves. */
+  .bento .card .card-art {
+    flex: 1;
+    height: auto;
+    min-height: 340px;
   }
 }
 
 @media (max-width: 639px) {
   .bento {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .t-world,
-  .t-print-screens,
-  .t-area,
-  .t-styling,
-  .t-bar,
-  .t-meta-balls,
-  .t-silk,
-  .t-decrypted-text,
-  .t-shader,
-  .t-ferrofluid {
-    grid-column: auto;
-  }
-  .t-world .card-art {
-    min-height: 320px;
+    --gutter: 16px;
   }
 }
 </style>

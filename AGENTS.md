@@ -138,8 +138,8 @@ Default section order:
   each place it stands: the hero, each plate, the footer); copy calm and procedural, every figure
   read from the kit), then
   sections under a title with a lead beside it, print plates of the brand
-  small in a wide field between them (after the bento, after the
-  ask, before the install): a bento of live
+  small in a wide field between them (after the bento and before the
+  install, each its own proportion and printer's screen): a bento of live
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
