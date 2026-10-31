@@ -109,8 +109,10 @@ widgets/features; page-specific conventions live here.
   the works line, `STAGINGS.hero`: the gather), its field the page's column
   (`.hero-in`, positioned): loose in the open rows under it (some cells
   under the print, which paints over them), thrown no higher than just
-  above it, clear of the copy; it plays as the page opens, and the print (and its floor) hold
-  their frame until it is home, one moving layer at a time. No
+  above it, clear of the copy; it plays as the page opens and again under
+  a resting mouse (`replay`), and the print (and its floor) hold their
+  frame until it is home each time (`moving` holds, `settled` frees), one
+  moving layer at a time. No
   component tour, slides or picker in the hero (the user's call: they
   took the love out of it); the components live in the bento. Under
   900px the statement comes first and the print takes the width under
@@ -257,14 +259,19 @@ widgets/features; page-specific conventions live here.
     its column and strikes down onto the line.
   It plays the same at every width, phones included (nothing gates it on
   pointer or size), once, when the lockup stands in view clear of the
-  viewport's bottom tenth, and stays. `choreograph` is pure (a path of
+  viewport's bottom tenth, and stays; with `replay` (the hero's alone) a
+  mouse or pen coming to rest on the lockup plays it again from the top,
+  once it is home (never over a moment still playing, never for a finger),
+  emitting `moving` as it starts. `choreograph` is pure (a path of
   waypoints per cell, each a whole number of cells from its slot; one
   function per move in a table) on `MOMENT`'s clock, played as two stepped
   animations per cell (an axis each, `steps()` one cell a step). Home by
   4.6s: under five seconds, so no pause; under reduced motion, without
   `IntersectionObserver` or `animate`, and in the prerendered bytes, the
-  brand is simply assembled. It emits `settled` when home (at once when it
-  does not move), so a parent keeps one moving layer at a time.
+  brand is simply assembled (and a hover replays nothing). It emits
+  `settled` when home (at once when it does not move), so a parent keeps
+  one moving layer at a time; `tests/brand-replay.spec.ts` holds the
+  replay.
   `tests/landing-facts.spec.ts` holds the mark's cells to the diamond, the
   five places to five different moves, each move's opening (rain's one
   line, converge's rows at the edges, sort's scramble, strike's stack at
