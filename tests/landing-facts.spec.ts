@@ -4,7 +4,16 @@ import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
 import { STYLING_LABELS } from "../src/shared/lib/restyle"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
-import { choreograph, LOCKUP, LOCKUP_SIZE, MARK_CELLS, MOMENT, type Scene, STAGINGS } from "../src/pages/landing/brand"
+import {
+  choreograph,
+  LOCKUP,
+  LOCKUP_SIZE,
+  MARK_CELLS,
+  MOMENT,
+  MOVES,
+  type Scene,
+  STAGINGS,
+} from "../src/pages/landing/brand"
 import { PLATES, sceneOf, STOCK } from "../src/pages/landing/plate"
 
 const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
@@ -87,20 +96,7 @@ describe("landing facts", () => {
     expect(gather.lift + gather.sweep + gather.span[1]).toBeLessThanOrEqual(burst.at)
     expect(burst.at + burst.span).toBeLessThanOrEqual(settle.at)
     expect(settle.at + settle.sweep + settle.span).toBeLessThanOrEqual(MOMENT.end)
-    // Every plate, and the hero's and the footer's stagings, each with its
-    // lockup where the page sets it: mid-field, near the hero's foot, under
-    // the footer's top padding.
-    const scenes: [string, number, number, Scene][] = [
-      ...Object.entries(PLATES).map(([id, plate]): [string, number, number, Scene] => [
-        id,
-        plate.mark[0],
-        200,
-        sceneOf(plate, box.height),
-      ]),
-      ["hero", 0, 300, STAGINGS.hero(box.height, 300)],
-      ["foot", 0, 48, STAGINGS.foot(box.height, 48)],
-    ]
-    for (const [, at, top, scene] of scenes) {
+    for (const [, at, top, scene] of placements(box.height)) {
       const left = 16 + Math.round(at * (box.width - 32 - LOCKUP_SIZE.width * cell))
       const slots = LOCKUP.map((c) => ({ x: left + c.x * cell, y: top + c.y * cell }))
       const paths = choreograph(scene, box, slots, cell)
@@ -121,10 +117,12 @@ describe("landing facts", () => {
           expect(p.y).toBeLessThan(box.height)
         })
         expect(path.at(-1)).toEqual({ ...slots[i], t: MOMENT.end })
-        // Loose in the scene's rows; thrown inside its burst rows.
+        // Starting in the scene's rows.
         within(path[0].y, scene.loose)
+        if (scene.move !== "gather") return
+        // The gather throws inside its burst rows, and until the burst a
+        // wordmark cell shares a bone mark cell's square.
         within(path.find((p) => p.t === burst.at + burst.span)!.y, scene.burst)
-        // Until the burst a wordmark cell shares a bone mark cell's square.
         if (i >= marks) {
           const before = path.filter((p) => p.t <= burst.at)
           const host = paths
@@ -134,6 +132,42 @@ describe("landing facts", () => {
           expect(before).toEqual(host!.filter((p) => p.t <= burst.at))
         }
       })
+    }
+  })
+
+  it("forms the brand its own way in each place it stands", () => {
+    const cell = 4
+    const box = { width: 1232, height: 524 }
+    const all = placements(box.height)
+    // Five places, five moves: no two alike.
+    expect(new Set(all.map(([, , , scene]) => scene.move))).toEqual(new Set(MOVES))
+    for (const [, at, top, scene] of all) {
+      const left = 16 + Math.round(at * (box.width - 32 - LOCKUP_SIZE.width * cell))
+      const slots = LOCKUP.map((c) => ({ x: left + c.x * cell, y: top + c.y * cell }))
+      const starts = choreograph(scene, box, slots, cell).map((path) => path[0])
+      const home = (i: number) => starts[i].x === slots[i].x && starts[i].y === slots[i].y
+      if (scene.move === "rain") {
+        // One dotted line, every cell above its own column.
+        expect(new Set(starts.map((p) => p.y)).size).toBe(1)
+        starts.forEach((p, i) => expect(p.x).toBe(slots[i].x))
+      }
+      if (scene.move === "converge") {
+        // Whole rows at the edges: even rows left of home, odd rows right.
+        starts.forEach((p, i) => {
+          expect(p.y).toBe(slots[i].y)
+          expect(LOCKUP[i].y % 2 === 0 ? p.x < slots[i].x : p.x > slots[i].x).toBe(true)
+        })
+      }
+      if (scene.move === "sort") {
+        // A scrambled cloud: hardly a cell starts at home.
+        expect(starts.filter((_, i) => home(i)).length).toBeLessThan(starts.length / 10)
+      }
+      if (scene.move === "strike") {
+        // The glyphs stacked at the carriage (within the mark's seven
+        // columns), standing on the scene's first row.
+        expect(Math.abs(Math.min(...starts.map((p) => p.y)) - scene.loose[0])).toBeLessThanOrEqual(cell)
+        expect(Math.max(...starts.map((p) => p.x))).toBeLessThan(left + 7 * cell)
+      }
     }
   })
 
@@ -151,6 +185,22 @@ describe("landing facts", () => {
     }
   })
 })
+
+/** Every place the brand stands, with its lockup where the page sets it: on
+ * a plate at its mark (`[fraction across, top px, scene]`), near the hero's
+ * foot, under the footer's top padding. */
+function placements(height: number): [string, number, number, Scene][] {
+  return [
+    ...Object.entries(PLATES).map(([id, plate]): [string, number, number, Scene] => [
+      id,
+      plate.mark[0],
+      Math.round((plate.mark[1] * height) / 4) * 4 - 14,
+      sceneOf(plate, height),
+    ]),
+    ["hero", 0, 300, STAGINGS.hero(height, 300)],
+    ["foot", 0, 48, STAGINGS.foot(height, 48)],
+  ]
+}
 
 const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
 

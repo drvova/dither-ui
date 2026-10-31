@@ -106,7 +106,7 @@ widgets/features; page-specific conventions live here.
   cannot show on black; the floor is the print's own cells, never a tint.
   The column keeps 48px under the print below 900px for it. The
   statement signs off with the brand's moment (`.hero-brand`, 20px under
-  the works line, `STAGINGS.hero`), its field the page's column
+  the works line, `STAGINGS.hero`: the gather), its field the page's column
   (`.hero-in`, positioned): loose in the open rows under it (some cells
   under the print, which paints over them), thrown no higher than just
   above it, clear of the copy; it plays as the page opens, and the print (and its floor) hold
@@ -228,39 +228,56 @@ widgets/features; page-specific conventions live here.
 - The brand's moment (`brand.ts` + `BrandGather.vue`, decorative): the
   brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
   core, which the header draws too), three clear columns, then
-  "DITHER-UI" in the pixel face, 4px cells seven tall, as spans. Its
-  parent places and positions it; its FIELD is its nearest positioned
-  ancestor, and the parent stages it (`Staging`: the field's height and
-  the lockup's top in, a `Scene` out, in px of that field: the rows its
-  cells lie loose in, the rows the burst may throw them to, a seed). ONE
-  table, `STAGINGS` in `brand.ts`, stages the hero's and the footer's;
-  `plate.ts`'s `sceneOf` the plates'. It plays the same at every width,
-  phones included (touch, small screens: nothing gates it on pointer or
-  size). Once, when the lockup stands in view clear of the viewport's bottom
-  tenth: the mark's cells lie loose like stars; they gather left to right
-  into the mark, matched to its cells in order across; the mark holds a
-  beat and bursts to the right in a widening cone (a cell thrown past the
-  burst rows is turned back into them), the wordmark's cells, carried
-  unseen on its bone cells until then, flying out with it; then each cell
-  settles home, in order across, into the whole brand, which stays.
-  `choreograph` is pure (a path of waypoints per cell, each a whole number
-  of cells from its slot) on `MOMENT`'s clock, played as two stepped
+  "DITHER-UI" in the pixel face, 4px cells seven tall, as spans, each
+  knowing its glyph (the mark 0, the letters from 1). Its parent places
+  and positions it; its FIELD is its nearest positioned ancestor, and the
+  parent stages it (`Staging`: the field's height and the lockup's top in,
+  a `Scene` out: its `move` and, in px of that field, the rows its cells
+  lie loose in, the rows the gather's burst may throw them to, a seed).
+  ONE table, `STAGINGS` in `brand.ts`, stages the hero's and the
+  footer's; `plate.ts`'s `sceneOf` the plates'. Each place forms the brand
+  its OWN way (the user's call: never the same moment twice on the page),
+  one of `MOVES`:
+  - `gather` (the hero): the mark's cells lie loose like stars, gather
+    left to right into the mark, which holds a beat and bursts to the
+    right in a widening cone (a cell thrown past the burst rows is turned
+    back), the wordmark's cells, carried unseen on its bone cells until
+    then, flying out with it; then each settles home in order across.
+  - `rain` (the plate after the bento): the cells hang in one dotted line
+    on the scene's first row and fall column by column, left to right,
+    each column landing from the bottom up.
+  - `sort` (the plate after the ask): a scrambled cloud collapses into the
+    lockup's seven rows, top row first, then each row sorts sideways into
+    place in order across (a refinement).
+  - `converge` (the plate before the install): the seven rows slide in
+    whole, even rows from the field's left edge and odd rows from its
+    right, top row first, and interlock.
+  - `strike` (the footer): a typewriter; the glyphs wait stacked at the
+    carriage on the scene's first row, and one by one each slides out to
+    its column and strikes down onto the line.
+  It plays the same at every width, phones included (nothing gates it on
+  pointer or size), once, when the lockup stands in view clear of the
+  viewport's bottom tenth, and stays. `choreograph` is pure (a path of
+  waypoints per cell, each a whole number of cells from its slot; one
+  function per move in a table) on `MOMENT`'s clock, played as two stepped
   animations per cell (an axis each, `steps()` one cell a step). Home by
   4.6s: under five seconds, so no pause; under reduced motion, without
   `IntersectionObserver` or `animate`, and in the prerendered bytes, the
   brand is simply assembled. It emits `settled` when home (at once when it
   does not move), so a parent keeps one moving layer at a time.
-  `tests/landing-facts.spec.ts` holds the mark's cells to the diamond and
-  the moment, for every plate's scene and every `STAGINGS` row: its phases
-  in order inside five seconds, every path in time order, on its grid,
-  inside the field and home at the end, loose and thrown inside its
-  scene's rows, each wordmark cell on its host's squares until the burst.
+  `tests/landing-facts.spec.ts` holds the mark's cells to the diamond, the
+  five places to five different moves, each move's opening (rain's one
+  line, converge's rows at the edges, sort's scramble, strike's stack at
+  the carriage), and every place's moment: home inside five seconds, every
+  path in time order, on its grid, inside the field, starting in its
+  scene's rows; the gather's burst inside its rows and each wordmark cell
+  on its host's squares until it.
 - The plates (decorative): a series of print sheets between the sections,
   after the bento, after the ask and before the install, each the brand
   small in a wide field. ONE table, `PLATES` in `plate.ts`, sets each
   plate's tone at the top edge, its clear band and its tone at the foot,
-  and where the mark's centre stands in the band (left of 0.7, the
-  wordmark reading on to its right); `sceneOf` gives its scene (loose in
+  where the mark's centre stands in the band (left of 0.7, the wordmark
+  reading on to its right) and its move; `sceneOf` gives its scene (loose in
   the band and the tone's thin edges, thrown anywhere on the sheet,
   seeded by where the mark stands). `Plate.vue` prints a row: a 2.35:1
   sheet on the page's width, square cornered and flat like the hero's
@@ -310,11 +327,10 @@ widgets/features; page-specific conventions live here.
   toggle what it just started. Chips stay under reduced motion, where
   every surface paints one frame and holds it.
 - Footer (on the page width, no rule above it): the brand (the brand's
-  moment in the home link, whose name is "dither-ui", `STAGINGS.foot`: its
-  field the page's column, `.foot-in`, positioned; loose in the clear band
-  above it, the footer's top padding, its burst held to that band and the
-  brand's row, clear of every line of text; then one line, GitHub under
-  its mark) beside three link columns
+  moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
+  the strike, its carriage on the clear band above it, the footer's top
+  padding, clear of every line of text; its field the page's column,
+  `.foot-in`, positioned; then one line, GitHub under its mark) beside three link columns
   (`COLUMNS`: Get started, closing on Verification; Docs, the big families each with its size; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,
