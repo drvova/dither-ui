@@ -34,6 +34,12 @@ const RATES = [1, 1.25, 1.5, 2]
 const volumeWritable = (() => {
   if (typeof document === "undefined") return true
   const probe = document.createElement("video")
+  try {
+    // WebKit says so where it knows (a write there can read back, then revert).
+    if (probe.matches(":volume-locked")) return false
+  } catch {
+    // an engine without the selector: the write below tells
+  }
   probe.volume = 0.5
   return probe.volume === 0.5
 })()

@@ -262,7 +262,8 @@ Default section order:
   a long press (`src/shared/lib/long-press.ts`); fields read at 16px there
   so focusing one never zooms the page (pinch zoom stays the reader's);
   full-height layouts are `dvh`; audio opens in the tap that asks for it;
-  `theme-color` is each page's ground. The Studio's editor needs a 1024px
+  `theme-color` is each page's ground, in the theme the reader picked
+  (`useTheme` tints it as the theme turns). The Studio's editor needs a 1024px
   width (iPad landscape); narrower screens get its notice. Details in
   `src/AGENTS.md` and `dither-kit/AGENTS.md`. Automation is plain DOM: the player answers the `hf-seek`
   event and `window.ditherClock`, the Studio `window.ditherStudio` (with

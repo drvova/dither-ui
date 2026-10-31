@@ -68,4 +68,23 @@ describe("studio canvas touch", () => {
     expect(editor.viewport.x).toBeCloseTo(x + 10)
     w.unmount()
   })
+
+  it("holds a third finger off and rebases on the pair that remains", () => {
+    const w = mount(Canvas, { attachTo: document.body })
+    const host = w.get(".dk-canvas").element
+    host.dispatchEvent(touch("pointerdown", 1, 100, 100))
+    host.dispatchEvent(touch("pointerdown", 2, 200, 100))
+    // A third finger starts nothing of its own, not even a pan.
+    const third = touch("pointerdown", 3, 150, 300)
+    host.dispatchEvent(third)
+    expect(third.defaultPrevented).toBe(true)
+    window.dispatchEvent(touch("pointermove", 3, 190, 300))
+    expect([editor.viewport.x, editor.viewport.y, editor.viewport.zoom]).toEqual([0, 0, 1])
+    // The first lifts: fingers 2 and 3 are the pair now, and it starts from
+    // them, so the view holds still until they move.
+    window.dispatchEvent(touch("pointerup", 1, 100, 100))
+    window.dispatchEvent(touch("pointermove", 2, 200, 100))
+    expect([editor.viewport.x, editor.viewport.y, editor.viewport.zoom]).toEqual([0, 0, 1])
+    w.unmount()
+  })
 })

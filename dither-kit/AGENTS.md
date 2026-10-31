@@ -265,8 +265,10 @@ the kit every import is relative (`../engine/pixel`).
   on `click`, so a finger that scrolls the list picks nothing. The video
   player falls back to the video's own fullscreen
   (`webkitEnterFullscreen`) where an element has none (an iPhone) and
-  shows its volume slider only where a write to `volume` sticks (iOS ties
-  it to the hardware buttons).
+  shows its volume slider only where volume is not locked (iOS ties it to
+  the hardware buttons): `:volume-locked` where the engine knows the
+  selector (a write there can read back, then revert), else a write that
+  must read back.
 - `keyframes.ts` + `DitherStage.vue` + `DitherLayer.vue` are the keyframe
   engine in container units. `parseLength` turns px numbers and any CSS
   length (`calc()` sums included) into unit terms, `lerpTerms` interpolates

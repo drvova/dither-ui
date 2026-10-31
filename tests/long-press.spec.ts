@@ -17,7 +17,11 @@ beforeEach(() => {
   document.body.innerHTML = `<div id="row">Area chart</div><input id="name" />`
   row = document.getElementById("row")!
   menus = []
-  row.addEventListener("contextmenu", (e) => menus.push(e))
+  // A menu takes the event, as the layer rows' handlers do.
+  row.addEventListener("contextmenu", (e) => {
+    e.preventDefault()
+    menus.push(e)
+  })
   uninstall = installLongPress(document, 500)
 })
 afterEach(() => {
@@ -61,5 +65,25 @@ describe("long press", () => {
     rs.advanceTimersByTime(500)
     row.dispatchEvent(new MouseEvent("click", { bubbles: true }))
     expect(clicks).toBe(1)
+  })
+
+  it("swallows nothing when no menu opened or the touch was cancelled", () => {
+    let clicks = 0
+    const bare = document.createElement("button")
+    document.body.append(bare)
+    bare.addEventListener("click", () => clicks++)
+    // A long press on something without a menu keeps its release's click.
+    bare.dispatchEvent(pointer("pointerdown", { pointerType: "touch", clientX: 5, clientY: 5 }))
+    rs.advanceTimersByTime(500)
+    bare.dispatchEvent(pointer("pointerup", { pointerType: "touch", clientX: 5, clientY: 5 }))
+    bare.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    expect(clicks).toBe(1)
+    // A menu that opened and then lost its touch to a cancel leaves the
+    // next tap alone.
+    row.dispatchEvent(pointer("pointerdown", { pointerType: "touch", clientX: 40, clientY: 12 }))
+    rs.advanceTimersByTime(500)
+    row.dispatchEvent(pointer("pointercancel", { pointerType: "touch", clientX: 40, clientY: 12 }))
+    bare.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    expect([menus.length, clicks]).toEqual([1, 2])
   })
 })

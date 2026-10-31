@@ -29,12 +29,24 @@ function withoutTransitions(fn: () => void) {
   })
 }
 
+/** The browser's own chrome (iOS Safari's bar) wears the page's ground in
+ * the theme the reader picked, whatever the system's scheme: every
+ * theme-color the page declares takes it. */
+function tintChrome() {
+  const ground = getComputedStyle(document.body).backgroundColor
+  if (!ground) return
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) meta.content = ground
+}
+
 /** Dark/light toggle on <html>. Defaults to dark (the dither aesthetic),
  * remembers the choice, and can reveal the new theme as a dithered iris
  * growing from the control that asked for it (the kit's transition engine). */
 export function useTheme() {
   const dark = ref(true)
-  const apply = () => document.documentElement.classList.toggle("dark", dark.value)
+  const apply = () => {
+    document.documentElement.classList.toggle("dark", dark.value)
+    tintChrome()
+  }
   const persist = () => storage.set(STORAGE_KEY, dark.value ? "dark" : "light")
 
   const toggle = () =>

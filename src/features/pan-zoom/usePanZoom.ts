@@ -85,7 +85,9 @@ export function usePanZoom(host: Ref<HTMLElement | null>) {
   }
   function onFingerUp(ev: PointerEvent) {
     if (ending.delete(ev.pointerId) || !fingers.delete(ev.pointerId)) return
-    if (fingers.size < 2) pinch = null
+    // Down to a pair again (a third finger came and one left): the pinch
+    // starts over from the pair that remains, so nothing jumps.
+    pinch = fingers.size === 2 ? { ...spreadOf(), zoom: v.zoom } : null
     if (fingers.size) return
     window.removeEventListener("pointermove", onFingerMove)
     window.removeEventListener("pointerup", onFingerUp)
@@ -99,10 +101,12 @@ export function usePanZoom(host: Ref<HTMLElement | null>) {
       window.addEventListener("pointercancel", onFingerUp)
     }
     fingers.set(e.pointerId, local(e))
-    if (fingers.size !== 2) return
-    // Neither a drag below nor the canvas's own empty-canvas pan starts.
+    if (fingers.size < 2) return
+    // From the second finger on, neither a drag below nor the canvas's own
+    // empty-canvas pan starts; a third finger rides along, unused.
     e.preventDefault()
     e.stopImmediatePropagation()
+    if (fingers.size > 2) return
     for (const id of fingers.keys()) {
       if (id === e.pointerId) continue
       ending.add(id)

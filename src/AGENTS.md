@@ -25,7 +25,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   score preview, its audio opened in the click that asks for it, as iOS
   needs), pan-zoom (wheel, middle or Space drag, one finger on empty
   canvas pans, two fingers pinch about their midpoint; a second finger ends
-  the first finger's drag with a `pointercancel`; `tests/canvas-touch.spec.ts`),
+  the first finger's drag with a `pointercancel`, a third starts nothing,
+  and the pinch rebases on whichever pair remains; `tests/canvas-touch.spec.ts`),
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
   the Studio tools and the ACP client behind the composer).
 - `entities/` — domain stores: editor (selection/artboards, single source of
@@ -62,8 +63,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   WebKit left suspended or interrupted resumes on the next cue) —
   `long-press.ts` — `installLongPress`, the Studio's polyfill for the
   contextmenu iOS never fires: a touch held still 500ms dispatches one at
-  the finger and swallows its release's click; a moving finger, a mouse, a
-  text field and the platform's own menu (Android) are left alone
+  the finger, and when a menu took it (its handler prevented the default)
+  swallows the click its release makes (a cancelled touch makes none, and
+  a press on nothing keeps its click); a moving finger, a mouse, a text
+  field and the platform's own menu (Android) are left alone
   (`tests/long-press.spec.ts`) — `files.ts` —
   `download()` and a stored .zip of text files, the ONE download path for
   the Studio's exports, the workbench and the source panel —

@@ -35,10 +35,11 @@ export function installLongPress(root: HTMLElement | Document = document, hold =
       target: target!,
       timer: setTimeout(() => {
         press = null
-        fired = id
-        target!.dispatchEvent(
-          new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: x, clientY: y }),
-        )
+        const menu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: x, clientY: y })
+        target!.dispatchEvent(menu)
+        // Only a menu that opened (its handler took the event) owns the
+        // release; a long press on nothing keeps its click.
+        if (menu.defaultPrevented) fired = id
       }, hold),
     }
   }
@@ -51,6 +52,8 @@ export function installLongPress(root: HTMLElement | Document = document, hold =
     if (press?.id === ev.pointerId) end()
     if (fired !== ev.pointerId) return
     fired = null
+    // A cancelled touch makes no click: nothing to swallow.
+    if (ev.type !== "pointerup") return
     window.addEventListener("click", swallow, { capture: true, once: true })
     setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 400)
   }
