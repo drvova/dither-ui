@@ -147,8 +147,9 @@ widgets/features; page-specific conventions live here.
   fails until the page says it.
 - Examples (`Examples.vue`, `#examples`, "Every component, live."): a
   section head (the component count from `facts.ts`, "See every section in
-  the docs"), then the bento: `BENTO` (`hub.ts`), twenty live kit
-  components on a 12-column grid row by row: the 3D model (8, two rows
+  the docs"), then the bento: `BENTO` (`hub.ts`), twelve live kit
+  components (the strongest; the docs hold the rest) on a 12-column grid
+  row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
   ember, and "New model" for the next seed) beside the rating and the
   stat card; print screens (the full row, flush: one bone-to-obsidian
@@ -156,21 +157,17 @@ widgets/features; page-specific conventions live here.
   raw, the raw one in linear light so the printed cells average to it,
   clipped at a split a full-size range drags or the arrows step, its
   handle a bone disc; the five screens switched in place); the area chart (8; one seed for every fill, "Roll a seed")
-  and the button (its four fills and five hues); the slider (a dither's
-  settings: cell size with ticks, contrast, each with its value), the pie
-  chart and the avatars; the shader (flush; the kit's seeded sample, mono
+  and the button (its four fills and five hues); the shader (flush; the kit's seeded sample, mono
   blue, a palette ramp or its own colours, "New shader" the next seed) and
   the ferrofluid (flush; blue, ember or grey); the styling card (8, flush,
   `ExportScene.vue`: one snippet rendered live beside its code in the
   picked system through `restyle`, StyleX first; its code alone when the
   card is narrow, a size container) and the slide action ("Slide to
-  deploy", its count); the bar chart and the meta balls; progress, the
-  radar chart and the hold action ("Hold to purge cache", its count);
+  deploy", its count);
   silk and the decrypted text. Each card's art is a `DitherReveal` (the
   8×8 Bayer dissolve, 0.72s, linear): it prints itself once as it comes
   into view, at once under reduced motion. Of the surfaces that move by
-  themselves (`MOVING`: the model, the shader, the fluid, the meta balls,
-  the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen
+  themselves (`MOVING`: the model, the shader, the fluid, the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen
   hovers or keyboard focus is in; else the reader's last choice while any
   of it shows; else the first, in page order, crossing the middle tenth of
   the viewport; else the last that played. The rest hold a still frame.
@@ -179,11 +176,12 @@ widgets/features; page-specific conventions live here.
   card loads as it nears the viewport (one IntersectionObserver, 600px
   ahead; without one, at once); their card art keeps a wrapper so the
   flush rule never stretches the pause chip. The demos speak the kit's
-  blue, the ember for a second voice and grey for a third (avatars
-  `color="blue"`, the silk and meta balls on blue stops; the button's hues
-  are its subject); no chart grid. Two columns under 1024px (the wide
-  cards and the halves span both, the rest pack densely), one under
-  640px. A card is the raised ground (`--surface`, no border, 20px
+  blue, the ember for a second voice and grey for a third (the silk on
+  blue stops; the button's hues are its subject); no chart grid. Under 1024px the bento is a rail the
+  reader swipes (scroll-snapped, a card `min(86%, 440px)` wide with the
+  next one's edge in view, every card the rail's height, the rail running
+  out past the page's gutter), so it takes one screen on a tablet or a
+  phone. A card is the raised ground (`--surface`, no border, 20px
   radius) holding its art over its name, the link into `/docs/<id>` (no
   family label). Interactive art keeps its own controls, so the card
   itself is never a link; on flush art the pause chip comes before the
@@ -195,13 +193,14 @@ widgets/features; page-specific conventions live here.
   card and first section is a section of the family it names).
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), then `AgentStory.vue`, one agent session played as the
-  page scrolls: a stage pinned under the header (`--pin`, at most 30rem)
-  for a run of a notch of scroll (40svh) per step, seven steps
-  (`story.ts`). The stage is one raised ground: left, the screen the
-  agent lays out (the page's ground, no ring or handles) building row by
-  row (the heading and count, the meter, the switch; every part a live
-  kit component), and before it lands a line saying where it lands;
-  right, the ask as a sentence in ink, then `DOES`, what the agent does in
+  page scrolls: a stage pinned under the header (`--pin`, at most 23rem,
+  snug to the screen it builds) for a run of a notch of scroll (32svh)
+  per step, five steps (`story.ts`). The stage is one raised ground in
+  halves, never empty: left, the screen the agent lays out (the page's
+  ground, no ring or handles), its frame and heading there from the first
+  step, filling row by row (the count, the meter, the switch; every part
+  a live kit component); right, the ask as a sentence in ink from the
+  first step, then `DOES`, what the agent does in
   words, each line under the ember check as it happens: reads every
   component and its props (`get_registry`), lays out a Deploys screen
   (`add_screen`), writes it as a Vue file (`get_code`), renders it as an
@@ -216,14 +215,20 @@ widgets/features; page-specific conventions live here.
   the whole session as a caption; the stage is decoration. A screen is
   made ONLY of registry components (`add_screen` lays them out), so every
   line is true.
-- Inside (`#inside`, "Three parts, one engine."): three columns (one
-  under 900px), each under its kit glyph in the ember with a paragraph and
-  its link: the kit, the Studio, the agent bridge (with the harnesses
+- Inside (`#inside`, "Three parts, one engine."): three cards (the
+  raised ground, 20px radius, like the bento's; one column under 900px),
+  each headed by a tone strip flush to its top (`DitherGradient` from its
+  ink to `STOCK`, 120px, 72px on a phone, printing in through
+  `DitherReveal`) in its own ink and printer's screen (`INSIDE`: blue in
+  Bayer cells, the ember in lines, bone in a halftone dot), then its kit
+  glyph in the ember beside its title, two lines and its link: the kit,
+  the Studio, the agent bridge (with the harnesses
   `bridge/dither-bridge.mjs` knows, its `HARNESSES` ids and names in
   order, each under its own mark; keep in sync, `tests/marks.spec.ts`
   checks it). Under them the five big families (`DOCS_FAMILIES`): five
-  columns (three under 1024px, two under 640px), each the family's name
-  and size as the link to its first section, and its line.
+  columns (three under 1024px, two under 640px), each the family's size
+  as a big figure over its name, both the link to its first section, and
+  its line.
 - The brand's moment (`brand.ts` + `BrandGather.vue`, decorative): the
   brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
   core, which the header draws too), three clear columns, then
@@ -245,9 +250,6 @@ widgets/features; page-specific conventions live here.
   - `rain` (the plate after the bento): the cells hang in one dotted line
     on the scene's first row and fall column by column, left to right,
     each column landing from the bottom up.
-  - `sort` (the plate after the ask): a scrambled cloud collapses into the
-    lockup's seven rows, top row first, then each row sorts sideways into
-    place in order across (a refinement).
   - `converge` (the plate before the install): the seven rows slide in
     whole, even rows from the field's left edge and odd rows from its
     right, top row first, and interlock.
@@ -271,24 +273,25 @@ widgets/features; page-specific conventions live here.
   when home (at once when it does not move), so a parent keeps one moving
   layer at a time; `tests/brand-replay.spec.ts` holds the replay.
   `tests/landing-facts.spec.ts` holds the mark's cells to the diamond, the
-  five places to five different moves, each move's opening (rain's one
-  line, converge's rows at the edges, sort's scramble, strike's stack at
-  the carriage), and every place's moment: home inside five seconds, every
+  four places to four different moves, each move's opening (rain's one
+  line, converge's rows at the edges, strike's stack at the carriage), and every place's moment: home inside five seconds, every
   path in time order, on its grid, inside the field, starting in its
   scene's rows; the gather's burst inside its rows and each wordmark cell
   on its host's squares until it.
-- The plates (decorative): a series of print sheets between the sections,
-  after the bento, after the ask and before the install, each the brand
-  small in a wide field. ONE table, `PLATES` in `plate.ts`, sets each
-  plate's tone at the top edge, its clear band and its tone at the foot,
-  where the mark's centre stands in the band (left of 0.7, the wordmark
-  reading on to its right) and its move; `sceneOf` gives its scene (loose in
+- The plates (decorative): two print sheets between the sections, after
+  the bento and before the install, each the brand small in a wide field
+  and each unlike the other (the audit's call: alike, they read as
+  repeated dividers). ONE table, `PLATES` in `plate.ts`, sets each plate's
+  tone at the top edge, its clear band and its tone at the foot, where the
+  mark's centre stands in the band (left of 0.7, the wordmark reading on
+  to its right), its move, its proportion (`aspect`: 3.4, then a slimmer
+  4.6) and its printer's screen (`screen`: Bayer, then a halftone dot); `sceneOf` gives its scene (loose in
   the band and the tone's thin edges, thrown anywhere on the sheet,
-  seeded by where the mark stands). `Plate.vue` prints a row: a 2.35:1
-  sheet on the page's width, square cornered and flat like the hero's
+  seeded by where the mark stands). `Plate.vue` prints a row: a sheet of
+  its proportion (at least 112px tall) on the page's width, square cornered and flat like the hero's
   print, on `STOCK` (the `--surface` mix as a colour the kit prints with,
   so its open cells are the plate, never a tint), two `DitherGradient`s in
-  the bone ink through the Bayer screen showing only the thin ends of
+  the bone ink through its `DitherScreen` showing only the thin ends of
   their ramps, and the brand's moment in the band, pulled in from the
   right edge (16px clear) where the plate is narrow, while the tone prints
   in through `DitherReveal` (0.72s, linear, the lights coming on).
@@ -322,7 +325,7 @@ widgets/features; page-specific conventions live here.
   (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
   the print", "Pause the model", "Pause the shader", "Pause the fluid",
-  "Pause the meta balls", "Pause the silk"), `aria-pressed` while the
+  "Pause the silk"), `aria-pressed` while the
   surface is still, wired to its `paused` (the model's turn is its
   `auto-rotate`): a disc of the page's ink with its glyph in the ground.
   In the bento a chip shows whether its surface plays: a pause is the
@@ -725,11 +728,11 @@ widgets/features; page-specific conventions live here.
   or arrow link in the rendered copy, every svg decorative or labelled,
   "Watch the film" (the dialog opens with focus in it, the film plays,
   Escape closes it, focus returns to the key, the video leaves the DOM),
-  the bento's rows whole at 1440, 800 and 390px with every card drawn and
+  the bento's rows whole at 1440px and its rail swiping at 800 and 390px
+  (no page scroll sideways) with every card drawn and
   its controls working (the model's ramps and "New model", "Roll a seed",
   the button's fills and hues, "New shader" and its outputs, the fluid's
-  palettes, the styling systems, the slide and hold counts, the sliders'
-  values, the rating), the lazy cards loading as they near, each pause
+  palettes, the styling systems, the slide count, the rating), the lazy cards loading as they near, each pause
   chip stopping its surface, at most one bento surface playing at every
   scroll stop (a mouse hover, keyboard focus and a chip tap each taking
   it as set above), each card's art printing once as it nears,

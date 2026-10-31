@@ -126,12 +126,12 @@ keys a quiet line names what the kit works with, each tool under its own mark.
 Everything else on the page is the kit too, on plain filled grounds with no
 tags or borders:
 
-- a bento of live components, each leading into its docs section: a 3D model
-  you re-roll and recolour, a rating, a stat card, an area chart you reseed,
-  the button's fills and hues, sliders, a pie, avatars, a GLSL shader, a
-  ferrofluid, one snippet written as StyleX, CSS Modules, CSS or Tailwind
-  beside the card it renders, a slide action, a bar chart, meta balls,
-  progress, a radar, a hold action, silk and decrypted text;
+- a bento of twelve live components, each leading into its docs section (a
+  rail you swipe on a tablet or a phone): a 3D model you re-roll and recolour,
+  a rating, a stat card, print screens, an area chart you reseed, the button's
+  fills and hues, a GLSL shader, a ferrofluid, one snippet written as StyleX,
+  CSS Modules, CSS or Tailwind beside the card it renders, a slide action,
+  silk and decrypted text;
 - one agent session, played as you scroll: the ask, what the agent does said
   in plain words, and the screen it lays out building beside it row by row;
 - what's inside: the kit, the Studio and the agent bridge, each harness under

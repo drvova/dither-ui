@@ -9,7 +9,16 @@
 // kit's light trails, the line-screen wordmark printed over them. Michroma for display, mono for the rest; everything
 // that moves is the kit.
 import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue"
-import { DitherClipboard, DitherIcon } from "@dither-kit"
+import {
+  DitherClipboard,
+  DitherGradient,
+  DitherIcon,
+  DitherReveal,
+  DitherScreen,
+  type IconName,
+  type PixelColor,
+  type ScreenKind,
+} from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import "@/shared/fonts/display.css"
@@ -25,7 +34,7 @@ import Plate from "./Plate.vue"
 import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
 import BrandMark from "./BrandMark.vue"
-import { PLATES } from "./plate"
+import { PLATES, STOCK } from "./plate"
 import { ROAD, ROAD_RAMP, ROAD_SHADER } from "./road"
 import Showcase from "./Showcase.vue"
 
@@ -59,28 +68,43 @@ const HARNESSES = [
   { id: "auggie", name: "Auggie" },
 ] as const
 
-// What's inside: the kit, the Studio and the bridge, each a paragraph and
-// the link that leads on.
-const INSIDE = [
+// What's inside: the kit, the Studio and the bridge, each a card headed by a
+// tone strip the kit prints in its own ink through its own printer's screen
+// (blue in Bayer cells, the ember in lines, bone in a halftone dot), then
+// its glyph and title, two lines and the link that leads on.
+const INSIDE: {
+  title: string
+  icon: IconName
+  ink: PixelColor
+  screen: ScreenKind
+  text: string
+  link: { label: string; href: string }
+}[] = [
   {
     title: "The kit",
     icon: "Grid",
-    text: "Plain source you own: an engine of rasters, palettes and one seekable clock under every component, authored in Tailwind with a StyleX twin generated from it. Charts, controls, text, backgrounds, 3D and GLSL all dither through the same Bayer cells from one seed, pause offscreen and honour reduced motion. A Svelte 5 port ships beside it.",
+    ink: "blue",
+    screen: "bayer",
+    text: "Plain source you own: one engine of rasters and a seekable clock under every component.",
     link: { label: "Read the quick start", href: routePath("/docs/getting-started") },
   },
   {
     title: "The Studio",
     icon: "Layout",
-    text: "An infinite canvas for screens made of kit parts. Lay out charts, controls and whole screens, theme them from the palette, and export each frame as a Vue file, a PNG or an MP4. A reel of frames cuts into a film with its own score.",
+    ink: "orange",
+    screen: "line",
+    text: "An infinite canvas for screens of kit parts, each frame exported as Vue, a PNG or an MP4.",
     link: { label: "Open the studio", href: routePath("/studio") },
   },
   {
     title: "The agent bridge",
     icon: "Bot",
-    text: "A SKILL.md teaches your coding agent to compose Studio documents. The bridge, one Node file, starts the harness you already use as your own signed-in process, so the Studio never asks for a key.",
+    ink: "#e4e1d8",
+    screen: "dot",
+    text: "A SKILL.md teaches your agent the Studio; one Node file starts the harness you already use.",
     link: { label: "Read the agent skill", href: assetPath("/agent/SKILL.md") },
   },
-] as const
+]
 
 // The footer's ground (`road.ts`), loaded with it. It dances by itself for
 // `ROAD.dance` as the road comes into view, once the footer's brand is home,
@@ -230,8 +254,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           <AgentStory />
         </section>
 
-        <Plate :plate="PLATES.afterAsk" />
-
         <!-- What's inside: the kit, the Studio, the bridge; then the docs'
              big families, each with its size and a line. -->
         <section id="inside" aria-labelledby="inside-h" class="sec">
@@ -246,6 +268,11 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           </div>
           <ul class="inside">
             <li v-for="c in INSIDE" :key="c.title">
+              <DitherScreen :screen="c.screen">
+                <DitherReveal class="inside-art" :duration="0.72" easing="linear" aria-hidden="true">
+                  <DitherGradient :from="c.ink" :to="STOCK" direction="down" :cell="4" />
+                </DitherReveal>
+              </DitherScreen>
               <h3 class="inside-h"><DitherIcon :name="c.icon" :size="15" :stroke-width="1.5" />{{ c.title }}</h3>
               <p class="inside-p">{{ c.text }}</p>
               <ul v-if="c.title === 'The agent bridge'" class="marks" aria-label="Harnesses the bridge starts">
@@ -259,7 +286,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             <ul class="families-list">
               <li v-for="f in DOCS_FAMILIES" :key="f.label">
                 <a :href="routePath(`/docs/${f.first}`)" class="family-t"
-                  >{{ f.label }}<span class="family-n">{{ f.count }}</span></a
+                  ><span class="family-n">{{ f.count }}</span
+                  ><span class="family-l">{{ f.label }}</span></a
                 >
                 <p class="family-p">{{ f.note }}</p>
               </li>
@@ -420,11 +448,12 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   gap: 28px;
 }
 
-/* What's inside: three columns. */
+/* What's inside: three cards, the raised ground like the bento's, each a
+   tone strip over its title, two lines and its link. */
 .inside {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 32px;
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -435,6 +464,23 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
+  overflow: hidden;
+  padding: 0 24px 24px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+/* The strip: flush to the card's top and sides. */
+.inside-art {
+  position: relative;
+  align-self: stretch;
+  height: 120px;
+  margin: 0 -24px 8px;
+}
+
+.inside-art > :first-child {
+  position: absolute;
+  inset: 0;
 }
 
 .inside-h {
@@ -442,7 +488,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--ink);
 }
@@ -477,8 +523,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   gap: 6px;
 }
 
-/* The families: five columns, each the name and its size (the docs
-   link), a line. */
+/* The families: five columns, each its size as a big figure over its
+   name (the docs link), a line. */
 .families {
   display: flex;
   flex-direction: column;
@@ -510,10 +556,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 
 .family-t {
   display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  min-height: 24px;
-  font-size: 13px;
+  flex-direction: column;
+  gap: 4px;
   color: var(--ink);
   transition: color 150ms var(--ease-settle);
 }
@@ -523,9 +567,14 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 }
 
 .family-n {
-  font-size: 11px;
-  color: var(--ink-3);
+  font-size: 2.4rem;
+  font-weight: 500;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+.family-l {
+  font-size: 13px;
 }
 
 .family-p {
@@ -771,7 +820,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 @media (max-width: 899px) {
   .inside {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: 28px;
   }
   .foot-in {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -788,6 +836,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   }
   .families-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .inside-art {
+    height: 72px;
   }
   .foot-in {
     grid-template-columns: repeat(2, minmax(0, 1fr));

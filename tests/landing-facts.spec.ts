@@ -180,10 +180,6 @@ describe("landing facts", () => {
           expect(LOCKUP[i].y % 2 === 0 ? p.x < slots[i].x : p.x > slots[i].x).toBe(true)
         })
       }
-      if (scene.move === "sort") {
-        // A scrambled cloud: hardly a cell starts at home.
-        expect(starts.filter((_, i) => home(i)).length).toBeLessThan(starts.length / 10)
-      }
       if (scene.move === "strike") {
         // The glyphs stacked at the carriage (within the mark's seven
         // columns), standing on the scene's first row.

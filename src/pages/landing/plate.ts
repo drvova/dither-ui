@@ -2,7 +2,7 @@
 // small in a wide field. One table sets the series; `Plate.vue` prints a row
 // of it. Each plate is tone thinning from its top edge to a clear band and
 // rising from it to the foot, the brand (`brand.ts`) standing in the band.
-import type { PixelColor } from "@dither-kit"
+import type { PixelColor, ScreenKind } from "@dither-kit"
 import type { Move, Scene } from "./brand"
 
 /** The plates' stock: the raised ground (`--surface`) as a colour the kit
@@ -29,15 +29,35 @@ export type Plate = {
   mark: readonly [number, number]
   /** How the brand forms on this plate, its own among the page's. */
   move: Move
+  /** The sheet's width over its height: each plate its own proportion. */
+  aspect: number
+  /** The printer's screen its tone prints through, each plate its own. */
+  screen: ScreenKind
 }
 
-/** The series, in page order: after the bento a high band and the brand at
- * the left; after the agent's session a low, narrow band and the brand past
- * the middle; before the install the band at the middle. */
+/** The series, in page order, two plates unlike each other: after the bento
+ * a sheet of 3.4 with a high band, the brand at the left and the tone in the
+ * kit's Bayer cells; before the install a slimmer sheet of 4.6 with the band
+ * at the middle, the brand right of centre and the tone in a halftone dot. */
 export const PLATES = {
-  afterExamples: { sky: 0.18, band: [0.24, 0.7], ground: 0.34, mark: [0.26, 0.47], move: "rain" },
-  afterAsk: { sky: 0.32, band: [0.5, 0.66], ground: 0.2, mark: [0.56, 0.58], move: "sort" },
-  beforeInstall: { sky: 0.25, band: [0.38, 0.62], ground: 0.3, mark: [0.68, 0.5], move: "converge" },
+  afterExamples: {
+    sky: 0.18,
+    band: [0.24, 0.7],
+    ground: 0.34,
+    mark: [0.26, 0.47],
+    move: "rain",
+    aspect: 3.4,
+    screen: "bayer",
+  },
+  beforeInstall: {
+    sky: 0.25,
+    band: [0.34, 0.66],
+    ground: 0.3,
+    mark: [0.66, 0.5],
+    move: "converge",
+    aspect: 4.6,
+    screen: "dot",
+  },
 } as const satisfies Record<string, Plate>
 
 /** A plate's scene for the brand's moment, in a plate `height` px tall: its
