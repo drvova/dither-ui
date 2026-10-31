@@ -351,12 +351,21 @@ widgets/features; page-specific conventions live here.
   wordmark is printed over its foot (`.foot-mark`, absolute): the trails
   sweep down behind its end and the grain shows between its rows, so the
   galaxy fills the gap between the links and the name and merges into
-  it; the diamond stands clear above the wordmark at every width. Only the heads
-  move, and only while the reader moves the page (a scroll, a pointer
-  across the footer), settling 240ms after: motion the reader drives, so
-  no pause chip (the user's call); they hold while the footer's brand
-  forms (`moving` holds, `settled` frees); under reduced motion one frame.
-  Decorative (`aria-hidden`); no rule, no boxed icons.
+  it; the diamond stands clear above the wordmark at every width. Around
+  the diamond, its heart, a small spiral galaxy turns (two arms of the
+  grain wound out of a tilted disc, bone, then the ember, then blue,
+  sized by the road's height so a phone's is as full; it fades before the
+  road's top, leaving the copyright line its ground), and the ribbon
+  dances: its threads weave over each other and the bundle sways on
+  either side of the diamond, which it always runs through. It moves by
+  itself for `ROAD.dance` (4.5s) each time the road comes into view, once
+  the footer's brand is home (a brand that starts forming mid-dance takes
+  the stage and the dance comes back after), then only while the reader
+  moves the page (a scroll, a pointer across the footer), settling 240ms
+  after: under five seconds on its own, so no pause chip (the user's
+  call); it holds while the brand forms (`moving` holds, `settled`
+  frees); under reduced motion one frame. Decorative (`aria-hidden`); no
+  rule, no boxed icons.
 - Footer (on the page width, no rule above it): the brand (the brand's
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
   the strike, its carriage on the clear band above it, the footer's top

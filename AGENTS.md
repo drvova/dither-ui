@@ -144,9 +144,11 @@ Default section order:
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
   families), a centred install closed by the kit's spec sheet, and the
-  footer on the kit's own art (a star grain, and dithered light trails
-  sweeping under the brand's diamond and behind the name, the galaxy
-  filling the gap between the links and the name): the brand (struck in
+  footer on the kit's own art (a star grain, a small spiral galaxy turning
+  around the brand's diamond, and dithered light trails weaving through it
+  and sweeping behind the name, the galaxy filling the gap between the
+  links and the name; it dances by itself for under five seconds as it
+  comes into view, then only while the reader moves the page): the brand (struck in
   as it nears, typewriter-wise) beside link columns, the copyright line,
   and the line-screen wordmark printed over the road's foot. It keeps the
   user's slop bans as lifted for it (User Preferences). No film

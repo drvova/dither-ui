@@ -138,9 +138,11 @@ tags or borders:
   its own mark, and the docs family by family;
 - the install, under the marks of npm, pnpm and Bun, with a key that copies a
   prompt for your coding agent;
-- the footer: link columns on the kit's own art, a galaxy of grain and dithered
-  light trails that sweep under the brand's diamond and behind the line-screen
-  wordmark, moving only while you scroll or move the pointer.
+- the footer: link columns on the kit's own art, a field of grain, a small
+  spiral galaxy turning around the brand's diamond, and dithered light trails
+  that weave through it and sweep behind the line-screen wordmark. It dances
+  for a few seconds as it comes into view, then moves while you scroll or move
+  the pointer.
 
 ### Docs
 

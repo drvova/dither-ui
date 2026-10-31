@@ -82,22 +82,61 @@ const INSIDE = [
   },
 ] as const
 
-// The footer's ground (`road.ts`), loaded with it. Its trails run only while
-// the reader moves the page (a scroll, a pointer across the footer) and
-// settle as they stop: motion the reader drives, so it carries no pause.
-// They hold while the footer's brand forms (one moving layer at a time).
+// The footer's ground (`road.ts`), loaded with it. It dances by itself for
+// `ROAD.dance` as the road comes into view, once the footer's brand is home,
+// then moves only while the reader moves the page (a scroll, a pointer
+// across the footer) and settles as they stop: under five seconds on its
+// own, so it carries no pause. It holds while the brand forms (one moving
+// layer at a time).
 const DitherShader = defineAsyncComponent(() => import("@dither-kit/tailwind/DitherShader.vue"))
 const footStill = ref(true)
 const driven = ref(false)
+const road = ref<HTMLElement | null>(null)
+let until = 0
 let settle = 0
-function drive() {
+/** Keep the art moving for at least `ms` more. */
+function drive(ms = 240) {
+  until = Math.max(until, performance.now() + ms)
   driven.value = true
   clearTimeout(settle)
-  settle = window.setTimeout(() => (driven.value = false), 240)
+  settle = window.setTimeout(() => (driven.value = false), until - performance.now())
 }
-onMounted(() => addEventListener("scroll", drive, { passive: true }))
+const scrolled = () => drive()
+// The dance, once per time the road comes into view, waiting for the brand.
+let inView = false
+let danced = false
+function dance() {
+  if (!inView || danced || !footStill.value) return
+  danced = true
+  drive(ROAD.dance)
+}
+// A brand that starts forming mid-dance takes the stage; the dance comes
+// back once it is home.
+function forming() {
+  footStill.value = false
+  if (until > performance.now()) danced = false
+}
+function homed() {
+  footStill.value = true
+  dance()
+}
+let seen: IntersectionObserver | null = null
+onMounted(() => {
+  addEventListener("scroll", scrolled, { passive: true })
+  if (typeof IntersectionObserver === "undefined" || !road.value) return
+  seen = new IntersectionObserver(
+    ([entry]) => {
+      inView = !!entry?.isIntersecting
+      if (inView) dance()
+      else danced = false
+    },
+    { threshold: 0.5 },
+  )
+  seen.observe(road.value)
+})
 onBeforeUnmount(() => {
-  removeEventListener("scroll", drive)
+  removeEventListener("scroll", scrolled)
+  seen?.disconnect()
   clearTimeout(settle)
 })
 
@@ -268,7 +307,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     <!-- Footer: on the kit's art, the brand and a line beside three link
          columns, the copyright line and the road the trails sweep across,
          the line-screen wordmark printed over its foot. -->
-    <footer class="foot" @pointermove="drive">
+    <footer class="foot" @pointermove="drive()">
       <div class="foot-art">
         <div aria-hidden="true" class="foot-ground">
           <DitherShader
@@ -285,12 +324,10 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
         <div class="foot-in">
           <div class="foot-brand">
             <a :href="routePath('/')" class="foot-name"
-              ><BrandGather
-                class="foot-lockup"
-                :scene="STAGINGS.foot"
-                @moving="footStill = false"
-                @settled="footStill = true"
-              /><span class="sr-only">dither-ui</span></a
+              ><BrandGather class="foot-lockup" :scene="STAGINGS.foot" @moving="forming" @settled="homed" /><span
+                class="sr-only"
+                >dither-ui</span
+              ></a
             >
             <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
             <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
@@ -312,7 +349,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           <span>v{{ version }}</span>
           <span>MIT license</span>
         </p>
-        <div class="foot-road" :style="{ '--road': ROAD.aspect, '--road-narrow': ROAD.narrowAspect }">
+        <div ref="road" class="foot-road" :style="{ '--road': ROAD.aspect, '--road-narrow': ROAD.narrowAspect }">
           <BrandMark
             :size="84"
             class="road-mark"
