@@ -18,8 +18,8 @@ const film = ref(false)
 
 // The statement signs off with the brand (`STAGINGS.hero`), gathering out
 // of the open field of the page's column under it (some of its cells from
-// under the print) as the page opens. One moving layer at a time: the print
-// holds its frame until the brand is home.
+// under the print) as the page opens, and again under a resting mouse. One
+// moving layer at a time: the print holds its frame until the brand is home.
 const gathered = ref(false)
 
 // The print's inks: the kit's blue, the ember and the page's own bone ink.
@@ -60,7 +60,13 @@ const WORKS: { id: MarkId; name: string }[] = [
             <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="13" />{{ t.name }}</li>
           </ul>
         </div>
-        <BrandGather class="hero-brand" :scene="STAGINGS.hero" @settled="gathered = true" />
+        <BrandGather
+          class="hero-brand"
+          :scene="STAGINGS.hero"
+          replay
+          @moving="gathered = false"
+          @settled="gathered = true"
+        />
       </div>
       <div class="print-col">
         <div class="print">
