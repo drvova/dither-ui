@@ -1,12 +1,12 @@
 <script setup lang="ts">
-// The landing, printed in the dark, always: one bone ink on obsidian
-// inside a hairline frame, the kit's art the only colour on it. The hero (the statement beside the
+// The landing, printed in the dark, always: one bone ink on obsidian, the
+// kit's art the only colour on it. The hero (the statement beside the
 // stage, seated on a poster the kit prints), then sections under a title
 // with a lead beside it: a bento of live kit components, the screen an
 // agent's ask makes, what's inside (the kit, the Studio, the bridge; the
 // docs' families) and the install, with a plate of the brand small in a
 // wide field between them, and a footer of the brand and link columns on the
-// kit's light trails, over the line-screen wordmark. Michroma for display, mono for the rest; everything
+// kit's light trails, the line-screen wordmark printed over them. Michroma for display, mono for the rest; everything
 // that moves is the kit.
 import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
@@ -82,22 +82,61 @@ const INSIDE = [
   },
 ] as const
 
-// The footer's ground (`road.ts`), loaded with it. Its trails run only while
-// the reader moves the page (a scroll, a pointer across the footer) and
-// settle as they stop: motion the reader drives, so it carries no pause.
-// They hold while the footer's brand forms (one moving layer at a time).
+// The footer's ground (`road.ts`), loaded with it. It dances by itself for
+// `ROAD.dance` as the road comes into view, once the footer's brand is home,
+// then moves only while the reader moves the page (a scroll, a pointer
+// across the footer) and settles as they stop: under five seconds on its
+// own, so it carries no pause. It holds while the brand forms (one moving
+// layer at a time).
 const DitherShader = defineAsyncComponent(() => import("@dither-kit/tailwind/DitherShader.vue"))
 const footStill = ref(true)
 const driven = ref(false)
+const road = ref<HTMLElement | null>(null)
+let until = 0
 let settle = 0
-function drive() {
+/** Keep the art moving for at least `ms` more. */
+function drive(ms = 240) {
+  until = Math.max(until, performance.now() + ms)
   driven.value = true
   clearTimeout(settle)
-  settle = window.setTimeout(() => (driven.value = false), 240)
+  settle = window.setTimeout(() => (driven.value = false), until - performance.now())
 }
-onMounted(() => addEventListener("scroll", drive, { passive: true }))
+const scrolled = () => drive()
+// The dance, once per time the road comes into view, waiting for the brand.
+let inView = false
+let danced = false
+function dance() {
+  if (!inView || danced || !footStill.value) return
+  danced = true
+  drive(ROAD.dance)
+}
+// A brand that starts forming mid-dance takes the stage; the dance comes
+// back once it is home.
+function forming() {
+  footStill.value = false
+  if (until > performance.now()) danced = false
+}
+function homed() {
+  footStill.value = true
+  dance()
+}
+let seen: IntersectionObserver | null = null
+onMounted(() => {
+  addEventListener("scroll", scrolled, { passive: true })
+  if (typeof IntersectionObserver === "undefined" || !road.value) return
+  seen = new IntersectionObserver(
+    ([entry]) => {
+      inView = !!entry?.isIntersecting
+      if (inView) dance()
+      else danced = false
+    },
+    { threshold: 0.5 },
+  )
+  seen.observe(road.value)
+})
 onBeforeUnmount(() => {
-  removeEventListener("scroll", drive)
+  removeEventListener("scroll", scrolled)
+  seen?.disconnect()
   clearTimeout(settle)
 })
 
@@ -266,9 +305,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     </main>
 
     <!-- Footer: on the kit's art, the brand and a line beside three link
-         columns, the copyright line and the road the trails sweep across;
-         then the line-screen wordmark. -->
-    <footer class="foot" @pointermove="drive">
+         columns, the copyright line and the road the trails sweep across,
+         the line-screen wordmark printed over its foot. -->
+    <footer class="foot" @pointermove="drive()">
       <div class="foot-art">
         <div aria-hidden="true" class="foot-ground">
           <DitherShader
@@ -285,12 +324,10 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
         <div class="foot-in">
           <div class="foot-brand">
             <a :href="routePath('/')" class="foot-name"
-              ><BrandGather
-                class="foot-lockup"
-                :scene="STAGINGS.foot"
-                @moving="footStill = false"
-                @settled="footStill = true"
-              /><span class="sr-only">dither-ui</span></a
+              ><BrandGather class="foot-lockup" :scene="STAGINGS.foot" @moving="forming" @settled="homed" /><span
+                class="sr-only"
+                >dither-ui</span
+              ></a
             >
             <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
             <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
@@ -312,16 +349,16 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           <span>v{{ version }}</span>
           <span>MIT license</span>
         </p>
-        <div class="foot-road" :style="{ '--road': ROAD.aspect, '--road-narrow': ROAD.narrowAspect }">
+        <div ref="road" class="foot-road" :style="{ '--road': ROAD.aspect, '--road-narrow': ROAD.narrowAspect }">
           <BrandMark
             :size="84"
             class="road-mark"
             :style="{ left: `${ROAD.mark[0] * 100}%`, bottom: `${ROAD.mark[1] * 100}%` }"
           />
+          <div aria-hidden="true" class="foot-mark">
+            <LineWordmark />
+          </div>
         </div>
-      </div>
-      <div aria-hidden="true" class="foot-mark">
-        <LineWordmark />
       </div>
     </footer>
   </div>
@@ -578,8 +615,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   overflow: hidden;
 }
 
-/* The art under the footer's content, the wordmark aside: the shader fills
-   it, behind everything in it. A container, so the road tells the narrow
+/* The art under the whole footer: the shader fills it, behind everything
+   in it, the wordmark included. A container, so the road tells the narrow
    layout by the same width the shader does. */
 .foot-art {
   position: relative;
@@ -593,7 +630,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 }
 
 /* The road: the footer's width, its height a share of it (`ROAD.aspect`),
-   the diamond standing where the shader runs the trails through. */
+   from the copyright line to the page's foot; the diamond standing where
+   the shader runs the trails through, the wordmark printed over its foot
+   with the trails sweeping behind it. */
 .foot-road {
   position: relative;
   width: 100%;
@@ -712,11 +751,13 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   color: var(--ink-3);
 }
 
-/* The wordmark: the page's full width, on its edges. */
+/* The wordmark: the page's full width, on its edges, at the road's foot. */
 .foot-mark {
-  width: 100%;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
   max-width: var(--page);
-  margin: 40px auto 0;
+  margin-inline: auto;
   padding: 0 1.5rem 40px;
 }
 
@@ -760,7 +801,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     padding-inline: 16px;
   }
   .foot-mark {
-    width: 100%;
     padding-inline: 16px;
   }
 }

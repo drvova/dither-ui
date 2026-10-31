@@ -118,8 +118,8 @@ dark under `.dark`), from CSS or with `applyTheme()` from JS.
 
 ### Landing
 
-The page is printed in the dark, always: one bone ink on obsidian inside a
-hairline frame, the kit's art its only colour. The hero: the statement and the
+The page is printed in the dark, always: one bone ink on obsidian, the kit's
+art its only colour. The hero: the statement and the
 keys beside a live print the kit makes, the palette as tone with the kit's
 diamond knocked out of it. "Watch the film" opens the trailer, and under the
 keys a quiet line names what the kit works with, each tool under its own mark.
@@ -138,7 +138,11 @@ tags or borders:
   its own mark, and the docs family by family;
 - the install, under the marks of npm, pnpm and Bun, with a key that copies a
   prompt for your coding agent;
-- the footer: link columns over the line-screen wordmark.
+- the footer: link columns on the kit's own art, a field of grain, a small
+  spiral galaxy turning around the brand's diamond, and dithered light trails
+  that weave through it and sweep behind the line-screen wordmark. It dances
+  for a few seconds as it comes into view, then moves while you scroll or move
+  the pointer.
 
 ### Docs
 

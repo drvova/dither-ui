@@ -11,7 +11,7 @@ widgets/features; page-specific conventions live here.
 
 - Direction (the user's picks): the page is PRINTED in the dark, ALWAYS,
   whatever theme the docs or the Studio saved: one bone ink on obsidian
-  with a fine grain inside a hairline frame,
+  with a fine grain, no frame or side lines (the user's call),
   and colour only in the kit's own art, which keeps its Bayer screen. It
   wears a reference print site's TASTE, never its devices (the user's
   call: it must not read as a copy; see root `AGENTS.md`). The dither and
@@ -24,9 +24,8 @@ widgets/features; page-specific conventions live here.
   columns, a centred install, link columns over a giant wordmark. Never a
   reference's hero, art, devices, assets, marks, names or words: filled
   with the kit and our own copy. The user's slop bans (root `AGENTS.md`)
-  hold here as lifted for the print: the hairline frame is the page's
-  only rule, and the kit's art (the poster among it) may print more than
-  two inks. Otherwise: no tags,
+  hold here as lifted for the print: the kit's art (the poster among it)
+  may print more than two inks. Otherwise: no rules or hairlines, no tags,
   no italic or slanted type, no negative tracking, no over-detailed UI, no
   other dividers, two inks (`--ink`, `--ink-3`) on two grounds (the obsidian,
   `--surface`) with no alpha tints, no bordered containers, no diagrams,
@@ -58,9 +57,7 @@ widgets/features; page-specific conventions live here.
   tokens (`--ink`, `--ink-3`), `--surface` (the one raised ground, 7% of
   the ink mixed into the obsidian) and `--signal` (the dark theme's ember,
   8.6:1 on the obsidian); the grain (a 96px PNG tile of single cells a
-  tone under and over the obsidian, never a grid); the frame (`--frame`,
-  a fixed hairline down each side of the page's column from 900px, above
-  the page, never taking a pointer); the section head (`.sec-head`: the
+  tone under and over the obsidian, never a grid); the section head (`.sec-head`: the
   `.section-title` left, in the display face (Michroma 400,
   `clamp(1.6rem, 3.4vw, 2.75rem)`) cast in `.chrome-type`; `.sec-side`
   right, on its baseline, a `.sec-lede` and a `.more-link`; stacked under
@@ -97,7 +94,7 @@ widgets/features; page-specific conventions live here.
   slides 1.5 cells a second inside the mark) as a portrait sheet (4:5, at
   most 30rem wide) set on the obsidian at the column's right edge with
   breathing room above and below, square cornered and flat: never a
-  panel run to the frame or under the header (that is the reference's
+  panel run to the page's edge or under the header (that is the reference's
   hero). Its pause ("Pause the print") sits on its top right corner.
   Under it the print stands over its own floor (`.print-floor`, 40px,
   out of the flow): the same poster at the same moment, turned over and
@@ -334,8 +331,8 @@ widgets/features; page-specific conventions live here.
   chip, since a tap also focuses and would point at the card and then
   toggle what it just started. Chips stay under reduced motion, where
   every surface paints one frame and holds it.
-- Footer ground (`road.ts`): the kit's art under the whole footer but the
-  wordmark (`.foot-art`), one `DitherShader` (loaded with the footer, cell
+- Footer ground (`road.ts`): the kit's art under the whole footer, the
+  wordmark included (`.foot-art`), one `DitherShader` (loaded with the footer, cell
   `ROAD.cell` CSS px at dpr 1, so the print reads the same on every screen
   and its width in cells is the art's CSS width) whose GLSL `road.ts`
   writes from `ROAD`: a star grain, rare
@@ -348,13 +345,27 @@ widgets/features; page-specific conventions live here.
   it. Luminance picks the ink through `ROAD_RAMP` (the page's ground, then
   the print's `INKS`), so the trails burn bone at their heads and core and
   cool through the ember to blue. The art dissolves at its edges into the
-  page (in from the footer's top, out toward the wordmark, the trails'
-  tail out of the dark at the left), never showing a box. Only the heads
-  move, and only while the reader moves the page (a scroll, a pointer
-  across the footer), settling 240ms after: motion the reader drives, so
-  no pause chip (the user's call); they hold while the footer's brand
-  forms (`moving` holds, `settled` frees); under reduced motion one frame.
-  Decorative (`aria-hidden`); no rule, no boxed icons.
+  page (in from the footer's top, out at the page's foot, the trails'
+  tail out of the dark at the left), never showing a box. The road runs
+  from the copyright line to the page's foot and the line-screen
+  wordmark is printed over its foot (`.foot-mark`, absolute): the trails
+  sweep down behind its end and the grain shows between its rows, so the
+  galaxy fills the gap between the links and the name and merges into
+  it; the diamond stands clear above the wordmark at every width. Around
+  the diamond, its heart, a small spiral galaxy turns (two arms of the
+  grain wound out of a tilted disc, bone, then the ember, then blue,
+  sized by the road's height so a phone's is as full; it fades before the
+  road's top, leaving the copyright line its ground), and the ribbon
+  dances: its threads weave over each other and the bundle sways on
+  either side of the diamond, which it always runs through. It moves by
+  itself for `ROAD.dance` (4.5s) each time the road comes into view, once
+  the footer's brand is home (a brand that starts forming mid-dance takes
+  the stage and the dance comes back after), then only while the reader
+  moves the page (a scroll, a pointer across the footer), settling 240ms
+  after: under five seconds on its own, so no pause chip (the user's
+  call); it holds while the brand forms (`moving` holds, `settled`
+  frees); under reduced motion one frame. Decorative (`aria-hidden`); no
+  rule, no boxed icons.
 - Footer (on the page width, no rule above it): the brand (the brand's
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
   the strike, its carriage on the clear band above it, the footer's top
@@ -363,7 +374,7 @@ widgets/features; page-specific conventions live here.
   (`COLUMNS`: Get started, closing on Verification; Docs, the big families each with its size; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,
-  `v<version>`, MIT license), the road, then the line-screen wordmark. Three columns
+  `v<version>`, MIT license), then the road with the line-screen wordmark over its foot. Three columns
   under the brand under 900px, two under 640px.
 - Footer signature: the line-screen wordmark (`LineWordmark.vue`):
   "dither-ui" in the display face across the page width, filled by 24
@@ -707,7 +718,7 @@ widgets/features; page-specific conventions live here.
 - Browser walk after changes: the landing at desktop AND phone widths (no
   horizontal scroll), the h1 and the keys above the fold at 1440x900,
   1280x800 and 1920x1080 with the print beside them, the
-  obsidian, its grain and the frame's hairlines whatever theme the docs
+  obsidian and its grain whatever theme the docs
   saved (dark on a light preference too),
   "Copy agent prompt" (the install's head) copying a prompt that names
   this origin's SKILL.md, no uppercase label, eyebrow, middle dot, em dash
@@ -725,7 +736,7 @@ widgets/features; page-specific conventions live here.
   the ask story pinned and stepping its lines and the screen's parts as
   the page scrolls (the whole session at once under 900px), the "Works
   with" marks, none of the slop bans in the rendered page (no tag, italic
-  or negative tracking outside a kit component, no rule but the frame, no
+  or negative tracking outside a kit component, no rule or side line, no
   bordered container), the header capsule floating over the page with an anchor
   landing clear of it, reduced motion (the surfaces
   still, the film waiting on its poster), and the workbench readings over

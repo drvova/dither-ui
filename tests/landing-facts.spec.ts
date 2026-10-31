@@ -92,6 +92,14 @@ describe("landing facts", () => {
     expect(page).toMatch(/:cell="ROAD\.cell"\s+:dpr="1"/)
   })
 
+  it("dances by itself for under five seconds, so the road needs no pause", () => {
+    // WCAG 2.2.2: motion that starts by itself and lasts five seconds or
+    // more must carry a pause; after the dance the road moves only with the
+    // reader.
+    expect(ROAD.dance).toBeGreaterThan(0)
+    expect(ROAD.dance).toBeLessThan(5000)
+  })
+
   it("draws the mark as the diamond's cells around one ember core", () => {
     // 1 + 4 + 8 + 12 cells within three steps of the centre of a 7x7 grid.
     expect(MARK_CELLS).toHaveLength(25)
