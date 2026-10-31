@@ -1,7 +1,8 @@
 // @rstest-environment jsdom
 // The hero's brand plays its moment again under a resting mouse or pen:
-// only once it is home (never over a moment still playing), never for a
-// finger passing over, and only where the parent asks for it (`replay`),
+// only once it is home (never over a moment still playing or still held for
+// its first view), never for a finger passing over, never once the reader
+// asks for reduced motion, and only where the parent asks for it (`replay`),
 // saying `moving` as it starts and `settled` again when it is home.
 import { mount } from "@vue/test-utils"
 import { afterEach, beforeEach, describe, expect, it } from "rstack/test"
@@ -33,6 +34,7 @@ class FakeAnimation {
 
 let anims: FakeAnimation[] = []
 let reveal: (() => void) | null = null
+let reduced = false
 const saved: [object, string, PropertyDescriptor | undefined][] = []
 const stub = (target: object, key: string, value: PropertyDescriptor) => {
   saved.push([target, key, Object.getOwnPropertyDescriptor(target, key)])
@@ -42,6 +44,7 @@ const stub = (target: object, key: string, value: PropertyDescriptor) => {
 beforeEach(() => {
   anims = []
   reveal = null
+  reduced = false
   stub(HTMLElement.prototype, "animate", {
     value: () => {
       const a = new FakeAnimation()
@@ -54,7 +57,7 @@ beforeEach(() => {
       return this.parentElement
     },
   })
-  stub(window, "matchMedia", { value: () => ({ matches: false }) })
+  stub(window, "matchMedia", { value: () => ({ matches: reduced }) })
   stub(window, "IntersectionObserver", {
     value: class {
       constructor(callback: IntersectionObserverCallback) {
@@ -87,6 +90,10 @@ describe("brand replay", () => {
     const w = mount(BrandGather, { props: { scene: STAGINGS.hero, replay: true }, attachTo: host })
     const lockup = w.get(".brand-gather").element
     expect(anims.length).toBeGreaterThan(0)
+    // Held loose for its first view, a hover does not start it early.
+    hover(lockup, "mouse")
+    expect(w.emitted("moving")).toBeUndefined()
+    expect(anims.every((a) => a.playState === "paused")).toBe(true)
     reveal!()
     expect(anims.every((a) => a.playState === "running")).toBe(true)
 
@@ -107,6 +114,12 @@ describe("brand replay", () => {
     expect(anims.every((a) => a.playState === "running" && a.currentTime === 0)).toBe(true)
     await settle()
     expect(w.emitted("settled")).toHaveLength(2)
+
+    // Reduced motion asked for since the page opened: a hover replays nothing.
+    reduced = true
+    hover(lockup, "mouse")
+    expect(w.emitted("moving")).toHaveLength(1)
+    expect(anims.every((a) => a.playState === "finished")).toBe(true)
     w.unmount()
     host.remove()
   })

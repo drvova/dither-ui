@@ -23,6 +23,7 @@ const { scene, replay = false } = defineProps<{
 const emit = defineEmits<{ moving: []; settled: [] }>()
 
 const CELL = 4
+const REDUCED = "(prefers-reduced-motion: reduce)"
 const lockup = ref<HTMLElement | null>(null)
 // Indexed by the lockup's order: a v-for ref array keeps no order.
 const cells: HTMLElement[] = []
@@ -42,7 +43,9 @@ const play = () => {
 
 function again(e: PointerEvent) {
   if (!replay || e.pointerType === "touch" || !moves.length) return
-  if (moves.some((m) => m.playState === "running")) return
+  // Only once home: not over a moment still playing, nor one still held for
+  // its first view; and the reader may have asked for less motion since.
+  if (moves.some((m) => m.playState !== "finished") || matchMedia(REDUCED).matches) return
   emit("moving")
   for (const move of moves) move.currentTime = 0
   play()
@@ -66,7 +69,7 @@ onMounted(() => {
     !cells[0] ||
     typeof IntersectionObserver === "undefined" ||
     typeof cells[0].animate !== "function" ||
-    matchMedia("(prefers-reduced-motion: reduce)").matches
+    matchMedia(REDUCED).matches
   )
     return emit("settled")
   const slots = LOCKUP.map((c) => ({ x: set.offsetLeft + c.x * CELL, y: set.offsetTop + c.y * CELL }))

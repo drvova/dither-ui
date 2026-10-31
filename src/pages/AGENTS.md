@@ -261,8 +261,9 @@ widgets/features; page-specific conventions live here.
   pointer or size), once, when the lockup stands in view clear of the
   viewport's bottom tenth, and stays; with `replay` (the hero's alone) a
   mouse or pen coming to rest on the lockup plays it again from the top,
-  once it is home (never over a moment still playing, never for a finger),
-  emitting `moving` as it starts. `choreograph` is pure (a path of
+  once it is home (never over a moment still playing or still held for its
+  first view, never for a finger, never once reduced motion is asked for,
+  read at the hover), emitting `moving` as it starts. `choreograph` is pure (a path of
   waypoints per cell, each a whole number of cells from its slot; one
   function per move in a table) on `MOMENT`'s clock, played as two stepped
   animations per cell (an axis each, `steps()` one cell a step). Home by
