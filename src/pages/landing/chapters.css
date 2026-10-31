@@ -1,8 +1,7 @@
 /* The landing's layer over the SITE voice (monospace, `.nav-a` and the
    dark materials in app/styles.css), printed in the dark, always: one bone
-   ink on obsidian with a fine grain, a hairline frame down the page, and
-   colour only in the kit's own art (the poster, the live components). Two
-   inks (`--ink`, `--ink-3`) on two grounds (the obsidian, `--surface`)
+   ink on obsidian with a fine grain, and colour only in the kit's own art
+   (the poster, the live components). Two inks (`--ink`, `--ink-3`) on two grounds (the obsidian, `--surface`)
    with no alpha tints. The kit's ember is the signal light; never red. Copy keeps
    the bans: sentence case, no eyebrow, no middle dots or em dashes, no
    link that ends in an arrow. Plain CSS under .landing, read by every
@@ -33,27 +32,11 @@
   --surface: color-mix(in oklab, var(--foreground) 7%, var(--background));
   /* The dark theme's ember: 8.6:1 on the obsidian, 7.5:1 raised. */
   --signal: var(--swatch-orange);
-  /* Where the frame's hairlines run: just outside the page's column. */
-  --frame: max(8px, calc((100vw - var(--page)) / 2 + 8px));
   font-family: var(--font-mono);
   /* The grain: a fixed tile of single cells a tone under and over the
      obsidian, never a grid. */
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAC+ElEQVR42u1dSW7DMAwMekrgc9tTUaD//6N7DYLEES0uM9TobFhchotESrpc7sbP799+SRzX25Y6H90YVUi24tqD4QwxQjMQIJ8RYFGQVZlsgDHNbSUUxR1l0zEy3+M39G6vtSs5KxDEgDxLUzg4ooQWTfj1tu2vaD87t5KJ7hlKhduyMi0UFqHsXvBRSvD+L4xFCbUSKoXPbwPUM4KNVoZFuE9pkRsp3N7IyNmlViHZBAYv0EBYhhfTVZZkiR8tF3uegqcTEIL/zqABAuUrBstlE4RMxmeC8TsrcONj5kdRwsyqImXRH0ZoBAPdXQM8f6/QA1/h6p6SRgo7QjluShj9EYppsdF7GlleGr7etj0zxmgYBS0lTJo7Swo5+r9Hno9kYKYxI3ozFevTs5mj/k65gsb+2rMSdfQvD0TDJgzZBNB0OrMH8cyUGDJGzGpbW92gmmdrXSzd3/GevKomkF2Yl9mLNjEqAa+gYMQ0cERYS1hMFyaVjjNsBwyOD8sKE7EW+/n13dOaEZb3ymiYVohFPLg0ZzGVASsrb60s92hbwCPLoHVbyBtjyzc5sZhfxtywFobY4CukkwgfzsVFE/Tu/0xNuLQW80zI7ME2RfGek6AilRYI1iP7HV2Fy4Ixe6cx8mZFL3ruBUsBHOQrJT2uO4NTQqbf9F5zRB2JglFaV18Pz9cKGVP7jKHLGoHK789sUyOcjnQXgvfWwej1AR3cDuWZgZXOGYg5xFT76G7maEVZTioiXjROBbijYItUJ/A6c/aWJ8/FBfSjBXKvGuE+unuQLd3X6VDdgqQvgqjq++FamSEiaiKF7noJR3dEed5d1MrNKVVTLr02D9kHPtCEoUOAGjXB6dW2Sqtzvt2ev4VuOFZNVu6nHI1h1pt1pL/C/ShANxeSq0V7n1rMUEzWw26zFz0NVcM6+PxuMQzGRWXFIJpXV7P79Geeyq1CbasEAKVVPEWoq/m5Zat2SIqeubgE4jkrIV2DxvJM86P024+0wjBZzT/dUK3AHWUKTwAAAABJRU5ErkJggg==");
   background-size: 96px 96px;
-}
-
-/* The frame: a hairline down each side of the page's column, from the top
-   to the foot, the page printed inside it. From 900px; a phone's gutter is
-   its own margin. */
-@media (min-width: 900px) {
-  .landing::before {
-    content: "";
-    position: fixed;
-    inset: 0 var(--frame);
-    z-index: 20;
-    border-inline: 1px solid var(--ink);
-    pointer-events: none;
-  }
 }
 
 /* A section's head: the title left, at the page's

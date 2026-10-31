@@ -127,7 +127,7 @@ Default section order:
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). The page is printed: one obsidian
   in the dark, ALWAYS (the user's call): one bone ink on obsidian with a
-  fine grain inside a hairline frame, the kit's
+  fine grain, no frame or side lines, the kit's
   art the only colour on it (the taste of a reference print site the
   user picked, kept unnamed, worn so it never reads as a copy: none of
   its devices). Our own hero (the statement beside a live print the kit
@@ -145,9 +145,10 @@ Default section order:
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
   families), a centred install closed by the kit's spec sheet, and the
   footer on the kit's own art (a star grain, and dithered light trails
-  sweeping under the brand's diamond): the brand (struck in as it nears,
-  typewriter-wise) beside link columns, the copyright line, the road and
-  the line-screen wordmark. It keeps the
+  sweeping under the brand's diamond and behind the name, the galaxy
+  filling the gap between the links and the name): the brand (struck in
+  as it nears, typewriter-wise) beside link columns, the copyright line,
+  and the line-screen wordmark printed over the road's foot. It keeps the
   user's slop bans as lifted for it (User Preferences). No film
   player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
@@ -347,8 +348,8 @@ Default section order:
   secondary keys and segment tracks, smoked-polymer overlays, spec labels
   and slanted speed tags), worn by the docs and the Studio; the landing
   is printed in the dark, always (the user's calls): obsidian (`#101214`)
-  with one bone ink (`#E4E1D8`) and a fine grain, a hairline frame, colour
-  only in the kit's own
+  with one bone ink (`#E4E1D8`) and a fine grain, no frame or side lines
+  (the user's call), colour only in the kit's own
   art; the reference's taste, never its devices (the user's call: a
   borrowing must not read as a copy, so no banded poster with a hatched
   disc, no striped band over the footer, no numbered hairline grid, no
@@ -378,8 +379,8 @@ Default section order:
   labels, figures and code stay mono, the user's identity.
 - Design slop the user bans (their list; the landing is held to it, the
   docs and the Studio keep their tool chrome until the user extends it;
-  for the printed landing the user lifted two: the hairline frame, and
-  more than two inks inside the kit's art, the poster among it):
+  for the printed landing the user lifted one: more than two inks inside
+  the kit's art, the poster among it):
   tags (no `.spec` labels, speed tags or badges), italic or slanted type,
   a trendy serif display or negative tracking, over-detailed UI (call
   times, arguments, rulers, selection handles, decorative dot grids),

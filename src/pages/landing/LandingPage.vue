@@ -1,12 +1,12 @@
 <script setup lang="ts">
-// The landing, printed in the dark, always: one bone ink on obsidian
-// inside a hairline frame, the kit's art the only colour on it. The hero (the statement beside the
+// The landing, printed in the dark, always: one bone ink on obsidian, the
+// kit's art the only colour on it. The hero (the statement beside the
 // stage, seated on a poster the kit prints), then sections under a title
 // with a lead beside it: a bento of live kit components, the screen an
 // agent's ask makes, what's inside (the kit, the Studio, the bridge; the
 // docs' families) and the install, with a plate of the brand small in a
 // wide field between them, and a footer of the brand and link columns on the
-// kit's light trails, over the line-screen wordmark. Michroma for display, mono for the rest; everything
+// kit's light trails, the line-screen wordmark printed over them. Michroma for display, mono for the rest; everything
 // that moves is the kit.
 import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
@@ -266,8 +266,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     </main>
 
     <!-- Footer: on the kit's art, the brand and a line beside three link
-         columns, the copyright line and the road the trails sweep across;
-         then the line-screen wordmark. -->
+         columns, the copyright line and the road the trails sweep across,
+         the line-screen wordmark printed over its foot. -->
     <footer class="foot" @pointermove="drive">
       <div class="foot-art">
         <div aria-hidden="true" class="foot-ground">
@@ -318,10 +318,10 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             class="road-mark"
             :style="{ left: `${ROAD.mark[0] * 100}%`, bottom: `${ROAD.mark[1] * 100}%` }"
           />
+          <div aria-hidden="true" class="foot-mark">
+            <LineWordmark />
+          </div>
         </div>
-      </div>
-      <div aria-hidden="true" class="foot-mark">
-        <LineWordmark />
       </div>
     </footer>
   </div>
@@ -578,8 +578,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   overflow: hidden;
 }
 
-/* The art under the footer's content, the wordmark aside: the shader fills
-   it, behind everything in it. A container, so the road tells the narrow
+/* The art under the whole footer: the shader fills it, behind everything
+   in it, the wordmark included. A container, so the road tells the narrow
    layout by the same width the shader does. */
 .foot-art {
   position: relative;
@@ -593,7 +593,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 }
 
 /* The road: the footer's width, its height a share of it (`ROAD.aspect`),
-   the diamond standing where the shader runs the trails through. */
+   from the copyright line to the page's foot; the diamond standing where
+   the shader runs the trails through, the wordmark printed over its foot
+   with the trails sweeping behind it. */
 .foot-road {
   position: relative;
   width: 100%;
@@ -712,11 +714,13 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   color: var(--ink-3);
 }
 
-/* The wordmark: the page's full width, on its edges. */
+/* The wordmark: the page's full width, on its edges, at the road's foot. */
 .foot-mark {
-  width: 100%;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
   max-width: var(--page);
-  margin: 40px auto 0;
+  margin-inline: auto;
   padding: 0 1.5rem 40px;
 }
 
@@ -760,7 +764,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     padding-inline: 16px;
   }
   .foot-mark {
-    width: 100%;
     padding-inline: 16px;
   }
 }
