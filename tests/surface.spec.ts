@@ -12,7 +12,7 @@ const fakeContext = {
 }
 const realGetContext = HTMLCanvasElement.prototype.getContext
 
-function surfaceComponent(render: (clock: number) => void) {
+function surfaceComponent(render: (clock: number) => void, paused = () => false) {
   let handle: DitherSurface | null = null
   const Comp = defineComponent({
     setup() {
@@ -25,7 +25,7 @@ function surfaceComponent(render: (clock: number) => void) {
         maxCols: 8,
         maxRows: 8,
         dpr: () => 1,
-        paused: () => false,
+        paused,
         renderMode: () => "live",
         precompiled: () => undefined,
         restart: () => null,
@@ -89,6 +89,52 @@ describe("DitherSurface: the render graph's edge", () => {
     expect(handle().pull(null)).toBeNull()
     expect(handle().pull(3000)).toBeNull()
     expect(painted).toEqual([])
+    w.unmount()
+  })
+})
+
+describe("a paused surface", () => {
+  it("out of view at first paints its first frame as it comes into view, then holds", async () => {
+    let show = () => {}
+    rs.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          show = () => callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never)
+        }
+        observe() {}
+        disconnect() {}
+      },
+    )
+    const frames = new Map<number, FrameRequestCallback>()
+    let id = 0
+    rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => (frames.set(++id, cb), id))
+    rs.stubGlobal("cancelAnimationFrame", (n: number) => frames.delete(n))
+    const run = (now: number) => {
+      const due = [...frames.values()]
+      frames.clear()
+      for (const cb of due) cb(now)
+    }
+    const painted: number[] = []
+    const paused = ref(false)
+    const { Comp } = surfaceComponent(
+      (c) => painted.push(c),
+      () => paused.value,
+    )
+    const w = mount(Comp)
+    await nextTick()
+    run(100)
+    expect(painted).toEqual([])
+    // Into view, then paused before the frame it asked for: that frame paints.
+    show()
+    paused.value = true
+    await nextTick()
+    run(200)
+    expect(painted).toHaveLength(1)
+    show()
+    run(300)
+    expect(painted).toHaveLength(1)
+    expect(frames.size).toBe(0)
     w.unmount()
   })
 })

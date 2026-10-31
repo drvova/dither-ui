@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { routePath } from "@/shared/lib"
-import { DitherIcon, DitherPoster, DitherReveal, type PixelColor } from "@dither-kit"
+import { DitherIcon, DitherPoster, DitherReveal } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import type { MarkId } from "@/shared/ui/marks"
 import { COMPONENT_COUNT, MATRIX } from "./facts"
 import { STAGINGS } from "./brand"
+import { INKS } from "./plate"
 import BrandGather from "./BrandGather.vue"
 import PauseChip from "./PauseChip.vue"
 import TrailerDialog from "./TrailerDialog.vue"
@@ -22,9 +23,7 @@ const film = ref(false)
 // moving layer at a time: the print holds its frame until the brand is home.
 const gathered = ref(false)
 
-// The print's inks: the kit's blue, the ember and the page's own bone ink.
-// Its screen slides by itself, so it carries a pause (WCAG 2.2.2).
-const INKS: PixelColor[] = ["blue", "orange", "#e4e1d8"]
+// The print's screen slides by itself, so it carries a pause (WCAG 2.2.2).
 const printing = ref(true)
 
 // What the kit works with, each under its own mark.

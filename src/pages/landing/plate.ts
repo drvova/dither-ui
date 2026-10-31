@@ -2,12 +2,20 @@
 // small in a wide field. One table sets the series; `Plate.vue` prints a row
 // of it. Each plate is tone thinning from its top edge to a clear band and
 // rising from it to the foot, the brand (`brand.ts`) standing in the band.
+import type { PixelColor } from "@dither-kit"
 import type { Move, Scene } from "./brand"
 
 /** The plates' stock: the raised ground (`--surface`) as a colour the kit
  * prints with, so the open cells of a plate's print are the plate itself,
  * never a tint. `tests/landing-facts.spec.ts` holds it to the token's mix. */
 export const STOCK = "#1c1e1f"
+
+/** The page's ground, as a colour the kit prints with. */
+export const GROUND = "#101214"
+
+/** The print's inks: the kit's blue, the ember and the page's own bone ink.
+ * The hero's poster prints them; the footer's road ramps through them. */
+export const INKS: PixelColor[] = ["blue", "orange", "#e4e1d8"]
 
 export type Plate = {
   /** The tone at the top edge (0 to 1), thinning to nothing at the band. */

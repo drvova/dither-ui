@@ -144,8 +144,10 @@ Default section order:
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
   families), a centred install closed by the kit's spec sheet, and the
-  footer: the brand (struck in as it nears, typewriter-wise) beside link
-  columns, the copyright line and the line-screen wordmark. It keeps the
+  footer on the kit's own art (a star grain, and dithered light trails
+  sweeping under the brand's diamond): the brand (struck in as it nears,
+  typewriter-wise) beside link columns, the copyright line, the road and
+  the line-screen wordmark. It keeps the
   user's slop bans as lifted for it (User Preferences). No film
   player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the

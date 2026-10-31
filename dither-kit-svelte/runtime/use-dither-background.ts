@@ -94,7 +94,9 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
 
   function frame(now: number) {
     raf = 0
-    if (!visible || p.paused) return
+    // Paused holds the raster but never leaves it blank: the first frame
+    // still paints, then the loop stands down.
+    if (!visible || (p.paused && lastPaint)) return
     const ctx = measure()
     if (!ctx) {
       raf = requestAnimationFrame(frame)
@@ -122,18 +124,19 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     lastPaint = now
     clock += dt * (p.timeScale ?? 1)
     draw(ctx, dt, now - startNow)
-    raf = requestAnimationFrame(frame)
+    if (!p.paused) raf = requestAnimationFrame(frame)
   }
 
   function wake() {
     // A still surface (static mode, reduced motion) painted its one frame in
     // start(); the visibility wake must never start the loop behind it.
     if (p.renderMode === "static" || pixelPrefersReducedMotion()) return
-    if (!raf && !p.paused && visible) {
-      lastPaint = 0
-      lastFrame = -1 // a resume paints immediately instead of waiting a boundary
-      raf = requestAnimationFrame(frame)
-    }
+    // Paused never leaves the raster blank: a surface paused before it was
+    // first in view paints that first frame as it comes into view.
+    if (raf || !visible || (p.paused && lastPaint)) return
+    lastPaint = 0
+    lastFrame = -1 // a resume paints immediately instead of waiting a boundary
+    raf = requestAnimationFrame(frame)
   }
 
   function start() {
@@ -192,7 +195,11 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
       p = next
       if (restart) start()
       else if (wasPaused && !p.paused) wake()
-      else if (!wasPaused && p.paused) stop()
+      // A pause stands the loop down once a frame is up; before, the first still paints.
+      else if (!wasPaused && p.paused) {
+        if (lastPaint) stop()
+        else wake()
+      }
     },
     destroy() {
       stop()
