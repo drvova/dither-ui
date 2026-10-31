@@ -11,9 +11,10 @@ import { GROUND, INKS } from "./plate"
 /** The road: its height as a share of the footer's width (the art scales
  * like a print; a taller share under `narrow` px), where the diamond's
  * centre stands on it (fractions of the width and of the road's height from
- * its foot), and the shader's cell. The page sizes the road and places the
- * diamond from these; the shader runs the trails through the same point,
- * telling the narrow layout by its width in cells. */
+ * its foot), and the shader's cell in CSS px (the page pins its dpr to 1,
+ * so its width in cells times `cell` is the footer's CSS width). The page
+ * sizes the road and places the diamond from these; the shader runs the
+ * trails through the same point, telling the narrow layout by that width. */
 export const ROAD = { aspect: 0.3, narrowAspect: 0.6, narrow: 640, mark: [0.58, 0.55], cell: 3 } as const
 
 /** Dark to light: the ground, then the print's inks, so brightness 1/3,

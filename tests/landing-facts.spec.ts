@@ -87,6 +87,9 @@ describe("landing facts", () => {
     expect(css).toContain(`--background: ${GROUND};`)
     const page = readFileSync(new URL("../src/pages/landing/LandingPage.vue", import.meta.url), "utf8")
     expect(page).toContain(`@container (width < ${ROAD.narrow}px)`)
+    // The shader tells the same width by its cells only if a cell is CSS
+    // px: at the screen's dpr a 3x phone reads three times as wide.
+    expect(page).toMatch(/:cell="ROAD\.cell"\s+:dpr="1"/)
   })
 
   it("draws the mark as the diamond's cells around one ember core", () => {

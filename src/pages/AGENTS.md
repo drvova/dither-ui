@@ -336,7 +336,9 @@ widgets/features; page-specific conventions live here.
   every surface paints one frame and holds it.
 - Footer ground (`road.ts`): the kit's art under the whole footer but the
   wordmark (`.foot-art`), one `DitherShader` (loaded with the footer, cell
-  `ROAD.cell`) whose GLSL `road.ts` writes from `ROAD`: a star grain, rare
+  `ROAD.cell` CSS px at dpr 1, so the print reads the same on every screen
+  and its width in cells is the art's CSS width) whose GLSL `road.ts`
+  writes from `ROAD`: a star grain, rare
   and blue over the columns, and on the road (`.foot-road`, the width's
   `ROAD.aspect` share, `narrowAspect` under `ROAD.narrow` px of the art's
   own width: a container query the shader matches by its width in cells,

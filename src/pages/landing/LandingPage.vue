@@ -276,6 +276,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             :colors="ROAD_RAMP"
             :seed="3"
             :cell="ROAD.cell"
+            :dpr="1"
             :interactive="false"
             :paused="!driven || !footStill"
             label="Light trails"
