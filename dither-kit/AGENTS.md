@@ -555,7 +555,10 @@ the kit every import is relative (`../engine/pixel`).
   runs after the upload with the canvas (bloom layers copy it). `paused` holds
   the raster but never leaves it blank: the first frame, and the frame after
   a restart, still paint before the loop stands down (so a paused surface
-  repaints when a `restart` source such as a drag changes). A still surface
+  repaints when a `restart` source such as a drag changes); a surface out of
+  view at first paints that frame as it comes into view, and a pause that
+  lands before it keeps it (`tests/surface.spec.ts`; the Svelte runtime
+  alike). A still surface
   (static mode, reduced motion) paints its one frame in `start()` and the
   visibility wake never starts the loop behind it — it did once, and every
   background animated under reduced motion as soon as it scrolled into view.

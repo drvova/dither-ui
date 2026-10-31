@@ -91,7 +91,7 @@ widgets/features; page-specific conventions live here.
   then a quiet line of what the kit works with (`WORKS`: Vue 3, Svelte 5,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
   with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
-  5, cell 4, `INKS`: the kit's blue, the ember and the page's bone ink;
+  5, cell 4, `INKS` from `plate.ts`: the kit's blue, the ember and the page's bone ink;
   the ember diamond whole on the blue, half knocked out in bone, the open
   cells showing the obsidian like a print on black stock; its screen
   slides 1.5 cells a second inside the mark) as a portrait sheet (4:5, at
@@ -263,16 +263,16 @@ widgets/features; page-specific conventions live here.
   mouse or pen coming to rest on the lockup plays it again from the top,
   once it is home (never over a moment still playing or still held for its
   first view, never for a finger, never once reduced motion is asked for,
-  read at the hover), emitting `moving` as it starts. `choreograph` is pure (a path of
+  read at the hover). `choreograph` is pure (a path of
   waypoints per cell, each a whole number of cells from its slot; one
   function per move in a table) on `MOMENT`'s clock, played as two stepped
   animations per cell (an axis each, `steps()` one cell a step). Home by
   4.6s: under five seconds, so no pause; under reduced motion, without
   `IntersectionObserver` or `animate`, and in the prerendered bytes, the
   brand is simply assembled (and a hover replays nothing). It emits
-  `settled` when home (at once when it does not move), so a parent keeps
-  one moving layer at a time; `tests/brand-replay.spec.ts` holds the
-  replay.
+  `moving` as its moment starts (the first time or again) and `settled`
+  when home (at once when it does not move), so a parent keeps one moving
+  layer at a time; `tests/brand-replay.spec.ts` holds the replay.
   `tests/landing-facts.spec.ts` holds the mark's cells to the diamond, the
   five places to five different moves, each move's opening (rain's one
   line, converge's rows at the edges, sort's scramble, strike's stack at
@@ -334,6 +334,25 @@ widgets/features; page-specific conventions live here.
   chip, since a tap also focuses and would point at the card and then
   toggle what it just started. Chips stay under reduced motion, where
   every surface paints one frame and holds it.
+- Footer ground (`road.ts`): the kit's art under the whole footer but the
+  wordmark (`.foot-art`), one `DitherShader` (loaded with the footer, cell
+  `ROAD.cell`) whose GLSL `road.ts` writes from `ROAD`: a star grain, rare
+  and blue over the columns, and on the road (`.foot-road`, the width's
+  `ROAD.aspect` share, `narrowAspect` under `ROAD.narrow` px of the art's
+  own width: a container query the shader matches by its width in cells,
+  pinned by `tests/landing-facts.spec.ts`) a bundle of light trails that
+  runs under the brand's diamond (`BrandMark`, placed at `ROAD.mark`) and
+  sweeps out and down to the right, widening, a spray of the grain along
+  it. Luminance picks the ink through `ROAD_RAMP` (the page's ground, then
+  the print's `INKS`), so the trails burn bone at their heads and core and
+  cool through the ember to blue. The art dissolves at its edges into the
+  page (in from the footer's top, out toward the wordmark, the trails'
+  tail out of the dark at the left), never showing a box. Only the heads
+  move, and only while the reader moves the page (a scroll, a pointer
+  across the footer), settling 240ms after: motion the reader drives, so
+  no pause chip (the user's call); they hold while the footer's brand
+  forms (`moving` holds, `settled` frees); under reduced motion one frame.
+  Decorative (`aria-hidden`); no rule, no boxed icons.
 - Footer (on the page width, no rule above it): the brand (the brand's
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
   the strike, its carriage on the clear band above it, the footer's top
@@ -342,7 +361,7 @@ widgets/features; page-specific conventions live here.
   (`COLUMNS`: Get started, closing on Verification; Docs, the big families each with its size; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,
-  `v<version>`, MIT license), then the line-screen wordmark. Three columns
+  `v<version>`, MIT license), the road, then the line-screen wordmark. Three columns
   under the brand under 900px, two under 640px.
 - Footer signature: the line-screen wordmark (`LineWordmark.vue`):
   "dither-ui" in the display face across the page width, filled by 24

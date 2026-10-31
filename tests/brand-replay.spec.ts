@@ -1,9 +1,10 @@
 // @rstest-environment jsdom
-// The hero's brand plays its moment again under a resting mouse or pen:
+// The brand says `moving` as its moment starts, and the hero's plays it
+// again under a resting mouse or pen:
 // only once it is home (never over a moment still playing or still held for
 // its first view), never for a finger passing over, never once the reader
 // asks for reduced motion, and only where the parent asks for it (`replay`),
-// saying `moving` as it starts and `settled` again when it is home.
+// saying `moving` again as it starts and `settled` again when it is home.
 import { mount } from "@vue/test-utils"
 import { afterEach, beforeEach, describe, expect, it } from "rstack/test"
 import { STAGINGS } from "../src/pages/landing/brand"
@@ -96,21 +97,22 @@ describe("brand replay", () => {
     expect(anims.every((a) => a.playState === "paused")).toBe(true)
     reveal!()
     expect(anims.every((a) => a.playState === "running")).toBe(true)
+    expect(w.emitted("moving")).toHaveLength(1)
 
     // Over a moment still playing, a hover does nothing.
     hover(lockup, "mouse")
-    expect(w.emitted("moving")).toBeUndefined()
+    expect(w.emitted("moving")).toHaveLength(1)
     await settle()
     expect(w.emitted("settled")).toHaveLength(1)
 
     // A finger passing over is no hover.
     hover(lockup, "touch")
-    expect(w.emitted("moving")).toBeUndefined()
+    expect(w.emitted("moving")).toHaveLength(1)
 
     // A mouse plays it again from the top, and it settles again.
     for (const a of anims) a.currentTime = 4600
     hover(lockup, "mouse")
-    expect(w.emitted("moving")).toHaveLength(1)
+    expect(w.emitted("moving")).toHaveLength(2)
     expect(anims.every((a) => a.playState === "running" && a.currentTime === 0)).toBe(true)
     await settle()
     expect(w.emitted("settled")).toHaveLength(2)
@@ -118,7 +120,7 @@ describe("brand replay", () => {
     // Reduced motion asked for since the page opened: a hover replays nothing.
     reduced = true
     hover(lockup, "mouse")
-    expect(w.emitted("moving")).toHaveLength(1)
+    expect(w.emitted("moving")).toHaveLength(2)
     expect(anims.every((a) => a.playState === "finished")).toBe(true)
     w.unmount()
     host.remove()
@@ -131,7 +133,7 @@ describe("brand replay", () => {
     reveal!()
     await settle()
     hover(w.get(".brand-gather").element, "mouse")
-    expect(w.emitted("moving")).toBeUndefined()
+    expect(w.emitted("moving")).toHaveLength(1)
     expect(anims.every((a) => a.playState === "finished")).toBe(true)
     w.unmount()
     host.remove()

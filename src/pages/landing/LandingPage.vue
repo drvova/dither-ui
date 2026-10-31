@@ -5,10 +5,10 @@
 // with a lead beside it: a bento of live kit components, the screen an
 // agent's ask makes, what's inside (the kit, the Studio, the bridge; the
 // docs' families) and the install, with a plate of the brand small in a
-// wide field between them, and a footer of the brand and link columns over
-// the line-screen wordmark. Michroma for display, mono for the rest; everything
+// wide field between them, and a footer of the brand and link columns on the
+// kit's light trails, over the line-screen wordmark. Michroma for display, mono for the rest; everything
 // that moves is the kit.
-import { onMounted, ref } from "vue"
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
 import { assetPath, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
@@ -22,9 +22,11 @@ import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
 import Plate from "./Plate.vue"
-import { MARK_CELLS, STAGINGS } from "./brand"
+import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
+import BrandMark from "./BrandMark.vue"
 import { PLATES } from "./plate"
+import { ROAD, ROAD_RAMP, ROAD_SHADER } from "./road"
 import Showcase from "./Showcase.vue"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the
@@ -80,6 +82,25 @@ const INSIDE = [
   },
 ] as const
 
+// The footer's ground (`road.ts`), loaded with it. Its trails run only while
+// the reader moves the page (a scroll, a pointer across the footer) and
+// settle as they stop: motion the reader drives, so it carries no pause.
+// They hold while the footer's brand forms (one moving layer at a time).
+const DitherShader = defineAsyncComponent(() => import("@dither-kit/tailwind/DitherShader.vue"))
+const footStill = ref(true)
+const driven = ref(false)
+let settle = 0
+function drive() {
+  driven.value = true
+  clearTimeout(settle)
+  settle = window.setTimeout(() => (driven.value = false), 240)
+}
+onMounted(() => addEventListener("scroll", drive, { passive: true }))
+onBeforeUnmount(() => {
+  removeEventListener("scroll", drive)
+  clearTimeout(settle)
+})
+
 // The footer's columns; the docs families carry their size.
 const COLUMNS: { title: string; links: { label: string; href: string; n?: number }[] }[] = [
   {
@@ -126,25 +147,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     <header class="site-head sticky top-0 z-10">
       <div class="site-capsule text-xs">
         <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap pl-2">
-          <!-- The brand mark: the 7x7 dithered diamond, ember core. -->
-          <svg
-            viewBox="0 0 7 7"
-            width="13"
-            height="13"
-            aria-hidden="true"
-            focusable="false"
-            shape-rendering="crispEdges"
-          >
-            <rect
-              v-for="c in MARK_CELLS"
-              :key="`${c.x}.${c.y}`"
-              :x="c.x"
-              :y="c.y"
-              width="1"
-              height="1"
-              :fill="c.core ? 'var(--signal)' : 'currentColor'"
-            />
-          </svg>
+          <BrandMark :size="13" />
           dither-ui
         </a>
         <nav class="flex items-center text-muted-foreground" aria-label="Site">
@@ -262,34 +265,60 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
       </div>
     </main>
 
-    <!-- Footer: the brand and a line beside three link columns, the
-         copyright line, then the line-screen wordmark. -->
-    <footer class="foot">
-      <div class="foot-in">
-        <div class="foot-brand">
-          <a :href="routePath('/')" class="foot-name"
-            ><BrandGather class="foot-lockup" :scene="STAGINGS.foot" /><span class="sr-only">dither-ui</span></a
-          >
-          <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
-          <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
-            ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
-          >
+    <!-- Footer: on the kit's art, the brand and a line beside three link
+         columns, the copyright line and the road the trails sweep across;
+         then the line-screen wordmark. -->
+    <footer class="foot" @pointermove="drive">
+      <div class="foot-art">
+        <div aria-hidden="true" class="foot-ground">
+          <DitherShader
+            :source="ROAD_SHADER"
+            :colors="ROAD_RAMP"
+            :seed="3"
+            :cell="ROAD.cell"
+            :interactive="false"
+            :paused="!driven || !footStill"
+            label="Light trails"
+          />
         </div>
-        <nav v-for="col in COLUMNS" :key="col.title" class="foot-col" :aria-label="col.title">
-          <h2 class="foot-h">{{ col.title }}</h2>
-          <a v-for="l in col.links" :key="l.label" :href="l.href"
-            >{{ l.label
-            }}<span v-if="l.n" class="foot-n"
-              ><span class="sr-only">, </span>{{ l.n }}<span class="sr-only"> sections</span></span
-            ></a
-          >
-        </nav>
+        <div class="foot-in">
+          <div class="foot-brand">
+            <a :href="routePath('/')" class="foot-name"
+              ><BrandGather
+                class="foot-lockup"
+                :scene="STAGINGS.foot"
+                @moving="footStill = false"
+                @settled="footStill = true"
+              /><span class="sr-only">dither-ui</span></a
+            >
+            <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
+            <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
+              ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
+            >
+          </div>
+          <nav v-for="col in COLUMNS" :key="col.title" class="foot-col" :aria-label="col.title">
+            <h2 class="foot-h">{{ col.title }}</h2>
+            <a v-for="l in col.links" :key="l.label" :href="l.href"
+              >{{ l.label
+              }}<span v-if="l.n" class="foot-n"
+                ><span class="sr-only">, </span>{{ l.n }}<span class="sr-only"> sections</span></span
+              ></a
+            >
+          </nav>
+        </div>
+        <p class="foot-copy">
+          <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
+          <span>v{{ version }}</span>
+          <span>MIT license</span>
+        </p>
+        <div class="foot-road" :style="{ '--road': ROAD.aspect, '--road-narrow': ROAD.narrowAspect }">
+          <BrandMark
+            :size="84"
+            class="road-mark"
+            :style="{ left: `${ROAD.mark[0] * 100}%`, bottom: `${ROAD.mark[1] * 100}%` }"
+          />
+        </div>
       </div>
-      <p class="foot-copy">
-        <span>© {{ new Date().getFullYear() }} dither-ui.com</span>
-        <span>v{{ version }}</span>
-        <span>MIT license</span>
-      </p>
       <div aria-hidden="true" class="foot-mark">
         <LineWordmark />
       </div>
@@ -546,6 +575,44 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   position: relative;
   isolation: isolate;
   overflow: hidden;
+}
+
+/* The art under the footer's content, the wordmark aside: the shader fills
+   it, behind everything in it. A container, so the road tells the narrow
+   layout by the same width the shader does. */
+.foot-art {
+  position: relative;
+  container-type: inline-size;
+}
+
+.foot-ground {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+/* The road: the footer's width, its height a share of it (`ROAD.aspect`),
+   the diamond standing where the shader runs the trails through. */
+.foot-road {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / var(--road);
+  margin-top: 24px;
+}
+
+/* `ROAD.narrow`, held to it by tests/landing-facts.spec.ts. */
+@container (width < 640px) {
+  .foot-road {
+    aspect-ratio: 1 / var(--road-narrow);
+  }
+}
+
+.road-mark {
+  position: absolute;
+  width: clamp(42px, 6cqi, 92px);
+  height: auto;
+  translate: -50% 50%;
+  color: var(--ink);
 }
 
 /* Positioned: the brand's field is the page's column. */

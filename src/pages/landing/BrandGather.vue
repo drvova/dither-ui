@@ -10,9 +10,9 @@
 // seconds, so it needs no pause; under reduced motion (and before the app
 // runs) the brand is simply there. With `replay`, a mouse or pen coming to
 // rest on it plays the moment again from the top, once it is home (a touch
-// does not: a finger passing over is not a hover). `moving` says a replay
-// began and `settled` when it is home (at once when it does not move), so a
-// parent can keep one moving layer at a time.
+// does not: a finger passing over is not a hover). `moving` says the moment
+// began (the first time or again) and `settled` when it is home (at once
+// when it does not move), so a parent can keep one moving layer at a time.
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { choreograph, LOCKUP, LOCKUP_SIZE, MOMENT, type Staging, type Waypoint } from "./brand"
 
@@ -38,6 +38,7 @@ const home = () =>
 const play = () => {
   io?.disconnect()
   io = null
+  emit("moving")
   for (const move of moves) move.play()
 }
 
@@ -46,7 +47,6 @@ function again(e: PointerEvent) {
   // Only once home: not over a moment still playing, nor one still held for
   // its first view; and the reader may have asked for less motion since.
   if (moves.some((m) => m.playState !== "finished") || matchMedia(REDUCED).matches) return
-  emit("moving")
   for (const move of moves) move.currentTime = 0
   play()
   home()

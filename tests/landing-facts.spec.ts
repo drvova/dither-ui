@@ -14,7 +14,8 @@ import {
   type Scene,
   STAGINGS,
 } from "../src/pages/landing/brand"
-import { PLATES, sceneOf, STOCK } from "../src/pages/landing/plate"
+import { GROUND, PLATES, sceneOf, STOCK } from "../src/pages/landing/plate"
+import { ROAD } from "../src/pages/landing/road"
 
 const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
 const components = [...index.matchAll(/default as (\w+)/g)].map((m) => m[1])
@@ -76,6 +77,16 @@ describe("landing facts", () => {
     const [, share] = css.match(/--surface: color-mix\(in oklab, var\(--foreground\) (\d+)%, var\(--background\)\);/)!
     const mixed = mixOklab(token("--foreground"), token("--background"), Number(share) / 100)
     rgb(STOCK).forEach((c, i) => expect(Math.abs(c - mixed[i])).toBeLessThanOrEqual(1))
+  })
+
+  it("lays the footer's road on the page's ground, narrow where the shader tells it", () => {
+    // The road's ramp starts on the landing's ground, so its unlit cells are
+    // the page; the road's taller narrow share switches at the width the
+    // shader measures, the footer art's own (a container, not the viewport).
+    const css = readFileSync(new URL("../src/pages/landing/chapters.css", import.meta.url), "utf8")
+    expect(css).toContain(`--background: ${GROUND};`)
+    const page = readFileSync(new URL("../src/pages/landing/LandingPage.vue", import.meta.url), "utf8")
+    expect(page).toContain(`@container (width < ${ROAD.narrow}px)`)
   })
 
   it("draws the mark as the diamond's cells around one ember core", () => {

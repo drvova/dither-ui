@@ -183,11 +183,12 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
     // A still surface (static mode, reduced motion) painted its one frame in
     // start(); the visibility wake must never start the loop behind it.
     if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) return
-    if (!raf && !opts.paused() && isVisible()) {
-      lastPaint = 0
-      lastFrame = -1 // a resume paints immediately instead of waiting a boundary
-      raf = requestAnimationFrame(frame)
-    }
+    // Paused never leaves the raster blank: a surface paused before it was
+    // first in view paints that first frame as it comes into view.
+    if (raf || !isVisible() || (opts.paused() && lastPaint)) return
+    lastPaint = 0
+    lastFrame = -1 // a resume paints immediately instead of waiting a boundary
+    raf = requestAnimationFrame(frame)
   }
 
   /** Directed (clock.ts): paint one moment. `clock` is absolute, so pure
@@ -266,7 +267,8 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
   const unseek = onSeek((ms) => (ms === null ? wake() : seekTo(ms)))
   onMounted(start)
   watch(opts.restart, start, { flush: "post" })
-  watch(opts.paused, (p) => (p ? stop() : wake()))
+  // A pause stands the loop down once a frame is up; before, the first still paints.
+  watch(opts.paused, (p) => (p && lastPaint ? stop() : wake()))
   onBeforeUnmount(() => {
     restartToken += 1
     unseek()
