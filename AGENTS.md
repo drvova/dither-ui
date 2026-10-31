@@ -133,8 +133,9 @@ Default section order:
   its devices). Our own hero (the statement beside a live print the kit
   makes, no component tour: the user's call; a poster of tone fields and the
   kit's diamond standing over its own dithered floor; a quiet line of what
-  it works with under the keys, signed off with the brand gathering out of
-  the open field before the print starts; copy calm and procedural, every figure
+  it works with under the keys, signed off with the brand forming out of
+  the open field before the print starts (the brand forms its own way in
+  each place it stands: the hero, each plate, the footer); copy calm and procedural, every figure
   read from the kit), then
   sections under a title with a lead beside it, print plates of the brand
   small in a wide field between them (after the bento, after the
@@ -143,8 +144,8 @@ Default section order:
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
   families), a centred install closed by the kit's spec sheet, and the
-  footer: the brand (gathering as it nears, as in the hero and on the
-  plates) beside link columns, the copyright line and the line-screen wordmark. It keeps the
+  footer: the brand (struck in as it nears, typewriter-wise) beside link
+  columns, the copyright line and the line-screen wordmark. It keeps the
   user's slop bans as lifted for it (User Preferences). No film
   player or animation runtime ships with the page. The trailer
   (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
