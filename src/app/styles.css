@@ -72,6 +72,18 @@
   }
 }
 
+/* iOS WebKit zooms the page into any field set under 16px as it takes focus,
+   and leaves it zoomed. There only (`-webkit-touch-callout` is iOS WebKit's
+   alone), every field reads at 16px at least; pinch zoom stays the reader's.
+   Unlayered, so it outranks the utilities that size the fields. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
 /* The site's one chrome voice, shared by the landing, the docs and the
    Studio: nav links in sentence case with 32px hit areas, machined keys
    and the one capsule key (the primary chrome key), `.micro`, the small

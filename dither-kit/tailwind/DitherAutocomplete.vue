@@ -96,7 +96,8 @@ function onKeydown(e: KeyboardEvent) {
             : 'text-muted-foreground hover:bg-background hover:text-foreground'
         "
         @pointerenter="highlighted = i"
-        @pointerdown.prevent="pick(s)"
+        @pointerdown.prevent
+        @click="pick(s)"
       >
         {{ s }}
       </div>

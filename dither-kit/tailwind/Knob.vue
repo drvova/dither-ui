@@ -85,7 +85,7 @@ function onKeydown(e: KeyboardEvent) {
       :aria-valuenow="props.modelValue"
       :aria-disabled="props.disabled || undefined"
       :style="{ width: `${props.size}px`, height: `${props.size}px` }"
-      class="relative cursor-ns-resize rounded-full border border-border bg-card/80 outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
+      class="relative cursor-ns-resize touch-none rounded-full border border-border bg-card/80 outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
       :class="props.disabled && 'pointer-events-none opacity-40'"
       @pointerdown.prevent="onPointerDown"
       @keydown="onKeydown"

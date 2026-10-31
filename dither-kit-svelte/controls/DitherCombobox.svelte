@@ -129,6 +129,7 @@
       {/if}
       {#each filtered as o, i (o.value)}
         <!-- svelte-ignore a11y_interactive_supports_focus (listbox options are not tab stops; focus stays on the input) -->
+        <!-- svelte-ignore a11y_click_events_have_key_events (the keys live on the input, whose Enter picks the highlighted option) -->
         <div
           role="option"
           aria-selected={o.value === value}
@@ -144,10 +145,8 @@
           onpointerenter={() => {
             if (!o.disabled) highlighted = i
           }}
-          onpointerdown={(e) => {
-            e.preventDefault()
-            pick(o)
-          }}
+          onpointerdown={(e) => e.preventDefault()}
+          onclick={() => pick(o)}
         >
           <span>{o.label}</span>
           {#if o.value === value}

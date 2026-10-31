@@ -7,6 +7,7 @@ const styles = stylex.create({
   frame: {
     position: "relative",
     cursor: "ns-resize",
+    touchAction: "none",
     borderRadius: "calc(infinity * 1px)",
     borderStyle: "solid",
     borderWidth: "1px",

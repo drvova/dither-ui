@@ -200,8 +200,9 @@ export function shareCards(): ShareCard[] {
   return [...routes, ...SECTIONS.map((s) => sectionCard(s.id))]
 }
 
-/** The side bar: the theme-color every page declares, as Discord's integer
- * colour, so the component embed and its og fallback wear the same one. */
+/** The side bar: the brand blue, as Discord's integer colour. The pages'
+ * own theme-color is their ground (the browser chrome over them), so a
+ * plain-link fallback wears that instead. */
 const THEME = 0x3f8ff3
 
 /** Discord's component embed for a card: one Container holding the title

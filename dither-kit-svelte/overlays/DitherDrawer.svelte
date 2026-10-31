@@ -247,7 +247,7 @@
       class={cn(
         "fixed z-50 flex flex-col border-border bg-card p-4 font-mono",
         side === "bottom" ? "inset-x-0 bottom-0 rounded-t-xl border-t" : "inset-y-0 w-80 max-w-[85vw]",
-        side === "bottom" && !hasSnaps ? "max-h-[85vh]" : "",
+        side === "bottom" && !hasSnaps ? "max-h-[85dvh]" : "",
         side === "right" ? "right-0 border-l" : side === "left" ? "left-0 border-r" : "",
         dragging ? "select-none" : "transition-[translate,scale,filter] motion-reduce:transition-none",
         swipe && side !== "bottom" ? "touch-pan-y" : ""

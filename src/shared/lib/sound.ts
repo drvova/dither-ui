@@ -141,7 +141,9 @@ export function play(cue: Cue): void {
   if (!sounds.value || typeof AudioContext === "undefined") return
   try {
     ctx ??= new AudioContext()
-    if (ctx.state === "suspended") void ctx.resume()
+    // WebKit also parks a context "interrupted" (a call, the app in the
+    // background); anything but running resumes on the next cue.
+    if (ctx.state !== "running") void ctx.resume()
     schedule(ctx, cue)
   } catch {
     // an engine that refuses audio (autoplay policy, no output device) stays silent

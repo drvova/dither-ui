@@ -281,7 +281,13 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
 </script>
 
 <template>
-  <div ref="rootEl" role="listbox" aria-label="Layers" class="flex flex-col gap-px text-[13px]" @keydown="onRowsKey">
+  <div
+    ref="rootEl"
+    role="listbox"
+    aria-label="Layers"
+    class="flex flex-col gap-px text-[13px] select-none [-webkit-touch-callout:none]"
+    @keydown="onRowsKey"
+  >
     <template
       v-for="node in nodes"
       :key="
@@ -350,7 +356,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
           v-model="editText"
           name="group-rename"
           autocomplete="off"
-          class="min-w-0 flex-1 rounded border border-foreground/40 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none"
+          class="min-w-0 flex-1 rounded border border-foreground/40 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none select-text"
           @click.stop
           @keydown.enter.prevent="commitGroupName(node.group)"
           @keydown.esc.prevent="editingId = null"
@@ -371,7 +377,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :class="
               groupLocked(node.group)
                 ? 'text-foreground'
-                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 [@media(hover:none)]:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="setGroupLocked(node.group.id, !groupLocked(node.group))"
           >
@@ -389,7 +395,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :class="
               groupHidden(node.group)
                 ? 'text-muted-foreground'
-                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 [@media(hover:none)]:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="setGroupHidden(node.group.id, !groupHidden(node.group))"
           >
@@ -454,7 +460,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
           v-model="editText"
           name="artboard-rename"
           autocomplete="off"
-          class="min-w-0 flex-1 rounded border border-foreground/40 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none"
+          class="min-w-0 flex-1 rounded border border-foreground/40 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none select-text"
           @click.stop
           @keydown.enter.prevent="commitArtboardName(node.a)"
           @keydown.esc.prevent="editingId = null"
@@ -482,7 +488,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :class="
               node.a.locked
                 ? 'text-foreground'
-                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 [@media(hover:none)]:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="setArtboardLocked(node.a.id, !node.a.locked)"
           >
@@ -500,7 +506,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :class="
               node.a.hidden
                 ? 'text-muted-foreground'
-                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+                : 'text-muted-foreground opacity-0 group-hover/row:opacity-70 [@media(hover:none)]:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="setArtboardHidden(node.a.id, !node.a.hidden)"
           >
@@ -564,7 +570,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :class="
               layerLocked(node.a, node.layer)
                 ? 'opacity-90'
-                : 'opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+                : 'opacity-0 group-hover/row:opacity-70 [@media(hover:none)]:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="toggleLayerLock(node.a, node.layer)"
           >
@@ -582,7 +588,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
             :class="
               !layerVisible(node.a, node.layer)
                 ? 'opacity-90'
-                : 'opacity-0 group-hover/row:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
+                : 'opacity-0 group-hover/row:opacity-70 [@media(hover:none)]:opacity-70 group-focus-within/row:opacity-70 focus-visible:opacity-100'
             "
             @click.stop="toggleLayerVis(node.a, node.layer)"
           >

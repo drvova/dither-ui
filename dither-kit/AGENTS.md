@@ -253,8 +253,22 @@ the kit every import is relative (`../engine/pixel`).
   `-webkit-background-clip` beside the standard one. `copy-text.ts`'s `copyText`
   is the one clipboard path: the async clipboard where it exists, else the
   selection + `execCommand` route (plain http, older engines, automation),
-  returning whether it copied. No engine-specific APIs (`scrollIntoViewIfNeeded`,
-  `scheduler.postTask`, file pickers) anywhere.
+  returning whether it copied (the selection set by range too: iOS selects
+  nothing in a readonly field through `select()`). No engine-specific APIs
+  (`scrollIntoViewIfNeeded`, `scheduler.postTask`, file pickers) anywhere.
+- Touch (iOS WebKit, where pointerdown's preventDefault does not stop a
+  scroll): every control a finger drags sets `touch-action` (`touch-none`;
+  the slider, knob, colour planes, scrub grip, slide and hold actions,
+  signature pad, drawer handle; a model orbits under `pan-y`) and ends its
+  drag on `pointercancel` as on `pointerup`. A list option (select,
+  combobox, autocomplete; both kits) keeps focus on `pointerdown` and picks
+  on `click`, so a finger that scrolls the list picks nothing. The video
+  player falls back to the video's own fullscreen
+  (`webkitEnterFullscreen`) where an element has none (an iPhone) and
+  shows its volume slider only where volume is not locked (iOS ties it to
+  the hardware buttons): `:volume-locked` where the engine knows the
+  selector (a write there can read back, then revert), else a write that
+  must read back.
 - `keyframes.ts` + `DitherStage.vue` + `DitherLayer.vue` are the keyframe
   engine in container units. `parseLength` turns px numbers and any CSS
   length (`calc()` sums included) into unit terms, `lerpTerms` interpolates

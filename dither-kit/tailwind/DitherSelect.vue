@@ -145,7 +145,8 @@ onBeforeUnmount(() => document.removeEventListener("pointerdown", onOutside))
               : 'cursor-pointer text-muted-foreground hover:bg-background hover:text-foreground',
           ]"
           @pointerenter="!o.disabled && (highlighted = i)"
-          @pointerdown.prevent="pick(o)"
+          @pointerdown.prevent
+          @click="pick(o)"
         >
           <span>{{ o.label }}</span>
           <span

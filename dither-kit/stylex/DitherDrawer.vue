@@ -39,7 +39,7 @@ const styles = stylex.create({
     borderTopWidth: "1px",
   },
   insetY0: { insetBlock: "0px", width: "20rem", maxWidth: "85vw" },
-  maxH85vh: { maxHeight: "85vh" },
+  maxH85dvh: { maxHeight: "85dvh" },
   right0: { right: "0px", borderLeftStyle: "solid", borderLeftWidth: "1px" },
   left0: { left: "0px", borderRightStyle: "solid", borderRightWidth: "1px" },
   selectNone: { WebkitUserSelect: "none", userSelect: "none" },
@@ -291,7 +291,7 @@ const panelStyle = computed(() => {
         :class="
           cn(styles.stack, [
             props.side === 'bottom' ? styles.insetX0 : styles.insetY0,
-            props.side === 'bottom' && !hasSnaps ? styles.maxH85vh : null,
+            props.side === 'bottom' && !hasSnaps ? styles.maxH85dvh : null,
             props.side === 'right' ? styles.right0 : props.side === 'left' ? styles.left0 : null,
             dragging ? styles.selectNone : styles.transitionTransformFilter,
             props.swipe && props.side !== 'bottom' ? styles.touchPanY : null,
