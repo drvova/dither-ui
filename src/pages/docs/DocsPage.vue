@@ -29,7 +29,6 @@ import {
   type DitherColor,
   type DotVariant,
   type GradientDirection,
-  type IconName,
   type PixelBloom,
 } from "@dither-kit"
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
@@ -40,24 +39,15 @@ import "@/shared/fonts/display.css"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import DemoCard from "./DemoCard.vue"
 import SectionShare from "./SectionShare.vue"
+import DocsNav, { docsUrl, type PagePart } from "./DocsNav.vue"
+import DocsSheet, { SHEET_ID } from "./DocsSheet.vue"
+import OnThisPage from "./OnThisPage.vue"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
 import { play, sounds } from "@/shared/lib/sound"
 import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 import { GROUPS } from "./groups"
+import { spySections } from "./scroll-spy"
 
-// Each sidebar group under its glyph (the landing's family glyphs).
-const GROUP_ICON: Record<string, IconName> = {
-  Overview: "Home",
-  Primitives: "Box",
-  Typography: "Type",
-  Handbook: "Book",
-  Examples: "Layout",
-  Components: "Grid",
-  Backgrounds: "Image",
-  Text: "Sparkles",
-  Animations: "Pulse",
-  Utils: "Palette",
-}
 import { INSTALL } from "./install"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
@@ -455,7 +445,7 @@ const API: Record<string, PropRow[]> = {
 // Wayfinding: the sidebar tracks the section in view, the hash tracks the
 // sidebar — so every section is shareable and survives a reload.
 const activeId = ref("")
-let observer: IntersectionObserver | null = null
+let stopSpy: (() => void) | null = null
 
 /* Per-section search metadata follows the section in view. The docs render
    client-side from one HTML entry, so Google's renderer reads title,
@@ -489,7 +479,7 @@ const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "
    section in view, read from its DOM as the scroll-spy moves: its heading,
    each gallery heading and its props table. Headings inside a preview are
    the demo's, not the section's. */
-const onPage = ref<{ label: string; el: HTMLElement }[]>([])
+const onPage = ref<PagePart[]>([])
 watch(
   activeId,
   async (id) => {
@@ -507,9 +497,6 @@ function goTo(el: HTMLElement) {
   window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - 88, behavior: smooth() })
 }
 
-function docsUrl(id: string) {
-  return routePath(`/docs/${id}`)
-}
 let scrollGen = 0
 function scrollTo(id: string) {
   history.replaceState(null, "", docsUrl(id))
@@ -556,9 +543,13 @@ function scrollTo(id: string) {
 
 /* Docs search: the kit's own Command palette navigating the whole IA. */
 const searchOpen = ref(false)
-/* Mobile contents disclosure — the phone layout opens clean instead of the
-   old flat wall of every section link. */
-const tocOpen = ref(false)
+/* The sections sheet (under lg): the header's sections key opens it from
+   anywhere on the page. A pick closes it first, so the page is free to scroll. */
+const sheetOpen = ref(false)
+function fromSheet(go: () => void) {
+  sheetOpen.value = false
+  void nextTick(go)
+}
 const commandItems = GROUPS.flatMap((g) => g.items.map((it) => ({ value: it.id, label: it.label, group: g.title })))
 function searchHotkey(e: KeyboardEvent) {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -612,28 +603,17 @@ onMounted(() => {
     window.setTimeout(jump, 450)
   }
 
-  observer = new IntersectionObserver(
-    (entries) => {
-      // Topmost visible section wins; keep the previous one while scrolling gaps.
-      const visible = entries
-        .filter((e) => e.isIntersecting)
-        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-      const id = visible[0]?.target.id
-      if (id && id !== activeId.value) {
-        activeId.value = id
-        history.replaceState(null, "", docsUrl(id))
-      }
+  stopSpy = spySections(
+    ids.flatMap((id) => document.getElementById(id) ?? []),
+    (id) => {
+      if (id === activeId.value) return
+      activeId.value = id
+      history.replaceState(null, "", docsUrl(id))
     },
-    // Compensate for the 56px sticky chrome; trigger in the upper half.
-    { rootMargin: "-56px 0px -50% 0px" },
   )
-  for (const id of ids) {
-    const el = document.getElementById(id)
-    if (el) observer.observe(el)
-  }
 })
 onBeforeUnmount(() => {
-  observer?.disconnect()
+  stopSpy?.()
   window.removeEventListener("keydown", searchHotkey)
 })
 
@@ -905,15 +885,15 @@ const gradientCode = computed(
 </script>
 
 <template>
-  <div class="min-h-screen bg-background font-mono text-foreground antialiased">
+  <div class="min-h-dvh bg-background font-mono text-foreground antialiased">
     <!-- Header: the site's floating capsule (glass, chrome rim), 56px with
          its margin, so the rails' top-14 and the scroll-spy line hold. -->
     <header class="sticky top-0 z-40 mx-auto w-full max-w-6xl px-4 py-1.5">
-      <div class="capsule docs-capsule flex h-11 w-full items-center justify-between pr-1.5 pl-4 text-xs sm:pl-5">
+      <div class="capsule docs-capsule flex h-11 w-full items-center justify-between pr-1.5 pl-3 text-xs sm:pl-5">
         <div class="flex items-center gap-6">
           <a
             :href="routePath('/')"
-            class="flex h-8 items-center gap-2.5 whitespace-nowrap tracking-tight transition-colors hover:text-foreground"
+            class="flex h-8 min-w-8 items-center gap-2.5 whitespace-nowrap tracking-tight transition-colors hover:text-foreground"
           >
             <!-- The brand mark: the landing's 7x7 dithered diamond, ember core. -->
             <svg
@@ -935,11 +915,11 @@ const gradientCode = computed(
               </g>
               <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
             </svg>
-            dither-ui
+            <span class="max-[359px]:sr-only">dither-ui</span>
           </a>
           <span class="hidden text-muted-foreground xl:inline">Docs</span>
         </div>
-        <nav class="flex items-center gap-3 text-muted-foreground sm:gap-3.5 xl:gap-5">
+        <nav class="flex items-center gap-1 text-muted-foreground min-[400px]:gap-2 sm:gap-3.5 xl:gap-5">
           <div class="track" role="group" aria-label="Framework">
             <button
               type="button"
@@ -975,12 +955,12 @@ const gradientCode = computed(
           </div>
           <button
             type="button"
-            class="nav-pill flex h-7 items-center gap-1.5 px-3 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+            class="nav-pill flex h-7 items-center gap-1.5 px-2.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground sm:px-3"
             aria-label="Search docs"
             @click="searchOpen = true"
           >
             <DitherIcon name="Search" :size="12" :stroke-width="1.5" /><span class="max-sm:sr-only">Search</span>
-            <kbd class="hidden rounded border border-border/60 px-1 text-[10px] sm:inline">{{ searchKbd }}</kbd>
+            <kbd class="hidden rounded border border-border/60 px-1 text-[10px] md:inline">{{ searchKbd }}</kbd>
           </button>
           <button
             type="button"
@@ -1011,6 +991,19 @@ const gradientCode = computed(
             ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
           >
           <a :href="routePath('/studio')" class="nav-a key-chrome hidden h-8 px-4 sm:inline-flex">Open studio</a>
+          <!-- Under lg the section list is a sheet this key opens from
+               anywhere on the page (the sidebar holds it at lg). -->
+          <button
+            type="button"
+            class="flex size-8 items-center justify-center transition-colors hover:text-foreground lg:hidden"
+            aria-label="Browse sections"
+            aria-haspopup="dialog"
+            :aria-expanded="sheetOpen"
+            :aria-controls="SHEET_ID"
+            @click="sheetOpen = true"
+          >
+            <DitherIcon name="Menu" :size="15" :stroke-width="1.5" />
+          </button>
         </nav>
       </div>
     </header>
@@ -1018,29 +1011,8 @@ const gradientCode = computed(
     <div class="mx-auto flex w-full max-w-6xl px-4 sm:px-6">
       <!-- Sidebar -->
       <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-52 shrink-0 overflow-y-auto py-10 pr-8 lg:block">
-        <nav class="grid gap-7">
-          <div v-for="grp in GROUPS" :key="grp.title">
-            <div class="flex items-center gap-2 text-[11px] font-medium text-foreground">
-              <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
-              <span class="spec ml-auto tabular-nums">{{ grp.items.length }}</span>
-            </div>
-            <ul class="mt-2.5 grid gap-0.5 border-l border-border/60">
-              <li v-for="it in grp.items" :key="it.id">
-                <a
-                  :href="docsUrl(it.id)"
-                  :aria-current="activeId === it.id ? 'true' : undefined"
-                  class="-ml-px block border-l py-1 pl-3 text-[11px] transition-colors"
-                  :class="
-                    activeId === it.id
-                      ? 'border-foreground text-foreground'
-                      : 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'
-                  "
-                  @click.prevent="scrollTo(it.id)"
-                  >{{ it.label }}</a
-                >
-              </li>
-            </ul>
-          </div>
+        <nav aria-label="Docs sections">
+          <DocsNav :active-id="activeId" variant="rail" @go="scrollTo" />
         </nav>
         <AdSlot />
       </aside>
@@ -1063,48 +1035,6 @@ const gradientCode = computed(
             Every component draws on canvas through the same ordered-dither engine. Compose charts from parts, or drop
             in a single primitive.
           </p>
-
-          <!-- Mobile contents: grouped disclosure — phones open clean instead
-               of the old flat wall of every section link. -->
-          <nav class="mt-6 lg:hidden" aria-label="Docs sections">
-            <button
-              type="button"
-              class="nav-pill flex w-full items-center justify-between px-4 py-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-              :aria-expanded="tocOpen"
-              aria-controls="docs-toc"
-              @click="tocOpen = !tocOpen"
-            >
-              <span>Browse sections</span>
-              <span class="flex items-center gap-2 tabular-nums" aria-hidden="true"
-                >{{ GROUPS.flatMap((g) => g.items).length }}
-                <DitherIcon :name="tocOpen ? 'ChevronUp' : 'ChevronDown'" :size="13" :stroke-width="1.5"
-              /></span>
-            </button>
-            <div v-show="tocOpen" id="docs-toc" class="mt-4 grid gap-5">
-              <div v-for="grp in GROUPS" :key="grp.title">
-                <div class="flex items-center gap-2 text-[12px] text-muted-foreground">
-                  <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
-                </div>
-                <ul class="mt-2 grid grid-cols-2 gap-x-4 gap-y-0.5">
-                  <li v-for="it in grp.items" :key="it.id">
-                    <a
-                      :href="docsUrl(it.id)"
-                      :aria-current="activeId === it.id ? 'true' : undefined"
-                      class="block truncate py-0.5 text-[11px] transition-colors"
-                      :class="activeId === it.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
-                      @click.prevent="
-                        () => {
-                          tocOpen = false
-                          scrollTo(it.id)
-                        }
-                      "
-                      >{{ it.label }}</a
-                    >
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </nav>
 
           <!-- Quick start -->
           <section id="getting-started" class="mt-16 scroll-mt-24">
@@ -2168,23 +2098,7 @@ const gradientCode = computed(
       </main>
 
       <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
-        <nav v-if="onPage.length" aria-label="On this page">
-          <p class="flex items-center gap-2 text-[11px] font-medium text-foreground">
-            <DitherIcon name="Menu" :size="13" :stroke-width="1.5" />On this page
-          </p>
-          <ul class="mt-2.5 grid gap-0.5 border-l border-border/60">
-            <li v-for="(p, i) in onPage" :key="i">
-              <button
-                type="button"
-                class="-ml-px block w-full border-l py-1 pl-3 text-left text-[11px] transition-colors hover:border-foreground/40 hover:text-foreground"
-                :class="i === 0 ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground'"
-                @click="goTo(p.el)"
-              >
-                {{ p.label }}
-              </button>
-            </li>
-          </ul>
-        </nav>
+        <OnThisPage v-if="onPage.length" :parts="onPage" @go="goTo" />
         <SectionShare v-if="activeId && docsMeta(activeId).id" :id="activeId" />
       </aside>
     </div>
@@ -2192,7 +2106,7 @@ const gradientCode = computed(
     <!-- Footer -->
     <footer class="border-t border-border/60">
       <div
-        class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 text-[11px] text-muted-foreground sm:px-6"
+        class="mx-auto flex min-h-16 w-full max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-[11px] text-muted-foreground sm:px-6"
       >
         <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">dither-ui.com</a>
         <div class="flex items-center gap-4">
@@ -2209,6 +2123,14 @@ const gradientCode = computed(
       </div>
     </footer>
 
+    <DocsSheet
+      :open="sheetOpen"
+      :active-id="activeId"
+      :parts="onPage"
+      @close="sheetOpen = false"
+      @go="(id) => fromSheet(() => searchGo(id))"
+      @part="(el) => fromSheet(() => goTo(el))"
+    />
     <DitherCommand
       :open="searchOpen"
       :items="commandItems"
