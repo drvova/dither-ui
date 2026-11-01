@@ -230,8 +230,17 @@
       return
     }
     if (e.key !== "Tab" || !modal || !panelEl) return
-    const items = [...panelEl.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-      (el) => !el.closest("[hidden]") && el.getAttribute("aria-hidden") !== "true"
+    const scope = panelEl
+    // Only rendered controls are Tab endpoints: one hidden by CSS can never
+    // take focus, so Tab from the last visible one would leave the drawer.
+    const rendered = (el: HTMLElement) => {
+      if (getComputedStyle(el).visibility === "hidden") return false
+      for (let n: HTMLElement | null = el; n && n !== scope; n = n.parentElement)
+        if (getComputedStyle(n).display === "none") return false
+      return true
+    }
+    const items = [...scope.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+      (el) => !el.closest("[hidden]") && el.getAttribute("aria-hidden") !== "true" && rendered(el)
     )
     if (!items.length) return
     const first = items[0]

@@ -406,7 +406,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   is `border-edge` (a scoped field: `var(--color-edge)`), turning
   `border-ring` on focus, while `--border` stays the hairline of
   containers and dividers; `--destructive`, `text-destructive`, the ink
-  of delete, remove and a failed read, 4.5:1 on the theme's grounds), and
+  of delete, remove and a failed read, 4.5:1 on the theme's grounds; a
+  scoped rule that colours a key outranks the utility, so a key wearing
+  both carries its own `.key.text-destructive` rule, which
+  `tests/destructive-ink.spec.ts` checks across `src/`), and
   the look's MATERIALS, after the user's Y2K
   design system V5 (root `AGENTS.md`), per theme on `:root` (light) and
   `.dark`: `--chrome` (chrome type: gunmetal on light, its lightest stop

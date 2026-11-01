@@ -516,7 +516,9 @@ widgets/features; page-specific conventions live here.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.
 - Wayfinding: scroll-spy (`docs/scroll-spy.ts`, IntersectionObserver,
-  `SPY_MARGIN`: the band from the 56px header to the middle) sets
+  `spyMargin`: the band from the 56px header to the middle, in px from
+  the viewport's height and rebuilt on resize, since a rootMargin
+  percentage resolves against the root's width) sets
   `activeId` + `aria-current`: the topmost section in the band, which it
   keeps across callbacks (a callback carries only the entries that
   changed); clean `/docs/<id>`, its directory form

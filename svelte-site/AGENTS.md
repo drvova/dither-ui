@@ -13,8 +13,8 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
 ## Ownership
 
 - Owns the entry (`src/main.ts`), the hash router (`src/App.svelte`), the landing
-  (`src/landing/`), the copy-key state every copy button shares
-  (`src/copy.svelte.ts`), the copies shared with the Vue site (`src/shared/`,
+  (`src/landing/`), the copy-key helper every copy button uses
+  (`src/copy.svelte.ts`; each call keeps its own copied flag and timer), the copies shared with the Vue site (`src/shared/`,
   `src/fonts/`), the docs (`src/docs/` — `DocsPage.svelte` + `DemoCard`,
   `PropsTable`, `CodeBlock`), the design-token stylesheet (`src/app.css`), and the
   Rstack/Svelte/TS config.
@@ -37,7 +37,7 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   until a change on either side is copied across: `src/shared/marks.ts`
   (from `src/shared/ui/marks.ts`), `src/fonts/` (Michroma's `display.css`,
   `michroma-latin.woff2` and its `OFL.txt`, from `src/shared/fonts/`), and
-  the Vue landing's pure modules in `src/landing/` (`brand.ts`,
+  the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
   `pixel-type.ts`, `plate.ts`, `spotlight.ts`, `story.ts`). Svelte-specific
   glue stays out of the copies: they import the engine as the Vue site names
   it, so `@dither-kit/engine/*` resolves to the Svelte kit's verbatim engine

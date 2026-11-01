@@ -540,6 +540,13 @@ async function exportPng() {
   background: var(--color-background);
   color: var(--color-foreground);
 }
+/* Delete keeps the destructive ink, at rest and under the pointer. */
+.menu-row.text-destructive,
+.menu-row.text-destructive:hover,
+.tool.text-destructive,
+.tool.text-destructive:hover {
+  color: var(--color-destructive);
+}
 /* Menus and popovers: quick rise on enter, softer drop on exit (exits are
    quieter than enters), house easing, still under reduced motion. */
 .pop-enter-active {

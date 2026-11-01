@@ -5,7 +5,7 @@ import { nextTick } from "vue"
 import DocsNav, { NAV_LINK } from "@/pages/docs/DocsNav.vue"
 import DocsSheet, { SHEET_ID } from "@/pages/docs/DocsSheet.vue"
 import { GROUPS } from "@/pages/docs/groups"
-import { spySections } from "@/pages/docs/scroll-spy"
+import { spyMargin, spySections } from "@/pages/docs/scroll-spy"
 
 const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
 
@@ -46,6 +46,33 @@ describe("docs scroll-spy", () => {
     // Between sections the last one stays: no call with an empty band.
     fire([{ target: b, isIntersecting: false }])
     expect(seen).toHaveLength(3)
+  })
+})
+
+describe("docs scroll-spy band", () => {
+  const real = globalThis.IntersectionObserver
+  afterEach(() => {
+    globalThis.IntersectionObserver = real
+  })
+  it("runs from the header to the middle in px, and follows the viewport's height", () => {
+    // A percentage resolves against the root's width: px only.
+    expect(spyMargin(900)).toBe("-56px 0px -450px 0px")
+    const margins: string[] = []
+    globalThis.IntersectionObserver = class {
+      constructor(_cb: unknown, opts: IntersectionObserverInit) {
+        margins.push(String(opts.rootMargin))
+      }
+      observe() {}
+      disconnect() {}
+    } as unknown as typeof IntersectionObserver
+    const height = window.innerHeight
+    const stop = spySections([document.createElement("section")], () => {})
+    expect(margins).toEqual([spyMargin(height)])
+    Object.defineProperty(window, "innerHeight", { value: height + 200, configurable: true })
+    window.dispatchEvent(new Event("resize"))
+    expect(margins.at(-1)).toBe(spyMargin(height + 200))
+    stop()
+    Object.defineProperty(window, "innerHeight", { value: height, configurable: true })
   })
 })
 

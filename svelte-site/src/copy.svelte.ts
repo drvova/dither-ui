@@ -9,6 +9,11 @@ export function copier(ms = 1400) {
     get copied() {
       return copied
     },
+    /** Drop the feedback at once: what the key would copy changed. */
+    reset() {
+      copied = false
+      clearTimeout(timer)
+    },
     async copy(text: string) {
       try {
         await navigator.clipboard.writeText(text)

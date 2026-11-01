@@ -382,6 +382,11 @@ onBeforeUnmount(() => stopPreview?.())
 .clip-tool:hover:not(:disabled) {
   color: var(--color-foreground);
 }
+/* A remove key keeps the destructive ink, at rest and under the pointer. */
+.clip-tool.text-destructive,
+.clip-tool.text-destructive:hover:not(:disabled) {
+  color: var(--color-destructive);
+}
 .clip-tool:disabled {
   opacity: 0.35;
 }

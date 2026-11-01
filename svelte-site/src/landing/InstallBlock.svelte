@@ -18,13 +18,19 @@
 
   let active = $state(0)
   const clip = copier()
+  // Another step's command is not on the clipboard: its key starts fresh.
+  function pick(i: number) {
+    if (i === active) return
+    clip.reset()
+    active = i
+  }
 </script>
 
 <div class="box">
   <div class="box-top">
     <div role="group" aria-label="Install steps" class="seg">
       {#each STEPS as s, i (s.id)}
-        <button type="button" aria-pressed={active === i} onclick={() => (active = i)}>
+        <button type="button" aria-pressed={active === i} onclick={() => pick(i)}>
           {#if s.id !== "folder"}<ToolMark id={s.id} size={12} />{/if}
           {s.label}
         </button>

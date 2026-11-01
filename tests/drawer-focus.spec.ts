@@ -20,6 +20,8 @@ describe("DitherDrawer focus", () => {
           h(DitherDrawer, { open: open.value, title: "Filters", onClose: () => (open.value = false) }, () => [
             h("a", { id: "first-link", href: "#a" }, "a"),
             h("a", { id: "last-link", href: "#b" }, "b"),
+            // Hidden by CSS: never a Tab endpoint, or Tab from "b" would leave.
+            h("a", { id: "hidden-link", href: "#c", style: "display: none" }, "c"),
           ]),
         ]),
     )
