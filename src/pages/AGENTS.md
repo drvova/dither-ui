@@ -199,28 +199,43 @@ widgets/features; page-specific conventions live here.
   card and first section is a section of the family it names).
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), then `AgentStory.vue`, one agent session played as the
-  page scrolls: a stage pinned under the header (`--pin`, at most 23rem,
-  snug to the screen it builds) for a run of a notch of scroll (32svh)
-  per step, five steps (`story.ts`). The stage is one raised ground in
-  halves, never empty: left, the screen the agent lays out (the page's
-  ground, no ring or handles), its frame and heading there from the first
-  step, filling row by row (the count, the meter, the switch; every part
-  a live kit component); right, the ask as a sentence in ink from the
-  first step, then `DOES`, what the agent does in
-  words, each line under the ember check as it happens: reads every
-  component and its props (`get_registry`), lays out a Deploys screen
-  (`add_screen`), writes it as a Vue file (`get_code`), renders it as an
-  MP4 (`export_video`). No call times, arguments, tool names, paths or
-  commands show. The step is the marker crossing the viewport's middle
-  (one IntersectionObserver, armed after the markers render; no scroll
-  listener). What has not happened yet keeps its place, hidden and out of
-  reach, except the screen's switch: a real control, it keeps its tab stop
+  page scrolls: a stage pinned under the header (`--pin`, at most 23rem)
+  for a run of a notch of scroll (32svh) per step, five steps (`story.ts`:
+  a step per line of `DOES` plus the last). Composed as a product shot
+  (the craft of the stageshow skill: framing, restraint, motion with a
+  cause), corner bleed on one raised ground with one gutter (32px):
+  left, like copy beside a hero, the session: the ask as the sent message
+  (the page's ground, filled, no ring), then `DOES`, what the agent does
+  in words, line `i` working at step `i` under the ember `DitherSpinner`
+  and in full ink, done after it under the ember check and stepped back
+  to the muted ink (`lineState`; one 16px cell for both marks, so a line
+  never shifts); not yet said lines keep their place unseen. The lines:
+  reads every component and its props (`get_registry`), lays out a
+  Deploys screen (`add_screen`), writes it as a Vue file (`get_code`),
+  renders it as an MP4 (`export_video`). Right, the hero: the screen the
+  agent lays out on the page's ground, a gutter from the stage's top and
+  from the session, running off the stage's right edge and foot; its
+  title a plain label (no real heading in a figure), then the count (the
+  one big number, `DEPLOYS`, the sum of `DAYS`) beside the meter, the
+  switch, and the week's deploys as a dotted `Sparkline` seated on the
+  screen's foot, the only thing the crop cuts. Never blank: each part's
+  slot (the raised ground, at the part's own size) holds its place from
+  the first step, and the part arrives in it as the slot leaves, top to
+  bottom (`PARTS`), the screen whole before the last step; the last step,
+  every line done and the screen whole, is the still the story ends on.
+  One moving layer at a time: the slots are still, only the spinner
+  turns. No call times, arguments, tool names, paths or commands show.
+  The step is the marker crossing the viewport's middle (one
+  IntersectionObserver, armed after the markers render; no scroll
+  listener). The screen's switch is a real control: it keeps its tab stop
   whatever the scroll (out of the pointer's reach until it shows), and a
-  keyboard that reaches it lands the whole screen at once. Under 900px, or without an observer, nothing pins: the whole
-  session shows at once, the screen over the session. Screen readers get
-  the whole session as a caption; the stage is decoration. A screen is
-  made ONLY of registry components (`add_screen` lays them out), so every
-  line is true.
+  keyboard that reaches it lands the whole screen at once. Under 900px,
+  or without an observer, nothing pins and the last step shows: the
+  session over the screen, which keeps its bleed. Screen readers get the
+  whole session as a caption; the stage is decoration. A screen is made
+  ONLY of registry components (`add_screen` lays them out), so every line
+  is true. `tests/agent-story.spec.ts` pins the line walk and the last
+  step's still.
 - Inside (`#inside`, "Three parts, one engine."): three cards (the
   raised ground, 20px radius, like the bento's; one column under 900px),
   each headed by a tone strip flush to its top (`DitherGradient` from its
