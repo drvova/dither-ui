@@ -433,7 +433,8 @@ widgets/features; page-specific conventions live here.
   `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
   sentence case, 12px muted, + grid) → `PropsTable`, a spec sheet (a
   `.hardshell` cut at 10px, its column heads `.spec`; a row's `default` is
-  its value as code; "" prints "none"). The preview frame is a gel well
+  its value as code; "" prints "none"; under 640px, where three columns
+  cannot fit, each prop stacks over its type and default). The preview frame is a gel well
   (`.demo-well` + `.rim`: the pebble radius, the well's ground, a gloss on
   its top edge, recessed into the page) whose ground MUST stay one plain
   colour (the workbench's contrast reads the background through
@@ -653,6 +654,9 @@ widgets/features; page-specific conventions live here.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
+  Under 1024px the editor gives way to a notice: a still `DitherPoster`,
+  why the Studio wants a wide screen and a pointer, the chrome key that
+  copies the Studio's own link (to carry to a laptop) and the docs link.
 - The selection toolbar's `video` opens `VideoDialog`
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,

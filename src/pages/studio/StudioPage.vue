@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onBeforeUnmount, ref, watch } from "vue"
-import { DitherIcon } from "@dither-kit"
+import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
 import { addArtboard } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
 import { startHistory, stopHistory } from "@/features/history"
@@ -60,6 +60,8 @@ if (wanted && (CHART_TYPES as readonly string[]).includes(wanted)) {
 // shortcuts). Below lg we show a hint instead of a cramped, broken layout — and
 // skip mounting the heavy canvas widgets entirely.
 const isDesktop = ref(window.innerWidth >= 1024)
+// The Studio's own address, for a phone to carry to a wider screen.
+const studioLink = new URL(routePath("/studio"), location.href).href
 const onResize = () => (isDesktop.value = window.innerWidth >= 1024)
 window.addEventListener("resize", onResize)
 onBeforeUnmount(() => {
@@ -126,19 +128,36 @@ onBeforeUnmount(() => {
     <ShortcutsHelp />
   </div>
 
-  <!-- Small screens: the editor needs a desktop, so guide instead of breaking. -->
+  <!-- Small screens: the editor needs a desktop, so guide instead of
+       breaking: a still print of the kit, why, and the link to carry to a
+       wider screen (copied in one tap), the docs beside it. -->
   <div
     v-else
-    class="flex h-dvh flex-col items-center justify-center gap-5 bg-background px-8 text-center font-mono text-foreground antialiased"
+    class="flex min-h-dvh flex-col items-center justify-center gap-5 bg-background px-6 py-10 text-center font-mono text-foreground antialiased"
   >
-    <h1 class="text-xl tracking-tight">The Studio is best on a desktop</h1>
+    <div class="aspect-[4/3] w-full max-w-xs overflow-hidden rounded-2xl" aria-hidden="true">
+      <DitherPoster :seed="5" :cell="4" paused />
+    </div>
+    <h1 class="mt-3 text-xl tracking-tight">The Studio is best on a desktop</h1>
     <p class="max-w-xs text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
-      It is a Figma-style editor with a layer rail, an inspector and keyboard shortcuts, built for a wide screen and a
-      pointer. Open it on a laptop or desktop to design with the kit.
+      It is an infinite canvas with a layer rail, an inspector and keyboard shortcuts, made for a wide screen and a
+      pointer. Send yourself the link and pick it up on a laptop.
     </p>
-    <div class="mt-2 flex items-center gap-5 text-[12px] text-muted-foreground">
-      <a :href="routePath('/docs')" class="-my-1 py-1 transition-colors hover:text-foreground">Browse the docs</a>
-      <a :href="routePath('/')" class="-my-1 py-1 transition-colors hover:text-foreground">dither-ui.com</a>
+    <div class="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-[12px]">
+      <DitherClipboard :value="studioLink">
+        <template #default="{ copied }">
+          <button type="button" class="key-chrome inline-flex h-10 items-center gap-2 px-5 font-medium">
+            <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="13" :stroke-width="1.5" />{{
+              copied ? "Link copied" : "Copy the Studio link"
+            }}
+          </button>
+        </template>
+      </DitherClipboard>
+      <a
+        :href="routePath('/docs')"
+        class="-my-1 py-1 text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
+        >Browse the docs</a
+      >
     </div>
   </div>
 </template>
