@@ -515,19 +515,20 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   inset: 0;
 }
 
-/* The footer: the name, the docs link. */
+/* The footer: the name, the docs link, at page type (a card's copy is the
+   page's, never the size of the UI inside it). */
 .card-foot {
   display: flex;
   align-items: center;
-  min-height: 48px;
+  min-height: 56px;
   margin: 0;
-  padding: 0 20px 4px;
+  padding: 0 22px 6px;
 }
 
 .card-name {
   margin-block: -4px;
   padding-block: 4px;
-  font-size: 13px;
+  font-size: 17px;
   color: var(--ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;

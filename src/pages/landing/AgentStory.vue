@@ -271,7 +271,7 @@ onBeforeUnmount(() => {
   gap: 22px;
   align-self: start;
   width: calc(100% + 15%);
-  height: calc(100% - var(--gutter) + 60px);
+  height: calc(100% - var(--gutter) + 80px);
   margin-top: var(--gutter);
   padding: 28px;
   border-radius: 16px;
@@ -375,12 +375,12 @@ onBeforeUnmount(() => {
 }
 
 /* The chart, the filler the crop cuts: quiet (the dotted fill, low, so the
-   count stays the heaviest mark), seated on the screen's foot and running
-   well past the stage's. */
+   count stays the heaviest mark), right under the switch (no band of
+   nothing above it) and running well past the stage's foot. */
 .part-chart {
   flex: none;
-  height: 150px;
-  margin-top: auto;
+  height: 200px;
+  margin-top: 4px;
   align-items: stretch;
 }
 

@@ -193,8 +193,9 @@ widgets/features; page-specific conventions live here.
   next one's edge in view, every card the rail's height, the rail running
   out past the page's gutter), so it takes one screen on a tablet or a
   phone. A card is the raised ground (`--surface`, no border, 20px
-  radius) holding its art over its name, the link into `/docs/<id>` (no
-  family label). Interactive art keeps its own controls, so the card
+  radius) holding its art over its name at page type (17px; a card's copy
+  is the page's, never the size of the UI inside it), the link into
+  `/docs/<id>` (no family label). Interactive art keeps its own controls, so the card
   itself is never a link; on flush art the pause chip comes before the
   tools in the DOM, as it sits above them.
 - `hub.ts` is static data (the landing never loads the docs IA): `FAMILIES`
@@ -222,8 +223,8 @@ widgets/features; page-specific conventions live here.
   from the session, running off the stage's right edge and foot; its
   title a plain label (no real heading in a figure), then the count (the
   one big number, `DEPLOYS`, the sum of `DAYS`) beside the meter, the
-  switch, and the week's deploys as a dotted `Sparkline` seated on the
-  screen's foot, the only thing the crop cuts. Never blank: each part's
+  switch, and the week's deploys as a dotted `Sparkline` right under the
+  switch (no empty band above it), the only thing the crop cuts. Never blank: each part's
   slot (the raised ground, at the part's own size) holds its place from
   the first step, and the part arrives in it as the slot leaves, top to
   bottom (`PARTS`), the screen whole before the last step; the last step,
@@ -385,7 +386,9 @@ widgets/features; page-specific conventions live here.
   `ROAD.cell` CSS px at dpr 1, so the print reads the same on every screen
   and its width in cells is the art's CSS width) whose GLSL `road.ts`
   writes from `ROAD`: a star grain, rare
-  and blue over the columns, and on the road (`.foot-road`, the width's
+  and blue over the columns and rarer still where their words and the
+  copyright line sit (the footer's words lie on the page's ground, so no
+  speck lands on a letter), and on the road (`.foot-road`, the width's
   `ROAD.aspect` share, `narrowAspect` under `ROAD.narrow` px of the art's
   own width: a container query the shader matches by its width in cells,
   pinned by `tests/landing-facts.spec.ts`) a bundle of light trails that

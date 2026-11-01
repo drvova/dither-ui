@@ -259,7 +259,7 @@
     gap: 22px;
     align-self: start;
     width: calc(100% + 15%);
-    height: calc(100% - var(--gutter) + 60px);
+    height: calc(100% - var(--gutter) + 80px);
     margin-top: var(--gutter);
     padding: 28px;
     border-radius: 16px;
@@ -365,11 +365,12 @@
     pointer-events: auto;
   }
 
-  /* The chart, the filler the crop cuts: quiet, seated on the screen's foot. */
+  /* The chart, the filler the crop cuts: quiet, right under the switch,
+     running well past the stage's foot. */
   .part-chart {
     flex: none;
-    height: 150px;
-    margin-top: auto;
+    height: 200px;
+    margin-top: 4px;
     align-items: stretch;
   }
 

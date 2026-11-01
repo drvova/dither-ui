@@ -725,6 +725,17 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   position: relative;
 }
 
+/* The footer's words lie on the page's own ground, so the art's grain
+   passes behind them whole and no speck lands on a letter (as the
+   wordmark lies on its word). Unseen: the ground is the page's. */
+.foot-line,
+.foot-gh,
+.foot-h,
+.foot-col a,
+.foot-copy > span {
+  background: var(--background);
+}
+
 .foot-line {
   max-width: 22rem;
   margin: 0;
