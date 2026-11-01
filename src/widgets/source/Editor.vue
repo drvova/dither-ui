@@ -130,7 +130,7 @@ defineExpose({
   padding: 12px 10px 40px 0;
   overflow: hidden;
   text-align: right;
-  color: color-mix(in oklab, var(--color-muted-foreground) 55%, transparent);
+  color: var(--color-muted-foreground);
   background: var(--color-background);
   user-select: none;
   pointer-events: none;

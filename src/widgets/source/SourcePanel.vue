@@ -5,7 +5,7 @@
 // Revert, Copy, Download (all of them, zipped) and Run, which compiles the
 // edits in the page and hands the result to the preview. The kit files are
 // the repo's, served by the build at `kit/src/<vue|svelte>/`.
-import { computed, reactive, ref, shallowRef, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from "vue"
 import { copyText } from "@dither-kit"
 import { assetPath } from "@/shared/lib"
 import { download, zip } from "@/shared/lib/files"
@@ -178,6 +178,26 @@ function say(text: string) {
 }
 
 const tabs = ref<HTMLElement | null>(null)
+// More files scrolled out past the strip's right edge: the strip fades there,
+// so a narrow screen shows that the row goes on.
+const more = ref(false)
+const measure = () => {
+  const el = tabs.value
+  more.value = !!el && el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+}
+let resized: ResizeObserver | null = null
+onMounted(() => {
+  measure()
+  if (typeof ResizeObserver !== "undefined" && tabs.value) {
+    resized = new ResizeObserver(measure)
+    resized.observe(tabs.value)
+  }
+})
+onBeforeUnmount(() => resized?.disconnect())
+watch(
+  () => files.value.length,
+  () => requestAnimationFrame(measure),
+)
 function pick(f: SourceFile, focus = false) {
   if (f.path !== active.value.path) play("tap")
   activeKey.value = f.path
@@ -295,7 +315,15 @@ const ICONS = {
 <template>
   <div class="src hardshell">
     <div class="src-bar">
-      <div ref="tabs" class="src-tabs" role="tablist" aria-label="Source files" @keydown="roam">
+      <div
+        ref="tabs"
+        class="src-tabs"
+        :class="{ more }"
+        role="tablist"
+        aria-label="Source files"
+        @keydown="roam"
+        @scroll.passive="measure"
+      >
         <button
           v-for="f in files"
           :id="`${uid}-${f.path}`"
@@ -423,6 +451,10 @@ const ICONS = {
   scrollbar-width: none;
 }
 
+.src-tabs.more {
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+}
+
 .src-tab {
   position: relative;
   display: inline-flex;
@@ -500,7 +532,7 @@ const ICONS = {
   padding: 0 10px 0 8px;
   font-size: 11px;
   color: var(--color-foreground);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 24%, transparent);
+  box-shadow: inset 0 0 0 1px var(--edge);
 }
 
 .src-key:hover:not([aria-disabled="true"]),
@@ -560,7 +592,7 @@ const ICONS = {
   gap: 12px;
   padding: 6px 12px;
   font-size: 10.5px;
-  color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent);
+  color: var(--color-muted-foreground);
   border-top: 1px solid color-mix(in oklab, var(--color-border) 40%, transparent);
 }
 

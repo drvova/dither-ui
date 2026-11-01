@@ -8,8 +8,12 @@ a real tool, never a mock.
 
 ## Ownership
 
-- `SourcePanel.vue` — the panel: file tabs, the toolbar (Revert, Copy,
-  Download all as a zip, Run), the editor, Run's problems, a status line.
+- `SourcePanel.vue` — the panel: file tabs (a row that scrolls; while more
+  files sit past its right edge it fades there, so a phone shows the row
+  goes on), the toolbar (Revert, Copy, Download all as a zip, Run, whose
+  outline is the site's `--edge`), the editor, Run's problems, a status
+  line. Its inks are the theme's full ink or muted ink, never a fade of
+  either (the gutter's numbers and the keyboard hint included).
 - `Editor.vue` — a textarea with a line gutter (native undo, IME, screen
   readers); Tab / Shift+Tab indent the selected lines, Escape hands the
   next Tab back to the page (never a keyboard trap), Enter keeps the
