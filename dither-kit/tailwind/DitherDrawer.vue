@@ -13,9 +13,10 @@ const resolveSnap = (s: number) => (s <= 1 ? s * window.innerHeight : s)
 </script>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onBeforeUnmount, provide, ref, watch } from "vue"
+import { computed, inject, onBeforeUnmount, provide, ref, watch } from "vue"
 import { project, rubberband, velocityFrom, type VelocitySample } from "../engine/gesture"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
+import FocusScope from "./FocusScope.vue"
 
 const props = withDefaults(
   defineProps<{
@@ -37,14 +38,7 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ close: []; "update:snapPoint": [number] }>()
 
-const closeRef = ref<HTMLButtonElement | null>(null)
 const panelRef = ref<HTMLElement | null>(null)
-watch(
-  () => props.open,
-  (v) => {
-    if (v && props.modal) nextTick(() => closeRef.value?.focus())
-  },
-)
 
 // --- nesting: push this drawer back while a child drawer is open ------------
 const parent = inject(DRAWER_CHANNEL, null)
@@ -227,21 +221,29 @@ const panelStyle = computed(() => {
           aria-hidden="true"
           class="mx-auto mb-3 h-1 w-10 shrink-0 touch-none rounded-full bg-border"
         />
-        <div class="flex touch-none items-center justify-between gap-2 pb-3">
-          <span class="text-sm font-medium">{{ props.title }}</span>
-          <button
-            ref="closeRef"
-            type="button"
-            class="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
-            aria-label="Close"
-            @click="emit('close')"
-          >
-            ×
-          </button>
-        </div>
-        <div class="min-h-0 flex-1 overflow-y-auto" :data-no-swipe="props.side === 'bottom' ? true : undefined">
-          <slot />
-        </div>
+        <!-- A modal drawer holds focus like the kit's dialogs: in on open (the
+             close key first), Tab cycling inside, back to its opener on close. -->
+        <FocusScope
+          :autofocus="props.modal"
+          :trapped="props.modal"
+          :restore-focus="props.modal"
+          class="flex min-h-0 flex-1 flex-col outline-none"
+        >
+          <div class="flex touch-none items-center justify-between gap-2 pb-3">
+            <span class="text-sm font-medium">{{ props.title }}</span>
+            <button
+              type="button"
+              class="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
+              aria-label="Close"
+              @click="emit('close')"
+            >
+              ×
+            </button>
+          </div>
+          <div class="min-h-0 flex-1 overflow-y-auto" :data-no-swipe="props.side === 'bottom' ? true : undefined">
+            <slot />
+          </div>
+        </FocusScope>
       </div>
     </Transition>
   </Teleport>
