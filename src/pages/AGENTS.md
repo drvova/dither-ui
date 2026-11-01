@@ -228,7 +228,8 @@ widgets/features; page-specific conventions live here.
   `DitherReveal`) in its own ink and printer's screen (`INSIDE`: blue in
   Bayer cells, the ember in lines, bone in a halftone dot), its own
   character standing on the strip's foot at the right, half over the card
-  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px), then
+  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
+  plate of the card's ground so its ink never melts into the strip's), then
   its name chunky in the pixel face (`PixelWord.vue`, 5px cells: "kit",
   "studio", "bridge"; its title the heading's text for screen readers),
   two lines and its link: the kit,
@@ -239,7 +240,7 @@ widgets/features; page-specific conventions live here.
 - Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
   section head (a lede with a wink, the link to the styling docs), then
   one raised panel of three lists at reading size, generous like a menu
-  (18px marks, 15px names; two columns under 900px, one under 640px with
+  (18px marks, 15px names; three columns down to 640px, one under it with
   each list's rows two abreast): "Your styling" (`WORKS`), "Your agent"
   (the harnesses `bridge/dither-bridge.mjs` knows, `HARNESSES` in
   `facts.ts`, its ids and names in order, each under its own mark; keep
@@ -323,7 +324,8 @@ widgets/features; page-specific conventions live here.
   box on the raised ground whose top row is the `.seg` step picker (the
   kit's Folder glyph, then npm, pnpm and Bun's own marks) and the Copy
   key (both filled with the page's ground), the command under them in
-  mono with the ember `$`. A copy is ONE gesture: while copied the
+  mono with the ember `$` (under 640px the picker takes the top row alone
+  and the command wraps beside the key, so all of it shows). A copy is ONE gesture: while copied the
   command shows selected (the page's ground behind it) as the key's label
   rolls to "Copied" under a check; both let go together; reduced motion
   swaps both at once. Its four steps (degit folder + npm/pnpm/bun deps)
@@ -403,7 +405,9 @@ widgets/features; page-specific conventions live here.
   the top to 92% at the foot, each bar at the foot of its pitch), a
   vertical ramp printed through a screen of lines. One SVG: the text is a
   `clipPath` (its `textLength` holds the word to the box's width whichever
-  face has loaded) and the rows are rects in `--ink`; flat, one ink,
+  face has loaded) and the rows are rects in `--ink`, over the same word
+  laid in the page's ground, so the road's art passes behind the letters
+  whole and never shows between their rows; flat, one ink,
   decorative (`aria-hidden`), nothing that glows or moves.
 
 ### docs/

@@ -263,7 +263,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
                   <DitherGradient :from="c.ink" :to="STOCK" direction="down" :cell="4" />
                 </DitherReveal>
               </DitherScreen>
-              <DitherAvatar :name="c.title" :color="c.ink" :size="56" class="inside-who" aria-hidden="true" />
+              <span class="inside-who" aria-hidden="true"
+                ><DitherAvatar :name="c.title" :color="c.ink" :size="56"
+              /></span>
               <h3 class="inside-h">
                 <PixelWord :text="c.name" :cell="5" /><span class="sr-only">{{ c.title }}</span>
               </h3>
@@ -480,11 +482,15 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 }
 
 /* The character: on the strip's foot, half over the card, like a mascot
-   stepping out of its picture. */
+   stepping out of its picture, on a plate of the card's ground so its own
+   ink never melts into the strip's. */
 .inside-who {
   position: absolute;
-  top: calc(120px - 36px);
-  right: 24px;
+  top: calc(120px - 42px);
+  right: 18px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--surface);
 }
 
 /* The name, chunky in the pixel face. */
@@ -821,7 +827,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
     height: 72px;
   }
   .inside-who {
-    top: calc(72px - 36px);
+    top: calc(72px - 42px);
   }
   .foot-in {
     grid-template-columns: repeat(2, minmax(0, 1fr));

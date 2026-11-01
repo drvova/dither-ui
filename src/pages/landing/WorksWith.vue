@@ -49,8 +49,8 @@ import { HARNESSES, MODEL_NAMES, WORKS } from "./facts"
 
 <style scoped>
 /* Three lists at reading size, on the page width: each a quiet heading over
-   its rows, a mark and a name, generous like a menu. Two columns, then one
-   (its rows two abreast), as the page narrows. */
+   its rows, a mark and a name, generous like a menu. Three columns down
+   to a phone, then one (its rows two abreast). */
 .works {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -102,7 +102,8 @@ import { HARNESSES, MODEL_NAMES, WORKS } from "./facts"
 
 @media (max-width: 899px) {
   .works {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+    padding-inline: 24px;
   }
 }
 
