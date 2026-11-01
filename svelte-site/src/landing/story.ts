@@ -6,8 +6,6 @@
 // screen's frame and heading are there from the first, so the stage is
 // never empty; each line of `DOES` appears at its step, and the frame's
 // parts at `PARTS`.
-// Copied verbatim from the Vue landing (`src/pages/landing/story.ts`); re-copy
-// on change there.
 export const ASK = "A deploy panel: this week's deploys, the build minutes used and an auto deploy switch."
 
 export const STEPS = 5

@@ -8,9 +8,8 @@
   // and a footer of the brand and link columns over the line-screen
   // wordmark. Michroma for display, mono for the rest; everything that
   // moves is the kit.
-  import { DitherGradient, DitherScreen, type ScreenKind } from "@dither-kit-svelte"
-  import "../../../src/shared/fonts/display.css"
-  import type { MarkId } from "../../../src/shared/ui/marks"
+  import { DitherAvatar, DitherGradient, DitherScreen, type ScreenKind } from "@dither-kit-svelte"
+  import "../fonts/display.css"
   import { copier } from "../copy.svelte"
   import "./landing.css"
   import AgentStory from "./AgentStory.svelte"
@@ -24,8 +23,10 @@
   import LineWordmark from "./LineWordmark.svelte"
   import { GITHUB, SITE, STUDIO } from "./links"
   import Plate from "./Plate.svelte"
+  import PixelWord from "./PixelWord.svelte"
   import { PLATES, STOCK } from "./plate"
   import ToolMark from "./ToolMark.svelte"
+  import WorksWith from "./WorksWith.svelte"
 
   const SKILL = `${SITE}/agent/SKILL.md`
 
@@ -38,52 +39,43 @@
   ].join(" ")
   const prompt = copier()
 
-  // The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES: ids and
-  // names), in its order, each under the tool's own mark. Keep in sync.
-  const HARNESSES: { id: MarkId; name: string }[] = [
-    { id: "claude", name: "Claude Code" },
-    { id: "codex", name: "Codex" },
-    { id: "gemini", name: "Gemini CLI" },
-    { id: "qwen", name: "Qwen Code" },
-    { id: "omp", name: "oh-my-pi" },
-    { id: "goose", name: "Goose" },
-    { id: "opencode", name: "OpenCode" },
-    { id: "auggie", name: "Auggie" },
-  ]
-
   // What's inside: the kit, the Studio and the bridge, each a card headed by
   // a tone strip the kit prints in its own ink through its own printer's
   // screen (blue in Bayer cells, the ember in lines, bone in a halftone
-  // dot), then its title, two lines and the link that leads on.
+  // dot), its own character (the kit's seeded avatar of its title, in its
+  // ink) standing on the strip's foot, its name in the pixel face, two lines
+  // and its link.
   const INSIDE: {
     title: string
+    name: string
     ink: string
     screen: ScreenKind
     text: string
     link: { label: string; href: string }
-    harnesses?: boolean
   }[] = [
     {
       title: "The kit",
+      name: "kit",
       ink: "blue",
       screen: "bayer",
-      text: "Plain source you own: one engine of rasters under every component, written in Svelte 5 runes.",
+      text: "Plain source you own, one engine of rasters under every component, in Svelte 5 runes. Change anything, it's yours.",
       link: { label: "Read the quick start", href: docsHref("getting-started") },
     },
     {
       title: "The Studio",
+      name: "studio",
       ink: "orange",
       screen: "line",
-      text: "An infinite canvas for screens of kit parts, each frame exported as Vue, a PNG or an MP4.",
+      text: "An infinite canvas to play with screens of kit parts. Export a frame as Vue, a PNG or an MP4, then go again.",
       link: { label: "Open the studio", href: STUDIO },
     },
     {
       title: "The agent bridge",
+      name: "bridge",
       ink: "#e4e1d8",
       screen: "dot",
-      text: "A SKILL.md teaches your agent the Studio; one Node file starts the harness you already use.",
+      text: "A SKILL.md teaches your agent the Studio, and one Node file starts the harness you already use, signed in as you.",
       link: { label: "Read the agent skill", href: SKILL },
-      harnesses: true,
     },
   ]
 
@@ -158,8 +150,8 @@
           <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
           <div class="sec-side">
             <p class="sec-lede">
-              Give your coding agent the skill file, then ask for a screen. Each tool call lands on the canvas as a frame
-              of kit parts, and undo takes it back.
+              Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a frame of
+              kit parts, and undo takes it back when it gets ideas.
             </p>
             <a href={SKILL} class="more-link">Read the agent skill</a>
           </div>
@@ -174,8 +166,8 @@
           <h2 id="inside-h" class="section-title chrome-type">Three parts, one engine.</h2>
           <div class="sec-side">
             <p class="sec-lede">
-              A toolkit you copy into your repo, a Studio to compose with it, and a bridge that hands the Studio to the
-              coding agent you already use. All of it is code you can read.
+              A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already trust.
+              No black boxes: all of it is code you can read.
             </p>
           </div>
         </div>
@@ -187,15 +179,9 @@
                   <DitherGradient from={c.ink} to={STOCK} direction="down" cell={4} />
                 </DitherScreen>
               </div>
-              <h3 class="inside-h"><span class="inside-cell" aria-hidden="true"></span>{c.title}</h3>
+              <span class="inside-who" aria-hidden="true"><DitherAvatar name={c.title} color={c.ink} size={56} /></span>
+              <h3 class="inside-h"><PixelWord text={c.name} cell={5} /><span class="sr-only">{c.title}</span></h3>
               <p class="inside-p">{c.text}</p>
-              {#if c.harnesses}
-                <ul class="marks" aria-label="Harnesses the bridge starts">
-                  {#each HARNESSES as h (h.id)}
-                    <li><ToolMark id={h.id} size={13} />{h.name}</li>
-                  {/each}
-                </ul>
-              {/if}
               <a href={c.link.href} class="more-link">{c.link.label}</a>
             </li>
           {/each}
@@ -214,6 +200,9 @@
           </ul>
         </div>
       </section>
+
+      <!-- What the kit meets on the reader's side. -->
+      <WorksWith />
 
       <Plate plate={PLATES.beforeInstall} />
 
@@ -255,7 +244,9 @@
         <a href="#/" class="foot-name"
           ><BrandGather class="foot-lockup" scene={STAGINGS.foot} /><span class="sr-only">dither-ui</span></a
         >
-        <p class="foot-line">A dithered UI toolkit for Svelte 5, the Vue kit's twin on the same engine.</p>
+        <p class="foot-line">
+          A dithered UI toolkit for Svelte 5, the Vue kit's twin on the same engine. Printed one cell at a time.
+        </p>
         <a href={GITHUB} target="_blank" rel="noreferrer" class="foot-gh"
           ><ToolMark id="github" size={13} />GitHub<span class="sr-only"> (opens in a new tab)</span></a
         >
@@ -344,6 +335,7 @@
   }
 
   .inside > li {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -362,21 +354,23 @@
     margin: 0 -24px 8px;
   }
 
-  .inside-h {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink);
+  /* The character: on the strip's foot, half over the card, like a mascot
+     stepping out of its picture, on a plate of the card's ground so its own
+     ink never melts into the strip's. */
+  .inside-who {
+    position: absolute;
+    top: calc(120px - 42px);
+    right: 18px;
+    padding: 6px;
+    border-radius: 14px;
+    background: var(--surface);
   }
 
-  /* The ember cell beside each title: the kit's own unit. */
-  .inside-cell {
-    width: 6px;
-    height: 6px;
-    background: var(--signal);
+  /* The name, chunky in the pixel face. */
+  .inside-h {
+    display: flex;
+    margin: 4px 0 0;
+    color: var(--ink);
   }
 
   .inside-p {
@@ -386,23 +380,6 @@
     line-height: 1.65;
     color: var(--ink-3);
     text-wrap: pretty;
-  }
-
-  .marks {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 11.5px;
-    color: var(--ink-3);
-  }
-
-  .marks li {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
   }
 
   /* The families: five columns, each its size as a big figure over its
@@ -670,6 +647,9 @@
     }
     .inside-art {
       height: 72px;
+    }
+    .inside-who {
+      top: calc(72px - 42px);
     }
     .foot-in {
       grid-template-columns: repeat(2, minmax(0, 1fr));

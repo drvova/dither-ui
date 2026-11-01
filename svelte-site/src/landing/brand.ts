@@ -1,10 +1,8 @@
 // The brand as cells: the mark, and the lockup it leads with the pixel
 // wordmark, and its moment, `choreograph`, pure: cells in, a path per cell
 // out, in one of five moves, so each place the brand stands (the hero, the
-// plates, the footer) forms it its own way. `BrandGather.svelte` plays it.
-// Copied from the Vue landing (`src/pages/landing/brand.ts`): its imports
-// and component names are this site's. Re-copy on change there.
-import { xorshift32 } from "../../../dither-kit-svelte/engine/pixel"
+// plates, the footer) forms it its own way. `BrandGather.vue` plays it.
+import { xorshift32 } from "@dither-kit/engine/pixel"
 import { layoutPixelText, PIXEL_ROWS } from "./pixel-type"
 
 /** The brand mark as the cells of a 7x7 grid: the diamond within three

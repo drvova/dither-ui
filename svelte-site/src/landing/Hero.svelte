@@ -4,10 +4,9 @@
   // of it, its screen sliding inside the mark), on the obsidian like a print
   // on black stock. The film is a key away.
   import { Poster } from "@dither-kit-svelte"
-  import type { MarkId } from "../../../src/shared/ui/marks"
   import BrandGather from "./BrandGather.svelte"
   import { STAGINGS } from "./brand"
-  import { COMPONENT_COUNT, MATRIX, docsHref } from "./facts"
+  import { COMPONENT_COUNT, MATRIX, WORKS, docsHref } from "./facts"
   import { STUDIO } from "./links"
   import PauseChip from "./PauseChip.svelte"
   import { INKS } from "./plate"
@@ -24,12 +23,6 @@
 
   // The print's screen slides by itself, so it carries a pause (WCAG 2.2.2).
   let printing = $state(true)
-
-  // What the kit works with, each under its own mark.
-  const WORKS: { id: MarkId; name: string }[] = [
-    { id: "svelte", name: "Svelte 5" },
-    { id: "tailwind", name: "Tailwind v4" },
-  ]
 </script>
 
 <section aria-labelledby="hero-h" class="hero">

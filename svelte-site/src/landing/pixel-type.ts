@@ -1,8 +1,7 @@
 // Pixel type: a 5×7 bitmap face (proportional — I, the hyphen and the
-// punctuation are narrower) for the brand's wordmark. Pure: a string in, a
-// list of lit cells out; `BrandGather.svelte` draws them as its own cells.
-// Copied from the Vue landing (`src/pages/landing/pixel-type.ts`), naming
-// this site's component; re-copy on change there.
+// punctuation are narrower) for the brand's wordmark, with a lowercase set
+// (four wide, x-height from the third row) for the kit's parts' names. Pure: a string in, a
+// list of lit cells out; `BrandGather.vue` draws them as its own cells.
 
 /** Rows top to bottom; `#` is a lit cell. Every row of a glyph is as wide
  * as the glyph. */
@@ -24,7 +23,17 @@ const FACE: Record<string, readonly string[]> = {
   R: ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
   T: ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
   U: ["#...#", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+  b: ["#...", "#...", "###.", "#..#", "#..#", "#..#", "###."],
+  d: ["...#", "...#", ".###", "#..#", "#..#", "#..#", ".###"],
+  e: ["....", "....", ".##.", "#..#", "####", "#...", ".###"],
+  g: ["....", "....", ".###", "#..#", ".###", "...#", ".##."],
+  i: ["#", ".", "#", "#", "#", "#", "#"],
   k: ["#...", "#...", "#..#", "#.#.", "##..", "#.#.", "#..#"],
+  o: ["....", "....", ".##.", "#..#", "#..#", "#..#", ".##."],
+  r: ["....", "....", "#.##", "##..", "#...", "#...", "#..."],
+  s: ["....", "....", ".###", "#...", ".##.", "...#", "###."],
+  t: [".#.", ".#.", "###", ".#.", ".#.", ".#.", "..#"],
+  u: ["....", "....", "#..#", "#..#", "#..#", "#..#", ".###"],
   "-": ["...", "...", "...", "###", "...", "...", "..."],
   "+": [".....", "..#..", "..#..", "#####", "..#..", "..#..", "....."],
   "×": [".....", "#...#", ".#.#.", "..#..", ".#.#.", "#...#", "....."],

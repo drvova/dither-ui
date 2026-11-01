@@ -4,7 +4,9 @@
   // vertical ramp through a screen of lines), flat, one ink, nothing that
   // glows or moves. One SVG: the text is the clip and the rows are rects, so
   // it scales with its box; `textLength` holds the word to the box's width
-  // whichever face has loaded.
+  // whichever face has loaded. Under its rows the word is laid in the page's
+  // ground, so anything behind it passes behind the letters whole and never
+  // shows through between their rows.
   const W = 1000
   const H = 196
   const TOP = 30
@@ -29,6 +31,7 @@
       <text x="0" y={BASE} textLength={W} lengthAdjust="spacingAndGlyphs">dither-ui</text>
     </clipPath>
   </defs>
+  <text class="ground" x="0" y={BASE} textLength={W} lengthAdjust="spacingAndGlyphs">dither-ui</text>
   <g clip-path={`url(#${clip})`}>
     {#each rows as r, i (i)}
       <rect x="0" y={r.y} width={W} height={r.h} />
@@ -47,5 +50,9 @@
   .line-wordmark text {
     font-family: var(--display-face);
     font-size: 196px;
+  }
+
+  .line-wordmark .ground {
+    fill: var(--background);
   }
 </style>

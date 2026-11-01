@@ -1,10 +1,8 @@
 // The plates: print sheets between the landing's sections, each the brand
-// small in a wide field. One table sets the series; `Plate.svelte` prints a row
+// small in a wide field. One table sets the series; `Plate.vue` prints a row
 // of it. Each plate is tone thinning from its top edge to a clear band and
 // rising from it to the foot, the brand (`brand.ts`) standing in the band.
-// Copied from the Vue landing (`src/pages/landing/plate.ts`): its imports
-// and component names are this site's. Re-copy on change there.
-import type { PixelColor, ScreenKind } from "../../../dither-kit-svelte/engine/pixel"
+import type { PixelColor, ScreenKind } from "@dither-kit"
 import type { Move, Scene } from "./brand"
 
 /** The plates' stock: the raised ground (`--surface`) as a colour the kit

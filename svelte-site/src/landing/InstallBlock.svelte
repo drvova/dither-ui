@@ -185,6 +185,39 @@
     transform: translateY(-1.3em);
   }
 
+  /* On a phone the picker takes the top row alone, and the command wraps
+     beside the copy key under it, so the whole command shows. */
+  @media (max-width: 639px) {
+    .box {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+    .box-top {
+      display: contents;
+    }
+    .seg {
+      grid-column: 1 / -1;
+      margin: 10px 10px 0 12px;
+    }
+    .frame {
+      grid-area: 2 / 1;
+      height: auto;
+      min-height: 56px;
+      padding: 12px 12px 12px 18px;
+    }
+    .cmd {
+      align-items: baseline;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.6;
+    }
+    .copy {
+      grid-area: 2 / 2;
+      margin-right: 10px;
+    }
+  }
+
   @media (forced-colors: active) {
     .copy {
       border: 1px solid ButtonText;

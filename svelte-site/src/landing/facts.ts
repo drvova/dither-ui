@@ -7,6 +7,7 @@ import * as kit from "@dither-kit-svelte"
 import { SCREENS, SCREEN_KINDS } from "@dither-kit-svelte"
 import pkg from "../../../dither-kit-svelte/package.json"
 import { GROUPS } from "../docs/nav"
+import type { MarkId } from "../shared/marks"
 
 /** Every component the kit's barrel exports (a Svelte 5 component is a
  * function; the barrel's other capitalised names are data). */
@@ -61,4 +62,25 @@ export const SPECS: readonly { label: string; value: string }[] = [
   { label: "Runes", value: "Svelte 5 runes only, no legacy API" },
   { label: "Packages", value: RUNTIME_DEPS.join(", ") },
   { label: "Styling", value: "Tailwind v4 over theme tokens you override" },
+]
+
+/** What the kit styles with, each under its own mark: Svelte 5, Tailwind v4
+ * and the plain CSS custom properties it themes from. */
+export const WORKS: readonly { id: MarkId; name: string }[] = [
+  { id: "svelte", name: "Svelte 5" },
+  { id: "tailwind", name: "Tailwind v4" },
+  { id: "css", name: "CSS variables" },
+]
+
+/** The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES: ids and
+ * names), in its order. */
+export const HARNESSES: readonly { id: MarkId; name: string }[] = [
+  { id: "claude", name: "Claude Code" },
+  { id: "codex", name: "Codex" },
+  { id: "gemini", name: "Gemini CLI" },
+  { id: "qwen", name: "Qwen Code" },
+  { id: "omp", name: "oh-my-pi" },
+  { id: "goose", name: "Goose" },
+  { id: "opencode", name: "OpenCode" },
+  { id: "auggie", name: "Auggie" },
 ]

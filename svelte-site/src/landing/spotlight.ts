@@ -3,8 +3,6 @@
 // pointer or focus is on; else the card the reader last chose, while any of
 // it is on screen; else the first card, in page order, crossing the middle
 // of the viewport; else the last one that played.
-// Copied verbatim from the Vue landing (`src/pages/landing/spotlight.ts`); re-copy
-// on change there.
 export type Spot<T> = {
   pointed: T | null
   chosen: T | null

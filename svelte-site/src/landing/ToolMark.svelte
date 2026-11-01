@@ -1,9 +1,8 @@
 <script lang="ts">
   // A tool's mark in currentColor. Always decorative: the tool's name is the
-  // text beside it. The marks are the Vue site's own table
-  // (`src/shared/ui/marks.ts`, the tools' real logos), read by path, never
-  // copied, so the two sites show one set.
-  import { MARKS, type MarkId } from "../../../src/shared/ui/marks"
+  // text beside it. The marks are `shared/marks.ts`, the Vue site's table of
+  // the tools' real logos, copied byte for byte.
+  import { MARKS, type MarkId } from "../shared/marks"
 
   let { id, size = 14 }: { id: MarkId; size?: number } = $props()
   const mark = $derived(MARKS[id])
