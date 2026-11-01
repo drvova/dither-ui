@@ -14,7 +14,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@dither-kit-svelte": ["../dither-kit-svelte/index.ts"]
+      "@dither-kit-svelte": ["../dither-kit-svelte/index.ts"],
+      "@dither-kit": ["./src/landing/kit-types.ts"],
+      "@dither-kit/engine/*": ["../dither-kit-svelte/engine/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.svelte", "rstack.config.ts"]

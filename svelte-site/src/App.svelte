@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Landing from "./Landing.svelte"
+  import Landing from "./landing/Landing.svelte"
   import DocsPage from "./docs/DocsPage.svelte"
 
   // Minimal hash router: `#/docs[...]` → docs, everything else → landing.
