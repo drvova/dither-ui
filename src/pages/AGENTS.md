@@ -35,10 +35,13 @@ widgets/features; page-specific conventions live here.
   an eyebrow over a title, and in copy middle
   dots, em dashes and arrow-ended links. Additions must remove something
   or justify their presence.
-- Voice: calm and procedural. Copy says what the kit is and what to do
-  next ("Copy the folder", "use it here", "ask for a screen"), never what
-  it will feel like; every figure it states is read from the kit through
-  `facts.ts` or `hub.ts`, never typed.
+- Voice: calm and procedural, warm with a wink (the user's call, after a
+  playful reference site: its taste, never its words or devices). Copy
+  says what the kit is and what to do next ("Copy the folder", "poke it",
+  "ask for a screen") and may smile while it does ("undo takes it back
+  when it gets ideas", "Printed one cell at a time"), never hype and never
+  what it will feel like; every figure it states is read from the kit
+  through `facts.ts` or `hub.ts`, never typed.
 - Copy and markup follow the design.how bans the user picked: sentence
   case for headings, keys and links, no uppercase anywhere in the page's
   own copy; every link names where it goes (an
@@ -128,7 +131,9 @@ widgets/features; page-specific conventions live here.
   Retake all three from the trailer's edit when the film changes (1080p,
   each about 8 MB).
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
-  in and its lit cells out; the brand's lockup sets "DITHER-UI" in it. A
+  in and its lit cells out, with a lowercase set (four wide, x-height from
+  the third row); the brand's lockup sets "DITHER-UI" in it and
+  `PixelWord.vue` draws the parts' names. A
   string with a glyph the face lacks throws; every string the page sets
   is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the hero's and
@@ -220,8 +225,12 @@ widgets/features; page-specific conventions live here.
   each headed by a tone strip flush to its top (`DitherGradient` from its
   ink to `STOCK`, 120px, 72px on a phone, printing in through
   `DitherReveal`) in its own ink and printer's screen (`INSIDE`: blue in
-  Bayer cells, the ember in lines, bone in a halftone dot), then its kit
-  glyph in the ember beside its title, two lines and its link: the kit,
+  Bayer cells, the ember in lines, bone in a halftone dot), its own
+  character standing on the strip's foot at the right, half over the card
+  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px), then
+  its name chunky in the pixel face (`PixelWord.vue`, 5px cells: "kit",
+  "studio", "bridge"; its title the heading's text for screen readers),
+  two lines and its link: the kit,
   the Studio, the agent bridge (with the harnesses
   `bridge/dither-bridge.mjs` knows, its `HARNESSES` ids and names in
   order, each under its own mark; keep in sync, `tests/marks.spec.ts`

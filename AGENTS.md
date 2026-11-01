@@ -135,7 +135,7 @@ Default section order:
   kit's diamond standing over its own dithered floor; a quiet line of what
   it works with under the keys, signed off with the brand forming out of
   the open field before the print starts (the brand forms its own way in
-  each place it stands: the hero, each plate, the footer); copy calm and procedural, every figure
+  each place it stands: the hero, each plate, the footer); copy calm and procedural, warm with a wink, every figure
   read from the kit), then
   sections under a title with a lead beside it, print plates of the brand
   small in a wide field between them (after the bento and before the

@@ -10,12 +10,12 @@
 // that moves is the kit.
 import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue"
 import {
+  DitherAvatar,
   DitherClipboard,
   DitherGradient,
   DitherIcon,
   DitherReveal,
   DitherScreen,
-  type IconName,
   type PixelColor,
   type ScreenKind,
 } from "@dither-kit"
@@ -30,6 +30,7 @@ import { RUNTIME_DEPS, SPECS } from "./facts"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
+import PixelWord from "./PixelWord.vue"
 import Plate from "./Plate.vue"
 import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
@@ -70,11 +71,12 @@ const HARNESSES = [
 
 // What's inside: the kit, the Studio and the bridge, each a card headed by a
 // tone strip the kit prints in its own ink through its own printer's screen
-// (blue in Bayer cells, the ember in lines, bone in a halftone dot), then
-// its glyph and title, two lines and the link that leads on.
+// (blue in Bayer cells, the ember in lines, bone in a halftone dot), its own
+// character (the kit's seeded avatar of its title, in its ink) standing on
+// the strip's foot, its name in the pixel face, two lines and its link.
 const INSIDE: {
   title: string
-  icon: IconName
+  name: string
   ink: PixelColor
   screen: ScreenKind
   text: string
@@ -82,26 +84,26 @@ const INSIDE: {
 }[] = [
   {
     title: "The kit",
-    icon: "Grid",
+    name: "kit",
     ink: "blue",
     screen: "bayer",
-    text: "Plain source you own: one engine of rasters and a seekable clock under every component.",
+    text: "Plain source you own, one engine of rasters and a seekable clock under every component. Change anything, it's yours.",
     link: { label: "Read the quick start", href: routePath("/docs/getting-started") },
   },
   {
     title: "The Studio",
-    icon: "Layout",
+    name: "studio",
     ink: "orange",
     screen: "line",
-    text: "An infinite canvas for screens of kit parts, each frame exported as Vue, a PNG or an MP4.",
+    text: "An infinite canvas to play with screens of kit parts. Export a frame as Vue, a PNG or an MP4, then go again.",
     link: { label: "Open the studio", href: routePath("/studio") },
   },
   {
     title: "The agent bridge",
-    icon: "Bot",
+    name: "bridge",
     ink: "#e4e1d8",
     screen: "dot",
-    text: "A SKILL.md teaches your agent the Studio; one Node file starts the harness you already use.",
+    text: "A SKILL.md teaches your agent the Studio, and one Node file starts the harness you already use, signed in as you.",
     link: { label: "Read the agent skill", href: assetPath("/agent/SKILL.md") },
   },
 ]
@@ -245,8 +247,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
             <div class="sec-side">
               <p class="sec-lede">
-                Give your coding agent the skill file, then ask for a screen. Each tool call lands on the canvas as a
-                frame of kit parts, and undo takes it back.
+                Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a
+                frame of kit parts, and undo takes it back when it gets ideas.
               </p>
               <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
             </div>
@@ -261,8 +263,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             <h2 id="inside-h" class="section-title chrome-type">Three parts, one engine.</h2>
             <div class="sec-side">
               <p class="sec-lede">
-                A toolkit you copy into your repo, a Studio to compose with it, and a bridge that hands the Studio to
-                the coding agent you already use. All of it is code you can read.
+                A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already
+                trust. No black boxes: all of it is code you can read.
               </p>
             </div>
           </div>
@@ -273,7 +275,10 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
                   <DitherGradient :from="c.ink" :to="STOCK" direction="down" :cell="4" />
                 </DitherReveal>
               </DitherScreen>
-              <h3 class="inside-h"><DitherIcon :name="c.icon" :size="15" :stroke-width="1.5" />{{ c.title }}</h3>
+              <DitherAvatar :name="c.title" :color="c.ink" :size="56" class="inside-who" aria-hidden="true" />
+              <h3 class="inside-h">
+                <PixelWord :text="c.name" :cell="5" /><span class="sr-only">{{ c.title }}</span>
+              </h3>
               <p class="inside-p">{{ c.text }}</p>
               <ul v-if="c.title === 'The agent bridge'" class="marks" aria-label="Harnesses the bridge starts">
                 <li v-for="h in HARNESSES" :key="h.id"><ToolMark :id="h.id" :size="13" />{{ h.name }}</li>
@@ -357,7 +362,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
                 >dither-ui</span
               ></a
             >
-            <p class="foot-line">A dithered UI toolkit with a Studio to compose it and a skill for your agent.</p>
+            <p class="foot-line">
+              A dithered UI toolkit, a Studio to play in and a skill for your agent. Printed one cell at a time.
+            </p>
             <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class="foot-gh"
               ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
             >
@@ -460,6 +467,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 }
 
 .inside > li {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -483,18 +491,19 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   inset: 0;
 }
 
-.inside-h {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--ink);
+/* The character: on the strip's foot, half over the card, like a mascot
+   stepping out of its picture. */
+.inside-who {
+  position: absolute;
+  top: calc(120px - 36px);
+  right: 24px;
 }
 
-.inside-h :deep(svg) {
-  color: var(--signal);
+/* The name, chunky in the pixel face. */
+.inside-h {
+  display: flex;
+  margin: 4px 0 0;
+  color: var(--ink);
 }
 
 .inside-p {
@@ -839,6 +848,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   }
   .inside-art {
     height: 72px;
+  }
+  .inside-who {
+    top: calc(72px - 36px);
   }
   .foot-in {
     grid-template-columns: repeat(2, minmax(0, 1fr));
