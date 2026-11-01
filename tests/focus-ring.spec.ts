@@ -10,12 +10,12 @@ import { describe, expect, it } from "rstack/test"
 const ROOTS = ["dither-kit/tailwind", "dither-kit-svelte", "src", "svelte-site/src"]
 const root = new URL("..", import.meta.url).pathname
 
-function* sources(dir: string): Generator<string> {
+function* sources(dir: string, kinds = /\.(vue|ts|svelte)$/): Generator<string> {
   for (const name of readdirSync(dir)) {
     if (name === "node_modules" || name.startsWith(".")) continue
     const path = join(dir, name)
-    if (statSync(path).isDirectory()) yield* sources(path)
-    else if (/\.(vue|ts|svelte)$/.test(name)) yield path
+    if (statSync(path).isDirectory()) yield* sources(path, kinds)
+    else if (kinds.test(name)) yield path
   }
 }
 
@@ -42,5 +42,22 @@ describe("focus indicators", () => {
       }
     expect(off).toEqual([])
     expect(seen).toBeGreaterThan(40)
+  })
+
+  // The same rule in a stylesheet: a `:focus` rule whose border, outline or
+  // shadow is a mix (a faded foreground) or the accent (a tint).
+  it("draw in the ring ink in stylesheets too", () => {
+    const RULE = /([^{}]*:focus(?:-visible|-within)?\b[^{}]*)\{([^}]*)\}/g
+    const INDICATOR = /(?:border(?:-[a-z]+)?(?:-color)?|outline(?:-color)?|box-shadow)\s*:\s*([^;]+)/g
+    const off: string[] = []
+    for (const dir of ROOTS)
+      for (const file of sources(join(root, dir), /\.(vue|svelte|css)$/)) {
+        const text = readFileSync(file, "utf8")
+        for (const rule of text.matchAll(RULE))
+          for (const decl of rule[2].matchAll(INDICATOR))
+            if (/color-mix|var\(--(?:color-)?accent\)/.test(decl[1]))
+              off.push(`${file.slice(root.length)}: ${rule[1].trim().split("\n").pop()} { ${decl[0].trim()} }`)
+      }
+    expect(off).toEqual([])
   })
 })

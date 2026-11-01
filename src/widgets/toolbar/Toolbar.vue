@@ -244,7 +244,7 @@ async function exportPng() {
                 type="text"
                 :aria-label="naming === 'new' ? 'New project name' : 'Project name'"
                 placeholder="Project name"
-                class="h-7 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
+                class="h-7 w-full rounded-md border border-edge bg-background px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
                 @keydown.esc.stop="naming = null"
               />
             </form>
@@ -279,7 +279,7 @@ async function exportPng() {
               Open file
             </button>
             <div class="my-1 h-px bg-border" />
-            <button type="button" role="menuitem" class="menu-row text-red-400" @click="removeProject">
+            <button type="button" role="menuitem" class="menu-row text-destructive" @click="removeProject">
               Delete project
             </button>
           </div>
@@ -317,7 +317,7 @@ async function exportPng() {
               type="search"
               name="component-search"
               :placeholder="`Search ${COMPONENT_REGISTRY.length} components…`"
-              class="h-9 w-full rounded-md border border-border bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
+              class="h-9 w-full rounded-md border border-edge bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
               @keydown.esc="libraryOpen = false"
             />
           </label>
@@ -455,7 +455,7 @@ async function exportPng() {
         <button v-else type="button" title="Group (⌘G)" class="tool wide" @click="groupSelected">
           <DitherIcon name="Group" :size="14" :stroke-width="1.5" /><span class="lbl">Group</span>
         </button>
-        <button type="button" title="Delete (⌫)" class="tool wide text-red-400" @click="removeSelected">
+        <button type="button" title="Delete (⌫)" class="tool wide text-destructive" @click="removeSelected">
           <DitherIcon name="Trash" :size="14" :stroke-width="1.5" /><span class="lbl">Delete</span>
         </button>
         <span class="mx-0.5 h-4 w-px bg-border" />

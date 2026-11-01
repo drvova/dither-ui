@@ -456,7 +456,7 @@ Default section order:
   control that draws its own indicator draws it in the theme's ring ink
   (`ring-ring`, a field's `border-ring`), never a tinted accent or a faded
   foreground, which vanish on some ground; `tests/focus-ring.spec.ts`
-  scans all three.
+  scans all three, utilities and stylesheet `:focus` rules alike.
 - Studio serves Vue developers and visual designers equally. Use the durable
   audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 

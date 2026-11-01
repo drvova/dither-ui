@@ -1058,7 +1058,7 @@ onBeforeUnmount(() => {
 .input {
   height: 1.625rem;
   min-width: 0;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-edge);
   border-radius: 0.375rem;
   background: var(--color-background);
   padding-inline: 0.5rem;
@@ -1068,7 +1068,7 @@ onBeforeUnmount(() => {
   outline: none;
 }
 .input:focus {
-  border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent);
+  border-color: var(--color-ring);
 }
 .remember {
   display: flex;
@@ -1081,7 +1081,7 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 10.5px;
   line-height: 1.5;
-  color: color-mix(in oklab, var(--color-muted-foreground) 80%, transparent);
+  color: var(--color-muted-foreground);
   overflow-wrap: anywhere;
 }
 .note code {
@@ -1107,7 +1107,7 @@ onBeforeUnmount(() => {
   margin: 0;
 }
 .dim {
-  color: color-mix(in oklab, var(--color-muted-foreground) 72%, transparent);
+  color: var(--color-muted-foreground);
 }
 .entry {
   display: grid;
@@ -1153,7 +1153,7 @@ onBeforeUnmount(() => {
   gap: 2px;
 }
 .plan li[data-status="completed"] {
-  color: color-mix(in oklab, var(--color-muted-foreground) 65%, transparent);
+  color: var(--color-muted-foreground);
 }
 .plan li[data-status="in_progress"] {
   color: var(--color-foreground);
@@ -1333,7 +1333,7 @@ button.chip:disabled {
   outline: none;
 }
 .prompt::placeholder {
-  color: color-mix(in oklab, var(--color-muted-foreground) 70%, transparent);
+  color: var(--color-muted-foreground);
 }
 .run {
   min-height: 1.5rem;

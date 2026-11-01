@@ -16,6 +16,8 @@
   --color-ring: var(--ring);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-edge: var(--edge);
+  --color-destructive: var(--destructive);
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
@@ -131,12 +133,13 @@
     font-weight: 500;
   }
   /* The site's pressed / selected state: ink text in a hairline ring and a
-     breath of fill — never a colour fill. The landing's .seg, the docs'
-     toggles and every Studio control read the same. */
+     breath of fill — never a colour fill. The docs' toggles and every
+     Studio control read the same. The ring is the control edge, so the
+     state holds 3:1 against the segments beside it. */
   .ring-on {
     color: var(--foreground);
     background: color-mix(in oklab, var(--foreground) 6%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 24%, transparent);
+    box-shadow: inset 0 0 0 1px var(--edge);
   }
   .led {
     width: 5px;
@@ -410,6 +413,13 @@
   /* Smoked polymer: a tinted overlay that keeps what is under it legible. */
   --smoke: rgb(244 243 239 / 0.92);
   --float-shadow: 0 10px 30px -14px rgb(16 18 20 / 0.3);
+  /* The control edge: a field's boundary and the pressed segment's ring,
+     titanium dimmed to 3:1 against every ground it meets (the page, the
+     shells, the smoke, a pressed fill), where the hairline would vanish. */
+  --edge: #787c81;
+  /* A destructive action's ink (delete, remove, a failed read): 4.5:1 on
+     the light grounds. */
+  --destructive: oklch(50.5% 0.213 27.518);
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
   --cut: 16px;
   /* Display type: Michroma (shared/fonts/display.css), extended and
@@ -453,6 +463,8 @@
   --recess-sm: inset 1px 2px 4px rgb(0 0 0 / 0.5), inset -1px -1px 0 rgb(255 255 255 / 0.05);
   --smoke: rgb(21 25 28 / 0.9);
   --float-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(212 220 225 / 0.14);
+  --edge: #74797e;
+  --destructive: oklch(70.4% 0.191 22.216);
 }
 
 @keyframes led {

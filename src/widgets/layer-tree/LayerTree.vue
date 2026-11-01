@@ -356,7 +356,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
           v-model="editText"
           name="group-rename"
           autocomplete="off"
-          class="min-w-0 flex-1 rounded border border-foreground/40 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none select-text"
+          class="min-w-0 flex-1 rounded border border-edge bg-background px-1 py-0.5 text-[13px] text-foreground outline-none select-text focus:border-ring"
           @click.stop
           @keydown.enter.prevent="commitGroupName(node.group)"
           @keydown.esc.prevent="editingId = null"
@@ -460,7 +460,7 @@ function layerItems(a: Artboard, l: Layer): MenuItem[] {
           v-model="editText"
           name="artboard-rename"
           autocomplete="off"
-          class="min-w-0 flex-1 rounded border border-foreground/40 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none select-text"
+          class="min-w-0 flex-1 rounded border border-edge bg-background px-1 py-0.5 text-[13px] text-foreground outline-none select-text focus:border-ring"
           @click.stop
           @keydown.enter.prevent="commitArtboardName(node.a)"
           @keydown.esc.prevent="editingId = null"
