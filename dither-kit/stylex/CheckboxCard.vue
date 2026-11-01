@@ -86,6 +86,6 @@ const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void }>()
   background-color: color-mix(in oklab, var(--accent) 10%, transparent);
 }
 .dk-check-card:has(:focus-visible) {
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 30%, transparent);
+  box-shadow: 0 0 0 2px var(--ring);
 }
 </style>

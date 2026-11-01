@@ -399,8 +399,15 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `.nav-a` and `.micro` in sentence case, `.nav-pill` (a machined
   secondary key: 10px radius, the hairline, a narrow reflection on its
   top edge), `.led`, and `.ring-on` — the ONE pressed/selected state: ink
-  text, a hairline ring, a breath of fill, never a colour fill; an
-  outline in forced colors) and the look's MATERIALS, after the user's Y2K
+  text, a hairline ring in the control edge, a breath of fill, never a
+  colour fill; an outline in forced colors), the theme's two control
+  inks (`--edge`, the control edge: titanium dimmed to 3:1 on every ground
+  it meets, pressed fills included, WCAG 1.4.11; a site field's boundary
+  is `border-edge` (a scoped field: `var(--color-edge)`), turning
+  `border-ring` on focus, while `--border` stays the hairline of
+  containers and dividers; `--destructive`, `text-destructive`, the ink
+  of delete, remove and a failed read, 4.5:1 on the theme's grounds), and
+  the look's MATERIALS, after the user's Y2K
   design system V5 (root `AGENTS.md`), per theme on `:root` (light) and
   `.dark`: `--chrome` (chrome type: gunmetal on light, its lightest stop
   4.5:1 on white; bright on dark), `--chrome-key` (satin aluminum, both
@@ -410,7 +417,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `--recess` and `--recess-sm` (a surface pressed in, shadowed from the
   top left), `--smoke` (smoked polymer: graphite on dark, bone on light),
   a light `--muted-foreground` a step deeper than the kit's (`#5b6270`,
-  AA on the bone grounds, not only on white),
+  AA on the bone grounds, not only on white; the faintest text ink: no
+  ink fades below it, so never `color-mix` it toward transparent),
   `--float-shadow`, `--ease-settle`, `--cut` (16px), `--display-face`
   (Michroma, then the mono; the `font-display` utility reads it; its
   `@font-face` is `shared/fonts/display.css`, imported by the landing and
@@ -437,6 +445,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   drops the shell ground and the highlight and makes the capsule solid;
   forced colors drop the cuts, rims and chrome type for system colours
   and plain borders (tracks bordered, the pressed segment outlined).
+  `tests/theme-contrast.spec.ts` reads both themes' tokens from the
+  stylesheets and holds the foreground, muted and destructive inks at
+  4.5:1 and the edge and ring at 3:1 on the page, card, smoke, every
+  shell stop and the pressed fills, chrome type's stops at 4.5:1 on the
+  page, and the pressed ring to the edge.
   Shared by the docs and the Studio; none of them grows a voice of its
   own. The landing takes only `.nav-a`, `.chrome-type`, `.key-chrome` and
   the dark theme's tokens from it (always dark), printed on its own

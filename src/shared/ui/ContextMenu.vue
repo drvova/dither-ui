@@ -60,7 +60,7 @@ onBeforeUnmount(() => {
           role="menuitem"
           :disabled="it.disabled"
           class="flex w-full items-center rounded-md px-2 py-1.5 text-left text-[13px] transition-colors disabled:pointer-events-none disabled:opacity-40"
-          :class="it.danger ? 'text-red-400 hover:bg-red-500/10' : 'text-foreground hover:bg-background'"
+          :class="it.danger ? 'text-destructive hover:bg-red-500/10' : 'text-foreground hover:bg-background'"
           @click="run(it)"
         >
           {{ it.label }}

@@ -288,7 +288,7 @@ const ago = (t: number) => {
 }
 
 .field:focus {
-  border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent);
+  border-color: var(--color-ring);
 }
 
 .act {
