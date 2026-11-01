@@ -21,7 +21,8 @@ widgets/features; page-specific conventions live here.
   own (the statement beside a live print the kit makes); under it, the page layout the user picked from a reference,
   kept unnamed (see root `AGENTS.md`): sections under a title with a lead
   beside it, a bento of example cards, a stage of what an ask makes,
-  columns, a centred install, link columns over a giant wordmark. Never a
+  columns, a panel of what it works with, a centred install, link columns
+  over a giant wordmark. Never a
   reference's hero, art, devices, assets, marks, names or words: filled
   with the kit and our own copy. The user's slop bans (root `AGENTS.md`)
   hold here as lifted for the print: the kit's art (the poster among it)
@@ -35,10 +36,13 @@ widgets/features; page-specific conventions live here.
   an eyebrow over a title, and in copy middle
   dots, em dashes and arrow-ended links. Additions must remove something
   or justify their presence.
-- Voice: calm and procedural. Copy says what the kit is and what to do
-  next ("Copy the folder", "use it here", "ask for a screen"), never what
-  it will feel like; every figure it states is read from the kit through
-  `facts.ts` or `hub.ts`, never typed.
+- Voice: calm and procedural, warm with a wink (the user's call, after a
+  playful reference site: its taste, never its words or devices). Copy
+  says what the kit is and what to do next ("Copy the folder", "poke it",
+  "ask for a screen") and may smile while it does ("undo takes it back
+  when it gets ideas", "Printed one cell at a time"), never hype and never
+  what it will feel like; every figure it states is read from the kit
+  through `facts.ts` or `hub.ts`, never typed.
 - Copy and markup follow the design.how bans the user picked: sentence
   case for headings, keys and links, no uppercase anywhere in the page's
   own copy; every link names where it goes (an
@@ -85,7 +89,7 @@ widgets/features; page-specific conventions live here.
   the lede (three or four lines), the keys (`.key-chrome` "Open the
   studio", `.key` "Read the docs" and "Watch the film" under the Play
   glyph, which opens the trailer; `TrailerDialog` lives in the hero),
-  then a quiet line of what the kit works with (`WORKS`: Vue 3, Svelte 5,
+  then a quiet line of what the kit works with (`WORKS` in `facts.ts`: Vue 3, Svelte 5,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
   with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
   5, cell 4, `INKS` from `plate.ts`: the kit's blue, the ember and the page's bone ink;
@@ -128,7 +132,9 @@ widgets/features; page-specific conventions live here.
   Retake all three from the trailer's edit when the film changes (1080p,
   each about 8 MB).
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
-  in and its lit cells out; the brand's lockup sets "DITHER-UI" in it. A
+  in and its lit cells out, with a lowercase set (four wide, x-height from
+  the third row); the brand's lockup sets "DITHER-UI" in it and
+  `PixelWord.vue` draws the parts' names. A
   string with a glyph the face lacks throws; every string the page sets
   is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the hero's and
@@ -220,15 +226,28 @@ widgets/features; page-specific conventions live here.
   each headed by a tone strip flush to its top (`DitherGradient` from its
   ink to `STOCK`, 120px, 72px on a phone, printing in through
   `DitherReveal`) in its own ink and printer's screen (`INSIDE`: blue in
-  Bayer cells, the ember in lines, bone in a halftone dot), then its kit
-  glyph in the ember beside its title, two lines and its link: the kit,
-  the Studio, the agent bridge (with the harnesses
-  `bridge/dither-bridge.mjs` knows, its `HARNESSES` ids and names in
-  order, each under its own mark; keep in sync, `tests/marks.spec.ts`
-  checks it). Under them the five big families (`DOCS_FAMILIES`): five
-  columns (three under 1024px, two under 640px), each the family's size
-  as a big figure over its name, both the link to its first section, and
-  its line.
+  Bayer cells, the ember in lines, bone in a halftone dot), its own
+  character standing on the strip's foot at the right, half over the card
+  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
+  plate of the card's ground so its ink never melts into the strip's), then
+  its name chunky in the pixel face (`PixelWord.vue`, 5px cells: "kit",
+  "studio", "bridge"; its title the heading's text for screen readers),
+  two lines and its link: the kit,
+  the Studio, the agent bridge. Under them the five big families
+  (`DOCS_FAMILIES`): five columns (three under 1024px, two under 640px),
+  each the family's size as a big figure over its name, both the link to
+  its first section, and its line.
+- Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
+  section head (a lede with a wink, the link to the styling docs), then
+  one raised panel of three lists at reading size, generous like a menu
+  (18px marks, 15px names; three columns down to 640px, one under it with
+  each list's rows two abreast): "Your styling" (`WORKS`), "Your agent"
+  (the harnesses `bridge/dither-bridge.mjs` knows, `HARNESSES` in
+  `facts.ts`, its ids and names in order, each under its own mark; keep
+  in sync, `tests/marks.spec.ts` checks it; then "or any command you hand
+  the bridge"), "Your models" (every format the kit reads, in
+  `MODEL_FORMATS` order, named by `MODEL_NAMES`, a `Record` keyed by the
+  kit's own type, each after an ember cell; then GLSL).
 - The brand's moment (`brand.ts` + `BrandGather.vue`, decorative): the
   brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
   core, which the header draws too), three clear columns, then
@@ -305,7 +324,8 @@ widgets/features; page-specific conventions live here.
   box on the raised ground whose top row is the `.seg` step picker (the
   kit's Folder glyph, then npm, pnpm and Bun's own marks) and the Copy
   key (both filled with the page's ground), the command under them in
-  mono with the ember `$`. A copy is ONE gesture: while copied the
+  mono with the ember `$` (under 640px the picker takes the top row alone
+  and the command wraps beside the key, so all of it shows). A copy is ONE gesture: while copied the
   command shows selected (the page's ground behind it) as the key's label
   rolls to "Copied" under a check; both let go together; reduced motion
   swaps both at once. Its four steps (degit folder + npm/pnpm/bun deps)
@@ -385,7 +405,9 @@ widgets/features; page-specific conventions live here.
   the top to 92% at the foot, each bar at the foot of its pitch), a
   vertical ramp printed through a screen of lines. One SVG: the text is a
   `clipPath` (its `textLength` holds the word to the box's width whichever
-  face has loaded) and the rows are rects in `--ink`; flat, one ink,
+  face has loaded) and the rows are rects in `--ink`, over the same word
+  laid in the page's ground, so the road's art passes behind the letters
+  whole and never shows between their rows; flat, one ink,
   decorative (`aria-hidden`), nothing that glows or moves.
 
 ### docs/
@@ -411,7 +433,8 @@ widgets/features; page-specific conventions live here.
   `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
   sentence case, 12px muted, + grid) → `PropsTable`, a spec sheet (a
   `.hardshell` cut at 10px, its column heads `.spec`; a row's `default` is
-  its value as code; "" prints "none"). The preview frame is a gel well
+  its value as code; "" prints "none"; under 640px, where three columns
+  cannot fit, each prop stacks over its type and default). The preview frame is a gel well
   (`.demo-well` + `.rim`: the pebble radius, the well's ground, a gloss on
   its top edge, recessed into the page) whose ground MUST stay one plain
   colour (the workbench's contrast reads the background through
@@ -424,7 +447,8 @@ widgets/features; page-specific conventions live here.
   centred inside an `overflow-x-auto` row by an `mx-auto w-max` box, so
   it centres while it fits and scrolls on the narrowest phones; a fixed
   width becomes `w-full max-w-*`. Chips (framework, styling, Inspect) sit
-  in tracks.
+  in tracks, 24px tall; the tab row wraps, so on a phone the Code tab's
+  chips drop under the tabs instead of running off the card.
 - Docs copy follows the landing's bans: no em dashes or middle dots in
   prose, prop `type` notes as `type: note` or `type (note)`, no uppercase
   or tracked label, no arrow-ended link; a snippet's copy matches what its
@@ -491,20 +515,36 @@ widgets/features; page-specific conventions live here.
   mirror actual kit prop defaults — update both when the kit API changes.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.
-- Wayfinding: scroll-spy (IntersectionObserver, rootMargin -56px top) sets
-  `activeId` + `aria-current`; clean `/docs/<id>`, its directory form
+- Wayfinding: scroll-spy (`docs/scroll-spy.ts`, IntersectionObserver,
+  `spyMargin`: the band from the 56px header to the middle, in px from
+  the viewport's height and rebuilt on resize, since a rootMargin
+  percentage resolves against the root's width) sets
+  `activeId` + `aria-current`: the topmost section in the band, which it
+  keeps across callbacks (a callback carries only the entries that
+  changed); clean `/docs/<id>`, its directory form
   `/docs/<id>/` (where a static host serves the section's prerendered
   page) and legacy `#/docs/<id>` deep links all restore and remain
   shareable.
 - Narrow chrome: under sm the Vue/Svelte switch shows its marks and Search
   its glyph (the words stay for screen readers), the studio pill drops (it
-  lives on every chart section's "Open in the Studio") and the ⌘K kbd
-  hides; the styling switch (on every card anyway) and GitHub (in the
-  footer) return at lg. The section list is a grouped disclosure
-  ("Browse sections" button with aria-expanded/aria-controls, group headings,
-  two-column links, closes on tap) instead of the old flat wall of all ~220
-  links. A `CodeBlock`'s copy chip takes its own band over the first line
-  under sm (a long first line ran under it there).
+  lives on every chart section's "Open in the Studio") and the nav's gaps
+  tighten; under 360px the brand shows its mark alone (the word stays for
+  screen readers, the link 32px wide), so the capsule fits from 320px; the
+  ⌘K kbd shows from md; the styling switch (on every card anyway) and
+  GitHub (in the footer) return at lg. Under lg the header's last key,
+  "Browse sections" (the Menu glyph, `aria-haspopup="dialog"`,
+  `aria-expanded`, `aria-controls` = `SHEET_ID`), opens the sections sheet
+  from anywhere on the page (`DocsSheet.vue`): a `.hardshell` (12px cut) on
+  `bg-card` from the left over the palette's backdrop, `h-dvh`, in on a
+  300ms settle (at once under reduced motion); a modal through
+  `DitherFocusScope` (focus on "Close sections", Tab trapped, focus back
+  on the key), shut by Escape, the backdrop, the close key or a pick (a
+  pick closes it first, then scrolls); the page under it holds still
+  (`overflow: hidden` on the root) and it closes itself at lg. It opens
+  centred on the section in view, that section's parts listed under its
+  link. A `CodeBlock`'s copy chip takes its own band over the first line
+  under sm (a long first line ran under it there). The footer's items
+  wrap, never collide.
 - `scrollTo(id)` is computed `window.scrollTo` + a settle loop (re-align after
   motion stops, ≤8 tries, bottom-clamp aware): lazy demo reveals and
   content-visibility seeds move the target while the smooth flight is still
@@ -543,24 +583,26 @@ widgets/features; page-specific conventions live here.
   hold; its smoked polymer at 93% under 640px, where dense tables pass
   under it); the toggles in it are tracks, the picked one `.ring-on`,
   Search a `.nav-pill`, "Open studio" the `.key-chrome`; the "Docs" label
-  shows from xl, so the capsule fits from 360px up. The search
+  shows from xl. The search
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
   elsewhere — the handler accepts both). The brand carries the landing's
   7x7 diamond mark, and the studio link shows from sm. The Vue/Svelte
   switch carries the tools' marks
   (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
-  mark. The sidebar's groups sit under their glyphs (`GROUP_ICON`), each
-  with its section count as a `.spec`; its links and the "On this page"
-  rail's are 25px targets at a 27px pitch. The page title is the h1
+  mark. The section list is ONE component, `DocsNav.vue` (the sidebar
+  rail at lg, the sheet under it; `docsUrl` is the one section address):
+  groups under their glyphs (`GROUP_ICON`), each with its section count as
+  a `.spec`; `NAV_LINK` sizes its links per place, 25px targets at a 27px
+  pitch on the rail, 30px in the sheet; "On this page" is `OnThisPage.vue`. The page title is the h1
   "Documentation" in the display face (`font-display`, 1.6rem) and
   `.chrome-type`, no eyebrow; on its
   baseline, the kit's spec as `.speed-tag`s (the section count, Vue 3,
-  Svelte 5, Tailwind or StyleX). The "Browse sections" disclosure is a
-  `.nav-pill`. At xl the rail right of
+  Svelte 5, Tailwind or StyleX). At xl the rail right of
   the content is "On this page": the section in view, its gallery headings
   and its API table, read from its DOM as the scroll-spy moves (headings
-  inside a preview are the demo's), each a button that scrolls to it.
+  inside a preview are the demo's), each a button that scrolls to it (the
+  sheet lists the same parts under the section's link).
   Under it, Share (`SectionShare.vue`, a disclosure: `aria-expanded`, the
   name "Share this section"): opened, the section's share card playing
   (`og/<id>.gif`, loaded only then, hidden where no build drew it) and
@@ -631,6 +673,9 @@ widgets/features; page-specific conventions live here.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
+  Under 1024px the editor gives way to a notice: a still `DitherPoster`,
+  why the Studio wants a wide screen and a pointer, the chrome key that
+  copies the Studio's own link (to carry to a laptop) and the docs link.
 - The selection toolbar's `video` opens `VideoDialog`
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
@@ -715,6 +760,10 @@ widgets/features; page-specific conventions live here.
   dark theme's ember), every named spec existing, and pins `POSTER_HASH`
   (the poster's bytes, the cross-engine row): a change to the poster's
   arithmetic fails it until the hash is recorded again.
+- `tests/docs-sheet.spec.ts`: the scroll-spy keeps a section already in
+  the band, `DocsNav` lists every section once with 24px targets per
+  place, and the sections sheet opens as a modal (focus in, page held,
+  Escape, backdrop and close key, focus back, the parts under the link).
 - `tests/marks.spec.ts`: every harness the bridge starts has a mark under
   its id and name, the landing lists them in the bridge's order, every
   mark is path data in a positive box.
@@ -753,7 +802,10 @@ widgets/features; page-specific conventions live here.
   (layers, agent, library, project menu, code, video, data, shortcuts,
   context menu) holds no em dash, middle dot, uppercase label or
   arrow-ended link outside code, kit default strings and kit component
-  looks; the docs header fits from 360px to 1280px; the "On this page"
+  looks; the docs header fits from 320px to 1280px (no page scroll
+  sideways); with touch at 320, 375, 430 and 768 the sections sheet opens
+  from deep in the page, traps and returns focus, holds the page and lands
+  a pick at its scroll margin; the "On this page"
   rail lists the section in view at xl, and its Share opens on the
   section's card playing and copies its link, Markdown and HTML.
 - Share cards after a full `npm run build`: every id `window.og.ids()`

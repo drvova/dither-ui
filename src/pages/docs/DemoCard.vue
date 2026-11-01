@@ -141,7 +141,7 @@ const runAttrs = computed(() => (ran.value ? { [ran.value.attribute]: "" } : {})
 // Chips are machined segments in a track; the picked one wears the site's
 // pressed state.
 const chipClass = (active: boolean) =>
-  active ? "px-2.5 py-0.5 ring-on" : "px-2.5 py-0.5 text-muted-foreground hover:text-foreground"
+  active ? "min-h-6 px-2.5 py-0.5 ring-on" : "min-h-6 px-2.5 py-0.5 text-muted-foreground hover:text-foreground"
 
 function chip(apply: () => void, already: boolean) {
   if (!already) play("tap")
@@ -151,7 +151,9 @@ function chip(apply: () => void, already: boolean) {
 
 <template>
   <div ref="root" class="mt-6" data-demo-card>
-    <div class="flex items-center justify-between text-[12px]">
+    <!-- The tabs, and their chips beside them; on a phone the Code tab's
+         chips drop under the tabs instead of running off the card. -->
+    <div class="flex flex-wrap items-center justify-between gap-x-3 text-[12px]">
       <div class="track mb-2" role="tablist">
         <button
           type="button"
@@ -211,7 +213,7 @@ function chip(apply: () => void, already: boolean) {
           type="button"
           :aria-pressed="inspecting"
           :class="chipClass(inspecting)"
-          class="flex min-h-6 items-center gap-1.5"
+          class="flex items-center gap-1.5"
           title="The workbench: inspect, measure, annotate, capture"
           @click="inspect(!inspecting)"
         >

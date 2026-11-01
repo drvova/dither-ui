@@ -162,7 +162,7 @@ onBeforeUnmount(() => stopPreview?.())
         </button>
         <button
           type="button"
-          class="clip-tool text-red-400 hover:bg-red-500/10"
+          class="clip-tool text-destructive hover:bg-red-500/10"
           aria-label="Remove clip"
           title="Remove"
           @click="remove(i)"
@@ -265,7 +265,7 @@ onBeforeUnmount(() => stopPreview?.())
               />
               <button
                 type="button"
-                class="clip-tool text-red-400 hover:bg-red-500/10"
+                class="clip-tool text-destructive hover:bg-red-500/10"
                 :aria-label="`Remove callout ${k + 1}`"
                 title="Remove"
                 @click="clip.callouts.splice(k, 1)"
@@ -357,7 +357,7 @@ onBeforeUnmount(() => stopPreview?.())
 <style scoped>
 .field {
   border-radius: 0.375rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-edge);
   background: color-mix(in oklab, var(--color-background) 60%, transparent);
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
@@ -365,7 +365,7 @@ onBeforeUnmount(() => stopPreview?.())
   outline: none;
 }
 .field:focus-visible {
-  border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent);
+  border-color: var(--color-ring);
 }
 .clip-tool {
   display: grid;
@@ -381,6 +381,11 @@ onBeforeUnmount(() => stopPreview?.())
 }
 .clip-tool:hover:not(:disabled) {
   color: var(--color-foreground);
+}
+/* A remove key keeps the destructive ink, at rest and under the pointer. */
+.clip-tool.text-destructive,
+.clip-tool.text-destructive:hover:not(:disabled) {
+  color: var(--color-destructive);
 }
 .clip-tool:disabled {
   opacity: 0.35;

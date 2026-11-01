@@ -25,10 +25,22 @@ let previous: HTMLElement | null = null
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+/** Rendered, so focus can land on it: neither it nor an ancestor inside the
+ * scope is `display: none`, and it is not `visibility: hidden`. A control
+ * hidden by CSS can never be a Tab endpoint, or Tab from the last visible
+ * one would leave the scope. */
+function rendered(el: HTMLElement, scope: HTMLElement): boolean {
+  if (getComputedStyle(el).visibility === "hidden") return false
+  for (let n: HTMLElement | null = el; n && n !== scope; n = n.parentElement)
+    if (getComputedStyle(n).display === "none") return false
+  return true
+}
+
 function focusables(): HTMLElement[] {
-  if (!root.value) return []
-  return [...root.value.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-    (el) => !el.closest("[hidden]") && el.getAttribute("aria-hidden") !== "true",
+  const scope = root.value
+  if (!scope) return []
+  return [...scope.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+    (el) => !el.closest("[hidden]") && el.getAttribute("aria-hidden") !== "true" && rendered(el, scope),
   )
 }
 

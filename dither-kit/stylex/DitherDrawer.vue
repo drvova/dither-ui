@@ -59,6 +59,7 @@ const styles = stylex.create({
     borderRadius: "calc(infinity * 1px)",
     backgroundColor: "var(--border)",
   },
+  focusScope: { display: "flex", minHeight: "0px", flex: "1", flexDirection: "column", outlineStyle: "none" },
   row: {
     display: "flex",
     touchAction: "none",
@@ -93,9 +94,10 @@ const styles = stylex.create({
 </script>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onBeforeUnmount, provide, ref, watch } from "vue"
+import { computed, inject, onBeforeUnmount, provide, ref, watch } from "vue"
 import { project, rubberband, velocityFrom, type VelocitySample } from "../engine/gesture"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
+import FocusScope from "./FocusScope.vue"
 import { cn } from "./lib"
 
 const props = withDefaults(
@@ -118,14 +120,7 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ close: []; "update:snapPoint": [number] }>()
 
-const closeRef = ref<HTMLButtonElement | null>(null)
 const panelRef = ref<HTMLElement | null>(null)
-watch(
-  () => props.open,
-  (v) => {
-    if (v && props.modal) nextTick(() => closeRef.value?.focus())
-  },
-)
 
 // --- nesting: push this drawer back while a child drawer is open ------------
 const parent = inject(DRAWER_CHANNEL, null)
@@ -305,21 +300,24 @@ const panelStyle = computed(() => {
         @pointercancel="onUp"
       >
         <div v-if="props.side === 'bottom'" aria-hidden="true" v-bind="stylex.attrs(styles.box)" />
-        <div v-bind="stylex.attrs(styles.row)">
-          <span v-bind="stylex.attrs(styles.text)">{{ props.title }}</span>
-          <button
-            ref="closeRef"
-            type="button"
-            v-bind="stylex.attrs(styles.button)"
-            aria-label="Close"
-            @click="emit('close')"
-          >
-            ×
-          </button>
-        </div>
-        <div v-bind="stylex.attrs(styles.box2)" :data-no-swipe="props.side === 'bottom' ? true : undefined">
-          <slot />
-        </div>
+        <!-- A modal drawer holds focus like the kit's dialogs: in on open (the
+             close key first), Tab cycling inside, back to its opener on close. -->
+        <FocusScope
+          :autofocus="props.modal"
+          :trapped="props.modal"
+          :restore-focus="props.modal"
+          :xstyle="styles.focusScope"
+        >
+          <div v-bind="stylex.attrs(styles.row)">
+            <span v-bind="stylex.attrs(styles.text)">{{ props.title }}</span>
+            <button type="button" v-bind="stylex.attrs(styles.button)" aria-label="Close" @click="emit('close')">
+              ×
+            </button>
+          </div>
+          <div v-bind="stylex.attrs(styles.box2)" :data-no-swipe="props.side === 'bottom' ? true : undefined">
+            <slot />
+          </div>
+        </FocusScope>
       </div>
     </Transition>
   </Teleport>

@@ -205,15 +205,20 @@
     }
   }
 
-  // Panel mount = open, destroy = close. Replaces Vue's focus + parent-notify
-  // watches: focus the close button on open (modal only), and balance the parent
-  // push channel across open/close/unmount.
+  // Panel mount = open, destroy = close. A modal drawer holds focus like the
+  // kit's dialogs (the Vue layer's FocusScope): the close key on open, Tab
+  // cycling inside, back to its opener on close; and the parent push channel
+  // balances across open/close/unmount.
+  const FOCUSABLE =
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
   function drawerPanel(_node: HTMLElement) {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
     if (modal) requestAnimationFrame(() => closeEl?.focus())
     parent?.notify(1)
     return {
       destroy() {
         parent?.notify(-1)
+        if (modal && opener?.isConnected) opener.focus()
       },
     }
   }
@@ -222,6 +227,31 @@
     if (e.key === "Escape") {
       e.stopPropagation()
       onclose?.()
+      return
+    }
+    if (e.key !== "Tab" || !modal || !panelEl) return
+    const scope = panelEl
+    // Only rendered controls are Tab endpoints: one hidden by CSS can never
+    // take focus, so Tab from the last visible one would leave the drawer.
+    const rendered = (el: HTMLElement) => {
+      if (getComputedStyle(el).visibility === "hidden") return false
+      for (let n: HTMLElement | null = el; n && n !== scope; n = n.parentElement)
+        if (getComputedStyle(n).display === "none") return false
+      return true
+    }
+    const items = [...scope.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+      (el) => !el.closest("[hidden]") && el.getAttribute("aria-hidden") !== "true" && rendered(el)
+    )
+    if (!items.length) return
+    const first = items[0]
+    const last = items[items.length - 1]
+    const active = document.activeElement
+    if (e.shiftKey && (active === first || active === panelEl)) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault()
+      first.focus()
     }
   }
 </script>

@@ -164,7 +164,7 @@ const seconds = computed({
 <style scoped>
 .field {
   height: 1.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-edge);
   border-radius: 0.375rem;
   background: var(--color-background);
   padding-inline: 0.5rem;
@@ -173,7 +173,7 @@ const seconds = computed({
   outline: none;
 }
 .field:focus-visible {
-  border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent);
+  border-color: var(--color-ring);
 }
 .chip {
   border: 1px solid var(--color-border);

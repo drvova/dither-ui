@@ -212,6 +212,12 @@ the kit every import is relative (`../engine/pixel`).
   voice). Where the panel takes `class`, a consumer's `font-sans` wins
   through `cn()`. New teleported overlays follow; the Svelte port mirrors
   each one.
+- Modal focus: every modal overlay holds focus through `FocusScope` (in on
+  open, Tab cycling inside, back to its opener on close; only rendered
+  controls are its Tab endpoints, never one hidden by CSS); `DitherDrawer`
+  wraps its panel in one while `modal`. The Svelte port, which has no
+  `FocusScope`, does the same inline in each overlay. Pinned for the drawer
+  by `tests/drawer-focus.spec.ts`.
 - Styling contract: Tailwind is the kit's authoring tool, not a requirement
   of the app around it. `engine/theme.css` declares the shadcn-style tokens
   (`--background`, `--foreground`, `--card`, `--popover`, `--muted`,

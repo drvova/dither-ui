@@ -1801,7 +1801,7 @@ function nudgeCq(delta: number): void {
             max="100"
             step="5"
             name="stage-width"
-            class="accent-foreground"
+            class="h-6 accent-foreground"
           />
         </label>
         <span class="tabular-nums">{{ stageWidth }}%</span>

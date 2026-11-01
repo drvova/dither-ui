@@ -338,7 +338,7 @@ const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 
             min="100"
             max="240"
             step="10"
-            class="w-40 accent-[var(--accent)]"
+            class="h-6 w-40 accent-[var(--accent)]"
           />
           <span class="tabular-nums">{{ gridMin }}px</span>
         </label>

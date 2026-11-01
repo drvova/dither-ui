@@ -135,7 +135,7 @@ Default section order:
   kit's diamond standing over its own dithered floor; a quiet line of what
   it works with under the keys, signed off with the brand forming out of
   the open field before the print starts (the brand forms its own way in
-  each place it stands: the hero, each plate, the footer); copy calm and procedural, every figure
+  each place it stands: the hero, each plate, the footer); copy calm and procedural, warm with a wink, every figure
   read from the kit), then
   sections under a title with a lead beside it, print plates of the brand
   small in a wide field between them (after the bento and before the
@@ -143,7 +143,8 @@ Default section order:
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
-  families), a centred install closed by the kit's spec sheet, and the
+  families), what it plays well with (your styling, your agent, your
+  models), a centred install closed by the kit's spec sheet, and the
   footer on the kit's own art (a star grain, a small spiral galaxy turning
   around the brand's diamond, and dithered light trails weaving through it
   and sweeping behind the name, the galaxy filling the gap between the
@@ -456,7 +457,7 @@ Default section order:
   control that draws its own indicator draws it in the theme's ring ink
   (`ring-ring`, a field's `border-ring`), never a tinted accent or a faded
   foreground, which vanish on some ground; `tests/focus-ring.spec.ts`
-  scans all three.
+  scans all three, utilities and stylesheet `:focus` rules alike.
 - Studio serves Vue developers and visual designers equally. Use the durable
   audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 

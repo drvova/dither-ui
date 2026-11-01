@@ -3,8 +3,7 @@ import { ref } from "vue"
 import { routePath } from "@/shared/lib"
 import { DitherIcon, DitherPoster, DitherReveal } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
-import type { MarkId } from "@/shared/ui/marks"
-import { COMPONENT_COUNT, MATRIX } from "./facts"
+import { COMPONENT_COUNT, MATRIX, WORKS } from "./facts"
 import { STAGINGS } from "./brand"
 import { INKS } from "./plate"
 import BrandGather from "./BrandGather.vue"
@@ -25,16 +24,6 @@ const gathered = ref(false)
 
 // The print's screen slides by itself, so it carries a pause (WCAG 2.2.2).
 const printing = ref(true)
-
-// What the kit works with, each under its own mark.
-const WORKS: { id: MarkId; name: string }[] = [
-  { id: "vue", name: "Vue 3" },
-  { id: "svelte", name: "Svelte 5" },
-  { id: "tailwind", name: "Tailwind" },
-  { id: "stylex", name: "StyleX" },
-  { id: "cssmodules", name: "CSS Modules" },
-  { id: "css", name: "CSS" },
-]
 </script>
 
 <template>
