@@ -28,6 +28,7 @@ import { HARNESSES, MODEL_NAMES, WORKS } from "./facts"
         <ul aria-labelledby="works-styling">
           <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="18" />{{ t.name }}</li>
         </ul>
+        <p class="works-more">and any app on its compiled stylesheet: UnoCSS, plain CSS or CSS-in-JS</p>
       </div>
       <div>
         <h3 id="works-agent" class="works-h">Your agent</h3>

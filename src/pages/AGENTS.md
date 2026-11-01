@@ -157,18 +157,20 @@ widgets/features; page-specific conventions live here.
   components (the strongest; the docs hold the rest) on a 12-column grid
   row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
-  ember, and "New model" for the next seed) beside the rating and the
+  ember, and "New model" for the next seed) beside the rating (its stars at display size, 44px) and the
   stat card; print screens (the full row, flush: one bone-to-obsidian
   `DitherGradient` printed through a `DitherScreen` under the same ramp
   raw, the raw one in linear light so the printed cells average to it,
   clipped at a split a full-size range drags or the arrows step, its
   handle a bone disc; the five screens switched in place); the area chart (8; one seed for every fill, "Roll a seed")
-  and the ferrofluid (flush; blue, ember or grey); the shader (6, flush;
+  and the ferrofluid (flush; ember first, so it never sits blue beside the
+  blue chart; blue or grey); the shader (6, flush;
   the kit's seeded sample, mono blue, a palette ramp or its own colours,
   "New shader" the next seed) and the decrypted text (6); the styling card
   (8, flush, `ExportScene.vue`: one snippet, an Invoices card, rendered
   live beside its code in the picked system through `restyle`, StyleX
-  first; its code alone when the card is narrow, a size container) and
+  first; its code wraps inside its panel, never cut mid-token; its code
+  alone when the card is narrow, a size container) and
   the slide action ("Slide to confirm", its count); the button (6, its
   four fills and five hues, "Publish") and the silk (6). Planned as one
   picture (the stageshow skill's bento rules): neighbours across and down
@@ -251,15 +253,18 @@ widgets/features; page-specific conventions live here.
   its name chunky in the pixel face (`PixelWord.vue`, 5px cells: "kit",
   "studio", "bridge"; its title the heading's text for screen readers),
   two lines and its link: the kit,
-  the Studio, the agent bridge. Under them the five big families
-  (`DOCS_FAMILIES`): five columns (three under 1024px, two under 640px),
+  the Studio, the agent bridge. Under them the five big families, biggest
+  first (`DOCS_FAMILIES` sorted by size; the footer keeps the docs'
+  order): five columns (three under 1024px, two under 640px, where a lone
+  last family takes the row),
   each the family's size as a big figure over its name, both the link to
   its first section, and its line.
 - Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
   section head (a lede with a wink, the link to the styling docs), then
   one raised panel of three lists at reading size, generous like a menu
   (18px marks, 15px names; three columns down to 640px, one under it with
-  each list's rows two abreast): "Your styling" (`WORKS`), "Your agent"
+  each list's rows two abreast): "Your styling" (`WORKS`; then "and any
+  app on its compiled stylesheet: UnoCSS, plain CSS or CSS-in-JS"), "Your agent"
   (the harnesses `bridge/dither-bridge.mjs` knows, `HARNESSES` in
   `facts.ts`, its ids and names in order, each under its own mark; keep
   in sync, `tests/marks.spec.ts` checks it; then "or any command you hand
@@ -342,8 +347,11 @@ widgets/features; page-specific conventions live here.
   box on the raised ground whose top row is the `.seg` step picker (the
   kit's Folder glyph, then npm, pnpm and Bun's own marks) and the Copy
   key (both filled with the page's ground), the command under them in
-  mono with the ember `$` (under 640px the picker takes the top row alone
-  and the command wraps beside the key, so all of it shows). A copy is ONE gesture: while copied the
+  mono with the ember `$`; the box and the spec sheet under it keep the
+  install head's centred measure (52rem). Under 640px the picker takes the
+  top row alone and the command wraps beside the key between its words
+  (each word unbroken, never at a hyphen), so all of it shows; inline
+  `code` on the landing never wraps. A copy is ONE gesture: while copied the
   command shows selected (the page's ground behind it) as the key's label
   rolls to "Copied" under a check; both let go together; reduced motion
   swaps both at once. Its four steps (degit folder + npm/pnpm/bun deps)

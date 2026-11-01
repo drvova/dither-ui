@@ -190,7 +190,8 @@ const output = ref<(typeof OUTPUTS)[number]>("mono")
 const program = ref(3)
 const SHADER_RAMP: DitherColor[] = ["blue", "purple", "pink", "orange"]
 
-// Ferrofluid: the kit's blue, the ember, or the page's grey.
+// Ferrofluid: the ember first (beside the blue area chart), the kit's blue,
+// or the page's grey.
 const FLUIDS = {
   blue: ["#2f6fd0", "#7ba3ee", "#c9dbff"],
   ember: ["#a84d17", "#f08a3c", "#ffd9b0"],
@@ -198,7 +199,7 @@ const FLUIDS = {
 } as const
 type Fluid = keyof typeof FLUIDS
 const FLUID_NAMES = Object.keys(FLUIDS) as Fluid[]
-const fluid = ref<Fluid>("blue")
+const fluid = ref<Fluid>("ember")
 
 // Slide action: how many slides confirmed.
 const confirmed = ref(0)
@@ -259,7 +260,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           </template>
 
           <div v-else-if="t.id === 'rating'" class="stack">
-            <DitherRating v-model="stars" :size="30" label="Rate the kit" />
+            <DitherRating v-model="stars" :size="44" label="Rate the kit" />
             <span class="readout">{{ stars }} of 5</span>
           </div>
 

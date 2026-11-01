@@ -68,6 +68,9 @@ const code = computed(() => restyle(SNIPPET, system.value))
   margin: 0;
   padding: 10px 12px;
   overflow: auto;
+  /* Long lines wrap inside the panel: never cut mid-token at its edge. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   border-radius: 6px;
   font-size: 10.5px;
   line-height: 1.55;
