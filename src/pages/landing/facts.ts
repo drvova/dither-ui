@@ -2,6 +2,8 @@
 // tests/landing-facts.spec.ts recounts each one from the kit, so a kit
 // change that moves one fails until the page says it.
 import { SCREEN_KINDS, SCREENS } from "@dither-kit"
+import type { ModelFormat } from "@dither-kit/engine/models"
+import type { MarkId } from "@/shared/ui/marks"
 import kit from "../../../dither-kit/package.json"
 import { SECTION_COUNT } from "./hub"
 
@@ -26,3 +28,38 @@ export const SPECS: readonly { label: string; value: string }[] = [
   { label: "Exports", value: "Vue or Svelte code, PNG, MP4" },
   { label: "License", value: kit.license },
 ]
+
+/** What the kit styles with, each under its own mark. */
+export const WORKS: readonly { id: MarkId; name: string }[] = [
+  { id: "vue", name: "Vue 3" },
+  { id: "svelte", name: "Svelte 5" },
+  { id: "tailwind", name: "Tailwind" },
+  { id: "stylex", name: "StyleX" },
+  { id: "cssmodules", name: "CSS Modules" },
+  { id: "css", name: "CSS" },
+]
+
+/** The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES: ids and
+ * names, pinned by tests/marks.spec.ts), in its order. */
+export const HARNESSES = [
+  { id: "claude", name: "Claude Code" },
+  { id: "codex", name: "Codex" },
+  { id: "gemini", name: "Gemini CLI" },
+  { id: "qwen", name: "Qwen Code" },
+  { id: "omp", name: "oh-my-pi" },
+  { id: "goose", name: "Goose" },
+  { id: "opencode", name: "OpenCode" },
+  { id: "auggie", name: "Auggie" },
+] as const
+
+/** Every model format the kit reads, as the page names it: keyed by the
+ * kit's own list, so a format it learns is a type error here until named. */
+export const MODEL_NAMES: Record<ModelFormat, string> = {
+  vrml: "VRML 1 and 97",
+  x3d: "X3D",
+  gltf: "glTF and GLB",
+  obj: "OBJ with MTL",
+  stl: "STL",
+  ply: "PLY",
+  off: "OFF",
+}

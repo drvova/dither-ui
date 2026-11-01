@@ -216,8 +216,8 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
       <h2 id="examples-h" class="section-title chrome-type">Every component, live.</h2>
       <div class="sec-side">
         <p class="sec-lede">
-          {{ COMPONENT_COUNT }} components on one engine. Each card is the component itself: use it here, then open its
-          docs section for its props and its code.
+          {{ COMPONENT_COUNT }} components on one engine. Every card is the real thing, so poke it, then open its docs
+          for the props and the code.
         </p>
         <a :href="routePath('/docs')" class="more-link">See every section in the docs</a>
       </div>

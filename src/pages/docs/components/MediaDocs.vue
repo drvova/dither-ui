@@ -346,7 +346,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
             min="8"
             max="18"
             step="0.25"
-            class="w-40 accent-[var(--accent)]"
+            class="h-6 w-40 accent-[var(--accent)]"
           />
           <span class="tabular-nums"
             >{{ Math.floor(scheduleNow) }}:{{ String(Math.round((scheduleNow % 1) * 60)).padStart(2, "0") }}</span
@@ -406,29 +406,29 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
           class="h-[280px]"
         />
         <div class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-muted-foreground">
-          <label class="flex items-center gap-2"
+          <label class="flex min-h-6 items-center gap-2"
             ><input v-model="worldWire" type="checkbox" class="accent-[var(--accent)]" /> wire</label
           >
-          <label class="flex items-center gap-2"
+          <label class="flex min-h-6 items-center gap-2"
             ><input v-model="worldInk" type="checkbox" class="accent-[var(--accent)]" /> ink</label
           >
-          <label class="flex items-center gap-2"
+          <label class="flex min-h-6 items-center gap-2"
             ><input v-model="worldTexture" type="checkbox" class="accent-[var(--accent)]" /> texture</label
           >
-          <label class="flex items-center gap-2"
+          <label class="flex min-h-6 items-center gap-2"
             ><input v-model="worldRamp" type="checkbox" class="accent-[var(--accent)]" /> ramp</label
           >
-          <label class="flex items-center gap-2"
+          <label class="flex min-h-6 items-center gap-2"
             ><input v-model="worldGrain" type="checkbox" class="accent-[var(--accent)]" /> grain</label
           >
-          <label class="flex items-center gap-2"
+          <label class="flex min-h-6 items-center gap-2"
             ><input v-model="worldBloom" type="checkbox" class="accent-[var(--accent)]" /> bloom</label
           >
-          <label class="flex items-center gap-2">
+          <label class="flex min-h-6 items-center gap-2">
             engine
             <select
               v-model="worldEngine"
-              class="rounded border border-border bg-background px-1 py-0.5 text-[11px] text-foreground"
+              class="h-6 rounded border border-border bg-background px-1 text-[11px] text-foreground"
             >
               <option value="cpu">cpu</option>
               <option value="gpu">gpu</option>
@@ -460,7 +460,7 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
           label="Sample plasma, seed 3"
           class="h-[280px]"
         />
-        <label class="mt-3 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
+        <label class="mt-3 flex min-h-6 items-center justify-center gap-2 text-[11px] text-muted-foreground">
           <input v-model="shaderMono" type="checkbox" class="accent-[var(--accent)]" />
           mono
         </label>

@@ -16,7 +16,21 @@ describe("pixel type", () => {
   })
 
   it("covers every string the landing sets", () => {
-    for (const s of ["DITHER-UI", "264", "6", "46", "4×4", "512", "513", "0:00", "9:59", "1k+/."]) {
+    for (const s of [
+      "DITHER-UI",
+      "264",
+      "6",
+      "46",
+      "4×4",
+      "512",
+      "513",
+      "0:00",
+      "9:59",
+      "1k+/.",
+      "kit",
+      "studio",
+      "bridge",
+    ]) {
       expect(() => layoutPixelText(s)).not.toThrow()
     }
     expect(() => layoutPixelText("q")).toThrow(/no glyph/)

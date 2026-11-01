@@ -10,7 +10,7 @@ const rows = (src: string, start: string) => {
   return [...block.matchAll(/id: "([\w-]+)",\s*name: "([^"]+)"/g)].map((m) => ({ id: m[1], name: m[2] }))
 }
 const BRIDGE = rows(read("../bridge/dither-bridge.mjs"), "export const HARNESSES")
-const LANDING = rows(read("../src/pages/landing/LandingPage.vue"), "const HARNESSES")
+const LANDING = rows(read("../src/pages/landing/facts.ts"), "export const HARNESSES")
 
 describe("tool marks", () => {
   it("covers every harness the bridge starts, named as the bridge names it", () => {

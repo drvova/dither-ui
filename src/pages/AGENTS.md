@@ -21,7 +21,8 @@ widgets/features; page-specific conventions live here.
   own (the statement beside a live print the kit makes); under it, the page layout the user picked from a reference,
   kept unnamed (see root `AGENTS.md`): sections under a title with a lead
   beside it, a bento of example cards, a stage of what an ask makes,
-  columns, a centred install, link columns over a giant wordmark. Never a
+  columns, a panel of what it works with, a centred install, link columns
+  over a giant wordmark. Never a
   reference's hero, art, devices, assets, marks, names or words: filled
   with the kit and our own copy. The user's slop bans (root `AGENTS.md`)
   hold here as lifted for the print: the kit's art (the poster among it)
@@ -35,10 +36,13 @@ widgets/features; page-specific conventions live here.
   an eyebrow over a title, and in copy middle
   dots, em dashes and arrow-ended links. Additions must remove something
   or justify their presence.
-- Voice: calm and procedural. Copy says what the kit is and what to do
-  next ("Copy the folder", "use it here", "ask for a screen"), never what
-  it will feel like; every figure it states is read from the kit through
-  `facts.ts` or `hub.ts`, never typed.
+- Voice: calm and procedural, warm with a wink (the user's call, after a
+  playful reference site: its taste, never its words or devices). Copy
+  says what the kit is and what to do next ("Copy the folder", "poke it",
+  "ask for a screen") and may smile while it does ("undo takes it back
+  when it gets ideas", "Printed one cell at a time"), never hype and never
+  what it will feel like; every figure it states is read from the kit
+  through `facts.ts` or `hub.ts`, never typed.
 - Copy and markup follow the design.how bans the user picked: sentence
   case for headings, keys and links, no uppercase anywhere in the page's
   own copy; every link names where it goes (an
@@ -85,7 +89,7 @@ widgets/features; page-specific conventions live here.
   the lede (three or four lines), the keys (`.key-chrome` "Open the
   studio", `.key` "Read the docs" and "Watch the film" under the Play
   glyph, which opens the trailer; `TrailerDialog` lives in the hero),
-  then a quiet line of what the kit works with (`WORKS`: Vue 3, Svelte 5,
+  then a quiet line of what the kit works with (`WORKS` in `facts.ts`: Vue 3, Svelte 5,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
   with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
   5, cell 4, `INKS` from `plate.ts`: the kit's blue, the ember and the page's bone ink;
@@ -128,7 +132,9 @@ widgets/features; page-specific conventions live here.
   Retake all three from the trailer's edit when the film changes (1080p,
   each about 8 MB).
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
-  in and its lit cells out; the brand's lockup sets "DITHER-UI" in it. A
+  in and its lit cells out, with a lowercase set (four wide, x-height from
+  the third row); the brand's lockup sets "DITHER-UI" in it and
+  `PixelWord.vue` draws the parts' names. A
   string with a glyph the face lacks throws; every string the page sets
   is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the hero's and
@@ -220,15 +226,28 @@ widgets/features; page-specific conventions live here.
   each headed by a tone strip flush to its top (`DitherGradient` from its
   ink to `STOCK`, 120px, 72px on a phone, printing in through
   `DitherReveal`) in its own ink and printer's screen (`INSIDE`: blue in
-  Bayer cells, the ember in lines, bone in a halftone dot), then its kit
-  glyph in the ember beside its title, two lines and its link: the kit,
-  the Studio, the agent bridge (with the harnesses
-  `bridge/dither-bridge.mjs` knows, its `HARNESSES` ids and names in
-  order, each under its own mark; keep in sync, `tests/marks.spec.ts`
-  checks it). Under them the five big families (`DOCS_FAMILIES`): five
-  columns (three under 1024px, two under 640px), each the family's size
-  as a big figure over its name, both the link to its first section, and
-  its line.
+  Bayer cells, the ember in lines, bone in a halftone dot), its own
+  character standing on the strip's foot at the right, half over the card
+  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
+  plate of the card's ground so its ink never melts into the strip's), then
+  its name chunky in the pixel face (`PixelWord.vue`, 5px cells: "kit",
+  "studio", "bridge"; its title the heading's text for screen readers),
+  two lines and its link: the kit,
+  the Studio, the agent bridge. Under them the five big families
+  (`DOCS_FAMILIES`): five columns (three under 1024px, two under 640px),
+  each the family's size as a big figure over its name, both the link to
+  its first section, and its line.
+- Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
+  section head (a lede with a wink, the link to the styling docs), then
+  one raised panel of three lists at reading size, generous like a menu
+  (18px marks, 15px names; three columns down to 640px, one under it with
+  each list's rows two abreast): "Your styling" (`WORKS`), "Your agent"
+  (the harnesses `bridge/dither-bridge.mjs` knows, `HARNESSES` in
+  `facts.ts`, its ids and names in order, each under its own mark; keep
+  in sync, `tests/marks.spec.ts` checks it; then "or any command you hand
+  the bridge"), "Your models" (every format the kit reads, in
+  `MODEL_FORMATS` order, named by `MODEL_NAMES`, a `Record` keyed by the
+  kit's own type, each after an ember cell; then GLSL).
 - The brand's moment (`brand.ts` + `BrandGather.vue`, decorative): the
   brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
   core, which the header draws too), three clear columns, then
@@ -305,7 +324,8 @@ widgets/features; page-specific conventions live here.
   box on the raised ground whose top row is the `.seg` step picker (the
   kit's Folder glyph, then npm, pnpm and Bun's own marks) and the Copy
   key (both filled with the page's ground), the command under them in
-  mono with the ember `$`. A copy is ONE gesture: while copied the
+  mono with the ember `$` (under 640px the picker takes the top row alone
+  and the command wraps beside the key, so all of it shows). A copy is ONE gesture: while copied the
   command shows selected (the page's ground behind it) as the key's label
   rolls to "Copied" under a check; both let go together; reduced motion
   swaps both at once. Its four steps (degit folder + npm/pnpm/bun deps)
@@ -385,7 +405,9 @@ widgets/features; page-specific conventions live here.
   the top to 92% at the foot, each bar at the foot of its pitch), a
   vertical ramp printed through a screen of lines. One SVG: the text is a
   `clipPath` (its `textLength` holds the word to the box's width whichever
-  face has loaded) and the rows are rects in `--ink`; flat, one ink,
+  face has loaded) and the rows are rects in `--ink`, over the same word
+  laid in the page's ground, so the road's art passes behind the letters
+  whole and never shows between their rows; flat, one ink,
   decorative (`aria-hidden`), nothing that glows or moves.
 
 ### docs/
@@ -411,7 +433,8 @@ widgets/features; page-specific conventions live here.
   `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
   sentence case, 12px muted, + grid) → `PropsTable`, a spec sheet (a
   `.hardshell` cut at 10px, its column heads `.spec`; a row's `default` is
-  its value as code; "" prints "none"). The preview frame is a gel well
+  its value as code; "" prints "none"; under 640px, where three columns
+  cannot fit, each prop stacks over its type and default). The preview frame is a gel well
   (`.demo-well` + `.rim`: the pebble radius, the well's ground, a gloss on
   its top edge, recessed into the page) whose ground MUST stay one plain
   colour (the workbench's contrast reads the background through
@@ -631,6 +654,9 @@ widgets/features; page-specific conventions live here.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
+  Under 1024px the editor gives way to a notice: a still `DitherPoster`,
+  why the Studio wants a wide screen and a pointer, the chrome key that
+  copies the Studio's own link (to carry to a laptop) and the docs link.
 - The selection toolbar's `video` opens `VideoDialog`
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,

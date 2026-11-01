@@ -22,8 +22,9 @@ const shownRows = computed(() =>
 
 <template>
   <!-- The API as a spec sheet: a hardshell (two corners cut, the chrome
-       glint along them) under spec-label column heads. -->
-  <div class="hardshell mt-6 overflow-x-auto [--cut:10px]">
+       glint along them) under spec-label column heads; on a phone, where
+       three columns cannot fit, each prop stacks over its type and default. -->
+  <div class="hardshell mt-6 hidden overflow-x-auto [--cut:10px] sm:block">
     <table class="w-full table-fixed border-collapse text-left text-[11px]">
       <thead>
         <tr class="border-b border-border/60 text-muted-foreground">
@@ -41,4 +42,13 @@ const shownRows = computed(() =>
       </tbody>
     </table>
   </div>
+  <dl class="hardshell mt-6 text-[12px] [--cut:10px] sm:hidden">
+    <div v-for="r in shownRows" :key="r.prop" class="border-b border-border/40 px-4 py-3 last:border-0">
+      <dt class="break-words text-foreground/90">{{ r.prop }}</dt>
+      <dd class="mt-1.5 grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 text-muted-foreground">
+        <span class="spec">Type</span><span class="break-words">{{ r.type }}</span> <span class="spec">Default</span
+        ><span class="break-words">{{ r.default || "none" }}</span>
+      </dd>
+    </div>
+  </dl>
 </template>
