@@ -200,8 +200,8 @@ type Fluid = keyof typeof FLUIDS
 const FLUID_NAMES = Object.keys(FLUIDS) as Fluid[]
 const fluid = ref<Fluid>("blue")
 
-// Slide action: deploys confirmed.
-const deploys = ref(0)
+// Slide action: how many slides confirmed.
+const confirmed = ref(0)
 
 // Stat card.
 const SPARK = [12, 14, 13, 17, 16, 19, 18, 22, 21, 24, 23, 27, 26, 29, 31, 30, 33, 35]
@@ -307,7 +307,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           </div>
 
           <div v-else-if="t.id === 'button'" class="stack">
-            <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-12 px-8 text-sm">Deploy</DitherButton>
+            <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-12 px-8 text-sm">Publish</DitherButton>
             <div class="seg" role="group" aria-label="Fill">
               <button
                 v-for="v in FILLS"
@@ -382,8 +382,8 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           </div>
 
           <div v-else-if="t.id === 'slide-action'" class="stack">
-            <DitherSlideAction label="Slide to deploy" color="blue" class="w-full max-w-80" @confirm="deploys++" />
-            <span class="readout">deploys {{ deploys }}</span>
+            <DitherSlideAction label="Slide to confirm" color="blue" class="w-full max-w-80" @confirm="confirmed++" />
+            <span class="readout">confirmed {{ confirmed }}</span>
           </div>
 
           <div v-else-if="t.id === 'stats-cards'" class="panel stat">
@@ -420,8 +420,9 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
 /* The bento: twelve columns, row by row: a tall lead card (8) beside two
    stacked (4); a full row; a wide card (8) beside a third; two halves; a
-   wide card beside a third; two halves. Under 1024px a rail (below), so
-   the whole bento takes one screen. */
+   wide card beside a third; two halves. The order (`BENTO`) keeps unlike
+   cards side by side and stacked. Under 1024px a rail (below), so the
+   whole bento takes one screen. */
 .bento {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -461,7 +462,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 .t-silk,
 .t-decrypted-text,
 .t-shader,
-.t-ferrofluid {
+.t-button {
   grid-column: span 6;
 }
 

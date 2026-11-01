@@ -257,7 +257,7 @@
             </div>
           {:else if t.id === "button"}
             <div class="stack">
-              <DitherButton color={hue} {variant} class="min-h-12 px-8 text-sm">Deploy</DitherButton>
+              <DitherButton color={hue} {variant} class="min-h-12 px-8 text-sm">Publish</DitherButton>
               <div class="seg" role="group" aria-label="Fill">
                 {#each FILLS as v (v)}
                   <button type="button" aria-pressed={variant === v} onclick={() => (variant = v)}>{v}</button>

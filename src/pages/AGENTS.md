@@ -163,14 +163,17 @@ widgets/features; page-specific conventions live here.
   raw, the raw one in linear light so the printed cells average to it,
   clipped at a split a full-size range drags or the arrows step, its
   handle a bone disc; the five screens switched in place); the area chart (8; one seed for every fill, "Roll a seed")
-  and the button (its four fills and five hues); the shader (flush; the kit's seeded sample, mono
-  blue, a palette ramp or its own colours, "New shader" the next seed) and
-  the ferrofluid (flush; blue, ember or grey); the styling card (8, flush,
-  `ExportScene.vue`: one snippet rendered live beside its code in the
-  picked system through `restyle`, StyleX first; its code alone when the
-  card is narrow, a size container) and the slide action ("Slide to
-  deploy", its count);
-  silk and the decrypted text. Each card's art is a `DitherReveal` (the
+  and the ferrofluid (flush; blue, ember or grey); the shader (6, flush;
+  the kit's seeded sample, mono blue, a palette ramp or its own colours,
+  "New shader" the next seed) and the decrypted text (6); the styling card
+  (8, flush, `ExportScene.vue`: one snippet, an Invoices card, rendered
+  live beside its code in the picked system through `restyle`, StyleX
+  first; its code alone when the card is narrow, a size container) and
+  the slide action ("Slide to confirm", its count); the button (6, its
+  four fills and five hues, "Publish") and the silk (6). Planned as one
+  picture (the stageshow skill's bento rules): neighbours across and down
+  are different kinds, never two moving surfaces side by side, and no
+  card repeats another's words or the ask's Deploys screen. Each card's art is a `DitherReveal` (the
   8×8 Bayer dissolve, 0.72s, linear): it prints itself once as it comes
   into view, at once under reduced motion. Of the surfaces that move by
   themselves (`MOVING`: the model, the shader, the fluid, the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen

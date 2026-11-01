@@ -53,7 +53,10 @@ export const DOCS_FAMILIES: DocsFamily[] = [
 ]
 
 /** The example bento, row by row: live kit components, each a card that
- * leads into its docs section. Its layout lives on `Examples.vue`'s
+ * leads into its docs section. Planned as one picture: neighbours, across
+ * and down, are different kinds (a moving surface beside a figure, a
+ * control or a statement, never two moving surfaces side by side), and no
+ * card repeats another's words. Its layout lives on `Examples.vue`'s
  * `.t-<id>` cards. */
 export type BentoTile = { id: string; label: string; family: string }
 export const BENTO: BentoTile[] = [
@@ -62,11 +65,11 @@ export const BENTO: BentoTile[] = [
   { id: "stats-cards", label: "Stat card", family: "Examples" },
   { id: "print-screens", label: "Print screens", family: "Utils" },
   { id: "area", label: "Area chart", family: "Components" },
-  { id: "button", label: "Button", family: "Components" },
-  { id: "shader", label: "Shader", family: "Components" },
   { id: "ferrofluid", label: "Ferrofluid", family: "Backgrounds" },
+  { id: "shader", label: "Shader", family: "Components" },
+  { id: "decrypted-text", label: "Decrypted text", family: "Text" },
   { id: "styling", label: "Styling systems", family: "Handbook" },
   { id: "slide-action", label: "Slide action", family: "Animations" },
+  { id: "button", label: "Button", family: "Components" },
   { id: "silk", label: "Silk", family: "Backgrounds" },
-  { id: "decrypted-text", label: "Decrypted text", family: "Text" },
 ]
