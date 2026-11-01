@@ -15,6 +15,8 @@ export default ts.config(
       // local scratch tooling (bake scripts, one-shot verifiers) — not
       // product source, and CJS require() there is intentional.
       ".scratch/**",
+      // agent worktrees: whole checkouts of the repo, not more source.
+      ".claude/**",
       // gitignored local material that CI's checkout never contains — the
       // lint surface must match CI or the local gate lies (469 vs 4 errors).
       "ghostai-ref/**",

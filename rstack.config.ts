@@ -178,6 +178,8 @@ define.lint(({ js, ts }) => [
       // local scratch tooling (bake scripts, one-shot verifiers) — not
       // product source, and CJS require() there is intentional.
       ".scratch/**",
+      // agent worktrees: whole checkouts of the repo, not more source.
+      ".claude/**",
       // gitignored local material that CI's checkout never contains — the
       // lint surface must match CI or the local gate lies.
       "ghostai-ref/**",
@@ -209,5 +211,5 @@ define.lint(({ js, ts }) => [
 define.fmt({
   semi: false,
   printWidth: 120,
-  ignorePatterns: ["public/**", "**/*.md", "*.html", "*/index.html", ".scratch/**", "**/*.svelte"],
+  ignorePatterns: ["public/**", "**/*.md", "*.html", "*/index.html", ".scratch/**", ".claude/**", "**/*.svelte"],
 })
