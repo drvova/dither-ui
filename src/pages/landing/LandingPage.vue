@@ -32,6 +32,7 @@ import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
 import PixelWord from "./PixelWord.vue"
 import Plate from "./Plate.vue"
+import WorksWith from "./WorksWith.vue"
 import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
 import BrandMark from "./BrandMark.vue"
@@ -55,19 +56,6 @@ onMounted(() => {
     "then build what I ask from its components.",
   ].join(" ")
 })
-
-// The harnesses `bridge/dither-bridge.mjs` knows (its HARNESSES: ids and
-// names), in its order, each under the tool's own mark.
-const HARNESSES = [
-  { id: "claude", name: "Claude Code" },
-  { id: "codex", name: "Codex" },
-  { id: "gemini", name: "Gemini CLI" },
-  { id: "qwen", name: "Qwen Code" },
-  { id: "omp", name: "oh-my-pi" },
-  { id: "goose", name: "Goose" },
-  { id: "opencode", name: "OpenCode" },
-  { id: "auggie", name: "Auggie" },
-] as const
 
 // What's inside: the kit, the Studio and the bridge, each a card headed by a
 // tone strip the kit prints in its own ink through its own printer's screen
@@ -280,9 +268,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
                 <PixelWord :text="c.name" :cell="5" /><span class="sr-only">{{ c.title }}</span>
               </h3>
               <p class="inside-p">{{ c.text }}</p>
-              <ul v-if="c.title === 'The agent bridge'" class="marks" aria-label="Harnesses the bridge starts">
-                <li v-for="h in HARNESSES" :key="h.id"><ToolMark :id="h.id" :size="13" />{{ h.name }}</li>
-              </ul>
               <a :href="c.link.href" class="more-link">{{ c.link.label }}</a>
             </li>
           </ul>
@@ -299,6 +284,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             </ul>
           </div>
         </section>
+
+        <!-- What the kit meets on the reader's side. -->
+        <WorksWith />
 
         <!-- The plates: print sheets between the sections, the kit's diamond
              small in a wide field (plate.ts). -->
@@ -513,23 +501,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   line-height: 1.65;
   color: var(--ink-3);
   text-wrap: pretty;
-}
-
-.marks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 11.5px;
-  color: var(--ink-3);
-}
-
-.marks li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
 /* The families: five columns, each its size as a big figure over its

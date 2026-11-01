@@ -21,7 +21,8 @@ widgets/features; page-specific conventions live here.
   own (the statement beside a live print the kit makes); under it, the page layout the user picked from a reference,
   kept unnamed (see root `AGENTS.md`): sections under a title with a lead
   beside it, a bento of example cards, a stage of what an ask makes,
-  columns, a centred install, link columns over a giant wordmark. Never a
+  columns, a panel of what it works with, a centred install, link columns
+  over a giant wordmark. Never a
   reference's hero, art, devices, assets, marks, names or words: filled
   with the kit and our own copy. The user's slop bans (root `AGENTS.md`)
   hold here as lifted for the print: the kit's art (the poster among it)
@@ -88,7 +89,7 @@ widgets/features; page-specific conventions live here.
   the lede (three or four lines), the keys (`.key-chrome` "Open the
   studio", `.key` "Read the docs" and "Watch the film" under the Play
   glyph, which opens the trailer; `TrailerDialog` lives in the hero),
-  then a quiet line of what the kit works with (`WORKS`: Vue 3, Svelte 5,
+  then a quiet line of what the kit works with (`WORKS` in `facts.ts`: Vue 3, Svelte 5,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
   with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
   5, cell 4, `INKS` from `plate.ts`: the kit's blue, the ember and the page's bone ink;
@@ -231,13 +232,21 @@ widgets/features; page-specific conventions live here.
   its name chunky in the pixel face (`PixelWord.vue`, 5px cells: "kit",
   "studio", "bridge"; its title the heading's text for screen readers),
   two lines and its link: the kit,
-  the Studio, the agent bridge (with the harnesses
-  `bridge/dither-bridge.mjs` knows, its `HARNESSES` ids and names in
-  order, each under its own mark; keep in sync, `tests/marks.spec.ts`
-  checks it). Under them the five big families (`DOCS_FAMILIES`): five
-  columns (three under 1024px, two under 640px), each the family's size
-  as a big figure over its name, both the link to its first section, and
-  its line.
+  the Studio, the agent bridge. Under them the five big families
+  (`DOCS_FAMILIES`): five columns (three under 1024px, two under 640px),
+  each the family's size as a big figure over its name, both the link to
+  its first section, and its line.
+- Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
+  section head (a lede with a wink, the link to the styling docs), then
+  one raised panel of three lists at reading size, generous like a menu
+  (18px marks, 15px names; two columns under 900px, one under 640px with
+  each list's rows two abreast): "Your styling" (`WORKS`), "Your agent"
+  (the harnesses `bridge/dither-bridge.mjs` knows, `HARNESSES` in
+  `facts.ts`, its ids and names in order, each under its own mark; keep
+  in sync, `tests/marks.spec.ts` checks it; then "or any command you hand
+  the bridge"), "Your models" (every format the kit reads, in
+  `MODEL_FORMATS` order, named by `MODEL_NAMES`, a `Record` keyed by the
+  kit's own type, each after an ember cell; then GLSL).
 - The brand's moment (`brand.ts` + `BrandGather.vue`, decorative): the
   brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
   core, which the header draws too), three clear columns, then

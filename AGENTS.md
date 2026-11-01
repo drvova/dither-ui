@@ -143,7 +143,8 @@ Default section order:
   components, one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
-  families), a centred install closed by the kit's spec sheet, and the
+  families), what it plays well with (your styling, your agent, your
+  models), a centred install closed by the kit's spec sheet, and the
   footer on the kit's own art (a star grain, a small spiral galaxy turning
   around the brand's diamond, and dithered light trails weaving through it
   and sweeping behind the name, the galaxy filling the gap between the
