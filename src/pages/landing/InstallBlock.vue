@@ -130,7 +130,7 @@ const active = ref(0)
 .typed {
   border-radius: 2px;
   color: var(--ink);
-  animation: term-in 240ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: term-in 240ms var(--ease-settle) both;
   transition:
     background-color 360ms steps(3, jump-end),
     box-shadow 360ms steps(3, jump-end);
@@ -178,8 +178,8 @@ const active = ref(0)
   color: var(--ink-3);
   background: var(--surface);
   transition:
-    color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-    transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
+    color 200ms var(--ease-settle),
+    transform 350ms var(--ease-settle);
 }
 
 .copy:hover,
@@ -203,7 +203,7 @@ const active = ref(0)
 
 .roll > span {
   display: block;
-  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 380ms var(--ease-settle);
 }
 
 .roll > span > span {
@@ -233,8 +233,8 @@ const active = ref(0)
 .swap-a,
 .swap-b {
   transition:
-    opacity 380ms cubic-bezier(0.16, 1, 0.3, 1),
-    scale 380ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 380ms var(--ease-settle),
+    scale 380ms var(--ease-settle);
 }
 
 .copy[data-copied="true"] .swap-a {

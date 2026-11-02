@@ -238,7 +238,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
           <ul class="inside">
             <li v-for="c in INSIDE" :key="c.title">
               <DitherScreen :screen="c.screen">
-                <DitherReveal class="inside-art" :duration="0.72" easing="linear" aria-hidden="true">
+                <DitherReveal class="inside-art" :duration="0.72" easing="spring" aria-hidden="true">
                   <DitherGradient :from="c.ink" :to="STOCK" direction="down" :cell="4" />
                 </DitherReveal>
               </DitherScreen>
@@ -490,7 +490,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   flex-direction: column;
   gap: 4px;
   color: var(--ink);
-  transition: color 150ms var(--ease-settle);
+  transition: color 200ms var(--ease-settle);
 }
 
 .family-t:hover {
@@ -703,7 +703,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   min-height: 24px;
   font-size: 12px;
   color: var(--ink-3);
-  transition: color 150ms var(--ease-settle);
+  transition: color 200ms var(--ease-settle);
 }
 
 .foot-col {
@@ -728,7 +728,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   min-height: 28px;
   padding-top: 6px;
   color: var(--ink-3);
-  transition: color 150ms var(--ease-settle);
+  transition: color 200ms var(--ease-settle);
 }
 
 .foot-col a:hover,

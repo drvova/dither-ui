@@ -94,13 +94,7 @@ onBeforeUnmount(() => {
     class="fixed inset-0 z-50 font-mono text-foreground lg:hidden"
     @keydown.esc.stop="emit('close')"
   >
-    <DitherReveal
-      v-bind="SHEET_WIPE"
-      easing="linear"
-      :reverse="leaving"
-      :restart-key="leaving"
-      class="flex h-full flex-col"
-    >
+    <DitherReveal v-bind="SHEET_WIPE" :reverse="leaving" :restart-key="leaving" class="flex h-full flex-col">
       <SheetHead close-label="Close sections" @close="emit('close')">
         <span class="sheet-title"
           >Sections <span class="tabular-nums">{{ total }}</span></span

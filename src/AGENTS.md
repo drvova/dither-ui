@@ -424,7 +424,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   a light `--muted-foreground` a step deeper than the kit's (`#5b6270`,
   AA on the bone grounds, not only on white; the faintest text ink: no
   ink fades below it, so never `color-mix` it toward transparent),
-  `--float-shadow`, `--ease-settle`, `--cut` (16px), `--display-face`
+  `--float-shadow`, `--ease-settle` (Apple's smooth spring: the kit's
+  `springLinear()` as CSS `linear()` under `@supports`, its closest bezier
+  `SPRING_BEZIER` before it; also Tailwind's default transition curve, so
+  every `transition-*` utility springs; `tests/motion.spec.ts` holds both
+  sites' copies to the kit and finds no other curve or linear wipe in the
+  site's motion), `--cut` (16px), `--display-face`
   (Michroma, then the mono; the `font-display` utility reads it; its
   `@font-face` is `shared/fonts/display.css`, imported by the landing and
   the docs only, never by the player, whose bundle inlines every asset).
@@ -483,8 +488,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (`@view-transition`, none under reduced motion), and the arriving page
   dithers from the old one through the kit's `ditherViewTransition`: a
   right wipe (left going back through history) with a band of the signal
-  ink, at one steady speed (linear: driven motion; the settle curve
-  answers a hand). `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
+  ink, on the spring like every motion on the site. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
   inlined first in each route's head by `rstack.config.ts` (`html.tags`,
   with the `PAGE_END_ID` marker it appends to each body), parks the
   `pagereveal` transition and holds the old page on screen until the app

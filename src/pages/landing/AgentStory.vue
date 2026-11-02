@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
   color: var(--ink-3);
   transition:
     opacity 240ms var(--ease-settle),
-    translate 240ms var(--ease-settle),
+    translate 350ms var(--ease-settle),
     color 240ms var(--ease-settle);
 }
 
@@ -317,7 +317,7 @@ onBeforeUnmount(() => {
   grid-area: 1 / 1;
   transition:
     opacity 240ms var(--ease-settle),
-    translate 240ms var(--ease-settle);
+    translate 350ms var(--ease-settle);
 }
 
 .slot {
@@ -423,7 +423,7 @@ onBeforeUnmount(() => {
   translate: -50% -50%;
   transition:
     opacity 240ms var(--ease-settle),
-    translate 240ms var(--ease-settle);
+    translate 350ms var(--ease-settle);
 }
 
 .render.ahead {
@@ -439,7 +439,7 @@ onBeforeUnmount(() => {
 .render-words > span {
   grid-area: 1 / 1;
   opacity: 0;
-  transition: opacity 160ms var(--ease-settle);
+  transition: opacity 200ms var(--ease-settle);
 }
 
 .render-words > span[data-on] {

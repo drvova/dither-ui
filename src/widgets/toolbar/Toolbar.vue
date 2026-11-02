@@ -551,8 +551,8 @@ async function exportPng() {
    quieter than enters), house easing, still under reduced motion. */
 .pop-enter-active {
   transition:
-    opacity 140ms cubic-bezier(0.2, 0, 0, 1),
-    transform 140ms cubic-bezier(0.2, 0, 0, 1);
+    opacity 200ms var(--ease-settle),
+    transform 350ms var(--ease-settle);
 }
 .pop-leave-active {
   transition:
@@ -636,7 +636,7 @@ async function exportPng() {
 .selection-tools-enter-active,
 .selection-tools-leave-active {
   transition:
-    transform 160ms cubic-bezier(0.2, 0, 0, 1),
+    transform 350ms var(--ease-settle),
     opacity 120ms ease;
 }
 .selection-tools-enter-from,

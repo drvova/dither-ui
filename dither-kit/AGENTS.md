@@ -69,6 +69,14 @@ the kit every import is relative (`../engine/pixel`).
 
 ## Local Contracts
 
+- Motion: `engine/spring.ts` is Apple's smooth spring (critically damped,
+  from rest, settling to within a thousandth by its end, never past its
+  mark; one shape at every duration), the `"spring"` easing name in
+  `dither-paint.ts` (both kits). It also gives the curve as CSS `linear()`
+  (`springLinear`) and the closest bezier (`SPRING_BEZIER`, within 3.5%)
+  for stylesheets; the site eases everything on it
+  (`tests/motion.spec.ts`).
+
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
   returns to its input; the list is arrow-driven), focus restores to the
   opener on close.

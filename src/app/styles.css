@@ -24,6 +24,11 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-display: var(--display-face);
+  /* Every transition utility moves on the spring (see --ease-settle). */
+  --default-transition-timing-function: var(--ease-settle);
+  --default-transition-duration: 200ms;
+  --ease-out: var(--ease-settle);
+  --ease-in-out: var(--ease-settle);
 }
 
 @layer base {
@@ -104,7 +109,7 @@
     font-size: 12.5px;
     font-weight: 500;
     white-space: nowrap;
-    transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color 200ms var(--ease-settle);
   }
   .nav-a:hover {
     color: var(--foreground);
@@ -119,8 +124,8 @@
       inset 0 0 0 1px color-mix(in oklab, var(--border) 90%, transparent),
       inset 0 1px 0 var(--gloss);
     transition:
-      box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
-      background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow 200ms var(--ease-settle),
+      background-color 200ms var(--ease-settle);
   }
   .nav-pill:hover {
     background: color-mix(in oklab, var(--foreground) 7%, transparent);
@@ -302,8 +307,8 @@
   }
   .key-chrome {
     transition:
-      filter 160ms var(--ease-settle),
-      translate 160ms var(--ease-settle);
+      filter 350ms var(--ease-settle),
+      translate 350ms var(--ease-settle);
   }
   .key-chrome:hover {
     filter: brightness(1.04);
@@ -420,7 +425,13 @@
   /* A destructive action's ink (delete, remove, a failed read): 4.5:1 on
      the light grounds. */
   --destructive: oklch(50.5% 0.213 27.518);
-  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Motion is Apple's smooth spring everywhere (the user's call): from
+     rest, settling long and soft, never past its mark
+     (`dither-kit/engine/spring.ts`, the kit's "spring" easing; the
+     `linear()` copy under @supports is that function, held to it by
+     tests/motion.spec.ts). Here the bezier closest to it, for browsers
+     without linear(). */
+  --ease-settle: cubic-bezier(0.29, 0.6, 0.14, 1);
   --cut: 16px;
   /* Display type: Michroma (shared/fonts/display.css), extended and
      geometric, one weight; the mono until it loads or where it is not
@@ -430,6 +441,46 @@
      the obsidian, never a grid. The landing wears it always, the docs in
      the dark. */
   --grain: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAC+ElEQVR42u1dSW7DMAwMekrgc9tTUaD//6N7DYLEES0uM9TobFhchotESrpc7sbP799+SRzX25Y6H90YVUi24tqD4QwxQjMQIJ8RYFGQVZlsgDHNbSUUxR1l0zEy3+M39G6vtSs5KxDEgDxLUzg4ooQWTfj1tu2vaD87t5KJ7hlKhduyMi0UFqHsXvBRSvD+L4xFCbUSKoXPbwPUM4KNVoZFuE9pkRsp3N7IyNmlViHZBAYv0EBYhhfTVZZkiR8tF3uegqcTEIL/zqABAuUrBstlE4RMxmeC8TsrcONj5kdRwsyqImXRH0ZoBAPdXQM8f6/QA1/h6p6SRgo7QjluShj9EYppsdF7GlleGr7etj0zxmgYBS0lTJo7Swo5+r9Hno9kYKYxI3ozFevTs5mj/k65gsb+2rMSdfQvD0TDJgzZBNB0OrMH8cyUGDJGzGpbW92gmmdrXSzd3/GevKomkF2Yl9mLNjEqAa+gYMQ0cERYS1hMFyaVjjNsBwyOD8sKE7EW+/n13dOaEZb3ymiYVohFPLg0ZzGVASsrb60s92hbwCPLoHVbyBtjyzc5sZhfxtywFobY4CukkwgfzsVFE/Tu/0xNuLQW80zI7ME2RfGek6AilRYI1iP7HV2Fy4Ixe6cx8mZFL3ruBUsBHOQrJT2uO4NTQqbf9F5zRB2JglFaV18Pz9cKGVP7jKHLGoHK789sUyOcjnQXgvfWwej1AR3cDuWZgZXOGYg5xFT76G7maEVZTioiXjROBbijYItUJ/A6c/aWJ8/FBfSjBXKvGuE+unuQLd3X6VDdgqQvgqjq++FamSEiaiKF7noJR3dEed5d1MrNKVVTLr02D9kHPtCEoUOAGjXB6dW2Sqtzvt2ev4VuOFZNVu6nHI1h1pt1pL/C/ShANxeSq0V7n1rMUEzWw26zFz0NVcM6+PxuMQzGRWXFIJpXV7P79Geeyq1CbasEAKVVPEWoq/m5Zat2SIqeubgE4jkrIV2DxvJM86P024+0wjBZzT/dUK3AHWUKTwAAAABJRU5ErkJggg==");
+}
+
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-settle: linear(
+      0,
+      0.0344,
+      0.1145,
+      0.2151,
+      0.3209,
+      0.4231,
+      0.5167,
+      0.5997,
+      0.6715,
+      0.7326,
+      0.7837,
+      0.826,
+      0.8608,
+      0.8892,
+      0.9121,
+      0.9306,
+      0.9453,
+      0.9572,
+      0.9665,
+      0.974,
+      0.9798,
+      0.9845,
+      0.9881,
+      0.991,
+      0.9932,
+      0.9949,
+      0.9963,
+      0.9974,
+      0.9982,
+      0.9988,
+      0.9993,
+      0.9997,
+      1
+    );
+  }
 }
 
 /* Muted text a step deeper than the kit's white-ground default, so it

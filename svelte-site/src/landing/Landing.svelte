@@ -364,7 +364,7 @@
     flex-direction: column;
     gap: 4px;
     color: var(--ink);
-    transition: color 150ms var(--ease-settle);
+    transition: color 200ms var(--ease-settle);
   }
 
   .family-t:hover {
@@ -516,7 +516,7 @@
     min-height: 24px;
     font-size: 12px;
     color: var(--ink-3);
-    transition: color 150ms var(--ease-settle);
+    transition: color 200ms var(--ease-settle);
   }
 
   .foot-col {
@@ -541,7 +541,7 @@
     min-height: 28px;
     padding-top: 6px;
     color: var(--ink-3);
-    transition: color 150ms var(--ease-settle);
+    transition: color 200ms var(--ease-settle);
   }
 
 

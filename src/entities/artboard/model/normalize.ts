@@ -8,7 +8,7 @@ import {
   type ReelChapter,
   sanitizeComponentProps,
 } from "@/entities/widget"
-import { BLOOMS, CHART_TYPES, type ChartType, STACKS } from "@/shared/config"
+import { BLOOMS, CHART_TYPES, type ChartType, EASING_NAMES, STACKS } from "@/shared/config"
 import { safeUrl } from "@/shared/lib/routes"
 import type { BloomConfig, BloomLevel, TextureConfig, VariantInput } from "@dither-kit"
 import type { Artboard } from "./types"
@@ -106,8 +106,6 @@ function variantOf(v: unknown): VariantInput {
   if (typeof v.gaps === "boolean") t.gaps = v.gaps
   return t
 }
-
-const EASING_NAMES = ["linear", "ease-out", "ease-in-out"] as const
 
 /** An easing: a preset name, a seed, or cubic-bezier points (x in 0-1, as
  * CSS has it; y free for overshoot within reason). */

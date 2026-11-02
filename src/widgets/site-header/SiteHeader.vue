@@ -145,7 +145,6 @@ onBeforeUnmount(() => {
     <DitherReveal
       v-if="phase !== 'shut'"
       v-bind="SHEET_WIPE"
-      easing="linear"
       :reverse="phase === 'leaving'"
       :restart-key="phase"
       class="menu-sheet"

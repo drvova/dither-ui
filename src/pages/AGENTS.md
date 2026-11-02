@@ -89,7 +89,11 @@ widgets/features; page-specific conventions live here.
   native modal `<dialog>` filling the window, itself clear so the page
   shows wherever the wipe has not reached (focus on its close key, focus
   back on the key, the page held still), arriving as the kit's wipe down
-  the screen (`DitherReveal`, `SHEET_WIPE`). The close key and Escape (the
+  the screen on the spring (`DitherReveal`, `SHEET_WIPE`: 0.5s,
+  `"spring"`). Every sheet's words stand on the header's lines (`--sheet-start`
+  and `--sheet-end` in `site-header.css`, from the capsule's own gutter,
+  width and padding: the brand mark's edge and the key word's, centred
+  capsule included). The close key and Escape (the
   dialog's `cancel`, prevented) play that wipe back, the sheet rolling up
   from its foot before it shuts (`MenuPhase`: shut, open, leaving; at once
   under reduced motion); a taken link and the window reaching lg shut it
@@ -111,7 +115,8 @@ widgets/features; page-specific conventions live here.
   the upper through the Bayer matrix (`SEAM_MASK`, the kit's wipe engine
   at a fixed progress; `seamStyle(fill)` is the seam whole, placed, for any
   sheet's bands). A hovered, focused or pressed band's words lean in
-  (8px, 12px pressed, the settle curve, 160ms) and the menu key's bands
+  (8px, 12px pressed, on the spring, 350ms; the hover only under
+  `(hover: hover)`, since a tap's hover sticks on a phone) and the menu key's bands
   part on a hover (none of it under reduced motion). A focused band rings
   in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
   (the capsule and the sheet) are the one table and stylesheet; the
@@ -221,7 +226,7 @@ widgets/features; page-specific conventions live here.
   picture (the stageshow skill's bento rules): neighbours across and down
   are different kinds, never two moving surfaces side by side, and no
   card repeats another's words or the ask's Deploys screen. Each card's art is a `DitherReveal` (the
-  8×8 Bayer dissolve, 0.72s, linear): it prints itself once as it comes
+  8×8 Bayer dissolve, 0.72s, on the spring): it prints itself once as it comes
   into view, at once under reduced motion, a row's cards one after another
   left to right (`staggers` in `hub.ts`, 90ms apart, read from the laid-out
   bento; a rail's cards past its width arrive as they are swiped in). A
@@ -398,7 +403,7 @@ widgets/features; page-specific conventions live here.
   the bone ink through its `DitherScreen` showing only the thin ends of
   their ramps, and the brand's moment in the band, pulled in from the
   right edge (16px clear) where the plate is narrow, while the tone prints
-  in through `DitherReveal` (0.72s, linear, the lights coming on).
+  in through `DitherReveal` (0.72s on the spring, the lights coming on).
   `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and every
   plate's mark inside its band, its tones thin.
   A new plate is a row in the table and a `<Plate>` at a section break.

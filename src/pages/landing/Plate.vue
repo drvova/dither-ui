@@ -24,7 +24,7 @@ const HALF = 3.5 * CELL
 <template>
   <div class="plate" :style="{ background: STOCK, aspectRatio: plate.aspect }" aria-hidden="true">
     <DitherScreen :screen="plate.screen">
-      <DitherReveal class="plate-print" :duration="0.72" easing="linear">
+      <DitherReveal class="plate-print" :duration="0.72" easing="spring">
         <div class="plate-tone" :style="{ top: 0, height: pct(plate.band[0]) }">
           <DitherGradient
             from="#e4e1d8"

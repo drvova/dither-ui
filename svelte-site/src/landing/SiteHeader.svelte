@@ -8,6 +8,7 @@
   // kit's wipe and rolls back up when it is closed. Sticky is positioned,
   // and z-40 keeps it over main, which isolates the page art.
   import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
+  import { spring } from "@dither-kit/engine/spring"
   import { wipeStyle } from "@dither-kit/engine/wipe"
   import { onMount, tick } from "svelte"
   import BrandMark from "./BrandMark.svelte"
@@ -81,7 +82,7 @@
     leave()
   }
 
-  /** The kit's wipe down the screen at its one pace, played back when the
+  /** The kit's wipe down the screen on the spring (Apple's smooth motion), played back when the
    * sheet leaves (whole at once under reduced motion). */
   function wipe(node: HTMLElement, at: MenuPhase) {
     let raf = 0
@@ -91,8 +92,9 @@
       const start = performance.now()
       const frame = (now: number) => {
         const t = Math.min(1, (now - start) / 1000 / SHEET_WIPE.duration)
+        const at = spring(t)
         node.style.cssText = maskCss(
-          wipeStyle(back ? 1 - t : t, { ...SHEET_WIPE, width: node.clientWidth, height: node.clientHeight }),
+          wipeStyle(back ? 1 - at : at, { ...SHEET_WIPE, width: node.clientWidth, height: node.clientHeight }),
         )
         if (t < 1) raf = requestAnimationFrame(frame)
       }
