@@ -6,18 +6,21 @@ import { routePath } from "@/shared/lib"
 export const docsUrl = (id: string) => routePath(`/docs/${id}`)
 
 /** Where a docs list stands: the rail beside the content (a pointer's 25px
- * targets at a 27px pitch) or the sections sheet (a finger's 30px ones). */
+ * targets at a 27px pitch) or the sections sheet (a finger's, at the
+ * menu's reading size). */
 export type NavPlace = "rail" | "sheet"
-export const NAV_LINK: Record<NavPlace, string> = { rail: "py-1 text-[11px]", sheet: "py-1.5 text-[12px]" }
+export const NAV_LINK: Record<NavPlace, string> = { rail: "py-1 text-[11px]", sheet: "py-2 text-[15px]" }
 /** A group's heading sticks to the top of its list while its sections
  * scroll under it (the landmark in a long list). The list's top room lives
  * here, not on the scroller, since a sticky heading sticks at the
  * scroller's content edge and its padding would show the list above it.
- * In the rail the heading lies on the page's ground, unseen; in the sheet,
- * over the shell's gradient, it is a filled band on that ground. */
+ * In the rail the heading lies on the page's ground, unseen; in the sheet
+ * each group is a band of the menu's (a step of the ink toward the ground,
+ * seamed into the one above through the Bayer matrix) and its heading
+ * sticks on the band's own fill. */
 export const NAV_PLACE: Record<NavPlace, { top: string; head: string }> = {
   rail: { top: "pt-10", head: "bg-background" },
-  sheet: { top: "pt-2", head: "-mx-2 rounded-md bg-background px-2" },
+  sheet: { top: "", head: "" },
 }
 
 /** A part of the section in view (its heading, a gallery heading, its API
@@ -29,6 +32,7 @@ export type PagePart = { label: string; el: HTMLElement }
 import { nextTick, ref, watch } from "vue"
 import { DitherIcon, type IconName } from "@dither-kit"
 import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
+import { bandFill, seamStyle } from "@/widgets/site-header/menu"
 import { GROUPS } from "./groups"
 
 /** The docs' section list, grouped under the families' glyphs: the sidebar
@@ -91,6 +95,8 @@ function fold(title: string) {
   else next.add(title)
   opened.value = next
 }
+/** A group's band in the sheet: its fill, one step per group down the list. */
+const band = (i: number) => (props.variant === "sheet" ? bandFill(i, GROUPS.length) : undefined)
 const listId = (title: string) => `docs-${props.variant}-${title.toLowerCase().replace(/\W+/g, "-")}`
 
 // Each group under its glyph (the landing's family glyphs).
@@ -109,23 +115,30 @@ const GROUP_ICON: Record<string, IconName> = {
 </script>
 
 <template>
-  <div ref="root" class="grid gap-3" :class="NAV_PLACE[props.variant].top">
-    <div v-for="grp in GROUPS" :key="grp.title">
+  <div ref="root" class="docs-nav grid gap-3" :class="NAV_PLACE[props.variant].top" :data-place="props.variant">
+    <div v-for="(grp, gi) in GROUPS" :key="grp.title" class="nav-grp" :style="band(gi) && { background: band(gi) }">
+      <span v-if="band(gi)" class="menu-seam" :style="seamStyle(band(gi)!)" aria-hidden="true" />
       <button
         type="button"
-        class="sticky top-0 z-10 flex min-h-7 w-full items-center gap-2 py-1.5 text-left text-[11px] font-medium text-foreground"
+        class="nav-head sticky top-0 z-10 flex min-h-7 w-full items-center gap-2 py-1.5 text-left text-[11px] font-medium text-foreground"
         :class="NAV_PLACE[props.variant].head"
+        :style="band(gi) && { background: band(gi) }"
         :aria-expanded="opened.has(grp.title)"
         :aria-controls="listId(grp.title)"
         @click="fold(grp.title)"
       >
-        <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
-        <span class="spec ml-auto tabular-nums">{{ grp.items.length }}</span>
+        <span class="nav-name inline-flex items-center gap-2"
+          ><DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}</span
+        >
+        <span class="nav-count spec ml-auto tabular-nums"
+          >{{ grp.items.length
+          }}<span class="nav-unit">{{ grp.items.length === 1 ? " section" : " sections" }}</span></span
+        >
         <DitherIcon
           name="ChevronRight"
           :size="12"
           :stroke-width="1.75"
-          class="text-muted-foreground transition-transform duration-150 motion-reduce:transition-none"
+          class="nav-chev text-muted-foreground transition-transform duration-150 motion-reduce:transition-none"
           :class="opened.has(grp.title) ? 'rotate-90' : ''"
         />
       </button>
@@ -161,3 +174,137 @@ const GROUP_ICON: Record<string, IconName> = {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* The rail counts in figures alone; the sheet says what they count. */
+.docs-nav:not([data-place="sheet"]) .nav-unit {
+  display: none;
+}
+
+/* The sheet: the families as the menu's bands, and it reads like the menu.
+   Folded, the bands share the screen, each family's name at its foot
+   (20px, its glyph beside it as GitHub carries its mark) over a line of
+   what it holds; the whole band opens it. Open, its sections follow at the
+   names' edge, the one in view printed in reverse. The ground's colour
+   writes on every band (AA down to the floor). */
+.docs-nav[data-place="sheet"] {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 100%;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] > .nav-grp {
+  position: relative;
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  min-height: 72px;
+}
+
+/* The seam rides over the band above it, headings included (they stick). */
+.docs-nav[data-place="sheet"] .menu-seam {
+  z-index: 11;
+}
+
+.docs-nav[data-place="sheet"] .nav-head {
+  display: grid;
+  flex: 1 0 auto;
+  grid-template-areas: "name chev" "count chev";
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: end;
+  gap: 4px 12px;
+  min-height: 0;
+  padding: 12px 28px 16px;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] .nav-name {
+  grid-area: name;
+  gap: 12px;
+}
+
+.docs-nav[data-place="sheet"] .nav-name svg {
+  width: 18px;
+  height: 18px;
+}
+
+.docs-nav[data-place="sheet"] .nav-count {
+  grid-area: count;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] .nav-chev {
+  grid-area: chev;
+  align-self: center;
+  width: 16px;
+  height: 16px;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] ul {
+  border: 0;
+}
+
+.docs-nav[data-place="sheet"] > .nav-grp > ul {
+  margin: 0;
+  padding: 0 16px 16px;
+}
+
+.docs-nav[data-place="sheet"] :is(a, ul button) {
+  margin: 0;
+  padding-inline: 12px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] ul ul button {
+  padding-left: 28px;
+}
+
+.docs-nav[data-place="sheet"] a[aria-current] {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* A hand on a band or a section: its words lean in, as the menu's do. */
+@media (prefers-reduced-motion: no-preference) {
+  .docs-nav[data-place="sheet"] :is(.nav-name, .nav-count, a, ul button) {
+    transition: translate 160ms var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  .docs-nav[data-place="sheet"] .nav-head:is(:hover, :focus-visible) :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):is(:hover, :focus-visible) {
+    translate: 8px 0;
+  }
+
+  .docs-nav[data-place="sheet"] .nav-head:active :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):active {
+    translate: 12px 0;
+  }
+}
+
+/* On a band of the ink the ring ink alone would vanish: the ground runs
+   inside it, so one of the two always shows. */
+.docs-nav[data-place="sheet"] :is(a, button):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 4px var(--background);
+}
+
+@media (forced-colors: active) {
+  .menu-seam {
+    display: none;
+  }
+}
+</style>

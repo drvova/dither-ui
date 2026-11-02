@@ -50,9 +50,9 @@ import { play, sounds } from "@/shared/lib/sound"
 import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 import { GROUPS } from "./groups"
 
-import { INSTALL } from "./install"
 import { docsMeta, docsBreadcrumb } from "./seo"
 import FormDocs from "./components/FormDocs.vue"
+import QuickStart from "./overview/QuickStart.vue"
 import PrimitivesDocs from "./primitives/PrimitivesDocs.vue"
 import EngineSection from "./handbook/EngineSection.vue"
 import VerificationSection from "./handbook/VerificationSection.vue"
@@ -621,13 +621,7 @@ const effectData = MONTHS.map((month, i) => ({
 }))
 const effectConfig = { v: { label: "signal", color: "blue" as DitherColor } }
 
-// The Vue kit on StyleX installs its StyleX layer.
-const onStylex = computed(() => docsFramework.value === "vue" && docsStyling.value === "stylex")
-
 const SNIPPETS = {
-  install: INSTALL.vue,
-  installStylex: INSTALL.stylex,
-  installSvelte: INSTALL.svelte,
   seeds: `<!-- one integer is a complete visual personality: -->
 <AreaChart :data="rows" :config="config" :seed="1984">
   <Area data-key="revenue" :variant="1984" />   <!-- texture  -->
@@ -636,20 +630,6 @@ const SNIPPETS = {
      for every prop you leave unset; explicit props always win.
      Seeds also work per prop: bloom / easing / variant / color(hue). -->
 <DitherButton :bloom="1984">Glow</DitherButton>`,
-  anyStyles: `# No Tailwind? The kit's styles ship as one plain stylesheet: its tokens, a
-# scoped base and every class its components use, compiled from the kit itself.
-<link rel="stylesheet" href="https://dither-ui.com/kit/dither-kit.css">
-#   (or from the repo: npm run build:css writes dist/kit/dither-kit.css)
-
-<div class="dither-kit">                         <!-- the base applies inside this wrapper only -->
-  <DitherButton class="cta">Ship</DitherButton>  <!-- class takes any class name: UnoCSS, vanilla CSS -->
-</div>
-
-# Theme from any system: the tokens are custom properties (theme.css lists them)
-import { applyTheme, themeCss } from "@dither-kit"
-applyTheme({ accent: "#3f8ff3", radius: "4px" })   // sets --accent / --radius on <html>, returns the undo
-themeCss({ background: "#000" }, ".dark")           // ".dark { --background: #000; }" for a stylesheet
-stylex.defineVars({ accent: "var(--accent)" })      // StyleX, vanilla-extract: the same names`,
   styling: `/* the kit reads shadcn-style tokens: theme by overriding them */
 :root {
   --background: #08090b;   /* chart chrome: axes, legend, tooltip */
@@ -1025,69 +1005,8 @@ const gradientCode = computed(
             in a single primitive.
           </p>
 
-          <!-- Quick start -->
-          <section id="getting-started" class="mt-16 scroll-mt-24">
-            <h2 class="text-lg tracking-tight">Quick start</h2>
-            <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              The kit is a folder, not a package. Copy
-              <code class="text-foreground/80">{{
-                docsFramework === "svelte" ? "dither-kit-svelte/" : "dither-kit/"
-              }}</code>
-              straight from the
-              <a
-                href="https://github.com/drvova/dither-ui"
-                target="_blank"
-                rel="noreferrer"
-                class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
-                >GitHub repo</a
-              >, install {{ onStylex ? "three" : "four" }} small runtime deps, and alias it. You already have
-              {{ docsFramework === "svelte" ? "Svelte 5" : "Vue 3"
-              }}{{ onStylex ? " and StyleX." : ", and Tailwind if you use it." }}
-            </p>
-            <div class="mt-5">
-              <CodeBlock
-                :code="
-                  docsFramework === 'svelte'
-                    ? SNIPPETS.installSvelte
-                    : onStylex
-                      ? SNIPPETS.installStylex
-                      : SNIPPETS.install
-                "
-              />
-            </div>
-            <p v-if="docsFramework === 'vue'" class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
-              On StyleX, the Vue kit has a layer of its own:
-              <code class="text-foreground/80">dither-kit/stylex/</code> holds every component written in StyleX,
-              generated from the Tailwind ones so the two never drift, and your StyleX plugin compiles it with your app.
-              Alias <code class="text-foreground/80">@dither-kit</code> to it, and every component that takes
-              <code class="text-foreground/80">class</code> takes your styles as
-              <code class="text-foreground/80">xstyle</code>, merged after its own. Pick StyleX in the header and the
-              steps above, the code tabs and Run all use that layer.
-            </p>
-            <p class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
-              Styling with something else, like UnoCSS, vanilla CSS or any CSS-in-JS? The kit does not need your
-              Tailwind: its own stylesheet carries the tokens, a base scoped to a
-              <code class="text-foreground/80">.dither-kit</code> wrapper and every class its components use, all in
-              cascade layers, so your unlayered styles win. Theme it from CSS, JS or your vars contract: the tokens are
-              plain custom properties. And what you write is written in your system: pick it in the header or on any
-              code tab, and every snippet on this page, every Studio export and the agent's
-              <code class="text-foreground/80">code.get</code> come out as a scoped stylesheet, CSS Modules or StyleX
-              instead of utility classes. Run plays them in the page in that system too, StyleX included. The components
-              keep their own styles either way.
-            </p>
-            <div class="mt-3"><CodeBlock :code="SNIPPETS.anyStyles" /></div>
-            <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground">
-              Prefer to read the source first? Every component lives under
-              <a
-                :href="`https://github.com/drvova/dither-ui/tree/master/${docsFramework === 'svelte' ? 'dither-kit-svelte' : 'dither-kit'}`"
-                target="_blank"
-                rel="noreferrer"
-                class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
-                >{{ docsFramework === "svelte" ? "dither-kit-svelte/" : "dither-kit/"
-                }}<span class="sr-only"> (opens in a new tab)</span></a
-              >. No build step, no black box.
-            </p>
-          </section>
+          <!-- Quick start: the install, one step at a time -->
+          <QuickStart />
 
           <!-- Primitives: box, text, divider, visually-hidden -->
           <PrimitivesDocs />

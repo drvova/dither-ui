@@ -81,28 +81,17 @@
   overflow-y: auto;
 }
 
-/* The top row stands where the header stood: the brand, and the close key
-   where the menu key was. */
-.menu-top {
-  display: flex;
+/* A sheet's head is the header itself, standing where it stood: the
+   capsule and the brand unmoved, the key that opened the sheet turned to
+   "Close" in its place, on the ground so the page never shows around it. */
+.sheet-head {
   flex: none;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--head, 64px);
-  padding: 0 23px 0 28px;
   color: var(--foreground);
   background: var(--background);
 }
 
-.menu-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  color: var(--foreground);
-  background: color-mix(in oklab, var(--foreground) 9%, var(--background));
+.sheet-title {
+  color: var(--muted-foreground);
 }
 
 .menu-bands {
@@ -139,6 +128,7 @@
 
 .menu-band[aria-current] .menu-name {
   text-decoration: underline;
+  text-decoration-thickness: 1px;
   text-underline-offset: 6px;
 }
 
@@ -173,10 +163,6 @@
   position: absolute;
   inset-inline: 0;
   pointer-events: none;
-}
-
-.menu-close:focus-visible {
-  outline: 2px solid var(--ring);
 }
 
 /* On a band of the ink the ring ink alone would vanish: the ground runs

@@ -4,6 +4,8 @@ import { mount } from "@vue/test-utils"
 import { defineComponent, h, nextTick, provide } from "vue"
 import DemoCard, { DEMO_FIT, type DemoFit } from "@/pages/docs/DemoCard.vue"
 import DocsNav, { NAV_PLACE } from "@/pages/docs/DocsNav.vue"
+import { GROUPS } from "@/pages/docs/groups"
+import { bandFill } from "@/widgets/site-header/menu"
 
 afterEach(() => rs.unstubAllGlobals())
 
@@ -35,13 +37,21 @@ describe("docs demo fit", () => {
 // top room on the list itself (never the scroller's padding).
 describe("docs section list landmarks", () => {
   it("sticks each group heading on its place's ground", () => {
-    for (const variant of ["rail", "sheet"] as const) {
-      const w = mount(DocsNav, { props: { activeId: "", variant } })
-      expect(w.element.className).toContain(NAV_PLACE[variant].top)
-      const heads = w.findAll(".sticky")
-      expect(heads.length).toBeGreaterThan(5)
-      for (const c of NAV_PLACE[variant].head.split(" ")) expect(heads[0]!.classes()).toContain(c)
-      w.unmount()
-    }
+    // The rail: on the page's ground, unseen.
+    const rail = mount(DocsNav, { props: { activeId: "", variant: "rail" } })
+    expect(rail.element.className).toContain(NAV_PLACE.rail.top)
+    const heads = rail.findAll(".sticky")
+    expect(heads.length).toBeGreaterThan(5)
+    for (const c of NAV_PLACE.rail.head.split(" ")) expect(heads[0]!.classes()).toContain(c)
+    rail.unmount()
+    // The sheet: each family a band, its heading sticking on the band's own fill.
+    const sheet = mount(DocsNav, { props: { activeId: "", variant: "sheet" } })
+    const groups = sheet.findAll(".nav-grp")
+    expect(groups).toHaveLength(GROUPS.length)
+    groups.forEach((g, i) => {
+      expect(g.element.style.background).toBe(bandFill(i, GROUPS.length))
+      expect(g.find(".sticky").element.style.background).toBe(bandFill(i, GROUPS.length))
+    })
+    sheet.unmount()
   })
 })

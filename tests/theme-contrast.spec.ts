@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { contrast, over, parseColor, type RGBA } from "../src/widgets/workbench/model/color"
-import { BAND_INK } from "../src/widgets/site-header/menu"
+import { BAND_FLOOR, BAND_INK } from "../src/widgets/site-header/menu"
 
 const root = new URL("..", import.meta.url).pathname
 const kit = readFileSync(`${root}dither-kit/engine/theme.css`, "utf8")
@@ -90,7 +90,10 @@ describe("theme contrast", () => {
   ] as const)
     it(`${theme}: the menu's bands hold 4.5:1 for the ground's ink`, () => {
       const page = colour(t.background)
-      const fills = [...BAND_INK.map((p) => mix(colour(t.foreground), p / 100, page)), colour(t["swatch-orange"])]
+      // Every step of every sheet's bands (the menu's, the docs' families)
+      // lies between the full ink and the floor.
+      const steps = [...BAND_INK, BAND_FLOOR]
+      const fills = [...steps.map((p) => mix(colour(t.foreground), p / 100, page)), colour(t["swatch-orange"])]
       const worst = Math.min(...fills.map((f) => contrast(page, f)))
       expect(worst).toBeGreaterThanOrEqual(4.5)
     })

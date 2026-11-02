@@ -8,24 +8,23 @@
 // opens them as a modal sheet of tone steps that wipes in and rolls back up
 // when it is closed. Sticky is positioned, and z-40 keeps it over a page's
 // main, which isolates its art.
-import { DitherIcon, DitherReveal } from "@dither-kit"
+import { DitherReveal } from "@dither-kit"
 import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue"
 import { routePath } from "@/shared/lib"
 import BrandMark from "@/shared/ui/BrandMark.vue"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import "./site-header.css"
+import SheetHead from "./SheetHead.vue"
 import {
   BAND_INK,
   MENU_LINKS,
   MENU_WIDE,
-  SEAM_HEIGHT,
-  SEAM_MASK,
   SHEET_WIPE,
   STUDIO_FILL,
   STUDIO_LINK,
   bandFill,
-  maskCss,
+  seamStyle,
   type MenuLinkId,
   type MenuPhase,
 } from "./menu"
@@ -46,7 +45,6 @@ const STUDIO = routePath("/studio")
 const SHOWN = { md: "hidden md:inline-flex", lg: "hidden lg:inline-flex" } as const
 const isCurrent = (id: MenuLinkId) => id === props.current
 const external = (id: MenuLinkId) => id === "github"
-const seam = `${maskCss(SEAM_MASK)};height:${SEAM_HEIGHT}px;top:-${SEAM_HEIGHT}px`
 
 // The menu: a native modal dialog (focus held inside, Escape closes, the page
 // inert under it), the page holding still while it is open.
@@ -153,12 +151,7 @@ onBeforeUnmount(() => {
       class="menu-sheet"
       :data-phase="phase"
     >
-      <div class="menu-top">
-        <span class="flex items-center gap-2.5 text-xs"><BrandMark :size="13" />dither-ui</span>
-        <button type="button" class="menu-close" aria-label="Close menu" autofocus @click="leave">
-          <DitherIcon name="Close" :size="16" :stroke-width="1.5" />
-        </button>
-      </div>
+      <SheetHead close-label="Close menu" @close="leave" />
       <nav class="menu-bands" aria-label="Site">
         <a
           v-for="(l, i) in MENU_LINKS"
@@ -171,7 +164,7 @@ onBeforeUnmount(() => {
           :rel="external(l.id) ? 'noreferrer' : undefined"
           @click="shut"
         >
-          <span class="menu-seam" :style="`${seam};background:${bandFill(i)}`" aria-hidden="true" />
+          <span class="menu-seam" :style="seamStyle(bandFill(i))" aria-hidden="true" />
           <span class="menu-name"
             ><ToolMark v-if="external(l.id)" id="github" :size="18" />{{ l.label
             }}<span v-if="external(l.id)" class="sr-only"> (opens in a new tab)</span></span
@@ -179,7 +172,7 @@ onBeforeUnmount(() => {
           <span class="menu-note">{{ l.note }}</span>
         </a>
         <a :href="STUDIO" class="menu-band" :style="{ background: STUDIO_FILL }" @click="shut">
-          <span class="menu-seam" :style="`${seam};background:${STUDIO_FILL}`" aria-hidden="true" />
+          <span class="menu-seam" :style="seamStyle(STUDIO_FILL)" aria-hidden="true" />
           <span class="menu-name">{{ STUDIO_LINK.label }}</span>
           <span class="menu-note">{{ STUDIO_LINK.note }}</span>
         </a>

@@ -22,15 +22,22 @@ export type MenuLinkId = (typeof MENU_LINKS)[number]["id"]
 /** The foot band: the studio, which wants a wide screen and says so. */
 export const STUDIO_LINK = { label: "Open studio", note: "An infinite canvas, best from 1024px wide" } as const
 
-/** Ink share of each link band, top to bottom. The ground's own colour
- * writes on them, AA on every step in both themes (64% is the floor;
- * `tests/theme-contrast.spec.ts` holds it). */
-export const BAND_INK = [100, 88, 76, 64] as const
+/** The darkest step a band takes: the ink's share of its fill. The ground's
+ * own colour writes on every band, AA down to this floor in both themes
+ * (`tests/theme-contrast.spec.ts` holds it). */
+export const BAND_FLOOR = 64
 
-/** A link band's fill: its step of the ink toward the ground (the last step
- * for any band past the table). */
-export const bandFill = (i: number) =>
-  `color-mix(in srgb, var(--foreground) ${BAND_INK[Math.min(i, BAND_INK.length - 1)]}%, var(--background))`
+/** Band `i` of `n`'s ink share: even steps from the full ink to the floor. */
+export const bandInk = (i: number, n: number) =>
+  Math.round(100 - (Math.min(i, n - 1) * (100 - BAND_FLOOR)) / Math.max(1, n - 1))
+
+/** The menu's link bands, top to bottom (100/88/76/64). */
+export const BAND_INK = MENU_LINKS.map((_, i) => bandInk(i, MENU_LINKS.length))
+
+/** A band's fill: its step of the ink toward the ground, `n` bands in all
+ * (the menu's links unless told). */
+export const bandFill = (i: number, n: number = MENU_LINKS.length) =>
+  `color-mix(in srgb, var(--foreground) ${bandInk(i, n)}%, var(--background))`
 
 /** The foot band's fill: the signal, the page's one accent. */
 export const STUDIO_FILL = "var(--signal, var(--swatch-orange))"
@@ -57,8 +64,26 @@ export const SEAM_MASK = wipeStyle(0.5, {
  * It leaves the same way played back, rolling up from the foot. */
 export const SHEET_WIPE = { direction: "down", duration: 0.32, cell: 4, band: 10 } as const
 
+/** The close mark: an X on the brand diamond's 7x7 grid, as dense as the
+ * diamond (each stroke two cells where it can be), its crossing the ember
+ * core (`*`), so the key that shuts a sheet speaks the brand's pixel. */
+const CLOSE_ROWS = ["#.....#", "##...##", ".##.##.", "..#*#..", ".##.##.", "##...##", "#.....#"]
+export const CLOSE_CELLS: readonly { x: number; y: number; core?: boolean }[] = CLOSE_ROWS.flatMap((row, y) =>
+  [...row].flatMap((c, x) => (c === "#" ? [{ x, y }] : c === "*" ? [{ x, y, core: true }] : [])),
+)
+
+/** A sheet's head stands where the header stood with room under its capsule
+ * for the first band's seam, so the seam never bites into the capsule. */
+export const SHEET_HEAD_FOOT = 8 + SEAM_HEIGHT
+
 /** Where the menu is: shut, up, or rolling back up before it shuts. */
 export type MenuPhase = "shut" | "open" | "leaving"
+
+/** The seam over a band filled `fill`: the band climbing into the one above
+ * it, as an inline style whole (placed, masked, filled), so any sheet's
+ * bands take it; the band is its positioned box. */
+export const seamStyle = (fill: string) =>
+  `${maskCss(SEAM_MASK)};position:absolute;inset-inline:0;top:-${SEAM_HEIGHT}px;height:${SEAM_HEIGHT}px;pointer-events:none;background:${fill}`
 
 /** A mask as an inline style, both spellings (WebKit reads the prefixed). */
 export const maskCss = (m: WipeStyle | null) =>
