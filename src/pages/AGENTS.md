@@ -158,7 +158,12 @@ widgets/features; page-specific conventions live here.
   row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
   ember, and "New model" for the next seed) beside the rating (its stars at display size, 44px) and the
-  stat card; print screens (the full row, flush: one bone-to-obsidian
+  stat card (frames exported a day, `stat.ts`, copied byte for byte to the
+  Svelte site: the headline is the total at rest; scrub the `Sparkline`
+  (`interactive`) and its own crosshair marks the day under the pointer
+  while the headline rolls to that day, the line under it crossfading from
+  the week's change to the day's name; `hover-lift` off, so the marked day
+  is the only emphasis); print screens (the full row, flush: one bone-to-obsidian
   `DitherGradient` printed through a `DitherScreen` under the same ramp
   raw, the raw one in linear light so the printed cells average to it,
   clipped at a split a full-size range drags or the arrows step, its

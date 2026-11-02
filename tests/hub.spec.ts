@@ -1,5 +1,6 @@
 import { describe, expect, it } from "rstack/test"
 import { GROUPS, SECTIONS } from "@/pages/docs/groups"
+import { DAYS, FRAMES, TOTAL, WEEK_CHANGE, ago, shown } from "@/pages/landing/stat"
 import { BENTO, DOCS_FAMILIES, FAMILIES, SECTION_COUNT, STAGGER, staggers } from "@/pages/landing/hub"
 
 const family = (title: string) => GROUPS.find((g) => g.title === title)
@@ -39,5 +40,16 @@ describe("component hub", () => {
     // A rail: one row, wider than the bento.
     const rail = [0, 300, 600].map((left) => ({ top: 0, left }))
     expect(staggers(rail, 400)).toEqual([0, STAGGER, 0])
+  })
+})
+
+describe("bento stat card", () => {
+  it("states only figures it plots: the total at rest, the day under the pointer while scrubbed", () => {
+    expect(TOTAL).toBe(FRAMES.reduce((n, f) => n + f, 0))
+    expect(shown(null)).toBe(TOTAL)
+    FRAMES.forEach((f, i) => expect(shown(i)).toBe(f))
+    const week = (to: number) => FRAMES.slice(to - 7, to).reduce((n, f) => n + f, 0)
+    expect(WEEK_CHANGE).toBe(Math.round((week(DAYS) / week(DAYS - 7) - 1) * 100))
+    expect([ago(DAYS - 1), ago(DAYS - 2), ago(0)]).toEqual(["today", "yesterday", `${DAYS - 1} days ago`])
   })
 })

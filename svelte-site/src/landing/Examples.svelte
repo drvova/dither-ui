@@ -29,6 +29,7 @@
   import { COMPONENT_COUNT, docsHref } from "./facts"
   import PauseChip from "./PauseChip.svelte"
   import { spotlight } from "./spotlight"
+  import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "./stat"
 
   /** The bento, row by row: a tall lead card (8) beside two stacked (4); a
    * full row; a wide card (8) beside a third; two halves. Each leads into
@@ -134,8 +135,9 @@
   // Rating.
   let stars = $state(4)
 
-  // Stat card.
-  const SPARK = [12, 14, 13, 17, 16, 19, 18, 22, 21, 24, 23, 27, 26, 29, 31, 30, 33, 35]
+  // Stat card: scrub the sparkline and the headline rolls to the day under
+  // the pointer (`stat.ts`).
+  let day = $state<number | null>(null)
 
   // Print screens: one tone ramp, raw on the left and printed on the right,
   // the split dragged (or stepped by keyboard) and the screen switched in
@@ -214,9 +216,14 @@
           {:else if t.id === "sparkline"}
             <div class="panel stat">
               <span class="panel-d">Frames exported</span>
-              <span class="stat-v">12,480</span>
-              <span class="panel-d"><b>+8.2%</b> on last week</span>
-              <div class="stat-spark"><Sparkline data={SPARK} color="blue" /></div>
+              <NumberFlow value={shown(day)} duration={240} class="stat-v" />
+              <span class="panel-d stat-sub">
+                <span data-on={day === null ? "" : undefined}><b>+{WEEK_CHANGE}%</b> on the week before</span>
+                <span data-on={day === null ? undefined : ""} aria-hidden="true">{ago(day ?? DAYS - 1)}</span>
+              </span>
+              <div class="stat-spark">
+                <Sparkline data={FRAMES} color="blue" interactive hoverLift={false} onHoverChange={(i) => (day = i)} />
+              </div>
             </div>
           {:else if t.id === "gradient"}
             <div class="split" style:--split="{split}%">
@@ -575,11 +582,30 @@
     color: var(--ink);
   }
 
-  .stat {
-    justify-content: center;
+  /* The stat card: its figures over a sparkline that takes the rest of the
+     art, scrubbed by the pointer; the line under the figure holds both its
+     readings in one cell and crossfades between them. */
+  .stat-sub {
+    display: grid;
   }
 
-  .stat-v {
+  .stat-sub > span {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .stat-sub > span[data-on] {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stat-sub > span {
+      transition: none;
+    }
+  }
+
+  .stat :global(.stat-v) {
     font-size: 1.9rem;
     font-weight: 500;
     line-height: 1.1;
@@ -589,8 +615,10 @@
 
   .stat-spark {
     position: relative;
-    height: 56px;
-    margin-top: 8px;
+    flex: 1;
+    min-height: 72px;
+    margin-top: 10px;
+    cursor: crosshair;
   }
 
   .cipher {

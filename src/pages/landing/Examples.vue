@@ -42,6 +42,7 @@ import {
 import { routePath } from "@/shared/lib"
 import { COMPONENT_COUNT } from "./facts"
 import { BENTO, staggers } from "./hub"
+import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "./stat"
 import PauseChip from "./PauseChip.vue"
 import { spotlight } from "./spotlight"
 
@@ -216,8 +217,9 @@ const fluid = ref<Fluid>("ember")
 // Slide action: how many slides confirmed.
 const confirmed = ref(0)
 
-// Stat card.
-const SPARK = [12, 14, 13, 17, 16, 19, 18, 22, 21, 24, 23, 27, 26, 29, 31, 30, 33, 35]
+// Stat card: scrub the chart and the headline rolls to the day under the
+// pointer (`stat.ts`).
+const day = ref<number | null>(null)
 
 // Silk, in the kit's blue.
 const SILK = [BLUE[2], BLUE[4], BLUE[2]]
@@ -406,9 +408,21 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
           <div v-else-if="t.id === 'stats-cards'" class="panel stat">
             <span class="panel-d">Frames exported</span>
-            <span class="stat-v">12,480</span>
-            <span class="panel-d"><b>+8.2%</b> on last week</span>
-            <Sparkline :data="SPARK" color="blue" class="stat-spark" />
+            <DitherNumberFlow :value="shown(day)" :duration="240" class="stat-v" />
+            <span class="panel-d stat-sub">
+              <span :data-on="day === null ? '' : undefined"
+                ><b>+{{ WEEK_CHANGE }}%</b> on the week before</span
+              >
+              <span :data-on="day === null ? undefined : ''" aria-hidden="true">{{ ago(day ?? DAYS - 1) }}</span>
+            </span>
+            <Sparkline
+              :data="FRAMES"
+              color="blue"
+              interactive
+              :hover-lift="false"
+              class="stat-spark"
+              @hover-change="(i) => (day = i)"
+            />
           </div>
 
           <template v-else-if="t.id === 'silk'">
@@ -720,8 +734,27 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   color: var(--ink);
 }
 
-.stat {
-  justify-content: center;
+/* The stat card: its figures over a chart that takes the rest of the art,
+   scrubbed by the pointer. The line under the figure holds both its
+   readings in one cell and crossfades between them. */
+.stat-sub {
+  display: grid;
+}
+
+.stat-sub > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stat-sub > span[data-on] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-sub > span {
+    transition: none;
+  }
 }
 
 .stat-v {
@@ -733,8 +766,10 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 }
 
 .stat-spark {
-  height: 56px;
-  margin-top: 8px;
+  flex: 1;
+  min-height: 72px;
+  margin-top: 10px;
+  cursor: crosshair;
 }
 
 .cipher {

@@ -16,6 +16,11 @@ const props = withDefaults(
     variant?: VariantInput
     seed?: number
     markerIndex?: number | null
+    /** Scrubbable: the pointer marks the nearest point with the chart's own
+     * crosshair and `hoverChange` reports its index (null on leave). */
+    interactive?: boolean
+    /** Brighten the fill while the pointer is over it. */
+    hoverLift?: boolean
     hovered?: boolean
     bloom?: BloomInput
     bloomOnHover?: boolean
@@ -26,12 +31,16 @@ const props = withDefaults(
   {
     variant: "gradient",
     markerIndex: null,
+    interactive: false,
+    hoverLift: true,
     hovered: false,
     bloom: "off",
     bloomOnHover: false,
     animate: false,
   },
 )
+
+const emit = defineEmits<{ hoverChange: [index: number | null] }>()
 
 const rows = computed(() => props.data.map((v) => ({ v })))
 const config = computed(() => ({ v: { color: props.color } }))
@@ -41,7 +50,9 @@ const config = computed(() => ({ v: { color: props.color } }))
   <AreaChart
     :data="rows"
     :config="config"
-    :interactive="false"
+    :interactive="props.interactive"
+    :hover-lift="props.hoverLift"
+    :on-hover-change="(index: number | null) => emit('hoverChange', index)"
     :animate="props.animate"
     :seed="props.seed"
     :marker-index="props.markerIndex"
