@@ -5,6 +5,8 @@
 // its first view), never for a finger passing over, never once the reader
 // asks for reduced motion, and only where the parent asks for it (`replay`),
 // saying `moving` again as it starts and `settled` again when it is home.
+// Its moment is built only as it comes within a screen of view (the first
+// observer), then plays as its home is in view (the second).
 import { mount } from "@vue/test-utils"
 import { afterEach, beforeEach, describe, expect, it } from "rstack/test"
 import { STAGINGS } from "../src/pages/landing/brand"
@@ -90,6 +92,9 @@ describe("brand replay", () => {
     document.body.append(host)
     const w = mount(BrandGather, { props: { scene: STAGINGS.hero, replay: true }, attachTo: host })
     const lockup = w.get(".brand-gather").element
+    // Nothing is built until the lockup comes within a screen of view.
+    expect(anims).toHaveLength(0)
+    reveal!()
     expect(anims.length).toBeGreaterThan(0)
     // Held loose for its first view, a hover does not start it early.
     hover(lockup, "mouse")
@@ -130,7 +135,8 @@ describe("brand replay", () => {
     const host = document.createElement("div")
     document.body.append(host)
     const w = mount(BrandGather, { props: { scene: STAGINGS.foot }, attachTo: host })
-    reveal!()
+    reveal!() // near: built, held loose
+    reveal!() // in view: plays
     await settle()
     hover(w.get(".brand-gather").element, "mouse")
     expect(w.emitted("moving")).toHaveLength(1)

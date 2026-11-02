@@ -69,6 +69,13 @@ the kit every import is relative (`../engine/pixel`).
 
 ## Local Contracts
 
+- Covers: `engine/cover.ts` holds every loop under a layer that covers
+  the page (`coverPage(el)` raises it, `coverPage(null)` lifts it): the
+  loop runtimes (`useCanvasVisibility`, so `useDitherBackground` and every
+  canvas loop gated on it, and `useInviewLoop`; the Svelte kit's
+  `ditherBackground` action) read a covered element as out of view and
+  wake as the cover lifts; loops inside the covering layer run on.
+  `tests/cover.spec.ts`.
 - Motion: `engine/spring.ts` is Apple's smooth spring (critically damped,
   from rest, settling to within a thousandth by its end, never past its
   mark; one shape at every duration), the `"spring"` easing name in

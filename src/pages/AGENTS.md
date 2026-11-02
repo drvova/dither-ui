@@ -97,7 +97,11 @@ widgets/features; page-specific conventions live here.
   dialog's `cancel`, prevented) play that wipe back, the sheet rolling up
   from its foot before it shuts (`MenuPhase`: shut, open, leaving; at once
   under reduced motion); a taken link and the window reaching lg shut it
-  at once. Its head is the header itself, standing where it stood
+  at once. While a sheet stands it covers the page (`coverPage`, the kit's
+  `engine/cover.ts`): every kit loop under it holds its frame and wakes as
+  the sheet starts to leave, so the wipe is the one moving layer (the
+  landing's menu went from 10 frames in its opening 900ms at 4x CPU to
+  22). Its head is the header itself, standing where it stood
   (`SheetHead`, the one head of every full-screen sheet: the capsule and
   the brand unmoved, the key that opened the sheet turned to the close
   mark and "Close" in the menu key's place, on the ground, the sheet's
@@ -365,8 +369,11 @@ widgets/features; page-specific conventions live here.
   - `strike` (the footer): a typewriter; the glyphs wait stacked at the
     carriage on the scene's first row, and one by one each slides out to
     its column and strikes down onto the line.
-  It plays the same at every width, phones included (nothing gates it on
-  pointer or size), once, when the lockup stands in view clear of the
+  It is built (each cell's path and its two stepped animations) only as
+  the lockup comes within a screen of view, never at mount (all four built
+  at mount were a sixth of the landing's script at 4x CPU); unbuilt, its
+  cells stand home where nobody sees them. It plays the same at every
+  width, phones included (nothing gates it on pointer or size), once, when the lockup stands in view clear of the
   viewport's bottom tenth, and stays; with `replay` (the hero's alone) a
   mouse or pen coming to rest on the lockup plays it again from the top,
   once it is home (never over a moment still playing or still held for its
@@ -645,8 +652,12 @@ widgets/features; page-specific conventions live here.
   opens on the first section and keeps the docs' front, the chrome title,
   its tags and intro, `data-docs-front`, which a section's page keeps only
   as the screen readers' h1). `open(id)` shows that section alone (the
-  rest of `.docs-flow` stays mounted, `hidden`, its demos unrevealed, so a
-  section opens at once and keeps each demo's state), pushes a history
+  rest of `.docs-flow` hidden; a pack of sections, `packs.ts` `PACKS`, each
+  pack component and the nav naming its sections, mounts only once one of
+  its sections is opened here and stays after, so going back is instant
+  and keeps each demo's state, while the 300-odd others cost the page
+  nothing: 27,564 nodes on a section's page became 4,115;
+  `tests/docs-packs.spec.ts` holds every pack to its nav), pushes a history
   entry and reads from the top; back and forward walk them (`popstate`).
   The sidebar, search, the sheet and the pager all open through it. Over
   the section a breadcrumb (the docs, then its group, linking to the
