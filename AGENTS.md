@@ -174,7 +174,7 @@ Default section order:
   1200x630 SHARE CARD per page the site shares (`home`, `docs`, `studio`
   and every docs section) as `dist/og/<id>.png` (its still: the og/X image
   every link preview shows) and `dist/og/<id>.gif` (the same card looping,
-  3.6s), with four pages of the card renderer, a page of the build (the
+  5.76s: the kit's diamond swells over its print and back), with four pages of the card renderer, a page of the build (the
   `og/index` entry: `og/index.html` + `src/pages/docs/og-page.ts`,
   `window.og.files(id)`): the landing's printed look, the title in the
   display face beside a print of the kit's own poster (`og-art.ts` runs

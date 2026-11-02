@@ -716,15 +716,19 @@ widgets/features; page-specific conventions live here.
   line, a section's on two at most) and its line in the muted ink under it,
   the print standing on the right from the brand's line to the type's last;
   by day (the Discord toggle) the same card on bone paper, the print's bone
-  ink turned obsidian. The loop is the hero's own motion, the screen
-  sliding inside the diamond in whole turns (36 frames at 10 fps), so the
-  GIF's last frame meets its first; the PNG is frame 0. Discord's
+  ink turned obsidian. The loop (72 frames at 12.5 fps, `OG_BEATS`): at
+  rest, then the kit's diamond swells over the whole print on the spring,
+  turning every tile over into its negative ring by ring, holds, and
+  recedes to its place, the screen sliding inside it in whole turns, so
+  the GIF's last frame meets its first; the PNG is frame 0, the print at
+  rest. Discord's
   containers draw no accent bar (no side line). Copy follows the bans (no
   uppercase, no eyebrow over the title, no middle dot or em dash, buttons
   that name where they go). `ROUTE_CARDS` holds the route cards' copy;
   their ids may never be section ids; the route templates' image alt is
   the card's. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
-  screens, home as the hero's print with its inks, no bone on bone, the
+  screens, the swell's beats, home as the hero's print with its inks, no
+  bone on bone, the
   print clear of the type, AA, balanced wrap) and the share-card and
   renderer cases in `tests/crawler-files.spec.ts` (every page's embed
   under Discord's 3,000 byte cap with link buttons only and no accent bar,

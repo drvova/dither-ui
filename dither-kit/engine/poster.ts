@@ -96,8 +96,12 @@ export function paintPoster(buffer: RasterBuffer, layout: PosterLayout, p: Poste
   const screen = SCREENS[p.screen] ?? SCREENS.bayer
   const drift = Math.floor(time * p.speed)
   const r = Math.max(1, layout.mark.r * Math.min(cols, rows))
-  const cx = Math.min(Math.max(layout.mark.x * cols, r), cols - r)
-  const cy = Math.min(Math.max(layout.mark.y * rows, r), rows - r)
+  // The mark lands whole on the surface; one grown past half the surface
+  // (a swell) eases to its middle, so it can cover the surface whole and
+  // its centre never jumps as it grows.
+  const place = (at: number, n: number) => Math.min(Math.max(at, Math.min(r, n / 2)), Math.max(n - r, n / 2))
+  const cx = place(layout.mark.x * cols, cols)
+  const cy = place(layout.mark.y * rows, rows)
   const ink = (i: number) => p.inks[((i % p.inks.length) + p.inks.length) % p.inks.length]
   // The tiles each column holds, top to bottom, and the column under each x.
   const columns = [...new Set(layout.tiles.map((t) => t.x0))].sort((a, b) => a - b)

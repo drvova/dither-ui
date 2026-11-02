@@ -605,7 +605,9 @@ the kit every import is relative (`../engine/pixel`).
   more the one beside it), each running its ink along a ramp (down or
   across; some solid) through the screen into a second ink or the ground,
   and places the kit's diamond (sized by the surface's shorter side and
-  always landing whole, so a portrait print keeps it), inside which every
+  landing whole while it fits, so a portrait print keeps it; a mark grown
+  past half the surface eases to its middle, so a swell can cover the
+  surface whole with no jump), inside which every
   tone turns over (the tiles' negative) and the screen slides `speed` cells a second on the
   clock; `ground` `transparent` leaves open cells clear. Its screen is the
   one around it, else Bayer. Pinned by `tests/poster.spec.ts`.

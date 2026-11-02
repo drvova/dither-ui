@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { INKS } from "@/pages/landing/plate"
-import { ogPrint, ogScreen } from "@/pages/docs/og-art"
+import { ogPrint, ogScreen, ogSwell } from "@/pages/docs/og-art"
 import {
+  OG_BEATS,
   OG_FRAMES,
   OG_H,
   OG_HERO_SEED,
@@ -29,10 +30,28 @@ describe("share card art", () => {
   it("loops: the end of the loop is its first frame, and the frames between move", () => {
     for (const c of [card, home]) {
       expect(ogPrint(c, 1).data).toEqual(ogPrint(c, 0).data)
-      expect(ogPrint(c, 0.25).data).not.toEqual(ogPrint(c, 0).data)
+      expect(ogPrint(c, OG_BEATS.swell / 2).data).not.toEqual(ogPrint(c, 0).data)
       // Every frame of the GIF is on the loop: the frames step whole cells.
       expect(ogPrint(c, (OG_FRAMES - 1) / OG_FRAMES).data).not.toEqual(ogPrint(c, 0).data)
     }
+  })
+
+  it("swells the diamond over the whole print and back on the spring, at rest on the still", () => {
+    expect(ogSwell(0)).toBe(0)
+    expect(ogSwell((OG_BEATS.over + OG_BEATS.recede) / 2)).toBe(1)
+    expect(ogSwell(OG_BEATS.rest)).toBe(0)
+    // Never past its marks, on the way out and back.
+    for (let i = 0; i <= 100; i++) expect(ogSwell(i / 100)).toBeGreaterThanOrEqual(0)
+    for (let i = 0; i <= 100; i++) expect(ogSwell(i / 100)).toBeLessThanOrEqual(1)
+    // Swelled, the print is its negative: most cells change ink.
+    const changed = (a: Uint8ClampedArray, b: Uint8ClampedArray) => {
+      let n = 0
+      for (let i = 0; i < a.length; i += 4) if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 3] !== b[i + 3]) n++
+      return n / (a.length / 4)
+    }
+    expect(changed(ogPrint(home, 0).data, ogPrint(home, (OG_BEATS.over + OG_BEATS.recede) / 2).data)).toBeGreaterThan(
+      0.5,
+    )
   })
 
   it("is the same print for the same seed, another for another, each through its own screen", () => {

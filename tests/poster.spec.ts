@@ -95,6 +95,30 @@ describe("paintPoster", () => {
     expect(row(paint(0.5, half), 0)).toEqual(row(paint(0, half), 0))
   })
 
+  it("covers the surface whole with a mark grown past it, its centre easing to the middle", () => {
+    const solid = one({ from: 1, to: 1 }, { x: 0.9, y: 0.1, r: 0.25 })
+    const negative = "0,255,0,255"
+    // Grown to the surface's half perimeter (as a share of its shorter side)
+    // and past it: every cell turned over.
+    for (const r of [(W + H) / 2 / Math.min(W, H) + 0.02, 3]) {
+      const data = paint(0, { ...solid, mark: { ...solid.mark, r } })
+      for (const [x, y] of [
+        [0, 0],
+        [W - 1, 0],
+        [0, H - 1],
+        [W - 1, H - 1],
+        [W / 2, H / 2],
+      ])
+        expect(pixel(data, x, y).join()).toBe(negative)
+    }
+    // Still whole on the surface while it fits: a mark at a corner is pushed in.
+    const fits = paint(0, solid)
+    expect(pixel(fits, W - 1, 0).join()).not.toBe(negative)
+    expect(pixel(fits, W - 1 - Math.round(0.25 * Math.min(W, H)), Math.round(0.25 * Math.min(W, H))).join()).toBe(
+      negative,
+    )
+  })
+
   it("leaves a tile's open cells clear where it meets the ground", () => {
     const data = paint(0, one({ under: -1, from: 0.5, to: 0.5 }, { x: 5, y: 5, r: 0 }))
     const alphas = Array.from({ length: 4 }, (_, i) => pixel(data, i, 0)[3])
