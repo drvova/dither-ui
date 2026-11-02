@@ -93,15 +93,21 @@ widgets/features; page-specific conventions live here.
   dialog's `cancel`, prevented) play that wipe back, the sheet rolling up
   from its foot before it shuts (`MenuPhase`: shut, open, leaving; at once
   under reduced motion); a taken link and the window reaching lg shut it
-  at once. Its top row stands where the header stood (the brand, the
-  close key, on the ground); under it a band per link sharing the height,
+  at once. Its head is the header itself, standing where it stood
+  (`SheetHead`, the one head of every full-screen sheet: the capsule and
+  the brand unmoved, the key that opened the sheet turned to the Close
+  glyph and "Close" in the menu key's place, on the ground, the sheet's
+  first stop); under it a band per link sharing the height,
   its name at its foot over a line of what is behind it (`note`; the
   studio's says it wants 1024px), each a step of the ink
-  toward the ground (`BAND_INK` 100/88/76/64%, the ground's colour
-  writing on them, AA held by `tests/theme-contrast.spec.ts`), then
+  toward the ground (`bandInk(i, n)`: even steps from the full ink to
+  `BAND_FLOOR` 64%, so the menu's four are 100/88/76/64%; the ground's
+  colour writing on them, AA down to the floor held by
+  `tests/theme-contrast.spec.ts`), then
   "Open studio" on the ember; where two bands meet the lower climbs into
   the upper through the Bayer matrix (`SEAM_MASK`, the kit's wipe engine
-  at a fixed progress). A hovered, focused or pressed band's words lean in
+  at a fixed progress; `seamStyle(fill)` is the seam whole, placed, for any
+  sheet's bands). A hovered, focused or pressed band's words lean in
   (8px, 12px pressed, the settle curve, 160ms) and the menu key's bands
   part on a hover (none of it under reduced motion). A focused band rings
   in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
@@ -652,15 +658,21 @@ widgets/features; page-specific conventions live here.
   readers); under 360px the brand shows its mark alone (the word stays
   for screen readers); the ⌘K kbd shows from md; the styling switch (on
   every card anyway) returns at lg. Under lg the header's tools add a key,
-  "Browse sections" (the Menu glyph, `aria-haspopup="dialog"`,
+  "Browse sections" (the Book glyph, `aria-haspopup="dialog"`,
   `aria-expanded`, `aria-controls` = `SHEET_ID`), opens the sections sheet
-  from anywhere on the page (`DocsSheet.vue`): a `.hardshell` (12px cut) on
-  `bg-card` from the left over the palette's backdrop, `h-dvh`, in on a
-  300ms settle (at once under reduced motion); a modal through
-  `DitherFocusScope` (focus on "Close sections", Tab trapped, focus back
-  on the key), shut by Escape, the backdrop, the close key or a pick (a
-  pick closes it first, then scrolls); the page under it holds still
-  (`overflow: hidden` on the root) and it closes itself at lg. It opens
+  from anywhere on the page (`DocsSheet.vue`), the site menu's kind of
+  sheet: the whole screen, `SheetHead` at its top ("Sections" and the
+  count in the capsule, "Close sections"), the families under it as bands
+  (`DocsNav`'s sheet place: one step of the ink per family,
+  `bandFill(i, GROUPS.length)`, seamed into the one above, filling the
+  screen when folded, each heading sticking on its own fill; the sections
+  in the ground's colour on their band, the one in view printed in
+  reverse), arriving as the kit's wipe down the screen and rolling back up
+  before it goes (it stays mounted while it leaves; at once under reduced
+  motion); a modal through `DitherFocusScope` (focus on "Close sections",
+  Tab trapped, focus back on the key), shut by Escape, the close key or a
+  pick (a pick closes it first, then scrolls); the page under it holds
+  still (`overflow: hidden` on the root) and it closes itself at lg. It opens
   centred on the section in view, that section's parts listed under its
   link. A `CodeBlock`'s copy chip takes its own band over the first line
   under sm (a long first line ran under it there). The footer's items

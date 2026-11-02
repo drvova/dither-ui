@@ -5,6 +5,7 @@ import { nextTick } from "vue"
 import DocsNav, { NAV_LINK } from "@/pages/docs/DocsNav.vue"
 import DocsSheet, { SHEET_ID } from "@/pages/docs/DocsSheet.vue"
 import { GROUPS } from "@/pages/docs/groups"
+import { bandFill } from "@/widgets/site-header/menu"
 
 const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
 
@@ -95,11 +96,17 @@ describe("docs sections sheet", () => {
     expect(w.emitted("part")?.[0]?.[0]).toBe(shown[1].el)
     dialog.querySelector<HTMLAnchorElement>('a[href$="/docs/aurora"]')!.click()
     expect(w.emitted("go")?.[0]).toEqual(["aurora"])
-    // Escape, the close key and the backdrop each ask to close.
+    // The header stands at its head, "Close" where the sections key was, and
+    // each family is a band of the menu's, one step of the ink per family.
+    expect(dialog.querySelector(".sheet-head .site-capsule")).not.toBeNull()
+    const bands = [...dialog.querySelectorAll<HTMLElement>(".nav-grp")]
+    expect(bands).toHaveLength(GROUPS.length)
+    expect(bands.map((b) => b.style.background)).toEqual(GROUPS.map((_, i) => bandFill(i, GROUPS.length)))
+    expect(new Set(bands.map((b) => b.style.background)).size).toBe(GROUPS.length)
+    // Escape and the close key each ask to close.
     dialog.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))
     dialog.querySelector<HTMLButtonElement>('[aria-label="Close sections"]')!.click()
-    dialog.parentElement!.querySelector<HTMLElement>('[aria-hidden="true"]')!.click()
-    expect(w.emitted("close")).toHaveLength(3)
+    expect(w.emitted("close")).toHaveLength(2)
     // Closed: the page scrolls again and focus goes back to the key.
     await w.setProps({ open: false })
     await new Promise((r) => setTimeout(r, 350))

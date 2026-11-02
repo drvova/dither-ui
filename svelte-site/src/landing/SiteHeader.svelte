@@ -17,13 +17,12 @@
     BAND_INK,
     MENU_LINKS,
     MENU_WIDE,
-    SEAM_HEIGHT,
-    SEAM_MASK,
-    SHEET_WIPE,
+        SHEET_WIPE,
     STUDIO_FILL,
     STUDIO_LINK,
     bandFill,
     maskCss,
+    seamStyle,
     type MenuLinkId,
     type MenuPhase,
   } from "./menu"
@@ -41,8 +40,7 @@
   }
   const SHOWN = { md: "hidden md:inline-flex", lg: "hidden lg:inline-flex" } as const
   const external = (id: MenuLinkId) => id === "github"
-  const seam = `${maskCss(SEAM_MASK)};height:${SEAM_HEIGHT}px;top:-${SEAM_HEIGHT}px`
-
+  
   // The menu: a native modal dialog (focus held inside, Escape closes, the
   // page inert under it), the page holding still while it is open.
   let phase = $state<MenuPhase>("shut")
@@ -165,14 +163,21 @@
 <dialog id={MENU_ID} bind:this={sheet} class="site-menu" aria-label="Site menu" oncancel={onCancel} onclose={shut}>
   {#if phase !== "shut"}
     <div class="menu-sheet" data-phase={phase} use:wipe={phase}>
-      <div class="menu-top">
-        <span class="flex items-center gap-2.5 text-xs"><BrandMark size={13} />dither-ui</span>
-        <!-- svelte-ignore a11y_autofocus (a modal's first stop: its close key) -->
-        <button type="button" class="menu-close" aria-label="Close menu" autofocus onclick={leave}>
-          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
-            <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" stroke-width="1.5" />
-          </svg>
-        </button>
+      <!-- The head is the header itself, standing where it stood; "Menu"
+           turned to "Close" in its place (the Vue header's SheetHead). -->
+      <div class="site-head sheet-head">
+        <div class="site-capsule text-xs">
+          <span class="flex h-8 items-center gap-2.5 pl-2 whitespace-nowrap">
+            <BrandMark size={13} /><span class="max-[359px]:sr-only">dither-ui</span>
+          </span>
+          <!-- svelte-ignore a11y_autofocus (a modal's first stop: its close key) -->
+          <button type="button" class="nav-a menu-key" aria-label="Close menu" autofocus onclick={leave}>
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+              <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+            <span class="max-[359px]:sr-only" aria-hidden="true">Close</span>
+          </button>
+        </div>
       </div>
       <nav class="menu-bands" aria-label="Site">
         {#each MENU_LINKS as l, i (l.id)}
@@ -184,7 +189,7 @@
             rel={external(l.id) ? "noreferrer" : undefined}
             onclick={shut}
           >
-            <span class="menu-seam" style="{seam};background:{bandFill(i)}" aria-hidden="true"></span>
+            <span class="menu-seam" style={seamStyle(bandFill(i))} aria-hidden="true"></span>
             <span class="menu-name"
               >{#if external(l.id)}<ToolMark id="github" size={18} />{/if}{l.label}{#if external(l.id)}<span
                   class="sr-only"
@@ -196,7 +201,7 @@
           </a>
         {/each}
         <a href={STUDIO} class="menu-band" style:background={STUDIO_FILL} onclick={shut}>
-          <span class="menu-seam" style="{seam};background:{STUDIO_FILL}" aria-hidden="true"></span>
+          <span class="menu-seam" style={seamStyle(STUDIO_FILL)} aria-hidden="true"></span>
           <span class="menu-name">{STUDIO_LINK.label}</span>
           <span class="menu-note">{STUDIO_LINK.note}</span>
         </a>

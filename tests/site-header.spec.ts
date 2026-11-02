@@ -69,7 +69,10 @@ describe("site header", () => {
     rs.useFakeTimers()
     try {
       const w = mount(SiteHeader, { props: { current: "landing" }, attachTo: document.body })
-      for (const close of [() => w.find(".menu-close").trigger("click"), () => w.find("dialog").trigger("cancel")]) {
+      for (const close of [
+        () => w.find('[aria-label="Close menu"]').trigger("click"),
+        () => w.find("dialog").trigger("cancel"),
+      ]) {
         await w.find(".menu-key").trigger("click")
         await nextTick()
         await close()
