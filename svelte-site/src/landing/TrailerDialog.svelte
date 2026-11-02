@@ -21,7 +21,7 @@
 <DitherDialog
   {open}
   title="The dither-ui film"
-  description="The site in use in under a minute, captioned: the hero's print printing in, seven of the bento's cards handled in turn, an agent laying out a screen, a docs section's 3D model dragged and its code opened, a phone's menu printing in, a chart evolved in the Studio, the quick start copied, and the footer. Music and interface sounds, no speech."
+  description="The site in use in under a minute, captioned: the kit's diamond printing in and becoming the hero's print, the brand forming, seven of the bento's cards handled in turn, an agent laying out a screen, a docs section's 3D model dragged and its code opened, a phone's menu printing in, a chart evolved in the Studio, the quick start copied, and the footer. Music and interface sounds, no speech."
   class="max-w-5xl"
   onclose={() => (open = false)}
 >
