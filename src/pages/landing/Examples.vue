@@ -315,7 +315,14 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           </div>
 
           <div v-else-if="t.id === 'area'" class="panel">
-            <AreaChart :key="fills" :data="AREA_ROWS" :config="AREA_CONFIG" :seed="fills" class="area-chart">
+            <AreaChart
+              :key="fills"
+              :data="AREA_ROWS"
+              :config="AREA_CONFIG"
+              :seed="fills"
+              :sparkles="false"
+              class="area-chart"
+            >
               <XAxis data-key="month" :max-ticks="6" />
               <Area data-key="expenses" :variant="fills + 1" />
               <Area data-key="revenue" :variant="fills" />
@@ -420,6 +427,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
               color="blue"
               interactive
               :hover-lift="false"
+              :sparkles="false"
               class="stat-spark"
               @hover-change="(i) => (day = i)"
             />
@@ -431,8 +439,8 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           </template>
 
           <p v-else-if="t.id === 'decrypted-text'" class="cipher">
-            <DitherDecryptedText text="Every pixel," />
-            <DitherDecryptedText text="on purpose." />
+            <DitherDecryptedText text="Decoded as" />
+            <DitherDecryptedText text="it comes into view." />
           </p>
         </DitherReveal>
         <p class="card-foot">

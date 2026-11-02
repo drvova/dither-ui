@@ -17,6 +17,8 @@
     interactive?: boolean
     /** Brighten the fill while the pointer is over it. */
     hoverLift?: boolean
+    /** The idle particle drift along the line; off, the chart holds still. */
+    sparkles?: boolean
     onHoverChange?: (index: number | null) => void
     hovered?: boolean
     bloom?: BloomInput
@@ -33,6 +35,7 @@
     markerIndex = null,
     interactive = false,
     hoverLift = true,
+    sparkles = true,
     onHoverChange,
     hovered = false,
     bloom = "off",
@@ -50,6 +53,7 @@
   {config}
   {interactive}
   {hoverLift}
+  {sparkles}
   {onHoverChange}
   {animate}
   {seed}

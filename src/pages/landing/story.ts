@@ -22,10 +22,16 @@ export type LineState = "ahead" | "working" | "done"
 export const lineState = (line: number, step: number): LineState =>
   step < line ? "ahead" : step === line ? "working" : "done"
 
-/** Deploys per day this week: the screen's chart; its count is their sum. */
-export const DAYS = [2, 3, 1, 4, 2, 3, 1] as const
+/** Deploys per day this week: the screen's chart; its count is their sum.
+ * A working week, never a day without one, so a dip the crop cuts never
+ * reads as zero. */
+export const DAYS = [3, 5, 4, 6, 5, 7, 6] as const
 export const DEPLOYS = DAYS.reduce((n, d) => n + d, 0)
 
 /** The step each part of the screen resolves at, top to bottom, while the
  * agent lays it out; before it, the part's slot holds its place. */
 export const PARTS = { count: 1, meter: 1, toggle: 2, chart: 2 } as const
+
+/** The line whose result the render chip shows: rendering while it works,
+ * ready once it is done. */
+export const RENDER = DOES.length - 1

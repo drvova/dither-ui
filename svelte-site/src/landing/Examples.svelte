@@ -222,7 +222,14 @@
                 <span data-on={day === null ? undefined : ""} aria-hidden="true">{ago(day ?? DAYS - 1)}</span>
               </span>
               <div class="stat-spark">
-                <Sparkline data={FRAMES} color="blue" interactive hoverLift={false} onHoverChange={(i) => (day = i)} />
+                <Sparkline
+                  data={FRAMES}
+                  color="blue"
+                  interactive
+                  hoverLift={false}
+                  sparkles={false}
+                  onHoverChange={(i) => (day = i)}
+                />
               </div>
             </div>
           {:else if t.id === "gradient"}
@@ -252,7 +259,7 @@
             <div class="panel">
               {#key fills}
                 <div class="area-chart">
-                  <AreaChart data={AREA_ROWS} config={AREA_CONFIG} seed={fills}>
+                  <AreaChart data={AREA_ROWS} config={AREA_CONFIG} seed={fills} sparkles={false}>
                     <XAxis dataKey="month" maxTicks={6} />
                     <Area dataKey="expenses" variant={fills + 1} />
                     <Area dataKey="revenue" variant={fills} />
@@ -296,8 +303,8 @@
             />
           {:else if t.id === "decrypted-text"}
             <p class="cipher">
-              <DecryptedText text="Every pixel," />
-              <DecryptedText text="on purpose." />
+              <DecryptedText text="Decoded as" />
+              <DecryptedText text="it comes into view." />
             </p>
           {/if}
         </div>

@@ -23,7 +23,7 @@ import {
   DitherText,
   Sparkline,
 } from "@dither-kit"
-import { ASK, DAYS, DEPLOYS, DOES, lineState, PARTS, STEPS } from "./story"
+import { ASK, DAYS, DEPLOYS, DOES, lineState, PARTS, RENDER, STEPS } from "./story"
 
 const LAST = STEPS - 1
 const TOLD = DOES.map((d) => d[0].toLowerCase() + d.slice(1))
@@ -95,6 +95,18 @@ onBeforeUnmount(() => {
 
         <!-- The screen the agent lays out, the hero of the shot. -->
         <div class="screen">
+          <!-- The render's result, a chip on the screen's corner: it comes
+               with the line that renders, at work, then ready. -->
+          <div class="render" :class="lineState(RENDER, step)">
+            <span class="mark">
+              <DitherSpinner v-if="lineState(RENDER, step) !== 'done'" :size="14" color="orange" />
+              <DitherIcon v-else name="Check" :size="14" :stroke-width="1.75" />
+            </span>
+            <span class="render-words">
+              <span :data-on="lineState(RENDER, step) !== 'done' ? '' : undefined">Rendering MP4</span>
+              <span :data-on="lineState(RENDER, step) === 'done' ? '' : undefined">MP4 ready</span>
+            </span>
+          </div>
           <div class="screen-title">Deploys</div>
           <div class="screen-row">
             <div class="part" :class="{ on: step >= PARTS.count }">
@@ -121,7 +133,7 @@ onBeforeUnmount(() => {
           </div>
           <div class="part part-chart" :class="{ on: step >= PARTS.chart }">
             <span class="slot" />
-            <Sparkline :data="[...DAYS]" color="blue" variant="dotted" class="chart" />
+            <Sparkline :data="[...DAYS]" color="blue" variant="dotted" :sparkles="false" class="chart" />
           </div>
         </div>
       </div>
@@ -149,7 +161,9 @@ onBeforeUnmount(() => {
    height, so the last step holds a beat before the stage lets go. */
 .story {
   --notch: 32svh;
-  --pin: min(calc(100svh - 96px), 23rem);
+  /* Most of the screen while it plays: the stage is the frame, never a band
+     with the page's ground under it. */
+  --pin: min(calc(100svh - 112px), 40rem);
   position: relative;
 }
 
@@ -266,6 +280,7 @@ onBeforeUnmount(() => {
 /* The hero: the screen on the page's ground, a gutter from the stage's top
    and from the session, running off the stage's right and bottom edges. */
 .screen {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -332,7 +347,7 @@ onBeforeUnmount(() => {
 }
 
 .count-n {
-  font-size: 1.9rem;
+  font-size: 2.75rem;
   font-weight: 500;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -378,8 +393,8 @@ onBeforeUnmount(() => {
    count stays the heaviest mark), right under the switch (no band of
    nothing above it) and running well past the stage's foot. */
 .part-chart {
-  flex: none;
-  height: 200px;
+  flex: 1;
+  min-height: 160px;
   margin-top: 4px;
   align-items: stretch;
 }
@@ -389,9 +404,53 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
+/* The render chip, centred on the screen's top-left corner, half over the
+   stage: a step above both grounds, so it reads on either. Its words share
+   one cell and crossfade. */
+.render {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--ink);
+  background: color-mix(in oklab, var(--foreground) 14%, var(--background));
+  translate: -50% -50%;
+  transition:
+    opacity 240ms var(--ease-settle),
+    translate 240ms var(--ease-settle);
+}
+
+.render.ahead {
+  visibility: hidden;
+  opacity: 0;
+  translate: -50% calc(-50% + 6px);
+}
+
+.render-words {
+  display: grid;
+}
+
+.render-words > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition: opacity 160ms var(--ease-settle);
+}
+
+.render-words > span[data-on] {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .part > *,
-  .does li {
+  .does li,
+  .render,
+  .render-words > span {
     transition: none;
   }
 }
@@ -418,6 +477,12 @@ onBeforeUnmount(() => {
   .screen-row {
     grid-template-columns: minmax(0, 1fr);
     gap: 18px;
+  }
+  /* The stage's left edge is a gutter away: the chip rides the screen's top
+     edge from the corner in, whole. */
+  .render {
+    left: 18px;
+    translate: 0 -50%;
   }
 }
 </style>

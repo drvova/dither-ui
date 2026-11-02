@@ -157,8 +157,8 @@ onBeforeUnmount(() => {
   clearTimeout(settle)
 })
 
-// The footer's columns; the docs families carry their size.
-const COLUMNS: { title: string; links: { label: string; href: string; n?: number }[] }[] = [
+// The footer's columns.
+const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Get started",
     links: [
@@ -171,7 +171,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   },
   {
     title: "Docs",
-    links: DOCS_FAMILIES.map((f) => ({ label: f.label, href: routePath(`/docs/${f.first}`), n: f.count })),
+    links: DOCS_FAMILIES.map((f) => ({ label: f.label, href: routePath(`/docs/${f.first}`) })),
   },
   {
     title: "For agents",
@@ -281,7 +281,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
             <ul class="families-list">
               <li v-for="f in BIGGEST" :key="f.label">
                 <a :href="routePath(`/docs/${f.first}`)" class="family-t"
-                  ><span class="family-n">{{ f.count }}</span
+                  ><span class="family-n">{{ f.count }}<span class="family-u"> sections</span></span
                   ><span class="family-l">{{ f.label }}</span></a
                 >
                 <p class="family-p">{{ f.note }}</p>
@@ -364,12 +364,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           </div>
           <nav v-for="col in COLUMNS" :key="col.title" class="foot-col" :aria-label="col.title">
             <h2 class="foot-h">{{ col.title }}</h2>
-            <a v-for="l in col.links" :key="l.label" :href="l.href"
-              >{{ l.label
-              }}<span v-if="l.n" class="foot-n"
-                ><span class="sr-only">, </span>{{ l.n }}<span class="sr-only"> sections</span></span
-              ></a
-            >
+            <a v-for="l in col.links" :key="l.label" :href="l.href">{{ l.label }}</a>
           </nav>
         </div>
         <p class="foot-copy">
@@ -399,10 +394,13 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 .landing {
   --page: 80rem;
   --rhythm: 40px;
+  /* The header's height, read by whatever must sit clear of it. */
+  --head: 64px;
 }
 
 /* The header: a capsule on the raised ground floating over the page,
    centred, lifted by its shadow alone. */
+
 .site-head {
   padding: 8px 16px;
 }
@@ -413,7 +411,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   justify-content: space-between;
   gap: 8px;
   width: min(100%, 48rem);
-  height: 48px;
+  height: calc(var(--head) - 16px);
   margin-inline: auto;
   padding: 0 7px 0 10px;
   border-radius: 999px;
@@ -562,6 +560,14 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   font-variant-numeric: tabular-nums;
 }
 
+/* The figure's unit beside it: these count docs sections, not the kit's
+   components (the bento's figure). */
+.family-u {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
 .family-l {
   font-size: 13px;
 }
@@ -704,7 +710,9 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   width: 100%;
   max-width: var(--page);
   margin-inline: auto;
-  padding: 48px 1.5rem 24px;
+  /* Clear of the floating header where the page comes to rest, the
+     footer's top row at the viewport's top. */
+  padding: calc(var(--head) + 40px) 1.5rem 24px;
 }
 
 .foot-brand {
@@ -777,12 +785,6 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   padding-top: 6px;
   color: var(--ink-3);
   transition: color 150ms var(--ease-settle);
-}
-
-.foot-n {
-  font-size: 10.5px;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-3);
 }
 
 .foot-col a:hover,

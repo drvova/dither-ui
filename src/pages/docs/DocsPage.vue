@@ -380,6 +380,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "marker-index", type: "number | null", default: "null" },
     { prop: "interactive", type: "boolean (scrub: the crosshair follows the pointer)", default: "false" },
     { prop: "hover-lift", type: "boolean", default: "true" },
+    { prop: "sparkles", type: "boolean (the idle drift along the line)", default: "true" },
     { prop: "@hover-change", type: "(index: number | null) => void", default: "" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
     { prop: "animate", type: "boolean", default: "false" },

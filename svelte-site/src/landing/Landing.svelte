@@ -79,8 +79,8 @@
     },
   ]
 
-  // The footer's columns; the docs families carry their size.
-  const COLUMNS: { title: string; links: { label: string; href: string; n?: number }[] }[] = [
+  // The footer's columns.
+  const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     {
       title: "Get started",
       links: [
@@ -92,7 +92,7 @@
     },
     {
       title: "Docs",
-      links: DOCS_FAMILIES.map((f) => ({ label: f.label, href: f.href, n: f.count })),
+      links: DOCS_FAMILIES.map((f) => ({ label: f.label, href: f.href })),
     },
     {
       title: "For agents",
@@ -192,7 +192,7 @@
             {#each DOCS_FAMILIES as f (f.label)}
               <li>
                 <a href={f.href} class="family-t"
-                  ><span class="family-n">{f.count}</span><span class="family-l">{f.label}</span></a
+                  ><span class="family-n">{f.count}<span class="family-u"> sections</span></span><span class="family-l">{f.label}</span></a
                 >
                 <p class="family-p">{f.note}</p>
               </li>
@@ -255,11 +255,7 @@
         <nav class="foot-col" aria-label={col.title}>
           <h2 class="foot-h">{col.title}</h2>
           {#each col.links as l (l.label)}
-            <a href={l.href}
-              >{l.label}{#if l.n}<span class="foot-n"
-                  ><span class="sr-only">, </span>{l.n}<span class="sr-only"> sections</span></span
-                >{/if}</a
-            >
+            <a href={l.href}>{l.label}</a>
           {/each}
         </nav>
       {/each}
@@ -288,7 +284,7 @@
     justify-content: space-between;
     gap: 8px;
     width: min(100%, 48rem);
-    height: 48px;
+    height: calc(var(--head) - 16px);
     margin-inline: auto;
     padding: 0 7px 0 10px;
     border-radius: 999px;
@@ -425,6 +421,14 @@
     color: var(--signal);
   }
 
+  /* The figure's unit beside it: these count docs sections, not the kit's
+     components (the bento's figure). */
+  .family-u {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+
   .family-n {
     font-size: 2.4rem;
     font-weight: 500;
@@ -524,7 +528,9 @@
     width: 100%;
     max-width: var(--page);
     margin-inline: auto;
-    padding: 48px 1.5rem 24px;
+    /* Clear of the floating header where the page comes to rest, the
+       footer's top row at the viewport's top. */
+    padding: calc(var(--head) + 40px) 1.5rem 24px;
   }
 
   .foot-brand {
@@ -588,11 +594,6 @@
     transition: color 150ms var(--ease-settle);
   }
 
-  .foot-n {
-    font-size: 10.5px;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink-3);
-  }
 
   .foot-col a:hover,
   .foot-gh:hover {

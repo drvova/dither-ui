@@ -21,6 +21,8 @@ const props = withDefaults(
     interactive?: boolean
     /** Brighten the fill while the pointer is over it. */
     hoverLift?: boolean
+    /** The idle particle drift along the line; off, the chart holds still. */
+    sparkles?: boolean
     hovered?: boolean
     bloom?: BloomInput
     bloomOnHover?: boolean
@@ -33,6 +35,7 @@ const props = withDefaults(
     markerIndex: null,
     interactive: false,
     hoverLift: true,
+    sparkles: true,
     hovered: false,
     bloom: "off",
     bloomOnHover: false,
@@ -52,6 +55,7 @@ const config = computed(() => ({ v: { color: props.color } }))
     :config="config"
     :interactive="props.interactive"
     :hover-lift="props.hoverLift"
+    :sparkles="props.sparkles"
     :on-hover-change="(index: number | null) => emit('hoverChange', index)"
     :animate="props.animate"
     :seed="props.seed"

@@ -171,10 +171,12 @@ widgets/features; page-specific conventions live here.
   and the ferrofluid (flush; ember first, so it never sits blue beside the
   blue chart; blue or grey); the shader (6, flush;
   the kit's seeded sample, mono blue, a palette ramp or its own colours,
-  "New shader" the next seed) and the decrypted text (6); the styling card
+  "New shader" the next seed) and the decrypted text (6, a line that says
+  what it does, never a second slogan); the styling card
   (8, flush, `ExportScene.vue`: one snippet, an Invoices card, rendered
   live beside its code in the picked system through `restyle`, StyleX
-  first; its code wraps inside its panel, never cut mid-token; its code
+  first; its code wraps inside its panel, never cut mid-token, each line
+  hanging under its own indent, the pane fading at its foot; its code
   alone when the card is narrow, a size container) and
   the slide action ("Slide to confirm", its count); the button (6, its
   four fills and five hues, "Publish") and the silk (6). Planned as one
@@ -187,7 +189,8 @@ widgets/features; page-specific conventions live here.
   bento; a rail's cards past its width arrive as they are swiped in). A
   readout that changes rolls to its new figure (`DitherNumberFlow`: the
   stars, the seed, the slides confirmed), never jumps. Of the surfaces that move by
-  themselves (`MOVING`: the model, the shader, the fluid, the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen
+  themselves (`MOVING`: the model, the shader, the fluid, the silk) ONE plays at a time (`spotlight.ts`; the charts drift by
+  nothing, their `sparkles` off, so no idle grain moves beside it): the card a mouse or pen
   hovers or keyboard focus is in; else the reader's last choice while any
   of it shows; else the first, in page order, crossing the middle tenth of
   the viewport; else the last that played. The rest hold a still frame.
@@ -214,7 +217,9 @@ widgets/features; page-specific conventions live here.
   card and first section is a section of the family it names).
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), then `AgentStory.vue`, one agent session played as the
-  page scrolls: a stage pinned under the header (`--pin`, at most 23rem)
+  page scrolls: a stage pinned under the header (`--pin`, most of the
+  screen, at most 40rem: the stage is the frame, never a band over bare
+  ground)
   for a run of a notch of scroll (32svh) per step, five steps (`story.ts`:
   a step per line of `DOES` plus the last). Composed as a product shot
   (the craft of the stageshow skill: framing, restraint, motion with a
@@ -231,9 +236,16 @@ widgets/features; page-specific conventions live here.
   agent lays out on the page's ground, a gutter from the stage's top and
   from the session, running off the stage's right edge and foot; its
   title a plain label (no real heading in a figure), then the count (the
-  one big number, `DEPLOYS`, the sum of `DAYS`) beside the meter, the
-  switch, and the week's deploys as a dotted `Sparkline` right under the
-  switch (no empty band above it), the only thing the crop cuts. Never blank: each part's
+  one big number, at 2.75rem the heaviest mark over the chart, `DEPLOYS`, the sum of `DAYS`, a working week with no
+  day at zero, so a dip the crop cuts never reads as one) beside the
+  meter, the switch, and the week's deploys as a dotted `Sparkline`
+  (`sparkles` off, still) right under the switch, taking the rest of the
+  screen, the only thing the crop cuts. The render shows its result: a
+  chip centred on the screen's top-left corner, half over the stage (a
+  step above both grounds), absent until the render line (`RENDER`)
+  works, then the ember spinner and "Rendering MP4", then the check and
+  "MP4 ready" (the words crossfade in one cell); on phones it rides the
+  screen's top edge, whole. Never blank: each part's
   slot (the raised ground, at the part's own size) holds its place from
   the first step, and the part arrives in it as the slot leaves, top to
   bottom (`PARTS`), the screen whole before the last step; the last step,
@@ -267,7 +279,9 @@ widgets/features; page-specific conventions live here.
   first (`DOCS_FAMILIES` sorted by size; the footer keeps the docs'
   order): five columns (three under 1024px, two under 640px, where a lone
   last family takes the row),
-  each the family's size as a big figure over its name, both the link to
+  each the family's size as a big figure with its unit ("100 sections":
+  sections, never read against the kit's component count) over its name,
+  both the link to
   its first section, and its line.
 - Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
   section head (a lede with a wink, the link to the styling docs), then
@@ -431,8 +445,11 @@ widgets/features; page-specific conventions live here.
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
   the strike, its carriage on the clear band above it, the footer's top
   padding, clear of every line of text; its field the page's column,
-  `.foot-in`, positioned; then one line, GitHub under its mark) beside three link columns
-  (`COLUMNS`: Get started, closing on Verification; Docs, the big families each with its size; For
+  `.foot-in`, positioned, its top padding the header's height (`--head`,
+  the one number the capsule is sized from) and a gutter, so where the
+  page comes to rest the floating header never sits on its top row; then
+  one line, GitHub under its mark) beside three link columns
+  (`COLUMNS`: Get started, closing on Verification; Docs, the big families; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,
   `v<version>`, MIT license), then the road with the line-screen wordmark over its foot. Three columns
