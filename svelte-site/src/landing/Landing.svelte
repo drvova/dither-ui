@@ -14,7 +14,6 @@
   import "./landing.css"
   import AgentStory from "./AgentStory.svelte"
   import BrandGather from "./BrandGather.svelte"
-  import BrandMark from "./BrandMark.svelte"
   import { STAGINGS } from "./brand"
   import Examples from "./Examples.svelte"
   import { DOCS_FAMILIES, RUNTIME_DEPS, SECTION_COUNT, SPECS, VERSION, docsHref } from "./facts"
@@ -25,6 +24,7 @@
   import Plate from "./Plate.svelte"
   import PixelWord from "./PixelWord.svelte"
   import { PLATES, STOCK } from "./plate"
+  import SiteHeader from "./SiteHeader.svelte"
   import ToolMark from "./ToolMark.svelte"
   import WorksWith from "./WorksWith.svelte"
 
@@ -115,26 +115,7 @@
     Skip to content
   </a>
 
-  <!-- Header: a floating capsule on the raised ground, sticky over the page.
-       Sticky is positioned, and z-10 keeps it over main, which isolates the
-       page art. -->
-  <header class="site-head sticky top-0 z-10">
-    <div class="site-capsule text-xs">
-      <a href="#/" class="flex h-8 items-center gap-2.5 pl-2 whitespace-nowrap">
-        <BrandMark size={13} />
-        dither-ui
-      </a>
-      <nav class="flex items-center text-muted-foreground" aria-label="Site">
-        <a href="#examples" class="nav-a hidden sm:inline-flex">Components</a>
-        <a href={docsHref()} class="nav-a">Docs</a>
-        <a href="#ask" class="nav-a hidden sm:inline-flex">Agents</a>
-        <a href={GITHUB} target="_blank" rel="noreferrer" class="nav-a hidden md:inline-flex"
-          ><ToolMark id="github" size={13} />GitHub<span class="sr-only"> (opens in a new tab)</span></a
-        >
-      </nav>
-      <a href={STUDIO} class="nav-a key-chrome studio-key">Open studio</a>
-    </div>
-  </header>
+  <SiteHeader />
 
   <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
     <Hero />
@@ -272,37 +253,6 @@
 </div>
 
 <style>
-  /* The header: a capsule on the raised ground floating over the page,
-     centred, lifted by its shadow alone. */
-  .site-head {
-    padding: 8px 16px;
-  }
-
-  .site-capsule {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    width: min(100%, 48rem);
-    height: calc(var(--head) - 16px);
-    margin-inline: auto;
-    padding: 0 7px 0 10px;
-    border-radius: 999px;
-    background: var(--surface);
-    box-shadow: var(--float-shadow);
-  }
-
-  @media (forced-colors: active) {
-    .site-capsule {
-      border: 1px solid CanvasText;
-    }
-  }
-
-  .studio-key {
-    height: 34px;
-    padding-inline: 16px;
-  }
-
   /* The sections, on the page width with the rhythm between them. */
   .page {
     display: flex;

@@ -904,7 +904,7 @@ const gradientCode = computed(
           :aria-controls="SHEET_ID"
           @click="sheetOpen = true"
         >
-          <DitherIcon name="Menu" :size="15" :stroke-width="1.5" />
+          <DitherIcon name="Book" :size="15" :stroke-width="1.5" />
         </button>
       </template>
     </SiteHeader>

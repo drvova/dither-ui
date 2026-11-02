@@ -78,13 +78,28 @@ widgets/features; page-specific conventions live here.
   ground, `--float-shadow`, no rim), sticky 8px under the top and centred
   (up to 48rem, `--head` tall with its margin): the 13px diamond mark
   (`shared/ui/BrandMark`, ember core) + "dither-ui", the `.nav-a` links
-  (Components → the landing's `#examples`, Docs, Agents → `#ask`, GitHub
-  under its mark in a new tab; Components/Agents drop under md, GitHub
-  under lg; the page's own link `aria-current`), a page's `tools` (the
-  docs' search and, under lg, its sections key) and the `.key-chrome`
-  "Open studio". It stays positioned (`z-40`): `main` is
-  `relative isolate`, so a positioned sibling paints over a static
-  header.
+  (one `LINKS` table: Components → the landing's `#examples`, Docs,
+  Agents → `#ask`, GitHub under its mark in a new tab; each shows from
+  md, GitHub from lg; the page's own link `aria-current`), a page's
+  `tools` (the docs' search and, under lg, its sections key under the
+  Book glyph) and the `.key-chrome` "Open studio" (from md). Under lg the
+  menu key (the sheet's bands in miniature + "Menu") opens the menu: a
+  native modal `<dialog>` filling the window (focus on its close key,
+  Escape and a taken link close it, focus back on the key, the page held
+  still; it closes when the window reaches lg), arriving as the kit's
+  wipe down the screen (`DitherReveal`, `SHEET_WIPE`). Its top row stands
+  where the header stood (the brand, the close key); under it a band per
+  link sharing the height, its name at its foot, each a step of the ink
+  toward the ground (`BAND_INK` 100/88/76/64%, the ground's colour
+  writing on them, AA held by `tests/theme-contrast.spec.ts`), then
+  "Open studio" on the ember; where two bands meet the lower climbs into
+  the upper through the Bayer matrix (`SEAM_MASK`, the kit's wipe engine
+  at a fixed progress). A focused band rings in the ring ink with the
+  ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
+  (the capsule and the sheet) are the one table and stylesheet; the
+  Svelte landing carries both byte for byte. It stays positioned
+  (`z-40`): `main` is `relative isolate`, so a positioned sibling paints
+  over a static header.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
   holding on the page width the statement beside the print (columns
@@ -668,15 +683,11 @@ widgets/features; page-specific conventions live here.
   them to the DOM as `activeId` changes (scroll-spy, deep links, search), so
   Google's renderer sees unique metadata per `/docs/<id>` page. Unknown or
   empty ids fall back to the generic `/docs` metadata; keep ids unique.
-- Chrome: the header is the site's floating `.capsule` (`.docs-capsule`,
-  44px in a 56px band so the rails' `top-14` and the scroll-spy line
-  hold; its smoked polymer at 93% under 640px, where dense tables pass
-  under it); the toggles in it are tracks, the picked one `.ring-on`,
-  Search a `.nav-pill`, "Open studio" the `.key-chrome`; the "Docs" label
-  shows from xl. The search
+- Chrome: the header is the site's one `SiteHeader` (Header, above),
+  with Search and the sections key in its `tools`; the toggles under it
+  are tracks, the picked one `.ring-on`. The search
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
-  elsewhere — the handler accepts both). The brand carries the landing's
-  7x7 diamond mark, and the studio link shows from sm. The Vue/Svelte
+  elsewhere — the handler accepts both). The Vue/Svelte
   switch carries the tools' marks
   (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
