@@ -64,6 +64,18 @@ export const SEAM_MASK = wipeStyle(0.5, {
  * It leaves the same way played back, rolling up from the foot. */
 export const SHEET_WIPE = { direction: "down", duration: 0.32, cell: 4, band: 10 } as const
 
+/** The close mark: an X on the brand diamond's 7x7 grid, as dense as the
+ * diamond (each stroke two cells where it can be), its crossing the ember
+ * core (`*`), so the key that shuts a sheet speaks the brand's pixel. */
+const CLOSE_ROWS = ["#.....#", "##...##", ".##.##.", "..#*#..", ".##.##.", "##...##", "#.....#"]
+export const CLOSE_CELLS: readonly { x: number; y: number; core?: boolean }[] = CLOSE_ROWS.flatMap((row, y) =>
+  [...row].flatMap((c, x) => (c === "#" ? [{ x, y }] : c === "*" ? [{ x, y, core: true }] : [])),
+)
+
+/** A sheet's head stands where the header stood with room under its capsule
+ * for the first band's seam, so the seam never bites into the capsule. */
+export const SHEET_HEAD_FOOT = 8 + SEAM_HEIGHT
+
 /** Where the menu is: shut, up, or rolling back up before it shuts. */
 export type MenuPhase = "shut" | "open" | "leaving"
 

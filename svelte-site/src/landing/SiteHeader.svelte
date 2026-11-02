@@ -15,9 +15,11 @@
   import { GITHUB, STUDIO } from "./links"
   import {
     BAND_INK,
+    CLOSE_CELLS,
     MENU_LINKS,
     MENU_WIDE,
-        SHEET_WIPE,
+        SHEET_HEAD_FOOT,
+    SHEET_WIPE,
     STUDIO_FILL,
     STUDIO_LINK,
     bandFill,
@@ -165,16 +167,14 @@
     <div class="menu-sheet" data-phase={phase} use:wipe={phase}>
       <!-- The head is the header itself, standing where it stood; "Menu"
            turned to "Close" in its place (the Vue header's SheetHead). -->
-      <div class="site-head sheet-head">
+      <div class="site-head sheet-head" style:padding-bottom="{SHEET_HEAD_FOOT}px">
         <div class="site-capsule text-xs">
           <span class="flex h-8 items-center gap-2.5 pl-2 whitespace-nowrap">
             <BrandMark size={13} /><span class="max-[359px]:sr-only">dither-ui</span>
           </span>
           <!-- svelte-ignore a11y_autofocus (a modal's first stop: its close key) -->
           <button type="button" class="nav-a menu-key" aria-label="Close menu" autofocus onclick={leave}>
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
-              <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" stroke-width="1.5" />
-            </svg>
+            <BrandMark cells={CLOSE_CELLS} size={14} />
             <span class="max-[359px]:sr-only" aria-hidden="true">Close</span>
           </button>
         </div>

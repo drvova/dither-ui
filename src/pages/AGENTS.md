@@ -95,9 +95,12 @@ widgets/features; page-specific conventions live here.
   under reduced motion); a taken link and the window reaching lg shut it
   at once. Its head is the header itself, standing where it stood
   (`SheetHead`, the one head of every full-screen sheet: the capsule and
-  the brand unmoved, the key that opened the sheet turned to the Close
-  glyph and "Close" in the menu key's place, on the ground, the sheet's
-  first stop); under it a band per link sharing the height,
+  the brand unmoved, the key that opened the sheet turned to the close
+  mark and "Close" in the menu key's place, on the ground, the sheet's
+  first stop; the close mark is an X on the brand diamond's 7x7 grid in
+  its hand, `CLOSE_CELLS` drawn by `BrandMark`'s `cells`, the ember at its
+  crossing; the head keeps `SHEET_HEAD_FOOT` under the capsule so the
+  first band's seam never bites into it); under it a band per link sharing the height,
   its name at its foot over a line of what is behind it (`note`; the
   studio's says it wants 1024px), each a step of the ink
   toward the ground (`bandInk(i, n)`: even steps from the full ink to

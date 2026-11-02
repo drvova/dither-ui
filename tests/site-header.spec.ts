@@ -7,6 +7,7 @@ import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { SiteHeader } from "@/widgets/site-header"
 import {
   BAND_INK,
+  CLOSE_CELLS,
   MENU_LINKS,
   SEAM_HEIGHT,
   SEAM_MASK,
@@ -94,6 +95,23 @@ describe("site header", () => {
   it("seams the bands with the kit's dither: a mask exactly the seam's height", () => {
     expect(SEAM_MASK.image).toMatch(/^url\("data:image\/svg\+xml/)
     expect(SEAM_MASK.size).toMatch(new RegExp(` ${SEAM_HEIGHT}px$`))
+  })
+
+  it("closes a sheet under an X drawn in the brand's pixel, clear of the seam", async () => {
+    // On the diamond's 7x7 grid, mirrored both ways, one ember core at its crossing.
+    const at = new Set(CLOSE_CELLS.map((c) => `${c.x},${c.y}`))
+    for (const c of CLOSE_CELLS) {
+      expect(c.x >= 0 && c.x < 7 && c.y >= 0 && c.y < 7).toBe(true)
+      expect(at.has(`${6 - c.x},${c.y}`) && at.has(`${c.x},${6 - c.y}`)).toBe(true)
+    }
+    expect(CLOSE_CELLS.filter((c) => c.core)).toEqual([{ x: 3, y: 3, core: true }])
+    const w = mount(SiteHeader, { props: { current: "landing" }, attachTo: document.body })
+    await w.find(".menu-key").trigger("click")
+    await nextTick()
+    const head = w.find(".sheet-head")
+    expect(head.find('[aria-label="Close menu"] svg').findAll("rect")).toHaveLength(CLOSE_CELLS.length)
+    expect(head.attributes("style")).toContain(`padding-bottom: ${8 + SEAM_HEIGHT}px`)
+    w.unmount()
   })
 
   it("draws the same diamond the landing's lockup leads with", () => {
