@@ -67,6 +67,35 @@ describe("docs scroll-spy", () => {
     ])
     expect(seen.at(-1)).toBe("world")
   })
+
+  it("re-reads the band as the page scrolls: a heading crossing the line inside it takes over", async () => {
+    globalThis.IntersectionObserver = class {
+      constructor(cb: (e: Entry[]) => void) {
+        fire = cb
+      }
+      observe() {}
+      disconnect() {}
+    } as unknown as typeof IntersectionObserver
+    const line = window.innerHeight * READING_LINE
+    let worldTop = line + 40
+    const schedule = section("schedule", -2000)
+    const world = document.createElement("section")
+    world.id = "world"
+    world.getBoundingClientRect = () => ({ top: worldTop }) as DOMRect
+    const seen: string[] = []
+    const stop = spySections([schedule, world], (id) => seen.push(id))
+    fire([
+      { target: schedule, isIntersecting: true },
+      { target: world, isIntersecting: true },
+    ])
+    expect(seen.at(-1)).toBe("schedule")
+    // Both stay in the band; no observer callback: only the scroll tells.
+    worldTop = line - 40
+    window.dispatchEvent(new Event("scroll"))
+    await new Promise((r) => requestAnimationFrame(() => r(null)))
+    expect(seen.at(-1)).toBe("world")
+    stop()
+  })
 })
 
 describe("docs scroll-spy band", () => {

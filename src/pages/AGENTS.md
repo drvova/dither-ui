@@ -581,7 +581,8 @@ widgets/features; page-specific conventions live here.
   callbacks, which carry only the entries that changed), the last whose
   top has crossed the reading line (`READING_LINE`, 40% down), else the
   topmost, so a long section's tail never outranks the heading the reader
-  reached. The rail follows it in its own view: when the current link
+  reached; the band is re-read once a frame as the page scrolls, since a
+  heading can cross the line without leaving or entering it. The rail follows it in its own view: when the current link
   leaves the rail's middle band, `DocsNav` scrolls the rail, never the
   page, to centre it (at once on a deep link, smoothly after); clean `/docs/<id>`, its directory form
   `/docs/<id>/` (where a static host serves the section's prerendered

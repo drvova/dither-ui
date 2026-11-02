@@ -394,7 +394,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "DitherColor", default: "" },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
     { prop: "marker-index", type: "number | null", default: "null" },
-    { prop: "interactive", type: "boolean (scrub: the crosshair follows the pointer)", default: "false" },
+    {
+      prop: "interactive",
+      type: "boolean (scrub: the crosshair follows the pointer; a slider for the keyboard, arrows, Home, End, Escape)",
+      default: "false",
+    },
+    { prop: "label", type: "string (the slider's name, when interactive)", default: '"Series"' },
     { prop: "hover-lift", type: "boolean", default: "true" },
     { prop: "sparkles", type: "boolean (the idle drift along the line)", default: "true" },
     { prop: "@hover-change", type: "(index: number | null) => void", default: "" },
@@ -827,13 +832,19 @@ const config = {
   <Radar data-key="previous" />
   <Legend align="center" />
 </RadarChart>`,
-  sparkline: `<div class="rounded-lg border p-4">
+  sparkline: `const hour = ref<number | null>(null)
+// The last 24 hours of revenue, in $k.
+const last24h = Array.from({ length: 24 }, (_, i) =>
+  Number((2.4 * (10 + i * 0.35 + Math.sin(i * 0.8 + 1) * 2 + Math.sin(i * 1.7 + 2) * 1.1)).toFixed(1)),
+)
+
+<div class="rounded-lg border p-4">
   <div class="text-xs text-muted-foreground">Revenue</div>
   <div class="flex items-baseline gap-2">
     <span class="text-lg tabular-nums">$<DitherNumberFlow :value="last24h[hour ?? 23]" :decimals="1" />k</span>
     <span class="text-xs text-muted-foreground">{{ hour === null ? "+48.3%" : \`\${23 - hour}h ago\` }}</span>
   </div>
-  <Sparkline :data="last24h" color="green" interactive :hover-lift="false"
+  <Sparkline :data="last24h" color="green" interactive label="Revenue" :hover-lift="false"
     class="mt-3 h-8 w-full" @hover-change="(i) => (hour = i)" />
 </div>`,
   motion: `const replayToken = ref(0)
@@ -1902,13 +1913,14 @@ const gradientCode = computed(
                       <span
                         class="[grid-area:1/1] transition-opacity duration-150 motion-reduce:transition-none"
                         :class="scrubbed[s.label] == null ? 'opacity-100' : 'opacity-0'"
+                        :aria-hidden="scrubbed[s.label] != null"
                         :style="{ color: cssColor(s.up ? 'green' : 'red') }"
                         >{{ s.delta }}</span
                       >
                       <span
                         class="text-muted-foreground [grid-area:1/1] transition-opacity duration-150 motion-reduce:transition-none"
                         :class="scrubbed[s.label] == null ? 'opacity-0' : 'opacity-100'"
-                        aria-hidden="true"
+                        :aria-hidden="scrubbed[s.label] == null"
                         >{{ s.data.length - 1 - (scrubbed[s.label] ?? s.data.length - 1) }}h ago</span
                       >
                     </span>
@@ -1917,6 +1929,7 @@ const gradientCode = computed(
                     :data="s.data"
                     :color="s.color"
                     interactive
+                    :label="s.label"
                     :hover-lift="false"
                     class="mt-3 h-8 w-full cursor-crosshair"
                     @hover-change="(i) => (scrubbed[s.label] = i)"

@@ -90,7 +90,7 @@
       <div class="screen">
         <!-- The render's result, a chip on the screen's corner: it comes
              with the line that renders, at work, then ready. -->
-        <div class={["render", lineState(RENDER, step)]}>
+        <div class={["render", lineState(RENDER, step)]} aria-hidden="true">
           <span class="mark">
             {#if lineState(RENDER, step) !== "done"}
               <DitherSpinner size={14} color="orange" />

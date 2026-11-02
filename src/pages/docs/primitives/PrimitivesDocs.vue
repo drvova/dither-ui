@@ -58,8 +58,6 @@ const onMeasure = (size: { width: number; height: number }) => {
 }
 const demoMenuOpen = ref(false)
 const scopeOpen = ref(false)
-// The Portal demo's target: the portal mounts once it is in the DOM.
-const portalOut = ref<HTMLElement | null>(null)
 const SNIPPET_SVG = `<!-- decorative by default: aria-hidden -->
 <DitherSvg viewBox="0 0 24 24" class="size-5">
   <path d="M4 12h16M12 4v16" stroke="currentColor" stroke-width="2" />
@@ -79,7 +77,7 @@ const SNIPPET_SPACER = `<div class="flex items-center">
 
 const SNIPPET_PORTAL = `<div class="h-24 overflow-hidden rounded-md border p-4">
   Declared in here, a box with overflow: hidden.
-  <DitherPortal to="#portal-demo-out">
+  <DitherPortal to="#portal-demo-out" defer>
     <span class="rounded-md border px-3 py-1.5">teleported out</span>
   </DitherPortal>
 </div>
@@ -194,6 +192,7 @@ const API: Record<string, PropRow[]> = {
   portal: [
     { prop: "to", type: "string (selector)", default: '"body"' },
     { prop: "disabled", type: "boolean", default: "false" },
+    { prop: "defer", type: "boolean (the target may come later in the template)", default: "false" },
   ],
   overlay: [
     { prop: "dim", type: '"none" | "soft" | "medium" | "strong"', default: '"soft"' },
@@ -381,7 +380,9 @@ const API: Record<string, PropRow[]> = {
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       Teleport by name: render a slot elsewhere in the DOM so popovers and toasts escape
       <code class="text-foreground/80">overflow: hidden</code>. <code class="text-foreground/80">disabled</code> keeps
-      it in place (the switch for tests and environments where the target does not exist).
+      it in place (the switch for tests and environments where the target does not exist);
+      <code class="text-foreground/80">defer</code> waits for the rest of the render, so the target can come later in
+      the same template, as it does here.
     </p>
     <DemoCard :code="SNIPPET_PORTAL">
       <!-- The chip is declared inside a clipped box and lands in the target
@@ -389,13 +390,12 @@ const API: Record<string, PropRow[]> = {
       <div class="grid gap-3 text-[12px] text-muted-foreground sm:grid-cols-2">
         <div class="h-24 overflow-hidden rounded-md border border-border/60 p-4">
           Declared in here, a box with <code class="text-foreground/80">overflow: hidden</code>.
-          <DitherPortal v-if="portalOut" to="#portal-demo-out">
+          <DitherPortal to="#portal-demo-out" defer>
             <span class="rounded-md border border-border/60 bg-card px-3 py-1.5 text-[11px]">teleported out</span>
           </DitherPortal>
         </div>
         <div
           id="portal-demo-out"
-          ref="portalOut"
           class="grid h-24 place-items-center rounded-md border border-dashed border-border/60 p-4"
         />
       </div>

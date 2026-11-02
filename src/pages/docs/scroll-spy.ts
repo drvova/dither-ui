@@ -51,6 +51,18 @@ export function spySections(sections: Element[], onActive: (id: string) => void)
     for (const el of sections) observer.observe(el)
   }
   observe()
+  // A heading can cross the reading line while staying inside the band (no
+  // observer callback fires then): re-read the band as the page scrolls,
+  // once a frame.
+  let frame = 0
+  const scrolled = () => {
+    if (frame) return
+    frame = requestAnimationFrame(() => {
+      frame = 0
+      report([])
+    })
+  }
+  window.addEventListener("scroll", scrolled, { passive: true })
   let height = window.innerHeight
   const resized = () => {
     if (window.innerHeight === height) return
@@ -60,6 +72,8 @@ export function spySections(sections: Element[], onActive: (id: string) => void)
   }
   window.addEventListener("resize", resized)
   return () => {
+    window.removeEventListener("scroll", scrolled)
+    if (frame) cancelAnimationFrame(frame)
     window.removeEventListener("resize", resized)
     observer.disconnect()
   }

@@ -72,7 +72,8 @@ const lines = computed(() => code.value.split("\n").map((text) => ({ text, inden
   flex: 1;
   min-height: 0;
   margin: 0;
-  padding: 10px 12px;
+  /* The foot clears the fade, so the last line scrolls into full view. */
+  padding: 10px 12px 32px;
   overflow: auto;
   /* Long lines wrap inside the panel, never cut mid-token at its edge, and
      the pane fades at its foot rather than slicing a line. */

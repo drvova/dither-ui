@@ -417,15 +417,18 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
             <span class="panel-d">Frames exported</span>
             <DitherNumberFlow :value="shown(day)" :duration="240" class="stat-v" />
             <span class="panel-d stat-sub">
-              <span :data-on="day === null ? '' : undefined"
+              <span :data-on="day === null ? '' : undefined" :aria-hidden="day !== null"
                 ><b>+{{ WEEK_CHANGE }}%</b> on the week before</span
               >
-              <span :data-on="day === null ? undefined : ''" aria-hidden="true">{{ ago(day ?? DAYS - 1) }}</span>
+              <span :data-on="day === null ? undefined : ''" :aria-hidden="day === null">{{
+                ago(day ?? DAYS - 1)
+              }}</span>
             </span>
             <Sparkline
               :data="FRAMES"
               color="blue"
               interactive
+              label="Frames exported"
               :hover-lift="false"
               :sparkles="false"
               class="stat-spark"
