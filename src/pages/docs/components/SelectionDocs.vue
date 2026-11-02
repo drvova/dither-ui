@@ -323,7 +323,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="wheel-picker" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Wheel Picker</h2>
+    <h2 class="text-lg tracking-tight">Wheel picker</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       An iOS-style picker wheel: a 3D drum on native momentum scroll that snaps to the nearest notch, steered by wheel,
       drag or spinbutton keys. Wheels compose side by side for date and time pickers; reduced motion flattens the drum.
@@ -357,7 +357,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="checkbox-group" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Checkbox Group</h2>
+    <h2 class="text-lg tracking-tight">Checkbox group</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A labelled group of DitherCheckboxes bound to one string array: toggling a box adds or removes its option's value.
     </p>
@@ -386,7 +386,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="toggle-group" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Toggle Group</h2>
+    <h2 class="text-lg tracking-tight">Toggle group</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A bordered row of toggles: <code class="text-foreground/80">single</code>
       behaves like a radio group (one value, arrows move), while

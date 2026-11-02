@@ -51,6 +51,8 @@
   --signal: var(--swatch-orange);
   --page: 80rem;
   --rhythm: 40px;
+  /* The header's height, read by whatever must sit clear of it. */
+  --head: 64px;
   font-family: var(--font-mono);
   /* The grain: a fixed tile of single cells a tone under and over the
      obsidian, never a grid. */

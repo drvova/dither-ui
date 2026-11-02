@@ -12,6 +12,14 @@
     variant?: VariantInput
     seed?: number
     markerIndex?: number | null
+    /** Scrubbable: the pointer marks the nearest point with the chart's own
+     * crosshair and `onHoverChange` reports its index (null on leave). */
+    interactive?: boolean
+    /** Brighten the fill while the pointer is over it. */
+    hoverLift?: boolean
+    /** The idle particle drift along the line; off, the chart holds still. */
+    sparkles?: boolean
+    onHoverChange?: (index: number | null) => void
     hovered?: boolean
     bloom?: BloomInput
     bloomOnHover?: boolean
@@ -25,6 +33,10 @@
     variant = "gradient",
     seed,
     markerIndex = null,
+    interactive = false,
+    hoverLift = true,
+    sparkles = true,
+    onHoverChange,
     hovered = false,
     bloom = "off",
     bloomOnHover = false,
@@ -39,7 +51,10 @@
 <AreaChart
   data={rows}
   {config}
-  interactive={false}
+  {interactive}
+  {hoverLift}
+  {sparkles}
+  {onHoverChange}
   {animate}
   {seed}
   {markerIndex}

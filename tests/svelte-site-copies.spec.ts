@@ -14,7 +14,7 @@ const COPIES: readonly (readonly [copy: string, original: string])[] = [
   ["svelte-site/src/fonts/display.css", "src/shared/fonts/display.css"],
   ["svelte-site/src/fonts/michroma-latin.woff2", "src/shared/fonts/michroma-latin.woff2"],
   ["svelte-site/src/fonts/OFL.txt", "src/shared/fonts/OFL.txt"],
-  ...["brand.ts", "pixel-type.ts", "plate.ts", "spotlight.ts", "story.ts"].map(
+  ...["brand.ts", "pixel-type.ts", "plate.ts", "spotlight.ts", "stat.ts", "story.ts"].map(
     (f) => [`svelte-site/src/landing/${f}`, `src/pages/landing/${f}`] as const,
   ),
 ]

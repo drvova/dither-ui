@@ -4,6 +4,6 @@ export const FIELD_NAV = [
   { id: "field", label: "Field" },
   { id: "fieldset", label: "Fieldset" },
   { id: "form", label: "Form" },
-  { id: "number-field", label: "Number Field" },
-  { id: "otp-field", label: "OTP Field" },
+  { id: "number-field", label: "Number field" },
+  { id: "otp-field", label: "OTP field" },
 ]

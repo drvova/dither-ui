@@ -226,7 +226,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="center-morph-modal" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Center Morph Modal</h2>
+    <h2 class="text-lg tracking-tight">Center morph modal</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A composable modal whose full-size surface unfolds from its exact center toward every edge, then folds back the
       same way with an inset close control. Same focus trap, Escape, and backdrop contract as Dialog.

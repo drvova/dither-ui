@@ -222,7 +222,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="context-menu" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Context Menu</h2>
+    <h2 class="text-lg tracking-tight">Context menu</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A right-click menu teleported to the pointer. It shares Menu's items and keyboard behavior, and Escape or any
       outside press dismisses it.
@@ -274,7 +274,7 @@ const API: Record<string, PropRow[]> = {
   </section>
 
   <section id="preview-card" class="mt-16 scroll-mt-24">
-    <h2 class="text-lg tracking-tight">Preview Card</h2>
+    <h2 class="text-lg tracking-tight">Preview card</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A hover preview for rich content. It opens after a delay on hover or focus, and a short close delay lets the
       pointer travel into the card.

@@ -76,11 +76,11 @@ export const GROUPS: DocsGroup[] = [
   {
     title: "Components",
     items: [
-      { id: "area", label: "Area Chart" },
-      { id: "line", label: "Line Chart" },
-      { id: "bar", label: "Bar Chart" },
-      { id: "pie", label: "Pie Chart" },
-      { id: "radar", label: "Radar Chart" },
+      { id: "area", label: "Area chart" },
+      { id: "line", label: "Line chart" },
+      { id: "bar", label: "Bar chart" },
+      { id: "pie", label: "Pie chart" },
+      { id: "radar", label: "Radar chart" },
       { id: "sparkline", label: "Sparkline" },
       { id: "button", label: "Button" },
       { id: "avatar", label: "Avatar" },

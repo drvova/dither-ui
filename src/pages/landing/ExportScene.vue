@@ -16,6 +16,8 @@ const SNIPPET = `<div class="flex flex-col gap-3 rounded-lg bg-background p-4">
 </div>`
 const system = ref<Styling>("stylex")
 const code = computed(() => restyle(SNIPPET, system.value))
+// Each line with its own indent, so a line that wraps hangs under itself.
+const lines = computed(() => code.value.split("\n").map((text) => ({ text, indent: text.search(/\S|$/) })))
 </script>
 
 <template>
@@ -33,7 +35,11 @@ const code = computed(() => restyle(SNIPPET, system.value))
           {{ STYLING_LABELS[s] }}
         </button>
       </div>
-      <pre class="export-code" tabindex="0" aria-label="The card's code"><code>{{ code }}</code></pre>
+      <pre
+        class="export-code"
+        tabindex="0"
+        aria-label="The card's code"
+      ><code><span v-for="(l, i) in lines" :key="i" class="ln" :style="{ '--indent': l.indent }">{{ l.text }}</span></code></pre>
     </div>
   </div>
 </template>
@@ -68,14 +74,23 @@ const code = computed(() => restyle(SNIPPET, system.value))
   margin: 0;
   padding: 10px 12px;
   overflow: auto;
-  /* Long lines wrap inside the panel: never cut mid-token at its edge. */
+  /* Long lines wrap inside the panel, never cut mid-token at its edge, and
+     the pane fades at its foot rather than slicing a line. */
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
   border-radius: 6px;
   font-size: 10.5px;
   line-height: 1.55;
   color: var(--ink-3);
   background: var(--background);
+}
+
+/* A wrapped line hangs two cells in from its own indent. */
+.ln {
+  display: block;
+  padding-left: calc((var(--indent) + 2) * 1ch);
+  text-indent: calc((var(--indent) + 2) * -1ch);
 }
 
 @container (max-width: 30rem) {

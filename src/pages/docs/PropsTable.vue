@@ -23,14 +23,15 @@ const shownRows = computed(() =>
 <template>
   <!-- The API as a spec sheet: a hardshell (two corners cut, the chrome
        glint along them) under spec-label column heads; on a phone, where
-       three columns cannot fit, each prop stacks over its type and default. -->
+       three columns cannot fit, each prop stacks over its type and default.
+       The type column carries the notes, so it takes the most room. -->
   <div class="hardshell mt-6 hidden overflow-x-auto [--cut:10px] sm:block">
     <table class="w-full table-fixed border-collapse text-left text-[11px]">
       <thead>
         <tr class="border-b border-border/60 text-muted-foreground">
-          <th class="spec w-1/3 px-4 py-2.5">Prop</th>
+          <th class="spec w-[24%] px-4 py-2.5">Prop</th>
           <th class="spec px-4 py-2.5">Type</th>
-          <th class="spec w-1/4 px-4 py-2.5">Default</th>
+          <th class="spec w-[20%] px-4 py-2.5">Default</th>
         </tr>
       </thead>
       <tbody>

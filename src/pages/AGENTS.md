@@ -158,7 +158,12 @@ widgets/features; page-specific conventions live here.
   row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
   ember, and "New model" for the next seed) beside the rating (its stars at display size, 44px) and the
-  stat card; print screens (the full row, flush: one bone-to-obsidian
+  stat card (frames exported a day, `stat.ts`, copied byte for byte to the
+  Svelte site: the headline is the total at rest; scrub the `Sparkline`
+  (`interactive`) and its own crosshair marks the day under the pointer
+  while the headline rolls to that day, the line under it crossfading from
+  the week's change to the day's name; `hover-lift` off, so the marked day
+  is the only emphasis); print screens (the full row, flush: one bone-to-obsidian
   `DitherGradient` printed through a `DitherScreen` under the same ramp
   raw, the raw one in linear light so the printed cells average to it,
   clipped at a split a full-size range drags or the arrows step, its
@@ -166,10 +171,12 @@ widgets/features; page-specific conventions live here.
   and the ferrofluid (flush; ember first, so it never sits blue beside the
   blue chart; blue or grey); the shader (6, flush;
   the kit's seeded sample, mono blue, a palette ramp or its own colours,
-  "New shader" the next seed) and the decrypted text (6); the styling card
+  "New shader" the next seed) and the decrypted text (6, a line that says
+  what it does, never a second slogan); the styling card
   (8, flush, `ExportScene.vue`: one snippet, an Invoices card, rendered
   live beside its code in the picked system through `restyle`, StyleX
-  first; its code wraps inside its panel, never cut mid-token; its code
+  first; its code wraps inside its panel, never cut mid-token, each line
+  hanging under its own indent, the pane fading at its foot; its code
   alone when the card is narrow, a size container) and
   the slide action ("Slide to confirm", its count); the button (6, its
   four fills and five hues, "Publish") and the silk (6). Planned as one
@@ -182,7 +189,8 @@ widgets/features; page-specific conventions live here.
   bento; a rail's cards past its width arrive as they are swiped in). A
   readout that changes rolls to its new figure (`DitherNumberFlow`: the
   stars, the seed, the slides confirmed), never jumps. Of the surfaces that move by
-  themselves (`MOVING`: the model, the shader, the fluid, the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen
+  themselves (`MOVING`: the model, the shader, the fluid, the silk) ONE plays at a time (`spotlight.ts`; the charts drift by
+  nothing, their `sparkles` off, so no idle grain moves beside it): the card a mouse or pen
   hovers or keyboard focus is in; else the reader's last choice while any
   of it shows; else the first, in page order, crossing the middle tenth of
   the viewport; else the last that played. The rest hold a still frame.
@@ -209,7 +217,9 @@ widgets/features; page-specific conventions live here.
   card and first section is a section of the family it names).
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), then `AgentStory.vue`, one agent session played as the
-  page scrolls: a stage pinned under the header (`--pin`, at most 23rem)
+  page scrolls: a stage pinned under the header (`--pin`, most of the
+  screen, at most 40rem: the stage is the frame, never a band over bare
+  ground)
   for a run of a notch of scroll (32svh) per step, five steps (`story.ts`:
   a step per line of `DOES` plus the last). Composed as a product shot
   (the craft of the stageshow skill: framing, restraint, motion with a
@@ -226,9 +236,16 @@ widgets/features; page-specific conventions live here.
   agent lays out on the page's ground, a gutter from the stage's top and
   from the session, running off the stage's right edge and foot; its
   title a plain label (no real heading in a figure), then the count (the
-  one big number, `DEPLOYS`, the sum of `DAYS`) beside the meter, the
-  switch, and the week's deploys as a dotted `Sparkline` right under the
-  switch (no empty band above it), the only thing the crop cuts. Never blank: each part's
+  one big number, at 2.75rem the heaviest mark over the chart, `DEPLOYS`, the sum of `DAYS`, a working week with no
+  day at zero, so a dip the crop cuts never reads as one) beside the
+  meter, the switch, and the week's deploys as a dotted `Sparkline`
+  (`sparkles` off, still) right under the switch, taking the rest of the
+  screen, the only thing the crop cuts. The render shows its result: a
+  chip centred on the screen's top-left corner, half over the stage (a
+  step above both grounds), absent until the render line (`RENDER`)
+  works, then the ember spinner and "Rendering MP4", then the check and
+  "MP4 ready" (the words crossfade in one cell); on phones it rides the
+  screen's top edge, whole. Never blank: each part's
   slot (the raised ground, at the part's own size) holds its place from
   the first step, and the part arrives in it as the slot leaves, top to
   bottom (`PARTS`), the screen whole before the last step; the last step,
@@ -262,7 +279,9 @@ widgets/features; page-specific conventions live here.
   first (`DOCS_FAMILIES` sorted by size; the footer keeps the docs'
   order): five columns (three under 1024px, two under 640px, where a lone
   last family takes the row),
-  each the family's size as a big figure over its name, both the link to
+  each the family's size as a big figure with its unit ("100 sections":
+  sections, never read against the kit's component count) over its name,
+  both the link to
   its first section, and its line.
 - Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
   section head (a lede with a wink, the link to the styling docs), then
@@ -426,8 +445,11 @@ widgets/features; page-specific conventions live here.
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
   the strike, its carriage on the clear band above it, the footer's top
   padding, clear of every line of text; its field the page's column,
-  `.foot-in`, positioned; then one line, GitHub under its mark) beside three link columns
-  (`COLUMNS`: Get started, closing on Verification; Docs, the big families each with its size; For
+  `.foot-in`, positioned, its top padding the header's height (`--head`,
+  the one number the capsule is sized from) and a gutter, so where the
+  page comes to rest the floating header never sits on its top row; then
+  one line, GitHub under its mark) beside three link columns
+  (`COLUMNS`: Get started, closing on Verification; Docs, the big families; For
   agents: SKILL.md, llms.txt, the registry, the Studio; 28px hit areas), the
   copyright line as separate items (the year and dither-ui.com,
   `v<version>`, MIT license), then the road with the line-screen wordmark over its foot. Three columns
@@ -460,12 +482,15 @@ widgets/features; page-specific conventions live here.
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,
-  `text-lg`, + optional "Open in the Studio") → muted description →
+  `text-lg`, its name in sentence case like its nav label: "Area chart",
+  "OTP field", + optional "Open in the Studio") → muted description →
   `DemoCard` (Preview/Code tabs as machined segments in a `.track`, the
   picked one `.ring-on`; Inspect → the workbench, Code → the source panel, a
   `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
-  sentence case, 12px muted, + grid) → `PropsTable`, a spec sheet (a
-  `.hardshell` cut at 10px, its column heads `.spec`; a row's `default` is
+  sentence case, 12px muted, + grid; the picked tile or chip `.ring-on`,
+  never a fill a shade off the ground) → `PropsTable`, a spec sheet (a
+  `.hardshell` cut at 10px, its column heads `.spec`; Prop 24% and Default
+  20%, the type column, which carries the notes, the rest; a row's `default` is
   its value as code; "" prints "none"; under 640px, where three columns
   cannot fit, each prop stacks over its type and default). The preview frame is a gel well
   (`.demo-well` + `.rim`: the pebble radius, the well's ground, a gloss on
@@ -552,9 +577,13 @@ widgets/features; page-specific conventions live here.
   `spyMargin`: the band from the 56px header to the middle, in px from
   the viewport's height and rebuilt on resize, since a rootMargin
   percentage resolves against the root's width) sets
-  `activeId` + `aria-current`: the topmost section in the band, which it
-  keeps across callbacks (a callback carries only the entries that
-  changed); clean `/docs/<id>`, its directory form
+  `activeId` + `aria-current`: of the sections in the band (kept across
+  callbacks, which carry only the entries that changed), the last whose
+  top has crossed the reading line (`READING_LINE`, 40% down), else the
+  topmost, so a long section's tail never outranks the heading the reader
+  reached. The rail follows it in its own view: when the current link
+  leaves the rail's middle band, `DocsNav` scrolls the rail, never the
+  page, to centre it (at once on a deep link, smoothly after); clean `/docs/<id>`, its directory form
   `/docs/<id>/` (where a static host serves the section's prerendered
   page) and legacy `#/docs/<id>` deep links all restore and remain
   shareable.
@@ -582,7 +611,10 @@ widgets/features; page-specific conventions live here.
   motion stops, ≤8 tries, bottom-clamp aware): lazy demo reveals and
   content-visibility seeds move the target while the smooth flight is still
   running, and Chromium's `scrollIntoView` refused the short re-aligns — taps
-  landed a screen short. Deep links keep the `jump()` path.
+  landed a screen short. A far target (over 1.5 screens) jumps to a screen
+  short of it at once and flies only that last screen, so a click never
+  rides seconds of flight past demos growing on the way. Deep links keep
+  the `jump()` path.
 - Share cards (`docs/og-card.ts`, the art; `crawler-files.ts`, the cards,
   their embeds and the renderer page): a card is the page's title (ember
   stop) over the house dither in motion, the brand top left, a section's
@@ -794,7 +826,9 @@ widgets/features; page-specific conventions live here.
   (the poster's bytes, the cross-engine row): a change to the poster's
   arithmetic fails it until the hash is recorded again.
 - `tests/docs-sheet.spec.ts`: the scroll-spy keeps a section already in
-  the band, `DocsNav` lists every section once with 24px targets per
+  the band and names the one whose heading crossed the reading line,
+  the rail scrolls itself (never the page) to the current link,
+  `DocsNav` lists every section once with 24px targets per
   place, and the sections sheet opens as a modal (focus in, page held,
   Escape, backdrop and close key, focus back, the parts under the link).
 - `tests/marks.spec.ts`: every harness the bridge starts has a mark under

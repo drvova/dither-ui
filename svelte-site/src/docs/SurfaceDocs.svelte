@@ -300,7 +300,7 @@
 </section>
 
 <section id="alert-dialog" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Alert Dialog</h2>
+  <h2 class="text-lg tracking-tight">Alert dialog</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     A modal that demands an answer — overlay clicks do nothing, Escape
     cancels, and focus lands on the safe Cancel button. Danger seeds the
@@ -577,7 +577,7 @@
 </section>
 
 <section id="scroll-area" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Scroll Area</h2>
+  <h2 class="text-lg tracking-tight">Scroll area</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     An honest overflow container — no canvas, just thin token-colored
     scrollbars that match the house border.
@@ -617,7 +617,7 @@
 </section>
 
 <section id="nav-menu" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Navigation Menu</h2>
+  <h2 class="text-lg tracking-tight">Navigation menu</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     DitherTabs' sliding dithered underline with nav semantics — anchors
     instead of tabs, aria-current on the active page.

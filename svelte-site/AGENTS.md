@@ -38,7 +38,7 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   (from `src/shared/ui/marks.ts`), `src/fonts/` (Michroma's `display.css`,
   `michroma-latin.woff2` and its `OFL.txt`, from `src/shared/fonts/`), and
   the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
-  `pixel-type.ts`, `plate.ts`, `spotlight.ts`, `story.ts`). Svelte-specific
+  `pixel-type.ts`, `plate.ts`, `spotlight.ts`, `stat.ts`, `story.ts`). Svelte-specific
   glue stays out of the copies: they import the engine as the Vue site names
   it, so `@dither-kit/engine/*` resolves to the Svelte kit's verbatim engine
   (`rstack.config.ts` alias + `tsconfig.json` path) and the type-only
