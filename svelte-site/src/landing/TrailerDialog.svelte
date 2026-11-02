@@ -1,6 +1,6 @@
 <script lang="ts">
-  // The film: a minute of the kit by hand, then one screen built in the
-  // Studio, over its score. It is the main site's (dither-ui.com/trailer/),
+  // The film: a minute of the site in use, captioned, over the kit's own
+  // score. It is the main site's (dither-ui.com/trailer/),
   // and nothing of it loads until the dialog opens (the <video> exists only
   // while it is open); opening it was the visitor's ask, so it plays at
   // once, except under reduced motion, where it waits on its poster for
@@ -21,7 +21,7 @@
 <DitherDialog
   {open}
   title="The dither-ui film"
-  description="A minute of the kit by hand: buttons, sliders, a hold, a slide, charts, a 3D model and a fluid. Then one screen built in the Studio by hand and by an agent, its code and its reel. Music and interface sounds, no speech."
+  description="A minute of the site in use, captioned: the hero's print, the bento's cards poked, an agent laying out a screen, a phone's menu printing in, a docs section's 3D model dragged and its code opened, the quick start copied, a chart evolved in the Studio, and the footer. Music and interface sounds, no speech."
   class="max-w-5xl"
   onclose={() => (open = false)}
 >
