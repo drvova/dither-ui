@@ -166,7 +166,8 @@ the kit every import is relative (`../engine/pixel`).
   `DitherReveal.vue` applies it to its slot: manual `progress` (a
   timeline's — it runs no clock of its own), or a timed reveal
   (`duration`/`delay`/`easing`, `restartKey` replays) on the IO-gated rAF
-  loop, the kit clock's moment when directed, shown at once under reduced
+  loop, its delay waited out before the first play and a pause resuming
+  where it left off, the kit clock's moment when directed, shown at once under reduced
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.

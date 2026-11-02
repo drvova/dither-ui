@@ -41,13 +41,17 @@ const size = ref({ width: 0, height: 0 })
 const played = ref(0)
 let raf = 0
 let start = 0
+/** Seconds played so far, the delay included: a paused reveal resumes here
+ * (a reveal paused in its delay waits out the rest of it). */
+let elapsed = 0
 let ro: ResizeObserver | null = null
 
 const at = (seconds: number) => Math.max(0, Math.min(1, (seconds - props.delay) / Math.max(0.001, props.duration)))
 
 function tick(now: number) {
   raf = 0
-  played.value = at((now - start) / 1000)
+  elapsed = (now - start) / 1000
+  played.value = at(elapsed)
   if (played.value < 1) raf = requestAnimationFrame(tick)
 }
 
@@ -63,7 +67,7 @@ function play() {
     played.value = 1
     return
   }
-  start = performance.now() - (props.delay + played.value * props.duration) * 1000
+  start = performance.now() - elapsed * 1000
   raf = requestAnimationFrame(tick)
 }
 
@@ -74,11 +78,13 @@ function stop() {
 
 function seekTo(ms: number) {
   stop()
-  played.value = at(ms / 1000)
+  elapsed = ms / 1000
+  played.value = at(elapsed)
 }
 
 function restart() {
   stop()
+  elapsed = 0
   played.value = 0
   play()
 }

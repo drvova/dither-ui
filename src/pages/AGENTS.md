@@ -177,7 +177,11 @@ widgets/features; page-specific conventions live here.
   are different kinds, never two moving surfaces side by side, and no
   card repeats another's words or the ask's Deploys screen. Each card's art is a `DitherReveal` (the
   8×8 Bayer dissolve, 0.72s, linear): it prints itself once as it comes
-  into view, at once under reduced motion. Of the surfaces that move by
+  into view, at once under reduced motion, a row's cards one after another
+  left to right (`staggers` in `hub.ts`, 90ms apart, read from the laid-out
+  bento; a rail's cards past its width arrive as they are swiped in). A
+  readout that changes rolls to its new figure (`DitherNumberFlow`: the
+  stars, the seed, the slides confirmed), never jumps. Of the surfaces that move by
   themselves (`MOVING`: the model, the shader, the fluid, the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen
   hovers or keyboard focus is in; else the reader's last choice while any
   of it shows; else the first, in page order, crossing the middle tenth of

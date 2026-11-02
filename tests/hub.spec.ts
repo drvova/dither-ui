@@ -1,6 +1,6 @@
 import { describe, expect, it } from "rstack/test"
 import { GROUPS, SECTIONS } from "@/pages/docs/groups"
-import { BENTO, DOCS_FAMILIES, FAMILIES, SECTION_COUNT } from "@/pages/landing/hub"
+import { BENTO, DOCS_FAMILIES, FAMILIES, SECTION_COUNT, STAGGER, staggers } from "@/pages/landing/hub"
 
 const family = (title: string) => GROUPS.find((g) => g.title === title)
 
@@ -23,5 +23,21 @@ describe("component hub", () => {
       ).toContain(f.first)
       expect(f.count, f.label).toBe(family(f.label)?.items.length)
     }
+  })
+
+  it("staggers a row's reveals left to right and leaves a rail's later cards on time", () => {
+    // A tall lead card beside two stacked ones, then a row of three.
+    const grid = [
+      { top: 0, left: 0 },
+      { top: 0, left: 800 },
+      { top: 272, left: 800 },
+      { top: 544, left: 0 },
+      { top: 544, left: 400 },
+      { top: 544.5, left: 800 },
+    ]
+    expect(staggers(grid, 1200)).toEqual([0, STAGGER, 0, 0, STAGGER, 2 * STAGGER])
+    // A rail: one row, wider than the bento.
+    const rail = [0, 300, 600].map((left) => ({ top: 0, left }))
+    expect(staggers(rail, 400)).toEqual([0, STAGGER, 0])
   })
 })

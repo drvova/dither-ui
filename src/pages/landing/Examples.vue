@@ -23,6 +23,7 @@ import {
   DitherDecryptedText,
   DitherGradient,
   DitherIcon,
+  DitherNumberFlow,
   DitherRating,
   DitherReveal,
   DitherScreen,
@@ -40,7 +41,7 @@ import {
 } from "@dither-kit"
 import { routePath } from "@/shared/lib"
 import { COMPONENT_COUNT } from "./facts"
-import { BENTO } from "./hub"
+import { BENTO, staggers } from "./hub"
 import PauseChip from "./PauseChip.vue"
 import { spotlight } from "./spotlight"
 
@@ -120,7 +121,17 @@ const watchCards = (
   observers.push(io)
 }
 const movingOf = (el: HTMLElement) => el.dataset.moving as Moving
+// Each card's reveal delay, read from the laid-out bento before any reveal
+// plays (a reveal starts as its card comes into view, after this).
+const delays = ref<number[]>([])
 onMounted(() => {
+  const box = bento.value?.getBoundingClientRect()
+  const cards = [...(bento.value?.children ?? [])].map((c) => c.getBoundingClientRect())
+  if (box)
+    delays.value = staggers(
+      cards.map((c) => ({ top: c.top - box.top, left: c.left - box.left })),
+      box.width,
+    )
   if (typeof IntersectionObserver === "undefined") {
     bento.value?.querySelectorAll<HTMLElement>("[data-lazy]").forEach((c) => near.add(c.dataset.lazy ?? ""))
     for (const id of MOVING) {
@@ -176,7 +187,8 @@ const AREA_CONFIG = {
   expenses: { label: "Expenses", color: "grey" as DitherColor },
 }
 const fills = ref(1984)
-const roll = () => (fills.value = Math.floor(Math.random() * 1_000_000))
+// Four digits, as the first: every roll keeps its columns and rolls them.
+const roll = () => (fills.value = 1000 + Math.floor(Math.random() * 9000))
 
 // Button: four fills, five hues.
 const FILLS: ButtonVariant[] = ["gradient", "dotted", "hatched", "solid"]
@@ -226,7 +238,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
     <ul ref="bento" class="bento" aria-label="Examples from the docs">
       <li
-        v-for="t in BENTO"
+        v-for="(t, i) in BENTO"
         :key="t.id"
         class="card"
         :class="`t-${t.id}`"
@@ -237,7 +249,12 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
         @focusin="focus($event, t.id)"
         @focusout="leave(t.id)"
       >
-        <DitherReveal :class="FLUSH.has(t.id) ? 'card-art flush' : 'card-art'" :duration="0.72" easing="linear">
+        <DitherReveal
+          :class="FLUSH.has(t.id) ? 'card-art flush' : 'card-art'"
+          :duration="0.72"
+          :delay="delays[i] ?? 0"
+          easing="linear"
+        >
           <template v-if="t.id === 'world'">
             <DitherWorld
               :source="world"
@@ -261,7 +278,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
           <div v-else-if="t.id === 'rating'" class="stack">
             <DitherRating v-model="stars" :size="44" label="Rate the kit" />
-            <span class="readout">{{ stars }} of 5</span>
+            <span class="readout"><DitherNumberFlow :value="stars" :duration="320" /> of 5</span>
           </div>
 
           <div v-else-if="t.id === 'print-screens'" class="split" :style="{ '--split': `${split}%` }">
@@ -303,7 +320,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
             </AreaChart>
             <div class="row">
               <button type="button" class="key" @click="roll">Roll a seed</button>
-              <span class="readout">seed {{ fills }}</span>
+              <span class="readout">seed <DitherNumberFlow :value="fills" :duration="320" /></span>
             </div>
           </div>
 
@@ -384,7 +401,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
           <div v-else-if="t.id === 'slide-action'" class="stack">
             <DitherSlideAction label="Slide to confirm" color="blue" class="w-full max-w-80" @confirm="confirmed++" />
-            <span class="readout">confirmed {{ confirmed }}</span>
+            <span class="readout">confirmed <DitherNumberFlow :value="confirmed" :duration="320" /></span>
           </div>
 
           <div v-else-if="t.id === 'stats-cards'" class="panel stat">

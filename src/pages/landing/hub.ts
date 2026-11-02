@@ -73,3 +73,16 @@ export const BENTO: BentoTile[] = [
   { id: "button", label: "Button", family: "Components" },
   { id: "silk", label: "Silk", family: "Backgrounds" },
 ]
+
+/** The beat between neighbours' reveals, seconds: the cards of a row arrive
+ * one after another in reading order, never at once. */
+export const STAGGER = 0.09
+
+/** Each card's reveal delay from where it lies: its place left to right
+ * among the cards that share its top, counting only those that start
+ * inside the bento's width (a rail's cards beyond it arrive as they are
+ * swiped in, on time). */
+export const staggers = (boxes: readonly { top: number; left: number }[], width: number): number[] =>
+  boxes.map((b) =>
+    b.left >= width ? 0 : boxes.filter((o) => Math.abs(o.top - b.top) < 2 && o.left < b.left).length * STAGGER,
+  )
