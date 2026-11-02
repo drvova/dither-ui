@@ -10,9 +10,9 @@ import { STYLINGS, STYLING_LABELS, restyle, type Styling } from "@/shared/lib/re
 
 // The snippet is the live card's own markup, so what is shown is what runs.
 const SNIPPET = `<div class="flex flex-col gap-3 rounded-lg bg-background p-4">
-  <DitherHeading level="4">Deploys</DitherHeading>
-  <p class="text-xs text-muted-foreground">16 this week, none rolled back.</p>
-  <DitherButton color="blue" class="w-full">Deploy now</DitherButton>
+  <DitherHeading level="4">Invoices</DitherHeading>
+  <p class="text-xs text-muted-foreground">12 paid this week, none overdue.</p>
+  <DitherButton color="blue" class="w-full">Send reminders</DitherButton>
 </div>`
 const system = ref<Styling>("stylex")
 const code = computed(() => restyle(SNIPPET, system.value))
@@ -22,9 +22,9 @@ const code = computed(() => restyle(SNIPPET, system.value))
   <div class="export">
     <div class="export-live">
       <div class="flex flex-col gap-3 rounded-lg bg-background p-4">
-        <DitherHeading level="4">Deploys</DitherHeading>
-        <p class="text-xs text-muted-foreground">16 this week, none rolled back.</p>
-        <DitherButton color="blue" class="w-full">Deploy now</DitherButton>
+        <DitherHeading level="4">Invoices</DitherHeading>
+        <p class="text-xs text-muted-foreground">12 paid this week, none overdue.</p>
+        <DitherButton color="blue" class="w-full">Send reminders</DitherButton>
       </div>
     </div>
     <div class="export-side">
@@ -68,6 +68,9 @@ const code = computed(() => restyle(SNIPPET, system.value))
   margin: 0;
   padding: 10px 12px;
   overflow: auto;
+  /* Long lines wrap inside the panel: never cut mid-token at its edge. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   border-radius: 6px;
   font-size: 10.5px;
   line-height: 1.55;

@@ -157,22 +157,31 @@ widgets/features; page-specific conventions live here.
   components (the strongest; the docs hold the rest) on a 12-column grid
   row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
-  ember, and "New model" for the next seed) beside the rating and the
+  ember, and "New model" for the next seed) beside the rating (its stars at display size, 44px) and the
   stat card; print screens (the full row, flush: one bone-to-obsidian
   `DitherGradient` printed through a `DitherScreen` under the same ramp
   raw, the raw one in linear light so the printed cells average to it,
   clipped at a split a full-size range drags or the arrows step, its
   handle a bone disc; the five screens switched in place); the area chart (8; one seed for every fill, "Roll a seed")
-  and the button (its four fills and five hues); the shader (flush; the kit's seeded sample, mono
-  blue, a palette ramp or its own colours, "New shader" the next seed) and
-  the ferrofluid (flush; blue, ember or grey); the styling card (8, flush,
-  `ExportScene.vue`: one snippet rendered live beside its code in the
-  picked system through `restyle`, StyleX first; its code alone when the
-  card is narrow, a size container) and the slide action ("Slide to
-  deploy", its count);
-  silk and the decrypted text. Each card's art is a `DitherReveal` (the
+  and the ferrofluid (flush; ember first, so it never sits blue beside the
+  blue chart; blue or grey); the shader (6, flush;
+  the kit's seeded sample, mono blue, a palette ramp or its own colours,
+  "New shader" the next seed) and the decrypted text (6); the styling card
+  (8, flush, `ExportScene.vue`: one snippet, an Invoices card, rendered
+  live beside its code in the picked system through `restyle`, StyleX
+  first; its code wraps inside its panel, never cut mid-token; its code
+  alone when the card is narrow, a size container) and
+  the slide action ("Slide to confirm", its count); the button (6, its
+  four fills and five hues, "Publish") and the silk (6). Planned as one
+  picture (the stageshow skill's bento rules): neighbours across and down
+  are different kinds, never two moving surfaces side by side, and no
+  card repeats another's words or the ask's Deploys screen. Each card's art is a `DitherReveal` (the
   8×8 Bayer dissolve, 0.72s, linear): it prints itself once as it comes
-  into view, at once under reduced motion. Of the surfaces that move by
+  into view, at once under reduced motion, a row's cards one after another
+  left to right (`staggers` in `hub.ts`, 90ms apart, read from the laid-out
+  bento; a rail's cards past its width arrive as they are swiped in). A
+  readout that changes rolls to its new figure (`DitherNumberFlow`: the
+  stars, the seed, the slides confirmed), never jumps. Of the surfaces that move by
   themselves (`MOVING`: the model, the shader, the fluid, the silk) ONE plays at a time (`spotlight.ts`): the card a mouse or pen
   hovers or keyboard focus is in; else the reader's last choice while any
   of it shows; else the first, in page order, crossing the middle tenth of
@@ -188,8 +197,9 @@ widgets/features; page-specific conventions live here.
   next one's edge in view, every card the rail's height, the rail running
   out past the page's gutter), so it takes one screen on a tablet or a
   phone. A card is the raised ground (`--surface`, no border, 20px
-  radius) holding its art over its name, the link into `/docs/<id>` (no
-  family label). Interactive art keeps its own controls, so the card
+  radius) holding its art over its name at page type (17px; a card's copy
+  is the page's, never the size of the UI inside it), the link into
+  `/docs/<id>` (no family label). Interactive art keeps its own controls, so the card
   itself is never a link; on flush art the pause chip comes before the
   tools in the DOM, as it sits above them.
 - `hub.ts` is static data (the landing never loads the docs IA): `FAMILIES`
@@ -199,28 +209,43 @@ widgets/features; page-specific conventions live here.
   card and first section is a section of the family it names).
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), then `AgentStory.vue`, one agent session played as the
-  page scrolls: a stage pinned under the header (`--pin`, at most 23rem,
-  snug to the screen it builds) for a run of a notch of scroll (32svh)
-  per step, five steps (`story.ts`). The stage is one raised ground in
-  halves, never empty: left, the screen the agent lays out (the page's
-  ground, no ring or handles), its frame and heading there from the first
-  step, filling row by row (the count, the meter, the switch; every part
-  a live kit component); right, the ask as a sentence in ink from the
-  first step, then `DOES`, what the agent does in
-  words, each line under the ember check as it happens: reads every
-  component and its props (`get_registry`), lays out a Deploys screen
-  (`add_screen`), writes it as a Vue file (`get_code`), renders it as an
-  MP4 (`export_video`). No call times, arguments, tool names, paths or
-  commands show. The step is the marker crossing the viewport's middle
-  (one IntersectionObserver, armed after the markers render; no scroll
-  listener). What has not happened yet keeps its place, hidden and out of
-  reach, except the screen's switch: a real control, it keeps its tab stop
+  page scrolls: a stage pinned under the header (`--pin`, at most 23rem)
+  for a run of a notch of scroll (32svh) per step, five steps (`story.ts`:
+  a step per line of `DOES` plus the last). Composed as a product shot
+  (the craft of the stageshow skill: framing, restraint, motion with a
+  cause), corner bleed on one raised ground with one gutter (32px):
+  left, like copy beside a hero, the session: the ask as the sent message
+  (the page's ground, filled, no ring), then `DOES`, what the agent does
+  in words, line `i` working at step `i` under the ember `DitherSpinner`
+  and in full ink, done after it under the ember check and stepped back
+  to the muted ink (`lineState`; one 16px cell for both marks, so a line
+  never shifts); not yet said lines keep their place unseen. The lines:
+  reads every component and its props (`get_registry`), lays out a
+  Deploys screen (`add_screen`), writes it as a Vue file (`get_code`),
+  renders it as an MP4 (`export_video`). Right, the hero: the screen the
+  agent lays out on the page's ground, a gutter from the stage's top and
+  from the session, running off the stage's right edge and foot; its
+  title a plain label (no real heading in a figure), then the count (the
+  one big number, `DEPLOYS`, the sum of `DAYS`) beside the meter, the
+  switch, and the week's deploys as a dotted `Sparkline` right under the
+  switch (no empty band above it), the only thing the crop cuts. Never blank: each part's
+  slot (the raised ground, at the part's own size) holds its place from
+  the first step, and the part arrives in it as the slot leaves, top to
+  bottom (`PARTS`), the screen whole before the last step; the last step,
+  every line done and the screen whole, is the still the story ends on.
+  One moving layer at a time: the slots are still, only the spinner
+  turns. No call times, arguments, tool names, paths or commands show.
+  The step is the marker crossing the viewport's middle (one
+  IntersectionObserver, armed after the markers render; no scroll
+  listener). The screen's switch is a real control: it keeps its tab stop
   whatever the scroll (out of the pointer's reach until it shows), and a
-  keyboard that reaches it lands the whole screen at once. Under 900px, or without an observer, nothing pins: the whole
-  session shows at once, the screen over the session. Screen readers get
-  the whole session as a caption; the stage is decoration. A screen is
-  made ONLY of registry components (`add_screen` lays them out), so every
-  line is true.
+  keyboard that reaches it lands the whole screen at once. Under 900px,
+  or without an observer, nothing pins and the last step shows: the
+  session over the screen, which keeps its bleed. Screen readers get the
+  whole session as a caption; the stage is decoration. A screen is made
+  ONLY of registry components (`add_screen` lays them out), so every line
+  is true. `tests/agent-story.spec.ts` pins the line walk and the last
+  step's still.
 - Inside (`#inside`, "Three parts, one engine."): three cards (the
   raised ground, 20px radius, like the bento's; one column under 900px),
   each headed by a tone strip flush to its top (`DitherGradient` from its
@@ -233,15 +258,18 @@ widgets/features; page-specific conventions live here.
   its name chunky in the pixel face (`PixelWord.vue`, 5px cells: "kit",
   "studio", "bridge"; its title the heading's text for screen readers),
   two lines and its link: the kit,
-  the Studio, the agent bridge. Under them the five big families
-  (`DOCS_FAMILIES`): five columns (three under 1024px, two under 640px),
+  the Studio, the agent bridge. Under them the five big families, biggest
+  first (`DOCS_FAMILIES` sorted by size; the footer keeps the docs'
+  order): five columns (three under 1024px, two under 640px, where a lone
+  last family takes the row),
   each the family's size as a big figure over its name, both the link to
   its first section, and its line.
 - Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
   section head (a lede with a wink, the link to the styling docs), then
   one raised panel of three lists at reading size, generous like a menu
   (18px marks, 15px names; three columns down to 640px, one under it with
-  each list's rows two abreast): "Your styling" (`WORKS`), "Your agent"
+  each list's rows two abreast): "Your styling" (`WORKS`; then "and any
+  app on its compiled stylesheet: UnoCSS, plain CSS or CSS-in-JS"), "Your agent"
   (the harnesses `bridge/dither-bridge.mjs` knows, `HARNESSES` in
   `facts.ts`, its ids and names in order, each under its own mark; keep
   in sync, `tests/marks.spec.ts` checks it; then "or any command you hand
@@ -324,8 +352,11 @@ widgets/features; page-specific conventions live here.
   box on the raised ground whose top row is the `.seg` step picker (the
   kit's Folder glyph, then npm, pnpm and Bun's own marks) and the Copy
   key (both filled with the page's ground), the command under them in
-  mono with the ember `$` (under 640px the picker takes the top row alone
-  and the command wraps beside the key, so all of it shows). A copy is ONE gesture: while copied the
+  mono with the ember `$`; the box and the spec sheet under it keep the
+  install head's centred measure (52rem). Under 640px the picker takes the
+  top row alone and the command wraps beside the key between its words
+  (each word unbroken, never at a hyphen), so all of it shows; inline
+  `code` on the landing never wraps. A copy is ONE gesture: while copied the
   command shows selected (the page's ground behind it) as the key's label
   rolls to "Copied" under a check; both let go together; reduced motion
   swaps both at once. Its four steps (degit folder + npm/pnpm/bun deps)
@@ -359,7 +390,9 @@ widgets/features; page-specific conventions live here.
   `ROAD.cell` CSS px at dpr 1, so the print reads the same on every screen
   and its width in cells is the art's CSS width) whose GLSL `road.ts`
   writes from `ROAD`: a star grain, rare
-  and blue over the columns, and on the road (`.foot-road`, the width's
+  and blue over the columns and rarer still where their words and the
+  copyright line sit (the footer's words lie on the page's ground, so no
+  speck lands on a letter), and on the road (`.foot-road`, the width's
   `ROAD.aspect` share, `narrowAspect` under `ROAD.narrow` px of the art's
   own width: a container query the shader matches by its width in cells,
   pinned by `tests/landing-facts.spec.ts`) a bundle of light trails that

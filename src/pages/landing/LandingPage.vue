@@ -28,6 +28,9 @@ import AgentStory from "./AgentStory.vue"
 import Examples from "./Examples.vue"
 import { RUNTIME_DEPS, SPECS } from "./facts"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
+
+// The five biggest families, biggest first (the footer keeps the docs' order).
+const BIGGEST = [...DOCS_FAMILIES].sort((a, b) => b.count - a.count)
 import InstallBlock from "./InstallBlock.vue"
 import LineWordmark from "./LineWordmark.vue"
 import PixelWord from "./PixelWord.vue"
@@ -276,7 +279,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
           <div class="families">
             <h3 class="families-h">{{ SECTION_COUNT }} docs sections, the five biggest families</h3>
             <ul class="families-list">
-              <li v-for="f in DOCS_FAMILIES" :key="f.label">
+              <li v-for="f in BIGGEST" :key="f.label">
                 <a :href="routePath(`/docs/${f.first}`)" class="family-t"
                   ><span class="family-n">{{ f.count }}</span
                   ><span class="family-l">{{ f.label }}</span></a
@@ -605,7 +608,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 40px;
-  margin: 8px 0 0;
+  width: min(100%, 52rem);
+  margin: 8px auto 0;
   padding: 18px 24px;
   border-radius: 16px;
   background: var(--surface);
@@ -639,6 +643,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 
 .landing code {
   color: var(--ink);
+  white-space: nowrap;
 }
 
 /* The footer: the brand (the lockup, a line, GitHub) beside three
@@ -718,6 +723,17 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
 
 .foot-lockup {
   position: relative;
+}
+
+/* The footer's words lie on the page's own ground, so the art's grain
+   passes behind them whole and no speck lands on a letter (as the
+   wordmark lies on its word). Unseen: the ground is the page's. */
+.foot-line,
+.foot-gh,
+.foot-h,
+.foot-col a,
+.foot-copy > span {
+  background: var(--background);
 }
 
 .foot-line {
@@ -822,6 +838,10 @@ const COLUMNS: { title: string; links: { label: string; href: string; n?: number
   }
   .families-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* A lone last family takes the whole row: no dead cell beside it. */
+  .families-list li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
   .inside-art {
     height: 72px;

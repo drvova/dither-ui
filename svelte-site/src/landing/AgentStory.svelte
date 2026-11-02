@@ -1,19 +1,21 @@
 <script lang="ts">
   // The ask as a story: a stage pinned while the page scrolls past it plays
-  // one agent session (`story.ts`), a step per notch. The ask and the
-  // screen's frame are there from the first step; then what the agent does,
-  // a line at a time, while the screen it lays out fills in on the left part
-  // by part. The step is the marker crossing the viewport's middle (one
-  // IntersectionObserver, no scroll listener). Under 900px, or without an
-  // observer, the stage is not pinned and shows the whole session at once.
-  // Screen readers get the whole session as a caption; the stage that plays
-  // it is decoration, but for the screen's switch, a real control.
+  // one agent session (`story.ts`), a step per notch, composed as the Vue
+  // landing's is (see `src/pages/AGENTS.md`, Ask): corner bleed, the session
+  // at the left like copy (the ask as the sent message, the line at work
+  // under a spinner, the done ones under an ember cell), the Deploys screen
+  // the hero at the right, running off the stage's right edge and foot, its
+  // parts resolving in their slots. The step is the marker crossing the
+  // viewport's middle (one IntersectionObserver, no scroll listener). Under
+  // 900px, or without an observer, the stage is not pinned and shows the
+  // last step. Screen readers get the whole session as a caption; the stage
+  // that plays it is decoration, but for the screen's switch, a real control.
   import { onDestroy, onMount, tick } from "svelte"
-  import { DitherProgress, DitherSwitch } from "@dither-kit-svelte"
-  import { ASK, DOES, PARTS, STEPS } from "./story"
+  import { DitherProgress, DitherSpinner, DitherSwitch, Sparkline } from "@dither-kit-svelte"
+  import { ASK, DAYS, DEPLOYS, DOES, lineState, PARTS, STEPS } from "./story"
 
   const LAST = STEPS - 1
-  const TOLD = DOES.map((d) => d.line[0].toLowerCase() + d.line.slice(1))
+  const TOLD = DOES.map((d) => d[0].toLowerCase() + d.slice(1))
 
   let step = $state(LAST)
   let pinned = $state(false)
@@ -65,35 +67,56 @@
 <div class={["story", pinned && "pinned"]} style:--steps={STEPS}>
   <figure id="agent-ask" class="pin">
     <div class="stage">
-      <div class="canvas">
-        <div class="frame">
-          <h3 class="frame-h">Deploys</h3>
-          <div class={["part", step < PARTS.count && "off"]}>
-            <div class="frame-row">
-              <span class="frame-n">16</span>
-              <span class="frame-d">deploys this week</span>
-            </div>
-          </div>
-          <div class={["part", "frame-meter", step < PARTS.meter && "off"]}>
-            <span class="frame-d">Build minutes, 64% used</span>
-            <!-- The line above says the figure; the bar is its picture. -->
-            <div aria-hidden="true"><DitherProgress value={64} color="blue" /></div>
-          </div>
-          <div class={["part", "frame-switch", step < PARTS.toggle && "off"]}>
-            <DitherSwitch bind:value={auto} label="Auto deploy" />
-            <span aria-hidden="true">Auto deploy</span>
-          </div>
-        </div>
-      </div>
-
       <!-- The session as it plays: decoration over the caption. -->
       <div class="session" aria-hidden="true">
         <p class="ask">{ASK}</p>
         <ol class="does">
-          {#each DOES as d (d.line)}
-            <li class={[step < d.step && "off"]}><span class="tick"></span>{d.line}</li>
+          {#each DOES as line, i (line)}
+            <li class={lineState(i, step)}>
+              <span class="mark">
+                {#if lineState(i, step) === "working"}
+                  <DitherSpinner size={14} color="orange" />
+                {:else}
+                  <span class="tick"></span>
+                {/if}
+              </span>
+              {line}
+            </li>
           {/each}
         </ol>
+      </div>
+
+      <!-- The screen the agent lays out, the hero of the shot. -->
+      <div class="screen">
+        <div class="screen-title">Deploys</div>
+        <div class="screen-row">
+          <div class={["part", step >= PARTS.count && "on"]}>
+            <span class="slot"></span>
+            <div class="count">
+              <span class="count-n">{DEPLOYS}</span>
+              <span class="count-d">deploys this week</span>
+            </div>
+          </div>
+          <div class={["part", step >= PARTS.meter && "on"]}>
+            <span class="slot"></span>
+            <div class="meter">
+              <span class="count-d">Build minutes, 64% used</span>
+              <!-- The line above says the figure; the bar is its picture. -->
+              <div aria-hidden="true"><DitherProgress value={64} color="blue" /></div>
+            </div>
+          </div>
+        </div>
+        <div class={["part", "part-switch", step >= PARTS.toggle && "on"]}>
+          <span class="slot"></span>
+          <div class="switch">
+            <DitherSwitch bind:value={auto} label="Auto deploy" />
+            <span aria-hidden="true">Auto deploy</span>
+          </div>
+        </div>
+        <div class={["part", "part-chart", step >= PARTS.chart && "on"]} aria-hidden="true">
+          <span class="slot"></span>
+          <div class="chart"><Sparkline data={[...DAYS]} color="blue" variant="dotted" /></div>
+        </div>
       </div>
     </div>
 
@@ -147,11 +170,15 @@
     flex: 1;
   }
 
-  /* The stage: one raised ground, the screen's canvas beside the session,
-     halves, so the screen fills its side. */
+  /* The stage: one raised ground, the shot's frame, one gutter. One row,
+     the stage's height: the screen overflows it (the bleed), never
+     stretches it. */
   .stage {
+    --gutter: 32px;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--gutter);
     height: 100%;
     min-height: 0;
     overflow: hidden;
@@ -159,111 +186,23 @@
     background: var(--surface);
   }
 
-  .canvas {
-    position: relative;
-    display: grid;
-    place-items: center;
-    padding: 32px 24px;
-  }
-
-  /* The screen the agent lays out: the page's ground on the stage. */
-  .frame {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 14px;
-    width: min(100%, 32rem);
-    min-height: 15rem;
-    padding: 28px;
-    border-radius: 16px;
-    background: var(--background);
-  }
-
-  .frame-h {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink);
-  }
-
-  .part {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    transition:
-      opacity 240ms var(--ease-settle),
-      translate 240ms var(--ease-settle);
-  }
-
-  /* What has not happened yet keeps its place, unseen and out of reach. */
-  .off {
-    visibility: hidden;
-    opacity: 0;
-    translate: 0 6px;
-  }
-
-  /* Except the screen's switch, a real control: it keeps its place in the tab
-     order whatever the scroll, out of the pointer's reach until it shows, and
-     a keyboard that reaches it lands the whole screen at once. */
-  .frame-switch.off {
-    visibility: visible;
-    pointer-events: none;
-  }
-
-  .frame:focus-within,
-  .frame:focus-within .part.off {
-    visibility: visible;
-    opacity: 1;
-    translate: 0;
-    pointer-events: auto;
-  }
-
-  .frame-row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-  }
-
-  .frame-n {
-    font-size: 1.6rem;
-    font-weight: 500;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-  }
-
-  .frame-d {
-    font-size: 12px;
-    color: var(--ink-3);
-  }
-
-  .frame-meter {
-    gap: 7px;
-  }
-
-  .frame-switch {
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    color: var(--ink);
-  }
-
-  /* The session: the ask, then what the agent does, a line at a time. */
   .session {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 24px;
+    gap: 22px;
     min-height: 0;
-    padding: 32px 40px 32px 16px;
+    padding: var(--gutter) 0 var(--gutter) var(--gutter);
   }
 
   .ask {
     margin: 0;
-    font-size: 17px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    font-size: 15px;
     line-height: 1.6;
     color: var(--ink);
+    background: var(--background);
     text-wrap: pretty;
   }
 
@@ -272,7 +211,7 @@
     flex-direction: column;
     gap: 12px;
     margin: 0;
-    padding: 0;
+    padding: 0 0 0 4px;
     list-style: none;
   }
 
@@ -284,19 +223,165 @@
     color: var(--ink-3);
     transition:
       opacity 240ms var(--ease-settle),
-      translate 240ms var(--ease-settle);
+      translate 240ms var(--ease-settle),
+      color 240ms var(--ease-settle);
+  }
+
+  .does li.working {
+    color: var(--ink);
+  }
+
+  .does li.ahead {
+    visibility: hidden;
+    opacity: 0;
+    translate: 0 6px;
+  }
+
+  /* One cell for the spinner and the done mark, so a line never shifts. */
+  .mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 16px;
+    height: 16px;
   }
 
   /* A done line's mark: one ember cell, the kit's own unit. */
   .tick {
-    flex: none;
     width: 6px;
     height: 6px;
     background: var(--signal);
   }
 
+  .screen {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    align-self: start;
+    width: calc(100% + 15%);
+    height: calc(100% - var(--gutter) + 80px);
+    margin-top: var(--gutter);
+    padding: 28px;
+    border-radius: 16px;
+    background: var(--background);
+  }
+
+  .screen-title {
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .screen-row {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 32px;
+    max-width: 34rem;
+  }
+
+  /* A part and its slot share one cell: the part arrives as the slot leaves. */
+  .part {
+    display: grid;
+    align-items: center;
+  }
+
+  .part > * {
+    grid-area: 1 / 1;
+    transition:
+      opacity 240ms var(--ease-settle),
+      translate 240ms var(--ease-settle);
+  }
+
+  .slot {
+    align-self: stretch;
+    border-radius: 8px;
+    background: var(--surface);
+  }
+
+  .part > :not(.slot) {
+    opacity: 0;
+    translate: 0 6px;
+  }
+
+  .part.on > .slot {
+    opacity: 0;
+  }
+
+  .part.on > :not(.slot) {
+    opacity: 1;
+    translate: 0;
+  }
+
+  .count {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .count-n {
+    font-size: 1.9rem;
+    font-weight: 500;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  .count-d {
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  .meter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .part-switch {
+    align-self: flex-start;
+  }
+
+  .switch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  /* The screen's switch is a real control: it keeps its tab stop whatever
+     the scroll, out of the pointer's reach until it shows, and a keyboard
+     that reaches it lands the whole screen at once. */
+  .part-switch:not(.on) .switch {
+    pointer-events: none;
+  }
+
+  .screen:focus-within .part > .slot {
+    opacity: 0;
+  }
+
+  .screen:focus-within .part > :not(.slot) {
+    opacity: 1;
+    translate: 0;
+    pointer-events: auto;
+  }
+
+  /* The chart, the filler the crop cuts: quiet, right under the switch,
+     running well past the stage's foot. */
+  .part-chart {
+    flex: none;
+    height: 200px;
+    margin-top: 4px;
+    align-items: stretch;
+  }
+
+  .chart,
+  .chart > :global(*) {
+    width: 100%;
+    height: 100%;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .part,
+    .part > *,
     .does li {
       transition: none;
     }
@@ -305,12 +390,23 @@
   @media (max-width: 899px) {
     .stage {
       grid-template-columns: minmax(0, 1fr);
-    }
-    .canvas {
-      padding: 24px 16px 8px;
+      grid-template-rows: auto;
+      gap: 24px;
+      --gutter: 20px;
     }
     .session {
-      padding: 16px 24px 28px;
+      padding: var(--gutter) var(--gutter) 0;
+    }
+    .screen {
+      width: calc(100% + 12%);
+      height: auto;
+      min-height: 300px;
+      margin: 0 0 -48px var(--gutter);
+      padding: 22px;
+    }
+    .screen-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 18px;
     }
   }
 </style>

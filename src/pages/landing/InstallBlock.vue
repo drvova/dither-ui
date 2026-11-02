@@ -58,7 +58,11 @@ const active = ref(0)
     </div>
     <div class="frame">
       <code class="cmd">
-        <span class="prompt" aria-hidden="true">$</span><span :key="active" class="typed">{{ STEPS[active].cmd }}</span
+        <span class="prompt" aria-hidden="true">$</span
+        ><span :key="active" class="typed"
+          ><template v-for="(w, i) in STEPS[active].cmd.split(' ')" :key="i"
+            >{{ i ? " " : "" }}<span class="word">{{ w }}</span></template
+          ></span
         ><span class="caret" aria-hidden="true">▌</span>
       </code>
     </div>
@@ -69,7 +73,10 @@ const active = ref(0)
 /* The box: the raised ground, no border; the picker and the copy key on
    its top row (their filled shapes take the page's ground), the command
    under them. */
+/* On the install head's centred measure, with the spec sheet under it. */
 .box {
+  width: min(100%, 52rem);
+  margin-inline: auto;
   overflow: hidden;
   border-radius: 16px;
   background: var(--surface);
@@ -108,6 +115,11 @@ const active = ref(0)
 
 .cmd::-webkit-scrollbar {
   display: none;
+}
+
+/* A word of the command never breaks (a hyphen is no place to wrap). */
+.word {
+  white-space: nowrap;
 }
 
 .prompt {
@@ -259,7 +271,6 @@ const active = ref(0)
   .cmd {
     align-items: baseline;
     white-space: normal;
-    overflow-wrap: anywhere;
     line-height: 1.6;
   }
   .copy {

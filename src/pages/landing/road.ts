@@ -92,12 +92,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // The galaxy's grain: bone at its heart, the ember, then blue outward.
     lum = r < 0.17 ? 1.0 : r < 0.29 ? 2.0 / 3.0 : 1.0 / 3.0;
   } else if (lum == 0.0) {
-    // The grain: rare and blue over the columns, a field of it over the
+    // The grain: rarer still where the copyright line and the columns' words
+    // sit (no speck lands on a word), rare and blue over the columns, a field of it over the
     // road (behind the wordmark too), thickening into a spray along the
     // bundle with bone among it.
     float road = step(p.y, 1.0);
     float spray = exp(-(abs(s) - 1.0) * 1.6) * road * step(1.0, abs(s));
-    float density = (mix(0.004, 0.0003, smoothstep(0.85, 1.3, p.y)) + 0.05 * spray) * foot;
+    float density = (mix(0.0015, 0.0003, smoothstep(0.85, 1.3, p.y)) + 0.05 * spray) * foot;
     if (hash(c) < density) lum = hash(c + 31.0) < 1.0 - 0.3 * road ? 1.0 / 3.0 : 1.0;
   }
   fragColor = vec4(vec3(lum), lum > 0.0 ? 1.0 : 0.0);

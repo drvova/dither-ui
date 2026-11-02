@@ -70,6 +70,11 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
     middle dots, em dashes, arrow links, badges, italics, borders,
     hairlines or numbered sections; colour only in the kit's art.
   - Voice: calm and procedural, warm with a wink, as the Vue landing's.
+  - The ask (`AgentStory`) is composed as the Vue landing's (`src/pages/AGENTS.md`,
+    Ask): corner bleed, the session beside the Deploys screen that runs off
+    the stage, parts resolving in their slots, the line at work under
+    `DitherSpinner`; a done line carries the kit's ember cell (the Svelte kit
+    has no icon set). Its data is the copied `story.ts`.
   - Figures are read, never typed (`facts.ts`): the component count from the
     kit barrel's component exports, the matrix and screens from its engine,
     the packages and version from `dither-kit-svelte/package.json`, the

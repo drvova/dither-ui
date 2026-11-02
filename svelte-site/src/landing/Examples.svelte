@@ -16,6 +16,7 @@
     DitherRating,
     DitherScreen,
     Ferrofluid,
+    NumberFlow,
     SCREEN_KINDS,
     Silk,
     Sparkline,
@@ -153,7 +154,8 @@
     expenses: { label: "Expenses", color: "grey" as DitherColor },
   }
   let fills = $state(1984)
-  const roll = () => (fills = Math.floor(Math.random() * 1_000_000))
+  // Four digits, as the first: every roll keeps its columns and rolls them.
+  const roll = () => (fills = 1000 + Math.floor(Math.random() * 9000))
 
   // Button: four fills, five hues.
   const FILLS: ButtonVariant[] = ["gradient", "dotted", "hatched", "solid"]
@@ -207,7 +209,7 @@
           {:else if t.id === "rating"}
             <div class="stack">
               <DitherRating bind:value={stars} size={30} label="Rate the kit" />
-              <span class="readout">{stars} of 5</span>
+              <span class="readout"><NumberFlow value={stars} duration={320} /> of 5</span>
             </div>
           {:else if t.id === "sparkline"}
             <div class="panel stat">
@@ -252,12 +254,12 @@
               {/key}
               <div class="row">
                 <button type="button" class="key" onclick={roll}>Roll a seed</button>
-                <span class="readout">seed {fills}</span>
+                <span class="readout">seed <NumberFlow value={fills} duration={320} /></span>
               </div>
             </div>
           {:else if t.id === "button"}
             <div class="stack">
-              <DitherButton color={hue} {variant} class="min-h-12 px-8 text-sm">Deploy</DitherButton>
+              <DitherButton color={hue} {variant} class="min-h-12 px-8 text-sm">Publish</DitherButton>
               <div class="seg" role="group" aria-label="Fill">
                 {#each FILLS as v (v)}
                   <button type="button" aria-pressed={variant === v} onclick={() => (variant = v)}>{v}</button>

@@ -87,6 +87,18 @@ describe("DitherReveal", () => {
     expect(state(w)).toBe("hidden")
   })
 
+  it("waits out its delay before the first play", async () => {
+    const w = mount(DitherReveal, { props: { duration: 1, delay: 0.5, easing: "linear" }, slots: content() })
+    await nextTick()
+    flush(1400)
+    await nextTick()
+    expect(state(w)).toBe("hidden")
+    flush(1750)
+    await nextTick()
+    expect(state(w)).toBe("playing")
+    w.unmount()
+  })
+
   it("reverses, and shows at once under reduced motion", async () => {
     const r = mount(DitherReveal, { props: { progress: 0, reverse: true }, slots: content() })
     await nextTick()

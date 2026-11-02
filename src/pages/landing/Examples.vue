@@ -23,6 +23,7 @@ import {
   DitherDecryptedText,
   DitherGradient,
   DitherIcon,
+  DitherNumberFlow,
   DitherRating,
   DitherReveal,
   DitherScreen,
@@ -40,7 +41,7 @@ import {
 } from "@dither-kit"
 import { routePath } from "@/shared/lib"
 import { COMPONENT_COUNT } from "./facts"
-import { BENTO } from "./hub"
+import { BENTO, staggers } from "./hub"
 import PauseChip from "./PauseChip.vue"
 import { spotlight } from "./spotlight"
 
@@ -120,7 +121,17 @@ const watchCards = (
   observers.push(io)
 }
 const movingOf = (el: HTMLElement) => el.dataset.moving as Moving
+// Each card's reveal delay, read from the laid-out bento before any reveal
+// plays (a reveal starts as its card comes into view, after this).
+const delays = ref<number[]>([])
 onMounted(() => {
+  const box = bento.value?.getBoundingClientRect()
+  const cards = [...(bento.value?.children ?? [])].map((c) => c.getBoundingClientRect())
+  if (box)
+    delays.value = staggers(
+      cards.map((c) => ({ top: c.top - box.top, left: c.left - box.left })),
+      box.width,
+    )
   if (typeof IntersectionObserver === "undefined") {
     bento.value?.querySelectorAll<HTMLElement>("[data-lazy]").forEach((c) => near.add(c.dataset.lazy ?? ""))
     for (const id of MOVING) {
@@ -176,7 +187,8 @@ const AREA_CONFIG = {
   expenses: { label: "Expenses", color: "grey" as DitherColor },
 }
 const fills = ref(1984)
-const roll = () => (fills.value = Math.floor(Math.random() * 1_000_000))
+// Four digits, as the first: every roll keeps its columns and rolls them.
+const roll = () => (fills.value = 1000 + Math.floor(Math.random() * 9000))
 
 // Button: four fills, five hues.
 const FILLS: ButtonVariant[] = ["gradient", "dotted", "hatched", "solid"]
@@ -190,7 +202,8 @@ const output = ref<(typeof OUTPUTS)[number]>("mono")
 const program = ref(3)
 const SHADER_RAMP: DitherColor[] = ["blue", "purple", "pink", "orange"]
 
-// Ferrofluid: the kit's blue, the ember, or the page's grey.
+// Ferrofluid: the ember first (beside the blue area chart), the kit's blue,
+// or the page's grey.
 const FLUIDS = {
   blue: ["#2f6fd0", "#7ba3ee", "#c9dbff"],
   ember: ["#a84d17", "#f08a3c", "#ffd9b0"],
@@ -198,10 +211,10 @@ const FLUIDS = {
 } as const
 type Fluid = keyof typeof FLUIDS
 const FLUID_NAMES = Object.keys(FLUIDS) as Fluid[]
-const fluid = ref<Fluid>("blue")
+const fluid = ref<Fluid>("ember")
 
-// Slide action: deploys confirmed.
-const deploys = ref(0)
+// Slide action: how many slides confirmed.
+const confirmed = ref(0)
 
 // Stat card.
 const SPARK = [12, 14, 13, 17, 16, 19, 18, 22, 21, 24, 23, 27, 26, 29, 31, 30, 33, 35]
@@ -225,7 +238,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
     <ul ref="bento" class="bento" aria-label="Examples from the docs">
       <li
-        v-for="t in BENTO"
+        v-for="(t, i) in BENTO"
         :key="t.id"
         class="card"
         :class="`t-${t.id}`"
@@ -236,7 +249,12 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
         @focusin="focus($event, t.id)"
         @focusout="leave(t.id)"
       >
-        <DitherReveal :class="FLUSH.has(t.id) ? 'card-art flush' : 'card-art'" :duration="0.72" easing="linear">
+        <DitherReveal
+          :class="FLUSH.has(t.id) ? 'card-art flush' : 'card-art'"
+          :duration="0.72"
+          :delay="delays[i] ?? 0"
+          easing="linear"
+        >
           <template v-if="t.id === 'world'">
             <DitherWorld
               :source="world"
@@ -259,8 +277,8 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           </template>
 
           <div v-else-if="t.id === 'rating'" class="stack">
-            <DitherRating v-model="stars" :size="30" label="Rate the kit" />
-            <span class="readout">{{ stars }} of 5</span>
+            <DitherRating v-model="stars" :size="44" label="Rate the kit" />
+            <span class="readout"><DitherNumberFlow :value="stars" :duration="320" /> of 5</span>
           </div>
 
           <div v-else-if="t.id === 'print-screens'" class="split" :style="{ '--split': `${split}%` }">
@@ -302,12 +320,12 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
             </AreaChart>
             <div class="row">
               <button type="button" class="key" @click="roll">Roll a seed</button>
-              <span class="readout">seed {{ fills }}</span>
+              <span class="readout">seed <DitherNumberFlow :value="fills" :duration="320" /></span>
             </div>
           </div>
 
           <div v-else-if="t.id === 'button'" class="stack">
-            <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-12 px-8 text-sm">Deploy</DitherButton>
+            <DitherButton :color="btn.color" :variant="btn.variant" class="min-h-12 px-8 text-sm">Publish</DitherButton>
             <div class="seg" role="group" aria-label="Fill">
               <button
                 v-for="v in FILLS"
@@ -382,8 +400,8 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           </div>
 
           <div v-else-if="t.id === 'slide-action'" class="stack">
-            <DitherSlideAction label="Slide to deploy" color="blue" class="w-full max-w-80" @confirm="deploys++" />
-            <span class="readout">deploys {{ deploys }}</span>
+            <DitherSlideAction label="Slide to confirm" color="blue" class="w-full max-w-80" @confirm="confirmed++" />
+            <span class="readout">confirmed <DitherNumberFlow :value="confirmed" :duration="320" /></span>
           </div>
 
           <div v-else-if="t.id === 'stats-cards'" class="panel stat">
@@ -420,8 +438,9 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
 /* The bento: twelve columns, row by row: a tall lead card (8) beside two
    stacked (4); a full row; a wide card (8) beside a third; two halves; a
-   wide card beside a third; two halves. Under 1024px a rail (below), so
-   the whole bento takes one screen. */
+   wide card beside a third; two halves. The order (`BENTO`) keeps unlike
+   cards side by side and stacked. Under 1024px a rail (below), so the
+   whole bento takes one screen. */
 .bento {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -461,7 +480,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 .t-silk,
 .t-decrypted-text,
 .t-shader,
-.t-ferrofluid {
+.t-button {
   grid-column: span 6;
 }
 
@@ -513,19 +532,20 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   inset: 0;
 }
 
-/* The footer: the name, the docs link. */
+/* The footer: the name, the docs link, at page type (a card's copy is the
+   page's, never the size of the UI inside it). */
 .card-foot {
   display: flex;
   align-items: center;
-  min-height: 48px;
+  min-height: 56px;
   margin: 0;
-  padding: 0 20px 4px;
+  padding: 0 22px 6px;
 }
 
 .card-name {
   margin-block: -4px;
   padding-block: 4px;
-  font-size: 13px;
+  font-size: 17px;
   color: var(--ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
