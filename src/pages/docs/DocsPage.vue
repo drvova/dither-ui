@@ -43,6 +43,7 @@ import SectionShare from "./SectionShare.vue"
 import DocsNav, { docsUrl, type PagePart } from "./DocsNav.vue"
 import DocsSheet, { SHEET_ID } from "./DocsSheet.vue"
 import { groupOf, neighbours, sectionOf, SECTION_IDS } from "./pages"
+import { SiteHeader } from "@/widgets/site-header"
 import OnThisPage from "./OnThisPage.vue"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
 import { play, sounds } from "@/shared/lib/sound"
@@ -881,131 +882,36 @@ const gradientCode = computed(
 
 <template>
   <div class="docs-root min-h-dvh bg-background font-mono text-foreground antialiased">
-    <!-- Header: the site's floating capsule (glass, chrome rim), 56px with
-         its margin, so the rails' top-14 hold. -->
-    <header class="sticky top-0 z-40 mx-auto w-full max-w-6xl px-4 py-1.5">
-      <div class="capsule docs-capsule flex h-11 w-full items-center justify-between pr-1.5 pl-3 text-xs sm:pl-5">
-        <div class="flex items-center gap-6">
-          <a
-            :href="routePath('/')"
-            class="flex h-8 min-w-8 items-center gap-2.5 whitespace-nowrap tracking-tight transition-colors hover:text-foreground"
-          >
-            <!-- The brand mark: the landing's 7x7 dithered diamond, ember core. -->
-            <svg
-              viewBox="0 0 7 7"
-              width="13"
-              height="13"
-              aria-hidden="true"
-              focusable="false"
-              shape-rendering="crispEdges"
-            >
-              <g fill="currentColor">
-                <rect x="3" y="0" width="1" height="1" />
-                <rect x="2" y="1" width="3" height="1" />
-                <rect x="1" y="2" width="5" height="1" />
-                <rect x="0" y="3" width="7" height="1" />
-                <rect x="1" y="4" width="5" height="1" />
-                <rect x="2" y="5" width="3" height="1" />
-                <rect x="3" y="6" width="1" height="1" />
-              </g>
-              <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
-            </svg>
-            <span class="max-[359px]:sr-only">dither-ui</span>
-          </a>
-          <span class="hidden text-muted-foreground xl:inline">Docs</span>
-        </div>
-        <nav class="flex items-center gap-1 text-muted-foreground min-[400px]:gap-2 sm:gap-3.5 xl:gap-5">
-          <div class="track" role="group" aria-label="Framework">
-            <button
-              type="button"
-              :aria-pressed="docsFramework === 'vue'"
-              class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
-              :class="docsFramework === 'vue' ? 'ring-on' : 'hover:text-foreground'"
-              @click="choose(() => setDocsFramework('vue'), docsFramework === 'vue')"
-            >
-              <ToolMark id="vue" :size="11" /><span class="max-sm:sr-only">Vue</span>
-            </button>
-            <button
-              type="button"
-              :aria-pressed="docsFramework === 'svelte'"
-              class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
-              :class="docsFramework === 'svelte' ? 'ring-on' : 'hover:text-foreground'"
-              @click="choose(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
-            >
-              <ToolMark id="svelte" :size="11" /><span class="max-sm:sr-only">Svelte</span>
-            </button>
-          </div>
-          <div class="track max-lg:hidden" role="group" aria-label="Styling">
-            <button
-              v-for="s in docsStylings"
-              :key="s"
-              type="button"
-              :aria-pressed="docsStyling === s"
-              class="h-6 px-2.5 text-[11px] transition-colors"
-              :class="docsStyling === s ? 'ring-on' : 'hover:text-foreground'"
-              @click="choose(() => setStyling(s), docsStyling === s)"
-            >
-              {{ STYLING_LABELS[s] }}
-            </button>
-          </div>
-          <button
-            type="button"
-            class="nav-pill flex h-7 items-center gap-1.5 px-2.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground sm:px-3"
-            aria-label="Search docs"
-            @click="searchOpen = true"
-          >
-            <DitherIcon name="Search" :size="12" :stroke-width="1.5" /><span class="max-sm:sr-only">Search</span>
-            <kbd class="hidden rounded border border-border/60 px-1 text-[10px] md:inline">{{ searchKbd }}</kbd>
-          </button>
-          <button
-            type="button"
-            class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
-            aria-label="Interface sounds"
-            :aria-pressed="sounds"
-            :title="`Interface sounds: ${sounds ? 'on' : 'off'}`"
-            @click="flipSounds"
-          >
-            <DitherIcon :name="sounds ? 'Volume' : 'VolumeOff'" :size="15" :stroke-width="1.5" />
-          </button>
-          <button
-            type="button"
-            class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
-            :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
-            @click="flipTheme"
-          >
-            <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />
-          </button>
-          <!-- Narrow screens keep the chrome for content: the styling switch
-               lives on every card, GitHub in the footer (both return at lg),
-               and the Studio link on every chart section (it returns at sm). -->
-          <a
-            href="https://github.com/drvova/dither-ui"
-            target="_blank"
-            rel="noreferrer"
-            class="-m-3 hidden items-center gap-1.5 whitespace-nowrap p-3 transition-colors hover:text-foreground lg:flex"
-            ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
-          >
-          <a :href="routePath('/studio')" class="nav-a key-chrome hidden h-8 px-4 sm:inline-flex">Open studio</a>
-          <!-- Under lg the section list is a sheet this key opens from
-               anywhere on the page (the sidebar holds it at lg). -->
-          <button
-            type="button"
-            class="flex size-8 items-center justify-center transition-colors hover:text-foreground lg:hidden"
-            aria-label="Browse sections"
-            aria-haspopup="dialog"
-            :aria-expanded="sheetOpen"
-            :aria-controls="SHEET_ID"
-            @click="sheetOpen = true"
-          >
-            <DitherIcon name="Menu" :size="15" :stroke-width="1.5" />
-          </button>
-        </nav>
-      </div>
-    </header>
+    <!-- The site's header, the landing's own: the docs add search and,
+         under lg, the key that opens the sections sheet. -->
+    <SiteHeader current="docs">
+      <template #tools>
+        <button
+          type="button"
+          class="nav-a gap-1.5 text-muted-foreground"
+          aria-label="Search docs"
+          @click="searchOpen = true"
+        >
+          <DitherIcon name="Search" :size="12" :stroke-width="1.5" /><span class="max-sm:sr-only">Search</span>
+          <kbd class="hidden rounded border border-border/60 px-1 text-[10px] md:inline">{{ searchKbd }}</kbd>
+        </button>
+        <button
+          type="button"
+          class="flex size-8 items-center justify-center transition-colors hover:text-foreground lg:hidden"
+          aria-label="Browse sections"
+          aria-haspopup="dialog"
+          :aria-expanded="sheetOpen"
+          :aria-controls="SHEET_ID"
+          @click="sheetOpen = true"
+        >
+          <DitherIcon name="Menu" :size="15" :stroke-width="1.5" />
+        </button>
+      </template>
+    </SiteHeader>
 
     <div class="mx-auto flex w-full max-w-6xl px-4 sm:px-6">
       <!-- Sidebar -->
-      <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-52 shrink-0 overflow-y-auto pr-8 pb-10 lg:block">
+      <aside class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-52 shrink-0 overflow-y-auto pr-8 pb-10 lg:block">
         <nav aria-label="Docs sections">
           <DocsNav :active-id="shown" variant="rail" @go="open" />
         </nav>
@@ -1014,30 +920,86 @@ const gradientCode = computed(
 
       <!-- Content -->
       <main class="min-w-0 flex-1 pb-24 lg:pl-10">
-        <!-- Where the reader is: the docs, then the section's group (its
-             first section); the section's own title follows in the flow. -->
-        <nav v-if="crumbGroup" aria-label="Breadcrumb" class="mt-10 max-w-2xl text-[11px] text-muted-foreground">
-          <ol class="flex flex-wrap items-center gap-1.5">
-            <li>
-              <a
-                :href="docsUrl(SECTION_IDS[0] ?? '')"
-                class="-my-1 py-1 transition-colors hover:text-foreground"
-                @click.prevent="open(SECTION_IDS[0] ?? '')"
-                >Docs</a
+        <!-- The page's row: where the reader is (the docs, then the
+             section's group), and the switches that act on the whole page,
+             what its code is written in, its sounds and its theme. -->
+        <div class="mt-10 flex max-w-2xl flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <nav v-if="crumbGroup" aria-label="Breadcrumb" class="text-[11px] text-muted-foreground">
+            <ol class="flex flex-wrap items-center gap-1.5">
+              <li>
+                <a
+                  :href="docsUrl(SECTION_IDS[0] ?? '')"
+                  class="-my-1 py-1 transition-colors hover:text-foreground"
+                  @click.prevent="open(SECTION_IDS[0] ?? '')"
+                  >Docs</a
+                >
+              </li>
+              <li aria-hidden="true">/</li>
+              <li>
+                <a
+                  :href="docsUrl(crumbGroup.items[0]?.id ?? '')"
+                  class="-my-1 py-1 transition-colors hover:text-foreground"
+                  :aria-current="crumbGroup.items[0]?.id === shown ? 'page' : undefined"
+                  @click.prevent="open(crumbGroup.items[0]?.id ?? '')"
+                  >{{ crumbGroup.title }}</a
+                >
+              </li>
+            </ol>
+          </nav>
+          <div class="flex flex-wrap items-center gap-2 text-muted-foreground">
+            <div class="track" role="group" aria-label="Framework">
+              <button
+                type="button"
+                :aria-pressed="docsFramework === 'vue'"
+                class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
+                :class="docsFramework === 'vue' ? 'ring-on' : 'hover:text-foreground'"
+                @click="choose(() => setDocsFramework('vue'), docsFramework === 'vue')"
               >
-            </li>
-            <li aria-hidden="true">/</li>
-            <li>
-              <a
-                :href="docsUrl(crumbGroup.items[0]?.id ?? '')"
-                class="-my-1 py-1 transition-colors hover:text-foreground"
-                :aria-current="crumbGroup.items[0]?.id === shown ? 'page' : undefined"
-                @click.prevent="open(crumbGroup.items[0]?.id ?? '')"
-                >{{ crumbGroup.title }}</a
+                <ToolMark id="vue" :size="11" /><span class="max-sm:sr-only">Vue</span>
+              </button>
+              <button
+                type="button"
+                :aria-pressed="docsFramework === 'svelte'"
+                class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
+                :class="docsFramework === 'svelte' ? 'ring-on' : 'hover:text-foreground'"
+                @click="choose(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
               >
-            </li>
-          </ol>
-        </nav>
+                <ToolMark id="svelte" :size="11" /><span class="max-sm:sr-only">Svelte</span>
+              </button>
+            </div>
+            <div class="track max-lg:hidden" role="group" aria-label="Styling">
+              <button
+                v-for="s in docsStylings"
+                :key="s"
+                type="button"
+                :aria-pressed="docsStyling === s"
+                class="h-6 px-2.5 text-[11px] transition-colors"
+                :class="docsStyling === s ? 'ring-on' : 'hover:text-foreground'"
+                @click="choose(() => setStyling(s), docsStyling === s)"
+              >
+                {{ STYLING_LABELS[s] }}
+              </button>
+            </div>
+            <button
+              type="button"
+              class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
+              aria-label="Interface sounds"
+              :aria-pressed="sounds"
+              :title="`Interface sounds: ${sounds ? 'on' : 'off'}`"
+              @click="flipSounds"
+            >
+              <DitherIcon :name="sounds ? 'Volume' : 'VolumeOff'" :size="15" :stroke-width="1.5" />
+            </button>
+            <button
+              type="button"
+              class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
+              :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
+              @click="flipTheme"
+            >
+              <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />
+            </button>
+          </div>
+        </div>
         <div ref="flow" class="docs-flow max-w-2xl">
           <!-- The title in chrome; on its baseline, the kit's spec as speed
                tags (beside the title, never an eyebrow over it). -->
@@ -2176,7 +2138,7 @@ const gradientCode = computed(
         </nav>
       </main>
 
-      <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
+      <aside class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
         <OnThisPage v-if="onPage.length" :parts="onPage" @go="goTo" />
         <SectionShare v-if="activeId && docsMeta(activeId).id" :id="activeId" />
       </aside>
@@ -2219,16 +2181,6 @@ const gradientCode = computed(
     />
   </div>
 </template>
-
-<style scoped>
-/* Narrow screens put dense tables right under the header: frost its glass
-   harder so high-contrast text cannot silhouette through. */
-@media (max-width: 640px) {
-  .docs-capsule {
-    background-color: color-mix(in oklab, var(--background) 93%, transparent);
-  }
-}
-</style>
 
 <style>
 /* One section per page: it opens just under the breadcrumb, its title the

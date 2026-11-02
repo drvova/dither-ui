@@ -38,7 +38,8 @@ import Plate from "./Plate.vue"
 import WorksWith from "./WorksWith.vue"
 import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
-import BrandMark from "./BrandMark.vue"
+import BrandMark from "@/shared/ui/BrandMark.vue"
+import { SiteHeader } from "@/widgets/site-header"
 import { PLATES, STOCK } from "./plate"
 import { ROAD, ROAD_RAMP, ROAD_SHADER } from "./road"
 import Showcase from "./Showcase.vue"
@@ -195,32 +196,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       Skip to content
     </a>
 
-    <!-- Header: a floating capsule on the raised ground, sticky over the
-         page (brand, the site's links, GitHub under its mark, the chrome
-         "Open studio" key).
-         Sticky is positioned, and z-10 keeps it over main, which isolates
-         the page art: a static header painted under the art, zero pixels. -->
-    <header class="site-head sticky top-0 z-10">
-      <div class="site-capsule text-xs">
-        <a :href="routePath('/')" class="flex h-8 items-center gap-2.5 whitespace-nowrap pl-2">
-          <BrandMark :size="13" />
-          dither-ui
-        </a>
-        <nav class="flex items-center text-muted-foreground" aria-label="Site">
-          <a href="#examples" class="nav-a hidden sm:inline-flex">Components</a>
-          <a :href="routePath('/docs')" class="nav-a">Docs</a>
-          <a href="#ask" class="nav-a hidden sm:inline-flex">Agents</a>
-          <a
-            href="https://github.com/drvova/dither-ui"
-            target="_blank"
-            rel="noreferrer"
-            class="nav-a hidden md:inline-flex"
-            ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
-          >
-        </nav>
-        <a :href="routePath('/studio')" class="nav-a key-chrome studio-key">Open studio</a>
-      </div>
-    </header>
+    <SiteHeader current="landing" />
 
     <main id="main" tabindex="-1" class="relative isolate flex flex-1 flex-col outline-none">
       <!-- The hero, our own: the statement beside the stage, seated on a
@@ -396,38 +372,6 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   --rhythm: 40px;
   /* The header's height, read by whatever must sit clear of it. */
   --head: 64px;
-}
-
-/* The header: a capsule on the raised ground floating over the page,
-   centred, lifted by its shadow alone. */
-
-.site-head {
-  padding: 8px 16px;
-}
-
-.site-capsule {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: min(100%, 48rem);
-  height: calc(var(--head) - 16px);
-  margin-inline: auto;
-  padding: 0 7px 0 10px;
-  border-radius: 999px;
-  background: var(--surface);
-  box-shadow: var(--float-shadow);
-}
-
-@media (forced-colors: active) {
-  .site-capsule {
-    border: 1px solid CanvasText;
-  }
-}
-
-.studio-key {
-  height: 34px;
-  padding-inline: 16px;
 }
 
 /* The sections, on the page width with the rhythm between them. */

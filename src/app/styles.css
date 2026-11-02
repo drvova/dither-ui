@@ -487,6 +487,7 @@
   --muted-foreground: #9c998f;
   --border: #2b2e32;
   --ring: #e4e1d8;
+  --float-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.7);
 }
 
 .dark .docs-root {

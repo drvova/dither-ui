@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The brand mark: the 7x7 dithered diamond, ember core, `size` px square.
 // Decorative: its link or its place names it.
-import { MARK_CELLS } from "./brand"
+import { MARK_CELLS } from "./brand-mark"
 
 defineProps<{ size: number }>()
 </script>
@@ -15,7 +15,7 @@ defineProps<{ size: number }>()
       :y="c.y"
       width="1"
       height="1"
-      :fill="c.core ? 'var(--signal)' : 'currentColor'"
+      :fill="c.core ? 'var(--signal, var(--swatch-orange))' : 'currentColor'"
     />
   </svg>
 </template>

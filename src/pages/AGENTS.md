@@ -73,13 +73,18 @@ widgets/features; page-specific conventions live here.
   own ground is `--surface` resets `--surface` to the page's ground on
   what it holds, so its keys and pressed segments stay shapes. Page geometry (`--page` 80rem, `--rhythm`) lives on
   `LandingPage`'s `.landing`; the sections are one flex column on it.
-- Header: a floating capsule (`--surface`, `--float-shadow`, no rim), sticky 8px
-  under the top and centred (up to 48rem): the 13px diamond mark (ember core) + "dither-ui", the `.nav-a`
-  links (Components → `#examples`, Docs, Agents → `#ask`, GitHub under its
-  mark in a new tab; Components/Agents drop under sm, GitHub under md) and
-  the `.key-chrome` "Open studio". It MUST stay positioned with `z-10`:
-  `main` is `relative isolate`, so a positioned sibling paints over a
-  static header.
+- Header: the site's one header, `SiteHeader` (`widgets/site-header`),
+  the landing's and the docs' alike: a floating capsule (the raised
+  ground, `--float-shadow`, no rim), sticky 8px under the top and centred
+  (up to 48rem, `--head` tall with its margin): the 13px diamond mark
+  (`shared/ui/BrandMark`, ember core) + "dither-ui", the `.nav-a` links
+  (Components → the landing's `#examples`, Docs, Agents → `#ask`, GitHub
+  under its mark in a new tab; Components/Agents drop under md, GitHub
+  under lg; the page's own link `aria-current`), a page's `tools` (the
+  docs' search and, under lg, its sections key) and the `.key-chrome`
+  "Open studio". It stays positioned (`z-40`): `main` is
+  `relative isolate`, so a positioned sibling paints over a static
+  header.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
   holding on the page width the statement beside the print (columns
@@ -518,7 +523,8 @@ widgets/features; page-specific conventions live here.
 - Docs ground: in the dark the docs wear the landing's print, the user's
   V5 obsidian and bone (`:root.dark:has(.docs-root)` in
   `app/styles.css`: a muted bone at AA on the ground and the raised
-  card, the border a quiet step off the ground, the ring bone) over the
+  card, the border a quiet step off the ground, the ring bone, the
+  landing's float shadow) over the
   grain (`--grain`, the one tile the landing reads too); their light
   theme and the Studio keep the kit's neutrals. The section lists (the
   rail and the sheet) keep each group's heading stuck to the top while
@@ -559,7 +565,7 @@ widgets/features; page-specific conventions live here.
   runs, with "Restore the demo"), carries its CSS in one `<style>` per card
   and its tokens on the frame (`data-run-*`); the workbench inspects a run
   like the demo.
-- Interface sounds (`shared/lib/sound.ts`): the header's "Interface sounds"
+- Interface sounds (`shared/lib/sound.ts`): the page row's "Interface sounds"
   toggle (`aria-pressed`, remembered) beside the theme toggle (which plays
   its own chord); the Preview/Code tabs, the framework and styling chips
   (only when they change something), Inspect on/off and copies sound.
@@ -613,13 +619,14 @@ widgets/features; page-specific conventions live here.
   in the DOM, hidden, whole for find-in-page and the crawler), and the
   rail keeps the current link in its own view, scrolling the rail, never
   the page, to centre it when it leaves the middle band.
-- Narrow chrome: under sm the Vue/Svelte switch shows its marks and Search
-  its glyph (the words stay for screen readers), the studio pill drops (it
-  lives on every chart section's "Open in the Studio") and the nav's gaps
-  tighten; under 360px the brand shows its mark alone (the word stays for
-  screen readers, the link 32px wide), so the capsule fits from 320px; the
-  ⌘K kbd shows from md; the styling switch (on every card anyway) and
-  GitHub (in the footer) return at lg. Under lg the header's last key,
+- The docs' header is the site's (Header, above) with Search in its
+  tools (a `.nav-a` with its shortcut, `modKey`); the switches that act on
+  the page (framework, styling, sounds, theme) sit in the page's row
+  beside the breadcrumb, not in the header. Under sm the Vue/Svelte
+  switch shows its marks and Search its glyph (the words stay for screen
+  readers); under 360px the brand shows its mark alone (the word stays
+  for screen readers); the ⌘K kbd shows from md; the styling switch (on
+  every card anyway) returns at lg. Under lg the header's tools add a key,
   "Browse sections" (the Menu glyph, `aria-haspopup="dialog"`,
   `aria-expanded`, `aria-controls` = `SHEET_ID`), opens the sections sheet
   from anywhere on the page (`DocsSheet.vue`): a `.hardshell` (12px cut) on

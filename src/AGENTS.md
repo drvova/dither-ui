@@ -9,7 +9,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
-- `widgets/` — the docs previews' `workbench` (inspect, measure,
+- `widgets/` — the site's one `site-header` (the landing's and the docs'
+  capsule, a page's tools in its slot; see `pages/AGENTS.md`, Header), the docs previews' `workbench` (inspect, measure,
   annotate, capture; see `widgets/workbench/AGENTS.md`) and `source` (the
   preview's files, edited and run in the page; see
   `widgets/source/AGENTS.md`) and the studio
