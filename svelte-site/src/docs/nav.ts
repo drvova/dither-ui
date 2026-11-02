@@ -16,17 +16,17 @@ const FIELD: NavItem[] = [
   { id: "field", label: "Field" },
   { id: "fieldset", label: "Fieldset" },
   { id: "form", label: "Form" },
-  { id: "number-field", label: "Number Field" },
-  { id: "otp-field", label: "OTP Field" },
+  { id: "number-field", label: "Number field" },
+  { id: "otp-field", label: "OTP field" },
 ]
 const SELECTION: NavItem[] = [
   { id: "select", label: "Select" },
   { id: "combobox", label: "Combobox" },
   { id: "autocomplete", label: "Autocomplete" },
   { id: "radio", label: "Radio" },
-  { id: "checkbox-group", label: "Checkbox Group" },
+  { id: "checkbox-group", label: "Checkbox group" },
   { id: "toggle", label: "Toggle" },
-  { id: "toggle-group", label: "Toggle Group" },
+  { id: "toggle-group", label: "Toggle group" },
 ]
 const FEEDBACK: NavItem[] = [
   { id: "badge", label: "Badge" },
@@ -43,21 +43,21 @@ const STRUCTURE: NavItem[] = [
 const OVERLAY: NavItem[] = [
   { id: "popover", label: "Popover" },
   { id: "menu", label: "Menu" },
-  { id: "context-menu", label: "Context Menu" },
+  { id: "context-menu", label: "Context menu" },
   { id: "menubar", label: "Menubar" },
   { id: "tooltip", label: "Tooltip" },
-  { id: "preview-card", label: "Preview Card" },
+  { id: "preview-card", label: "Preview card" },
 ]
 const SURFACE: NavItem[] = [
   { id: "accordion", label: "Accordion" },
-  { id: "alert-dialog", label: "Alert Dialog" },
+  { id: "alert-dialog", label: "Alert dialog" },
   { id: "drawer", label: "Drawer" },
   { id: "sidebar", label: "Sidebar" },
   { id: "toast", label: "Toast" },
   { id: "meter", label: "Meter" },
-  { id: "scroll-area", label: "Scroll Area" },
+  { id: "scroll-area", label: "Scroll area" },
   { id: "toolbar", label: "Toolbar" },
-  { id: "nav-menu", label: "Navigation Menu" },
+  { id: "nav-menu", label: "Navigation menu" },
 ]
 const NAVIGATION: NavItem[] = [
   { id: "breadcrumb", label: "Breadcrumb" },
@@ -209,10 +209,10 @@ export const GROUPS: NavGroup[] = [
   {
     title: "Components",
     items: [
-      { id: "area", label: "Area Chart" },
-      { id: "line", label: "Line Chart" },
-      { id: "bar", label: "Bar Chart" },
-      { id: "pie", label: "Pie Chart" },
+      { id: "area", label: "Area chart" },
+      { id: "line", label: "Line chart" },
+      { id: "bar", label: "Bar chart" },
+      { id: "pie", label: "Pie chart" },
       { id: "sparkline", label: "Sparkline" },
       { id: "button", label: "Button" },
       { id: "avatar", label: "Avatar" },

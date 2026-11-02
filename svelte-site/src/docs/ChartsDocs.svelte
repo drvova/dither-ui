@@ -260,7 +260,7 @@ const config = {
 
 <!-- Area -->
 <section id="area" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Area Chart</h2>
+  <h2 class="text-lg tracking-tight">Area chart</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
     Revenue against expenses, stacked. Hover for the tooltip; click a legend
     entry to isolate a series.
@@ -312,7 +312,7 @@ const config = {
 
 <!-- Line -->
 <section id="line" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Line Chart</h2>
+  <h2 class="text-lg tracking-tight">Line chart</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
     Bright series lines with sparkles on the live edge; nest a
     <code class="text-foreground/80">Dot</code> inside a line for markers.
@@ -351,7 +351,7 @@ const config = {
 
 <!-- Bar -->
 <section id="bar" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Bar Chart</h2>
+  <h2 class="text-lg tracking-tight">Bar chart</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
     Organic vs paid traffic, grouped. Set
     <code class="text-foreground/80">stackType</code> to stacked or percent to
@@ -388,7 +388,7 @@ const config = {
 
 <!-- Pie -->
 <section id="pie" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Pie Chart</h2>
+  <h2 class="text-lg tracking-tight">Pie chart</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
     Browser share as a donut — click a slice or legend entry to isolate it.
   </p>

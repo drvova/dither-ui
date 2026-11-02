@@ -297,7 +297,7 @@
 </section>
 
 <section id="checkbox-group" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Checkbox Group</h2>
+  <h2 class="text-lg tracking-tight">Checkbox group</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     A labelled group of DitherCheckboxes bound to one string array — toggling
     a box adds or removes its option's value.
@@ -331,7 +331,7 @@
 </section>
 
 <section id="toggle-group" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Toggle Group</h2>
+  <h2 class="text-lg tracking-tight">Toggle group</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     A bordered row of toggles — <code class="text-foreground/80">single</code>
     behaves like a radio group (one value, arrows move), while

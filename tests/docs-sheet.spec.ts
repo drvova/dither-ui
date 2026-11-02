@@ -5,7 +5,7 @@ import { nextTick } from "vue"
 import DocsNav, { NAV_LINK } from "@/pages/docs/DocsNav.vue"
 import DocsSheet, { SHEET_ID } from "@/pages/docs/DocsSheet.vue"
 import { GROUPS } from "@/pages/docs/groups"
-import { spyMargin, spySections } from "@/pages/docs/scroll-spy"
+import { READING_LINE, spyMargin, spySections } from "@/pages/docs/scroll-spy"
 
 const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
 
@@ -47,6 +47,26 @@ describe("docs scroll-spy", () => {
     fire([{ target: b, isIntersecting: false }])
     expect(seen).toHaveLength(3)
   })
+
+  it("names the section whose heading has crossed the reading line, not the tail above it", () => {
+    globalThis.IntersectionObserver = class {
+      constructor(cb: (e: Entry[]) => void) {
+        fire = cb
+      }
+      observe() {}
+      disconnect() {}
+    } as unknown as typeof IntersectionObserver
+    const line = window.innerHeight * READING_LINE
+    const schedule = section("schedule", -2000)
+    const world = section("world", line - 40)
+    const seen: string[] = []
+    spySections([schedule, world], (id) => seen.push(id))
+    fire([
+      { target: schedule, isIntersecting: true },
+      { target: world, isIntersecting: true },
+    ])
+    expect(seen.at(-1)).toBe("world")
+  })
 })
 
 describe("docs scroll-spy band", () => {
@@ -84,6 +104,32 @@ describe("docs section list", () => {
     expect(w.findAll("[aria-current]").map((a) => a.text())).toEqual(["Slider"])
     await links[3].trigger("click")
     expect(w.emitted("go")?.[0]).toEqual([ids[3]])
+  })
+
+  it("scrolls the rail, never the page, to put the current link in its middle", async () => {
+    const rail = document.createElement("aside")
+    rail.style.overflowY = "auto"
+    document.body.append(rail)
+    const w = mount(DocsNav, { props: { activeId: ids[0], variant: "rail" }, attachTo: rail })
+    rail.getBoundingClientRect = () => ({ top: 0, bottom: 800, height: 800 }) as DOMRect
+    const calls: ScrollToOptions[] = []
+    rail.scrollTo = ((o: ScrollToOptions) => calls.push(o)) as typeof rail.scrollTo
+    const page = window.scrollTo
+    let pageMoved = false
+    window.scrollTo = (() => (pageMoved = true)) as typeof window.scrollTo
+    // The next section's link lies far below the rail's view.
+    const far = ids[40]
+    for (const a of w.findAll("a")) {
+      ;(a.element as HTMLElement).getBoundingClientRect = () =>
+        (a.attributes("href")?.endsWith(`/${far}`) ? { top: 3000, bottom: 3025 } : { top: 0, bottom: 25 }) as DOMRect
+    }
+    await w.setProps({ activeId: far })
+    await new Promise((r) => setTimeout(r, 0))
+    expect(calls.at(-1)?.top).toBe(3000 - 400)
+    expect(pageMoved).toBe(false)
+    window.scrollTo = page
+    w.unmount()
+    rail.remove()
   })
 
   it("keeps its links 24px targets (WCAG 2.5.8): rail for a pointer, sheet for a finger", () => {

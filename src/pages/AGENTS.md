@@ -482,12 +482,15 @@ widgets/features; page-specific conventions live here.
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,
-  `text-lg`, + optional "Open in the Studio") → muted description →
+  `text-lg`, its name in sentence case like its nav label: "Area chart",
+  "OTP field", + optional "Open in the Studio") → muted description →
   `DemoCard` (Preview/Code tabs as machined segments in a `.track`, the
   picked one `.ring-on`; Inspect → the workbench, Code → the source panel, a
   `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
-  sentence case, 12px muted, + grid) → `PropsTable`, a spec sheet (a
-  `.hardshell` cut at 10px, its column heads `.spec`; a row's `default` is
+  sentence case, 12px muted, + grid; the picked tile or chip `.ring-on`,
+  never a fill a shade off the ground) → `PropsTable`, a spec sheet (a
+  `.hardshell` cut at 10px, its column heads `.spec`; Prop 24% and Default
+  20%, the type column, which carries the notes, the rest; a row's `default` is
   its value as code; "" prints "none"; under 640px, where three columns
   cannot fit, each prop stacks over its type and default). The preview frame is a gel well
   (`.demo-well` + `.rim`: the pebble radius, the well's ground, a gloss on
@@ -574,9 +577,13 @@ widgets/features; page-specific conventions live here.
   `spyMargin`: the band from the 56px header to the middle, in px from
   the viewport's height and rebuilt on resize, since a rootMargin
   percentage resolves against the root's width) sets
-  `activeId` + `aria-current`: the topmost section in the band, which it
-  keeps across callbacks (a callback carries only the entries that
-  changed); clean `/docs/<id>`, its directory form
+  `activeId` + `aria-current`: of the sections in the band (kept across
+  callbacks, which carry only the entries that changed), the last whose
+  top has crossed the reading line (`READING_LINE`, 40% down), else the
+  topmost, so a long section's tail never outranks the heading the reader
+  reached. The rail follows it in its own view: when the current link
+  leaves the rail's middle band, `DocsNav` scrolls the rail, never the
+  page, to centre it (at once on a deep link, smoothly after); clean `/docs/<id>`, its directory form
   `/docs/<id>/` (where a static host serves the section's prerendered
   page) and legacy `#/docs/<id>` deep links all restore and remain
   shareable.
@@ -604,7 +611,10 @@ widgets/features; page-specific conventions live here.
   motion stops, ≤8 tries, bottom-clamp aware): lazy demo reveals and
   content-visibility seeds move the target while the smooth flight is still
   running, and Chromium's `scrollIntoView` refused the short re-aligns — taps
-  landed a screen short. Deep links keep the `jump()` path.
+  landed a screen short. A far target (over 1.5 screens) jumps to a screen
+  short of it at once and flies only that last screen, so a click never
+  rides seconds of flight past demos growing on the way. Deep links keep
+  the `jump()` path.
 - Share cards (`docs/og-card.ts`, the art; `crawler-files.ts`, the cards,
   their embeds and the renderer page): a card is the page's title (ember
   stop) over the house dither in motion, the brand top left, a section's
@@ -816,7 +826,9 @@ widgets/features; page-specific conventions live here.
   (the poster's bytes, the cross-engine row): a change to the poster's
   arithmetic fails it until the hash is recorded again.
 - `tests/docs-sheet.spec.ts`: the scroll-spy keeps a section already in
-  the band, `DocsNav` lists every section once with 24px targets per
+  the band and names the one whose heading crossed the reading line,
+  the rail scrolls itself (never the page) to the current link,
+  `DocsNav` lists every section once with 24px targets per
   place, and the sections sheet opens as a modal (focus in, page held,
   Escape, backdrop and close key, focus back, the parts under the link).
 - `tests/marks.spec.ts`: every harness the bridge starts has a mark under

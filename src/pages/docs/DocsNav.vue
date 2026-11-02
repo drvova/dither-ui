@@ -16,7 +16,9 @@ export type PagePart = { label: string; el: HTMLElement }
 </script>
 
 <script setup lang="ts">
+import { nextTick, ref, watch } from "vue"
 import { DitherIcon, type IconName } from "@dither-kit"
+import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
 import { GROUPS } from "./groups"
 
 /** The docs' section list, grouped under the families' glyphs: the sidebar
@@ -27,6 +29,38 @@ const props = withDefaults(defineProps<{ activeId: string; variant: NavPlace; pa
   parts: () => [],
 })
 const emit = defineEmits<{ go: [id: string]; part: [el: HTMLElement] }>()
+
+// The rail keeps the section in view in its own view: when the current link
+// leaves the rail's middle band it scrolls the rail (never the page) to put
+// it in the middle, at once on the first (a deep link), smoothly after.
+const root = ref<HTMLElement | null>(null)
+let placed = false
+/** The nearest ancestor that scrolls on its own: the rail's aside. */
+const scroller = (el: HTMLElement | null) => {
+  for (let n = el?.parentElement; n; n = n.parentElement) {
+    const y = getComputedStyle(n).overflowY
+    if (y === "auto" || y === "scroll") return n
+  }
+  return null
+}
+watch(
+  () => props.activeId,
+  async () => {
+    if (props.variant !== "rail") return
+    await nextTick()
+    const rail = scroller(root.value)
+    const link = root.value?.querySelector<HTMLElement>("a[aria-current]")
+    if (!rail || !link) return
+    const box = rail.getBoundingClientRect()
+    const at = link.getBoundingClientRect()
+    const margin = box.height * 0.2
+    if (at.top >= box.top + margin && at.bottom <= box.bottom - margin) return
+    const smooth = placed && !pixelPrefersReducedMotion()
+    rail.scrollTo({ top: rail.scrollTop + at.top - box.top - box.height / 2, behavior: smooth ? "smooth" : "auto" })
+    placed = true
+  },
+  { flush: "post" },
+)
 
 // Each group under its glyph (the landing's family glyphs).
 const GROUP_ICON: Record<string, IconName> = {
@@ -44,7 +78,7 @@ const GROUP_ICON: Record<string, IconName> = {
 </script>
 
 <template>
-  <div class="grid gap-7">
+  <div ref="root" class="grid gap-7">
     <div v-for="grp in GROUPS" :key="grp.title">
       <div class="flex items-center gap-2 text-[11px] font-medium text-foreground">
         <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}

@@ -256,7 +256,7 @@
 </section>
 
 <section id="number-field" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">Number Field</h2>
+  <h2 class="text-lg tracking-tight">Number field</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     Stepper buttons around a spinbutton input — arrow keys step, typed
     values clamp and snap to the step on blur, and the buttons disable at
@@ -272,7 +272,7 @@
 </section>
 
 <section id="otp-field" class="mt-20 scroll-mt-20">
-  <h2 class="text-lg tracking-tight">OTP Field</h2>
+  <h2 class="text-lg tracking-tight">OTP field</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     One box per digit with auto-advancing focus — Backspace on an empty box
     steps back, and pasting a full code distributes it across the boxes.

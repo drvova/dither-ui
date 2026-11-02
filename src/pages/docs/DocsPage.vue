@@ -33,7 +33,7 @@ import {
   type PixelBloom,
 } from "@dither-kit"
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
-import { assetPath, appPathname, routePath, useTheme } from "@/shared/lib"
+import { assetPath, appPathname, modKey, routePath, useTheme } from "@/shared/lib"
 import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import "@/shared/fonts/display.css"
@@ -198,12 +198,14 @@ function pickDot(v: DotVariant) {
   galleryReplay.line++
 }
 
+// A picked tile or chip wears the site's pressed state (ink in a ring), so
+// the pick reads on either theme, never a fill a shade off the ground.
 const thumbClass = (active: boolean) =>
-  `rounded-md p-2 text-left transition-colors ${active ? "bg-card" : "hover:bg-card/50"}`
+  `rounded-md p-2 text-left transition-colors ${active ? "ring-on" : "hover:bg-card/50"}`
 const thumbLabel = (active: boolean) =>
   `mt-2 text-center text-[10px] transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`
 const chipClass = (active: boolean) =>
-  `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`
+  `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "ring-on" : "text-muted-foreground hover:text-foreground"}`
 
 // Button playground — one preview, three pickers.
 const btn = reactive({
@@ -554,8 +556,21 @@ function scrollTo(id: string) {
     }
     window.setTimeout(settle, 250)
   }
+  // A far target: jump to a screen short of it at once and fly only that
+  // last screen, so a click never rides seconds of flight past demos that
+  // grow on the way (and overshoot, hold, fly back).
   const first = document.getElementById(id)
-  if (first) align(first, smooth())
+  if (first) {
+    const behavior = smooth()
+    const margin = parseFloat(getComputedStyle(first).scrollMarginTop) || 0
+    const gap = first.getBoundingClientRect().top - margin
+    if (behavior === "smooth" && Math.abs(gap) > window.innerHeight * 1.5) {
+      window.scrollTo({ top: window.scrollY + gap - Math.sign(gap) * window.innerHeight, behavior: "auto" })
+      requestAnimationFrame(() => {
+        if (gen === scrollGen) align(first, behavior)
+      })
+    } else align(first, behavior)
+  }
   window.setTimeout(settle, 400)
 }
 
@@ -597,7 +612,7 @@ function choose(apply: () => void, already: boolean) {
   apply()
 }
 /* The search hint names the modifier the visitor actually has. */
-const searchKbd = typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? "⌘K" : "Ctrl K"
+const searchKbd = modKey("K")
 
 onMounted(() => {
   window.addEventListener("keydown", searchHotkey)
@@ -1594,7 +1609,7 @@ const gradientCode = computed(
           <!-- Area -->
           <section id="area" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="text-lg tracking-tight">Area Chart</h2>
+              <h2 class="text-lg tracking-tight">Area chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/area`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1671,7 +1686,7 @@ const gradientCode = computed(
           <!-- Line -->
           <section id="line" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="text-lg tracking-tight">Line Chart</h2>
+              <h2 class="text-lg tracking-tight">Line chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/line`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1728,7 +1743,7 @@ const gradientCode = computed(
           <!-- Bar -->
           <section id="bar" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="text-lg tracking-tight">Bar Chart</h2>
+              <h2 class="text-lg tracking-tight">Bar chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/bar`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1782,7 +1797,7 @@ const gradientCode = computed(
           <!-- Pie -->
           <section id="pie" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="text-lg tracking-tight">Pie Chart</h2>
+              <h2 class="text-lg tracking-tight">Pie chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/pie`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
@@ -1838,7 +1853,7 @@ const gradientCode = computed(
           <!-- Radar -->
           <section id="radar" class="mt-16 scroll-mt-24">
             <div class="flex items-baseline justify-between gap-4">
-              <h2 class="text-lg tracking-tight">Radar Chart</h2>
+              <h2 class="text-lg tracking-tight">Radar chart</h2>
               <a
                 :href="`${routePath('/studio')}#new/radar`"
                 class="-m-2 shrink-0 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"

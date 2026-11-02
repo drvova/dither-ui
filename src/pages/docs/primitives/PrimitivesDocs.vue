@@ -58,6 +58,8 @@ const onMeasure = (size: { width: number; height: number }) => {
 }
 const demoMenuOpen = ref(false)
 const scopeOpen = ref(false)
+// The Portal demo's target: the portal mounts once it is in the DOM.
+const portalOut = ref<HTMLElement | null>(null)
 const SNIPPET_SVG = `<!-- decorative by default: aria-hidden -->
 <DitherSvg viewBox="0 0 24 24" class="size-5">
   <path d="M4 12h16M12 4v16" stroke="currentColor" stroke-width="2" />
@@ -75,9 +77,13 @@ const SNIPPET_SPACER = `<div class="flex items-center">
   <span class="text-[12px]">Right</span>
 </div>`
 
-const SNIPPET_PORTAL = `<DitherPortal to="body">
-  <div class="fixed bottom-4 right-4">Rendered at the end of body.</div>
-</DitherPortal>
+const SNIPPET_PORTAL = `<div class="h-24 overflow-hidden rounded-md border p-4">
+  Declared in here, a box with overflow: hidden.
+  <DitherPortal to="#portal-demo-out">
+    <span class="rounded-md border px-3 py-1.5">teleported out</span>
+  </DitherPortal>
+</div>
+<div id="portal-demo-out" class="grid h-24 place-items-center rounded-md border border-dashed" />
 
 <!-- keep it in place (SSR / tests) -->
 <DitherPortal disabled>Inline.</DitherPortal>`
@@ -378,17 +384,21 @@ const API: Record<string, PropRow[]> = {
       it in place (the switch for tests and environments where the target does not exist).
     </p>
     <DemoCard :code="SNIPPET_PORTAL">
-      <div class="rounded-md border border-border/60 p-4 text-center text-[12px] text-muted-foreground">
-        The demo renders a chip into <code class="text-foreground/80">body</code>, outside every scroll container on
-        this page.
-      </div>
-      <DitherPortal to="body">
-        <div
-          class="pointer-events-none fixed bottom-4 right-4 z-30 rounded-md border border-border/60 bg-card px-3 py-1.5 text-[11px] text-muted-foreground"
-        >
-          teleported to body
+      <!-- The chip is declared inside a clipped box and lands in the target
+           beside it: the escape, kept inside the demo's own well. -->
+      <div class="grid gap-3 text-[12px] text-muted-foreground sm:grid-cols-2">
+        <div class="h-24 overflow-hidden rounded-md border border-border/60 p-4">
+          Declared in here, a box with <code class="text-foreground/80">overflow: hidden</code>.
+          <DitherPortal v-if="portalOut" to="#portal-demo-out">
+            <span class="rounded-md border border-border/60 bg-card px-3 py-1.5 text-[11px]">teleported out</span>
+          </DitherPortal>
         </div>
-      </DitherPortal>
+        <div
+          id="portal-demo-out"
+          ref="portalOut"
+          class="grid h-24 place-items-center rounded-md border border-dashed border-border/60 p-4"
+        />
+      </div>
     </DemoCard>
     <PropsTable :rows="API.portal" />
   </section>

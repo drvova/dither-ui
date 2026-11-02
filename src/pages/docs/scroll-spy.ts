@@ -4,7 +4,14 @@
  * WIDTH, so on a wide screen "-50%" puts the band's foot above its top. */
 export const spyMargin = (viewportHeight: number) => `-56px 0px -${Math.round(viewportHeight / 2)}px 0px`
 
-/** The docs' scroll-spy: the topmost section in the band is the one in view.
+/** Where a reader is reading: a section whose top has crossed this line,
+ * 40% down the viewport, is the one they are in. */
+export const READING_LINE = 0.4
+
+/** The docs' scroll-spy: of the sections in the band, the last whose top has
+ * crossed the reading line is the one in view (a long section's tail above
+ * it never outranks the heading the reader has reached); none crossed, the
+ * topmost.
  * An observer's callback carries only the entries that CHANGED, so the band
  * is kept across calls: a section already in it still counts when the next
  * one enters (reading the changed entries alone named the section below).
@@ -16,16 +23,24 @@ export function spySections(sections: Element[], onActive: (id: string) => void)
       if (e.isIntersecting) band.add(e.target)
       else band.delete(e.target)
     }
+    const line = window.innerHeight * READING_LINE
+    let crossed: Element | null = null
+    let crossedY = -Infinity
     let top: Element | null = null
-    let best = Infinity
+    let topY = Infinity
     for (const el of band) {
       const y = el.getBoundingClientRect().top
-      if (y < best) {
-        best = y
+      if (y <= line && y > crossedY) {
+        crossedY = y
+        crossed = el
+      }
+      if (y < topY) {
+        topY = y
         top = el
       }
     }
-    if (top) onActive(top.id)
+    const active = crossed ?? top
+    if (active) onActive(active.id)
   }
   // The band follows the viewport's height: a resize rebuilds the observer
   // (which reports every section afresh, so the band starts over).
