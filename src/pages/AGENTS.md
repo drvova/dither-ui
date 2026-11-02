@@ -408,8 +408,9 @@ widgets/features; page-specific conventions live here.
   command shows selected (the page's ground behind it) as the key's label
   rolls to "Copied" under a check; both let go together; reduced motion
   swaps both at once. Its four steps (degit folder + npm/pnpm/bun deps)
-  stay in sync with `docs/install.ts` `INSTALL.vue` (the landing never
-  imports the docs). Then one centred line for Svelte 5
+  run the docs' own commands (`docs/install.ts`; the landing never imports
+  the docs, so `tests/docs-install.spec.ts` holds its folder and
+  `RUNTIME_DEPS` to `INSTALL_STEPS.vue` and `INSTALL_DEPS.vue`). Then one centred line for Svelte 5
   (`dither-kit-svelte`, the quick start).
 - Marks: tool logos (the package managers, Node, Vue, Svelte, Tailwind,
   StyleX, CSS Modules, CSS, GitHub and the coding agents) come ONLY from
@@ -737,7 +738,15 @@ widgets/features; page-specific conventions live here.
   the poster with a seed to roll and its screens, and
   `utils/ScreensSection.vue`, `print-screens`: one `DitherScreen` around a
   chart, an avatar and a gradient, its screen picked by chips). New
-  packs follow this shape instead of growing DocsPage. `docs/primitives/` =
+  packs follow this shape instead of growing DocsPage. `docs/overview/` =
+  the Quick start (`QuickStart.vue`, `getting-started`): the install as
+  steps from `docs/install.ts` (`INSTALL_STEPS` per kind: Vue, the Vue kit
+  on StyleX, Svelte; `INSTALL_DEPS`, the packages each needs), one at a
+  time, each its title, why where a reader would ask, and its own
+  `CodeBlock` (full width on a phone), then "On StyleX" (Vue) and
+  "Without Tailwind" (the kit stylesheet, then theming), each short under
+  its own heading; `installScript` turns the same steps into the one
+  commented script the source panel's prompt.md carries (`INSTALL`). `docs/primitives/` =
   the Primitives pack (Box, Text, Divider, VisuallyHidden — the paste-list
   foundation family; new plain primitives extend it + PRIMITIVES_NAV).
 

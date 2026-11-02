@@ -1,46 +1,80 @@
 // The kit's install steps per framework, and the Vue kit's StyleX layer: the
-// docs' Quick start, the source panel's prompt.md and (kept in sync by hand,
-// it never imports the docs) the landing's InstallBlock.
-export const INSTALL = {
-  vue: `# 1. Copy the kit folder straight from the repo (degit grabs just the folder)
-npx degit drvova/dither-ui/dither-kit src/dither-kit
+// docs' Quick start shows them one step at a time (each its own copy), the
+// source panel's prompt.md takes them as one commented script, and (kept in
+// sync by hand, it never imports the docs) the landing's InstallBlock runs
+// the same commands.
 
-# 2. Install the four runtime deps (you already have Vue, and Tailwind if you use it)
-npm i d3-scale d3-shape clsx tailwind-merge
+export type InstallKind = "vue" | "stylex" | "svelte"
 
-# 3. Alias @dither-kit so imports stay clean
-#    vite.config.ts  resolve.alias: { "@dither-kit": "/src/dither-kit/tailwind" }
-#    tsconfig.json   paths:         { "@dither-kit": ["./src/dither-kit/tailwind"] }
+/** One step: what it does, why where a reader would ask, and its code. */
+export type InstallStep = { title: string; why?: string; code: string }
 
-# 4. Use it
-import { AreaChart, Area, DitherButton } from "@dither-kit"`,
-  stylex: `# 1. Copy the kit folder straight from the repo (degit grabs just the folder)
-npx degit drvova/dither-ui/dither-kit src/dither-kit
+/** The packages the kit needs beside the framework, per install. */
+export const INSTALL_DEPS: Record<InstallKind, readonly string[]> = {
+  vue: ["d3-scale", "d3-shape", "clsx", "tailwind-merge"],
+  stylex: ["d3-scale", "d3-shape", "@stylexjs/stylex"],
+  svelte: ["d3-scale", "d3-shape", "clsx", "tailwind-merge"],
+}
 
-# 2. Install the runtime deps (you already have Vue and your bundler's StyleX plugin)
-npm i d3-scale d3-shape @stylexjs/stylex
+const copy = (folder: string): InstallStep => ({
+  title: "Copy the kit folder straight from the repo",
+  why: "degit grabs just the folder",
+  code: `npx degit drvova/dither-ui/${folder} src/${folder}`,
+})
 
-# 3. Alias @dither-kit to the kit's StyleX layer so imports stay clean
-#    vite.config.ts  resolve.alias: { "@dither-kit": "/src/dither-kit/stylex" }
-#    tsconfig.json   paths:         { "@dither-kit": ["./src/dither-kit/stylex"] }
+const deps = (kind: InstallKind, already: string): InstallStep => ({
+  title: "Install the runtime deps",
+  why: already,
+  code: `npm i ${INSTALL_DEPS[kind].join(" ")}`,
+})
 
-# 4. Load the tokens and the base once (the base applies inside .dither-kit)
-import "./dither-kit/engine/theme.css"
-import "./dither-kit/engine/base.css"
+const alias = (name: string, target: string): InstallStep => ({
+  title: `Alias ${name} so imports stay clean`,
+  code: `// vite.config.ts
+resolve: { alias: { "${name}": "${target}" } }
 
-# 5. Use it: your own StyleX styles go in as xstyle
-import { AreaChart, Area, DitherButton } from "@dither-kit"
+// tsconfig.json, under compilerOptions
+"paths": { "${name}": [".${target}"] }`,
+})
+
+export const INSTALL_STEPS: Record<InstallKind, readonly InstallStep[]> = {
+  vue: [
+    copy("dither-kit"),
+    deps("vue", "you already have Vue, and Tailwind if you use it"),
+    alias("@dither-kit", "/src/dither-kit/tailwind"),
+    { title: "Use it", code: `import { AreaChart, Area, DitherButton } from "@dither-kit"` },
+  ],
+  stylex: [
+    copy("dither-kit"),
+    deps("stylex", "you already have Vue and your bundler's StyleX plugin"),
+    alias("@dither-kit", "/src/dither-kit/stylex"),
+    {
+      title: "Load the tokens and the base once",
+      why: "the base applies inside .dither-kit",
+      code: `import "./dither-kit/engine/theme.css"
+import "./dither-kit/engine/base.css"`,
+    },
+    {
+      title: "Use it",
+      why: "your own StyleX styles go in as xstyle",
+      code: `import { AreaChart, Area, DitherButton } from "@dither-kit"
 <DitherButton :xstyle="styles.cta">Ship</DitherButton>`,
-  svelte: `# 1. Copy the kit folder straight from the repo (degit grabs just the folder)
-npx degit drvova/dither-ui/dither-kit-svelte src/dither-kit-svelte
+    },
+  ],
+  svelte: [
+    copy("dither-kit-svelte"),
+    deps("svelte", "you already have Svelte 5, and Tailwind if you use it"),
+    alias("@dither-kit-svelte", "/src/dither-kit-svelte"),
+    { title: "Use it", code: `import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"` },
+  ],
+}
 
-# 2. Install the four runtime deps (you already have Svelte 5, and Tailwind if you use it)
-npm i d3-scale d3-shape clsx tailwind-merge
+/** The steps as one commented script, numbered, for a reader who takes them whole. */
+export const installScript = (steps: readonly InstallStep[]): string =>
+  steps.map((s, i) => `# ${i + 1}. ${s.title}${s.why ? ` (${s.why})` : ""}\n${s.code}`).join("\n\n")
 
-# 3. Alias @dither-kit-svelte so imports stay clean
-#    vite.config.ts  resolve.alias: { "@dither-kit-svelte": "/src/dither-kit-svelte" }
-#    tsconfig.json   paths:         { "@dither-kit-svelte": ["./src/dither-kit-svelte"] }
-
-# 4. Use it
-import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
+export const INSTALL: Record<InstallKind, string> = {
+  vue: installScript(INSTALL_STEPS.vue),
+  stylex: installScript(INSTALL_STEPS.stylex),
+  svelte: installScript(INSTALL_STEPS.svelte),
 }
