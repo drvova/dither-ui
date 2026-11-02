@@ -591,21 +591,28 @@ widgets/features; page-specific conventions live here.
   mirror actual kit prop defaults — update both when the kit API changes.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.
-- Wayfinding: scroll-spy (`docs/scroll-spy.ts`, IntersectionObserver,
-  `spyMargin`: the band from the 56px header to the middle, in px from
-  the viewport's height and rebuilt on resize, since a rootMargin
-  percentage resolves against the root's width) sets
-  `activeId` + `aria-current`: of the sections in the band (kept across
-  callbacks, which carry only the entries that changed), the last whose
-  top has crossed the reading line (`READING_LINE`, 40% down), else the
-  topmost, so a long section's tail never outranks the heading the reader
-  reached; the band is re-read once a frame as the page scrolls, since a
-  heading can cross the line without leaving or entering it. The rail follows it in its own view: when the current link
-  leaves the rail's middle band, `DocsNav` scrolls the rail, never the
-  page, to centre it (at once on a deep link, smoothly after); clean `/docs/<id>`, its directory form
-  `/docs/<id>/` (where a static host serves the section's prerendered
-  page) and legacy `#/docs/<id>` deep links all restore and remain
-  shareable.
+- Wayfinding: one section per page (`docs/pages.ts` holds the rules:
+  `SECTION_IDS` in the sidebar's order, `sectionOf` reading a URL,
+  `neighbours` for the pager, `groupOf` for the breadcrumb; pinned by
+  `tests/docs-pages.spec.ts`). The URL names the section (clean
+  `/docs/<id>`, its directory form `/docs/<id>/` where a static host serves
+  the section's prerendered page, or legacy `#/docs/<id>`; `/docs` itself
+  opens on the first section and keeps the docs' front, the chrome title,
+  its tags and intro, `data-docs-front`, which a section's page keeps only
+  as the screen readers' h1). `open(id)` shows that section alone (the
+  rest of `.docs-flow` stays mounted, `hidden`, its demos unrevealed, so a
+  section opens at once and keeps each demo's state), pushes a history
+  entry and reads from the top; back and forward walk them (`popstate`).
+  The sidebar, search, the sheet and the pager all open through it. Over
+  the section a breadcrumb (the docs, then its group, linking to the
+  group's first section); under it the pager, the sections either side
+  in the sidebar's order, each with its group. The section's title is the
+  page's headline (1.5rem in the display face) and its lede reads at 14px.
+  The sidebar's groups fold (`aria-expanded` keys with a turning chevron;
+  the current section's group opens itself; a folded group's links stay
+  in the DOM, hidden, whole for find-in-page and the crawler), and the
+  rail keeps the current link in its own view, scrolling the rail, never
+  the page, to centre it when it leaves the middle band.
 - Narrow chrome: under sm the Vue/Svelte switch shows its marks and Search
   its glyph (the words stay for screen readers), the studio pill drops (it
   lives on every chart section's "Open in the Studio") and the nav's gaps
@@ -626,14 +633,6 @@ widgets/features; page-specific conventions live here.
   link. A `CodeBlock`'s copy chip takes its own band over the first line
   under sm (a long first line ran under it there). The footer's items
   wrap, never collide.
-- `scrollTo(id)` is computed `window.scrollTo` + a settle loop (re-align after
-  motion stops, ≤8 tries, bottom-clamp aware): lazy demo reveals and
-  content-visibility seeds move the target while the smooth flight is still
-  running, and Chromium's `scrollIntoView` refused the short re-aligns — taps
-  landed a screen short. A far target (over 1.5 screens) jumps to a screen
-  short of it at once and flies only that last screen, so a click never
-  rides seconds of flight past demos growing on the way. Deep links keep
-  the `jump()` path.
 - Share cards (`docs/og-card.ts`, the art; `crawler-files.ts`, the cards,
   their embeds and the renderer page): a card is the page's title (ember
   stop) over the house dither in motion, the brand top left, a section's
@@ -844,9 +843,8 @@ widgets/features; page-specific conventions live here.
   dark theme's ember), every named spec existing, and pins `POSTER_HASH`
   (the poster's bytes, the cross-engine row): a change to the poster's
   arithmetic fails it until the hash is recorded again.
-- `tests/docs-sheet.spec.ts`: the scroll-spy keeps a section already in
-  the band and names the one whose heading crossed the reading line,
-  the rail scrolls itself (never the page) to the current link,
+- `tests/docs-sheet.spec.ts`: the rail scrolls itself (never the page) to
+  the current link,
   `DocsNav` lists every section once with 24px targets per
   place, and the sections sheet opens as a modal (focus in, page held,
   Escape, backdrop and close key, focus back, the parts under the link).
