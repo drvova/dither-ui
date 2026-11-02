@@ -703,47 +703,42 @@ widgets/features; page-specific conventions live here.
   link. A `CodeBlock`'s copy chip takes its own band over the first line
   under sm (a long first line ran under it there). The footer's items
   wrap, never collide.
-- Share cards, a spec sheet in the user's V5 look (Oakley's proof
-  grammar and the site's materials): `docs/og-card.ts` (the
-  design: size, inks by night and by day, the print's box, the type's
+- Share cards, set as the landing's hero (the user's pick over a spec
+  sheet and a hardware shell; restraint, the print alone on its field):
+  `docs/og-card.ts` (the design: size, inks by night and by day, the print's box, the type's
   column, the seeds; import-free, as crawler-files.ts reads it under Node),
   `docs/og-art.ts` (the art: the kit's own poster engine at the print's
   size, a seed's composition through a seed's printer's screen; home prints
   the hero's, seed 5 through Bayer), `docs/og-page.ts` (the renderer, the
   build's `og/index` entry over `og/index.html`: `window.og.files(id, seed,
   inv)` for the prerender and the Discord service) and `crawler-files.ts`
-  (the cards' copy, embeds and oEmbed). A card is obsidian with one bone
-  ink: the brand top left on the print's top line, the card's number of
-  all the cards as a spec label at the column's end (its provenance), a
-  graphite speed tag under the brand (a section's family, a route's own
-  `tag`), the card's number again as a race-bib figure printed through the
-  Bayer matrix in a quiet ink in the band down to the title (never under
-  type), the
-  title in chrome (the display face, the site's chrome ramp one horizon
-  per line; a route's on one line, a section's on two at most), its line
-  in the muted ink (a route's own; a section's lede, which the prerender
+  (the cards' copy, embeds and oEmbed).
+  A card is obsidian with one bone ink: the brand top left (the header's
+  diamond and name), the statement standing on the print's middle (the
+  title in chrome, the display face and the site's ramp one horizon per
+  line, a route's on one line and a section's on two at most; its line in
+  the muted mono, a route's own or a section's lede, which the prerender
   lifts from the docs snapshot into `og/ledes.json` before it draws the
-  cards; `ogLede` sets whole sentences in two lines, else a word cut and an
-  ellipsis), a row of key and value chips (slanted plates:
-  screen, seed, cell, the print's real figures), and the address in the
-  satin chrome key, its foot on the print's foot; the print stands on the
-  right in a hardshell (two corners cut, a chrome glint on its edge), its
-  spec run (size, inks) set up its left side. By day (the Discord toggle)
-  the same sheet on bone paper, the light chrome, the print's bone
+  cards, `ogLede` setting whole sentences in two lines, else a word cut
+  and an ellipsis; then the keys, the satin one naming where the card's
+  first link goes and a filled one carrying the address), and the print
+  on the right, 4:5 as the hero's, its top on the brand's line, standing
+  over its floor (the same print turned over and thinned through the
+  Bayer matrix). No tags, chips, numbers or frames. By day (the Discord
+  toggle) the same card on bone paper in the light chrome, the print's bone
   ink turned obsidian. The loop (72 frames at 12.5 fps, `OG_BEATS`): at
   rest, then the kit's diamond swells over the whole print on the spring,
   turning every tile over into its negative ring by ring, holds, and
   recedes to its place, the screen sliding inside it in whole turns, so
   the GIF's last frame meets its first; the PNG is frame 0, the print at
   rest. Discord's containers draw no accent bar (no side line). Copy
-  follows the bans (caps and tracking only on the spec labels and the
-  plates, the user's lift for the V5 look; no eyebrow over the title, no
-  middle dot or em dash, buttons that name where they go). `ROUTE_CARDS` holds the route cards' copy;
-  their ids may never be section ids; the route templates' image alt is
+  follows the landing's bans (no caps or tracking, no eyebrow over the
+  title, no middle dot or em dash, buttons that name where they go).
+  `ROUTE_CARDS` holds the route cards' copy; their ids may never be section ids; the route templates' image alt is
   the card's. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
   screens, the swell's beats, home as the hero's print with its inks, no
-  bone on bone, the print clear of the type, AA, balanced wrap, the lede's
-  cut, caps only on labels and plates) and the share-card and
+  bone on bone, the print and its floor clear of the type, AA, balanced
+  wrap, the lede's cut, the landing's copy bans) and the share-card and
   renderer cases in `tests/crawler-files.spec.ts` (every page's embed
   under Discord's 3,000 byte cap with link buttons only and no accent bar,
   the oEmbed photo, each route head carrying its card's tags, the bans,

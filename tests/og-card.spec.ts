@@ -4,6 +4,7 @@ import { INKS } from "@/pages/landing/plate"
 import { ogPrint, ogScreen, ogSwell } from "@/pages/docs/og-art"
 import {
   OG_BEATS,
+  OG_BRAND,
   OG_FRAMES,
   OG_H,
   OG_HERO_SEED,
@@ -74,12 +75,13 @@ describe("share card art", () => {
     expect(OG_PRINT_INKS.day).toContain(OG_INK.night.ground)
   })
 
-  it("stands the print on the card's right, clear of the type's column", () => {
+  it("stands the print and its floor on the card's right, clear of the type's column", () => {
     expect(OG_PRINT.x).toBeGreaterThanOrEqual(OG_TEXT.x + OG_TEXT.max + 48)
     expect(OG_PRINT.x + OG_PRINT.cols * OG_PRINT.cell).toBeLessThanOrEqual(OG_W - OG_TEXT.x)
-    expect(OG_PRINT.y + OG_PRINT.rows * OG_PRINT.cell).toBeLessThanOrEqual(OG_H - OG_TEXT.x)
-    // Its foot on the type's last line: within a descender of the baseline.
-    expect(OG_PRINT.y + OG_PRINT.rows * OG_PRINT.cell - OG_TEXT.base).toBeLessThanOrEqual(8)
+    expect(OG_PRINT.y + (OG_PRINT.rows + OG_PRINT.floor) * OG_PRINT.cell).toBeLessThanOrEqual(OG_H - OG_BRAND.y)
+    // The hero's sheet: 4:5, its top on the brand's line.
+    expect(OG_PRINT.cols / OG_PRINT.rows).toBe(4 / 5)
+    expect(OG_PRINT.y).toBe(OG_BRAND.y)
   })
 
   it("keeps every muted line at AA on its ground", () => {
@@ -122,11 +124,8 @@ describe("share card type", () => {
     expect(cut.every((l) => measure(l) <= 200)).toBe(true)
   })
 
-  it("keeps the copy bans in the renderer: caps only on spec labels and speed tags", () => {
+  it("keeps the landing's copy bans in the renderer: no caps, tracking, middle dot or em dash", () => {
     const page = readFileSync(`${root}/src/pages/docs/og-page.ts`, "utf8")
-    expect(page).not.toMatch(/text-transform|[\u00b7\u2014]/)
-    // Every uppercase string is a spec label's (set by spec()) or a plate's.
-    for (const line of page.split("\n").filter((l) => l.includes("toUpperCase()")))
-      expect(line).toMatch(/plated\(|const no = |\.toUpperCase\(\)$/)
+    expect(page).not.toMatch(/toUpperCase|text-transform|letterSpacing|[\u00b7\u2014]/)
   })
 })

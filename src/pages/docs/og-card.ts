@@ -1,9 +1,9 @@
 // The share cards' design: one 1200x630 card per page the site shares (the
-// three routes and every docs section), in the landing's printed look. The
-// ground is obsidian with one bone ink; the title is set in the display
-// face; the only colour is the kit's art, a print of the kit's own poster
-// (`og-art.ts` paints it with the kit's poster engine) standing on the
-// right like the hero's. The build writes each card twice: a PNG (frame 0,
+// three routes and every docs section), set as the landing's hero sets
+// itself: obsidian with one bone ink, the brand, the title in chrome, its
+// line and the keys, and the only colour the kit's art, a print of the
+// kit's own poster (`og-art.ts` paints it with the kit's poster engine)
+// standing on its dithered floor on the right. The build writes each card twice: a PNG (frame 0,
 // the print at rest, what every link preview shows) and a looping GIF (what
 // Discord and Slack play): the kit's diamond swells over the whole print,
 // turning every tile over into its negative ring by ring, holds, and
@@ -27,13 +27,8 @@ export const OG_INK = {
     ground: "#101214",
     ink: "#e4e1d8",
     muted: "#a9a69c",
-    /** A speed tag's and a chip key's plate (graphite) and its ink. */
-    plate: "#25292d",
-    plateInk: "#d4dce1",
-    /** The print's well, under its clear cells. */
-    well: "#0b0d0e",
-    /** The ghosted number's ink: a quiet step off the ground. */
-    ghost: "#2c3034",
+    /** A second key's filled ground, a step off the obsidian. */
+    raised: "#1d2023",
     /** The chrome ramp on the title, top to foot (the site's dark chrome). */
     chrome: [
       [0, "#ffffff"],
@@ -44,23 +39,12 @@ export const OG_INK = {
       [0.74, "#c2cad5"],
       [1, "#edf1f5"],
     ],
-    /** The chrome glint on the hardshell's edge, corner to corner. */
-    rim: [
-      [0, "rgb(240 245 251 / 0.55)"],
-      [0.28, "rgb(150 162 180 / 0.18)"],
-      [0.52, "rgb(255 255 255 / 0.5)"],
-      [0.76, "rgb(130 142 160 / 0.16)"],
-      [1, "rgb(220 230 244 / 0.42)"],
-    ],
   },
   day: {
     ground: "#e4e1d8",
     ink: "#101214",
     muted: "#4d4f53",
-    plate: "#25292d",
-    plateInk: "#d4dce1",
-    well: "#d6d2c6",
-    ghost: "#c9c5b8",
+    raised: "#d4d0c4",
     chrome: [
       [0, "#11151b"],
       [0.36, "#2d343e"],
@@ -70,39 +54,25 @@ export const OG_INK = {
       [0.74, "#2a3039"],
       [1, "#3d4450"],
     ],
-    rim: [
-      [0, "rgb(30 38 50 / 0.5)"],
-      [0.28, "rgb(120 130 146 / 0.24)"],
-      [0.52, "rgb(20 26 36 / 0.45)"],
-      [0.76, "rgb(140 150 166 / 0.2)"],
-      [1, "rgb(30 40 56 / 0.4)"],
-    ],
   },
-} as const satisfies Record<
-  "night" | "day",
-  { chrome: readonly (readonly [number, string])[] } & Record<string, unknown>
->
-/** The satin aluminum key the address sits in, top to foot. */
+} as const
+/** The satin aluminum key, top to foot, and every key's height. */
 export const OG_KEY = [
   [0, "#f4f7f8"],
   [0.38, "#dde4e8"],
   [0.52, "#d4dce1"],
   [1, "#c2cad0"],
 ] as const
-/** The ghosted number in the column: its band's top (under the speed
- * tag), its gap above the title and least height, its figures' cap height
- * as a share of their size, its cell and the share of cells it lights. */
-export const OG_GHOST = { top: 160, gap: 24, min: 64, cap: 0.74, cell: 4, tone: 0.6 } as const
-/** The kit's 4x4 Bayer ranks, the ghost's order. */
+export const OG_KEY_H = 44
+/** The kit's 4x4 Bayer ranks: the order the print's floor thins in. */
 export const OG_BAYER = [
   [0, 8, 2, 10],
   [12, 4, 14, 6],
   [3, 11, 1, 9],
   [15, 7, 13, 5],
 ] as const
-/** A speed tag's slant, and the hardshell's cut corners, in px. */
-export const OG_SLANT = 8
-export const OG_CUT = 26
+/** The floor's tone under the print's foot, thinning to none. */
+export const OG_FLOOR = 0.6
 /** The brand mark's core. */
 export const OG_EMBER = "#ff9632"
 /** The print's inks: the hero print's (`landing/plate.ts` INKS, held equal
@@ -112,10 +82,10 @@ export const OG_PRINT_INKS = {
   night: ["blue", "orange", "#e4e1d8"],
   day: ["blue", "orange", "#101214"],
 } as const
-/** The print: its top left, its cell in px and its size in cells, a portrait
- * sheet (about 4:5, the hero's) on the card's right, its top on the brand's
- * line and its foot on the last line of type. */
-export const OG_PRINT = { x: 736, y: 64, cell: 6, cols: 66, rows: 83 } as const
+/** The print: its top left, its cell in px, its size in cells (a 4:5
+ * portrait sheet, the hero's) and its floor's rows under it; it stands on
+ * the card's right, its top on the brand's line. */
+export const OG_PRINT = { x: 752, y: 56, cell: 6, cols: 64, rows: 80, floor: 6 } as const
 /** Cells the screen slides inside the diamond per loop: whole turns of the
  * 4x4 screen, so the loop closes. */
 export const OG_DRIFT = 16
@@ -124,8 +94,12 @@ export const OG_DRIFT = 16
 export const OG_BEATS = { swell: 0.28, over: 0.48, recede: 0.6, rest: 0.8 } as const
 /** The hero print's seed (`landing/Showcase.vue`), the home card's. */
 export const OG_HERO_SEED = 5
-/** The type's column: from the left margin to a gutter short of the print. */
-export const OG_TEXT = { x: 64, max: 616, base: 556 } as const
+/** The brand's top left, the type's column (from the left margin to a
+ * gutter short of the print) and its line's lead, and the title's size at
+ * its largest. */
+export const OG_BRAND = { x: 64, y: 56 } as const
+export const OG_TEXT = { x: 64, max: 600, lead: 34 } as const
+export const OG_TITLE = { size: 84 } as const
 
 export interface OgCard {
   id: string
