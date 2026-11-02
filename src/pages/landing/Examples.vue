@@ -255,7 +255,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           :class="FLUSH.has(t.id) ? 'card-art flush' : 'card-art'"
           :duration="0.72"
           :delay="delays[i] ?? 0"
-          easing="linear"
+          easing="spring"
         >
           <template v-if="t.id === 'world'">
             <DitherWorld
@@ -576,7 +576,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   text-decoration-color: transparent;
-  transition: text-decoration-color 150ms var(--ease-settle);
+  transition: text-decoration-color 200ms var(--ease-settle);
 }
 
 .card-name:hover,
@@ -755,7 +755,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 .stat-sub > span {
   grid-area: 1 / 1;
   opacity: 0;
-  transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 200ms var(--ease-settle);
 }
 
 .stat-sub > span[data-on] {

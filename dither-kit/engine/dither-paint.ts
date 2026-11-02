@@ -6,6 +6,7 @@ import type { AreaVariant } from "./chart-context"
 import { rgb, type Rgb, type Seed } from "./palette"
 import { xorshift32 } from "./pixel"
 import { setOrBlendRasterPixel, type RasterBuffer } from "./raster"
+import { spring } from "./spring"
 
 // 4×4 ordered (Bayer) matrix, normalized to 0–1 thresholds — the exact matrix
 // the legacy chart dithers with.
@@ -595,11 +596,14 @@ export const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
 /** Selectable entrance easing — one name every canvas resolves the same way. */
-export type EasingName = "linear" | "ease-out" | "ease-in-out"
+/** "spring" is Apple's smooth motion (`spring.ts`): from rest, settling long
+ * and soft, never past its mark. */
+export type EasingName = "linear" | "ease-out" | "ease-in-out" | "spring"
 export const EASINGS: Record<EasingName, (t: number) => number> = {
   linear: (t) => t,
   "ease-out": easeOutCubic,
   "ease-in-out": easeInOutCubic,
+  spring,
 }
 
 /** An easing is a preset name or a CSS-style cubic-bezier(x1, y1, x2, y2) —

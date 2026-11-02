@@ -60,9 +60,10 @@ export const SEAM_MASK = wipeStyle(0.5, {
   height: SEAM_HEIGHT,
 }) as WipeStyle
 
-/** How the sheet arrives: the kit's wipe down the screen, at one steady pace.
- * It leaves the same way played back, rolling up from the foot. */
-export const SHEET_WIPE = { direction: "down", duration: 0.32, cell: 4, band: 10 } as const
+/** How the sheet arrives: the kit's wipe down the screen on Apple's smooth
+ * spring (from rest, landing soft). It leaves the same way played back,
+ * rolling up from the foot. */
+export const SHEET_WIPE = { direction: "down", duration: 0.5, cell: 4, band: 10, easing: "spring" } as const
 
 /** The close mark: an X on the brand diamond's 7x7 grid, as dense as the
  * diamond (each stroke two cells where it can be), its crossing the ember

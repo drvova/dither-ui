@@ -5,7 +5,7 @@ import { nextTick } from "vue"
 import DocsNav, { NAV_LINK } from "@/pages/docs/DocsNav.vue"
 import DocsSheet, { SHEET_ID } from "@/pages/docs/DocsSheet.vue"
 import { GROUPS } from "@/pages/docs/groups"
-import { bandFill } from "@/widgets/site-header/menu"
+import { SHEET_WIPE, bandFill } from "@/widgets/site-header/menu"
 
 const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
 
@@ -109,7 +109,8 @@ describe("docs sections sheet", () => {
     expect(w.emitted("close")).toHaveLength(2)
     // Closed: the page scrolls again and focus goes back to the key.
     await w.setProps({ open: false })
-    await new Promise((r) => setTimeout(r, 350))
+    // It rolls back up over the wipe's length, then goes.
+    await new Promise((r) => setTimeout(r, SHEET_WIPE.duration * 1000 + 50))
     expect(document.documentElement.style.overflow).toBe("")
     expect(document.activeElement).toBe(key)
     w.unmount()

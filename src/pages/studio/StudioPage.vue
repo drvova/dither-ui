@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
 .panel-right-enter-active,
 .panel-right-leave-active {
   transition:
-    transform 160ms cubic-bezier(0.2, 0, 0, 1),
+    transform 350ms var(--ease-settle),
     opacity 140ms ease;
 }
 .panel-left-enter-from,

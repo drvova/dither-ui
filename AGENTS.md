@@ -370,12 +370,17 @@ Default section order:
   iridescent pearl, no frosted glassmorphism, no arbitrary glow, no neon;
   metal finishes on display type and the primary key only, never on body
   text or every heading; soft shells against a few sharp machined
-  boundaries, never uniform pills; motion 120-200ms micro, 240-400ms
-  panels, settle easing `cubic-bezier(.22,1,.36,1)` for what a hand does
-  (a press, a drag, a hover), while the kit's driven motion (wipes,
-  reveals, the clock) runs at one steady speed; one moving layer at a
+  boundaries, never uniform pills; motion is Apple's on everything (the
+  user's call): one smooth spring (critically damped, from rest, settling
+  long and soft, never past its mark; the kit's `engine/spring.ts`, its
+  "spring" easing, the site's `--ease-settle`) eases every transition and
+  every driven wipe, reveal and page transition alike, 200ms for a colour,
+  350ms for a hand's movement, 500ms for a sheet; one moving layer at a
   time against a still ground (the user's call after the still ground
-  study). Display type wears
+  study). Alignment matters (the user's call): what stands under the
+  header stands on its lines (a sheet's words start on the brand mark's
+  edge and end on the key word's), and nothing a finger touched is left
+  out of line (a hover moves only where a pointer hovers). Display type wears
   its suggested extended face, Michroma (SIL OFL, self-hosted in
   `src/shared/fonts/`): the landing's statement and section titles, the
   docs' page title (in chrome) and section titles (plain ink). Its squared heading sans is not used; headings, body,

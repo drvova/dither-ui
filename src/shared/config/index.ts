@@ -6,7 +6,9 @@ export type Family = "cartesian" | "pie" | "radar"
 export const familyOf = (t: ChartType): Family => (t === "pie" ? "pie" : t === "radar" ? "radar" : "cartesian")
 
 export const CHART_TYPES: ChartType[] = ["area", "line", "bar", "pie", "radar"]
-export const EASING_NAMES: EasingName[] = ["linear", "ease-out", "ease-in-out"]
+/** Every easing name the kit takes, the one list the Studio offers and a
+ * saved document is held to. */
+export const EASING_NAMES: readonly EasingName[] = ["linear", "ease-out", "ease-in-out", "spring"]
 export const VARIANTS: AreaVariant[] = ["gradient", "dotted", "hatched", "solid"]
 export const BLOOMS: BloomLevel[] = ["off", "low", "high", "aura"]
 export const STACKS: StackType[] = ["default", "stacked", "percent"]

@@ -216,7 +216,7 @@ const GROUP_ICON: Record<string, IconName> = {
   align-content: end;
   gap: 4px 12px;
   min-height: 0;
-  padding: 12px 28px 16px;
+  padding: 12px var(--sheet-end) 16px var(--sheet-start);
   font-size: 20px;
   font-weight: 400;
   line-height: 1.2;
@@ -255,9 +255,11 @@ const GROUP_ICON: Record<string, IconName> = {
   border: 0;
 }
 
+/* The sections' words start on the families' (the header's line); their
+   pill reaches 12px past it either side. */
 .docs-nav[data-place="sheet"] > .nav-grp > ul {
   margin: 0;
-  padding: 0 16px 16px;
+  padding: 0 calc(var(--sheet-end) - 12px) 16px calc(var(--sheet-start) - 12px);
 }
 
 .docs-nav[data-place="sheet"] :is(a, ul button) {
@@ -277,20 +279,28 @@ const GROUP_ICON: Record<string, IconName> = {
   background: var(--background);
 }
 
-/* A hand on a band or a section: its words lean in, as the menu's do. */
+/* A hand on a band or a section: its words lean in and spring back, as
+   the menu's do; a hover only where a pointer hovers (a tap's sticks). */
 @media (prefers-reduced-motion: no-preference) {
   .docs-nav[data-place="sheet"] :is(.nav-name, .nav-count, a, ul button) {
-    transition: translate 160ms var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+    transition: translate 350ms var(--ease-settle);
   }
 
-  .docs-nav[data-place="sheet"] .nav-head:is(:hover, :focus-visible) :is(.nav-name, .nav-count),
-  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):is(:hover, :focus-visible) {
+  .docs-nav[data-place="sheet"] .nav-head:focus-visible :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):focus-visible {
     translate: 8px 0;
   }
 
   .docs-nav[data-place="sheet"] .nav-head:active :is(.nav-name, .nav-count),
   .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):active {
     translate: 12px 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .docs-nav[data-place="sheet"] .nav-head:hover :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):hover {
+    translate: 8px 0;
   }
 }
 

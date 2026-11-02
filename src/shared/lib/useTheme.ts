@@ -65,7 +65,7 @@ export function useTheme() {
       origin: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: innerWidth - 24, y: 24 },
       band: 8,
       duration: 480,
-      easing: [0.22, 1, 0.36, 1],
+      easing: "spring",
     })
   }
 
