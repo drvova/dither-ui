@@ -11,6 +11,7 @@ import {
   DitherGradient,
   DitherIcon,
   DitherImage,
+  DitherNumberFlow,
   Dot,
   Grid,
   Legend,
@@ -123,31 +124,44 @@ const radarRows = [
   { axis: "on time", current: 8, previous: 6 },
 ]
 
-// Stat-card sparklines — last 24 data points each.
+// Stat-card sparklines, the last 24 hours each. Every figure a card states
+// is read from the series it plots: the headline is the last hour, the
+// delta the change across the day (a falling error rate is the good way).
 const trend = (seed: number, drift: number) =>
   Array.from(
     { length: 24 },
     (_, i) => 10 + i * drift + Math.sin(i * 0.8 + seed) * 2 + Math.sin(i * 1.7 + seed * 2) * 1.1,
   )
+type Unit = { pre: string; scale: number; dec: number; suf: string }
+const stat = (label: string, color: DitherColor, data: number[], unit: Unit, lowerIsBetter = false) => {
+  const first = data[0] ?? 0
+  const last = data[data.length - 1] ?? 0
+  const pct = (last / first - 1) * 100
+  const read = (v: number) => Number((v * unit.scale).toFixed(unit.dec))
+  return {
+    label,
+    color,
+    data,
+    unit,
+    read,
+    value: `${unit.pre}${read(last).toLocaleString("en-US", { minimumFractionDigits: unit.dec })}${unit.suf}`,
+    delta: `${pct >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(1)}%`,
+    up: lowerIsBetter ? pct < 0 : pct > 0,
+  }
+}
 const STATS = [
-  { label: "Revenue", value: "$48.2k", delta: "+12.4%", up: true, color: "green" as DitherColor, data: trend(1, 0.35) },
-  {
-    label: "Active users",
-    value: "8,110",
-    delta: "+3.2%",
-    up: true,
-    color: "blue" as DitherColor,
-    data: trend(2, 0.2),
-  },
-  {
-    label: "Error rate",
-    value: "0.42%",
-    delta: "−8.1%",
-    up: false,
-    color: "red" as DitherColor,
-    data: trend(3, -0.18).map((v) => v + 8),
-  },
+  stat("Revenue", "green", trend(1, 0.35), { pre: "$", scale: 2.4, dec: 1, suf: "k" }),
+  stat("Active users", "blue", trend(2, 0.2), { pre: "", scale: 600, dec: 0, suf: "" }),
+  stat(
+    "Error rate",
+    "red",
+    trend(3, -0.18).map((v) => v + 8),
+    { pre: "", scale: 0.03, dec: 2, suf: "%" },
+    true,
+  ),
 ]
+// The Sparkline section scrubs: the hour under the pointer, per card.
+const scrubbed = reactive<Record<string, number | null>>({})
 
 const VARIANTS: AreaVariant[] = ["gradient", "dotted", "hatched", "solid"]
 const DOT_VARIANTS: DotVariant[] = ["border", "colored-border", "filled"]
@@ -801,10 +815,11 @@ const config = {
   sparkline: `<div class="rounded-lg border p-4">
   <div class="text-xs text-muted-foreground">Revenue</div>
   <div class="flex items-baseline gap-2">
-    <span class="text-lg tabular-nums">$48.2k</span>
-    <span class="text-xs text-green-400">+12.4%</span>
+    <span class="text-lg tabular-nums">$<DitherNumberFlow :value="last24h[hour ?? 23]" :decimals="1" />k</span>
+    <span class="text-xs text-muted-foreground">{{ hour === null ? "+48.3%" : \`\${23 - hour}h ago\` }}</span>
   </div>
-  <Sparkline :data="last24h" color="green" class="mt-3 h-8 w-full" />
+  <Sparkline :data="last24h" color="green" interactive :hover-lift="false"
+    class="mt-3 h-8 w-full" @hover-change="(i) => (hour = i)" />
 </div>`,
   motion: `const replayToken = ref(0)
 
@@ -1850,19 +1865,47 @@ const gradientCode = computed(
           <section id="sparkline" class="mt-16 scroll-mt-24">
             <h2 class="text-lg tracking-tight">Sparkline</h2>
             <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-              A plain numeric series with zero margins, built for stat cards, table cells and dashboard rows.
+              A plain numeric series with zero margins, built for stat cards, table cells and dashboard rows. Set
+              <code>interactive</code> and it scrubs: its own crosshair marks the point under the pointer and
+              <code>hover-change</code> reports it, here rolling each card's figure to that hour.
             </p>
             <DemoCard :code="SNIPPETS.sparkline">
               <div class="grid gap-4 sm:grid-cols-3">
                 <div v-for="s in STATS" :key="s.label" class="rounded-lg border border-border/60 p-4">
                   <div class="text-[11px] text-muted-foreground">{{ s.label }}</div>
                   <div class="mt-1 flex items-baseline gap-2">
-                    <span class="text-lg tracking-tight tabular-nums">{{ s.value }}</span>
-                    <span class="text-[11px] tabular-nums" :style="{ color: cssColor(s.up ? 'green' : 'red') }">{{
-                      s.delta
-                    }}</span>
+                    <span class="inline-flex items-center text-lg leading-none tracking-tight tabular-nums"
+                      >{{ s.unit.pre
+                      }}<DitherNumberFlow
+                        :value="s.read(s.data[scrubbed[s.label] ?? s.data.length - 1] ?? 0)"
+                        :decimals="s.unit.dec"
+                        :duration="240"
+                      />{{ s.unit.suf }}</span
+                    >
+                    <!-- The delta at rest, the hour while scrubbed: one cell. -->
+                    <span class="grid text-[11px] tabular-nums">
+                      <span
+                        class="[grid-area:1/1] transition-opacity duration-150 motion-reduce:transition-none"
+                        :class="scrubbed[s.label] == null ? 'opacity-100' : 'opacity-0'"
+                        :style="{ color: cssColor(s.up ? 'green' : 'red') }"
+                        >{{ s.delta }}</span
+                      >
+                      <span
+                        class="text-muted-foreground [grid-area:1/1] transition-opacity duration-150 motion-reduce:transition-none"
+                        :class="scrubbed[s.label] == null ? 'opacity-0' : 'opacity-100'"
+                        aria-hidden="true"
+                        >{{ s.data.length - 1 - (scrubbed[s.label] ?? s.data.length - 1) }}h ago</span
+                      >
+                    </span>
                   </div>
-                  <Sparkline :data="s.data" :color="s.color" class="mt-3 h-8 w-full" />
+                  <Sparkline
+                    :data="s.data"
+                    :color="s.color"
+                    interactive
+                    :hover-lift="false"
+                    class="mt-3 h-8 w-full cursor-crosshair"
+                    @hover-change="(i) => (scrubbed[s.label] = i)"
+                  />
                 </div>
               </div>
             </DemoCard>
