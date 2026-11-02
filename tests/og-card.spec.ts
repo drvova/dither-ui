@@ -1,93 +1,77 @@
+import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
+import { INKS } from "@/pages/landing/plate"
+import { ogPrint, ogScreen } from "@/pages/docs/og-art"
 import {
-  OG_CELL,
   OG_FRAMES,
-  OG_GROUND,
   OG_H,
+  OG_HERO_SEED,
+  OG_INK,
+  OG_PRINT,
+  OG_PRINT_INKS,
+  OG_TEXT,
   OG_W,
-  ogArt,
-  ogLevel,
-  ogPixel,
+  ogCardSeed,
   ogSeed,
   ogWrap,
-  type OgCard,
 } from "@/pages/docs/og-card"
+import { SECTIONS } from "@/pages/docs/groups"
 
-// The share cards' art: what the build draws as og/<id>.png and loops as
-// og/<id>.gif. The renderer page carries these same functions inline.
+// The share cards: what the build draws as og/<id>.png and loops as
+// og/<id>.gif, through the renderer page (`og-page.ts`), in the landing's
+// printed look: the kit's poster printed beside the title.
 
-const field: OgCard = {
-  id: "avatar",
-  art: "field",
-  title: "Avatar",
-  line: "",
-  tag: "",
-  seed: ogSeed("avatar"),
-  inv: false,
-}
-const horizon: OgCard = {
-  id: "home",
-  art: "horizon",
-  title: "dither-ui",
-  line: "",
-  tag: "",
-  seed: ogSeed("home"),
-  inv: false,
-}
-const ground = ogPixel(OG_GROUND)
-const lit = (art: Uint8ClampedArray, x0: number, y0: number, x1: number, y1: number) => {
-  const view = new Uint32Array(art.buffer)
-  let n = 0
-  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (view[y * OG_W + x] !== ground) n++
-  return n
-}
+const root = new URL("..", import.meta.url).pathname
+const card = { seed: ogSeed("avatar"), inv: false }
+const home = { seed: ogCardSeed("home"), inv: false }
 
 describe("share card art", () => {
   it("loops: the end of the loop is its first frame, and the frames between move", () => {
-    for (const card of [field, horizon]) {
-      expect(ogArt(card, 1)).toEqual(ogArt(card, 0))
-      expect(ogArt(card, 0.5)).not.toEqual(ogArt(card, 0))
-      expect(ogArt(card, 1 / OG_FRAMES)).not.toEqual(ogArt(card, 0))
+    for (const c of [card, home]) {
+      expect(ogPrint(c, 1).data).toEqual(ogPrint(c, 0).data)
+      expect(ogPrint(c, 0.25).data).not.toEqual(ogPrint(c, 0).data)
+      // Every frame of the GIF is on the loop: the frames step whole cells.
+      expect(ogPrint(c, (OG_FRAMES - 1) / OG_FRAMES).data).not.toEqual(ogPrint(c, 0).data)
     }
   })
 
-  it("is the same card for the same seed, another for another", () => {
-    expect(ogArt(field, 0.25)).toEqual(ogArt({ ...field }, 0.25))
-    expect(ogArt({ ...field, seed: ogSeed("slider") }, 0)).not.toEqual(ogArt(field, 0))
+  it("is the same print for the same seed, another for another, each through its own screen", () => {
+    expect(ogPrint(card, 0.5).data).toEqual(ogPrint({ ...card }, 0.5).data)
+    expect(ogPrint({ ...card, seed: ogSeed("slider") }, 0).data).not.toEqual(ogPrint(card, 0).data)
+    expect(new Set(SECTIONS.map((s) => ogScreen({ seed: ogCardSeed(s.id) }))).size).toBeGreaterThan(2)
   })
 
-  it("keeps the title's corner clear: the field on the right, the stars above the horizon", () => {
-    for (let i = 0; i < OG_FRAMES; i += 6) {
-      const t = i / OG_FRAMES
-      // A section's title and address sit in the bottom left.
-      expect(lit(ogArt(field, t), 0, 380, 560, OG_H)).toBe(0)
-      expect(lit(ogArt(field, t), 600, 0, OG_W, OG_H)).toBeGreaterThan(0)
-      // A route's title band (the left two thirds, under the top strip,
-      // above the far horizon's lowest dip) holds no star.
-      expect(lit(ogArt(horizon, t), 0, 120, 780, 340)).toBe(0)
+  it("prints the hero's own composition on the home card, through Bayer as the hero does", () => {
+    const hero = readFileSync(`${root}/src/pages/landing/Showcase.vue`, "utf8")
+    expect(hero).toMatch(new RegExp(`<DitherPoster :seed="${OG_HERO_SEED}" :inks="INKS"`))
+    expect(home.seed).toBe(OG_HERO_SEED)
+    expect(ogScreen(home)).toBe("bayer")
+    expect([...OG_PRINT_INKS.night]).toEqual(INKS)
+  })
+
+  it("never prints bone on bone: by day the bone ink turns obsidian", () => {
+    expect(OG_PRINT_INKS.day).not.toContain(OG_INK.day.ground)
+    expect(OG_PRINT_INKS.day).toContain(OG_INK.night.ground)
+  })
+
+  it("stands the print on the card's right, clear of the type's column", () => {
+    expect(OG_PRINT.x).toBeGreaterThanOrEqual(OG_TEXT.x + OG_TEXT.max + 48)
+    expect(OG_PRINT.x + OG_PRINT.cols * OG_PRINT.cell).toBeLessThanOrEqual(OG_W - OG_TEXT.x)
+    expect(OG_PRINT.y + OG_PRINT.rows * OG_PRINT.cell).toBeLessThanOrEqual(OG_H - OG_TEXT.x)
+    // Its foot on the type's last line: within a descender of the baseline.
+    expect(OG_PRINT.y + OG_PRINT.rows * OG_PRINT.cell - OG_TEXT.base).toBeLessThanOrEqual(8)
+  })
+
+  it("keeps every muted line at AA on its ground", () => {
+    const lum = (hex: string) => {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+      return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
     }
-  })
-
-  it("draws a lattice: cells of 11px with a seam of ground", () => {
-    const view = new Uint32Array(ogArt(horizon, 0).buffer)
-    // The bottom row of cells is lit under the near horizon; every seam
-    // column between them is ground.
-    const y = OG_H - OG_CELL + 2
-    for (let x = OG_CELL - 1; x < OG_W; x += OG_CELL) expect(view[y * OG_W + x]).toBe(ground)
-    expect(view[y * OG_W + 3]).not.toBe(ground)
-  })
-
-  it("orders a tone's cells by the Bayer rank, a level up for its remainder's share", () => {
-    const share = (tone: number) => {
-      let up = 0
-      for (let y = 0; y < 4; y++)
-        for (let x = 0; x < 4; x++) up += ogLevel(tone, 6, x, y) > Math.floor(tone * 6) ? 1 : 0
-      return up
+    for (const ink of [OG_INK.night, OG_INK.day]) {
+      const [a, b] = [lum(ink.muted), lum(ink.ground)].sort((x, y) => y - x)
+      expect((a + 0.05) / (b + 0.05)).toBeGreaterThanOrEqual(4.5)
     }
-    expect(share(0)).toBe(0)
-    expect(share(2.5 / 6)).toBe(8)
-    expect(share(2.25 / 6)).toBe(4)
-    expect(ogLevel(1, 6, 0, 0)).toBe(6)
   })
 })
 
@@ -101,5 +85,10 @@ describe("share card type", () => {
     expect(lines.every((l) => measure(l) <= 200)).toBe(true)
     // Balanced: the greedy split would leave one word on the last line.
     expect(lines).toEqual(["Admin with a", "profile panel"])
+  })
+
+  it("keeps the copy bans in the renderer: no uppercase, middle dot or em dash", () => {
+    const page = readFileSync(`${root}/src/pages/docs/og-page.ts`, "utf8")
+    expect(page).not.toMatch(/toUpperCase|text-transform|letterSpacing|[·—]/)
   })
 })

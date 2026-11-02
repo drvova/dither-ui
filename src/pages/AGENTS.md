@@ -703,22 +703,33 @@ widgets/features; page-specific conventions live here.
   link. A `CodeBlock`'s copy chip takes its own band over the first line
   under sm (a long first line ran under it there). The footer's items
   wrap, never collide.
-- Share cards (`docs/og-card.ts`, the art; `crawler-files.ts`, the cards,
-  their embeds and the renderer page): a card is the page's title (ember
-  stop) over the house dither in motion, the brand top left, a section's
-  family as a hairline tag top right, its address under the title; a
-  section's field of three seeded bodies stays out of the title's corner,
-  the routes roll two horizons (SKY, then the kit's purple seed as a
-  ramp) under stars. Every motion turns a whole number of times per loop
-  (36 frames at 10 fps), so the GIF's last frame meets its first; the PNG
-  is frame 0. Copy follows the bans (no uppercase, no eyebrow over the
-  title, no middle dot or em dash, buttons that name where they go).
-  `ROUTE_CARDS` holds the route cards' copy; their ids may never be
-  section ids. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
-  clear title corner, the lattice, Bayer order, balanced wrap) and the
-  share-card cases in `tests/crawler-files.spec.ts` (every page's embed
-  under Discord's 3,000 byte cap with link buttons only, the oEmbed photo,
-  each route head carrying its card's tags, the bans).
+- Share cards, in the landing's printed look: `docs/og-card.ts` (the
+  design: size, inks by night and by day, the print's box, the type's
+  column, the seeds; import-free, as crawler-files.ts reads it under Node),
+  `docs/og-art.ts` (the art: the kit's own poster engine at the print's
+  size, a seed's composition through a seed's printer's screen; home prints
+  the hero's, seed 5 through Bayer), `docs/og-page.ts` (the renderer, the
+  build's `og/index` entry over `og/index.html`: `window.og.files(id, seed,
+  inv)` for the prerender and the Discord service) and `crawler-files.ts`
+  (the cards' copy, embeds and oEmbed). A card is obsidian with one bone
+  ink: the brand top left, the title in the display face (a route's on one
+  line, a section's on two at most) and its line in the muted ink under it,
+  the print standing on the right from the brand's line to the type's last;
+  by day (the Discord toggle) the same card on bone paper, the print's bone
+  ink turned obsidian. The loop is the hero's own motion, the screen
+  sliding inside the diamond in whole turns (36 frames at 10 fps), so the
+  GIF's last frame meets its first; the PNG is frame 0. Discord's
+  containers draw no accent bar (no side line). Copy follows the bans (no
+  uppercase, no eyebrow over the title, no middle dot or em dash, buttons
+  that name where they go). `ROUTE_CARDS` holds the route cards' copy;
+  their ids may never be section ids; the route templates' image alt is
+  the card's. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
+  screens, home as the hero's print with its inks, no bone on bone, the
+  print clear of the type, AA, balanced wrap) and the share-card and
+  renderer cases in `tests/crawler-files.spec.ts` (every page's embed
+  under Discord's 3,000 byte cap with link buttons only and no accent bar,
+  the oEmbed photo, each route head carrying its card's tags, the bans,
+  the renderer as a build page).
 - Section IA lives in `docs/groups.ts` — the single source for the sidebar,
   the `/docs/<id>` deep links, and the build-time crawl files
   (`crawler-files.ts` generates `dist/sitemap.xml`, `dist/robots.txt`, and
@@ -968,7 +979,7 @@ widgets/features; page-specific conventions live here.
   section's card playing and copies its link, Markdown and HTML.
 - Share cards after a full `npm run build`: every id `window.og.ids()`
   lists has `dist/og/<id>.png` and `.gif` (the GIF's frames move and its
-  first is the PNG's card, the ember stop and the mark's core included),
+  first is the PNG's card, the mark's core included),
   `dist/embed/<id>.json` and `dist/oembed/<id>.json`, and a section page's
   head points at its own (Discord's Embed Debugger,
   discord.com/developers/embeds, reads a deployed URL as Discord will).

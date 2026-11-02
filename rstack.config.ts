@@ -18,6 +18,10 @@ const PAGES: Record<string, { html: string; main: string }> = {
   "docs/index": { html: "docs/index.html", main: SITE_MAIN },
   "studio/index": { html: "studio/index.html", main: SITE_MAIN },
   "play/index": { html: "play/index.html", main: "src/pages/play/main.ts" },
+  /* The share card renderer: the prerender draws every card's PNG and GIF
+     with it, the Discord service its re-rolled ones (noindex, and robots
+     keeps crawlers off it). */
+  "og/index": { html: "og/index.html", main: "src/pages/docs/og-page.ts" },
 }
 
 /* The docs deep links are the site's indexable surface beyond the route
@@ -35,11 +39,10 @@ function crawlFiles(): RsbuildPlugin {
         emit("sitemap.xml", crawl.sitemapXml())
         emit("robots.txt", crawl.robotsTxt())
         emit("llms.txt", crawl.llmsTxt())
-        // The og engine's surface: the 1200x630 card renderer + the section
-        // manifest (also the prerender's data contract for per-section pages),
-        // and per card its Discord component embed and oEmbed photo (the
-        // prerender draws the PNG and GIF they point at).
-        emit("og/index.html", crawl.ogCardPage())
+        // The og engine's surface: the section manifest (the card renderer's
+        // data, the `og/index` entry, and the prerender's contract for
+        // per-section pages), and per card its Discord component embed and
+        // oEmbed photo (the prerender draws the PNG and GIF they point at).
         emit("og/sections.json", crawl.sectionsManifest())
         for (const card of crawl.shareCards()) {
           emit(`embed/${card.id}.json`, crawl.componentEmbed(card))

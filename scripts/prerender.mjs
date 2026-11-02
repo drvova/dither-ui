@@ -97,14 +97,14 @@ const browser = await chromium.launch({ executablePath: findChromium() })
 /* ---------------- SEO engine: og cards + per-section docs pages ---------- */
 
 // Every share card (the three routes, then each docs section) drawn by the
-// build's own renderer page (dist/og/index.html, from crawler-files.ts):
+// build's own renderer page (dist/og/index.html, the `og/index` entry):
 // its still as og/<id>.png and its loop as og/<id>.gif, which the pages'
 // og tags, Discord component embeds and oEmbed photos point at. A few pages
 // draw at once (encoding is CPU-bound, one card about a second).
 async function renderOgCards() {
   const renderer = join(DIST, "og", "index.html")
   if (!existsSync(renderer)) {
-    console.log("og: no renderer page — skipping cards (the crawler plugin emits it)")
+    console.log("og: no renderer page — skipping cards (the build's og/index entry makes it)")
     return
   }
   // A marker skips the render when neither the renderer nor the manifest

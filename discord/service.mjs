@@ -28,7 +28,7 @@
 import { createServer } from "node:http"
 import { createPublicKey, verify as cryptoVerify } from "node:crypto"
 import { readFile } from "node:fs/promises"
-import { dirname, join } from "node:path"
+import { dirname, extname, join, resolve, sep } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const PORT = Number(process.env.PORT || 8787)
@@ -49,8 +49,6 @@ const SITE = "https://dither-ui.com"
 // IsComponentsV2 message flag (bit 15) — the only way components render
 // standalone without content cohabitation.
 const IS_COMPONENTS_V2 = 1 << 15
-// The ember accent, as Discord's int color.
-const EMBER = 0xff9632
 
 let SECTIONS = null // id -> manifest record
 let renderPage = null // lazily launched playwright page (og renderer)
@@ -124,16 +122,36 @@ function renderPreview(sectionId, seed, inv) {
   return turn
 }
 
+/** What the renderer page loads from the build, by extension. */
+const TYPES = {
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+  ".woff2": "font/woff2",
+}
+
 /** The renderer page, launched once however many requests ask at once. */
-async function rendererPage(withData) {
+async function rendererPage() {
   if (renderPage) return renderPage
   browserStart ??= (async () => {
     const { chromium } = await import("playwright-core")
     const exe = process.env.CHROME_PATH || "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
     const browser = await chromium.launch({ executablePath: exe })
     const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
-    // The page asks for the renderer by URL; it is served from memory, once.
-    await page.route("**/og/index.html**", (route) => route.fulfill({ body: withData, contentType: "text/html" }))
+    // The renderer is a page of the build: its HTML, its script and font
+    // chunks and the sections manifest are all served from DIST as built,
+    // never from outside it.
+    const root = resolve(DIST)
+    await page.route("http://og.local/**", async (route) => {
+      const file = resolve(join(root, decodeURIComponent(new URL(route.request().url()).pathname)))
+      if (!file.startsWith(root + sep)) return route.fulfill({ status: 404 })
+      try {
+        route.fulfill({ body: await readFile(file), contentType: TYPES[extname(file)] ?? "application/octet-stream" })
+      } catch {
+        route.fulfill({ status: 404 })
+      }
+    })
     // Graceful shutdown: the browser must close BEFORE the loop drops, or
     // libuv asserts on the half-closed async handle under process managers.
     let closing = false
@@ -155,16 +173,9 @@ async function rendererPage(withData) {
 
 async function drawPreview(sectionId, seed, inv, key) {
   if (previewCache.has(key)) return previewCache.get(key)
-  const html = await readFile(join(DIST, "og", "index.html"), "utf8").catch(() => null)
-  if (!html) return null
-  // The og page fetches ./sections.json — serve it via the file:// module
-  // path is not possible with fetch(); instead inline the manifest into the
-  // page and short-circuit the fetch.
-  const sections = await loadSections()
-  // (Escaped: a record's head carries a </script> that would close the page's.)
-  const inline = JSON.stringify([...sections.values()]).replace(/</g, "\\u003c")
-  const withData = html.replace('fetch("./sections.json").then(r=>r.json())', () => `Promise.resolve(${inline})`)
-  const page = await rendererPage(withData)
+  const built = await readFile(join(DIST, "og", "index.html")).catch(() => null)
+  if (!built) return null
+  const page = await rendererPage()
   await page.goto(`http://og.local/og/index.html?id=${encodeURIComponent(sectionId)}&seed=${seed}&inv=${inv}`, {
     waitUntil: "networkidle",
   })
@@ -186,7 +197,6 @@ function componentsFor(section, seed, inv) {
   return [
     {
       type: 17, // Container
-      accent_color: EMBER,
       components: [
         { type: 10, content: `## ${section.label}` }, // TextDisplay
         { type: 10, content: `${section.description}\n-# ${section.group}, in the dither-ui docs` },
@@ -231,7 +241,6 @@ const NOT_FOUND = {
     components: [
       {
         type: 17,
-        accent_color: EMBER,
         components: [
           { type: 10, content: "## Unknown section" },
           {
