@@ -176,8 +176,9 @@ Default section order:
   every link preview shows) and `dist/og/<id>.gif` (the same card looping,
   5.76s: the kit's diamond swells over its print and back), with four pages of the card renderer, a page of the build (the
   `og/index` entry: `og/index.html` + `src/pages/docs/og-page.ts`,
-  `window.og.files(id)`): the landing's printed look, the title in the
-  display face beside a print of the kit's own poster (`og-art.ts` runs
+  `window.og.files(id)`): a spec sheet in the V5 look (chrome title,
+  speed tag, key and value chips, the card's number, the address in the
+  chrome key) beside a print of the kit's own poster in a hardshell (`og-art.ts` runs
   the kit's poster engine; home prints the hero's composition; the card's
   design in `og-card.ts`), the encoder `src/shared/lib/gif.ts`), and
   writes a per-section static page `dist/docs/<id>/index.html` (its head is

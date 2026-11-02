@@ -23,9 +23,83 @@ export const OG_DELAY = 8
  * (the same card on bone paper, the Discord service's toggle). Each muted
  * ink keeps AA (4.5:1) on its ground. */
 export const OG_INK = {
-  night: { ground: "#101214", ink: "#e4e1d8", muted: "#a9a69c" },
-  day: { ground: "#e4e1d8", ink: "#101214", muted: "#4d4f53" },
-} as const
+  night: {
+    ground: "#101214",
+    ink: "#e4e1d8",
+    muted: "#a9a69c",
+    /** A speed tag's and a chip key's plate (graphite) and its ink. */
+    plate: "#25292d",
+    plateInk: "#d4dce1",
+    /** The print's well, under its clear cells. */
+    well: "#0b0d0e",
+    /** The chrome ramp on the title, top to foot (the site's dark chrome). */
+    chrome: [
+      [0, "#ffffff"],
+      [0.36, "#dfe6ee"],
+      [0.48, "#8e98a8"],
+      [0.505, "#7d8798"],
+      [0.53, "#fbfcfd"],
+      [0.74, "#c2cad5"],
+      [1, "#edf1f5"],
+    ],
+    /** The chrome glint on the hardshell's edge, corner to corner. */
+    rim: [
+      [0, "rgb(240 245 251 / 0.55)"],
+      [0.28, "rgb(150 162 180 / 0.18)"],
+      [0.52, "rgb(255 255 255 / 0.5)"],
+      [0.76, "rgb(130 142 160 / 0.16)"],
+      [1, "rgb(220 230 244 / 0.42)"],
+    ],
+  },
+  day: {
+    ground: "#e4e1d8",
+    ink: "#101214",
+    muted: "#4d4f53",
+    plate: "#25292d",
+    plateInk: "#d4dce1",
+    well: "#d6d2c6",
+    chrome: [
+      [0, "#11151b"],
+      [0.36, "#2d343e"],
+      [0.48, "#5d6674"],
+      [0.505, "#6b7482"],
+      [0.53, "#0e1116"],
+      [0.74, "#2a3039"],
+      [1, "#3d4450"],
+    ],
+    rim: [
+      [0, "rgb(30 38 50 / 0.5)"],
+      [0.28, "rgb(120 130 146 / 0.24)"],
+      [0.52, "rgb(20 26 36 / 0.45)"],
+      [0.76, "rgb(140 150 166 / 0.2)"],
+      [1, "rgb(30 40 56 / 0.4)"],
+    ],
+  },
+} as const satisfies Record<
+  "night" | "day",
+  { chrome: readonly (readonly [number, string])[] } & Record<string, unknown>
+>
+/** The satin aluminum key the address sits in, top to foot. */
+export const OG_KEY = [
+  [0, "#f4f7f8"],
+  [0.38, "#dde4e8"],
+  [0.52, "#d4dce1"],
+  [1, "#c2cad0"],
+] as const
+/** The ghosted number in the column: its band's top (under the speed
+ * tag), its gap above the title and least height, its figures' cap height
+ * as a share of their size, its cell and the share of cells it lights. */
+export const OG_GHOST = { top: 160, gap: 24, min: 64, cap: 0.74, cell: 4, tone: 0.44 } as const
+/** The kit's 4x4 Bayer ranks, the ghost's order. */
+export const OG_BAYER = [
+  [0, 8, 2, 10],
+  [12, 4, 14, 6],
+  [3, 11, 1, 9],
+  [15, 7, 13, 5],
+] as const
+/** A speed tag's slant, and the hardshell's cut corners, in px. */
+export const OG_SLANT = 8
+export const OG_CUT = 26
 /** The brand mark's core. */
 export const OG_EMBER = "#ff9632"
 /** The print's inks: the hero print's (`landing/plate.ts` INKS, held equal

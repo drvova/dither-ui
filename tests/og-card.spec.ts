@@ -106,8 +106,11 @@ describe("share card type", () => {
     expect(lines).toEqual(["Admin with a", "profile panel"])
   })
 
-  it("keeps the copy bans in the renderer: no uppercase, middle dot or em dash", () => {
+  it("keeps the copy bans in the renderer: caps only on spec labels and speed tags", () => {
     const page = readFileSync(`${root}/src/pages/docs/og-page.ts`, "utf8")
-    expect(page).not.toMatch(/toUpperCase|text-transform|letterSpacing|[·—]/)
+    expect(page).not.toMatch(/text-transform|[\u00b7\u2014]/)
+    // Every uppercase string is a spec label's (set by spec()) or a plate's.
+    for (const line of page.split("\n").filter((l) => l.includes("toUpperCase()")))
+      expect(line).toMatch(/plated\(|const no = |\.toUpperCase\(\)$/)
   })
 })

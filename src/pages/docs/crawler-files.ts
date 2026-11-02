@@ -130,7 +130,8 @@ export interface ShareCard {
 }
 
 /** The route cards (their art is a print of the kit's poster, home's the
- * hero's own). The ids share `og/` with the section ids, so none may be one
+ * hero's own; `tag` is the speed tag a section's card fills with its
+ * family). The ids share `og/` with the section ids, so none may be one
  * (the tests hold this). */
 export const ROUTE_CARDS = [
   {
@@ -138,6 +139,7 @@ export const ROUTE_CARDS = [
     url: `${SITE_URL}/`,
     title: "dither-ui",
     line: "A dithered UI toolkit for Vue and Svelte",
+    tag: "Vue and Svelte",
     description:
       "266 Vue components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
     links: [
@@ -151,6 +153,7 @@ export const ROUTE_CARDS = [
     url: `${SITE_URL}/docs`,
     title: "Documentation",
     line: "Every component live, with its source and its API",
+    tag: `${SECTIONS.length} sections`,
     description:
       "Explore live Vue examples, API references, component galleries, chart variants, and copy-ready code for dither-ui.",
     links: [
@@ -163,6 +166,7 @@ export const ROUTE_CARDS = [
     url: `${SITE_URL}/studio`,
     title: "Studio",
     line: "Compose screens from the kit, or have your agent do it",
+    tag: "Agent ready",
     description:
       "Design dithered charts and screens in the browser, export Vue code, images or video, or hand the canvas to your own coding agent.",
     links: [

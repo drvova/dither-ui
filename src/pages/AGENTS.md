@@ -703,7 +703,8 @@ widgets/features; page-specific conventions live here.
   link. A `CodeBlock`'s copy chip takes its own band over the first line
   under sm (a long first line ran under it there). The footer's items
   wrap, never collide.
-- Share cards, in the landing's printed look: `docs/og-card.ts` (the
+- Share cards, a spec sheet in the user's V5 look (Oakley's proof
+  grammar and the site's materials): `docs/og-card.ts` (the
   design: size, inks by night and by day, the print's box, the type's
   column, the seeds; import-free, as crawler-files.ts reads it under Node),
   `docs/og-art.ts` (the art: the kit's own poster engine at the print's
@@ -712,24 +713,33 @@ widgets/features; page-specific conventions live here.
   build's `og/index` entry over `og/index.html`: `window.og.files(id, seed,
   inv)` for the prerender and the Discord service) and `crawler-files.ts`
   (the cards' copy, embeds and oEmbed). A card is obsidian with one bone
-  ink: the brand top left, the title in the display face (a route's on one
-  line, a section's on two at most) and its line in the muted ink under it,
-  the print standing on the right from the brand's line to the type's last;
-  by day (the Discord toggle) the same card on bone paper, the print's bone
+  ink: the brand top left on the print's top line, the card's number of
+  all the cards as a spec label at the column's end (its provenance), a
+  graphite speed tag under the brand (a section's family, a route's own
+  `tag`), the card's number again as a race-bib figure printed through the
+  Bayer matrix in the band down to the title (never under type), the
+  title in chrome (the display face, the site's chrome ramp one horizon
+  per line; a route's on one line, a section's on two at most), a route's
+  line in the muted ink, a row of key and value chips (slanted plates:
+  screen, seed, cell, the print's real figures), and the address in the
+  satin chrome key, its foot on the print's foot; the print stands on the
+  right in a hardshell (two corners cut, a chrome glint on its edge), its
+  spec run (size, inks) set up its left side. By day (the Discord toggle)
+  the same sheet on bone paper, the light chrome, the print's bone
   ink turned obsidian. The loop (72 frames at 12.5 fps, `OG_BEATS`): at
   rest, then the kit's diamond swells over the whole print on the spring,
   turning every tile over into its negative ring by ring, holds, and
   recedes to its place, the screen sliding inside it in whole turns, so
   the GIF's last frame meets its first; the PNG is frame 0, the print at
-  rest. Discord's
-  containers draw no accent bar (no side line). Copy follows the bans (no
-  uppercase, no eyebrow over the title, no middle dot or em dash, buttons
-  that name where they go). `ROUTE_CARDS` holds the route cards' copy;
+  rest. Discord's containers draw no accent bar (no side line). Copy
+  follows the bans (caps and tracking only on the spec labels and the
+  plates, the user's lift for the V5 look; no eyebrow over the title, no
+  middle dot or em dash, buttons that name where they go). `ROUTE_CARDS` holds the route cards' copy;
   their ids may never be section ids; the route templates' image alt is
   the card's. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
   screens, the swell's beats, home as the hero's print with its inks, no
-  bone on bone, the
-  print clear of the type, AA, balanced wrap) and the share-card and
+  bone on bone, the print clear of the type, AA, balanced wrap, caps only
+  on labels and plates) and the share-card and
   renderer cases in `tests/crawler-files.spec.ts` (every page's embed
   under Discord's 3,000 byte cap with link buttons only and no accent bar,
   the oEmbed photo, each route head carrying its card's tags, the bans,
