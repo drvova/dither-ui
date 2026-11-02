@@ -6,9 +6,10 @@ import { routePath } from "@/shared/lib"
 export const docsUrl = (id: string) => routePath(`/docs/${id}`)
 
 /** Where a docs list stands: the rail beside the content (a pointer's 25px
- * targets at a 27px pitch) or the sections sheet (a finger's 30px ones). */
+ * targets at a 27px pitch) or the sections sheet (a finger's, at the
+ * menu's reading size). */
 export type NavPlace = "rail" | "sheet"
-export const NAV_LINK: Record<NavPlace, string> = { rail: "py-1 text-[11px]", sheet: "py-1.5 text-[12px]" }
+export const NAV_LINK: Record<NavPlace, string> = { rail: "py-1 text-[11px]", sheet: "py-2 text-[15px]" }
 /** A group's heading sticks to the top of its list while its sections
  * scroll under it (the landmark in a long list). The list's top room lives
  * here, not on the scroller, since a sticky heading sticks at the
@@ -126,13 +127,18 @@ const GROUP_ICON: Record<string, IconName> = {
         :aria-controls="listId(grp.title)"
         @click="fold(grp.title)"
       >
-        <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
-        <span class="spec ml-auto tabular-nums">{{ grp.items.length }}</span>
+        <span class="nav-name inline-flex items-center gap-2"
+          ><DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}</span
+        >
+        <span class="nav-count spec ml-auto tabular-nums"
+          >{{ grp.items.length
+          }}<span class="nav-unit">{{ grp.items.length === 1 ? " section" : " sections" }}</span></span
+        >
         <DitherIcon
           name="ChevronRight"
           :size="12"
           :stroke-width="1.75"
-          class="text-muted-foreground transition-transform duration-150 motion-reduce:transition-none"
+          class="nav-chev text-muted-foreground transition-transform duration-150 motion-reduce:transition-none"
           :class="opened.has(grp.title) ? 'rotate-90' : ''"
         />
       </button>
@@ -170,10 +176,17 @@ const GROUP_ICON: Record<string, IconName> = {
 </template>
 
 <style scoped>
-/* The sheet: the families as the menu's bands, filling the screen when
-   folded and growing with the one open; the ground's colour writes on
-   every band (AA down to the floor), the section in view printed in
-   reverse, the ground's own ink on it. */
+/* The rail counts in figures alone; the sheet says what they count. */
+.docs-nav:not([data-place="sheet"]) .nav-unit {
+  display: none;
+}
+
+/* The sheet: the families as the menu's bands, and it reads like the menu.
+   Folded, the bands share the screen, each family's name at its foot
+   (20px, its glyph beside it as GitHub carries its mark) over a line of
+   what it holds; the whole band opens it. Open, its sections follow at the
+   names' edge, the one in view printed in reverse. The ground's colour
+   writes on every band (AA down to the floor). */
 .docs-nav[data-place="sheet"] {
   display: flex;
   flex-direction: column;
@@ -184,19 +197,57 @@ const GROUP_ICON: Record<string, IconName> = {
 
 .docs-nav[data-place="sheet"] > .nav-grp {
   position: relative;
+  display: flex;
   flex: 1 0 auto;
-  min-height: 56px;
-  padding: 0 16px 12px;
+  flex-direction: column;
+  min-height: 72px;
+}
+
+/* The seam rides over the band above it, headings included (they stick). */
+.docs-nav[data-place="sheet"] .menu-seam {
+  z-index: 11;
 }
 
 .docs-nav[data-place="sheet"] .nav-head {
-  min-height: 48px;
-  padding-inline: 4px;
-  font-size: 14px;
+  display: grid;
+  flex: 1 0 auto;
+  grid-template-areas: "name chev" "count chev";
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: end;
+  gap: 4px 12px;
+  min-height: 0;
+  padding: 12px 28px 16px;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
   color: var(--background);
 }
 
-.docs-nav[data-place="sheet"] .nav-head :is(.spec, svg) {
+.docs-nav[data-place="sheet"] .nav-name {
+  grid-area: name;
+  gap: 12px;
+}
+
+.docs-nav[data-place="sheet"] .nav-name svg {
+  width: 18px;
+  height: 18px;
+}
+
+.docs-nav[data-place="sheet"] .nav-count {
+  grid-area: count;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] .nav-chev {
+  grid-area: chev;
+  align-self: center;
+  width: 16px;
+  height: 16px;
   color: var(--background);
 }
 
@@ -204,27 +255,43 @@ const GROUP_ICON: Record<string, IconName> = {
   border: 0;
 }
 
+.docs-nav[data-place="sheet"] > .nav-grp > ul {
+  margin: 0;
+  padding: 0 16px 16px;
+}
+
 .docs-nav[data-place="sheet"] :is(a, ul button) {
   margin: 0;
-  padding-inline: 10px;
+  padding-inline: 12px;
   border: 0;
   border-radius: 6px;
   color: var(--background);
 }
 
 .docs-nav[data-place="sheet"] ul ul button {
-  padding-left: 24px;
-}
-
-.docs-nav[data-place="sheet"] a:hover {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
+  padding-left: 28px;
 }
 
 .docs-nav[data-place="sheet"] a[aria-current] {
   color: var(--foreground);
   background: var(--background);
+}
+
+/* A hand on a band or a section: its words lean in, as the menu's do. */
+@media (prefers-reduced-motion: no-preference) {
+  .docs-nav[data-place="sheet"] :is(.nav-name, .nav-count, a, ul button) {
+    transition: translate 160ms var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  .docs-nav[data-place="sheet"] .nav-head:is(:hover, :focus-visible) :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):is(:hover, :focus-visible) {
+    translate: 8px 0;
+  }
+
+  .docs-nav[data-place="sheet"] .nav-head:active :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):active {
+    translate: 12px 0;
+  }
 }
 
 /* On a band of the ink the ring ink alone would vanish: the ground runs

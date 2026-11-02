@@ -666,11 +666,18 @@ widgets/features; page-specific conventions live here.
   from anywhere on the page (`DocsSheet.vue`), the site menu's kind of
   sheet: the whole screen, `SheetHead` at its top ("Sections" and the
   count in the capsule, "Close sections"), the families under it as bands
-  (`DocsNav`'s sheet place: one step of the ink per family,
-  `bandFill(i, GROUPS.length)`, seamed into the one above, filling the
-  screen when folded, each heading sticking on its own fill; the sections
-  in the ground's colour on their band, the one in view printed in
-  reverse), arriving as the kit's wipe down the screen and rolling back up
+  (`DocsNav`'s sheet place, read like the menu: one step of the ink per
+  family, `bandFill(i, GROUPS.length)`, seamed into the one above, the
+  seam riding over the band above's heading and the first one climbing
+  into the head's foot room as the menu's does; folded, the bands share
+  the screen, each family's name at its foot at the menu's 20px with its
+  glyph beside it as GitHub carries its mark, over a line of what it
+  holds ("100 sections"; the rail shows the figure alone) and a chevron,
+  the whole band the key that opens it; open, its sections follow at the
+  names' edge at 15px (`NAV_LINK.sheet`), the one in view printed in
+  reverse; a hovered, focused or pressed band's words and section lean in
+  as the menu's do, never under reduced motion; each heading sticks on
+  its own fill), arriving as the kit's wipe down the screen and rolling back up
   before it goes (it stays mounted while it leaves; at once under reduced
   motion); a modal through `DitherFocusScope` (focus on "Close sections",
   Tab trapped, focus back on the key), shut by Escape, the close key or a

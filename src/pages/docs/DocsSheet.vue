@@ -9,7 +9,7 @@ import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import DocsNav, { type PagePart } from "./DocsNav.vue"
 import { SheetHead } from "@/widgets/site-header"
-import { SHEET_WIPE } from "@/widgets/site-header/menu"
+import { SEAM_HEIGHT, SHEET_WIPE } from "@/widgets/site-header/menu"
 import { GROUPS } from "./groups"
 
 /** The sections sheet: under lg, the header's sections key opens every
@@ -106,7 +106,13 @@ onBeforeUnmount(() => {
           >Sections <span class="tabular-nums">{{ total }}</span></span
         >
       </SheetHead>
-      <div ref="list" class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <!-- The list starts the seam's height up, in the head's foot room, so
+           the first family's seam climbs into the ground as the menu's does. -->
+      <div
+        ref="list"
+        class="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        :style="{ marginTop: `-${SEAM_HEIGHT}px`, paddingTop: `${SEAM_HEIGHT}px` }"
+      >
         <DocsNav
           :active-id="props.activeId"
           variant="sheet"
