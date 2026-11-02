@@ -482,7 +482,9 @@ widgets/features; page-specific conventions live here.
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,
-  `text-lg`, its name in sentence case like its nav label: "Area chart",
+  `text-lg` in the display face, Michroma at its one weight and no
+  negative tracking, set by DocsPage for the section's own heading only,
+  never a demo's; its name in sentence case like its nav label: "Area chart",
   "OTP field", + optional "Open in the Studio") → muted description →
   `DemoCard` (Preview/Code tabs as machined segments in a `.track`, the
   picked one `.ring-on`; Inspect → the workbench, Code → the source panel, a
@@ -498,7 +500,13 @@ widgets/features; page-specific conventions live here.
   colour (the workbench's contrast reads the background through
   `backgroundBehind`, which gives up on any ancestor's image), that never
   clips (the workbench draws past it) and keeps its 1px border, clear
-  (captures add it). Its padding is 16px on phones and 40px from sm (the
+  (captures add it). A demo sits in it by its fit (`DemoCard`'s `fit`,
+  `DemoFit`): inset, or bled, where its first frame meets the well's top
+  and sides, takes its top corners and drops its own border (a surface
+  reads as the well's picture, never a framed thumbnail; the controls
+  under it, 24px below); a family sets its default through
+  `provide(DEMO_FIT, …)` (Backgrounds bleeds, its square demos and the
+  poster opt back in to the inset). Inset, its padding is 16px on phones and 40px from sm (the
   docs column is 16px from the screen's edge on phones, 24px from sm, as
   the user's design system sets), and every demo fits its well from
   320px up: a wide one (pagination, the bracket, the ASCII art) is
@@ -507,6 +515,16 @@ widgets/features; page-specific conventions live here.
   width becomes `w-full max-w-*`. Chips (framework, styling, Inspect) sit
   in tracks, 24px tall; the tab row wraps, so on a phone the Code tab's
   chips drop under the tabs instead of running off the card.
+- Docs ground: in the dark the docs wear the landing's print, the user's
+  V5 obsidian and bone (`:root.dark:has(.docs-root)` in
+  `app/styles.css`: a muted bone at AA on the ground and the raised
+  card, the border a quiet step off the ground, the ring bone) over the
+  grain (`--grain`, the one tile the landing reads too); their light
+  theme and the Studio keep the kit's neutrals. The section lists (the
+  rail and the sheet) keep each group's heading stuck to the top while
+  its sections scroll under it (`NAV_PLACE` in `DocsNav.vue` holds each
+  place's top room and the heading's ground: unseen on the rail's page
+  ground, a filled band on the page's ground in the sheet's shell).
 - Docs copy follows the landing's bans: no em dashes or middle dots in
   prose, prop `type` notes as `type: note` or `type (note)`, no uppercase
   or tracked label, no arrow-ended link; a snippet's copy matches what its

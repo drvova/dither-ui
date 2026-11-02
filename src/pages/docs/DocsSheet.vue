@@ -80,7 +80,7 @@ onBeforeUnmount(() => {
             <DitherIcon name="Close" :size="15" :stroke-width="1.5" />
           </button>
         </div>
-        <div ref="list" class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2 pb-8">
+        <div ref="list" class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-8">
           <DocsNav
             :active-id="props.activeId"
             variant="sheet"

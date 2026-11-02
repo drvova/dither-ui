@@ -930,7 +930,7 @@ const gradientCode = computed(
 </script>
 
 <template>
-  <div class="min-h-dvh bg-background font-mono text-foreground antialiased">
+  <div class="docs-root min-h-dvh bg-background font-mono text-foreground antialiased">
     <!-- Header: the site's floating capsule (glass, chrome rim), 56px with
          its margin, so the rails' top-14 and the scroll-spy line hold. -->
     <header class="sticky top-0 z-40 mx-auto w-full max-w-6xl px-4 py-1.5">
@@ -1055,7 +1055,7 @@ const gradientCode = computed(
 
     <div class="mx-auto flex w-full max-w-6xl px-4 sm:px-6">
       <!-- Sidebar -->
-      <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-52 shrink-0 overflow-y-auto py-10 pr-8 lg:block">
+      <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-52 shrink-0 overflow-y-auto pr-8 pb-10 lg:block">
         <nav aria-label="Docs sections">
           <DocsNav :active-id="activeId" variant="rail" @go="scrollTo" />
         </nav>
@@ -2244,5 +2244,16 @@ const gradientCode = computed(
 html.engine-webkit .docs-flow > section {
   content-visibility: visible;
   contain-intrinsic-size: none;
+}
+
+/* Each section's title in the display face, as the landing's section titles
+   and this page's own title: Michroma in plain ink (the metal finish stays
+   on the page title and the primary key), its one weight, no negative
+   tracking. Only the section's own heading: a demo's headings keep theirs. */
+.docs-flow > section > h2,
+.docs-flow > section > :first-child > h2 {
+  font-family: var(--display-face);
+  font-weight: 400;
+  letter-spacing: 0;
 }
 </style>

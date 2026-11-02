@@ -9,6 +9,16 @@ export const docsUrl = (id: string) => routePath(`/docs/${id}`)
  * targets at a 27px pitch) or the sections sheet (a finger's 30px ones). */
 export type NavPlace = "rail" | "sheet"
 export const NAV_LINK: Record<NavPlace, string> = { rail: "py-1 text-[11px]", sheet: "py-1.5 text-[12px]" }
+/** A group's heading sticks to the top of its list while its sections
+ * scroll under it (the landmark in a long list). The list's top room lives
+ * here, not on the scroller, since a sticky heading sticks at the
+ * scroller's content edge and its padding would show the list above it.
+ * In the rail the heading lies on the page's ground, unseen; in the sheet,
+ * over the shell's gradient, it is a filled band on that ground. */
+export const NAV_PLACE: Record<NavPlace, { top: string; head: string }> = {
+  rail: { top: "pt-10", head: "bg-background" },
+  sheet: { top: "pt-2", head: "-mx-2 rounded-md bg-background px-2" },
+}
 
 /** A part of the section in view (its heading, a gallery heading, its API
  * table), read from its DOM: what "On this page" lists. */
@@ -78,13 +88,16 @@ const GROUP_ICON: Record<string, IconName> = {
 </script>
 
 <template>
-  <div ref="root" class="grid gap-7">
+  <div ref="root" class="grid gap-7" :class="NAV_PLACE[props.variant].top">
     <div v-for="grp in GROUPS" :key="grp.title">
-      <div class="flex items-center gap-2 text-[11px] font-medium text-foreground">
+      <div
+        class="sticky top-0 z-10 flex items-center gap-2 py-1.5 text-[11px] font-medium text-foreground"
+        :class="NAV_PLACE[props.variant].head"
+      >
         <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
         <span class="spec ml-auto tabular-nums">{{ grp.items.length }}</span>
       </div>
-      <ul class="mt-2.5 grid gap-0.5 border-l border-border/60">
+      <ul class="mt-1 grid gap-0.5 border-l border-border/60">
         <li v-for="it in grp.items" :key="it.id">
           <a
             :href="docsUrl(it.id)"

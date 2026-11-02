@@ -426,6 +426,10 @@
      geometric, one weight; the mono until it loads or where it is not
      imported. Body, labels, data and code stay mono. */
   --display-face: "Michroma", var(--font-mono);
+  /* The print's grain: a 96px tile of single cells a tone under and over
+     the obsidian, never a grid. The landing wears it always, the docs in
+     the dark. */
+  --grain: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAC+ElEQVR42u1dSW7DMAwMekrgc9tTUaD//6N7DYLEES0uM9TobFhchotESrpc7sbP799+SRzX25Y6H90YVUi24tqD4QwxQjMQIJ8RYFGQVZlsgDHNbSUUxR1l0zEy3+M39G6vtSs5KxDEgDxLUzg4ooQWTfj1tu2vaD87t5KJ7hlKhduyMi0UFqHsXvBRSvD+L4xFCbUSKoXPbwPUM4KNVoZFuE9pkRsp3N7IyNmlViHZBAYv0EBYhhfTVZZkiR8tF3uegqcTEIL/zqABAuUrBstlE4RMxmeC8TsrcONj5kdRwsyqImXRH0ZoBAPdXQM8f6/QA1/h6p6SRgo7QjluShj9EYppsdF7GlleGr7etj0zxmgYBS0lTJo7Swo5+r9Hno9kYKYxI3ozFevTs5mj/k65gsb+2rMSdfQvD0TDJgzZBNB0OrMH8cyUGDJGzGpbW92gmmdrXSzd3/GevKomkF2Yl9mLNjEqAa+gYMQ0cERYS1hMFyaVjjNsBwyOD8sKE7EW+/n13dOaEZb3ymiYVohFPLg0ZzGVASsrb60s92hbwCPLoHVbyBtjyzc5sZhfxtywFobY4CukkwgfzsVFE/Tu/0xNuLQW80zI7ME2RfGek6AilRYI1iP7HV2Fy4Ixe6cx8mZFL3ruBUsBHOQrJT2uO4NTQqbf9F5zRB2JglFaV18Pz9cKGVP7jKHLGoHK789sUyOcjnQXgvfWwej1AR3cDuWZgZXOGYg5xFT76G7maEVZTioiXjROBbijYItUJ/A6c/aWJ8/FBfSjBXKvGuE+unuQLd3X6VDdgqQvgqjq++FamSEiaiKF7noJR3dEed5d1MrNKVVTLr02D9kHPtCEoUOAGjXB6dW2Sqtzvt2ev4VuOFZNVu6nHI1h1pt1pL/C/ShANxeSq0V7n1rMUEzWw26zFz0NVcM6+PxuMQzGRWXFIJpXV7P79Geeyq1CbasEAKVVPEWoq/m5Zat2SIqeubgE4jkrIV2DxvJM86P024+0wjBZzT/dUK3AHWUKTwAAAABJRU5ErkJggg==");
 }
 
 /* Muted text a step deeper than the kit's white-ground default, so it
@@ -465,6 +469,29 @@
   --float-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(212 220 225 / 0.14);
   --edge: #74797e;
   --destructive: oklch(70.4% 0.191 22.216);
+}
+
+/* The docs in the dark wear the landing's print (the user's V5 obsidian
+   and bone, a muted bone at AA on both grounds, the grain), so the site
+   reads as one product; their light theme and the Studio keep the kit's
+   neutrals. A hairline stays a hairline: the border a quiet step off the
+   ground, the docs keeping their tool chrome. */
+:root.dark:has(.docs-root) {
+  --background: #101214;
+  --foreground: #e4e1d8;
+  --card: #17191c;
+  --card-foreground: #e4e1d8;
+  --popover: #17191c;
+  --popover-foreground: #e4e1d8;
+  --muted: #1f2022;
+  --muted-foreground: #9c998f;
+  --border: #2b2e32;
+  --ring: #e4e1d8;
+}
+
+.dark .docs-root {
+  background-image: var(--grain);
+  background-size: 96px 96px;
 }
 
 @keyframes led {
