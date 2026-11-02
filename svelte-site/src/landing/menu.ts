@@ -7,6 +7,21 @@
 // kit's wipe, a dithered front down the screen.
 import { wipeStyle, type WipeStyle } from "@dither-kit/engine/wipe"
 
+/** The site's links, in order, what each band says under its name, and
+ * the width the capsule shows each from (the menu shows all of them). Each
+ * site supplies only the addresses, keyed by `id`. */
+export const MENU_LINKS = [
+  { id: "components", label: "Components", note: "Every card is the real thing, so poke it", from: "md" },
+  { id: "docs", label: "Docs", note: "Props, code and a live preview for every part", from: "md" },
+  { id: "agents", label: "Agents", note: "Ask for a screen and watch it land", from: "md" },
+  { id: "github", label: "GitHub", note: "The source, MIT licensed", from: "lg" },
+] as const
+
+export type MenuLinkId = (typeof MENU_LINKS)[number]["id"]
+
+/** The foot band: the studio, which wants a wide screen and says so. */
+export const STUDIO_LINK = { label: "Open studio", note: "An infinite canvas, best from 1024px wide" } as const
+
 /** Ink share of each link band, top to bottom. The ground's own colour
  * writes on them, AA on every step in both themes (64% is the floor;
  * `tests/theme-contrast.spec.ts` holds it). */
@@ -38,8 +53,12 @@ export const SEAM_MASK = wipeStyle(0.5, {
   height: SEAM_HEIGHT,
 }) as WipeStyle
 
-/** How the sheet arrives: the kit's wipe down the screen, at one steady pace. */
+/** How the sheet arrives: the kit's wipe down the screen, at one steady pace.
+ * It leaves the same way played back, rolling up from the foot. */
 export const SHEET_WIPE = { direction: "down", duration: 0.32, cell: 4, band: 10 } as const
+
+/** Where the menu is: shut, up, or rolling back up before it shuts. */
+export type MenuPhase = "shut" | "open" | "leaving"
 
 /** A mask as an inline style, both spellings (WebKit reads the prefixed). */
 export const maskCss = (m: WipeStyle | null) =>

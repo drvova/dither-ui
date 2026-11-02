@@ -78,24 +78,33 @@ widgets/features; page-specific conventions live here.
   ground, `--float-shadow`, no rim), sticky 8px under the top and centred
   (up to 48rem, `--head` tall with its margin): the 13px diamond mark
   (`shared/ui/BrandMark`, ember core) + "dither-ui", the `.nav-a` links
-  (one `LINKS` table: Components → the landing's `#examples`, Docs,
-  Agents → `#ask`, GitHub under its mark in a new tab; each shows from
-  md, GitHub from lg; the page's own link `aria-current`), a page's
+  (`MENU_LINKS` in `menu.ts`: id, label, the band's line and the width it
+  shows from; the page supplies only `HREF` by id, a `Record` the types
+  hold whole: Components → the landing's `#examples`, Docs, Agents →
+  `#ask`, GitHub under its mark in a new tab; each shows from md, GitHub
+  from lg; the page's own link `aria-current`), a page's
   `tools` (the docs' search and, under lg, its sections key under the
   Book glyph) and the `.key-chrome` "Open studio" (from md). Under lg the
   menu key (the sheet's bands in miniature + "Menu") opens the menu: a
-  native modal `<dialog>` filling the window (focus on its close key,
-  Escape and a taken link close it, focus back on the key, the page held
-  still; it closes when the window reaches lg), arriving as the kit's
-  wipe down the screen (`DitherReveal`, `SHEET_WIPE`). Its top row stands
-  where the header stood (the brand, the close key); under it a band per
-  link sharing the height, its name at its foot, each a step of the ink
+  native modal `<dialog>` filling the window, itself clear so the page
+  shows wherever the wipe has not reached (focus on its close key, focus
+  back on the key, the page held still), arriving as the kit's wipe down
+  the screen (`DitherReveal`, `SHEET_WIPE`). The close key and Escape (the
+  dialog's `cancel`, prevented) play that wipe back, the sheet rolling up
+  from its foot before it shuts (`MenuPhase`: shut, open, leaving; at once
+  under reduced motion); a taken link and the window reaching lg shut it
+  at once. Its top row stands where the header stood (the brand, the
+  close key, on the ground); under it a band per link sharing the height,
+  its name at its foot over a line of what is behind it (`note`; the
+  studio's says it wants 1024px), each a step of the ink
   toward the ground (`BAND_INK` 100/88/76/64%, the ground's colour
   writing on them, AA held by `tests/theme-contrast.spec.ts`), then
   "Open studio" on the ember; where two bands meet the lower climbs into
   the upper through the Bayer matrix (`SEAM_MASK`, the kit's wipe engine
-  at a fixed progress). A focused band rings in the ring ink with the
-  ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
+  at a fixed progress). A hovered, focused or pressed band's words lean in
+  (8px, 12px pressed, the settle curve, 160ms) and the menu key's bands
+  part on a hover (none of it under reduced motion). A focused band rings
+  in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
   (the capsule and the sheet) are the one table and stylesheet; the
   Svelte landing carries both byte for byte. It stays positioned
   (`z-40`): `main` is `relative isolate`, so a positioned sibling paints

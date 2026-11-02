@@ -1,12 +1,19 @@
 // @rstest-environment jsdom
-import { describe, expect, it } from "rstack/test"
+import { describe, expect, it, rs } from "rstack/test"
 import { mount } from "@vue/test-utils"
-import { readFileSync } from "node:fs"
 import { h, nextTick } from "vue"
 import { MARK_CELLS as LANDING_MARK } from "@/pages/landing/brand"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { SiteHeader } from "@/widgets/site-header"
-import { BAND_INK, SEAM_HEIGHT, SEAM_MASK, bandFill } from "@/widgets/site-header/menu"
+import {
+  BAND_INK,
+  MENU_LINKS,
+  SEAM_HEIGHT,
+  SEAM_MASK,
+  SHEET_WIPE,
+  STUDIO_LINK,
+  bandFill,
+} from "@/widgets/site-header/menu"
 
 // One header for the pages that read: the same links and key on each, the
 // page's own link current, a page's tools beside the key.
@@ -37,18 +44,20 @@ describe("site header", () => {
     expect(key.attributes("aria-expanded")).toBe("true")
     expect(document.documentElement.style.overflow).toBe("hidden")
     const bands = w.findAll(".menu-band")
-    expect(bands.map((b) => b.text().replace(/\s*\(opens.*$/, ""))).toEqual([
-      "Components",
-      "Docs",
-      "Agents",
-      "GitHub",
-      "Open studio",
-    ])
+    const say = (sel: string) =>
+      bands.map((b) =>
+        b
+          .find(sel)
+          .text()
+          .replace(/\s*\(opens.*$/, ""),
+      )
+    expect(say(".menu-name")).toEqual([...MENU_LINKS.map((l) => l.label), STUDIO_LINK.label])
+    expect(say(".menu-note")).toEqual([...MENU_LINKS.map((l) => l.note), STUDIO_LINK.note])
     expect(bands.slice(0, -1).map((b) => b.attributes("style"))).toEqual(
-      BAND_INK.map((_, i) => `background: ${bandFill(i)};`),
+      MENU_LINKS.map((_, i) => `background: ${bandFill(i)};`),
     )
-    expect(w.findAll(".menu-band[aria-current]").map((b) => b.text())).toEqual(["Docs"])
-    // A link taken closes the sheet and frees the page.
+    expect(w.findAll(".menu-band[aria-current] .menu-name").map((b) => b.text())).toEqual(["Docs"])
+    // A link taken shuts the sheet at once and frees the page.
     await bands[0].trigger("click")
     expect(key.attributes("aria-expanded")).toBe("false")
     expect(document.documentElement.style.overflow).toBe("")
@@ -56,17 +65,32 @@ describe("site header", () => {
     w.unmount()
   })
 
+  it("rolls the sheet back up before it shuts, from the close key and from Escape", async () => {
+    rs.useFakeTimers()
+    try {
+      const w = mount(SiteHeader, { props: { current: "landing" }, attachTo: document.body })
+      for (const close of [() => w.find(".menu-close").trigger("click"), () => w.find("dialog").trigger("cancel")]) {
+        await w.find(".menu-key").trigger("click")
+        await nextTick()
+        await close()
+        // Leaving: the sheet still up, playing its wipe back; the key says shut.
+        expect(w.find("[data-phase]").attributes("data-phase")).toBe("leaving")
+        expect(w.find(".menu-key").attributes("aria-expanded")).toBe("false")
+        expect(document.documentElement.style.overflow).toBe("hidden")
+        rs.advanceTimersByTime(SHEET_WIPE.duration * 1000)
+        await nextTick()
+        expect(w.find("[data-phase]").exists()).toBe(false)
+        expect(document.documentElement.style.overflow).toBe("")
+      }
+      w.unmount()
+    } finally {
+      rs.useRealTimers()
+    }
+  })
+
   it("seams the bands with the kit's dither: a mask exactly the seam's height", () => {
     expect(SEAM_MASK.image).toMatch(/^url\("data:image\/svg\+xml/)
     expect(SEAM_MASK.size).toMatch(new RegExp(` ${SEAM_HEIGHT}px$`))
-  })
-
-  it("lists the same links, in order, on the Svelte landing", () => {
-    const svelte = readFileSync(new URL("../svelte-site/src/landing/SiteHeader.svelte", import.meta.url), "utf8")
-    const labels = [...svelte.matchAll(/\{ label: "([^"]+)"/g)].map((m) => m[1])
-    const vue = readFileSync(new URL("../src/widgets/site-header/SiteHeader.vue", import.meta.url), "utf8")
-    expect(labels).toEqual([...vue.matchAll(/\{ label: "([^"]+)"/g)].map((m) => m[1]))
-    expect(labels).toEqual(["Components", "Docs", "Agents", "GitHub"])
   })
 
   it("draws the same diamond the landing's lockup leads with", () => {

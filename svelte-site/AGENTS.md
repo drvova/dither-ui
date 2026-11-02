@@ -41,8 +41,9 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   `pixel-type.ts`, `plate.ts`, `spotlight.ts`, `stat.ts`, `story.ts`), and the
   Vue header's menu table and stylesheet (from `src/widgets/site-header/`;
   `menu.ts`, `site-header.css`, which `src/landing/SiteHeader.svelte` uses
-  with its own links, its own wipe action over the engine's `wipeStyle`,
-  and a native `<dialog>`). Svelte-specific
+  with its own addresses (`HREF` by link id), its own wipe action over the
+  engine's `wipeStyle` (played back as the sheet leaves) and a native
+  `<dialog>`). Svelte-specific
   glue stays out of the copies: they import the engine as the Vue site names
   it, so `@dither-kit/engine/*` resolves to the Svelte kit's verbatim engine
   (`rstack.config.ts` alias + `tsconfig.json` path) and the type-only

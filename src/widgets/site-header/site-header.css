@@ -53,7 +53,9 @@
   height: 3px;
 }
 
-/* The sheet fills the window, over everything (the top layer). */
+/* The sheet fills the window, over everything (the top layer). The dialog
+   itself is clear: the page shows wherever the wipe has not reached, as the
+   sheet comes down and as it rolls back up. */
 .site-menu {
   position: fixed;
   inset: 0;
@@ -65,11 +67,11 @@
   padding: 0;
   border: 0;
   color: var(--background);
-  background: var(--background);
+  background: transparent;
 }
 
 .site-menu::backdrop {
-  background: var(--background);
+  background: transparent;
 }
 
 .menu-sheet {
@@ -89,6 +91,7 @@
   height: var(--head, 64px);
   padding: 0 23px 0 28px;
   color: var(--foreground);
+  background: var(--background);
 }
 
 .menu-close {
@@ -108,22 +111,61 @@
   flex-direction: column;
 }
 
-/* A band per link, sharing the height left, its name at its foot. */
+/* A band per link, sharing the height left, its name at its foot and what
+   is behind it under the name. */
 .menu-band {
   position: relative;
   display: flex;
   flex: 1;
-  gap: 12px;
-  align-items: flex-end;
-  min-height: 64px;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  min-height: 76px;
   padding: 0 28px 16px;
+}
+
+.menu-name {
+  display: flex;
+  gap: 12px;
+  align-items: center;
   font-size: 20px;
   line-height: 1.2;
 }
 
-.menu-band[aria-current] {
+.menu-note {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.menu-band[aria-current] .menu-name {
   text-decoration: underline;
   text-underline-offset: 6px;
+}
+
+/* A hand on a band: its words lean into it, as a key gives under a press. */
+@media (prefers-reduced-motion: no-preference) {
+  .menu-name,
+  .menu-note {
+    transition: translate 160ms var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  .menu-band:hover :is(.menu-name, .menu-note),
+  .menu-band:focus-visible :is(.menu-name, .menu-note) {
+    translate: 8px 0;
+  }
+
+  .menu-band:active :is(.menu-name, .menu-note) {
+    translate: 12px 0;
+  }
+
+  /* The key's bands part on a hover, showing it holds a stack of them. */
+  .menu-chip {
+    transition: gap 160ms var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+
+  .menu-key:hover .menu-chip {
+    gap: 1px;
+  }
 }
 
 /* Where it meets the band above, the band climbs into it, dithered. */
