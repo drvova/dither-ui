@@ -107,12 +107,18 @@ async function renderOgCards() {
     console.log("og: no renderer page — skipping cards (the build's og/index entry makes it)")
     return
   }
-  // A marker skips the render when neither the renderer nor the manifest
-  // changed and the cards are still there (a prerender run on its own).
+  // Each section's lede (its first paragraph in the docs snapshot), which
+  // its card sets under its title as its embed does.
+  const ledes = Object.fromEntries((docsFlow?.kids ?? []).filter((k) => k.id && k.lede).map((k) => [k.id, k.lede]))
+  await writeFile(join(DIST, "og", "ledes.json"), JSON.stringify(ledes))
+  // A marker skips the render when neither the renderer, the manifest nor
+  // the ledes changed and the cards are still there (a prerender run on
+  // its own).
   const { createHash } = await import("node:crypto")
   const hash = createHash("sha256")
     .update(await readFile(renderer))
     .update(await readFile(join(DIST, "og", "sections.json")))
+    .update(JSON.stringify(ledes))
     .digest("hex")
     .slice(0, 16)
   const marker = join(DIST, "og", ".cards-hash")

@@ -717,10 +717,14 @@ widgets/features; page-specific conventions live here.
   all the cards as a spec label at the column's end (its provenance), a
   graphite speed tag under the brand (a section's family, a route's own
   `tag`), the card's number again as a race-bib figure printed through the
-  Bayer matrix in the band down to the title (never under type), the
+  Bayer matrix in a quiet ink in the band down to the title (never under
+  type), the
   title in chrome (the display face, the site's chrome ramp one horizon
-  per line; a route's on one line, a section's on two at most), a route's
-  line in the muted ink, a row of key and value chips (slanted plates:
+  per line; a route's on one line, a section's on two at most), its line
+  in the muted ink (a route's own; a section's lede, which the prerender
+  lifts from the docs snapshot into `og/ledes.json` before it draws the
+  cards; `ogLede` sets whole sentences in two lines, else a word cut and an
+  ellipsis), a row of key and value chips (slanted plates:
   screen, seed, cell, the print's real figures), and the address in the
   satin chrome key, its foot on the print's foot; the print stands on the
   right in a hardshell (two corners cut, a chrome glint on its edge), its
@@ -738,8 +742,8 @@ widgets/features; page-specific conventions live here.
   their ids may never be section ids; the route templates' image alt is
   the card's. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
   screens, the swell's beats, home as the hero's print with its inks, no
-  bone on bone, the print clear of the type, AA, balanced wrap, caps only
-  on labels and plates) and the share-card and
+  bone on bone, the print clear of the type, AA, balanced wrap, the lede's
+  cut, caps only on labels and plates) and the share-card and
   renderer cases in `tests/crawler-files.spec.ts` (every page's embed
   under Discord's 3,000 byte cap with link buttons only and no accent bar,
   the oEmbed photo, each route head carrying its card's tags, the bans,

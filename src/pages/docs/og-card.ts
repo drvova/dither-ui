@@ -32,6 +32,8 @@ export const OG_INK = {
     plateInk: "#d4dce1",
     /** The print's well, under its clear cells. */
     well: "#0b0d0e",
+    /** The ghosted number's ink: a quiet step off the ground. */
+    ghost: "#2c3034",
     /** The chrome ramp on the title, top to foot (the site's dark chrome). */
     chrome: [
       [0, "#ffffff"],
@@ -58,6 +60,7 @@ export const OG_INK = {
     plate: "#25292d",
     plateInk: "#d4dce1",
     well: "#d6d2c6",
+    ghost: "#c9c5b8",
     chrome: [
       [0, "#11151b"],
       [0.36, "#2d343e"],
@@ -89,7 +92,7 @@ export const OG_KEY = [
 /** The ghosted number in the column: its band's top (under the speed
  * tag), its gap above the title and least height, its figures' cap height
  * as a share of their size, its cell and the share of cells it lights. */
-export const OG_GHOST = { top: 160, gap: 24, min: 64, cap: 0.74, cell: 4, tone: 0.44 } as const
+export const OG_GHOST = { top: 160, gap: 24, min: 64, cap: 0.74, cell: 4, tone: 0.6 } as const
 /** The kit's 4x4 Bayer ranks, the ghost's order. */
 export const OG_BAYER = [
   [0, 8, 2, 10],
@@ -174,4 +177,24 @@ export function ogWrap(words: string[], measure: (text: string) => number, max: 
     else hi = mid
   }
   return greedy(hi)
+}
+
+/** A card's line in at most `rows` lines of `max`: the most whole
+ * sentences that fit, else the first sentence cut at a word with an
+ * ellipsis. */
+export function ogLede(text: string, measure: (text: string) => number, max: number, rows = 2): string[] {
+  const fit = (t: string) => ogWrap(t.split(" ").filter(Boolean), measure, max)
+  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [text]
+  let said = ""
+  for (const sentence of sentences) {
+    const next = said ? `${said} ${sentence.trim()}` : sentence.trim()
+    if (fit(next).length > rows) break
+    said = next
+  }
+  if (said) return fit(said)
+  const lines = fit(text).slice(0, rows)
+  const cut = lines[rows - 1].split(" ")
+  while (cut.length > 1 && measure(`${cut.join(" ")}\u2026`) > max) cut.pop()
+  lines[rows - 1] = `${cut.join(" ").replace(/[,;:.(]$/, "")}\u2026`
+  return lines
 }

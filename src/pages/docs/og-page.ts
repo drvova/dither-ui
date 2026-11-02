@@ -26,6 +26,7 @@ import {
   OG_TEXT,
   OG_W,
   ogCardSeed,
+  ogLede,
   ogWrap,
   type OgCard,
 } from "./og-card"
@@ -60,11 +61,20 @@ sheet.height = OG_PRINT.rows
 const sheetCtx = sheet.getContext("2d")!
 
 let SECTIONS: Section[] = []
+// Each section's lede, which the prerender lifts from the docs (absent on a
+// build that skipped it: a section card then sets no line).
+let LEDES: Record<string, string> = {}
 const ready = Promise.all([
   fetch("./sections.json")
     .then((r) => r.json())
     .then((s: Section[]) => {
       SECTIONS = s
+    }),
+  fetch("./ledes.json")
+    .then((r) => (r.ok ? r.json() : {}))
+    .catch(() => ({}))
+    .then((l: Record<string, string>) => {
+      LEDES = l
     }),
   document.fonts.load(`400 64px ${DISPLAY}`),
 ])
@@ -93,7 +103,7 @@ function cardOf(id: string, seed = 0, inv = false): Sheet {
     id: s.id,
     kind: "section",
     title: s.label.replace(/\.+$/, ""),
-    line: address,
+    line: LEDES[s.id] ?? "",
     seed: seed || ogCardSeed(s.id),
     inv,
     tag: s.group,
@@ -187,19 +197,17 @@ function type(card: Sheet, ink: Ink): number {
     x += plated(k.toUpperCase(), x, cy, 30, 15, ink.plate, ink.plateInk) - OG_SLANT + 2
     x += plated(v.toUpperCase(), x, cy, 30, 15, ink.ink, ink.ground) + 10
   }
-  // The line: a route's own, under the title (a section's is its address,
-  // already on the key).
+  // The line under the title: a route's own, a section's lede, in two
+  // lines at most (a lede cut at a word with an ellipsis past them).
   let base = cy - 26
-  if (route) {
-    ctx.letterSpacing = "0px"
-    ctx.font = `400 22px ${MONO}`
+  const lines = lineOf(card.line)
+  if (lines.length) {
     ctx.fillStyle = ink.muted
-    const lines = ogWrap(card.line.split(" "), (t) => ctx.measureText(t).width, OG_TEXT.max).slice(0, 2)
     lines.forEach((l, i) => ctx.fillText(l, OG_TEXT.x, base - (lines.length - 1 - i) * 32))
     base -= (lines.length - 1) * 32 + 50
   } else base -= 4
   // The title, in as few lines as fit.
-  let size = route ? 66 : 54
+  let size = route ? 66 : 60
   let title: string[] = []
   for (;;) {
     ctx.font = `400 ${size}px ${DISPLAY}`
@@ -218,6 +226,13 @@ function type(card: Sheet, ink: Ink): number {
   })
   // The title's top: the ghost's band ends a gap above it.
   return base - (title.length - 1) * lead - size * 0.78
+}
+
+/** A card's line set in the muted mono: two lines of the column at most. */
+function lineOf(text: string): string[] {
+  ctx.letterSpacing = "0px"
+  ctx.font = `400 22px ${MONO}`
+  return text ? ogLede(text, (t) => ctx.measureText(t).width, OG_TEXT.max) : []
 }
 
 /** The print in a hardshell: two opposite corners cut, a chrome glint on
@@ -292,7 +307,7 @@ function number(card: Sheet, ink: Ink, bottom: number) {
   ghostCtx.fillText(text, ghost.width, band)
   const lit = ghostCtx.getImageData(0, 0, ghost.width, band).data
   const c = OG_GHOST.cell
-  ctx.fillStyle = ink.ink
+  ctx.fillStyle = ink.ghost
   for (let y = 0; y + c <= band; y += c)
     for (let x = 0; x + c <= ghost.width; x += c) {
       if (lit[((y + c / 2) * ghost.width + x + c / 2) * 4 + 3] < 128) continue

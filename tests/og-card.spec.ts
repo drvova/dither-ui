@@ -13,6 +13,7 @@ import {
   OG_TEXT,
   OG_W,
   ogCardSeed,
+  ogLede,
   ogSeed,
   ogWrap,
 } from "@/pages/docs/og-card"
@@ -104,6 +105,21 @@ describe("share card type", () => {
     expect(lines.every((l) => measure(l) <= 200)).toBe(true)
     // Balanced: the greedy split would leave one word on the last line.
     expect(lines).toEqual(["Admin with a", "profile panel"])
+  })
+
+  it("sets a lede in two lines: whole sentences where they fit, else a word cut and an ellipsis", () => {
+    const lede = "Canvas-filled button; density lifts. Four fills, seven colors and more besides."
+    // The first sentence fits two lines and the second would not: it stops there.
+    expect(ogLede(lede, measure, 220).join(" ")).toBe("Canvas-filled button; density lifts.")
+    // Both fit: both are set.
+    const both = ogLede(lede, measure, 440)
+    expect(both).toHaveLength(2)
+    expect(both.join(" ")).toBe(lede)
+    const long = "A stack of disclosure rows animated through grid template rows, each with a rail."
+    const cut = ogLede(long, measure, 200)
+    expect(cut).toHaveLength(2)
+    expect(cut[1].endsWith("\u2026")).toBe(true)
+    expect(cut.every((l) => measure(l) <= 200)).toBe(true)
   })
 
   it("keeps the copy bans in the renderer: caps only on spec labels and speed tags", () => {
