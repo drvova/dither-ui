@@ -28,6 +28,7 @@ const lockup = ref<HTMLElement | null>(null)
 // Indexed by the lockup's order: a v-for ref array keeps no order.
 const cells: HTMLElement[] = []
 let io: IntersectionObserver | null = null
+let near: IntersectionObserver | null = null
 // The moment's animations, two per cell; none where it does not move.
 let moves: Animation[] = []
 const home = () =>
@@ -60,18 +61,9 @@ const legs = (path: Waypoint[], axis: "x" | "y", home: number, value: (d: number
     return { ...value(p[axis] - home), offset: p.t / MOMENT.end, easing: `steps(${Math.max(1, steps)}, end)` }
   })
 
-onMounted(() => {
-  const set = lockup.value
-  const field = set?.offsetParent
-  if (
-    !set ||
-    !(field instanceof HTMLElement) ||
-    !cells[0] ||
-    typeof IntersectionObserver === "undefined" ||
-    typeof cells[0].animate !== "function" ||
-    matchMedia(REDUCED).matches
-  )
-    return emit("settled")
+/** Build the moment (each cell's path and its two stepped animations), held
+ * loose until the lockup's home is in view, clear of the bottom edge. */
+function build(set: HTMLElement, field: HTMLElement) {
   const slots = LOCKUP.map((c) => ({ x: set.offsetLeft + c.x * CELL, y: set.offsetTop + c.y * CELL }))
   const box = { width: field.clientWidth, height: field.clientHeight }
   const paths = choreograph(scene(box.height, set.offsetTop), box, slots, CELL)
@@ -86,7 +78,6 @@ onMounted(() => {
       MOMENT.end,
     ),
   ])
-  // Held loose until the lockup's home is in view, clear of the bottom edge.
   for (const move of moves) move.pause()
   home()
   io = new IntersectionObserver(
@@ -96,8 +87,40 @@ onMounted(() => {
     { threshold: 1, rootMargin: "0px 0px -10% 0px" },
   )
   io.observe(set)
+}
+
+onMounted(() => {
+  const set = lockup.value
+  const field = set?.offsetParent
+  if (
+    !set ||
+    !(field instanceof HTMLElement) ||
+    !cells[0] ||
+    typeof IntersectionObserver === "undefined" ||
+    typeof cells[0].animate !== "function" ||
+    matchMedia(REDUCED).matches
+  )
+    return emit("settled")
+  // The moment is built as the lockup comes within a screen of view, not
+  // at mount: a brand far down the page (a plate, the footer) costs the
+  // page's first load nothing (measured: building all four at mount was
+  // a sixth of the landing's script at 4x CPU). Out there, unbuilt, its
+  // cells stand home; nobody sees them until they are loose.
+  near = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry?.isIntersecting) return
+      near?.disconnect()
+      near = null
+      build(set, field)
+    },
+    { rootMargin: "100% 0px" },
+  )
+  near.observe(set)
 })
-onBeforeUnmount(() => io?.disconnect())
+onBeforeUnmount(() => {
+  io?.disconnect()
+  near?.disconnect()
+})
 </script>
 
 <template>

@@ -254,7 +254,10 @@ try {
   for (const route of ROUTES) {
     const entry = join(DIST, route.entry)
     const meta = extractStaticMeta(await readFile(entry, "utf8"))
-    await page.goto(`http://127.0.0.1:${port}${route.path}`, { waitUntil: "networkidle" })
+    // The docs mount a pack of sections only once it is opened; the
+    // snapshot asks for every one (ALL_SECTIONS_PARAM in docs/packs.ts).
+    const query = route.minSections ? "?all-sections" : ""
+    await page.goto(`http://127.0.0.1:${port}${route.path}${query}`, { waitUntil: "networkidle" })
     if (route.minSections) {
       // The docs chunk is async; wait until the full section IA is mounted,
       // then let canvas-driven layout settle before serializing.
@@ -306,8 +309,8 @@ try {
         if (crumb && rail) {
           const per = {}
           for (const list of rail.querySelectorAll("ul[id]")) {
-            const head = list.previousElementSibling
-            const title = [...(head?.childNodes ?? [])].find((n) => n.nodeType === 3 && n.textContent.trim())
+            // The family's name, as its heading carries it (DocsNav's data-group).
+            const title = list.previousElementSibling?.getAttribute("data-group")
             const links = [...list.querySelectorAll(":scope > li > a")]
             const first = links[0]?.getAttribute("href")
             for (const a of links) {
@@ -318,7 +321,7 @@ try {
               const copy = crumb.cloneNode(true)
               const group = copy.querySelectorAll("a")[1]
               if (group && title && first) {
-                group.textContent = title.textContent.trim()
+                group.textContent = title
                 group.setAttribute("href", first)
                 group.removeAttribute("aria-current")
               }

@@ -7,6 +7,7 @@
   // miniature, opens them as a modal sheet of tone steps that arrives as the
   // kit's wipe and rolls back up when it is closed. Sticky is positioned,
   // and z-40 keeps it over main, which isolates the page art.
+  import { coverPage } from "@dither-kit/engine/cover"
   import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
   import { spring } from "@dither-kit/engine/spring"
   import { wipeStyle } from "@dither-kit/engine/wipe"
@@ -59,12 +60,15 @@
     lock(true)
     await tick()
     if (!sheet?.open) sheet?.showModal?.()
+    // The sheet covers the page: the kit's loops under it hold their frame.
+    coverPage(sheet)
   }
   /** Shut at once: a link taken (the page is moving on), the window grown. */
   function shut() {
     clearTimeout(leaving)
     if (phase === "shut") return
     phase = "shut"
+    coverPage(null)
     lock(false)
     if (sheet?.open) sheet.close()
     key?.focus()
@@ -74,6 +78,8 @@
     if (phase !== "open") return
     if (pixelPrefersReducedMotion()) return shut()
     phase = "leaving"
+    // The page wakes as the sheet rolls up off it.
+    coverPage(null)
     leaving = window.setTimeout(shut, SHEET_WIPE.duration * 1000)
   }
   // Escape asks the dialog to cancel: it leaves the same way the close key does.
@@ -115,7 +121,10 @@
     return () => {
       wide.removeEventListener("change", onWide)
       clearTimeout(leaving)
-      if (phase !== "shut") lock(false)
+      if (phase !== "shut") {
+        lock(false)
+        coverPage(null)
+      }
     }
   })
 </script>

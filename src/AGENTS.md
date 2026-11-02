@@ -482,6 +482,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - Docs sections are DIRECT children of `.docs-flow`: the page shows one
   at a time by toggling `hidden` on them (`pages/AGENTS.md`, Wayfinding),
   and the prerender lifts each into its own static page by the same rule.
+  A section a pack renders is mounted only once opened (`docs/packs.ts`):
+  the prerender asks for all of them (`/docs?all-sections`,
+  `ALL_SECTIONS_PARAM`) and reads each family's name off its rail heading's
+  `data-group`; a new pack is a row in `PACKS` and a `v-if="mounted(...)"`.
   New section wrappers must stay direct children of `.docs-flow`.
 - Page transitions: the routes (`/`, `/docs`, `/studio` and the section
   pages) opt into cross-document view transitions in `app/styles.css`

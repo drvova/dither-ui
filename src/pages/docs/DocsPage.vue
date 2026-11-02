@@ -32,7 +32,7 @@ import {
   type GradientDirection,
   type PixelBloom,
 } from "@dither-kit"
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from "vue"
 import { assetPath, appPathname, modKey, routePath, useTheme } from "@/shared/lib"
 import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
@@ -42,6 +42,7 @@ import DemoCard from "./DemoCard.vue"
 import SectionShare from "./SectionShare.vue"
 import DocsNav, { docsUrl, type PagePart } from "./DocsNav.vue"
 import DocsSheet, { SHEET_ID } from "./DocsSheet.vue"
+import { ALL_SECTIONS_PARAM, packOpen, type PackName } from "./packs"
 import { groupOf, neighbours, sectionOf, SECTION_IDS } from "./pages"
 import { SiteHeader } from "@/widgets/site-header"
 import OnThisPage from "./OnThisPage.vue"
@@ -540,9 +541,21 @@ const fromHistory = () => {
   window.scrollTo({ top: 0, behavior: "auto" })
 }
 
-/* Only the section on this page shows: the rest of the flow stays mounted
-   (its demos never reveal, so they cost nothing) but hidden, so opening
-   another section is instant and keeps each demo's state. */
+/* Only the section on this page shows. A pack of sections mounts once one
+   of them has been opened here (`packs.ts`), then stays, hidden while
+   another shows, so going back is instant and keeps each demo's state; the
+   prerender asks for every pack (`?all-sections`). The sections DocsPage
+   writes itself stay mounted, hidden. */
+const seen = shallowRef<ReadonlySet<string>>(new Set())
+watch(
+  shown,
+  (id) => {
+    if (id && !seen.value.has(id)) seen.value = new Set([...seen.value, id])
+  },
+  { immediate: true, flush: "sync" },
+)
+const allSections = new URLSearchParams(location.search).has(ALL_SECTIONS_PARAM)
+const mounted = (name: PackName) => packOpen(name, seen.value, allSections)
 const flow = ref<HTMLElement | null>(null)
 watch(
   [shown, flow],
@@ -1009,10 +1022,10 @@ const gradientCode = computed(
           <QuickStart />
 
           <!-- Primitives: box, text, divider, visually-hidden -->
-          <PrimitivesDocs />
+          <PrimitivesDocs v-if="mounted('PrimitivesDocs')" />
 
           <!-- Typography: heading, label, captions, links, truncation -->
-          <TypographyDocs />
+          <TypographyDocs v-if="mounted('TypographyDocs')" />
 
           <!-- Styling -->
           <section id="styling" class="mt-16 scroll-mt-24">
@@ -1460,25 +1473,25 @@ const gradientCode = computed(
           </section>
 
           <!-- Auth cards: sign up, magic link, two-factor -->
-          <AuthExamples />
+          <AuthExamples v-if="mounted('AuthExamples')" />
 
           <!-- Product blocks: pricing, activity feed, changelog -->
-          <ProductExamples />
+          <ProductExamples v-if="mounted('ProductExamples')" />
 
           <!-- Sidebar blocks: dashboard, docs nav, admin panel -->
-          <SidebarExamples />
+          <SidebarExamples v-if="mounted('SidebarExamples')" />
 
           <!-- Stat blocks: KPI cards, chart cards -->
-          <StatsExamples />
+          <StatsExamples v-if="mounted('StatsExamples')" />
 
           <!-- Table block: filter + sort + select + paginate -->
-          <TableExamples />
+          <TableExamples v-if="mounted('TableExamples')" />
 
           <!-- Chat block: conversations + live thread -->
-          <ChatExamples />
+          <ChatExamples v-if="mounted('ChatExamples')" />
 
           <!-- Notification block: tabs + unread state -->
-          <NotificationsExamples />
+          <NotificationsExamples v-if="mounted('NotificationsExamples')" />
 
           <!-- Area -->
           <section id="area" class="mt-16 scroll-mt-24">
@@ -1970,46 +1983,46 @@ const gradientCode = computed(
           </section>
 
           <!-- Form controls: switch, checkbox, slider, progress -->
-          <FormDocs />
+          <FormDocs v-if="mounted('FormDocs')" />
 
           <!-- Feedback: badge, skeleton, spinner, separator -->
-          <FeedbackDocs />
+          <FeedbackDocs v-if="mounted('FeedbackDocs')" />
 
           <!-- Structure: tabs, collapsible, dialog, kbd -->
-          <StructureDocs />
+          <StructureDocs v-if="mounted('StructureDocs')" />
 
           <!-- Layout: shell, rail, console, canvas, grid -->
-          <LayoutDocs />
+          <LayoutDocs v-if="mounted('LayoutDocs')" />
 
           <!-- Media & data: video player, bracket, schedule -->
-          <MediaDocs />
+          <MediaDocs v-if="mounted('MediaDocs')" />
 
           <!-- Fields & forms -->
-          <FieldDocs />
+          <FieldDocs v-if="mounted('FieldDocs')" />
 
           <!-- Selection -->
-          <SelectionDocs />
+          <SelectionDocs v-if="mounted('SelectionDocs')" />
 
           <!-- Form completions: password, search, scrub, hotkey, inline… -->
-          <FormsDocs />
+          <FormsDocs v-if="mounted('FormsDocs')" />
 
           <!-- Overlays & menus -->
-          <OverlayDocs />
+          <OverlayDocs v-if="mounted('OverlayDocs')" />
 
           <!-- Surfaces & status -->
-          <SurfaceDocs />
+          <SurfaceDocs v-if="mounted('SurfaceDocs')" />
 
           <!-- Navigation & data -->
-          <NavigationDocs />
+          <NavigationDocs v-if="mounted('NavigationDocs')" />
 
           <!-- Backgrounds: aurora, faulty terminal, ferrofluid -->
-          <BackgroundsDocs />
+          <BackgroundsDocs v-if="mounted('BackgroundsDocs')" />
 
           <!-- Text animations: gradient, shiny, glitch, split, rotating, count -->
-          <TextDocs />
+          <TextDocs v-if="mounted('TextDocs')" />
 
           <!-- Animations: content, borders, cursor and hover effects -->
-          <AnimationsDocs />
+          <AnimationsDocs v-if="mounted('AnimationsDocs')" />
 
           <!-- Palette -->
           <section id="palette" class="mt-16 scroll-mt-24">

@@ -31,6 +31,7 @@
   // Indexed by the lockup's order.
   const cells: HTMLElement[] = []
   let io: IntersectionObserver | null = null
+  let near: IntersectionObserver | null = null
   // The moment's animations, two per cell; none where it does not move.
   let moves: Animation[] = []
   const home = () =>
@@ -63,6 +64,34 @@
       return { ...value(p[axis] - origin), offset: p.t / MOMENT.end, easing: `steps(${Math.max(1, steps)}, end)` }
     })
 
+  /** Build the moment (each cell's path and its two stepped animations), held
+   * loose until the lockup's home is in view, clear of the bottom edge. */
+  function build(set: HTMLElement, field: HTMLElement) {
+    const slots = LOCKUP.map((c) => ({ x: set.offsetLeft + c.x * CELL, y: set.offsetTop + c.y * CELL }))
+    const box = { width: field.clientWidth, height: field.clientHeight }
+    const paths = choreograph(scene(box.height, set.offsetTop), box, slots, CELL)
+    // Each axis its own animation, so each steps whole cells.
+    moves = cells.flatMap((el, i) => [
+      el.animate(
+        legs(paths[i], "x", slots[i].x, (d) => ({ translate: `${d}px 0` })),
+        MOMENT.end,
+      ),
+      el.animate(
+        legs(paths[i], "y", slots[i].y, (d) => ({ transform: `translateY(${d}px)` })),
+        MOMENT.end,
+      ),
+    ])
+    for (const move of moves) move.pause()
+    home()
+    io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) play()
+      },
+      { threshold: 1, rootMargin: "0px 0px -10% 0px" },
+    )
+    io.observe(set)
+  }
+
   onMount(() => {
     const set = lockup
     const field = set?.offsetParent
@@ -75,32 +104,26 @@
       matchMedia(REDUCED).matches
     )
       return onsettled?.()
-    const slots = LOCKUP.map((c) => ({ x: set.offsetLeft + c.x * CELL, y: set.offsetTop + c.y * CELL }))
-    const box = { width: field.clientWidth, height: field.clientHeight }
-    const paths = choreograph(scene(box.height, set.offsetTop), box, slots, CELL)
-    // Each axis its own animation, so each steps whole cells.
-    moves = cells.flatMap((el, i) => [
-      el.animate(
-        legs(paths[i], "x", slots[i].x, (d) => ({ translate: `${d}px 0` })),
-        MOMENT.end
-      ),
-      el.animate(
-        legs(paths[i], "y", slots[i].y, (d) => ({ transform: `translateY(${d}px)` })),
-        MOMENT.end
-      ),
-    ])
-    // Held loose until the lockup's home is in view, clear of the bottom edge.
-    for (const move of moves) move.pause()
-    home()
-    io = new IntersectionObserver(
+    // The moment is built as the lockup comes within a screen of view, not
+    // at mount: a brand far down the page (a plate, the footer) costs the
+    // page's first load nothing (measured: building all four at mount was
+    // a sixth of the landing's script at 4x CPU). Out there, unbuilt, its
+    // cells stand home; nobody sees them until they are loose.
+    near = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting) play()
+        if (!entry?.isIntersecting) return
+        near?.disconnect()
+        near = null
+        build(set, field)
       },
-      { threshold: 1, rootMargin: "0px 0px -10% 0px" }
+      { rootMargin: "100% 0px" },
     )
-    io.observe(set)
+    near.observe(set)
   })
-  onDestroy(() => io?.disconnect())
+  onDestroy(() => {
+    io?.disconnect()
+    near?.disconnect()
+  })
 </script>
 
 <div

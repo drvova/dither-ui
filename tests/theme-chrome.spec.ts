@@ -8,7 +8,7 @@ import { describe, expect, it } from "rstack/test"
 import { useTheme } from "../src/shared/lib/useTheme"
 
 describe("theme chrome", () => {
-  it("tints every theme-color with the page's ground on mount and on a toggle", () => {
+  it("tints every theme-color with the page's ground after the first paint and on a toggle", async () => {
     document.head.innerHTML = `
       <meta name="theme-color" content="#08090b" media="(prefers-color-scheme: dark)" />
       <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />`
@@ -24,6 +24,10 @@ describe("theme chrome", () => {
     )
     const tints = () =>
       [...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')].map((m) => m.content)
+    // Not inside the mount (that forced a style pass over the fresh page):
+    // once the first frame has painted.
+    expect(tints()).toEqual(["#08090b", "#ffffff"])
+    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 1)))
     expect(tints()).toEqual(["rgb(8, 9, 11)", "rgb(8, 9, 11)"])
     document.body.style.backgroundColor = "rgb(255, 255, 255)"
     theme.toggle()

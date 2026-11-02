@@ -123,6 +123,7 @@ const GROUP_ICON: Record<string, IconName> = {
         class="nav-head sticky top-0 z-10 flex min-h-7 w-full items-center gap-2 py-1.5 text-left text-[11px] font-medium text-foreground"
         :class="NAV_PLACE[props.variant].head"
         :style="band(gi) && { background: band(gi) }"
+        :data-group="grp.title"
         :aria-expanded="opened.has(grp.title)"
         :aria-controls="listId(grp.title)"
         @click="fold(grp.title)"

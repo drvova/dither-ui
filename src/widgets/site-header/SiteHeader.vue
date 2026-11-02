@@ -9,6 +9,7 @@
 // when it is closed. Sticky is positioned, and z-40 keeps it over a page's
 // main, which isolates its art.
 import { DitherReveal } from "@dither-kit"
+import { coverPage } from "@dither-kit/engine/cover"
 import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue"
 import { routePath } from "@/shared/lib"
@@ -61,12 +62,15 @@ async function show() {
   lock(true)
   await nextTick()
   if (!sheet.value?.open) sheet.value?.showModal?.()
+  // The sheet covers the page: the kit's loops under it hold their frame.
+  coverPage(sheet.value)
 }
 /** Shut at once: a link taken (the page is moving on), the window grown. */
 function shut() {
   clearTimeout(leaving)
   if (phase.value === "shut") return
   phase.value = "shut"
+  coverPage(null)
   lock(false)
   if (sheet.value?.open) sheet.value.close()
   key.value?.focus()
@@ -76,6 +80,8 @@ function leave() {
   if (phase.value !== "open") return
   if (pixelPrefersReducedMotion()) return shut()
   phase.value = "leaving"
+  // The page wakes as the sheet rolls up off it.
+  coverPage(null)
   leaving = window.setTimeout(shut, SHEET_WIPE.duration * 1000)
 }
 // Escape asks the dialog to cancel: it leaves the same way the close key does.
@@ -94,7 +100,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   wide?.removeEventListener("change", onWide)
   clearTimeout(leaving)
-  if (phase.value !== "shut") lock(false)
+  if (phase.value !== "shut") {
+    lock(false)
+    coverPage(null)
+  }
 })
 </script>
 

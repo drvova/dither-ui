@@ -10,6 +10,7 @@
 // pass the canvas element plus a `restartKey`; the action restarts when the key
 // changes and always paints with the latest `render` closure.
 
+import { isCovered, onCoverChange } from "../engine/cover"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "../engine/raster"
 import type { DitherRenderMode } from "../engine/precompile"
@@ -96,7 +97,7 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     raf = 0
     // Paused holds the raster but never leaves it blank: the first frame
     // still paints, then the loop stands down.
-    if (!visible || (p.paused && lastPaint)) return
+    if (!visible || isCovered(wrap) || (p.paused && lastPaint)) return
     const ctx = measure()
     if (!ctx) {
       raf = requestAnimationFrame(frame)
@@ -133,7 +134,7 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     if (p.renderMode === "static" || pixelPrefersReducedMotion()) return
     // Paused never leaves the raster blank: a surface paused before it was
     // first in view paints that first frame as it comes into view.
-    if (raf || !visible || (p.paused && lastPaint)) return
+    if (raf || !visible || isCovered(wrap) || (p.paused && lastPaint)) return
     lastPaint = 0
     lastFrame = -1 // a resume paints immediately instead of waiting a boundary
     raf = requestAnimationFrame(frame)
@@ -177,6 +178,12 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     ro = null
   }
 
+  // Under a cover (a full-screen sheet) the loop holds its frame; it wakes
+  // as the cover lifts.
+  const unCover = onCoverChange(() => {
+    if (!isCovered(wrap)) wake()
+  })
+
   if (typeof IntersectionObserver !== "undefined") {
     io = new IntersectionObserver(([entry]) => {
       const v = entry?.isIntersecting ?? true
@@ -203,6 +210,7 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     },
     destroy() {
       stop()
+      unCover()
       io?.disconnect()
       io = null
     },

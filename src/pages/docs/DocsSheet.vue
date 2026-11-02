@@ -5,6 +5,7 @@ export const SHEET_ID = "docs-sheet"
 
 <script setup lang="ts">
 import { DitherFocusScope, DitherReveal } from "@dither-kit"
+import { coverPage } from "@dither-kit/engine/cover"
 import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import DocsNav, { type PagePart } from "./DocsNav.vue"
@@ -50,7 +51,9 @@ watch(
   },
 )
 
-// The page under the sheet holds still while it is open.
+// The page under the sheet holds still while it is open, and the kit's
+// loops on it hold their frame (the sheet covers them); both let go as the
+// sheet starts to leave.
 const lock = (on: boolean) => {
   document.documentElement.style.overflow = on ? "hidden" : ""
 }
@@ -58,9 +61,13 @@ watch(
   () => props.open,
   async (open) => {
     lock(open)
-    if (!open) return
+    if (!open) {
+      coverPage(null)
+      return
+    }
     // Open on the section in view, not at the top of 300 links.
     await nextTick()
+    coverPage(document.getElementById(SHEET_ID))
     const current = list.value?.querySelector<HTMLElement>("[aria-current]")
     if (list.value && current) {
       const box = list.value.getBoundingClientRect()
@@ -79,6 +86,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   clearTimeout(gone)
+  coverPage(null)
   wide?.removeEventListener("change", onWide)
   lock(false)
 })
