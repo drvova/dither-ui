@@ -42,12 +42,13 @@ import DemoCard from "./DemoCard.vue"
 import SectionShare from "./SectionShare.vue"
 import DocsNav, { docsUrl, type PagePart } from "./DocsNav.vue"
 import DocsSheet, { SHEET_ID } from "./DocsSheet.vue"
+import { groupOf, neighbours, sectionOf, SECTION_IDS } from "./pages"
+import { SiteHeader } from "@/widgets/site-header"
 import OnThisPage from "./OnThisPage.vue"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
 import { play, sounds } from "@/shared/lib/sound"
 import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "./svelte"
 import { GROUPS } from "./groups"
-import { spySections } from "./scroll-spy"
 
 import { INSTALL } from "./install"
 import { docsMeta, docsBreadcrumb } from "./seo"
@@ -394,7 +395,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "DitherColor", default: "" },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
     { prop: "marker-index", type: "number | null", default: "null" },
-    { prop: "interactive", type: "boolean (scrub: the crosshair follows the pointer)", default: "false" },
+    {
+      prop: "interactive",
+      type: "boolean (scrub: the crosshair follows the pointer; a slider for the keyboard, arrows, Home, End, Escape)",
+      default: "false",
+    },
+    { prop: "label", type: "string (the slider's name, when interactive)", default: '"Series"' },
     { prop: "hover-lift", type: "boolean", default: "true" },
     { prop: "sparkles", type: "boolean (the idle drift along the line)", default: "true" },
     { prop: "@hover-change", type: "(index: number | null) => void", default: "" },
@@ -462,10 +468,14 @@ const API: Record<string, PropRow[]> = {
   ],
 }
 
-// Wayfinding: the sidebar tracks the section in view, the hash tracks the
-// sidebar — so every section is shareable and survives a reload.
-const activeId = ref("")
-let stopSpy: (() => void) | null = null
+// One section per page: the URL names the section (`/docs/<id>`), the page
+// shows that section alone, and the sidebar, search, the sheet and the
+// pager open another as a new history entry (back and forward walk them).
+// `/docs` itself opens on the first section.
+// Read before the first render, so the sidebar opens the section's own
+// group, not the front's.
+const activeId = ref(sectionOf(appPathname(), location.hash))
+const shown = computed(() => activeId.value || SECTION_IDS[0] || "")
 
 /* Per-section search metadata follows the section in view. The docs render
    client-side from one HTML entry, so Google's renderer reads title,
@@ -492,16 +502,16 @@ function applyDocMeta(id: string) {
     breadcrumb = null
   }
 }
-watch(activeId, (id) => applyDocMeta(id), { flush: "post" })
+watch(activeId, (id) => applyDocMeta(id), { flush: "post", immediate: true })
 const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth")
 
 /* On this page (xl and up, the rail right of the content): the parts of the
-   section in view, read from its DOM as the scroll-spy moves: its heading,
+   section on this page, read from its DOM as it opens: its heading,
    each gallery heading and its props table. Headings inside a preview are
    the demo's, not the section's. */
 const onPage = ref<PagePart[]>([])
 watch(
-  activeId,
+  shown,
   async (id) => {
     await nextTick()
     const section = id ? document.getElementById(id) : null
@@ -517,62 +527,33 @@ function goTo(el: HTMLElement) {
   window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - 88, behavior: smooth() })
 }
 
-let scrollGen = 0
-function scrollTo(id: string) {
-  history.replaceState(null, "", docsUrl(id))
-  // One scrollIntoView cannot land this: the flight takes seconds over a
-  // 200k-px page, and lazy demo reveals (plus content-visibility seeds) move
-  // the target WHILE it flies — a palette tap landed a full screen short.
-  // Computed window.scrollTo (scrollIntoView refused short re-aligns in
-  // Chromium) with a settle loop: re-align after motion stops, until the
-  // section rests under its scroll-mt (96px) or the bottom clamps it.
-  const gen = ++scrollGen
-  const align = (el: HTMLElement, behavior: ScrollBehavior) => {
-    const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
-    window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - margin, behavior })
-  }
-  const inPlace = (el: HTMLElement) => {
-    const top = el.getBoundingClientRect().top
-    if (top >= 64 && top <= 140) return true
-    const atEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4
-    return atEnd && top < window.innerHeight
-  }
-  let tries = 0
-  let last = -1
-  let stable = 0
-  const settle = () => {
-    if (gen !== scrollGen) return
-    const el = document.getElementById(id)
-    if (!el || tries >= 8 || inPlace(el)) return
-    if (window.scrollY === last) stable++
-    else {
-      stable = 0
-      last = window.scrollY
-    }
-    if (stable >= 2) {
-      stable = 0
-      tries++
-      align(el, smooth())
-    }
-    window.setTimeout(settle, 250)
-  }
-  // A far target: jump to a screen short of it at once and fly only that
-  // last screen, so a click never rides seconds of flight past demos that
-  // grow on the way (and overshoot, hold, fly back).
-  const first = document.getElementById(id)
-  if (first) {
-    const behavior = smooth()
-    const margin = parseFloat(getComputedStyle(first).scrollMarginTop) || 0
-    const gap = first.getBoundingClientRect().top - margin
-    if (behavior === "smooth" && Math.abs(gap) > window.innerHeight * 1.5) {
-      window.scrollTo({ top: window.scrollY + gap - Math.sign(gap) * window.innerHeight, behavior: "auto" })
-      requestAnimationFrame(() => {
-        if (gen === scrollGen) align(first, behavior)
-      })
-    } else align(first, behavior)
-  }
-  window.setTimeout(settle, 400)
+/** Open a section: its page, a new history entry, read from the top. */
+function open(id: string) {
+  if (!SECTION_IDS.includes(id)) return
+  if (id !== activeId.value) history.pushState(null, "", docsUrl(id))
+  activeId.value = id
+  window.scrollTo({ top: 0, behavior: "auto" })
 }
+
+const fromHistory = () => {
+  activeId.value = sectionOf(appPathname(), location.hash)
+  window.scrollTo({ top: 0, behavior: "auto" })
+}
+
+/* Only the section on this page shows: the rest of the flow stays mounted
+   (its demos never reveal, so they cost nothing) but hidden, so opening
+   another section is instant and keeps each demo's state. */
+const flow = ref<HTMLElement | null>(null)
+watch(
+  [shown, flow],
+  ([id]) => {
+    for (const s of flow.value?.querySelectorAll<HTMLElement>(":scope > section") ?? []) s.hidden = s.id !== id
+  },
+  { flush: "post" },
+)
+
+const near = computed(() => neighbours(shown.value))
+const crumbGroup = computed(() => groupOf(shown.value))
 
 /* Docs search: the kit's own Command palette navigating the whole IA. */
 const searchOpen = ref(false)
@@ -591,8 +572,7 @@ function searchHotkey(e: KeyboardEvent) {
   }
 }
 function searchGo(id: string) {
-  activeId.value = id
-  scrollTo(id)
+  open(id)
 }
 
 /* Theme: dark by default, remembered, revealed as a circle from the toggle. */
@@ -616,38 +596,14 @@ const searchKbd = modKey("K")
 
 onMounted(() => {
   window.addEventListener("keydown", searchHotkey)
-  const ids = GROUPS.flatMap((g) => g.items.map((i) => i.id))
-
-  // Deep links support canonical /docs/<section> (and /docs/<section>/, the
-  // directory a static host serves its prerendered page from) and legacy
-  // #/docs/<section>.
-  const path = appPathname()
-  const target = (
-    path.startsWith("/docs/") ? path.slice("/docs/".length) : location.hash.replace(/^#\/docs\/?/, "")
-  ).replace(/\/+$/, "")
-  if (ids.includes(target)) {
-    activeId.value = target
-    // The deep link owns the scroll: stop the browser's own restoration from
-    // overriding it on reload, and jump twice — once now, once after the
-    // canvas-heavy sections above have sized (late growth shifts the target).
-    history.scrollRestoration = "manual"
-    const jump = () => document.getElementById(target)?.scrollIntoView()
-    requestAnimationFrame(jump)
-    window.setTimeout(jump, 450)
-  }
-
-  stopSpy = spySections(
-    ids.flatMap((id) => document.getElementById(id) ?? []),
-    (id) => {
-      if (id === activeId.value) return
-      activeId.value = id
-      history.replaceState(null, "", docsUrl(id))
-    },
-  )
+  window.addEventListener("popstate", fromHistory)
+  // The page opens on the section its URL names; each section reads from
+  // its top, so the browser's own scroll restoration stays out of it.
+  history.scrollRestoration = "manual"
 })
 onBeforeUnmount(() => {
-  stopSpy?.()
   window.removeEventListener("keydown", searchHotkey)
+  window.removeEventListener("popstate", fromHistory)
 })
 
 // Motion demo — replay re-runs the entrance, duration is chosen live.
@@ -827,13 +783,19 @@ const config = {
   <Radar data-key="previous" />
   <Legend align="center" />
 </RadarChart>`,
-  sparkline: `<div class="rounded-lg border p-4">
+  sparkline: `const hour = ref<number | null>(null)
+// The last 24 hours of revenue, in $k.
+const last24h = Array.from({ length: 24 }, (_, i) =>
+  Number((2.4 * (10 + i * 0.35 + Math.sin(i * 0.8 + 1) * 2 + Math.sin(i * 1.7 + 2) * 1.1)).toFixed(1)),
+)
+
+<div class="rounded-lg border p-4">
   <div class="text-xs text-muted-foreground">Revenue</div>
   <div class="flex items-baseline gap-2">
     <span class="text-lg tabular-nums">$<DitherNumberFlow :value="last24h[hour ?? 23]" :decimals="1" />k</span>
     <span class="text-xs text-muted-foreground">{{ hour === null ? "+48.3%" : \`\${23 - hour}h ago\` }}</span>
   </div>
-  <Sparkline :data="last24h" color="green" interactive :hover-lift="false"
+  <Sparkline :data="last24h" color="green" interactive label="Revenue" :hover-lift="false"
     class="mt-3 h-8 w-full" @hover-change="(i) => (hour = i)" />
 </div>`,
   motion: `const replayToken = ref(0)
@@ -919,144 +881,133 @@ const gradientCode = computed(
 </script>
 
 <template>
-  <div class="min-h-dvh bg-background font-mono text-foreground antialiased">
-    <!-- Header: the site's floating capsule (glass, chrome rim), 56px with
-         its margin, so the rails' top-14 and the scroll-spy line hold. -->
-    <header class="sticky top-0 z-40 mx-auto w-full max-w-6xl px-4 py-1.5">
-      <div class="capsule docs-capsule flex h-11 w-full items-center justify-between pr-1.5 pl-3 text-xs sm:pl-5">
-        <div class="flex items-center gap-6">
-          <a
-            :href="routePath('/')"
-            class="flex h-8 min-w-8 items-center gap-2.5 whitespace-nowrap tracking-tight transition-colors hover:text-foreground"
-          >
-            <!-- The brand mark: the landing's 7x7 dithered diamond, ember core. -->
-            <svg
-              viewBox="0 0 7 7"
-              width="13"
-              height="13"
-              aria-hidden="true"
-              focusable="false"
-              shape-rendering="crispEdges"
-            >
-              <g fill="currentColor">
-                <rect x="3" y="0" width="1" height="1" />
-                <rect x="2" y="1" width="3" height="1" />
-                <rect x="1" y="2" width="5" height="1" />
-                <rect x="0" y="3" width="7" height="1" />
-                <rect x="1" y="4" width="5" height="1" />
-                <rect x="2" y="5" width="3" height="1" />
-                <rect x="3" y="6" width="1" height="1" />
-              </g>
-              <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
-            </svg>
-            <span class="max-[359px]:sr-only">dither-ui</span>
-          </a>
-          <span class="hidden text-muted-foreground xl:inline">Docs</span>
-        </div>
-        <nav class="flex items-center gap-1 text-muted-foreground min-[400px]:gap-2 sm:gap-3.5 xl:gap-5">
-          <div class="track" role="group" aria-label="Framework">
-            <button
-              type="button"
-              :aria-pressed="docsFramework === 'vue'"
-              class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
-              :class="docsFramework === 'vue' ? 'ring-on' : 'hover:text-foreground'"
-              @click="choose(() => setDocsFramework('vue'), docsFramework === 'vue')"
-            >
-              <ToolMark id="vue" :size="11" /><span class="max-sm:sr-only">Vue</span>
-            </button>
-            <button
-              type="button"
-              :aria-pressed="docsFramework === 'svelte'"
-              class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
-              :class="docsFramework === 'svelte' ? 'ring-on' : 'hover:text-foreground'"
-              @click="choose(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
-            >
-              <ToolMark id="svelte" :size="11" /><span class="max-sm:sr-only">Svelte</span>
-            </button>
-          </div>
-          <div class="track max-lg:hidden" role="group" aria-label="Styling">
-            <button
-              v-for="s in docsStylings"
-              :key="s"
-              type="button"
-              :aria-pressed="docsStyling === s"
-              class="h-6 px-2.5 text-[11px] transition-colors"
-              :class="docsStyling === s ? 'ring-on' : 'hover:text-foreground'"
-              @click="choose(() => setStyling(s), docsStyling === s)"
-            >
-              {{ STYLING_LABELS[s] }}
-            </button>
-          </div>
-          <button
-            type="button"
-            class="nav-pill flex h-7 items-center gap-1.5 px-2.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground sm:px-3"
-            aria-label="Search docs"
-            @click="searchOpen = true"
-          >
-            <DitherIcon name="Search" :size="12" :stroke-width="1.5" /><span class="max-sm:sr-only">Search</span>
-            <kbd class="hidden rounded border border-border/60 px-1 text-[10px] md:inline">{{ searchKbd }}</kbd>
-          </button>
-          <button
-            type="button"
-            class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
-            aria-label="Interface sounds"
-            :aria-pressed="sounds"
-            :title="`Interface sounds: ${sounds ? 'on' : 'off'}`"
-            @click="flipSounds"
-          >
-            <DitherIcon :name="sounds ? 'Volume' : 'VolumeOff'" :size="15" :stroke-width="1.5" />
-          </button>
-          <button
-            type="button"
-            class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
-            :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
-            @click="flipTheme"
-          >
-            <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />
-          </button>
-          <!-- Narrow screens keep the chrome for content: the styling switch
-               lives on every card, GitHub in the footer (both return at lg),
-               and the Studio link on every chart section (it returns at sm). -->
-          <a
-            href="https://github.com/drvova/dither-ui"
-            target="_blank"
-            rel="noreferrer"
-            class="-m-3 hidden items-center gap-1.5 whitespace-nowrap p-3 transition-colors hover:text-foreground lg:flex"
-            ><ToolMark id="github" :size="13" />GitHub<span class="sr-only"> (opens in a new tab)</span></a
-          >
-          <a :href="routePath('/studio')" class="nav-a key-chrome hidden h-8 px-4 sm:inline-flex">Open studio</a>
-          <!-- Under lg the section list is a sheet this key opens from
-               anywhere on the page (the sidebar holds it at lg). -->
-          <button
-            type="button"
-            class="flex size-8 items-center justify-center transition-colors hover:text-foreground lg:hidden"
-            aria-label="Browse sections"
-            aria-haspopup="dialog"
-            :aria-expanded="sheetOpen"
-            :aria-controls="SHEET_ID"
-            @click="sheetOpen = true"
-          >
-            <DitherIcon name="Menu" :size="15" :stroke-width="1.5" />
-          </button>
-        </nav>
-      </div>
-    </header>
+  <div class="docs-root min-h-dvh bg-background font-mono text-foreground antialiased">
+    <!-- The site's header, the landing's own: the docs add search and,
+         under lg, the key that opens the sections sheet. -->
+    <SiteHeader current="docs">
+      <template #tools>
+        <button
+          type="button"
+          class="nav-a gap-1.5 text-muted-foreground"
+          aria-label="Search docs"
+          @click="searchOpen = true"
+        >
+          <DitherIcon name="Search" :size="12" :stroke-width="1.5" /><span class="max-sm:sr-only">Search</span>
+          <kbd class="hidden rounded border border-border/60 px-1 text-[10px] md:inline">{{ searchKbd }}</kbd>
+        </button>
+        <button
+          type="button"
+          class="flex size-8 items-center justify-center transition-colors hover:text-foreground lg:hidden"
+          aria-label="Browse sections"
+          aria-haspopup="dialog"
+          :aria-expanded="sheetOpen"
+          :aria-controls="SHEET_ID"
+          @click="sheetOpen = true"
+        >
+          <DitherIcon name="Book" :size="15" :stroke-width="1.5" />
+        </button>
+      </template>
+    </SiteHeader>
 
     <div class="mx-auto flex w-full max-w-6xl px-4 sm:px-6">
       <!-- Sidebar -->
-      <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-52 shrink-0 overflow-y-auto py-10 pr-8 lg:block">
+      <aside class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-52 shrink-0 overflow-y-auto pr-8 pb-10 lg:block">
         <nav aria-label="Docs sections">
-          <DocsNav :active-id="activeId" variant="rail" @go="scrollTo" />
+          <DocsNav :active-id="shown" variant="rail" @go="open" />
         </nav>
         <AdSlot />
       </aside>
 
       <!-- Content -->
       <main class="min-w-0 flex-1 pb-24 lg:pl-10">
-        <div class="docs-flow max-w-2xl">
+        <!-- The page's row: where the reader is (the docs, then the
+             section's group), and the switches that act on the whole page,
+             what its code is written in, its sounds and its theme. -->
+        <div class="mt-10 flex max-w-2xl flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <nav v-if="crumbGroup" aria-label="Breadcrumb" class="text-[11px] text-muted-foreground">
+            <ol class="flex flex-wrap items-center gap-1.5">
+              <li>
+                <a
+                  :href="docsUrl(SECTION_IDS[0] ?? '')"
+                  class="-my-1 py-1 transition-colors hover:text-foreground"
+                  @click.prevent="open(SECTION_IDS[0] ?? '')"
+                  >Docs</a
+                >
+              </li>
+              <li aria-hidden="true">/</li>
+              <li>
+                <a
+                  :href="docsUrl(crumbGroup.items[0]?.id ?? '')"
+                  class="-my-1 py-1 transition-colors hover:text-foreground"
+                  :aria-current="crumbGroup.items[0]?.id === shown ? 'page' : undefined"
+                  @click.prevent="open(crumbGroup.items[0]?.id ?? '')"
+                  >{{ crumbGroup.title }}</a
+                >
+              </li>
+            </ol>
+          </nav>
+          <div class="flex flex-wrap items-center gap-2 text-muted-foreground">
+            <div class="track" role="group" aria-label="Framework">
+              <button
+                type="button"
+                :aria-pressed="docsFramework === 'vue'"
+                class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
+                :class="docsFramework === 'vue' ? 'ring-on' : 'hover:text-foreground'"
+                @click="choose(() => setDocsFramework('vue'), docsFramework === 'vue')"
+              >
+                <ToolMark id="vue" :size="11" /><span class="max-sm:sr-only">Vue</span>
+              </button>
+              <button
+                type="button"
+                :aria-pressed="docsFramework === 'svelte'"
+                class="flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors"
+                :class="docsFramework === 'svelte' ? 'ring-on' : 'hover:text-foreground'"
+                @click="choose(() => setDocsFramework('svelte'), docsFramework === 'svelte')"
+              >
+                <ToolMark id="svelte" :size="11" /><span class="max-sm:sr-only">Svelte</span>
+              </button>
+            </div>
+            <div class="track max-lg:hidden" role="group" aria-label="Styling">
+              <button
+                v-for="s in docsStylings"
+                :key="s"
+                type="button"
+                :aria-pressed="docsStyling === s"
+                class="h-6 px-2.5 text-[11px] transition-colors"
+                :class="docsStyling === s ? 'ring-on' : 'hover:text-foreground'"
+                @click="choose(() => setStyling(s), docsStyling === s)"
+              >
+                {{ STYLING_LABELS[s] }}
+              </button>
+            </div>
+            <button
+              type="button"
+              class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
+              aria-label="Interface sounds"
+              :aria-pressed="sounds"
+              :title="`Interface sounds: ${sounds ? 'on' : 'off'}`"
+              @click="flipSounds"
+            >
+              <DitherIcon :name="sounds ? 'Volume' : 'VolumeOff'" :size="15" :stroke-width="1.5" />
+            </button>
+            <button
+              type="button"
+              class="flex size-8 items-center justify-center transition-colors hover:text-foreground"
+              :aria-label="dark ? 'Use light theme' : 'Use dark theme'"
+              @click="flipTheme"
+            >
+              <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />
+            </button>
+          </div>
+        </div>
+        <div ref="flow" class="docs-flow max-w-2xl">
           <!-- The title in chrome; on its baseline, the kit's spec as speed
                tags (beside the title, never an eyebrow over it). -->
-          <div class="mt-12 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div
+            data-docs-front
+            class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3"
+            :class="activeId ? 'sr-only' : 'mt-6'"
+          >
             <h1 class="chrome-type font-display text-[1.6rem] leading-tight font-normal">Documentation</h1>
             <ul class="flex flex-wrap gap-1 pb-1" aria-label="The kit">
               <li class="speed-tag">{{ GROUPS.flatMap((g) => g.items).length }} sections</li>
@@ -1065,7 +1016,11 @@ const gradientCode = computed(
               <li class="speed-tag">Tailwind or StyleX</li>
             </ul>
           </div>
-          <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
+          <p
+            v-if="!activeId"
+            data-docs-front
+            class="mt-3 text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]"
+          >
             Every component draws on canvas through the same ordered-dither engine. Compose charts from parts, or drop
             in a single primitive.
           </p>
@@ -1902,13 +1857,14 @@ const gradientCode = computed(
                       <span
                         class="[grid-area:1/1] transition-opacity duration-150 motion-reduce:transition-none"
                         :class="scrubbed[s.label] == null ? 'opacity-100' : 'opacity-0'"
+                        :aria-hidden="scrubbed[s.label] != null"
                         :style="{ color: cssColor(s.up ? 'green' : 'red') }"
                         >{{ s.delta }}</span
                       >
                       <span
                         class="text-muted-foreground [grid-area:1/1] transition-opacity duration-150 motion-reduce:transition-none"
                         :class="scrubbed[s.label] == null ? 'opacity-0' : 'opacity-100'"
-                        aria-hidden="true"
+                        :aria-hidden="scrubbed[s.label] == null"
                         >{{ s.data.length - 1 - (scrubbed[s.label] ?? s.data.length - 1) }}h ago</span
                       >
                     </span>
@@ -1917,6 +1873,7 @@ const gradientCode = computed(
                     :data="s.data"
                     :color="s.color"
                     interactive
+                    :label="s.label"
                     :hover-lift="false"
                     class="mt-3 h-8 w-full cursor-crosshair"
                     @hover-change="(i) => (scrubbed[s.label] = i)"
@@ -2157,9 +2114,31 @@ const gradientCode = computed(
           <!-- Print screens -->
           <ScreensSection />
         </div>
+
+        <!-- The book's turn: the sections either side, in the sidebar's order. -->
+        <nav aria-label="Previous and next sections" class="mt-16 mb-6 grid max-w-2xl gap-3 sm:grid-cols-2">
+          <a
+            v-if="near.prev"
+            :href="docsUrl(near.prev.id)"
+            class="group rounded-xl border border-border/60 px-4 py-3 transition-colors hover:border-foreground/40"
+            @click.prevent="open(near.prev.id)"
+          >
+            <span class="block text-[11px] text-muted-foreground">Previous, {{ near.prev.group }}</span>
+            <span class="mt-1 block text-[14px] text-foreground">{{ near.prev.label }}</span>
+          </a>
+          <a
+            v-if="near.next"
+            :href="docsUrl(near.next.id)"
+            class="group rounded-xl border border-border/60 px-4 py-3 text-right transition-colors hover:border-foreground/40 sm:col-start-2"
+            @click.prevent="open(near.next.id)"
+          >
+            <span class="block text-[11px] text-muted-foreground">Next, {{ near.next.group }}</span>
+            <span class="mt-1 block text-[14px] text-foreground">{{ near.next.label }}</span>
+          </a>
+        </nav>
       </main>
 
-      <aside class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
+      <aside class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
         <OnThisPage v-if="onPage.length" :parts="onPage" @go="goTo" />
         <SectionShare v-if="activeId && docsMeta(activeId).id" :id="activeId" />
       </aside>
@@ -2187,7 +2166,7 @@ const gradientCode = computed(
 
     <DocsSheet
       :open="sheetOpen"
-      :active-id="activeId"
+      :active-id="shown"
       :parts="onPage"
       @close="sheetOpen = false"
       @go="(id) => fromSheet(() => searchGo(id))"
@@ -2203,33 +2182,28 @@ const gradientCode = computed(
   </div>
 </template>
 
-<style scoped>
-/* Narrow screens put dense tables right under the header: frost its glass
-   harder so high-contrast text cannot silhouette through. */
-@media (max-width: 640px) {
-  .docs-capsule {
-    background-color: color-mix(in oklab, var(--background) 93%, transparent);
-  }
-}
-</style>
-
 <style>
-/* First paint on this page lays out 220 sections (~180k px). Skip layout and
-   paint for sections below the fold until they approach the viewport; `auto`
-   remembers each section's real height once it has rendered, and the 700px
-   seed (median section height) keeps the scrollbar honest before first use. */
+/* One section per page: it opens just under the breadcrumb, its title the
+   page's headline, its lede at reading size. */
 .docs-flow > section {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 700px;
+  margin-top: 1rem;
 }
 
-/* WebKit's reveal path keeps stale geometry until a forced layout flush —
-   blank chunks under real scroll (WebKit 321501) and re-entry jank (318216),
-   both unfixed as of Safari/iOS 26. `html.engine-webkit` (set in
-   app/main.ts by ENGINE, not brand) keeps Safari-family sections in normal
-   layout: these engines pay the paint cost, they do not survive the skip. */
-html.engine-webkit .docs-flow > section {
-  content-visibility: visible;
-  contain-intrinsic-size: none;
+/* Each section's title in the display face, as the landing's section titles
+   and this page's own title: Michroma in plain ink (the metal finish stays
+   on the page title and the primary key), its one weight, no negative
+   tracking. Only the section's own heading: a demo's headings keep theirs. */
+.docs-flow > section > h2,
+.docs-flow > section > :first-child > h2 {
+  font-family: var(--display-face);
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.docs-flow > section > p:first-of-type {
+  font-size: 14px;
+  line-height: 1.75;
 }
 </style>

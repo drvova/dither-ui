@@ -6,10 +6,12 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { contrast, over, parseColor, type RGBA } from "../src/widgets/workbench/model/color"
+import { BAND_INK } from "../src/widgets/site-header/menu"
 
 const root = new URL("..", import.meta.url).pathname
 const kit = readFileSync(`${root}dither-kit/engine/theme.css`, "utf8")
 const site = readFileSync(`${root}src/app/styles.css`, "utf8")
+const landing = readFileSync(`${root}src/pages/landing/chapters.css`, "utf8")
 
 /** The custom properties declared in the stylesheet's `selector { ... }` block. */
 function tokens(css: string, selector: string): Record<string, string> {
@@ -77,6 +79,22 @@ describe("theme contrast", () => {
       expect(worst).toBeGreaterThanOrEqual(4.5)
     })
   }
+  // The header's menu writes the ground's own colour on its bands: each a
+  // step of the ink toward the ground, the foot the ember. Every ground the
+  // header stands on: the docs and the landing in their own darks too.
+  for (const [theme, t] of [
+    ["light", LIGHT],
+    ["dark", DARK],
+    ["docs dark", { ...DARK, ...tokens(site, ":root.dark:has(.docs-root)") }],
+    ["landing", { ...DARK, ...tokens(landing, ":root:has(.landing)") }],
+  ] as const)
+    it(`${theme}: the menu's bands hold 4.5:1 for the ground's ink`, () => {
+      const page = colour(t.background)
+      const fills = [...BAND_INK.map((p) => mix(colour(t.foreground), p / 100, page)), colour(t["swatch-orange"])]
+      const worst = Math.min(...fills.map((f) => contrast(page, f)))
+      expect(worst).toBeGreaterThanOrEqual(4.5)
+    })
+
   it("the pressed ring is the control edge", () => {
     const rule = site.match(/\.ring-on \{([^}]*)\}/)?.[1] ?? ""
     expect(rule).toMatch(/box-shadow:\s*inset 0 0 0 1px var\(--edge\);/)

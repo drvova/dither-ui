@@ -218,14 +218,15 @@
               <span class="panel-d">Frames exported</span>
               <NumberFlow value={shown(day)} duration={240} class="stat-v" />
               <span class="panel-d stat-sub">
-                <span data-on={day === null ? "" : undefined}><b>+{WEEK_CHANGE}%</b> on the week before</span>
-                <span data-on={day === null ? undefined : ""} aria-hidden="true">{ago(day ?? DAYS - 1)}</span>
+                <span data-on={day === null ? "" : undefined} aria-hidden={day !== null}><b>+{WEEK_CHANGE}%</b> on the week before</span>
+                <span data-on={day === null ? undefined : ""} aria-hidden={day === null}>{ago(day ?? DAYS - 1)}</span>
               </span>
               <div class="stat-spark">
                 <Sparkline
                   data={FRAMES}
                   color="blue"
                   interactive
+                  label="Frames exported"
                   hoverLift={false}
                   sparkles={false}
                   onHoverChange={(i) => (day = i)}

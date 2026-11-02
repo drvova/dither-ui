@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
         <div class="screen">
           <!-- The render's result, a chip on the screen's corner: it comes
                with the line that renders, at work, then ready. -->
-          <div class="render" :class="lineState(RENDER, step)">
+          <div class="render" :class="lineState(RENDER, step)" aria-hidden="true">
             <span class="mark">
               <DitherSpinner v-if="lineState(RENDER, step) !== 'done'" :size="14" color="orange" />
               <DitherIcon v-else name="Check" :size="14" :stroke-width="1.75" />

@@ -157,12 +157,15 @@ async function renderOgCards() {
 
 // One prerendered docs DOM serves every section: clone the entry, swap in
 // each section's head (title/description/canonical/og/twitter/breadcrumb +
-// the section's og card) and keep only that section in the docs flow (the
-// flow's other children, the h1 and the intro, stay; so do the header and
-// the sidebar's links). A page is the shell plus its own section, not 302
-// copies of the whole docs (1.3 MB each); the client mounts the full docs
-// over these bytes and jumps to the section. An id that is not a direct
-// child of the flow keeps the whole flow.
+// the section's og card), keep only that section in the docs flow (the
+// docs' front, its title block and intro, `data-docs-front`, leaves; the
+// section loses the `hidden` the front's page gave it), its own breadcrumb,
+// the sidebar with every group open and none current (a static page cannot
+// know the reader's folds; the client sets them on mount), and no pager
+// (the client renders the section's own below the fold). A page is
+// the shell plus its own section, not 302 copies of the whole docs (1.3 MB
+// each); the client mounts the docs over these bytes on that section. An id
+// that is not a direct child of the flow keeps the whole flow.
 async function writeSectionPages(flow) {
   let sections
   try {
@@ -203,12 +206,19 @@ async function writeSectionPages(flow) {
     const body = own
       ? noLd.slice(0, at) +
         flow.kids
-          .filter((k) => !k.id || k.id === s.id)
+          .filter((k) => (k.id ? k.id === s.id : !k.front))
           .map((k) => k.html)
           .join("") +
         noLd.slice(at + flow.inner.length)
       : noLd
-    const html = body.replace(headMatch[0], () => strippedHead.replace("<head>", () => "<head>" + headBlock))
+    const located = own && flow.crumb && flow.rail
+    const page = located
+      ? body
+          .replace(flow.crumb.outer, () => flow.crumb.per[s.id] ?? "")
+          .replace(flow.rail.outer, () => flow.rail.open)
+          .replace(flow.pager ?? "\u0000", () => "")
+      : body
+    const html = page.replace(headMatch[0], () => strippedHead.replace("<head>", () => "<head>" + headBlock))
     const dir = join(DIST, "docs", s.id)
     await mkdir(dir, { recursive: true })
     await writeFile(join(dir, "index.html"), html)
@@ -274,13 +284,58 @@ try {
       docsFlow = await page.evaluate(() => {
         const flow = document.querySelector(".docs-flow")
         if (!flow) return null
-        // A section's lede is its first paragraph (the anatomy's muted line).
-        const kids = [...flow.children].map((c) => ({
-          id: c.tagName === "SECTION" ? c.id : "",
-          html: c.outerHTML,
-          lede: c.querySelector("p")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
-        }))
-        return { inner: flow.innerHTML, kids }
+        // A section's lede is its first paragraph (the anatomy's muted line);
+        // its copy loses the `hidden` the front's page gave it.
+        const kids = [...flow.children].map((c) => {
+          const copy = c.cloneNode(true)
+          copy.removeAttribute("hidden")
+          return {
+            id: c.tagName === "SECTION" ? c.id : "",
+            front: c.hasAttribute("data-docs-front"),
+            html: copy.outerHTML,
+            lede: c.querySelector("p")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+          }
+        })
+        // Each section's breadcrumb (the docs, then its group, linking to
+        // the group's first section), read off the rail's own groups, and
+        // the rail with every group open and no link current.
+        const crumb = document.querySelector('nav[aria-label="Breadcrumb"]')
+        const rail = document.querySelector('nav[aria-label="Docs sections"]')
+        let crumbs = null
+        let railOpen = null
+        if (crumb && rail) {
+          const per = {}
+          for (const list of rail.querySelectorAll("ul[id]")) {
+            const head = list.previousElementSibling
+            const title = [...(head?.childNodes ?? [])].find((n) => n.nodeType === 3 && n.textContent.trim())
+            const links = [...list.querySelectorAll(":scope > li > a")]
+            const first = links[0]?.getAttribute("href")
+            for (const a of links) {
+              const id = a
+                .getAttribute("href")
+                .replace(/.*\/docs\//, "")
+                .replace(/\/$/, "")
+              const copy = crumb.cloneNode(true)
+              const group = copy.querySelectorAll("a")[1]
+              if (group && title && first) {
+                group.textContent = title.textContent.trim()
+                group.setAttribute("href", first)
+                group.removeAttribute("aria-current")
+              }
+              per[id] = copy.outerHTML
+            }
+          }
+          const open = rail.cloneNode(true)
+          for (const list of open.querySelectorAll("ul[id]")) list.removeAttribute("style")
+          for (const head of open.querySelectorAll("button[aria-expanded]")) head.setAttribute("aria-expanded", "true")
+          for (const a of open.querySelectorAll("[aria-current]")) a.removeAttribute("aria-current")
+          crumbs = { outer: crumb.outerHTML, per }
+          railOpen = { outer: rail.outerHTML, open: open.outerHTML }
+        }
+        // The pager names the front's neighbours: a section's static page
+        // leaves it to the client, which renders its own on mount.
+        const pager = document.querySelector('nav[aria-label="Previous and next sections"]')?.outerHTML ?? null
+        return { inner: flow.innerHTML, kids, crumb: crumbs, rail: railOpen, pager }
       })
     const html = await page.content()
     await writeFile(entry, html)

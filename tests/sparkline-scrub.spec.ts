@@ -40,4 +40,32 @@ describe("Sparkline scrub", () => {
     expect(chart.props("hoverLift")).toBe(false)
     w.unmount()
   })
+
+  it("is a slider for the keyboard when interactive: arrows step, Home and End jump, Escape clears", async () => {
+    const w = mount(Sparkline, { props: { data, color: "blue", interactive: true, label: "Revenue" } })
+    const root = w.element as HTMLElement
+    expect(root.getAttribute("role")).toBe("slider")
+    expect(root.getAttribute("tabindex")).toBe("0")
+    expect(root.getAttribute("aria-label")).toBe("Revenue")
+    expect(root.className).toContain("focus-visible:ring-ring")
+    const key = async (k: string) => {
+      root.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }))
+      await nextTick()
+    }
+    await key("ArrowLeft")
+    await key("ArrowLeft")
+    await key("Home")
+    await key("End")
+    await key("Escape")
+    expect((w.emitted("hoverChange") ?? []).map((e) => e[0])).toEqual([3, 2, 0, 4, null])
+    expect(root.getAttribute("aria-valuenow")).toBe("4")
+    w.unmount()
+  })
+
+  it("takes no focus and no role when still", () => {
+    const w = mount(Sparkline, { props: { data, color: "blue" } })
+    expect(w.element.getAttribute("role")).toBeNull()
+    expect(w.element.getAttribute("tabindex")).toBeNull()
+    w.unmount()
+  })
 })

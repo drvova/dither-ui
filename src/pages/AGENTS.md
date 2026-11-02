@@ -73,13 +73,42 @@ widgets/features; page-specific conventions live here.
   own ground is `--surface` resets `--surface` to the page's ground on
   what it holds, so its keys and pressed segments stay shapes. Page geometry (`--page` 80rem, `--rhythm`) lives on
   `LandingPage`'s `.landing`; the sections are one flex column on it.
-- Header: a floating capsule (`--surface`, `--float-shadow`, no rim), sticky 8px
-  under the top and centred (up to 48rem): the 13px diamond mark (ember core) + "dither-ui", the `.nav-a`
-  links (Components → `#examples`, Docs, Agents → `#ask`, GitHub under its
-  mark in a new tab; Components/Agents drop under sm, GitHub under md) and
-  the `.key-chrome` "Open studio". It MUST stay positioned with `z-10`:
-  `main` is `relative isolate`, so a positioned sibling paints over a
-  static header.
+- Header: the site's one header, `SiteHeader` (`widgets/site-header`),
+  the landing's and the docs' alike: a floating capsule (the raised
+  ground, `--float-shadow`, no rim), sticky 8px under the top and centred
+  (up to 48rem, `--head` tall with its margin): the 13px diamond mark
+  (`shared/ui/BrandMark`, ember core) + "dither-ui", the `.nav-a` links
+  (`MENU_LINKS` in `menu.ts`: id, label, the band's line and the width it
+  shows from; the page supplies only `HREF` by id, a `Record` the types
+  hold whole: Components → the landing's `#examples`, Docs, Agents →
+  `#ask`, GitHub under its mark in a new tab; each shows from md, GitHub
+  from lg; the page's own link `aria-current`), a page's
+  `tools` (the docs' search and, under lg, its sections key under the
+  Book glyph) and the `.key-chrome` "Open studio" (from md). Under lg the
+  menu key (the sheet's bands in miniature + "Menu") opens the menu: a
+  native modal `<dialog>` filling the window, itself clear so the page
+  shows wherever the wipe has not reached (focus on its close key, focus
+  back on the key, the page held still), arriving as the kit's wipe down
+  the screen (`DitherReveal`, `SHEET_WIPE`). The close key and Escape (the
+  dialog's `cancel`, prevented) play that wipe back, the sheet rolling up
+  from its foot before it shuts (`MenuPhase`: shut, open, leaving; at once
+  under reduced motion); a taken link and the window reaching lg shut it
+  at once. Its top row stands where the header stood (the brand, the
+  close key, on the ground); under it a band per link sharing the height,
+  its name at its foot over a line of what is behind it (`note`; the
+  studio's says it wants 1024px), each a step of the ink
+  toward the ground (`BAND_INK` 100/88/76/64%, the ground's colour
+  writing on them, AA held by `tests/theme-contrast.spec.ts`), then
+  "Open studio" on the ember; where two bands meet the lower climbs into
+  the upper through the Bayer matrix (`SEAM_MASK`, the kit's wipe engine
+  at a fixed progress). A hovered, focused or pressed band's words lean in
+  (8px, 12px pressed, the settle curve, 160ms) and the menu key's bands
+  part on a hover (none of it under reduced motion). A focused band rings
+  in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
+  (the capsule and the sheet) are the one table and stylesheet; the
+  Svelte landing carries both byte for byte. It stays positioned
+  (`z-40`): `main` is `relative isolate`, so a positioned sibling paints
+  over a static header.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
   holding on the page width the statement beside the print (columns
@@ -482,7 +511,9 @@ widgets/features; page-specific conventions live here.
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,
-  `text-lg`, its name in sentence case like its nav label: "Area chart",
+  `text-lg` in the display face, Michroma at its one weight and no
+  negative tracking, set by DocsPage for the section's own heading only,
+  never a demo's; its name in sentence case like its nav label: "Area chart",
   "OTP field", + optional "Open in the Studio") → muted description →
   `DemoCard` (Preview/Code tabs as machined segments in a `.track`, the
   picked one `.ring-on`; Inspect → the workbench, Code → the source panel, a
@@ -498,7 +529,13 @@ widgets/features; page-specific conventions live here.
   colour (the workbench's contrast reads the background through
   `backgroundBehind`, which gives up on any ancestor's image), that never
   clips (the workbench draws past it) and keeps its 1px border, clear
-  (captures add it). Its padding is 16px on phones and 40px from sm (the
+  (captures add it). A demo sits in it by its fit (`DemoCard`'s `fit`,
+  `DemoFit`): inset, or bled, where its first frame meets the well's top
+  and sides, takes its top corners and drops its own border (a surface
+  reads as the well's picture, never a framed thumbnail; the controls
+  under it, 24px below); a family sets its default through
+  `provide(DEMO_FIT, …)` (Backgrounds bleeds, its square demos and the
+  poster opt back in to the inset). Inset, its padding is 16px on phones and 40px from sm (the
   docs column is 16px from the screen's edge on phones, 24px from sm, as
   the user's design system sets), and every demo fits its well from
   320px up: a wide one (pagination, the bracket, the ASCII art) is
@@ -507,6 +544,17 @@ widgets/features; page-specific conventions live here.
   width becomes `w-full max-w-*`. Chips (framework, styling, Inspect) sit
   in tracks, 24px tall; the tab row wraps, so on a phone the Code tab's
   chips drop under the tabs instead of running off the card.
+- Docs ground: in the dark the docs wear the landing's print, the user's
+  V5 obsidian and bone (`:root.dark:has(.docs-root)` in
+  `app/styles.css`: a muted bone at AA on the ground and the raised
+  card, the border a quiet step off the ground, the ring bone, the
+  landing's float shadow) over the
+  grain (`--grain`, the one tile the landing reads too); their light
+  theme and the Studio keep the kit's neutrals. The section lists (the
+  rail and the sheet) keep each group's heading stuck to the top while
+  its sections scroll under it (`NAV_PLACE` in `DocsNav.vue` holds each
+  place's top room and the heading's ground: unseen on the rail's page
+  ground, a filled band on the page's ground in the sheet's shell).
 - Docs copy follows the landing's bans: no em dashes or middle dots in
   prose, prop `type` notes as `type: note` or `type (note)`, no uppercase
   or tracked label, no arrow-ended link; a snippet's copy matches what its
@@ -541,7 +589,7 @@ widgets/features; page-specific conventions live here.
   runs, with "Restore the demo"), carries its CSS in one `<style>` per card
   and its tokens on the frame (`data-run-*`); the workbench inspects a run
   like the demo.
-- Interface sounds (`shared/lib/sound.ts`): the header's "Interface sounds"
+- Interface sounds (`shared/lib/sound.ts`): the page row's "Interface sounds"
   toggle (`aria-pressed`, remembered) beside the theme toggle (which plays
   its own chord); the Preview/Code tabs, the framework and styling chips
   (only when they change something), Inspect on/off and copies sound.
@@ -573,27 +621,36 @@ widgets/features; page-specific conventions live here.
   mirror actual kit prop defaults — update both when the kit API changes.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.
-- Wayfinding: scroll-spy (`docs/scroll-spy.ts`, IntersectionObserver,
-  `spyMargin`: the band from the 56px header to the middle, in px from
-  the viewport's height and rebuilt on resize, since a rootMargin
-  percentage resolves against the root's width) sets
-  `activeId` + `aria-current`: of the sections in the band (kept across
-  callbacks, which carry only the entries that changed), the last whose
-  top has crossed the reading line (`READING_LINE`, 40% down), else the
-  topmost, so a long section's tail never outranks the heading the reader
-  reached. The rail follows it in its own view: when the current link
-  leaves the rail's middle band, `DocsNav` scrolls the rail, never the
-  page, to centre it (at once on a deep link, smoothly after); clean `/docs/<id>`, its directory form
-  `/docs/<id>/` (where a static host serves the section's prerendered
-  page) and legacy `#/docs/<id>` deep links all restore and remain
-  shareable.
-- Narrow chrome: under sm the Vue/Svelte switch shows its marks and Search
-  its glyph (the words stay for screen readers), the studio pill drops (it
-  lives on every chart section's "Open in the Studio") and the nav's gaps
-  tighten; under 360px the brand shows its mark alone (the word stays for
-  screen readers, the link 32px wide), so the capsule fits from 320px; the
-  ⌘K kbd shows from md; the styling switch (on every card anyway) and
-  GitHub (in the footer) return at lg. Under lg the header's last key,
+- Wayfinding: one section per page (`docs/pages.ts` holds the rules:
+  `SECTION_IDS` in the sidebar's order, `sectionOf` reading a URL,
+  `neighbours` for the pager, `groupOf` for the breadcrumb; pinned by
+  `tests/docs-pages.spec.ts`). The URL names the section (clean
+  `/docs/<id>`, its directory form `/docs/<id>/` where a static host serves
+  the section's prerendered page, or legacy `#/docs/<id>`; `/docs` itself
+  opens on the first section and keeps the docs' front, the chrome title,
+  its tags and intro, `data-docs-front`, which a section's page keeps only
+  as the screen readers' h1). `open(id)` shows that section alone (the
+  rest of `.docs-flow` stays mounted, `hidden`, its demos unrevealed, so a
+  section opens at once and keeps each demo's state), pushes a history
+  entry and reads from the top; back and forward walk them (`popstate`).
+  The sidebar, search, the sheet and the pager all open through it. Over
+  the section a breadcrumb (the docs, then its group, linking to the
+  group's first section); under it the pager, the sections either side
+  in the sidebar's order, each with its group. The section's title is the
+  page's headline (1.5rem in the display face) and its lede reads at 14px.
+  The sidebar's groups fold (`aria-expanded` keys with a turning chevron;
+  the current section's group opens itself; a folded group's links stay
+  in the DOM, hidden, whole for find-in-page and the crawler), and the
+  rail keeps the current link in its own view, scrolling the rail, never
+  the page, to centre it when it leaves the middle band.
+- The docs' header is the site's (Header, above) with Search in its
+  tools (a `.nav-a` with its shortcut, `modKey`); the switches that act on
+  the page (framework, styling, sounds, theme) sit in the page's row
+  beside the breadcrumb, not in the header. Under sm the Vue/Svelte
+  switch shows its marks and Search its glyph (the words stay for screen
+  readers); under 360px the brand shows its mark alone (the word stays
+  for screen readers); the ⌘K kbd shows from md; the styling switch (on
+  every card anyway) returns at lg. Under lg the header's tools add a key,
   "Browse sections" (the Menu glyph, `aria-haspopup="dialog"`,
   `aria-expanded`, `aria-controls` = `SHEET_ID`), opens the sections sheet
   from anywhere on the page (`DocsSheet.vue`): a `.hardshell` (12px cut) on
@@ -607,14 +664,6 @@ widgets/features; page-specific conventions live here.
   link. A `CodeBlock`'s copy chip takes its own band over the first line
   under sm (a long first line ran under it there). The footer's items
   wrap, never collide.
-- `scrollTo(id)` is computed `window.scrollTo` + a settle loop (re-align after
-  motion stops, ≤8 tries, bottom-clamp aware): lazy demo reveals and
-  content-visibility seeds move the target while the smooth flight is still
-  running, and Chromium's `scrollIntoView` refused the short re-aligns — taps
-  landed a screen short. A far target (over 1.5 screens) jumps to a screen
-  short of it at once and flies only that last screen, so a click never
-  rides seconds of flight past demos growing on the way. Deep links keep
-  the `jump()` path.
 - Share cards (`docs/og-card.ts`, the art; `crawler-files.ts`, the cards,
   their embeds and the renderer page): a card is the page's title (ember
   stop) over the house dither in motion, the brand top left, a section's
@@ -643,15 +692,11 @@ widgets/features; page-specific conventions live here.
   them to the DOM as `activeId` changes (scroll-spy, deep links, search), so
   Google's renderer sees unique metadata per `/docs/<id>` page. Unknown or
   empty ids fall back to the generic `/docs` metadata; keep ids unique.
-- Chrome: the header is the site's floating `.capsule` (`.docs-capsule`,
-  44px in a 56px band so the rails' `top-14` and the scroll-spy line
-  hold; its smoked polymer at 93% under 640px, where dense tables pass
-  under it); the toggles in it are tracks, the picked one `.ring-on`,
-  Search a `.nav-pill`, "Open studio" the `.key-chrome`; the "Docs" label
-  shows from xl. The search
+- Chrome: the header is the site's one `SiteHeader` (Header, above),
+  with Search and the sections key in its `tools`; the toggles under it
+  are tracks, the picked one `.ring-on`. The search
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
-  elsewhere — the handler accepts both). The brand carries the landing's
-  7x7 diamond mark, and the studio link shows from sm. The Vue/Svelte
+  elsewhere — the handler accepts both). The Vue/Svelte
   switch carries the tools' marks
   (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
@@ -825,9 +870,8 @@ widgets/features; page-specific conventions live here.
   dark theme's ember), every named spec existing, and pins `POSTER_HASH`
   (the poster's bytes, the cross-engine row): a change to the poster's
   arithmetic fails it until the hash is recorded again.
-- `tests/docs-sheet.spec.ts`: the scroll-spy keeps a section already in
-  the band and names the one whose heading crossed the reading line,
-  the rail scrolls itself (never the page) to the current link,
+- `tests/docs-sheet.spec.ts`: the rail scrolls itself (never the page) to
+  the current link,
   `DocsNav` lists every section once with 24px targets per
   place, and the sections sheet opens as a modal (focus in, page held,
   Escape, backdrop and close key, focus back, the parts under the link).

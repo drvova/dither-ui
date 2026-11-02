@@ -377,8 +377,8 @@ Default section order:
   time against a still ground (the user's call after the still ground
   study). Display type wears
   its suggested extended face, Michroma (SIL OFL, self-hosted in
-  `src/shared/fonts/`): the landing's statement and section titles and the
-  docs' page title. Its squared heading sans is not used; headings, body,
+  `src/shared/fonts/`): the landing's statement and section titles, the
+  docs' page title (in chrome) and section titles (plain ink). Its squared heading sans is not used; headings, body,
   labels, figures and code stay mono, the user's identity.
 - Design slop the user bans (their list; the landing is held to it, the
   docs and the Studio keep their tool chrome until the user extends it;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive } from "vue"
+import { computed, provide, reactive } from "vue"
 import {
   cssColor,
   DitherAurora,
@@ -51,9 +51,13 @@ import {
   type DitherColor,
   type FlowDirection,
 } from "@dither-kit"
-import DemoCard from "../DemoCard.vue"
+import DemoCard, { DEMO_FIT } from "../DemoCard.vue"
 import PosterSection from "./PosterSection.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
+
+// Every background is a surface: its demo bleeds to the well's edges (the
+// square ones opt back in to the inset).
+provide(DEMO_FIT, "bleed")
 
 const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
 const chipClass = (active: boolean) =>
@@ -1329,7 +1333,7 @@ const API: Record<string, PropRow[]> = {
       A rotating sweep with an afterglow trail over concentric rings. The scope is circular, tinted across the ramp by
       radius. Dithered.
     </p>
-    <DemoCard :code="DEMO.radar">
+    <DemoCard fit="inset" :code="DEMO.radar">
       <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black">
         <DitherRadar />
       </div>
@@ -1398,7 +1402,7 @@ const API: Record<string, PropRow[]> = {
       A glowing pulsing sphere with a wobbling rim: fbm perturbs the radius for a plasma edge; a core glow plus a rim
       ring tint across the ramp by radius.
     </p>
-    <DemoCard :code="DEMO.orb">
+    <DemoCard fit="inset" :code="DEMO.orb">
       <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black">
         <DitherOrb />
       </div>
@@ -1426,7 +1430,7 @@ const API: Record<string, PropRow[]> = {
       A rotating spiral of twinkling stars with a bright core: spiral arms modulate a hashed star density; inner stars
       rotate faster. Dithered.
     </p>
-    <DemoCard :code="DEMO.galaxy">
+    <DemoCard fit="inset" :code="DEMO.galaxy">
       <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black">
         <DitherGalaxy />
       </div>
@@ -1558,7 +1562,7 @@ const API: Record<string, PropRow[]> = {
       A rainbow starburst radiating from the centre: sharpened angular rays take an HSV hue from angle and radius, so
       the burst is a spectrum. Self-colouring.
     </p>
-    <DemoCard :code="DEMO.prismaticBurst">
+    <DemoCard fit="inset" :code="DEMO.prismaticBurst">
       <div class="relative mx-auto aspect-square h-64 overflow-hidden rounded-md border border-border/60 bg-black">
         <DitherPrismaticBurst />
       </div>

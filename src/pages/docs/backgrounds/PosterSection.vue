@@ -50,7 +50,7 @@ const API: PropRow[] = [
       as their negative, its screen sliding with the clock. A seed lays out the tiles, their inks and ramps and the
       mark.
     </p>
-    <DemoCard :code="SNIPPET">
+    <DemoCard :code="SNIPPET" fit="inset">
       <div class="flex w-full flex-col items-center gap-3">
         <div class="relative h-72 w-full overflow-hidden rounded-md bg-card">
           <DitherPoster :seed="seed" :screen="screen" />

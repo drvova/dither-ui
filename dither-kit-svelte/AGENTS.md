@@ -13,7 +13,7 @@ patterns and the rest follows the same mechanical translation.
 - Owns the Svelte-flavoured component surface and the framework glue that the
   Vue kit expresses with the Composition API (lifecycle, reactivity, context).
 - The rendering ENGINE is NOT owned here. The Vue kit's Vue-free `.ts` engine
-  modules (palette, pixel, raster, noise, precompile, dither-paint, timing, the
+  modules (palette, pixel, raster, noise, precompile, dither-paint, timing, wipe, the
   `paint*` families) are copied VERBATIM. `../dither-kit/engine` stays the single
   source of truth for engine math; a change there is re-copied here
   (`cp ../dither-kit/engine/timing.ts engine/timing.ts`), not re-invented.

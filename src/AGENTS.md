@@ -9,7 +9,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
-- `widgets/` — the docs previews' `workbench` (inspect, measure,
+- `widgets/` — the site's one `site-header` (the landing's and the docs'
+  capsule, a page's tools in its slot, the menu sheet of tone bands under
+  lg; see `pages/AGENTS.md`, Header), the docs previews' `workbench` (inspect, measure,
   annotate, capture; see `widgets/workbench/AGENTS.md`) and `source` (the
   preview's files, edited and run in the page; see
   `widgets/source/AGENTS.md`) and the studio
@@ -472,11 +474,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   ships the figure un-latched and the client plays the entrance exactly
   once (a snapshot taken after it played flashed the finished art, hid it
   on mount, then replayed — measured on a 4x-throttled CPU).
-- Docs sections are DIRECT children of `.docs-flow` and carry
-  `content-visibility: auto` + `contain-intrinsic-size: auto 700px` — below-
-  fold sections skip layout/paint until they approach the viewport (the page
-  is 220 sections / ~180k px; first layout of everything cost seconds). New
-  section wrappers must stay inside `.docs-flow` to keep the rule applying.
+- Docs sections are DIRECT children of `.docs-flow`: the page shows one
+  at a time by toggling `hidden` on them (`pages/AGENTS.md`, Wayfinding),
+  and the prerender lifts each into its own static page by the same rule.
+  New section wrappers must stay direct children of `.docs-flow`.
 - Page transitions: the routes (`/`, `/docs`, `/studio` and the section
   pages) opt into cross-document view transitions in `app/styles.css`
   (`@view-transition`, none under reduced motion), and the arriving page
@@ -494,13 +495,6 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
   runs the inline script both ways. The theme toggle (`useTheme`'s
   `revealToggle`) dithers the new theme in as an iris from its control.
-- Engine gate: `app/main.ts` adds `html.engine-webkit` when the UA is WebKit
-  by ENGINE (`AppleWebKit` without `Chrome`/`Android` — so iOS skins like
-  CriOS/FxiOS/EdGiOS count), and the docs sections then opt OUT of
-  content-visibility there, because WebKit's reveal path keeps stale geometry
-  until a forced flush — blank chunks under real scroll (bug 321501) and
-  re-entry jank (318216), both unfixed as of Safari/iOS 26. Chrome/Gecko/Edge
-  keep the skip. Remove the gate when those bugs ship fixes.
 - `shared/ui/AdSlot.vue` never evaluates the EthicalAds client on the
   critical path: the slot loads only when it approaches the viewport AND the
   document is loaded plus a beat (8s-after-load safety net), and the aside it

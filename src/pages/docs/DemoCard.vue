@@ -1,5 +1,27 @@
+<script lang="ts">
+import type { InjectionKey } from "vue"
+
+/** How a demo sits in its well: inset on the well's padding, or bled to its
+ * top and sides (a surface demo: its first frame takes the well's top
+ * corners and drops its own border, the controls under it). A family sets
+ * its default with `provide(DEMO_FIT, "bleed")`; a card's `fit` wins. */
+export type DemoFit = "bleed" | "inset"
+export const DEMO_FIT: InjectionKey<DemoFit> = Symbol("demo-fit")
+</script>
+
 <script setup lang="ts">
-import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue"
+import {
+  computed,
+  defineAsyncComponent,
+  h,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  watch,
+} from "vue"
 import { routePath } from "@/shared/lib"
 import { setStyling, STYLING_LABELS } from "@/shared/lib/restyle"
 import { play } from "@/shared/lib/sound"
@@ -14,7 +36,9 @@ const Workbench = defineAsyncComponent(() => import("@/widgets/workbench").then(
 const SourcePanel = defineAsyncComponent(() => import("@/widgets/source").then((m) => m.SourcePanel))
 const RunView = defineAsyncComponent(() => import("@/widgets/source").then((m) => m.RunView))
 
-const props = defineProps<{ code: string }>()
+const props = defineProps<{ code: string; fit?: DemoFit }>()
+const familyFit = inject(DEMO_FIT, "inset")
+const fit = computed(() => props.fit ?? familyFit)
 const tab = ref<"preview" | "code">("preview")
 const root = ref<HTMLElement | null>(null)
 const host = ref<HTMLElement | null>(null)
@@ -234,8 +258,11 @@ function chip(apply: () => void, already: boolean) {
       v-show="tab === 'preview' || ran"
       ref="host"
       v-bind="runAttrs"
-      class="demo-well rim relative mt-3 flex min-h-[280px] items-center justify-center border p-4 sm:p-10"
-      :class="{ 'data-[tray=bottom]:pb-16 data-[tray=top]:pt-16': inspecting }"
+      class="demo-well rim relative mt-3 flex min-h-[280px] items-center justify-center border"
+      :class="[
+        fit === 'bleed' ? 'bleed pb-6' : 'p-4 sm:p-10',
+        { 'data-[tray=bottom]:pb-16 data-[tray=top]:pt-16': inspecting },
+      ]"
       :tabindex="inspecting ? 0 : undefined"
       :role="inspecting ? 'group' : undefined"
       :aria-label="inspecting ? 'Preview, with the workbench' : undefined"
@@ -303,5 +330,26 @@ function chip(apply: () => void, already: boolean) {
   .demo-well {
     border-color: CanvasText;
   }
+}
+
+/* Bled: the demo's first frame meets the well's top and sides, takes its
+   top corners and drops its own border and rounding, so a surface reads as
+   the well's own picture, never a thumbnail framed inside it. Alone in the
+   well, it takes the bottom corners too. */
+.demo-well.bleed {
+  align-items: flex-start;
+}
+
+.demo-well.bleed:has(> div > :only-child) {
+  padding-bottom: 0;
+}
+
+.demo-well.bleed > div > :slotted(:first-child) {
+  border: 0;
+  border-radius: 21px 15px 0 0 / 17px 21px 0 0;
+}
+
+.demo-well.bleed > div > :slotted(:first-child:last-child) {
+  border-radius: 21px 15px 21px 15px / 17px 21px 15px 21px;
 }
 </style>

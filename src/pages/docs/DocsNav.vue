@@ -2,13 +2,23 @@
 import { routePath } from "@/shared/lib"
 
 /** A section's address: the deep link every nav link carries and the URL
- * the scroll-spy writes. */
+ * a section's page lives at. */
 export const docsUrl = (id: string) => routePath(`/docs/${id}`)
 
 /** Where a docs list stands: the rail beside the content (a pointer's 25px
  * targets at a 27px pitch) or the sections sheet (a finger's 30px ones). */
 export type NavPlace = "rail" | "sheet"
 export const NAV_LINK: Record<NavPlace, string> = { rail: "py-1 text-[11px]", sheet: "py-1.5 text-[12px]" }
+/** A group's heading sticks to the top of its list while its sections
+ * scroll under it (the landmark in a long list). The list's top room lives
+ * here, not on the scroller, since a sticky heading sticks at the
+ * scroller's content edge and its padding would show the list above it.
+ * In the rail the heading lies on the page's ground, unseen; in the sheet,
+ * over the shell's gradient, it is a filled band on that ground. */
+export const NAV_PLACE: Record<NavPlace, { top: string; head: string }> = {
+  rail: { top: "pt-10", head: "bg-background" },
+  sheet: { top: "pt-2", head: "-mx-2 rounded-md bg-background px-2" },
+}
 
 /** A part of the section in view (its heading, a gallery heading, its API
  * table), read from its DOM: what "On this page" lists. */
@@ -62,6 +72,27 @@ watch(
   { flush: "post" },
 )
 
+// Groups fold: the one holding the current section opens itself, the
+// reader opens or closes the rest; a folded group's links stay in the DOM
+// (hidden), so the list is whole for find-in-page and the crawler.
+const opened = ref(new Set<string>())
+const groupOf = (id: string) => GROUPS.find((g) => g.items.some((i) => i.id === id))?.title
+watch(
+  () => props.activeId,
+  (id) => {
+    const g = groupOf(id)
+    if (g && !opened.value.has(g)) opened.value = new Set([...opened.value, g])
+  },
+  { immediate: true },
+)
+function fold(title: string) {
+  const next = new Set(opened.value)
+  if (next.has(title)) next.delete(title)
+  else next.add(title)
+  opened.value = next
+}
+const listId = (title: string) => `docs-${props.variant}-${title.toLowerCase().replace(/\W+/g, "-")}`
+
 // Each group under its glyph (the landing's family glyphs).
 const GROUP_ICON: Record<string, IconName> = {
   Overview: "Home",
@@ -78,13 +109,27 @@ const GROUP_ICON: Record<string, IconName> = {
 </script>
 
 <template>
-  <div ref="root" class="grid gap-7">
+  <div ref="root" class="grid gap-3" :class="NAV_PLACE[props.variant].top">
     <div v-for="grp in GROUPS" :key="grp.title">
-      <div class="flex items-center gap-2 text-[11px] font-medium text-foreground">
+      <button
+        type="button"
+        class="sticky top-0 z-10 flex min-h-7 w-full items-center gap-2 py-1.5 text-left text-[11px] font-medium text-foreground"
+        :class="NAV_PLACE[props.variant].head"
+        :aria-expanded="opened.has(grp.title)"
+        :aria-controls="listId(grp.title)"
+        @click="fold(grp.title)"
+      >
         <DitherIcon :name="GROUP_ICON[grp.title] ?? 'Grid'" :size="13" :stroke-width="1.5" />{{ grp.title }}
         <span class="spec ml-auto tabular-nums">{{ grp.items.length }}</span>
-      </div>
-      <ul class="mt-2.5 grid gap-0.5 border-l border-border/60">
+        <DitherIcon
+          name="ChevronRight"
+          :size="12"
+          :stroke-width="1.75"
+          class="text-muted-foreground transition-transform duration-150 motion-reduce:transition-none"
+          :class="opened.has(grp.title) ? 'rotate-90' : ''"
+        />
+      </button>
+      <ul v-show="opened.has(grp.title)" :id="listId(grp.title)" class="mt-1 grid gap-0.5 border-l border-border/60">
         <li v-for="it in grp.items" :key="it.id">
           <a
             :href="docsUrl(it.id)"
