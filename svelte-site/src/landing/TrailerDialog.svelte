@@ -1,5 +1,5 @@
 <script lang="ts">
-  // The film: a minute of the site in use, captioned, over the kit's own
+  // The film: the site in use in under a minute, captioned, over the kit's own
   // score. It is the main site's (dither-ui.com/trailer/),
   // and nothing of it loads until the dialog opens (the <video> exists only
   // while it is open); opening it was the visitor's ask, so it plays at
@@ -21,7 +21,7 @@
 <DitherDialog
   {open}
   title="The dither-ui film"
-  description="A minute of the site in use, captioned: the hero's print, the bento's cards poked, an agent laying out a screen, a phone's menu printing in, a docs section's 3D model dragged and its code opened, the quick start copied, a chart evolved in the Studio, and the footer. Music and interface sounds, no speech."
+  description="The site in use in under a minute, captioned: the hero's print printing in, seven of the bento's cards handled in turn, an agent laying out a screen, a docs section's 3D model dragged and its code opened, a phone's menu printing in, a chart evolved in the Studio, the quick start copied, and the footer. Music and interface sounds, no speech."
   class="max-w-5xl"
   onclose={() => (open = false)}
 >
