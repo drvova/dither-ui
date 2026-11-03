@@ -4,7 +4,6 @@ import {
   componentEmbed,
   llmsTxt,
   oembed,
-  ogCardPage,
   ROUTE_CARDS,
   robotsTxt,
   sectionsManifest,
@@ -145,27 +144,31 @@ describe("share cards", () => {
       const text = [card.title, card.description, card.alt, ...card.links.map((l) => l.label)].join(" ")
       expect(text).not.toMatch(/[\u00b7\u2014]/)
     }
-    expect(ogCardPage()).not.toMatch(/text-transform|toUpperCase|[\u00b7\u2014]/)
   })
 })
 
 describe("og card page", () => {
-  const page = ogCardPage()
-  const script = page.slice(page.indexOf("<script>") + 8, page.indexOf("</script>"))
+  const root = new URL("..", import.meta.url).pathname
+  const config = readFileSync(`${root}/rstack.config.ts`, "utf8")
+  const template = readFileSync(`${root}/og/index.html`, "utf8")
 
-  it("is one self-contained script: the art and the GIF encoder inline, no imports", () => {
-    expect(() => new Function(script)).not.toThrow()
-    expect(script).not.toMatch(/\bimport\b|\brequire\(/)
-    for (const name of ["ogArt", "ogWrap", "encodeGif", "lzw", "deltaBox", "quantize"])
-      expect(script).toMatch(new RegExp(`function ${name}\\(`))
-    expect(page).toMatch(/<canvas id="dith" width="1200" height="630">/)
-    expect(page).toMatch(/noindex/)
+  it("is a page of the build, at the path the prerender and the Discord service load", () => {
+    expect(config).toContain(`"og/index": { html: "og/index.html", main: "src/pages/docs/og-page.ts" }`)
+    expect(template).toMatch(/<canvas id="og" width="1200" height="630">/)
+    expect(template).toMatch(/noindex/)
+    expect(template).toContain("<title>og-loading</title>")
   })
 
   it("answers the prerender and the Discord service", () => {
-    expect(script).toContain("files(id, seed, inv)")
-    expect(script).toContain('document.title = "og-ready"')
-    // The Discord service swaps this exact read for the manifest inline.
-    expect(script).toContain('fetch("./sections.json").then(r=>r.json())')
+    const page = readFileSync(`${root}/src/pages/docs/og-page.ts`, "utf8")
+    expect(page).toContain("async files(id, seed, inv)")
+    expect(page).toContain('document.title = "og-ready"')
+    expect(page).toContain('fetch("./sections.json")')
+  })
+
+  it("draws no accent bar on Discord: the printed look has no side line", () => {
+    for (const card of shareCards())
+      expect(JSON.parse(componentEmbed(card)).component).not.toHaveProperty("accent_color")
+    expect(readFileSync(`${root}/discord/service.mjs`, "utf8")).not.toContain("accent_color")
   })
 })

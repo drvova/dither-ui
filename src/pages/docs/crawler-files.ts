@@ -1,6 +1,4 @@
-import * as gif from "../../shared/lib/gif.ts"
 import { GROUPS, SECTIONS } from "./groups.ts"
-import * as card from "./og-card.ts"
 import { docsBreadcrumb, docsMeta, REPO_URL, SITE_URL } from "./seo.ts"
 
 // The crawler-surface files (`dist/sitemap.xml`, `dist/robots.txt`,
@@ -131,8 +129,9 @@ export interface ShareCard {
   links: { label: string; url: string }[]
 }
 
-/** The route cards (their art is the horizon). The ids share `og/` with the
- * section ids, so none may be one (the tests hold this). */
+/** The route cards (their art is a print of the kit's poster, home's the
+ * hero's own; the first link names the card's key). The ids share `og/`
+ * with the section ids, so none may be one (the tests hold this). */
 export const ROUTE_CARDS = [
   {
     id: "home",
@@ -180,7 +179,7 @@ export function sectionCard(id: string): ShareCard {
     url: meta.url,
     title: meta.label,
     description: meta.description,
-    alt: `${meta.label} in the dither-ui docs, over a drifting field of dithered blue`,
+    alt: `${meta.label} in the dither-ui docs, beside a dithered print of blue, orange and bone tone fields around the kit's diamond`,
     links: [
       { label: "Open the docs", url: meta.url },
       { label: "Source on GitHub", url: REPO_URL },
@@ -194,27 +193,22 @@ export function shareCards(): ShareCard[] {
     url: r.url,
     title: r.title,
     description: r.description,
-    alt: `${r.title} over two dithered horizons, blue and purple, under a few stars`,
+    alt: `${r.title} beside a dithered print of blue, orange and bone tone fields around the kit's diamond`,
     links: [...r.links],
   }))
   return [...routes, ...SECTIONS.map((s) => sectionCard(s.id))]
 }
 
-/** The side bar: the brand blue, as Discord's integer colour. The pages'
- * own theme-color is their ground (the browser chrome over them), so a
- * plain-link fallback wears that instead. */
-const THEME = 0x3f8ff3
-
 /** Discord's component embed for a card: one Container holding the title
  * and description, the playing card and its links (link buttons only, as
- * component embeds allow). Under Discord's 3,000 byte cap. */
+ * component embeds allow), with no accent bar (the printed look draws no
+ * side line). Under Discord's 3,000 byte cap. */
 export function componentEmbed(card: ShareCard): string {
   const group = GROUPS.find((g) => g.items.some((i) => i.id === card.id))?.title
   const note = group ? `${group}, in the dither-ui docs` : "dither-ui.com"
   return JSON.stringify({
     component: {
       type: 17,
-      accent_color: THEME,
       components: [
         { type: 10, content: `## ${card.title}\n${card.description}\n-# ${note}` },
         { type: 12, items: [{ media: { url: `${SITE_URL}/og/${card.id}.gif` }, description: card.alt }] },
@@ -256,193 +250,6 @@ export function shareHead(card: ShareCard): string {
     `<link rel="discord:component-embed" type="application/json" href="${SITE_URL}/embed/${card.id}.json" />`,
     `<link rel="alternate" type="application/json+oembed" href="${SITE_URL}/oembed/${card.id}.json" title="${esc(card.title)}" />`,
   ].join("\n    ")
-}
-
-/* --------------------------- og card renderer page ------------------------- */
-
-// The renderer the build draws every card with, written to dist/og/index.html:
-// one 1200x630 canvas, the art from og-card.ts and the GIF encoder from
-// shared/lib/gif.ts carried inline as their own source (so the page needs
-// no bundle and the Discord service can load it from a file), the type set
-// on top. `window.og.files(id)` answers a card's PNG and GIF as base64 (the
-// prerender's call); `?id=<card>&seed=<n>&inv=<0|1>` draws its first frame
-// and flips document.title to "og-ready" (the Discord service's
-// screenshot), `&play` loops it in place for a look. Sections come from
-// ./sections.json, routes from ROUTE_CARDS.
-export function ogCardPage(): string {
-  const data = {
-    OG_W: card.OG_W,
-    OG_H: card.OG_H,
-    OG_CELL: card.OG_CELL,
-    OG_FRAMES: card.OG_FRAMES,
-    OG_DELAY: card.OG_DELAY,
-    OG_GROUND: card.OG_GROUND,
-    OG_NIGHT: card.OG_NIGHT,
-    OG_SKY: card.OG_SKY,
-    OG_DUSK: card.OG_DUSK,
-    OG_BAYER: card.OG_BAYER,
-    TRANSPARENT: gif.TRANSPARENT,
-    ROUTES: ROUTE_CARDS.map(({ id, title, line }) => ({ id, title, line })),
-  }
-  const source = [
-    ...Object.entries(data).map(([name, value]) => `const ${name} = ${JSON.stringify(value)}`),
-    ...[card.ogSeed, card.ogRandom, card.ogPixel, card.ogLevel, card.ogBodies, card.ogFieldTone, card.ogCrests],
-    ...[card.ogArt, card.ogWrap, gif.byteBuffer, gif.medianCut, gif.distinctColours, gif.sample, gif.quantize],
-    ...[gif.lzw, gif.deltaBox, gif.encodeGif],
-  ].join("\n\n")
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=1200" />
-<meta name="robots" content="noindex" />
-<title>og-loading</title>
-<style>
-  * { margin: 0; padding: 0; }
-  html, body { width: 1200px; height: 630px; overflow: hidden; background: ${card.OG_GROUND}; }
-  canvas { display: block; }
-</style>
-</head>
-<body>
-<canvas id="dith" width="1200" height="630"></canvas>
-<script>
-${source}
-
-const MONO = 'ui-monospace, "SF Mono", "JetBrains Mono", Consolas, monospace'
-const INK = "#ededed", INK2 = "#b4b8c0", INK3 = "#8b8f98", LINE = "#2c3038", EMBER = "#ff9632"
-const canvas = document.getElementById("dith")
-const ctx = canvas.getContext("2d", { willReadFrequently: true })
-let SECTIONS = []
-const ready = fetch("./sections.json").then(r=>r.json()).then((s) => { SECTIONS = s })
-
-function cardOf(id, seed, inv) {
-  const route = ROUTES.find((r) => r.id === id)
-  if (route) return { id, art: "horizon", title: route.title, line: route.line, tag: "", seed: seed || ogSeed(id), inv: !!inv }
-  const s = SECTIONS.find((x) => x.id === id) || SECTIONS[0]
-  return {
-    id: s.id, art: "field", title: s.label.replace(/\\.+$/, ""), line: s.url.replace(/^https?:\\/\\//, ""),
-    tag: s.group, seed: seed || ogSeed(s.id), inv: !!inv,
-  }
-}
-
-function font(size, weight) {
-  ctx.font = (weight || 400) + " " + size + "px " + MONO
-}
-
-// The brand: the 7x7 diamond (ember core) and the name, top left.
-function brand() {
-  ctx.fillStyle = INK
-  ;[1, 3, 5, 7, 5, 3, 1].forEach((w, row) => ctx.fillRect(64 + (7 - w) * 1.5, 46 + row * 3, w * 3, 3))
-  ctx.fillStyle = EMBER
-  ctx.fillRect(64 + 9, 46 + 9, 3, 3)
-  ctx.fillStyle = INK
-  font(22, 500)
-  ctx.letterSpacing = "0px"
-  ctx.fillText("dither-ui", 97, 64)
-}
-
-// A hairline tag in the top right corner: a section's family.
-function tag(text, ground) {
-  font(15)
-  ctx.letterSpacing = "0px"
-  const w = ctx.measureText(text).width + 24
-  ctx.fillStyle = ground
-  ctx.beginPath()
-  ctx.roundRect(1136 - w + 0.5, 40.5, w - 1, 29, 6)
-  ctx.fill()
-  ctx.strokeStyle = LINE
-  ctx.lineWidth = 1
-  ctx.stroke()
-  ctx.fillStyle = INK3
-  ctx.fillText(text, 1136 - w + 12, 60)
-}
-
-// The title in as few lines as fit (shrinking a size when three would not),
-// its ember stop after the last word; then its line in a quieter ink.
-function title(card) {
-  const route = card.art === "horizon"
-  const max = route ? 760 : 700
-  let size = route ? 104 : 64
-  let lines
-  for (;;) {
-    font(size, 500)
-    ctx.letterSpacing = (-0.03 * size).toFixed(1) + "px"
-    lines = route ? [card.title] : ogWrap(card.title.split(" "), (t) => ctx.measureText(t).width, max)
-    const widest = Math.max(...lines.map((l) => ctx.measureText(l + ".").width))
-    if ((lines.length <= 2 || size <= 52) && widest <= max) break
-    size -= 4
-  }
-  const lead = Math.round(size * 1.06)
-  const last = route ? 318 : 520
-  lines.forEach((l, i) => {
-    const y = last - (lines.length - 1 - i) * lead
-    ctx.fillStyle = INK
-    ctx.fillText(l, 64, y)
-    if (i === lines.length - 1) {
-      ctx.fillStyle = EMBER
-      ctx.fillText(".", 64 + ctx.measureText(l).width, y)
-    }
-  })
-  font(route ? 26 : 22)
-  ctx.letterSpacing = "0px"
-  ctx.fillStyle = route ? INK2 : INK3
-  ogWrap(card.line.split(" "), (t) => ctx.measureText(t).width, 720)
-    .slice(0, 2)
-    .forEach((l, i) => ctx.fillText(l, 64, last + (route ? 60 : 54) + i * 36))
-}
-
-function draw(card, t) {
-  ctx.putImageData(new ImageData(ogArt(card, t), OG_W, OG_H), 0, 0)
-  brand()
-  if (card.tag) tag(card.tag, card.inv ? OG_NIGHT : OG_GROUND)
-  title(card)
-}
-
-function base64(bytes) {
-  let s = ""
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000))
-  return btoa(s)
-}
-
-window.og = {
-  ready,
-  card: cardOf,
-  // Every card the build draws: the routes, then each section.
-  ids: () => [...ROUTES.map((r) => r.id), ...SECTIONS.map((s) => s.id)],
-  // A card's still (its first frame) as a PNG and its loop as a GIF, base64.
-  async files(id, seed, inv) {
-    await ready
-    const card = cardOf(id, seed, inv)
-    const frames = []
-    for (let i = 0; i < OG_FRAMES; i++) {
-      draw(card, i / OG_FRAMES)
-      frames.push(ctx.getImageData(0, 0, OG_W, OG_H).data)
-    }
-    draw(card, 0)
-    // The card's own colours stay exact in the GIF (the ember stop is a
-    // few hundred pixels of 756,000); its type's antialiasing shares the rest.
-    const keep = [OG_GROUND, OG_NIGHT, ...OG_SKY, ...OG_DUSK, INK, INK2, INK3, LINE, EMBER].map((h) =>
-      [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)),
-    )
-    const gif = encodeGif(frames, OG_W, OG_H, OG_DELAY, { keep })
-    return { png: canvas.toDataURL("image/png").split(",")[1], gif: base64(gif) }
-  },
-}
-
-ready.then(() => {
-  const q = new URLSearchParams(location.search)
-  const card = cardOf(q.get("id") || "getting-started", parseInt(q.get("seed") || "0") || 0, q.get("inv") === "1")
-  draw(card, 0)
-  document.title = "og-ready"
-  if (q.has("play")) {
-    let i = 0
-    setInterval(() => draw(card, (++i % OG_FRAMES) / OG_FRAMES), OG_DELAY * 10)
-  }
-}).catch(() => { document.title = "og-error" })
-</script>
-</body>
-</html>
-`
 }
 
 /* ------------------------------ sitemap.xml ------------------------------- */

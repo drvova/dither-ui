@@ -703,22 +703,46 @@ widgets/features; page-specific conventions live here.
   link. A `CodeBlock`'s copy chip takes its own band over the first line
   under sm (a long first line ran under it there). The footer's items
   wrap, never collide.
-- Share cards (`docs/og-card.ts`, the art; `crawler-files.ts`, the cards,
-  their embeds and the renderer page): a card is the page's title (ember
-  stop) over the house dither in motion, the brand top left, a section's
-  family as a hairline tag top right, its address under the title; a
-  section's field of three seeded bodies stays out of the title's corner,
-  the routes roll two horizons (SKY, then the kit's purple seed as a
-  ramp) under stars. Every motion turns a whole number of times per loop
-  (36 frames at 10 fps), so the GIF's last frame meets its first; the PNG
-  is frame 0. Copy follows the bans (no uppercase, no eyebrow over the
+- Share cards, set as the landing's hero (the user's pick over a spec
+  sheet and a hardware shell; restraint, the print alone on its field):
+  `docs/og-card.ts` (the design: size, inks by night and by day, the print's box, the type's
+  column, the seeds; import-free, as crawler-files.ts reads it under Node),
+  `docs/og-art.ts` (the art: the kit's own poster engine at the print's
+  size, a seed's composition through a seed's printer's screen; home prints
+  the hero's, seed 5 through Bayer), `docs/og-page.ts` (the renderer, the
+  build's `og/index` entry over `og/index.html`: `window.og.files(id, seed,
+  inv)` for the prerender and the Discord service) and `crawler-files.ts`
+  (the cards' copy, embeds and oEmbed).
+  A card is obsidian with one bone ink: the brand top left (the header's
+  diamond and name), the statement standing on the print's middle (the
+  title in chrome, the display face and the site's ramp one horizon per
+  line, a route's on one line and a section's on two at most; its line in
+  the muted mono, a route's own or a section's lede, which the prerender
+  lifts from the docs snapshot into `og/ledes.json` before it draws the
+  cards, `ogLede` setting whole sentences in two lines, else a word cut
+  and an ellipsis; then the keys, the satin one naming where the card's
+  first link goes and a filled one carrying the address), and the print
+  on the right, 4:5 as the hero's, its top on the brand's line, standing
+  over its floor (the same print turned over and thinned through the
+  Bayer matrix). No tags, chips, numbers or frames. By day (the Discord
+  toggle) the same card on bone paper in the light chrome, the print's bone
+  ink turned obsidian. The loop (72 frames at 12.5 fps, `OG_BEATS`): at
+  rest, then the kit's diamond swells over the whole print on the spring,
+  turning every tile over into its negative ring by ring, holds, and
+  recedes to its place, the screen sliding inside it in whole turns, so
+  the GIF's last frame meets its first; the PNG is frame 0, the print at
+  rest. Discord's containers draw no accent bar (no side line). Copy
+  follows the landing's bans (no caps or tracking, no eyebrow over the
   title, no middle dot or em dash, buttons that name where they go).
-  `ROUTE_CARDS` holds the route cards' copy; their ids may never be
-  section ids. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
-  clear title corner, the lattice, Bayer order, balanced wrap) and the
-  share-card cases in `tests/crawler-files.spec.ts` (every page's embed
-  under Discord's 3,000 byte cap with link buttons only, the oEmbed photo,
-  each route head carrying its card's tags, the bans).
+  `ROUTE_CARDS` holds the route cards' copy; their ids may never be section ids; the route templates' image alt is
+  the card's. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
+  screens, the swell's beats, home as the hero's print with its inks, no
+  bone on bone, the print and its floor clear of the type, AA, balanced
+  wrap, the lede's cut, the landing's copy bans) and the share-card and
+  renderer cases in `tests/crawler-files.spec.ts` (every page's embed
+  under Discord's 3,000 byte cap with link buttons only and no accent bar,
+  the oEmbed photo, each route head carrying its card's tags, the bans,
+  the renderer as a build page).
 - Section IA lives in `docs/groups.ts` — the single source for the sidebar,
   the `/docs/<id>` deep links, and the build-time crawl files
   (`crawler-files.ts` generates `dist/sitemap.xml`, `dist/robots.txt`, and
@@ -968,7 +992,7 @@ widgets/features; page-specific conventions live here.
   section's card playing and copies its link, Markdown and HTML.
 - Share cards after a full `npm run build`: every id `window.og.ids()`
   lists has `dist/og/<id>.png` and `.gif` (the GIF's frames move and its
-  first is the PNG's card, the ember stop and the mark's core included),
+  first is the PNG's card, the mark's core included),
   `dist/embed/<id>.json` and `dist/oembed/<id>.json`, and a section page's
   head points at its own (Discord's Embed Debugger,
   discord.com/developers/embeds, reads a deployed URL as Discord will).

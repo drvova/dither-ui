@@ -174,9 +174,13 @@ Default section order:
   1200x630 SHARE CARD per page the site shares (`home`, `docs`, `studio`
   and every docs section) as `dist/og/<id>.png` (its still: the og/X image
   every link preview shows) and `dist/og/<id>.gif` (the same card looping,
-  3.6s), with four pages of the self-contained `ogCardPage()` renderer
-  (`window.og.files(id)`; the art is `src/pages/docs/og-card.ts`, the
-  encoder `src/shared/lib/gif.ts`, both carried inline as their source), and
+  5.76s: the kit's diamond swells over its print and back), with four pages of the card renderer, a page of the build (the
+  `og/index` entry: `og/index.html` + `src/pages/docs/og-page.ts`,
+  `window.og.files(id)`): set as the landing's hero (the brand, the
+  title in chrome, its line, a satin key and the address) beside a print
+  of the kit's own poster on its dithered floor (`og-art.ts` runs
+  the kit's poster engine; home prints the hero's composition; the card's
+  design in `og-card.ts`), the encoder `src/shared/lib/gif.ts`), and
   writes a per-section static page `dist/docs/<id>/index.html` (its head is
   the manifest's `head`: title/description/canonical/og/twitter, the card's
   tags, BreadcrumbList — meta derived ONLY from `seo.ts`'s

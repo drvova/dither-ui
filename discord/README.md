@@ -2,10 +2,11 @@
 
 Turns every docs section into an **interactive Discord embed**: `/component slider`
 posts a Components V2 message — the section's share card, playing (the
-animated GIF the site's own dither engine draws), the section summary, and
-buttons that edit the embed in place: **Re-roll seed** re-renders the card's
-dither field from a new seed, **Night/Day mode** inverts it, **Open docs**
-links out. No bot token needed — interactions answer inline via the webhook.
+animated GIF of the kit's own poster print the site draws), the section
+summary, and buttons that edit the embed in place: **Re-roll seed** prints
+the card's poster from a new seed (its composition and its printer's
+screen), **Night/Day mode** sets the card on obsidian or on bone paper,
+**Open docs** links out. No bot token needed — interactions answer inline via the webhook.
 
 A link to the site needs none of this: every page's head points Discord at
 its own component embed (`dist/embed/<id>.json`, the same card playing, with
@@ -53,15 +54,16 @@ DISCORD_PUBLIC_KEY=<hex> PUBLIC_BASE=https://<host> node discord/service.mjs
   `PING`, the `component` slash command (type 4 + IsComponentsV2), and
   button clicks (type 7, message updated in place).
 - `GET /preview/:id/:seed/:inv.gif` — on-demand share card re-render, its
-  whole loop (playwright over `dist/og/index.html`'s `window.og.files`,
-  memory-cached, 24h browser-cache headers). A seed is up to nine digits
+  whole loop (playwright over the built renderer page `dist/og/index.html`,
+  its script and the sections manifest served from `DIST` as built, its
+  `window.og.files`; memory-cached, 24h browser-cache headers). A seed is up to nine digits
   and an invert 0 or 1, read the same way as a button's custom id; renders
   run one at a time on one page, and past eight waiting a request gets 503.
 - `GET /health`.
 
 ## Components V2 layout
 
-Container (ember accent) → TextDisplay (`## <Section>`) → TextDisplay
+Container (no accent bar: the printed look draws no side line) → TextDisplay (`## <Section>`) → TextDisplay
 (description + group footer line) → MediaGallery (the playing card) → ActionRow
 (Re-roll / Night-Day / Open docs). The `IsComponentsV2` flag (1<<15) is set
 on every message; no `content` field (v2 messages carry no plain content).
