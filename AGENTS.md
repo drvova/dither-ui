@@ -308,6 +308,20 @@ Default section order:
   Both are docs sections under Media (`world`, `shader`) and
   `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps WebGL2
   (SwiftShader), so GPU and shader frames export to MP4 too.
+- PWA: the site installs as an app and opens offline (the user's call).
+  The build draws its web manifest (`dist/site.webmanifest`, every URL
+  relative so any base installs) and every icon (`favicon.svg`/`.png`,
+  `apple-touch-icon.png`, `icons/` plain and maskable) from the brand
+  mark's cells (`src/app/install-files.ts`, the `installFiles` plugin;
+  none kept in `public/`), and injects the install head (manifest, icons,
+  iOS's app tags) into each route from one table. A service worker
+  (`src/app/sw.ts`, built alone to `dist/sw.js` by the `sw` environment;
+  its rules in `src/app/offline.ts`) keeps the three routes and their
+  assets at install, serves pages network first (offline: the page as
+  last seen, else its route's shell), hashed assets from the cache, and
+  leaves the film, the cards and the player to the network; the app
+  registers it after load in a production build. Details in
+  `src/AGENTS.md`; guarded by `tests/install.spec.ts`.
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node
@@ -456,6 +470,10 @@ Default section order:
   `src/widgets/source/AGENTS.md`); Kobra's interface sounds play on the
   docs, switched off from the header. Docs previews are real product
   surfaces: build real, working tools on them, never mock-ups.
+- The site is a PWA (the user's call): installable on every platform it
+  targets, iOS included, and usable offline; a change that adds a route,
+  a page-level asset or a large media path keeps the worker's rules
+  (`src/app/offline.ts`) and the install surface in step.
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
 - Accessibility is a floor, not a feature: labels, focus rings, reduced-motion
