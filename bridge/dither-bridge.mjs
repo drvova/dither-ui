@@ -51,7 +51,7 @@ export const HARNESSES = [
   {
     id: "claude",
     name: "Claude Code",
-    command: "npx -y @zed-industries/claude-code-acp",
+    command: "npx -y @agentclientprotocol/claude-agent-acp",
     bin: "claude",
     note: "your Claude Code login",
   },

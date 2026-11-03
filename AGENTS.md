@@ -209,6 +209,9 @@ Default section order:
   OpenCode, Auggie) plus any command, says which are on the PATH, and
   starts the one picked in the panel as the user's OWN signed-in process.
   No key, model setting or login is ever collected in-app.
+  `npm run demo:agent` (`scripts/agent-demo.mjs`) records the panel
+  driving the user's own harness (Claude Code by default) into a video,
+  run where that harness is signed in; never with borrowed credentials.
 - Video: every Studio frame exports as a HyperFrames composition
   (`features/export-video`, the `video` selection action, the
   `video.export` command / `export_video` tool) — one self-contained HTML

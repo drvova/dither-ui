@@ -8,6 +8,7 @@
     "build": "vue-tsc -b && rs build && node scripts/kit-css.mjs && node scripts/prerender.mjs",
     "build:css": "node scripts/kit-css.mjs",
     "frames": "node scripts/render-frames.mjs",
+    "demo:agent": "node scripts/agent-demo.mjs",
     "preview": "rs preview",
     "typecheck": "vue-tsc --noEmit",
     "test": "rs test",

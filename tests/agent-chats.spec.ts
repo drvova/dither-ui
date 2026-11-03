@@ -44,6 +44,19 @@ describe("a project's chats", () => {
     expect(chats.list[0].id).toBe(first)
   })
 
+  it("lists a chat once something is said in it, not when the harness first speaks", () => {
+    openProject("p1")
+    saveThread(
+      "p1",
+      chats.active,
+      { entries: [{ kind: "system", text: "connected" }], usage: { input: 0, output: 0 } },
+      true,
+    )
+    expect(chats.list).toEqual([])
+    saveThread("p1", chats.active, said("A table"), true)
+    expect(chats.list.map((c) => c.title)).toEqual(["A table"])
+  })
+
   it("keeps a chat in its place when nothing new is said, and drops one emptied", () => {
     openProject("p1")
     const a = chats.active

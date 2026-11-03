@@ -111,7 +111,8 @@ export function saveThread<E extends { kind: string; text?: string }>(
     json = JSON.stringify({ ...s, entries })
   }
   storage.set(threadKey(project, chat), json)
-  if (project !== chats.project) return
+  // Listed once something is said in it, not when the harness first speaks.
+  if (project !== chats.project || !s.entries.some((e) => e.kind === "user")) return
   const was = chats.list.find((c) => c.id === chat)
   const title = titleOf(s.entries)
   if (was && !moved && was.title === title) return

@@ -29,7 +29,7 @@ the bridge found on your PATH:
 
 | pick | runs | needs |
 | --- | --- | --- |
-| Claude Code | `npx -y @zed-industries/claude-code-acp` | the `claude` CLI, logged in |
+| Claude Code | `npx -y @agentclientprotocol/claude-agent-acp` | the `claude` CLI, logged in |
 | Codex | `npx -y @zed-industries/codex-acp` | the `codex` CLI, logged in |
 | Gemini CLI | `gemini --experimental-acp` | `gemini` |
 | Qwen Code | `qwen --experimental-acp` | `qwen` |
@@ -38,6 +38,18 @@ the bridge found on your PATH:
 | OpenCode | `opencode acp` | `opencode` |
 | Auggie | `auggie --acp` | `auggie` |
 | custom | any command that speaks ACP over stdio | — |
+
+## Record a demo
+
+`npm run demo:agent` records the panel driving your own harness: it starts
+this bridge on port 8791 with a fresh scratch folder, opens the Studio you
+serve (`npm run dev`, or `--url`), picks Claude Code (or `--harness <id>`,
+or any ACP `--agent "<command>"`), types the ask (`--ask`), shows each
+permission prompt a beat before allowing it, waits for the turn to end
+(`--timeout 300` seconds), and writes `agent-demo/agent-demo.webm` and,
+with ffmpeg on the PATH, an `.mp4`. It runs on your login: nothing is
+signed in by the script. A browser comes from `CHROME_PATH`, a system
+Chrome, or `--executable`.
 
 Options: `--agent "<command>"` starts that command with the tab instead of
 waiting for a pick; `--port 8790` (websocket + relay port, loopback only);
