@@ -16,16 +16,9 @@
 // `bridge/exit` (the agent died), `studio/call` (a Studio tool call).
 import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
-import {
-  type AgentCommand,
-  type AgentEvent,
-  callStudioTool,
-  finishStudioTool,
-  type Mode,
-  type ModelChoice,
-  STUDIO_TOOLS,
-  type Usage,
-} from "./tools"
+import { type Built, callDither, DITHER_TOOL, ditherDef } from "./dither"
+import { runSandboxed } from "./sandbox"
+import { type AgentCommand, type AgentEvent, type Mode, type ModelChoice, STUDIO_SERVER, type Usage } from "./tools"
 
 type JsonRpcId = string | number
 type Message = {
@@ -66,6 +59,9 @@ export type AcpClientOptions = {
   /** Answer a `session/request_permission`: the chosen optionId, or null to cancel. */
   permission: (req: AcpPermissionRequest) => Promise<string | null>
   run?: (command: unknown) => CommandResult
+  /** Asks the user before a tool the harness built runs; without it, none
+   * runs. Never answered for them. */
+  approveTool?: (tool: Built, args: Record<string, unknown>) => Promise<boolean>
   onEvent?: (e: AgentEvent) => void
   /** The bridge's state changed: a harness started, stopped or died. */
   onHello?: (h: BridgeHello) => void
@@ -136,7 +132,7 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
     const title = typeof update.title === "string" ? update.title : ""
     // Studio tools reach the page through the bridge's studio/call path and
     // are rendered there with their result; skip the agent's mirror of them.
-    if (STUDIO_TOOLS.some((t) => title.includes(t.def.name))) return []
+    if (title === DITHER_TOOL || title.includes(STUDIO_SERVER)) return []
     const toolKind = typeof update.kind === "string" ? { kind: update.kind } : {}
     return [
       {
@@ -332,11 +328,8 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         jsonrpc: "2.0",
         method: "bridge/tools",
         params: {
-          tools: STUDIO_TOOLS.map((t) => ({
-            name: t.def.name,
-            description: t.def.description,
-            inputSchema: t.def.parameters,
-          })),
+          // One tool: the harness finds the action its job needs (`dither.ts`).
+          tools: [ditherDef()].map((t) => ({ name: t.name, description: t.description, inputSchema: t.parameters })),
         },
       })
     }
@@ -425,15 +418,25 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           return
         }
         case "studio/call": {
-          // The bridge's MCP server forwarding the harness's tool call.
+          // The bridge's MCP server forwarding the harness's call of the one
+          // tool; each action it runs is a step of the thread.
           const name = String(params.name ?? "")
           const args =
             typeof params.arguments === "object" && params.arguments !== null
               ? (params.arguments as Record<string, unknown>)
               : {}
-          const result = await finishStudioTool(name, callStudioTool(name, args, run))
-          flush()
-          o.onEvent?.({ type: "tool", name, args, result })
+          const result =
+            name === DITHER_TOOL
+              ? await callDither(args, {
+                  run,
+                  approve: o.approveTool ?? (async () => false),
+                  sandbox: runSandboxed,
+                  onStep: (step) => {
+                    flush()
+                    o.onEvent?.({ type: "tool", ...step })
+                  },
+                })
+              : { ok: false as const, error: `unknown tool ${name}: the Studio has one, ${DITHER_TOOL}` }
           send({ jsonrpc: "2.0", id: m.id, result })
           return
         }

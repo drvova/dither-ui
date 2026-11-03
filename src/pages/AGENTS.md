@@ -855,7 +855,9 @@ widgets/features; page-specific conventions live here.
   (hidden by the sidebar key: the project's name, Add a frame (the
   Library), New chat, Docs, then its chats newest first with how long ago
   each moved, `agoOf`, a hover delete, switching held while a turn runs,
-  then its layers; every glyph, label and the tree's chevrons on one
+  then the tools your agent built (each with when, its description on
+  hover, a remove key), then its layers; every glyph, label and the
+  tree's chevrons on one
   left line, a chat's title on the nav rows' text column), the canvas in
   its shell (the selection bar and the data editor inside it) and the
   right column: the properties OR the agent (`StudioSide`, one union, the
@@ -977,7 +979,15 @@ widgets/features; page-specific conventions live here.
   waits for its title before it shows, and a permission prompt for a
   Studio tool says what it will do in the Studio's words (`STEPS[tool]
   .ask` beside its past tense, `askTitle`), any other MCP tool by its
-  tool and server. Placeholders fit one line at 320px ("Ask, /
+  tool and server; the one tool's prompt names the action its input
+  asks for. A run of a tool the harness built asks first, every time, in
+  the thread ("Run <tool>, a tool <harness> built", Run it or Don't run)
+  with its code folded open under it; Auto never answers it. Its own
+  Studio calls are steps of their own, then "Ran <tool>", so the changes
+  bar and checkpoints cover what generated code did. Every grid in the
+  panel that stacks blocks names one `minmax(0, 1fr)` column, so a long
+  line (a path, a code line, a long suggestion) never widens the panel
+  (`tests/agent-panel.spec.ts` reads the styles). Placeholders fit one line at 320px ("Ask, /
   for commands", "Queue a follow-up", "Answer above, 1 to 3", "Queue for
   after the stop", "Ask; this starts the bridge", "Ask; this starts your
   harness"). The canvas hands the agent frames two ways, through

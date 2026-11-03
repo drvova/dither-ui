@@ -35,6 +35,8 @@ export type Entry =
       title: string
       options: { id: string; label: string; primary?: boolean }[]
       answered: string | null
+      /** What would run: a built tool's code, to read before saying yes. */
+      code?: string
     }
   /** The end of a turn: how long the harness worked, and how the turn
    * ended when not on its own (you stopped it, or it failed). */
@@ -100,13 +102,19 @@ export function describeResult(result: Result): string {
 
 /** A Studio tool call as the thread's step: in words, its args and result
  * under it (a delivered file shown by its path), open when it failed. */
-export function toolEntry(name: string, args: Record<string, unknown>, result: Result, turn: number): ToolEntry {
+export function toolEntry(
+  name: string,
+  args: Record<string, unknown>,
+  result: Result,
+  turn: number,
+  built = false,
+): ToolEntry {
   const raw = result.ok ? result.data : null
   const files = raw && typeof raw === "object" ? (raw as { files?: unknown }).files : undefined
   const data = Array.isArray(files)
     ? { ...(raw as object), files: (files as { path?: unknown }[]).map((f) => f?.path ?? f) }
     : raw
-  const step = toolStep(name, args, result)
+  const step = toolStep(name, args, result, built)
   return {
     kind: "tool",
     name,

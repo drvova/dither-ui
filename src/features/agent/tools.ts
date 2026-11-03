@@ -332,7 +332,8 @@ export type AgentEvent =
   | { type: "delta"; text: string }
   | { type: "thought"; text: string }
   | { type: "assistant"; text: string }
-  | { type: "tool"; name: string; args: Record<string, unknown>; result: CommandResult }
+  /** An action the Studio's one tool ran; `built`: a tool the harness built. */
+  | { type: "tool"; name: string; args: Record<string, unknown>; result: CommandResult; built?: boolean }
   /** One of the harness's own tool calls; `kind` is ACP's (read, edit,
    * delete, move, search, execute, think, fetch, other) when it says. */
   | { type: "activity"; id: string; title: string; status: string; kind?: string }

@@ -124,6 +124,7 @@ watch(
    and key on the composer's `--inset` line (rows pad 4px of it). */
 .part {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1px;
   padding: 3px calc(var(--inset, 10px) - 4px) 4px;
   font-size: 11px;
@@ -156,6 +157,7 @@ watch(
 }
 .rows {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   max-height: 8.5rem;
   overflow-y: auto;
   margin: 0;

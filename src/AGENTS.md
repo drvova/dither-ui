@@ -161,8 +161,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     same generation. `placeGeneration` (editor store) lays a generation out as
     one row centred on the viewport and selects it — the one multi-frame
     placement, a batch insert whose midpoint is where a lone frame lands.
-  - `tools.ts`: the Studio as a harness sees it — `STUDIO_TOOLS` (one tool
-    per protocol command, with JSON-schema parameters and arguments it
+  - `tools.ts`: the Studio's actions — `STUDIO_TOOLS` (one action
+    per protocol command, run through the one `dither` tool, with JSON-schema parameters and arguments it
     always sends, `preset`: `get_registry` asks `registry.get` for the
     brief registry, names, labels and groups, which a harness reads in one
     answer where the full prop specs run past 100 kB, and `is` for one
@@ -178,6 +178,32 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     permission answers — nothing secret, always saved) and per-project
     drafts (`dither-agent-draft-<projectId>`). There is NO model client
     in the app: the composer never runs a model and never holds a key.
+  - `dither.ts`: the Studio as ONE MCP tool for a harness. `ditherDef()`
+    is its one definition (every action's name, no schemas: a third of
+    the old list's size, guarded by its spec); `parseDither` reads its
+    input once into `find | run | build`; `findFor(job)` ranks the actions
+    (the `STUDIO_TOOLS` of `tools.ts` and the tools harnesses built) by the
+    share of the job's words they answer, counting only words some action
+    speaks of, a person's words mapped to the schema's (`wordsOf`), and
+    returns the best three with their exact arguments, the kit components
+    the job names, the best fit, and a nudge to build under `GOOD_FIT`;
+    `callDither` runs an action (a failure answers with what it takes),
+    keeps a built tool (`built`, `dither-agent-built`, newest first;
+    `removeBuilt`), and runs one only after `approve`, through `sandbox`,
+    its own Studio calls reaching the actions only; every action that ran
+    is reported as a step (`onStep`). Guarded by `tests/agent-dither.spec.ts`.
+  - `sandbox.ts`: where a built tool runs. `runSandboxed(code, args,
+    call)` puts `sandboxDocument()` in an iframe with `sandbox="allow-scripts"`
+    and no allow-same-origin (no page, cookies or storage), a CSP of
+    `default-src 'none'` (no request of any kind), and a blob worker
+    (`workerSource`: `studio.run` over messages, then the code as the body
+    of an async function of `(args, studio)`) behind one `MessageChannel`;
+    past `SANDBOX_MS` or `SANDBOX_CALLS` the frame goes, the worker with it.
+    Proven in Chromium by `tests/sandbox.spec.ts` (answers through
+    `studio.run` only; fetch, script imports and sockets refused with no
+    request reaching a local server; no document, parent or storage; an
+    endless loop stopped while the page answers; parse and throw errors
+    reported).
   - `chats.ts` (imported by path, so the page never pulls the protocol):
     a project's chats, the reactive `chats` store shared by the Studio's
     sidebar and the agent panel (`project`, `list` newest first as
@@ -211,11 +237,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     keeping its title (an untitled call waits for the update that names
     it, never its id), plans, `current_mode_update` → `mode`,
     `config_option_update` → `model`,
-    `available_commands_update` → `commands`; mirrors of Studio tools are
-    skipped because they render from the `studio/call` path), permission
-    requests go through the panel's inline approval, `studio/call` runs
-    `callStudioTool` + `finishStudioTool` so the harness's MCP tool calls
-    land on the canvas, `prompt()` resolves with the stop reason and the
+    `available_commands_update` → `commands`; the harness's mirror of its
+    call of the one tool (its title the tool's name or names the
+    `STUDIO_SERVER`) is skipped because it renders from the `studio/call`
+    path), permission requests go through the panel's inline approval,
+    `bridge/tools` advertises only `ditherDef()`, and `studio/call` runs
+    `callDither` (the panel's `approveTool` asks before a built tool runs;
+    without it none runs) so each action lands on the canvas as a step, `prompt()` resolves with the stop reason and the
     turn's text (one assistant entry per prose segment between tool
     calls and thoughts), abort sends `session/cancel`, `bridge/exit` fails every pending
     request. Pinned by `tests/agent-protocol.spec.ts`,

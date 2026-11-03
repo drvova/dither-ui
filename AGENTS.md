@@ -208,6 +208,14 @@ Default section order:
   harnesses (Claude Code, Codex, Gemini CLI, Qwen Code, oh-my-pi, Goose,
   OpenCode, Auggie) plus any command, says which are on the PATH, and
   starts the one picked in the panel as the user's OWN signed-in process.
+  A harness reaches the canvas through ONE tool, `dither` (the user's
+  call: one small definition, not every action's schema on every turn):
+  `find` answers with the actions that fit the job and the kit components
+  that do, `run` runs one, and when none fits well `build` makes a new one
+  in JavaScript that is kept and found first next time. A built tool runs
+  in a sandbox (an opaque-origin frame with no network, a worker it can
+  be killed in, the Studio's actions its only way out) and only when the
+  user approves that run; Auto never answers it.
   No key, model setting or login is ever collected in-app: the panel
   shows who answers and the model the harness reports, and switching
   model asks the harness among its own.

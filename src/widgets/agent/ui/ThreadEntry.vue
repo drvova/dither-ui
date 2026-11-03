@@ -124,6 +124,14 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   </div>
   <div v-else-if="entry.kind === 'approval'" class="approval" :data-answered="String(entry.answered !== null)">
     <p class="approval-title"><DitherIcon name="AlertTriangle" :size="12" :stroke-width="1.5" />{{ entry.title }}</p>
+    <details v-if="entry.code" class="fold approval-code" :open="entry.answered === null">
+      <summary>
+        <DitherIcon name="Code" :size="12" :stroke-width="1.5" /><span class="row-label"
+          >Its code, {{ entry.code.split("\n").length }} lines</span
+        ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
+      </summary>
+      <pre class="detail">{{ entry.code }}</pre>
+    </details>
     <div v-if="entry.answered === null" class="choices">
       <button
         v-for="(o, n) in entry.options"
@@ -172,6 +180,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
 }
 .msg {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   min-width: 0;
   max-width: 100%;
@@ -218,6 +227,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
 }
 .reply {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
 }
 .reply-actions {
@@ -279,6 +289,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
    in, the composer's own line. */
 .approval {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   border-radius: 10px;
   padding: 8px 13px;

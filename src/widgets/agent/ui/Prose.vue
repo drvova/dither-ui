@@ -68,6 +68,7 @@ async function copy(at: number, text: string) {
    thread's prose); code stays in the mono. */
 .prose {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   font-family: var(--font-sans);
   font-size: 13px;
@@ -86,6 +87,7 @@ async function copy(at: number, text: string) {
 ul,
 ol {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 3px;
   padding-left: 1.1rem;
   list-style: disc;

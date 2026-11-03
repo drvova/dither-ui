@@ -98,11 +98,21 @@ Code, oh-my-pi, Goose, OpenCode, Auggie or any Agent Client Protocol
 agent):** the user runs `node bridge/dither-bridge.mjs` from a dither-ui
 checkout, picks you in the Studio's Agent panel and sends prompts from
 there. Your session then
-has an MCP server named `dither-studio` whose tools are the commands below
-(`add_screen`, `add_component`, `add_chart`, `add_widget`, `update_artboard`,
-`remove_artboard`, `evolve`, `select`, `get_registry`, `get_document`,
-`get_code`, `list_artboards`), each applied to the live canvas and undoable.
-Prefer them over writing files; the user is watching the canvas.
+has an MCP server named `dither-studio` with ONE tool, `dither`. Describe
+the job with `{ "find": "a sign-in screen with a remember me checkbox" }`
+and it answers with the actions that fit best (each with its exact
+arguments, and how well it fits) and the kit components that fit; then
+`{ "run": "add_screen", "args": { ... } }`. The actions are the commands
+below (`add_screen`, `add_component`, `add_chart`, `add_widget`,
+`update_artboard`, `remove_artboard`, `evolve`, `select`, `get_registry`,
+`get_document`, `get_code`, `list_artboards`, ...), each applied to the
+live canvas and undoable. When none fits the job well, build one:
+`{ "build": { "name", "description", "parameters", "code" } }`, where `code`
+is the body of an async JavaScript function of `(args, studio)` and
+`await studio.run("<action>", args)` calls an action. It runs in a sandbox
+(no page, no network, 10 seconds, 200 Studio calls), the user approves each
+run, and it is kept and found first next time. Prefer the tool over writing
+files; the user is watching the canvas.
 
 **Live (harness has a browser tool, e.g. the sitegeist bridge):** a Studio
 tab speaks a DOM protocol that works from any script world. Dispatch on

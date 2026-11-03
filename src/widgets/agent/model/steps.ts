@@ -3,6 +3,7 @@
 // gathers per turn so the user keeps them or puts the canvas back. Tools
 // that only read change nothing.
 import type { IconName } from "@dither-kit"
+import { parseDither } from "@/features/agent/dither"
 import { STUDIO_SERVER } from "@/features/agent/tools"
 
 type Result = { ok: true; data: unknown } | { ok: false; error: string }
@@ -26,6 +27,8 @@ export const STEPS: Record<string, { verb: string; ask: string; icon: IconName; 
   add_reel: { verb: "Cut the reel", ask: "Cut a reel on the canvas", icon: "Film", mutates: true },
   update_artboard: { verb: "Updated", ask: "Change a frame", icon: "Edit", mutates: true },
   remove_artboard: { verb: "Removed a frame", ask: "Remove a frame", icon: "Trash", mutates: true },
+  find: { verb: "Looked for what fits", ask: "Look for the actions that fit the job", icon: "Search", mutates: false },
+  build: { verb: "Built the tool", ask: "Build a tool for the job", icon: "Sparkles", mutates: false },
   evolve: { verb: "Evolved", ask: "Evolve a frame into variants", icon: "Dice", mutates: true },
 }
 
@@ -35,17 +38,24 @@ const frame = (d: unknown): Changed | null =>
     : null
 
 /** A permission prompt's title as a person reads it. A harness names an MCP
- * tool `mcp__<server>__<tool>`: a Studio tool says what it will do, any
- * other its tool's name and server. Anything else stands as it came. */
-export function askTitle(title: string): string {
+ * tool `mcp__<server>__<tool>`: the Studio's one tool says what this call
+ * will do (from its input, when the prompt carries it), any other its
+ * tool's name and server. Anything else stands as it came. */
+export function askTitle(title: string, input?: unknown): string {
   const m = /^mcp__(.+?)__(\w+)$/.exec(title.trim())
   if (!m) return title
   const [, server, tool] = m
-  if (server === STUDIO_SERVER && STEPS[tool]) return STEPS[tool].ask
-  return `${tool.replace(/_/g, " ")} (${server})`
+  if (server !== STUDIO_SERVER) return `${tool.replace(/_/g, " ")} (${server})`
+  const call = parseDither(input)
+  if ("error" in call) return "Use the Studio"
+  if (call.kind === "find") return STEPS.find.ask
+  if (call.kind === "build") return `${STEPS.build.ask}: ${call.tool.name.replace(/_/g, " ")}`
+  return STEPS[call.action]?.ask ?? `Run ${call.action.replace(/_/g, " ")}`
 }
 
-export function toolStep(name: string, args: Record<string, unknown>, result: Result): Step {
+export function toolStep(name: string, args: Record<string, unknown>, result: Result, built = false): Step {
+  // A tool the harness built: its own Studio calls are steps of their own.
+  if (built) return { icon: "Sparkles", title: `Ran ${name.replace(/_/g, " ")}`, changed: [], mutates: false }
   const known = STEPS[name] ?? { verb: name.replace(/_/g, " "), icon: "Terminal" as IconName, mutates: false }
   const data = result.ok ? result.data : null
   const frames = Array.isArray(data) ? data.map(frame) : [frame(data)]
@@ -54,6 +64,8 @@ export function toolStep(name: string, args: Record<string, unknown>, result: Re
   const object =
     name === "evolve" && changed.length
       ? `${changed.length} ${changed.length === 1 ? "variant" : "variants"}`
-      : (frames[0]?.name ?? (typeof args.name === "string" ? args.name : typeof args.is === "string" ? args.is : ""))
+      : name === "find" && typeof args.job === "string"
+        ? args.job
+        : (frames[0]?.name ?? (typeof args.name === "string" ? args.name : typeof args.is === "string" ? args.is : ""))
   return { icon: known.icon, title: `${known.verb}${object ? ` ${object}` : ""}`, changed, mutates: known.mutates }
 }

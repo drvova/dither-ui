@@ -2,6 +2,7 @@
 // The agent panel mounted as the Studio mounts it, before any bridge: its
 // setup runs in order (the project's session and draft come back), and the
 // field's keys behave as the composer promises.
+import { readFileSync } from "node:fs"
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
@@ -155,5 +156,20 @@ describe("the agent panel", () => {
     window.removeEventListener("keydown", onKey)
     expect(seen).toEqual(["i"])
     w.unmount()
+  })
+
+  it("stacks its blocks in grids whose one column can shrink, so a long line never widens the panel", () => {
+    // A grid's auto column grows to its widest unbreakable line (a path, a
+    // code line, a long suggestion) and pushes the panel past its column.
+    // A grid that stacks blocks names its column; one that centres a glyph
+    // (place-items) holds no text.
+    const files = ["AgentPanel.vue", "ui/Prose.vue", "ui/ThreadEntry.vue", "ui/TurnTrays.vue"]
+    const loose = files.flatMap((f) => {
+      const css = readFileSync(`src/widgets/agent/${f}`, "utf8").split("<style")[1] ?? ""
+      return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+        .filter(([, , body]) => /display:\s*grid/.test(body) && !/place-items|grid-template-columns/.test(body))
+        .map(([, sel]) => `${f} ${sel.trim()}`)
+    })
+    expect(loose).toEqual([])
   })
 })

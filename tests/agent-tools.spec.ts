@@ -91,7 +91,13 @@ describe("acp mapping", () => {
       { type: "activity", id: "t1", title: "", status: "completed" },
     ])
     // Studio tools are rendered from the bridge's studio/call path, not the agent's mirror.
-    expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t2", title: "add_screen" })).toEqual([])
+    // The harness's mirror of its call of the Studio's one tool is drawn from
+    // the call itself; a file of a dither project is not that tool.
+    expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t2", title: "mcp__dither-studio__dither" })).toEqual([])
+    expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t3", title: "dither" })).toEqual([])
+    expect(
+      mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t4", title: "Read dither-kit/engine/pixel.ts" }),
+    ).toHaveLength(1)
     // A call that arrives untitled is named by a later update, never by its id.
     expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "toolu_01", status: "pending" })).toEqual([
       { type: "activity", id: "toolu_01", title: "", status: "pending" },

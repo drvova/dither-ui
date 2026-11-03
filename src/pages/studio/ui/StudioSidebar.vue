@@ -2,6 +2,7 @@
 import { onBeforeUnmount, ref } from "vue"
 import { DitherAvatar, DitherIcon } from "@dither-kit"
 import { agoOf, chats, newChat, openChat, removeChat } from "@/features/agent/chats"
+import { built, removeBuilt } from "@/features/agent/dither"
 import { activeProjectId, activeProjectName, createProject, projects, switchProject } from "@/features/persistence"
 import { routePath } from "@/shared/lib"
 import { LayerTree } from "@/widgets/layer-tree"
@@ -108,6 +109,31 @@ function pickChat(id: string) {
             title="Delete chat"
             :disabled="locked && c.id === chats.active"
             @click="removeChat(c.id)"
+          >
+            <DitherIcon name="Close" :size="12" :stroke-width="1.5" />
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <!-- The tools a harness built for its jobs: kept, found first, and run
+         only when you allow it; remove one and it is gone. -->
+    <section v-if="built.list.length" class="group" aria-labelledby="side-tools">
+      <h2 id="side-tools" class="group-label">Tools your agent built</h2>
+      <ul class="chats">
+        <li v-for="t in built.list" :key="t.name" class="chat">
+          <p class="nav-row tool-row" :title="t.description">
+            <DitherIcon name="Sparkles" :size="14" :stroke-width="1.5" /><span class="row-label">{{
+              t.name.replace(/_/g, " ")
+            }}</span
+            ><span class="row-label ago">{{ agoOf(t.at, now) }}</span>
+          </p>
+          <button
+            type="button"
+            class="chat-x"
+            :aria-label="`Remove the tool ${t.name.replace(/_/g, ' ')}`"
+            title="Remove tool"
+            @click="removeBuilt(t.name)"
           >
             <DitherIcon name="Close" :size="12" :stroke-width="1.5" />
           </button>
@@ -248,6 +274,14 @@ function pickChat(id: string) {
   padding-inline: 29px 6px;
 }
 .chat-row .row-label:first-child {
+  flex: 1;
+}
+.tool-row {
+  margin: 0;
+  justify-content: space-between;
+  gap: 9px;
+}
+.tool-row .row-label:nth-child(2) {
   flex: 1;
 }
 .chat-row[aria-current="true"] {

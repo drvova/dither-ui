@@ -76,8 +76,10 @@ const context = await browser.newContext({
 })
 // The panel's saved choice, as if picked in its harness menu: this bridge,
 // the preset (or the bridge's own --agent), prompts left to answer.
+// The top page only: a built tool's sandbox frame has no storage to set.
 await context.addInitScript(
   ([bridgeUrl, id]) =>
+    window === window.top &&
     localStorage.setItem("dither-agent-config", JSON.stringify({ bridgeUrl, harness: id, command: "", auto: false })),
   [`ws://127.0.0.1:${PORT}`, agent ? "" : harness],
 )

@@ -25,6 +25,7 @@ import {
   type Usage,
 } from "@/features/agent/tools"
 import { chats, loadThread, newChat, openProject, saveThread, titleOf } from "@/features/agent/chats"
+import type { Built } from "@/features/agent/dither"
 import { handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
 import { artboardPng } from "@/features/export-image"
 import { checkpoint, restoreCheckpoint, undo } from "@/features/history"
@@ -281,6 +282,7 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
       url,
       onEvent,
       permission: askPermission,
+      approveTool,
       onHello: (h) => {
         hello.value = h
         if (!h.agent) {
@@ -399,7 +401,7 @@ function onEvent(e: AgentEvent) {
       break
     case "tool":
       live.value = null
-      push(toolEntry(e.name, e.args, e.result, turn.value))
+      push(toolEntry(e.name, e.args, e.result, turn.value, e.built))
       break
     case "activity": {
       live.value = null
@@ -455,9 +457,13 @@ type Approval = Extract<Entry, { kind: "approval" }>
  * transcript entry: two prompts at once are each answered on their row. */
 const pending = shallowReactive(new Map<Approval, (id: string | null) => void>())
 
-function ask(title: string, options: { id: string; label: string; primary?: boolean }[]): Promise<string | null> {
+function ask(
+  title: string,
+  options: { id: string; label: string; primary?: boolean }[],
+  code?: string,
+): Promise<string | null> {
   askedAt = Date.now()
-  push({ kind: "approval", title, options, answered: null })
+  push({ kind: "approval", title, options, answered: null, ...(code ? { code } : {}) })
   const entry = entries.value[entries.value.length - 1] as Approval
   return new Promise((resolve) => {
     pending.set(toRaw(entry), (id) => {
@@ -468,11 +474,23 @@ function ask(title: string, options: { id: string; label: string; primary?: bool
   })
 }
 
+/** A tool the harness built runs only when you say so, every time: its
+ * code is on the prompt, and Auto never answers it. */
+const approveTool = async (tool: Built): Promise<boolean> =>
+  (await ask(
+    `Run ${tool.name.replace(/_/g, " ")}, a tool ${agentName.value || "your harness"} built`,
+    [
+      { id: "run", label: "Run it", primary: true },
+      { id: "no", label: "Don't run" },
+    ],
+    tool.code,
+  )) === "run"
+
 const askPermission = async (req: AcpPermissionRequest): Promise<string | null> => {
   const options = req.options.map((o) => ({ id: o.optionId, label: o.name, primary: o.kind.startsWith("allow") }))
   if (config.value.auto) return options.find((o) => o.primary)?.id ?? options[0]?.id ?? null
   return ask(
-    askTitle(req.title),
+    askTitle(req.title, (req.raw as { toolCall?: { rawInput?: unknown } } | null)?.toolCall?.rawInput),
     options.length
       ? options
       : [
@@ -1503,6 +1521,7 @@ onBeforeUnmount(() => {
 }
 .hello {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: start;
   gap: 8px;
   padding-inline: 2px;
@@ -1532,6 +1551,7 @@ onBeforeUnmount(() => {
 }
 .starters {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   flex: 1;
   align-content: start;
   min-height: 0;
@@ -1567,6 +1587,7 @@ onBeforeUnmount(() => {
 /* The composer's outer edge on the panel's 14px line, the thread's. */
 .dock {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   flex-shrink: 0;
   gap: 6px;
   padding: 0 14px 12px;
@@ -1581,6 +1602,7 @@ onBeforeUnmount(() => {
   --inset: 10px;
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   border-radius: 16px;
   padding: 3px;
   background: var(--color-card);
@@ -1590,6 +1612,7 @@ onBeforeUnmount(() => {
 .card {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 4px;
   border-radius: 13px;
   padding: 8px var(--inset) 6px;
@@ -1759,6 +1782,7 @@ button.status-key:hover,
   left: 0;
   z-index: 6;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   max-height: 16rem;
   overflow-y: auto;
   border-radius: 12px;

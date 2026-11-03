@@ -78,7 +78,14 @@ describe("a tool call as a step", () => {
   })
 
   it("asks for a Studio tool in its own words, and names any other MCP tool by its tool and server", () => {
-    expect(askTitle("mcp__dither-studio__add_screen")).toBe("Add a screen to the canvas")
+    expect(askTitle("mcp__dither-studio__dither", { run: "add_screen", args: {} })).toBe("Add a screen to the canvas")
+    expect(askTitle("mcp__dither-studio__dither", { find: "a sign-in screen" })).toBe(
+      "Look for the actions that fit the job",
+    )
+    expect(
+      askTitle("mcp__dither-studio__dither", { build: { name: "sign_in_flow", description: "x", code: "1" } }),
+    ).toBe("Build a tool for the job: sign in flow")
+    expect(askTitle("mcp__dither-studio__dither")).toBe("Use the Studio")
     expect(askTitle("mcp__github__create_issue")).toBe("create issue (github)")
     expect(askTitle("Run npm test")).toBe("Run npm test")
     for (const { def: t } of STUDIO_TOOLS) expect(STEPS[t.name].ask, t.name).toMatch(/^[A-Z]/)
