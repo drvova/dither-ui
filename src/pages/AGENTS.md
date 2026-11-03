@@ -900,26 +900,51 @@ widgets/features; page-specific conventions live here.
   quiet status (needs your answer, done, stopped, failed), never the
   stream; the field announces the listbox option it highlights. The thread
   follows what arrives only while you read its end: scrolled up, it holds
-  still and a "Latest" key brings you back. Over
-  the composer: the turn's plan as to-dos (circles, a ringed one in
-  progress, done struck through), the queue with a remove key per
-  message, the run (thinking, writing or working, its time, Stop) and,
-  once it ends, the turn's changes (the frames its editing steps touched,
-  each with Show; Undo all restores the turn's checkpoint, Keep settles
-  it). The composer is two tiers: the input card (a recessed well with
-  the rim: the context chips, the selection with any of it left out by
-  its x plus frames picked with `@`, typed or from the @ key, through a
-  listbox; the message; a foot with the @ key, the mode chip when the
-  harness has modes, click cycles, `/mode <id>` sets, and the round chrome
-  send key, a Stop square while it runs and the field is empty) set in a
-  status tray that says where it runs: the harness (LED while one runs;
-  it opens the picker: every harness the bridge knows with its PATH
-  status, a custom command, stop; `/harness <id | command>` is the same;
-  the choice persists and starts again on the next prompt), Ask or Auto
-  (how permission prompts are answered; Auto takes their allow option),
-  the bridge's folder, and the settings key (the bridge address, tokens
-  in and out summed from each turn's usage, the last turn's time, the
-  full cwd; no key or model setting exists in the app). The harness reads
+  still and a "Latest" key brings you back. Replies, your messages and
+  thoughts read in the proportional face (`--font-sans`, the user's call
+  after the composer board); code, steps and the chrome stay mono. The
+  composer is ONE surface: the stack (`ui/TurnTrays.vue`, rows straight
+  on it, a hairline under each part) rests on the input card, and a row
+  under the card says where it runs. The stack, top to bottom: after a
+  turn that finished on its own and while the field is empty, up to three
+  next prompts (`model/suggest.ts` `nextPrompts`, from the frames the turn
+  changed, else the frames in hand: evolve, show the code, export a video,
+  cut a reel; one tap sends); the turn's plan as to-dos (circles, a ringed
+  one in progress, done struck through; open while work is left, folded
+  once all are done unless the reader chose); the queue with a remove key
+  per message; the run (thinking, writing or working, its time, a quiet
+  Stop with "esc" beside it); once it ends, the turn's changes, last and
+  resting on the card (the frames its editing steps touched, each with
+  Show; Undo all restores the turn's checkpoint, Keep settles it). The
+  input card is the recessed well with a hairline (the ring ink edges it
+  while it holds the focus), two lines tall when empty: the context chips
+  (the selection, any of it left out by its x, plus frames picked on the
+  canvas or by name with `@`, typed or from the @ key, through a
+  listbox); the message; a foot with the pick key (crosshair: picking
+  frames on the canvas, below), the @ key, the harness chip (LED while one
+  runs, its mark and name; it opens the picker: every harness the bridge
+  knows with its PATH status, a custom command, stop; `/harness <id |
+  command>` is the same; the choice persists and starts again on the next
+  prompt), the mode chip when the harness has modes (click cycles, `/mode
+  <id>` sets), and the send key: grey until there is text, then the
+  chrome key (while a turn runs it queues; Stop lives in the run row).
+  The row under the card: Ask or Auto (how permission prompts are
+  answered; Auto takes their allow option), the bridge's folder, and the
+  settings key (the bridge address, tokens in and out summed from each
+  turn's usage, the last turn's time, the full cwd; no key or model
+  setting exists in the app). Placeholders fit one line at 320px ("Ask, /
+  for commands", "Queue a follow-up", "Answer above, 1 to 3", "Queue for
+  after the stop", "Ask; this starts the bridge", "Ask; this starts your
+  harness"). The canvas hands the agent frames two ways, through
+  `features/agent/handoff`: picking (the pick key; a press on a frame
+  hands it over or takes it back, a dashed ring in the signal ink marks
+  it, nothing inside the frame sees the press, the canvas shows a
+  crosshair and a "Click frames to hand them to the agent" bar with Done,
+  Esc ends it) and the ask at the selection (`widgets/canvas/SelectionAsk.vue`:
+  one frame selected, a one-line composer under it, or above its label
+  when there is no room, away while a pointer is down or picking; its
+  message opens the panel, which sends it with the frame as context; asks
+  waiting before the panel mounted are taken once it has). The harness reads
   the context as the frames' names and ids ahead of the message, and,
   when it takes images, the first three as pictures (each frame drawn to
   a PNG by `features/export-image` `artboardPng`; the bubble's chips show
@@ -954,8 +979,9 @@ widgets/features; page-specific conventions live here.
   session opened. The conversation persists per project and follows the
   active project; unanswered approvals are not saved. Pinned by
   `tests/agent-composer.spec.ts` (prose, steps, checkpoints, the
-  thread's readings), `tests/agent-panel.spec.ts` (the panel mounted:
-  its setup in order, the draft back, history, IME, Esc, the key scope)
+  thread's readings, next prompts, the canvas's handoff), `tests/agent-panel.spec.ts` (the panel mounted:
+  its setup in order, the draft back, history, IME, Esc, the key scope,
+  picked frames as context and the pick key, asks taken off the queue)
   and the thought, picture and draft cases in `tests/agent-tools.spec.ts`.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.

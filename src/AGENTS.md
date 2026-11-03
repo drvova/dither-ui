@@ -35,7 +35,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the first finger's drag with a `pointercancel`, a third starts nothing,
   and the pinch rebases on whichever pair remains; `tests/canvas-touch.spec.ts`),
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
-  the Studio tools and the ACP client behind the composer).
+  the Studio tools and the ACP client behind the composer, and `handoff.ts`:
+  the frames the canvas picks for the agent and the messages asked at the
+  selection, which the canvas writes, the agent panel reads and the
+  Studio page opens the panel for).
 - `entities/` — domain stores: editor (selection/artboards, single source of
   truth), chart, widget, artboard.
 - `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
@@ -389,7 +392,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (`h-6` / `min-h-6` / `size-6` on dense chrome). Pressed and selected
   chrome is `.ring-on` and every toggle carries `aria-pressed` (state is
   never colour alone); the accent blue is the CANVAS's selection colour
-  only (artboard ring, handles, snap guides, marquee, screen-cell rings).
+  only (artboard ring, handles, snap guides, marquee, screen-cell rings);
+  a frame handed to the agent wears a dashed ring in the signal ink instead.
   The accent blues stay tuned to clear 4.5:1 against white (light
   `#1d63d0`, dark `#1f6fd6`) — do not brighten them back.
 - Touch and iOS: the app's stylesheet sets every field to 16px at least on

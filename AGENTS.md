@@ -404,7 +404,10 @@ Default section order:
   its suggested extended face, Michroma (SIL OFL, self-hosted in
   `src/shared/fonts/`): the landing's statement and section titles, the
   docs' page title (in chrome) and section titles (plain ink). Its squared heading sans is not used; headings, body,
-  labels, figures and code stay mono, the user's identity.
+  labels, figures and code stay mono, the user's identity, save one
+  lift (the user's call after the composer board): the Studio agent
+  panel's thread prose (replies, messages, thoughts) reads in the
+  proportional face, its code, steps and chrome staying mono.
 - Design slop the user bans (their list; the landing is held to it, the
   docs and the Studio keep their tool chrome until the user extends it;
   for the printed landing the user lifted one: more than two inks inside

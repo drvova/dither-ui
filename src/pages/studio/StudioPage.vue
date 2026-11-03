@@ -3,6 +3,7 @@ import { defineAsyncComponent, nextTick, onBeforeUnmount, ref, watch } from "vue
 import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
 import { addArtboard } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
+import { handoff } from "@/features/agent/handoff"
 import type { AgentActivity } from "@/features/agent/tools"
 import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
@@ -42,6 +43,12 @@ watch(agentOpen, (v) => {
   nextTick(() => agentPanel.value?.focus())
 })
 watch(agentOpen, (v) => v && (layersOpen.value = false))
+// A message asked at the selection on the canvas opens the agent, whose
+// panel sends it; so does picking frames for it.
+watch(
+  () => handoff.asks.length + Number(handoff.picking),
+  (n) => n > 0 && (agentOpen.value = true),
+)
 watch(layersOpen, (v) => v && (agentOpen.value = false))
 usePanelShortcuts({ toggleAgent: () => (agentOpen.value = !agentOpen.value) })
 

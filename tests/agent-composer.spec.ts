@@ -9,7 +9,9 @@ import { editor } from "@/entities/editor/model/store"
 import { checkpoint, history, redo, resetHistory, restoreCheckpoint, undo } from "@/features/history"
 import { STUDIO_TOOLS } from "@/features/agent/tools"
 import { inline, parseProse } from "@/widgets/agent/model/prose"
+import { askAgent, handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
 import { STEPS, toolStep } from "@/widgets/agent/model/steps"
+import { NEXT_MAX, nextPrompts } from "@/widgets/agent/model/suggest"
 import {
   changesOf,
   type Entry,
@@ -243,5 +245,52 @@ describe("the thread's readings", () => {
     expect(secondsOf(200)).toBe("1s")
     expect(secondsOf(12_400)).toBe("12s")
     expect(secondsOf(65_000)).toBe("1m 5s")
+  })
+})
+
+describe("what to ask next", () => {
+  it("offers follow-ups the Studio's tools can do, about the frames a turn touched", () => {
+    expect(nextPrompts([])).toEqual([])
+    expect(nextPrompts([{ id: "a", name: "Sign in" }])).toEqual([
+      "Evolve Sign in into four variants",
+      "Show the code for Sign in",
+      "Export Sign in as a video",
+    ])
+    const three = nextPrompts([
+      { id: "a", name: "Sign in" },
+      { id: "b", name: "Dashboard" },
+      { id: "c", name: "Table" },
+    ])
+    expect(three[0]).toBe("Cut Sign in, Dashboard and 1 more into a reel")
+    expect(three.length).toBeLessThanOrEqual(NEXT_MAX)
+    // A long name is cut so a row stays one line.
+    expect(nextPrompts([{ id: "a", name: "A very long frame name that runs on and on" }])[0]).toBe(
+      "Evolve A very long frame name… into four variants",
+    )
+  })
+})
+
+describe("the canvas's handoff to the agent", () => {
+  beforeEach(() => {
+    handoff.picked.splice(0)
+    handoff.asks.splice(0)
+    handoff.picking = false
+  })
+
+  it("takes a picked frame back when it is picked again, keeping the order", () => {
+    togglePicked("a")
+    togglePicked("b")
+    togglePicked("a")
+    togglePicked("c")
+    expect(handoff.picked).toEqual(["b", "c"])
+  })
+
+  it("queues what was asked at the selection, oldest first, and asks nothing blank", () => {
+    askAgent("  make it dark ", ["a"])
+    askAgent("   ", ["b"])
+    askAgent("add a link", ["a", "b"])
+    expect(takeAsk()).toEqual({ text: "make it dark", frames: ["a"] })
+    expect(takeAsk()).toEqual({ text: "add a link", frames: ["a", "b"] })
+    expect(takeAsk()).toBeUndefined()
   })
 })

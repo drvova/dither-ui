@@ -5,6 +5,9 @@
 import { mount } from "@vue/test-utils"
 import { nextTick } from "vue"
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
+import { createArtboard } from "@/entities/artboard/model/factory"
+import { editor } from "@/entities/editor/model/store"
+import { askAgent, handoff } from "@/features/agent/handoff"
 import { saveDraft, saveSession } from "@/features/agent/tools"
 import { activeProjectId } from "@/features/persistence"
 import AgentPanel from "@/widgets/agent/AgentPanel.vue"
@@ -14,6 +17,11 @@ const field = (w: ReturnType<typeof mount>) => w.get<HTMLTextAreaElement>('texta
 beforeEach(() => {
   localStorage.clear()
   activeProjectId.value = "p1"
+  handoff.picked.splice(0)
+  handoff.asks.splice(0)
+  handoff.picking = false
+  editor.artboards = []
+  editor.selectedIds = []
 })
 afterEach(() => rs.restoreAllMocks())
 
@@ -70,6 +78,30 @@ describe("the agent panel", () => {
     await box.trigger("keydown", { key: "Escape" })
     expect(w.find("#agent-commands").exists()).toBe(false)
     expect(box.element.value).toBe("/he")
+    w.unmount()
+  })
+
+  it("carries frames picked on the canvas as context, and its pick key turns picking on and off", async () => {
+    const frame = createArtboard("button")
+    frame.name = "Sign in"
+    editor.artboards = [frame]
+    handoff.picked.push(frame.id)
+    const w = mount(AgentPanel, { attachTo: document.body })
+    await nextTick()
+    expect(w.find(".card .ctx").text()).toContain("Sign in")
+    const pick = w.get('button[aria-label="Pick frames on the canvas"]')
+    await pick.trigger("click")
+    expect(handoff.picking).toBe(true)
+    await field(w).trigger("keydown", { key: "Escape" })
+    expect(handoff.picking).toBe(false)
+    w.unmount()
+  })
+
+  it("takes a message asked at the selection off the canvas's queue", async () => {
+    askAgent("make it dark", ["f1"])
+    const w = mount(AgentPanel, { attachTo: document.body })
+    await nextTick()
+    expect(handoff.asks).toEqual([])
     w.unmount()
   })
 

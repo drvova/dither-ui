@@ -24,6 +24,7 @@ import {
   saveSession,
   type Usage,
 } from "@/features/agent/tools"
+import { handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
 import { artboardPng } from "@/features/export-image"
 import { checkpoint, restoreCheckpoint, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
@@ -31,6 +32,7 @@ import BrandMark from "@/shared/ui/BrandMark.vue"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { isMark } from "@/shared/ui/marks"
 import type { Changed } from "./model/steps"
+import { nextPrompts } from "./model/suggest"
 import {
   type Block,
   changesOf,
@@ -563,16 +565,16 @@ const slashAll = computed<Slash[]>(() => [
 /** The field says what sending will do now. */
 const placeholder = computed(() =>
   openApproval.value
-    ? `Answer above, 1 to ${Math.min(9, openApproval.value.options.length)}, or queue a message`
+    ? `Answer above, 1 to ${Math.min(9, openApproval.value.options.length)}`
     : stopping.value
-      ? "Queue a message for after the stop"
+      ? "Queue for after the stop"
       : busy.value
         ? "Queue a follow-up"
         : !acp.value
-          ? "Type your message; it starts the bridge"
+          ? "Ask; this starts the bridge"
           : !agent.value
-            ? "Type your message; it starts your harness"
-            : "Type your message, / for commands",
+            ? "Ask; this starts your harness"
+            : "Ask, / for commands",
 )
 /** Esc puts the command menu away until the field changes. */
 const slashDismissed = ref(false)
@@ -698,20 +700,19 @@ async function slash(line: string): Promise<boolean> {
 /** The frames handed to the agent with the message: the selection (any of
  * it can be left out) and the ones picked with @. */
 const left = ref(new Set<string>())
-const pinned = ref<string[]>([])
 watch(
   () => editor.selectedIds.join(),
   () => (left.value = new Set()),
 )
 const context = computed<Changed[]>(() => {
-  const ids = [...editor.selectedIds.filter((id) => !left.value.has(id)), ...pinned.value]
+  const ids = [...editor.selectedIds.filter((id) => !left.value.has(id)), ...handoff.picked]
   return [...new Set(ids)]
     .map((id) => editor.artboards.find((a) => a.id === id))
     .filter((a) => !!a)
     .map((a) => ({ id: a.id, name: a.name }))
 })
 function dropContext(id: string) {
-  pinned.value = pinned.value.filter((x) => x !== id)
+  if (handoff.picked.includes(id)) togglePicked(id)
   if (editor.selectedIds.includes(id)) left.value = new Set(left.value).add(id)
 }
 /** The message as the harness reads it: the frames first, by name and id. */
@@ -744,7 +745,7 @@ const atMatches = computed(() => {
 const atIndex = ref(0)
 watch(atMatches, () => (atIndex.value = 0))
 function pickAt(id: string) {
-  pinned.value = [...pinned.value, id]
+  if (!handoff.picked.includes(id)) togglePicked(id)
   if (atQuery.value !== null) input.value = input.value.replace(/(^|\s)@[^\s@]*$/, "$1")
   atForced.value = false
   box.value?.focus()
@@ -763,6 +764,26 @@ watch(
   () => listbox.value?.active,
   (id) => id && nextTick(() => document.getElementById(id)?.scrollIntoView?.({ block: "nearest" })),
 )
+
+/** After a turn that finished on its own, a few next prompts from the
+ * frames it touched (else the frames in hand), while the field is empty. */
+const suggestions = computed(() => {
+  const last = entries.value[entries.value.length - 1]
+  if (busy.value || input.value || openApproval.value || last?.kind !== "worked" || last.end) return []
+  return nextPrompts(changesOf(entries.value, turn.value)?.frames ?? context.value)
+})
+
+/* A message asked at the selection on the canvas: its frames join the
+ * context, then it goes like one typed here. */
+function takeAsks() {
+  for (let ask = takeAsk(); ask; ask = takeAsk()) {
+    for (const id of ask.frames) if (!handoff.picked.includes(id)) togglePicked(id)
+    void send(ask.text)
+  }
+}
+// Asked while the panel was closed: taken once it has mounted (its run
+// state exists by then), and as they come after that.
+watch(() => handoff.asks.length, takeAsks)
 
 async function send(text = input.value.trim()) {
   if (!text) return
@@ -794,7 +815,8 @@ async function run(text: string) {
   const frames = context.value
   turn.value += 1
   checkpoints.set(turn.value, checkpoint())
-  pinned.value = []
+  handoff.picked.splice(0)
+  handoff.picking = false
   // Whatever the harness said before (while its session opened) is its own
   // entry: this turn's reply starts under its message.
   live.value = null
@@ -922,6 +944,10 @@ function onKey(e: KeyboardEvent) {
     return
   }
   if (e.key === "Escape") {
+    if (handoff.picking) {
+      handoff.picking = false
+      return
+    }
     if (pickerOpen.value || menuOpen.value) {
       pickerOpen.value = false
       menuOpen.value = false
@@ -965,6 +991,7 @@ async function togglePicker() {
 
 const keepDraft = () => loadedFor && saveDraft(loadedFor, input.value)
 onMounted(() => {
+  takeAsks()
   window.addEventListener("pagehide", keepDraft)
   fit()
   refocus()
@@ -1052,29 +1079,6 @@ onBeforeUnmount(() => {
       <button v-if="unseen" type="button" class="latest" @click="toEnd(true)">
         <DitherIcon name="ArrowDown" :size="11" :stroke-width="1.5" />Latest
       </button>
-      <TurnTrays
-        :todos="todos"
-        :queue="followUps"
-        :run="
-          busy
-            ? {
-                doing: stopping ? 'Stopping' : thinking ? 'Thinking' : live ? 'Writing' : 'Working',
-                time: secondsOf(Math.max(1000, elapsed)),
-                stopping,
-                stuck,
-              }
-            : null
-        "
-        :changes="changes"
-        :shown="(id) => editor.artboards.some((a) => a.id === id)"
-        @stop="stop"
-        @force-stop="forceStop"
-        @unqueue="(j) => followUps.splice(j, 1)"
-        @undo="undoTurn"
-        @keep="keep"
-        @show="selectArtboard"
-      />
-
       <div class="composer">
         <div
           v-if="slashOpen && slashMatches.length"
@@ -1180,7 +1184,32 @@ onBeforeUnmount(() => {
           </p>
         </div>
 
-        <div class="card rim">
+        <TurnTrays
+          :next="suggestions"
+          :todos="todos"
+          :queue="followUps"
+          :run="
+            busy
+              ? {
+                  doing: stopping ? 'Stopping' : thinking ? 'Thinking' : live ? 'Writing' : 'Working',
+                  time: secondsOf(Math.max(1000, elapsed)),
+                  stopping,
+                  stuck,
+                }
+              : null
+          "
+          :changes="changes"
+          :shown="(id) => editor.artboards.some((a) => a.id === id)"
+          @stop="stop"
+          @force-stop="forceStop"
+          @unqueue="(j) => followUps.splice(j, 1)"
+          @undo="undoTurn"
+          @keep="keep"
+          @show="selectArtboard"
+          @ask="(s) => send(s)"
+        />
+
+        <div class="card">
           <div v-if="context.length" class="chips">
             <span v-for="c in context" :key="c.id" class="ctx"
               ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name
@@ -1209,12 +1238,36 @@ onBeforeUnmount(() => {
             <button
               type="button"
               class="foot-key"
-              aria-label="Add a frame as context"
-              title="Add a frame as context (@)"
+              :aria-pressed="handoff.picking"
+              aria-label="Pick frames on the canvas"
+              title="Pick frames on the canvas (esc when done)"
+              @click="handoff.picking = !handoff.picking"
+            >
+              <DitherIcon name="Crosshair" :size="13" :stroke-width="1.5" />
+            </button>
+            <button
+              type="button"
+              class="foot-key"
+              aria-label="Add a frame by name"
+              title="Add a frame by name (@)"
               :aria-pressed="atForced"
               @click="atForced = !atForced"
             >
               @
+            </button>
+            <button
+              type="button"
+              class="pill"
+              :aria-expanded="pickerOpen"
+              aria-controls="agent-harness-picker"
+              :title="hello ? `${agentName || 'Harness'}, bridge ${config.bridgeUrl}` : config.bridgeUrl"
+              @click="togglePicker"
+            >
+              <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
+              ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="11" /><span class="pill-name">{{
+                agentName || (acp ? "Pick a harness" : "Harness")
+              }}</span
+              ><DitherIcon name="ChevronDown" :size="10" :stroke-width="1.5" />
             </button>
             <button
               v-if="modes.length"
@@ -1223,25 +1276,12 @@ onBeforeUnmount(() => {
               :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
               @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
             >
-              {{ modes.find((m) => m.id === mode)?.name || mode
-              }}<DitherIcon name="ChevronRight" :size="10" :stroke-width="1.5" />
+              <span class="pill-name">{{ modes.find((m) => m.id === mode)?.name || mode }}</span>
             </button>
             <button
-              v-if="busy && !input.trim()"
               type="button"
-              class="send key-chrome"
-              :disabled="stopping"
-              :aria-label="stopping ? 'Stopping' : 'Stop (esc)'"
-              :title="stopping ? 'Stopping' : 'Stop (esc)'"
-              @mousedown.prevent
-              @click="(ev: MouseEvent) => ev.detail > 1 || stop()"
-            >
-              <span class="stop-square" aria-hidden="true"></span>
-            </button>
-            <button
-              v-else
-              type="button"
-              class="send key-chrome"
+              class="send"
+              :class="input.trim() ? 'key-chrome' : 'is-idle'"
               :disabled="!input.trim()"
               :aria-label="busy ? 'Queue (enter)' : 'Send (enter)'"
               :title="busy ? 'Queue (enter)' : 'Send (enter)'"
@@ -1254,18 +1294,6 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="status">
-          <button
-            type="button"
-            class="status-key"
-            :aria-expanded="pickerOpen"
-            aria-controls="agent-harness-picker"
-            :title="hello ? `bridge ${config.bridgeUrl}` : config.bridgeUrl"
-            @click="togglePicker"
-          >
-            <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
-            ><span class="status-name">{{ agentName || (acp ? "Pick a harness" : "Harness") }}</span
-            ><DitherIcon name="ChevronDown" :size="10" :stroke-width="1.5" />
-          </button>
           <button
             type="button"
             class="status-key"
@@ -1480,8 +1508,9 @@ onBeforeUnmount(() => {
   gap: 6px;
   padding: 0 10px 10px;
 }
-/* The composer: the input card set in a tray that says where it runs
-   (the harness, how permission prompts are answered, its folder). */
+/* The composer: one surface holding the stack (`ui/TurnTrays.vue`), the
+   input card resting under it, and the row that says where it runs (how
+   permission prompts are answered, the folder, settings). */
 .composer {
   position: relative;
   display: grid;
@@ -1489,6 +1518,8 @@ onBeforeUnmount(() => {
   padding: 3px;
   background: var(--color-card);
 }
+/* The input card: the recessed well with a hairline, quiet until it holds
+   the focus, then edged in the ring ink. */
 .card {
   position: relative;
   display: grid;
@@ -1496,12 +1527,19 @@ onBeforeUnmount(() => {
   border-radius: 13px;
   padding: 8px 8px 6px 10px;
   background: var(--well);
-  box-shadow: var(--recess-sm);
+  box-shadow:
+    var(--recess-sm),
+    0 0 0 1px var(--color-border);
+  transition: box-shadow 200ms var(--ease-settle);
+}
+/* Under the stack, a breath between its last row and the card. */
+.part + .card {
+  margin-top: 3px;
 }
 .card:focus-within {
   box-shadow:
     var(--recess-sm),
-    0 0 0 1px var(--color-edge);
+    0 0 0 1px var(--color-ring);
 }
 .ctx-x {
   display: grid;
@@ -1517,6 +1555,7 @@ onBeforeUnmount(() => {
   color: var(--color-foreground);
 }
 .prompt {
+  min-height: calc(1.5em * 2 + 8px);
   max-height: 176px;
   overflow-y: auto;
   resize: none;
@@ -1558,7 +1597,9 @@ onBeforeUnmount(() => {
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  min-width: 0;
+  max-width: 9.5rem;
   min-height: 1.5rem;
   border-radius: 7px;
   padding-inline: 6px;
@@ -1566,8 +1607,16 @@ onBeforeUnmount(() => {
   color: var(--color-muted-foreground);
   transition: color 200ms var(--ease-settle);
 }
-.pill:hover {
+.pill:hover,
+.pill[aria-expanded="true"] {
   color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+}
+.pill-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .status {
   display: flex;
@@ -1631,15 +1680,11 @@ button.status-key:hover,
   margin-left: auto;
   place-items: center;
 }
-.send:disabled {
-  opacity: 0.4;
-  filter: grayscale(1);
-}
-.stop-square {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: currentColor;
+/* Grey until there is something to send, then the chrome key. */
+.send.is-idle {
+  border-radius: 999px;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 10%, transparent);
 }
 /* Popovers over the card: commands, frames, harnesses. */
 .pop {

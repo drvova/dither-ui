@@ -2,12 +2,29 @@
 import { computed, onBeforeUnmount, ref } from "vue"
 import type { Artboard } from "@/entities/artboard"
 import { editor, selectArtboard } from "@/entities/editor"
+import { handoff, togglePicked } from "@/features/agent/handoff"
 import { startDrag } from "@/features/artboard-transform"
 import { ChartRenderer } from "@/widgets/chart-renderer"
 import { WidgetRenderer } from "@/widgets/widget-renderer"
 
 const props = defineProps<{ artboard: Artboard }>()
 const selected = computed(() => editor.selectedIds.includes(props.artboard.id))
+/** Handed to the agent for its next message (`features/agent/handoff`). */
+const picked = computed(() => handoff.picked.includes(props.artboard.id))
+/* While the agent's pick key is on, a press on the frame hands it over (or
+ * takes it back) and nothing inside the frame sees the press or its click:
+ * no select, no drag, no control. */
+function onPickDown(e: PointerEvent) {
+  if (!handoff.picking || e.button !== 0) return
+  e.preventDefault()
+  e.stopPropagation()
+  togglePicked(props.artboard.id)
+}
+function onPickClick(e: MouseEvent) {
+  if (!handoff.picking) return
+  e.preventDefault()
+  e.stopPropagation()
+}
 // Live position/size readout while dragging or resizing.
 const interacting = ref(false)
 let stopDrag: (() => void) | undefined
@@ -163,6 +180,8 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
       width: `${artboard.w}px`,
       height: `${artboard.h}px`,
     }"
+    @pointerdown.capture="onPickDown"
+    @click.capture="onPickClick"
     @pointerdown.stop="onSurfaceDown"
   >
     <div
@@ -200,7 +219,9 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
       <div v-else data-canvas-interactive class="h-full"><ChartRenderer :chart="artboard.chart" /></div>
     </div>
 
-    <template v-if="selected && !artboard.locked">
+    <div v-if="picked" class="picked" aria-hidden="true"></div>
+
+    <template v-if="selected && !artboard.locked && !handoff.picking">
       <div
         v-for="hd in HANDLES"
         :key="hd.dir"
@@ -211,3 +232,15 @@ function onResizeDown(dir: ResizeDir, e: PointerEvent) {
     </template>
   </div>
 </template>
+
+<style scoped>
+/* Handed to the agent: a dashed ring in the signal ink, outside the canvas
+   selection's blue (which stays the canvas's own). */
+.picked {
+  pointer-events: none;
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  border: 2px dashed var(--swatch-orange);
+}
+</style>

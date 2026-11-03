@@ -1,23 +1,27 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, ref, watch } from "vue"
 import { DitherIcon } from "@dither-kit"
 import type { Changed } from "../model/steps"
 import type { Todo } from "../model/thread"
 
-// Over the composer: the turn's plan as to-dos, the queue, the run (what
-// the harness is doing, for how long, Stop) and, once it ends, what the
-// turn changed on the canvas (Undo all, Keep, each frame to show).
+// The stack over the input, rows on the composer's own surface (one piece
+// with the card under it): what to ask next, the turn's plan as to-dos,
+// the queue, the run (what the harness does, for how long, a quiet Stop)
+// and, last and resting on the card, what the turn changed on the canvas
+// (Undo all, Keep, each frame to show).
 const props = defineProps<{
+  /** Next prompts to offer, one tap each. */
+  next: string[]
   todos: Todo[] | null
   queue: string[]
-  /** The run, while it lasts: what the harness is doing and for how long. */
-  /** `stuck`: a stop the harness has not answered for a while. */
+  /** The run, while it lasts; `stuck`: a stop the harness has not answered. */
   run: { doing: string; time: string; stopping: boolean; stuck: boolean } | null
   changes: { frames: Changed[] } | null
   /** Frames still on the canvas (a removed one has nothing to show). */
   shown: (id: string) => boolean
 }>()
 const emit = defineEmits<{
+  ask: [text: string]
   stop: []
   forceStop: []
   unqueue: [at: number]
@@ -25,14 +29,28 @@ const emit = defineEmits<{
   keep: []
   show: [id: string]
 }>()
-const todosOpen = ref(true)
 const changesOpen = ref(false)
 const done = computed(() => props.todos?.filter((t) => t.status === "completed").length ?? 0)
+/** The to-dos stay open while there is work left and fold once all are
+ * done, unless the reader opened or closed them. */
+const todosChosen = ref<boolean | null>(null)
+const todosOpen = computed(() => todosChosen.value ?? done.value < (props.todos?.length ?? 0))
+// A new turn's plan starts from the default again.
+watch(
+  () => !!props.todos?.length,
+  (has) => has || (todosChosen.value = null),
+)
 </script>
 
 <template>
-  <div v-if="todos?.length" class="tray">
-    <button type="button" class="tray-head" :aria-expanded="todosOpen" @click="todosOpen = !todosOpen">
+  <div v-if="next.length" class="part">
+    <button v-for="s in next" :key="s" type="button" class="row is-key" :title="`Send: ${s}`" @click="emit('ask', s)">
+      <DitherIcon name="Sparkles" :size="12" :stroke-width="1.5" /><span class="row-text">{{ s }}</span
+      ><DitherIcon class="go" name="ArrowUp" :size="11" :stroke-width="1.5" />
+    </button>
+  </div>
+  <div v-if="todos?.length" class="part">
+    <button type="button" class="head" :aria-expanded="todosOpen" @click="todosChosen = !todosOpen">
       <DitherIcon :name="todosOpen ? 'ChevronDown' : 'ChevronRight'" :size="11" :stroke-width="1.5" />
       <span>{{ todos.length }} {{ todos.length === 1 ? "to-do" : "to-dos" }}</span>
       <span class="dim">{{ done }} of {{ todos.length }} done</span>
@@ -48,8 +66,8 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
       </li>
     </ul>
   </div>
-  <div v-if="queue.length" class="tray">
-    <p class="tray-head">
+  <div v-if="queue.length" class="part">
+    <p class="head is-static">
       <span>{{ queue.length }} in queue</span>
     </p>
     <ul class="rows">
@@ -61,25 +79,25 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
       </li>
     </ul>
   </div>
-  <div v-if="run" class="tray generating">
+  <div v-if="run" class="part run">
     <span class="spin" aria-hidden="true"></span>
     <span class="run-time">{{ run.doing }} for {{ run.time }}</span>
     <button
       v-if="run.stuck"
       type="button"
-      class="key stop text-destructive"
+      class="quiet text-destructive"
       title="The harness is not answering the stop: end its process"
       @click="emit('forceStop')"
     >
       Force stop
     </button>
-    <button v-else type="button" class="key stop" title="Stop (esc)" :disabled="run.stopping" @click="emit('stop')">
-      {{ run.stopping ? "Stopping…" : "Stop" }}
+    <button v-else type="button" class="quiet" title="Stop (esc)" :disabled="run.stopping" @click="emit('stop')">
+      {{ run.stopping ? "Stopping…" : "Stop" }}<kbd v-if="!run.stopping">esc</kbd>
     </button>
   </div>
-  <div v-else-if="changes" class="tray">
-    <div class="tray-head is-split">
-      <button type="button" class="tray-toggle" :aria-expanded="changesOpen" @click="changesOpen = !changesOpen">
+  <div v-else-if="changes" class="part">
+    <div class="head is-split">
+      <button type="button" class="toggle" :aria-expanded="changesOpen" @click="changesOpen = !changesOpen">
         <DitherIcon :name="changesOpen ? 'ChevronDown' : 'ChevronRight'" :size="11" :stroke-width="1.5" />
         <span>{{ changes.frames.length }} {{ changes.frames.length === 1 ? "frame" : "frames" }} changed</span>
       </button>
@@ -96,16 +114,17 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
 </template>
 
 <style scoped>
-.tray {
+/* A part of the stack: rows straight on the composer's surface, a hairline
+   under each, so the stack and the card read as one piece. */
+.part {
   display: grid;
-  gap: 2px;
-  border-radius: 10px;
-  padding: 4px 6px;
-  background: var(--color-card);
+  gap: 1px;
+  padding: 3px 5px 4px;
   font-size: 11px;
+  box-shadow: inset 0 -1px 0 var(--color-border);
 }
-.tray-head,
-.tray-toggle {
+.head,
+.toggle {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -117,14 +136,14 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
   text-align: left;
   color: var(--color-foreground);
 }
-.tray-head .dim {
+.head .dim {
   margin-left: auto;
 }
-.tray-head.is-split {
+.head.is-split {
   padding: 0;
   gap: 4px;
 }
-.tray-toggle {
+.toggle {
   flex: 1;
 }
 .rows {
@@ -132,7 +151,7 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
   max-height: 8.5rem;
   overflow-y: auto;
   margin: 0;
-  padding: 0 0 2px;
+  padding: 0;
   list-style: none;
 }
 .row {
@@ -142,6 +161,27 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
   min-height: 1.5rem;
   padding-inline: 4px;
   color: var(--color-foreground);
+}
+.row.is-key {
+  border-radius: 6px;
+  text-align: left;
+  color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
+}
+.row.is-key:hover {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+}
+.row.is-key .go {
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-settle);
+}
+.row.is-key:hover .go,
+.row.is-key:focus-visible .go {
+  opacity: 1;
 }
 .row[data-status="completed"] {
   color: var(--color-muted-foreground);
@@ -170,25 +210,54 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
     inset 0 0 0 3px var(--color-card),
     inset 0 0 0 5px var(--color-foreground);
 }
-.generating {
+.run {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 4px 4px 10px;
+  padding-left: 9px;
   color: var(--color-muted-foreground);
-}
-.generating .stop {
-  margin-left: auto;
-}
-.tray-head:focus-visible,
-.tray-toggle:focus-visible {
-  outline: 2px solid var(--color-ring);
-  outline-offset: 1px;
 }
 .run-time {
   font-variant-numeric: tabular-nums;
 }
-.key.text-destructive {
+/* Stop is quiet: a word and its key, never the loudest thing on screen. */
+.quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.5rem;
+  margin-left: auto;
+  border-radius: 6px;
+  padding-inline: 6px;
+  color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
+}
+.quiet:hover:not(:disabled) {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+}
+.quiet.text-destructive {
   color: var(--color-destructive);
+}
+.quiet kbd {
+  font: inherit;
+  font-size: 10px;
+  color: var(--color-muted-foreground);
+}
+.head:focus-visible,
+.toggle:focus-visible,
+.row.is-key:focus-visible,
+.quiet:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .row.is-key,
+  .row.is-key .go,
+  .quiet {
+    transition: none;
+  }
 }
 </style>

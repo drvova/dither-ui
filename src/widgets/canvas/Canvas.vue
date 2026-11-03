@@ -2,9 +2,11 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherIcon } from "@dither-kit"
 import { addArtboard, deselect, editor, selectMany } from "@/entities/editor"
+import { handoff } from "@/features/agent/handoff"
 import { useShortcuts } from "@/features/keyboard"
 import { usePanZoom } from "@/features/pan-zoom"
 import Artboard from "./Artboard.vue"
+import SelectionAsk from "./SelectionAsk.vue"
 
 const host = ref<HTMLElement | null>(null)
 const { onWheel, startPan, onTouchDown, zoomIn, zoomOut, resetZoom, fit, fitSelection } = usePanZoom(host)
@@ -19,17 +21,41 @@ const isTyping = (t: EventTarget | null) => {
 }
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === " " && !isTyping(e.target)) spaceHeld.value = true
+  // Picking for the agent ends on Esc (the agent panel ends it from its own field).
+  if (e.key === "Escape" && handoff.picking && !isTyping(e.target)) handoff.picking = false
 }
+
+/* A pointer down on the canvas (a drag, a resize, a marquee) puts the
+ * selection's ask away until it is up again; a press on the ask itself
+ * does not. */
+const held = ref(false)
+function onDownCapture(e: PointerEvent) {
+  onTouchDown(e)
+  if (!(e.target instanceof Element && e.target.closest(".ask"))) held.value = true
+}
+const release = () => (held.value = false)
+/** The canvas's size, so the ask stays on it. */
+const bounds = ref({ w: 0, h: 0 })
+let sized: ResizeObserver | undefined
 function onKeyUp(e: KeyboardEvent) {
   if (e.key === " ") spaceHeld.value = false
 }
 onMounted(() => {
   window.addEventListener("keydown", onKeyDown)
   window.addEventListener("keyup", onKeyUp)
+  window.addEventListener("pointerup", release)
+  window.addEventListener("pointercancel", release)
+  if (host.value && typeof ResizeObserver !== "undefined") {
+    sized = new ResizeObserver(([e]) => (bounds.value = { w: e.contentRect.width, h: e.contentRect.height }))
+    sized.observe(host.value)
+  }
 })
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKeyDown)
   window.removeEventListener("keyup", onKeyUp)
+  window.removeEventListener("pointerup", release)
+  window.removeEventListener("pointercancel", release)
+  sized?.disconnect()
 })
 
 // Marquee selection on empty-canvas drag; a finger on empty canvas pans
@@ -76,9 +102,9 @@ function onCanvasDown(e: PointerEvent) {
   <div
     ref="host"
     class="dk-canvas relative h-full w-full touch-none overflow-hidden"
-    :class="spaceHeld ? 'cursor-grab' : ''"
+    :class="[spaceHeld ? 'cursor-grab' : '', handoff.picking ? 'is-picking' : '']"
     @wheel.prevent="onWheel"
-    @pointerdown.capture="onTouchDown"
+    @pointerdown.capture="onDownCapture"
     @pointerdown.self="onCanvasDown"
     @gesturestart.prevent
   >
@@ -130,6 +156,19 @@ function onCanvasDown(e: PointerEvent) {
       </button>
     </div>
 
+    <SelectionAsk :held="held" :bounds="bounds" />
+
+    <!-- Picking frames for the agent -->
+    <div v-if="handoff.picking" class="pick-bar capsule" role="status">
+      <DitherIcon name="Crosshair" :size="13" :stroke-width="1.5" />
+      <span
+        >Click frames to hand them to the agent<template v-if="handoff.picked.length"
+          >, {{ handoff.picked.length }} picked</template
+        ></span
+      >
+      <button type="button" class="pick-done" @click="handoff.picking = false">Done<kbd>esc</kbd></button>
+    </div>
+
     <!-- Zoom controls -->
     <div class="capsule pointer-events-auto absolute bottom-3 left-3 flex items-center gap-0.5 p-1 text-xs">
       <button type="button" aria-label="Zoom out" class="zoom-tool" title="Zoom out (⌘−)" @click="zoomOut">
@@ -156,6 +195,45 @@ function onCanvasDown(e: PointerEvent) {
 </template>
 
 <style scoped>
+/* Picking for the agent: a crosshair over everything on the canvas. */
+.is-picking,
+.is-picking :deep(*) {
+  cursor: crosshair !important;
+}
+.pick-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  translate: -50% 0;
+  padding: 4px 4px 4px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--color-foreground);
+}
+.pick-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.75rem;
+  border-radius: 999px;
+  padding-inline: 10px;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 10%, transparent);
+  cursor: pointer !important;
+}
+.pick-done kbd {
+  font: inherit;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+}
+.pick-done:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
 .dk-canvas {
   background-color: color-mix(in oklab, var(--color-background) 92%, var(--color-muted));
   background-image: radial-gradient(

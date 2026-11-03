@@ -176,7 +176,8 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
 }
 .msg-text {
   margin: 0;
-  font-size: 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
   line-height: 1.55;
   color: var(--color-foreground);
   white-space: pre-wrap;
@@ -236,6 +237,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   color: var(--color-muted-foreground);
 }
 .thought-text {
+  font-family: var(--font-sans);
   max-height: 9rem;
   overflow-y: auto;
   margin: 4px 0 2px 5px;

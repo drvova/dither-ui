@@ -64,10 +64,13 @@ async function copy(at: number, text: string) {
 </template>
 
 <style scoped>
+/* The reply reads in the proportional face (the user's call for the
+   thread's prose); code stays in the mono. */
 .prose {
   display: grid;
   gap: 8px;
-  font-size: 12.5px;
+  font-family: var(--font-sans);
+  font-size: 13px;
   line-height: 1.6;
   color: var(--color-foreground);
   overflow-wrap: anywhere;
@@ -94,6 +97,7 @@ li::marker {
   color: var(--color-muted-foreground);
 }
 code {
+  font-family: var(--font-mono);
   border-radius: 4px;
   padding: 0.5px 4px;
   font-size: 0.92em;
