@@ -313,6 +313,7 @@ export type AgentCommand = { name: string; description: string; input?: string }
 /** What the composer renders: everything the harness says, mapped from ACP. */
 export type AgentEvent =
   | { type: "delta"; text: string }
+  | { type: "thought"; text: string }
   | { type: "assistant"; text: string }
   | { type: "tool"; name: string; args: Record<string, unknown>; result: CommandResult }
   | { type: "activity"; id: string; title: string; status: string }

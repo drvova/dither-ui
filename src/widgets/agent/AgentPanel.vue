@@ -17,6 +17,7 @@ import {
 } from "@/features/agent/tools"
 import { checkpoint, restoreCheckpoint, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
+import BrandMark from "@/shared/ui/BrandMark.vue"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { isMark } from "@/shared/ui/marks"
 import Prose from "./Prose.vue"
@@ -35,11 +36,11 @@ import { type Changed, toolStep } from "./steps"
 // the send key. Nothing here is a key or a model setting.
 const emit = defineEmits<{ close: [] }>()
 // Suggestions for an empty thread.
-const STARTERS = [
-  "A sign-in screen with email, password and a primary button",
-  "A revenue dashboard: an area chart, three stat cards and a table",
-  "Evolve the selected frame into four variants",
-] as const
+const STARTERS: { icon: IconName; text: string }[] = [
+  { icon: "Layout", text: "A sign-in screen with email, password and a primary button" },
+  { icon: "ChartLine", text: "A revenue dashboard: an area chart, three stat cards and a table" },
+  { icon: "Dice", text: "Evolve the selected frame into four variants" },
+]
 
 /* ------------------------------ configuration ----------------------------- */
 
@@ -52,6 +53,9 @@ const menuOpen = ref(false)
 type Entry =
   | { kind: "user" | "followup"; text: string; turn?: number; context?: Changed[] }
   | { kind: "assistant" | "system" | "error"; text: string }
+  /** The harness's reasoning: open while it streams, then folded under how
+   * long it took. */
+  | { kind: "thought"; text: string; ms?: number; open?: boolean }
   | {
       kind: "tool"
       name: string
@@ -200,6 +204,19 @@ const elapsed = computed(() => (busy.value ? Math.max(0, now.value - started.val
 const lastTurnMs = ref(0)
 const fmtTokens = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n))
 const fmtMs = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`)
+/** A thought's length in whole seconds, at least one. */
+const fmtSecs = (ms: number) => `${Math.max(1, Math.round(ms / 1000))}s`
+/** The folder's own name out of a path, either separator. */
+const folderOf = (path: string) => path.split(/[\\/]/).filter(Boolean).pop() ?? path
+/** The reply just copied, by its place in the thread. */
+const copied = ref<number | null>(null)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
+async function copyReply(at: number, text: string) {
+  if (!(await copyText(text))) return
+  copied.value = at
+  clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => (copied.value = null), 1600)
+}
 
 /* -------------------------------- the bridge ------------------------------ */
 
@@ -362,9 +379,32 @@ function describeResult(result: { ok: true; data: unknown } | { ok: false; error
 }
 
 const live = ref<{ kind: "assistant"; text: string } | null>(null)
+type Thought = Extract<Entry, { kind: "thought" }>
+/** The thought streaming now, and when it began. */
+const thinking = ref<Thought | null>(null)
+let thoughtAt = 0
+/** Anything else the harness does ends its thought. */
+function endThought() {
+  const t = thinking.value
+  if (!t) return
+  t.ms = Date.now() - thoughtAt
+  t.open = false
+  thinking.value = null
+}
 
 function onEvent(e: AgentEvent) {
+  if (e.type !== "thought" && e.type !== "mode" && e.type !== "commands" && e.type !== "plan") endThought()
   switch (e.type) {
+    case "thought":
+      live.value = null
+      if (!thinking.value) {
+        thoughtAt = Date.now()
+        thinking.value = { kind: "thought", text: "", open: true }
+        entries.value.push(thinking.value)
+      }
+      thinking.value.text += e.text
+      scrollLog()
+      break
     case "delta":
       if (!live.value) {
         live.value = { kind: "assistant", text: "" }
@@ -710,6 +750,7 @@ async function run(text: string) {
   // Whatever the harness said before (while its session opened) is its own
   // entry: this turn's reply starts under its message.
   live.value = null
+  endThought()
   push({ kind: "user", text, turn: turn.value, context: frames })
   busy.value = true
   started.value = Date.now()
@@ -721,6 +762,7 @@ async function run(text: string) {
   busy.value = false
   controller = null
   live.value = null
+  endThought()
   // Follow-ups run one at a time, in order, each its own turn.
   const next = followUps.value.shift()
   if (next !== undefined) await run(next)
@@ -826,6 +868,7 @@ function pickSlash(c: Slash) {
 
 async function togglePicker() {
   pickerOpen.value = !pickerOpen.value
+  menuOpen.value = false
   if (pickerOpen.value && !acp.value) await connect()
 }
 
@@ -838,71 +881,33 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="agent">
+  <div class="agent" :class="{ 'is-empty': !entries.length }">
     <div class="head">
+      <span class="who" aria-hidden="true"
+        ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" /><BrandMark v-else :size="12"
+      /></span>
       <span class="title" :title="title">{{ title }}</span>
       <button type="button" class="head-btn" aria-label="New chat" title="New chat" @click="slash('/new')">
-        <DitherIcon name="Plus" :size="13" :stroke-width="1.5" />
-      </button>
-      <button
-        type="button"
-        class="head-btn"
-        :aria-pressed="menuOpen"
-        aria-label="Bridge and session"
-        title="Bridge and session"
-        @click="menuOpen = !menuOpen"
-      >
-        <DitherIcon name="MoreHorizontal" :size="13" :stroke-width="1.5" />
+        <DitherIcon name="Edit" :size="13" :stroke-width="1.5" />
       </button>
       <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">
         <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
       </button>
-      <div v-if="menuOpen" class="menu" role="group" aria-label="Bridge and session">
-        <label class="field"
-          ><span>bridge</span
-          ><input
-            v-model.trim="config.bridgeUrl"
-            name="agent-bridge-url"
-            type="text"
-            class="input"
-            placeholder="ws://127.0.0.1:8790"
-            autocomplete="off"
-            spellcheck="false"
-        /></label>
-        <label class="remember"
-          ><input v-model="config.auto" type="checkbox" name="agent-auto" class="accent-foreground" />Answer permission
-          prompts with their allow option</label
-        >
-        <p class="note">
-          {{ fmtTokens(usage.input) }} in, {{ fmtTokens(usage.output) }} out<template v-if="lastTurnMs"
-            >, last turn {{ fmtMs(lastTurnMs) }}</template
-          ><template v-if="hello">, in {{ hello.cwd }}</template>
-        </p>
-        <p class="note">
-          The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool calls.
-          No key, no model setting lives here.
-        </p>
-      </div>
     </div>
 
     <div ref="log" class="log" aria-live="polite">
-      <div v-if="!entries.length" class="empty">
-        <p>
-          Describe a screen, a chart or a control. Your harness composes it from the kit's registry through the Studio's
-          tools, and every message keeps a checkpoint to go back to.
+      <div v-if="!entries.length" class="hello">
+        <span class="hello-mark" aria-hidden="true"
+          ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="26" /><BrandMark v-else :size="26"
+        /></span>
+        <h2 class="hello-title">What are we making?</h2>
+        <p class="hello-note">
+          {{ agentName || "Your harness" }} builds it on the canvas from the kit's registry. Every message keeps a
+          checkpoint to go back to.
         </p>
-        <button v-for="s in STARTERS" :key="s" type="button" class="starter" @click="send(s)">
-          <DitherIcon name="Sparkles" :size="12" :stroke-width="1.5" /><span>{{ s }}</span>
-        </button>
       </div>
       <template v-for="(e, i) in entries" :key="i">
-        <div v-if="e.kind === 'user' || e.kind === 'followup'" class="msg">
-          <div v-if="e.context?.length" class="chips">
-            <span v-for="c in e.context" :key="c.id" class="ctx"
-              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name }}</span
-            >
-          </div>
-          <p class="msg-text">{{ e.text }}</p>
+        <div v-if="e.kind === 'user' || e.kind === 'followup'" class="msg-row">
           <button
             v-if="canRestore(e)"
             type="button"
@@ -913,9 +918,51 @@ onBeforeUnmount(() => {
           >
             <DitherIcon name="Undo" :size="12" :stroke-width="1.5" />
           </button>
+          <div class="msg">
+            <div v-if="e.context?.length" class="chips">
+              <span v-for="c in e.context" :key="c.id" class="ctx"
+                ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name }}</span
+              >
+            </div>
+            <p class="msg-text">{{ e.text }}</p>
+          </div>
         </div>
-        <Prose v-else-if="e.kind === 'assistant'" :text="e.text" :live="live === e" />
-        <details v-else-if="e.kind === 'tool'" class="step" :open="e.open" :data-ok="String(e.ok)">
+        <div v-else-if="e.kind === 'assistant'" class="reply">
+          <Prose :text="e.text" :live="live === e" />
+          <div v-if="live !== e" class="reply-actions">
+            <button
+              type="button"
+              class="row-key"
+              :aria-label="copied === i ? 'Copied' : 'Copy reply'"
+              :title="copied === i ? 'Copied' : 'Copy reply'"
+              @click="copyReply(i, e.text)"
+            >
+              <DitherIcon :name="copied === i ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />
+            </button>
+          </div>
+        </div>
+        <details
+          v-else-if="e.kind === 'thought'"
+          class="thought"
+          :open="e.open"
+          @toggle="e.open = ($event.target as HTMLDetailsElement).open"
+        >
+          <summary>
+            <span v-if="thinking === e" class="spin" aria-hidden="true"></span
+            ><DitherIcon v-else name="Sparkles" :size="12" :stroke-width="1.5" /><span>{{
+              thinking === e ? "Thinking" : e.ms ? `Thought for ${fmtSecs(e.ms)}` : "Thought"
+            }}</span
+            ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
+          </summary>
+          <p class="thought-text">{{ e.text.trim() }}</p>
+        </details>
+        <details
+          v-else-if="e.kind === 'tool'"
+          class="step"
+          :open="e.open"
+          :data-ok="String(e.ok)"
+          @toggle="e.open = ($event.target as HTMLDetailsElement).open"
+        >
           <summary :title="e.summary">
             <DitherIcon :name="e.icon ?? 'Terminal'" :size="12" :stroke-width="1.5" /><span class="step-title">{{
               e.title || e.name
@@ -992,7 +1039,7 @@ onBeforeUnmount(() => {
       </div>
       <div v-if="busy" class="tray generating">
         <span class="spin" aria-hidden="true"></span>
-        <span>{{ live ? "Writing" : "Generating" }}… {{ fmtMs(elapsed) }}</span>
+        <span>{{ thinking ? "Thinking" : live ? "Writing" : "Working" }}… {{ fmtMs(elapsed) }}</span>
         <button type="button" class="key stop" title="Stop (esc)" @click="stop">Stop</button>
       </div>
       <div v-else-if="changes" class="tray">
@@ -1019,7 +1066,7 @@ onBeforeUnmount(() => {
         </ul>
       </div>
 
-      <div class="card rim">
+      <div class="composer">
         <div v-if="slashOpen && slashMatches.length" class="pop" role="listbox" aria-label="Commands">
           <button
             v-for="(c, i) in slashMatches"
@@ -1091,84 +1138,144 @@ onBeforeUnmount(() => {
             oh-my-pi, Goose, OpenCode, or any ACP command.
           </p>
         </div>
-
-        <div class="chips">
-          <button
-            type="button"
-            class="ctx is-key"
-            aria-label="Add a frame as context"
-            :aria-pressed="atForced"
-            @click="atForced = !atForced"
-          >
-            @
-          </button>
-          <span v-for="c in context" :key="c.id" class="ctx"
-            ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name
-            }}<button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
-              <DitherIcon name="Close" :size="10" :stroke-width="1.5" /></button
-          ></span>
+        <div v-else-if="menuOpen" class="pop menu" role="group" aria-label="Bridge">
+          <label class="field"
+            ><span>bridge</span
+            ><input
+              v-model.trim="config.bridgeUrl"
+              name="agent-bridge-url"
+              type="text"
+              class="input"
+              placeholder="ws://127.0.0.1:8790"
+              autocomplete="off"
+              spellcheck="false"
+          /></label>
+          <p class="note">
+            {{ fmtTokens(usage.input) }} in, {{ fmtTokens(usage.output) }} out<template v-if="lastTurnMs"
+              >, last turn {{ fmtMs(lastTurnMs) }}</template
+            ><template v-if="hello">, in {{ hello.cwd }}</template>
+          </p>
+          <p class="note">
+            The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool
+            calls. No key, no model setting lives here.
+          </p>
         </div>
-        <textarea
-          ref="box"
-          v-model="input"
-          name="agent-goal"
-          :rows="rows"
-          class="prompt"
-          :placeholder="busy ? 'Queue a follow-up' : '/ for commands, @ for context'"
-          aria-label="Message the agent"
-          spellcheck="false"
-          @keydown="onKey"
-        />
-        <div class="foot">
+
+        <div class="card rim">
+          <div v-if="context.length" class="chips">
+            <span v-for="c in context" :key="c.id" class="ctx"
+              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name
+              }}<button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
+                <DitherIcon name="Close" :size="10" :stroke-width="1.5" /></button
+            ></span>
+          </div>
+          <textarea
+            ref="box"
+            v-model="input"
+            name="agent-goal"
+            :rows="rows"
+            class="prompt"
+            :placeholder="busy ? 'Queue a follow-up' : 'Type your message, / for commands'"
+            aria-label="Message the agent"
+            spellcheck="false"
+            @keydown="onKey"
+          />
+          <div class="foot">
+            <button
+              type="button"
+              class="foot-key"
+              aria-label="Add a frame as context"
+              title="Add a frame as context (@)"
+              :aria-pressed="atForced"
+              @click="atForced = !atForced"
+            >
+              @
+            </button>
+            <button
+              v-if="modes.length"
+              type="button"
+              class="pill"
+              :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
+              @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
+            >
+              {{ modes.find((m) => m.id === mode)?.name || mode
+              }}<DitherIcon name="ChevronRight" :size="10" :stroke-width="1.5" />
+            </button>
+            <button
+              v-if="busy && !input.trim()"
+              type="button"
+              class="send key-chrome"
+              aria-label="Stop (esc)"
+              title="Stop (esc)"
+              @click="stop"
+            >
+              <span class="stop-square" aria-hidden="true"></span>
+            </button>
+            <button
+              v-else
+              type="button"
+              class="send key-chrome"
+              :disabled="!input.trim()"
+              :aria-label="busy ? 'Queue (enter)' : 'Send (enter)'"
+              :title="busy ? 'Queue (enter)' : 'Send (enter)'"
+              @click="send()"
+            >
+              <DitherIcon name="ArrowUp" :size="13" :stroke-width="2" />
+            </button>
+          </div>
+        </div>
+
+        <div class="status">
           <button
-            v-if="modes.length"
             type="button"
-            class="pill"
-            :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
-            @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
-          >
-            <DitherIcon name="Bot" :size="11" :stroke-width="1.5" />{{ modes.find((m) => m.id === mode)?.name || mode }}
-          </button>
-          <button
-            type="button"
-            class="pill"
+            class="status-key"
             :aria-expanded="pickerOpen"
             aria-controls="agent-harness-picker"
-            :title="hello ? `bridge ${config.bridgeUrl}, cwd ${hello.cwd}` : config.bridgeUrl"
+            :title="hello ? `bridge ${config.bridgeUrl}` : config.bridgeUrl"
             @click="togglePicker"
           >
             <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
-            ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="11" /><span class="pill-name">{{
-              agentName || (acp ? "Pick a harness" : "Harness")
-            }}</span
+            ><span class="status-name">{{ agentName || (acp ? "Pick a harness" : "Harness") }}</span
             ><DitherIcon name="ChevronDown" :size="10" :stroke-width="1.5" />
           </button>
-          <span v-if="config.auto" class="auto" title="Permission prompts are answered with their allow option"
-            >auto</span
-          >
           <button
-            v-if="busy && !input.trim()"
             type="button"
-            class="send key-chrome"
-            aria-label="Stop (esc)"
-            title="Stop (esc)"
-            @click="stop"
+            class="status-key"
+            :aria-pressed="config.auto"
+            :title="
+              config.auto
+                ? 'Permission prompts are answered with their allow option'
+                : 'Permission prompts wait for you'
+            "
+            @click="config.auto = !config.auto"
           >
-            <span class="stop-square" aria-hidden="true"></span>
+            <DitherIcon :name="config.auto ? 'Unlock' : 'Lock'" :size="11" :stroke-width="1.5" />{{
+              config.auto ? "Auto" : "Ask"
+            }}
           </button>
-          <button
-            v-else
-            type="button"
-            class="send key-chrome"
-            :disabled="!input.trim()"
-            :aria-label="busy ? 'Queue (enter)' : 'Send (enter)'"
-            :title="busy ? 'Queue (enter)' : 'Send (enter)'"
-            @click="send()"
+          <span v-if="hello" class="status-key is-static" :title="hello.cwd"
+            ><DitherIcon name="Folder" :size="11" :stroke-width="1.5" /><span class="status-name">{{
+              folderOf(hello.cwd)
+            }}</span></span
           >
-            <DitherIcon name="ArrowUp" :size="13" :stroke-width="2" />
+          <button
+            type="button"
+            class="status-key is-icon"
+            :aria-pressed="menuOpen"
+            aria-label="Bridge settings"
+            title="Bridge settings"
+            @click="((menuOpen = !menuOpen), (pickerOpen = false))"
+          >
+            <DitherIcon name="Settings" :size="12" :stroke-width="1.5" />
           </button>
         </div>
       </div>
+    </div>
+
+    <div v-if="!entries.length" class="starters">
+      <button v-for="s in STARTERS" :key="s.text" type="button" class="starter" @click="send(s.text)">
+        <DitherIcon :name="s.icon" :size="12" :stroke-width="1.5" /><span>{{ s.text }}</span>
+      </button>
     </div>
   </div>
 </template>
@@ -1196,7 +1303,7 @@ onBeforeUnmount(() => {
   color: var(--color-foreground);
 }
 
-/* The chat's header: its title, a new chat, the session menu, close. */
+/* The chat's header: who answers, the chat's title, a new chat, close. */
 .head {
   position: relative;
   z-index: 5;
@@ -1206,6 +1313,17 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 2px;
   padding-inline: 0.875rem 0.5rem;
+}
+.who {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  place-items: center;
+  margin-right: 6px;
+  border-radius: 6px;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
 }
 .title {
   min-width: 0;
@@ -1233,17 +1351,9 @@ onBeforeUnmount(() => {
   background: var(--color-card);
   color: var(--color-foreground);
 }
-.menu {
-  position: absolute;
-  top: calc(100% - 2px);
-  right: 0.5rem;
-  left: 0.5rem;
-  display: grid;
+.pop.menu {
   gap: 8px;
-  border-radius: 12px;
   padding: 10px 12px;
-  background: var(--color-card);
-  box-shadow: var(--float-shadow);
 }
 .field {
   display: grid;
@@ -1268,15 +1378,7 @@ onBeforeUnmount(() => {
 .input:focus {
   border-color: var(--color-ring);
 }
-.remember {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--color-muted-foreground);
-}
-
-/* The thread: your messages as cards, the reply as prose, steps in words. */
+/* The thread: your message as a bubble, the reply as prose, steps in words. */
 .log {
   min-height: 0;
   flex: 1;
@@ -1286,23 +1388,58 @@ onBeforeUnmount(() => {
   align-content: start;
   gap: 10px;
 }
-.empty {
-  display: grid;
-  gap: 4px;
-  padding-top: 4px;
+/* An empty chat: a greeting, the composer and the starters stand in the
+   middle of the panel; the first message sends the composer down. */
+.agent.is-empty .log {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 14px;
 }
-.empty p {
-  margin: 0 0 8px;
-  line-height: 1.6;
+.hello {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding-inline: 2px;
+}
+.hello-mark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  color: var(--color-foreground);
+  background: var(--well);
+  box-shadow: var(--recess-sm);
+}
+.hello-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-foreground);
+}
+.hello-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.55;
   color: var(--color-muted-foreground);
+}
+.starters {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 10px 10px;
 }
 .starter {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  min-height: 1.75rem;
+  gap: 9px;
+  min-height: 2rem;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 8px 8px;
   text-align: left;
   font-size: 11.5px;
   line-height: 1.45;
@@ -1310,6 +1447,9 @@ onBeforeUnmount(() => {
   transition:
     color 200ms var(--ease-settle),
     background-color 200ms var(--ease-settle);
+}
+.starter + .starter {
+  box-shadow: 0 -1px 0 color-mix(in oklab, var(--color-border) 70%, transparent);
 }
 .starter :deep(svg) {
   flex-shrink: 0;
@@ -1319,12 +1459,20 @@ onBeforeUnmount(() => {
   color: var(--color-foreground);
   background: var(--color-card);
 }
+.msg-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 4px;
+  padding-left: 1.5rem;
+}
 .msg {
-  position: relative;
   display: grid;
   gap: 6px;
-  border-radius: 10px;
-  padding: 8px 10px;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 12px 12px 4px 12px;
+  padding: 7px 10px;
   background: var(--color-card);
 }
 .msg-text {
@@ -1335,16 +1483,12 @@ onBeforeUnmount(() => {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.msg:has(.restore) {
-  padding-right: 34px;
-}
 .restore {
-  position: absolute;
-  top: 4px;
-  right: 4px;
   display: grid;
   width: 1.5rem;
   height: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 3px;
   place-items: center;
   border-radius: 7px;
   color: var(--color-muted-foreground);
@@ -1354,7 +1498,7 @@ onBeforeUnmount(() => {
     color 200ms var(--ease-settle),
     background-color 200ms var(--ease-settle);
 }
-.msg:hover .restore,
+.msg-row:hover .restore,
 .restore:focus-visible {
   opacity: 1;
 }
@@ -1366,6 +1510,58 @@ onBeforeUnmount(() => {
 .restore:hover {
   color: var(--color-foreground);
   background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.reply {
+  display: grid;
+  gap: 2px;
+}
+.reply-actions {
+  display: flex;
+  margin: -2px 0 -6px -4px;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-settle);
+}
+.reply:hover .reply-actions,
+.reply-actions:focus-within,
+.reply:last-child .reply-actions {
+  opacity: 1;
+}
+@media (hover: none) {
+  .reply-actions {
+    opacity: 1;
+  }
+}
+/* The harness's reasoning: a quiet fold, open while it streams. */
+.thought {
+  font-size: 11.5px;
+  color: var(--color-muted-foreground);
+}
+.thought summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 1.5rem;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
+  transition: color 200ms var(--ease-settle);
+}
+.thought summary::-webkit-details-marker {
+  display: none;
+}
+.thought summary:hover {
+  color: var(--color-foreground);
+}
+.thought-text {
+  max-height: 9rem;
+  overflow-y: auto;
+  margin: 4px 0 2px 5px;
+  padding-left: 13px;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-shadow: inset 1px 0 0 var(--color-border);
 }
 .step {
   font-size: 11.5px;
@@ -1405,10 +1601,13 @@ onBeforeUnmount(() => {
     rotate 350ms var(--ease-settle);
 }
 .step summary:hover .chev,
-.step[open] .chev {
+.thought summary:hover .chev,
+.step[open] .chev,
+.thought[open] .chev {
   opacity: 1;
 }
-.step[open] .chev {
+.step[open] .chev,
+.thought[open] .chev {
   rotate: 90deg;
 }
 .step[data-ok="false"],
@@ -1628,12 +1827,20 @@ onBeforeUnmount(() => {
   }
 }
 
-/* The input card: context chips, the message, the harness and the send key. */
+/* The composer: the input card set in a tray that says where it runs
+   (the harness, how permission prompts are answered, its folder). */
+.composer {
+  position: relative;
+  display: grid;
+  border-radius: 16px;
+  padding: 3px;
+  background: var(--color-card);
+}
 .card {
   position: relative;
   display: grid;
   gap: 4px;
-  border-radius: 14px;
+  border-radius: 13px;
   padding: 8px 8px 6px 10px;
   background: var(--well);
   box-shadow: var(--recess-sm);
@@ -1665,15 +1872,6 @@ onBeforeUnmount(() => {
 }
 .msg .ctx {
   color: var(--color-muted-foreground);
-}
-.ctx.is-key {
-  min-width: 1.5rem;
-  justify-content: center;
-  color: var(--color-muted-foreground);
-}
-.ctx.is-key:hover,
-.ctx.is-key[aria-pressed="true"] {
-  color: var(--color-foreground);
 }
 .ctx-x {
   display: grid;
@@ -1708,31 +1906,80 @@ onBeforeUnmount(() => {
   gap: 4px;
   min-width: 0;
 }
+.foot-key {
+  display: grid;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
+}
+.foot-key:hover,
+.foot-key[aria-pressed="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  min-width: 0;
-  max-width: 10rem;
+  gap: 4px;
   min-height: 1.5rem;
   border-radius: 7px;
   padding-inline: 6px;
   font-size: 10.5px;
   color: var(--color-muted-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+  transition: color 200ms var(--ease-settle);
+}
+.pill:hover {
+  color: var(--color-foreground);
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 3px 2px 1px 4px;
+}
+.status-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 1.5rem;
+  border-radius: 7px;
+  padding-inline: 6px;
+  font-size: 10.5px;
+  white-space: nowrap;
+  color: var(--color-muted-foreground);
   transition:
     color 200ms var(--ease-settle),
     background-color 200ms var(--ease-settle);
 }
-.pill:hover,
-.pill[aria-expanded="true"] {
+button.status-key:hover,
+.status-key[aria-expanded="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+}
+.status-key[aria-pressed="true"] {
   color: var(--color-foreground);
 }
-.pill-name {
+.status-key.is-icon {
+  min-width: 1.5rem;
+  margin-left: auto;
+  justify-content: center;
+  padding: 0;
+}
+.status-key.is-icon[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+}
+.status-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .led {
   width: 6px;
@@ -1743,10 +1990,6 @@ onBeforeUnmount(() => {
 }
 .led[data-on="true"] {
   background: var(--swatch-green);
-}
-.auto {
-  font-size: 10px;
-  color: var(--swatch-orange);
 }
 .send {
   display: grid;
@@ -1833,7 +2076,9 @@ onBeforeUnmount(() => {
 .tray-head:focus-visible,
 .tray-toggle:focus-visible,
 .row-key:focus-visible,
-.ctx.is-key:focus-visible,
+.foot-key:focus-visible,
+.status-key:focus-visible,
+.thought summary:focus-visible,
 .ctx-x:focus-visible,
 .pill:focus-visible,
 .send:focus-visible,

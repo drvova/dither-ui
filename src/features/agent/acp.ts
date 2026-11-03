@@ -94,9 +94,10 @@ export type AcpClient = {
 /** Map one ACP `session/update` into composer events. Pure. */
 export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
   const kind = update.sessionUpdate
-  if (kind === "agent_message_chunk") {
+  if (kind === "agent_message_chunk" || kind === "agent_thought_chunk") {
     const c = update.content as { type?: string; text?: string } | undefined
-    return c?.type === "text" && c.text ? [{ type: "delta", text: c.text }] : []
+    if (c?.type !== "text" || !c.text) return []
+    return [{ type: kind === "agent_message_chunk" ? "delta" : "thought", text: c.text }]
   }
   if (kind === "tool_call" || kind === "tool_call_update") {
     const id = String(update.toolCallId ?? "")
@@ -323,7 +324,8 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           const update = (params.update ?? {}) as Record<string, unknown>
           for (let e of mapUpdate(update)) {
             if (e.type === "delta") segment += e.text
-            else if (e.type === "activity") flush()
+            // A thought or a tool call ends the prose before it.
+            else if (e.type === "activity" || e.type === "thought") flush()
             else if (e.type === "mode") {
               mode = e.current
               e = { ...e, modes }

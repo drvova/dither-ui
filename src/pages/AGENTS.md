@@ -860,51 +860,59 @@ widgets/features; page-specific conventions live here.
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
 - The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a CONTROL
-  PLANE for the user's own harness, set as a coding IDE's agent composer,
-  over `features/agent/acp.ts`. The head: the chat's title (its first
-  message), a new chat (`/new`), the session menu (bridge address, the
-  auto switch, tokens in and out summed from each turn's usage, the last
-  turn's time, the bridge's cwd; no key or model setting exists in the
-  app) and close. The thread: your message as a filled card with the
-  frames it carried, and a restore key that puts the canvas back to the
-  checkpoint taken before it (`features/history` `checkpoint` /
-  `restoreCheckpoint`: ONE undoable step; checkpoints live in memory, so a
-  reloaded chat keeps none); the reply as prose (`widgets/agent/prose.ts`
-  reads the harness's Markdown into blocks, `Prose.vue` renders them as
-  elements, never as HTML, a caret while it streams); each Studio tool
-  call one step in words with a kit glyph (`widgets/agent/steps.ts`
-  `STEPS`, one row per Studio tool, held to `STUDIO_TOOLS` by the test),
-  its args and result folded under it, destructive ink when the Studio
-  rejected it; the harness's own tool calls as steps with a spinner or a
-  check; permission prompts answered inline ("auto" answers them with
-  their allow option); system lines small and muted. An empty chat offers
-  starters. Over the input: the turn's plan as to-dos (circles, a ringed
-  one in progress, done struck through), the queue with a remove key per
-  message, the run (its time and Stop) and, once it ends, the turn's
-  changes (the frames its editing steps touched, each with Show; Undo all
-  restores the turn's checkpoint, Keep settles it). The input card (a
-  recessed well with the rim): the context chips (the selection, any of
-  it left out with its x, plus frames picked with `@`, typed or from the
-  @ key, through a listbox), the message, and a foot with the mode chip
-  (when the harness has modes; click cycles, `/mode <id>` sets), the
-  harness chip (LED while one runs; it opens the picker: every harness
-  the bridge knows with its PATH status, a custom command, stop;
-  `/harness <id | command>` is the same; the choice persists and starts
-  again on the next prompt) and the round chrome send key (a Stop square
-  while it runs and the field is empty). The harness reads the context as
-  the frames' names and ids ahead of the message. Keys: Enter sends, or
-  QUEUES a follow-up while the harness works (ACP has no steering; each
-  runs as its own turn, in order); Alt+Up takes the newest queued message
-  back; Esc stops and returns the queue to the editor; Shift+Enter
-  newline; Up/Down prompt history on a single line; Ctrl+O folds every
-  step; `/` opens the command listbox (Up/Down + Tab/Enter pick): ours
-  (`/help /harness /connect /new /mode /auto /evolve /select /code /copy
-  /session /undo /clear /stop /disconnect`) plus the harness's own
-  advertised commands, which go to it as text. A turn's reply starts
-  under its message, even when the harness spoke while its session
-  opened. The conversation persists per project and follows the active
-  project; unanswered approvals are not saved. Pinned by
-  `tests/agent-composer.spec.ts`.
+  PLANE for the user's own harness, set as an agent app's composer, over
+  `features/agent/acp.ts`. The head: who answers (the harness's mark, else
+  the brand mark), the chat's title (its first message), a new chat
+  (`/new`) and close. An empty chat stands in the middle of the panel: the
+  mark in a recessed well, a greeting and a line, the composer, and the
+  starters under it as rows; the first message sends the composer down.
+  The thread: your message as a bubble on the right with the frames it
+  carried, and beside it (on hover) a restore key that puts the canvas
+  back to the checkpoint taken before it (`features/history` `checkpoint`
+  / `restoreCheckpoint`: ONE undoable step; checkpoints live in memory,
+  so a reloaded chat keeps none); the harness's reasoning as a fold, open
+  while it streams ("Thinking"), then closed under how long it took; the
+  reply as prose (`widgets/agent/prose.ts` reads the harness's Markdown
+  into blocks, `Prose.vue` renders them as elements, never as HTML, a
+  caret while it streams) with a copy key under it; each Studio tool call
+  one step in words with a kit glyph (`widgets/agent/steps.ts` `STEPS`,
+  one row per Studio tool, held to `STUDIO_TOOLS` by the test), its args
+  and result folded under it, destructive ink when the Studio rejected
+  it; the harness's own tool calls as steps with a spinner or a check;
+  permission prompts answered inline; system lines small and muted. Over
+  the composer: the turn's plan as to-dos (circles, a ringed one in
+  progress, done struck through), the queue with a remove key per
+  message, the run (thinking, writing or working, its time, Stop) and,
+  once it ends, the turn's changes (the frames its editing steps touched,
+  each with Show; Undo all restores the turn's checkpoint, Keep settles
+  it). The composer is two tiers: the input card (a recessed well with
+  the rim: the context chips, the selection with any of it left out by
+  its x plus frames picked with `@`, typed or from the @ key, through a
+  listbox; the message; a foot with the @ key, the mode chip when the
+  harness has modes, click cycles, `/mode <id>` sets, and the round chrome
+  send key, a Stop square while it runs and the field is empty) set in a
+  status tray that says where it runs: the harness (LED while one runs;
+  it opens the picker: every harness the bridge knows with its PATH
+  status, a custom command, stop; `/harness <id | command>` is the same;
+  the choice persists and starts again on the next prompt), Ask or Auto
+  (how permission prompts are answered; Auto takes their allow option),
+  the bridge's folder, and the settings key (the bridge address, tokens
+  in and out summed from each turn's usage, the last turn's time, the
+  full cwd; no key or model setting exists in the app). The harness reads
+  the context as the frames' names and ids ahead of the message. Keys:
+  Enter sends, or QUEUES a follow-up while the harness works (ACP has no
+  steering; each runs as its own turn, in order); Alt+Up takes the newest
+  queued message back; Esc stops and returns the queue to the editor;
+  Shift+Enter newline; Up/Down prompt history on a single line; Ctrl+O
+  folds every step; `/` opens the command listbox (Up/Down + Tab/Enter
+  pick): ours (`/help /harness /connect /new /mode /auto /evolve /select
+  /code /copy /session /undo /clear /stop /disconnect`) plus the
+  harness's own advertised commands, which go to it as text. A turn's
+  reply starts under its message, even when the harness spoke while its
+  session opened. The conversation persists per project and follows the
+  active project; unanswered approvals are not saved. Pinned by
+  `tests/agent-composer.spec.ts` and the thought case in
+  `tests/agent-tools.spec.ts`.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not

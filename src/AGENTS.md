@@ -156,8 +156,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     per protocol command, with JSON-schema parameters; `callStudioTool` runs
     one through `runCommand`, `finishStudioTool` turns `export_video` into
     `data.files` for the bridge to write), the `AgentEvent` union the
-    composer renders (delta, assistant, tool, activity, plan, mode,
-    commands, turn, error, done), and the composer's state: `AgentConfig`
+    composer renders (delta, thought, assistant, tool, activity, plan,
+    mode, commands, turn, error, done), and the composer's state: `AgentConfig`
     (`bridgeUrl`, the chosen `harness` id or `custom` + `command`, `auto`
     permission answers — nothing secret, always saved) and per-project
     sessions (`dither-agent-session-<projectId>`, entries + usage, capped
@@ -172,7 +172,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     reading modes off the answer); `client.start(id | { command })` asks the
     bridge to spawn one and boots it; `stop()`, `newSession()`,
     `setMode()`. `mapUpdate` turns `session/update` into events (message
-    chunks → `delta`, tool calls → `activity` with a status-only update
+    chunks → `delta`, thought chunks → `thought`, tool calls → `activity` with a status-only update
     keeping its title, plans, `current_mode_update` → `mode`,
     `available_commands_update` → `commands`; mirrors of Studio tools are
     skipped because they render from the `studio/call` path), permission
@@ -180,7 +180,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     `callStudioTool` + `finishStudioTool` so the harness's MCP tool calls
     land on the canvas, `prompt()` resolves with the stop reason and the
     turn's text (one assistant entry per prose segment between tool
-    calls), abort sends `session/cancel`, `bridge/exit` fails every pending
+    calls and thoughts), abort sends `session/cancel`, `bridge/exit` fails every pending
     request. Pinned by `tests/agent-protocol.spec.ts`,
     `agent-evolve.spec.ts`, `agent-tools.spec.ts`; the bridge chain by
     `tests/bridge.spec.ts`.

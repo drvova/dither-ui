@@ -67,6 +67,11 @@ describe("acp mapping", () => {
     expect(mapUpdate({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })).toEqual([
       { type: "delta", text: "hi" },
     ])
+    // The harness's reasoning streams apart from its reply.
+    expect(mapUpdate({ sessionUpdate: "agent_thought_chunk", content: { type: "text", text: "hmm" } })).toEqual([
+      { type: "thought", text: "hmm" },
+    ])
+    expect(mapUpdate({ sessionUpdate: "agent_thought_chunk", content: { type: "image" } })).toEqual([])
     expect(
       mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t1", title: "Read file src/app.ts", status: "pending" }),
     ).toEqual([{ type: "activity", id: "t1", title: "Read file src/app.ts", status: "pending" }])
