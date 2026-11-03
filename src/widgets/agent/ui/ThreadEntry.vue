@@ -171,7 +171,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   min-width: 0;
   max-width: 100%;
   border-radius: 12px 12px 4px 12px;
-  padding: 7px 10px;
+  padding: 7px 13px;
   background: var(--color-card);
 }
 .msg-text {
@@ -276,16 +276,19 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   background: var(--well);
   box-shadow: var(--recess-sm);
 }
+/* A box in the thread: its edge on the panel's line, its contents 13px
+   in, the composer's own line. */
 .approval {
   display: grid;
   gap: 8px;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 8px 13px;
   background: var(--color-card);
 }
+/* Answered, it is a line of the thread again, on the panel's line. */
 .approval[data-answered="true"] {
   background: none;
-  padding-block: 0;
+  padding: 0;
 }
 .approval-title {
   display: flex;

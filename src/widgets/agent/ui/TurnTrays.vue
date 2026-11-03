@@ -51,7 +51,7 @@ watch(
   </div>
   <div v-if="todos?.length" class="part">
     <button type="button" class="head" :aria-expanded="todosOpen" @click="todosChosen = !todosOpen">
-      <DitherIcon :name="todosOpen ? 'ChevronDown' : 'ChevronRight'" :size="11" :stroke-width="1.5" />
+      <DitherIcon :name="todosOpen ? 'ChevronDown' : 'ChevronRight'" :size="12" :stroke-width="1.5" />
       <span>{{ todos.length }} {{ todos.length === 1 ? "to-do" : "to-dos" }}</span>
       <span class="dim">{{ done }} of {{ todos.length }} done</span>
     </button>
@@ -98,7 +98,7 @@ watch(
   <div v-else-if="changes" class="part">
     <div class="head is-split">
       <button type="button" class="toggle" :aria-expanded="changesOpen" @click="changesOpen = !changesOpen">
-        <DitherIcon :name="changesOpen ? 'ChevronDown' : 'ChevronRight'" :size="11" :stroke-width="1.5" />
+        <DitherIcon :name="changesOpen ? 'ChevronDown' : 'ChevronRight'" :size="12" :stroke-width="1.5" />
         <span>{{ changes.frames.length }} {{ changes.frames.length === 1 ? "frame" : "frames" }} changed</span>
       </button>
       <button type="button" class="key" @click="emit('undo')">Undo all</button>
@@ -115,19 +115,22 @@ watch(
 
 <style scoped>
 /* A part of the stack: rows straight on the composer's surface, a hairline
-   under each, so the stack and the card read as one piece. */
+   between parts (none over the card, whose edge is its own), every glyph
+   and key on the composer's `--inset` line (rows pad 4px of it). */
 .part {
   display: grid;
   gap: 1px;
-  padding: 3px 5px 4px;
+  padding: 3px calc(var(--inset, 10px) - 4px) 4px;
   font-size: 11px;
-  box-shadow: inset 0 -1px 0 var(--color-border);
+}
+.part + .part {
+  box-shadow: inset 0 1px 0 var(--color-border);
 }
 .head,
 .toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   min-height: 1.5rem;
   min-width: 0;
   margin: 0;
@@ -140,7 +143,7 @@ watch(
   margin-left: auto;
 }
 .head.is-split {
-  padding: 0;
+  padding: 0 4px 0 0;
   gap: 4px;
 }
 .toggle {
@@ -210,11 +213,13 @@ watch(
     inset 0 0 0 3px var(--color-card),
     inset 0 0 0 5px var(--color-foreground);
 }
+/* The spinner on the line, its words on the text column, Stop's words
+   ending on the line (its key pads 6px past them). */
 .run {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-left: 9px;
+  gap: 7px;
+  padding-inline: var(--inset, 10px) calc(var(--inset, 10px) - 6px);
   color: var(--color-muted-foreground);
 }
 .run-time {

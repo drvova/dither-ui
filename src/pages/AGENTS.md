@@ -904,8 +904,17 @@ widgets/features; page-specific conventions live here.
   thoughts read in the proportional face (`--font-sans`, the user's call
   after the composer board); code, steps and the chrome stay mono. The
   composer is ONE surface: the stack (`ui/TurnTrays.vue`, rows straight
-  on it, a hairline under each part) rests on the input card, and a row
-  under the card says where it runs. The stack, top to bottom: after a
+  on it, a hairline between parts, none over the card) rests on the
+  input card, and a row under the card says where it runs. Alignment
+  (the user's call, measured in a browser, never eyeballed): the panel
+  has one 14px line on each side (the header's mark and its last key's
+  glyph, loose thread text and steps, every box's edge: bubbles,
+  approval cards, the composer), a box's contents sit 13px in, and in the
+  composer one `--inset` (10px from its inner edge) puts every glyph, chip
+  edge and the placeholder on one left line and every key, the send key
+  and the settings glyph on one right line, the text beside a 12px glyph
+  on one column (12px, then 7px); a key's glyph, not its hover fill, is
+  what sits on a line. The stack, top to bottom: after a
   turn that finished on its own and while the field is empty, up to three
   next prompts (`model/suggest.ts` `nextPrompts`, from the frames the turn
   changed, else the frames in hand: evolve, show the code, export a video,

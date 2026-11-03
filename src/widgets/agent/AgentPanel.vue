@@ -1354,7 +1354,9 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   align-items: center;
   gap: 2px;
-  padding-inline: 0.875rem 0.5rem;
+  /* The mark and the last key's glyph (13px in a 28px key) on the panel's
+     14px line. */
+  padding-inline: 14px 6.5px;
 }
 .who {
   display: grid;
@@ -1473,7 +1475,7 @@ onBeforeUnmount(() => {
   align-content: start;
   min-height: 0;
   overflow-y: auto;
-  padding: 2px 10px 10px;
+  padding: 2px 14px 10px;
 }
 .starter {
   display: flex;
@@ -1501,17 +1503,21 @@ onBeforeUnmount(() => {
   color: var(--color-foreground);
   background: var(--color-card);
 }
-/* Over the input: the trays (`ui/TurnTrays.vue`) and the composer. */
+/* The composer's outer edge on the panel's 14px line, the thread's. */
 .dock {
   display: grid;
   flex-shrink: 0;
   gap: 6px;
-  padding: 0 10px 10px;
+  padding: 0 14px 12px;
 }
 /* The composer: one surface holding the stack (`ui/TurnTrays.vue`), the
    input card resting under it, and the row that says where it runs (how
    permission prompts are answered, the folder, settings). */
 .composer {
+  /* The composer's one line: every icon, chip and the placeholder start
+     `--inset` in from its inner edge, every key ends there, and the text
+     beside an icon (12px, then 7px) shares one column. */
+  --inset: 10px;
   position: relative;
   display: grid;
   border-radius: 16px;
@@ -1525,7 +1531,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 4px;
   border-radius: 13px;
-  padding: 8px 8px 6px 10px;
+  padding: 8px var(--inset) 6px;
   background: var(--well);
   box-shadow:
     var(--recess-sm),
@@ -1571,11 +1577,13 @@ onBeforeUnmount(() => {
 .prompt::placeholder {
   color: var(--color-muted-foreground);
 }
+/* The first key's glyph (13px in a 24px key) sits on the line. */
 .foot {
   display: flex;
   align-items: center;
   gap: 4px;
   min-width: 0;
+  margin-left: -5.5px;
 }
 .foot-key {
   display: grid;
@@ -1618,12 +1626,13 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Its keys' glyphs (6px into each key) on the composer's line. */
 .status {
   display: flex;
   align-items: center;
   gap: 2px;
   min-width: 0;
-  padding: 3px 2px 1px 4px;
+  padding: 3px calc(var(--inset) - 6px) 1px;
 }
 .status-key {
   display: inline-flex;
@@ -1887,7 +1896,7 @@ button.status-key:hover,
   min-height: 1.5rem;
   overflow: hidden;
   border-radius: 6px;
-  padding-inline: 6px;
+  padding-inline: 4px 6px;
   font-size: 10.5px;
   white-space: nowrap;
   text-overflow: ellipsis;
