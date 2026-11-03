@@ -8,6 +8,7 @@ import {
   type AcpPermissionRequest,
   type BridgeHello,
   connectAcp,
+  modelName,
   type PromptImage,
 } from "@/features/agent/acp"
 import {
@@ -18,6 +19,7 @@ import {
   loadAgentConfig,
   loadDraft,
   type Mode,
+  type ModelChoice,
   saveAgentConfig,
   saveDraft,
   type Usage,
@@ -30,7 +32,7 @@ import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark.vue"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { isMark } from "@/shared/ui/marks"
-import type { Changed } from "./model/steps"
+import { askTitle, type Changed } from "./model/steps"
 import { nextPrompts } from "./model/suggest"
 import {
   type Block,
@@ -249,11 +251,22 @@ const hello = ref<BridgeHello | null>(null)
 const connecting = ref(false)
 const harnesses = computed(() => hello.value?.harnesses ?? [])
 const agent = computed(() => hello.value?.agent ?? null)
-/** The harness's own name once it has introduced itself, else the bridge's label for it. */
+/** Who answers, as a person reads it: a harness picked from the bridge's
+ * list goes by that name (Claude Code, not its adapter's package), any
+ * other command by the name it introduced itself with. */
 const agentName = ref("")
-const nameIt = () => (agentName.value = acp.value?.agent || agent.value?.name || "")
+const nameIt = () =>
+  (agentName.value =
+    (agent.value && harnesses.value.find((h) => h.id === agent.value?.id)?.name) ||
+    acp.value?.agent ||
+    agent.value?.name ||
+    "")
 const modes = ref<Mode[]>([])
 const mode = ref("")
+/** The model the harness runs, as its session says; switched only among
+ * the harness's own. */
+const model = ref<ModelChoice | null>(null)
+const modelOpen = ref(false)
 const commands = ref<AgentCommand[]>([])
 const pickerOpen = ref(false)
 const customCommand = ref(config.value.command)
@@ -273,6 +286,7 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
         if (!h.agent) {
           modes.value = []
           mode.value = ""
+          model.value = null
           commands.value = []
         }
         nameIt()
@@ -285,7 +299,6 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
     })
     acp.value = client
     nameIt()
-    if (client.agent) system(`connected to ${client.agent}`)
     return client
   } catch (e) {
     push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
@@ -307,13 +320,9 @@ async function start(choice: string | { command: string }) {
     config.value.harness = "custom"
     config.value.command = choice.command
   }
-  const label =
-    typeof choice === "string" ? (harnesses.value.find((h) => h.id === choice)?.name ?? choice) : choice.command
-  system(`starting ${label}…`)
   try {
     await client.start(choice)
     nameIt()
-    system(`connected to ${client.agent}`)
   } catch (e) {
     push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
   }
@@ -400,7 +409,9 @@ function onEvent(e: AgentEvent) {
       if (existing) {
         existing.status = e.status
         if (e.title) existing.title = e.title
-      } else push({ kind: "activity", id: e.id, title: e.title || e.id, status: e.status, tool: e.kind })
+        // A call with no title yet waits for the update that names it (a
+        // Studio tool's is drawn as its own step, so it never shows here).
+      } else if (e.title) push({ kind: "activity", id: e.id, title: e.title, status: e.status, tool: e.kind })
       break
     }
     case "plan": {
@@ -412,6 +423,9 @@ function onEvent(e: AgentEvent) {
     case "mode":
       mode.value = e.current
       if (e.modes.length) modes.value = e.modes
+      break
+    case "model":
+      model.value = e.model
       break
     case "commands":
       commands.value = e.commands
@@ -458,7 +472,7 @@ const askPermission = async (req: AcpPermissionRequest): Promise<string | null> 
   const options = req.options.map((o) => ({ id: o.optionId, label: o.name, primary: o.kind.startsWith("allow") }))
   if (config.value.auto) return options.find((o) => o.primary)?.id ?? options[0]?.id ?? null
   return ask(
-    req.title,
+    askTitle(req.title),
     options.length
       ? options
       : [
@@ -956,9 +970,10 @@ function onKey(e: KeyboardEvent) {
       handoff.picking = false
       return
     }
-    if (pickerOpen.value || menuOpen.value) {
+    if (pickerOpen.value || menuOpen.value || modelOpen.value) {
       pickerOpen.value = false
       menuOpen.value = false
+      modelOpen.value = false
       return
     }
     if (busy.value || pending.size) {
@@ -991,9 +1006,17 @@ function pickSlash(c: Slash) {
   box.value?.focus()
 }
 
+async function pickModel(id: string) {
+  modelOpen.value = false
+  refocus()
+  if (!acp.value || id === model.value?.current) return
+  await acp.value.setModel(id).catch((e: Error) => push({ kind: "error", text: e.message }))
+}
+
 async function togglePicker() {
   pickerOpen.value = !pickerOpen.value
   menuOpen.value = false
+  modelOpen.value = false
   if (pickerOpen.value && !acp.value) await connect()
 }
 
@@ -1128,6 +1151,21 @@ onBeforeUnmount(() => {
             <span class="pop-name"><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ a.name }}</span>
           </button>
           <p v-if="!atMatches.length" class="note">No frame left to add</p>
+        </div>
+        <div v-else-if="modelOpen && model" id="agent-model-picker" class="pop" role="group" aria-label="Model">
+          <button
+            v-for="m in model.options"
+            :key="m.id"
+            type="button"
+            class="pop-row"
+            :aria-pressed="m.id === model.current"
+            @click="pickModel(m.id)"
+          >
+            <span class="pop-name"
+              >{{ m.name }}<DitherIcon v-if="m.id === model.current" name="Check" :size="11" :stroke-width="1.5"
+            /></span>
+            <span v-if="m.description" class="dim">{{ m.description }}</span>
+          </button>
         </div>
         <div v-else-if="pickerOpen" id="agent-harness-picker" class="pop" role="group" aria-label="Harness">
           <template v-if="hello">
@@ -1274,19 +1312,21 @@ onBeforeUnmount(() => {
               @click="togglePicker"
             >
               <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
-              ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="11" /><span class="row-label">{{
-                agentName || (acp ? "Pick a harness" : "Harness")
-              }}</span
+              ><span class="row-label">{{ agentName || (acp ? "Pick a harness" : "Harness") }}</span
               ><DitherIcon name="ChevronDown" :size="10" :stroke-width="1.5" />
             </button>
             <button
-              v-if="modes.length"
+              v-if="model"
               type="button"
               class="pill"
-              :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
-              @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
+              :aria-expanded="modelOpen"
+              aria-controls="agent-model-picker"
+              :title="`${agentName || 'The harness'} runs ${modelName(model)}`"
+              :disabled="model.options.length < 2"
+              @click="((modelOpen = !modelOpen), (pickerOpen = false), (menuOpen = false))"
             >
-              <span class="row-label">{{ modes.find((m) => m.id === mode)?.name || mode }}</span>
+              <span class="row-label">{{ modelName(model) }}</span
+              ><DitherIcon v-if="model.options.length > 1" name="ChevronDown" :size="10" :stroke-width="1.5" />
             </button>
             <button
               type="button"
@@ -1319,6 +1359,17 @@ onBeforeUnmount(() => {
               class="row-label"
               >{{ config.auto ? "Auto" : "Ask" }}</span
             >
+          </button>
+          <button
+            v-if="modes.length"
+            type="button"
+            class="status-key"
+            :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
+            @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
+          >
+            <DitherIcon name="Bot" :size="11" :stroke-width="1.5" /><span class="row-label">{{
+              modes.find((m) => m.id === mode)?.name || mode
+            }}</span>
           </button>
           <span v-if="hello" class="status-key is-static" :title="hello.cwd"
             ><DitherIcon name="Folder" :size="11" :stroke-width="1.5" /><span class="row-label">{{
@@ -1436,6 +1487,9 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   padding: 4px 14px 14px;
   display: grid;
+  /* One column the panel's width: a long unbroken line (a command, a path)
+     never widens the thread past the panel. */
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 10px;
 }
@@ -1637,6 +1691,7 @@ onBeforeUnmount(() => {
 }
 .status-key {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 5px;
   min-width: 0;
@@ -1649,6 +1704,11 @@ onBeforeUnmount(() => {
   transition:
     color 200ms var(--ease-settle),
     background-color 200ms var(--ease-settle);
+}
+/* The folder is the one key that gives way: its name is cut short first. */
+.status-key.is-static {
+  flex-shrink: 1;
+  min-width: 0;
 }
 button.status-key:hover,
 .status-key[aria-expanded="true"] {
@@ -1776,6 +1836,7 @@ button.status-key:hover,
 }
 .group-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
   margin: 2px 0 0 5px;
   padding-left: 13px;

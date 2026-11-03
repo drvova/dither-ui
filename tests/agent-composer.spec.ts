@@ -11,7 +11,7 @@ import { STUDIO_TOOLS } from "@/features/agent/tools"
 import { inline, parseProse } from "@/widgets/agent/model/prose"
 import { titleOf } from "@/features/agent/chats"
 import { askAgent, handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
-import { STEPS, toolStep } from "@/widgets/agent/model/steps"
+import { askTitle, STEPS, toolStep } from "@/widgets/agent/model/steps"
 import { NEXT_MAX, nextPrompts } from "@/widgets/agent/model/suggest"
 import {
   changesOf,
@@ -75,6 +75,13 @@ describe("a tool call as a step", () => {
       expect(STEPS[t.name], t.name).toBeDefined()
       expect(ICONS[STEPS[t.name].icon], t.name).toBeDefined()
     }
+  })
+
+  it("asks for a Studio tool in its own words, and names any other MCP tool by its tool and server", () => {
+    expect(askTitle("mcp__dither-studio__add_screen")).toBe("Add a screen to the canvas")
+    expect(askTitle("mcp__github__create_issue")).toBe("create issue (github)")
+    expect(askTitle("Run npm test")).toBe("Run npm test")
+    for (const { def: t } of STUDIO_TOOLS) expect(STEPS[t.name].ask, t.name).toMatch(/^[A-Z]/)
   })
 
   it("says what it touched and gathers the frames an edit changed", () => {

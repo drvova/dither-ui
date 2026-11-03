@@ -136,7 +136,7 @@ export type StudioCommand =
     }
   | { type: "evolve"; id?: string; count?: number; seed?: number; strength?: number }
   | { type: "code.get"; id: string; styling?: Styling }
-  | { type: "registry.get"; is?: string }
+  | { type: "registry.get"; is?: string; brief?: boolean }
   | { type: "video.export"; id?: string; seconds?: number; fps?: number; theme?: string }
   | { type: "clock.seek"; seconds?: number }
   | { type: "clock.release" }
@@ -216,7 +216,8 @@ export function registrySchema() {
       evolve: "{ id?, count?, seed?, strength? } — seeded variants placed as a row",
       "code.get":
         "{ id, styling? } — the frame as a Vue SFC: tailwind (default) keeps the utility classes; css (a scoped stylesheet), modules (CSS Modules) or stylex write the same look in that system",
-      "registry.get": "{ is? } — this schema, or one component's entry",
+      "registry.get":
+        "{ is?, brief? } — this schema (brief: each component's name, label and group, no prop specs), or one component's entry",
       "video.export":
         "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length; a reel with a score adds score: { path: score.wav, base64 } for the index's audio track",
       "clock.seek":
@@ -506,7 +507,14 @@ export function runCommand(input: unknown): CommandResult {
           const entry = registrySchema().components.find((c) => c.is === cmd.is)
           return entry ? ok(entry) : fail(`unknown component ${cmd.is}`)
         }
-        return ok(registrySchema())
+        const schema = registrySchema()
+        // Brief: the names to ask about, small enough for a harness to read
+        // in one answer (the full specs run past 100 kB).
+        return ok(
+          cmd.brief
+            ? { ...schema, components: schema.components.map(({ is, label, group }) => ({ is, label, group })) }
+            : schema,
+        )
       }
       default:
         return fail(`unknown command type ${(cmd as { type: string }).type}`)

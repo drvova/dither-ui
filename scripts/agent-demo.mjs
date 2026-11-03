@@ -4,8 +4,9 @@
 // in here: the bridge starts the harness as your own process, on its own
 // login, in a fresh scratch folder. The script starts that bridge, opens
 // the Studio you serve, picks the harness, types the ask, lets each
-// permission prompt show a beat before allowing it, waits for the turn to
-// end, opens what it changed, and writes a WebM (and an MP4 when ffmpeg is
+// permission prompt show a beat before allowing it (always, for that tool,
+// in that scratch folder), waits for the turn to end, fits the canvas to
+// its frames, opens what it changed, and writes a WebM (and an MP4 when ffmpeg is
 // on the PATH).
 //
 //   npm run dev                       # the Studio, in another terminal
@@ -100,7 +101,9 @@ try {
   const end = Date.now() + timeout
   while (Date.now() < end) {
     if (await page.locator(".worked").count()) break
-    const allow = page.locator(".approval .key.is-primary").first()
+    // The last allow is the harness's "always" when it offers one: the
+    // scratch folder remembers it, so a tool is asked about once.
+    const allow = page.locator(".approval .key.is-primary").last()
     if (await allow.isVisible().catch(() => false)) {
       await pause(1400)
       await allow.click().catch(() => {})
@@ -109,6 +112,9 @@ try {
   }
   if (!(await page.locator(".worked").count())) throw new Error(`the turn did not end within ${timeout / 1000}s`)
   await pause(1500)
+  // Every frame in view, wherever the agent put the new one.
+  await page.locator('button[aria-label="Fit to screen"]').click()
+  await pause(1200)
   const changed = page.locator(".head.is-split .toggle")
   if (await changed.count()) {
     await changed.click()

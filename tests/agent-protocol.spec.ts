@@ -1,6 +1,7 @@
 // @rstest-environment jsdom
 import { beforeEach, describe, expect, it } from "rstack/test"
 import { editor } from "@/entities/editor"
+import { callStudioTool } from "@/features/agent/tools"
 import { directedTime, isDirected, release } from "../dither-kit/engine/clock"
 import {
   COMMAND_EVENT,
@@ -164,6 +165,19 @@ describe("studio agent protocol", () => {
     const one = runCommand({ type: "registry.get", is: "DitherTabs" })
     expect(one.ok && (one.data as { is: string }).is).toBe("DitherTabs")
     expect(JSON.parse(JSON.stringify(reg))).toBeTruthy()
+  })
+
+  it("gives a harness the brief registry it can read in one answer, and one component in full", () => {
+    // A harness spills a long tool answer to a file and greps it: the names
+    // must fit one answer (well under 25k tokens).
+    const brief = callStudioTool("get_registry", {})
+    expect(brief.ok).toBe(true)
+    const comps = (brief.data as { components: Record<string, unknown>[] }).components
+    expect(comps.length).toBe(registrySchema().components.length)
+    expect(Object.keys(comps[0]).sort()).toEqual(["group", "is", "label"])
+    expect(JSON.stringify(brief.data).length).toBeLessThan(40_000)
+    const one = callStudioTool("get_registry", { is: "DitherSlider" })
+    expect((one.data as { props: { key: string }[] }).props.map((p) => p.key)).toContain("max")
   })
 
   it("answers DOM-event commands with string details and keeps a document mirror", async () => {

@@ -208,7 +208,9 @@ Default section order:
   harnesses (Claude Code, Codex, Gemini CLI, Qwen Code, oh-my-pi, Goose,
   OpenCode, Auggie) plus any command, says which are on the PATH, and
   starts the one picked in the panel as the user's OWN signed-in process.
-  No key, model setting or login is ever collected in-app.
+  No key, model setting or login is ever collected in-app: the panel
+  shows who answers and the model the harness reports, and switching
+  model asks the harness among its own.
   `npm run demo:agent` (`scripts/agent-demo.mjs`) records the panel
   driving the user's own harness (Claude Code by default) into a video,
   run where that harness is signed in; never with borrowed credentials.

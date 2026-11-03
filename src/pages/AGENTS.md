@@ -956,18 +956,28 @@ widgets/features; page-specific conventions live here.
   (the selection, any of it left out by its x, plus frames picked on the
   canvas or by name with `@`, typed or from the @ key, through a
   listbox); the message; a foot with the pick key (crosshair: picking
-  frames on the canvas, below), the @ key, the harness chip (LED while one
-  runs, its mark and name; it opens the picker: every harness the bridge
-  knows with its PATH status, a custom command, stop; `/harness <id |
-  command>` is the same; the choice persists and starts again on the next
-  prompt), the mode chip when the harness has modes (click cycles, `/mode
-  <id>` sets), and the send key: grey until there is text, then the
-  chrome key (while a turn runs it queues; Stop lives in the run row).
-  The row under the card: Ask or Auto (how permission prompts are
-  answered; Auto takes their allow option), the bridge's folder, and the
-  settings key (the bridge address, tokens in and out summed from each
-  turn's usage, the last turn's time, the full cwd; no key or model
-  setting exists in the app). Placeholders fit one line at 320px ("Ask, /
+  frames on the canvas, below), the @ key, who answers (LED while it
+  runs and its name: a harness picked from the bridge's list by that
+  name, Claude Code and not its adapter's package, any other command by
+  the title it introduced itself with; it opens the picker: every harness
+  the bridge knows with its PATH status, a custom command, stop;
+  `/harness <id | command>` is the same; the choice persists and starts
+  again on the next prompt), the model it runs when its session says
+  (the harness's own list, a menu when it offers more than one; picking
+  asks the harness, nothing is kept in the app), and the send key: grey
+  until there is text, then the chrome key (while a turn runs it queues;
+  Stop lives in the run row). The row under the card: Ask or Auto (how
+  permission prompts are answered; Auto takes their allow option), the
+  harness's mode when it has modes (click cycles, `/mode <id>` sets),
+  the bridge's folder (the one key that gives way when the row is
+  short), and the settings key (the bridge address, tokens in and out
+  summed from each turn's usage, the last turn's time, the full cwd; no
+  key exists in the app). The thread carries no plumbing: no "starting"
+  or "connected" lines (the row and the LED say it), a harness's call
+  waits for its title before it shows, and a permission prompt for a
+  Studio tool says what it will do in the Studio's words (`STEPS[tool]
+  .ask` beside its past tense, `askTitle`), any other MCP tool by its
+  tool and server. Placeholders fit one line at 320px ("Ask, /
   for commands", "Queue a follow-up", "Answer above, 1 to 3", "Queue for
   after the stop", "Ask; this starts the bridge", "Ask; this starts your
   harness"). The canvas hands the agent frames two ways, through

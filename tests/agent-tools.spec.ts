@@ -1,12 +1,23 @@
 // @rstest-environment jsdom
+import { readFileSync } from "node:fs"
 import { beforeEach, describe, expect, it } from "rstack/test"
-import { mapUpdate, modesOf, permissionOptions, promptBlocks, takesImages, usageOf } from "@/features/agent/acp"
+import {
+  mapUpdate,
+  modelName,
+  modelOf,
+  modesOf,
+  permissionOptions,
+  promptBlocks,
+  takesImages,
+  usageOf,
+} from "@/features/agent/acp"
 import {
   callStudioTool,
   loadAgentConfig,
   loadDraft,
   saveAgentConfig,
   saveDraft,
+  STUDIO_SERVER,
   STUDIO_TOOLS,
 } from "@/features/agent/tools"
 import type { CommandResult } from "@/features/agent/protocol"
@@ -81,6 +92,10 @@ describe("acp mapping", () => {
     ])
     // Studio tools are rendered from the bridge's studio/call path, not the agent's mirror.
     expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t2", title: "add_screen" })).toEqual([])
+    // A call that arrives untitled is named by a later update, never by its id.
+    expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "toolu_01", status: "pending" })).toEqual([
+      { type: "activity", id: "toolu_01", title: "", status: "pending" },
+    ])
     expect(mapUpdate({ sessionUpdate: "plan", entries: [{ content: "Add a screen", status: "in_progress" }] })).toEqual(
       [{ type: "plan", entries: [{ content: "Add a screen", status: "in_progress" }] }],
     )
@@ -134,6 +149,62 @@ describe("acp mapping", () => {
     expect(modesOf({ sessionId: "s" })).toBeNull()
     expect(usageOf({ usage: { inputTokens: 5, outputTokens: 2 } })).toEqual({ input: 5, output: 2 })
     expect(usageOf({})).toBeUndefined()
+  })
+
+  it("names the Studio's MCP server as the bridge does", () => {
+    // The bridge is its own zero-dependency file: its copy of the name is
+    // pinned here, so a harness's `mcp__<server>__<tool>` titles read back.
+    expect(readFileSync("bridge/dither-bridge.mjs", "utf8")).toContain(`name: "${STUDIO_SERVER}"`)
+  })
+
+  it("reads the model a harness runs off its session's config options, and follows its updates", () => {
+    // As Claude Code's ACP adapter sends it: a select of category "model",
+    // its default entry naming the model it resolves to.
+    const session = {
+      sessionId: "s",
+      configOptions: [
+        { id: "mode", category: "mode", type: "select", currentValue: "default", options: [] },
+        {
+          id: "model",
+          name: "Model",
+          category: "model",
+          type: "select",
+          currentValue: "default",
+          options: [
+            { value: "default", name: "Default (recommended)", description: "Opus 5.5" },
+            { value: "sonnet", name: "Sonnet", description: "Sonnet 5.5 for everyday tasks" },
+          ],
+        },
+      ],
+    }
+    const m = modelOf(session)
+    expect(m).toEqual({
+      configId: "model",
+      current: "default",
+      options: [
+        { id: "default", name: "Default (recommended)", description: "Opus 5.5" },
+        { id: "sonnet", name: "Sonnet", description: "Sonnet 5.5 for everyday tasks" },
+      ],
+    })
+    expect(modelName(m!)).toBe("Opus 5.5")
+    expect(modelName({ ...m!, current: "sonnet" })).toBe("Sonnet")
+    // Grouped values flatten; a session with no model option has none.
+    const grouped = modelOf({
+      configOptions: [
+        {
+          id: "m",
+          category: "model",
+          type: "select",
+          currentValue: "a",
+          options: [{ group: "g", options: [{ value: "a", name: "A" }] }],
+        },
+      ],
+    })
+    expect(grouped?.options.map((o) => o.id)).toEqual(["a"])
+    expect(modelOf({ sessionId: "s" })).toBeNull()
+    expect(mapUpdate({ sessionUpdate: "config_option_update", configOptions: session.configOptions })).toEqual([
+      { type: "model", model: m },
+    ])
   })
 })
 

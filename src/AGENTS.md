@@ -34,7 +34,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   needs), pan-zoom (wheel, middle or Space drag, one finger on empty
   canvas pans, two fingers pinch about their midpoint; a second finger ends
   the first finger's drag with a `pointercancel`, a third starts nothing,
-  and the pinch rebases on whichever pair remains; `tests/canvas-touch.spec.ts`),
+  and the pinch rebases on whichever pair remains; `tests/canvas-touch.spec.ts`;
+  it reads `editor.viewport` at each use, never a kept copy, since loading
+  a document, switching a project or centring a fresh frame replaces it;
+  `tests/pan-zoom.spec.ts`),
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
   the Studio tools and the ACP client behind the composer, and `handoff.ts`:
   the frames the canvas picks for the agent and the messages asked at the
@@ -159,7 +162,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     one row centred on the viewport and selects it — the one multi-frame
     placement, a batch insert whose midpoint is where a lone frame lands.
   - `tools.ts`: the Studio as a harness sees it — `STUDIO_TOOLS` (one tool
-    per protocol command, with JSON-schema parameters; `callStudioTool` runs
+    per protocol command, with JSON-schema parameters and arguments it
+    always sends, `preset`: `get_registry` asks `registry.get` for the
+    brief registry, names, labels and groups, which a harness reads in one
+    answer where the full prop specs run past 100 kB, and `is` for one
+    component in full; `STUDIO_SERVER`, the MCP server's name the bridge
+    carries a copy of, pinned by `tests/agent-tools.spec.ts`; `callStudioTool` runs
     one through `runCommand`, `finishStudioTool` turns `export_video` into
     `data.files` for the bridge to write), the `AgentEvent` union the
     composer renders (delta, thought, assistant, tool, activity with the
@@ -189,14 +197,20 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     (`bridge/tools`), resolves on the bridge's `bridge/hello` (cwd, the
     known harnesses with their PATH status, the running agent or null) and
     boots a harness that is already running (`initialize` + `session/new`,
-    reading modes off the answer); `client.start(id | { command })` asks the
+    reading modes and the model off the answer; its name from
+    `agentInfo.title`, then `name`); `client.start(id | { command })` asks the
     bridge to spawn one and boots it; `stop()`, `newSession()`,
-    `setMode()`; `acceptsImages` (the harness's
+    `setMode()`, `setModel()` (`session/set_config_option` on the
+    harness's own model option: `modelOf` reads the session's
+    `configOptions` select of category "model", groups flattened, and
+    `modelName` says which model a "default" entry is); `acceptsImages` (the harness's
     `promptCapabilities.image`, `takesImages`) decides whether `prompt()`
     sends pictures (`promptBlocks`: the text, then image blocks only to a
     harness that takes them). `mapUpdate` turns `session/update` into events (message
     chunks → `delta`, thought chunks → `thought`, tool calls → `activity` with a status-only update
-    keeping its title, plans, `current_mode_update` → `mode`,
+    keeping its title (an untitled call waits for the update that names
+    it, never its id), plans, `current_mode_update` → `mode`,
+    `config_option_update` → `model`,
     `available_commands_update` → `commands`; mirrors of Studio tools are
     skipped because they render from the `studio/call` path), permission
     requests go through the panel's inline approval, `studio/call` runs

@@ -22,6 +22,7 @@ import {
   callStudioTool,
   finishStudioTool,
   type Mode,
+  type ModelChoice,
   STUDIO_TOOLS,
   type Usage,
 } from "./tools"
@@ -89,13 +90,16 @@ export const takesImages = (init: unknown): boolean =>
     ?.promptCapabilities?.image === true
 
 export type AcpClient = {
-  /** The running agent's display name (its own `agentInfo.name`, else the harness's). */
+  /** The running agent's display name (its own `agentInfo.title`, then its
+   * `name`, else the harness's). */
   readonly agent: string
   readonly hello: BridgeHello | null
   readonly sessionId: string | null
   readonly busy: boolean
   readonly modes: Mode[]
   readonly mode: string
+  /** The model the harness runs, when its session says. */
+  readonly model: ModelChoice | null
   readonly commands: AgentCommand[]
   /** Whether the running harness takes pictures in a prompt (its
    * `promptCapabilities.image`). */
@@ -106,6 +110,8 @@ export type AcpClient = {
   /** A fresh agent session (new context). */
   newSession(): Promise<string>
   setMode(id: string): Promise<void>
+  /** Switch to one of the models the harness offers (its own setting). */
+  setModel(id: string): Promise<void>
   /** One task: resolves when the agent's turn ends, with its stop reason and
    * the prose it streamed. Pictures ride along only if the harness takes them. */
   prompt(
@@ -127,7 +133,7 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
   if (kind === "tool_call" || kind === "tool_call_update") {
     const id = String(update.toolCallId ?? "")
     // Updates usually carry only a status; an empty title keeps the earlier one.
-    const title = typeof update.title === "string" ? update.title : kind === "tool_call" ? id : ""
+    const title = typeof update.title === "string" ? update.title : ""
     // Studio tools reach the page through the bridge's studio/call path and
     // are rendered there with their result; skip the agent's mirror of them.
     if (STUDIO_TOOLS.some((t) => title.includes(t.def.name))) return []
@@ -152,6 +158,10 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
     ]
   }
   if (kind === "current_mode_update") return [{ type: "mode", current: String(update.currentModeId ?? ""), modes: [] }]
+  if (kind === "config_option_update") {
+    const model = modelOf(update)
+    return model ? [{ type: "model", model }] : []
+  }
   if (kind === "available_commands_update") {
     const list = Array.isArray(update.availableCommands)
       ? (update.availableCommands as { name?: unknown; description?: unknown; input?: { hint?: unknown } | null }[])
@@ -192,6 +202,38 @@ export function modesOf(v: unknown): { current: string; modes: Mode[] } | null {
   }
 }
 
+type ConfigValue = { value?: unknown; name?: unknown; description?: unknown; options?: ConfigValue[] }
+
+/** The model a session runs, from its config options (`configOptions` on a
+ * `session/new` answer or a `config_option_update`): the select of category
+ * "model", its values flattened out of any groups. Null when the agent
+ * reports none. */
+export function modelOf(v: unknown): ModelChoice | null {
+  const list = (v as { configOptions?: unknown } | null)?.configOptions
+  if (!Array.isArray(list)) return null
+  const o = (
+    list as { id?: unknown; category?: unknown; type?: unknown; currentValue?: unknown; options?: unknown }[]
+  ).find((x) => !!x && x.type === "select" && (x.category === "model" || x.id === "model"))
+  if (!o || typeof o.id !== "string" || !Array.isArray(o.options)) return null
+  const flat = (o.options as ConfigValue[]).flatMap((x) => (Array.isArray(x.options) ? x.options : [x]))
+  const options = flat
+    .filter((x) => typeof x.value === "string")
+    .map((x) => ({
+      id: String(x.value),
+      name: String(x.name ?? x.value),
+      description: typeof x.description === "string" && x.description ? x.description : undefined,
+    }))
+  return { configId: o.id, current: String(o.currentValue ?? ""), options }
+}
+
+/** A model's name as a person reads it: a "default" entry says which model
+ * it is (its description names it), any other its own name. */
+export function modelName(m: ModelChoice): string {
+  const o = m.options.find((x) => x.id === m.current)
+  if (!o) return m.current
+  return o.id === "default" && o.description ? o.description : o.name
+}
+
 /** Extract usage from an ACP prompt response or update, when an agent reports it. */
 export function usageOf(v: unknown): Usage | undefined {
   if (typeof v !== "object" || v === null) return undefined
@@ -222,6 +264,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
     let busy = false
     let modes: Mode[] = []
     let mode = ""
+    let model: ModelChoice | null = null
     let commands: AgentCommand[] = []
     let images = false
     let opened = false
@@ -254,6 +297,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       sessionId = null
       modes = []
       mode = ""
+      model = null
       commands = []
       images = false
     }
@@ -264,8 +308,10 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         protocolVersion: 1,
         clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false },
         clientInfo: { name: "dither-ui studio", version: "1" },
-      })) as { agentInfo?: { name?: string } }
-      if (init?.agentInfo?.name) agentName = init.agentInfo.name
+      })) as { agentInfo?: { name?: string; title?: string } }
+      // The title is for people (an adapter's name is often its package's).
+      const said = init?.agentInfo?.title || init?.agentInfo?.name
+      if (said) agentName = said
       images = takesImages(init)
       await client.newSession()
     }
@@ -359,7 +405,8 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
             else if (e.type === "mode") {
               mode = e.current
               e = { ...e, modes }
-            } else if (e.type === "commands") commands = e.commands
+            } else if (e.type === "model") model = e.model
+            else if (e.type === "commands") commands = e.commands
             o.onEvent?.(e)
           }
           return
@@ -419,6 +466,9 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       get mode() {
         return mode
       },
+      get model() {
+        return model
+      },
       get commands() {
         return commands
       },
@@ -439,7 +489,15 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         modes = found?.modes ?? []
         mode = found?.current ?? ""
         if (found) o.onEvent?.({ type: "mode", current: mode, modes })
+        model = modelOf(s)
+        if (model) o.onEvent?.({ type: "model", model })
         return sessionId ?? ""
+      },
+      async setModel(id) {
+        if (!model) return
+        const res = await request("session/set_config_option", { sessionId, configId: model.configId, value: id })
+        model = modelOf(res) ?? { ...model, current: id }
+        o.onEvent?.({ type: "model", model })
       },
       async setMode(id) {
         await request("session/set_mode", { sessionId, modeId: id })

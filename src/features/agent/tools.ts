@@ -29,7 +29,14 @@ const str = (description: string) => ({ type: "string", description })
 const num = (description: string) => ({ type: "number", description })
 
 /** The protocol as tools: one per command the harness should have. */
-export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
+/** The name the bridge gives the Studio's MCP server in every session, so a
+ * harness calls its tools `mcp__dither-studio__<tool>`. The bridge (zero
+ * dependencies, its own file) carries a copy, pinned by its spec. */
+export const STUDIO_SERVER = "dither-studio"
+
+/** A Studio tool: its definition for the harness, the protocol command it
+ * runs, and arguments it always sends (`preset`, under the harness's own). */
+export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<string, unknown> }[] = [
   {
     def: {
       name: "list_artboards",
@@ -46,6 +53,7 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
       parameters: obj({ is: str("registry component name, e.g. DitherTabs") }),
     },
     command: "registry.get",
+    preset: { brief: true },
   },
   {
     def: {
@@ -296,7 +304,7 @@ export function callStudioTool(
   run: (command: unknown) => CommandResult = runCommand,
 ): CommandResult {
   const tool = STUDIO_TOOLS.find((t) => t.def.name === name)
-  return tool ? run({ ...args, type: tool.command }) : { ok: false, error: `unknown tool ${name}` }
+  return tool ? run({ ...tool.preset, ...args, type: tool.command }) : { ok: false, error: `unknown tool ${name}` }
 }
 
 /** A composition is delivered, not returned: it rides the result to the
@@ -308,6 +316,10 @@ export async function finishStudioTool(name: string, result: CommandResult): Pro
 /* --------------------------------- events -------------------------------- */
 
 export type Mode = { id: string; name: string; description?: string }
+/** The model the harness runs, as its session reports it (an ACP config
+ * option of category "model"): the option's id, the current model and the
+ * ones the harness offers. The harness owns it; the Studio keeps nothing. */
+export type ModelChoice = { configId: string; current: string; options: Mode[] }
 export type AgentCommand = { name: string; description: string; input?: string }
 
 /** What the composer renders: everything the harness says, mapped from ACP. */
@@ -326,6 +338,7 @@ export type AgentEvent =
   | { type: "activity"; id: string; title: string; status: string; kind?: string }
   | { type: "plan"; entries: { content: string; status: string }[] }
   | { type: "mode"; current: string; modes: Mode[] }
+  | { type: "model"; model: ModelChoice }
   | { type: "commands"; commands: AgentCommand[] }
   | { type: "turn"; elapsedMs: number; usage?: Usage }
   | { type: "error"; message: string }
