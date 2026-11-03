@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowReactive, toRaw, watch } from "vue"
-import { copyText, DitherIcon } from "@dither-kit"
+import { copyText, DitherIcon, type IconName } from "@dither-kit"
 import { editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
 import { type AcpClient, type AcpPermissionRequest, type BridgeHello, connectAcp } from "@/features/agent/acp"
@@ -15,43 +15,56 @@ import {
   saveSession,
   type Usage,
 } from "@/features/agent/tools"
-import { undo } from "@/features/history"
+import { checkpoint, restoreCheckpoint, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { isMark } from "@/shared/ui/marks"
+import Prose from "./Prose.vue"
+import { type Changed, toolStep } from "./steps"
 
 // The agent panel is a CONTROL PLANE for the harness the user already has.
 // One local bridge, one pick: Claude Code, Codex, Gemini CLI, oh-my-pi,
-// Goose, OpenCode — or any command that speaks the Agent Client Protocol.
+// Goose, OpenCode, or any command that speaks the Agent Client Protocol.
 // The harness runs as the user's own signed-in process; the panel is its
-// client: a transcript (› prompt, ⏺ prose as it streams, ⚙ Studio tool calls
-// with their result, ✓ the harness's own activity, ☰ plans, ⚠ permission
-// prompts answered inline), a composer with slash commands (ours and the
-// harness's own), follow-ups queued while it works, Esc to stop. Nothing
-// here is a key or a model setting.
+// client, set as a composer: a thread (your messages as cards, each with
+// the checkpoint the canvas held before it; the reply as prose; each Studio
+// tool call a step in words; the harness's own tool calls; permission
+// prompts answered inline), and over the input the turn's to-dos, the
+// queue, the run and the changes it made to keep or undo. The input card
+// carries the frames you hand it as context, the harness and its mode, and
+// the send key. Nothing here is a key or a model setting.
 const emit = defineEmits<{ close: [] }>()
-// The composer's keys, each its own item under the status line.
-const HINTS = [
-  ["↵", "send"],
-  ["⇧↵", "newline"],
-  ["/", "commands"],
-  ["↑", "history"],
-  ["⌥↑", "unqueue"],
-  ["^o", "tools"],
-  ["esc", "stop"],
+// Suggestions for an empty thread.
+const STARTERS = [
+  "A sign-in screen with email, password and a primary button",
+  "A revenue dashboard: an area chart, three stat cards and a table",
+  "Evolve the selected frame into four variants",
 ] as const
 
 /* ------------------------------ configuration ----------------------------- */
 
 const config = ref<AgentConfig>(loadAgentConfig())
 watch(config, (c) => saveAgentConfig(c), { deep: true })
-const settingsOpen = ref(false)
+const menuOpen = ref(false)
 
 /* ------------------------------- transcript ------------------------------- */
 
 type Entry =
-  | { kind: "user" | "assistant" | "system" | "error" | "followup"; text: string }
-  | { kind: "tool"; name: string; summary: string; detail: string; ok: boolean; open: boolean }
+  | { kind: "user" | "followup"; text: string; turn?: number; context?: Changed[] }
+  | { kind: "assistant" | "system" | "error"; text: string }
+  | {
+      kind: "tool"
+      name: string
+      title?: string
+      icon?: IconName
+      summary: string
+      detail: string
+      ok: boolean
+      open: boolean
+      turn?: number
+      changed?: Changed[]
+      mutates?: boolean
+    }
   | { kind: "activity"; id: string; title: string; status: string }
   | { kind: "plan"; entries: { content: string; status: string }[] }
   | {
@@ -83,6 +96,15 @@ const push = (e: Entry) => {
 }
 const system = (text: string) => push({ kind: "system", text })
 
+/* ------------------------------ turns and checkpoints ---------------------- */
+
+/** Each prompt is a turn; the canvas as it stood before it is the turn's
+ * checkpoint (kept in memory: a document per turn is too large to save). */
+const turn = ref(0)
+const checkpoints = new Map<number, string>()
+/** Turns whose changes were kept (or undone): their bar is gone. */
+const settled = ref(new Set<number>())
+
 // Per-project memory: the conversation follows the active project.
 let loadedFor = ""
 function restore(projectId: string) {
@@ -90,8 +112,66 @@ function restore(projectId: string) {
   const s = loadSession<Entry>(projectId)
   entries.value = s?.entries ?? []
   usage.value = s?.usage ?? { input: 0, output: 0 }
+  turn.value = Math.max(0, ...entries.value.map((e) => ("turn" in e && e.turn) || 0))
+  checkpoints.clear()
+  settled.value = new Set(Array.from({ length: turn.value + 1 }, (_, i) => i))
   scrollLog()
 }
+
+/** The chat's title: its first message, else a new chat. */
+const title = computed(() => {
+  const first = entries.value.find((e) => e.kind === "user")
+  return first && "text" in first ? first.text.split("\n")[0] : "New chat"
+})
+
+/** What the latest turn changed on the canvas: its editing steps and the
+ * frames they touched (by id, the last name kept), until kept or undone. */
+const changes = computed(() => {
+  if (!turn.value || settled.value.has(turn.value)) return null
+  const steps = entries.value.filter(
+    (e): e is Extract<Entry, { kind: "tool" }> => e.kind === "tool" && e.turn === turn.value && e.ok && !!e.mutates,
+  )
+  if (!steps.length) return null
+  const frames = new Map<string, Changed>()
+  for (const s of steps) for (const f of s.changed ?? []) frames.set(f.id, f)
+  return { turn: turn.value, steps: steps.length, frames: [...frames.values()] }
+})
+const changesOpen = ref(false)
+
+function keep() {
+  if (changes.value) settled.value = new Set(settled.value).add(changes.value.turn)
+}
+/** The canvas back to where the turn found it (one undoable step). */
+function undoTurn() {
+  const c = changes.value
+  const cp = c && checkpoints.get(c.turn)
+  if (!c || !cp) return
+  restoreCheckpoint(cp)
+  settled.value = new Set(settled.value).add(c.turn)
+  system("Put the canvas back to before that message")
+}
+/** Any earlier turn: the canvas as it stood before its message. */
+function restoreTo(at: number) {
+  const cp = checkpoints.get(at)
+  if (!cp || busy.value) return
+  restoreCheckpoint(cp)
+  settled.value = new Set([...settled.value, ...Array.from({ length: turn.value - at + 1 }, (_, i) => at + i)])
+  system("Restored the checkpoint")
+}
+const canRestore = (e: Entry) => "turn" in e && !!e.turn && checkpoints.has(e.turn) && !busy.value
+
+/** The turn's plan, shown over the input as its to-dos. */
+const todos = computed(() => {
+  let i = entries.value.length - 1
+  while (i >= 0 && entries.value[i].kind !== "user" && entries.value[i].kind !== "followup") i--
+  for (let j = entries.value.length - 1; j > i; j--) {
+    const e = entries.value[j]
+    if (e.kind === "plan") return e.entries
+  }
+  return null
+})
+const todosOpen = ref(true)
+const todosDone = computed(() => todos.value?.filter((t) => t.status === "completed").length ?? 0)
 watch(
   () => activeProjectId.value,
   (id) => {
@@ -313,14 +393,20 @@ function onEvent(e: AgentEvent) {
           : e.result.ok
             ? e.result.data
             : null
-      const detail = `${JSON.stringify(e.args, null, 1)}\n→ ${e.result.ok ? JSON.stringify(data, null, 1).slice(0, 1600) : e.result.error}`
+      const detail = `${JSON.stringify(e.args, null, 1)}\n\n${e.result.ok ? JSON.stringify(data, null, 1).slice(0, 1600) : e.result.error}`
+      const step = toolStep(e.name, e.args, e.result)
       push({
         kind: "tool",
         name: e.name,
+        title: step.title,
+        icon: step.icon,
         ok: e.result.ok,
-        summary: `${describeArgs(e.name, e.args)}  ⎿ ${describeResult(e.result)}`,
+        summary: `${describeArgs(e.name, e.args)}, ${describeResult(e.result)}`,
         detail,
         open: !e.result.ok,
+        turn: turn.value,
+        changed: step.changed,
+        mutates: step.mutates,
       })
       break
     }
@@ -475,6 +561,8 @@ async function slash(line: string): Promise<boolean> {
     case "new":
       entries.value = []
       usage.value = { input: 0, output: 0 }
+      turn.value = 0
+      checkpoints.clear()
       if (acp.value?.hello?.agent)
         await acp.value.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
       return true
@@ -536,6 +624,8 @@ async function slash(line: string): Promise<boolean> {
     case "clear":
       entries.value = []
       usage.value = { input: 0, output: 0 }
+      turn.value = 0
+      checkpoints.clear()
       return true
     case "stop":
       stop()
@@ -548,8 +638,51 @@ async function slash(line: string): Promise<boolean> {
   }
 }
 
-async function send() {
-  const text = input.value.trim()
+/* --------------------------------- context -------------------------------- */
+
+/** The frames handed to the agent with the message: the selection (any of
+ * it can be left out) and the ones picked with @. */
+const left = ref(new Set<string>())
+const pinned = ref<string[]>([])
+watch(
+  () => editor.selectedIds.join(),
+  () => (left.value = new Set()),
+)
+const context = computed<Changed[]>(() => {
+  const ids = [...editor.selectedIds.filter((id) => !left.value.has(id)), ...pinned.value]
+  return [...new Set(ids)]
+    .map((id) => editor.artboards.find((a) => a.id === id))
+    .filter((a) => !!a)
+    .map((a) => ({ id: a.id, name: a.name }))
+})
+function dropContext(id: string) {
+  pinned.value = pinned.value.filter((x) => x !== id)
+  if (editor.selectedIds.includes(id)) left.value = new Set(left.value).add(id)
+}
+/** The message as the harness reads it: the frames first, by name and id. */
+const withContext = (text: string, frames: Changed[]) =>
+  frames.length
+    ? `Context, frames on the Studio canvas:\n${frames.map((f) => `- ${f.name} (id ${f.id})`).join("\n")}\n\n${text}`
+    : text
+
+/* The @ picker: typed at a word's start, or opened from the card's @ key. */
+const atQuery = computed(() => /(?:^|\s)@([^\s@]*)$/.exec(input.value)?.[1] ?? null)
+const atForced = ref(false)
+const atOpen = computed(() => atForced.value || atQuery.value !== null)
+const atMatches = computed(() => {
+  const q = (atQuery.value ?? "").toLowerCase()
+  return editor.artboards.filter((a) => a.name.toLowerCase().includes(q) && !context.value.some((c) => c.id === a.id))
+})
+const atIndex = ref(0)
+watch(atMatches, () => (atIndex.value = 0))
+function pickAt(id: string) {
+  pinned.value = [...pinned.value, id]
+  if (atQuery.value !== null) input.value = input.value.replace(/(^|\s)@[^\s@]*$/, "$1")
+  atForced.value = false
+  box.value?.focus()
+}
+
+async function send(text = input.value.trim()) {
   if (!text) return
   input.value = ""
   cursor = -1
@@ -570,23 +703,27 @@ async function run(text: string) {
     input.value = input.value ? `${text}\n${input.value}` : text
     return
   }
-  push({ kind: "user", text })
+  const frames = context.value
+  turn.value += 1
+  checkpoints.set(turn.value, checkpoint())
+  pinned.value = []
+  // Whatever the harness said before (while its session opened) is its own
+  // entry: this turn's reply starts under its message.
+  live.value = null
+  push({ kind: "user", text, turn: turn.value, context: frames })
   busy.value = true
   started.value = Date.now()
   now.value = started.value
   clock = setInterval(() => (now.value = Date.now()), 250)
   controller = new AbortController()
-  await client.prompt(text, controller.signal)
+  await client.prompt(withContext(text, frames), controller.signal)
   clearInterval(clock)
   busy.value = false
   controller = null
   live.value = null
-  // Follow-ups run one at a time, in order.
+  // Follow-ups run one at a time, in order, each its own turn.
   const next = followUps.value.shift()
-  if (next !== undefined) {
-    push({ kind: "followup", text: next })
-    await run(next)
-  }
+  if (next !== undefined) await run(next)
 }
 
 function stop() {
@@ -603,6 +740,23 @@ function unqueue() {
 }
 
 function onKey(e: KeyboardEvent) {
+  if (atOpen.value && atMatches.value.length) {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault()
+      const n = atMatches.value.length
+      atIndex.value = (atIndex.value + (e.key === "ArrowDown" ? 1 : n - 1)) % n
+      return
+    }
+    if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+      e.preventDefault()
+      pickAt(atMatches.value[atIndex.value].id)
+      return
+    }
+  }
+  if (atForced.value && e.key === "Escape") {
+    atForced.value = false
+    return
+  }
   if (slashOpen.value && slashMatches.value.length) {
     if (e.key === "ArrowDown") {
       e.preventDefault()
@@ -635,8 +789,9 @@ function onKey(e: KeyboardEvent) {
     return
   }
   if (e.key === "Escape") {
-    if (pickerOpen.value) {
+    if (pickerOpen.value || menuOpen.value) {
       pickerOpen.value = false
+      menuOpen.value = false
       return
     }
     if (busy.value || pending.size) {
@@ -685,253 +840,335 @@ onBeforeUnmount(() => {
 <template>
   <div class="agent">
     <div class="head">
-      <span class="title">Agent</span>
-      <button
-        type="button"
-        class="model"
-        :aria-expanded="pickerOpen"
-        aria-controls="agent-harness-picker"
-        :title="hello ? `bridge ${config.bridgeUrl}, cwd ${hello.cwd}` : config.bridgeUrl"
-        @click="togglePicker"
-      >
-        <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
-        ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" />{{
-          agentName || (acp ? "Pick a harness" : "Harness")
-        }}
+      <span class="title" :title="title">{{ title }}</span>
+      <button type="button" class="head-btn" aria-label="New chat" title="New chat" @click="slash('/new')">
+        <DitherIcon name="Plus" :size="13" :stroke-width="1.5" />
       </button>
       <button
-        v-if="modes.length"
         type="button"
-        class="model"
-        :title="modes.find((m) => m.id === mode)?.description || 'mode'"
-        @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
+        class="head-btn"
+        :aria-pressed="menuOpen"
+        aria-label="Bridge and session"
+        title="Bridge and session"
+        @click="menuOpen = !menuOpen"
       >
-        {{ modes.find((m) => m.id === mode)?.name || mode }}
+        <DitherIcon name="MoreHorizontal" :size="13" :stroke-width="1.5" />
       </button>
-      <div class="head-actions">
-        <button
-          type="button"
-          class="head-btn"
-          :aria-pressed="settingsOpen"
-          aria-label="Bridge settings"
-          title="Bridge settings"
-          @click="settingsOpen = !settingsOpen"
-        >
-          <DitherIcon name="Settings" :size="13" :stroke-width="1.5" />
-        </button>
-        <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">
-          <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
-        </button>
-      </div>
-    </div>
-
-    <div v-if="pickerOpen" id="agent-harness-picker" class="picker" role="group" aria-label="Harness">
-      <template v-if="hello">
-        <button
-          v-for="h in harnesses"
-          :key="h.id"
-          type="button"
-          class="pick"
-          :aria-pressed="agent?.id === h.id"
-          :title="h.command"
-          @click="start(h.id)"
-        >
-          <span class="pick-name"><ToolMark v-if="isMark(h.id)" :id="h.id" :size="12" />{{ h.name }}</span>
-          <span class="dim">{{ h.installed ? (h.note ?? "on this path") : "not on the path" }}</span>
-        </button>
-        <form class="custom" @submit.prevent="customCommand.trim() && start({ command: customCommand.trim() })">
-          <input
-            v-model="customCommand"
+      <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">
+        <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
+      </button>
+      <div v-if="menuOpen" class="menu" role="group" aria-label="Bridge and session">
+        <label class="field"
+          ><span>bridge</span
+          ><input
+            v-model.trim="config.bridgeUrl"
+            name="agent-bridge-url"
             type="text"
-            name="agent-command"
             class="input"
-            placeholder="any ACP command, e.g. omp --mode acp"
+            placeholder="ws://127.0.0.1:8790"
             autocomplete="off"
             spellcheck="false"
-            aria-label="Custom harness command"
-          />
-          <button type="submit" class="chip is-primary" :disabled="!customCommand.trim()">Start</button>
-        </form>
-        <button v-if="agent" type="button" class="pick stop-pick" @click="acp?.stop()">
-          <span class="pick-name">Stop {{ agent.name }}</span>
-        </button>
-      </template>
-      <p v-else class="note">
-        {{ connecting ? "connecting the bridge…" : "No bridge." }} Run it next to your harness, which keeps its own
-        login:<br />
-        <code>node bridge/dither-bridge.mjs</code><br />then pick Claude Code, Codex, Gemini CLI, oh-my-pi, Goose,
-        OpenCode, or any ACP command.
-      </p>
-    </div>
-
-    <div v-if="settingsOpen" class="settings">
-      <label class="field"
-        ><span>bridge</span
-        ><input
-          v-model.trim="config.bridgeUrl"
-          name="agent-bridge-url"
-          type="text"
-          class="input"
-          placeholder="ws://127.0.0.1:8790"
-          autocomplete="off"
-          spellcheck="false"
-      /></label>
-      <label class="remember"
-        ><input v-model="config.auto" type="checkbox" name="agent-auto" class="accent-foreground" />answer permission
-        prompts with their allow option</label
-      >
-      <p class="note">
-        The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool calls. No
-        key, no model setting lives here.
-      </p>
+        /></label>
+        <label class="remember"
+          ><input v-model="config.auto" type="checkbox" name="agent-auto" class="accent-foreground" />Answer permission
+          prompts with their allow option</label
+        >
+        <p class="note">
+          {{ fmtTokens(usage.input) }} in, {{ fmtTokens(usage.output) }} out<template v-if="lastTurnMs"
+            >, last turn {{ fmtMs(lastTurnMs) }}</template
+          ><template v-if="hello">, in {{ hello.cwd }}</template>
+        </p>
+        <p class="note">
+          The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool calls.
+          No key, no model setting lives here.
+        </p>
+      </div>
     </div>
 
     <div ref="log" class="log" aria-live="polite">
       <div v-if="!entries.length" class="empty">
         <p>
           Describe a screen, a chart or a control. Your harness composes it from the kit's registry through the Studio's
-          tools; every placement is one undo away.
+          tools, and every message keeps a checkpoint to go back to.
         </p>
-        <p class="dim">
-          Try a sign-in screen with email, password and a primary button.<br />/evolve on a selected frame, /help for
-          commands.
-        </p>
+        <button v-for="s in STARTERS" :key="s" type="button" class="starter" @click="send(s)">
+          <DitherIcon name="Sparkles" :size="12" :stroke-width="1.5" /><span>{{ s }}</span>
+        </button>
       </div>
       <template v-for="(e, i) in entries" :key="i">
-        <details v-if="e.kind === 'tool'" class="tool" :open="e.open" :data-ok="String(e.ok)">
-          <summary>
-            <span class="mark" aria-hidden="true">{{ e.ok ? "⚙" : "×" }}</span
-            ><span class="name">{{ e.name }}</span
-            ><span class="sum">{{ e.summary }}</span>
+        <div v-if="e.kind === 'user' || e.kind === 'followup'" class="msg">
+          <div v-if="e.context?.length" class="chips">
+            <span v-for="c in e.context" :key="c.id" class="ctx"
+              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name }}</span
+            >
+          </div>
+          <p class="msg-text">{{ e.text }}</p>
+          <button
+            v-if="canRestore(e)"
+            type="button"
+            class="restore"
+            aria-label="Restore checkpoint"
+            title="Restore checkpoint: the canvas as it was before this message"
+            @click="restoreTo(e.turn!)"
+          >
+            <DitherIcon name="Undo" :size="12" :stroke-width="1.5" />
+          </button>
+        </div>
+        <Prose v-else-if="e.kind === 'assistant'" :text="e.text" :live="live === e" />
+        <details v-else-if="e.kind === 'tool'" class="step" :open="e.open" :data-ok="String(e.ok)">
+          <summary :title="e.summary">
+            <DitherIcon :name="e.icon ?? 'Terminal'" :size="12" :stroke-width="1.5" /><span class="step-title">{{
+              e.title || e.name
+            }}</span
+            ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
           </summary>
           <pre class="detail">{{ e.detail }}</pre>
         </details>
-        <div v-else-if="e.kind === 'activity'" class="entry" data-kind="activity" :data-status="e.status">
-          <span class="mark" aria-hidden="true">{{
-            e.status === "completed" ? "✓" : e.status === "failed" ? "×" : "⚙"
-          }}</span>
-          <span class="text"
-            >{{ e.title }}<span class="dim"> ({{ e.status.replace("_", " ") }})</span></span
-          >
+        <div v-else-if="e.kind === 'activity'" class="step activity" :data-status="e.status">
+          <span v-if="e.status === 'pending' || e.status === 'in_progress'" class="spin" aria-hidden="true"></span>
+          <DitherIcon
+            v-else
+            :name="e.status === 'failed' ? 'XCircle' : 'CheckCircle'"
+            :size="12"
+            :stroke-width="1.5"
+          /><span class="step-title">{{ e.title }}</span>
         </div>
-        <div v-else-if="e.kind === 'plan'" class="entry" data-kind="plan">
-          <span class="mark" aria-hidden="true">☰</span>
-          <ul class="plan">
-            <li v-for="(p, j) in e.entries" :key="j" :data-status="p.status">
-              <span class="mark" aria-hidden="true">{{
-                p.status === "completed" ? "✓" : p.status === "in_progress" ? "›" : "○"
-              }}</span
-              >{{ p.content }}
-            </li>
-          </ul>
+        <div v-else-if="e.kind === 'approval'" class="approval" :data-answered="String(e.answered !== null)">
+          <p class="approval-title"><DitherIcon name="AlertTriangle" :size="12" :stroke-width="1.5" />{{ e.title }}</p>
+          <div v-if="e.answered === null" class="choices">
+            <button
+              v-for="o in e.options"
+              :key="o.id"
+              type="button"
+              class="key"
+              :class="o.primary ? 'is-primary' : ''"
+              @click="answer(e, o.id)"
+            >
+              {{ o.label }}
+            </button>
+          </div>
+          <p v-else class="note">Answered {{ e.answered }}</p>
         </div>
-        <div
-          v-else-if="e.kind === 'approval'"
-          class="entry approval"
-          data-kind="approval"
-          :data-answered="String(e.answered !== null)"
-        >
-          <span class="mark" aria-hidden="true">⚠</span>
-          <span class="text">
-            {{ e.title }}
-            <span v-if="e.answered === null" class="choices">
-              <button
-                v-for="o in e.options"
-                :key="o.id"
-                type="button"
-                class="chip"
-                :class="o.primary ? 'is-primary' : ''"
-                @click="answer(e, o.id)"
-              >
-                {{ o.label }}
-              </button>
-            </span>
-            <span v-else class="dim"> answered {{ e.answered }}</span>
-          </span>
-        </div>
-        <div v-else class="entry" :data-kind="e.kind">
-          <span class="mark" aria-hidden="true">{{
-            e.kind === "user"
-              ? "›"
-              : e.kind === "assistant"
-                ? "⏺"
-                : e.kind === "error"
-                  ? "!"
-                  : e.kind === "followup"
-                    ? "⇢"
-                    : "◦"
-          }}</span>
-          <span class="text">{{ e.text }}<span v-if="live === e" class="caret" aria-hidden="true">▍</span></span>
-        </div>
+        <p v-else-if="e.kind === 'error'" class="line-error">{{ e.text }}</p>
+        <p v-else-if="e.kind === 'system'" class="line-system">{{ e.text }}</p>
       </template>
-      <div v-if="busy && !live" class="entry working" data-kind="system">
-        <span class="mark spin" aria-hidden="true">✻</span>
-        <span class="text"
-          >working… {{ fmtMs(elapsed) }}<span v-if="followUps.length">, {{ followUps.length }} queued</span>
-          <span class="dim">(esc to stop)</span></span
-        >
-      </div>
     </div>
 
-    <div v-if="followUps.length" class="queued">
-      <span v-for="(s, i) in followUps" :key="`f${i}`" class="chip" :title="s"
-        >⇢ {{ s.length > 32 ? `${s.slice(0, 31)}…` : s }}</span
-      >
-    </div>
-
-    <div class="composer">
-      <div v-if="slashOpen && slashMatches.length" class="slash" role="listbox" aria-label="Commands">
-        <button
-          v-for="(c, i) in slashMatches"
-          :key="c.name"
-          type="button"
-          role="option"
-          :aria-selected="i === slashIndex"
-          class="slash-row"
-          :class="i === slashIndex ? 'is-active' : ''"
-          @click="pickSlash(c)"
-        >
-          <span class="slash-name"
-            >/{{ c.name }}<span v-if="c.args" class="dim"> {{ c.args }}</span></span
-          ><span class="dim">{{ c.harness ? `${agentName}: ` : "" }}{{ c.desc }}</span>
+    <div class="dock">
+      <div v-if="todos?.length" class="tray">
+        <button type="button" class="tray-head" :aria-expanded="todosOpen" @click="todosOpen = !todosOpen">
+          <DitherIcon :name="todosOpen ? 'ChevronDown' : 'ChevronRight'" :size="11" :stroke-width="1.5" />
+          <span>{{ todos.length }} {{ todos.length === 1 ? "to-do" : "to-dos" }}</span>
+          <span class="dim">{{ todosDone }} of {{ todos.length }} done</span>
         </button>
+        <ul v-if="todosOpen" class="rows">
+          <li v-for="(t, j) in todos" :key="j" class="row" :data-status="t.status">
+            <DitherIcon v-if="t.status === 'completed'" name="CheckCircle" :size="12" :stroke-width="1.5" /><span
+              v-else
+              class="circle"
+              aria-hidden="true"
+            ></span
+            ><span class="row-text">{{ t.content }}</span>
+          </li>
+        </ul>
       </div>
-      <div class="line">
-        <span class="prompt-mark" aria-hidden="true">›</span>
+      <div v-if="followUps.length" class="tray">
+        <p class="tray-head is-static">
+          <span>{{ followUps.length }} in queue</span>
+        </p>
+        <ul class="rows">
+          <li v-for="(s, j) in followUps" :key="j" class="row">
+            <span class="circle" aria-hidden="true"></span><span class="row-text" :title="s">{{ s }}</span>
+            <button
+              type="button"
+              class="row-key"
+              :aria-label="`Remove ${s} from the queue`"
+              @click="followUps.splice(j, 1)"
+            >
+              <DitherIcon name="Close" :size="11" :stroke-width="1.5" />
+            </button>
+          </li>
+        </ul>
+      </div>
+      <div v-if="busy" class="tray generating">
+        <span class="spin" aria-hidden="true"></span>
+        <span>{{ live ? "Writing" : "Generating" }}… {{ fmtMs(elapsed) }}</span>
+        <button type="button" class="key stop" title="Stop (esc)" @click="stop">Stop</button>
+      </div>
+      <div v-else-if="changes" class="tray">
+        <div class="tray-head is-split">
+          <button type="button" class="tray-toggle" :aria-expanded="changesOpen" @click="changesOpen = !changesOpen">
+            <DitherIcon :name="changesOpen ? 'ChevronDown' : 'ChevronRight'" :size="11" :stroke-width="1.5" />
+            <span>{{ changes.frames.length }} {{ changes.frames.length === 1 ? "frame" : "frames" }} changed</span>
+          </button>
+          <button type="button" class="key" @click="undoTurn">Undo all</button>
+          <button type="button" class="key is-primary" @click="keep">Keep</button>
+        </div>
+        <ul v-if="changesOpen" class="rows">
+          <li v-for="f in changes.frames" :key="f.id" class="row">
+            <DitherIcon name="Layout" :size="12" :stroke-width="1.5" /><span class="row-text">{{ f.name }}</span>
+            <button
+              v-if="editor.artboards.some((a) => a.id === f.id)"
+              type="button"
+              class="row-key is-word"
+              @click="selectArtboard(f.id)"
+            >
+              Show
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card rim">
+        <div v-if="slashOpen && slashMatches.length" class="pop" role="listbox" aria-label="Commands">
+          <button
+            v-for="(c, i) in slashMatches"
+            :key="c.name"
+            type="button"
+            role="option"
+            :aria-selected="i === slashIndex"
+            class="pop-row"
+            :class="i === slashIndex ? 'is-active' : ''"
+            @click="pickSlash(c)"
+          >
+            <span class="pop-name"
+              >/{{ c.name }}<span v-if="c.args" class="dim"> {{ c.args }}</span></span
+            ><span class="dim">{{ c.harness ? `${agentName}: ` : "" }}{{ c.desc }}</span>
+          </button>
+        </div>
+        <div v-else-if="atOpen" class="pop" role="listbox" aria-label="Frames">
+          <button
+            v-for="(a, i) in atMatches"
+            :key="a.id"
+            type="button"
+            role="option"
+            :aria-selected="i === atIndex"
+            class="pop-row"
+            :class="i === atIndex ? 'is-active' : ''"
+            @click="pickAt(a.id)"
+          >
+            <span class="pop-name"><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ a.name }}</span>
+          </button>
+          <p v-if="!atMatches.length" class="note">No frame left to add</p>
+        </div>
+        <div v-else-if="pickerOpen" id="agent-harness-picker" class="pop" role="group" aria-label="Harness">
+          <template v-if="hello">
+            <button
+              v-for="h in harnesses"
+              :key="h.id"
+              type="button"
+              class="pop-row"
+              :aria-pressed="agent?.id === h.id"
+              :title="h.command"
+              @click="start(h.id)"
+            >
+              <span class="pop-name"
+                ><ToolMark v-if="isMark(h.id)" :id="h.id" :size="12" />{{ h.name
+                }}<DitherIcon v-if="agent?.id === h.id" name="Check" :size="11" :stroke-width="1.5"
+              /></span>
+              <span class="dim">{{ h.installed ? (h.note ?? "on this path") : "not on the path" }}</span>
+            </button>
+            <form class="custom" @submit.prevent="customCommand.trim() && start({ command: customCommand.trim() })">
+              <input
+                v-model="customCommand"
+                type="text"
+                name="agent-command"
+                class="input"
+                placeholder="any ACP command, e.g. omp --mode acp"
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="Custom harness command"
+              />
+              <button type="submit" class="key" :disabled="!customCommand.trim()">Start</button>
+            </form>
+            <button v-if="agent" type="button" class="pop-row text-destructive" @click="acp?.stop()">
+              <span class="pop-name">Stop {{ agent.name }}</span>
+            </button>
+          </template>
+          <p v-else class="note">
+            {{ connecting ? "Connecting the bridge…" : "No bridge yet." }} Run it next to your harness, which keeps its
+            own login:<br /><code>node bridge/dither-bridge.mjs</code><br />then pick Claude Code, Codex, Gemini CLI,
+            oh-my-pi, Goose, OpenCode, or any ACP command.
+          </p>
+        </div>
+
+        <div class="chips">
+          <button
+            type="button"
+            class="ctx is-key"
+            aria-label="Add a frame as context"
+            :aria-pressed="atForced"
+            @click="atForced = !atForced"
+          >
+            @
+          </button>
+          <span v-for="c in context" :key="c.id" class="ctx"
+            ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name
+            }}<button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
+              <DitherIcon name="Close" :size="10" :stroke-width="1.5" /></button
+          ></span>
+        </div>
         <textarea
           ref="box"
           v-model="input"
           name="agent-goal"
           :rows="rows"
           class="prompt"
-          :placeholder="
-            busy
-              ? 'queue a follow-up…'
-              : agent
-                ? 'what should the studio build?'
-                : 'pick a harness, then describe a screen'
-          "
+          :placeholder="busy ? 'Queue a follow-up' : '/ for commands, @ for context'"
+          aria-label="Message the agent"
           spellcheck="false"
           @keydown="onKey"
         />
-        <button v-if="busy" type="button" class="run stop" title="Stop (esc)" @click="stop">Stop</button>
-        <button v-else type="button" class="run" :disabled="!input.trim()" title="Run (enter)" @click="send()">
-          Run
-        </button>
+        <div class="foot">
+          <button
+            v-if="modes.length"
+            type="button"
+            class="pill"
+            :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
+            @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
+          >
+            <DitherIcon name="Bot" :size="11" :stroke-width="1.5" />{{ modes.find((m) => m.id === mode)?.name || mode }}
+          </button>
+          <button
+            type="button"
+            class="pill"
+            :aria-expanded="pickerOpen"
+            aria-controls="agent-harness-picker"
+            :title="hello ? `bridge ${config.bridgeUrl}, cwd ${hello.cwd}` : config.bridgeUrl"
+            @click="togglePicker"
+          >
+            <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
+            ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="11" /><span class="pill-name">{{
+              agentName || (acp ? "Pick a harness" : "Harness")
+            }}</span
+            ><DitherIcon name="ChevronDown" :size="10" :stroke-width="1.5" />
+          </button>
+          <span v-if="config.auto" class="auto" title="Permission prompts are answered with their allow option"
+            >auto</span
+          >
+          <button
+            v-if="busy && !input.trim()"
+            type="button"
+            class="send key-chrome"
+            aria-label="Stop (esc)"
+            title="Stop (esc)"
+            @click="stop"
+          >
+            <span class="stop-square" aria-hidden="true"></span>
+          </button>
+          <button
+            v-else
+            type="button"
+            class="send key-chrome"
+            :disabled="!input.trim()"
+            :aria-label="busy ? 'Queue (enter)' : 'Send (enter)'"
+            :title="busy ? 'Queue (enter)' : 'Send (enter)'"
+            @click="send()"
+          >
+            <DitherIcon name="ArrowUp" :size="13" :stroke-width="2" />
+          </button>
+        </div>
       </div>
-    </div>
-
-    <div class="status">
-      <span class="dim">{{ agentName || "acp" }}</span>
-      <span>{{ fmtTokens(usage.input) }} in</span>
-      <span>{{ fmtTokens(usage.output) }} out</span>
-      <span v-if="lastTurnMs" class="dim">last {{ fmtMs(lastTurnMs) }}</span>
-      <span v-if="config.auto" class="auto" title="permission prompts answered automatically">auto</span>
-      <span class="hint dim">
-        <span v-for="[k, what] in HINTS" :key="what"
-          ><kbd>{{ k }}</kbd> {{ what }}</span
-        >
-      </span>
     </div>
   </div>
 </template>
@@ -945,121 +1182,82 @@ onBeforeUnmount(() => {
   font-family: var(--font-mono);
   font-size: 12px;
 }
-.head {
-  display: flex;
-  height: 2.25rem;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 6px;
-  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
-  padding-inline: 0.75rem 0.5rem;
-  font-size: 11px;
+.dim {
   color: var(--color-muted-foreground);
 }
-.title {
+.note {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--color-muted-foreground);
+  overflow-wrap: anywhere;
+}
+.note code {
   color: var(--color-foreground);
 }
-.model {
-  display: inline-flex;
+
+/* The chat's header: its title, a new chat, the session menu, close. */
+.head {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  height: 2.5rem;
+  flex-shrink: 0;
   align-items: center;
-  gap: 6px;
-  max-width: 11rem;
+  gap: 2px;
+  padding-inline: 0.875rem 0.5rem;
+}
+.title {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-radius: 0.375rem;
-  padding: 2px 6px;
-  font-size: 10.5px;
-  color: var(--color-muted-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
-}
-.model:hover {
+  font-size: 11.5px;
   color: var(--color-foreground);
-}
-.led {
-  width: 6px;
-  height: 6px;
-  flex-shrink: 0;
-  border-radius: 1px;
-  background: var(--color-muted-foreground);
-  opacity: 0.5;
-}
-.led[data-on="true"] {
-  background: var(--swatch-green);
-  opacity: 1;
-}
-.head-actions {
-  margin-left: auto;
-  display: flex;
-  gap: 2px;
 }
 .head-btn {
   display: grid;
   width: 1.75rem;
   height: 1.75rem;
+  flex-shrink: 0;
   place-items: center;
-  border-radius: 0.375rem;
+  border-radius: 7px;
   color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
 }
 .head-btn:hover,
 .head-btn[aria-pressed="true"] {
   background: var(--color-card);
   color: var(--color-foreground);
 }
-.picker,
-.settings {
+.menu {
+  position: absolute;
+  top: calc(100% - 2px);
+  right: 0.5rem;
+  left: 0.5rem;
   display: grid;
-  gap: 4px;
-  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
-  padding: 8px 12px;
-}
-.pick {
-  display: flex;
-  justify-content: space-between;
   gap: 8px;
-  border-radius: 0.375rem;
-  padding: 4px 6px;
-  text-align: left;
-  font-size: 11px;
-  color: var(--color-foreground);
-}
-.pick:hover {
+  border-radius: 12px;
+  padding: 10px 12px;
   background: var(--color-card);
-}
-.pick[aria-pressed="true"] .pick-name::before {
-  content: "● ";
-  color: var(--swatch-green);
-}
-.pick-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-.stop-pick {
-  color: var(--swatch-orange);
-}
-.custom {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-}
-.custom .input {
-  flex: 1;
+  box-shadow: var(--float-shadow);
 }
 .field {
   display: grid;
-  grid-template-columns: 4rem minmax(0, 1fr);
+  grid-template-columns: 3.5rem minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   font-size: 11px;
   color: var(--color-muted-foreground);
 }
 .input {
-  height: 1.625rem;
+  height: 1.75rem;
   min-width: 0;
   border: 1px solid var(--color-edge);
-  border-radius: 0.375rem;
+  border-radius: 7px;
   background: var(--color-background);
   padding-inline: 0.5rem;
   font: inherit;
@@ -1077,314 +1275,579 @@ onBeforeUnmount(() => {
   font-size: 11px;
   color: var(--color-muted-foreground);
 }
-.note {
-  margin: 0;
-  font-size: 10.5px;
-  line-height: 1.5;
-  color: var(--color-muted-foreground);
-  overflow-wrap: anywhere;
-}
-.note code {
-  color: var(--color-foreground);
-}
+
+/* The thread: your messages as cards, the reply as prose, steps in words. */
 .log {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  padding: 10px 12px;
+  padding: 4px 14px 14px;
   display: grid;
   align-content: start;
-  gap: 5px;
+  gap: 10px;
 }
 .empty {
   display: grid;
-  gap: 8px;
-  padding-top: 6px;
-  line-height: 1.5;
-  color: var(--color-muted-foreground);
+  gap: 4px;
+  padding-top: 4px;
 }
 .empty p {
-  margin: 0;
-}
-.dim {
+  margin: 0 0 8px;
+  line-height: 1.6;
   color: var(--color-muted-foreground);
 }
-.entry {
-  display: grid;
-  grid-template-columns: 1.1rem minmax(0, 1fr);
-  gap: 4px;
+.starter {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 1.75rem;
+  border-radius: 8px;
+  padding: 6px 8px;
+  text-align: left;
+  font-size: 11.5px;
   line-height: 1.45;
+  color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
 }
-.entry[data-kind="user"],
-.entry[data-kind="assistant"] {
+.starter :deep(svg) {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.starter:hover {
   color: var(--color-foreground);
+  background: var(--color-card);
 }
-.entry[data-kind="assistant"] .mark {
-  color: var(--swatch-blue);
+.msg {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: var(--color-card);
 }
-.entry[data-kind="system"],
-.entry[data-kind="activity"] {
-  color: var(--color-muted-foreground);
-  font-size: 11px;
-}
-.entry[data-kind="activity"][data-status="failed"] .mark {
-  color: var(--swatch-orange);
-}
-.entry[data-kind="followup"] {
-  color: var(--color-muted-foreground);
-}
-.entry[data-kind="error"] {
-  color: var(--swatch-red);
-}
-.entry[data-kind="plan"] {
-  font-size: 11px;
-  color: var(--color-muted-foreground);
-}
-.plan {
+.msg-text {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 2px;
-}
-.plan li {
-  display: grid;
-  grid-template-columns: 1rem minmax(0, 1fr);
-  gap: 2px;
-}
-.plan li[data-status="completed"] {
-  color: var(--color-muted-foreground);
-}
-.plan li[data-status="in_progress"] {
+  font-size: 12px;
+  line-height: 1.55;
   color: var(--color-foreground);
-}
-.approval .mark {
-  color: var(--swatch-orange);
-}
-.approval[data-answered="false"] {
-  color: var(--color-foreground);
-}
-.choices {
-  display: inline-flex;
-  gap: 4px;
-  margin-left: 6px;
-  vertical-align: middle;
-}
-.mark {
-  color: var(--color-muted-foreground);
-  text-align: center;
-}
-.text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.caret {
-  color: var(--swatch-blue);
+.msg:has(.restore) {
+  padding-right: 34px;
 }
-.working .mark {
+.restore {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--color-muted-foreground);
+  opacity: 0;
+  transition:
+    opacity 200ms var(--ease-settle),
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
+}
+.msg:hover .restore,
+.restore:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .restore {
+    opacity: 1;
+  }
+}
+.restore:hover {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.step {
+  font-size: 11.5px;
+  color: var(--color-muted-foreground);
+}
+.step summary,
+.activity {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 1.5rem;
+  line-height: 1.4;
+}
+.step summary {
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
+  transition: color 200ms var(--ease-settle);
+}
+.step summary::-webkit-details-marker {
+  display: none;
+}
+.step summary:hover {
+  color: var(--color-foreground);
+}
+.step-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chev {
+  flex-shrink: 0;
+  opacity: 0;
+  transition:
+    opacity 200ms var(--ease-settle),
+    rotate 350ms var(--ease-settle);
+}
+.step summary:hover .chev,
+.step[open] .chev {
+  opacity: 1;
+}
+.step[open] .chev {
+  rotate: 90deg;
+}
+.step[data-ok="false"],
+.activity[data-status="failed"] {
+  color: var(--color-destructive);
+}
+.detail {
+  margin: 4px 0 2px 19px;
+  max-height: 14rem;
+  overflow: auto;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-muted-foreground);
+  background: var(--well);
+  box-shadow: var(--recess-sm);
+}
+.approval {
+  display: grid;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: var(--color-card);
+}
+.approval[data-answered="true"] {
+  background: none;
+  padding-block: 0;
+}
+.approval-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-foreground);
+  overflow-wrap: anywhere;
+}
+.approval-title :deep(svg) {
+  flex-shrink: 0;
+  margin-top: 2px;
   color: var(--swatch-orange);
 }
+.approval[data-answered="true"] .approval-title {
+  color: var(--color-muted-foreground);
+}
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.line-system,
+.line-error {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-muted-foreground);
+}
+.line-error {
+  color: var(--color-destructive);
+}
+
+/* Keys: machined, filled, the primary one in ink. */
+.key {
+  min-height: 1.5rem;
+  border-radius: 7px;
+  padding-inline: 9px;
+  font-size: 11px;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+  transition: background-color 200ms var(--ease-settle);
+}
+.key:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--color-foreground) 14%, transparent);
+}
+.key.is-primary {
+  color: var(--color-background);
+  background: var(--color-foreground);
+}
+.key.is-primary:hover {
+  background: color-mix(in oklab, var(--color-foreground) 88%, var(--color-background));
+}
+.key:disabled {
+  opacity: 0.5;
+}
+
+/* Over the input: the turn's to-dos, the queue, the run, its changes. */
+.dock {
+  display: grid;
+  flex-shrink: 0;
+  gap: 6px;
+  padding: 0 10px 10px;
+}
+.tray {
+  display: grid;
+  gap: 2px;
+  border-radius: 10px;
+  padding: 4px 6px;
+  background: var(--color-card);
+  font-size: 11px;
+}
+.tray-head,
+.tray-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.5rem;
+  min-width: 0;
+  margin: 0;
+  border-radius: 6px;
+  padding-inline: 4px;
+  text-align: left;
+  color: var(--color-foreground);
+}
+.tray-head .dim {
+  margin-left: auto;
+}
+.tray-head.is-split {
+  padding: 0;
+  gap: 4px;
+}
+.tray-toggle {
+  flex: 1;
+}
+.rows {
+  display: grid;
+  max-height: 8.5rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 0 2px;
+  list-style: none;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 1.5rem;
+  padding-inline: 4px;
+  color: var(--color-foreground);
+}
+.row[data-status="completed"] {
+  color: var(--color-muted-foreground);
+}
+.row[data-status="completed"] .row-text {
+  text-decoration: line-through;
+}
+.row-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.circle {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  margin-inline: 1px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.25px var(--color-muted-foreground);
+}
+.row[data-status="in_progress"] .circle {
+  box-shadow:
+    inset 0 0 0 1.25px var(--color-foreground),
+    inset 0 0 0 3px var(--color-card),
+    inset 0 0 0 5px var(--color-foreground);
+}
+.row-key {
+  display: grid;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--color-muted-foreground);
+}
+.row-key.is-word {
+  padding-inline: 6px;
+  font-size: 10.5px;
+}
+.row-key:hover {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.generating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 10px;
+  color: var(--color-muted-foreground);
+}
+.generating .stop {
+  margin-left: auto;
+}
+.spin {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  margin-inline: 1px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.25px color-mix(in oklab, var(--color-foreground) 25%, transparent);
+  border-top: 1.25px solid var(--color-foreground);
+}
 @media (prefers-reduced-motion: no-preference) {
-  .spin,
-  .caret {
-    animation: pulse 1.2s ease-in-out infinite;
+  .spin {
+    animation: spin 0.9s linear infinite;
   }
-  @keyframes pulse {
-    50% {
-      opacity: 0.3;
+  @keyframes spin {
+    to {
+      rotate: 360deg;
     }
   }
 }
-.tool {
-  font-size: 11px;
-  color: var(--color-muted-foreground);
-}
-.tool summary {
+
+/* The input card: context chips, the message, the harness and the send key. */
+.card {
+  position: relative;
   display: grid;
-  grid-template-columns: 1.1rem auto minmax(0, 1fr);
   gap: 4px;
-  cursor: pointer;
-  list-style: none;
-  line-height: 1.45;
-  border-radius: 0.25rem;
+  border-radius: 14px;
+  padding: 8px 8px 6px 10px;
+  background: var(--well);
+  box-shadow: var(--recess-sm);
 }
-.tool summary::-webkit-details-marker {
-  display: none;
+.card:focus-within {
+  box-shadow:
+    var(--recess-sm),
+    0 0 0 1px var(--color-edge);
 }
-.tool summary:hover {
-  color: var(--color-foreground);
-}
-.tool .name {
-  color: var(--color-foreground);
-}
-.tool .sum {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tool[open] .sum {
-  white-space: normal;
-}
-.tool[data-ok="false"] .mark,
-.tool[data-ok="false"] .sum {
-  color: var(--swatch-orange);
-}
-.detail {
-  margin: 4px 0 4px 1.1rem;
-  max-height: 14rem;
-  overflow: auto;
-  border-left: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
-  padding-left: 8px;
-  font-size: 10.5px;
-  line-height: 1.4;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  color: var(--color-muted-foreground);
-}
-.queued {
+.chips {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 0 12px 6px;
 }
-.chip {
+.ctx {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   max-width: 100%;
-  min-height: 1.25rem;
+  min-height: 1.5rem;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border: 1px dashed var(--color-border);
-  border-radius: 0.375rem;
-  padding: 1px 6px;
+  border-radius: 6px;
+  padding-inline: 6px;
   font-size: 10.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.msg .ctx {
   color: var(--color-muted-foreground);
 }
-button.chip {
-  border-style: solid;
-  cursor: pointer;
+.ctx.is-key {
+  min-width: 1.5rem;
+  justify-content: center;
+  color: var(--color-muted-foreground);
 }
-button.chip:hover:not(:disabled) {
-  color: var(--color-foreground);
-  background: var(--color-card);
-}
-button.chip.is-primary {
-  border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent);
+.ctx.is-key:hover,
+.ctx.is-key[aria-pressed="true"] {
   color: var(--color-foreground);
 }
-button.chip:disabled {
-  opacity: 0.5;
-}
-.composer {
-  position: relative;
+.ctx-x {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
   flex-shrink: 0;
-  border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
-  padding: 8px 10px 6px;
+  place-items: center;
+  margin: 0 -6px 0 -4px;
+  border-radius: 6px;
+  color: var(--color-muted-foreground);
 }
-.slash {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: calc(100% - 2px);
-  display: grid;
-  max-height: 16rem;
-  overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
-  background: var(--color-card);
-  padding: 4px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.32);
-}
-.slash-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  border-radius: 0.25rem;
-  padding: 4px 6px;
-  text-align: left;
-  font-size: 11px;
+.ctx-x:hover {
   color: var(--color-foreground);
-}
-.slash-row.is-active,
-.slash-row:hover {
-  background: var(--color-background);
-}
-.slash-name {
-  white-space: nowrap;
-}
-.line {
-  display: grid;
-  grid-template-columns: 1rem minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 6px;
-}
-.prompt-mark {
-  padding-bottom: 6px;
-  color: var(--swatch-orange);
 }
 .prompt {
   resize: none;
   border: 0;
   background: transparent;
-  padding: 5px 0;
+  padding: 4px 0;
   font: inherit;
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--color-foreground);
   outline: none;
 }
 .prompt::placeholder {
   color: var(--color-muted-foreground);
 }
-.run {
-  min-height: 1.5rem;
-  border-radius: 0.375rem;
-  padding-inline: 0.6rem;
-  font-size: 11px;
-  color: var(--color-background);
-  background: var(--color-foreground);
-  transition: opacity 140ms ease;
-}
-.run:disabled {
-  opacity: 0.35;
-}
-.run.stop {
-  background: color-mix(in oklab, var(--swatch-red) 80%, black);
-}
-.status {
+.foot {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px 12px;
-  border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
-  padding: 5px 12px;
-  font-size: 10px;
+  gap: 4px;
+  min-width: 0;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 10rem;
+  min-height: 1.5rem;
+  border-radius: 7px;
+  padding-inline: 6px;
+  font-size: 10.5px;
   color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
 }
-.auto {
-  margin-left: auto;
-  color: var(--swatch-orange);
-}
-.hint {
-  display: flex;
-  flex-basis: 100%;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-}
-.hint kbd {
-  font-family: inherit;
+.pill:hover,
+.pill[aria-expanded="true"] {
   color: var(--color-foreground);
 }
-.pick:focus-visible,
-.model:focus-visible,
+.pill-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.led {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 1px;
+  background: var(--color-muted-foreground);
+}
+.led[data-on="true"] {
+  background: var(--swatch-green);
+}
+.auto {
+  font-size: 10px;
+  color: var(--swatch-orange);
+}
+.send {
+  display: grid;
+  width: 1.625rem;
+  height: 1.625rem;
+  flex-shrink: 0;
+  margin-left: auto;
+  place-items: center;
+}
+.send:disabled {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+.stop-square {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+/* Popovers over the card: commands, frames, harnesses. */
+.pop {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 6;
+  display: grid;
+  max-height: 16rem;
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 4px;
+  background: var(--color-card);
+  box-shadow: var(--float-shadow);
+}
+.pop .note {
+  padding: 6px 8px;
+}
+.pop-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 1.75rem;
+  align-items: center;
+  border-radius: 8px;
+  padding: 4px 8px;
+  text-align: left;
+  font-size: 11px;
+  color: var(--color-foreground);
+}
+.pop-row .dim {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pop-row.is-active,
+.pop-row:hover {
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.pop-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.pop-row.text-destructive {
+  color: var(--color-destructive);
+}
+.custom {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+}
+.custom .input {
+  flex: 1;
+}
+
 .head-btn:focus-visible,
-.chip:focus-visible,
-.run:focus-visible,
-.slash-row:focus-visible {
+.starter:focus-visible,
+.restore:focus-visible,
+.step summary:focus-visible,
+.key:focus-visible,
+.tray-head:focus-visible,
+.tray-toggle:focus-visible,
+.row-key:focus-visible,
+.ctx.is-key:focus-visible,
+.ctx-x:focus-visible,
+.pill:focus-visible,
+.send:focus-visible,
+.pop-row:focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 1px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .run {
+  .head-btn,
+  .starter,
+  .restore,
+  .chev,
+  .key,
+  .pill {
     transition: none;
   }
 }

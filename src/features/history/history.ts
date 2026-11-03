@@ -69,6 +69,25 @@ export function redo() {
   restore(next)
 }
 
+/** The document as it stands: a checkpoint to come back to (the agent's,
+ * taken as each turn starts). */
+export function checkpoint(): string {
+  flush()
+  return snap()
+}
+
+/** The document back to a checkpoint, as ONE undoable step (an undo
+ * returns to where the restore was asked); nothing when it already is. */
+export function restoreCheckpoint(s: string) {
+  flush()
+  const cur = snap()
+  if (s === cur) return
+  undoStack.push(cur)
+  if (undoStack.length > MAX) undoStack.shift()
+  redoStack.length = 0
+  restore(s)
+}
+
 /** Re-baseline on the current document and clear both stacks — used when a
  * different project loads so undo can never bleed across projects. */
 export function resetHistory() {

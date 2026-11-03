@@ -20,7 +20,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   panels: toolbar, layer-tree, inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock; a film's camera, callouts and chapter band), data-editor, agent
-  (the composer / harness control plane).
+  (the composer / harness control plane: the panel, the reply's prose
+  reader, the tool steps in words).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
   export-code, export-image, export-video (a frame as a HyperFrames
@@ -116,7 +117,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `entities/editor` is the sole mutation path for document state. History
   (`features/history`) snapshots `{artboards, groups}` — excludes viewport and
   selection deliberately; new document-shaped state must be added to both the
-  snapshot and `features/persistence`.
+  snapshot and `features/persistence`. `checkpoint()` hands out that
+  snapshot and `restoreCheckpoint()` returns to one as a single undoable
+  step (the agent's per-message checkpoints).
 - Editor mutations must stay undoable: route them through the editor store so
   the deep watcher records them; never mutate artboards from a component.
 - New artboards route through `placeArtboard` after their final size is known; it
