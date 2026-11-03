@@ -1,6 +1,6 @@
 // @rstest-environment jsdom
 import { beforeEach, describe, expect, it } from "rstack/test"
-import { mapUpdate, modesOf, permissionOptions, usageOf } from "@/features/agent/acp"
+import { mapUpdate, modesOf, permissionOptions, promptBlocks, takesImages, usageOf } from "@/features/agent/acp"
 import {
   callStudioTool,
   loadAgentConfig,
@@ -94,6 +94,22 @@ describe("acp mapping", () => {
       }),
     ).toEqual([{ type: "commands", commands: [{ name: "review", description: "Review the diff", input: "<path>" }] }])
     expect(mapUpdate({ sessionUpdate: "user_message_chunk" })).toEqual([])
+  })
+
+  it("sends pictures only to a harness that said it takes them", () => {
+    const png = { mimeType: "image/png", data: "iVBOR" }
+    expect(takesImages({ agentCapabilities: { promptCapabilities: { image: true } } })).toBe(true)
+    for (const init of [
+      { agentCapabilities: { promptCapabilities: { image: "yes" } } },
+      { agentCapabilities: {} },
+      null,
+    ])
+      expect(takesImages(init)).toBe(false)
+    expect(promptBlocks("look", [png], true)).toEqual([
+      { type: "text", text: "look" },
+      { type: "image", mimeType: "image/png", data: "iVBOR" },
+    ])
+    expect(promptBlocks("look", [png], false)).toEqual([{ type: "text", text: "look" }])
   })
 
   it("reads modes and usage off the agent's answers", () => {

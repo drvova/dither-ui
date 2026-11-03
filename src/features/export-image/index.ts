@@ -1,1 +1,1 @@
-export { exportArtboardPng } from "./exportPng"
+export { artboardPng, exportArtboardPng } from "./exportPng"

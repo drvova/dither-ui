@@ -4,7 +4,7 @@ import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
 import { addArtboard } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
 import { startHistory, stopHistory } from "@/features/history"
-import { ShortcutsHelp } from "@/features/keyboard"
+import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
 import { hydrate, importDocument, startAutosave, stopAutosave } from "@/features/persistence"
 import { Canvas } from "@/widgets/canvas"
 import { DataEditor } from "@/widgets/data-editor"
@@ -27,6 +27,7 @@ const inspectorOpen = ref(true)
 const agentOpen = ref(false)
 watch(agentOpen, (v) => v && (layersOpen.value = false))
 watch(layersOpen, (v) => v && (agentOpen.value = false))
+usePanelShortcuts({ toggleAgent: () => (agentOpen.value = !agentOpen.value) })
 
 hydrate()
 startAutosave()

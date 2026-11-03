@@ -20,8 +20,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   panels: toolbar, layer-tree, inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock; a film's camera, callouts and chapter band), data-editor, agent
-  (the composer / harness control plane: the panel, the reply's prose
-  reader, the tool steps in words).
+  (the composer / harness control plane: `AgentPanel.vue` holds the
+  session and lays it out, `ui/` draws the thread's entries and the trays
+  over the input, `model/` reads the thread, the reply's prose and the
+  tool steps in words).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
   export-code, export-image, export-video (a frame as a HyperFrames
@@ -171,7 +173,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     boots a harness that is already running (`initialize` + `session/new`,
     reading modes off the answer); `client.start(id | { command })` asks the
     bridge to spawn one and boots it; `stop()`, `newSession()`,
-    `setMode()`. `mapUpdate` turns `session/update` into events (message
+    `setMode()`; `acceptsImages` (the harness's
+    `promptCapabilities.image`, `takesImages`) decides whether `prompt()`
+    sends pictures (`promptBlocks`: the text, then image blocks only to a
+    harness that takes them). `mapUpdate` turns `session/update` into events (message
     chunks → `delta`, thought chunks → `thought`, tool calls → `activity` with a status-only update
     keeping its title, plans, `current_mode_update` → `mode`,
     `available_commands_update` → `commands`; mirrors of Studio tools are
@@ -350,8 +355,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (chapters, camera moves, three callouts, score seed 7), its frames in a
   row under it. Pinned by `tests/reel.spec.ts` (the "film", "launch film"
   and renderer cases) and `tests/score.spec.ts`.
-- Keyboard map lives in `features/keyboard/useShortcuts.ts`; every new
-  shortcut also gets a row in `ShortcutsHelp.vue`.
+- Keyboard map lives in `features/keyboard/useShortcuts.ts` (the canvas's
+  keys in `useShortcuts`, the page's panel keys in `usePanelShortcuts`:
+  ⌘I opens and closes the agent); every new shortcut also gets a row in
+  `ShortcutsHelp.vue`.
 - Pointer transforms use `features/artboard-transform/startDrag`; it filters by
   pointer id and owns pointer-up/cancel/unmount cleanup. Artboard surfaces drag
   only from non-interactive regions so live controls retain pointer ownership.

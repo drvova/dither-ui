@@ -859,9 +859,14 @@ widgets/features; page-specific conventions live here.
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
-- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a CONTROL
-  PLANE for the user's own harness, set as an agent app's composer, over
-  `features/agent/acp.ts`. The head: who answers (the harness's mark, else
+- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy; ⌘I opens and
+  closes it) is a CONTROL PLANE for the user's own harness, set as an
+  agent app's composer, over `features/agent/acp.ts`. The panel holds the
+  session; `ui/ThreadEntry.vue` draws one entry, `ui/TurnTrays.vue` the
+  trays over the input, `model/thread.ts` every reading of the thread
+  (title, to-dos, a turn's changes, the blocks it draws; one shared set
+  of keys, folds, chips and the spinner lives unscoped under `.agent`).
+  The head: who answers (the harness's mark, else
   the brand mark), the chat's title (its first message), a new chat
   (`/new`) and close. An empty chat stands in the middle of the panel: the
   mark in a recessed well, a greeting and a line, the composer, and the
@@ -879,7 +884,12 @@ widgets/features; page-specific conventions live here.
   one row per Studio tool, held to `STUDIO_TOOLS` by the test), its args
   and result folded under it, destructive ink when the Studio rejected
   it; the harness's own tool calls as steps with a spinner or a check;
-  permission prompts answered inline; system lines small and muted. Over
+  a run of three or more steps in a row folded under "N steps" (and how
+  many failed; open while it is the newest thing the harness does, or
+  once opened); permission prompts answered inline; each turn closed by
+  "Worked for" its length; system lines small and muted. The thread
+  follows what arrives only while you read its end: scrolled up, it holds
+  still and a "Latest" key brings you back. Over
   the composer: the turn's plan as to-dos (circles, a ringed one in
   progress, done struck through), the queue with a remove key per
   message, the run (thinking, writing or working, its time, Stop) and,
@@ -899,7 +909,10 @@ widgets/features; page-specific conventions live here.
   the bridge's folder, and the settings key (the bridge address, tokens
   in and out summed from each turn's usage, the last turn's time, the
   full cwd; no key or model setting exists in the app). The harness reads
-  the context as the frames' names and ids ahead of the message. Keys:
+  the context as the frames' names and ids ahead of the message, and,
+  when it takes images, the first three as pictures (each frame drawn to
+  a PNG by `features/export-image` `artboardPng`; the bubble's chips show
+  a picture then). Keys:
   Enter sends, or QUEUES a follow-up while the harness works (ACP has no
   steering; each runs as its own turn, in order); Alt+Up takes the newest
   queued message back; Esc stops and returns the queue to the editor;
@@ -911,7 +924,8 @@ widgets/features; page-specific conventions live here.
   reply starts under its message, even when the harness spoke while its
   session opened. The conversation persists per project and follows the
   active project; unanswered approvals are not saved. Pinned by
-  `tests/agent-composer.spec.ts` and the thought case in
+  `tests/agent-composer.spec.ts` (prose, steps, checkpoints, the
+  thread's readings) and the thought and picture cases in
   `tests/agent-tools.spec.ts`.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.

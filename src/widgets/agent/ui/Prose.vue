@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { type Inline, parseProse } from "./prose"
+import { type Inline, parseProse } from "../model/prose"
 
 // A reply set as prose: its blocks as elements, never as HTML.
 const props = defineProps<{ text: string; live?: boolean }>()

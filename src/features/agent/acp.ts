@@ -71,6 +71,23 @@ export type AcpClientOptions = {
   onClose?: () => void
 }
 
+/** A picture for the harness: a PNG of a frame, base64 without its prefix. */
+export type PromptImage = { mimeType: string; data: string }
+
+/** A prompt's content blocks: the text, then each picture when the harness
+ * declared it takes them (an image block to one that did not is an error). */
+export function promptBlocks(text: string, images: readonly PromptImage[], accepts: boolean) {
+  return [
+    { type: "text" as const, text },
+    ...(accepts ? images.map((i) => ({ type: "image" as const, mimeType: i.mimeType, data: i.data })) : []),
+  ]
+}
+
+/** Whether an `initialize` answer says the agent takes images. */
+export const takesImages = (init: unknown): boolean =>
+  (init as { agentCapabilities?: { promptCapabilities?: { image?: unknown } } } | null)?.agentCapabilities
+    ?.promptCapabilities?.image === true
+
 export type AcpClient = {
   /** The running agent's display name (its own `agentInfo.name`, else the harness's). */
   readonly agent: string
@@ -80,14 +97,22 @@ export type AcpClient = {
   readonly modes: Mode[]
   readonly mode: string
   readonly commands: AgentCommand[]
+  /** Whether the running harness takes pictures in a prompt (its
+   * `promptCapabilities.image`). */
+  readonly acceptsImages: boolean
   /** Start a harness by preset id, or any command line; resolves once a session exists. */
   start(harness: string | { command: string }): Promise<void>
   stop(): void
   /** A fresh agent session (new context). */
   newSession(): Promise<string>
   setMode(id: string): Promise<void>
-  /** One task: resolves when the agent's turn ends, with its stop reason and the prose it streamed. */
-  prompt(text: string, signal?: AbortSignal): Promise<{ stopReason: string; text: string }>
+  /** One task: resolves when the agent's turn ends, with its stop reason and
+   * the prose it streamed. Pictures ride along only if the harness takes them. */
+  prompt(
+    text: string,
+    signal?: AbortSignal,
+    images?: readonly PromptImage[],
+  ): Promise<{ stopReason: string; text: string }>
   close(): void
 }
 
@@ -196,6 +221,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
     let modes: Mode[] = []
     let mode = ""
     let commands: AgentCommand[] = []
+    let images = false
     let opened = false
     let settled = false
     let waitHello: ((h: BridgeHello) => void) | null = null
@@ -227,6 +253,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       modes = []
       mode = ""
       commands = []
+      images = false
     }
 
     /** initialize + session/new against the running harness. */
@@ -237,6 +264,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         clientInfo: { name: "dither-ui studio", version: "1" },
       })) as { agentInfo?: { name?: string } }
       if (init?.agentInfo?.name) agentName = init.agentInfo.name
+      images = takesImages(init)
       await client.newSession()
     }
     const nextHello = () =>
@@ -380,6 +408,9 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       get busy() {
         return busy
       },
+      get acceptsImages() {
+        return images
+      },
       get modes() {
         return modes
       },
@@ -413,7 +444,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         mode = id
         o.onEvent?.({ type: "mode", current: id, modes })
       },
-      async prompt(goal, signal) {
+      async prompt(goal, signal, pictures = []) {
         if (!sessionId) await client.newSession()
         busy = true
         segment = ""
@@ -422,7 +453,10 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         const onAbort = () => notify("session/cancel", { sessionId })
         signal?.addEventListener("abort", onAbort, { once: true })
         try {
-          const res = (await request("session/prompt", { sessionId, prompt: [{ type: "text", text: goal }] })) as {
+          const res = (await request("session/prompt", {
+            sessionId,
+            prompt: promptBlocks(goal, pictures, images),
+          })) as {
             stopReason?: string
           }
           const stop = res?.stopReason ?? "end_turn"

@@ -86,3 +86,16 @@ export function useShortcuts(zoom: ZoomControls) {
   onMounted(() => window.addEventListener("keydown", onKey))
   onBeforeUnmount(() => window.removeEventListener("keydown", onKey))
 }
+
+/** The page's panel keys: ⌘I (Ctrl+I) opens and closes the agent, from
+ * anywhere on the page, its own field included. */
+export function usePanelShortcuts(panels: { toggleAgent: () => void }) {
+  function onKey(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && (e.key === "i" || e.key === "I")) {
+      e.preventDefault()
+      panels.toggleAgent()
+    }
+  }
+  onMounted(() => window.addEventListener("keydown", onKey))
+  onBeforeUnmount(() => window.removeEventListener("keydown", onKey))
+}

@@ -3,7 +3,13 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowReactive, t
 import { copyText, DitherIcon, type IconName } from "@dither-kit"
 import { editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
-import { type AcpClient, type AcpPermissionRequest, type BridgeHello, connectAcp } from "@/features/agent/acp"
+import {
+  type AcpClient,
+  type AcpPermissionRequest,
+  type BridgeHello,
+  connectAcp,
+  type PromptImage,
+} from "@/features/agent/acp"
 import {
   type AgentCommand,
   type AgentConfig,
@@ -15,25 +21,26 @@ import {
   saveSession,
   type Usage,
 } from "@/features/agent/tools"
+import { artboardPng } from "@/features/export-image"
 import { checkpoint, restoreCheckpoint, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark.vue"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { isMark } from "@/shared/ui/marks"
-import Prose from "./Prose.vue"
-import { type Changed, toolStep } from "./steps"
+import type { Changed } from "./model/steps"
+import { type Block, changesOf, type Entry, threadBlocks, titleOf, todosOf, toolEntry } from "./model/thread"
+import ThreadEntry from "./ui/ThreadEntry.vue"
+import TurnTrays from "./ui/TurnTrays.vue"
 
 // The agent panel is a CONTROL PLANE for the harness the user already has.
 // One local bridge, one pick: Claude Code, Codex, Gemini CLI, oh-my-pi,
 // Goose, OpenCode, or any command that speaks the Agent Client Protocol.
 // The harness runs as the user's own signed-in process; the panel is its
-// client, set as a composer: a thread (your messages as cards, each with
-// the checkpoint the canvas held before it; the reply as prose; each Studio
-// tool call a step in words; the harness's own tool calls; permission
-// prompts answered inline), and over the input the turn's to-dos, the
-// queue, the run and the changes it made to keep or undo. The input card
-// carries the frames you hand it as context, the harness and its mode, and
-// the send key. Nothing here is a key or a model setting.
+// client, set as a composer. This file holds the session (the bridge, the
+// turns and their checkpoints, the queue, the context) and lays it out; the
+// thread's entries draw in `ui/ThreadEntry.vue`, the trays over the input in
+// `ui/TurnTrays.vue`, and every reading of the thread is `model/thread.ts`.
+// Nothing here is a key or a model setting.
 const emit = defineEmits<{ close: [] }>()
 // Suggestions for an empty thread.
 const STARTERS: { icon: IconName; text: string }[] = [
@@ -50,34 +57,6 @@ const menuOpen = ref(false)
 
 /* ------------------------------- transcript ------------------------------- */
 
-type Entry =
-  | { kind: "user" | "followup"; text: string; turn?: number; context?: Changed[] }
-  | { kind: "assistant" | "system" | "error"; text: string }
-  /** The harness's reasoning: open while it streams, then folded under how
-   * long it took. */
-  | { kind: "thought"; text: string; ms?: number; open?: boolean }
-  | {
-      kind: "tool"
-      name: string
-      title?: string
-      icon?: IconName
-      summary: string
-      detail: string
-      ok: boolean
-      open: boolean
-      turn?: number
-      changed?: Changed[]
-      mutates?: boolean
-    }
-  | { kind: "activity"; id: string; title: string; status: string }
-  | { kind: "plan"; entries: { content: string; status: string }[] }
-  | {
-      kind: "approval"
-      title: string
-      options: { id: string; label: string; primary?: boolean }[]
-      answered: string | null
-    }
-
 const entries = ref<Entry[]>([])
 const usage = ref<Usage>({ input: 0, output: 0 })
 type TextEntry = Extract<Entry, { text: string }>
@@ -92,8 +71,29 @@ function lastEntry<T extends Entry>(is: (e: Entry) => e is T): T | undefined {
 }
 const isPlan = (e: Entry): e is PlanEntry => e.kind === "plan"
 const isAssistant = (e: Entry): e is TextEntry => e.kind === "assistant"
+/* The thread follows what arrives only while you read its end: scrolled up,
+ * it holds still and a key offers the latest. */
 const log = ref<HTMLElement | null>(null)
-const scrollLog = () => nextTick(() => log.value?.scrollTo({ top: log.value.scrollHeight }))
+const atEnd = ref(true)
+const unseen = ref(false)
+const onScroll = () => {
+  const el = log.value
+  if (!el) return
+  atEnd.value = el.scrollHeight - el.scrollTop - el.clientHeight < 32
+  if (atEnd.value) unseen.value = false
+}
+function toEnd(smooth = false) {
+  const el = log.value
+  if (!el) return
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  el.scrollTo({ top: el.scrollHeight, behavior: smooth && !still ? "smooth" : "auto" })
+  unseen.value = false
+}
+const scrollLog = (force = false) =>
+  nextTick(() => {
+    if (force || atEnd.value) toEnd()
+    else unseen.value = true
+  })
 const push = (e: Entry) => {
   entries.value.push(e)
   scrollLog()
@@ -119,28 +119,14 @@ function restore(projectId: string) {
   turn.value = Math.max(0, ...entries.value.map((e) => ("turn" in e && e.turn) || 0))
   checkpoints.clear()
   settled.value = new Set(Array.from({ length: turn.value + 1 }, (_, i) => i))
-  scrollLog()
+  scrollLog(true)
 }
 
-/** The chat's title: its first message, else a new chat. */
-const title = computed(() => {
-  const first = entries.value.find((e) => e.kind === "user")
-  return first && "text" in first ? first.text.split("\n")[0] : "New chat"
-})
-
-/** What the latest turn changed on the canvas: its editing steps and the
- * frames they touched (by id, the last name kept), until kept or undone. */
-const changes = computed(() => {
-  if (!turn.value || settled.value.has(turn.value)) return null
-  const steps = entries.value.filter(
-    (e): e is Extract<Entry, { kind: "tool" }> => e.kind === "tool" && e.turn === turn.value && e.ok && !!e.mutates,
-  )
-  if (!steps.length) return null
-  const frames = new Map<string, Changed>()
-  for (const s of steps) for (const f of s.changed ?? []) frames.set(f.id, f)
-  return { turn: turn.value, steps: steps.length, frames: [...frames.values()] }
-})
-const changesOpen = ref(false)
+const title = computed(() => titleOf(entries.value))
+/** What the latest turn changed on the canvas, until kept or undone. */
+const changes = computed(() =>
+  !turn.value || settled.value.has(turn.value) ? null : changesOf(entries.value, turn.value),
+)
 
 function keep() {
   if (changes.value) settled.value = new Set(settled.value).add(changes.value.turn)
@@ -164,18 +150,20 @@ function restoreTo(at: number) {
 }
 const canRestore = (e: Entry) => "turn" in e && !!e.turn && checkpoints.has(e.turn) && !busy.value
 
-/** The turn's plan, shown over the input as its to-dos. */
-const todos = computed(() => {
-  let i = entries.value.length - 1
-  while (i >= 0 && entries.value[i].kind !== "user" && entries.value[i].kind !== "followup") i--
-  for (let j = entries.value.length - 1; j > i; j--) {
-    const e = entries.value[j]
-    if (e.kind === "plan") return e.entries
-  }
-  return null
-})
-const todosOpen = ref(true)
-const todosDone = computed(() => todos.value?.filter((t) => t.status === "completed").length ?? 0)
+const todos = computed(() => todosOf(entries.value))
+
+/** The thread as drawn, runs of steps folded; a run is open while it is the
+ * newest thing the harness is doing, or once you open it. */
+const blocks = computed(() => threadBlocks(entries.value))
+const opened = ref(new Map<number, boolean>())
+const isOpen = (b: Block) => opened.value.get(b.at) ?? (busy.value && b === blocks.value[blocks.value.length - 1])
+const setOpen = (b: Block, open: boolean) => {
+  if (open !== isOpen(b)) opened.value = new Map(opened.value).set(b.at, open)
+}
+/** A fold the reader opened or closed (a thought, a step) keeps it. */
+function setFold(e: Entry, open: boolean) {
+  if ((e.kind === "thought" || e.kind === "tool") && e.open !== open) e.open = open
+}
 watch(
   () => activeProjectId.value,
   (id) => {
@@ -204,8 +192,6 @@ const elapsed = computed(() => (busy.value ? Math.max(0, now.value - started.val
 const lastTurnMs = ref(0)
 const fmtTokens = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n))
 const fmtMs = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`)
-/** A thought's length in whole seconds, at least one. */
-const fmtSecs = (ms: number) => `${Math.max(1, Math.round(ms / 1000))}s`
 /** The folder's own name out of a path, either separator. */
 const folderOf = (path: string) => path.split(/[\\/]/).filter(Boolean).pop() ?? path
 /** The reply just copied, by its place in the thread. */
@@ -323,61 +309,6 @@ function disconnect() {
   hello.value = null
 }
 
-/* ---------------------------- tool call rendering -------------------------- */
-
-const short = (v: unknown, n = 36): string => {
-  const s =
-    typeof v === "string" ? v : Array.isArray(v) ? `[${v.length}]` : typeof v === "object" && v ? "{…}" : String(v)
-  return s.length > n ? `${s.slice(0, n - 1)}…` : s
-}
-
-function describeArgs(name: string, args: Record<string, unknown>): string {
-  switch (name) {
-    case "add_screen":
-      return `${short(args.name ?? "screen")}, ${Array.isArray(args.rows) ? args.rows.length : 0} rows`
-    case "add_component":
-      return `${short(args.is)}${args.name ? `, ${short(args.name)}` : ""}`
-    case "add_chart": {
-      const d = args.data as { labels?: unknown[] } | undefined
-      return `${short(args.chart)}${args.name ? `, ${short(args.name)}` : ""}${d?.labels ? `, ${d.labels.length} points` : ""}`
-    }
-    case "add_widget":
-      return short(args.widget)
-    case "update_artboard":
-      return `${short(args.id, 14)}: ${Object.keys((args.patch as object) ?? {}).join(", ") || "patch"}`
-    case "evolve":
-      return `×${args.count ?? 4}${args.strength != null ? `, strength ${args.strength}` : ""}`
-    case "get_registry":
-      return args.is ? short(args.is) : "all"
-    case "export_video":
-      return `${args.seconds ?? 6}s at ${args.fps ?? 30} fps`
-    default:
-      return Object.entries(args)
-        .filter(([, v]) => v != null)
-        .map(([k, v]) => `${k}=${short(v, 20)}`)
-        .join(" ")
-  }
-}
-
-function describeResult(result: { ok: true; data: unknown } | { ok: false; error: string }): string {
-  if (!result.ok) return result.error
-  const d = result.data as Record<string, unknown> | unknown[] | null
-  if (Array.isArray(d)) return `${d.length} ${d.length === 1 ? "item" : "items"}`
-  if (d && typeof d === "object") {
-    if (typeof d.code === "string") return `${d.code.split("\n").length} lines`
-    if (typeof d.name === "string")
-      return `${d.name}${typeof d.kind === "string" ? ` (${d.kind})` : ""}${Array.isArray(d.dropped) && d.dropped.length ? `, dropped ${d.dropped.join(", ")}` : ""}`
-    if (Array.isArray(d.components)) return `${d.components.length} components`
-    if (Array.isArray(d.artboards)) return `${d.artboards.length} frames`
-    if (typeof d.removed === "string") return "removed"
-    if (Array.isArray(d.files))
-      return d.files
-        .map((f) => (typeof f === "object" && f && "path" in f ? String((f as { path: unknown }).path) : String(f)))
-        .join(", ")
-  }
-  return "ok"
-}
-
 const live = ref<{ kind: "assistant"; text: string } | null>(null)
 type Thought = Extract<Entry, { kind: "thought" }>
 /** The thought streaming now, and when it began. */
@@ -418,38 +349,10 @@ function onEvent(e: AgentEvent) {
       else push({ kind: "assistant", text: e.text })
       live.value = null
       break
-    case "tool": {
+    case "tool":
       live.value = null
-      // A delivered file rides the result as content; the block shows its path.
-      const data =
-        e.result.ok &&
-        typeof e.result.data === "object" &&
-        e.result.data &&
-        Array.isArray((e.result.data as { files?: unknown }).files)
-          ? {
-              ...(e.result.data as object),
-              files: ((e.result.data as { files: unknown[] }).files as { path?: unknown }[]).map((f) => f?.path ?? f),
-            }
-          : e.result.ok
-            ? e.result.data
-            : null
-      const detail = `${JSON.stringify(e.args, null, 1)}\n\n${e.result.ok ? JSON.stringify(data, null, 1).slice(0, 1600) : e.result.error}`
-      const step = toolStep(e.name, e.args, e.result)
-      push({
-        kind: "tool",
-        name: e.name,
-        title: step.title,
-        icon: step.icon,
-        ok: e.result.ok,
-        summary: `${describeArgs(e.name, e.args)}, ${describeResult(e.result)}`,
-        detail,
-        open: !e.result.ok,
-        turn: turn.value,
-        changed: step.changed,
-        mutates: step.mutates,
-      })
+      push(toolEntry(e.name, e.args, e.result, turn.value))
       break
-    }
     case "activity": {
       live.value = null
       const existing = entries.value.find(
@@ -600,6 +503,7 @@ async function slash(line: string): Promise<boolean> {
       return true
     case "new":
       entries.value = []
+      opened.value = new Map()
       usage.value = { input: 0, output: 0 }
       turn.value = 0
       checkpoints.clear()
@@ -663,6 +567,7 @@ async function slash(line: string): Promise<boolean> {
       return true
     case "clear":
       entries.value = []
+      opened.value = new Map()
       usage.value = { input: 0, output: 0 }
       turn.value = 0
       checkpoints.clear()
@@ -704,6 +609,19 @@ const withContext = (text: string, frames: Changed[]) =>
   frames.length
     ? `Context, frames on the Studio canvas:\n${frames.map((f) => `- ${f.name} (id ${f.id})`).join("\n")}\n\n${text}`
     : text
+
+/** The context frames as pictures (PNG at 1x, the first `PICTURES`), so
+ * a harness that takes images sees what it is asked about. */
+const PICTURES = 3
+async function picturesOf(frames: Changed[]): Promise<PromptImage[]> {
+  const out: PromptImage[] = []
+  for (const f of frames.slice(0, PICTURES)) {
+    const a = editor.artboards.find((x) => x.id === f.id)
+    const url = a && (await artboardPng(a, 1))
+    if (url) out.push({ mimeType: "image/png", data: url.slice(url.indexOf(",") + 1) })
+  }
+  return out
+}
 
 /* The @ picker: typed at a word's start, or opened from the card's @ key. */
 const atQuery = computed(() => /(?:^|\s)@([^\s@]*)$/.exec(input.value)?.[1] ?? null)
@@ -751,18 +669,21 @@ async function run(text: string) {
   // entry: this turn's reply starts under its message.
   live.value = null
   endThought()
-  push({ kind: "user", text, turn: turn.value, context: frames })
+  const pictures = client.acceptsImages ? await picturesOf(frames) : []
+  push({ kind: "user", text, turn: turn.value, context: frames, pictured: pictures.length > 0 })
+  scrollLog(true)
   busy.value = true
   started.value = Date.now()
   now.value = started.value
   clock = setInterval(() => (now.value = Date.now()), 250)
   controller = new AbortController()
-  await client.prompt(withContext(text, frames), controller.signal)
+  const { stopReason } = await client.prompt(withContext(text, frames), controller.signal, pictures)
   clearInterval(clock)
   busy.value = false
   controller = null
   live.value = null
   endThought()
+  if (stopReason !== "cancelled" && stopReason !== "error") push({ kind: "worked", ms: Date.now() - started.value })
   // Follow-ups run one at a time, in order, each its own turn.
   const next = followUps.value.shift()
   if (next !== undefined) await run(next)
@@ -873,6 +794,7 @@ async function togglePicker() {
 }
 
 onMounted(() => box.value?.focus())
+defineExpose({ focus: () => box.value?.focus() })
 onBeforeUnmount(() => {
   controller?.abort()
   clearInterval(clock)
@@ -895,7 +817,7 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <div ref="log" class="log" aria-live="polite">
+    <div ref="log" class="log" aria-live="polite" @scroll.passive="onScroll">
       <div v-if="!entries.length" class="hello">
         <span class="hello-mark" aria-hidden="true"
           ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="26" /><BrandMark v-else :size="26"
@@ -906,165 +828,58 @@ onBeforeUnmount(() => {
           checkpoint to go back to.
         </p>
       </div>
-      <template v-for="(e, i) in entries" :key="i">
-        <div v-if="e.kind === 'user' || e.kind === 'followup'" class="msg-row">
-          <button
-            v-if="canRestore(e)"
-            type="button"
-            class="restore"
-            aria-label="Restore checkpoint"
-            title="Restore checkpoint: the canvas as it was before this message"
-            @click="restoreTo(e.turn!)"
-          >
-            <DitherIcon name="Undo" :size="12" :stroke-width="1.5" />
-          </button>
-          <div class="msg">
-            <div v-if="e.context?.length" class="chips">
-              <span v-for="c in e.context" :key="c.id" class="ctx"
-                ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name }}</span
-              >
-            </div>
-            <p class="msg-text">{{ e.text }}</p>
-          </div>
-        </div>
-        <div v-else-if="e.kind === 'assistant'" class="reply">
-          <Prose :text="e.text" :live="live === e" />
-          <div v-if="live !== e" class="reply-actions">
-            <button
-              type="button"
-              class="row-key"
-              :aria-label="copied === i ? 'Copied' : 'Copy reply'"
-              :title="copied === i ? 'Copied' : 'Copy reply'"
-              @click="copyReply(i, e.text)"
-            >
-              <DitherIcon :name="copied === i ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />
-            </button>
-          </div>
-        </div>
+      <template v-for="b in blocks" :key="b.at">
+        <ThreadEntry
+          v-if="b.kind === 'entry'"
+          :entry="b.entry"
+          :live="live === b.entry || thinking === b.entry"
+          :copied="copied === b.at"
+          :restorable="canRestore(b.entry)"
+          @restore="'turn' in b.entry && b.entry.turn && restoreTo(b.entry.turn)"
+          @copy="'text' in b.entry && copyReply(b.at, b.entry.text)"
+          @answer="(id) => b.entry.kind === 'approval' && answer(b.entry, id)"
+          @toggle="(open) => setFold(b.entry, open)"
+        />
         <details
-          v-else-if="e.kind === 'thought'"
-          class="thought"
-          :open="e.open"
-          @toggle="e.open = ($event.target as HTMLDetailsElement).open"
+          v-else
+          class="group fold"
+          :open="isOpen(b)"
+          @toggle="setOpen(b, ($event.target as HTMLDetailsElement).open)"
         >
           <summary>
-            <span v-if="thinking === e" class="spin" aria-hidden="true"></span
-            ><DitherIcon v-else name="Sparkles" :size="12" :stroke-width="1.5" /><span>{{
-              thinking === e ? "Thinking" : e.ms ? `Thought for ${fmtSecs(e.ms)}` : "Thought"
-            }}</span
+            <span v-if="b.running" class="spin" aria-hidden="true"></span
+            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span
+              >{{ b.items.length }} steps<template v-if="b.failed">, {{ b.failed }} failed</template></span
             ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
           </summary>
-          <p class="thought-text">{{ e.text.trim() }}</p>
-        </details>
-        <details
-          v-else-if="e.kind === 'tool'"
-          class="step"
-          :open="e.open"
-          :data-ok="String(e.ok)"
-          @toggle="e.open = ($event.target as HTMLDetailsElement).open"
-        >
-          <summary :title="e.summary">
-            <DitherIcon :name="e.icon ?? 'Terminal'" :size="12" :stroke-width="1.5" /><span class="step-title">{{
-              e.title || e.name
-            }}</span
-            ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
-          </summary>
-          <pre class="detail">{{ e.detail }}</pre>
-        </details>
-        <div v-else-if="e.kind === 'activity'" class="step activity" :data-status="e.status">
-          <span v-if="e.status === 'pending' || e.status === 'in_progress'" class="spin" aria-hidden="true"></span>
-          <DitherIcon
-            v-else
-            :name="e.status === 'failed' ? 'XCircle' : 'CheckCircle'"
-            :size="12"
-            :stroke-width="1.5"
-          /><span class="step-title">{{ e.title }}</span>
-        </div>
-        <div v-else-if="e.kind === 'approval'" class="approval" :data-answered="String(e.answered !== null)">
-          <p class="approval-title"><DitherIcon name="AlertTriangle" :size="12" :stroke-width="1.5" />{{ e.title }}</p>
-          <div v-if="e.answered === null" class="choices">
-            <button
-              v-for="o in e.options"
-              :key="o.id"
-              type="button"
-              class="key"
-              :class="o.primary ? 'is-primary' : ''"
-              @click="answer(e, o.id)"
-            >
-              {{ o.label }}
-            </button>
+          <div class="group-body">
+            <ThreadEntry
+              v-for="it in b.items"
+              :key="it.at"
+              :entry="it.entry"
+              @toggle="(open) => setFold(it.entry, open)"
+            />
           </div>
-          <p v-else class="note">Answered {{ e.answered }}</p>
-        </div>
-        <p v-else-if="e.kind === 'error'" class="line-error">{{ e.text }}</p>
-        <p v-else-if="e.kind === 'system'" class="line-system">{{ e.text }}</p>
+        </details>
       </template>
     </div>
 
     <div class="dock">
-      <div v-if="todos?.length" class="tray">
-        <button type="button" class="tray-head" :aria-expanded="todosOpen" @click="todosOpen = !todosOpen">
-          <DitherIcon :name="todosOpen ? 'ChevronDown' : 'ChevronRight'" :size="11" :stroke-width="1.5" />
-          <span>{{ todos.length }} {{ todos.length === 1 ? "to-do" : "to-dos" }}</span>
-          <span class="dim">{{ todosDone }} of {{ todos.length }} done</span>
-        </button>
-        <ul v-if="todosOpen" class="rows">
-          <li v-for="(t, j) in todos" :key="j" class="row" :data-status="t.status">
-            <DitherIcon v-if="t.status === 'completed'" name="CheckCircle" :size="12" :stroke-width="1.5" /><span
-              v-else
-              class="circle"
-              aria-hidden="true"
-            ></span
-            ><span class="row-text">{{ t.content }}</span>
-          </li>
-        </ul>
-      </div>
-      <div v-if="followUps.length" class="tray">
-        <p class="tray-head is-static">
-          <span>{{ followUps.length }} in queue</span>
-        </p>
-        <ul class="rows">
-          <li v-for="(s, j) in followUps" :key="j" class="row">
-            <span class="circle" aria-hidden="true"></span><span class="row-text" :title="s">{{ s }}</span>
-            <button
-              type="button"
-              class="row-key"
-              :aria-label="`Remove ${s} from the queue`"
-              @click="followUps.splice(j, 1)"
-            >
-              <DitherIcon name="Close" :size="11" :stroke-width="1.5" />
-            </button>
-          </li>
-        </ul>
-      </div>
-      <div v-if="busy" class="tray generating">
-        <span class="spin" aria-hidden="true"></span>
-        <span>{{ thinking ? "Thinking" : live ? "Writing" : "Working" }}… {{ fmtMs(elapsed) }}</span>
-        <button type="button" class="key stop" title="Stop (esc)" @click="stop">Stop</button>
-      </div>
-      <div v-else-if="changes" class="tray">
-        <div class="tray-head is-split">
-          <button type="button" class="tray-toggle" :aria-expanded="changesOpen" @click="changesOpen = !changesOpen">
-            <DitherIcon :name="changesOpen ? 'ChevronDown' : 'ChevronRight'" :size="11" :stroke-width="1.5" />
-            <span>{{ changes.frames.length }} {{ changes.frames.length === 1 ? "frame" : "frames" }} changed</span>
-          </button>
-          <button type="button" class="key" @click="undoTurn">Undo all</button>
-          <button type="button" class="key is-primary" @click="keep">Keep</button>
-        </div>
-        <ul v-if="changesOpen" class="rows">
-          <li v-for="f in changes.frames" :key="f.id" class="row">
-            <DitherIcon name="Layout" :size="12" :stroke-width="1.5" /><span class="row-text">{{ f.name }}</span>
-            <button
-              v-if="editor.artboards.some((a) => a.id === f.id)"
-              type="button"
-              class="row-key is-word"
-              @click="selectArtboard(f.id)"
-            >
-              Show
-            </button>
-          </li>
-        </ul>
-      </div>
+      <button v-if="unseen" type="button" class="latest" @click="toEnd(true)">
+        <DitherIcon name="ArrowDown" :size="11" :stroke-width="1.5" />Latest
+      </button>
+      <TurnTrays
+        :todos="todos"
+        :queue="followUps"
+        :run="busy ? { doing: thinking ? 'Thinking' : live ? 'Writing' : 'Working', time: fmtMs(elapsed) } : null"
+        :changes="changes"
+        :shown="(id) => editor.artboards.some((a) => a.id === id)"
+        @stop="stop"
+        @unqueue="(j) => followUps.splice(j, 1)"
+        @undo="undoTurn"
+        @keep="keep"
+        @show="selectArtboard"
+      />
 
       <div class="composer">
         <div v-if="slashOpen && slashMatches.length" class="pop" role="listbox" aria-label="Commands">
@@ -1289,20 +1104,6 @@ onBeforeUnmount(() => {
   font-family: var(--font-mono);
   font-size: 12px;
 }
-.dim {
-  color: var(--color-muted-foreground);
-}
-.note {
-  margin: 0;
-  font-size: 10.5px;
-  line-height: 1.5;
-  color: var(--color-muted-foreground);
-  overflow-wrap: anywhere;
-}
-.note code {
-  color: var(--color-foreground);
-}
-
 /* The chat's header: who answers, the chat's title, a new chat, close. */
 .head {
   position: relative;
@@ -1459,374 +1260,13 @@ onBeforeUnmount(() => {
   color: var(--color-foreground);
   background: var(--color-card);
 }
-.msg-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  gap: 4px;
-  padding-left: 1.5rem;
-}
-.msg {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-  max-width: 100%;
-  border-radius: 12px 12px 4px 12px;
-  padding: 7px 10px;
-  background: var(--color-card);
-}
-.msg-text {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--color-foreground);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.restore {
-  display: grid;
-  width: 1.5rem;
-  height: 1.5rem;
-  flex-shrink: 0;
-  margin-top: 3px;
-  place-items: center;
-  border-radius: 7px;
-  color: var(--color-muted-foreground);
-  opacity: 0;
-  transition:
-    opacity 200ms var(--ease-settle),
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
-}
-.msg-row:hover .restore,
-.restore:focus-visible {
-  opacity: 1;
-}
-@media (hover: none) {
-  .restore {
-    opacity: 1;
-  }
-}
-.restore:hover {
-  color: var(--color-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-}
-.reply {
-  display: grid;
-  gap: 2px;
-}
-.reply-actions {
-  display: flex;
-  margin: -2px 0 -6px -4px;
-  opacity: 0;
-  transition: opacity 200ms var(--ease-settle);
-}
-.reply:hover .reply-actions,
-.reply-actions:focus-within,
-.reply:last-child .reply-actions {
-  opacity: 1;
-}
-@media (hover: none) {
-  .reply-actions {
-    opacity: 1;
-  }
-}
-/* The harness's reasoning: a quiet fold, open while it streams. */
-.thought {
-  font-size: 11.5px;
-  color: var(--color-muted-foreground);
-}
-.thought summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 1.5rem;
-  cursor: pointer;
-  list-style: none;
-  border-radius: 6px;
-  transition: color 200ms var(--ease-settle);
-}
-.thought summary::-webkit-details-marker {
-  display: none;
-}
-.thought summary:hover {
-  color: var(--color-foreground);
-}
-.thought-text {
-  max-height: 9rem;
-  overflow-y: auto;
-  margin: 4px 0 2px 5px;
-  padding-left: 13px;
-  font-size: 11px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  box-shadow: inset 1px 0 0 var(--color-border);
-}
-.step {
-  font-size: 11.5px;
-  color: var(--color-muted-foreground);
-}
-.step summary,
-.activity {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 1.5rem;
-  line-height: 1.4;
-}
-.step summary {
-  cursor: pointer;
-  list-style: none;
-  border-radius: 6px;
-  transition: color 200ms var(--ease-settle);
-}
-.step summary::-webkit-details-marker {
-  display: none;
-}
-.step summary:hover {
-  color: var(--color-foreground);
-}
-.step-title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.chev {
-  flex-shrink: 0;
-  opacity: 0;
-  transition:
-    opacity 200ms var(--ease-settle),
-    rotate 350ms var(--ease-settle);
-}
-.step summary:hover .chev,
-.thought summary:hover .chev,
-.step[open] .chev,
-.thought[open] .chev {
-  opacity: 1;
-}
-.step[open] .chev,
-.thought[open] .chev {
-  rotate: 90deg;
-}
-.step[data-ok="false"],
-.activity[data-status="failed"] {
-  color: var(--color-destructive);
-}
-.detail {
-  margin: 4px 0 2px 19px;
-  max-height: 14rem;
-  overflow: auto;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 10.5px;
-  line-height: 1.45;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  color: var(--color-muted-foreground);
-  background: var(--well);
-  box-shadow: var(--recess-sm);
-}
-.approval {
-  display: grid;
-  gap: 8px;
-  border-radius: 10px;
-  padding: 8px 10px;
-  background: var(--color-card);
-}
-.approval[data-answered="true"] {
-  background: none;
-  padding-block: 0;
-}
-.approval-title {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  margin: 0;
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: var(--color-foreground);
-  overflow-wrap: anywhere;
-}
-.approval-title :deep(svg) {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--swatch-orange);
-}
-.approval[data-answered="true"] .approval-title {
-  color: var(--color-muted-foreground);
-}
-.choices {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.line-system,
-.line-error {
-  margin: 0;
-  font-size: 10.5px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  color: var(--color-muted-foreground);
-}
-.line-error {
-  color: var(--color-destructive);
-}
-
-/* Keys: machined, filled, the primary one in ink. */
-.key {
-  min-height: 1.5rem;
-  border-radius: 7px;
-  padding-inline: 9px;
-  font-size: 11px;
-  color: var(--color-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-  transition: background-color 200ms var(--ease-settle);
-}
-.key:hover:not(:disabled) {
-  background: color-mix(in oklab, var(--color-foreground) 14%, transparent);
-}
-.key.is-primary {
-  color: var(--color-background);
-  background: var(--color-foreground);
-}
-.key.is-primary:hover {
-  background: color-mix(in oklab, var(--color-foreground) 88%, var(--color-background));
-}
-.key:disabled {
-  opacity: 0.5;
-}
-
-/* Over the input: the turn's to-dos, the queue, the run, its changes. */
+/* Over the input: the trays (`ui/TurnTrays.vue`) and the composer. */
 .dock {
   display: grid;
   flex-shrink: 0;
   gap: 6px;
   padding: 0 10px 10px;
 }
-.tray {
-  display: grid;
-  gap: 2px;
-  border-radius: 10px;
-  padding: 4px 6px;
-  background: var(--color-card);
-  font-size: 11px;
-}
-.tray-head,
-.tray-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 1.5rem;
-  min-width: 0;
-  margin: 0;
-  border-radius: 6px;
-  padding-inline: 4px;
-  text-align: left;
-  color: var(--color-foreground);
-}
-.tray-head .dim {
-  margin-left: auto;
-}
-.tray-head.is-split {
-  padding: 0;
-  gap: 4px;
-}
-.tray-toggle {
-  flex: 1;
-}
-.rows {
-  display: grid;
-  max-height: 8.5rem;
-  overflow-y: auto;
-  margin: 0;
-  padding: 0 0 2px;
-  list-style: none;
-}
-.row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 1.5rem;
-  padding-inline: 4px;
-  color: var(--color-foreground);
-}
-.row[data-status="completed"] {
-  color: var(--color-muted-foreground);
-}
-.row[data-status="completed"] .row-text {
-  text-decoration: line-through;
-}
-.row-text {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.circle {
-  width: 10px;
-  height: 10px;
-  flex-shrink: 0;
-  margin-inline: 1px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1.25px var(--color-muted-foreground);
-}
-.row[data-status="in_progress"] .circle {
-  box-shadow:
-    inset 0 0 0 1.25px var(--color-foreground),
-    inset 0 0 0 3px var(--color-card),
-    inset 0 0 0 5px var(--color-foreground);
-}
-.row-key {
-  display: grid;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  flex-shrink: 0;
-  place-items: center;
-  border-radius: 6px;
-  color: var(--color-muted-foreground);
-}
-.row-key.is-word {
-  padding-inline: 6px;
-  font-size: 10.5px;
-}
-.row-key:hover {
-  color: var(--color-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-}
-.generating {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 4px 4px 10px;
-  color: var(--color-muted-foreground);
-}
-.generating .stop {
-  margin-left: auto;
-}
-.spin {
-  width: 10px;
-  height: 10px;
-  flex-shrink: 0;
-  margin-inline: 1px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1.25px color-mix(in oklab, var(--color-foreground) 25%, transparent);
-  border-top: 1.25px solid var(--color-foreground);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .spin {
-    animation: spin 0.9s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      rotate: 360deg;
-    }
-  }
-}
-
 /* The composer: the input card set in a tray that says where it runs
    (the harness, how permission prompts are answered, its folder). */
 .composer {
@@ -1849,29 +1289,6 @@ onBeforeUnmount(() => {
   box-shadow:
     var(--recess-sm),
     0 0 0 1px var(--color-edge);
-}
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.ctx {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 100%;
-  min-height: 1.5rem;
-  overflow: hidden;
-  border-radius: 6px;
-  padding-inline: 6px;
-  font-size: 10.5px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: var(--color-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-}
-.msg .ctx {
-  color: var(--color-muted-foreground);
 }
 .ctx-x {
   display: grid;
@@ -2009,7 +1426,6 @@ button.status-key:hover,
   border-radius: 2px;
   background: currentColor;
 }
-
 /* Popovers over the card: commands, frames, harnesses. */
 .pop {
   position: absolute;
@@ -2067,18 +1483,44 @@ button.status-key:hover,
 .custom .input {
   flex: 1;
 }
-
+.dock {
+  position: relative;
+}
+/* Back to the end of the thread, when it moved on while you read above. */
+.latest {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 1.5rem;
+  translate: -50% 0;
+  border-radius: 999px;
+  padding-inline: 10px;
+  font-size: 10.5px;
+  color: var(--color-foreground);
+  background: var(--color-card);
+  box-shadow: var(--float-shadow);
+}
+/* A run of steps, folded under how many there were. */
+.group {
+  font-size: 11.5px;
+  color: var(--color-muted-foreground);
+}
+.group-body {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 0 5px;
+  padding-left: 13px;
+  box-shadow: inset 1px 0 0 var(--color-border);
+}
 .head-btn:focus-visible,
 .starter:focus-visible,
-.restore:focus-visible,
-.step summary:focus-visible,
-.key:focus-visible,
-.tray-head:focus-visible,
-.tray-toggle:focus-visible,
-.row-key:focus-visible,
+.latest:focus-visible,
 .foot-key:focus-visible,
 .status-key:focus-visible,
-.thought summary:focus-visible,
 .ctx-x:focus-visible,
 .pill:focus-visible,
 .send:focus-visible,
@@ -2089,10 +1531,151 @@ button.status-key:hover,
 @media (prefers-reduced-motion: reduce) {
   .head-btn,
   .starter,
-  .restore,
-  .chev,
-  .key,
+  .foot-key,
+  .status-key,
   .pill {
+    transition: none;
+  }
+}
+</style>
+
+<style>
+/* The composer's shared pieces (keys, folds, chips, the spinner), drawn by
+   the panel and its parts alike; every rule under `.agent`. */
+.agent .dim {
+  color: var(--color-muted-foreground);
+}
+.agent .note {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--color-muted-foreground);
+  overflow-wrap: anywhere;
+}
+.agent .note code {
+  color: var(--color-foreground);
+}
+/* Keys: machined, filled, the primary one in ink. */
+.agent .key {
+  min-height: 1.5rem;
+  border-radius: 7px;
+  padding-inline: 9px;
+  font-size: 11px;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+  transition: background-color 200ms var(--ease-settle);
+}
+.agent .key:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--color-foreground) 14%, transparent);
+}
+.agent .key.is-primary {
+  color: var(--color-background);
+  background: var(--color-foreground);
+}
+.agent .key.is-primary:hover {
+  background: color-mix(in oklab, var(--color-foreground) 88%, var(--color-background));
+}
+.agent .key:disabled {
+  opacity: 0.5;
+}
+.agent .row-key {
+  display: grid;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--color-muted-foreground);
+}
+.agent .row-key.is-word {
+  padding-inline: 6px;
+  font-size: 10.5px;
+}
+.agent .row-key:hover {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.agent .spin {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  margin-inline: 1px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.25px color-mix(in oklab, var(--color-foreground) 25%, transparent);
+  border-top: 1.25px solid var(--color-foreground);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .agent .spin {
+    animation: agent-spin 0.9s linear infinite;
+  }
+  @keyframes agent-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+}
+.agent .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.agent .ctx {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-height: 1.5rem;
+  overflow: hidden;
+  border-radius: 6px;
+  padding-inline: 6px;
+  font-size: 10.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+/* A fold: a summary row that opens what it holds (a thought, a step, a run
+   of steps), its chevron turning as it opens. */
+.agent .fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 1.5rem;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
+  transition: color 200ms var(--ease-settle);
+}
+.agent .fold > summary::-webkit-details-marker {
+  display: none;
+}
+.agent .fold > summary:hover {
+  color: var(--color-foreground);
+}
+.agent .fold > summary .chev {
+  flex-shrink: 0;
+  opacity: 0;
+  transition:
+    opacity 200ms var(--ease-settle),
+    rotate 350ms var(--ease-settle);
+}
+.agent .fold > summary:hover .chev,
+.agent .fold[open] > summary .chev {
+  opacity: 1;
+}
+.agent .fold[open] > summary .chev {
+  rotate: 90deg;
+}
+.agent .key:focus-visible,
+.agent .row-key:focus-visible,
+.agent .fold > summary:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent .key,
+  .agent .fold > summary,
+  .agent .fold > summary .chev {
     transition: none;
   }
 }
