@@ -308,20 +308,22 @@ Default section order:
   Both are docs sections under Media (`world`, `shader`) and
   `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps WebGL2
   (SwiftShader), so GPU and shader frames export to MP4 too.
-- PWA: the site installs as an app and opens offline (the user's call).
-  The build draws its web manifest (`dist/site.webmanifest`, every URL
-  relative so any base installs) and every icon (`favicon.svg`/`.png`,
-  `apple-touch-icon.png`, `icons/` plain and maskable) from the brand
-  mark's cells (`src/app/install-files.ts`, the `installFiles` plugin;
-  none kept in `public/`), and injects the install head (manifest, icons,
-  iOS's app tags) into each route from one table. A service worker
-  (`src/app/sw.ts`, built alone to `dist/sw.js` by the `sw` environment;
-  its rules in `src/app/offline.ts`) keeps the three routes and their
-  assets at install, serves pages network first (offline: the page as
-  last seen, else its route's shell), hashed assets from the cache, and
-  leaves the film, the cards and the player to the network; the app
-  registers it after load in a production build. Details in
-  `src/AGENTS.md`; guarded by `tests/install.spec.ts`.
+- PWA: the Studio installs as an app and opens offline; the landing and
+  the docs stay pages of the web (the user's call). The build draws the
+  app's manifest (`dist/studio/app.webmanifest`, every URL relative so
+  any base installs) and every icon (the site's `favicon.svg`/`.png` and
+  `apple-touch-icon.png`, the app's `icons/` plain and maskable) from the
+  brand mark's cells (`src/app/install-files.ts`, the `installFiles`
+  plugin; none kept in `public/`), and injects each route's head from one
+  table: the icons everywhere, the manifest and iOS's app tags on the
+  Studio only. A service worker (`src/app/sw.ts`, built alone to
+  `dist/sw.js` by the `sw` environment; its rules in `src/app/offline.ts`,
+  the app's path one constant there) is registered by the Studio only,
+  scoped to it: it keeps the Studio's page and its assets at install,
+  serves pages network first (offline: the page as last seen, else the
+  Studio's), hashed assets from the cache, and leaves the film, the cards
+  and the player to the network. Details in `src/AGENTS.md`; guarded by
+  `tests/install.spec.ts`.
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node
@@ -470,10 +472,11 @@ Default section order:
   `src/widgets/source/AGENTS.md`); Kobra's interface sounds play on the
   docs, switched off from the header. Docs previews are real product
   surfaces: build real, working tools on them, never mock-ups.
-- The site is a PWA (the user's call): installable on every platform it
-  targets, iOS included, and usable offline; a change that adds a route,
-  a page-level asset or a large media path keeps the worker's rules
-  (`src/app/offline.ts`) and the install surface in step.
+- The Studio is a PWA (the user's call; the landing and the docs need not
+  be): installable on every platform it targets, iOS included, and usable
+  offline; a change to the Studio's page, its assets or a large media
+  path keeps the worker's rules (`src/app/offline.ts`) and the install
+  surface in step.
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
 - Accessibility is a floor, not a feature: labels, focus rings, reduced-motion

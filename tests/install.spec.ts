@@ -1,12 +1,21 @@
-// The site as an installable app that opens offline: the manifest and the
-// icons the build draws from the brand mark (`app/install-files.ts`), the
-// head every route carries for them, and the service worker's rules
-// (`app/offline.ts`).
+// The Studio as an installable app that opens offline (the landing and the
+// docs stay pages of the web): the manifest and the icons the build draws
+// from the brand mark (`app/install-files.ts`), the head each route carries,
+// and the service worker's rules (`app/offline.ts`).
 import { readFileSync } from "node:fs"
 import { inflateSync } from "node:zlib"
 import { describe, expect, it } from "rstack/test"
-import { ICONS, INSTALL_HEAD, INSTALL_INK, faviconSvg, installFiles, webManifest } from "@/app/install-files"
-import { OFFLINE, cacheName, pageAssets, shellFor, strategyFor } from "@/app/offline"
+import {
+  ICONS,
+  INSTALL_INK,
+  MANIFEST,
+  STUDIO_GROUND,
+  faviconSvg,
+  installFiles,
+  installHead,
+  webManifest,
+} from "@/app/install-files"
+import { OFFLINE, cacheName, inApp, pageAssets, strategyFor } from "@/app/offline"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 
 const root = new URL("..", import.meta.url).pathname
@@ -37,7 +46,7 @@ function decode(bytes: Uint8Array) {
 describe("the install surface", () => {
   const files = installFiles()
 
-  it("wears the landing's ground and ink and the kit's ember", () => {
+  it("wears the landing's ground and ink and the kit's ember, and the Studio's own ground as the app", () => {
     const landing = read("src/pages/landing/chapters.css")
     expect(INSTALL_INK.ground).toBe(landing.match(/--background: (#[0-9a-f]{6});/)![1])
     expect(INSTALL_INK.ink).toBe(landing.match(/--foreground: (#[0-9a-f]{6});/)![1])
@@ -45,20 +54,26 @@ describe("the install surface", () => {
       /^\.dark \{[^}]*--swatch-orange: rgb\((\d+), (\d+), (\d+)\)/m,
     )!
     expect(INSTALL_INK.ember).toBe(`#${[r, g, b].map((v) => Number(v).toString(16).padStart(2, "0")).join("")}`)
+    expect(read("studio/index.html")).toContain(
+      `<meta name="theme-color" content="${STUDIO_GROUND}" media="(prefers-color-scheme: dark)" />`,
+    )
   })
 
-  it("installs standalone from wherever the site is served, with its icons and the other routes as shortcuts", () => {
+  it("installs the Studio, standalone, from its own folder under whatever base the site is served", () => {
     const m = JSON.parse(webManifest())
-    expect(m).toMatchObject({ start_url: ".", scope: ".", id: ".", display: "standalone", name: "dither-ui" })
-    expect(m.background_color).toBe(INSTALL_INK.ground)
-    expect(m.theme_color).toBe(INSTALL_INK.ground)
+    expect(MANIFEST).toBe(`${OFFLINE.app}app.webmanifest`)
+    expect(m).toMatchObject({ start_url: ".", scope: ".", id: ".", display: "standalone", short_name: "Studio" })
+    expect(m.background_color).toBe(STUDIO_GROUND)
+    expect(m.theme_color).toBe(STUDIO_GROUND)
     const sizes = m.icons.map((i: { sizes: string; purpose: string }) => `${i.sizes} ${i.purpose}`)
     expect(sizes).toEqual(expect.arrayContaining(["192x192 any", "512x512 any", "512x512 maskable"]))
-    for (const icon of m.icons) expect(files[icon.src]).toBeInstanceOf(Uint8Array)
-    // A shortcut opens one of the build's own routes, relative to the scope.
-    const config = read("rstack.config.ts")
-    expect(m.shortcuts.map((s: { url: string }) => s.url)).toEqual(["docs/", "studio/"])
-    for (const s of m.shortcuts) expect(config).toContain(`"${s.url}index"`)
+    // Each icon resolves from the manifest's folder to a file the build ships.
+    for (const icon of m.icons) {
+      const path = new URL(icon.src, `https://x/${MANIFEST}`).pathname.slice(1)
+      expect(files[path]).toBeInstanceOf(Uint8Array)
+    }
+    // The app is one of the build's own routes.
+    expect(read("rstack.config.ts")).toContain(`"${OFFLINE.app}index"`)
   })
 
   it("draws every icon from the brand mark: its cells whole and centred, the core in the ember", () => {
@@ -68,7 +83,7 @@ describe("the install surface", () => {
       const c = Math.floor(icon.size / 2)
       expect(pixel(c, c)).toBe(INSTALL_INK.ember)
       expect(pixel(0, 0)).toBe(INSTALL_INK.ground)
-      // The cell above the core is bone; the corners of the mark's square are ground.
+      // The cell above the core is bone.
       const cell = Math.max(1, Math.floor((icon.size * icon.span) / 7))
       expect(pixel(c, c - cell)).toBe(INSTALL_INK.ink)
     }
@@ -91,56 +106,57 @@ describe("the install surface", () => {
     expect(svg.split(INSTALL_INK.ember)).toHaveLength(2)
   })
 
-  it("points every route's head at the manifest, the icons and iOS's app tags, from one table", () => {
-    const rels = INSTALL_HEAD.map((t) => ("rel" in t.attrs ? t.attrs.rel : t.attrs.name))
-    expect(rels).toEqual(
-      expect.arrayContaining(["manifest", "icon", "apple-touch-icon", "apple-mobile-web-app-capable"]),
+  it("gives every route the icons and only the Studio the manifest and iOS's app tags, from one table", () => {
+    const of = (entry: string) => installHead(entry).map((t) => t.attrs.rel ?? t.attrs.name)
+    for (const entry of ["index", "docs/index"]) {
+      expect(of(entry)).toEqual(["icon", "icon", "apple-touch-icon"])
+    }
+    expect(of(`${OFFLINE.app}index`)).toEqual(
+      expect.arrayContaining(["icon", "apple-touch-icon", "manifest", "apple-mobile-web-app-capable"]),
     )
-    for (const t of INSTALL_HEAD) if ("href" in t.attrs) expect(files[t.attrs.href]).toBeDefined()
-    // The templates no longer carry their own copies.
+    for (const t of installHead(`${OFFLINE.app}index`)) if (t.attrs.href) expect(files[t.attrs.href]).toBeDefined()
+    // The templates carry no copies of their own.
     for (const page of ["index.html", "docs/index.html", "studio/index.html"])
       expect(read(page)).not.toMatch(/rel="(icon|apple-touch-icon|manifest)"/)
   })
 })
 
 describe("the service worker's rules", () => {
-  const scope = new URL("https://dither-ui.com/")
+  const site = new URL("https://dither-ui.com/")
   const ask = (mode = "no-cors", method = "GET", range = false) => ({ method, mode, range })
-  const at = (path: string) => new URL(path, scope)
+  const at = (path: string) => new URL(path, site)
+
+  it("registers on the Studio only", () => {
+    expect(inApp("/studio")).toBe(true)
+    expect(inApp("/studio/")).toBe(true)
+    for (const path of ["/", "/docs", "/docs/slider", "/studios"]) expect(inApp(path)).toBe(false)
+  })
 
   it("answers pages network first, hashed assets from the cache, the rest stale while it refreshes", () => {
-    expect(strategyFor(at("docs/button"), scope, ask("navigate"))).toBe("page")
-    expect(strategyFor(at("static/js/index.1a2b.js"), scope, ask())).toBe("static")
-    expect(strategyFor(at("favicon.svg"), scope, ask())).toBe("asset")
-    expect(strategyFor(at("site.webmanifest"), scope, ask())).toBe("asset")
+    expect(strategyFor(at("studio/"), site, ask("navigate"))).toBe("page")
+    expect(strategyFor(at("static/js/index.1a2b.js"), site, ask())).toBe("static")
+    expect(strategyFor(at("favicon.svg"), site, ask())).toBe("asset")
+    expect(strategyFor(at("kit/src/vue/files.json"), site, ask())).toBe("asset")
   })
 
   it("leaves the film, the cards, the player, other origins, writes and range reads to the network", () => {
     for (const path of ["trailer/dither-ui.mp4", "og/home.gif", "embed/home.json", "play/", "sw.js"])
-      expect(strategyFor(at(path), scope, ask())).toBe("network")
-    expect(strategyFor(new URL("https://fonts.example/a.woff2"), scope, ask())).toBe("network")
-    expect(strategyFor(at("static/js/a.js"), scope, ask("cors", "POST"))).toBe("network")
-    expect(strategyFor(at("static/a.mp4"), scope, ask("no-cors", "GET", true))).toBe("network")
+      expect(strategyFor(at(path), site, ask())).toBe("network")
+    expect(strategyFor(new URL("https://fonts.example/a.woff2"), site, ask())).toBe("network")
+    expect(strategyFor(at("static/js/a.js"), site, ask("cors", "POST"))).toBe("network")
+    expect(strategyFor(at("static/a.mp4"), site, ask("no-cors", "GET", true))).toBe("network")
   })
 
-  it("keeps to its scope when the site is served under a base path", () => {
+  it("keeps to the site when it is served under a base path", () => {
     const base = new URL("https://drvova.github.io/dither-ui/")
     expect(strategyFor(new URL("https://drvova.github.io/other/x.js"), base, ask())).toBe("network")
     expect(strategyFor(new URL("static/js/a.js", base), base, ask())).toBe("static")
-    expect(shellFor(new URL("docs/slider", base), base)).toBe("docs/")
   })
 
-  it("opens a page never kept on its own route's shell", () => {
-    expect(shellFor(at("docs/slider"), scope)).toBe("docs/")
-    expect(shellFor(at("studio/"), scope)).toBe("studio/")
-    expect(shellFor(at("anything"), scope)).toBe("")
-    for (const route of OFFLINE.shell) expect(shellFor(at(route), scope)).toBe(route)
-  })
-
-  it("keeps the build assets a shell page loads, and only those", () => {
+  it("keeps the build assets the app's page loads, and only those", () => {
     const html = `<script defer src="/static/js/index.1.js"></script><link href="/static/css/index.2.css" rel="stylesheet">
       <link rel="icon" href="/favicon.svg"><a href="/docs/">docs</a><img src="https://cdn.example/x.png">`
-    expect(pageAssets(html, at("docs/"), scope)).toEqual([
+    expect(pageAssets(html, at(OFFLINE.app), site)).toEqual([
       at("static/js/index.1.js").href,
       at("static/css/index.2.css").href,
     ])

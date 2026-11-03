@@ -8,7 +8,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 ## Ownership
 
 - `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue),
-  the install surface (`install-files.ts`) and the service worker
+  the install surface (`install-files.ts`) and the Studio's service worker
   (`sw.ts`, its rules in `offline.ts`).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
 - `widgets/` — the site's one `site-header` (the landing's and the docs'
@@ -505,27 +505,32 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
   runs the inline script both ways. The theme toggle (`useTheme`'s
   `revealToggle`) dithers the new theme in as an iris from its control.
-- Install and offline (the site is a PWA): `app/install-files.ts` is
-  Node-side (rstack.config loads it; `.ts` imports): the web manifest
-  (`id`, `start_url` and `scope` all `.`, standalone, the landing's
-  obsidian as background and theme, the docs and the Studio as
-  shortcuts from `ROUTE_CARDS`), every icon drawn from `MARK_CELLS` as a
-  PNG it encodes itself (the maskable one's mark inside the 80% safe
-  circle) and the tab's SVG, emitted by the `installFiles` plugin, and
-  `INSTALL_HEAD`, the one table of head tags the config injects into each
-  route (the templates carry none). `app/offline.ts` holds the worker's
-  pure rules: `strategyFor` (pages network first; `static/` cache first,
-  being named by content; the site's other files stale while
-  revalidating; non-GET, range reads, other origins, `trailer/`, `og/`,
-  `embed/`, `oembed/`, `play/` and the worker itself left to the
-  network), `shellFor` (an unkept page opens on its route's shell),
-  `pageAssets` (what a shell page loads, kept at install), versioned
-  cache names (a new `OFFLINE.version` drops the old), and
-  `registerOffline`, which main.ts calls: after load, production builds
-  only, under the site's base. `app/sw.ts` only wires them to the
+- Install and offline (the Studio is a PWA; the landing and the docs are
+  not): `app/offline.ts` names the app's path (`OFFLINE.app`, `studio/`)
+  that the manifest's place, the worker's scope and its kept page all
+  read. `app/install-files.ts` is Node-side (rstack.config loads it;
+  `.ts` imports): the app's manifest (`studio/app.webmanifest`; `id`,
+  `start_url` and `scope` all `.`, standalone, the Studio's dark ground
+  as background and theme, icons a folder up), every icon drawn from
+  `MARK_CELLS` as a PNG it encodes itself (the maskable one's mark inside
+  the 80% safe circle) and the tab's SVG, emitted by the `installFiles`
+  plugin, and `installHead(entry)`, the one table the config injects
+  each route's head from (the icons on every route; the manifest and
+  iOS's app tags on `studio/index` only; the templates carry none). The
+  worker's rules are pure: `strategyFor` reads URLs against the SITE's
+  root, since the app's assets live outside its scope and every fetch a
+  controlled page makes reaches the worker (pages network first;
+  `static/` cache first, being named by content; the site's other files
+  stale while revalidating; non-GET, range reads, other origins,
+  `trailer/`, `og/`, `embed/`, `oembed/`, `play/` and the worker itself
+  left to the network), `pageAssets` (what the app's page loads, kept at
+  install), versioned cache names (a new `OFFLINE.version` drops the
+  old), `inApp`, and `registerOffline`, which main.ts calls on every
+  route: it registers only on the Studio's, after load, production
+  builds only, scoped to the app. `app/sw.ts` only wires them to the
   worker's events (types of its own: the DOM and WebWorker libs cannot
   meet in one program) and is built alone as a classic script, the `sw`
-  environment, at the site's root so its scope is the site.
+  environment, at the site's root.
 - `shared/ui/AdSlot.vue` never evaluates the EthicalAds client on the
   critical path: the slot loads only when it approaches the viewport AND the
   document is loaded plus a beat (8s-after-load safety net), and the aside it
@@ -535,10 +540,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 ## Verification
 
 - `npx vue-tsc --noEmit` and `npx rs build` green before commit.
-- The PWA on the built site: the manifest loads from every route's head,
-  the worker installs and keeps the shell, and with the network cut `/`,
-  `/docs/`, `/studio/` and a docs section never visited all open with the
-  app mounted.
+- The PWA on the built site: the Studio's head carries the manifest and
+  the landing's and the docs' do not, Chrome finds the Studio installable,
+  the landing registers no worker, and with the network cut the Studio
+  opens (and a document from its hash) with the app mounted.
 - Interactive checks in a real browser (agent-browser + screenshots) for
   anything visual or stateful (undo/redo walks, dialog focus, deep links).
 - The video path on the built site (`rs preview`): the player seeked by

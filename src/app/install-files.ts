@@ -1,14 +1,16 @@
-// The site as an installable app: its web manifest, its icons (the browser
-// tab's, the home screen's, the install prompt's, plain and maskable) and
-// the head that points at them, all drawn from the brand mark's own cells
-// (`shared/ui/brand-mark.ts`) on the landing's obsidian, never hand-drawn.
-// The build emits every file here (`rstack.config.ts`, the `installFiles`
-// plugin) and injects INSTALL_HEAD into each route's head. Node-side only:
+// The Studio as an installable app (the landing and the docs stay pages of
+// the web), and the site's icons: the app's web manifest, every icon (the
+// browser tab's, the home screen's, the install prompt's, plain and
+// maskable) and the head that points at them, all drawn from the brand
+// mark's own cells (`shared/ui/brand-mark.ts`) on the landing's obsidian,
+// never hand-drawn. The build emits every file here (`rstack.config.ts`,
+// the `installFiles` plugin) and injects `installHead` into each route. Node-side only:
 // rstack.config.ts loads it under Node's own TypeScript, so its imports
 // carry `.ts`.
 import { deflateSync } from "node:zlib"
 import { ROUTE_CARDS } from "../pages/docs/crawler-files.ts"
 import { MARK_CELLS } from "../shared/ui/brand-mark.ts"
+import { OFFLINE } from "./offline.ts"
 
 /** The landing's ground and ink, and the mark's ember core (held equal to
  * the site's tokens by `tests/install.spec.ts`). */
@@ -96,36 +98,36 @@ export function faviconSvg(): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><rect width="16" height="16" rx="3" fill="${INSTALL_INK.ground}"/>${cells}</svg>\n`
 }
 
-/** The web app manifest. Every URL is relative to the manifest's own, so
- * the app installs whatever base the site is served under. */
+/** The Studio's own dark ground, its splash and its window's colour (held
+ * equal to the Studio page's dark theme-color by the tests). */
+export const STUDIO_GROUND = "#08090b"
+
+/** The app's manifest, in the app's own folder. Every URL is relative to
+ * it, so the app installs whatever base the site is served under. */
+export const MANIFEST = `${OFFLINE.app}app.webmanifest`
+
+/** The web app manifest: the Studio, standalone. */
 export function webManifest(): string {
-  const home = ROUTE_CARDS.find((r) => r.id === "home")!
-  const icons = ICONS.filter((i) => "purpose" in i).map((i) => ({
-    src: i.path,
-    sizes: `${i.size}x${i.size}`,
-    type: "image/png",
-    purpose: i.purpose,
-  }))
+  const studio = ROUTE_CARDS.find((r) => `${new URL(r.url).pathname.slice(1)}/` === OFFLINE.app)!
+  const up = OFFLINE.app.replace(/[^/]+/g, "..")
   return JSON.stringify(
     {
       id: ".",
-      name: home.title,
-      short_name: home.title,
-      description: home.line,
+      name: `dither-ui ${studio.title}`,
+      short_name: studio.title,
+      description: studio.line,
       start_url: ".",
       scope: ".",
       display: "standalone",
       orientation: "any",
-      background_color: INSTALL_INK.ground,
-      theme_color: INSTALL_INK.ground,
-      categories: ["developer", "design"],
-      icons,
-      // The other routes, a long press on the icon away.
-      shortcuts: ROUTE_CARDS.filter((r) => r.id !== "home").map((r) => ({
-        name: r.title,
-        description: r.line,
-        url: `${new URL(r.url).pathname.replace(/^\//, "")}/`,
-        icons: [icons[0]],
+      background_color: STUDIO_GROUND,
+      theme_color: STUDIO_GROUND,
+      categories: ["design", "developer"],
+      icons: ICONS.filter((i) => "purpose" in i).map((i) => ({
+        src: `${up}${i.path}`,
+        sizes: `${i.size}x${i.size}`,
+        type: "image/png",
+        purpose: i.purpose,
       })),
     },
     null,
@@ -136,21 +138,32 @@ export function webManifest(): string {
 /** Every file the install surface ships, by its path in dist. */
 export function installFiles(): Record<string, string | Uint8Array> {
   return {
-    "site.webmanifest": webManifest(),
+    [MANIFEST]: webManifest(),
     "favicon.svg": faviconSvg(),
     ...Object.fromEntries(ICONS.map((i) => [i.path, png(iconPixels(i.size, i.span), i.size, i.size)])),
   }
 }
 
-/** The head every site route carries for it: the manifest, the icons, and
- * what iOS reads to open the site from the home screen as an app. */
-export const INSTALL_HEAD = [
-  { tag: "link", attrs: { rel: "manifest", href: "site.webmanifest" } },
+type HeadTag = { tag: "link" | "meta"; attrs: Record<string, string> }
+
+/** The site's icons, on every route. */
+const ICON_HEAD: HeadTag[] = [
   { tag: "link", attrs: { rel: "icon", href: "favicon.svg", type: "image/svg+xml" } },
   { tag: "link", attrs: { rel: "icon", href: "favicon.png", sizes: "32x32", type: "image/png" } },
   { tag: "link", attrs: { rel: "apple-touch-icon", href: "apple-touch-icon.png" } },
+]
+/** The app's: its manifest and what iOS reads to open it from the home
+ * screen as an app. */
+const APP_HEAD: HeadTag[] = [
+  { tag: "link", attrs: { rel: "manifest", href: MANIFEST } },
   { tag: "meta", attrs: { name: "mobile-web-app-capable", content: "yes" } },
   { tag: "meta", attrs: { name: "apple-mobile-web-app-capable", content: "yes" } },
-  { tag: "meta", attrs: { name: "apple-mobile-web-app-title", content: "dither-ui" } },
+  { tag: "meta", attrs: { name: "apple-mobile-web-app-title", content: "Studio" } },
   { tag: "meta", attrs: { name: "apple-mobile-web-app-status-bar-style", content: "black" } },
-] as const
+]
+
+/** The head a route's page carries, by its build entry (`studio/index` is
+ * the app's page): the one table the config injects from. */
+export function installHead(entry: string): HeadTag[] {
+  return entry === `${OFFLINE.app}index` ? [...ICON_HEAD, ...APP_HEAD] : ICON_HEAD
+}

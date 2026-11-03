@@ -1,8 +1,9 @@
-// The site's service worker, built on its own to `dist/sw.js` (the `sw`
-// environment of rstack.config.ts): it keeps the shell routes and their
-// assets at install, answers each request by its strategy (`offline.ts`),
-// and drops an older version's caches as it takes over.
-import { type CacheKind, cacheName, OFFLINE, pageAssets, shellFor, strategyFor } from "./offline"
+// The Studio's service worker, built on its own to `dist/sw.js` (the `sw`
+// environment of rstack.config.ts) and registered with the app's scope: it
+// keeps the app's page and its assets at install, answers each request the
+// app makes by its strategy (`offline.ts`), and drops an older version's
+// caches as it takes over.
+import { type CacheKind, cacheName, OFFLINE, pageAssets, strategyFor } from "./offline"
 
 // The worker's own globals, typed here: the DOM lib the app compiles
 // against has no ServiceWorkerGlobalScope, and the two libs cannot meet.
@@ -16,7 +17,9 @@ type Worker = {
   addEventListener(type: "fetch", fn: (e: Fetching) => void): void
 }
 const worker = self as unknown as Worker
+// The app's scope, and the site's root its assets live under.
 const scope = new URL(worker.registration.scope)
+const site = new URL(OFFLINE.app.replace(/[^/]+/g, ".."), scope)
 
 /** Keeps a response, dropping the oldest entries past the cache's keep. */
 async function keep(kind: CacheKind, request: Request | string, response: Response) {
@@ -30,12 +33,10 @@ async function keep(kind: CacheKind, request: Request | string, response: Respon
 worker.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
-      for (const route of OFFLINE.shell) {
-        const url = new URL(route, scope)
-        const response = await fetch(url, { cache: "reload" }).catch(() => null)
-        if (!response?.ok) continue
-        await keep("pages", url.href, response.clone())
-        const assets = pageAssets(await response.text(), url, scope)
+      const response = await fetch(scope, { cache: "reload" }).catch(() => null)
+      if (response?.ok) {
+        await keep("pages", scope.href, response.clone())
+        const assets = pageAssets(await response.text(), scope, site)
         await Promise.all(
           assets.map((a) =>
             fetch(a)
@@ -62,7 +63,7 @@ worker.addEventListener("activate", (event) => {
 
 worker.addEventListener("fetch", (event) => {
   const request = event.request
-  const strategy = strategyFor(new URL(request.url), scope, {
+  const strategy = strategyFor(new URL(request.url), site, {
     method: request.method,
     mode: request.mode,
     range: request.headers.has("range"),
@@ -70,7 +71,7 @@ worker.addEventListener("fetch", (event) => {
   if (strategy === "network") return
   if (strategy === "page")
     // The network first, so a deploy shows at once; offline, the page as
-    // last seen, else its route's shell.
+    // last seen, else the app's page (it routes itself by its hash).
     return event.respondWith(
       fetch(request)
         .then((response) => {
@@ -80,7 +81,7 @@ worker.addEventListener("fetch", (event) => {
         .catch(
           async () =>
             (await caches.match(request, { ignoreSearch: true })) ??
-            (await caches.match(new URL(shellFor(new URL(request.url), scope), scope).href)) ??
+            (await caches.match(scope.href)) ??
             Response.error(),
         ),
     )

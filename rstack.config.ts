@@ -5,7 +5,7 @@
 import { resolve, sep } from "node:path"
 import { define } from "rstack"
 import type { RsbuildPlugin } from "rstack/app"
-import { INSTALL_HEAD } from "./src/app/install-files.ts"
+import { installHead } from "./src/app/install-files.ts"
 import { PAGE_END_ID, PAGE_REVEAL_SCRIPT } from "./src/app/page-reveal.ts"
 
 const root = import.meta.dirname
@@ -54,9 +54,9 @@ function crawlFiles(): RsbuildPlugin {
   }
 }
 
-/* The site as an installable app: its web manifest and every icon, drawn
-   from the brand mark at build (src/app/install-files.ts), never a copy kept
-   in public/. */
+/* The Studio as an installable app, and the site's icons: the app's
+   manifest and every icon, drawn from the brand mark at build
+   (src/app/install-files.ts), never a copy kept in public/. */
 function installFiles(): RsbuildPlugin {
   return {
     name: "install-files",
@@ -133,12 +133,13 @@ define.app(async ({ command }) => {
       template: ({ entryName }) => at(pages[entryName].html),
       // The site's routes take a page transition over before their first
       // frame (src/app/page-reveal.ts).
-      // and carry the install head: the manifest, the icons, iOS's app tags.
+      // and carry the site's icons; the Studio's page, the app's manifest and
+      // iOS's app tags too.
       tags: (tags, { entryName }) =>
         pages[entryName].main === SITE_MAIN
           ? [
               { tag: "script", children: PAGE_REVEAL_SCRIPT, head: true, append: false },
-              ...INSTALL_HEAD.map((t) => ({ tag: t.tag, attrs: { ...t.attrs }, head: true })),
+              ...installHead(entryName).map((t) => ({ ...t, head: true })),
               ...tags,
               { tag: "span", attrs: { id: PAGE_END_ID, hidden: true }, head: false, append: true },
             ]
@@ -152,9 +153,9 @@ define.app(async ({ command }) => {
         // compiles plain CSS only.
         tools: { rspack: { ignoreWarnings: [{ module: /@vue[\\/]compiler-sfc/, message: /Critical dependency/ }] } },
       },
-      /* The service worker, one classic script at the site's root (its
-         scope is the site): `src/app/sw.ts`, the offline rules of
-         `src/app/offline.ts` (see src/AGENTS.md). */
+      /* The Studio's service worker, one classic script at the site's
+         root, registered with the Studio's scope: `src/app/sw.ts`, the
+         offline rules of `src/app/offline.ts` (see src/AGENTS.md). */
       sw: {
         source: { entry: { sw: { import: "./src/app/sw.ts", html: false } } },
         output: {
