@@ -11,12 +11,20 @@ const props = defineProps<{
   todos: Todo[] | null
   queue: string[]
   /** The run, while it lasts: what the harness is doing and for how long. */
-  run: { doing: string; time: string } | null
+  /** `stuck`: a stop the harness has not answered for a while. */
+  run: { doing: string; time: string; stopping: boolean; stuck: boolean } | null
   changes: { frames: Changed[] } | null
   /** Frames still on the canvas (a removed one has nothing to show). */
   shown: (id: string) => boolean
 }>()
-const emit = defineEmits<{ stop: []; unqueue: [at: number]; undo: []; keep: []; show: [id: string] }>()
+const emit = defineEmits<{
+  stop: []
+  forceStop: []
+  unqueue: [at: number]
+  undo: []
+  keep: []
+  show: [id: string]
+}>()
 const todosOpen = ref(true)
 const changesOpen = ref(false)
 const done = computed(() => props.todos?.filter((t) => t.status === "completed").length ?? 0)
@@ -55,8 +63,19 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
   </div>
   <div v-if="run" class="tray generating">
     <span class="spin" aria-hidden="true"></span>
-    <span>{{ run.doing }}… {{ run.time }}</span>
-    <button type="button" class="key stop" title="Stop (esc)" @click="emit('stop')">Stop</button>
+    <span class="run-time">{{ run.doing }} for {{ run.time }}</span>
+    <button
+      v-if="run.stuck"
+      type="button"
+      class="key stop text-destructive"
+      title="The harness is not answering the stop: end its process"
+      @click="emit('forceStop')"
+    >
+      Force stop
+    </button>
+    <button v-else type="button" class="key stop" title="Stop (esc)" :disabled="run.stopping" @click="emit('stop')">
+      {{ run.stopping ? "Stopping…" : "Stop" }}
+    </button>
   </div>
   <div v-else-if="changes" class="tray">
     <div class="tray-head is-split">
@@ -165,5 +184,11 @@ const done = computed(() => props.todos?.filter((t) => t.status === "completed")
 .tray-toggle:focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 1px;
+}
+.run-time {
+  font-variant-numeric: tabular-nums;
+}
+.key.text-destructive {
+  color: var(--color-destructive);
 }
 </style>

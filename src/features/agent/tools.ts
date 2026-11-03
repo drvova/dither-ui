@@ -311,17 +311,26 @@ export type Mode = { id: string; name: string; description?: string }
 export type AgentCommand = { name: string; description: string; input?: string }
 
 /** What the composer renders: everything the harness says, mapped from ACP. */
+/** What the agent is up to, as the Studio shows it outside the panel: its
+ * toolbar key carries it while the panel is closed (`unseen`: a turn ended
+ * while you were not looking). */
+export type AgentActivity = "idle" | "working" | "waiting" | "unseen"
+
 export type AgentEvent =
   | { type: "delta"; text: string }
   | { type: "thought"; text: string }
   | { type: "assistant"; text: string }
   | { type: "tool"; name: string; args: Record<string, unknown>; result: CommandResult }
-  | { type: "activity"; id: string; title: string; status: string }
+  /** One of the harness's own tool calls; `kind` is ACP's (read, edit,
+   * delete, move, search, execute, think, fetch, other) when it says. */
+  | { type: "activity"; id: string; title: string; status: string; kind?: string }
   | { type: "plan"; entries: { content: string; status: string }[] }
   | { type: "mode"; current: string; modes: Mode[] }
   | { type: "commands"; commands: AgentCommand[] }
   | { type: "turn"; elapsedMs: number; usage?: Usage }
   | { type: "error"; message: string }
+  /** The turn ended because the user stopped it. */
+  | { type: "stopped" }
   | { type: "done" }
 
 /* -------------------------------- storage -------------------------------- */
@@ -361,6 +370,18 @@ export function loadSession<E>(projectId: string): AgentSession<E> | null {
   if (!d || !Array.isArray(d.entries)) return null
   const entries = d.entries.filter((e) => !!e && typeof e === "object" && typeof e.kind === "string") as E[]
   return { entries, usage: { input: count(d.usage?.input), output: count(d.usage?.output) } }
+}
+
+const DRAFT_PREFIX = "dither-agent-draft-"
+
+/** A project's unsent message, kept while the panel is closed or the page
+ * reloads; an empty one is removed. */
+export function loadDraft(projectId: string): string {
+  return storage.get(DRAFT_PREFIX + projectId) ?? ""
+}
+export function saveDraft(projectId: string, text: string): void {
+  if (text.trim()) storage.set(DRAFT_PREFIX + projectId, text.slice(0, 20_000))
+  else storage.remove(DRAFT_PREFIX + projectId)
 }
 
 export function saveSession<E>(projectId: string, s: AgentSession<E>): void {

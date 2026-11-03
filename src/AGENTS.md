@@ -158,10 +158,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     per protocol command, with JSON-schema parameters; `callStudioTool` runs
     one through `runCommand`, `finishStudioTool` turns `export_video` into
     `data.files` for the bridge to write), the `AgentEvent` union the
-    composer renders (delta, thought, assistant, tool, activity, plan,
-    mode, commands, turn, error, done), and the composer's state: `AgentConfig`
+    composer renders (delta, thought, assistant, tool, activity with the
+    harness's ACP tool kind, plan, mode, commands, turn, error, stopped,
+    done; a stop is its own event, never an error), `AgentActivity`
+    (what the toolbar shows of the agent), and the composer's state: `AgentConfig`
     (`bridgeUrl`, the chosen `harness` id or `custom` + `command`, `auto`
-    permission answers — nothing secret, always saved) and per-project
+    permission answers — nothing secret, always saved), per-project
+    drafts (`dither-agent-draft-<projectId>`) and per-project
     sessions (`dither-agent-session-<projectId>`, entries + usage, capped
     at 160k chars by dropping the oldest entries). There is NO model client
     in the app: the composer never runs a model and never holds a key.

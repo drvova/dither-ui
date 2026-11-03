@@ -13,7 +13,9 @@ import { STEPS, toolStep } from "@/widgets/agent/model/steps"
 import {
   changesOf,
   type Entry,
+  runLabel,
   secondsOf,
+  sentOf,
   STEP_RUN,
   threadBlocks,
   titleOf,
@@ -195,6 +197,46 @@ describe("the thread's readings", () => {
     expect(video.detail).not.toContain("<html>")
     expect(video.open).toBe(false)
     expect(toolEntry("add_chart", {}, { ok: false, error: "no chart" }, 1)).toMatchObject({ open: true, ok: false })
+  })
+
+  it("says what a run of steps did, in the order each kind first came up", () => {
+    const act = (tool?: string, status = "completed"): Entry => ({
+      kind: "activity",
+      id: "x",
+      title: "x",
+      status,
+      tool,
+    })
+    expect(
+      runLabel([
+        act("read"),
+        act("read"),
+        act("search"),
+        act("read"),
+        act("execute"),
+        step("add_screen", 1),
+        step("get_code", 1),
+        act("move"),
+        act(),
+      ]),
+    ).toBe(
+      "Read 3 files, searched once, ran 1 command, made 1 edit on the canvas, looked at the canvas once, edited 1 file, took 1 other step",
+    )
+    expect(runLabel([act("search"), act("search"), act("fetch", "failed")])).toBe(
+      "Searched twice, fetched 1 page, 1 failed",
+    )
+  })
+
+  it("walks back through what was sent, a repeat in a row once", () => {
+    expect(
+      sentOf([
+        { kind: "user", text: "a" },
+        { kind: "assistant", text: "ok" },
+        { kind: "user", text: "a" },
+        { kind: "followup", text: "b" },
+        { kind: "user", text: "a" },
+      ]),
+    ).toEqual(["a", "b", "a"])
   })
 
   it("says a length in whole seconds, minutes past sixty", () => {

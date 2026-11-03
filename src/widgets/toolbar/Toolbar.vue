@@ -19,6 +19,7 @@ import {
 import { COMPONENT_REGISTRY, type ComponentEntry, type ComponentGroup } from "@/entities/widget"
 import { history, redo, undo } from "@/features/history"
 import { evolveSelected } from "@/features/agent"
+import type { AgentActivity } from "@/features/agent/tools"
 import { exportArtboardPng } from "@/features/export-image"
 import {
   activeProjectId,
@@ -35,7 +36,19 @@ import { addArtboardFromPreset, presets } from "@/features/presets"
 import { CHART_TYPES } from "@/shared/config"
 import { routePath, useTheme } from "@/shared/lib"
 
-const props = defineProps<{ layersOpen: boolean; inspectorOpen: boolean; agentOpen: boolean }>()
+const props = defineProps<{
+  layersOpen: boolean
+  inspectorOpen: boolean
+  agentOpen: boolean
+  /** What the agent is doing, shown on its key (the panel may be closed). */
+  agentState?: AgentActivity
+}>()
+const AGENT_SAYS: Record<AgentActivity, string> = {
+  idle: "Agent",
+  working: "Agent, working",
+  waiting: "Agent, waiting for you",
+  unseen: "Agent, finished",
+}
 const emit = defineEmits<{
   export: []
   video: []
@@ -423,13 +436,20 @@ async function exportPng() {
       </button>
       <button
         type="button"
-        aria-label="Toggle agent"
+        :aria-label="`Toggle agent (${AGENT_SAYS[props.agentState ?? 'idle']})`"
         :aria-pressed="props.agentOpen"
-        title="Agent"
+        :title="`${AGENT_SAYS[props.agentState ?? 'idle']} (⌘I)`"
         class="tool wide"
         @click="emit('update:agentOpen', !props.agentOpen)"
       >
-        <DitherIcon name="Bot" :size="15" :stroke-width="1.5" />Agent
+        <span class="agent-key">
+          <DitherIcon name="Bot" :size="15" :stroke-width="1.5" /><span
+            v-if="props.agentState && props.agentState !== 'idle'"
+            class="agent-dot"
+            :data-state="props.agentState"
+            aria-hidden="true"
+          ></span></span
+        >Agent
       </button>
       <button type="button" :aria-label="dark ? 'Use light theme' : 'Use dark theme'" class="tool" @click="toggle">
         <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />
@@ -604,6 +624,36 @@ async function exportPng() {
 .tool:hover {
   background: var(--color-card);
   color: var(--color-foreground);
+}
+/* The agent's key says what it is doing while its panel is closed: a dot
+   that breathes while it works, the signal ink when it waits for you, a
+   still dot when a turn ended unseen. */
+.agent-key {
+  position: relative;
+  display: grid;
+}
+.agent-dot {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-foreground);
+  box-shadow: 0 0 0 2px var(--color-background);
+}
+.agent-dot[data-state="waiting"] {
+  background: var(--swatch-orange);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .agent-dot[data-state="working"] {
+    animation: agent-breathe 1.6s var(--ease-settle) infinite alternate;
+  }
+  @keyframes agent-breathe {
+    to {
+      opacity: 0.35;
+    }
+  }
 }
 .tool:active {
   scale: 0.96;

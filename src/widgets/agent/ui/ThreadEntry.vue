@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref } from "vue"
 import { DitherIcon } from "@dither-kit"
 import { type Entry, secondsOf } from "../model/thread"
 import Prose from "./Prose.vue"
@@ -8,7 +9,7 @@ import Prose from "./Prose.vue"
 // key, the harness's reasoning and each step as folds, a permission prompt
 // answered in place, the turn's close. The panel owns every state; this
 // only draws it and says what was asked.
-defineProps<{
+const props = defineProps<{
   entry: Entry
   /** The reply streaming now / the thought streaming now. */
   live?: boolean
@@ -16,8 +17,29 @@ defineProps<{
   copied?: boolean
   /** The message's checkpoint can be restored. */
   restorable?: boolean
+  /** The thread's newest entry while the harness is idle: a turn's close
+   * then offers its next move (Continue after a stop, Try again after a
+   * failure). */
+  latest?: boolean
+  /** The permission prompt that takes the number keys. */
+  numbered?: boolean
 }>()
-const emit = defineEmits<{ restore: []; copy: []; answer: [id: string]; toggle: [open: boolean] }>()
+const emit = defineEmits<{
+  restore: []
+  copy: []
+  answer: [id: string]
+  toggle: [open: boolean]
+  again: []
+  continue: []
+}>()
+/** A long message folds to its first lines until opened. */
+const LONG = { lines: 8, chars: 600 }
+const long = computed(
+  () =>
+    (props.entry.kind === "user" || props.entry.kind === "followup") &&
+    (props.entry.text.split("\n").length > LONG.lines || props.entry.text.length > LONG.chars),
+)
+const unfolded = ref(false)
 const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).open)
 </script>
 
@@ -43,7 +65,10 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
           ><DitherIcon :name="entry.pictured ? 'Image' : 'Layout'" :size="11" :stroke-width="1.5" />{{ c.name }}</span
         >
       </div>
-      <p class="msg-text">{{ entry.text }}</p>
+      <p class="msg-text" :data-folded="long && !unfolded ? 'true' : undefined">{{ entry.text }}</p>
+      <button v-if="long" type="button" class="more" :aria-expanded="unfolded" @click="unfolded = !unfolded">
+        {{ unfolded ? "Show less" : "Show more" }}
+      </button>
     </div>
   </div>
   <div v-else-if="entry.kind === 'assistant'" class="reply">
@@ -98,21 +123,36 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
     <p class="approval-title"><DitherIcon name="AlertTriangle" :size="12" :stroke-width="1.5" />{{ entry.title }}</p>
     <div v-if="entry.answered === null" class="choices">
       <button
-        v-for="o in entry.options"
+        v-for="(o, n) in entry.options"
         :key="o.id"
         type="button"
         class="key"
         :class="o.primary ? 'is-primary' : ''"
+        :aria-keyshortcuts="numbered && n < 9 ? String(n + 1) : undefined"
         @click="emit('answer', o.id)"
       >
-        {{ o.label }}
+        <span v-if="numbered && n < 9" class="num" aria-hidden="true">{{ n + 1 }}</span
+        >{{ o.label }}
       </button>
     </div>
     <p v-else class="note">Answered {{ entry.answered }}</p>
   </div>
-  <p v-else-if="entry.kind === 'worked'" class="worked">
-    <DitherIcon name="Clock" :size="11" :stroke-width="1.5" />Worked for {{ secondsOf(entry.ms) }}
-  </p>
+  <div v-else-if="entry.kind === 'worked'" class="worked" :data-end="entry.end">
+    <p>
+      <DitherIcon
+        :name="entry.end === 'stopped' ? 'Pause' : entry.end === 'failed' ? 'AlertCircle' : 'Clock'"
+        :size="11"
+        :stroke-width="1.5"
+      />{{ entry.end === "stopped" ? "Stopped after" : entry.end === "failed" ? "Failed after" : "Worked for" }}
+      {{ secondsOf(entry.ms) }}
+    </p>
+    <button v-if="latest && entry.end === 'stopped'" type="button" class="key" @click="emit('continue')">
+      <DitherIcon name="Play" :size="11" :stroke-width="1.5" />Continue
+    </button>
+    <button v-else-if="latest && entry.end === 'failed'" type="button" class="key" @click="emit('again')">
+      <DitherIcon name="Refresh" :size="11" :stroke-width="1.5" />Try again
+    </button>
+  </div>
   <p v-else-if="entry.kind === 'error'" class="line-error">{{ entry.text }}</p>
   <p v-else-if="entry.kind === 'system'" class="line-system">{{ entry.text }}</p>
 </template>
@@ -295,11 +335,57 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
 }
 .worked {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+}
+.worked p {
+  display: flex;
   align-items: center;
   gap: 7px;
   margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.worked[data-end="failed"] p {
+  color: var(--color-destructive);
+}
+.worked .key,
+.choices .key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.num {
+  display: grid;
+  min-width: 1rem;
+  height: 1rem;
+  place-items: center;
+  border-radius: 4px;
+  font-size: 9.5px;
+  background: color-mix(in oklab, currentColor 14%, transparent);
+}
+/* A long message folds to its first lines, fading out at the fold. */
+.msg-text[data-folded="true"] {
+  max-height: calc(1.55em * 8);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent);
+  mask-image: linear-gradient(180deg, #000 60%, transparent);
+}
+.more {
+  justify-self: start;
+  min-height: 1.5rem;
+  border-radius: 6px;
   font-size: 10.5px;
   color: var(--color-muted-foreground);
+}
+.more:hover {
+  color: var(--color-foreground);
+}
+.more:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
 }
 @media (prefers-reduced-motion: reduce) {
   .restore,

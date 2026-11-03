@@ -131,12 +131,14 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
     // Studio tools reach the page through the bridge's studio/call path and
     // are rendered there with their result; skip the agent's mirror of them.
     if (STUDIO_TOOLS.some((t) => title.includes(t.def.name))) return []
+    const toolKind = typeof update.kind === "string" ? { kind: update.kind } : {}
     return [
       {
         type: "activity",
         id,
         title,
         status: String(update.status ?? (kind === "tool_call" ? "pending" : "in_progress")),
+        ...toolKind,
       },
     ]
   }
@@ -462,15 +464,16 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           const stop = res?.stopReason ?? "end_turn"
           flush()
           o.onEvent?.({ type: "turn", elapsedMs: Date.now() - started, usage: usageOf(res) })
-          if (stop === "cancelled") o.onEvent?.({ type: "error", message: "stopped" })
-          else o.onEvent?.({ type: "done" })
+          o.onEvent?.({ type: stop === "cancelled" ? "stopped" : "done" })
           return { stopReason: stop, text: turnText }
         } catch (e) {
           flush()
-          o.onEvent?.({
-            type: "error",
-            message: signal?.aborted ? "stopped" : e instanceof Error ? e.message : String(e),
-          })
+          // A stop is not a failure: the turn ends as the user asked.
+          if (signal?.aborted) {
+            o.onEvent?.({ type: "stopped" })
+            return { stopReason: "cancelled", text: turnText }
+          }
+          o.onEvent?.({ type: "error", message: e instanceof Error ? e.message : String(e) })
           return { stopReason: "error", text: turnText }
         } finally {
           busy = false

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onBeforeUnmount, ref, watch } from "vue"
+import { defineAsyncComponent, nextTick, onBeforeUnmount, ref, watch } from "vue"
 import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
 import { addArtboard } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
+import type { AgentActivity } from "@/features/agent/tools"
 import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
 import { hydrate, importDocument, startAutosave, stopAutosave } from "@/features/persistence"
@@ -25,6 +26,21 @@ const inspectorOpen = ref(true)
 // The left slot holds one panel: opening the agent folds the layers away
 // and vice versa, so the canvas keeps its width.
 const agentOpen = ref(false)
+// Once opened, the agent stays mounted: closing the panel hides it, so a
+// turn keeps running and its key on the toolbar says what it is doing.
+const agentMounted = ref(false)
+const agentPanel = ref<{ focus: () => void } | null>(null)
+const agentState = ref<AgentActivity>("idle")
+function onAgentActivity(a: AgentActivity) {
+  // A turn that ends while the panel is closed leaves word on its key.
+  agentState.value = a === "idle" && agentState.value !== "idle" && !agentOpen.value ? "unseen" : a
+}
+watch(agentOpen, (v) => {
+  if (!v) return
+  agentMounted.value = true
+  if (agentState.value === "unseen") agentState.value = "idle"
+  nextTick(() => agentPanel.value?.focus())
+})
 watch(agentOpen, (v) => v && (layersOpen.value = false))
 watch(layersOpen, (v) => v && (agentOpen.value = false))
 usePanelShortcuts({ toggleAgent: () => (agentOpen.value = !agentOpen.value) })
@@ -87,6 +103,7 @@ onBeforeUnmount(() => {
       v-model:layers-open="layersOpen"
       v-model:inspector-open="inspectorOpen"
       v-model:agent-open="agentOpen"
+      :agent-state="agentState"
       @export="exportOpen = true"
       @video="videoOpen = true"
     />
@@ -106,11 +123,12 @@ onBeforeUnmount(() => {
 
     <Transition name="panel-left">
       <aside
-        v-if="agentOpen"
+        v-if="agentMounted"
+        v-show="agentOpen"
         class="studio-panel hardshell absolute bottom-16 left-3 top-16 z-20 w-80 overflow-hidden"
         aria-label="Agent"
       >
-        <AgentPanel @close="agentOpen = false" />
+        <AgentPanel ref="agentPanel" @close="agentOpen = false" @activity="onAgentActivity" />
       </aside>
     </Transition>
 

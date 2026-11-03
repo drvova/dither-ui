@@ -860,7 +860,11 @@ widgets/features; page-specific conventions live here.
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
 - The Agent panel (`widgets/agent/AgentPanel.vue`, lazy; ⌘I opens and
-  closes it) is a CONTROL PLANE for the user's own harness, set as an
+  closes it; once opened it stays mounted and closing only hides it, so a
+  turn keeps running, and the toolbar's Agent key carries a dot while the
+  panel is closed: breathing while it works, the signal ink while a
+  permission prompt waits, still when a turn ended unseen,
+  `AgentActivity`) is a CONTROL PLANE for the user's own harness, set as an
   agent app's composer, over `features/agent/acp.ts`. The panel holds the
   session; `ui/ThreadEntry.vue` draws one entry, `ui/TurnTrays.vue` the
   trays over the input, `model/thread.ts` every reading of the thread
@@ -884,10 +888,17 @@ widgets/features; page-specific conventions live here.
   one row per Studio tool, held to `STUDIO_TOOLS` by the test), its args
   and result folded under it, destructive ink when the Studio rejected
   it; the harness's own tool calls as steps with a spinner or a check;
-  a run of three or more steps in a row folded under "N steps" (and how
-  many failed; open while it is the newest thing the harness does, or
-  once opened); permission prompts answered inline; each turn closed by
-  "Worked for" its length; system lines small and muted. The thread
+  a run of three or more steps in a row folded under what it did in
+  words ("Read 3 files, searched twice, made 1 edit on the canvas", then
+  how many failed; `runLabel` reads the harness's ACP tool kinds; open
+  while it is the newest thing the harness does, or once opened);
+  permission prompts answered inline, their options numbered while one
+  waits; each turn closed by "Worked for", "Stopped after" (with
+  Continue) or "Failed after" (with Try again) its length; a message past
+  8 lines or 600 characters folded under Show more; a copy key on every
+  code block; system lines small and muted. A screen reader hears one
+  quiet status (needs your answer, done, stopped, failed), never the
+  stream; the field announces the listbox option it highlights. The thread
   follows what arrives only while you read its end: scrolled up, it holds
   still and a "Latest" key brings you back. Over
   the composer: the turn's plan as to-dos (circles, a ringed one in
@@ -912,12 +923,30 @@ widgets/features; page-specific conventions live here.
   the context as the frames' names and ids ahead of the message, and,
   when it takes images, the first three as pictures (each frame drawn to
   a PNG by `features/export-image` `artboardPng`; the bubble's chips show
-  a picture then). Keys:
-  Enter sends, or QUEUES a follow-up while the harness works (ACP has no
-  steering; each runs as its own turn, in order); Alt+Up takes the newest
-  queued message back; Esc stops and returns the queue to the editor;
-  Shift+Enter newline; Up/Down prompt history on a single line; Ctrl+O
-  folds every step; `/` opens the command listbox (Up/Down + Tab/Enter
+  a picture then). The field grows with what is typed to 176px, then
+  scrolls; its placeholder says what sending does now; the unsent message
+  is kept per project (closing the panel, a reload: saved 250ms after
+  typing and on pagehide, `loadDraft`/`saveDraft`). Keys: Enter sends, or
+  QUEUES a follow-up while the harness works (ACP has no steering; each
+  runs as its own turn, in order), never on the Enter that ends an IME
+  composition (or comes within 500ms of one, as iPad Safari sends it) or
+  a held key's repeat; on a touch screen Enter is a newline and only the
+  send key sends, which puts the keyboard away, and the field never takes
+  focus on its own; Shift+Enter newline; Up brings back what was sent
+  (read off the thread) only from an empty field, Down past the newest
+  empties it; 1 to 9 answer the waiting permission prompt from an empty
+  field (not while it just came up under your typing: 1.5s); Alt+Up takes
+  the newest queued message back; Esc closes a menu (the command menu
+  stays away until the field changes), else stops and returns the queue to
+  the field, else leaves the field; Ctrl+O folds every step. The panel is
+  its own keyboard scope: its keys never reach the canvas (whose arrows
+  nudge and whose Backspace deletes), the page's chords still pass, and a
+  character typed on one of its keys lands in the field, as focus returns
+  there after every key of the panel. The send and stop keys keep focus
+  in the field and ignore a double-click's second press (one send, never
+  a stop); a stop reads "Stopping…" until the harness answers, and after
+  5s unanswered offers Force stop (the bridge ends the harness's
+  process). `/` opens the command listbox (Up/Down + Tab/Enter
   pick): ours (`/help /harness /connect /new /mode /auto /evolve /select
   /code /copy /session /undo /clear /stop /disconnect`) plus the
   harness's own advertised commands, which go to it as text. A turn's
@@ -925,8 +954,9 @@ widgets/features; page-specific conventions live here.
   session opened. The conversation persists per project and follows the
   active project; unanswered approvals are not saved. Pinned by
   `tests/agent-composer.spec.ts` (prose, steps, checkpoints, the
-  thread's readings) and the thought and picture cases in
-  `tests/agent-tools.spec.ts`.
+  thread's readings), `tests/agent-panel.spec.ts` (the panel mounted:
+  its setup in order, the draft back, history, IME, Esc, the key scope)
+  and the thought, picture and draft cases in `tests/agent-tools.spec.ts`.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not

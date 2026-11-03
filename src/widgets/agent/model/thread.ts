@@ -28,7 +28,7 @@ export type Entry =
       changed?: Changed[]
       mutates?: boolean
     }
-  | { kind: "activity"; id: string; title: string; status: string }
+  | { kind: "activity"; id: string; title: string; status: string; tool?: string }
   | { kind: "plan"; entries: { content: string; status: string }[] }
   | {
       kind: "approval"
@@ -36,8 +36,9 @@ export type Entry =
       options: { id: string; label: string; primary?: boolean }[]
       answered: string | null
     }
-  /** The end of a turn: how long the harness worked. */
-  | { kind: "worked"; ms: number }
+  /** The end of a turn: how long the harness worked, and how the turn
+   * ended when not on its own (you stopped it, or it failed). */
+  | { kind: "worked"; ms: number; end?: "stopped" | "failed" }
 
 export type ToolEntry = Extract<Entry, { kind: "tool" }>
 export type Todo = { content: string; status: string }
@@ -160,6 +161,66 @@ export const isStep = (e: Entry) => e.kind === "tool" || e.kind === "activity"
 
 /** Runs this long or longer fold into one row. */
 export const STEP_RUN = 3
+
+const times = (n: number) => (n === 1 ? "once" : n === 2 ? "twice" : `${n} times`)
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
+
+/** What a run of steps did, in words: the harness's own calls by their ACP
+ * kind, the Studio's by whether they changed the canvas, in the order each
+ * first came up ("Read 3 files, searched twice, made 2 edits on the
+ * canvas"), then how many failed. */
+export function runLabel(items: readonly Entry[]): string {
+  const counts = new Map<string, number>()
+  for (const e of items) {
+    const what =
+      e.kind === "tool"
+        ? e.mutates
+          ? "canvas-edit"
+          : "canvas-read"
+        : e.kind === "activity"
+          ? e.tool === "delete" || e.tool === "move"
+            ? "edit"
+            : (e.tool ?? "other")
+          : null
+    if (what) counts.set(what, (counts.get(what) ?? 0) + 1)
+  }
+  const said = [...counts].map(([what, n]) => {
+    switch (what) {
+      case "read":
+        return `read ${plural(n, "file")}`
+      case "search":
+        return `searched ${times(n)}`
+      case "execute":
+        return `ran ${plural(n, "command")}`
+      case "edit":
+        return `edited ${plural(n, "file")}`
+      case "fetch":
+        return `fetched ${plural(n, "page")}`
+      case "think":
+        return `thought ${times(n)}`
+      case "canvas-edit":
+        return `made ${plural(n, "edit")} on the canvas`
+      case "canvas-read":
+        return `looked at the canvas ${times(n)}`
+      default:
+        return `took ${plural(n, "other step")}`
+    }
+  })
+  const failed = items.filter(
+    (e) => (e.kind === "tool" && !e.ok) || (e.kind === "activity" && e.status === "failed"),
+  ).length
+  const text = [...said, ...(failed ? [`${failed} failed`] : [])].join(", ")
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+/** The messages sent so far, oldest first, a message sent twice in a row
+ * once: what Up walks back through. */
+export function sentOf(entries: readonly Entry[]): string[] {
+  const out: string[] = []
+  for (const e of entries)
+    if ((e.kind === "user" || e.kind === "followup") && e.text !== out[out.length - 1]) out.push(e.text)
+  return out
+}
 
 export type Block =
   | { kind: "entry"; at: number; entry: Entry }

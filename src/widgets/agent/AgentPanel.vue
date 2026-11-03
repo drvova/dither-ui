@@ -12,12 +12,15 @@ import {
 } from "@/features/agent/acp"
 import {
   type AgentCommand,
+  type AgentActivity,
   type AgentConfig,
   type AgentEvent,
   loadAgentConfig,
+  loadDraft,
   loadSession,
   type Mode,
   saveAgentConfig,
+  saveDraft,
   saveSession,
   type Usage,
 } from "@/features/agent/tools"
@@ -28,7 +31,18 @@ import BrandMark from "@/shared/ui/BrandMark.vue"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { isMark } from "@/shared/ui/marks"
 import type { Changed } from "./model/steps"
-import { type Block, changesOf, type Entry, threadBlocks, titleOf, todosOf, toolEntry } from "./model/thread"
+import {
+  type Block,
+  changesOf,
+  type Entry,
+  runLabel,
+  secondsOf,
+  sentOf,
+  threadBlocks,
+  titleOf,
+  todosOf,
+  toolEntry,
+} from "./model/thread"
 import ThreadEntry from "./ui/ThreadEntry.vue"
 import TurnTrays from "./ui/TurnTrays.vue"
 
@@ -41,7 +55,7 @@ import TurnTrays from "./ui/TurnTrays.vue"
 // thread's entries draw in `ui/ThreadEntry.vue`, the trays over the input in
 // `ui/TurnTrays.vue`, and every reading of the thread is `model/thread.ts`.
 // Nothing here is a key or a model setting.
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; activity: [AgentActivity] }>()
 // Suggestions for an empty thread.
 const STARTERS: { icon: IconName; text: string }[] = [
   { icon: "Layout", text: "A sign-in screen with email, password and a primary button" },
@@ -57,6 +71,10 @@ const menuOpen = ref(false)
 
 /* ------------------------------- transcript ------------------------------- */
 
+/** The message being written, and its field (declared first: the session
+ * restore below brings back the project's draft). */
+const input = ref("")
+const box = ref<HTMLTextAreaElement | null>(null)
 const entries = ref<Entry[]>([])
 const usage = ref<Usage>({ input: 0, output: 0 })
 type TextEntry = Extract<Entry, { text: string }>
@@ -85,8 +103,9 @@ const onScroll = () => {
 function toEnd(smooth = false) {
   const el = log.value
   if (!el) return
-  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  el.scrollTo({ top: el.scrollHeight, behavior: smooth && !still ? "smooth" : "auto" })
+  const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? true
+  el.scrollTop = el.scrollHeight
+  if (smooth && !still) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
   unseen.value = false
 }
 const scrollLog = (force = false) =>
@@ -119,6 +138,7 @@ function restore(projectId: string) {
   turn.value = Math.max(0, ...entries.value.map((e) => ("turn" in e && e.turn) || 0))
   checkpoints.clear()
   settled.value = new Set(Array.from({ length: turn.value + 1 }, (_, i) => i))
+  input.value = loadDraft(projectId)
   scrollLog(true)
 }
 
@@ -130,6 +150,7 @@ const changes = computed(() =>
 
 function keep() {
   if (changes.value) settled.value = new Set(settled.value).add(changes.value.turn)
+  refocus()
 }
 /** The canvas back to where the turn found it (one undoable step). */
 function undoTurn() {
@@ -138,6 +159,7 @@ function undoTurn() {
   if (!c || !cp) return
   restoreCheckpoint(cp)
   settled.value = new Set(settled.value).add(c.turn)
+  refocus()
   system("Put the canvas back to before that message")
 }
 /** Any earlier turn: the canvas as it stood before its message. */
@@ -260,6 +282,7 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
 /** Start a harness by preset id or command line through the bridge. */
 async function start(choice: string | { command: string }) {
   pickerOpen.value = false
+  refocus()
   const client = acp.value ?? (await connect())
   if (!client) return
   if (typeof choice === "string") {
@@ -361,7 +384,7 @@ function onEvent(e: AgentEvent) {
       if (existing) {
         existing.status = e.status
         if (e.title) existing.title = e.title
-      } else push({ kind: "activity", id: e.id, title: e.title || e.id, status: e.status })
+      } else push({ kind: "activity", id: e.id, title: e.title || e.id, status: e.status, tool: e.kind })
       break
     }
     case "plan": {
@@ -386,6 +409,9 @@ function onEvent(e: AgentEvent) {
       live.value = null
       push({ kind: "error", text: e.message })
       break
+    case "stopped":
+      live.value = null
+      break
     case "done":
       live.value = null
       break
@@ -400,6 +426,7 @@ type Approval = Extract<Entry, { kind: "approval" }>
 const pending = shallowReactive(new Map<Approval, (id: string | null) => void>())
 
 function ask(title: string, options: { id: string; label: string; primary?: boolean }[]): Promise<string | null> {
+  askedAt = Date.now()
   push({ kind: "approval", title, options, answered: null })
   const entry = entries.value[entries.value.length - 1] as Approval
   return new Promise((resolve) => {
@@ -425,22 +452,88 @@ const askPermission = async (req: AcpPermissionRequest): Promise<string | null> 
   )
 }
 
+/** When the newest permission prompt came up, and when a key was last
+ * typed in the field: the number keys wait out `TYPING_GUARD` between. */
+let askedAt = 0
+let typedAt = 0
+const TYPING_GUARD = 1500
+/** The newest permission prompt still waiting for its answer. */
+const openApproval = computed(() => {
+  for (let i = entries.value.length - 1; i >= 0; i--) {
+    const e = entries.value[i]
+    if (e.kind === "approval" && e.answered === null) return e
+  }
+  return null
+})
+
+/* One quiet voice for a screen reader: what the turn needs or how it
+ * ended, never the stream itself. */
+const announced = ref("")
+watch(openApproval, (a) => a && (announced.value = "Needs your answer"))
+
+/* What the page shows of the agent while the panel is closed. */
+watch(
+  () => (pending.size ? "waiting" : busy.value ? "working" : "idle") as AgentActivity,
+  (a) => emit("activity", a),
+  { immediate: true },
+)
+
 function answer(entry: Approval, id: string | null) {
   pending.get(toRaw(entry))?.(id)
+  refocus()
 }
 
 /* -------------------------------- composer -------------------------------- */
 
-const input = ref("")
-const box = ref<HTMLTextAreaElement | null>(null)
-const history = ref<string[]>([])
+/* Up walks back through what was sent (read off the thread, so it survives
+ * a reload), only from an empty field; editing a recalled message makes it
+ * a draft again; Down past the newest empties the field. */
+const sent = computed(() => sentOf(entries.value))
 let cursor = -1
-let draft = ""
+watch(input, (text) => {
+  if (cursor !== -1 && text !== sent.value[cursor]) cursor = -1
+})
 const followUps = ref<string[]>([])
 let controller: AbortController | null = null
 const toolsOpen = ref(false)
 
-const rows = computed(() => Math.min(6, Math.max(1, input.value.split("\n").length)))
+/* The field grows with what is typed, up to a cap, then scrolls. */
+const FIELD_MAX = 176
+function fit() {
+  const el = box.value
+  if (!el) return
+  el.style.height = "auto"
+  el.style.height = `${Math.min(el.scrollHeight, FIELD_MAX)}px`
+}
+watch(input, () => nextTick(fit))
+// The unsent message is kept per project (closing the panel keeps it).
+let draftTimer: ReturnType<typeof setTimeout> | undefined
+watch(input, (text) => {
+  clearTimeout(draftTimer)
+  draftTimer = setTimeout(() => loadedFor && saveDraft(loadedFor, text), 250)
+})
+/** A finger on a touch screen: Enter is a newline there (only the send key
+ * sends), and the field never takes focus on its own, which would raise
+ * the keyboard over the canvas. */
+const touch = window.matchMedia?.("(pointer: coarse)").matches ?? false
+/** Back to the field after a key elsewhere in the panel did its job. */
+const refocus = () => !touch && nextTick(() => box.value?.focus())
+/** iPad Safari ends a composition and then delivers its Enter as a key of
+ * its own: an Enter this soon after a composition ended is the
+ * composition's. */
+let composedAt = 0
+const onCompositionEnd = () => (composedAt = Date.now())
+/* The panel is its own keyboard scope: a key pressed in it never reaches
+ * the canvas (whose arrows nudge and whose Backspace deletes frames), and a
+ * character typed with a key of the panel focused lands in the field. The
+ * page's chords (⌘Z, ⌘I) still pass. */
+function onPanelKey(e: KeyboardEvent) {
+  if (e.metaKey || e.ctrlKey) return
+  e.stopPropagation()
+  const t = e.target as HTMLElement
+  if (t.closest("input, textarea, select, [contenteditable]") || e.isComposing) return
+  if (e.key.length === 1 || e.key === "Backspace") box.value?.focus()
+}
 
 type Slash = { name: string; args?: string; desc: string; harness?: boolean }
 const OURS: Slash[] = [
@@ -467,7 +560,24 @@ const slashAll = computed<Slash[]>(() => [
     .filter((c) => !OURS.some((o) => o.name === c.name))
     .map((c) => ({ name: c.name, args: c.input, desc: c.description, harness: true })),
 ])
-const slashOpen = computed(() => /^\/[\w-]*$/.test(input.value))
+/** The field says what sending will do now. */
+const placeholder = computed(() =>
+  openApproval.value
+    ? `Answer above, 1 to ${Math.min(9, openApproval.value.options.length)}, or queue a message`
+    : stopping.value
+      ? "Queue a message for after the stop"
+      : busy.value
+        ? "Queue a follow-up"
+        : !acp.value
+          ? "Type your message; it starts the bridge"
+          : !agent.value
+            ? "Type your message; it starts your harness"
+            : "Type your message, / for commands",
+)
+/** Esc puts the command menu away until the field changes. */
+const slashDismissed = ref(false)
+watch(input, () => (slashDismissed.value = false))
+const slashOpen = computed(() => !slashDismissed.value && /^\/[\w-]*$/.test(input.value))
 const slashMatches = computed(() => {
   const q = input.value.slice(1).toLowerCase()
   return slashAll.value.filter((c) => c.name.startsWith(q))
@@ -640,13 +750,28 @@ function pickAt(id: string) {
   box.value?.focus()
 }
 
+/** The open listbox and its highlighted option, which the field announces
+ * (`aria-activedescendant`) and keeps in view while the arrows move it. */
+const listbox = computed(() =>
+  slashOpen.value && slashMatches.value.length
+    ? { id: "agent-commands", active: `agent-command-${slashIndex.value}` }
+    : atOpen.value && atMatches.value.length
+      ? { id: "agent-frames", active: `agent-frame-${atIndex.value}` }
+      : null,
+)
+watch(
+  () => listbox.value?.active,
+  (id) => id && nextTick(() => document.getElementById(id)?.scrollIntoView?.({ block: "nearest" })),
+)
+
 async function send(text = input.value.trim()) {
   if (!text) return
+  // A finger's send puts the keyboard away; a pointer's keeps the field.
+  if (touch) box.value?.blur()
+  else refocus()
   input.value = ""
   cursor = -1
-  draft = ""
   if (text.startsWith("/") && (await slash(text))) return
-  history.value.push(text)
   // While the harness works, anything typed waits for the task to end.
   if (busy.value) {
     followUps.value.push(text)
@@ -655,7 +780,12 @@ async function send(text = input.value.trim()) {
   await run(text)
 }
 
+/** The latest turn's message, for "Try again" when it failed. */
+const lastSent = ref("")
+/** A stop asked for and not yet answered by the harness. */
+const stopping = ref(false)
 async function run(text: string) {
+  lastSent.value = text
   const client = await ready()
   if (!client) {
     input.value = input.value ? `${text}\n${input.value}` : text
@@ -675,22 +805,39 @@ async function run(text: string) {
   busy.value = true
   started.value = Date.now()
   now.value = started.value
-  clock = setInterval(() => (now.value = Date.now()), 250)
+  clock = setInterval(() => (now.value = Date.now()), 1000)
   controller = new AbortController()
   const { stopReason } = await client.prompt(withContext(text, frames), controller.signal, pictures)
   clearInterval(clock)
   busy.value = false
+  stopping.value = false
   controller = null
   live.value = null
   endThought()
-  if (stopReason !== "cancelled" && stopReason !== "error") push({ kind: "worked", ms: Date.now() - started.value })
+  const end = stopReason === "cancelled" ? "stopped" : stopReason === "error" ? "failed" : undefined
+  announced.value = end === "stopped" ? "Stopped" : end === "failed" ? "Failed" : "Done"
+  push({ kind: "worked", ms: Date.now() - started.value, ...(end ? { end } : {}) })
   // Follow-ups run one at a time, in order, each its own turn.
   const next = followUps.value.shift()
   if (next !== undefined) await run(next)
 }
 
+/** A stop the harness has not answered in `STUCK_MS`: the tray offers to
+ * stop the harness itself (the bridge ends its process, which ends the
+ * turn). */
+const STUCK_MS = 5000
+const stuck = computed(() => stopping.value && now.value - stoppedAt.value >= STUCK_MS)
+const stoppedAt = ref(0)
+function forceStop() {
+  acp.value?.stop()
+  refocus()
+}
 function stop() {
   for (const settle of [...pending.values()]) settle(null)
+  if (busy.value && !stopping.value) {
+    stopping.value = true
+    stoppedAt.value = Date.now()
+  }
   controller?.abort()
   // Stopping returns queued messages to the editor.
   const queued = followUps.value.splice(0)
@@ -703,6 +850,25 @@ function unqueue() {
 }
 
 function onKey(e: KeyboardEvent) {
+  // A key that ends an IME composition (Japanese, Chinese, Korean) is the
+  // composition's, never a send.
+  if (e.isComposing || e.keyCode === 229) return
+  if (e.key === "Enter" && (e.repeat || Date.now() - composedAt < 500)) return
+  const typedBefore = typedAt
+  typedAt = Date.now()
+  // An open permission prompt takes 1 to 9 from an empty field, unless it
+  // came up under your typing: then only once you have paused (so a digit
+  // meant for the message never answers it).
+  const asking = openApproval.value
+  const settledIn = !asking || askedAt - typedBefore >= TYPING_GUARD || typedAt - typedBefore >= TYPING_GUARD
+  if (asking && settledIn && !input.value && /^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    const option = asking.options[Number(e.key) - 1]
+    if (option) {
+      e.preventDefault()
+      answer(asking, option.id)
+      return
+    }
+  }
   if (atOpen.value && atMatches.value.length) {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault()
@@ -731,6 +897,10 @@ function onKey(e: KeyboardEvent) {
       slashIndex.value = (slashIndex.value - 1 + slashMatches.value.length) % slashMatches.value.length
       return
     }
+    if (e.key === "Escape") {
+      slashDismissed.value = true
+      return
+    }
     if (
       e.key === "Tab" ||
       (e.key === "Enter" && !e.shiftKey && `/${slashMatches.value[slashIndex.value].name}` !== input.value)
@@ -741,7 +911,7 @@ function onKey(e: KeyboardEvent) {
       return
     }
   }
-  if (e.key === "Enter" && !e.shiftKey) {
+  if (e.key === "Enter" && !e.shiftKey && !touch) {
     e.preventDefault()
     void send()
     return
@@ -760,7 +930,7 @@ function onKey(e: KeyboardEvent) {
     if (busy.value || pending.size) {
       e.preventDefault()
       stop()
-    }
+    } else box.value?.blur()
     return
   }
   if (e.ctrlKey && (e.key === "o" || e.key === "O")) {
@@ -769,16 +939,16 @@ function onKey(e: KeyboardEvent) {
     for (const x of entries.value) if (x.kind === "tool") x.open = toolsOpen.value
     return
   }
-  const single = !input.value.includes("\n")
-  if (e.key === "ArrowUp" && single && history.value.length) {
+  const recalling = cursor !== -1
+  if (e.key === "ArrowUp" && !e.shiftKey && sent.value.length && (recalling || !input.value)) {
     e.preventDefault()
-    if (cursor === -1) draft = input.value
-    cursor = cursor === -1 ? history.value.length - 1 : Math.max(0, cursor - 1)
-    input.value = history.value[cursor]
-  } else if (e.key === "ArrowDown" && single && cursor !== -1) {
+    cursor = recalling ? Math.max(0, cursor - 1) : sent.value.length - 1
+    input.value = sent.value[cursor]
+  } else if (e.key === "ArrowDown" && !e.shiftKey && recalling) {
     e.preventDefault()
-    cursor = cursor + 1 >= history.value.length ? -1 : cursor + 1
-    input.value = cursor === -1 ? draft : history.value[cursor]
+    const next = cursor + 1
+    cursor = next < sent.value.length ? next : -1
+    input.value = cursor === -1 ? "" : sent.value[cursor]
   }
 }
 
@@ -793,9 +963,17 @@ async function togglePicker() {
   if (pickerOpen.value && !acp.value) await connect()
 }
 
-onMounted(() => box.value?.focus())
-defineExpose({ focus: () => box.value?.focus() })
+const keepDraft = () => loadedFor && saveDraft(loadedFor, input.value)
+onMounted(() => {
+  window.addEventListener("pagehide", keepDraft)
+  fit()
+  refocus()
+})
+defineExpose({ focus: refocus })
 onBeforeUnmount(() => {
+  window.removeEventListener("pagehide", keepDraft)
+  clearTimeout(draftTimer)
+  keepDraft()
   controller?.abort()
   clearInterval(clock)
   disconnect()
@@ -803,7 +981,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="agent" :class="{ 'is-empty': !entries.length }">
+  <div class="agent" :class="{ 'is-empty': !entries.length }" @keydown="onPanelKey">
     <div class="head">
       <span class="who" aria-hidden="true"
         ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" /><BrandMark v-else :size="12"
@@ -817,7 +995,8 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <div ref="log" class="log" aria-live="polite" @scroll.passive="onScroll">
+    <p class="sr-only" role="status">{{ announced }}</p>
+    <div ref="log" class="log" @scroll.passive="onScroll">
       <div v-if="!entries.length" class="hello">
         <span class="hello-mark" aria-hidden="true"
           ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="26" /><BrandMark v-else :size="26"
@@ -835,6 +1014,10 @@ onBeforeUnmount(() => {
           :live="live === b.entry || thinking === b.entry"
           :copied="copied === b.at"
           :restorable="canRestore(b.entry)"
+          :latest="!busy && b.at === entries.length - 1"
+          :numbered="b.entry === openApproval"
+          @again="send(lastSent)"
+          @continue="send('Continue')"
           @restore="'turn' in b.entry && b.entry.turn && restoreTo(b.entry.turn)"
           @copy="'text' in b.entry && copyReply(b.at, b.entry.text)"
           @answer="(id) => b.entry.kind === 'approval' && answer(b.entry, id)"
@@ -848,8 +1031,9 @@ onBeforeUnmount(() => {
         >
           <summary>
             <span v-if="b.running" class="spin" aria-hidden="true"></span
-            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span
-              >{{ b.items.length }} steps<template v-if="b.failed">, {{ b.failed }} failed</template></span
+            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span>{{
+              runLabel(b.items.map((it) => it.entry))
+            }}</span
             ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
           </summary>
           <div class="group-body">
@@ -871,10 +1055,20 @@ onBeforeUnmount(() => {
       <TurnTrays
         :todos="todos"
         :queue="followUps"
-        :run="busy ? { doing: thinking ? 'Thinking' : live ? 'Writing' : 'Working', time: fmtMs(elapsed) } : null"
+        :run="
+          busy
+            ? {
+                doing: stopping ? 'Stopping' : thinking ? 'Thinking' : live ? 'Writing' : 'Working',
+                time: secondsOf(Math.max(1000, elapsed)),
+                stopping,
+                stuck,
+              }
+            : null
+        "
         :changes="changes"
         :shown="(id) => editor.artboards.some((a) => a.id === id)"
         @stop="stop"
+        @force-stop="forceStop"
         @unqueue="(j) => followUps.splice(j, 1)"
         @undo="undoTurn"
         @keep="keep"
@@ -882,11 +1076,19 @@ onBeforeUnmount(() => {
       />
 
       <div class="composer">
-        <div v-if="slashOpen && slashMatches.length" class="pop" role="listbox" aria-label="Commands">
+        <div
+          v-if="slashOpen && slashMatches.length"
+          id="agent-commands"
+          class="pop"
+          role="listbox"
+          aria-label="Commands"
+        >
           <button
             v-for="(c, i) in slashMatches"
+            :id="`agent-command-${i}`"
             :key="c.name"
             type="button"
+            tabindex="-1"
             role="option"
             :aria-selected="i === slashIndex"
             class="pop-row"
@@ -898,11 +1100,13 @@ onBeforeUnmount(() => {
             ><span class="dim">{{ c.harness ? `${agentName}: ` : "" }}{{ c.desc }}</span>
           </button>
         </div>
-        <div v-else-if="atOpen" class="pop" role="listbox" aria-label="Frames">
+        <div v-else-if="atOpen" id="agent-frames" class="pop" role="listbox" aria-label="Frames">
           <button
             v-for="(a, i) in atMatches"
+            :id="`agent-frame-${i}`"
             :key="a.id"
             type="button"
+            tabindex="-1"
             role="option"
             :aria-selected="i === atIndex"
             class="pop-row"
@@ -988,12 +1192,18 @@ onBeforeUnmount(() => {
             ref="box"
             v-model="input"
             name="agent-goal"
-            :rows="rows"
+            rows="1"
             class="prompt"
-            :placeholder="busy ? 'Queue a follow-up' : 'Type your message, / for commands'"
+            :placeholder="placeholder"
+            :enterkeyhint="touch ? 'enter' : 'send'"
             aria-label="Message the agent"
+            aria-autocomplete="list"
+            :aria-expanded="listbox !== null"
+            :aria-controls="listbox?.id"
+            :aria-activedescendant="listbox?.active"
             spellcheck="false"
             @keydown="onKey"
+            @compositionend="onCompositionEnd"
           />
           <div class="foot">
             <button
@@ -1020,9 +1230,11 @@ onBeforeUnmount(() => {
               v-if="busy && !input.trim()"
               type="button"
               class="send key-chrome"
-              aria-label="Stop (esc)"
-              title="Stop (esc)"
-              @click="stop"
+              :disabled="stopping"
+              :aria-label="stopping ? 'Stopping' : 'Stop (esc)'"
+              :title="stopping ? 'Stopping' : 'Stop (esc)'"
+              @mousedown.prevent
+              @click="(ev: MouseEvent) => ev.detail > 1 || stop()"
             >
               <span class="stop-square" aria-hidden="true"></span>
             </button>
@@ -1033,7 +1245,8 @@ onBeforeUnmount(() => {
               :disabled="!input.trim()"
               :aria-label="busy ? 'Queue (enter)' : 'Send (enter)'"
               :title="busy ? 'Queue (enter)' : 'Send (enter)'"
-              @click="send()"
+              @mousedown.prevent
+              @click="(ev: MouseEvent) => ev.detail > 1 || send()"
             >
               <DitherIcon name="ArrowUp" :size="13" :stroke-width="2" />
             </button>
@@ -1304,6 +1517,8 @@ onBeforeUnmount(() => {
   color: var(--color-foreground);
 }
 .prompt {
+  max-height: 176px;
+  overflow-y: auto;
   resize: none;
   border: 0;
   background: transparent;

@@ -4,8 +4,10 @@ import { mapUpdate, modesOf, permissionOptions, promptBlocks, takesImages, usage
 import {
   callStudioTool,
   loadAgentConfig,
+  loadDraft,
   loadSession,
   saveAgentConfig,
+  saveDraft,
   saveSession,
   STUDIO_TOOLS,
 } from "@/features/agent/tools"
@@ -164,5 +166,15 @@ describe("composer state", () => {
     expect(s?.entries.at(-1)?.text.startsWith("399:")).toBe(true)
     saveSession("p1", { entries: [], usage: { input: 0, output: 0 } })
     expect(loadSession("p1")).toBeNull()
+  })
+
+  it("keeps each project's unsent message, and forgets an empty one", () => {
+    saveDraft("p1", "a sign-in screen")
+    saveDraft("p2", "a table")
+    expect(loadDraft("p1")).toBe("a sign-in screen")
+    expect(loadDraft("p2")).toBe("a table")
+    saveDraft("p1", "  ")
+    expect(loadDraft("p1")).toBe("")
+    expect(localStorage.getItem("dither-agent-draft-p1")).toBeNull()
   })
 })
