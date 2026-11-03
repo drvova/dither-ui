@@ -8,14 +8,22 @@ import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
 import { createArtboard } from "@/entities/artboard/model/factory"
 import { editor } from "@/entities/editor/model/store"
 import { askAgent, handoff } from "@/features/agent/handoff"
-import { saveDraft, saveSession } from "@/features/agent/tools"
+import { chats, newChat, openChat, openProject, saveThread } from "@/features/agent/chats"
+import { saveDraft } from "@/features/agent/tools"
 import { activeProjectId } from "@/features/persistence"
 import AgentPanel from "@/widgets/agent/AgentPanel.vue"
+import type { Entry } from "@/widgets/agent/model/thread"
 
+/** A thread kept as the project's open chat, as a panel left it. */
+function keep(entries: Entry[]) {
+  openProject("p1")
+  saveThread("p1", chats.active, { entries, usage: { input: 0, output: 0 } }, true)
+}
 const field = (w: ReturnType<typeof mount>) => w.get<HTMLTextAreaElement>('textarea[name="agent-goal"]')
 
 beforeEach(() => {
   localStorage.clear()
+  chats.project = ""
   activeProjectId.value = "p1"
   handoff.picked.splice(0)
   handoff.asks.splice(0)
@@ -29,10 +37,7 @@ describe("the agent panel", () => {
   it("mounts cleanly and brings back the project's draft and thread", async () => {
     const warn = rs.spyOn(console, "warn")
     saveDraft("p1", "half a message")
-    saveSession("p1", {
-      entries: [{ kind: "user", text: "A sign-in screen", turn: 1 }],
-      usage: { input: 0, output: 0 },
-    })
+    keep([{ kind: "user", text: "A sign-in screen", turn: 1 }])
     const w = mount(AgentPanel, { attachTo: document.body })
     await nextTick()
     expect(warn.mock.calls.filter(([m]) => String(m).includes("Unhandled error"))).toEqual([])
@@ -43,10 +48,7 @@ describe("the agent panel", () => {
   })
 
   it("recalls a sent message with Up only from an empty field, and Down empties it again", async () => {
-    saveSession("p1", {
-      entries: [{ kind: "user", text: "A sign-in screen", turn: 1 }],
-      usage: { input: 0, output: 0 },
-    })
+    keep([{ kind: "user", text: "A sign-in screen", turn: 1 }])
     const w = mount(AgentPanel, { attachTo: document.body })
     const box = field(w)
     await box.setValue("a draft")
@@ -101,15 +103,12 @@ describe("the agent panel", () => {
     const frame = createArtboard("button")
     editor.artboards = [frame]
     handoff.picked.push(frame.id)
-    saveSession("p1", {
-      entries: [
-        { kind: "user", text: "A sign-in screen", turn: 1, context: [{ id: frame.id, name: "Sign in" }] },
-        { kind: "thought", text: "A form", ms: 2000 },
-        { kind: "activity", id: "a", title: "Read the registry", status: "completed" },
-        { kind: "worked", ms: 3000, end: "stopped" },
-      ],
-      usage: { input: 0, output: 0 },
-    })
+    keep([
+      { kind: "user", text: "A sign-in screen", turn: 1, context: [{ id: frame.id, name: "Sign in" }] },
+      { kind: "thought", text: "A form", ms: 2000 },
+      { kind: "activity", id: "a", title: "Read the registry", status: "completed" },
+      { kind: "worked", ms: 3000, end: "stopped" },
+    ])
     const w = mount(AgentPanel, { attachTo: document.body })
     await nextTick()
     const rows = [...w.element.querySelectorAll(".ctx, .status-key, .pill, .key, .row-key, summary, .worked p")]
@@ -121,6 +120,20 @@ describe("the agent panel", () => {
         .map(() => row.outerHTML),
     )
     expect(bare).toEqual([])
+    w.unmount()
+  })
+
+  it("shows the chat picked in the sidebar, and a new chat starts empty", async () => {
+    keep([{ kind: "user", text: "A plum orders table", turn: 1 }])
+    const first = chats.active
+    const w = mount(AgentPanel, { attachTo: document.body })
+    await nextTick()
+    newChat()
+    await nextTick()
+    expect(w.text()).not.toContain("A plum orders table")
+    openChat(first)
+    await nextTick()
+    expect(w.text()).toContain("A plum orders table")
     w.unmount()
   })
 

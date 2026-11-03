@@ -17,7 +17,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   annotate, capture; see `widgets/workbench/AGENTS.md`) and `source` (the
   preview's files, edited and run in the page; see
   `widgets/source/AGENTS.md`) and the studio
-  panels: toolbar, layer-tree, inspector, canvas,
+  panels: toolbar (the title bar and the selection bar), layer-tree,
+  inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock; a film's camera, callouts and chapter band), data-editor, agent
   (the composer / harness control plane: `AgentPanel.vue` holds the
@@ -166,11 +167,22 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     done; a stop is its own event, never an error), `AgentActivity`
     (what the toolbar shows of the agent), and the composer's state: `AgentConfig`
     (`bridgeUrl`, the chosen `harness` id or `custom` + `command`, `auto`
-    permission answers — nothing secret, always saved), per-project
-    drafts (`dither-agent-draft-<projectId>`) and per-project
-    sessions (`dither-agent-session-<projectId>`, entries + usage, capped
-    at 160k chars by dropping the oldest entries). There is NO model client
+    permission answers — nothing secret, always saved) and per-project
+    drafts (`dither-agent-draft-<projectId>`). There is NO model client
     in the app: the composer never runs a model and never holds a key.
+  - `chats.ts` (imported by path, so the page never pulls the protocol):
+    a project's chats, the reactive `chats` store shared by the Studio's
+    sidebar and the agent panel (`project`, `list` newest first as
+    `{id, title, at}`, the `active` chat). `openProject` (a no-op when
+    open; the thread a project kept before chats existed becomes its first
+    chat), `newChat` (listed once something is said), `openChat`,
+    `removeChat`; `saveThread`/`loadThread` keep each chat's thread
+    (`dither-agent-session-<projectId>/<chatId>`, entries + usage, capped
+    at 160k chars by dropping the oldest entries) and its place in the
+    index (`dither-agent-chats-<projectId>`; moved to the top when
+    something new is said); `titleOf` (its first message's first line) and
+    `agoOf` (now, 5m, 2h, 3d, 2w, then the day). Guarded by
+    `tests/agent-chats.spec.ts`.
   - `acp.ts`: the composer as an Agent Client Protocol client over a
     loopback websocket to `bridge/dither-bridge.mjs` (see `bridge/AGENTS.md`
     for the wire contract). `connectAcp` sends the Studio tools
@@ -370,9 +382,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   only from non-interactive regions so live controls retain pointer ownership.
 - Move, nudge, duplicate, delete, lock, and group commands act on the complete
   selection; locked members remain stationary.
-- Toolbar hierarchy is contextual: project/insertion/global view controls persist;
-  edit, data, and export actions appear in the selection toolbar only while an
-  artboard is selected. Project file import/export stays in the project menu.
+- Toolbar hierarchy is contextual: project/insertion/global view controls
+  persist in the title bar; edit, data, and export actions appear in the
+  selection bar (`widgets/toolbar/SelectionBar.vue`, over the canvas's
+  foot) only while an artboard is selected. Project file import/export
+  stays in the project menu.
 - Studio lifecycle watchers are singletons while the route is mounted:
   `startAutosave`/`startHistory` replace prior handles and StudioPage stops them
   on unmount. Route revisits must not accumulate deep watchers.

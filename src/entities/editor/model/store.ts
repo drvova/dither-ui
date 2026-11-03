@@ -19,6 +19,9 @@ export const editor = reactive({
   viewport: { x: 96, y: 88, zoom: 1 } as Viewport,
   replayToken: 0,
   dataOpen: false,
+  // The canvas's size on screen (the canvas measures it; the window's is
+  // not the canvas's once panels dock beside it), never persisted.
+  stage: { w: 1280, h: 720 },
   // Transient snap guides shown while dragging (world coords), never persisted.
   guides: { v: null as number | null, h: null as number | null },
 })
@@ -36,16 +39,25 @@ export const artboardIdOf = (layerId: string) => layerId.split(":")[0]
 const find = (id: string) => editor.artboards.find((a) => a.id === id)
 const membersOf = (groupId: string) => editor.artboards.filter((a) => a.groupId === groupId)
 
-/** Place a new frame at the visible canvas center, not document origin/right edge. */
+/** Place a new frame at the centre of the canvas as seen, not the document origin. */
 export function placeArtboard(a: Artboard): Artboard {
   const zoom = editor.viewport.zoom || 1
-  const width = typeof window === "undefined" ? 1280 : window.innerWidth
-  const height = typeof window === "undefined" ? 720 : window.innerHeight
-  a.x = Math.round((width / 2 - editor.viewport.x) / zoom - a.w / 2)
-  a.y = Math.round((height / 2 - editor.viewport.y) / zoom - a.h / 2)
+  a.x = Math.round((editor.stage.w / 2 - editor.viewport.x) / zoom - a.w / 2)
+  a.y = Math.round((editor.stage.h / 2 - editor.viewport.y) / zoom - a.h / 2)
   editor.artboards.push(a)
   selectArtboard(a.id)
   return a
+}
+
+/** Pan so a frame stands at the centre of the canvas as seen, its zoom
+ * kept: for a frame placed before the canvas could measure itself. */
+export function centreOn(a: Artboard): void {
+  const zoom = editor.viewport.zoom || 1
+  editor.viewport = {
+    x: Math.round(editor.stage.w / 2 - (a.x + a.w / 2) * zoom),
+    y: Math.round(editor.stage.h / 2 - (a.y + a.h / 2) * zoom),
+    zoom,
+  }
 }
 
 /** Place a GENERATION — several variants of one parent — as one row centred
@@ -54,10 +66,8 @@ export function placeArtboard(a: Artboard): Artboard {
 export function placeGeneration(boards: Artboard[], gap = 40): Artboard[] {
   if (!boards.length) return boards
   const zoom = editor.viewport.zoom || 1
-  const width = typeof window === "undefined" ? 1280 : window.innerWidth
-  const height = typeof window === "undefined" ? 720 : window.innerHeight
-  const cx = (width / 2 - editor.viewport.x) / zoom
-  const cy = (height / 2 - editor.viewport.y) / zoom
+  const cx = (editor.stage.w / 2 - editor.viewport.x) / zoom
+  const cy = (editor.stage.h / 2 - editor.viewport.y) / zoom
   const total = boards.reduce((n, b) => n + b.w, 0) + gap * (boards.length - 1)
   let x = cx - total / 2
   for (const b of boards) {

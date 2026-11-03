@@ -475,6 +475,12 @@ Default section order:
   `src/widgets/source/AGENTS.md`); Kobra's interface sounds play on the
   docs, switched off from the header. Docs previews are real product
   surfaces: build real, working tools on them, never mock-ups.
+- The Studio is laid out as an app window (the user's call, after an
+  agent app's desktop window): a title bar, a rail of projects, a sidebar
+  of the project's chats and layers, the canvas in its shell, the
+  properties or the agent docked right. Only the layout was taken: the
+  Studio keeps the look's materials and its mono type (details in
+  `src/pages/AGENTS.md`).
 - The Studio is a PWA (the user's call; the landing and the docs need not
   be): installable on every platform it targets, iOS included, and usable
   offline; a change to the Studio's page, its assets or a large media

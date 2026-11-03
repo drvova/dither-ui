@@ -17,13 +17,12 @@ import {
   type AgentEvent,
   loadAgentConfig,
   loadDraft,
-  loadSession,
   type Mode,
   saveAgentConfig,
   saveDraft,
-  saveSession,
   type Usage,
 } from "@/features/agent/tools"
+import { chats, loadThread, newChat, openProject, saveThread, titleOf } from "@/features/agent/chats"
 import { handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
 import { artboardPng } from "@/features/export-image"
 import { checkpoint, restoreCheckpoint, undo } from "@/features/history"
@@ -41,7 +40,6 @@ import {
   secondsOf,
   sentOf,
   threadBlocks,
-  titleOf,
   todosOf,
   toolEntry,
 } from "./model/thread"
@@ -130,18 +128,29 @@ const checkpoints = new Map<number, string>()
 /** Turns whose changes were kept (or undone): their bar is gone. */
 const settled = ref(new Set<number>())
 
-// Per-project memory: the conversation follows the active project.
+// The conversation is the open chat of the active project (`chats`): it
+// follows the project, and the chat picked in the sidebar.
 let loadedFor = ""
-function restore(projectId: string) {
+let loadedChat = ""
+/** Entries when last kept: more of them means the chat moved. */
+let keptCount = 0
+function restore(projectId: string, chatId: string) {
+  const fresh = loadedChat !== "" && (projectId !== loadedFor || chatId !== loadedChat)
   loadedFor = projectId
-  const s = loadSession<Entry>(projectId)
+  loadedChat = chatId
+  const s = loadThread<Entry>(projectId, chatId)
   entries.value = s?.entries ?? []
   usage.value = s?.usage ?? { input: 0, output: 0 }
   turn.value = Math.max(0, ...entries.value.map((e) => ("turn" in e && e.turn) || 0))
   checkpoints.clear()
   settled.value = new Set(Array.from({ length: turn.value + 1 }, (_, i) => i))
+  keptCount = entries.value.length
+  opened.value = new Map()
   input.value = loadDraft(projectId)
   scrollLog(true)
+  // Another chat is another session with the harness.
+  if (fresh && acp.value?.hello?.agent)
+    acp.value.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
 }
 
 const title = computed(() => titleOf(entries.value))
@@ -190,19 +199,24 @@ function setFold(e: Entry, open: boolean) {
 }
 watch(
   () => activeProjectId.value,
-  (id) => {
-    if (id && id !== loadedFor) restore(id)
+  (id) => id && openProject(id),
+  { immediate: true },
+)
+watch(
+  () => [chats.project, chats.active] as const,
+  ([project, chat]) => {
+    if (project && chat && (project !== loadedFor || chat !== loadedChat)) restore(project, chat)
   },
   { immediate: true },
 )
 watch(
   [entries, usage],
-  () =>
-    loadedFor &&
-    saveSession(loadedFor, {
-      entries: entries.value.filter((e) => e.kind !== "approval" || e.answered !== null),
-      usage: usage.value,
-    }),
+  () => {
+    if (!loadedFor) return
+    const kept = entries.value.filter((e) => e.kind !== "approval" || e.answered !== null)
+    saveThread(loadedFor, loadedChat, { entries: kept, usage: usage.value }, kept.length > keptCount)
+    keptCount = kept.length
+  },
   { deep: true },
 )
 
@@ -614,13 +628,7 @@ async function slash(line: string): Promise<boolean> {
       system("disconnected")
       return true
     case "new":
-      entries.value = []
-      opened.value = new Map()
-      usage.value = { input: 0, output: 0 }
-      turn.value = 0
-      checkpoints.clear()
-      if (acp.value?.hello?.agent)
-        await acp.value.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
+      newChat()
       return true
     case "mode": {
       const client = acp.value
@@ -1013,7 +1021,7 @@ onBeforeUnmount(() => {
       <span class="who" aria-hidden="true"
         ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" /><BrandMark v-else :size="12"
       /></span>
-      <span class="title label" :title="title">{{ title }}</span>
+      <span class="title row-label" :title="title">{{ title }}</span>
       <button type="button" class="head-btn" aria-label="New chat" title="New chat" @click="slash('/new')">
         <DitherIcon name="Edit" :size="13" :stroke-width="1.5" />
       </button>
@@ -1058,7 +1066,7 @@ onBeforeUnmount(() => {
         >
           <summary>
             <span v-if="b.running" class="spin" aria-hidden="true"></span
-            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span class="label">{{
+            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span class="row-label">{{
               runLabel(b.items.map((it) => it.entry))
             }}</span
             ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
@@ -1150,7 +1158,7 @@ onBeforeUnmount(() => {
                 aria-label="Custom harness command"
               />
               <button type="submit" class="key" :disabled="!customCommand.trim()">
-                <span class="label">Start</span>
+                <span class="row-label">Start</span>
               </button>
             </form>
             <button v-if="agent" type="button" class="pop-row text-destructive" @click="acp?.stop()">
@@ -1214,7 +1222,7 @@ onBeforeUnmount(() => {
         <div class="card">
           <div v-if="context.length" class="chips">
             <span v-for="c in context" :key="c.id" class="ctx"
-              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" /><span class="label">{{ c.name }}</span
+              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" /><span class="row-label">{{ c.name }}</span
               ><button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
                 <DitherIcon name="Close" :size="10" :stroke-width="1.5" /></button
             ></span>
@@ -1266,7 +1274,7 @@ onBeforeUnmount(() => {
               @click="togglePicker"
             >
               <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
-              ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="11" /><span class="label">{{
+              ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="11" /><span class="row-label">{{
                 agentName || (acp ? "Pick a harness" : "Harness")
               }}</span
               ><DitherIcon name="ChevronDown" :size="10" :stroke-width="1.5" />
@@ -1278,7 +1286,7 @@ onBeforeUnmount(() => {
               :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
               @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
             >
-              <span class="label">{{ modes.find((m) => m.id === mode)?.name || mode }}</span>
+              <span class="row-label">{{ modes.find((m) => m.id === mode)?.name || mode }}</span>
             </button>
             <button
               type="button"
@@ -1307,12 +1315,13 @@ onBeforeUnmount(() => {
             "
             @click="config.auto = !config.auto"
           >
-            <DitherIcon :name="config.auto ? 'Unlock' : 'Lock'" :size="11" :stroke-width="1.5" /><span class="label">{{
-              config.auto ? "Auto" : "Ask"
-            }}</span>
+            <DitherIcon :name="config.auto ? 'Unlock' : 'Lock'" :size="11" :stroke-width="1.5" /><span
+              class="row-label"
+              >{{ config.auto ? "Auto" : "Ask" }}</span
+            >
           </button>
           <span v-if="hello" class="status-key is-static" :title="hello.cwd"
-            ><DitherIcon name="Folder" :size="11" :stroke-width="1.5" /><span class="label">{{
+            ><DitherIcon name="Folder" :size="11" :stroke-width="1.5" /><span class="row-label">{{
               folderOf(hello.cwd)
             }}</span></span
           >
@@ -1890,23 +1899,6 @@ button.status-key:hover,
   font-size: 10.5px;
   color: var(--color-foreground);
   background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-}
-/* A label on a row: one line, cut short with an ellipsis, and centred on
-   its capitals rather than its face's line box (whose ascent and descent
-   differ from face to face and sit the words high beside a glyph). The
-   padding gives the trimmed box back its ascenders and descenders, evenly,
-   so a cut label never clips them and the centre stays on the capitals. */
-.agent .label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-@supports (text-box: trim-both cap alphabetic) {
-  .agent .label {
-    padding-block: 0.3em;
-    text-box: trim-both cap alphabetic;
-  }
 }
 /* A fold: a summary row that opens what it holds (a thought, a step, a run
    of steps), its chevron turning as it opens. */

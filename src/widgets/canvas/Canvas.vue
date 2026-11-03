@@ -34,8 +34,6 @@ function onDownCapture(e: PointerEvent) {
   if (!(e.target instanceof Element && e.target.closest(".ask"))) held.value = true
 }
 const release = () => (held.value = false)
-/** The canvas's size, so the ask stays on it. */
-const bounds = ref({ w: 0, h: 0 })
 let sized: ResizeObserver | undefined
 function onKeyUp(e: KeyboardEvent) {
   if (e.key === " ") spaceHeld.value = false
@@ -45,8 +43,12 @@ onMounted(() => {
   window.addEventListener("keyup", onKeyUp)
   window.addEventListener("pointerup", release)
   window.addEventListener("pointercancel", release)
+  // Measured now, before the page's own mount runs (a child mounts first),
+  // then kept as the canvas resizes.
+  const rect = host.value?.getBoundingClientRect()
+  if (rect?.width) editor.stage = { w: rect.width, h: rect.height }
   if (host.value && typeof ResizeObserver !== "undefined") {
-    sized = new ResizeObserver(([e]) => (bounds.value = { w: e.contentRect.width, h: e.contentRect.height }))
+    sized = new ResizeObserver(([e]) => (editor.stage = { w: e.contentRect.width, h: e.contentRect.height }))
     sized.observe(host.value)
   }
 })
@@ -156,7 +158,7 @@ function onCanvasDown(e: PointerEvent) {
       </button>
     </div>
 
-    <SelectionAsk :held="held" :bounds="bounds" />
+    <SelectionAsk :held="held" />
 
     <!-- Picking frames for the agent -->
     <div v-if="handoff.picking" class="pick-bar capsule" role="status">

@@ -824,44 +824,61 @@ widgets/features; page-specific conventions live here.
   docs: `font-mono` on the page root (the context menu and the kit's
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
   section labels in sentence case, `.ring-on` pressed states, neutral
-  focus borders, and the look's materials: the floating toolbars, the
-  selection toolbar and the zoom bar are `.capsule`s (their tools
-  machined, 8px),
+  focus borders, and the look's materials: the selection bar and the zoom
+  bar are `.capsule`s (their tools machined, 8px; `widgets/toolbar/tool.css`
+  is the one tool key of both bars),
   the Library key and the empty canvas's "Add an artboard" are the
-  `.key-chrome`, the Layers/Agent/Inspector panels and the dialogs
-  (export, video, shortcuts) are `.hardshell`s (12px cut on panels;
-  nothing in them pops out, the context menu is teleported), the video
+  `.key-chrome`, the canvas, the right column and the dialogs
+  (export, video, shortcuts) are `.hardshell`s (14px cut on the canvas,
+  12px on the column; the canvas recessed as a well; nothing in them pops
+  out, the context menu is teleported), the video
   dialog's download is the `.key-chrome`, and the menus (project, library,
   context menu) are rounded cards with a `.rim`. Every glyph button is a
-  kit icon (undo/redo, layers, properties, agent, theme, close, zoom, fit,
-  replay, menus); the selection actions are a glyph and a sentence-case
-  word (Duplicate, Group, Delete, Evolve, Reel, Data, Code, PNG, Video),
-  the words hidden under 1024px with the name kept. Copy follows the
+  kit icon (the sidebar, undo/redo, properties, agent, theme, close, zoom,
+  fit, replay, menus); the selection actions are a glyph and a
+  sentence-case word (Duplicate, Group, Delete, Evolve, Reel, Data, Code,
+  PNG, Video), the words hidden on a canvas under 900px wide (a container
+  query on the canvas) with the name kept. Copy follows the
   landing's bans: no middle-dot separators, no em dashes, no uppercase label, no eyebrow (the phone notice
   is a plain h1). The artboard SURFACE
   (`[data-artboard-surface]`) stays `font-sans`, the player's font, so
   what is designed on the canvas is what the video export renders.
-- Studio is canvas-first: Toolbar floats over the full-bleed canvas (a
-  `1fr auto 1fr` grid, so the Library key stands at the true centre
-  between the two capsules); Layers,
-  Agent and Inspector are dismissible overlay panels (Layers and Agent share
-  the left slot — opening one folds the other); the searchable Library is the
-  single insertion surface for charts, bespoke widgets, every public kit
-  component, screens, and presets. The selection toolbar's "evolve" places a
-  generation of the primary selection.
+- The Studio is an app window (the user's call, after an agent app's
+  desktop window: its layout taken, our materials and mono kept), one CSS
+  grid in `StudioPage`: the title bar across the top (`Toolbar`, a `1fr
+  auto 1fr` grid: the sidebar key over the rail's tiles and undo/redo on
+  the left, the project and its menu at the window's centre, the Library
+  chrome key, the properties and agent keys and the theme on the right,
+  the last ending on the right column's edge); under it the rail of
+  projects (`ui/StudioSidebar.vue`: the brand home on top, each project
+  its `DitherAvatar`, a new project under them), the project's sidebar
+  (hidden by the sidebar key: the project's name, Add a frame (the
+  Library), New chat, Docs, then its chats newest first with how long ago
+  each moved, `agoOf`, a hover delete, switching held while a turn runs,
+  then its layers; every glyph, label and the tree's chevrons on one
+  left line, a chat's title on the nav rows' text column), the canvas in
+  its shell (the selection bar and the data editor inside it) and the
+  right column: the properties OR the agent (`StudioSide`, one union, the
+  agent's column wider), gone when neither is open. Below 1280px the side
+  columns narrow so the canvas keeps room at the 1024px floor. The
+  searchable Library is the single insertion surface for charts, bespoke
+  widgets, every public kit component, screens, and presets. New frames
+  land at the centre of the canvas as seen (`editor.stage`, which the
+  canvas measures; never the window's size). The selection bar's "evolve"
+  places a generation of the primary selection.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
   Under 1024px the editor gives way to a notice: a still `DitherPoster`,
   why the Studio wants a wide screen and a pointer, the chrome key that
   copies the Studio's own link (to carry to a laptop) and the docs link.
-- The selection toolbar's `video` opens `VideoDialog`
+- The selection bar's `video` opens `VideoDialog`
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
 - The Agent panel (`widgets/agent/AgentPanel.vue`, lazy; ⌘I opens and
   closes it; once opened it stays mounted and closing only hides it, so a
-  turn keeps running, and the toolbar's Agent key carries a dot while the
+  turn keeps running, and the title bar's Agent key carries a dot while the
   panel is closed: breathing while it works, the signal ink while a
   permission prompt waits, still when a turn ended unseen,
   `AgentActivity`) is a CONTROL PLANE for the user's own harness, set as an
@@ -870,6 +887,9 @@ widgets/features; page-specific conventions live here.
   trays over the input, `model/thread.ts` every reading of the thread
   (title, to-dos, a turn's changes, the blocks it draws; one shared set
   of keys, folds, chips and the spinner lives unscoped under `.agent`).
+  It shows the project's open chat (`features/agent/chats.ts`): a new
+  chat, or one picked in the sidebar, restores its thread and starts a
+  new session with the harness.
   The head: who answers (the harness's mark, else
   the brand mark), the chat's title (its first message), a new chat
   (`/new`) and close. An empty chat stands in the middle of the panel: the
@@ -915,10 +935,10 @@ widgets/features; page-specific conventions live here.
   and the settings glyph on one right line, the text beside a 12px glyph
   on one column (12px, then 7px); a key's glyph, not its hover fill, is
   what sits on a line. Across a row, the words centre on their capitals:
-  every one-line label on a row, chip or key is a `.label` span
-  (`AgentPanel.vue`'s shared styles: one line, ellipsis, and where the
-  browser has `text-box`, trimmed to cap height and baseline with even
-  padding back), never bare text in the flex row, whose face's line box
+  every one-line label on a row, chip or key is a `.row-label` span
+  (the site's stylesheet, used by the sidebar too: one line, ellipsis,
+  and where the browser has `text-box`, trimmed to cap height and
+  baseline with even padding back), never bare text in the flex row, whose face's line box
   sits the words high beside a glyph; `tests/agent-panel.spec.ts` finds
   bare words on a row. The stack, top to bottom: after a
   turn that finished on its own and while the field is empty, up to three

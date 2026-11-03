@@ -131,12 +131,6 @@ export function secondsOf(ms: number): string {
 
 const isMessage = (e: Entry) => e.kind === "user" || e.kind === "followup"
 
-/** The chat's title: its first message's first line, else a new chat. */
-export function titleOf(entries: readonly Entry[]): string {
-  const first = entries.find((e) => e.kind === "user")
-  return first && "text" in first ? first.text.split("\n")[0] : "New chat"
-}
-
 /** The latest turn's plan (since the last message), shown as its to-dos. */
 export function todosOf(entries: readonly Entry[]): Todo[] | null {
   for (let i = entries.length - 1; i >= 0 && !isMessage(entries[i]); i--) {

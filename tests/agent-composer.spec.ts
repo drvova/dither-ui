@@ -9,6 +9,7 @@ import { editor } from "@/entities/editor/model/store"
 import { checkpoint, history, redo, resetHistory, restoreCheckpoint, undo } from "@/features/history"
 import { STUDIO_TOOLS } from "@/features/agent/tools"
 import { inline, parseProse } from "@/widgets/agent/model/prose"
+import { titleOf } from "@/features/agent/chats"
 import { askAgent, handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
 import { STEPS, toolStep } from "@/widgets/agent/model/steps"
 import { NEXT_MAX, nextPrompts } from "@/widgets/agent/model/suggest"
@@ -20,7 +21,6 @@ import {
   sentOf,
   STEP_RUN,
   threadBlocks,
-  titleOf,
   todosOf,
   toolEntry,
 } from "@/widgets/agent/model/thread"

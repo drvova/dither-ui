@@ -15,6 +15,7 @@ export {
   moveArtboard,
   moveSelected,
   pasteClipboard,
+  centreOn,
   placeArtboard,
   placeGeneration,
   removeArtboard,

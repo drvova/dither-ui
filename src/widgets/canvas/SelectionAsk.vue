@@ -13,8 +13,6 @@ import { askAgent, handoff } from "@/features/agent/handoff"
 const props = defineProps<{
   /** A pointer is down on the canvas (a drag, a resize, a marquee). */
   held: boolean
-  /** The canvas's size, to keep the line on it. */
-  bounds: { w: number; h: number }
 }>()
 
 const MIN = 240
@@ -36,9 +34,9 @@ const place = computed(() => {
   const bottom = (a.y + a.h) * zoom + y
   const width = Math.min(MAX, Math.max(MIN, a.w * zoom))
   // Under the frame, else above its label, else not at all.
-  const at = bottom + GAP + H <= props.bounds.h ? bottom + GAP : top - 28 - GAP - H >= 0 ? top - 28 - GAP - H : null
-  if (at === null || left + width < 0 || left > props.bounds.w) return null
-  return { left: Math.min(Math.max(8, left), Math.max(8, props.bounds.w - width - 8)), top: at, width }
+  const at = bottom + GAP + H <= editor.stage.h ? bottom + GAP : top - 28 - GAP - H >= 0 ? top - 28 - GAP - H : null
+  if (at === null || left + width < 0 || left > editor.stage.w) return null
+  return { left: Math.min(Math.max(8, left), Math.max(8, editor.stage.w - width - 8)), top: at, width }
 })
 
 const text = ref("")

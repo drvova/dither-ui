@@ -40,7 +40,8 @@ describe("project workspace (sequential story)", () => {
         groups: [],
       }),
     )
-    hydrate()
+    // A kept document is no fresh one: nothing to centre once mounted.
+    expect(hydrate()).toBe(false)
     expect(projects).toHaveLength(1)
     expect(projects[0].name).toBe("My project")
     expect(editor.artboards[0].name).toBe("Legacy chart")
@@ -95,5 +96,11 @@ describe("project workspace (sequential story)", () => {
     expect(editor.artboards).toHaveLength(1)
     expect(editor.artboards[0].x).not.toBe(0)
     expect(editor.artboards[0].y).not.toBe(0)
+  })
+
+  it("says when a first visit got the fresh document, so the page can centre it", () => {
+    localStorage.clear()
+    expect(hydrate()).toBe(true)
+    expect(editor.artboards).toHaveLength(1)
   })
 })

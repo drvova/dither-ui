@@ -194,6 +194,25 @@
     background: color-mix(in oklab, var(--foreground) 8%, transparent);
     clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
   }
+  /* A label on a row beside a glyph (a chip, a key, a list row): one line,
+     cut short with an ellipsis, and centred on its capitals rather than its
+     face's line box (whose ascent and descent differ from face to face and
+     sit the words high beside the glyph). The padding gives the trimmed
+     box back its ascenders and descenders, evenly, so a cut label never
+     clips them and the centre stays on the capitals. Bare words in a flex
+     row cannot be trimmed: they go in one of these. */
+  .row-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @supports (text-box: trim-both cap alphabetic) {
+    .row-label {
+      padding-block: 0.3em;
+      text-box: trim-both cap alphabetic;
+    }
+  }
   /* A hardshell: two opposite corners cut, a chrome-glint hairline that
      follows the cut, its ground the theme's shell material (anodized
      graphite, bone ceramic) lit from the top left. The cut clips what it

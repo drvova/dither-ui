@@ -5,10 +5,8 @@ import {
   callStudioTool,
   loadAgentConfig,
   loadDraft,
-  loadSession,
   saveAgentConfig,
   saveDraft,
-  saveSession,
   STUDIO_TOOLS,
 } from "@/features/agent/tools"
 import type { CommandResult } from "@/features/agent/protocol"
@@ -155,17 +153,6 @@ describe("composer state", () => {
       "command",
       "auto",
     ])
-  })
-
-  it("persists a project's transcript under a cap, dropping the oldest entries first", () => {
-    const big = Array.from({ length: 400 }, (_, i) => ({ kind: "assistant", text: `${i}:${"x".repeat(1000)}` }))
-    saveSession("p1", { entries: big, usage: { input: 1, output: 2 } })
-    const s = loadSession<{ kind: string; text: string }>("p1")
-    expect(s?.usage).toEqual({ input: 1, output: 2 })
-    expect(s?.entries.length).toBeLessThan(400)
-    expect(s?.entries.at(-1)?.text.startsWith("399:")).toBe(true)
-    saveSession("p1", { entries: [], usage: { input: 0, output: 0 } })
-    expect(loadSession("p1")).toBeNull()
   })
 
   it("keeps each project's unsent message, and forgets an empty one", () => {

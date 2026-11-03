@@ -171,7 +171,7 @@ working tool.
 
 ### Studio
 
-![The Studio: an area chart on the canvas, the layer tree and the inspector](.github/readme/studio.webp)
+![The Studio as an app window: the project rail and sidebar with its layers, an area chart on the canvas, the inspector docked right](.github/readme/studio.webp)
 
 A canvas-first editor for every component in the kit:
 

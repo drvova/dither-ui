@@ -45,15 +45,15 @@ watch(
 <template>
   <div v-if="next.length" class="part">
     <button v-for="s in next" :key="s" type="button" class="row is-key" :title="`Send: ${s}`" @click="emit('ask', s)">
-      <DitherIcon name="Sparkles" :size="12" :stroke-width="1.5" /><span class="row-text label">{{ s }}</span
+      <DitherIcon name="Sparkles" :size="12" :stroke-width="1.5" /><span class="row-text row-label">{{ s }}</span
       ><DitherIcon class="go" name="ArrowUp" :size="11" :stroke-width="1.5" />
     </button>
   </div>
   <div v-if="todos?.length" class="part">
     <button type="button" class="head" :aria-expanded="todosOpen" @click="todosChosen = !todosOpen">
       <DitherIcon :name="todosOpen ? 'ChevronDown' : 'ChevronRight'" :size="12" :stroke-width="1.5" />
-      <span class="label">{{ todos.length }} {{ todos.length === 1 ? "to-do" : "to-dos" }}</span>
-      <span class="label dim">{{ done }} of {{ todos.length }} done</span>
+      <span class="row-label">{{ todos.length }} {{ todos.length === 1 ? "to-do" : "to-dos" }}</span>
+      <span class="row-label dim">{{ done }} of {{ todos.length }} done</span>
     </button>
     <ul v-if="todosOpen" class="rows">
       <li v-for="(t, j) in todos" :key="j" class="row" :data-status="t.status">
@@ -62,17 +62,17 @@ watch(
           class="circle"
           aria-hidden="true"
         ></span
-        ><span class="row-text label">{{ t.content }}</span>
+        ><span class="row-text row-label">{{ t.content }}</span>
       </li>
     </ul>
   </div>
   <div v-if="queue.length" class="part">
     <p class="head is-static">
-      <span class="label">{{ queue.length }} in queue</span>
+      <span class="row-label">{{ queue.length }} in queue</span>
     </p>
     <ul class="rows">
       <li v-for="(s, j) in queue" :key="j" class="row">
-        <span class="circle" aria-hidden="true"></span><span class="row-text label" :title="s">{{ s }}</span>
+        <span class="circle" aria-hidden="true"></span><span class="row-text row-label" :title="s">{{ s }}</span>
         <button type="button" class="row-key" :aria-label="`Remove ${s} from the queue`" @click="emit('unqueue', j)">
           <DitherIcon name="Close" :size="11" :stroke-width="1.5" />
         </button>
@@ -81,7 +81,7 @@ watch(
   </div>
   <div v-if="run" class="part run">
     <span class="spin" aria-hidden="true"></span>
-    <span class="label run-time">{{ run.doing }} for {{ run.time }}</span>
+    <span class="row-label run-time">{{ run.doing }} for {{ run.time }}</span>
     <button
       v-if="run.stuck"
       type="button"
@@ -89,29 +89,29 @@ watch(
       title="The harness is not answering the stop: end its process"
       @click="emit('forceStop')"
     >
-      <span class="label">Force stop</span>
+      <span class="row-label">Force stop</span>
     </button>
     <button v-else type="button" class="quiet" title="Stop (esc)" :disabled="run.stopping" @click="emit('stop')">
-      <span class="label">{{ run.stopping ? "Stopping…" : "Stop" }}</span
-      ><kbd v-if="!run.stopping" class="label">esc</kbd>
+      <span class="row-label">{{ run.stopping ? "Stopping…" : "Stop" }}</span
+      ><kbd v-if="!run.stopping" class="row-label">esc</kbd>
     </button>
   </div>
   <div v-else-if="changes" class="part">
     <div class="head is-split">
       <button type="button" class="toggle" :aria-expanded="changesOpen" @click="changesOpen = !changesOpen">
         <DitherIcon :name="changesOpen ? 'ChevronDown' : 'ChevronRight'" :size="12" :stroke-width="1.5" />
-        <span class="label"
+        <span class="row-label"
           >{{ changes.frames.length }} {{ changes.frames.length === 1 ? "frame" : "frames" }} changed</span
         >
       </button>
-      <button type="button" class="key" @click="emit('undo')"><span class="label">Undo all</span></button>
-      <button type="button" class="key is-primary" @click="emit('keep')"><span class="label">Keep</span></button>
+      <button type="button" class="key" @click="emit('undo')"><span class="row-label">Undo all</span></button>
+      <button type="button" class="key is-primary" @click="emit('keep')"><span class="row-label">Keep</span></button>
     </div>
     <ul v-if="changesOpen" class="rows">
       <li v-for="f in changes.frames" :key="f.id" class="row">
-        <DitherIcon name="Layout" :size="12" :stroke-width="1.5" /><span class="row-text label">{{ f.name }}</span>
+        <DitherIcon name="Layout" :size="12" :stroke-width="1.5" /><span class="row-text row-label">{{ f.name }}</span>
         <button v-if="shown(f.id)" type="button" class="row-key is-word" @click="emit('show', f.id)">
-          <span class="label">Show</span>
+          <span class="row-label">Show</span>
         </button>
       </li>
     </ul>

@@ -355,23 +355,6 @@ export function loadAgentConfig(): AgentConfig {
 
 export const saveAgentConfig = (c: AgentConfig): void => writeJson(CONFIG_KEY, c)
 
-const SESSION_PREFIX = "dither-agent-session-"
-const SESSION_CAP = 160_000
-
-export type AgentSession<E> = { entries: E[]; usage: Usage }
-
-const count = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : 0)
-
-/** A project's conversation survives reloads (capped; oldest entries go
- * first). Read back, an entry is kept only as an object with a `kind`, and
- * the token counts are numbers. */
-export function loadSession<E>(projectId: string): AgentSession<E> | null {
-  const d = readJson(SESSION_PREFIX + projectId) as { entries?: unknown; usage?: Partial<Usage> } | null
-  if (!d || !Array.isArray(d.entries)) return null
-  const entries = d.entries.filter((e) => !!e && typeof e === "object" && typeof e.kind === "string") as E[]
-  return { entries, usage: { input: count(d.usage?.input), output: count(d.usage?.output) } }
-}
-
 const DRAFT_PREFIX = "dither-agent-draft-"
 
 /** A project's unsent message, kept while the panel is closed or the page
@@ -382,15 +365,4 @@ export function loadDraft(projectId: string): string {
 export function saveDraft(projectId: string, text: string): void {
   if (text.trim()) storage.set(DRAFT_PREFIX + projectId, text.slice(0, 20_000))
   else storage.remove(DRAFT_PREFIX + projectId)
-}
-
-export function saveSession<E>(projectId: string, s: AgentSession<E>): void {
-  if (!s.entries.length) return storage.remove(SESSION_PREFIX + projectId)
-  const entries = [...s.entries]
-  let json = JSON.stringify({ ...s, entries })
-  while (json.length > SESSION_CAP && entries.length) {
-    entries.shift()
-    json = JSON.stringify({ ...s, entries })
-  }
-  storage.set(SESSION_PREFIX + projectId, json)
 }
