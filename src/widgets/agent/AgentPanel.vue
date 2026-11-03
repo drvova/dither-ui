@@ -1013,7 +1013,7 @@ onBeforeUnmount(() => {
       <span class="who" aria-hidden="true"
         ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" /><BrandMark v-else :size="12"
       /></span>
-      <span class="title" :title="title">{{ title }}</span>
+      <span class="title label" :title="title">{{ title }}</span>
       <button type="button" class="head-btn" aria-label="New chat" title="New chat" @click="slash('/new')">
         <DitherIcon name="Edit" :size="13" :stroke-width="1.5" />
       </button>
@@ -1058,7 +1058,7 @@ onBeforeUnmount(() => {
         >
           <summary>
             <span v-if="b.running" class="spin" aria-hidden="true"></span
-            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span>{{
+            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span class="label">{{
               runLabel(b.items.map((it) => it.entry))
             }}</span
             ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
@@ -1149,7 +1149,9 @@ onBeforeUnmount(() => {
                 spellcheck="false"
                 aria-label="Custom harness command"
               />
-              <button type="submit" class="key" :disabled="!customCommand.trim()">Start</button>
+              <button type="submit" class="key" :disabled="!customCommand.trim()">
+                <span class="label">Start</span>
+              </button>
             </form>
             <button v-if="agent" type="button" class="pop-row text-destructive" @click="acp?.stop()">
               <span class="pop-name">Stop {{ agent.name }}</span>
@@ -1212,8 +1214,8 @@ onBeforeUnmount(() => {
         <div class="card">
           <div v-if="context.length" class="chips">
             <span v-for="c in context" :key="c.id" class="ctx"
-              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ c.name
-              }}<button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
+              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" /><span class="label">{{ c.name }}</span
+              ><button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
                 <DitherIcon name="Close" :size="10" :stroke-width="1.5" /></button
             ></span>
           </div>
@@ -1264,7 +1266,7 @@ onBeforeUnmount(() => {
               @click="togglePicker"
             >
               <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
-              ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="11" /><span class="pill-name">{{
+              ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="11" /><span class="label">{{
                 agentName || (acp ? "Pick a harness" : "Harness")
               }}</span
               ><DitherIcon name="ChevronDown" :size="10" :stroke-width="1.5" />
@@ -1276,7 +1278,7 @@ onBeforeUnmount(() => {
               :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
               @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
             >
-              <span class="pill-name">{{ modes.find((m) => m.id === mode)?.name || mode }}</span>
+              <span class="label">{{ modes.find((m) => m.id === mode)?.name || mode }}</span>
             </button>
             <button
               type="button"
@@ -1305,12 +1307,12 @@ onBeforeUnmount(() => {
             "
             @click="config.auto = !config.auto"
           >
-            <DitherIcon :name="config.auto ? 'Unlock' : 'Lock'" :size="11" :stroke-width="1.5" />{{
+            <DitherIcon :name="config.auto ? 'Unlock' : 'Lock'" :size="11" :stroke-width="1.5" /><span class="label">{{
               config.auto ? "Auto" : "Ask"
-            }}
+            }}</span>
           </button>
           <span v-if="hello" class="status-key is-static" :title="hello.cwd"
-            ><DitherIcon name="Folder" :size="11" :stroke-width="1.5" /><span class="status-name">{{
+            ><DitherIcon name="Folder" :size="11" :stroke-width="1.5" /><span class="label">{{
               folderOf(hello.cwd)
             }}</span></span
           >
@@ -1370,11 +1372,7 @@ onBeforeUnmount(() => {
   background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
 }
 .title {
-  min-width: 0;
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-size: 11.5px;
   color: var(--color-foreground);
 }
@@ -1620,12 +1618,6 @@ onBeforeUnmount(() => {
   color: var(--color-foreground);
   background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
 }
-.pill-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 /* Its keys' glyphs (6px into each key) on the composer's line. */
 .status {
   display: flex;
@@ -1665,11 +1657,6 @@ button.status-key:hover,
 }
 .status-key.is-icon[aria-pressed="true"] {
   background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
-}
-.status-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .led {
   width: 6px;
@@ -1826,6 +1813,10 @@ button.status-key:hover,
 }
 /* Keys: machined, filled, the primary one in ink. */
 .agent .key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   min-height: 1.5rem;
   border-radius: 7px;
   padding-inline: 9px;
@@ -1894,14 +1885,28 @@ button.status-key:hover,
   gap: 4px;
   max-width: 100%;
   min-height: 1.5rem;
-  overflow: hidden;
   border-radius: 6px;
   padding-inline: 4px 6px;
   font-size: 10.5px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   color: var(--color-foreground);
   background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+/* A label on a row: one line, cut short with an ellipsis, and centred on
+   its capitals rather than its face's line box (whose ascent and descent
+   differ from face to face and sit the words high beside a glyph). The
+   padding gives the trimmed box back its ascenders and descenders, evenly,
+   so a cut label never clips them and the centre stays on the capitals. */
+.agent .label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@supports (text-box: trim-both cap alphabetic) {
+  .agent .label {
+    padding-block: 0.3em;
+    text-box: trim-both cap alphabetic;
+  }
 }
 /* A fold: a summary row that opens what it holds (a thought, a step, a run
    of steps), its chevron turning as it opens. */

@@ -914,7 +914,13 @@ widgets/features; page-specific conventions live here.
   edge and the placeholder on one left line and every key, the send key
   and the settings glyph on one right line, the text beside a 12px glyph
   on one column (12px, then 7px); a key's glyph, not its hover fill, is
-  what sits on a line. The stack, top to bottom: after a
+  what sits on a line. Across a row, the words centre on their capitals:
+  every one-line label on a row, chip or key is a `.label` span
+  (`AgentPanel.vue`'s shared styles: one line, ellipsis, and where the
+  browser has `text-box`, trimmed to cap height and baseline with even
+  padding back), never bare text in the flex row, whose face's line box
+  sits the words high beside a glyph; `tests/agent-panel.spec.ts` finds
+  bare words on a row. The stack, top to bottom: after a
   turn that finished on its own and while the field is empty, up to three
   next prompts (`model/suggest.ts` `nextPrompts`, from the frames the turn
   changed, else the frames in hand: evolve, show the code, export a video,

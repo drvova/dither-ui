@@ -62,7 +62,10 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
           :key="c.id"
           class="ctx"
           :title="entry.pictured ? `${c.name}, sent with a picture` : c.name"
-          ><DitherIcon :name="entry.pictured ? 'Image' : 'Layout'" :size="11" :stroke-width="1.5" />{{ c.name }}</span
+          ><DitherIcon :name="entry.pictured ? 'Image' : 'Layout'" :size="11" :stroke-width="1.5" /><span
+            class="label"
+            >{{ c.name }}</span
+          ></span
         >
       </div>
       <p class="msg-text" :data-folded="long && !unfolded ? 'true' : undefined">{{ entry.text }}</p>
@@ -88,7 +91,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   <details v-else-if="entry.kind === 'thought'" class="thought fold" :open="entry.open" @toggle="toggled">
     <summary>
       <span v-if="live" class="spin" aria-hidden="true"></span
-      ><DitherIcon v-else name="Sparkles" :size="12" :stroke-width="1.5" /><span>{{
+      ><DitherIcon v-else name="Sparkles" :size="12" :stroke-width="1.5" /><span class="label">{{
         live ? "Thinking" : entry.ms ? `Thought for ${secondsOf(entry.ms)}` : "Thought"
       }}</span
       ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
@@ -103,7 +106,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
     @toggle="toggled"
   >
     <summary :title="entry.summary">
-      <DitherIcon :name="entry.icon ?? 'Terminal'" :size="12" :stroke-width="1.5" /><span class="step-title">{{
+      <DitherIcon :name="entry.icon ?? 'Terminal'" :size="12" :stroke-width="1.5" /><span class="label">{{
         entry.title || entry.name
       }}</span
       ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
@@ -117,7 +120,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
       :name="entry.status === 'failed' ? 'XCircle' : 'CheckCircle'"
       :size="12"
       :stroke-width="1.5"
-    /><span class="step-title">{{ entry.title }}</span>
+    /><span class="label">{{ entry.title }}</span>
   </div>
   <div v-else-if="entry.kind === 'approval'" class="approval" :data-answered="String(entry.answered !== null)">
     <p class="approval-title"><DitherIcon name="AlertTriangle" :size="12" :stroke-width="1.5" />{{ entry.title }}</p>
@@ -132,7 +135,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
         @click="emit('answer', o.id)"
       >
         <span v-if="numbered && n < 9" class="num" aria-hidden="true">{{ n + 1 }}</span
-        >{{ o.label }}
+        ><span class="label">{{ o.label }}</span>
       </button>
     </div>
     <p v-else class="note">Answered {{ entry.answered }}</p>
@@ -143,14 +146,16 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
         :name="entry.end === 'stopped' ? 'Pause' : entry.end === 'failed' ? 'AlertCircle' : 'Clock'"
         :size="11"
         :stroke-width="1.5"
-      />{{ entry.end === "stopped" ? "Stopped after" : entry.end === "failed" ? "Failed after" : "Worked for" }}
-      {{ secondsOf(entry.ms) }}
+      /><span class="label"
+        >{{ entry.end === "stopped" ? "Stopped after" : entry.end === "failed" ? "Failed after" : "Worked for" }}
+        {{ secondsOf(entry.ms) }}</span
+      >
     </p>
     <button v-if="latest && entry.end === 'stopped'" type="button" class="key" @click="emit('continue')">
-      <DitherIcon name="Play" :size="11" :stroke-width="1.5" />Continue
+      <DitherIcon name="Play" :size="11" :stroke-width="1.5" /><span class="label">Continue</span>
     </button>
     <button v-else-if="latest && entry.end === 'failed'" type="button" class="key" @click="emit('again')">
-      <DitherIcon name="Refresh" :size="11" :stroke-width="1.5" />Try again
+      <DitherIcon name="Refresh" :size="11" :stroke-width="1.5" /><span class="label">Try again</span>
     </button>
   </div>
   <p v-else-if="entry.kind === 'error'" class="line-error">{{ entry.text }}</p>
@@ -252,12 +257,6 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   font-size: 11.5px;
   color: var(--color-muted-foreground);
 }
-.step-title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .step[data-ok="false"],
 .activity[data-status="failed"] {
   color: var(--color-destructive);
@@ -355,12 +354,6 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
 }
 .worked[data-end="failed"] p {
   color: var(--color-destructive);
-}
-.worked .key,
-.choices .key {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 .num {
   display: grid;

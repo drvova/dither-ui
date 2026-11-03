@@ -97,6 +97,33 @@ describe("the agent panel", () => {
     w.unmount()
   })
 
+  it("sets the words on every row as a label, so they centre on their capitals beside a glyph", async () => {
+    const frame = createArtboard("button")
+    editor.artboards = [frame]
+    handoff.picked.push(frame.id)
+    saveSession("p1", {
+      entries: [
+        { kind: "user", text: "A sign-in screen", turn: 1, context: [{ id: frame.id, name: "Sign in" }] },
+        { kind: "thought", text: "A form", ms: 2000 },
+        { kind: "activity", id: "a", title: "Read the registry", status: "completed" },
+        { kind: "worked", ms: 3000, end: "stopped" },
+      ],
+      usage: { input: 0, output: 0 },
+    })
+    const w = mount(AgentPanel, { attachTo: document.body })
+    await nextTick()
+    const rows = [...w.element.querySelectorAll(".ctx, .status-key, .pill, .key, .row-key, summary, .worked p")]
+    expect(rows.length).toBeGreaterThan(6)
+    // Bare words on a row sit on their face's line box, high beside a glyph.
+    const bare = rows.flatMap((row) =>
+      [...row.childNodes]
+        .filter((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())
+        .map(() => row.outerHTML),
+    )
+    expect(bare).toEqual([])
+    w.unmount()
+  })
+
   it("takes a message asked at the selection off the canvas's queue", async () => {
     askAgent("make it dark", ["f1"])
     const w = mount(AgentPanel, { attachTo: document.body })
