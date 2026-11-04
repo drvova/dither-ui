@@ -12,6 +12,7 @@ import {
   activeProjectName,
   createProject,
   deleteProject,
+  deleteWarning,
   exportDocument,
   importDocument,
   projects,
@@ -424,7 +425,7 @@ async function openFile(e: Event) {
     <DitherAlertDialog
       :open="confirmDelete"
       title="Delete project?"
-      :description="`“${activeProjectName()}” and its artboards will be removed. This cannot be undone.`"
+      :description="deleteWarning(activeProjectId.value)"
       confirm-label="Delete"
       danger
       @confirm="doDelete"

@@ -143,6 +143,12 @@ onBeforeUnmount(() => window.removeEventListener("pointerdown", onDown, true))
 .item.is-danger {
   color: var(--color-destructive);
 }
+/* No hover on a touch screen: the key stays in sight. */
+@media (hover: none) {
+  .more {
+    opacity: 1;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .more {
     transition: none;

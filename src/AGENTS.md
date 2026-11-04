@@ -28,7 +28,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave,
   projects created, switched, renamed, duplicated (`duplicateProject`:
-  the work, not the chats, opened beside the original) and deleted),
+  the work, not the chats, opened beside the original) and deleted (the
+  last one's place taken by a new project under a new name; the page
+  then forgets its chats, `forgetProject`)),
   export-code, export-image, export-video (a frame as a HyperFrames
   composition: builder, dialog, delivery for the agent path; a film's score
   as its audio track), reel (the reel's and the film's pure timeline, the
@@ -270,7 +272,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     empty one gives that back), `pinChat`, `chatGroups` (Pinned, Today,
     Yesterday, This week, Earlier, empty ones dropped), `stepChat` (the
     chat before or after in that order), `chatsOf` (another project's,
-    for search); `saveThread`/`loadThread` keep each chat's thread
+    for search), `forgetProject` (a deleted project's index, threads and
+    drafts); `saveThread`/`loadThread` keep each chat's thread
     (`dither-agent-session-<projectId>/<chatId>`, entries + usage, capped
     at 160k chars by dropping the oldest entries) and its place in the
     index (`dither-agent-chats-<projectId>`; moved to the top when

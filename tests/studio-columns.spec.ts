@@ -4,6 +4,7 @@
 import { shallowMount } from "@vue/test-utils"
 import { nextTick } from "vue"
 import { afterEach, describe, expect, it, rs } from "rstack/test"
+import { createProject, deleteProject, projects } from "@/features/persistence"
 import StudioPage from "@/pages/studio/StudioPage.vue"
 
 const at = (width: number) =>
@@ -50,6 +51,21 @@ describe("the Studio's side columns", () => {
     await nextTick()
     await nextTick()
     expect(state()).toEqual({ chat: true, panel: true })
+    w.unmount()
+  })
+})
+
+describe("deleting a project in the Studio", () => {
+  it("takes the project's chats with it", async () => {
+    const { w } = await page(1440)
+    createProject("Doomed")
+    const id = projects[projects.length - 1].id
+    localStorage.setItem(`dither-agent-chats-${id}`, "[]")
+    localStorage.setItem(`dither-agent-session-${id}/c1`, "{}")
+    await nextTick()
+    deleteProject(id)
+    await nextTick()
+    expect(Object.keys(localStorage).filter((k) => k.includes(id))).toEqual([])
     w.unmount()
   })
 })

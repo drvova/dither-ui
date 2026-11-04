@@ -896,8 +896,9 @@ widgets/features; page-specific conventions live here.
   the sidebar key or ⌘B: New chat, Search with its ⌘K hint, Add a frame
   (the Library); Projects, a plus for a new one, each project a row with
   its `DitherAvatar` and a row menu (`ui/RowMenu.vue`, a real menu:
-  Rename, Duplicate, Delete project behind a confirm; a double-click
-  renames in place); the open project unfolds into its chats grouped
+  Rename, Duplicate, Delete project behind a confirm whose words come
+  from `deleteWarning`, the title bar's too; a double-click renames in
+  place; the key shows on hover or focus, always where there is no hover); the open project unfolds into its chats grouped
   Pinned, Today, Yesterday, This week, Earlier (`chatGroups`), each with
   how long ago it moved and a row menu (Rename, Pin or Unpin, Delete
   chat); switching held while a turn runs; then the tools your agent

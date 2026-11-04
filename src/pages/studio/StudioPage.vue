@@ -3,12 +3,12 @@ import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, r
 import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
 import { addArtboard, editor, frame, stopInspecting } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
-import { openProject, stepChat } from "@/features/agent/chats"
+import { forgetProject, openProject, stepChat } from "@/features/agent/chats"
 import { askAgent, handoff } from "@/features/agent/handoff"
 import type { AgentActivity } from "@/features/agent/tools"
 import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
-import { activeProjectId, hydrate, importDocument, startAutosave, stopAutosave } from "@/features/persistence"
+import { activeProjectId, hydrate, importDocument, projects, startAutosave, stopAutosave } from "@/features/persistence"
 import { Canvas } from "@/widgets/canvas"
 import { DataEditor } from "@/widgets/data-editor"
 import { CanvasBar, Toolbar } from "@/widgets/toolbar"
@@ -44,6 +44,14 @@ watch(panelOpen, (v) => writeJson(PANEL_KEY, v))
 watch(
   () => activeProjectId.value,
   (id) => id && openProject(id),
+)
+// A project deleted here (from the sidebar, the title bar or the agent)
+// takes its chats with it.
+watch(
+  () => projects.map((p) => p.id),
+  (now, was) => {
+    for (const id of was) if (!now.includes(id)) forgetProject(id)
+  },
 )
 // The chat stays mounted: hiding its column keeps a turn running, and its
 // key on the title bar says what the agent is doing.

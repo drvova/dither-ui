@@ -17,6 +17,7 @@ import {
   activeProjectId,
   createProject,
   deleteProject,
+  deleteWarning,
   duplicateProject,
   projects,
   renameProject,
@@ -263,7 +264,7 @@ const chatActions = (c: ChatMeta): RowAction[] => [
     <DitherAlertDialog
       :open="!!doomed"
       title="Delete project?"
-      :description="`“${doomed?.name ?? ''}” and its frames will be removed. This cannot be undone.`"
+      :description="doomed ? deleteWarning(doomed.id) : ''"
       confirm-label="Delete"
       danger
       @confirm="confirmDelete"

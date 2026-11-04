@@ -5,6 +5,7 @@ import {
   activeProjectId,
   createProject,
   deleteProject,
+  deleteWarning,
   duplicateProject,
   hydrate,
   projects,
@@ -102,10 +103,15 @@ describe("project workspace (sequential story)", () => {
     expect(editor.artboards[0].name).toBe("Legacy chart")
   })
 
-  it("deleting the last project recreates a fresh default workspace", () => {
-    deleteProject(projects[0].id)
+  it("deleting the last project puts a new one, named anew, in its place", () => {
+    const [last] = projects
+    expect(deleteWarning(last.id)).toContain("It is your only project, so a new one takes its place.")
+    deleteProject(last.id)
     expect(projects).toHaveLength(1)
-    expect(projects[0].name).toBe("My project")
+    // The delete reads as one: neither the id nor the name comes back.
+    expect(projects[0].id).not.toBe(last.id)
+    expect(projects[0].name).not.toBe(last.name)
+    expect(deleteWarning(projects[0].id)).toMatch(/^“Project 1”, its frames and its chats will be removed/)
     expect(editor.artboards).toHaveLength(1)
     expect(editor.artboards[0].x).not.toBe(0)
     expect(editor.artboards[0].y).not.toBe(0)

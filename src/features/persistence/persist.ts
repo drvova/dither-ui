@@ -216,12 +216,21 @@ export function deleteProject(id: string): void {
       activeProjectId.value = "" // force the switch through
       switchProject(projects[0].id)
     } else {
+      // The last project gone, a new one takes its place under a name of
+      // its own, so the delete reads as one.
       activeProjectId.value = ""
-      createProject("My project")
+      createProject("")
     }
   } else {
     saveIndex()
   }
+}
+
+/** What deleting a project takes, as both of its confirms say it. */
+export function deleteWarning(id: string): string {
+  const name = projects.find((p) => p.id === id)?.name ?? ""
+  const last = projects.length === 1 ? " It is your only project, so a new one takes its place." : ""
+  return `“${name}”, its frames and its chats will be removed. This cannot be undone.${last}`
 }
 
 export const activeProjectName = (): string =>
