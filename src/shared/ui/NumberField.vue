@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { breakable } from "@/shared/lib"
 const props = defineProps<{
   label: string
   modelValue: number
@@ -20,7 +21,7 @@ function onInput(e: Event) {
 
 <template>
   <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-    <span class="w-11 shrink-0 whitespace-nowrap">{{ label }}</span>
+    <span class="prop-name">{{ breakable(label) }}</span>
     <span class="relative flex-1">
       <input
         type="number"

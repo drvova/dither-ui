@@ -89,6 +89,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (`tests/long-press.spec.ts`) — `files.ts` —
   `download()` and a stored .zip of text files, the ONE download path for
   the Studio's exports, the workbench and the source panel —
+  `words.ts` — `breakable`, a camelCase name with a break point at each
+  hump, for display only (the inspector's names) —
   `restyle.ts` — a snippet in the reader's styling system — and the
   node-side `utility-map.ts` that compiles its vocabulary and
   `stylex-layer.ts` that writes the kit's StyleX layer from its Tailwind
@@ -497,6 +499,16 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   is `touch-none` and the Studio installs the long press for its menus;
   keys shown on hover show on a screen without hover
   (`[@media(hover:none)]`).
+- The inspector's names (and the shared fields' it uses: NumberField,
+  Segmented, Toggle, BloomField, TextureField) stand in ONE column,
+  `.prop-name` (`--prop-name`, 5.5rem, `app/styles.css`, unlayered), so
+  every control in the panel starts on one line; a long camelCase name
+  breaks at its humps (`breakable`), never under its control. Paired
+  fields sit on `.prop-pairs` (the first of a pair on the name column, the
+  second a name its own width, by subgrid); a field with a unit takes its
+  own row (a pair's half is too narrow for one); a row indented under a
+  name indents by `--prop-name` and the gap. No name keeps a width of its
+  own: `tests/inspector-names.spec.ts`.
 - Layer tree is a `listbox`: every row type is a focusable `role="option"`
   with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
   don't retrigger), ↑/↓ move focus and MUST stopPropagation — the same keys

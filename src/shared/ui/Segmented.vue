@@ -1,4 +1,5 @@
 <script setup lang="ts" generic="T extends string | number">
+import { breakable } from "@/shared/lib"
 // `labels` names an option where its value is not how a reader writes it
 // (a styling system's proper name); unnamed options show their value.
 defineProps<{
@@ -12,7 +13,7 @@ const emit = defineEmits<{ "update:modelValue": [T] }>()
 
 <template>
   <div class="flex items-center gap-2">
-    <span v-if="label" class="w-14 shrink-0 whitespace-nowrap text-[11px] text-muted-foreground">{{ label }}</span>
+    <span v-if="label" class="prop-name text-[11px] text-muted-foreground">{{ breakable(label) }}</span>
     <div class="flex flex-1 flex-wrap rounded-md border border-border bg-background/60 p-0.5">
       <button
         v-for="opt in options"

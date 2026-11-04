@@ -2,7 +2,7 @@
 import { computed } from "vue"
 import type { ComponentEntry, PropSpec } from "@/entities/widget"
 import { colorToHex } from "@dither-kit"
-import { safeUrl } from "@/shared/lib"
+import { breakable, safeUrl } from "@/shared/lib"
 import { ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
 
 /** Spec-driven prop controls for a registry component — shared between the
@@ -39,7 +39,7 @@ const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c)
 <template>
   <div class="flex flex-col gap-3">
     <label v-if="target.slotText != null" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-      <span class="w-14 shrink-0">text</span>
+      <span class="prop-name">text</span>
       <input
         :value="target.slotText"
         type="text"
@@ -54,7 +54,7 @@ const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c)
         v-if="spec.kind === 'text' || spec.kind === 'url'"
         class="flex items-center gap-2 text-[11px] text-muted-foreground"
       >
-        <span class="w-14 shrink-0">{{ spec.key }}</span>
+        <span class="prop-name">{{ breakable(spec.key) }}</span>
         <input
           :value="target.props[spec.key] as string"
           :type="spec.kind === 'url' ? 'url' : 'text'"
@@ -65,7 +65,7 @@ const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c)
         />
       </label>
       <label v-else-if="spec.kind === 'list'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span class="w-14 shrink-0">{{ spec.key }}</span>
+        <span class="prop-name">{{ breakable(spec.key) }}</span>
         <input
           :value="listText(target.props[spec.key])"
           type="text"
@@ -93,7 +93,7 @@ const asFieldColor = (c: unknown) => (typeof c === "number" ? colorToHex(c) : c)
         @update:model-value="setProp(spec.key, $event)"
       />
       <div v-else-if="spec.kind === 'color'" class="text-[11px] text-muted-foreground">
-        <span class="mb-1 block">{{ spec.key }}</span>
+        <span class="mb-1 block">{{ breakable(spec.key) }}</span>
         <ColorField
           :model-value="asFieldColor(target.props[spec.key])"
           @update:model-value="setProp(spec.key, $event)"

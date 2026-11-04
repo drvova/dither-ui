@@ -48,7 +48,7 @@ const SLIDERS = [
     <Segmented :model-value="choice" :options="CHOICES" label="bloom" @update:model-value="setChoice" />
     <template v-if="choice === 'custom'">
       <label v-for="s in SLIDERS" :key="s.key" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span class="w-14 shrink-0">{{ s.label }}</span>
+        <span class="prop-name">{{ s.label }}</span>
         <input
           type="range"
           :name="`bloom-${s.key}`"

@@ -261,7 +261,7 @@ function setPieVariant(v: VariantInput) {
       <!-- ROOT / FRAME -->
       <template v-if="kind === 'root'">
         <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span class="w-14 shrink-0">name</span>
+          <span class="prop-name">name</span>
           <input
             v-model="ab.name"
             type="text"
@@ -270,7 +270,7 @@ function setPieVariant(v: VariantInput) {
             class="w-full rounded-md border border-edge bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
           />
         </label>
-        <div class="grid grid-cols-2 gap-2">
+        <div class="prop-pairs">
           <NumberField v-model="ab.x" label="X" />
           <NumberField v-model="ab.y" label="Y" />
           <NumberField v-model="ab.w" label="W" :min="260" />
@@ -299,7 +299,7 @@ function setPieVariant(v: VariantInput) {
           <BloomField v-model="chart.bloom" />
           <Segmented v-if="fam === 'cartesian'" v-model="chart.stackType" :options="STACKS" label="stack" />
           <label v-if="chart.type === 'pie'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span class="w-14 shrink-0">radius</span>
+            <span class="prop-name">radius</span>
             <input
               v-model.number="chart.innerRadius"
               type="range"
@@ -312,7 +312,7 @@ function setPieVariant(v: VariantInput) {
             <span class="w-8 tabular-nums text-foreground">{{ chart.innerRadius.toFixed(2) }}</span>
           </label>
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span class="w-14 shrink-0">pixel</span>
+            <span class="prop-name">pixel</span>
             <input
               v-model.number="chart.cell"
               type="range"
@@ -326,7 +326,7 @@ function setPieVariant(v: VariantInput) {
           </label>
           <template v-if="chart.type === 'bar'">
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">bar gap</span>
+              <span class="prop-name">bar gap</span>
               <input
                 v-model.number="chart.barGap"
                 type="range"
@@ -339,7 +339,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ chart.barGap.toFixed(2) }}</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">edge</span>
+              <span class="prop-name">edge</span>
               <input
                 v-model.number="chart.barEdge"
                 type="range"
@@ -353,7 +353,7 @@ function setPieVariant(v: VariantInput) {
             </label>
           </template>
           <label v-if="chart.type === 'line'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span class="w-14 shrink-0">glow</span>
+            <span class="prop-name">glow</span>
             <input
               v-model.number="chart.glowSize"
               type="range"
@@ -367,7 +367,7 @@ function setPieVariant(v: VariantInput) {
           </label>
           <template v-if="chart.type === 'pie'">
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">pop</span>
+              <span class="prop-name">pop</span>
               <input
                 v-model.number="chart.popOut"
                 type="range"
@@ -380,7 +380,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ chart.popOut }}px</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">rim</span>
+              <span class="prop-name">rim</span>
               <input
                 v-model.number="chart.rimWidth"
                 type="range"
@@ -395,7 +395,7 @@ function setPieVariant(v: VariantInput) {
           </template>
           <template v-if="chart.type === 'radar'">
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">falloff</span>
+              <span class="prop-name">falloff</span>
               <input
                 v-model.number="chart.falloff"
                 type="range"
@@ -410,7 +410,7 @@ function setPieVariant(v: VariantInput) {
             <NumberField v-model="chart.radarRings" label="rings" :min="1" :max="10" />
           </template>
           <label v-if="chart.type === 'pie'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span class="w-14 shrink-0">start</span>
+            <span class="prop-name">start</span>
             <input
               v-model.number="chart.startAngle"
               type="range"
@@ -423,7 +423,7 @@ function setPieVariant(v: VariantInput) {
             <span class="w-8 tabular-nums text-foreground">{{ chart.startAngle }}°</span>
           </label>
           <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span class="w-14 shrink-0">dim</span>
+            <span class="prop-name">dim</span>
             <input
               v-model.number="chart.dimOpacity"
               type="range"
@@ -436,7 +436,7 @@ function setPieVariant(v: VariantInput) {
             <span class="w-8 tabular-nums text-foreground">{{ chart.dimOpacity.toFixed(2) }}</span>
           </label>
           <label v-if="chart.hoverLift" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span class="w-14 shrink-0">hover</span>
+            <span class="prop-name">hover</span>
             <input
               v-model.number="chart.hoverStrength"
               type="range"
@@ -456,10 +456,9 @@ function setPieVariant(v: VariantInput) {
 
         <section v-if="!ab.widget" class="flex flex-col gap-3">
           <p class="micro text-muted-foreground">Animation</p>
-          <div class="grid grid-cols-2 gap-2">
-            <NumberField v-model="chart.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
-            <NumberField v-model="chart.animationDelay" label="delay" unit="ms" :min="0" :max="4000" :step="50" />
-          </div>
+          <!-- A field with a unit takes a row: a pair's half is too narrow for "4000 ms". -->
+          <NumberField v-model="chart.animationDuration" label="time" unit="ms" :min="0" :max="4000" :step="50" />
+          <NumberField v-model="chart.animationDelay" label="delay" unit="ms" :min="0" :max="4000" :step="50" />
           <Segmented
             :model-value="easingChoice"
             :options="EASING_CHOICES"
@@ -472,7 +471,7 @@ function setPieVariant(v: VariantInput) {
             @update:model-value="chart.easing = [$event[0], $event[1], $event[2], $event[3]]"
           />
           <label v-if="chart.type === 'bar'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span class="w-14 shrink-0">stagger</span>
+            <span class="prop-name">stagger</span>
             <input
               v-model.number="chart.stagger"
               type="range"
@@ -491,7 +490,7 @@ function setPieVariant(v: VariantInput) {
           </div>
           <template v-if="(chart.type === 'area' || chart.type === 'line') && chart.sparkles">
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">stars</span>
+              <span class="prop-name">stars</span>
               <input
                 v-model.number="chart.sparkleDensity"
                 type="range"
@@ -504,7 +503,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ chart.sparkleDensity.toFixed(1) }}×</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">wink</span>
+              <span class="prop-name">wink</span>
               <input
                 v-model.number="chart.sparkleSpeed"
                 type="range"
@@ -538,7 +537,7 @@ function setPieVariant(v: VariantInput) {
             One integer derives texture, motion, geometry and glow. Explicit controls above always win.
           </p>
           <div class="flex items-center gap-2">
-            <span class="w-14 shrink-0 text-[11px] text-muted-foreground">master</span>
+            <span class="prop-name text-[11px] text-muted-foreground">master</span>
             <button
               type="button"
               class="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
@@ -557,7 +556,7 @@ function setPieVariant(v: VariantInput) {
             </button>
           </div>
           <div v-if="chart.type === 'area' || chart.type === 'line'" class="flex items-center gap-2">
-            <span class="w-14 shrink-0 text-[11px] text-muted-foreground">motion</span>
+            <span class="prop-name text-[11px] text-muted-foreground">motion</span>
             <button
               type="button"
               class="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
@@ -579,7 +578,7 @@ function setPieVariant(v: VariantInput) {
 
         <section v-if="!ab.widget && fam === 'cartesian'">
           <p class="mb-2 micro text-muted-foreground">Margins</p>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="prop-pairs">
             <NumberField v-model="chart.margins.top" label="top" :min="0" />
             <NumberField v-model="chart.margins.right" label="right" :min="0" />
             <NumberField v-model="chart.margins.bottom" label="bottom" :min="0" />
@@ -601,7 +600,7 @@ function setPieVariant(v: VariantInput) {
               v-if="(avatar.source ?? 'seed') === 'seed'"
               class="flex items-center gap-2 text-[11px] text-muted-foreground"
             >
-              <span class="w-14 shrink-0">seed</span>
+              <span class="prop-name">seed</span>
               <input
                 v-model="avatar.name"
                 type="text"
@@ -613,7 +612,7 @@ function setPieVariant(v: VariantInput) {
             <AvatarDrawGrid v-if="avatar.source === 'draw'" :avatar="avatar" />
             <template v-if="avatar.source === 'image'">
               <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span class="w-14 shrink-0">src</span>
+                <span class="prop-name">src</span>
                 <input
                   v-model="avatar.imageSrc"
                   type="text"
@@ -643,7 +642,7 @@ function setPieVariant(v: VariantInput) {
                 <span v-if="avatarImageError" class="text-[10px] text-destructive">couldn't read that image</span>
               </div>
               <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span class="w-14 shrink-0">cutoff</span>
+                <span class="prop-name">cutoff</span>
                 <input
                   v-model.number="avatar.imageThreshold"
                   type="range"
@@ -664,7 +663,7 @@ function setPieVariant(v: VariantInput) {
             </template>
             <Segmented v-model="avatar.mirror" :options="MIRRORS" label="mirror" />
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">grid</span>
+              <span class="prop-name">grid</span>
               <input
                 v-model.number="avatar.grid"
                 type="range"
@@ -677,7 +676,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ avatar.grid }}×{{ avatar.grid }}</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">cell res</span>
+              <span class="prop-name">cell res</span>
               <input
                 v-model.number="avatar.cellPx"
                 type="range"
@@ -690,7 +689,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ avatar.cellPx }}px</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">density</span>
+              <span class="prop-name">density</span>
               <input
                 v-model.number="avatar.density"
                 type="range"
@@ -703,7 +702,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ avatar.density.toFixed(2) }}</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">off tier</span>
+              <span class="prop-name">off tier</span>
               <input
                 v-model.number="avatar.offTier"
                 type="range"
@@ -747,7 +746,7 @@ function setPieVariant(v: VariantInput) {
           <section class="flex flex-col gap-3">
             <p class="micro text-muted-foreground">Button</p>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">label</span>
+              <span class="prop-name">label</span>
               <input
                 v-model="button.label"
                 type="text"
@@ -758,7 +757,7 @@ function setPieVariant(v: VariantInput) {
             </label>
             <Segmented v-model="button.variant" :options="BUTTON_VARIANTS" label="variant" />
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">pixel</span>
+              <span class="prop-name">pixel</span>
               <input
                 v-model.number="button.cell"
                 type="range"
@@ -852,7 +851,7 @@ function setPieVariant(v: VariantInput) {
               @update:model-value="screenSel.row.gap = $event"
             />
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">add</span>
+              <span class="prop-name">add</span>
               <select
                 name="add-cell"
                 class="w-full rounded-md border border-edge bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
@@ -921,7 +920,7 @@ function setPieVariant(v: VariantInput) {
           <section class="flex flex-col gap-3">
             <p class="micro text-muted-foreground">Image</p>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">src</span>
+              <span class="prop-name">src</span>
               <input
                 v-model="image.src"
                 type="text"
@@ -932,7 +931,7 @@ function setPieVariant(v: VariantInput) {
               />
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">alt</span>
+              <span class="prop-name">alt</span>
               <input
                 v-model="image.alt"
                 type="text"
@@ -942,7 +941,7 @@ function setPieVariant(v: VariantInput) {
               />
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">pixel</span>
+              <span class="prop-name">pixel</span>
               <input
                 v-model.number="image.cell"
                 type="range"
@@ -955,7 +954,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ image.cell }}px</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">focus</span>
+              <span class="prop-name">focus</span>
               <input
                 v-model.number="image.focusY"
                 type="range"
@@ -968,7 +967,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ image.focusY.toFixed(2) }}</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">fade</span>
+              <span class="prop-name">fade</span>
               <input
                 v-model.number="image.fade"
                 type="range"
@@ -989,7 +988,7 @@ function setPieVariant(v: VariantInput) {
             <p class="micro text-muted-foreground">Gradient</p>
             <Segmented v-model="gradient.direction" :options="GRAD_DIRS" label="direction" />
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">pixel</span>
+              <span class="prop-name">pixel</span>
               <input
                 v-model.number="gradient.cell"
                 type="range"
@@ -1002,7 +1001,7 @@ function setPieVariant(v: VariantInput) {
               <span class="w-8 tabular-nums text-foreground">{{ gradient.cell }}px</span>
             </label>
             <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-              <span class="w-14 shrink-0">opacity</span>
+              <span class="prop-name">opacity</span>
               <input
                 v-model.number="gradient.opacity"
                 type="range"
@@ -1036,7 +1035,7 @@ function setPieVariant(v: VariantInput) {
       <!-- SERIES / SLICE -->
       <template v-else-if="kind === 'series' && series">
         <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span class="w-14 shrink-0">label</span>
+          <span class="prop-name">label</span>
           <input
             v-model="series.label"
             type="text"
@@ -1051,7 +1050,7 @@ function setPieVariant(v: VariantInput) {
         </div>
         <TextureField v-if="chart.type !== 'line'" v-model="series.variant" />
         <label v-if="fam === 'cartesian'" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span class="w-14 shrink-0">opacity</span>
+          <span class="prop-name">opacity</span>
           <input
             v-model.number="series.opacity"
             type="range"
@@ -1087,7 +1086,7 @@ function setPieVariant(v: VariantInput) {
       <template v-else-if="kind === 'pie'">
         <TextureField :model-value="pieVariant" @update:model-value="setPieVariant" />
         <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span class="w-14 shrink-0">radius</span>
+          <span class="prop-name">radius</span>
           <input
             v-model.number="chart.innerRadius"
             type="range"
@@ -1108,7 +1107,7 @@ function setPieVariant(v: VariantInput) {
           <Toggle v-model="chart.grid.vertical" label="vertical" />
         </div>
         <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span class="w-14 shrink-0">dash</span>
+          <span class="prop-name">dash</span>
           <input
             v-model="chart.grid.dash"
             type="text"

@@ -91,6 +91,37 @@
   }
 }
 
+/* A property's name beside its control (the Studio's inspector and the
+   fields it shares): ONE column, so every control in the panel starts on
+   the same line. A name longer than the column breaks between its words
+   (the panel marks a camelCase name's humps with <wbr>), never under its
+   control. Paired fields (X and Y, W and H) sit on `.prop-pairs`: the
+   first of each pair takes the name column, the second a name its own
+   width, each field spread over two of the row's tracks (subgrid; before
+   it, the pair keeps a name its own width). A row indented under a name
+   indents by `--prop-name` (set with the tokens on :root) and the gap.
+   Unlayered, so it outranks a width utility. */
+.prop-name {
+  flex: none;
+  width: var(--prop-name);
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+.prop-pairs {
+  display: grid;
+  grid-template-columns: var(--prop-name) minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.5rem;
+}
+.prop-pairs > * {
+  display: grid;
+  grid-column: span 2;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: subgrid;
+}
+.prop-pairs .prop-name {
+  width: auto;
+}
+
 /* The site's one chrome voice, shared by the landing, the docs and the
    Studio: nav links in sentence case with 32px hit areas, machined keys
    and the one capsule key (the primary chrome key), `.micro`, the small
@@ -415,6 +446,8 @@
    obsidian wells, a graphite smoked-polymer overlay. Both: the satin
    aluminum key (chrome #D4DCE1 with a narrow reflection, no hard band). */
 :root {
+  /* The inspector's name column (`.prop-name`). */
+  --prop-name: 5.5rem;
   --chrome: linear-gradient(
     180deg,
     #11151b 0%,

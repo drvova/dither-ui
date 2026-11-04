@@ -43,7 +43,7 @@ const SLIDERS = [
     <Segmented :model-value="choice" :options="CHOICES" label="variant" @update:model-value="setChoice" />
     <template v-if="choice === 'custom'">
       <label v-for="s in SLIDERS" :key="s.key" class="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span class="w-14 shrink-0">{{ s.label }}</span>
+        <span class="prop-name">{{ s.label }}</span>
         <input
           type="range"
           :name="`tex-${s.key}`"
@@ -57,7 +57,7 @@ const SLIDERS = [
         <span class="w-8 shrink-0 text-right tabular-nums text-foreground">{{ tex[s.key].toFixed(2) }}</span>
       </label>
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span class="w-14 shrink-0">hatch</span>
+        <span class="prop-name">hatch</span>
         <input
           type="range"
           name="tex-hatch"

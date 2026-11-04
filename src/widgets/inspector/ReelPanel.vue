@@ -180,7 +180,7 @@ onBeforeUnmount(() => stopPreview?.())
         @update:model-value="clip.seconds = $event"
       />
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span class="w-11 shrink-0">in by</span>
+        <span class="prop-name">in by</span>
         <select :name="`clip-${i}-in`" class="field w-full" :value="clip.transition.kind" @change="setKind(i, $event)">
           <option v-for="k in REEL_TRANSITIONS" :key="k" :value="k">{{ k }}</option>
         </select>
@@ -206,7 +206,7 @@ onBeforeUnmount(() => stopPreview?.())
         />
       </template>
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span class="w-11 shrink-0">camera</span>
+        <span class="prop-name">camera</span>
         <select
           :name="`clip-${i}-camera`"
           class="field w-full"
@@ -218,7 +218,7 @@ onBeforeUnmount(() => stopPreview?.())
         </select>
       </label>
       <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-        <span class="w-11 shrink-0">chapter</span>
+        <span class="prop-name">chapter</span>
         <input
           :name="`clip-${i}-chapter`"
           class="field w-full"
@@ -228,11 +228,11 @@ onBeforeUnmount(() => stopPreview?.())
           @input="setLine(clip, $event)"
         />
       </label>
-      <div v-if="clip.chapter" class="grid grid-cols-[4rem_1fr] gap-1 pl-[3.25rem]">
+      <div v-if="clip.chapter" class="grid grid-cols-[4rem_minmax(0,1fr)] gap-1 pl-[calc(var(--prop-name)+0.5rem)]">
         <template v-for="row in SPEC_ROWS" :key="row">
           <input
             :name="`clip-${i}-spec-${row}-figure`"
-            class="field"
+            class="field w-full min-w-0"
             maxlength="12"
             placeholder="264"
             :aria-label="`Spec row ${row + 1} figure`"
@@ -241,7 +241,7 @@ onBeforeUnmount(() => stopPreview?.())
           />
           <input
             :name="`clip-${i}-spec-${row}-words`"
-            class="field"
+            class="field w-full min-w-0"
             maxlength="32"
             placeholder="components"
             :aria-label="`Spec row ${row + 1} words`"
@@ -317,7 +317,7 @@ onBeforeUnmount(() => stopPreview?.())
               @update:model-value="c.to = $event"
             />
             <label class="flex items-center gap-2">
-              <span class="w-11 shrink-0">side</span>
+              <span class="prop-name">side</span>
               <select
                 :name="`clip-${i}-callout-${k}-side`"
                 class="field w-full"
@@ -341,7 +341,7 @@ onBeforeUnmount(() => stopPreview?.())
       </details>
     </article>
     <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
-      <span class="w-11 shrink-0">add</span>
+      <span class="prop-name">add</span>
       <select name="add-clip" class="field w-full" @change="add">
         <option value="">frame…</option>
         <option v-for="a in candidates" :key="a.id" :value="a.id">{{ a.name }}</option>
