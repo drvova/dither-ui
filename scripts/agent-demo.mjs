@@ -7,7 +7,8 @@
 // permission prompt show a beat before allowing it (always, for that tool,
 // in that scratch folder), waits for the turn to end, fits the canvas to
 // its frames, opens what it changed, and writes a WebM (and an MP4 when ffmpeg is
-// on the PATH).
+// on the PATH), the thread's text beside it, and lists the files the agent's
+// actions wrote into its folder.
 //
 //   npm run dev                       # the Studio, in another terminal
 //   node scripts/agent-demo.mjs [--url http://localhost:5173/studio/]
@@ -17,7 +18,7 @@
 // `--harness` is one of the bridge's presets (claude, codex, gemini, ...);
 // `--agent` runs any command that speaks the Agent Client Protocol instead.
 import { spawn, spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, mkdtempSync, renameSync, statSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, renameSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { chromium } from "playwright-core"
@@ -121,7 +122,7 @@ try {
       throw new Error(`the turn did not end within ${timeout / 1000}s`)
     await pause(1500)
     // Every frame in view, wherever the agent put the new one.
-    await page.locator('button[aria-label="Fit to screen"]').click()
+    await page.locator('.canvas-bar button[aria-label="Fit every frame"]').click()
     await pause(1200)
     const changed = page.locator(".head.is-split .toggle")
     if (await changed.count()) {
@@ -129,6 +130,11 @@ try {
       await pause(2500)
     }
   }
+  // The thread as read beside the video: each step (folded runs opened),
+  // each reply.
+  await page.locator(".agent details:not([open]) > summary").evaluateAll((all) => all.forEach((x) => x.click()))
+  await pause(300)
+  writeFileSync(join(out, "thread.txt"), await page.locator(".agent").first().innerText())
   ok = true
 } catch (e) {
   console.error(`agent demo: ${e.message}`)
@@ -164,6 +170,9 @@ try {
       { stdio: "inherit" },
     )
     if (ff.status === 0) console.log(`video: ${mp4}`)
+    console.log(`thread: ${join(out, "thread.txt")}`)
+    // What the agent's actions wrote into its folder (a video, a picture).
+    for (const line of said.join("").split("\n")) if (/\bwrote /.test(line)) console.log(`${line.trim()} in ${cwd}`)
   }
   process.exit(ok ? 0 : 1)
 }
