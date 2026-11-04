@@ -778,6 +778,25 @@ async function picturesOf(frames: Changed[]): Promise<PromptImage[]> {
 const atQuery = computed(() => /(?:^|\s)@([^\s@]*)$/.exec(input.value)?.[1] ?? null)
 const atForced = ref(false)
 const atOpen = computed(() => atForced.value || atQuery.value !== null)
+
+/* A menu over the composer (commands, frames, the harness, the model, the
+   bridge) is as tall as the room above the composer: measured whenever one
+   opens and when the panel resizes, so it never runs past the thread's top
+   (the composer stands mid-panel in an empty chat). */
+const composerEl = ref<HTMLElement | null>(null)
+const room = ref("16rem")
+function measureRoom() {
+  const top = log.value?.getBoundingClientRect().top
+  const at = composerEl.value?.getBoundingClientRect().top
+  if (top === undefined || at === undefined) return
+  room.value = `${Math.max(96, Math.floor(at - top - 10))}px`
+}
+watch(
+  () => [slashOpen.value, atOpen.value, pickerOpen.value, menuOpen.value, modelOpen.value],
+  () => nextTick(measureRoom),
+)
+onMounted(() => window.addEventListener("resize", measureRoom))
+onBeforeUnmount(() => window.removeEventListener("resize", measureRoom))
 const atMatches = computed(() => {
   const q = (atQuery.value ?? "").toLowerCase()
   return editor.artboards.filter((a) => a.name.toLowerCase().includes(q) && !context.value.some((c) => c.id === a.id))
@@ -1105,9 +1124,9 @@ onBeforeUnmount(() => {
           :open="isOpen(b)"
           @toggle="setOpen(b, ($event.target as HTMLDetailsElement).open)"
         >
-          <summary>
+          <summary class="first-line">
             <span v-if="b.running" class="spin" aria-hidden="true"></span
-            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span class="row-label">{{
+            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span class="row-label is-wrap">{{
               runLabel(b.items.map((it) => it.entry))
             }}</span
             ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
@@ -1128,7 +1147,7 @@ onBeforeUnmount(() => {
       <button v-if="unseen" type="button" class="latest" @click="toEnd(true)">
         <DitherIcon name="ArrowDown" :size="11" :stroke-width="1.5" />Latest
       </button>
-      <div class="composer">
+      <div ref="composerEl" class="composer" :style="{ '--room': room }">
         <div
           v-if="slashOpen && slashMatches.length"
           id="agent-commands"
@@ -1202,24 +1221,26 @@ onBeforeUnmount(() => {
               /></span>
               <span class="dim">{{ h.installed ? (h.note ?? "on this path") : "not on the path" }}</span>
             </button>
-            <form class="custom" @submit.prevent="customCommand.trim() && start({ command: customCommand.trim() })">
-              <input
-                v-model="customCommand"
-                type="text"
-                name="agent-command"
-                class="input"
-                placeholder="any ACP command, e.g. omp --mode acp"
-                autocomplete="off"
-                spellcheck="false"
-                aria-label="Custom harness command"
-              />
-              <button type="submit" class="key" :disabled="!customCommand.trim()">
-                <span class="row-label">Start</span>
+            <div class="pop-foot">
+              <form class="custom" @submit.prevent="customCommand.trim() && start({ command: customCommand.trim() })">
+                <input
+                  v-model="customCommand"
+                  type="text"
+                  name="agent-command"
+                  class="input"
+                  placeholder="any ACP command, e.g. omp --mode acp"
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-label="Custom harness command"
+                />
+                <button type="submit" class="key" :disabled="!customCommand.trim()">
+                  <span class="row-label">Start</span>
+                </button>
+              </form>
+              <button v-if="agent" type="button" class="pop-row text-destructive" @click="acp?.stop()">
+                <span class="pop-name">Stop {{ agent.name }}</span>
               </button>
-            </form>
-            <button v-if="agent" type="button" class="pop-row text-destructive" @click="acp?.stop()">
-              <span class="pop-name">Stop {{ agent.name }}</span>
-            </button>
+            </div>
           </template>
           <p v-else class="note">
             {{ connecting ? "Connecting the bridge…" : "No bridge yet." }} Run it next to your harness, which keeps its
@@ -1277,8 +1298,10 @@ onBeforeUnmount(() => {
 
         <div class="card">
           <div v-if="context.length" class="chips">
-            <span v-for="c in context" :key="c.id" class="ctx"
-              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" /><span class="row-label">{{ c.name }}</span
+            <span v-for="c in context" :key="c.id" class="ctx first-line"
+              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" /><span class="row-label is-wrap">{{
+                c.name
+              }}</span
               ><button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
                 <DitherIcon name="Close" :size="10" :stroke-width="1.5" /></button
             ></span>
@@ -1632,12 +1655,13 @@ onBeforeUnmount(() => {
     0 0 0 1px var(--color-ring);
 }
 .ctx-x {
+  --glyph: 1.5rem;
   display: grid;
   width: 1.5rem;
   height: 1.5rem;
   flex-shrink: 0;
   place-items: center;
-  margin: 0 -6px 0 -4px;
+  margin-inline: -4px -6px;
   border-radius: 6px;
   color: var(--color-muted-foreground);
 }
@@ -1783,7 +1807,9 @@ button.status-key:hover,
   z-index: 6;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  max-height: 16rem;
+  /* Tall enough for every harness the bridge knows, the custom command and
+     Stop at the Studio's 1024px floor; past that it scrolls. */
+  max-height: min(24rem, var(--room, 16rem));
   overflow-y: auto;
   border-radius: 12px;
   padding: 4px;
@@ -1805,11 +1831,11 @@ button.status-key:hover,
   font-size: 11px;
   color: var(--color-foreground);
 }
+/* A row's note wraps beside its name, never cut short. */
 .pop-row .dim {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 .pop-row.is-active,
 .pop-row:hover {
@@ -1823,6 +1849,15 @@ button.status-key:hover,
 }
 .pop-row.text-destructive {
   color: var(--color-destructive);
+}
+/* The command field, Start and Stop stay whole at the picker's foot; the
+   list of harnesses above them is what scrolls. */
+.pop-foot {
+  position: sticky;
+  bottom: -4px;
+  margin-bottom: -4px;
+  padding-bottom: 4px;
+  background: var(--color-card);
 }
 .custom {
   display: flex;
@@ -1911,6 +1946,7 @@ button.status-key:hover,
   align-items: center;
   justify-content: center;
   gap: 6px;
+  max-width: 100%;
   min-height: 1.5rem;
   border-radius: 7px;
   padding-inline: 9px;
@@ -1933,6 +1969,7 @@ button.status-key:hover,
   opacity: 0.5;
 }
 .agent .row-key {
+  --glyph: 1.5rem;
   display: grid;
   min-width: 1.5rem;
   height: 1.5rem;
@@ -1950,6 +1987,7 @@ button.status-key:hover,
   background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
 }
 .agent .spin {
+  --glyph: 10px;
   width: 10px;
   height: 10px;
   flex-shrink: 0;
@@ -1985,6 +2023,27 @@ button.status-key:hover,
   color: var(--color-foreground);
   background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
 }
+.agent .ctx > svg {
+  --glyph: 11px;
+  flex-shrink: 0;
+}
+/* A row, chip or key whose words wrap (an is-wrap label): its glyphs and
+   keys stand on the label's first line, each centred on its capitals
+   (--first, from the label's top: its 0.3em pad and half a cap), and a
+   one-line row keeps its 24px. Without text-box it stays centred. */
+.agent :is(.row, .ctx, .key, summary, .activity).first-line {
+  --first: calc(0.3em + 0.5cap);
+}
+@supports (text-box: trim-both cap alphabetic) {
+  .agent :is(.row, .ctx, .key, summary, .activity).first-line {
+    align-items: flex-start;
+    padding-block: calc((1.5rem - 0.6em - 1cap) / 2);
+  }
+  .agent :is(.row, .ctx, .key, summary, .activity).first-line > :not(.row-label) {
+    margin-top: calc(var(--first) - var(--glyph, 12px) / 2);
+    margin-bottom: 0;
+  }
+}
 /* A fold: a summary row that opens what it holds (a thought, a step, a run
    of steps), its chevron turning as it opens. */
 .agent .fold > summary {
@@ -2004,6 +2063,7 @@ button.status-key:hover,
   color: var(--color-foreground);
 }
 .agent .fold > summary .chev {
+  --glyph: 11px;
   flex-shrink: 0;
   opacity: 0;
   transition:

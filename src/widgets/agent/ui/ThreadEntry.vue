@@ -60,10 +60,10 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
         <span
           v-for="c in entry.context"
           :key="c.id"
-          class="ctx"
+          class="ctx first-line"
           :title="entry.pictured ? `${c.name}, sent with a picture` : c.name"
           ><DitherIcon :name="entry.pictured ? 'Image' : 'Layout'" :size="11" :stroke-width="1.5" /><span
-            class="row-label"
+            class="row-label is-wrap"
             >{{ c.name }}</span
           ></span
         >
@@ -105,22 +105,22 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
     :data-ok="String(entry.ok)"
     @toggle="toggled"
   >
-    <summary :title="entry.summary">
-      <DitherIcon :name="entry.icon ?? 'Terminal'" :size="12" :stroke-width="1.5" /><span class="row-label">{{
+    <summary class="first-line" :title="entry.summary">
+      <DitherIcon :name="entry.icon ?? 'Terminal'" :size="12" :stroke-width="1.5" /><span class="row-label is-wrap">{{
         entry.title || entry.name
       }}</span
       ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
     </summary>
     <pre class="detail">{{ entry.detail }}</pre>
   </details>
-  <div v-else-if="entry.kind === 'activity'" class="step activity" :data-status="entry.status">
+  <div v-else-if="entry.kind === 'activity'" class="step activity first-line" :data-status="entry.status">
     <span v-if="entry.status === 'pending' || entry.status === 'in_progress'" class="spin" aria-hidden="true"></span>
     <DitherIcon
       v-else
       :name="entry.status === 'failed' ? 'XCircle' : 'CheckCircle'"
       :size="12"
       :stroke-width="1.5"
-    /><span class="row-label">{{ entry.title }}</span>
+    /><span class="row-label is-wrap">{{ entry.title }}</span>
   </div>
   <div v-else-if="entry.kind === 'approval'" class="approval" :data-answered="String(entry.answered !== null)">
     <p class="approval-title"><DitherIcon name="AlertTriangle" :size="12" :stroke-width="1.5" />{{ entry.title }}</p>
@@ -137,13 +137,13 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
         v-for="(o, n) in entry.options"
         :key="o.id"
         type="button"
-        class="key"
+        class="key first-line"
         :class="o.primary ? 'is-primary' : ''"
         :aria-keyshortcuts="numbered && n < 9 ? String(n + 1) : undefined"
         @click="emit('answer', o.id)"
       >
         <span v-if="numbered && n < 9" class="num" aria-hidden="true">{{ n + 1 }}</span
-        ><span class="row-label">{{ o.label }}</span>
+        ><span class="row-label is-wrap">{{ o.label }}</span>
       </button>
     </div>
     <p v-else class="note">Answered {{ entry.answered }}</p>
@@ -323,6 +323,11 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   flex-wrap: wrap;
   gap: 6px;
 }
+/* A long choice wraps inside its key, its words read from the left. */
+.choices .key {
+  justify-content: flex-start;
+  text-align: left;
+}
 .line-system,
 .line-error {
   margin: 0;
@@ -367,6 +372,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   color: var(--color-destructive);
 }
 .num {
+  --glyph: 1rem;
   display: grid;
   min-width: 1rem;
   height: 1rem;

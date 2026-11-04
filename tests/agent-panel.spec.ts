@@ -13,6 +13,7 @@ import { chats, newChat, openChat, openProject, saveThread } from "@/features/ag
 import { saveDraft } from "@/features/agent/tools"
 import { activeProjectId } from "@/features/persistence"
 import AgentPanel from "@/widgets/agent/AgentPanel.vue"
+import TurnTrays from "@/widgets/agent/ui/TurnTrays.vue"
 import type { Entry } from "@/widgets/agent/model/thread"
 
 /** A thread kept as the project's open chat, as a panel left it. */
@@ -171,5 +172,37 @@ describe("the agent panel", () => {
         .map(([, sel]) => `${f} ${sel.trim()}`)
     })
     expect(loose).toEqual([])
+  })
+
+  it("wraps the composer's words instead of cutting them, its glyphs on the first line", async () => {
+    // A to-do, a queued message, a suggestion and a frame's name are
+    // content: cut short with an ellipsis they lose words.
+    const long = "Place the screen beside the existing revenue chart and line it up with its top edge"
+    const trays = mount(TurnTrays, {
+      props: {
+        next: [long],
+        todos: [{ content: long, status: "pending" }],
+        queue: [long],
+        run: null,
+        changes: { frames: [{ id: "f", name: long }] },
+        shown: () => true,
+      },
+    })
+    await trays.get(".toggle").trigger("click")
+    const rows = trays.findAll(".row")
+    expect(rows.length).toBe(4)
+    for (const row of rows) {
+      expect(row.classes()).toContain("first-line")
+      expect(row.find(".row-label").classes()).toContain("is-wrap")
+    }
+    const frame = createArtboard("button")
+    frame.name = long
+    editor.artboards = [frame]
+    handoff.picked.push(frame.id)
+    const w = mount(AgentPanel, { attachTo: document.body })
+    await nextTick()
+    expect(w.get(".card .ctx").classes()).toContain("first-line")
+    expect(w.get(".card .ctx .row-label").classes()).toContain("is-wrap")
+    w.unmount()
   })
 })

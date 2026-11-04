@@ -44,8 +44,17 @@ watch(
 
 <template>
   <div v-if="next.length" class="part">
-    <button v-for="s in next" :key="s" type="button" class="row is-key" :title="`Send: ${s}`" @click="emit('ask', s)">
-      <DitherIcon name="Sparkles" :size="12" :stroke-width="1.5" /><span class="row-text row-label">{{ s }}</span
+    <button
+      v-for="s in next"
+      :key="s"
+      type="button"
+      class="row is-key first-line"
+      :title="`Send: ${s}`"
+      @click="emit('ask', s)"
+    >
+      <DitherIcon name="Sparkles" :size="12" :stroke-width="1.5" /><span class="row-text row-label is-wrap">{{
+        s
+      }}</span
       ><DitherIcon class="go" name="ArrowUp" :size="11" :stroke-width="1.5" />
     </button>
   </div>
@@ -56,13 +65,13 @@ watch(
       <span class="row-label dim">{{ done }} of {{ todos.length }} done</span>
     </button>
     <ul v-if="todosOpen" class="rows">
-      <li v-for="(t, j) in todos" :key="j" class="row" :data-status="t.status">
+      <li v-for="(t, j) in todos" :key="j" class="row first-line" :data-status="t.status">
         <DitherIcon v-if="t.status === 'completed'" name="CheckCircle" :size="12" :stroke-width="1.5" /><span
           v-else
           class="circle"
           aria-hidden="true"
         ></span
-        ><span class="row-text row-label">{{ t.content }}</span>
+        ><span class="row-text row-label is-wrap">{{ t.content }}</span>
       </li>
     </ul>
   </div>
@@ -71,8 +80,9 @@ watch(
       <span class="row-label">{{ queue.length }} in queue</span>
     </p>
     <ul class="rows">
-      <li v-for="(s, j) in queue" :key="j" class="row">
-        <span class="circle" aria-hidden="true"></span><span class="row-text row-label" :title="s">{{ s }}</span>
+      <li v-for="(s, j) in queue" :key="j" class="row first-line">
+        <span class="circle" aria-hidden="true"></span
+        ><span class="row-text row-label is-wrap" :title="s">{{ s }}</span>
         <button type="button" class="row-key" :aria-label="`Remove ${s} from the queue`" @click="emit('unqueue', j)">
           <DitherIcon name="Close" :size="11" :stroke-width="1.5" />
         </button>
@@ -108,8 +118,10 @@ watch(
       <button type="button" class="key is-primary" @click="emit('keep')"><span class="row-label">Keep</span></button>
     </div>
     <ul v-if="changesOpen" class="rows">
-      <li v-for="f in changes.frames" :key="f.id" class="row">
-        <DitherIcon name="Layout" :size="12" :stroke-width="1.5" /><span class="row-text row-label">{{ f.name }}</span>
+      <li v-for="f in changes.frames" :key="f.id" class="row first-line">
+        <DitherIcon name="Layout" :size="12" :stroke-width="1.5" /><span class="row-text row-label is-wrap">{{
+          f.name
+        }}</span>
         <button v-if="shown(f.id)" type="button" class="row-key is-word" @click="emit('show', f.id)">
           <span class="row-label">Show</span>
         </button>
@@ -185,6 +197,7 @@ watch(
   background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
 }
 .row.is-key .go {
+  --glyph: 11px;
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 200ms var(--ease-settle);
@@ -203,6 +216,7 @@ watch(
   flex: 1;
 }
 .circle {
+  --glyph: 10px;
   width: 10px;
   height: 10px;
   flex-shrink: 0;

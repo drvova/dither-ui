@@ -987,7 +987,20 @@ widgets/features; page-specific conventions live here.
   bar and checkpoints cover what generated code did. Every grid in the
   panel that stacks blocks names one `minmax(0, 1fr)` column, so a long
   line (a path, a code line, a long suggestion) never widens the panel
-  (`tests/agent-panel.spec.ts` reads the styles). Placeholders fit one line at 320px ("Ask, /
+  (`tests/agent-panel.spec.ts` reads the styles). Words that are content
+  wrap, never cut short: a to-do, a queued message, a suggestion, a
+  changed frame, a context chip, a permission choice, a step's title
+  (`.row-label.is-wrap`, breaking inside a word only when one word is
+  wider than its line); their row, chip or key is `first-line`: its glyphs
+  and keys stand on the label's first line, centred on its capitals
+  (`--first`, 0.3em and half a cap from the label's top, each glyph's
+  `--glyph` its height), and a one-line row keeps its 24px. One-line
+  metadata (the header's title, the harness and model, the folder) keeps
+  its ellipsis and its full text on hover. A key is never wider than its
+  row (a long choice wraps inside it, read from the left). A menu over
+  the composer is as tall as the room above it (`--room`, measured on
+  open and on resize), and the harness picker's command field, Start and
+  Stop are its pinned foot, the harnesses above them what scrolls. Placeholders fit one line at 320px ("Ask, /
   for commands", "Queue a follow-up", "Answer above, 1 to 3", "Queue for
   after the stop", "Ask; this starts the bridge", "Ask; this starts your
   harness"). The canvas hands the agent frames two ways, through

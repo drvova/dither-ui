@@ -213,6 +213,15 @@
       text-box: trim-both cap alphabetic;
     }
   }
+  /* A label whose words are content (a to-do, a frame's name, a choice):
+     it wraps between words instead of being cut short, and breaks inside
+     a word only when one word is wider than its line. */
+  .row-label.is-wrap {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
   /* A hardshell: two opposite corners cut, a chrome-glint hairline that
      follows the cut, its ground the theme's shell material (anodized
      graphite, bone ceramic) lit from the top left. The cut clips what it
