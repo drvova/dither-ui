@@ -98,6 +98,26 @@ describe("theme contrast", () => {
       expect(worst).toBeGreaterThanOrEqual(4.5)
     })
 
+  // A field's placeholder sits only in a field, the page at 60% over what
+  // it stands on: AA there, and a step under the muted ink (as dim as AA
+  // allows: under 5:1 on the page).
+  for (const [theme, t] of [
+    ["light", LIGHT],
+    ["dark", DARK],
+    ["docs dark", { ...DARK, ...tokens(site, ":root.dark:has(.docs-root)") }],
+    ["landing", { ...DARK, ...tokens(landing, ":root:has(.landing)") }],
+  ] as const)
+    it(`${theme}: a field's placeholder holds 4.5:1 in a field on every ground, under the muted ink`, () => {
+      const page = colour(t.background)
+      const ink = colour(t.placeholder)
+      const under = grounds(t, false)
+        .map(([name, g]) => [name, Math.round(contrast(ink, over({ ...page, a: 0.6 }, g)) * 100) / 100] as const)
+        .filter(([, r]) => r < 4.5)
+      expect(under).toEqual([])
+      expect(contrast(ink, page)).toBeLessThan(contrast(colour(t["muted-foreground"]), page))
+      expect(contrast(ink, page)).toBeLessThan(5)
+    })
+
   it("the pressed ring is the control edge", () => {
     const rule = site.match(/\.ring-on \{([^}]*)\}/)?.[1] ?? ""
     expect(rule).toMatch(/box-shadow:\s*inset 0 0 0 1px var\(--edge\);/)

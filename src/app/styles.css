@@ -551,6 +551,7 @@
    holds AA (4.5:1) on the light materials too: bone shells, smoke, wells. */
 :root:not(.dark) {
   --muted-foreground: #5b6270;
+  --placeholder: #6b727e;
 }
 
 .dark {
@@ -600,6 +601,7 @@
   --popover-foreground: #e4e1d8;
   --muted: #1f2022;
   --muted-foreground: #9c998f;
+  --placeholder: #84827a;
   --border: #2b2e32;
   --ring: #e4e1d8;
   --float-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.7);

@@ -1,9 +1,9 @@
 // A field's placeholder: one ink for the whole kit and its Svelte port, the
-// theme's `--placeholder` or else its muted ink, read at AA (4.5:1) on a
-// field's ground in both of the kit's themes. The shared field control once
-// took 60% of the muted ink (2.8:1 dark, 2.6:1 light) while ten other
-// controls took all of it; the site's own grounds are held by
-// `theme-contrast.spec.ts`, which covers its muted ink.
+// theme's `--placeholder` (unset, its muted ink), set per theme a step under
+// the muted ink and as dim as AA allows on a field's ground. The shared field
+// control once took 60% of the muted ink (2.8:1 dark, 2.6:1 light) while ten
+// other controls took all of it. The site's, the docs' and the landing's
+// values are held by `theme-contrast.spec.ts`.
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
@@ -54,14 +54,23 @@ describe("a field's placeholder", () => {
       )
   })
 
-  it("holds AA on a field's ground in both of the kit's themes, dimmer than what is typed", () => {
+  it("holds AA on a field in both of the kit's themes, dimmer than the muted ink", () => {
     const light = tokens(":root")
     for (const t of [light, { ...light, ...tokens(".dark") }]) {
-      // A field is the page ground at 60% over the card it sits on.
-      const ground = over({ ...colour(t.background), a: 0.6 }, colour(t.card))
-      const ink = colour(t.placeholder ?? t["muted-foreground"])
-      expect(contrast(ink, ground)).toBeGreaterThanOrEqual(4.5)
-      expect(contrast(colour(t.foreground), ground)).toBeGreaterThan(contrast(ink, ground) * 2)
+      const page = colour(t.background)
+      const ink = colour(t.placeholder)
+      // A field is the page at 60% over what it sits on: the page, a card, a muted fill.
+      for (const under of [t.background, t.card, t.muted])
+        expect(contrast(ink, over({ ...page, a: 0.6 }, colour(under)))).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(ink, page)).toBeLessThan(contrast(colour(t["muted-foreground"]), page))
+      expect(contrast(ink, page)).toBeLessThan(5)
     }
+  })
+
+  it("is the kit's in the Svelte site's copy of its themes", () => {
+    const app = readFileSync(`${root}svelte-site/src/app.css`, "utf8")
+    const values = (css: string) => [...css.matchAll(/--placeholder:\s*([^;]+);/g)].map((m) => m[1])
+    expect(values(app)).toEqual(values(theme))
+    expect(values(theme)).toHaveLength(2)
   })
 })

@@ -705,11 +705,16 @@ the kit every import is relative (`../engine/pixel`).
   need to opt in.
 - Text and targets hold WCAG AA in both themes, measured on the rendered
   page. No readable text fades under 4.5:1: `faint` tones share the muted
-  ink; a field's placeholder takes ONE token, `--placeholder` (unset, the
-  muted ink; `placeholder:text-placeholder`, the `--color-placeholder`
-  map in `kit.css`, the site's and the Svelte site's stylesheets, and
-  `base.css`'s `::placeholder`), in every control of both ports
-  (`tests/placeholder.spec.ts`); and only `aria-hidden` separators and the wheel picker's masked edge
+  ink; a field's placeholder takes ONE token, `--placeholder`, in every
+  control of both ports (`placeholder:text-placeholder`, the
+  `--color-placeholder` map in `kit.css`, the site's and the Svelte site's
+  stylesheets, `base.css`'s `::placeholder`; unset, the muted ink). Each
+  theme sets it in the muted ink's hue, as dim as AA allows in a field (the
+  page at 60% over any ground, 4.6:1 at worst, under 5:1 on the page): the
+  kit's two, the site's light, the docs' and the landing's darks, and the
+  Svelte site's copies; a theme that moves its muted ink or grounds
+  re-picks it. `tests/placeholder.spec.ts` and `theme-contrast.spec.ts`
+  hold every one; and only `aria-hidden` separators and the wheel picker's masked edge
   rows keep a fade. The light `--swatch-*` inks clear 5:1 on white. A label
   on a dithered fill (badge, button, toggle, toggle group) takes the ink
   `darkInkOnDark(fill, LABEL_COVERAGE[variant])` (`engine/palette.ts`)
