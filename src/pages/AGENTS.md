@@ -266,15 +266,22 @@ widgets/features; page-specific conventions live here.
   and the ask: a section head (the cell count read from the model, "See
   the world engine"), then `BrandBuild.vue`: the brand itself as a model
   (`build.ts`: every cell of `LOCKUP`, the mark and the pixel wordmark, a
-  block with a hairline seam, the mark standing proud of the word; the
-  user's call: the brand, never a borrowed object) raised by
+  deep block with chamfered front edges and a hairline seam, the mark
+  standing proud of the word; the user's call: the brand, never a borrowed
+  object; written as VRML97 lit by its own `LIGHTS`, a key from the upper
+  left and a weak fill with no camera light, so tops, fronts, chamfers and
+  sides each take their tone and the light stays put as it turns: the
+  user asked for it real, and at the few cells a block gets on screen,
+  volume and light are what read as real) raised by
   `DitherWorld`'s build as the page scrolls a 260svh run past its pinned
   stage (`stageAt`: the build over the first stretch, the whole holding
   and turning through the middle, the cells apart as the page leaves; one
   passive scroll listener, live only while the run is near). The camera
   zooms by the stage's aspect (the long lockup nearly spans a wide stage
-  and stays whole on a phone). The metal is a graphite to bone ramp
-  through titanium and chrome, the cells in flight the ember. It moves
+  and stays whole on a phone) and looks down 22 degrees. The metal is a
+  seven-band ramp from the obsidian (shadowed sides sink into the page)
+  through graphite and titanium to chrome and bone, with a fine grain;
+  the cells in flight the ember. It moves
   only while the reader does (held still 1.2s after the last scroll or
   pointer move, so no pause chip); a pointer over it leans the cells
   away, a drag turns it. Reduced motion: no run, the lockup whole and

@@ -17,7 +17,7 @@ import {
   type WorldStyle,
   type WorldView,
 } from "../dither-kit/engine/world"
-import { BUILD_PIECES, lockupObj, stageAt } from "../src/pages/landing/build"
+import { BUILD_PIECES, LIGHTS, lockupModel, stageAt } from "../src/pages/landing/build"
 
 /** Three cubes stacked, apart: three pieces, low to high. */
 function stack(): World {
@@ -156,7 +156,11 @@ describe("a world as a build", () => {
 
 describe("the landing's build", () => {
   it("is the lockup, one piece per cell", () => {
-    expect(createAssembly(parseWorld(lockupObj(), "obj"), HEAT).pieces).toBe(BUILD_PIECES)
+    const world = parseWorld(lockupModel(), "vrml")
+    expect(createAssembly(world, HEAT).pieces).toBe(BUILD_PIECES)
+    // Lit by its own light, not the camera's: the faces take different tones.
+    expect(world.headlight).toBe(false)
+    expect(world.lights).toHaveLength(LIGHTS.length)
   })
 
   it("rises as the run starts, holds whole in its middle, and comes apart as it ends", () => {

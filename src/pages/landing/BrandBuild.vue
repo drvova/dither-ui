@@ -9,11 +9,13 @@
 // scroll or pointer move. Reduced motion gets the lockup whole and still.
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherWorld } from "@dither-kit"
-import { BUILD_PIECES, lockupObj, stageAt } from "./build"
+import { BUILD_PIECES, lockupModel, stageAt } from "./build"
 
-const OBJ = lockupObj()
-/** Graphite to bone through titanium and chrome: the brand in metal. */
-const RAMP = ["#1a1c1f", "#3a3e43", "#a6abb1", "#d4dce1", "#e4e1d8"]
+const MODEL = lockupModel()
+/** The brand in metal, lit low-key: the shadowed sides sink into the
+ * obsidian, the lit faces climb through graphite and titanium to chrome
+ * and bone. */
+const RAMP = ["#101214", "#1d2023", "#3a3e43", "#6f747a", "#a6abb1", "#d4dce1", "#e4e1d8"]
 /** The kit's ember: the signal light the cells land in. */
 const HEAT = "orange"
 
@@ -91,18 +93,20 @@ onBeforeUnmount(() => {
   <div ref="run" class="build-run" :class="{ still }">
     <div class="build-stage" @pointermove="stir" @pointerdown="stir">
       <DitherWorld
-        :source="OBJ"
-        format="obj"
+        :source="MODEL"
+        format="vrml"
         :colors="RAMP"
         :heat="HEAT"
         :build="stage.build"
         :scatter="stage.scatter"
         :yaw="stage.yaw"
-        :pitch="12"
+        :pitch="22"
         :zoom="zoom"
         :fov="30"
         :auto-rotate="0"
-        :fog="0.3"
+        :fog="0.25"
+        :grain="0.22"
+        :grain-scale="9"
         :cell="3"
         :nudge="!still"
         :paused="still || !awake"
