@@ -41,6 +41,9 @@ export type ComponentEntry = {
   vmodel?: { def: unknown; prop?: string; event?: string }
   mapProps?: (p: Record<string, unknown>) => Record<string, unknown>
   demo?: ComponentDemo
+  /** A text field: its `label` prop is not the component's but the
+   * visible label a DitherField ties to it (`labelled`, `fieldLabel`). */
+  field?: true
 }
 
 const color = (def: PixelColor = "blue"): PropSpec => ({ key: "color", kind: "color", def })
@@ -62,6 +65,14 @@ const select = (key: string, def: string, options: readonly string[]): PropSpec 
   options,
 })
 const list = (key: string, def: string[]): PropSpec => ({ key, kind: "list", def })
+/** A text field that takes a visible label: the kit's own pairing, the
+ * field inside a DitherField (whose label is tied to the control the
+ * field reads from its context), done for it when `label` is set. */
+const labelled = (entry: ComponentEntry): ComponentEntry => ({
+  ...entry,
+  field: true,
+  props: [text("label", ""), ...entry.props],
+})
 const strList = (v: unknown): string[] =>
   Array.isArray(v)
     ? v.map(String)
@@ -108,15 +119,15 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [color(), number("min", 0), number("max", 100), number("step", 1, 0.1, undefined, 0.1), bool("disabled")],
     vmodel: { def: 40 },
   },
-  {
+  labelled({
     is: "DitherInput",
     label: "Input",
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "Type here…"), bool("invalid"), bool("disabled")],
     vmodel: { def: "" },
-  },
-  {
+  }),
+  labelled({
     is: "DitherTextarea",
     label: "Textarea",
     group: "inputs",
@@ -129,7 +140,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("disabled"),
     ],
     vmodel: { def: "" },
-  },
+  }),
   {
     is: "DitherNumberField",
     label: "Number field",
@@ -146,7 +157,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [number("length", 6, 3, 8)],
     vmodel: { def: "" },
   },
-  {
+  labelled({
     is: "DitherSelect",
     label: "Select",
     group: "inputs",
@@ -160,7 +171,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     ],
     vmodel: { def: "" },
     mapProps: optionProps,
-  },
+  }),
   {
     is: "DitherCombobox",
     label: "Combobox",
@@ -712,39 +723,39 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 160, h: 80 },
     props: [text("char", "🚀"), text("label", "launch")],
   },
-  {
+  labelled({
     is: "DitherPasswordInput",
     label: "Password",
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "At least 12 characters"), bool("invalid"), bool("disabled")],
     vmodel: { def: "correct-horse" },
-  },
-  {
+  }),
+  labelled({
     is: "DitherSearchInput",
     label: "Search",
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "Search…"), bool("disabled")],
     vmodel: { def: "dither" },
-  },
-  {
+  }),
+  labelled({
     is: "DitherEmailInput",
     label: "Email",
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "you@example.com"), text("autocomplete", "email"), bool("invalid"), bool("disabled")],
     vmodel: { def: "a@b.co" },
-  },
-  {
+  }),
+  labelled({
     is: "DitherPhoneInput",
     label: "Phone",
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "(555) 123-4567"), text("autocomplete", "tel"), bool("disabled")],
     vmodel: { def: "(415) 555-2671" },
-  },
-  {
+  }),
+  labelled({
     is: "DitherCurrencyInput",
     label: "Currency input",
     group: "inputs",
@@ -757,7 +768,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("disabled"),
     ],
     vmodel: { def: "1234567.5" },
-  },
+  }),
   {
     is: "DitherScrubInput",
     label: "Scrub input",
@@ -3067,6 +3078,24 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
 ]
 
 export const componentEntry = (is: string): ComponentEntry | undefined => COMPONENT_REGISTRY.find((e) => e.is === is)
+
+/** A field's visible label, when it has one: the canvas and the code
+ * export put the field inside a DitherField carrying it. */
+export function fieldLabel(is: string, props: Record<string, unknown>): string | null {
+  const label = componentEntry(is)?.field && typeof props.label === "string" ? props.label.trim() : ""
+  return label || null
+}
+
+/** The props a registry component is bound with: mapped where its entry
+ * maps them, a field's label left to its DitherField. */
+export function boundProps(is: string, props: Record<string, unknown>): Record<string, unknown> {
+  const entry = componentEntry(is)
+  const mapped = entry?.mapProps ? entry.mapProps(props) : props
+  if (!entry?.field) return mapped
+  const rest = { ...mapped }
+  delete rest.label
+  return rest
+}
 
 export function defaultComponentProps(entry: ComponentEntry): Record<string, unknown> {
   return Object.fromEntries(entry.props.map((p) => [p.key, p.def]))

@@ -10,7 +10,9 @@ export {
 export { widgetCode } from "./model/codegen"
 export {
   COMPONENT_REGISTRY,
+  boundProps,
   componentEntry,
+  fieldLabel,
   type ComponentEntry,
   type ComponentGroup,
   defaultComponentProps,

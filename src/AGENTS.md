@@ -113,7 +113,15 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   through both code generators and Vue's own compiler).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
   component library, inspector controls, untrusted-prop sanitization, functional
-  demo composition, and code export. Every public `Dither*` export is covered
+  demo composition, and code export. A text field that reads a `DitherField`'s
+  context (DitherInput, Textarea, Select and the Email, Password, Search,
+  Phone and Currency inputs, which wrap DitherInput) is `labelled`: a `label`
+  text setting (empty by default) that is not the component's prop but the
+  visible label of the `DitherField` the canvas (`widget-renderer/FieldWrap`)
+  and the code export put it in, so the label is tied to the control;
+  `boundProps` is the ONE way a registry component's props are bound
+  (mapped, the label left out), `fieldLabel` the label or null.
+  `tests/field-label.spec.ts`. Every public `Dither*` export is covered
   there or by a bespoke widget kind.
 
 ## Local Contracts

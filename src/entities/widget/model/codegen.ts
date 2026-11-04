@@ -1,5 +1,5 @@
 import { attr, js, objectLiteral, text } from "@/shared/lib/sfc"
-import { componentEntry } from "./registry"
+import { boundProps, componentEntry, fieldLabel } from "./registry"
 import type { PixelBloomInput, WidgetModel } from "./types"
 
 // Every document value reaches the SFC through `@/shared/lib/sfc`: as an
@@ -23,6 +23,23 @@ const boundAttr = (key: string, v: unknown): string => {
   return `:${key}='${js(v)}'`
 }
 
+/** A component's non-default props as attributes (compared against the
+ * registry's defaults), bound as the canvas binds them. */
+function propAttrs(is: string, props: Record<string, unknown>): string[] {
+  const entry = componentEntry(is)
+  const bound = boundProps(is, props)
+  return (entry?.props ?? [])
+    .filter((spec) => !(entry?.field && spec.key === "label"))
+    .filter((spec) => JSON.stringify(props[spec.key]) !== JSON.stringify(spec.def))
+    .map((spec) => boundAttr(spec.key, bound[spec.key]))
+}
+
+/** A field's tag inside the DitherField that carries its label (the tag
+ * alone without one), indented to sit at `pad`. */
+function inField(label: string | null, tag: string, pad: string, cls = ""): string {
+  return label ? `<DitherField label="${attr(label)}"${cls}>\n${pad}  ${tag}\n${pad}</DitherField>` : tag
+}
+
 function componentCode(w: Extract<WidgetModel, { kind: "component" }>): string {
   // Studio-only demo wrappers provide required parent context; exported code keeps
   // the public component and its editable props as the portable starting point.
@@ -34,24 +51,19 @@ function componentCode(w: Extract<WidgetModel, { kind: "component" }>): string {
       prop && prop !== "modelValue" ? `:${prop}="value" @${entry.vmodel.event}="value = false"` : `v-model="value"`,
     )
   }
-  const mapped = entry?.mapProps ? entry.mapProps(w.props) : w.props
-  for (const spec of entry?.props ?? []) {
-    const v = mapped[spec.key]
-    const raw = w.props[spec.key]
-    // emit only non-defaults (compare against the registry default)
-    if (JSON.stringify(raw) === JSON.stringify(spec.def)) continue
-    attrs.push(boundAttr(spec.key, v))
-  }
+  attrs.push(...propAttrs(w.is, w.props))
   const attrStr = attrs.length ? ` ${attrs.join(" ")}` : ""
   const modelSetup = entry?.vmodel ? `\nconst value = ref(${js(w.model)})` : ""
   const importRef = entry?.vmodel ? `import { ref } from "vue"\n` : ""
   const slot = w.slotText
+  const label = fieldLabel(w.is, w.props)
+  const imports = label ? ["DitherField", w.is].sort().join(", ") : w.is
   return `<script setup lang="ts">
-${importRef}import { ${w.is} } from "@dither-kit"${modelSetup}
+${importRef}import { ${imports} } from "@dither-kit"${modelSetup}
 </script>
 
 <template>
-  ${slot != null ? `<${w.is}${attrStr}>${text(slot)}</${w.is}>` : `<${w.is}${attrStr} />`}
+  ${inField(label, slot != null ? `<${w.is}${attrStr}>${text(slot)}</${w.is}>` : `<${w.is}${attrStr} />`, "  ")}
 </template>`
 }
 
@@ -81,14 +93,14 @@ function screenCode(w: Extract<WidgetModel, { kind: "screen" }>): string {
       refs.push(`const value${refN} = ref(${js(cell.model)})`)
       attrs.push(`v-model="value${refN}"`)
     }
-    const mapped = entry?.mapProps ? entry.mapProps(cell.props) : cell.props
-    for (const spec of entry?.props ?? []) {
-      if (JSON.stringify(cell.props[spec.key]) === JSON.stringify(spec.def)) continue
-      attrs.push(boundAttr(spec.key, mapped[spec.key]))
-    }
-    if (cell.grow) attrs.push(`class="flex-1"`)
+    attrs.push(...propAttrs(cell.is, cell.props))
+    const label = fieldLabel(cell.is, cell.props)
+    if (label) imports.add("DitherField")
+    // A labelled field grows as its DitherField; the field fills it.
+    if (cell.grow) attrs.push(label ? `class="w-full"` : `class="flex-1"`)
     const a = attrs.length ? ` ${attrs.join(" ")}` : ""
-    return cell.slotText != null ? `<${cell.is}${a}>${text(cell.slotText)}</${cell.is}>` : `<${cell.is}${a} />`
+    const tag = cell.slotText != null ? `<${cell.is}${a}>${text(cell.slotText)}</${cell.is}>` : `<${cell.is}${a} />`
+    return label ? inField(label, tag, "      ", cell.grow ? ` class="flex-1"` : "") : tag
   }
   const rows = w.rows
     .map((row) => {

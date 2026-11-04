@@ -304,7 +304,7 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<stri
     def: {
       name: "inspect",
       description:
-        "Inspect a frame as drawn: its controls in Tab order (role, accessible name, states, box) and what the accessibility floor finds: missing names, fields named only by their placeholder, targets under 24px, text under AA contrast, images without alt. Check a screen before calling it done.",
+        "Inspect a frame as drawn: its controls in Tab order (role, accessible name, states, box) and what the accessibility floor finds: missing names, fields named only by their placeholder (give the field its `label` prop: a visible label tied to it), targets under 24px, text under AA contrast, images without alt. Check a screen before calling it done.",
       parameters: obj({ id: str("artboard id; defaults to the selection") }),
     },
     command: "inspect",

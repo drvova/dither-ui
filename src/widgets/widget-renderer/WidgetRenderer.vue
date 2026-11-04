@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { editor } from "@/entities/editor"
-import { componentEntry, type WidgetModel } from "@/entities/widget"
+import { boundProps, componentEntry, fieldLabel, type WidgetModel } from "@/entities/widget"
 import * as kit from "@dither-kit"
 import { DitherAvatar, DitherButton, DitherGradient, DitherImage, toast } from "@dither-kit"
+import { FieldWrap } from "./FieldWrap"
 import ScreenRenderer from "./ScreenRenderer.vue"
 import ReelRenderer from "@/widgets/reel-renderer/ReelRenderer.vue"
 
@@ -13,11 +14,8 @@ const w = computed(() => props.widget)
 
 // Registry-driven kit component: resolve by export name, map list props.
 const comp = computed(() => (w.value.kind === "component" ? (kit as Record<string, unknown>)[w.value.is] : null))
-const compProps = computed(() => {
-  if (w.value.kind !== "component") return {}
-  const entry = componentEntry(w.value.is)
-  return entry?.mapProps ? entry.mapProps(w.value.props) : w.value.props
-})
+const compProps = computed(() => (w.value.kind === "component" ? boundProps(w.value.is, w.value.props) : {}))
+const label = computed(() => (w.value.kind === "component" ? fieldLabel(w.value.is, w.value.props) : null))
 const hasModel = computed(() => w.value.kind === "component" && !!componentEntry(w.value.is)?.vmodel)
 const entry = computed(() => (w.value.kind === "component" ? componentEntry(w.value.is) : undefined))
 const modelProp = computed(() => entry.value?.vmodel?.prop ?? "modelValue")
@@ -66,16 +64,17 @@ const triggerToast = () => {
 
   <!-- REGISTRY COMPONENT — generic by default, composed where context/slots require it. -->
   <div v-else-if="w.kind === 'component'" class="flex h-full w-full items-center justify-center overflow-visible p-2">
-    <component
-      :is="comp as never"
-      v-if="comp && !entry?.demo"
-      v-bind="compProps"
-      :[modelProp]="hasModel ? w.model : undefined"
-      class="max-h-full max-w-full"
-      @[modelEvent]="updateModel"
-    >
-      <template v-if="w.slotText != null" #default>{{ w.slotText }}</template>
-    </component>
+    <FieldWrap v-if="comp && !entry?.demo" :label="label" class="w-full">
+      <component
+        :is="comp as never"
+        v-bind="compProps"
+        :[modelProp]="hasModel ? w.model : undefined"
+        class="max-h-full max-w-full"
+        @[modelEvent]="updateModel"
+      >
+        <template v-if="w.slotText != null" #default>{{ w.slotText }}</template>
+      </component>
+    </FieldWrap>
 
     <component :is="kit.DitherTabs" v-else-if="entry?.demo === 'tab-panel'" :tabs="['One', 'Two']" model-value="One">
       <component :is="kit.DitherTabPanel" value="One">{{ w.slotText }}</component>

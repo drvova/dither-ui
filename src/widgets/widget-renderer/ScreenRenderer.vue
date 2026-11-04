@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { editor, selectLayer } from "@/entities/editor"
-import { componentEntry, type ScreenCell, type ScreenModel } from "@/entities/widget"
+import { boundProps, componentEntry, fieldLabel, type ScreenCell, type ScreenModel } from "@/entities/widget"
 import * as kit from "@dither-kit"
+import { FieldWrap } from "./FieldWrap"
 
 const props = defineProps<{ screen: ScreenModel; artboardId: string }>()
 
@@ -20,10 +21,6 @@ const ALIGN: Record<string, string> = {
 }
 
 const resolve = (is: string) => (kit as Record<string, unknown>)[is]
-const mapped = (cell: ScreenCell) => {
-  const entry = componentEntry(cell.is)
-  return entry?.mapProps ? entry.mapProps(cell.props) : cell.props
-}
 const hasModel = (cell: ScreenCell) => !!componentEntry(cell.is)?.vmodel
 
 const cellId = (cell: ScreenCell) => `${props.artboardId}:cell:${cell.id}`
@@ -54,15 +51,17 @@ const isSelected = computed(() => (id: string) => editor.selectedLayerId === id)
         :class="[cell.grow ? 'flex-1 min-w-0' : '', isSelected(cellId(cell)) ? 'ring-1 ring-accent' : '']"
         @pointerdown.stop="selectLayer(cellId(cell))"
       >
-        <component
-          :is="resolve(cell.is) as never"
-          v-bind="mapped(cell)"
-          :model-value="hasModel(cell) ? cell.model : undefined"
-          :class="cell.grow ? 'w-full' : ''"
-          @update:model-value="hasModel(cell) ? (cell.model = $event) : undefined"
-        >
-          <template v-if="cell.slotText != null" #default>{{ cell.slotText }}</template>
-        </component>
+        <FieldWrap :label="fieldLabel(cell.is, cell.props)" class="w-full">
+          <component
+            :is="resolve(cell.is) as never"
+            v-bind="boundProps(cell.is, cell.props)"
+            :model-value="hasModel(cell) ? cell.model : undefined"
+            :class="cell.grow ? 'w-full' : ''"
+            @update:model-value="hasModel(cell) ? (cell.model = $event) : undefined"
+          >
+            <template v-if="cell.slotText != null" #default>{{ cell.slotText }}</template>
+          </component>
+        </FieldWrap>
       </div>
       <span v-if="row.cells.length === 0" class="px-1 text-[10px] text-muted-foreground"
         >Empty row. Add a component in the inspector.</span
