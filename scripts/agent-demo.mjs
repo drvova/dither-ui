@@ -11,7 +11,7 @@
 //
 //   npm run dev                       # the Studio, in another terminal
 //   node scripts/agent-demo.mjs [--url http://localhost:5173/studio/]
-//     [--harness claude] [--agent "<any ACP command>"] [--ask "<text>"]
+//     [--harness claude] [--agent "<any ACP command>"] [--ask "<text>"]...
 //     [--out agent-demo] [--timeout 300] [--executable <chromium>]
 //
 // `--harness` is one of the bridge's presets (claude, codex, gemini, ...);
@@ -29,14 +29,16 @@ const flag = (name, fallback) => {
 }
 if (args.includes("--help")) {
   console.log(
-    'usage: node scripts/agent-demo.mjs [--url http://localhost:5173/studio/] [--harness claude] [--agent "<command>"] [--ask "<text>"] [--out agent-demo] [--timeout 300] [--executable <chromium>]',
+    'usage: node scripts/agent-demo.mjs [--url http://localhost:5173/studio/] [--harness claude] [--agent "<command>"] [--ask "<text>"]... [--out agent-demo] [--timeout 300] [--executable <chromium>]',
   )
   process.exit(0)
 }
 const url = flag("url", "http://localhost:5173/studio/")
 const agent = flag("agent", "")
 const harness = flag("harness", "claude")
-const ask = flag("ask", "A sign-in screen with an email field, a password field and a primary button")
+// Each --ask is one turn of the same chat, in order.
+const asks = args.flatMap((a, i) => (a === "--ask" && i + 1 < args.length ? [args[i + 1]] : []))
+if (!asks.length) asks.push("A sign-in screen with an email field, a password field and a primary button")
 const out = resolve(flag("out", "agent-demo"))
 const timeout = Number(flag("timeout", "300")) * 1000
 // Its own port, so a bridge you already run is left alone.
@@ -93,34 +95,39 @@ try {
   await page.locator('button[aria-label^="Toggle agent"]').click()
   const field = page.locator('textarea[name="agent-goal"]')
   await field.waitFor()
-  await pause(700)
-  await field.pressSequentially(ask, { delay: 38 })
-  await pause(500)
-  await field.press("Enter")
+  for (const ask of asks) {
+    const ended = await page.locator(".worked").count()
+    await pause(700)
+    await field.pressSequentially(ask, { delay: 38 })
+    await pause(500)
+    await field.press("Enter")
 
-  // Each prompt shows a beat, then is allowed once; the turn ends with its
-  // "Worked for" line.
-  const end = Date.now() + timeout
-  while (Date.now() < end) {
-    if (await page.locator(".worked").count()) break
-    // The last allow is the harness's "always" when it offers one: the
-    // scratch folder remembers it, so a tool is asked about once.
-    const allow = page.locator(".approval .key.is-primary").last()
-    if (await allow.isVisible().catch(() => false)) {
-      await pause(1400)
-      await allow.click().catch(() => {})
+    // Each prompt shows a beat, then is allowed; the turn ends with its
+    // "Worked for" line.
+    const end = Date.now() + timeout
+    while (Date.now() < end) {
+      if ((await page.locator(".worked").count()) > ended) break
+      // The last allow is the harness's "always" when it offers one: the
+      // scratch folder remembers it, so a tool is asked about once. A tool
+      // the harness built asks every run: its one allow is "Run it".
+      const allow = page.locator(".approval .key.is-primary").last()
+      if (await allow.isVisible().catch(() => false)) {
+        await pause(1800)
+        await allow.click().catch(() => {})
+      }
+      await pause(400)
     }
-    await pause(400)
-  }
-  if (!(await page.locator(".worked").count())) throw new Error(`the turn did not end within ${timeout / 1000}s`)
-  await pause(1500)
-  // Every frame in view, wherever the agent put the new one.
-  await page.locator('button[aria-label="Fit to screen"]').click()
-  await pause(1200)
-  const changed = page.locator(".head.is-split .toggle")
-  if (await changed.count()) {
-    await changed.click()
-    await pause(2500)
+    if ((await page.locator(".worked").count()) <= ended)
+      throw new Error(`the turn did not end within ${timeout / 1000}s`)
+    await pause(1500)
+    // Every frame in view, wherever the agent put the new one.
+    await page.locator('button[aria-label="Fit to screen"]').click()
+    await pause(1200)
+    const changed = page.locator(".head.is-split .toggle")
+    if (await changed.count()) {
+      await changed.click()
+      await pause(2500)
+    }
   }
   ok = true
 } catch (e) {

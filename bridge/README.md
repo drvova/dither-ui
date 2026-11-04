@@ -44,7 +44,8 @@ the bridge found on your PATH:
 `npm run demo:agent` records the panel driving your own harness: it starts
 this bridge on port 8791 with a fresh scratch folder, opens the Studio you
 serve (`npm run dev`, or `--url`), picks Claude Code (or `--harness <id>`,
-or any ACP `--agent "<command>"`), types the ask (`--ask`), shows each
+or any ACP `--agent "<command>"`), types each ask (`--ask`, again for
+each next turn of the same chat), shows each
 permission prompt a beat before allowing it, waits for the turn to end
 (`--timeout 300` seconds), and writes `agent-demo/agent-demo.webm` and,
 with ffmpeg on the PATH, an `.mp4`. It runs on your login: nothing is

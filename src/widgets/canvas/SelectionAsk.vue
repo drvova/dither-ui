@@ -19,6 +19,9 @@ const MIN = 240
 const MAX = 380
 const H = 36
 const GAP = 10
+/** The canvas's foot the bars stand in (zoom, the selection's actions: 40px
+ * tall, 12px up), which the ask keeps clear of. */
+const FOOT = 60
 
 const frame = computed(() => {
   if (props.held || handoff.picking || editor.selectedIds.length !== 1) return null
@@ -34,7 +37,8 @@ const place = computed(() => {
   const bottom = (a.y + a.h) * zoom + y
   const width = Math.min(MAX, Math.max(MIN, a.w * zoom))
   // Under the frame, else above its label, else not at all.
-  const at = bottom + GAP + H <= editor.stage.h ? bottom + GAP : top - 28 - GAP - H >= 0 ? top - 28 - GAP - H : null
+  const at =
+    bottom + GAP + H <= editor.stage.h - FOOT ? bottom + GAP : top - 28 - GAP - H >= 0 ? top - 28 - GAP - H : null
   if (at === null || left + width < 0 || left > editor.stage.w) return null
   return { left: Math.min(Math.max(8, left), Math.max(8, editor.stage.w - width - 8)), top: at, width }
 })

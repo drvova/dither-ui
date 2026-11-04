@@ -1010,7 +1010,8 @@ widgets/features; page-specific conventions live here.
   crosshair and a "Click frames to hand them to the agent" bar with Done,
   Esc ends it) and the ask at the selection (`widgets/canvas/SelectionAsk.vue`:
   one frame selected, a one-line composer under it, or above its label
-  when there is no room, away while a pointer is down or picking; its
+  when there is no room above the bars at the canvas's foot (`FOOT`, the
+  zoom and selection bars' 60px; `tests/selection-ask.spec.ts`), away while a pointer is down or picking; its
   message opens the panel, which sends it with the frame as context; asks
   waiting before the panel mounted are taken once it has). The harness reads
   the context as the frames' names and ids ahead of the message, and,
