@@ -692,6 +692,12 @@ the kit every import is relative (`../engine/pixel`).
   `DitherField` context. Inputs, textarea,
   select, number field, button, checkbox, switch, and modal controls reuse it;
   keep native elements and public component APIs rather than adding a base class.
+- `DitherPressable` (`Pressable.vue`) looks like a button out of the box:
+  `variant` `solid` (ink on the page, the default), `outline`, `ghost`, its
+  ring `CONTROL_BUTTON`'s, a 40px mono key; `plain` is the bare base (only
+  the press), for a caller that draws every pixel. A caller's class still
+  wins (`cn`). A screen's cell takes it like any registry component, so a
+  screen's button reads as one.
 - `DitherField` supplies generated control/help IDs and error state to compatible
   descendants. Explicit consumer `id`, `aria-describedby`, and invalid props win.
 - Respect `prefers-reduced-motion` inside the kit (see

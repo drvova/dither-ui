@@ -132,9 +132,11 @@ const SNIPPET_HOVER_AREA = `<DitherHoverArea v-slot="{ hovered, focused }">
   </div>
 </DitherHoverArea>`
 
-const SNIPPET_PRESSABLE = `<DitherPressable class="rounded-md border px-3 py-1.5 text-[11px]">
-  Plain, native, presses down
-</DitherPressable>`
+const SNIPPET_PRESSABLE = `<DitherPressable>Get started</DitherPressable>
+<DitherPressable variant="outline">Compare plans</DitherPressable>
+<DitherPressable variant="ghost">Later</DitherPressable>
+<DitherPressable disabled>Sold out</DitherPressable>
+<DitherPressable variant="plain" class="underline underline-offset-4">Bare base, your look</DitherPressable>`
 
 const SNIPPET_IN_VIEW = `<DitherInView v-slot="{ inView }" :once="true">
   <div class="h-40 rounded border transition-opacity" :class="inView ? 'opacity-100' : 'opacity-0'">
@@ -215,7 +217,11 @@ const API: Record<string, PropRow[]> = {
     { prop: "restoreFocus", type: "boolean", default: "true" },
   ],
   hoverArea: [{ prop: "scoped slot", type: "{ hovered, focused }", default: "" }],
-  pressable: [{ prop: "type", type: '"button" | "submit" | "reset"', default: '"button"' }],
+  pressable: [
+    { prop: "variant", type: '"solid" | "outline" | "ghost" | "plain"', default: '"solid"' },
+    { prop: "type", type: '"button" | "submit" | "reset"', default: '"button"' },
+    { prop: "disabled", type: "boolean", default: "false" },
+  ],
   inView: [
     { prop: "rootMargin", type: "string", default: '"200px"' },
     { prop: "threshold", type: "number", default: "0" },
@@ -578,8 +584,9 @@ const API: Record<string, PropRow[]> = {
   <section id="pressable" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">Pressable</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      The plainest interactive base: a native button (never submits a form by accident) with the house press affordance
-      and the global focus floor. For the dithered, blooming version see
+      A native button (never submits a form by accident) with the house press affordance and the theme's focus ring that
+      looks like a button out of the box: solid ink by default, outline or ghost beside it, and plain for the bare base
+      when you draw every pixel yourself. For the dithered, blooming version see
       <a
         href="#button"
         class="text-foreground/80 underline decoration-border underline-offset-4 hover:decoration-foreground/60"
@@ -587,15 +594,14 @@ const API: Record<string, PropRow[]> = {
       >.
     </p>
     <DemoCard :code="SNIPPET_PRESSABLE">
-      <div class="flex justify-center gap-3">
-        <DitherPressable
-          class="rounded-md border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <DitherPressable>Get started</DitherPressable>
+        <DitherPressable variant="outline">Compare plans</DitherPressable>
+        <DitherPressable variant="ghost">Later</DitherPressable>
+        <DitherPressable disabled>Sold out</DitherPressable>
+        <DitherPressable variant="plain" class="text-[12px] underline underline-offset-4"
+          >Bare base, your look</DitherPressable
         >
-          Plain, native, presses down
-        </DitherPressable>
-        <DitherPressable disabled class="rounded-md border border-border/60 px-3 py-1.5 text-[11px] opacity-50">
-          Disabled
-        </DitherPressable>
       </div>
     </DemoCard>
     <PropsTable :rows="API.pressable" />

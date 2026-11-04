@@ -264,6 +264,21 @@ describe("Pressable", () => {
     const dis = mount(Pressable, { props: { disabled: true } })
     expect(dis.find("button").attributes("disabled")).toBeDefined()
   })
+
+  it("looks like a button out of the box, its ring the theme's, and plain is the bare base", () => {
+    const solid = mount(Pressable, { slots: { default: "Get started" } }).classes()
+    expect(solid).toEqual(expect.arrayContaining(["bg-foreground", "text-background", "min-h-10", "rounded-md"]))
+    expect(solid).toContain("focus-visible:ring-ring")
+    expect(mount(Pressable, { props: { variant: "outline" } }).classes()).toEqual(
+      expect.arrayContaining(["border", "border-border"]),
+    )
+    expect(mount(Pressable, { props: { variant: "ghost" } }).classes()).toContain("hover:bg-muted")
+    // Plain keeps only the press, so a caller's own classes are the look.
+    const plain = mount(Pressable, { props: { variant: "plain", class: "underline" } }).classes()
+    expect(plain.sort()).toEqual(["active:scale-[0.97]", "transition-transform", "underline"])
+    // A caller's class still wins over the look (tailwind-merge).
+    expect(mount(Pressable, { props: { class: "rounded-full" } }).classes()).not.toContain("rounded-md")
+  })
 })
 
 describe("InView", () => {

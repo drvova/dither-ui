@@ -496,7 +496,11 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Pressable",
     group: "inputs",
     frame: { w: 200, h: 80 },
-    props: [select("type", "button", ["button", "submit", "reset"]), bool("disabled")],
+    props: [
+      select("variant", "solid", ["solid", "outline", "ghost", "plain"]),
+      select("type", "button", ["button", "submit", "reset"]),
+      bool("disabled"),
+    ],
     slotText: "Press me",
   },
   {
