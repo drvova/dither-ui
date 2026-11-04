@@ -17,6 +17,8 @@ const props = defineProps<{
   copied?: boolean
   /** The message's checkpoint can be restored. */
   restorable?: boolean
+  /** Your message can be edited and sent again from here (no turn running). */
+  editable?: boolean
   /** The thread's newest entry while the harness is idle: a turn's close
    * then offers its next move (Continue after a stop, Try again after a
    * failure). */
@@ -26,6 +28,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   restore: []
+  edit: []
   copy: []
   answer: [id: string]
   toggle: [open: boolean]
@@ -45,18 +48,39 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
 
 <template>
   <div v-if="entry.kind === 'user' || entry.kind === 'followup'" class="msg-row">
-    <button
-      v-if="restorable"
-      type="button"
-      class="restore"
-      aria-label="Restore checkpoint"
-      title="Restore checkpoint: the canvas as it was before this message"
-      @click="emit('restore')"
-    >
-      <DitherIcon name="Undo" :size="12" :stroke-width="1.5" />
-    </button>
+    <div class="msg-keys">
+      <button
+        v-if="editable"
+        type="button"
+        class="restore"
+        aria-label="Edit from here"
+        title="Edit and send again from here"
+        @click="emit('edit')"
+      >
+        <DitherIcon name="Edit" :size="12" :stroke-width="1.5" />
+      </button>
+      <button
+        v-if="restorable"
+        type="button"
+        class="restore"
+        aria-label="Restore checkpoint"
+        title="Restore checkpoint: the canvas as it was before this message"
+        @click="emit('restore')"
+      >
+        <DitherIcon name="Undo" :size="12" :stroke-width="1.5" />
+      </button>
+      <button
+        type="button"
+        class="restore"
+        :aria-label="copied ? 'Copied' : 'Copy message'"
+        :title="copied ? 'Copied' : 'Copy message'"
+        @click="emit('copy')"
+      >
+        <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />
+      </button>
+    </div>
     <div class="msg">
-      <div v-if="entry.context?.length" class="chips">
+      <div v-if="entry.context?.length || entry.attached?.length" class="chips">
         <span
           v-for="c in entry.context"
           :key="c.id"
@@ -65,6 +89,15 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
           ><DitherIcon :name="entry.pictured ? 'Image' : 'Layout'" :size="11" :stroke-width="1.5" /><span
             class="row-label is-wrap"
             >{{ c.name }}</span
+          ></span
+        ><span
+          v-for="(f, j) in entry.attached ?? []"
+          :key="`att${j}`"
+          class="ctx first-line"
+          :title="`${f.name}, ${f.detail}`"
+          ><DitherIcon :name="f.kind === 'image' ? 'Image' : 'File'" :size="11" :stroke-width="1.5" /><span
+            class="row-label is-wrap"
+            >{{ f.name }}</span
           ></span
         >
       </div>
@@ -203,12 +236,18 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* Your message's keys, in a column at its side, shown under the pointer. */
+.msg-keys {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 3px;
+}
 .restore {
   display: grid;
   width: 1.5rem;
   height: 1.5rem;
   flex-shrink: 0;
-  margin-top: 3px;
   place-items: center;
   border-radius: 7px;
   color: var(--color-muted-foreground);
@@ -219,7 +258,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
     background-color 200ms var(--ease-settle);
 }
 .msg-row:hover .restore,
-.restore:focus-visible {
+.msg-row:focus-within .restore {
   opacity: 1;
 }
 @media (hover: none) {

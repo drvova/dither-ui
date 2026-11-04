@@ -22,6 +22,7 @@ import {
   type ModelChoice,
   saveAgentConfig,
   saveDraft,
+  type ContextUse,
   type Usage,
 } from "@/features/agent/tools"
 import { chats, loadThread, newChat, openProject, saveThread, titleOf } from "@/features/agent/chats"
@@ -31,8 +32,20 @@ import { artboardPng } from "@/features/export-image"
 import { checkpoint, restoreCheckpoint, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark.vue"
+import { modKey } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { isMark } from "@/shared/ui/marks"
+import {
+  type Attachment,
+  chipOf,
+  foldsPaste,
+  imagesOf,
+  intake,
+  moved,
+  pastedText,
+  promptText,
+  type Queued,
+} from "./model/compose"
 import { askTitle, type Changed } from "./model/steps"
 import { nextPrompts } from "./model/suggest"
 import {
@@ -46,6 +59,8 @@ import {
   todosOf,
   toolEntry,
 } from "./model/thread"
+import Attached from "./ui/Attached.vue"
+import ContextMeter from "./ui/ContextMeter.vue"
 import ThreadEntry from "./ui/ThreadEntry.vue"
 import TurnTrays from "./ui/TurnTrays.vue"
 
@@ -80,6 +95,8 @@ const input = ref("")
 const box = ref<HTMLTextAreaElement | null>(null)
 const entries = ref<Entry[]>([])
 const usage = ref<Usage>({ input: 0, output: 0 })
+/** How full the harness says its context is (none until it reports). */
+const contextUse = ref<ContextUse | null>(null)
 type TextEntry = Extract<Entry, { text: string }>
 type PlanEntry = Extract<Entry, { kind: "plan" }>
 /** Newest entry matching a guard (lib is ES2020: no findLast). */
@@ -152,8 +169,10 @@ function restore(projectId: string, chatId: string) {
   input.value = loadDraft(projectId)
   scrollLog(true)
   // Another chat is another session with the harness.
-  if (fresh && acp.value?.hello?.agent)
+  if (fresh && acp.value?.hello?.agent) {
+    contextUse.value = null
     acp.value.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
+  }
 }
 
 const title = computed(() => titleOf(entries.value))
@@ -185,6 +204,36 @@ function restoreTo(at: number) {
   system("Restored the checkpoint")
 }
 const canRestore = (e: Entry) => "turn" in e && !!e.turn && checkpoints.has(e.turn) && !busy.value
+
+/** Your earlier message, taken back to change and send again from there:
+ * the later entries leave the thread, the canvas goes back to before it
+ * when its checkpoint is kept (`restore`, yours to turn off), and the
+ * harness is told it is a revision (its session remembers the rest). */
+const editing = ref<{ at: number; turn: number; was: string; restore: boolean; restorable: boolean } | null>(null)
+function editFrom(at: number) {
+  const e = entries.value[at]
+  if (busy.value || !e || (e.kind !== "user" && e.kind !== "followup")) return
+  const restorable = !!e.turn && checkpoints.has(e.turn)
+  editing.value = { at, turn: e.turn ?? 0, was: e.text, restore: restorable, restorable }
+  input.value = e.text
+  for (const c of e.context ?? [])
+    if (editor.artboards.some((a) => a.id === c.id) && !handoff.picked.includes(c.id)) togglePicked(c.id)
+  refocus()
+}
+function cancelEdit() {
+  editing.value = null
+  input.value = ""
+  refocus()
+}
+/** Go back to the message being edited: the canvas (when chosen) and the
+ * thread; what the harness reads before the revised message. */
+function rewind(ed: NonNullable<typeof editing.value>): string {
+  const cp = ed.restore ? checkpoints.get(ed.turn) : undefined
+  if (cp) restoreCheckpoint(cp)
+  entries.value = entries.value.slice(0, ed.at)
+  const first = ed.was.split("\n")[0].slice(0, 80)
+  return `I am changing my earlier message ("${first}"); ${cp ? "the canvas is back to how it stood before it" : "the canvas stays as it is now"}. What I want instead:\n\n`
+}
 
 const todos = computed(() => todosOf(entries.value))
 
@@ -290,6 +339,7 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
           mode.value = ""
           model.value = null
           commands.value = []
+          contextUse.value = null
         }
         nameIt()
       },
@@ -432,6 +482,9 @@ function onEvent(e: AgentEvent) {
     case "commands":
       commands.value = e.commands
       break
+    case "context":
+      contextUse.value = e.context
+      break
     case "turn":
       lastTurnMs.value = e.elapsedMs
       if (e.usage)
@@ -459,7 +512,7 @@ const pending = shallowReactive(new Map<Approval, (id: string | null) => void>()
 
 function ask(
   title: string,
-  options: { id: string; label: string; primary?: boolean }[],
+  options: { id: string; label: string; primary?: boolean; reject?: boolean }[],
   code?: string,
 ): Promise<string | null> {
   askedAt = Date.now()
@@ -487,7 +540,12 @@ const approveTool = async (tool: Built): Promise<boolean> =>
   )) === "run"
 
 const askPermission = async (req: AcpPermissionRequest): Promise<string | null> => {
-  const options = req.options.map((o) => ({ id: o.optionId, label: o.name, primary: o.kind.startsWith("allow") }))
+  const options = req.options.map((o) => ({
+    id: o.optionId,
+    label: o.name,
+    primary: o.kind.startsWith("allow"),
+    reject: o.kind.startsWith("reject"),
+  }))
   if (config.value.auto) return options.find((o) => o.primary)?.id ?? options[0]?.id ?? null
   return ask(
     askTitle(req.title, (req.raw as { toolCall?: { rawInput?: unknown } } | null)?.toolCall?.rawInput),
@@ -495,7 +553,7 @@ const askPermission = async (req: AcpPermissionRequest): Promise<string | null> 
       ? options
       : [
           { id: "allow", label: "allow", primary: true },
-          { id: "reject", label: "reject" },
+          { id: "reject", label: "reject", reject: true },
         ],
   )
 }
@@ -541,7 +599,17 @@ let cursor = -1
 watch(input, (text) => {
   if (cursor !== -1 && text !== sent.value[cursor]) cursor = -1
 })
-const followUps = ref<string[]>([])
+/** What the message carries besides its words (pastes, dropped files,
+ * pictures), and a line about what could not come in. */
+const attachments = ref<Attachment[]>([])
+const notice = ref("")
+watch(input, () => (notice.value = ""))
+/** Messages written while a turn runs, in the order they go; `paused`
+ * after a stop, until you send one or press Send next. */
+const followUps = ref<Queued[]>([])
+const paused = ref(false)
+let qn = 0
+const queueOf = (text: string, atts: Attachment[]): Queued => ({ id: `q${++qn}`, text, attachments: atts })
 let controller: AbortController | null = null
 const toolsOpen = ref(false)
 
@@ -611,7 +679,7 @@ const slashAll = computed<Slash[]>(() => [
 /** The field says what sending will do now. */
 const placeholder = computed(() =>
   openApproval.value
-    ? `Answer above, 1 to ${Math.min(9, openApproval.value.options.length)}`
+    ? `Answer 1 to ${Math.min(9, openApproval.value.options.length)}, or type to redirect`
     : stopping.value
       ? "Queue for after the stop"
       : busy.value
@@ -844,31 +912,60 @@ function takeAsks() {
 // state exists by then), and as they come after that.
 watch(() => handoff.asks.length, takeAsks)
 
-async function send(text = input.value.trim()) {
-  if (!text) return
+/** Send what is in the composer (or `text`, a suggestion or an ask). While
+ * the harness works it waits in the queue; `now` stops the turn and sends
+ * it next (the protocol has no way into a running turn: a stop and a send
+ * is the honest version of steering). */
+async function send(text = input.value.trim(), now = false) {
+  const atts = text === input.value.trim() ? attachments.value : []
+  if (!text && !atts.length) return
   // A finger's send puts the keyboard away; a pointer's keeps the field.
   if (touch) box.value?.blur()
   else refocus()
-  input.value = ""
-  cursor = -1
-  if (text.startsWith("/") && (await slash(text))) return
-  // While the harness works, anything typed waits for the task to end.
-  if (busy.value) {
-    followUps.value.push(text)
+  if (text.startsWith("/") && !atts.length) {
+    input.value = ""
+    cursor = -1
+    if (await slash(text)) return
+  }
+  if (imagesOf(atts).length && acp.value && !acp.value.acceptsImages) {
+    notice.value = `${agentName.value || "This harness"} takes no pictures here: remove them to send`
     return
   }
-  await run(text)
+  input.value = ""
+  attachments.value = []
+  cursor = -1
+  if (busy.value) {
+    // Words typed while a permission prompt waits are the answer: it is
+    // declined and they go next, in its place.
+    const asking = openApproval.value
+    if (asking && text) {
+      answer(asking, asking.options.find((o) => o.reject)?.id ?? null)
+      now = true
+    }
+    const q = queueOf(text, atts)
+    if (now) {
+      followUps.value.unshift(q)
+      sendNow(q.id)
+    } else followUps.value.push(q)
+    announced.value = now ? "Stopping to send it" : "Queued"
+    return
+  }
+  paused.value = false
+  const ed = editing.value
+  editing.value = null
+  await run(text, atts, ed ? rewind(ed) : "")
 }
 
 /** The latest turn's message, for "Try again" when it failed. */
 const lastSent = ref("")
 /** A stop asked for and not yet answered by the harness. */
 const stopping = ref(false)
-async function run(text: string) {
+async function run(text: string, atts: Attachment[] = [], revision = "") {
   lastSent.value = text
   const client = await ready()
   if (!client) {
     input.value = input.value ? `${text}\n${input.value}` : text
+    attachments.value = [...atts, ...attachments.value]
     return
   }
   const frames = context.value
@@ -880,15 +977,30 @@ async function run(text: string) {
   // entry: this turn's reply starts under its message.
   live.value = null
   endThought()
-  const pictures = client.acceptsImages ? await picturesOf(frames) : []
-  push({ kind: "user", text, turn: turn.value, context: frames, pictured: pictures.length > 0 })
+  const framePictures = client.acceptsImages ? await picturesOf(frames) : []
+  const pictures = [
+    ...framePictures,
+    ...(client.acceptsImages ? imagesOf(atts).map((a) => ({ mimeType: a.mimeType, data: a.data })) : []),
+  ]
+  push({
+    kind: "user",
+    text,
+    turn: turn.value,
+    context: frames,
+    pictured: framePictures.length > 0,
+    ...(atts.length ? { attached: atts.map((a) => ({ kind: a.kind, ...chipOf(a) })) } : {}),
+  })
   scrollLog(true)
   busy.value = true
   started.value = Date.now()
   now.value = started.value
   clock = setInterval(() => (now.value = Date.now()), 1000)
   controller = new AbortController()
-  const { stopReason } = await client.prompt(withContext(text, frames), controller.signal, pictures)
+  const { stopReason } = await client.prompt(
+    revision + withContext(promptText(text, atts), frames),
+    controller.signal,
+    pictures,
+  )
   clearInterval(clock)
   busy.value = false
   stopping.value = false
@@ -898,9 +1010,47 @@ async function run(text: string) {
   const end = stopReason === "cancelled" ? "stopped" : stopReason === "error" ? "failed" : undefined
   announced.value = end === "stopped" ? "Stopped" : end === "failed" ? "Failed" : "Done"
   push({ kind: "worked", ms: Date.now() - started.value, ...(end ? { end } : {}) })
-  // Follow-ups run one at a time, in order, each its own turn.
+  // Follow-ups run one at a time, in order, each its own turn; a stop pauses
+  // them (a Send now stops on purpose and goes on).
+  if (end === "stopped" && !sendingNow) paused.value = true
+  sendingNow = false
+  if (!paused.value) await runNext()
+}
+
+/** The next queued message, as its own turn. */
+async function runNext() {
   const next = followUps.value.shift()
-  if (next !== undefined) await run(next)
+  if (next) await run(next.text, next.attachments)
+}
+let sendingNow = false
+/** Send a queued message now: to the front, and a running turn stops for it. */
+function sendNow(id: string) {
+  const at = followUps.value.findIndex((q) => q.id === id)
+  if (at < 0) return
+  followUps.value = [followUps.value[at], ...followUps.value.filter((q) => q.id !== id)]
+  paused.value = false
+  if (busy.value) {
+    sendingNow = true
+    stopTurn()
+  } else void runNext()
+}
+/** Take a queued message back into the composer, to change and send again. */
+function editQueued(id: string) {
+  const q = followUps.value.find((x) => x.id === id)
+  if (!q) return
+  followUps.value = followUps.value.filter((x) => x.id !== id)
+  input.value = input.value ? `${q.text}\n${input.value}` : q.text
+  attachments.value = [...q.attachments, ...attachments.value]
+  refocus()
+}
+/** Go on with a paused queue. */
+function resume() {
+  paused.value = false
+  if (!busy.value) void runNext()
+}
+const moveQueued = (id: string) => {
+  const at = followUps.value.findIndex((q) => q.id === id)
+  followUps.value = moved(followUps.value, at, -1)
 }
 
 /** A stop the harness has not answered in `STUCK_MS`: the tray offers to
@@ -913,21 +1063,64 @@ function forceStop() {
   acp.value?.stop()
   refocus()
 }
+/** Stop the turn. The queue stays, paused (Send next or a new message goes on). */
 function stop() {
+  stopTurn()
+}
+function stopTurn() {
   for (const settle of [...pending.values()]) settle(null)
   if (busy.value && !stopping.value) {
     stopping.value = true
     stoppedAt.value = Date.now()
   }
   controller?.abort()
-  // Stopping returns queued messages to the editor.
-  const queued = followUps.value.splice(0)
-  if (queued.length) input.value = [input.value, ...queued].filter(Boolean).join("\n")
 }
 
 function unqueue() {
-  const last = followUps.value.pop()
-  if (last) input.value = input.value ? `${last}\n${input.value}` : last
+  const last = followUps.value[followUps.value.length - 1]
+  if (last) editQueued(last.id)
+}
+
+/* What comes in by paste or drop. A long text folds into a chip (the
+ * field stays a field); Cmd/Ctrl+Shift+V pastes it as typed text. Files:
+ * pictures and text files; anything else says why not. */
+let rawPasteUntil = 0
+async function takeFiles(files: File[]) {
+  for (const f of files) {
+    const got = await intake(f, attachments.value)
+    if (typeof got === "string") notice.value = got
+    else attachments.value = [...attachments.value, got]
+  }
+}
+function onPaste(e: ClipboardEvent) {
+  const files = [...(e.clipboardData?.files ?? [])]
+  if (files.length) {
+    e.preventDefault()
+    void takeFiles(files)
+    return
+  }
+  const text = e.clipboardData?.getData("text/plain") ?? ""
+  if (Date.now() < rawPasteUntil || !foldsPaste(text)) return
+  e.preventDefault()
+  attachments.value = [...attachments.value, pastedText(text, attachments.value)]
+}
+const dropping = ref(false)
+function onDrop(e: DragEvent) {
+  dropping.value = false
+  const files = [...(e.dataTransfer?.files ?? [])]
+  if (!files.length) return
+  e.preventDefault()
+  void takeFiles(files)
+  refocus()
+}
+const unattach = (id: string) => (attachments.value = attachments.value.filter((a) => a.id !== id))
+/** A folded text back into the field, as typed text. */
+function unfold(id: string) {
+  const a = attachments.value.find((x) => x.id === id)
+  if (a?.kind !== "text") return
+  unattach(id)
+  input.value = input.value ? `${input.value}\n${a.text}` : a.text
+  refocus()
 }
 
 function onKey(e: KeyboardEvent) {
@@ -992,9 +1185,15 @@ function onKey(e: KeyboardEvent) {
       return
     }
   }
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "v" || e.key === "V" || e.code === "KeyV")) {
+    rawPasteUntil = Date.now() + 1000
+    return
+  }
   if (e.key === "Enter" && !e.shiftKey && !touch) {
     e.preventDefault()
-    void send()
+    // An empty field on a paused queue: Enter goes on with it.
+    if (!input.value.trim() && !attachments.value.length && paused.value && followUps.value.length) return resume()
+    void send(undefined, busy.value && (e.metaKey || e.ctrlKey))
     return
   }
   if (e.key === "ArrowUp" && e.altKey) {
@@ -1016,7 +1215,8 @@ function onKey(e: KeyboardEvent) {
     if (busy.value || pending.size) {
       e.preventDefault()
       stop()
-    } else box.value?.blur()
+    } else if (editing.value) cancelEdit()
+    else box.value?.blur()
     return
   }
   if (e.ctrlKey && (e.key === "o" || e.key === "O")) {
@@ -1109,11 +1309,13 @@ onBeforeUnmount(() => {
           :live="live === b.entry || thinking === b.entry"
           :copied="copied === b.at"
           :restorable="canRestore(b.entry)"
+          :editable="!busy && (b.entry.kind === 'user' || b.entry.kind === 'followup')"
           :latest="!busy && b.at === entries.length - 1"
           :numbered="b.entry === openApproval"
           @again="send(lastSent)"
           @continue="send('Continue')"
           @restore="'turn' in b.entry && b.entry.turn && restoreTo(b.entry.turn)"
+          @edit="editFrom(b.at)"
           @copy="'text' in b.entry && copyReply(b.at, b.entry.text)"
           @answer="(id) => b.entry.kind === 'approval' && answer(b.entry, id)"
           @toggle="(open) => setFold(b.entry, open)"
@@ -1275,6 +1477,7 @@ onBeforeUnmount(() => {
           :next="suggestions"
           :todos="todos"
           :queue="followUps"
+          :paused="paused"
           :run="
             busy
               ? {
@@ -1289,15 +1492,43 @@ onBeforeUnmount(() => {
           :shown="(id) => editor.artboards.some((a) => a.id === id)"
           @stop="stop"
           @force-stop="forceStop"
-          @unqueue="(j) => followUps.splice(j, 1)"
+          @unqueue="(id) => (followUps = followUps.filter((q) => q.id !== id))"
+          @edit-queued="editQueued"
+          @send-now="sendNow"
+          @move-up="moveQueued"
+          @clear-queue="((followUps = []), (paused = false))"
+          @resume="resume"
           @undo="undoTurn"
           @keep="keep"
           @show="selectArtboard"
           @ask="(s) => send(s)"
         />
 
-        <div class="card">
-          <div v-if="context.length" class="chips">
+        <div v-if="editing" class="editing" role="status">
+          <p class="editing-line">
+            <DitherIcon name="Edit" :size="12" :stroke-width="1.5" /><span class="row-label is-wrap"
+              >Editing an earlier message. Sending goes back there: the messages after it leave the thread.</span
+            >
+          </p>
+          <div class="editing-keys">
+            <label v-if="editing.restorable" class="editing-choice"
+              ><input v-model="editing.restore" type="checkbox" name="edit-restore" /><span class="row-label"
+                >Canvas back to before it</span
+              ></label
+            >
+            <button type="button" class="editing-cancel" @click="cancelEdit">
+              <span class="row-label">Cancel</span><kbd class="row-label">esc</kbd>
+            </button>
+          </div>
+        </div>
+        <div
+          class="card"
+          :class="{ 'is-dropping': dropping }"
+          @dragover.prevent="dropping = true"
+          @dragleave.self="dropping = false"
+          @drop="onDrop"
+        >
+          <div v-if="context.length || attachments.length" class="chips">
             <span v-for="c in context" :key="c.id" class="ctx first-line"
               ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" /><span class="row-label is-wrap">{{
                 c.name
@@ -1305,7 +1536,9 @@ onBeforeUnmount(() => {
               ><button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
                 <DitherIcon name="Close" :size="10" :stroke-width="1.5" /></button
             ></span>
+            <Attached :attachments="attachments" @remove="unattach" @unfold="unfold" />
           </div>
+          <p v-if="notice" class="notice" role="status">{{ notice }}</p>
           <textarea
             ref="box"
             v-model="input"
@@ -1321,6 +1554,7 @@ onBeforeUnmount(() => {
             :aria-activedescendant="listbox?.active"
             spellcheck="false"
             @keydown="onKey"
+            @paste="onPaste"
             @compositionend="onCompositionEnd"
           />
           <div class="foot">
@@ -1369,13 +1603,14 @@ onBeforeUnmount(() => {
               <span class="row-label">{{ modelName(model) }}</span
               ><DitherIcon v-if="model.options.length > 1" name="ChevronDown" :size="10" :stroke-width="1.5" />
             </button>
+            <ContextMeter v-if="contextUse" :use="contextUse" />
             <button
               type="button"
               class="send"
-              :class="input.trim() ? 'key-chrome' : 'is-idle'"
-              :disabled="!input.trim()"
-              :aria-label="busy ? 'Queue (enter)' : 'Send (enter)'"
-              :title="busy ? 'Queue (enter)' : 'Send (enter)'"
+              :class="input.trim() || attachments.length ? 'key-chrome' : 'is-idle'"
+              :disabled="!input.trim() && !attachments.length"
+              :aria-label="busy ? `Queue (enter), or send now (${modKey('enter')})` : 'Send (enter)'"
+              :title="busy ? `Queue (enter), or stop and send now (${modKey('enter')})` : 'Send (enter)'"
               @mousedown.prevent
               @click="(ev: MouseEvent) => ev.detail > 1 || send()"
             >
@@ -1648,6 +1883,78 @@ onBeforeUnmount(() => {
 /* Under the stack, a breath between its last row and the card. */
 .part + .card {
   margin-top: 3px;
+}
+/* Editing an earlier message: what sending will do, and the way out. */
+.editing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin-bottom: 4px;
+  padding: 7px var(--inset);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+  font-size: 11px;
+  color: var(--color-foreground);
+}
+.editing-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  line-height: 1.4;
+}
+.editing-line > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.editing-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding-left: 19px;
+}
+.editing-choice {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+}
+.editing-cancel {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: 6px;
+  border-radius: 7px;
+  padding: 0 8px;
+  color: var(--color-foreground);
+}
+.editing-cancel:hover {
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.editing-cancel kbd {
+  font: inherit;
+  color: var(--color-muted-foreground);
+}
+.editing-cancel:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+/* A file held over the composer: its ring says it lands here. */
+.card.is-dropping {
+  box-shadow:
+    var(--recess-sm),
+    0 0 0 2px var(--color-ring);
+}
+/* What could not come in, or why a send waits. */
+.notice {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-destructive);
 }
 .card:focus-within {
   box-shadow:

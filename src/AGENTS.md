@@ -274,7 +274,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     chunks → `delta`, thought chunks → `thought`, tool calls → `activity` with a status-only update
     keeping its title (an untitled call waits for the update that names
     it, never its id), plans, `current_mode_update` → `mode`,
-    `config_option_update` → `model`,
+    `config_option_update` → `model`, `usage_update` (tokens used of the
+    window, a cost) → `context`,
     `available_commands_update` → `commands`; the harness's mirror of its
     call of the one tool (its title the tool's name or names the
     `STUDIO_SERVER`) is skipped because it renders from the `studio/call`

@@ -182,7 +182,8 @@ describe("the agent panel", () => {
       props: {
         next: [long],
         todos: [{ content: long, status: "pending" }],
-        queue: [long],
+        queue: [{ id: "q", text: long, attachments: [] }],
+        paused: false,
         run: null,
         changes: { frames: [{ id: "f", name: long }] },
         shown: () => true,

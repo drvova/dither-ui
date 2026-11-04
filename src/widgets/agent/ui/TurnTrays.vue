@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { DitherIcon } from "@dither-kit"
+import type { Queued } from "../model/compose"
 import type { Changed } from "../model/steps"
 import type { Todo } from "../model/thread"
 
 // The stack over the input, rows on the composer's own surface (one piece
 // with the card under it): what to ask next, the turn's plan as to-dos,
-// the queue, the run (what the harness does, for how long, a quiet Stop)
+// the queue (each message to edit, send now, move up or remove; paused
+// after a stop until you send the next), the run (what the harness does, for how long, a quiet Stop)
 // and, last and resting on the card, what the turn changed on the canvas
 // (Undo all, Keep, each frame to show).
 const props = defineProps<{
   /** Next prompts to offer, one tap each. */
   next: string[]
   todos: Todo[] | null
-  queue: string[]
+  queue: Queued[]
+  /** The queue waits after a stop until Send next or a new message. */
+  paused: boolean
   /** The run, while it lasts; `stuck`: a stop the harness has not answered. */
   run: { doing: string; time: string; stopping: boolean; stuck: boolean } | null
   changes: { frames: Changed[] } | null
@@ -24,7 +28,12 @@ const emit = defineEmits<{
   ask: [text: string]
   stop: []
   forceStop: []
-  unqueue: [at: number]
+  unqueue: [id: string]
+  editQueued: [id: string]
+  sendNow: [id: string]
+  moveUp: [id: string]
+  clearQueue: []
+  resume: []
   undo: []
   keep: []
   show: [id: string]
@@ -76,14 +85,65 @@ watch(
     </ul>
   </div>
   <div v-if="queue.length" class="part">
-    <p class="head is-static">
-      <span class="row-label">{{ queue.length }} in queue</span>
+    <div class="head is-split">
+      <p class="grow is-static">
+        <span class="row-label">{{ queue.length }} in queue</span>
+      </p>
+      <button v-if="paused && !run" type="button" class="key is-primary" @click="emit('resume')">
+        <span class="row-label">Send next</span>
+      </button>
+      <button type="button" class="key" @click="emit('clearQueue')"><span class="row-label">Clear</span></button>
+    </div>
+    <p v-if="paused" class="row first-line dim">
+      <DitherIcon name="Pause" :size="12" :stroke-width="1.5" /><span class="row-text row-label is-wrap"
+        >Paused after the stop. Send next, or Enter in an empty field, goes on.</span
+      >
     </p>
     <ul class="rows">
-      <li v-for="(s, j) in queue" :key="j" class="row first-line">
+      <li v-for="(q, j) in queue" :key="q.id" class="row first-line">
         <span class="circle" aria-hidden="true"></span
-        ><span class="row-text row-label is-wrap" :title="s">{{ s }}</span>
-        <button type="button" class="row-key" :aria-label="`Remove ${s} from the queue`" @click="emit('unqueue', j)">
+        ><span class="row-text row-label is-wrap" :title="q.text"
+          >{{ q.text || "(no words)"
+          }}<template v-if="q.attachments.length">
+            <span class="dim">
+              with {{ q.attachments.length }} {{ q.attachments.length === 1 ? "attachment" : "attachments" }}</span
+            ></template
+          ></span
+        >
+        <button
+          v-if="j > 0"
+          type="button"
+          class="row-key"
+          :aria-label="`Move up: ${q.text}`"
+          title="Move up"
+          @click="emit('moveUp', q.id)"
+        >
+          <DitherIcon name="ArrowUp" :size="11" :stroke-width="1.5" />
+        </button>
+        <button
+          type="button"
+          class="row-key"
+          :aria-label="`Edit: ${q.text}`"
+          title="Edit (alt ↑ takes the last back)"
+          @click="emit('editQueued', q.id)"
+        >
+          <DitherIcon name="Edit" :size="11" :stroke-width="1.5" />
+        </button>
+        <button
+          type="button"
+          class="row-key is-word"
+          :title="run ? 'Stop the turn and send this next' : 'Send this now'"
+          @click="emit('sendNow', q.id)"
+        >
+          <span class="row-label">Send now</span>
+        </button>
+        <button
+          type="button"
+          class="row-key"
+          :aria-label="`Remove: ${q.text}`"
+          title="Remove"
+          @click="emit('unqueue', q.id)"
+        >
           <DitherIcon name="Close" :size="11" :stroke-width="1.5" />
         </button>
       </li>
@@ -157,6 +217,10 @@ watch(
   text-align: left;
   color: var(--color-foreground);
 }
+.row.dim {
+  margin: 0;
+  color: var(--color-muted-foreground);
+}
 .head .dim {
   margin-left: auto;
 }
@@ -164,8 +228,13 @@ watch(
   padding: 0 4px 0 0;
   gap: 4px;
 }
-.toggle {
+.toggle,
+.grow {
   flex: 1;
+}
+.grow {
+  margin: 0;
+  padding-left: 4px;
 }
 .rows {
   display: grid;

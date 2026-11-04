@@ -13,14 +13,15 @@
 //   npm run dev                       # the Studio, in another terminal
 //   node scripts/agent-demo.mjs [--url http://localhost:5173/studio/]
 //     [--harness claude] [--agent "<any ACP command>"] [--ask "<text>"]...
+//     [--attach <picture or text file>]...
 //     [--out agent-demo] [--timeout 300] [--executable <chromium>]
 //
 // `--harness` is one of the bridge's presets (claude, codex, gemini, ...);
 // `--agent` runs any command that speaks the Agent Client Protocol instead.
 import { spawn, spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, mkdtempSync, renameSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, resolve } from "node:path"
+import { basename, extname, join, resolve } from "node:path"
 import { chromium } from "playwright-core"
 
 const args = process.argv.slice(2)
@@ -30,7 +31,7 @@ const flag = (name, fallback) => {
 }
 if (args.includes("--help")) {
   console.log(
-    'usage: node scripts/agent-demo.mjs [--url http://localhost:5173/studio/] [--harness claude] [--agent "<command>"] [--ask "<text>"]... [--out agent-demo] [--timeout 300] [--executable <chromium>]',
+    'usage: node scripts/agent-demo.mjs [--url http://localhost:5173/studio/] [--harness claude] [--agent "<command>"] [--ask "<text>"]... [--attach <file>]... [--out agent-demo] [--timeout 300] [--executable <chromium>]',
   )
   process.exit(0)
 }
@@ -40,6 +41,15 @@ const harness = flag("harness", "claude")
 // Each --ask is one turn of the same chat, in order.
 const asks = args.flatMap((a, i) => (a === "--ask" && i + 1 < args.length ? [args[i + 1]] : []))
 if (!asks.length) asks.push("A sign-in screen with an email field, a password field and a primary button")
+// Each --attach goes with the first ask, pasted into the composer as a
+// person would paste it.
+const attachments = args
+  .flatMap((a, i) => (a === "--attach" && i + 1 < args.length ? [resolve(args[i + 1])] : []))
+  .map((path) => ({
+    name: basename(path),
+    type: extname(path).toLowerCase() === ".png" ? "image/png" : /\.jpe?g$/i.test(path) ? "image/jpeg" : "text/plain",
+    base64: readFileSync(path).toString("base64"),
+  }))
 const out = resolve(flag("out", "agent-demo"))
 const timeout = Number(flag("timeout", "300")) * 1000
 // Its own port, so a bridge you already run is left alone.
@@ -96,9 +106,21 @@ try {
   await page.locator('button[aria-label^="Toggle agent"]').click()
   const field = page.locator('textarea[name="agent-goal"]')
   await field.waitFor()
-  for (const ask of asks) {
+  for (const [n, ask] of asks.entries()) {
     const ended = await page.locator(".worked").count()
     await pause(700)
+    if (n === 0 && attachments.length) {
+      await field.focus()
+      await page.evaluate((files) => {
+        const dt = new DataTransfer()
+        for (const f of files)
+          dt.items.add(new File([Uint8Array.from(atob(f.base64), (c) => c.charCodeAt(0))], f.name, { type: f.type }))
+        document
+          .querySelector('textarea[name="agent-goal"]')
+          .dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }))
+      }, attachments)
+      await pause(900)
+    }
     await field.pressSequentially(ask, { delay: 38 })
     await pause(500)
     await field.press("Enter")

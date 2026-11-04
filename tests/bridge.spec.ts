@@ -158,7 +158,9 @@ describe("dither-bridge", () => {
     expect(r.usage.inputTokens).toBe(2400)
     expect(c.permission()?.params?.options).toHaveLength(3)
     expect(c.calls).toEqual([{ name: "add_screen", args: expect.objectContaining({ name: "Sign in" }) }])
-    expect(new Set(c.updates)).toEqual(new Set(["agent_message_chunk", "plan", "tool_call", "tool_call_update"]))
+    expect(new Set(c.updates)).toEqual(
+      new Set(["agent_message_chunk", "plan", "tool_call", "tool_call_update", "usage_update"]),
+    )
     expect(c.notifications.map((n) => n.method)).toEqual(["bridge/hello"])
     // The hello names the running --agent and every known harness with its PATH status.
     expect(c.hellos[0].agent).toMatchObject({ id: "custom", command: FIXTURE })

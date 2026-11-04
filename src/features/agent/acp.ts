@@ -153,6 +153,17 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
       },
     ]
   }
+  if (kind === "usage_update") {
+    const used = Number(update.used)
+    const size = Number(update.size)
+    if (!Number.isFinite(used) || !Number.isFinite(size) || size <= 0 || used < 0) return []
+    const c = update.cost as { amount?: unknown; currency?: unknown } | null | undefined
+    const cost =
+      c && Number.isFinite(Number(c.amount)) && typeof c.currency === "string"
+        ? { cost: { amount: Number(c.amount), currency: c.currency } }
+        : {}
+    return [{ type: "context", context: { used, size, ...cost } }]
+  }
   if (kind === "current_mode_update") return [{ type: "mode", current: String(update.currentModeId ?? ""), modes: [] }]
   if (kind === "config_option_update") {
     const model = modelOf(update)

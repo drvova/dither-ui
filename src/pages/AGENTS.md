@@ -969,8 +969,10 @@ widgets/features; page-specific conventions live here.
   changed, else the frames in hand: evolve, show the code, export a video,
   cut a reel; one tap sends); the turn's plan as to-dos (circles, a ringed
   one in progress, done struck through; open while work is left, folded
-  once all are done unless the reader chose); the queue with a remove key
-  per message; the run (thinking, writing or working, its time, a quiet
+  once all are done unless the reader chose); the queue (`Queued`, its
+  words and what it carries; per message Move up, Edit (back into the
+  field), Send now (a running turn stops for it) and Remove; Clear; after
+  a stop it waits, paused, saying so, with Send next); the run (thinking, writing or working, its time, a quiet
   Stop with "esc" beside it); once it ends, the turn's changes, last and
   resting on the card (the frames its editing steps touched, each with
   Show; Undo all restores the turn's checkpoint, Keep settles it). The
@@ -978,7 +980,17 @@ widgets/features; page-specific conventions live here.
   while it holds the focus), two lines tall when empty: the context chips
   (the selection, any of it left out by its x, plus frames picked on the
   canvas or by name with `@`, typed or from the @ key, through a
-  listbox); the message; a foot with the pick key (crosshair: picking
+  listbox) and the attachments (`model/compose.ts`, `ui/Attached.vue`:
+  a paste of `FOLD_LINES` lines or `FOLD_CHARS` characters folds into a
+  "Pasted text" chip that, pressed, goes back into the field as text, and
+  Cmd/Ctrl+Shift+V pastes it raw; a pasted or dropped picture, scaled to
+  `IMAGE_EDGE`, at most `MAX_IMAGES`, as a thumbnail chip with its size,
+  sent as image blocks and refused with a line saying so when the harness
+  takes no pictures; a dropped text file up to `TEXT_FILE_MAX`; anything
+  else says why it stays out; the card rings while a file is held over
+  it; texts go to the harness fenced so they cannot close their fence and
+  marked as material, instructions inside them not the user's, and the
+  sent bubble shows each as a chip); the message; a foot with the pick key (crosshair: picking
   frames on the canvas, below), the @ key, who answers (LED while it
   runs and its name: a harness picked from the bridge's list by that
   name, Claude Code and not its adapter's package, any other command by
@@ -987,9 +999,18 @@ widgets/features; page-specific conventions live here.
   `/harness <id | command>` is the same; the choice persists and starts
   again on the next prompt), the model it runs when its session says
   (the harness's own list, a menu when it offers more than one; picking
-  asks the harness, nothing is kept in the app), and the send key: grey
-  until there is text, then the chrome key (while a turn runs it queues;
-  Stop lives in the run row). The row under the card: Ask or Auto (how
+  asks the harness, nothing is kept in the app), how full its context is
+  when it reports (`usage_update`: a ring and its percentage, the tokens
+  and cost in its title, `ui/ContextMeter.vue`; the destructive ink from
+  90%), and the send key: grey until there is text or an attachment, then
+  the chrome key (while a turn runs it queues, Cmd/Ctrl+Enter stops the
+  turn and sends now; Stop lives in the run row). Your messages carry, on
+  hover or focus, Edit from here (not while a turn runs: the message back
+  in the field with its frames, a bar above the card saying the messages
+  after it leave the thread, "Canvas back to before it" on when its
+  checkpoint is kept, Cancel or Esc; sending restores that checkpoint
+  when chosen, drops the later entries, and tells the harness it is a
+  revision, whose session keeps the rest), Restore checkpoint and Copy. The row under the card: Ask or Auto (how
   permission prompts are answered; Auto takes their allow option), the
   harness's mode when it has modes (click cycles, `/mode <id>` sets),
   the bridge's folder (the one key that gives way when the row is
@@ -1022,7 +1043,7 @@ widgets/features; page-specific conventions live here.
   the composer is as tall as the room above it (`--room`, measured on
   open and on resize), and the harness picker's command field, Start and
   Stop are its pinned foot, the harnesses above them what scrolls. Placeholders fit one line at 320px ("Ask, /
-  for commands", "Queue a follow-up", "Answer above, 1 to 3", "Queue for
+  for commands", "Queue a follow-up", "Answer 1 to 3, or type to redirect", "Queue for
   after the stop", "Ask; this starts the bridge", "Ask; this starts your
   harness"). The canvas hands the agent frames two ways, through
   `features/agent/handoff`: picking (the pick key; a press on a frame
@@ -1043,7 +1064,10 @@ widgets/features; page-specific conventions live here.
   is kept per project (closing the panel, a reload: saved 250ms after
   typing and on pagehide, `loadDraft`/`saveDraft`). Keys: Enter sends, or
   QUEUES a follow-up while the harness works (ACP has no steering; each
-  runs as its own turn, in order), never on the Enter that ends an IME
+  runs as its own turn, in order; Cmd/Ctrl+Enter is the honest steer, a
+  stop and a send), except while a permission prompt waits: then what is
+  typed is the answer, the prompt declined (its reject option) and the
+  words sent next in its place, never on the Enter that ends an IME
   composition (or comes within 500ms of one, as iPad Safari sends it) or
   a held key's repeat; on a touch screen Enter is a newline and only the
   send key sends, which puts the keyboard away, and the field never takes
@@ -1052,8 +1076,9 @@ widgets/features; page-specific conventions live here.
   empties it; 1 to 9 answer the waiting permission prompt from an empty
   field (not while it just came up under your typing: 1.5s); Alt+Up takes
   the newest queued message back; Esc closes a menu (the command menu
-  stays away until the field changes), else stops and returns the queue to
-  the field, else leaves the field; Ctrl+O folds every step. The panel is
+  stays away until the field changes), else stops (the queue stays,
+  paused; Enter in an empty field goes on with it), else ends an edit,
+  else leaves the field; Ctrl+O folds every step. The panel is
   its own keyboard scope: its keys never reach the canvas (whose arrows
   nudge and whose Backspace deletes), the page's chords still pass, and a
   character typed on one of its keys lands in the field, as focus returns
@@ -1072,7 +1097,9 @@ widgets/features; page-specific conventions live here.
   thread's readings, next prompts, the canvas's handoff), `tests/agent-panel.spec.ts` (the panel mounted:
   its setup in order, the draft back, history, IME, Esc, the key scope,
   picked frames as context and the pick key, asks taken off the queue)
-  and the thought, picture and draft cases in `tests/agent-tools.spec.ts`.
+  and the thought, picture and draft cases in `tests/agent-tools.spec.ts`;
+  the attachments, the queue tray, edit from here and the context ring by
+  `tests/agent-compose.spec.ts`.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not

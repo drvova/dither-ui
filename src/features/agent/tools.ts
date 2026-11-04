@@ -18,6 +18,7 @@ import { PNG_SCALES, runCommand, VIEW_TO } from "./protocol"
 
 export type ToolDef = { name: string; description: string; parameters: Record<string, unknown> }
 export type Usage = { input: number; output: number }
+export type ContextUse = { used: number; size: number; cost?: { amount: number; currency: string } }
 
 /* ------------------------------ studio tools ----------------------------- */
 
@@ -433,6 +434,9 @@ export type AgentEvent =
   | { type: "model"; model: ModelChoice }
   | { type: "commands"; commands: AgentCommand[] }
   | { type: "turn"; elapsedMs: number; usage?: Usage }
+  /** How full the session's context is, as the harness reports it (ACP
+   * `usage_update`): tokens used of the window's size, and what it cost. */
+  | { type: "context"; context: ContextUse }
   | { type: "error"; message: string }
   /** The turn ended because the user stopped it. */
   | { type: "stopped" }

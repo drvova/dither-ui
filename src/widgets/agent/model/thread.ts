@@ -9,8 +9,16 @@ type Result = { ok: true; data: unknown } | { ok: false; error: string }
 
 export type Entry =
   /** Your message: its turn (the checkpoint it keeps), the frames it
-   * carried, and whether they went as pictures. */
-  | { kind: "user" | "followup"; text: string; turn?: number; context?: Changed[]; pictured?: boolean }
+   * carried, whether they went as pictures, and its attachments. */
+  | {
+      kind: "user" | "followup"
+      text: string
+      turn?: number
+      context?: Changed[]
+      pictured?: boolean
+      /** What it carried besides its words, as its chips read (no payload kept). */
+      attached?: { kind: "text" | "image"; name: string; detail: string }[]
+    }
   | { kind: "assistant" | "system" | "error"; text: string }
   /** The harness's reasoning: open while it streams, then folded under how
    * long it took. */
@@ -33,7 +41,8 @@ export type Entry =
   | {
       kind: "approval"
       title: string
-      options: { id: string; label: string; primary?: boolean }[]
+      /** `reject`: an option that declines (what a typed redirect answers). */
+      options: { id: string; label: string; primary?: boolean; reject?: boolean }[]
       answered: string | null
       /** What would run: a built tool's code, to read before saying yes. */
       code?: string

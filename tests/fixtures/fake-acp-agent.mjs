@@ -104,6 +104,8 @@ async function prompt(id, params) {
   })
   await sleep(60)
   update({ sessionUpdate: "tool_call_update", toolCallId: "t1", status: "completed" })
+  // How full its context is, as a harness reports it (ACP usage_update).
+  update({ sessionUpdate: "usage_update", used: 52000, size: 200000, cost: { amount: 0.12, currency: "USD" } })
   plan("completed", "in_progress")
   if (cancelled) return end()
   const perm = await request("session/request_permission", {
