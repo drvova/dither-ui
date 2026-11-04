@@ -8,7 +8,10 @@ import { reactive } from "vue"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
 import type { Usage } from "./tools"
 
-export type ChatMeta = { id: string; title: string; at: number }
+/** A chat as the sidebar lists it. `named`: the title is one the user gave
+ * it, kept over the first message's; `pinned`: it stands in the Pinned
+ * group above the dated ones. */
+export type ChatMeta = { id: string; title: string; at: number; named?: boolean; pinned?: boolean }
 export type AgentSession<E> = { entries: E[]; usage: Usage }
 
 const INDEX = "dither-agent-chats-"
@@ -26,12 +29,25 @@ export const chats = reactive({
 
 const newId = () => `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 const threadKey = (project: string, chat: string) => `${SESSION}${project}/${chat}`
-const isMeta = (c: unknown): c is ChatMeta =>
-  !!c &&
-  typeof c === "object" &&
-  typeof (c as ChatMeta).id === "string" &&
-  typeof (c as ChatMeta).title === "string" &&
-  typeof (c as ChatMeta).at === "number"
+/** A chat as an index hands it back, untrusted: the fields of a chat, each
+ * of its kind, the flags only when they are true. */
+function metaOf(c: unknown): ChatMeta | null {
+  if (!c || typeof c !== "object") return null
+  const o = c as Record<string, unknown>
+  if (typeof o.id !== "string" || typeof o.title !== "string" || typeof o.at !== "number") return null
+  return {
+    id: o.id,
+    title: o.title.slice(0, 200),
+    at: o.at,
+    ...(o.named === true ? { named: true } : {}),
+    ...(o.pinned === true ? { pinned: true } : {}),
+  }
+}
+/** A project's chats as kept, parsed. */
+const readIndex = (project: string): ChatMeta[] => {
+  const stored = readJson(INDEX + project)
+  return Array.isArray(stored) ? stored.flatMap((c) => metaOf(c) ?? []) : []
+}
 const writeIndex = () => writeJson(INDEX + chats.project, chats.list)
 
 /** The chat's title: its first message's first line, else a new chat. */
@@ -44,9 +60,8 @@ export function titleOf(entries: readonly { kind: string; text?: string }[]): st
  * else a new one. A thread kept before chats existed becomes its first. */
 export function openProject(project: string): void {
   if (chats.project === project) return
-  const stored = readJson(INDEX + project)
   chats.project = project
-  chats.list = Array.isArray(stored) ? stored.filter(isMeta) : []
+  chats.list = readIndex(project)
   const earlier = storage.get(SESSION + project)
   if (earlier !== null) {
     const id = newId()
@@ -74,6 +89,66 @@ export function removeChat(id: string): void {
   chats.list = chats.list.filter((c) => c.id !== id)
   writeIndex()
   if (chats.active === id) chats.active = chats.list[0]?.id ?? newId()
+}
+
+/** A project's chats: the open project's as they stand, another's as kept
+ * (what a search across projects reads). */
+export const chatsOf = (project: string): ChatMeta[] => (project === chats.project ? chats.list : readIndex(project))
+
+/** Give a chat a title of the user's own; an empty one gives it back the
+ * first message's. */
+export function renameChat(id: string, title: string): void {
+  const clean = title.trim().replace(/\s+/g, " ").slice(0, 200)
+  chats.list = chats.list.map((c) => {
+    if (c.id !== id) return c
+    if (clean) return { ...c, title: clean, named: true }
+    const thread = loadThread<{ kind: string; text?: string }>(chats.project, id)
+    const { named: _, ...rest } = c
+    return { ...rest, title: titleOf(thread?.entries ?? []) }
+  })
+  writeIndex()
+}
+
+/** Pin a chat above the dated groups, or let it go back among them. */
+export function pinChat(id: string, pinned: boolean): void {
+  chats.list = chats.list.map((c) => {
+    if (c.id !== id) return c
+    const { pinned: _, ...rest } = c
+    return pinned ? { ...rest, pinned: true } : rest
+  })
+  writeIndex()
+}
+
+export type ChatGroup = { label: string; chats: ChatMeta[] }
+
+/** The sidebar's groups: Pinned, then by the day each chat last moved
+ * (Today, Yesterday, This week, Earlier), each newest first, empty ones left out. */
+export function chatGroups(list: readonly ChatMeta[], now = Date.now()): ChatGroup[] {
+  const day = new Date(now)
+  day.setHours(0, 0, 0, 0)
+  const today = day.getTime()
+  const DAY = 86_400_000
+  const groups: ChatGroup[] = [
+    { label: "Pinned", chats: [] },
+    { label: "Today", chats: [] },
+    { label: "Yesterday", chats: [] },
+    { label: "This week", chats: [] },
+    { label: "Earlier", chats: [] },
+  ]
+  for (const c of [...list].sort((a, b) => b.at - a.at)) {
+    const g = c.pinned ? 0 : c.at >= today ? 1 : c.at >= today - DAY ? 2 : c.at >= today - 6 * DAY ? 3 : 4
+    groups[g].chats.push(c)
+  }
+  return groups.filter((g) => g.chats.length)
+}
+
+/** The chat before or after the open one, in the order the sidebar shows them. */
+export function stepChat(by: -1 | 1, now = Date.now()): void {
+  const order = chatGroups(chats.list, now).flatMap((g) => g.chats)
+  if (!order.length) return
+  const at = order.findIndex((c) => c.id === chats.active)
+  const next = at < 0 ? (by > 0 ? 0 : order.length - 1) : Math.min(order.length - 1, Math.max(0, at + by))
+  chats.active = order[next].id
 }
 
 const count = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : 0)
@@ -114,9 +189,10 @@ export function saveThread<E extends { kind: string; text?: string }>(
   // Listed once something is said in it, not when the harness first speaks.
   if (project !== chats.project || !s.entries.some((e) => e.kind === "user")) return
   const was = chats.list.find((c) => c.id === chat)
-  const title = titleOf(s.entries)
+  // A title the user gave is kept over the first message's.
+  const title = was?.named ? was.title : titleOf(s.entries)
   if (was && !moved && was.title === title) return
-  const meta = { id: chat, title, at: !was || moved ? Date.now() : was.at }
+  const meta: ChatMeta = { ...was, id: chat, title, at: !was || moved ? Date.now() : was.at }
   chats.list =
     moved || !was
       ? [meta, ...chats.list.filter((c) => c.id !== chat)]

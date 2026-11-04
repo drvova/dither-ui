@@ -4,13 +4,18 @@
 import { beforeEach, describe, expect, it } from "rstack/test"
 import {
   agoOf,
+  chatGroups,
   chats,
+  chatsOf,
   loadThread,
   newChat,
   openChat,
   openProject,
+  pinChat,
   removeChat,
+  renameChat,
   saveThread,
+  stepChat,
   titleOf,
 } from "@/features/agent/chats"
 
@@ -130,5 +135,72 @@ describe("a project's chats", () => {
     expect(ago(3 * 86_400_000)).toBe("3d")
     expect(ago(15 * 86_400_000)).toBe("2w")
     expect(ago(60 * 86_400_000)).toBe("Sep 4")
+  })
+})
+
+describe("managing chats", () => {
+  it("keeps a title the user gave over the first message's, and gives it back when cleared", () => {
+    openProject("p1")
+    const id = chats.active
+    saveThread("p1", id, said("A sign-in screen"), true)
+    renameChat(id, "  Login   flow ")
+    expect(chats.list[0]).toMatchObject({ title: "Login flow", named: true })
+    saveThread("p1", id, said("A sign-in screen", "Make it dark"), true)
+    expect(chats.list[0].title).toBe("Login flow")
+    renameChat(id, "")
+    expect(chats.list[0].title).toBe("A sign-in screen")
+    expect(chats.list[0].named).toBeUndefined()
+  })
+
+  it("groups chats as the sidebar shows them: pinned, then by the day they last moved", () => {
+    const now = new Date(2026, 10, 4, 15).getTime()
+    const at = (days: number, hours = 0) => now - days * 86_400_000 - hours * 3_600_000
+    const groups = chatGroups(
+      [
+        { id: "a", title: "a", at: at(0, 1) },
+        { id: "b", title: "b", at: at(1) },
+        { id: "c", title: "c", at: at(3) },
+        { id: "d", title: "d", at: at(20) },
+        { id: "e", title: "e", at: at(40), pinned: true },
+      ],
+      now,
+    )
+    expect(groups.map((g) => [g.label, g.chats.map((c) => c.id)])).toEqual([
+      ["Pinned", ["e"]],
+      ["Today", ["a"]],
+      ["Yesterday", ["b"]],
+      ["This week", ["c"]],
+      ["Earlier", ["d"]],
+    ])
+  })
+
+  it("pins a chat, steps between chats in the sidebar's order, and reads another project's chats", () => {
+    openProject("p2")
+    saveThread("p2", chats.active, said("Elsewhere"), true)
+    chats.project = ""
+    openProject("p1")
+    const first = chats.active
+    saveThread("p1", first, said("One"), true)
+    newChat()
+    const second = chats.active
+    saveThread("p1", second, said("Two"), true)
+    pinChat(first, true)
+    expect(chatGroups(chats.list)[0]).toMatchObject({ label: "Pinned", chats: [{ id: first }] })
+    // The pinned chat stands first, so the one before the open chat is it.
+    stepChat(-1)
+    expect(chats.active).toBe(first)
+    stepChat(-1)
+    expect(chats.active).toBe(first)
+    stepChat(1)
+    expect(chats.active).toBe(second)
+    pinChat(first, false)
+    expect(chats.list.find((c) => c.id === first)?.pinned).toBeUndefined()
+    expect(chatsOf("p2").map((c) => c.title)).toEqual(["Elsewhere"])
+    // A hostile index keeps only well-formed chats and only true flags.
+    localStorage.setItem(
+      "dither-agent-chats-p3",
+      JSON.stringify([{ id: "x", title: "ok", at: 1, pinned: "yes" }, { id: 7 }, "junk"]),
+    )
+    expect(chatsOf("p3")).toEqual([{ id: "x", title: "ok", at: 1 }])
   })
 })

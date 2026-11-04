@@ -26,7 +26,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   over the input, `model/` reads the thread, the reply's prose and the
   tool steps in words).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
-  ShortcutsHelp overlay), persistence (localStorage hydrate/autosave),
+  ShortcutsHelp overlay), persistence (localStorage hydrate/autosave,
+  projects created, switched, renamed, duplicated (`duplicateProject`:
+  the work, not the chats, opened beside the original) and deleted),
   export-code, export-image, export-video (a frame as a HyperFrames
   composition: builder, dialog, delivery for the agent path; a film's score
   as its audio track), reel (the reel's and the film's pure timeline, the
@@ -259,11 +261,16 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     reported).
   - `chats.ts` (imported by path, so the page never pulls the protocol):
     a project's chats, the reactive `chats` store shared by the Studio's
-    sidebar and the agent panel (`project`, `list` newest first as
-    `{id, title, at}`, the `active` chat). `openProject` (a no-op when
-    open; the thread a project kept before chats existed becomes its first
+    sidebar, its search and the agent panel (`project`, `list` newest
+    first as `{id, title, at, named?, pinned?}`, parsed once where the
+    index is read, the `active` chat). `openProject` (a no-op when open;
+    the thread a project kept before chats existed becomes its first
     chat), `newChat` (listed once something is said), `openChat`,
-    `removeChat`; `saveThread`/`loadThread` keep each chat's thread
+    `removeChat`, `renameChat` (a name kept over the first message's; an
+    empty one gives that back), `pinChat`, `chatGroups` (Pinned, Today,
+    Yesterday, This week, Earlier, empty ones dropped), `stepChat` (the
+    chat before or after in that order), `chatsOf` (another project's,
+    for search); `saveThread`/`loadThread` keep each chat's thread
     (`dither-agent-session-<projectId>/<chatId>`, entries + usage, capped
     at 160k chars by dropping the oldest entries) and its place in the
     index (`dither-agent-chats-<projectId>`; moved to the top when
@@ -272,7 +279,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     `tests/agent-chats.spec.ts`.
   - `acp.ts`: the composer as an Agent Client Protocol client over a
     loopback websocket to `bridge/dither-bridge.mjs` (see `bridge/AGENTS.md`
-    for the wire contract). `connectAcp` sends the Studio tools
+    for the wire contract). Nothing at the address rejects with
+    `NoBridge`, which the panel answers with its setup card, never a raw
+    error; `bridgeCommand(page, file, bridgeUrl)` is that card's line
+    (the file the site serves at `BRIDGE_FILE`, from `bridge-file.ts`,
+    which imports nothing so `rstack.config.ts` reads it too; `--origin`
+    only when `bridgeKnows` says the bridge would refuse the page, pinned
+    against the real bridge by `tests/bridge.spec.ts`). `connectAcp`
+    sends the Studio tools
     (`bridge/tools`), resolves on the bridge's `bridge/hello` (cwd, the
     known harnesses with their PATH status, the running agent or null) and
     boots a harness that is already running (`initialize` + `session/new`,
@@ -473,9 +487,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   row under it. Pinned by `tests/reel.spec.ts` (the "film", "launch film"
   and renderer cases) and `tests/score.spec.ts`.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts` (the canvas's
-  keys in `useShortcuts`, the page's panel keys in `usePanelShortcuts`:
-  ⌘I opens and closes the agent); every new shortcut also gets a row in
-  `ShortcutsHelp.vue`.
+  keys in `useShortcuts`, the page's own in `usePanelShortcuts`, read
+  through one table, `pageKeyOf`: ⌘K search, ⌘I the chat, ⌘B the
+  sidebar from anywhere, ⌘⇧↑ / ⌘⇧↓ the chat before or after outside a
+  field; the canvas's arrows nudge only without ⌘); every new shortcut
+  also gets a row in `ShortcutsHelp.vue`.
 - Pointer transforms use `features/artboard-transform/startDrag`; it filters by
   pointer id and owns pointer-up/cancel/unmount cleanup. Artboard surfaces drag
   only from non-interactive regions so live controls retain pointer ownership.

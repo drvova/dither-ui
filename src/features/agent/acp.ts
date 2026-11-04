@@ -17,10 +17,12 @@
 import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
 import { type Built, callDither, DITHER_TOOL, ditherDef } from "./dither"
+import { bridgeKnows } from "./bridge-file"
 import { runSandboxed } from "./sandbox"
 import {
   type AgentCommand,
   type AgentEvent,
+  DEFAULT_BRIDGE_URL,
   type Mode,
   type ModelChoice,
   type Setting,
@@ -289,8 +291,34 @@ export function usageOf(v: unknown): Usage | undefined {
   return { input: u.inputTokens ?? u.input_tokens ?? 0, output: u.outputTokens ?? u.output_tokens ?? 0 }
 }
 
+/** Nothing listens at the bridge's address: the bridge is not running. */
+export class NoBridge extends Error {
+  constructor(readonly url: string) {
+    super(`No bridge at ${url}.`)
+  }
+}
+
+/** The one line that starts the bridge for this page: fetch the file the
+ * site serves into the home folder and run it, from the folder the harness
+ * should work in. It names the page's origin when the bridge would not
+ * know it, and the port when the Studio looks for another. */
+export function bridgeCommand(page: URL, file: URL, bridgeUrl: string): string {
+  const flags: string[] = []
+  if (!bridgeKnows(page.origin)) flags.push(`--origin ${page.origin}`)
+  let port = ""
+  try {
+    port = new URL(bridgeUrl).port
+  } catch {
+    // An address the bridge cannot be at: the default port it is.
+  }
+  if (port && port !== new URL(DEFAULT_BRIDGE_URL).port) flags.push(`--port ${port}`)
+  const local = "~/dither-bridge.mjs"
+  return [`curl -fsSL ${file.href} -o ${local} && node ${local}`, ...flags].join(" ")
+}
+
 /** Open the bridge. Resolves once it has said hello; a harness already
- * running there is initialized before that. Rejects when no bridge answers. */
+ * running there is initialized before that. Rejects with `NoBridge` when
+ * nothing answers at the address. */
 export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
   const run = o.run ?? runCommand
   return new Promise<AcpClient>((resolve, reject) => {
@@ -383,7 +411,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       })
     }
     ws.onerror = () => {
-      if (!opened) reject(new Error(`No bridge at ${o.url}. Run node bridge/dither-bridge.mjs.`))
+      if (!opened) reject(new NoBridge(o.url))
     }
     ws.onclose = () => {
       fail("bridge closed")

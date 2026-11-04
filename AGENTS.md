@@ -205,7 +205,9 @@ Default section order:
   studio; a live tab answers `dither-studio:command` DOM events and exposes
   `window.ditherStudio`. The in-app Agent panel is a CONTROL PLANE for the
   harness the user already has, nothing more: the local bridge
-  (`bridge/dither-bridge.mjs`, see `bridge/AGENTS.md`) knows the common ACP
+  (`bridge/dither-bridge.mjs`, see `bridge/AGENTS.md`; the build serves
+  the same file at `bridge/dither-bridge.mjs`, which the panel's setup
+  line fetches when no bridge answers) knows the common ACP
   harnesses (Claude Code, Codex, Gemini CLI, Qwen Code, oh-my-pi, Goose,
   OpenCode, Auggie) plus any command, says which are on the PATH, and
   starts the one picked in the panel as the user's OWN signed-in process.
@@ -494,12 +496,14 @@ Default section order:
   `src/widgets/source/AGENTS.md`); Kobra's interface sounds play on the
   docs, switched off from the header. Docs previews are real product
   surfaces: build real, working tools on them, never mock-ups.
-- The Studio is laid out as an app window (the user's call, after an
-  agent app's desktop window): a title bar, a rail of projects, a sidebar
-  of the project's chats and layers, the canvas in its shell, the
-  properties or the agent docked right. Only the layout was taken: the
-  Studio keeps the look's materials and its mono type (details in
-  `src/pages/AGENTS.md`).
+- The Studio is laid out as an app window, chat first (the user's call,
+  after an agent app's desktop window and its PWA): a title bar, a
+  sidebar of projects and their chats (search on ⌘K, row menus, chats
+  by day), the chat as a column, the canvas beside it, properties and
+  layers docked right; a chat with no bridge shows the one line that
+  starts it and finds the bridge once it runs. Only the layout and the
+  behaviour were taken: the Studio keeps the look's materials and its
+  mono type (details in `src/pages/AGENTS.md`).
 - The Studio is a PWA (the user's call; the landing and the docs need not
   be): installable on every platform it targets, iOS included, and usable
   offline; a change to the Studio's page, its assets or a large media

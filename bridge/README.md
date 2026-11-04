@@ -20,11 +20,20 @@ One file, zero dependencies, Node 20+.
 
 ## Run
 
+Without a clone, from the folder your harness should work in (the Studio's
+chat shows this line, with a copy key, when no bridge answers):
+
+```sh
+curl -fsSL https://dither-ui.com/bridge/dither-bridge.mjs -o ~/dither-bridge.mjs && node ~/dither-bridge.mjs
+```
+
+From a clone of this repo:
+
 ```sh
 node bridge/dither-bridge.mjs
 ```
 
-Then open the Studio's Agent panel and pick a harness. The panel lists what
+Then open the Studio's chat and pick a harness. The panel lists what
 the bridge found on your PATH:
 
 | pick | runs | needs |

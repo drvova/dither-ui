@@ -72,8 +72,8 @@ export function useShortcuts() {
       return
     }
 
-    // Nudge
-    if (hasSel && e.key.startsWith("Arrow")) {
+    // Nudge (with ⌘ held the arrows are the page's: between chats).
+    if (hasSel && !mod && e.key.startsWith("Arrow")) {
       e.preventDefault()
       const s = e.shiftKey ? 10 : 1
       if (e.key === "ArrowLeft") moveSelected(-s, 0)
@@ -87,14 +87,35 @@ export function useShortcuts() {
   onBeforeUnmount(() => window.removeEventListener("keydown", onKey))
 }
 
-/** The page's panel keys: ⌘I (Ctrl+I) opens and closes the agent, from
- * anywhere on the page, its own field included. */
-export function usePanelShortcuts(panels: { toggleAgent: () => void }) {
+/** The page's own keys: ⌘I the chat, ⌘K search and ⌘B the sidebar from
+ * anywhere on the page, a field's included; ⌘⇧↑ / ⌘⇧↓ the chat before or
+ * after, outside a field (in one they select its text). Ctrl for ⌘ off a
+ * Mac. */
+export type PageKeys = {
+  toggleChat: () => void
+  search: () => void
+  toggleSidebar: () => void
+  stepChat: (by: -1 | 1) => void
+}
+
+/** The key a page shortcut answers, or null: the one table both the
+ * listener and its test read. */
+export function pageKeyOf(e: KeyboardEvent): Exclude<keyof PageKeys, "stepChat"> | "chatBefore" | "chatAfter" | null {
+  if (!(e.metaKey || e.ctrlKey) || e.altKey) return null
+  if (e.shiftKey)
+    return isTyping(e.target) ? null : e.key === "ArrowUp" ? "chatBefore" : e.key === "ArrowDown" ? "chatAfter" : null
+  const k = e.key.toLowerCase()
+  return k === "i" ? "toggleChat" : k === "k" ? "search" : k === "b" ? "toggleSidebar" : null
+}
+
+export function usePanelShortcuts(keys: PageKeys) {
   function onKey(e: KeyboardEvent) {
-    if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && (e.key === "i" || e.key === "I")) {
-      e.preventDefault()
-      panels.toggleAgent()
-    }
+    const key = pageKeyOf(e)
+    if (!key) return
+    e.preventDefault()
+    if (key === "chatBefore") keys.stepChat(-1)
+    else if (key === "chatAfter") keys.stepChat(1)
+    else keys[key]()
   }
   onMounted(() => window.addEventListener("keydown", onKey))
   onBeforeUnmount(() => window.removeEventListener("keydown", onKey))

@@ -24,6 +24,14 @@
 
 - Zero dependencies, one file, Node built-ins only (`http`, `child_process`,
   `crypto`, `readline`); no npm package, no build step.
+- The site serves this file as it is (the `bridgeFile` plugin in
+  `rstack.config.ts`, at `BRIDGE_FILE`), so it must keep running as a
+  lone download: no import of a sibling file. The Studio's setup line
+  fetches it into the home folder and runs it from the user's project.
+- The origins let in with no `--origin` (`allowedOrigin`: the site and any
+  page on this machine) are mirrored by `bridgeKnows` in
+  `src/features/agent/bridge-file.ts`; `tests/bridge.spec.ts` asks the
+  running bridge about each, so the two cannot drift.
 - Bridge-only methods are prefixed `bridge/`: `bridge/tools` (tab → bridge,
   the Studio tool list as MCP tool defs), `bridge/start` (tab → bridge,
   `{ harness: id }` or `{ command }`), `bridge/stop` (tab → bridge),

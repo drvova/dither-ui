@@ -887,24 +887,34 @@ widgets/features; page-specific conventions live here.
   (`[data-artboard-surface]`) stays `font-sans`, the player's font, so
   what is designed on the canvas is what the video export renders.
 - The Studio is an app window (the user's call, after an agent app's
-  desktop window: its layout taken, our materials and mono kept), one CSS
-  grid in `StudioPage`: the title bar across the top (`Toolbar`, a `1fr
-  auto 1fr` grid: the sidebar key over the rail's tiles and undo/redo on
-  the left, the project and its menu at the window's centre, the Library
-  chrome key, the properties and agent keys and the theme on the right,
-  the last ending on the right column's edge); under it the rail of
-  projects (`ui/StudioSidebar.vue`: the brand home on top, each project
-  its `DitherAvatar`, a new project under them), the project's sidebar
-  (hidden by the sidebar key: the project's name, Add a frame (the
-  Library), New chat, Docs, then its chats newest first with how long ago
-  each moved, `agoOf`, a hover delete, switching held while a turn runs,
-  then the tools your agent built (each with when, its description on
-  hover, a remove key), then its layers; every glyph, label and the
-  tree's chevrons on one
-  left line, a chat's title on the nav rows' text column), the canvas in
-  its shell (the canvas bar and the data editor inside it) and the
-  right column: the properties OR the agent (`StudioSide`, one union, the
-  agent's column wider), gone when neither is open. Inspect (the canvas
+  desktop window and its PWA: its layout taken, our materials and mono
+  kept), chat first, one CSS grid in `StudioPage`: the title bar across
+  the top (`Toolbar`, a `1fr auto 1fr` grid: the sidebar key and
+  undo/redo on the left, the project and its menu at the window's centre,
+  the Library chrome key, the Chat key, the properties key and the theme
+  on the right); under it the sidebar (`ui/StudioSidebar.vue`, folded by
+  the sidebar key or ⌘B: New chat, Search with its ⌘K hint, Add a frame
+  (the Library); Projects, a plus for a new one, each project a row with
+  its `DitherAvatar` and a row menu (`ui/RowMenu.vue`, a real menu:
+  Rename, Duplicate, Delete project behind a confirm; a double-click
+  renames in place); the open project unfolds into its chats grouped
+  Pinned, Today, Yesterday, This week, Earlier (`chatGroups`), each with
+  how long ago it moved and a row menu (Rename, Pin or Unpin, Delete
+  chat); switching held while a turn runs; then the tools your agent
+  built, folded under their count, each with a remove; the brand home and
+  Docs at the foot), the chat column (`AgentPanel`, always mounted, ⌘I or
+  the Chat key hides and shows it), the canvas in its shell (the canvas
+  bar and the data editor inside it) and the right column: the panel
+  (`ui/StudioPanel.vue`: Properties and Layers tabs, arrow keys between
+  them, the tab kept; open by default from 1600px, the choice kept),
+  gone when closed. ⌘K opens Search (`ui/SearchPalette.vue`, a
+  combobox): every project's chats (the open one's first; one in another
+  project opens that project, then the chat), the projects, the open
+  project's frames (one picked is selected and framed) and the actions
+  to start something; arrows, Enter, Escape, focus handed back. ⌘⇧↑ and
+  ⌘⇧↓ step between the open project's chats outside a field
+  (`stepChat`). Below 1280px the chat and the right column take turns
+  beside the canvas: opening one puts the other away. Inspect (the canvas
   bar's last key) puts the docs' workbench over the canvas
   (`widgets/workbench`, lazy, keyed `studio:<projectId>`): its overlay
   and tray teleported into the canvas (`Canvas` exposes `host` and the
@@ -914,8 +924,10 @@ widgets/features; page-specific conventions live here.
   readings are the frames' own px, and the zoom holds there (keys, wheel,
   pinch, the agent's `view`) until it ends; the canvas's keys step aside
   for the workbench's; the wheel still pans. Escape (the workbench's last
-  step), picking a panel on the title bar or switching project ends it. Below 1280px the side
-  columns narrow so the canvas keeps room at the 1024px floor. The
+  step), opening the panel or switching project ends it. Below 1440px
+  and 1200px the side columns narrow so the canvas keeps room at the
+  1024px floor, where a fresh document's first frame is framed (zoomed
+  out to fit beside the chat). The
   searchable Library is the single insertion surface for charts, bespoke
   widgets, every public kit component, screens, and presets. New frames
   land at the centre of the canvas as seen (`editor.stage`, which the
@@ -931,10 +943,10 @@ widgets/features; page-specific conventions live here.
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
-- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy; ⌘I opens and
-  closes it; once opened it stays mounted and closing only hides it, so a
-  turn keeps running, and the title bar's Agent key carries a dot while the
-  panel is closed: breathing while it works, the signal ink while a
+- The Agent panel (`widgets/agent/AgentPanel.vue`, the chat column; ⌘I
+  hides and shows it; it stays mounted and closing only hides it, so a
+  turn keeps running, and the title bar's Chat key carries a dot while the
+  chat is hidden: breathing while it works, the signal ink while a
   permission prompt waits, still when a turn ended unseen,
   `AgentActivity`) is a CONTROL PLANE for the user's own harness, set as an
   agent app's composer, over `features/agent/acp.ts`. The panel holds the
@@ -1036,7 +1048,13 @@ widgets/features; page-specific conventions live here.
   the title it introduced itself with; it opens the picker: every harness
   the bridge knows with its PATH status, a custom command, stop;
   `/harness <id | command>` is the same; the choice persists and starts
-  again on the next prompt), the model it runs when its session says
+  again on the next prompt; when no bridge answers, the thread shows
+  `ui/BridgeSetup.vue` in place of the greeting and the starters: the one
+  line that starts it (`bridgeCommand`: curl the bridge the site serves,
+  then node, with `--origin` or `--port` only when needed) with a copy
+  key, and the panel looking again every 2.5s for five minutes, then Look
+  again; the message waits in the field, and a bridge that answers says
+  "bridge connected" and takes the card away), the model it runs when its session says
   (the harness's own list, a menu when it offers more than one; picking
   asks the harness, nothing is kept in the app), and the send key: grey until there is text or an attachment, then
   the chrome key (while a turn runs it queues, Cmd/Ctrl+Enter stops the
