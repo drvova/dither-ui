@@ -8,7 +8,12 @@
 // enough that the floor sits in the middle tones and the lockup's faces
 // stay brightest, a weak fill, no camera light), so fronts, tops, sides and
 // chamfers each take their own tone and the light stays put as it turns.
+import { fillOf, type PixelColor } from "@dither-kit/engine/pixel"
 import { LOCKUP, LOCKUP_SIZE } from "./brand"
+
+/** The kit's ember: the colour the cells fly in with, and the mark's core
+ * gives off for good (as the header's mark has it). */
+export const BUILD_HEAT: PixelColor = "orange"
 
 /** Each block keeps this share of its cell; the rest is the seam. */
 const FILL = 0.86
@@ -76,6 +81,7 @@ function box(points: string[], faces: string[], b: Box, bevel: number): void {
 export function lockupModel(): string {
   const floor = { points: [] as string[], faces: [] as string[] }
   const lockup = { points: [] as string[], faces: [] as string[] }
+  const core = { points: [] as string[], faces: [] as string[] }
   const inset = (1 - FILL) / 2
   const cx = LOCKUP_SIZE.width / 2
   const cy = LOCKUP_SIZE.height / 2
@@ -100,9 +106,10 @@ export function lockupModel(): string {
       )
   for (const c of LOCKUP) {
     // Rows count down from the top; y runs up.
+    const into = c.core ? core : lockup
     box(
-      lockup.points,
-      lockup.faces,
+      into.points,
+      into.faces,
       {
         x0: c.x + inset - cx,
         x1: c.x + 1 - inset - cx,
@@ -116,10 +123,15 @@ export function lockupModel(): string {
   }
   const light = (l: (typeof LIGHTS)[number]) =>
     `DirectionalLight { direction ${l.direction.join(" ")} intensity ${l.intensity} }`
-  // Two shapes, the floor written first: the build lays them in that order.
-  const shape = (m: { points: string[]; faces: string[] }) =>
+  // The floor, the lockup, then the mark's core, which gives off the ember
+  // (an emissive material): the build lays them in that order, so the core
+  // lights last.
+  const ember = fillOf(BUILD_HEAT)
+    .map((v) => (v / 255).toFixed(3))
+    .join(" ")
+  const shape = (m: { points: string[]; faces: string[] }, glow = false) =>
     [
-      "Shape { geometry IndexedFaceSet { solid TRUE",
+      `Shape {${glow ? ` appearance Appearance { material Material { emissiveColor ${ember} } }` : ""} geometry IndexedFaceSet { solid TRUE`,
       `  coord Coordinate { point [ ${m.points.join(", ")} ] }`,
       `  coordIndex [ ${m.faces.join(" ")} ] } }`,
     ].join("\n")
@@ -130,6 +142,7 @@ export function lockupModel(): string {
     ...LIGHTS.map(light),
     shape(floor),
     shape(lockup),
+    shape(core, true),
   ].join("\n")
 }
 

@@ -491,7 +491,13 @@ the kit every import is relative (`../engine/pixel`).
   and falls back), draws the bloom layer (`pixelBloomStyle`) in
   `afterPaint`, orbits by pointer drag (`touch-action: pan-y`) and arrow
   keys (focusable `role="img"`, `data-engine` says which engine drew), and
-  shows an honest note for loading/empty/error. A model is also a build
+  shows an honest note for loading/empty/error. Light a model gives off:
+  `World.glows` lists the palette entries that glow (a VRML face whose
+  Material has an `emissiveColor` takes it, through `addMesh`'s `glow` and
+  `colorIndex`'s, an entry never shared with a plain face of the same
+  colour), and `paintTarget` paints them in their own colour, the shade
+  lifted to `GLOW_FLOOR`, whatever the mode (fill, material or ramp).
+  A model is also a build
   (`engine/assemble.ts`, `createAssembly`): it comes apart once into its
   pieces (each connected run of triangles, union-find over shared
   vertices, so a model comes apart along its own seams), and `frame(view,
@@ -500,9 +506,8 @@ the kit every import is relative (`../engine/pixel`).
   paint draw it unchanged: pieces start shape by shape in the order the
   file gives them, each shape's pieces by height (a flat shape, a floor
   or a plate, from its middle out; seeded jitter), each flying in from beside its place over `ARRIVAL` of the
-  build on the kit's spring and painted in the `hot` palette entry (the
-  style's `hot`, painted as light in its own colour at `HOT_FLOOR` or
-  above, whatever the mode) until it lands; pieces not yet started wait as
+  build on the kit's spring and painted in the heat (its own glowing
+  palette entry, `Assembly.hot`) until it lands; pieces not yet started wait as
   a dotted cage of their outlines (a points mesh); `scatter` pushes and
   turns them outward; `nudge` leans the pieces near a point on the target
   away from it, eased back by `dt`. Whole and still it is the model as it

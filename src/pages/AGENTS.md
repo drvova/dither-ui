@@ -269,7 +269,10 @@ widgets/features; page-specific conventions live here.
   deep block with chamfered front edges and a hairline seam, the mark
   standing proud of the word, on a plinth of thin tiles written as the
   file's first shape, so the floor lays itself from its middle out before
-  a cell starts (the user's call); the user's call: the brand, never a borrowed
+  a cell starts (the user's call); the mark's core is a shape of its own,
+  written last, whose material gives off the ember (`BUILD_HEAT`, the
+  colour the cells fly in with), so it lands last and stays lit, as the
+  header's mark has it (the user's call); the user's call: the brand, never a borrowed
   object; written as VRML97 lit by its own `LIGHTS`, a key from the upper
   left, low enough that the floor's tops sit in the middle tones under the
   lockup's bright faces, and a weak fill with no camera light, so tops, fronts, chamfers and

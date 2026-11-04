@@ -17,7 +17,16 @@ import {
   type WorldStyle,
   type WorldView,
 } from "../dither-kit/engine/world"
-import { BUILD_CELLS, BUILD_PIECES, FLOOR_TILES, LIGHTS, lockupModel, stageAt } from "../src/pages/landing/build"
+import {
+  BUILD_CELLS,
+  BUILD_HEAT,
+  BUILD_PIECES,
+  FLOOR_TILES,
+  LIGHTS,
+  lockupModel,
+  stageAt,
+} from "../src/pages/landing/build"
+import { fillOf } from "../dither-kit/engine/pixel"
 
 /** Three cubes stacked, apart: three pieces, low to high. */
 function stack(): World {
@@ -124,7 +133,7 @@ describe("a world as a build", () => {
     expect(Math.max(...before.map((x, i) => Math.abs(x - p[i])))).toBeLessThan(1e-3)
   })
 
-  it("paints the hot entry as light in its own colour whatever the mode", () => {
+  it("paints the pieces in flight as light in the heat whatever the mode", () => {
     const a = createAssembly(world, HEAT)
     let b = 0
     let out = a.frame(VIEW, cam, { ...still, build: b }, 0)
@@ -142,7 +151,6 @@ describe("a world as a build", () => {
         [20, 20, 20],
         [200, 200, 200],
       ],
-      hot: a.hot,
     }
     rasterizeWorld(out, VIEW, target, style)
     const buf = createRasterBuffer(96, 64)
@@ -163,9 +171,14 @@ describe("the landing's build", () => {
     // The floor and the lockup are two shapes, the floor first: while it
     // is still coming in, not one of the lockup's blocks has started.
     const cam = cameraOf(world, VIEW, 160, 90)
-    const [floor, lockup] = world.meshes.filter((m) => m.kind === "faces")
+    const [floor, lockup, core] = world.meshes.filter((m) => m.kind === "faces")
     expect(floor.indices.length / 3).toBe(FLOOR_TILES * 12)
-    expect(lockup.indices.length / 3).toBe(BUILD_CELLS * 20)
+    expect(lockup.indices.length / 3 + core.indices.length / 3).toBe(BUILD_CELLS * 20)
+    // The mark's core is one block that gives off the ember for good.
+    expect(core.indices.length / 3).toBe(20)
+    expect(world.glows).toContain(core.color)
+    expect(world.palette[core.color]).toEqual(fillOf(BUILD_HEAT))
+    expect(world.glows).not.toContain(lockup.color)
     let b = 0
     let out = a.frame(VIEW, cam, { ...still, build: b }, 0)
     while (faces(out)[0].indices.length === 0) out = a.frame(VIEW, cam, { ...still, build: (b += 0.01) }, 0)

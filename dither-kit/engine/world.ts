@@ -91,6 +91,10 @@ export type World = {
   nodes: WorldNode[]
   /** Material colours, 0-255 — meshes and triangles carry indices (≤ 255). */
   palette: Rgb[]
+  /** The palette entries that give off light (an emissive material's
+   * colour): painted in their own colour, lit whatever the mode. A glowing
+   * entry is never shared with a plain one of the same colour. */
+  glows: number[]
   lights: WorldLight[]
   /** VRML `NavigationInfo { headlight }`: a light riding the camera. */
   headlight: boolean
@@ -400,6 +404,7 @@ export function emptyWorld(): World {
     meshes: [],
     nodes: [],
     palette: [],
+    glows: [],
     lights: [],
     headlight: true,
     viewpoint: null,
@@ -410,8 +415,9 @@ export function emptyWorld(): World {
 }
 
 /** Palette index for a colour — at most 255 distinct colours per world, the
- * rest snap to their nearest neighbour. */
-export function colorIndex(world: World, rgb: Rgb): number {
+ * rest snap to their nearest neighbour. A glowing colour (`glow`) takes an
+ * entry of its own, marked in `glows`, never a plain one's. */
+export function colorIndex(world: World, rgb: Rgb, glow = false): number {
   const r = Math.max(0, Math.min(255, Math.round(rgb[0])))
   const g = Math.max(0, Math.min(255, Math.round(rgb[1])))
   const b = Math.max(0, Math.min(255, Math.round(rgb[2])))
@@ -419,6 +425,7 @@ export function colorIndex(world: World, rgb: Rgb): number {
   let best = -1
   let bestD = Infinity
   for (let i = 0; i < p.length; i++) {
+    if (world.glows.includes(i) !== glow) continue
     const d = (p[i][0] - r) ** 2 + (p[i][1] - g) ** 2 + (p[i][2] - b) ** 2
     if (d === 0) return i
     if (d < bestD) {
@@ -426,8 +433,9 @@ export function colorIndex(world: World, rgb: Rgb): number {
       best = i
     }
   }
-  if (p.length >= 255) return best
+  if (p.length >= 255 && best >= 0) return best
   p.push([r, g, b])
+  if (glow) world.glows.push(p.length - 1)
   return p.length - 1
 }
 
@@ -446,7 +454,8 @@ export function addNode(world: World, node: Partial<WorldNode> & { parent: numbe
   return world.nodes.length - 1
 }
 
-export type MeshOptions = { kind?: MeshKind; node?: number; ccw?: boolean }
+/** `glow`: the mesh's material gives off light (its colour a `glows` entry). */
+export type MeshOptions = { kind?: MeshKind; node?: number; ccw?: boolean; glow?: boolean }
 
 /**
  * Bake geometry into a mesh: transform, enforce outward winding (`ccw` false
@@ -546,7 +555,7 @@ export function addMesh(
     positions,
     indices: Uint32Array.from(indices),
     edges: Uint32Array.from(edges),
-    color: colorIndex(world, color),
+    color: colorIndex(world, color, opts.glow),
     triColors,
     uv,
     solid: kind === "faces" && solid,
@@ -864,13 +873,11 @@ export type WorldStyle = {
   /** A raster wrapped onto the model through its texture coordinates: its
    * colour per cell, its alpha in the shade (meshes without uvs keep the fill). */
   texture?: RasterBuffer | null
-  /** A palette index painted as light in its own colour whatever the mode
-   * (the shade lifted to `HOT_FLOOR`): an assembly's pieces in flight. */
-  hot?: number
 }
 
-/** The least shade a hot cell paints at: it glows, yet keeps its form. */
-export const HOT_FLOOR = 0.62
+/** The least shade a glowing cell (`World.glows`) paints at: it gives off
+ * light, yet keeps its form. */
+export const GLOW_FLOOR = 0.62
 
 /** Per-vertex fbm grain for a mesh, cached by seed + scale. */
 export function meshGrain(mesh: WorldMesh, world: World, seed: number, scale: number): Float32Array {
@@ -1104,8 +1111,9 @@ export function paintTarget(
   const [fr, fg, fb] = style.fill
   const tex = style.texture && style.texture.width > 0 && style.texture.height > 0 ? style.texture : null
   const uvt = target.uv
-  const hot = style.hot !== undefined && style.hot >= 0 && style.hot < world.palette.length ? style.hot + 1 : 0
-  const hotCol = hot ? world.palette[hot - 1] : null
+  // Palette index + 1 → it glows.
+  const glowing = new Uint8Array(257)
+  for (const g of world.glows) if (g >= 0 && g < world.palette.length) glowing[g + 1] = 1
   for (let y = 0; y < rows; y++) {
     const row = mat[y & 3]
     for (let x = 0; x < cols; x++) {
@@ -1116,11 +1124,12 @@ export function paintTarget(
       let v = target.shade[i]
       if (fog > 0) v *= 1 - fog * clamp01((target.depth[i] - c.near) / c.span)
       const o = i * 4
-      if (hotCol && idx === hot) {
-        data[o] = hotCol[0]
-        data[o + 1] = hotCol[1]
-        data[o + 2] = hotCol[2]
-        data[o + 3] = Math.max(v, HOT_FLOOR) > th ? 255 : shadeA
+      if (glowing[idx]) {
+        const col = world.palette[idx - 1]
+        data[o] = col[0]
+        data[o + 1] = col[1]
+        data[o + 2] = col[2]
+        data[o + 3] = Math.max(v, GLOW_FLOOR) > th ? 255 : shadeA
         continue
       }
       if (tex && uvt[i * 2] >= 0) {

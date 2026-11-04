@@ -1408,14 +1408,16 @@ function triplesOf(index: number[]): number[][] {
   return out
 }
 
-/** The Material colour for a shape: diffuse for faces, emissive (when lit) for lines and points. */
-function materialColor(shape: VrmlNode, kind: MeshKind): Rgb {
+/** The Material colour for a shape: its emissive colour when it has one
+ * (faces then give off light: `glow`), else its diffuse. Lines and points
+ * are drawn at full strength either way. */
+function materialColor(shape: VrmlNode, kind: MeshKind): { color: Rgb; glow: boolean } {
   const material = children(children(shape, "appearance")[0] ?? shape, "material")[0]
-  if (!material) return GREY
+  if (!material) return { color: GREY, glow: false }
   const diffuse = rgbOf(nums(material, "diffuseColor", []), [204, 204, 204])
-  if (kind === "faces") return diffuse
   const emissive = nums(material, "emissiveColor", [])
-  return emissive.length >= 3 && emissive[0] + emissive[1] + emissive[2] > 0 ? rgbOf(emissive) : diffuse
+  const lit = emissive.length >= 3 && emissive[0] + emissive[1] + emissive[2] > 0
+  return lit ? { color: rgbOf(emissive), glow: kind === "faces" } : { color: diffuse, glow: false }
 }
 
 const TIME_FIELDS = new Set(["set_fraction", "fraction"])
@@ -1516,12 +1518,15 @@ function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): void {
         case "Shape": {
           const geometry = children(n, "geometry")[0]
           const built = geometry ? geometryOf(geometry, null) : null
-          if (built)
-            addMesh(world, built.geo, m, materialColor(n, built.kind), built.solid, {
+          if (built) {
+            const { color, glow } = materialColor(n, built.kind)
+            addMesh(world, built.geo, m, color, built.solid, {
               ccw: built.ccw,
               kind: built.kind,
               node: parent,
+              glow,
             })
+          }
           break
         }
         case "DirectionalLight":

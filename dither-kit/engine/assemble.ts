@@ -3,7 +3,7 @@
 // out of a dotted wire cage, shape by shape in the order the file gives
 // them, each shape's pieces bottom to top (a flat shape, which has no
 // bottom to top, spreads out from its middle), each flying in from beside its
-// place and painted hot (the style's `hot` palette entry) until it lands;
+// place and painted hot (its own glowing palette entry) until it lands;
 // scattered outward and turned for an explode; nudged away from a point on
 // the target for a hand passing over it. `frame` hands the renderer a world
 // of plain static meshes for this moment, so either engine and the shared
@@ -56,7 +56,7 @@ type Piece = {
 export type Assembly = {
   /** How many pieces the world came apart into. */
   readonly pieces: number
-  /** The palette index the pieces in flight paint with. */
+  /** The palette index the pieces in flight paint with (a `glows` entry). */
   readonly hot: number
   /** The world as it stands for this state; `dt` (seconds) eases the nudge. */
   frame(view: WorldView, cam: Camera, state: AssemblyState, dt: number): World
@@ -168,6 +168,8 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
 
   const palette = world.palette.length < 255 ? [...world.palette, heat] : [...world.palette.slice(0, 254), heat]
   const hot = palette.length - 1
+  /** The heat gives off light; a world full of colours lends it its last entry. */
+  const glows = [...world.glows.filter((g) => g < hot), hot]
   const radius = world.radius || 1
   const [cx, cy, cz] = world.center
 
@@ -310,7 +312,7 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           kind: "points",
           node: -1,
         })
-      return { ...world, meshes, nodes: [], palette }
+      return { ...world, meshes, nodes: [], palette, glows }
     },
   }
 }

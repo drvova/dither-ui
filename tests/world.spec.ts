@@ -378,6 +378,32 @@ describe("kit engines in the shade", () => {
     expect(Array.from(paint(sphere, {}, { grain: 0.8, seed: 3 }))).toEqual(Array.from(grainy))
     expect(Array.from(paint(sphere, {}, { grain: 0.8, seed: 4 }))).not.toEqual(Array.from(grainy))
   })
+  it("paints an emissive face as light in its own colour, ramp or not, and keeps a plain face of that colour plain", () => {
+    const glowing = (side: string) =>
+      `Transform { translation ${side} 0 0 children Shape { appearance Appearance { material Material { emissiveColor 0 1 0 } } geometry Box { size 1 1 1 } } }`
+    const plain = (side: string) =>
+      `Transform { translation ${side} 0 0 children Shape { appearance Appearance { material Material { diffuseColor 0 1 0 } } geometry Box { size 1 1 1 } } }`
+    const text = `#VRML V2.0 utf8\n${glowing("-1")}\n${plain("1")}`
+    const world = parseVrml(text)
+    // Two entries of the same green: one gives off light, one does not.
+    expect(world.palette.filter(([r, g, b]) => r === 0 && g === 255 && b === 0)).toHaveLength(2)
+    expect(world.glows).toHaveLength(1)
+    const ramp: WorldStyle["ramp"] = [
+      [10, 10, 10],
+      [200, 200, 200],
+    ]
+    const d = paint(text, { yaw: 0, pitch: 0 }, { ramp })
+    let green = 0
+    let greenRight = 0
+    for (let i = 0; i < d.length; i += 4)
+      if (d[i] === 0 && d[i + 1] === 255 && d[i + 2] === 0 && d[i + 3] === 255) {
+        green++
+        if ((i / 4) % 64 >= 32) greenRight++
+      }
+    // The emissive box on the left glows green; the plain one on the right takes the ramp.
+    expect(green).toBeGreaterThan(20)
+    expect(greenRight).toBe(0)
+  })
   it("line and point sets draw depth-tested over the faces", () => {
     const lines =
       "#VRML V2.0 utf8\nShape { appearance Appearance { material Material { emissiveColor 0 1 0 } } geometry IndexedLineSet { coord Coordinate { point [ -2 0 0, 2 0 0, 0 2 0 ] } coordIndex [ 0 1 2 0 -1 ] } }"

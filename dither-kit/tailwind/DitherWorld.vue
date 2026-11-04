@@ -390,7 +390,7 @@ function render(buffer: RasterBuffer, clock: number, dt: number) {
     return
   }
   const v = viewAt(clock)
-  let st = style.value
+  const st = style.value
   if (assembling()) {
     const a = assemblyOf(w)
     const cols = buffer.width
@@ -400,7 +400,6 @@ function render(buffer: RasterBuffer, clock: number, dt: number) {
         ? { x: hover.x * cols, y: hover.y * rows, radius: Math.min(cols, rows) * 0.22, amount: 1 }
         : null
     w = a.frame(v, cameraOf(w, v, cols, rows), { build: props.build, scatter: props.scatter, nudge }, dt)
-    st = { ...st, hot: a.hot }
   }
   if (!target || target.width !== buffer.width || target.height !== buffer.height)
     target = createWorldTarget(buffer.width, buffer.height)
