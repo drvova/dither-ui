@@ -109,7 +109,7 @@ const styles = stylex.create({
     fontSize: "12px",
     color: "var(--foreground)",
     outlineStyle: "none",
-    "::placeholder": { color: "var(--muted-foreground)" },
+    "::placeholder": { color: "var(--placeholder, var(--muted-foreground))" },
   },
   button3: {
     position: "relative",

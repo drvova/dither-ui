@@ -79,7 +79,7 @@ function onKeydown(e: KeyboardEvent) {
       v-model="draft"
       :placeholder="(props.modelValue ?? []).length === 0 ? props.placeholder : ''"
       :aria-label="props.placeholder || 'Add a tag'"
-      class="min-w-20 flex-1 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
+      class="min-w-20 flex-1 bg-transparent text-[13px] text-foreground outline-none placeholder:text-placeholder"
       @keydown="onKeydown"
       @blur="add(draft)"
     />

@@ -12,6 +12,9 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  /* A field's placeholder: the theme's --placeholder, else its muted ink
+     (the dimmest ink each theme holds at AA). */
+  --color-placeholder: var(--placeholder, var(--muted-foreground));
   --color-border: var(--border);
   --color-ring: var(--ring);
   --color-accent: var(--accent);

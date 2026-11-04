@@ -91,7 +91,7 @@
 }
 :where(.dither-kit ::placeholder) {
   opacity: 1;
-  color: color-mix(in oklab, currentColor 50%, transparent);
+  color: var(--placeholder, var(--muted-foreground));
 }
 :where(.dither-kit summary) {
   display: list-item;

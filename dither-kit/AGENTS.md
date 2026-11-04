@@ -259,7 +259,7 @@ the kit every import is relative (`../engine/pixel`).
   the tokens from JS: `THEME_TOKENS`, `themeVars` (object of custom
   properties for inline styles or a vars contract), `themeCss` (a `:root`
   / `.dark` block), `applyTheme` (writes them on an element, returns the
-  undo). A component may use only Tailwind utilities, its own scoped
+  undo); `placeholder` is among them, optional. A component may use only Tailwind utilities, its own scoped
   styles and the tokens above — never an app class. Pinned by
   `tests/kit-css.spec.ts` (the compiled file: tokens, scoped base, the
   utilities, no bare element rules) and `tests/theme.spec.ts`.
@@ -705,7 +705,11 @@ the kit every import is relative (`../engine/pixel`).
   need to opt in.
 - Text and targets hold WCAG AA in both themes, measured on the rendered
   page. No readable text fades under 4.5:1: `faint` tones share the muted
-  ink, and only `aria-hidden` separators and the wheel picker's masked edge
+  ink; a field's placeholder takes ONE token, `--placeholder` (unset, the
+  muted ink; `placeholder:text-placeholder`, the `--color-placeholder`
+  map in `kit.css`, the site's and the Svelte site's stylesheets, and
+  `base.css`'s `::placeholder`), in every control of both ports
+  (`tests/placeholder.spec.ts`); and only `aria-hidden` separators and the wheel picker's masked edge
   rows keep a fade. The light `--swatch-*` inks clear 5:1 on white. A label
   on a dithered fill (badge, button, toggle, toggle group) takes the ink
   `darkInkOnDark(fill, LABEL_COVERAGE[variant])` (`engine/palette.ts`)

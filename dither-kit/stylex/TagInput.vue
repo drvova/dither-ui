@@ -57,7 +57,7 @@ const styles = stylex.create({
     fontSize: "13px",
     color: "var(--foreground)",
     outlineStyle: "none",
-    "::placeholder": { color: "var(--muted-foreground)" },
+    "::placeholder": { color: "var(--placeholder, var(--muted-foreground))" },
   },
 })
 </script>

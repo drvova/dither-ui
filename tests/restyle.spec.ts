@@ -74,9 +74,9 @@ describe("StyleX as its compiler takes it", () => {
   }
 
   it("puts a pseudo-element at the top, with its own properties", async () => {
-    const out = await create("text-foreground placeholder:text-muted-foreground/60")
+    const out = await create("text-foreground placeholder:text-placeholder")
     expect(out).toContain('color: "var(--foreground)"')
-    expect(out).toContain('"::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" }')
+    expect(out).toContain('"::placeholder": { color: "var(--placeholder, var(--muted-foreground))" }')
   })
 
   it("spells a vendor property the way StyleX does", async () => {

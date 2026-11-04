@@ -12,6 +12,7 @@ export const THEME_TOKENS = [
   "popover-foreground",
   "muted",
   "muted-foreground",
+  "placeholder",
   "border",
   "ring",
   "accent",

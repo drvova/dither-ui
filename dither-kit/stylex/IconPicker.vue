@@ -30,7 +30,7 @@ const styles = stylex.create({
     fontSize: "12.5px",
     color: "var(--foreground)",
     outlineStyle: "none",
-    "::placeholder": { color: "var(--muted-foreground)" },
+    "::placeholder": { color: "var(--placeholder, var(--muted-foreground))" },
     transitionProperty: { default: null, "@media (prefers-reduced-motion: reduce)": "none" },
   },
   grid2: {

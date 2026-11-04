@@ -119,7 +119,7 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
             :aria-controls="`${idBase}-list`"
             :aria-activedescendant="flat[active] ? `${idBase}-${indexOf(flat[active])}` : undefined"
             :placeholder="props.placeholder"
-            class="h-11 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
+            class="h-11 w-full bg-transparent text-[13px] text-foreground outline-none placeholder:text-placeholder"
           />
           <span class="rounded border border-border/60 px-1 text-[9px] text-muted-foreground" aria-hidden="true"
             >esc</span
