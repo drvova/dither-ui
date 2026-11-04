@@ -746,6 +746,43 @@ export function cameraOf(world: World, view: WorldView, cols: number, rows: numb
 let cam = new Float32Array(0)
 let scr = new Float32Array(0)
 
+/** One world point through the camera: camera-space x, y, z into `camOut`
+ * and screen x, y (cells) and depth from the eye into `scrOut`, at `o`. */
+function toScreen(
+  c: Camera,
+  world: World,
+  x: number,
+  y: number,
+  z: number,
+  camOut: Float32Array,
+  scrOut: Float32Array,
+  o: number,
+): void {
+  const px = x - world.center[0]
+  const py = y - world.center[1]
+  const pz = z - world.center[2]
+  const x1 = px * c.cy + pz * c.sy
+  const z1 = -px * c.sy + pz * c.cy
+  const y2 = py * c.cp - z1 * c.sp
+  const z2 = py * c.sp + z1 * c.cp - c.dist
+  camOut[o] = x1
+  camOut[o + 1] = y2
+  camOut[o + 2] = z2
+  const depth = -z2
+  const inv = c.scale / Math.max(depth, 1e-6)
+  scrOut[o] = c.cols / 2 + x1 * inv
+  scrOut[o + 1] = c.rows / 2 - y2 * inv
+  scrOut[o + 2] = depth
+}
+
+const oneCam = new Float32Array(3)
+/** Where a world point lands on the target: x, y in cells, depth from the eye. */
+export function screenOf(c: Camera, world: World, x: number, y: number, z: number): [number, number, number] {
+  const out = new Float32Array(3)
+  toScreen(c, world, x, y, z, oneCam, out, 0)
+  return [out[0], out[1], out[2]]
+}
+
 /** Camera-space positions (`cam`) and screen x, y, depth (`scr`) for `positions`. */
 function project(c: Camera, world: World, positions: Float32Array): void {
   const vc = positions.length / 3
@@ -753,24 +790,8 @@ function project(c: Camera, world: World, positions: Float32Array): void {
     cam = new Float32Array(vc * 3)
     scr = new Float32Array(vc * 3)
   }
-  const [cx0, cy0, cz0] = world.center
-  for (let i = 0; i < vc; i++) {
-    const px = positions[i * 3] - cx0
-    const py = positions[i * 3 + 1] - cy0
-    const pz = positions[i * 3 + 2] - cz0
-    const x1 = px * c.cy + pz * c.sy
-    const z1 = -px * c.sy + pz * c.cy
-    const y2 = py * c.cp - z1 * c.sp
-    const z2 = py * c.sp + z1 * c.cp - c.dist
-    cam[i * 3] = x1
-    cam[i * 3 + 1] = y2
-    cam[i * 3 + 2] = z2
-    const depth = -z2
-    const inv = c.scale / Math.max(depth, 1e-6)
-    scr[i * 3] = c.cols / 2 + x1 * inv
-    scr[i * 3 + 1] = c.rows / 2 - y2 * inv
-    scr[i * 3 + 2] = depth
-  }
+  for (let i = 0; i < vc; i++)
+    toScreen(c, world, positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2], cam, scr, i * 3)
 }
 
 /** Flat shade of a camera-space triangle under the camera's lights. */
@@ -843,7 +864,13 @@ export type WorldStyle = {
   /** A raster wrapped onto the model through its texture coordinates: its
    * colour per cell, its alpha in the shade (meshes without uvs keep the fill). */
   texture?: RasterBuffer | null
+  /** A palette index painted as light in its own colour whatever the mode
+   * (the shade lifted to `HOT_FLOOR`): an assembly's pieces in flight. */
+  hot?: number
 }
+
+/** The least shade a hot cell paints at: it glows, yet keeps its form. */
+export const HOT_FLOOR = 0.62
 
 /** Per-vertex fbm grain for a mesh, cached by seed + scale. */
 export function meshGrain(mesh: WorldMesh, world: World, seed: number, scale: number): Float32Array {
@@ -1077,6 +1104,8 @@ export function paintTarget(
   const [fr, fg, fb] = style.fill
   const tex = style.texture && style.texture.width > 0 && style.texture.height > 0 ? style.texture : null
   const uvt = target.uv
+  const hot = style.hot !== undefined && style.hot >= 0 && style.hot < world.palette.length ? style.hot + 1 : 0
+  const hotCol = hot ? world.palette[hot - 1] : null
   for (let y = 0; y < rows; y++) {
     const row = mat[y & 3]
     for (let x = 0; x < cols; x++) {
@@ -1087,6 +1116,13 @@ export function paintTarget(
       let v = target.shade[i]
       if (fog > 0) v *= 1 - fog * clamp01((target.depth[i] - c.near) / c.span)
       const o = i * 4
+      if (hotCol && idx === hot) {
+        data[o] = hotCol[0]
+        data[o + 1] = hotCol[1]
+        data[o + 2] = hotCol[2]
+        data[o + 3] = Math.max(v, HOT_FLOOR) > th ? 255 : shadeA
+        continue
+      }
       if (tex && uvt[i * 2] >= 0) {
         // The texture's texel under the cell (repeating), its alpha in the shade.
         const tw = tex.width

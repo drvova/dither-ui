@@ -52,6 +52,9 @@ const worldBloom = ref(false)
 const worldEngine = ref<"cpu" | "gpu">("cpu")
 const worldInk = ref(false)
 const worldTexture = ref(false)
+const worldBuild = ref(1)
+const worldScatter = ref(0)
+const worldNudge = ref(false)
 /* The texture demo: a kit surface wrapped onto the probe through the
    primitives' own texture coordinates. */
 const worldTexRef = ref<InstanceType<typeof DitherAurora> | null>(null)
@@ -171,6 +174,14 @@ const API: Record<string, PropRow[]> = {
     { prop: "shade", type: "number: alpha of unlit cells inside the silhouette", default: "0.18" },
     { prop: "fog", type: "number: depth fade of the lighting", default: "0.3" },
     { prop: "interactive", type: "boolean: drag or arrow keys orbit", default: "true" },
+    {
+      prop: "build",
+      type: "number: the model as a build, 0-1; its separate pieces rise from a dotted wire cage bottom to top, each flying in hot until it lands",
+      default: "1",
+    },
+    { prop: "scatter", type: "number: the pieces blown apart and turned, 0 together → 1 apart", default: "0" },
+    { prop: "heat", type: "PixelColor: the colour a piece glows in while it flies in", default: '"orange"' },
+    { prop: "nudge", type: "boolean: pieces under the pointer lean away from it, then settle", default: "false" },
     { prop: "label", type: "string: accessible name", default: '"3D model"' },
     { prop: "frameRate", type: "number: stop-motion cadence in fps (0 = smooth)", default: "0" },
     { prop: "paused / renderMode", type: 'boolean / "live" | "static"', default: 'false / "live"' },
@@ -251,6 +262,12 @@ const SNIPPET_WORLD = `<DitherWorld src="/models/rover.glb" color="blue" :auto-r
      its texture coordinates: primitives, OBJ vt, glTF TEXCOORD_0, VRML
      TextureCoordinate, PLY s/t. In a material the channels are iChannel0..3:
      dk_texture(p) samples the first at the cell's dk_uv(p) -->
+
+<DitherWorld :source="world" :build="progress" :scatter="apart" heat="orange" nudge />
+<!-- the model as a build: it comes apart along its own seams (each connected
+     run of triangles is a piece), rises from a dotted wire cage bottom to top
+     with the pieces in flight glowing in heat, blows apart with scatter, and
+     leans away from the pointer with nudge. Drive build from a scroll. -->
 
 <script setup>
 // The default content is this seeded VRML97 file, parsed like any other:
@@ -379,8 +396,9 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
       viewpoint and animations: this sample's arms revolve and its antenna bobs by its own TimeSensor and ROUTEs, on the
       kit clock. The shade can run through the kit's other engines too: a palette ramp, fbm grain, bloom, or your own
       GLSL material over the finished target (ink from depth edges here). Any kit surface is a texture: bound as a
-      channel it wraps the model through the file's own texture coordinates, so the aurora below skins the probe. Drag
-      to orbit.
+      channel it wraps the model through the file's own texture coordinates, so the aurora below skins the probe. And
+      any model is a build: it comes apart along its own seams, rises out of a dotted wire cage with each piece landing
+      hot, and blows apart again (build, scatter, nudge). Drag to orbit.
     </p>
     <DemoCard :code="SNIPPET_WORLD">
       <div class="mx-auto max-w-md">
@@ -401,6 +419,9 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
           :engine="worldEngine"
           :shader="worldInk ? (worldTexture ? INK_SKIN : INK) : undefined"
           :channels="worldTexture ? [worldTexRef] : undefined"
+          :build="worldBuild"
+          :scatter="worldScatter"
+          :nudge="worldNudge"
           color="blue"
           label="Sample probe, seed 7"
           class="h-[280px]"
@@ -424,6 +445,17 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
           <label class="flex min-h-6 items-center gap-2"
             ><input v-model="worldBloom" type="checkbox" class="accent-[var(--accent)]" /> bloom</label
           >
+          <label class="flex min-h-6 items-center gap-2"
+            ><input v-model="worldNudge" type="checkbox" class="accent-[var(--accent)]" /> nudge</label
+          >
+          <label class="flex min-h-6 items-center gap-2">
+            build
+            <input v-model.number="worldBuild" type="range" min="0" max="1" step="0.01" class="w-24" />
+          </label>
+          <label class="flex min-h-6 items-center gap-2">
+            scatter
+            <input v-model.number="worldScatter" type="range" min="0" max="1" step="0.01" class="w-24" />
+          </label>
           <label class="flex min-h-6 items-center gap-2">
             engine
             <select

@@ -262,6 +262,25 @@ widgets/features; page-specific conventions live here.
   families, a line each and the section each opens on) and `BENTO`, held
   honest by `tests/hub.spec.ts` (families and counts equal `GROUPS`, every
   card and first section is a section of the family it names).
+- Build (`#build`, "Built from the wire up."), between the bento's plate
+  and the ask: a section head (the cell count read from the model, "See
+  the world engine"), then `BrandBuild.vue`: the brand itself as a model
+  (`build.ts`: every cell of `LOCKUP`, the mark and the pixel wordmark, a
+  block with a hairline seam, the mark standing proud of the word; the
+  user's call: the brand, never a borrowed object) raised by
+  `DitherWorld`'s build as the page scrolls a 260svh run past its pinned
+  stage (`stageAt`: the build over the first stretch, the whole holding
+  and turning through the middle, the cells apart as the page leaves; one
+  passive scroll listener, live only while the run is near). The camera
+  zooms by the stage's aspect (the long lockup nearly spans a wide stage
+  and stays whole on a phone). The metal is a graphite to bone ramp
+  through titanium and chrome, the cells in flight the ember. It moves
+  only while the reader does (held still 1.2s after the last scroll or
+  pointer move, so no pause chip); a pointer over it leans the cells
+  away, a drag turns it. Reduced motion: no run, the lockup whole and
+  still. `tests/assemble.spec.ts` holds its piece count to the lockup and
+  the run's mapping. The Svelte landing has no world component, so it has
+  no build.
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), then `AgentStory.vue`, one agent session played as the
   page scrolls: a stage pinned under the header (`--pin`, most of the

@@ -491,7 +491,24 @@ the kit every import is relative (`../engine/pixel`).
   and falls back), draws the bloom layer (`pixelBloomStyle`) in
   `afterPaint`, orbits by pointer drag (`touch-action: pan-y`) and arrow
   keys (focusable `role="img"`, `data-engine` says which engine drew), and
-  shows an honest note for loading/empty/error. `tests/world.spec.ts`,
+  shows an honest note for loading/empty/error. A model is also a build
+  (`engine/assemble.ts`, `createAssembly`): it comes apart once into its
+  pieces (each connected run of triangles, union-find over shared
+  vertices, so a model comes apart along its own seams), and `frame(view,
+  camera, { build, scatter, nudge }, dt)` hands the renderer a world of
+  plain static meshes for that moment, so both engines and the shared
+  paint draw it unchanged: pieces start in order of height (seeded
+  jitter), each flying in from beside its place over `ARRIVAL` of the
+  build on the kit's spring and painted in the `hot` palette entry (the
+  style's `hot`, painted as light in its own colour at `HOT_FLOOR` or
+  above, whatever the mode) until it lands; pieces not yet started wait as
+  a dotted cage of their outlines (a points mesh); `scatter` pushes and
+  turns them outward; `nudge` leans the pieces near a point on the target
+  away from it, eased back by `dt`. Whole and still it is the model as it
+  was. `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
+  the ember by default) and `nudge` (the pointer's point); it takes the
+  model apart only when one of them asks. `tests/assemble.spec.ts`.
+  `tests/world.spec.ts`,
   `tests/vrml.spec.ts` and `tests/models.spec.ts` pin the engine, the
   grammars and every format. Texture coordinates: `Geometry.uvs` (st per
   point; (0, 0) is the texture's top-left) or per corner through
