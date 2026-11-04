@@ -999,10 +999,7 @@ widgets/features; page-specific conventions live here.
   `/harness <id | command>` is the same; the choice persists and starts
   again on the next prompt), the model it runs when its session says
   (the harness's own list, a menu when it offers more than one; picking
-  asks the harness, nothing is kept in the app), how full its context is
-  when it reports (`usage_update`: a ring and its percentage, the tokens
-  and cost in its title, `ui/ContextMeter.vue`; the destructive ink from
-  90%), and the send key: grey until there is text or an attachment, then
+  asks the harness, nothing is kept in the app), and the send key: grey until there is text or an attachment, then
   the chrome key (while a turn runs it queues, Cmd/Ctrl+Enter stops the
   turn and sends now; Stop lives in the run row). Your messages carry, on
   hover or focus, Edit from here (not while a turn runs: the message back
@@ -1014,7 +1011,11 @@ widgets/features; page-specific conventions live here.
   permission prompts are answered; Auto takes their allow option), the
   harness's mode when it has modes (click cycles, `/mode <id>` sets),
   the bridge's folder (the one key that gives way when the row is
-  short), and the settings key (the bridge address, tokens in and out
+  short), how full the harness's context is when it reports
+  (`usage_update`: a ring and its percentage, the tokens and cost in its
+  title, `ui/ContextMeter.vue`; the destructive ink from 90%; in this row,
+  not the foot, which it would crowd: the harness's and model's names keep
+  their room), and the settings key (the bridge address, tokens in and out
   summed from each turn's usage, the last turn's time, the full cwd; no
   key exists in the app). The thread carries no plumbing: no "starting"
   or "connected" lines (the row and the LED say it), a harness's call
@@ -1043,7 +1044,7 @@ widgets/features; page-specific conventions live here.
   the composer is as tall as the room above it (`--room`, measured on
   open and on resize), and the harness picker's command field, Start and
   Stop are its pinned foot, the harnesses above them what scrolls. Placeholders fit one line at 320px ("Ask, /
-  for commands", "Queue a follow-up", "Answer 1 to 3, or type to redirect", "Queue for
+  for commands", "Queue a follow-up", "Answer 1 to 3, or redirect", "Queue for
   after the stop", "Ask; this starts the bridge", "Ask; this starts your
   harness"). The canvas hands the agent frames two ways, through
   `features/agent/handoff`: picking (the pick key; a press on a frame

@@ -679,7 +679,7 @@ const slashAll = computed<Slash[]>(() => [
 /** The field says what sending will do now. */
 const placeholder = computed(() =>
   openApproval.value
-    ? `Answer 1 to ${Math.min(9, openApproval.value.options.length)}, or type to redirect`
+    ? `Answer 1 to ${Math.min(9, openApproval.value.options.length)}, or redirect`
     : stopping.value
       ? "Queue for after the stop"
       : busy.value
@@ -1603,7 +1603,6 @@ onBeforeUnmount(() => {
               <span class="row-label">{{ modelName(model) }}</span
               ><DitherIcon v-if="model.options.length > 1" name="ChevronDown" :size="10" :stroke-width="1.5" />
             </button>
-            <ContextMeter v-if="contextUse" :use="contextUse" />
             <button
               type="button"
               class="send"
@@ -1652,6 +1651,7 @@ onBeforeUnmount(() => {
               folderOf(hello.cwd)
             }}</span></span
           >
+          <ContextMeter v-if="contextUse" class="status-meter" :use="contextUse" />
           <button
             type="button"
             class="status-key is-icon"
