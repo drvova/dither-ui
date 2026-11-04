@@ -5,6 +5,7 @@ export {
   documentSnapshot,
   createProject,
   deleteProject,
+  duplicateProject,
   exportDocument,
   flushSave,
   hydrate,

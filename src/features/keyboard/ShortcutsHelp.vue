@@ -32,7 +32,15 @@ const GROUPS: { title: string; keys: [string, string][] }[] = [
       ["⌘0", "Zoom to 100%"],
       ["⇧1", "Fit every frame"],
       ["⇧2", "Fit selection"],
-      ["⌘I", "Agent"],
+    ],
+  },
+  {
+    title: "Window",
+    keys: [
+      ["⌘K", "Search"],
+      ["⌘I", "Chat"],
+      ["⌘B", "Sidebar"],
+      ["⌘⇧↑ / ⌘⇧↓", "Chat before / after"],
     ],
   },
 ]

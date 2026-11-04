@@ -106,7 +106,7 @@ let ok = false
 try {
   await page.goto(url, { waitUntil: "networkidle" })
   await pause(1200)
-  await page.locator('button[aria-label^="Toggle agent"]').click()
+  // The chat column stands open beside the canvas.
   const field = page.locator('textarea[name="agent-goal"]')
   await field.waitFor()
   for (const [n, ask] of asks.entries()) {

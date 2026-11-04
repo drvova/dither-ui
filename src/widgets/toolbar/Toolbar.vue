@@ -21,28 +21,30 @@ import {
 import { addArtboardFromPreset, presets } from "@/features/presets"
 import { CHART_TYPES } from "@/shared/config"
 import { useTheme } from "@/shared/lib"
-import type { StudioSide } from "./side"
 
 // The Studio's title bar, across the window: the sidebar's key and the
-// history on the left, the project (its menu) in the middle, the library
-// and the right column's two panels (properties or the agent) on the right.
+// history on the left, the project (its menu) in the middle, the library,
+// the chat's column and the panel of properties and layers on the right.
 const props = defineProps<{
   sidebarOpen: boolean
-  /** The panel in the right column, if one is open. */
-  side: StudioSide | null
+  /** The chat's column is showing. */
+  chatOpen: boolean
+  /** The panel of properties and layers is showing. */
+  panelOpen: boolean
   libraryOpen: boolean
   /** What the agent is doing, shown on its key (the panel may be closed). */
   agentState?: AgentActivity
 }>()
 const AGENT_SAYS: Record<AgentActivity, string> = {
-  idle: "Agent",
-  working: "Agent, working",
-  waiting: "Agent, waiting for you",
-  unseen: "Agent, finished",
+  idle: "Chat",
+  working: "Chat, the agent is working",
+  waiting: "Chat, the agent is waiting for you",
+  unseen: "Chat, the agent finished",
 }
 const emit = defineEmits<{
   "update:sidebarOpen": [boolean]
-  "update:side": [StudioSide | null]
+  "update:chatOpen": [boolean]
+  "update:panelOpen": [boolean]
   "update:libraryOpen": [boolean]
 }>()
 const { dark, toggle } = useTheme()
@@ -50,7 +52,6 @@ const libraryOpen = computed({
   get: () => props.libraryOpen,
   set: (v: boolean) => emit("update:libraryOpen", v),
 })
-const toggleSide = (s: StudioSide) => emit("update:side", props.side === s ? null : s)
 const projectOpen = ref(false)
 const query = ref("")
 const searchRef = ref<HTMLInputElement | null>(null)
@@ -382,21 +383,11 @@ async function openFile(e: Event) {
       </div>
       <button
         type="button"
-        aria-label="Toggle properties"
-        :aria-pressed="props.side === 'inspector'"
-        title="Properties"
-        class="tool"
-        @click="toggleSide('inspector')"
-      >
-        <DitherIcon name="Sliders" :size="15" :stroke-width="1.5" />
-      </button>
-      <button
-        type="button"
-        :aria-label="`Toggle agent (${AGENT_SAYS[props.agentState ?? 'idle']})`"
-        :aria-pressed="props.side === 'agent'"
+        :aria-label="`Toggle the chat (${AGENT_SAYS[props.agentState ?? 'idle']})`"
+        :aria-pressed="props.chatOpen"
         :title="`${AGENT_SAYS[props.agentState ?? 'idle']} (⌘I)`"
         class="tool wide"
-        @click="toggleSide('agent')"
+        @click="emit('update:chatOpen', !props.chatOpen)"
       >
         <span class="agent-key">
           <DitherIcon name="Bot" :size="15" :stroke-width="1.5" /><span
@@ -405,7 +396,17 @@ async function openFile(e: Event) {
             :data-state="props.agentState"
             aria-hidden="true"
           ></span></span
-        >Agent
+        >Chat
+      </button>
+      <button
+        type="button"
+        aria-label="Toggle properties and layers"
+        :aria-pressed="props.panelOpen"
+        title="Properties and layers"
+        class="tool"
+        @click="emit('update:panelOpen', !props.panelOpen)"
+      >
+        <DitherIcon name="Sliders" :size="15" :stroke-width="1.5" />
       </button>
       <button type="button" :aria-label="dark ? 'Use light theme' : 'Use dark theme'" class="tool" @click="toggle">
         <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />

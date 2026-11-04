@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
-import { addArtboard, centreOn, editor, stopInspecting } from "@/entities/editor"
+import { addArtboard, editor, frame, stopInspecting } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
-import { openProject } from "@/features/agent/chats"
+import { openProject, stepChat } from "@/features/agent/chats"
 import { askAgent, handoff } from "@/features/agent/handoff"
 import type { AgentActivity } from "@/features/agent/tools"
 import { startHistory, stopHistory } from "@/features/history"
@@ -11,8 +11,9 @@ import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
 import { activeProjectId, hydrate, importDocument, startAutosave, stopAutosave } from "@/features/persistence"
 import { Canvas } from "@/widgets/canvas"
 import { DataEditor } from "@/widgets/data-editor"
-import { Inspector } from "@/widgets/inspector"
-import { CanvasBar, type StudioSide, Toolbar } from "@/widgets/toolbar"
+import { CanvasBar, Toolbar } from "@/widgets/toolbar"
+import SearchPalette from "./ui/SearchPalette.vue"
+import StudioPanel from "./ui/StudioPanel.vue"
 import StudioSidebar from "./ui/StudioSidebar.vue"
 
 const AgentPanel = defineAsyncComponent(() => import("@/widgets/agent").then((m) => m.AgentPanel))
@@ -21,6 +22,7 @@ const AgentPanel = defineAsyncComponent(() => import("@/widgets/agent").then((m)
 const Workbench = defineAsyncComponent(() => import("@/widgets/workbench").then((m) => m.Workbench))
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { installLongPress, routePath } from "@/shared/lib"
+import { readJson, writeJson } from "@/shared/lib/storage"
 
 const ExportDialog = defineAsyncComponent(() => import("@/features/export-code").then((m) => m.ExportDialog))
 const exportOpen = ref(false)
@@ -28,21 +30,23 @@ const VideoDialog = defineAsyncComponent(() => import("@/features/export-video")
 const videoOpen = ref(false)
 const sidebarOpen = ref(true)
 const libraryOpen = ref(false)
-// The right column holds one panel, the properties or the agent, so the
-// canvas keeps its width.
-const side = ref<StudioSide | null>("inspector")
-const agentOpen = computed({
-  get: () => side.value === "agent",
-  set: (v: boolean) => (side.value = v ? "agent" : side.value === "agent" ? "inspector" : side.value),
-})
+const searchOpen = ref(false)
+// An agent app's window: the chat is a column of its own beside the canvas,
+// open from the start; the panel of properties and layers is the canvas's
+// other neighbour, open at first where the window is wide enough for all
+// four (1600px), then as the reader last left it.
+const PANEL_KEY = "dither-studio-panel-open"
+const agentOpen = ref(true)
+const keptPanel = readJson(PANEL_KEY)
+const panelOpen = ref(typeof keptPanel === "boolean" ? keptPanel : window.innerWidth >= 1600)
+watch(panelOpen, (v) => writeJson(PANEL_KEY, v))
 // The sidebar lists the project's chats whether or not the panel is open.
 watch(
   () => activeProjectId.value,
   (id) => id && openProject(id),
 )
-// Once opened, the agent stays mounted: closing the panel hides it, so a
-// turn keeps running and its key on the toolbar says what it is doing.
-const agentMounted = ref(false)
+// The chat stays mounted: hiding its column keeps a turn running, and its
+// key on the title bar says what the agent is doing.
 const agentPanel = ref<{ focus: () => void } | null>(null)
 const agentState = ref<AgentActivity>("idle")
 function onAgentActivity(a: AgentActivity) {
@@ -51,17 +55,30 @@ function onAgentActivity(a: AgentActivity) {
 }
 watch(agentOpen, (v) => {
   if (!v) return
-  agentMounted.value = true
   if (agentState.value === "unseen") agentState.value = "idle"
   nextTick(() => agentPanel.value?.focus())
 })
+/** Show the chat and put the cursor in its field (a chat picked, a new one). */
+function toChat() {
+  agentOpen.value = true
+  nextTick(() => agentPanel.value?.focus())
+}
 // A message asked at the selection on the canvas opens the agent, whose
 // panel sends it; so does picking frames for it.
 watch(
   () => handoff.asks.length + Number(handoff.picking),
   (n) => n > 0 && (agentOpen.value = true),
 )
-usePanelShortcuts({ toggleAgent: () => (agentOpen.value = !agentOpen.value) })
+usePanelShortcuts({
+  toggleChat: () => (agentOpen.value = !agentOpen.value),
+  search: () => (searchOpen.value = !searchOpen.value),
+  toggleSidebar: () => (sidebarOpen.value = !sidebarOpen.value),
+  stepChat: (by) => {
+    if (agentState.value === "working" || agentState.value === "waiting") return
+    stepChat(by)
+    toChat()
+  },
+})
 
 // Inspecting, the workbench's readout takes the right column and its
 // overlay the canvas (the frames stand in its world layer); picking a panel
@@ -73,14 +90,28 @@ const bench = computed(() => {
   const content = canvas.value?.world
   return editor.inspecting && host && content && shell.value ? { host, content, card: shell.value } : null
 })
-watch(side, stopInspecting)
+watch(panelOpen, stopInspecting)
+// Below 1280px the chat and the right column take turns beside the canvas,
+// so it keeps room for a frame: opening one puts the other away.
+const oneSide = () => window.matchMedia?.("(max-width: 1279px)").matches ?? false
+watch(
+  () => panelOpen.value || !!bench.value,
+  (right) => right && oneSide() && (agentOpen.value = false),
+  { immediate: true },
+)
+watch(agentOpen, (open) => {
+  if (!open || !oneSide()) return
+  panelOpen.value = false
+  stopInspecting()
+})
 const benchUrl = new URL(routePath("/studio"), location.href).href
 
 const fresh = hydrate()
 // A fresh document's frame was placed before the canvas measured itself:
-// once it has (the canvas mounts before this page), centre the frame.
+// once it has (the canvas mounts before this page), frame it: centred, and
+// zoomed out when the canvas beside the chat is narrower than the frame.
 onMounted(() => {
-  if (fresh && isDesktop.value && editor.artboards[0]) centreOn(editor.artboards[0])
+  if (fresh && isDesktop.value && editor.artboards[0]) frame([editor.artboards[0]])
 })
 startAutosave()
 startHistory()
@@ -127,30 +158,37 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- An app window: the title bar across the top, the rail of projects
-       and the project's sidebar on the left, the canvas in its shell, and
-       the right column (the properties or the agent). -->
+  <!-- An agent app's window: the title bar across the top; under it the
+       sidebar (projects and their chats), the chat, the canvas in its
+       shell, and the panel of properties and layers (or the workbench's
+       readout while inspecting). -->
   <div
     v-if="isDesktop"
     class="studio bg-background font-mono text-[13px] text-foreground antialiased"
-    :class="{ 'is-folded': !sidebarOpen, 'is-wide': side === 'agent' || !!bench, 'is-bare': !side && !bench }"
+    :class="{ 'is-folded': !sidebarOpen, 'no-chat': !agentOpen, 'no-panel': !panelOpen && !bench }"
     @dragover.prevent
     @drop.prevent="onDrop"
   >
     <!-- The title bar first: Tab reads it before the sidebar and the canvas. -->
     <Toolbar
       v-model:sidebar-open="sidebarOpen"
-      v-model:side="side"
+      v-model:chat-open="agentOpen"
+      v-model:panel-open="panelOpen"
       v-model:library-open="libraryOpen"
       class="studio-bar"
       :agent-state="agentState"
     />
     <StudioSidebar
-      :open="sidebarOpen"
+      v-show="sidebarOpen"
       :locked="agentState === 'working' || agentState === 'waiting'"
       @library="libraryOpen = true"
-      @agent="agentOpen = true"
+      @agent="toChat"
+      @search="searchOpen = true"
     />
+
+    <section v-show="agentOpen" class="studio-chat hardshell" aria-label="Chat">
+      <AgentPanel ref="agentPanel" @close="agentOpen = false" @activity="onAgentActivity" />
+    </section>
 
     <main ref="shell" class="studio-canvas hardshell" aria-label="Canvas">
       <Canvas ref="canvas" />
@@ -172,13 +210,17 @@ onBeforeUnmount(() => {
         @exit="stopInspecting"
       />
     </aside>
-    <aside v-else-if="side === 'inspector'" class="studio-side hardshell" aria-label="Properties">
-      <Inspector />
-    </aside>
-    <aside v-if="agentMounted" v-show="side === 'agent' && !bench" class="studio-side hardshell" aria-label="Agent">
-      <AgentPanel ref="agentPanel" @close="agentOpen = false" @activity="onAgentActivity" />
+    <aside v-else-if="panelOpen" class="studio-side hardshell" aria-label="Properties and layers">
+      <StudioPanel />
     </aside>
 
+    <SearchPalette
+      :open="searchOpen"
+      :locked="agentState === 'working' || agentState === 'waiting'"
+      @close="searchOpen = false"
+      @agent="toChat"
+      @library="libraryOpen = true"
+    />
     <ExportDialog v-if="exportOpen" :open="exportOpen" @close="exportOpen = false" />
     <VideoDialog v-if="videoOpen" :open="videoOpen" @close="videoOpen = false" />
     <ShortcutsHelp />
@@ -219,48 +261,64 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* The window: the bar across the top; under it the rail, the sidebar
-   (folded away when hidden), the canvas and the right column (wider for
-   the agent, gone when neither panel is open). */
+/* The window: the bar across the top; under it the sidebar, the chat, the
+   canvas and the panel. Each side column folds to nothing when it is
+   hidden; the canvas takes what is left. */
 .studio {
-  --rail: 3.25rem;
-  --sidebar: 16.5rem;
-  --right: 18rem;
+  --sidebar: 15rem;
+  --chat: 23rem;
+  --right: 18.5rem;
   display: grid;
-  grid-template-columns: var(--rail) var(--sidebar) minmax(0, 1fr) var(--right);
+  grid-template-columns: var(--sidebar) var(--chat) minmax(0, 1fr) var(--right);
   grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
     "bar bar bar bar"
-    "rail side canvas right";
+    "side chat canvas right";
   height: 100dvh;
   overflow: hidden;
   background: var(--shell-ground), var(--color-background);
 }
-.studio.is-wide {
-  --right: 21rem;
-}
 /* Down to the 1024px floor (an iPad on its side) the side columns narrow
    so the canvas keeps room for a frame and its actions. */
-@media (max-width: 1279px) {
+@media (max-width: 1439px) {
   .studio {
-    --sidebar: 13rem;
-    --right: 16.5rem;
+    --sidebar: 13.5rem;
+    --chat: 21rem;
   }
-  .studio.is-wide {
-    --right: 18.5rem;
+}
+@media (max-width: 1199px) {
+  .studio {
+    --sidebar: 12rem;
+    --chat: 19rem;
   }
 }
 .studio.is-folded {
   --sidebar: 0px;
 }
-.studio.is-bare {
+.studio.no-chat {
+  --chat: 0px;
+}
+.studio.no-panel {
   --right: 0px;
 }
 .studio-bar {
   grid-area: bar;
 }
-/* The canvas and the right column are the window's shells: two corners
+/* The chat, the canvas and the panel are the window's shells: two corners
    cut, the canvas recessed into its well, a gutter between them. */
+.studio-chat {
+  --cut: 12px;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  grid-area: chat;
+  margin: 0 8px 8px 0;
+  overflow: hidden;
+  background: var(--shell-ground), color-mix(in oklab, var(--color-background) 96%, transparent);
+}
+.studio.is-folded .studio-chat {
+  margin-left: 8px;
+}
 .studio-canvas {
   --cut: 14px;
   position: relative;
@@ -271,6 +329,9 @@ onBeforeUnmount(() => {
   container: canvas / inline-size;
   background: var(--well);
   box-shadow: var(--recess-sm);
+}
+.studio.is-folded.no-chat .studio-canvas {
+  margin-left: 8px;
 }
 .studio-side {
   --cut: 12px;
@@ -288,7 +349,8 @@ onBeforeUnmount(() => {
   padding: 10px;
 }
 @media (prefers-reduced-transparency: reduce) {
-  .studio-side {
+  .studio-side,
+  .studio-chat {
     background: var(--color-background);
   }
 }

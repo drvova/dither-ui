@@ -137,8 +137,8 @@ export function flushSave(): void {
 
 /** Restore the workspace (run in setup, before first paint). True when the
  * active project had no document and got the fresh one: its frame was
- * placed before the canvas measured itself, so the page centres it once
- * the canvas is mounted (`centreOn`). */
+ * placed before the canvas measured itself, so the page frames it once
+ * the canvas is mounted (`frame`). */
 export function hydrate(): boolean {
   projects.splice(0, projects.length, ...parseProjects(readJson(INDEX_KEY)))
 
@@ -182,6 +182,20 @@ export function switchProject(id: string): void {
   store.set(ACTIVE_KEY, id)
   applyDoc(readJson(DOC_PREFIX + id))
   resetHistory()
+}
+
+/** A copy of a project's canvas as a new project beside it, opened. Its
+ * chats stay with the original (their checkpoints are that canvas's). */
+export function duplicateProject(id: string): void {
+  const meta = projects.find((p) => p.id === id)
+  if (!meta) return
+  flushSave()
+  const copy: ProjectMeta = { id: uid(), name: `${meta.name} copy`.slice(0, 80), updatedAt: Date.now() }
+  const doc = readJson(DOC_PREFIX + id)
+  if (doc) writeJson(DOC_PREFIX + copy.id, doc)
+  projects.splice(projects.indexOf(meta) + 1, 0, copy)
+  saveIndex()
+  switchProject(copy.id)
 }
 
 export function renameProject(id: string, name: string): void {

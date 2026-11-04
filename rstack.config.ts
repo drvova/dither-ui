@@ -98,6 +98,26 @@ function kitSources(): RsbuildPlugin {
   }
 }
 
+/* The bridge, served beside the site at the path the Studio's setup line
+   fetches (`BRIDGE_FILE` in src/features/agent/acp.ts): the file in this
+   repo, so the line and a clone run the same bridge. */
+function bridgeFile(): RsbuildPlugin {
+  return {
+    name: "bridge-file",
+    setup(api) {
+      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
+        const { readFile } = await import("node:fs/promises")
+        const { BRIDGE_FILE } = await import("./src/features/agent/bridge-file.ts")
+        // Served as written, never minified: a file people run on their own
+        // machine stays readable.
+        compilation.emitAsset(BRIDGE_FILE, new sources.RawSource(await readFile(at(BRIDGE_FILE), "utf8")), {
+          minimized: true,
+        })
+      })
+    },
+  }
+}
+
 /* The kit's raster benchmark (`benchmarks/`) is a page for `rs dev` only,
    never built or deployed. */
 const DEV_PAGES: typeof PAGES = {
@@ -112,7 +132,15 @@ define.app(async ({ command }) => {
     import("./src/shared/lib/utility-map.ts"),
   ])
   return {
-    plugins: [pluginVue(), pluginTailwindcss(), utilityMap(root), crawlFiles(), kitSources(), installFiles()],
+    plugins: [
+      pluginVue(),
+      pluginTailwindcss(),
+      utilityMap(root),
+      crawlFiles(),
+      kitSources(),
+      installFiles(),
+      bridgeFile(),
+    ],
     // `@dither-kit` is the Tailwind layer's index; `@dither-kit/<layer>/…` any kit file.
     resolve: {
       alias: { "@": at("src"), "@dither-kit$": at("dither-kit/tailwind/index.ts"), "@dither-kit": at("dither-kit") },

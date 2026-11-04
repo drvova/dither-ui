@@ -5,6 +5,7 @@ import {
   activeProjectId,
   createProject,
   deleteProject,
+  duplicateProject,
   hydrate,
   projects,
   renameProject,
@@ -80,6 +81,18 @@ describe("project workspace (sequential story)", () => {
     expect(projects[1].name).toBe("Renamed")
     const idx = JSON.parse(localStorage.getItem("dither-studio-projects")!)
     expect(idx[1].name).toBe("Renamed")
+  })
+
+  it("duplicating a project copies its work beside it and opens the copy", () => {
+    const [first] = projects
+    duplicateProject(first.id)
+    expect(projects.map((p) => p.name)).toEqual([first.name, `${first.name} copy`, "Renamed"])
+    expect(activeProjectId.value).toBe(projects[1].id)
+    expect(editor.artboards[0].name).toBe("Legacy chart")
+    const idx = JSON.parse(localStorage.getItem("dither-studio-projects")!)
+    expect(idx).toHaveLength(3)
+    deleteProject(projects[1].id)
+    expect(activeProjectId.value).toBe(projects[0].id)
   })
 
   it("deleting the active project falls back to the remaining one", () => {

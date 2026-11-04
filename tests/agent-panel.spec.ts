@@ -206,4 +206,37 @@ describe("the agent panel", () => {
     expect(w.get(".card .ctx .row-label").classes()).toContain("is-wrap")
     w.unmount()
   })
+
+  it("shows how to start the bridge when none answers, and keeps the message", async () => {
+    // Nothing listens: every socket fails before it opens, as a closed port does.
+    class Refused {
+      onopen: (() => void) | null = null
+      onerror: (() => void) | null = null
+      onclose: (() => void) | null = null
+      onmessage: (() => void) | null = null
+      constructor() {
+        setTimeout(() => {
+          this.onerror?.()
+          this.onclose?.()
+        })
+      }
+      close() {}
+      send() {}
+    }
+    rs.stubGlobal("WebSocket", Refused)
+    const w = mount(AgentPanel, { attachTo: document.body })
+    await field(w).setValue("a pricing page")
+    await field(w).trigger("keydown", { key: "Enter" })
+    await new Promise((r) => setTimeout(r, 20))
+    await nextTick()
+    const card = w.get("section[aria-labelledby='bridge-setup-title']")
+    expect(card.text()).toContain("Start the bridge")
+    expect(card.get("code").text()).toMatch(/^curl -fsSL http:\/\/localhost(:\d+)?\/bridge\/dither-bridge\.mjs /)
+    expect(card.get("[role='status']").text()).toContain("Looking for it at ws://127.0.0.1:8790")
+    // No raw error in the thread; the message waits in the field.
+    expect(w.findAll(".line-error")).toHaveLength(0)
+    expect(field(w).element.value).toBe("a pricing page")
+    w.unmount()
+    rs.unstubAllGlobals()
+  })
 })

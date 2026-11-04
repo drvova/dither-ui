@@ -9,6 +9,7 @@ import {
   type BridgeHello,
   connectAcp,
   modelName,
+  NoBridge,
   type PromptImage,
 } from "@/features/agent/acp"
 import {
@@ -35,6 +36,7 @@ import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark.vue"
 import { modKey } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import BridgeSetup from "./ui/BridgeSetup.vue"
 import { isMark } from "@/shared/ui/marks"
 import {
   type Attachment,
@@ -392,7 +394,37 @@ const commands = ref<AgentCommand[]>([])
 const pickerOpen = ref(false)
 const customCommand = ref(config.value.command)
 
-async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> {
+/** No bridge answered: the chat shows how to start it while the panel
+ * looks again every few seconds ("looking"), for a while ("stopped"
+ * after), until one answers ("none" again). */
+const setup = ref<"none" | "looking" | "stopped">("none")
+const LOOK_EVERY = 2500
+const LOOK_FOR = 5 * 60_000
+let lookTimer: ReturnType<typeof setInterval> | undefined
+function stopLooking(next: "none" | "stopped") {
+  clearInterval(lookTimer)
+  lookTimer = undefined
+  setup.value = next
+}
+function lookForBridge() {
+  setup.value = "looking"
+  scrollLog(true)
+  clearInterval(lookTimer)
+  const until = Date.now() + LOOK_FOR
+  lookTimer = setInterval(async () => {
+    if (acp.value) return stopLooking("none")
+    if (Date.now() > until) return stopLooking("stopped")
+    if (await connect(config.value.bridgeUrl, true)) {
+      stopLooking("none")
+      system("bridge connected")
+      refocus()
+    }
+  }, LOOK_EVERY)
+}
+
+/** Open the bridge at `url`. When none answers, the setup shows and the
+ * panel keeps looking; a `quiet` try (one of those looks) says nothing. */
+async function connect(url = config.value.bridgeUrl, quiet = false): Promise<AcpClient | null> {
   if (acp.value) return acp.value
   if (connecting.value) return null
   connecting.value = true
@@ -422,10 +454,13 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
       },
     })
     acp.value = client
+    if (setup.value !== "none") stopLooking("none")
     nameIt()
     return client
   } catch (e) {
-    push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
+    if (e instanceof NoBridge) {
+      if (!quiet && setup.value !== "looking") lookForBridge()
+    } else if (!quiet) push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
     return null
   } finally {
     connecting.value = false
@@ -1367,12 +1402,13 @@ onBeforeUnmount(() => {
   keepDraft()
   controller?.abort()
   clearInterval(clock)
+  clearInterval(lookTimer)
   disconnect()
 })
 </script>
 
 <template>
-  <div class="agent" :class="{ 'is-empty': !entries.length }" @keydown="onPanelKey">
+  <div class="agent" :class="{ 'is-empty': !entries.length && setup === 'none' }" @keydown="onPanelKey">
     <div class="head">
       <span class="who" aria-hidden="true"
         ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" /><BrandMark v-else :size="12"
@@ -1381,7 +1417,7 @@ onBeforeUnmount(() => {
       <button type="button" class="head-btn" aria-label="New chat" title="New chat" @click="slash('/new')">
         <DitherIcon name="Edit" :size="13" :stroke-width="1.5" />
       </button>
-      <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">
+      <button type="button" class="head-btn" aria-label="Close the chat" title="Close the chat" @click="emit('close')">
         <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
       </button>
     </div>
@@ -1401,7 +1437,7 @@ onBeforeUnmount(() => {
       </button>
     </Teleport>
     <div ref="log" class="log" @scroll.passive="onScroll">
-      <div v-if="!entries.length" class="hello">
+      <div v-if="!entries.length && setup === 'none'" class="hello">
         <span class="hello-mark" aria-hidden="true"
           ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="26" /><BrandMark v-else :size="26"
         /></span>
@@ -1453,6 +1489,12 @@ onBeforeUnmount(() => {
           </div>
         </details>
       </template>
+      <BridgeSetup
+        v-if="setup !== 'none'"
+        :looking="setup === 'looking'"
+        :url="config.bridgeUrl"
+        @look="lookForBridge"
+      />
     </div>
 
     <div class="dock">
@@ -1555,9 +1597,8 @@ onBeforeUnmount(() => {
             </div>
           </template>
           <p v-else class="note">
-            {{ connecting ? "Connecting the bridge…" : "No bridge yet." }} Run it next to your harness, which keeps its
-            own login:<br /><code>node bridge/dither-bridge.mjs</code><br />then pick Claude Code, Codex, Gemini CLI,
-            oh-my-pi, Goose, OpenCode, or any ACP command.
+            {{ connecting ? "Connecting the bridge…" : "No bridge yet: the chat shows the line that starts it." }}
+            Then pick Claude Code, Codex, Gemini CLI, oh-my-pi, Goose, OpenCode, or any ACP command here.
           </p>
         </div>
         <div v-else-if="menuOpen" class="pop menu" role="group" aria-label="Settings">
@@ -1811,7 +1852,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-if="!entries.length" class="starters">
+    <div v-if="!entries.length && setup === 'none'" class="starters">
       <button v-for="s in STARTERS" :key="s.text" type="button" class="starter" @click="send(s.text)">
         <DitherIcon :name="s.icon" :size="12" :stroke-width="1.5" /><span>{{ s.text }}</span>
       </button>

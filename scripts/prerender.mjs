@@ -18,7 +18,7 @@ const DIST = fileURLToPath(new URL("../dist", import.meta.url))
 const ROUTES = [
   { path: "/", entry: "index.html", ready: "h1", settle: 1000 },
   { path: "/docs", entry: "docs/index.html", minSections: 200, settle: 2000 },
-  { path: "/studio", entry: "studio/index.html", ready: 'a[aria-label="dither-ui home"]', settle: 1000 },
+  { path: "/studio", entry: "studio/index.html", ready: "[data-artboard-surface]", settle: 1000 },
 ]
 const MIME = {
   ".html": "text/html",
