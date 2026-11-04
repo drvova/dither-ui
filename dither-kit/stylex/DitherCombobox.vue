@@ -17,7 +17,7 @@ const styles = stylex.create({
     fontFamily: "var(--font-mono)",
     fontSize: "13px",
     color: "var(--foreground)",
-    "::placeholder": { color: "var(--muted-foreground)" },
+    "::placeholder": { color: "var(--placeholder, var(--muted-foreground))" },
     boxShadow: { default: null, ":focus-visible": "0 0 0 calc(1px + 0px) var(--ring)" },
     outlineStyle: { default: null, ":focus-visible": "none" },
     pointerEvents: { default: null, ":disabled": "none" },

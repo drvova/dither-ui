@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { breakable } from "@/shared/lib"
 defineProps<{ modelValue: boolean; label: string }>()
 const emit = defineEmits<{ "update:modelValue": [boolean] }>()
 </script>
@@ -12,6 +13,6 @@ const emit = defineEmits<{ "update:modelValue": [boolean] }>()
       class="accent-foreground"
       @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
     />
-    {{ label }}
+    {{ breakable(label) }}
   </label>
 </template>

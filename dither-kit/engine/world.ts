@@ -91,6 +91,10 @@ export type World = {
   nodes: WorldNode[]
   /** Material colours, 0-255 — meshes and triangles carry indices (≤ 255). */
   palette: Rgb[]
+  /** The palette entries that give off light (an emissive material's
+   * colour): painted in their own colour, lit whatever the mode. A glowing
+   * entry is never shared with a plain one of the same colour. */
+  glows: number[]
   lights: WorldLight[]
   /** VRML `NavigationInfo { headlight }`: a light riding the camera. */
   headlight: boolean
@@ -400,6 +404,7 @@ export function emptyWorld(): World {
     meshes: [],
     nodes: [],
     palette: [],
+    glows: [],
     lights: [],
     headlight: true,
     viewpoint: null,
@@ -410,8 +415,9 @@ export function emptyWorld(): World {
 }
 
 /** Palette index for a colour — at most 255 distinct colours per world, the
- * rest snap to their nearest neighbour. */
-export function colorIndex(world: World, rgb: Rgb): number {
+ * rest snap to their nearest neighbour. A glowing colour (`glow`) takes an
+ * entry of its own, marked in `glows`, never a plain one's. */
+export function colorIndex(world: World, rgb: Rgb, glow = false): number {
   const r = Math.max(0, Math.min(255, Math.round(rgb[0])))
   const g = Math.max(0, Math.min(255, Math.round(rgb[1])))
   const b = Math.max(0, Math.min(255, Math.round(rgb[2])))
@@ -419,6 +425,7 @@ export function colorIndex(world: World, rgb: Rgb): number {
   let best = -1
   let bestD = Infinity
   for (let i = 0; i < p.length; i++) {
+    if (world.glows.includes(i) !== glow) continue
     const d = (p[i][0] - r) ** 2 + (p[i][1] - g) ** 2 + (p[i][2] - b) ** 2
     if (d === 0) return i
     if (d < bestD) {
@@ -426,8 +433,9 @@ export function colorIndex(world: World, rgb: Rgb): number {
       best = i
     }
   }
-  if (p.length >= 255) return best
+  if (p.length >= 255 && best >= 0) return best
   p.push([r, g, b])
+  if (glow) world.glows.push(p.length - 1)
   return p.length - 1
 }
 
@@ -446,7 +454,8 @@ export function addNode(world: World, node: Partial<WorldNode> & { parent: numbe
   return world.nodes.length - 1
 }
 
-export type MeshOptions = { kind?: MeshKind; node?: number; ccw?: boolean }
+/** `glow`: the mesh's material gives off light (its colour a `glows` entry). */
+export type MeshOptions = { kind?: MeshKind; node?: number; ccw?: boolean; glow?: boolean }
 
 /**
  * Bake geometry into a mesh: transform, enforce outward winding (`ccw` false
@@ -546,7 +555,7 @@ export function addMesh(
     positions,
     indices: Uint32Array.from(indices),
     edges: Uint32Array.from(edges),
-    color: colorIndex(world, color),
+    color: colorIndex(world, color, opts.glow),
     triColors,
     uv,
     solid: kind === "faces" && solid,
@@ -746,6 +755,43 @@ export function cameraOf(world: World, view: WorldView, cols: number, rows: numb
 let cam = new Float32Array(0)
 let scr = new Float32Array(0)
 
+/** One world point through the camera: camera-space x, y, z into `camOut`
+ * and screen x, y (cells) and depth from the eye into `scrOut`, at `o`. */
+function toScreen(
+  c: Camera,
+  world: World,
+  x: number,
+  y: number,
+  z: number,
+  camOut: Float32Array,
+  scrOut: Float32Array,
+  o: number,
+): void {
+  const px = x - world.center[0]
+  const py = y - world.center[1]
+  const pz = z - world.center[2]
+  const x1 = px * c.cy + pz * c.sy
+  const z1 = -px * c.sy + pz * c.cy
+  const y2 = py * c.cp - z1 * c.sp
+  const z2 = py * c.sp + z1 * c.cp - c.dist
+  camOut[o] = x1
+  camOut[o + 1] = y2
+  camOut[o + 2] = z2
+  const depth = -z2
+  const inv = c.scale / Math.max(depth, 1e-6)
+  scrOut[o] = c.cols / 2 + x1 * inv
+  scrOut[o + 1] = c.rows / 2 - y2 * inv
+  scrOut[o + 2] = depth
+}
+
+const oneCam = new Float32Array(3)
+/** Where a world point lands on the target: x, y in cells, depth from the eye. */
+export function screenOf(c: Camera, world: World, x: number, y: number, z: number): [number, number, number] {
+  const out = new Float32Array(3)
+  toScreen(c, world, x, y, z, oneCam, out, 0)
+  return [out[0], out[1], out[2]]
+}
+
 /** Camera-space positions (`cam`) and screen x, y, depth (`scr`) for `positions`. */
 function project(c: Camera, world: World, positions: Float32Array): void {
   const vc = positions.length / 3
@@ -753,24 +799,8 @@ function project(c: Camera, world: World, positions: Float32Array): void {
     cam = new Float32Array(vc * 3)
     scr = new Float32Array(vc * 3)
   }
-  const [cx0, cy0, cz0] = world.center
-  for (let i = 0; i < vc; i++) {
-    const px = positions[i * 3] - cx0
-    const py = positions[i * 3 + 1] - cy0
-    const pz = positions[i * 3 + 2] - cz0
-    const x1 = px * c.cy + pz * c.sy
-    const z1 = -px * c.sy + pz * c.cy
-    const y2 = py * c.cp - z1 * c.sp
-    const z2 = py * c.sp + z1 * c.cp - c.dist
-    cam[i * 3] = x1
-    cam[i * 3 + 1] = y2
-    cam[i * 3 + 2] = z2
-    const depth = -z2
-    const inv = c.scale / Math.max(depth, 1e-6)
-    scr[i * 3] = c.cols / 2 + x1 * inv
-    scr[i * 3 + 1] = c.rows / 2 - y2 * inv
-    scr[i * 3 + 2] = depth
-  }
+  for (let i = 0; i < vc; i++)
+    toScreen(c, world, positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2], cam, scr, i * 3)
 }
 
 /** Flat shade of a camera-space triangle under the camera's lights. */
@@ -844,6 +874,10 @@ export type WorldStyle = {
    * colour per cell, its alpha in the shade (meshes without uvs keep the fill). */
   texture?: RasterBuffer | null
 }
+
+/** The least shade a glowing cell (`World.glows`) paints at: it gives off
+ * light, yet keeps its form. */
+export const GLOW_FLOOR = 0.62
 
 /** Per-vertex fbm grain for a mesh, cached by seed + scale. */
 export function meshGrain(mesh: WorldMesh, world: World, seed: number, scale: number): Float32Array {
@@ -1077,6 +1111,9 @@ export function paintTarget(
   const [fr, fg, fb] = style.fill
   const tex = style.texture && style.texture.width > 0 && style.texture.height > 0 ? style.texture : null
   const uvt = target.uv
+  // Palette index + 1 → it glows.
+  const glowing = new Uint8Array(257)
+  for (const g of world.glows) if (g >= 0 && g < world.palette.length) glowing[g + 1] = 1
   for (let y = 0; y < rows; y++) {
     const row = mat[y & 3]
     for (let x = 0; x < cols; x++) {
@@ -1087,6 +1124,14 @@ export function paintTarget(
       let v = target.shade[i]
       if (fog > 0) v *= 1 - fog * clamp01((target.depth[i] - c.near) / c.span)
       const o = i * 4
+      if (glowing[idx]) {
+        const col = world.palette[idx - 1]
+        data[o] = col[0]
+        data[o + 1] = col[1]
+        data[o + 2] = col[2]
+        data[o + 3] = Math.max(v, GLOW_FLOOR) > th ? 255 : shadeA
+        continue
+      }
       if (tex && uvt[i * 2] >= 0) {
         // The texture's texel under the cell (repeating), its alpha in the shade.
         const tw = tex.width

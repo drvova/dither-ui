@@ -192,7 +192,7 @@
             type="text"
             aria-label="Search wallet"
             placeholder={searchPlaceholder}
-            class="w-full bg-transparent px-2 text-[12px] text-foreground outline-none placeholder:text-muted-foreground"
+            class="w-full bg-transparent px-2 text-[12px] text-foreground outline-none placeholder:text-placeholder"
             oninput={() => onsearch?.(query)}
             onkeydown={(e) => {
               if (e.key === "Enter") submitSearch()

@@ -5,6 +5,7 @@
 import { resolve, sep } from "node:path"
 import { define } from "rstack"
 import type { RsbuildPlugin } from "rstack/app"
+import { installHead } from "./src/app/install-files.ts"
 import { PAGE_END_ID, PAGE_REVEAL_SCRIPT } from "./src/app/page-reveal.ts"
 
 const root = import.meta.dirname
@@ -53,6 +54,22 @@ function crawlFiles(): RsbuildPlugin {
   }
 }
 
+/* The Studio as an installable app, and the site's icons: the app's
+   manifest and every icon, drawn from the brand mark at build
+   (src/app/install-files.ts), never a copy kept in public/. */
+function installFiles(): RsbuildPlugin {
+  return {
+    name: "install-files",
+    setup(api) {
+      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
+        const { installFiles } = await import("./src/app/install-files.ts")
+        for (const [name, body] of Object.entries(installFiles()))
+          compilation.emitAsset(name, new sources.RawSource(typeof body === "string" ? body : Buffer.from(body)))
+      })
+    },
+  }
+}
+
 /* The kits' own source, served beside the site for the docs' source panel:
    every .vue/.svelte/.ts/.css file of both kits at `kit/src/<vue|svelte>/`
    plus a `files.json` listing them — what a reader reads, edits, runs and
@@ -95,7 +112,7 @@ define.app(async ({ command }) => {
     import("./src/shared/lib/utility-map.ts"),
   ])
   return {
-    plugins: [pluginVue(), pluginTailwindcss(), utilityMap(root), crawlFiles(), kitSources()],
+    plugins: [pluginVue(), pluginTailwindcss(), utilityMap(root), crawlFiles(), kitSources(), installFiles()],
     // `@dither-kit` is the Tailwind layer's index; `@dither-kit/<layer>/…` any kit file.
     resolve: {
       alias: { "@": at("src"), "@dither-kit$": at("dither-kit/tailwind/index.ts"), "@dither-kit": at("dither-kit") },
@@ -116,10 +133,13 @@ define.app(async ({ command }) => {
       template: ({ entryName }) => at(pages[entryName].html),
       // The site's routes take a page transition over before their first
       // frame (src/app/page-reveal.ts).
+      // and carry the site's icons; the Studio's page, the app's manifest and
+      // iOS's app tags too.
       tags: (tags, { entryName }) =>
         pages[entryName].main === SITE_MAIN
           ? [
               { tag: "script", children: PAGE_REVEAL_SCRIPT, head: true, append: false },
+              ...installHead(entryName).map((t) => ({ ...t, head: true })),
               ...tags,
               { tag: "span", attrs: { id: PAGE_END_ID, hidden: true }, head: false, append: true },
             ]
@@ -132,6 +152,20 @@ define.app(async ({ command }) => {
         // `require` hooks for Sass/Less/Stylus that Run never calls — it
         // compiles plain CSS only.
         tools: { rspack: { ignoreWarnings: [{ module: /@vue[\\/]compiler-sfc/, message: /Critical dependency/ }] } },
+      },
+      /* The Studio's service worker, one classic script at the site's
+         root, registered with the Studio's scope: `src/app/sw.ts`, the
+         offline rules of `src/app/offline.ts` (see src/AGENTS.md). */
+      sw: {
+        source: { entry: { sw: { import: "./src/app/sw.ts", html: false } } },
+        output: {
+          target: "web-worker",
+          distPath: { root: "dist", js: "" },
+          filename: { js: "[name].js" },
+          cleanDistPath: false,
+        },
+        splitChunks: false,
+        tools: { rspack: { output: { asyncChunks: false } } },
       },
       /* The player as ONE classic script + one stylesheet. A HyperFrames
          composition exported by the Studio must render with no network at

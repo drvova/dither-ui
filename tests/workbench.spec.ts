@@ -4,8 +4,8 @@ import { flushPromises, mount } from "@vue/test-utils"
 import { h, nextTick } from "vue"
 import { bayerMatrix } from "@dither-kit"
 import DemoCard from "@/pages/docs/DemoCard.vue"
-import { contrast, formatColor, grade, hex, over, parseColor } from "@/widgets/workbench/model/color"
-import { boxFrom, distances, dock, snap } from "@/widgets/workbench/model/geometry"
+import { contrast, formatColor, grade, hex, over, parseColor } from "@/shared/lib/inspect/color"
+import { boxFrom, distances, dock, snap } from "@/shared/lib/inspect/geometry"
 import { encodeGif, lzw, medianCut, quantize } from "@/shared/lib/gif"
 import { arrowPaths, erase, hitLine, inkOutline, pressures, type InkPoint } from "@/widgets/workbench/model/ink"
 import {
@@ -20,7 +20,7 @@ import {
   selectorOf,
   statesOf,
   walk,
-} from "@/widgets/workbench/model/measure"
+} from "@/shared/lib/inspect/measure"
 import { DEFAULT_SETTINGS, normalizeSettings } from "@/widgets/workbench/model/settings"
 import {
   createHistory,
@@ -383,6 +383,33 @@ describe("workbench DOM readings", () => {
       toJSON() {},
     } as DOMRect)
     expect(focusOrder(r).map((el) => el.textContent)).toEqual(["e", "b", "a", "d"])
+    rs.restoreAllMocks()
+  })
+
+  it("flags a field named only by its placeholder, and passes one with a label that lasts", () => {
+    // The live Studio's sign-in screen: "Email" set beside the field, not tied to it.
+    document.body.innerHTML = `<div id="r"><span>Email</span><input placeholder="you@example.com">
+      <label>Password <input type="password" placeholder="At least 12 characters"></label>
+      <input aria-label="Search" placeholder="Search"><input id="n" placeholder="Name"><label for="n">Name</label>
+      <input placeholder="Code" title="One-time code"></div>`
+    const r = document.getElementById("r")!
+    rs.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({
+      width: 200,
+      height: 40,
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 200,
+      bottom: 40,
+      toJSON() {},
+    } as DOMRect)
+    const found = audit(r, r).filter((i) => i.kind === "label")
+    expect(found.map((i) => i.el.getAttribute("placeholder"))).toEqual(["you@example.com"])
+    expect(found[0].note).toMatch(/named only by its placeholder/)
+    // Still a name, so no "name" issue alongside it.
+    expect(audit(r, r).filter((i) => i.kind === "name")).toEqual([])
+    expect(nameOf(r.querySelector("input")!)).toBe("you@example.com")
     rs.restoreAllMocks()
   })
 

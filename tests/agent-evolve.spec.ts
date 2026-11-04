@@ -69,16 +69,23 @@ describe("evolve", () => {
     }
   })
 
-  it("places a generation as one centred row and selects it", () => {
+  it("places a generation as one row, clear of its parent, and selects it", () => {
     editor.artboards = []
     editor.viewport = { x: 0, y: 0, zoom: 1 }
     const parent = addComponentArtboard(componentEntry("DitherSwitch")!)
     const gen = placeGeneration(evolveArtboard(parent, { count: 3, seed: 1 }), 40)
     expect(editor.artboards.length).toBe(4)
     expect(editor.selectedIds).toEqual(gen.map((g) => g.id))
-    const total = gen.reduce((n, g) => n + g.w, 0) + 80
-    expect(gen[0].x).toBe(Math.round(1280 / 2 - total / 2))
+    // A row, 40px apart, on one line...
     expect(gen[1].x).toBe(gen[0].x + gen[0].w + 40)
-    expect(gen[0].y).toBe(Math.round(720 / 2 - gen[0].h / 2))
+    expect(gen[1].y).toBe(gen[0].y)
+    // ...that stands off the parent placed at the centre, not on it.
+    const row = { x: gen[0].x, y: gen[0].y, w: gen[2].x + gen[2].w - gen[0].x, h: gen[0].h }
+    const apart =
+      row.x + row.w <= parent.x ||
+      parent.x + parent.w <= row.x ||
+      row.y + row.h <= parent.y ||
+      parent.y + parent.h <= row.y
+    expect(apart).toBe(true)
   })
 })

@@ -7,15 +7,18 @@
 // runs as the user's own signed-in process behind the local bridge
 // (`bridge/dither-bridge.mjs`), and reaches the canvas through an MCP server
 // made of the tools below (`acp.ts` is the browser side).
+import { editor } from "@/entities/editor"
 import { REEL_TRANSITIONS } from "@/entities/widget"
+import { artboardPng } from "@/features/export-image"
 import { deliverVideo, type VideoExportData } from "@/features/export-video"
 import { STYLINGS } from "@/shared/lib/restyle"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
 import type { CommandResult } from "./protocol"
-import { runCommand } from "./protocol"
+import { PNG_SCALES, runCommand, VIEW_TO } from "./protocol"
 
 export type ToolDef = { name: string; description: string; parameters: Record<string, unknown> }
 export type Usage = { input: number; output: number }
+export type ContextUse = { used: number; size: number; cost?: { amount: number; currency: string } }
 
 /* ------------------------------ studio tools ----------------------------- */
 
@@ -29,7 +32,14 @@ const str = (description: string) => ({ type: "string", description })
 const num = (description: string) => ({ type: "number", description })
 
 /** The protocol as tools: one per command the harness should have. */
-export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
+/** The name the bridge gives the Studio's MCP server in every session, so a
+ * harness calls its tools `mcp__dither-studio__<tool>`. The bridge (zero
+ * dependencies, its own file) carries a copy, pinned by its spec. */
+export const STUDIO_SERVER = "dither-studio"
+
+/** A Studio tool: its definition for the harness, the protocol command it
+ * runs, and arguments it always sends (`preset`, under the harness's own). */
+export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<string, unknown> }[] = [
   {
     def: {
       name: "list_artboards",
@@ -46,12 +56,13 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
       parameters: obj({ is: str("registry component name, e.g. DitherTabs") }),
     },
     command: "registry.get",
+    preset: { brief: true },
   },
   {
     def: {
       name: "add_screen",
       description:
-        "Add a composed screen: rows of registry components (one nesting level). Each cell: { is, props?, slotText?, grow? }. Row: { cells, align?, justify?, gap? }.",
+        'Add a composed screen: rows of registry components (one nesting level). Each cell: { is, props?, slotText?, value?, grow? }; value is what its v-model holds (a field\'s text: "" shows its placeholder). Row: { cells, align?, justify?, gap? }.',
       parameters: obj(
         {
           name: str("frame name"),
@@ -78,6 +89,9 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
           name: str("frame name"),
           props: obj({}),
           slotText: str("visible text for slot components"),
+          value: {
+            description: "what its v-model holds (a field's text, a switch's state); \"\" shows a field's placeholder",
+          },
           frame: obj({ w: num("width"), h: num("height") }),
         },
         ["is"],
@@ -207,8 +221,8 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
     def: {
       name: "update_artboard",
       description:
-        "Patch a frame: name, x, y, w, h, hidden, locked; `chart` fields (seed, bloom, cell, stackType, series…); `widget` { props } for components, { rows } for screens or { clips } for reels.",
-      parameters: obj({ id: str("artboard id"), patch: obj({}) }, ["id", "patch"]),
+        "Patch a frame: name, x, y, w, h, hidden, locked; `chart` fields (seed, bloom, cell, stackType, series…); what it shows goes under `widget`: { props, value } for a component, { rows } for a screen (every row, each cell with its props and value, as add_screen takes them) or { clips } for a reel. A key it does not know fails the call.",
+      parameters: obj({ id: str("artboard id"), patch: obj({ widget: obj({}), chart: obj({}) }) }, ["id", "patch"]),
     },
     command: "artboard.update",
   },
@@ -240,6 +254,75 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string }[] = [
       }),
     },
     command: "evolve",
+  },
+  {
+    def: {
+      name: "duplicate",
+      description: "Duplicate frames (the selection by default); the copies come back selected.",
+      parameters: obj({ id: str("artboard id"), ids: { type: "array", items: { type: "string" } } }),
+    },
+    command: "artboard.duplicate",
+  },
+  {
+    def: {
+      name: "group",
+      description: "Group frames (the selection by default) so they move and hide as one layer group.",
+      parameters: obj({
+        id: str("artboard id"),
+        ids: { type: "array", items: { type: "string" } },
+        name: str("group name"),
+      }),
+    },
+    command: "group",
+  },
+  {
+    def: {
+      name: "ungroup",
+      description: "Ungroup a group, named by its id or by one of its frames.",
+      parameters: obj({ id: str("group id or a frame of the group") }, ["id"]),
+    },
+    command: "ungroup",
+  },
+  {
+    def: {
+      name: "replay",
+      description: "Play every frame's entrance animation again.",
+      parameters: obj({}),
+    },
+    command: "replay",
+  },
+  {
+    def: {
+      name: "set_view",
+      description:
+        "Move the canvas view, zoom and fit: to fits every frame (all), the selection, steps in or out, or 100% (actual); id fits one frame; zoom sets it (1 is 100%).",
+      parameters: obj({
+        to: { type: "string", enum: [...VIEW_TO] },
+        id: str("a frame to fit"),
+        zoom: num("0.2–3, 1 is 100%"),
+      }),
+    },
+    command: "view",
+  },
+  {
+    def: {
+      name: "inspect",
+      description:
+        "Inspect a frame as drawn: its controls in Tab order (role, accessible name, states, box) and what the accessibility floor finds: missing names, fields named only by their placeholder (give the field its `label` prop: a visible label tied to it), targets under 24px, text under AA contrast, images without alt. Check a screen before calling it done.",
+      parameters: obj({ id: str("artboard id; defaults to the selection") }),
+    },
+    command: "inspect",
+  },
+  {
+    def: {
+      name: "export_png",
+      description: "Export a frame as a PNG picture, written under the project as image/<name>.png.",
+      parameters: obj({
+        id: str("artboard id; defaults to the selection"),
+        scale: { type: "number", enum: [...PNG_SCALES], description: "pixel ratio, 2 by default" },
+      }),
+    },
+    command: "image.export",
   },
   {
     def: {
@@ -296,40 +379,91 @@ export function callStudioTool(
   run: (command: unknown) => CommandResult = runCommand,
 ): CommandResult {
   const tool = STUDIO_TOOLS.find((t) => t.def.name === name)
-  return tool ? run({ ...args, type: tool.command }) : { ok: false, error: `unknown tool ${name}` }
+  return tool ? run({ ...tool.preset, ...args, type: tool.command }) : { ok: false, error: `unknown tool ${name}` }
 }
 
-/** A composition is delivered, not returned: it rides the result to the
- * bridge as `data.files`, which writes it under the harness's project. */
+/** A composition or a picture is delivered, not returned: it rides the
+ * result to the bridge as `data.files`, which writes it under the harness's
+ * project. */
 export async function finishStudioTool(name: string, result: CommandResult): Promise<CommandResult> {
-  return name === "export_video" && result.ok ? deliverVideo(result.data as VideoExportData, "files") : result
+  if (!result.ok) return result
+  if (name === "export_video") return deliverVideo(result.data as VideoExportData, "files")
+  if (name === "export_png") return deliverPng(result.data as { id: string; file: string; scale: number })
+  return result
+}
+
+async function deliverPng(d: { id: string; file: string; scale: number }): Promise<CommandResult> {
+  const a = editor.artboards.find((x) => x.id === d.id)
+  const url = a ? await artboardPng(a, d.scale) : null
+  if (!a || !url) return { ok: false, error: `${a?.name ?? d.id} could not be drawn (is it hidden?)` }
+  return {
+    ok: true,
+    data: {
+      id: a.id,
+      name: a.name,
+      files: [{ path: d.file, base64: url.slice(url.indexOf(",") + 1) }],
+      size: { w: a.w * d.scale, h: a.h * d.scale },
+      note: "Written under the project by the bridge.",
+    },
+  }
 }
 
 /* --------------------------------- events -------------------------------- */
 
 export type Mode = { id: string; name: string; description?: string }
+/** The model the harness runs, as its session reports it (an ACP config
+ * option of category "model"): the option's id, the current model and the
+ * ones the harness offers. The harness owns it; the Studio keeps nothing. */
+export type ModelChoice = { configId: string; current: string; options: Mode[] }
+/** One of the harness's other choice settings (an ACP config option of a
+ * category besides model and mode: effort, thinking, ...), by its name. */
+export type Setting = ModelChoice & { name: string }
 export type AgentCommand = { name: string; description: string; input?: string }
 
 /** What the composer renders: everything the harness says, mapped from ACP. */
+/** What the agent is up to, as the Studio shows it outside the panel: its
+ * toolbar key carries it while the panel is closed (`unseen`: a turn ended
+ * while you were not looking). */
+export type AgentActivity = "idle" | "working" | "waiting" | "unseen"
+
 export type AgentEvent =
   | { type: "delta"; text: string }
+  | { type: "thought"; text: string }
   | { type: "assistant"; text: string }
-  | { type: "tool"; name: string; args: Record<string, unknown>; result: CommandResult }
-  | { type: "activity"; id: string; title: string; status: string }
+  /** An action the Studio's one tool ran; `built`: a tool the harness built. */
+  | { type: "tool"; name: string; args: Record<string, unknown>; result: CommandResult; built?: boolean }
+  /** One of the harness's own tool calls; `kind` is ACP's (read, edit,
+   * delete, move, search, execute, think, fetch, other) when it says. */
+  | { type: "activity"; id: string; title: string; status: string; kind?: string }
   | { type: "plan"; entries: { content: string; status: string }[] }
   | { type: "mode"; current: string; modes: Mode[] }
+  | { type: "model"; model: ModelChoice }
+  | { type: "settings"; settings: Setting[] }
   | { type: "commands"; commands: AgentCommand[] }
   | { type: "turn"; elapsedMs: number; usage?: Usage }
+  /** How full the session's context is, as the harness reports it (ACP
+   * `usage_update`): tokens used of the window's size, and what it cost. */
+  | { type: "context"; context: ContextUse }
   | { type: "error"; message: string }
+  /** The turn ended because the user stopped it. */
+  | { type: "stopped" }
   | { type: "done" }
 
 /* -------------------------------- storage -------------------------------- */
 
 const CONFIG_KEY = "dither-agent-config"
 
-/** Nothing here is a secret: the bridge address, the harness to start, and
- * whether permission prompts are answered with their allow option. */
-export type AgentConfig = { bridgeUrl: string; harness: string; command: string; auto: boolean }
+/** Nothing here is a secret: the bridge address, the harness to start,
+ * whether permission prompts are answered with their allow option, and
+ * whether the canvas follows the agent. */
+export type AgentConfig = {
+  bridgeUrl: string
+  harness: string
+  command: string
+  auto: boolean
+  /** The canvas pans to each frame the agent changes. */
+  follow: boolean
+}
 
 export const DEFAULT_BRIDGE_URL = "ws://127.0.0.1:8790"
 
@@ -340,35 +474,44 @@ export function loadAgentConfig(): AgentConfig {
     harness: typeof d.harness === "string" ? d.harness : "",
     command: typeof d.command === "string" ? d.command : "",
     auto: d.auto === true,
+    follow: d.follow === true,
   }
 }
 
 export const saveAgentConfig = (c: AgentConfig): void => writeJson(CONFIG_KEY, c)
 
-const SESSION_PREFIX = "dither-agent-session-"
-const SESSION_CAP = 160_000
+const DRAFT_PREFIX = "dither-agent-draft-"
 
-export type AgentSession<E> = { entries: E[]; usage: Usage }
+/** A chat's unsent message: its words and what it carries, as stored (the
+ * panel parses the attachments, untrusted, where they come back in). */
+export type Draft = { text: string; attachments: unknown[] }
+/** The most a draft keeps, as JSON: past it, its pictures stay out. */
+export const DRAFT_MAX = 1_500_000
+const draftKey = (projectId: string, chatId: string) => `${DRAFT_PREFIX}${projectId}/${chatId}`
 
-const count = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : 0)
-
-/** A project's conversation survives reloads (capped; oldest entries go
- * first). Read back, an entry is kept only as an object with a `kind`, and
- * the token counts are numbers. */
-export function loadSession<E>(projectId: string): AgentSession<E> | null {
-  const d = readJson(SESSION_PREFIX + projectId) as { entries?: unknown; usage?: Partial<Usage> } | null
-  if (!d || !Array.isArray(d.entries)) return null
-  const entries = d.entries.filter((e) => !!e && typeof e === "object" && typeof e.kind === "string") as E[]
-  return { entries, usage: { input: count(d.usage?.input), output: count(d.usage?.output) } }
+/** A chat's unsent message, kept while the panel is closed, a reload, or
+ * another chat; an empty one is removed. A project's draft from before
+ * drafts were per chat comes back in its chat once. */
+export function loadDraft(projectId: string, chatId: string): Draft {
+  const raw = readJson(draftKey(projectId, chatId)) as { text?: unknown; attachments?: unknown } | null
+  if (raw && typeof raw === "object")
+    return {
+      text: typeof raw.text === "string" ? raw.text : "",
+      attachments: Array.isArray(raw.attachments) ? raw.attachments : [],
+    }
+  const old = storage.get(DRAFT_PREFIX + projectId)
+  if (old === null) return { text: "", attachments: [] }
+  storage.remove(DRAFT_PREFIX + projectId)
+  return { text: old, attachments: [] }
 }
-
-export function saveSession<E>(projectId: string, s: AgentSession<E>): void {
-  if (!s.entries.length) return storage.remove(SESSION_PREFIX + projectId)
-  const entries = [...s.entries]
-  let json = JSON.stringify({ ...s, entries })
-  while (json.length > SESSION_CAP && entries.length) {
-    entries.shift()
-    json = JSON.stringify({ ...s, entries })
-  }
-  storage.set(SESSION_PREFIX + projectId, json)
+export function saveDraft(projectId: string, chatId: string, draft: Draft): void {
+  const key = draftKey(projectId, chatId)
+  if (!draft.text.trim() && !draft.attachments.length) return storage.remove(key)
+  const kept = { text: draft.text.slice(0, 20_000), attachments: draft.attachments }
+  writeJson(
+    key,
+    JSON.stringify(kept).length <= DRAFT_MAX
+      ? kept
+      : { ...kept, attachments: kept.attachments.filter((a) => (a as { kind?: unknown }).kind !== "image") },
+  )
 }

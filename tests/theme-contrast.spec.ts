@@ -5,7 +5,7 @@
 // field's hairline and the pressed ring under their floors.
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
-import { contrast, over, parseColor, type RGBA } from "../src/widgets/workbench/model/color"
+import { contrast, over, parseColor, type RGBA } from "@/shared/lib/inspect/color"
 import { BAND_FLOOR, BAND_INK } from "../src/widgets/site-header/menu"
 
 const root = new URL("..", import.meta.url).pathname
@@ -96,6 +96,26 @@ describe("theme contrast", () => {
       const fills = [...steps.map((p) => mix(colour(t.foreground), p / 100, page)), colour(t["swatch-orange"])]
       const worst = Math.min(...fills.map((f) => contrast(page, f)))
       expect(worst).toBeGreaterThanOrEqual(4.5)
+    })
+
+  // A field's placeholder sits only in a field, the page at 60% over what
+  // it stands on: AA there, and a step under the muted ink (as dim as AA
+  // allows: under 5:1 on the page).
+  for (const [theme, t] of [
+    ["light", LIGHT],
+    ["dark", DARK],
+    ["docs dark", { ...DARK, ...tokens(site, ":root.dark:has(.docs-root)") }],
+    ["landing", { ...DARK, ...tokens(landing, ":root:has(.landing)") }],
+  ] as const)
+    it(`${theme}: a field's placeholder holds 4.5:1 in a field on every ground, under the muted ink`, () => {
+      const page = colour(t.background)
+      const ink = colour(t.placeholder)
+      const under = grounds(t, false)
+        .map(([name, g]) => [name, Math.round(contrast(ink, over({ ...page, a: 0.6 }, g)) * 100) / 100] as const)
+        .filter(([, r]) => r < 4.5)
+      expect(under).toEqual([])
+      expect(contrast(ink, page)).toBeLessThan(contrast(colour(t["muted-foreground"]), page))
+      expect(contrast(ink, page)).toBeLessThan(5)
     })
 
   it("the pressed ring is the control edge", () => {

@@ -140,7 +140,8 @@ Default section order:
   sections under a title with a lead beside it, print plates of the brand
   small in a wide field between them (after the bento and before the
   install, each its own proportion and printer's screen): a bento of live
-  components, one agent session played as the page scrolls (a pinned
+  components, the brand's lockup built cell by cell from the wire as the
+  page scrolls (`#build`), one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
   beside it), what's inside (the kit, the Studio, the bridge, the docs'
   families), what it plays well with (your styling, your agent, your
@@ -208,7 +209,20 @@ Default section order:
   harnesses (Claude Code, Codex, Gemini CLI, Qwen Code, oh-my-pi, Goose,
   OpenCode, Auggie) plus any command, says which are on the PATH, and
   starts the one picked in the panel as the user's OWN signed-in process.
-  No key, model setting or login is ever collected in-app.
+  A harness reaches the canvas through ONE tool, `dither` (the user's
+  call: one small definition, not every action's schema on every turn):
+  `find` answers with the actions that fit the job and the kit components
+  that do, `run` runs one, and when none fits well `build` makes a new one
+  in JavaScript that is kept and found first next time. A built tool runs
+  in a sandbox (an opaque-origin frame with no network, a worker it can
+  be killed in, the Studio's actions its only way out) and only when the
+  user approves that run; Auto never answers it.
+  No key, model setting or login is ever collected in-app: the panel
+  shows who answers and the model the harness reports, and switching
+  model asks the harness among its own.
+  `npm run demo:agent` (`scripts/agent-demo.mjs`) records the panel
+  driving the user's own harness (Claude Code by default) into a video,
+  run where that harness is signed in; never with borrowed credentials.
 - Video: every Studio frame exports as a HyperFrames composition
   (`features/export-video`, the `video` selection action, the
   `video.export` command / `export_video` tool) — one self-contained HTML
@@ -305,9 +319,30 @@ Default section order:
   the file's texture coordinates (OBJ `vt`, glTF `TEXCOORD_0`, VRML
   `TextureCoordinate`, PLY `s`/`t`, the primitives' own) on either engine,
   and a material samples them with `dk_texture(p)` / `dk_uv(p)`.
+  Any model is also a build (`engine/assemble.ts`): it comes apart along
+  its own seams, rises from a dotted wire cage with each piece landing hot,
+  scatters and leans from the pointer (`DitherWorld`'s `build`, `scatter`,
+  `heat`, `nudge`); the landing's `#build` raises the brand's own lockup
+  that way, cell by cell, as the page scrolls.
   Both are docs sections under Media (`world`, `shader`) and
   `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps WebGL2
   (SwiftShader), so GPU and shader frames export to MP4 too.
+- PWA: the Studio installs as an app and opens offline; the landing and
+  the docs stay pages of the web (the user's call). The build draws the
+  app's manifest (`dist/studio/app.webmanifest`, every URL relative so
+  any base installs) and every icon (the site's `favicon.svg`/`.png` and
+  `apple-touch-icon.png`, the app's `icons/` plain and maskable) from the
+  brand mark's cells (`src/app/install-files.ts`, the `installFiles`
+  plugin; none kept in `public/`), and injects each route's head from one
+  table: the icons everywhere, the manifest and iOS's app tags on the
+  Studio only. A service worker (`src/app/sw.ts`, built alone to
+  `dist/sw.js` by the `sw` environment; its rules in `src/app/offline.ts`,
+  the app's path one constant there) is registered by the Studio only,
+  scoped to it: it keeps the Studio's page and its assets at install,
+  serves pages network first (offline: the page as last seen, else the
+  Studio's), hashed assets from the cache, and leaves the film, the cards
+  and the player to the network. Details in `src/AGENTS.md`; guarded by
+  `tests/install.spec.ts`.
 - Discord integration: `discord/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node
@@ -388,7 +423,10 @@ Default section order:
   its suggested extended face, Michroma (SIL OFL, self-hosted in
   `src/shared/fonts/`): the landing's statement and section titles, the
   docs' page title (in chrome) and section titles (plain ink). Its squared heading sans is not used; headings, body,
-  labels, figures and code stay mono, the user's identity.
+  labels, figures and code stay mono, the user's identity, save one
+  lift (the user's call after the composer board): the Studio agent
+  panel's thread prose (replies, messages, thoughts) reads in the
+  proportional face, its code, steps and chrome staying mono.
 - Design slop the user bans (their list; the landing is held to it, the
   docs and the Studio keep their tool chrome until the user extends it;
   for the printed landing the user lifted one: more than two inks inside
@@ -456,6 +494,17 @@ Default section order:
   `src/widgets/source/AGENTS.md`); Kobra's interface sounds play on the
   docs, switched off from the header. Docs previews are real product
   surfaces: build real, working tools on them, never mock-ups.
+- The Studio is laid out as an app window (the user's call, after an
+  agent app's desktop window): a title bar, a rail of projects, a sidebar
+  of the project's chats and layers, the canvas in its shell, the
+  properties or the agent docked right. Only the layout was taken: the
+  Studio keeps the look's materials and its mono type (details in
+  `src/pages/AGENTS.md`).
+- The Studio is a PWA (the user's call; the landing and the docs need not
+  be): installable on every platform it targets, iOS included, and usable
+  offline; a change to the Studio's page, its assets or a large media
+  path keeps the worker's rules (`src/app/offline.ts`) and the install
+  surface in step.
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
 - Accessibility is a floor, not a feature: labels, focus rings, reduced-motion

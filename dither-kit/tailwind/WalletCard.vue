@@ -205,7 +205,7 @@ async function copy() {
               type="text"
               aria-label="Search wallet"
               :placeholder="props.searchPlaceholder"
-              class="w-full bg-transparent px-2 text-[12px] text-foreground outline-none placeholder:text-muted-foreground"
+              class="w-full bg-transparent px-2 text-[12px] text-foreground outline-none placeholder:text-placeholder"
               @input="type"
               @keydown.enter="submitSearch()"
             />

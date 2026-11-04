@@ -4,7 +4,7 @@
 // position marked, and a guide pulled out of either ruler by dragging.
 import { computed } from "vue"
 import { useBench } from "../context"
-import { boxFrom } from "../model/geometry"
+import { boxFrom } from "@/shared/lib/inspect/geometry"
 
 const b = useBench()
 const marks = (n: number) => Array.from({ length: Math.floor(n / 50) }, (_, i) => (i + 1) * 50)

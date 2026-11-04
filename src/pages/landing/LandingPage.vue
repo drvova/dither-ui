@@ -36,6 +36,8 @@ import LineWordmark from "./LineWordmark.vue"
 import PixelWord from "./PixelWord.vue"
 import Plate from "./Plate.vue"
 import WorksWith from "./WorksWith.vue"
+import BrandBuild from "./BrandBuild.vue"
+import { BUILD_CELLS } from "./build"
 import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
 import BrandMark from "@/shared/ui/BrandMark.vue"
@@ -207,6 +209,23 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <Examples />
 
         <Plate :plate="PLATES.afterExamples" />
+
+        <!-- The build: the brand itself, cell by cell, raised by the world
+             engine as the page scrolls past it. -->
+        <section id="build" aria-labelledby="build-h" class="sec">
+          <div class="sec-head">
+            <h2 id="build-h" class="section-title chrome-type">Built from the wire up.</h2>
+            <div class="sec-side">
+              <p class="sec-lede">
+                Our mark and name in {{ BUILD_CELLS }} cells, each one a block, raised by the kit's world engine as you
+                scroll: the floor first, then each cell landing hot on it and cooling to metal. Keep going and it comes
+                apart. Point at it and the cells lean away.
+              </p>
+              <a :href="routePath('/docs/world')" class="more-link">See the world engine</a>
+            </div>
+          </div>
+          <BrandBuild />
+        </section>
 
         <!-- Ask: one agent session, played as the page scrolls past it. -->
         <section id="ask" aria-labelledby="ask-h" class="sec">

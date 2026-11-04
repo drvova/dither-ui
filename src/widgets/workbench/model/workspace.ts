@@ -3,7 +3,7 @@
 // threads anchored to live elements. Plain data (stage px), undoable by
 // snapshot, saved per preview in localStorage (sanitized on the way back
 // in: storage is untrusted), and written out as Markdown for an agent.
-import type { Box, Point } from "./geometry"
+import type { Box, Point } from "@/shared/lib/inspect/geometry"
 import type { InkPoint } from "./ink"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
 

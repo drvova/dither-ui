@@ -142,6 +142,7 @@ export const ICONS = {
   Crosshair: ["M20 12a8 8 0 1 1-16 0a8 8 0 1 1 16 0", "M12 2v5", "M12 17v5", "M2 12h5", "M17 12h5"],
   Accessibility: ["M12 4h.01", "M5 8l7 1.5L19 8", "M12 9.5V14", "M8.5 21 12 14l3.5 7"],
   Layout: ["M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", "M3 9h18", "M9 9v11"],
+  Sidebar: ["M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", "M9 4v16"],
   Pulse: ["M3 12h4l3-7 4 14 3-7h4"],
   Dice: [
     "M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
@@ -159,6 +160,8 @@ export const ICONS = {
   Table: ["M3 5h18v14H3z", "M3 10h18", "M3 15h18", "M9 5v14"],
   Video: ["M3 6h12v12H3z", "m15 10 6-3v10l-6-3"],
   Maximize: ["M4 9V4h5", "M15 4h5v5", "M20 15v5h-5", "M9 20H4v-5"],
+  // The frame's corners round a cross: what the workbench reads, measured.
+  Inspect: ["M4 9V4h5", "M15 4h5v5", "M20 15v5h-5", "M9 20H4v-5", "M12 8v8", "M8 12h8"],
   Group: ["M3 8V3h5", "M16 3h5v5", "M21 16v5h-5", "M8 21H3v-5", "M7 7h6v6H7z", "M11 11h6v6h-6z"],
 } as const
 

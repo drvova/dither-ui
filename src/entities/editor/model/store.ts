@@ -3,6 +3,7 @@ import { type Artboard, type ArtboardKind, cloneArtboard, createArtboard } from 
 import { type ComponentEntry, createComponent, createScreen, createReel } from "@/entities/widget"
 import { type Layer, layersOf, setChartType } from "@/entities/chart"
 import type { ChartType } from "@/shared/config"
+import { type Box, boundsOf, FRAME_GAP, freeSpot } from "./free"
 
 export type Viewport = { x: number; y: number; zoom: number }
 export type Group = { id: string; name: string; collapsed: boolean }
@@ -19,6 +20,12 @@ export const editor = reactive({
   viewport: { x: 96, y: 88, zoom: 1 } as Viewport,
   replayToken: 0,
   dataOpen: false,
+  // The workbench is over the canvas (the Studio's Inspect): the canvas's
+  // own keys and zoom step aside while it is. Never persisted.
+  inspecting: false,
+  // The canvas's size on screen (the canvas measures it; the window's is
+  // not the canvas's once panels dock beside it), never persisted.
+  stage: { w: 1280, h: 720 },
   // Transient snap guides shown while dragging (world coords), never persisted.
   guides: { v: null as number | null, h: null as number | null },
 })
@@ -36,38 +43,92 @@ export const artboardIdOf = (layerId: string) => layerId.split(":")[0]
 const find = (id: string) => editor.artboards.find((a) => a.id === id)
 const membersOf = (groupId: string) => editor.artboards.filter((a) => a.groupId === groupId)
 
-/** Place a new frame at the visible canvas center, not document origin/right edge. */
-export function placeArtboard(a: Artboard): Artboard {
+/** The world point at the centre of the canvas as seen. */
+function seenCentre() {
   const zoom = editor.viewport.zoom || 1
-  const width = typeof window === "undefined" ? 1280 : window.innerWidth
-  const height = typeof window === "undefined" ? 720 : window.innerHeight
-  a.x = Math.round((width / 2 - editor.viewport.x) / zoom - a.w / 2)
-  a.y = Math.round((height / 2 - editor.viewport.y) / zoom - a.h / 2)
+  return { x: (editor.stage.w / 2 - editor.viewport.x) / zoom, y: (editor.stage.h / 2 - editor.viewport.y) / zoom }
+}
+
+/** Where `boxes` can move as one, nearest where they stand, onto canvas no
+ * shown frame is on; moves them there (rounded) and pans the view to them
+ * when they are not all in it. Every insert and copy lands through it. */
+function settle(boxes: Box[]): void {
+  const at = boundsOf(boxes)
+  const taken = editor.artboards.filter((a) => !a.hidden && !boxes.includes(a))
+  const spot = freeSpot(at, taken)
+  const dx = Math.round(spot.x) - at.x
+  const dy = Math.round(spot.y) - at.y
+  for (const b of boxes) {
+    b.x = Math.round(b.x + dx)
+    b.y = Math.round(b.y + dy)
+  }
+  const zoom = editor.viewport.zoom || 1
+  const v = { x: -editor.viewport.x / zoom, y: -editor.viewport.y / zoom }
+  const seen = boundsOf(boxes)
+  const inView =
+    seen.x >= v.x &&
+    seen.y >= v.y &&
+    seen.x + seen.w <= v.x + editor.stage.w / zoom &&
+    seen.y + seen.h <= v.y + editor.stage.h / zoom
+  if (!inView) centreOn(seen)
+}
+
+/** Place a new frame at the centre of the canvas as seen (never the
+ * document origin), or, when a frame stands there, on the nearest free
+ * canvas, panned into view. */
+export function placeArtboard(a: Artboard): Artboard {
+  const c = seenCentre()
+  a.x = Math.round(c.x - a.w / 2)
+  a.y = Math.round(c.y - a.h / 2)
+  settle([a])
   editor.artboards.push(a)
   selectArtboard(a.id)
   return a
 }
 
+/** Pan so a frame (or any box) stands at the centre of the canvas as
+ * seen, its zoom kept: for a frame placed before the canvas could measure
+ * itself, or placed off the view. */
+export function centreOn(a: Box): void {
+  const zoom = editor.viewport.zoom || 1
+  editor.viewport = {
+    x: Math.round(editor.stage.w / 2 - (a.x + a.w / 2) * zoom),
+    y: Math.round(editor.stage.h / 2 - (a.y + a.h / 2) * zoom),
+    zoom,
+  }
+}
+
 /** Place a GENERATION — several variants of one parent — as one row centred
  * on the visible canvas (the batch is a single insert: the row's midpoint is
- * where a lone frame would land) and select all of them. */
-export function placeGeneration(boards: Artboard[], gap = 40): Artboard[] {
+ * where a lone frame would land, the row moved as one onto free canvas) and
+ * select all of them. */
+export function placeGeneration(boards: Artboard[], gap = FRAME_GAP): Artboard[] {
   if (!boards.length) return boards
-  const zoom = editor.viewport.zoom || 1
-  const width = typeof window === "undefined" ? 1280 : window.innerWidth
-  const height = typeof window === "undefined" ? 720 : window.innerHeight
-  const cx = (width / 2 - editor.viewport.x) / zoom
-  const cy = (height / 2 - editor.viewport.y) / zoom
+  const c = seenCentre()
   const total = boards.reduce((n, b) => n + b.w, 0) + gap * (boards.length - 1)
-  let x = cx - total / 2
+  let x = c.x - total / 2
   for (const b of boards) {
     b.x = Math.round(x)
-    b.y = Math.round(cy - b.h / 2)
+    b.y = Math.round(c.y - b.h / 2)
     x += b.w + gap
-    editor.artboards.push(b)
   }
+  settle(boards)
+  editor.artboards.push(...boards)
   selectMany(boards.map((b) => b.id))
   return boards
+}
+
+/** Copies (clones standing where their originals stand) placed as one,
+ * beside the originals on free canvas, and selected. */
+function placeCopies(copies: Artboard[]): void {
+  if (!copies.length) return
+  const from = boundsOf(copies)
+  for (const c of copies) c.x += from.w + FRAME_GAP
+  settle(copies)
+  editor.artboards.push(...copies)
+  editor.selectedIds = copies.map((c) => c.id)
+  editor.selectedArtboardId = copies[copies.length - 1].id
+  editor.selectedLayerId = `${editor.selectedArtboardId}:root`
 }
 
 // --- selection -------------------------------------------------------------
@@ -110,9 +171,7 @@ export function copySelected() {
 export function pasteClipboard() {
   if (!clipboard) return
   const src = JSON.parse(clipboard) as Artboard[]
-  const copies = src.map((a) => cloneArtboard(a))
-  editor.artboards.push(...copies)
-  selectMany(copies.map((c) => c.id))
+  placeCopies(src.map((a) => cloneArtboard(a)))
 }
 
 export function deselect() {
@@ -168,15 +227,12 @@ function pruneReels() {
     if (a.widget?.kind === "reel") a.widget.clips = a.widget.clips.filter((c) => ids.has(c.id))
 }
 export function duplicateSelected() {
-  const copies = editor.selectedIds
-    .map(find)
-    .filter((a): a is Artboard => !!a)
-    .map((a) => cloneArtboard(a))
-  if (!copies.length) return
-  editor.artboards.push(...copies)
-  editor.selectedIds = copies.map((c) => c.id)
-  editor.selectedArtboardId = copies[copies.length - 1].id
-  editor.selectedLayerId = `${editor.selectedArtboardId}:root`
+  placeCopies(
+    editor.selectedIds
+      .map(find)
+      .filter((a): a is Artboard => !!a)
+      .map((a) => cloneArtboard(a)),
+  )
 }
 export function removeSelected() {
   const gone = new Set(editor.selectedIds)
@@ -228,14 +284,16 @@ export function setSelectedType(type: ChartType) {
 }
 
 // --- groups ----------------------------------------------------------------
-export function groupSelected() {
-  if (editor.selectedIds.length < 1) return
+/** Group the selection; the new group, or null with nothing selected. */
+export function groupSelected(): Group | null {
+  if (editor.selectedIds.length < 1) return null
   const g: Group = { id: gid(), name: `Group ${editor.groups.length + 1}`, collapsed: false }
   editor.groups.push(g)
   for (const id of editor.selectedIds) {
     const a = find(id)
     if (a) a.groupId = g.id
   }
+  return g
 }
 export function ungroup(groupId: string) {
   for (const a of membersOf(groupId)) a.groupId = null

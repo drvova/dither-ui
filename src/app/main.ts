@@ -1,6 +1,8 @@
 import { createApp } from "vue"
 import { ditherViewTransition } from "@dither-kit/engine/transition"
 import App from "./App.vue"
+import { appPathname, assetPath } from "@/shared/lib"
+import { registerOffline } from "./offline"
 import { pageTransitionOptions, takePageTransition } from "./page-reveal"
 import "./styles.css"
 
@@ -15,3 +17,6 @@ import "./styles.css"
 takePageTransition((arrival) => void ditherViewTransition(arrival, pageTransitionOptions()))
 
 createApp(App).mount("#app")
+
+// The Studio is an app too: installed or not, it opens offline (`offline.ts`).
+registerOffline(assetPath("/"), appPathname())

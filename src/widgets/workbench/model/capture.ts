@@ -2,7 +2,7 @@
 // (no prompt; canvases come along through their pixels) or grabs one exact
 // frame of the tab; a recording crops the shared tab to the region, frame by
 // frame, through MediaRecorder. Everything is feature-detected.
-import type { Box } from "./geometry"
+import type { Box } from "@/shared/lib/inspect/geometry"
 
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()))
 

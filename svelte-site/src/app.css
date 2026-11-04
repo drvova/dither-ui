@@ -16,6 +16,7 @@
   --popover-foreground: #0a0a0a;
   --muted: #f4f4f5;
   --muted-foreground: #6b7280;
+  --placeholder: #6c7381;
   --border: #e4e4e7;
   --ring: #0a0a0a;
   --accent: #2f81f7;
@@ -41,6 +42,7 @@
   --popover-foreground: #ededed;
   --muted: #16181d;
   --muted-foreground: #8b8f98;
+  --placeholder: #7a7e86;
   --border: #22252b;
   --ring: #ededed;
   --accent: #3f8ff3;
@@ -56,6 +58,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-placeholder: var(--placeholder, var(--muted-foreground));
   --color-border: var(--border);
   --color-ring: var(--ring);
   --color-accent: var(--accent);

@@ -21,3 +21,6 @@ sources*.zip
 .scratch/engrave/node_modules/
 .scratch/engrave/bun.lock
 /bun.lock
+
+# Videos the agent demo recorder writes (npm run demo:agent).
+/agent-demo/

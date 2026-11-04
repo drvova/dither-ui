@@ -14,6 +14,9 @@
   --popover-foreground: #0a0a0a;
   --muted: #f4f4f5;
   --muted-foreground: #6b7280;
+  /* A field's placeholder: the muted ink's hue, as dim as AA allows on a
+     field (4.6:1 at worst), a step under the muted ink. */
+  --placeholder: #6c7381;
   --border: #e4e4e7;
   --ring: #0a0a0a;
   /* Accent blues are tuned so white text on them clears 4.5:1 (5.6 light,
@@ -45,6 +48,7 @@
   --popover-foreground: #ededed;
   --muted: #16181d;
   --muted-foreground: #8b8f98;
+  --placeholder: #7a7e86;
   --border: #22252b;
   --ring: #ededed;
   --accent: #1f6fd6;

@@ -29,7 +29,7 @@ const styles = stylex.create({
     transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
     transitionDuration: "150ms",
     outlineStyle: "none",
-    "::placeholder": { color: "color-mix(in oklab, var(--muted-foreground) 60%, transparent)" },
+    "::placeholder": { color: "var(--placeholder, var(--muted-foreground))" },
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },
   },

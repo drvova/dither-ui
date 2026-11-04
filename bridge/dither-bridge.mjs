@@ -51,7 +51,7 @@ export const HARNESSES = [
   {
     id: "claude",
     name: "Claude Code",
-    command: "npx -y @zed-industries/claude-code-acp",
+    command: "npx -y @agentclientprotocol/claude-agent-acp",
     bin: "claude",
     note: "your Claude Code login",
   },
@@ -88,8 +88,10 @@ export function allowedOrigin(origin, extra = ORIGINS) {
  * loopback (a rebound DNS name) is refused. */
 export const allowedHost = (host, port) => host === `127.0.0.1:${port}` || host === `localhost:${port}`
 
-/** The one kind of file a tool result may write: a video composition. */
+/** Where a video composition lands under --cwd. */
 export const VIDEO_PATH = /^video\/[\w-]+\/index\.html$/
+/** Where a PNG export lands under --cwd; its bytes come as base64. */
+export const IMAGE_PATH = /^image\/[\w-]+\.png$/
 
 /** Upper bounds on what a peer may send: one websocket message (a
  * composition with its player inlined is a few MB) and one relay body. */
@@ -368,27 +370,36 @@ function serveMode({ agent, port, cwd }) {
     c.kill()
   }
 
-  /** A tab's tool result may carry files for the project (`data.files:
-   * [{ path, content }]`): a video composition, the only kind there is, so
-   * a path must be `video/<slug>/index.html` (VIDEO_PATH) under --cwd. They
-   * are written and replaced by their paths, so the agent gets a location,
-   * not a payload; a file that cannot be written is skipped and logged. */
+  /** A tab's tool result may carry files for the project (`data.files`):
+   * a video composition `{ path: video/<slug>/index.html, content }`
+   * (VIDEO_PATH) or a PNG `{ path: image/<slug>.png, base64 }` (IMAGE_PATH),
+   * under --cwd and nowhere else. They are written and replaced by their
+   * paths, so the agent gets a location, not a payload; a file that cannot
+   * be written is skipped and logged. */
   function materialize(result) {
     const files = result?.data?.files
     if (!Array.isArray(files)) return result
     const written = []
     for (const f of files) {
-      if (!f || typeof f.path !== "string" || typeof f.content !== "string" || !VIDEO_PATH.test(f.path)) continue
+      const bytes =
+        f && typeof f.path === "string"
+          ? VIDEO_PATH.test(f.path) && typeof f.content === "string"
+            ? Buffer.from(f.content)
+            : IMAGE_PATH.test(f.path) && typeof f.base64 === "string"
+              ? Buffer.from(f.base64, "base64")
+              : null
+          : null
+      if (!bytes) continue
       const abs = join(cwd, f.path)
       try {
         mkdirSync(dirname(abs), { recursive: true })
-        writeFileSync(abs, f.content)
+        writeFileSync(abs, bytes)
       } catch (e) {
         log(`could not write ${f.path}: ${e.message}`)
         continue
       }
       written.push(f.path)
-      log(`wrote ${f.path} (${f.content.length} chars)`)
+      log(`wrote ${f.path} (${bytes.length} bytes)`)
     }
     result.data.files = written
     result.data.cwd = cwd

@@ -49,7 +49,7 @@ describe("the StyleX layer", () => {
   it("writes conditions: a pseudo-element, focus and hover", () => {
     rules(mount(DitherInput, { props: { placeholder: "Name" } }).find("input").element)
     const css = sheets()
-    expect(css).toMatch(/::placeholder\{color:color-mix\(in oklab, var\(--muted-foreground\) 60%, transparent\)\}/)
+    expect(css).toMatch(/::placeholder\{color:var\(--placeholder, ?var\(--muted-foreground\)\)\}/)
     expect(css).toMatch(/:focus-visible\{border-color:var\(--ring\)\}/)
     expect(css).toMatch(/@media \(hover: hover\)\{\.x\w+:hover\{border-color:/)
   })

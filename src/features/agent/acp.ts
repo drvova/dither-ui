@@ -16,13 +16,15 @@
 // `bridge/exit` (the agent died), `studio/call` (a Studio tool call).
 import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
+import { type Built, callDither, DITHER_TOOL, ditherDef } from "./dither"
+import { runSandboxed } from "./sandbox"
 import {
   type AgentCommand,
   type AgentEvent,
-  callStudioTool,
-  finishStudioTool,
   type Mode,
-  STUDIO_TOOLS,
+  type ModelChoice,
+  type Setting,
+  STUDIO_SERVER,
   type Usage,
 } from "./tools"
 
@@ -65,52 +67,90 @@ export type AcpClientOptions = {
   /** Answer a `session/request_permission`: the chosen optionId, or null to cancel. */
   permission: (req: AcpPermissionRequest) => Promise<string | null>
   run?: (command: unknown) => CommandResult
+  /** Asks the user before a tool the harness built runs; without it, none
+   * runs. Never answered for them. */
+  approveTool?: (tool: Built, args: Record<string, unknown>) => Promise<boolean>
   onEvent?: (e: AgentEvent) => void
   /** The bridge's state changed: a harness started, stopped or died. */
   onHello?: (h: BridgeHello) => void
   onClose?: () => void
 }
 
+/** A picture for the harness: a PNG of a frame, base64 without its prefix. */
+export type PromptImage = { mimeType: string; data: string }
+
+/** A prompt's content blocks: the text, then each picture when the harness
+ * declared it takes them (an image block to one that did not is an error). */
+export function promptBlocks(text: string, images: readonly PromptImage[], accepts: boolean) {
+  return [
+    { type: "text" as const, text },
+    ...(accepts ? images.map((i) => ({ type: "image" as const, mimeType: i.mimeType, data: i.data })) : []),
+  ]
+}
+
+/** Whether an `initialize` answer says the agent takes images. */
+export const takesImages = (init: unknown): boolean =>
+  (init as { agentCapabilities?: { promptCapabilities?: { image?: unknown } } } | null)?.agentCapabilities
+    ?.promptCapabilities?.image === true
+
 export type AcpClient = {
-  /** The running agent's display name (its own `agentInfo.name`, else the harness's). */
+  /** The running agent's display name (its own `agentInfo.title`, then its
+   * `name`, else the harness's). */
   readonly agent: string
   readonly hello: BridgeHello | null
   readonly sessionId: string | null
   readonly busy: boolean
   readonly modes: Mode[]
   readonly mode: string
+  /** The model the harness runs, when its session says. */
+  readonly model: ModelChoice | null
   readonly commands: AgentCommand[]
+  /** Whether the running harness takes pictures in a prompt (its
+   * `promptCapabilities.image`). */
+  readonly acceptsImages: boolean
   /** Start a harness by preset id, or any command line; resolves once a session exists. */
   start(harness: string | { command: string }): Promise<void>
   stop(): void
   /** A fresh agent session (new context). */
   newSession(): Promise<string>
   setMode(id: string): Promise<void>
-  /** One task: resolves when the agent's turn ends, with its stop reason and the prose it streamed. */
-  prompt(text: string, signal?: AbortSignal): Promise<{ stopReason: string; text: string }>
+  /** Switch to one of the models the harness offers (its own setting). */
+  setModel(id: string): Promise<void>
+  /** Set one of the harness's other settings to one of its values. */
+  setOption(configId: string, value: string): Promise<void>
+  /** One task: resolves when the agent's turn ends, with its stop reason and
+   * the prose it streamed. Pictures ride along only if the harness takes them. */
+  prompt(
+    text: string,
+    signal?: AbortSignal,
+    images?: readonly PromptImage[],
+  ): Promise<{ stopReason: string; text: string }>
   close(): void
 }
 
 /** Map one ACP `session/update` into composer events. Pure. */
 export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
   const kind = update.sessionUpdate
-  if (kind === "agent_message_chunk") {
+  if (kind === "agent_message_chunk" || kind === "agent_thought_chunk") {
     const c = update.content as { type?: string; text?: string } | undefined
-    return c?.type === "text" && c.text ? [{ type: "delta", text: c.text }] : []
+    if (c?.type !== "text" || !c.text) return []
+    return [{ type: kind === "agent_message_chunk" ? "delta" : "thought", text: c.text }]
   }
   if (kind === "tool_call" || kind === "tool_call_update") {
     const id = String(update.toolCallId ?? "")
     // Updates usually carry only a status; an empty title keeps the earlier one.
-    const title = typeof update.title === "string" ? update.title : kind === "tool_call" ? id : ""
+    const title = typeof update.title === "string" ? update.title : ""
     // Studio tools reach the page through the bridge's studio/call path and
     // are rendered there with their result; skip the agent's mirror of them.
-    if (STUDIO_TOOLS.some((t) => title.includes(t.def.name))) return []
+    if (title === DITHER_TOOL || title.includes(STUDIO_SERVER)) return []
+    const toolKind = typeof update.kind === "string" ? { kind: update.kind } : {}
     return [
       {
         type: "activity",
         id,
         title,
         status: String(update.status ?? (kind === "tool_call" ? "pending" : "in_progress")),
+        ...toolKind,
       },
     ]
   }
@@ -123,7 +163,22 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
       },
     ]
   }
+  if (kind === "usage_update") {
+    const used = Number(update.used)
+    const size = Number(update.size)
+    if (!Number.isFinite(used) || !Number.isFinite(size) || size <= 0 || used < 0) return []
+    const c = update.cost as { amount?: unknown; currency?: unknown } | null | undefined
+    const cost =
+      c && Number.isFinite(Number(c.amount)) && typeof c.currency === "string"
+        ? { cost: { amount: Number(c.amount), currency: c.currency } }
+        : {}
+    return [{ type: "context", context: { used, size, ...cost } }]
+  }
   if (kind === "current_mode_update") return [{ type: "mode", current: String(update.currentModeId ?? ""), modes: [] }]
+  if (kind === "config_option_update") {
+    const model = modelOf(update)
+    return [...(model ? [{ type: "model" as const, model }] : []), { type: "settings", settings: settingsOf(update) }]
+  }
   if (kind === "available_commands_update") {
     const list = Array.isArray(update.availableCommands)
       ? (update.availableCommands as { name?: unknown; description?: unknown; input?: { hint?: unknown } | null }[])
@@ -164,6 +219,66 @@ export function modesOf(v: unknown): { current: string; modes: Mode[] } | null {
   }
 }
 
+type ConfigValue = { value?: unknown; name?: unknown; description?: unknown; options?: ConfigValue[] }
+
+/** The model a session runs, from its config options (`configOptions` on a
+ * `session/new` answer or a `config_option_update`): the select of category
+ * "model", its values flattened out of any groups. Null when the agent
+ * reports none. */
+type ConfigOption = {
+  id?: unknown
+  name?: unknown
+  category?: unknown
+  type?: unknown
+  currentValue?: unknown
+  options?: unknown
+}
+const configOptionsOf = (v: unknown): ConfigOption[] => {
+  const list = (v as { configOptions?: unknown } | null)?.configOptions
+  return Array.isArray(list) ? (list as ConfigOption[]).filter((x) => !!x && x.type === "select") : []
+}
+const isModel = (x: ConfigOption) => x.category === "model" || x.id === "model"
+const isMode = (x: ConfigOption) => x.category === "mode" || x.id === "mode"
+/** A select config option as a choice: its id, current value and values (groups flattened). */
+function choiceOf(o: ConfigOption): ModelChoice | null {
+  if (typeof o.id !== "string" || !Array.isArray(o.options)) return null
+  const flat = (o.options as ConfigValue[]).flatMap((x) => (Array.isArray(x.options) ? x.options : [x]))
+  const options = flat
+    .filter((x) => typeof x.value === "string")
+    .map((x) => ({
+      id: String(x.value),
+      name: String(x.name ?? x.value),
+      description: typeof x.description === "string" && x.description ? x.description : undefined,
+    }))
+  return { configId: o.id, current: String(o.currentValue ?? ""), options }
+}
+
+export function modelOf(v: unknown): ModelChoice | null {
+  const o = configOptionsOf(v).find(isModel)
+  return o ? choiceOf(o) : null
+}
+
+/** The harness's other choice settings (not its model, not its mode, which
+ * have their own keys), each with a name to show. */
+export function settingsOf(v: unknown): Setting[] {
+  return configOptionsOf(v)
+    .filter((o) => !isModel(o) && !isMode(o))
+    .flatMap((o) => {
+      const c = choiceOf(o)
+      return c && c.options.length > 1
+        ? [{ ...c, name: typeof o.name === "string" && o.name ? o.name : c.configId }]
+        : []
+    })
+}
+
+/** A model's name as a person reads it: a "default" entry says which model
+ * it is (its description names it), any other its own name. */
+export function modelName(m: ModelChoice): string {
+  const o = m.options.find((x) => x.id === m.current)
+  if (!o) return m.current
+  return o.id === "default" && o.description ? o.description : o.name
+}
+
 /** Extract usage from an ACP prompt response or update, when an agent reports it. */
 export function usageOf(v: unknown): Usage | undefined {
   if (typeof v !== "object" || v === null) return undefined
@@ -194,7 +309,9 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
     let busy = false
     let modes: Mode[] = []
     let mode = ""
+    let model: ModelChoice | null = null
     let commands: AgentCommand[] = []
+    let images = false
     let opened = false
     let settled = false
     let waitHello: ((h: BridgeHello) => void) | null = null
@@ -225,7 +342,9 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       sessionId = null
       modes = []
       mode = ""
+      model = null
       commands = []
+      images = false
     }
 
     /** initialize + session/new against the running harness. */
@@ -234,8 +353,11 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         protocolVersion: 1,
         clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false },
         clientInfo: { name: "dither-ui studio", version: "1" },
-      })) as { agentInfo?: { name?: string } }
-      if (init?.agentInfo?.name) agentName = init.agentInfo.name
+      })) as { agentInfo?: { name?: string; title?: string } }
+      // The title is for people (an adapter's name is often its package's).
+      const said = init?.agentInfo?.title || init?.agentInfo?.name
+      if (said) agentName = said
+      images = takesImages(init)
       await client.newSession()
     }
     const nextHello = () =>
@@ -255,11 +377,8 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         jsonrpc: "2.0",
         method: "bridge/tools",
         params: {
-          tools: STUDIO_TOOLS.map((t) => ({
-            name: t.def.name,
-            description: t.def.description,
-            inputSchema: t.def.parameters,
-          })),
+          // One tool: the harness finds the action its job needs (`dither.ts`).
+          tools: [ditherDef()].map((t) => ({ name: t.name, description: t.description, inputSchema: t.parameters })),
         },
       })
     }
@@ -323,11 +442,13 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           const update = (params.update ?? {}) as Record<string, unknown>
           for (let e of mapUpdate(update)) {
             if (e.type === "delta") segment += e.text
-            else if (e.type === "activity") flush()
+            // A thought or a tool call ends the prose before it.
+            else if (e.type === "activity" || e.type === "thought") flush()
             else if (e.type === "mode") {
               mode = e.current
               e = { ...e, modes }
-            } else if (e.type === "commands") commands = e.commands
+            } else if (e.type === "model") model = e.model
+            else if (e.type === "commands") commands = e.commands
             o.onEvent?.(e)
           }
           return
@@ -346,15 +467,25 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
           return
         }
         case "studio/call": {
-          // The bridge's MCP server forwarding the harness's tool call.
+          // The bridge's MCP server forwarding the harness's call of the one
+          // tool; each action it runs is a step of the thread.
           const name = String(params.name ?? "")
           const args =
             typeof params.arguments === "object" && params.arguments !== null
               ? (params.arguments as Record<string, unknown>)
               : {}
-          const result = await finishStudioTool(name, callStudioTool(name, args, run))
-          flush()
-          o.onEvent?.({ type: "tool", name, args, result })
+          const result =
+            name === DITHER_TOOL
+              ? await callDither(args, {
+                  run,
+                  approve: o.approveTool ?? (async () => false),
+                  sandbox: runSandboxed,
+                  onStep: (step) => {
+                    flush()
+                    o.onEvent?.({ type: "tool", ...step })
+                  },
+                })
+              : { ok: false as const, error: `unknown tool ${name}: the Studio has one, ${DITHER_TOOL}` }
           send({ jsonrpc: "2.0", id: m.id, result })
           return
         }
@@ -378,11 +509,17 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
       get busy() {
         return busy
       },
+      get acceptsImages() {
+        return images
+      },
       get modes() {
         return modes
       },
       get mode() {
         return mode
+      },
+      get model() {
+        return model
       },
       get commands() {
         return commands
@@ -404,14 +541,29 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         modes = found?.modes ?? []
         mode = found?.current ?? ""
         if (found) o.onEvent?.({ type: "mode", current: mode, modes })
+        model = modelOf(s)
+        if (model) o.onEvent?.({ type: "model", model })
+        o.onEvent?.({ type: "settings", settings: settingsOf(s) })
         return sessionId ?? ""
+      },
+      async setModel(id) {
+        if (!model) return
+        const res = await request("session/set_config_option", { sessionId, configId: model.configId, value: id })
+        model = modelOf(res) ?? { ...model, current: id }
+        o.onEvent?.({ type: "model", model })
+      },
+      async setOption(configId, value) {
+        const res = await request("session/set_config_option", { sessionId, configId, value })
+        const next = modelOf(res)
+        if (next) o.onEvent?.({ type: "model", model: (model = next) })
+        if (configOptionsOf(res).length) o.onEvent?.({ type: "settings", settings: settingsOf(res) })
       },
       async setMode(id) {
         await request("session/set_mode", { sessionId, modeId: id })
         mode = id
         o.onEvent?.({ type: "mode", current: id, modes })
       },
-      async prompt(goal, signal) {
+      async prompt(goal, signal, pictures = []) {
         if (!sessionId) await client.newSession()
         busy = true
         segment = ""
@@ -420,21 +572,25 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         const onAbort = () => notify("session/cancel", { sessionId })
         signal?.addEventListener("abort", onAbort, { once: true })
         try {
-          const res = (await request("session/prompt", { sessionId, prompt: [{ type: "text", text: goal }] })) as {
+          const res = (await request("session/prompt", {
+            sessionId,
+            prompt: promptBlocks(goal, pictures, images),
+          })) as {
             stopReason?: string
           }
           const stop = res?.stopReason ?? "end_turn"
           flush()
           o.onEvent?.({ type: "turn", elapsedMs: Date.now() - started, usage: usageOf(res) })
-          if (stop === "cancelled") o.onEvent?.({ type: "error", message: "stopped" })
-          else o.onEvent?.({ type: "done" })
+          o.onEvent?.({ type: stop === "cancelled" ? "stopped" : "done" })
           return { stopReason: stop, text: turnText }
         } catch (e) {
           flush()
-          o.onEvent?.({
-            type: "error",
-            message: signal?.aborted ? "stopped" : e instanceof Error ? e.message : String(e),
-          })
+          // A stop is not a failure: the turn ends as the user asked.
+          if (signal?.aborted) {
+            o.onEvent?.({ type: "stopped" })
+            return { stopReason: "cancelled", text: turnText }
+          }
+          o.onEvent?.({ type: "error", message: e instanceof Error ? e.message : String(e) })
           return { stopReason: "error", text: turnText }
         } finally {
           busy = false

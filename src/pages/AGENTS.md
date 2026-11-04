@@ -262,6 +262,38 @@ widgets/features; page-specific conventions live here.
   families, a line each and the section each opens on) and `BENTO`, held
   honest by `tests/hub.spec.ts` (families and counts equal `GROUPS`, every
   card and first section is a section of the family it names).
+- Build (`#build`, "Built from the wire up."), between the bento's plate
+  and the ask: a section head (the cell count read from the model, "See
+  the world engine"), then `BrandBuild.vue`: the brand itself as a model
+  (`build.ts`: every cell of `LOCKUP`, the mark and the pixel wordmark, a
+  deep block with chamfered front edges and a hairline seam, the mark
+  standing proud of the word, on a plinth of thin tiles written as the
+  file's first shape, so the floor lays itself from its middle out before
+  a cell starts (the user's call); the mark's core is a shape of its own,
+  written last, whose material gives off the ember (`BUILD_HEAT`, the
+  colour the cells fly in with), so it lands last and stays lit, as the
+  header's mark has it (the user's call); the user's call: the brand, never a borrowed
+  object; written as VRML97 lit by its own `LIGHTS`, a key from the upper
+  left, low enough that the floor's tops sit in the middle tones under the
+  lockup's bright faces, and a weak fill with no camera light, so tops, fronts, chamfers and
+  sides each take their tone and the light stays put as it turns: the
+  user asked for it real, and at the few cells a block gets on screen,
+  volume and light are what read as real) raised by
+  `DitherWorld`'s build as the page scrolls a 260svh run past its pinned
+  stage (`stageAt`: the build, floor then cells, over the first stretch, the whole holding
+  and turning through the middle, the cells apart as the page leaves; one
+  passive scroll listener, live only while the run is near). The camera
+  zooms by the stage's aspect (the long lockup nearly spans a wide stage
+  and stays whole on a phone) and looks down 22 degrees. The metal is a
+  seven-band ramp from the obsidian (shadowed sides sink into the page)
+  through graphite and titanium to chrome and bone, with a fine grain;
+  the cells in flight the ember. It moves
+  only while the reader does (held still 1.2s after the last scroll or
+  pointer move, so no pause chip); a pointer over it leans the cells
+  away, a drag turns it. Reduced motion: no run, the lockup whole and
+  still. `tests/assemble.spec.ts` holds its piece count to the lockup and
+  the run's mapping. The Svelte landing has no world component, so it has
+  no build.
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), then `AgentStory.vue`, one agent session played as the
   page scrolls: a stage pinned under the header (`--pin`, most of the
@@ -824,70 +856,304 @@ widgets/features; page-specific conventions live here.
   docs: `font-mono` on the page root (the context menu and the kit's
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
   section labels in sentence case, `.ring-on` pressed states, neutral
-  focus borders, and the look's materials: the floating toolbars, the
-  selection toolbar and the zoom bar are `.capsule`s (their tools
-  machined, 8px),
+  focus borders, and the look's materials: the canvas bar is a `.capsule`
+  (its tools machined, 8px; `widgets/toolbar/tool.css` is the one tool
+  key of it and the title bar),
   the Library key and the empty canvas's "Add an artboard" are the
-  `.key-chrome`, the Layers/Agent/Inspector panels and the dialogs
-  (export, video, shortcuts) are `.hardshell`s (12px cut on panels;
-  nothing in them pops out, the context menu is teleported), the video
+  `.key-chrome`, the canvas, the right column and the dialogs
+  (export, video, shortcuts) are `.hardshell`s (14px cut on the canvas,
+  12px on the column; the canvas recessed as a well; nothing in them pops
+  out, the context menu is teleported), the video
   dialog's download is the `.key-chrome`, and the menus (project, library,
   context menu) are rounded cards with a `.rim`. Every glyph button is a
-  kit icon (undo/redo, layers, properties, agent, theme, close, zoom, fit,
-  replay, menus); the selection actions are a glyph and a sentence-case
-  word (Duplicate, Group, Delete, Evolve, Reel, Data, Code, PNG, Video),
-  the words hidden under 1024px with the name kept. Copy follows the
-  landing's bans: no middle-dot separators (the Agent panel's status and
-  key hints are layout items; its transcript markers stay the composer's
-  glyphs), no em dashes, no uppercase label, no eyebrow (the phone notice
+  kit icon (the sidebar, undo/redo, properties, agent, theme, close, zoom,
+  fit, replay, menus). The canvas bar (`widgets/toolbar/CanvasBar.vue`) is
+  ONE bar at the canvas's foot, centred: the view (zoom out, the
+  percentage, which goes to 100%, zoom in, fit every frame), the
+  selection's name in a slot of its own width, then Duplicate,
+  Group/Ungroup (one slot), Delete; Replay, Evolve, Reel, Data; Code, PNG,
+  Video; Inspect. Every key is a glyph with its name (`aria-label`) and its
+  words and keys in the title, always present: one that does not apply is
+  disabled, never removed, so the bar keeps its width whatever is picked
+  (`tests/canvas-bar.spec.ts`). A narrower canvas (container queries)
+  lets the label go under 760px, the zoom steps under 600px, and closes
+  the keys to 28px under 540px (the 1024px window with both columns
+  open). Every key names the agent's action that does the same
+  (`data-agent`, a `STUDIO_TOOLS` name, pinned by the same spec). It
+  stands aside while the workbench inspects or frames are picked for the
+  agent, and rides over the data editor while it is open. Copy follows the
+  landing's bans: no middle-dot separators, no em dashes, no uppercase label, no eyebrow (the phone notice
   is a plain h1). The artboard SURFACE
   (`[data-artboard-surface]`) stays `font-sans`, the player's font, so
   what is designed on the canvas is what the video export renders.
-- Studio is canvas-first: Toolbar floats over the full-bleed canvas (a
-  `1fr auto 1fr` grid, so the Library key stands at the true centre
-  between the two capsules); Layers,
-  Agent and Inspector are dismissible overlay panels (Layers and Agent share
-  the left slot — opening one folds the other); the searchable Library is the
-  single insertion surface for charts, bespoke widgets, every public kit
-  component, screens, and presets. The selection toolbar's "evolve" places a
-  generation of the primary selection.
+- The Studio is an app window (the user's call, after an agent app's
+  desktop window: its layout taken, our materials and mono kept), one CSS
+  grid in `StudioPage`: the title bar across the top (`Toolbar`, a `1fr
+  auto 1fr` grid: the sidebar key over the rail's tiles and undo/redo on
+  the left, the project and its menu at the window's centre, the Library
+  chrome key, the properties and agent keys and the theme on the right,
+  the last ending on the right column's edge); under it the rail of
+  projects (`ui/StudioSidebar.vue`: the brand home on top, each project
+  its `DitherAvatar`, a new project under them), the project's sidebar
+  (hidden by the sidebar key: the project's name, Add a frame (the
+  Library), New chat, Docs, then its chats newest first with how long ago
+  each moved, `agoOf`, a hover delete, switching held while a turn runs,
+  then the tools your agent built (each with when, its description on
+  hover, a remove key), then its layers; every glyph, label and the
+  tree's chevrons on one
+  left line, a chat's title on the nav rows' text column), the canvas in
+  its shell (the canvas bar and the data editor inside it) and the
+  right column: the properties OR the agent (`StudioSide`, one union, the
+  agent's column wider), gone when neither is open. Inspect (the canvas
+  bar's last key) puts the docs' workbench over the canvas
+  (`widgets/workbench`, lazy, keyed `studio:<projectId>`): its overlay
+  and tray teleported into the canvas (`Canvas` exposes `host` and the
+  `world` layer the frames stand in, what it inspects), its readout in the
+  right column (wide, scrolling) in place of the panel there.
+  `startInspecting` (editor) goes to 100% on the selection first, since the
+  readings are the frames' own px, and the zoom holds there (keys, wheel,
+  pinch, the agent's `view`) until it ends; the canvas's keys step aside
+  for the workbench's; the wheel still pans. Escape (the workbench's last
+  step), picking a panel on the title bar or switching project ends it. Below 1280px the side
+  columns narrow so the canvas keeps room at the 1024px floor. The
+  searchable Library is the single insertion surface for charts, bespoke
+  widgets, every public kit component, screens, and presets. New frames
+  land at the centre of the canvas as seen (`editor.stage`, which the
+  canvas measures; never the window's size). The canvas bar's Evolve
+  places a generation of the primary selection.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
   Under 1024px the editor gives way to a notice: a still `DitherPoster`,
   why the Studio wants a wide screen and a pointer, the chrome key that
   copies the Studio's own link (to carry to a laptop) and the docs link.
-- The selection toolbar's `video` opens `VideoDialog`
+- The canvas bar's Video opens `VideoDialog`
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
-- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy) is a CONTROL
-  PLANE for the user's own harness, in the pi / omp / Claude Code composer
-  idiom, over `features/agent/acp.ts`. The head's harness chip (LED while
-  one runs) opens the picker: every harness the bridge knows with its PATH
-  status, a custom-command field, and stop; `/harness <id | command>` is
-  the same. The choice persists and starts again on the next prompt. A
-  mode chip appears when the harness has modes (click cycles, `/mode <id>`
-  sets). One transcript: `›` your prompt, `⏺` prose streamed in place with
-  a `▍` caret, `⇢` a follow-up that started, `⚙ name · args ⎿ result` as
-  one `<details>` per Studio tool call (orange `×` and auto-open when the
-  Studio rejected it), `⚙/✓/×` activity lines for the harness's own tool
-  calls, `☰` plans with per-step status, `⚠` permission prompts answered
-  inline ("auto" answers them with their allow option), `·` system lines,
-  and a `✻ working… 4.2s · 1 queued (esc to stop)` line. Keys: Enter sends,
-  or QUEUES a follow-up while the harness works (ACP has no steering);
-  Alt+Up takes the newest queued message back; Esc stops and returns the
-  queue to the editor; Shift+Enter newline; ↑/↓ prompt history on a single
-  line; Ctrl+O folds every tool block; `/` opens the command listbox (↑/↓
-  + Tab/Enter pick): ours (`/help /harness /connect /new /mode /auto
-  /evolve /select /code /copy /session /undo /clear /stop /disconnect`)
-  plus the harness's own advertised commands, which go to it as text.
-  Follow-ups run one at a time, in order. The status line shows the
-  harness, session tokens (summed from each turn's usage), the last turn's
-  time and an `auto` badge. The conversation persists per project and
-  follows the active project; unanswered approvals are not saved. ⚙ holds
-  only the bridge address and the auto switch: no key or model setting
-  exists in the app.
+- The Agent panel (`widgets/agent/AgentPanel.vue`, lazy; ⌘I opens and
+  closes it; once opened it stays mounted and closing only hides it, so a
+  turn keeps running, and the title bar's Agent key carries a dot while the
+  panel is closed: breathing while it works, the signal ink while a
+  permission prompt waits, still when a turn ended unseen,
+  `AgentActivity`) is a CONTROL PLANE for the user's own harness, set as an
+  agent app's composer, over `features/agent/acp.ts`. The panel holds the
+  session; `ui/ThreadEntry.vue` draws one entry, `ui/TurnTrays.vue` the
+  trays over the input, `model/thread.ts` every reading of the thread
+  (title, to-dos, a turn's changes, the blocks it draws; one shared set
+  of keys, folds, chips and the spinner lives unscoped under `.agent`).
+  It shows the project's open chat (`features/agent/chats.ts`): a new
+  chat, or one picked in the sidebar, restores its thread and starts a
+  new session with the harness.
+  The head: who answers (the harness's mark, else
+  the brand mark), the chat's title (its first message), a new chat
+  (`/new`) and close. An empty chat stands in the middle of the panel: the
+  mark in a recessed well, a greeting and a line, the composer, and the
+  starters under it as rows; the first message sends the composer down.
+  The thread: your message as a bubble on the right with the frames it
+  carried, and beside it (on hover) a restore key that puts the canvas
+  back to the checkpoint taken before it (`features/history` `checkpoint`
+  / `restoreCheckpoint`: ONE undoable step; checkpoints live in memory,
+  so a reloaded chat keeps none); the harness's reasoning as a fold, open
+  while it streams ("Thinking"), then closed under how long it took; the
+  reply as prose (`widgets/agent/prose.ts` reads the harness's Markdown
+  into blocks, `Prose.vue` renders them as elements, never as HTML, a
+  caret while it streams) with a copy key under it; each Studio tool call
+  one step in words with a kit glyph (`widgets/agent/steps.ts` `STEPS`,
+  one row per Studio tool, held to `STUDIO_TOOLS` by the test), its args
+  and result folded under it, destructive ink when the Studio rejected
+  it; the harness's own tool calls as steps with a spinner or a check;
+  a run of three or more steps in a row folded under what it did in
+  words ("Read 3 files, searched twice, made 1 edit on the canvas", then
+  how many failed; `runLabel` reads the harness's ACP tool kinds; open
+  while it is the newest thing the harness does, or once opened);
+  permission prompts answered inline, their options numbered while one
+  waits; each turn closed by "Worked for", "Stopped after" (with
+  Continue) or "Failed after" (with Try again) its length; a message past
+  8 lines or 600 characters folded under Show more; a copy key on every
+  code block; system lines small and muted. A screen reader hears one
+  quiet status (needs your answer, done, stopped, failed), never the
+  stream; the field announces the listbox option it highlights. The thread
+  follows what arrives only while you read its end: scrolled up, it holds
+  still and a "Latest" key brings you back. Replies, your messages and
+  thoughts read in the proportional face (`--font-sans`, the user's call
+  after the composer board); code, steps and the chrome stay mono. The
+  composer is ONE surface: the stack (`ui/TurnTrays.vue`, rows straight
+  on it, a hairline between parts, none over the card) rests on the
+  input card, and a row under the card says where it runs. Alignment
+  (the user's call, measured in a browser, never eyeballed): the panel
+  has one 14px line on each side (the header's mark and its last key's
+  glyph, loose thread text and steps, every box's edge: bubbles,
+  approval cards, the composer), a box's contents sit 13px in, and in the
+  composer one `--inset` (10px from its inner edge) puts every glyph, chip
+  edge and the placeholder on one left line and every key, the send key
+  and the settings glyph on one right line, the text beside a 12px glyph
+  on one column (12px, then 7px); a key's glyph, not its hover fill, is
+  what sits on a line. Across a row, the words centre on their capitals:
+  every one-line label on a row, chip or key is a `.row-label` span
+  (the site's stylesheet, used by the sidebar too: one line, ellipsis,
+  and where the browser has `text-box`, trimmed to cap height and
+  baseline with even padding back), never bare text in the flex row, whose face's line box
+  sits the words high beside a glyph; `tests/agent-panel.spec.ts` finds
+  bare words on a row. The stack, top to bottom: after a
+  turn that finished on its own and while the field is empty, up to three
+  next prompts (`model/suggest.ts` `nextPrompts`, from the frames the turn
+  changed, else the frames in hand: evolve, show the code, export a video,
+  cut a reel; one tap sends); the turn's plan as to-dos (circles, a ringed
+  one in progress, done struck through; open while work is left, folded
+  once all are done unless the reader chose); the queue (`Queued`, its
+  words and what it carries; per message Move up, Edit (back into the
+  field), Send now (a running turn stops for it) and Remove; Clear; after
+  a stop it waits, paused, saying so, with Send next); the run (thinking, writing or working, its time, a quiet
+  Stop with "esc" beside it); once it ends, the turn's changes, last and
+  resting on the card (the frames its editing steps touched, folded
+  under their count; Undo all restores the turn's checkpoint, Keep
+  settles it; each frame opens to Show, Undo (that frame alone back to
+  the checkpoint, `restoreFrame`, one undo step; a row then says "Undid
+  <frame>" with Put it back while nothing else moved) and Keep, each
+  named with its frame for a screen reader; the bar goes once no frame
+  is left). The
+  input card is the recessed well with a hairline (the ring ink edges it
+  while it holds the focus), two lines tall when empty: the context chips
+  (the selection, any of it left out by its x, plus frames picked on the
+  canvas or by name with `@`, typed or from the @ key, through a
+  listbox) and the attachments (`model/compose.ts`, `ui/Attached.vue`:
+  a paste of `FOLD_LINES` lines or `FOLD_CHARS` characters folds into a
+  "Pasted text" chip that, pressed, goes back into the field as text, and
+  Cmd/Ctrl+Shift+V pastes it raw; a pasted or dropped picture, scaled to
+  `IMAGE_EDGE`, at most `MAX_IMAGES`, as a thumbnail chip with its size,
+  sent as image blocks and refused with a line saying so when the harness
+  takes no pictures; a dropped text file up to `TEXT_FILE_MAX`; anything
+  else says why it stays out; the card rings while a file is held over
+  it; texts go to the harness fenced so they cannot close their fence and
+  marked as material, instructions inside them not the user's, and the
+  sent bubble shows each as a chip; a quote of a reply: the reply's
+  Quote key or a selection in a reply, which floats a Quote key beside
+  it, both a chip that goes first, as a block quote, `QUOTE_MAX`); the message; a foot with the pick key (crosshair: picking
+  frames on the canvas, below), the @ key, who answers (LED while it
+  runs and its name: a harness picked from the bridge's list by that
+  name, Claude Code and not its adapter's package, any other command by
+  the title it introduced itself with; it opens the picker: every harness
+  the bridge knows with its PATH status, a custom command, stop;
+  `/harness <id | command>` is the same; the choice persists and starts
+  again on the next prompt), the model it runs when its session says
+  (the harness's own list, a menu when it offers more than one; picking
+  asks the harness, nothing is kept in the app), and the send key: grey until there is text or an attachment, then
+  the chrome key (while a turn runs it queues, Cmd/Ctrl+Enter stops the
+  turn and sends now; Stop lives in the run row). Your messages carry, on
+  hover or focus, Edit from here (not while a turn runs: the message back
+  in the field with its frames, a bar above the card saying the messages
+  after it leave the thread, "Canvas back to before it" on when its
+  checkpoint is kept, Cancel or Esc; sending restores that checkpoint
+  when chosen, drops the later entries, and tells the harness it is a
+  revision, whose session keeps the rest), Restore checkpoint and Copy. The row under the card: Ask or Auto (how
+  permission prompts are answered; Auto takes their allow option), the
+  harness's mode when it has modes (click cycles, `/mode <id>` sets),
+  Follow (an eye, pressed: as a step changes frames the canvas centres on
+  them, never while the user inspects; kept in `AgentConfig.follow`),
+  the bridge's folder (the one key that gives way when the row is
+  short), how full the harness's context is when it reports
+  (`usage_update`: a ring and its percentage, the tokens and cost in its
+  title, `ui/ContextMeter.vue`; the destructive ink from 90%; in this row,
+  not the foot, which it would crowd: the harness's and model's names keep
+  their room), and the settings key (the bridge address, each other
+  setting the harness offers (effort, thinking, as many as it has: a
+  select of its values under its own name, asked of the harness,
+  `setOption`; in this sheet, not the row, which they would crowd), tokens in and out
+  summed from each turn's usage, the last turn's time, the full cwd; no
+  key exists in the app). The thread carries no plumbing: no "starting"
+  or "connected" lines (the row and the LED say it), a harness's call
+  waits for its title before it shows, and a permission prompt for a
+  Studio tool says what it will do in the Studio's words (`STEPS[tool]
+  .ask` beside its past tense, `askTitle`), any other MCP tool by its
+  tool and server; the one tool's prompt names the action its input
+  asks for. A run of a tool the harness built asks first, every time, in
+  the thread ("Run <tool>, a tool <harness> built", Run it or Don't run)
+  with its code folded open under it; Auto never answers it. Its own
+  Studio calls are steps of their own, then "Ran <tool>", so the changes
+  bar and checkpoints cover what generated code did. Every grid in the
+  panel that stacks blocks names one `minmax(0, 1fr)` column, so a long
+  line (a path, a code line, a long suggestion) never widens the panel
+  (`tests/agent-panel.spec.ts` reads the styles). Words that are content
+  wrap, never cut short: a to-do, a queued message, a suggestion, a
+  changed frame, a context chip, a permission choice, a step's title
+  (`.row-label.is-wrap`, breaking inside a word only when one word is
+  wider than its line); their row, chip or key is `first-line`: its glyphs
+  and keys stand on the label's first line, centred on its capitals
+  (`--first`, 0.3em and half a cap from the label's top, each glyph's
+  `--glyph` its height), and a one-line row keeps its 24px. One-line
+  metadata (the header's title, the harness and model, the folder) keeps
+  its ellipsis and its full text on hover. A key is never wider than its
+  row (a long choice wraps inside it, read from the left). A menu over
+  the composer is as tall as the room above it (`--room`, measured on
+  open and on resize), and the harness picker's command field, Start and
+  Stop are its pinned foot, the harnesses above them what scrolls. Placeholders fit one line at 320px ("Ask, /
+  for commands", "Queue a follow-up", "Answer 1 to 3, or redirect", "Queue for
+  after the stop", "Ask; this starts the bridge", "Ask; this starts your
+  harness"). The canvas hands the agent frames two ways, through
+  `features/agent/handoff`: picking (the pick key; a press on a frame
+  hands it over or takes it back, a dashed ring in the signal ink marks
+  it, nothing inside the frame sees the press, the canvas shows a
+  crosshair and a "Click frames to hand them to the agent" bar with Done,
+  Esc ends it) and the ask at the selection (`widgets/canvas/SelectionAsk.vue`:
+  one frame selected, a one-line composer under it, or above its label
+  when there is no room above the bar at the canvas's foot (`FOOT`, the
+  canvas bar's 60px; `tests/selection-ask.spec.ts`), away while a pointer is down, picking or inspecting; its
+  message opens the panel, which sends it with the frame as context; asks
+  waiting before the panel mounted are taken once it has). The harness reads
+  the context as the frames' names and ids ahead of the message, each
+  under its own heading (`withContext`: a message that names a thing is
+  never read as the frame's caption), and,
+  when it takes images, the first three as pictures (each frame drawn to
+  a PNG by `features/export-image` `artboardPng`; the bubble's chips show
+  a picture then). The field grows with what is typed to 176px, then
+  scrolls; its placeholder says what sending does now; the unsent message
+  and its chips are kept per chat (closing the panel, a reload, another
+  chat and back: saved 250ms after a change, on a chat switch and on
+  pagehide, `loadDraft`/`saveDraft`); Try again resends the last message
+  with what it carried. Keys: Enter sends, or
+  QUEUES a follow-up while the harness works (ACP has no steering; each
+  runs as its own turn, in order; Cmd/Ctrl+Enter is the honest steer, a
+  stop and a send), except while a permission prompt waits: then what is
+  typed is the answer, the prompt declined (its reject option) and the
+  words sent next in its place, never on the Enter that ends an IME
+  composition (or comes within 500ms of one, as iPad Safari sends it) or
+  a held key's repeat; on a touch screen Enter is a newline and only the
+  send key sends, which puts the keyboard away, and the field never takes
+  focus on its own; Shift+Enter newline; Up brings back what was sent
+  (read off the thread) only from an empty field, Down past the newest
+  empties it; 1 to 9 answer the waiting permission prompt from an empty
+  field (not while it just came up under your typing: 1.5s); Alt+Up takes
+  the newest queued message back; Esc closes a menu (the command menu
+  stays away until the field changes), else stops (the queue stays,
+  paused; Enter in an empty field goes on with it), else ends an edit,
+  else leaves the field; Ctrl+O folds every step. The panel is
+  its own keyboard scope: its keys never reach the canvas (whose arrows
+  nudge and whose Backspace deletes), the page's chords still pass, and a
+  character typed on one of its keys lands in the field, as focus returns
+  there after every key of the panel. The send and stop keys keep focus
+  in the field and ignore a double-click's second press (one send, never
+  a stop); a stop reads "Stopping…" until the harness answers, and after
+  5s unanswered offers Force stop (the bridge ends the harness's
+  process). `/` opens the command listbox (Up/Down + Tab/Enter
+  pick): ours (`/help /harness /connect /new /mode /auto /evolve /select
+  /code /copy /session /undo /clear /stop /disconnect`) plus the
+  harness's own advertised commands, which go to it as text
+  (`model/slash.ts`); a command picked and waiting for what it takes says
+  it over the field (`/harness <id | command>`, a harness command's own
+  hint), and a /word that is no command stays in the field with a line
+  saying so, a second Enter sending it as words. A turn's
+  reply starts under its message, even when the harness spoke while its
+  session opened. The conversation persists per project and follows the
+  active project; unanswered approvals are not saved. Pinned by
+  `tests/agent-composer.spec.ts` (prose, steps, checkpoints, the
+  thread's readings, next prompts, the canvas's handoff), `tests/agent-panel.spec.ts` (the panel mounted:
+  its setup in order, the draft back, history, IME, Esc, the key scope,
+  picked frames as context and the pick key, asks taken off the queue)
+  and the thought, picture and draft cases in `tests/agent-tools.spec.ts`;
+  the attachments, the queue tray, edit from here and the context ring by
+  `tests/agent-compose.spec.ts`, with the quote, the drafts, Follow, the
+  harness's settings, the slash hint and refusal and the frames' heading.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not

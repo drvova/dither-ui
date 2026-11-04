@@ -10,7 +10,7 @@ import { paintPoster, posterLayout, type PosterParams } from "@dither-kit/engine
 import { createRasterBuffer } from "@dither-kit/engine/raster"
 import { BAYER8, wipeStyle } from "@dither-kit/engine/wipe"
 import { paintWorld, type WorldStyle, type WorldView } from "@dither-kit/engine/world"
-import { luminance, parseColor } from "@/widgets/workbench/model/color"
+import { luminance, parseColor } from "@/shared/lib/inspect/color"
 
 export type Reading = { holds: boolean; figure: string }
 

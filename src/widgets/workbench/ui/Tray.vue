@@ -118,9 +118,9 @@ function roam(e: KeyboardEvent) {
       <button
         type="button"
         class="wb-key"
-        aria-label="Copy feedback for an agent (K)"
+        :aria-label="`${b.feedbackVerb} (K)`"
         aria-keyshortcuts="k"
-        title="Copy feedback for an agent (K)"
+        :title="`${b.feedbackVerb} (K)`"
         @click="b.copyForAgent()"
       >
         <Icon :d="ICONS.agent" />

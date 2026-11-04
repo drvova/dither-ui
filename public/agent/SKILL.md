@@ -41,6 +41,9 @@ Rules the validator enforces:
   `list` (array of strings).
 - `slotText` is the component's visible text where it has a slot (buttons,
   badges, checkboxes).
+- `value` (on `component.add` and on a screen cell) is what a control with a
+  `vmodel` holds, in the kind of its default (a field's text, a slider's
+  number, the chips' pick); anything else falls back to that default.
 - Screens have ONE nesting level: rows of cells. No nested containers.
 
 ## 2. The document shape
@@ -98,11 +101,23 @@ Code, oh-my-pi, Goose, OpenCode, Auggie or any Agent Client Protocol
 agent):** the user runs `node bridge/dither-bridge.mjs` from a dither-ui
 checkout, picks you in the Studio's Agent panel and sends prompts from
 there. Your session then
-has an MCP server named `dither-studio` whose tools are the commands below
-(`add_screen`, `add_component`, `add_chart`, `add_widget`, `update_artboard`,
-`remove_artboard`, `evolve`, `select`, `get_registry`, `get_document`,
-`get_code`, `list_artboards`), each applied to the live canvas and undoable.
-Prefer them over writing files; the user is watching the canvas.
+has an MCP server named `dither-studio` with ONE tool, `dither`. Describe
+the job with `{ "find": "a sign-in screen with a remember me checkbox" }`
+and it answers with the actions that fit best (each with its exact
+arguments, and how well it fits) and the kit components that fit; then
+`{ "run": "add_screen", "args": { ... } }`. The actions are the commands
+below (`add_screen`, `add_component`, `add_chart`, `add_widget`,
+`update_artboard`, `remove_artboard`, `evolve`, `select`, `get_registry`,
+`get_document`, `get_code`, `list_artboards`, and everything on the
+canvas's bar: `duplicate`, `group`, `ungroup`, `replay`, `set_view`,
+`inspect`, `export_png`, `export_video`), each applied to the
+live canvas and undoable. When none fits the job well, build one:
+`{ "build": { "name", "description", "parameters", "code" } }`, where `code`
+is the body of an async JavaScript function of `(args, studio)` and
+`await studio.run("<action>", args)` calls an action. It runs in a sandbox
+(no page, no network, 10 seconds, 200 Studio calls), the user approves each
+run, and it is kept and found first next time. Prefer the tool over writing
+files; the user is watching the canvas.
 
 **Live (harness has a browser tool, e.g. the sitegeist bridge):** a Studio
 tab speaks a DOM protocol that works from any script world. Dispatch on
@@ -134,15 +149,22 @@ Commands (`type` and fields):
 | `artboard.list` | — |
 | `artboard.select` | `id` or `ids` |
 | `artboard.remove` | `id` |
-| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props`, `widget.rows` or `widget.clips`) |
+| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props`, `widget.value`, `widget.rows` or `widget.clips`; a key it does not know fails the call, nothing changed) |
 | `chart.add` | `chart`, `name?`, `data?: { labels, series: [{ key, label?, color?, values }] }`, `frame?` |
 | `widget.add` | `widget` (avatar/button/gradient/image), `name?`, `props?` |
-| `component.add` | `is`, `name?`, `props?`, `slotText?`, `frame?` |
+| `component.add` | `is`, `name?`, `props?`, `slotText?`, `value?`, `frame?` — `value` is what a control holds (a field's text, the chips' pick), in the kind its `registry.get` row gives; `""` clears a field |
 | `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
 | `reel.add` | `name?`, `clips` (ids, or `{ id, seconds?, transition?: { kind, seconds?, cell?, seed? }, camera?, callouts?, chapter? }` — kinds `cut`, `dissolve`, `wipe-right`, `wipe-left`, `wipe-down`, `wipe-up`; 3s clips in over a 0.6s dissolve by default), `score?` (`true` or `{ seed }`), `frame?` — frames played in order with ordered-dither transitions; a film with camera moves, callouts, chapters and a score (see below) |
 | `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |
+| `artboard.duplicate` | `id?` or `ids?` (the selection by default) — copies, selected |
+| `group` | `id?` or `ids?` (the selection by default), `name?` — each frame's summary carries its `group` |
+| `ungroup` | `id` — a group's id or a frame of the group |
+| `replay` | play every frame's entrance again |
+| `view` | `to?` (`all`, `selection`, `in`, `out`, `actual`), `zoom?` (0.2–3, 1 is 100%) or `id?` (fit that frame) — the canvas view; held at 100% while the user inspects |
+| `inspect` | `id?` — the frame as drawn: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, fields named only by their placeholder, targets under 24px, text under AA contrast, images without alt, positive tabindex); check a screen with it before calling it done. A text field (`DitherInput`, `DitherTextarea`, `DitherSelect`, `DitherEmailInput`, `DitherPasswordInput`, `DitherSearchInput`, `DitherPhoneInput`, `DitherCurrencyInput`) takes a `label` prop: its visible label, tied to it (the field inside a `DitherField`), which is what fixes a placeholder-only name |
+| `image.export` | `id?`, `scale?` (1–4, default 2) — names the PNG's place, `image/<name>.png`; the `export_png` action writes it under your project through the bridge |
 | `code.get` | `id`, `styling?` — the frame as a Vue SFC; `tailwind` (default) keeps the utility classes, `css` (a scoped stylesheet), `modules` (CSS Modules) or `stylex` write the same look in that system while the kit components keep their own styles |
-| `registry.get` | `is?` — the registry, or one component |
+| `registry.get` | `is?`, `brief?` — the registry (`brief`: names, labels and groups only), or one component |
 | `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it; a reel with a score adds `score: { path: "score.wav", base64 }` for the index's audio track |
 | `clock.seek` | `seconds?` — hold every animation on the canvas at that moment, so a screenshot is stable from any driver in any browser; without `seconds` time runs again (`clock.release` does the same) |
 

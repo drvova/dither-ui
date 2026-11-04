@@ -69,6 +69,42 @@ export function redo() {
   restore(next)
 }
 
+/** The document as it stands: a checkpoint to come back to (the agent's,
+ * taken as each turn starts). */
+export function checkpoint(): string {
+  flush()
+  return snap()
+}
+
+/** The document back to a checkpoint, as ONE undoable step (an undo
+ * returns to where the restore was asked); nothing when it already is. */
+export function restoreCheckpoint(s: string) {
+  flush()
+  const cur = snap()
+  if (s === cur) return
+  undoStack.push(cur)
+  if (undoStack.length > MAX) undoStack.shift()
+  redoStack.length = 0
+  restore(s)
+}
+
+/** One frame back to how a checkpoint had it (gone, when the checkpoint did
+ * not have it; back, when it has since been removed), the rest of the
+ * document as it stands, as ONE undoable step. */
+export function restoreFrame(s: string, id: string) {
+  flush()
+  const then = JSON.parse(s) as { artboards: { id: string }[] }
+  const was = then.artboards.find((a) => a.id === id)
+  const now = JSON.parse(snap()) as { artboards: { id: string }[]; groups: unknown[] }
+  const at = now.artboards.findIndex((a) => a.id === id)
+  const artboards = was
+    ? at >= 0
+      ? now.artboards.map((a) => (a.id === id ? was : a))
+      : [...now.artboards, was]
+    : now.artboards.filter((a) => a.id !== id)
+  restoreCheckpoint(JSON.stringify({ artboards, groups: now.groups }))
+}
+
 /** Re-baseline on the current document and clear both stacks — used when a
  * different project loads so undo can never bleed across projects. */
 export function resetHistory() {

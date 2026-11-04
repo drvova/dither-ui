@@ -6,7 +6,7 @@
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { directedTime, isDirected, release, seek } from "@dither-kit"
 import { useBench } from "../context"
-import { labelOf } from "../model/measure"
+import { labelOf } from "@/shared/lib/inspect/measure"
 import { ICONS } from "../model/tools"
 import Icon from "./Icon.vue"
 

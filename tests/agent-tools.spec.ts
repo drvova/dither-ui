@@ -1,15 +1,26 @@
 // @rstest-environment jsdom
+import { readFileSync } from "node:fs"
 import { beforeEach, describe, expect, it } from "rstack/test"
-import { mapUpdate, modesOf, permissionOptions, usageOf } from "@/features/agent/acp"
+import {
+  mapUpdate,
+  modelName,
+  modelOf,
+  modesOf,
+  permissionOptions,
+  promptBlocks,
+  takesImages,
+  usageOf,
+} from "@/features/agent/acp"
 import {
   callStudioTool,
   loadAgentConfig,
-  loadSession,
+  loadDraft,
   saveAgentConfig,
-  saveSession,
+  saveDraft,
+  STUDIO_SERVER,
   STUDIO_TOOLS,
 } from "@/features/agent/tools"
-import type { CommandResult } from "@/features/agent/protocol"
+import { type CommandResult, registrySchema } from "@/features/agent/protocol"
 
 beforeEach(() => {
   localStorage.clear()
@@ -30,12 +41,22 @@ describe("studio tools", () => {
       "remove_artboard",
       "select",
       "evolve",
+      "duplicate",
+      "group",
+      "ungroup",
+      "replay",
+      "set_view",
+      "inspect",
+      "export_png",
       "get_code",
       "get_document",
       "seek_clock",
       "export_video",
     ])
     for (const t of STUDIO_TOOLS) expect(t.def.parameters).toMatchObject({ type: "object" })
+    // Every command a tool runs is one the registry tells a harness about.
+    const listed = Object.keys(registrySchema().commands)
+    for (const t of STUDIO_TOOLS) expect(listed, t.def.name).toContain(t.command)
     const seen: unknown[] = []
     const run = (c: unknown): CommandResult => {
       seen.push(c)
@@ -67,6 +88,11 @@ describe("acp mapping", () => {
     expect(mapUpdate({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hi" } })).toEqual([
       { type: "delta", text: "hi" },
     ])
+    // The harness's reasoning streams apart from its reply.
+    expect(mapUpdate({ sessionUpdate: "agent_thought_chunk", content: { type: "text", text: "hmm" } })).toEqual([
+      { type: "thought", text: "hmm" },
+    ])
+    expect(mapUpdate({ sessionUpdate: "agent_thought_chunk", content: { type: "image" } })).toEqual([])
     expect(
       mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t1", title: "Read file src/app.ts", status: "pending" }),
     ).toEqual([{ type: "activity", id: "t1", title: "Read file src/app.ts", status: "pending" }])
@@ -75,7 +101,17 @@ describe("acp mapping", () => {
       { type: "activity", id: "t1", title: "", status: "completed" },
     ])
     // Studio tools are rendered from the bridge's studio/call path, not the agent's mirror.
-    expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t2", title: "add_screen" })).toEqual([])
+    // The harness's mirror of its call of the Studio's one tool is drawn from
+    // the call itself; a file of a dither project is not that tool.
+    expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t2", title: "mcp__dither-studio__dither" })).toEqual([])
+    expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t3", title: "dither" })).toEqual([])
+    expect(
+      mapUpdate({ sessionUpdate: "tool_call", toolCallId: "t4", title: "Read dither-kit/engine/pixel.ts" }),
+    ).toHaveLength(1)
+    // A call that arrives untitled is named by a later update, never by its id.
+    expect(mapUpdate({ sessionUpdate: "tool_call", toolCallId: "toolu_01", status: "pending" })).toEqual([
+      { type: "activity", id: "toolu_01", title: "", status: "pending" },
+    ])
     expect(mapUpdate({ sessionUpdate: "plan", entries: [{ content: "Add a screen", status: "in_progress" }] })).toEqual(
       [{ type: "plan", entries: [{ content: "Add a screen", status: "in_progress" }] }],
     )
@@ -89,6 +125,22 @@ describe("acp mapping", () => {
       }),
     ).toEqual([{ type: "commands", commands: [{ name: "review", description: "Review the diff", input: "<path>" }] }])
     expect(mapUpdate({ sessionUpdate: "user_message_chunk" })).toEqual([])
+  })
+
+  it("sends pictures only to a harness that said it takes them", () => {
+    const png = { mimeType: "image/png", data: "iVBOR" }
+    expect(takesImages({ agentCapabilities: { promptCapabilities: { image: true } } })).toBe(true)
+    for (const init of [
+      { agentCapabilities: { promptCapabilities: { image: "yes" } } },
+      { agentCapabilities: {} },
+      null,
+    ])
+      expect(takesImages(init)).toBe(false)
+    expect(promptBlocks("look", [png], true)).toEqual([
+      { type: "text", text: "look" },
+      { type: "image", mimeType: "image/png", data: "iVBOR" },
+    ])
+    expect(promptBlocks("look", [png], false)).toEqual([{ type: "text", text: "look" }])
   })
 
   it("reads modes and usage off the agent's answers", () => {
@@ -114,34 +166,115 @@ describe("acp mapping", () => {
     expect(usageOf({ usage: { inputTokens: 5, outputTokens: 2 } })).toEqual({ input: 5, output: 2 })
     expect(usageOf({})).toBeUndefined()
   })
+
+  it("names the Studio's MCP server as the bridge does", () => {
+    // The bridge is its own zero-dependency file: its copy of the name is
+    // pinned here, so a harness's `mcp__<server>__<tool>` titles read back.
+    expect(readFileSync("bridge/dither-bridge.mjs", "utf8")).toContain(`name: "${STUDIO_SERVER}"`)
+  })
+
+  it("reads the model a harness runs off its session's config options, and follows its updates", () => {
+    // As Claude Code's ACP adapter sends it: a select of category "model",
+    // its default entry naming the model it resolves to.
+    const session = {
+      sessionId: "s",
+      configOptions: [
+        { id: "mode", category: "mode", type: "select", currentValue: "default", options: [] },
+        {
+          id: "model",
+          name: "Model",
+          category: "model",
+          type: "select",
+          currentValue: "default",
+          options: [
+            { value: "default", name: "Default (recommended)", description: "Opus 5.5" },
+            { value: "sonnet", name: "Sonnet", description: "Sonnet 5.5 for everyday tasks" },
+          ],
+        },
+      ],
+    }
+    const m = modelOf(session)
+    expect(m).toEqual({
+      configId: "model",
+      current: "default",
+      options: [
+        { id: "default", name: "Default (recommended)", description: "Opus 5.5" },
+        { id: "sonnet", name: "Sonnet", description: "Sonnet 5.5 for everyday tasks" },
+      ],
+    })
+    expect(modelName(m!)).toBe("Opus 5.5")
+    expect(modelName({ ...m!, current: "sonnet" })).toBe("Sonnet")
+    // Grouped values flatten; a session with no model option has none.
+    const grouped = modelOf({
+      configOptions: [
+        {
+          id: "m",
+          category: "model",
+          type: "select",
+          currentValue: "a",
+          options: [{ group: "g", options: [{ value: "a", name: "A" }] }],
+        },
+      ],
+    })
+    expect(grouped?.options.map((o) => o.id)).toEqual(["a"])
+    expect(modelOf({ sessionId: "s" })).toBeNull()
+    expect(mapUpdate({ sessionUpdate: "config_option_update", configOptions: session.configOptions })).toEqual([
+      { type: "model", model: m },
+      // The other settings come along, none here, so stale ones clear.
+      { type: "settings", settings: [] },
+    ])
+  })
 })
 
 describe("composer state", () => {
   it("keeps the harness choice and the bridge address, never a secret", () => {
-    expect(loadAgentConfig()).toEqual({ bridgeUrl: "ws://127.0.0.1:8790", harness: "", command: "", auto: false })
-    saveAgentConfig({ bridgeUrl: "ws://127.0.0.1:9000", harness: "custom", command: "omp --mode acp", auto: true })
+    expect(loadAgentConfig()).toEqual({
+      bridgeUrl: "ws://127.0.0.1:8790",
+      harness: "",
+      command: "",
+      auto: false,
+      follow: false,
+    })
+    saveAgentConfig({
+      bridgeUrl: "ws://127.0.0.1:9000",
+      harness: "custom",
+      command: "omp --mode acp",
+      auto: true,
+      follow: true,
+    })
     expect(loadAgentConfig()).toEqual({
       bridgeUrl: "ws://127.0.0.1:9000",
       harness: "custom",
       command: "omp --mode acp",
       auto: true,
+      follow: true,
     })
     expect(Object.keys(JSON.parse(localStorage.getItem("dither-agent-config") ?? "{}"))).toEqual([
       "bridgeUrl",
       "harness",
       "command",
       "auto",
+      "follow",
     ])
   })
 
-  it("persists a project's transcript under a cap, dropping the oldest entries first", () => {
-    const big = Array.from({ length: 400 }, (_, i) => ({ kind: "assistant", text: `${i}:${"x".repeat(1000)}` }))
-    saveSession("p1", { entries: big, usage: { input: 1, output: 2 } })
-    const s = loadSession<{ kind: string; text: string }>("p1")
-    expect(s?.usage).toEqual({ input: 1, output: 2 })
-    expect(s?.entries.length).toBeLessThan(400)
-    expect(s?.entries.at(-1)?.text.startsWith("399:")).toBe(true)
-    saveSession("p1", { entries: [], usage: { input: 0, output: 0 } })
-    expect(loadSession("p1")).toBeNull()
+  it("keeps each chat's unsent message with what it carries, and forgets an empty one", () => {
+    const quote = { kind: "quote", name: "Quote", text: "Placed it." }
+    saveDraft("p1", "c1", { text: "a sign-in screen", attachments: [quote] })
+    saveDraft("p1", "c2", { text: "a table", attachments: [] })
+    expect(loadDraft("p1", "c1")).toEqual({ text: "a sign-in screen", attachments: [quote] })
+    expect(loadDraft("p1", "c2").text).toBe("a table")
+    saveDraft("p1", "c1", { text: "  ", attachments: [] })
+    expect(loadDraft("p1", "c1")).toEqual({ text: "", attachments: [] })
+    expect(localStorage.getItem("dither-agent-draft-p1/c1")).toBeNull()
+  })
+
+  it("keeps a draft's pictures only while it stays small, and brings a project's old draft back once", () => {
+    const big = { kind: "image", name: "Shot", mimeType: "image/png", data: "A".repeat(2_000_000), w: 1, h: 1 }
+    saveDraft("p1", "c1", { text: "this", attachments: [big, { kind: "text", name: "Pasted text", text: "x" }] })
+    expect(loadDraft("p1", "c1").attachments.map((a) => (a as { kind: string }).kind)).toEqual(["text"])
+    localStorage.setItem("dither-agent-draft-p9", "from before chats")
+    expect(loadDraft("p9", "c1").text).toBe("from before chats")
+    expect(loadDraft("p9", "c1").text).toBe("")
   })
 })

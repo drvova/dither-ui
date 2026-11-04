@@ -7,6 +7,7 @@ import {
   type ReelCameraKey,
   type ReelChapter,
   sanitizeComponentProps,
+  sanitizeModel,
 } from "@/entities/widget"
 import { BLOOMS, CHART_TYPES, type ChartType, EASING_NAMES, STACKS } from "@/shared/config"
 import { safeUrl } from "@/shared/lib/routes"
@@ -233,6 +234,7 @@ export function normalizeArtboard(a: Artboard): Artboard {
         delete a.widget // unknown component: fall back to the stub chart frame
       } else {
         w.props = sanitizeComponentProps(entry, w.props)
+        w.model = sanitizeModel(entry, w.model)
         if (typeof w.slotText !== "string") w.slotText = entry.slotText ?? null
       }
     } else if (w.kind === "screen") {
@@ -248,7 +250,7 @@ export function normalizeArtboard(a: Artboard): Artboard {
               is: c.is as string,
               props: sanitizeComponentProps(entry, c.props),
               slotText: typeof c.slotText === "string" ? c.slotText : (entry.slotText ?? null),
-              model: c.model,
+              model: sanitizeModel(entry, c.model),
               grow: c.grow === true,
             }
           })

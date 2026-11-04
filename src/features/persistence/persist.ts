@@ -104,7 +104,9 @@ function parseProjects(v: unknown): ProjectMeta[] {
   })
 }
 
-function applyDoc(d: unknown): void {
+/** Load a document, or make the fresh one (a frame at the canvas's centre);
+ * true when it made the fresh one. */
+function applyDoc(d: unknown): boolean {
   const valid = d ? parseDocument(d) : null
   if (valid) {
     editor.artboards = valid.artboards
@@ -118,6 +120,8 @@ function applyDoc(d: unknown): void {
     placeArtboard(createArtboard("area"))
   }
   editor.dataOpen = false
+  editor.inspecting = false
+  return !valid
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined
@@ -131,8 +135,11 @@ export function flushSave(): void {
   saveIndex()
 }
 
-/** Restore the workspace (run in setup, before first paint). */
-export function hydrate(): void {
+/** Restore the workspace (run in setup, before first paint). True when the
+ * active project had no document and got the fresh one: its frame was
+ * placed before the canvas measured itself, so the page centres it once
+ * the canvas is mounted (`centreOn`). */
+export function hydrate(): boolean {
   projects.splice(0, projects.length, ...parseProjects(readJson(INDEX_KEY)))
 
   // Migrate the legacy single-document world into the first project.
@@ -151,7 +158,7 @@ export function hydrate(): void {
   const active = projects.find((p) => p.id === requested) ?? projects[0]
   activeProjectId.value = active.id
   store.set(ACTIVE_KEY, active.id)
-  applyDoc(readJson(DOC_PREFIX + active.id))
+  return applyDoc(readJson(DOC_PREFIX + active.id))
 }
 
 export function createProject(name: string): void {

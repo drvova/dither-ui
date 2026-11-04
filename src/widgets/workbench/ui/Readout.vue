@@ -11,8 +11,8 @@ import { useBench } from "../context"
 import { download } from "@/shared/lib/files"
 import { play } from "@/shared/lib/sound"
 import { copyImage, MAX_SECONDS, videoTypes } from "../model/capture"
-import { COLOR_FORMATS, formatColor, grade } from "../model/color"
-import { cssOf, selectorOf } from "../model/measure"
+import { COLOR_FORMATS, formatColor, grade } from "@/shared/lib/inspect/color"
+import { cssOf, selectorOf } from "@/shared/lib/inspect/measure"
 import { SWATCHES, swatch } from "../model/settings"
 import { ICONS, toolById } from "../model/tools"
 import { uid } from "../model/workspace"
@@ -534,7 +534,9 @@ async function copyShot() {
       <div class="row">
         <input v-model="search" type="search" class="search" placeholder="Search threads" aria-label="Search threads" />
         <span class="spacer" />
-        <button type="button" class="act" @click="b.copyForAgent()">Copy for agent (K)</button>
+        <button type="button" class="act" @click="b.copyForAgent()">
+          {{ b.o.send ? "Send to the agent" : "Copy for agent" }} (K)
+        </button>
       </div>
       <ol v-if="threads.length" class="threads">
         <li v-for="th in threads" :key="th.id">

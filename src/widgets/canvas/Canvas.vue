@@ -2,13 +2,18 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherIcon } from "@dither-kit"
 import { addArtboard, deselect, editor, selectMany } from "@/entities/editor"
+import { handoff } from "@/features/agent/handoff"
 import { useShortcuts } from "@/features/keyboard"
 import { usePanZoom } from "@/features/pan-zoom"
 import Artboard from "./Artboard.vue"
+import SelectionAsk from "./SelectionAsk.vue"
 
 const host = ref<HTMLElement | null>(null)
-const { onWheel, startPan, onTouchDown, zoomIn, zoomOut, resetZoom, fit, fitSelection } = usePanZoom(host)
-useShortcuts({ fit, fitSelection, zoomIn, zoomOut, resetZoom })
+// The layer the frames stand in (what the workbench inspects).
+const world = ref<HTMLElement | null>(null)
+const { onWheel, startPan, onTouchDown } = usePanZoom(host)
+useShortcuts()
+defineExpose({ host, world })
 const visible = computed(() => editor.artboards.filter((a) => !a.hidden))
 
 // Space-to-pan (Figma convention): plain drag on empty canvas = marquee.
@@ -19,17 +24,43 @@ const isTyping = (t: EventTarget | null) => {
 }
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === " " && !isTyping(e.target)) spaceHeld.value = true
+  // Picking for the agent ends on Esc (the agent panel ends it from its own field).
+  if (e.key === "Escape" && handoff.picking && !isTyping(e.target)) handoff.picking = false
 }
+
+/* A pointer down on the canvas (a drag, a resize, a marquee) puts the
+ * selection's ask away until it is up again; a press on the ask itself
+ * does not. */
+const held = ref(false)
+function onDownCapture(e: PointerEvent) {
+  onTouchDown(e)
+  if (!(e.target instanceof Element && e.target.closest(".ask"))) held.value = true
+}
+const release = () => (held.value = false)
+let sized: ResizeObserver | undefined
 function onKeyUp(e: KeyboardEvent) {
   if (e.key === " ") spaceHeld.value = false
 }
 onMounted(() => {
   window.addEventListener("keydown", onKeyDown)
   window.addEventListener("keyup", onKeyUp)
+  window.addEventListener("pointerup", release)
+  window.addEventListener("pointercancel", release)
+  // Measured now, before the page's own mount runs (a child mounts first),
+  // then kept as the canvas resizes.
+  const rect = host.value?.getBoundingClientRect()
+  if (rect?.width) editor.stage = { w: rect.width, h: rect.height }
+  if (host.value && typeof ResizeObserver !== "undefined") {
+    sized = new ResizeObserver(([e]) => (editor.stage = { w: e.contentRect.width, h: e.contentRect.height }))
+    sized.observe(host.value)
+  }
 })
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKeyDown)
   window.removeEventListener("keyup", onKeyUp)
+  window.removeEventListener("pointerup", release)
+  window.removeEventListener("pointercancel", release)
+  sized?.disconnect()
 })
 
 // Marquee selection on empty-canvas drag; a finger on empty canvas pans
@@ -76,13 +107,14 @@ function onCanvasDown(e: PointerEvent) {
   <div
     ref="host"
     class="dk-canvas relative h-full w-full touch-none overflow-hidden"
-    :class="spaceHeld ? 'cursor-grab' : ''"
+    :class="[spaceHeld ? 'cursor-grab' : '', handoff.picking ? 'is-picking' : '']"
     @wheel.prevent="onWheel"
-    @pointerdown.capture="onTouchDown"
+    @pointerdown.capture="onDownCapture"
     @pointerdown.self="onCanvasDown"
     @gesturestart.prevent
   >
     <div
+      ref="world"
       class="absolute left-0 top-0 origin-top-left"
       :style="{
         transform: `translate(${editor.viewport.x}px, ${editor.viewport.y}px) scale(${editor.viewport.zoom})`,
@@ -130,32 +162,61 @@ function onCanvasDown(e: PointerEvent) {
       </button>
     </div>
 
-    <!-- Zoom controls -->
-    <div class="capsule pointer-events-auto absolute bottom-3 left-3 flex items-center gap-0.5 p-1 text-xs">
-      <button type="button" aria-label="Zoom out" class="zoom-tool" title="Zoom out (⌘−)" @click="zoomOut">
-        <DitherIcon name="Minus" :size="14" :stroke-width="1.5" />
-      </button>
-      <button
-        type="button"
-        aria-label="Reset zoom to 100%"
-        class="w-12 rounded-lg py-1 text-center tabular-nums text-muted-foreground transition-[color,scale] hover:text-foreground active:scale-[0.96]"
-        title="Reset to 100% (⌘0)"
-        @click="resetZoom"
+    <SelectionAsk :held="held" />
+
+    <!-- Picking frames for the agent -->
+    <div v-if="handoff.picking" class="pick-bar capsule" role="status">
+      <DitherIcon name="Crosshair" :size="13" :stroke-width="1.5" />
+      <span
+        >Click frames to hand them to the agent<template v-if="handoff.picked.length"
+          >, {{ handoff.picked.length }} picked</template
+        ></span
       >
-        {{ Math.round(editor.viewport.zoom * 100) }}%
-      </button>
-      <button type="button" aria-label="Zoom in" class="zoom-tool" title="Zoom in (⌘+)" @click="zoomIn">
-        <DitherIcon name="Plus" :size="14" :stroke-width="1.5" />
-      </button>
-      <span class="mx-0.5 h-4 w-px bg-border" />
-      <button type="button" aria-label="Fit to screen" class="zoom-tool" title="Fit (⇧1)" @click="fit">
-        <DitherIcon name="Maximize" :size="14" :stroke-width="1.5" />
-      </button>
+      <button type="button" class="pick-done" @click="handoff.picking = false">Done<kbd>esc</kbd></button>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Picking for the agent: a crosshair over everything on the canvas. */
+.is-picking,
+.is-picking :deep(*) {
+  cursor: crosshair !important;
+}
+.pick-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  translate: -50% 0;
+  padding: 4px 4px 4px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--color-foreground);
+}
+.pick-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.75rem;
+  border-radius: 999px;
+  padding-inline: 10px;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 10%, transparent);
+  cursor: pointer !important;
+}
+.pick-done kbd {
+  font: inherit;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+}
+.pick-done:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
 .dk-canvas {
   background-color: color-mix(in oklab, var(--color-background) 92%, var(--color-muted));
   background-image: radial-gradient(
@@ -164,25 +225,5 @@ function onCanvasDown(e: PointerEvent) {
     transparent 1px
   );
   background-size: 22px 22px;
-}
-.zoom-tool {
-  display: flex;
-  width: 1.75rem;
-  height: 1.75rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  color: var(--color-muted-foreground);
-  transition:
-    background-color 140ms ease,
-    color 140ms ease,
-    scale 100ms ease;
-}
-.zoom-tool:hover {
-  background: var(--color-background);
-  color: var(--color-foreground);
-}
-.zoom-tool:active {
-  scale: 0.96;
 }
 </style>

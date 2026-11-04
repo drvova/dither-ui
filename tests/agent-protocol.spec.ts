@@ -1,6 +1,7 @@
 // @rstest-environment jsdom
-import { beforeEach, describe, expect, it } from "rstack/test"
+import { beforeEach, describe, expect, it, rs } from "rstack/test"
 import { editor } from "@/entities/editor"
+import { callStudioTool } from "@/features/agent/tools"
 import { directedTime, isDirected, release } from "../dither-kit/engine/clock"
 import {
   COMMAND_EVENT,
@@ -166,6 +167,19 @@ describe("studio agent protocol", () => {
     expect(JSON.parse(JSON.stringify(reg))).toBeTruthy()
   })
 
+  it("gives a harness the brief registry it can read in one answer, and one component in full", () => {
+    // A harness spills a long tool answer to a file and greps it: the names
+    // must fit one answer (well under 25k tokens).
+    const brief = callStudioTool("get_registry", {})
+    expect(brief.ok).toBe(true)
+    const comps = (brief.data as { components: Record<string, unknown>[] }).components
+    expect(comps.length).toBe(registrySchema().components.length)
+    expect(Object.keys(comps[0]).sort()).toEqual(["group", "is", "label"])
+    expect(JSON.stringify(brief.data).length).toBeLessThan(40_000)
+    const one = callStudioTool("get_registry", { is: "DitherSlider" })
+    expect((one.data as { props: { key: string }[] }).props.map((p) => p.key)).toContain("max")
+  })
+
   it("answers DOM-event commands with string details and keeps a document mirror", async () => {
     const uninstall = installStudioAgentApi()
     expect(window.ditherStudio?.version).toBe(1)
@@ -250,5 +264,94 @@ describe("clock commands", () => {
     expect(registrySchema().commands["clock.seek"]).toContain("seconds")
     off()
     release()
+  })
+})
+
+describe("the canvas bar's actions", () => {
+  const add = (name: string) => {
+    const r = runCommand({ type: "component.add", is: "DitherBadge", name, slotText: name })
+    if (!r.ok) throw new Error(r.error)
+    return (r.data as { id: string }).id
+  }
+
+  it("duplicates, groups and ungroups the frames named, or the selection", () => {
+    const a = add("One")
+    const b = add("Two")
+    const dup = runCommand({ type: "artboard.duplicate", id: a })
+    expect(dup.ok).toBe(true)
+    expect(editor.artboards).toHaveLength(3)
+    expect(runCommand({ type: "artboard.duplicate", ids: ["nope"] })).toEqual({ ok: false, error: "no artboard nope" })
+
+    const g = runCommand({ type: "group", ids: [a, b], name: "Pair" })
+    expect(g.ok).toBe(true)
+    if (!g.ok) return
+    const frames = g.data as { id: string; group: string }[]
+    expect(frames.map((f) => f.id)).toEqual([a, b])
+    expect(editor.groups).toEqual([expect.objectContaining({ name: "Pair", id: frames[0].group })])
+    // Ungrouped by a frame of the group.
+    expect(runCommand({ type: "ungroup", id: b })).toMatchObject({ ok: true })
+    expect(editor.groups).toEqual([])
+    expect(runCommand({ type: "ungroup", id: b }).ok).toBe(false)
+  })
+
+  it("moves the view through the canvas's own functions, and holds while the workbench inspects", () => {
+    editor.stage = { w: 800, h: 600 }
+    const a = add("Wide")
+    expect(runCommand({ type: "view", to: "in" })).toMatchObject({ ok: true, data: { zoom: 1.2 } })
+    expect(runCommand({ type: "view", zoom: 2 })).toMatchObject({ ok: true, data: { zoom: 2 } })
+    expect(runCommand({ type: "view", to: "actual" })).toMatchObject({ ok: true, data: { zoom: 1 } })
+    expect(runCommand({ type: "view", id: a })).toMatchObject({ ok: true })
+    expect(editor.selectedIds).toEqual([a])
+    expect(runCommand({ type: "view", to: "sideways" as never }).ok).toBe(false)
+    expect(runCommand({ type: "view", zoom: -1 }).ok).toBe(false)
+    editor.inspecting = true
+    expect(runCommand({ type: "view", zoom: 2 })).toMatchObject({ ok: true, data: { zoom: 1, inspecting: true } })
+    editor.inspecting = false
+  })
+
+  it("names a PNG's place under the project, at the scales it takes", () => {
+    add("Hero badge")
+    expect(runCommand({ type: "image.export" })).toMatchObject({
+      ok: true,
+      data: { file: "image/hero-badge.png", scale: 2 },
+    })
+    expect(runCommand({ type: "image.export", scale: 9 }).ok).toBe(false)
+  })
+
+  it("inspects a frame as drawn: its controls in Tab order and what the floor finds", () => {
+    const id = add("Form")
+    // The canvas draws the frame; here, by hand, as Artboard stamps it.
+    const frame = document.createElement("div")
+    frame.dataset.artboardId = id
+    frame.innerHTML = `<div data-artboard-surface><button>Save</button><button></button><img src="x.png"></div>`
+    document.body.append(frame)
+    // jsdom lays nothing out: a 40px box each, so nothing reads as hidden or small.
+    const box = { x: 0, y: 0, top: 0, left: 0, right: 40, bottom: 40, width: 40, height: 40, toJSON: () => ({}) }
+    const rect = rs.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(box as DOMRect)
+    const r = runCommand({ type: "inspect", id })
+    rect.mockRestore()
+    frame.remove()
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    const d = r.data as {
+      controls: { role: string; name: string }[]
+      issues: { kind: string }[]
+      passes: boolean
+    }
+    expect(d.controls.map((c) => [c.role, c.name])).toEqual([
+      ["button", "Save"],
+      ["button", ""],
+    ])
+    expect(d.issues.map((i) => i.kind).sort()).toEqual(["alt", "name"])
+    expect(d.passes).toBe(false)
+    // Not on the page: said so.
+    expect(runCommand({ type: "inspect", id })).toMatchObject({ ok: false })
+  })
+
+  it("replays every frame's entrance", () => {
+    add("One")
+    const before = editor.replayToken
+    expect(runCommand({ type: "replay" })).toMatchObject({ ok: true, data: { replayed: 1 } })
+    expect(editor.replayToken).toBe(before + 1)
   })
 })

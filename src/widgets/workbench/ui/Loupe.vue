@@ -5,7 +5,7 @@
 // The wheel zooms; a click samples the centre pixel.
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { useBench } from "../context"
-import { formatColor, type RGBA } from "../model/color"
+import { formatColor, type RGBA } from "@/shared/lib/inspect/color"
 
 const b = useBench()
 const SIZE = 132

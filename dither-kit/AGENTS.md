@@ -259,7 +259,7 @@ the kit every import is relative (`../engine/pixel`).
   the tokens from JS: `THEME_TOKENS`, `themeVars` (object of custom
   properties for inline styles or a vars contract), `themeCss` (a `:root`
   / `.dark` block), `applyTheme` (writes them on an element, returns the
-  undo). A component may use only Tailwind utilities, its own scoped
+  undo); `placeholder` is among them, optional. A component may use only Tailwind utilities, its own scoped
   styles and the tokens above — never an app class. Pinned by
   `tests/kit-css.spec.ts` (the compiled file: tokens, scoped base, the
   utilities, no bare element rules) and `tests/theme.spec.ts`.
@@ -491,7 +491,30 @@ the kit every import is relative (`../engine/pixel`).
   and falls back), draws the bloom layer (`pixelBloomStyle`) in
   `afterPaint`, orbits by pointer drag (`touch-action: pan-y`) and arrow
   keys (focusable `role="img"`, `data-engine` says which engine drew), and
-  shows an honest note for loading/empty/error. `tests/world.spec.ts`,
+  shows an honest note for loading/empty/error. Light a model gives off:
+  `World.glows` lists the palette entries that glow (a VRML face whose
+  Material has an `emissiveColor` takes it, through `addMesh`'s `glow` and
+  `colorIndex`'s, an entry never shared with a plain face of the same
+  colour), and `paintTarget` paints them in their own colour, the shade
+  lifted to `GLOW_FLOOR`, whatever the mode (fill, material or ramp).
+  A model is also a build
+  (`engine/assemble.ts`, `createAssembly`): it comes apart once into its
+  pieces (each connected run of triangles, union-find over shared
+  vertices, so a model comes apart along its own seams), and `frame(view,
+  camera, { build, scatter, nudge }, dt)` hands the renderer a world of
+  plain static meshes for that moment, so both engines and the shared
+  paint draw it unchanged: pieces start shape by shape in the order the
+  file gives them, each shape's pieces by height (a flat shape, a floor
+  or a plate, from its middle out; seeded jitter), each flying in from beside its place over `ARRIVAL` of the
+  build on the kit's spring and painted in the heat (its own glowing
+  palette entry, `Assembly.hot`) until it lands; pieces not yet started wait as
+  a dotted cage of their outlines (a points mesh); `scatter` pushes and
+  turns them outward; `nudge` leans the pieces near a point on the target
+  away from it, eased back by `dt`. Whole and still it is the model as it
+  was. `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
+  the ember by default) and `nudge` (the pointer's point); it takes the
+  model apart only when one of them asks. `tests/assemble.spec.ts`.
+  `tests/world.spec.ts`,
   `tests/vrml.spec.ts` and `tests/models.spec.ts` pin the engine, the
   grammars and every format. Texture coordinates: `Geometry.uvs` (st per
   point; (0, 0) is the texture's top-left) or per corner through
@@ -692,6 +715,12 @@ the kit every import is relative (`../engine/pixel`).
   `DitherField` context. Inputs, textarea,
   select, number field, button, checkbox, switch, and modal controls reuse it;
   keep native elements and public component APIs rather than adding a base class.
+- `DitherPressable` (`Pressable.vue`) looks like a button out of the box:
+  `variant` `solid` (ink on the page, the default), `outline`, `ghost`, its
+  ring `CONTROL_BUTTON`'s, a 40px mono key; `plain` is the bare base (only
+  the press), for a caller that draws every pixel. A caller's class still
+  wins (`cn`). A screen's cell takes it like any registry component, so a
+  screen's button reads as one.
 - `DitherField` supplies generated control/help IDs and error state to compatible
   descendants. Explicit consumer `id`, `aria-describedby`, and invalid props win.
 - Respect `prefers-reduced-motion` inside the kit (see
@@ -699,7 +728,16 @@ the kit every import is relative (`../engine/pixel`).
   need to opt in.
 - Text and targets hold WCAG AA in both themes, measured on the rendered
   page. No readable text fades under 4.5:1: `faint` tones share the muted
-  ink, and only `aria-hidden` separators and the wheel picker's masked edge
+  ink; a field's placeholder takes ONE token, `--placeholder`, in every
+  control of both ports (`placeholder:text-placeholder`, the
+  `--color-placeholder` map in `kit.css`, the site's and the Svelte site's
+  stylesheets, `base.css`'s `::placeholder`; unset, the muted ink). Each
+  theme sets it in the muted ink's hue, as dim as AA allows in a field (the
+  page at 60% over any ground, 4.6:1 at worst, under 5:1 on the page): the
+  kit's two, the site's light, the docs' and the landing's darks, and the
+  Svelte site's copies; a theme that moves its muted ink or grounds
+  re-picks it. `tests/placeholder.spec.ts` and `theme-contrast.spec.ts`
+  hold every one; and only `aria-hidden` separators and the wheel picker's masked edge
   rows keep a fade. The light `--swatch-*` inks clear 5:1 on white. A label
   on a dithered fill (badge, button, toggle, toggle group) takes the ink
   `darkInkOnDark(fill, LABEL_COVERAGE[variant])` (`engine/palette.ts`)

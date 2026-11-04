@@ -22,7 +22,7 @@ import {
   videoTypes,
   type Recording,
 } from "./model/capture"
-import { formatColor, parseColor, type RGBA } from "./model/color"
+import { formatColor, parseColor, type RGBA } from "@/shared/lib/inspect/color"
 import {
   boxFrom,
   distances,
@@ -33,7 +33,7 @@ import {
   type Box,
   type Point,
   type Segment,
-} from "./model/geometry"
+} from "@/shared/lib/inspect/geometry"
 import { boundsOf, erase, hitLine, toSegment, type InkPoint } from "./model/ink"
 import {
   audit,
@@ -55,7 +55,7 @@ import {
   type Issue,
   type Reading,
   type TypeReading,
-} from "./model/measure"
+} from "@/shared/lib/inspect/measure"
 import { loadSettings, saveSettings, swatch, type Settings } from "./model/settings"
 import { TOGGLES, TOOLS, toolById, type ToggleId, type ToolId } from "./model/tools"
 import {
@@ -84,6 +84,9 @@ export type BenchOptions = {
   url: string
   /** Turn the workbench off (Escape with nothing left to cancel). */
   exit: () => void
+  /** Where the feedback goes when there is an agent to take it (the
+   * Studio's panel); without one, K copies it. */
+  send?: (markdown: string) => void
 }
 
 export type Draft =
@@ -931,10 +934,18 @@ export function createBench(o: BenchOptions) {
       stage: size.value,
       theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
     })
+    if (o.send) {
+      o.send(md)
+      play("copy")
+      say("Sent the feedback to the agent")
+      return
+    }
     const ok = await copyText(md)
     if (ok) play("copy")
     say(ok ? "Copied the feedback for an agent" : "Copy failed")
   }
+  /** What K does with the feedback, in words. */
+  const feedbackVerb = o.send ? "Send feedback to the agent" : "Copy feedback for an agent"
 
   // --- pointer -----------------------------------------------------------------
 
@@ -1486,6 +1497,7 @@ export function createBench(o: BenchOptions) {
     exportVideo,
     discardCapture,
     copyForAgent,
+    feedbackVerb,
     setTool,
     setGroup,
     toggle,

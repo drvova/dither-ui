@@ -1,7 +1,7 @@
 // The workbench's preferences, one set for every preview (localStorage
 // `dither-workbench-settings`). Colours are the theme's swatch tokens, so
 // the overlay follows the theme and stays legible in both.
-import { COLOR_FORMATS, type ColorFormat } from "./color"
+import { COLOR_FORMATS, type ColorFormat } from "@/shared/lib/inspect/color"
 import { readJson, writeJson } from "@/shared/lib/storage"
 
 export const SWATCHES = ["orange", "purple", "pink", "green", "blue", "grey"] as const

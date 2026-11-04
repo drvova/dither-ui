@@ -23,15 +23,25 @@ import { directedTime, isDirected, release, seek } from "@dither-kit"
 import { type Artboard, type ArtboardKind, createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { chartCode, createChart, createSeriesRow, LABEL_KEY } from "@/entities/chart"
 import {
+  actualSize,
   addArtboard,
   addComponentArtboard,
   addReelArtboard,
   addScreenArtboard,
+  duplicateSelected,
   editor,
+  fitAll,
+  fitSelection,
+  groupSelected,
   placeGeneration,
   removeArtboard,
+  replay,
   selectArtboard,
   selectMany,
+  ungroup,
+  zoomIn,
+  zoomOut,
+  zoomTo,
 } from "@/entities/editor"
 import {
   COMPONENT_REGISTRY,
@@ -44,6 +54,7 @@ import {
   REEL_TRANSITIONS,
   type ReelTransitionKind,
   sanitizeComponentProps,
+  sanitizeModel,
   widgetCode,
 } from "@/entities/widget"
 import {
@@ -62,6 +73,7 @@ import { CHART_TYPES, type ChartType, familyOf } from "@/shared/config"
 import { bytesToBase64 } from "@/shared/lib"
 import { isStyling, restyle, type Styling, STYLINGS } from "@/shared/lib/restyle"
 import { evolveArtboard, type EvolveOptions } from "./evolve"
+import { inspectFrame } from "./inspect"
 
 export const PROTOCOL_VERSION = 1
 export const COMMAND_EVENT = "dither-studio:command"
@@ -70,6 +82,18 @@ export const MIRROR_ID = "dither-studio-document"
 export const SITE = "https://dither-ui.com"
 
 const WIDGET_KINDS = ["avatar", "button", "gradient", "image"] as const
+/** Where `view` can look: every frame, the selection, a zoom step, 100%. */
+export const VIEW_TO = ["all", "selection", "in", "out", "actual"] as const
+export type ViewTo = (typeof VIEW_TO)[number]
+const VIEW: Record<ViewTo, () => void> = {
+  all: fitAll,
+  selection: fitSelection,
+  in: zoomIn,
+  out: zoomOut,
+  actual: actualSize,
+}
+/** A PNG export's pixel ratios. */
+export const PNG_SCALES = [1, 2, 3, 4] as const
 
 export type ChartData = {
   labels: string[]
@@ -112,13 +136,14 @@ export type StudioCommand =
       name?: string
       props?: Record<string, unknown>
       slotText?: string
+      value?: unknown
       frame?: { w?: number; h?: number }
     }
   | {
       type: "screen.add"
       name?: string
       rows: {
-        cells: { is: string; props?: Record<string, unknown>; slotText?: string; grow?: boolean }[]
+        cells: { is: string; props?: Record<string, unknown>; slotText?: string; value?: unknown; grow?: boolean }[]
         align?: string
         justify?: string
         gap?: number
@@ -135,8 +160,15 @@ export type StudioCommand =
       frame?: { w?: number; h?: number }
     }
   | { type: "evolve"; id?: string; count?: number; seed?: number; strength?: number }
+  | { type: "artboard.duplicate"; id?: string; ids?: string[] }
+  | { type: "group"; id?: string; ids?: string[]; name?: string }
+  | { type: "ungroup"; id: string }
+  | { type: "replay" }
+  | { type: "view"; to?: ViewTo; zoom?: number; id?: string }
+  | { type: "image.export"; id?: string; scale?: number }
+  | { type: "inspect"; id?: string }
   | { type: "code.get"; id: string; styling?: Styling }
-  | { type: "registry.get"; is?: string }
+  | { type: "registry.get"; is?: string; brief?: boolean }
   | { type: "video.export"; id?: string; seconds?: number; fps?: number; theme?: string }
   | { type: "clock.seek"; seconds?: number }
   | { type: "clock.release" }
@@ -161,6 +193,7 @@ export function summarize(a: Artboard) {
     h: a.h,
     hidden: a.hidden,
     locked: a.locked,
+    group: a.groupId ?? null,
     selected: editor.selectedIds.includes(a.id),
   }
 }
@@ -202,21 +235,31 @@ export function registrySchema() {
     commands: {
       "document.get": "the live document",
       "document.set": "{ document } — replace the project (validated like a file import; undoable)",
-      "artboard.list": "summaries of every frame",
+      "artboard.list": "summaries of every frame (id, name, kind, x, y, w, h, hidden, locked, group, selected)",
       "artboard.select": "{ id } or { ids }",
       "artboard.remove": "{ id }",
       "artboard.update":
-        "{ id, patch } — merge name/x/y/w/h/hidden/locked, chart fields, widget props, screen rows, or a reel's clips and score; sanitized",
+        "{ id, patch } — merge name/x/y/w/h/hidden/locked, `chart` fields, and under `widget`: a component's props or value, a screen's rows, a reel's clips and score; sanitized; a key it does not know fails the call",
       "chart.add": "{ chart, name?, data?: { labels, series: [{ key, label?, color?, values }] }, frame? }",
       "widget.add": "{ widget: avatar|button|gradient|image, name?, props? }",
-      "component.add": "{ is, name?, props?, slotText?, frame? } — a registry component",
+      "component.add":
+        "{ is, name?, props?, slotText?, value?, frame? } — a registry component; value is what its v-model holds (a field's text, a toggle's state), checked against its default's kind (an empty string shows a field's placeholder)",
       "screen.add":
-        "{ name?, rows: [{ cells: [{ is, props?, slotText?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
+        "{ name?, rows: [{ cells: [{ is, props?, slotText?, value?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
       "reel.add": `{ name?, clips: [id | { id, seconds?, transition?: { kind?: ${REEL_TRANSITIONS.join("|")}, seconds?, cell?, seed? }, camera?: [{ t: 0-1 of the clip, x, y: the frame point looked at (0-1), zoom: 1 fitted, tilt: degrees }], callouts?: [{ x, y: a frame point (0-1), label, note?, side?: left|right, from?, to?: seconds into the clip }], chapter?: { line, spec?: [[figure, words]] } }], score?: true | { seed }, frame? } — frames played in order with ordered-dither transitions (clip 3s, dissolve 0.6s by default); a film when clips carry camera moves, callouts and chapters (a band under the stage), with a score synthesized from the cut; video.export renders the whole cut with its score`,
       evolve: "{ id?, count?, seed?, strength? } — seeded variants placed as a row",
+      "artboard.duplicate": "{ id? | ids? } — copies of those frames (the selection by default), selected",
+      group: "{ id? | ids?, name? } — group those frames (the selection by default); each summary carries its group",
+      ungroup: "{ id } — a group's id, or a frame of the group; the frames it held",
+      replay: "play every frame's entrance again",
+      view: `{ to?: ${VIEW_TO.join("|")}, zoom?: 0.2-3, id? } — move the canvas view: fit every frame, the selection or one frame (id), step the zoom or set it`,
+      "image.export": `{ id?, scale?: ${PNG_SCALES.join("|")} } — the frame as a PNG (scale 2 by default), written under the project as image/<name>.png`,
+      inspect:
+        "{ id? } — what the frame reads as on the canvas: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, fields named only by their placeholder (set the field's `label` prop), targets under 24px, text under AA contrast, images without alt, positive tabindex)",
       "code.get":
         "{ id, styling? } — the frame as a Vue SFC: tailwind (default) keeps the utility classes; css (a scoped stylesheet), modules (CSS Modules) or stylex write the same look in that system",
-      "registry.get": "{ is? } — this schema, or one component's entry",
+      "registry.get":
+        "{ is?, brief? } — this schema (brief: each component's name, label and group, no prop specs), or one component's entry",
       "video.export":
         "{ id?, seconds?, fps?: 24|30|60, theme? } — the frame as a HyperFrames composition: index (HTML referencing ./player.js and ./player.css) + the assets' URLs; write the three side by side and `npx hyperframes render`. A reel's seconds default to its length; a reel with a score adds score: { path: score.wav, base64 } for the index's audio track",
       "clock.seek":
@@ -297,6 +340,9 @@ function buildClips(input: unknown) {
   return { clips, missing, reels }
 }
 
+/** What `artboard.update` patches on the frame itself. */
+const PATCH_KEYS = new Set(["name", "x", "y", "w", "h", "hidden", "locked", "chart", "widget"])
+
 function buildScreen(cmd: Extract<StudioCommand, { type: "screen.add" }>) {
   const dropped: string[] = []
   const rows = (Array.isArray(cmd.rows) ? cmd.rows : []).filter(isPlain).map((r) => {
@@ -309,6 +355,7 @@ function buildScreen(cmd: Extract<StudioCommand, { type: "screen.add" }>) {
       const cell = createCell(entry)
       cell.props = sanitizeComponentProps(entry, { ...cell.props, ...(isPlain(c.props) ? c.props : {}) })
       if (typeof c.slotText === "string") cell.slotText = c.slotText
+      if ("value" in c) cell.model = sanitizeModel(entry, c.value)
       cell.grow = c.grow === true
       return [cell]
     })
@@ -319,6 +366,25 @@ function buildScreen(cmd: Extract<StudioCommand, { type: "screen.add" }>) {
     return row
   })
   return { rows, dropped }
+}
+
+/** The ids a command names (`ids`, else `id`), else the selection's. */
+function idsOf(cmd: { id?: unknown; ids?: unknown }): string[] {
+  const named = Array.isArray(cmd.ids)
+    ? cmd.ids.filter((i): i is string => typeof i === "string")
+    : typeof cmd.id === "string"
+      ? [cmd.id]
+      : []
+  return named.length ? named : [...editor.selectedIds]
+}
+
+/** Select the frames a command names; the unknown ones, or null when all are known. */
+function selectNamed(ids: string[]): string | null {
+  const missing = ids.filter((i) => !find(i))
+  if (missing.length) return `no artboard ${missing.join(", ")}`
+  if (!ids.length) return "select frames or pass { id } or { ids }"
+  selectMany(ids)
+  return null
 }
 
 /** Execute one command against the live editor. Never throws. */
@@ -356,6 +422,14 @@ export function runCommand(input: unknown): CommandResult {
         if (!a) return fail(`no artboard ${cmd.id}`)
         if (!isPlain(cmd.patch)) return fail("patch must be an object")
         const p = cmd.patch
+        // A key it does not know fails here, before anything changes: an
+        // agent that put a screen's rows beside `widget` is told so, never
+        // answered "ok" for a change that did not happen.
+        const unknown = Object.keys(p).filter((k) => !PATCH_KEYS.has(k))
+        if (unknown.length)
+          return fail(
+            `patch does not take ${unknown.join(", ")}; it takes ${[...PATCH_KEYS].join(", ")}, and what the frame shows (a component's props or value, a screen's rows, a reel's clips) goes under widget`,
+          )
         if (typeof p.name === "string") a.name = p.name.slice(0, 80)
         for (const k of ["x", "y", "w", "h"] as const)
           if (typeof p[k] === "number" && Number.isFinite(p[k])) a[k] = Math.round(p[k] as number)
@@ -365,9 +439,11 @@ export function runCommand(input: unknown): CommandResult {
         if (isPlain(p.widget) && a.widget) {
           const w = a.widget as unknown as Record<string, unknown>
           const patch = p.widget
-          if (a.widget.kind === "component" && isPlain(patch.props))
-            w.props = { ...(w.props as object), ...patch.props }
-          else if (a.widget.kind === "screen" && Array.isArray(patch.rows)) {
+          if (a.widget.kind === "component" && (isPlain(patch.props) || "value" in patch)) {
+            if (isPlain(patch.props)) w.props = { ...(w.props as object), ...patch.props }
+            const entry = componentEntry(a.widget.is)
+            if ("value" in patch && entry) w.model = sanitizeModel(entry, patch.value)
+          } else if (a.widget.kind === "screen" && Array.isArray(patch.rows)) {
             const built = buildScreen({ type: "screen.add", rows: patch.rows as never })
             w.rows = built.rows
           } else if (a.widget.kind === "reel" && (Array.isArray(patch.clips) || "score" in patch)) {
@@ -408,6 +484,7 @@ export function runCommand(input: unknown): CommandResult {
             ...(isPlain(cmd.props) ? cmd.props : {}),
           })
           if (typeof cmd.slotText === "string") a.widget.slotText = cmd.slotText
+          if ("value" in cmd) a.widget.model = sanitizeModel(entry, cmd.value)
         }
         applyFrame(a, cmd.frame)
         return ok(summarize(a))
@@ -456,6 +533,62 @@ export function runCommand(input: unknown): CommandResult {
         const opts: EvolveOptions = { count: cmd.count, seed: cmd.seed, strength: cmd.strength }
         const gen = placeGeneration(evolveArtboard(parent, opts))
         return ok(gen.map(summarize))
+      }
+      case "artboard.duplicate": {
+        const missing = selectNamed(idsOf(cmd))
+        if (missing) return fail(missing)
+        duplicateSelected()
+        return ok(editor.selectedIds.map((i) => summarize(find(i)!)))
+      }
+      case "group": {
+        const missing = selectNamed(idsOf(cmd))
+        if (missing) return fail(missing)
+        const g = groupSelected()
+        if (!g) return fail("nothing to group")
+        if (typeof cmd.name === "string" && cmd.name.trim()) g.name = cmd.name.trim().slice(0, 80)
+        return ok(editor.selectedIds.map((i) => summarize(find(i)!)))
+      }
+      case "ungroup": {
+        const id = typeof cmd.id === "string" ? cmd.id : ""
+        const groupId = editor.groups.some((g) => g.id === id) ? id : (find(id)?.groupId ?? null)
+        if (!groupId) return fail(`no group ${id}: pass a group's id or a frame of one`)
+        const members = editor.artboards.filter((a) => a.groupId === groupId)
+        ungroup(groupId)
+        return ok(members.map(summarize))
+      }
+      case "replay":
+        replay()
+        return ok({ replayed: editor.artboards.filter((a) => !a.hidden).length })
+      case "view": {
+        if (typeof cmd.id === "string") {
+          const a = find(cmd.id)
+          if (!a) return fail(`no artboard ${cmd.id}`)
+          selectArtboard(a.id)
+          fitSelection()
+        } else if (cmd.zoom !== undefined) {
+          const z = Number(cmd.zoom)
+          if (!Number.isFinite(z) || z <= 0) return fail("zoom must be a positive number (1 is 100%)")
+          zoomTo(z)
+        } else {
+          const to: unknown = cmd.to ?? "all"
+          if (!VIEW_TO.includes(to as ViewTo)) return fail(`to must be one of ${VIEW_TO.join(", ")}`)
+          VIEW[to as ViewTo]()
+        }
+        return ok({ ...editor.viewport, inspecting: editor.inspecting })
+      }
+      case "image.export": {
+        const a = find(typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId)
+        if (!a) return fail("select an artboard or pass { id }")
+        const scale = cmd.scale ?? 2
+        if (!PNG_SCALES.includes(scale as (typeof PNG_SCALES)[number]))
+          return fail(`scale must be one of ${PNG_SCALES.join(", ")}`)
+        return ok({ id: a.id, name: a.name, file: `image/${slugOf(a.name)}.png`, scale })
+      }
+      case "inspect": {
+        const a = find(typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId)
+        if (!a) return fail("select an artboard or pass { id }")
+        const reading = inspectFrame(a)
+        return reading ? ok(reading) : fail(`${a.name} is not drawn on the canvas (hidden?)`)
       }
       case "code.get": {
         const a = find(cmd.id)
@@ -506,7 +639,14 @@ export function runCommand(input: unknown): CommandResult {
           const entry = registrySchema().components.find((c) => c.is === cmd.is)
           return entry ? ok(entry) : fail(`unknown component ${cmd.is}`)
         }
-        return ok(registrySchema())
+        const schema = registrySchema()
+        // Brief: the names to ask about, small enough for a harness to read
+        // in one answer (the full specs run past 100 kB).
+        return ok(
+          cmd.brief
+            ? { ...schema, components: schema.components.map(({ is, label, group }) => ({ is, label, group })) }
+            : schema,
+        )
       }
       default:
         return fail(`unknown command type ${(cmd as { type: string }).type}`)

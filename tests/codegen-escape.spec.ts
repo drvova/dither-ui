@@ -56,6 +56,12 @@ describe("generated SFCs keep document values as data", () => {
     expect(code).toContain(`:easing="7"`)
   })
 
+  it("a field's label, carried by its DitherField", () => {
+    const w = createComponent(componentEntry("DitherEmailInput")!)
+    w.props.label = HOSTILE
+    noInjection(compile(widgetCode(w, { w: 280, h: 90 })))
+  })
+
   it("a component's props, slot text and v-model value", () => {
     const w = createComponent(componentEntry("DitherInput")!)
     w.props.placeholder = HOSTILE

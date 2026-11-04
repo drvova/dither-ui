@@ -16,10 +16,23 @@ import {
   type WorldView,
 } from "../engine/world"
 import { createWorldGpu, createWorldMaterial, type WorldGpu, type WorldMaterial } from "../engine/world-gl"
+import { type Assembly, type AssemblyState, createAssembly } from "../engine/assemble"
 import * as stylex from "@stylexjs/stylex"
 
-export type { ModelFormat, World, WorldGpu, WorldMaterial, WorldMesh, WorldStyle, WorldTarget, WorldView }
+export type {
+  Assembly,
+  AssemblyState,
+  ModelFormat,
+  World,
+  WorldGpu,
+  WorldMaterial,
+  WorldMesh,
+  WorldStyle,
+  WorldTarget,
+  WorldView,
+}
 export {
+  createAssembly,
   createWorldGpu,
   createWorldMaterial,
   externalResources,
@@ -76,7 +89,7 @@ import { clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle
 import type { DitherRenderMode } from "../engine/precompile"
 import type { RasterBuffer } from "../engine/raster"
 import { useDitherBackground } from "../engine/use-dither-background"
-import { createWorldTarget } from "../engine/world"
+import { cameraOf, createWorldTarget } from "../engine/world"
 import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
@@ -139,6 +152,15 @@ const props = withDefaults(
     time?: number
     /** Drag, or arrow keys when focused, to orbit. */
     interactive?: boolean
+    /** The model as a build, 0-1: its separate pieces rise from a dotted
+     * wire cage bottom to top, each flying in hot (`heat`) until it lands. */
+    build?: number
+    /** Blow the pieces apart, 0 together → 1 apart (turned as they go). */
+    scatter?: number
+    /** The colour a piece glows in while it flies in. */
+    heat?: PixelColor
+    /** Pieces under the pointer lean away from it, and settle back after. */
+    nudge?: boolean
     /** Accessible name. */
     label?: string
     paused?: boolean
@@ -170,6 +192,10 @@ const props = withDefaults(
     bloom: "off",
     animate: true,
     interactive: true,
+    build: 1,
+    scatter: 0,
+    heat: "orange",
+    nudge: false,
     label: "3D model",
     paused: false,
     frameRate: 0,
@@ -315,6 +341,18 @@ const style = computed<WorldStyle>(() => ({
 const bloomStyle = computed(() => pixelBloomStyle(props.bloom))
 
 let drag: { id: number; x: number; y: number } | null = null
+/** Where a pointer passes over the model, 0-1 across the box; null when away. */
+let hover: { x: number; y: number } | null = null
+
+function onHover(e: PointerEvent) {
+  const r = wrapRef.value?.getBoundingClientRect()
+  hover =
+    r && r.width > 0 && r.height > 0 ? { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height } : null
+}
+
+function onLeave() {
+  hover = null
+}
 
 function onDown(e: PointerEvent) {
   if (!props.interactive || e.button !== 0) return
@@ -323,6 +361,7 @@ function onDown(e: PointerEvent) {
 }
 
 function onMove(e: PointerEvent) {
+  if (props.nudge) onHover(e)
   if (!drag || e.pointerId !== drag.id) return
   // A drag across the whole width turns half a revolution.
   const k = 180 / Math.max(1, wrapRef.value?.getBoundingClientRect().width ?? 320)
@@ -357,6 +396,18 @@ let gl: GlHandle | null | undefined
 let gpu: WorldGpu | null = null
 let materialPass: WorldMaterial | null = null
 
+/** The model taken apart into its pieces, made once per model and heat
+ * when a build, a scatter or a nudge asks for it. */
+let assembly: { of: World; heat: string; seed: number; a: Assembly } | null = null
+const assembling = () => props.build < 1 || props.scatter > 0 || props.nudge
+function assemblyOf(w: World): Assembly {
+  const heat = String(props.heat)
+  const seed = props.seed ?? 0
+  if (!assembly || assembly.of !== w || assembly.heat !== heat || assembly.seed !== seed)
+    assembly = { of: w, heat, seed, a: createAssembly(w, fillOf(props.heat), seed) }
+  return assembly.a
+}
+
 /** One WebGL context per component, shared by the GPU engine and the material pass. */
 const glHandle = () => (gl === undefined ? (gl = createGl()) : gl)
 
@@ -368,13 +419,24 @@ function wantsGpu(w: World): boolean {
   return triangles(w) >= GPU_FROM
 }
 
-function render(buffer: RasterBuffer, clock: number) {
-  const w = world.value
+function render(buffer: RasterBuffer, clock: number, dt: number) {
+  let w = world.value
   if (!w) {
     buffer.data.fill(0)
     return
   }
   const v = viewAt(clock)
+  const st = style.value
+  if (assembling()) {
+    const a = assemblyOf(w)
+    const cols = buffer.width
+    const rows = buffer.height
+    const nudge =
+      props.nudge && hover
+        ? { x: hover.x * cols, y: hover.y * rows, radius: Math.min(cols, rows) * 0.22, amount: 1 }
+        : null
+    w = a.frame(v, cameraOf(w, v, cols, rows), { build: props.build, scatter: props.scatter, nudge }, dt)
+  }
   if (!target || target.width !== buffer.width || target.height !== buffer.height)
     target = createWorldTarget(buffer.width, buffer.height)
   let drawn = false
@@ -382,11 +444,11 @@ function render(buffer: RasterBuffer, clock: number) {
     const h = glHandle()
     if (h) {
       gpu = gpu ?? createWorldGpu(h)
-      drawn = gpu.rasterize(w, v, target, style.value)
+      drawn = gpu.rasterize(w, v, target, st)
       gpuProblem.value = drawn ? "" : gpu.problem()
     } else gpuProblem.value = "WebGL is not available"
   }
-  if (!drawn) rasterizeWorld(w, v, target, style.value)
+  if (!drawn) rasterizeWorld(w, v, target, st)
   engineUsed.value = drawn ? "gpu" : "cpu"
   const moment = directedTime()
   if (props.shader) {
@@ -406,13 +468,13 @@ function render(buffer: RasterBuffer, clock: number) {
         ? materialPass?.problem() || "the material did not compile"
         : "WebGL is not available"
     if (rgba) {
-      paintMaterial(buffer, target, w, v, style.value, rgba)
+      paintMaterial(buffer, target, w, v, st, rgba)
       return
     }
   }
   // The first channel is the model's skin: sampled per cell through the uvs.
   const texture = props.channels?.length ? rasterOf(props.channels[0], moment) : null
-  paintTarget(buffer, target, w, v, texture ? { ...style.value, texture } : style.value)
+  paintTarget(buffer, target, w, v, texture ? { ...st, texture } : st)
 }
 
 function afterPaint(canvas: HTMLCanvasElement) {
@@ -474,6 +536,11 @@ const surface = useDitherBackground({
     props.animate,
     props.time,
     props.channels,
+    // Read every frame; in the restart too, so a still surface repaints them.
+    props.build,
+    props.scatter,
+    props.heat,
+    props.nudge,
   ],
   frameRate: () => props.frameRate,
   staticClock: 0,
@@ -498,6 +565,7 @@ defineExpose({ surface })
     @pointermove="onMove"
     @pointerup="onUp"
     @pointercancel="onUp"
+    @pointerleave="onLeave"
     @keydown="onKey"
     @focus="ring = ($event.currentTarget as Element).matches(':focus-visible')"
     @blur="ring = false"

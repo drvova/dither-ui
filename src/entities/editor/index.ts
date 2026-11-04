@@ -15,6 +15,7 @@ export {
   moveArtboard,
   moveSelected,
   pasteClipboard,
+  centreOn,
   placeArtboard,
   placeGeneration,
   removeArtboard,
@@ -36,3 +37,17 @@ export {
   ungroup,
   type Viewport,
 } from "./model/store"
+export { boundsOf } from "./model/free"
+export {
+  actualSize,
+  fitAll,
+  fitSelection,
+  frame,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  startInspecting,
+  stopInspecting,
+  zoomIn,
+  zoomOut,
+  zoomTo,
+} from "./model/view"

@@ -1,68 +1,120 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowReactive, toRaw, watch } from "vue"
-import { copyText, DitherIcon } from "@dither-kit"
-import { editor, selectArtboard, selectedArtboard } from "@/entities/editor"
+import { copyText, DitherIcon, type IconName } from "@dither-kit"
+import { boundsOf, centreOn, editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
-import { type AcpClient, type AcpPermissionRequest, type BridgeHello, connectAcp } from "@/features/agent/acp"
+import {
+  type AcpClient,
+  type AcpPermissionRequest,
+  type BridgeHello,
+  connectAcp,
+  modelName,
+  type PromptImage,
+} from "@/features/agent/acp"
 import {
   type AgentCommand,
+  type AgentActivity,
   type AgentConfig,
   type AgentEvent,
   loadAgentConfig,
-  loadSession,
+  loadDraft,
   type Mode,
+  type ModelChoice,
   saveAgentConfig,
-  saveSession,
+  saveDraft,
+  type ContextUse,
+  type Setting,
   type Usage,
 } from "@/features/agent/tools"
-import { undo } from "@/features/history"
+import { chats, loadThread, newChat, openProject, saveThread, titleOf } from "@/features/agent/chats"
+import type { Built } from "@/features/agent/dither"
+import { handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
+import { artboardPng } from "@/features/export-image"
+import { checkpoint, restoreCheckpoint, restoreFrame, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
+import BrandMark from "@/shared/ui/BrandMark.vue"
+import { modKey } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { isMark } from "@/shared/ui/marks"
+import {
+  type Attachment,
+  chipOf,
+  foldsPaste,
+  imagesOf,
+  intake,
+  moved,
+  attachmentsOf,
+  pastedText,
+  promptText,
+  withContext,
+  quoteOf,
+  type Queued,
+} from "./model/compose"
+import { hintOf, type Slash, slashList, unknownOf } from "./model/slash"
+import { askTitle, type Changed } from "./model/steps"
+import { nextPrompts } from "./model/suggest"
+import {
+  type Block,
+  changesOf,
+  type Entry,
+  runLabel,
+  secondsOf,
+  sentOf,
+  threadBlocks,
+  todosOf,
+  toolEntry,
+} from "./model/thread"
+import Attached from "./ui/Attached.vue"
+import ContextMeter from "./ui/ContextMeter.vue"
+import ThreadEntry from "./ui/ThreadEntry.vue"
+import TurnTrays from "./ui/TurnTrays.vue"
 
 // The agent panel is a CONTROL PLANE for the harness the user already has.
 // One local bridge, one pick: Claude Code, Codex, Gemini CLI, oh-my-pi,
-// Goose, OpenCode — or any command that speaks the Agent Client Protocol.
+// Goose, OpenCode, or any command that speaks the Agent Client Protocol.
 // The harness runs as the user's own signed-in process; the panel is its
-// client: a transcript (› prompt, ⏺ prose as it streams, ⚙ Studio tool calls
-// with their result, ✓ the harness's own activity, ☰ plans, ⚠ permission
-// prompts answered inline), a composer with slash commands (ours and the
-// harness's own), follow-ups queued while it works, Esc to stop. Nothing
-// here is a key or a model setting.
-const emit = defineEmits<{ close: [] }>()
-// The composer's keys, each its own item under the status line.
-const HINTS = [
-  ["↵", "send"],
-  ["⇧↵", "newline"],
-  ["/", "commands"],
-  ["↑", "history"],
-  ["⌥↑", "unqueue"],
-  ["^o", "tools"],
-  ["esc", "stop"],
-] as const
+// client, set as a composer. This file holds the session (the bridge, the
+// turns and their checkpoints, the queue, the context) and lays it out; the
+// thread's entries draw in `ui/ThreadEntry.vue`, the trays over the input in
+// `ui/TurnTrays.vue`, and every reading of the thread is `model/thread.ts`.
+// Nothing here is a key or a model setting.
+const emit = defineEmits<{ close: []; activity: [AgentActivity] }>()
+// Suggestions for an empty thread.
+const STARTERS: { icon: IconName; text: string }[] = [
+  { icon: "Layout", text: "A sign-in screen with email, password and a primary button" },
+  { icon: "ChartLine", text: "A revenue dashboard: an area chart, three stat cards and a table" },
+  { icon: "Dice", text: "Evolve the selected frame into four variants" },
+]
 
 /* ------------------------------ configuration ----------------------------- */
 
 const config = ref<AgentConfig>(loadAgentConfig())
 watch(config, (c) => saveAgentConfig(c), { deep: true })
-const settingsOpen = ref(false)
+const menuOpen = ref(false)
 
 /* ------------------------------- transcript ------------------------------- */
 
-type Entry =
-  | { kind: "user" | "assistant" | "system" | "error" | "followup"; text: string }
-  | { kind: "tool"; name: string; summary: string; detail: string; ok: boolean; open: boolean }
-  | { kind: "activity"; id: string; title: string; status: string }
-  | { kind: "plan"; entries: { content: string; status: string }[] }
-  | {
-      kind: "approval"
-      title: string
-      options: { id: string; label: string; primary?: boolean }[]
-      answered: string | null
-    }
-
+/** The message being written, and its field (declared first: the session
+ * restore below brings back the project's draft). */
+const input = ref("")
+/** What the message carries besides its words (pastes, dropped files,
+ * pictures), and a line about what could not come in. */
+const attachments = ref<Attachment[]>([])
+const notice = ref("")
+watch(input, () => (notice.value = ""))
+const box = ref<HTMLTextAreaElement | null>(null)
 const entries = ref<Entry[]>([])
 const usage = ref<Usage>({ input: 0, output: 0 })
+/** The harness's other choice settings (effort, thinking, ...), as it reports them. */
+const settings = ref<Setting[]>([])
+/** A setting to one of its values, asked of the harness (which answers
+ * with what it now holds). */
+async function setSetting(s: Setting, id: string) {
+  if (!acp.value || id === s.current) return
+  await acp.value.setOption(s.configId, id).catch((e: Error) => push({ kind: "error", text: e.message }))
+}
+/** How full the harness says its context is (none until it reports). */
+const contextUse = ref<ContextUse | null>(null)
 type TextEntry = Extract<Entry, { text: string }>
 type PlanEntry = Extract<Entry, { kind: "plan" }>
 /** Newest entry matching a guard (lib is ES2020: no findLast). */
@@ -75,38 +127,219 @@ function lastEntry<T extends Entry>(is: (e: Entry) => e is T): T | undefined {
 }
 const isPlan = (e: Entry): e is PlanEntry => e.kind === "plan"
 const isAssistant = (e: Entry): e is TextEntry => e.kind === "assistant"
+/* The thread follows what arrives only while you read its end: scrolled up,
+ * it holds still and a key offers the latest. */
 const log = ref<HTMLElement | null>(null)
-const scrollLog = () => nextTick(() => log.value?.scrollTo({ top: log.value.scrollHeight }))
+const atEnd = ref(true)
+const unseen = ref(false)
+const onScroll = () => {
+  const el = log.value
+  if (!el) return
+  atEnd.value = el.scrollHeight - el.scrollTop - el.clientHeight < 32
+  if (atEnd.value) unseen.value = false
+}
+function toEnd(smooth = false) {
+  const el = log.value
+  if (!el) return
+  const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? true
+  el.scrollTop = el.scrollHeight
+  if (smooth && !still) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
+  unseen.value = false
+}
+const scrollLog = (force = false) =>
+  nextTick(() => {
+    if (force || atEnd.value) toEnd()
+    else unseen.value = true
+  })
 const push = (e: Entry) => {
   entries.value.push(e)
   scrollLog()
 }
 const system = (text: string) => push({ kind: "system", text })
 
-// Per-project memory: the conversation follows the active project.
+/* ------------------------------ turns and checkpoints ---------------------- */
+
+/** Each prompt is a turn; the canvas as it stood before it is the turn's
+ * checkpoint (kept in memory: a document per turn is too large to save). */
+const turn = ref(0)
+const checkpoints = new Map<number, string>()
+/** Turns whose changes were kept (or undone): their bar is gone. */
+const settled = ref(new Set<number>())
+
+// The conversation is the open chat of the active project (`chats`): it
+// follows the project, and the chat picked in the sidebar.
 let loadedFor = ""
-function restore(projectId: string) {
+let loadedChat = ""
+/** Entries when last kept: more of them means the chat moved. */
+let keptCount = 0
+function restore(projectId: string, chatId: string) {
+  // The chat left keeps what was being written in it.
+  if (loadedFor && loadedChat) keepDraft()
+  const fresh = loadedChat !== "" && (projectId !== loadedFor || chatId !== loadedChat)
   loadedFor = projectId
-  const s = loadSession<Entry>(projectId)
+  loadedChat = chatId
+  const s = loadThread<Entry>(projectId, chatId)
   entries.value = s?.entries ?? []
   usage.value = s?.usage ?? { input: 0, output: 0 }
-  scrollLog()
+  turn.value = Math.max(0, ...entries.value.map((e) => ("turn" in e && e.turn) || 0))
+  checkpoints.clear()
+  settled.value = new Set(Array.from({ length: turn.value + 1 }, (_, i) => i))
+  keptCount = entries.value.length
+  opened.value = new Map()
+  const draft = loadDraft(projectId, chatId)
+  input.value = draft.text
+  attachments.value = attachmentsOf(draft.attachments)
+  scrollLog(true)
+  // Another chat is another session with the harness.
+  if (fresh && acp.value?.hello?.agent) {
+    contextUse.value = null
+    acp.value.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
+  }
+}
+
+const title = computed(() => titleOf(entries.value))
+/** Following the agent: the canvas pans to the frames a step changed (its
+ * zoom kept; not while the workbench inspects, which reads at 100%). */
+function follow(frames: Changed[]) {
+  if (editor.inspecting) return
+  const boxes = editor.artboards.filter((a) => !a.hidden && frames.some((f) => f.id === a.id))
+  if (boxes.length) centreOn(boundsOf(boxes))
+}
+
+/** The latest turn's frames settled one by one (kept or undone), and the
+ * one just undone, which can be put back until the canvas changes again. */
+const settledFrames = ref(new Set<string>())
+const putBack = ref<{ id: string; name: string; after: string } | null>(null)
+watch(turn, () => {
+  settledFrames.value = new Set()
+  putBack.value = null
+})
+/** What the latest turn changed on the canvas, until kept or undone (all at
+ * once, or frame by frame). */
+const changes = computed(() => {
+  if (!turn.value || settled.value.has(turn.value)) return null
+  const c = changesOf(entries.value, turn.value)
+  if (!c) return null
+  const frames = c.frames.filter((f) => !settledFrames.value.has(f.id))
+  return frames.length || putBack.value ? { ...c, frames } : null
+})
+function settleFrame(id: string) {
+  settledFrames.value = new Set(settledFrames.value).add(id)
+  putBack.value = null
+  refocus()
+}
+/** One frame back to where the turn found it (one undoable step). */
+function undoFrame(id: string) {
+  const c = changes.value
+  const cp = c && checkpoints.get(c.turn)
+  const f = c?.frames.find((x) => x.id === id)
+  if (!c || !cp || !f) return
+  restoreFrame(cp, id)
+  settledFrames.value = new Set(settledFrames.value).add(id)
+  putBack.value = { id, name: f.name, after: checkpoint() }
+  refocus()
+}
+/** The frame just undone, as the turn left it: the history's undo of that
+ * step, offered only while nothing else changed since. */
+function putFrameBack() {
+  const p = putBack.value
+  putBack.value = null
+  if (!p || checkpoint() !== p.after) return
+  undo()
+  const left = new Set(settledFrames.value)
+  left.delete(p.id)
+  settledFrames.value = left
+  refocus()
+}
+
+function keep() {
+  if (changes.value) settled.value = new Set(settled.value).add(changes.value.turn)
+  refocus()
+}
+/** The canvas back to where the turn found it (one undoable step). */
+function undoTurn() {
+  const c = changes.value
+  const cp = c && checkpoints.get(c.turn)
+  if (!c || !cp) return
+  restoreCheckpoint(cp)
+  settled.value = new Set(settled.value).add(c.turn)
+  refocus()
+  system("Put the canvas back to before that message")
+}
+/** Any earlier turn: the canvas as it stood before its message. */
+function restoreTo(at: number) {
+  const cp = checkpoints.get(at)
+  if (!cp || busy.value) return
+  restoreCheckpoint(cp)
+  settled.value = new Set([...settled.value, ...Array.from({ length: turn.value - at + 1 }, (_, i) => at + i)])
+  system("Restored the checkpoint")
+}
+const canRestore = (e: Entry) => "turn" in e && !!e.turn && checkpoints.has(e.turn) && !busy.value
+
+/** Your earlier message, taken back to change and send again from there:
+ * the later entries leave the thread, the canvas goes back to before it
+ * when its checkpoint is kept (`restore`, yours to turn off), and the
+ * harness is told it is a revision (its session remembers the rest). */
+const editing = ref<{ at: number; turn: number; was: string; restore: boolean; restorable: boolean } | null>(null)
+function editFrom(at: number) {
+  const e = entries.value[at]
+  if (busy.value || !e || (e.kind !== "user" && e.kind !== "followup")) return
+  const restorable = !!e.turn && checkpoints.has(e.turn)
+  editing.value = { at, turn: e.turn ?? 0, was: e.text, restore: restorable, restorable }
+  input.value = e.text
+  for (const c of e.context ?? [])
+    if (editor.artboards.some((a) => a.id === c.id) && !handoff.picked.includes(c.id)) togglePicked(c.id)
+  refocus()
+}
+function cancelEdit() {
+  editing.value = null
+  input.value = ""
+  refocus()
+}
+/** Go back to the message being edited: the canvas (when chosen) and the
+ * thread; what the harness reads before the revised message. */
+function rewind(ed: NonNullable<typeof editing.value>): string {
+  const cp = ed.restore ? checkpoints.get(ed.turn) : undefined
+  if (cp) restoreCheckpoint(cp)
+  entries.value = entries.value.slice(0, ed.at)
+  const first = ed.was.split("\n")[0].slice(0, 80)
+  return `I am changing my earlier message ("${first}"); ${cp ? "the canvas is back to how it stood before it" : "the canvas stays as it is now"}. What I want instead:\n\n`
+}
+
+const todos = computed(() => todosOf(entries.value))
+
+/** The thread as drawn, runs of steps folded; a run is open while it is the
+ * newest thing the harness is doing, or once you open it. */
+const blocks = computed(() => threadBlocks(entries.value))
+const opened = ref(new Map<number, boolean>())
+const isOpen = (b: Block) => opened.value.get(b.at) ?? (busy.value && b === blocks.value[blocks.value.length - 1])
+const setOpen = (b: Block, open: boolean) => {
+  if (open !== isOpen(b)) opened.value = new Map(opened.value).set(b.at, open)
+}
+/** A fold the reader opened or closed (a thought, a step) keeps it. */
+function setFold(e: Entry, open: boolean) {
+  if ((e.kind === "thought" || e.kind === "tool") && e.open !== open) e.open = open
 }
 watch(
   () => activeProjectId.value,
-  (id) => {
-    if (id && id !== loadedFor) restore(id)
+  (id) => id && openProject(id),
+  { immediate: true },
+)
+watch(
+  () => [chats.project, chats.active] as const,
+  ([project, chat]) => {
+    if (project && chat && (project !== loadedFor || chat !== loadedChat)) restore(project, chat)
   },
   { immediate: true },
 )
 watch(
   [entries, usage],
-  () =>
-    loadedFor &&
-    saveSession(loadedFor, {
-      entries: entries.value.filter((e) => e.kind !== "approval" || e.answered !== null),
-      usage: usage.value,
-    }),
+  () => {
+    if (!loadedFor) return
+    const kept = entries.value.filter((e) => e.kind !== "approval" || e.answered !== null)
+    saveThread(loadedFor, loadedChat, { entries: kept, usage: usage.value }, kept.length > keptCount)
+    keptCount = kept.length
+  },
   { deep: true },
 )
 
@@ -120,6 +353,17 @@ const elapsed = computed(() => (busy.value ? Math.max(0, now.value - started.val
 const lastTurnMs = ref(0)
 const fmtTokens = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n))
 const fmtMs = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`)
+/** The folder's own name out of a path, either separator. */
+const folderOf = (path: string) => path.split(/[\\/]/).filter(Boolean).pop() ?? path
+/** The reply just copied, by its place in the thread. */
+const copied = ref<number | null>(null)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
+async function copyReply(at: number, text: string) {
+  if (!(await copyText(text))) return
+  copied.value = at
+  clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => (copied.value = null), 1600)
+}
 
 /* -------------------------------- the bridge ------------------------------ */
 
@@ -128,11 +372,22 @@ const hello = ref<BridgeHello | null>(null)
 const connecting = ref(false)
 const harnesses = computed(() => hello.value?.harnesses ?? [])
 const agent = computed(() => hello.value?.agent ?? null)
-/** The harness's own name once it has introduced itself, else the bridge's label for it. */
+/** Who answers, as a person reads it: a harness picked from the bridge's
+ * list goes by that name (Claude Code, not its adapter's package), any
+ * other command by the name it introduced itself with. */
 const agentName = ref("")
-const nameIt = () => (agentName.value = acp.value?.agent || agent.value?.name || "")
+const nameIt = () =>
+  (agentName.value =
+    (agent.value && harnesses.value.find((h) => h.id === agent.value?.id)?.name) ||
+    acp.value?.agent ||
+    agent.value?.name ||
+    "")
 const modes = ref<Mode[]>([])
 const mode = ref("")
+/** The model the harness runs, as its session says; switched only among
+ * the harness's own. */
+const model = ref<ModelChoice | null>(null)
+const modelOpen = ref(false)
 const commands = ref<AgentCommand[]>([])
 const pickerOpen = ref(false)
 const customCommand = ref(config.value.command)
@@ -147,12 +402,16 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
       url,
       onEvent,
       permission: askPermission,
+      approveTool,
       onHello: (h) => {
         hello.value = h
         if (!h.agent) {
           modes.value = []
           mode.value = ""
+          model.value = null
           commands.value = []
+          contextUse.value = null
+          settings.value = []
         }
         nameIt()
       },
@@ -164,7 +423,6 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
     })
     acp.value = client
     nameIt()
-    if (client.agent) system(`connected to ${client.agent}`)
     return client
   } catch (e) {
     push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
@@ -177,6 +435,7 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
 /** Start a harness by preset id or command line through the bridge. */
 async function start(choice: string | { command: string }) {
   pickerOpen.value = false
+  refocus()
   const client = acp.value ?? (await connect())
   if (!client) return
   if (typeof choice === "string") {
@@ -185,13 +444,9 @@ async function start(choice: string | { command: string }) {
     config.value.harness = "custom"
     config.value.command = choice.command
   }
-  const label =
-    typeof choice === "string" ? (harnesses.value.find((h) => h.id === choice)?.name ?? choice) : choice.command
-  system(`starting ${label}…`)
   try {
     await client.start(choice)
     nameIt()
-    system(`connected to ${client.agent}`)
   } catch (e) {
     push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
   }
@@ -226,65 +481,33 @@ function disconnect() {
   hello.value = null
 }
 
-/* ---------------------------- tool call rendering -------------------------- */
-
-const short = (v: unknown, n = 36): string => {
-  const s =
-    typeof v === "string" ? v : Array.isArray(v) ? `[${v.length}]` : typeof v === "object" && v ? "{…}" : String(v)
-  return s.length > n ? `${s.slice(0, n - 1)}…` : s
-}
-
-function describeArgs(name: string, args: Record<string, unknown>): string {
-  switch (name) {
-    case "add_screen":
-      return `${short(args.name ?? "screen")}, ${Array.isArray(args.rows) ? args.rows.length : 0} rows`
-    case "add_component":
-      return `${short(args.is)}${args.name ? `, ${short(args.name)}` : ""}`
-    case "add_chart": {
-      const d = args.data as { labels?: unknown[] } | undefined
-      return `${short(args.chart)}${args.name ? `, ${short(args.name)}` : ""}${d?.labels ? `, ${d.labels.length} points` : ""}`
-    }
-    case "add_widget":
-      return short(args.widget)
-    case "update_artboard":
-      return `${short(args.id, 14)}: ${Object.keys((args.patch as object) ?? {}).join(", ") || "patch"}`
-    case "evolve":
-      return `×${args.count ?? 4}${args.strength != null ? `, strength ${args.strength}` : ""}`
-    case "get_registry":
-      return args.is ? short(args.is) : "all"
-    case "export_video":
-      return `${args.seconds ?? 6}s at ${args.fps ?? 30} fps`
-    default:
-      return Object.entries(args)
-        .filter(([, v]) => v != null)
-        .map(([k, v]) => `${k}=${short(v, 20)}`)
-        .join(" ")
-  }
-}
-
-function describeResult(result: { ok: true; data: unknown } | { ok: false; error: string }): string {
-  if (!result.ok) return result.error
-  const d = result.data as Record<string, unknown> | unknown[] | null
-  if (Array.isArray(d)) return `${d.length} ${d.length === 1 ? "item" : "items"}`
-  if (d && typeof d === "object") {
-    if (typeof d.code === "string") return `${d.code.split("\n").length} lines`
-    if (typeof d.name === "string")
-      return `${d.name}${typeof d.kind === "string" ? ` (${d.kind})` : ""}${Array.isArray(d.dropped) && d.dropped.length ? `, dropped ${d.dropped.join(", ")}` : ""}`
-    if (Array.isArray(d.components)) return `${d.components.length} components`
-    if (Array.isArray(d.artboards)) return `${d.artboards.length} frames`
-    if (typeof d.removed === "string") return "removed"
-    if (Array.isArray(d.files))
-      return d.files
-        .map((f) => (typeof f === "object" && f && "path" in f ? String((f as { path: unknown }).path) : String(f)))
-        .join(", ")
-  }
-  return "ok"
-}
-
 const live = ref<{ kind: "assistant"; text: string } | null>(null)
+type Thought = Extract<Entry, { kind: "thought" }>
+/** The thought streaming now, and when it began. */
+const thinking = ref<Thought | null>(null)
+let thoughtAt = 0
+/** Anything else the harness does ends its thought. */
+function endThought() {
+  const t = thinking.value
+  if (!t) return
+  t.ms = Date.now() - thoughtAt
+  t.open = false
+  thinking.value = null
+}
 
 function onEvent(e: AgentEvent) {
+  if (e.type !== "thought" && e.type !== "mode" && e.type !== "commands" && e.type !== "plan") endThought()
   switch (e.type) {
+    case "thought":
+      live.value = null
+      if (!thinking.value) {
+        thoughtAt = Date.now()
+        thinking.value = { kind: "thought", text: "", open: true }
+        entries.value.push(thinking.value)
+      }
+      thinking.value.text += e.text
+      scrollLog()
+      break
     case "delta":
       if (!live.value) {
         live.value = { kind: "assistant", text: "" }
@@ -300,28 +523,9 @@ function onEvent(e: AgentEvent) {
       break
     case "tool": {
       live.value = null
-      // A delivered file rides the result as content; the block shows its path.
-      const data =
-        e.result.ok &&
-        typeof e.result.data === "object" &&
-        e.result.data &&
-        Array.isArray((e.result.data as { files?: unknown }).files)
-          ? {
-              ...(e.result.data as object),
-              files: ((e.result.data as { files: unknown[] }).files as { path?: unknown }[]).map((f) => f?.path ?? f),
-            }
-          : e.result.ok
-            ? e.result.data
-            : null
-      const detail = `${JSON.stringify(e.args, null, 1)}\n→ ${e.result.ok ? JSON.stringify(data, null, 1).slice(0, 1600) : e.result.error}`
-      push({
-        kind: "tool",
-        name: e.name,
-        ok: e.result.ok,
-        summary: `${describeArgs(e.name, e.args)}  ⎿ ${describeResult(e.result)}`,
-        detail,
-        open: !e.result.ok,
-      })
+      const step = toolEntry(e.name, e.args, e.result, turn.value, e.built)
+      push(step)
+      if (config.value.follow && step.kind === "tool" && step.changed?.length) follow(step.changed)
       break
     }
     case "activity": {
@@ -332,7 +536,9 @@ function onEvent(e: AgentEvent) {
       if (existing) {
         existing.status = e.status
         if (e.title) existing.title = e.title
-      } else push({ kind: "activity", id: e.id, title: e.title || e.id, status: e.status })
+        // A call with no title yet waits for the update that names it (a
+        // Studio tool's is drawn as its own step, so it never shows here).
+      } else if (e.title) push({ kind: "activity", id: e.id, title: e.title, status: e.status, tool: e.kind })
       break
     }
     case "plan": {
@@ -345,8 +551,17 @@ function onEvent(e: AgentEvent) {
       mode.value = e.current
       if (e.modes.length) modes.value = e.modes
       break
+    case "model":
+      model.value = e.model
+      break
     case "commands":
       commands.value = e.commands
+      break
+    case "context":
+      contextUse.value = e.context
+      break
+    case "settings":
+      settings.value = e.settings
       break
     case "turn":
       lastTurnMs.value = e.elapsedMs
@@ -356,6 +571,9 @@ function onEvent(e: AgentEvent) {
     case "error":
       live.value = null
       push({ kind: "error", text: e.message })
+      break
+    case "stopped":
+      live.value = null
       break
     case "done":
       live.value = null
@@ -370,8 +588,13 @@ type Approval = Extract<Entry, { kind: "approval" }>
  * transcript entry: two prompts at once are each answered on their row. */
 const pending = shallowReactive(new Map<Approval, (id: string | null) => void>())
 
-function ask(title: string, options: { id: string; label: string; primary?: boolean }[]): Promise<string | null> {
-  push({ kind: "approval", title, options, answered: null })
+function ask(
+  title: string,
+  options: { id: string; label: string; primary?: boolean; reject?: boolean }[],
+  code?: string,
+): Promise<string | null> {
+  askedAt = Date.now()
+  push({ kind: "approval", title, options, answered: null, ...(code ? { code } : {}) })
   const entry = entries.value[entries.value.length - 1] as Approval
   return new Promise((resolve) => {
     pending.set(toRaw(entry), (id) => {
@@ -382,69 +605,165 @@ function ask(title: string, options: { id: string; label: string; primary?: bool
   })
 }
 
+/** A tool the harness built runs only when you say so, every time: its
+ * code is on the prompt, and Auto never answers it. */
+const approveTool = async (tool: Built): Promise<boolean> =>
+  (await ask(
+    `Run ${tool.name.replace(/_/g, " ")}, a tool ${agentName.value || "your harness"} built`,
+    [
+      { id: "run", label: "Run it", primary: true },
+      { id: "no", label: "Don't run" },
+    ],
+    tool.code,
+  )) === "run"
+
 const askPermission = async (req: AcpPermissionRequest): Promise<string | null> => {
-  const options = req.options.map((o) => ({ id: o.optionId, label: o.name, primary: o.kind.startsWith("allow") }))
+  const options = req.options.map((o) => ({
+    id: o.optionId,
+    label: o.name,
+    primary: o.kind.startsWith("allow"),
+    reject: o.kind.startsWith("reject"),
+  }))
   if (config.value.auto) return options.find((o) => o.primary)?.id ?? options[0]?.id ?? null
   return ask(
-    req.title,
+    askTitle(req.title, (req.raw as { toolCall?: { rawInput?: unknown } } | null)?.toolCall?.rawInput),
     options.length
       ? options
       : [
           { id: "allow", label: "allow", primary: true },
-          { id: "reject", label: "reject" },
+          { id: "reject", label: "reject", reject: true },
         ],
   )
 }
 
+/** When the newest permission prompt came up, and when a key was last
+ * typed in the field: the number keys wait out `TYPING_GUARD` between. */
+let askedAt = 0
+let typedAt = 0
+const TYPING_GUARD = 1500
+/** The newest permission prompt still waiting for its answer. */
+const openApproval = computed(() => {
+  for (let i = entries.value.length - 1; i >= 0; i--) {
+    const e = entries.value[i]
+    if (e.kind === "approval" && e.answered === null) return e
+  }
+  return null
+})
+
+/* One quiet voice for a screen reader: what the turn needs or how it
+ * ended, never the stream itself. */
+const announced = ref("")
+watch(openApproval, (a) => a && (announced.value = "Needs your answer"))
+
+/* What the page shows of the agent while the panel is closed. */
+watch(
+  () => (pending.size ? "waiting" : busy.value ? "working" : "idle") as AgentActivity,
+  (a) => emit("activity", a),
+  { immediate: true },
+)
+
 function answer(entry: Approval, id: string | null) {
   pending.get(toRaw(entry))?.(id)
+  refocus()
 }
 
 /* -------------------------------- composer -------------------------------- */
 
-const input = ref("")
-const box = ref<HTMLTextAreaElement | null>(null)
-const history = ref<string[]>([])
+/* Up walks back through what was sent (read off the thread, so it survives
+ * a reload), only from an empty field; editing a recalled message makes it
+ * a draft again; Down past the newest empties the field. */
+const sent = computed(() => sentOf(entries.value))
 let cursor = -1
-let draft = ""
-const followUps = ref<string[]>([])
+watch(input, (text) => {
+  if (cursor !== -1 && text !== sent.value[cursor]) cursor = -1
+})
+/** Messages written while a turn runs, in the order they go; `paused`
+ * after a stop, until you send one or press Send next. */
+const followUps = ref<Queued[]>([])
+const paused = ref(false)
+let qn = 0
+const queueOf = (text: string, atts: Attachment[]): Queued => ({ id: `q${++qn}`, text, attachments: atts })
 let controller: AbortController | null = null
 const toolsOpen = ref(false)
 
-const rows = computed(() => Math.min(6, Math.max(1, input.value.split("\n").length)))
+/* The field grows with what is typed, up to a cap, then scrolls. */
+const FIELD_MAX = 176
+function fit() {
+  const el = box.value
+  if (!el) return
+  el.style.height = "auto"
+  el.style.height = `${Math.min(el.scrollHeight, FIELD_MAX)}px`
+}
+watch(input, () => nextTick(fit))
+// The unsent message, with what it carries, is kept per chat (closing the
+// panel, a reload, another chat keep it).
+let draftTimer: ReturnType<typeof setTimeout> | undefined
+watch([input, attachments], () => {
+  clearTimeout(draftTimer)
+  draftTimer = setTimeout(keepDraft, 250)
+})
+/** A finger on a touch screen: Enter is a newline there (only the send key
+ * sends), and the field never takes focus on its own, which would raise
+ * the keyboard over the canvas. */
+const touch = window.matchMedia?.("(pointer: coarse)").matches ?? false
+/** Back to the field after a key elsewhere in the panel did its job. */
+const refocus = () => !touch && nextTick(() => box.value?.focus())
+/** iPad Safari ends a composition and then delivers its Enter as a key of
+ * its own: an Enter this soon after a composition ended is the
+ * composition's. */
+let composedAt = 0
+const onCompositionEnd = () => (composedAt = Date.now())
+/* The panel is its own keyboard scope: a key pressed in it never reaches
+ * the canvas (whose arrows nudge and whose Backspace deletes frames), and a
+ * character typed with a key of the panel focused lands in the field. The
+ * page's chords (⌘Z, ⌘I) still pass. */
+function onPanelKey(e: KeyboardEvent) {
+  if (e.metaKey || e.ctrlKey) return
+  e.stopPropagation()
+  const t = e.target as HTMLElement
+  if (t.closest("input, textarea, select, [contenteditable]") || e.isComposing) return
+  if (e.key.length === 1 || e.key === "Backspace") box.value?.focus()
+}
 
-type Slash = { name: string; args?: string; desc: string; harness?: boolean }
-const OURS: Slash[] = [
-  { name: "help", desc: "list commands" },
-  { name: "harness", args: "<id | command>", desc: "start a harness: claude, codex, gemini, omp… or any ACP command" },
-  { name: "connect", args: "[ws url]", desc: "connect the bridge" },
-  { name: "new", desc: "fresh session (clears the transcript)" },
-  { name: "mode", args: "<id>", desc: "switch the harness's mode" },
-  { name: "auto", args: "on | off", desc: "answer permission prompts with their allow option" },
-  { name: "evolve", args: "[count]", desc: "seeded variants of the selection" },
-  { name: "select", args: "<name>", desc: "select a frame by name" },
-  { name: "code", desc: "the selection as a Vue SFC" },
-  { name: "copy", desc: "copy the last reply" },
-  { name: "session", desc: "harness, tokens, frames" },
-  { name: "undo", desc: "undo the last edit" },
-  { name: "clear", desc: "clear the transcript" },
-  { name: "stop", desc: "interrupt the run" },
-  { name: "disconnect", desc: "close the bridge" },
-]
 /** Ours plus whatever the harness advertises; a harness command is sent to it as text. */
-const slashAll = computed<Slash[]>(() => [
-  ...OURS,
-  ...commands.value
-    .filter((c) => !OURS.some((o) => o.name === c.name))
-    .map((c) => ({ name: c.name, args: c.input, desc: c.description, harness: true })),
-])
-const slashOpen = computed(() => /^\/[\w-]*$/.test(input.value))
+const slashAll = computed(() => slashList(commands.value))
+/** The field says what sending will do now. */
+const placeholder = computed(() =>
+  openApproval.value
+    ? `Answer 1 to ${Math.min(9, openApproval.value.options.length)}, or redirect`
+    : stopping.value
+      ? "Queue for after the stop"
+      : busy.value
+        ? "Queue a follow-up"
+        : !acp.value
+          ? "Ask; this starts the bridge"
+          : !agent.value
+            ? "Ask; this starts your harness"
+            : "Ask, / for commands",
+)
+/** Esc puts the command menu away until the field changes. */
+const slashDismissed = ref(false)
+watch(input, () => (slashDismissed.value = false))
+const slashOpen = computed(() => !slashDismissed.value && /^\/[\w-]*$/.test(input.value))
 const slashMatches = computed(() => {
   const q = input.value.slice(1).toLowerCase()
   return slashAll.value.filter((c) => c.name.startsWith(q))
 })
 const slashIndex = ref(0)
 watch(slashMatches, () => (slashIndex.value = 0))
+/** A command picked and waiting for what it takes: what that is, in words. */
+const slashHint = computed(() => hintOf(input.value, slashAll.value))
+/** A /word that is no command here, sent as words on a second Enter (a
+ * path, say); the first keeps it in the field and says so. */
+let unknownOnce = ""
+function refusesUnknown(text: string): boolean {
+  const name = unknownOnce !== text ? unknownOf(text, slashAll.value) : null
+  unknownOnce = name ? text : ""
+  if (!name) return false
+  input.value = text
+  void nextTick(() => (notice.value = `No command /${name} here. Enter again sends it as words; /help lists them.`))
+  return true
+}
 
 async function slash(line: string): Promise<boolean> {
   const [cmd, ...rest] = line.slice(1).trim().split(/\s+/)
@@ -473,10 +792,7 @@ async function slash(line: string): Promise<boolean> {
       system("disconnected")
       return true
     case "new":
-      entries.value = []
-      usage.value = { input: 0, output: 0 }
-      if (acp.value?.hello?.agent)
-        await acp.value.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
+      newChat()
       return true
     case "mode": {
       const client = acp.value
@@ -535,7 +851,10 @@ async function slash(line: string): Promise<boolean> {
       return true
     case "clear":
       entries.value = []
+      opened.value = new Map()
       usage.value = { input: 0, output: 0 }
+      turn.value = 0
+      checkpoints.clear()
       return true
     case "stop":
       stop()
@@ -548,61 +867,392 @@ async function slash(line: string): Promise<boolean> {
   }
 }
 
-async function send() {
-  const text = input.value.trim()
-  if (!text) return
-  input.value = ""
-  cursor = -1
-  draft = ""
-  if (text.startsWith("/") && (await slash(text))) return
-  history.value.push(text)
-  // While the harness works, anything typed waits for the task to end.
-  if (busy.value) {
-    followUps.value.push(text)
-    return
+/* --------------------------------- context -------------------------------- */
+
+/** The frames handed to the agent with the message: the selection (any of
+ * it can be left out) and the ones picked with @. */
+const left = ref(new Set<string>())
+watch(
+  () => editor.selectedIds.join(),
+  () => (left.value = new Set()),
+)
+const context = computed<Changed[]>(() => {
+  const ids = [...editor.selectedIds.filter((id) => !left.value.has(id)), ...handoff.picked]
+  return [...new Set(ids)]
+    .map((id) => editor.artboards.find((a) => a.id === id))
+    .filter((a) => !!a)
+    .map((a) => ({ id: a.id, name: a.name }))
+})
+function dropContext(id: string) {
+  if (handoff.picked.includes(id)) togglePicked(id)
+  if (editor.selectedIds.includes(id)) left.value = new Set(left.value).add(id)
+}
+/** The context frames as pictures (PNG at 1x, the first `PICTURES`), so
+ * a harness that takes images sees what it is asked about. */
+const PICTURES = 3
+async function picturesOf(frames: Changed[]): Promise<PromptImage[]> {
+  const out: PromptImage[] = []
+  for (const f of frames.slice(0, PICTURES)) {
+    const a = editor.artboards.find((x) => x.id === f.id)
+    const url = a && (await artboardPng(a, 1))
+    if (url) out.push({ mimeType: "image/png", data: url.slice(url.indexOf(",") + 1) })
   }
-  await run(text)
+  return out
 }
 
-async function run(text: string) {
+/* The @ picker: typed at a word's start, or opened from the card's @ key. */
+const atQuery = computed(() => /(?:^|\s)@([^\s@]*)$/.exec(input.value)?.[1] ?? null)
+const atForced = ref(false)
+const atOpen = computed(() => atForced.value || atQuery.value !== null)
+
+/* A menu over the composer (commands, frames, the harness, the model, the
+   bridge) is as tall as the room above the composer: measured whenever one
+   opens and when the panel resizes, so it never runs past the thread's top
+   (the composer stands mid-panel in an empty chat). */
+const composerEl = ref<HTMLElement | null>(null)
+const room = ref("16rem")
+function measureRoom() {
+  const top = log.value?.getBoundingClientRect().top
+  const at = composerEl.value?.getBoundingClientRect().top
+  if (top === undefined || at === undefined) return
+  room.value = `${Math.max(96, Math.floor(at - top - 10))}px`
+}
+watch(
+  () => [slashOpen.value, atOpen.value, pickerOpen.value, menuOpen.value, modelOpen.value],
+  () => nextTick(measureRoom),
+)
+onMounted(() => window.addEventListener("resize", measureRoom))
+onBeforeUnmount(() => window.removeEventListener("resize", measureRoom))
+const atMatches = computed(() => {
+  const q = (atQuery.value ?? "").toLowerCase()
+  return editor.artboards.filter((a) => a.name.toLowerCase().includes(q) && !context.value.some((c) => c.id === a.id))
+})
+const atIndex = ref(0)
+watch(atMatches, () => (atIndex.value = 0))
+function pickAt(id: string) {
+  if (!handoff.picked.includes(id)) togglePicked(id)
+  if (atQuery.value !== null) input.value = input.value.replace(/(^|\s)@[^\s@]*$/, "$1")
+  atForced.value = false
+  box.value?.focus()
+}
+
+/** The open listbox and its highlighted option, which the field announces
+ * (`aria-activedescendant`) and keeps in view while the arrows move it. */
+const listbox = computed(() =>
+  slashOpen.value && slashMatches.value.length
+    ? { id: "agent-commands", active: `agent-command-${slashIndex.value}` }
+    : atOpen.value && atMatches.value.length
+      ? { id: "agent-frames", active: `agent-frame-${atIndex.value}` }
+      : null,
+)
+watch(
+  () => listbox.value?.active,
+  (id) => id && nextTick(() => document.getElementById(id)?.scrollIntoView?.({ block: "nearest" })),
+)
+
+/** After a turn that finished on its own, a few next prompts from the
+ * frames it touched (else the frames in hand), while the field is empty. */
+const suggestions = computed(() => {
+  const last = entries.value[entries.value.length - 1]
+  if (busy.value || input.value || openApproval.value || last?.kind !== "worked" || last.end) return []
+  return nextPrompts(changesOf(entries.value, turn.value)?.frames ?? context.value)
+})
+
+/* A message asked at the selection on the canvas: its frames join the
+ * context, then it goes like one typed here. */
+function takeAsks() {
+  for (let ask = takeAsk(); ask; ask = takeAsk()) {
+    for (const id of ask.frames) if (!handoff.picked.includes(id)) togglePicked(id)
+    void send(ask.text)
+  }
+}
+// Asked while the panel was closed: taken once it has mounted (its run
+// state exists by then), and as they come after that.
+watch(() => handoff.asks.length, takeAsks)
+
+/** Send what is in the composer (or `text`, a suggestion or an ask). While
+ * the harness works it waits in the queue; `now` stops the turn and sends
+ * it next (the protocol has no way into a running turn: a stop and a send
+ * is the honest version of steering). */
+async function send(text = input.value.trim(), now = false) {
+  const atts = text === input.value.trim() ? attachments.value : []
+  if (!text && !atts.length) return
+  // A finger's send puts the keyboard away; a pointer's keeps the field.
+  if (touch) box.value?.blur()
+  else refocus()
+  if (text.startsWith("/") && !atts.length) {
+    // The second Enter on a refused /word sends it as words.
+    const words = unknownOnce === text
+    if (refusesUnknown(text)) return
+    if (!words) {
+      input.value = ""
+      cursor = -1
+      if (await slash(text)) return
+    }
+  }
+  if (imagesOf(atts).length && acp.value && !acp.value.acceptsImages) {
+    notice.value = `${agentName.value || "This harness"} takes no pictures here: remove them to send`
+    return
+  }
+  input.value = ""
+  attachments.value = []
+  cursor = -1
+  if (busy.value) {
+    // Words typed while a permission prompt waits are the answer: it is
+    // declined and they go next, in its place.
+    const asking = openApproval.value
+    if (asking && text) {
+      answer(asking, asking.options.find((o) => o.reject)?.id ?? null)
+      now = true
+    }
+    const q = queueOf(text, atts)
+    if (now) {
+      followUps.value.unshift(q)
+      sendNow(q.id)
+    } else followUps.value.push(q)
+    announced.value = now ? "Stopping to send it" : "Queued"
+    return
+  }
+  paused.value = false
+  const ed = editing.value
+  editing.value = null
+  await run(text, atts, ed ? rewind(ed) : "")
+}
+
+/** The latest turn's message, for "Try again" when it failed. */
+const lastSent = ref<{ text: string; attachments: Attachment[] }>({ text: "", attachments: [] })
+/** A stop asked for and not yet answered by the harness. */
+const stopping = ref(false)
+async function run(text: string, atts: Attachment[] = [], revision = "") {
+  lastSent.value = { text, attachments: atts }
   const client = await ready()
   if (!client) {
     input.value = input.value ? `${text}\n${input.value}` : text
+    attachments.value = [...atts, ...attachments.value]
     return
   }
-  push({ kind: "user", text })
+  const frames = context.value
+  turn.value += 1
+  checkpoints.set(turn.value, checkpoint())
+  handoff.picked.splice(0)
+  handoff.picking = false
+  // Whatever the harness said before (while its session opened) is its own
+  // entry: this turn's reply starts under its message.
+  live.value = null
+  endThought()
+  const framePictures = client.acceptsImages ? await picturesOf(frames) : []
+  const pictures = [
+    ...framePictures,
+    ...(client.acceptsImages ? imagesOf(atts).map((a) => ({ mimeType: a.mimeType, data: a.data })) : []),
+  ]
+  push({
+    kind: "user",
+    text,
+    turn: turn.value,
+    context: frames,
+    pictured: framePictures.length > 0,
+    ...(atts.length ? { attached: atts.map((a) => ({ kind: a.kind, ...chipOf(a) })) } : {}),
+  })
+  scrollLog(true)
   busy.value = true
   started.value = Date.now()
   now.value = started.value
-  clock = setInterval(() => (now.value = Date.now()), 250)
+  clock = setInterval(() => (now.value = Date.now()), 1000)
   controller = new AbortController()
-  await client.prompt(text, controller.signal)
+  const { stopReason } = await client.prompt(
+    revision + withContext(promptText(text, atts), frames, pictures.length),
+    controller.signal,
+    pictures,
+  )
   clearInterval(clock)
   busy.value = false
+  stopping.value = false
   controller = null
   live.value = null
-  // Follow-ups run one at a time, in order.
-  const next = followUps.value.shift()
-  if (next !== undefined) {
-    push({ kind: "followup", text: next })
-    await run(next)
-  }
+  endThought()
+  const end = stopReason === "cancelled" ? "stopped" : stopReason === "error" ? "failed" : undefined
+  announced.value = end === "stopped" ? "Stopped" : end === "failed" ? "Failed" : "Done"
+  push({ kind: "worked", ms: Date.now() - started.value, ...(end ? { end } : {}) })
+  // Follow-ups run one at a time, in order, each its own turn; a stop pauses
+  // them (a Send now stops on purpose and goes on).
+  if (end === "stopped" && !sendingNow) paused.value = true
+  sendingNow = false
+  if (!paused.value) await runNext()
 }
 
+/** The next queued message, as its own turn. */
+async function runNext() {
+  const next = followUps.value.shift()
+  if (next) await run(next.text, next.attachments)
+}
+/** Try again after a failed turn: the same words and what they carried. */
+function againLast() {
+  if (busy.value || !lastSent.value.text) return
+  void run(lastSent.value.text, lastSent.value.attachments)
+}
+let sendingNow = false
+/** Send a queued message now: to the front, and a running turn stops for it. */
+function sendNow(id: string) {
+  const at = followUps.value.findIndex((q) => q.id === id)
+  if (at < 0) return
+  followUps.value = [followUps.value[at], ...followUps.value.filter((q) => q.id !== id)]
+  paused.value = false
+  if (busy.value) {
+    sendingNow = true
+    stopTurn()
+  } else void runNext()
+}
+/** Take a queued message back into the composer, to change and send again. */
+function editQueued(id: string) {
+  const q = followUps.value.find((x) => x.id === id)
+  if (!q) return
+  followUps.value = followUps.value.filter((x) => x.id !== id)
+  input.value = input.value ? `${q.text}\n${input.value}` : q.text
+  attachments.value = [...q.attachments, ...attachments.value]
+  refocus()
+}
+/** Go on with a paused queue. */
+function resume() {
+  paused.value = false
+  if (!busy.value) void runNext()
+}
+const moveQueued = (id: string) => {
+  const at = followUps.value.findIndex((q) => q.id === id)
+  followUps.value = moved(followUps.value, at, -1)
+}
+
+/** A stop the harness has not answered in `STUCK_MS`: the tray offers to
+ * stop the harness itself (the bridge ends its process, which ends the
+ * turn). */
+const STUCK_MS = 5000
+const stuck = computed(() => stopping.value && now.value - stoppedAt.value >= STUCK_MS)
+const stoppedAt = ref(0)
+function forceStop() {
+  acp.value?.stop()
+  refocus()
+}
+/** Stop the turn. The queue stays, paused (Send next or a new message goes on). */
 function stop() {
+  stopTurn()
+}
+function stopTurn() {
   for (const settle of [...pending.values()]) settle(null)
+  if (busy.value && !stopping.value) {
+    stopping.value = true
+    stoppedAt.value = Date.now()
+  }
   controller?.abort()
-  // Stopping returns queued messages to the editor.
-  const queued = followUps.value.splice(0)
-  if (queued.length) input.value = [input.value, ...queued].filter(Boolean).join("\n")
 }
 
 function unqueue() {
-  const last = followUps.value.pop()
-  if (last) input.value = input.value ? `${last}\n${input.value}` : last
+  const last = followUps.value[followUps.value.length - 1]
+  if (last) editQueued(last.id)
+}
+
+/* What comes in by paste or drop. A long text folds into a chip (the
+ * field stays a field); Cmd/Ctrl+Shift+V pastes it as typed text. Files:
+ * pictures and text files; anything else says why not. */
+let rawPasteUntil = 0
+async function takeFiles(files: File[]) {
+  for (const f of files) {
+    const got = await intake(f, attachments.value)
+    if (typeof got === "string") notice.value = got
+    else attachments.value = [...attachments.value, got]
+  }
+}
+function onPaste(e: ClipboardEvent) {
+  const files = [...(e.clipboardData?.files ?? [])]
+  if (files.length) {
+    e.preventDefault()
+    void takeFiles(files)
+    return
+  }
+  const text = e.clipboardData?.getData("text/plain") ?? ""
+  if (Date.now() < rawPasteUntil || !foldsPaste(text)) return
+  e.preventDefault()
+  attachments.value = [...attachments.value, pastedText(text, attachments.value)]
+}
+const dropping = ref(false)
+function onDrop(e: DragEvent) {
+  dropping.value = false
+  const files = [...(e.dataTransfer?.files ?? [])]
+  if (!files.length) return
+  e.preventDefault()
+  void takeFiles(files)
+  refocus()
+}
+/* Quoting the harness's reply: a selection inside a reply shows a Quote key
+ * beside it; each reply's own Quote key takes all of it. */
+const quoteAt = ref<{ x: number; y: number; text: string } | null>(null)
+function quote(text: string) {
+  if (!text.trim()) return
+  attachments.value = [...attachments.value, quoteOf(text)]
+  quoteAt.value = null
+  window.getSelection()?.removeAllRanges()
+  refocus()
+}
+function onSelection() {
+  const sel = window.getSelection()
+  const text = sel?.toString().trim() ?? ""
+  const range = text && sel?.rangeCount ? sel.getRangeAt(0) : null
+  const at = range?.commonAncestorContainer
+  const el = at instanceof Element ? at : (at?.parentElement ?? null)
+  if (!range || !el?.closest(".agent .reply") || !log.value?.contains(el)) {
+    quoteAt.value = null
+    return
+  }
+  const r = range.getBoundingClientRect()
+  quoteAt.value = { x: Math.round(r.right), y: Math.round(r.top), text }
+}
+onMounted(() => document.addEventListener("selectionchange", onSelection))
+onBeforeUnmount(() => document.removeEventListener("selectionchange", onSelection))
+const unattach = (id: string) => (attachments.value = attachments.value.filter((a) => a.id !== id))
+/** A folded text back into the field, as typed text. */
+function unfold(id: string) {
+  const a = attachments.value.find((x) => x.id === id)
+  if (a?.kind !== "text") return
+  unattach(id)
+  input.value = input.value ? `${input.value}\n${a.text}` : a.text
+  refocus()
 }
 
 function onKey(e: KeyboardEvent) {
+  // A key that ends an IME composition (Japanese, Chinese, Korean) is the
+  // composition's, never a send.
+  if (e.isComposing || e.keyCode === 229) return
+  if (e.key === "Enter" && (e.repeat || Date.now() - composedAt < 500)) return
+  const typedBefore = typedAt
+  typedAt = Date.now()
+  // An open permission prompt takes 1 to 9 from an empty field, unless it
+  // came up under your typing: then only once you have paused (so a digit
+  // meant for the message never answers it).
+  const asking = openApproval.value
+  const settledIn = !asking || askedAt - typedBefore >= TYPING_GUARD || typedAt - typedBefore >= TYPING_GUARD
+  if (asking && settledIn && !input.value && /^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    const option = asking.options[Number(e.key) - 1]
+    if (option) {
+      e.preventDefault()
+      answer(asking, option.id)
+      return
+    }
+  }
+  if (atOpen.value && atMatches.value.length) {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault()
+      const n = atMatches.value.length
+      atIndex.value = (atIndex.value + (e.key === "ArrowDown" ? 1 : n - 1)) % n
+      return
+    }
+    if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+      e.preventDefault()
+      pickAt(atMatches.value[atIndex.value].id)
+      return
+    }
+  }
+  if (atForced.value && e.key === "Escape") {
+    atForced.value = false
+    return
+  }
   if (slashOpen.value && slashMatches.value.length) {
     if (e.key === "ArrowDown") {
       e.preventDefault()
@@ -612,6 +1262,10 @@ function onKey(e: KeyboardEvent) {
     if (e.key === "ArrowUp") {
       e.preventDefault()
       slashIndex.value = (slashIndex.value - 1 + slashMatches.value.length) % slashMatches.value.length
+      return
+    }
+    if (e.key === "Escape") {
+      slashDismissed.value = true
       return
     }
     if (
@@ -624,9 +1278,15 @@ function onKey(e: KeyboardEvent) {
       return
     }
   }
-  if (e.key === "Enter" && !e.shiftKey) {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "v" || e.key === "V" || e.code === "KeyV")) {
+    rawPasteUntil = Date.now() + 1000
+    return
+  }
+  if (e.key === "Enter" && !e.shiftKey && !touch) {
     e.preventDefault()
-    void send()
+    // An empty field on a paused queue: Enter goes on with it.
+    if (!input.value.trim() && !attachments.value.length && paused.value && followUps.value.length) return resume()
+    void send(undefined, busy.value && (e.metaKey || e.ctrlKey))
     return
   }
   if (e.key === "ArrowUp" && e.altKey) {
@@ -635,14 +1295,21 @@ function onKey(e: KeyboardEvent) {
     return
   }
   if (e.key === "Escape") {
-    if (pickerOpen.value) {
+    if (handoff.picking) {
+      handoff.picking = false
+      return
+    }
+    if (pickerOpen.value || menuOpen.value || modelOpen.value) {
       pickerOpen.value = false
+      menuOpen.value = false
+      modelOpen.value = false
       return
     }
     if (busy.value || pending.size) {
       e.preventDefault()
       stop()
-    }
+    } else if (editing.value) cancelEdit()
+    else box.value?.blur()
     return
   }
   if (e.ctrlKey && (e.key === "o" || e.key === "O")) {
@@ -651,16 +1318,16 @@ function onKey(e: KeyboardEvent) {
     for (const x of entries.value) if (x.kind === "tool") x.open = toolsOpen.value
     return
   }
-  const single = !input.value.includes("\n")
-  if (e.key === "ArrowUp" && single && history.value.length) {
+  const recalling = cursor !== -1
+  if (e.key === "ArrowUp" && !e.shiftKey && sent.value.length && (recalling || !input.value)) {
     e.preventDefault()
-    if (cursor === -1) draft = input.value
-    cursor = cursor === -1 ? history.value.length - 1 : Math.max(0, cursor - 1)
-    input.value = history.value[cursor]
-  } else if (e.key === "ArrowDown" && single && cursor !== -1) {
+    cursor = recalling ? Math.max(0, cursor - 1) : sent.value.length - 1
+    input.value = sent.value[cursor]
+  } else if (e.key === "ArrowDown" && !e.shiftKey && recalling) {
     e.preventDefault()
-    cursor = cursor + 1 >= history.value.length ? -1 : cursor + 1
-    input.value = cursor === -1 ? draft : history.value[cursor]
+    const next = cursor + 1
+    cursor = next < sent.value.length ? next : -1
+    input.value = cursor === -1 ? "" : sent.value[cursor]
   }
 }
 
@@ -669,13 +1336,35 @@ function pickSlash(c: Slash) {
   box.value?.focus()
 }
 
+async function pickModel(id: string) {
+  modelOpen.value = false
+  refocus()
+  if (!acp.value || id === model.value?.current) return
+  await acp.value.setModel(id).catch((e: Error) => push({ kind: "error", text: e.message }))
+}
+
 async function togglePicker() {
   pickerOpen.value = !pickerOpen.value
+  menuOpen.value = false
+  modelOpen.value = false
   if (pickerOpen.value && !acp.value) await connect()
 }
 
-onMounted(() => box.value?.focus())
+function keepDraft() {
+  if (loadedFor && loadedChat)
+    saveDraft(loadedFor, loadedChat, { text: input.value, attachments: toRaw(attachments.value) })
+}
+onMounted(() => {
+  takeAsks()
+  window.addEventListener("pagehide", keepDraft)
+  fit()
+  refocus()
+})
+defineExpose({ focus: refocus })
 onBeforeUnmount(() => {
+  window.removeEventListener("pagehide", keepDraft)
+  clearTimeout(draftTimer)
+  keepDraft()
   controller?.abort()
   clearInterval(clock)
   disconnect()
@@ -683,255 +1372,449 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="agent">
+  <div class="agent" :class="{ 'is-empty': !entries.length }" @keydown="onPanelKey">
     <div class="head">
-      <span class="title">Agent</span>
-      <button
-        type="button"
-        class="model"
-        :aria-expanded="pickerOpen"
-        aria-controls="agent-harness-picker"
-        :title="hello ? `bridge ${config.bridgeUrl}, cwd ${hello.cwd}` : config.bridgeUrl"
-        @click="togglePicker"
-      >
-        <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
-        ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" />{{
-          agentName || (acp ? "Pick a harness" : "Harness")
-        }}
+      <span class="who" aria-hidden="true"
+        ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="12" /><BrandMark v-else :size="12"
+      /></span>
+      <span class="title row-label" :title="title">{{ title }}</span>
+      <button type="button" class="head-btn" aria-label="New chat" title="New chat" @click="slash('/new')">
+        <DitherIcon name="Edit" :size="13" :stroke-width="1.5" />
       </button>
-      <button
-        v-if="modes.length"
-        type="button"
-        class="model"
-        :title="modes.find((m) => m.id === mode)?.description || 'mode'"
-        @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
-      >
-        {{ modes.find((m) => m.id === mode)?.name || mode }}
+      <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">
+        <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
       </button>
-      <div class="head-actions">
-        <button
-          type="button"
-          class="head-btn"
-          :aria-pressed="settingsOpen"
-          aria-label="Bridge settings"
-          title="Bridge settings"
-          @click="settingsOpen = !settingsOpen"
-        >
-          <DitherIcon name="Settings" :size="13" :stroke-width="1.5" />
-        </button>
-        <button type="button" class="head-btn" aria-label="Close agent" @click="emit('close')">
-          <DitherIcon name="Close" :size="13" :stroke-width="1.5" />
-        </button>
-      </div>
     </div>
 
-    <div v-if="pickerOpen" id="agent-harness-picker" class="picker" role="group" aria-label="Harness">
-      <template v-if="hello">
-        <button
-          v-for="h in harnesses"
-          :key="h.id"
-          type="button"
-          class="pick"
-          :aria-pressed="agent?.id === h.id"
-          :title="h.command"
-          @click="start(h.id)"
-        >
-          <span class="pick-name"><ToolMark v-if="isMark(h.id)" :id="h.id" :size="12" />{{ h.name }}</span>
-          <span class="dim">{{ h.installed ? (h.note ?? "on this path") : "not on the path" }}</span>
-        </button>
-        <form class="custom" @submit.prevent="customCommand.trim() && start({ command: customCommand.trim() })">
-          <input
-            v-model="customCommand"
-            type="text"
-            name="agent-command"
-            class="input"
-            placeholder="any ACP command, e.g. omp --mode acp"
-            autocomplete="off"
-            spellcheck="false"
-            aria-label="Custom harness command"
-          />
-          <button type="submit" class="chip is-primary" :disabled="!customCommand.trim()">Start</button>
-        </form>
-        <button v-if="agent" type="button" class="pick stop-pick" @click="acp?.stop()">
-          <span class="pick-name">Stop {{ agent.name }}</span>
-        </button>
-      </template>
-      <p v-else class="note">
-        {{ connecting ? "connecting the bridge…" : "No bridge." }} Run it next to your harness, which keeps its own
-        login:<br />
-        <code>node bridge/dither-bridge.mjs</code><br />then pick Claude Code, Codex, Gemini CLI, oh-my-pi, Goose,
-        OpenCode, or any ACP command.
-      </p>
-    </div>
-
-    <div v-if="settingsOpen" class="settings">
-      <label class="field"
-        ><span>bridge</span
-        ><input
-          v-model.trim="config.bridgeUrl"
-          name="agent-bridge-url"
-          type="text"
-          class="input"
-          placeholder="ws://127.0.0.1:8790"
-          autocomplete="off"
-          spellcheck="false"
-      /></label>
-      <label class="remember"
-        ><input v-model="config.auto" type="checkbox" name="agent-auto" class="accent-foreground" />answer permission
-        prompts with their allow option</label
+    <p class="sr-only" role="status">{{ announced }}</p>
+    <Teleport to="body">
+      <button
+        v-if="quoteAt"
+        type="button"
+        class="agent-quote"
+        :style="{ left: `${quoteAt.x}px`, top: `${quoteAt.y}px` }"
+        title="Quote the selection in your message"
+        @mousedown.prevent
+        @click="quote(quoteAt.text)"
       >
-      <p class="note">
-        The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool calls. No
-        key, no model setting lives here.
-      </p>
-    </div>
-
-    <div ref="log" class="log" aria-live="polite">
-      <div v-if="!entries.length" class="empty">
-        <p>
-          Describe a screen, a chart or a control. Your harness composes it from the kit's registry through the Studio's
-          tools; every placement is one undo away.
-        </p>
-        <p class="dim">
-          Try a sign-in screen with email, password and a primary button.<br />/evolve on a selected frame, /help for
-          commands.
+        <DitherIcon name="Bookmark" :size="11" :stroke-width="1.5" /><span>Quote</span>
+      </button>
+    </Teleport>
+    <div ref="log" class="log" @scroll.passive="onScroll">
+      <div v-if="!entries.length" class="hello">
+        <span class="hello-mark" aria-hidden="true"
+          ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="26" /><BrandMark v-else :size="26"
+        /></span>
+        <h2 class="hello-title">What are we making?</h2>
+        <p class="hello-note">
+          {{ agentName || "Your harness" }} builds it on the canvas from the kit's registry. Every message keeps a
+          checkpoint to go back to.
         </p>
       </div>
-      <template v-for="(e, i) in entries" :key="i">
-        <details v-if="e.kind === 'tool'" class="tool" :open="e.open" :data-ok="String(e.ok)">
-          <summary>
-            <span class="mark" aria-hidden="true">{{ e.ok ? "⚙" : "×" }}</span
-            ><span class="name">{{ e.name }}</span
-            ><span class="sum">{{ e.summary }}</span>
+      <template v-for="b in blocks" :key="b.at">
+        <ThreadEntry
+          v-if="b.kind === 'entry'"
+          :entry="b.entry"
+          :live="live === b.entry || thinking === b.entry"
+          :copied="copied === b.at"
+          :restorable="canRestore(b.entry)"
+          :editable="!busy && (b.entry.kind === 'user' || b.entry.kind === 'followup')"
+          :latest="!busy && b.at === entries.length - 1"
+          :numbered="b.entry === openApproval"
+          @again="againLast"
+          @continue="send('Continue')"
+          @restore="'turn' in b.entry && b.entry.turn && restoreTo(b.entry.turn)"
+          @edit="editFrom(b.at)"
+          @quote="'text' in b.entry && quote(b.entry.text)"
+          @copy="'text' in b.entry && copyReply(b.at, b.entry.text)"
+          @answer="(id) => b.entry.kind === 'approval' && answer(b.entry, id)"
+          @toggle="(open) => setFold(b.entry, open)"
+        />
+        <details
+          v-else
+          class="group fold"
+          :open="isOpen(b)"
+          @toggle="setOpen(b, ($event.target as HTMLDetailsElement).open)"
+        >
+          <summary class="first-line">
+            <span v-if="b.running" class="spin" aria-hidden="true"></span
+            ><DitherIcon v-else name="Layers" :size="12" :stroke-width="1.5" /><span class="row-label is-wrap">{{
+              runLabel(b.items.map((it) => it.entry))
+            }}</span
+            ><DitherIcon class="chev" name="ChevronRight" :size="11" :stroke-width="1.5" />
           </summary>
-          <pre class="detail">{{ e.detail }}</pre>
+          <div class="group-body">
+            <ThreadEntry
+              v-for="it in b.items"
+              :key="it.at"
+              :entry="it.entry"
+              @toggle="(open) => setFold(it.entry, open)"
+            />
+          </div>
         </details>
-        <div v-else-if="e.kind === 'activity'" class="entry" data-kind="activity" :data-status="e.status">
-          <span class="mark" aria-hidden="true">{{
-            e.status === "completed" ? "✓" : e.status === "failed" ? "×" : "⚙"
-          }}</span>
-          <span class="text"
-            >{{ e.title }}<span class="dim"> ({{ e.status.replace("_", " ") }})</span></span
+      </template>
+    </div>
+
+    <div class="dock">
+      <button v-if="unseen" type="button" class="latest" @click="toEnd(true)">
+        <DitherIcon name="ArrowDown" :size="11" :stroke-width="1.5" />Latest
+      </button>
+      <div ref="composerEl" class="composer" :style="{ '--room': room }">
+        <div
+          v-if="slashOpen && slashMatches.length"
+          id="agent-commands"
+          class="pop"
+          role="listbox"
+          aria-label="Commands"
+        >
+          <button
+            v-for="(c, i) in slashMatches"
+            :id="`agent-command-${i}`"
+            :key="c.name"
+            type="button"
+            tabindex="-1"
+            role="option"
+            :aria-selected="i === slashIndex"
+            class="pop-row"
+            :class="i === slashIndex ? 'is-active' : ''"
+            @click="pickSlash(c)"
           >
+            <span class="pop-name"
+              >/{{ c.name }}<span v-if="c.args" class="dim"> {{ c.args }}</span></span
+            ><span class="dim">{{ c.harness ? `${agentName}: ` : "" }}{{ c.desc }}</span>
+          </button>
         </div>
-        <div v-else-if="e.kind === 'plan'" class="entry" data-kind="plan">
-          <span class="mark" aria-hidden="true">☰</span>
-          <ul class="plan">
-            <li v-for="(p, j) in e.entries" :key="j" :data-status="p.status">
-              <span class="mark" aria-hidden="true">{{
-                p.status === "completed" ? "✓" : p.status === "in_progress" ? "›" : "○"
-              }}</span
-              >{{ p.content }}
-            </li>
-          </ul>
+        <div v-else-if="atOpen" id="agent-frames" class="pop" role="listbox" aria-label="Frames">
+          <button
+            v-for="(a, i) in atMatches"
+            :id="`agent-frame-${i}`"
+            :key="a.id"
+            type="button"
+            tabindex="-1"
+            role="option"
+            :aria-selected="i === atIndex"
+            class="pop-row"
+            :class="i === atIndex ? 'is-active' : ''"
+            @click="pickAt(a.id)"
+          >
+            <span class="pop-name"><DitherIcon name="Layout" :size="11" :stroke-width="1.5" />{{ a.name }}</span>
+          </button>
+          <p v-if="!atMatches.length" class="note">No frame left to add</p>
+        </div>
+        <div v-else-if="modelOpen && model" id="agent-model-picker" class="pop" role="group" aria-label="Model">
+          <button
+            v-for="m in model.options"
+            :key="m.id"
+            type="button"
+            class="pop-row"
+            :aria-pressed="m.id === model.current"
+            @click="pickModel(m.id)"
+          >
+            <span class="pop-name"
+              >{{ m.name }}<DitherIcon v-if="m.id === model.current" name="Check" :size="11" :stroke-width="1.5"
+            /></span>
+            <span v-if="m.description" class="dim">{{ m.description }}</span>
+          </button>
+        </div>
+        <div v-else-if="pickerOpen" id="agent-harness-picker" class="pop" role="group" aria-label="Harness">
+          <template v-if="hello">
+            <button
+              v-for="h in harnesses"
+              :key="h.id"
+              type="button"
+              class="pop-row"
+              :aria-pressed="agent?.id === h.id"
+              :title="h.command"
+              @click="start(h.id)"
+            >
+              <span class="pop-name"
+                ><ToolMark v-if="isMark(h.id)" :id="h.id" :size="12" />{{ h.name
+                }}<DitherIcon v-if="agent?.id === h.id" name="Check" :size="11" :stroke-width="1.5"
+              /></span>
+              <span class="dim">{{ h.installed ? (h.note ?? "on this path") : "not on the path" }}</span>
+            </button>
+            <div class="pop-foot">
+              <form class="custom" @submit.prevent="customCommand.trim() && start({ command: customCommand.trim() })">
+                <input
+                  v-model="customCommand"
+                  type="text"
+                  name="agent-command"
+                  class="input"
+                  placeholder="any ACP command, e.g. omp --mode acp"
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-label="Custom harness command"
+                />
+                <button type="submit" class="key" :disabled="!customCommand.trim()">
+                  <span class="row-label">Start</span>
+                </button>
+              </form>
+              <button v-if="agent" type="button" class="pop-row text-destructive" @click="acp?.stop()">
+                <span class="pop-name">Stop {{ agent.name }}</span>
+              </button>
+            </div>
+          </template>
+          <p v-else class="note">
+            {{ connecting ? "Connecting the bridge…" : "No bridge yet." }} Run it next to your harness, which keeps its
+            own login:<br /><code>node bridge/dither-bridge.mjs</code><br />then pick Claude Code, Codex, Gemini CLI,
+            oh-my-pi, Goose, OpenCode, or any ACP command.
+          </p>
+        </div>
+        <div v-else-if="menuOpen" class="pop menu" role="group" aria-label="Settings">
+          <div class="fields">
+            <label class="field"
+              ><span>bridge</span
+              ><input
+                v-model.trim="config.bridgeUrl"
+                name="agent-bridge-url"
+                type="text"
+                class="input"
+                placeholder="ws://127.0.0.1:8790"
+                autocomplete="off"
+                spellcheck="false"
+            /></label>
+            <!-- The harness's own settings, asked of it; nothing kept here. -->
+            <label v-for="o in settings" :key="o.configId" class="field"
+              ><span>{{ o.name.toLowerCase() }}</span
+              ><select
+                class="input"
+                :name="`agent-setting-${o.configId}`"
+                :value="o.current"
+                @change="setSetting(o, ($event.target as HTMLSelectElement).value)"
+              >
+                <option v-for="v in o.options" :key="v.id" :value="v.id" :title="v.description">
+                  {{ v.name }}
+                </option>
+              </select></label
+            >
+          </div>
+          <p class="note">
+            {{ fmtTokens(usage.input) }} in, {{ fmtTokens(usage.output) }} out<template v-if="lastTurnMs"
+              >, last turn {{ fmtMs(lastTurnMs) }}</template
+            ><template v-if="hello">, in {{ hello.cwd }}</template>
+          </p>
+          <p class="note">
+            The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool
+            calls. No key lives here; the harness's settings above are its own, asked of it.
+          </p>
+        </div>
+
+        <TurnTrays
+          :next="suggestions"
+          :todos="todos"
+          :queue="followUps"
+          :paused="paused"
+          :run="
+            busy
+              ? {
+                  doing: stopping ? 'Stopping' : thinking ? 'Thinking' : live ? 'Writing' : 'Working',
+                  time: secondsOf(Math.max(1000, elapsed)),
+                  stopping,
+                  stuck,
+                }
+              : null
+          "
+          :changes="changes"
+          :put-back="putBack?.name ?? null"
+          :shown="(id) => editor.artboards.some((a) => a.id === id)"
+          @stop="stop"
+          @force-stop="forceStop"
+          @unqueue="(id) => (followUps = followUps.filter((q) => q.id !== id))"
+          @edit-queued="editQueued"
+          @send-now="sendNow"
+          @move-up="moveQueued"
+          @clear-queue="((followUps = []), (paused = false))"
+          @resume="resume"
+          @undo="undoTurn"
+          @keep="keep"
+          @undo-frame="undoFrame"
+          @keep-frame="settleFrame"
+          @put-back="putFrameBack"
+          @show="selectArtboard"
+          @ask="(s) => send(s)"
+        />
+
+        <div v-if="editing" class="editing" role="status">
+          <p class="editing-line">
+            <DitherIcon name="Edit" :size="12" :stroke-width="1.5" /><span class="row-label is-wrap"
+              >Editing an earlier message. Sending goes back there: the messages after it leave the thread.</span
+            >
+          </p>
+          <div class="editing-keys">
+            <label v-if="editing.restorable" class="editing-choice"
+              ><input v-model="editing.restore" type="checkbox" name="edit-restore" /><span class="row-label"
+                >Canvas back to before it</span
+              ></label
+            >
+            <button type="button" class="editing-cancel" @click="cancelEdit">
+              <span class="row-label">Cancel</span><kbd class="row-label">esc</kbd>
+            </button>
+          </div>
         </div>
         <div
-          v-else-if="e.kind === 'approval'"
-          class="entry approval"
-          data-kind="approval"
-          :data-answered="String(e.answered !== null)"
+          class="card"
+          :class="{ 'is-dropping': dropping }"
+          @dragover.prevent="dropping = true"
+          @dragleave.self="dropping = false"
+          @drop="onDrop"
         >
-          <span class="mark" aria-hidden="true">⚠</span>
-          <span class="text">
-            {{ e.title }}
-            <span v-if="e.answered === null" class="choices">
-              <button
-                v-for="o in e.options"
-                :key="o.id"
-                type="button"
-                class="chip"
-                :class="o.primary ? 'is-primary' : ''"
-                @click="answer(e, o.id)"
-              >
-                {{ o.label }}
-              </button>
-            </span>
-            <span v-else class="dim"> answered {{ e.answered }}</span>
-          </span>
+          <div v-if="context.length || attachments.length" class="chips">
+            <span v-for="c in context" :key="c.id" class="ctx first-line"
+              ><DitherIcon name="Layout" :size="11" :stroke-width="1.5" /><span class="row-label is-wrap">{{
+                c.name
+              }}</span
+              ><button type="button" class="ctx-x" :aria-label="`Leave ${c.name} out`" @click="dropContext(c.id)">
+                <DitherIcon name="Close" :size="10" :stroke-width="1.5" /></button
+            ></span>
+            <Attached :attachments="attachments" @remove="unattach" @unfold="unfold" />
+          </div>
+          <p v-if="notice" class="notice" role="status">{{ notice }}</p>
+          <p v-else-if="slashHint" class="slash-hint">{{ slashHint }}</p>
+          <textarea
+            ref="box"
+            v-model="input"
+            name="agent-goal"
+            rows="1"
+            class="prompt"
+            :placeholder="placeholder"
+            :enterkeyhint="touch ? 'enter' : 'send'"
+            aria-label="Message the agent"
+            aria-autocomplete="list"
+            :aria-expanded="listbox !== null"
+            :aria-controls="listbox?.id"
+            :aria-activedescendant="listbox?.active"
+            spellcheck="false"
+            @keydown="onKey"
+            @paste="onPaste"
+            @compositionend="onCompositionEnd"
+          />
+          <div class="foot">
+            <button
+              type="button"
+              class="foot-key"
+              :aria-pressed="handoff.picking"
+              aria-label="Pick frames on the canvas"
+              title="Pick frames on the canvas (esc when done)"
+              @click="handoff.picking = !handoff.picking"
+            >
+              <DitherIcon name="Crosshair" :size="13" :stroke-width="1.5" />
+            </button>
+            <button
+              type="button"
+              class="foot-key"
+              aria-label="Add a frame by name"
+              title="Add a frame by name (@)"
+              :aria-pressed="atForced"
+              @click="atForced = !atForced"
+            >
+              @
+            </button>
+            <button
+              type="button"
+              class="pill"
+              :aria-expanded="pickerOpen"
+              aria-controls="agent-harness-picker"
+              :title="hello ? `${agentName || 'Harness'}, bridge ${config.bridgeUrl}` : config.bridgeUrl"
+              @click="togglePicker"
+            >
+              <span class="led" :data-on="String(!!agent)" aria-hidden="true"></span
+              ><span class="row-label">{{ agentName || (acp ? "Pick a harness" : "Harness") }}</span
+              ><DitherIcon name="ChevronDown" :size="10" :stroke-width="1.5" />
+            </button>
+            <button
+              v-if="model"
+              type="button"
+              class="pill"
+              :aria-expanded="modelOpen"
+              aria-controls="agent-model-picker"
+              :title="`${agentName || 'The harness'} runs ${modelName(model)}`"
+              :disabled="model.options.length < 2"
+              @click="((modelOpen = !modelOpen), (pickerOpen = false), (menuOpen = false))"
+            >
+              <span class="row-label">{{ modelName(model) }}</span
+              ><DitherIcon v-if="model.options.length > 1" name="ChevronDown" :size="10" :stroke-width="1.5" />
+            </button>
+            <button
+              type="button"
+              class="send"
+              :class="input.trim() || attachments.length ? 'key-chrome' : 'is-idle'"
+              :disabled="!input.trim() && !attachments.length"
+              :aria-label="busy ? `Queue (enter), or send now (${modKey('enter')})` : 'Send (enter)'"
+              :title="busy ? `Queue (enter), or stop and send now (${modKey('enter')})` : 'Send (enter)'"
+              @mousedown.prevent
+              @click="(ev: MouseEvent) => ev.detail > 1 || send()"
+            >
+              <DitherIcon name="ArrowUp" :size="13" :stroke-width="2" />
+            </button>
+          </div>
         </div>
-        <div v-else class="entry" :data-kind="e.kind">
-          <span class="mark" aria-hidden="true">{{
-            e.kind === "user"
-              ? "›"
-              : e.kind === "assistant"
-                ? "⏺"
-                : e.kind === "error"
-                  ? "!"
-                  : e.kind === "followup"
-                    ? "⇢"
-                    : "◦"
-          }}</span>
-          <span class="text">{{ e.text }}<span v-if="live === e" class="caret" aria-hidden="true">▍</span></span>
+
+        <div class="status">
+          <button
+            type="button"
+            class="status-key"
+            :aria-pressed="config.auto"
+            :title="
+              config.auto
+                ? 'Permission prompts are answered with their allow option'
+                : 'Permission prompts wait for you'
+            "
+            @click="config.auto = !config.auto"
+          >
+            <DitherIcon :name="config.auto ? 'Unlock' : 'Lock'" :size="11" :stroke-width="1.5" /><span
+              class="row-label"
+              >{{ config.auto ? "Auto" : "Ask" }}</span
+            >
+          </button>
+          <button
+            v-if="modes.length"
+            type="button"
+            class="status-key"
+            :title="modes.find((m) => m.id === mode)?.description || 'Switch mode'"
+            @click="slash(`/mode ${modes[(modes.findIndex((m) => m.id === mode) + 1) % modes.length].id}`)"
+          >
+            <DitherIcon name="Bot" :size="11" :stroke-width="1.5" /><span class="row-label">{{
+              modes.find((m) => m.id === mode)?.name || mode
+            }}</span>
+          </button>
+          <button
+            type="button"
+            class="status-key is-glyph"
+            aria-label="Follow the agent"
+            :title="
+              config.follow
+                ? 'Following the agent: the canvas pans to each frame it changes'
+                : 'Follow the agent: pan the canvas to each frame it changes'
+            "
+            :aria-pressed="config.follow"
+            @click="config.follow = !config.follow"
+          >
+            <DitherIcon name="Eye" :size="12" :stroke-width="1.5" />
+          </button>
+          <span v-if="hello" class="status-key is-static" :title="hello.cwd"
+            ><DitherIcon name="Folder" :size="11" :stroke-width="1.5" /><span class="row-label">{{
+              folderOf(hello.cwd)
+            }}</span></span
+          >
+          <ContextMeter v-if="contextUse" class="status-meter" :use="contextUse" />
+          <button
+            type="button"
+            class="status-key is-icon"
+            :aria-pressed="menuOpen"
+            aria-label="Settings"
+            title="Settings: the bridge and the harness's own"
+            @click="((menuOpen = !menuOpen), (pickerOpen = false))"
+          >
+            <DitherIcon name="Settings" :size="12" :stroke-width="1.5" />
+          </button>
         </div>
-      </template>
-      <div v-if="busy && !live" class="entry working" data-kind="system">
-        <span class="mark spin" aria-hidden="true">✻</span>
-        <span class="text"
-          >working… {{ fmtMs(elapsed) }}<span v-if="followUps.length">, {{ followUps.length }} queued</span>
-          <span class="dim">(esc to stop)</span></span
-        >
       </div>
     </div>
 
-    <div v-if="followUps.length" class="queued">
-      <span v-for="(s, i) in followUps" :key="`f${i}`" class="chip" :title="s"
-        >⇢ {{ s.length > 32 ? `${s.slice(0, 31)}…` : s }}</span
-      >
-    </div>
-
-    <div class="composer">
-      <div v-if="slashOpen && slashMatches.length" class="slash" role="listbox" aria-label="Commands">
-        <button
-          v-for="(c, i) in slashMatches"
-          :key="c.name"
-          type="button"
-          role="option"
-          :aria-selected="i === slashIndex"
-          class="slash-row"
-          :class="i === slashIndex ? 'is-active' : ''"
-          @click="pickSlash(c)"
-        >
-          <span class="slash-name"
-            >/{{ c.name }}<span v-if="c.args" class="dim"> {{ c.args }}</span></span
-          ><span class="dim">{{ c.harness ? `${agentName}: ` : "" }}{{ c.desc }}</span>
-        </button>
-      </div>
-      <div class="line">
-        <span class="prompt-mark" aria-hidden="true">›</span>
-        <textarea
-          ref="box"
-          v-model="input"
-          name="agent-goal"
-          :rows="rows"
-          class="prompt"
-          :placeholder="
-            busy
-              ? 'queue a follow-up…'
-              : agent
-                ? 'what should the studio build?'
-                : 'pick a harness, then describe a screen'
-          "
-          spellcheck="false"
-          @keydown="onKey"
-        />
-        <button v-if="busy" type="button" class="run stop" title="Stop (esc)" @click="stop">Stop</button>
-        <button v-else type="button" class="run" :disabled="!input.trim()" title="Run (enter)" @click="send()">
-          Run
-        </button>
-      </div>
-    </div>
-
-    <div class="status">
-      <span class="dim">{{ agentName || "acp" }}</span>
-      <span>{{ fmtTokens(usage.input) }} in</span>
-      <span>{{ fmtTokens(usage.output) }} out</span>
-      <span v-if="lastTurnMs" class="dim">last {{ fmtMs(lastTurnMs) }}</span>
-      <span v-if="config.auto" class="auto" title="permission prompts answered automatically">auto</span>
-      <span class="hint dim">
-        <span v-for="[k, what] in HINTS" :key="what"
-          ><kbd>{{ k }}</kbd> {{ what }}</span
-        >
-      </span>
+    <div v-if="!entries.length" class="starters">
+      <button v-for="s in STARTERS" :key="s.text" type="button" class="starter" @click="send(s.text)">
+        <DitherIcon :name="s.icon" :size="12" :stroke-width="1.5" /><span>{{ s.text }}</span>
+      </button>
     </div>
   </div>
 </template>
@@ -945,121 +1828,74 @@ onBeforeUnmount(() => {
   font-family: var(--font-mono);
   font-size: 12px;
 }
+/* The chat's header: who answers, the chat's title, a new chat, close. */
 .head {
+  position: relative;
+  z-index: 5;
   display: flex;
-  height: 2.25rem;
+  height: 2.5rem;
   flex-shrink: 0;
   align-items: center;
-  gap: 6px;
-  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
-  padding-inline: 0.75rem 0.5rem;
-  font-size: 11px;
-  color: var(--color-muted-foreground);
+  gap: 2px;
+  /* The mark and the last key's glyph (13px in a 28px key) on the panel's
+     14px line. */
+  padding-inline: 14px 6.5px;
+}
+.who {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  place-items: center;
+  margin-right: 6px;
+  border-radius: 6px;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
 }
 .title {
+  flex: 1;
+  font-size: 11.5px;
   color: var(--color-foreground);
-}
-.model {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 11rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border-radius: 0.375rem;
-  padding: 2px 6px;
-  font-size: 10.5px;
-  color: var(--color-muted-foreground);
-  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
-}
-.model:hover {
-  color: var(--color-foreground);
-}
-.led {
-  width: 6px;
-  height: 6px;
-  flex-shrink: 0;
-  border-radius: 1px;
-  background: var(--color-muted-foreground);
-  opacity: 0.5;
-}
-.led[data-on="true"] {
-  background: var(--swatch-green);
-  opacity: 1;
-}
-.head-actions {
-  margin-left: auto;
-  display: flex;
-  gap: 2px;
 }
 .head-btn {
   display: grid;
   width: 1.75rem;
   height: 1.75rem;
+  flex-shrink: 0;
   place-items: center;
-  border-radius: 0.375rem;
+  border-radius: 7px;
   color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
 }
 .head-btn:hover,
 .head-btn[aria-pressed="true"] {
   background: var(--color-card);
   color: var(--color-foreground);
 }
-.picker,
-.settings {
-  display: grid;
-  gap: 4px;
-  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
-  padding: 8px 12px;
-}
-.pick {
-  display: flex;
-  justify-content: space-between;
+.pop.menu {
   gap: 8px;
-  border-radius: 0.375rem;
-  padding: 4px 6px;
-  text-align: left;
-  font-size: 11px;
-  color: var(--color-foreground);
+  padding: 10px 12px;
 }
-.pick:hover {
-  background: var(--color-card);
-}
-.pick[aria-pressed="true"] .pick-name::before {
-  content: "● ";
-  color: var(--swatch-green);
-}
-.pick-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-.stop-pick {
-  color: var(--swatch-orange);
-}
-.custom {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-}
-.custom .input {
-  flex: 1;
-}
-.field {
+/* One grid for every field, so the names make one column as wide as the
+   longest. */
+.fields {
   display: grid;
-  grid-template-columns: 4rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   font-size: 11px;
   color: var(--color-muted-foreground);
 }
+.field {
+  display: contents;
+}
 .input {
-  height: 1.625rem;
+  height: 1.75rem;
   min-width: 0;
   border: 1px solid var(--color-edge);
-  border-radius: 0.375rem;
+  border-radius: 7px;
   background: var(--color-background);
   padding-inline: 0.5rem;
   font: inherit;
@@ -1070,322 +1906,683 @@ onBeforeUnmount(() => {
 .input:focus {
   border-color: var(--color-ring);
 }
-.remember {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--color-muted-foreground);
-}
-.note {
-  margin: 0;
-  font-size: 10.5px;
-  line-height: 1.5;
-  color: var(--color-muted-foreground);
-  overflow-wrap: anywhere;
-}
-.note code {
-  color: var(--color-foreground);
-}
+/* The thread: your message as a bubble, the reply as prose, steps in words. */
 .log {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  padding: 10px 12px;
+  padding: 4px 14px 14px;
   display: grid;
+  /* One column the panel's width: a long unbroken line (a command, a path)
+     never widens the thread past the panel. */
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
-  gap: 5px;
+  gap: 10px;
 }
-.empty {
+/* An empty chat: a greeting, the composer and the starters stand in the
+   middle of the panel; the first message sends the composer down. */
+.agent.is-empty .log {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 14px;
+}
+.hello {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
   gap: 8px;
-  padding-top: 6px;
-  line-height: 1.5;
-  color: var(--color-muted-foreground);
+  padding-inline: 2px;
 }
-.empty p {
+.hello-mark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  color: var(--color-foreground);
+  background: var(--well);
+  box-shadow: var(--recess-sm);
+}
+.hello-title {
   margin: 0;
-}
-.dim {
-  color: var(--color-muted-foreground);
-}
-.entry {
-  display: grid;
-  grid-template-columns: 1.1rem minmax(0, 1fr);
-  gap: 4px;
-  line-height: 1.45;
-}
-.entry[data-kind="user"],
-.entry[data-kind="assistant"] {
+  font-size: 14px;
+  font-weight: 500;
   color: var(--color-foreground);
 }
-.entry[data-kind="assistant"] .mark {
-  color: var(--swatch-blue);
-}
-.entry[data-kind="system"],
-.entry[data-kind="activity"] {
-  color: var(--color-muted-foreground);
-  font-size: 11px;
-}
-.entry[data-kind="activity"][data-status="failed"] .mark {
-  color: var(--swatch-orange);
-}
-.entry[data-kind="followup"] {
-  color: var(--color-muted-foreground);
-}
-.entry[data-kind="error"] {
-  color: var(--swatch-red);
-}
-.entry[data-kind="plan"] {
-  font-size: 11px;
-  color: var(--color-muted-foreground);
-}
-.plan {
+.hello-note {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 2px;
-}
-.plan li {
-  display: grid;
-  grid-template-columns: 1rem minmax(0, 1fr);
-  gap: 2px;
-}
-.plan li[data-status="completed"] {
-  color: var(--color-muted-foreground);
-}
-.plan li[data-status="in_progress"] {
-  color: var(--color-foreground);
-}
-.approval .mark {
-  color: var(--swatch-orange);
-}
-.approval[data-answered="false"] {
-  color: var(--color-foreground);
-}
-.choices {
-  display: inline-flex;
-  gap: 4px;
-  margin-left: 6px;
-  vertical-align: middle;
-}
-.mark {
-  color: var(--color-muted-foreground);
-  text-align: center;
-}
-.text {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.caret {
-  color: var(--swatch-blue);
-}
-.working .mark {
-  color: var(--swatch-orange);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .spin,
-  .caret {
-    animation: pulse 1.2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    50% {
-      opacity: 0.3;
-    }
-  }
-}
-.tool {
   font-size: 11px;
+  line-height: 1.55;
   color: var(--color-muted-foreground);
 }
-.tool summary {
+.starters {
   display: grid;
-  grid-template-columns: 1.1rem auto minmax(0, 1fr);
-  gap: 4px;
-  cursor: pointer;
-  list-style: none;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1;
+  align-content: start;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 14px 10px;
+}
+.starter {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-height: 2rem;
+  border-radius: 8px;
+  padding: 8px 8px;
+  text-align: left;
+  font-size: 11.5px;
   line-height: 1.45;
-  border-radius: 0.25rem;
+  color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
 }
-.tool summary::-webkit-details-marker {
-  display: none;
+.starter + .starter {
+  box-shadow: 0 -1px 0 color-mix(in oklab, var(--color-border) 70%, transparent);
 }
-.tool summary:hover {
+.starter :deep(svg) {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.starter:hover {
+  color: var(--color-foreground);
+  background: var(--color-card);
+}
+/* The composer's outer edge on the panel's 14px line, the thread's. */
+.dock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex-shrink: 0;
+  gap: 6px;
+  padding: 0 14px 12px;
+}
+/* The composer: one surface holding the stack (`ui/TurnTrays.vue`), the
+   input card resting under it, and the row that says where it runs (how
+   permission prompts are answered, the folder, settings). */
+.composer {
+  /* The composer's one line: every icon, chip and the placeholder start
+     `--inset` in from its inner edge, every key ends there, and the text
+     beside an icon (12px, then 7px) shares one column. */
+  --inset: 10px;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-radius: 16px;
+  padding: 3px;
+  background: var(--color-card);
+}
+/* The input card: the recessed well with a hairline, quiet until it holds
+   the focus, then edged in the ring ink. */
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  border-radius: 13px;
+  padding: 8px var(--inset) 6px;
+  background: var(--well);
+  box-shadow:
+    var(--recess-sm),
+    0 0 0 1px var(--color-border);
+  transition: box-shadow 200ms var(--ease-settle);
+}
+/* Under the stack, a breath between its last row and the card. */
+.part + .card {
+  margin-top: 3px;
+}
+/* Editing an earlier message: what sending will do, and the way out. */
+.editing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin-bottom: 4px;
+  padding: 7px var(--inset);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+  font-size: 11px;
   color: var(--color-foreground);
 }
-.tool .name {
-  color: var(--color-foreground);
-}
-.tool .sum {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tool[open] .sum {
-  white-space: normal;
-}
-.tool[data-ok="false"] .mark,
-.tool[data-ok="false"] .sum {
-  color: var(--swatch-orange);
-}
-.detail {
-  margin: 4px 0 4px 1.1rem;
-  max-height: 14rem;
-  overflow: auto;
-  border-left: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
-  padding-left: 8px;
-  font-size: 10.5px;
+.editing-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
   line-height: 1.4;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  color: var(--color-muted-foreground);
 }
-.queued {
+.editing-line > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.editing-keys {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  padding: 0 12px 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding-left: 19px;
 }
-.chip {
-  max-width: 100%;
-  min-height: 1.25rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  border: 1px dashed var(--color-border);
-  border-radius: 0.375rem;
-  padding: 1px 6px;
-  font-size: 10.5px;
+.editing-choice {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: 6px;
   color: var(--color-muted-foreground);
-}
-button.chip {
-  border-style: solid;
   cursor: pointer;
 }
-button.chip:hover:not(:disabled) {
-  color: var(--color-foreground);
-  background: var(--color-card);
-}
-button.chip.is-primary {
-  border-color: color-mix(in oklab, var(--color-foreground) 40%, transparent);
-  color: var(--color-foreground);
-}
-button.chip:disabled {
-  opacity: 0.5;
-}
-.composer {
-  position: relative;
-  flex-shrink: 0;
-  border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
-  padding: 8px 10px 6px;
-}
-.slash {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: calc(100% - 2px);
-  display: grid;
-  max-height: 16rem;
-  overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
-  background: var(--color-card);
-  padding: 4px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.32);
-}
-.slash-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  border-radius: 0.25rem;
-  padding: 4px 6px;
-  text-align: left;
-  font-size: 11px;
-  color: var(--color-foreground);
-}
-.slash-row.is-active,
-.slash-row:hover {
-  background: var(--color-background);
-}
-.slash-name {
-  white-space: nowrap;
-}
-.line {
-  display: grid;
-  grid-template-columns: 1rem minmax(0, 1fr) auto;
-  align-items: end;
+.editing-cancel {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
   gap: 6px;
+  border-radius: 7px;
+  padding: 0 8px;
+  color: var(--color-foreground);
 }
-.prompt-mark {
-  padding-bottom: 6px;
-  color: var(--swatch-orange);
+.editing-cancel:hover {
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.editing-cancel kbd {
+  font: inherit;
+  color: var(--color-muted-foreground);
+}
+.editing-cancel:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+/* A file held over the composer: its ring says it lands here. */
+.card.is-dropping {
+  box-shadow:
+    var(--recess-sm),
+    0 0 0 2px var(--color-ring);
+}
+/* What the picked command takes, as it reads. */
+.slash-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-muted-foreground);
+}
+/* What could not come in, or why a send waits. */
+.notice {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-destructive);
+}
+.card:focus-within {
+  box-shadow:
+    var(--recess-sm),
+    0 0 0 1px var(--color-ring);
+}
+.ctx-x {
+  --glyph: 1.5rem;
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  place-items: center;
+  margin-inline: -4px -6px;
+  border-radius: 6px;
+  color: var(--color-muted-foreground);
+}
+.ctx-x:hover {
+  color: var(--color-foreground);
 }
 .prompt {
+  min-height: calc(1.5em * 2 + 8px);
+  max-height: 176px;
+  overflow-y: auto;
   resize: none;
   border: 0;
   background: transparent;
-  padding: 5px 0;
+  padding: 4px 0;
   font: inherit;
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--color-foreground);
   outline: none;
 }
 .prompt::placeholder {
   color: var(--color-muted-foreground);
 }
-.run {
+/* The first key's glyph (13px in a 24px key) sits on the line. */
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-left: -5.5px;
+}
+.foot-key {
+  display: grid;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
+}
+.foot-key:hover,
+.foot-key[aria-pressed="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 9.5rem;
   min-height: 1.5rem;
-  border-radius: 0.375rem;
-  padding-inline: 0.6rem;
-  font-size: 11px;
-  color: var(--color-background);
-  background: var(--color-foreground);
-  transition: opacity 140ms ease;
+  border-radius: 7px;
+  padding-inline: 6px;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+  transition: color 200ms var(--ease-settle);
 }
-.run:disabled {
-  opacity: 0.35;
+.pill:hover,
+.pill[aria-expanded="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
 }
-.run.stop {
-  background: color-mix(in oklab, var(--swatch-red) 80%, black);
-}
+/* Its keys' glyphs (6px into each key) on the composer's line. */
 .status {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px 12px;
-  border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
-  padding: 5px 12px;
-  font-size: 10px;
+  gap: 2px;
+  min-width: 0;
+  padding: 3px calc(var(--inset) - 6px) 1px;
+}
+.status-key {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 1.5rem;
+  border-radius: 7px;
+  padding-inline: 6px;
+  font-size: 10.5px;
+  white-space: nowrap;
   color: var(--color-muted-foreground);
+  transition:
+    color 200ms var(--ease-settle),
+    background-color 200ms var(--ease-settle);
 }
-.auto {
-  margin-left: auto;
-  color: var(--swatch-orange);
+/* The folder is the one key that gives way: its name is cut short first. */
+.status-key.is-static {
+  flex-shrink: 1;
+  min-width: 0;
 }
-.hint {
-  display: flex;
-  flex-basis: 100%;
-  flex-wrap: wrap;
-  gap: 2px 12px;
+button.status-key:hover,
+.status-key[aria-expanded="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
 }
-.hint kbd {
-  font-family: inherit;
+.status-key[aria-pressed="true"] {
   color: var(--color-foreground);
 }
-.pick:focus-visible,
-.model:focus-visible,
+.status-key.is-icon {
+  min-width: 1.5rem;
+  margin-left: auto;
+  justify-content: center;
+  padding: 0;
+}
+.status-key.is-glyph {
+  min-width: 1.5rem;
+  justify-content: center;
+  padding: 0;
+}
+.status-key.is-icon[aria-pressed="true"],
+.status-key.is-glyph[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+}
+.led {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 1px;
+  background: var(--color-muted-foreground);
+}
+.led[data-on="true"] {
+  background: var(--swatch-green);
+}
+.send {
+  display: grid;
+  width: 1.625rem;
+  height: 1.625rem;
+  flex-shrink: 0;
+  margin-left: auto;
+  place-items: center;
+}
+/* Grey until there is something to send, then the chrome key. */
+.send.is-idle {
+  border-radius: 999px;
+  color: var(--color-muted-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 10%, transparent);
+}
+/* Popovers over the card: commands, frames, harnesses. */
+.pop {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 6;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  /* Tall enough for every harness the bridge knows, the custom command and
+     Stop at the Studio's 1024px floor; past that it scrolls. */
+  max-height: min(24rem, var(--room, 16rem));
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 4px;
+  background: var(--color-card);
+  box-shadow: var(--float-shadow);
+}
+.pop .note {
+  padding: 6px 8px;
+}
+.pop-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 1.75rem;
+  align-items: center;
+  border-radius: 8px;
+  padding: 4px 8px;
+  text-align: left;
+  font-size: 11px;
+  color: var(--color-foreground);
+}
+/* A row's note wraps beside its name, never cut short. */
+.pop-row .dim {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.pop-row.is-active,
+.pop-row:hover {
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.pop-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.pop-row.text-destructive {
+  color: var(--color-destructive);
+}
+/* The command field, Start and Stop stay whole at the picker's foot; the
+   list of harnesses above them is what scrolls. */
+.pop-foot {
+  position: sticky;
+  bottom: -4px;
+  margin-bottom: -4px;
+  padding-bottom: 4px;
+  background: var(--color-card);
+}
+.custom {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+}
+.custom .input {
+  flex: 1;
+}
+.dock {
+  position: relative;
+}
+/* Back to the end of the thread, when it moved on while you read above. */
+.latest {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 1.5rem;
+  translate: -50% 0;
+  border-radius: 999px;
+  padding-inline: 10px;
+  font-size: 10.5px;
+  color: var(--color-foreground);
+  background: var(--color-card);
+  box-shadow: var(--float-shadow);
+}
+/* A run of steps, folded under how many there were. */
+.group {
+  font-size: 11.5px;
+  color: var(--color-muted-foreground);
+}
+.group-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  margin: 2px 0 0 5px;
+  padding-left: 13px;
+  box-shadow: inset 1px 0 0 var(--color-border);
+}
 .head-btn:focus-visible,
-.chip:focus-visible,
-.run:focus-visible,
-.slash-row:focus-visible {
+.starter:focus-visible,
+.latest:focus-visible,
+.foot-key:focus-visible,
+.status-key:focus-visible,
+.ctx-x:focus-visible,
+.pill:focus-visible,
+.send:focus-visible,
+.pop-row:focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 1px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .run {
+  .head-btn,
+  .starter,
+  .foot-key,
+  .status-key,
+  .pill {
     transition: none;
   }
+}
+</style>
+
+<style>
+/* The composer's shared pieces (keys, folds, chips, the spinner), drawn by
+   the panel and its parts alike; every rule under `.agent`. */
+.agent .dim {
+  color: var(--color-muted-foreground);
+}
+.agent .note {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--color-muted-foreground);
+  overflow-wrap: anywhere;
+}
+.agent .note code {
+  color: var(--color-foreground);
+}
+/* Keys: machined, filled, the primary one in ink. */
+.agent .key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 1.5rem;
+  border-radius: 7px;
+  padding-inline: 9px;
+  font-size: 11px;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+  transition: background-color 200ms var(--ease-settle);
+}
+.agent .key:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--color-foreground) 14%, transparent);
+}
+.agent .key.is-primary {
+  color: var(--color-background);
+  background: var(--color-foreground);
+}
+.agent .key.is-primary:hover {
+  background: color-mix(in oklab, var(--color-foreground) 88%, var(--color-background));
+}
+.agent .key:disabled {
+  opacity: 0.5;
+}
+.agent .row-key {
+  --glyph: 1.5rem;
+  display: grid;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--color-muted-foreground);
+}
+.agent .row-key.is-word {
+  padding-inline: 6px;
+  font-size: 10.5px;
+}
+.agent .row-key:hover {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.agent .spin {
+  --glyph: 10px;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  margin-inline: 1px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.25px color-mix(in oklab, var(--color-foreground) 25%, transparent);
+  border-top: 1.25px solid var(--color-foreground);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .agent .spin {
+    animation: agent-spin 0.9s linear infinite;
+  }
+  @keyframes agent-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+}
+.agent .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.agent .ctx {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-height: 1.5rem;
+  border-radius: 6px;
+  padding-inline: 4px 6px;
+  font-size: 10.5px;
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.agent .ctx > svg {
+  --glyph: 11px;
+  flex-shrink: 0;
+}
+/* A row, chip or key whose words wrap (an is-wrap label): its glyphs and
+   keys stand on the label's first line, each centred on its capitals
+   (--first, from the label's top: its 0.3em pad and half a cap), and a
+   one-line row keeps its 24px. Without text-box it stays centred. */
+.agent :is(.row, .ctx, .key, summary, .activity).first-line {
+  --first: calc(0.3em + 0.5cap);
+}
+@supports (text-box: trim-both cap alphabetic) {
+  .agent :is(.row, .ctx, .key, summary, .activity).first-line {
+    align-items: flex-start;
+    padding-block: calc((1.5rem - 0.6em - 1cap) / 2);
+  }
+  .agent :is(.row, .ctx, .key, summary, .activity).first-line > :not(.row-label) {
+    margin-top: calc(var(--first) - var(--glyph, 12px) / 2);
+    margin-bottom: 0;
+  }
+}
+/* A fold: a summary row that opens what it holds (a thought, a step, a run
+   of steps), its chevron turning as it opens. */
+.agent .fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 1.5rem;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
+  transition: color 200ms var(--ease-settle);
+}
+.agent .fold > summary::-webkit-details-marker {
+  display: none;
+}
+.agent .fold > summary:hover {
+  color: var(--color-foreground);
+}
+.agent .fold > summary .chev {
+  --glyph: 11px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition:
+    opacity 200ms var(--ease-settle),
+    rotate 350ms var(--ease-settle);
+}
+.agent .fold > summary:hover .chev,
+.agent .fold[open] > summary .chev {
+  opacity: 1;
+}
+.agent .fold[open] > summary .chev {
+  rotate: 90deg;
+}
+.agent .key:focus-visible,
+.agent .row-key:focus-visible,
+.agent .fold > summary:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent .key,
+  .agent .fold > summary,
+  .agent .fold > summary .chev {
+    transition: none;
+  }
+}
+</style>
+
+<style>
+/* The Quote key over a selection in a reply: teleported to the body (the
+   panel's shell clips what it holds), standing just above the selection's
+   end. */
+.agent-quote {
+  position: fixed;
+  z-index: 60;
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: 5px;
+  translate: -100% calc(-100% - 6px);
+  border-radius: 7px;
+  padding: 0 8px;
+  font: 500 11px/1 var(--font-mono);
+  color: var(--color-background);
+  background: var(--color-foreground);
+  box-shadow: var(--float-shadow);
+}
+.agent-quote:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
 }
 </style>
