@@ -1,10 +1,13 @@
 // The landing's build: the brand itself as a model. Every cell of the
 // lockup (`LOCKUP`: the mark, then the wordmark in the pixel face) is a
-// block with chamfered front edges and a hairline seam round it, so the
-// kit's assembly pass reads each one as a piece and raises the brand cell
-// by cell. Written as VRML97 with its own light (a key from the upper left,
-// a weak fill, no camera light): fronts, tops, sides and chamfers each take
-// their own tone, and the light stays put while the lockup turns.
+// deep block with chamfered front edges and a hairline seam round it,
+// standing on a floor of thin tiles; the kit's assembly pass reads each
+// block and each tile as a piece, and since it builds from the bottom up
+// the floor lays itself first, then the brand rises on it cell by cell.
+// Written as VRML97 with its own light (a key from the upper left, low
+// enough that the floor sits in the middle tones and the lockup's faces
+// stay brightest, a weak fill, no camera light), so fronts, tops, sides and
+// chamfers each take their own tone and the light stays put as it turns.
 import { LOCKUP, LOCKUP_SIZE } from "./brand"
 
 /** Each block keeps this share of its cell; the rest is the seam. */
@@ -16,68 +19,117 @@ const DEPTH = 2.6
 const BEVEL = 0.13
 /** The mark stands proud of the word by this much, in cells. */
 const LIFT = 0.7
+/** The floor: tiles this many cells square, this thick, reaching this far
+ * past the lockup each side and from behind it to in front of it. */
+const TILE = 2
+const TILE_THICK = 0.3
+const FLOOR_MARGIN = 2
+const FLOOR_BACK = -4
+const FLOOR_FRONT = 6
 /** The light, as VRML gives it: the direction it travels, and how strong. */
 export const LIGHTS = [
-  { direction: [0.38, -0.78, -0.5], intensity: 1 },
+  { direction: [0.35, -0.45, -0.82], intensity: 1 },
   { direction: [-0.8, -0.1, -0.6], intensity: 0.24 },
 ] as const
 
-/** Every piece the build holds: one per cell of the lockup. */
-export const BUILD_PIECES = LOCKUP.length
+/** The cells of the lockup: one block each. */
+export const BUILD_CELLS = LOCKUP.length
+const FLOOR_X = Math.ceil((LOCKUP_SIZE.width + FLOOR_MARGIN * 2) / TILE)
+const FLOOR_Z = Math.ceil((FLOOR_FRONT - FLOOR_BACK) / TILE)
+/** The floor's tiles. */
+export const FLOOR_TILES = FLOOR_X * FLOOR_Z
+/** Every piece the build holds: the blocks and the tiles. */
+export const BUILD_PIECES = BUILD_CELLS + FLOOR_TILES
 
-/** The lockup as lit, chamfered blocks, VRML97 text: x across, y up, the
- * face toward +z. */
+type Box = { x0: number; x1: number; y0: number; y1: number; z0: number; z1: number }
+
+/** A box as quads with outward winding, its +z face chamfered by `bevel`
+ * (the face inset, four slanted quads to the sides) when there is one. */
+function box(points: string[], faces: string[], b: Box, bevel: number): void {
+  const o = points.length
+  const ring = (d: number, z: number) => [
+    [b.x0 + d, b.y0 + d, z],
+    [b.x1 - d, b.y0 + d, z],
+    [b.x1 - d, b.y1 - d, z],
+    [b.x0 + d, b.y1 - d, z],
+  ]
+  const rings = bevel > 0 ? [ring(bevel, b.z1), ring(0, b.z1 - bevel), ring(0, b.z0)] : [ring(0, b.z1), ring(0, b.z0)]
+  for (const [x, y, z] of rings.flat()) points.push(`${x.toFixed(3)} ${y.toFixed(3)} ${z.toFixed(3)}`)
+  const at = (i: number) => i + o
+  // m: where the sides start (the chamfer's foot, or the face itself); k: the back.
+  const m = bevel > 0 ? 4 : 0
+  const k = bevel > 0 ? 8 : 4
+  const quads = [
+    [0, 1, 2, 3],
+    [k, k + 1, m + 1, m],
+    [m + 1, k + 1, k + 2, m + 2],
+    [m + 3, m + 2, k + 2, k + 3],
+    [k, m, m + 3, k + 3],
+    [k + 1, k, k + 3, k + 2],
+  ]
+  if (bevel > 0) quads.push([m, m + 1, 1, 0], [m + 1, m + 2, 2, 1], [m + 2, m + 3, 3, 2], [m + 3, m, 0, 3])
+  for (const q of quads) faces.push(`${q.map(at).join(" ")} -1`)
+}
+
+/** The lockup on its floor as lit blocks, VRML97 text: x across, y up,
+ * the face toward +z. */
 export function lockupModel(): string {
-  const points: string[] = []
-  const faces: string[] = []
+  const floor = { points: [] as string[], faces: [] as string[] }
+  const lockup = { points: [] as string[], faces: [] as string[] }
   const inset = (1 - FILL) / 2
   const cx = LOCKUP_SIZE.width / 2
   const cy = LOCKUP_SIZE.height / 2
+  // The floor first, just under the lockup's foot.
+  const top = -cy + inset - 0.12
+  const left = -cx - FLOOR_MARGIN
+  const gap = (TILE * (1 - FILL)) / 2
+  for (let i = 0; i < FLOOR_X; i++)
+    for (let j = 0; j < FLOOR_Z; j++)
+      box(
+        floor.points,
+        floor.faces,
+        {
+          x0: left + i * TILE + gap,
+          x1: left + (i + 1) * TILE - gap,
+          y0: top - TILE_THICK,
+          y1: top,
+          z0: FLOOR_BACK + j * TILE + gap,
+          z1: FLOOR_BACK + (j + 1) * TILE - gap,
+        },
+        0,
+      )
   for (const c of LOCKUP) {
-    const x0 = c.x + inset - cx
-    const x1 = c.x + 1 - inset - cx
     // Rows count down from the top; y runs up.
-    const y0 = cy - (c.y + 1 - inset)
-    const y1 = cy - (c.y + inset)
-    const front = c.glyph === 0 ? DEPTH / 2 + LIFT : DEPTH / 2
-    const back = -DEPTH / 2
-    const o = points.length
-    // The front face (inset by the chamfer), the ring where the chamfer
-    // meets the sides, the back: four corners each, counter-clockwise.
-    const ring = (d: number, z: number) => [
-      [x0 + d, y0 + d, z],
-      [x1 - d, y0 + d, z],
-      [x1 - d, y1 - d, z],
-      [x0 + d, y1 - d, z],
-    ]
-    for (const [x, y, z] of [...ring(BEVEL, front), ...ring(0, front - BEVEL), ...ring(0, back)])
-      points.push(`${x.toFixed(3)} ${y.toFixed(3)} ${z.toFixed(3)}`)
-    const [f0, f1, f2, f3, m0, m1, m2, m3, b0, b1, b2, b3] = Array.from({ length: 12 }, (_, i) => i + o)
-    // Outward winding: the face, its four chamfers, the four sides, the back.
-    for (const q of [
-      [f0, f1, f2, f3],
-      [m0, m1, f1, f0],
-      [m1, m2, f2, f1],
-      [m2, m3, f3, f2],
-      [m3, m0, f0, f3],
-      [b0, b1, m1, m0],
-      [m1, b1, b2, m2],
-      [m3, m2, b2, b3],
-      [b0, m0, m3, b3],
-      [b1, b0, b3, b2],
-    ])
-      faces.push(`${q.join(" ")} -1`)
+    box(
+      lockup.points,
+      lockup.faces,
+      {
+        x0: c.x + inset - cx,
+        x1: c.x + 1 - inset - cx,
+        y0: cy - (c.y + 1 - inset),
+        y1: cy - (c.y + inset),
+        z0: -DEPTH / 2,
+        z1: c.glyph === 0 ? DEPTH / 2 + LIFT : DEPTH / 2,
+      },
+      BEVEL,
+    )
   }
   const light = (l: (typeof LIGHTS)[number]) =>
     `DirectionalLight { direction ${l.direction.join(" ")} intensity ${l.intensity} }`
+  // Two shapes, the floor written first: the build lays them in that order.
+  const shape = (m: { points: string[]; faces: string[] }) =>
+    [
+      "Shape { geometry IndexedFaceSet { solid TRUE",
+      `  coord Coordinate { point [ ${m.points.join(", ")} ] }`,
+      `  coordIndex [ ${m.faces.join(" ")} ] } }`,
+    ].join("\n")
   return [
     "#VRML V2.0 utf8",
-    "# dither-ui: the lockup, cell by cell",
+    "# dither-ui: the lockup on its floor, cell by cell",
     "NavigationInfo { headlight FALSE }",
     ...LIGHTS.map(light),
-    "Shape { geometry IndexedFaceSet { solid TRUE",
-    `  coord Coordinate { point [ ${points.join(", ")} ] }`,
-    `  coordIndex [ ${faces.join(" ")} ] } }`,
+    shape(floor),
+    shape(lockup),
   ].join("\n")
 }
 

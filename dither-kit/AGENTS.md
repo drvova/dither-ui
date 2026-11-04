@@ -497,8 +497,9 @@ the kit every import is relative (`../engine/pixel`).
   vertices, so a model comes apart along its own seams), and `frame(view,
   camera, { build, scatter, nudge }, dt)` hands the renderer a world of
   plain static meshes for that moment, so both engines and the shared
-  paint draw it unchanged: pieces start in order of height (seeded
-  jitter), each flying in from beside its place over `ARRIVAL` of the
+  paint draw it unchanged: pieces start shape by shape in the order the
+  file gives them, each shape's pieces by height (a flat shape, a floor
+  or a plate, from its middle out; seeded jitter), each flying in from beside its place over `ARRIVAL` of the
   build on the kit's spring and painted in the `hot` palette entry (the
   style's `hot`, painted as light in its own colour at `HOT_FLOOR` or
   above, whatever the mode) until it lands; pieces not yet started wait as

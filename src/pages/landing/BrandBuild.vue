@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // The build: the brand as a model (`build.ts`, every cell of the lockup a
-// block) raised by the kit's world engine as the page scrolls past it. A
+// block, standing on a floor of tiles that lays itself first) raised by the kit's world engine as the page scrolls past it. A
 // tall run holds the stage pinned while the scroll drives it (`stageAt`):
 // the dotted cage, the cells landing hot in the ember from the bottom up,
 // the whole turning, then the cells coming apart as the page leaves. A
@@ -9,7 +9,7 @@
 // scroll or pointer move. Reduced motion gets the lockup whole and still.
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { DitherWorld } from "@dither-kit"
-import { BUILD_PIECES, lockupModel, stageAt } from "./build"
+import { BUILD_CELLS, lockupModel, stageAt } from "./build"
 
 const MODEL = lockupModel()
 /** The brand in metal, lit low-key: the shadowed sides sink into the
@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
         :nudge="!still"
         :paused="still || !awake"
         engine="cpu"
-        :label="`The dither-ui mark and wordmark in ${BUILD_PIECES} cells, built by the kit's world engine as the page scrolls`"
+        :label="`The dither-ui mark and wordmark in ${BUILD_CELLS} cells on a tiled floor, built by the kit's world engine as the page scrolls`"
         class="h-full w-full"
       />
     </div>

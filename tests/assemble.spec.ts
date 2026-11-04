@@ -17,7 +17,7 @@ import {
   type WorldStyle,
   type WorldView,
 } from "../dither-kit/engine/world"
-import { BUILD_PIECES, LIGHTS, lockupModel, stageAt } from "../src/pages/landing/build"
+import { BUILD_CELLS, BUILD_PIECES, FLOOR_TILES, LIGHTS, lockupModel, stageAt } from "../src/pages/landing/build"
 
 /** Three cubes stacked, apart: three pieces, low to high. */
 function stack(): World {
@@ -155,9 +155,25 @@ describe("a world as a build", () => {
 })
 
 describe("the landing's build", () => {
-  it("is the lockup, one piece per cell", () => {
+  it("is the lockup on its floor, one piece per cell and per tile, the floor laid first", () => {
     const world = parseWorld(lockupModel(), "vrml")
-    expect(createAssembly(world, HEAT).pieces).toBe(BUILD_PIECES)
+    const a = createAssembly(world, HEAT)
+    expect(a.pieces).toBe(BUILD_PIECES)
+    expect(BUILD_PIECES).toBe(BUILD_CELLS + FLOOR_TILES)
+    // The floor and the lockup are two shapes, the floor first: while it
+    // is still coming in, not one of the lockup's blocks has started.
+    const cam = cameraOf(world, VIEW, 160, 90)
+    const [floor, lockup] = world.meshes.filter((m) => m.kind === "faces")
+    expect(floor.indices.length / 3).toBe(FLOOR_TILES * 12)
+    expect(lockup.indices.length / 3).toBe(BUILD_CELLS * 20)
+    let b = 0
+    let out = a.frame(VIEW, cam, { ...still, build: b }, 0)
+    while (faces(out)[0].indices.length === 0) out = a.frame(VIEW, cam, { ...still, build: (b += 0.01) }, 0)
+    expect(faces(out)[1].indices.length).toBe(0)
+    // And it spreads from the middle: the first tiles down are the central ones.
+    const p = faces(out)[0].positions
+    const xs = [...faces(out)[0].indices].map((i) => Math.abs(p[i * 3]))
+    expect(Math.max(...xs)).toBeLessThan(10)
     // Lit by its own light, not the camera's: the faces take different tones.
     expect(world.headlight).toBe(false)
     expect(world.lights).toHaveLength(LIGHTS.length)

@@ -37,7 +37,7 @@ import PixelWord from "./PixelWord.vue"
 import Plate from "./Plate.vue"
 import WorksWith from "./WorksWith.vue"
 import BrandBuild from "./BrandBuild.vue"
-import { BUILD_PIECES } from "./build"
+import { BUILD_CELLS } from "./build"
 import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
 import BrandMark from "@/shared/ui/BrandMark.vue"
@@ -217,9 +217,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             <h2 id="build-h" class="section-title chrome-type">Built from the wire up.</h2>
             <div class="sec-side">
               <p class="sec-lede">
-                Our mark and name in {{ BUILD_PIECES }} cells, each one a block, raised by the kit's world engine as you
-                scroll: the cage first, each cell landing hot, then the metal. Keep going and it comes apart. Point at
-                it and the cells lean away.
+                Our mark and name in {{ BUILD_CELLS }} cells, each one a block, raised by the kit's world engine as you
+                scroll: the floor first, then each cell landing hot on it and cooling to metal. Keep going and it comes
+                apart. Point at it and the cells lean away.
               </p>
               <a :href="routePath('/docs/world')" class="more-link">See the world engine</a>
             </div>

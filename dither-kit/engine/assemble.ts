@@ -1,6 +1,8 @@
 // A world as a build: its separate pieces (each connected run of triangles,
 // so a panelled or blocky model comes apart along its own seams) raised
-// bottom to top out of a dotted wire cage, each flying in from beside its
+// out of a dotted wire cage, shape by shape in the order the file gives
+// them, each shape's pieces bottom to top (a flat shape, which has no
+// bottom to top, spreads out from its middle), each flying in from beside its
 // place and painted hot (the style's `hot` palette entry) until it lands;
 // scattered outward and turned for an explode; nudged away from a point on
 // the target for a hand passing over it. `frame` hands the renderer a world
@@ -40,7 +42,9 @@ const DOTS_PER_RADIUS = 34
 type Piece = {
   /** Where it stands, world space. */
   center: [number, number, number]
-  /** Its turn in the order (0 first, 1 last): height, a little jitter. */
+  /** Its turn in the order (0 first, 1 last): its shape's place in the
+   * file, then its height in the shape (or its reach from a flat shape's
+   * middle), a little jitter. */
   order: number
   /** Seeded values: flight, scatter, the axis it turns on. */
   rand: [number, number, number]
@@ -113,8 +117,8 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
   const rnd = xorshift32((seed >>> 0) + 0x51ed27)
   const pieces: Piece[] = []
   const vertexPiece: Int32Array[] = []
-  let minY = Infinity
-  let maxY = -Infinity
+  /** Each shape's pieces, as [first, end) into `pieces`. */
+  const shapes: [number, number][] = []
   for (const { m } of faces) {
     const { of, count } = piecesOfMesh(m)
     const base = pieces.length
@@ -130,8 +134,6 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
     }
     for (const s of sum) {
       const center: [number, number, number] = [s[0] / s[3], s[1] / s[3], s[2] / s[3]]
-      minY = Math.min(minY, center[1])
-      maxY = Math.max(maxY, center[1])
       const ax = [rnd() - 0.5, rnd() - 0.5, rnd() - 0.5]
       const al = Math.hypot(ax[0], ax[1], ax[2]) || 1
       pieces.push({
@@ -144,9 +146,25 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
     }
     // Global piece ids per vertex.
     vertexPiece.push(of.map((x) => (x < 0 ? -1 : base + x)))
+    shapes.push([base, pieces.length])
   }
-  const span = maxY - minY || 1
-  for (const p of pieces) p.order = Math.min(1, Math.max(0, ((p.center[1] - minY) / span) * 0.86 + p.rand[0] * 0.14))
+  shapes.forEach(([a, b], rank) => {
+    const own = pieces.slice(a, b)
+    if (!own.length) return
+    const ys = own.map((p) => p.center[1])
+    const low = Math.min(...ys)
+    const span = Math.max(...ys) - low
+    // A flat shape (a floor, a plate) has no bottom to top: it spreads out
+    // from its middle instead.
+    const flat = span < (world.radius || 1) * 0.02
+    const mid = [0, 1, 2].map((k) => own.reduce((s, p) => s + p.center[k], 0) / own.length)
+    const reach = (p: Piece) => Math.hypot(p.center[0] - mid[0], p.center[1] - mid[1], p.center[2] - mid[2])
+    const far = flat ? Math.max(...own.map(reach)) || 1 : 1
+    for (const p of own) {
+      const k = flat ? reach(p) / far : (p.center[1] - low) / (span || 1)
+      p.order = Math.min(1, Math.max(0, (rank + k * 0.86 + p.rand[0] * 0.14) / shapes.length))
+    }
+  })
 
   const palette = world.palette.length < 255 ? [...world.palette, heat] : [...world.palette.slice(0, 254), heat]
   const hot = palette.length - 1

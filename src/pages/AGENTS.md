@@ -267,14 +267,17 @@ widgets/features; page-specific conventions live here.
   the world engine"), then `BrandBuild.vue`: the brand itself as a model
   (`build.ts`: every cell of `LOCKUP`, the mark and the pixel wordmark, a
   deep block with chamfered front edges and a hairline seam, the mark
-  standing proud of the word; the user's call: the brand, never a borrowed
+  standing proud of the word, on a plinth of thin tiles written as the
+  file's first shape, so the floor lays itself from its middle out before
+  a cell starts (the user's call); the user's call: the brand, never a borrowed
   object; written as VRML97 lit by its own `LIGHTS`, a key from the upper
-  left and a weak fill with no camera light, so tops, fronts, chamfers and
+  left, low enough that the floor's tops sit in the middle tones under the
+  lockup's bright faces, and a weak fill with no camera light, so tops, fronts, chamfers and
   sides each take their tone and the light stays put as it turns: the
   user asked for it real, and at the few cells a block gets on screen,
   volume and light are what read as real) raised by
   `DitherWorld`'s build as the page scrolls a 260svh run past its pinned
-  stage (`stageAt`: the build over the first stretch, the whole holding
+  stage (`stageAt`: the build, floor then cells, over the first stretch, the whole holding
   and turning through the middle, the cells apart as the page leaves; one
   passive scroll listener, live only while the run is near). The camera
   zooms by the stage's aspect (the long lockup nearly spans a wide stage
