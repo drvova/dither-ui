@@ -14,7 +14,11 @@ result to a coding agent, on the live preview — a real tool, never a mock.
   frame (`host`) and renders the readout and panels under it.
 - `bench.ts` — the controller: tool state, the undoable workspace, the
   per-frame measuring loop, every pointer gesture, the keyboard, captures,
-  the agent hand-off. Components render from it and call into it.
+  the agent hand-off (the feedback as Markdown: copied for an agent, or,
+  where the host passes `send` as the Studio does, sent to its agent
+  panel with the selection; `feedbackVerb` names which on K's key and the
+  readout's; `tests/workbench-send.spec.ts`). Components render from it
+  and call into it.
 - The DOM readings live a layer down, in `shared/lib/inspect/` (the
   agent's `inspect` reads with them too): `color.ts` (parse every computed
   form, print hex/rgb/hsl/oklch, WCAG contrast), `geometry.ts` (boxes,
@@ -58,7 +62,7 @@ result to a coding agent, on the live preview — a real tool, never a mock.
   loupe `Z`, Accessibility `Y` · Select `S`, Arrow `D`, Pen `N`, Eraser
   `E`, Text `T`, Comment `M`, Screenshot `C`, Record video `V`. Toggles:
   Rulers `R`, Responsive `B`, Motion `O`. `1`/`2` switch groups, `K` copies
-  the feedback for an agent, `,` opens settings, `⌘Z`/`⇧⌘Z` undo/redo,
+  (or sends) the feedback for an agent, `,` opens settings, `⌘Z`/`⇧⌘Z` undo/redo,
   `⌘A` selects all (Select), Delete removes, arrows walk the tree (target
   tools) or nudge (Select), Alt shows distances and Alt+S keeps one.
   Select's box has corner handles (scale from the opposite corner; Shift

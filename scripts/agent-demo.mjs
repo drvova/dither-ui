@@ -93,7 +93,10 @@ const context = await browser.newContext({
 await context.addInitScript(
   ([bridgeUrl, id]) =>
     window === window.top &&
-    localStorage.setItem("dither-agent-config", JSON.stringify({ bridgeUrl, harness: id, command: "", auto: false })),
+    localStorage.setItem(
+      "dither-agent-config",
+      JSON.stringify({ bridgeUrl, harness: id, command: "", auto: false, follow: true }),
+    ),
   [`ws://127.0.0.1:${PORT}`, agent ? "" : harness],
 )
 const page = await context.newPage()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowReactive, toRaw, watch } from "vue"
 import { copyText, DitherIcon, type IconName } from "@dither-kit"
-import { editor, selectArtboard, selectedArtboard } from "@/entities/editor"
+import { boundsOf, centreOn, editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
 import {
   type AcpClient,
@@ -23,13 +23,14 @@ import {
   saveAgentConfig,
   saveDraft,
   type ContextUse,
+  type Setting,
   type Usage,
 } from "@/features/agent/tools"
 import { chats, loadThread, newChat, openProject, saveThread, titleOf } from "@/features/agent/chats"
 import type { Built } from "@/features/agent/dither"
 import { handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
 import { artboardPng } from "@/features/export-image"
-import { checkpoint, restoreCheckpoint, undo } from "@/features/history"
+import { checkpoint, restoreCheckpoint, restoreFrame, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark.vue"
 import { modKey } from "@/shared/lib"
@@ -42,10 +43,14 @@ import {
   imagesOf,
   intake,
   moved,
+  attachmentsOf,
   pastedText,
   promptText,
+  withContext,
+  quoteOf,
   type Queued,
 } from "./model/compose"
+import { hintOf, type Slash, slashList, unknownOf } from "./model/slash"
 import { askTitle, type Changed } from "./model/steps"
 import { nextPrompts } from "./model/suggest"
 import {
@@ -92,9 +97,22 @@ const menuOpen = ref(false)
 /** The message being written, and its field (declared first: the session
  * restore below brings back the project's draft). */
 const input = ref("")
+/** What the message carries besides its words (pastes, dropped files,
+ * pictures), and a line about what could not come in. */
+const attachments = ref<Attachment[]>([])
+const notice = ref("")
+watch(input, () => (notice.value = ""))
 const box = ref<HTMLTextAreaElement | null>(null)
 const entries = ref<Entry[]>([])
 const usage = ref<Usage>({ input: 0, output: 0 })
+/** The harness's other choice settings (effort, thinking, ...), as it reports them. */
+const settings = ref<Setting[]>([])
+/** A setting to one of its values, asked of the harness (which answers
+ * with what it now holds). */
+async function setSetting(s: Setting, id: string) {
+  if (!acp.value || id === s.current) return
+  await acp.value.setOption(s.configId, id).catch((e: Error) => push({ kind: "error", text: e.message }))
+}
 /** How full the harness says its context is (none until it reports). */
 const contextUse = ref<ContextUse | null>(null)
 type TextEntry = Extract<Entry, { text: string }>
@@ -155,6 +173,8 @@ let loadedChat = ""
 /** Entries when last kept: more of them means the chat moved. */
 let keptCount = 0
 function restore(projectId: string, chatId: string) {
+  // The chat left keeps what was being written in it.
+  if (loadedFor && loadedChat) keepDraft()
   const fresh = loadedChat !== "" && (projectId !== loadedFor || chatId !== loadedChat)
   loadedFor = projectId
   loadedChat = chatId
@@ -166,7 +186,9 @@ function restore(projectId: string, chatId: string) {
   settled.value = new Set(Array.from({ length: turn.value + 1 }, (_, i) => i))
   keptCount = entries.value.length
   opened.value = new Map()
-  input.value = loadDraft(projectId)
+  const draft = loadDraft(projectId, chatId)
+  input.value = draft.text
+  attachments.value = attachmentsOf(draft.attachments)
   scrollLog(true)
   // Another chat is another session with the harness.
   if (fresh && acp.value?.hello?.agent) {
@@ -176,10 +198,59 @@ function restore(projectId: string, chatId: string) {
 }
 
 const title = computed(() => titleOf(entries.value))
-/** What the latest turn changed on the canvas, until kept or undone. */
-const changes = computed(() =>
-  !turn.value || settled.value.has(turn.value) ? null : changesOf(entries.value, turn.value),
-)
+/** Following the agent: the canvas pans to the frames a step changed (its
+ * zoom kept; not while the workbench inspects, which reads at 100%). */
+function follow(frames: Changed[]) {
+  if (editor.inspecting) return
+  const boxes = editor.artboards.filter((a) => !a.hidden && frames.some((f) => f.id === a.id))
+  if (boxes.length) centreOn(boundsOf(boxes))
+}
+
+/** The latest turn's frames settled one by one (kept or undone), and the
+ * one just undone, which can be put back until the canvas changes again. */
+const settledFrames = ref(new Set<string>())
+const putBack = ref<{ id: string; name: string; after: string } | null>(null)
+watch(turn, () => {
+  settledFrames.value = new Set()
+  putBack.value = null
+})
+/** What the latest turn changed on the canvas, until kept or undone (all at
+ * once, or frame by frame). */
+const changes = computed(() => {
+  if (!turn.value || settled.value.has(turn.value)) return null
+  const c = changesOf(entries.value, turn.value)
+  if (!c) return null
+  const frames = c.frames.filter((f) => !settledFrames.value.has(f.id))
+  return frames.length || putBack.value ? { ...c, frames } : null
+})
+function settleFrame(id: string) {
+  settledFrames.value = new Set(settledFrames.value).add(id)
+  putBack.value = null
+  refocus()
+}
+/** One frame back to where the turn found it (one undoable step). */
+function undoFrame(id: string) {
+  const c = changes.value
+  const cp = c && checkpoints.get(c.turn)
+  const f = c?.frames.find((x) => x.id === id)
+  if (!c || !cp || !f) return
+  restoreFrame(cp, id)
+  settledFrames.value = new Set(settledFrames.value).add(id)
+  putBack.value = { id, name: f.name, after: checkpoint() }
+  refocus()
+}
+/** The frame just undone, as the turn left it: the history's undo of that
+ * step, offered only while nothing else changed since. */
+function putFrameBack() {
+  const p = putBack.value
+  putBack.value = null
+  if (!p || checkpoint() !== p.after) return
+  undo()
+  const left = new Set(settledFrames.value)
+  left.delete(p.id)
+  settledFrames.value = left
+  refocus()
+}
 
 function keep() {
   if (changes.value) settled.value = new Set(settled.value).add(changes.value.turn)
@@ -340,6 +411,7 @@ async function connect(url = config.value.bridgeUrl): Promise<AcpClient | null> 
           model.value = null
           commands.value = []
           contextUse.value = null
+          settings.value = []
         }
         nameIt()
       },
@@ -449,10 +521,13 @@ function onEvent(e: AgentEvent) {
       else push({ kind: "assistant", text: e.text })
       live.value = null
       break
-    case "tool":
+    case "tool": {
       live.value = null
-      push(toolEntry(e.name, e.args, e.result, turn.value, e.built))
+      const step = toolEntry(e.name, e.args, e.result, turn.value, e.built)
+      push(step)
+      if (config.value.follow && step.kind === "tool" && step.changed?.length) follow(step.changed)
       break
+    }
     case "activity": {
       live.value = null
       const existing = entries.value.find(
@@ -484,6 +559,9 @@ function onEvent(e: AgentEvent) {
       break
     case "context":
       contextUse.value = e.context
+      break
+    case "settings":
+      settings.value = e.settings
       break
     case "turn":
       lastTurnMs.value = e.elapsedMs
@@ -599,11 +677,6 @@ let cursor = -1
 watch(input, (text) => {
   if (cursor !== -1 && text !== sent.value[cursor]) cursor = -1
 })
-/** What the message carries besides its words (pastes, dropped files,
- * pictures), and a line about what could not come in. */
-const attachments = ref<Attachment[]>([])
-const notice = ref("")
-watch(input, () => (notice.value = ""))
 /** Messages written while a turn runs, in the order they go; `paused`
  * after a stop, until you send one or press Send next. */
 const followUps = ref<Queued[]>([])
@@ -622,11 +695,12 @@ function fit() {
   el.style.height = `${Math.min(el.scrollHeight, FIELD_MAX)}px`
 }
 watch(input, () => nextTick(fit))
-// The unsent message is kept per project (closing the panel keeps it).
+// The unsent message, with what it carries, is kept per chat (closing the
+// panel, a reload, another chat keep it).
 let draftTimer: ReturnType<typeof setTimeout> | undefined
-watch(input, (text) => {
+watch([input, attachments], () => {
   clearTimeout(draftTimer)
-  draftTimer = setTimeout(() => loadedFor && saveDraft(loadedFor, text), 250)
+  draftTimer = setTimeout(keepDraft, 250)
 })
 /** A finger on a touch screen: Enter is a newline there (only the send key
  * sends), and the field never takes focus on its own, which would raise
@@ -651,31 +725,8 @@ function onPanelKey(e: KeyboardEvent) {
   if (e.key.length === 1 || e.key === "Backspace") box.value?.focus()
 }
 
-type Slash = { name: string; args?: string; desc: string; harness?: boolean }
-const OURS: Slash[] = [
-  { name: "help", desc: "list commands" },
-  { name: "harness", args: "<id | command>", desc: "start a harness: claude, codex, gemini, omp… or any ACP command" },
-  { name: "connect", args: "[ws url]", desc: "connect the bridge" },
-  { name: "new", desc: "fresh session (clears the transcript)" },
-  { name: "mode", args: "<id>", desc: "switch the harness's mode" },
-  { name: "auto", args: "on | off", desc: "answer permission prompts with their allow option" },
-  { name: "evolve", args: "[count]", desc: "seeded variants of the selection" },
-  { name: "select", args: "<name>", desc: "select a frame by name" },
-  { name: "code", desc: "the selection as a Vue SFC" },
-  { name: "copy", desc: "copy the last reply" },
-  { name: "session", desc: "harness, tokens, frames" },
-  { name: "undo", desc: "undo the last edit" },
-  { name: "clear", desc: "clear the transcript" },
-  { name: "stop", desc: "interrupt the run" },
-  { name: "disconnect", desc: "close the bridge" },
-]
 /** Ours plus whatever the harness advertises; a harness command is sent to it as text. */
-const slashAll = computed<Slash[]>(() => [
-  ...OURS,
-  ...commands.value
-    .filter((c) => !OURS.some((o) => o.name === c.name))
-    .map((c) => ({ name: c.name, args: c.input, desc: c.description, harness: true })),
-])
+const slashAll = computed(() => slashList(commands.value))
 /** The field says what sending will do now. */
 const placeholder = computed(() =>
   openApproval.value
@@ -700,6 +751,19 @@ const slashMatches = computed(() => {
 })
 const slashIndex = ref(0)
 watch(slashMatches, () => (slashIndex.value = 0))
+/** A command picked and waiting for what it takes: what that is, in words. */
+const slashHint = computed(() => hintOf(input.value, slashAll.value))
+/** A /word that is no command here, sent as words on a second Enter (a
+ * path, say); the first keeps it in the field and says so. */
+let unknownOnce = ""
+function refusesUnknown(text: string): boolean {
+  const name = unknownOnce !== text ? unknownOf(text, slashAll.value) : null
+  unknownOnce = name ? text : ""
+  if (!name) return false
+  input.value = text
+  void nextTick(() => (notice.value = `No command /${name} here. Enter again sends it as words; /help lists them.`))
+  return true
+}
 
 async function slash(line: string): Promise<boolean> {
   const [cmd, ...rest] = line.slice(1).trim().split(/\s+/)
@@ -823,12 +887,6 @@ function dropContext(id: string) {
   if (handoff.picked.includes(id)) togglePicked(id)
   if (editor.selectedIds.includes(id)) left.value = new Set(left.value).add(id)
 }
-/** The message as the harness reads it: the frames first, by name and id. */
-const withContext = (text: string, frames: Changed[]) =>
-  frames.length
-    ? `Context, frames on the Studio canvas:\n${frames.map((f) => `- ${f.name} (id ${f.id})`).join("\n")}\n\n${text}`
-    : text
-
 /** The context frames as pictures (PNG at 1x, the first `PICTURES`), so
  * a harness that takes images sees what it is asked about. */
 const PICTURES = 3
@@ -923,9 +981,14 @@ async function send(text = input.value.trim(), now = false) {
   if (touch) box.value?.blur()
   else refocus()
   if (text.startsWith("/") && !atts.length) {
-    input.value = ""
-    cursor = -1
-    if (await slash(text)) return
+    // The second Enter on a refused /word sends it as words.
+    const words = unknownOnce === text
+    if (refusesUnknown(text)) return
+    if (!words) {
+      input.value = ""
+      cursor = -1
+      if (await slash(text)) return
+    }
   }
   if (imagesOf(atts).length && acp.value && !acp.value.acceptsImages) {
     notice.value = `${agentName.value || "This harness"} takes no pictures here: remove them to send`
@@ -957,11 +1020,11 @@ async function send(text = input.value.trim(), now = false) {
 }
 
 /** The latest turn's message, for "Try again" when it failed. */
-const lastSent = ref("")
+const lastSent = ref<{ text: string; attachments: Attachment[] }>({ text: "", attachments: [] })
 /** A stop asked for and not yet answered by the harness. */
 const stopping = ref(false)
 async function run(text: string, atts: Attachment[] = [], revision = "") {
-  lastSent.value = text
+  lastSent.value = { text, attachments: atts }
   const client = await ready()
   if (!client) {
     input.value = input.value ? `${text}\n${input.value}` : text
@@ -997,7 +1060,7 @@ async function run(text: string, atts: Attachment[] = [], revision = "") {
   clock = setInterval(() => (now.value = Date.now()), 1000)
   controller = new AbortController()
   const { stopReason } = await client.prompt(
-    revision + withContext(promptText(text, atts), frames),
+    revision + withContext(promptText(text, atts), frames, pictures.length),
     controller.signal,
     pictures,
   )
@@ -1021,6 +1084,11 @@ async function run(text: string, atts: Attachment[] = [], revision = "") {
 async function runNext() {
   const next = followUps.value.shift()
   if (next) await run(next.text, next.attachments)
+}
+/** Try again after a failed turn: the same words and what they carried. */
+function againLast() {
+  if (busy.value || !lastSent.value.text) return
+  void run(lastSent.value.text, lastSent.value.attachments)
 }
 let sendingNow = false
 /** Send a queued message now: to the front, and a running turn stops for it. */
@@ -1113,6 +1181,31 @@ function onDrop(e: DragEvent) {
   void takeFiles(files)
   refocus()
 }
+/* Quoting the harness's reply: a selection inside a reply shows a Quote key
+ * beside it; each reply's own Quote key takes all of it. */
+const quoteAt = ref<{ x: number; y: number; text: string } | null>(null)
+function quote(text: string) {
+  if (!text.trim()) return
+  attachments.value = [...attachments.value, quoteOf(text)]
+  quoteAt.value = null
+  window.getSelection()?.removeAllRanges()
+  refocus()
+}
+function onSelection() {
+  const sel = window.getSelection()
+  const text = sel?.toString().trim() ?? ""
+  const range = text && sel?.rangeCount ? sel.getRangeAt(0) : null
+  const at = range?.commonAncestorContainer
+  const el = at instanceof Element ? at : (at?.parentElement ?? null)
+  if (!range || !el?.closest(".agent .reply") || !log.value?.contains(el)) {
+    quoteAt.value = null
+    return
+  }
+  const r = range.getBoundingClientRect()
+  quoteAt.value = { x: Math.round(r.right), y: Math.round(r.top), text }
+}
+onMounted(() => document.addEventListener("selectionchange", onSelection))
+onBeforeUnmount(() => document.removeEventListener("selectionchange", onSelection))
 const unattach = (id: string) => (attachments.value = attachments.value.filter((a) => a.id !== id))
 /** A folded text back into the field, as typed text. */
 function unfold(id: string) {
@@ -1257,7 +1350,10 @@ async function togglePicker() {
   if (pickerOpen.value && !acp.value) await connect()
 }
 
-const keepDraft = () => loadedFor && saveDraft(loadedFor, input.value)
+function keepDraft() {
+  if (loadedFor && loadedChat)
+    saveDraft(loadedFor, loadedChat, { text: input.value, attachments: toRaw(attachments.value) })
+}
 onMounted(() => {
   takeAsks()
   window.addEventListener("pagehide", keepDraft)
@@ -1291,6 +1387,19 @@ onBeforeUnmount(() => {
     </div>
 
     <p class="sr-only" role="status">{{ announced }}</p>
+    <Teleport to="body">
+      <button
+        v-if="quoteAt"
+        type="button"
+        class="agent-quote"
+        :style="{ left: `${quoteAt.x}px`, top: `${quoteAt.y}px` }"
+        title="Quote the selection in your message"
+        @mousedown.prevent
+        @click="quote(quoteAt.text)"
+      >
+        <DitherIcon name="Bookmark" :size="11" :stroke-width="1.5" /><span>Quote</span>
+      </button>
+    </Teleport>
     <div ref="log" class="log" @scroll.passive="onScroll">
       <div v-if="!entries.length" class="hello">
         <span class="hello-mark" aria-hidden="true"
@@ -1312,10 +1421,11 @@ onBeforeUnmount(() => {
           :editable="!busy && (b.entry.kind === 'user' || b.entry.kind === 'followup')"
           :latest="!busy && b.at === entries.length - 1"
           :numbered="b.entry === openApproval"
-          @again="send(lastSent)"
+          @again="againLast"
           @continue="send('Continue')"
           @restore="'turn' in b.entry && b.entry.turn && restoreTo(b.entry.turn)"
           @edit="editFrom(b.at)"
+          @quote="'text' in b.entry && quote(b.entry.text)"
           @copy="'text' in b.entry && copyReply(b.at, b.entry.text)"
           @answer="(id) => b.entry.kind === 'approval' && answer(b.entry, id)"
           @toggle="(open) => setFold(b.entry, open)"
@@ -1450,18 +1560,34 @@ onBeforeUnmount(() => {
             oh-my-pi, Goose, OpenCode, or any ACP command.
           </p>
         </div>
-        <div v-else-if="menuOpen" class="pop menu" role="group" aria-label="Bridge">
-          <label class="field"
-            ><span>bridge</span
-            ><input
-              v-model.trim="config.bridgeUrl"
-              name="agent-bridge-url"
-              type="text"
-              class="input"
-              placeholder="ws://127.0.0.1:8790"
-              autocomplete="off"
-              spellcheck="false"
-          /></label>
+        <div v-else-if="menuOpen" class="pop menu" role="group" aria-label="Settings">
+          <div class="fields">
+            <label class="field"
+              ><span>bridge</span
+              ><input
+                v-model.trim="config.bridgeUrl"
+                name="agent-bridge-url"
+                type="text"
+                class="input"
+                placeholder="ws://127.0.0.1:8790"
+                autocomplete="off"
+                spellcheck="false"
+            /></label>
+            <!-- The harness's own settings, asked of it; nothing kept here. -->
+            <label v-for="o in settings" :key="o.configId" class="field"
+              ><span>{{ o.name.toLowerCase() }}</span
+              ><select
+                class="input"
+                :name="`agent-setting-${o.configId}`"
+                :value="o.current"
+                @change="setSetting(o, ($event.target as HTMLSelectElement).value)"
+              >
+                <option v-for="v in o.options" :key="v.id" :value="v.id" :title="v.description">
+                  {{ v.name }}
+                </option>
+              </select></label
+            >
+          </div>
           <p class="note">
             {{ fmtTokens(usage.input) }} in, {{ fmtTokens(usage.output) }} out<template v-if="lastTurnMs"
               >, last turn {{ fmtMs(lastTurnMs) }}</template
@@ -1469,7 +1595,7 @@ onBeforeUnmount(() => {
           </p>
           <p class="note">
             The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool
-            calls. No key, no model setting lives here.
+            calls. No key lives here; the harness's settings above are its own, asked of it.
           </p>
         </div>
 
@@ -1489,6 +1615,7 @@ onBeforeUnmount(() => {
               : null
           "
           :changes="changes"
+          :put-back="putBack?.name ?? null"
           :shown="(id) => editor.artboards.some((a) => a.id === id)"
           @stop="stop"
           @force-stop="forceStop"
@@ -1500,6 +1627,9 @@ onBeforeUnmount(() => {
           @resume="resume"
           @undo="undoTurn"
           @keep="keep"
+          @undo-frame="undoFrame"
+          @keep-frame="settleFrame"
+          @put-back="putFrameBack"
           @show="selectArtboard"
           @ask="(s) => send(s)"
         />
@@ -1539,6 +1669,7 @@ onBeforeUnmount(() => {
             <Attached :attachments="attachments" @remove="unattach" @unfold="unfold" />
           </div>
           <p v-if="notice" class="notice" role="status">{{ notice }}</p>
+          <p v-else-if="slashHint" class="slash-hint">{{ slashHint }}</p>
           <textarea
             ref="box"
             v-model="input"
@@ -1646,6 +1777,20 @@ onBeforeUnmount(() => {
               modes.find((m) => m.id === mode)?.name || mode
             }}</span>
           </button>
+          <button
+            type="button"
+            class="status-key is-glyph"
+            aria-label="Follow the agent"
+            :title="
+              config.follow
+                ? 'Following the agent: the canvas pans to each frame it changes'
+                : 'Follow the agent: pan the canvas to each frame it changes'
+            "
+            :aria-pressed="config.follow"
+            @click="config.follow = !config.follow"
+          >
+            <DitherIcon name="Eye" :size="12" :stroke-width="1.5" />
+          </button>
           <span v-if="hello" class="status-key is-static" :title="hello.cwd"
             ><DitherIcon name="Folder" :size="11" :stroke-width="1.5" /><span class="row-label">{{
               folderOf(hello.cwd)
@@ -1656,8 +1801,8 @@ onBeforeUnmount(() => {
             type="button"
             class="status-key is-icon"
             :aria-pressed="menuOpen"
-            aria-label="Bridge settings"
-            title="Bridge settings"
+            aria-label="Settings"
+            title="Settings: the bridge and the harness's own"
             @click="((menuOpen = !menuOpen), (pickerOpen = false))"
           >
             <DitherIcon name="Settings" :size="12" :stroke-width="1.5" />
@@ -1733,13 +1878,18 @@ onBeforeUnmount(() => {
   gap: 8px;
   padding: 10px 12px;
 }
-.field {
+/* One grid for every field, so the names make one column as wide as the
+   longest. */
+.fields {
   display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   font-size: 11px;
   color: var(--color-muted-foreground);
+}
+.field {
+  display: contents;
 }
 .input {
   height: 1.75rem;
@@ -1949,6 +2099,13 @@ onBeforeUnmount(() => {
     var(--recess-sm),
     0 0 0 2px var(--color-ring);
 }
+/* What the picked command takes, as it reads. */
+.slash-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-muted-foreground);
+}
 /* What could not come in, or why a send waits. */
 .notice {
   margin: 0;
@@ -2078,7 +2235,13 @@ button.status-key:hover,
   justify-content: center;
   padding: 0;
 }
-.status-key.is-icon[aria-pressed="true"] {
+.status-key.is-glyph {
+  min-width: 1.5rem;
+  justify-content: center;
+  padding: 0;
+}
+.status-key.is-icon[aria-pressed="true"],
+.status-key.is-glyph[aria-pressed="true"] {
   background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
 }
 .led {
@@ -2396,5 +2559,30 @@ button.status-key:hover,
   .agent .fold > summary .chev {
     transition: none;
   }
+}
+</style>
+
+<style>
+/* The Quote key over a selection in a reply: teleported to the body (the
+   panel's shell clips what it holds), standing just above the selection's
+   end. */
+.agent-quote {
+  position: fixed;
+  z-index: 60;
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: 5px;
+  translate: -100% calc(-100% - 6px);
+  border-radius: 7px;
+  padding: 0 8px;
+  font: 500 11px/1 var(--font-mono);
+  color: var(--color-background);
+  background: var(--color-foreground);
+  box-shadow: var(--float-shadow);
+}
+.agent-quote:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
 }
 </style>

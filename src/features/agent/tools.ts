@@ -62,7 +62,7 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<stri
     def: {
       name: "add_screen",
       description:
-        "Add a composed screen: rows of registry components (one nesting level). Each cell: { is, props?, slotText?, grow? }. Row: { cells, align?, justify?, gap? }.",
+        'Add a composed screen: rows of registry components (one nesting level). Each cell: { is, props?, slotText?, value?, grow? }; value is what its v-model holds (a field\'s text: "" shows its placeholder). Row: { cells, align?, justify?, gap? }.',
       parameters: obj(
         {
           name: str("frame name"),
@@ -89,6 +89,9 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<stri
           name: str("frame name"),
           props: obj({}),
           slotText: str("visible text for slot components"),
+          value: {
+            description: "what its v-model holds (a field's text, a switch's state); \"\" shows a field's placeholder",
+          },
           frame: obj({ w: num("width"), h: num("height") }),
         },
         ["is"],
@@ -218,8 +221,8 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<stri
     def: {
       name: "update_artboard",
       description:
-        "Patch a frame: name, x, y, w, h, hidden, locked; `chart` fields (seed, bloom, cell, stackType, series…); `widget` { props } for components, { rows } for screens or { clips } for reels.",
-      parameters: obj({ id: str("artboard id"), patch: obj({}) }, ["id", "patch"]),
+        "Patch a frame: name, x, y, w, h, hidden, locked; `chart` fields (seed, bloom, cell, stackType, series…); what it shows goes under `widget`: { props, value } for a component, { rows } for a screen (every row, each cell with its props and value, as add_screen takes them) or { clips } for a reel. A key it does not know fails the call.",
+      parameters: obj({ id: str("artboard id"), patch: obj({ widget: obj({}), chart: obj({}) }) }, ["id", "patch"]),
     },
     command: "artboard.update",
   },
@@ -412,6 +415,9 @@ export type Mode = { id: string; name: string; description?: string }
  * option of category "model"): the option's id, the current model and the
  * ones the harness offers. The harness owns it; the Studio keeps nothing. */
 export type ModelChoice = { configId: string; current: string; options: Mode[] }
+/** One of the harness's other choice settings (an ACP config option of a
+ * category besides model and mode: effort, thinking, ...), by its name. */
+export type Setting = ModelChoice & { name: string }
 export type AgentCommand = { name: string; description: string; input?: string }
 
 /** What the composer renders: everything the harness says, mapped from ACP. */
@@ -432,6 +438,7 @@ export type AgentEvent =
   | { type: "plan"; entries: { content: string; status: string }[] }
   | { type: "mode"; current: string; modes: Mode[] }
   | { type: "model"; model: ModelChoice }
+  | { type: "settings"; settings: Setting[] }
   | { type: "commands"; commands: AgentCommand[] }
   | { type: "turn"; elapsedMs: number; usage?: Usage }
   /** How full the session's context is, as the harness reports it (ACP
@@ -446,9 +453,17 @@ export type AgentEvent =
 
 const CONFIG_KEY = "dither-agent-config"
 
-/** Nothing here is a secret: the bridge address, the harness to start, and
- * whether permission prompts are answered with their allow option. */
-export type AgentConfig = { bridgeUrl: string; harness: string; command: string; auto: boolean }
+/** Nothing here is a secret: the bridge address, the harness to start,
+ * whether permission prompts are answered with their allow option, and
+ * whether the canvas follows the agent. */
+export type AgentConfig = {
+  bridgeUrl: string
+  harness: string
+  command: string
+  auto: boolean
+  /** The canvas pans to each frame the agent changes. */
+  follow: boolean
+}
 
 export const DEFAULT_BRIDGE_URL = "ws://127.0.0.1:8790"
 
@@ -459,6 +474,7 @@ export function loadAgentConfig(): AgentConfig {
     harness: typeof d.harness === "string" ? d.harness : "",
     command: typeof d.command === "string" ? d.command : "",
     auto: d.auto === true,
+    follow: d.follow === true,
   }
 }
 
@@ -466,12 +482,36 @@ export const saveAgentConfig = (c: AgentConfig): void => writeJson(CONFIG_KEY, c
 
 const DRAFT_PREFIX = "dither-agent-draft-"
 
-/** A project's unsent message, kept while the panel is closed or the page
- * reloads; an empty one is removed. */
-export function loadDraft(projectId: string): string {
-  return storage.get(DRAFT_PREFIX + projectId) ?? ""
+/** A chat's unsent message: its words and what it carries, as stored (the
+ * panel parses the attachments, untrusted, where they come back in). */
+export type Draft = { text: string; attachments: unknown[] }
+/** The most a draft keeps, as JSON: past it, its pictures stay out. */
+export const DRAFT_MAX = 1_500_000
+const draftKey = (projectId: string, chatId: string) => `${DRAFT_PREFIX}${projectId}/${chatId}`
+
+/** A chat's unsent message, kept while the panel is closed, a reload, or
+ * another chat; an empty one is removed. A project's draft from before
+ * drafts were per chat comes back in its chat once. */
+export function loadDraft(projectId: string, chatId: string): Draft {
+  const raw = readJson(draftKey(projectId, chatId)) as { text?: unknown; attachments?: unknown } | null
+  if (raw && typeof raw === "object")
+    return {
+      text: typeof raw.text === "string" ? raw.text : "",
+      attachments: Array.isArray(raw.attachments) ? raw.attachments : [],
+    }
+  const old = storage.get(DRAFT_PREFIX + projectId)
+  if (old === null) return { text: "", attachments: [] }
+  storage.remove(DRAFT_PREFIX + projectId)
+  return { text: old, attachments: [] }
 }
-export function saveDraft(projectId: string, text: string): void {
-  if (text.trim()) storage.set(DRAFT_PREFIX + projectId, text.slice(0, 20_000))
-  else storage.remove(DRAFT_PREFIX + projectId)
+export function saveDraft(projectId: string, chatId: string, draft: Draft): void {
+  const key = draftKey(projectId, chatId)
+  if (!draft.text.trim() && !draft.attachments.length) return storage.remove(key)
+  const kept = { text: draft.text.slice(0, 20_000), attachments: draft.attachments }
+  writeJson(
+    key,
+    JSON.stringify(kept).length <= DRAFT_MAX
+      ? kept
+      : { ...kept, attachments: kept.attachments.filter((a) => (a as { kind?: unknown }).kind !== "image") },
+  )
 }

@@ -1,14 +1,23 @@
+<script lang="ts">
+let chipsCount = 0
+</script>
+
 <script setup lang="ts">
 import { computed } from "vue"
 import { cn } from "./lib"
 
 /** Chip-style choice group: the chip is the LABEL of a real radio (or
  * checkbox when `multiple`), so native keyboard semantics and focus come for
- * free — no roving tabindex to get wrong. `value` is a string for single and
- * a string array for multiple. */
+ * free — no roving tabindex to get wrong; the radios share one name, so the
+ * arrows move between them and the group is one Tab stop. `value` is a
+ * string for single and a string array for multiple. `label` names the
+ * group: shown on its own line over the chips and tied to it. */
 const props = withDefaults(
   defineProps<{
+    label?: string
     options?: string[]
+    /** The choice (v-model); `value` is the older name, still read. */
+    modelValue?: string | string[]
     value?: string | string[]
     multiple?: boolean
     disabled?: boolean
@@ -16,10 +25,18 @@ const props = withDefaults(
   }>(),
   { options: () => [], disabled: false },
 )
+const base = `dk-chips-${chipsCount++}`
 const emit = defineEmits<{ (e: "update:modelValue", value: string | string[]): void }>()
 
+const current = computed(() => props.modelValue ?? props.value)
 const selected = computed(() =>
-  props.multiple ? (Array.isArray(props.value) ? props.value : []) : typeof props.value === "string" ? props.value : "",
+  props.multiple
+    ? Array.isArray(current.value)
+      ? current.value
+      : []
+    : typeof current.value === "string"
+      ? current.value
+      : "",
 )
 
 function isChecked(option: string): boolean {
@@ -39,7 +56,15 @@ function onChange(option: string, checked: boolean) {
 </script>
 
 <template>
-  <div role="group" :class="cn('flex flex-wrap gap-1.5', props.class)" :aria-disabled="props.disabled || undefined">
+  <div
+    role="group"
+    :aria-labelledby="props.label ? `${base}-label` : undefined"
+    :class="cn('flex flex-wrap gap-1.5', props.class)"
+    :aria-disabled="props.disabled || undefined"
+  >
+    <span v-if="props.label" :id="`${base}-label`" class="basis-full text-[12px] font-medium text-foreground/90">{{
+      props.label
+    }}</span>
     <label
       v-for="option in props.options"
       :key="option"
@@ -56,6 +81,7 @@ function onChange(option: string, checked: boolean) {
       <input
         class="sr-only"
         :type="props.multiple ? 'checkbox' : 'radio'"
+        :name="`${base}-choice`"
         :value="option"
         :checked="isChecked(option)"
         :disabled="props.disabled"

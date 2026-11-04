@@ -828,9 +828,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Choice chips",
     group: "inputs",
     frame: { w: 300, h: 90 },
-    props: [list("options", ["S", "M", "L", "XL"]), bool("multiple"), bool("disabled")],
+    props: [text("label", ""), list("options", ["S", "M", "L", "XL"]), bool("multiple"), bool("disabled")],
     vmodel: { def: "M" },
-    mapProps: (p) => ({ ...p, value: p.multiple ? [] : "M" }),
   },
   {
     is: "DitherCheckboxCard",
@@ -3102,6 +3101,28 @@ export function defaultComponentProps(entry: ComponentEntry): Record<string, unk
 }
 
 const isPlain = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
+
+/** The longest v-model value a document may carry, as JSON. */
+const MODEL_MAX = 20_000
+const kindOf = (v: unknown) => (Array.isArray(v) ? "array" : v === null ? "null" : typeof v)
+/** A component's v-model value as a document or an agent hands it: the same
+ * kind as its default (text, number, yes/no, list, record; a default of
+ * null takes text or a number too), plain JSON within `MODEL_MAX`, else the
+ * default. A component without a v-model has none. */
+export function sanitizeModel(entry: ComponentEntry, raw: unknown): unknown {
+  if (!entry.vmodel) return undefined
+  const def = entry.vmodel.def
+  const fallback = () => (def === undefined ? undefined : JSON.parse(JSON.stringify(def)))
+  const fits = kindOf(raw) === kindOf(def) || (def === null && (typeof raw === "string" || typeof raw === "number"))
+  if (raw === undefined || !fits || (typeof raw === "number" && !Number.isFinite(raw))) return fallback()
+  let json: string | undefined
+  try {
+    json = JSON.stringify(raw)
+  } catch {
+    return fallback()
+  }
+  return json === undefined || json.length > MODEL_MAX ? fallback() : JSON.parse(json)
+}
 
 export function sanitizeComponentProps(entry: ComponentEntry, raw: unknown): Record<string, unknown> {
   const src = isPlain(raw) ? raw : {}

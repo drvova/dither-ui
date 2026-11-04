@@ -17,6 +17,7 @@ export {
   type ComponentGroup,
   defaultComponentProps,
   sanitizeComponentProps,
+  sanitizeModel,
   type PropSpec,
 } from "./model/registry"
 export {

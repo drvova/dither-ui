@@ -974,8 +974,13 @@ widgets/features; page-specific conventions live here.
   field), Send now (a running turn stops for it) and Remove; Clear; after
   a stop it waits, paused, saying so, with Send next); the run (thinking, writing or working, its time, a quiet
   Stop with "esc" beside it); once it ends, the turn's changes, last and
-  resting on the card (the frames its editing steps touched, each with
-  Show; Undo all restores the turn's checkpoint, Keep settles it). The
+  resting on the card (the frames its editing steps touched, folded
+  under their count; Undo all restores the turn's checkpoint, Keep
+  settles it; each frame opens to Show, Undo (that frame alone back to
+  the checkpoint, `restoreFrame`, one undo step; a row then says "Undid
+  <frame>" with Put it back while nothing else moved) and Keep, each
+  named with its frame for a screen reader; the bar goes once no frame
+  is left). The
   input card is the recessed well with a hairline (the ring ink edges it
   while it holds the focus), two lines tall when empty: the context chips
   (the selection, any of it left out by its x, plus frames picked on the
@@ -990,7 +995,9 @@ widgets/features; page-specific conventions live here.
   else says why it stays out; the card rings while a file is held over
   it; texts go to the harness fenced so they cannot close their fence and
   marked as material, instructions inside them not the user's, and the
-  sent bubble shows each as a chip); the message; a foot with the pick key (crosshair: picking
+  sent bubble shows each as a chip; a quote of a reply: the reply's
+  Quote key or a selection in a reply, which floats a Quote key beside
+  it, both a chip that goes first, as a block quote, `QUOTE_MAX`); the message; a foot with the pick key (crosshair: picking
   frames on the canvas, below), the @ key, who answers (LED while it
   runs and its name: a harness picked from the bridge's list by that
   name, Claude Code and not its adapter's package, any other command by
@@ -1010,12 +1017,17 @@ widgets/features; page-specific conventions live here.
   revision, whose session keeps the rest), Restore checkpoint and Copy. The row under the card: Ask or Auto (how
   permission prompts are answered; Auto takes their allow option), the
   harness's mode when it has modes (click cycles, `/mode <id>` sets),
+  Follow (an eye, pressed: as a step changes frames the canvas centres on
+  them, never while the user inspects; kept in `AgentConfig.follow`),
   the bridge's folder (the one key that gives way when the row is
   short), how full the harness's context is when it reports
   (`usage_update`: a ring and its percentage, the tokens and cost in its
   title, `ui/ContextMeter.vue`; the destructive ink from 90%; in this row,
   not the foot, which it would crowd: the harness's and model's names keep
-  their room), and the settings key (the bridge address, tokens in and out
+  their room), and the settings key (the bridge address, each other
+  setting the harness offers (effort, thinking, as many as it has: a
+  select of its values under its own name, asked of the harness,
+  `setOption`; in this sheet, not the row, which they would crowd), tokens in and out
   summed from each turn's usage, the last turn's time, the full cwd; no
   key exists in the app). The thread carries no plumbing: no "starting"
   or "connected" lines (the row and the LED say it), a harness's call
@@ -1057,13 +1069,17 @@ widgets/features; page-specific conventions live here.
   canvas bar's 60px; `tests/selection-ask.spec.ts`), away while a pointer is down, picking or inspecting; its
   message opens the panel, which sends it with the frame as context; asks
   waiting before the panel mounted are taken once it has). The harness reads
-  the context as the frames' names and ids ahead of the message, and,
+  the context as the frames' names and ids ahead of the message, each
+  under its own heading (`withContext`: a message that names a thing is
+  never read as the frame's caption), and,
   when it takes images, the first three as pictures (each frame drawn to
   a PNG by `features/export-image` `artboardPng`; the bubble's chips show
   a picture then). The field grows with what is typed to 176px, then
   scrolls; its placeholder says what sending does now; the unsent message
-  is kept per project (closing the panel, a reload: saved 250ms after
-  typing and on pagehide, `loadDraft`/`saveDraft`). Keys: Enter sends, or
+  and its chips are kept per chat (closing the panel, a reload, another
+  chat and back: saved 250ms after a change, on a chat switch and on
+  pagehide, `loadDraft`/`saveDraft`); Try again resends the last message
+  with what it carried. Keys: Enter sends, or
   QUEUES a follow-up while the harness works (ACP has no steering; each
   runs as its own turn, in order; Cmd/Ctrl+Enter is the honest steer, a
   stop and a send), except while a permission prompt waits: then what is
@@ -1090,7 +1106,11 @@ widgets/features; page-specific conventions live here.
   process). `/` opens the command listbox (Up/Down + Tab/Enter
   pick): ours (`/help /harness /connect /new /mode /auto /evolve /select
   /code /copy /session /undo /clear /stop /disconnect`) plus the
-  harness's own advertised commands, which go to it as text. A turn's
+  harness's own advertised commands, which go to it as text
+  (`model/slash.ts`); a command picked and waiting for what it takes says
+  it over the field (`/harness <id | command>`, a harness command's own
+  hint), and a /word that is no command stays in the field with a line
+  saying so, a second Enter sending it as words. A turn's
   reply starts under its message, even when the harness spoke while its
   session opened. The conversation persists per project and follows the
   active project; unanswered approvals are not saved. Pinned by
@@ -1100,7 +1120,8 @@ widgets/features; page-specific conventions live here.
   picked frames as context and the pick key, asks taken off the queue)
   and the thought, picture and draft cases in `tests/agent-tools.spec.ts`;
   the attachments, the queue tray, edit from here and the context ring by
-  `tests/agent-compose.spec.ts`.
+  `tests/agent-compose.spec.ts`, with the quote, the drafts, Follow, the
+  harness's settings, the slash hint and refusal and the frames' heading.
 - Child-only kit exports render as the smallest valid parent composition; do not
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not

@@ -123,7 +123,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   and the code export put it in, so the label is tied to the control;
   `boundProps` is the ONE way a registry component's props are bound
   (mapped, the label left out), `fieldLabel` the label or null.
-  `tests/field-label.spec.ts`. Every public `Dither*` export is covered
+  `tests/field-label.spec.ts`. A component with a v-model (a field's
+  value, the chips' pick) keeps it as `model`, which `sanitizeModel` takes
+  from untrusted input (a file, `component.add`'s or a screen cell's
+  `value`, `artboard.update`'s `widget.value`) only in the kind of the
+  entry's default and under `MODEL_MAX`, else the default;
+  `tests/field-values.spec.ts`. Every public `Dither*` export is covered
   there or by a bespoke widget kind.
 
 ## Local Contracts
@@ -148,7 +153,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   selection deliberately; new document-shaped state must be added to both the
   snapshot and `features/persistence`. `checkpoint()` hands out that
   snapshot and `restoreCheckpoint()` returns to one as a single undoable
-  step (the agent's per-message checkpoints).
+  step (the agent's per-message checkpoints); `restoreFrame(snapshot, id)`
+  returns ONE frame to how a snapshot had it (put back, taken away or
+  re-added), the rest left as they are, as one step (the changes bar's
+  per-frame Undo).
 - Editor mutations must stay undoable: route them through the editor store so
   the deep watcher records them; never mutate artboards from a component.
 - New artboards route through `placeArtboard` after their final size is
@@ -173,7 +181,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     (live document, refreshed on the autosave cadence). Every command is
     untrusted input and lands only through the same validators the inspector
     and file imports use (`applyDocument`, `sanitizeComponentProps`,
-    `normalizeArtboard`); nothing evaluates anything. New commands are cases
+    `normalizeArtboard`); nothing evaluates anything. A command answers
+    "ok" only for what it did: `artboard.update` refuses a patch key it
+    does not know (`PATCH_KEYS`; a screen's rows sent beside `widget`, as
+    an agent did in a live run) before changing anything, saying where it
+    goes. New commands are cases
     in `runCommand` + a row in `registrySchema().commands` + the SKILL table
     + an action in `tools.ts` (`STUDIO_TOOLS`, whose commands
     `tests/agent-tools.spec.ts` holds to the registry's list) with its
@@ -213,8 +225,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     done; a stop is its own event, never an error), `AgentActivity`
     (what the toolbar shows of the agent), and the composer's state: `AgentConfig`
     (`bridgeUrl`, the chosen `harness` id or `custom` + `command`, `auto`
-    permission answers — nothing secret, always saved) and per-project
-    drafts (`dither-agent-draft-<projectId>`). There is NO model client
+    permission answers, `follow` — nothing secret, always saved) and
+    drafts per chat, text and attachments (`dither-agent-draft-<projectId>/<chatId>`,
+    `loadDraft`/`saveDraft`; a project's older draft is taken once into
+    its first chat; pictures are dropped past `DRAFT_MAX` so the text is
+    always kept; the panel parses what comes back with `attachmentsOf`). There is NO model client
     in the app: the composer never runs a model and never holds a key.
   - `dither.ts`: the Studio as ONE MCP tool for a harness. `ditherDef()`
     is its one definition (every action's name, no schemas: a third of
@@ -267,14 +282,17 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     `setMode()`, `setModel()` (`session/set_config_option` on the
     harness's own model option: `modelOf` reads the session's
     `configOptions` select of category "model", groups flattened, and
-    `modelName` says which model a "default" entry is); `acceptsImages` (the harness's
+    `modelName` says which model a "default" entry is), `setOption()` (the
+    same call on any other setting: `settingsOf` keeps the selects that
+    are neither model nor mode and offer a choice, effort or thinking,
+    each named as the harness names it); `acceptsImages` (the harness's
     `promptCapabilities.image`, `takesImages`) decides whether `prompt()`
     sends pictures (`promptBlocks`: the text, then image blocks only to a
     harness that takes them). `mapUpdate` turns `session/update` into events (message
     chunks → `delta`, thought chunks → `thought`, tool calls → `activity` with a status-only update
     keeping its title (an untitled call waits for the update that names
     it, never its id), plans, `current_mode_update` → `mode`,
-    `config_option_update` → `model`, `usage_update` (tokens used of the
+    `config_option_update` → `model` and `settings`, `usage_update` (tokens used of the
     window, a cost) → `context`,
     `available_commands_update` → `commands`; the harness's mirror of its
     call of the one tool (its title the tool's name or names the

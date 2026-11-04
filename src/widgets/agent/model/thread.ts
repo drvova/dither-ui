@@ -17,7 +17,7 @@ export type Entry =
       context?: Changed[]
       pictured?: boolean
       /** What it carried besides its words, as its chips read (no payload kept). */
-      attached?: { kind: "text" | "image"; name: string; detail: string }[]
+      attached?: { kind: "text" | "image" | "quote"; name: string; detail: string }[]
     }
   | { kind: "assistant" | "system" | "error"; text: string }
   /** The harness's reasoning: open while it streams, then folded under how

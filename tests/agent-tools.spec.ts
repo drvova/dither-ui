@@ -220,35 +220,61 @@ describe("acp mapping", () => {
     expect(modelOf({ sessionId: "s" })).toBeNull()
     expect(mapUpdate({ sessionUpdate: "config_option_update", configOptions: session.configOptions })).toEqual([
       { type: "model", model: m },
+      // The other settings come along, none here, so stale ones clear.
+      { type: "settings", settings: [] },
     ])
   })
 })
 
 describe("composer state", () => {
   it("keeps the harness choice and the bridge address, never a secret", () => {
-    expect(loadAgentConfig()).toEqual({ bridgeUrl: "ws://127.0.0.1:8790", harness: "", command: "", auto: false })
-    saveAgentConfig({ bridgeUrl: "ws://127.0.0.1:9000", harness: "custom", command: "omp --mode acp", auto: true })
+    expect(loadAgentConfig()).toEqual({
+      bridgeUrl: "ws://127.0.0.1:8790",
+      harness: "",
+      command: "",
+      auto: false,
+      follow: false,
+    })
+    saveAgentConfig({
+      bridgeUrl: "ws://127.0.0.1:9000",
+      harness: "custom",
+      command: "omp --mode acp",
+      auto: true,
+      follow: true,
+    })
     expect(loadAgentConfig()).toEqual({
       bridgeUrl: "ws://127.0.0.1:9000",
       harness: "custom",
       command: "omp --mode acp",
       auto: true,
+      follow: true,
     })
     expect(Object.keys(JSON.parse(localStorage.getItem("dither-agent-config") ?? "{}"))).toEqual([
       "bridgeUrl",
       "harness",
       "command",
       "auto",
+      "follow",
     ])
   })
 
-  it("keeps each project's unsent message, and forgets an empty one", () => {
-    saveDraft("p1", "a sign-in screen")
-    saveDraft("p2", "a table")
-    expect(loadDraft("p1")).toBe("a sign-in screen")
-    expect(loadDraft("p2")).toBe("a table")
-    saveDraft("p1", "  ")
-    expect(loadDraft("p1")).toBe("")
-    expect(localStorage.getItem("dither-agent-draft-p1")).toBeNull()
+  it("keeps each chat's unsent message with what it carries, and forgets an empty one", () => {
+    const quote = { kind: "quote", name: "Quote", text: "Placed it." }
+    saveDraft("p1", "c1", { text: "a sign-in screen", attachments: [quote] })
+    saveDraft("p1", "c2", { text: "a table", attachments: [] })
+    expect(loadDraft("p1", "c1")).toEqual({ text: "a sign-in screen", attachments: [quote] })
+    expect(loadDraft("p1", "c2").text).toBe("a table")
+    saveDraft("p1", "c1", { text: "  ", attachments: [] })
+    expect(loadDraft("p1", "c1")).toEqual({ text: "", attachments: [] })
+    expect(localStorage.getItem("dither-agent-draft-p1/c1")).toBeNull()
+  })
+
+  it("keeps a draft's pictures only while it stays small, and brings a project's old draft back once", () => {
+    const big = { kind: "image", name: "Shot", mimeType: "image/png", data: "A".repeat(2_000_000), w: 1, h: 1 }
+    saveDraft("p1", "c1", { text: "this", attachments: [big, { kind: "text", name: "Pasted text", text: "x" }] })
+    expect(loadDraft("p1", "c1").attachments.map((a) => (a as { kind: string }).kind)).toEqual(["text"])
+    localStorage.setItem("dither-agent-draft-p9", "from before chats")
+    expect(loadDraft("p9", "c1").text).toBe("from before chats")
+    expect(loadDraft("p9", "c1").text).toBe("")
   })
 })

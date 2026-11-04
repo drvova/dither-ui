@@ -17,7 +17,11 @@ const emit = defineEmits<{ remove: [id: string]; unfold: [id: string] }>()
       :src="`data:${a.mimeType};base64,${a.data}`"
       alt=""
       width="14"
-      height="14" /><DitherIcon v-else name="File" :size="11" :stroke-width="1.5" /><button
+      height="14" /><DitherIcon
+      v-else
+      :name="a.kind === 'quote' ? 'Bookmark' : 'File'"
+      :size="11"
+      :stroke-width="1.5" /><button
       v-if="a.kind === 'text'"
       type="button"
       class="unfold row-label is-wrap"

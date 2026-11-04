@@ -29,6 +29,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   restore: []
   edit: []
+  quote: []
   copy: []
   answer: [id: string]
   toggle: [open: boolean]
@@ -95,10 +96,11 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
           :key="`att${j}`"
           class="ctx first-line"
           :title="`${f.name}, ${f.detail}`"
-          ><DitherIcon :name="f.kind === 'image' ? 'Image' : 'File'" :size="11" :stroke-width="1.5" /><span
-            class="row-label is-wrap"
-            >{{ f.name }}</span
-          ></span
+          ><DitherIcon
+            :name="f.kind === 'image' ? 'Image' : f.kind === 'quote' ? 'Bookmark' : 'File'"
+            :size="11"
+            :stroke-width="1.5"
+          /><span class="row-label is-wrap">{{ f.name }}</span></span
         >
       </div>
       <p class="msg-text" :data-folded="long && !unfolded ? 'true' : undefined">{{ entry.text }}</p>
@@ -118,6 +120,15 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
         @click="emit('copy')"
       >
         <DitherIcon :name="copied ? 'Check' : 'Copy'" :size="12" :stroke-width="1.5" />
+      </button>
+      <button
+        type="button"
+        class="row-key"
+        aria-label="Quote reply"
+        title="Quote this reply in your message (or select a part of it)"
+        @click="emit('quote')"
+      >
+        <DitherIcon name="Bookmark" :size="12" :stroke-width="1.5" />
       </button>
     </div>
   </div>

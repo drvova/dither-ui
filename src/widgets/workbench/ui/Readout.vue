@@ -534,7 +534,9 @@ async function copyShot() {
       <div class="row">
         <input v-model="search" type="search" class="search" placeholder="Search threads" aria-label="Search threads" />
         <span class="spacer" />
-        <button type="button" class="act" @click="b.copyForAgent()">Copy for agent (K)</button>
+        <button type="button" class="act" @click="b.copyForAgent()">
+          {{ b.o.send ? "Send to the agent" : "Copy for agent" }} (K)
+        </button>
       </div>
       <ol v-if="threads.length" class="threads">
         <li v-for="th in threads" :key="th.id">

@@ -65,7 +65,7 @@ const SNIPPET_INLINE_EDIT = `<DitherInlineEdit v-model="name" @save="persist" />
 
 const SNIPPET_TAG_INPUT = `<DitherTagInput v-model="tags" :max="8" placeholder="Add tag…" />`
 
-const SNIPPET_CHOICE_CHIPS = `<DitherChoiceChips v-model="size" :options="['S', 'M', 'L', 'XL']" />
+const SNIPPET_CHOICE_CHIPS = `<DitherChoiceChips v-model="size" label="Size" :options="['S', 'M', 'L', 'XL']" />
 <DitherChoiceChips v-model="tags" multiple :options="['bug', 'feat', 'docs']" />`
 
 // The checkbox cards' demo answers clicks: each card is its own toggle.
@@ -158,8 +158,9 @@ const API: Record<string, PropRow[]> = {
     { prop: "max", type: "number", default: "Infinity" },
   ],
   choiceChips: [
+    { prop: "label", type: "string (names the group, shown over the chips)", default: '""' },
     { prop: "options", type: "string[]", default: "[]" },
-    { prop: "value", type: "string | string[] (v-model)", default: '"" / []' },
+    { prop: "modelValue", type: "string | string[] (v-model; `value` still read)", default: '"" / []' },
     { prop: "multiple", type: "boolean (checkbox mode)", default: "false" },
   ],
   checkboxCard: [
@@ -451,7 +452,7 @@ const API: Record<string, PropRow[]> = {
     </p>
     <DemoCard :code="SNIPPET_CHOICE_CHIPS">
       <div class="mx-auto grid max-w-sm gap-4">
-        <DitherChoiceChips :model-value="'M'" :options="['S', 'M', 'L', 'XL']" />
+        <DitherChoiceChips :model-value="'M'" label="Size" :options="['S', 'M', 'L', 'XL']" />
         <DitherChoiceChips :model-value="['bug']" multiple :options="['bug', 'feat', 'docs']" />
       </div>
     </DemoCard>

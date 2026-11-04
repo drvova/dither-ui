@@ -10,7 +10,8 @@ import type { Todo } from "../model/thread"
 // the queue (each message to edit, send now, move up or remove; paused
 // after a stop until you send the next), the run (what the harness does, for how long, a quiet Stop)
 // and, last and resting on the card, what the turn changed on the canvas
-// (Undo all, Keep, each frame to show).
+// (Undo all, Keep, each frame to show, undo or keep; a frame just undone
+// can be put back).
 const props = defineProps<{
   /** Next prompts to offer, one tap each. */
   next: string[]
@@ -21,6 +22,8 @@ const props = defineProps<{
   /** The run, while it lasts; `stuck`: a stop the harness has not answered. */
   run: { doing: string; time: string; stopping: boolean; stuck: boolean } | null
   changes: { frames: Changed[] } | null
+  /** The frame just undone, by name, which can go back as the turn left it. */
+  putBack?: string | null
   /** Frames still on the canvas (a removed one has nothing to show). */
   shown: (id: string) => boolean
 }>()
@@ -37,6 +40,9 @@ const emit = defineEmits<{
   undo: []
   keep: []
   show: [id: string]
+  undoFrame: [id: string]
+  keepFrame: [id: string]
+  putBack: []
 }>()
 const changesOpen = ref(false)
 const done = computed(() => props.todos?.filter((t) => t.status === "completed").length ?? 0)
@@ -167,7 +173,7 @@ watch(
     </button>
   </div>
   <div v-else-if="changes" class="part">
-    <div class="head is-split">
+    <div v-if="changes.frames.length" class="head is-split">
       <button type="button" class="toggle" :aria-expanded="changesOpen" @click="changesOpen = !changesOpen">
         <DitherIcon :name="changesOpen ? 'ChevronDown' : 'ChevronRight'" :size="12" :stroke-width="1.5" />
         <span class="row-label"
@@ -177,13 +183,38 @@ watch(
       <button type="button" class="key" @click="emit('undo')"><span class="row-label">Undo all</span></button>
       <button type="button" class="key is-primary" @click="emit('keep')"><span class="row-label">Keep</span></button>
     </div>
-    <ul v-if="changesOpen" class="rows">
+    <p v-if="putBack" class="row first-line dim" role="status">
+      <DitherIcon name="Undo" :size="12" :stroke-width="1.5" /><span class="row-text row-label is-wrap"
+        >Undid {{ putBack }}</span
+      ><button type="button" class="row-key is-word" @click="emit('putBack')">
+        <span class="row-label">Put it back</span>
+      </button>
+    </p>
+    <ul v-if="changesOpen && changes.frames.length" class="rows">
       <li v-for="f in changes.frames" :key="f.id" class="row first-line">
         <DitherIcon name="Layout" :size="12" :stroke-width="1.5" /><span class="row-text row-label is-wrap">{{
           f.name
         }}</span>
-        <button v-if="shown(f.id)" type="button" class="row-key is-word" @click="emit('show', f.id)">
+        <button
+          v-if="shown(f.id)"
+          type="button"
+          class="row-key is-word"
+          :aria-label="`Show ${f.name}`"
+          @click="emit('show', f.id)"
+        >
           <span class="row-label">Show</span>
+        </button>
+        <button
+          type="button"
+          class="row-key is-word"
+          :aria-label="`Undo ${f.name}`"
+          :title="`Undo what the turn did to ${f.name}`"
+          @click="emit('undoFrame', f.id)"
+        >
+          <span class="row-label">Undo</span>
+        </button>
+        <button type="button" class="row-key is-word" :aria-label="`Keep ${f.name}`" @click="emit('keepFrame', f.id)">
+          <span class="row-label">Keep</span>
         </button>
       </li>
     </ul>

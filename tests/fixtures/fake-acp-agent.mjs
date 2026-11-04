@@ -2,7 +2,8 @@
 // pi in `tests/bridge.spec.ts`. One prompt: streams prose, publishes a plan,
 // announces a tool call, asks one permission, then calls the Studio's
 // `add_screen` through the MCP server the bridge injected. `session/cancel`
-// ends the turn with stopReason "cancelled".
+// ends the turn with stopReason "cancelled"; one effort setting answers
+// `session/set_config_option`.
 import { spawn } from "node:child_process"
 import { createInterface } from "node:readline"
 
@@ -27,6 +28,17 @@ const settle = (map, m) => {
 
 let mcp = null
 let cancelled = false
+/** Its one setting besides any model, as a harness offers effort. */
+let effort = "medium"
+const configOptions = () => [
+  {
+    id: "effort",
+    name: "Effort",
+    type: "select",
+    currentValue: effort,
+    options: ["low", "medium", "high"].map((value) => ({ value, name: value[0].toUpperCase() + value.slice(1) })),
+  },
+]
 
 /** Spawn one MCP stdio server and speak just enough MCP to list and call tools. */
 function startMcp(server) {
@@ -165,6 +177,9 @@ createInterface({ input: process.stdin }).on("line", async (line) => {
       if (studio) {
         mcp = startMcp(studio)
         const names = await mcp.init()
+        // The Studio's one tool runs its actions; a bare studio names each.
+        const call = mcp.call
+        if (names.includes("dither")) mcp.call = (name, args) => call("dither", { run: name, args })
         notify("session/update", {
           sessionId: "pending",
           update: {
@@ -173,8 +188,11 @@ createInterface({ input: process.stdin }).on("line", async (line) => {
           },
         })
       }
-      return out({ id: m.id, result: { sessionId: `sess_${Date.now().toString(36)}` } })
+      return out({ id: m.id, result: { sessionId: `sess_${Date.now().toString(36)}`, configOptions: configOptions() } })
     }
+    case "session/set_config_option":
+      if (m.params?.configId === "effort") effort = String(m.params.value)
+      return out({ id: m.id, result: { configOptions: configOptions() } })
     case "session/prompt":
       cancelled = false
       return prompt(m.id, m.params)

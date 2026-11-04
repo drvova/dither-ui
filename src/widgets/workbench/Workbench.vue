@@ -30,6 +30,8 @@ const props = defineProps<{
   title: string
   url: string
   render?: Slot
+  /** Where K sends the feedback when there is an agent to take it. */
+  send?: (markdown: string) => void
 }>()
 const emit = defineEmits<{ exit: [] }>()
 
@@ -42,6 +44,7 @@ const b = createBench({
   title: props.title,
   url: props.url,
   exit: () => emit("exit"),
+  send: props.send,
 })
 provide(BENCH, b)
 onMounted(b.start)

@@ -18,7 +18,15 @@ import type { CommandResult } from "./protocol"
 import { runCommand } from "./protocol"
 import { type Built, callDither, DITHER_TOOL, ditherDef } from "./dither"
 import { runSandboxed } from "./sandbox"
-import { type AgentCommand, type AgentEvent, type Mode, type ModelChoice, STUDIO_SERVER, type Usage } from "./tools"
+import {
+  type AgentCommand,
+  type AgentEvent,
+  type Mode,
+  type ModelChoice,
+  type Setting,
+  STUDIO_SERVER,
+  type Usage,
+} from "./tools"
 
 type JsonRpcId = string | number
 type Message = {
@@ -108,6 +116,8 @@ export type AcpClient = {
   setMode(id: string): Promise<void>
   /** Switch to one of the models the harness offers (its own setting). */
   setModel(id: string): Promise<void>
+  /** Set one of the harness's other settings to one of its values. */
+  setOption(configId: string, value: string): Promise<void>
   /** One task: resolves when the agent's turn ends, with its stop reason and
    * the prose it streamed. Pictures ride along only if the harness takes them. */
   prompt(
@@ -167,7 +177,7 @@ export function mapUpdate(update: Record<string, unknown>): AgentEvent[] {
   if (kind === "current_mode_update") return [{ type: "mode", current: String(update.currentModeId ?? ""), modes: [] }]
   if (kind === "config_option_update") {
     const model = modelOf(update)
-    return model ? [{ type: "model", model }] : []
+    return [...(model ? [{ type: "model" as const, model }] : []), { type: "settings", settings: settingsOf(update) }]
   }
   if (kind === "available_commands_update") {
     const list = Array.isArray(update.availableCommands)
@@ -215,13 +225,23 @@ type ConfigValue = { value?: unknown; name?: unknown; description?: unknown; opt
  * `session/new` answer or a `config_option_update`): the select of category
  * "model", its values flattened out of any groups. Null when the agent
  * reports none. */
-export function modelOf(v: unknown): ModelChoice | null {
+type ConfigOption = {
+  id?: unknown
+  name?: unknown
+  category?: unknown
+  type?: unknown
+  currentValue?: unknown
+  options?: unknown
+}
+const configOptionsOf = (v: unknown): ConfigOption[] => {
   const list = (v as { configOptions?: unknown } | null)?.configOptions
-  if (!Array.isArray(list)) return null
-  const o = (
-    list as { id?: unknown; category?: unknown; type?: unknown; currentValue?: unknown; options?: unknown }[]
-  ).find((x) => !!x && x.type === "select" && (x.category === "model" || x.id === "model"))
-  if (!o || typeof o.id !== "string" || !Array.isArray(o.options)) return null
+  return Array.isArray(list) ? (list as ConfigOption[]).filter((x) => !!x && x.type === "select") : []
+}
+const isModel = (x: ConfigOption) => x.category === "model" || x.id === "model"
+const isMode = (x: ConfigOption) => x.category === "mode" || x.id === "mode"
+/** A select config option as a choice: its id, current value and values (groups flattened). */
+function choiceOf(o: ConfigOption): ModelChoice | null {
+  if (typeof o.id !== "string" || !Array.isArray(o.options)) return null
   const flat = (o.options as ConfigValue[]).flatMap((x) => (Array.isArray(x.options) ? x.options : [x]))
   const options = flat
     .filter((x) => typeof x.value === "string")
@@ -231,6 +251,24 @@ export function modelOf(v: unknown): ModelChoice | null {
       description: typeof x.description === "string" && x.description ? x.description : undefined,
     }))
   return { configId: o.id, current: String(o.currentValue ?? ""), options }
+}
+
+export function modelOf(v: unknown): ModelChoice | null {
+  const o = configOptionsOf(v).find(isModel)
+  return o ? choiceOf(o) : null
+}
+
+/** The harness's other choice settings (not its model, not its mode, which
+ * have their own keys), each with a name to show. */
+export function settingsOf(v: unknown): Setting[] {
+  return configOptionsOf(v)
+    .filter((o) => !isModel(o) && !isMode(o))
+    .flatMap((o) => {
+      const c = choiceOf(o)
+      return c && c.options.length > 1
+        ? [{ ...c, name: typeof o.name === "string" && o.name ? o.name : c.configId }]
+        : []
+    })
 }
 
 /** A model's name as a person reads it: a "default" entry says which model
@@ -505,6 +543,7 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         if (found) o.onEvent?.({ type: "mode", current: mode, modes })
         model = modelOf(s)
         if (model) o.onEvent?.({ type: "model", model })
+        o.onEvent?.({ type: "settings", settings: settingsOf(s) })
         return sessionId ?? ""
       },
       async setModel(id) {
@@ -512,6 +551,12 @@ export function connectAcp(o: AcpClientOptions): Promise<AcpClient> {
         const res = await request("session/set_config_option", { sessionId, configId: model.configId, value: id })
         model = modelOf(res) ?? { ...model, current: id }
         o.onEvent?.({ type: "model", model })
+      },
+      async setOption(configId, value) {
+        const res = await request("session/set_config_option", { sessionId, configId, value })
+        const next = modelOf(res)
+        if (next) o.onEvent?.({ type: "model", model: (model = next) })
+        if (configOptionsOf(res).length) o.onEvent?.({ type: "settings", settings: settingsOf(res) })
       },
       async setMode(id) {
         await request("session/set_mode", { sessionId, modeId: id })

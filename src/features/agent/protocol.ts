@@ -54,6 +54,7 @@ import {
   REEL_TRANSITIONS,
   type ReelTransitionKind,
   sanitizeComponentProps,
+  sanitizeModel,
   widgetCode,
 } from "@/entities/widget"
 import {
@@ -135,13 +136,14 @@ export type StudioCommand =
       name?: string
       props?: Record<string, unknown>
       slotText?: string
+      value?: unknown
       frame?: { w?: number; h?: number }
     }
   | {
       type: "screen.add"
       name?: string
       rows: {
-        cells: { is: string; props?: Record<string, unknown>; slotText?: string; grow?: boolean }[]
+        cells: { is: string; props?: Record<string, unknown>; slotText?: string; value?: unknown; grow?: boolean }[]
         align?: string
         justify?: string
         gap?: number
@@ -237,12 +239,13 @@ export function registrySchema() {
       "artboard.select": "{ id } or { ids }",
       "artboard.remove": "{ id }",
       "artboard.update":
-        "{ id, patch } — merge name/x/y/w/h/hidden/locked, chart fields, widget props, screen rows, or a reel's clips and score; sanitized",
+        "{ id, patch } — merge name/x/y/w/h/hidden/locked, `chart` fields, and under `widget`: a component's props or value, a screen's rows, a reel's clips and score; sanitized; a key it does not know fails the call",
       "chart.add": "{ chart, name?, data?: { labels, series: [{ key, label?, color?, values }] }, frame? }",
       "widget.add": "{ widget: avatar|button|gradient|image, name?, props? }",
-      "component.add": "{ is, name?, props?, slotText?, frame? } — a registry component",
+      "component.add":
+        "{ is, name?, props?, slotText?, value?, frame? } — a registry component; value is what its v-model holds (a field's text, a toggle's state), checked against its default's kind (an empty string shows a field's placeholder)",
       "screen.add":
-        "{ name?, rows: [{ cells: [{ is, props?, slotText?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
+        "{ name?, rows: [{ cells: [{ is, props?, slotText?, value?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
       "reel.add": `{ name?, clips: [id | { id, seconds?, transition?: { kind?: ${REEL_TRANSITIONS.join("|")}, seconds?, cell?, seed? }, camera?: [{ t: 0-1 of the clip, x, y: the frame point looked at (0-1), zoom: 1 fitted, tilt: degrees }], callouts?: [{ x, y: a frame point (0-1), label, note?, side?: left|right, from?, to?: seconds into the clip }], chapter?: { line, spec?: [[figure, words]] } }], score?: true | { seed }, frame? } — frames played in order with ordered-dither transitions (clip 3s, dissolve 0.6s by default); a film when clips carry camera moves, callouts and chapters (a band under the stage), with a score synthesized from the cut; video.export renders the whole cut with its score`,
       evolve: "{ id?, count?, seed?, strength? } — seeded variants placed as a row",
       "artboard.duplicate": "{ id? | ids? } — copies of those frames (the selection by default), selected",
@@ -337,6 +340,9 @@ function buildClips(input: unknown) {
   return { clips, missing, reels }
 }
 
+/** What `artboard.update` patches on the frame itself. */
+const PATCH_KEYS = new Set(["name", "x", "y", "w", "h", "hidden", "locked", "chart", "widget"])
+
 function buildScreen(cmd: Extract<StudioCommand, { type: "screen.add" }>) {
   const dropped: string[] = []
   const rows = (Array.isArray(cmd.rows) ? cmd.rows : []).filter(isPlain).map((r) => {
@@ -349,6 +355,7 @@ function buildScreen(cmd: Extract<StudioCommand, { type: "screen.add" }>) {
       const cell = createCell(entry)
       cell.props = sanitizeComponentProps(entry, { ...cell.props, ...(isPlain(c.props) ? c.props : {}) })
       if (typeof c.slotText === "string") cell.slotText = c.slotText
+      if ("value" in c) cell.model = sanitizeModel(entry, c.value)
       cell.grow = c.grow === true
       return [cell]
     })
@@ -415,6 +422,14 @@ export function runCommand(input: unknown): CommandResult {
         if (!a) return fail(`no artboard ${cmd.id}`)
         if (!isPlain(cmd.patch)) return fail("patch must be an object")
         const p = cmd.patch
+        // A key it does not know fails here, before anything changes: an
+        // agent that put a screen's rows beside `widget` is told so, never
+        // answered "ok" for a change that did not happen.
+        const unknown = Object.keys(p).filter((k) => !PATCH_KEYS.has(k))
+        if (unknown.length)
+          return fail(
+            `patch does not take ${unknown.join(", ")}; it takes ${[...PATCH_KEYS].join(", ")}, and what the frame shows (a component's props or value, a screen's rows, a reel's clips) goes under widget`,
+          )
         if (typeof p.name === "string") a.name = p.name.slice(0, 80)
         for (const k of ["x", "y", "w", "h"] as const)
           if (typeof p[k] === "number" && Number.isFinite(p[k])) a[k] = Math.round(p[k] as number)
@@ -424,9 +439,11 @@ export function runCommand(input: unknown): CommandResult {
         if (isPlain(p.widget) && a.widget) {
           const w = a.widget as unknown as Record<string, unknown>
           const patch = p.widget
-          if (a.widget.kind === "component" && isPlain(patch.props))
-            w.props = { ...(w.props as object), ...patch.props }
-          else if (a.widget.kind === "screen" && Array.isArray(patch.rows)) {
+          if (a.widget.kind === "component" && (isPlain(patch.props) || "value" in patch)) {
+            if (isPlain(patch.props)) w.props = { ...(w.props as object), ...patch.props }
+            const entry = componentEntry(a.widget.is)
+            if ("value" in patch && entry) w.model = sanitizeModel(entry, patch.value)
+          } else if (a.widget.kind === "screen" && Array.isArray(patch.rows)) {
             const built = buildScreen({ type: "screen.add", rows: patch.rows as never })
             w.rows = built.rows
           } else if (a.widget.kind === "reel" && (Array.isArray(patch.clips) || "score" in patch)) {
@@ -467,6 +484,7 @@ export function runCommand(input: unknown): CommandResult {
             ...(isPlain(cmd.props) ? cmd.props : {}),
           })
           if (typeof cmd.slotText === "string") a.widget.slotText = cmd.slotText
+          if ("value" in cmd) a.widget.model = sanitizeModel(entry, cmd.value)
         }
         applyFrame(a, cmd.frame)
         return ok(summarize(a))

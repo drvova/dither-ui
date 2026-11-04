@@ -38,8 +38,8 @@ afterEach(() => rs.restoreAllMocks())
 describe("the agent panel", () => {
   it("mounts cleanly and brings back the project's draft and thread", async () => {
     const warn = rs.spyOn(console, "warn")
-    saveDraft("p1", "half a message")
     keep([{ kind: "user", text: "A sign-in screen", turn: 1 }])
+    saveDraft("p1", chats.active, { text: "half a message", attachments: [] })
     const w = mount(AgentPanel, { attachTo: document.body })
     await nextTick()
     expect(warn.mock.calls.filter(([m]) => String(m).includes("Unhandled error"))).toEqual([])

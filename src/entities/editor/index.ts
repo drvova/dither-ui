@@ -37,6 +37,7 @@ export {
   ungroup,
   type Viewport,
 } from "./model/store"
+export { boundsOf } from "./model/free"
 export {
   actualSize,
   fitAll,

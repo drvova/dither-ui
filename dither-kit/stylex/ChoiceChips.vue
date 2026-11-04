@@ -2,8 +2,16 @@
 <script lang="ts">
 import * as stylex from "@stylexjs/stylex"
 
+let chipsCount = 0
+
 const styles = stylex.create({
   row: { display: "flex", flexWrap: "wrap", gap: "0.375rem" },
+  text: {
+    flexBasis: "100%",
+    fontSize: "12px",
+    fontWeight: "500",
+    color: "color-mix(in oklab, var(--foreground) 90%, transparent)",
+  },
   label: {
     cursor: "pointer",
     borderRadius: "calc(infinity * 1px)",
@@ -60,11 +68,16 @@ import { cn, type StyleProp } from "./lib"
 
 /** Chip-style choice group: the chip is the LABEL of a real radio (or
  * checkbox when `multiple`), so native keyboard semantics and focus come for
- * free — no roving tabindex to get wrong. `value` is a string for single and
- * a string array for multiple. */
+ * free — no roving tabindex to get wrong; the radios share one name, so the
+ * arrows move between them and the group is one Tab stop. `value` is a
+ * string for single and a string array for multiple. `label` names the
+ * group: shown on its own line over the chips and tied to it. */
 const props = withDefaults(
   defineProps<{
+    label?: string
     options?: string[]
+    /** The choice (v-model); `value` is the older name, still read. */
+    modelValue?: string | string[]
     value?: string | string[]
     multiple?: boolean
     disabled?: boolean
@@ -73,10 +86,18 @@ const props = withDefaults(
   }>(),
   { options: () => [], disabled: false },
 )
+const base = `dk-chips-${chipsCount++}`
 const emit = defineEmits<{ (e: "update:modelValue", value: string | string[]): void }>()
 
+const current = computed(() => props.modelValue ?? props.value)
 const selected = computed(() =>
-  props.multiple ? (Array.isArray(props.value) ? props.value : []) : typeof props.value === "string" ? props.value : "",
+  props.multiple
+    ? Array.isArray(current.value)
+      ? current.value
+      : []
+    : typeof current.value === "string"
+      ? current.value
+      : "",
 )
 
 function isChecked(option: string): boolean {
@@ -96,7 +117,13 @@ function onChange(option: string, checked: boolean) {
 </script>
 
 <template>
-  <div role="group" :class="cn(styles.row, props.xstyle, props.class)" :aria-disabled="props.disabled || undefined">
+  <div
+    role="group"
+    :aria-labelledby="props.label ? `${base}-label` : undefined"
+    :class="cn(styles.row, props.xstyle, props.class)"
+    :aria-disabled="props.disabled || undefined"
+  >
+    <span v-if="props.label" :id="`${base}-label`" v-bind="stylex.attrs(styles.text)">{{ props.label }}</span>
     <label
       v-for="option in props.options"
       :key="option"
@@ -111,6 +138,7 @@ function onChange(option: string, checked: boolean) {
       <input
         v-bind="stylex.attrs(styles.input)"
         :type="props.multiple ? 'checkbox' : 'radio'"
+        :name="`${base}-choice`"
         :value="option"
         :checked="isChecked(option)"
         :disabled="props.disabled"

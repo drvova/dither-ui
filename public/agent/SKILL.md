@@ -41,6 +41,9 @@ Rules the validator enforces:
   `list` (array of strings).
 - `slotText` is the component's visible text where it has a slot (buttons,
   badges, checkboxes).
+- `value` (on `component.add` and on a screen cell) is what a control with a
+  `vmodel` holds, in the kind of its default (a field's text, a slider's
+  number, the chips' pick); anything else falls back to that default.
 - Screens have ONE nesting level: rows of cells. No nested containers.
 
 ## 2. The document shape
@@ -146,10 +149,10 @@ Commands (`type` and fields):
 | `artboard.list` | — |
 | `artboard.select` | `id` or `ids` |
 | `artboard.remove` | `id` |
-| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props`, `widget.rows` or `widget.clips`) |
+| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props`, `widget.value`, `widget.rows` or `widget.clips`; a key it does not know fails the call, nothing changed) |
 | `chart.add` | `chart`, `name?`, `data?: { labels, series: [{ key, label?, color?, values }] }`, `frame?` |
 | `widget.add` | `widget` (avatar/button/gradient/image), `name?`, `props?` |
-| `component.add` | `is`, `name?`, `props?`, `slotText?`, `frame?` |
+| `component.add` | `is`, `name?`, `props?`, `slotText?`, `value?`, `frame?` — `value` is what a control holds (a field's text, the chips' pick), in the kind its `registry.get` row gives; `""` clears a field |
 | `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
 | `reel.add` | `name?`, `clips` (ids, or `{ id, seconds?, transition?: { kind, seconds?, cell?, seed? }, camera?, callouts?, chapter? }` — kinds `cut`, `dissolve`, `wipe-right`, `wipe-left`, `wipe-down`, `wipe-up`; 3s clips in over a 0.6s dissolve by default), `score?` (`true` or `{ seed }`), `frame?` — frames played in order with ordered-dither transitions; a film with camera moves, callouts, chapters and a score (see below) |
 | `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |

@@ -4,7 +4,7 @@ import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
 import { addArtboard, centreOn, editor, stopInspecting } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
 import { openProject } from "@/features/agent/chats"
-import { handoff } from "@/features/agent/handoff"
+import { askAgent, handoff } from "@/features/agent/handoff"
 import type { AgentActivity } from "@/features/agent/tools"
 import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
@@ -168,6 +168,7 @@ onBeforeUnmount(() => {
         section="studio"
         title="The Studio canvas (dither-ui)"
         :url="benchUrl"
+        :send="(md: string) => askAgent(md, editor.selectedIds)"
         @exit="stopInspecting"
       />
     </aside>
