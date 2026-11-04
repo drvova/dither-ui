@@ -23,7 +23,8 @@ result to a coding agent, on the live preview — a real tool, never a mock.
   marker lines, erase, arrows, hit tests), `shared/lib/inspect/measure.ts` (DOM readings:
   box/box model/gaps, CSS block, selectors and child paths, type lines and
   baselines, rendered font, background behind, role/name/states, Tab
-  order, audit: a control is an interactive role or a Tab stop (a
+  order, audit: a field named only by its placeholder is flagged
+  (`label`; the name goes once someone types), a control is an interactive role or a Tab stop (a
   negative tabindex alone makes none); a target is pressed through its
   `<label>`, passes at 24×24 or when a 24px circle on it meets no other
   target (WCAG 2.5.8), and disabled or visually hidden controls are not

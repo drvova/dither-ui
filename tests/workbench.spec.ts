@@ -386,6 +386,33 @@ describe("workbench DOM readings", () => {
     rs.restoreAllMocks()
   })
 
+  it("flags a field named only by its placeholder, and passes one with a label that lasts", () => {
+    // The live Studio's sign-in screen: "Email" set beside the field, not tied to it.
+    document.body.innerHTML = `<div id="r"><span>Email</span><input placeholder="you@example.com">
+      <label>Password <input type="password" placeholder="At least 12 characters"></label>
+      <input aria-label="Search" placeholder="Search"><input id="n" placeholder="Name"><label for="n">Name</label>
+      <input placeholder="Code" title="One-time code"></div>`
+    const r = document.getElementById("r")!
+    rs.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({
+      width: 200,
+      height: 40,
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 200,
+      bottom: 40,
+      toJSON() {},
+    } as DOMRect)
+    const found = audit(r, r).filter((i) => i.kind === "label")
+    expect(found.map((i) => i.el.getAttribute("placeholder"))).toEqual(["you@example.com"])
+    expect(found[0].note).toMatch(/named only by its placeholder/)
+    // Still a name, so no "name" issue alongside it.
+    expect(audit(r, r).filter((i) => i.kind === "name")).toEqual([])
+    expect(nameOf(r.querySelector("input")!)).toBe("you@example.com")
+    rs.restoreAllMocks()
+  })
+
   it("audits targets through their label, skipping disabled keys, hidden links and skip-link targets", () => {
     document.body.innerHTML = `<div id="r"><main tabindex="-1"><label data-box="90,24"><input type="checkbox" data-box="13,13"> Bold</label>
       <button aria-label="Legend" data-box="60,17"></button><button disabled data-box="40,17">Off</button><a href="#main" style="clip: rect(0px, 0px, 0px, 0px)" data-box="1,1">Skip</a></main></div>`

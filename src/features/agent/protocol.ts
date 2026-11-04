@@ -252,7 +252,7 @@ export function registrySchema() {
       view: `{ to?: ${VIEW_TO.join("|")}, zoom?: 0.2-3, id? } — move the canvas view: fit every frame, the selection or one frame (id), step the zoom or set it`,
       "image.export": `{ id?, scale?: ${PNG_SCALES.join("|")} } — the frame as a PNG (scale 2 by default), written under the project as image/<name>.png`,
       inspect:
-        "{ id? } — what the frame reads as on the canvas: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, targets under 24px, text under AA contrast, images without alt, positive tabindex)",
+        "{ id? } — what the frame reads as on the canvas: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, fields named only by their placeholder, targets under 24px, text under AA contrast, images without alt, positive tabindex)",
       "code.get":
         "{ id, styling? } — the frame as a Vue SFC: tailwind (default) keeps the utility classes; css (a scoped stylesheet), modules (CSS Modules) or stylex write the same look in that system",
       "registry.get":

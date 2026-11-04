@@ -141,11 +141,18 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   step (the agent's per-message checkpoints).
 - Editor mutations must stay undoable: route them through the editor store so
   the deep watcher records them; never mutate artboards from a component.
-- New artboards route through `placeArtboard` after their final size is known; it
-  centers every insert exactly in the current viewport. Do not restore cascading,
-  origin, or right-edge spawn logic. A generation (several variants of one
-  parent) routes through `placeGeneration`: one centred row, the batch
-  treated as a single insert.
+- New artboards route through `placeArtboard` after their final size is
+  known; it centres every insert in the current viewport, and when a shown
+  frame stands there (kept `FRAME_GAP`, 40px, apart) moves it to the
+  nearest free canvas (`model/free.ts`, `freeSpot`: 20px steps out to
+  2400px, nearest first) and pans the view to it when it is not wholly in
+  view (the user's call after the agent's screen landed on a chart). Do not
+  restore cascading, origin, or right-edge spawn logic. A generation
+  (several variants of one parent) routes through `placeGeneration`: one
+  centred row moved as one onto free canvas, the batch treated as a single
+  insert. Duplicate and paste place their copies (`cloneArtboard` keeps
+  the source's spot) beside the originals, moved as one onto free canvas,
+  selected. `tests/editor-placement.spec.ts`.
 - The Studio is agent-addressable through `features/agent`:
   - `protocol.ts` is ONE command vocabulary (`runCommand`) behind three doors:
     `window.ditherStudio.run()` (main world), `dither-studio:command` /

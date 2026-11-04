@@ -440,11 +440,21 @@ function visibleText(el: Element): string {
   return out
 }
 
+const clean = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim()
+
 /** The accessible name, by the common steps of the accname algorithm:
  * aria-labelledby, aria-label, a label element, alt / <title>, content for
  * roles named by their content, then title / placeholder. */
 export function nameOf(el: Element): string {
-  const clean = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim()
+  return lastingName(el) || clean(el.getAttribute("placeholder"))
+}
+
+/** A field named by its placeholder alone: a name that goes as soon as
+ * someone types, read where the visible label (if any) is not tied to it. */
+export const namedByPlaceholder = (el: Element): boolean => !lastingName(el) && !!clean(el.getAttribute("placeholder"))
+
+/** Every source of a name but the placeholder. */
+function lastingName(el: Element): string {
   const by = el.getAttribute("aria-labelledby")
   if (by) {
     const text = by
@@ -469,7 +479,7 @@ export function nameOf(el: Element): string {
     const text = clean(visibleText(el))
     if (text) return text
   }
-  return clean(el.getAttribute("title")) || clean(el.getAttribute("placeholder"))
+  return clean(el.getAttribute("title"))
 }
 
 const STATE_ATTRS = [
@@ -559,7 +569,12 @@ function visuallyHidden(el: Element): boolean {
   return cs.clip === "rect(0px, 0px, 0px, 0px)" || cs.clipPath === "inset(50%)"
 }
 
-export type Issue = { el: Element; box: Box; kind: "name" | "target" | "contrast" | "alt" | "tabindex"; note: string }
+export type Issue = {
+  el: Element
+  box: Box
+  kind: "name" | "label" | "target" | "contrast" | "alt" | "tabindex"
+  note: string
+}
 
 type Target = { el: Element; box: Box; hit: Box; small: boolean }
 
@@ -582,7 +597,7 @@ function crowded(t: Target, all: Target[]): boolean {
 }
 
 /** The floor the site holds itself to, checked across a stage: every
- * control named, every target 24×24 or spaced so a 24px circle on it meets
+ * control named (a field by a label that lasts, never its placeholder alone), every target 24×24 or spaced so a 24px circle on it meets
  * no other (WCAG 2.5.8), text at AA contrast where its background is
  * knowable, images with alt, no positive tabindex. Boxes in CSS px at `scale`
  * (as boxOf). */
@@ -594,6 +609,13 @@ export function audit(root: Element, frame: Element, scale = 1): Issue[] {
     const box = boxOf(el, frame, scale)
     if (interactive(el)) {
       if (!nameOf(el)) issues.push({ el, box, kind: "name", note: `${labelOf(el)} has no accessible name` })
+      else if (namedByPlaceholder(el))
+        issues.push({
+          el,
+          box,
+          kind: "label",
+          note: `${labelOf(el)} is named only by its placeholder, which goes once someone types: tie a label to it`,
+        })
       const inlineLink = el.tagName === "A" && getComputedStyle(el).display === "inline"
       // A control inside its <label> is pressed through the whole label.
       const hit = boxOf(el.closest("label") ?? el, frame, scale)

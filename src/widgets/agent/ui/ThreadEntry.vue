@@ -188,6 +188,12 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   padding: 7px 13px;
   background: var(--color-card);
 }
+/* The context chips are filled boxes, so their edge is what the eye reads:
+   it stands as far in from the bubble's top as from its side (13px; the
+   bubble's 7px top suits a line of text, whose leading pads it). */
+.msg > .chips {
+  margin-top: 6px;
+}
 .msg-text {
   margin: 0;
   font-family: var(--font-sans);
