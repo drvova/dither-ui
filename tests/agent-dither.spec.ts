@@ -71,6 +71,12 @@ describe("finding what fits", () => {
     expect(found.actions.length).toBeLessThanOrEqual(3)
     expect(found.components.map((c) => c.is)).toContain("DitherSlider")
     expect(findFor("export it as a film").actions[0].name).toBe("export_video")
+    // The canvas bar's actions are found in a person's words too.
+    expect(findFor("check the contrast of the login screen").actions[0].name).toBe("inspect")
+    expect(findFor("save a png of the frame").actions[0].name).toBe("export_png")
+    expect(findFor("zoom to fit the canvas").actions[0].name).toBe("set_view")
+    expect(findFor("clone this frame").actions[0].name).toBe("duplicate")
+    expect(findFor("ungroup them").actions[0].name).toBe("ungroup")
   })
 
   it("says to build a tool when nothing fits the job well", () => {

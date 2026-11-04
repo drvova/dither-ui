@@ -4,7 +4,7 @@
 // outlines, the capture region and the eraser's footprint.
 import { computed } from "vue"
 import { useBench } from "../context"
-import { boxFrom } from "../model/geometry"
+import { boxFrom } from "@/shared/lib/inspect/geometry"
 import { arrowPaths, centerline, inkOutline } from "../model/ink"
 import { swatch } from "../model/settings"
 

@@ -13,11 +13,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
 - `widgets/` — the site's one `site-header` (the landing's and the docs'
   capsule, a page's tools in its slot, the menu sheet of tone bands under
-  lg; see `pages/AGENTS.md`, Header), the docs previews' `workbench` (inspect, measure,
+  lg; see `pages/AGENTS.md`, Header), the docs previews' and the Studio canvas's `workbench` (inspect, measure,
   annotate, capture; see `widgets/workbench/AGENTS.md`) and `source` (the
   preview's files, edited and run in the page; see
   `widgets/source/AGENTS.md`) and the studio
-  panels: toolbar (the title bar and the selection bar), layer-tree,
+  panels: toolbar (the title bar and the canvas bar), layer-tree,
   inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock; a film's camera, callouts and chapter band), data-editor, agent
@@ -37,14 +37,19 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   and the pinch rebases on whichever pair remains; `tests/canvas-touch.spec.ts`;
   it reads `editor.viewport` at each use, never a kept copy, since loading
   a document, switching a project or centring a fresh frame replaces it;
-  `tests/pan-zoom.spec.ts`),
+  `tests/pan-zoom.spec.ts`; the zoom keys, the canvas bar and the agent's
+  `view` steer it through the editor's view functions, below),
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
   the Studio tools and the ACP client behind the composer, and `handoff.ts`:
   the frames the canvas picks for the agent and the messages asked at the
   selection, which the canvas writes, the agent panel reads and the
   Studio page opens the panel for).
 - `entities/` — domain stores: editor (selection/artboards, single source of
-  truth), chart, widget, artboard.
+  truth; `model/view.ts`, the canvas view: `zoomTo` about the stage's
+  centre or a point, `zoomIn`/`zoomOut` by `ZOOM_STEP`, `actualSize`,
+  `frame`/`fitAll`/`fitSelection` (never past 100%), and
+  `startInspecting`/`stopInspecting` over `editor.inspecting`, during
+  which every zoom holds), chart, widget, artboard.
 - `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
   subset, self-hosted), its license `OFL.txt` (keep them together) and
   `display.css` (its `@font-face`, `font-display: swap`; the mono and
@@ -91,7 +96,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   ONE GIF encoder (one palette, `keep` colours held exact, optional
   ordered dither, delta frames), import-free because the share-card
   renderer carries its source inline: the workbench's captures and the
-  share cards both go through it).
+  share cards both go through it); `inspect/` — what the live DOM reads
+  as (`color.ts`: parse, print, WCAG contrast; `geometry.ts`: boxes and
+  segments; `measure.ts`: boxes, box model, type, role/name/states, Tab
+  order and the accessibility audit, boxes at a `scale` for a zoomed
+  canvas), read by the workbench and by the agent's `inspect`, imported
+  by path).
 - Untrusted input is parsed ONCE where it enters, into a type nothing past
   it re-checks: documents through `parseDocument` / `normalizeArtboard`
   (each field of several shapes, a glow, a texture, an easing, parsed whole
@@ -148,7 +158,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     and file imports use (`applyDocument`, `sanitizeComponentProps`,
     `normalizeArtboard`); nothing evaluates anything. New commands are cases
     in `runCommand` + a row in `registrySchema().commands` + the SKILL table
-    + a tool in `llm.ts` when the model should have it.
+    + an action in `tools.ts` (`STUDIO_TOOLS`, whose commands
+    `tests/agent-tools.spec.ts` holds to the registry's list) with its
+    row in the composer's `STEPS` (`widgets/agent/model/steps.ts`).
   - `registrySchema()` is the machine-readable registry (every component's
     prop specs, chart/widget kinds, document shape, commands); the prerender
     reads it off the mounted studio and writes `dist/agent/registry.json`,
@@ -168,8 +180,17 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     answer where the full prop specs run past 100 kB, and `is` for one
     component in full; `STUDIO_SERVER`, the MCP server's name the bridge
     carries a copy of, pinned by `tests/agent-tools.spec.ts`; `callStudioTool` runs
-    one through `runCommand`, `finishStudioTool` turns `export_video` into
-    `data.files` for the bridge to write), the `AgentEvent` union the
+    one through `runCommand`, `finishStudioTool` turns `export_video`
+    and `export_png` (the frame drawn by `artboardPng`, base64) into
+    `data.files` for the bridge to write). The canvas bar's every key is
+    an action here too: `duplicate` (`artboard.duplicate`), `group`,
+    `ungroup` (a group's id or a frame of it), `replay`, `set_view`
+    (`view`: fit every frame, the selection or one, step, 100%, a zoom),
+    `inspect` (`inspect.ts`: the frame's controls in Tab order and the
+    audit's findings, read off its drawn surface (`surfaceOf`,
+    `features/export-image`) at the canvas's zoom), `export_png`
+    (`image.export` names `image/<slug>.png`); frame summaries carry
+    their `group`; the `AgentEvent` union the
     composer renders (delta, thought, assistant, tool, activity with the
     harness's ACP tool kind, plan, mode, commands, turn, error, stopped,
     done; a stop is its own event, never an error), `AgentActivity`
@@ -424,11 +445,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   only from non-interactive regions so live controls retain pointer ownership.
 - Move, nudge, duplicate, delete, lock, and group commands act on the complete
   selection; locked members remain stationary.
-- Toolbar hierarchy is contextual: project/insertion/global view controls
-  persist in the title bar; edit, data, and export actions appear in the
-  selection bar (`widgets/toolbar/SelectionBar.vue`, over the canvas's
-  foot) only while an artboard is selected. Project file import/export
-  stays in the project menu.
+- Toolbar hierarchy: project, insertion and panels in the title bar; the
+  view, the selection's edit, data and export actions and Inspect in the
+  canvas bar (`widgets/toolbar/CanvasBar.vue`, over the canvas's foot,
+  always there, its keys disabled rather than removed). Project file
+  import/export stays in the project menu.
 - Studio lifecycle watchers are singletons while the route is mounted:
   `startAutosave`/`startHistory` replace prior handles and StudioPage stops them
   on unmount. Route revisits must not accumulate deep watchers.

@@ -2,7 +2,7 @@
 // whose width follows pen pressure, or the stroke's speed for a mouse
 // (fast thins, slow swells), with tapered ends; the marker is a flat,
 // translucent centre line. The eraser cuts strokes only where it passes.
-import type { Box, Point } from "./geometry"
+import type { Box, Point } from "@/shared/lib/inspect/geometry"
 
 /** x, y, time in ms, pressure 0–1 (or -1 when the device reports none). */
 export type InkPoint = [number, number, number, number]

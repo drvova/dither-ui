@@ -22,7 +22,7 @@ import {
   videoTypes,
   type Recording,
 } from "./model/capture"
-import { formatColor, parseColor, type RGBA } from "./model/color"
+import { formatColor, parseColor, type RGBA } from "@/shared/lib/inspect/color"
 import {
   boxFrom,
   distances,
@@ -33,7 +33,7 @@ import {
   type Box,
   type Point,
   type Segment,
-} from "./model/geometry"
+} from "@/shared/lib/inspect/geometry"
 import { boundsOf, erase, hitLine, toSegment, type InkPoint } from "./model/ink"
 import {
   audit,
@@ -55,7 +55,7 @@ import {
   type Issue,
   type Reading,
   type TypeReading,
-} from "./model/measure"
+} from "@/shared/lib/inspect/measure"
 import { loadSettings, saveSettings, swatch, type Settings } from "./model/settings"
 import { TOGGLES, TOOLS, toolById, type ToggleId, type ToolId } from "./model/tools"
 import {

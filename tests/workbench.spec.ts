@@ -4,8 +4,8 @@ import { flushPromises, mount } from "@vue/test-utils"
 import { h, nextTick } from "vue"
 import { bayerMatrix } from "@dither-kit"
 import DemoCard from "@/pages/docs/DemoCard.vue"
-import { contrast, formatColor, grade, hex, over, parseColor } from "@/widgets/workbench/model/color"
-import { boxFrom, distances, dock, snap } from "@/widgets/workbench/model/geometry"
+import { contrast, formatColor, grade, hex, over, parseColor } from "@/shared/lib/inspect/color"
+import { boxFrom, distances, dock, snap } from "@/shared/lib/inspect/geometry"
 import { encodeGif, lzw, medianCut, quantize } from "@/shared/lib/gif"
 import { arrowPaths, erase, hitLine, inkOutline, pressures, type InkPoint } from "@/widgets/workbench/model/ink"
 import {
@@ -20,7 +20,7 @@ import {
   selectorOf,
   statesOf,
   walk,
-} from "@/widgets/workbench/model/measure"
+} from "@/shared/lib/inspect/measure"
 import { DEFAULT_SETTINGS, normalizeSettings } from "@/widgets/workbench/model/settings"
 import {
   createHistory,

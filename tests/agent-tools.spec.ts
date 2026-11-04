@@ -20,7 +20,7 @@ import {
   STUDIO_SERVER,
   STUDIO_TOOLS,
 } from "@/features/agent/tools"
-import type { CommandResult } from "@/features/agent/protocol"
+import { type CommandResult, registrySchema } from "@/features/agent/protocol"
 
 beforeEach(() => {
   localStorage.clear()
@@ -41,12 +41,22 @@ describe("studio tools", () => {
       "remove_artboard",
       "select",
       "evolve",
+      "duplicate",
+      "group",
+      "ungroup",
+      "replay",
+      "set_view",
+      "inspect",
+      "export_png",
       "get_code",
       "get_document",
       "seek_clock",
       "export_video",
     ])
     for (const t of STUDIO_TOOLS) expect(t.def.parameters).toMatchObject({ type: "object" })
+    // Every command a tool runs is one the registry tells a harness about.
+    const listed = Object.keys(registrySchema().commands)
+    for (const t of STUDIO_TOOLS) expect(listed, t.def.name).toContain(t.command)
     const seen: unknown[] = []
     const run = (c: unknown): CommandResult => {
       seen.push(c)

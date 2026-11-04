@@ -37,3 +37,16 @@ export {
   ungroup,
   type Viewport,
 } from "./model/store"
+export {
+  actualSize,
+  fitAll,
+  fitSelection,
+  frame,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  startInspecting,
+  stopInspecting,
+  zoomIn,
+  zoomOut,
+  zoomTo,
+} from "./model/view"

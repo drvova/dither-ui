@@ -1,9 +1,12 @@
 import { onBeforeUnmount, onMounted } from "vue"
 import {
+  actualSize,
   copySelected,
   deselect,
   duplicateSelected,
   editor,
+  fitAll,
+  fitSelection,
   groupSelected,
   moveSelected,
   pasteClipboard,
@@ -11,25 +14,22 @@ import {
   selectedArtboard,
   setArtboardLocked,
   ungroup,
+  zoomIn,
+  zoomOut,
 } from "@/entities/editor"
 import { redo, undo } from "@/features/history"
-
-type ZoomControls = {
-  fit: () => void
-  fitSelection: () => void
-  zoomIn: () => void
-  zoomOut: () => void
-  resetZoom: () => void
-}
 
 const isTyping = (t: EventTarget | null) => {
   const el = t as HTMLElement | null
   return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
 }
 
-/** Familiar editor keybindings, installed at the canvas level. */
-export function useShortcuts(zoom: ZoomControls) {
+/** Familiar editor keybindings, installed at the canvas level. While the
+ * workbench inspects the canvas its keys are the ones that count, so these
+ * step aside. */
+export function useShortcuts() {
   function onKey(e: KeyboardEvent) {
+    if (editor.inspecting) return
     const mod = e.metaKey || e.ctrlKey
 
     if (isTyping(e.target)) {
@@ -44,11 +44,11 @@ export function useShortcuts(zoom: ZoomControls) {
     }
 
     // Zoom
-    if (mod && (e.key === "=" || e.key === "+")) return (e.preventDefault(), zoom.zoomIn())
-    if (mod && e.key === "-") return (e.preventDefault(), zoom.zoomOut())
-    if ((mod && e.key === "0") || (e.shiftKey && e.key === "0")) return (e.preventDefault(), zoom.resetZoom())
-    if (e.shiftKey && e.key === "1") return (e.preventDefault(), zoom.fit())
-    if (e.shiftKey && e.key === "2") return (e.preventDefault(), zoom.fitSelection())
+    if (mod && (e.key === "=" || e.key === "+")) return (e.preventDefault(), zoomIn())
+    if (mod && e.key === "-") return (e.preventDefault(), zoomOut())
+    if ((mod && e.key === "0") || (e.shiftKey && e.key === "0")) return (e.preventDefault(), actualSize())
+    if (e.shiftKey && e.key === "1") return (e.preventDefault(), fitAll())
+    if (e.shiftKey && e.key === "2") return (e.preventDefault(), fitSelection())
 
     // Selection
     const id = editor.selectedArtboardId

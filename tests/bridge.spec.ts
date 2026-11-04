@@ -102,6 +102,9 @@ function client(url = URL_) {
           ? {
               files: [
                 { path: "video/sign-in/index.html", content: "<!doctype html><title>sign in</title>" },
+                { path: "image/sign-in.png", base64: PNG.toString("base64") },
+                { path: "image/../escape.png", base64: PNG.toString("base64") },
+                { path: "video/sign-in/index.html.png", content: "no" },
                 { path: "../escape.html", content: "no" },
                 { path: "/abs.html", content: "no" },
               ],
@@ -124,6 +127,8 @@ type Hello = {
   harnesses: { id: string; name: string; command: string; installed: boolean }[]
   agent: { id: string; name: string; command: string; pid: number } | null
 }
+/** A PNG's signature and a byte past ASCII: what a text write would mangle. */
+const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0xff, 0x00])
 const FIXTURE = `${process.execPath} ${resolve("tests/fixtures/fake-acp-agent.mjs")}`
 
 describe("dither-bridge", () => {
@@ -199,6 +204,9 @@ describe("dither-bridge", () => {
     expect(r.stopReason).toBe("end_turn")
     expect(c.calls.map((x) => x.name)).toEqual(["export_video"])
     expect(readFileSync(join(CWD, "video/sign-in/index.html"), "utf8")).toContain("sign in")
+    // A PNG comes as base64 and lands as its bytes.
+    expect(readFileSync(join(CWD, "image/sign-in.png")).equals(PNG)).toBe(true)
+    expect(existsSync(join(CWD, "escape.png"))).toBe(false)
     expect(existsSync(join(CWD, "escape.html"))).toBe(false)
     expect(existsSync(join(CWD, "..", "escape.html"))).toBe(false)
     expect(existsSync("/abs.html")).toBe(false)

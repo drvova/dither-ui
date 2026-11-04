@@ -120,6 +120,7 @@ function applyDoc(d: unknown): boolean {
     placeArtboard(createArtboard("area"))
   }
   editor.dataOpen = false
+  editor.inspecting = false
   return !valid
 }
 

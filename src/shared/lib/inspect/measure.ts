@@ -1,7 +1,8 @@
-// What the workbench reads off the live DOM: an element's box and computed
-// style, its layout gaps, its text's lines and baselines, the colour behind
-// it, its accessible role/name/states, and a stage-wide accessibility audit.
-// Pure functions over Elements — the components own the overlay and events.
+// What the live DOM reads as: an element's box and computed style, its
+// layout gaps, its text's lines and baselines, the colour behind it, its
+// accessible role/name/states, and a stage-wide accessibility audit. Pure
+// functions over Elements, read by the workbench (which owns the overlay and
+// its events) and by the agent's `inspect` command.
 import { contrast, grade, hex, over, parseColor, type RGBA } from "./color"
 import { bottom, right, type Box } from "./geometry"
 
@@ -37,15 +38,17 @@ export function labelOf(el: Element): string {
   return [tag, role && role !== tag ? `[${role}]` : "", name && name.length <= 24 ? ` “${name}”` : ""].join("")
 }
 
-/** The element's box in the frame's coordinates, rounded to whole px. */
-export function boxOf(el: Element, frame: Element): Box {
+/** The element's box in the frame's coordinates, rounded to whole px;
+ * `scale` is how much larger than its CSS px the frame is drawn (a zoomed
+ * canvas), so the box comes back in CSS px. */
+export function boxOf(el: Element, frame: Element, scale = 1): Box {
   const r = el.getBoundingClientRect()
   const f = frame.getBoundingClientRect()
   return {
-    x: Math.round(r.left - f.left),
-    y: Math.round(r.top - f.top),
-    w: Math.round(r.width),
-    h: Math.round(r.height),
+    x: Math.round((r.left - f.left) / scale),
+    y: Math.round((r.top - f.top) / scale),
+    w: Math.round(r.width / scale),
+    h: Math.round(r.height / scale),
   }
 }
 
@@ -581,18 +584,19 @@ function crowded(t: Target, all: Target[]): boolean {
 /** The floor the site holds itself to, checked across a stage: every
  * control named, every target 24×24 or spaced so a 24px circle on it meets
  * no other (WCAG 2.5.8), text at AA contrast where its background is
- * knowable, images with alt, no positive tabindex. */
-export function audit(root: Element, frame: Element): Issue[] {
+ * knowable, images with alt, no positive tabindex. Boxes in CSS px at `scale`
+ * (as boxOf). */
+export function audit(root: Element, frame: Element, scale = 1): Issue[] {
   const issues: Issue[] = []
   const targets: Target[] = []
   for (const el of root.querySelectorAll("*")) {
     if (hidden(el) || (el.closest("svg") !== null && el.tagName.toLowerCase() !== "svg")) continue
-    const box = boxOf(el, frame)
+    const box = boxOf(el, frame, scale)
     if (interactive(el)) {
       if (!nameOf(el)) issues.push({ el, box, kind: "name", note: `${labelOf(el)} has no accessible name` })
       const inlineLink = el.tagName === "A" && getComputedStyle(el).display === "inline"
       // A control inside its <label> is pressed through the whole label.
-      const hit = boxOf(el.closest("label") ?? el, frame)
+      const hit = boxOf(el.closest("label") ?? el, frame, scale)
       const off = (el as HTMLButtonElement).disabled || el.getAttribute("aria-disabled") === "true"
       if (!inlineLink && !off && !visuallyHidden(el) && hit.w > 0)
         targets.push({ el, box, hit, small: hit.w < 24 || hit.h < 24 })

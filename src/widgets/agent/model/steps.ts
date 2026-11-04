@@ -30,6 +30,13 @@ export const STEPS: Record<string, { verb: string; ask: string; icon: IconName; 
   find: { verb: "Looked for what fits", ask: "Look for the actions that fit the job", icon: "Search", mutates: false },
   build: { verb: "Built the tool", ask: "Build a tool for the job", icon: "Sparkles", mutates: false },
   evolve: { verb: "Evolved", ask: "Evolve a frame into variants", icon: "Dice", mutates: true },
+  duplicate: { verb: "Duplicated", ask: "Duplicate frames", icon: "Copy", mutates: true },
+  group: { verb: "Grouped", ask: "Group frames", icon: "Group", mutates: true },
+  ungroup: { verb: "Ungrouped", ask: "Ungroup frames", icon: "Group", mutates: true },
+  replay: { verb: "Replayed the animations", ask: "Replay the animations", icon: "Refresh", mutates: false },
+  set_view: { verb: "Moved the view", ask: "Move the canvas view", icon: "Maximize", mutates: false },
+  inspect: { verb: "Inspected", ask: "Inspect a frame", icon: "Inspect", mutates: false },
+  export_png: { verb: "Saved a picture of", ask: "Save a frame as a PNG", icon: "Image", mutates: false },
 }
 
 const frame = (d: unknown): Changed | null =>

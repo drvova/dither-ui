@@ -7,12 +7,14 @@
 // runs as the user's own signed-in process behind the local bridge
 // (`bridge/dither-bridge.mjs`), and reaches the canvas through an MCP server
 // made of the tools below (`acp.ts` is the browser side).
+import { editor } from "@/entities/editor"
 import { REEL_TRANSITIONS } from "@/entities/widget"
+import { artboardPng } from "@/features/export-image"
 import { deliverVideo, type VideoExportData } from "@/features/export-video"
 import { STYLINGS } from "@/shared/lib/restyle"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
 import type { CommandResult } from "./protocol"
-import { runCommand } from "./protocol"
+import { PNG_SCALES, runCommand, VIEW_TO } from "./protocol"
 
 export type ToolDef = { name: string; description: string; parameters: Record<string, unknown> }
 export type Usage = { input: number; output: number }
@@ -251,6 +253,75 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<stri
   },
   {
     def: {
+      name: "duplicate",
+      description: "Duplicate frames (the selection by default); the copies come back selected.",
+      parameters: obj({ id: str("artboard id"), ids: { type: "array", items: { type: "string" } } }),
+    },
+    command: "artboard.duplicate",
+  },
+  {
+    def: {
+      name: "group",
+      description: "Group frames (the selection by default) so they move and hide as one layer group.",
+      parameters: obj({
+        id: str("artboard id"),
+        ids: { type: "array", items: { type: "string" } },
+        name: str("group name"),
+      }),
+    },
+    command: "group",
+  },
+  {
+    def: {
+      name: "ungroup",
+      description: "Ungroup a group, named by its id or by one of its frames.",
+      parameters: obj({ id: str("group id or a frame of the group") }, ["id"]),
+    },
+    command: "ungroup",
+  },
+  {
+    def: {
+      name: "replay",
+      description: "Play every frame's entrance animation again.",
+      parameters: obj({}),
+    },
+    command: "replay",
+  },
+  {
+    def: {
+      name: "set_view",
+      description:
+        "Move the canvas view, zoom and fit: to fits every frame (all), the selection, steps in or out, or 100% (actual); id fits one frame; zoom sets it (1 is 100%).",
+      parameters: obj({
+        to: { type: "string", enum: [...VIEW_TO] },
+        id: str("a frame to fit"),
+        zoom: num("0.2–3, 1 is 100%"),
+      }),
+    },
+    command: "view",
+  },
+  {
+    def: {
+      name: "inspect",
+      description:
+        "Inspect a frame as drawn: its controls in Tab order (role, accessible name, states, box) and what the accessibility floor finds: missing names, targets under 24px, text under AA contrast, images without alt. Check a screen before calling it done.",
+      parameters: obj({ id: str("artboard id; defaults to the selection") }),
+    },
+    command: "inspect",
+  },
+  {
+    def: {
+      name: "export_png",
+      description: "Export a frame as a PNG picture, written under the project as image/<name>.png.",
+      parameters: obj({
+        id: str("artboard id; defaults to the selection"),
+        scale: { type: "number", enum: [...PNG_SCALES], description: "pixel ratio, 2 by default" },
+      }),
+    },
+    command: "image.export",
+  },
+  {
+    def: {
       name: "get_code",
       description:
         "The frame as a Vue single-file component, in the styling system asked for: tailwind (default) keeps the utility classes; css, modules (CSS Modules) or stylex write the same look that way while the kit components keep their own styles.",
@@ -307,10 +378,30 @@ export function callStudioTool(
   return tool ? run({ ...tool.preset, ...args, type: tool.command }) : { ok: false, error: `unknown tool ${name}` }
 }
 
-/** A composition is delivered, not returned: it rides the result to the
- * bridge as `data.files`, which writes it under the harness's project. */
+/** A composition or a picture is delivered, not returned: it rides the
+ * result to the bridge as `data.files`, which writes it under the harness's
+ * project. */
 export async function finishStudioTool(name: string, result: CommandResult): Promise<CommandResult> {
-  return name === "export_video" && result.ok ? deliverVideo(result.data as VideoExportData, "files") : result
+  if (!result.ok) return result
+  if (name === "export_video") return deliverVideo(result.data as VideoExportData, "files")
+  if (name === "export_png") return deliverPng(result.data as { id: string; file: string; scale: number })
+  return result
+}
+
+async function deliverPng(d: { id: string; file: string; scale: number }): Promise<CommandResult> {
+  const a = editor.artboards.find((x) => x.id === d.id)
+  const url = a ? await artboardPng(a, d.scale) : null
+  if (!a || !url) return { ok: false, error: `${a?.name ?? d.id} could not be drawn (is it hidden?)` }
+  return {
+    ok: true,
+    data: {
+      id: a.id,
+      name: a.name,
+      files: [{ path: d.file, base64: url.slice(url.indexOf(",") + 1) }],
+      size: { w: a.w * d.scale, h: a.h * d.scale },
+      note: "Written under the project by the bridge.",
+    },
+  }
 }
 
 /* --------------------------------- events -------------------------------- */

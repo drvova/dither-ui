@@ -19,6 +19,9 @@ export const editor = reactive({
   viewport: { x: 96, y: 88, zoom: 1 } as Viewport,
   replayToken: 0,
   dataOpen: false,
+  // The workbench is over the canvas (the Studio's Inspect): the canvas's
+  // own keys and zoom step aside while it is. Never persisted.
+  inspecting: false,
   // The canvas's size on screen (the canvas measures it; the window's is
   // not the canvas's once panels dock beside it), never persisted.
   stage: { w: 1280, h: 720 },
@@ -238,14 +241,16 @@ export function setSelectedType(type: ChartType) {
 }
 
 // --- groups ----------------------------------------------------------------
-export function groupSelected() {
-  if (editor.selectedIds.length < 1) return
+/** Group the selection; the new group, or null with nothing selected. */
+export function groupSelected(): Group | null {
+  if (editor.selectedIds.length < 1) return null
   const g: Group = { id: gid(), name: `Group ${editor.groups.length + 1}`, collapsed: false }
   editor.groups.push(g)
   for (const id of editor.selectedIds) {
     const a = find(id)
     if (a) a.groupId = g.id
   }
+  return g
 }
 export function ungroup(groupId: string) {
   for (const a of membersOf(groupId)) a.groupId = null

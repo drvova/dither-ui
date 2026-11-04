@@ -1,13 +1,20 @@
 import type { Artboard } from "@/entities/artboard"
 
+/** A frame's drawn surface on the canvas (what a picture or a reading
+ * takes), or null when it is not on the page. */
+export function surfaceOf(id: string): HTMLElement | null {
+  for (const el of document.querySelectorAll<HTMLElement>("[data-artboard-id]"))
+    if (el.dataset.artboardId === id) return el.querySelector<HTMLElement>("[data-artboard-surface]")
+  return null
+}
+
 /**
  * Render an artboard's DOM node (canvases + SVG chrome + HTML legend) to a
  * PNG data URL, or null when it is not on the page or cannot be drawn. The
- * node is located by the data attribute the canvas Artboard component
- * stamps on its frame. The download and the agent's pictures both use it.
+ * download, the agent's pictures and its PNG export all use it.
  */
 export async function artboardPng(artboard: Artboard, scale = 2): Promise<string | null> {
-  const node = document.querySelector<HTMLElement>(`[data-artboard-id="${artboard.id}"] [data-artboard-surface]`)
+  const node = surfaceOf(artboard.id)
   if (!node) return null
   try {
     const { toPng } = await import("html-to-image")

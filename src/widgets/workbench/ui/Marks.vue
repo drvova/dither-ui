@@ -6,8 +6,8 @@
 // Decorative (aria-hidden): the readout under the stage says it in words.
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useBench } from "../context"
-import { parseColor, type RGBA } from "../model/color"
-import { distances, right, bottom, type Box, type Segment } from "../model/geometry"
+import { parseColor, type RGBA } from "@/shared/lib/inspect/color"
+import { distances, right, bottom, type Box, type Segment } from "@/shared/lib/inspect/geometry"
 
 const b = useBench()
 const canvas = ref<HTMLCanvasElement | null>(null)

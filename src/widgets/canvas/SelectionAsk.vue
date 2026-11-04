@@ -19,12 +19,12 @@ const MIN = 240
 const MAX = 380
 const H = 36
 const GAP = 10
-/** The canvas's foot the bars stand in (zoom, the selection's actions: 40px
- * tall, 12px up), which the ask keeps clear of. */
+/** The canvas's foot its bar stands in (40px tall, 12px up), which the ask
+ * keeps clear of. */
 const FOOT = 60
 
 const frame = computed(() => {
-  if (props.held || handoff.picking || editor.selectedIds.length !== 1) return null
+  if (props.held || handoff.picking || editor.inspecting || editor.selectedIds.length !== 1) return null
   const a = editor.artboards.find((x) => x.id === editor.selectedIds[0])
   return a && !a.hidden ? a : null
 })

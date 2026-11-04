@@ -824,9 +824,9 @@ widgets/features; page-specific conventions live here.
   docs: `font-mono` on the page root (the context menu and the kit's
   dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
   section labels in sentence case, `.ring-on` pressed states, neutral
-  focus borders, and the look's materials: the selection bar and the zoom
-  bar are `.capsule`s (their tools machined, 8px; `widgets/toolbar/tool.css`
-  is the one tool key of both bars),
+  focus borders, and the look's materials: the canvas bar is a `.capsule`
+  (its tools machined, 8px; `widgets/toolbar/tool.css` is the one tool
+  key of it and the title bar),
   the Library key and the empty canvas's "Add an artboard" are the
   `.key-chrome`, the canvas, the right column and the dialogs
   (export, video, shortcuts) are `.hardshell`s (14px cut on the canvas,
@@ -835,10 +835,21 @@ widgets/features; page-specific conventions live here.
   dialog's download is the `.key-chrome`, and the menus (project, library,
   context menu) are rounded cards with a `.rim`. Every glyph button is a
   kit icon (the sidebar, undo/redo, properties, agent, theme, close, zoom,
-  fit, replay, menus); the selection actions are a glyph and a
-  sentence-case word (Duplicate, Group, Delete, Evolve, Reel, Data, Code,
-  PNG, Video), the words hidden on a canvas under 900px wide (a container
-  query on the canvas) with the name kept. Copy follows the
+  fit, replay, menus). The canvas bar (`widgets/toolbar/CanvasBar.vue`) is
+  ONE bar at the canvas's foot, centred: the view (zoom out, the
+  percentage, which goes to 100%, zoom in, fit every frame), the
+  selection's name in a slot of its own width, then Duplicate,
+  Group/Ungroup (one slot), Delete; Replay, Evolve, Reel, Data; Code, PNG,
+  Video; Inspect. Every key is a glyph with its name (`aria-label`) and its
+  words and keys in the title, always present: one that does not apply is
+  disabled, never removed, so the bar keeps its width whatever is picked
+  (`tests/canvas-bar.spec.ts`). A narrower canvas (container queries)
+  lets the label go under 760px, the zoom steps under 600px, and closes
+  the keys to 28px under 540px (the 1024px window with both columns
+  open). Every key names the agent's action that does the same
+  (`data-agent`, a `STUDIO_TOOLS` name, pinned by the same spec). It
+  stands aside while the workbench inspects or frames are picked for the
+  agent, and rides over the data editor while it is open. Copy follows the
   landing's bans: no middle-dot separators, no em dashes, no uppercase label, no eyebrow (the phone notice
   is a plain h1). The artboard SURFACE
   (`[data-artboard-surface]`) stays `font-sans`, the player's font, so
@@ -859,14 +870,24 @@ widgets/features; page-specific conventions live here.
   hover, a remove key), then its layers; every glyph, label and the
   tree's chevrons on one
   left line, a chat's title on the nav rows' text column), the canvas in
-  its shell (the selection bar and the data editor inside it) and the
+  its shell (the canvas bar and the data editor inside it) and the
   right column: the properties OR the agent (`StudioSide`, one union, the
-  agent's column wider), gone when neither is open. Below 1280px the side
+  agent's column wider), gone when neither is open. Inspect (the canvas
+  bar's last key) puts the docs' workbench over the canvas
+  (`widgets/workbench`, lazy, keyed `studio:<projectId>`): its overlay
+  and tray teleported into the canvas (`Canvas` exposes `host` and the
+  `world` layer the frames stand in, what it inspects), its readout in the
+  right column (wide, scrolling) in place of the panel there.
+  `startInspecting` (editor) goes to 100% on the selection first, since the
+  readings are the frames' own px, and the zoom holds there (keys, wheel,
+  pinch, the agent's `view`) until it ends; the canvas's keys step aside
+  for the workbench's; the wheel still pans. Escape (the workbench's last
+  step), picking a panel on the title bar or switching project ends it. Below 1280px the side
   columns narrow so the canvas keeps room at the 1024px floor. The
   searchable Library is the single insertion surface for charts, bespoke
   widgets, every public kit component, screens, and presets. New frames
   land at the centre of the canvas as seen (`editor.stage`, which the
-  canvas measures; never the window's size). The selection bar's "evolve"
+  canvas measures; never the window's size). The canvas bar's Evolve
   places a generation of the primary selection.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
@@ -874,7 +895,7 @@ widgets/features; page-specific conventions live here.
   Under 1024px the editor gives way to a notice: a still `DitherPoster`,
   why the Studio wants a wide screen and a pointer, the chrome key that
   copies the Studio's own link (to carry to a laptop) and the docs link.
-- The selection bar's `video` opens `VideoDialog`
+- The canvas bar's Video opens `VideoDialog`
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
@@ -1010,8 +1031,8 @@ widgets/features; page-specific conventions live here.
   crosshair and a "Click frames to hand them to the agent" bar with Done,
   Esc ends it) and the ask at the selection (`widgets/canvas/SelectionAsk.vue`:
   one frame selected, a one-line composer under it, or above its label
-  when there is no room above the bars at the canvas's foot (`FOOT`, the
-  zoom and selection bars' 60px; `tests/selection-ask.spec.ts`), away while a pointer is down or picking; its
+  when there is no room above the bar at the canvas's foot (`FOOT`, the
+  canvas bar's 60px; `tests/selection-ask.spec.ts`), away while a pointer is down, picking or inspecting; its
   message opens the panel, which sends it with the frame as context; asks
   waiting before the panel mounted are taken once it has). The harness reads
   the context as the frames' names and ids ahead of the message, and,

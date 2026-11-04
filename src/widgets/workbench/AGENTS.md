@@ -1,11 +1,11 @@
-# widgets/workbench — the docs previews' inspector and annotator
+# widgets/workbench — the docs previews' and the Studio canvas's inspector and annotator
 
 ## Purpose
 
 Kobra's component workbench (its Inspect switch and Mesurer tool tray) for
-every docs preview, plus what the kit needs beyond it: inspect, measure,
-annotate, comment, capture and hand the result to a coding agent, on the
-live preview — a real tool, never a mock.
+every docs preview and the Studio's canvas, plus what the kit needs
+beyond it: inspect, measure, annotate, comment, capture and hand the
+result to a coding agent, on the live preview — a real tool, never a mock.
 
 ## Ownership
 
@@ -15,10 +15,12 @@ live preview — a real tool, never a mock.
 - `bench.ts` — the controller: tool state, the undoable workspace, the
   per-frame measuring loop, every pointer gesture, the keyboard, captures,
   the agent hand-off. Components render from it and call into it.
-- `model/` — pure logic, unit-tested: `color.ts` (parse every computed
+- The DOM readings live a layer down, in `shared/lib/inspect/` (the
+  agent's `inspect` reads with them too): `color.ts` (parse every computed
   form, print hex/rgb/hsl/oklch, WCAG contrast), `geometry.ts` (boxes,
-  distance segments, snap, dock), `ink.ts` (streamlined ink outlines,
-  marker lines, erase, arrows, hit tests), `measure.ts` (DOM readings:
+  distance segments, snap, dock), `measure.ts` (below).
+- `model/` — pure logic, unit-tested: `ink.ts` (streamlined ink outlines,
+  marker lines, erase, arrows, hit tests), `shared/lib/inspect/measure.ts` (DOM readings:
   box/box model/gaps, CSS block, selectors and child paths, type lines and
   baselines, rendered font, background behind, role/name/states, Tab
   order, audit: a control is an interactive role or a Tab stop (a
@@ -42,6 +44,10 @@ live preview — a real tool, never a mock.
   until used) with the frame (`host`), the slot wrapper (`content`), the
   card, `benchKey` `<section>:<n>`, the section id, a title, the canonical
   URL and the slot itself (`render`, for Responsive). Emits `exit`.
+  The Studio mounts it the same way (`pages/studio/StudioPage.vue`, while
+  `editor.inspecting`): the canvas as the frame, its world layer as the
+  content, the canvas shell as the card, `studio:<projectId>`, no
+  `render`; its readout and panels fill the right column.
 - Coordinates are STAGE px: the overlay root `.wb` covers the frame's
   padding box; every reading, guide, stroke, note and anchor is relative to
   it. Captures add the frame's border (`toHost`).

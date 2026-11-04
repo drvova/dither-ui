@@ -105,7 +105,9 @@ arguments, and how well it fits) and the kit components that fit; then
 `{ "run": "add_screen", "args": { ... } }`. The actions are the commands
 below (`add_screen`, `add_component`, `add_chart`, `add_widget`,
 `update_artboard`, `remove_artboard`, `evolve`, `select`, `get_registry`,
-`get_document`, `get_code`, `list_artboards`, ...), each applied to the
+`get_document`, `get_code`, `list_artboards`, and everything on the
+canvas's bar: `duplicate`, `group`, `ungroup`, `replay`, `set_view`,
+`inspect`, `export_png`, `export_video`), each applied to the
 live canvas and undoable. When none fits the job well, build one:
 `{ "build": { "name", "description", "parameters", "code" } }`, where `code`
 is the body of an async JavaScript function of `(args, studio)` and
@@ -151,6 +153,13 @@ Commands (`type` and fields):
 | `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
 | `reel.add` | `name?`, `clips` (ids, or `{ id, seconds?, transition?: { kind, seconds?, cell?, seed? }, camera?, callouts?, chapter? }` — kinds `cut`, `dissolve`, `wipe-right`, `wipe-left`, `wipe-down`, `wipe-up`; 3s clips in over a 0.6s dissolve by default), `score?` (`true` or `{ seed }`), `frame?` — frames played in order with ordered-dither transitions; a film with camera moves, callouts, chapters and a score (see below) |
 | `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |
+| `artboard.duplicate` | `id?` or `ids?` (the selection by default) — copies, selected |
+| `group` | `id?` or `ids?` (the selection by default), `name?` — each frame's summary carries its `group` |
+| `ungroup` | `id` — a group's id or a frame of the group |
+| `replay` | play every frame's entrance again |
+| `view` | `to?` (`all`, `selection`, `in`, `out`, `actual`), `zoom?` (0.2–3, 1 is 100%) or `id?` (fit that frame) — the canvas view; held at 100% while the user inspects |
+| `inspect` | `id?` — the frame as drawn: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, targets under 24px, text under AA contrast, images without alt, positive tabindex); check a screen with it before calling it done |
+| `image.export` | `id?`, `scale?` (1–4, default 2) — names the PNG's place, `image/<name>.png`; the `export_png` action writes it under your project through the bridge |
 | `code.get` | `id`, `styling?` — the frame as a Vue SFC; `tailwind` (default) keeps the utility classes, `css` (a scoped stylesheet), `modules` (CSS Modules) or `stylex` write the same look in that system while the kit components keep their own styles |
 | `registry.get` | `is?`, `brief?` — the registry (`brief`: names, labels and groups only), or one component |
 | `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it; a reel with a score adds `score: { path: "score.wav", base64 }` for the index's audio track |

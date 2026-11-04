@@ -58,12 +58,13 @@
   agents step — `HARNESSES` ids and names in `LandingPage.vue` — and its
   mark in `src/shared/ui/marks.ts` under the same id, which the landing's
   chips and the Studio's harness picker draw).
-- A tool result's `data.files` (`[{ path, content }]`) is materialized
-  under `--cwd` before it reaches the agent — only `video/<slug>/index.html`
-  (`VIDEO_PATH`), a file that cannot be written skipped and logged — and
-  replaced by the written paths plus `data.cwd`, so the agent gets a
-  location, never a payload (`export_video` ships a self-contained
-  HyperFrames composition this way).
+- A tool result's `data.files` is materialized under `--cwd` before it
+  reaches the agent — only `video/<slug>/index.html` as text (`{ path,
+  content }`, `VIDEO_PATH`) and `image/<slug>.png` as base64 bytes (`{
+  path, base64 }`, `IMAGE_PATH`), a file that cannot be written skipped and
+  logged — and replaced by the written paths plus `data.cwd`, so the agent
+  gets a location, never a payload (`export_video` ships a self-contained
+  HyperFrames composition this way, `export_png` a picture).
 
 ## Work Guidance
 

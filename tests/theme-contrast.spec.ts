@@ -5,7 +5,7 @@
 // field's hairline and the pressed ring under their floors.
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
-import { contrast, over, parseColor, type RGBA } from "../src/widgets/workbench/model/color"
+import { contrast, over, parseColor, type RGBA } from "@/shared/lib/inspect/color"
 import { BAND_FLOOR, BAND_INK } from "../src/widgets/site-header/menu"
 
 const root = new URL("..", import.meta.url).pathname

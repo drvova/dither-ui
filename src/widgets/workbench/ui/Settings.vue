@@ -6,7 +6,7 @@
 import { computed } from "vue"
 import { sounds } from "@/shared/lib/sound"
 import { useBench } from "../context"
-import { COLOR_FORMATS } from "../model/color"
+import { COLOR_FORMATS } from "@/shared/lib/inspect/color"
 import { canShareTab } from "../model/capture"
 import { DEFAULT_SETTINGS, SWATCHES, swatch, type Swatch } from "../model/settings"
 import { ICONS } from "../model/tools"

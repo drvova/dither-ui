@@ -160,6 +160,8 @@ export const ICONS = {
   Table: ["M3 5h18v14H3z", "M3 10h18", "M3 15h18", "M9 5v14"],
   Video: ["M3 6h12v12H3z", "m15 10 6-3v10l-6-3"],
   Maximize: ["M4 9V4h5", "M15 4h5v5", "M20 15v5h-5", "M9 20H4v-5"],
+  // The frame's corners round a cross: what the workbench reads, measured.
+  Inspect: ["M4 9V4h5", "M15 4h5v5", "M20 15v5h-5", "M9 20H4v-5", "M12 8v8", "M8 12h8"],
   Group: ["M3 8V3h5", "M16 3h5v5", "M21 16v5h-5", "M8 21H3v-5", "M7 7h6v6H7z", "M11 11h6v6h-6z"],
 } as const
 

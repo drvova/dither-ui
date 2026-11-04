@@ -1,25 +1,13 @@
 import type { Ref } from "vue"
-import { editor } from "@/entities/editor"
+import { editor, zoomTo } from "@/entities/editor"
 
-const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
-const MIN = 0.2
-const MAX = 3
-
-/** Canvas pan + cursor-anchored zoom over `editor.viewport`. Wheel pans;
- * ctrl/cmd-wheel (or a trackpad pinch) zooms to the cursor; a middle drag,
- * a Space drag or one finger on empty canvas pans; two fingers pinch. */
+/** The canvas's gestures over `editor.viewport` (the keys and the bar zoom
+ * through the editor's view functions). Wheel pans; ctrl/cmd-wheel (or a
+ * trackpad pinch) zooms to the cursor; a middle drag, a Space drag or one
+ * finger on empty canvas pans; two fingers pinch. The viewport is read at
+ * each use, never kept: the editor replaces it when a document loads or a
+ * project switches, and a copy would steer an orphan. */
 export function usePanZoom(host: Ref<HTMLElement | null>) {
-  // The viewport is read at each use, never kept: the editor replaces it
-  // when a document loads or a project switches, and a copy would steer an
-  // orphan.
-  function zoomTo(next: number, cx: number, cy: number) {
-    const clamped = clamp(next, MIN, MAX)
-    const k = clamped / editor.viewport.zoom
-    editor.viewport.x = cx - (cx - editor.viewport.x) * k
-    editor.viewport.y = cy - (cy - editor.viewport.y) * k
-    editor.viewport.zoom = clamped
-  }
-
   function onWheel(e: WheelEvent) {
     e.preventDefault()
     const rect = host.value?.getBoundingClientRect()
@@ -116,54 +104,5 @@ export function usePanZoom(host: Ref<HTMLElement | null>) {
     pinch = { ...spreadOf(), zoom: editor.viewport.zoom }
   }
 
-  const center = () => {
-    const rect = host.value?.getBoundingClientRect()
-    return { cx: (rect?.width ?? 0) / 2, cy: (rect?.height ?? 0) / 2 }
-  }
-  const zoomIn = () => {
-    const { cx, cy } = center()
-    zoomTo(editor.viewport.zoom * 1.2, cx, cy)
-  }
-  const zoomOut = () => {
-    const { cx, cy } = center()
-    zoomTo(editor.viewport.zoom / 1.2, cx, cy)
-  }
-  const resetZoom = () => {
-    editor.viewport.zoom = 1
-    editor.viewport.x = 96
-    editor.viewport.y = 88
-  }
-
-  /** Frame the given artboards in the viewport (never zooms past 100%). */
-  const frame = (abs: { x: number; y: number; w: number; h: number }[]) => {
-    const rect = host.value?.getBoundingClientRect()
-    if (!rect) return
-    if (!abs.length) return resetZoom()
-    let minX = Infinity,
-      minY = Infinity,
-      maxX = -Infinity,
-      maxY = -Infinity
-    for (const a of abs) {
-      minX = Math.min(minX, a.x)
-      minY = Math.min(minY, a.y - 28) // room for the title label
-      maxX = Math.max(maxX, a.x + a.w)
-      maxY = Math.max(maxY, a.y + a.h)
-    }
-    const pad = 96
-    const cw = maxX - minX || 1
-    const ch = maxY - minY || 1
-    const z = clamp(Math.min((rect.width - pad) / cw, (rect.height - pad) / ch), MIN, 1)
-    editor.viewport.zoom = z
-    editor.viewport.x = (rect.width - cw * z) / 2 - minX * z
-    editor.viewport.y = (rect.height - ch * z) / 2 - minY * z
-  }
-
-  const fit = () => frame(editor.artboards)
-  /** Frame only the selection (falls back to everything). */
-  const fitSelection = () => {
-    const sel = editor.artboards.filter((a) => editor.selectedIds.includes(a.id))
-    frame(sel.length ? sel : editor.artboards)
-  }
-
-  return { onWheel, startPan, onTouchDown, zoomIn, zoomOut, resetZoom, fit, fitSelection }
+  return { onWheel, startPan, onTouchDown }
 }

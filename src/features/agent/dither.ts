@@ -135,6 +135,19 @@ const SAME: Record<string, string> = {
   show: "get",
   see: "get",
   look: "get",
+  clone: "duplicate",
+  picture: "png",
+  screenshot: "png",
+  audit: "inspect",
+  accessibility: "inspect",
+  a11y: "inspect",
+  contrast: "inspect",
+  measure: "inspect",
+  check: "inspect",
+  center: "fit",
+  centre: "fit",
+  restart: "replay",
+  rewind: "replay",
 }
 const stem = (w: string) => (w.length > 4 ? w.replace(/(ing|ed|es|s)$/, "") : w)
 

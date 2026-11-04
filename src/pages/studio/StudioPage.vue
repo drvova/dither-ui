@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
-import { addArtboard, centreOn, editor } from "@/entities/editor"
+import { addArtboard, centreOn, editor, stopInspecting } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
 import { openProject } from "@/features/agent/chats"
 import { handoff } from "@/features/agent/handoff"
@@ -12,10 +12,13 @@ import { activeProjectId, hydrate, importDocument, startAutosave, stopAutosave }
 import { Canvas } from "@/widgets/canvas"
 import { DataEditor } from "@/widgets/data-editor"
 import { Inspector } from "@/widgets/inspector"
-import { SelectionBar, type StudioSide, Toolbar } from "@/widgets/toolbar"
+import { CanvasBar, type StudioSide, Toolbar } from "@/widgets/toolbar"
 import StudioSidebar from "./ui/StudioSidebar.vue"
 
 const AgentPanel = defineAsyncComponent(() => import("@/widgets/agent").then((m) => m.AgentPanel))
+// The docs' workbench over the canvas (Inspect on its bar): one lazy chunk,
+// loaded the first time it is asked for.
+const Workbench = defineAsyncComponent(() => import("@/widgets/workbench").then((m) => m.Workbench))
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { installLongPress, routePath } from "@/shared/lib"
 
@@ -59,6 +62,19 @@ watch(
   (n) => n > 0 && (agentOpen.value = true),
 )
 usePanelShortcuts({ toggleAgent: () => (agentOpen.value = !agentOpen.value) })
+
+// Inspecting, the workbench's readout takes the right column and its
+// overlay the canvas (the frames stand in its world layer); picking a panel
+// on the title bar ends it, and so does its own Escape.
+const canvas = ref<{ host: HTMLElement | null; world: HTMLElement | null } | null>(null)
+const shell = ref<HTMLElement | null>(null)
+const bench = computed(() => {
+  const host = canvas.value?.host
+  const content = canvas.value?.world
+  return editor.inspecting && host && content && shell.value ? { host, content, card: shell.value } : null
+})
+watch(side, stopInspecting)
+const benchUrl = new URL(routePath("/studio"), location.href).href
 
 const fresh = hydrate()
 // A fresh document's frame was placed before the canvas measured itself:
@@ -117,7 +133,7 @@ onBeforeUnmount(() => {
   <div
     v-if="isDesktop"
     class="studio bg-background font-mono text-[13px] text-foreground antialiased"
-    :class="{ 'is-folded': !sidebarOpen, 'is-wide': side === 'agent', 'is-bare': !side }"
+    :class="{ 'is-folded': !sidebarOpen, 'is-wide': side === 'agent' || !!bench, 'is-bare': !side && !bench }"
     @dragover.prevent
     @drop.prevent="onDrop"
   >
@@ -136,16 +152,29 @@ onBeforeUnmount(() => {
       @agent="agentOpen = true"
     />
 
-    <main class="studio-canvas hardshell" aria-label="Canvas">
-      <Canvas />
-      <SelectionBar @export="exportOpen = true" @video="videoOpen = true" />
+    <main ref="shell" class="studio-canvas hardshell" aria-label="Canvas">
+      <Canvas ref="canvas" />
+      <CanvasBar @export="exportOpen = true" @video="videoOpen = true" />
       <DataEditor />
     </main>
 
-    <aside v-if="side === 'inspector'" class="studio-side hardshell" aria-label="Properties">
+    <aside v-if="bench" class="studio-side studio-bench hardshell" aria-label="Workbench">
+      <Workbench
+        :key="activeProjectId.value"
+        :host="bench.host"
+        :content="bench.content"
+        :card="bench.card"
+        :bench-key="`studio:${activeProjectId.value}`"
+        section="studio"
+        title="The Studio canvas (dither-ui)"
+        :url="benchUrl"
+        @exit="stopInspecting"
+      />
+    </aside>
+    <aside v-else-if="side === 'inspector'" class="studio-side hardshell" aria-label="Properties">
       <Inspector />
     </aside>
-    <aside v-if="agentMounted" v-show="side === 'agent'" class="studio-side hardshell" aria-label="Agent">
+    <aside v-if="agentMounted" v-show="side === 'agent' && !bench" class="studio-side hardshell" aria-label="Agent">
       <AgentPanel ref="agentPanel" @close="agentOpen = false" @activity="onAgentActivity" />
     </aside>
 
@@ -251,6 +280,11 @@ onBeforeUnmount(() => {
   margin: 0 8px 8px 0;
   overflow: hidden;
   background: var(--shell-ground), color-mix(in oklab, var(--color-background) 96%, transparent);
+}
+/* The workbench's readout scrolls in its column. */
+.studio-bench {
+  overflow-y: auto;
+  padding: 10px;
 }
 @media (prefers-reduced-transparency: reduce) {
   .studio-side {
