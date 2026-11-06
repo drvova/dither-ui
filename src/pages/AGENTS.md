@@ -176,8 +176,13 @@ widgets/features; page-specific conventions live here.
   the opening tap's own tick (opening it was the ask, and iOS lets a film
   with sound start only from a gesture), `playsinline`, except under
   reduced motion, where it waits on its poster for play.
-  Retake all three from the trailer's edit when the film changes (1080p,
-  each about 8 MB).
+  The film is a raea edit (React compositions the raea CLI renders: a 3D
+  open and close of the brand's diamond in its dithered look, the site in
+  use captured frame by frame from the production build, the kit's counts,
+  ordered-dither cuts, a sampled score); its captions are the site's own
+  copy and figures. Retake all three from the edit when the film changes
+  (1080p, each about 8 MB) and say what it shows in the dialog's
+  description.
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
   in and its lit cells out, with a lowercase set (four wide, x-height from
   the third row); the brand's lockup sets "DITHER-UI" in it and
