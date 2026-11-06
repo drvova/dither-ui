@@ -698,6 +698,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   decorative SVG in `currentColor`, blinks when `alive`, hops under a
   pointer and spins the rotor while it flies, all held still under
   reduced motion. Imported by path. Guarded by `tests/mascot.spec.ts`.
+  `car.ts` is the mascot's car on the same cell grid (an original wedge
+  speedster: the body printed like the mascot's, an ember stripe, the
+  brand's diamond on the door, ember tail light, bone headlight, wheels
+  whose spokes turn a step a frame), `drivenCells` seats the mascot in
+  its cockpit (only what stands over the door line shows);
+  `MascotCar.vue` draws them, its wheels turning while `driving`, still
+  under reduced motion. Guarded by `tests/car.spec.ts`.
 - `shared/ui/AdSlot.vue` never evaluates the EthicalAds client on the
   critical path: the slot loads only when it approaches the viewport AND the
   document is loaded plus a beat (8s-after-load safety net), and the aside it

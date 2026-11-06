@@ -542,7 +542,15 @@ widgets/features; page-specific conventions live here.
   moves the page (a scroll, a pointer across the footer), settling 240ms
   after: under five seconds on its own, so no pause chip (the user's
   call); it holds while the brand forms (`moving` holds, `settled`
-  frees); under reduced motion one frame. Decorative (`aria-hidden`); no
+  frees); under reduced motion one frame. The mascot drives its car
+  (`shared/ui/MascotCar.vue`, the user's call: a wedge speedster of our
+  own, never a real maker's car, badge or name) along the wordmark's top,
+  its wheels a screen row under the ink's top (`WORDMARK` in `road.ts`,
+  the one geometry the wordmark and the car read): it drives exactly
+  while the art moves (the dance, a scroll, a pointer across the footer),
+  so the reader drives it, parks as it settles, leaves at the right of
+  the wordmark's box and comes back in at the left; under reduced motion
+  it stays parked. Decorative (`aria-hidden`); no
   rule, no boxed icons.
 - Footer (on the page width, no rule above it): the brand (the brand's
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:

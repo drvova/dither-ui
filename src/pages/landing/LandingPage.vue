@@ -8,7 +8,7 @@
 // wide field between them, and a footer of the brand and link columns on the
 // kit's light trails, the line-screen wordmark printed over them. Michroma for display, mono for the rest; everything
 // that moves is the kit.
-import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue"
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import {
   DitherAvatar,
   DitherClipboard,
@@ -41,9 +41,10 @@ import { BUILD_CELLS } from "./build"
 import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
 import BrandMark from "@/shared/ui/BrandMark.vue"
+import MascotCar from "@/shared/ui/MascotCar.vue"
 import { SiteHeader } from "@/widgets/site-header"
 import { PLATES, STOCK } from "./plate"
-import { ROAD, ROAD_RAMP, ROAD_SHADER } from "./road"
+import { ROAD, ROAD_RAMP, ROAD_SHADER, WORDMARK } from "./road"
 import Showcase from "./Showcase.vue"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the
@@ -140,6 +141,37 @@ function homed() {
   footStill.value = true
   dance()
 }
+// The mascot's car on the road: it drives exactly while the art moves (the
+// dance, then the reader's scroll or pointer), so the reader drives it, and
+// parks as the art settles; under reduced motion it stays parked. Its
+// wheels stand on the wordmark's top; it leaves at the right of the
+// wordmark's box and comes back in at its left.
+const car = ref<HTMLElement | null>(null)
+// One row of the wordmark's screen below its ink's top: the first rows are
+// hairlines, so the wheels stand where the letters read solid.
+const carBottom = (1 - (WORDMARK.TOP + (WORDMARK.BASE - WORDMARK.TOP) / WORDMARK.ROWS) / WORDMARK.H) * 100
+const carX = ref(0)
+const CAR_SPEED = 0.16 // px a ms
+let carRaf = 0
+let carLast = 0
+const carStill = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
+function roll(now: number) {
+  const dt = Math.min(64, now - carLast)
+  carLast = now
+  const width = car.value?.parentElement?.clientWidth ?? 0
+  const own = car.value?.offsetWidth ?? 0
+  carX.value += dt * CAR_SPEED
+  if (carX.value > width) carX.value = -own
+  carRaf = driven.value && footStill.value ? requestAnimationFrame(roll) : 0
+}
+watch(
+  () => driven.value && footStill.value,
+  (moving) => {
+    if (!moving || carRaf || carStill()) return
+    carLast = performance.now()
+    carRaf = requestAnimationFrame(roll)
+  },
+)
 let seen: IntersectionObserver | null = null
 onMounted(() => {
   addEventListener("scroll", scrolled, { passive: true })
@@ -155,6 +187,7 @@ onMounted(() => {
   seen.observe(road.value)
 })
 onBeforeUnmount(() => {
+  cancelAnimationFrame(carRaf)
   removeEventListener("scroll", scrolled)
   seen?.disconnect()
   clearTimeout(settle)
@@ -374,7 +407,12 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             :style="{ left: `${ROAD.mark[0] * 100}%`, bottom: `${ROAD.mark[1] * 100}%` }"
           />
           <div aria-hidden="true" class="foot-mark">
-            <LineWordmark />
+            <div class="mark-box">
+              <LineWordmark />
+              <div ref="car" class="road-car" :style="{ translate: `${carX}px 0`, bottom: `${carBottom}%` }">
+                <MascotCar :size="56" :driving="driven && footStill" class="road-car-art" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -662,6 +700,22 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   height: auto;
   translate: -50% 50%;
   color: var(--ink);
+}
+
+/* The mascot's car runs along the wordmark's top, its wheels on the
+   letters' ink (`WORDMARK.TOP` of the word's own box). */
+.mark-box {
+  position: relative;
+}
+.road-car {
+  position: absolute;
+  left: 0;
+  color: var(--ink);
+}
+.road-car-art {
+  display: block;
+  height: clamp(48px, 6.4cqi, 104px);
+  width: auto;
 }
 
 /* Positioned: the brand's field is the page's column. */

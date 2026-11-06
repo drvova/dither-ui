@@ -8,12 +8,9 @@
 // ground, so the art behind it passes behind the letters whole and never
 // shows through between their rows.
 import { useId } from "vue"
+import { WORDMARK } from "./road"
 
-const W = 1000
-const H = 196
-const TOP = 30
-const BASE = 182
-const ROWS = 24
+const { W, H, TOP, BASE, ROWS } = WORDMARK
 const PITCH = (BASE - TOP) / ROWS
 
 // Each row's bar sits at the foot of its pitch, from 30% of it at the top

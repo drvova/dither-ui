@@ -29,6 +29,11 @@ export const ROAD = {
   dance: 4500,
 } as const
 
+/** The line-screen wordmark printed over the road's foot, in its own
+ * units: its box, where its ink starts and its baseline, and the rows of
+ * its screen. The mascot's car stands on its ink's top (`TOP`). */
+export const WORDMARK = { W: 1000, H: 196, TOP: 30, BASE: 182, ROWS: 24 } as const
+
 /** Dark to light: the ground, then the print's inks, so brightness 1/3,
  * 2/3 and 1 print blue, the ember and bone. */
 export const ROAD_RAMP = [GROUND, ...INKS]

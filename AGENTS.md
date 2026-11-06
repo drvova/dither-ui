@@ -334,7 +334,8 @@ Default section order:
   `src/shared/ui/mascot.ts` drawn wherever it stands: by the wordmark in
   the site header, the Studio's empty states and the bridge card, and
   its tour of the Studio, where its antennae fold into a rotor and it
-  flies from part to part explaining each. Details in `src/AGENTS.md`
+  flies from part to part explaining each, and its car on the footer's
+  road (our own wedge speedster, never a real maker's car). Details in `src/AGENTS.md`
   and `src/pages/AGENTS.md`.
 - PWA: the Studio installs as an app and opens offline; the landing and
   the docs stay pages of the web (the user's call). The build draws the
