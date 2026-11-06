@@ -637,7 +637,10 @@ the kit every import is relative (`../engine/pixel`).
   repaints when a `restart` source such as a drag changes); a surface out of
   view at first paints that frame as it comes into view, and a pause that
   lands before it keeps it (`tests/surface.spec.ts`; the Svelte runtime
-  alike). A still surface
+  alike). A restart keeps a paint already queued: a `restart` source driven
+  every frame (a `time`, a `scatter` from the page's own clock) once
+  cancelled each queued paint and starved the surface until the driving
+  stopped. A still surface
   (static mode, reduced motion) paints its one frame in `start()` and the
   visibility wake never starts the loop behind it — it did once, and every
   background animated under reduced motion as soon as it scrolled into view.

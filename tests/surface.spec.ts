@@ -12,7 +12,7 @@ const fakeContext = {
 }
 const realGetContext = HTMLCanvasElement.prototype.getContext
 
-function surfaceComponent(render: (clock: number) => void, paused = () => false) {
+function surfaceComponent(render: (clock: number) => void, paused = () => false, restart: () => unknown = () => null) {
   let handle: DitherSurface | null = null
   const Comp = defineComponent({
     setup() {
@@ -28,7 +28,7 @@ function surfaceComponent(render: (clock: number) => void, paused = () => false)
         paused,
         renderMode: () => "live",
         precompiled: () => undefined,
-        restart: () => null,
+        restart,
         render: (buffer, clock) => {
           buffer.data.fill(Math.round(clock * 10))
           render(clock)
@@ -135,6 +135,51 @@ describe("a paused surface", () => {
     run(300)
     expect(painted).toHaveLength(1)
     expect(frames.size).toBe(0)
+    w.unmount()
+  })
+})
+
+describe("a surface driven every frame", () => {
+  it("paints while a restart prop changes every frame, never starved by its own restarts", async () => {
+    rs.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never)
+        }
+        disconnect() {}
+      },
+    )
+    const frames = new Map<number, FrameRequestCallback>()
+    let id = 0
+    rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => (frames.set(++id, cb), id))
+    rs.stubGlobal("cancelAnimationFrame", (n: number) => frames.delete(n))
+    const driven = ref(0)
+    let paints = 0
+    const { Comp } = surfaceComponent(
+      () => paints++,
+      () => false,
+      () => driven.value,
+    )
+    const w = mount(Comp)
+    await nextTick()
+    // each frame the page's own callback moves the prop first, then the surface's runs
+    // as a browser does: the frame's callbacks in order, a cancelled one skipped,
+    // microtasks (Vue's flush) run between them
+    for (let f = 1; f <= 10; f++) {
+      const due = [...frames.keys()]
+      driven.value = f
+      await nextTick()
+      await nextTick()
+      for (const n of due) {
+        const cb = frames.get(n)
+        frames.delete(n)
+        cb?.(f * 40)
+        await nextTick()
+      }
+    }
+    expect(paints).toBeGreaterThanOrEqual(8)
     w.unmount()
   })
 })

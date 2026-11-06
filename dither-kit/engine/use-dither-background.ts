@@ -213,8 +213,11 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
 
   function start() {
     const token = ++restartToken
-    stop()
-    if (opts.precompiled()) return
+    // A frame already queued stays queued: a prop driven every frame (a
+    // scatter, a moment) restarts the surface every frame, and cancelling
+    // the queued paint each time would starve it until the driving stops.
+    stop(true)
+    if (opts.precompiled()) return stop()
     void nextTick(() => {
       if (token !== restartToken || opts.precompiled()) return
       startNow = typeof performance !== "undefined" ? performance.now() : 0
@@ -222,6 +225,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
       lastSeek = -1
       paintedSeek = -1
       if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) {
+        stop()
         clock = opts.staticClock ?? 4
         // Retry the one-shot until the canvas ref settles.
         const paintOnce = () => {
@@ -253,13 +257,16 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
         return
       }
       // frame() paints the first frame and retries until the canvas is ready.
-      raf = requestAnimationFrame(frame)
+      if (!raf) raf = requestAnimationFrame(frame)
     })
   }
 
-  function stop() {
-    if (raf) cancelAnimationFrame(raf)
-    raf = 0
+  /** Stand the loop down; `keepFrame` leaves a queued paint in place. */
+  function stop(keepFrame = false) {
+    if (raf && !keepFrame) {
+      cancelAnimationFrame(raf)
+      raf = 0
+    }
     ro?.disconnect()
     ro = null
   }
