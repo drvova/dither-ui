@@ -690,6 +690,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   worker's events (types of its own: the DOM and WebWorker libs cannot
   meet in one program) and is built alone as a classic script, the `sw`
   environment, at the site's root.
+- `shared/ui/mascot.ts` is the mascot's one table (the brand's diamond
+  come alive, ORIGINAL: an 11x15 cell grid, the body printed through the
+  Bayer thresholds, eye holes, the mark's ember heart and antenna tips;
+  poses idle, blink, hop, wave and fly, where the antennae fold into a
+  rotor whose `turn` steps it round); `Mascot.vue` draws it as a
+  decorative SVG in `currentColor`, blinks when `alive`, hops under a
+  pointer and spins the rotor while it flies, all held still under
+  reduced motion. Imported by path. Guarded by `tests/mascot.spec.ts`.
 - `shared/ui/AdSlot.vue` never evaluates the EthicalAds client on the
   critical path: the slot loads only when it approaches the viewport AND the
   document is loaded plus a beat (8s-after-load safety net), and the aside it

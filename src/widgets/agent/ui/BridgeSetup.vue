@@ -6,6 +6,7 @@ import { copyText, DitherIcon } from "@dither-kit"
 import { bridgeCommand } from "@/features/agent/acp"
 import { BRIDGE_FILE } from "@/features/agent/bridge-file"
 import { assetPath } from "@/shared/lib/routes"
+import Mascot from "@/shared/ui/Mascot.vue"
 
 const props = defineProps<{ looking: boolean; url: string }>()
 const emit = defineEmits<{ look: [] }>()
@@ -25,7 +26,10 @@ async function copy() {
 
 <template>
   <section class="setup" aria-labelledby="bridge-setup-title">
-    <h3 id="bridge-setup-title" class="setup-title">Start the bridge</h3>
+    <div class="setup-head">
+      <Mascot :size="26" alive class="setup-mascot" />
+      <h3 id="bridge-setup-title" class="setup-title">Start the bridge</h3>
+    </div>
     <p class="setup-note">
       Your harness runs on your machine, signed in as you. The bridge connects it to this tab. Run this in the folder it
       should work in:
@@ -64,6 +68,14 @@ async function copy() {
   padding: 14px;
   border-radius: 14px;
   background: var(--well, var(--color-card));
+}
+.setup-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.setup-mascot {
+  color: var(--color-foreground);
 }
 .setup-title {
   margin: 0;

@@ -34,6 +34,7 @@ import { artboardPng } from "@/features/export-image"
 import { checkpoint, restoreCheckpoint, restoreFrame, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark.vue"
+import Mascot from "@/shared/ui/Mascot.vue"
 import { modKey } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import BridgeSetup from "./ui/BridgeSetup.vue"
@@ -1439,7 +1440,7 @@ onBeforeUnmount(() => {
     <div ref="log" class="log" @scroll.passive="onScroll">
       <div v-if="!entries.length && setup === 'none'" class="hello">
         <span class="hello-mark" aria-hidden="true"
-          ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="26" /><BrandMark v-else :size="26"
+          ><ToolMark v-if="agent && isMark(agent.id)" :id="agent.id" :size="26" /><Mascot v-else :size="30" alive
         /></span>
         <h2 class="hello-title">What are we making?</h2>
         <p class="hello-note">

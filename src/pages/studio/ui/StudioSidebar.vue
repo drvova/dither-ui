@@ -25,6 +25,7 @@ import {
   type ProjectMeta,
 } from "@/features/persistence"
 import { modKey, routePath } from "@/shared/lib"
+import Mascot from "@/shared/ui/Mascot.vue"
 import RowMenu, { type RowAction } from "./RowMenu.vue"
 
 // The Studio's sidebar, an agent app's: what to start (a chat, a search, a
@@ -176,7 +177,9 @@ const chatActions = (c: ChatMeta): RowAction[] => [
 
           <!-- The open project's chats, under it. -->
           <div v-if="p.id === activeProjectId.value" class="chats">
-            <p v-if="!groups.length" class="empty row-label">No chats yet. Start one above.</p>
+            <p v-if="!groups.length" class="empty row-label">
+              <Mascot :size="14" /><span class="truncate">No chats yet. Start one above.</span>
+            </p>
             <section v-for="g in groups" :key="g.label" class="day" :aria-label="g.label">
               <h3 class="day-label row-label">{{ g.label }}</h3>
               <ul class="list">
@@ -407,8 +410,13 @@ const chatActions = (c: ChatMeta): RowAction[] => [
   background: var(--color-card);
 }
 .empty {
+  display: flex;
+  align-items: center;
+  /* the mascot stands in the indent: the words still start on the chat
+     titles' column (12 + its 10px + 9 = 31) */
+  gap: 9px;
   margin: 2px 0 6px;
-  padding-inline: 31px 6px;
+  padding-inline: 12px 6px;
   font-size: 11px;
   color: var(--color-muted-foreground);
 }

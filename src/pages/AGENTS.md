@@ -77,7 +77,8 @@ widgets/features; page-specific conventions live here.
   the landing's and the docs' alike: a floating capsule (the raised
   ground, `--float-shadow`, no rim), sticky 8px under the top and centred
   (up to 48rem, `--head` tall with its margin): the 13px diamond mark
-  (`shared/ui/BrandMark`, ember core) + "dither-ui", the `.nav-a` links
+  (`shared/ui/BrandMark`, ember core) + "dither-ui" + the mascot beside
+  it (alive, from 480px), the `.nav-a` links
   (`MENU_LINKS` in `menu.ts`: id, label, the band's line and the width it
   shows from; the page supplies only `HREF` by id, a `Record` the types
   hold whole: Components → the landing's `#examples`, Docs, Agents →
@@ -896,8 +897,8 @@ widgets/features; page-specific conventions live here.
   kept), chat first, one CSS grid in `StudioPage`: the title bar across
   the top (`Toolbar`, a `1fr auto 1fr` grid: the sidebar key and
   undo/redo on the left, the project and its menu at the window's centre,
-  the Library chrome key, the Chat key, the properties key and the theme
-  on the right); under it the sidebar (`ui/StudioSidebar.vue`, folded by
+  the Library chrome key, the Chat key, the properties key, the mascot's
+  tour key and the theme on the right); under it the sidebar (`ui/StudioSidebar.vue`, folded by
   the sidebar key or ⌘B: New chat, Search with its ⌘K hint, Add a frame
   (the Library); Projects, a plus for a new one, each project a row with
   its `DitherAvatar` and a row menu (`ui/RowMenu.vue`, a real menu:
@@ -939,6 +940,18 @@ widgets/features; page-specific conventions live here.
   land at the centre of the canvas as seen (`editor.stage`, which the
   canvas measures; never the window's size). The canvas bar's Evolve
   places a generation of the primary selection.
+- The mascot (`shared/ui/Mascot.vue`) stands in the Studio's moments:
+  the empty chat's hello and the bridge setup card (alive), the sidebar's
+  empty chats, Search with no match (blinking) and the narrow notice. Its
+  tour (`guide.ts`, `ui/StudioGuide.vue`) flies it, rotor turning, to
+  each part of the window by the page's own refs (the canvas, the
+  sidebar, the chat, the panel, then its own key), opening a part folded
+  away, and it lands to say what the part is for in a bubble: Next flies
+  on, Skip, Done or Escape ends it and hands the focus back; shortcuts
+  read as the keyboard writes them (`modKey`). It runs once on a first
+  desktop visit (`GUIDE_SEEN_KEY`), never under automation
+  (`navigator.webdriver`: the prerender would print it), and again from
+  the title bar's key. Guarded by `tests/studio-guide.spec.ts`.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.

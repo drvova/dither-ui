@@ -329,6 +329,13 @@ Default section order:
   Both are docs sections under Media (`world`, `shader`) and
   `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps WebGL2
   (SwiftShader), so GPU and shader frames export to MP4 too.
+- Mascot: the brand's diamond come alive, our own (the user's call:
+  never another product's character or a cartoon's), one cell table in
+  `src/shared/ui/mascot.ts` drawn wherever it stands: by the wordmark in
+  the site header, the Studio's empty states and the bridge card, and
+  its tour of the Studio, where its antennae fold into a rotor and it
+  flies from part to part explaining each. Details in `src/AGENTS.md`
+  and `src/pages/AGENTS.md`.
 - PWA: the Studio installs as an app and opens offline; the landing and
   the docs stay pages of the web (the user's call). The build draws the
   app's manifest (`dist/studio/app.webmanifest`, every URL relative so

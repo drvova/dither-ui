@@ -22,10 +22,12 @@ import {
 import { addArtboardFromPreset, presets } from "@/features/presets"
 import { CHART_TYPES } from "@/shared/config"
 import { useTheme } from "@/shared/lib"
+import Mascot from "@/shared/ui/Mascot.vue"
 
 // The Studio's title bar, across the window: the sidebar's key and the
 // history on the left, the project (its menu) in the middle, the library,
-// the chat's column and the panel of properties and layers on the right.
+// the chat's column, the panel of properties and layers and the mascot's
+// tour on the right.
 const props = defineProps<{
   sidebarOpen: boolean
   /** The chat's column is showing. */
@@ -47,7 +49,11 @@ const emit = defineEmits<{
   "update:chatOpen": [boolean]
   "update:panelOpen": [boolean]
   "update:libraryOpen": [boolean]
+  guide: []
 }>()
+// The tour's last stop points at its own key.
+const guideKey = ref<HTMLButtonElement | null>(null)
+defineExpose({ guideKey })
 const { dark, toggle } = useTheme()
 const libraryOpen = computed({
   get: () => props.libraryOpen,
@@ -408,6 +414,16 @@ async function openFile(e: Event) {
         @click="emit('update:panelOpen', !props.panelOpen)"
       >
         <DitherIcon name="Sliders" :size="15" :stroke-width="1.5" />
+      </button>
+      <button
+        ref="guideKey"
+        type="button"
+        aria-label="Show me around"
+        title="Show me around"
+        class="tool"
+        @click="emit('guide')"
+      >
+        <Mascot :size="16" />
       </button>
       <button type="button" :aria-label="dark ? 'Use light theme' : 'Use dark theme'" class="tool" @click="toggle">
         <DitherIcon :name="dark ? 'Sun' : 'Moon'" :size="15" :stroke-width="1.5" />
