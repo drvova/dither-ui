@@ -183,3 +183,48 @@ describe("a surface driven every frame", () => {
     w.unmount()
   })
 })
+
+describe("the Svelte runtime driven every frame", () => {
+  it("paints while its restart key changes every frame", async () => {
+    const { ditherBackground } = await import("../dither-kit-svelte/runtime/use-dither-background")
+    rs.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never)
+        }
+        disconnect() {}
+      },
+    )
+    const frames = new Map<number, FrameRequestCallback>()
+    let id = 0
+    rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => (frames.set(++id, cb), id))
+    rs.stubGlobal("cancelAnimationFrame", (n: number) => frames.delete(n))
+    const wrap = document.createElement("div")
+    const canvas = document.createElement("canvas")
+    let paints = 0
+    const params = (key: number) => ({
+      canvas,
+      cell: 4,
+      maxCols: 8,
+      maxRows: 8,
+      dpr: 1,
+      restartKey: String(key),
+      render: () => void paints++,
+    })
+    const action = ditherBackground(wrap, params(0))
+    // each frame the page's own callback moves the key first, then the surface's runs
+    for (let f = 1; f <= 10; f++) {
+      const due = [...frames.keys()]
+      action.update(params(f))
+      for (const n of due) {
+        const cb = frames.get(n)
+        frames.delete(n)
+        cb?.(f * 40)
+      }
+    }
+    expect(paints).toBeGreaterThanOrEqual(8)
+    action.destroy()
+  })
+})

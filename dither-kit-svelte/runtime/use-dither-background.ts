@@ -141,12 +141,16 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
   }
 
   function start() {
-    stop()
-    if (p.precompiled) return
+    // A frame already queued stays queued: a `restartKey` driven every frame
+    // restarts the surface every frame, and cancelling the queued paint each
+    // time would starve it until the driving stops.
+    stop(true)
+    if (p.precompiled) return stop()
     startNow = typeof performance !== "undefined" ? performance.now() : 0
     lastPaint = 0
     lastFrame = -1
     if (p.renderMode === "static" || pixelPrefersReducedMotion()) {
+      stop()
       clock = p.staticClock ?? 4
       const paintOnce = () => {
         const ctx = measure()
@@ -168,12 +172,15 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
       ro.observe(wrap)
     }
     // frame() paints the first frame and retries until the canvas is ready.
-    raf = requestAnimationFrame(frame)
+    if (!raf) raf = requestAnimationFrame(frame)
   }
 
-  function stop() {
-    if (raf) cancelAnimationFrame(raf)
-    raf = 0
+  /** Stand the loop down; `keepFrame` leaves a queued paint in place. */
+  function stop(keepFrame = false) {
+    if (raf && !keepFrame) {
+      cancelAnimationFrame(raf)
+      raf = 0
+    }
     ro?.disconnect()
     ro = null
   }

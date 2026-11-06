@@ -44,7 +44,9 @@ patterns and the rest follows the same mechanical translation.
   an engine `paint*` fn plus a thin `.svelte` that binds a canvas and passes a
   `render(buffer, clock, dt, elapsed)` callback and a `restartKey` — never
   re-implement the loop per component. The action restarts when `restartKey`
-  changes and always paints with the latest `render` closure.
+  changes and always paints with the latest `render` closure; a restart
+  keeps a paint already queued, so a key driven every frame still paints
+  (`tests/surface.spec.ts`).
 - Step-timing parity: `engine/timing.ts` has no Svelte-side test suite —
   `tests/timing.spec.ts` in the Vue kit pins the css-easing-1 parity table for
   BOTH copies (verbatim rule above), so re-copy on change and keep that table
