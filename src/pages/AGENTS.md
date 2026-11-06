@@ -180,7 +180,9 @@ widgets/features; page-specific conventions live here.
   The film is a raea edit cut in a sportswear ad's grammar (React
   compositions the raea CLI renders: the brand's diamond in 3D under one
   cold light, an absolute claim, the diamond taken apart with its parts
-  named, the mechanism with a dry kicker, a figure-first spec run, names
+  named, the mechanism with a dry kicker, a figure-first spec run read
+  off instrument dials (the kit's gauge, its needle swinging to each
+  figure: the atomic-age panel the user asked for), names
   in chrome, the site in use captured frame by frame from the production
   build, a torture test it passes on screen, a silent sign-off; hard cuts
   on the beat), set at night (the user's call, a neo-noir's taste and
