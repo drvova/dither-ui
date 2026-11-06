@@ -179,7 +179,8 @@ Commands (`type` and fields):
 - You can write 3D and shaders directly: `DitherWorld` takes a model as
   `props.source` (VRML97 / VRML 1.0 `.wrl`, X3D XML, glTF JSON, OBJ, ASCII
   STL / PLY or OFF text — VRML `TimeSensor` + interpolator + `ROUTE`
-  animations play on the clock) or a URL as `props.src` (also `.glb`), and
+  animations play on the clock) or a URL as `props.src` (also `.glb`, and Gaussian splat captures:
+  `.splat` or the `.ply` a trained capture writes), and
   `DitherShader` takes GLSL as `props.source` (Shadertoy-style `mainImage`
   with `iTime`/`iResolution`/`iMouse`/`iColor`, or a raw `main`). Both are
   ordinary `component.add` targets; `props.colors` gives either a palette

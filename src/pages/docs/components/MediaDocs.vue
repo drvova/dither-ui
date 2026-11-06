@@ -299,7 +299,7 @@ const SNIPPET_CAPTURE = `<DitherWorld src="${CAPTURE}" up="y" material :auto-rot
      A capture's y runs down, so up defaults to -y; this one was made y up. -->`
 
 const SNIPPET_WORLD = `<DitherWorld src="/models/rover.glb" color="blue" :auto-rotate="12" wire />
-<!-- .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off — by
+<!-- .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off, .splat — by
      URL or inline. The file's materials, lights, viewpoint and animations are
      honoured. CPU engine by default (same bytes everywhere, frame-exact in
      the video export); engine="gpu" rasterizes big meshes through WebGL into
@@ -446,15 +446,15 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="world" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">World (3D)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D, glTF / GLB, OBJ with its MTL, STL, PLY and
-      OFF, by URL or inline, orbited by a camera and drawn through the Bayer engine (on the CPU by default, or by a
-      WebGL engine for big meshes) into the same dither. Files bring their own materials, face colours, lights,
-      viewpoint and animations: this sample's arms revolve and its antenna bobs by its own TimeSensor and ROUTEs, on the
-      kit clock. The shade can run through the kit's other engines too: a palette ramp, fbm grain, bloom, or your own
-      GLSL material over the finished target (ink from depth edges here). Any kit surface is a texture: bound as a
-      channel it wraps the model through the file's own texture coordinates, so the aurora below skins the probe. And
-      any model is a build: it comes apart along its own seams, rises out of a dotted wire cage with each piece landing
-      hot, and blows apart again (build, scatter, nudge). Drag to orbit.
+      A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D, glTF / GLB, OBJ with its MTL, STL, PLY, OFF
+      and Gaussian splat captures, by URL or inline, orbited by a camera and drawn through the Bayer engine (on the CPU
+      by default, or by a WebGL engine for big meshes) into the same dither. Files bring their own materials, face
+      colours, lights, viewpoint and animations: this sample's arms revolve and its antenna bobs by its own TimeSensor
+      and ROUTEs, on the kit clock. The shade can run through the kit's other engines too: a palette ramp, fbm grain,
+      bloom, or your own GLSL material over the finished target (ink from depth edges here). Any kit surface is a
+      texture: bound as a channel it wraps the model through the file's own texture coordinates, so the aurora below
+      skins the probe. And any model is a build: it comes apart along its own seams, rises out of a dotted wire cage
+      with each piece landing hot, and blows apart again (build, scatter, nudge). Drag to orbit.
     </p>
     <DemoCard :code="SNIPPET_WORLD">
       <div class="mx-auto max-w-md">
