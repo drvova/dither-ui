@@ -183,10 +183,15 @@ widgets/features; page-specific conventions live here.
   named, the mechanism with a dry kicker, a figure-first spec run, names
   in chrome, the site in use captured frame by frame from the production
   build, a torture test it passes on screen, a silent sign-off; hard cuts
-  on the beat over a sampled score). The mascot hosts the spec run and
+  on the beat), set at night (the user's call, a neo-noir's taste and
+  none of its devices: rain through every shot, the 3D shots in a haze
+  with light through a blind cutting shafts across the mark, the type
+  under that light's pool, a deeper black than the site's obsidian, a
+  synth score of pads in a long hall, the Bayer motif on an echoing lead
+  and rain hiss). The mascot hosts the spec run and
   flies in on its rotor to sign off, drawn from `shared/ui/mascot.ts`'s
   table. Its captions are the site's own copy and figures. Retake all three from the edit when the film changes
-  (1080p, each about 8 MB) and say what it shows in the dialog's
+  (1080p, 8 to 11 MB each: rain over haze needs bits in the darks) and say what it shows in the dialog's
   description.
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
   in and its lit cells out, with a lowercase set (four wide, x-height from
