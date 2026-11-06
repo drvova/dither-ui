@@ -425,8 +425,9 @@ Default section order:
   user's call): one smooth spring (critically damped, from rest, settling
   long and soft, never past its mark; the kit's `engine/spring.ts`, its
   "spring" easing, the site's `--ease-settle`) eases every transition and
-  every driven wipe, reveal and page transition alike, 200ms for a colour,
-  350ms for a hand's movement, 500ms for a sheet; one moving layer at a
+  every driven wipe, reveal and page transition alike, 150ms for a colour
+  (the industrial brief's micro feedback), 350ms for a hand's movement,
+  500ms for a sheet; one moving layer at a
   time against a still ground (the user's call after the still ground
   study). Alignment matters (the user's call): what stands under the
   header stands on its lines (a sheet's words start on the brand mark's
@@ -434,7 +435,7 @@ Default section order:
   out of line (a hover moves only where a pointer hovers). Display type wears
   its suggested extended face, Michroma (SIL OFL, self-hosted in
   `src/shared/fonts/`): the landing's statement and section titles, the
-  docs' page title (in chrome) and section titles (plain ink). Its squared heading sans is not used; headings, body,
+  docs' page title and section titles (plain ink; chrome only on the hero statement). Its squared heading sans is not used; headings, body,
   labels, figures and code stay mono, the user's identity, save one
   lift (the user's call after the composer board): the Studio agent
   panel's thread prose (replies, messages, thoughts) reads in the
@@ -451,9 +452,11 @@ Default section order:
   travel, soft settle, no perpetual loops or scanning lines: the
   landing's art moves on cue, as it comes into view, then under the
   reader's hand, `src/pages/landing/drive.ts`); never cyberpunk neon, a
-  HUD dashboard or a retro filter. Where it differs from an earlier call
-  of the user's (the chrome display type, the spring's timings), the
-  earlier call stands until the user says otherwise.
+  HUD dashboard or a retro filter. Where it differed from earlier calls,
+  the user chose the brief, carefully: chrome only on the hero statement
+  and the primary key (section titles and the docs' title in plain ink),
+  150ms micro feedback, one shaped hardshell a page (the rest
+  `.flat-shell`), the landing's bans and the mono identity kept.
 - Design slop the user bans (their list; the landing is held to it, the
   docs and the Studio keep their tool chrome until the user extends it;
   for the printed landing the user lifted one: more than two inks inside

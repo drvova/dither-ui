@@ -178,7 +178,7 @@ const active = ref(0)
   color: var(--ink-3);
   background: var(--surface);
   transition:
-    color 200ms var(--ease-settle),
+    color 150ms var(--ease-settle),
     transform 350ms var(--ease-settle);
 }
 

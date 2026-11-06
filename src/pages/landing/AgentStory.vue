@@ -439,7 +439,7 @@ onBeforeUnmount(() => {
 .render-words > span {
   grid-area: 1 / 1;
   opacity: 0;
-  transition: opacity 200ms var(--ease-settle);
+  transition: opacity 150ms var(--ease-settle);
 }
 
 .render-words > span[data-on] {

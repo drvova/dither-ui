@@ -156,7 +156,7 @@
     background: var(--surface);
     cursor: pointer;
     transition:
-      color 200ms var(--ease-settle),
+      color 150ms var(--ease-settle),
       transform 350ms var(--ease-settle);
   }
 

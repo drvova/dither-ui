@@ -117,7 +117,7 @@ async function copy() {
   place-items: center;
   border-radius: 6px;
   color: var(--color-muted-foreground);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 .setup-copy:hover {
   color: var(--color-foreground);

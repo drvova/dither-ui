@@ -602,7 +602,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   holds, fixed descendants included; a chrome-glint ring along the cut;
   the shell ground (no fasteners or other manufacturing theater: the
   user's brief keeps one credible joint, the cut); set `--cut`
-  locally for a smaller cut); `.gel` (an
+  locally for a smaller cut), only for a page's one shaped hero panel
+  (the Studio's canvas, a dialog); `.flat-shell` (its flat sibling for
+  every other panel: the shell ground, one hairline, a 10px radius);
+  `.gel` (an
   asymmetric pebble recessed into its shell, `overflow: hidden`, a
   directional highlight over its top 38%; chips in it take z-index 4);
   `.capsule` (a floating smoked-polymer shell: `--smoke` under a light

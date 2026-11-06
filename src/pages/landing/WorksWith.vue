@@ -13,7 +13,7 @@ import { HARNESSES, MODEL_NAMES, WORKS } from "./facts"
 <template>
   <section id="works" aria-labelledby="works-h" class="sec">
     <div class="sec-head">
-      <h2 id="works-h" class="section-title chrome-type">Plays well with others.</h2>
+      <h2 id="works-h" class="section-title">Plays well with others.</h2>
       <div class="sec-side">
         <p class="sec-lede">
           Bring the stack you already have. The kit speaks your styling, the bridge wakes the agent you are already

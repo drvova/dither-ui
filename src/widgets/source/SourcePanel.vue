@@ -313,7 +313,7 @@ const ICONS = {
 </script>
 
 <template>
-  <div class="src hardshell">
+  <div class="src flat-shell">
     <div class="src-bar">
       <div
         ref="tabs"
@@ -421,10 +421,9 @@ const ICONS = {
 </template>
 
 <style scoped>
-/* A hardshell (the site's material: two corners cut, the chrome glint
-   along them) over the page's ground. */
+/* A flat shell (the site's material for a panel that is not the page's
+   hero: one hairline, a controlled radius) over the page's ground. */
 .src {
-  --cut: 12px;
   overflow: hidden;
   background: var(--shell-ground), color-mix(in oklab, var(--color-background) 60%, transparent);
 }

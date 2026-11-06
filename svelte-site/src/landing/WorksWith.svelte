@@ -10,7 +10,7 @@
 
 <section id="works" aria-labelledby="works-h" class="sec">
   <div class="sec-head">
-    <h2 id="works-h" class="section-title chrome-type">Plays well with others.</h2>
+    <h2 id="works-h" class="section-title">Plays well with others.</h2>
     <div class="sec-side">
       <p class="sec-lede">
         Bring the stack you already have. The kit themes from plain CSS variables under your Tailwind, and the bridge

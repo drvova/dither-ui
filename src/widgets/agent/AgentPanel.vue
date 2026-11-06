@@ -1908,8 +1908,8 @@ onBeforeUnmount(() => {
   border-radius: 7px;
   color: var(--color-muted-foreground);
   transition:
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 .head-btn:hover,
 .head-btn[aria-pressed="true"] {
@@ -2020,8 +2020,8 @@ onBeforeUnmount(() => {
   line-height: 1.45;
   color: var(--color-muted-foreground);
   transition:
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 .starter + .starter {
   box-shadow: 0 -1px 0 color-mix(in oklab, var(--color-border) 70%, transparent);
@@ -2070,7 +2070,7 @@ onBeforeUnmount(() => {
   box-shadow:
     var(--recess-sm),
     0 0 0 1px var(--color-border);
-  transition: box-shadow 200ms var(--ease-settle);
+  transition: box-shadow 150ms var(--ease-settle);
 }
 /* Under the stack, a breath between its last row and the card. */
 .part + .card {
@@ -2208,8 +2208,8 @@ onBeforeUnmount(() => {
   font-size: 12px;
   color: var(--color-muted-foreground);
   transition:
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 .foot-key:hover,
 .foot-key[aria-pressed="true"] {
@@ -2227,7 +2227,7 @@ onBeforeUnmount(() => {
   padding-inline: 6px;
   font-size: 10.5px;
   color: var(--color-muted-foreground);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 .pill:hover,
 .pill[aria-expanded="true"] {
@@ -2255,8 +2255,8 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   color: var(--color-muted-foreground);
   transition:
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 /* The folder is the one key that gives way: its name is cut short first. */
 .status-key.is-static {
@@ -2465,7 +2465,7 @@ button.status-key:hover,
   font-size: 11px;
   color: var(--color-foreground);
   background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-  transition: background-color 200ms var(--ease-settle);
+  transition: background-color 150ms var(--ease-settle);
 }
 .agent .key:hover:not(:disabled) {
   background: color-mix(in oklab, var(--color-foreground) 14%, transparent);
@@ -2566,7 +2566,7 @@ button.status-key:hover,
   cursor: pointer;
   list-style: none;
   border-radius: 6px;
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 .agent .fold > summary::-webkit-details-marker {
   display: none;
@@ -2579,7 +2579,7 @@ button.status-key:hover,
   flex-shrink: 0;
   opacity: 0;
   transition:
-    opacity 200ms var(--ease-settle),
+    opacity 150ms var(--ease-settle),
     rotate 350ms var(--ease-settle);
 }
 .agent .fold > summary:hover .chev,

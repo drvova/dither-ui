@@ -140,7 +140,7 @@
       <!-- Ask: one agent session, played as the page scrolls past it. -->
       <section id="ask" aria-labelledby="ask-h" class="sec">
         <div class="sec-head">
-          <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
+          <h2 id="ask-h" class="section-title">Your agent builds the screen.</h2>
           <div class="sec-side">
             <p class="sec-lede">
               Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a frame of
@@ -156,7 +156,7 @@
            families, each with its size and a line. -->
       <section id="inside" aria-labelledby="inside-h" class="sec">
         <div class="sec-head">
-          <h2 id="inside-h" class="section-title chrome-type">Three parts, one engine.</h2>
+          <h2 id="inside-h" class="section-title">Three parts, one engine.</h2>
           <div class="sec-side">
             <p class="sec-lede">
               A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already trust.
@@ -206,7 +206,7 @@
       <!-- The install, centred. -->
       <section id="install" aria-labelledby="install-h" class="sec install">
         <div class="install-head">
-          <h2 id="install-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
+          <h2 id="install-h" class="section-title">Copy one folder. Every pixel is yours.</h2>
           <p class="sec-lede">
             Copy the kit into your app, add its {RUNTIME_DEPS.length} packages and import from
             <code>@dither-kit-svelte</code>. Or paste the agent prompt and your agent does all three.
@@ -380,7 +380,7 @@
     flex-direction: column;
     gap: 4px;
     color: var(--ink);
-    transition: color 200ms var(--ease-settle);
+    transition: color 150ms var(--ease-settle);
   }
 
   .family-t:hover {
@@ -532,7 +532,7 @@
     min-height: 24px;
     font-size: 12px;
     color: var(--ink-3);
-    transition: color 200ms var(--ease-settle);
+    transition: color 150ms var(--ease-settle);
   }
 
   .foot-col {
@@ -557,7 +557,7 @@
     min-height: 28px;
     padding-top: 6px;
     color: var(--ink-3);
-    transition: color 200ms var(--ease-settle);
+    transition: color 150ms var(--ease-settle);
   }
 
 

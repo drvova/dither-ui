@@ -99,7 +99,7 @@ onBeforeUnmount(() => window.removeEventListener("pointerdown", onDown, true))
   color: var(--color-muted-foreground);
   background: var(--color-card);
   opacity: 0;
-  transition: opacity 200ms var(--ease-settle);
+  transition: opacity 150ms var(--ease-settle);
 }
 :global(.has-menu:hover) .more,
 .more:focus-visible,

@@ -317,7 +317,7 @@ const titleOf = (k: Key) => (k.keys ? `${k.name} (${k.keys})` : k.name)
 .canvas-bar-leave-active {
   transition:
     translate 350ms var(--ease-settle),
-    opacity 200ms var(--ease-settle);
+    opacity 150ms var(--ease-settle);
 }
 .canvas-bar-enter-from,
 .canvas-bar-leave-to {

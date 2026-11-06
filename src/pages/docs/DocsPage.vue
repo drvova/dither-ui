@@ -1002,7 +1002,7 @@ const gradientCode = computed(
             class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3"
             :class="activeId ? 'sr-only' : 'mt-6'"
           >
-            <h1 class="chrome-type font-display text-[1.6rem] leading-tight font-normal">Documentation</h1>
+            <h1 class="font-display text-[1.6rem] leading-tight font-normal">Documentation</h1>
             <ul class="flex flex-wrap gap-1 pb-1" aria-label="The kit">
               <li class="speed-tag">{{ GROUPS.flatMap((g) => g.items).length }} sections</li>
               <li class="speed-tag">Vue 3</li>

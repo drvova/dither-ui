@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
       @search="searchOpen = true"
     />
 
-    <section v-show="agentOpen" ref="chat" class="studio-chat hardshell" aria-label="Chat">
+    <section v-show="agentOpen" ref="chat" class="studio-chat flat-shell" aria-label="Chat">
       <AgentPanel ref="agentPanel" @close="agentOpen = false" @activity="onAgentActivity" />
     </section>
 
@@ -258,7 +258,7 @@ onBeforeUnmount(() => {
       <DataEditor />
     </main>
 
-    <aside v-if="bench" class="studio-side studio-bench hardshell" aria-label="Workbench">
+    <aside v-if="bench" class="studio-side studio-bench flat-shell" aria-label="Workbench">
       <Workbench
         :key="activeProjectId.value"
         :host="bench.host"
@@ -272,7 +272,7 @@ onBeforeUnmount(() => {
         @exit="stopInspecting"
       />
     </aside>
-    <aside v-else-if="panelOpen" ref="side" class="studio-side hardshell" aria-label="Properties and layers">
+    <aside v-else-if="panelOpen" ref="side" class="studio-side flat-shell" aria-label="Properties and layers">
       <StudioPanel />
     </aside>
 
@@ -368,10 +368,10 @@ onBeforeUnmount(() => {
 .studio-bar {
   grid-area: bar;
 }
-/* The chat, the canvas and the panel are the window's shells: two corners
-   cut, the canvas recessed into its well, a gutter between them. */
+/* The canvas is the window's one shaped shell (two corners cut, recessed
+   into its well); the chat and the panel are flat shells beside it, a
+   gutter between them. */
 .studio-chat {
-  --cut: 12px;
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -398,7 +398,6 @@ onBeforeUnmount(() => {
   margin-left: 8px;
 }
 .studio-side {
-  --cut: 12px;
   display: flex;
   min-width: 0;
   flex-direction: column;

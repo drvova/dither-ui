@@ -291,8 +291,8 @@ watch(
   text-align: left;
   color: var(--color-muted-foreground);
   transition:
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 .row.is-key:hover {
   color: var(--color-foreground);
@@ -302,7 +302,7 @@ watch(
   --glyph: 11px;
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity 200ms var(--ease-settle);
+  transition: opacity 150ms var(--ease-settle);
 }
 .row.is-key:hover .go,
 .row.is-key:focus-visible .go {
@@ -359,8 +359,8 @@ watch(
   padding-inline: 6px;
   color: var(--color-muted-foreground);
   transition:
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 .quiet:hover:not(:disabled) {
   color: var(--color-foreground);

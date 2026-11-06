@@ -63,7 +63,8 @@ widgets/features; page-specific conventions live here.
   8.6:1 on the obsidian); the grain (a 96px PNG tile of single cells a
   tone under and over the obsidian, never a grid); the section head (`.sec-head`: the
   `.section-title` left, in the display face (Michroma 400,
-  `clamp(1.6rem, 3.4vw, 2.75rem)`) cast in `.chrome-type`; `.sec-side`
+  `clamp(1.6rem, 3.4vw, 2.75rem)`) in the plain bone ink (chrome is the
+  hero statement's and the primary key's alone); `.sec-side`
   right, on its baseline, a `.sec-lede` and a `.more-link`; stacked under
   900px), `.lead` and `.more-link` (an underline that inks on hover, a
   24px target through padding cancelled by a negative margin), `.key` (a
@@ -613,10 +614,10 @@ widgets/features; page-specific conventions live here.
   "OTP field", + optional "Open in the Studio") → muted description →
   `DemoCard` (Preview/Code tabs as machined segments in a `.track`, the
   picked one `.ring-on`; Inspect → the workbench, Code → the source panel, a
-  `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
+  `.flat-shell`: the page's one shaped panel is the demo's gel well) → optional picker gallery (an `h3` in
   sentence case, 12px muted, + grid; the picked tile or chip `.ring-on`,
   never a fill a shade off the ground) → `PropsTable`, a spec sheet (a
-  `.hardshell` cut at 10px, its column heads `.spec`; Prop 24% and Default
+  `.flat-shell`, its column heads `.spec`; Prop 24% and Default
   20%, the type column, which carries the notes, the rest; a row's `default` is
   its value as code; "" prints "none"; under 640px, where three columns
   cannot fit, each prop stacks over its type and default). The preview frame is a gel well
@@ -855,8 +856,8 @@ widgets/features; page-specific conventions live here.
   groups under their glyphs (`GROUP_ICON`), each with its section count as
   a `.spec`; `NAV_LINK` sizes its links per place, 25px targets at a 27px
   pitch on the rail, 30px in the sheet; "On this page" is `OnThisPage.vue`. The page title is the h1
-  "Documentation" in the display face (`font-display`, 1.6rem) and
-  `.chrome-type`, no eyebrow; on its
+  "Documentation" in the display face (`font-display`, 1.6rem) in plain
+  ink, no eyebrow; on its
   baseline, the kit's spec as `.speed-tag`s (the section count, Vue 3,
   Svelte 5, Tailwind or StyleX). At xl the rail right of
   the content is "On this page": the section in view, its gallery headings
@@ -915,10 +916,12 @@ widgets/features; page-specific conventions live here.
   (its tools machined, 8px; `widgets/toolbar/tool.css` is the one tool
   key of it and the title bar),
   the Library key and the empty canvas's "Add an artboard" are the
-  `.key-chrome`, the canvas, the right column and the dialogs
-  (export, video, shortcuts) are `.hardshell`s (14px cut on the canvas,
-  12px on the column; the canvas recessed as a well; nothing in them pops
-  out, the context menu is teleported), the video
+  `.key-chrome`, the canvas and the dialogs (export, video, shortcuts)
+  are `.hardshell`s (14px cut on the canvas, recessed as a well; a
+  dialog is its moment's one shaped panel), the chat and the right
+  column `.flat-shell`s (the user's industrial brief: one shaped hero
+  panel a page; nothing in them pops out, the context menu is
+  teleported), the video
   dialog's download is the `.key-chrome`, and the menus (project, library,
   context menu) are rounded cards with a `.rim`. Every glyph button is a
   kit icon (the sidebar, undo/redo, properties, agent, theme, close, zoom,

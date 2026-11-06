@@ -12,8 +12,8 @@
   color: var(--color-muted-foreground);
   font-size: 12px;
   transition:
-    background-color 200ms var(--ease-settle),
-    color 200ms var(--ease-settle),
+    background-color 150ms var(--ease-settle),
+    color 150ms var(--ease-settle),
     scale 100ms ease;
 }
 .tool:hover {

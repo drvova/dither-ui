@@ -84,8 +84,8 @@ function onKey(e: KeyboardEvent) {
   font-size: 12px;
   color: var(--color-muted-foreground);
   transition:
-    background-color 200ms var(--ease-settle),
-    color 200ms var(--ease-settle);
+    background-color 150ms var(--ease-settle),
+    color 150ms var(--ease-settle);
 }
 .tab:hover {
   color: var(--color-foreground);

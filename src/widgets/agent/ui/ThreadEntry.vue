@@ -264,9 +264,9 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   color: var(--color-muted-foreground);
   opacity: 0;
   transition:
-    opacity 200ms var(--ease-settle),
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    opacity 150ms var(--ease-settle),
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 .msg-row:hover .restore,
 .msg-row:focus-within .restore {
@@ -290,7 +290,7 @@ const toggled = (e: Event) => emit("toggle", (e.target as HTMLDetailsElement).op
   display: flex;
   margin: -2px 0 -6px -4px;
   opacity: 0;
-  transition: opacity 200ms var(--ease-settle);
+  transition: opacity 150ms var(--ease-settle);
 }
 .reply:hover .reply-actions,
 .reply-actions:focus-within,

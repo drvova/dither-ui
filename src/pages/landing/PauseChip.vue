@@ -22,7 +22,7 @@ defineProps<{ label: string }>()
   border-radius: 999px;
   color: var(--background);
   background: var(--ink);
-  transition: background-color 200ms var(--ease-settle);
+  transition: background-color 150ms var(--ease-settle);
 }
 
 .pause-chip:hover {

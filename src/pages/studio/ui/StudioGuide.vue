@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
   padding-inline: 8px;
   font-size: 12px;
   color: var(--color-muted-foreground);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 .skip:hover {
   color: var(--color-foreground);

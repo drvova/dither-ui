@@ -476,7 +476,7 @@ async function openFile(e: Event) {
   padding-inline: 10px;
   font-size: 12px;
   color: var(--color-foreground);
-  transition: background-color 200ms var(--ease-settle);
+  transition: background-color 150ms var(--ease-settle);
 }
 .project:hover,
 .project[aria-expanded="true"] {
@@ -508,7 +508,7 @@ async function openFile(e: Event) {
    quieter than enters), house easing, still under reduced motion. */
 .pop-enter-active {
   transition:
-    opacity 200ms var(--ease-settle),
+    opacity 150ms var(--ease-settle),
     transform 350ms var(--ease-settle);
 }
 .pop-leave-active {

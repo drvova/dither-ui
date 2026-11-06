@@ -96,7 +96,7 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .landing .more-link {
@@ -129,7 +129,7 @@
   white-space: nowrap;
   color: var(--ink);
   background: var(--surface);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .landing .key:hover {
@@ -154,7 +154,7 @@
   font-size: 11px;
   white-space: nowrap;
   color: var(--ink-3);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .landing .seg > button:hover {

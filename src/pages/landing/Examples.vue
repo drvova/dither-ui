@@ -230,7 +230,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 <template>
   <section id="examples" aria-labelledby="examples-h" class="examples">
     <div class="sec-head">
-      <h2 id="examples-h" class="section-title chrome-type">Every component, live.</h2>
+      <h2 id="examples-h" class="section-title">Every component, live.</h2>
       <div class="sec-side">
         <p class="sec-lede">
           {{ COMPONENT_COUNT }} components on one engine. Every card is the real thing, so poke it, then open its docs
@@ -578,7 +578,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   text-decoration-color: transparent;
-  transition: text-decoration-color 200ms var(--ease-settle);
+  transition: text-decoration-color 150ms var(--ease-settle);
 }
 
 .card-name:hover,
@@ -768,7 +768,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 .stat-sub > span {
   grid-area: 1 / 1;
   opacity: 0;
-  transition: opacity 200ms var(--ease-settle);
+  transition: opacity 150ms var(--ease-settle);
 }
 
 .stat-sub > span[data-on] {

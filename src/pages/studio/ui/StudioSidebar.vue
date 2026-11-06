@@ -304,8 +304,8 @@ const chatActions = (c: ChatMeta): RowAction[] => [
   text-align: left;
   color: var(--color-foreground);
   transition:
-    background-color 200ms var(--ease-settle),
-    color 200ms var(--ease-settle);
+    background-color 150ms var(--ease-settle),
+    color 150ms var(--ease-settle);
 }
 .nav-row :deep(svg) {
   flex-shrink: 0;
