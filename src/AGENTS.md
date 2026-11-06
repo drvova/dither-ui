@@ -705,6 +705,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   its cockpit (only what stands over the door line shows);
   `MascotCar.vue` draws them, its wheels turning while `driving`, still
   under reduced motion. Guarded by `tests/car.spec.ts`.
+  `mascot-capture.ts` grows the table into a Gaussian capture of our own
+  (a cut stone of splats, dark eyes on both faces, three ember orbits),
+  seeded; the build serves it at `CAPTURE_PATH` (`rstack.config.ts`, the
+  `captureFiles` plugin, never a copy in `public/`) and the docs' World
+  section prints it. Read by `tests/splats.spec.ts`.
 - `shared/ui/AdSlot.vue` never evaluates the EthicalAds client on the
   critical path: the slot loads only when it approaches the viewport AND the
   document is loaded plus a beat (8s-after-load safety net), and the aside it

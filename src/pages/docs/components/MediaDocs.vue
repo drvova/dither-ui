@@ -11,6 +11,8 @@ import {
   sampleWorld,
   type BracketMatch,
 } from "@dither-kit"
+import { assetPath } from "@/shared/lib/routes"
+import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -117,12 +119,16 @@ const API: Record<string, PropRow[]> = {
   world: [
     {
       prop: "src",
-      type: "string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply or .off",
+      type: "string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply, .off, or a Gaussian capture (.splat, a trained .ply)",
       default: "undefined",
     },
     { prop: "source", type: "string: inline model text; wins over src", default: "undefined" },
     { prop: "format", type: '"auto" | "vrml" | "x3d" | "gltf" | "obj" | "stl" | "ply" | "off"', default: '"auto"' },
-    { prop: "up", type: '"auto" | "y" | "z": the file\'s up axis (STL defaults to z)', default: '"auto"' },
+    {
+      prop: "up",
+      type: '"auto" | "y" | "z" | "-y": the file\'s up axis (STL defaults to z, a capture to -y)',
+      default: '"auto"',
+    },
     {
       prop: "engine",
       type: '"auto" | "cpu" | "gpu": the CPU engine is byte-exact everywhere, the GPU (WebGL) engine rasterizes big meshes; auto picks the GPU above ~40k triangles',
@@ -241,6 +247,15 @@ function pick(r, m, side) {          // you own the data — advance the winner
   if (next) m % 2 === 0 ? (next.a = win(match)) : (next.b = win(match))
 }
 <\\/script>`
+
+// A Gaussian capture: the mascot as splats, served by the build.
+const CAPTURE = assetPath(`/${CAPTURE_PATH}`)
+const captureColor = ref(true)
+const SNIPPET_CAPTURE = `<DitherWorld src="${CAPTURE}" up="y" material :auto-rotate="20" :fov="30" :zoom="1.35" :cell="2" />
+<!-- a Gaussian capture: a .splat file, or the .ply a trained capture writes.
+     Each Gaussian lands as its footprint on the cells, near to far until a
+     cell is opaque; its colour and its light go through the same dither.
+     A capture's y runs down, so up defaults to -y; this one was made y up. -->`
 
 const SNIPPET_WORLD = `<DitherWorld src="/models/rover.glb" color="blue" :auto-rotate="12" wire />
 <!-- .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off — by
@@ -466,6 +481,33 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
               <option value="gpu">gpu</option>
             </select>
           </label>
+        </div>
+      </div>
+    </DemoCard>
+    <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
+      Gaussian splats print too: a capture is a cloud of soft ellipsoids, each laid on the cells as its footprint, near
+      to far until a cell is opaque, and its colour and light go through the same dither. This one is our mascot, grown
+      from its cell table into a body of splats with three electrons ringing it. Give it a .splat file or the .ply a
+      trained capture writes.
+    </p>
+    <DemoCard :code="SNIPPET_CAPTURE">
+      <div class="mx-auto max-w-md">
+        <DitherWorld
+          :src="CAPTURE"
+          up="y"
+          :material="captureColor"
+          :auto-rotate="20"
+          :fov="30"
+          :zoom="1.35"
+          :cell="2"
+          color="grey"
+          label="The mascot as a Gaussian capture"
+          class="h-[280px]"
+        />
+        <div class="mt-3 flex justify-center text-[11px] text-muted-foreground">
+          <label class="flex min-h-6 items-center gap-2"
+            ><input v-model="captureColor" type="checkbox" class="accent-current" /> its own colours</label
+          >
         </div>
       </div>
     </DemoCard>

@@ -59,14 +59,15 @@ import { useDitherMatrix } from "../engine/use-screen"
 
 const props = withDefaults(
   defineProps<{
-    /** URL of a model: .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj (+ .mtl), .stl, .ply, .off. */
+    /** URL of a model: .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj (+ .mtl), .stl, .ply, .off, or a
+     * Gaussian capture (.splat, or a trained capture's .ply). */
     src?: string
     /** Inline model text (VRML, X3D, glTF JSON, OBJ, ASCII STL / PLY, OFF) — wins over `src`. */
     source?: string
     /** File format; "auto" reads the name, then the bytes. */
     format?: ModelFormat | "auto"
-    /** The file's up axis; "auto" is y, z for STL. */
-    up?: "y" | "z" | "auto"
+    /** The file's up axis; "auto" is y, z for STL, -y (a capture's camera space) for splats. */
+    up?: "y" | "z" | "-y" | "auto"
     /** Rasterizer: the CPU engine is byte-exact everywhere, the GPU engine
      * (WebGL) rasterizes big meshes fast; "auto" picks the GPU above ~40k triangles. */
     engine?: "auto" | "cpu" | "gpu"
@@ -204,7 +205,7 @@ const upOf = () => (props.up === "auto" ? undefined : props.up)
 
 function setWorld(w: World) {
   world.value = w
-  status.value = w.meshes.length ? "ready" : "empty"
+  status.value = w.meshes.length || w.splats?.count ? "ready" : "empty"
 }
 
 function fail() {

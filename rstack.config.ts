@@ -70,6 +70,21 @@ function installFiles(): RsbuildPlugin {
   }
 }
 
+/* The mascot as a Gaussian capture the docs' World section prints, drawn
+   from its cell table at build (src/shared/ui/mascot-capture.ts), never a
+   copy kept in public/. */
+function captureFiles(): RsbuildPlugin {
+  return {
+    name: "capture-files",
+    setup(api) {
+      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
+        const { CAPTURE_PATH, mascotCapture } = await import("./src/shared/ui/mascot-capture.ts")
+        compilation.emitAsset(CAPTURE_PATH, new sources.RawSource(Buffer.from(mascotCapture())))
+      })
+    },
+  }
+}
+
 /* The kits' own source, served beside the site for the docs' source panel:
    every .vue/.svelte/.ts/.css file of both kits at `kit/src/<vue|svelte>/`
    plus a `files.json` listing them — what a reader reads, edits, runs and
@@ -139,6 +154,7 @@ define.app(async ({ command }) => {
       crawlFiles(),
       kitSources(),
       installFiles(),
+      captureFiles(),
       bridgeFile(),
     ],
     // `@dither-kit` is the Tailwind layer's index; `@dither-kit/<layer>/…` any kit file.

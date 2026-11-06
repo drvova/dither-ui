@@ -16,6 +16,7 @@ import type { Rgb } from "./palette"
 import { wrapMaterial } from "./shader"
 import {
   cameraOf,
+  layCapture,
   meshGrain,
   nodeMatrices,
   packTarget,
@@ -385,6 +386,7 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
           uv[i * 2 + 1] = te ? (te - 1) / 65534 : 0
         }
       }
+      layCapture(world, view, target)
       return true
     },
     dispose() {

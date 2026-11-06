@@ -35,7 +35,8 @@ const BAYER = [
 const SHADE = 8
 const shaded = (x: number, y: number) => x - CX + (y - CY) >= 2
 
-const EYES = [
+/** Where its eyes are: holes in the body. */
+export const EYES = [
   [3, 6],
   [7, 6],
 ]

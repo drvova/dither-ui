@@ -62,4 +62,5 @@ export const MODEL_NAMES: Record<ModelFormat, string> = {
   stl: "STL",
   ply: "PLY",
   off: "OFF",
+  splat: "Gaussian splats",
 }

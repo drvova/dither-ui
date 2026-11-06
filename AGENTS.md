@@ -307,6 +307,8 @@ Default section order:
   same Bayer raster. `DitherWorld` (`dither-kit/engine/world.ts` engine,
   `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0
   `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY and OFF by URL or inline,
+  and Gaussian splat captures (`.splat`, a trained capture's `.ply`;
+  `engine/splats.ts`),
   plays the file's animations (VRML ROUTEs, glTF) on the kit clock, and
   rasterizes on the CPU (byte-exact, video-safe) or through WebGL for big
   meshes — both into one shared dither pass that also runs the palette

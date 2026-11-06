@@ -460,8 +460,22 @@ the kit every import is relative (`../engine/pixel`).
   with slashes and negative indices, `l`, `p`, vertex colours, `usemtl`
   groups coloured from the `mtllib` via `parseMtl`), STL (ASCII + binary,
   two-sided, z-up swung to y-up by default), PLY (ASCII, binary little and
-  big endian; vertex and face colours, edges, point clouds) and OFF (face
-  colours). Animation: a VRML `TimeSensor` → `PositionInterpolator` /
+  big endian; vertex and face colours, edges, point clouds; a binary vertex
+  element of float32 Gaussians, a trained capture, becomes splats) and OFF
+  (face colours), and Gaussian captures (`splat`: the 32-byte `.splat`
+  record). Splats live in `splats.ts` (no world import; world.ts imports
+  it): a `SplatCloud` (positions, covariances from scale and rotation,
+  colours, opacities, at most `MAX_SPLATS`, every k-th past it) on
+  `World.splats`, its colours snapping to a 6-level colour cube in the
+  palette; `finishWorld` bounds it without its stray splats (2nd to 98th
+  percentile); `layCapture` composites it over either engine's target
+  (each Gaussian's 2D footprint through the perspective's Jacobian with a
+  cell's blur, a counting sort near to far, front to back until a cell is
+  opaque or a nearer mesh stands there; covered cells take the cube entry
+  and their luminance as the shade, their depth where they turned half
+  opaque), so the shared pass prints a capture like a mesh. A capture's y
+  runs down: `up` defaults to "-y" for one. Guarded by
+  `tests/splats.spec.ts`. Animation: a VRML `TimeSensor` → `PositionInterpolator` /
   `OrientationInterpolator` → `ROUTE … set_translation/rotation/scale`
   chain (also X3D's `<ROUTE>`) makes that Transform a `WorldNode` whose
   tracks hold keys in seconds (key × cycleInterval, loop, startTime);
