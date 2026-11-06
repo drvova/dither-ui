@@ -8,7 +8,7 @@
   // and a footer of the brand and link columns over the line-screen
   // wordmark. Michroma for display, mono for the rest; everything that
   // moves is the kit.
-  import { DitherAvatar, DitherGradient, DitherScreen, type ScreenKind } from "@dither-kit-svelte"
+  import { Circuit, DitherAvatar, DitherGradient, DitherScreen, type ScreenKind } from "@dither-kit-svelte"
   import "../fonts/display.css"
   import { copier } from "../copy.svelte"
   import "./landing.css"
@@ -22,6 +22,7 @@
   import LineWordmark from "./LineWordmark.svelte"
   import { GITHUB, SITE, STUDIO } from "./links"
   import Plate from "./Plate.svelte"
+  import { drive } from "./drive"
   import PixelWord from "./PixelWord.svelte"
   import { PLATES, STOCK } from "./plate"
   import SiteHeader from "./SiteHeader.svelte"
@@ -40,9 +41,10 @@
   const prompt = copier()
 
   // What's inside: the kit, the Studio and the bridge, each a card headed by
-  // a tone strip the kit prints in its own ink through its own printer's
-  // screen (blue in Bayer cells, the ember in lines, bone in a halftone
-  // dot), its own character (the kit's seeded avatar of its title, in its
+  // a strip the kit prints in its own ink through its own printer's screen
+  // (blue in Bayer cells, the ember in lines, bone in a halftone dot): a
+  // tone for the kit and the Studio, a circuit board for the bridge, its
+  // signals running in the ember; its own character (the kit's seeded avatar of its title, in its
   // ink) standing on the strip's foot, its name in the pixel face, two lines
   // and its link.
   const INSIDE: {
@@ -50,6 +52,8 @@
     name: string
     ink: string
     screen: ScreenKind
+    /** What the strip prints: a tone from the ink, or a board in it. */
+    art: "tone" | "circuit"
     text: string
     link: { label: string; href: string }
   }[] = [
@@ -58,6 +62,7 @@
       name: "kit",
       ink: "blue",
       screen: "bayer",
+      art: "tone",
       text: "Plain source you own, one engine of rasters under every component, in Svelte 5 runes. Change anything, it's yours.",
       link: { label: "Read the quick start", href: docsHref("getting-started") },
     },
@@ -66,6 +71,7 @@
       name: "studio",
       ink: "orange",
       screen: "line",
+      art: "tone",
       text: "An infinite canvas to play with screens of kit parts. Export a frame as Vue, a PNG or an MP4, then go again.",
       link: { label: "Open the studio", href: STUDIO },
     },
@@ -74,10 +80,16 @@
       name: "bridge",
       ink: "#e4e1d8",
       screen: "dot",
+      art: "circuit",
       text: "A SKILL.md teaches your agent the Studio, and one Node file starts the harness you already use, signed in as you.",
       link: { label: "Read the agent skill", href: SKILL },
     },
   ]
+
+  // The bridge's board runs on cue (no perpetual loop): by itself as its
+  // card comes into view, then only while the reader scrolls.
+  const BOARD_DANCE = 3000
+  let boardMoving = $state(false)
 
   // The footer's columns.
   const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
@@ -154,10 +166,14 @@
         </div>
         <ul class="inside">
           {#each INSIDE as c (c.title)}
-            <li>
+            <li use:drive={{ dance: BOARD_DANCE, onChange: (m) => c.art === "circuit" && (boardMoving = m) }}>
               <div class="inside-art" aria-hidden="true">
                 <DitherScreen screen={c.screen}>
-                  <DitherGradient from={c.ink} to={STOCK} direction="down" cell={4} />
+                  {#if c.art === "circuit"}
+                    <Circuit ink={c.ink} seed={11} density={1} pitch={3} paused={!boardMoving} />
+                  {:else}
+                    <DitherGradient from={c.ink} to={STOCK} direction="down" cell={4} />
+                  {/if}
                 </DitherScreen>
               </div>
               <span class="inside-who" aria-hidden="true"><DitherAvatar name={c.title} color={c.ink} size={56} /></span>

@@ -60,7 +60,8 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
 - The landing (`src/landing/`, `Landing.svelte` composing `Hero`, `Examples`,
   `AgentStory`, `WorksWith`, `Plate`, `InstallBlock`, `BrandGather`,
   `PixelWord`, `LineWordmark`), in the Vue landing's order: hero, bento,
-  plate, ask, three parts (each card's tone strip, its `DitherAvatar`
+  plate, ask, three parts (each card's strip, a tone or, for the bridge,
+  the kit's `Circuit` board, its `DitherAvatar`
   character on a plate of the card's ground, its name in the pixel face
   with the title for screen readers), plays well with others, plate,
   install, footer:

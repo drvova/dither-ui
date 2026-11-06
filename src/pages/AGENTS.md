@@ -372,10 +372,16 @@ widgets/features; page-specific conventions live here.
   step's still.
 - Inside (`#inside`, "Three parts, one engine."): three cards (the
   raised ground, 20px radius, like the bento's; one column under 900px),
-  each headed by a tone strip flush to its top (`DitherGradient` from its
-  ink to `STOCK`, 120px, 72px on a phone, printing in through
-  `DitherReveal`) in its own ink and printer's screen (`INSIDE`: blue in
-  Bayer cells, the ember in lines, bone in a halftone dot), its own
+  each headed by a strip flush to its top (120px, 72px on a phone,
+  printing in through `DitherReveal`) in its own ink and printer's screen
+  (`INSIDE`: blue in Bayer cells, the ember in lines, bone in a halftone
+  dot), its `art` a union: a tone (`DitherGradient` from its ink to
+  `STOCK`) for the kit and the Studio, a board (`DitherCircuit` in its
+  ink, seed 11, full density on a 3-cell lattice, its signals in the
+  ember) for the bridge, which carries signals between the tab and the
+  agent, its signals running on cue (`drive.ts`'s `useDrive`, which the
+  footer's road runs on too: 3s as its card comes into view, then the
+  reader's scroll); the Svelte site mirrors it (its `drive` action); its own
   character standing on the strip's foot at the right, half over the card
   (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
   plate of the card's ground so its ink never melts into the strip's), then

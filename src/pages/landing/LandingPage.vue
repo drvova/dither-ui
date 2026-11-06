@@ -11,6 +11,7 @@
 import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import {
   DitherAvatar,
+  DitherCircuit,
   DitherClipboard,
   DitherGradient,
   DitherIcon,
@@ -26,6 +27,7 @@ import "./chapters.css"
 import { version } from "../../../package.json"
 import AgentStory from "./AgentStory.vue"
 import Examples from "./Examples.vue"
+import { useDrive } from "./drive"
 import { RUNTIME_DEPS, SPECS } from "./facts"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 
@@ -64,9 +66,14 @@ onMounted(() => {
   ].join(" ")
 })
 
+/** How long the bridge's board runs by itself as its card comes into view. */
+const BOARD_DANCE = 3000
+
 // What's inside: the kit, the Studio and the bridge, each a card headed by a
-// tone strip the kit prints in its own ink through its own printer's screen
-// (blue in Bayer cells, the ember in lines, bone in a halftone dot), its own
+// strip the kit prints in its own ink through its own printer's screen
+// (blue in Bayer cells, the ember in lines, bone in a halftone dot): a tone
+// for the kit and the Studio, a circuit board for the bridge, its signals
+// running between the tab and the agent in the ember; its own
 // character (the kit's seeded avatar of its title, in its ink) standing on
 // the strip's foot, its name in the pixel face, two lines and its link.
 const INSIDE: {
@@ -74,6 +81,8 @@ const INSIDE: {
   name: string
   ink: PixelColor
   screen: ScreenKind
+  /** What the strip prints: a tone from the ink, or a board in it. */
+  art: "tone" | "circuit"
   text: string
   link: { label: string; href: string }
 }[] = [
@@ -82,6 +91,7 @@ const INSIDE: {
     name: "kit",
     ink: "blue",
     screen: "bayer",
+    art: "tone",
     text: "Plain source you own, one engine of rasters and a seekable clock under every component. Change anything, it's yours.",
     link: { label: "Read the quick start", href: routePath("/docs/getting-started") },
   },
@@ -90,6 +100,7 @@ const INSIDE: {
     name: "studio",
     ink: "orange",
     screen: "line",
+    art: "tone",
     text: "An infinite canvas to play with screens of kit parts. Export a frame as Vue, a PNG or an MP4, then go again.",
     link: { label: "Open the studio", href: routePath("/studio") },
   },
@@ -98,6 +109,7 @@ const INSIDE: {
     name: "bridge",
     ink: "#e4e1d8",
     screen: "dot",
+    art: "circuit",
     text: "A SKILL.md teaches your agent the Studio, and one Node file starts the harness you already use, signed in as you.",
     link: { label: "Read the agent skill", href: assetPath("/agent/SKILL.md") },
   },
@@ -111,18 +123,17 @@ const INSIDE: {
 // layer at a time).
 const DitherShader = defineAsyncComponent(() => import("@dither-kit/tailwind/DitherShader.vue"))
 const footStill = ref(true)
-const driven = ref(false)
+const { driven, drive, running } = useDrive()
 const road = ref<HTMLElement | null>(null)
-let until = 0
-let settle = 0
-/** Keep the art moving for at least `ms` more. */
-function drive(ms = 240) {
-  until = Math.max(until, performance.now() + ms)
-  driven.value = true
-  clearTimeout(settle)
-  settle = window.setTimeout(() => (driven.value = false), until - performance.now())
+// The bridge's board (What's inside) runs the same way: its signals run as
+// its card comes into view, then only while the reader moves the page.
+const board = useDrive()
+const boardCard = ref<HTMLElement | null>(null)
+let boardInView = false
+const scrolled = () => {
+  drive()
+  if (boardInView) board.drive()
 }
-const scrolled = () => drive()
 // The dance, once per time the road comes into view, waiting for the brand.
 let inView = false
 let danced = false
@@ -135,7 +146,7 @@ function dance() {
 // back once it is home.
 function forming() {
   footStill.value = false
-  if (until > performance.now()) danced = false
+  if (running()) danced = false
 }
 function homed() {
   footStill.value = true
@@ -173,9 +184,22 @@ watch(
   },
 )
 let seen: IntersectionObserver | null = null
+let boardSeen: IntersectionObserver | null = null
 onMounted(() => {
   addEventListener("scroll", scrolled, { passive: true })
-  if (typeof IntersectionObserver === "undefined" || !road.value) return
+  if (typeof IntersectionObserver === "undefined") return
+  if (boardCard.value) {
+    boardSeen = new IntersectionObserver(
+      ([entry]) => {
+        const was = boardInView
+        boardInView = !!entry?.isIntersecting
+        if (boardInView && !was) board.drive(BOARD_DANCE)
+      },
+      { threshold: 0.5 },
+    )
+    boardSeen.observe(boardCard.value)
+  }
+  if (!road.value) return
   seen = new IntersectionObserver(
     ([entry]) => {
       inView = !!entry?.isIntersecting
@@ -190,7 +214,7 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(carRaf)
   removeEventListener("scroll", scrolled)
   seen?.disconnect()
-  clearTimeout(settle)
+  boardSeen?.disconnect()
 })
 
 // The footer's columns.
@@ -288,10 +312,22 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             </div>
           </div>
           <ul class="inside">
-            <li v-for="c in INSIDE" :key="c.title">
+            <li
+              v-for="c in INSIDE"
+              :key="c.title"
+              :ref="(el) => c.art === 'circuit' && (boardCard = el as HTMLElement)"
+            >
               <DitherScreen :screen="c.screen">
                 <DitherReveal class="inside-art" :duration="0.72" easing="spring" aria-hidden="true">
-                  <DitherGradient :from="c.ink" :to="STOCK" direction="down" :cell="4" />
+                  <DitherCircuit
+                    v-if="c.art === 'circuit'"
+                    :ink="c.ink"
+                    :seed="11"
+                    :density="1"
+                    :pitch="3"
+                    :paused="!board.driven.value"
+                  />
+                  <DitherGradient v-else :from="c.ink" :to="STOCK" direction="down" :cell="4" />
                 </DitherReveal>
               </DitherScreen>
               <span class="inside-who" aria-hidden="true"
