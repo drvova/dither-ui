@@ -35,11 +35,10 @@ const BAYER = [
 const SHADE = 8
 const shaded = (x: number, y: number) => x - CX + (y - CY) >= 2
 
-/** Where its eyes are: holes in the body. */
-export const EYES = [
-  [3, 6],
-  [7, 6],
-]
+/** Its eye, a hole in the body, and its optic, the other eye, a lens of
+ * ember that never shuts: the diamond come alive, part machine. */
+export const EYE = [3, 6] as const
+export const OPTIC = [7, 6] as const
 const CORE = [5, 8] as const
 
 function body(pose: MascotPose): MascotCell[] {
@@ -48,9 +47,9 @@ function body(pose: MascotPose): MascotCell[] {
   for (let y = 0; y < MASCOT_H; y++)
     for (let x = 0; x < MASCOT_W; x++) {
       if (Math.abs(x - CX) + Math.abs(y - CY) > R) continue
-      const eye = EYES.some(([ex, ey]) => ex === x && ey === y)
+      const eye = x === EYE[0] && y === EYE[1]
       if (eye && !blink) continue
-      if (x === CORE[0] && y === CORE[1]) {
+      if ((x === CORE[0] && y === CORE[1]) || (x === OPTIC[0] && y === OPTIC[1])) {
         cells.push({ x, y, ink: "ember" })
         continue
       }

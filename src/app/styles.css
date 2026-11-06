@@ -272,6 +272,24 @@
       0 var(--cut)
     );
   }
+  /* Its fasteners: a socket-head screw in each uncut corner, machined into
+     the shell (a titanium head, a dark socket), held clear of what it holds. */
+  .hardshell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    --screw: radial-gradient(
+      circle,
+      var(--background) 0 1px,
+      color-mix(in oklab, var(--foreground) 26%, transparent) 1.2px 2.6px,
+      transparent 2.9px
+    );
+    background:
+      var(--screw) top 3px right 3px / 6px 6px no-repeat,
+      var(--screw) bottom 3px left 3px / 6px 6px no-repeat;
+  }
   .hardshell::after {
     content: "";
     position: absolute;
@@ -423,6 +441,7 @@
       border: 1px solid CanvasText;
     }
     .hardshell::after,
+    .hardshell::before,
     .gel::after,
     .gel::before,
     .capsule::after,

@@ -1,7 +1,7 @@
 // @rstest-environment jsdom
 // The mascot: the brand's diamond come alive, one table for every place it
-// stands. Its shape holds: in its grid, every cell once, two eyes open (shut
-// when it blinks), the mark's ember heart, ember antenna tips, feet on the
+// stands. Its shape holds: in its grid, every cell once, an eye open (shut
+// when it blinks) beside an ember optic that never shuts, the mark's ember heart, ember antenna tips, feet on the
 // ground row standing and off it hopping or flying, a rotor that turns in
 // flight, and a body printed solid on the lit side and through the Bayer
 // thresholds on the shaded one.
@@ -27,19 +27,18 @@ describe("the mascot", () => {
     }
   })
 
-  it("has two eyes open, shut when it blinks", () => {
-    for (const [x, y] of [
-      [3, 7],
-      [7, 7],
-    ]) {
-      expect(at("idle", x, y)).toBeUndefined()
-      expect(at("blink", x, y)?.ink).toBe("body")
-    }
+  it("has an eye open, shut when it blinks, beside an optic that never shuts", () => {
+    expect(at("idle", 3, 7)).toBeUndefined()
+    expect(at("blink", 3, 7)?.ink).toBe("body")
+    for (const pose of POSES)
+      expect(
+        mascotCells(pose).find((c) => c.x === 7 && c.y === 6 + (pose === "hop" || pose === "fly" ? 0 : 1))?.ink,
+      ).toBe("ember")
   })
 
-  it("carries the mark's ember: its heart and its antenna tips, nothing else", () => {
+  it("carries the mark's ember: its heart, its optic and its antenna tips, nothing else", () => {
     const ember = mascotCells("idle").filter((c) => c.ink === "ember")
-    expect(ember.map((c) => `${c.x},${c.y}`).sort()).toEqual(["3,1", "5,9", "7,1"])
+    expect(ember.map((c) => `${c.x},${c.y}`).sort()).toEqual(["3,1", "5,9", "7,1", "7,7"])
   })
 
   it("stands on the ground row, and leaves it to hop", () => {
@@ -58,12 +57,17 @@ describe("the mascot", () => {
     expect(spans).toEqual([9, 5, 1, 5])
     expect(blade(MASCOT_ROTOR_STEPS)).toEqual(blade(0))
     expect(at("fly", 5, 1)?.ink).toBe("body")
-    // ember only at the blade's ends and the heart
+    // ember only at the blade's ends, the optic and the heart
     for (let t = 0; t < MASCOT_ROTOR_STEPS; t++) {
       const ember = mascotCells("fly", t).filter((c) => c.ink === "ember")
       const xs = blade(t)
       expect(ember.filter((c) => c.y === 0).map((c) => c.x)).toEqual([...new Set([xs[0], xs.at(-1)])])
-      expect(ember.filter((c) => c.y !== 0).map((c) => `${c.x},${c.y}`)).toEqual(["5,8"])
+      expect(
+        ember
+          .filter((c) => c.y !== 0)
+          .map((c) => `${c.x},${c.y}`)
+          .sort(),
+      ).toEqual(["5,8", "7,6"])
     }
     // airborne, its feet hanging under it
     const low = Math.max(...mascotCells("fly").map((c) => c.y))

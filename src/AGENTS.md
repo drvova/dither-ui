@@ -600,7 +600,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   slanted plate), the ONLY uppercase in the site's own chrome;
   `.hardshell` (two corners cut by `clip-path`, which clips what it
   holds, fixed descendants included; a chrome-glint ring along the cut;
-  the shell ground; set `--cut` locally for a smaller cut); `.gel` (an
+  a socket-head fastener in each uncut corner, 3px in, hidden under
+  forced colours like the ring; the shell ground; set `--cut`
+  locally for a smaller cut); `.gel` (an
   asymmetric pebble recessed into its shell, `overflow: hidden`, a
   directional highlight over its top 38%; chips in it take z-index 4);
   `.capsule` (a floating smoked-polymer shell: `--smoke` under a light
@@ -692,7 +694,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   environment, at the site's root.
 - `shared/ui/mascot.ts` is the mascot's one table (the brand's diamond
   come alive, ORIGINAL: an 11x15 cell grid, the body printed through the
-  Bayer thresholds, eye holes, the mark's ember heart and antenna tips;
+  Bayer thresholds, an eye hole beside an ember optic that never shuts,
+  the mark's ember heart and antenna tips;
   poses idle, blink, hop, wave and fly, where the antennae fold into a
   rotor whose `turn` steps it round); `Mascot.vue` draws it as a
   decorative SVG in `currentColor`, blinks when `alive`, hops under a
@@ -706,7 +709,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `MascotCar.vue` draws them, its wheels turning while `driving`, still
   under reduced motion. Guarded by `tests/car.spec.ts`.
   `mascot-capture.ts` grows the table into a Gaussian capture of our own
-  (a cut stone of splats, dark eyes on both faces, three ember orbits),
+  (a cut stone of splats, a dark eye and an ember optic on both faces, three ember orbits),
   seeded; the build serves it at `CAPTURE_PATH` (`rstack.config.ts`, the
   `captureFiles` plugin, never a copy in `public/`) and the docs' World
   section prints it. Read by `tests/splats.spec.ts`.

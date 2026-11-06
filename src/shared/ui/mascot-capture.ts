@@ -7,7 +7,7 @@
  * the `captureFiles` plugin). Seeded, so every build writes the same
  * bytes. Node-side too: rstack.config.ts loads it under Node's own
  * TypeScript, so its imports carry `.ts`. `tests/splats.spec.ts` reads it. */
-import { EYES, MASCOT_H, MASCOT_W, mascotCells } from "./mascot.ts"
+import { EYE, MASCOT_H, MASCOT_W, mascotCells, OPTIC } from "./mascot.ts"
 
 export const CAPTURE_PATH = "models/mascot.splat"
 
@@ -53,8 +53,12 @@ export function captureGaussians(): Gaussian[] {
       })
     }
   }
-  // its eyes: dark on both faces, so they read from the front and the back
-  for (const [ex, ey] of EYES)
+  // its eye dark and its optic a lens of ember, on both faces, so they read
+  // from the front and the back
+  for (const [[ex, ey], rgb] of [
+    [EYE, OBSIDIAN],
+    [OPTIC, EMBER],
+  ] as const)
     for (const face of [-1, 1])
       for (let k = 0; k < 6; k++)
         out.push({
@@ -64,7 +68,7 @@ export function captureGaussians(): Gaussian[] {
             face * (halfOf(ex, ey) + unit * 0.05),
           ],
           s: unit * 0.3,
-          rgb: OBSIDIAN,
+          rgb: [...rgb],
           a: 1,
         })
   // three orbits, each tilted its own way about the body
