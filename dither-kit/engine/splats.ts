@@ -262,7 +262,13 @@ export type SplatTarget = {
 let order = new Uint32Array(0)
 let keys = new Uint16Array(0)
 let screen = new Float32Array(0)
+let trans = new Float32Array(0)
+let acc = new Float32Array(0)
+let half = new Float32Array(0)
 const BUCKETS = 65536
+const counts = new Uint32Array(BUCKETS + 1)
+/** Floats a projected splat keeps: centre, conic, half extents, depth, index, cutoff. */
+const STRIDE = 10
 
 /**
  * Lay the cloud on the target: each splat's covariance turned into camera
@@ -270,115 +276,149 @@ const BUCKETS = 65536
  * (with a cell's worth of blur, so a splat never falls between cells), the
  * cloud ordered near to far (a counting sort on the depth), and each cell
  * filled front to back until it is opaque or reaches a mesh drawn nearer.
- * A cell the capture covers takes its colour's cube entry and its
- * luminance as the shade; its depth is where it became half opaque.
+ * A footprint covers the box of its 3-sigma ellipse, and a cell where the
+ * splat could not reach 1/255 is passed without its exponential. A cell
+ * the capture covers takes its colour's cube entry and its luminance as
+ * the shade; its depth is where it became half opaque. Allocates nothing
+ * once its scratch has grown to the cloud and the target.
  */
 export function compositeSplats(cloud: SplatCloud, v: SplatView, target: SplatTarget): void {
   const { cols, rows } = v
   const cells = cols * rows
   if (!cloud.count || cols < 1 || rows < 1) return
   const n = cloud.count
-  if (screen.length < n * 8) {
-    screen = new Float32Array(n * 8)
+  if (keys.length < n) {
+    screen = new Float32Array(n * STRIDE)
     keys = new Uint16Array(n)
     order = new Uint32Array(n)
   }
-  // the camera's rotation, rows (world to camera): yaw about y, then pitch about x
-  const r0 = [v.cy, 0, v.sy]
-  const r1 = [v.sy * v.sp, v.cp, -v.cy * v.sp]
-  const r2 = [-v.sy * v.cp, v.sp, v.cy * v.cp]
+  if (trans.length < cells) {
+    trans = new Float32Array(cells)
+    acc = new Float32Array(cells * 3)
+    half = new Float32Array(cells)
+  }
+  // the camera's rotation, rows (world to camera): yaw about y, then pitch
+  // about x; the depth row points away from the eye
+  const { cy: ya, sy: yb, cp: pa, sp: pb } = v
+  const ax = ya
+  const az = yb
+  const bx = yb * pb
+  const by = pa
+  const bz = -ya * pb
+  const dx_ = yb * pa
+  const dy_ = -pb
+  const dz_ = -ya * pa
+  const [ox, oy, oz] = v.center
   const near = v.span * 1e-3
   const far = v.dist + v.span
   const cap = Math.max(cols, rows) / 2
+  const pos = cloud.positions
+  const cov = cloud.cov
   let live = 0
   for (let i = 0; i < n; i++) {
-    const px = cloud.positions[i * 3] - v.center[0]
-    const py = cloud.positions[i * 3 + 1] - v.center[1]
-    const pz = cloud.positions[i * 3 + 2] - v.center[2]
-    const x = r0[0] * px + r0[2] * pz
-    const y = r1[0] * px + r1[1] * py + r1[2] * pz
-    const d = v.dist - (r2[0] * px + r2[1] * py + r2[2] * pz)
-    if (d < near || cloud.opacity[i] < 1 / 255) continue
+    const op = cloud.opacity[i]
+    if (op < 1 / 255) continue
+    const px = pos[i * 3] - ox
+    const py = pos[i * 3 + 1] - oy
+    const pz = pos[i * 3 + 2] - oz
+    const x = ax * px + az * pz
+    const y = bx * px + by * py + bz * pz
+    const d = v.dist + dx_ * px + dy_ * py + dz_ * pz
+    if (d < near) continue
     const inv = v.scale / d
     const sx = cols / 2 + x * inv
     const sy = rows / 2 - y * inv
-    // camera-space covariance W C W^T
+    // camera-space covariance: each camera row through the world covariance, then dotted
     const o = i * 6
-    const c = cloud.cov
-    const m = [c[o], c[o + 1], c[o + 2], c[o + 1], c[o + 3], c[o + 4], c[o + 2], c[o + 4], c[o + 5]]
-    const w = [r0, r1, [-r2[0], -r2[1], -r2[2]]] // the depth axis points away from the eye
-    const wm = (a: number, b: number) => w[a][0] * m[b] + w[a][1] * m[3 + b] + w[a][2] * m[6 + b]
-    const cc = (a: number, b: number) => wm(a, 0) * w[b][0] + wm(a, 1) * w[b][1] + wm(a, 2) * w[b][2]
+    const c00 = cov[o]
+    const c01 = cov[o + 1]
+    const c02 = cov[o + 2]
+    const c11 = cov[o + 3]
+    const c12 = cov[o + 4]
+    const c22 = cov[o + 5]
+    const ux = c00 * ax + c02 * az // C . row x
+    const uy = c01 * ax + c12 * az
+    const uz = c02 * ax + c22 * az
+    const vx = c00 * bx + c01 * by + c02 * bz // C . row y
+    const vy = c01 * bx + c11 * by + c12 * bz
+    const vz = c02 * bx + c12 * by + c22 * bz
+    const wx = c00 * dx_ + c01 * dy_ + c02 * dz_ // C . row depth
+    const wy = c01 * dx_ + c11 * dy_ + c12 * dz_
+    const wz = c02 * dx_ + c12 * dy_ + c22 * dz_
+    const cxx = ax * ux + az * uz
+    const cxy = bx * ux + by * uy + bz * uz
+    const cxd = dx_ * ux + dy_ * uy + dz_ * uz
+    const cyy = bx * vx + by * vy + bz * vz
+    const cyd = dx_ * vx + dy_ * vy + dz_ * vz
+    const cdd = dx_ * wx + dy_ * wy + dz_ * wz
     // the Jacobian of (x, y, d) to screen cells: u = x s/d, v = -y s/d
     const j00 = inv
     const j02 = (-x * inv) / d
     const j11 = -inv
     const j12 = (y * inv) / d
-    const cxx = cc(0, 0)
-    const cxy = cc(0, 1)
-    const cxd = cc(0, 2)
-    const cyy = cc(1, 1)
-    const cyd = cc(1, 2)
-    const cdd = cc(2, 2)
     const a = j00 * j00 * cxx + 2 * j00 * j02 * cxd + j02 * j02 * cdd + 0.3
     const b = j00 * j11 * cxy + j00 * j12 * cxd + j02 * j11 * cyd + j02 * j12 * cdd
     const cY = j11 * j11 * cyy + 2 * j11 * j12 * cyd + j12 * j12 * cdd + 0.3
     const det = a * cY - b * b
     if (det <= 0) continue
-    const mid = (a + cY) / 2
-    const radius = Math.min(cap, 3 * Math.sqrt(mid + Math.sqrt(Math.max(0.1, mid * mid - det))))
-    if (sx + radius < 0 || sx - radius > cols || sy + radius < 0 || sy - radius > rows) continue
-    const s = live * 8
+    // the 3-sigma ellipse's box
+    const rx = Math.min(cap, 3 * Math.sqrt(a))
+    const ry = Math.min(cap, 3 * Math.sqrt(cY))
+    if (sx + rx < 0 || sx - rx > cols || sy + ry < 0 || sy - ry > rows) continue
+    const s = live * STRIDE
     screen[s] = sx
     screen[s + 1] = sy
     screen[s + 2] = cY / det // the conic: the inverse of the 2D covariance
     screen[s + 3] = -b / det
     screen[s + 4] = a / det
-    screen[s + 5] = radius
-    screen[s + 6] = d
-    screen[s + 7] = i
+    screen[s + 5] = rx
+    screen[s + 6] = ry
+    screen[s + 7] = d
+    screen[s + 8] = i
+    // below this power the splat cannot reach 1/255 in a cell
+    screen[s + 9] = Math.log(1 / (255 * op))
     keys[live] = Math.round(Math.max(0, Math.min(1, d / far)) * (BUCKETS - 1))
     live++
   }
   // near to far: a counting sort on the quantized depth
-  const counts = new Uint32Array(BUCKETS + 1)
+  counts.fill(0)
   for (let k = 0; k < live; k++) counts[keys[k] + 1]++
   for (let k = 0; k < BUCKETS; k++) counts[k + 1] += counts[k]
   for (let k = 0; k < live; k++) order[counts[keys[k]]++] = k
 
-  const trans = new Float32Array(cells).fill(1)
-  const acc = new Float32Array(cells * 3)
-  const half = new Float32Array(cells).fill(Infinity)
+  trans.fill(1, 0, cells)
+  acc.fill(0, 0, cells * 3)
+  half.fill(Infinity, 0, cells)
   const zbuf = target.depth
   for (let k = 0; k < live; k++) {
-    const s = order[k] * 8
+    const s = order[k] * STRIDE
     const sx = screen[s]
     const sy = screen[s + 1]
     const ca = screen[s + 2]
     const cb = screen[s + 3]
     const cc = screen[s + 4]
-    const radius = screen[s + 5]
-    const d = screen[s + 6]
-    const i = screen[s + 7]
+    const d = screen[s + 7]
+    const i = screen[s + 8]
+    const cutoff = screen[s + 9]
     const op = cloud.opacity[i]
     const cr = cloud.colors[i * 3]
     const cg = cloud.colors[i * 3 + 1]
     const cbl = cloud.colors[i * 3 + 2]
-    const x0 = Math.max(0, Math.floor(sx - radius))
-    const x1 = Math.min(cols - 1, Math.ceil(sx + radius))
-    const y0 = Math.max(0, Math.floor(sy - radius))
-    const y1 = Math.min(rows - 1, Math.ceil(sy + radius))
+    const x0 = Math.max(0, Math.floor(sx - screen[s + 5]))
+    const x1 = Math.min(cols - 1, Math.ceil(sx + screen[s + 5]))
+    const y0 = Math.max(0, Math.floor(sy - screen[s + 6]))
+    const y1 = Math.min(rows - 1, Math.ceil(sy + screen[s + 6]))
     for (let y = y0; y <= y1; y++) {
       const dy = y + 0.5 - sy
+      const row = y * cols
       for (let x = x0; x <= x1; x++) {
-        const cell = y * cols + x
+        const cell = row + x
         const t = trans[cell]
         if (t < 0.004 || d >= zbuf[cell]) continue
         const dx = x + 0.5 - sx
         const power = -0.5 * (ca * dx * dx + 2 * cb * dx * dy + cc * dy * dy)
-        if (power > 0) continue
+        if (power > 0 || power < cutoff) continue
         const alpha = Math.min(0.99, op * Math.exp(power))
-        if (alpha < 1 / 255) continue
         const wgt = t * alpha
         acc[cell * 3] += wgt * cr
         acc[cell * 3 + 1] += wgt * cg
