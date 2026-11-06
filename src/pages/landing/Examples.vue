@@ -21,10 +21,11 @@ import {
   AreaChart,
   DitherButton,
   DitherDecryptedText,
+  DitherGauge,
   DitherGradient,
   DitherIcon,
+  DitherKnob,
   DitherNumberFlow,
-  DitherRating,
   DitherReveal,
   DitherScreen,
   DitherSilk,
@@ -169,7 +170,8 @@ const model = ref(7)
 const world = computed(() => sampleWorld(model.value))
 
 // Rating.
-const stars = ref(4)
+// The instrument: the knob sets the load, the dial's needle settles on it.
+const load = ref(64)
 
 // Print screens: one tone ramp, raw on the left and printed on the right,
 // the split dragged (or stepped by keyboard) and the screen switched in
@@ -278,9 +280,9 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
             </div>
           </template>
 
-          <div v-else-if="t.id === 'rating'" class="stack">
-            <DitherRating v-model="stars" :size="44" label="Rate the kit" />
-            <span class="readout"><DitherNumberFlow :value="stars" :duration="320" /> of 5</span>
+          <div v-else-if="t.id === 'gauge'" class="instrument">
+            <DitherGauge :value="load" label="load" :warn="0.8" class="instrument-dial" />
+            <DitherKnob v-model="load" :size="52" label="Load" />
           </div>
 
           <div v-else-if="t.id === 'print-screens'" class="split" :style="{ '--split': `${split}%` }">
@@ -525,7 +527,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   min-height: 420px;
 }
 
-.t-rating .card-art,
+.t-gauge .card-art,
 .t-stats-cards .card-art {
   height: 220px;
   padding: 18px 20px;
@@ -684,7 +686,18 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   height: 100%;
 }
 
-.t-rating .stack,
+.instrument {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  height: 100%;
+}
+.instrument-dial {
+  width: min(55%, 180px);
+}
+.t-gauge .stack,
 .t-button .stack,
 .t-slide-action .stack {
   justify-content: center;

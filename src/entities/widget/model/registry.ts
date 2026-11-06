@@ -376,6 +376,21 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [color(), number("value", 60, 0, 100), bool("indeterminate")],
   },
   {
+    is: "DitherGauge",
+    label: "Gauge",
+    group: "display",
+    frame: { w: 220, h: 220 },
+    props: [
+      number("value", 62, 0, 100),
+      number("min", 0),
+      number("max", 100),
+      number("ticks", 10, 1, 20, 1),
+      number("warn", 0.8, 0, 1, 0.05),
+      text("label", "load"),
+      color("grey"),
+    ],
+  },
+  {
     is: "DitherMeter",
     label: "Meter",
     group: "display",

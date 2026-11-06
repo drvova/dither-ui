@@ -219,7 +219,10 @@ widgets/features; page-specific conventions live here.
   components (the strongest; the docs hold the rest) on a 12-column grid
   row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
-  ember, and "New model" for the next seed) beside the rating (its stars at display size, 44px) and the
+  ember, and "New model" for the next seed) beside the gauge (an
+  instrument: the kit's `DitherKnob` sets the load and the `DitherGauge`
+  needle settles on it; the Svelte site drives it with a slider, its kit
+  having no knob) and the
   stat card (frames exported a day, `stat.ts`, copied byte for byte to the
   Svelte site: the headline is the total at rest; scrub the `Sparkline`
   (`interactive`) and its own crosshair marks the day under the pointer
@@ -1279,7 +1282,7 @@ widgets/features; page-specific conventions live here.
   (no page scroll sideways) with every card drawn and
   its controls working (the model's ramps and "New model", "Roll a seed",
   the button's fills and hues, "New shader" and its outputs, the fluid's
-  palettes, the styling systems, the slide count, the rating), the lazy cards loading as they near, each pause
+  palettes, the styling systems, the slide count, the gauge's knob), the lazy cards loading as they near, each pause
   chip stopping its surface, at most one bento surface playing at every
   scroll stop (a mouse hover, keyboard focus and a chip tap each taking
   it as set above), each card's art printing once as it nears,

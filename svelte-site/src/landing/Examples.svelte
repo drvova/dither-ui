@@ -12,8 +12,9 @@
     AreaChart,
     DecryptedText,
     DitherButton,
+    DitherGauge,
     DitherGradient,
-    DitherRating,
+    DitherSlider,
     DitherScreen,
     Ferrofluid,
     NumberFlow,
@@ -36,7 +37,7 @@
    * its docs section (`docsHref` throws on one the docs do not render). */
   const BENTO = [
     { id: "ferrofluid", label: "Ferrofluid" },
-    { id: "rating", label: "Rating" },
+    { id: "gauge", label: "Gauge" },
     { id: "sparkline", label: "Sparkline" },
     { id: "gradient", label: "Gradient" },
     { id: "area", label: "Area chart" },
@@ -132,8 +133,8 @@
   const FLUID_NAMES = Object.keys(FLUIDS) as Fluid[]
   let fluid = $state<Fluid>("blue")
 
-  // Rating.
-  let stars = $state(4)
+  // The instrument: the slider sets the load, the dial's needle settles on it.
+  let load = $state(64)
 
   // Stat card: scrub the sparkline and the headline rolls to the day under
   // the pointer (`stat.ts`).
@@ -208,10 +209,10 @@
                 {/each}
               </div>
             </div>
-          {:else if t.id === "rating"}
-            <div class="stack">
-              <DitherRating bind:value={stars} size={30} label="Rate the kit" />
-              <span class="readout"><NumberFlow value={stars} duration={320} /> of 5</span>
+          {:else if t.id === "gauge"}
+            <div class="instrument">
+              <DitherGauge value={load} label="load" warn={0.8} class="instrument-dial" />
+              <DitherSlider bind:value={load} label="Load" class="instrument-set" />
             </div>
           {:else if t.id === "sparkline"}
             <div class="panel stat">
@@ -382,7 +383,22 @@
     min-height: 420px;
   }
 
-  .t-rating .card-art,
+  .instrument {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+  }
+  .instrument :global(.instrument-dial) {
+    width: min(50%, 150px);
+  }
+  .instrument :global(.instrument-set) {
+    width: min(80%, 220px);
+  }
+  .t-gauge .card-art,
   .t-sparkline .card-art {
     height: 220px;
     padding: 18px 20px;

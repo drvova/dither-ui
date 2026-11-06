@@ -6,6 +6,7 @@ import {
   DitherAlertDialog,
   DitherButton,
   DitherDrawer,
+  DitherGauge,
   DitherMeter,
   DitherNavMenu,
   DitherScrollArea,
@@ -14,6 +15,7 @@ import {
   DitherSidebarGroup,
   DitherSidebarItem,
   DitherSidebarSub,
+  DitherSlider,
   DitherSwipeArea,
   DitherSwitch,
   DitherToaster,
@@ -63,6 +65,20 @@ const METERS = [
   { label: "Memory", value: 68 },
   { label: "CPU", value: 92 },
 ]
+
+// An instrument panel: the first dial follows the slider under it.
+const pressure = ref(62)
+
+const SNIPPET_GAUGE = `<script setup>
+const pressure = ref(62)
+<\/script>
+
+<div class="grid grid-cols-3 gap-4">
+  <DitherGauge :value="pressure" label="kPa" />
+  <DitherGauge :value="84" label="load" :warn="0.75" />
+  <DitherGauge :value="1.6" :min="0" :max="4" :ticks="8" :decimals="1" label="bar" :warn="null" />
+</div>
+<DitherSlider v-model="pressure" label="Pressure" />`
 
 const SNIPPET_ACCORDION = `<script setup>
 const faq = ref("what")
@@ -249,6 +265,18 @@ const API: Record<string, PropRow[]> = {
     { prop: "message", type: "string", default: "" },
     { prop: "opts.color", type: "PixelColor", default: '"blue"' },
     { prop: "opts.duration", type: "number", default: "3500" },
+  ],
+  gauge: [
+    { prop: "value", type: "number", default: "" },
+    { prop: "min", type: "number", default: "0" },
+    { prop: "max", type: "number", default: "100" },
+    { prop: "ticks", type: "number (intervals between major ticks)", default: "10" },
+    { prop: "warn", type: "number | null (where the zone starts, 0..1)", default: "0.8" },
+    { prop: "label", type: "string (under the reading, its accessible name)", default: "undefined" },
+    { prop: "decimals", type: "number", default: "0" },
+    { prop: "color", type: "PixelColor", default: '"grey"' },
+    { prop: "warnColor", type: "PixelColor (the zone and the hub)", default: '"orange"' },
+    { prop: "seed", type: "number", default: "undefined" },
   ],
   meter: [
     { prop: "value", type: "number", default: "" },
@@ -588,6 +616,26 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.meter" />
+  </section>
+
+  <section id="gauge" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Gauge</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An instrument dial. The band prints cell by cell through the threshold matrix, filled to the needle; past the warn
+      mark the zone is in the warning ink. A changed value settles on the spring, and under reduced motion the needle
+      simply stands on it.
+    </p>
+    <DemoCard :code="SNIPPET_GAUGE">
+      <div class="mx-auto grid max-w-md gap-5">
+        <div class="grid grid-cols-3 gap-4">
+          <DitherGauge :value="pressure" label="kPa" />
+          <DitherGauge :value="84" label="load" :warn="0.75" />
+          <DitherGauge :value="1.6" :min="0" :max="4" :ticks="8" :decimals="1" label="bar" :warn="null" />
+        </div>
+        <DitherSlider v-model="pressure" label="Pressure" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.gauge" />
   </section>
 
   <section id="scroll-area" class="mt-16 scroll-mt-24">

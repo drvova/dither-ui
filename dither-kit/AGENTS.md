@@ -89,6 +89,15 @@ the kit every import is relative (`../engine/pixel`).
   opener on close. With nothing matching it shows `empty`; the Vue kit's
   `empty` slot and the Svelte kit's `empty` snippet (a string or a
   snippet, one prop) draw it instead, given the query.
+- `DitherGauge` (both kits) is an instrument dial, read-only
+  (`role="meter"`, valued, named by its `label`, read out as the reading
+  and the label): its geometry and its band live in `engine/gauge.ts`
+  (one 240-degree sweep from the lower left, the band printed through
+  `useDitherMatrix` filled to the needle, the zone past `warn` in the
+  warning ink); ticks, numerals (every other major past six intervals)
+  and the needle are SVG over it. A changed value settles on the kit's
+  spring; reduced motion and a director's clock stand it on the reading
+  (the Svelte port has no director). Guarded by `tests/gauge.spec.ts`.
 - `DitherTabs` (both kits) keeps its marker canvas (the underline or the
   wash) INSIDE the `relative` tablist, positioned from the selected tab's
   offsets: a list that scrolls (more tabs than width) carries the marker
