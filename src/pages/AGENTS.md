@@ -192,8 +192,10 @@ widgets/features; page-specific conventions live here.
   synth score of pads in a long hall, the Bayer motif on an echoing lead
   and rain hiss). The mascot hosts the spec run and
   flies in on its rotor to sign off, drawn from `shared/ui/mascot.ts`'s
-  table. Its captions are the site's own copy and figures. Retake all three from the edit when the film changes
-  (1080p, 8 to 11 MB each: rain over haze needs bits in the darks) and say what it shows in the dialog's
+  table; after the 3D models it drives its car, a 3D model of our own
+  wedge speedster (no real maker's car, badge or name) built from solids
+  in raea with the mascot as voxels of its own cells. Its captions are the site's own copy and figures. Retake all three from the edit when the film changes
+  (1080p, 9 to 13 MB each: rain over haze needs bits in the darks) and say what it shows in the dialog's
   description.
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
   in and its lit cells out, with a lowercase set (four wide, x-height from
