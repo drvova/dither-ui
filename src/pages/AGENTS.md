@@ -687,6 +687,12 @@ widgets/features; page-specific conventions live here.
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs
   are computed from the picked state — what you see is what you copy.
+- The World section's rocket (`docs/components/rocket.ts`, guarded by
+  `tests/rocket.spec.ts`) is our own atomic-age rocket, never a real
+  vehicle, flag or marking: a VRML file whose flame flickers and whose
+  climb and fireball run on its own tracks, the page's Launch key driving
+  one clock (`launchAt`: the file's moment, then `scatter` blowing the
+  pieces apart at the top; reduced motion goes straight to the debris).
 - Live readings: the Gauge section's second card is an instrument panel
   reading the page itself (frames a second, the worst frame over the last
   `FRAME_WINDOW` ms, the page's elements in thousands), measured by one

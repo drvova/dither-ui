@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue"
+import { computed, onBeforeUnmount, reactive, ref } from "vue"
 import {
   DitherAurora,
   DitherBracket,
+  DitherButton,
   DitherSchedule,
   DitherShader,
   DitherVideoPlayer,
@@ -13,6 +14,8 @@ import {
 } from "@dither-kit"
 import { assetPath } from "@/shared/lib/routes"
 import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
+import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
+import { launchAt, LAUNCH_S, ROCKET } from "./rocket"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -248,6 +251,44 @@ function pick(r, m, side) {          // you own the data — advance the winner
 }
 <\\/script>`
 
+// The rocket: one clock from the key, the file's moment and the burst;
+// under reduced motion the key goes straight to the debris.
+const launchT = ref(0)
+const launch = computed(() => launchAt(launchT.value))
+const flying = computed(() => launchT.value > 0 && launchT.value < LAUNCH_S)
+let launchRaf = 0
+function fire() {
+  cancelAnimationFrame(launchRaf)
+  if (pixelPrefersReducedMotion()) {
+    launchT.value = LAUNCH_S
+    return
+  }
+  const t0 = performance.now()
+  const step = (now: number) => {
+    launchT.value = Math.min(LAUNCH_S, (now - t0) / 1000)
+    launchRaf = launchT.value < LAUNCH_S ? requestAnimationFrame(step) : 0
+  }
+  launchRaf = requestAnimationFrame(step)
+}
+onBeforeUnmount(() => cancelAnimationFrame(launchRaf))
+const SNIPPET_ROCKET = `<script setup>
+// one clock from the key: the file's moment, then the burst
+const t = ref(0)
+const scatter = computed(() => Math.min(1, Math.max(0, (t.value - 2.4) / 0.6)))
+function fire() {
+  const t0 = performance.now()
+  const step = (now) => {
+    t.value = Math.min(4.6, (now - t0) / 1000)
+    if (t.value < 4.6) requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step)
+}
+const rocket = \`${ROCKET}\`
+<\/script>
+
+<DitherWorld :source="rocket" material animate :time="t" :scatter="scatter" bloom="low" :zoom="0.62" :yaw="20" :pitch="8" />
+<DitherButton color="orange" @click="fire">Launch</DitherButton>`
+
 // A Gaussian capture: the mascot as splats, served by the build.
 const CAPTURE = assetPath(`/${CAPTURE_PATH}`)
 const captureColor = ref(true)
@@ -481,6 +522,35 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
               <option value="gpu">gpu</option>
             </select>
           </label>
+        </div>
+      </div>
+    </DemoCard>
+    <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
+      A model's own animation and a build share one clock. This rocket is a VRML file: its flame flickers by its own
+      TimeSensor, it climbs off the pad, and at the top the file swells a fireball while the page blows its pieces apart
+      with scatter.
+    </p>
+    <DemoCard :code="SNIPPET_ROCKET">
+      <div class="mx-auto max-w-md">
+        <DitherWorld
+          :source="ROCKET"
+          material
+          animate
+          :time="launch.time"
+          :scatter="launch.scatter"
+          bloom="low"
+          :zoom="0.62"
+          :yaw="20"
+          :pitch="8"
+          :cell="2"
+          color="grey"
+          label="A rocket that climbs and bursts"
+          class="h-[280px]"
+        />
+        <div class="mt-3 flex justify-center">
+          <DitherButton color="orange" :disabled="flying" @click="fire">{{
+            launchT >= LAUNCH_S ? "Launch again" : "Launch"
+          }}</DitherButton>
         </div>
       </div>
     </DemoCard>
