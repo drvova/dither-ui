@@ -429,6 +429,16 @@ the kit every import is relative (`../engine/pixel`).
   generative background surfaces (FaultyTerminal, Ferrofluid, Aurora, and the
   ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
   `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
+- `Circuit` (`circuit.ts`, both kits) is a board: `circuitBoard(cols,
+  rows, { density, pitch, seed })` lays chips on a lattice (a node of
+  clearance each) and routes traces from their pins, then free runs, in
+  straight runs with 45 degree jogs that never take a held node nor cut a
+  diagonal between two, ending in a via or a pad; `boardFor` keeps a few
+  boards by size and knobs; `paintCircuit` prints the packages (rim,
+  dithered body, pin-one notch), the traces a shade under `ink`, and a
+  signal per trace whose head (`signalHead`, a pure function of time)
+  runs in `pulse` with a `SIGNAL_TAIL` fading through the thresholds.
+  Guarded by `tests/circuit.spec.ts`.
 - `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
   surface. `models.ts` parses model files into a `World`, bounded against
   a hostile file: a scene graph is walked for at most `MAX_NODES` (shared

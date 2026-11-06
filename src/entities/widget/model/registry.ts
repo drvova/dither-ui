@@ -1051,6 +1051,22 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     ],
   },
   {
+    is: "DitherCircuit",
+    label: "Circuit",
+    group: "display",
+    frame: { w: 320, h: 220 },
+    props: [
+      text("ink", "#a6abb1"),
+      text("pulse", "#ff9632"),
+      number("density", 0.6, 0, 1, 0.05),
+      number("speed", 14, 0, 60, 1),
+      number("pitch", 4, 2, 12, 1),
+      number("frameRate", 0, 0, 60, 1),
+      select("mixBlendMode", "normal", ["normal", "screen", "lighten", "plus-lighter"]),
+      bool("paused"),
+    ],
+  },
+  {
     is: "DitherWaves",
     label: "Waves",
     group: "display",

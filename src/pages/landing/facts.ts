@@ -7,7 +7,7 @@ import type { MarkId } from "@/shared/ui/marks"
 import kit from "../../../dither-kit/package.json"
 import { SECTION_COUNT } from "./hub"
 
-export const COMPONENT_COUNT = 268
+export const COMPONENT_COUNT = 269
 
 /** The threshold matrix every surface prints through, as the page writes it. */
 export const MATRIX = `${SCREENS.bayer.length}×${SCREENS.bayer[0].length}`

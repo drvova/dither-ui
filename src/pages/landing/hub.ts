@@ -12,7 +12,7 @@ export const FAMILIES = [
   { title: "Handbook", count: 7 },
   { title: "Examples", count: 32 },
   { title: "Components", count: 102 },
-  { title: "Backgrounds", count: 47 },
+  { title: "Backgrounds", count: 48 },
   { title: "Text", count: 24 },
   { title: "Animations", count: 50 },
   { title: "Utils", count: 2 },
