@@ -23,7 +23,7 @@ const start = (el: unknown) => {
   <DitherDialog
     :open="open"
     title="The dither-ui film"
-    description="The site in use in under a minute, captioned: the brand's diamond assembling from its cells and its core lighting, the statement, the hero printing in, the bento's 3D model orbited and a rating set, the lockup built from the wire, the kit's counts, a docs section's model orbited and its code opened, a chart added and evolved in the Studio, an agent building a screen, and the diamond turning over the brand's name. Music, no speech."
+    description="Under a minute, cut hard on the beat: the brand's diamond up close under one cold light, the claim that the dither is the raster everything renders through, the diamond taken apart with its parts named, the mechanism, the kit's figures with the mascot standing by, 3D models in the house raster, a docs section in use, the landing resized from desktop to phone and back, the Studio, and the mascot flying in on its rotor to sign off beside the address. Music, no speech."
     class="max-w-5xl"
     @close="open = false"
   >

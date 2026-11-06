@@ -177,11 +177,15 @@ widgets/features; page-specific conventions live here.
   the opening tap's own tick (opening it was the ask, and iOS lets a film
   with sound start only from a gesture), `playsinline`, except under
   reduced motion, where it waits on its poster for play.
-  The film is a raea edit (React compositions the raea CLI renders: a 3D
-  open and close of the brand's diamond in its dithered look, the site in
-  use captured frame by frame from the production build, the kit's counts,
-  ordered-dither cuts, a sampled score); its captions are the site's own
-  copy and figures. Retake all three from the edit when the film changes
+  The film is a raea edit cut in a sportswear ad's grammar (React
+  compositions the raea CLI renders: the brand's diamond in 3D under one
+  cold light, an absolute claim, the diamond taken apart with its parts
+  named, the mechanism with a dry kicker, a figure-first spec run, names
+  in chrome, the site in use captured frame by frame from the production
+  build, a torture test it passes on screen, a silent sign-off; hard cuts
+  on the beat over a sampled score). The mascot hosts the spec run and
+  flies in on its rotor to sign off, drawn from `shared/ui/mascot.ts`'s
+  table. Its captions are the site's own copy and figures. Retake all three from the edit when the film changes
   (1080p, each about 8 MB) and say what it shows in the dialog's
   description.
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
