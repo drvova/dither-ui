@@ -192,9 +192,15 @@ widgets/features; page-specific conventions live here.
   synth score of pads in a long hall, the Bayer motif on an echoing lead
   and rain hiss). The mascot hosts the spec run and
   flies in on its rotor to sign off, drawn from `shared/ui/mascot.ts`'s
-  table; after the 3D models it drives its car, a 3D model of our own
-  wedge speedster (no real maker's car, badge or name) built from solids
-  in raea with the mascot as voxels of its own cells. Its captions are the site's own copy and figures. Retake all three from the edit when the film changes
+  table; after the 3D models it drives its car through the rain, a 3D
+  supercar of our own modelled to read as a real one (a smoothed body
+  with flared haunches and side intakes, a tinted glass canopy, LED-strip
+  headlights, a full-width ember tail bar, torus tyres on multi-spoke rims
+  with ember calipers, metallic titanium paint under a clear coat), never
+  a real maker's car, badge or name (the user's call, after weighing a
+  licence from the maker: its shapes are protected and marketplace
+  models carry only editorial rights); the mascot drives it, voxels of
+  its own cells behind the glass. Its captions are the site's own copy and figures. Retake all three from the edit when the film changes
   (1080p, 9 to 13 MB each: rain over haze needs bits in the darks) and say what it shows in the dialog's
   description.
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
