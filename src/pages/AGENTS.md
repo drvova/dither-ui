@@ -687,6 +687,13 @@ widgets/features; page-specific conventions live here.
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs
   are computed from the picked state — what you see is what you copy.
+- Live readings: the Gauge section's second card is an instrument panel
+  reading the page itself (frames a second, the worst frame over the last
+  `FRAME_WINDOW` ms, the page's elements in thousands), measured by one
+  rAF loop that runs only while the card is in view (`useInviewLoop`) and
+  read through `docs/components/frames.ts` (`readFrames`, guarded by
+  `tests/frames.spec.ts`); its snippet measures the same way on its own,
+  so Run plays it.
 - Docs serve Vue AND Svelte: snippets are authored once in Vue; `docs/svelte.ts`
   derives the Svelte flavor (`toSvelteCode`) for DemoCard code tabs, Handbook
   CodeBlocks (`fw()`), and PropsTable's modelValue/v-model display mapping. The

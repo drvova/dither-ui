@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
+import { useInviewLoop } from "@dither-kit/engine/use-inview-loop"
+import { FRAME_WINDOW, readFrames } from "./frames"
 import {
   cssColor,
   DitherAccordion,
@@ -69,6 +71,37 @@ const METERS = [
 // An instrument panel: the first dial follows the slider under it.
 const pressure = ref(62)
 
+// A live panel reading this page: its frames a second, its worst frame and
+// how many elements it holds, read every half second while it is in view.
+const live = ref<HTMLElement | null>(null)
+const fps = ref(0)
+const worst = ref(0)
+const nodes = ref(0)
+let liveRaf = 0
+let stamps: number[] = []
+function measure(now: number) {
+  stamps.push(now)
+  if (now - stamps[0] >= FRAME_WINDOW) {
+    const r = readFrames(stamps)
+    fps.value = r.fps
+    worst.value = r.worst
+    nodes.value = document.getElementsByTagName("*").length / 1000
+    stamps = [now]
+  }
+  liveRaf = requestAnimationFrame(measure)
+}
+useInviewLoop(
+  live,
+  () => {
+    if (!liveRaf) liveRaf = requestAnimationFrame(measure)
+  },
+  () => {
+    cancelAnimationFrame(liveRaf)
+    liveRaf = 0
+    stamps = []
+  },
+)
+
 const SNIPPET_GAUGE = `<script setup>
 const pressure = ref(62)
 <\/script>
@@ -79,6 +112,30 @@ const pressure = ref(62)
   <DitherGauge :value="1.6" :min="0" :max="4" :ticks="8" :decimals="1" label="bar" :warn="null" />
 </div>
 <DitherSlider v-model="pressure" label="Pressure" />`
+
+const SNIPPET_GAUGE_LIVE = `<script setup>
+// this page's frames a second and its worst frame, read every half second
+const fps = ref(0)
+const worst = ref(0)
+let raf = 0
+let stamps = []
+function measure(now) {
+  stamps.push(now)
+  if (now - stamps[0] >= 500) {
+    fps.value = Math.round(((stamps.length - 1) * 1000) / (now - stamps[0]))
+    worst.value = Math.max(...stamps.slice(1).map((t, i) => t - stamps[i]))
+    stamps = [now]
+  }
+  raf = requestAnimationFrame(measure)
+}
+onMounted(() => (raf = requestAnimationFrame(measure)))
+onBeforeUnmount(() => cancelAnimationFrame(raf))
+<\/script>
+
+<div class="grid grid-cols-2 gap-4">
+  <DitherGauge :value="fps" :max="120" :ticks="6" :warn="null" label="fps" />
+  <DitherGauge :value="worst" :max="50" :decimals="1" :warn="0.66" label="worst ms" />
+</div>`
 
 const SNIPPET_ACCORDION = `<script setup>
 const faq = ref("what")
@@ -633,6 +690,17 @@ const API: Record<string, PropRow[]> = {
           <DitherGauge :value="1.6" :min="0" :max="4" :ticks="8" :decimals="1" label="bar" :warn="null" />
         </div>
         <DitherSlider v-model="pressure" label="Pressure" />
+      </div>
+    </DemoCard>
+    <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
+      Instruments that read something real: this page's frame rate, its worst frame in the last half second (past 33ms a
+      frame drops) and how many elements it holds, read while the panel is on screen.
+    </p>
+    <DemoCard :code="SNIPPET_GAUGE_LIVE">
+      <div ref="live" class="mx-auto grid max-w-md grid-cols-3 gap-4">
+        <DitherGauge :value="fps" :max="120" :ticks="6" :warn="null" label="fps" />
+        <DitherGauge :value="worst" :max="50" :decimals="1" :warn="0.66" label="worst ms" />
+        <DitherGauge :value="nodes" :max="20" :decimals="1" label="k elements" />
       </div>
     </DemoCard>
     <PropsTable :rows="API.gauge" />
