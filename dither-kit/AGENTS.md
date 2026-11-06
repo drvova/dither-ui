@@ -98,6 +98,15 @@ the kit every import is relative (`../engine/pixel`).
   and the needle are SVG over it. A changed value settles on the kit's
   spring; reduced motion and a director's clock stand it on the reading
   (the Svelte port has no director). Guarded by `tests/gauge.spec.ts`.
+- `DitherScope` (both kits) is an oscilloscope screen (`role="img"`,
+  named by its `label` or its wave): its trace lives in `engine/scope.ts`
+  (a named wave or samples in -1..1 across a 5:4 screen; the beam bright
+  where it moves slowly and faint on its edges, a glow on the rows beside
+  it; a named wave's afterglow is the trace at earlier phases, so a moment
+  prints the same however it was reached); the graticule is SVG over it.
+  A named wave drifts at `speed` while on screen; reduced motion holds it
+  and a director's clock sets its phase (the Svelte port has no director).
+  Guarded by `tests/scope.spec.ts`.
 - `DitherTabs` (both kits) keeps its marker canvas (the underline or the
   wash) INSIDE the `relative` tablist, positioned from the selected tab's
   offsets: a list that scrolls (more tabs than width) carries the marker

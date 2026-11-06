@@ -6,6 +6,7 @@ export const SURFACE_NAV = [
   { id: "toast", label: "Toast" },
   { id: "meter", label: "Meter" },
   { id: "gauge", label: "Gauge" },
+  { id: "scope", label: "Scope" },
   { id: "scroll-area", label: "Scroll area" },
   { id: "toolbar", label: "Toolbar" },
   { id: "nav-menu", label: "Navigation menu" },

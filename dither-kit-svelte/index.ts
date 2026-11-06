@@ -175,6 +175,7 @@ export { default as DitherSlider, type SliderVariant } from "./controls/DitherSl
 export { default as DitherSwitch } from "./controls/DitherSwitch.svelte"
 export { default as DitherProgress } from "./controls/DitherProgress.svelte"
 export { default as DitherGauge } from "./controls/DitherGauge.svelte"
+export { default as DitherScope } from "./controls/DitherScope.svelte"
 export { default as DitherMeter } from "./controls/DitherMeter.svelte"
 export { default as DitherBadge, type BadgeVariant } from "./controls/DitherBadge.svelte"
 export { default as DitherSkeleton } from "./controls/DitherSkeleton.svelte"

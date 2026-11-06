@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { useInviewLoop } from "@dither-kit/engine/use-inview-loop"
+import type { ScopeWave } from "@dither-kit/engine/scope"
 import { FRAME_WINDOW, readFrames } from "./frames"
 import {
   cssColor,
@@ -11,6 +12,7 @@ import {
   DitherGauge,
   DitherMeter,
   DitherNavMenu,
+  DitherScope,
   DitherScrollArea,
   DitherSeparator,
   DitherSidebar,
@@ -21,6 +23,7 @@ import {
   DitherSwipeArea,
   DitherSwitch,
   DitherToaster,
+  DitherToggleGroup,
   DitherToolbar,
   toast,
 } from "@dither-kit"
@@ -70,6 +73,15 @@ const METERS = [
 
 // An instrument panel: the first dial follows the slider under it.
 const pressure = ref(62)
+
+// A scope: the picked wave drifting, its afterglow from the slider.
+const WAVES: { value: ScopeWave; label: string }[] = ["sine", "square", "triangle", "saw"].map((value) => ({
+  value: value as ScopeWave,
+  label: value,
+}))
+const wave = ref<string>("sine")
+const waveSignal = computed(() => wave.value as ScopeWave)
+const glow = ref(60)
 
 // A live panel reading this page: its frames a second, its worst frame and
 // how many elements it holds, read every half second while it is in view.
@@ -136,6 +148,18 @@ onBeforeUnmount(() => cancelAnimationFrame(raf))
   <DitherGauge :value="fps" :max="120" :ticks="6" :warn="null" label="fps" />
   <DitherGauge :value="worst" :max="50" :decimals="1" :warn="0.66" label="worst ms" />
 </div>`
+
+const SNIPPET_SCOPE = computed(
+  () => `<script setup>
+const wave = ref("${wave.value}")
+const glow = ref(${glow.value})
+const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, label: w }))
+<\/script>
+
+<DitherScope :signal="wave" :afterglow="glow / 100" label="ch1" />
+<DitherToggleGroup v-model="wave" :options="waves" />
+<DitherSlider v-model="glow" label="Afterglow" />`,
+)
 
 const SNIPPET_ACCORDION = `<script setup>
 const faq = ref("what")
@@ -333,6 +357,16 @@ const API: Record<string, PropRow[]> = {
     { prop: "decimals", type: "number", default: "0" },
     { prop: "color", type: "PixelColor", default: '"grey"' },
     { prop: "warnColor", type: "PixelColor (the zone and the hub)", default: '"orange"' },
+    { prop: "seed", type: "number", default: "undefined" },
+  ],
+  scope: [
+    { prop: "signal", type: '"sine" | "square" | "triangle" | "saw" | number[] (samples, -1..1)', default: '"sine"' },
+    { prop: "cycles", type: "number (of a named wave across the screen)", default: "2" },
+    { prop: "speed", type: "number (cycles a second; 0 holds it)", default: "0.5" },
+    { prop: "gain", type: "number (1 fills the screen)", default: "0.8" },
+    { prop: "afterglow", type: "number (0..1, the trail of earlier phases)", default: "0.6" },
+    { prop: "label", type: "string (in the corner, its accessible name)", default: "undefined" },
+    { prop: "color", type: "PixelColor", default: '"green"' },
     { prop: "seed", type: "number", default: "undefined" },
   ],
   meter: [
@@ -704,6 +738,25 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.gauge" />
+  </section>
+
+  <section id="scope" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Scope</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An oscilloscope screen. The beam prints through the threshold matrix, bright where it moves slowly and faint on
+      its edges, and a named wave drifts with a trail of its earlier phases. Give it samples and it traces those. Under
+      reduced motion, or off screen, it holds still.
+    </p>
+    <DemoCard :code="SNIPPET_SCOPE">
+      <div class="mx-auto grid max-w-md gap-5">
+        <DitherScope :signal="waveSignal" :afterglow="glow / 100" label="ch1" />
+        <div role="group" aria-label="Wave" class="flex justify-center">
+          <DitherToggleGroup v-model="wave" :options="WAVES" />
+        </div>
+        <DitherSlider v-model="glow" label="Afterglow" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.scope" />
   </section>
 
   <section id="scroll-area" class="mt-16 scroll-mt-24">

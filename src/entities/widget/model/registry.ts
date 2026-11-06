@@ -391,6 +391,21 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     ],
   },
   {
+    is: "DitherScope",
+    label: "Scope",
+    group: "display",
+    frame: { w: 300, h: 240 },
+    props: [
+      select("signal", "sine", ["sine", "square", "triangle", "saw"]),
+      number("cycles", 2, 0.5, 8, 0.5),
+      number("speed", 0.5, 0, 4, 0.1),
+      number("gain", 0.8, 0.1, 1, 0.05),
+      number("afterglow", 0.6, 0, 1, 0.05),
+      text("label", "ch1"),
+      color("green"),
+    ],
+  },
+  {
     is: "DitherMeter",
     label: "Meter",
     group: "display",

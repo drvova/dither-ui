@@ -20,7 +20,7 @@
   <img src="public/emotes/face-excited.webp" alt="Excited dither face" width="94" height="126">
 </p>
 
-A dithered UI toolkit for Vue. 267 components draw themselves pixel by pixel
+A dithered UI toolkit for Vue. 268 components draw themselves pixel by pixel
 from one seeded palette: charts, controls, forms, overlays, backgrounds, text
 effects, 3D models and GLSL shaders, all through the same ordered-dither
 (Bayer) engine. It has a Svelte 5 port, a live docs section for every
@@ -365,7 +365,7 @@ or precompilation policy.
 
 ## Components
 
-267 public `Dither*` components plus the chart roots and parts. Selected
+268 public `Dither*` components plus the chart roots and parts. Selected
 exports:
 
 | Charts | Parts | Standalone |
