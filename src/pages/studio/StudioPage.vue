@@ -122,6 +122,8 @@ const benchUrl = new URL(routePath("/studio"), location.href).href
 // its key on the title bar.
 const toolbar = ref<{ guideKey: HTMLButtonElement | null } | null>(null)
 const sidebar = ref<{ $el: Element } | null>(null)
+// the canvas bar's root is a Transition: its $el is the bar only while it shows
+const canvasBar = ref<{ $el: unknown } | null>(null)
 const chat = ref<HTMLElement | null>(null)
 const side = ref<HTMLElement | null>(null)
 const tourOpen = ref(false)
@@ -129,6 +131,10 @@ const tour: GuideStop[] = [
   {
     target: () => shell.value,
     line: `Hi. Let me fly you round the Studio. This is the canvas, where your frames live: scroll to pan, pinch or ${modKey("").trim()} scroll to zoom.`,
+  },
+  {
+    target: () => (canvasBar.value?.$el instanceof Element ? canvasBar.value.$el : null),
+    line: "This bar works on what you pick: duplicate it, evolve it, export its code, a PNG or a video, or inspect it.",
   },
   {
     target: () => sidebar.value?.$el,
@@ -248,7 +254,7 @@ onBeforeUnmount(() => {
 
     <main ref="shell" class="studio-canvas hardshell" aria-label="Canvas">
       <Canvas ref="canvas" />
-      <CanvasBar @export="exportOpen = true" @video="videoOpen = true" />
+      <CanvasBar ref="canvasBar" @export="exportOpen = true" @video="videoOpen = true" />
       <DataEditor />
     </main>
 

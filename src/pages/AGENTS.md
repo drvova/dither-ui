@@ -951,10 +951,14 @@ widgets/features; page-specific conventions live here.
   places a generation of the primary selection.
 - The mascot (`shared/ui/Mascot.vue`) stands in the Studio's moments:
   the empty chat's hello and the bridge setup card (alive), the sidebar's
-  empty chats, Search with no match (blinking) and the narrow notice. Its
+  empty chats, Search with no match (blinking) and the narrow notice;
+  the agent's run row, flying in the spinner's slot while the harness
+  works; in the docs, their search with no match (blinking, through
+  `DitherCommand`'s `empty` slot). Its
   tour (`guide.ts`, `ui/StudioGuide.vue`) flies it, rotor turning, to
-  each part of the window by the page's own refs (the canvas, the
-  sidebar, the chat, the panel, then its own key), opening a part folded
+  each part of the window by the page's own refs (the canvas, its bar,
+  the sidebar, the chat, the panel, then its own key; a thin part from
+  beside it, over it at the window's foot), opening a part folded
   away, and it lands to say what the part is for in a bubble: Next flies
   on, Skip, Done or Escape ends it and hands the focus back; shortcuts
   read as the keyboard writes them (`modKey`). It runs once on a first

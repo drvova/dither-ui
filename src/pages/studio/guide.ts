@@ -24,16 +24,22 @@ export const GUIDE_SEEN_KEY = "dither-studio-guide-seen"
 const GAP = 12
 const INSET = 16
 const MARGIN = 8
-/** A part no taller than this (a bar, a key) is pointed at from under it. */
+/** A part no taller than this (a bar, a key) is pointed at from beside it, not inside. */
 const THIN = 120
 
 /** Where the guide (the mascot and its bubble, `guide` in size) hovers for
- * a part: inside a tall part near its top, under a thin one, at its left
- * or its right end; always whole in the window. */
+ * a part: inside a tall part near its top, under a thin one (over it when
+ * the window has no room below, a bar at its foot), at its left or its
+ * right end; always whole in the window. */
 export function placeGuide(part: Box, guide: Size, view: Size, end = false): { x: number; y: number } {
   const thin = part.bottom - part.top <= THIN
   const x = end ? part.right - guide.width - (thin ? 0 : INSET) : part.left + INSET
-  const y = thin ? part.bottom + GAP : part.top + INSET * 3
+  const under = part.bottom + GAP
+  const y = !thin
+    ? part.top + INSET * 3
+    : under + guide.height <= view.height - MARGIN
+      ? under
+      : part.top - GAP - guide.height
   const clamp = (v: number, max: number) => Math.round(Math.min(Math.max(v, MARGIN), Math.max(MARGIN, max - MARGIN)))
   return { x: clamp(x, view.width - guide.width), y: clamp(y, view.height - guide.height) }
 }

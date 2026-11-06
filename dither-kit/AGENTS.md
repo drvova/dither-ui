@@ -86,7 +86,9 @@ the kit every import is relative (`../engine/pixel`).
 
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
   returns to its input; the list is arrow-driven), focus restores to the
-  opener on close.
+  opener on close. With nothing matching it shows `empty`; the Vue kit's
+  `empty` slot and the Svelte kit's `empty` snippet (a string or a
+  snippet, one prop) draw it instead, given the query.
 - `DitherTabs` (both kits) keeps its marker canvas (the underline or the
   wash) INSIDE the `relative` tablist, positioned from the selected tab's
   offsets: a list that scrolls (more tabs than width) carries the marker

@@ -16,7 +16,8 @@ const props = withDefaults(
     open: boolean
     items: CommandItem[]
     placeholder?: string
-    /** Shown when nothing matches. */
+    /** Shown when nothing matches; the `empty` slot (given the query) draws
+     * it instead. */
     empty?: string
     class?: string
   }>(),
@@ -127,7 +128,7 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
         </div>
         <ul :id="`${idBase}-list`" role="listbox" class="max-h-72 overflow-y-auto p-1.5">
           <li v-if="!flat.length" class="px-2.5 py-6 text-center text-[12px] text-muted-foreground">
-            {{ props.empty }}
+            <slot name="empty" :query="query.trim()">{{ props.empty }}</slot>
           </li>
           <template v-for="[group, groupItems] in groups" :key="group || 'top'">
             <li

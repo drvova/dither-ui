@@ -38,6 +38,7 @@ import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import "@/shared/fonts/display.css"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import Mascot from "@/shared/ui/Mascot.vue"
 import DemoCard from "./DemoCard.vue"
 import SectionShare from "./SectionShare.vue"
 import DocsNav, { docsUrl, type PagePart } from "./DocsNav.vue"
@@ -2110,7 +2111,15 @@ const gradientCode = computed(
       placeholder="Search docs…"
       @select="searchGo"
       @close="searchOpen = false"
-    />
+    >
+      <!-- No section by that name: the mascot blinks at it. -->
+      <template #empty="{ query }">
+        <span class="flex flex-col items-center gap-2.5">
+          <Mascot :size="30" pose="blink" class="text-foreground" />
+          <span>Nothing in the docs is called “{{ query }}”.</span>
+        </span>
+      </template>
+    </DitherCommand>
   </div>
 </template>
 

@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-  import { tick } from "svelte"
+  import { tick, type Snippet } from "svelte"
   import { portal } from "../runtime/portal"
   import { CONTROL_BUTTON, POPOVER } from "../runtime/control"
   import { cn } from "../runtime/lib"
@@ -15,8 +15,8 @@
     open: boolean
     items: CommandItem[]
     placeholder?: string
-    /** Shown when nothing matches. */
-    empty?: string
+    /** Shown when nothing matches: a line, or a snippet given the query. */
+    empty?: string | Snippet<[string]>
     class?: string
     onclose?: () => void
     onselect?: (value: string) => void
@@ -124,7 +124,9 @@
       </div>
       <ul id={`${idBase}-list`} role="listbox" class="max-h-72 overflow-y-auto p-1.5">
         {#if !flat.length}
-          <li class="px-2.5 py-6 text-center text-[12px] text-muted-foreground">{empty}</li>
+          <li class="px-2.5 py-6 text-center text-[12px] text-muted-foreground">
+            {#if typeof empty === "string"}{empty}{:else}{@render empty(query.trim())}{/if}
+          </li>
         {/if}
         {#each groups as [group, groupItems] (group || "top")}
           {#if group}

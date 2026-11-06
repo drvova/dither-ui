@@ -19,6 +19,9 @@ describe("where the guide hovers", () => {
   it("under a thin part, at its right end for a key on the right", () => {
     expect(placeGuide({ left: 1380, top: 8, right: 1408, bottom: 36 }, GUIDE, VIEW, true)).toEqual({ x: 1088, y: 48 })
   })
+  it("over a thin part at the window's foot, where there is no room under it", () => {
+    expect(placeGuide({ left: 700, top: 840, right: 1300, bottom: 884 }, GUIDE, VIEW)).toEqual({ x: 716, y: 708 })
+  })
   it("always whole in the window", () => {
     const p = placeGuide({ left: 1400, top: 860, right: 1440, bottom: 880 }, GUIDE, VIEW)
     expect(p.x + GUIDE.width).toBeLessThanOrEqual(VIEW.width - 8)

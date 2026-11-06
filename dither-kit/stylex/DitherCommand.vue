@@ -135,7 +135,8 @@ const props = withDefaults(
     open: boolean
     items: CommandItem[]
     placeholder?: string
-    /** Shown when nothing matches. */
+    /** Shown when nothing matches; the `empty` slot (given the query) draws
+     * it instead. */
     empty?: string
     class?: string
     xstyle?: StyleProp
@@ -241,7 +242,7 @@ const indexOf = (item: CommandItem) => flat.value.indexOf(item)
         </div>
         <ul :id="`${idBase}-list`" role="listbox" v-bind="stylex.attrs(styles.ul)">
           <li v-if="!flat.length" v-bind="stylex.attrs(styles.li)">
-            {{ props.empty }}
+            <slot name="empty" :query="query.trim()">{{ props.empty }}</slot>
           </li>
           <template v-for="[group, groupItems] in groups" :key="group || 'top'">
             <li v-if="group" aria-hidden="true" v-bind="stylex.attrs(styles.li2)">
