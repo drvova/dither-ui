@@ -439,6 +439,21 @@ Default section order:
   lift (the user's call after the composer board): the Studio agent
   panel's thread prose (replies, messages, thoughts) reads in the
   proportional face, its code, steps and chrome staying mono.
+- Industrial futurism (the user's brief, "Sculptural Industrial
+  Futurism"; its product references stay unnamed): engineered, never
+  decorated. Its default variant is Precision / Wire (slender spans, one
+  distinctive junction, selective absence) over the sculptural and the
+  aerodynamic; silhouette first; a detail only where it reads as
+  construction (one credible joint a surface, the hardshell's cut; never
+  fasteners, labels or cut corners as filler); honest materials (satin
+  before mirror chrome, two materials and one accent); one accent family
+  (ours: the ember), the rest neutrals; motion like a mechanism (decisive
+  travel, soft settle, no perpetual loops or scanning lines: the
+  landing's art moves on cue, as it comes into view, then under the
+  reader's hand, `src/pages/landing/drive.ts`); never cyberpunk neon, a
+  HUD dashboard or a retro filter. Where it differs from an earlier call
+  of the user's (the chrome display type, the spring's timings), the
+  earlier call stands until the user says otherwise.
 - Design slop the user bans (their list; the landing is held to it, the
   docs and the Studio keep their tool chrome until the user extends it;
   for the printed landing the user lifted one: more than two inks inside

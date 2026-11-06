@@ -600,8 +600,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   slanted plate), the ONLY uppercase in the site's own chrome;
   `.hardshell` (two corners cut by `clip-path`, which clips what it
   holds, fixed descendants included; a chrome-glint ring along the cut;
-  a socket-head fastener in each uncut corner, 3px in, hidden under
-  forced colours like the ring; the shell ground; set `--cut`
+  the shell ground (no fasteners or other manufacturing theater: the
+  user's brief keeps one credible joint, the cut); set `--cut`
   locally for a smaller cut); `.gel` (an
   asymmetric pebble recessed into its shell, `overflow: hidden`, a
   directional highlight over its top 38%; chips in it take z-index 4);
