@@ -6,7 +6,7 @@
 
 <script lang="ts">
   import { cn } from "../runtime/lib"
-  import { hexToRgb } from "../engine/palette"
+  import { fillOf, type PixelColor } from "../engine/pixel"
   import type { RasterBuffer } from "../engine/raster"
   import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
   import { ditherBackground } from "../runtime/use-dither-background"
@@ -19,9 +19,9 @@
    * are a pure function of time. */
   type Props = {
     /** The traces, chips and vias. */
-    ink?: string
+    ink?: PixelColor
     /** The signals. */
-    pulse?: string
+    pulse?: PixelColor
     /** How much of the board carries traces, 0-1. */
     density?: number
     /** Cells a second a signal travels. */
@@ -60,8 +60,8 @@
 
   const precompiled = $derived(precompiledSrc(precompiledProp))
   const params = $derived<CircuitParams>({
-    ink: hexToRgb(ink),
-    pulse: hexToRgb(pulse),
+    ink: fillOf(ink),
+    pulse: fillOf(pulse),
     density,
     speed,
     pitch,

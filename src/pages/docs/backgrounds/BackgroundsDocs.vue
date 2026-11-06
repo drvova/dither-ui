@@ -198,8 +198,8 @@ const DEMO = {
 
 const API: Record<string, PropRow[]> = {
   circuit: [
-    { prop: "ink", type: "string (hex: the traces, chips and vias)", default: "'#a6abb1'" },
-    { prop: "pulse", type: "string (hex: the signals)", default: "'#ff9632'" },
+    { prop: "ink", type: "PixelColor (the traces, chips and vias)", default: "'#a6abb1'" },
+    { prop: "pulse", type: "PixelColor (the signals)", default: "'#ff9632'" },
     { prop: "density", type: "number 0…1 (how much of the board carries traces)", default: "0.6" },
     { prop: "speed", type: "number (cells a second a signal travels)", default: "14" },
     { prop: "pitch", type: "number (cells between lattice nodes)", default: "4" },

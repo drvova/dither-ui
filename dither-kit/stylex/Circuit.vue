@@ -16,7 +16,7 @@ const styles = stylex.create({
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { cn, type StyleProp } from "./lib"
-import { hexToRgb } from "../engine/palette"
+import { fillOf, type PixelColor } from "../engine/pixel"
 import type { RasterBuffer } from "../engine/raster"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
 import { useDitherBackground } from "../engine/use-dither-background"
@@ -30,9 +30,9 @@ import { useDitherMatrix } from "../engine/use-screen"
 const props = withDefaults(
   defineProps<{
     /** The traces, chips and vias. */
-    ink?: string
+    ink?: PixelColor
     /** The signals. */
-    pulse?: string
+    pulse?: PixelColor
     /** How much of the board carries traces, 0-1. */
     density?: number
     /** Cells a second a signal travels. */
@@ -69,8 +69,8 @@ const MAX_ROWS = 200
 
 const precompiled = computed(() => precompiledSrc(props.precompiled))
 const params = computed<CircuitParams>(() => ({
-  ink: hexToRgb(props.ink),
-  pulse: hexToRgb(props.pulse),
+  ink: fillOf(props.ink),
+  pulse: fillOf(props.pulse),
   density: props.density,
   speed: props.speed,
   pitch: props.pitch,
