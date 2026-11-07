@@ -1,13 +1,26 @@
 import { describe, expect, it } from "rstack/test"
-import { layoutPixelText, PIXEL_CHARS, PIXEL_ROWS } from "../src/pages/landing/pixel-type"
+import { layoutPixelText, PIXEL_CHARS, PIXEL_DESCENT, PIXEL_ROWS } from "../src/pages/landing/pixel-type"
 
 describe("pixel type", () => {
-  it("draws every glyph on seven rows of one width", () => {
+  it("draws every glyph on seven rows of one width, a descender at most two under", () => {
     for (const ch of PIXEL_CHARS) {
       const { cells, width } = layoutPixelText(ch)
-      expect(cells.every((c) => c.y >= 0 && c.y < PIXEL_ROWS && c.x >= 0 && c.x < width)).toBe(true)
+      expect(cells.every((c) => c.y >= 0 && c.y < PIXEL_ROWS + PIXEL_DESCENT && c.x >= 0 && c.x < width)).toBe(true)
       if (ch !== " ") expect(cells.length).toBeGreaterThan(0)
     }
+  })
+
+  it("hangs the g's tail under the baseline, its bowl on the x-height", () => {
+    // without one it read as a 9: "bri9ge"
+    const g = layoutPixelText("g").cells
+    const o = layoutPixelText("o").cells
+    expect(Math.max(...g.map((c) => c.y))).toBe(PIXEL_ROWS + PIXEL_DESCENT - 1)
+    expect(Math.min(...g.map((c) => c.y))).toBe(Math.min(...o.map((c) => c.y)))
+    for (const ch of PIXEL_CHARS.replace("g", ""))
+      expect(
+        layoutPixelText(ch).cells.every((c) => c.y < PIXEL_ROWS),
+        ch,
+      ).toBe(true)
   })
 
   it("tracks glyphs one empty column apart", () => {

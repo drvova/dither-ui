@@ -47,7 +47,8 @@ const HALF = 3.5 * CELL
   isolation: isolate;
   width: 100%;
   max-width: 100%;
-  min-height: 112px;
+  /* on a phone the sheet keeps room for its clouds to billow, never scraps */
+  min-height: 240px;
   overflow: hidden;
 }
 

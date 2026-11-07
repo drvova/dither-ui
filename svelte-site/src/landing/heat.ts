@@ -23,8 +23,10 @@ export type HeatField = (
 
 /** The heat's grain: how many CSS px one fold of the noise spans, and
  * where in the noise a sheet samples (each sheet its own region, read for
- * a balanced mix of clear ground and each ink). */
-export type HeatGrain = { scale: number; at: readonly [number, number] }
+ * a balanced mix of clear ground and each ink). With a `span`, the sheet's
+ * width the scale is read at: a narrower sheet folds finer by as much, so
+ * it prints the same picture smaller rather than a cold corner of it. */
+export type HeatGrain = { scale: number; at: readonly [number, number]; span?: number }
 
 /** The close's grain: wide folds for a tall band. */
 export const CLOSE_GRAIN: HeatGrain = { scale: 540, at: [0, 0] }
@@ -84,6 +86,7 @@ export function paintHeat(
   const height = rows * cell
   const t = time * 0.12
   const top = ramp.length - 1
+  const scale = grain.scale * Math.min(1, width / (grain.span ?? width))
   for (let r = 0; r < rows; r++)
     for (let c = 0; c < cols; c++) {
       const x = c * cell
@@ -91,8 +94,8 @@ export function paintHeat(
       const here = field(x, y, width, height)
       if (here.field <= 0) continue
       // Ink in water: the noise folded through itself twice.
-      const u = x / grain.scale + grain.at[0]
-      const v = y / grain.scale + grain.at[1]
+      const u = x / scale + grain.at[0]
+      const v = y / scale + grain.at[1]
       const qx = fbm(u, v + t, 0)
       const qy = fbm(u + 5.2, v + 1.3, t)
       let heat = fbm(u + 2.4 * qx + 0.5 * t, v + 2.4 * qy, 0) + here.boost

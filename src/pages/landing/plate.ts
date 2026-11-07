@@ -30,7 +30,7 @@ export const TRAIL: PixelColor[] = [INKS[0], INKS[2], INKS[1]]
 
 export type Plate = {
   /** The clear band's top and foot, as fractions of the plate's height:
-   * the heat prints above and below it, hottest at the sheet's edges. */
+   * the heat prints above and below it, a cloud each side. */
   band: readonly [number, number]
   /** Where the mark's centre stands, as fractions of the width and height;
    * the wordmark reads on to its right. */
@@ -41,33 +41,34 @@ export type Plate = {
   aspect: number
   /** The printer's screen its heat prints through, each plate its own. */
   screen: ScreenKind
-  /** Its heat's grain: finer folds than the close's for a short sheet, in
-   * its own region of the noise, read for a balanced mix of inks. */
+  /** Its heat's grain: finer folds than the close's for a shorter sheet, in
+   * its own region of the noise, read for a balanced mix of inks at the
+   * page's full width (`span`); a phone's sheet folds finer with it. */
   grain: HeatGrain
 }
 
 /** The series, in page order, two plates unlike each other, each a sheet of
  * the heat (`heat.ts`) so the material builds up through the page to the
- * close: after the bento a sheet of 3.4 with a high band, the brand at the
- * left, printed in the kit's Bayer cells; after the three parts a slimmer
- * sheet of 4.6 with the band at the middle, the brand right of centre, in a
- * halftone dot. */
+ * close: after the bento a sheet of 2.4 with its band a little above the
+ * middle, the brand at the left, printed in the kit's Bayer cells; after
+ * the three parts a slimmer sheet of 2.8 with the band just under the
+ * middle, the brand right of centre, in a halftone dot. */
 export const PLATES = {
   afterExamples: {
-    band: [0.24, 0.7],
-    mark: [0.26, 0.47],
+    band: [0.36, 0.62],
+    mark: [0.26, 0.49],
     move: "rain",
-    aspect: 3.4,
+    aspect: 2.4,
     screen: "bayer",
-    grain: { scale: 260, at: [8.5, 3] },
+    grain: { scale: 260, at: [8.5, 3], span: 1232 },
   },
   afterParts: {
-    band: [0.34, 0.66],
-    mark: [0.66, 0.5],
+    band: [0.4, 0.62],
+    mark: [0.66, 0.51],
     move: "converge",
-    aspect: 4.6,
+    aspect: 2.8,
     screen: "dot",
-    grain: { scale: 260, at: [23.8, 3] },
+    grain: { scale: 220, at: [23.8, 3], span: 1232 },
   },
 } as const satisfies Record<string, Plate>
 

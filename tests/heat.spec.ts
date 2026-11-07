@@ -119,4 +119,21 @@ describe("a plate's heat", () => {
       expect(rows((plate.band[0] * h) / CLOSE.cell, (plate.band[1] * h) / CLOSE.cell)).toBe(0)
       expect(rows(0, (plate.band[0] * h) / CLOSE.cell)).toBeGreaterThan(0)
     })
+
+  for (const [id, plate] of Object.entries(PLATES))
+    it(`${id} prints the same picture smaller on a phone, never a cold corner of it`, () => {
+      // read in fixed px, a phone's sheet sampled a cold strip: scraps
+      const share = (w: number) => {
+        const h = Math.round(w / plate.aspect / CLOSE.cell) * CLOSE.cell
+        const b = createRasterBuffer(w / CLOSE.cell, h / CLOSE.cell)
+        paintHeat(b, 0, null, CLOSE.cell, INKS, BAYER4, plateField(plate), plate.grain)
+        let n = 0
+        for (let i = 3; i < b.data.length; i += 4) if (b.data[i]) n++
+        return n / (b.width * b.height)
+      }
+      const wide = share(plate.grain.span)
+      const phone = share(360)
+      expect(phone).toBeGreaterThan(wide * 0.6)
+      expect(phone).toBeLessThan(wide * 1.6)
+    })
 })

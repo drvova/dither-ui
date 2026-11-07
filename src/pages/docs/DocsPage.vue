@@ -511,10 +511,14 @@ const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "
    section on this page, read from its DOM as it opens: its heading,
    each gallery heading and its props table. Headings inside a preview are
    the demo's, not the section's. */
+/** The docs' flow: every section a direct child of it. */
+const flow = ref<HTMLElement | null>(null)
 const onPage = ref<PagePart[]>([])
+/* Read once the flow has mounted too: a page opened straight on a section
+   never changes `shown`, and the rail stood empty. */
 watch(
-  shown,
-  async (id) => {
+  [shown, () => flow.value],
+  async ([id]) => {
     await nextTick()
     const section = id ? document.getElementById(id) : null
     onPage.value = section
@@ -557,7 +561,6 @@ watch(
 )
 const allSections = new URLSearchParams(location.search).has(ALL_SECTIONS_PARAM)
 const mounted = (name: PackName) => packOpen(name, seen.value, allSections)
-const flow = ref<HTMLElement | null>(null)
 watch(
   [shown, flow],
   ([id]) => {

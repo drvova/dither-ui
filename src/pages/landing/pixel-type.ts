@@ -1,10 +1,12 @@
 // Pixel type: a 5×7 bitmap face (proportional — I, the hyphen and the
 // punctuation are narrower) for the brand's wordmark, with a lowercase set
-// (four wide, x-height from the third row) for the kit's parts' names. Pure: a string in, a
+// (four wide, x-height from the third row, a descender hanging two rows
+// under the baseline) for the kit's parts' names. Pure: a string in, a
 // list of lit cells out; `BrandGather.vue` draws them as its own cells.
 
 /** Rows top to bottom; `#` is a lit cell. Every row of a glyph is as wide
- * as the glyph. */
+ * as the glyph. Seven rows stand on the baseline; a descender's rows past
+ * them hang under it, into the room under the line. */
 const FACE: Record<string, readonly string[]> = {
   "0": [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
   "1": ["..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###."],
@@ -26,7 +28,7 @@ const FACE: Record<string, readonly string[]> = {
   b: ["#...", "#...", "###.", "#..#", "#..#", "#..#", "###."],
   d: ["...#", "...#", ".###", "#..#", "#..#", "#..#", ".###"],
   e: ["....", "....", ".##.", "#..#", "####", "#...", ".###"],
-  g: ["....", "....", ".###", "#..#", ".###", "...#", ".##."],
+  g: ["....", "....", ".###", "#..#", "#..#", "#..#", ".###", "...#", ".##."],
   i: ["#", ".", "#", "#", "#", "#", "#"],
   k: ["#...", "#...", "#..#", "#.#.", "##..", "#.#.", "#..#"],
   o: ["....", "....", ".##.", "#..#", "#..#", "#..#", ".##."],
@@ -43,7 +45,10 @@ const FACE: Record<string, readonly string[]> = {
   " ": ["..", "..", "..", "..", "..", "..", ".."],
 }
 
+/** The rows a line stands on, baseline included; descenders hang under. */
 export const PIXEL_ROWS = 7
+/** The most a descender hangs under the baseline. */
+export const PIXEL_DESCENT = 2
 export const PIXEL_CHARS = Object.keys(FACE).join("")
 
 export type PixelCell = { x: number; y: number; char: number }

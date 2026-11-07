@@ -498,13 +498,17 @@ widgets/features; page-specific conventions live here.
   the band and from the band to its foot, two clouds that rise out of
   nothing and sink back, never in the band), where the
   mark's centre stands in the band (left of 0.7, the wordmark reading on
-  to its right), its move, its proportion (`aspect`: 3.4, then a slimmer
-  4.6) and its printer's screen (`screen`: Bayer, then a halftone dot); `sceneOf` gives its scene (loose in
+  to its right), its move, its proportion (`aspect`: 2.4, then a slimmer
+  2.8, tall enough that each cloud billows rather than printing as a
+  streak) and its printer's screen (`screen`: Bayer, then a halftone dot); `sceneOf` gives its scene (loose in
   the band and its thin edges, thrown anywhere on the sheet,
   seeded by where the mark stands) and its heat's grain (`grain`: finer
   folds than the close's, each plate its own region of the noise, read for
-  a balanced mix of clear ground and each ink). `Plate.vue` prints a row:
-  a passage of its proportion (at least 112px tall) on the page's width,
+  a balanced mix of clear ground and each ink at the page's full width,
+  `span`: a narrower sheet folds finer by as much, so a phone prints the
+  same picture smaller, never a cold corner of it). `Plate.vue` prints a row:
+  a passage of its proportion (at least 240px tall, so a phone's clouds
+  billow rather than print as scraps) on the page's width,
   on the page's own ground (no box, no stock: the user's call, the
   sections must flow), its heat (`HeatPrint`, still) through its
   `DitherScreen` as two clouds, above the band and below it, each rising
@@ -514,7 +518,8 @@ widgets/features; page-specific conventions live here.
   is narrow, while the heat prints in through `DitherReveal` (0.72s on the
   glide, the lights coming on). `tests/landing-facts.spec.ts` holds every
   plate's mark inside its band; `tests/heat.spec.ts` its clouds full in
-  their middles, nothing at the sheet's edges and nothing in the band.
+  their middles, nothing at the sheet's edges and nothing in the band,
+  and a phone's sheet as inked as the page's.
   A new plate is a row in the table and a `<Plate>` at a section break.
 - The close (`#install`, out of the page column, the full width): the
   install stands in a clear field over a print of heat (`heat.ts`,
