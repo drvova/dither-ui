@@ -162,7 +162,7 @@ onBeforeUnmount(() => stopPreview?.())
         </button>
         <button
           type="button"
-          class="clip-tool text-destructive hover:bg-red-500/10"
+          class="clip-tool text-destructive hover:bg-destructive/10"
           aria-label="Remove clip"
           title="Remove"
           @click="remove(i)"
@@ -265,7 +265,7 @@ onBeforeUnmount(() => stopPreview?.())
               />
               <button
                 type="button"
-                class="clip-tool text-destructive hover:bg-red-500/10"
+                class="clip-tool text-destructive hover:bg-destructive/10"
                 :aria-label="`Remove callout ${k + 1}`"
                 title="Remove"
                 @click="clip.callouts.splice(k, 1)"

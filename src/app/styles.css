@@ -495,9 +495,11 @@
      titanium dimmed to 3:1 against every ground it meets (the page, the
      shells, the smoke, a pressed fill), where the hairline would vanish. */
   --edge: #787c81;
-  /* A destructive action's ink (delete, remove, a failed read): 4.5:1 on
-     the light grounds. */
-  --destructive: oklch(50.5% 0.213 27.518);
+  /* A destructive action's ink (delete, remove, a failed read): the ember,
+     the one signal accent (red is the user's reject; the industrial brief
+     gives the signal ink to a single action or warning), at its light
+     theme's depth, 4.5:1 on the light grounds. */
+  --destructive: var(--swatch-orange);
   /* Motion is Apple's smooth spring everywhere (the user's call): from
      rest, settling long and soft, never past its mark
      (`dither-kit/engine/spring.ts`, the kit's "spring" easing; the
@@ -593,7 +595,7 @@
   --smoke: rgb(21 25 28 / 0.9);
   --float-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(212 220 225 / 0.14);
   --edge: #74797e;
-  --destructive: oklch(70.4% 0.191 22.216);
+  --destructive: var(--swatch-orange);
 }
 
 /* The docs in the dark wear the landing's print (the user's V5 obsidian

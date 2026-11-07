@@ -55,9 +55,15 @@ function grounds(t: Record<string, string>, pressed: boolean): [string, RGBA][] 
   return out
 }
 
+/** A token's value, following `var(--other)` to the token it names. */
+const resolve = (t: Record<string, string>, value: string): string => {
+  const ref = value.match(/^var\(--([\w-]+)\)$/)
+  return ref ? resolve(t, t[ref[1]]) : value
+}
+
 const floor = (t: Record<string, string>, ink: string, min: number, pressed = true) =>
   grounds(t, pressed)
-    .map(([name, g]) => [name, Math.round(contrast(colour(t[ink]), g) * 100) / 100] as const)
+    .map(([name, g]) => [name, Math.round(contrast(colour(resolve(t, t[ink])), g) * 100) / 100] as const)
     .filter(([, r]) => r < min)
 
 describe("theme contrast", () => {

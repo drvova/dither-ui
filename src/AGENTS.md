@@ -569,7 +569,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   is `border-edge` (a scoped field: `var(--color-edge)`), turning
   `border-ring` on focus, while `--border` stays the hairline of
   containers and dividers; `--destructive`, `text-destructive`, the ink
-  of delete, remove and a failed read, 4.5:1 on the theme's grounds; a
+  of delete, remove and a failed read, is the ember (`--swatch-orange`,
+  the one signal accent: red is the user's reject), 4.5:1 on the theme's
+  grounds (`tests/theme-contrast.spec.ts` follows the reference); a
   scoped rule that colours a key outranks the utility, so a key wearing
   both carries its own `.key.text-destructive` rule, which
   `tests/destructive-ink.spec.ts` checks across `src/`), and
