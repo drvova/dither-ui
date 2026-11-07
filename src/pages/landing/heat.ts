@@ -12,8 +12,14 @@ import type { Rgb } from "@dither-kit/engine/palette"
 import type { RasterBuffer } from "@dither-kit/engine/raster"
 
 /** Where the heat may print at (`x`, `y`) CSS px from a sheet's top left,
- * 0-1, and how much heat to add there (a hot edge). */
-export type HeatField = (x: number, y: number, width: number, height: number) => { field: number; boost: number }
+ * 0-1, how much heat to add there (a hot edge) and, where the noise must
+ * never go cold, the least it may cool to (0-1 of the ramp). */
+export type HeatField = (
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) => { field: number; boost: number; floor?: number }
 
 /** The heat's grain: how many CSS px one fold of the noise spans, and
  * where in the noise a sheet samples (each sheet its own region, read for
@@ -25,22 +31,15 @@ export const CLOSE_GRAIN: HeatGrain = { scale: 540, at: [0, 0] }
 
 /** The close's band, in CSS px: a cell's size and the film's cadence it
  * drifts at, the half-width of the clear column the install stands in, how
- * far the heat reaches in from the band's top and its foot, and how long it
+ * far the hot ground at the band's foot reaches up, and how long it
  * drifts by itself as the band arrives (under five seconds, so it needs no
  * pause). The page pads the band by `reach` so no ink lands under a word. */
-export const CLOSE = { cell: 4, fps: 15, column: 560, reach: 150, drift: 4000 } as const
+export const CLOSE = { cell: 4, fps: 15, column: 520, reach: 150, drift: 4000 } as const
 
 /** Hermite between `a` and `b` (either way round), clamped. */
 export const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)))
   return t * t * (3 - 2 * t)
-}
-
-/** Rises from nothing at `a` to its peak at `peak` of the way to `b`, and
- * back to nothing at `b`: heat that dissolves at both of its edges. */
-export const bell = (a: number, b: number, x: number, peak = 0.45) => {
-  const m = a + (b - a) * peak
-  return Math.min(smooth(a, m, x), smooth(b, m, x))
 }
 
 /** Whole from `edge` of the way in from `a` to the same from `b`, rising
@@ -49,15 +48,19 @@ export const bell = (a: number, b: number, x: number, peak = 0.45) => {
 export const plateau = (a: number, b: number, x: number, edge = 0.35) =>
   Math.min(smooth(a, a + (b - a) * edge, x), smooth(b, b - (b - a) * edge, x))
 
-/** The close: beside the column, and in from the top and the foot. Only
- * its foot is a hard edge (the hot ground the footer's tab rises into);
- * everywhere else it comes out of the page and sinks back. */
+/** The close: heat off the hot ground. It runs along the band's foot (its
+ * one hard edge, where the footer's tab rises into it, never cold under
+ * it: a floor of the coolest inks its last rows always print) and climbs the
+ * sides beside the column, thinning out before the top: never a lid, so
+ * never a frame round the install. The sides climb only where the screen
+ * leaves them room to read as heat; a narrower one keeps the foot alone,
+ * never a sliver at its edge. */
 export const closeField: HeatField = (x, y, width, height) => {
-  const enter = smooth(0, CLOSE.reach, y)
-  const side = smooth(CLOSE.column, CLOSE.column + 220, Math.abs(x - width / 2)) * enter
-  const top = bell(0, CLOSE.reach, y)
+  const rise = smooth(0.1 * height, 0.6 * height, y)
+  const room = smooth(340, 400, width / 2 - CLOSE.column)
+  const side = smooth(CLOSE.column, CLOSE.column + 280, Math.abs(x - width / 2)) * rise * room
   const foot = smooth(CLOSE.reach, 0, height - y)
-  return { field: Math.max(side, top, foot), boost: 0.12 * foot * foot }
+  return { field: Math.max(side, foot), boost: 0.12 * foot * foot, floor: 0.33 * smooth(40, 0, height - y) }
 }
 
 /** Print the heat at `time` seconds into `buffer`, `cell` CSS px a cell,
@@ -95,7 +98,11 @@ export function paintHeat(
       let heat = fbm(u + 2.4 * qx + 0.5 * t, v + 2.4 * qy, 0) + here.boost
       // The hand pulls the heat toward it.
       if (hand) heat += 0.12 * Math.exp(-Math.hypot(x - hand[0], y - hand[1]) / 160)
-      const lum = smooth(0.42, 0.57, heat) * here.field
+      // Where the field thins, the heat cools rather than fading in rows,
+      // so every edge follows the ink's own contours, never a ruled line;
+      // a floor holds it from going cold, its density still the noise's.
+      const floor = (here.floor ?? 0) * (0.5 + 0.5 * smooth(0.2, 0.45, heat))
+      const lum = Math.max(floor, smooth(0.42, 0.57, heat - (1 - here.field) * 0.22))
       // The ramp's band for this heat, dithered toward the next one up.
       const level = lum * top
       const band = Math.min(top, Math.floor(level) + (level % 1 > matrix[r & 3][c & 3] ? 1 : 0))

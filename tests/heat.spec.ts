@@ -1,7 +1,7 @@
 // The heat, the landing's one recurring material. The close: clear behind
-// the install's column (no ink under a word), printing only beside it and
-// in from the band's top and foot, densest and hottest along the flat foot
-// the footer's tab rises into. The plates: never in their clear band,
+// the install's column (no ink under a word), rising off the band's foot up
+// its sides (never a lid), densest and hottest along the flat foot the
+// footer's tab rises into, which never goes cold. The plates: never in their clear band,
 // where the brand forms. Always in the ramp's own inks, the same bytes for
 // the same moment.
 import { describe, expect, it } from "rstack/test"
@@ -11,7 +11,7 @@ import { CLOSE, closeField, paintHeat } from "../src/pages/landing/heat"
 import { PLATES, plateField, RAMP } from "../src/pages/landing/plate"
 
 const INKS = RAMP.map(fillOf)
-const W = 1440
+const W = 1920
 const H = 1200
 const print = (time = 0, hand: [number, number] | null = null) => {
   const b = createRasterBuffer(W / CLOSE.cell, H / CLOSE.cell)
@@ -33,13 +33,17 @@ describe("where the heat may print", () => {
       for (const x of [W / 2 - CLOSE.column, W / 2, W / 2 + CLOSE.column])
         expect(closeField(x, y, W, H).field, `${x},${y}`).toBe(0)
   })
-  it("rising out of the page at its top, in full at its foot and far sides", () => {
-    expect(closeField(W / 2, 0, W, H).field).toBe(0)
-    expect(closeField(W / 2, 0.45 * CLOSE.reach, W, H).field).toBe(1)
-    expect(closeField(0, 0, 3000, H).field).toBe(0)
+  it("rising off its foot up the sides, never a lid across its top", () => {
+    for (const x of [0, W / 2, W]) expect(closeField(x, 0, W, H).field, `top at ${x}`).toBe(0)
+    expect(closeField(0, 0.1 * H, 3000, H).field).toBe(0)
+    expect(closeField(0, 0.8 * H, 3000, H).field).toBe(1)
     expect(closeField(W / 2, H, W, H).field).toBe(1)
     expect(closeField(W / 2, H, W, H).boost).toBeCloseTo(0.12)
-    expect(closeField(0, H / 2, 3000, H).field).toBe(1)
+  })
+  it("keeps the foot alone where the screen leaves the sides no room", () => {
+    // a laptop's band: what lies beside the column would print a sliver at its edge
+    for (const y of [0.5 * H, 0.8 * H]) expect(closeField(0, y, 1440, H).field, `${y}`).toBe(0)
+    expect(closeField(0, H, 1440, H).field).toBe(1)
   })
 })
 
@@ -47,7 +51,7 @@ describe("the print", () => {
   it("leaves the column clear and prints the sides", () => {
     const b = print()
     expect(inked(b, W / 2 - CLOSE.column, CLOSE.reach, W / 2 + CLOSE.column, H - CLOSE.reach)).toBe(0)
-    expect(inked(b, 0, 0, 40 * CLOSE.cell, H)).toBeGreaterThan(0)
+    expect(inked(b, 0, 0, 40 * CLOSE.cell, H - CLOSE.reach)).toBeGreaterThan(0)
   })
   it("runs hot and dense along the foot", () => {
     const b = print()
@@ -59,7 +63,20 @@ describe("the print", () => {
       const o = ((b.height - 1) * b.width + c) * 4
       if (b.data[o] === bone[0] && b.data[o + 1] === bone[1] && b.data[o + 2] === bone[2]) hot++
     }
-    expect(hot / b.width).toBeGreaterThan(0.3)
+    expect(hot / b.width).toBeGreaterThan(0.25)
+  })
+  it("never goes cold under the tab, whatever the band's height or the moment", () => {
+    // the noise alone left stretches of the foot bare, so it stopped dead mid-page
+    for (const h of [1012, 1112, 1212, 1412])
+      for (const t of [0, 2, 4, 6, 8]) {
+        const b = createRasterBuffer(W / CLOSE.cell, Math.floor(h / CLOSE.cell))
+        paintHeat(b, t, null, CLOSE.cell, INKS, BAYER4)
+        const r = b.height - 1
+        for (let c = 0; c < b.width; c += 4) {
+          const lit = [0, 1, 2, 3].some((k) => b.data[(r * b.width + c + k) * 4 + 3])
+          expect(lit, `${h}px at ${t}s, column ${c}`).toBe(true)
+        }
+      }
   })
   it("prints only the ramp's inks, never its ground", () => {
     const b = print(2)

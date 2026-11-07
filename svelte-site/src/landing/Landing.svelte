@@ -471,14 +471,13 @@
     text-wrap: pretty;
   }
 
-  /* The close: a full-width band, padded by the heat's reach (`--reach`,
-     `CLOSE.reach`) plus air so no ink lands under a word; the heat its ground. */
+  /* The close: a full-width band, its foot padded by the heat's reach
+     (`--reach`, `CLOSE.reach`) plus air so no ink lands under a word; the
+     heat its ground, open at the top where the page runs into it. */
   .close {
     position: relative;
     isolation: isolate;
-    /* open ground above it, so its heat rises out of the page */
-    margin-top: calc(var(--rhythm) * 1.5);
-    padding: calc(var(--reach) + var(--rhythm)) 24px calc(var(--reach) + var(--rhythm) * 1.5);
+    padding: calc(var(--rhythm) * 4) 24px calc(var(--reach) + var(--rhythm) * 1.5);
   }
 
   /* The one joint: the footer's ground rises into the heat's flat foot as a

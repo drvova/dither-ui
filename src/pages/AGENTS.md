@@ -495,8 +495,8 @@ widgets/features; page-specific conventions live here.
   close's material (the user's call: carry it through the page), so it
   builds up to the close. ONE table, `PLATES` in `plate.ts`, sets each
   plate's clear band (`plateField`: the heat prints from its top edge to
-  the band and from the band to its foot, hottest at the edges, never in
-  the band), where the
+  the band and from the band to its foot, two clouds that rise out of
+  nothing and sink back, never in the band), where the
   mark's centre stands in the band (left of 0.7, the wordmark reading on
   to its right), its move, its proportion (`aspect`: 3.4, then a slimmer
   4.6) and its printer's screen (`screen`: Bayer, then a halftone dot); `sceneOf` gives its scene (loose in
@@ -517,23 +517,31 @@ widgets/features; page-specific conventions live here.
   their middles, nothing at the sheet's edges and nothing in the band.
   A new plate is a row in the table and a `<Plate>` at a section break.
 - The close (`#install`, out of the page column, the full width): the
-  install stands in a clear field inside a print of heat (`heat.ts`,
-  rising out of open ground above it, 1.5 rhythms clear of the works, its
-  top and sides coming out of the page (`bell`), only its foot hard,
+  install stands in a clear field over a print of heat (`heat.ts`,
   `paintHeat` on the kit's own `fbm` where a field lets it, `closeField`
   here, copied byte for byte to the Svelte landing; `HeatPrint.vue` paints
   it on the kit's background runtime at `CLOSE.fps`): ink in water through
-  `RAMP`, so the plates, the close and the footer's road are one material, printed beside the install's column
-  (`CLOSE.column`) and in from the band's top and foot (`CLOSE.reach`, the
-  band padded by it through `--reach`, so no ink lands under a word), hot
-  and dense along its flat foot. The footer's ground rises into that foot
+  `RAMP`, so the plates, the close and the footer's road are one material.
+  Its top is the page's open ground (4 rhythms of air above the head, as
+  between sections): heat rises off the band's flat foot (`CLOSE.reach`,
+  the foot padded by it through `--reach`, so no ink lands under a word)
+  and climbs the sides beside the install's column (`CLOSE.column`),
+  thinning out before the top: never a lid, never a frame round the
+  install. The sides climb only where the screen leaves them room to read
+  as heat (about 1800px and up); a narrower one keeps the foot alone,
+  never a sliver at its edge. Where a field thins the heat cools rather
+  than fading in rows, so every edge follows the ink's contours, never a
+  ruled line. The foot never goes cold: its last rows keep a `floor` of
+  the coolest inks, its density still the noise's, so it runs the whole
+  width. The footer's ground rises into that foot
   as ONE tab on the page's axis (`.close-tab`: 224px wide (28vw on a phone, 120px at least) by 40px, rounded
   shoulders, two concave fillets into the ground; the industrial brief's
   one credible joint). The heat drifts for `CLOSE.drift` as the band
   arrives (under five seconds, no pause), then only while a pointer moves
   over the band, which pulls the heat toward it; one still frame under
-  reduced motion. `tests/heat.spec.ts` holds the column clear, the foot
-  hot, the ramp's inks only and a moment's bytes.
+  reduced motion. `tests/heat.spec.ts` holds the column clear, no lid,
+  the sides' room, the foot hot and never cold at any band height or
+  moment, the ramp's inks only and a moment's bytes.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit
