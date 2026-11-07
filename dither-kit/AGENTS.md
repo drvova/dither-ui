@@ -441,6 +441,17 @@ the kit every import is relative (`../engine/pixel`).
   signal per trace whose head (`signalHead`, a pure function of time)
   runs in `pulse` with a `SIGNAL_TAIL` fading through the thresholds.
   Guarded by `tests/circuit.spec.ts`.
+- `HeatTrail` (`heat-trail.ts`, both kits; `DitherHeatTrail` in Vue) is the
+  pointer printing: heat per cell, `trailTo` stamps the kit's diamond
+  (hottest at its heart) at every cell from the stroke's last point, so a
+  fast hand never leaves a gap, `trailLift` ends a stroke, `coolTrail`
+  takes the same heat from every cell (`dt / cool`) until the field is
+  exactly empty, and `paintTrail` shows a cell while its heat clears its
+  threshold, in the ramp's ink for its heat (coolest first). The
+  component listens on the window (content over it never blocks the
+  hand), ignores a finger (it scrolls) and reduced motion, and paints only
+  while something cools. Not `PixelTrail` (coarse blocks fading by alpha,
+  one cell per event). Guarded by `tests/heat-trail.spec.ts`.
 - `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
   surface. `models.ts` parses model files into a `World`, bounded against
   a hostile file: a scene graph is walked for at most `MAX_NODES` (shared

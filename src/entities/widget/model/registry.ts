@@ -1067,6 +1067,19 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     ],
   },
   {
+    is: "DitherHeatTrail",
+    label: "Heat trail",
+    group: "display",
+    frame: { w: 320, h: 220 },
+    props: [
+      number("cool", 1.6, 0.2, 6, 0.1),
+      number("size", 3, 0, 8, 1),
+      number("cell", 4, 2, 12, 1),
+      select("mixBlendMode", "normal", ["normal", "screen", "lighten", "plus-lighter"]),
+      bool("paused"),
+    ],
+  },
+  {
     is: "DitherWaves",
     label: "Waves",
     group: "display",

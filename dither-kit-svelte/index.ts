@@ -5,6 +5,7 @@
 
 export { default as Aurora, type AuroraParams } from "./backgrounds/Aurora.svelte"
 export { default as Circuit, type CircuitParams } from "./backgrounds/Circuit.svelte"
+export { default as HeatTrail, type TrailParams } from "./backgrounds/HeatTrail.svelte"
 
 // Generative canvas backgrounds (self-sizing `relative h-full w-full` roots).
 export { default as Noise, type NoiseParams } from "./backgrounds/Noise.svelte"

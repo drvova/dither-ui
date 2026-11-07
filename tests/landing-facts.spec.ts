@@ -49,6 +49,7 @@ describe("landing facts", () => {
     expect(counts).toEqual([COMPONENT_COUNT, SECTION_COUNT, FAMILIES.find((f) => f.title === "Backgrounds")?.count])
     expect(film).toContain(`["${COMPONENT_COUNT}", "components"]`)
     expect(film).toContain(`["${SECTION_COUNT}", "docs sections"]`)
+    expect(film).toContain(`["${FAMILIES.find((f) => f.title === "Backgrounds")?.count}", "backgrounds"]`)
   })
 
   it("keeps a spec sheet the kit bears out", () => {

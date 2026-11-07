@@ -28,6 +28,7 @@ export { default as DitherThumbnail } from "./Thumbnail.vue"
 export { default as DitherFlowField, paintFlowField, fadeRasterAlpha, type FlowFieldParams } from "./FlowField.vue"
 export { default as DitherAurora, type AuroraParams, paintAurora } from "./Aurora.vue"
 export { default as DitherCircuit, type CircuitParams, paintCircuit } from "./Circuit.vue"
+export { default as DitherHeatTrail, type TrailParams, paintTrail } from "./HeatTrail.vue"
 export { default as DitherWaves, type WavesParams, paintWaves } from "./Waves.vue"
 export { default as DitherSilk, type SilkParams, paintSilk } from "./Silk.vue"
 export {

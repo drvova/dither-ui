@@ -1,6 +1,7 @@
 export const BACKGROUNDS_NAV = [
   { id: "aurora", label: "Aurora" },
   { id: "circuit", label: "Circuit" },
+  { id: "heat-trail", label: "Heat trail" },
   { id: "waves", label: "Waves" },
   { id: "line-waves", label: "Line waves" },
   { id: "threads", label: "Threads" },

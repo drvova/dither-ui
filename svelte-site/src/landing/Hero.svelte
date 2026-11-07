@@ -3,7 +3,7 @@
   // makes (a live Poster: the palette as tone, the kit's diamond knocked out
   // of it, its screen sliding inside the mark), on the obsidian like a print
   // on black stock. The film is a key away.
-  import { Poster } from "@dither-kit-svelte"
+  import { HeatTrail, Poster } from "@dither-kit-svelte"
   import BrandGather from "./BrandGather.svelte"
   import { STAGINGS } from "./brand"
   import { COMPONENT_COUNT, MATRIX, WORKS, docsHref } from "./facts"
@@ -28,12 +28,18 @@
   // HERO_RUN once the brand is home, then only while a pointer moves over
   // it. Under five seconds by itself, so no pause key.
   const HERO_RUN = 4000
+
+  // The pointer prints (the kit's heat trail) on the hero's ground: the
+  // print's own inks, landing hot in its orange, cooling through the bone
+  // to its blue and thinning to nothing. Coolest first.
+  const TRAIL = [INKS[0], INKS[2], INKS[1]]
   let driven = $state(false)
   const timer = createDrive((m) => (driven = m))
   onDestroy(() => timer.dispose())
 </script>
 
 <section aria-labelledby="hero-h" class="hero">
+  <HeatTrail class="hero-trail" inks={TRAIL} cell={4} />
   <div class="hero-in">
     <!-- The statement rises as the page opens: the headline word by word,
          then the lede, the keys and what it works with. -->
@@ -92,6 +98,13 @@
   }
 
   /* Positioned: the brand's field is the page's column. */
+  /* The pointer's print lies on the ground, under everything the hero holds. */
+  :global(.hero-trail) {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
   .hero-in {
     position: relative;
     display: grid;

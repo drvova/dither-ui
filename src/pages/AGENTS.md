@@ -140,6 +140,9 @@ widgets/features; page-specific conventions live here.
   over a static header.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
+  where the pointer prints (`.hero-trail`, a `DitherHeatTrail` under
+  everything the hero holds, in the print's inks: hot in its orange,
+  cooling through the bone to its blue, gone in about two seconds),
   holding on the page width the statement beside the print (columns
   1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
   (`.statement`, rising as the page opens): the h1 in the display face

@@ -8,6 +8,7 @@ import {
   DitherBeams,
   DitherButton,
   DitherCircuit,
+  DitherHeatTrail,
   DitherColorBends,
   DitherEvilEye,
   DitherHyperspeed,
@@ -89,6 +90,20 @@ const circuit = reactive({ density: "even" as CircuitDensity, seed: 7 })
 const circuitCode = computed(
   () =>
     `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherCircuit :density="${CIRCUIT_DENSITIES[circuit.density]}" :seed="${circuit.seed}" />\n</div>`,
+)
+
+// Heat trail playground: how long a cell takes to cool and how big the
+// diamond the pointer prints; the code tab mirrors both.
+const TRAIL_COOLS = { quick: 0.8, even: 1.6, slow: 3 } as const
+type TrailCool = keyof typeof TRAIL_COOLS
+const TRAIL_COOL_NAMES = Object.keys(TRAIL_COOLS) as TrailCool[]
+const TRAIL_SIZES = { fine: 2, even: 3, bold: 5 } as const
+type TrailSize = keyof typeof TRAIL_SIZES
+const TRAIL_SIZE_NAMES = Object.keys(TRAIL_SIZES) as TrailSize[]
+const trail = reactive({ cool: "even" as TrailCool, size: "even" as TrailSize })
+const trailCode = computed(
+  () =>
+    `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherHeatTrail class="absolute inset-0" :cool="${TRAIL_COOLS[trail.cool]}" :size="${TRAIL_SIZES[trail.size]}" />\n</div>`,
 )
 
 // Waves playground — a colour ramp preset; the code tab mirrors it.
@@ -209,6 +224,21 @@ const API: Record<string, PropRow[]> = {
     { prop: "mix-blend-mode", type: "string", default: "undefined" },
     { prop: "seed", type: "number (lays out the board)", default: "undefined" },
     { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "class", type: "string", default: "undefined" },
+  ],
+  "heat-trail": [
+    {
+      prop: "inks",
+      type: "PixelColor[] (the ramp, coolest first, hottest last)",
+      default: "blue, titanium, bone, ember",
+    },
+    { prop: "cool", type: "number (seconds a cell takes to cool to nothing)", default: "1.6" },
+    { prop: "size", type: "number (the diamond's radius in cells)", default: "3" },
+    { prop: "cell", type: "number (device pixels per cell)", default: "4" },
+    { prop: "paused", type: "boolean (nothing prints)", default: "false" },
+    { prop: "dpr", type: "number", default: "devicePixelRatio" },
+    { prop: "mix-blend-mode", type: "string", default: "undefined" },
+    { prop: "seed", type: "number (the screen's seed)", default: "undefined" },
     { prop: "class", type: "string", default: "undefined" },
   ],
   aurora: [
@@ -1049,6 +1079,50 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.circuit" />
+  </section>
+
+  <!-- Heat trail -->
+  <section id="heat-trail" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Heat trail</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      The pointer prints. Where a mouse or a pen passes, the kit's diamond lands in cells, hot, along the whole path
+      however fast the hand moves; each cell then cools down the ramp and thins out through the dither thresholds until
+      the ground is still again. It listens on the window, so text and keys over it never block the hand. A finger
+      scrolls instead, nothing prints under reduced motion, and it paints only while something is cooling.
+    </p>
+    <DemoCard :code="trailCode">
+      <div class="relative grid h-64 place-items-center overflow-hidden rounded-md border border-border/60 bg-black">
+        <DitherHeatTrail class="absolute inset-0" :cool="TRAIL_COOLS[trail.cool]" :size="TRAIL_SIZES[trail.size]" />
+        <p class="relative text-[13px] text-muted-foreground">Move a mouse or a pen across here</p>
+      </div>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-4">
+        <div role="group" aria-label="Cooling" class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+          <button
+            v-for="c in TRAIL_COOL_NAMES"
+            :key="c"
+            type="button"
+            :aria-pressed="trail.cool === c"
+            :class="chipClass(trail.cool === c)"
+            @click="trail.cool = c"
+          >
+            {{ c }}
+          </button>
+        </div>
+        <div role="group" aria-label="Size" class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+          <button
+            v-for="z in TRAIL_SIZE_NAMES"
+            :key="z"
+            type="button"
+            :aria-pressed="trail.size === z"
+            :class="chipClass(trail.size === z)"
+            @click="trail.size = z"
+          >
+            {{ z }}
+          </button>
+        </div>
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API['heat-trail']" />
   </section>
 
   <!-- Waves -->
