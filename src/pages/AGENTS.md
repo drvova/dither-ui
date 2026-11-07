@@ -507,7 +507,7 @@ widgets/features; page-specific conventions live here.
   (`CLOSE.column`) and in from the band's top and foot (`CLOSE.reach`, the
   band padded by it through `--reach`, so no ink lands under a word), hot
   and dense along its flat foot. The footer's ground rises into that foot
-  as ONE tab on the page's axis (`.close-tab`: 224 by 40px, rounded
+  as ONE tab on the page's axis (`.close-tab`: 224px wide (28vw on a phone, 120px at least) by 40px, rounded
   shoulders, two concave fillets into the ground; the industrial brief's
   one credible joint). The heat drifts for `CLOSE.drift` as the band
   arrives (under five seconds, no pause), then only while a pointer moves

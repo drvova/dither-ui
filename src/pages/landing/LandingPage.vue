@@ -670,7 +670,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   position: absolute;
   bottom: 0;
   left: 50%;
-  width: 224px;
+  width: clamp(120px, 28vw, 224px);
   height: 40px;
   translate: -50% 0;
   border-radius: var(--r) var(--r) 0 0;
