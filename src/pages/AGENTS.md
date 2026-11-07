@@ -836,7 +836,9 @@ widgets/features; page-specific conventions live here.
   at idle, so moving family stays instant; the page evaluates only the
   pack it shows), the open section's pack loaded before the page first
   renders (`preloadOpenPacks`, from App.vue's loader), so it never shows
-  empty; the sections DocsPage writes itself keep their element but
+  empty, and a pack's sections, arriving after the page, are hidden and
+  read for "On this page" as they come (a MutationObserver on the flow's
+  children; once missed, a family's every section showed at once); the sections DocsPage writes itself keep their element but
   render their contents only while open or among the last read (`opened`,
   `PACKS_KEPT`; they held 3,000 of a section page's 4,200 nodes and all
   its canvases, hidden); the prerender's `?all-sections` renders and

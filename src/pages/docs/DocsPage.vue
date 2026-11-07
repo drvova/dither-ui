@@ -518,11 +518,23 @@ const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "
    the demo's, not the section's. */
 /** The docs' flow: every section a direct child of it. */
 const flow = ref<HTMLElement | null>(null)
+/* Counts the sections arriving in the flow: a pack is a chunk of its own
+   (`pack-loaders.ts`) and renders its sections after the page has, so
+   whatever reads the flow's sections reads them again as they come (the
+   hiding once missed them, and a family's every section showed at once). */
+const arrived = ref(0)
+let arrivals: MutationObserver | null = null
+onMounted(() => {
+  if (!flow.value || typeof MutationObserver === "undefined") return
+  arrivals = new MutationObserver(() => arrived.value++)
+  arrivals.observe(flow.value, { childList: true })
+})
+onBeforeUnmount(() => arrivals?.disconnect())
 const onPage = ref<PagePart[]>([])
 /* Read once the flow has mounted too: a page opened straight on a section
    never changes `shown`, and the rail stood empty. */
 watch(
-  [shown, () => flow.value],
+  [shown, () => flow.value, arrived],
   async ([id]) => {
     await nextTick()
     const section = id ? document.getElementById(id) : null
@@ -575,7 +587,7 @@ const allSections = new URLSearchParams(location.search).has(ALL_SECTIONS_PARAM)
 const mounted = (name: PackName) => packOpen(name, kept.value, allSections)
 const opened = (id: string) => allSections || keptOwn.value.includes(id)
 watch(
-  [shown, flow],
+  [shown, flow, arrived],
   ([id]) => {
     for (const s of flow.value?.querySelectorAll<HTMLElement>(":scope > section") ?? []) s.hidden = s.id !== id
   },

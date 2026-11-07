@@ -36,3 +36,19 @@ it("renders only the sections it writes itself that are open or just read", asyn
   expect(["area", "bar", "line", "pie"].map(filled)).toEqual([false, true, true, true])
   w.unmount()
 })
+
+it("shows one section of a pack that arrives after the page, and lists its parts", async () => {
+  // a pack is a chunk of its own: its sections came after the hiding ran,
+  // and a family's every section showed at once
+  history.replaceState(null, "", "/docs/aurora")
+  const w = mount(DocsPage, { attachTo: document.body })
+  for (let i = 0; i < 40 && !document.getElementById("aurora"); i++) await new Promise((r) => setTimeout(r, 10))
+  for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0))
+  const shownIds = [...document.querySelectorAll<HTMLElement>(".docs-flow > section")]
+    .filter((s) => !s.hidden)
+    .map((s) => s.id)
+  expect(shownIds).toEqual(["aurora"])
+  const rail = w.find('nav[aria-label="On this page"]')
+  expect(rail.findAll("button").length).toBeGreaterThan(0)
+  w.unmount()
+})
