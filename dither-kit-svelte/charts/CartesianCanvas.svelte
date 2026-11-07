@@ -237,7 +237,10 @@
         needsFill = true
       }
       if (!(moving || settling || (sparkleMotion && winkDue) || progChanged || sigChanged || needsFill)) {
-        if (sparkleMotion) schedule()
+        // Nothing new to paint this frame, but an entrance still under way
+        // (its delay, or two frames on one timestamp) must keep the loop
+        // alive, or it stops part drawn until a hover wakes it.
+        if (sparkleMotion || (animate && !entranceReported)) schedule()
         return
       }
       if (progChanged) {

@@ -819,6 +819,10 @@ the kit every import is relative (`../engine/pixel`).
   element visible; do not start chart animation loops optimistically before the
   first visibility observation. The IO callback must set `visible.value` before
   calling `onWake` so `schedule()` sees the correct state.
+- A chart loop that skips a frame with nothing new to paint still asks for
+  the next one while its entrance is under way (a delay, or two frames on
+  one timestamp), in both kits' copies of the cartesian loop; else it stops
+  part drawn until a hover wakes it. `tests/chart-entrance.spec.ts`.
 - `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
   must not import Vue, DOM APIs, or a server-specific image encoder. Consumers
   own encoding, caching, and invalidation of packaged assets.

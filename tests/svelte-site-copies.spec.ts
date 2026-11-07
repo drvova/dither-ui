@@ -19,7 +19,7 @@ const COPIES: readonly (readonly [copy: string, original: string])[] = [
     (f) => [`svelte-site/src/landing/${f}`, `src/widgets/site-header/${f}`] as const,
   ),
   ...["rise.ts", "rise-wait.ts"].map((f) => [`svelte-site/src/landing/${f}`, `src/shared/lib/${f}`] as const),
-  ...["brand.ts", "heat.ts", "pixel-type.ts", "plate.ts", "spotlight.ts", "stat.ts", "story.ts"].map(
+  ...["brand.ts", "command.ts", "heat.ts", "pixel-type.ts", "plate.ts", "spotlight.ts", "stat.ts", "story.ts"].map(
     (f) => [`svelte-site/src/landing/${f}`, `src/pages/landing/${f}`] as const,
   ),
 ]

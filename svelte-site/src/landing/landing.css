@@ -272,9 +272,11 @@
   background: var(--surface);
 }
 
+/* Inline code never wraps: a package name or path breaks at no hyphen. */
 .landing code {
   font-family: var(--font-mono);
   color: var(--ink);
+  white-space: nowrap;
 }
 
 @media (forced-colors: active) {

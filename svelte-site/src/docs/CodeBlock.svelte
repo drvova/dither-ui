@@ -6,6 +6,8 @@
 
   const clip = copier()
   const copy = () => clip.copy(code)
+  // Under sm the copy chip takes its own band over the first line, which
+  // ran under it on a phone (as the Vue docs' code block does).
 </script>
 
 <div class="relative rounded-lg border border-transparent bg-background/60 shadow-[0_0_0_1px_rgba(255,255,255,0.07)]">
@@ -16,5 +18,5 @@
   >
     {clip.copied ? "copied" : "copy"}
   </button>
-  <pre class="overflow-x-auto p-4 font-mono text-[12px] leading-relaxed text-foreground"><code>{code}</code></pre>
+  <pre class="overflow-x-auto p-4 pt-10 font-mono sm:pt-4 text-[12px] leading-relaxed text-foreground"><code>{code}</code></pre>
 </div>

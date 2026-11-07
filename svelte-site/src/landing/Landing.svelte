@@ -219,7 +219,7 @@
             {#each DOCS_FAMILIES as f (f.label)}
               <li data-rise>
                 <a href={f.href} class="family-t"
-                  ><span class="family-n">{f.count}<span class="family-u"> sections</span></span><span class="family-l">{f.label}</span></a
+                  ><span class="family-n">{f.count} <span class="family-u">sections</span></span><span class="family-l">{f.label}</span></a
                 >
                 <p class="family-p">{f.note}</p>
               </li>

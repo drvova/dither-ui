@@ -22,6 +22,11 @@
   let auto = $state(true)
 
   const markers: HTMLElement[] = []
+  // Kept by an action: a plain array nothing renders from (`bind:this` into
+  // it warned on every marker).
+  const keep = (node: HTMLElement, i: number) => {
+    markers[i] = node
+  }
   let io: IntersectionObserver | null = null
   let wide: MediaQueryList | null = null
   const inBand = new Set<number>()
@@ -142,7 +147,7 @@
   {#if pinned}
     <div class="markers" aria-hidden="true">
       {#each { length: STEPS }, i (i)}
-        <span bind:this={markers[i]}></span>
+        <span use:keep={i}></span>
       {/each}
     </div>
   {/if}

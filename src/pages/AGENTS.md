@@ -557,7 +557,9 @@ widgets/features; page-specific conventions live here.
   mono with the ember `$`; the box and the spec sheet under it keep the
   install head's centred measure (52rem). Under 640px the picker takes the
   top row alone and the command wraps beside the key between its words
-  (each word unbroken, never at a hyphen), so all of it shows; inline
+  or after a path's slash (`command.ts`, shared with the Svelte landing;
+  each piece unbroken, never at a hyphen), the caret flowing after the last
+  word, so all of it shows; inline
   `code` on the landing never wraps. A copy is ONE gesture: while copied the
   command shows selected (the page's ground behind it) as the key's label
   rolls to "Copied" under a check; both let go together; reduced motion

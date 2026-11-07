@@ -6,6 +6,7 @@
   // "Copied"; both let go together when the copy settles. A status region
   // says it to screen readers.
   import { copier } from "../copy.svelte"
+  import { commandPieces } from "./command"
   import { RUNTIME_DEPS } from "./facts"
   import ToolMark from "./ToolMark.svelte"
 
@@ -49,7 +50,9 @@
   </div>
   <div class="frame">
     <code class="cmd">
-      <span class="prompt" aria-hidden="true">$</span>{#key active}<span class="typed">{STEPS[active].cmd}</span
+      <span class="prompt" aria-hidden="true">$</span>{#key active}<span class="typed"
+          >{#each commandPieces(STEPS[active].cmd) as w, i (i)}{i ? " " : ""}{#each w as p, j (j)}{#if j}<wbr
+                />{/if}<span class="word">{p}</span>{/each}{/each}</span
         >{/key}<span class="caret" aria-hidden="true">▌</span>
     </code>
   </div>
@@ -98,6 +101,12 @@
 
   .cmd::-webkit-scrollbar {
     display: none;
+  }
+
+  /* A piece of the command never breaks (a hyphen is no place to wrap); a
+     path may wrap after its slashes (`command.ts`). */
+  .word {
+    white-space: nowrap;
   }
 
   .prompt {
@@ -212,10 +221,11 @@
       min-height: 56px;
       padding: 12px 12px 12px 18px;
     }
+    /* Wrapped: the prompt, the words and the caret flow as one line of
+       text, the caret after the last word. */
     .cmd {
-      align-items: baseline;
+      display: block;
       white-space: normal;
-      overflow-wrap: anywhere;
       line-height: 1.6;
     }
     .copy {
