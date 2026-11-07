@@ -46,8 +46,10 @@ import BrandGather from "./BrandGather.vue"
 import BrandMark from "@/shared/ui/BrandMark.vue"
 import MascotCar from "@/shared/ui/MascotCar.vue"
 import { SiteHeader } from "@/widgets/site-header"
-import { PLATES, STOCK } from "./plate"
-import { ROAD, ROAD_RAMP, ROAD_SHADER, WORDMARK } from "./road"
+import { PLATES, RAMP, STOCK } from "./plate"
+import { ROAD, ROAD_SHADER, WORDMARK } from "./road"
+import { CLOSE } from "./close"
+import CloseHeat from "./CloseHeat.vue"
 import Showcase from "./Showcase.vue"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the
@@ -129,6 +131,10 @@ const road = ref<HTMLElement | null>(null)
 // The bridge's board (What's inside) runs the same way: its signals run as
 // its card comes into view, then only while the reader moves the page.
 const board = useDrive()
+// The close's heat drifts as its band arrives, then only under the hand.
+const heat = useDrive()
+const closeBand = ref<HTMLElement | null>(null)
+let closeSeen: IntersectionObserver | null = null
 const boardCard = ref<HTMLElement | null>(null)
 let boardInView = false
 const scrolled = () => {
@@ -200,6 +206,17 @@ onMounted(() => {
     )
     boardSeen.observe(boardCard.value)
   }
+  if (closeBand.value) {
+    closeSeen = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return
+        heat.drive(CLOSE.drift)
+        closeSeen?.disconnect()
+      },
+      { threshold: 0.25 },
+    )
+    closeSeen.observe(closeBand.value)
+  }
   if (!road.value) return
   seen = new IntersectionObserver(
     ([entry]) => {
@@ -216,6 +233,7 @@ onBeforeUnmount(() => {
   removeEventListener("scroll", scrolled)
   seen?.disconnect()
   boardSeen?.disconnect()
+  closeSeen?.disconnect()
 })
 
 // The footer's columns.
@@ -362,9 +380,21 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <!-- The plates: print sheets between the sections, the kit's diamond
              small in a wide field (plate.ts). -->
         <Plate :plate="PLATES.beforeInstall" />
+      </div>
 
-        <!-- The install, centred. -->
-        <section id="install" aria-labelledby="install-h" class="sec install">
+      <!-- The close: the install in a clear field inside a print of heat,
+           the footer's own ramp (close.ts), its foot cut flat where the
+           footer rises into it through one tab. -->
+      <section
+        id="install"
+        ref="closeBand"
+        aria-labelledby="install-h"
+        class="close"
+        :style="{ '--reach': `${CLOSE.reach}px` }"
+        @pointermove="heat.drive()"
+      >
+        <CloseHeat :paused="!heat.driven.value" />
+        <div class="sec install">
           <div v-rise class="install-head">
             <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
             <p data-rise class="sec-lede">
@@ -392,8 +422,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
               <dd>{{ s.value }}</dd>
             </div>
           </dl>
-        </section>
-      </div>
+        </div>
+        <span aria-hidden="true" class="close-tab" />
+      </section>
     </main>
 
     <!-- Footer: on the kit's art, the brand and a line beside three link
@@ -404,7 +435,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <div aria-hidden="true" class="foot-ground">
           <DitherShader
             :source="ROAD_SHADER"
-            :colors="ROAD_RAMP"
+            :colors="RAMP"
             :seed="3"
             :cell="ROAD.cell"
             :dpr="1"
@@ -476,7 +507,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   gap: calc(var(--rhythm) * 3.5);
   width: min(100%, var(--page));
   margin-inline: auto;
-  padding: calc(var(--rhythm) * 2) 24px calc(var(--rhythm) * 3);
+  padding: calc(var(--rhythm) * 2) 24px 0;
 }
 
 .sec {
@@ -620,6 +651,48 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 }
 
 /* The install: its head centred, the box under it. */
+/* The close: a full-width band, padded by the heat's reach (`--reach`,
+   `CLOSE.reach`) plus air so no ink lands under a word; the heat its ground. */
+.close {
+  position: relative;
+  isolation: isolate;
+  padding: calc(var(--reach) + var(--rhythm)) 24px calc(var(--reach) + var(--rhythm) * 1.5);
+}
+
+/* The one joint: the footer's ground rises into the heat's flat foot as a
+   tab on the page's axis, its shoulders rounded and its base flowing into
+   the ground through two concave fillets. */
+.close-tab {
+  --r: 16px;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 224px;
+  height: 40px;
+  translate: -50% 0;
+  border-radius: var(--r) var(--r) 0 0;
+  background: var(--background);
+}
+
+.close-tab::before,
+.close-tab::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: var(--r);
+  height: var(--r);
+}
+
+.close-tab::before {
+  right: 100%;
+  background: radial-gradient(circle at 0 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
+}
+
+.close-tab::after {
+  left: 100%;
+  background: radial-gradient(circle at 100% 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
+}
+
 .install {
   width: min(100%, 64rem);
   margin-inline: auto;

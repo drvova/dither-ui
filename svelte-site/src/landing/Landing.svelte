@@ -24,7 +24,10 @@
   import LineWordmark from "./LineWordmark.svelte"
   import { GITHUB, SITE, STUDIO } from "./links"
   import Plate from "./Plate.svelte"
-  import { drive } from "./drive"
+  import { createDrive, drive } from "./drive"
+  import { onMount } from "svelte"
+  import CloseHeat from "./CloseHeat.svelte"
+  import { CLOSE } from "./close"
   import PixelWord from "./PixelWord.svelte"
   import { PLATES, STOCK } from "./plate"
   import SiteHeader from "./SiteHeader.svelte"
@@ -32,6 +35,27 @@
   import WorksWith from "./WorksWith.svelte"
 
   const SKILL = `${SITE}/agent/SKILL.md`
+
+  // The close's heat drifts as its band arrives, then only under the hand.
+  let heatMoving = $state(false)
+  const heat = createDrive((m) => (heatMoving = m))
+  let closeBand = $state<HTMLElement | null>(null)
+  onMount(() => {
+    if (typeof IntersectionObserver === "undefined" || !closeBand) return heat.dispose
+    const seen = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return
+        heat.run(CLOSE.drift)
+        seen.disconnect()
+      },
+      { threshold: 0.25 },
+    )
+    seen.observe(closeBand)
+    return () => {
+      seen.disconnect()
+      heat.dispose()
+    }
+  })
 
   // What "Copy agent prompt" puts on the clipboard: the install to run.
   const PROMPT = [
@@ -205,8 +229,21 @@
 
       <Plate plate={PLATES.beforeInstall} />
 
-      <!-- The install, centred. -->
-      <section id="install" aria-labelledby="install-h" class="sec install">
+    </div>
+
+    <!-- The close: the install in a clear field inside a print of heat, the
+         footer's ramp (close.ts), its foot cut flat where the footer rises
+         into it through one tab. -->
+    <section
+      id="install"
+      bind:this={closeBand}
+      aria-labelledby="install-h"
+      class="close"
+      style:--reach="{CLOSE.reach}px"
+      onpointermove={() => heat.run()}
+    >
+      <CloseHeat paused={!heatMoving} />
+      <div class="sec install">
         <div use:rise class="install-head">
           <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
           <p data-rise class="sec-lede">
@@ -231,8 +268,9 @@
             </div>
           {/each}
         </dl>
-      </section>
-    </div>
+      </div>
+      <span aria-hidden="true" class="close-tab"></span>
+    </section>
   </main>
 
   <!-- Footer: the brand and a line beside three link columns, the copyright
@@ -278,7 +316,7 @@
     gap: calc(var(--rhythm) * 3.5);
     width: min(100%, var(--page));
     margin-inline: auto;
-    padding: calc(var(--rhythm) * 2) 24px calc(var(--rhythm) * 3);
+    padding: calc(var(--rhythm) * 2) 24px 0;
   }
 
   .sec {
@@ -414,6 +452,48 @@
     line-height: 1.6;
     color: var(--ink-3);
     text-wrap: pretty;
+  }
+
+  /* The close: a full-width band, padded by the heat's reach (`--reach`,
+     `CLOSE.reach`) plus air so no ink lands under a word; the heat its ground. */
+  .close {
+    position: relative;
+    isolation: isolate;
+    padding: calc(var(--reach) + var(--rhythm)) 24px calc(var(--reach) + var(--rhythm) * 1.5);
+  }
+
+  /* The one joint: the footer's ground rises into the heat's flat foot as a
+     tab on the page's axis, its shoulders rounded and its base flowing into
+     the ground through two concave fillets. */
+  .close-tab {
+    --r: 16px;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 224px;
+    height: 40px;
+    translate: -50% 0;
+    border-radius: var(--r) var(--r) 0 0;
+    background: var(--background);
+  }
+
+  .close-tab::before,
+  .close-tab::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: var(--r);
+    height: var(--r);
+  }
+
+  .close-tab::before {
+    right: 100%;
+    background: radial-gradient(circle at 0 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
+  }
+
+  .close-tab::after {
+    left: 100%;
+    background: radial-gradient(circle at 100% 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
   }
 
   /* The install: its head centred, the box under it. */

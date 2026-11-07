@@ -5,6 +5,7 @@
     DitherAlertDialog,
     DitherButton,
     DitherDrawer,
+    DitherGauge,
     DitherMeter,
     DitherNavMenu,
     DitherScrollArea,
@@ -13,6 +14,7 @@
     DitherSidebarGroup,
     DitherSidebarItem,
     DitherSidebarSub,
+    DitherSlider,
     DitherSwipeArea,
     DitherSwitch,
     DitherToaster,
@@ -162,6 +164,15 @@
   Export
 </DitherButton>`
 
+  let load = $state(64)
+  const SNIPPET_GAUGE = `<script lang="ts">
+  import { DitherGauge, DitherSlider } from "@dither-kit-svelte"
+  let load = $state(64)
+<\/script>
+
+<DitherGauge value={load} label="load" warn={0.8} />
+<DitherSlider bind:value={load} label="Load" />`
+
   const SNIPPET_METER = `<div class="grid gap-3">
   <div>
     <div class="mb-1 flex justify-between text-[11px] text-muted-foreground">
@@ -263,6 +274,18 @@
       { prop: "max", type: "number", default: "100" },
       { prop: "low", type: "number", default: "0.5" },
       { prop: "high", type: "number", default: "0.8" },
+    ],
+    gauge: [
+      { prop: "value", type: "number (the reading)", default: "none" },
+      { prop: "min", type: "number", default: "0" },
+      { prop: "max", type: "number", default: "100" },
+      { prop: "ticks", type: "number (major intervals)", default: "10" },
+      { prop: "warn", type: "number 0 to 1 (where the warning zone starts)", default: "0.8" },
+      { prop: "label", type: "string (names the dial)", default: "undefined" },
+      { prop: "decimals", type: "number", default: "0" },
+      { prop: "color", type: "PixelColor (the band)", default: '"grey"' },
+      { prop: "warnColor", type: "PixelColor (the warning zone)", default: '"orange"' },
+      { prop: "seed", type: "number", default: "undefined" },
     ],
     scrollArea: [{ prop: "class", type: "string", default: "undefined" }],
     toolbar: [{ prop: "label", type: "string", default: "undefined" }],
@@ -574,6 +597,22 @@
     </div>
   </DemoCard>
   <PropsTable rows={API.meter} />
+</section>
+
+<section id="gauge" class="mt-20 scroll-mt-20">
+  <h2 class="text-lg tracking-tight">Gauge</h2>
+  <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+    An instrument dial: one sweep printed through the dither and filled to the needle, the zone past the warning in
+    its own ink, ticks and numerals over it. A changed value settles on the kit's spring. Set the load and watch it
+    swing.
+  </p>
+  <DemoCard code={SNIPPET_GAUGE}>
+    <div class="mx-auto grid max-w-xs gap-4">
+      <DitherGauge value={load} label="load" warn={0.8} />
+      <DitherSlider bind:value={load} label="Load" />
+    </div>
+  </DemoCard>
+  <PropsTable rows={API.gauge} />
 </section>
 
 <section id="scroll-area" class="mt-20 scroll-mt-20">

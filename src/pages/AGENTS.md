@@ -496,6 +496,22 @@ widgets/features; page-specific conventions live here.
   `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and every
   plate's mark inside its band, its tones thin.
   A new plate is a row in the table and a `<Plate>` at a section break.
+- The close (`#install`, out of the page column, the full width): the
+  install stands in a clear field inside a print of heat (`close.ts`,
+  `paintHeat` on the kit's own `fbm`, copied byte for byte to the Svelte
+  landing; `CloseHeat.vue` paints it on the kit's background runtime at
+  `CLOSE.fps`): ink in water through `RAMP`, so the close and the footer's
+  road are one material, printed beside the install's column
+  (`CLOSE.column`) and in from the band's top and foot (`CLOSE.reach`, the
+  band padded by it through `--reach`, so no ink lands under a word), hot
+  and dense along its flat foot. The footer's ground rises into that foot
+  as ONE tab on the page's axis (`.close-tab`: 224 by 40px, rounded
+  shoulders, two concave fillets into the ground; the industrial brief's
+  one credible joint). The heat drifts for `CLOSE.drift` as the band
+  arrives (under five seconds, no pause), then only while a pointer moves
+  over the band, which pulls the heat toward it; one still frame under
+  reduced motion. `tests/close.spec.ts` holds the column clear, the foot
+  hot, the ramp's inks only and a moment's bytes.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit
@@ -549,7 +565,7 @@ widgets/features; page-specific conventions live here.
   pinned by `tests/landing-facts.spec.ts`) a bundle of light trails that
   runs under the brand's diamond (`BrandMark`, placed at `ROAD.mark`) and
   sweeps out and down to the right, widening, a spray of the grain along
-  it. Luminance picks the ink through `ROAD_RAMP` (the page's ground, then
+  it. Luminance picks the ink through `RAMP` (`plate.ts`: the page's ground, then
   the print's `INKS`), so the trails burn bone at their heads and core and
   cool through the ember to blue. The art dissolves at its edges into the
   page (in from the footer's top, out at the page's foot, the trails'

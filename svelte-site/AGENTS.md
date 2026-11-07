@@ -38,7 +38,8 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   (from `src/shared/ui/marks.ts`), `src/fonts/` (Michroma's `display.css`,
   `michroma-latin.woff2` and its `OFL.txt`, from `src/shared/fonts/`), and
   the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
-  `pixel-type.ts`, `plate.ts`, `spotlight.ts`, `stat.ts`, `story.ts`), the
+  `pixel-type.ts`, `plate.ts`, `close.ts` (the close's heat, painted by
+  `src/landing/CloseHeat.svelte`), `spotlight.ts`, `stat.ts`, `story.ts`), the
   rise (from `src/shared/lib/`; `rise.ts`, `rise-wait.ts`: `use:rise` on the
   hero's statement, each section head and the block groups under them, the words from
   `src/landing/RiseWords.svelte`), and the
@@ -52,7 +53,9 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   (`rstack.config.ts` alias + `tsconfig.json` path) and the type-only
   `@dither-kit` maps to `src/landing/kit-types.ts` (tsconfig only; a value
   import from it fails the build). The same spec holds `facts.ts`
-  `HARNESSES` to `bridge/dither-bridge.mjs`.
+  `HARNESSES` to `bridge/dither-bridge.mjs`, and every docs link the
+  landing makes (`docsHref`, which throws on a dead id) to a section the
+  Svelte docs render.
 - `src/app.css` carries the shadcn-style design tokens the kit components read
   (`--background`, `--foreground`, `--muted-foreground`, `--border`, `--accent`,
   swatch vars) and the Tailwind v4 `@theme inline` mapping. It MUST keep
