@@ -90,13 +90,14 @@ function move(e: PointerEvent) {
 const lift = () => pending.push(null)
 /** Pinned: how far the page scrolled under the print since the last paint, px. */
 let scrolled = 0
-let lastY = 0
+// The scroll's baseline is the first scroll event's own reading: read at
+// mount, `scrollY` forced a layout of the whole page mid-mount.
+let lastY: number | null = null
 function scroll() {
-  if (props.pinned && live.value) scrolled += scrollY - lastY
+  if (props.pinned && live.value && lastY !== null) scrolled += scrollY - lastY
   lastY = scrollY
 }
 onMounted(() => {
-  lastY = scrollY
   addEventListener("pointermove", move, { passive: true })
   addEventListener("scroll", scroll, { passive: true })
   document.documentElement.addEventListener("pointerleave", lift)

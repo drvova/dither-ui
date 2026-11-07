@@ -98,10 +98,10 @@
 
   onMount(() => {
     const set = lockup
-    const field = set?.offsetParent
+    // The field (`offsetParent`) is read as the moment is built, not here:
+    // read at mount it forced a layout of the whole page mid-mount.
     if (
       !set ||
-      !(field instanceof HTMLElement) ||
       !cells[0] ||
       typeof IntersectionObserver === "undefined" ||
       typeof cells[0].animate !== "function" ||
@@ -118,7 +118,9 @@
         if (!entry?.isIntersecting) return
         near?.disconnect()
         near = null
-        build(set, field)
+        const field = set.offsetParent
+        if (field instanceof HTMLElement) build(set, field)
+        else onsettled?.()
       },
       { rootMargin: "100% 0px" },
     )

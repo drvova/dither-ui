@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { formatFixed } from "../engine/format-number"
   import { cn } from "../runtime/lib"
 
   /** Odometer for live values — each digit rides a 0-9 column that rolls to the
@@ -14,14 +15,7 @@
 
   let { value, decimals = 0, duration = 600, class: className }: Props = $props()
 
-  const chars = $derived(
-    value
-      .toLocaleString(undefined, {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-      })
-      .split("")
-  )
+  const chars = $derived(formatFixed(value, decimals).split(""))
   const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 </script>
 

@@ -127,13 +127,34 @@ const movingOf = (el: HTMLElement) => el.dataset.moving as Moving
 // Each card's reveal delay, read from the laid-out bento before any reveal
 // plays (a reveal starts as its card comes into view, after this).
 const delays = ref<number[]>([])
+/** Each card's delay from the bento's box and its cards' boxes. */
+function stagger(box: DOMRectReadOnly, cards: DOMRectReadOnly[]) {
+  delays.value = staggers(
+    cards.map((c) => ({ top: c.top - box.top, left: c.left - box.left })),
+    box.width,
+  )
+}
 onMounted(() => {
-  const box = bento.value?.getBoundingClientRect()
-  const cards = [...(bento.value?.children ?? [])].map((c) => c.getBoundingClientRect())
-  if (box)
-    delays.value = staggers(
-      cards.map((c) => ({ top: c.top - box.top, left: c.left - box.left })),
-      box.width,
+  const el = bento.value
+  if (el && typeof IntersectionObserver !== "undefined") {
+    // The boxes come from an observer's first report, measured as the frame
+    // lays out: read at mount they forced a layout of the whole page in the
+    // middle of mounting it. It reports before the reveals' own observers.
+    const at = new Map<Element, DOMRectReadOnly>()
+    const measure = new IntersectionObserver((entries) => {
+      for (const e of entries) at.set(e.target, e.boundingClientRect)
+      const box = at.get(el)
+      const cards = [...el.children].map((c) => at.get(c))
+      if (!box || !cards.every(Boolean)) return
+      measure.disconnect()
+      stagger(box, cards as DOMRectReadOnly[])
+    })
+    measure.observe(el)
+    for (const c of el.children) measure.observe(c)
+  } else if (el)
+    stagger(
+      el.getBoundingClientRect(),
+      [...el.children].map((c) => c.getBoundingClientRect()),
     )
   if (typeof IntersectionObserver === "undefined") {
     bento.value?.querySelectorAll<HTMLElement>("[data-lazy]").forEach((c) => near.add(c.dataset.lazy ?? ""))

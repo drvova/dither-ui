@@ -731,6 +731,10 @@ the kit every import is relative (`../engine/pixel`).
   tone turns over (the tiles' negative) and the screen slides `speed` cells a second on the
   clock; `ground` `transparent` leaves open cells clear. Its screen is the
   one around it, else Bayer. Pinned by `tests/poster.spec.ts`.
+- `format-number.ts` (`formatFixed`, both kits verbatim) is how a counter
+  prints a number with its decimals fixed: one `Intl.NumberFormat` a
+  precision, made once (`toLocaleString` with options built one a call, a
+  rolling `CountUp` one a frame); `CountUp` and `NumberFlow` use it.
 - `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never

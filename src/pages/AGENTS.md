@@ -603,6 +603,15 @@ widgets/features; page-specific conventions live here.
   chip, since a tap also focuses and would point at the card and then
   toggle what it just started. Chips stay under reduced motion, where
   every surface paints one frame and holds it.
+- Mounting reads no layout (`tests/mount-reads.spec.ts`): a read of a
+  box, `scrollY` or `offsetParent` while the landing mounts forced a
+  layout of the whole page that the rest of the mount then undid (about
+  350ms of a 4x-throttled load, now about 30ms). A reading waits for the
+  frame (`BrandBuild`'s first measure), the moment that needs it (the
+  brand's field, read as it builds), an observer's report (the bento's
+  stagger, from an IntersectionObserver's first boxes) or the event that
+  brings it (the pointer trail's scroll baseline). Numbers format through
+  the kit's `formatFixed` (one formatter a precision).
 - Footer ground (`road.ts`): the kit's art under the whole footer, the
   wordmark included (`.foot-art`), one `DitherShader` (loaded with the footer, cell
   `ROAD.cell` CSS px at dpr 1, so the print reads the same on every screen

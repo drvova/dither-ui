@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
+import { formatFixed } from "../engine/format-number"
 import { cn } from "./lib"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 
@@ -71,12 +72,7 @@ onBeforeUnmount(() => {
   io?.disconnect()
 })
 
-const display = computed(() =>
-  value.value.toLocaleString(undefined, {
-    minimumFractionDigits: props.decimals,
-    maximumFractionDigits: props.decimals,
-  }),
-)
+const display = computed(() => formatFixed(value.value, props.decimals))
 </script>
 
 <template>

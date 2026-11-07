@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte"
+  import { formatFixed } from "../engine/format-number"
   import { cn } from "../runtime/lib"
   import { pixelPrefersReducedMotion } from "../engine/pixel"
 
@@ -57,12 +58,7 @@
     if (raf) cancelAnimationFrame(raf)
   })
 
-  const display = $derived(
-    value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })
-  )
+  const display = $derived(formatFixed(value, decimals))
 </script>
 
 <span use:observe class={cn("tabular-nums", className)}>{display}</span>

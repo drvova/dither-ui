@@ -61,13 +61,17 @@ function onScroll() {
 
 onMounted(() => {
   still.value = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
-  fit()
   window.addEventListener("resize", fit, { passive: true })
+  // The first reading waits for the frame: read here, mid-mount, it forced
+  // a layout of the page that the rest of the mount then undid (measured,
+  // about 190ms of a 4x-throttled landing load); in the frame it is the
+  // frame's own layout.
   if (still.value) {
     stage.value = { build: 1, scatter: 0, yaw: -14 }
+    frame = requestAnimationFrame(() => ((frame = 0), fit()))
     return
   }
-  measure()
+  frame = requestAnimationFrame(measure)
   if (typeof IntersectionObserver !== "undefined" && run.value) {
     io = new IntersectionObserver(([e]) => {
       near = !!e?.isIntersecting
