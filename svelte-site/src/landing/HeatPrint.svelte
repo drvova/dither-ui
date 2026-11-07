@@ -1,16 +1,17 @@
 <script lang="ts">
-  // The close's heat (`close.ts`, the Vue landing's painter byte for byte)
-  // on the kit's background runtime: painted at a film's cadence while the
-  // page drives it, held still otherwise, one still frame under reduced
-  // motion. It follows the hand over the band.
+  // A sheet of the heat (`heat.ts`, the Vue landing's painter byte for byte)
+  // on the kit's background runtime, where its `field` lets it print: the
+  // close's band, a plate. Painted at a film's cadence while the page drives
+  // it, held otherwise, one still frame under reduced motion; it follows the
+  // hand over its box and prints through the screen around it.
   import { onMount } from "svelte"
   import { fillOf } from "@dither-kit/engine/pixel"
   import { ditherBackground } from "../../../dither-kit-svelte/runtime/use-dither-background"
   import { useDitherMatrix } from "../../../dither-kit-svelte/runtime/screen"
-  import { CLOSE, paintHeat } from "./close"
+  import { CLOSE, closeField, paintHeat, type HeatField } from "./heat"
   import { RAMP as INKS } from "./plate"
 
-  let { paused }: { paused: boolean } = $props()
+  let { paused, field = closeField }: { paused: boolean; field?: HeatField } = $props()
 
   const RAMP = INKS.map(fillOf)
   const ditherMatrix = useDitherMatrix()
@@ -40,9 +41,9 @@
     dpr: 1,
     paused,
     frameRate: CLOSE.fps,
-    restartKey: "close",
+    restartKey: "heat",
     render: (buffer: Parameters<typeof paintHeat>[0], clock: number) =>
-      paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix),
+      paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix, field),
   })
 </script>
 

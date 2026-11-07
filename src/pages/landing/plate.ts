@@ -1,9 +1,11 @@
 // The plates: print sheets between the landing's sections, each the brand
 // small in a wide field. One table sets the series; `Plate.vue` prints a row
-// of it. Each plate is tone thinning from its top edge to a clear band and
-// rising from it to the foot, the brand (`brand.ts`) standing in the band.
+// of it. Each plate is a sheet of the heat thinning from its top edge to a
+// clear band and rising from it to the foot, the brand (`brand.ts`)
+// standing in the band.
 import type { PixelColor, ScreenKind } from "@dither-kit"
 import type { Move, Scene } from "./brand"
+import { smooth, type HeatField } from "./heat"
 
 /** The plates' stock: the raised ground (`--surface`) as a colour the kit
  * prints with, so the open cells of a plate's print are the plate itself,
@@ -27,12 +29,9 @@ export const RAMP: PixelColor[] = [GROUND, ...INKS]
 export const TRAIL: PixelColor[] = [INKS[0], INKS[2], INKS[1]]
 
 export type Plate = {
-  /** The tone at the top edge (0 to 1), thinning to nothing at the band. */
-  sky: number
-  /** The clear band's top and foot, as fractions of the plate's height. */
+  /** The clear band's top and foot, as fractions of the plate's height:
+   * the heat prints above and below it, hottest at the sheet's edges. */
   band: readonly [number, number]
-  /** The tone at the foot, rising from nothing at the band's foot. */
-  ground: number
   /** Where the mark's centre stands, as fractions of the width and height;
    * the wordmark reads on to its right. */
   mark: readonly [number, number]
@@ -44,30 +43,39 @@ export type Plate = {
   screen: ScreenKind
 }
 
-/** The series, in page order, two plates unlike each other: after the bento
- * a sheet of 3.4 with a high band, the brand at the left and the tone in the
- * kit's Bayer cells; before the install a slimmer sheet of 4.6 with the band
- * at the middle, the brand right of centre and the tone in a halftone dot. */
+/** The series, in page order, two plates unlike each other, each a sheet of
+ * the heat (`heat.ts`) so the material builds up through the page to the
+ * close: after the bento a sheet of 3.4 with a high band, the brand at the
+ * left, printed in the kit's Bayer cells; after the three parts a slimmer
+ * sheet of 4.6 with the band at the middle, the brand right of centre, in a
+ * halftone dot. */
 export const PLATES = {
   afterExamples: {
-    sky: 0.18,
     band: [0.24, 0.7],
-    ground: 0.34,
     mark: [0.26, 0.47],
     move: "rain",
     aspect: 3.4,
     screen: "bayer",
   },
-  beforeInstall: {
-    sky: 0.25,
+  afterParts: {
     band: [0.34, 0.66],
-    ground: 0.3,
     mark: [0.66, 0.5],
     move: "converge",
     aspect: 4.6,
     screen: "dot",
   },
 } as const satisfies Record<string, Plate>
+
+/** Where a plate's heat prints: from its top edge down to the band and
+ * from the band's foot to its own, hottest at the sheet's edges, never in
+ * the band, where the brand forms. */
+export const plateField =
+  (plate: Plate): HeatField =>
+  (_x, y, _width, height) => {
+    const v = y / height
+    const edge = Math.max(smooth(plate.band[0], 0, v), smooth(plate.band[1], 1, v))
+    return { field: edge, boost: 0.05 * edge }
+  }
 
 /** A plate's scene for the brand's moment, in a plate `height` px tall: its
  * own move; the cells lie loose in the band and the tone's thin edges

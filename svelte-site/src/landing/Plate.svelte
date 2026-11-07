@@ -1,18 +1,20 @@
 <script lang="ts">
   // One plate of the series (`plate.ts`): a sheet of its own proportion on the
   // page's width, square cornered and flat like the hero's print, on the
-  // raised ground as its stock. Each half shows only the thin end of its ramp
-  // (the ramp runs 1/tone times the half's depth), through the plate's own
-  // printer's screen; the brand (`BrandGather.svelte`) stands in the clear
+  // raised ground as its stock. The heat (`heat.ts`, the close's material)
+  // prints above and below its clear band through the plate's own printer's
+  // screen, still; the brand (`BrandGather.svelte`) stands in the clear
   // band, pulled in from the right edge where the plate is narrow, and forms
   // there once as the plate comes into view. Decorative.
-  import { DitherGradient, DitherScreen } from "@dither-kit-svelte"
+  import { DitherScreen } from "@dither-kit-svelte"
   import { LOCKUP_SIZE } from "./brand"
   import BrandGather from "./BrandGather.svelte"
-  import { sceneOf, STOCK, type Plate } from "./plate"
+  import HeatPrint from "./HeatPrint.svelte"
+  import { plateField, sceneOf, STOCK, type Plate } from "./plate"
 
   let { plate }: { plate: Plate } = $props()
   const pct = (f: number) => `${f * 100}%`
+  const field = $derived(plateField(plate))
 
   const CELL = 4
   const WIDTH = LOCKUP_SIZE.width * CELL
@@ -21,16 +23,7 @@
 
 <div class="plate" style:background={STOCK} style:aspect-ratio={plate.aspect} aria-hidden="true">
   <DitherScreen screen={plate.screen}>
-    <div class="plate-tone" style:top="0" style:height={pct(plate.band[0])}>
-      <div class="plate-ramp" style:bottom="0" style:height={pct(1 / plate.sky)}>
-        <DitherGradient from="#e4e1d8" to={STOCK} direction="down" cell={CELL} />
-      </div>
-    </div>
-    <div class="plate-tone" style:top={pct(plate.band[1])} style:bottom="0">
-      <div class="plate-ramp" style:top="0" style:height={pct(1 / plate.ground)}>
-        <DitherGradient from="#e4e1d8" to={STOCK} direction="up" cell={CELL} />
-      </div>
-    </div>
+    <HeatPrint paused {field} />
   </DitherScreen>
   <BrandGather
     class="plate-lockup"
@@ -42,21 +35,11 @@
 <style>
   .plate {
     position: relative;
+    isolation: isolate;
     width: 100%;
     max-width: 100%;
     min-height: 112px;
     overflow: hidden;
-  }
-
-  .plate-tone {
-    position: absolute;
-    inset-inline: 0;
-    overflow: hidden;
-  }
-
-  .plate-ramp {
-    position: absolute;
-    inset-inline: 0;
   }
 
   .plate :global(.plate-lockup) {

@@ -236,6 +236,11 @@ const API: Record<string, PropRow[]> = {
     { prop: "size", type: "number (the diamond's radius in cells)", default: "3" },
     { prop: "cell", type: "number (device pixels per cell)", default: "4" },
     { prop: "paused", type: "boolean (nothing prints)", default: "false" },
+    {
+      prop: "pinned",
+      type: "boolean (the box is fixed to the viewport: the print scrolls with the page)",
+      default: "false",
+    },
     { prop: "dpr", type: "number", default: "devicePixelRatio" },
     { prop: "mix-blend-mode", type: "string", default: "undefined" },
     { prop: "seed", type: "number (the screen's seed)", default: "undefined" },

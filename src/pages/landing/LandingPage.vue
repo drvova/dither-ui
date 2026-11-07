@@ -14,6 +14,7 @@ import {
   DitherCircuit,
   DitherClipboard,
   DitherGradient,
+  DitherHeatTrail,
   DitherIcon,
   DitherReveal,
   DitherScreen,
@@ -46,10 +47,10 @@ import BrandGather from "./BrandGather.vue"
 import BrandMark from "@/shared/ui/BrandMark.vue"
 import MascotCar from "@/shared/ui/MascotCar.vue"
 import { SiteHeader } from "@/widgets/site-header"
-import { PLATES, RAMP, STOCK } from "./plate"
+import { PLATES, RAMP, STOCK, TRAIL } from "./plate"
 import { ROAD, ROAD_SHADER, WORDMARK } from "./road"
-import { CLOSE } from "./close"
-import CloseHeat from "./CloseHeat.vue"
+import { CLOSE } from "./heat"
+import HeatPrint from "./HeatPrint.vue"
 import Showcase from "./Showcase.vue"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the
@@ -265,7 +266,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 </script>
 
 <template>
-  <div class="landing flex min-h-screen flex-col bg-background text-foreground antialiased">
+  <div class="landing isolate flex min-h-screen flex-col bg-background text-foreground antialiased">
+    <!-- The pointer prints on the whole page's ground, every section's:
+         pinned to the viewport, the print scrolling with the page. -->
+    <DitherHeatTrail pinned class="page-trail" :inks="TRAIL" :cell="4" />
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
     <a
       href="#main"
@@ -376,12 +380,12 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
           </div>
         </section>
 
+        <!-- The second plate: the heat builds up through the page to the
+             close (plate.ts). -->
+        <Plate :plate="PLATES.afterParts" />
+
         <!-- What the kit meets on the reader's side. -->
         <WorksWith />
-
-        <!-- The plates: print sheets between the sections, the kit's diamond
-             small in a wide field (plate.ts). -->
-        <Plate :plate="PLATES.beforeInstall" />
       </div>
 
       <!-- The close: the install in a clear field inside a print of heat,
@@ -395,7 +399,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         :style="{ '--reach': `${CLOSE.reach}px` }"
         @pointermove="heat.drive()"
       >
-        <CloseHeat :paused="!heat.driven.value" />
+        <HeatPrint :paused="!heat.driven.value" />
         <div class="sec install">
           <div v-rise class="install-head">
             <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
@@ -493,6 +497,16 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 </template>
 
 <style scoped>
+/* The pointer's print, on the page's ground under every section: fixed to
+   the viewport, painted only while something cools (the kit's heat trail,
+   `pinned`). The landing is its own stacking context, so it lies over the
+   ground and under everything else. */
+.page-trail {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
 /* One wide page width for the hero, the sections and the footer, one
    rhythm between sections. The page is the theme's own
    background. */

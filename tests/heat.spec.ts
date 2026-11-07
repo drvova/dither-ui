@@ -1,12 +1,14 @@
-// The close's heat: clear behind the install's column (no ink under a
-// word), printing only beside it and in from the band's top and foot,
-// densest and hottest along the flat foot the footer's tab rises into, in
-// the ramp's own inks, the same bytes for the same moment.
+// The heat, the landing's one recurring material. The close: clear behind
+// the install's column (no ink under a word), printing only beside it and
+// in from the band's top and foot, densest and hottest along the flat foot
+// the footer's tab rises into. The plates: never in their clear band,
+// where the brand forms. Always in the ramp's own inks, the same bytes for
+// the same moment.
 import { describe, expect, it } from "rstack/test"
 import { BAYER4, fillOf } from "@dither-kit/engine/pixel"
 import { createRasterBuffer } from "@dither-kit/engine/raster"
-import { CLOSE, heatField, paintHeat } from "../src/pages/landing/close"
-import { RAMP } from "../src/pages/landing/plate"
+import { CLOSE, closeField, paintHeat } from "../src/pages/landing/heat"
+import { PLATES, plateField, RAMP } from "../src/pages/landing/plate"
 
 const INKS = RAMP.map(fillOf)
 const W = 1440
@@ -29,12 +31,13 @@ describe("where the heat may print", () => {
   it("never behind the install's column, away from the band's edges", () => {
     for (const y of [CLOSE.reach, H / 2, H - CLOSE.reach])
       for (const x of [W / 2 - CLOSE.column, W / 2, W / 2 + CLOSE.column])
-        expect(heatField(x, y, W, H).field, `${x},${y}`).toBe(0)
+        expect(closeField(x, y, W, H).field, `${x},${y}`).toBe(0)
   })
   it("in full at the band's top, its foot and its far sides", () => {
-    expect(heatField(W / 2, 0, W, H).field).toBe(1)
-    expect(heatField(W / 2, H, W, H)).toEqual({ field: 1, foot: 1 })
-    expect(heatField(0, H / 2, 3000, H).field).toBe(1)
+    expect(closeField(W / 2, 0, W, H).field).toBe(1)
+    expect(closeField(W / 2, H, W, H).field).toBe(1)
+    expect(closeField(W / 2, H, W, H).boost).toBeCloseTo(0.12)
+    expect(closeField(0, H / 2, 3000, H).field).toBe(1)
   })
 })
 
@@ -67,4 +70,25 @@ describe("the print", () => {
     expect(print(1.5).data).not.toEqual(print(3).data)
     expect(print(1.5, [60, H / 2]).data).not.toEqual(print(1.5).data)
   })
+})
+
+describe("a plate's heat", () => {
+  for (const [id, plate] of Object.entries(PLATES))
+    it(`${id} prints at its edges and never in its band`, () => {
+      const field = plateField(plate)
+      const h = 400
+      expect(field(0, 0, 1280, h).field).toBe(1)
+      expect(field(0, h, 1280, h).field).toBe(1)
+      for (let v = plate.band[0]; v <= plate.band[1]; v += 0.02) expect(field(0, v * h, 1280, h).field).toBe(0)
+      const b = createRasterBuffer(1280 / CLOSE.cell, h / CLOSE.cell)
+      paintHeat(b, 0, null, CLOSE.cell, INKS, BAYER4, field)
+      const rows = (r0: number, r1: number) => {
+        let n = 0
+        for (let r = Math.ceil(r0); r < Math.floor(r1); r++)
+          for (let c = 0; c < b.width; c++) if (b.data[(r * b.width + c) * 4 + 3]) n++
+        return n
+      }
+      expect(rows((plate.band[0] * h) / CLOSE.cell, (plate.band[1] * h) / CLOSE.cell)).toBe(0)
+      expect(rows(0, 6)).toBeGreaterThan(0)
+    })
 })

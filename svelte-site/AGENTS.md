@@ -38,8 +38,8 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   (from `src/shared/ui/marks.ts`), `src/fonts/` (Michroma's `display.css`,
   `michroma-latin.woff2` and its `OFL.txt`, from `src/shared/fonts/`), and
   the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
-  `pixel-type.ts`, `plate.ts`, `close.ts` (the close's heat, painted by
-  `src/landing/CloseHeat.svelte`), `spotlight.ts`, `stat.ts`, `story.ts`), the
+  `pixel-type.ts`, `plate.ts`, `heat.ts` (the heat of the plates and the
+  close, painted by `src/landing/HeatPrint.svelte`), `spotlight.ts`, `stat.ts`, `story.ts`), the
   rise (from `src/shared/lib/`; `rise.ts`, `rise-wait.ts`: `use:rise` on the
   hero's statement, each section head and the block groups under them, the words from
   `src/landing/RiseWords.svelte`), and the

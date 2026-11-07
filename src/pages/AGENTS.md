@@ -142,9 +142,11 @@ widgets/features; page-specific conventions live here.
   over a static header.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
-  where the pointer prints (`.hero-trail`, a `DitherHeatTrail` under
-  everything the hero holds, in the print's inks (`TRAIL`): hot in its orange,
-  cooling through the bone to its blue, gone in about two seconds),
+  where the pointer prints as it does on every section's ground (the
+  page's one `.page-trail`, a `DitherHeatTrail` `pinned` to the viewport
+  under everything the landing holds, its print scrolling with the page,
+  in the print's inks (`TRAIL`): hot in its orange, cooling through the
+  bone to its blue, gone in about two seconds),
   holding on the page width the statement beside the print (columns
   1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
   (`.statement`, rising as the page opens): the h1 in the display face
@@ -454,7 +456,7 @@ widgets/features; page-specific conventions live here.
   - `rain` (the plate after the bento): the cells hang in one dotted line
     on the scene's first row and fall column by column, left to right,
     each column landing from the bottom up.
-  - `converge` (the plate before the install): the seven rows slide in
+  - `converge` (the plate after the three parts): the seven rows slide in
     whole, even rows from the field's left edge and odd rows from its
     right, top row first, and interlock.
   - `strike` (the footer): a typewriter; the glyphs wait stacked at the
@@ -486,31 +488,36 @@ widgets/features; page-specific conventions live here.
   scene's rows; the gather's burst inside its rows and each wordmark cell
   on its host's squares until it.
 - The plates (decorative): two print sheets between the sections, after
-  the bento and before the install, each the brand small in a wide field
-  and each unlike the other (the audit's call: alike, they read as
-  repeated dividers). ONE table, `PLATES` in `plate.ts`, sets each plate's
-  tone at the top edge, its clear band and its tone at the foot, where the
+  the bento and after the three parts (so the close comes after the works
+  as the heat's payoff, never a second heat in a row), each the brand
+  small in a wide field and each unlike the other (the audit's call:
+  alike, they read as repeated dividers). Each is a sheet of the heat, the
+  close's material (the user's call: carry it through the page), so it
+  builds up to the close. ONE table, `PLATES` in `plate.ts`, sets each
+  plate's clear band (`plateField`: the heat prints from its top edge to
+  the band and from the band to its foot, hottest at the edges, never in
+  the band), where the
   mark's centre stands in the band (left of 0.7, the wordmark reading on
   to its right), its move, its proportion (`aspect`: 3.4, then a slimmer
   4.6) and its printer's screen (`screen`: Bayer, then a halftone dot); `sceneOf` gives its scene (loose in
-  the band and the tone's thin edges, thrown anywhere on the sheet,
+  the band and its thin edges, thrown anywhere on the sheet,
   seeded by where the mark stands). `Plate.vue` prints a row: a sheet of
   its proportion (at least 112px tall) on the page's width, square cornered and flat like the hero's
   print, on `STOCK` (the `--surface` mix as a colour the kit prints with,
-  so its open cells are the plate, never a tint), two `DitherGradient`s in
-  the bone ink through its `DitherScreen` showing only the thin ends of
-  their ramps, and the brand's moment in the band, pulled in from the
-  right edge (16px clear) where the plate is narrow, while the tone prints
-  in through `DitherReveal` (0.72s on the glide, the lights coming on).
-  `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and every
-  plate's mark inside its band, its tones thin.
+  so its open cells are the plate, never a tint), its heat (`HeatPrint`,
+  still) through its `DitherScreen`, and the brand's moment in the band,
+  pulled in from the right edge (16px clear) where the plate is narrow,
+  while the heat prints in through `DitherReveal` (0.72s on the glide, the
+  lights coming on). `tests/landing-facts.spec.ts` holds `STOCK` to the
+  token's mix and every plate's mark inside its band; `tests/heat.spec.ts`
+  its heat out of the band.
   A new plate is a row in the table and a `<Plate>` at a section break.
 - The close (`#install`, out of the page column, the full width): the
-  install stands in a clear field inside a print of heat (`close.ts`,
-  `paintHeat` on the kit's own `fbm`, copied byte for byte to the Svelte
-  landing; `CloseHeat.vue` paints it on the kit's background runtime at
-  `CLOSE.fps`): ink in water through `RAMP`, so the close and the footer's
-  road are one material, printed beside the install's column
+  install stands in a clear field inside a print of heat (`heat.ts`,
+  `paintHeat` on the kit's own `fbm` where a field lets it, `closeField`
+  here, copied byte for byte to the Svelte landing; `HeatPrint.vue` paints
+  it on the kit's background runtime at `CLOSE.fps`): ink in water through
+  `RAMP`, so the plates, the close and the footer's road are one material, printed beside the install's column
   (`CLOSE.column`) and in from the band's top and foot (`CLOSE.reach`, the
   band padded by it through `--reach`, so no ink lands under a word), hot
   and dense along its flat foot. The footer's ground rises into that foot
@@ -519,7 +526,7 @@ widgets/features; page-specific conventions live here.
   one credible joint). The heat drifts for `CLOSE.drift` as the band
   arrives (under five seconds, no pause), then only while a pointer moves
   over the band, which pulls the heat toward it; one still frame under
-  reduced motion. `tests/close.spec.ts` holds the column clear, the foot
+  reduced motion. `tests/heat.spec.ts` holds the column clear, the foot
   hot, the ramp's inks only and a moment's bytes.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through

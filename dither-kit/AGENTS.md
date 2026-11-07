@@ -450,7 +450,9 @@ the kit every import is relative (`../engine/pixel`).
   threshold, in the ramp's ink for its heat (coolest first). The
   component listens on the window (content over it never blocks the
   hand), ignores a finger (it scrolls) and reduced motion, and paints only
-  while something cools. Not `PixelTrail` (coarse blocks fading by alpha,
+  while something cools. `pinned`: a box fixed to the viewport over a
+  scrolling page, whose print rides the page (`scrollTrail` moves the heat
+  whole cells and lets go of what leaves). Not `PixelTrail` (coarse blocks fading by alpha,
   one cell per event). Guarded by `tests/heat-trail.spec.ts`.
 - `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
   surface. `models.ts` parses model files into a `World`, bounded against

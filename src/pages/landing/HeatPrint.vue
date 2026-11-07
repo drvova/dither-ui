@@ -1,18 +1,24 @@
 <script setup lang="ts">
-// The close's heat (`close.ts`) on the kit's background runtime: painted at
-// a film's cadence while the page drives it, held still otherwise, one
-// still frame under reduced motion. It follows the hand over the band.
+// A sheet of the heat (`heat.ts`) on the kit's background runtime, where
+// its `field` lets it print: the close's band, a plate. Painted at a film's
+// cadence while the page drives it (`paused` false), held otherwise, one
+// still frame under reduced motion; it follows the hand over its box. It
+// prints through the screen around it (`DitherScreen`).
 import { onBeforeUnmount, onMounted, ref } from "vue"
 import { fillOf } from "@dither-kit/engine/pixel"
 import { useDitherBackground } from "@dither-kit/engine/use-dither-background"
 import { useDitherMatrix } from "@dither-kit/engine/use-screen"
-import { CLOSE, paintHeat } from "./close"
+import { CLOSE, closeField, paintHeat, type HeatField } from "./heat"
 import { RAMP as INKS } from "./plate"
 
-const props = defineProps<{ paused: boolean }>()
+// A function-typed prop's default is the value itself, never a factory.
+const props = withDefaults(defineProps<{ paused: boolean; field?: HeatField; seed?: number }>(), {
+  field: closeField,
+  seed: 9,
+})
 
 const RAMP = INKS.map(fillOf)
-const matrix = useDitherMatrix(() => 9)
+const matrix = useDitherMatrix(() => props.seed)
 const wrapRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
@@ -37,27 +43,27 @@ useDitherBackground({
   paused: () => props.paused,
   renderMode: () => "live",
   precompiled: () => undefined,
-  restart: () => [],
+  restart: () => [props.field, props.seed],
   frameRate: () => CLOSE.fps,
-  render: (buffer, clock) => paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix.value),
+  render: (buffer, clock) => paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix.value, props.field),
 })
 </script>
 
 <template>
-  <div ref="wrapRef" aria-hidden="true" class="close-heat">
+  <div ref="wrapRef" aria-hidden="true" class="heat-print">
     <canvas ref="canvasRef" :style="{ imageRendering: 'pixelated' }" />
   </div>
 </template>
 
 <style scoped>
-.close-heat {
+.heat-print {
   position: absolute;
   inset: 0;
   z-index: -1;
   overflow: hidden;
 }
 
-.close-heat canvas {
+.heat-print canvas {
   position: absolute;
   inset: 0;
   width: 100%;

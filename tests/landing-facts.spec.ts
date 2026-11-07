@@ -190,17 +190,13 @@ describe("landing facts", () => {
     }
   })
 
-  it("stands each plate's mark in its clear band, its tones thin", () => {
-    for (const { sky, band, ground, mark } of Object.values(PLATES)) {
+  it("stands each plate's mark in its clear band", () => {
+    for (const { band, mark } of Object.values(PLATES)) {
       expect(band[0]).toBeLessThan(band[1])
       expect(mark[1]).toBeGreaterThan(band[0])
       expect(mark[1]).toBeLessThan(band[1])
       expect(mark[0]).toBeGreaterThan(0.1)
       expect(mark[0]).toBeLessThan(0.7)
-      for (const tone of [sky, ground]) {
-        expect(tone).toBeGreaterThan(0)
-        expect(tone).toBeLessThanOrEqual(0.4)
-      }
     }
   })
 })

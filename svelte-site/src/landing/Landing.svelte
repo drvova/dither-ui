@@ -10,7 +10,7 @@
   // moves is the kit.
   import RiseWords from "./RiseWords.svelte"
   import { rise } from "./rise"
-  import { Circuit, DitherAvatar, DitherGradient, DitherScreen, type ScreenKind } from "@dither-kit-svelte"
+  import { Circuit, DitherAvatar, DitherGradient, DitherScreen, HeatTrail, type ScreenKind } from "@dither-kit-svelte"
   import "../fonts/display.css"
   import { copier } from "../copy.svelte"
   import "./landing.css"
@@ -26,10 +26,10 @@
   import Plate from "./Plate.svelte"
   import { createDrive, drive } from "./drive"
   import { onMount } from "svelte"
-  import CloseHeat from "./CloseHeat.svelte"
-  import { CLOSE } from "./close"
+  import HeatPrint from "./HeatPrint.svelte"
+  import { CLOSE } from "./heat"
   import PixelWord from "./PixelWord.svelte"
-  import { PLATES, STOCK } from "./plate"
+  import { PLATES, STOCK, TRAIL } from "./plate"
   import SiteHeader from "./SiteHeader.svelte"
   import ToolMark from "./ToolMark.svelte"
   import WorksWith from "./WorksWith.svelte"
@@ -144,7 +144,10 @@
   ]
 </script>
 
-<div class="landing flex min-h-screen flex-col bg-background text-foreground antialiased">
+<div class="landing isolate flex min-h-screen flex-col bg-background text-foreground antialiased">
+  <!-- The pointer prints on the whole page's ground, every section's:
+       pinned to the viewport, the print scrolling with the page. -->
+  <HeatTrail pinned class="page-trail" inks={TRAIL} cell={4} />
   <!-- Skip link: first focusable element, jumps to the single main landmark. -->
   <a
     href="#main"
@@ -225,10 +228,12 @@
         </div>
       </section>
 
+      <!-- The second plate: the heat builds up through the page to the
+           close (plate.ts). -->
+      <Plate plate={PLATES.afterParts} />
+
       <!-- What the kit meets on the reader's side. -->
       <WorksWith />
-
-      <Plate plate={PLATES.beforeInstall} />
 
     </div>
 
@@ -243,7 +248,7 @@
       style:--reach="{CLOSE.reach}px"
       onpointermove={() => heat.run()}
     >
-      <CloseHeat paused={!heatMoving} />
+      <HeatPrint paused={!heatMoving} />
       <div class="sec install">
         <div use:rise class="install-head">
           <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
@@ -311,6 +316,16 @@
 </div>
 
 <style>
+  /* The pointer's print, on the page's ground under every section: fixed to
+     the viewport, painted only while something cools (the kit's heat trail,
+     `pinned`). The landing is its own stacking context, so it lies over the
+     ground and under everything else. */
+  :global(.page-trail) {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+  }
+
   /* The sections, on the page width with the rhythm between them. */
   .page {
     display: flex;
