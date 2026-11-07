@@ -398,6 +398,11 @@ Default section order:
 
 ## User Preferences
 
+- The look is written down in one readable place, `DESIGN.md` (identity,
+  palette, materials, type, layout, shape, motion, the dither, icons,
+  copy, bans, accessibility, performance), its values pinned to their
+  source by `tests/design-doc.spec.ts`; a design call changes the source
+  and `DESIGN.md` in the same commit. The rules below stay binding.
 - Design direction: dark, monospace, pixel/dither identity, worn as the
   user's look: Y2K retrofuturism, biomorphic form and technical
   sportswear (chrome display type, hardshell panels with cut corners
