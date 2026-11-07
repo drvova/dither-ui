@@ -87,6 +87,20 @@ describe("the glide", () => {
     expect(read("src/app/styles.css")).toContain("--default-transition-timing-function: var(--ease-settle);")
   })
 
+  it("carries an in-page link on both landings, and never under reduced motion", () => {
+    const rule = `@media (prefers-reduced-motion: no-preference) {
+  html:has(.landing) {
+    scroll-behavior: smooth;
+  }
+}`
+    for (const sheet of ["src/pages/landing/chapters.css", "svelte-site/src/landing/landing.css"]) {
+      const css = read(sheet)
+      expect(css).toContain(rule)
+      expect(css.match(/scroll-behavior/g)).toHaveLength(1)
+    }
+    expect(read("src/app/styles.css")).not.toContain("scroll-behavior")
+  })
+
   it("moves everything on the site: no other curve, no linear wipe", () => {
     const off: string[] = []
     for (const file of [...MOTION_ROOTS.flatMap((d) => [...files(d)]), ...MOTION_FILES]) {

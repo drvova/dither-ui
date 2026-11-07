@@ -86,6 +86,14 @@
   scroll-margin-top: 76px;
 }
 
+/* An in-page link travels there (the browser's own smooth scroll), never
+   under reduced motion. The landing's only: the docs jump on their own. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.landing) {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Links that lead on name their destination and carry an underline that
    inks on hover, never an arrow. */
 .landing .more-link,

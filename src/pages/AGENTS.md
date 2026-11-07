@@ -73,7 +73,10 @@ widgets/features; page-specific conventions live here.
   24px target through padding cancelled by a negative margin), `.key` (a
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
-  `[id]` scroll margins (76px) clear of the header. A card or panel whose
+  `[id]` scroll margins (76px) clear of the header, an in-page link
+  travelling there by the browser's own smooth scroll (`html:has(.landing)`,
+  none under reduced motion; the Svelte landing's `landing.css` likewise;
+  `tests/motion.spec.ts`). A card or panel whose
   own ground is `--surface` resets `--surface` to the page's ground on
   what it holds, so its keys and pressed segments stay shapes. Page geometry (`--page` 80rem, `--rhythm`) lives on
   `LandingPage`'s `.landing`; the sections are one flex column on it.
