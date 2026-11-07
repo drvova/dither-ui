@@ -74,6 +74,9 @@ const PACK_OF = new Map<string, PackName>(
   ),
 )
 
+/** The pack a section is in, or undefined for one DocsPage writes itself. */
+export const packOf = (id: string): PackName | undefined => PACK_OF.get(id)
+
 /** The packs kept mounted, least recently read first, after opening section
  * `id`: its pack moves to the end, and the oldest beyond `PACKS_KEPT` lets
  * go. A section DocsPage writes itself leaves them as they are. */

@@ -11,7 +11,8 @@ import PageLoader from "./PageLoader.vue"
 // (after a 150ms delay, so cached/instant loads never flash one) instead of a
 // blank freeze during navigation.
 const DocsPage = defineAsyncComponent({
-  loader: () => import("@/pages/docs").then((m) => m.DocsPage),
+  // The open section's pack loads with the page, so it never shows empty.
+  loader: () => import("@/pages/docs").then(async (m) => (await m.preloadOpenPacks(), m.DocsPage)),
   loadingComponent: PageLoader,
   delay: 150,
 })

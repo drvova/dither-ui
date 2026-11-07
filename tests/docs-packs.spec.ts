@@ -75,3 +75,27 @@ describe("docs section packs", () => {
     w.unmount()
   })
 })
+
+describe("the packs as chunks of their own", () => {
+  it("loads the open section's pack before the page renders, every pack for the prerender", async () => {
+    const { PACK_LOADERS, preloadOpenPacks } = await import("@/pages/docs/pack-loaders")
+    expect(Object.keys(PACK_LOADERS).sort()).toEqual(Object.keys(PACKS).sort())
+    const loaded: string[] = []
+    const real = { ...PACK_LOADERS }
+    for (const name of Object.keys(PACK_LOADERS) as PackName[])
+      PACK_LOADERS[name] = (() => (loaded.push(name), real[name]())) as never
+    history.replaceState(null, "", "/docs/aurora")
+    await preloadOpenPacks()
+    expect(loaded).toEqual(["BackgroundsDocs"])
+    loaded.length = 0
+    history.replaceState(null, "", `/docs?${ALL_SECTIONS_PARAM}`)
+    await preloadOpenPacks()
+    expect(loaded.sort()).toEqual(Object.keys(PACKS).sort())
+    loaded.length = 0
+    // a section DocsPage writes itself has no pack to load
+    history.replaceState(null, "", "/docs/area")
+    await preloadOpenPacks()
+    expect(loaded).toEqual([])
+    Object.assign(PACK_LOADERS, real)
+  })
+})

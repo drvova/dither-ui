@@ -794,7 +794,10 @@ the kit every import is relative (`../engine/pixel`).
 - Standalone components must defer their initial `getBoundingClientRect()` to
   `requestAnimationFrame` to avoid forced reflow inside Vue's `flushJobs` when
   many components mount simultaneously. `DitherButton` defers `init()` via RAF
-  with a `restartToken` guard. `DitherToggleGroup` defers `paintAll()` via RAF.
+  with a `restartToken` guard and sizes its canvas from its ResizeObserver's
+  report (`borderBoxSize`), never a read of its box, so a wall of buttons
+  starting together forces no layout (a static button, without one, reads
+  once; both kits; `tests/button-measure.spec.ts`). `DitherToggleGroup` defers `paintAll()` via RAF.
 - A canvas painted cell by cell writes a raster and uploads it once: a
   RasterBuffer + `putRasterBuffer` (`paintToggleCanvas`, the spinner's
   loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /

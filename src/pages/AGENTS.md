@@ -831,8 +831,17 @@ widgets/features; page-specific conventions live here.
   each demo's state, while the 300-odd others cost the page nothing:
   27,564 nodes on a section's page became 4,115, and a long read lets the
   oldest pack go (every section opened in one tab had kept 62k nodes and
-  461 canvases; now about 37k and 218 at worst, the three heaviest);
-  `tests/docs-packs.spec.ts` holds every pack to its nav), pushes a history
+  461 canvases; now about 37k and 218 at worst, the three heaviest); each
+  pack is a chunk of its own (`pack-loaders.ts`: `PACK_LOADERS`, prefetched
+  at idle, so moving family stays instant; the page evaluates only the
+  pack it shows), the open section's pack loaded before the page first
+  renders (`preloadOpenPacks`, from App.vue's loader), so it never shows
+  empty; the sections DocsPage writes itself keep their element but
+  render their contents only while open or among the last read (`opened`,
+  `PACKS_KEPT`; they held 3,000 of a section page's 4,200 nodes and all
+  its canvases, hidden); the prerender's `?all-sections` renders and
+  loads everything; `tests/docs-packs.spec.ts` holds every pack to its nav,
+  `tests/docs-rail.spec.ts` the own sections), pushes a history
   entry and reads from the top; back and forward walk them (`popstate`).
   The sidebar, search, the sheet and the pager all open through it. Over
   the section a breadcrumb (the docs, then its group, linking to the

@@ -136,11 +136,10 @@ function init(): (() => void) | undefined {
     }
   }
 
-  const resize = () => {
-    const box = button.getBoundingClientRect()
+  const resizeTo = (width: number, height: number) => {
     const cellPx = Math.max(1, cell.value)
-    cols = Math.max(4, Math.round(box.width / cellPx))
-    rows = Math.max(4, Math.round(box.height / cellPx))
+    cols = Math.max(4, Math.round(width / cellPx))
+    rows = Math.max(4, Math.round(height / cellPx))
     canvas.width = cols
     canvas.height = rows
     if (bloomCanvas) {
@@ -149,7 +148,10 @@ function init(): (() => void) | undefined {
     }
     paint()
   }
-  resize()
+  const resize = () => {
+    const box = button.getBoundingClientRect()
+    resizeTo(box.width, box.height)
+  }
 
   const enter = () => {
     hovered = true
@@ -171,8 +173,21 @@ function init(): (() => void) | undefined {
     button.addEventListener("pointercancel", up)
   }
 
-  const ro = props.renderMode !== "static" && typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null
-  ro?.observe(button)
+  // Sized by the observer's own report (its first comes on observe, after
+  // layout), never a layout read: a wall of buttons starting together read
+  // each one's box after the last one's canvas write, a forced layout a
+  // button (measured, a docs page's load). Without one (a static button),
+  // one read.
+  const ro =
+    props.renderMode !== "static" && typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(([entry]) => {
+          const box = entry?.borderBoxSize?.[0]
+          if (box) resizeTo(box.inlineSize, box.blockSize)
+          else resize()
+        })
+      : null
+  if (ro) ro.observe(button)
+  else resize()
 
   return () => {
     if (raf) cancelAnimationFrame(raf)
