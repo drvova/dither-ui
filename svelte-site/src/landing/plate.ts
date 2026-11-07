@@ -22,6 +22,10 @@ export const INKS: PixelColor[] = ["blue", "orange", "#e4e1d8"]
  * close's heat print through it. */
 export const RAMP: PixelColor[] = [GROUND, ...INKS]
 
+/** Coolest first, the print's inks as the pointer's trail wears them:
+ * landing hot in the orange, cooling through the bone to the blue. */
+export const TRAIL: PixelColor[] = [INKS[0], INKS[2], INKS[1]]
+
 export type Plate = {
   /** The tone at the top edge (0 to 1), thinning to nothing at the band. */
   sky: number

@@ -5,7 +5,7 @@ import { DitherHeatTrail, DitherIcon, DitherPoster, DitherReveal } from "@dither
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { COMPONENT_COUNT, MATRIX, WORKS } from "./facts"
 import { STAGINGS } from "./brand"
-import { INKS } from "./plate"
+import { INKS, TRAIL } from "./plate"
 import BrandGather from "./BrandGather.vue"
 import RiseWords from "./RiseWords.vue"
 import TrailerDialog from "./TrailerDialog.vue"
@@ -28,10 +28,8 @@ const gathered = ref(false)
 // pointer moves over it. Under five seconds by itself, so no pause key.
 const HERO_RUN = 4000
 
-// The pointer prints (the kit's heat trail) on the hero's ground: the
-// print's own inks, landing hot in its orange, cooling through the bone to
-// its blue and thinning to nothing. Coolest first.
-const TRAIL = [INKS[0], INKS[2], INKS[1]]
+// The pointer prints (the kit's heat trail) on the hero's ground in the
+// print's own inks (`TRAIL`), thinning to nothing.
 const { driven, drive } = useDrive()
 function settled() {
   gathered.value = true

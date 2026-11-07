@@ -8,7 +8,7 @@
   import { STAGINGS } from "./brand"
   import { COMPONENT_COUNT, MATRIX, WORKS, docsHref } from "./facts"
   import { STUDIO } from "./links"
-  import { INKS } from "./plate"
+  import { INKS, TRAIL } from "./plate"
   import ToolMark from "./ToolMark.svelte"
   import TrailerDialog from "./TrailerDialog.svelte"
   import { createDrive } from "./drive"
@@ -29,10 +29,8 @@
   // it. Under five seconds by itself, so no pause key.
   const HERO_RUN = 4000
 
-  // The pointer prints (the kit's heat trail) on the hero's ground: the
-  // print's own inks, landing hot in its orange, cooling through the bone
-  // to its blue and thinning to nothing. Coolest first.
-  const TRAIL = [INKS[0], INKS[2], INKS[1]]
+  // The pointer prints (the kit's heat trail) on the hero's ground in the
+  // print's own inks (`TRAIL`), thinning to nothing.
   let driven = $state(false)
   const timer = createDrive((m) => (driven = m))
   onDestroy(() => timer.dispose())

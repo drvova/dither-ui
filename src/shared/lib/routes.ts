@@ -8,6 +8,11 @@ export function appPathname(pathname = location.pathname): string {
   return pathname || "/"
 }
 
+/** Whether an app pathname (`appPathname`) is the landing's own address:
+ * the root or its entry file. Any other path the docs and the Studio do
+ * not own is an address nothing lives at. */
+export const isLanding = (path: string): boolean => path === "/" || path === "/index.html"
+
 export function routePath(path = "/"): string {
   const normalized = path.startsWith("/") ? path : `/${path}`
   if (!base) return normalized

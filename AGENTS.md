@@ -102,7 +102,8 @@ Default section order:
   of a layer (`engine/`, `tailwind/`, `stylex/`) (rstack.config.ts +
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
-  routes remain supported for old links. GitHub Pages deploys through
+  routes remain supported for old links; any other address shows the
+  missing page (noindex, the landing's print). GitHub Pages deploys through
   `.github/workflows/pages.yml`: `rs build` (the site and the player
   bundle), the kit stylesheet, `404.html` copied from the bare shell, then
   the prerender (snapshots, agent registry, share cards, section

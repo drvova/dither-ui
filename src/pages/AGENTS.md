@@ -143,7 +143,7 @@ widgets/features; page-specific conventions live here.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
   where the pointer prints (`.hero-trail`, a `DitherHeatTrail` under
-  everything the hero holds, in the print's inks: hot in its orange,
+  everything the hero holds, in the print's inks (`TRAIL`): hot in its orange,
   cooling through the bone to its blue, gone in about two seconds),
   holding on the page width the statement beside the print (columns
   1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
@@ -186,6 +186,13 @@ widgets/features; page-specific conventions live here.
   it, landscape (5:4); on a phone both keep the page's 16px gutter. The
   h1 AND the keys must clear the fold at 1440×900, 1280×800 and
   1920×1080.
+- The missing page (`MissingPage.vue`, an address nothing lives at):
+  the landing's print and header, centred on one screen: the mascot
+  (alive), "This page did not print." rising word by word, a two-tone
+  line saying why, and the keys back (the chrome "Back to the start",
+  then the docs and the Studio), the pointer printing over the whole
+  ground (`TRAIL` in `plate.ts`, the hero's inks). It turns the shell's
+  robots tag to `noindex` while it stands and gives it back after.
 - The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
   trapped and handed back, Escape and the backdrop close it) titled "The
   dither-ui film", its description the film in words (no speech in it).

@@ -142,7 +142,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   into it.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
   `noindex` player at `/play/` (not prerendered); legacy
-  `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported. Route
+  `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported.
+  Any other address (`isLanding` in `shared/lib/routes.ts` says which are
+  the landing's: the root and its entry file; `tests/titles.spec.ts`) is
+  the `missing` route, `MissingPage` (see `pages/AGENTS.md`), its title
+  in `ROUTE_TITLES` set at runtime only (it has no entry page: the host
+  serves the landing's shell as `404.html`). Route
   entry HTML files own static crawler-visible metadata (their titles are
   `shared/config/titles.ts` `ROUTE_TITLES`, which App.vue sets as the route
   changes; `tests/titles.spec.ts` holds each page's three copies to it); docs sections refine
