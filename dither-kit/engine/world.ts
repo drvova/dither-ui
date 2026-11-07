@@ -15,6 +15,7 @@ import { clamp01, xorshift32 } from "./pixel"
 import { hsvToRgb, sampleRgbGradient, type Rgb } from "./palette"
 import { fbm } from "./noise"
 import type { RasterBuffer } from "./raster"
+import { cloudBounds, compositeSplats, type SplatCloud } from "./splats"
 
 export type Vec3 = [number, number, number]
 /** x, y, z, w. */
@@ -105,6 +106,8 @@ export type World = {
   radius: number
   /** Seconds until every track has cycled once; 0 for a still world. */
   duration: number
+  /** A capture's Gaussians (`splats.ts`), composited over the meshes; null for none. */
+  splats: SplatCloud | null
 }
 
 // ---- vectors, quaternions, matrices --------------------------------------------
@@ -411,6 +414,7 @@ export function emptyWorld(): World {
     center: [0, 0, 0],
     radius: 1,
     duration: 0,
+    splats: null,
   }
 }
 
@@ -665,6 +669,15 @@ export function finishWorld(world: World): World {
       if (z > maxZ) maxZ = z
     }
   }
+  const cloud = world.splats ? cloudBounds(world.splats) : null
+  if (cloud) {
+    minX = Math.min(minX, cloud.min[0])
+    minY = Math.min(minY, cloud.min[1])
+    minZ = Math.min(minZ, cloud.min[2])
+    maxX = Math.max(maxX, cloud.max[0])
+    maxY = Math.max(maxY, cloud.max[1])
+    maxZ = Math.max(maxZ, cloud.max[2])
+  }
   let duration = 0
   for (const n of world.nodes)
     for (const tr of Object.values(n.tracks)) if (tr) duration = Math.max(duration, tr.start + tr.duration)
@@ -686,6 +699,8 @@ export function finishWorld(world: World): World {
       if (d > r2) r2 = d
     }
   }
+  // a capture's reach is its box without stray splats, never its farthest one
+  if (cloud) r2 = Math.max(r2, ((maxX - minX) ** 2 + (maxY - minY) ** 2 + (maxZ - minZ) ** 2) / 4)
   world.center = c
   world.radius = Math.sqrt(r2) || 1
   return world
@@ -903,7 +918,20 @@ export function meshGrain(mesh: WorldMesh, world: World, seed: number, scale: nu
  */
 export function rasterizeWorld(world: World, view: WorldView, target: WorldTarget, style: WorldStyle): void {
   clearWorldTarget(target)
-  if (!world.meshes.length || target.width < 1 || target.height < 1) return
+  if (target.width < 1 || target.height < 1) return
+  rasterizeMeshes(world, view, target, style)
+  layCapture(world, view, target)
+}
+
+/** A capture's Gaussians over what the meshes drew (either engine's target). */
+export function layCapture(world: World, view: WorldView, target: WorldTarget): void {
+  if (!world.splats) return
+  const c = cameraOf(world, view, target.width, target.height)
+  compositeSplats(world.splats, { ...c, center: world.center }, target)
+}
+
+function rasterizeMeshes(world: World, view: WorldView, target: WorldTarget, style: WorldStyle): void {
+  if (!world.meshes.length) return
   const cols = target.width
   const rows = target.height
   const c = cameraOf(world, view, cols, rows)
@@ -1099,7 +1127,7 @@ export function paintTarget(
   const rows = buffer.height
   const data = buffer.data
   data.fill(0)
-  if (target.width !== cols || target.height !== rows || !world.meshes.length) return
+  if (target.width !== cols || target.height !== rows || (!world.meshes.length && !world.splats)) return
   const c = cameraOf(world, view, cols, rows)
   const fog = clamp01(style.fog)
   const shadeA = Math.round(clamp01(style.shade) * 255)

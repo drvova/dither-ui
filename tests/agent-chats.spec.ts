@@ -7,6 +7,7 @@ import {
   chatGroups,
   chats,
   chatsOf,
+  forgetProject,
   loadThread,
   newChat,
   openChat,
@@ -202,5 +203,32 @@ describe("managing chats", () => {
       JSON.stringify([{ id: "x", title: "ok", at: 1, pinned: "yes" }, { id: 7 }, "junk"]),
     )
     expect(chatsOf("p3")).toEqual([{ id: "x", title: "ok", at: 1 }])
+  })
+})
+
+describe("deleting a project", () => {
+  it("forgets its chats, threads and drafts, and only its own", () => {
+    const keys = [
+      "dither-agent-chats-p1",
+      "dither-agent-session-p1/c1",
+      "dither-agent-session-p1",
+      "dither-agent-draft-p1/c1",
+      "dither-agent-chats-p10",
+      "dither-agent-session-p10/c1",
+      "dither-agent-draft-p2/c1",
+      "dither-studio-doc-p1",
+    ]
+    for (const k of keys) localStorage.setItem(k, "[]")
+    forgetProject("p1")
+    expect(Object.keys(localStorage).sort()).toEqual(
+      [
+        "dither-agent-chats-p10",
+        "dither-agent-draft-p2/c1",
+        "dither-agent-session-p10/c1",
+        "dither-studio-doc-p1",
+      ].sort(),
+    )
+    forgetProject("")
+    expect(Object.keys(localStorage)).toHaveLength(4)
   })
 })

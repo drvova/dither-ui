@@ -81,12 +81,34 @@ the kit every import is relative (`../engine/pixel`).
   mark; one shape at every duration), the `"spring"` easing name in
   `dither-paint.ts` (both kits). It also gives the curve as CSS `linear()`
   (`springLinear`) and the closest bezier (`SPRING_BEZIER`, within 3.5%)
-  for stylesheets; the site eases everything on it
+  for stylesheets. The `"glide"` easing (`glide`, `GLIDE_BEZIER`, in
+  `dither-paint.ts`) leaves at full speed and settles long and soft,
+  never past its mark; the site eases everything on it
   (`tests/motion.spec.ts`).
 
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
   returns to its input; the list is arrow-driven), focus restores to the
-  opener on close.
+  opener on close. With nothing matching it shows `empty`; the Vue kit's
+  `empty` slot and the Svelte kit's `empty` snippet (a string or a
+  snippet, one prop) draw it instead, given the query.
+- `DitherGauge` (both kits) is an instrument dial, read-only
+  (`role="meter"`, valued, named by its `label`, read out as the reading
+  and the label): its geometry and its band live in `engine/gauge.ts`
+  (one 240-degree sweep from the lower left, the band printed through
+  `useDitherMatrix` filled to the needle, the zone past `warn` in the
+  warning ink); ticks, numerals (every other major past six intervals)
+  and the needle are SVG over it. A changed value settles on the kit's
+  spring; reduced motion and a director's clock stand it on the reading
+  (the Svelte port has no director). Guarded by `tests/gauge.spec.ts`.
+- `DitherScope` (both kits) is an oscilloscope screen (`role="img"`,
+  named by its `label` or its wave): its trace lives in `engine/scope.ts`
+  (a named wave or samples in -1..1 across a 5:4 screen; the beam bright
+  where it moves slowly and faint on its edges, a glow on the rows beside
+  it; a named wave's afterglow is the trace at earlier phases, so a moment
+  prints the same however it was reached); the graticule is SVG over it.
+  A named wave drifts at `speed` while on screen; reduced motion holds it
+  and a director's clock sets its phase (the Svelte port has no director).
+  Guarded by `tests/scope.spec.ts`.
 - `DitherTabs` (both kits) keeps its marker canvas (the underline or the
   wash) INSIDE the `relative` tablist, positioned from the selected tab's
   offsets: a list that scrolls (more tabs than width) carries the marker
@@ -409,6 +431,27 @@ the kit every import is relative (`../engine/pixel`).
   generative background surfaces (FaultyTerminal, Ferrofluid, Aurora, and the
   ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
   `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
+- `Circuit` (`circuit.ts`, both kits) is a board: `circuitBoard(cols,
+  rows, { density, pitch, seed })` lays chips on a lattice (a node of
+  clearance each) and routes traces from their pins, then free runs, in
+  straight runs with 45 degree jogs that never take a held node nor cut a
+  diagonal between two, ending in a via or a pad; `boardFor` keeps a few
+  boards by size and knobs; `paintCircuit` prints the packages (rim,
+  dithered body, pin-one notch), the traces a shade under `ink`, and a
+  signal per trace whose head (`signalHead`, a pure function of time)
+  runs in `pulse` with a `SIGNAL_TAIL` fading through the thresholds.
+  Guarded by `tests/circuit.spec.ts`.
+- `HeatTrail` (`heat-trail.ts`, both kits; `DitherHeatTrail` in Vue) is the
+  pointer printing: heat per cell, `trailTo` stamps the kit's diamond
+  (hottest at its heart) at every cell from the stroke's last point, so a
+  fast hand never leaves a gap, `trailLift` ends a stroke, `coolTrail`
+  takes the same heat from every cell (`dt / cool`) until the field is
+  exactly empty, and `paintTrail` shows a cell while its heat clears its
+  threshold, in the ramp's ink for its heat (coolest first). The
+  component listens on the window (content over it never blocks the
+  hand), ignores a finger (it scrolls) and reduced motion, and paints only
+  while something cools. Not `PixelTrail` (coarse blocks fading by alpha,
+  one cell per event). Guarded by `tests/heat-trail.spec.ts`.
 - `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
   surface. `models.ts` parses model files into a `World`, bounded against
   a hostile file: a scene graph is walked for at most `MAX_NODES` (shared
@@ -440,8 +483,22 @@ the kit every import is relative (`../engine/pixel`).
   with slashes and negative indices, `l`, `p`, vertex colours, `usemtl`
   groups coloured from the `mtllib` via `parseMtl`), STL (ASCII + binary,
   two-sided, z-up swung to y-up by default), PLY (ASCII, binary little and
-  big endian; vertex and face colours, edges, point clouds) and OFF (face
-  colours). Animation: a VRML `TimeSensor` → `PositionInterpolator` /
+  big endian; vertex and face colours, edges, point clouds; a binary vertex
+  element of float32 Gaussians, a trained capture, becomes splats) and OFF
+  (face colours), and Gaussian captures (`splat`: the 32-byte `.splat`
+  record). Splats live in `splats.ts` (no world import; world.ts imports
+  it): a `SplatCloud` (positions, covariances from scale and rotation,
+  colours, opacities, at most `MAX_SPLATS`, every k-th past it) on
+  `World.splats`, its colours snapping to a 6-level colour cube in the
+  palette; `finishWorld` bounds it without its stray splats (2nd to 98th
+  percentile); `layCapture` composites it over either engine's target
+  (each Gaussian's 2D footprint through the perspective's Jacobian with a
+  cell's blur, a counting sort near to far, front to back until a cell is
+  opaque or a nearer mesh stands there; covered cells take the cube entry
+  and their luminance as the shade, their depth where they turned half
+  opaque), so the shared pass prints a capture like a mesh. A capture's y
+  runs down: `up` defaults to "-y" for one. Guarded by
+  `tests/splats.spec.ts`. Animation: a VRML `TimeSensor` → `PositionInterpolator` /
   `OrientationInterpolator` → `ROUTE … set_translation/rotation/scale`
   chain (also X3D's `<ROUTE>`) makes that Transform a `WorldNode` whose
   tracks hold keys in seconds (key × cycleInterval, loop, startTime);
@@ -603,7 +660,11 @@ the kit every import is relative (`../engine/pixel`).
   repaints when a `restart` source such as a drag changes); a surface out of
   view at first paints that frame as it comes into view, and a pause that
   lands before it keeps it (`tests/surface.spec.ts`; the Svelte runtime
-  alike). A still surface
+  alike). A restart keeps a paint already queued: a `restart` source driven
+  every frame (a `time`, a `scatter` from the page's own clock) once
+  cancelled each queued paint and starved the surface until the driving
+  stopped (the Svelte action's `restartKey` alike; both in
+  `tests/surface.spec.ts`). A still surface
   (static mode, reduced motion) paints its one frame in `start()` and the
   visibility wake never starts the loop behind it — it did once, and every
   background animated under reduced motion as soon as it scrolled into view.

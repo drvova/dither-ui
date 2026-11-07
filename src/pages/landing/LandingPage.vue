@@ -8,9 +8,10 @@
 // wide field between them, and a footer of the brand and link columns on the
 // kit's light trails, the line-screen wordmark printed over them. Michroma for display, mono for the rest; everything
 // that moves is the kit.
-import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue"
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import {
   DitherAvatar,
+  DitherCircuit,
   DitherClipboard,
   DitherGradient,
   DitherIcon,
@@ -19,13 +20,15 @@ import {
   type PixelColor,
   type ScreenKind,
 } from "@dither-kit"
-import { assetPath, routePath } from "@/shared/lib"
+import { assetPath, routePath, vRise } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import RiseWords from "./RiseWords.vue"
 import "@/shared/fonts/display.css"
 import "./chapters.css"
 import { version } from "../../../package.json"
 import AgentStory from "./AgentStory.vue"
 import Examples from "./Examples.vue"
+import { useDrive } from "./drive"
 import { RUNTIME_DEPS, SPECS } from "./facts"
 import { DOCS_FAMILIES, SECTION_COUNT } from "./hub"
 
@@ -41,9 +44,12 @@ import { BUILD_CELLS } from "./build"
 import { STAGINGS } from "./brand"
 import BrandGather from "./BrandGather.vue"
 import BrandMark from "@/shared/ui/BrandMark.vue"
+import MascotCar from "@/shared/ui/MascotCar.vue"
 import { SiteHeader } from "@/widgets/site-header"
-import { PLATES, STOCK } from "./plate"
-import { ROAD, ROAD_RAMP, ROAD_SHADER } from "./road"
+import { PLATES, RAMP, STOCK } from "./plate"
+import { ROAD, ROAD_SHADER, WORDMARK } from "./road"
+import { CLOSE } from "./close"
+import CloseHeat from "./CloseHeat.vue"
 import Showcase from "./Showcase.vue"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the
@@ -63,9 +69,14 @@ onMounted(() => {
   ].join(" ")
 })
 
+/** How long the bridge's board runs by itself as its card comes into view. */
+const BOARD_DANCE = 3000
+
 // What's inside: the kit, the Studio and the bridge, each a card headed by a
-// tone strip the kit prints in its own ink through its own printer's screen
-// (blue in Bayer cells, the ember in lines, bone in a halftone dot), its own
+// strip the kit prints in its own ink through its own printer's screen
+// (blue in Bayer cells, the ember in lines, bone in a halftone dot): a tone
+// for the kit and the Studio, a circuit board for the bridge, its signals
+// running between the tab and the agent in the ember; its own
 // character (the kit's seeded avatar of its title, in its ink) standing on
 // the strip's foot, its name in the pixel face, two lines and its link.
 const INSIDE: {
@@ -73,6 +84,8 @@ const INSIDE: {
   name: string
   ink: PixelColor
   screen: ScreenKind
+  /** What the strip prints: a tone from the ink, or a board in it. */
+  art: "tone" | "circuit"
   text: string
   link: { label: string; href: string }
 }[] = [
@@ -81,6 +94,7 @@ const INSIDE: {
     name: "kit",
     ink: "blue",
     screen: "bayer",
+    art: "tone",
     text: "Plain source you own, one engine of rasters and a seekable clock under every component. Change anything, it's yours.",
     link: { label: "Read the quick start", href: routePath("/docs/getting-started") },
   },
@@ -89,6 +103,7 @@ const INSIDE: {
     name: "studio",
     ink: "orange",
     screen: "line",
+    art: "tone",
     text: "An infinite canvas to play with screens of kit parts. Export a frame as Vue, a PNG or an MP4, then go again.",
     link: { label: "Open the studio", href: routePath("/studio") },
   },
@@ -97,6 +112,7 @@ const INSIDE: {
     name: "bridge",
     ink: "#e4e1d8",
     screen: "dot",
+    art: "circuit",
     text: "A SKILL.md teaches your agent the Studio, and one Node file starts the harness you already use, signed in as you.",
     link: { label: "Read the agent skill", href: assetPath("/agent/SKILL.md") },
   },
@@ -110,18 +126,21 @@ const INSIDE: {
 // layer at a time).
 const DitherShader = defineAsyncComponent(() => import("@dither-kit/tailwind/DitherShader.vue"))
 const footStill = ref(true)
-const driven = ref(false)
+const { driven, drive, running } = useDrive()
 const road = ref<HTMLElement | null>(null)
-let until = 0
-let settle = 0
-/** Keep the art moving for at least `ms` more. */
-function drive(ms = 240) {
-  until = Math.max(until, performance.now() + ms)
-  driven.value = true
-  clearTimeout(settle)
-  settle = window.setTimeout(() => (driven.value = false), until - performance.now())
+// The bridge's board (What's inside) runs the same way: its signals run as
+// its card comes into view, then only while the reader moves the page.
+const board = useDrive()
+// The close's heat drifts as its band arrives, then only under the hand.
+const heat = useDrive()
+const closeBand = ref<HTMLElement | null>(null)
+let closeSeen: IntersectionObserver | null = null
+const boardCard = ref<HTMLElement | null>(null)
+let boardInView = false
+const scrolled = () => {
+  drive()
+  if (boardInView) board.drive()
 }
-const scrolled = () => drive()
 // The dance, once per time the road comes into view, waiting for the brand.
 let inView = false
 let danced = false
@@ -134,16 +153,71 @@ function dance() {
 // back once it is home.
 function forming() {
   footStill.value = false
-  if (until > performance.now()) danced = false
+  if (running()) danced = false
 }
 function homed() {
   footStill.value = true
   dance()
 }
+// The mascot's car on the road: it drives exactly while the art moves (the
+// dance, then the reader's scroll or pointer), so the reader drives it, and
+// parks as the art settles; under reduced motion it stays parked. Its
+// wheels stand on the wordmark's top; it leaves at the right of the
+// wordmark's box and comes back in at its left.
+const car = ref<HTMLElement | null>(null)
+// One row of the wordmark's screen below its ink's top: the first rows are
+// hairlines, so the wheels stand where the letters read solid.
+const carBottom = (1 - (WORDMARK.TOP + (WORDMARK.BASE - WORDMARK.TOP) / WORDMARK.ROWS) / WORDMARK.H) * 100
+const carX = ref(0)
+const CAR_SPEED = 0.16 // px a ms
+let carRaf = 0
+let carLast = 0
+const carStill = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
+function roll(now: number) {
+  const dt = Math.min(64, now - carLast)
+  carLast = now
+  const width = car.value?.parentElement?.clientWidth ?? 0
+  const own = car.value?.offsetWidth ?? 0
+  carX.value += dt * CAR_SPEED
+  if (carX.value > width) carX.value = -own
+  carRaf = driven.value && footStill.value ? requestAnimationFrame(roll) : 0
+}
+watch(
+  () => driven.value && footStill.value,
+  (moving) => {
+    if (!moving || carRaf || carStill()) return
+    carLast = performance.now()
+    carRaf = requestAnimationFrame(roll)
+  },
+)
 let seen: IntersectionObserver | null = null
+let boardSeen: IntersectionObserver | null = null
 onMounted(() => {
   addEventListener("scroll", scrolled, { passive: true })
-  if (typeof IntersectionObserver === "undefined" || !road.value) return
+  if (typeof IntersectionObserver === "undefined") return
+  if (boardCard.value) {
+    boardSeen = new IntersectionObserver(
+      ([entry]) => {
+        const was = boardInView
+        boardInView = !!entry?.isIntersecting
+        if (boardInView && !was) board.drive(BOARD_DANCE)
+      },
+      { threshold: 0.5 },
+    )
+    boardSeen.observe(boardCard.value)
+  }
+  if (closeBand.value) {
+    closeSeen = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return
+        heat.drive(CLOSE.drift)
+        closeSeen?.disconnect()
+      },
+      { threshold: 0.25 },
+    )
+    closeSeen.observe(closeBand.value)
+  }
+  if (!road.value) return
   seen = new IntersectionObserver(
     ([entry]) => {
       inView = !!entry?.isIntersecting
@@ -155,9 +229,11 @@ onMounted(() => {
   seen.observe(road.value)
 })
 onBeforeUnmount(() => {
+  cancelAnimationFrame(carRaf)
   removeEventListener("scroll", scrolled)
   seen?.disconnect()
-  clearTimeout(settle)
+  boardSeen?.disconnect()
+  closeSeen?.disconnect()
 })
 
 // The footer's columns.
@@ -213,15 +289,16 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <!-- The build: the brand itself, cell by cell, raised by the world
              engine as the page scrolls past it. -->
         <section id="build" aria-labelledby="build-h" class="sec">
-          <div class="sec-head">
-            <h2 id="build-h" class="section-title chrome-type">Built from the wire up.</h2>
+          <div v-rise class="sec-head">
+            <h2 id="build-h" class="section-title"><RiseWords text="Built from the wire up." /></h2>
             <div class="sec-side">
-              <p class="sec-lede">
-                Our mark and name in {{ BUILD_CELLS }} cells, each one a block, raised by the kit's world engine as you
-                scroll: the floor first, then each cell landing hot on it and cooling to metal. Keep going and it comes
-                apart. Point at it and the cells lean away.
+              <p data-rise class="sec-lede">
+                Our mark and name in {{ BUILD_CELLS }} cells, each one a block,
+                <span class="lede-key">raised by the kit's world engine as you scroll</span>: the floor first, then each
+                cell landing hot on it and cooling to metal. Keep going and it comes apart. Point at it and the cells
+                lean away.
               </p>
-              <a :href="routePath('/docs/world')" class="more-link">See the world engine</a>
+              <a data-rise :href="routePath('/docs/world')" class="more-link">See the world engine</a>
             </div>
           </div>
           <BrandBuild />
@@ -229,14 +306,15 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
         <!-- Ask: one agent session, played as the page scrolls past it. -->
         <section id="ask" aria-labelledby="ask-h" class="sec">
-          <div class="sec-head">
-            <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
+          <div v-rise class="sec-head">
+            <h2 id="ask-h" class="section-title"><RiseWords text="Your agent builds the screen." /></h2>
             <div class="sec-side">
-              <p class="sec-lede">
-                Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a
-                frame of kit parts, and undo takes it back when it gets ideas.
+              <p data-rise class="sec-lede">
+                Hand your coding agent the skill file and ask for a screen.
+                <span class="lede-key">Each tool call lands on the canvas as a frame of kit parts</span>, and undo takes
+                it back when it gets ideas.
               </p>
-              <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
+              <a data-rise :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
             </div>
           </div>
           <AgentStory />
@@ -245,20 +323,33 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <!-- What's inside: the kit, the Studio, the bridge; then the docs'
              big families, each with its size and a line. -->
         <section id="inside" aria-labelledby="inside-h" class="sec">
-          <div class="sec-head">
-            <h2 id="inside-h" class="section-title chrome-type">Three parts, one engine.</h2>
+          <div v-rise class="sec-head">
+            <h2 id="inside-h" class="section-title"><RiseWords text="Three parts, one engine." /></h2>
             <div class="sec-side">
-              <p class="sec-lede">
+              <p data-rise class="sec-lede">
                 A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already
-                trust. No black boxes: all of it is code you can read.
+                trust. <span class="lede-key">No black boxes: all of it is code you can read.</span>
               </p>
             </div>
           </div>
-          <ul class="inside">
-            <li v-for="c in INSIDE" :key="c.title">
+          <ul v-rise class="inside">
+            <li
+              data-rise
+              v-for="c in INSIDE"
+              :key="c.title"
+              :ref="(el) => c.art === 'circuit' && (boardCard = el as HTMLElement)"
+            >
               <DitherScreen :screen="c.screen">
-                <DitherReveal class="inside-art" :duration="0.72" easing="spring" aria-hidden="true">
-                  <DitherGradient :from="c.ink" :to="STOCK" direction="down" :cell="4" />
+                <DitherReveal class="inside-art" :duration="0.72" easing="glide" aria-hidden="true">
+                  <DitherCircuit
+                    v-if="c.art === 'circuit'"
+                    :ink="c.ink"
+                    :seed="11"
+                    :density="1"
+                    :pitch="3"
+                    :paused="!board.driven.value"
+                  />
+                  <DitherGradient v-else :from="c.ink" :to="STOCK" direction="down" :cell="4" />
                 </DitherReveal>
               </DitherScreen>
               <span class="inside-who" aria-hidden="true"
@@ -271,10 +362,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
               <a :href="c.link.href" class="more-link">{{ c.link.label }}</a>
             </li>
           </ul>
-          <div class="families">
-            <h3 class="families-h">{{ SECTION_COUNT }} docs sections, the five biggest families</h3>
+          <div v-rise class="families">
+            <h3 data-rise class="families-h">{{ SECTION_COUNT }} docs sections, the five biggest families</h3>
             <ul class="families-list">
-              <li v-for="f in BIGGEST" :key="f.label">
+              <li v-for="f in BIGGEST" :key="f.label" data-rise>
                 <a :href="routePath(`/docs/${f.first}`)" class="family-t"
                   ><span class="family-n">{{ f.count }}<span class="family-u"> sections</span></span
                   ><span class="family-l">{{ f.label }}</span></a
@@ -291,14 +382,27 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <!-- The plates: print sheets between the sections, the kit's diamond
              small in a wide field (plate.ts). -->
         <Plate :plate="PLATES.beforeInstall" />
+      </div>
 
-        <!-- The install, centred. -->
-        <section id="install" aria-labelledby="install-h" class="sec install">
-          <div class="install-head">
-            <h2 id="install-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
-            <p class="sec-lede">
+      <!-- The close: the install in a clear field inside a print of heat,
+           the footer's own ramp (close.ts), its foot cut flat where the
+           footer rises into it through one tab. -->
+      <section
+        id="install"
+        ref="closeBand"
+        aria-labelledby="install-h"
+        class="close"
+        :style="{ '--reach': `${CLOSE.reach}px` }"
+        @pointermove="heat.drive()"
+      >
+        <CloseHeat :paused="!heat.driven.value" />
+        <div class="sec install">
+          <div v-rise class="install-head">
+            <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
+            <p data-rise class="sec-lede">
               Copy the kit into your app, add its {{ RUNTIME_DEPS.length }} packages and import from
-              <code>@dither-kit</code>. Or paste the agent prompt and your agent does all three.
+              <code>@dither-kit</code>.
+              <span class="lede-key">Or paste the agent prompt and your agent does all three.</span>
             </p>
             <DitherClipboard :value="prompt">
               <template #default="{ copied }">
@@ -315,14 +419,15 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             On Svelte 5? The same kit ships as <code>dither-kit-svelte</code>, and the
             <a :href="routePath('/docs/getting-started')" class="lead">quick start</a> has its steps.
           </p>
-          <dl class="sheet" aria-label="The kit in brief">
-            <div v-for="s in SPECS" :key="s.label" class="sheet-row">
+          <dl v-rise class="sheet" aria-label="The kit in brief">
+            <div v-for="s in SPECS" :key="s.label" data-rise class="sheet-row">
               <dt>{{ s.label }}</dt>
               <dd>{{ s.value }}</dd>
             </div>
           </dl>
-        </section>
-      </div>
+        </div>
+        <span aria-hidden="true" class="close-tab" />
+      </section>
     </main>
 
     <!-- Footer: on the kit's art, the brand and a line beside three link
@@ -333,7 +438,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <div aria-hidden="true" class="foot-ground">
           <DitherShader
             :source="ROAD_SHADER"
-            :colors="ROAD_RAMP"
+            :colors="RAMP"
             :seed="3"
             :cell="ROAD.cell"
             :dpr="1"
@@ -374,7 +479,12 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             :style="{ left: `${ROAD.mark[0] * 100}%`, bottom: `${ROAD.mark[1] * 100}%` }"
           />
           <div aria-hidden="true" class="foot-mark">
-            <LineWordmark />
+            <div class="mark-box">
+              <LineWordmark />
+              <div ref="car" class="road-car" :style="{ translate: `${carX}px 0`, bottom: `${carBottom}%` }">
+                <MascotCar :size="56" :driving="driven && footStill" class="road-car-art" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -400,7 +510,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   gap: calc(var(--rhythm) * 3.5);
   width: min(100%, var(--page));
   margin-inline: auto;
-  padding: calc(var(--rhythm) * 2) 24px calc(var(--rhythm) * 3);
+  padding: calc(var(--rhythm) * 2) 24px 0;
 }
 
 .sec {
@@ -509,7 +619,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   flex-direction: column;
   gap: 4px;
   color: var(--ink);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .family-t:hover {
@@ -544,6 +654,48 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 }
 
 /* The install: its head centred, the box under it. */
+/* The close: a full-width band, padded by the heat's reach (`--reach`,
+   `CLOSE.reach`) plus air so no ink lands under a word; the heat its ground. */
+.close {
+  position: relative;
+  isolation: isolate;
+  padding: calc(var(--reach) + var(--rhythm)) 24px calc(var(--reach) + var(--rhythm) * 1.5);
+}
+
+/* The one joint: the footer's ground rises into the heat's flat foot as a
+   tab on the page's axis, its shoulders rounded and its base flowing into
+   the ground through two concave fillets. */
+.close-tab {
+  --r: 16px;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: clamp(120px, 28vw, 224px);
+  height: 40px;
+  translate: -50% 0;
+  border-radius: var(--r) var(--r) 0 0;
+  background: var(--background);
+}
+
+.close-tab::before,
+.close-tab::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: var(--r);
+  height: var(--r);
+}
+
+.close-tab::before {
+  right: 100%;
+  background: radial-gradient(circle at 0 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
+}
+
+.close-tab::after {
+  left: 100%;
+  background: radial-gradient(circle at 100% 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
+}
+
 .install {
   width: min(100%, 64rem);
   margin-inline: auto;
@@ -664,6 +816,22 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   color: var(--ink);
 }
 
+/* The mascot's car runs along the wordmark's top, its wheels on the
+   letters' ink (`WORDMARK.TOP` of the word's own box). */
+.mark-box {
+  position: relative;
+}
+.road-car {
+  position: absolute;
+  left: 0;
+  color: var(--ink);
+}
+.road-car-art {
+  display: block;
+  height: clamp(48px, 6.4cqi, 104px);
+  width: auto;
+}
+
 /* Positioned: the brand's field is the page's column. */
 .foot-in {
   position: relative;
@@ -722,7 +890,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   min-height: 24px;
   font-size: 12px;
   color: var(--ink-3);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .foot-col {
@@ -747,7 +915,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   min-height: 28px;
   padding-top: 6px;
   color: var(--ink-3);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .foot-col a:hover,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { DitherIcon } from "@dither-kit"
+import Mascot from "@/shared/ui/Mascot.vue"
 import type { Queued } from "../model/compose"
 import type { Changed } from "../model/steps"
 import type { Todo } from "../model/thread"
@@ -156,7 +157,8 @@ watch(
     </ul>
   </div>
   <div v-if="run" class="part run">
-    <span class="spin" aria-hidden="true"></span>
+    <!-- the mascot flies while the harness works, in the spinner's 12px slot -->
+    <Mascot :size="14" pose="fly" class="run-mascot" />
     <span class="row-label run-time">{{ run.doing }} for {{ run.time }}</span>
     <button
       v-if="run.stuck"
@@ -289,8 +291,8 @@ watch(
   text-align: left;
   color: var(--color-muted-foreground);
   transition:
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 .row.is-key:hover {
   color: var(--color-foreground);
@@ -300,7 +302,7 @@ watch(
   --glyph: 11px;
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity 200ms var(--ease-settle);
+  transition: opacity 150ms var(--ease-settle);
 }
 .row.is-key:hover .go,
 .row.is-key:focus-visible .go {
@@ -330,7 +332,7 @@ watch(
     inset 0 0 0 3px var(--color-card),
     inset 0 0 0 5px var(--color-foreground);
 }
-/* The spinner on the line, its words on the text column, Stop's words
+/* The mascot on the line, its words on the text column, Stop's words
    ending on the line (its key pads 6px past them). */
 .run {
   display: flex;
@@ -341,6 +343,10 @@ watch(
 }
 .run-time {
   font-variant-numeric: tabular-nums;
+}
+.run-mascot {
+  margin-inline: 1px;
+  color: var(--color-foreground);
 }
 /* Stop is quiet: a word and its key, never the loudest thing on screen. */
 .quiet {
@@ -353,8 +359,8 @@ watch(
   padding-inline: 6px;
   color: var(--color-muted-foreground);
   transition:
-    color 200ms var(--ease-settle),
-    background-color 200ms var(--ease-settle);
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
 }
 .quiet:hover:not(:disabled) {
   color: var(--color-foreground);

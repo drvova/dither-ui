@@ -10,6 +10,7 @@ import { createServer } from "node:http"
 import { extname, join, normalize } from "node:path"
 import { fileURLToPath } from "node:url"
 import { chromium } from "playwright-core"
+import { RISE_WAIT } from "../src/shared/lib/rise-wait.ts"
 
 const DIST = fileURLToPath(new URL("../dist", import.meta.url))
 // Each route waits for its own mount signal: the landing's h1, the docs'
@@ -274,21 +275,32 @@ try {
       await page.waitForSelector(route.ready, { timeout: 30_000 })
     }
     await page.waitForTimeout(route.settle)
-    await page.evaluate((m) => {
-      document.title = m.title
-      document.querySelector('link[rel="canonical"]')?.setAttribute("href", m.canonical)
-      document.querySelector('meta[name="description"]')?.setAttribute("content", m.description)
-      document.querySelector("#docs-breadcrumb")?.remove()
-      // The agent protocol's document mirror is runtime state, not content.
-      document.querySelector("#dither-studio-document")?.remove()
-      // Entrance latches are runtime state: a snapshot taken after a figure
-      // played would ship it finished, and the client — which renders fresh
-      // over these bytes — would flash the end state, hide it, and replay.
-      for (const el of document.querySelectorAll("[data-live]")) {
-        el.removeAttribute("data-live")
-        el.removeAttribute("data-done")
-      }
-    }, meta)
+    await page.evaluate(
+      ([m, riseWait]) => {
+        document.title = m.title
+        document.querySelector('link[rel="canonical"]')?.setAttribute("href", m.canonical)
+        document.querySelector('meta[name="description"]')?.setAttribute("content", m.description)
+        document.querySelector("#docs-breadcrumb")?.remove()
+        // The agent protocol's document mirror is runtime state, not content.
+        document.querySelector("#dither-studio-document")?.remove()
+        // Entrance latches are runtime state: a snapshot taken after a figure
+        // played would ship it finished, and the client — which renders fresh
+        // over these bytes — would flash the end state, hide it, and replay.
+        for (const el of document.querySelectorAll("[data-live]")) {
+          el.removeAttribute("data-live")
+          el.removeAttribute("data-done")
+        }
+        // So is the rise: the bytes wait for it again (src/shared/lib/rise.ts).
+        document.documentElement.classList.remove(riseWait)
+        document.documentElement.removeAttribute("data-rise")
+        for (const el of document.querySelectorAll("[data-rise]")) {
+          el.removeAttribute("data-risen")
+          el.style.removeProperty("opacity")
+          if (!el.getAttribute("style")) el.removeAttribute("style")
+        }
+      },
+      [meta, RISE_WAIT],
+    )
     if (route.minSections)
       docsFlow = await page.evaluate(() => {
         const flow = document.querySelector(".docs-flow")

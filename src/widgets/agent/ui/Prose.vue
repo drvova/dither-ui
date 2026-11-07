@@ -123,7 +123,7 @@ pre {
   right: 3px;
   opacity: 0;
   background: var(--well);
-  transition: opacity 200ms var(--ease-settle);
+  transition: opacity 150ms var(--ease-settle);
 }
 .code:hover .code-copy,
 .code-copy:focus-visible {

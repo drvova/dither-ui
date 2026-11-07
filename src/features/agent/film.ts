@@ -32,9 +32,9 @@ export function addLaunchFilm(): string | null {
         },
         {
           cells: [
-            { is: "DitherCountUp", props: { to: 266, duration: 2400 } },
-            { is: "DitherCountUp", props: { to: 307, duration: 2400 } },
-            { is: "DitherCountUp", props: { to: 47, duration: 2400 } },
+            { is: "DitherCountUp", props: { to: 270, duration: 2400 } },
+            { is: "DitherCountUp", props: { to: 311, duration: 2400 } },
+            { is: "DitherCountUp", props: { to: 49, duration: 2400 } },
           ],
           justify: "between",
         },
@@ -72,8 +72,8 @@ export function addLaunchFilm(): string | null {
         chapter: {
           line: "A UI kit drawn pixel by pixel.",
           spec: [
-            ["266", "components"],
-            ["307", "docs sections"],
+            ["270", "components"],
+            ["311", "docs sections"],
             ["1", "dither rule"],
           ],
         },
@@ -89,7 +89,7 @@ export function addLaunchFilm(): string | null {
         chapter: {
           line: "Backgrounds that seek to the frame.",
           spec: [
-            ["46", "backgrounds"],
+            ["49", "backgrounds"],
             ["1", "clock for all of them"],
           ],
         },

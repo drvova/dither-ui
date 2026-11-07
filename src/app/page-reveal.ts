@@ -47,8 +47,8 @@ export function takePageTransition(take: (transition: ViewTransition) => void): 
 type Activation = { navigationType: string; entry?: { index: number }; from?: { index: number } | null }
 
 /** Forward, the new page wipes in from the left through a band of the
- * signal ink; back through history, from the right, on Apple's smooth
- * spring like every motion on the site. */
+ * signal ink; back through history, from the right, on the glide like
+ * every motion on the site. */
 export function pageTransitionOptions(): DitherTransitionOptions {
   const activation = (window as { navigation?: { activation?: Activation } }).navigation?.activation
   const back =
@@ -59,6 +59,6 @@ export function pageTransitionOptions(): DitherTransitionOptions {
     cell: 8,
     band: 12,
     duration: 640,
-    easing: "spring",
+    easing: "glide",
   }
 }

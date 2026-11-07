@@ -3,16 +3,18 @@ import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, r
 import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-kit"
 import { addArtboard, editor, frame, stopInspecting } from "@/entities/editor"
 import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
-import { openProject, stepChat } from "@/features/agent/chats"
+import { forgetProject, openProject, stepChat } from "@/features/agent/chats"
 import { askAgent, handoff } from "@/features/agent/handoff"
 import type { AgentActivity } from "@/features/agent/tools"
 import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
-import { activeProjectId, hydrate, importDocument, startAutosave, stopAutosave } from "@/features/persistence"
+import { activeProjectId, hydrate, importDocument, projects, startAutosave, stopAutosave } from "@/features/persistence"
 import { Canvas } from "@/widgets/canvas"
 import { DataEditor } from "@/widgets/data-editor"
 import { CanvasBar, Toolbar } from "@/widgets/toolbar"
+import { firstVisitTour, GUIDE_SEEN_KEY, type GuideStop } from "./guide"
 import SearchPalette from "./ui/SearchPalette.vue"
+import StudioGuide from "./ui/StudioGuide.vue"
 import StudioPanel from "./ui/StudioPanel.vue"
 import StudioSidebar from "./ui/StudioSidebar.vue"
 
@@ -21,7 +23,8 @@ const AgentPanel = defineAsyncComponent(() => import("@/widgets/agent").then((m)
 // loaded the first time it is asked for.
 const Workbench = defineAsyncComponent(() => import("@/widgets/workbench").then((m) => m.Workbench))
 import { CHART_TYPES, type ChartType } from "@/shared/config"
-import { installLongPress, routePath } from "@/shared/lib"
+import { installLongPress, modKey, routePath } from "@/shared/lib"
+import Mascot from "@/shared/ui/Mascot.vue"
 import { readJson, writeJson } from "@/shared/lib/storage"
 
 const ExportDialog = defineAsyncComponent(() => import("@/features/export-code").then((m) => m.ExportDialog))
@@ -44,6 +47,14 @@ watch(panelOpen, (v) => writeJson(PANEL_KEY, v))
 watch(
   () => activeProjectId.value,
   (id) => id && openProject(id),
+)
+// A project deleted here (from the sidebar, the title bar or the agent)
+// takes its chats with it.
+watch(
+  () => projects.map((p) => p.id),
+  (now, was) => {
+    for (const id of was) if (!now.includes(id)) forgetProject(id)
+  },
 )
 // The chat stays mounted: hiding its column keeps a turn running, and its
 // key on the title bar says what the agent is doing.
@@ -106,13 +117,60 @@ watch(agentOpen, (open) => {
 })
 const benchUrl = new URL(routePath("/studio"), location.href).href
 
+// The mascot's tour of the window: each stop opens its part and points at
+// it by the page's own refs. It runs once on a first visit, and again from
+// its key on the title bar.
+const toolbar = ref<{ guideKey: HTMLButtonElement | null } | null>(null)
+const sidebar = ref<{ $el: Element } | null>(null)
+// the canvas bar's root is a Transition: its $el is the bar only while it shows
+const canvasBar = ref<{ $el: unknown } | null>(null)
+const chat = ref<HTMLElement | null>(null)
+const side = ref<HTMLElement | null>(null)
+const tourOpen = ref(false)
+const tour: GuideStop[] = [
+  {
+    target: () => shell.value,
+    line: `Hi. Let me fly you round the Studio. This is the canvas, where your frames live: scroll to pan, pinch or ${modKey("").trim()} scroll to zoom.`,
+  },
+  {
+    target: () => (canvasBar.value?.$el instanceof Element ? canvasBar.value.$el : null),
+    line: "This bar works on what you pick: duplicate it, evolve it, export its code, a PNG or a video, or inspect it.",
+  },
+  {
+    target: () => sidebar.value?.$el,
+    show: () => (sidebarOpen.value = true),
+    line: `Your projects and their chats are kept here. ${modKey("K")} finds any of them.`,
+  },
+  {
+    target: () => chat.value,
+    show: () => (agentOpen.value = true),
+    line: "The chat. Your own coding agent answers here, signed in on your machine, and builds on the canvas for you.",
+  },
+  {
+    target: () => side.value,
+    show: () => (panelOpen.value = true),
+    line: "Pick a frame and its properties and layers open here.",
+  },
+  {
+    target: () => toolbar.value?.guideKey,
+    end: true,
+    line: "That is the whole window. I live on this key whenever you want the tour again.",
+  },
+]
+function showAround() {
+  writeJson(GUIDE_SEEN_KEY, true)
+  tourOpen.value = true
+}
+
 const fresh = hydrate()
 // A fresh document's frame was placed before the canvas measured itself:
 // once it has (the canvas mounts before this page), frame it: centred, and
 // zoomed out when the canvas beside the chat is narrower than the frame.
 onMounted(() => {
   if (fresh && isDesktop.value && editor.artboards[0]) frame([editor.artboards[0]])
+  if (isDesktop.value && firstVisitTour(readJson(GUIDE_SEEN_KEY))) tourTimer = setTimeout(showAround, 900)
 })
+let tourTimer: ReturnType<typeof setTimeout> | undefined
 startAutosave()
 startHistory()
 // The agent protocol (window.ditherStudio, dither-studio:* DOM events, the
@@ -149,6 +207,7 @@ const studioLink = new URL(routePath("/studio"), location.href).href
 const onResize = () => (isDesktop.value = window.innerWidth >= 1024)
 window.addEventListener("resize", onResize)
 onBeforeUnmount(() => {
+  clearTimeout(tourTimer)
   closeAgentApi()
   closeLongPress()
   stopAutosave()
@@ -171,14 +230,17 @@ onBeforeUnmount(() => {
   >
     <!-- The title bar first: Tab reads it before the sidebar and the canvas. -->
     <Toolbar
+      ref="toolbar"
       v-model:sidebar-open="sidebarOpen"
       v-model:chat-open="agentOpen"
       v-model:panel-open="panelOpen"
       v-model:library-open="libraryOpen"
       class="studio-bar"
       :agent-state="agentState"
+      @guide="showAround"
     />
     <StudioSidebar
+      ref="sidebar"
       v-show="sidebarOpen"
       :locked="agentState === 'working' || agentState === 'waiting'"
       @library="libraryOpen = true"
@@ -186,17 +248,17 @@ onBeforeUnmount(() => {
       @search="searchOpen = true"
     />
 
-    <section v-show="agentOpen" class="studio-chat hardshell" aria-label="Chat">
+    <section v-show="agentOpen" ref="chat" class="studio-chat flat-shell" aria-label="Chat">
       <AgentPanel ref="agentPanel" @close="agentOpen = false" @activity="onAgentActivity" />
     </section>
 
     <main ref="shell" class="studio-canvas hardshell" aria-label="Canvas">
       <Canvas ref="canvas" />
-      <CanvasBar @export="exportOpen = true" @video="videoOpen = true" />
+      <CanvasBar ref="canvasBar" @export="exportOpen = true" @video="videoOpen = true" />
       <DataEditor />
     </main>
 
-    <aside v-if="bench" class="studio-side studio-bench hardshell" aria-label="Workbench">
+    <aside v-if="bench" class="studio-side studio-bench flat-shell" aria-label="Workbench">
       <Workbench
         :key="activeProjectId.value"
         :host="bench.host"
@@ -210,7 +272,7 @@ onBeforeUnmount(() => {
         @exit="stopInspecting"
       />
     </aside>
-    <aside v-else-if="panelOpen" class="studio-side hardshell" aria-label="Properties and layers">
+    <aside v-else-if="panelOpen" ref="side" class="studio-side flat-shell" aria-label="Properties and layers">
       <StudioPanel />
     </aside>
 
@@ -224,6 +286,7 @@ onBeforeUnmount(() => {
     <ExportDialog v-if="exportOpen" :open="exportOpen" @close="exportOpen = false" />
     <VideoDialog v-if="videoOpen" :open="videoOpen" @close="videoOpen = false" />
     <ShortcutsHelp />
+    <StudioGuide :open="tourOpen" :stops="tour" @close="tourOpen = false" />
   </div>
 
   <!-- Small screens: the editor needs a desktop, so guide instead of
@@ -236,7 +299,8 @@ onBeforeUnmount(() => {
     <div class="aspect-[4/3] w-full max-w-xs overflow-hidden rounded-2xl" aria-hidden="true">
       <DitherPoster :seed="5" :cell="4" paused />
     </div>
-    <h1 class="mt-3 text-xl tracking-tight">The Studio is best on a desktop</h1>
+    <Mascot :size="44" alive class="mt-2 text-foreground" />
+    <h1 class="text-xl tracking-tight">The Studio is best on a desktop</h1>
     <p class="max-w-xs text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
       It is an infinite canvas with a layer rail, an inspector and keyboard shortcuts, made for a wide screen and a
       pointer. Send yourself the link and pick it up on a laptop.
@@ -304,10 +368,10 @@ onBeforeUnmount(() => {
 .studio-bar {
   grid-area: bar;
 }
-/* The chat, the canvas and the panel are the window's shells: two corners
-   cut, the canvas recessed into its well, a gutter between them. */
+/* The canvas is the window's one shaped shell (two corners cut, recessed
+   into its well); the chat and the panel are flat shells beside it, a
+   gutter between them. */
 .studio-chat {
-  --cut: 12px;
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -334,7 +398,6 @@ onBeforeUnmount(() => {
   margin-left: 8px;
 }
 .studio-side {
-  --cut: 12px;
   display: flex;
   min-width: 0;
   flex-direction: column;

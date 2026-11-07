@@ -8,7 +8,9 @@
   // and a footer of the brand and link columns over the line-screen
   // wordmark. Michroma for display, mono for the rest; everything that
   // moves is the kit.
-  import { DitherAvatar, DitherGradient, DitherScreen, type ScreenKind } from "@dither-kit-svelte"
+  import RiseWords from "./RiseWords.svelte"
+  import { rise } from "./rise"
+  import { Circuit, DitherAvatar, DitherGradient, DitherScreen, type ScreenKind } from "@dither-kit-svelte"
   import "../fonts/display.css"
   import { copier } from "../copy.svelte"
   import "./landing.css"
@@ -22,6 +24,10 @@
   import LineWordmark from "./LineWordmark.svelte"
   import { GITHUB, SITE, STUDIO } from "./links"
   import Plate from "./Plate.svelte"
+  import { createDrive, drive } from "./drive"
+  import { onMount } from "svelte"
+  import CloseHeat from "./CloseHeat.svelte"
+  import { CLOSE } from "./close"
   import PixelWord from "./PixelWord.svelte"
   import { PLATES, STOCK } from "./plate"
   import SiteHeader from "./SiteHeader.svelte"
@@ -29,6 +35,27 @@
   import WorksWith from "./WorksWith.svelte"
 
   const SKILL = `${SITE}/agent/SKILL.md`
+
+  // The close's heat drifts as its band arrives, then only under the hand.
+  let heatMoving = $state(false)
+  const heat = createDrive((m) => (heatMoving = m))
+  let closeBand = $state<HTMLElement | null>(null)
+  onMount(() => {
+    if (typeof IntersectionObserver === "undefined" || !closeBand) return heat.dispose
+    const seen = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return
+        heat.run(CLOSE.drift)
+        seen.disconnect()
+      },
+      { threshold: 0.25 },
+    )
+    seen.observe(closeBand)
+    return () => {
+      seen.disconnect()
+      heat.dispose()
+    }
+  })
 
   // What "Copy agent prompt" puts on the clipboard: the install to run.
   const PROMPT = [
@@ -40,9 +67,10 @@
   const prompt = copier()
 
   // What's inside: the kit, the Studio and the bridge, each a card headed by
-  // a tone strip the kit prints in its own ink through its own printer's
-  // screen (blue in Bayer cells, the ember in lines, bone in a halftone
-  // dot), its own character (the kit's seeded avatar of its title, in its
+  // a strip the kit prints in its own ink through its own printer's screen
+  // (blue in Bayer cells, the ember in lines, bone in a halftone dot): a
+  // tone for the kit and the Studio, a circuit board for the bridge, its
+  // signals running in the ember; its own character (the kit's seeded avatar of its title, in its
   // ink) standing on the strip's foot, its name in the pixel face, two lines
   // and its link.
   const INSIDE: {
@@ -50,6 +78,8 @@
     name: string
     ink: string
     screen: ScreenKind
+    /** What the strip prints: a tone from the ink, or a board in it. */
+    art: "tone" | "circuit"
     text: string
     link: { label: string; href: string }
   }[] = [
@@ -58,6 +88,7 @@
       name: "kit",
       ink: "blue",
       screen: "bayer",
+      art: "tone",
       text: "Plain source you own, one engine of rasters under every component, in Svelte 5 runes. Change anything, it's yours.",
       link: { label: "Read the quick start", href: docsHref("getting-started") },
     },
@@ -66,6 +97,7 @@
       name: "studio",
       ink: "orange",
       screen: "line",
+      art: "tone",
       text: "An infinite canvas to play with screens of kit parts. Export a frame as Vue, a PNG or an MP4, then go again.",
       link: { label: "Open the studio", href: STUDIO },
     },
@@ -74,10 +106,16 @@
       name: "bridge",
       ink: "#e4e1d8",
       screen: "dot",
+      art: "circuit",
       text: "A SKILL.md teaches your agent the Studio, and one Node file starts the harness you already use, signed in as you.",
       link: { label: "Read the agent skill", href: SKILL },
     },
   ]
+
+  // The bridge's board runs on cue (no perpetual loop): by itself as its
+  // card comes into view, then only while the reader scrolls.
+  const BOARD_DANCE = 3000
+  let boardMoving = $state(false)
 
   // The footer's columns.
   const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
@@ -127,14 +165,15 @@
 
       <!-- Ask: one agent session, played as the page scrolls past it. -->
       <section id="ask" aria-labelledby="ask-h" class="sec">
-        <div class="sec-head">
-          <h2 id="ask-h" class="section-title chrome-type">Your agent builds the screen.</h2>
+        <div use:rise class="sec-head">
+          <h2 id="ask-h" class="section-title"><RiseWords text="Your agent builds the screen." /></h2>
           <div class="sec-side">
-            <p class="sec-lede">
-              Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a frame of
-              kit parts, and undo takes it back when it gets ideas.
+            <p data-rise class="sec-lede">
+              Hand your coding agent the skill file and ask for a screen.
+              <span class="lede-key">Each tool call lands on the canvas as a frame of kit parts</span>, and undo takes it
+              back when it gets ideas.
             </p>
-            <a href={SKILL} class="more-link">Read the agent skill</a>
+            <a data-rise href={SKILL} class="more-link">Read the agent skill</a>
           </div>
         </div>
         <AgentStory />
@@ -143,21 +182,25 @@
       <!-- What's inside: the kit, the Studio, the bridge; then the docs' big
            families, each with its size and a line. -->
       <section id="inside" aria-labelledby="inside-h" class="sec">
-        <div class="sec-head">
-          <h2 id="inside-h" class="section-title chrome-type">Three parts, one engine.</h2>
+        <div use:rise class="sec-head">
+          <h2 id="inside-h" class="section-title"><RiseWords text="Three parts, one engine." /></h2>
           <div class="sec-side">
-            <p class="sec-lede">
+            <p data-rise class="sec-lede">
               A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already trust.
-              No black boxes: all of it is code you can read.
+              <span class="lede-key">No black boxes: all of it is code you can read.</span>
             </p>
           </div>
         </div>
-        <ul class="inside">
+        <ul use:rise class="inside">
           {#each INSIDE as c (c.title)}
-            <li>
+            <li data-rise use:drive={{ dance: BOARD_DANCE, onChange: (m) => c.art === "circuit" && (boardMoving = m) }}>
               <div class="inside-art" aria-hidden="true">
                 <DitherScreen screen={c.screen}>
-                  <DitherGradient from={c.ink} to={STOCK} direction="down" cell={4} />
+                  {#if c.art === "circuit"}
+                    <Circuit ink={c.ink} seed={11} density={1} pitch={3} paused={!boardMoving} />
+                  {:else}
+                    <DitherGradient from={c.ink} to={STOCK} direction="down" cell={4} />
+                  {/if}
                 </DitherScreen>
               </div>
               <span class="inside-who" aria-hidden="true"><DitherAvatar name={c.title} color={c.ink} size={56} /></span>
@@ -167,11 +210,11 @@
             </li>
           {/each}
         </ul>
-        <div class="families">
-          <h3 class="families-h">{SECTION_COUNT} docs sections, the five biggest families</h3>
+        <div use:rise class="families">
+          <h3 data-rise class="families-h">{SECTION_COUNT} docs sections, the five biggest families</h3>
           <ul class="families-list">
             {#each DOCS_FAMILIES as f (f.label)}
-              <li>
+              <li data-rise>
                 <a href={f.href} class="family-t"
                   ><span class="family-n">{f.count}<span class="family-u"> sections</span></span><span class="family-l">{f.label}</span></a
                 >
@@ -187,13 +230,27 @@
 
       <Plate plate={PLATES.beforeInstall} />
 
-      <!-- The install, centred. -->
-      <section id="install" aria-labelledby="install-h" class="sec install">
-        <div class="install-head">
-          <h2 id="install-h" class="section-title chrome-type">Copy one folder. Every pixel is yours.</h2>
-          <p class="sec-lede">
+    </div>
+
+    <!-- The close: the install in a clear field inside a print of heat, the
+         footer's ramp (close.ts), its foot cut flat where the footer rises
+         into it through one tab. -->
+    <section
+      id="install"
+      bind:this={closeBand}
+      aria-labelledby="install-h"
+      class="close"
+      style:--reach="{CLOSE.reach}px"
+      onpointermove={() => heat.run()}
+    >
+      <CloseHeat paused={!heatMoving} />
+      <div class="sec install">
+        <div use:rise class="install-head">
+          <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
+          <p data-rise class="sec-lede">
             Copy the kit into your app, add its {RUNTIME_DEPS.length} packages and import from
-            <code>@dither-kit-svelte</code>. Or paste the agent prompt and your agent does all three.
+            <code>@dither-kit-svelte</code>.
+            <span class="lede-key">Or paste the agent prompt and your agent does all three.</span>
           </p>
           <button type="button" class="key prompt-key" onclick={() => prompt.copy(PROMPT)}>
             {prompt.copied ? "Copied" : "Copy agent prompt"}
@@ -205,16 +262,17 @@
           On Vue 3? The same kit ships as <code>dither-kit</code>, and the
           <a href={`${SITE}/docs/getting-started`} class="lead">Vue quick start</a> has its steps.
         </p>
-        <dl class="sheet" aria-label="The kit in brief">
+        <dl use:rise class="sheet" aria-label="The kit in brief">
           {#each SPECS as s (s.label)}
-            <div class="sheet-row">
+            <div data-rise class="sheet-row">
               <dt>{s.label}</dt>
               <dd>{s.value}</dd>
             </div>
           {/each}
         </dl>
-      </section>
-    </div>
+      </div>
+      <span aria-hidden="true" class="close-tab"></span>
+    </section>
   </main>
 
   <!-- Footer: the brand and a line beside three link columns, the copyright
@@ -260,7 +318,7 @@
     gap: calc(var(--rhythm) * 3.5);
     width: min(100%, var(--page));
     margin-inline: auto;
-    padding: calc(var(--rhythm) * 2) 24px calc(var(--rhythm) * 3);
+    padding: calc(var(--rhythm) * 2) 24px 0;
   }
 
   .sec {
@@ -364,7 +422,7 @@
     flex-direction: column;
     gap: 4px;
     color: var(--ink);
-    transition: color 200ms var(--ease-settle);
+    transition: color 150ms var(--ease-settle);
   }
 
   .family-t:hover {
@@ -396,6 +454,48 @@
     line-height: 1.6;
     color: var(--ink-3);
     text-wrap: pretty;
+  }
+
+  /* The close: a full-width band, padded by the heat's reach (`--reach`,
+     `CLOSE.reach`) plus air so no ink lands under a word; the heat its ground. */
+  .close {
+    position: relative;
+    isolation: isolate;
+    padding: calc(var(--reach) + var(--rhythm)) 24px calc(var(--reach) + var(--rhythm) * 1.5);
+  }
+
+  /* The one joint: the footer's ground rises into the heat's flat foot as a
+     tab on the page's axis, its shoulders rounded and its base flowing into
+     the ground through two concave fillets. */
+  .close-tab {
+    --r: 16px;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: clamp(120px, 28vw, 224px);
+    height: 40px;
+    translate: -50% 0;
+    border-radius: var(--r) var(--r) 0 0;
+    background: var(--background);
+  }
+
+  .close-tab::before,
+  .close-tab::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: var(--r);
+    height: var(--r);
+  }
+
+  .close-tab::before {
+    right: 100%;
+    background: radial-gradient(circle at 0 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
+  }
+
+  .close-tab::after {
+    left: 100%;
+    background: radial-gradient(circle at 100% 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
   }
 
   /* The install: its head centred, the box under it. */
@@ -516,7 +616,7 @@
     min-height: 24px;
     font-size: 12px;
     color: var(--ink-3);
-    transition: color 200ms var(--ease-settle);
+    transition: color 150ms var(--ease-settle);
   }
 
   .foot-col {
@@ -541,7 +641,7 @@
     min-height: 28px;
     padding-top: 6px;
     color: var(--ink-3);
-    transition: color 200ms var(--ease-settle);
+    transition: color 150ms var(--ease-settle);
   }
 
 

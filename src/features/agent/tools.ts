@@ -480,7 +480,7 @@ export function loadAgentConfig(): AgentConfig {
 
 export const saveAgentConfig = (c: AgentConfig): void => writeJson(CONFIG_KEY, c)
 
-const DRAFT_PREFIX = "dither-agent-draft-"
+export const DRAFT_PREFIX = "dither-agent-draft-"
 
 /** A chat's unsent message: its words and what it carries, as stored (the
  * panel parses the attachments, untrusted, where they come back in). */

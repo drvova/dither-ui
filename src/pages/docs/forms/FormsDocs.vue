@@ -243,6 +243,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "modelValue", type: "number (v-model)", default: "50" },
     { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
     { prop: "size", type: "number (px)", default: "72" },
+    { prop: "label", type: "string (its accessible name)", default: '"Knob"' },
   ],
   signaturePad: [
     { prop: "modelValue", type: "string (dataURL, v-model)", default: '""' },

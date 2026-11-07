@@ -179,7 +179,8 @@ Commands (`type` and fields):
 - You can write 3D and shaders directly: `DitherWorld` takes a model as
   `props.source` (VRML97 / VRML 1.0 `.wrl`, X3D XML, glTF JSON, OBJ, ASCII
   STL / PLY or OFF text — VRML `TimeSensor` + interpolator + `ROUTE`
-  animations play on the clock) or a URL as `props.src` (also `.glb`), and
+  animations play on the clock) or a URL as `props.src` (also `.glb`, and Gaussian splat captures:
+  `.splat` or the `.ply` a trained capture writes), and
   `DitherShader` takes GLSL as `props.source` (Shadertoy-style `mainImage`
   with `iTime`/`iResolution`/`iMouse`/`iColor`, or a raw `main`). Both are
   ordinary `component.add` targets; `props.colors` gives either a palette
@@ -209,7 +210,7 @@ Commands (`type` and fields):
     Keep labels short facts ("glTF, OBJ, STL") and notes shorter.
   - `chapter` per clip: `{ line, spec?: [[figure, words]] }`, the band
     under the stage from that clip on: one line, then up to four rows with
-    the measured figure first (`["266", "components"]`).
+    the measured figure first (`["270", "components"]`).
   - `score` on the reel: `true` or `{ seed }`. A soundtrack synthesized
     from the cut (a chord per clip, a riser and an impact on every cut, a
     tick per callout, a blip per chapter); the video export carries it.

@@ -597,13 +597,16 @@ export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
 /** Selectable entrance easing — one name every canvas resolves the same way. */
 /** "spring" is Apple's smooth motion (`spring.ts`): from rest, settling long
- * and soft, never past its mark. */
-export type EasingName = "linear" | "ease-out" | "ease-in-out" | "spring"
+ * and soft, never past its mark. "glide" leaves at full speed and glides
+ * into a long soft settle, never past its mark (`GLIDE_BEZIER`): the
+ * butter of a decisive start. */
+export type EasingName = "linear" | "ease-out" | "ease-in-out" | "spring" | "glide"
 export const EASINGS: Record<EasingName, (t: number) => number> = {
   linear: (t) => t,
   "ease-out": easeOutCubic,
   "ease-in-out": easeInOutCubic,
   spring,
+  glide: (t) => glide(t),
 }
 
 /** An easing is a preset name or a CSS-style cubic-bezier(x1, y1, x2, y2) —
@@ -647,6 +650,11 @@ export function cubicBezier(x1: number, y1: number, x2: number, y2: number): (t:
   }
   return (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : sampleY(solve(x)))
 }
+
+/** The glide's curve: full speed from the first frame, a long soft settle,
+ * never past its mark (y never above 1). */
+export const GLIDE_BEZIER = [0.22, 1, 0.36, 1] as const
+export const glide = cubicBezier(...GLIDE_BEZIER)
 
 // Tiny memo — canvas loops resolve the easing every frame; charts use one
 // curve at a time, so a single-slot cache removes the per-frame allocation.

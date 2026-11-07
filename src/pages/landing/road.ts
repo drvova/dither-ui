@@ -8,7 +8,6 @@
 // the bundle and turns as a small spiral galaxy around the diamond, its
 // heart. The ribbon twists and sways as its heads run, the galaxy turns, and
 // the art dissolves at its edges.
-import { GROUND, INKS } from "./plate"
 
 /** The road: from the copyright line to the page's foot, the wordmark
  * printed over its lower part. Its height as a share of the footer's width
@@ -29,9 +28,10 @@ export const ROAD = {
   dance: 4500,
 } as const
 
-/** Dark to light: the ground, then the print's inks, so brightness 1/3,
- * 2/3 and 1 print blue, the ember and bone. */
-export const ROAD_RAMP = [GROUND, ...INKS]
+/** The line-screen wordmark printed over the road's foot, in its own
+ * units: its box, where its ink starts and its baseline, and the rows of
+ * its screen. The mascot's car stands on its ink's top (`TOP`). */
+export const WORDMARK = { W: 1000, H: 196, TOP: 30, BASE: 182, ROWS: 24 } as const
 
 const f = (v: number) => v.toFixed(4)
 

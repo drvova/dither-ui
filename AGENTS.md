@@ -102,7 +102,8 @@ Default section order:
   of a layer (`engine/`, `tailwind/`, `stylex/`) (rstack.config.ts +
   tsconfig paths — change both together).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
-  routes remain supported for old links. GitHub Pages deploys through
+  routes remain supported for old links; any other address shows the
+  missing page (noindex, the landing's print). GitHub Pages deploys through
   `.github/workflows/pages.yml`: `rs build` (the site and the player
   bundle), the kit stylesheet, `404.html` copied from the bare shell, then
   the prerender (snapshots, agent registry, share cards, section
@@ -307,6 +308,8 @@ Default section order:
   same Bayer raster. `DitherWorld` (`dither-kit/engine/world.ts` engine,
   `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0
   `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY and OFF by URL or inline,
+  and Gaussian splat captures (`.splat`, a trained capture's `.ply`;
+  `engine/splats.ts`),
   plays the file's animations (VRML ROUTEs, glTF) on the kit clock, and
   rasterizes on the CPU (byte-exact, video-safe) or through WebGL for big
   meshes — both into one shared dither pass that also runs the palette
@@ -329,6 +332,14 @@ Default section order:
   Both are docs sections under Media (`world`, `shader`) and
   `COMPONENT_REGISTRY` rows. HyperFrames' renderer keeps WebGL2
   (SwiftShader), so GPU and shader frames export to MP4 too.
+- Mascot: the brand's diamond come alive, our own (the user's call:
+  never another product's character or a cartoon's), one cell table in
+  `src/shared/ui/mascot.ts` drawn wherever it stands: by the wordmark in
+  the site header, the Studio's empty states and the bridge card, and
+  its tour of the Studio, where its antennae fold into a rotor and it
+  flies from part to part explaining each, and its car on the footer's
+  road (our own wedge speedster, never a real maker's car). Details in `src/AGENTS.md`
+  and `src/pages/AGENTS.md`.
 - PWA: the Studio installs as an app and opens offline; the landing and
   the docs stay pages of the web (the user's call). The build draws the
   app's manifest (`dist/studio/app.webmanifest`, every URL relative so
@@ -411,12 +422,13 @@ Default section order:
   iridescent pearl, no frosted glassmorphism, no arbitrary glow, no neon;
   metal finishes on display type and the primary key only, never on body
   text or every heading; soft shells against a few sharp machined
-  boundaries, never uniform pills; motion is Apple's on everything (the
-  user's call): one smooth spring (critically damped, from rest, settling
-  long and soft, never past its mark; the kit's `engine/spring.ts`, its
-  "spring" easing, the site's `--ease-settle`) eases every transition and
-  every driven wipe, reveal and page transition alike, 200ms for a colour,
-  350ms for a hand's movement, 500ms for a sheet; one moving layer at a
+  boundaries, never uniform pills; motion is one glide on everything (the
+  user's call): one curve that leaves at full speed and settles long and
+  soft, never past its mark (the kit's `GLIDE_BEZIER`, its "glide"
+  easing, the site's `--ease-settle`) eases every transition and every
+  driven wipe, reveal, rise and page transition alike, 150ms for a colour
+  (the industrial brief's micro feedback), 350ms for a hand's movement,
+  500ms for a sheet; one moving layer at a
   time against a still ground (the user's call after the still ground
   study). Alignment matters (the user's call): what stands under the
   header stands on its lines (a sheet's words start on the brand mark's
@@ -424,11 +436,28 @@ Default section order:
   out of line (a hover moves only where a pointer hovers). Display type wears
   its suggested extended face, Michroma (SIL OFL, self-hosted in
   `src/shared/fonts/`): the landing's statement and section titles, the
-  docs' page title (in chrome) and section titles (plain ink). Its squared heading sans is not used; headings, body,
+  docs' page title and section titles (plain ink; chrome only on the hero statement). Its squared heading sans is not used; headings, body,
   labels, figures and code stay mono, the user's identity, save one
   lift (the user's call after the composer board): the Studio agent
   panel's thread prose (replies, messages, thoughts) reads in the
   proportional face, its code, steps and chrome staying mono.
+- Industrial futurism (the user's brief, "Sculptural Industrial
+  Futurism"; its product references stay unnamed): engineered, never
+  decorated. Its default variant is Precision / Wire (slender spans, one
+  distinctive junction, selective absence) over the sculptural and the
+  aerodynamic; silhouette first; a detail only where it reads as
+  construction (one credible joint a surface, the hardshell's cut; never
+  fasteners, labels or cut corners as filler); honest materials (satin
+  before mirror chrome, two materials and one accent); one accent family
+  (ours: the ember), the rest neutrals; motion like a mechanism (decisive
+  travel, soft settle, no perpetual loops or scanning lines: the
+  landing's art moves on cue, as it comes into view, then under the
+  reader's hand, `src/pages/landing/drive.ts`); never cyberpunk neon, a
+  HUD dashboard or a retro filter. Where it differed from earlier calls,
+  the user chose the brief, carefully: chrome only on the hero statement
+  and the primary key (section titles and the docs' title in plain ink),
+  150ms micro feedback, one shaped hardshell a page (the rest
+  `.flat-shell`), the landing's bans and the mono identity kept.
 - Design slop the user bans (their list; the landing is held to it, the
   docs and the Studio keep their tool chrome until the user extends it;
   for the printed landing the user lifted one: more than two inks inside

@@ -4,6 +4,8 @@
 // Bayer, all driven by the shared `ditherBackground` action).
 
 export { default as Aurora, type AuroraParams } from "./backgrounds/Aurora.svelte"
+export { default as Circuit, type CircuitParams } from "./backgrounds/Circuit.svelte"
+export { default as HeatTrail, type TrailParams } from "./backgrounds/HeatTrail.svelte"
 
 // Generative canvas backgrounds (self-sizing `relative h-full w-full` roots).
 export { default as Noise, type NoiseParams } from "./backgrounds/Noise.svelte"
@@ -174,6 +176,8 @@ export { default as DitherRating } from "./controls/DitherRating.svelte"
 export { default as DitherSlider, type SliderVariant } from "./controls/DitherSlider.svelte"
 export { default as DitherSwitch } from "./controls/DitherSwitch.svelte"
 export { default as DitherProgress } from "./controls/DitherProgress.svelte"
+export { default as DitherGauge } from "./controls/DitherGauge.svelte"
+export { default as DitherScope } from "./controls/DitherScope.svelte"
 export { default as DitherMeter } from "./controls/DitherMeter.svelte"
 export { default as DitherBadge, type BadgeVariant } from "./controls/DitherBadge.svelte"
 export { default as DitherSkeleton } from "./controls/DitherSkeleton.svelte"

@@ -30,7 +30,7 @@
     color: var(--background);
     background: var(--ink);
     cursor: pointer;
-    transition: background-color 200ms var(--ease-settle);
+    transition: background-color 150ms var(--ease-settle);
   }
 
   .pause-chip:hover {

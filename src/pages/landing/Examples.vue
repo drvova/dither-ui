@@ -21,10 +21,11 @@ import {
   AreaChart,
   DitherButton,
   DitherDecryptedText,
+  DitherGauge,
   DitherGradient,
   DitherIcon,
+  DitherKnob,
   DitherNumberFlow,
-  DitherRating,
   DitherReveal,
   DitherScreen,
   DitherSilk,
@@ -39,8 +40,9 @@ import {
   type DitherColor,
   type ScreenKind,
 } from "@dither-kit"
-import { routePath } from "@/shared/lib"
+import { routePath, vRise } from "@/shared/lib"
 import { COMPONENT_COUNT } from "./facts"
+import RiseWords from "./RiseWords.vue"
 import { BENTO, staggers } from "./hub"
 import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "./stat"
 import PauseChip from "./PauseChip.vue"
@@ -169,7 +171,8 @@ const model = ref(7)
 const world = computed(() => sampleWorld(model.value))
 
 // Rating.
-const stars = ref(4)
+// The instrument: the knob sets the load, the dial's needle settles on it.
+const load = ref(64)
 
 // Print screens: one tone ramp, raw on the left and printed on the right,
 // the split dragged (or stepped by keyboard) and the screen switched in
@@ -227,14 +230,14 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
 <template>
   <section id="examples" aria-labelledby="examples-h" class="examples">
-    <div class="sec-head">
-      <h2 id="examples-h" class="section-title chrome-type">Every component, live.</h2>
+    <div v-rise class="sec-head">
+      <h2 id="examples-h" class="section-title"><RiseWords text="Every component, live." /></h2>
       <div class="sec-side">
-        <p class="sec-lede">
-          {{ COMPONENT_COUNT }} components on one engine. Every card is the real thing, so poke it, then open its docs
-          for the props and the code.
+        <p data-rise class="sec-lede">
+          {{ COMPONENT_COUNT }} components on one engine. <span class="lede-key">Every card is the real thing</span>, so
+          poke it, then open its docs for the props and the code.
         </p>
-        <a :href="routePath('/docs')" class="more-link">See every section in the docs</a>
+        <a data-rise :href="routePath('/docs')" class="more-link">See every section in the docs</a>
       </div>
     </div>
 
@@ -255,7 +258,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           :class="FLUSH.has(t.id) ? 'card-art flush' : 'card-art'"
           :duration="0.72"
           :delay="delays[i] ?? 0"
-          easing="spring"
+          easing="glide"
         >
           <template v-if="t.id === 'world'">
             <DitherWorld
@@ -278,9 +281,9 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
             </div>
           </template>
 
-          <div v-else-if="t.id === 'rating'" class="stack">
-            <DitherRating v-model="stars" :size="44" label="Rate the kit" />
-            <span class="readout"><DitherNumberFlow :value="stars" :duration="320" /> of 5</span>
+          <div v-else-if="t.id === 'gauge'" class="instrument">
+            <DitherGauge :value="load" label="load" :warn="0.8" class="instrument-dial" />
+            <DitherKnob v-model="load" :size="52" label="Load" />
           </div>
 
           <div v-else-if="t.id === 'print-screens'" class="split" :style="{ '--split': `${split}%` }">
@@ -525,7 +528,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   min-height: 420px;
 }
 
-.t-rating .card-art,
+.t-gauge .card-art,
 .t-stats-cards .card-art {
   height: 220px;
   padding: 18px 20px;
@@ -576,7 +579,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   text-decoration-color: transparent;
-  transition: text-decoration-color 200ms var(--ease-settle);
+  transition: text-decoration-color 150ms var(--ease-settle);
 }
 
 .card-name:hover,
@@ -684,7 +687,18 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
   height: 100%;
 }
 
-.t-rating .stack,
+.instrument {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  height: 100%;
+}
+.instrument-dial {
+  width: min(55%, 180px);
+}
+.t-gauge .stack,
 .t-button .stack,
 .t-slide-action .stack {
   justify-content: center;
@@ -755,7 +769,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 .stat-sub > span {
   grid-area: 1 / 1;
   opacity: 0;
-  transition: opacity 200ms var(--ease-settle);
+  transition: opacity 150ms var(--ease-settle);
 }
 
 .stat-sub > span[data-on] {

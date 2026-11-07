@@ -14,6 +14,7 @@ import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue"
 import { routePath } from "@/shared/lib"
 import BrandMark from "@/shared/ui/BrandMark.vue"
+import Mascot from "@/shared/ui/Mascot.vue"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import "./site-header.css"
 import SheetHead from "./SheetHead.vue"
@@ -113,6 +114,7 @@ onBeforeUnmount(() => {
       <a :href="home" class="flex h-8 items-center gap-2.5 whitespace-nowrap pl-2">
         <BrandMark :size="13" />
         <span class="max-[359px]:sr-only">dither-ui</span>
+        <Mascot :size="16" alive class="max-[479px]:hidden" />
       </a>
       <nav class="flex items-center text-muted-foreground" aria-label="Site">
         <a

@@ -100,8 +100,8 @@ const steps = BAYER8.length * BAYER8[0].length
 const rectsOf = (image: string) =>
   new Set(decodeURIComponent(image.slice(image.indexOf(",") + 1, -2)).match(/<rect [^>]*>/g) ?? [])
 
-/** One triangle in every format the kit reads. */
-const triangle = (): Record<ModelFormat, string> => {
+/** One triangle in every format the kit reads; one Gaussian in the capture's. */
+const triangle = (): Record<ModelFormat, string | Uint8Array> => {
   const bytes = new Uint8Array(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]).buffer)
   const gltf = {
     asset: { version: "2.0" },
@@ -119,7 +119,16 @@ const triangle = (): Record<ModelFormat, string> => {
     ply: "ply\nformat ascii 1.0\nelement vertex 3\nproperty float x\nproperty float y\nproperty float z\nelement face 1\nproperty list uchar int vertex_indices\nend_header\n0 0 0\n1 0 0\n0 1 0\n3 0 1 2\n",
     off: "OFF\n3 1 0\n0 0 0\n1 0 0\n0 1 0\n3 0 1 2\n",
     gltf: JSON.stringify(gltf),
+    splat: gaussian(),
   }
+}
+
+/** One `.splat` record: at the origin, 0.1 across, grey, opaque, unturned. */
+function gaussian(): Uint8Array {
+  const out = new Uint8Array(32)
+  out.set(new Uint8Array(new Float32Array([0, 0, 0, 0.1, 0.1, 0.1]).buffer))
+  out.set([128, 128, 128, 255, 255, 128, 128, 128], 24)
+  return out
 }
 
 export const CHECKS: readonly Check[] = [
@@ -223,12 +232,16 @@ export const CHECKS: readonly Check[] = [
   {
     id: "formats",
     claim: `${MODEL_FORMATS.length} model formats read in the page`,
-    method: "A triangle written in each format is parsed by the kit's own readers, here, with nothing fetched.",
-    against: "a triangle from each",
+    method:
+      "A triangle written in each format (a Gaussian in the capture's) is parsed by the kit's own readers, here, with nothing fetched.",
+    against: "a triangle or a Gaussian from each",
     test: "tests/models.spec.ts",
     run: () => {
       const files = triangle()
-      const read = MODEL_FORMATS.filter((f) => parseWorld(files[f], f).meshes.some((m) => m.indices.length >= 3)).length
+      const read = MODEL_FORMATS.filter((f) => {
+        const w = parseWorld(files[f], f)
+        return w.meshes.some((m) => m.indices.length >= 3) || (w.splats?.count ?? 0) > 0
+      }).length
       return { holds: read === MODEL_FORMATS.length, figure: `${read} of ${MODEL_FORMATS.length} formats` }
     },
   },

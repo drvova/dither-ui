@@ -65,6 +65,13 @@
   text-wrap: pretty;
 }
 
+/* Two tones: a lede reads in the muted ink, and the one clause that
+   carries its point steps up to the full ink, so the eye finds the point
+   without bold. One clause a lede. */
+.landing .lede-key {
+  color: var(--ink);
+}
+
 @media (max-width: 899px) {
   .landing .sec-head {
     grid-template-columns: minmax(0, 1fr);
@@ -86,6 +93,14 @@
   scroll-margin-top: 76px;
 }
 
+/* An in-page link travels there (the browser's own smooth scroll), never
+   under reduced motion. The landing's only: the docs jump on their own. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.landing) {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Links that lead on name their destination and carry an underline that
    inks on hover, never an arrow. */
 .landing .more-link,
@@ -96,7 +111,7 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .landing .more-link {
@@ -129,7 +144,7 @@
   white-space: nowrap;
   color: var(--ink);
   background: var(--surface);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .landing .key:hover {
@@ -154,7 +169,7 @@
   font-size: 11px;
   white-space: nowrap;
   color: var(--ink-3);
-  transition: color 200ms var(--ease-settle);
+  transition: color 150ms var(--ease-settle);
 }
 
 .landing .seg > button:hover {

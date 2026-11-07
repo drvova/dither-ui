@@ -49,8 +49,10 @@ a real tool, never a mock.
   then kept so edits survive the Preview tab) with the authored snippet,
   `docsCode` as `translate`, the framework, the styling system and the
   card's `SourceContext` (section, place, title, line, URL, install steps).
-- Files: the example (`<Section>Example.vue|.svelte`, a fragment completed
-  with its imports and template, in the reader's framework and styling
+- Files: the example (`<Section>Example.vue|.svelte`, a fragment, or the
+  docs' short form of a `<script setup>` block over loose markup, completed
+  with its imports and template (what it imports already kept as written),
+  in the reader's framework and styling
   system; non-component snippets keep their language: `.sh`, `.ts`,
   `.css`), the kit's own source for each kit export it imports, the kit's
   tokens (`engine/theme.css`) and `prompt.md`. Kit files are the repo's,

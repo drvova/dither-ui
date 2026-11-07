@@ -38,6 +38,7 @@ import { version } from "../../../package.json"
 import { AdSlot, CodeBlock } from "@/shared/ui"
 import "@/shared/fonts/display.css"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import Mascot from "@/shared/ui/Mascot.vue"
 import DemoCard from "./DemoCard.vue"
 import SectionShare from "./SectionShare.vue"
 import DocsNav, { docsUrl, type PagePart } from "./DocsNav.vue"
@@ -1001,7 +1002,7 @@ const gradientCode = computed(
             class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3"
             :class="activeId ? 'sr-only' : 'mt-6'"
           >
-            <h1 class="chrome-type font-display text-[1.6rem] leading-tight font-normal">Documentation</h1>
+            <h1 class="font-display text-[1.6rem] leading-tight font-normal">Documentation</h1>
             <ul class="flex flex-wrap gap-1 pb-1" aria-label="The kit">
               <li class="speed-tag">{{ GROUPS.flatMap((g) => g.items).length }} sections</li>
               <li class="speed-tag">Vue 3</li>
@@ -2110,7 +2111,15 @@ const gradientCode = computed(
       placeholder="Search docs…"
       @select="searchGo"
       @close="searchOpen = false"
-    />
+    >
+      <!-- No section by that name: the mascot blinks at it. -->
+      <template #empty="{ query }">
+        <span class="flex flex-col items-center gap-2.5">
+          <Mascot :size="30" pose="blink" class="text-foreground" />
+          <span>Nothing in the docs is called “{{ query }}”.</span>
+        </span>
+      </template>
+    </DitherCommand>
   </div>
 </template>
 

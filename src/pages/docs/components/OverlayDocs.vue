@@ -180,6 +180,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "items", type: "{ value, label, group?, kbd? }[]", default: "required" },
     { prop: "placeholder", type: "string", default: '"Type a command…"' },
     { prop: "empty", type: "string (no-match line)", default: '"No results."' },
+    { prop: "#empty slot", type: "scoped: { query }, drawn in place of the no-match line", default: "the empty line" },
     { prop: "@select", type: "(value), fired before close", default: "" },
   ],
 }

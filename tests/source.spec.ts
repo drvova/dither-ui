@@ -107,6 +107,29 @@ const level = ref(40)
     )
   })
 
+  it("completes a script block over loose markup, keeping what it imports already", () => {
+    const names = new Set(VUE_INDEX.keys())
+    expect(
+      asSfc(
+        '<script setup>\nimport { ref } from "vue"\nconst level = ref(40)\nonMounted(() => {})\n</script>\n\n<DitherSlider v-model="level" />',
+        names,
+      ),
+    ).toBe(
+      `<script setup lang="ts">
+import { onMounted } from "vue"
+import { DitherSlider } from "@dither-kit"
+
+import { ref } from "vue"
+const level = ref(40)
+onMounted(() => {})
+</script>
+
+<template>
+  <DitherSlider v-model="level" />
+</template>`,
+    )
+  })
+
   it("lists the kit files an example imports, per framework", () => {
     const vue = 'import { DitherSwitch, DitherButton, type DitherColor } from "@dither-kit"\nimport { ref } from "vue"'
     expect(kitFilesOf(vue, "vue", VUE_INDEX, kitFiles)).toEqual([

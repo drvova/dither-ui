@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue"
+import { computed, onBeforeUnmount, reactive, ref } from "vue"
 import {
   DitherAurora,
   DitherBracket,
+  DitherButton,
   DitherSchedule,
   DitherShader,
   DitherVideoPlayer,
@@ -11,6 +12,10 @@ import {
   sampleWorld,
   type BracketMatch,
 } from "@dither-kit"
+import { assetPath } from "@/shared/lib/routes"
+import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
+import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
+import { launchAt, LAUNCH_S, ROCKET } from "./rocket"
 import DemoCard from "../DemoCard.vue"
 import PropsTable, { type PropRow } from "../PropsTable.vue"
 
@@ -117,12 +122,16 @@ const API: Record<string, PropRow[]> = {
   world: [
     {
       prop: "src",
-      type: "string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply or .off",
+      type: "string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply, .off, or a Gaussian capture (.splat, a trained .ply)",
       default: "undefined",
     },
     { prop: "source", type: "string: inline model text; wins over src", default: "undefined" },
     { prop: "format", type: '"auto" | "vrml" | "x3d" | "gltf" | "obj" | "stl" | "ply" | "off"', default: '"auto"' },
-    { prop: "up", type: '"auto" | "y" | "z": the file\'s up axis (STL defaults to z)', default: '"auto"' },
+    {
+      prop: "up",
+      type: '"auto" | "y" | "z" | "-y": the file\'s up axis (STL defaults to z, a capture to -y)',
+      default: '"auto"',
+    },
     {
       prop: "engine",
       type: '"auto" | "cpu" | "gpu": the CPU engine is byte-exact everywhere, the GPU (WebGL) engine rasterizes big meshes; auto picks the GPU above ~40k triangles',
@@ -242,8 +251,55 @@ function pick(r, m, side) {          // you own the data — advance the winner
 }
 <\\/script>`
 
+// The rocket: one clock from the key, the file's moment and the burst;
+// under reduced motion the key goes straight to the debris.
+const launchT = ref(0)
+const launch = computed(() => launchAt(launchT.value))
+const flying = computed(() => launchT.value > 0 && launchT.value < LAUNCH_S)
+let launchRaf = 0
+function fire() {
+  cancelAnimationFrame(launchRaf)
+  if (pixelPrefersReducedMotion()) {
+    launchT.value = LAUNCH_S
+    return
+  }
+  const t0 = performance.now()
+  const step = (now: number) => {
+    launchT.value = Math.min(LAUNCH_S, (now - t0) / 1000)
+    launchRaf = launchT.value < LAUNCH_S ? requestAnimationFrame(step) : 0
+  }
+  launchRaf = requestAnimationFrame(step)
+}
+onBeforeUnmount(() => cancelAnimationFrame(launchRaf))
+const SNIPPET_ROCKET = `<script setup>
+// one clock from the key: the file's moment, then the burst
+const t = ref(0)
+const scatter = computed(() => Math.min(1, Math.max(0, (t.value - 2.4) / 0.6)))
+function fire() {
+  const t0 = performance.now()
+  const step = (now) => {
+    t.value = Math.min(4.6, (now - t0) / 1000)
+    if (t.value < 4.6) requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step)
+}
+const rocket = \`${ROCKET}\`
+<\/script>
+
+<DitherWorld :source="rocket" material animate :time="t" :scatter="scatter" bloom="low" :zoom="0.62" :yaw="20" :pitch="8" />
+<DitherButton color="orange" @click="fire">Launch</DitherButton>`
+
+// A Gaussian capture: the mascot as splats, served by the build.
+const CAPTURE = assetPath(`/${CAPTURE_PATH}`)
+const captureColor = ref(true)
+const SNIPPET_CAPTURE = `<DitherWorld src="${CAPTURE}" up="y" material :auto-rotate="20" :fov="30" :zoom="1.35" :cell="2" />
+<!-- a Gaussian capture: a .splat file, or the .ply a trained capture writes.
+     Each Gaussian lands as its footprint on the cells, near to far until a
+     cell is opaque; its colour and its light go through the same dither.
+     A capture's y runs down, so up defaults to -y; this one was made y up. -->`
+
 const SNIPPET_WORLD = `<DitherWorld src="/models/rover.glb" color="blue" :auto-rotate="12" wire />
-<!-- .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off — by
+<!-- .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off, .splat — by
      URL or inline. The file's materials, lights, viewpoint and animations are
      honoured. CPU engine by default (same bytes everywhere, frame-exact in
      the video export); engine="gpu" rasterizes big meshes through WebGL into
@@ -390,15 +446,15 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="world" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">World (3D)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D, glTF / GLB, OBJ with its MTL, STL, PLY and
-      OFF, by URL or inline, orbited by a camera and drawn through the Bayer engine (on the CPU by default, or by a
-      WebGL engine for big meshes) into the same dither. Files bring their own materials, face colours, lights,
-      viewpoint and animations: this sample's arms revolve and its antenna bobs by its own TimeSensor and ROUTEs, on the
-      kit clock. The shade can run through the kit's other engines too: a palette ramp, fbm grain, bloom, or your own
-      GLSL material over the finished target (ink from depth edges here). Any kit surface is a texture: bound as a
-      channel it wraps the model through the file's own texture coordinates, so the aurora below skins the probe. And
-      any model is a build: it comes apart along its own seams, rises out of a dotted wire cage with each piece landing
-      hot, and blows apart again (build, scatter, nudge). Drag to orbit.
+      A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D, glTF / GLB, OBJ with its MTL, STL, PLY, OFF
+      and Gaussian splat captures, by URL or inline, orbited by a camera and drawn through the Bayer engine (on the CPU
+      by default, or by a WebGL engine for big meshes) into the same dither. Files bring their own materials, face
+      colours, lights, viewpoint and animations: this sample's arms revolve and its antenna bobs by its own TimeSensor
+      and ROUTEs, on the kit clock. The shade can run through the kit's other engines too: a palette ramp, fbm grain,
+      bloom, or your own GLSL material over the finished target (ink from depth edges here). Any kit surface is a
+      texture: bound as a channel it wraps the model through the file's own texture coordinates, so the aurora below
+      skins the probe. And any model is a build: it comes apart along its own seams, rises out of a dotted wire cage
+      with each piece landing hot, and blows apart again (build, scatter, nudge). Drag to orbit.
     </p>
     <DemoCard :code="SNIPPET_WORLD">
       <div class="mx-auto max-w-md">
@@ -466,6 +522,62 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
               <option value="gpu">gpu</option>
             </select>
           </label>
+        </div>
+      </div>
+    </DemoCard>
+    <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
+      A model's own animation and a build share one clock. This rocket is a VRML file: its flame flickers by its own
+      TimeSensor, it climbs off the pad, and at the top the file swells a fireball while the page blows its pieces apart
+      with scatter.
+    </p>
+    <DemoCard :code="SNIPPET_ROCKET">
+      <div class="mx-auto max-w-md">
+        <DitherWorld
+          :source="ROCKET"
+          material
+          animate
+          :time="launch.time"
+          :scatter="launch.scatter"
+          bloom="low"
+          :zoom="0.62"
+          :yaw="20"
+          :pitch="8"
+          :cell="2"
+          color="grey"
+          label="A rocket that climbs and bursts"
+          class="h-[280px]"
+        />
+        <div class="mt-3 flex justify-center">
+          <DitherButton color="orange" :disabled="flying" @click="fire">{{
+            launchT >= LAUNCH_S ? "Launch again" : "Launch"
+          }}</DitherButton>
+        </div>
+      </div>
+    </DemoCard>
+    <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
+      Gaussian splats print too: a capture is a cloud of soft ellipsoids, each laid on the cells as its footprint, near
+      to far until a cell is opaque, and its colour and light go through the same dither. This one is our mascot, grown
+      from its cell table into a body of splats with three electrons ringing it. Give it a .splat file or the .ply a
+      trained capture writes.
+    </p>
+    <DemoCard :code="SNIPPET_CAPTURE">
+      <div class="mx-auto max-w-md">
+        <DitherWorld
+          :src="CAPTURE"
+          up="y"
+          :material="captureColor"
+          :auto-rotate="20"
+          :fov="30"
+          :zoom="1.35"
+          :cell="2"
+          color="grey"
+          label="The mascot as a Gaussian capture"
+          class="h-[280px]"
+        />
+        <div class="mt-3 flex justify-center text-[11px] text-muted-foreground">
+          <label class="flex min-h-6 items-center gap-2"
+            ><input v-model="captureColor" type="checkbox" class="accent-current" /> its own colours</label
+          >
         </div>
       </div>
     </DemoCard>

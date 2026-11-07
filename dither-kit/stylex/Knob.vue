@@ -59,10 +59,12 @@ const props = withDefaults(
     step?: number
     size?: number
     disabled?: boolean
+    /** What it sets: its accessible name. */
+    label?: string
     class?: string
     xstyle?: StyleProp
   }>(),
-  { modelValue: 50, min: 0, max: 100, step: 1, size: 72, disabled: false },
+  { modelValue: 50, min: 0, max: 100, step: 1, size: 72, disabled: false, label: "Knob" },
 )
 const emit = defineEmits<{ (e: "update:modelValue", value: number): void }>()
 
@@ -125,7 +127,7 @@ function onKeydown(e: KeyboardEvent) {
     <div
       role="slider"
       tabindex="0"
-      :aria-label="'Knob'"
+      :aria-label="props.label"
       :aria-valuemin="props.min"
       :aria-valuemax="props.max"
       :aria-valuenow="props.modelValue"

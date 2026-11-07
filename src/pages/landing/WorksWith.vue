@@ -5,39 +5,41 @@
 // besides) and their files (every model format the kit reads, named in the
 // kit's order).
 import { MODEL_FORMATS } from "@dither-kit/engine/models"
-import { routePath } from "@/shared/lib"
+import { routePath, vRise } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import RiseWords from "./RiseWords.vue"
 import { HARNESSES, MODEL_NAMES, WORKS } from "./facts"
 </script>
 
 <template>
   <section id="works" aria-labelledby="works-h" class="sec">
-    <div class="sec-head">
-      <h2 id="works-h" class="section-title chrome-type">Plays well with others.</h2>
+    <div v-rise class="sec-head">
+      <h2 id="works-h" class="section-title"><RiseWords text="Plays well with others." /></h2>
       <div class="sec-side">
-        <p class="sec-lede">
-          Bring the stack you already have. The kit speaks your styling, the bridge wakes the agent you are already
-          signed in to, and the 3D surfaces read whatever model is lying around in your downloads.
+        <p data-rise class="sec-lede">
+          <span class="lede-key">Bring the stack you already have.</span> The kit speaks your styling, the bridge wakes
+          the agent you are already signed in to, and the 3D surfaces read whatever model is lying around in your
+          downloads.
         </p>
-        <a :href="routePath('/docs/styling')" class="more-link">See the styling switch</a>
+        <a data-rise :href="routePath('/docs/styling')" class="more-link">See the styling switch</a>
       </div>
     </div>
-    <div class="works">
-      <div>
+    <div v-rise class="works">
+      <div data-rise>
         <h3 id="works-styling" class="works-h">Your styling</h3>
         <ul aria-labelledby="works-styling">
           <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="18" />{{ t.name }}</li>
         </ul>
         <p class="works-more">and any app on its compiled stylesheet: UnoCSS, plain CSS or CSS-in-JS</p>
       </div>
-      <div>
+      <div data-rise>
         <h3 id="works-agent" class="works-h">Your agent</h3>
         <ul aria-labelledby="works-agent">
           <li v-for="h in HARNESSES" :key="h.id"><ToolMark :id="h.id" :size="18" />{{ h.name }}</li>
         </ul>
         <p class="works-more">or any command you hand the bridge</p>
       </div>
-      <div>
+      <div data-rise>
         <h3 id="works-files" class="works-h">Your models</h3>
         <ul aria-labelledby="works-files" class="files">
           <li v-for="f in MODEL_FORMATS" :key="f">{{ MODEL_NAMES[f] }}</li>

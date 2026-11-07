@@ -5,6 +5,7 @@
 // Escape or a press outside closes, and focus goes back where it was.
 import { computed, nextTick, ref, watch } from "vue"
 import { DitherIcon, type IconName } from "@dither-kit"
+import Mascot from "@/shared/ui/Mascot.vue"
 import { editor, frame, selectArtboard } from "@/entities/editor"
 import { chats, chatsOf, newChat, openChat, openProject } from "@/features/agent/chats"
 import { activeProjectId, createProject, projects, switchProject } from "@/features/persistence"
@@ -171,7 +172,10 @@ watch(index, (i) => nextTick(() => document.getElementById(`search-hit-${i}`)?.s
           <DitherIcon :name="h.icon" :size="14" :stroke-width="1.5" /><span class="label">{{ h.label }}</span
           ><span class="detail">{{ h.detail }}</span>
         </li>
-        <li v-if="!hits.length" class="none">Nothing matches “{{ query.trim() }}”.</li>
+        <li v-if="!hits.length" class="none">
+          <Mascot :size="22" pose="blink" />
+          <span>Nothing matches “{{ query.trim() }}”.</span>
+        </li>
       </ul>
     </div>
   </div>
@@ -258,6 +262,9 @@ watch(index, (i) => nextTick(() => document.getElementById(`search-hit-${i}`)?.s
   color: var(--color-muted-foreground);
 }
 .none {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 10px 8px;
   color: var(--color-muted-foreground);
 }

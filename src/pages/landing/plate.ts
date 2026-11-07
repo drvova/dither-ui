@@ -17,6 +17,15 @@ export const GROUND = "#101214"
  * The hero's poster prints them; the footer's road ramps through them. */
 export const INKS: PixelColor[] = ["blue", "orange", "#e4e1d8"]
 
+/** Dark to light: the ground, then the print's inks, so brightness 1/3,
+ * 2/3 and 1 print blue, the ember and bone. The footer's road and the
+ * close's heat print through it. */
+export const RAMP: PixelColor[] = [GROUND, ...INKS]
+
+/** Coolest first, the print's inks as the pointer's trail wears them:
+ * landing hot in the orange, cooling through the bone to the blue. */
+export const TRAIL: PixelColor[] = [INKS[0], INKS[2], INKS[1]]
+
 export type Plate = {
   /** The tone at the top edge (0 to 1), thinning to nothing at the band. */
   sky: number

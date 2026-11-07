@@ -1,22 +1,29 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, ref } from "vue"
+import { useInviewLoop } from "@dither-kit/engine/use-inview-loop"
+import type { ScopeWave } from "@dither-kit/engine/scope"
+import { FRAME_WINDOW, readFrames } from "./frames"
 import {
   cssColor,
   DitherAccordion,
   DitherAlertDialog,
   DitherButton,
   DitherDrawer,
+  DitherGauge,
   DitherMeter,
   DitherNavMenu,
+  DitherScope,
   DitherScrollArea,
   DitherSeparator,
   DitherSidebar,
   DitherSidebarGroup,
   DitherSidebarItem,
   DitherSidebarSub,
+  DitherSlider,
   DitherSwipeArea,
   DitherSwitch,
   DitherToaster,
+  DitherToggleGroup,
   DitherToolbar,
   toast,
 } from "@dither-kit"
@@ -63,6 +70,96 @@ const METERS = [
   { label: "Memory", value: 68 },
   { label: "CPU", value: 92 },
 ]
+
+// An instrument panel: the first dial follows the slider under it.
+const pressure = ref(62)
+
+// A scope: the picked wave drifting, its afterglow from the slider.
+const WAVES: { value: ScopeWave; label: string }[] = ["sine", "square", "triangle", "saw"].map((value) => ({
+  value: value as ScopeWave,
+  label: value,
+}))
+const wave = ref<string>("sine")
+const waveSignal = computed(() => wave.value as ScopeWave)
+const glow = ref(60)
+
+// A live panel reading this page: its frames a second, its worst frame and
+// how many elements it holds, read every half second while it is in view.
+const live = ref<HTMLElement | null>(null)
+const fps = ref(0)
+const worst = ref(0)
+const nodes = ref(0)
+let liveRaf = 0
+let stamps: number[] = []
+function measure(now: number) {
+  stamps.push(now)
+  if (now - stamps[0] >= FRAME_WINDOW) {
+    const r = readFrames(stamps)
+    fps.value = r.fps
+    worst.value = r.worst
+    nodes.value = document.getElementsByTagName("*").length / 1000
+    stamps = [now]
+  }
+  liveRaf = requestAnimationFrame(measure)
+}
+useInviewLoop(
+  live,
+  () => {
+    if (!liveRaf) liveRaf = requestAnimationFrame(measure)
+  },
+  () => {
+    cancelAnimationFrame(liveRaf)
+    liveRaf = 0
+    stamps = []
+  },
+)
+
+const SNIPPET_GAUGE = `<script setup>
+const pressure = ref(62)
+<\/script>
+
+<div class="grid grid-cols-3 gap-4">
+  <DitherGauge :value="pressure" label="kPa" />
+  <DitherGauge :value="84" label="load" :warn="0.75" />
+  <DitherGauge :value="1.6" :min="0" :max="4" :ticks="8" :decimals="1" label="bar" :warn="null" />
+</div>
+<DitherSlider v-model="pressure" label="Pressure" />`
+
+const SNIPPET_GAUGE_LIVE = `<script setup>
+// this page's frames a second and its worst frame, read every half second
+const fps = ref(0)
+const worst = ref(0)
+let raf = 0
+let stamps = []
+function measure(now) {
+  stamps.push(now)
+  if (now - stamps[0] >= 500) {
+    fps.value = Math.round(((stamps.length - 1) * 1000) / (now - stamps[0]))
+    worst.value = Math.max(...stamps.slice(1).map((t, i) => t - stamps[i]))
+    stamps = [now]
+  }
+  raf = requestAnimationFrame(measure)
+}
+onMounted(() => (raf = requestAnimationFrame(measure)))
+onBeforeUnmount(() => cancelAnimationFrame(raf))
+<\/script>
+
+<div class="grid grid-cols-2 gap-4">
+  <DitherGauge :value="fps" :max="120" :ticks="6" :warn="null" label="fps" />
+  <DitherGauge :value="worst" :max="50" :decimals="1" :warn="0.66" label="worst ms" />
+</div>`
+
+const SNIPPET_SCOPE = computed(
+  () => `<script setup>
+const wave = ref("${wave.value}")
+const glow = ref(${glow.value})
+const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, label: w }))
+<\/script>
+
+<DitherScope :signal="wave" :afterglow="glow / 100" label="ch1" />
+<DitherToggleGroup v-model="wave" :options="waves" />
+<DitherSlider v-model="glow" label="Afterglow" />`,
+)
 
 const SNIPPET_ACCORDION = `<script setup>
 const faq = ref("what")
@@ -249,6 +346,28 @@ const API: Record<string, PropRow[]> = {
     { prop: "message", type: "string", default: "" },
     { prop: "opts.color", type: "PixelColor", default: '"blue"' },
     { prop: "opts.duration", type: "number", default: "3500" },
+  ],
+  gauge: [
+    { prop: "value", type: "number", default: "" },
+    { prop: "min", type: "number", default: "0" },
+    { prop: "max", type: "number", default: "100" },
+    { prop: "ticks", type: "number (intervals between major ticks)", default: "10" },
+    { prop: "warn", type: "number | null (where the zone starts, 0..1)", default: "0.8" },
+    { prop: "label", type: "string (under the reading, its accessible name)", default: "undefined" },
+    { prop: "decimals", type: "number", default: "0" },
+    { prop: "color", type: "PixelColor", default: '"grey"' },
+    { prop: "warnColor", type: "PixelColor (the zone and the hub)", default: '"orange"' },
+    { prop: "seed", type: "number", default: "undefined" },
+  ],
+  scope: [
+    { prop: "signal", type: '"sine" | "square" | "triangle" | "saw" | number[] (samples, -1..1)', default: '"sine"' },
+    { prop: "cycles", type: "number (of a named wave across the screen)", default: "2" },
+    { prop: "speed", type: "number (cycles a second; 0 holds it)", default: "0.5" },
+    { prop: "gain", type: "number (1 fills the screen)", default: "0.8" },
+    { prop: "afterglow", type: "number (0..1, the trail of earlier phases)", default: "0.6" },
+    { prop: "label", type: "string (in the corner, its accessible name)", default: "undefined" },
+    { prop: "color", type: "PixelColor", default: '"green"' },
+    { prop: "seed", type: "number", default: "undefined" },
   ],
   meter: [
     { prop: "value", type: "number", default: "" },
@@ -588,6 +707,56 @@ const API: Record<string, PropRow[]> = {
       </div>
     </DemoCard>
     <PropsTable :rows="API.meter" />
+  </section>
+
+  <section id="gauge" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Gauge</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An instrument dial. The band prints cell by cell through the threshold matrix, filled to the needle; past the warn
+      mark the zone is in the warning ink. A changed value settles on the spring, and under reduced motion the needle
+      simply stands on it.
+    </p>
+    <DemoCard :code="SNIPPET_GAUGE">
+      <div class="mx-auto grid max-w-md gap-5">
+        <div class="grid grid-cols-3 gap-4">
+          <DitherGauge :value="pressure" label="kPa" />
+          <DitherGauge :value="84" label="load" :warn="0.75" />
+          <DitherGauge :value="1.6" :min="0" :max="4" :ticks="8" :decimals="1" label="bar" :warn="null" />
+        </div>
+        <DitherSlider v-model="pressure" label="Pressure" />
+      </div>
+    </DemoCard>
+    <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
+      Instruments that read something real: this page's frame rate, its worst frame in the last half second (past 33ms a
+      frame drops) and how many elements it holds, read while the panel is on screen.
+    </p>
+    <DemoCard :code="SNIPPET_GAUGE_LIVE">
+      <div ref="live" class="mx-auto grid max-w-md grid-cols-3 gap-4">
+        <DitherGauge :value="fps" :max="120" :ticks="6" :warn="null" label="fps" />
+        <DitherGauge :value="worst" :max="50" :decimals="1" :warn="0.66" label="worst ms" />
+        <DitherGauge :value="nodes" :max="20" :decimals="1" label="k elements" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.gauge" />
+  </section>
+
+  <section id="scope" class="mt-16 scroll-mt-24">
+    <h2 class="text-lg tracking-tight">Scope</h2>
+    <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+      An oscilloscope screen. The beam prints through the threshold matrix, bright where it moves slowly and faint on
+      its edges, and a named wave drifts with a trail of its earlier phases. Give it samples and it traces those. Under
+      reduced motion, or off screen, it holds still.
+    </p>
+    <DemoCard :code="SNIPPET_SCOPE">
+      <div class="mx-auto grid max-w-md gap-5">
+        <DitherScope :signal="waveSignal" :afterglow="glow / 100" label="ch1" />
+        <div role="group" aria-label="Wave" class="flex justify-center">
+          <DitherToggleGroup v-model="wave" :options="WAVES" />
+        </div>
+        <DitherSlider v-model="glow" label="Afterglow" />
+      </div>
+    </DemoCard>
+    <PropsTable :rows="API.scope" />
   </section>
 
   <section id="scroll-area" class="mt-16 scroll-mt-24">

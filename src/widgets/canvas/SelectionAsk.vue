@@ -101,7 +101,7 @@ function go() {
   box-shadow:
     var(--float-shadow),
     0 0 0 1px var(--color-border);
-  transition: box-shadow 200ms var(--ease-settle);
+  transition: box-shadow 150ms var(--ease-settle);
 }
 .ask:focus-within {
   box-shadow:

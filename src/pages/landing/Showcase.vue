@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { routePath } from "@/shared/lib"
-import { DitherIcon, DitherPoster, DitherReveal } from "@dither-kit"
+import { routePath, vRise } from "@/shared/lib"
+import { DitherHeatTrail, DitherIcon, DitherPoster, DitherReveal } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { COMPONENT_COUNT, MATRIX, WORKS } from "./facts"
 import { STAGINGS } from "./brand"
-import { INKS } from "./plate"
+import { INKS, TRAIL } from "./plate"
 import BrandGather from "./BrandGather.vue"
-import PauseChip from "./PauseChip.vue"
+import RiseWords from "./RiseWords.vue"
 import TrailerDialog from "./TrailerDialog.vue"
+import { useDrive } from "./drive"
 
 // The hero, our own: the first screen tall, the statement beside a print
 // the kit makes (a live DitherPoster: the palette as tone, the kit's
@@ -22,44 +23,50 @@ const film = ref(false)
 // moving layer at a time: the print holds its frame until the brand is home.
 const gathered = ref(false)
 
-// The print's screen slides by itself, so it carries a pause (WCAG 2.2.2).
-const printing = ref(true)
+// The print moves on cue (the industrial brief: no perpetual loops): its
+// screen slides for `HERO_RUN` once the brand is home, then only while a
+// pointer moves over it. Under five seconds by itself, so no pause key.
+const HERO_RUN = 4000
+
+// The pointer prints (the kit's heat trail) on the hero's ground in the
+// print's own inks (`TRAIL`), thinning to nothing.
+const { driven, drive } = useDrive()
+function settled() {
+  gathered.value = true
+  drive(HERO_RUN)
+}
 </script>
 
 <template>
   <section aria-labelledby="hero-h" class="hero">
+    <DitherHeatTrail class="hero-trail" :inks="TRAIL" :cell="4" />
     <div class="hero-in">
-      <div class="statement">
-        <h1 id="hero-h" class="hero-h chrome-type">A dithered UI toolkit for Vue.</h1>
-        <p class="hero-lede">
+      <!-- The statement rises as the page opens: the headline word by word,
+           then the lede, the keys and what it works with. -->
+      <div v-rise class="statement">
+        <h1 id="hero-h" class="hero-h"><RiseWords text="A dithered UI toolkit for Vue." word="chrome-type" /></h1>
+        <p data-rise class="hero-lede">
           {{ COMPONENT_COUNT }} components, from charts and controls to GLSL and 3D, each printed cell by cell through
           one seeded {{ MATRIX }} matrix. Copy the folder into a Vue 3 or Svelte 5 app and change what you need.
         </p>
-        <div class="hero-keys">
+        <div data-rise class="hero-keys">
           <a :href="routePath('/studio')" class="nav-a key-chrome primary">Open the studio</a>
           <a :href="routePath('/docs')" class="key">Read the docs</a>
           <button type="button" class="key" @click="film = true">
             <DitherIcon name="Play" :size="12" :stroke-width="1.5" />Watch the film
           </button>
         </div>
-        <div class="works">
+        <div data-rise class="works">
           <span id="works-l">Works with</span>
           <ul aria-labelledby="works-l">
             <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="13" />{{ t.name }}</li>
           </ul>
         </div>
-        <BrandGather
-          class="hero-brand"
-          :scene="STAGINGS.hero"
-          replay
-          @moving="gathered = false"
-          @settled="gathered = true"
-        />
+        <BrandGather class="hero-brand" :scene="STAGINGS.hero" replay @moving="gathered = false" @settled="settled" />
       </div>
       <div class="print-col">
-        <div class="print">
-          <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!printing || !gathered" />
-          <PauseChip v-model="printing" label="Pause the print" class="print-chip" />
+        <div class="print" @pointermove="gathered && drive()">
+          <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!driven || !gathered" />
           <!-- The print stands over its own reflection on the obsidian: the
                same print at the same moment, turned over and thinned through
                the kit's wipe to two-fifths, then a fifth, of its cells. A
@@ -71,7 +78,7 @@ const printing = ref(true)
               :inks="INKS"
               :cell="4"
               :speed="1.5"
-              :paused="!printing || !gathered"
+              :paused="!driven || !gathered"
               class="print-mirror"
             />
           </DitherReveal>
@@ -93,6 +100,13 @@ const printing = ref(true)
   align-items: center;
   min-height: clamp(34rem, calc(100svh - 64px), 52rem);
   overflow: hidden;
+}
+
+/* The pointer's print lies on the ground, under everything the hero holds. */
+.hero-trail {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
 }
 
 /* Positioned: the brand's field is the page's column. */
@@ -220,12 +234,6 @@ const printing = ref(true)
   width: 100%;
   height: 125cqw;
   transform: scaleY(-1);
-}
-
-.print-chip {
-  position: absolute;
-  top: 12px;
-  right: 12px;
 }
 
 /* Between 900 and 1199px the columns share the width evenly, so the keys

@@ -1,7 +1,8 @@
 // Model files for the dither engine, parsed into a `World` (world.ts):
 // VRML97 / X3D classic and VRML 1.0 (.wrl), X3D XML (.x3d), glTF 2.0 (.gltf
 // with data: URIs or pre-fetched buffers, .glb), Wavefront OBJ (+ MTL
-// colours), STL (ASCII + binary), PLY (ASCII + binary) and OFF. Lenient by
+// colours), STL (ASCII + binary), PLY (ASCII + binary; a trained capture's
+// Gaussians become splats), the `.splat` capture and OFF. Lenient by
 // design — unknown nodes are walked for children and otherwise ignored, bad
 // indices are dropped, nothing throws on a file that is merely odd. Bounded
 // too: a file's counts are held to the data it carries and a scene graph is
@@ -11,6 +12,7 @@
 // become tracks on world nodes, sampled by the renderer at the kit clock.
 
 import type { Rgb } from "./palette"
+import { parseSplat, rotateCloud, splatCube, splatsFromPly, SPLAT_PLY_PROPS, type SplatCloud } from "./splats"
 
 /** The most scene-graph nodes one parse visits, shared instances counted
  * each time they are reached. */
@@ -47,7 +49,7 @@ import {
 } from "./world"
 
 /** Every format the kit reads (VRML covers 97 and 1.0, glTF covers GLB). */
-export const MODEL_FORMATS = ["vrml", "x3d", "obj", "stl", "ply", "off", "gltf"] as const
+export const MODEL_FORMATS = ["vrml", "x3d", "obj", "stl", "ply", "off", "gltf", "splat"] as const
 export type ModelFormat = (typeof MODEL_FORMATS)[number]
 
 /** Format from a file name or URL (query/hash ignored), null when unknown. */
@@ -74,6 +76,8 @@ export function formatOf(name: string): ModelFormat | null {
     case "gltf":
     case "glb":
       return "gltf"
+    case "splat":
+      return "splat"
     default:
       return null
   }
@@ -115,8 +119,10 @@ export function sniffFormat(bytes: Uint8Array): ModelFormat {
 }
 
 export type ParseOptions = {
-  /** "z" swings a z-up file (CAD / printing STLs) to y-up — the default for STL. */
-  up?: "y" | "z"
+  /** "z" swings a z-up file (CAD / printing STLs) to y-up, the default for
+   * STL; "-y" turns a y-down file (a capture's camera space) upright, the
+   * default for splats. */
+  up?: "y" | "z" | "-y"
   /** Files the model references by relative URI (glTF buffers, OBJ .mtl), pre-fetched by the caller. */
   resources?: Record<string, ArrayBuffer | Uint8Array | string>
 }
@@ -164,30 +170,42 @@ export function parseWorld(
             ? parseOff(text())
             : fmt === "gltf"
               ? parseGltf(bytes, res)
-              : fmt === "x3d"
-                ? parseX3d(text())
-                : parseVrml(text())
-  const up = opts.up ?? (fmt === "stl" ? "z" : "y")
-  if (up === "z") {
-    const swing = mat4Rotate([1, 0, 0], -Math.PI / 2)
+              : fmt === "splat"
+                ? splatWorld(parseSplat(bytes))
+                : fmt === "x3d"
+                  ? parseX3d(text())
+                  : parseVrml(text())
+  const up = opts.up ?? (fmt === "stl" ? "z" : world.splats ? "-y" : "y")
+  if (up !== "y") {
+    // a turn about x: a quarter for z-up, a half for y-down
+    const swing = mat4Rotate([1, 0, 0], up === "z" ? -Math.PI / 2 : Math.PI)
+    const turn = ([x, y, z]: Vec3): Vec3 => (up === "z" ? [x, z, -y] : [x, -y, -z])
     for (const m of world.meshes)
       if (m.node < 0)
         for (let i = 0; i < m.positions.length; i += 3) {
-          const y = m.positions[i + 1]
-          m.positions[i + 1] = m.positions[i + 2]
-          m.positions[i + 2] = -y
+          const [x, y, z] = turn([m.positions[i], m.positions[i + 1], m.positions[i + 2]])
+          m.positions[i] = x
+          m.positions[i + 1] = y
+          m.positions[i + 2] = z
         }
     for (const n of world.nodes) if (n.parent < 0) n.pre = mat4Multiply(swing, n.pre)
-    for (const l of world.lights) l.direction = [l.direction[0], l.direction[2], -l.direction[1]]
-    if (world.viewpoint)
-      world.viewpoint.position = [
-        world.viewpoint.position[0],
-        world.viewpoint.position[2],
-        -world.viewpoint.position[1],
-      ]
+    for (const l of world.lights) l.direction = turn(l.direction)
+    if (world.viewpoint) world.viewpoint.position = turn(world.viewpoint.position)
+    if (world.splats)
+      rotateCloud(world.splats, up === "z" ? [1, 0, 0, 0, 0, 1, 0, -1, 0] : [1, 0, 0, 0, -1, 0, 0, 0, -1])
     finishWorld(world)
   }
   return world
+}
+
+/** A capture's world: its Gaussians, the colour cube their cells snap to, no light. */
+export function splatWorld(cloud: SplatCloud): World {
+  const world = emptyWorld()
+  cloud.base = world.palette.length
+  world.palette.push(...splatCube())
+  world.splats = cloud
+  world.headlight = false
+  return finishWorld(world)
 }
 
 // ---- OBJ + MTL --------------------------------------------------------------------
@@ -423,6 +441,24 @@ export function parsePly(input: string | ArrayBuffer | Uint8Array): World {
       if (p[1] === "list") el.props.push({ name: p[4], type: "list", list: { count: p[2], item: p[3] } })
       else el.props.push({ name: p[2], type: p[1] })
     }
+  }
+  // a trained capture: a binary vertex element of float32 Gaussians, first in the file
+  const vertex = elements[0]?.name === "vertex" ? elements[0] : null
+  const float = (t: string) => t === "float" || t === "float32"
+  if (
+    format !== "ascii" &&
+    vertex &&
+    vertex.props.every((q) => !q.list) &&
+    SPLAT_PLY_PROPS.every((name) => vertex.props.some((q) => q.name === name && float(q.type)))
+  ) {
+    const offsets = {} as Record<(typeof SPLAT_PLY_PROPS)[number], number>
+    let size = 0
+    for (const q of vertex.props) {
+      if ((SPLAT_PLY_PROPS as readonly string[]).includes(q.name))
+        offsets[q.name as (typeof SPLAT_PLY_PROPS)[number]] = size
+      size += PLY_SIZE[q.type] ?? 4
+    }
+    return splatWorld(splatsFromPly(bytes, bodyStart, vertex.count, size, offsets, format !== "binary_big_endian"))
   }
   const points: number[] = []
   const uvs: number[] = []

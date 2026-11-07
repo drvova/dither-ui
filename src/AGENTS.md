@@ -28,7 +28,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave,
   projects created, switched, renamed, duplicated (`duplicateProject`:
-  the work, not the chats, opened beside the original) and deleted),
+  the work, not the chats, opened beside the original) and deleted (the
+  last one's place taken by a new project under a new name; the page
+  then forgets its chats, `forgetProject`)),
   export-code, export-image, export-video (a frame as a HyperFrames
   composition: builder, dialog, delivery for the agent path; a film's score
   as its audio track), reel (the reel's and the film's pure timeline, the
@@ -140,7 +142,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   into it.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
   `noindex` player at `/play/` (not prerendered); legacy
-  `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported. Route
+  `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported.
+  Any other address (`isLanding` in `shared/lib/routes.ts` says which are
+  the landing's: the root and its entry file; `tests/titles.spec.ts`) is
+  the `missing` route, `MissingPage` (see `pages/AGENTS.md`), its title
+  in `ROUTE_TITLES` set at runtime only (it has no entry page: the host
+  serves the landing's shell as `404.html`). Route
   entry HTML files own static crawler-visible metadata (their titles are
   `shared/config/titles.ts` `ROUTE_TITLES`, which App.vue sets as the route
   changes; `tests/titles.spec.ts` holds each page's three copies to it); docs sections refine
@@ -270,7 +277,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     empty one gives that back), `pinChat`, `chatGroups` (Pinned, Today,
     Yesterday, This week, Earlier, empty ones dropped), `stepChat` (the
     chat before or after in that order), `chatsOf` (another project's,
-    for search); `saveThread`/`loadThread` keep each chat's thread
+    for search), `forgetProject` (a deleted project's index, threads and
+    drafts); `saveThread`/`loadThread` keep each chat's thread
     (`dither-agent-session-<projectId>/<chatId>`, entries + usage, capped
     at 160k chars by dropping the oldest entries) and its place in the
     index (`dither-agent-chats-<projectId>`; moved to the top when
@@ -566,7 +574,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   is `border-edge` (a scoped field: `var(--color-edge)`), turning
   `border-ring` on focus, while `--border` stays the hairline of
   containers and dividers; `--destructive`, `text-destructive`, the ink
-  of delete, remove and a failed read, 4.5:1 on the theme's grounds; a
+  of delete, remove and a failed read, is the ember (`--swatch-orange`,
+  the one signal accent: red is the user's reject), 4.5:1 on the theme's
+  grounds (`tests/theme-contrast.spec.ts` follows the reference); a
   scoped rule that colours a key outranks the utility, so a key wearing
   both carries its own `.key.text-destructive` rule, which
   `tests/destructive-ink.spec.ts` checks across `src/`), and
@@ -582,10 +592,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   a light `--muted-foreground` a step deeper than the kit's (`#5b6270`,
   AA on the bone grounds, not only on white; the faintest text ink: no
   ink fades below it, so never `color-mix` it toward transparent),
-  `--float-shadow`, `--ease-settle` (Apple's smooth spring: the kit's
-  `springLinear()` as CSS `linear()` under `@supports`, its closest bezier
-  `SPRING_BEZIER` before it; also Tailwind's default transition curve, so
-  every `transition-*` utility springs; `tests/motion.spec.ts` holds both
+  `--float-shadow`, `--ease-settle` (the glide: the kit's
+  `GLIDE_BEZIER`; also Tailwind's default transition curve, so every
+  `transition-*` utility glides; `tests/motion.spec.ts` holds both
   sites' copies to the kit and finds no other curve or linear wipe in the
   site's motion), `--cut` (16px), `--display-face`
   (Michroma, then the mono; the `font-display` utility reads it; its
@@ -597,7 +606,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   slanted plate), the ONLY uppercase in the site's own chrome;
   `.hardshell` (two corners cut by `clip-path`, which clips what it
   holds, fixed descendants included; a chrome-glint ring along the cut;
-  the shell ground; set `--cut` locally for a smaller cut); `.gel` (an
+  the shell ground (no fasteners or other manufacturing theater: the
+  user's brief keeps one credible joint, the cut); set `--cut`
+  locally for a smaller cut), only for a page's one shaped hero panel
+  (the Studio's canvas, a dialog); `.flat-shell` (its flat sibling for
+  every other panel: the shell ground, one hairline, a 10px radius);
+  `.gel` (an
   asymmetric pebble recessed into its shell, `overflow: hidden`, a
   directional highlight over its top 38%; chips in it take z-index 4);
   `.capsule` (a floating smoked-polymer shell: `--smoke` under a light
@@ -650,7 +664,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (`@view-transition`, none under reduced motion), and the arriving page
   dithers from the old one through the kit's `ditherViewTransition`: a
   right wipe (left going back through history) with a band of the signal
-  ink, on the spring like every motion on the site. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
+  ink, on the glide like every motion on the site. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
   inlined first in each route's head by `rstack.config.ts` (`html.tags`,
   with the `PAGE_END_ID` marker it appends to each body), parks the
   `pagereveal` transition and holds the old page on screen until the app
@@ -659,7 +673,15 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   a transition into a page it paints mid-parse (the 1.4 MB docs);
   `takePageTransition` hands it to main.ts in either order (that hold lets
   the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
-  runs the inline script both ways. The theme toggle (`useTheme`'s
+  runs the inline script both ways. The rise (`shared/lib/rise.ts`: a
+  headline's words up one after another on the glide, 24px over 900ms,
+  60ms apart, then its blocks 90ms apart; `rise(node)` is the Svelte
+  action, `vRise` the directive) waits in the prerendered bytes:
+  `RISE_HEAD_SCRIPT` (`shared/lib/rise-wait.ts`, inlined after the reveal
+  script) sets `rise-wait` on `<html>` unless the reader asks for reduced
+  motion, styles.css keeps unrisen `[data-rise]` out of sight under it,
+  the app takes over (`data-rise="live"`) or the wait lets go after 3s,
+  and the prerender strips that state from its snapshot. The theme toggle (`useTheme`'s
   `revealToggle`) dithers the new theme in as an iris from its control.
 - Install and offline (the Studio is a PWA; the landing and the docs are
   not): `app/offline.ts` names the app's path (`OFFLINE.app`, `studio/`)
@@ -687,6 +709,27 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   worker's events (types of its own: the DOM and WebWorker libs cannot
   meet in one program) and is built alone as a classic script, the `sw`
   environment, at the site's root.
+- `shared/ui/mascot.ts` is the mascot's one table (the brand's diamond
+  come alive, ORIGINAL: an 11x15 cell grid, the body printed through the
+  Bayer thresholds, an eye hole beside an ember optic that never shuts,
+  the mark's ember heart and antenna tips;
+  poses idle, blink, hop, wave and fly, where the antennae fold into a
+  rotor whose `turn` steps it round); `Mascot.vue` draws it as a
+  decorative SVG in `currentColor`, blinks when `alive`, hops under a
+  pointer and spins the rotor while it flies, all held still under
+  reduced motion. Imported by path. Guarded by `tests/mascot.spec.ts`.
+  `car.ts` is the mascot's car on the same cell grid (an original wedge
+  speedster: the body printed like the mascot's, an ember stripe, the
+  brand's diamond on the door, ember tail light, bone headlight, wheels
+  whose spokes turn a step a frame), `drivenCells` seats the mascot in
+  its cockpit (only what stands over the door line shows);
+  `MascotCar.vue` draws them, its wheels turning while `driving`, still
+  under reduced motion. Guarded by `tests/car.spec.ts`.
+  `mascot-capture.ts` grows the table into a Gaussian capture of our own
+  (a cut stone of splats, a dark eye and an ember optic on both faces, three ember orbits),
+  seeded; the build serves it at `CAPTURE_PATH` (`rstack.config.ts`, the
+  `captureFiles` plugin, never a copy in `public/`) and the docs' World
+  section prints it. Read by `tests/splats.spec.ts`.
 - `shared/ui/AdSlot.vue` never evaluates the EthicalAds client on the
   critical path: the slot loads only when it approaches the viewport AND the
   document is loaded plus a beat (8s-after-load safety net), and the aside it

@@ -17,6 +17,14 @@ export const storage = {
       // Blocked or full: the value lives for the visit only.
     }
   },
+  /** Every key kept, for clearing one family of them. */
+  keys(): string[] {
+    try {
+      return Object.keys(localStorage)
+    } catch {
+      return []
+    }
+  },
   remove(key: string): void {
     try {
       localStorage.removeItem(key)

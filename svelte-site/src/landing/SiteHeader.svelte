@@ -9,7 +9,7 @@
   // and z-40 keeps it over main, which isolates the page art.
   import { coverPage } from "@dither-kit/engine/cover"
   import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
-  import { spring } from "@dither-kit/engine/spring"
+  import { glide } from "@dither-kit/engine/dither-paint"
   import { wipeStyle } from "@dither-kit/engine/wipe"
   import { onMount, tick } from "svelte"
   import BrandMark from "./BrandMark.svelte"
@@ -88,7 +88,7 @@
     leave()
   }
 
-  /** The kit's wipe down the screen on the spring (Apple's smooth motion), played back when the
+  /** The kit's wipe down the screen on the glide (full speed, a long soft settle), played back when the
    * sheet leaves (whole at once under reduced motion). */
   function wipe(node: HTMLElement, at: MenuPhase) {
     let raf = 0
@@ -98,7 +98,7 @@
       const start = performance.now()
       const frame = (now: number) => {
         const t = Math.min(1, (now - start) / 1000 / SHEET_WIPE.duration)
-        const at = spring(t)
+        const at = glide(t)
         node.style.cssText = maskCss(
           wipeStyle(back ? 1 - at : at, { ...SHEET_WIPE, width: node.clientWidth, height: node.clientHeight }),
         )

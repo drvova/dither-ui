@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onBeforeUnmount, ref, watchEffect } from "vue"
-import { LandingPage } from "@/pages/landing"
-import { appPathname, routePath } from "@/shared/lib"
+import { LandingPage, MissingPage } from "@/pages/landing"
+import { appPathname, isLanding, routePath } from "@/shared/lib"
 import { ROUTE_TITLES, type RouteName } from "@/shared/config/titles"
 import PageLoader from "./PageLoader.vue"
 
@@ -31,7 +31,7 @@ const resolveRoute = (): RouteName => {
   const path = appPathname()
   if (path.startsWith("/studio")) return "studio"
   if (path.startsWith("/docs")) return "docs"
-  return "landing"
+  return isLanding(path) ? "landing" : "missing"
 }
 const route = ref(resolveRoute())
 const onRoute = () => (route.value = resolveRoute())
@@ -50,5 +50,6 @@ watchEffect(() => {
 <template>
   <StudioPage v-if="route === 'studio'" />
   <DocsPage v-else-if="route === 'docs'" />
-  <LandingPage v-else />
+  <LandingPage v-else-if="route === 'landing'" />
+  <MissingPage v-else />
 </template>

@@ -6,7 +6,7 @@
 // protocol into its chunk.
 import { reactive } from "vue"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
-import type { Usage } from "./tools"
+import { DRAFT_PREFIX, type Usage } from "./tools"
 
 /** A chat as the sidebar lists it. `named`: the title is one the user gave
  * it, kept over the first message's; `pinned`: it stands in the Pinned
@@ -89,6 +89,15 @@ export function removeChat(id: string): void {
   chats.list = chats.list.filter((c) => c.id !== id)
   writeIndex()
   if (chats.active === id) chats.active = chats.list[0]?.id ?? newId()
+}
+
+/** Forget a deleted project's chats: their index, every thread and every
+ * unsent draft kept under its id. */
+export function forgetProject(project: string): void {
+  if (!project) return
+  for (const key of storage.keys())
+    for (const prefix of [INDEX, SESSION, DRAFT_PREFIX])
+      if (key.startsWith(prefix) && key.slice(prefix.length).split("/")[0] === project) storage.remove(key)
 }
 
 /** A project's chats: the open project's as they stand, another's as kept

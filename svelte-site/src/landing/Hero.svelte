@@ -3,15 +3,18 @@
   // makes (a live Poster: the palette as tone, the kit's diamond knocked out
   // of it, its screen sliding inside the mark), on the obsidian like a print
   // on black stock. The film is a key away.
-  import { Poster } from "@dither-kit-svelte"
+  import { HeatTrail, Poster } from "@dither-kit-svelte"
   import BrandGather from "./BrandGather.svelte"
   import { STAGINGS } from "./brand"
   import { COMPONENT_COUNT, MATRIX, WORKS, docsHref } from "./facts"
   import { STUDIO } from "./links"
-  import PauseChip from "./PauseChip.svelte"
-  import { INKS } from "./plate"
+  import { INKS, TRAIL } from "./plate"
   import ToolMark from "./ToolMark.svelte"
   import TrailerDialog from "./TrailerDialog.svelte"
+  import { createDrive } from "./drive"
+  import { onDestroy } from "svelte"
+  import RiseWords from "./RiseWords.svelte"
+  import { rise } from "./rise"
 
   let film = $state(false)
 
@@ -21,26 +24,37 @@
   // its frame until the brand is home.
   let gathered = $state(false)
 
-  // The print's screen slides by itself, so it carries a pause (WCAG 2.2.2).
-  let printing = $state(true)
+  // The print moves on cue (no perpetual loops): its screen slides for
+  // HERO_RUN once the brand is home, then only while a pointer moves over
+  // it. Under five seconds by itself, so no pause key.
+  const HERO_RUN = 4000
+
+  // The pointer prints (the kit's heat trail) on the hero's ground in the
+  // print's own inks (`TRAIL`), thinning to nothing.
+  let driven = $state(false)
+  const timer = createDrive((m) => (driven = m))
+  onDestroy(() => timer.dispose())
 </script>
 
 <section aria-labelledby="hero-h" class="hero">
+  <HeatTrail class="hero-trail" inks={TRAIL} cell={4} />
   <div class="hero-in">
-    <div class="statement">
-      <h1 id="hero-h" class="hero-h chrome-type">A dithered UI toolkit for Svelte.</h1>
-      <p class="hero-lede">
+    <!-- The statement rises as the page opens: the headline word by word,
+         then the lede, the keys and what it works with. -->
+    <div use:rise class="statement">
+      <h1 id="hero-h" class="hero-h"><RiseWords text="A dithered UI toolkit for Svelte." word="chrome-type" /></h1>
+      <p data-rise class="hero-lede">
         {COMPONENT_COUNT} components, from charts and controls to backgrounds and text effects, each printed cell by cell
         through one seeded {MATRIX} matrix. Copy the folder into a Svelte 5 app and change what you need.
       </p>
-      <div class="hero-keys">
+      <div data-rise class="hero-keys">
         <a href={STUDIO} class="nav-a key-chrome primary">Open the studio</a>
         <a href={docsHref()} class="key">Read the docs</a>
         <button type="button" class="key" onclick={() => (film = true)}>
           <span class="play" aria-hidden="true"></span>Watch the film
         </button>
       </div>
-      <div class="works">
+      <div data-rise class="works">
         <span id="works-l">Works with</span>
         <ul aria-labelledby="works-l">
           {#each WORKS as t (t.id)}
@@ -53,13 +67,15 @@
         scene={STAGINGS.hero}
         replay
         onmoving={() => (gathered = false)}
-        onsettled={() => (gathered = true)}
+        onsettled={() => {
+          gathered = true
+          timer.run(HERO_RUN)
+        }}
       />
     </div>
     <div class="print-col">
-      <div class="print">
-        <Poster seed={5} inks={INKS} cell={4} speed={1.5} paused={!printing || !gathered} />
-        <PauseChip bind:playing={printing} label="Pause the print" class="print-chip" />
+      <div class="print" role="presentation" onpointermove={() => gathered && timer.run()}>
+        <Poster seed={5} inks={INKS} cell={4} speed={1.5} paused={!driven || !gathered} />
       </div>
     </div>
   </div>
@@ -80,6 +96,13 @@
   }
 
   /* Positioned: the brand's field is the page's column. */
+  /* The pointer's print lies on the ground, under everything the hero holds. */
+  :global(.hero-trail) {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
   .hero-in {
     position: relative;
     display: grid;
@@ -183,12 +206,6 @@
     position: relative;
     width: min(100%, 30rem);
     aspect-ratio: 4 / 5;
-  }
-
-  .print :global(.print-chip) {
-    position: absolute;
-    top: 12px;
-    right: 12px;
   }
 
   @media (max-width: 1199px) {

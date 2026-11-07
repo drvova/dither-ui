@@ -5,6 +5,8 @@
   // component itself, hands on, in the kit's blue with the ember for a second
   // voice. Of the surfaces that move by themselves one plays at a time;
   // everything that moves has its pause.
+  import RiseWords from "./RiseWords.svelte"
+  import { rise } from "./rise"
   import { onDestroy, onMount } from "svelte"
   import { SvelteSet } from "svelte/reactivity"
   import {
@@ -12,8 +14,9 @@
     AreaChart,
     DecryptedText,
     DitherButton,
+    DitherGauge,
     DitherGradient,
-    DitherRating,
+    DitherSlider,
     DitherScreen,
     Ferrofluid,
     NumberFlow,
@@ -36,7 +39,7 @@
    * its docs section (`docsHref` throws on one the docs do not render). */
   const BENTO = [
     { id: "ferrofluid", label: "Ferrofluid" },
-    { id: "rating", label: "Rating" },
+    { id: "gauge", label: "Gauge" },
     { id: "sparkline", label: "Sparkline" },
     { id: "gradient", label: "Gradient" },
     { id: "area", label: "Area chart" },
@@ -132,8 +135,8 @@
   const FLUID_NAMES = Object.keys(FLUIDS) as Fluid[]
   let fluid = $state<Fluid>("blue")
 
-  // Rating.
-  let stars = $state(4)
+  // The instrument: the slider sets the load, the dial's needle settles on it.
+  let load = $state(64)
 
   // Stat card: scrub the sparkline and the headline rolls to the day under
   // the pointer (`stat.ts`).
@@ -170,14 +173,14 @@
 </script>
 
 <section id="examples" aria-labelledby="examples-h" class="examples">
-  <div class="sec-head">
-    <h2 id="examples-h" class="section-title chrome-type">Every component, live.</h2>
+  <div use:rise class="sec-head">
+    <h2 id="examples-h" class="section-title"><RiseWords text="Every component, live." /></h2>
     <div class="sec-side">
-      <p class="sec-lede">
-        {COMPONENT_COUNT} components on one engine. Every card is the real thing, so poke it, then open its docs for the
-        props and the code.
+      <p data-rise class="sec-lede">
+        {COMPONENT_COUNT} components on one engine. <span class="lede-key">Every card is the real thing</span>, so poke
+        it, then open its docs for the props and the code.
       </p>
-      <a href={docsHref()} class="more-link">See every section in the docs</a>
+      <a data-rise href={docsHref()} class="more-link">See every section in the docs</a>
     </div>
   </div>
 
@@ -208,10 +211,10 @@
                 {/each}
               </div>
             </div>
-          {:else if t.id === "rating"}
-            <div class="stack">
-              <DitherRating bind:value={stars} size={30} label="Rate the kit" />
-              <span class="readout"><NumberFlow value={stars} duration={320} /> of 5</span>
+          {:else if t.id === "gauge"}
+            <div class="instrument">
+              <DitherGauge value={load} label="load" warn={0.8} class="instrument-dial" />
+              <DitherSlider bind:value={load} label="Load" class="instrument-set" />
             </div>
           {:else if t.id === "sparkline"}
             <div class="panel stat">
@@ -382,7 +385,22 @@
     min-height: 420px;
   }
 
-  .t-rating .card-art,
+  .instrument {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+  }
+  .instrument :global(.instrument-dial) {
+    width: min(50%, 150px);
+  }
+  .instrument :global(.instrument-set) {
+    width: min(80%, 220px);
+  }
+  .t-gauge .card-art,
   .t-sparkline .card-art {
     height: 220px;
     padding: 18px 20px;
@@ -423,7 +441,7 @@
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
     text-decoration-color: transparent;
-    transition: text-decoration-color 200ms var(--ease-settle);
+    transition: text-decoration-color 150ms var(--ease-settle);
   }
 
   .card-name:hover,
@@ -600,7 +618,7 @@
   .stat-sub > span {
     grid-area: 1 / 1;
     opacity: 0;
-    transition: opacity 200ms var(--ease-settle);
+    transition: opacity 150ms var(--ease-settle);
   }
 
   .stat-sub > span[data-on] {

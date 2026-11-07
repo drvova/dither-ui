@@ -161,6 +161,13 @@ describe("the queue tray", () => {
     expect(w.findAll("button").some((b) => b.text() === "Send next")).toBe(false)
   })
 
+  it("flies the mascot while the turn runs, and only then", () => {
+    const flying = tray(false, true).get(".run .run-mascot")
+    expect(flying.attributes("aria-hidden")).toBe("true")
+    expect(flying.findAll("rect").length).toBeGreaterThan(0)
+    expect(tray(false, false).find(".run-mascot").exists()).toBe(false)
+  })
+
   it("says a stop paused it, and offers to go on", async () => {
     const w = tray(true, false)
     expect(w.text()).toContain("Paused after the stop")

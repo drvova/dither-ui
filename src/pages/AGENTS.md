@@ -63,13 +63,25 @@ widgets/features; page-specific conventions live here.
   8.6:1 on the obsidian); the grain (a 96px PNG tile of single cells a
   tone under and over the obsidian, never a grid); the section head (`.sec-head`: the
   `.section-title` left, in the display face (Michroma 400,
-  `clamp(1.6rem, 3.4vw, 2.75rem)`) cast in `.chrome-type`; `.sec-side`
-  right, on its baseline, a `.sec-lede` and a `.more-link`; stacked under
-  900px), `.lead` and `.more-link` (an underline that inks on hover, a
+  `clamp(1.6rem, 3.4vw, 2.75rem)`) in the plain bone ink (chrome is the
+  hero statement's and the primary key's alone); `.sec-side`
+  right, on its baseline, a `.sec-lede` (two tones: the muted ink, its one
+  key clause, `.lede-key`, in the full ink, so the eye finds the point
+  without bold; `tests/ledes.spec.ts`, both landings) and a `.more-link`; stacked under
+  900px; it rises as it comes into view: `v-rise` on the head, the title's
+  words through `RiseWords`, the lede and the link `data-rise` after them,
+  the hero's statement likewise, and the blocks under a head (the three
+  parts' cards, the families, what it works with, the spec sheet's rows)
+  one after another, 90ms apart; the bento keeps its own reveal and the
+  footer its own motion; `shared/lib/rise.ts`, and every riser
+  stands inside a `v-rise`, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
   24px target through padding cancelled by a negative margin), `.key` (a
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
-  `[id]` scroll margins (76px) clear of the header. A card or panel whose
+  `[id]` scroll margins (76px) clear of the header, an in-page link
+  travelling there by the browser's own smooth scroll (`html:has(.landing)`,
+  none under reduced motion; the Svelte landing's `landing.css` likewise;
+  `tests/motion.spec.ts`). A card or panel whose
   own ground is `--surface` resets `--surface` to the page's ground on
   what it holds, so its keys and pressed segments stay shapes. Page geometry (`--page` 80rem, `--rhythm`) lives on
   `LandingPage`'s `.landing`; the sections are one flex column on it.
@@ -77,7 +89,8 @@ widgets/features; page-specific conventions live here.
   the landing's and the docs' alike: a floating capsule (the raised
   ground, `--float-shadow`, no rim), sticky 8px under the top and centred
   (up to 48rem, `--head` tall with its margin): the 13px diamond mark
-  (`shared/ui/BrandMark`, ember core) + "dither-ui", the `.nav-a` links
+  (`shared/ui/BrandMark`, ember core) + "dither-ui" + the mascot beside
+  it (alive, from 480px), the `.nav-a` links
   (`MENU_LINKS` in `menu.ts`: id, label, the band's line and the width it
   shows from; the page supplies only `HREF` by id, a `Record` the types
   hold whole: Components → the landing's `#examples`, Docs, Agents →
@@ -89,8 +102,8 @@ widgets/features; page-specific conventions live here.
   native modal `<dialog>` filling the window, itself clear so the page
   shows wherever the wipe has not reached (focus on its close key, focus
   back on the key, the page held still), arriving as the kit's wipe down
-  the screen on the spring (`DitherReveal`, `SHEET_WIPE`: 0.5s,
-  `"spring"`). Every sheet's words stand on the header's lines (`--sheet-start`
+  the screen on the glide (`DitherReveal`, `SHEET_WIPE`: 0.5s,
+  `"glide"`). Every sheet's words stand on the header's lines (`--sheet-start`
   and `--sheet-end` in `site-header.css`, from the capsule's own gutter,
   width and padding: the brand mark's edge and the key word's, centred
   capsule included). The close key and Escape (the
@@ -119,7 +132,7 @@ widgets/features; page-specific conventions live here.
   the upper through the Bayer matrix (`SEAM_MASK`, the kit's wipe engine
   at a fixed progress; `seamStyle(fill)` is the seam whole, placed, for any
   sheet's bands). A hovered, focused or pressed band's words lean in
-  (8px, 12px pressed, on the spring, 350ms; the hover only under
+  (8px, 12px pressed, on the glide, 350ms; the hover only under
   `(hover: hover)`, since a tap's hover sticks on a phone) and the menu key's bands
   part on a hover (none of it under reduced motion). A focused band rings
   in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
@@ -129,10 +142,13 @@ widgets/features; page-specific conventions live here.
   over a static header.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
+  where the pointer prints (`.hero-trail`, a `DitherHeatTrail` under
+  everything the hero holds, in the print's inks (`TRAIL`): hot in its orange,
+  cooling through the bone to its blue, gone in about two seconds),
   holding on the page width the statement beside the print (columns
   1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
-  (`.statement`): the h1 in the display face (Michroma 400) and chrome at
-  display size (`clamp(2rem, 3.9vw, 3.5rem)`, two or three short lines),
+  (`.statement`, rising as the page opens): the h1 in the display face
+  (Michroma 400) and chrome on each of its words at display size (`clamp(2rem, 3.9vw, 3.5rem)`, two or three short lines),
   the lede (three or four lines), the keys (`.key-chrome` "Open the
   studio", `.key` "Read the docs" and "Watch the film" under the Play
   glyph, which opens the trailer; `TrailerDialog` lives in the hero),
@@ -146,7 +162,10 @@ widgets/features; page-specific conventions live here.
   most 30rem wide) set on the obsidian at the column's right edge with
   breathing room above and below, square cornered and flat: never a
   panel run to the page's edge or under the header (that is the reference's
-  hero). Its pause ("Pause the print") sits on its top right corner.
+  hero). It moves on cue (the industrial brief: no perpetual loops): its
+  screen slides for 4s once the brand is home, then only while a pointer
+  moves over the print (`drive.ts`), under five seconds by itself, so it
+  carries no pause.
   Under it the print stands over its own floor (`.print-floor`, 40px,
   out of the flow): the same poster at the same moment, turned over and
   thinned through `DitherReveal`'s down wipe held at a third of its travel
@@ -167,6 +186,13 @@ widgets/features; page-specific conventions live here.
   it, landscape (5:4); on a phone both keep the page's 16px gutter. The
   h1 AND the keys must clear the fold at 1440×900, 1280×800 and
   1920×1080.
+- The missing page (`MissingPage.vue`, an address nothing lives at):
+  the landing's print and header, centred on one screen: the mascot
+  (alive), "This page did not print." rising word by word, a two-tone
+  line saying why, and the keys back (the chrome "Back to the start",
+  then the docs and the Studio), the pointer printing over the whole
+  ground (`TRAIL` in `plate.ts`, the hero's inks). It turns the shell's
+  robots tag to `noindex` while it stands and gives it back after.
 - The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
   trapped and handed back, Escape and the backdrop close it) titled "The
   dither-ui film", its description the film in words (no speech in it).
@@ -176,8 +202,32 @@ widgets/features; page-specific conventions live here.
   the opening tap's own tick (opening it was the ask, and iOS lets a film
   with sound start only from a gesture), `playsinline`, except under
   reduced motion, where it waits on its poster for play.
-  Retake all three from the trailer's edit when the film changes (1080p,
-  each about 8 MB).
+  The film is a raea edit cut in a sportswear ad's grammar (React
+  compositions the raea CLI renders: the brand's diamond in 3D under one
+  cold light, an absolute claim, the diamond taken apart with its parts
+  named, the mechanism with a dry kicker, a figure-first spec run read
+  off instrument dials (the kit's gauge, its needle swinging to each
+  figure: the atomic-age panel the user asked for), names
+  in chrome, the site in use captured frame by frame from the production
+  build, a torture test it passes on screen, a silent sign-off; hard cuts
+  on the beat), set at night (the user's call, a neo-noir's taste and
+  none of its devices: rain through every shot, the 3D shots in a haze
+  with light through a blind cutting shafts across the mark, the type
+  under that light's pool, a deeper black than the site's obsidian, a
+  synth score of pads in a long hall, the Bayer motif on an echoing lead
+  and rain hiss). The mascot hosts the spec run and
+  flies in on its rotor to sign off, drawn from `shared/ui/mascot.ts`'s
+  table; after the 3D models it drives its car through the rain, a 3D
+  supercar of our own modelled to read as a real one (a smoothed body
+  with flared haunches and side intakes, a tinted glass canopy, LED-strip
+  headlights, a full-width ember tail bar, torus tyres on multi-spoke rims
+  with ember calipers, metallic titanium paint under a clear coat), never
+  a real maker's car, badge or name (the user's call, after weighing a
+  licence from the maker: its shapes are protected and marketplace
+  models carry only editorial rights); the mascot drives it, voxels of
+  its own cells behind the glass. Its captions are the site's own copy and figures. Retake all three from the edit when the film changes
+  (1080p, 9 to 13 MB each: rain over haze needs bits in the darks) and say what it shows in the dialog's
+  description.
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
   in and its lit cells out, with a lowercase set (four wide, x-height from
   the third row); the brand's lockup sets "DITHER-UI" in it and
@@ -204,7 +254,10 @@ widgets/features; page-specific conventions live here.
   components (the strongest; the docs hold the rest) on a 12-column grid
   row by row: the 3D model (8, two rows
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
-  ember, and "New model" for the next seed) beside the rating (its stars at display size, 44px) and the
+  ember, and "New model" for the next seed) beside the gauge (an
+  instrument: the kit's `DitherKnob` sets the load and the `DitherGauge`
+  needle settles on it; the Svelte site drives it with a slider, its kit
+  having no knob) and the
   stat card (frames exported a day, `stat.ts`, copied byte for byte to the
   Svelte site: the headline is the total at rest; scrub the `Sparkline`
   (`interactive`) and its own crosshair marks the day under the pointer
@@ -230,7 +283,7 @@ widgets/features; page-specific conventions live here.
   picture (the stageshow skill's bento rules): neighbours across and down
   are different kinds, never two moving surfaces side by side, and no
   card repeats another's words or the ask's Deploys screen. Each card's art is a `DitherReveal` (the
-  8×8 Bayer dissolve, 0.72s, on the spring): it prints itself once as it comes
+  8×8 Bayer dissolve, 0.72s, on the glide): it prints itself once as it comes
   into view, at once under reduced motion, a row's cards one after another
   left to right (`staggers` in `hub.ts`, 90ms apart, read from the laid-out
   bento; a rail's cards past its width arrive as they are swiped in). A
@@ -344,10 +397,16 @@ widgets/features; page-specific conventions live here.
   step's still.
 - Inside (`#inside`, "Three parts, one engine."): three cards (the
   raised ground, 20px radius, like the bento's; one column under 900px),
-  each headed by a tone strip flush to its top (`DitherGradient` from its
-  ink to `STOCK`, 120px, 72px on a phone, printing in through
-  `DitherReveal`) in its own ink and printer's screen (`INSIDE`: blue in
-  Bayer cells, the ember in lines, bone in a halftone dot), its own
+  each headed by a strip flush to its top (120px, 72px on a phone,
+  printing in through `DitherReveal`) in its own ink and printer's screen
+  (`INSIDE`: blue in Bayer cells, the ember in lines, bone in a halftone
+  dot), its `art` a union: a tone (`DitherGradient` from its ink to
+  `STOCK`) for the kit and the Studio, a board (`DitherCircuit` in its
+  ink, seed 11, full density on a 3-cell lattice, its signals in the
+  ember) for the bridge, which carries signals between the tab and the
+  agent, its signals running on cue (`drive.ts`'s `useDrive`, which the
+  footer's road runs on too: 3s as its card comes into view, then the
+  reader's scroll); the Svelte site mirrors it (its `drive` action); its own
   character standing on the strip's foot at the right, half over the card
   (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
   plate of the card's ground so its ink never melts into the strip's), then
@@ -442,10 +501,26 @@ widgets/features; page-specific conventions live here.
   the bone ink through its `DitherScreen` showing only the thin ends of
   their ramps, and the brand's moment in the band, pulled in from the
   right edge (16px clear) where the plate is narrow, while the tone prints
-  in through `DitherReveal` (0.72s on the spring, the lights coming on).
+  in through `DitherReveal` (0.72s on the glide, the lights coming on).
   `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and every
   plate's mark inside its band, its tones thin.
   A new plate is a row in the table and a `<Plate>` at a section break.
+- The close (`#install`, out of the page column, the full width): the
+  install stands in a clear field inside a print of heat (`close.ts`,
+  `paintHeat` on the kit's own `fbm`, copied byte for byte to the Svelte
+  landing; `CloseHeat.vue` paints it on the kit's background runtime at
+  `CLOSE.fps`): ink in water through `RAMP`, so the close and the footer's
+  road are one material, printed beside the install's column
+  (`CLOSE.column`) and in from the band's top and foot (`CLOSE.reach`, the
+  band padded by it through `--reach`, so no ink lands under a word), hot
+  and dense along its flat foot. The footer's ground rises into that foot
+  as ONE tab on the page's axis (`.close-tab`: 224px wide (28vw on a phone, 120px at least) by 40px, rounded
+  shoulders, two concave fillets into the ground; the industrial brief's
+  one credible joint). The heat drifts for `CLOSE.drift` as the band
+  arrives (under five seconds, no pause), then only while a pointer moves
+  over the band, which pulls the heat toward it; one still frame under
+  reduced motion. `tests/close.spec.ts` holds the column clear, the foot
+  hot, the ramp's inks only and a moment's bytes.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit
@@ -477,8 +552,7 @@ widgets/features; page-specific conventions live here.
   surfaces, one moving layer at a time in the bento. Pause chips
   (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
-  the print", "Pause the model", "Pause the shader", "Pause the fluid",
-  "Pause the silk"), `aria-pressed` while the
+  the model", "Pause the shader", "Pause the fluid", "Pause the silk"), `aria-pressed` while the
   surface is still, wired to its `paused` (the model's turn is its
   `auto-rotate`): a disc of the page's ink with its glyph in the ground.
   In the bento a chip shows whether its surface plays: a pause is the
@@ -500,7 +574,7 @@ widgets/features; page-specific conventions live here.
   pinned by `tests/landing-facts.spec.ts`) a bundle of light trails that
   runs under the brand's diamond (`BrandMark`, placed at `ROAD.mark`) and
   sweeps out and down to the right, widening, a spray of the grain along
-  it. Luminance picks the ink through `ROAD_RAMP` (the page's ground, then
+  it. Luminance picks the ink through `RAMP` (`plate.ts`: the page's ground, then
   the print's `INKS`), so the trails burn bone at their heads and core and
   cool through the ember to blue. The art dissolves at its edges into the
   page (in from the footer's top, out at the page's foot, the trails'
@@ -522,7 +596,15 @@ widgets/features; page-specific conventions live here.
   moves the page (a scroll, a pointer across the footer), settling 240ms
   after: under five seconds on its own, so no pause chip (the user's
   call); it holds while the brand forms (`moving` holds, `settled`
-  frees); under reduced motion one frame. Decorative (`aria-hidden`); no
+  frees); under reduced motion one frame. The mascot drives its car
+  (`shared/ui/MascotCar.vue`, the user's call: a wedge speedster of our
+  own, never a real maker's car, badge or name) along the wordmark's top,
+  its wheels a screen row under the ink's top (`WORDMARK` in `road.ts`,
+  the one geometry the wordmark and the car read): it drives exactly
+  while the art moves (the dance, a scroll, a pointer across the footer),
+  so the reader drives it, parks as it settles, leaves at the right of
+  the wordmark's box and comes back in at the left; under reduced motion
+  it stays parked. Decorative (`aria-hidden`); no
   rule, no boxed icons.
 - Footer (on the page width, no rule above it): the brand (the brand's
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
@@ -571,10 +653,10 @@ widgets/features; page-specific conventions live here.
   "OTP field", + optional "Open in the Studio") → muted description →
   `DemoCard` (Preview/Code tabs as machined segments in a `.track`, the
   picked one `.ring-on`; Inspect → the workbench, Code → the source panel, a
-  `.hardshell` cut at 12px) → optional picker gallery (an `h3` in
+  `.flat-shell`: the page's one shaped panel is the demo's gel well) → optional picker gallery (an `h3` in
   sentence case, 12px muted, + grid; the picked tile or chip `.ring-on`,
   never a fill a shade off the ground) → `PropsTable`, a spec sheet (a
-  `.hardshell` cut at 10px, its column heads `.spec`; Prop 24% and Default
+  `.flat-shell`, its column heads `.spec`; Prop 24% and Default
   20%, the type column, which carries the notes, the rest; a row's `default` is
   its value as code; "" prints "none"; under 640px, where three columns
   cannot fit, each prop stacks over its type and default). The preview frame is a gel well
@@ -651,6 +733,19 @@ widgets/features; page-specific conventions live here.
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs
   are computed from the picked state — what you see is what you copy.
+- The World section's rocket (`docs/components/rocket.ts`, guarded by
+  `tests/rocket.spec.ts`) is our own atomic-age rocket, never a real
+  vehicle, flag or marking: a VRML file whose flame flickers and whose
+  climb and fireball run on its own tracks, the page's Launch key driving
+  one clock (`launchAt`: the file's moment, then `scatter` blowing the
+  pieces apart at the top; reduced motion goes straight to the debris).
+- Live readings: the Gauge section's second card is an instrument panel
+  reading the page itself (frames a second, the worst frame over the last
+  `FRAME_WINDOW` ms, the page's elements in thousands), measured by one
+  rAF loop that runs only while the card is in view (`useInviewLoop`) and
+  read through `docs/components/frames.ts` (`readFrames`, guarded by
+  `tests/frames.spec.ts`); its snippet measures the same way on its own,
+  so Run plays it.
 - Docs serve Vue AND Svelte: snippets are authored once in Vue; `docs/svelte.ts`
   derives the Svelte flavor (`toSvelteCode`) for DemoCard code tabs, Handbook
   CodeBlocks (`fw()`), and PropsTable's modelValue/v-model display mapping. The
@@ -800,8 +895,8 @@ widgets/features; page-specific conventions live here.
   groups under their glyphs (`GROUP_ICON`), each with its section count as
   a `.spec`; `NAV_LINK` sizes its links per place, 25px targets at a 27px
   pitch on the rail, 30px in the sheet; "On this page" is `OnThisPage.vue`. The page title is the h1
-  "Documentation" in the display face (`font-display`, 1.6rem) and
-  `.chrome-type`, no eyebrow; on its
+  "Documentation" in the display face (`font-display`, 1.6rem) in plain
+  ink, no eyebrow; on its
   baseline, the kit's spec as `.speed-tag`s (the section count, Vue 3,
   Svelte 5, Tailwind or StyleX). At xl the rail right of
   the content is "On this page": the section in view, its gallery headings
@@ -860,10 +955,12 @@ widgets/features; page-specific conventions live here.
   (its tools machined, 8px; `widgets/toolbar/tool.css` is the one tool
   key of it and the title bar),
   the Library key and the empty canvas's "Add an artboard" are the
-  `.key-chrome`, the canvas, the right column and the dialogs
-  (export, video, shortcuts) are `.hardshell`s (14px cut on the canvas,
-  12px on the column; the canvas recessed as a well; nothing in them pops
-  out, the context menu is teleported), the video
+  `.key-chrome`, the canvas and the dialogs (export, video, shortcuts)
+  are `.hardshell`s (14px cut on the canvas, recessed as a well; a
+  dialog is its moment's one shaped panel), the chat and the right
+  column `.flat-shell`s (the user's industrial brief: one shaped hero
+  panel a page; nothing in them pops out, the context menu is
+  teleported), the video
   dialog's download is the `.key-chrome`, and the menus (project, library,
   context menu) are rounded cards with a `.rim`. Every glyph button is a
   kit icon (the sidebar, undo/redo, properties, agent, theme, close, zoom,
@@ -891,13 +988,14 @@ widgets/features; page-specific conventions live here.
   kept), chat first, one CSS grid in `StudioPage`: the title bar across
   the top (`Toolbar`, a `1fr auto 1fr` grid: the sidebar key and
   undo/redo on the left, the project and its menu at the window's centre,
-  the Library chrome key, the Chat key, the properties key and the theme
-  on the right); under it the sidebar (`ui/StudioSidebar.vue`, folded by
+  the Library chrome key, the Chat key, the properties key, the mascot's
+  tour key and the theme on the right); under it the sidebar (`ui/StudioSidebar.vue`, folded by
   the sidebar key or ⌘B: New chat, Search with its ⌘K hint, Add a frame
   (the Library); Projects, a plus for a new one, each project a row with
   its `DitherAvatar` and a row menu (`ui/RowMenu.vue`, a real menu:
-  Rename, Duplicate, Delete project behind a confirm; a double-click
-  renames in place); the open project unfolds into its chats grouped
+  Rename, Duplicate, Delete project behind a confirm whose words come
+  from `deleteWarning`, the title bar's too; a double-click renames in
+  place; the key shows on hover or focus, always where there is no hover); the open project unfolds into its chats grouped
   Pinned, Today, Yesterday, This week, Earlier (`chatGroups`), each with
   how long ago it moved and a row menu (Rename, Pin or Unpin, Delete
   chat); switching held while a turn runs; then the tools your agent
@@ -933,6 +1031,22 @@ widgets/features; page-specific conventions live here.
   land at the centre of the canvas as seen (`editor.stage`, which the
   canvas measures; never the window's size). The canvas bar's Evolve
   places a generation of the primary selection.
+- The mascot (`shared/ui/Mascot.vue`) stands in the Studio's moments:
+  the empty chat's hello and the bridge setup card (alive), the sidebar's
+  empty chats, Search with no match (blinking) and the narrow notice;
+  the agent's run row, flying in the spinner's slot while the harness
+  works; in the docs, their search with no match (blinking, through
+  `DitherCommand`'s `empty` slot). Its
+  tour (`guide.ts`, `ui/StudioGuide.vue`) flies it, rotor turning, to
+  each part of the window by the page's own refs (the canvas, its bar,
+  the sidebar, the chat, the panel, then its own key; a thin part from
+  beside it, over it at the window's foot), opening a part folded
+  away, and it lands to say what the part is for in a bubble: Next flies
+  on, Skip, Done or Escape ends it and hands the focus back; shortcuts
+  read as the keyboard writes them (`modKey`). It runs once on a first
+  desktop visit (`GUIDE_SEEN_KEY`), never under automation
+  (`navigator.webdriver`: the prerender would print it), and again from
+  the title bar's key. Guarded by `tests/studio-guide.spec.ts`.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
@@ -1247,7 +1361,7 @@ widgets/features; page-specific conventions live here.
   (no page scroll sideways) with every card drawn and
   its controls working (the model's ramps and "New model", "Roll a seed",
   the button's fills and hues, "New shader" and its outputs, the fluid's
-  palettes, the styling systems, the slide count, the rating), the lazy cards loading as they near, each pause
+  palettes, the styling systems, the slide count, the gauge's knob), the lazy cards loading as they near, each pause
   chip stopping its surface, at most one bento surface playing at every
   scroll stop (a mouse hover, keyboard focus and a chip tap each taking
   it as set above), each card's art printing once as it nears,

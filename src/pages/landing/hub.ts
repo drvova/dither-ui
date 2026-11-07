@@ -11,8 +11,8 @@ export const FAMILIES = [
   { title: "Typography", count: 25 },
   { title: "Handbook", count: 7 },
   { title: "Examples", count: 32 },
-  { title: "Components", count: 100 },
-  { title: "Backgrounds", count: 47 },
+  { title: "Components", count: 102 },
+  { title: "Backgrounds", count: 49 },
   { title: "Text", count: 24 },
   { title: "Animations", count: 50 },
   { title: "Utils", count: 2 },
@@ -61,7 +61,7 @@ export const DOCS_FAMILIES: DocsFamily[] = [
 export type BentoTile = { id: string; label: string; family: string }
 export const BENTO: BentoTile[] = [
   { id: "world", label: "3D model", family: "Components" },
-  { id: "rating", label: "Rating", family: "Components" },
+  { id: "gauge", label: "Gauge", family: "Components" },
   { id: "stats-cards", label: "Stat card", family: "Examples" },
   { id: "print-screens", label: "Print screens", family: "Utils" },
   { id: "area", label: "Area chart", family: "Components" },
