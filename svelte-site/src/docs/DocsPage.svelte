@@ -68,7 +68,7 @@
       <nav class="grid gap-7">
         {#each GROUPS as group (group.title)}
           <div>
-            <p class="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60">{group.title}</p>
+            <p class="mb-2 text-[12px] text-muted-foreground">{group.title}</p>
             <ul class="grid gap-0.5">
               {#each group.items as item (item.id)}
                 <li>

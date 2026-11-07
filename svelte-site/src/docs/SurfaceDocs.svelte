@@ -227,21 +227,21 @@
 
   const API: Record<string, PropRow[]> = {
     accordion: [
-      { prop: "items", type: "{ value: string; title: string }[]", default: "—" },
-      { prop: "value", type: "string | string[]", default: "—" },
+      { prop: "items", type: "{ value: string; title: string }[]", default: "" },
+      { prop: "value", type: "string | string[]", default: "" },
       { prop: "type", type: '"single" | "multiple"', default: '"single"' },
       { prop: "color", type: "PixelColor", default: '"blue"' },
     ],
     alertDialog: [
-      { prop: "open", type: "boolean", default: "—" },
-      { prop: "title", type: "string", default: "—" },
+      { prop: "open", type: "boolean", default: "" },
+      { prop: "title", type: "string", default: "" },
       { prop: "description", type: "string", default: "undefined" },
       { prop: "confirmLabel", type: "string", default: '"Confirm"' },
       { prop: "cancelLabel", type: "string", default: '"Cancel"' },
       { prop: "danger", type: "boolean", default: "false" },
     ],
     drawer: [
-      { prop: "open", type: "boolean", default: "—" },
+      { prop: "open", type: "boolean", default: "" },
       { prop: "side", type: '"right" | "left" | "bottom"', default: '"right"' },
       { prop: "title", type: "string", default: "undefined" },
       { prop: "swipe", type: "boolean — drag to dismiss, momentum decides", default: "true" },
@@ -264,12 +264,12 @@
       { prop: "open / label (Sub)", type: "boolean (bind:open) / string", default: "false / —" },
     ],
     toast: [
-      { prop: "message", type: "string", default: "—" },
+      { prop: "message", type: "string", default: "" },
       { prop: "opts.color", type: "PixelColor", default: '"blue"' },
       { prop: "opts.duration", type: "number", default: "3500" },
     ],
     meter: [
-      { prop: "value", type: "number", default: "—" },
+      { prop: "value", type: "number", default: "" },
       { prop: "min", type: "number", default: "0" },
       { prop: "max", type: "number", default: "100" },
       { prop: "low", type: "number", default: "0.5" },
@@ -290,8 +290,8 @@
     scrollArea: [{ prop: "class", type: "string", default: "undefined" }],
     toolbar: [{ prop: "label", type: "string", default: "undefined" }],
     navMenu: [
-      { prop: "items", type: "{ label: string; href?: string }[]", default: "—" },
-      { prop: "value", type: "string", default: "—" },
+      { prop: "items", type: "{ label: string; href?: string }[]", default: "" },
+      { prop: "value", type: "string", default: "" },
       { prop: "color", type: "PixelColor", default: '"blue"' },
     ],
   }
@@ -308,13 +308,13 @@
       <DitherAccordion bind:value={faq} items={FAQ} type="single" color="blue">
         {#snippet what()}
           Ordered dithering trades smooth gradients for a fixed threshold
-          matrix — the same Bayer 4x4 behind every fill in this kit.
+          matrix: the same Bayer 4x4 behind every fill in this kit.
         {/snippet}
         {#snippet why()}
           One engine paints every fill, so components stay coherent.
         {/snippet}
         {#snippet copy()}
-          Yes — the kit folder has zero app imports; copy it and alias it.
+          Yes: the kit folder has zero app imports; copy it and alias it.
         {/snippet}
       </DitherAccordion>
     </div>
@@ -325,7 +325,7 @@
 <section id="alert-dialog" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Alert dialog</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A modal that demands an answer — overlay clicks do nothing, Escape
+    A modal that demands an answer: overlay clicks do nothing, Escape
     cancels, and focus lands on the safe Cancel button. Danger seeds the
     confirm fill red.
   </p>
@@ -358,7 +358,7 @@
 <section id="drawer" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Drawer</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A side panel that slides in over a scrim — Escape or scrim click closes,
+    A side panel that slides in over a scrim: Escape or scrim click closes,
     the close button takes focus on open.
   </p>
   <DemoCard code={SNIPPET_DRAWER}>
@@ -386,7 +386,7 @@
       </DitherDrawer>
       <DitherDrawer open={sheetOpen} side="bottom" title="Notifications" onclose={() => (sheetOpen = false)}>
         <p class="text-[13px] text-muted-foreground">
-          You are all caught up. Drag the handle down to dismiss — a flick
+          You are all caught up. Drag the handle down to dismiss: a flick
           counts through its momentum, a slow drag settles back.
         </p>
       </DitherDrawer>
@@ -400,7 +400,7 @@
       >
         <p class="text-[13px] text-muted-foreground">
           Resting at <span class="text-foreground tabular-nums">{Math.round((snapAt ?? 0.35) * 100)}vh</span>.
-          Drag the handle up for the tall snap, down to the short one — a
+          Drag the handle up for the tall snap, down to the short one: a
           flick's momentum can skip straight past a point. Below half the
           smallest snap, it dismisses.
         </p>
@@ -430,7 +430,7 @@
       <p class="w-full text-center text-[11px] text-muted-foreground">last action: {lastAction}</p>
       <DitherDrawer open={nestedOpen} side="right" title="Account" onclose={() => (nestedOpen = false)}>
         <p class="pb-3 text-[13px] text-muted-foreground">
-          Opening a child pushes this drawer back — scaled, dimmed, out of
+          Opening a child pushes this drawer back: scaled, dimmed, out of
           reach until the child closes.
         </p>
         <DitherButton color="green" onclick={() => (nestedChild = true)}>Security settings</DitherButton>
@@ -442,11 +442,11 @@
       </DitherDrawer>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">swipe to open</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Swipe to open</h3>
   <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 p-4">
     <p class="max-w-sm text-[11px] leading-relaxed text-muted-foreground">
       <code class="text-foreground/80">DitherSwipeArea</code> is an invisible
-      strip on the viewport edge — arm it, then swipe inward from the right
+      strip on the viewport edge: arm it, then swipe inward from the right
       edge of your screen to open the drawer.
     </p>
     <div class="flex items-center gap-2 text-[12px]">
@@ -466,7 +466,7 @@
 <section id="sidebar" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Sidebar</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    An app sidebar that collapses to an icon rail — items keep their hit
+    An app sidebar that collapses to an icon rail: items keep their hit
     area, labels fold away, the active item carries a dithered rail.
   </p>
   <DemoCard code={SNIPPET_SIDEBAR}>
@@ -496,7 +496,7 @@
       </div>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
   <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
     {#each SIDEBAR_VARIANTS as v (v)}
       <div>
@@ -517,7 +517,7 @@
       </div>
     {/each}
   </div>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">modes</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Modes</h3>
   <div class="mt-4 grid gap-4 sm:grid-cols-2">
     <div>
       <div class="flex h-48 overflow-hidden rounded-lg border border-border/60">
@@ -581,7 +581,7 @@
 <section id="meter" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Meter</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A static gauge on the progress track — the fill seed picks itself: green
+    A static gauge on the progress track: the fill seed picks itself: green
     below the low mark, orange between, red above the high mark.
   </p>
   <DemoCard code={SNIPPET_METER}>
@@ -618,14 +618,14 @@
 <section id="scroll-area" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Scroll area</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    An honest overflow container — no canvas, just thin token-colored
+    An honest overflow container: no canvas, just thin token-colored
     scrollbars that match the house border.
   </p>
   <DemoCard code={SNIPPET_SCROLL_AREA}>
     <DitherScrollArea class="mx-auto h-40 max-w-sm rounded-lg border border-border/60 p-3">
       {#each Array.from({ length: 15 }, (_, i) => i + 1) as n (n)}
         <p class="py-1 text-[12px] text-muted-foreground">
-          Log line {n} — ordered dither keeps the texture coherent.
+          Log line {n}: ordered dither keeps the texture coherent.
         </p>
       {/each}
     </DitherScrollArea>
@@ -636,7 +636,7 @@
 <section id="toolbar" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Toolbar</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A roving-tabindex strip — one Tab stop for the whole bar, arrow keys walk
+    A roving-tabindex strip: one Tab stop for the whole bar, arrow keys walk
     the buttons, Home and End jump to the edges.
   </p>
   <DemoCard code={SNIPPET_TOOLBAR}>
@@ -658,7 +658,7 @@
 <section id="nav-menu" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Navigation menu</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    DitherTabs' sliding dithered underline with nav semantics — anchors
+    DitherTabs' sliding dithered underline with nav semantics: anchors
     instead of tabs, aria-current on the active page.
   </p>
   <DemoCard code={SNIPPET_NAV_MENU}>

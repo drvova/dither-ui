@@ -333,7 +333,7 @@
 <section id="dashboard" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Dashboard example</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    Everything composed: stat cards, a stacked area, a donut — one palette, one texture, zero SVG.
+    Everything composed: stat cards, a stacked area, a donut; one palette, one texture, zero SVG.
   </p>
   <DemoCard code={dashboardCode}>
     <div class="grid gap-4">
@@ -378,7 +378,7 @@
 <section id="shell" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">App shell</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    Sidebar, topbar, content — a whole product frame from tokens and kit primitives. The nav works; click around.
+    Sidebar, topbar, content: a whole product frame from tokens and kit primitives. The nav works; click around.
   </p>
   <DemoCard code={shellCode}>
     <div class="grid grid-cols-[150px_1fr] overflow-hidden rounded-lg border border-border/60 text-left sm:grid-cols-[170px_1fr]">
@@ -445,7 +445,7 @@
 <section id="monitoring" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Monitoring</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    An ops board: system pulse, sprint health, and per-service status rows — the grey seed marks what is quiet, red what is not.
+    An ops board: system pulse, sprint health, and per-service status rows; the grey seed marks what is quiet, red what is not.
   </p>
   <DemoCard code={monitoringCode}>
     <div class="grid gap-4 lg:grid-cols-5">
@@ -489,7 +489,7 @@
 <section id="team" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Team</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    Contributors panel — deterministic avatars, a commit pulse per person, one palette seed each.
+    Contributors panel: deterministic avatars, a commit pulse per person, one palette seed each.
   </p>
   <DemoCard code={teamCode}>
     <div class="mx-auto max-w-md rounded-lg border border-border/60">
@@ -547,7 +547,7 @@
 <section id="signin" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Sign in</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    An auth card washed by a DitherGradient — the pixels do the decoration, the form stays plain.
+    An auth card washed by a DitherGradient: the pixels do the decoration, the form stays plain.
   </p>
   <DemoCard code={signinCode}>
     <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
@@ -586,7 +586,7 @@
 <section id="signup" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Sign up</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    A signup card with a working plan picker — segmented control from plain aria-pressed buttons, purple wash behind.
+    A signup card with a working plan picker: segmented control from plain aria-pressed buttons, purple wash behind.
   </p>
   <DemoCard code={signupCode}>
     <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
@@ -642,7 +642,7 @@
 <section id="magic-link" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Magic link</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    Passwordless in two states — send the link, then echo the address back with a pixel checkmark. Green wash, green button.
+    Passwordless in two states: send the link, then echo the address back with a pixel checkmark. Green wash, green button.
   </p>
   <DemoCard code={magicCode}>
     <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
@@ -695,7 +695,7 @@
 <section id="twofactor" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Two-factor</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    Six code cells with auto-advancing focus — plain inputs, token borders, blue wash behind.
+    Six code cells with auto-advancing focus: plain inputs, token borders, blue wash behind.
   </p>
   <DemoCard code={twofactorCode}>
     <div class="relative isolate mx-auto max-w-xs overflow-hidden rounded-lg border border-border/60 p-7">
@@ -736,7 +736,7 @@
 <section id="pricing" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Pricing</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    Three tiers from tokens and kit primitives — the popular plan gets a dither wash, nothing else shouts.
+    Three tiers from tokens and kit primitives: the popular plan gets a dither wash, nothing else shouts.
   </p>
   <DemoCard code={pricingCode}>
     <div class="grid gap-4 text-left sm:grid-cols-3">
@@ -776,7 +776,7 @@
 <section id="activity" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Activity feed</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    A team feed — deterministic avatars, one accent dot per unread row, times right-aligned.
+    A team feed: deterministic avatars, one accent dot per unread row, times right-aligned.
   </p>
   <DemoCard code={activityCode}>
     <div class="mx-auto max-w-md rounded-lg border border-border/60 text-left">
@@ -805,7 +805,7 @@
 <section id="changelog" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Changelog</h2>
   <p class="mt-3 text-[13px] text-muted-foreground">
-    A release timeline — square markers on a thin rail, the newest release seeded green.
+    A release timeline: square markers on a thin rail, the newest release seeded green.
   </p>
   <DemoCard code={changelogCode}>
     <div class="mx-auto max-w-md text-left">

@@ -197,7 +197,8 @@ widgets/features; page-specific conventions live here.
   robots tag to `noindex` while it stands and gives it back after.
 - The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
   trapped and handed back, Escape and the backdrop close it) titled "The
-  dither-ui film", its description the film in words (no speech in it).
+  dither-ui film", its description the film in words (no speech in it;
+  both in `film.ts`, shared with the Svelte landing).
   The `<video>` exists only while the dialog is open: `public/trailer/`
   `dither-ui.mp4` (H.264 + AAC) first, `dither-ui.webm` (VP9 + Opus) for a
   browser built without H.264, `poster.webp`; it starts with `play()` in

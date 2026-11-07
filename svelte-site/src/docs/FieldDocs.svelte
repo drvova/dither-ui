@@ -124,30 +124,30 @@
     input: [
       { prop: "value", type: "string", default: '""' },
       { prop: "type", type: "string", default: '"text"' },
-      { prop: "placeholder", type: "string", default: "—" },
+      { prop: "placeholder", type: "string", default: "" },
       { prop: "disabled / readonly / invalid", type: "boolean", default: "false" },
-      { prop: "class", type: "string", default: "—" },
+      { prop: "class", type: "string", default: "" },
     ],
     textarea: [
       { prop: "value", type: "string", default: '""' },
-      { prop: "placeholder", type: "string", default: "—" },
+      { prop: "placeholder", type: "string", default: "" },
       { prop: "rows", type: "number", default: "4" },
       { prop: "resize", type: '"none" | "vertical" | "horizontal" | "both"', default: '"vertical"' },
       { prop: "disabled / readonly / invalid", type: "boolean", default: "false" },
-      { prop: "class", type: "string", default: "—" },
+      { prop: "class", type: "string", default: "" },
     ],
     field: [
-      { prop: "label", type: "string", default: "—" },
-      { prop: "description", type: "string", default: "—" },
-      { prop: "error", type: "string", default: "—" },
-      { prop: "for", type: "string", default: "—" },
+      { prop: "label", type: "string", default: "" },
+      { prop: "description", type: "string", default: "" },
+      { prop: "error", type: "string", default: "" },
+      { prop: "for", type: "string", default: "" },
     ],
-    fieldset: [{ prop: "legend", type: "string", default: "—" }],
+    fieldset: [{ prop: "legend", type: "string", default: "" }],
     form: [],
     numberField: [
       { prop: "value", type: "number", default: "0" },
-      { prop: "min", type: "number", default: "—" },
-      { prop: "max", type: "number", default: "—" },
+      { prop: "min", type: "number", default: "" },
+      { prop: "max", type: "number", default: "" },
       { prop: "step", type: "number", default: "1" },
       { prop: "disabled", type: "boolean", default: "false" },
     ],
@@ -161,7 +161,7 @@
 <section id="input" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Input</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A monospace text input on the token border stack — the border warms to
+    A monospace text input on the token border stack: the border warms to
     the accent on focus, and <code class="text-foreground/80">invalid</code>
     swaps it for the red seed with <code class="text-foreground/80">aria-invalid</code>.
   </p>
@@ -193,7 +193,7 @@
 <section id="field" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Field</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    Label, control, and one line of small print — the
+    Label, control, and one line of small print: the
     <code class="text-foreground/80">error</code> replaces the description
     and drops a red pixel marker in front of the text.
   </p>
@@ -214,7 +214,7 @@
   <h2 class="text-lg tracking-tight">Fieldset</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     Groups related fields inside a bordered box with a tracking-spaced
-    legend — native <code class="text-foreground/80">&lt;fieldset&gt;</code>
+    legend: native <code class="text-foreground/80">&lt;fieldset&gt;</code>
     semantics, kit skin.
   </p>
   <DemoCard code={SNIPPET_FIELDSET}>
@@ -258,7 +258,7 @@
 <section id="number-field" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Number field</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    Stepper buttons around a spinbutton input — arrow keys step, typed
+    Stepper buttons around a spinbutton input: arrow keys step, typed
     values clamp and snap to the step on blur, and the buttons disable at
     the bounds.
   </p>
@@ -274,7 +274,7 @@
 <section id="otp-field" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">OTP field</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    One box per digit with auto-advancing focus — Backspace on an empty box
+    One box per digit with auto-advancing focus: Backspace on an empty box
     steps back, and pasting a full code distributes it across the boxes.
     <code class="text-foreground/80">complete</code> fires once every box is
     filled.

@@ -38,7 +38,8 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   (from `src/shared/ui/marks.ts`), `src/fonts/` (Michroma's `display.css`,
   `michroma-latin.woff2` and its `OFL.txt`, from `src/shared/fonts/`), and
   the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
-  `command.ts` (the install command's pieces), `pixel-type.ts`, `plate.ts`, `heat.ts` (the heat of the plates and the
+  `command.ts` (the install command's pieces), `film.ts` (the film's
+  title and description), `pixel-type.ts`, `plate.ts`, `heat.ts` (the heat of the plates and the
   close, painted by `src/landing/HeatPrint.svelte`), `spotlight.ts`, `stat.ts`, `story.ts`), the
   rise (from `src/shared/lib/`; `rise.ts`, `rise-wait.ts`: `use:rise` on the
   hero's statement, each section head and the block groups under them, the words from
@@ -112,6 +113,13 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
 - Docs is a long-scroll page: each `<section id>` is tracked by an IntersectionObserver
   that syncs `#/docs/<id>`; the sidebar highlights the section in view. Demos use
   `DemoCard` (Preview/Code tabs) and `PropsTable`; code snippets are Svelte syntax.
+- The docs' own copy keeps the site's bans (`tests/svelte-docs-copy.spec.ts`):
+  no em dash in what a reader sees, labels (the galleries' headings, the
+  sidebar's groups) in sentence case at 12px in the muted ink, never
+  uppercase, tracked or faded below it; a prop with no default is `""`,
+  which `PropsTable` prints as "none". A demo's own strings stay the
+  product's. A `CodeBlock`'s copy chip takes its own band over the first
+  line under sm.
 - `DocsPage.svelte` is a thin shell: sidebar from `nav.ts` (`GROUPS`) + the
   IntersectionObserver, composing per-family section packs (`GuidesDocs`,
   `ExamplesDocs`, `ChartsDocs`, `PrimitivesDocs`, `Form/Field/Selection/Feedback/

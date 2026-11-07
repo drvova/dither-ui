@@ -66,12 +66,12 @@
 
   const API: Record<string, PropRow[]> = {
     breadcrumb: [
-      { prop: "items", type: "{ label; href? }[]", default: "—" },
+      { prop: "items", type: "{ label; href? }[]", default: "" },
       { prop: "separator", type: "string", default: '"/"' },
     ],
     pagination: [
-      { prop: "page", type: "number (bind:page)", default: "—" },
-      { prop: "total", type: "number — page count", default: "—" },
+      { prop: "page", type: "number (bind:page)", default: "" },
+      { prop: "total", type: "number — page count", default: "" },
       { prop: "siblings", type: "number — pages either side", default: "1" },
     ],
     rating: [
@@ -84,11 +84,11 @@
       { prop: "seed", type: "number — star tilt + scatter", default: "clean" },
     ],
     stepper: [
-      { prop: "steps", type: "{ label; hint? }[]", default: "—" },
-      { prop: "current", type: "number — active index", default: "—" },
+      { prop: "steps", type: "{ label; hint? }[]", default: "" },
+      { prop: "current", type: "number — active index", default: "" },
     ],
     timeline: [
-      { prop: "items", type: "{ title; time?; body?; color? }[]", default: "—" },
+      { prop: "items", type: "{ title; time?; body?; color? }[]", default: "" },
       { prop: "dotSize", type: "number (px)", default: "12" },
     ],
   }
@@ -144,7 +144,7 @@
     <div class="grid gap-6">
       <div class="flex flex-col items-center gap-2">
         <DitherRating bind:value={rating} size={28} />
-        <p class="text-[12px] tabular-nums text-muted-foreground">{rating} / 5 — click or arrow-key</p>
+        <p class="text-[12px] tabular-nums text-muted-foreground">{rating} / 5: click or arrow-key</p>
       </div>
       <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
         <DitherRating value={4.5} readonly />
@@ -181,7 +181,7 @@
   <h2 class="text-lg tracking-tight">Stepper</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     Progress through a multi-step flow. Completed steps carry a check, the current step
-    an outlined node, and the connectors are the kit's dithered rule — dissolving toward
+    an outlined node, and the connectors are the kit's dithered rule: dissolving toward
     steps not yet reached.
   </p>
   <DemoCard code={SNIPPET_STEPPER}>

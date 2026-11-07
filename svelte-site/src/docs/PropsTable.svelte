@@ -1,4 +1,6 @@
 <script lang="ts" module>
+  /** A row's `default` is the value as code; "" when the prop has none
+   * (shown as "none", never a dash). */
   export type PropRow = { prop: string; type: string; default: string }
 </script>
 
@@ -21,7 +23,7 @@
         <tr class="border-b border-border/40 last:border-0">
           <td class="px-4 py-2.5 align-top break-words text-foreground/90">{r.prop}</td>
           <td class="px-4 py-2.5 align-top break-words text-muted-foreground">{r.type}</td>
-          <td class="px-4 py-2.5 align-top break-words text-muted-foreground">{r.default}</td>
+          <td class="px-4 py-2.5 align-top break-words text-muted-foreground">{r.default || "none"}</td>
         </tr>
       {/each}
     </tbody>

@@ -123,20 +123,20 @@
 
   const API: Record<string, PropRow[]> = {
     popover: [
-      { prop: "open", type: "boolean", default: "—" },
+      { prop: "open", type: "boolean", default: "" },
       { prop: "align", type: '"start" | "center" | "end"', default: '"start"' },
     ],
-    menu: [{ prop: "items", type: "MenuItem[]", default: "—" }],
-    contextMenu: [{ prop: "items", type: "ContextMenuItem[]", default: "—" }],
+    menu: [{ prop: "items", type: "MenuItem[]", default: "" }],
+    contextMenu: [{ prop: "items", type: "ContextMenuItem[]", default: "" }],
     menubar: [
       {
         prop: "menus",
         type: "{ label: string; items: MenubarItem[] }[]",
-        default: "—",
+        default: "",
       },
     ],
     tooltip: [
-      { prop: "text", type: "string", default: "—" },
+      { prop: "text", type: "string", default: "" },
       { prop: "delay", type: "number", default: "300" },
     ],
     previewCard: [{ prop: "delay", type: "number", default: "400" }],
@@ -146,7 +146,7 @@
 <section id="popover" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Popover</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    An anchored panel below its trigger — bring your own trigger and content.
+    An anchored panel below its trigger: bring your own trigger and content.
     Escape or an outside press emits close.
   </p>
   <DemoCard code={SNIPPET_POPOVER}>
@@ -158,7 +158,7 @@
           </DitherButton>
         {/snippet}
         <p class="text-[12px] leading-relaxed text-muted-foreground">
-          Anchored to its trigger — Escape or an outside press closes it.
+          Anchored to its trigger: Escape or an outside press closes it.
         </p>
       </DitherPopover>
     </div>
@@ -169,7 +169,7 @@
 <section id="menu" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Menu</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A dropdown menu behind a single button — arrow keys move focus, Enter
+    A dropdown menu behind a single button: arrow keys move focus, Enter
     selects, Escape closes and refocuses the trigger.
   </p>
   <DemoCard code={SNIPPET_MENU}>
@@ -188,7 +188,7 @@
 <section id="context-menu" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Context menu</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A right-click menu teleported to the pointer — same items and keyboard
+    A right-click menu teleported to the pointer: same items and keyboard
     behavior as Menu, dismissed by Escape or any outside press.
   </p>
   <DemoCard code={SNIPPET_CONTEXT}>
@@ -211,7 +211,7 @@
 <section id="menubar" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Menubar</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A desktop-style horizontal bar — one menu open at a time, hover switches
+    A desktop-style horizontal bar: one menu open at a time, hover switches
     between top items, ArrowLeft/Right move across them.
   </p>
   <DemoCard code={SNIPPET_MENUBAR}>
@@ -228,7 +228,7 @@
 <section id="tooltip" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Tooltip</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A delayed hover tip above its target — also shows on focus, hides on
+    A delayed hover tip above its target: also shows on focus, hides on
     leave, blur, or Escape. No transition under reduced motion.
   </p>
   <DemoCard code={SNIPPET_TOOLTIP}>
@@ -244,7 +244,7 @@
 <section id="preview-card" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Preview card</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A hover preview for rich content — opens after a delay on hover or focus;
+    A hover preview for rich content: opens after a delay on hover or focus;
     a short close delay lets the pointer travel into the card.
   </p>
   <DemoCard code={SNIPPET_PREVIEW}>

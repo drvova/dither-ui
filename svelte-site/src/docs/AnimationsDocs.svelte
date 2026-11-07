@@ -49,83 +49,83 @@
       { prop: "reverse", type: "boolean", default: "false" },
       { prop: "duration", type: "number (ms)", default: "800" },
       { prop: "delay", type: "number (ms)", default: "0" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     fadeContent: [
       { prop: "duration", type: "number (ms)", default: "1000" },
       { prop: "delay", type: "number (ms)", default: "0" },
       { prop: "blur", type: "boolean", default: "false" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     gradualBlur: [
       { prop: "position", type: '"bottom" | "top"', default: '"bottom"' },
       { prop: "height", type: "number (px)", default: "96" },
       { prop: "strength", type: "number (px)", default: "4" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     starBorder: [
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "speed", type: "number (s)", default: "6" },
       { prop: "thickness", type: "number (px)", default: "1" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     electricBorder: [
       { prop: "color", type: "string (hex)", default: '"#5227FF"' },
       { prop: "speed", type: "number", default: "1" },
       { prop: "thickness", type: "number (px)", default: "2" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
-    glareHover: [{ prop: "children", type: "content", default: "—" }],
+    glareHover: [{ prop: "children", type: "content", default: "" }],
     magnet: [
       { prop: "strength", type: "number (0-1)", default: "0.4" },
       { prop: "radius", type: "number (px)", default: "200" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     clickSpark: [
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "count", type: "number", default: "8" },
       { prop: "size", type: "number (px)", default: "16" },
       { prop: "duration", type: "number (ms)", default: "420" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     blobCursor: [
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "size", type: "number (px)", default: "48" },
       { prop: "lag", type: "number (0-1)", default: "0.18" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     crosshair: [
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "thickness", type: "number (px)", default: "1" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     ghostCursor: [
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "count", type: "number", default: "18" },
       { prop: "size", type: "number (px)", default: "10" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     splashCursor: [
       { prop: "color", type: "string (hex)", default: '"#3DA5FF"' },
       { prop: "maxRadius", type: "number (px)", default: "60" },
       { prop: "duration", type: "number (ms)", default: "700" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     targetCursor: [
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "size", type: "number (px)", default: "36" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     pixelTrail: [
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "gap", type: "number (px)", default: "24" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     imageTrail: [
       { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', ...]" },
       { prop: "size", type: "number (px)", default: "40" },
       { prop: "duration", type: "number (ms)", default: "650" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     metaBalls: [
       { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
@@ -189,7 +189,7 @@
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "count", type: "number", default: "40" },
       { prop: "speed", type: "number", default: "1" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     logoLoop: [
       { prop: "items", type: "string[]", default: "['DITHER', 'BAYER', ...]" },
@@ -200,13 +200,13 @@
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "count", type: "number", default: "4" },
       { prop: "duration", type: "number (s)", default: "3" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     magnetLines: [
       { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
       { prop: "gap", type: "number (px)", default: "28" },
       { prop: "lineLength", type: "number (px)", default: "14" },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
     orbitImages: [
       { prop: "items", type: "string[]", default: "['A', 'B', 'C', 'D', 'E']" },
@@ -218,9 +218,9 @@
       { prop: "rows", type: "number", default: "6" },
       { prop: "cols", type: "number", default: "10" },
       { prop: "color", type: "string (hex)", default: '"#111318"' },
-      { prop: "children", type: "content", default: "—" },
+      { prop: "children", type: "content", default: "" },
     ],
-    stickerPeel: [{ prop: "children", type: "content", default: "—" }],
+    stickerPeel: [{ prop: "children", type: "content", default: "" }],
   }
 
   const SNIPPETS = {
@@ -298,14 +298,14 @@
   <h2 class="text-lg tracking-tight">Gradual blur</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     A masked <code class="text-foreground/80">backdrop-filter</code> strip that
-    progressively blurs toward an edge — the iOS-style soft fade over a scroll
+    progressively blurs toward an edge: the iOS-style soft fade over a scroll
     region.
   </p>
   <DemoCard code={SNIPPETS.gradualBlur}>
     <GradualBlur position="bottom" height={72} strength={5} class="w-64">
       <div class="space-y-1 text-[13px] leading-relaxed text-muted-foreground">
         {#each [1, 2, 3, 4, 5, 6] as n (n)}
-          <p>Row {n} — content scrolls under the blur band.</p>
+          <p>Row {n}: content scrolls under the blur band.</p>
         {/each}
       </div>
     </GradualBlur>
@@ -317,7 +317,7 @@
 <section id="star-border" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Star border</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A rounded frame with two bright glints traveling its top and bottom edges —
+    A rounded frame with two bright glints traveling its top and bottom edges:
     a subtle animated outline for a CTA or badge.
   </p>
   <DemoCard code={SNIPPETS.starBorder}>
@@ -343,7 +343,7 @@
 <section id="glare-hover" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Glare hover</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A diagonal sheen sweeps across the surface on hover — the glossy-card
+    A diagonal sheen sweeps across the surface on hover: the glossy-card
     reflection, done with a single masked gradient. Hover the card.
   </p>
   <DemoCard code={SNIPPETS.glareHover}>
@@ -386,7 +386,7 @@
 <section id="blob-cursor" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Blob cursor</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A soft, screen-blended blob eases toward the pointer inside the area — a
+    A soft, screen-blended blob eases toward the pointer inside the area: a
     gooey cursor companion. Move your cursor over the box.
   </p>
   <DemoCard code={SNIPPETS.blobCursor}>
@@ -399,7 +399,7 @@
 <section id="crosshair" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Crosshair</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    Full-height and full-width guide lines track the pointer across the area — a
+    Full-height and full-width guide lines track the pointer across the area: a
     precision reticle. Move your cursor over the box.
   </p>
   <DemoCard code={SNIPPETS.crosshair}>
@@ -438,7 +438,7 @@
 <section id="target-cursor" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Target cursor</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A slowly rotating corner-bracket reticle locks onto the pointer — a HUD
+    A slowly rotating corner-bracket reticle locks onto the pointer: a HUD
     targeting frame. Move your cursor over the box.
   </p>
   <DemoCard code={SNIPPETS.targetCursor}>
@@ -451,7 +451,7 @@
 <section id="pixel-trail" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Pixel trail</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    The pointer lights up cells of a pixel grid that then fade back out — a
+    The pointer lights up cells of a pixel grid that then fade back out: a
     glowing wake across the lattice. Move your cursor over the box.
   </p>
   <DemoCard code={SNIPPETS.pixelTrail}>
@@ -465,7 +465,7 @@
   <h2 class="text-lg tracking-tight">Image trail</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     Tiles from a palette drop along the pointer path, rotating and shrinking as
-    they fade — pass real image URLs via <code class="text-foreground/80">colors</code>
+    they fade: pass real image URLs via <code class="text-foreground/80">colors</code>
     swapped for tiles here. Move your cursor over the box.
   </p>
   <DemoCard code={SNIPPETS.imageTrail}>
@@ -491,7 +491,7 @@
 <section id="metallic-paint" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Metallic paint</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    Iterative domain-warped reflections read as flowing liquid chrome — fully
+    Iterative domain-warped reflections read as flowing liquid chrome: fully
     opaque, dithered across a metallic ramp.
   </p>
   <DemoCard code={SNIPPETS.metallicPaint}>
@@ -504,7 +504,7 @@
 <section id="noise" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Noise</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    Animated hashed grain thresholded against the Bayer matrix — living static
+    Animated hashed grain thresholded against the Bayer matrix: living static
     for a texture overlay. Tune <code class="text-foreground/80">density</code> and blend it over content.
   </p>
   <DemoCard code={SNIPPETS.noise}>
@@ -543,7 +543,7 @@
 <section id="shape-blur" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Shape blur</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A big soft blob morphs on noise and drifts toward the pointer — a gentle
+    A big soft blob morphs on noise and drifts toward the pointer: a gentle
     out-of-focus shape. Move your cursor over it.
   </p>
   <DemoCard code={SNIPPETS.shapeBlur}>
@@ -570,7 +570,7 @@
   <h2 class="text-lg tracking-tight">Laser flow</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
     Sharp horizontal beams sweep with additive bloom and a faint jitter, tinted
-    per beam — a scanning laser array.
+    per beam: a scanning laser array.
   </p>
   <DemoCard code={SNIPPETS.laserFlow}>
     <div class={canvasBox}><LaserFlow /></div>
@@ -582,7 +582,7 @@
 <section id="antigravity" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Antigravity</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A field of motes drifts upward and wraps — gravity in reverse, layered
+    A field of motes drifts upward and wraps: gravity in reverse, layered
     behind your content.
   </p>
   <DemoCard code={SNIPPETS.antigravity}>
@@ -595,7 +595,7 @@
 <section id="logo-loop" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Logo loop</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A seamless infinite marquee of items — pass logos or wordmarks and it loops
+    A seamless infinite marquee of items: pass logos or wordmarks and it loops
     forever with a measured wrap.
   </p>
   <DemoCard code={SNIPPETS.logoLoop}>
@@ -610,7 +610,7 @@
 <section id="magic-rings" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Magic rings</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    Concentric rings pulse outward from the center on a stagger — a radar-ping
+    Concentric rings pulse outward from the center on a stagger: a radar-ping
     halo around whatever you wrap.
   </p>
   <DemoCard code={SNIPPETS.magicRings}>
@@ -638,7 +638,7 @@
 <section id="orbit-images" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Orbit images</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    Items ride a circular orbit around a center point — pass avatars, logos or
+    Items ride a circular orbit around a center point: pass avatars, logos or
     labels. Counter-rotated so they stay upright.
   </p>
   <DemoCard code={SNIPPETS.orbitImages}>
@@ -668,7 +668,7 @@
 <section id="sticker-peel" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Sticker peel</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A corner of the card peels up on hover with a soft curl shadow — the sticker
+    A corner of the card peels up on hover with a soft curl shadow: the sticker
     lift. Hover the card.
   </p>
   <DemoCard code={SNIPPETS.stickerPeel}>
