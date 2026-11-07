@@ -813,9 +813,12 @@ widgets/features; page-specific conventions live here.
   as the screen readers' h1). `open(id)` shows that section alone (the
   rest of `.docs-flow` hidden; a pack of sections, `packs.ts` `PACKS`, each
   pack component and the nav naming its sections, mounts only once one of
-  its sections is opened here and stays after, so going back is instant
-  and keeps each demo's state, while the 300-odd others cost the page
-  nothing: 27,564 nodes on a section's page became 4,115;
+  its sections is opened here and stays while it is among the last
+  `PACKS_KEPT` (3) read (`visitPack`), so going back is instant and keeps
+  each demo's state, while the 300-odd others cost the page nothing:
+  27,564 nodes on a section's page became 4,115, and a long read lets the
+  oldest pack go (every section opened in one tab had kept 62k nodes and
+  461 canvases; now about 37k and 218 at worst, the three heaviest);
   `tests/docs-packs.spec.ts` holds every pack to its nav), pushes a history
   entry and reads from the top; back and forward walk them (`popstate`).
   The sidebar, search, the sheet and the pager all open through it. Over

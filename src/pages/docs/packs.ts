@@ -1,9 +1,12 @@
 // The docs' section packs and the sections each holds (its sibling nav):
 // a pack mounts only once one of its sections has been opened on this page,
-// and stays mounted after (its demos keep their state). The other 300-odd
-// sections cost the page nothing until asked for (measured: mounting every
-// pack put 27k nodes on a section's page, about 85 per section, for the one
-// on screen). The prerender asks for all of them (`ALL_SECTIONS_PARAM`).
+// and stays mounted while it is among the last few read (its demos keep
+// their state, going back is instant). The other 300-odd sections cost the
+// page nothing until asked for (measured: mounting every pack put 27k nodes
+// on a section's page, about 85 per section, for the one on screen), and a
+// long read never holds them all (measured: every section opened in one tab
+// kept 62k nodes and 461 canvases mounted). The prerender asks for all of
+// them (`ALL_SECTIONS_PARAM`).
 import { AUTH_NAV } from "./examples/auth-nav.ts"
 import { CHAT_NAV } from "./examples/chat-nav.ts"
 import { NOTIFICATIONS_NAV } from "./examples/notifications-nav.ts"
@@ -61,7 +64,25 @@ export type PackName = keyof typeof PACKS
  * prerender's, which lifts each section into its own page. */
 export const ALL_SECTIONS_PARAM = "all-sections"
 
-/** Whether a pack is mounted: one of its sections has been opened here, or
- * every pack is asked for. */
-export const packOpen = (name: PackName, seen: ReadonlySet<string>, all: boolean): boolean =>
-  all || PACKS[name].some((i) => seen.has(i.id))
+/** How many packs stay mounted: the one on screen and the last ones read
+ * before it. */
+export const PACKS_KEPT = 3
+
+const PACK_OF = new Map<string, PackName>(
+  (Object.entries(PACKS) as [PackName, readonly { id: string }[]][]).flatMap(([name, nav]) =>
+    nav.map((i) => [i.id, name] as const),
+  ),
+)
+
+/** The packs kept mounted, least recently read first, after opening section
+ * `id`: its pack moves to the end, and the oldest beyond `PACKS_KEPT` lets
+ * go. A section DocsPage writes itself leaves them as they are. */
+export function visitPack(kept: readonly PackName[], id: string): readonly PackName[] {
+  const name = PACK_OF.get(id)
+  if (!name || kept.at(-1) === name) return kept
+  return [...kept.filter((k) => k !== name), name].slice(-PACKS_KEPT)
+}
+
+/** Whether a pack is mounted: it is among the packs kept, or every pack is
+ * asked for. */
+export const packOpen = (name: PackName, kept: readonly PackName[], all: boolean): boolean => all || kept.includes(name)

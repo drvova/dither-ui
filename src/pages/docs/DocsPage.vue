@@ -43,7 +43,7 @@ import DemoCard from "./DemoCard.vue"
 import SectionShare from "./SectionShare.vue"
 import DocsNav, { docsUrl, type PagePart } from "./DocsNav.vue"
 import DocsSheet, { SHEET_ID } from "./DocsSheet.vue"
-import { ALL_SECTIONS_PARAM, packOpen, type PackName } from "./packs"
+import { ALL_SECTIONS_PARAM, packOpen, type PackName, visitPack } from "./packs"
 import { groupOf, neighbours, sectionOf, SECTION_IDS } from "./pages"
 import { SiteHeader } from "@/widgets/site-header"
 import OnThisPage from "./OnThisPage.vue"
@@ -548,19 +548,20 @@ const fromHistory = () => {
 
 /* Only the section on this page shows. A pack of sections mounts once one
    of them has been opened here (`packs.ts`), then stays, hidden while
-   another shows, so going back is instant and keeps each demo's state; the
-   prerender asks for every pack (`?all-sections`). The sections DocsPage
-   writes itself stay mounted, hidden. */
-const seen = shallowRef<ReadonlySet<string>>(new Set())
+   another shows, while it is among the last `PACKS_KEPT` read, so going
+   back is instant and keeps each demo's state, and a long read never holds
+   the whole docs; the prerender asks for every pack (`?all-sections`). The
+   sections DocsPage writes itself stay mounted, hidden. */
+const kept = shallowRef<readonly PackName[]>([])
 watch(
   shown,
   (id) => {
-    if (id && !seen.value.has(id)) seen.value = new Set([...seen.value, id])
+    if (id) kept.value = visitPack(kept.value, id)
   },
   { immediate: true, flush: "sync" },
 )
 const allSections = new URLSearchParams(location.search).has(ALL_SECTIONS_PARAM)
-const mounted = (name: PackName) => packOpen(name, seen.value, allSections)
+const mounted = (name: PackName) => packOpen(name, kept.value, allSections)
 watch(
   [shown, flow],
   ([id]) => {

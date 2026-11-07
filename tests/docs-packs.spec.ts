@@ -10,7 +10,7 @@ import { describe, expect, it } from "rstack/test"
 import { mount } from "@vue/test-utils"
 import DocsNav from "@/pages/docs/DocsNav.vue"
 import { GROUPS } from "@/pages/docs/groups"
-import { ALL_SECTIONS_PARAM, PACKS, packOpen, type PackName } from "@/pages/docs/packs"
+import { ALL_SECTIONS_PARAM, PACKS, PACKS_KEPT, packOpen, type PackName, visitPack } from "@/pages/docs/packs"
 
 const root = new URL("..", import.meta.url).pathname
 const DOCS = join(root, "src/pages/docs")
@@ -46,10 +46,22 @@ describe("docs section packs", () => {
   it("mounts a pack once one of its sections is opened, or all for the prerender", () => {
     const name: PackName = "BackgroundsDocs"
     const first = PACKS[name][0].id
-    expect(packOpen(name, new Set(), false)).toBe(false)
-    expect(packOpen(name, new Set(["getting-started"]), false)).toBe(false)
-    expect(packOpen(name, new Set([first]), false)).toBe(true)
-    expect(packOpen(name, new Set(), true)).toBe(true)
+    expect(packOpen(name, [], false)).toBe(false)
+    expect(packOpen(name, visitPack([], "getting-started"), false)).toBe(false)
+    expect(packOpen(name, visitPack([], first), false)).toBe(true)
+    expect(packOpen(name, [], true)).toBe(true)
+  })
+
+  it("keeps the last packs read mounted, never the whole docs", () => {
+    // every section opened in one tab once kept 62k nodes and 461 canvases
+    let kept: readonly PackName[] = []
+    for (const nav of Object.values(PACKS)) for (const { id } of nav) kept = visitPack(kept, id)
+    expect(kept).toEqual((Object.keys(PACKS) as PackName[]).slice(-PACKS_KEPT))
+    // going back to one still kept makes it the newest, and lets go of none
+    const back = visitPack(kept, PACKS[kept[0]][0].id)
+    expect(back).toEqual([...kept.slice(1), kept[0]])
+    // a section DocsPage writes itself changes nothing
+    expect(visitPack(back, "getting-started")).toBe(back)
   })
 
   it("is asked for whole by the prerender, which reads each family's name off its heading", () => {
