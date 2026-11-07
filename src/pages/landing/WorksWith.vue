@@ -17,8 +17,9 @@ import { HARNESSES, MODEL_NAMES, WORKS } from "./facts"
       <h2 id="works-h" class="section-title"><RiseWords text="Plays well with others." /></h2>
       <div class="sec-side">
         <p data-rise class="sec-lede">
-          Bring the stack you already have. The kit speaks your styling, the bridge wakes the agent you are already
-          signed in to, and the 3D surfaces read whatever model is lying around in your downloads.
+          <span class="lede-key">Bring the stack you already have.</span> The kit speaks your styling, the bridge wakes
+          the agent you are already signed in to, and the 3D surfaces read whatever model is lying around in your
+          downloads.
         </p>
         <a data-rise :href="routePath('/docs/styling')" class="more-link">See the styling switch</a>
       </div>

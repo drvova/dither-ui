@@ -234,8 +234,8 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
       <h2 id="examples-h" class="section-title"><RiseWords text="Every component, live." /></h2>
       <div class="sec-side">
         <p data-rise class="sec-lede">
-          {{ COMPONENT_COUNT }} components on one engine. Every card is the real thing, so poke it, then open its docs
-          for the props and the code.
+          {{ COMPONENT_COUNT }} components on one engine. <span class="lede-key">Every card is the real thing</span>, so
+          poke it, then open its docs for the props and the code.
         </p>
         <a data-rise :href="routePath('/docs')" class="more-link">See every section in the docs</a>
       </div>

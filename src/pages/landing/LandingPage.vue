@@ -293,9 +293,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             <h2 id="build-h" class="section-title"><RiseWords text="Built from the wire up." /></h2>
             <div class="sec-side">
               <p data-rise class="sec-lede">
-                Our mark and name in {{ BUILD_CELLS }} cells, each one a block, raised by the kit's world engine as you
-                scroll: the floor first, then each cell landing hot on it and cooling to metal. Keep going and it comes
-                apart. Point at it and the cells lean away.
+                Our mark and name in {{ BUILD_CELLS }} cells, each one a block,
+                <span class="lede-key">raised by the kit's world engine as you scroll</span>: the floor first, then each
+                cell landing hot on it and cooling to metal. Keep going and it comes apart. Point at it and the cells
+                lean away.
               </p>
               <a data-rise :href="routePath('/docs/world')" class="more-link">See the world engine</a>
             </div>
@@ -309,8 +310,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             <h2 id="ask-h" class="section-title"><RiseWords text="Your agent builds the screen." /></h2>
             <div class="sec-side">
               <p data-rise class="sec-lede">
-                Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a
-                frame of kit parts, and undo takes it back when it gets ideas.
+                Hand your coding agent the skill file and ask for a screen.
+                <span class="lede-key">Each tool call lands on the canvas as a frame of kit parts</span>, and undo takes
+                it back when it gets ideas.
               </p>
               <a data-rise :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
             </div>
@@ -326,7 +328,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             <div class="sec-side">
               <p data-rise class="sec-lede">
                 A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already
-                trust. No black boxes: all of it is code you can read.
+                trust. <span class="lede-key">No black boxes: all of it is code you can read.</span>
               </p>
             </div>
           </div>
@@ -399,7 +401,8 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
             <p data-rise class="sec-lede">
               Copy the kit into your app, add its {{ RUNTIME_DEPS.length }} packages and import from
-              <code>@dither-kit</code>. Or paste the agent prompt and your agent does all three.
+              <code>@dither-kit</code>.
+              <span class="lede-key">Or paste the agent prompt and your agent does all three.</span>
             </p>
             <DitherClipboard :value="prompt">
               <template #default="{ copied }">

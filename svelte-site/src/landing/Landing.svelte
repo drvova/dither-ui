@@ -169,8 +169,9 @@
           <h2 id="ask-h" class="section-title"><RiseWords text="Your agent builds the screen." /></h2>
           <div class="sec-side">
             <p data-rise class="sec-lede">
-              Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a frame of
-              kit parts, and undo takes it back when it gets ideas.
+              Hand your coding agent the skill file and ask for a screen.
+              <span class="lede-key">Each tool call lands on the canvas as a frame of kit parts</span>, and undo takes it
+              back when it gets ideas.
             </p>
             <a data-rise href={SKILL} class="more-link">Read the agent skill</a>
           </div>
@@ -186,7 +187,7 @@
           <div class="sec-side">
             <p data-rise class="sec-lede">
               A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already trust.
-              No black boxes: all of it is code you can read.
+              <span class="lede-key">No black boxes: all of it is code you can read.</span>
             </p>
           </div>
         </div>
@@ -248,7 +249,8 @@
           <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
           <p data-rise class="sec-lede">
             Copy the kit into your app, add its {RUNTIME_DEPS.length} packages and import from
-            <code>@dither-kit-svelte</code>. Or paste the agent prompt and your agent does all three.
+            <code>@dither-kit-svelte</code>.
+            <span class="lede-key">Or paste the agent prompt and your agent does all three.</span>
           </p>
           <button type="button" class="key prompt-key" onclick={() => prompt.copy(PROMPT)}>
             {prompt.copied ? "Copied" : "Copy agent prompt"}

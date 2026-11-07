@@ -157,6 +157,13 @@
   text-wrap: pretty;
 }
 
+/* Two tones: a lede reads in the muted ink, and the one clause that
+   carries its point steps up to the full ink, so the eye finds the point
+   without bold. One clause a lede. */
+.landing .lede-key {
+  color: var(--ink);
+}
+
 @media (max-width: 899px) {
   .landing .sec-head {
     grid-template-columns: minmax(0, 1fr);

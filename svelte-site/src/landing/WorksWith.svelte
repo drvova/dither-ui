@@ -15,7 +15,7 @@
     <h2 id="works-h" class="section-title"><RiseWords text="Plays well with others." /></h2>
     <div class="sec-side">
       <p data-rise class="sec-lede">
-        Bring the stack you already have. The kit themes from plain CSS variables under your Tailwind, and the bridge
+        <span class="lede-key">Bring the stack you already have.</span> The kit themes from plain CSS variables under your Tailwind, and the bridge
         wakes the agent you are already signed in to.
       </p>
       <a data-rise href={docsHref("styling")} class="more-link">Read the styling guide</a>

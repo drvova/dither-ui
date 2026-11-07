@@ -65,7 +65,9 @@ widgets/features; page-specific conventions live here.
   `.section-title` left, in the display face (Michroma 400,
   `clamp(1.6rem, 3.4vw, 2.75rem)`) in the plain bone ink (chrome is the
   hero statement's and the primary key's alone); `.sec-side`
-  right, on its baseline, a `.sec-lede` and a `.more-link`; stacked under
+  right, on its baseline, a `.sec-lede` (two tones: the muted ink, its one
+  key clause, `.lede-key`, in the full ink, so the eye finds the point
+  without bold; `tests/ledes.spec.ts`, both landings) and a `.more-link`; stacked under
   900px; it rises as it comes into view: `v-rise` on the head, the title's
   words through `RiseWords`, the lede and the link `data-rise` after them,
   the hero's statement likewise, and the blocks under a head (the three
