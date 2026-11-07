@@ -40,7 +40,9 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
   `command.ts` (the install command's pieces), `film.ts` (the film's
   title and description), `pixel-type.ts`, `plate.ts`, `heat.ts` (the heat of the plates and the
-  close, painted by `src/landing/HeatPrint.svelte`), `spotlight.ts`, `stat.ts`, `story.ts`), the
+  close, painted by `src/landing/HeatPrint.svelte`; the running close in a
+  worker through `heat-offload.ts`, `heat-ask.ts` and `heat-worker.ts`),
+  `spotlight.ts`, `stat.ts`, `story.ts`), the
   rise (from `src/shared/lib/`; `rise.ts`, `rise-wait.ts`: `use:rise` on the
   hero's statement, each section head and the block groups under them, the words from
   `src/landing/RiseWords.svelte`), and the

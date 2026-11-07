@@ -18,7 +18,7 @@ export type ShaderChannel = ChannelInput
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import { directedTime } from "../engine/clock"
+import { directedTime, isDirected } from "../engine/clock"
 import { buildProgram, type Channels, createChannels, createGl, type GlHandle } from "../engine/gl"
 import { cn } from "./lib"
 import { clamp01, fillOf, type PixelColor } from "../engine/pixel"
@@ -246,7 +246,16 @@ function draw(buffer: RasterBuffer, clock: number, dt: number) {
   if (u.mouse) gl.uniform2f(u.mouse, mouse.x, mouse.y)
   if (u.u_mouse) gl.uniform2f(u.u_mouse, mouse.x * w, mouse.y * h)
   gl.drawArrays(gl.TRIANGLES, 0, 3)
-  pixels = handle.read(pixels)
+  // Running, it reads back without waiting on the GPU (a paint behind,
+  // never a stall); one frame that must be exact, a paused surface's last
+  // or a directed moment, reads at once. Nothing back yet: the raster
+  // holds the last.
+  if (props.paused || isDirected()) pixels = handle.read(pixels)
+  else {
+    const behind = handle.readBehind(pixels)
+    if (!behind) return
+    pixels = behind
+  }
   ditherShaderPixels(pixels, buffer, dither.value)
 }
 

@@ -571,7 +571,9 @@ the kit every import is relative (`../engine/pixel`).
   turns them outward; `nudge` leans the pieces near a point on the target
   away from it, eased back by `dt`. Whole and still it is the model as it
   was. A piece's turn is taken as a cosine and sine once a frame, never
-  per vertex, and the pose is pinned bit for bit (`POSE_HASH`). `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
+  per vertex, a static model's cage dots are laid once per edge and
+  copied in, never pushed dot by dot each frame, and the pose is pinned
+  bit for bit (`POSE_HASH`). `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
   the ember by default) and `nudge` (the pointer's point); it takes the
   model apart only when one of them asks. `tests/assemble.spec.ts`.
   `tests/world.spec.ts`,
@@ -623,7 +625,10 @@ the kit every import is relative (`../engine/pixel`).
 - `gl.ts` is the kit's one piece of WebGL plumbing, shared by the GLSL
   surface, the world's GPU engine and the material pass: `createGl` (an
   offscreen WebGL2 or WebGL1 context, context-loss flag, `size`, `read`
-  back, `dispose`), `buildProgram` (the compiler's first line as the
+  back, `readBehind` (WebGL2: the read into a pixel buffer behind a fence,
+  collected on a later call once the GPU is done, an earlier draw's
+  pixels or null; never a stall; WebGL1 reads at once;
+  `tests/gl-readback.spec.ts`), `dispose`), `buildProgram` (the compiler's first line as the
   error) and the channel binding: `ChannelInput` (a surface, a component
   instance, a kit canvas → its surface; any canvas, image or video),
   `bindChannel`, `createChannels` (the four textures of one program,
@@ -646,7 +651,9 @@ the kit every import is relative (`../engine/pixel`).
   carries. The component owns one `gl.ts` context at the cell resolution
   (released on unmount), feeds `SHADER_UNIFORMS` (the Shadertoy set, the
   kit's, and the glslsandbox / Book-of-Shaders aliases), reads back and
-  dithers each frame; `iTime` is the kit clock, so it seeks and renders
+  dithers each frame (running, through `readBehind`, a paint behind and
+  never a stall; a paused surface's frame and a directed moment through
+  `read`, exact); `iTime` is the kit clock, so it seeks and renders
   like every surface (HyperFrames' renderer has WebGL2 through SwiftShader
   — verified by a real render). Without WebGL it shows "WebGL is not
   available"; a compile error shows the compiler's first line. Its first

@@ -534,7 +534,12 @@ widgets/features; page-specific conventions live here.
   a cell in a hundred of the exact fold at a quarter of its noise, a
   phone's finer fold every cell (`tests/heat.spec.ts`), `closeField`
   here, copied byte for byte to the Svelte landing; `HeatPrint.vue` paints
-  it on the kit's background runtime at `CLOSE.fps`): ink in water through
+  it on the kit's background runtime at `CLOSE.fps`; while it runs the
+  close is painted in a worker, `heat-offload.ts` (the page's side: each
+  paint takes the worker's latest frame and asks for the one due at the
+  next paint) and `heat-ask.ts` + `heat-worker.ts` (the worker's), a
+  still sheet and the first paint painting at once, every paint without
+  workers; `tests/heat-offload.spec.ts`): ink in water through
   `RAMP`, so the plates, the close and the footer's road are one material.
   Its top is the page's open ground (4 rhythms of air above the head, as
   between sections): heat rises off the band's flat foot (`CLOSE.reach`,
