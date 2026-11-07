@@ -13,6 +13,8 @@
   import TrailerDialog from "./TrailerDialog.svelte"
   import { createDrive } from "./drive"
   import { onDestroy } from "svelte"
+  import RiseWords from "./RiseWords.svelte"
+  import { rise } from "./rise"
 
   let film = $state(false)
 
@@ -33,20 +35,22 @@
 
 <section aria-labelledby="hero-h" class="hero">
   <div class="hero-in">
-    <div class="statement">
-      <h1 id="hero-h" class="hero-h chrome-type">A dithered UI toolkit for Svelte.</h1>
-      <p class="hero-lede">
+    <!-- The statement rises as the page opens: the headline word by word,
+         then the lede, the keys and what it works with. -->
+    <div use:rise class="statement">
+      <h1 id="hero-h" class="hero-h"><RiseWords text="A dithered UI toolkit for Svelte." word="chrome-type" /></h1>
+      <p data-rise class="hero-lede">
         {COMPONENT_COUNT} components, from charts and controls to backgrounds and text effects, each printed cell by cell
         through one seeded {MATRIX} matrix. Copy the folder into a Svelte 5 app and change what you need.
       </p>
-      <div class="hero-keys">
+      <div data-rise class="hero-keys">
         <a href={STUDIO} class="nav-a key-chrome primary">Open the studio</a>
         <a href={docsHref()} class="key">Read the docs</a>
         <button type="button" class="key" onclick={() => (film = true)}>
           <span class="play" aria-hidden="true"></span>Watch the film
         </button>
       </div>
-      <div class="works">
+      <div data-rise class="works">
         <span id="works-l">Works with</span>
         <ul aria-labelledby="works-l">
           {#each WORKS as t (t.id)}

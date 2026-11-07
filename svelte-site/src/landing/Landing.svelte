@@ -8,6 +8,8 @@
   // and a footer of the brand and link columns over the line-screen
   // wordmark. Michroma for display, mono for the rest; everything that
   // moves is the kit.
+  import RiseWords from "./RiseWords.svelte"
+  import { rise } from "./rise"
   import { Circuit, DitherAvatar, DitherGradient, DitherScreen, type ScreenKind } from "@dither-kit-svelte"
   import "../fonts/display.css"
   import { copier } from "../copy.svelte"
@@ -139,14 +141,14 @@
 
       <!-- Ask: one agent session, played as the page scrolls past it. -->
       <section id="ask" aria-labelledby="ask-h" class="sec">
-        <div class="sec-head">
-          <h2 id="ask-h" class="section-title">Your agent builds the screen.</h2>
+        <div use:rise class="sec-head">
+          <h2 id="ask-h" class="section-title"><RiseWords text="Your agent builds the screen." /></h2>
           <div class="sec-side">
-            <p class="sec-lede">
+            <p data-rise class="sec-lede">
               Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a frame of
               kit parts, and undo takes it back when it gets ideas.
             </p>
-            <a href={SKILL} class="more-link">Read the agent skill</a>
+            <a data-rise href={SKILL} class="more-link">Read the agent skill</a>
           </div>
         </div>
         <AgentStory />
@@ -155,10 +157,10 @@
       <!-- What's inside: the kit, the Studio, the bridge; then the docs' big
            families, each with its size and a line. -->
       <section id="inside" aria-labelledby="inside-h" class="sec">
-        <div class="sec-head">
-          <h2 id="inside-h" class="section-title">Three parts, one engine.</h2>
+        <div use:rise class="sec-head">
+          <h2 id="inside-h" class="section-title"><RiseWords text="Three parts, one engine." /></h2>
           <div class="sec-side">
-            <p class="sec-lede">
+            <p data-rise class="sec-lede">
               A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already trust.
               No black boxes: all of it is code you can read.
             </p>
@@ -205,9 +207,9 @@
 
       <!-- The install, centred. -->
       <section id="install" aria-labelledby="install-h" class="sec install">
-        <div class="install-head">
-          <h2 id="install-h" class="section-title">Copy one folder. Every pixel is yours.</h2>
-          <p class="sec-lede">
+        <div use:rise class="install-head">
+          <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
+          <p data-rise class="sec-lede">
             Copy the kit into your app, add its {RUNTIME_DEPS.length} packages and import from
             <code>@dither-kit-svelte</code>. Or paste the agent prompt and your agent does all three.
           </p>

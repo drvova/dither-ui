@@ -40,8 +40,9 @@ import {
   type DitherColor,
   type ScreenKind,
 } from "@dither-kit"
-import { routePath } from "@/shared/lib"
+import { routePath, vRise } from "@/shared/lib"
 import { COMPONENT_COUNT } from "./facts"
+import RiseWords from "./RiseWords.vue"
 import { BENTO, staggers } from "./hub"
 import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "./stat"
 import PauseChip from "./PauseChip.vue"
@@ -229,14 +230,14 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
 
 <template>
   <section id="examples" aria-labelledby="examples-h" class="examples">
-    <div class="sec-head">
-      <h2 id="examples-h" class="section-title">Every component, live.</h2>
+    <div v-rise class="sec-head">
+      <h2 id="examples-h" class="section-title"><RiseWords text="Every component, live." /></h2>
       <div class="sec-side">
-        <p class="sec-lede">
+        <p data-rise class="sec-lede">
           {{ COMPONENT_COUNT }} components on one engine. Every card is the real thing, so poke it, then open its docs
           for the props and the code.
         </p>
-        <a :href="routePath('/docs')" class="more-link">See every section in the docs</a>
+        <a data-rise :href="routePath('/docs')" class="more-link">See every section in the docs</a>
       </div>
     </div>
 
@@ -257,7 +258,7 @@ const SILK = [BLUE[2], BLUE[4], BLUE[2]]
           :class="FLUSH.has(t.id) ? 'card-art flush' : 'card-art'"
           :duration="0.72"
           :delay="delays[i] ?? 0"
-          easing="spring"
+          easing="glide"
         >
           <template v-if="t.id === 'world'">
             <DitherWorld

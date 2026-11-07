@@ -20,8 +20,9 @@ import {
   type PixelColor,
   type ScreenKind,
 } from "@dither-kit"
-import { assetPath, routePath } from "@/shared/lib"
+import { assetPath, routePath, vRise } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import RiseWords from "./RiseWords.vue"
 import "@/shared/fonts/display.css"
 import "./chapters.css"
 import { version } from "../../../package.json"
@@ -270,15 +271,15 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <!-- The build: the brand itself, cell by cell, raised by the world
              engine as the page scrolls past it. -->
         <section id="build" aria-labelledby="build-h" class="sec">
-          <div class="sec-head">
-            <h2 id="build-h" class="section-title">Built from the wire up.</h2>
+          <div v-rise class="sec-head">
+            <h2 id="build-h" class="section-title"><RiseWords text="Built from the wire up." /></h2>
             <div class="sec-side">
-              <p class="sec-lede">
+              <p data-rise class="sec-lede">
                 Our mark and name in {{ BUILD_CELLS }} cells, each one a block, raised by the kit's world engine as you
                 scroll: the floor first, then each cell landing hot on it and cooling to metal. Keep going and it comes
                 apart. Point at it and the cells lean away.
               </p>
-              <a :href="routePath('/docs/world')" class="more-link">See the world engine</a>
+              <a data-rise :href="routePath('/docs/world')" class="more-link">See the world engine</a>
             </div>
           </div>
           <BrandBuild />
@@ -286,14 +287,14 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
         <!-- Ask: one agent session, played as the page scrolls past it. -->
         <section id="ask" aria-labelledby="ask-h" class="sec">
-          <div class="sec-head">
-            <h2 id="ask-h" class="section-title">Your agent builds the screen.</h2>
+          <div v-rise class="sec-head">
+            <h2 id="ask-h" class="section-title"><RiseWords text="Your agent builds the screen." /></h2>
             <div class="sec-side">
-              <p class="sec-lede">
+              <p data-rise class="sec-lede">
                 Hand your coding agent the skill file and ask for a screen. Each tool call lands on the canvas as a
                 frame of kit parts, and undo takes it back when it gets ideas.
               </p>
-              <a :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
+              <a data-rise :href="assetPath('/agent/SKILL.md')" class="more-link">Read the agent skill</a>
             </div>
           </div>
           <AgentStory />
@@ -302,10 +303,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         <!-- What's inside: the kit, the Studio, the bridge; then the docs'
              big families, each with its size and a line. -->
         <section id="inside" aria-labelledby="inside-h" class="sec">
-          <div class="sec-head">
-            <h2 id="inside-h" class="section-title">Three parts, one engine.</h2>
+          <div v-rise class="sec-head">
+            <h2 id="inside-h" class="section-title"><RiseWords text="Three parts, one engine." /></h2>
             <div class="sec-side">
-              <p class="sec-lede">
+              <p data-rise class="sec-lede">
                 A toolkit you copy into your repo, a Studio to play in, and a bridge to the coding agent you already
                 trust. No black boxes: all of it is code you can read.
               </p>
@@ -318,7 +319,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
               :ref="(el) => c.art === 'circuit' && (boardCard = el as HTMLElement)"
             >
               <DitherScreen :screen="c.screen">
-                <DitherReveal class="inside-art" :duration="0.72" easing="spring" aria-hidden="true">
+                <DitherReveal class="inside-art" :duration="0.72" easing="glide" aria-hidden="true">
                   <DitherCircuit
                     v-if="c.art === 'circuit'"
                     :ink="c.ink"
@@ -363,9 +364,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
         <!-- The install, centred. -->
         <section id="install" aria-labelledby="install-h" class="sec install">
-          <div class="install-head">
-            <h2 id="install-h" class="section-title">Copy one folder. Every pixel is yours.</h2>
-            <p class="sec-lede">
+          <div v-rise class="install-head">
+            <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
+            <p data-rise class="sec-lede">
               Copy the kit into your app, add its {{ RUNTIME_DEPS.length }} packages and import from
               <code>@dither-kit</code>. Or paste the agent prompt and your agent does all three.
             </p>

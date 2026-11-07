@@ -81,7 +81,9 @@ the kit every import is relative (`../engine/pixel`).
   mark; one shape at every duration), the `"spring"` easing name in
   `dither-paint.ts` (both kits). It also gives the curve as CSS `linear()`
   (`springLinear`) and the closest bezier (`SPRING_BEZIER`, within 3.5%)
-  for stylesheets; the site eases everything on it
+  for stylesheets. The `"glide"` easing (`glide`, `GLIDE_BEZIER`, in
+  `dither-paint.ts`) leaves at full speed and settles long and soft,
+  never past its mark; the site eases everything on it
   (`tests/motion.spec.ts`).
 
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus

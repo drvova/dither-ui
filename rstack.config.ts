@@ -7,6 +7,7 @@ import { define } from "rstack"
 import type { RsbuildPlugin } from "rstack/app"
 import { installHead } from "./src/app/install-files.ts"
 import { PAGE_END_ID, PAGE_REVEAL_SCRIPT } from "./src/app/page-reveal.ts"
+import { RISE_HEAD_SCRIPT } from "./src/shared/lib/rise-wait.ts"
 
 const root = import.meta.dirname
 const at = (path: string) => resolve(root, path)
@@ -176,13 +177,15 @@ define.app(async ({ command }) => {
     html: {
       template: ({ entryName }) => at(pages[entryName].html),
       // The site's routes take a page transition over before their first
-      // frame (src/app/page-reveal.ts).
+      // frame (src/app/page-reveal.ts), hold what rises until the app rises
+      // it (src/shared/lib/rise-wait.ts),
       // and carry the site's icons; the Studio's page, the app's manifest and
       // iOS's app tags too.
       tags: (tags, { entryName }) =>
         pages[entryName].main === SITE_MAIN
           ? [
               { tag: "script", children: PAGE_REVEAL_SCRIPT, head: true, append: false },
+              { tag: "script", children: RISE_HEAD_SCRIPT, head: true, append: false },
               ...installHead(entryName).map((t) => ({ ...t, head: true })),
               ...tags,
               { tag: "span", attrs: { id: PAGE_END_ID, hidden: true }, head: false, append: true },

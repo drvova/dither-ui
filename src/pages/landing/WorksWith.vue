@@ -5,21 +5,22 @@
 // besides) and their files (every model format the kit reads, named in the
 // kit's order).
 import { MODEL_FORMATS } from "@dither-kit/engine/models"
-import { routePath } from "@/shared/lib"
+import { routePath, vRise } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import RiseWords from "./RiseWords.vue"
 import { HARNESSES, MODEL_NAMES, WORKS } from "./facts"
 </script>
 
 <template>
   <section id="works" aria-labelledby="works-h" class="sec">
-    <div class="sec-head">
-      <h2 id="works-h" class="section-title">Plays well with others.</h2>
+    <div v-rise class="sec-head">
+      <h2 id="works-h" class="section-title"><RiseWords text="Plays well with others." /></h2>
       <div class="sec-side">
-        <p class="sec-lede">
+        <p data-rise class="sec-lede">
           Bring the stack you already have. The kit speaks your styling, the bridge wakes the agent you are already
           signed in to, and the 3D surfaces read whatever model is lying around in your downloads.
         </p>
-        <a :href="routePath('/docs/styling')" class="more-link">See the styling switch</a>
+        <a data-rise :href="routePath('/docs/styling')" class="more-link">See the styling switch</a>
       </div>
     </div>
     <div class="works">

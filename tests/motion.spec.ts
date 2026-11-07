@@ -1,12 +1,13 @@
-// Apple motion everywhere (the user's call): one smooth spring eases every
-// transition and every driven wipe on the site. The kit's spring is the
-// source; each stylesheet's `linear()` copy is that function, its fallback
-// bezier stays close to it, the kit's "spring" easing is it, and no
-// hand-written curve or linear wipe is left in the site's own motion.
+// The glide everywhere (the user's call): one curve eases every transition
+// and every driven wipe on the site, full speed from the first frame and a
+// long soft settle, never past its mark. The kit's "glide" easing is the
+// source (`GLIDE_BEZIER`); both stylesheets carry that bezier, and no other
+// curve or linear wipe is left in the site's own motion. The kit's spring
+// stays the kit's (its "spring" easing), held here too.
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
-import { resolveEasing } from "../dither-kit/engine/dither-paint"
+import { GLIDE_BEZIER, glide, resolveEasing } from "../dither-kit/engine/dither-paint"
 import { SPRING_BEZIER, spring, springLinear } from "../dither-kit/engine/spring"
 import { cubicBezier } from "../dither-kit/engine/dither-paint"
 import { SHEET_WIPE } from "../src/widgets/site-header/menu"
@@ -22,6 +23,7 @@ const MOTION_FILES = [
   "src/pages/docs/DocsSheet.vue",
   "src/pages/studio/StudioPage.vue",
   "src/widgets/toolbar/Toolbar.vue",
+  "src/shared/lib/rise.ts",
 ]
 
 function* files(dir: string): Generator<string> {
@@ -52,27 +54,49 @@ describe("the spring", () => {
     for (let i = 0; i <= 50; i++) expect(Math.abs(bezier(i / 50) - spring(i / 50))).toBeLessThan(0.035)
   })
 
-  it("is what both sites' stylesheets carry, the bezier where linear() is not supported", () => {
+  it("has its linear() copy for a kit user's stylesheet", () => {
+    expect(springLinear()).toMatch(/^linear\(0, .*, 1\)$/)
+  })
+})
+
+describe("the glide", () => {
+  it("leaves at full speed, lands on its mark and never passes it", () => {
+    expect(glide(0)).toBe(0)
+    expect(Math.abs(glide(1) - 1)).toBeLessThan(1e-6)
+    // decisive: a tenth of the time covers more than a third of the way
+    expect(glide(0.1)).toBeGreaterThan(0.33)
+    // the spring, from rest, has covered under a quarter by then
+    expect(glide(0.1)).toBeGreaterThan(spring(0.1) * 1.6)
+    let last = 0
+    for (let i = 1; i <= 200; i++) {
+      const v = glide(i / 200)
+      expect(v).toBeGreaterThanOrEqual(last - 1e-9)
+      expect(v).toBeLessThanOrEqual(1 + 1e-6)
+      last = v
+    }
+    expect(resolveEasing("glide")).toBe(resolveEasing("glide"))
+    expect(resolveEasing("glide")(0.5)).toBeCloseTo(glide(0.5))
+  })
+
+  it("is what both sites' stylesheets carry", () => {
     for (const sheet of ["src/app/styles.css", "svelte-site/src/landing/landing.css"]) {
-      // Whitespace aside: the formatter wraps the long value.
-      const css = read(sheet).replace(/\s+/g, " ").replace(/\( /g, "(").replace(/,? \)/g, ")")
-      expect(css).toContain(`--ease-settle: ${springLinear()};`)
-      expect(css).toContain(`--ease-settle: cubic-bezier(${SPRING_BEZIER.join(", ")});`)
-      // The linear() copy comes after the fallback, so it wins where supported.
-      expect(css.indexOf("--ease-settle: linear(")).toBeGreaterThan(css.indexOf("--ease-settle: cubic-bezier("))
+      const css = read(sheet)
+      expect(css).toContain(`--ease-settle: cubic-bezier(${GLIDE_BEZIER.join(", ")});`)
+      expect(css).not.toContain("--ease-settle: linear(")
     }
     expect(read("src/app/styles.css")).toContain("--default-transition-timing-function: var(--ease-settle);")
   })
 
-  it("moves everything on the site: no hand-written curve, no linear wipe", () => {
+  it("moves everything on the site: no other curve, no linear wipe", () => {
     const off: string[] = []
     for (const file of [...MOTION_ROOTS.flatMap((d) => [...files(d)]), ...MOTION_FILES]) {
       const text = read(file)
-      for (const m of text.matchAll(/cubic-bezier\(([^)]*)\)/g))
-        if (m[1] !== SPRING_BEZIER.join(", ")) off.push(`${file}: ${m[0]}`)
-      for (const m of text.matchAll(/easing(?:=|: )"linear"/g)) off.push(`${file}: ${m[0]}`)
+      // a curve written out, or the glide's own (`GLIDE_BEZIER` joined in)
+      for (const m of text.matchAll(/cubic-bezier\((\$\{GLIDE_BEZIER\.join\(", "\)\}|[^)]*)\)/g))
+        if (m[1] !== GLIDE_BEZIER.join(", ") && !m[1].startsWith("${GLIDE_BEZIER")) off.push(`${file}: ${m[0]}`)
+      for (const m of text.matchAll(/easing(?:=|: )"(linear|spring)"/g)) off.push(`${file}: ${m[0]}`)
     }
     expect(off).toEqual([])
-    expect(SHEET_WIPE.easing).toBe("spring")
+    expect(SHEET_WIPE.easing).toBe("glide")
   })
 })

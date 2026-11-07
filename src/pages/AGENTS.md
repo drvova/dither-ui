@@ -66,7 +66,10 @@ widgets/features; page-specific conventions live here.
   `clamp(1.6rem, 3.4vw, 2.75rem)`) in the plain bone ink (chrome is the
   hero statement's and the primary key's alone); `.sec-side`
   right, on its baseline, a `.sec-lede` and a `.more-link`; stacked under
-  900px), `.lead` and `.more-link` (an underline that inks on hover, a
+  900px; it rises as it comes into view: `v-rise` on the head, the title's
+  words through `RiseWords`, the lede and the link `data-rise` after them,
+  the hero's statement likewise; `shared/lib/rise.ts`, and every riser
+  stands inside a `v-rise`, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
   24px target through padding cancelled by a negative margin), `.key` (a
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
@@ -91,8 +94,8 @@ widgets/features; page-specific conventions live here.
   native modal `<dialog>` filling the window, itself clear so the page
   shows wherever the wipe has not reached (focus on its close key, focus
   back on the key, the page held still), arriving as the kit's wipe down
-  the screen on the spring (`DitherReveal`, `SHEET_WIPE`: 0.5s,
-  `"spring"`). Every sheet's words stand on the header's lines (`--sheet-start`
+  the screen on the glide (`DitherReveal`, `SHEET_WIPE`: 0.5s,
+  `"glide"`). Every sheet's words stand on the header's lines (`--sheet-start`
   and `--sheet-end` in `site-header.css`, from the capsule's own gutter,
   width and padding: the brand mark's edge and the key word's, centred
   capsule included). The close key and Escape (the
@@ -121,7 +124,7 @@ widgets/features; page-specific conventions live here.
   the upper through the Bayer matrix (`SEAM_MASK`, the kit's wipe engine
   at a fixed progress; `seamStyle(fill)` is the seam whole, placed, for any
   sheet's bands). A hovered, focused or pressed band's words lean in
-  (8px, 12px pressed, on the spring, 350ms; the hover only under
+  (8px, 12px pressed, on the glide, 350ms; the hover only under
   `(hover: hover)`, since a tap's hover sticks on a phone) and the menu key's bands
   part on a hover (none of it under reduced motion). A focused band rings
   in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
@@ -133,8 +136,8 @@ widgets/features; page-specific conventions live here.
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
   holding on the page width the statement beside the print (columns
   1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
-  (`.statement`): the h1 in the display face (Michroma 400) and chrome at
-  display size (`clamp(2rem, 3.9vw, 3.5rem)`, two or three short lines),
+  (`.statement`, rising as the page opens): the h1 in the display face
+  (Michroma 400) and chrome on each of its words at display size (`clamp(2rem, 3.9vw, 3.5rem)`, two or three short lines),
   the lede (three or four lines), the keys (`.key-chrome` "Open the
   studio", `.key` "Read the docs" and "Watch the film" under the Play
   glyph, which opens the trailer; `TrailerDialog` lives in the hero),
@@ -262,7 +265,7 @@ widgets/features; page-specific conventions live here.
   picture (the stageshow skill's bento rules): neighbours across and down
   are different kinds, never two moving surfaces side by side, and no
   card repeats another's words or the ask's Deploys screen. Each card's art is a `DitherReveal` (the
-  8×8 Bayer dissolve, 0.72s, on the spring): it prints itself once as it comes
+  8×8 Bayer dissolve, 0.72s, on the glide): it prints itself once as it comes
   into view, at once under reduced motion, a row's cards one after another
   left to right (`staggers` in `hub.ts`, 90ms apart, read from the laid-out
   bento; a rail's cards past its width arrive as they are swiped in). A
@@ -480,7 +483,7 @@ widgets/features; page-specific conventions live here.
   the bone ink through its `DitherScreen` showing only the thin ends of
   their ramps, and the brand's moment in the band, pulled in from the
   right edge (16px clear) where the plate is narrow, while the tone prints
-  in through `DitherReveal` (0.72s on the spring, the lights coming on).
+  in through `DitherReveal` (0.72s on the glide, the lights coming on).
   `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and every
   plate's mark inside its band, its tones thin.
   A new plate is a row in the table and a `<Plate>` at a section break.

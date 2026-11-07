@@ -38,7 +38,10 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   (from `src/shared/ui/marks.ts`), `src/fonts/` (Michroma's `display.css`,
   `michroma-latin.woff2` and its `OFL.txt`, from `src/shared/fonts/`), and
   the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
-  `pixel-type.ts`, `plate.ts`, `spotlight.ts`, `stat.ts`, `story.ts`), and the
+  `pixel-type.ts`, `plate.ts`, `spotlight.ts`, `stat.ts`, `story.ts`), the
+  rise (from `src/shared/lib/`; `rise.ts`, `rise-wait.ts`: `use:rise` on the
+  hero's statement and each section head, the words from
+  `src/landing/RiseWords.svelte`), and the
   Vue header's menu table and stylesheet (from `src/widgets/site-header/`;
   `menu.ts`, `site-header.css`, which `src/landing/SiteHeader.svelte` uses
   with its own addresses (`HREF` by link id), its own wipe action over the

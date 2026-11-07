@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { routePath } from "@/shared/lib"
+import { routePath, vRise } from "@/shared/lib"
 import { DitherIcon, DitherPoster, DitherReveal } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { COMPONENT_COUNT, MATRIX, WORKS } from "./facts"
 import { STAGINGS } from "./brand"
 import { INKS } from "./plate"
 import BrandGather from "./BrandGather.vue"
+import RiseWords from "./RiseWords.vue"
 import TrailerDialog from "./TrailerDialog.vue"
 import { useDrive } from "./drive"
 
@@ -36,20 +37,22 @@ function settled() {
 <template>
   <section aria-labelledby="hero-h" class="hero">
     <div class="hero-in">
-      <div class="statement">
-        <h1 id="hero-h" class="hero-h chrome-type">A dithered UI toolkit for Vue.</h1>
-        <p class="hero-lede">
+      <!-- The statement rises as the page opens: the headline word by word,
+           then the lede, the keys and what it works with. -->
+      <div v-rise class="statement">
+        <h1 id="hero-h" class="hero-h"><RiseWords text="A dithered UI toolkit for Vue." word="chrome-type" /></h1>
+        <p data-rise class="hero-lede">
           {{ COMPONENT_COUNT }} components, from charts and controls to GLSL and 3D, each printed cell by cell through
           one seeded {{ MATRIX }} matrix. Copy the folder into a Vue 3 or Svelte 5 app and change what you need.
         </p>
-        <div class="hero-keys">
+        <div data-rise class="hero-keys">
           <a :href="routePath('/studio')" class="nav-a key-chrome primary">Open the studio</a>
           <a :href="routePath('/docs')" class="key">Read the docs</a>
           <button type="button" class="key" @click="film = true">
             <DitherIcon name="Play" :size="12" :stroke-width="1.5" />Watch the film
           </button>
         </div>
-        <div class="works">
+        <div data-rise class="works">
           <span id="works-l">Works with</span>
           <ul aria-labelledby="works-l">
             <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="13" />{{ t.name }}</li>

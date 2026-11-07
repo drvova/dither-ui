@@ -24,9 +24,9 @@
   --border: #e4e1d8;
   --ring: #e4e1d8;
   --float-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(212 220 225 / 0.14);
-  /* Apple's smooth spring (the Vue site's token: `--ease-settle` in its
-     styles.css; tests/motion.spec.ts holds both to the kit's spring). */
-  --ease-settle: cubic-bezier(0.29, 0.6, 0.14, 1);
+  /* The glide (the Vue site's token: `--ease-settle` in its styles.css;
+     tests/motion.spec.ts holds both to the kit's glide). */
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
   /* Display type: Michroma (the Vue site's self-hosted face), the mono
      until it loads. Body, labels, figures and code stay mono. */
   --display-face: "Michroma", var(--font-mono);
@@ -273,45 +273,5 @@
   }
   .landing .seg > button[aria-pressed="true"] {
     outline: 1px solid Highlight;
-  }
-}
-
-@supports (transition-timing-function: linear(0, 1)) {
-  :root:has(.landing) {
-    --ease-settle: linear(
-      0,
-      0.0344,
-      0.1145,
-      0.2151,
-      0.3209,
-      0.4231,
-      0.5167,
-      0.5997,
-      0.6715,
-      0.7326,
-      0.7837,
-      0.826,
-      0.8608,
-      0.8892,
-      0.9121,
-      0.9306,
-      0.9453,
-      0.9572,
-      0.9665,
-      0.974,
-      0.9798,
-      0.9845,
-      0.9881,
-      0.991,
-      0.9932,
-      0.9949,
-      0.9963,
-      0.9974,
-      0.9982,
-      0.9988,
-      0.9993,
-      0.9997,
-      1
-    );
   }
 }

@@ -4,19 +4,21 @@
   // its own mark) and their agent (the bridge's harnesses, and any command
   // besides). The Vue page's third list, the model formats, waits on the
   // Svelte kit's 3D surfaces.
+  import RiseWords from "./RiseWords.svelte"
+  import { rise } from "./rise"
   import { HARNESSES, WORKS, docsHref } from "./facts"
   import ToolMark from "./ToolMark.svelte"
 </script>
 
 <section id="works" aria-labelledby="works-h" class="sec">
-  <div class="sec-head">
-    <h2 id="works-h" class="section-title">Plays well with others.</h2>
+  <div use:rise class="sec-head">
+    <h2 id="works-h" class="section-title"><RiseWords text="Plays well with others." /></h2>
     <div class="sec-side">
-      <p class="sec-lede">
+      <p data-rise class="sec-lede">
         Bring the stack you already have. The kit themes from plain CSS variables under your Tailwind, and the bridge
         wakes the agent you are already signed in to.
       </p>
-      <a href={docsHref("styling")} class="more-link">Read the styling guide</a>
+      <a data-rise href={docsHref("styling")} class="more-link">Read the styling guide</a>
     </div>
   </div>
   <div class="works">

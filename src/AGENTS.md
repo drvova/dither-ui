@@ -587,10 +587,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   a light `--muted-foreground` a step deeper than the kit's (`#5b6270`,
   AA on the bone grounds, not only on white; the faintest text ink: no
   ink fades below it, so never `color-mix` it toward transparent),
-  `--float-shadow`, `--ease-settle` (Apple's smooth spring: the kit's
-  `springLinear()` as CSS `linear()` under `@supports`, its closest bezier
-  `SPRING_BEZIER` before it; also Tailwind's default transition curve, so
-  every `transition-*` utility springs; `tests/motion.spec.ts` holds both
+  `--float-shadow`, `--ease-settle` (the glide: the kit's
+  `GLIDE_BEZIER`; also Tailwind's default transition curve, so every
+  `transition-*` utility glides; `tests/motion.spec.ts` holds both
   sites' copies to the kit and finds no other curve or linear wipe in the
   site's motion), `--cut` (16px), `--display-face`
   (Michroma, then the mono; the `font-display` utility reads it; its
@@ -660,7 +659,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (`@view-transition`, none under reduced motion), and the arriving page
   dithers from the old one through the kit's `ditherViewTransition`: a
   right wipe (left going back through history) with a band of the signal
-  ink, on the spring like every motion on the site. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
+  ink, on the glide like every motion on the site. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
   inlined first in each route's head by `rstack.config.ts` (`html.tags`,
   with the `PAGE_END_ID` marker it appends to each body), parks the
   `pagereveal` transition and holds the old page on screen until the app
@@ -669,7 +668,15 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   a transition into a page it paints mid-parse (the 1.4 MB docs);
   `takePageTransition` hands it to main.ts in either order (that hold lets
   the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
-  runs the inline script both ways. The theme toggle (`useTheme`'s
+  runs the inline script both ways. The rise (`shared/lib/rise.ts`: a
+  headline's words up one after another on the glide, 24px over 900ms,
+  60ms apart, then its blocks 90ms apart; `rise(node)` is the Svelte
+  action, `vRise` the directive) waits in the prerendered bytes:
+  `RISE_HEAD_SCRIPT` (`shared/lib/rise-wait.ts`, inlined after the reveal
+  script) sets `rise-wait` on `<html>` unless the reader asks for reduced
+  motion, styles.css keeps unrisen `[data-rise]` out of sight under it,
+  the app takes over (`data-rise="live"`) or the wait lets go after 3s,
+  and the prerender strips that state from its snapshot. The theme toggle (`useTheme`'s
   `revealToggle`) dithers the new theme in as an iris from its control.
 - Install and offline (the Studio is a PWA; the landing and the docs are
   not): `app/offline.ts` names the app's path (`OFFLINE.app`, `studio/`)

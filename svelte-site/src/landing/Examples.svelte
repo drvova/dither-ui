@@ -5,6 +5,8 @@
   // component itself, hands on, in the kit's blue with the ember for a second
   // voice. Of the surfaces that move by themselves one plays at a time;
   // everything that moves has its pause.
+  import RiseWords from "./RiseWords.svelte"
+  import { rise } from "./rise"
   import { onDestroy, onMount } from "svelte"
   import { SvelteSet } from "svelte/reactivity"
   import {
@@ -171,14 +173,14 @@
 </script>
 
 <section id="examples" aria-labelledby="examples-h" class="examples">
-  <div class="sec-head">
-    <h2 id="examples-h" class="section-title">Every component, live.</h2>
+  <div use:rise class="sec-head">
+    <h2 id="examples-h" class="section-title"><RiseWords text="Every component, live." /></h2>
     <div class="sec-side">
-      <p class="sec-lede">
+      <p data-rise class="sec-lede">
         {COMPONENT_COUNT} components on one engine. Every card is the real thing, so poke it, then open its docs for the
         props and the code.
       </p>
-      <a href={docsHref()} class="more-link">See every section in the docs</a>
+      <a data-rise href={docsHref()} class="more-link">See every section in the docs</a>
     </div>
   </div>
 

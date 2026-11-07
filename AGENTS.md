@@ -421,11 +421,11 @@ Default section order:
   iridescent pearl, no frosted glassmorphism, no arbitrary glow, no neon;
   metal finishes on display type and the primary key only, never on body
   text or every heading; soft shells against a few sharp machined
-  boundaries, never uniform pills; motion is Apple's on everything (the
-  user's call): one smooth spring (critically damped, from rest, settling
-  long and soft, never past its mark; the kit's `engine/spring.ts`, its
-  "spring" easing, the site's `--ease-settle`) eases every transition and
-  every driven wipe, reveal and page transition alike, 150ms for a colour
+  boundaries, never uniform pills; motion is one glide on everything (the
+  user's call): one curve that leaves at full speed and settles long and
+  soft, never past its mark (the kit's `GLIDE_BEZIER`, its "glide"
+  easing, the site's `--ease-settle`) eases every transition and every
+  driven wipe, reveal, rise and page transition alike, 150ms for a colour
   (the industrial brief's micro feedback), 350ms for a hand's movement,
   500ms for a sheet; one moving layer at a
   time against a still ground (the user's call after the still ground
