@@ -23,22 +23,22 @@ import { HARNESSES, MODEL_NAMES, WORKS } from "./facts"
         <a data-rise :href="routePath('/docs/styling')" class="more-link">See the styling switch</a>
       </div>
     </div>
-    <div class="works">
-      <div>
+    <div v-rise class="works">
+      <div data-rise>
         <h3 id="works-styling" class="works-h">Your styling</h3>
         <ul aria-labelledby="works-styling">
           <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="18" />{{ t.name }}</li>
         </ul>
         <p class="works-more">and any app on its compiled stylesheet: UnoCSS, plain CSS or CSS-in-JS</p>
       </div>
-      <div>
+      <div data-rise>
         <h3 id="works-agent" class="works-h">Your agent</h3>
         <ul aria-labelledby="works-agent">
           <li v-for="h in HARNESSES" :key="h.id"><ToolMark :id="h.id" :size="18" />{{ h.name }}</li>
         </ul>
         <p class="works-more">or any command you hand the bridge</p>
       </div>
-      <div>
+      <div data-rise>
         <h3 id="works-files" class="works-h">Your models</h3>
         <ul aria-labelledby="works-files" class="files">
           <li v-for="f in MODEL_FORMATS" :key="f">{{ MODEL_NAMES[f] }}</li>

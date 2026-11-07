@@ -40,7 +40,7 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
   `pixel-type.ts`, `plate.ts`, `spotlight.ts`, `stat.ts`, `story.ts`), the
   rise (from `src/shared/lib/`; `rise.ts`, `rise-wait.ts`: `use:rise` on the
-  hero's statement and each section head, the words from
+  hero's statement, each section head and the block groups under them, the words from
   `src/landing/RiseWords.svelte`), and the
   Vue header's menu table and stylesheet (from `src/widgets/site-header/`;
   `menu.ts`, `site-header.css`, which `src/landing/SiteHeader.svelte` uses

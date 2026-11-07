@@ -166,9 +166,9 @@
             </p>
           </div>
         </div>
-        <ul class="inside">
+        <ul use:rise class="inside">
           {#each INSIDE as c (c.title)}
-            <li use:drive={{ dance: BOARD_DANCE, onChange: (m) => c.art === "circuit" && (boardMoving = m) }}>
+            <li data-rise use:drive={{ dance: BOARD_DANCE, onChange: (m) => c.art === "circuit" && (boardMoving = m) }}>
               <div class="inside-art" aria-hidden="true">
                 <DitherScreen screen={c.screen}>
                   {#if c.art === "circuit"}
@@ -185,11 +185,11 @@
             </li>
           {/each}
         </ul>
-        <div class="families">
-          <h3 class="families-h">{SECTION_COUNT} docs sections, the five biggest families</h3>
+        <div use:rise class="families">
+          <h3 data-rise class="families-h">{SECTION_COUNT} docs sections, the five biggest families</h3>
           <ul class="families-list">
             {#each DOCS_FAMILIES as f (f.label)}
-              <li>
+              <li data-rise>
                 <a href={f.href} class="family-t"
                   ><span class="family-n">{f.count}<span class="family-u"> sections</span></span><span class="family-l">{f.label}</span></a
                 >
@@ -223,9 +223,9 @@
           On Vue 3? The same kit ships as <code>dither-kit</code>, and the
           <a href={`${SITE}/docs/getting-started`} class="lead">Vue quick start</a> has its steps.
         </p>
-        <dl class="sheet" aria-label="The kit in brief">
+        <dl use:rise class="sheet" aria-label="The kit in brief">
           {#each SPECS as s (s.label)}
-            <div class="sheet-row">
+            <div data-rise class="sheet-row">
               <dt>{s.label}</dt>
               <dd>{s.value}</dd>
             </div>

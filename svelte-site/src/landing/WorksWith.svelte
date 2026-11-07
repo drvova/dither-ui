@@ -21,8 +21,8 @@
       <a data-rise href={docsHref("styling")} class="more-link">Read the styling guide</a>
     </div>
   </div>
-  <div class="works">
-    <div>
+  <div use:rise class="works">
+    <div data-rise>
       <h3 id="works-styling" class="works-h">Your styling</h3>
       <ul aria-labelledby="works-styling">
         {#each WORKS as t (t.id)}
@@ -30,7 +30,7 @@
         {/each}
       </ul>
     </div>
-    <div>
+    <div data-rise>
       <h3 id="works-agent" class="works-h">Your agent</h3>
       <ul aria-labelledby="works-agent">
         {#each HARNESSES as h (h.id)}

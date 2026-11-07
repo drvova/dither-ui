@@ -68,7 +68,10 @@ widgets/features; page-specific conventions live here.
   right, on its baseline, a `.sec-lede` and a `.more-link`; stacked under
   900px; it rises as it comes into view: `v-rise` on the head, the title's
   words through `RiseWords`, the lede and the link `data-rise` after them,
-  the hero's statement likewise; `shared/lib/rise.ts`, and every riser
+  the hero's statement likewise, and the blocks under a head (the three
+  parts' cards, the families, what it works with, the spec sheet's rows)
+  one after another, 90ms apart; the bento keeps its own reveal and the
+  footer its own motion; `shared/lib/rise.ts`, and every riser
   stands inside a `v-rise`, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
   24px target through padding cancelled by a negative margin), `.key` (a
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`

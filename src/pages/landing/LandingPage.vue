@@ -312,8 +312,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
               </p>
             </div>
           </div>
-          <ul class="inside">
+          <ul v-rise class="inside">
             <li
+              data-rise
               v-for="c in INSIDE"
               :key="c.title"
               :ref="(el) => c.art === 'circuit' && (boardCard = el as HTMLElement)"
@@ -341,10 +342,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
               <a :href="c.link.href" class="more-link">{{ c.link.label }}</a>
             </li>
           </ul>
-          <div class="families">
-            <h3 class="families-h">{{ SECTION_COUNT }} docs sections, the five biggest families</h3>
+          <div v-rise class="families">
+            <h3 data-rise class="families-h">{{ SECTION_COUNT }} docs sections, the five biggest families</h3>
             <ul class="families-list">
-              <li v-for="f in BIGGEST" :key="f.label">
+              <li v-for="f in BIGGEST" :key="f.label" data-rise>
                 <a :href="routePath(`/docs/${f.first}`)" class="family-t"
                   ><span class="family-n">{{ f.count }}<span class="family-u"> sections</span></span
                   ><span class="family-l">{{ f.label }}</span></a
@@ -385,8 +386,8 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
             On Svelte 5? The same kit ships as <code>dither-kit-svelte</code>, and the
             <a :href="routePath('/docs/getting-started')" class="lead">quick start</a> has its steps.
           </p>
-          <dl class="sheet" aria-label="The kit in brief">
-            <div v-for="s in SPECS" :key="s.label" class="sheet-row">
+          <dl v-rise class="sheet" aria-label="The kit in brief">
+            <div v-for="s in SPECS" :key="s.label" data-rise class="sheet-row">
               <dt>{{ s.label }}</dt>
               <dd>{{ s.value }}</dd>
             </div>
