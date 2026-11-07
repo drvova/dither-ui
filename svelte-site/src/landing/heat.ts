@@ -15,6 +15,14 @@ import type { RasterBuffer } from "@dither-kit/engine/raster"
  * 0-1, and how much heat to add there (a hot edge). */
 export type HeatField = (x: number, y: number, width: number, height: number) => { field: number; boost: number }
 
+/** The heat's grain: how many CSS px one fold of the noise spans, and
+ * where in the noise a sheet samples (each sheet its own region, read for
+ * a balanced mix of clear ground and each ink). */
+export type HeatGrain = { scale: number; at: readonly [number, number] }
+
+/** The close's grain: wide folds for a tall band. */
+export const CLOSE_GRAIN: HeatGrain = { scale: 540, at: [0, 0] }
+
 /** The close's band, in CSS px: a cell's size and the film's cadence it
  * drifts at, the half-width of the clear column the install stands in, how
  * far the heat reaches in from the band's top and its foot, and how long it
@@ -28,19 +36,35 @@ export const smooth = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t)
 }
 
-/** The close: beside the column, and in from the top and the foot, the
- * foot the hot ground. */
+/** Rises from nothing at `a` to its peak at `peak` of the way to `b`, and
+ * back to nothing at `b`: heat that dissolves at both of its edges. */
+export const bell = (a: number, b: number, x: number, peak = 0.45) => {
+  const m = a + (b - a) * peak
+  return Math.min(smooth(a, m, x), smooth(b, m, x))
+}
+
+/** Whole from `edge` of the way in from `a` to the same from `b`, rising
+ * out of nothing at `a` and sinking back to nothing at `b`: a stretch of
+ * heat whose own texture shows across its middle and whose edges dissolve. */
+export const plateau = (a: number, b: number, x: number, edge = 0.35) =>
+  Math.min(smooth(a, a + (b - a) * edge, x), smooth(b, b - (b - a) * edge, x))
+
+/** The close: beside the column, and in from the top and the foot. Only
+ * its foot is a hard edge (the hot ground the footer's tab rises into);
+ * everywhere else it comes out of the page and sinks back. */
 export const closeField: HeatField = (x, y, width, height) => {
-  const side = smooth(CLOSE.column, CLOSE.column + 220, Math.abs(x - width / 2))
-  const top = smooth(CLOSE.reach, 0, y)
+  const enter = smooth(0, CLOSE.reach, y)
+  const side = smooth(CLOSE.column, CLOSE.column + 220, Math.abs(x - width / 2)) * enter
+  const top = bell(0, CLOSE.reach, y)
   const foot = smooth(CLOSE.reach, 0, height - y)
   return { field: Math.max(side, top, foot), boost: 0.12 * foot * foot }
 }
 
 /** Print the heat at `time` seconds into `buffer`, `cell` CSS px a cell,
  * through `ramp` (dark to light; the first is the ground, left clear),
- * dithered between its inks by `matrix`, where `field` lets it. `hand` is
- * the pointer in CSS px from the sheet's top left, or null. */
+ * dithered between its inks by `matrix`, where `field` lets it, at its
+ * `grain`. `hand` is the pointer in CSS px from the sheet's top left, or
+ * null. */
 export function paintHeat(
   buffer: RasterBuffer,
   time: number,
@@ -49,6 +73,7 @@ export function paintHeat(
   ramp: readonly Rgb[],
   matrix: number[][],
   field: HeatField = closeField,
+  grain: HeatGrain = CLOSE_GRAIN,
 ): void {
   const { width: cols, height: rows, data } = buffer
   data.fill(0)
@@ -63,8 +88,8 @@ export function paintHeat(
       const here = field(x, y, width, height)
       if (here.field <= 0) continue
       // Ink in water: the noise folded through itself twice.
-      const u = x / 540
-      const v = y / 540
+      const u = x / grain.scale + grain.at[0]
+      const v = y / grain.scale + grain.at[1]
       const qx = fbm(u, v + t, 0)
       const qy = fbm(u + 5.2, v + 1.3, t)
       let heat = fbm(u + 2.4 * qx + 0.5 * t, v + 2.4 * qy, 0) + here.boost

@@ -8,12 +8,13 @@ import { onBeforeUnmount, onMounted, ref } from "vue"
 import { fillOf } from "@dither-kit/engine/pixel"
 import { useDitherBackground } from "@dither-kit/engine/use-dither-background"
 import { useDitherMatrix } from "@dither-kit/engine/use-screen"
-import { CLOSE, closeField, paintHeat, type HeatField } from "./heat"
+import { CLOSE, CLOSE_GRAIN, closeField, paintHeat, type HeatField, type HeatGrain } from "./heat"
 import { RAMP as INKS } from "./plate"
 
 // A function-typed prop's default is the value itself, never a factory.
-const props = withDefaults(defineProps<{ paused: boolean; field?: HeatField; seed?: number }>(), {
+const props = withDefaults(defineProps<{ paused: boolean; field?: HeatField; grain?: HeatGrain; seed?: number }>(), {
   field: closeField,
+  grain: () => CLOSE_GRAIN,
   seed: 9,
 })
 
@@ -43,9 +44,9 @@ useDitherBackground({
   paused: () => props.paused,
   renderMode: () => "live",
   precompiled: () => undefined,
-  restart: () => [props.field, props.seed],
+  restart: () => [props.field, props.grain, props.seed],
   frameRate: () => CLOSE.fps,
-  render: (buffer, clock) => paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix.value, props.field),
+  render: (buffer, clock) => paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix.value, props.field, props.grain),
 })
 </script>
 

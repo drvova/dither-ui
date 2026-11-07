@@ -33,8 +33,10 @@ describe("where the heat may print", () => {
       for (const x of [W / 2 - CLOSE.column, W / 2, W / 2 + CLOSE.column])
         expect(closeField(x, y, W, H).field, `${x},${y}`).toBe(0)
   })
-  it("in full at the band's top, its foot and its far sides", () => {
-    expect(closeField(W / 2, 0, W, H).field).toBe(1)
+  it("rising out of the page at its top, in full at its foot and far sides", () => {
+    expect(closeField(W / 2, 0, W, H).field).toBe(0)
+    expect(closeField(W / 2, 0.45 * CLOSE.reach, W, H).field).toBe(1)
+    expect(closeField(0, 0, 3000, H).field).toBe(0)
     expect(closeField(W / 2, H, W, H).field).toBe(1)
     expect(closeField(W / 2, H, W, H).boost).toBeCloseTo(0.12)
     expect(closeField(0, H / 2, 3000, H).field).toBe(1)
@@ -74,14 +76,23 @@ describe("the print", () => {
 
 describe("a plate's heat", () => {
   for (const [id, plate] of Object.entries(PLATES))
-    it(`${id} prints at its edges and never in its band`, () => {
+    it(`${id} prints clouds that dissolve at every edge, never in its band`, () => {
       const field = plateField(plate)
       const h = 400
-      expect(field(0, 0, 1280, h).field).toBe(1)
-      expect(field(0, h, 1280, h).field).toBe(1)
+      const mid = 640
+      expect(field(mid, (plate.band[0] / 2) * h, 1280, h).field).toBe(1)
+      expect(field(mid, ((plate.band[1] + 1) / 2) * h, 1280, h).field).toBe(1)
+      // no edge of a box: nothing at the sheet's top, foot or ends
+      for (const [x, y] of [
+        [mid, 0],
+        [mid, h],
+        [0, (plate.band[0] / 2) * h],
+        [1280, (plate.band[0] / 2) * h],
+      ])
+        expect(field(x, y, 1280, h).field, `${x},${y}`).toBe(0)
       for (let v = plate.band[0]; v <= plate.band[1]; v += 0.02) expect(field(0, v * h, 1280, h).field).toBe(0)
       const b = createRasterBuffer(1280 / CLOSE.cell, h / CLOSE.cell)
-      paintHeat(b, 0, null, CLOSE.cell, INKS, BAYER4, field)
+      paintHeat(b, 0, null, CLOSE.cell, INKS, BAYER4, field, plate.grain)
       const rows = (r0: number, r1: number) => {
         let n = 0
         for (let r = Math.ceil(r0); r < Math.floor(r1); r++)
@@ -89,6 +100,6 @@ describe("a plate's heat", () => {
         return n
       }
       expect(rows((plate.band[0] * h) / CLOSE.cell, (plate.band[1] * h) / CLOSE.cell)).toBe(0)
-      expect(rows(0, 6)).toBeGreaterThan(0)
+      expect(rows(0, (plate.band[0] * h) / CLOSE.cell)).toBeGreaterThan(0)
     })
 })

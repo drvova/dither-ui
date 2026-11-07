@@ -1,16 +1,16 @@
 <script lang="ts">
   // One plate of the series (`plate.ts`): a sheet of its own proportion on the
-  // page's width, square cornered and flat like the hero's print, on the
-  // raised ground as its stock. The heat (`heat.ts`, the close's material)
-  // prints above and below its clear band through the plate's own printer's
-  // screen, still; the brand (`BrandGather.svelte`) stands in the clear
+  // page's width, on the page's own ground: the heat (`heat.ts`, the close's
+  // material) prints a cloud above its clear band and one below, through the
+  // plate's own printer's screen, still, dissolving at every edge, so the
+  // plate is a passage of the page and never a box; the brand (`BrandGather.svelte`) stands in the clear
   // band, pulled in from the right edge where the plate is narrow, and forms
   // there once as the plate comes into view. Decorative.
   import { DitherScreen } from "@dither-kit-svelte"
   import { LOCKUP_SIZE } from "./brand"
   import BrandGather from "./BrandGather.svelte"
   import HeatPrint from "./HeatPrint.svelte"
-  import { plateField, sceneOf, STOCK, type Plate } from "./plate"
+  import { plateField, sceneOf, type Plate } from "./plate"
 
   let { plate }: { plate: Plate } = $props()
   const pct = (f: number) => `${f * 100}%`
@@ -21,9 +21,9 @@
   const HALF = 3.5 * CELL
 </script>
 
-<div class="plate" style:background={STOCK} style:aspect-ratio={plate.aspect} aria-hidden="true">
+<div class="plate" style:aspect-ratio={plate.aspect} aria-hidden="true">
   <DitherScreen screen={plate.screen}>
-    <HeatPrint paused {field} />
+    <HeatPrint paused {field} grain={plate.grain} />
   </DitherScreen>
   <BrandGather
     class="plate-lockup"

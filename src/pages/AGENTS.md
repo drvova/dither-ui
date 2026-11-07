@@ -501,19 +501,25 @@ widgets/features; page-specific conventions live here.
   to its right), its move, its proportion (`aspect`: 3.4, then a slimmer
   4.6) and its printer's screen (`screen`: Bayer, then a halftone dot); `sceneOf` gives its scene (loose in
   the band and its thin edges, thrown anywhere on the sheet,
-  seeded by where the mark stands). `Plate.vue` prints a row: a sheet of
-  its proportion (at least 112px tall) on the page's width, square cornered and flat like the hero's
-  print, on `STOCK` (the `--surface` mix as a colour the kit prints with,
-  so its open cells are the plate, never a tint), its heat (`HeatPrint`,
-  still) through its `DitherScreen`, and the brand's moment in the band,
-  pulled in from the right edge (16px clear) where the plate is narrow,
-  while the heat prints in through `DitherReveal` (0.72s on the glide, the
-  lights coming on). `tests/landing-facts.spec.ts` holds `STOCK` to the
-  token's mix and every plate's mark inside its band; `tests/heat.spec.ts`
-  its heat out of the band.
+  seeded by where the mark stands) and its heat's grain (`grain`: finer
+  folds than the close's, each plate its own region of the noise, read for
+  a balanced mix of clear ground and each ink). `Plate.vue` prints a row:
+  a passage of its proportion (at least 112px tall) on the page's width,
+  on the page's own ground (no box, no stock: the user's call, the
+  sections must flow), its heat (`HeatPrint`, still) through its
+  `DitherScreen` as two clouds, above the band and below it, each rising
+  out of nothing and sinking back and thinning to nothing at the plate's
+  ends (`plateau`), so no edge of a box ever shows, and the brand's moment
+  in the band, pulled in from the right edge (16px clear) where the plate
+  is narrow, while the heat prints in through `DitherReveal` (0.72s on the
+  glide, the lights coming on). `tests/landing-facts.spec.ts` holds every
+  plate's mark inside its band; `tests/heat.spec.ts` its clouds full in
+  their middles, nothing at the sheet's edges and nothing in the band.
   A new plate is a row in the table and a `<Plate>` at a section break.
 - The close (`#install`, out of the page column, the full width): the
   install stands in a clear field inside a print of heat (`heat.ts`,
+  rising out of open ground above it, 1.5 rhythms clear of the works, its
+  top and sides coming out of the page (`bell`), only its foot hard,
   `paintHeat` on the kit's own `fbm` where a field lets it, `closeField`
   here, copied byte for byte to the Svelte landing; `HeatPrint.vue` paints
   it on the kit's background runtime at `CLOSE.fps`): ink in water through

@@ -5,7 +5,7 @@
 // standing in the band.
 import type { PixelColor, ScreenKind } from "@dither-kit"
 import type { Move, Scene } from "./brand"
-import { smooth, type HeatField } from "./heat"
+import { plateau, type HeatField, type HeatGrain } from "./heat"
 
 /** The plates' stock: the raised ground (`--surface`) as a colour the kit
  * prints with, so the open cells of a plate's print are the plate itself,
@@ -39,8 +39,11 @@ export type Plate = {
   move: Move
   /** The sheet's width over its height: each plate its own proportion. */
   aspect: number
-  /** The printer's screen its tone prints through, each plate its own. */
+  /** The printer's screen its heat prints through, each plate its own. */
   screen: ScreenKind
+  /** Its heat's grain: finer folds than the close's for a short sheet, in
+   * its own region of the noise, read for a balanced mix of inks. */
+  grain: HeatGrain
 }
 
 /** The series, in page order, two plates unlike each other, each a sheet of
@@ -56,6 +59,7 @@ export const PLATES = {
     move: "rain",
     aspect: 3.4,
     screen: "bayer",
+    grain: { scale: 260, at: [8.5, 3] },
   },
   afterParts: {
     band: [0.34, 0.66],
@@ -63,18 +67,21 @@ export const PLATES = {
     move: "converge",
     aspect: 4.6,
     screen: "dot",
+    grain: { scale: 260, at: [23.8, 3] },
   },
 } as const satisfies Record<string, Plate>
 
-/** Where a plate's heat prints: from its top edge down to the band and
- * from the band's foot to its own, hottest at the sheet's edges, never in
- * the band, where the brand forms. */
+/** Where a plate's heat prints: a cloud above the band and one below it,
+ * each rising out of nothing and sinking back, thinning to nothing at the
+ * plate's ends too, so it never shows a box's edge; never in the band,
+ * where the brand forms. */
 export const plateField =
   (plate: Plate): HeatField =>
-  (_x, y, _width, height) => {
+  (x, y, width, height) => {
     const v = y / height
-    const edge = Math.max(smooth(plate.band[0], 0, v), smooth(plate.band[1], 1, v))
-    return { field: edge, boost: 0.05 * edge }
+    const clouds = Math.max(plateau(0, plate.band[0], v), plateau(plate.band[1], 1, v))
+    const field = clouds * plateau(0, width, x, 0.16)
+    return { field, boost: 0.03 * field }
   }
 
 /** A plate's scene for the brand's moment, in a plate `height` px tall: its

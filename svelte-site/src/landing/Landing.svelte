@@ -476,6 +476,8 @@
   .close {
     position: relative;
     isolation: isolate;
+    /* open ground above it, so its heat rises out of the page */
+    margin-top: calc(var(--rhythm) * 1.5);
     padding: calc(var(--reach) + var(--rhythm)) 24px calc(var(--reach) + var(--rhythm) * 1.5);
   }
 

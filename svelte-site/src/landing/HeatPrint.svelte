@@ -8,10 +8,14 @@
   import { fillOf } from "@dither-kit/engine/pixel"
   import { ditherBackground } from "../../../dither-kit-svelte/runtime/use-dither-background"
   import { useDitherMatrix } from "../../../dither-kit-svelte/runtime/screen"
-  import { CLOSE, closeField, paintHeat, type HeatField } from "./heat"
+  import { CLOSE, CLOSE_GRAIN, closeField, paintHeat, type HeatField, type HeatGrain } from "./heat"
   import { RAMP as INKS } from "./plate"
 
-  let { paused, field = closeField }: { paused: boolean; field?: HeatField } = $props()
+  let {
+    paused,
+    field = closeField,
+    grain = CLOSE_GRAIN,
+  }: { paused: boolean; field?: HeatField; grain?: HeatGrain } = $props()
 
   const RAMP = INKS.map(fillOf)
   const ditherMatrix = useDitherMatrix()
@@ -43,7 +47,7 @@
     frameRate: CLOSE.fps,
     restartKey: "heat",
     render: (buffer: Parameters<typeof paintHeat>[0], clock: number) =>
-      paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix, field),
+      paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix, field, grain),
   })
 </script>
 

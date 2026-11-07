@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // One plate of the series (`plate.ts`): a sheet of its own proportion on the
-// page's width, square cornered and flat like the hero's print, on the
-// raised ground as its stock. The heat (`heat.ts`, the close's material)
-// prints above and below its clear band through the plate's own printer's
-// screen, still; the brand
+// page's width, on the page's own ground: the heat (`heat.ts`, the close's
+// material) prints a cloud above its clear band and one below, through the
+// plate's own printer's screen, still, dissolving at every edge, so the
+// plate is a passage of the page and never a box; the brand
 // (`BrandGather.vue`) stands in the clear band, pulled in from the right
 // edge where the plate is narrow, and gathers there once as the plate comes
 // into view, while the tone prints in through the kit's reveal (the lights
@@ -12,7 +12,7 @@ import { DitherReveal, DitherScreen } from "@dither-kit"
 import { LOCKUP_SIZE } from "./brand"
 import BrandGather from "./BrandGather.vue"
 import HeatPrint from "./HeatPrint.vue"
-import { plateField, sceneOf, STOCK, type Plate } from "./plate"
+import { plateField, sceneOf, type Plate } from "./plate"
 
 const { plate } = defineProps<{ plate: Plate }>()
 const pct = (f: number) => `${f * 100}%`
@@ -24,10 +24,10 @@ const HALF = 3.5 * CELL
 </script>
 
 <template>
-  <div class="plate" :style="{ background: STOCK, aspectRatio: plate.aspect }" aria-hidden="true">
+  <div class="plate" :style="{ aspectRatio: plate.aspect }" aria-hidden="true">
     <DitherScreen :screen="plate.screen">
       <DitherReveal class="plate-print" :duration="0.72" easing="glide">
-        <HeatPrint paused :field="field" />
+        <HeatPrint paused :field="field" :grain="plate.grain" />
       </DitherReveal>
     </DitherScreen>
     <BrandGather

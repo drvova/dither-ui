@@ -70,8 +70,9 @@ describe("landing facts", () => {
     expect([...RUNTIME_DEPS].sort()).toEqual(peers.sort())
   })
 
-  it("prints the plate on the raised ground", () => {
-    // The plate's stock is `--surface` as a colour the kit can print with:
+  it("keeps STOCK the raised ground", () => {
+    // `STOCK` is `--surface` as a colour the kit can print with (the parts'
+    // strips print toward it):
     // the token's oklab mix of the landing's ink into its ground.
     const css = readFileSync(new URL("../src/pages/landing/chapters.css", import.meta.url), "utf8")
     const token = (name: string) => css.match(new RegExp(`${name}: (#[0-9a-f]{6});`))![1]
