@@ -576,6 +576,14 @@ the kit every import is relative (`../engine/pixel`).
   bit for bit (`POSE_HASH`). `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
   the ember by default) and `nudge` (the pointer's point); it takes the
   model apart only when one of them asks. `tests/assemble.spec.ts`.
+  Running on the CPU engine's plain case (no GPU, no GLSL material, no
+  channels, not directed, not paused) it paints in a worker
+  (`engine/world-offload.ts`, the page's side: each paint shows the
+  worker's latest moment and asks for the one due at the next paint;
+  `engine/world-ask.ts` + `engine/world-worker.ts`, the worker's: it
+  keeps the model, handed over once, and its assembly), the same bytes the
+  page would paint; the first paint, a worker that fails to load and a
+  page without workers paint here (`tests/world-offload.spec.ts`).
   `tests/world.spec.ts`,
   `tests/vrml.spec.ts` and `tests/models.spec.ts` pin the engine, the
   grammars and every format. Texture coordinates: `Geometry.uvs` (st per
