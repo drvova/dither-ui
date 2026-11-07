@@ -108,11 +108,31 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
 ## Work Guidance
 
 - `App.svelte` is a hash router: `#/docs[...]` renders `DocsPage`, everything else
-  the landing (its in-page anchors `#examples`, `#ask` included). Internal nav
-  uses `#/` and `#/docs/<id>`; GitHub, the Studio and the agent files link out.
-- Docs is a long-scroll page: each `<section id>` is tracked by an IntersectionObserver
-  that syncs `#/docs/<id>`; the sidebar highlights the section in view. Demos use
-  `DemoCard` (Preview/Code tabs) and `PropsTable`; code snippets are Svelte syntax.
+  the landing (its in-page anchors `#examples`, `#ask` included: moving from
+  the docs to one, the router goes there once the landing has rendered, else
+  to the top). Internal nav uses `#/` and `#/docs/<id>`; GitHub, the Studio
+  and the agent files link out.
+- The docs look as the Vue docs (`src/pages/AGENTS.md`, docs/): the site's
+  header (the landing's `SiteHeader`, `current="docs"`, its `tools` the
+  sections key under lg), the obsidian ground under the grain (the
+  landing's ground, `:root:has(.landing, .docs-root)` in `landing.css`, and
+  its header pieces under `:is(.landing, .docs-root)`), and `docs/docs.css`
+  for the rest, the Vue site's values: the docs' border and card, the
+  tracks and their `.ring-on`, `.flat-shell`, `.spec`, `.speed-tag`, the
+  demo's gel well (`.demo-well` + `.rim`), each section's own heading in the
+  display face at 1.5rem over a 14px lede. One section a page (`nav.ts`:
+  `sectionOf` reads `#/docs/<id>`, `#/docs` is the front over the first
+  section, `neighbours` the pager, `groupOf` the breadcrumb;
+  `tests/svelte-docs-pages.spec.ts`); the rest of the flow hidden, read from
+  the top. The rail folds by family (the current one opens itself), each
+  under the kit's glyph (`icon` in `GROUPS`, drawn from the Vue kit's
+  `dither-kit/engine/icons.ts` data: the Svelte kit has no icon set), its
+  count a `.spec`; "On this page" at xl; under lg a modal sheet of the same
+  list (focus on its close key, Escape or a pick shuts it, focus back on
+  its key). Demos use `DemoCard` (Preview/Code in a track, the preview in
+  the well), `PropsTable` (a spec sheet, stacked on a phone) and
+  `CodeBlock` (a flat shell); a picked tile or chip wears `.ring-on`, never
+  a fill. Code snippets are Svelte syntax.
 - The docs' own copy keeps the site's bans (`tests/svelte-docs-copy.spec.ts`):
   no em dash in what a reader sees, labels (the galleries' headings, the
   sidebar's groups) in sentence case at 12px in the muted ink, never
@@ -120,11 +140,12 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   which `PropsTable` prints as "none". A demo's own strings stay the
   product's. A `CodeBlock`'s copy chip takes its own band over the first
   line under sm.
-- `DocsPage.svelte` is a thin shell: sidebar from `nav.ts` (`GROUPS`) + the
-  IntersectionObserver, composing per-family section packs (`GuidesDocs`,
+- `DocsPage.svelte` is the shell: the rail and sheet from `nav.ts`
+  (`GROUPS`), composing per-family section packs (`GuidesDocs`,
   `ExamplesDocs`, `ChartsDocs`, `PrimitivesDocs`, `Form/Field/Selection/Feedback/
   Structure/Overlay/Surface/NavigationDocs`, `BackgroundsDocs`, `TextDocs`,
-  `AnimationsDocs`, `PaletteDocs`). Each pack renders its own `<section id>` blocks.
+  `AnimationsDocs`, `PaletteDocs`). Each pack renders its own `<section id>` blocks,
+  every one a direct child of `.docs-flow` (the page shows one at a time).
 - Full parity with the Vue docs (~170 sections). The only gap: the `radar` chart
   (the kit has no radar chart series — `Radar` is a background), omitted from `nav.ts`.
 - Extend by adding `<section id>` blocks to a pack + a matching `nav.ts` entry.

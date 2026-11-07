@@ -1,0 +1,182 @@
+/* The docs in the Vue docs' print (the Vue site's `src/app/styles.css`,
+   its docs block and site voice; `src/pages/docs/DemoCard.vue`'s well): the
+   landing's obsidian and bone under the grain (`landing.css` sets the
+   ground on `:root:has(.landing, .docs-root)`), the docs keeping their tool
+   chrome: a hairline a quiet step off the ground, a raised card. The
+   materials the page wears: tracks of machined segments, the pressed
+   segment's ring, flat shells, spec labels, speed tags and the demo's gel
+   well, rimmed in chrome. Plain CSS under `.docs-root`, read by the docs. */
+
+/* The docs' tool chrome on the shared ground: the border and the card. */
+html:root:has(.docs-root) {
+  --card: #17191c;
+  --card-foreground: #e4e1d8;
+  --border: #2b2e32;
+  --float-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.7);
+}
+
+.docs-root {
+  --surface: color-mix(in oklab, var(--foreground) 7%, var(--background));
+  --head: 64px;
+  --edge: #74797e;
+  --chrome-rim: linear-gradient(
+    135deg,
+    rgb(240 245 251 / 0.55) 0%,
+    rgb(150 162 180 / 0.18) 28%,
+    rgb(255 255 255 / 0.5) 52%,
+    rgb(130 142 160 / 0.16) 76%,
+    rgb(220 230 244 / 0.42) 100%
+  );
+  /* Anodized graphite, lit from the top left. */
+  --shell-ground: linear-gradient(145deg, rgb(52 59 64 / 0.34), rgb(21 25 28 / 0) 65%);
+  --well: color-mix(in oklab, var(--background) 60%, #000);
+  --gloss: rgb(255 255 255 / 0.07);
+  --recess: inset 3px 4px 9px rgb(0 0 0 / 0.55), inset -1px -1px 1px rgb(255 255 255 / 0.07);
+  --recess-sm: inset 1px 2px 4px rgb(0 0 0 / 0.5), inset -1px -1px 0 rgb(255 255 255 / 0.05);
+  background-image: var(--grain);
+  background-size: 96px 96px;
+}
+
+@layer components {
+  /* The pressed or selected state: ink in a hairline ring and a breath of
+     fill, never a colour fill. */
+  .docs-root .ring-on {
+    color: var(--foreground);
+    background: color-mix(in oklab, var(--foreground) 6%, transparent);
+    box-shadow: inset 0 0 0 1px var(--edge);
+  }
+  /* A track: machined segments recessed into the surface. */
+  .docs-root .track {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--foreground) 3%, transparent);
+    box-shadow: var(--recess-sm);
+  }
+  .docs-root .track > * {
+    border-radius: 7px;
+  }
+  /* A flat shell: the shell ground, one hairline, a controlled radius. */
+  .docs-root .flat-shell {
+    position: relative;
+    background: var(--shell-ground);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  /* A spec label: an annotation beside or under what it names. */
+  .docs-root .spec {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  /* A speed tag: a slanted plate, its edges cut, its type upright. */
+  .docs-root .speed-tag {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 10px;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: color-mix(in oklab, var(--foreground) 70%, var(--muted-foreground));
+    background: color-mix(in oklab, var(--foreground) 8%, transparent);
+    clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  }
+  /* The chrome rim: a 1px glint over an element's edge. */
+  .docs-root .rim::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--chrome-rim);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+}
+
+/* The demo's well: an asymmetric pebble recessed into the page, a gloss on
+   its top edge, one plain ground. */
+.docs-root .demo-well {
+  border: 1px solid transparent;
+  border-radius: 22px 16px 22px 16px / 18px 22px 16px 22px;
+  background-color: var(--well);
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 1px 0 var(--gloss),
+    var(--recess);
+}
+
+/* One section a page: its title is the page's headline, in the display
+   face at its one weight, with no negative tracking; its lede reads at
+   14px. Only the section's own heading, never a demo's. */
+.docs-flow > section {
+  margin-top: 1.5rem;
+  scroll-margin-top: 5rem;
+}
+.docs-flow > section > h2 {
+  font-family: var(--display-face);
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+.docs-flow > section > h2 + p {
+  font-size: 14px;
+}
+
+/* Rail counts in figures alone. */
+.docs-nav .nav-chev {
+  transition: transform 150ms var(--ease-settle);
+}
+.docs-nav [aria-expanded="true"] .nav-chev {
+  transform: rotate(90deg);
+}
+
+/* The sections sheet (under lg): the whole screen, the page held still. */
+.docs-sheet {
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
+.docs-sheet::backdrop {
+  background: var(--background);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docs-nav .nav-chev {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .docs-root .track,
+  .docs-root .demo-well {
+    border: 1px solid CanvasText;
+  }
+  .docs-root .rim::after {
+    display: none;
+  }
+  .docs-root .ring-on {
+    outline: 1px solid Highlight;
+  }
+}

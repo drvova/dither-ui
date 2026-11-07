@@ -243,12 +243,13 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
       </div>
       <div class="flex flex-wrap items-center justify-center gap-3">
         <DitherButton color="blue" variant="gradient" onclick={() => replayToken++}>Replay</DitherButton>
-        <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+        <div class="track" role="group" aria-label="Duration">
           {#each DURATIONS as d (d)}
             <button
               type="button"
-              class="rounded px-2.5 py-1 text-[11px] tabular-nums transition-colors {motionDuration === d
-                ? 'bg-card text-foreground'
+              aria-pressed={motionDuration === d}
+              class="h-6 px-2.5 text-[11px] tabular-nums transition-colors {motionDuration === d
+                ? 'ring-on'
                 : 'text-muted-foreground hover:text-foreground'}"
               onclick={() => { motionDuration = d; replayToken++ }}
             >

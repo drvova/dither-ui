@@ -54,7 +54,7 @@
 
   const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
   const chipClass = (active: boolean) =>
-    `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`
+    `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "ring-on" : "text-muted-foreground hover:text-foreground"}`
 
   // Aurora playground — a colour ramp preset; the code tab mirrors it.
   const AURORA_PALETTES = {

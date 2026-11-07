@@ -113,7 +113,7 @@
   )
 
   const thumbClass = (active: boolean) =>
-    `rounded-md p-2 text-left transition-colors ${active ? "bg-card" : "hover:bg-card/50"}`
+    `rounded-md p-2 text-left transition-colors ${active ? "ring-on" : "hover:bg-card/50"}`
   const thumbLabel = (active: boolean) =>
     `mt-2 text-center text-[10px] transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`
 

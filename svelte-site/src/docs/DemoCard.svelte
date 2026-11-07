@@ -1,4 +1,8 @@
 <script lang="ts">
+  // A demo as the Vue docs set one (src/pages/docs/DemoCard.vue): the
+  // Preview and Code tabs as machined segments in a track, the picked one
+  // ringed, and the preview in the gel well (an asymmetric pebble recessed
+  // into the page, rimmed in chrome, one plain ground).
   import type { Snippet } from "svelte"
   import CodeBlock from "./CodeBlock.svelte"
 
@@ -6,36 +10,22 @@
   let { code, children }: Props = $props()
 
   let tab = $state<"preview" | "code">("preview")
+  const tabClass = (on: boolean) =>
+    `h-7 px-3.5 transition-colors ${on ? "ring-on" : "text-muted-foreground hover:text-foreground"}`
 </script>
 
-<div class="mt-6">
-  <div class="flex gap-4 text-[12px]" role="tablist">
-    <button
-      type="button"
-      role="tab"
-      aria-selected={tab === "preview"}
-      class="border-b pb-2 transition-colors {tab === 'preview'
-        ? 'border-foreground text-foreground'
-        : 'border-transparent text-muted-foreground hover:text-foreground'}"
-      onclick={() => (tab = "preview")}
-    >
+<div class="mt-6" data-demo-card>
+  <div class="track mb-2 text-[12px]" role="tablist">
+    <button type="button" role="tab" aria-selected={tab === "preview"} class={tabClass(tab === "preview")} onclick={() => (tab = "preview")}>
       Preview
     </button>
-    <button
-      type="button"
-      role="tab"
-      aria-selected={tab === "code"}
-      class="border-b pb-2 transition-colors {tab === 'code'
-        ? 'border-foreground text-foreground'
-        : 'border-transparent text-muted-foreground hover:text-foreground'}"
-      onclick={() => (tab = "code")}
-    >
+    <button type="button" role="tab" aria-selected={tab === "code"} class={tabClass(tab === "code")} onclick={() => (tab = "code")}>
       Code
     </button>
   </div>
 
   {#if tab === "preview"}
-    <div class="mt-3 flex min-h-[280px] items-center justify-center rounded-lg border border-border/60 p-8 sm:p-10">
+    <div class="demo-well rim relative mt-3 flex min-h-[280px] items-center justify-center p-4 sm:p-10">
       <div class="w-full">{@render children?.()}</div>
     </div>
   {:else}
