@@ -1,19 +1,29 @@
 // Art that moves only on cue (no perpetual loops), the Vue landing's
-// `drive.ts` as a Svelte action: attached to the art's card, it reports
-// `true` for `dance` ms as the card comes into view, then for a moment
-// after each scroll while it stays in view, and `false` as the cues stop.
-export function drive(node: HTMLElement, params: { dance: number; onChange: (moving: boolean) => void }) {
-  let p = params
+// `drive.ts` in Svelte. `createDrive` is the timer: `run(ms)` keeps the art
+// moving at least that much longer, and `onChange` hears it start and
+// settle. The `drive` action attaches one to a card: a dance as the card
+// comes into view, then a moment after each scroll while it stays in view.
+export function createDrive(onChange: (moving: boolean) => void) {
   let until = 0
   let settle = 0
-  let inView = false
-  const run = (ms: number) => {
-    until = Math.max(until, performance.now() + ms)
-    p.onChange(true)
-    clearTimeout(settle)
-    settle = window.setTimeout(() => p.onChange(false), until - performance.now())
+  return {
+    run(ms = 240) {
+      until = Math.max(until, performance.now() + ms)
+      onChange(true)
+      clearTimeout(settle)
+      settle = window.setTimeout(() => onChange(false), until - performance.now())
+    },
+    dispose() {
+      clearTimeout(settle)
+    },
   }
-  const scrolled = () => inView && run(240)
+}
+
+export function drive(node: HTMLElement, params: { dance: number; onChange: (moving: boolean) => void }) {
+  let p = params
+  const timer = createDrive((m) => p.onChange(m))
+  let inView = false
+  const scrolled = () => inView && timer.run()
   addEventListener("scroll", scrolled, { passive: true })
   const io =
     typeof IntersectionObserver === "undefined"
@@ -22,7 +32,7 @@ export function drive(node: HTMLElement, params: { dance: number; onChange: (mov
           ([entry]) => {
             const was = inView
             inView = !!entry?.isIntersecting
-            if (inView && !was) run(p.dance)
+            if (inView && !was) timer.run(p.dance)
           },
           { threshold: 0.5 },
         )
@@ -34,7 +44,7 @@ export function drive(node: HTMLElement, params: { dance: number; onChange: (mov
     destroy() {
       io?.disconnect()
       removeEventListener("scroll", scrolled)
-      clearTimeout(settle)
+      timer.dispose()
     },
   }
 }

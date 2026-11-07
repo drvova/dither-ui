@@ -7,8 +7,8 @@ import { COMPONENT_COUNT, MATRIX, WORKS } from "./facts"
 import { STAGINGS } from "./brand"
 import { INKS } from "./plate"
 import BrandGather from "./BrandGather.vue"
-import PauseChip from "./PauseChip.vue"
 import TrailerDialog from "./TrailerDialog.vue"
+import { useDrive } from "./drive"
 
 // The hero, our own: the first screen tall, the statement beside a print
 // the kit makes (a live DitherPoster: the palette as tone, the kit's
@@ -22,8 +22,15 @@ const film = ref(false)
 // moving layer at a time: the print holds its frame until the brand is home.
 const gathered = ref(false)
 
-// The print's screen slides by itself, so it carries a pause (WCAG 2.2.2).
-const printing = ref(true)
+// The print moves on cue (the industrial brief: no perpetual loops): its
+// screen slides for `HERO_RUN` once the brand is home, then only while a
+// pointer moves over it. Under five seconds by itself, so no pause key.
+const HERO_RUN = 4000
+const { driven, drive } = useDrive()
+function settled() {
+  gathered.value = true
+  drive(HERO_RUN)
+}
 </script>
 
 <template>
@@ -48,18 +55,11 @@ const printing = ref(true)
             <li v-for="t in WORKS" :key="t.id"><ToolMark :id="t.id" :size="13" />{{ t.name }}</li>
           </ul>
         </div>
-        <BrandGather
-          class="hero-brand"
-          :scene="STAGINGS.hero"
-          replay
-          @moving="gathered = false"
-          @settled="gathered = true"
-        />
+        <BrandGather class="hero-brand" :scene="STAGINGS.hero" replay @moving="gathered = false" @settled="settled" />
       </div>
       <div class="print-col">
-        <div class="print">
-          <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!printing || !gathered" />
-          <PauseChip v-model="printing" label="Pause the print" class="print-chip" />
+        <div class="print" @pointermove="gathered && drive()">
+          <DitherPoster :seed="5" :inks="INKS" :cell="4" :speed="1.5" :paused="!driven || !gathered" />
           <!-- The print stands over its own reflection on the obsidian: the
                same print at the same moment, turned over and thinned through
                the kit's wipe to two-fifths, then a fifth, of its cells. A
@@ -71,7 +71,7 @@ const printing = ref(true)
               :inks="INKS"
               :cell="4"
               :speed="1.5"
-              :paused="!printing || !gathered"
+              :paused="!driven || !gathered"
               class="print-mirror"
             />
           </DitherReveal>
@@ -220,12 +220,6 @@ const printing = ref(true)
   width: 100%;
   height: 125cqw;
   transform: scaleY(-1);
-}
-
-.print-chip {
-  position: absolute;
-  top: 12px;
-  right: 12px;
 }
 
 /* Between 900 and 1199px the columns share the width evenly, so the keys

@@ -1,8 +1,9 @@
 // Art that moves only on cue (the user's brief: no perpetual loops): it is
 // driven for a while (`drive(ms)` keeps it moving at least that much
-// longer) and settles when the cues stop. The footer's road and the
-// bridge's board run on it: a dance as each comes into view, then the
-// reader's scroll.
+// longer) and settles when the cues stop. The hero's print (a run once
+// the brand is home, then the pointer), the bridge's board and the
+// footer's road (a dance as each comes into view, then the reader's
+// scroll) run on it.
 import { onBeforeUnmount, ref } from "vue"
 
 export function useDrive() {

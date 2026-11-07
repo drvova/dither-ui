@@ -148,7 +148,10 @@ widgets/features; page-specific conventions live here.
   most 30rem wide) set on the obsidian at the column's right edge with
   breathing room above and below, square cornered and flat: never a
   panel run to the page's edge or under the header (that is the reference's
-  hero). Its pause ("Pause the print") sits on its top right corner.
+  hero). It moves on cue (the industrial brief: no perpetual loops): its
+  screen slides for 4s once the brand is home, then only while a pointer
+  moves over the print (`drive.ts`), under five seconds by itself, so it
+  carries no pause.
   Under it the print stands over its own floor (`.print-floor`, 40px,
   out of the flow): the same poster at the same moment, turned over and
   thinned through `DitherReveal`'s down wipe held at a third of its travel
@@ -512,8 +515,7 @@ widgets/features; page-specific conventions live here.
   surfaces, one moving layer at a time in the bento. Pause chips
   (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
-  the print", "Pause the model", "Pause the shader", "Pause the fluid",
-  "Pause the silk"), `aria-pressed` while the
+  the model", "Pause the shader", "Pause the fluid", "Pause the silk"), `aria-pressed` while the
   surface is still, wired to its `paused` (the model's turn is its
   `auto-rotate`): a disc of the page's ink with its glyph in the ground.
   In the bento a chip shows whether its surface plays: a pause is the

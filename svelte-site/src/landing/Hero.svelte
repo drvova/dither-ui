@@ -8,10 +8,11 @@
   import { STAGINGS } from "./brand"
   import { COMPONENT_COUNT, MATRIX, WORKS, docsHref } from "./facts"
   import { STUDIO } from "./links"
-  import PauseChip from "./PauseChip.svelte"
   import { INKS } from "./plate"
   import ToolMark from "./ToolMark.svelte"
   import TrailerDialog from "./TrailerDialog.svelte"
+  import { createDrive } from "./drive"
+  import { onDestroy } from "svelte"
 
   let film = $state(false)
 
@@ -21,8 +22,13 @@
   // its frame until the brand is home.
   let gathered = $state(false)
 
-  // The print's screen slides by itself, so it carries a pause (WCAG 2.2.2).
-  let printing = $state(true)
+  // The print moves on cue (no perpetual loops): its screen slides for
+  // HERO_RUN once the brand is home, then only while a pointer moves over
+  // it. Under five seconds by itself, so no pause key.
+  const HERO_RUN = 4000
+  let driven = $state(false)
+  const timer = createDrive((m) => (driven = m))
+  onDestroy(() => timer.dispose())
 </script>
 
 <section aria-labelledby="hero-h" class="hero">
@@ -53,13 +59,15 @@
         scene={STAGINGS.hero}
         replay
         onmoving={() => (gathered = false)}
-        onsettled={() => (gathered = true)}
+        onsettled={() => {
+          gathered = true
+          timer.run(HERO_RUN)
+        }}
       />
     </div>
     <div class="print-col">
-      <div class="print">
-        <Poster seed={5} inks={INKS} cell={4} speed={1.5} paused={!printing || !gathered} />
-        <PauseChip bind:playing={printing} label="Pause the print" class="print-chip" />
+      <div class="print" role="presentation" onpointermove={() => gathered && timer.run()}>
+        <Poster seed={5} inks={INKS} cell={4} speed={1.5} paused={!driven || !gathered} />
       </div>
     </div>
   </div>
@@ -183,12 +191,6 @@
     position: relative;
     width: min(100%, 30rem);
     aspect-ratio: 4 / 5;
-  }
-
-  .print :global(.print-chip) {
-    position: absolute;
-    top: 12px;
-    right: 12px;
   }
 
   @media (max-width: 1199px) {
