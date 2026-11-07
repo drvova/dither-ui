@@ -9,6 +9,7 @@ import { directedTime, isDirected, onSeek } from "./clock"
 import { pixelPrefersReducedMotion } from "./pixel"
 import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster"
 import type { DitherRenderMode } from "./precompile"
+import { mayPaint, spend } from "./frame-budget"
 import { frameIndex } from "./timing"
 import { useCanvasVisibility } from "./use-visibility"
 
@@ -90,6 +91,8 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
   // a change (after layout, so the read is free): a read per painted frame
   // forced a layout per surface per frame while the page scrolled.
   let box: { width: number; height: number } | null = null
+  // Waited a frame for the shared paint budget: paints next frame regardless.
+  let owed = false
   // The canvas's context, asked for once per element, not once per frame.
   let ctx2d: CanvasRenderingContext2D | null = null
   const isVisible = useCanvasVisibility(opts.wrapRef, () => wake())
@@ -171,6 +174,14 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
       raf = requestAnimationFrame(frame)
       return
     }
+    // The frame's paints are over budget (`frame-budget.ts`): this one waits
+    // a frame, consuming nothing, and goes first in the next.
+    if (!mayPaint(now, owed)) {
+      owed = true
+      raf = requestAnimationFrame(frame)
+      return
+    }
+    owed = false
     lastFrame = idx
     // The default dt clamp survives tab stalls; at low cadence one frame can
     // span >100ms, so widen it to two frame periods when frameRate is set.
@@ -178,7 +189,9 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
     const dt = lastPaint ? Math.min(cap, (now - lastPaint) / 1000) : 0
     lastPaint = now
     clock += dt * (opts.timeScale ? opts.timeScale() : 1)
+    const began = performance.now()
     draw(ctx, dt, now - startNow)
+    spend(now, performance.now() - began)
     if (!paused) raf = requestAnimationFrame(frame)
   }
 

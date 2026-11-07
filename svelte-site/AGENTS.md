@@ -73,7 +73,8 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   with the title for screen readers), plays well with others, plate,
   install, footer:
   - Printed in the dark, always: `landing.css` sets the ground on
-    `:root:has(.landing)` (obsidian `#101214`, bone `#e4e1d8`, muted bone
+    the root `App.svelte` marks with the page (`data-page`, never a
+    `:has()`; `tests/root-has.spec.ts`) (obsidian `#101214`, bone `#e4e1d8`, muted bone
     `#9c998f`, the ring in bone), the two inks `--ink`/`--ink-3`, the one
     raised ground `--surface`, the ember `--signal`, the grain, and the
     shared pieces (`.sec-head`, `.section-title`, `.more-link`, `.lead`,
@@ -115,7 +116,8 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
 - The docs look as the Vue docs (`src/pages/AGENTS.md`, docs/): the site's
   header (the landing's `SiteHeader`, `current="docs"`, its `tools` the
   sections key under lg), the obsidian ground under the grain (the
-  landing's ground, `:root:has(.landing, .docs-root)` in `landing.css`, and
+  landing's ground, `:root:is([data-page="landing"], [data-page="docs"])`
+  in `landing.css`, and
   its header pieces under `:is(.landing, .docs-root)`), and `docs/docs.css`
   for the rest, the Vue site's values: the docs' border and card, the
   tracks and their `.ring-on`, `.flat-shell`, `.spec`, `.speed-tag`, the

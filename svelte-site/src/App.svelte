@@ -6,6 +6,12 @@
   // Minimal hash router: `#/docs[...]` → docs, everything else → landing.
   let hash = $state(location.hash)
   const isDocs = $derived(hash.startsWith("#/docs"))
+  // The page marks the root (`data-page`), which the grounds key on, never a
+  // `:root:has(...)` rule: that re-matched the root on every node added
+  // anywhere and restyled the whole document as the page scrolled.
+  $effect.pre(() => {
+    document.documentElement.dataset.page = isDocs ? "docs" : "landing"
+  })
   const onHash = async () => {
     const was = isDocs
     hash = location.hash

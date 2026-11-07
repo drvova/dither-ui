@@ -40,7 +40,10 @@ patterns and the rest follows the same mechanical translation.
   `frameRate` param gates painting on `engine/timing.frameIndex` boundaries —
   between boundaries the raster is held (stop-motion cadence, no upload),
   0/undefined keeps the smooth ~30fps throttle; every background passes a
-  `frameRate` prop (default 0) through. A new background is
+  `frameRate` prop (default 0) through. Its paints book against the kit's
+  one frame budget (`engine/frame-budget.ts`, verbatim; a paint past it
+  waits a frame, one that waited always paints), its box is read on
+  resize only and its context once. A new background is
   an engine `paint*` fn plus a thin `.svelte` that binds a canvas and passes a
   `render(buffer, clock, dt, elapsed)` callback and a `restartKey` — never
   re-implement the loop per component. The action restarts when `restartKey`

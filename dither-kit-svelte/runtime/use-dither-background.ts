@@ -11,6 +11,7 @@
 // changes and always paints with the latest `render` closure.
 
 import { isCovered, onCoverChange } from "../engine/cover"
+import { mayPaint, spend } from "../engine/frame-budget"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "../engine/raster"
 import type { DitherRenderMode } from "../engine/precompile"
@@ -65,6 +66,8 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
   // a change (after layout, so the read is free): a read per painted frame
   // forced a layout per surface per frame while the page scrolled.
   let box: { width: number; height: number } | null = null
+  // Waited a frame for the shared paint budget: paints next frame regardless.
+  let owed = false
   // The canvas's context, asked for once per element, not once per frame.
   let ctx2d: CanvasRenderingContext2D | null = null
 
@@ -121,6 +124,14 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
       raf = requestAnimationFrame(frame)
       return
     }
+    // The frame's paints are over budget (`frame-budget.ts`): this one waits
+    // a frame, consuming nothing, and goes first in the next.
+    if (!mayPaint(now, owed)) {
+      owed = true
+      raf = requestAnimationFrame(frame)
+      return
+    }
+    owed = false
     lastFrame = idx
     // The default dt clamp survives tab stalls; at low cadence one frame can
     // span >100ms, so widen it to two frame periods when frameRate is set.
@@ -128,7 +139,9 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     const dt = lastPaint ? Math.min(cap, (now - lastPaint) / 1000) : 0
     lastPaint = now
     clock += dt * (p.timeScale ?? 1)
+    const began = performance.now()
     draw(ctx, dt, now - startNow)
+    spend(now, performance.now() - began)
     if (!p.paused) raf = requestAnimationFrame(frame)
   }
 

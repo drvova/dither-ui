@@ -561,7 +561,7 @@
    reads as one product; their light theme and the Studio keep the kit's
    neutrals. A hairline stays a hairline: the border a quiet step off the
    ground, the docs keeping their tool chrome. */
-:root.dark:has(.docs-root) {
+:root.dark[data-page="docs"] {
   --background: #101214;
   --foreground: #e4e1d8;
   --card: #17191c;

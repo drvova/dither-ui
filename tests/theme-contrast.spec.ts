@@ -91,8 +91,8 @@ describe("theme contrast", () => {
   for (const [theme, t] of [
     ["light", LIGHT],
     ["dark", DARK],
-    ["docs dark", { ...DARK, ...tokens(site, ":root.dark:has(.docs-root)") }],
-    ["landing", { ...DARK, ...tokens(landing, ":root:has(.landing)") }],
+    ["docs dark", { ...DARK, ...tokens(site, ':root.dark[data-page="docs"]') }],
+    ["landing", { ...DARK, ...tokens(landing, ':root:is([data-page="landing"], [data-page="missing"])') }],
   ] as const)
     it(`${theme}: the menu's bands hold 4.5:1 for the ground's ink`, () => {
       const page = colour(t.background)
@@ -110,8 +110,8 @@ describe("theme contrast", () => {
   for (const [theme, t] of [
     ["light", LIGHT],
     ["dark", DARK],
-    ["docs dark", { ...DARK, ...tokens(site, ":root.dark:has(.docs-root)") }],
-    ["landing", { ...DARK, ...tokens(landing, ":root:has(.landing)") }],
+    ["docs dark", { ...DARK, ...tokens(site, ':root.dark[data-page="docs"]') }],
+    ["landing", { ...DARK, ...tokens(landing, ':root:is([data-page="landing"], [data-page="missing"])') }],
   ] as const)
     it(`${theme}: a field's placeholder holds 4.5:1 in a field on every ground, under the muted ink`, () => {
       const page = colour(t.background)

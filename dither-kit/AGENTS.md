@@ -570,7 +570,8 @@ the kit every import is relative (`../engine/pixel`).
   a dotted cage of their outlines (a points mesh); `scatter` pushes and
   turns them outward; `nudge` leans the pieces near a point on the target
   away from it, eased back by `dt`. Whole and still it is the model as it
-  was. `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
+  was. A piece's turn is taken as a cosine and sine once a frame, never
+  per vertex, and the pose is pinned bit for bit (`POSE_HASH`). `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
   the ember by default) and `nudge` (the pointer's point); it takes the
   model apart only when one of them asks. `tests/assemble.spec.ts`.
   `tests/world.spec.ts`,
@@ -688,6 +689,13 @@ the kit every import is relative (`../engine/pixel`).
   paused surface down the page at load); a surface first painted out of
   view waits for the visibility wake. The Svelte runtime alike, its cadence
   gates before `measure()` too (`tests/surface.spec.ts` counts the reads).
+  Every paint books its time against one budget a frame
+  (`engine/frame-budget.ts`, `FRAME_BUDGET_MS` 8, shared by every surface
+  of a kit; the Svelte kit's copy verbatim): past it a due paint waits a
+  frame, consuming nothing, and one that waited always paints, so no
+  surface runs more than a frame late and where several cadences meet the
+  frame holds the budget and one paint, not all of them
+  (`tests/frame-budget.spec.ts`).
   EVERY background component exposes the matching `frameRate` prop
   (default 0) and passes it through; the studio registry row and the docs API
   table carry the same row — `scripts/frame-rate-codemod.ts` keeps all four

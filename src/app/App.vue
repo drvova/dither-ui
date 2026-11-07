@@ -42,8 +42,13 @@ onBeforeUnmount(() => {
   window.removeEventListener("popstate", onRoute)
 })
 
+// The route marks the root (`data-page`), which the pages' grounds key on:
+// a `:root:has(.landing)` rule made the browser re-match the root on every
+// node added or removed anywhere, restyling the whole document each time
+// (the landing's demos and words add nodes all the time as it scrolls).
 watchEffect(() => {
   document.title = ROUTE_TITLES[route.value]
+  document.documentElement.dataset.page = route.value
 })
 </script>
 

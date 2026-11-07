@@ -52,7 +52,11 @@ widgets/features; page-specific conventions live here.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) over the site voice (only
   `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the ground
-  on `:root:has(.landing)` (obsidian `#101214`, bone `#e4e1d8`, the muted
+  on the root marked with its route (`:root[data-page="landing"]`, and
+  `missing`; App.vue sets `data-page` with the title, never a `:has()`,
+  which re-matched the root on every node added anywhere and restyled the
+  whole document as the page scrolled; `tests/root-has.spec.ts`)
+  (obsidian `#101214`, bone `#e4e1d8`, the muted
   bone `#9c998f` at AA on both grounds, `color-scheme: dark`), so what the
   page teleports to the body (the film's dialog) is printed too; the dark
   theme stays on (`index.html` ships `class="dark"` and `LandingPage`
@@ -79,7 +83,7 @@ widgets/features; page-specific conventions live here.
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
   `[id]` scroll margins (76px) clear of the header, an in-page link
-  travelling there by the browser's own smooth scroll (`html:has(.landing)`,
+  travelling there by the browser's own smooth scroll (`:root[data-page="landing"]`,
   none under reduced motion; the Svelte landing's `landing.css` likewise;
   `tests/motion.spec.ts`). A card or panel whose
   own ground is `--surface` resets `--surface` to the page's ground on
@@ -524,7 +528,11 @@ widgets/features; page-specific conventions live here.
   A new plate is a row in the table and a `<Plate>` at a section break.
 - The close (`#install`, out of the page column, the full width): the
   install stands in a clear field over a print of heat (`heat.ts`,
-  `paintHeat` on the kit's own `fbm` where a field lets it, `closeField`
+  `paintHeat` on the kit's own `fbm` where a field lets it, its fold (the
+  two warp fields) sampled on a grid at a sixteenth of the scale, at most
+  every fourth cell, and blended between, the final noise per cell: within
+  a cell in a hundred of the exact fold at a quarter of its noise, a
+  phone's finer fold every cell (`tests/heat.spec.ts`), `closeField`
   here, copied byte for byte to the Svelte landing; `HeatPrint.vue` paints
   it on the kit's background runtime at `CLOSE.fps`): ink in water through
   `RAMP`, so the plates, the close and the footer's road are one material.
@@ -713,7 +721,7 @@ widgets/features; page-specific conventions live here.
   in tracks, 24px tall; the tab row wraps, so on a phone the Code tab's
   chips drop under the tabs instead of running off the card.
 - Docs ground: in the dark the docs wear the landing's print, the user's
-  V5 obsidian and bone (`:root.dark:has(.docs-root)` in
+  V5 obsidian and bone (`:root.dark[data-page="docs"]` in
   `app/styles.css`: a muted bone at AA on the ground and the raised
   card, the border a quiet step off the ground, the ring bone, the
   landing's float shadow) over the

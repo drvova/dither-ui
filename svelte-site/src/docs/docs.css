@@ -1,14 +1,14 @@
 /* The docs in the Vue docs' print (the Vue site's `src/app/styles.css`,
    its docs block and site voice; `src/pages/docs/DemoCard.vue`'s well): the
    landing's obsidian and bone under the grain (`landing.css` sets the
-   ground on `:root:has(.landing, .docs-root)`), the docs keeping their tool
+   ground on the page's mark on the root), the docs keeping their tool
    chrome: a hairline a quiet step off the ground, a raised card. The
    materials the page wears: tracks of machined segments, the pressed
    segment's ring, flat shells, spec labels, speed tags and the demo's gel
    well, rimmed in chrome. Plain CSS under `.docs-root`, read by the docs. */
 
 /* The docs' tool chrome on the shared ground: the border and the card. */
-html:root:has(.docs-root) {
+:root[data-page="docs"] {
   --card: #17191c;
   --card-foreground: #e4e1d8;
   --border: #2b2e32;

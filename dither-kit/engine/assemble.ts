@@ -96,10 +96,9 @@ function piecesOfMesh(mesh: WorldMesh): { of: Int32Array; count: number } {
   return { of, count: ids.size }
 }
 
-/** Rotation of `v` about a unit axis by `a` radians (Rodrigues), into `out`. */
-function turn(v: number[], k: number[], a: number, out: number[]): void {
-  const c = Math.cos(a)
-  const s = Math.sin(a)
+/** Rotation of `v` about a unit axis by the angle whose cosine and sine
+ * are `c` and `s` (Rodrigues), into `out`. */
+function turn(v: number[], k: number[], c: number, s: number, out: number[]): void {
   const d = (k[0] * v[0] + k[1] * v[1] + k[2] * v[2]) * (1 - c)
   out[0] = v[0] * c + (k[1] * v[2] - k[2] * v[1]) * s + k[0] * d
   out[1] = v[1] * c + (k[2] * v[0] - k[0] * v[2]) * s + k[1] * d
@@ -184,6 +183,10 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
   const t = new Float32Array(pieces.length)
   const offset = new Float32Array(pieces.length * 3)
   const angle = new Float32Array(pieces.length)
+  // Each piece's turn as its cosine and sine, once a frame, not once a
+  // vertex (a piece is many vertices; the trig was most of the pose).
+  const cosA = new Float64Array(pieces.length)
+  const sinA = new Float64Array(pieces.length)
   const v = [0, 0, 0]
   const r = [0, 0, 0]
 
@@ -215,6 +218,8 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
         offset[i * 3 + 1] = (out[1] / ol) * dist
         offset[i * 3 + 2] = (out[2] / ol) * dist
         angle[i] = (fly * 1.4 + scatter * 2.2 + p.push * 0.5) * (p.rand[2] - 0.5) * 2
+        cosA[i] = Math.cos(angle[i])
+        sinA[i] = Math.sin(angle[i])
       }
 
       const meshes: WorldMesh[] = []
@@ -237,8 +242,12 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           v[0] = src[b] - p.center[0]
           v[1] = src[b + 1] - p.center[1]
           v[2] = src[b + 2] - p.center[2]
-          if (angle[pi] !== 0) turn(v, p.axis, angle[pi], r)
-          else r.splice(0, 3, v[0], v[1], v[2])
+          if (angle[pi] !== 0) turn(v, p.axis, cosA[pi], sinA[pi], r)
+          else {
+            r[0] = v[0]
+            r[1] = v[1]
+            r[2] = v[2]
+          }
           o.positions[b] = p.center[0] + r[0] + offset[pi * 3]
           o.positions[b + 1] = p.center[1] + r[1] + offset[pi * 3 + 1]
           o.positions[b + 2] = p.center[2] + r[2] + offset[pi * 3 + 2]

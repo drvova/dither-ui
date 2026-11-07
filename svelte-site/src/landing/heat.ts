@@ -65,6 +65,10 @@ export const closeField: HeatField = (x, y, width, height) => {
   return { field: Math.max(side, foot), boost: 0.12 * foot * foot, floor: 0.33 * smooth(40, 0, height - y) }
 }
 
+let foldBuffer = new Float32Array(0)
+/** The fold's grid, reused from frame to frame. */
+const foldGrid = (n: number) => (foldBuffer.length >= n ? foldBuffer : (foldBuffer = new Float32Array(n)))
+
 /** Print the heat at `time` seconds into `buffer`, `cell` CSS px a cell,
  * through `ramp` (dark to light; the first is the ground, left clear),
  * dithered between its inks by `matrix`, where `field` lets it, at its
@@ -87,6 +91,24 @@ export function paintHeat(
   const t = time * 0.12
   const top = ramp.length - 1
   const scale = grain.scale * Math.min(1, width / (grain.span ?? width))
+  // The fold (the two warp fields) is as smooth as the noise's finest
+  // octave, a quarter of the scale: sampled on a grid at a sixteenth of
+  // the scale (whole cells, at most every fourth) and blended between, it
+  // is the same fold at a fraction of the cost (it was two of the three
+  // noise calls a cell, the band's whole paint). A phone's finer fold
+  // samples every cell, exactly as before.
+  const step = Math.max(1, Math.min(4, Math.floor(scale / 16 / cell)))
+  const gw = Math.ceil(cols / step) + 1
+  const gh = Math.ceil(rows / step) + 1
+  const fold = foldGrid(gw * gh * 2)
+  for (let j = 0; j < gh; j++)
+    for (let i = 0; i < gw; i++) {
+      const u = (i * step * cell) / scale + grain.at[0]
+      const v = (j * step * cell) / scale + grain.at[1]
+      const g = (j * gw + i) * 2
+      fold[g] = fbm(u, v + t, 0)
+      fold[g + 1] = fbm(u + 5.2, v + 1.3, t)
+    }
   for (let r = 0; r < rows; r++)
     for (let c = 0; c < cols; c++) {
       const x = c * cell
@@ -96,8 +118,20 @@ export function paintHeat(
       // Ink in water: the noise folded through itself twice.
       const u = x / scale + grain.at[0]
       const v = y / scale + grain.at[1]
-      const qx = fbm(u, v + t, 0)
-      const qy = fbm(u + 5.2, v + 1.3, t)
+      const gi = Math.floor(c / step)
+      const gj = Math.floor(r / step)
+      const fx = (c - gi * step) / step
+      const fy = (r - gj * step) / step
+      const g00 = (gj * gw + gi) * 2
+      const g10 = g00 + 2
+      const g01 = g00 + gw * 2
+      const g11 = g01 + 2
+      const w00 = (1 - fx) * (1 - fy)
+      const w10 = fx * (1 - fy)
+      const w01 = (1 - fx) * fy
+      const w11 = fx * fy
+      const qx = fold[g00] * w00 + fold[g10] * w10 + fold[g01] * w01 + fold[g11] * w11
+      const qy = fold[g00 + 1] * w00 + fold[g10 + 1] * w10 + fold[g01 + 1] * w01 + fold[g11 + 1] * w11
       let heat = fbm(u + 2.4 * qx + 0.5 * t, v + 2.4 * qy, 0) + here.boost
       // The hand pulls the heat toward it.
       if (hand) heat += 0.12 * Math.exp(-Math.hypot(x - hand[0], y - hand[1]) / 160)

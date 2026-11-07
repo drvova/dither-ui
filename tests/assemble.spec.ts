@@ -65,6 +65,8 @@ const still = { build: 1, scatter: 0, nudge: null }
 const faces = (w: World) => w.meshes.filter((m) => m.kind === "faces")
 const triangles = (w: World) => faces(w).reduce((n, m) => n + m.indices.length / 3, 0)
 const cage = (w: World) => w.meshes.find((m) => m.kind === "points")
+/** The lockup's pose, hashed bit for bit, as the pose has always printed it. */
+const POSE_HASH = 2005593387
 
 describe("a world as a build", () => {
   const world = stack()
@@ -163,6 +165,26 @@ describe("a world as a build", () => {
 })
 
 describe("the landing's build", () => {
+  it("poses the lockup to the same bytes it always has, mid-rise and scattered", () => {
+    // The pose's trig taken once a piece, not once a vertex: the positions
+    // must not move by a bit (video exports seek to the same bytes).
+    const world = parseWorld(lockupModel(), "vrml")
+    const cam = cameraOf(world, VIEW, 160, 90)
+    const a = createAssembly(world, HEAT, 3)
+    let h = 2166136261
+    for (const state of [
+      { build: 0.4, scatter: 0, nudge: null },
+      { build: 1, scatter: 0.6, nudge: null },
+    ])
+      for (const m of a.frame(VIEW, cam, state, 1 / 30).meshes)
+        for (const x of m.positions) {
+          const [lo, hi] = new Uint32Array(new Float64Array([x]).buffer)
+          h = Math.imul(h ^ lo, 16777619) >>> 0
+          h = Math.imul(h ^ hi, 16777619) >>> 0
+        }
+    expect(h).toBe(POSE_HASH)
+  })
+
   it("is the lockup on its floor, one piece per cell and per tile, the floor laid first", () => {
     const world = parseWorld(lockupModel(), "vrml")
     const a = createAssembly(world, HEAT)
