@@ -36,7 +36,7 @@ const styles = stylex.create({
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { directedTime } from "../engine/clock"
 import { buildProgram, type Channels, createChannels, createGl, type GlHandle } from "../engine/gl"
 import { cn, type StyleProp } from "./lib"
@@ -294,7 +294,39 @@ function onUp() {
   mouse.down = false
 }
 
+/** The GPU half's first cost, the context and the program, paid ahead. */
+function warm() {
+  if (handle === undefined) handle = createGl()
+  if (handle && !handle.lost() && code.value && compiled !== code.value) compile(handle, code.value)
+}
+
+// Warmed as the shader nears the screen, at idle: making the context and
+// compiling the program were most of its first frame, a stall just as it
+// came into view; now that frame only draws. Never for one far off, so a
+// page of shaders holds no contexts it never shows.
+let near: IntersectionObserver | null = null
+let idle = 0
+onMounted(() => {
+  const el = wrapRef.value
+  if (!el || typeof IntersectionObserver === "undefined") return
+  near = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry?.isIntersecting) return
+      near?.disconnect()
+      near = null
+      idle =
+        typeof requestIdleCallback === "function"
+          ? requestIdleCallback(warm, { timeout: 1000 })
+          : window.setTimeout(warm, 200)
+    },
+    { rootMargin: "100% 0px" },
+  )
+  near.observe(el)
+})
+
 onBeforeUnmount(() => {
+  near?.disconnect()
+  if (idle) typeof cancelIdleCallback === "function" ? cancelIdleCallback(idle) : clearTimeout(idle)
   ctl?.abort()
   if (handle) {
     if (program) handle.gl.deleteProgram(program)

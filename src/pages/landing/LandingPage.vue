@@ -138,8 +138,11 @@ const closeBand = ref<HTMLElement | null>(null)
 let closeSeen: IntersectionObserver | null = null
 const boardCard = ref<HTMLElement | null>(null)
 let boardInView = false
+// A scroll drives only what is on screen: the road off screen stays still
+// (driving it from anywhere ran the car's loop through the whole page).
+let roadNear = false
 const scrolled = () => {
-  drive()
+  if (roadNear) drive()
   if (boardInView) board.drive()
 }
 // The dance, once per time the road comes into view, waiting for the brand.
@@ -173,14 +176,17 @@ const carX = ref(0)
 const CAR_SPEED = 0.16 // px a ms
 let carRaf = 0
 let carLast = 0
+// The road's width and the car's, kept by a ResizeObserver: read in the
+// frame loop they forced a layout every frame of the drive.
+let roadWidth = 0
+let carWidth = 0
+let carSizes: ResizeObserver | null = null
 const carStill = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
 function roll(now: number) {
   const dt = Math.min(64, now - carLast)
   carLast = now
-  const width = car.value?.parentElement?.clientWidth ?? 0
-  const own = car.value?.offsetWidth ?? 0
   carX.value += dt * CAR_SPEED
-  if (carX.value > width) carX.value = -own
+  if (carX.value > roadWidth) carX.value = -carWidth
   carRaf = driven.value && footStill.value ? requestAnimationFrame(roll) : 0
 }
 watch(
@@ -221,18 +227,29 @@ onMounted(() => {
   if (!road.value) return
   seen = new IntersectionObserver(
     ([entry]) => {
-      inView = !!entry?.isIntersecting
+      roadNear = !!entry?.isIntersecting
+      inView = roadNear && entry.intersectionRatio >= 0.5
       if (inView) dance()
       else danced = false
     },
-    { threshold: 0.5 },
+    { threshold: [0, 0.5] },
   )
   seen.observe(road.value)
+  if (car.value && typeof ResizeObserver !== "undefined") {
+    const track = car.value.parentElement
+    carSizes = new ResizeObserver(() => {
+      roadWidth = track?.clientWidth ?? 0
+      carWidth = car.value?.offsetWidth ?? 0
+    })
+    if (track) carSizes.observe(track)
+    carSizes.observe(car.value)
+  }
 })
 onBeforeUnmount(() => {
   cancelAnimationFrame(carRaf)
   removeEventListener("scroll", scrolled)
   seen?.disconnect()
+  carSizes?.disconnect()
   boardSeen?.disconnect()
   closeSeen?.disconnect()
 })

@@ -86,6 +86,12 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
   let version = 0
   let buffer: RasterBuffer | null = null
   let imageData: ImageData | undefined
+  // The element's box, read once and then only as the ResizeObserver reports
+  // a change (after layout, so the read is free): a read per painted frame
+  // forced a layout per surface per frame while the page scrolled.
+  let box: { width: number; height: number } | null = null
+  // The canvas's context, asked for once per element, not once per frame.
+  let ctx2d: CanvasRenderingContext2D | null = null
   const isVisible = useCanvasVisibility(opts.wrapRef, () => wake())
   const surface: DitherSurface = {
     raster: () => buffer,
@@ -111,9 +117,10 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
     // <canvas> during a large page mount; bail without throwing and retry next
     // frame rather than calling getContext on a non-canvas.
     if (!wrap || !canvas || typeof canvas.getContext !== "function") return null
-    const ctx = canvas.getContext("2d", { willReadFrequently: true })
+    if (ctx2d?.canvas !== canvas) ctx2d = canvas.getContext("2d", { willReadFrequently: true })
+    const ctx = ctx2d
     if (!ctx) return null
-    const box = wrap.getBoundingClientRect()
+    box ??= wrap.getBoundingClientRect()
     const unit = (typeof opts.cell === "function" ? opts.cell() : opts.cell) / dprFactor()
     const cols = Math.min(opts.maxCols, Math.max(8, Math.round(box.width / unit)))
     const rows = Math.min(opts.maxRows, Math.max(8, Math.round(box.height / unit)))
@@ -220,6 +227,7 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
     if (opts.precompiled()) return stop()
     void nextTick(() => {
       if (token !== restartToken || opts.precompiled()) return
+      box = null
       startNow = typeof performance !== "undefined" ? performance.now() : 0
       lastPaint = 0
       lastSeek = -1
@@ -242,11 +250,17 @@ export function useDitherBackground(opts: DitherBackgroundOptions): DitherSurfac
       }
       if (typeof ResizeObserver !== "undefined") {
         ro = new ResizeObserver(() => {
+          box = opts.wrapRef.value?.getBoundingClientRect() ?? null
           if (isDirected()) {
             seekTo(directedTime() ?? 0)
             return
           }
           if (raf) return
+          // A held surface repaints at its new size only where it shows: the
+          // observer's first report (on observe) painted every paused surface
+          // down the page at load. One that never painted gets its first
+          // frame from the visibility wake.
+          if (!isVisible()) return
           const c = measure()
           if (c && opts.paused()) draw(c, 0, 1e6)
         })

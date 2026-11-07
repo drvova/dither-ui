@@ -61,6 +61,12 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
   let startNow = 0
   let buffer: RasterBuffer | null = null
   let imageData: ImageData | undefined
+  // The element's box, read once and then only as the ResizeObserver reports
+  // a change (after layout, so the read is free): a read per painted frame
+  // forced a layout per surface per frame while the page scrolled.
+  let box: { width: number; height: number } | null = null
+  // The canvas's context, asked for once per element, not once per frame.
+  let ctx2d: CanvasRenderingContext2D | null = null
 
   function dprFactor(): number {
     const raw = p.dpr ?? (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1)
@@ -72,9 +78,10 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
   function measure(): CanvasRenderingContext2D | null {
     const canvas = p.canvas
     if (!canvas || typeof canvas.getContext !== "function") return null
-    const ctx = canvas.getContext("2d", { willReadFrequently: true })
+    if (ctx2d?.canvas !== canvas) ctx2d = canvas.getContext("2d", { willReadFrequently: true })
+    const ctx = ctx2d
     if (!ctx) return null
-    const box = wrap.getBoundingClientRect()
+    box ??= wrap.getBoundingClientRect()
     const unit = p.cell / dprFactor()
     const cols = Math.min(p.maxCols, Math.max(8, Math.round(box.width / unit)))
     const rows = Math.min(p.maxRows, Math.max(8, Math.round(box.height / unit)))
@@ -98,26 +105,23 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     // Paused holds the raster but never leaves it blank: the first frame
     // still paints, then the loop stands down.
     if (!visible || isCovered(wrap) || (p.paused && lastPaint)) return
+    // Cadence gates run BEFORE measure(): a held frame must not touch the
+    // canvas. Stop-motion holds the last raster until wall time crosses the
+    // next fps boundary (dt below spans the held frames, so the clock never
+    // loses time between paints); without a frameRate, the ~30fps throttle.
+    const fps = p.frameRate
+    const idx = fps && fps > 0 ? frameIndex(now - startNow, fps) : -1
+    const held = fps && fps > 0 ? idx === lastFrame : now - lastPaint < 33
+    if (held) {
+      raf = requestAnimationFrame(frame)
+      return
+    }
     const ctx = measure()
     if (!ctx) {
       raf = requestAnimationFrame(frame)
       return
     }
-    const fps = p.frameRate
-    if (fps && fps > 0) {
-      // Stop-motion gate: hold the last raster until wall time crosses the next
-      // fps boundary (dt below spans the held frames, so the clock never loses
-      // time between paints).
-      const idx = frameIndex(now - startNow, fps)
-      if (idx === lastFrame) {
-        raf = requestAnimationFrame(frame)
-        return
-      }
-      lastFrame = idx
-    } else if (now - lastPaint < 33) {
-      raf = requestAnimationFrame(frame)
-      return
-    }
+    lastFrame = idx
     // The default dt clamp survives tab stalls; at low cadence one frame can
     // span >100ms, so widen it to two frame periods when frameRate is set.
     const cap = fps && fps > 0 ? Math.max(0.1, 2 / fps) : 0.1
@@ -146,6 +150,7 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     // time would starve it until the driving stops.
     stop(true)
     if (p.precompiled) return stop()
+    box = null
     startNow = typeof performance !== "undefined" ? performance.now() : 0
     lastPaint = 0
     lastFrame = -1
@@ -165,7 +170,13 @@ export function ditherBackground(wrap: HTMLElement, initial: DitherBackgroundPar
     }
     if (typeof ResizeObserver !== "undefined") {
       ro = new ResizeObserver(() => {
+        box = wrap.getBoundingClientRect()
         if (raf) return
+        // A held surface repaints at its new size only where it shows: the
+        // observer's first report (on observe) painted every paused surface
+        // down the page at load. One that never painted gets its first
+        // frame from the visibility wake.
+        if (!visible) return
         const c = measure()
         if (c && p.paused) draw(c, 0, 1e6)
       })

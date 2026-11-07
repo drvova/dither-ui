@@ -648,7 +648,11 @@ the kit every import is relative (`../engine/pixel`).
   dithers each frame; `iTime` is the kit clock, so it seeks and renders
   like every surface (HyperFrames' renderer has WebGL2 through SwiftShader
   — verified by a real render). Without WebGL it shows "WebGL is not
-  available"; a compile error shows the compiler's first line.
+  available"; a compile error shows the compiler's first line. Its first
+  cost, the context and the program's compile, is paid at idle as it comes
+  within a screen of view (never for one far off, so a page of shaders
+  holds no contexts it never shows): paid in its first frame it was a
+  stall just as it came into view (`tests/shader-warm.spec.ts`).
   `sampleShader(seed)` is the seeded default source. `tests/shader.spec.ts`
   pins the pure half.
 - `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
@@ -676,7 +680,14 @@ the kit every import is relative (`../engine/pixel`).
   throttle. Both cadence gates run BEFORE `measure()` — a held frame never
   reads layout (gating the per-vsync `getBoundingClientRect`/`getContext`
   cut script time 28% on three 8fps surfaces), and a boundary is consumed
-  only by a frame that actually paints.
+  only by a frame that actually paints. A painting frame reads nothing from
+  the page either: the element's box is read once and then only when the
+  ResizeObserver reports (after layout, so free), the canvas's context is
+  asked for once per element, and the observer's report repaints a held
+  surface only where it shows (its first report on observe painted every
+  paused surface down the page at load); a surface first painted out of
+  view waits for the visibility wake. The Svelte runtime alike, its cadence
+  gates before `measure()` too (`tests/surface.spec.ts` counts the reads).
   EVERY background component exposes the matching `frameRate` prop
   (default 0) and passes it through; the studio registry row and the docs API
   table carry the same row — `scripts/frame-rate-codemod.ts` keeps all four

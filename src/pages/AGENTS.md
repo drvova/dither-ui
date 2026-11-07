@@ -633,7 +633,10 @@ widgets/features; page-specific conventions live here.
   while the art moves (the dance, a scroll, a pointer across the footer),
   so the reader drives it, parks as it settles, leaves at the right of
   the wordmark's box and comes back in at the left; under reduced motion
-  it stays parked. Decorative (`aria-hidden`); no
+  it stays parked. A scroll drives the road only while it is on screen
+  (driven from anywhere, the car's loop ran through the whole page), and
+  the car's loop reads the road's and the car's widths from a
+  ResizeObserver, never from layout each frame. Decorative (`aria-hidden`); no
   rule, no boxed icons.
 - Footer (on the page width, no rule above it): the brand (the brand's
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
