@@ -74,6 +74,23 @@ export function trailLift(t: Trail): void {
   t.last = null
 }
 
+/** The page moved `rows` cells under a field pinned to the viewport: the
+ * print goes with it (up for a positive count, as a scroll down moves it),
+ * and what leaves the field is let go. */
+export function scrollTrail(t: Trail, rows: number): void {
+  if (!rows) return
+  const { cols, rows: n, heat } = t
+  if (Math.abs(rows) >= n) heat.fill(0)
+  else if (rows > 0) {
+    heat.copyWithin(0, rows * cols)
+    heat.fill(0, (n - rows) * cols)
+  } else {
+    heat.copyWithin(-rows * cols, 0, (n + rows) * cols)
+    heat.fill(0, 0, -rows * cols)
+  }
+  if (t.last) t.last = [t.last[0], t.last[1] - rows]
+}
+
 /** Let `dt` seconds go by: every cell loses the same heat. Says whether
  * any heat is left. */
 export function coolTrail(t: Trail, dt: number, cool: number): boolean {

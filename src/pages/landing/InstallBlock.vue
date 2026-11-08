@@ -2,6 +2,7 @@
 import { ref } from "vue"
 import { DitherClipboard, DitherIcon } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
+import { commandPieces } from "./command"
 import { RUNTIME_DEPS } from "./facts"
 
 // The command box: its top row the step picker (the site's segmented
@@ -60,8 +61,11 @@ const active = ref(0)
       <code class="cmd">
         <span class="prompt" aria-hidden="true">$</span
         ><span :key="active" class="typed"
-          ><template v-for="(w, i) in STEPS[active].cmd.split(' ')" :key="i"
-            >{{ i ? " " : "" }}<span class="word">{{ w }}</span></template
+          ><template v-for="(w, i) in commandPieces(STEPS[active].cmd)" :key="i"
+            >{{ i ? " " : ""
+            }}<template v-for="(p, j) in w" :key="j"
+              ><wbr v-if="j" /><span class="word">{{ p }}</span></template
+            ></template
           ></span
         ><span class="caret" aria-hidden="true">▌</span>
       </code>
@@ -117,7 +121,8 @@ const active = ref(0)
   display: none;
 }
 
-/* A word of the command never breaks (a hyphen is no place to wrap). */
+/* A piece of the command never breaks (a hyphen is no place to wrap); a
+   path may wrap after its slashes (`command.ts`). */
 .word {
   white-space: nowrap;
 }
@@ -268,8 +273,10 @@ const active = ref(0)
     min-height: 56px;
     padding: 12px 12px 12px 18px;
   }
+  /* Wrapped: the prompt, the words and the caret flow as one line of text,
+     the caret after the last word. */
   .cmd {
-    align-items: baseline;
+    display: block;
     white-space: normal;
     line-height: 1.6;
   }

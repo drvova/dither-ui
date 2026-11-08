@@ -446,15 +446,10 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
   <section id="world" class="mt-16 scroll-mt-24">
     <h2 class="text-lg tracking-tight">World (3D)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-      A 3D model viewer in the house raster: VRML97 and VRML 1.0 .wrl, X3D, glTF / GLB, OBJ with its MTL, STL, PLY, OFF
-      and Gaussian splat captures, by URL or inline, orbited by a camera and drawn through the Bayer engine (on the CPU
-      by default, or by a WebGL engine for big meshes) into the same dither. Files bring their own materials, face
-      colours, lights, viewpoint and animations: this sample's arms revolve and its antenna bobs by its own TimeSensor
-      and ROUTEs, on the kit clock. The shade can run through the kit's other engines too: a palette ramp, fbm grain,
-      bloom, or your own GLSL material over the finished target (ink from depth edges here). Any kit surface is a
-      texture: bound as a channel it wraps the model through the file's own texture coordinates, so the aurora below
-      skins the probe. And any model is a build: it comes apart along its own seams, rises out of a dotted wire cage
-      with each piece landing hot, and blows apart again (build, scatter, nudge). Drag to orbit.
+      A 3D model viewer in the house raster: VRML, X3D, glTF / GLB, OBJ with its MTL, STL, PLY, OFF and Gaussian splats,
+      by URL or inline, drawn on the CPU or through WebGL for big meshes. Files bring their own materials, lights and
+      animations, played on the kit clock; any kit surface can skin the model (the aurora below), and any model comes
+      apart along its seams and builds itself back. Drag to orbit.
     </p>
     <DemoCard :code="SNIPPET_WORLD">
       <div class="mx-auto max-w-md">
@@ -589,11 +584,8 @@ const SNIPPET_SCHEDULE = `<DitherSchedule
     <h2 class="text-lg tracking-tight">Shader (GLSL)</h2>
     <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
       A fragment shader in the house raster: Shadertoy-style mainImage or a raw main, by URL or inline, run on the GPU
-      at the cell resolution and ordered-dithered on the way back: one bit per channel for the eight-colour look, or
-      luminance in a single tint. iTime follows the kit clock, so it seeks and renders to video like everything else,
-      and the pointer feeds iMouse. Surfaces chain: any kit surface can be bound as iChannel0..3, pulled at the same
-      clock time, so a background, a chart or a world can be post-processed by a shader and the whole graph still seeks
-      and renders as one. Below, an aurora through a CRT.
+      at the cell resolution and dithered on the way back, one bit per channel or one tint. iTime is the kit clock, so
+      it seeks and renders to video, and any kit surface can feed it as iChannel0..3. Below, an aurora through a CRT.
     </p>
     <DemoCard :code="SNIPPET_SHADER">
       <div class="mx-auto max-w-md">

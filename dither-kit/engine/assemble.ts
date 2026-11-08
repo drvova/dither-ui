@@ -96,10 +96,21 @@ function piecesOfMesh(mesh: WorldMesh): { of: Int32Array; count: number } {
   return { of, count: ids.size }
 }
 
-/** Rotation of `v` about a unit axis by `a` radians (Rodrigues), into `out`. */
-function turn(v: number[], k: number[], a: number, out: number[]): void {
-  const c = Math.cos(a)
-  const s = Math.sin(a)
+/** A shape's outline as dots: where each edge's run starts in `dots`
+ * (xyz a dot), and one past the last. */
+type Outline = { at: Uint32Array; dots: Float32Array }
+
+/** How many steps the dotted cage takes along edge `e` of `m`. */
+function dotSteps(m: WorldMesh, src: ArrayLike<number>, e: number, radius: number): number {
+  const a = m.edges[e * 3] * 3
+  const z = m.edges[e * 3 + 1] * 3
+  const len = Math.hypot(src[z] - src[a], src[z + 1] - src[a + 1], src[z + 2] - src[a + 2])
+  return Math.max(1, Math.round((len / radius) * DOTS_PER_RADIUS))
+}
+
+/** Rotation of `v` about a unit axis by the angle whose cosine and sine
+ * are `c` and `s` (Rodrigues), into `out`. */
+function turn(v: number[], k: number[], c: number, s: number, out: number[]): void {
   const d = (k[0] * v[0] + k[1] * v[1] + k[2] * v[2]) * (1 - c)
   out[0] = v[0] * c + (k[1] * v[2] - k[2] * v[1]) * s + k[0] * d
   out[1] = v[1] * c + (k[2] * v[0] - k[0] * v[2]) * s + k[1] * d
@@ -184,8 +195,45 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
   const t = new Float32Array(pieces.length)
   const offset = new Float32Array(pieces.length * 3)
   const angle = new Float32Array(pieces.length)
+  // Each piece's turn as its cosine and sine, once a frame, not once a
+  // vertex (a piece is many vertices; the trig was most of the pose).
+  const cosA = new Float64Array(pieces.length)
+  const sinA = new Float64Array(pieces.length)
   const v = [0, 0, 0]
   const r = [0, 0, 0]
+  // Each shape's outline as dots, one run an edge, laid once where it
+  // stands (rebuilt each frame only for a model whose nodes move): the cage
+  // was a push per dot every frame, most of a frame of the build.
+  const outlines: (Outline | null)[] = faces.map(() => null)
+  const dotted = (m: WorldMesh, src: ArrayLike<number>): Outline => {
+    const count = m.edges.length / 3
+    const at = new Uint32Array(count + 1)
+    let total = 0
+    for (let e = 0; e < count; e++) {
+      at[e] = total
+      total += (dotSteps(m, src, e, radius) + 1) * 3
+    }
+    at[count] = total
+    const dots = new Float32Array(total)
+    for (let e = 0; e < count; e++) {
+      const a = m.edges[e * 3] * 3
+      const z = m.edges[e * 3 + 1] * 3
+      const steps = (at[e + 1] - at[e]) / 3 - 1
+      for (let s = 0, o = at[e]; s <= steps; s++, o += 3) {
+        const f = s / steps
+        dots[o] = src[a] + (src[z] - src[a]) * f
+        dots[o + 1] = src[a + 1] + (src[z + 1] - src[a + 1]) * f
+        dots[o + 2] = src[a + 2] + (src[z + 2] - src[a + 2]) * f
+      }
+    }
+    return { at, dots }
+  }
+  let run = new Uint32Array(0)
+  /** 0, 1, 2 ... n - 1, the cage's indices, kept from frame to frame. */
+  const upTo = (n: number) => {
+    if (run.length < n) run = Uint32Array.from({ length: Math.max(n, run.length * 2) }, (_, i) => i)
+    return run.subarray(0, n)
+  }
 
   return {
     pieces: pieces.length,
@@ -215,11 +263,14 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
         offset[i * 3 + 1] = (out[1] / ol) * dist
         offset[i * 3 + 2] = (out[2] / ol) * dist
         angle[i] = (fly * 1.4 + scatter * 2.2 + p.push * 0.5) * (p.rand[2] - 0.5) * 2
+        cosA[i] = Math.cos(angle[i])
+        sinA[i] = Math.sin(angle[i])
       }
 
       const meshes: WorldMesh[] = []
-      let cageCount = 0
-      const cage: number[] = []
+      // The waiting edges' runs of dots: their outline, start and end.
+      const waiting: [Outline, number, number][] = []
+      let cageFloats = 0
       faces.forEach(({ m }, fi) => {
         const o = outFaces[fi]
         const src = posedPositions(m, mats)
@@ -237,8 +288,12 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           v[0] = src[b] - p.center[0]
           v[1] = src[b + 1] - p.center[1]
           v[2] = src[b + 2] - p.center[2]
-          if (angle[pi] !== 0) turn(v, p.axis, angle[pi], r)
-          else r.splice(0, 3, v[0], v[1], v[2])
+          if (angle[pi] !== 0) turn(v, p.axis, cosA[pi], sinA[pi], r)
+          else {
+            r[0] = v[0]
+            r[1] = v[1]
+            r[2] = v[2]
+          }
           o.positions[b] = p.center[0] + r[0] + offset[pi * 3]
           o.positions[b + 1] = p.center[1] + r[1] + offset[pi * 3 + 1]
           o.positions[b + 2] = p.center[2] + r[2] + offset[pi * 3 + 2]
@@ -260,23 +315,16 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           n++
         }
         let e = 0
+        let line: Outline | null = null
         for (let k = 0; k + 2 < m.edges.length; k += 3) {
           const tri = o.triMap[m.edges[k + 2]]
           if (tri < 0) {
             // A waiting piece's outline, dotted, where it will stand.
-            const a = m.edges[k] * 3
-            const z = m.edges[k + 1] * 3
-            const len = Math.hypot(src[z] - src[a], src[z + 1] - src[a + 1], src[z + 2] - src[a + 2])
-            const steps = Math.max(1, Math.round((len / radius) * DOTS_PER_RADIUS))
-            for (let s = 0; s <= steps; s++) {
-              const f = s / steps
-              cage.push(
-                src[a] + (src[z] - src[a]) * f,
-                src[a + 1] + (src[z + 1] - src[a + 1]) * f,
-                src[a + 2] + (src[z + 2] - src[a + 2]) * f,
-              )
-              cageCount++
-            }
+            line ??= mats ? dotted(m, src) : (outlines[fi] ??= dotted(m, src))
+            const from = line.at[k / 3]
+            const to = line.at[k / 3 + 1]
+            waiting.push([line, from, to])
+            cageFloats += to - from
             continue
           }
           o.edges[e] = m.edges[k]
@@ -300,10 +348,16 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
       })
       for (const m of rest)
         meshes.push({ ...m, positions: new Float32Array(posedPositions(m, mats)), node: -1, scratch: undefined })
-      if (cageCount)
+      if (cageFloats) {
+        const cage = new Float32Array(cageFloats)
+        let at = 0
+        for (const [line, from, to] of waiting) {
+          cage.set(line.dots.subarray(from, to), at)
+          at += to - from
+        }
         meshes.push({
-          positions: new Float32Array(cage),
-          indices: Uint32Array.from({ length: cageCount }, (_, i) => i),
+          positions: cage,
+          indices: upTo(cageFloats / 3),
           edges: new Uint32Array(0),
           color: faces[0]?.m.color ?? 0,
           triColors: null,
@@ -312,6 +366,7 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           kind: "points",
           node: -1,
         })
+      }
       return { ...world, meshes, nodes: [], palette, glows }
     },
   }

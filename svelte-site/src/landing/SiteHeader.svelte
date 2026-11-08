@@ -11,7 +11,7 @@
   import { pixelPrefersReducedMotion } from "@dither-kit/engine/pixel"
   import { glide } from "@dither-kit/engine/dither-paint"
   import { wipeStyle } from "@dither-kit/engine/wipe"
-  import { onMount, tick } from "svelte"
+  import { onMount, tick, type Snippet } from "svelte"
   import BrandMark from "./BrandMark.svelte"
   import { docsHref } from "./facts"
   import { GITHUB, STUDIO } from "./links"
@@ -34,6 +34,10 @@
   import ToolMark from "./ToolMark.svelte"
 
   const MENU_ID = "site-menu"
+
+  /** The page it heads (its link marked current) and a page's own tools
+   * (the docs' sections key), before "Open studio". */
+  let { current, tools }: { current?: MenuLinkId; tools?: Snippet } = $props()
 
   /** Where each link goes on this site. */
   const HREF: Record<MenuLinkId, string> = {
@@ -139,7 +143,8 @@
       {#each MENU_LINKS as l (l.id)}
         <a
           href={HREF[l.id]}
-          class="nav-a {SHOWN[l.from]}"
+          class="nav-a {SHOWN[l.from]} {current === l.id ? 'text-foreground' : ''}"
+          aria-current={current === l.id ? "page" : undefined}
           target={external(l.id) ? "_blank" : undefined}
           rel={external(l.id) ? "noreferrer" : undefined}
           >{#if external(l.id)}<ToolMark id="github" size={13} />{/if}{l.label}{#if external(l.id)}<span
@@ -151,6 +156,7 @@
       {/each}
     </nav>
     <div class="flex items-center gap-1">
+      {@render tools?.()}
       <a href={STUDIO} class="nav-a key-chrome studio-key hidden md:inline-flex">{STUDIO_LINK.label}</a>
       <button
         bind:this={key}
@@ -196,6 +202,7 @@
             href={HREF[l.id]}
             class="menu-band"
             style:background={bandFill(i)}
+            aria-current={current === l.id ? "page" : undefined}
             target={external(l.id) ? "_blank" : undefined}
             rel={external(l.id) ? "noreferrer" : undefined}
             onclick={shut}

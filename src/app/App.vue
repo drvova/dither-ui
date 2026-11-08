@@ -11,7 +11,8 @@ import PageLoader from "./PageLoader.vue"
 // (after a 150ms delay, so cached/instant loads never flash one) instead of a
 // blank freeze during navigation.
 const DocsPage = defineAsyncComponent({
-  loader: () => import("@/pages/docs").then((m) => m.DocsPage),
+  // The open section's pack loads with the page, so it never shows empty.
+  loader: () => import("@/pages/docs").then(async (m) => (await m.preloadOpenPacks(), m.DocsPage)),
   loadingComponent: PageLoader,
   delay: 150,
 })
@@ -42,8 +43,13 @@ onBeforeUnmount(() => {
   window.removeEventListener("popstate", onRoute)
 })
 
+// The route marks the root (`data-page`), which the pages' grounds key on:
+// a `:root:has(.landing)` rule made the browser re-match the root on every
+// node added or removed anywhere, restyling the whole document each time
+// (the landing's demos and words add nodes all the time as it scrolls).
 watchEffect(() => {
   document.title = ROUTE_TITLES[route.value]
+  document.documentElement.dataset.page = route.value
 })
 </script>
 

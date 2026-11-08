@@ -70,8 +70,9 @@ describe("landing facts", () => {
     expect([...RUNTIME_DEPS].sort()).toEqual(peers.sort())
   })
 
-  it("prints the plate on the raised ground", () => {
-    // The plate's stock is `--surface` as a colour the kit can print with:
+  it("keeps STOCK the raised ground", () => {
+    // `STOCK` is `--surface` as a colour the kit can print with (the parts'
+    // strips print toward it):
     // the token's oklab mix of the landing's ink into its ground.
     const css = readFileSync(new URL("../src/pages/landing/chapters.css", import.meta.url), "utf8")
     const token = (name: string) => css.match(new RegExp(`${name}: (#[0-9a-f]{6});`))![1]
@@ -190,17 +191,13 @@ describe("landing facts", () => {
     }
   })
 
-  it("stands each plate's mark in its clear band, its tones thin", () => {
-    for (const { sky, band, ground, mark } of Object.values(PLATES)) {
+  it("stands each plate's mark in its clear band", () => {
+    for (const { band, mark } of Object.values(PLATES)) {
       expect(band[0]).toBeLessThan(band[1])
       expect(mark[1]).toBeGreaterThan(band[0])
       expect(mark[1]).toBeLessThan(band[1])
       expect(mark[0]).toBeGreaterThan(0.1)
       expect(mark[0]).toBeLessThan(0.7)
-      for (const tone of [sky, ground]) {
-        expect(tone).toBeGreaterThan(0)
-        expect(tone).toBeLessThanOrEqual(0.4)
-      }
     }
   })
 })

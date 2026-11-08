@@ -9,8 +9,10 @@
 /* The ground, on the root while the landing is up, so what the page
    portals to the body (the film's dialog) is printed on it too: obsidian
    and bone, a muted bone at AA on both grounds (6.6:1 on the obsidian,
-   5.7:1 raised), the ring in the bone ink. */
-:root:has(.landing) {
+   5.7:1 raised), the ring in the bone ink. Keyed on the page's mark on
+   the root (App.svelte), never `:has()`, which re-matched the root on
+   every node added anywhere and restyled the whole document. */
+:root:is([data-page="landing"], [data-page="docs"]) {
   color-scheme: dark;
   --background: #101214;
   --foreground: #e4e1d8;
@@ -43,6 +45,9 @@
   --chrome-ink: #e6ebf1;
   --chrome-key: linear-gradient(180deg, #f4f7f8 0%, #dde4e8 38%, #d4dce1 52%, #c2cad0 100%);
   --chrome-key-ring: rgb(255 255 255 / 0.18);
+  /* The grain: a fixed tile of single cells a tone under and over the
+     obsidian, never a grid (the landing's ground and the docs'). */
+  --grain: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAC+ElEQVR42u1dSW7DMAwMekrgc9tTUaD//6N7DYLEES0uM9TobFhchotESrpc7sbP799+SRzX25Y6H90YVUi24tqD4QwxQjMQIJ8RYFGQVZlsgDHNbSUUxR1l0zEy3+M39G6vtSs5KxDEgDxLUzg4ooQWTfj1tu2vaD87t5KJ7hlKhduyMi0UFqHsXvBRSvD+L4xFCbUSKoXPbwPUM4KNVoZFuE9pkRsp3N7IyNmlViHZBAYv0EBYhhfTVZZkiR8tF3uegqcTEIL/zqABAuUrBstlE4RMxmeC8TsrcONj5kdRwsyqImXRH0ZoBAPdXQM8f6/QA1/h6p6SRgo7QjluShj9EYppsdF7GlleGr7etj0zxmgYBS0lTJo7Swo5+r9Hno9kYKYxI3ozFevTs5mj/k65gsb+2rMSdfQvD0TDJgzZBNB0OrMH8cyUGDJGzGpbW92gmmdrXSzd3/GevKomkF2Yl9mLNjEqAa+gYMQ0cERYS1hMFyaVjjNsBwyOD8sKE7EW+/n13dOaEZb3ymiYVohFPLg0ZzGVASsrb60s92hbwCPLoHVbyBtjyzc5sZhfxtywFobY4CukkwgfzsVFE/Tu/0xNuLQW80zI7ME2RfGek6AilRYI1iP7HV2Fy4Ixe6cx8mZFL3ruBUsBHOQrJT2uO4NTQqbf9F5zRB2JglFaV18Pz9cKGVP7jKHLGoHK789sUyOcjnQXgvfWwej1AR3cDuWZgZXOGYg5xFT76G7maEVZTioiXjROBbijYItUJ/A6c/aWJ8/FBfSjBXKvGuE+unuQLd3X6VDdgqQvgqjq++FamSEiaiKF7noJR3dEed5d1MrNKVVTLr02D9kHPtCEoUOAGjXB6dW2Sqtzvt2ev4VuOFZNVu6nHI1h1pt1pL/C/ShANxeSq0V7n1rMUEzWw26zFz0NVcM6+PxuMQzGRWXFIJpXV7P79Geeyq1CbasEAKVVPEWoq/m5Zat2SIqeubgE4jkrIV2DxvJM86P024+0wjBZzT/dUK3AHWUKTwAAAABJRU5ErkJggg==");
 }
 
 .landing {
@@ -57,16 +62,14 @@
   /* The header's height, read by whatever must sit clear of it. */
   --head: 64px;
   font-family: var(--font-mono);
-  /* The grain: a fixed tile of single cells a tone under and over the
-     obsidian, never a grid. */
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAC+ElEQVR42u1dSW7DMAwMekrgc9tTUaD//6N7DYLEES0uM9TobFhchotESrpc7sbP799+SRzX25Y6H90YVUi24tqD4QwxQjMQIJ8RYFGQVZlsgDHNbSUUxR1l0zEy3+M39G6vtSs5KxDEgDxLUzg4ooQWTfj1tu2vaD87t5KJ7hlKhduyMi0UFqHsXvBRSvD+L4xFCbUSKoXPbwPUM4KNVoZFuE9pkRsp3N7IyNmlViHZBAYv0EBYhhfTVZZkiR8tF3uegqcTEIL/zqABAuUrBstlE4RMxmeC8TsrcONj5kdRwsyqImXRH0ZoBAPdXQM8f6/QA1/h6p6SRgo7QjluShj9EYppsdF7GlleGr7etj0zxmgYBS0lTJo7Swo5+r9Hno9kYKYxI3ozFevTs5mj/k65gsb+2rMSdfQvD0TDJgzZBNB0OrMH8cyUGDJGzGpbW92gmmdrXSzd3/GevKomkF2Yl9mLNjEqAa+gYMQ0cERYS1hMFyaVjjNsBwyOD8sKE7EW+/n13dOaEZb3ymiYVohFPLg0ZzGVASsrb60s92hbwCPLoHVbyBtjyzc5sZhfxtywFobY4CukkwgfzsVFE/Tu/0xNuLQW80zI7ME2RfGek6AilRYI1iP7HV2Fy4Ixe6cx8mZFL3ruBUsBHOQrJT2uO4NTQqbf9F5zRB2JglFaV18Pz9cKGVP7jKHLGoHK789sUyOcjnQXgvfWwej1AR3cDuWZgZXOGYg5xFT76G7maEVZTioiXjROBbijYItUJ/A6c/aWJ8/FBfSjBXKvGuE+unuQLd3X6VDdgqQvgqjq++FamSEiaiKF7noJR3dEed5d1MrNKVVTLr02D9kHPtCEoUOAGjXB6dW2Sqtzvt2ev4VuOFZNVu6nHI1h1pt1pL/C/ShANxeSq0V7n1rMUEzWw26zFz0NVcM6+PxuMQzGRWXFIJpXV7P79Geeyq1CbasEAKVVPEWoq/m5Zat2SIqeubgE4jkrIV2DxvJM86P024+0wjBZzT/dUK3AHWUKTwAAAABJRU5ErkJggg==");
+  background-image: var(--grain);
   background-size: 96px 96px;
 }
 
 /* One focus colour: the ring ink, thick enough to read on any ground. In
    the base layer, so a kit component's own indicator (a utility) wins. */
 @layer base {
-  .landing :focus-visible {
+  :is(.landing, .docs-root) :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
@@ -76,7 +79,7 @@
    utility on the same element (`hidden sm:inline-flex`) wins. */
 @layer components {
   /* A header link or key label: 32px tall, quiet until hovered. */
-  .landing .nav-a {
+  :is(.landing, .docs-root) .nav-a {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -88,12 +91,12 @@
     transition: color 150ms var(--ease-settle);
   }
 
-  .landing .nav-a:hover {
+  :is(.landing, .docs-root) .nav-a:hover {
     color: var(--foreground);
   }
 
   /* Chrome type: the ramp clipped to the glyphs, one horizon per line. */
-  .landing .chrome-type {
+  :is(.landing, .docs-root) .chrome-type {
     color: var(--chrome-ink);
     background: var(--chrome);
     background-size: 100% 1lh;
@@ -104,8 +107,8 @@
 
   /* The primary key: a capsule of satin aluminum with obsidian ink on it.
      Hover lifts it a pixel. */
-  .landing .key-chrome,
-  .landing .key-chrome:hover {
+  :is(.landing, .docs-root) .key-chrome,
+  :is(.landing, .docs-root) .key-chrome:hover {
     border-radius: 999px;
     color: #101214;
     background: var(--chrome-key);
@@ -115,18 +118,18 @@
       0 0 0 1px var(--chrome-key-ring);
   }
 
-  .landing .key-chrome {
+  :is(.landing, .docs-root) .key-chrome {
     transition:
       filter 350ms var(--ease-settle),
       translate 350ms var(--ease-settle);
   }
 
-  .landing .key-chrome:hover {
+  :is(.landing, .docs-root) .key-chrome:hover {
     filter: brightness(1.04);
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .landing .key-chrome:hover {
+    :is(.landing, .docs-root) .key-chrome:hover {
       translate: 0 -1px;
     }
   }
@@ -188,7 +191,7 @@
 /* An in-page link travels there (the browser's own smooth scroll), never
    under reduced motion. The landing's only: the docs jump on their own. */
 @media (prefers-reduced-motion: no-preference) {
-  html:has(.landing) {
+  :root[data-page="landing"] {
     scroll-behavior: smooth;
   }
 }
@@ -272,18 +275,20 @@
   background: var(--surface);
 }
 
+/* Inline code never wraps: a package name or path breaks at no hyphen. */
 .landing code {
   font-family: var(--font-mono);
   color: var(--ink);
+  white-space: nowrap;
 }
 
 @media (forced-colors: active) {
-  .landing .chrome-type {
+  :is(.landing, .docs-root) .chrome-type {
     -webkit-text-fill-color: currentColor;
     background: none;
   }
   .landing .key,
-  .landing .key-chrome {
+  :is(.landing, .docs-root) .key-chrome {
     border: 1px solid ButtonText;
   }
   .landing .seg > button[aria-pressed="true"] {

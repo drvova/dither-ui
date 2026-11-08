@@ -10,8 +10,10 @@
 /* The ground, on the root while the landing is up (the dark theme, which
    LandingPage keeps on), so what it teleports to the body (the film's
    dialog) is printed on it too: the user's V5 obsidian and bone, a muted
-   bone at AA on both grounds (6.6:1 on the obsidian, 5.7:1 raised). */
-:root:has(.landing) {
+   bone at AA on both grounds (6.6:1 on the obsidian, 5.7:1 raised). Keyed
+   on the route's mark on the root (App.vue), never `:has()`. The missing
+   page wears it too. */
+:root:is([data-page="landing"], [data-page="missing"]) {
   color-scheme: dark;
   --background: #101214;
   --foreground: #e4e1d8;
@@ -96,7 +98,7 @@
 /* An in-page link travels there (the browser's own smooth scroll), never
    under reduced motion. The landing's only: the docs jump on their own. */
 @media (prefers-reduced-motion: no-preference) {
-  html:has(.landing) {
+  :root[data-page="landing"] {
     scroll-behavior: smooth;
   }
 }

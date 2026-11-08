@@ -139,8 +139,10 @@ Default section order:
   each place it stands: the hero, each plate, the footer); copy calm and procedural, warm with a wink, every figure
   read from the kit), then
   sections under a title with a lead beside it, print plates of the brand
-  small in a wide field between them (after the bento and before the
-  install, each its own proportion and printer's screen): a bento of live
+  small in a wide field between them (after the bento and after the
+  three parts, each its own proportion and printer's screen, each a sheet
+  of the heat that builds up through the page to the close, the pointer
+  printing on every section's ground): a bento of live
   components, the brand's lockup built cell by cell from the wire as the
   page scrolls (`#build`), one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
@@ -396,6 +398,11 @@ Default section order:
 
 ## User Preferences
 
+- The look is written down in one readable place, `DESIGN.md` (identity,
+  palette, materials, type, layout, shape, motion, the dither, icons,
+  copy, bans, accessibility, performance), its values pinned to their
+  source by `tests/design-doc.spec.ts`; a design call changes the source
+  and `DESIGN.md` in the same commit. The rules below stay binding.
 - Design direction: dark, monospace, pixel/dither identity, worn as the
   user's look: Y2K retrofuturism, biomorphic form and technical
   sportswear (chrome display type, hardshell panels with cut corners

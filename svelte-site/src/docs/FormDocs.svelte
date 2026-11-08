@@ -70,13 +70,13 @@ let range = $state<[number, number]>([25, 75])
       { prop: "value", type: "boolean", default: "false" },
       { prop: "color", type: "PixelColor", default: '"blue"' },
       { prop: "disabled", type: "boolean", default: "false" },
-      { prop: "class", type: "string", default: "—" },
+      { prop: "class", type: "string", default: "" },
     ],
     checkbox: [
       { prop: "value", type: "boolean", default: "false" },
       { prop: "color", type: "PixelColor", default: '"blue"' },
       { prop: "disabled", type: "boolean", default: "false" },
-      { prop: "class", type: "string", default: "—" },
+      { prop: "class", type: "string", default: "" },
     ],
     slider: [
       { prop: "value", type: "number | [number, number] — array = range", default: "0" },
@@ -91,7 +91,7 @@ let range = $state<[number, number]>([25, 75])
       { prop: "value", type: "number", default: "0" },
       { prop: "color", type: "PixelColor", default: '"blue"' },
       { prop: "indeterminate", type: "boolean", default: "false" },
-      { prop: "class", type: "string", default: "—" },
+      { prop: "class", type: "string", default: "" },
     ],
   }
 </script>
@@ -99,7 +99,7 @@ let range = $state<[number, number]>([25, 75])
 <section id="switch" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Switch</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    A toggle whose track is a dithered canvas — the accent gradient fills in
+    A toggle whose track is a dithered canvas: the accent gradient fills in
     when on, fades to a muted wash when off.
   </p>
   <DemoCard code={SNIPPET_SWITCH}>
@@ -132,7 +132,7 @@ let range = $state<[number, number]>([25, 75])
 <section id="slider" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Slider</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    Drag or arrow-key the square thumb — the filled side of the track dithers
+    Drag or arrow-key the square thumb: the filled side of the track dithers
     denser toward the value, the rest stays a muted rail.
   </p>
   <DemoCard code={SNIPPET_SLIDER}>
@@ -157,7 +157,7 @@ let range = $state<[number, number]>([25, 75])
       </div>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
   <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
     {#each SLIDER_VARIANTS as v (v)}
       <div>

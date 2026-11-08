@@ -14,6 +14,7 @@ import {
   DitherCircuit,
   DitherClipboard,
   DitherGradient,
+  DitherHeatTrail,
   DitherIcon,
   DitherReveal,
   DitherScreen,
@@ -46,10 +47,10 @@ import BrandGather from "./BrandGather.vue"
 import BrandMark from "@/shared/ui/BrandMark.vue"
 import MascotCar from "@/shared/ui/MascotCar.vue"
 import { SiteHeader } from "@/widgets/site-header"
-import { PLATES, RAMP, STOCK } from "./plate"
+import { PLATES, RAMP, STOCK, TRAIL } from "./plate"
 import { ROAD, ROAD_SHADER, WORDMARK } from "./road"
-import { CLOSE } from "./close"
-import CloseHeat from "./CloseHeat.vue"
+import { CLOSE } from "./heat"
+import HeatPrint from "./HeatPrint.vue"
 import Showcase from "./Showcase.vue"
 
 // What "Copy agent prompt" puts on the clipboard: the skill to read and the
@@ -137,8 +138,11 @@ const closeBand = ref<HTMLElement | null>(null)
 let closeSeen: IntersectionObserver | null = null
 const boardCard = ref<HTMLElement | null>(null)
 let boardInView = false
+// A scroll drives only what is on screen: the road off screen stays still
+// (driving it from anywhere ran the car's loop through the whole page).
+let roadNear = false
 const scrolled = () => {
-  drive()
+  if (roadNear) drive()
   if (boardInView) board.drive()
 }
 // The dance, once per time the road comes into view, waiting for the brand.
@@ -172,14 +176,17 @@ const carX = ref(0)
 const CAR_SPEED = 0.16 // px a ms
 let carRaf = 0
 let carLast = 0
+// The road's width and the car's, kept by a ResizeObserver: read in the
+// frame loop they forced a layout every frame of the drive.
+let roadWidth = 0
+let carWidth = 0
+let carSizes: ResizeObserver | null = null
 const carStill = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
 function roll(now: number) {
   const dt = Math.min(64, now - carLast)
   carLast = now
-  const width = car.value?.parentElement?.clientWidth ?? 0
-  const own = car.value?.offsetWidth ?? 0
   carX.value += dt * CAR_SPEED
-  if (carX.value > width) carX.value = -own
+  if (carX.value > roadWidth) carX.value = -carWidth
   carRaf = driven.value && footStill.value ? requestAnimationFrame(roll) : 0
 }
 watch(
@@ -220,18 +227,29 @@ onMounted(() => {
   if (!road.value) return
   seen = new IntersectionObserver(
     ([entry]) => {
-      inView = !!entry?.isIntersecting
+      roadNear = !!entry?.isIntersecting
+      inView = roadNear && entry.intersectionRatio >= 0.5
       if (inView) dance()
       else danced = false
     },
-    { threshold: 0.5 },
+    { threshold: [0, 0.5] },
   )
   seen.observe(road.value)
+  if (car.value && typeof ResizeObserver !== "undefined") {
+    const track = car.value.parentElement
+    carSizes = new ResizeObserver(() => {
+      roadWidth = track?.clientWidth ?? 0
+      carWidth = car.value?.offsetWidth ?? 0
+    })
+    if (track) carSizes.observe(track)
+    carSizes.observe(car.value)
+  }
 })
 onBeforeUnmount(() => {
   cancelAnimationFrame(carRaf)
   removeEventListener("scroll", scrolled)
   seen?.disconnect()
+  carSizes?.disconnect()
   boardSeen?.disconnect()
   closeSeen?.disconnect()
 })
@@ -265,7 +283,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 </script>
 
 <template>
-  <div class="landing flex min-h-screen flex-col bg-background text-foreground antialiased">
+  <div class="landing isolate flex min-h-screen flex-col bg-background text-foreground antialiased">
+    <!-- The pointer prints on the whole page's ground, every section's:
+         pinned to the viewport, the print scrolling with the page. -->
+    <DitherHeatTrail pinned class="page-trail" :inks="TRAIL" :cell="4" />
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
     <a
       href="#main"
@@ -376,12 +397,12 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
           </div>
         </section>
 
+        <!-- The second plate: the heat builds up through the page to the
+             close (plate.ts). -->
+        <Plate :plate="PLATES.afterParts" />
+
         <!-- What the kit meets on the reader's side. -->
         <WorksWith />
-
-        <!-- The plates: print sheets between the sections, the kit's diamond
-             small in a wide field (plate.ts). -->
-        <Plate :plate="PLATES.beforeInstall" />
       </div>
 
       <!-- The close: the install in a clear field inside a print of heat,
@@ -395,7 +416,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
         :style="{ '--reach': `${CLOSE.reach}px` }"
         @pointermove="heat.drive()"
       >
-        <CloseHeat :paused="!heat.driven.value" />
+        <HeatPrint :paused="!heat.driven.value" />
         <div class="sec install">
           <div v-rise class="install-head">
             <h2 id="install-h" class="section-title"><RiseWords text="Copy one folder. Every pixel is yours." /></h2>
@@ -493,6 +514,16 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 </template>
 
 <style scoped>
+/* The pointer's print, on the page's ground under every section: fixed to
+   the viewport, painted only while something cools (the kit's heat trail,
+   `pinned`). The landing is its own stacking context, so it lies over the
+   ground and under everything else. */
+.page-trail {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
 /* One wide page width for the hero, the sections and the footer, one
    rhythm between sections. The page is the theme's own
    background. */
@@ -653,13 +684,13 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   text-wrap: pretty;
 }
 
-/* The install: its head centred, the box under it. */
-/* The close: a full-width band, padded by the heat's reach (`--reach`,
-   `CLOSE.reach`) plus air so no ink lands under a word; the heat its ground. */
+/* The close: a full-width band, its foot padded by the heat's reach
+   (`--reach`, `CLOSE.reach`) plus air so no ink lands under a word; the
+   heat its ground, open at the top where the page runs into it. */
 .close {
   position: relative;
   isolation: isolate;
-  padding: calc(var(--reach) + var(--rhythm)) 24px calc(var(--reach) + var(--rhythm) * 1.5);
+  padding: calc(var(--rhythm) * 4) 24px calc(var(--reach) + var(--rhythm) * 1.5);
 }
 
 /* The one joint: the footer's ground rises into the heat's flat foot as a

@@ -86,24 +86,24 @@
 
   const API: Record<string, PropRow[]> = {
     tabs: [
-      { prop: "tabs", type: "(string | { value, label?, badge?, disabled? })[]", default: "—" },
-      { prop: "value", type: "string", default: "—" },
+      { prop: "tabs", type: "(string | { value, label?, badge?, disabled? })[]", default: "" },
+      { prop: "value", type: "string", default: "" },
       { prop: "variant", type: '"underline" | "segmented" | "washed"', default: '"underline"' },
       { prop: "orientation", type: '"horizontal" | "vertical"', default: '"horizontal"' },
       { prop: "color", type: "PixelColor", default: '"blue"' },
-      { prop: "value (TabPanel)", type: "string — nests inside DitherTabs", default: "—" },
+      { prop: "value (TabPanel)", type: "string — nests inside DitherTabs", default: "" },
     ],
     collapsible: [
-      { prop: "title", type: "string", default: "—" },
+      { prop: "title", type: "string", default: "" },
       { prop: "value", type: "boolean", default: "false" },
       { prop: "color", type: "PixelColor", default: '"blue"' },
     ],
     dialog: [
-      { prop: "open", type: "boolean", default: "—" },
+      { prop: "open", type: "boolean", default: "" },
       { prop: "title", type: "string", default: "undefined" },
       { prop: "description", type: "string", default: "undefined" },
       { prop: "closeOnBackdrop", type: "boolean", default: "true" },
-      { prop: "class", type: "string", default: "—" },
+      { prop: "class", type: "string", default: "" },
     ],
     kbd: [{ prop: "class", type: "string", default: "undefined" }],
   }
@@ -126,7 +126,7 @@
       </DitherTabs>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
   <div class="mt-4 grid gap-5 sm:grid-cols-3">
     {#each TAB_VARIANTS as v (v)}
       <div>
@@ -137,12 +137,12 @@
       </div>
     {/each}
   </div>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">vertical · badges · disabled</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Vertical, badges and disabled</h3>
   <div class="mt-4 rounded-lg border border-border/60 p-4">
     <DitherTabs bind:value={vertTab} tabs={VERT_TABS} orientation="vertical" variant="washed" color="green" class="mx-auto max-w-sm">
       {#each VERT_TABS as t (t.value)}
         <DitherTabPanel value={t.value} class="min-w-0 flex-1 self-stretch rounded-md border border-border/40 p-3">
-          <p class="text-[12px] text-muted-foreground">{t.value} — {t.badge ?? 0} items.</p>
+          <p class="text-[12px] text-muted-foreground">{t.value}: {t.badge ?? 0} items.</p>
         </DitherTabPanel>
       {/each}
     </DitherTabs>
@@ -160,7 +160,7 @@
     <div class="mx-auto max-w-sm divide-y divide-border/60">
       <DitherCollapsible bind:value={openA} title="What is dithering?" color="blue">
         Ordered dithering trades smooth gradients for a fixed threshold
-        matrix — the same Bayer 4x4 behind every fill in this kit.
+        matrix: the same Bayer 4x4 behind every fill in this kit.
       </DitherCollapsible>
       <DitherCollapsible bind:value={openB} title="Why canvas?" color="purple">
         One engine paints every fill, so components stay coherent.
@@ -193,7 +193,7 @@
 <section id="kbd" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Kbd</h2>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    An honest keyboard key — no canvas, just the house border and a 2px
+    An honest keyboard key: no canvas, just the house border and a 2px
     bottom edge. Pairs with shortcut listings.
   </p>
   <DemoCard code={SNIPPET_KBD}>

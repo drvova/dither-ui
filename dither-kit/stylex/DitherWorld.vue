@@ -82,7 +82,7 @@ const styles = stylex.create({
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue"
-import { directedTime } from "../engine/clock"
+import { directedTime, isDirected } from "../engine/clock"
 import { type ChannelInput, createGl, type GlHandle, rasterOf } from "../engine/gl"
 import { cn, type StyleProp } from "./lib"
 import { clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle } from "../engine/pixel"
@@ -91,6 +91,7 @@ import type { RasterBuffer } from "../engine/raster"
 import { useDitherBackground } from "../engine/use-dither-background"
 import { cameraOf, createWorldTarget } from "../engine/world"
 import { useDitherMatrix } from "../engine/use-screen"
+import { offloadWorld, spawnWorldWorker } from "../engine/world-offload"
 
 const props = withDefaults(
   defineProps<{
@@ -420,24 +421,54 @@ function wantsGpu(w: World): boolean {
   return triangles(w) >= GPU_FROM
 }
 
+/** The build's state at this paint, null for the model whole and still. */
+function stateFor(cols: number, rows: number): AssemblyState | null {
+  if (!assembling()) return null
+  const nudge =
+    props.nudge && hover
+      ? { x: hover.x * cols, y: hover.y * rows, radius: Math.min(cols, rows) * 0.22, amount: 1 }
+      : null
+  return { build: props.build, scatter: props.scatter, nudge }
+}
+
+// The CPU engine's plain case (no GPU, no GLSL material, no channels, not
+// directed, running) paints in a worker (`world-offload.ts`): the page shows
+// its latest moment and asks for the one due at the next paint.
+const offload = offloadWorld(spawnWorldWorker)
+const offloadable = (w: World) =>
+  !wantsGpu(w) && !props.shader && !props.channels?.length && !isDirected() && !props.paused
+
 function render(buffer: RasterBuffer, clock: number, dt: number) {
-  let w = world.value
+  const w = world.value
   if (!w) {
     buffer.data.fill(0)
     return
   }
+  if (!offloadable(w)) return paint(buffer, w, clock, dt)
+  const step = props.frameRate > 0 ? 1 / props.frameRate : 1 / 30
+  offload.paint(
+    buffer,
+    {
+      world: w,
+      view: viewAt(clock + step),
+      state: stateFor(buffer.width, buffer.height),
+      heat: fillOf(props.heat),
+      seed: props.seed ?? 0,
+      dt: step,
+      style: style.value,
+    },
+    () => paint(buffer, w, clock, dt),
+  )
+  engineUsed.value = "cpu"
+}
+
+/** Paint the moment here, on whichever engine the model wants. */
+function paint(buffer: RasterBuffer, model: World, clock: number, dt: number) {
+  let w = model
   const v = viewAt(clock)
   const st = style.value
-  if (assembling()) {
-    const a = assemblyOf(w)
-    const cols = buffer.width
-    const rows = buffer.height
-    const nudge =
-      props.nudge && hover
-        ? { x: hover.x * cols, y: hover.y * rows, radius: Math.min(cols, rows) * 0.22, amount: 1 }
-        : null
-    w = a.frame(v, cameraOf(w, v, cols, rows), { build: props.build, scatter: props.scatter, nudge }, dt)
-  }
+  const state = stateFor(buffer.width, buffer.height)
+  if (state) w = assemblyOf(w).frame(v, cameraOf(w, v, buffer.width, buffer.height), state, dt)
   if (!target || target.width !== buffer.width || target.height !== buffer.height)
     target = createWorldTarget(buffer.width, buffer.height)
   let drawn = false
@@ -492,6 +523,7 @@ function afterPaint(canvas: HTMLCanvasElement) {
 
 onBeforeUnmount(() => {
   ctl?.abort()
+  offload.stop()
   gpu?.dispose()
   gpu = null
   materialPass?.dispose()

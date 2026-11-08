@@ -8,6 +8,7 @@ import {
   createTrail,
   fitTrail,
   paintTrail,
+  scrollTrail,
   trailLift,
   trailTo,
   type TrailParams,
@@ -105,5 +106,20 @@ describe("the print", () => {
     trailTo(t, 0.5, 0.5, 3)
     coolTrail(t, 2, 1)
     expect(shown(print(t))).toBe(0)
+  })
+})
+
+describe("a pinned field", () => {
+  it("scrolls its print with the page and lets go of what leaves it", () => {
+    const t = createTrail(21, 21)
+    trailTo(t, 0.5, 0.5, 0)
+    scrollTrail(t, 4)
+    expect(at(t, 10, 6)).toBe(1)
+    expect(at(t, 10, 10)).toBe(0)
+    expect(t.last).toEqual([10, 6])
+    scrollTrail(t, -2)
+    expect(at(t, 10, 8)).toBe(1)
+    scrollTrail(t, 40)
+    expect(lit(t)).toBe(0)
   })
 })

@@ -32,6 +32,13 @@ export type GlHandle = {
   size: (width: number, height: number) => void
   /** Read the whole framebuffer (RGBA, rows bottom-up) into `out`, reallocating it as needed. */
   read: (out: Uint8Array) => Uint8Array
+  /** Read the framebuffer back without waiting on the GPU: under WebGL2
+   * the read goes to a pixel buffer behind a fence and comes back on a
+   * later call, once the GPU is done (the pixels of an earlier draw, into
+   * `out`), null until then; a draw while one is still in flight is not
+   * read. Under WebGL1, `read`. A frame-exact caller (a paused surface, a
+   * directed one) uses `read`. */
+  readBehind: (out: Uint8Array) => Uint8Array | null
   /** Release the context (unmount). */
   dispose: () => void
 }
@@ -61,6 +68,18 @@ export function createGl(): GlHandle | null {
   canvas.addEventListener("webglcontextrestored", () => {
     lost = false
   })
+  const read = (out: Uint8Array) => {
+    const n = canvas.width * canvas.height * 4
+    const px = out.length === n ? out : new Uint8Array(n)
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, px)
+    return px
+  }
+  // The read in flight: its buffer, its size in bytes and its fence. A
+  // synchronous read stalled the main thread until the GPU had drawn (the
+  // landing's road shader, most of its paint).
+  let pack: WebGLBuffer | null = null
+  let packed = 0
+  let fence: WebGLSync | null = null
   return {
     canvas,
     gl,
@@ -73,13 +92,40 @@ export function createGl(): GlHandle | null {
       }
       gl.viewport(0, 0, width, height)
     },
-    read(out) {
+    read,
+    readBehind(out) {
+      if (!gl2) return read(out)
       const n = canvas.width * canvas.height * 4
-      const px = out.length === n ? out : new Uint8Array(n)
-      gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, px)
-      return px
+      let got: Uint8Array | null = null
+      if (fence) {
+        const state = gl2.clientWaitSync(fence, 0, 0)
+        if (state === gl2.TIMEOUT_EXPIRED) return null
+        gl2.deleteSync(fence)
+        fence = null
+        if (state !== gl2.WAIT_FAILED && packed === n) {
+          got = out.length === n ? out : new Uint8Array(n)
+          gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, pack)
+          gl2.getBufferSubData(gl2.PIXEL_PACK_BUFFER, 0, got)
+          gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null)
+        }
+      }
+      pack ??= gl2.createBuffer()
+      gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, pack)
+      if (packed !== n) {
+        gl2.bufferData(gl2.PIXEL_PACK_BUFFER, n, gl2.STREAM_READ)
+        packed = n
+      }
+      gl2.readPixels(0, 0, canvas.width, canvas.height, gl2.RGBA, gl2.UNSIGNED_BYTE, 0)
+      gl2.bindBuffer(gl2.PIXEL_PACK_BUFFER, null)
+      fence = gl2.fenceSync(gl2.SYNC_GPU_COMMANDS_COMPLETE, 0)
+      gl2.flush()
+      return got
     },
     dispose() {
+      if (gl2) {
+        if (fence) gl2.deleteSync(fence)
+        if (pack) gl2.deleteBuffer(pack)
+      }
       gl.getExtension("WEBGL_lose_context")?.loseContext()
     },
   }

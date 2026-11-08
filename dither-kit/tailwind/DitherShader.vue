@@ -17,8 +17,8 @@ export type ShaderChannel = ChannelInput
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue"
-import { directedTime } from "../engine/clock"
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { directedTime, isDirected } from "../engine/clock"
 import { buildProgram, type Channels, createChannels, createGl, type GlHandle } from "../engine/gl"
 import { cn } from "./lib"
 import { clamp01, fillOf, type PixelColor } from "../engine/pixel"
@@ -246,7 +246,16 @@ function draw(buffer: RasterBuffer, clock: number, dt: number) {
   if (u.mouse) gl.uniform2f(u.mouse, mouse.x, mouse.y)
   if (u.u_mouse) gl.uniform2f(u.u_mouse, mouse.x * w, mouse.y * h)
   gl.drawArrays(gl.TRIANGLES, 0, 3)
-  pixels = handle.read(pixels)
+  // Running, it reads back without waiting on the GPU (a paint behind,
+  // never a stall); one frame that must be exact, a paused surface's last
+  // or a directed moment, reads at once. Nothing back yet: the raster
+  // holds the last.
+  if (props.paused || isDirected()) pixels = handle.read(pixels)
+  else {
+    const behind = handle.readBehind(pixels)
+    if (!behind) return
+    pixels = behind
+  }
   ditherShaderPixels(pixels, buffer, dither.value)
 }
 
@@ -274,7 +283,39 @@ function onUp() {
   mouse.down = false
 }
 
+/** The GPU half's first cost, the context and the program, paid ahead. */
+function warm() {
+  if (handle === undefined) handle = createGl()
+  if (handle && !handle.lost() && code.value && compiled !== code.value) compile(handle, code.value)
+}
+
+// Warmed as the shader nears the screen, at idle: making the context and
+// compiling the program were most of its first frame, a stall just as it
+// came into view; now that frame only draws. Never for one far off, so a
+// page of shaders holds no contexts it never shows.
+let near: IntersectionObserver | null = null
+let idle = 0
+onMounted(() => {
+  const el = wrapRef.value
+  if (!el || typeof IntersectionObserver === "undefined") return
+  near = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry?.isIntersecting) return
+      near?.disconnect()
+      near = null
+      idle =
+        typeof requestIdleCallback === "function"
+          ? requestIdleCallback(warm, { timeout: 1000 })
+          : window.setTimeout(warm, 200)
+    },
+    { rootMargin: "100% 0px" },
+  )
+  near.observe(el)
+})
+
 onBeforeUnmount(() => {
+  near?.disconnect()
+  if (idle) typeof cancelIdleCallback === "function" ? cancelIdleCallback(idle) : clearTimeout(idle)
   ctl?.abort()
   if (handle) {
     if (program) handle.gl.deleteProgram(program)

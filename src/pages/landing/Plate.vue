@@ -1,20 +1,22 @@
 <script setup lang="ts">
 // One plate of the series (`plate.ts`): a sheet of its own proportion on the
-// page's width, square cornered and flat like the hero's print, on the
-// raised ground as its stock. Each half shows only the thin end of its ramp
-// (the ramp runs 1/tone times the half's depth), through the plate's own
-// printer's screen; the brand
+// page's width, on the page's own ground: the heat (`heat.ts`, the close's
+// material) prints a cloud above its clear band and one below, through the
+// plate's own printer's screen, still, dissolving at every edge, so the
+// plate is a passage of the page and never a box; the brand
 // (`BrandGather.vue`) stands in the clear band, pulled in from the right
 // edge where the plate is narrow, and gathers there once as the plate comes
 // into view, while the tone prints in through the kit's reveal (the lights
 // coming on). Decorative.
-import { DitherGradient, DitherReveal, DitherScreen } from "@dither-kit"
+import { DitherReveal, DitherScreen } from "@dither-kit"
 import { LOCKUP_SIZE } from "./brand"
 import BrandGather from "./BrandGather.vue"
-import { sceneOf, STOCK, type Plate } from "./plate"
+import HeatPrint from "./HeatPrint.vue"
+import { plateField, sceneOf, type Plate } from "./plate"
 
 const { plate } = defineProps<{ plate: Plate }>()
 const pct = (f: number) => `${f * 100}%`
+const field = plateField(plate)
 
 const CELL = 4
 const WIDTH = LOCKUP_SIZE.width * CELL
@@ -22,27 +24,10 @@ const HALF = 3.5 * CELL
 </script>
 
 <template>
-  <div class="plate" :style="{ background: STOCK, aspectRatio: plate.aspect }" aria-hidden="true">
+  <div class="plate" :style="{ aspectRatio: plate.aspect }" aria-hidden="true">
     <DitherScreen :screen="plate.screen">
       <DitherReveal class="plate-print" :duration="0.72" easing="glide">
-        <div class="plate-tone" :style="{ top: 0, height: pct(plate.band[0]) }">
-          <DitherGradient
-            from="#e4e1d8"
-            :to="STOCK"
-            direction="down"
-            :cell="CELL"
-            :style="{ inset: 'auto 0 0', height: pct(1 / plate.sky) }"
-          />
-        </div>
-        <div class="plate-tone" :style="{ top: pct(plate.band[1]), bottom: 0 }">
-          <DitherGradient
-            from="#e4e1d8"
-            :to="STOCK"
-            direction="up"
-            :cell="CELL"
-            :style="{ inset: '0 0 auto', height: pct(1 / plate.ground) }"
-          />
-        </div>
+        <HeatPrint paused :field="field" :grain="plate.grain" />
       </DitherReveal>
     </DitherScreen>
     <BrandGather
@@ -59,21 +44,17 @@ const HALF = 3.5 * CELL
 <style scoped>
 .plate {
   position: relative;
+  isolation: isolate;
   width: 100%;
   max-width: 100%;
-  min-height: 112px;
+  /* on a phone the sheet keeps room for its clouds to billow, never scraps */
+  min-height: 240px;
   overflow: hidden;
 }
 
 .plate-print {
   position: absolute;
   inset: 0;
-}
-
-.plate-tone {
-  position: absolute;
-  inset-inline: 0;
-  overflow: hidden;
 }
 
 .plate-lockup {

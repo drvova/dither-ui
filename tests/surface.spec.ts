@@ -228,3 +228,147 @@ describe("the Svelte runtime driven every frame", () => {
     action.destroy()
   })
 })
+
+describe("a surface reads the page once, not once a frame", () => {
+  /** Ten painted frames of a surface in view; what it read from the page. */
+  async function tenFrames(start: (wrap: HTMLElement, canvas: HTMLCanvasElement) => () => void) {
+    let observed: (() => void) | null = null
+    rs.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never)
+        }
+        disconnect() {}
+      },
+    )
+    rs.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(private callback: ResizeObserverCallback) {}
+        observe() {
+          observed = () => this.callback([], this as never)
+        }
+        disconnect() {}
+      },
+    )
+    const frames = new Map<number, FrameRequestCallback>()
+    let id = 0
+    rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => (frames.set(++id, cb), id))
+    rs.stubGlobal("cancelAnimationFrame", (n: number) => frames.delete(n))
+    let contexts = 0
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement) {
+      contexts++
+      return { ...fakeContext, canvas: this }
+    } as unknown as typeof HTMLCanvasElement.prototype.getContext
+    let boxes = 0
+    const wrap = document.createElement("div")
+    wrap.getBoundingClientRect = () => (boxes++, { width: 32, height: 32 }) as DOMRect
+    const canvas = document.createElement("canvas")
+    const stop = start(wrap, canvas)
+    await nextTick()
+    for (let f = 1; f <= 10; f++) {
+      const due = [...frames.values()]
+      frames.clear()
+      for (const cb of due) cb(f * 40)
+      await nextTick()
+    }
+    const before = boxes
+    // A resize is the one thing that reads the box again.
+    ;(observed as (() => void) | null)?.()
+    const resized = boxes - before
+    stop()
+    return { contexts, boxes: before, resized }
+  }
+
+  it("the Vue runtime measures its box and asks for its context once", async () => {
+    let paints = 0
+    const read = await tenFrames((wrap, canvas) => {
+      const w = mount(
+        defineComponent({
+          setup() {
+            useDitherBackground({
+              wrapRef: ref(wrap),
+              canvasRef: ref(canvas),
+              cell: 4,
+              maxCols: 8,
+              maxRows: 8,
+              dpr: () => 1,
+              paused: () => false,
+              renderMode: () => "live",
+              precompiled: () => undefined,
+              restart: () => null,
+              render: () => void paints++,
+            })
+            return () => h("div")
+          },
+        }),
+      )
+      return () => w.unmount()
+    })
+    expect(paints).toBeGreaterThanOrEqual(8)
+    expect(read).toEqual({ contexts: 1, boxes: 1, resized: 1 })
+  })
+
+  it("the Svelte runtime measures its box and asks for its context once", async () => {
+    const { ditherBackground } = await import("../dither-kit-svelte/runtime/use-dither-background")
+    let paints = 0
+    const read = await tenFrames((wrap, canvas) => {
+      const action = ditherBackground(wrap, {
+        canvas,
+        cell: 4,
+        maxCols: 8,
+        maxRows: 8,
+        dpr: 1,
+        render: () => void paints++,
+      })
+      return () => action.destroy()
+    })
+    expect(paints).toBeGreaterThanOrEqual(8)
+    expect(read).toEqual({ contexts: 1, boxes: 1, resized: 1 })
+  })
+})
+
+describe("a held surface out of view", () => {
+  it("never paints when the resize observer first reports, in either runtime", async () => {
+    rs.stubGlobal(
+      "IntersectionObserver",
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    )
+    rs.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(private callback: ResizeObserverCallback) {}
+        observe() {
+          this.callback([], this as never)
+        }
+        disconnect() {}
+      },
+    )
+    let paints = 0
+    const { Comp } = surfaceComponent(
+      () => paints++,
+      () => true,
+    )
+    const w = mount(Comp)
+    await nextTick()
+    await nextTick()
+    const { ditherBackground } = await import("../dither-kit-svelte/runtime/use-dither-background")
+    const action = ditherBackground(document.createElement("div"), {
+      canvas: document.createElement("canvas"),
+      cell: 4,
+      maxCols: 8,
+      maxRows: 8,
+      dpr: 1,
+      paused: true,
+      render: () => void paints++,
+    })
+    expect(paints).toBe(0)
+    action.destroy()
+    w.unmount()
+  })
+})

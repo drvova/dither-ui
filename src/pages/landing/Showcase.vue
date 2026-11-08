@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { routePath, vRise } from "@/shared/lib"
-import { DitherHeatTrail, DitherIcon, DitherPoster, DitherReveal } from "@dither-kit"
+import { DitherIcon, DitherPoster, DitherReveal } from "@dither-kit"
 import ToolMark from "@/shared/ui/ToolMark.vue"
 import { COMPONENT_COUNT, MATRIX, WORKS } from "./facts"
 import { STAGINGS } from "./brand"
-import { INKS, TRAIL } from "./plate"
+import { INKS } from "./plate"
 import BrandGather from "./BrandGather.vue"
 import RiseWords from "./RiseWords.vue"
 import TrailerDialog from "./TrailerDialog.vue"
@@ -27,9 +27,6 @@ const gathered = ref(false)
 // screen slides for `HERO_RUN` once the brand is home, then only while a
 // pointer moves over it. Under five seconds by itself, so no pause key.
 const HERO_RUN = 4000
-
-// The pointer prints (the kit's heat trail) on the hero's ground in the
-// print's own inks (`TRAIL`), thinning to nothing.
 const { driven, drive } = useDrive()
 function settled() {
   gathered.value = true
@@ -39,7 +36,6 @@ function settled() {
 
 <template>
   <section aria-labelledby="hero-h" class="hero">
-    <DitherHeatTrail class="hero-trail" :inks="TRAIL" :cell="4" />
     <div class="hero-in">
       <!-- The statement rises as the page opens: the headline word by word,
            then the lede, the keys and what it works with. -->
@@ -100,13 +96,6 @@ function settled() {
   align-items: center;
   min-height: clamp(34rem, calc(100svh - 64px), 52rem);
   overflow: hidden;
-}
-
-/* The pointer's print lies on the ground, under everything the hero holds. */
-.hero-trail {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
 }
 
 /* Positioned: the brand's field is the page's column. */

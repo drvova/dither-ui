@@ -28,8 +28,12 @@
   const CELL = 4
   const REDUCED = "(prefers-reduced-motion: reduce)"
   let lockup = $state<HTMLElement | null>(null)
-  // Indexed by the lockup's order.
+  // Indexed by the lockup's order: kept by an action, not `bind:this`, as a
+  // plain array nothing renders from (binding into it warned on every cell).
   const cells: HTMLElement[] = []
+  const keep = (node: HTMLElement, i: number) => {
+    cells[i] = node
+  }
   let io: IntersectionObserver | null = null
   let near: IntersectionObserver | null = null
   // The moment's animations, two per cell; none where it does not move.
@@ -94,10 +98,10 @@
 
   onMount(() => {
     const set = lockup
-    const field = set?.offsetParent
+    // The field (`offsetParent`) is read as the moment is built, not here:
+    // read at mount it forced a layout of the whole page mid-mount.
     if (
       !set ||
-      !(field instanceof HTMLElement) ||
       !cells[0] ||
       typeof IntersectionObserver === "undefined" ||
       typeof cells[0].animate !== "function" ||
@@ -114,7 +118,9 @@
         if (!entry?.isIntersecting) return
         near?.disconnect()
         near = null
-        build(set, field)
+        const field = set.offsetParent
+        if (field instanceof HTMLElement) build(set, field)
+        else onsettled?.()
       },
       { rootMargin: "100% 0px" },
     )
@@ -137,7 +143,7 @@
 >
   {#each LOCKUP as c, i (`${c.x}.${c.y}`)}
     <span
-      bind:this={cells[i]}
+      use:keep={i}
       class={["brand-cell", c.core && "core"]}
       style:left="{c.x * CELL}px"
       style:top="{c.y * CELL}px"

@@ -450,7 +450,9 @@ the kit every import is relative (`../engine/pixel`).
   threshold, in the ramp's ink for its heat (coolest first). The
   component listens on the window (content over it never blocks the
   hand), ignores a finger (it scrolls) and reduced motion, and paints only
-  while something cools. Not `PixelTrail` (coarse blocks fading by alpha,
+  while something cools. `pinned`: a box fixed to the viewport over a
+  scrolling page, whose print rides the page (`scrollTrail` moves the heat
+  whole cells and lets go of what leaves). Not `PixelTrail` (coarse blocks fading by alpha,
   one cell per event). Guarded by `tests/heat-trail.spec.ts`.
 - `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
   surface. `models.ts` parses model files into a `World`, bounded against
@@ -568,9 +570,20 @@ the kit every import is relative (`../engine/pixel`).
   a dotted cage of their outlines (a points mesh); `scatter` pushes and
   turns them outward; `nudge` leans the pieces near a point on the target
   away from it, eased back by `dt`. Whole and still it is the model as it
-  was. `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
+  was. A piece's turn is taken as a cosine and sine once a frame, never
+  per vertex, a static model's cage dots are laid once per edge and
+  copied in, never pushed dot by dot each frame, and the pose is pinned
+  bit for bit (`POSE_HASH`). `DitherWorld` takes `build`, `scatter`, `heat` (the hot colour,
   the ember by default) and `nudge` (the pointer's point); it takes the
   model apart only when one of them asks. `tests/assemble.spec.ts`.
+  Running on the CPU engine's plain case (no GPU, no GLSL material, no
+  channels, not directed, not paused) it paints in a worker
+  (`engine/world-offload.ts`, the page's side: each paint shows the
+  worker's latest moment and asks for the one due at the next paint;
+  `engine/world-ask.ts` + `engine/world-worker.ts`, the worker's: it
+  keeps the model, handed over once, and its assembly), the same bytes the
+  page would paint; the first paint, a worker that fails to load and a
+  page without workers paint here (`tests/world-offload.spec.ts`).
   `tests/world.spec.ts`,
   `tests/vrml.spec.ts` and `tests/models.spec.ts` pin the engine, the
   grammars and every format. Texture coordinates: `Geometry.uvs` (st per
@@ -620,7 +633,10 @@ the kit every import is relative (`../engine/pixel`).
 - `gl.ts` is the kit's one piece of WebGL plumbing, shared by the GLSL
   surface, the world's GPU engine and the material pass: `createGl` (an
   offscreen WebGL2 or WebGL1 context, context-loss flag, `size`, `read`
-  back, `dispose`), `buildProgram` (the compiler's first line as the
+  back, `readBehind` (WebGL2: the read into a pixel buffer behind a fence,
+  collected on a later call once the GPU is done, an earlier draw's
+  pixels or null; never a stall; WebGL1 reads at once;
+  `tests/gl-readback.spec.ts`), `dispose`), `buildProgram` (the compiler's first line as the
   error) and the channel binding: `ChannelInput` (a surface, a component
   instance, a kit canvas → its surface; any canvas, image or video),
   `bindChannel`, `createChannels` (the four textures of one program,
@@ -643,10 +659,16 @@ the kit every import is relative (`../engine/pixel`).
   carries. The component owns one `gl.ts` context at the cell resolution
   (released on unmount), feeds `SHADER_UNIFORMS` (the Shadertoy set, the
   kit's, and the glslsandbox / Book-of-Shaders aliases), reads back and
-  dithers each frame; `iTime` is the kit clock, so it seeks and renders
+  dithers each frame (running, through `readBehind`, a paint behind and
+  never a stall; a paused surface's frame and a directed moment through
+  `read`, exact); `iTime` is the kit clock, so it seeks and renders
   like every surface (HyperFrames' renderer has WebGL2 through SwiftShader
   — verified by a real render). Without WebGL it shows "WebGL is not
-  available"; a compile error shows the compiler's first line.
+  available"; a compile error shows the compiler's first line. Its first
+  cost, the context and the program's compile, is paid at idle as it comes
+  within a screen of view (never for one far off, so a page of shaders
+  holds no contexts it never shows): paid in its first frame it was a
+  stall just as it came into view (`tests/shader-warm.spec.ts`).
   `sampleShader(seed)` is the seeded default source. `tests/shader.spec.ts`
   pins the pure half.
 - `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
@@ -674,7 +696,21 @@ the kit every import is relative (`../engine/pixel`).
   throttle. Both cadence gates run BEFORE `measure()` — a held frame never
   reads layout (gating the per-vsync `getBoundingClientRect`/`getContext`
   cut script time 28% on three 8fps surfaces), and a boundary is consumed
-  only by a frame that actually paints.
+  only by a frame that actually paints. A painting frame reads nothing from
+  the page either: the element's box is read once and then only when the
+  ResizeObserver reports (after layout, so free), the canvas's context is
+  asked for once per element, and the observer's report repaints a held
+  surface only where it shows (its first report on observe painted every
+  paused surface down the page at load); a surface first painted out of
+  view waits for the visibility wake. The Svelte runtime alike, its cadence
+  gates before `measure()` too (`tests/surface.spec.ts` counts the reads).
+  Every paint books its time against one budget a frame
+  (`engine/frame-budget.ts`, `FRAME_BUDGET_MS` 8, shared by every surface
+  of a kit; the Svelte kit's copy verbatim): past it a due paint waits a
+  frame, consuming nothing, and one that waited always paints, so no
+  surface runs more than a frame late and where several cadences meet the
+  frame holds the budget and one paint, not all of them
+  (`tests/frame-budget.spec.ts`).
   EVERY background component exposes the matching `frameRate` prop
   (default 0) and passes it through; the studio registry row and the docs API
   table carry the same row — `scripts/frame-rate-codemod.ts` keeps all four
@@ -695,6 +731,10 @@ the kit every import is relative (`../engine/pixel`).
   tone turns over (the tiles' negative) and the screen slides `speed` cells a second on the
   clock; `ground` `transparent` leaves open cells clear. Its screen is the
   one around it, else Bayer. Pinned by `tests/poster.spec.ts`.
+- `format-number.ts` (`formatFixed`, both kits verbatim) is how a counter
+  prints a number with its decimals fixed: one `Intl.NumberFormat` a
+  precision, made once (`toLocaleString` with options built one a call, a
+  rolling `CountUp` one a frame); `CountUp` and `NumberFlow` use it.
 - `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
@@ -758,7 +798,10 @@ the kit every import is relative (`../engine/pixel`).
 - Standalone components must defer their initial `getBoundingClientRect()` to
   `requestAnimationFrame` to avoid forced reflow inside Vue's `flushJobs` when
   many components mount simultaneously. `DitherButton` defers `init()` via RAF
-  with a `restartToken` guard. `DitherToggleGroup` defers `paintAll()` via RAF.
+  with a `restartToken` guard and sizes its canvas from its ResizeObserver's
+  report (`borderBoxSize`), never a read of its box, so a wall of buttons
+  starting together forces no layout (a static button, without one, reads
+  once; both kits; `tests/button-measure.spec.ts`). `DitherToggleGroup` defers `paintAll()` via RAF.
 - A canvas painted cell by cell writes a raster and uploads it once: a
   RasterBuffer + `putRasterBuffer` (`paintToggleCanvas`, the spinner's
   loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
@@ -817,6 +860,10 @@ the kit every import is relative (`../engine/pixel`).
   element visible; do not start chart animation loops optimistically before the
   first visibility observation. The IO callback must set `visible.value` before
   calling `onWake` so `schedule()` sees the correct state.
+- A chart loop that skips a frame with nothing new to paint still asks for
+  the next one while its entrance is under way (a delay, or two frames on
+  one timestamp), in both kits' copies of the cartesian loop; else it stops
+  part drawn until a hover wakes it. `tests/chart-entrance.spec.ts`.
 - `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
   must not import Vue, DOM APIs, or a server-specific image encoder. Consumers
   own encoding, caching, and invalidation of packaged assets.

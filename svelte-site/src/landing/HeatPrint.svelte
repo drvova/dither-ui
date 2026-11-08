@@ -1,16 +1,24 @@
 <script lang="ts">
-  // The close's heat (`close.ts`, the Vue landing's painter byte for byte)
-  // on the kit's background runtime: painted at a film's cadence while the
-  // page drives it, held still otherwise, one still frame under reduced
-  // motion. It follows the hand over the band.
+  // A sheet of the heat (`heat.ts`, the Vue landing's painter byte for byte)
+  // on the kit's background runtime, where its `field` lets it print: the
+  // close's band, a plate. Painted at a film's cadence while the page drives
+  // it, held otherwise, one still frame under reduced motion; it follows the
+  // hand over its box and prints through the screen around it. The close,
+  // while it runs, is painted off the main thread (`heat-offload.ts`); a
+  // still sheet (a plate, the close held) paints here.
   import { onMount } from "svelte"
   import { fillOf } from "@dither-kit/engine/pixel"
   import { ditherBackground } from "../../../dither-kit-svelte/runtime/use-dither-background"
   import { useDitherMatrix } from "../../../dither-kit-svelte/runtime/screen"
-  import { CLOSE, paintHeat } from "./close"
+  import { CLOSE, CLOSE_GRAIN, closeField, paintHeat, type HeatField, type HeatGrain } from "./heat"
+  import { offloadHeat, spawnHeatWorker } from "./heat-offload"
   import { RAMP as INKS } from "./plate"
 
-  let { paused }: { paused: boolean } = $props()
+  let {
+    paused,
+    field = closeField,
+    grain = CLOSE_GRAIN,
+  }: { paused: boolean; field?: HeatField; grain?: HeatGrain } = $props()
 
   const RAMP = INKS.map(fillOf)
   const ditherMatrix = useDitherMatrix()
@@ -29,8 +37,13 @@
   }
   onMount(() => {
     addEventListener("pointermove", point, { passive: true })
-    return () => removeEventListener("pointermove", point)
+    return () => {
+      removeEventListener("pointermove", point)
+      offload.stop()
+    }
   })
+  const offload = offloadHeat(spawnHeatWorker)
+  const running = () => !paused && field === closeField && grain === CLOSE_GRAIN
 
   const bg = $derived({
     canvas: canvasEl,
@@ -40,9 +53,11 @@
     dpr: 1,
     paused,
     frameRate: CLOSE.fps,
-    restartKey: "close",
+    restartKey: "heat",
     render: (buffer: Parameters<typeof paintHeat>[0], clock: number) =>
-      paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix),
+      running()
+        ? offload.paint(buffer, clock, clock + 1 / CLOSE.fps, hand, RAMP, matrix)
+        : paintHeat(buffer, clock, hand, CLOSE.cell, RAMP, matrix, field, grain),
   })
 </script>
 

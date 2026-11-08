@@ -7,7 +7,7 @@
 <script lang="ts">
   import { onMount } from "svelte"
   import { cn } from "../runtime/lib"
-  import { coolTrail, createTrail, fitTrail, trailLift, trailTo } from "../engine/heat-trail"
+  import { coolTrail, createTrail, fitTrail, scrollTrail, trailLift, trailTo } from "../engine/heat-trail"
   import { fillOf, type PixelColor } from "../engine/pixel"
   import type { RasterBuffer } from "../engine/raster"
   import { prefersReducedMotion } from "../engine/dither-paint"
@@ -19,7 +19,9 @@
    * out through the thresholds until the ground is still again. It listens
    * on the window, so content over it (a heading, a key) never blocks the
    * hand; a finger scrolls instead, and under reduced motion nothing prints.
-   * It paints only while something is cooling. */
+   * It paints only while something is cooling. `pinned`: the box is fixed to
+   * the viewport over a page that scrolls, and the print scrolls with the
+   * page, staying where it was laid. */
   type Props = {
     /** The ramp, coolest first, hottest last: a fresh cell takes the last. */
     inks?: PixelColor[]
@@ -30,6 +32,8 @@
     /** Device pixels per cell. */
     cell?: number
     paused?: boolean
+    /** Fixed to the viewport over a scrolling page: the print moves with it. */
+    pinned?: boolean
     dpr?: number
     mixBlendMode?: string
     seed?: number
@@ -42,6 +46,7 @@
     size = 3,
     cell = 4,
     paused = false,
+    pinned = false,
     dpr,
     mixBlendMode,
     seed,
@@ -79,11 +84,22 @@
     live = true
   }
   const lift = () => pending.push(null)
+  /** Pinned: how far the page scrolled under the print since the last paint, px. */
+  let scrolled = 0
+  // The scroll's baseline is the first scroll event's own reading: read at
+  // mount, `scrollY` forced a layout of the whole page mid-mount.
+  let lastY: number | null = null
+  function scroll() {
+    if (pinned && live && lastY !== null) scrolled += scrollY - lastY
+    lastY = scrollY
+  }
   onMount(() => {
     addEventListener("pointermove", move, { passive: true })
+    addEventListener("scroll", scroll, { passive: true })
     document.documentElement.addEventListener("pointerleave", lift)
     return () => {
       removeEventListener("pointermove", move)
+      removeEventListener("scroll", scroll)
       document.documentElement.removeEventListener("pointerleave", lift)
     }
   })
@@ -99,6 +115,13 @@
     render: (buffer: RasterBuffer, _clock: number, dt: number) => {
       // the field at the raster's size (a resize lets the old heat go)
       trail = fitTrail(trail, buffer.width, buffer.height)
+      // pinned: the print rides the page, whole cells at a time
+      const rowPx = (wrapEl?.clientHeight ?? 0) / buffer.height
+      if (rowPx > 0) {
+        const rows = Math.trunc(scrolled / rowPx)
+        scrollTrail(trail, rows)
+        scrolled -= rows * rowPx
+      }
       for (const at of pending)
         if (at) trailTo(trail, at[0], at[1], params.size)
         else trailLift(trail)

@@ -140,11 +140,11 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
       rel="noreferrer"
       class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
       >GitHub repo</a
-    >, install the runtime deps, and alias it — Svelte 5 and Tailwind you
+    >, install the runtime deps, and alias it: Svelte 5 and Tailwind you
     already have.
   </p>
   <div class="mt-5"><CodeBlock code={SNIPPETS.install} /></div>
-  <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
+  <p class="mt-4 text-[12px] leading-relaxed text-muted-foreground">
     Prefer to read the source first? Every component lives under
     <a
       href="{GITHUB}/tree/master/dither-kit-svelte"
@@ -152,7 +152,7 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
       rel="noreferrer"
       class="text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
       >dither-kit-svelte/</a
-    > — no build step, no black box.
+    >: no build step, no black box.
   </p>
 </section>
 
@@ -160,8 +160,8 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
 <section id="styling" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Styling</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-    Pixels come from the palette seeds; chrome — axes, legend, tooltip, borders
-    — reads shadcn-style CSS tokens. Override the tokens to theme, pass
+    Pixels come from the palette seeds; chrome, axes, legend, tooltip, borders,
+    reads shadcn-style CSS tokens. Override the tokens to theme, pass
     <code class="text-foreground/80">class</code> to compose with your own utilities.
   </p>
   <div class="mt-5"><CodeBlock code={SNIPPETS.styling} /></div>
@@ -172,7 +172,7 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
   <h2 class="text-lg tracking-tight">Composition</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
     A chart is a root plus parts. The root measures, builds scales and provides
-    context; children register themselves — grid and axes as chrome,
+    context; children register themselves: grid and axes as chrome,
     <code class="text-foreground/80">Area</code>/<code class="text-foreground/80">Line</code>/<code class="text-foreground/80">Bar</code>
     as series, <code class="text-foreground/80">Dot</code> nested inside a series.
     Order in the template is paint order.
@@ -184,7 +184,7 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
 <section id="seeds" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Seeds</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-    Everything visual in the kit resolves from deterministic seeds — avatars
+    Everything visual in the kit resolves from deterministic seeds: avatars
     from names, colors from hues, textures, bloom, easing and motion from
     integers. Give a chart a <code class="text-foreground/80">seed</code> and it
     derives a whole personality for every prop you left unset; the same seed
@@ -217,7 +217,7 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
     Canvases are decoration and stay <code class="text-foreground/80">aria-hidden</code>;
     each chart exposes a single labelled node instead of hundreds of shapes.
     Legends are real buttons. Reduced motion snaps entrances and stills the
-    sparkles; reduced transparency solidifies floating chrome — both from the OS
+    sparkles; reduced transparency solidifies floating chrome: both from the OS
     setting, no props required.
   </p>
   <div class="mt-5"><CodeBlock code={SNIPPETS.accessibility} /></div>
@@ -229,7 +229,7 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
     Entrances draw the dither field in; bump
     <code class="text-foreground/80">replayToken</code> to run one again. When the
-    OS asks for reduced motion, entrances snap and sparkles hold still — no opt-in
+    OS asks for reduced motion, entrances snap and sparkles hold still: no opt-in
     needed.
   </p>
   <DemoCard code={SNIPPETS.motion}>
@@ -243,12 +243,13 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
       </div>
       <div class="flex flex-wrap items-center justify-center gap-3">
         <DitherButton color="blue" variant="gradient" onclick={() => replayToken++}>Replay</DitherButton>
-        <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
+        <div class="track" role="group" aria-label="Duration">
           {#each DURATIONS as d (d)}
             <button
               type="button"
-              class="rounded px-2.5 py-1 text-[11px] tabular-nums transition-colors {motionDuration === d
-                ? 'bg-card text-foreground'
+              aria-pressed={motionDuration === d}
+              class="h-6 px-2.5 text-[11px] tabular-nums transition-colors {motionDuration === d
+                ? 'ring-on'
                 : 'text-muted-foreground hover:text-foreground'}"
               onclick={() => { motionDuration = d; replayToken++ }}
             >
@@ -259,9 +260,9 @@ import { AreaChart, Area, DitherButton } from "@dither-kit-svelte"`,
       </div>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">live-edge motion</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Live-edge motion</h3>
   <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-    The live edge isn't a preset — it's a point in a continuous space of motion
+    The live edge isn't a preset: it's a point in a continuous space of motion
     (drift, gravity, twinkle, trail, flow) AND particle shape (a generated glyph:
     dot, plus, x, streak, asterisk). A dedicated
     <code class="text-foreground/80">effect</code> seed samples one of infinitely

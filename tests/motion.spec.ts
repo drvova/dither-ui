@@ -89,7 +89,7 @@ describe("the glide", () => {
 
   it("carries an in-page link on both landings, and never under reduced motion", () => {
     const rule = `@media (prefers-reduced-motion: no-preference) {
-  html:has(.landing) {
+  :root[data-page="landing"] {
     scroll-behavior: smooth;
   }
 }`

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // A word in the pixel face (`pixel-type.ts`), `cell` px a cell, in the
-// current ink: the kit's parts' names, chunky. Decorative: its heading
-// carries the name as text.
+// current ink: the kit's parts' names, chunky. It stands on the line's
+// seven rows; a descender hangs under them, into the room below. Decorative:
+// its heading carries the name as text.
 import { computed } from "vue"
 import { layoutPixelText, PIXEL_ROWS } from "./pixel-type"
 
@@ -17,6 +18,7 @@ const laid = computed(() => layoutPixelText(text))
     aria-hidden="true"
     focusable="false"
     shape-rendering="crispEdges"
+    overflow="visible"
   >
     <rect v-for="(c, i) in laid.cells" :key="i" :x="c.x" :y="c.y" width="1" height="1" fill="currentColor" />
   </svg>

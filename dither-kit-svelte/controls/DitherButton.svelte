@@ -172,11 +172,10 @@
         }
       }
 
-      const resize = () => {
-        const box = button.getBoundingClientRect()
+      const resizeTo = (width: number, height: number) => {
         const cellPx = Math.max(1, p.cell)
-        cols = Math.max(4, Math.round(box.width / cellPx))
-        rows = Math.max(4, Math.round(box.height / cellPx))
+        cols = Math.max(4, Math.round(width / cellPx))
+        rows = Math.max(4, Math.round(height / cellPx))
         canvas.width = cols
         canvas.height = rows
         if (bloomCanvas) {
@@ -185,7 +184,10 @@
         }
         paint()
       }
-      resize()
+      const resize = () => {
+        const box = button.getBoundingClientRect()
+        resizeTo(box.width, box.height)
+      }
 
       const enter = () => {
         hovered = true
@@ -207,11 +209,18 @@
         button.addEventListener("pointercancel", up)
       }
 
+      // Sized by the observer's own report (its first comes on observe,
+      // after layout), never a layout read; a static button reads once.
       const ro =
         p.renderMode !== "static" && typeof ResizeObserver !== "undefined"
-          ? new ResizeObserver(resize)
+          ? new ResizeObserver(([entry]) => {
+              const box = entry?.borderBoxSize?.[0]
+              if (box) resizeTo(box.inlineSize, box.blockSize)
+              else resize()
+            })
           : null
-      ro?.observe(button)
+      if (ro) ro.observe(button)
+      else resize()
 
       return () => {
         if (raf) cancelAnimationFrame(raf)

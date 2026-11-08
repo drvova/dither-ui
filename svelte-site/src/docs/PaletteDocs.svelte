@@ -10,9 +10,9 @@
 cssColor("blue") // "var(--swatch-blue)"`
 
   const paletteRowsApi = [
-    { prop: "cssColor(c)", type: "(DitherColor | number | string) → css string", default: "—" },
-    { prop: "rgb(seed, k?, a?)", type: "(Rgb, number?, number?) → rgba string", default: "—" },
-    { prop: "DitherColor", type: '"green" … "grey" — seven seeds', default: "—" },
+    { prop: "cssColor(c)", type: "(DitherColor | number | string) → css string", default: "" },
+    { prop: "rgb(seed, k?, a?)", type: "(Rgb, number?, number?) → rgba string", default: "" },
+    { prop: "DitherColor", type: '"green" … "grey" — seven seeds', default: "" },
   ]
 </script>
 

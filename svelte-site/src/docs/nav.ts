@@ -2,7 +2,10 @@
 // matches a `<section id>` rendered by a section component. `radar` is omitted:
 // the Svelte kit has no radar chart series (the `Radar` name is a background).
 export type NavItem = { id: string; label: string }
-export type NavGroup = { title: string; items: NavItem[] }
+/** A family of sections under its glyph (the Vue docs' rail glyphs, drawn
+ * from the kit's icon data). */
+export type NavGroup = { title: string; icon: GroupIcon; items: NavItem[] }
+export type GroupIcon = "Home" | "Book" | "Layout" | "Grid" | "Image" | "Sparkles" | "Pulse" | "Palette"
 
 const FORM: NavItem[] = [
   { id: "switch", label: "Switch" },
@@ -183,9 +186,10 @@ export const ANIMATIONS: NavItem[] = [
 ]
 
 export const GROUPS: NavGroup[] = [
-  { title: "Overview", items: [{ id: "getting-started", label: "Quick start" }] },
+  { title: "Overview", icon: "Home", items: [{ id: "getting-started", label: "Quick start" }] },
   {
     title: "Handbook",
+    icon: "Book",
     items: [
       { id: "styling", label: "Styling" },
       { id: "composition", label: "Composition" },
@@ -196,6 +200,7 @@ export const GROUPS: NavGroup[] = [
   },
   {
     title: "Examples",
+    icon: "Layout",
     items: [
       { id: "dashboard", label: "Dashboard" },
       { id: "shell", label: "App shell" },
@@ -209,6 +214,7 @@ export const GROUPS: NavGroup[] = [
   },
   {
     title: "Components",
+    icon: "Grid",
     items: [
       { id: "area", label: "Area chart" },
       { id: "line", label: "Line chart" },
@@ -229,8 +235,27 @@ export const GROUPS: NavGroup[] = [
       ...NAVIGATION,
     ],
   },
-  { title: "Backgrounds", items: BACKGROUNDS },
-  { title: "Text", items: TEXT },
-  { title: "Animations", items: ANIMATIONS },
-  { title: "Utils", items: [{ id: "palette", label: "Palette" }] },
+  { title: "Backgrounds", icon: "Image", items: BACKGROUNDS },
+  { title: "Text", icon: "Sparkles", items: TEXT },
+  { title: "Animations", icon: "Pulse", items: ANIMATIONS },
+  { title: "Utils", icon: "Palette", items: [{ id: "palette", label: "Palette" }] },
 ]
+
+/** Every section in the sidebar's order, each with its family. */
+export const SECTIONS = GROUPS.flatMap((g) => g.items.map((it) => ({ ...it, group: g.title })))
+
+/** The section an address names (`#/docs/<id>`), or "" for the docs' front
+ * (`#/docs`) or an id no section holds. */
+export const sectionOf = (hash: string): string => {
+  const id = hash.replace(/^#\/docs\/?/, "")
+  return SECTIONS.some((s) => s.id === id) ? id : ""
+}
+
+/** The sections either side of one, in the sidebar's order: the pager. */
+export const neighbours = (id: string) => {
+  const at = SECTIONS.findIndex((s) => s.id === id)
+  return { prev: at > 0 ? SECTIONS[at - 1] : null, next: at >= 0 && at < SECTIONS.length - 1 ? SECTIONS[at + 1] : null }
+}
+
+/** The family a section belongs to: the breadcrumb. */
+export const groupOf = (id: string): NavGroup | null => GROUPS.find((g) => g.items.some((it) => it.id === id)) ?? null

@@ -113,7 +113,7 @@
   )
 
   const thumbClass = (active: boolean) =>
-    `rounded-md p-2 text-left transition-colors ${active ? "bg-card" : "hover:bg-card/50"}`
+    `rounded-md p-2 text-left transition-colors ${active ? "ring-on" : "hover:bg-card/50"}`
   const thumbLabel = (active: boolean) =>
     `mt-2 text-center text-[10px] transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`
 
@@ -249,8 +249,8 @@ const config = {
     { prop: "onSelectionChange", type: "(key: string | null) => void", default: "undefined" },
   ]
   const sparklineRows = [
-    { prop: "data", type: "number[]", default: "—" },
-    { prop: "color", type: "DitherColor", default: "—" },
+    { prop: "data", type: "number[]", default: "" },
+    { prop: "color", type: "DitherColor", default: "" },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
     { prop: "markerIndex", type: "number | null", default: "null" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
@@ -278,7 +278,7 @@ const config = {
       </AreaChart>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
   <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
     {#each VARIANTS as v (v)}
       <button type="button" aria-pressed={picked.area === v} class={thumbClass(picked.area === v)} onclick={() => pick("area", v)}>
@@ -287,7 +287,7 @@ const config = {
       </button>
     {/each}
   </div>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">seed-generative</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Seed-generative</h3>
   <p class="mt-2 text-[12px] leading-relaxed text-muted-foreground">
     A number is a seed: the same deterministic idea as the avatar, applied to
     texture. <code class="text-foreground/80">variant={"{1984}"}</code>
@@ -331,7 +331,7 @@ const config = {
       </LineChart>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">dot variants</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Dot variants</h3>
   <div class="mt-2 grid grid-cols-3 gap-2">
     {#each DOT_VARIANTS as d (d)}
       <button type="button" aria-pressed={picked.dot === d} class={thumbClass(picked.dot === d)} onclick={() => pickDot(d)}>
@@ -370,7 +370,7 @@ const config = {
       </BarChart>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
   <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
     {#each VARIANTS as v (v)}
       <button type="button" aria-pressed={picked.bar === v} class={thumbClass(picked.bar === v)} onclick={() => pick("bar", v)}>
@@ -390,7 +390,7 @@ const config = {
 <section id="pie" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Pie chart</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-    Browser share as a donut — click a slice or legend entry to isolate it.
+    Browser share as a donut: click a slice or legend entry to isolate it.
   </p>
   <DemoCard code={pieCode}>
     <div class="h-64">
@@ -400,7 +400,7 @@ const config = {
       </PieChart>
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">variants</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
   <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
     {#each VARIANTS as v (v)}
       <button type="button" aria-pressed={picked.pie === v} class={thumbClass(picked.pie === v)} onclick={() => pick("pie", v)}>
@@ -420,7 +420,7 @@ const config = {
 <section id="sparkline" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Sparkline</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-    A plain numeric series with zero margins — built for stat cards, table cells
+    A plain numeric series with zero margins: built for stat cards, table cells
     and dashboard rows.
   </p>
   <DemoCard code={SNIPPETS.sparkline}>

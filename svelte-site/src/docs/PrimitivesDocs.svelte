@@ -39,9 +39,9 @@
   const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
 
   const chipClass = (active: boolean) =>
-    `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`
+    `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "ring-on" : "text-muted-foreground hover:text-foreground"}`
   const thumbClass = (active: boolean) =>
-    `rounded-md p-2 text-left transition-colors ${active ? "bg-card" : "hover:bg-card/50"}`
+    `rounded-md p-2 text-left transition-colors ${active ? "ring-on" : "hover:bg-card/50"}`
   const thumbLabel = (active: boolean) =>
     `mt-2 text-center text-[10px] transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`
 
@@ -85,8 +85,8 @@
     { prop: "maxCols / maxRows", type: "number", default: "960 / 600 (live) · 320 / 200 (static)" },
   ]
   const avatarRowsApi = [
-    { prop: "name", type: "string", default: "—" },
-    { prop: "size", type: "number (px)", default: "—" },
+    { prop: "name", type: "string", default: "" },
+    { prop: "size", type: "number (px)", default: "" },
     { prop: "hue", type: "number 0…360", default: "from name" },
     { prop: "mirror", type: '"auto" | "horizontal" | "vertical"', default: '"auto"' },
     { prop: "animate", type: "boolean", default: "true" },
@@ -167,7 +167,7 @@
 <section id="avatar" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Avatar</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-    Deterministic identicon — the same name always draws the same face, at any
+    Deterministic identicon: the same name always draws the same face, at any
     size.
   </p>
   <DemoCard code={avatarCode}>
@@ -178,7 +178,7 @@
       <DitherAvatar name={avatarName} size={64} replayToken={avatarReplay} />
     </div>
   </DemoCard>
-  <h3 class="mt-8 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/70">names</h3>
+  <h3 class="mt-8 text-[12px] text-muted-foreground">Names</h3>
   <div class="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
     {#each AVATAR_NAMES as n (n)}
       <button type="button" aria-pressed={avatarName === n} class={thumbClass(avatarName === n)} onclick={() => pickAvatar(n)}>
@@ -196,7 +196,7 @@
 <section id="gradient" class="mt-20 scroll-mt-20">
   <h2 class="text-lg tracking-tight">Gradient</h2>
   <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-    A background wash that fades through the Bayer matrix instead of alpha — four
+    A background wash that fades through the Bayer matrix instead of alpha: four
     directions, any palette color.
   </p>
   <DemoCard code={gradientCode}>

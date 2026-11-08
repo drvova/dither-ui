@@ -52,7 +52,11 @@ widgets/features; page-specific conventions live here.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) over the site voice (only
   `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the ground
-  on `:root:has(.landing)` (obsidian `#101214`, bone `#e4e1d8`, the muted
+  on the root marked with its route (`:root[data-page="landing"]`, and
+  `missing`; App.vue sets `data-page` with the title, never a `:has()`,
+  which re-matched the root on every node added anywhere and restyled the
+  whole document as the page scrolled; `tests/root-has.spec.ts`)
+  (obsidian `#101214`, bone `#e4e1d8`, the muted
   bone `#9c998f` at AA on both grounds, `color-scheme: dark`), so what the
   page teleports to the body (the film's dialog) is printed too; the dark
   theme stays on (`index.html` ships `class="dark"` and `LandingPage`
@@ -79,7 +83,7 @@ widgets/features; page-specific conventions live here.
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
   `[id]` scroll margins (76px) clear of the header, an in-page link
-  travelling there by the browser's own smooth scroll (`html:has(.landing)`,
+  travelling there by the browser's own smooth scroll (`:root[data-page="landing"]`,
   none under reduced motion; the Svelte landing's `landing.css` likewise;
   `tests/motion.spec.ts`). A card or panel whose
   own ground is `--surface` resets `--surface` to the page's ground on
@@ -142,9 +146,11 @@ widgets/features; page-specific conventions live here.
   over a static header.
 - Hero (`Showcase.vue`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
-  where the pointer prints (`.hero-trail`, a `DitherHeatTrail` under
-  everything the hero holds, in the print's inks (`TRAIL`): hot in its orange,
-  cooling through the bone to its blue, gone in about two seconds),
+  where the pointer prints as it does on every section's ground (the
+  page's one `.page-trail`, a `DitherHeatTrail` `pinned` to the viewport
+  under everything the landing holds, its print scrolling with the page,
+  in the print's inks (`TRAIL`): hot in its orange, cooling through the
+  bone to its blue, gone in about two seconds),
   holding on the page width the statement beside the print (columns
   1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
   (`.statement`, rising as the page opens): the h1 in the display face
@@ -195,7 +201,8 @@ widgets/features; page-specific conventions live here.
   robots tag to `noindex` while it stands and gives it back after.
 - The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
   trapped and handed back, Escape and the backdrop close it) titled "The
-  dither-ui film", its description the film in words (no speech in it).
+  dither-ui film", its description the film in words (no speech in it;
+  both in `film.ts`, shared with the Svelte landing).
   The `<video>` exists only while the dialog is open: `public/trailer/`
   `dither-ui.mp4` (H.264 + AAC) first, `dither-ui.webm` (VP9 + Opus) for a
   browser built without H.264, `poster.webp`; it starts with `play()` in
@@ -454,7 +461,7 @@ widgets/features; page-specific conventions live here.
   - `rain` (the plate after the bento): the cells hang in one dotted line
     on the scene's first row and fall column by column, left to right,
     each column landing from the bottom up.
-  - `converge` (the plate before the install): the seven rows slide in
+  - `converge` (the plate after the three parts): the seven rows slide in
     whole, even rows from the field's left edge and odd rows from its
     right, top row first, and interlock.
   - `strike` (the footer): a typewriter; the glyphs wait stacked at the
@@ -486,41 +493,74 @@ widgets/features; page-specific conventions live here.
   scene's rows; the gather's burst inside its rows and each wordmark cell
   on its host's squares until it.
 - The plates (decorative): two print sheets between the sections, after
-  the bento and before the install, each the brand small in a wide field
-  and each unlike the other (the audit's call: alike, they read as
-  repeated dividers). ONE table, `PLATES` in `plate.ts`, sets each plate's
-  tone at the top edge, its clear band and its tone at the foot, where the
+  the bento and after the three parts (so the close comes after the works
+  as the heat's payoff, never a second heat in a row), each the brand
+  small in a wide field and each unlike the other (the audit's call:
+  alike, they read as repeated dividers). Each is a sheet of the heat, the
+  close's material (the user's call: carry it through the page), so it
+  builds up to the close. ONE table, `PLATES` in `plate.ts`, sets each
+  plate's clear band (`plateField`: the heat prints from its top edge to
+  the band and from the band to its foot, two clouds that rise out of
+  nothing and sink back, never in the band), where the
   mark's centre stands in the band (left of 0.7, the wordmark reading on
-  to its right), its move, its proportion (`aspect`: 3.4, then a slimmer
-  4.6) and its printer's screen (`screen`: Bayer, then a halftone dot); `sceneOf` gives its scene (loose in
-  the band and the tone's thin edges, thrown anywhere on the sheet,
-  seeded by where the mark stands). `Plate.vue` prints a row: a sheet of
-  its proportion (at least 112px tall) on the page's width, square cornered and flat like the hero's
-  print, on `STOCK` (the `--surface` mix as a colour the kit prints with,
-  so its open cells are the plate, never a tint), two `DitherGradient`s in
-  the bone ink through its `DitherScreen` showing only the thin ends of
-  their ramps, and the brand's moment in the band, pulled in from the
-  right edge (16px clear) where the plate is narrow, while the tone prints
-  in through `DitherReveal` (0.72s on the glide, the lights coming on).
-  `tests/landing-facts.spec.ts` holds `STOCK` to the token's mix and every
-  plate's mark inside its band, its tones thin.
+  to its right), its move, its proportion (`aspect`: 2.4, then a slimmer
+  2.8, tall enough that each cloud billows rather than printing as a
+  streak) and its printer's screen (`screen`: Bayer, then a halftone dot); `sceneOf` gives its scene (loose in
+  the band and its thin edges, thrown anywhere on the sheet,
+  seeded by where the mark stands) and its heat's grain (`grain`: finer
+  folds than the close's, each plate its own region of the noise, read for
+  a balanced mix of clear ground and each ink at the page's full width,
+  `span`: a narrower sheet folds finer by as much, so a phone prints the
+  same picture smaller, never a cold corner of it). `Plate.vue` prints a row:
+  a passage of its proportion (at least 240px tall, so a phone's clouds
+  billow rather than print as scraps) on the page's width,
+  on the page's own ground (no box, no stock: the user's call, the
+  sections must flow), its heat (`HeatPrint`, still) through its
+  `DitherScreen` as two clouds, above the band and below it, each rising
+  out of nothing and sinking back and thinning to nothing at the plate's
+  ends (`plateau`), so no edge of a box ever shows, and the brand's moment
+  in the band, pulled in from the right edge (16px clear) where the plate
+  is narrow, while the heat prints in through `DitherReveal` (0.72s on the
+  glide, the lights coming on). `tests/landing-facts.spec.ts` holds every
+  plate's mark inside its band; `tests/heat.spec.ts` its clouds full in
+  their middles, nothing at the sheet's edges and nothing in the band,
+  and a phone's sheet as inked as the page's.
   A new plate is a row in the table and a `<Plate>` at a section break.
 - The close (`#install`, out of the page column, the full width): the
-  install stands in a clear field inside a print of heat (`close.ts`,
-  `paintHeat` on the kit's own `fbm`, copied byte for byte to the Svelte
-  landing; `CloseHeat.vue` paints it on the kit's background runtime at
-  `CLOSE.fps`): ink in water through `RAMP`, so the close and the footer's
-  road are one material, printed beside the install's column
-  (`CLOSE.column`) and in from the band's top and foot (`CLOSE.reach`, the
-  band padded by it through `--reach`, so no ink lands under a word), hot
-  and dense along its flat foot. The footer's ground rises into that foot
+  install stands in a clear field over a print of heat (`heat.ts`,
+  `paintHeat` on the kit's own `fbm` where a field lets it, its fold (the
+  two warp fields) sampled on a grid at a sixteenth of the scale, at most
+  every fourth cell, and blended between, the final noise per cell: within
+  a cell in a hundred of the exact fold at a quarter of its noise, a
+  phone's finer fold every cell (`tests/heat.spec.ts`), `closeField`
+  here, copied byte for byte to the Svelte landing; `HeatPrint.vue` paints
+  it on the kit's background runtime at `CLOSE.fps`; while it runs the
+  close is painted in a worker, `heat-offload.ts` (the page's side: each
+  paint takes the worker's latest frame and asks for the one due at the
+  next paint) and `heat-ask.ts` + `heat-worker.ts` (the worker's), a
+  still sheet and the first paint painting at once, every paint without
+  workers; `tests/heat-offload.spec.ts`): ink in water through
+  `RAMP`, so the plates, the close and the footer's road are one material.
+  Its top is the page's open ground (4 rhythms of air above the head, as
+  between sections): heat rises off the band's flat foot (`CLOSE.reach`,
+  the foot padded by it through `--reach`, so no ink lands under a word)
+  and climbs the sides beside the install's column (`CLOSE.column`),
+  thinning out before the top: never a lid, never a frame round the
+  install. The sides climb only where the screen leaves them room to read
+  as heat (about 1800px and up); a narrower one keeps the foot alone,
+  never a sliver at its edge. Where a field thins the heat cools rather
+  than fading in rows, so every edge follows the ink's contours, never a
+  ruled line. The foot never goes cold: its last rows keep a `floor` of
+  the coolest inks, its density still the noise's, so it runs the whole
+  width. The footer's ground rises into that foot
   as ONE tab on the page's axis (`.close-tab`: 224px wide (28vw on a phone, 120px at least) by 40px, rounded
   shoulders, two concave fillets into the ground; the industrial brief's
   one credible joint). The heat drifts for `CLOSE.drift` as the band
   arrives (under five seconds, no pause), then only while a pointer moves
   over the band, which pulls the heat toward it; one still frame under
-  reduced motion. `tests/close.spec.ts` holds the column clear, the foot
-  hot, the ramp's inks only and a moment's bytes.
+  reduced motion. `tests/heat.spec.ts` holds the column clear, no lid,
+  the sides' room, the foot hot and never cold at any band height or
+  moment, the ramp's inks only and a moment's bytes.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit
@@ -531,7 +571,9 @@ widgets/features; page-specific conventions live here.
   mono with the ember `$`; the box and the spec sheet under it keep the
   install head's centred measure (52rem). Under 640px the picker takes the
   top row alone and the command wraps beside the key between its words
-  (each word unbroken, never at a hyphen), so all of it shows; inline
+  or after a path's slash (`command.ts`, shared with the Svelte landing;
+  each piece unbroken, never at a hyphen), the caret flowing after the last
+  word, so all of it shows; inline
   `code` on the landing never wraps. A copy is ONE gesture: while copied the
   command shows selected (the page's ground behind it) as the key's label
   rolls to "Copied" under a check; both let go together; reduced motion
@@ -561,6 +603,15 @@ widgets/features; page-specific conventions live here.
   chip, since a tap also focuses and would point at the card and then
   toggle what it just started. Chips stay under reduced motion, where
   every surface paints one frame and holds it.
+- Mounting reads no layout (`tests/mount-reads.spec.ts`): a read of a
+  box, `scrollY` or `offsetParent` while the landing mounts forced a
+  layout of the whole page that the rest of the mount then undid (about
+  350ms of a 4x-throttled load, now about 30ms). A reading waits for the
+  frame (`BrandBuild`'s first measure), the moment that needs it (the
+  brand's field, read as it builds), an observer's report (the bento's
+  stagger, from an IntersectionObserver's first boxes) or the event that
+  brings it (the pointer trail's scroll baseline). Numbers format through
+  the kit's `formatFixed` (one formatter a precision).
 - Footer ground (`road.ts`): the kit's art under the whole footer, the
   wordmark included (`.foot-art`), one `DitherShader` (loaded with the footer, cell
   `ROAD.cell` CSS px at dpr 1, so the print reads the same on every screen
@@ -604,7 +655,10 @@ widgets/features; page-specific conventions live here.
   while the art moves (the dance, a scroll, a pointer across the footer),
   so the reader drives it, parks as it settles, leaves at the right of
   the wordmark's box and comes back in at the left; under reduced motion
-  it stays parked. Decorative (`aria-hidden`); no
+  it stays parked. A scroll drives the road only while it is on screen
+  (driven from anywhere, the car's loop ran through the whole page), and
+  the car's loop reads the road's and the car's widths from a
+  ResizeObserver, never from layout each frame. Decorative (`aria-hidden`); no
   rule, no boxed icons.
 - Footer (on the page width, no rule above it): the brand (the brand's
   moment in the home link, whose name is "dither-ui", `STAGINGS.foot`:
@@ -681,7 +735,7 @@ widgets/features; page-specific conventions live here.
   in tracks, 24px tall; the tab row wraps, so on a phone the Code tab's
   chips drop under the tabs instead of running off the card.
 - Docs ground: in the dark the docs wear the landing's print, the user's
-  V5 obsidian and bone (`:root.dark:has(.docs-root)` in
+  V5 obsidian and bone (`:root.dark[data-page="docs"]` in
   `app/styles.css`: a muted bone at AA on the ground and the raised
   card, the border a quiet step off the ground, the ring bone, the
   landing's float shadow) over the
@@ -781,10 +835,24 @@ widgets/features; page-specific conventions live here.
   as the screen readers' h1). `open(id)` shows that section alone (the
   rest of `.docs-flow` hidden; a pack of sections, `packs.ts` `PACKS`, each
   pack component and the nav naming its sections, mounts only once one of
-  its sections is opened here and stays after, so going back is instant
-  and keeps each demo's state, while the 300-odd others cost the page
-  nothing: 27,564 nodes on a section's page became 4,115;
-  `tests/docs-packs.spec.ts` holds every pack to its nav), pushes a history
+  its sections is opened here and stays while it is among the last
+  `PACKS_KEPT` (3) read (`visitPack`), so going back is instant and keeps
+  each demo's state, while the 300-odd others cost the page nothing:
+  27,564 nodes on a section's page became 4,115, and a long read lets the
+  oldest pack go (every section opened in one tab had kept 62k nodes and
+  461 canvases; now about 37k and 218 at worst, the three heaviest); each
+  pack is a chunk of its own (`pack-loaders.ts`: `PACK_LOADERS`, prefetched
+  at idle, so moving family stays instant; the page evaluates only the
+  pack it shows), the open section's pack loaded before the page first
+  renders (`preloadOpenPacks`, from App.vue's loader), so it never shows
+  empty, and a pack's sections, arriving after the page, are hidden and
+  read for "On this page" as they come (a MutationObserver on the flow's
+  children; once missed, a family's every section showed at once); the sections DocsPage writes itself keep their element but
+  render their contents only while open or among the last read (`opened`,
+  `PACKS_KEPT`; they held 3,000 of a section page's 4,200 nodes and all
+  its canvases, hidden); the prerender's `?all-sections` renders and
+  loads everything; `tests/docs-packs.spec.ts` holds every pack to its nav,
+  `tests/docs-rail.spec.ts` the own sections), pushes a history
   entry and reads from the top; back and forward walk them (`popstate`).
   The sidebar, search, the sheet and the pager all open through it. Over
   the section a breadcrumb (the docs, then its group, linking to the
