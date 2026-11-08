@@ -286,7 +286,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   <div class="landing isolate flex min-h-screen flex-col bg-background text-foreground antialiased">
     <!-- The pointer prints on the whole page's ground, every section's:
          pinned to the viewport, the print scrolling with the page. -->
-    <DitherHeatTrail pinned class="page-trail" :inks="TRAIL" :cell="4" />
+    <DitherHeatTrail pinned class="page-trail" v-bind="TRAIL" :cell="4" />
     <!-- Skip link: first focusable element, jumps to the single main landmark. -->
     <a
       href="#main"

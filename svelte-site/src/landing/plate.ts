@@ -24,9 +24,15 @@ export const INKS: PixelColor[] = ["blue", "orange", "#e4e1d8"]
  * close's heat print through it. */
 export const RAMP: PixelColor[] = [GROUND, ...INKS]
 
-/** Coolest first, the print's inks as the pointer's trail wears them:
- * landing hot in the orange, cooling through the bone to the blue. */
-export const TRAIL: PixelColor[] = [INKS[0], INKS[2], INKS[1]]
+/** The pointer's trail on the landing's ground: a slender stroke (a
+ * diamond of one cell's reach) landing hot in the ember and cooling to the
+ * bone as it tapers and dissolves, in under a second. One accent and the
+ * one ink, never a rope of every colour. */
+export const TRAIL = { inks: [INKS[2], INKS[1]], size: 1, cool: 0.9 } satisfies {
+  inks: PixelColor[]
+  size: number
+  cool: number
+}
 
 export type Plate = {
   /** The clear band's top and foot, as fractions of the plate's height:

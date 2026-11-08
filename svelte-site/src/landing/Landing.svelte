@@ -147,7 +147,7 @@
 <div class="landing isolate flex min-h-screen flex-col bg-background text-foreground antialiased">
   <!-- The pointer prints on the whole page's ground, every section's:
        pinned to the viewport, the print scrolling with the page. -->
-  <HeatTrail pinned class="page-trail" inks={TRAIL} cell={4} />
+  <HeatTrail pinned class="page-trail" {...TRAIL} cell={4} />
   <!-- Skip link: first focusable element, jumps to the single main landmark. -->
   <a
     href="#main"

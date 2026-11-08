@@ -40,7 +40,7 @@ onBeforeUnmount(() => {
   <div class="landing flex min-h-dvh flex-col bg-background text-foreground antialiased">
     <SiteHeader current="landing" />
     <main id="main" tabindex="-1" class="lost outline-none">
-      <DitherHeatTrail class="lost-trail" :inks="TRAIL" :cell="4" />
+      <DitherHeatTrail class="lost-trail" v-bind="TRAIL" :cell="4" />
       <div v-rise class="lost-in">
         <Mascot data-rise :size="88" alive class="lost-mascot" />
         <h1 class="lost-h"><RiseWords text="This page did not print." /></h1>

@@ -149,8 +149,10 @@ widgets/features; page-specific conventions live here.
   where the pointer prints as it does on every section's ground (the
   page's one `.page-trail`, a `DitherHeatTrail` `pinned` to the viewport
   under everything the landing holds, its print scrolling with the page,
-  in the print's inks (`TRAIL`): hot in its orange, cooling through the
-  bone to its blue, gone in about two seconds),
+  as `TRAIL` in `plate.ts` sets it, inks, reach and cooling in one table:
+  a slender stroke, hot in the ember at the hand, cooling to the bone as
+  it tapers and dissolves, gone in under a second; never a wide rope of
+  every ink, which read as a cable dragged over the copy),
   holding on the page width the statement beside the print (columns
   1 : 1.2, even from 900 to 1199px so the keys keep one row). Left
   (`.statement`, rising as the page opens): the h1 in the display face
@@ -197,7 +199,7 @@ widgets/features; page-specific conventions live here.
   (alive), "This page did not print." rising word by word, a two-tone
   line saying why, and the keys back (the chrome "Back to the start",
   then the docs and the Studio), the pointer printing over the whole
-  ground (`TRAIL` in `plate.ts`, the hero's inks). It turns the shell's
+  ground (`TRAIL` in `plate.ts`, the hero's stroke). It turns the shell's
   robots tag to `noindex` while it stands and gives it back after.
 - The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
   trapped and handed back, Escape and the backdrop close it) titled "The

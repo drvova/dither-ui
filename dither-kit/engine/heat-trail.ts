@@ -39,7 +39,13 @@ export function fitTrail(t: Trail, cols: number, rows: number): Trail {
   return t.cols === cols && t.rows === rows ? t : createTrail(cols, rows)
 }
 
-/** Stamp the diamond at a cell: hottest at its heart, a little cooler at
+/** How much cooler a fresh diamond's rim is than its heart. Every cell
+ * loses heat at one rate, so the rim goes first: a stroke is the full
+ * diamond only at the hand and tapers to its heart's one cell before it
+ * dissolves, a comet rather than a rope of one width. */
+export const RIM_COOL = 0.6
+
+/** Stamp the diamond at a cell: hottest at its heart, `RIM_COOL` cooler at
  * its rim, never cooling what is already hotter. */
 function stamp(t: Trail, cx: number, cy: number, size: number) {
   const r = Math.max(0, Math.round(size))
@@ -51,7 +57,7 @@ function stamp(t: Trail, cx: number, cy: number, size: number) {
       const y = cy + dy
       if (x < 0 || y < 0 || x >= t.cols || y >= t.rows) continue
       const i = y * t.cols + x
-      const h = 1 - (0.35 * d) / (r + 1)
+      const h = 1 - (RIM_COOL * d) / (r + 1)
       if (h > t.heat[i]) t.heat[i] = h
     }
   t.hot = true

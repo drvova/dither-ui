@@ -35,6 +35,17 @@ describe("a stroke", () => {
     expect(t.hot).toBe(true)
   })
 
+  it("tapers as it cools: the rim goes first, the heart outlasts it", () => {
+    // one width all along read as a rope dragged over the page
+    const t = createTrail(41, 41)
+    trailTo(t, 0.5, 0.5, 3)
+    coolTrail(t, 0.6, 1)
+    expect(at(t, 23, 20)).toBe(0)
+    expect(at(t, 21, 20)).toBeGreaterThan(0)
+    expect(at(t, 20, 20)).toBeCloseTo(0.4)
+    expect(lit(t)).toBeLessThan(25)
+  })
+
   it("leaves no gap however far the hand jumps between events", () => {
     const t = createTrail(101, 21)
     trailTo(t, 0, 0.5, 1)

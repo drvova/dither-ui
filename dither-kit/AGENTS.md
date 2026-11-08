@@ -443,7 +443,8 @@ the kit every import is relative (`../engine/pixel`).
   Guarded by `tests/circuit.spec.ts`.
 - `HeatTrail` (`heat-trail.ts`, both kits; `DitherHeatTrail` in Vue) is the
   pointer printing: heat per cell, `trailTo` stamps the kit's diamond
-  (hottest at its heart) at every cell from the stroke's last point, so a
+  (hottest at its heart, its rim `RIM_COOL` cooler, so a stroke cools from
+  its edges in and tapers like a comet, never one width along) at every cell from the stroke's last point, so a
   fast hand never leaves a gap, `trailLift` ends a stroke, `coolTrail`
   takes the same heat from every cell (`dt / cool`) until the field is
   exactly empty, and `paintTrail` shows a cell while its heat clears its
