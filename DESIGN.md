@@ -284,6 +284,10 @@ Smoothness is part of the look, so these are design rules too:
 - A page holds only what it shows and what was just read: the docs mount
   the open family and the last ones read, never all of them.
 - Art that is not on screen does not move.
+- The first paint is the prerendered page: the app mounts over it once its
+  page has loaded, never empties it first; the display face comes with the
+  HTML; the page a pointer rests on a link to is made ready before the
+  click.
 
 ## Where it lives
 

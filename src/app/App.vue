@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onBeforeUnmount, ref, watchEffect } from "vue"
 import { LandingPage, MissingPage } from "@/pages/landing"
-import { appPathname, isLanding, routePath } from "@/shared/lib"
-import { ROUTE_TITLES, type RouteName } from "@/shared/config/titles"
+import { appPathname, routePath } from "@/shared/lib"
+import { ROUTE_TITLES } from "@/shared/config/titles"
 import PageLoader from "./PageLoader.vue"
+import { loadDocs, loadStudio, resolveRoute } from "./route-pages"
 
 // Landing paints immediately: it is the entry and the shared link target.
 // Docs (200+ canvas demos) and Studio (a Figma-style editor) are heavy, so they
-// load on demand as their own chunks. While a chunk downloads we show a spinner
+// load on demand as their own chunks (`route-pages.ts`: the page the address
+// opens on loads before the app mounts). On a move, while a chunk downloads we show a spinner
 // (after a 150ms delay, so cached/instant loads never flash one) instead of a
 // blank freeze during navigation.
 const DocsPage = defineAsyncComponent({
-  // The open section's pack loads with the page, so it never shows empty.
-  loader: () => import("@/pages/docs").then(async (m) => (await m.preloadOpenPacks(), m.DocsPage)),
+  loader: loadDocs,
   loadingComponent: PageLoader,
   delay: 150,
 })
 const StudioPage = defineAsyncComponent({
-  loader: () => import("@/pages/studio").then((m) => m.StudioPage),
+  loader: loadStudio,
   loadingComponent: PageLoader,
   delay: 150,
 })
@@ -28,12 +29,6 @@ if (appPathname() === "/" && location.hash.startsWith("#/docs"))
 else if (appPathname() === "/" && location.hash.startsWith("#/studio"))
   history.replaceState(null, "", routePath(location.hash.replace(/^#\/studio\/?/, "/studio#")))
 
-const resolveRoute = (): RouteName => {
-  const path = appPathname()
-  if (path.startsWith("/studio")) return "studio"
-  if (path.startsWith("/docs")) return "docs"
-  return isLanding(path) ? "landing" : "missing"
-}
 const route = ref(resolveRoute())
 const onRoute = () => (route.value = resolveRoute())
 window.addEventListener("hashchange", onRoute)

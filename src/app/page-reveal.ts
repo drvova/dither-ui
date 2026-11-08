@@ -62,3 +62,18 @@ export function pageTransitionOptions(): DitherTransitionOptions {
     easing: "glide",
   }
 }
+
+/** The site's speculation rules (Chromium; ignored elsewhere): a page of
+ * the site the reader is about to open (a pointer resting on its link, or
+ * pressing it) is made ready before the click, so the move lands at once.
+ * The landing and the docs are rendered ahead; the Studio, an app, only
+ * fetched; the share cards' renderer, the player and the kit's sources
+ * never. `base` is the site's base path. */
+export function speculationRules(base: string): string {
+  const site = `${base}*`
+  const never = ["og/*", "play/*", "kit/*", "studio*"].map((p) => ({ href_matches: `${base}${p}` }))
+  return JSON.stringify({
+    prerender: [{ where: { and: [{ href_matches: site }, { not: { or: never } }] }, eagerness: "moderate" }],
+    prefetch: [{ where: { href_matches: `${base}studio*` }, eagerness: "moderate" }],
+  })
+}
