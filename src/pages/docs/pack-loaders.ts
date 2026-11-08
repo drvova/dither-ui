@@ -3,7 +3,7 @@
 // docs' first script: measured, about 400ms of a 4x-throttled load), and
 // the browser fetches the rest at idle (prefetch), so moving to another
 // family stays instant. The open section's pack is loaded before the page
-// first renders (`preloadOpenPacks`, from App.vue), so it never shows
+// first renders (`preloadOpenPacks`, from `src/app/route-pages.ts`), so it never shows
 // empty. Which sections a pack holds lives in `packs.ts`.
 import { type Component, defineAsyncComponent } from "vue"
 import { appPathname } from "@/shared/lib"

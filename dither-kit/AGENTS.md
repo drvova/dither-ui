@@ -636,8 +636,14 @@ the kit every import is relative (`../engine/pixel`).
   back, `readBehind` (WebGL2: the read into a pixel buffer behind a fence,
   collected on a later call once the GPU is done, an earlier draw's
   pixels or null; never a stall; WebGL1 reads at once;
-  `tests/gl-readback.spec.ts`), `dispose`), `buildProgram` (the compiler's first line as the
-  error) and the channel binding: `ChannelInput` (a surface, a component
+  `tests/gl-readback.spec.ts`), `dispose`), the program in steps that never
+  wait on the driver until asked: `startProgram` (both stages and the link
+  handed over, no status asked), `programReady` (KHR_parallel_shader_compile's
+  completion status; ready where the driver cannot say), `finishProgram`
+  (the program or the compiler's first line: fragment, vertex, then link),
+  `dropProgram`; `buildProgram` is start and finish at once, for programs
+  needed now (the world's engines; `tests/shader-compile.spec.ts`), and
+  the channel binding: `ChannelInput` (a surface, a component
   instance, a kit canvas → its surface; any canvas, image or video),
   `bindChannel`, `createChannels` (the four textures of one program,
   re-uploaded only when a surface painted, FLIP_Y upright,
@@ -665,10 +671,14 @@ the kit every import is relative (`../engine/pixel`).
   like every surface (HyperFrames' renderer has WebGL2 through SwiftShader
   — verified by a real render). Without WebGL it shows "WebGL is not
   available"; a compile error shows the compiler's first line. Its first
-  cost, the context and the program's compile, is paid at idle as it comes
-  within a screen of view (never for one far off, so a page of shaders
-  holds no contexts it never shows): paid in its first frame it was a
-  stall just as it came into view (`tests/shader-warm.spec.ts`).
+  cost, the context and the program's compile, is started at idle as it
+  comes within a screen of view (never for one far off, so a page of
+  shaders holds no contexts it never shows): paid in its first frame it was
+  a stall just as it came into view (`tests/shader-warm.spec.ts`). The
+  compile runs in the driver's background: a running shader holds its
+  raster and asks `programReady` each frame, collecting the program once it
+  is; a paused frame or a directed moment collects it at once, exact
+  (`tests/shader-compile.spec.ts`).
   `sampleShader(seed)` is the seeded default source. `tests/shader.spec.ts`
   pins the pure half.
 - `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime

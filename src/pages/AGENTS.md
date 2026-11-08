@@ -844,7 +844,7 @@ widgets/features; page-specific conventions live here.
   pack is a chunk of its own (`pack-loaders.ts`: `PACK_LOADERS`, prefetched
   at idle, so moving family stays instant; the page evaluates only the
   pack it shows), the open section's pack loaded before the page first
-  renders (`preloadOpenPacks`, from App.vue's loader), so it never shows
+  renders (`preloadOpenPacks`, from `app/route-pages.ts`'s loader), so it never shows
   empty, and a pack's sections, arriving after the page, are hidden and
   read for "On this page" as they come (a MutationObserver on the flow's
   children; once missed, a family's every section showed at once); the sections DocsPage writes itself keep their element but

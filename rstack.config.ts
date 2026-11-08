@@ -6,7 +6,7 @@ import { resolve, sep } from "node:path"
 import { define } from "rstack"
 import type { RsbuildPlugin } from "rstack/app"
 import { installHead } from "./src/app/install-files.ts"
-import { PAGE_END_ID, PAGE_REVEAL_SCRIPT } from "./src/app/page-reveal.ts"
+import { PAGE_END_ID, PAGE_REVEAL_SCRIPT, speculationRules } from "./src/app/page-reveal.ts"
 import { RISE_HEAD_SCRIPT } from "./src/shared/lib/rise-wait.ts"
 
 const root = import.meta.dirname
@@ -174,11 +174,15 @@ define.app(async ({ command }) => {
         })),
       },
     },
+    // The display face (18 kB) is fetched with the HTML: found through the
+    // stylesheet, it came after the first paint and the lead swapped faces.
+    performance: { preload: { type: "all-assets", include: [/michroma-latin\.[\w]+\.woff2$/] } },
     html: {
       template: ({ entryName }) => at(pages[entryName].html),
       // The site's routes take a page transition over before their first
-      // frame (src/app/page-reveal.ts), hold what rises until the app rises
-      // it (src/shared/lib/rise-wait.ts),
+      // frame (src/app/page-reveal.ts), make the page a link points to ready
+      // before the click (its speculation rules), hold what rises until the
+      // app rises it (src/shared/lib/rise-wait.ts),
       // and carry the site's icons; the Studio's page, the app's manifest and
       // iOS's app tags too.
       tags: (tags, { entryName }) =>
@@ -186,6 +190,13 @@ define.app(async ({ command }) => {
           ? [
               { tag: "script", children: PAGE_REVEAL_SCRIPT, head: true, append: false },
               { tag: "script", children: RISE_HEAD_SCRIPT, head: true, append: false },
+              {
+                tag: "script",
+                attrs: { type: "speculationrules" },
+                children: speculationRules(process.env.BASE_PATH ?? "/"),
+                head: true,
+                append: false,
+              },
               ...installHead(entryName).map((t) => ({ ...t, head: true })),
               ...tags,
               { tag: "span", attrs: { id: PAGE_END_ID, hidden: true }, head: false, append: true },

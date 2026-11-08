@@ -645,6 +645,19 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   measured state (chart `ctx.ready`, mount flags), so first-render vnodes
   never match the settled snapshot. Don't retry hydration without first
   making first render equal settled state.
+  It mounts once the page the address opens on has loaded
+  (`app/route-pages.ts`: `resolveRoute`, `loadDocs` / `loadStudio`, each
+  loaded once by whoever asks first, `loadOpenPage` from main.ts; App.vue
+  takes the same loaders on a move): the prerendered bytes stay painted
+  while it loads and the app mounts the same page over them in one step
+  (mounting first emptied a docs page until its chunk came: a first paint
+  at about 2.5s at 4x CPU, now about 0.4s). The display face is preloaded
+  with each route's HTML (`performance.preload` in rstack.config.ts), and
+  each route's head carries the site's speculation rules
+  (`speculationRules` in `app/page-reveal.ts`: the landing and the docs
+  rendered ahead when a pointer rests on a link to them, the Studio only
+  fetched, the cards' renderer, the player and the kit's sources never;
+  Chromium only, and off under DevTools). `tests/first-paint.spec.ts`.
   Because the client renders fresh over those bytes, one-shot entrance
   latches are runtime-only: a figure marks itself `data-live`/`data-done`,
   and the prerender strips both before serializing, so the static page
