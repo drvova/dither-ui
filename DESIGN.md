@@ -279,8 +279,8 @@ Smoothness is part of the look, so these are design rules too:
 - No `:has()` on the root; a page marks the root with its name instead.
 - Every kit surface paints only where it shows, against one paint budget
   a frame (8ms); a heavy one paints in a worker (the heat, a model on the
-  CPU engine) and a shader reads its pixels back without waiting on the
-  GPU.
+  CPU engine) and a shader never waits on the GPU: it compiles in the
+  driver's background and reads its pixels back behind the frame.
 - A page holds only what it shows and what was just read: the docs mount
   the open family and the last ones read, never all of them.
 - Art that is not on screen does not move.

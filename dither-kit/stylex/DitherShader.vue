@@ -38,7 +38,17 @@ const styles = stylex.create({
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { directedTime, isDirected } from "../engine/clock"
-import { buildProgram, type Channels, createChannels, createGl, type GlHandle } from "../engine/gl"
+import {
+  type Channels,
+  createChannels,
+  createGl,
+  dropProgram,
+  finishProgram,
+  type GlHandle,
+  type PendingProgram,
+  programReady,
+  startProgram,
+} from "../engine/gl"
 import { cn, type StyleProp } from "./lib"
 import { clamp01, fillOf, type PixelColor } from "../engine/pixel"
 import type { DitherRenderMode } from "../engine/precompile"
@@ -168,17 +178,21 @@ watch(() => [props.source, props.src, props.seed], load, { immediate: true })
 
 let handle: GlHandle | null | undefined
 let program: WebGLProgram | null = null
+let pending: PendingProgram | null = null
 let compiled: string | null = null
 let locations: Partial<Record<(typeof SHADER_UNIFORMS)[number], WebGLUniformLocation | null>> = {}
 let channelSet: Channels | null = null
 let pixels = new Uint8Array(0)
 const mouse = { x: 0, y: 0, cx: 0, cy: 0, down: false }
 
-/** Build the program for `source`; sets `program` or the error note. */
+/** Hand the program for `source` to the driver, collected by `settle`
+ * once it is ready (so compiling never holds the page), or the error note. */
 function compile(h: GlHandle, source: string): void {
   const gl = h.gl
   if (program) gl.deleteProgram(program)
+  if (pending) dropProgram(gl, pending)
   program = null
+  pending = null
   locations = {}
   compiled = source
   const built = wrapShader(source, h.webgl2)
@@ -187,7 +201,20 @@ function compile(h: GlHandle, source: string): void {
     problem.value = "this shader needs WebGL2"
     return
   }
-  const p = buildProgram(gl, built.vertex, built.fragment, ["p"])
+  const started = startProgram(gl, built.vertex, built.fragment, ["p"])
+  if (typeof started === "string") {
+    status.value = "error"
+    problem.value = started
+    return
+  }
+  pending = started
+}
+
+/** Collect the started program; sets `program` or the error note. */
+function settle(h: GlHandle, started: PendingProgram): void {
+  const gl = h.gl
+  pending = null
+  const p = finishProgram(gl, started)
   if (typeof p === "string") {
     status.value = "error"
     problem.value = p
@@ -231,6 +258,12 @@ function draw(buffer: RasterBuffer, clock: number, dt: number) {
     return
   }
   if (compiled !== code.value) compile(handle, code.value)
+  // Still compiling: a running shader holds its raster and asks again next
+  // frame; a frame that must be exact (paused, directed) waits for it.
+  if (pending) {
+    if (!props.paused && !isDirected() && !programReady(handle.gl, pending)) return
+    settle(handle, pending)
+  }
   if (!program) {
     buffer.data.fill(0)
     return
@@ -303,7 +336,7 @@ function onUp() {
   mouse.down = false
 }
 
-/** The GPU half's first cost, the context and the program, paid ahead. */
+/** The GPU half's first cost, the context and the program, started ahead. */
 function warm() {
   if (handle === undefined) handle = createGl()
   if (handle && !handle.lost() && code.value && compiled !== code.value) compile(handle, code.value)
@@ -339,10 +372,12 @@ onBeforeUnmount(() => {
   ctl?.abort()
   if (handle) {
     if (program) handle.gl.deleteProgram(program)
+    if (pending) dropProgram(handle.gl, pending)
     channelSet?.dispose()
     channelSet = null
   }
   program = null
+  pending = null
   handle?.dispose()
   handle = null
 })

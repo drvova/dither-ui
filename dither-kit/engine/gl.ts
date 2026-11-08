@@ -131,39 +131,86 @@ export function createGl(): GlHandle | null {
   }
 }
 
-function stage(gl: Gl, kind: number, text: string): WebGLShader | string {
-  const sh = gl.createShader(kind)
-  if (!sh) return "could not create a shader"
-  gl.shaderSource(sh, text)
-  gl.compileShader(sh)
-  if (gl.getShaderParameter(sh, gl.COMPILE_STATUS)) return sh
-  const log = gl.getShaderInfoLog(sh) || "compile error"
-  gl.deleteShader(sh)
-  return log.split("\n").find((l) => l.trim()) ?? log
-}
+/** A program the driver is still compiling and linking: nothing has asked
+ * how it went, so nothing has waited on it. */
+export type PendingProgram = { program: WebGLProgram; vertex: WebGLShader; fragment: WebGLShader }
 
-/** Link a program; `attribs` pins attribute names to locations. Returns the
- * program or the first line of the compiler's complaint. */
-export function buildProgram(gl: Gl, vertex: string, fragment: string, attribs: string[] = []): WebGLProgram | string {
-  const vs = stage(gl, gl.VERTEX_SHADER, vertex)
-  const fs = stage(gl, gl.FRAGMENT_SHADER, fragment)
-  if (typeof vs === "string" || typeof fs === "string") {
-    if (typeof vs !== "string") gl.deleteShader(vs)
-    if (typeof fs !== "string") gl.deleteShader(fs)
-    return typeof fs === "string" ? fs : (vs as string)
+/** Hand both stages and the link to the driver without asking how they went
+ * (asking is what waits on the GPU); `attribs` pins attribute names to
+ * locations. `finishProgram` collects the result; `programReady` says
+ * whether collecting it would wait. */
+export function startProgram(
+  gl: Gl,
+  vertex: string,
+  fragment: string,
+  attribs: string[] = [],
+): PendingProgram | string {
+  const vs = gl.createShader(gl.VERTEX_SHADER)
+  const fs = gl.createShader(gl.FRAGMENT_SHADER)
+  if (!vs || !fs) {
+    if (vs) gl.deleteShader(vs)
+    if (fs) gl.deleteShader(fs)
+    return "could not create a shader"
   }
   const p = gl.createProgram()
-  if (!p) return "could not create a program"
+  if (!p) {
+    gl.deleteShader(vs)
+    gl.deleteShader(fs)
+    return "could not create a program"
+  }
+  gl.shaderSource(vs, vertex)
+  gl.compileShader(vs)
+  gl.shaderSource(fs, fragment)
+  gl.compileShader(fs)
   gl.attachShader(p, vs)
   gl.attachShader(p, fs)
   attribs.forEach((name, i) => gl.bindAttribLocation(p, i, name))
   gl.linkProgram(p)
+  return { program: p, vertex: vs, fragment: fs }
+}
+
+/** Whether `finishProgram` would return without waiting: the driver says so
+ * where it compiles in the background (KHR_parallel_shader_compile); where
+ * it cannot say, collecting is the only way to know, so it is ready. */
+export function programReady(gl: Gl, pending: PendingProgram): boolean {
+  const ext = gl.getExtension("KHR_parallel_shader_compile")
+  return !ext || gl.getProgramParameter(pending.program, ext.COMPLETION_STATUS_KHR) !== false
+}
+
+/** Collect a started program: the program, or the first line of the
+ * compiler's complaint (the fragment stage's first, then the vertex's, then
+ * the link's). Waits on the driver if it is not `programReady`. */
+export function finishProgram(gl: Gl, pending: PendingProgram): WebGLProgram | string {
+  const { program: p, vertex: vs, fragment: fs } = pending
+  const linked = gl.getProgramParameter(p, gl.LINK_STATUS)
+  let note = ""
+  if (!linked) {
+    const failed = [fs, vs].find((sh) => !gl.getShaderParameter(sh, gl.COMPILE_STATUS))
+    if (failed) {
+      const log = gl.getShaderInfoLog(failed) || "compile error"
+      note = log.split("\n").find((l) => l.trim()) ?? log
+    } else note = (gl.getProgramInfoLog(p) || "link error").split("\n")[0]
+  }
   gl.deleteShader(vs)
   gl.deleteShader(fs)
-  if (gl.getProgramParameter(p, gl.LINK_STATUS)) return p
-  const log = (gl.getProgramInfoLog(p) || "link error").split("\n")[0]
+  if (linked) return p
   gl.deleteProgram(p)
-  return log
+  return note
+}
+
+/** Let go of a started program nobody will collect. */
+export function dropProgram(gl: Gl, pending: PendingProgram): void {
+  gl.deleteShader(pending.vertex)
+  gl.deleteShader(pending.fragment)
+  gl.deleteProgram(pending.program)
+}
+
+/** Link a program at once, waiting on the driver; `attribs` pins attribute
+ * names to locations. Returns the program or the first line of the
+ * compiler's complaint. */
+export function buildProgram(gl: Gl, vertex: string, fragment: string, attribs: string[] = []): WebGLProgram | string {
+  const started = startProgram(gl, vertex, fragment, attribs)
+  return typeof started === "string" ? started : finishProgram(gl, started)
 }
 
 // ---- channels ---------------------------------------------------------------------
