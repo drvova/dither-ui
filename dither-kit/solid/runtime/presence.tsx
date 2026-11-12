@@ -69,7 +69,8 @@ export function Presence(props: PresenceProps) {
       (when) => {
         if (when) {
           setMounted(true)
-          queueMicrotask(() => run("enter", () => {}))
+          // once it is in the page; closed again by then, the leave stands
+          queueMicrotask(() => props.when && run("enter", () => {}))
         } else if (mounted()) run("leave", () => setMounted(false))
       },
       { defer: true },

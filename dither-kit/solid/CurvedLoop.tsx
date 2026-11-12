@@ -1,0 +1,87 @@
+import { createUniqueId, mergeProps, onCleanup, onMount } from "solid-js"
+import { directedTime, isDirected, onSeek } from "../engine/clock"
+import { pixelPrefersReducedMotion } from "../engine/pixel"
+import { cn } from "../tailwind/lib"
+import { createInviewLoop } from "./runtime/in-view"
+import "./CurvedLoop.css"
+
+export type CurvedLoopProps = {
+  text?: string
+  speed?: number
+  class?: string
+}
+
+const d = "M -100 58 Q 25 18 150 58 T 400 58 T 650 58 T 900 58"
+
+export default function CurvedLoop(raw: CurvedLoopProps) {
+  const props = mergeProps({ text: "DITHER UI · CANVAS + BAYER · ", speed: 60 }, raw)
+
+  const uid = `dither-curve-${createUniqueId()}`
+  // Repeated enough to always cover the visible path plus one wrap unit.
+  // Read once, as the Vue twin does.
+  const content = props.text.repeat(10)
+
+  let host: SVGSVGElement | undefined
+  let measure: SVGTextElement | undefined
+  let textPathEl: SVGTextPathElement | undefined
+  let raf = 0
+  let offset = 0
+  let copyLen = 0
+  let lastT = 0
+
+  function frame(now: number) {
+    raf = requestAnimationFrame(frame)
+    const el = textPathEl
+    if (!el || !copyLen) return
+    const dt = lastT ? Math.min(0.05, (now - lastT) / 1000) : 0
+    lastT = now
+    offset -= props.speed * dt
+    while (offset <= -copyLen) offset += copyLen
+    el.setAttribute("startOffset", String(offset))
+  }
+
+  function start() {
+    if (raf || pixelPrefersReducedMotion()) return
+    if (isDirected()) {
+      seekTo(directedTime() ?? 0)
+      return
+    }
+    raf = requestAnimationFrame(frame)
+  }
+  /** Directed (clock.ts): the scroll is a pure function of the moment. */
+  function seekTo(ms: number) {
+    stop()
+    const el = textPathEl
+    if (!el || !copyLen) return
+    offset = -(((props.speed * ms) / 1000) % copyLen)
+    el.setAttribute("startOffset", String(offset))
+  }
+  function stop() {
+    if (!raf) return
+    cancelAnimationFrame(raf)
+    raf = 0
+  }
+
+  onMount(() => {
+    onCleanup(onSeek((ms) => (ms === null ? start() : seekTo(ms))))
+    copyLen = measure?.getComputedTextLength?.() || 0
+  })
+  createInviewLoop(() => host, start, stop)
+
+  return (
+    <svg ref={(el) => (host = el)} viewBox="0 0 600 100" class={cn("w-full", props.class)} aria-label={props.text}>
+      <defs>
+        <path id={uid} d={d} fill="none" />
+      </defs>
+      {/* hidden single copy, measured once to wrap the scroll seamlessly */}
+      <text ref={(el) => (measure = el)} class="dither-curve-text" x="-9999" y="-9999">
+        {props.text}
+      </text>
+      <text class="dither-curve-text" aria-hidden="true">
+        <textPath ref={(el) => (textPathEl = el)} href={`#${uid}`} startOffset="0">
+          {content}
+        </textPath>
+      </text>
+    </svg>
+  )
+}

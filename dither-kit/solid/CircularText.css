@@ -1,0 +1,20 @@
+.dither-circular-svg {
+  animation: dither-spin linear infinite;
+  transform-origin: center;
+}
+@keyframes dither-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.dither-circular-text {
+  fill: currentColor;
+  font-size: 7px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-circular-svg {
+    animation: none;
+  }
+}
