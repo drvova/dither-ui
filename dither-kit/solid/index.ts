@@ -394,3 +394,36 @@ export { default as DitherScrubInput, type ScrubInputProps } from "./ScrubInput"
 export { default as DitherSearchInput, type SearchInputProps } from "./SearchInput"
 export { default as DitherTagInput, type TagInputProps } from "./TagInput"
 export { default as DitherText, type TextProps } from "./Text"
+export { default as DitherColorPicker, type ColorPickerProps } from "./ColorPicker"
+export { default as DitherConsole, type ConsoleLevel, type ConsoleLine, type DitherConsoleProps } from "./DitherConsole"
+export { default as DitherField, type DitherFieldProps } from "./DitherField"
+export { default as DitherStage, type DitherStageProps, STAGE, type StageContext } from "./DitherStage"
+export { default as DitherLayer, type DitherLayerProps } from "./DitherLayer"
+export { default as DitherMenubar, type DitherMenubarProps } from "./DitherMenubar"
+export { default as DitherPopover, type DitherPopoverProps } from "./DitherPopover"
+export { default as DitherProgress, type DitherProgressProps } from "./DitherProgress"
+export {
+  default as DitherReveal,
+  BAYER8,
+  bayerMatrix,
+  type DitherRevealProps,
+  wipeStyle,
+  type WipeDirection,
+  type WipeOptions,
+  type WipeStyle,
+} from "./DitherReveal"
+export { default as DitherScrollArea, type DitherScrollAreaProps } from "./DitherScrollArea"
+export { default as DitherShell, type DitherShellProps } from "./DitherShell"
+export { default as DitherSwitch, type DitherSwitchProps } from "./DitherSwitch"
+export { default as DitherTooltip, type DitherTooltipProps } from "./DitherTooltip"
+export { default as DitherFadeContent, type FadeContentProps } from "./FadeContent"
+export { default as DitherFocusRing, type FocusRingProps } from "./FocusRing"
+export { default as DitherGhostCursor, type GhostCursorProps } from "./GhostCursor"
+export { default as DitherHoldAction, type HoldActionProps } from "./HoldAction"
+export { default as DitherIconSet, type IconSetProps } from "./IconSet"
+export { default as DitherPortal, type PortalProps } from "./Portal"
+export { default as DitherScrollProgress, type ScrollProgressProps } from "./ScrollProgress"
+export { default as DitherSignaturePad, type SignaturePadProps } from "./SignaturePad"
+export { default as DitherSplashCursor, type SplashCursorProps } from "./SplashCursor"
+export { default as DitherSplitText, type SplitTextProps } from "./SplitText"
+export { default as DitherTargetCursor, type TargetCursorProps } from "./TargetCursor"
