@@ -1,0 +1,18 @@
+.dither-gradient-text {
+  display: inline-block;
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: dither-gt linear infinite;
+}
+@keyframes dither-gt {
+  to {
+    background-position: 300% center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-gradient-text {
+    animation: none;
+  }
+}

@@ -1,0 +1,24 @@
+/* A 4x4 Bayer lattice tile: one cell of four lit, offset per row — the same
+   ordered-dither rhythm the canvas engine uses, as a static overlay. */
+.dither-veil {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cg fill='%23000' fill-opacity='0.5'%3E%3Crect x='0' y='0' width='2' height='2'/%3E%3Crect x='8' y='8' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23fff' fill-opacity='0.35'%3E%3Crect x='8' y='0' width='2' height='2'/%3E%3Crect x='0' y='8' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* Hover wakes the image and dissolves the veil: the link's descendants,
+   which no single element's styles can say. */
+@media (hover: hover) {
+  .dk-thumb:hover .dk-thumb-img {
+    scale: 1.04;
+    opacity: 1;
+  }
+  .dk-thumb:hover .dither-veil {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dither-veil {
+    opacity: 0;
+  }
+}
