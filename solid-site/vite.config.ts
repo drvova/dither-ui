@@ -2,6 +2,7 @@
 // builds beside the Vue site (`../src`, `../rstack.config.ts`) while the
 // kit and the pages move over, then takes its place. One alias table: the
 // kit's Solid layer, the engine, and the site's framework-free modules.
+import { fileURLToPath } from "node:url"
 import tailwindcss from "@tailwindcss/vite"
 import { solidStart } from "@solidjs/start/config"
 import { nitro } from "nitro/vite"
@@ -11,6 +12,9 @@ import { kitSources } from "./kit-sources.ts"
 import { runCompiler } from "./run-compiler.ts"
 import { utilityMap } from "./utilities.ts"
 
+/** The site's public files, shared with the Vue site. */
+const PUBLIC_FILES = fileURLToPath(new URL("../public", import.meta.url))
+
 /** The file a static host serves for an address nothing lives at. */
 const MISSING_PAGE = "/404.html"
 
@@ -19,13 +23,15 @@ const NOT_YET_PORTED = ["/docs", "/agent/registry.json"]
 
 export default defineConfig({
   base: process.env.BASE_PATH ?? "/",
-  // the site's own public files (faces, the trailer, the agent skill), shared with the Vue site
-  publicDir: "../public",
+  publicDir: PUBLIC_FILES,
   plugins: [solidStart(), nitro(), tailwindcss(), utilityMap(), kitSources(), runCompiler()],
   resolve: { alias: ALIASES, dedupe: ONE_SOLID },
   server: { fs: { allow: [".."] } },
   nitro: {
     preset: "static",
+    // The site's own public files (faces, the trailer, the agent skill),
+    // shared with the Vue site until the cutover.
+    publicAssets: [{ dir: PUBLIC_FILES, baseURL: "/" }],
     // Every page a link reaches is a real file, and a link to nothing fails
     // the build. The missing page answers 404, which a prerender does not
     // keep: its one address, a static host's `404.html`, is kept by name.
