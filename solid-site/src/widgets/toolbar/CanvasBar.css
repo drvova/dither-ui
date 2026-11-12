@@ -1,0 +1,94 @@
+/* One capsule at the canvas's foot, centred, its width set by its keys
+   alone (the label has a fixed slot), raised over the data editor while it
+   is open. */
+.canvas-bar-scope {
+  &.canvas-bar {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    z-index: 30;
+    display: flex;
+    max-width: calc(100% - 24px);
+    height: 2.5rem;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    overflow-x: auto;
+    translate: -50% 0;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+  &.canvas-bar.is-raised {
+    bottom: 17rem;
+  }
+  .zoom {
+    display: flex;
+    gap: 2px;
+  }
+  .pct {
+    width: 3rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .rule {
+    flex: none;
+    width: 1px;
+    height: 1rem;
+    margin-inline: 2px;
+    background: var(--color-border);
+  }
+  /* The selection's name in a slot of its own width: a long name is cut, a
+     short one leaves the slot as it was. */
+  .what {
+    flex: none;
+    width: 7.5rem;
+    overflow: hidden;
+    padding-inline: 6px;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    color: var(--color-foreground);
+  }
+  .what.is-none {
+    color: var(--color-muted-foreground);
+  }
+  /* A narrower canvas: the label steps out (the keys keep their names for a
+     screen reader and their titles for a pointer), then the zoom steps (the
+     percentage and fit stay). */
+  @container canvas (max-width: 760px) {
+    .what,
+    .what-rule {
+      display: none;
+    }
+  }
+  @container canvas (max-width: 600px) {
+    .step {
+      display: none;
+    }
+  }
+  /* Down to the Studio's narrowest canvas (1024px with both side columns
+     open) the keys close up to 28px, still past the 24px floor. */
+  @container canvas (max-width: 540px) {
+    .tool {
+      min-width: 1.75rem;
+    }
+    .pct {
+      width: 2.75rem;
+    }
+  }
+  &.canvas-bar-enter-active,
+  &.canvas-bar-leave-active {
+    transition:
+      translate 350ms var(--ease-settle),
+      opacity 150ms var(--ease-settle);
+  }
+  &.canvas-bar-enter-from,
+  &.canvas-bar-leave-to {
+    translate: -50% 6px;
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &.canvas-bar-enter-active,
+    &.canvas-bar-leave-active {
+      transition: none;
+    }
+  }
+}
