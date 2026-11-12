@@ -1,0 +1,51 @@
+.notes-scope.wb-notes {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.notes-scope .note {
+  position: absolute;
+  max-width: 280px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: color-mix(in oklab, var(--color-background) 82%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, currentColor 30%, transparent);
+}
+
+/* The field's ring is the note's own outline while it is written in. */
+.notes-scope .note:focus-within {
+  outline: 1px solid var(--wb-hl);
+  outline-offset: 2px;
+}
+
+.notes-scope .note.on {
+  outline: 1px dashed var(--wb-hl);
+  outline-offset: 2px;
+}
+
+.notes-scope .field {
+  display: block;
+  min-width: 8ch;
+  max-width: 270px;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: none;
+  resize: none;
+  outline: none;
+  pointer-events: auto;
+  field-sizing: content;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .notes-scope .note {
+    background: var(--color-background);
+  }
+}

@@ -29,6 +29,9 @@ export type DitherRevealProps = {
   restartKey?: unknown
   class?: string
   children?: JSX.Element
+  /** What Vue let fall through to the wrapper and a page relies on. */
+  "aria-hidden"?: boolean | "true" | "false"
+  "data-phase"?: string
 }
 
 export default function DitherReveal(raw: DitherRevealProps) {
@@ -152,7 +155,14 @@ export default function DitherReveal(raw: DitherRevealProps) {
   const state = createMemo(() => (effective() >= 1 ? "shown" : effective() <= 0 ? "hidden" : "playing"))
 
   return (
-    <div ref={(el) => (wrapRef = el)} class={cn("relative", props.class)} style={style()} data-reveal={state()}>
+    <div
+      ref={(el) => (wrapRef = el)}
+      class={cn("relative", props.class)}
+      style={style()}
+      data-reveal={state()}
+      aria-hidden={props["aria-hidden"]}
+      data-phase={props["data-phase"]}
+    >
       {props.children}
     </div>
   )

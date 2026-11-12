@@ -1,0 +1,97 @@
+.motion-scope.wb-motion,
+.motion-scope .clock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.motion-scope.wb-motion {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.motion-scope .clock {
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
+.motion-scope .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.motion-scope .spacer {
+  flex: 1;
+}
+
+.motion-scope .dim {
+  color: var(--color-muted-foreground);
+}
+
+.motion-scope .scrub input {
+  flex: 1;
+  min-width: 120px;
+  accent-color: var(--color-foreground);
+}
+
+.motion-scope .num {
+  min-width: 64px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.motion-scope .act,
+.motion-scope .seg > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 7px;
+  border-radius: 5px;
+  color: var(--color-muted-foreground);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.motion-scope .act:hover,
+.motion-scope .seg > button:hover {
+  color: var(--color-foreground);
+}
+
+.motion-scope .act[aria-pressed="true"],
+.motion-scope .seg > button[aria-pressed="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 24%, transparent);
+}
+
+.motion-scope .seg {
+  display: flex;
+  gap: 3px;
+}
+
+.motion-scope .seg > button {
+  box-shadow: none;
+}
+
+.motion-scope .list {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.motion-scope .list th {
+  padding: 0 8px 4px 0;
+  color: var(--color-muted-foreground);
+  text-align: left;
+}
+
+.motion-scope .list td {
+  padding: 3px 8px 3px 0;
+  border-top: 1px solid color-mix(in oklab, var(--color-border) 50%, transparent);
+}

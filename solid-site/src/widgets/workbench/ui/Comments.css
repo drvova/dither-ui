@@ -1,0 +1,159 @@
+.comments-scope.wb-comments {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.comments-scope .pin {
+  position: absolute;
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  place-items: center;
+  border-radius: 10px 10px 10px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  transform: translate(-2px, -100%);
+  color: black;
+  background: var(--wb-hl);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+  pointer-events: auto;
+}
+
+.comments-scope .pin.resolved {
+  color: var(--color-muted-foreground);
+  background: var(--color-card);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.comments-scope .pin.open {
+  outline: 2px solid var(--color-foreground);
+  outline-offset: 1px;
+}
+
+.comments-scope .pin.draft {
+  pointer-events: none;
+}
+
+.comments-scope .pop {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 11.5px;
+  color: var(--color-foreground);
+  background: var(--color-background);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+  pointer-events: auto;
+}
+
+.comments-scope .head,
+.comments-scope .foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.comments-scope .head .micro {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-muted-foreground);
+}
+
+.comments-scope .foot {
+  justify-content: flex-end;
+}
+
+.comments-scope .icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--color-muted-foreground);
+}
+
+.comments-scope .icon:hover {
+  color: var(--color-foreground);
+}
+
+.comments-scope .msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.comments-scope .msg p {
+  margin: 0;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comments-scope .meta {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--color-muted-foreground);
+}
+
+.comments-scope .link {
+  min-height: 24px;
+  color: var(--color-muted-foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.comments-scope .link:hover {
+  color: var(--color-foreground);
+}
+
+.comments-scope .field {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+  color: inherit;
+  background: var(--color-card);
+  resize: vertical;
+}
+
+.comments-scope .field:focus {
+  border-color: var(--color-ring);
+}
+
+.comments-scope .act {
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--color-muted-foreground);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.comments-scope .act:hover:not(:disabled) {
+  color: var(--color-foreground);
+}
+
+.comments-scope .act.primary {
+  color: var(--color-background);
+  background: var(--color-foreground);
+  box-shadow: none;
+}
+
+.comments-scope .act:disabled {
+  opacity: 0.4;
+}

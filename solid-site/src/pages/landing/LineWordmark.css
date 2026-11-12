@@ -1,0 +1,15 @@
+.line-wordmark-scope.line-wordmark {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: var(--ink);
+}
+
+.line-wordmark-scope.line-wordmark text {
+  font-family: var(--display-face);
+  font-size: 196px;
+}
+
+.line-wordmark-scope.line-wordmark .ground {
+  fill: var(--background);
+}

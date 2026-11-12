@@ -1,0 +1,29 @@
+/* A disc of the page's ink over the surface, its glyph in the page's ground. */
+.pause-chip-scope.pause-chip {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--background);
+  background: var(--ink);
+  transition: background-color 150ms var(--ease-settle);
+}
+
+.pause-chip-scope.pause-chip:hover {
+  background: color-mix(in oklab, var(--ink) 78%, var(--background));
+}
+
+/* Pause: two bars. Play: a triangle. */
+.pause-chip-scope .pause-glyph {
+  width: 10px;
+  height: 10px;
+  background:
+    linear-gradient(currentColor, currentColor) left / 3px 100% no-repeat,
+    linear-gradient(currentColor, currentColor) right / 3px 100% no-repeat;
+}
+
+.pause-chip-scope .pause-glyph[data-paused] {
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}

@@ -1,0 +1,195 @@
+.marks-scope.wb-marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.marks-scope .xray,
+.marks-scope .svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.marks-scope .target,
+.marks-scope .ghost,
+.marks-scope .line,
+.marks-scope .flag,
+.marks-scope .gapband {
+  position: absolute;
+}
+
+.marks-scope .target {
+  outline: 1px solid var(--wb-hl);
+}
+
+.marks-scope .ghost {
+  outline: 1px dashed color-mix(in oklab, var(--wb-hl) 70%, transparent);
+}
+
+.marks-scope .pad,
+.marks-scope .margin {
+  position: absolute;
+  border-style: solid;
+}
+
+.marks-scope .pad {
+  border-color: color-mix(in oklab, var(--wb-hl) 18%, transparent);
+}
+
+.marks-scope .margin {
+  border-color: color-mix(in oklab, var(--wb-hl) 9%, transparent);
+  border-style: dashed;
+}
+
+.marks-scope .gapband {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--wb-guide) 32%, transparent) 0 1px,
+    transparent 1px 5px
+  );
+}
+
+.marks-scope .target > b {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: var(--wb-hl);
+}
+
+.marks-scope .tl {
+  top: -3px;
+  left: -3px;
+}
+
+.marks-scope .tr {
+  top: -3px;
+  right: -3px;
+}
+
+.marks-scope .bl {
+  bottom: -3px;
+  left: -3px;
+}
+
+.marks-scope .br {
+  right: -3px;
+  bottom: -3px;
+}
+
+/* Black on either theme's ember clears 5:1. */
+.marks-scope .chip {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: -1px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 12px;
+  white-space: nowrap;
+  color: black;
+  background: var(--wb-hl);
+}
+
+.marks-scope .chip.below {
+  top: calc(100% + 5px);
+  bottom: auto;
+}
+
+.marks-scope .chip.end {
+  right: -1px;
+  left: auto;
+}
+
+.marks-scope .line {
+  outline: 1px solid color-mix(in oklab, var(--wb-hl) 45%, transparent);
+  background: color-mix(in oklab, var(--wb-hl) 7%, transparent);
+}
+
+.marks-scope .baseline {
+  position: absolute;
+  height: 1px;
+  background: var(--wb-hl);
+}
+
+.marks-scope .order-path {
+  fill: none;
+  stroke: var(--wb-guide);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.marks-scope .order {
+  position: absolute;
+  display: grid;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-background);
+  background: var(--wb-guide);
+}
+
+.marks-scope .flag {
+  outline: 1px dashed var(--wb-hl);
+}
+
+.marks-scope .flag > b {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  width: 13px;
+  height: 13px;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 9px;
+  color: black;
+  background: var(--wb-hl);
+}
+
+.marks-scope .dist-box {
+  fill: none;
+  stroke: color-mix(in oklab, var(--wb-guide) 75%, transparent);
+  stroke-dasharray: 2 2;
+}
+
+.marks-scope .dist {
+  stroke: var(--wb-guide);
+  stroke-width: 1;
+}
+
+.marks-scope .dist.dashed {
+  stroke-dasharray: 3 2;
+  opacity: 0.7;
+}
+
+.marks-scope .dist.on {
+  stroke-width: 2;
+}
+
+.marks-scope .value {
+  position: absolute;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  line-height: 11px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  color: var(--color-background);
+  background: var(--wb-guide);
+}
+
+@media (forced-colors: active) {
+  .marks-scope.wb-marks {
+    forced-color-adjust: none;
+  }
+  .marks-scope .chip {
+    color: HighlightText;
+  }
+}

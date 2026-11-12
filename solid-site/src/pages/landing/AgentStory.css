@@ -1,0 +1,328 @@
+/* The story's run: a notch of scroll per step, then the pinned stage's own
+   height, so the last step holds a beat before the stage lets go. */
+.agent-story-scope.story {
+  --notch: 32svh;
+  /* Most of the screen while it plays: the stage is the frame, never a band
+     with the page's ground under it. */
+  --pin: min(calc(100svh - 112px), 40rem);
+  position: relative;
+}
+
+.agent-story-scope.story.pinned {
+  height: calc(var(--steps) * var(--notch) + var(--pin));
+}
+
+.agent-story-scope .pin {
+  margin: 0;
+}
+
+.agent-story-scope.pinned .pin {
+  position: sticky;
+  top: 76px;
+  height: var(--pin);
+}
+
+.agent-story-scope .markers {
+  position: absolute;
+  inset: 0 auto auto 0;
+  display: flex;
+  flex-direction: column;
+  width: 1px;
+  height: calc(var(--steps) * var(--notch));
+  pointer-events: none;
+}
+
+.agent-story-scope .markers > span {
+  flex: 1;
+}
+
+/* The stage: one raised ground, the shot's frame. Its gutter is the one
+   distance every edge keeps: the session's inset, the screen's top and left. */
+.agent-story-scope .stage {
+  --gutter: 32px;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  /* One row, the stage's height: the screen overflows it (the bleed), never
+     stretches it, so the session stays centred on the stage. */
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--gutter);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--surface);
+}
+
+/* The session: the ask as the sent message, then the agent at work. */
+.agent-story-scope .session {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  min-height: 0;
+  padding: var(--gutter) 0 var(--gutter) var(--gutter);
+}
+
+.agent-story-scope .ask {
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--background);
+  text-wrap: pretty;
+}
+
+.agent-story-scope .does {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0 0 0 4px;
+  list-style: none;
+}
+
+.agent-story-scope .does li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  transition:
+    opacity 240ms var(--ease-settle),
+    translate 350ms var(--ease-settle),
+    color 240ms var(--ease-settle);
+}
+
+/* The line at work reads in the full ink; done lines step back. */
+.agent-story-scope .does li.working {
+  color: var(--ink);
+}
+
+.agent-story-scope .does li.ahead {
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 6px;
+}
+
+/* One cell for the spinner and the check, so a line never shifts as its
+   mark turns. */
+.agent-story-scope .mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: var(--signal);
+}
+
+/* The hero: the screen on the page's ground, a gutter from the stage's top
+   and from the session, running off the stage's right and bottom edges. */
+.agent-story-scope .screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  align-self: start;
+  width: calc(100% + 15%);
+  height: calc(100% - var(--gutter) + 80px);
+  margin-top: var(--gutter);
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--background);
+}
+
+.agent-story-scope .screen-title {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.agent-story-scope .screen-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: 32px;
+  max-width: 34rem;
+}
+
+/* A part and its slot share one cell: the slot holds the part's place on the
+   raised ground until the agent lays the part out, then the part arrives as
+   the slot leaves. */
+.agent-story-scope .part {
+  display: grid;
+  align-items: center;
+}
+
+.agent-story-scope .part > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 240ms var(--ease-settle),
+    translate 350ms var(--ease-settle);
+}
+
+.agent-story-scope .slot {
+  align-self: stretch;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.agent-story-scope .part > :not(.slot) {
+  opacity: 0;
+  translate: 0 6px;
+}
+
+.agent-story-scope .part.on > .slot {
+  opacity: 0;
+}
+
+.agent-story-scope .part.on > :not(.slot) {
+  opacity: 1;
+  translate: 0;
+}
+
+.agent-story-scope .count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.agent-story-scope .count-n {
+  font-size: 2.75rem;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.agent-story-scope .meter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agent-story-scope .part-switch {
+  align-self: flex-start;
+}
+
+.agent-story-scope .switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+/* The screen's switch is a real control: it keeps its place in the tab
+   order whatever the scroll, out of the pointer's reach until it shows, and
+   a keyboard that reaches it lands the whole screen at once. */
+.agent-story-scope .part-switch:not(.on) .switch {
+  pointer-events: none;
+}
+
+.agent-story-scope .screen:focus-within .part > .slot {
+  opacity: 0;
+}
+
+.agent-story-scope .screen:focus-within .part > :not(.slot) {
+  opacity: 1;
+  translate: 0;
+  pointer-events: auto;
+}
+
+/* The chart, the filler the crop cuts: quiet (the dotted fill, low, so the
+   count stays the heaviest mark), right under the switch (no band of
+   nothing above it) and running well past the stage's foot. */
+.agent-story-scope .part-chart {
+  flex: 1;
+  min-height: 160px;
+  margin-top: 4px;
+  align-items: stretch;
+}
+
+.agent-story-scope .chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* The render chip, centred on the screen's top-left corner, half over the
+   stage: a step above both grounds, so it reads on either. Its words share
+   one cell and crossfade. */
+.agent-story-scope .render {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--ink);
+  background: color-mix(in oklab, var(--foreground) 14%, var(--background));
+  translate: -50% -50%;
+  transition:
+    opacity 240ms var(--ease-settle),
+    translate 350ms var(--ease-settle);
+}
+
+.agent-story-scope .render.ahead {
+  visibility: hidden;
+  opacity: 0;
+  translate: -50% calc(-50% + 6px);
+}
+
+.agent-story-scope .render-words {
+  display: grid;
+}
+
+.agent-story-scope .render-words > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-settle);
+}
+
+.agent-story-scope .render-words > span[data-on] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-story-scope .part > *,
+  .agent-story-scope .does li,
+  .agent-story-scope .render,
+  .agent-story-scope .render-words > span {
+    transition: none;
+  }
+}
+
+/* Unpinned (under 900px): the session over the screen, which keeps its
+   bleed, off the stage's right and foot. */
+@media (max-width: 899px) {
+  .agent-story-scope .stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 24px;
+    --gutter: 20px;
+  }
+  .agent-story-scope .session {
+    padding: var(--gutter) var(--gutter) 0;
+  }
+  .agent-story-scope .screen {
+    width: calc(100% + 12%);
+    height: auto;
+    min-height: 300px;
+    margin: 0 0 -48px var(--gutter);
+    padding: 22px;
+  }
+  .agent-story-scope .screen-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  /* The stage's left edge is a gutter away: the chip rides the screen's top
+     edge from the corner in, whole. */
+  .agent-story-scope .render {
+    left: 18px;
+    translate: 0 -50%;
+  }
+}

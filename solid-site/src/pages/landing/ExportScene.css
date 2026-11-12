@@ -1,0 +1,58 @@
+/* The card on the left, its code on the right; the code alone on a narrow
+   card. */
+.export-scene-scope.export {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  padding: 20px;
+}
+
+.export-scene-scope .export-live {
+  display: grid;
+  align-content: center;
+}
+
+.export-scene-scope .export-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.export-scene-scope .export-code {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  /* The foot clears the fade, so the last line scrolls into full view. */
+  padding: 10px 12px 32px;
+  overflow: auto;
+  /* Long lines wrap inside the panel, never cut mid-token at its edge, and
+     the pane fades at its foot rather than slicing a line. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  border-radius: 6px;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  background: var(--background);
+}
+
+/* A wrapped line hangs two cells in from its own indent. */
+.export-scene-scope .ln {
+  display: block;
+  padding-left: calc((var(--indent) + 2) * 1ch);
+  text-indent: calc((var(--indent) + 2) * -1ch);
+}
+
+@container (max-width: 30rem) {
+  .export-scene-scope.export {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .export-scene-scope .export-live {
+    display: none;
+  }
+}

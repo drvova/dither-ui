@@ -1,0 +1,14 @@
+.brand-gather-scope.brand-gather {
+  flex: none;
+}
+
+.brand-gather-scope .brand-cell {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--ink);
+}
+
+.brand-gather-scope .brand-cell.core {
+  background: var(--signal);
+}

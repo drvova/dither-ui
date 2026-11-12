@@ -61,6 +61,9 @@ export type DitherProgressProps = {
   seed?: number
   indeterminate?: boolean
   class?: string
+  /** The bar's accessible name (Vue let these fall through to the bar). */
+  "aria-label"?: string
+  "aria-labelledby"?: string
 }
 
 export default function DitherProgress(raw: DitherProgressProps) {
@@ -176,6 +179,8 @@ export default function DitherProgress(raw: DitherProgressProps) {
     <div
       ref={(el) => (rootRef = el)}
       role="progressbar"
+      aria-label={props["aria-label"]}
+      aria-labelledby={props["aria-labelledby"]}
       aria-valuemin={props.indeterminate ? undefined : 0}
       aria-valuemax={props.indeterminate ? undefined : 100}
       aria-valuenow={props.indeterminate ? undefined : props.value}

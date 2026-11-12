@@ -1,0 +1,230 @@
+/* The box: the raised ground, no border; the picker and the copy key on
+   its top row (their filled shapes take the page's ground), the command
+   under them. */
+/* On the install head's centred measure, with the spec sheet under it. */
+.install-block-scope.box {
+  width: min(100%, 52rem);
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.install-block-scope .box-top {
+  --surface: var(--background);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px 0 12px;
+}
+
+.install-block-scope .frame {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 56px;
+  padding: 0 18px;
+}
+
+.install-block-scope .cmd {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.install-block-scope .cmd::-webkit-scrollbar {
+  display: none;
+}
+
+/* A piece of the command never breaks (a hyphen is no place to wrap); a
+   path may wrap after its slashes (`command.ts`). */
+.install-block-scope .word {
+  white-space: nowrap;
+}
+
+.install-block-scope .prompt {
+  color: var(--signal);
+  margin-right: 10px;
+}
+
+.install-block-scope .typed {
+  border-radius: 2px;
+  color: var(--ink);
+  animation: install-block-term-in 240ms var(--ease-settle) both;
+  transition:
+    background-color 360ms steps(3, jump-end),
+    box-shadow 360ms steps(3, jump-end);
+}
+
+@keyframes install-block-term-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+}
+
+/* Copied: the command shows selected, the page's ground behind the text
+   the clipboard now holds (the shadow pads it without moving a glyph). It
+   lands at once and steps out in three when the copy settles. */
+.install-block-scope.box:has(.copy[data-copied="true"]) .typed {
+  background-color: var(--background);
+  box-shadow: 0 0 0 4px var(--background);
+  transition-duration: 0s;
+}
+
+.install-block-scope .caret {
+  margin-left: 4px;
+  font-size: 11px;
+  color: var(--signal);
+  animation: install-block-blink 1.1s steps(2, jump-none) infinite;
+}
+
+@keyframes install-block-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Copy: a filled key. */
+.install-block-scope .copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  height: 30px;
+  padding: 0 11px 0 9px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  background: var(--surface);
+  transition:
+    color 150ms var(--ease-settle),
+    transform 350ms var(--ease-settle);
+}
+
+.install-block-scope .copy:hover,
+.install-block-scope .copy[data-copied="true"] {
+  color: var(--ink);
+}
+
+.install-block-scope .copy:active {
+  transform: scale(0.96);
+}
+
+/* Label roll: both words stacked in a one-line window; copy slides the
+   column up with a little overshoot. The window keeps the button's width
+   steady at the longer word. */
+.install-block-scope .roll {
+  display: block;
+  height: 1.3em;
+  line-height: 1.3em;
+  overflow: hidden;
+}
+
+.install-block-scope .roll > span {
+  display: block;
+  transition: transform 380ms var(--ease-settle);
+}
+
+.install-block-scope .roll > span > span {
+  display: block;
+}
+
+.install-block-scope .copy[data-copied="true"] .roll > span {
+  transform: translateY(-1.3em);
+}
+
+/* Icon swap: both glyphs stay in the DOM, stacked; copy cross-fades them
+   on the label roll's beat instead of popping between two mounted icons. */
+.install-block-scope .swap {
+  position: relative;
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
+.install-block-scope .swap-b {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  scale: 0.6;
+}
+
+.install-block-scope .swap-a,
+.install-block-scope .swap-b {
+  transition:
+    opacity 380ms var(--ease-settle),
+    scale 380ms var(--ease-settle);
+}
+
+.install-block-scope .copy[data-copied="true"] .swap-a {
+  opacity: 0;
+  scale: 0.6;
+}
+
+.install-block-scope .copy[data-copied="true"] .swap-b {
+  opacity: 1;
+  scale: 1;
+}
+
+/* On a phone the picker takes the top row alone, and the command wraps
+   beside the copy key under it, so the whole command shows. */
+@media (max-width: 639px) {
+  .install-block-scope.box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .install-block-scope .box-top {
+    display: contents;
+  }
+  .install-block-scope .seg {
+    grid-column: 1 / -1;
+    margin: 10px 10px 0 12px;
+  }
+  .install-block-scope .frame {
+    grid-area: 2 / 1;
+    height: auto;
+    min-height: 56px;
+    padding: 12px 12px 12px 18px;
+  }
+  /* Wrapped: the prompt, the words and the caret flow as one line of text,
+     the caret after the last word. */
+  .install-block-scope .cmd {
+    display: block;
+    white-space: normal;
+    line-height: 1.6;
+  }
+  .install-block-scope .copy {
+    grid-area: 2 / 2;
+    margin-right: 10px;
+  }
+}
+
+@media (forced-colors: active) {
+  .install-block-scope .copy {
+    border: 1px solid ButtonText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install-block-scope .roll > span,
+  .install-block-scope .swap-a,
+  .install-block-scope .swap-b,
+  .install-block-scope .typed {
+    transition: none;
+  }
+  .install-block-scope .caret,
+  .install-block-scope .typed {
+    animation: none;
+  }
+}
