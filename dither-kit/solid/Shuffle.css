@@ -1,0 +1,21 @@
+.dither-shuffle-char {
+  display: inline-block;
+  white-space: pre;
+  animation: dither-shuffle-in cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  will-change: transform, opacity;
+}
+@keyframes dither-shuffle-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-shuffle-char {
+    animation: none;
+  }
+}
