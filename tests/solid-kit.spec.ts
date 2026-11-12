@@ -72,7 +72,9 @@ describe("the Solid layer", () => {
       .map((f) => f.slice(0, -3))
     const offenders: string[] = []
     for (const file of solidFiles) {
-      for (const m of read(file).matchAll(/from\s+"([^"]+)"/g)) {
+      // a whole `import type` / `export type` is erased: only a type crosses
+      const live = read(file).replace(/(?:import|export) type [^;]*?from\s+"[^"]+"/g, "")
+      for (const m of live.matchAll(/from\s+"([^"]+)"/g)) {
         const from = m[1]
         const engine = /\/engine\/([\w-]+)$/.exec(from)?.[1]
         if (from === "vue" || from.endsWith(".vue") || (engine && vueBound.includes(engine)))
