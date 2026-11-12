@@ -1,0 +1,171 @@
+/* Lane chrome + the shared sweep; the two stair classes swap only the timing
+   function, so the lanes differ by clock alone. */
+.animations-docs-scope .timing-lane {
+  position: relative;
+  height: 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.animations-docs-scope .timing-tag {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  font-size: 12px;
+  color: var(--color-muted-foreground, #8a8a99);
+  pointer-events: none;
+}
+.animations-docs-scope .timing-probe {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 30%;
+  transform: translateX(-110%);
+  animation: timing-sweep 2.8s linear infinite alternate;
+}
+.animations-docs-scope .stair-6 {
+  animation-timing-function: steps(6, jump-none);
+}
+.animations-docs-scope .stair-3 {
+  animation-timing-function: steps(3, jump-end);
+}
+@keyframes timing-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(340%); /* 30%-wide block sweeps the whole lane */
+  }
+}
+/* Sequence demo cell — the driver's per-child contract: eased progress in,
+   lifecycle state as data-seq. Fallback 0 hides the cell until first paint. */
+.animations-docs-scope .seq-cell {
+  display: flex;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 10px;
+  color: var(--color-muted-foreground, #8a8a99);
+  opacity: var(--seq-p, 0);
+  transform: translateY(calc((1 - var(--seq-p, 0)) * 16px));
+}
+/* Container-query demo — the host is a native resize box; children switch
+   off its [data-cq] attribute (CSS route) while the slot drives JS. */
+.animations-docs-scope .stage-demo {
+  height: 230px;
+  margin: 0 auto;
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  transition: width 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+.animations-docs-scope .stage-sky {
+  inset: 0 -6cqw;
+}
+.animations-docs-scope .stage-hills {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 110%;
+  height: 58%;
+}
+.animations-docs-scope .stage-hills.far path {
+  fill: rgba(31, 111, 214, 0.35);
+}
+.animations-docs-scope .stage-hills.near {
+  width: 124%;
+  height: 42%;
+}
+.animations-docs-scope .stage-hills.near path {
+  fill: rgba(11, 26, 58, 0.95);
+}
+.animations-docs-scope .stage-moon {
+  inset: auto;
+  width: 28px;
+  height: 28px;
+}
+.animations-docs-scope .stage-moon circle {
+  fill: rgba(255, 255, 255, 0.85);
+}
+.animations-docs-scope .stage-moon .crater {
+  fill: rgba(11, 26, 58, 0.6);
+}
+.animations-docs-scope .stage-dot {
+  width: 100%;
+  height: 100%;
+}
+.animations-docs-scope .stage-dot circle {
+  fill: var(--color-accent);
+}
+.animations-docs-scope .stage-dot text {
+  font: 10px var(--font-mono);
+  fill: var(--color-muted-foreground);
+}
+@media (prefers-reduced-motion: reduce) {
+  .animations-docs-scope .stage-demo {
+    transition: none;
+  }
+}
+.animations-docs-scope .cq-panel {
+  width: 500px;
+  max-width: 100%;
+  overflow: hidden;
+  resize: horizontal; /* native corner grip; the engine's RO reports each drag */
+  border: 1px solid rgba(120, 120, 140, 0.35);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+.animations-docs-scope .cq-readout {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 12px;
+  color: var(--color-muted-foreground, #8a8a99);
+}
+.animations-docs-scope .cq-bucket {
+  color: #3f8ff3;
+  font-weight: 600;
+}
+.animations-docs-scope .cq-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+/* Bucket → layout: columns come from the CONTAINER's own attribute. */
+.animations-docs-scope .cq-panel[data-cq="xs"] .cq-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.animations-docs-scope .cq-panel[data-cq="sm"] .cq-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.animations-docs-scope .cq-panel[data-cq="md"] .cq-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.animations-docs-scope .cq-panel[data-cq="lg"] .cq-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.animations-docs-scope .cq-panel[data-cq="xl"] .cq-grid {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+/* The extremes carry a colour marker so the attribute flip is visible. */
+.animations-docs-scope .cq-panel[data-cq="xs"] .seq-cell {
+  border-color: #d9a441;
+}
+.animations-docs-scope .cq-panel[data-cq="xl"] .seq-cell {
+  border-color: #3f8ff3;
+}
+/* Motion route: the shipped keyframe measures the container (100cqw), so
+   the bar's whole journey re-scales on every resize. */
+.animations-docs-scope .cq-scan {
+  height: 2px;
+  width: 28px;
+  margin-top: 0.5rem;
+  background: #3f8ff3;
+  animation: dither-cq-traverse 2.8s ease-in-out infinite alternate;
+}
