@@ -7,13 +7,14 @@ import { solidStart } from "@solidjs/start/config"
 import { nitro } from "nitro/vite"
 import { defineConfig } from "vite"
 import { ALIASES, ONE_SOLID } from "./aliases.ts"
+import { utilityMap } from "./utilities.ts"
 
 /** The file a static host serves for an address nothing lives at. */
 const MISSING_PAGE = "/404.html"
 
 export default defineConfig({
   base: process.env.BASE_PATH ?? "/",
-  plugins: [solidStart(), nitro(), tailwindcss()],
+  plugins: [solidStart(), nitro(), tailwindcss(), utilityMap()],
   resolve: { alias: ALIASES, dedupe: ONE_SOLID },
   server: { fs: { allow: [".."] } },
   nitro: {

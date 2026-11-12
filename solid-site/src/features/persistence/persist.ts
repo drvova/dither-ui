@@ -1,0 +1,296 @@
+import { batch } from "solid-js"
+import { createMutable } from "solid-js/store"
+import { createArtboard, normalizeArtboard } from "@/entities/artboard"
+import { editor, placeArtboard, selectArtboard, watch } from "../../entities/editor"
+import { resetHistory } from "../history"
+import { download } from "@/shared/lib/files"
+import { readJson, storage as store, writeJson } from "@/shared/lib/storage"
+
+/**
+ * Per-visitor project workspace. Every browser owns its own project list in
+ * localStorage — deployed publicly, users are isolated by construction (zero
+ * shared state), and on a shared machine each person can keep their own named
+ * projects instead of stomping one implicit document.
+ *
+ * Keys: an index of project metas, one doc blob per project, and the active
+ * project id. The legacy single-document key migrates into the first project.
+ */
+const INDEX_KEY = "dither-studio-projects"
+const ACTIVE_KEY = "dither-studio-active"
+const DOC_PREFIX = "dither-studio-doc-"
+const LEGACY_KEY = "dither-studio-v8"
+
+export type ProjectMeta = { id: string; name: string; updatedAt: number }
+
+type Doc = {
+  artboards: unknown[]
+  groups?: unknown[]
+  viewport?: { x: number; y: number; zoom: number }
+}
+export type StudioDocument = Doc
+
+export const projects = createMutable<ProjectMeta[]>([])
+export const activeProjectId = createMutable({ value: "" })
+
+let pc = 0
+const uid = () => `p${Date.now().toString(36)}${(pc++).toString(36)}`
+
+const saveIndex = () => writeJson(INDEX_KEY, projects)
+const touch = (id: string) => {
+  const meta = projects.find((p) => p.id === id)
+  if (meta) meta.updatedAt = Date.now()
+}
+
+const snapshotDoc = (): Doc => ({
+  artboards: editor.artboards,
+  groups: editor.groups,
+  viewport: editor.viewport,
+})
+
+const isPlain = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
+
+let abFallback = 0
+/** Envelope validation for untrusted documents (imports, tampered storage):
+ * only plain-object artboards survive, ids are guaranteed strings, groups are
+ * shape-checked, and the viewport must be finite numbers. Field-level
+ * sanitisation happens in normalizeArtboard. */
+function validDoc(d: Doc): {
+  artboards: Parameters<typeof normalizeArtboard>[0][]
+  groups: typeof editor.groups
+  viewport: typeof editor.viewport | null
+} | null {
+  const artboards = (Array.isArray(d.artboards) ? d.artboards : []).filter(isPlain).map((a) => {
+    if (typeof a.id !== "string" || !a.id) a.id = `ab-imported-${abFallback++}`
+    if (typeof a.name !== "string") a.name = "Artboard"
+    for (const k of ["x", "y", "w", "h"] as const) {
+      if (typeof a[k] !== "number" || !Number.isFinite(a[k])) a[k] = k === "w" ? 520 : k === "h" ? 360 : 0
+    }
+    return a as unknown as Parameters<typeof normalizeArtboard>[0]
+  })
+  if (!artboards.length) return null
+  const groups = (Array.isArray(d.groups) ? d.groups : [])
+    .filter(isPlain)
+    .filter((g) => typeof g.id === "string" && typeof g.name === "string")
+    .map((g) => ({ id: g.id as string, name: g.name as string, collapsed: g.collapsed === true }))
+  const v = d.viewport
+  const viewport =
+    isPlain(v) && [v.x, v.y, v.zoom].every((n) => typeof n === "number" && Number.isFinite(n))
+      ? { x: v.x as number, y: v.y as number, zoom: Math.min(3, Math.max(0.2, v.zoom as number)) }
+      : null
+  return { artboards, groups, viewport }
+}
+
+/** Validate + normalize an untrusted document without touching the editor:
+ * the shape the player renders and the import path applies. Null when no
+ * artboard survives. */
+export function parseDocument(d: unknown): {
+  artboards: ReturnType<typeof normalizeArtboard>[]
+  groups: typeof editor.groups
+  viewport: typeof editor.viewport | null
+} | null {
+  if (!isPlain(d)) return null
+  const valid = validDoc(d as Doc)
+  return valid ? { ...valid, artboards: valid.artboards.map(normalizeArtboard) } : null
+}
+
+/** The project list as stored, read once: an entry needs a string id; its
+ * name and time fall back, and a duplicate id is dropped. */
+function parseProjects(v: unknown): ProjectMeta[] {
+  const seen = new Set<string>()
+  return (Array.isArray(v) ? v : []).filter(isPlain).flatMap((p) => {
+    if (typeof p.id !== "string" || !p.id || seen.has(p.id)) return []
+    seen.add(p.id)
+    const name = typeof p.name === "string" && p.name.trim() ? p.name : "Untitled"
+    return [{ id: p.id, name, updatedAt: typeof p.updatedAt === "number" ? p.updatedAt : 0 }]
+  })
+}
+
+/** Load a document, or make the fresh one (a frame at the canvas's centre);
+ * true when it made the fresh one. */
+function applyDoc(d: unknown): boolean {
+  const valid = d ? parseDocument(d) : null
+  batch(() => {
+    if (valid) {
+      editor.artboards = valid.artboards
+      editor.groups = valid.groups
+      if (valid.viewport) editor.viewport = valid.viewport
+      selectArtboard(editor.artboards[0].id)
+    } else {
+      editor.artboards = []
+      editor.groups = []
+      editor.viewport = { x: 96, y: 88, zoom: 1 }
+      placeArtboard(createArtboard("area"))
+    }
+    editor.dataOpen = false
+    editor.inspecting = false
+  })
+  return !valid
+}
+
+let timer: ReturnType<typeof setTimeout> | undefined
+/** Write the current editor state to the active project immediately. */
+export function flushSave(): void {
+  clearTimeout(timer)
+  timer = undefined
+  if (!activeProjectId.value) return
+  writeJson(DOC_PREFIX + activeProjectId.value, snapshotDoc())
+  touch(activeProjectId.value)
+  saveIndex()
+}
+
+/** Restore the workspace (run in setup, before first paint). True when the
+ * active project had no document and got the fresh one: its frame was
+ * placed before the canvas measured itself, so the page frames it once
+ * the canvas is mounted (`frame`). */
+export function hydrate(): boolean {
+  projects.splice(0, projects.length, ...parseProjects(readJson(INDEX_KEY)))
+
+  // Migrate the legacy single-document world into the first project.
+  if (!projects.length) {
+    const legacy = readJson(LEGACY_KEY)
+    const meta: ProjectMeta = { id: uid(), name: "My project", updatedAt: Date.now() }
+    projects.push(meta)
+    if (legacy) {
+      writeJson(DOC_PREFIX + meta.id, legacy)
+      store.remove(LEGACY_KEY)
+    }
+    saveIndex()
+  }
+
+  const requested = store.get(ACTIVE_KEY)
+  const active = projects.find((p) => p.id === requested) ?? projects[0]
+  activeProjectId.value = active.id
+  store.set(ACTIVE_KEY, active.id)
+  return applyDoc(readJson(DOC_PREFIX + active.id))
+}
+
+export function createProject(name: string): void {
+  const clean = name.trim() || `Project ${projects.length + 1}`
+  flushSave()
+  const meta: ProjectMeta = { id: uid(), name: clean, updatedAt: Date.now() }
+  projects.push(meta)
+  activeProjectId.value = meta.id
+  store.set(ACTIVE_KEY, meta.id)
+  applyDoc(null) // fresh default document
+  flushSave()
+  resetHistory()
+}
+
+export function switchProject(id: string): void {
+  if (id === activeProjectId.value) return
+  const meta = projects.find((p) => p.id === id)
+  if (!meta) return
+  flushSave()
+  activeProjectId.value = id
+  store.set(ACTIVE_KEY, id)
+  applyDoc(readJson(DOC_PREFIX + id))
+  resetHistory()
+}
+
+/** A copy of a project's canvas as a new project beside it, opened. Its
+ * chats stay with the original (their checkpoints are that canvas's). */
+export function duplicateProject(id: string): void {
+  const meta = projects.find((p) => p.id === id)
+  if (!meta) return
+  flushSave()
+  const copy: ProjectMeta = { id: uid(), name: `${meta.name} copy`.slice(0, 80), updatedAt: Date.now() }
+  const doc = readJson(DOC_PREFIX + id)
+  if (doc) writeJson(DOC_PREFIX + copy.id, doc)
+  projects.splice(projects.indexOf(meta) + 1, 0, copy)
+  saveIndex()
+  switchProject(copy.id)
+}
+
+export function renameProject(id: string, name: string): void {
+  const meta = projects.find((p) => p.id === id)
+  const clean = name.trim()
+  if (!meta || !clean) return
+  meta.name = clean
+  saveIndex()
+}
+
+export function deleteProject(id: string): void {
+  const i = projects.findIndex((p) => p.id === id)
+  if (i < 0) return
+  projects.splice(i, 1)
+  store.remove(DOC_PREFIX + id)
+  if (activeProjectId.value === id) {
+    if (projects.length) {
+      activeProjectId.value = "" // force the switch through
+      switchProject(projects[0].id)
+    } else {
+      // The last project gone, a new one takes its place under a name of
+      // its own, so the delete reads as one.
+      activeProjectId.value = ""
+      createProject("")
+    }
+  } else {
+    saveIndex()
+  }
+}
+
+/** What deleting a project takes, as both of its confirms say it. */
+export function deleteWarning(id: string): string {
+  const name = projects.find((p) => p.id === id)?.name ?? ""
+  const last = projects.length === 1 ? " It is your only project, so a new one takes its place." : ""
+  return `“${name}”, its frames and its chats will be removed. This cannot be undone.${last}`
+}
+
+export const activeProjectName = (): string =>
+  projects.find((p) => p.id === activeProjectId.value)?.name ?? "My project"
+
+/** Download the active project as a .json file. */
+export function exportDocument(): void {
+  const name = activeProjectName()
+    .replace(/[^\w-]+/g, "-")
+    .toLowerCase()
+  download(
+    new Blob([JSON.stringify(snapshotDoc(), null, 2)], { type: "application/json" }),
+    `${name || "project"}.json`,
+  )
+}
+
+/** A detached copy of the active document (what Save to file writes). */
+export const documentSnapshot = (): Doc => JSON.parse(JSON.stringify(snapshotDoc())) as Doc
+
+/** Replace the active project with an untrusted document object (an agent's
+ * or a file's). Envelope + field validation is the same path imports take.
+ * `keepHistory` leaves the undo stack alone so a programmatic replacement
+ * can be undone like any other edit. */
+export function applyDocument(d: unknown, opts: { keepHistory?: boolean } = {}): boolean {
+  if (!isPlain(d) || !Array.isArray(d.artboards) || !d.artboards.length) return false
+  if (!validDoc(d as Doc)) return false
+  applyDoc(d as Doc)
+  flushSave()
+  if (!opts.keepHistory) resetHistory()
+  return true
+}
+
+/** Load a project .json file into the active project. Invalid files are ignored. */
+export async function importDocument(file: File): Promise<boolean> {
+  try {
+    return applyDocument(JSON.parse(await file.text()))
+  } catch {
+    return false
+  }
+}
+
+let stopWatches: (() => void)[] = []
+const scheduleSave = () => {
+  clearTimeout(timer)
+  timer = setTimeout(flushSave, 400)
+}
+
+export function startAutosave(): void {
+  stopWatches.forEach((stop) => stop())
+  stopWatches = [
+    watch(() => [editor.artboards, editor.groups], scheduleSave, { deep: true }),
+    watch(() => [editor.viewport.x, editor.viewport.y, editor.viewport.zoom], scheduleSave),
+  ]
+}
+
+export function stopAutosave(): void {
+  stopWatches.forEach((stop) => stop())
+  stopWatches = []
+  if (timer) flushSave()
+}

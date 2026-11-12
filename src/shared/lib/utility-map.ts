@@ -11,7 +11,7 @@ import { Scanner } from "@tailwindcss/oxide"
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import type { RsbuildPlugin, Rspack } from "rstack/app"
-import type { UtilityMap, UtilityRule } from "./restyle"
+import type { UtilityMap, UtilityRule } from "./restyle-rewrite.ts"
 
 /** The folders whose class strings can end up in a snippet or an export. */
 export const UTILITY_SOURCES = ["src/pages/docs", "src/entities"]
