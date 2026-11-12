@@ -1,0 +1,37 @@
+.dk-cmm-enter-active {
+  transition: opacity 480ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+.dk-cmm-leave-active {
+  transition: opacity 220ms ease 200ms;
+}
+.dk-cmm-enter-from,
+.dk-cmm-leave-to {
+  opacity: 0;
+}
+.dk-cmm-enter-active .dk-cmm-panel {
+  animation: dk-cmm-unfold 480ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+.dk-cmm-leave-active .dk-cmm-panel {
+  animation: dk-cmm-unfold 400ms cubic-bezier(0.76, 0, 0.24, 1) reverse both;
+}
+@keyframes dk-cmm-unfold {
+  0% {
+    clip-path: inset(50% round 0.75rem);
+  }
+  46% {
+    clip-path: inset(calc(50% - 1px) 0 round 0.75rem);
+  }
+  100% {
+    clip-path: inset(0 round 0.75rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk-cmm-enter-active,
+  .dk-cmm-leave-active {
+    transition: none;
+  }
+  .dk-cmm-enter-active .dk-cmm-panel,
+  .dk-cmm-leave-active .dk-cmm-panel {
+    animation: none;
+  }
+}
