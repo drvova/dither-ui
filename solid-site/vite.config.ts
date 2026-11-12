@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite"
 import { solidStart } from "@solidjs/start/config"
 import { nitro } from "nitro/vite"
 import { defineConfig } from "vite"
+import { GROUPS } from "../src/pages/docs/groups.ts"
 import { ALIASES, ONE_SOLID } from "./aliases.ts"
 import { kitSources } from "./kit-sources.ts"
 import { runCompiler } from "./run-compiler.ts"
@@ -18,8 +19,12 @@ const PUBLIC_FILES = fileURLToPath(new URL("../public", import.meta.url))
 /** The file a static host serves for an address nothing lives at. */
 const MISSING_PAGE = "/404.html"
 
+/** Every docs section's page, from the table the sidebar and the sitemap
+ * read: a section is a real file whether or not a link reaches it. */
+const DOCS_PAGES = ["/docs", ...GROUPS.flatMap((g) => g.items.map((i) => `/docs/${i.id}`))]
+
 /** Routes and build files still made only by the Vue site. */
-const NOT_YET_PORTED = ["/docs", "/agent/registry.json"]
+const NOT_YET_PORTED = ["/agent/registry.json"]
 
 export default defineConfig({
   base: process.env.BASE_PATH ?? "/",
@@ -38,7 +43,7 @@ export default defineConfig({
     prerender: {
       crawlLinks: true,
       failOnError: true,
-      routes: ["/", MISSING_PAGE],
+      routes: ["/", MISSING_PAGE, ...DOCS_PAGES],
       // Pages the landing links to that have not moved over yet: the crawl
       // leaves them alone until their routes exist (then each line goes).
       ignore: NOT_YET_PORTED,

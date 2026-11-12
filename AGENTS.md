@@ -107,10 +107,14 @@ Default section order:
   on Vite, statically prerendered; see `solid-site/AGENTS.md`). SolidStart
   runs only on Vite and Node 24, so `solid-site/` has its own CLI
   (`vite`, `vitest`, `tsc`) and its own CI job; `rs` stays the one CLI for
-  everything else until the cutover decides what remains. Order: the kit
-  by family, the site's pages, the build pipeline, the tooling that reads
-  Vue files (the StyleX generator, restyle, the docs' Run, the Studio's
-  code export), then the cutover. New work on a part already ported lands
+  everything else until the cutover decides what remains. Done: the kit
+  (every component) and the site's pages (landing, docs, Studio, player),
+  with the docs' own tooling (Solid code derived from each snippet, the
+  source panel's Run). Left, in order: the build pipeline on Vite (share
+  cards, crawler files, the agent registry, the service worker and install
+  files, the player bundle, the Pages deploy), what still writes Vue for a
+  reader (the Studio's code export and `code.get`, the StyleX generator,
+  the agent skill), the copy that says Vue, then the cutover. New work on a part already ported lands
   in both until then.
 - Aliases: `@` → `src/`; `@dither-kit` → the kit's Tailwind layer
   (`dither-kit/tailwind/index.ts`), `@dither-kit/<layer>/<file>` → a file

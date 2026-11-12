@@ -803,6 +803,8 @@ widgets/features; page-specific conventions live here.
   `tests/frames.spec.ts`); its snippet measures the same way on its own,
   so Run plays it.
 - Docs serve Vue AND Svelte: snippets are authored once in Vue; `docs/svelte.ts`
+  (the reader's framework choice; the translator itself is the framework-free
+  `docs/svelte-code.ts`, which the Solid site shares)
   derives the Svelte flavor (`toSvelteCode`) for DemoCard code tabs, Handbook
   CodeBlocks (`fw()`), and PropsTable's modelValue/v-model display mapping. The
   global `docsFramework` ref (header toggle + per-card chips, persisted to

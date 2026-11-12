@@ -201,10 +201,11 @@ export default function ChatExamples() {
     return id
   }
 
+  // The globals, not `window.`: a server render cleans up too.
   onCleanup(() => {
-    window.clearTimeout(timer)
-    timers.forEach((id) => window.clearTimeout(id))
-    if (streamId) window.clearInterval(streamId)
+    clearTimeout(timer)
+    timers.forEach((id) => clearTimeout(id))
+    if (streamId) clearInterval(streamId)
   })
 
   const aiMessages = createMutable<AiMsg[]>([
