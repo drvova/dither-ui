@@ -1,0 +1,12 @@
+.dither-pressure-char {
+  white-space: pre;
+  transform-origin: center bottom;
+  transition:
+    transform 90ms linear,
+    font-weight 90ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-pressure-char {
+    transition: none;
+  }
+}

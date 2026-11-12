@@ -1,0 +1,9 @@
+.dither-animated-content {
+  transition-property: opacity, transform;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-animated-content {
+    transition: none;
+  }
+}

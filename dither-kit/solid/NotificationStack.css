@@ -1,0 +1,14 @@
+.dk-ns-fade-enter-active,
+.dk-ns-fade-leave-active {
+  transition: opacity 160ms ease;
+}
+.dk-ns-fade-enter-from,
+.dk-ns-fade-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk-ns-fade-enter-active,
+  .dk-ns-fade-leave-active {
+    transition: none;
+  }
+}
