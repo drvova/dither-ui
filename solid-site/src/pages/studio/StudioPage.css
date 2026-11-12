@@ -1,0 +1,96 @@
+.studio-page-scope {
+  /* The window: the bar across the top; under it the sidebar, the chat, the
+     canvas and the panel. Each side column folds to nothing when it is
+     hidden; the canvas takes what is left. */
+  &.studio {
+    --sidebar: 15rem;
+    --chat: 23rem;
+    --right: 18.5rem;
+    display: grid;
+    grid-template-columns: var(--sidebar) var(--chat) minmax(0, 1fr) var(--right);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      "bar bar bar bar"
+      "side chat canvas right";
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--shell-ground), var(--color-background);
+  }
+  /* Down to the 1024px floor (an iPad on its side) the side columns narrow
+     so the canvas keeps room for a frame and its actions. */
+  @media (max-width: 1439px) {
+    &.studio {
+      --sidebar: 13.5rem;
+      --chat: 21rem;
+    }
+  }
+  @media (max-width: 1199px) {
+    &.studio {
+      --sidebar: 12rem;
+      --chat: 19rem;
+    }
+  }
+  &.studio.is-folded {
+    --sidebar: 0px;
+  }
+  &.studio.no-chat {
+    --chat: 0px;
+  }
+  &.studio.no-panel {
+    --right: 0px;
+  }
+  /* The title bar is the window's first child (the Solid bar takes no
+     class of the page's). */
+  & > header {
+    grid-area: bar;
+  }
+  /* The canvas is the window's one shaped shell (two corners cut, recessed
+     into its well); the chat and the panel are flat shells beside it, a
+     gutter between them. */
+  .studio-chat {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    grid-area: chat;
+    margin: 0 8px 8px 0;
+    overflow: hidden;
+    background: var(--shell-ground), color-mix(in oklab, var(--color-background) 96%, transparent);
+  }
+  &.studio.is-folded .studio-chat {
+    margin-left: 8px;
+  }
+  .studio-canvas {
+    --cut: 14px;
+    position: relative;
+    grid-area: canvas;
+    min-width: 0;
+    margin: 0 8px 8px 0;
+    overflow: hidden;
+    container: canvas / inline-size;
+    background: var(--well);
+    box-shadow: var(--recess-sm);
+  }
+  &.studio.is-folded.no-chat .studio-canvas {
+    margin-left: 8px;
+  }
+  .studio-side {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    grid-area: right;
+    margin: 0 8px 8px 0;
+    overflow: hidden;
+    background: var(--shell-ground), color-mix(in oklab, var(--color-background) 96%, transparent);
+  }
+  /* The workbench's readout scrolls in its column. */
+  .studio-bench {
+    overflow-y: auto;
+    padding: 10px;
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .studio-side,
+    .studio-chat {
+      background: var(--color-background);
+    }
+  }
+}
