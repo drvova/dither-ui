@@ -116,3 +116,63 @@ export { default as DitherSoftAurora, type SoftAuroraProps, type SoftAuroraParam
 export { default as DitherStrands, type StrandsProps, type StrandsParams, paintStrands } from "./Strands"
 export { default as DitherThreads, type ThreadsProps, type ThreadsParams, paintThreads } from "./Threads"
 export { default as DitherWaves, type WavesProps, type WavesParams, paintWaves } from "./Waves"
+export { default as DitherBalatro, type BalatroParams, type BalatroProps, paintBalatro } from "./Balatro"
+export { default as DitherBallpit, type BallpitParams, type BallpitProps, paintBallpit } from "./Ballpit"
+export { default as DitherBeams, type BeamsParams, type BeamsProps, paintBeams } from "./Beams"
+export { default as DitherCircuit, type CircuitParams, type CircuitProps, paintCircuit } from "./Circuit"
+export { default as DitherColorBends, type ColorBendsParams, type ColorBendsProps, paintColorBends } from "./ColorBends"
+export { default as DitherCubes, type CubesParams, type CubesProps, paintCubes } from "./Cubes"
+export { default as DitherDarkVeil, type DarkVeilParams, type DarkVeilProps, paintDarkVeil } from "./DarkVeil"
+export { default as DitherDotField, type DotFieldParams, type DotFieldProps, paintDotField } from "./DotField"
+export { default as DitherDotGrid, type DotGridParams, type DotGridProps, paintDotGrid } from "./DotGrid"
+export { default as DitherEvilEye, type EvilEyeParams, type EvilEyeProps, paintEvilEye } from "./EvilEye"
+export {
+  default as DitherFaultyTerminal,
+  type FaultyTerminalParams,
+  type FaultyTerminalProps,
+  paintFaultyTerminal,
+} from "./FaultyTerminal"
+export { default as DitherDither, type DitherBgParams, type DitherProps, paintDitherBg } from "./Dither"
+export {
+  default as DitherFerrofluid,
+  type FerrofluidParams,
+  type FerrofluidProps,
+  type FlowDirection,
+  paintFerrofluid,
+} from "./Ferrofluid"
+export {
+  default as DitherShader,
+  type DitherShaderApi,
+  type DitherShaderProps,
+  ditherShaderPixels,
+  sampleShader,
+  wrapShader,
+  type ShaderChannel,
+  type ShaderDither,
+  type ShaderProgram,
+} from "./DitherShader"
+export {
+  default as DitherWorld,
+  type DitherWorldApi,
+  type DitherWorldProps,
+  createWorldGpu,
+  createWorldMaterial,
+  externalResources,
+  formatOf,
+  packTarget,
+  packUv,
+  paintMaterial,
+  paintTarget,
+  paintWorld,
+  parseWorld,
+  rasterizeWorld,
+  sampleWorld,
+  type ModelFormat,
+  type World,
+  type WorldGpu,
+  type WorldMaterial,
+  type WorldMesh,
+  type WorldStyle,
+  type WorldTarget,
+  type WorldView,
+} from "./DitherWorld"
