@@ -14,9 +14,11 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
+    "@babel/standalone": "^7.29.14",
     "@solidjs/meta": "^0.29.8",
     "@solidjs/router": "^1.0.3",
     "@solidjs/start": "^2.2.2",
+    "babel-preset-solid": "^1.9.19",
     "clsx": "^2.1.1",
     "d3-scale": "^4.0.3",
     "d3-shape": "^3.2.1",

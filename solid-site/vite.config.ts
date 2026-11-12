@@ -7,19 +7,21 @@ import { solidStart } from "@solidjs/start/config"
 import { nitro } from "nitro/vite"
 import { defineConfig } from "vite"
 import { ALIASES, ONE_SOLID } from "./aliases.ts"
+import { kitSources } from "./kit-sources.ts"
+import { runCompiler } from "./run-compiler.ts"
 import { utilityMap } from "./utilities.ts"
 
 /** The file a static host serves for an address nothing lives at. */
 const MISSING_PAGE = "/404.html"
 
 /** Routes and build files still made only by the Vue site. */
-const NOT_YET_PORTED = ["/docs", "/studio", "/agent/registry.json"]
+const NOT_YET_PORTED = ["/docs", "/agent/registry.json"]
 
 export default defineConfig({
   base: process.env.BASE_PATH ?? "/",
   // the site's own public files (faces, the trailer, the agent skill), shared with the Vue site
   publicDir: "../public",
-  plugins: [solidStart(), nitro(), tailwindcss(), utilityMap()],
+  plugins: [solidStart(), nitro(), tailwindcss(), utilityMap(), kitSources(), runCompiler()],
   resolve: { alias: ALIASES, dedupe: ONE_SOLID },
   server: { fs: { allow: [".."] } },
   nitro: {

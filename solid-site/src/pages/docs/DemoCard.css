@@ -1,0 +1,42 @@
+/* The preview is a gel well: an asymmetric pebble of the well's ground, a
+   gloss on its top edge, the gel's glow at its foot and the chrome rim at
+   its edge. The ground stays one plain colour (a gradient there would hide
+   the background from Inspect's contrast check) and nothing clips (the
+   workbench draws past the frame); the 1px border stays, clear, because
+   captures add it. */
+.demo-card-scope .demo-well {
+  border-color: transparent;
+  border-radius: 22px 16px 22px 16px / 18px 22px 16px 22px;
+  background-color: var(--well);
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 1px 0 var(--gloss),
+    var(--recess);
+}
+
+@media (forced-colors: active) {
+  .demo-card-scope .demo-well {
+    border-color: CanvasText;
+  }
+}
+
+/* Bled: the demo's first frame meets the well's top and sides, takes its
+   top corners and drops its own border and rounding, so a surface reads as
+   the well's own picture, never a thumbnail framed inside it. Alone in the
+   well, it takes the bottom corners too. */
+.demo-card-scope .demo-well.bleed {
+  align-items: flex-start;
+}
+
+.demo-card-scope .demo-well.bleed:has(> div > :only-child) {
+  padding-bottom: 0;
+}
+
+.demo-card-scope .demo-well.bleed > div > :first-child {
+  border: 0;
+  border-radius: 21px 15px 0 0 / 17px 21px 0 0;
+}
+
+.demo-card-scope .demo-well.bleed > div > :first-child:last-child {
+  border-radius: 21px 15px 21px 15px / 17px 21px 15px 21px;
+}

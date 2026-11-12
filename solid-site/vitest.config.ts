@@ -4,10 +4,11 @@
 import solid from "vite-plugin-solid"
 import { defineConfig } from "vitest/config"
 import { ALIASES, ONE_SOLID } from "./aliases.ts"
+import { kitSources } from "./kit-sources.ts"
 import { utilityMap } from "./utilities.ts"
 
 export default defineConfig({
-  plugins: [solid(), utilityMap()],
+  plugins: [solid(), utilityMap(), kitSources()],
   resolve: { alias: ALIASES, dedupe: ONE_SOLID, conditions: ["development", "browser"] },
   test: { environment: "jsdom", include: ["tests/**/*.spec.{ts,tsx}"] },
 })
