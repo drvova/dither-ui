@@ -1,0 +1,5 @@
+@media (prefers-reduced-motion: reduce) {
+  .dither-fuzzy span[aria-hidden] {
+    filter: none !important;
+  }
+}
