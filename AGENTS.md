@@ -97,6 +97,21 @@ Default section order:
   `benchmarks/` (the kit's raster benchmark) is an entry for `rs dev`
   only: `/benchmarks/` there, never in a build.
   `svelte-site/` runs the same CLI with its own `rstack.config.ts`.
+- Solid migration (in progress; the user's calls): the site and the kit
+  move fully from Vue to SolidJS and SolidStart, and the Vue kit and site
+  are deleted once the Solid ones hold everything they do. Until that
+  cutover both stand: the Vue site is the live one and every rule here
+  still binds it. The Solid kit grows in `dither-kit/solid/` on the same
+  engine (framework-free cores under thin bindings, one engine API; see
+  `dither-kit/AGENTS.md`), and the Solid site in `solid-site/` (SolidStart 2
+  on Vite, statically prerendered; see `solid-site/AGENTS.md`). SolidStart
+  runs only on Vite and Node 24, so `solid-site/` has its own CLI
+  (`vite`, `vitest`, `tsc`) and its own CI job; `rs` stays the one CLI for
+  everything else until the cutover decides what remains. Order: the kit
+  by family, the site's pages, the build pipeline, the tooling that reads
+  Vue files (the StyleX generator, restyle, the docs' Run, the Studio's
+  code export), then the cutover. New work on a part already ported lands
+  in both until then.
 - Aliases: `@` → `src/`; `@dither-kit` → the kit's Tailwind layer
   (`dither-kit/tailwind/index.ts`), `@dither-kit/<layer>/<file>` → a file
   of a layer (`engine/`, `tailwind/`, `stylex/`) (rstack.config.ts +
@@ -375,7 +390,9 @@ Default section order:
   on `.vue`), `npx rs fmt --check`, `npm run test` (`rs test`),
   `npx vue-tsc --noEmit` and `npx rs build` green — the full package.json
   verify set (CI runs it; a remembered subset ships red), plus
-  `npm run check` in `dither-kit-svelte/` when the kit is touched;
+  `npm run check` in `dither-kit-svelte/` when the kit is touched, and in
+  `solid-site/` on Node 24 `npm run check`, `npm test` and `npm run build`
+  when the engine, the Solid kit or the Solid site is;
   visual/stateful changes also checked in a live browser (`rs dev` or
   `rs preview` + screenshots). Format what you touch with `rs fmt <paths>`.
 - `npm run build` type-checks, runs `rs build` (two Rsbuild environments in
@@ -564,10 +581,12 @@ Default section order:
 - `bridge/AGENTS.md` — the local ACP bridge: zero-dep relay between a
   Studio tab and the user's own coding agent, Studio tools as an MCP server
 - `dither-kit/AGENTS.md` — the toolkit: dither engine, palette, component
-  contracts, portability rules
+  contracts, portability rules, the Solid layer's port contract
 - `dither-kit-svelte/AGENTS.md` — the Svelte 5 port of the toolkit: runes-only
   components, `ditherBackground` action runtime, verbatim engine copies,
   organized into engine/runtime/family subfolders
+- `solid-site/AGENTS.md` — the site on SolidStart, growing beside the Vue
+  site until the cutover: routes, aliases, the static prerender
 - `svelte-site/AGENTS.md` — the Svelte showcase app: landing page mirroring the
   Vue `src/` landing, built on `dither-kit-svelte`
 - `src/AGENTS.md` — the app: FSD layers, routing, editor/history/persistence

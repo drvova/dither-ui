@@ -29,5 +29,6 @@
     "dither-kit/**/*.ts",
     "dither-kit/**/*.vue",
     "rstack.config.ts"
-  ]
+  ],
+  "exclude": ["dither-kit/solid"]
 }

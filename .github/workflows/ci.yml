@@ -26,3 +26,29 @@ jobs:
       # rs build makes the site and the single-file player bundle together.
       - name: Build
         run: npx rs build
+
+  # The Solid site and kit (SolidStart needs Node 24; the kit's own
+  # dependencies resolve from the root install).
+  solid:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            solid-site/package-lock.json
+      - run: npm ci
+      - run: npm ci
+        working-directory: solid-site
+      - name: Typecheck
+        run: npm run check
+        working-directory: solid-site
+      - name: Component tests
+        run: npm test
+        working-directory: solid-site
+      - name: Static build
+        run: npm run build
+        working-directory: solid-site

@@ -2,6 +2,8 @@
 // file, then npx rs test -u tests/stylex-layer.spec.ts
 // Public API for Dither Kit (Vue). Mirrors the React kit's surface.
 
+// Everything the engine offers a consumer, shared with the Solid layer.
+export * from "../engine/api"
 export { default as Area } from "./Area.vue"
 export { default as Line } from "./Line.vue"
 export { AreaChart, LineChart } from "./area-chart"
@@ -88,22 +90,8 @@ export {
   type FlowDirection,
   paintFerrofluid,
 } from "./Ferrofluid.vue"
-export type { DitherRenderMode, PrecompiledDither } from "../engine/precompile"
-export {
-  precompiledSrc,
-  renderDitherButton,
-  renderDitherGradient,
-  DEFAULT_MAX_COLS,
-  DEFAULT_MAX_ROWS,
-  STATIC_DEFAULT_MAX_COLS,
-  STATIC_DEFAULT_MAX_ROWS,
-} from "../engine/precompile"
-export type { ButtonRasterOptions, GradientRasterOptions } from "../engine/precompile"
-export { createRasterBuffer, putRasterBuffer, setRasterPixel32, setOrBlendRasterPixel } from "../engine/raster"
-export { SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "../engine/pixel"
 export { useDitherMatrix, useLabelMatrix, useScreen } from "../engine/use-screen"
 export { default as DitherScreen } from "./DitherScreen.vue"
-export type { RasterBuffer } from "../engine/raster"
 
 // Form controls
 export { default as DitherSwitch } from "./DitherSwitch.vue"
@@ -131,28 +119,6 @@ export { default as DitherCollapsible } from "./DitherCollapsible.vue"
 export { default as DitherContainer } from "./DitherContainer.vue"
 export { default as DitherStage, STAGE, type StageContext } from "./DitherStage.vue"
 export { default as DitherLayer } from "./DitherLayer.vue"
-export {
-  compileTrack,
-  keyframeTransform,
-  LENGTH_UNITS,
-  lerpTerms,
-  parseAngle,
-  parseLength,
-  resolveSample,
-  sampleKeyframes,
-  termsToCss,
-  termsToPx,
-  type CompiledTrack,
-  type CqBox,
-  type KeyEasing,
-  type Keyframe,
-  type KeyframeSample,
-  type KeyframeTrack,
-  type Length,
-  type LengthEnv,
-  type LengthUnit,
-  type Terms,
-} from "../engine/keyframes"
 export { default as DitherDialog } from "./DitherDialog.vue"
 export { default as DitherCenterMorphModal } from "./CenterMorphModal.vue"
 export { default as DitherKbd } from "./DitherKbd.vue"
@@ -200,7 +166,6 @@ export {
 export { default as DitherSidebarItem } from "./DitherSidebarItem.vue"
 export { default as DitherSidebarGroup } from "./DitherSidebarGroup.vue"
 export { default as DitherSidebarSub } from "./DitherSidebarSub.vue"
-export { project, rubberband } from "../engine/gesture"
 export { default as DitherToaster } from "./DitherToaster.vue"
 export { toast } from "../engine/toast"
 export { default as DitherGauge } from "./DitherGauge.vue"
@@ -218,49 +183,6 @@ export { default as DitherNavMenu } from "./DitherNavMenu.vue"
 export type { CartesianChartProps } from "./cartesian-root"
 export type { PolarChartProps } from "./polar-root"
 export type { AreaVariant, ChartConfig, ChartType, Margins, SeriesKind, StrokeVariant } from "../engine/chart-context"
-export type {
-  BloomBlend,
-  BloomConfig,
-  BloomInput,
-  BloomLevel,
-  BezierPoints,
-  EasingInput,
-  EasingName,
-  EdgeEffectParams,
-  Glyph,
-  TextureConfig,
-  VariantInput,
-} from "../engine/dither-paint"
-export {
-  bloomFromSeed,
-  easingFromSeed,
-  effectFromSeed,
-  geometryFromSeed,
-  glyphFromSeed,
-  kitFromSeed,
-  matrixFromSeed,
-  motionFromSeed,
-  mulberry32,
-  resolveMatrix,
-  resolveTexture,
-  revealFromSeed,
-  sparklesFromSeed,
-  textureFromSeed,
-} from "../engine/dither-paint"
-export { cubicBezier, EASINGS, resolveEasing } from "../engine/dither-paint"
-export type { DotVariant } from "../engine/dot-paint"
-export type { DitherColor } from "../engine/palette"
-export { colorToHex, cssColor, hexToHsv, hsvToHex, rgbToHex, seedFromColor, seedFromHue } from "../engine/palette"
-export type { PixelBloom, PixelBloomConfig, PixelBloomInput, PixelColor } from "../engine/pixel"
-export type { StackType } from "../engine/scales"
-export {
-  type AvatarPattern,
-  clampGrid,
-  normalizePattern,
-  patternFromImage,
-  patternFromPixels,
-  seededPattern,
-} from "../engine/avatar-pattern"
 
 // Text animations
 export { default as DitherGradientText } from "./GradientText.vue"
@@ -358,18 +280,6 @@ export {
   type ShaderDither,
   type ShaderProgram,
 } from "./DitherShader.vue"
-export { wrapMaterial } from "../engine/shader"
-export { copyText } from "../engine/copy-text"
-export {
-  applyTheme,
-  THEME_TOKENS,
-  themeCss,
-  themeVars,
-  type ThemeInput,
-  type ThemeToken,
-  type ThemeVars,
-} from "../engine/theme"
-export { bindChannel, createChannels, rasterOf, type ChannelInput, type Channels } from "../engine/gl"
 export { surfaceOf, type DitherSurface } from "../engine/use-dither-background"
 export {
   default as DitherReveal,
@@ -380,13 +290,6 @@ export {
   type WipeOptions,
   type WipeStyle,
 } from "./DitherReveal.vue"
-export {
-  ditherTransition,
-  ditherViewTransition,
-  type DitherTransitionOptions,
-  type ViewTransitionLike,
-} from "../engine/transition"
-export { scoreCut, wavBytes, type ScoreAudio, type ScorePlan } from "../engine/score"
 export { default as DitherSnapButton } from "./SnapButton.vue"
 export { default as DitherExpandingArrow } from "./ExpandingArrow.vue"
 export { default as DitherSlideAction } from "./SlideAction.vue"
@@ -420,7 +323,6 @@ export { default as DitherPressable, type PressableVariant } from "./Pressable.v
 export { default as DitherInView } from "./InView.vue"
 export { default as DitherIcon } from "./Icon.vue"
 export { default as DitherIconSet } from "./IconSet.vue"
-export { ICONS, ICON_NAMES, type IconName } from "../engine/icons"
 export { default as DitherHeading } from "./Heading.vue"
 export { default as DitherLabel } from "./Label.vue"
 export { default as DitherCaption } from "./Caption.vue"
@@ -476,22 +378,3 @@ export { default as DitherColorSwatch } from "./ColorSwatch.vue"
 export { default as DitherColorPicker } from "./ColorPicker.vue"
 export { default as DitherKnob } from "./Knob.vue"
 export { default as DitherSignaturePad } from "./SignaturePad.vue"
-export { linear, steps, frameSteps, frameIndex, cssSteps } from "../engine/timing"
-export { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "../engine/clock"
-export type { SeekListener } from "../engine/clock"
-export { planSequence, sampleSequence, staggerDelay } from "../engine/sequence"
-export { CONTAINER_SCALE, resolveCq, quantize } from "../engine/containers"
-export type {
-  SequenceNode,
-  SequencePlan,
-  ScheduledTrack,
-  TrackNode,
-  SerialNode,
-  ParallelNode,
-  StaggerNode,
-  StaggerFrom,
-  TrackSample,
-  TrackState,
-} from "../engine/sequence"
-export type { Easing, StepPosition } from "../engine/timing"
-export type { CqRange, CqScale, CqState } from "../engine/containers"

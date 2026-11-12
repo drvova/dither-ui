@@ -7,6 +7,7 @@ import { define } from "rstack"
 import type { RsbuildPlugin } from "rstack/app"
 import { installHead } from "./src/app/install-files.ts"
 import { PAGE_END_ID, PAGE_REVEAL_SCRIPT, speculationRules } from "./src/app/page-reveal.ts"
+import { isKitSource } from "./src/shared/lib/kit-sources.ts"
 import { RISE_HEAD_SCRIPT } from "./src/shared/lib/rise-wait.ts"
 
 const root = import.meta.dirname
@@ -100,7 +101,7 @@ function kitSources(): RsbuildPlugin {
         for (const [flavor, dir] of Object.entries(KITS)) {
           const files = (await readdir(at(dir), { recursive: true }))
             .map((f) => f.split(sep).join("/"))
-            .filter((f) => /\.(vue|svelte|ts|css)$/.test(f) && !f.startsWith("node_modules/"))
+            .filter(isKitSource)
             .sort()
           for (const f of files)
             compilation.emitAsset(
@@ -267,6 +268,9 @@ define.lint(({ js, ts }) => [
   {
     ignores: [
       "dist/**",
+      // the Solid site's build output (Nitro's and Vite's)
+      "solid-site/.output/**",
+      "solid-site/.nitro/**",
       "node_modules/**",
       "**/node_modules/**",
       "ui-laws/**",
@@ -306,5 +310,15 @@ define.lint(({ js, ts }) => [
 define.fmt({
   semi: false,
   printWidth: 120,
-  ignorePatterns: ["public/**", "**/*.md", "*.html", "*/index.html", ".scratch/**", ".claude/**", "**/*.svelte"],
+  ignorePatterns: [
+    "public/**",
+    "**/*.md",
+    "*.html",
+    "*/index.html",
+    ".scratch/**",
+    ".claude/**",
+    "**/*.svelte",
+    "solid-site/.output/**",
+    "solid-site/.nitro/**",
+  ],
 })

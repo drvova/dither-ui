@@ -31,7 +31,16 @@ the kit every import is relative (`../engine/pixel`).
   parsers and GL engines, `copy-text.ts`, `theme.css`, `theme.ts` and
   `base.css` (the scoped box-model base every layer assumes). It imports
   only `vue`, `d3-*` and itself, never a styling layer, and is what the
-  Svelte port copies verbatim.
+  Svelte port copies verbatim. Behaviour lives in framework-free modules:
+  where a runtime must follow a component's lifecycle, a core holds the
+  behaviour (`surface-loop.ts`, the loop behind every generative surface;
+  `visibility.ts`) and a framework's binding is a few lines over it
+  (`use-dither-background.ts` and `use-visibility.ts` for Vue,
+  `solid/runtime/` for Solid). A core touches nothing when made (a server
+  render makes one per surface) and listens only between `mount` and
+  `dispose` (`tests/surface-loop.spec.ts`). `api.ts` is the engine's public
+  API, every framework-free name a consumer gets; each layer's index
+  re-exports it whole and never lists the engine again.
 - `tailwind/` — the source styling layer: every `.vue` component and the
   `.ts` modules that write Tailwind classes (`lib.ts`'s `cn`,
   `control.ts`'s `CONTROL` / `CONTROL_BUTTON` / `POPOVER`, the chart
@@ -55,6 +64,29 @@ the kit every import is relative (`../engine/pixel`).
   to set a property wins; Vue flattens any object given as `class`), and
   kit components hand each other styles through it. Only `lib.ts` (`cn`
   over `stylex.attrs`, `StyleProp`) is written by hand.
+- `solid/` — the kit in SolidJS, growing beside the Vue layers until it
+  holds all of them, then taking their place (the user's call: the Vue kit
+  is deleted at parity). One `.tsx` per component under its Vue twin's file
+  name, exported from `solid/index.ts` under the Vue kit's names, plus its
+  own `<Name>Props` type. It imports the engine (`../engine/`), the Tailwind
+  layer's framework-free modules (`../tailwind/lib`, `../tailwind/control`,
+  never a copy) and its runtime, `solid/runtime/`: `surface.ts`
+  (`createDitherBackground`, the surface loop bound to a component) and
+  `screen.ts` (the print screen as context: `useScreen`, `useDitherMatrix`,
+  `useLabelMatrix`, `useVariantMatrix`). Never Vue, a `.vue` file, or a
+  Vue-bound engine module, directly or through anything it imports.
+  Conventions: props are never destructured (defaults through `mergeProps`,
+  a control's own props apart from the element's through `splitProps`, the
+  rest spread on the element so listeners and ARIA reach it); elements are
+  `let` variables set by a function ref (`ref={(el) => (wrap = el)}`,
+  an assignment the linter can see) and handed to the runtime as
+  accessors; what `computed` was
+  is `createMemo`; lifecycle work sits in `onMount` with its `onCleanup`
+  inside, so a server render runs none of it; inline styles use CSS
+  property names. A port carries its Vue twin's behaviour and comments
+  whole, and its specs come with it (`solid-site/tests/`). Held by
+  `tests/solid-kit.spec.ts`. The root type check leaves `solid/` out
+  (`tsconfig.json`); `solid-site`'s checks it.
 - A module that stops carrying classes moves to `engine/`; a new component
   goes in `tailwind/` and reaches shared logic through `../engine/`.
 - What the generator can carry, so the Tailwind source keeps to it: class

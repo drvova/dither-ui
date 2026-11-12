@@ -19,7 +19,7 @@ import {
   KIT_FOLDER,
   kitEntry,
   kitFilesOf,
-  kitIndex,
+  loadKitIndex,
   type Layer,
   layerOf,
   promptFor,
@@ -68,12 +68,18 @@ async function loadKit(flavor: Flavor, l: Layer): Promise<KitMeta> {
   const have = kits.get(kitKey(flavor, l))
   if (have) return have
   const at = kitEntry(flavor, l)
-  const [list, index] = await Promise.all([
+  const [list, entry] = await Promise.all([
     fetchText(`kit/src/${flavor}/files.json`),
     fetchText(`kit/src/${flavor}/${at}`),
   ])
   const files = JSON.parse(list) as string[]
-  const meta = { files, index: kitIndex(index, files, at) }
+  // the entry, and the files it re-exports whole (the engine's API)
+  const index = await loadKitIndex(
+    (file) => (file === at ? Promise.resolve(entry) : fetchText(`kit/src/${flavor}/${file}`)),
+    files,
+    at,
+  )
+  const meta = { files, index }
   kits.set(kitKey(flavor, l), meta)
   return meta
 }

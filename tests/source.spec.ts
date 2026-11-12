@@ -23,23 +23,26 @@ import {
   exampleName,
   kitFilesOf,
   kitIndex,
+  loadKitIndex,
   promptFor,
   resolveKitFile,
   snippetKind,
   type SourceFile,
 } from "@/widgets/source/model/files"
+import { isKitSource } from "@/shared/lib/kit-sources"
 import * as stylex from "@/widgets/source/model/stylex"
 
 const ROOT = process.cwd()
 const KIT = join(ROOT, "dither-kit")
+// the build's own listing of each kit (`kitSources` in rstack.config.ts)
 const kitFiles = (readdirSync(KIT, { recursive: true }) as string[])
   .map((f) => f.split("\\").join("/"))
-  .filter((f) => /\.(vue|ts|css)$/.test(f))
+  .filter(isKitSource)
 const svelteFiles = (readdirSync(join(ROOT, "dither-kit-svelte"), { recursive: true }) as string[])
-  .filter((f) => /\.(svelte|ts|css)$/.test(f) && !f.startsWith("node_modules"))
   .map((f) => f.split("\\").join("/"))
+  .filter(isKitSource)
 const read = (dir: string, f: string) => readFileSync(join(ROOT, dir, f), "utf8")
-const VUE_INDEX = kitIndex(read("dither-kit", "tailwind/index.ts"), kitFiles, "tailwind/index.ts")
+const VUE_INDEX = await loadKitIndex(async (f) => read("dither-kit", f), kitFiles, "tailwind/index.ts")
 const SVELTE_INDEX = kitIndex(read("dither-kit-svelte", "index.ts"), svelteFiles)
 
 const SWITCH = `<script setup lang="ts">
@@ -61,7 +64,9 @@ describe("source files", () => {
     expect(VUE_INDEX.get("DitherSwitch")).toEqual({ file: "tailwind/DitherSwitch.vue", name: "default" })
     expect(VUE_INDEX.get("DitherAurora")).toEqual({ file: "tailwind/Aurora.vue", name: "default" })
     expect(VUE_INDEX.get("AreaChart")).toEqual({ file: "tailwind/area-chart.ts", name: "AreaChart" })
+    // through the engine's API, which every layer's index re-exports whole
     expect(VUE_INDEX.get("copyText")).toEqual({ file: "engine/copy-text.ts", name: "copyText" })
+    expect(kitIndex(read("dither-kit", "tailwind/index.ts"), kitFiles, "tailwind/index.ts").has("copyText")).toBe(false)
     expect(VUE_INDEX.has("TooltipVariant")).toBe(false)
     expect(SVELTE_INDEX.get("Aurora")?.file).toBe("backgrounds/Aurora.svelte")
     expect(resolveKitFile("../engine/pixel", kitFiles, "tailwind/DitherButton.vue")).toBe("engine/pixel.ts")

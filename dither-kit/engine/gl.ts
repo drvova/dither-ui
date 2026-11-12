@@ -7,7 +7,7 @@
 // GPU is only ever an evaluator here — every surface still dithers on the CPU.
 
 import type { RasterBuffer } from "./raster"
-import { type DitherSurface, surfaceOf } from "./use-dither-background"
+import { type DitherSurface, surfaceOf } from "./surface-loop"
 
 export type Gl = WebGL2RenderingContext | WebGLRenderingContext
 

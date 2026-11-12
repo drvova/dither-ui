@@ -1,0 +1,7 @@
+/* The site's one stylesheet (tokens, materials, both themes), shared with
+   the Vue site until the cutover, and where Tailwind finds this app's and
+   the Solid kit's classes. */
+@import "../../src/app/styles.css";
+@source "./";
+@source "../../dither-kit/solid";
+@source "../../dither-kit/tailwind/*.ts";

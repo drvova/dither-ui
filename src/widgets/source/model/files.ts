@@ -52,6 +52,27 @@ export function kitIndex(
   return out
 }
 
+/** A kit's whole index: its entry's exports (`kitIndex`) and those of every
+ * kit file the entry re-exports whole (`export * from "../engine/api"`, the
+ * engine's API every layer shares), each read through `read`. The entry's
+ * own name for a thing wins. */
+export async function loadKitIndex(
+  read: (file: string) => Promise<string>,
+  files: readonly string[],
+  at = "index.ts",
+  seen = new Set<string>(),
+): Promise<Map<string, { file: string; name: string }>> {
+  seen.add(at)
+  const text = await read(at)
+  const out = kitIndex(text, files, at)
+  for (const m of text.matchAll(/export\s*\*\s*from\s*["'](\.[^"']+)["']/g)) {
+    const file = resolveKitFile(m[1], files, at)
+    if (!file || seen.has(file)) continue
+    for (const [name, where] of await loadKitIndex(read, files, file, seen)) if (!out.has(name)) out.set(name, where)
+  }
+  return out
+}
+
 /** A relative kit import (`./pixel`, `../engine/pixel`,
  * `./controls/Button.svelte`) made in the kit file `from` (the kit's root
  * when omitted) as the kit file it names, if the kit has it. */
