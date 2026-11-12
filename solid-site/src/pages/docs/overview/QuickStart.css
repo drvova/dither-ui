@@ -1,0 +1,33 @@
+/* A step: its number on a filled disc beside what it does and its code. */
+.quick-start-scope .qs-step {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 14px;
+  row-gap: 10px;
+}
+
+/* The code under the step's words; on a phone it takes the full width, as
+   every character of a command counts there. */
+.quick-start-scope .qs-code {
+  grid-column: 2;
+  min-width: 0;
+}
+
+@media (width < 640px) {
+  .quick-start-scope .qs-code {
+    grid-column: 1 / -1;
+  }
+}
+
+.quick-start-scope .qs-n {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--foreground) 10%, var(--background));
+}
