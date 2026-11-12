@@ -30,7 +30,10 @@ function exportsOf(index: string): Map<string, string[]> {
 }
 
 const solidFiles = walk("solid")
-const components = solidFiles.filter((f) => f.endsWith(".tsx")).map((f) => f.slice("solid/".length, -".tsx".length))
+// the layer's own files; `runtime/` is its bindings, twins of nothing
+const components = solidFiles
+  .filter((f) => f.endsWith(".tsx") && !f.startsWith("solid/runtime/"))
+  .map((f) => f.slice("solid/".length, -".tsx".length))
 
 describe("the Solid layer", () => {
   it("holds components", () => {
@@ -38,15 +41,16 @@ describe("the Solid layer", () => {
   })
 
   it("names every component file as its Vue twin is named", () => {
-    const vue = new Set(readdirSync(join(KIT, "tailwind")).filter((f) => f.endsWith(".vue")))
-    expect(components.filter((c) => !vue.has(`${c}.vue`))).toEqual([])
+    // a component file's, or a module's that builds components (a chart root)
+    const vue = new Set(readdirSync(join(KIT, "tailwind")))
+    expect(components.filter((c) => !vue.has(`${c}.vue`) && !vue.has(`${c}.ts`))).toEqual([])
   })
 
   it("exports each component under the names the Vue kit gives it", () => {
     const vue = exportsOf("tailwind/index.ts")
     const solid = exportsOf("solid/index.ts")
     for (const c of components) {
-      const theirs = new Set(vue.get(`./${c}.vue`) ?? [])
+      const theirs = new Set(vue.get(`./${c}.vue`) ?? vue.get(`./${c}`) ?? [])
       const ours = solid.get(`./${c}`) ?? []
       // its own props type is the one name a Solid file adds
       const added = ours.filter((n) => !theirs.has(n) && !n.endsWith("Props"))

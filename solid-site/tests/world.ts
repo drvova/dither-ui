@@ -2,7 +2,14 @@
 // the spec says so, frames it steps, and a 2D canvas that records uploads.
 import { vi } from "vitest"
 
+// The kit's frame budget is one module-wide tally keyed by the frame's
+// stamp, so every world stamps its frames in a range of its own: specs that
+// all step "frame 100" would otherwise spend one shared budget and hold
+// each other's paints.
+let worlds = 0
+
 export function world() {
+  const base = ++worlds * 1e7
   const shows: (() => void)[] = []
   vi.stubGlobal(
     "IntersectionObserver",
@@ -56,7 +63,7 @@ export function world() {
       await Promise.resolve()
       const due = [...frames.values()]
       frames.clear()
-      for (const cb of due) cb(now)
+      for (const cb of due) cb(base + now)
     },
     restore() {
       HTMLCanvasElement.prototype.getContext = real
