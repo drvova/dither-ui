@@ -1,0 +1,20 @@
+.reel-renderer-scope {
+  /* The stage is a size container: callouts scale with the frame. */
+  .reel-stage {
+    container-type: size;
+  }
+  .callout {
+    font-family: var(--font-mono);
+    font-size: 3.6cqh;
+    line-height: 1.25;
+    white-space: nowrap;
+    transform: translateY(-0.62em);
+    text-shadow: 0 0 1.2em var(--background);
+  }
+  .callout .note {
+    font-size: 0.72em;
+  }
+  .reel-band-slot {
+    height: 22%;
+  }
+}

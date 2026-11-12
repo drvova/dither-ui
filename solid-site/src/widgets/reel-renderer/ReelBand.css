@@ -1,0 +1,36 @@
+.reel-band-scope {
+  &.reel-band {
+    container-type: size;
+    font-family: var(--font-mono);
+  }
+  .band-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 6cqh;
+    padding: 0 4cqw;
+  }
+  .band-line {
+    margin: 0;
+    font-size: 24cqh;
+    line-height: 1.18;
+    text-wrap: balance;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .band-spec {
+    margin: 0;
+    padding: 0 0 0 4cqw;
+    list-style: none;
+    border-left: 1px solid var(--border);
+    font-size: 11cqh;
+    line-height: 1.7;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .band-spec span + span {
+    margin-left: 0.6em;
+  }
+}
