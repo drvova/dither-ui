@@ -1,0 +1,11 @@
+.dither-cell {
+  transition: opacity 260ms ease;
+}
+.dither-pixeltrans:hover .dither-cell {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-cell {
+    transition: none;
+  }
+}
