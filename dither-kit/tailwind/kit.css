@@ -13,6 +13,7 @@
 @import "../engine/base.css" layer(dither-kit.base);
 @import "tailwindcss/utilities.css" layer(dither-kit.utilities) source(none);
 @source "./";
+@source "../solid/";
 @source "../../dither-kit-svelte/";
 @custom-variant dark (&:where(.dark, .dark *));
 @theme inline {

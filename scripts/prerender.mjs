@@ -4,13 +4,12 @@
 // serialize — text, headings, props tables, and code do, which is what
 // search needs. The module scripts stay in the snapshot, so browsers
 // re-mount the interactive app on top. Runs as the last step of `npm run build`.
-import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises"
-import { createReadStream, existsSync } from "node:fs"
-import { createServer } from "node:http"
-import { extname, join, normalize } from "node:path"
+import { readFile, writeFile, mkdir } from "node:fs/promises"
+import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { chromium } from "playwright-core"
 import { RISE_WAIT } from "../src/shared/lib/rise-wait.ts"
+import { findChromium, listen, refineEmbed, renderOgCards, writeAgentRegistry } from "./cards.ts"
 
 const DIST = fileURLToPath(new URL("../dist", import.meta.url))
 // Each route waits for its own mount signal: the landing's h1, the docs'
@@ -21,63 +20,6 @@ const ROUTES = [
   { path: "/docs", entry: "docs/index.html", minSections: 200, settle: 2000 },
   { path: "/studio", entry: "studio/index.html", ready: "[data-artboard-surface]", settle: 1000 },
 ]
-const MIME = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".css": "text/css",
-  ".png": "image/png",
-  ".gif": "image/gif",
-  ".webp": "image/webp",
-  ".svg": "image/svg+xml",
-  ".json": "application/json",
-  ".xml": "application/xml",
-  ".woff2": "font/woff2",
-  ".ico": "image/x-icon",
-}
-
-function findChromium() {
-  const programFiles = process.env["ProgramFiles"] ?? "C:\\Program Files"
-  const programFilesX86 = process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)"
-  const localAppData = process.env.LOCALAPPDATA ?? ""
-  const candidates = [
-    process.env.CHROME_PATH,
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-    // Windows install paths (chrome stable, then Edge — both are chromium)
-    `${programFiles}\\Google\\Chrome\\Application\\chrome.exe`,
-    `${programFilesX86}\\Google\\Chrome\\Application\\chrome.exe`,
-    localAppData ? `${localAppData}\\Google\\Chrome\\Application\\chrome.exe` : "",
-    `${programFilesX86}\\Microsoft\\Edge\\Application\\msedge.exe`,
-    `${programFiles}\\Microsoft\\Edge\\Application\\msedge.exe`,
-  ].filter(Boolean)
-  const found = candidates.find((p) => existsSync(p))
-  if (!found)
-    throw new Error("prerender: no chromium found. Set CHROME_PATH or install one of: google-chrome, chromium.")
-  return found
-}
-
-// Minimal static server for the two routes and their assets.
-function serve() {
-  return createServer(async (req, res) => {
-    try {
-      const path =
-        normalize(decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname)).replace(/^[/\\]+/, "") ||
-        "index.html"
-      let file = join(DIST, path)
-      const st = await stat(file).catch(() => null)
-      if (st?.isDirectory()) file = join(file, "index.html")
-      await access(file)
-      res.writeHead(200, { "content-type": MIME[extname(file)] ?? "application/octet-stream" })
-      createReadStream(file).pipe(res)
-    } catch {
-      res.writeHead(404)
-      res.end("not found")
-    }
-  })
-}
-
 // The entry HTML owns the static head; the runtime meta watcher mutates it
 // (title/canonical/description/breadcrumb per active section). Reset to the
 // entry's own values before serializing so non-JS readers see the generic
@@ -90,77 +32,11 @@ function extractStaticMeta(html) {
   }
 }
 
-const server = serve()
-await new Promise((r) => server.listen(0, "127.0.0.1", r))
-const port = server.address().port
+const server = await listen(DIST)
+const origin = server.origin
 const browser = await chromium.launch({ executablePath: findChromium() })
 
 /* ---------------- SEO engine: og cards + per-section docs pages ---------- */
-
-// Every share card (the three routes, then each docs section) drawn by the
-// build's own renderer page (dist/og/index.html, the `og/index` entry):
-// its still as og/<id>.png and its loop as og/<id>.gif, which the pages'
-// og tags, Discord component embeds and oEmbed photos point at. A few pages
-// draw at once (encoding is CPU-bound, one card about a second).
-async function renderOgCards() {
-  const renderer = join(DIST, "og", "index.html")
-  if (!existsSync(renderer)) {
-    console.log("og: no renderer page — skipping cards (the build's og/index entry makes it)")
-    return
-  }
-  // Each section's lede (its first paragraph in the docs snapshot), which
-  // its card sets under its title as its embed does.
-  const ledes = Object.fromEntries((docsFlow?.kids ?? []).filter((k) => k.id && k.lede).map((k) => [k.id, k.lede]))
-  await writeFile(join(DIST, "og", "ledes.json"), JSON.stringify(ledes))
-  // A marker skips the render when neither the renderer, the manifest nor
-  // the ledes changed and the cards are still there (a prerender run on
-  // its own).
-  const { createHash } = await import("node:crypto")
-  const hash = createHash("sha256")
-    .update(await readFile(renderer))
-    .update(await readFile(join(DIST, "og", "sections.json")))
-    .update(JSON.stringify(ledes))
-    .digest("hex")
-    .slice(0, 16)
-  const marker = join(DIST, "og", ".cards-hash")
-  const prev = await readFile(marker, "utf8").catch(() => "")
-  if (prev.trim() === hash && existsSync(join(DIST, "og", "home.gif"))) {
-    console.log("og: renderer and manifest unchanged — cards cached, skipping render")
-    return
-  }
-  const open = async () => {
-    const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
-    await page.goto(`http://127.0.0.1:${port}/og/index.html`, { waitUntil: "load" })
-    await page.waitForFunction(() => document.title !== "og-loading", undefined, { timeout: 15_000 })
-    if ((await page.title()) !== "og-ready") throw new Error("og: the renderer failed to load its cards")
-    return page
-  }
-  const first = await open()
-  const queue = await first.evaluate(() => window.og.ids())
-  const total = queue.length
-  let done = 0
-  let bytes = 0
-  const started = Date.now()
-  const work = async (page) => {
-    for (let id = queue.shift(); id; id = queue.shift()) {
-      const files = await page.evaluate((id) => window.og.files(id), id)
-      const png = Buffer.from(files.png, "base64")
-      const gif = Buffer.from(files.gif, "base64")
-      await writeFile(join(DIST, "og", `${id}.png`), png)
-      await writeFile(join(DIST, "og", `${id}.gif`), gif)
-      bytes += png.length + gif.length
-      done++
-    }
-    await page.close()
-  }
-  const pages = [first, ...(await Promise.all([1, 2, 3].map(open)))]
-  await Promise.all(pages.map(work))
-  await writeFile(marker, hash)
-  const seconds = ((Date.now() - started) / 1000).toFixed(0)
-  console.log(
-    `og: drew ${done}/${total} share cards -> dist/og/<id>.png + .gif (${(bytes / 1048576).toFixed(1)} MB, ${seconds}s)`,
-  )
-}
 
 // One prerendered docs DOM serves every section: clone the entry, swap in
 // each section's head (title/description/canonical/og/twitter/breadcrumb +
@@ -230,29 +106,9 @@ async function writeSectionPages(flow) {
     await mkdir(dir, { recursive: true })
     await writeFile(join(dir, "index.html"), html)
     written++
-    await refineEmbed(s, flow?.kids.find((k) => k.id === s.id)?.lede ?? "")
+    await refineEmbed(DIST, s, flow?.kids.find((k) => k.id === s.id)?.lede ?? "")
   }
   console.log(`sections: wrote ${written} per-section docs pages -> dist/docs/<id>/index.html`)
-}
-
-// A section's Discord embed says what the section says first (its lede, cut
-// at a sentence within ~280 characters) in place of the generic meta
-// description it was built with, under the embed's 3,000 byte cap.
-async function refineEmbed(section, lede) {
-  if (!lede) return
-  const path = join(DIST, "embed", `${section.id}.json`)
-  const embed = JSON.parse(await readFile(path, "utf8").catch(() => "null"))
-  const text = embed?.component?.components?.[0]
-  if (!text?.content?.includes(section.description)) return
-  const sentences = lede.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [lede]
-  let said = ""
-  for (const sentence of sentences) {
-    if (said && (said + sentence).length > 280) break
-    said += sentence
-  }
-  text.content = text.content.replace(section.description, () => said.trim())
-  const json = JSON.stringify(embed)
-  if (Buffer.byteLength(json) <= 3000) await writeFile(path, json)
 }
 
 let docsFlow = null
@@ -264,7 +120,7 @@ try {
     // The docs mount a pack of sections only once it is opened; the
     // snapshot asks for every one (ALL_SECTIONS_PARAM in docs/packs.ts).
     const query = route.minSections ? "?all-sections" : ""
-    await page.goto(`http://127.0.0.1:${port}${route.path}${query}`, { waitUntil: "networkidle" })
+    await page.goto(`${origin}${route.path}${query}`, { waitUntil: "networkidle" })
     if (route.minSections) {
       // The docs chunk is async; wait until the full section IA is mounted,
       // then let canvas-driven layout settle before serializing.
@@ -364,17 +220,16 @@ try {
     if (route.path === "/studio") {
       // The agent registry is the studio's own schema, read off the mounted
       // app so it can never drift from the registry the inspector renders.
-      const registry = await page.evaluate(() => window.ditherStudio?.registry() ?? null)
-      if (registry) {
-        await mkdir(join(DIST, "agent"), { recursive: true })
-        await writeFile(join(DIST, "agent", "registry.json"), JSON.stringify(registry, null, 2))
-        console.log(`agent: wrote ${registry.components.length} components -> dist/agent/registry.json`)
-      }
+      const components = await writeAgentRegistry(page, DIST)
+      if (components) console.log(`agent: wrote ${components} components -> dist/agent/registry.json`)
     }
   }
   // The SEO engine's two phases, on the same browser: the per-section og
   // cards first (the section pages reference them), then the pages.
-  await renderOgCards()
+  // Each section's lede (its first paragraph in the docs snapshot), which
+  // its card sets under its title as its embed does.
+  const ledes = Object.fromEntries((docsFlow?.kids ?? []).filter((k) => k.id && k.lede).map((k) => [k.id, k.lede]))
+  await renderOgCards({ browser, origin, dist: DIST, ledes })
   await writeSectionPages(docsFlow)
 } finally {
   await browser.close()
