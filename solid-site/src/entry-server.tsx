@@ -1,8 +1,8 @@
 // @refresh reload
 import { createHandler, StartServer } from "@solidjs/start/server"
 
-// The landing is printed in the dark, always; the pages that turn with the
-// reader's theme set it themselves once they move over.
+// The landing is printed in the dark, always; a page that turns with the
+// reader's theme sets it itself. Each route names its own theme colour.
 export default createHandler(() => (
   <StartServer
     document={({ assets, children, scripts }) => (
@@ -10,7 +10,6 @@ export default createHandler(() => (
         <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <meta name="theme-color" content="#101214" />
           {assets}
         </head>
         <body>
