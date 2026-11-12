@@ -23,10 +23,7 @@ function runTime(el: Element): number {
     const w = ms(delays)
     return Math.max(0, ...d.map((x, i) => x + (w[i % w.length] ?? 0)))
   }
-  return Math.max(
-    longest(s.transitionDuration, s.transitionDelay),
-    longest(s.animationDuration, s.animationDelay),
-  )
+  return Math.max(longest(s.transitionDuration, s.transitionDelay), longest(s.animationDuration, s.animationDelay))
 }
 
 export function Presence(props: PresenceProps) {

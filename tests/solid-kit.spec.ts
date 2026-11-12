@@ -52,8 +52,9 @@ describe("the Solid layer", () => {
     for (const c of components) {
       const theirs = new Set(vue.get(`./${c}.vue`) ?? vue.get(`./${c}`) ?? [])
       const ours = solid.get(`./${c}`) ?? []
-      // its own props type is the one name a Solid file adds
-      const added = ours.filter((n) => !theirs.has(n) && !n.endsWith("Props"))
+      // its own props type, and the type of what it hands a `ref` (what Vue
+      // exposed), are the names a Solid file adds
+      const added = ours.filter((n) => !theirs.has(n) && !/(Props|Api)$/.test(n))
       expect({ component: c, added }).toEqual({ component: c, added: [] })
       const missing = [...theirs].filter((n) => !ours.includes(n))
       expect({ component: c, missing }).toEqual({ component: c, missing: [] })
@@ -73,7 +74,7 @@ describe("the Solid layer", () => {
     const offenders: string[] = []
     for (const file of solidFiles) {
       // a whole `import type` / `export type` is erased: only a type crosses
-      const live = read(file).replace(/(?:import|export) type [^;]*?from\s+"[^"]+"/g, "")
+      const live = read(file).replace(/(?:import|export) type \{[^}]*\}\s*from\s+"[^"]+"/g, "")
       for (const m of live.matchAll(/from\s+"([^"]+)"/g)) {
         const from = m[1]
         const engine = /\/engine\/([\w-]+)$/.exec(from)?.[1]
@@ -94,7 +95,7 @@ describe("the Solid layer", () => {
       if (/from "vue"/.test(text)) reached.push(file.slice(KIT.length + 1))
       // a whole `import type` is erased, so it reaches nothing
       for (const m of text
-        .replace(/import type [^;]*?from\s+"[^"]+"/g, "")
+        .replace(/(?:import|export) type \{[^}]*\}\s*from\s+"[^"]+"/g, "")
         .matchAll(/(?:from|import)\s+"(\.[^"]+)"/g)) {
         const base = join(file, "..", m[1])
         const next = [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts")].find(

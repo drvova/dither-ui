@@ -85,7 +85,30 @@ the kit every import is relative (`../engine/pixel`).
   inside, so a server render runs none of it; inline styles use CSS
   property names. A port carries its Vue twin's behaviour and comments
   whole, and its specs come with it (`solid-site/tests/`). Held by
-  `tests/solid-kit.spec.ts`. The root type check leaves `solid/` out
+  `tests/solid-kit.spec.ts`. It holds every component the Vue kit does.
+  The rest of its runtime: `visibility.ts` and `in-view.ts` (the loop
+  gates), `field.ts` (a field's ids and error for the control inside it),
+  `toast.ts` (the toast store), `presence.tsx` (`<Presence when name>`: an
+  element enters and leaves through the six class names Vue's
+  `<Transition name>` used, so a transition stylesheet carries over), and
+  the chart family's twins (`chart-context.ts`, `common-context.ts`,
+  `polar-context.ts`, `series-context.ts`, `use-chart-dimensions.ts`, the
+  four `*-canvas.tsx`, `chart-layer.tsx`, which sorts a chart root's
+  children into its back, drawing and DOM layers). The four chart paint
+  loops (`startCartesianLoop`, `startBarLoop`, `startPieLoop`,
+  `startRadarLoop`) are byte copies of the engine's Vue-bound files, owed
+  an extraction into shared cores before the cutover. What Vue's API
+  becomes: an emitted event is an `on<Event>` callback prop (`v-model` is
+  `modelValue` with `onUpdateModelValue`); the default slot is `children`,
+  a function of its scope when the slot was scoped, a named slot a prop of
+  its name; what a component exposed goes to a `ref` callback, typed
+  `<Name>Api`; a module-counter or random id is `createUniqueId()`, so a
+  server render and the browser agree; a `<style>` block is
+  `<Name>.css` beside the component, its rules verbatim, nested under a
+  root hook class `dk-<name>` where a selector was not already the
+  component's own; a component's own listener on an element that also
+  takes the caller's is a native `on:` listener, so both run, and so an
+  overlay's keys stop at its portal. The root type check leaves `solid/` out
   (`tsconfig.json`); `solid-site`'s checks it.
 - A module that stops carrying classes moves to `engine/`; a new component
   goes in `tailwind/` and reaches shared logic through `../engine/`.
