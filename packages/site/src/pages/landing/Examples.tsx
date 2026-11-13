@@ -5,7 +5,7 @@
 // voice. Each card's art prints itself once as it comes into view; of the
 // surfaces that move by themselves one plays at a time; everything that
 // moves has its pause.
-import { createEffect, createMemo, createSignal, For, type JSX, lazy, on, onCleanup, onMount, Show } from "solid-js"
+import { createEffect, createMemo, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import {
   Area,
@@ -35,7 +35,7 @@ import { COMPONENT_COUNT } from "@/pages/landing/facts"
 import { BENTO, staggers } from "@/pages/landing/hub"
 import { spotlight } from "@/pages/landing/spotlight"
 import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "@/pages/landing/stat"
-import { rise, routePath } from "@/shared/lib"
+import { lazyPart, rise, routePath } from "@/shared/lib"
 import PauseChip from "./PauseChip"
 import RiseWords from "./RiseWords"
 import "./Examples.css"
@@ -43,9 +43,9 @@ import "./Examples.css"
 // The heavy cards are their own chunks, fetched as the card nears the
 // viewport: the shader's WebGL engine, the translator's utility map, the
 // fluid's canvas engine.
-const DitherShader = lazy(() => import("@dither-ui/kit/solid/DitherShader.tsx"))
-const ExportScene = lazy(() => import("./ExportScene"))
-const DitherFerrofluid = lazy(() => import("@dither-ui/kit/solid/Ferrofluid.tsx"))
+const DitherShader = lazyPart(() => import("@dither-ui/kit/solid/DitherShader.tsx"))
+const ExportScene = lazyPart(() => import("./ExportScene"))
+const DitherFerrofluid = lazyPart(() => import("@dither-ui/kit/solid/Ferrofluid.tsx"))
 const LAZY = new Set(["shader", "styling", "ferrofluid"])
 // Cards whose art runs to the card's edges.
 const FLUSH = new Set(["world", "print-screens", "silk", "shader", "ferrofluid", "styling"])

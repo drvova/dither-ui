@@ -1,16 +1,4 @@
-import {
-  children,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  lazy,
-  on,
-  onCleanup,
-  onMount,
-  Show,
-  Suspense,
-} from "solid-js"
+import { children, createEffect, createMemo, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
 import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-ui/kit"
 import { firstVisitTour, GUIDE_SEEN_KEY, type GuideStop } from "@/pages/studio/guide"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
@@ -23,7 +11,7 @@ import type { AgentActivity } from "@/features/agent/tools"
 import { startHistory, stopHistory } from "@/features/history"
 import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
 import { activeProjectId, hydrate, importDocument, projects, startAutosave, stopAutosave } from "@/features/persistence"
-import { installLongPress, modKey, routePath } from "@/shared/lib"
+import { installLongPress, lazyPart, modKey, routePath } from "@/shared/lib"
 import Mascot from "@/shared/ui/Mascot"
 import type { AgentPanelApi } from "@/widgets/agent/AgentPanel"
 import { Canvas, type CanvasApi } from "@/widgets/canvas"
@@ -35,12 +23,12 @@ import StudioPanel from "./ui/StudioPanel"
 import StudioSidebar from "./ui/StudioSidebar"
 import "./StudioPage.css"
 
-const AgentPanel = lazy(() => import("@/widgets/agent").then((m) => ({ default: m.AgentPanel })))
+const AgentPanel = lazyPart(() => import("@/widgets/agent").then((m) => ({ default: m.AgentPanel })))
 // The docs' workbench over the canvas (Inspect on its bar): one lazy chunk,
 // loaded the first time it is asked for.
-const Workbench = lazy(() => import("@/widgets/workbench").then((m) => ({ default: m.Workbench })))
-const ExportDialog = lazy(() => import("@/features/export-code").then((m) => ({ default: m.ExportDialog })))
-const VideoDialog = lazy(() => import("@/features/export-video").then((m) => ({ default: m.VideoDialog })))
+const Workbench = lazyPart(() => import("@/widgets/workbench").then((m) => ({ default: m.Workbench })))
+const ExportDialog = lazyPart(() => import("@/features/export-code").then((m) => ({ default: m.ExportDialog })))
+const VideoDialog = lazyPart(() => import("@/features/export-video").then((m) => ({ default: m.VideoDialog })))
 
 // An agent app's window: the chat is a column of its own beside the canvas,
 // open from the start; the panel of properties and layers is the canvas's
@@ -347,13 +335,11 @@ export default function StudioPage() {
           class="studio-chat flat-shell"
           aria-label="Chat"
         >
-          <Suspense>
-            <AgentPanel
-              ref={(api) => (agentPanel = api)}
-              onClose={() => setAgentOpen(false)}
-              onActivity={onAgentActivity}
-            />
-          </Suspense>
+          <AgentPanel
+            ref={(api) => (agentPanel = api)}
+            onClose={() => setAgentOpen(false)}
+            onActivity={onAgentActivity}
+          />
         </section>
 
         <main ref={setShell} class="studio-canvas hardshell" aria-label="Canvas">
@@ -374,24 +360,22 @@ export default function StudioPage() {
         >
           {(b) => (
             <aside class="studio-side studio-bench flat-shell" aria-label="Workbench">
-              <Suspense>
-                {/* a workbench per project: another project's is a new one */}
-                <For each={[activeProjectId.value]}>
-                  {(project) => (
-                    <Workbench
-                      host={b().host}
-                      content={b().content}
-                      card={b().card}
-                      benchKey={`studio:${project}`}
-                      section="studio"
-                      title="The Studio canvas (dither-ui)"
-                      url={studioUrl()}
-                      send={(md: string) => askAgent(md, editor.selectedIds)}
-                      onExit={stopInspecting}
-                    />
-                  )}
-                </For>
-              </Suspense>
+              {/* a workbench per project: another project's is a new one */}
+              <For each={[activeProjectId.value]}>
+                {(project) => (
+                  <Workbench
+                    host={b().host}
+                    content={b().content}
+                    card={b().card}
+                    benchKey={`studio:${project}`}
+                    section="studio"
+                    title="The Studio canvas (dither-ui)"
+                    url={studioUrl()}
+                    send={(md: string) => askAgent(md, editor.selectedIds)}
+                    onExit={stopInspecting}
+                  />
+                )}
+              </For>
             </aside>
           )}
         </Show>
@@ -403,14 +387,12 @@ export default function StudioPage() {
           onAgent={toChat}
           onLibrary={() => setLibraryOpen(true)}
         />
-        <Suspense>
-          <Show when={exportOpen()}>
-            <ExportDialog open={exportOpen()} onClose={() => setExportOpen(false)} />
-          </Show>
-          <Show when={videoOpen()}>
-            <VideoDialog open={videoOpen()} onClose={() => setVideoOpen(false)} />
-          </Show>
-        </Suspense>
+        <Show when={exportOpen()}>
+          <ExportDialog open={exportOpen()} onClose={() => setExportOpen(false)} />
+        </Show>
+        <Show when={videoOpen()}>
+          <VideoDialog open={videoOpen()} onClose={() => setVideoOpen(false)} />
+        </Show>
         <ShortcutsHelp />
         <StudioGuide open={tourOpen()} stops={tour} onClose={() => setTourOpen(false)} />
       </div>

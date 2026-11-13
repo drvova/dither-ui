@@ -7,7 +7,7 @@
 // wide field between them, and a footer of the brand and link columns on the
 // kit's light trails, the line-screen wordmark printed over them. Michroma for display, mono for the rest; everything
 // that moves is the kit.
-import { createEffect, createSignal, For, lazy, on, onCleanup, onMount, Show } from "solid-js"
+import { createEffect, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
 import {
   DitherAvatar,
   DitherCircuit,
@@ -29,7 +29,7 @@ import { CLOSE } from "@/pages/landing/heat"
 import { DOCS_FAMILIES, SECTION_COUNT } from "@/pages/landing/hub"
 import { PLATES, RAMP, STOCK, TRAIL } from "@/pages/landing/plate"
 import { ROAD, ROAD_SHADER, WORDMARK } from "@/pages/landing/road"
-import { assetPath, rise, routePath } from "@/shared/lib"
+import { assetPath, lazyPart, rise, routePath } from "@/shared/lib"
 import BrandMark from "@/shared/ui/BrandMark"
 import MascotCar from "@/shared/ui/MascotCar"
 import ToolMark from "@/shared/ui/ToolMark"
@@ -104,7 +104,7 @@ const INSIDE: {
 
 // The footer's ground (`road.ts`), loaded with it: its own chunk, fetched
 // once the page has mounted, never rendered on a server.
-const DitherShader = lazy(() => import("@dither-ui/kit/solid/DitherShader.tsx"))
+const DitherShader = lazyPart(() => import("@dither-ui/kit/solid/DitherShader.tsx"))
 
 // One row of the wordmark's screen below its ink's top: the first rows are
 // hairlines, so the wheels stand where the letters read solid.

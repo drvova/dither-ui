@@ -5,7 +5,8 @@
 // asked for as its route is (`preloadOpenPacks`, from the route's
 // `preload`), ahead of the page. Which sections a pack holds lives in
 // `packs.ts`.
-import { type Component, lazy } from "solid-js"
+import type { Component } from "solid-js"
+import { type LazyPart, lazyPart } from "@/shared/lib"
 import { packOf, type PackName } from "@/pages/docs/packs"
 
 /** Each pack's chunk. */
@@ -36,8 +37,8 @@ export const PACK_LOADERS = {
 } satisfies Record<PackName, () => Promise<{ default: Component }>>
 
 /** Each pack as a component that loads its chunk when first mounted. */
-export const PACK_COMPONENTS = {} as Record<PackName, ReturnType<typeof lazy<Component>>>
-for (const name of Object.keys(PACK_LOADERS) as PackName[]) PACK_COMPONENTS[name] = lazy(() => PACK_LOADERS[name]())
+export const PACK_COMPONENTS = {} as Record<PackName, LazyPart<Component>>
+for (const name of Object.keys(PACK_LOADERS) as PackName[]) PACK_COMPONENTS[name] = lazyPart(() => PACK_LOADERS[name]())
 
 // A server renders a page whole: every pack is loaded before the first
 // page is, so none suspends and streams in after the shell (the bytes then
