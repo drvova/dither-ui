@@ -25,12 +25,15 @@ the Solid-bound modules beside what is framework free (see
 - `RunView.tsx` — a run's component inside an error boundary: what it
   throws shows in the preview, not as a broken page.
 - `model/snippet.ts` — pure, framework free: a snippet's
-  kind (`snippetKind`) and a fragment completed into a whole file in the
-  authoring notation (`asSfc`), which the translators then read. A
-  fragment's script may stand over its markup or under it, as loose lines
-  or as a `<script setup>` block: either way it is the file's script,
-  never text of its template. A stylesheet has no place in a fragment (it
-  goes in a comment, or in a snippet of its own).
+  kind (`snippetKind`: a whole module, a fragment, `ts`, `css`, `sh`) and
+  a Solid fragment completed into the whole `.tsx` module a reader takes
+  (`asTsx`: the Solid APIs and kit exports it uses imported after what it
+  imports itself is kept, its script the component's body, its markup what
+  it returns, several nodes as one fragment). A fragment's script may stand
+  over its markup or under it, as loose lines: either way it is the
+  component's script, never text of its markup (the markup is read as JSX
+  to its end). A stylesheet has no place in a fragment (it goes in a
+  comment, or in a snippet of its own).
 - `model/files.ts` — pure: what reads the kit's files: the kit index as export
   → file (`kitIndex`, `loadKitIndex`), `resolveKitFile`, the kit files an
   example imports (`kitFilesOf`), file names (`exampleName`), `prompt.md`
@@ -62,13 +65,13 @@ the Solid-bound modules beside what is framework free (see
 ## Local Contracts
 
 - Mounted by `pages/docs/DemoCard.tsx` (lazy, on the Code tab's first open,
-  then kept so edits survive the Preview tab) with the authored snippet,
-  `docsFiles` as `translate`, the styling system and the
+  then kept so edits survive the Preview tab) with the snippet as written,
+  `docsFiles` as `translate` (the snippet in the reader's styling system),
+  the styling system and the
   card's `SourceContext` (section, place, title, line, URL, install steps).
-- Files: the example (`<Section>Example.tsx`, from a fragment or
-  the docs' short form of a `<script setup>` block over loose markup,
-  completed with its imports (what it imports already kept as written)
-  and translated into Solid in the reader's styling system;
+- Files: the example (`<Section>Example.tsx`, a whole module or a
+  fragment completed with its imports (what it imports already kept as
+  written), in the reader's styling system;
   non-component snippets keep their language: `.sh`, `.ts`, `.css`), the
   stylesheet it imports on CSS or CSS Modules, the kit's own
   source for each kit export it imports, the kit's tokens
@@ -110,7 +113,7 @@ the Solid-bound modules beside what is framework free (see
 
 ## Verification
 
-- `tests/source.spec.ts` (root, `rs test`): a snippet's kind, `asSfc`, the
+- `tests/source.spec.ts` (root, `rs test`): a snippet's kind, `asTsx`, the
   zip read back entry by entry (CRC-32 included), the StyleX runtime
   (atomic classes, last style wins, conditions after plain rules,
   variables, keyframes, fallbacks).
@@ -122,7 +125,8 @@ the Solid-bound modules beside what is framework free (see
   compiles and every name it imports from a package is provided; every
   docs snippet's Solid file compiles in every styling system, imports every
   kit component it renders, calls nothing of the site's own, and prints
-  neither its script, a note nor the authoring notation as text; every
+  neither its script nor a note as text; every docs snippet is Solid,
+  never Vue's notation; every
   card the docs render (read where it stands, its pickers at their first
   state) runs as written: TypeScript's checker finds no name it leaves
   unbound over the browser's globals (nor a window name it reads bare,

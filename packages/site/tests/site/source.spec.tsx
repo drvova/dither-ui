@@ -12,7 +12,6 @@ import { restyleSolid, STYLINGS } from "@dither-ui/restyle"
 import { kitFiles } from "../../build/kit-sources"
 import { siteFileList } from "../../build/site-files"
 import DemoCard, { DEMO_FIT } from "../../src/pages/docs/DemoCard"
-import { toSolidCode } from "../../src/pages/docs/solid"
 import { docsCode } from "../../src/pages/docs/snippet"
 import { setStyling } from "../../src/shared/lib/restyle"
 import {
@@ -33,7 +32,7 @@ import {
   type SourceFile,
 } from "../../src/widgets/source/model/files"
 import { PACKAGES } from "../../src/widgets/source/model/run"
-import { asSfc, snippetKind } from "../../src/widgets/source/model/snippet"
+import { asTsx, snippetKind } from "../../src/widgets/source/model/snippet"
 import { world } from "@dither-ui/kit/testing/world.ts"
 import { MetaProvider } from "@solidjs/meta"
 import { createMemoryHistory, MemoryRouter, Route } from "@solidjs/router"
@@ -65,39 +64,67 @@ const read = (list: typeof SOLID, file: string) => readFileSync(list.find((f) =>
 const SOLID_INDEX = await loadKitIndex(async (f) => read(SOLID, f), solidFiles, "solid/index.ts")
 const KIT_NAMES = new Set(SOLID_INDEX.keys())
 
-/** Every snippet of the docs' modules that is markup (a demo's, a Handbook
- * block's, a doc comment's), read out of the source as a template, with
- * what it interpolates as a stand-in. */
-function docsSnippets(): { file: string; where: string; code: string }[] {
+/** Every template literal of the docs' modules that holds markup, as its
+ * source writes it (its holes `${…}`); HTML (a void tag left open: an embed
+ * code, a page that links the kit's stylesheet) is not a component. */
+function docsLiterals(): { file: string; text: string }[] {
   const files = (dir: string): string[] =>
     readdirSync(dir).flatMap((n) => {
       const p = join(dir, n)
       return statSync(p).isDirectory() ? files(p) : /\.tsx?$/.test(n) ? [p] : []
     })
-  const out: { file: string; where: string; code: string }[] = []
+  const out: { file: string; text: string }[] = []
   for (const file of files(join(process.cwd(), "src/pages/docs"))) {
-    // every template literal (\x60 is the backtick, spelled so a scanner never reads one here)
-    for (const m of readFileSync(file, "utf8").matchAll(/\x60((?:[^\x60\\]|\\.)*)\x60/g)) {
-      if (!/<[A-Za-z]/.test(m[1])) continue
-      let hole = 0
-      const code = m[1]
-        // a hole on a line of its own declares the snippet's data; one inside a line is a name
-        .replace(/^\$\{[^}]*\}$/gm, () => `const data${hole++} = [0]`)
-        .replace(/\$\{[^}]*\}/g, "x")
-        .replace(/\\([\s\S])/g, (_, c: string) => (c === "n" ? "\n" : c))
-        .replace(/…/g, "etc")
-      const kind = snippetKind(code)
-      const bare = code.replace(/<!--[\s\S]*?-->/g, "")
-      if ((kind !== "sfc" && kind !== "fragment") || bare.indexOf(">", bare.lastIndexOf("<")) < 0) continue
-      out.push({
-        file,
-        where: `${file.slice(process.cwd().length + 1)}: ${code.trim().split("\n")[0].slice(0, 60)}`,
-        code,
-      })
+    const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.ESNext, true)
+    const visit = (node: ts.Node): void => {
+      if (ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node)) {
+        const text = node.getText().slice(1, -1)
+        if (/<[A-Za-z]/.test(text) && !/<(img|link|br|hr|meta|input)\b[^>]*[^/]>/.test(text)) out.push({ file, text })
+      }
+      ts.forEachChild(node, visit)
     }
+    visit(source)
   }
   return out
 }
+
+/** Every snippet of the docs' modules that is markup (a demo's, a Handbook
+ * block's, a doc comment's), read out of the source as a template, with
+ * what it interpolates as a stand-in. */
+function docsSnippets(): { file: string; where: string; code: string }[] {
+  const out: { file: string; where: string; code: string }[] = []
+  for (const { file, text } of docsLiterals()) {
+    // a hole on a line of its own declares the snippet's data; one inside a line is a name
+    let filled = ""
+    let hole = 0
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] !== "$" || text[i + 1] !== "{" || text[i - 1] === "\\") {
+        filled += text[i]
+        continue
+      }
+      let j = i + 2
+      for (let depth = 1; depth; j++) depth += text[j] === "{" ? 1 : text[j] === "}" ? -1 : 0
+      const own = /(^|\n)$/.test(filled) && /^(\n|$)/.test(text.slice(j))
+      filled += own ? `const data${hole++} = [0]` : "x"
+      i = j - 1
+    }
+    const code = filled.replace(/\\([\s\S])/g, (_, c: string) => (c === "n" ? "\n" : c)).replace(/…/g, "etc")
+    const kind = snippetKind(code)
+    const bare = code.replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    if ((kind !== "file" && kind !== "fragment") || bare.indexOf(">", bare.lastIndexOf("<")) < 0) continue
+    out.push({
+      file,
+      where: `${file.slice(process.cwd().length + 1)}: ${code.trim().split("\n")[0].slice(0, 60)}`,
+      code,
+    })
+  }
+  return out
+}
+
+/** Vue's template notation, which the docs' snippets once were written in:
+ * its blocks, directives, bindings, listeners and interpolation. */
+const VUE =
+  /from ["']vue["']|<script setup|<template[\s>]|\sv-[a-z]+(?=[\s=>:.])|(?<![=(])\{\{|\s@[a-z][\w.:-]*=|\s:[a-z][\w-]*=["']/
 
 type DocsExample = { where: string; code: string; tsx: string }
 
@@ -140,11 +167,11 @@ async function docsExamples(): Promise<{ examples: DocsExample[]; others: number
         const n = seen.get(section) ?? 0
         seen.set(section, n + 1)
         const kind = snippetKind(code)
-        if (kind !== "sfc" && kind !== "fragment") {
+        if (kind !== "file" && kind !== "fragment") {
           others++
           continue
         }
-        examples.push({ where: `${section}:${n}`, code, tsx: toSolidCode(asSfc(code, KIT_NAMES)) })
+        examples.push({ where: `${section}:${n}`, code, tsx: asTsx(code, KIT_NAMES) })
       }
     return { examples, others }
   } finally {
@@ -249,19 +276,12 @@ function elisions(tsx: string): string[] {
   )
 }
 
-const SWITCH = `<script setup lang="ts">
-import { ref } from "vue"
-import { DitherSwitch } from "@dither-kit"
+const SWITCH = `const [bloom, setBloom] = createSignal(true)
 
-const bloom = ref(true)
-</script>
-
-<template>
-  <label class="flex items-center justify-between gap-4">
-    <span class="text-[13px]">Bloom on hover</span>
-    <DitherSwitch v-model="bloom" label="Bloom on hover" color="blue" />
-  </label>
-</template>`
+<label class="flex items-center justify-between gap-4">
+  <span class="text-[13px]">Bloom on hover</span>
+  <DitherSwitch modelValue={bloom()} onUpdateModelValue={setBloom} label="Bloom on hover" color="blue" />
+</label>`
 
 const SWITCH_TSX = `import { createSignal } from "solid-js"
 import { DitherSwitch } from "@dither-kit"
@@ -321,24 +341,26 @@ describe("source files", () => {
 
   it("completes a fragment into a Solid file with what it uses imported", () => {
     const names = new Set(SOLID_INDEX.keys())
-    expect(snippetKind(SWITCH)).toBe("sfc")
-    expect(toSolidCode(asSfc(SWITCH, names))).toBe(SWITCH_TSX)
-    expect(toSolidCode(asSfc('const level = ref(40)\n\n<!-- one -->\n<DitherSlider v-model="level" />', names))).toBe(
+    expect(snippetKind(SWITCH)).toBe("fragment")
+    expect(asTsx(SWITCH, names)).toBe(SWITCH_TSX)
+    expect(snippetKind(SWITCH_TSX)).toBe("file")
+    expect(asTsx(SWITCH_TSX, names)).toBe(SWITCH_TSX)
+    expect(asTsx("{/* one */}\n<DitherSlider modelValue={level()} />\n\nconst [level] = createSignal(40)", names)).toBe(
       `import { createSignal } from "solid-js"
 import { DitherSlider } from "@dither-kit"
 
 export default function Example() {
-  const [level, setLevel] = createSignal(40)
+  const [level] = createSignal(40)
 
   return (
     <>
       {/* one */}
-      <DitherSlider modelValue={level()} onUpdateModelValue={setLevel} />
+      <DitherSlider modelValue={level()} />
     </>
   )
 }`,
     )
-    expect(toSolidCode(asSfc('<DitherButton :matrix="bayerMatrix(4)">Go</DitherButton>', names))).toBe(
+    expect(asTsx("<DitherButton matrix={bayerMatrix(4)}>Go</DitherButton>", names)).toBe(
       `import { DitherButton, bayerMatrix } from "@dither-kit"
 
 export default function Example() {
@@ -360,7 +382,7 @@ export default function Example() {
   })
 
   it("names the example and writes the brief from the files", () => {
-    expect(exampleName("area-chart", 1, "sfc")).toBe("AreaChartExample.tsx")
+    expect(exampleName("area-chart", 1, "file")).toBe("AreaChartExample.tsx")
     expect(exampleName("switch", 2, "fragment")).toBe("SwitchExample2.tsx")
     expect(exampleName("install", 1, "sh")).toBe("install.sh")
     const files: SourceFile[] = [
@@ -502,7 +524,7 @@ export const mode = import.meta.env.MODE`,
     const failures: string[] = []
     const snippets = docsSnippets()
     for (const { file, where, code } of snippets) {
-      const tsx = toSolidCode(asSfc(code, KIT_NAMES))
+      const tsx = asTsx(code, KIT_NAMES)
       // what a reader gets stands in their app: every kit component it
       // renders is imported, and nothing of this site's own is called
       const imported = new Set(
@@ -529,9 +551,6 @@ export const mode = import.meta.env.MODE`,
         .split("\n")
         .find((l) => l.trim().startsWith("// "))
       if (said) failures.push(`${where} prints a note as text: ${said.trim()}`)
-      // nor does a comment speak the authoring notation
-      const vue = /\s[:@][a-z][\w-]*="/.exec(tsx)
-      if (vue) failures.push(`${where} shows the authoring notation: ${vue[0].trim()}`)
       for (const system of STYLINGS)
         try {
           compile("Example.tsx", restyleSolid(tsx, system).code)
@@ -539,9 +558,31 @@ export const mode = import.meta.env.MODE`,
           failures.push(`${file.slice(process.cwd().length + 1)} (${system}): ${(e as Error).message}`)
         }
     }
-    expect(snippets.length).toBeGreaterThan(270)
+    expect(snippets.length).toBeGreaterThan(260)
     expect(failures).toEqual([])
   }, 120000)
+
+  it("writes every docs snippet in Solid, never in Vue's notation", () => {
+    const literals = docsLiterals()
+    const vue = literals.flatMap(({ file, text }) => {
+      // a comment of the markup is JSX's, `{/* */}`
+      const found = VUE.exec(text) ?? (snippetKind(text) === "fragment" ? /<!--/.exec(text) : null)
+      return found ? [`${file.slice(process.cwd().length + 1)}: ${found[0].trim()} in ${text.slice(0, 60)}`] : []
+    })
+    expect(literals.length).toBeGreaterThan(270)
+    expect(vue).toEqual([])
+    // the pattern itself reads each form it names, and JSX's objects pass
+    for (const said of [
+      'import { ref } from "vue"',
+      "<template>",
+      '<p v-if="ok" />',
+      "{{ name }}",
+      '<b @click="go" />',
+      '<b :size="2" />',
+    ])
+      expect(VUE.test(said), said).toBe(true)
+    expect(VUE.test('<b style={{ color: "red" }} class="a" onClick={go} />')).toBe(false)
+  })
 
   it("runs every docs example as written: every name bound, nothing elided, no asset the site lacks", async () => {
     const w = world()
@@ -585,7 +626,7 @@ describe("the reader's styling system", () => {
 
   it("shows a snippet in Solid, whatever framework an earlier visit stored", () => {
     localStorage.setItem("dither-docs-framework", "svelte")
-    expect(docsCode('<DitherSwitch v-model="on" />')).toBe(
+    expect(docsCode("<DitherSwitch modelValue={on()} onUpdateModelValue={setOn} />")).toBe(
       "<DitherSwitch modelValue={on()} onUpdateModelValue={setOn} />",
     )
     setStyling("modules")

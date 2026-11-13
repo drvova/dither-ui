@@ -1,141 +1,140 @@
 // @rstest-environment jsdom
 import { describe, expect, it } from "rstack/test"
 import { crc32, zip } from "@/shared/lib/files"
-import { asSfc, snippetKind } from "@/widgets/source/model/snippet"
+import { asTsx, snippetKind } from "@/widgets/source/model/snippet"
 import * as stylex from "@/widgets/source/model/stylex"
 
-// The kit names these snippets use (a page hands `asSfc` its whole index).
+// The kit names these snippets use (a page hands `asTsx` its whole index).
 const KIT_NAMES = new Set(["DitherButton", "DitherSlider", "DitherSwitch", "bayerMatrix"])
 
-const SWITCH = `<script setup lang="ts">
-import { ref } from "vue"
+const SWITCH = `import { createSignal } from "solid-js"
 import { DitherSwitch } from "@dither-kit"
 
-const bloom = ref(true)
-</script>
+export default function Example() {
+  const [bloom, setBloom] = createSignal(true)
 
-<template>
-  <label class="flex items-center justify-between gap-4">
-    <span class="text-[13px]">Bloom on hover</span>
-    <DitherSwitch v-model="bloom" label="Bloom on hover" color="blue" />
-  </label>
-</template>`
+  return (
+    <label class="flex items-center justify-between gap-4">
+      <span class="text-[13px]">Bloom on hover</span>
+      <DitherSwitch modelValue={bloom()} onUpdateModelValue={setBloom} label="Bloom on hover" color="blue" />
+    </label>
+  )
+}`
+
+const SLIDER = "<DitherSlider modelValue={level()} onUpdateModelValue={setLevel} />"
 
 describe("source files", () => {
   it("tells a snippet's kind", () => {
-    expect(snippetKind(SWITCH)).toBe("sfc")
+    expect(snippetKind(SWITCH)).toBe("file")
     expect(snippetKind('<DitherButton color="blue">Deploy</DitherButton>')).toBe("fragment")
-    expect(snippetKind('const level = ref(40)\n\n<DitherSlider v-model="level" />')).toBe("fragment")
+    expect(snippetKind(`const [level, setLevel] = createSignal(40)\n\n${SLIDER}`)).toBe("fragment")
+    expect(snippetKind(`{/* one */}\n${SLIDER}`)).toBe("fragment")
     expect(snippetKind("# 1 — copy the kit\nnpx degit drvova/dither-ui/packages/dither-kit/src src/dither-kit")).toBe(
       "sh",
     )
     expect(snippetKind(":root {\n  --accent: #3f8ff3;\n}")).toBe("css")
     expect(snippetKind('toast("Saved", { tone: "green" })')).toBe("ts")
+    expect(snippetKind("export default function plugin() {\n  return {}\n}")).toBe("ts")
   })
 
-  it("completes a fragment into an SFC with what it uses imported", () => {
-    const names = KIT_NAMES
-    expect(asSfc(SWITCH, names)).toBe(SWITCH)
-    expect(asSfc('<DitherButton :matrix="bayerMatrix(4)">Go</DitherButton>\n<Transition />', names)).toBe(
-      `<script setup lang="ts">
-import { DitherButton, bayerMatrix } from "@dither-kit"
-</script>
+  it("completes a fragment into a module with what it uses imported", () => {
+    expect(asTsx(SWITCH, KIT_NAMES)).toBe(SWITCH)
+    expect(asTsx("<DitherButton matrix={bayerMatrix(4)}>Go</DitherButton>\n<Transition />", KIT_NAMES)).toBe(
+      `import { DitherButton, bayerMatrix } from "@dither-kit"
 
-<template>
-  <DitherButton :matrix="bayerMatrix(4)">Go</DitherButton>
-  <Transition />
-</template>`,
+export default function Example() {
+  return (
+    <>
+      <DitherButton matrix={bayerMatrix(4)}>Go</DitherButton>
+      <Transition />
+    </>
+  )
+}`,
     )
-    expect(asSfc('const level = ref(40)\n\n<!-- one -->\n<DitherSlider v-model="level" />', names)).toBe(
-      `<script setup lang="ts">
-import { ref } from "vue"
+    expect(asTsx(`const [level, setLevel] = createSignal(40)\n\n{/* one */}\n${SLIDER}`, KIT_NAMES)).toBe(
+      `import { createSignal } from "solid-js"
 import { DitherSlider } from "@dither-kit"
 
-const level = ref(40)
-</script>
+export default function Example() {
+  const [level, setLevel] = createSignal(40)
 
-<template>
-  <!-- one -->
-  <DitherSlider v-model="level" />
-</template>`,
+  return (
+    <>
+      {/* one */}
+      ${SLIDER}
+    </>
+  )
+}`,
     )
   })
 
-  it("completes a script block over loose markup, keeping what it imports already", () => {
-    const names = KIT_NAMES
+  it("keeps what a fragment imports already, after what it is given", () => {
     expect(
-      asSfc(
-        '<script setup>\nimport { ref } from "vue"\nconst level = ref(40)\nonMounted(() => {})\n</script>\n\n<DitherSlider v-model="level" />',
-        names,
-      ),
-    ).toBe(
-      `<script setup lang="ts">
-import { onMounted } from "vue"
-import { DitherSlider } from "@dither-kit"
-
-import { ref } from "vue"
-const level = ref(40)
-onMounted(() => {})
-</script>
-
-<template>
-  <DitherSlider v-model="level" />
-</template>`,
-    )
-  })
-
-  it("reads loose script lines under the markup as script, never as the template's text", () => {
-    expect(
-      asSfc(
-        'import { ref } from "vue"\n<DitherSlider v-model="level" @change="log" />\n<!-- one -->\n\n// the level\nconst level = ref(40)\nfunction log(v: number) {\n  console.log(v > 1)\n}',
+      asTsx(
+        `import { DitherSwitch } from "@dither-kit"\nconst [level, setLevel] = createSignal(40)\nonMount(() => {})\n\n${SLIDER}`,
         KIT_NAMES,
       ),
     ).toBe(
-      `<script setup lang="ts">
+      `import { createSignal, onMount } from "solid-js"
 import { DitherSlider } from "@dither-kit"
+import { DitherSwitch } from "@dither-kit"
 
-import { ref } from "vue"
+export default function Example() {
+  const [level, setLevel] = createSignal(40)
+  onMount(() => {})
 
-// the level
-const level = ref(40)
-function log(v: number) {
-  console.log(v > 1)
-}
-</script>
-
-<template>
-  <DitherSlider v-model="level" @change="log" />
-  <!-- one -->
-</template>`,
+  return (
+    ${SLIDER}
+  )
+}`,
     )
-    // a tag left open, or a comment, is still markup to its end
-    const open = '<DitherSlider\n  v-model="level"\n/>'
-    expect(asSfc(open, KIT_NAMES)).toContain('<template>\n  <DitherSlider\n    v-model="level"\n  />\n</template>')
-    const comment = "<DitherSlider />\n<!-- its\n     type: a number -->"
-    expect(asSfc(comment, KIT_NAMES)).toContain("     type: a number -->\n</template>")
   })
 
-  it("completes loose markup over its script block the same way", () => {
-    // the media docs write the tag first and its data after: the file a
-    // reader got named the kit's component and never imported it
+  it("reads loose script lines under the markup as script, never as the markup's text", () => {
     expect(
-      asSfc(
-        '<DitherSlider v-model="level" />\n<!-- one -->\n\n<script setup>\n// the level\nconst level = ref(40)\n</script>',
+      asTsx(
+        `<DitherSlider modelValue={level()} onUpdateModelValue={log} />\n{/* one */}\n\n// the level\nconst [level, setLevel] = createSignal(40)\nfunction log(v: number) {\n  setLevel(v > 1 ? v : 1)\n}`,
         KIT_NAMES,
       ),
     ).toBe(
-      `<script setup lang="ts">
-import { ref } from "vue"
+      `import { createSignal } from "solid-js"
 import { DitherSlider } from "@dither-kit"
 
-// the level
-const level = ref(40)
-</script>
+export default function Example() {
+  // the level
+  const [level, setLevel] = createSignal(40)
+  function log(v: number) {
+    setLevel(v > 1 ? v : 1)
+  }
 
-<template>
-  <DitherSlider v-model="level" />
-  <!-- one -->
-</template>`,
+  return (
+    <>
+      <DitherSlider modelValue={level()} onUpdateModelValue={log} />
+      {/* one */}
+    </>
+  )
+}`,
+    )
+    // a tag left open, a comment, or a line of a loop's body is still markup to its end
+    const open = "<DitherSlider\n  value={40}\n/>"
+    expect(asTsx(open, KIT_NAMES)).toContain("  return (\n    <DitherSlider\n      value={40}\n    />\n  )")
+    const comment = "<DitherSlider />\n{/* its\n     type: a number */}"
+    expect(asTsx(comment, KIT_NAMES)).toContain("           type: a number */}\n    </>\n  )")
+    const loop = "<ul>\n  <For each={rows}>\n    {(r) => (\n      <li title={'a > b'}>{r}</li>\n    )}\n  </For>\n</ul>"
+    expect(asTsx(loop, KIT_NAMES)).toBe(
+      `import { For } from "solid-js"
+
+export default function Example() {
+  return (
+    <ul>
+      <For each={rows}>
+        {(r) => (
+          <li title={'a > b'}>{r}</li>
+        )}
+      </For>
+    </ul>
+  )
+}`,
     )
   })
 })
@@ -147,7 +146,7 @@ describe("files out", () => {
 
   it("writes a zip every unzip reads", () => {
     const files = [
-      { path: "SwitchExample.vue", text: SWITCH },
+      { path: "SwitchExample.tsx", text: SWITCH },
       { path: "dither-kit/théme.css", text: ":root { --a: 1 }" },
     ]
     const bytes = zip(files, new Date(2026, 9, 23, 12, 30, 10))

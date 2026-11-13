@@ -44,8 +44,8 @@ const SNIPPET_OVERLINE = `<DitherOverline>Chapter 02</DitherOverline>
 const SNIPPET_CODE = `Run <DitherCode>npm run build</DitherCode> before shipping:
 the <DitherCode>dist/</DitherCode> folder is the artifact.`
 
-const SNIPPET_KBD_COMBO = `<DitherKbdCombo :keys="['⌘', 'K']" />
-<DitherKbdCombo :keys="['Ctrl', 'Shift', 'P']" separator="›" />`
+const SNIPPET_KBD_COMBO = `<DitherKbdCombo keys={['⌘', 'K']} />
+<DitherKbdCombo keys={['Ctrl', 'Shift', 'P']} separator="›" />`
 
 const SNIPPET_BLOCKQUOTE = `<DitherBlockquote>
   Dithering trades smooth gradients for a fixed threshold,
@@ -61,7 +61,7 @@ const SNIPPET_TRUNCATE = `<div class="w-56">
   </DitherTruncate>
 </div>`
 
-const SNIPPET_LINE_CLAMP = `<DitherLineClamp :lines="2">
+const SNIPPET_LINE_CLAMP = `<DitherLineClamp lines={2}>
   Long body copy that stops after two lines with an ellipsis…
 </DitherLineClamp>`
 
@@ -79,31 +79,33 @@ const SNIPPET_COPYABLE_TEXT = `<DitherCopyableText value="npm i d3-scale d3-shap
   copy install
 </DitherCopyableText>`
 
-const SNIPPET_NUMBER_TEXT = `<DitherNumberText :value="1234567.5" :decimals="2" />
-<DitherNumberText :value="1234567.5" locale="de-DE" />`
+const SNIPPET_NUMBER_TEXT = `<DitherNumberText value={1234567.5} decimals={2} />
+<DitherNumberText value={1234567.5} locale="de-DE" />`
 
-const SNIPPET_CURRENCY_TEXT = `<DitherCurrencyText :value="1299.5" currency="USD" />
-<DitherCurrencyText :value="1299.5" currency="EUR" locale="de-DE" />`
+const SNIPPET_CURRENCY_TEXT = `<DitherCurrencyText value={1299.5} currency="USD" />
+<DitherCurrencyText value={1299.5} currency="EUR" locale="de-DE" />`
 
-const SNIPPET_PERCENT_TEXT = `<DitherPercentText :value="0.42" />
-<DitherPercentText :value="0.4235" :decimals="1" />`
+const SNIPPET_PERCENT_TEXT = `<DitherPercentText value={0.42} />
+<DitherPercentText value={0.4235} decimals={1} />`
 
-const SNIPPET_FILE_SIZE_TEXT = `<DitherFileSizeText :bytes="1536" />
-<DitherFileSizeText :bytes="8589934592" />`
+const SNIPPET_FILE_SIZE_TEXT = `<DitherFileSizeText bytes={1536} />
+<DitherFileSizeText bytes={8589934592} />`
 
-const SNIPPET_DURATION_TEXT = `<DitherDurationText :ms="45000" />
-<DitherDurationText :ms="80400000" />`
+const SNIPPET_DURATION_TEXT = `<DitherDurationText ms={45000} />
+<DitherDurationText ms={80400000} />`
 
-const SNIPPET_RELATIVE_TIME = `<DitherRelativeTime :date="Date.now() - 90_000" />
-<DitherRelativeTime :date="new Date('2026-01-05')" :auto="false" />`
+const SNIPPET_RELATIVE_TIME = `<DitherRelativeTime date={Date.now() - 90_000} />
+<DitherRelativeTime date={new Date('2026-01-05')} auto={false} />`
 
 const SNIPPET_DATE_TIME_TEXT = `<DitherDateTimeText date="2026-10-07T15:04:00Z"
-  :options="{ timeZone: 'UTC', dateStyle: 'long' }" />`
+  options={{ timeZone: 'UTC', dateStyle: 'long' }} />`
 
-const SNIPPET_PLURAL_TEXT = `const selected = ref(7)
+const SNIPPET_PLURAL_TEXT = `const [selected, setSelected] = createSignal(7)
 
-<DitherPluralText :count="selected" v-slot="{ count }">
-  <b>{{ count }}</b> file{{ count === 1 ? "" : "s" }} selected
+<DitherPluralText count={selected()}>
+  {(scope) => (
+    <><b>{scope.count}</b> file{scope.count === 1 ? "" : "s"} selected</>
+  )}
 </DitherPluralText>`
 
 const SNIPPET_EMOJI = `<DitherEmoji char="🚀" label="launch" />

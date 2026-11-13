@@ -156,43 +156,45 @@ const API: Record<string, PropRow[]> = {
 }
 
 const SNIPPETS = {
-  gradientText: `<DitherGradientText :colors="['#358ff3', '#7CFF67', '#358ff3']">
+  gradientText: `<DitherGradientText colors={['#358ff3', '#7CFF67', '#358ff3']}>
   Beautifully dithered
 </DitherGradientText>`,
   shinyText: `<DitherShinyText>Shimmering headline</DitherShinyText>`,
   glitchText: `<DitherGlitchText text="MALFUNCTION" />`,
-  splitText: `const token = ref(0)
+  splitText: `const [token, setToken] = createSignal(0)
 
 <div class="grid place-items-center gap-4">
-  <DitherSplitText text="Split into characters" :replay-token="token" class="text-3xl" />
-  <button type="button" @click="token++">Replay</button>
+  <DitherSplitText text="Split into characters" replayToken={token()} class="text-3xl" />
+  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
 </div>`,
-  rotatingText: `Built for <DitherRotatingText :texts="['Solid', 'canvas', 'the studio']" />`,
-  countUp: `<DitherCountUp :to="1984" /> renders <!-- counts up when scrolled into view -->`,
-  numberFlow: `const metric = ref(12480)
+  rotatingText: `<p>
+  Built for <DitherRotatingText texts={['Solid', 'canvas', 'the studio']} />
+</p>`,
+  countUp: `<DitherCountUp to={1984} /> renders {/* counts up when scrolled into view */}`,
+  numberFlow: `const [metric, setMetric] = createSignal(12480)
 // a live metric: the digits roll on every change
 let timer = 0
-onMounted(() => {
-  timer = window.setInterval(() => (metric.value += Math.round(Math.random() * 900 - 300)), 2400)
+onMount(() => {
+  timer = window.setInterval(() => (setMetric(metric() + Math.round(Math.random() * 900 - 300))), 2400)
 })
-onBeforeUnmount(() => clearInterval(timer))
+onCleanup(() => clearInterval(timer))
 
-<div class="text-4xl">$<DitherNumberFlow :value="metric" /></div>`,
-  textType: `<DitherTextType :texts="['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']" />`,
+<div class="text-4xl">$<DitherNumberFlow value={metric()} /></div>`,
+  textType: `<DitherTextType texts={['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']} />`,
   blurText: `<DitherBlurText text="Blur into focus" by="words" />`,
   decryptedText: `<DitherDecryptedText text="ACCESS GRANTED" />`,
   scrambleText: `<DitherScrambleText text="Hover to scramble" />`,
-  shuffle: `const token = ref(0)
+  shuffle: `const [token, setToken] = createSignal(0)
 
 <div class="grid place-items-center gap-4">
-  <DitherShuffle text="Shuffled into place" :replay-token="token" class="text-3xl" />
-  <button type="button" @click="token++">Replay</button>
+  <DitherShuffle text="Shuffled into place" replayToken={token()} class="text-3xl" />
+  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
 </div>`,
-  fallingText: `const token = ref(0)
+  fallingText: `const [token, setToken] = createSignal(0)
 
 <div class="grid place-items-center gap-4">
-  <DitherFallingText text="Falling into place" :replay-token="token" class="text-3xl" />
-  <button type="button" @click="token++">Replay</button>
+  <DitherFallingText text="Falling into place" replayToken={token()} class="text-3xl" />
+  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
 </div>`,
   scrollReveal: `<DitherScrollReveal text="These words reveal as you scroll them into view" />`,
   scrollFloat: `<DitherScrollFloat text="Floating up on scroll" />`,

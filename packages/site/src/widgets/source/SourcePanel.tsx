@@ -37,7 +37,7 @@ import {
   type SourceFile,
 } from "./model/files"
 import type { RunResult } from "./model/run"
-import { asSfc, snippetKind } from "./model/snippet"
+import { asTsx, snippetKind } from "./model/snippet"
 import "./SourcePanel.css"
 
 export type SourcePanelProps = {
@@ -117,14 +117,14 @@ export default function SourcePanel(props: SourcePanelProps) {
 
   const kind = createMemo(() => snippetKind(props.code))
   const files = createMemo<SourceFile[]>(() => {
-    const markup = kind() === "sfc" || kind() === "fragment"
+    const markup = kind() === "file" || kind() === "fragment"
     const have = kit()
     const names = have && new Set(have.index.keys())
     const name = exampleName(props.context.section, props.context.n, kind())
     const made = !markup
       ? props.translate(props.code)
       : names
-        ? props.translate(asSfc(props.code, names), name.replace(/\.\w+$/, ""))
+        ? props.translate(asTsx(props.code, names), name.replace(/\.\w+$/, ""))
         : undefined
     const text = made?.code
     const example: SourceFile = {
@@ -282,7 +282,7 @@ export default function SourcePanel(props: SourcePanelProps) {
   // the preview or read as a module, StyleX through its run-time stand-in,
   // `@/widgets/source/model/stylex`).
   const runnable = createMemo(() => {
-    if (kind() !== "sfc" && kind() !== "fragment") return "Nothing to render: this example isn't a component."
+    if (kind() !== "file" && kind() !== "fragment") return "Nothing to render: this example isn't a component."
     return ""
   })
   const [problems, setProblems] = createSignal<Problem[]>([])

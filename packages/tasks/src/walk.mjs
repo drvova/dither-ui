@@ -540,7 +540,7 @@ function codeIssues(code) {
         text,
       )
     )
-      issues.push(`${example.name}: the authoring notation shows through`)
+      issues.push(`${example.name}: Vue's notation shows through`)
     if (text.includes('{"{"}')) issues.push(`${example.name}: script or a stylesheet printed as the component's text`)
     if (!/export default function|export function|export const/.test(text))
       issues.push(`${example.name}: no component exported`)

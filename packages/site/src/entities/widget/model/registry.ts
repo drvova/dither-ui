@@ -38,7 +38,10 @@ export type ComponentEntry = {
   frame: { w: number; h: number }
   props: PropSpec[]
   slotText?: string
-  vmodel?: { def: unknown; prop?: string; event?: string }
+  /** The value it binds two ways (a field's text, a switch's state): its
+   * default, and the prop and the event that carry it where they are not
+   * `modelValue` and `update:modelValue`. */
+  model?: { def: unknown; prop?: string; event?: string }
   mapProps?: (p: Record<string, unknown>) => Record<string, unknown>
   demo?: ComponentDemo
   /** A text field: its `label` prop is not the component's but the
@@ -91,7 +94,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 160, h: 80 },
     props: [color(), bool("disabled")],
-    vmodel: { def: true },
+    model: { def: true },
   },
   {
     is: "DitherCheckbox",
@@ -100,7 +103,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 180, h: 80 },
     props: [color(), bool("disabled")],
     slotText: "Remember me",
-    vmodel: { def: true },
+    model: { def: true },
   },
   {
     is: "DitherToggle",
@@ -109,7 +112,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 160, h: 80 },
     props: [color(), bool("disabled")],
     slotText: "Bold",
-    vmodel: { def: true },
+    model: { def: true },
   },
   {
     is: "DitherSlider",
@@ -117,7 +120,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [color(), number("min", 0), number("max", 100), number("step", 1, 0.1, undefined, 0.1), bool("disabled")],
-    vmodel: { def: 40 },
+    model: { def: 40 },
   },
   labelled({
     is: "DitherInput",
@@ -125,7 +128,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "Type here…"), bool("invalid"), bool("disabled")],
-    vmodel: { def: "" },
+    model: { def: "" },
   }),
   labelled({
     is: "DitherTextarea",
@@ -139,7 +142,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("invalid"),
       bool("disabled"),
     ],
-    vmodel: { def: "" },
+    model: { def: "" },
   }),
   {
     is: "DitherNumberField",
@@ -147,7 +150,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 220, h: 90 },
     props: [number("min", 0), number("max", 100), number("step", 1, 0.1, undefined, 0.1), bool("disabled")],
-    vmodel: { def: 24 },
+    model: { def: 24 },
   },
   {
     is: "DitherOtpField",
@@ -155,7 +158,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 320, h: 90 },
     props: [number("length", 6, 3, 8)],
-    vmodel: { def: "" },
+    model: { def: "" },
   },
   labelled({
     is: "DitherSelect",
@@ -169,7 +172,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("invalid"),
       bool("disabled"),
     ],
-    vmodel: { def: "" },
+    model: { def: "" },
     mapProps: optionProps,
   }),
   {
@@ -178,7 +181,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 220 },
     props: [color(), list("options", ["Kyoto", "Seoul", "Taipei"]), text("placeholder", "Search…"), bool("disabled")],
-    vmodel: { def: "" },
+    model: { def: "" },
     mapProps: optionProps,
   },
   {
@@ -187,7 +190,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 220 },
     props: [list("suggestions", ["Area chart", "Avatar", "Button"]), text("placeholder", "Search…"), bool("disabled")],
-    vmodel: { def: "" },
+    model: { def: "" },
   },
   {
     is: "DitherWheelPicker",
@@ -200,7 +203,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("rows", 5, 3, 9, 2),
       text("label", "Month"),
     ],
-    vmodel: { def: "jan" },
+    model: { def: "jan" },
     mapProps: optionProps,
   },
   {
@@ -209,7 +212,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 260, h: 160 },
     props: [color(), text("label", "Choose one"), list("options", ["One", "Two", "Three"])],
-    vmodel: { def: "one" },
+    model: { def: "one" },
     mapProps: optionProps,
   },
   {
@@ -218,7 +221,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 260, h: 170 },
     props: [color(), text("label", "Choose any"), list("options", ["One", "Two", "Three"])],
-    vmodel: { def: ["one"] },
+    model: { def: ["one"] },
     mapProps: optionProps,
   },
   {
@@ -231,7 +234,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       select("type", "single", ["single", "multiple"]),
       list("options", ["Bold", "Italic", "Underline"]),
     ],
-    vmodel: { def: "bold" },
+    model: { def: "bold" },
     mapProps: optionProps,
   },
   {
@@ -245,7 +248,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       select("variant", "underline", ["underline", "segmented", "washed"]),
       select("orientation", "horizontal", ["horizontal", "vertical"]),
     ],
-    vmodel: { def: "One" },
+    model: { def: "One" },
     mapProps: (p) => ({ ...p, tabs: strList(p.tabs) }),
   },
   {
@@ -263,7 +266,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 340, h: 240 },
     props: [color(), list("items", ["First", "Second", "Third"]), select("type", "single", ["single", "multiple"])],
-    vmodel: { def: "first" },
+    model: { def: "first" },
     mapProps: (p) => ({
       ...p,
       items: strList(p.items).map((title) => ({
@@ -279,7 +282,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 340, h: 260 },
     props: [color(), list("items", ["Overview", "Activity", "Alerts"])],
-    vmodel: { def: "overview" },
+    model: { def: "overview" },
     mapProps: (p) => ({
       ...p,
       items: strList(p.items).map((label) => ({
@@ -297,7 +300,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 300, h: 150 },
     props: [color(), text("title", "Details")],
     slotText: "Hidden content",
-    vmodel: { def: true },
+    model: { def: true },
   },
 
   {
@@ -314,7 +317,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "navigation",
     frame: { w: 380, h: 80 },
     props: [number("total", 12, 1, 100), number("siblings", 1, 0, 3)],
-    vmodel: { def: 4, prop: "page", event: "update:page" },
+    model: { def: 4, prop: "page", event: "update:page" },
   },
   {
     is: "DitherRating",
@@ -328,7 +331,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("readonly"),
       text("label", "Rating"),
     ],
-    vmodel: { def: 3 },
+    model: { def: 3 },
   },
   {
     is: "DitherStepper",
@@ -355,7 +358,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "navigation",
     frame: { w: 360, h: 90 },
     props: [color(), list("items", ["Overview", "Components", "Examples"])],
-    vmodel: { def: "Overview" },
+    model: { def: "Overview" },
     mapProps: (p) => ({ ...p, items: items(p.items) }),
   },
 
@@ -759,7 +762,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "At least 12 characters"), bool("invalid"), bool("disabled")],
-    vmodel: { def: "correct-horse" },
+    model: { def: "correct-horse" },
   }),
   labelled({
     is: "DitherSearchInput",
@@ -767,7 +770,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "Search…"), bool("disabled")],
-    vmodel: { def: "dither" },
+    model: { def: "dither" },
   }),
   labelled({
     is: "DitherEmailInput",
@@ -775,7 +778,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "you@example.com"), text("autocomplete", "email"), bool("invalid"), bool("disabled")],
-    vmodel: { def: "a@b.co" },
+    model: { def: "a@b.co" },
   }),
   labelled({
     is: "DitherPhoneInput",
@@ -783,7 +786,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "(555) 123-4567"), text("autocomplete", "tel"), bool("disabled")],
-    vmodel: { def: "(415) 555-2671" },
+    model: { def: "(415) 555-2671" },
   }),
   labelled({
     is: "DitherCurrencyInput",
@@ -797,7 +800,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("invalid"),
       bool("disabled"),
     ],
-    vmodel: { def: "1234567.5" },
+    model: { def: "1234567.5" },
   }),
   {
     is: "DitherScrubInput",
@@ -810,7 +813,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("step", 1, 0.1, 50, 0.1),
       bool("disabled"),
     ],
-    vmodel: { def: 64 },
+    model: { def: 64 },
   },
   {
     is: "DitherHotkeyInput",
@@ -818,7 +821,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "Press a shortcut…"), bool("disabled")],
-    vmodel: { def: "Ctrl+Shift+K" },
+    model: { def: "Ctrl+Shift+K" },
   },
   {
     is: "DitherCodeInput",
@@ -826,7 +829,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 340, h: 170 },
     props: [number("rows", 6, 2, 16), text("placeholder", "// paste or type…"), bool("disabled")],
-    vmodel: { def: "const dither = bayer(4)" },
+    model: { def: "const dither = bayer(4)" },
   },
   {
     is: "DitherInputGroup",
@@ -835,7 +838,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 320, h: 90 },
     props: [],
     slotText: "value",
-    vmodel: { def: "" },
+    model: { def: "" },
   },
   {
     is: "DitherInlineEdit",
@@ -843,7 +846,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 90 },
     props: [text("placeholder", "—"), bool("disabled")],
-    vmodel: { def: "bogdan" },
+    model: { def: "bogdan" },
   },
   {
     is: "DitherTagInput",
@@ -851,7 +854,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 320, h: 100 },
     props: [text("placeholder", "Add tag…"), number("max", 8, 1, 20), bool("disabled")],
-    vmodel: { def: ["solid", "dither"] },
+    model: { def: ["solid", "dither"] },
   },
   {
     is: "DitherChoiceChips",
@@ -859,7 +862,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 300, h: 90 },
     props: [text("label", ""), list("options", ["S", "M", "L", "XL"]), bool("multiple"), bool("disabled")],
-    vmodel: { def: "M" },
+    model: { def: "M" },
   },
   {
     is: "DitherCheckboxCard",
@@ -867,7 +870,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 300, h: 120 },
     props: [text("label", "Telemetry"), text("description", "Anonymous usage stats"), bool("disabled")],
-    vmodel: { def: true },
+    model: { def: true },
   },
   {
     is: "DitherKeyValueInput",
@@ -875,7 +878,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 360, h: 130 },
     props: [bool("disabled")],
-    vmodel: { def: [{ key: "Content-Type", value: "application/json" }] },
+    model: { def: [{ key: "Content-Type", value: "application/json" }] },
   },
   {
     is: "DitherMentionInput",
@@ -888,7 +891,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       text("placeholder", "Write… use @ to mention"),
       bool("disabled"),
     ],
-    vmodel: { def: "cc @da" },
+    model: { def: "cc @da" },
   },
   {
     is: "DitherFileInput",
@@ -896,7 +899,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 320, h: 170 },
     props: [bool("multiple"), text("accept", "image/*"), text("buttonLabel", "Choose files"), bool("disabled")],
-    vmodel: { def: [] },
+    model: { def: [] },
   },
   {
     is: "DitherListBox",
@@ -904,7 +907,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 260, h: 160 },
     props: [list("options", ["Kyoto", "Seoul", "Taipei"]), bool("disabled")],
-    vmodel: { def: "Seoul" },
+    model: { def: "Seoul" },
   },
   {
     is: "DitherMultiSelect",
@@ -912,7 +915,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 300, h: 220 },
     props: [list("options", ["solid", "dither", "canvas", "tokens"]), text("placeholder", "Search…"), bool("disabled")],
-    vmodel: { def: ["solid"] },
+    model: { def: ["solid"] },
   },
   {
     is: "DitherCascadeSelect",
@@ -920,7 +923,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 360, h: 90 },
     props: [bool("disabled")],
-    vmodel: { def: ["Japan", "Kansai"] },
+    model: { def: ["Japan", "Kansai"] },
     mapProps: (p) => ({
       ...p,
       tree: [{ value: "Japan", children: [{ value: "Kansai", children: [{ value: "Kyoto" }, { value: "Osaka" }] }] }],
@@ -932,7 +935,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 420, h: 190 },
     props: [text("sourceLabel", "Available"), text("targetLabel", "Selected"), bool("disabled")],
-    vmodel: { def: ["admin"] },
+    model: { def: ["admin"] },
     mapProps: (p) => ({ ...p, source: ["admin", "editor", "viewer", "billing", "support"] }),
   },
   {
@@ -941,7 +944,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 260, h: 90 },
     props: [bool("includeDefault"), text("defaultLabel", "System default"), bool("disabled")],
-    vmodel: { def: "ja" },
+    model: { def: "ja" },
   },
   {
     is: "DitherIconPicker",
@@ -949,7 +952,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 300, h: 200 },
     props: [number("size", 16, 8, 32), text("placeholder", "Filter icons…"), bool("disabled")],
-    vmodel: { def: "Check" },
+    model: { def: "Check" },
   },
   {
     is: "DitherFontPicker",
@@ -957,7 +960,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 300, h: 300 },
     props: [bool("disabled")],
-    vmodel: { def: "system-ui, -apple-system, 'Segoe UI', sans-serif" },
+    model: { def: "system-ui, -apple-system, 'Segoe UI', sans-serif" },
   },
   {
     is: "DitherCalendar",
@@ -965,7 +968,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 260, h: 280 },
     props: [text("min", ""), text("max", ""), bool("disabled")],
-    vmodel: { def: "2026-10-07" },
+    model: { def: "2026-10-07" },
   },
   {
     is: "DitherDatePicker",
@@ -973,7 +976,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 280, h: 300 },
     props: [text("placeholder", "YYYY-MM-DD"), text("min", ""), text("max", ""), bool("disabled")],
-    vmodel: { def: "2026-10-07" },
+    model: { def: "2026-10-07" },
   },
   {
     is: "DitherMonthPicker",
@@ -981,7 +984,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 240, h: 180 },
     props: [bool("disabled")],
-    vmodel: { def: "2026-10" },
+    model: { def: "2026-10" },
   },
   {
     is: "DitherColorSwatch",
@@ -1002,7 +1005,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 260, h: 270 },
     props: [bool("disabled")],
-    vmodel: { def: "#5227FF" },
+    model: { def: "#5227FF" },
   },
   {
     is: "DitherKnob",
@@ -1016,7 +1019,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("size", 72, 40, 128),
       bool("disabled"),
     ],
-    vmodel: { def: 64 },
+    model: { def: 64 },
   },
   {
     is: "DitherSignaturePad",
@@ -1024,7 +1027,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 440, h: 230 },
     props: [number("width", 420, 200, 800), number("height", 160, 80, 400), bool("disabled")],
-    vmodel: { def: "" },
+    model: { def: "" },
   },
   {
     is: "DitherSpinner",
@@ -1993,7 +1996,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 280, h: 180 },
     props: [select("align", "start", ["start", "center", "end"])],
     slotText: "Popover content",
-    vmodel: { def: false, prop: "open", event: "close" },
+    model: { def: false, prop: "open", event: "close" },
     demo: "popover",
   },
   {
@@ -2003,7 +2006,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 300, h: 150 },
     props: [text("title", "Dialog title")],
     slotText: "Dialog content",
-    vmodel: { def: false, prop: "open", event: "close" },
+    model: { def: false, prop: "open", event: "close" },
     demo: "dialog",
   },
   {
@@ -2013,7 +2016,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 300, h: 150 },
     props: [text("label", "Release notes")],
     slotText: "The surface unfolds from its exact center.",
-    vmodel: { def: false, prop: "open", event: "close" },
+    model: { def: false, prop: "open", event: "close" },
     demo: "dialog",
   },
   {
@@ -2025,7 +2028,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       text("placeholder", "Type a command…"),
       list("items", ["New artboard", "Export image", "Toggle theme", "Open settings"]),
     ],
-    vmodel: { def: false, prop: "open", event: "close" },
+    model: { def: false, prop: "open", event: "close" },
     demo: "dialog",
     mapProps: (p) => ({ ...p, items: strList(p.items).map((label) => ({ value: label.toLowerCase(), label })) }),
   },
@@ -2041,7 +2044,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       text("cancelLabel", "Cancel"),
       bool("danger", true),
     ],
-    vmodel: { def: false, prop: "open", event: "cancel" },
+    model: { def: false, prop: "open", event: "cancel" },
     demo: "alert",
   },
   {
@@ -2057,7 +2060,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("dismissible", true),
     ],
     slotText: "Drawer content",
-    vmodel: { def: false, prop: "open", event: "close" },
+    model: { def: false, prop: "open", event: "close" },
     demo: "drawer",
   },
   {
@@ -2071,7 +2074,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("threshold", 24, 8, 100),
       bool("disabled"),
     ],
-    vmodel: { def: false },
+    model: { def: false },
     demo: "swipe-area",
   },
   {
@@ -2174,7 +2177,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("toggle", true),
       { ...color(), key: "washColor" },
     ],
-    vmodel: { def: false },
+    model: { def: false },
     demo: "sidebar",
   },
   {
@@ -2199,7 +2202,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "structure",
     frame: { w: 300, h: 280 },
     props: [text("label", "Projects")],
-    vmodel: { def: true },
+    model: { def: true },
     demo: "sidebar",
   },
   {
@@ -2209,7 +2212,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 320, h: 180 },
     props: [],
     slotText: "Indented application surface",
-    vmodel: { def: false },
+    model: { def: false },
     demo: "drawer-indent",
   },
 
@@ -2280,7 +2283,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 320, h: 90 },
     props: [list("tabs", ["Home", "Library", "Alerts"]), color()],
-    vmodel: { def: "home" },
+    model: { def: "home" },
     mapProps: (p) => ({ ...p, tabs: strList(p.tabs).map((label) => ({ value: label.toLowerCase(), label })) }),
   },
   {
@@ -2289,7 +2292,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 280, h: 140 },
     props: [text("label", "Deploy running"), color(), bool("live", true)],
-    vmodel: { def: false },
+    model: { def: false },
     slotText: "Build 214: 3 of 5 steps done.",
   },
   {
@@ -2328,7 +2331,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("range", 56, 24, 160, 4),
       select("side", "left", ["left", "right"]),
     ],
-    vmodel: { def: "home" },
+    model: { def: "home" },
     mapProps: (p) => ({ ...p, items: strList(p.items).map((label) => ({ value: label.toLowerCase(), label })) }),
   },
   {
@@ -2499,7 +2502,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       text("currency", "$"),
       bool("notifications", true),
     ],
-    vmodel: { def: "main" },
+    model: { def: "main" },
     mapProps: (p) => ({
       ...p,
       accounts: strList(p.accounts).map((label, i) => ({
@@ -2523,7 +2526,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("maxVisible", 3, 1, 5, 1),
       text("collapsedLabel", "Notifications"),
     ],
-    vmodel: { def: false },
+    model: { def: false },
     mapProps: (p) => ({
       ...p,
       items: strList(p.items).map((title, i) => ({
@@ -2545,7 +2548,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       select("direction", "up", ["up", "down", "left", "right"]),
       number("spacing", 52, 32, 100, 4),
     ],
-    vmodel: { def: false },
+    model: { def: false },
     mapProps: (p) => ({ ...p, items: strList(p.items).map((label) => ({ value: label.toLowerCase(), label })) }),
   },
   {
@@ -3175,16 +3178,17 @@ export function defaultComponentProps(entry: ComponentEntry): Record<string, unk
 
 const isPlain = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
 
-/** The longest v-model value a document may carry, as JSON. */
+/** The longest bound value (`model`) a document may carry, as JSON. */
 const MODEL_MAX = 20_000
 const kindOf = (v: unknown) => (Array.isArray(v) ? "array" : v === null ? "null" : typeof v)
-/** A component's v-model value as a document or an agent hands it: the same
+/** A component's bound value (its `model`: a field's text, a switch's state)
+ * as a document or an agent hands it: the same
  * kind as its default (text, number, yes/no, list, record; a default of
  * null takes text or a number too), plain JSON within `MODEL_MAX`, else the
- * default. A component without a v-model has none. */
+ * default. A component that binds no value has none. */
 export function sanitizeModel(entry: ComponentEntry, raw: unknown): unknown {
-  if (!entry.vmodel) return undefined
-  const def = entry.vmodel.def
+  if (!entry.model) return undefined
+  const def = entry.model.def
   const fallback = () => (def === undefined ? undefined : JSON.parse(JSON.stringify(def)))
   const fits = kindOf(raw) === kindOf(def) || (def === null && (typeof raw === "string" || typeof raw === "number"))
   if (raw === undefined || !fits || (typeof raw === "number" && !Number.isFinite(raw))) return fallback()

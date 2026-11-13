@@ -79,43 +79,51 @@ const NOTICES: Notice[] = [
 ]
 
 const SNIPPET = `${dataCode("start", NOTICES)}
-const notices = ref(start)
-const tab = ref("All")
+const [notices, setNotices] = createSignal(start)
+const [tab, setTab] = createSignal("All")
 
-const unread = computed(() => notices.value.filter((n) => !n.read).length)
-const shown = computed(() => (tab.value === "Unread" ? notices.value.filter((n) => !n.read) : notices.value))
-const days = computed(() => ["Today", "Earlier"].filter((d) => shown.value.some((n) => n.day === d)))
-const byDay = (day: string) => shown.value.filter((n) => n.day === day)
+const unread = createMemo(() => notices().filter((n) => !n.read).length)
+const shown = createMemo(() => (tab() === "Unread" ? notices().filter((n) => !n.read) : notices()))
+const days = createMemo(() => ["Today", "Earlier"].filter((d) => shown().some((n) => n.day === d)))
+const byDay = (day: string) => shown().filter((n) => n.day === day)
 
 function read(id: number) {
-  notices.value = notices.value.map((n) => (n.id === id ? { ...n, read: true } : n))
+  setNotices(notices().map((n) => (n.id === id ? { ...n, read: true } : n)))
 }
 function markAll() {
-  notices.value = notices.value.map((n) => ({ ...n, read: true }))
+  setNotices(notices().map((n) => ({ ...n, read: true })))
 }
 
 <div class="w-full max-w-80 rounded-lg border">
   <header class="flex items-center justify-between border-b p-3 text-[12px]">
-    <span>Notifications <DitherBadge v-if="unread" color="green">{{ unread }}</DitherBadge></span>
-    <button type="button" class="text-[10px]" :disabled="!unread" @click="markAll">Mark all read</button>
+    <span>Notifications <Show when={unread()}><DitherBadge color="green">{unread()}</DitherBadge></Show></span>
+    <button type="button" class="text-[10px]" disabled={!unread()} onClick={markAll}>Mark all read</button>
   </header>
 
-  <DitherTabs v-model="tab" :tabs="['All', 'Unread']" variant="segmented" class="p-2" />
+  <DitherTabs modelValue={tab()} onUpdateModelValue={setTab} tabs={['All', 'Unread']} variant="segmented" class="p-2" />
 
-  <section v-for="day in days" :key="day">
-    <h4 class="px-3 text-[10px] text-muted-foreground">{{ day }}</h4>
-    <button v-for="n in byDay(day)" :key="n.id" type="button" @click="read(n.id)"
-      class="flex w-full items-start gap-2 p-2 text-left text-[11px]">
-      <DitherAvatar :name="n.actor" :size="24" :color="n.color" />
-      <span class="flex-1"><b>{{ n.actor }}</b> {{ n.action }} <b>{{ n.target }}</b>
-        <time class="block text-[10px]">{{ n.time }}</time></span>
-      <!-- the unread dot -->
-      <span v-if="!n.read" class="size-1.5 rounded-full bg-accent" />
-    </button>
-  </section>
+  <For each={days()}>
+    {(day) => (
+      <section>
+        <h4 class="px-3 text-[10px] text-muted-foreground">{day}</h4>
+        <For each={byDay(day)}>
+          {(n) => (
+            <button type="button" onClick={() => read(n.id)}
+              class="flex w-full items-start gap-2 p-2 text-left text-[11px]">
+              <DitherAvatar name={n.actor} size={24} color={n.color} />
+              <span class="flex-1"><b>{n.actor}</b> {n.action} <b>{n.target}</b>
+                <time class="block text-[10px]">{n.time}</time></span>
+              {/* the unread dot */}
+              <Show when={!n.read}><span class="size-1.5 rounded-full bg-accent" /></Show>
+            </button>
+          )}
+        </For>
+      </section>
+    )}
+  </For>
 
-  <!-- the empty state -->
-  <p v-if="!shown.length" class="p-3 text-[11px]">All caught up.</p>
+  {/* the empty state */}
+  <Show when={!shown().length}><p class="p-3 text-[11px]">All caught up.</p></Show>
 </div>`
 
 export default function NotificationsExamples() {

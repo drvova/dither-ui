@@ -48,7 +48,7 @@ export function createComponent(entry: ComponentEntry): ComponentModel {
     is: entry.is,
     props: defaultComponentProps(entry),
     slotText: entry.slotText ?? null,
-    model: entry.vmodel ? entry.vmodel.def : undefined,
+    model: entry.model ? entry.model.def : undefined,
   }
 }
 

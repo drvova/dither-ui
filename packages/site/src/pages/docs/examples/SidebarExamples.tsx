@@ -105,121 +105,144 @@ const RAIL_ITEMS: { label: string; badge?: number; color: "blue" | "purple" | "g
   { label: "Alerts", badge: 5, color: "red" },
 ]
 
-const SNIPPET_DASHBOARD = `const collapsed = ref(false)
-const active = ref("Dashboard")
+const SNIPPET_DASHBOARD = `import { DitherSidebar, DitherSidebarGroup, DitherSidebarItem, DitherButton, DitherAvatar } from "@dither-kit"
+const [collapsed, setCollapsed] = createSignal(false)
+const [active, setActive] = createSignal("Dashboard")
 const items = [{ label: "Dashboard" }, { label: "Projects", badge: 12 }, { label: "Team" }, { label: "Settings" }]
 
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar v-model="collapsed" variant="washed" wash-color="blue" :toggle="false">
-    <template #header>
+  <DitherSidebar modelValue={collapsed()} onUpdateModelValue={setCollapsed} variant="washed" washColor="blue" toggle={false}
+    header={
       <div class="flex h-8 items-center gap-2 px-2.5 text-[12px]">
         <span class="size-2.5 shrink-0 rounded-[2px] bg-foreground" />
-        <span v-if="!collapsed">acme.io</span>
+        <Show when={!collapsed()}><span>acme.io</span></Show>
       </div>
-    </template>
+    }
+    footer={
+      <>
+        {/* the upgrade card */}
+        <Show when={!collapsed()}>
+          <div class="mb-2 rounded-md border p-2.5 text-[11px]">
+            Upgrade to pro
+            <DitherButton color="blue" variant="gradient" class="mt-2 w-full">Upgrade</DitherButton>
+          </div>
+        </Show>
+        <div class="flex items-center gap-2 border-t px-2 pt-2 text-[11px]">
+          <DitherAvatar name="Ada Byte" size={22} />
+          <Show when={!collapsed()}><span>Ada Byte</span></Show>
+        </div>
+      </>
+    }
+  >
     <DitherSidebarGroup label="Main">
-      <DitherSidebarItem v-for="i in items" :key="i.label" :label="i.label" :badge="i.badge"
-        :active="active === i.label" @select="active = i.label" />
+      <For each={items}>
+        {(i) => (
+          <DitherSidebarItem label={i.label} badge={i.badge}
+            active={active() === i.label} onSelect={() => setActive(i.label)} />
+        )}
+      </For>
     </DitherSidebarGroup>
-    <template #footer>
-      <!-- the upgrade card -->
-      <div v-if="!collapsed" class="mb-2 rounded-md border p-2.5 text-[11px]">
-        Upgrade to pro
-        <DitherButton color="blue" variant="gradient" class="mt-2 w-full">Upgrade</DitherButton>
-      </div>
-      <div class="flex items-center gap-2 border-t px-2 pt-2 text-[11px]">
-        <DitherAvatar name="Ada Byte" :size="22" />
-        <span v-if="!collapsed">Ada Byte</span>
-      </div>
-    </template>
   </DitherSidebar>
   <main class="flex-1">
     <div class="flex h-10 items-center gap-2 border-b px-3 text-[11px]">
-      <button type="button" :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-        :aria-expanded="!collapsed" @click="collapsed = !collapsed">▤</button>
-      <nav aria-label="Breadcrumb">Home / Projects / {{ active }}</nav>
+      <button type="button" aria-label={collapsed() ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-expanded={!collapsed()} onClick={() => setCollapsed(!collapsed())}>▤</button>
+      <nav aria-label="Breadcrumb">Home / Projects / {active()}</nav>
     </div>
   </main>
 </div>`
 
-const SNIPPET_ADMIN = `const hidden = ref(false)
-const active = ref("Members")
+const SNIPPET_ADMIN = `import { DitherSidebar, DitherSidebarGroup, DitherSidebarItem, DitherMeter, DitherAvatar } from "@dither-kit"
+const [hidden, setHidden] = createSignal(false)
+const [active, setActive] = createSignal("Members")
 
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar v-model="hidden" collapse="hide" variant="floating" :toggle="false">
+  <DitherSidebar modelValue={hidden()} onUpdateModelValue={setHidden} collapse="hide" variant="floating" toggle={false}
+    footer={
+      <>
+        {/* the storage card */}
+        <div class="rounded-md border p-2.5 text-[11px]">
+          Storage <DitherMeter value={68} class="my-1.5" /> 6.8 of 10 GB
+        </div>
+        {/* the profile row */}
+        <div class="mt-2 flex items-center gap-2 text-[11px]">
+          <DitherAvatar name="Rei Toma" size={22} /> Rei Toma
+        </div>
+      </>
+    }
+  >
     <DitherSidebarGroup label="Manage">
-      <DitherSidebarItem label="Members" :badge="24" :active="active === 'Members'" @select="active = 'Members'" />
-      <DitherSidebarItem label="Roles" :active="active === 'Roles'" @select="active = 'Roles'" />
-      <DitherSidebarItem label="Audit log" badge="!" color="red" :active="active === 'Audit log'" @select="active = 'Audit log'" />
+      <DitherSidebarItem label="Members" badge={24} active={active() === 'Members'} onSelect={() => setActive('Members')} />
+      <DitherSidebarItem label="Roles" active={active() === 'Roles'} onSelect={() => setActive('Roles')} />
+      <DitherSidebarItem label="Audit log" badge="!" color="red" active={active() === 'Audit log'} onSelect={() => setActive('Audit log')} />
     </DitherSidebarGroup>
     <DitherSidebarGroup label="Quick actions">
       <DitherSidebarItem label="New member" />
       <DitherSidebarItem label="Create invite" />
     </DitherSidebarGroup>
-    <template #footer>
-      <!-- the storage card -->
-      <div class="rounded-md border p-2.5 text-[11px]">
-        Storage <DitherMeter :value="68" class="my-1.5" /> 6.8 of 10 GB
-      </div>
-      <!-- the profile row -->
-      <div class="mt-2 flex items-center gap-2 text-[11px]">
-        <DitherAvatar name="Rei Toma" :size="22" /> Rei Toma
-      </div>
-    </template>
   </DitherSidebar>
   <main class="flex-1 p-3 text-[11px]">
-    <button type="button" aria-label="Toggle the panel" @click="hidden = !hidden">☰</button>
-    {{ active }}
+    <button type="button" aria-label="Toggle the panel" onClick={() => setHidden(!hidden())}>☰</button>
+    {active()}
   </main>
 </div>`
 
-const SNIPPET_FILTERS = `${dataCode("counts", CAT_COUNTS)}
-const search = ref("")
-const checked = ref<Record<string, boolean>>({ Prints: true })
-const price = ref<[number, number]>([50, 500])
+const SNIPPET_FILTERS = `import { DitherSidebar, DitherInput, DitherSidebarGroup, DitherCheckbox, DitherSlider, DitherButton } from "@dither-kit"
+${dataCode("counts", CAT_COUNTS)}
+const [search, setSearch] = createSignal("")
+const [checked, setChecked] = createSignal<Record<string, boolean>>({ Prints: true })
+const [price, setPrice] = createSignal<[number, number]>([50, 500])
 
 function reset() {
-  search.value = ""
-  checked.value = {}
-  price.value = [0, 500]
+  setSearch("")
+  setChecked({})
+  setPrice([0, 500])
 }
 
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar collapse="none" variant="inset">
-    <template #header>
-      <p class="px-2.5 text-[12px]">Print shop</p>
-      <DitherInput v-model="search" placeholder="Search products…" aria-label="Search products" />
-    </template>
+  <DitherSidebar collapse="none" variant="inset"
+    header={
+      <>
+        <p class="px-2.5 text-[12px]">Print shop</p>
+        <DitherInput modelValue={search()} onUpdateModelValue={setSearch} placeholder="Search products…" aria-label="Search products" />
+      </>
+    }
+    footer={
+      <>
+        <DitherButton color="green" class="w-full">Apply filters</DitherButton>
+        <button type="button" class="mt-2 w-full text-[10px]" onClick={reset}>Reset all</button>
+      </>
+    }
+  >
 
     <DitherSidebarGroup label="Categories">
-      <label v-for="c in Object.keys(counts)" :key="c" class="flex items-center gap-2 px-2.5 text-[11px]">
-        <DitherCheckbox :model-value="!!checked[c]" @update:model-value="(on) => (checked = { ...checked, [c]: on })">
-          {{ c }}
-        </DitherCheckbox>
-        <span class="ml-auto tabular-nums">({{ counts[c] }})</span>
-      </label>
+      <For each={Object.keys(counts)}>
+        {(c) => (
+          <label class="flex items-center gap-2 px-2.5 text-[11px]">
+            <DitherCheckbox modelValue={!!checked()[c]} onUpdateModelValue={(on) => (setChecked({ ...checked(), [c]: on }))}>
+              {c}
+            </DitherCheckbox>
+            <span class="ml-auto tabular-nums">({counts[c]})</span>
+          </label>
+        )}
+      </For>
     </DitherSidebarGroup>
 
     <DitherSidebarGroup label="Price">
-      <DitherSlider v-model="price" :min="0" :max="500" label="Price range" />
-      <span class="px-2.5 text-[11px] tabular-nums">\${{ price[0] }} to \${{ price[1] }}</span>
+      <DitherSlider modelValue={price()} onUpdateModelValue={setPrice} min={0} max={500} label="Price range" />
+      <span class="px-2.5 text-[11px] tabular-nums">\${price()[0]} to \${price()[1]}</span>
     </DitherSidebarGroup>
-
-    <template #footer>
-      <DitherButton color="green" class="w-full">Apply filters</DitherButton>
-      <button type="button" class="mt-2 w-full text-[10px]" @click="reset">Reset all</button>
-    </template>
   </DitherSidebar>
 </div>`
 
 const SNIPPET_DOCS = `${dataCode("tree", DOCS_TREE)}
-const query = ref("")
-const active = ref("Installation")
-const opened = ref<Record<string, boolean>>({ "Getting started": true })
+const [query, setQuery] = createSignal("")
+const [active, setActive] = createSignal("Installation")
+const [opened, setOpened] = createSignal<Record<string, boolean>>({ "Getting started": true })
 
 // searching prunes the rows and forces their groups open
-const filtered = computed(() => {
-  const q = query.value.trim().toLowerCase()
+const filtered = createMemo(() => {
+  const q = query().trim().toLowerCase()
   const out: Record<string, string[]> = {}
   for (const [group, items] of Object.entries(tree)) {
     const hit = items.filter((i) => i.toLowerCase().includes(q))
@@ -229,53 +252,72 @@ const filtered = computed(() => {
 })
 
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar collapse="none" density="compact" variant="inset">
-    <template #header>
-      <p class="px-2.5 text-[12px]">dither-ui docs v2.4</p>
-      <DitherInput v-model="query" placeholder="Search docs…" aria-label="Search docs" />
-    </template>
-
-    <DitherSidebarSub v-for="group in Object.keys(filtered)" :key="group"
-      :label="group"
-      :model-value="query ? true : !!opened[group]"
-      @update:model-value="(v) => (opened = { ...opened, [group]: v })">
-      <DitherSidebarItem v-for="item in filtered[group]" :key="item" :label="item"
-        :active="active === item" @select="active = item" />
-    </DitherSidebarSub>
-    <p v-if="!Object.keys(filtered).length" class="px-2.5 text-[11px]">No pages match.</p>
-
-    <template #footer>
+  <DitherSidebar collapse="none" density="compact" variant="inset"
+    header={
+      <>
+        <p class="px-2.5 text-[12px]">dither-ui docs v2.4</p>
+        <DitherInput modelValue={query()} onUpdateModelValue={setQuery} placeholder="Search docs…" aria-label="Search docs" />
+      </>
+    }
+    footer={
       <div class="rounded-md border p-2.5 text-[11px]">Need help? Ask in the community.</div>
-    </template>
+    }
+  >
+
+    <For each={Object.keys(filtered())}>
+      {(group) => (
+        <DitherSidebarSub
+          label={group}
+          modelValue={query() ? true : !!opened()[group]}
+          onUpdateModelValue={(v) => (setOpened({ ...opened(), [group]: v }))}>
+          <For each={filtered()[group]}>
+            {(item) => (
+              <DitherSidebarItem label={item}
+                active={active() === item} onSelect={() => setActive(item)} />
+            )}
+          </For>
+        </DitherSidebarSub>
+      )}
+    </For>
+    <Show when={!Object.keys(filtered()).length}><p class="px-2.5 text-[11px]">No pages match.</p></Show>
   </DitherSidebar>
 </div>`
 
 const SNIPPET_DUAL = `${dataCode("panels", PANELS)}
-const rail = ref("Inbox")
-const active = ref("All mail")
+const [rail, setRail] = createSignal("Inbox")
+const [active, setActive] = createSignal("All mail")
 
-<!-- tier 1: a permanent icon rail; tier 2: the panel it picks -->
+{/* tier 1: a permanent icon rail; tier 2: the panel it picks */}
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar collapse="rail" :model-value="true" :toggle="false" class="w-14">
-    <DitherSidebarItem v-for="name in Object.keys(panels)" :key="name" :label="name"
-      :active="rail === name" @select="rail = name" />
+  <DitherSidebar collapse="rail" modelValue={true} toggle={false} class="w-14">
+    <For each={Object.keys(panels)}>
+      {(name) => (
+        <DitherSidebarItem label={name}
+          active={rail() === name} onSelect={() => setRail(name)} />
+      )}
+    </For>
   </DitherSidebar>
 
-  <DitherSidebar collapse="none" variant="inset" class="border-r">
-    <template #header><p class="px-2.5 text-[12px]">{{ panels[rail].title }}</p></template>
-    <DitherSidebarItem v-for="item in panels[rail].items" :key="item.label"
-      :label="item.label" :badge="item.badge"
-      :active="active === item.label" @select="active = item.label" />
+  <DitherSidebar collapse="none" variant="inset" class="border-r"
+    header={<p class="px-2.5 text-[12px]">{panels[rail()].title}</p>}
+  >
+    <For each={panels[rail()].items}>
+      {(item) => (
+        <DitherSidebarItem
+          label={item.label} badge={item.badge}
+          active={active() === item.label} onSelect={() => setActive(item.label)} />
+      )}
+    </For>
   </DitherSidebar>
 
-  <main class="flex-1 p-4 text-[11px]">{{ rail }} / {{ active }}</main>
+  <main class="flex-1 p-4 text-[11px]">{rail()} / {active()}</main>
 </div>`
 
 const SNIPPET_PERSONAL = `const dow = ${JSON.stringify(DOW).replace(/,/g, ", ")}
 // the month opens on a Wednesday: two blank cells, then 31 days
 const cells = Array.from({ length: ${CAL_LEAD + CAL_DAYS} }, (_, i) => (i < ${CAL_LEAD} ? null : i - ${CAL_LEAD - 1}))
 const today = ${CAL_TODAY}
-const lists = ref<Record<string, { label: string; done: boolean }[]>>({
+const [lists, setLists] = createSignal<Record<string, { label: string; done: boolean }[]>>({
   Personal: [
     { label: "Morning walk", done: true },
     { label: "Read 30 minutes", done: false },
@@ -287,185 +329,230 @@ const lists = ref<Record<string, { label: string; done: boolean }[]>>({
 })
 
 function tick(group: string, label: string, done: boolean) {
-  lists.value = { ...lists.value, [group]: lists.value[group].map((t) => (t.label === label ? { ...t, done } : t)) }
+  setLists({ ...lists(), [group]: lists()[group].map((t) => (t.label === label ? { ...t, done } : t)) })
 }
 
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar collapse="none" variant="inset">
-    <template #header>
+  <DitherSidebar collapse="none" variant="inset"
+    header={
       <div class="flex items-center gap-2 px-2.5 text-[12px]">
-        <DitherAvatar name="Mika" :size="26" color="purple" /> Personal hub
+        <DitherAvatar name="Mika" size={26} color="purple" /> Personal hub
       </div>
-    </template>
+    }
+    footer={<p class="px-2.5 text-[10px]">All synced</p>}
+  >
 
     <DitherSidebarGroup label="Calendar">
       <div class="grid grid-cols-7 gap-0.5 px-2.5 text-center text-[10px]">
-        <span v-for="d in dow" :key="d">{{ d }}</span>
-        <span v-for="(day, i) in cells" :key="i" :class="day === today ? 'bg-card ring-1' : ''">{{ day }}</span>
+        <For each={dow}>{(d) => <span>{d}</span>}</For>
+        <Index each={cells}>{(day, i) => <span class={day() === today ? 'bg-card ring-1' : ''}>{day()}</span>}</Index>
       </div>
     </DitherSidebarGroup>
 
-    <DitherSidebarGroup v-for="group in ['Personal', 'Work']" :key="group" :label="group">
-      <DitherCheckbox v-for="t in lists[group]" :key="t.label" :model-value="t.done" color="purple"
-        @update:model-value="(done) => tick(group, t.label, done)">
-        <span :class="t.done ? 'line-through opacity-60' : ''">{{ t.label }}</span>
-      </DitherCheckbox>
-    </DitherSidebarGroup>
-    <template #footer><p class="px-2.5 text-[10px]">All synced</p></template>
+    <For each={['Personal', 'Work']}>
+      {(group) => (
+        <DitherSidebarGroup label={group}>
+          <For each={lists()[group]}>
+            {(t) => (
+              <DitherCheckbox modelValue={t.done} color="purple"
+                onUpdateModelValue={(done) => tick(group, t.label, done)}>
+                <span class={t.done ? 'line-through opacity-60' : ''}>{t.label}</span>
+              </DitherCheckbox>
+            )}
+          </For>
+        </DitherSidebarGroup>
+      )}
+    </For>
   </DitherSidebar>
 </div>`
 
-const SNIPPET_FLOATING = `const collapsed = ref(false)
-const active = ref("Home")
+const SNIPPET_FLOATING = `const [collapsed, setCollapsed] = createSignal(false)
+const [active, setActive] = createSignal("Home")
 const favorites = ${JSON.stringify(FAVORITES).replace(/","/g, '", "')}
 
 <div class="relative h-96 rounded-lg border bg-card/20 p-2">
-  <DitherSidebar v-model="collapsed" variant="floating" class="m-0 h-full">
-    <!-- the workspace switcher -->
-    <template #header>
+  <DitherSidebar modelValue={collapsed()} onUpdateModelValue={setCollapsed} variant="floating" class="m-0 h-full"
+    header={
       <button type="button" class="flex w-full items-center gap-2 rounded-md border p-1.5 text-[11px]">
-        <DitherAvatar name="acme" :size="22" />
-        <span v-if="!collapsed">Acme Inc, enterprise</span>
+        <DitherAvatar name="acme" size={22} />
+        <Show when={!collapsed()}><span>Acme Inc, enterprise</span></Show>
       </button>
-    </template>
-    <DitherSidebarItem label="Home" :active="active === 'Home'" @select="active = 'Home'" />
-    <DitherSidebarItem label="Inbox" :badge="10" :active="active === 'Inbox'" @select="active = 'Inbox'" />
+    }
+  >
+    {/* the workspace switcher */}
+    
+    <DitherSidebarItem label="Home" active={active() === 'Home'} onSelect={() => setActive('Home')} />
+    <DitherSidebarItem label="Inbox" badge={10} active={active() === 'Inbox'} onSelect={() => setActive('Inbox')} />
     <DitherSidebarGroup label="Favorites">
-      <!-- a long label truncates -->
-      <DitherSidebarItem v-for="f in favorites" :key="f" :label="f" :active="active === f" @select="active = f" />
+      {/* a long label truncates */}
+      <For each={favorites}>{(f) => <DitherSidebarItem label={f} active={active() === f} onSelect={() => setActive(f)} />}</For>
     </DitherSidebarGroup>
   </DitherSidebar>
 </div>`
 
-const SNIPPET_RIGHT = `const collapsed = ref(false)
-const calendars = ref([
+const SNIPPET_RIGHT = `const [collapsed, setCollapsed] = createSignal(false)
+const [calendars, setCalendars] = createSignal([
   { label: "Personal", color: "blue", on: true },
   { label: "Work", color: "green", on: true },
   { label: "Family", color: "purple", on: false },
 ])
 
 function show(label: string, on: boolean) {
-  calendars.value = calendars.value.map((c) => (c.label === label ? { ...c, on } : c))
+  setCalendars(calendars().map((c) => (c.label === label ? { ...c, on } : c)))
 }
 
 <div class="flex h-96 overflow-hidden rounded-lg border">
   <main class="flex-1 p-3 text-[11px]">
-    <button type="button" aria-label="Toggle the panel" @click="collapsed = !collapsed">☰</button>
-    {{ calendars.filter((c) => c.on).length }} calendars shown
+    <button type="button" aria-label="Toggle the panel" onClick={() => setCollapsed(!collapsed())}>☰</button>
+    {calendars().filter((c) => c.on).length} calendars shown
   </main>
 
-  <DitherSidebar v-model="collapsed" side="right" collapse="hide" :toggle="false">
-    <template #header>
+  <DitherSidebar modelValue={collapsed()} onUpdateModelValue={setCollapsed} side="right" collapse="hide" toggle={false}
+    header={
       <div class="flex items-center gap-2 px-2.5 text-[11px]">
-        <DitherAvatar name="Juno Bit" :size="24" /> juno@dither-ui.com
+        <DitherAvatar name="Juno Bit" size={24} /> juno@dither-ui.com
       </div>
-    </template>
+    }
+  >
 
     <DitherSidebarGroup label="My calendars">
-      <label v-for="c in calendars" :key="c.label" class="flex items-center gap-2 px-2.5 text-[11px]">
-        <DitherCheckbox :model-value="c.on" :color="c.color" @update:model-value="(on) => show(c.label, on)">
-          {{ c.label }}
-        </DitherCheckbox>
-        <span class="ml-auto size-1.5 rounded-full" :style="{ background: 'var(--swatch-' + c.color + ')' }" />
-      </label>
+      <For each={calendars()}>
+        {(c) => (
+          <label class="flex items-center gap-2 px-2.5 text-[11px]">
+            <DitherCheckbox modelValue={c.on} color={c.color} onUpdateModelValue={(on) => show(c.label, on)}>
+              {c.label}
+            </DitherCheckbox>
+            <span class="ml-auto size-1.5 rounded-full" style={{ background: 'var(--swatch-' + c.color + ')' }} />
+          </label>
+        )}
+      </For>
     </DitherSidebarGroup>
   </DitherSidebar>
 </div>`
 
 const SNIPPET_TEAMS = `${dataCode("teams", TEAMS)}
-const team = ref("Acme Inc")
-const active = ref("Roadmap")
+const [team, setTeam] = createSignal("Acme Inc")
+const [active, setActive] = createSignal("Roadmap")
 
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar variant="washed" :wash-color="teams[team].color">
-    <!-- the workspace menu really switches -->
-    <template #header>
-      <DitherMenu :items="Object.keys(teams).map((label) => ({ label }))" @select="(label) => (team = label)">
+  <DitherSidebar variant="washed" washColor={teams[team()].color}
+    header={
+      <DitherMenu items={Object.keys(teams).map((label) => ({ label }))} onSelect={(label) => (setTeam(label))}>
         <span class="flex items-center gap-2 text-[11px]">
-          <DitherAvatar :name="team" :size="22" :color="teams[team].color" />
-          {{ team }}, {{ teams[team].plan }}
+          <DitherAvatar name={team()} size={22} color={teams[team()].color} />
+          {team()}, {teams[team()].plan}
         </span>
       </DitherMenu>
-    </template>
-    <DitherSidebarGroup v-for="group in Object.keys(teams[team].groups)" :key="group" :label="group">
-      <DitherSidebarItem v-for="i in teams[team].groups[group]" :key="i.label" :label="i.label" :badge="i.badge"
-        :color="teams[team].color"
-        :active="active === i.label" @select="active = i.label" />
-    </DitherSidebarGroup>
+    }
+  >
+    {/* the workspace menu really switches */}
+    
+    <For each={Object.keys(teams[team()].groups)}>
+      {(group) => (
+        <DitherSidebarGroup label={group}>
+          <For each={teams[team()].groups[group]}>
+            {(i) => (
+              <DitherSidebarItem label={i.label} badge={i.badge}
+                color={teams[team()].color}
+                active={active() === i.label} onSelect={() => setActive(i.label)} />
+            )}
+          </For>
+        </DitherSidebarGroup>
+      )}
+    </For>
   </DitherSidebar>
 </div>`
 
-const SNIPPET_TREE = `const folders = ref({ src: true, components: true, charts: false, public: false })
-const file = ref("DitherSidebar.tsx")
+const SNIPPET_TREE = `const [folders, setFolders] = createSignal({ src: true, components: true, charts: false, public: false })
+const [file, setFile] = createSignal("DitherSidebar.tsx")
 
 function all(open: boolean) {
-  folders.value = { src: open, components: open, charts: open, public: open }
+  setFolders({ src: open, components: open, charts: open, public: open })
 }
 
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar collapse="none" density="compact" variant="inset">
-    <template #header>
+  <DitherSidebar collapse="none" density="compact" variant="inset"
+    header={
       <p class="px-2.5 text-[11px]">
-        Explorer: <button type="button" @click="all(true)">expand</button>
-        / <button type="button" @click="all(false)">collapse</button>
+        Explorer: <button type="button" onClick={() => all(true)}>expand</button>
+        / <button type="button" onClick={() => all(false)}>collapse</button>
       </p>
-    </template>
+    }
+  >
 
-    <DitherSidebarSub v-model="folders.src" label="src">
-      <!-- subs nest -->
-      <DitherSidebarSub v-model="folders.components" label="components">
-        <DitherSidebarItem v-for="f in ['DitherSidebar.tsx', 'DitherButton.tsx']" :key="f" :label="f"
-          :active="file === f" @select="file = f" />
+    <DitherSidebarSub modelValue={folders().src} onUpdateModelValue={(v) => setFolders({ ...folders(), src: v })} label="src">
+      {/* subs nest */}
+      <DitherSidebarSub modelValue={folders().components} onUpdateModelValue={(v) => setFolders({ ...folders(), components: v })} label="components">
+        <For each={['DitherSidebar.tsx', 'DitherButton.tsx']}>
+          {(f) => (
+            <DitherSidebarItem label={f}
+              active={file() === f} onSelect={() => setFile(f)} />
+          )}
+        </For>
       </DitherSidebarSub>
-      <DitherSidebarSub v-model="folders.charts" label="charts">
-        <DitherSidebarItem v-for="f in ['AreaChart.tsx', 'BarChart.tsx']" :key="f" :label="f"
-          :active="file === f" @select="file = f" />
+      <DitherSidebarSub modelValue={folders().charts} onUpdateModelValue={(v) => setFolders({ ...folders(), charts: v })} label="charts">
+        <For each={['AreaChart.tsx', 'BarChart.tsx']}>
+          {(f) => (
+            <DitherSidebarItem label={f}
+              active={file() === f} onSelect={() => setFile(f)} />
+          )}
+        </For>
       </DitherSidebarSub>
-      <DitherSidebarItem label="index.ts" :active="file === 'index.ts'" @select="file = 'index.ts'" />
+      <DitherSidebarItem label="index.ts" active={file() === 'index.ts'} onSelect={() => setFile('index.ts')} />
     </DitherSidebarSub>
-    <DitherSidebarSub v-model="folders.public" label="public">
-      <DitherSidebarItem label="favicon.svg" :active="file === 'favicon.svg'" @select="file = 'favicon.svg'" />
+    <DitherSidebarSub modelValue={folders().public} onUpdateModelValue={(v) => setFolders({ ...folders(), public: v })} label="public">
+      <DitherSidebarItem label="favicon.svg" active={file() === 'favicon.svg'} onSelect={() => setFile('favicon.svg')} />
     </DitherSidebarSub>
   </DitherSidebar>
 </div>`
 
 const SNIPPET_DRAWER = `const items = ["Home", "Charts", "Palettes", "Exports"]
-const nav = ref(false)
-const active = ref("Home")
+const [nav, setNav] = createSignal(false)
+const [active, setActive] = createSignal("Home")
 
 function pick(item: string) {
-  active.value = item
-  nav.value = false
+  setActive(item)
+  setNav(false)
 }
 
-<!-- mobile: the sidebar rides in a drawer; swipe-to-dismiss ships with it,
-     Escape closes it and the focus stays inside -->
-<button type="button" aria-label="Open navigation" @click="nav = true">☰ {{ active }}</button>
+{/* mobile: the sidebar rides in a drawer; swipe-to-dismiss ships with it,
+     Escape closes it and the focus stays inside */}
+<button type="button" aria-label="Open navigation" onClick={() => setNav(true)}>☰ {active()}</button>
 
-<DitherDrawer :open="nav" side="left" title="Navigation" @close="nav = false">
-  <!-- items work standalone; pick also closes the drawer -->
+<DitherDrawer open={nav()} side="left" title="Navigation" onClose={() => setNav(false)}>
+  {/* items work standalone; pick also closes the drawer */}
   <DitherSidebarGroup label="Browse">
-    <DitherSidebarItem v-for="i in items" :key="i" :label="i"
-      :active="active === i" @select="pick(i)" />
+    <For each={items}>
+      {(i) => (
+        <DitherSidebarItem label={i}
+          active={active() === i} onSelect={() => pick(i)} />
+      )}
+    </For>
   </DitherSidebarGroup>
 </DitherDrawer>`
 
-const SNIPPET_RAIL = `${dataCode("items", RAIL_ITEMS)}
-const active = ref("Charts")
+const SNIPPET_RAIL = `import { DitherSidebar, DitherTooltip, DitherSidebarItem, DitherAvatar } from "@dither-kit"
+${dataCode("items", RAIL_ITEMS)}
+const [active, setActive] = createSignal("Charts")
 
-<!-- the whole nav in 56px: tooltips carry the labels -->
+{/* the whole nav in 56px: tooltips carry the labels */}
 <div class="flex h-96 overflow-hidden rounded-lg border">
-  <DitherSidebar collapse="rail" :model-value="true" :toggle="false">
-    <template #header>
+  <DitherSidebar collapse="rail" modelValue={true} toggle={false}
+    header={
       <div class="grid h-8 place-items-center"><span class="size-2.5 rounded-[2px] bg-foreground" /></div>
-    </template>
-    <DitherTooltip v-for="i in items" :key="i.label" :text="i.label">
-      <DitherSidebarItem :label="i.label" :badge="i.badge" :color="i.color"
-        :active="active === i.label" @select="active = i.label" />
-    </DitherTooltip>
-    <template #footer><DitherAvatar name="Ada Byte" :size="22" /></template>
+    }
+    footer={<DitherAvatar name="Ada Byte" size={22} />}
+  >
+    <For each={items}>
+      {(i) => (
+        <DitherTooltip text={i.label}>
+          <DitherSidebarItem label={i.label} badge={i.badge} color={i.color}
+            active={active() === i.label} onSelect={() => setActive(i.label)} />
+        </DitherTooltip>
+      )}
+    </For>
   </DitherSidebar>
-  <main class="flex-1 p-4 text-[11px]">{{ active }}</main>
+  <main class="flex-1 p-4 text-[11px]">{active()}</main>
 </div>`
 
 /** An app's window at a desktop's width: a sidebar beside its page needs

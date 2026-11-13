@@ -39,12 +39,12 @@ ${dataCode("config", CHART)}
 
 <DitherScreen screen="diagonal">
   <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
-    <AreaChart :data="rows" :config="config" class="h-36">
-      <Area data-key="sessions" />
-      <Area data-key="signups" />
+    <AreaChart data={rows} config={config} class="h-36">
+      <Area dataKey="sessions" />
+      <Area dataKey="signups" />
     </AreaChart>
     <div class="flex items-center gap-3 sm:flex-col">
-      <DitherAvatar name="print" :size="64" />
+      <DitherAvatar name="print" size={64} />
       <div class="relative h-16 w-28 overflow-hidden rounded-md">
         <DitherGradient from="purple" direction="right" />
       </div>
@@ -52,8 +52,8 @@ ${dataCode("config", CHART)}
   </div>
 </DitherScreen>
 
-<!-- or the matrices alone, for your own painter: screenMatrix("dot", seed)
-     gives the 4x4 thresholds, read as m[y & 3][x & 3] -->`
+{/* or the matrices alone, for your own painter: screenMatrix("dot", seed)
+     gives the 4x4 thresholds, read as m[y & 3][x & 3] */}`
 
 const API: PropRow[] = [
   { prop: "screen", type: "'bayer' | 'line' | 'diagonal' | 'dot' | 'cross'", default: "'diagonal'" },

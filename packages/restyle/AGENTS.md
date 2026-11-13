@@ -32,8 +32,8 @@ twin the same way. Paths here are from this package's root.
 
 ## Local Contracts
 
-- The docs' authoring notation never reaches this package: the site
-  translates a snippet to Solid first (`toSolidCode`), then restyles it.
+- It reads Solid only: the docs' snippets are written in Solid, and the
+  site hands them to it as they are.
 
 - Depends on `@dither-ui/kit` only, for one file: the kit's token mapping and
   dark variant are read from `@dither-ui/kit/tailwind/kit.css`, found through
@@ -70,7 +70,7 @@ twin the same way. Paths here are from this package's root.
   (`packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts`), and
   every docs snippet in every system by the site's
   (`packages/site/tests/stylex-coverage.spec.ts`,
-  `packages/site/tests/site/solid-code.spec.tsx`).
+  `packages/site/tests/site/source.spec.tsx`).
 
 ## Child DOX Index
 

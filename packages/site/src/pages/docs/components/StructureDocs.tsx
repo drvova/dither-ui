@@ -31,55 +31,54 @@ const panels: Record<string, string> = {
   Metrics: "p95 latency 42ms, error rate 0.02%.",
   Logs: "3 warnings in the last hour, zero errors.",
 }
-const tab = ref("Overview")
-const folder = ref("Inbox")
+const [tab, setTab] = createSignal("Overview")
+const [folder, setFolder] = createSignal("Inbox")
 
-<!-- panels nest inside so they inherit the tab context -->
-<DitherTabs v-model="tab" :tabs="tabs" color="blue">
-  <DitherTabPanel v-for="t in tabs" :key="t" :value="t" class="mt-4">
-    <p class="text-[12px] text-muted-foreground">{{ panels[t] }}</p>
-  </DitherTabPanel>
+{/* panels nest inside so they inherit the tab context */}
+<DitherTabs modelValue={tab()} onUpdateModelValue={setTab} tabs={tabs} color="blue">
+  <For each={tabs}>
+    {(t) => (
+      <DitherTabPanel value={t} class="mt-4">
+        <p class="text-[12px] text-muted-foreground">{panels[t]}</p>
+      </DitherTabPanel>
+    )}
+  </For>
 </DitherTabs>
 
-<!-- variant: underline | segmented | washed -->
-<DitherTabs v-model="tab" :tabs="tabs" variant="segmented" class="mt-6" />
+{/* variant: underline | segmented | washed */}
+<DitherTabs modelValue={tab()} onUpdateModelValue={setTab} tabs={tabs} variant="segmented" class="mt-6" />
 
-<!-- objects add badges and disabled; vertical flips the rail -->
-<DitherTabs v-model="folder" orientation="vertical" variant="washed" class="mt-6"
-  :tabs="[{ value: 'Inbox', badge: 12 }, { value: 'Drafts', badge: 2 }, { value: 'Spam', disabled: true }]" />`
+{/* objects add badges and disabled; vertical flips the rail */}
+<DitherTabs modelValue={folder()} onUpdateModelValue={setFolder} orientation="vertical" variant="washed" class="mt-6"
+  tabs={[{ value: 'Inbox', badge: 12 }, { value: 'Drafts', badge: 2 }, { value: 'Spam', disabled: true }]} />`
 
-const SNIPPET_COLLAPSIBLE = `<script setup>
-const openA = ref(true)
-const openB = ref(false)
-</script>
+const SNIPPET_COLLAPSIBLE = `const [openA, setOpenA] = createSignal(true)
+const [openB, setOpenB] = createSignal(false)
 
-<DitherCollapsible v-model="openA" title="What is dithering?" color="blue">
+<DitherCollapsible modelValue={openA()} onUpdateModelValue={setOpenA} title="What is dithering?" color="blue">
   Ordered dithering trades smooth gradients for a fixed threshold
   matrix: the same Bayer 4x4 behind every fill in this kit.
 </DitherCollapsible>
-<DitherCollapsible v-model="openB" title="Why canvas?" color="purple">
+<DitherCollapsible modelValue={openB()} onUpdateModelValue={setOpenB} title="Why canvas?" color="purple">
   One engine paints every fill, so components stay coherent.
 </DitherCollapsible>`
 
-const SNIPPET_DIALOG = `<script setup>
-const open = ref(false)
-</script>
+const SNIPPET_DIALOG = `const [open, setOpen] = createSignal(false)
 
-<DitherButton @click="open = true">Open dialog</DitherButton>
-<DitherDialog :open="open" title="Confirm"
-  description="Ship the dithered build to production?" @close="open = false">
+<DitherButton onClick={() => setOpen(true)}>Open dialog</DitherButton>
+<DitherDialog open={open()} title="Confirm"
+  description="Ship the dithered build to production?" onClose={() => setOpen(false)}
+  footer={
+    <DitherButton color="green" onClick={() => setOpen(false)}>Confirm</DitherButton>
+  }
+>
   <p class="text-[13px] text-muted-foreground">Review the release before continuing.</p>
-  <template #footer>
-    <DitherButton color="green" @click="open = false">Confirm</DitherButton>
-  </template>
 </DitherDialog>`
 
-const SNIPPET_MORPH = `<script setup>
-const open = ref(false)
-</script>
+const SNIPPET_MORPH = `const [open, setOpen] = createSignal(false)
 
-<DitherButton @click="open = true">Open modal</DitherButton>
-<DitherCenterMorphModal :open="open" label="Release notes" @close="open = false">
+<DitherButton onClick={() => setOpen(true)}>Open modal</DitherButton>
+<DitherCenterMorphModal open={open()} label="Release notes" onClose={() => setOpen(false)}>
   <div class="flex h-full flex-col justify-end gap-2">
     <h3 class="text-sm font-medium text-foreground">v2.4: dithered everything</h3>
     <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">

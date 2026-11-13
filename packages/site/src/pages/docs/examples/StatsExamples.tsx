@@ -30,51 +30,59 @@ const TRENDS = {
 
 const SNIPPET_CARDS = `const periods = ${JSON.stringify(PERIODS).replace(/,/g, ", ")}
 ${dataCode("kpis", KPIS)}
-const period = ref("30d")
+const [period, setPeriod] = createSignal("30d")
 // churn is inverted: a falling rate is the good direction
 const good = (k: { label: string; delta: number }) => (k.label === "Churn" ? k.delta < 0 : k.delta > 0)
 
-<!-- period picker -->
+{/* period picker */}
 <div role="group" aria-label="Period" class="flex gap-1">
-  <button v-for="p in periods" :key="p" type="button" :aria-pressed="period === p"
-    @click="period = p">{{ p }}</button>
+  <For each={periods}>
+    {(p) => (
+      <button type="button" aria-pressed={period() === p}
+        onClick={() => setPeriod(p)}>{p}</button>
+    )}
+  </For>
 </div>
 
 <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-  <div v-for="k in kpis[period]" :key="k.label" class="rounded-lg border p-3.5">
-    <div class="flex items-center justify-between text-[11px]">
-      <span class="text-muted-foreground">{{ k.label }}</span>
-      <span class="grid size-6 place-items-center rounded-md border" aria-hidden="true">{{ k.icon }}</span>
-    </div>
-    <div class="mt-2 text-xl tabular-nums">{{ k.value }}</div>
-    <!-- delta chip -->
-    <span class="text-[10px]" :style="{ color: good(k) ? 'var(--swatch-green)' : 'var(--swatch-red)' }">
-      {{ k.delta > 0 ? "▲" : "▼" }} {{ Math.abs(k.delta) }}%
-    </span>
-    <span class="ml-1.5 text-[10px] text-muted-foreground">{{ k.note }}</span>
-  </div>
+  <For each={kpis[period()]}>
+    {(k) => (
+      <div class="rounded-lg border p-3.5">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-muted-foreground">{k.label}</span>
+          <span class="grid size-6 place-items-center rounded-md border" aria-hidden="true">{k.icon}</span>
+        </div>
+        <div class="mt-2 text-xl tabular-nums">{k.value}</div>
+        {/* delta chip */}
+        <span class="text-[10px]" style={{ color: good(k) ? 'var(--swatch-green)' : 'var(--swatch-red)' }}>
+          {k.delta > 0 ? "▲" : "▼"} {Math.abs(k.delta)}%
+        </span>
+        <span class="ml-1.5 text-[10px] text-muted-foreground">{k.note}</span>
+      </div>
+    )}
+  </For>
 </div>`
 
 const SNIPPET_CHARTS = `const revenue = [${TRENDS.revenue.join(", ")}]
 const sessions = [${TRENDS.sessions.join(", ")}]
 
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-  <!-- sparkline cards -->
+  {/* sparkline cards */}
   <div class="rounded-lg border p-3.5">
     <span class="text-[11px] text-muted-foreground">MRR</span>
     <div class="mt-1.5 text-[19px] tabular-nums">$31,204</div>
-    <Sparkline :data="revenue" color="green" class="mt-3 h-10" />
+    <Sparkline data={revenue} color="green" class="mt-3 h-10" />
   </div>
   <div class="rounded-lg border p-3.5">
     <span class="text-[11px] text-muted-foreground">Sessions</span>
     <div class="mt-1.5 text-[19px] tabular-nums">690k</div>
-    <Sparkline :data="sessions" color="blue" variant="dotted" class="mt-3 h-10" />
+    <Sparkline data={sessions} color="blue" variant="dotted" class="mt-3 h-10" />
   </div>
-  <!-- goal card -->
+  {/* goal card */}
   <div class="rounded-lg border p-3.5">
     <span class="text-[11px] text-muted-foreground">Q3 target</span>
     <div class="mt-1.5 text-[19px] tabular-nums">$34,000</div>
-    <DitherMeter :value="68" class="mt-4 h-2 w-full" />
+    <DitherMeter value={68} class="mt-4 h-2 w-full" />
     <div class="mt-2 text-[10px] text-muted-foreground">of $50,000 booked</div>
   </div>
 </div>`

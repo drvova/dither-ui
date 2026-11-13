@@ -979,23 +979,31 @@ export default function BackgroundsDocs() {
   const auroraColors = createMemo(() => [...AURORA_PALETTES[aurora.palette]])
   const auroraCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherAurora :colors='${JSON.stringify(auroraColors())}' />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherAurora colors={${JSON.stringify(auroraColors())}} />
+</div>`,
   )
   const [circuit, setCircuit] = createStore({ density: "even" as CircuitDensity, seed: 7 })
   const circuitCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherCircuit :density="${CIRCUIT_DENSITIES[circuit.density]}" :seed="${circuit.seed}" />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherCircuit density={${CIRCUIT_DENSITIES[circuit.density]}} seed={${circuit.seed}} />
+</div>`,
   )
   const [trail, setTrail] = createStore({ cool: "even" as TrailCool, size: "even" as TrailSize })
   const trailCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherHeatTrail class="absolute inset-0" :cool="${TRAIL_COOLS[trail.cool]}" :size="${TRAIL_SIZES[trail.size]}" />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherHeatTrail class="absolute inset-0" cool={${TRAIL_COOLS[trail.cool]}} size={${TRAIL_SIZES[trail.size]}} />
+</div>`,
   )
   const [waves, setWaves] = createStore({ palette: "aurora" as WavesPalette })
   const wavesColors = createMemo(() => [...WAVES_PALETTES[waves.palette]])
   const wavesCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherWaves :colors='${JSON.stringify(wavesColors())}' />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherWaves colors={${JSON.stringify(wavesColors())}} />
+</div>`,
   )
   const [term, setTerm] = createStore({ tint: "green" as DitherColor, preset: "signal" as TermPreset })
   const termParams = createMemo(() => TERM_PRESETS[term.preset])
@@ -1003,20 +1011,22 @@ export default function BackgroundsDocs() {
     const p = termParams()
     const attrs = [
       `tint="${term.tint}"`,
-      `:scale="${p.scale}"`,
-      `:glitch-amount="${p.glitchAmount}"`,
-      `:scanline-intensity="${p.scanlineIntensity}"`,
+      `scale={${p.scale}}`,
+      `glitchAmount={${p.glitchAmount}}`,
+      `scanlineIntensity={${p.scanlineIntensity}}`,
     ]
-    if (p.dither) attrs.push(`:dither="${p.dither}"`)
-    if (p.curvature) attrs.push(`:curvature="${p.curvature}"`)
-    if (p.chromaticAberration) attrs.push(`:chromatic-aberration="${p.chromaticAberration}"`)
+    if (p.dither) attrs.push(`dither={${p.dither}}`)
+    if (p.curvature) attrs.push(`curvature={${p.curvature}}`)
+    if (p.chromaticAberration) attrs.push(`chromaticAberration={${p.chromaticAberration}}`)
     return `<div class="relative h-56 overflow-hidden rounded-md">\n  <DitherFaultyTerminal ${attrs.join(" ")} />\n</div>`
   })
   const [fluid, setFluid] = createStore({ palette: "acid" as FluidPalette, flow: "down" as FlowDirection })
   const fluidColors = createMemo(() => [...FLUID_PALETTES[fluid.palette]])
   const fluidCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherFerrofluid :colors='${JSON.stringify(fluidColors())}' flow-direction="${fluid.flow}" />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherFerrofluid colors={${JSON.stringify(fluidColors())}} flowDirection="${fluid.flow}" />
+</div>`,
   )
 
   // Every background is a surface: its demo bleeds to the well's edges (the

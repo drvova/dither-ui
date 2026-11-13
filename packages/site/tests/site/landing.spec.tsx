@@ -626,7 +626,7 @@ describe("the styling card", () => {
     expect(all(w.container, ".seg button").map(text)).toEqual(Object.values(STYLING_LABELS))
     expect(pressed()).toEqual([STYLING_LABELS.stylex])
     expect(code().join("\n")).toContain("stylex")
-    // Written as the Solid file a reader takes, never in the snippets' authoring notation.
+    // Written as the Solid file a reader takes, never in Vue's notation.
     expect(code().join("\n")).toContain("{...stylex.props(")
     expect(code().join("\n")).not.toMatch(/v-bind|<script setup|<style scoped/)
     expect(text(w.container.querySelector(".export-live"))).toContain("Invoices")

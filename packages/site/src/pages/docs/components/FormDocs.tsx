@@ -6,62 +6,62 @@ import PropsTable, { type PropRow } from "../PropsTable"
 
 const SLIDER_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
 
-const SNIPPET_SWITCH = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_SWITCH = `import { createSignal } from "solid-js"
 import { DitherSwitch } from "@dither-kit"
 
-const bloom = ref(true)
-</script>
+export default function Example() {
+  const [bloom, setBloom] = createSignal(true)
 
-<template>
-  <label class="flex items-center justify-between gap-4">
-    <span class="text-[13px]">Bloom on hover</span>
-    <DitherSwitch v-model="bloom" label="Bloom on hover" color="blue" />
-  </label>
-</template>`
+  return (
+    <label class="flex items-center justify-between gap-4">
+      <span class="text-[13px]">Bloom on hover</span>
+      <DitherSwitch modelValue={bloom()} onUpdateModelValue={setBloom} label="Bloom on hover" color="blue" />
+    </label>
+  )
+}`
 
-const SNIPPET_CHECKBOX = `<script setup lang="ts">
-import { reactive } from "vue"
+const SNIPPET_CHECKBOX = `import { createStore } from "solid-js/store"
 import { DitherCheckbox } from "@dither-kit"
 
-const opts = reactive({ grid: true, snap: false, rulers: true })
-</script>
+export default function Example() {
+  const [opts, setOpts] = createStore({ grid: true, snap: false, rulers: true })
 
-<template>
-  <div class="grid gap-3">
-    <DitherCheckbox v-model="opts.grid">Show grid</DitherCheckbox>
-    <DitherCheckbox v-model="opts.snap">Snap to pixels</DitherCheckbox>
-    <DitherCheckbox v-model="opts.rulers">Show rulers</DitherCheckbox>
-  </div>
-</template>`
+  return (
+    <div class="grid gap-3">
+      <DitherCheckbox modelValue={opts.grid} onUpdateModelValue={(v) => setOpts("grid", v)}>Show grid</DitherCheckbox>
+      <DitherCheckbox modelValue={opts.snap} onUpdateModelValue={(v) => setOpts("snap", v)}>Snap to pixels</DitherCheckbox>
+      <DitherCheckbox modelValue={opts.rulers} onUpdateModelValue={(v) => setOpts("rulers", v)}>Show rulers</DitherCheckbox>
+    </div>
+  )
+}`
 
-const SNIPPET_SLIDER = `const level = ref(40)
-const range = ref<[number, number]>([25, 75])
-const quality = ref(60)
+const SNIPPET_SLIDER = `const [level, setLevel] = createSignal(40)
+const [range, setRange] = createSignal<[number, number]>([25, 75])
+const [quality, setQuality] = createSignal(60)
 
-<!-- single -->
-<DitherSlider v-model="level" label="Level" />
+{/* single */}
+<DitherSlider modelValue={level()} onUpdateModelValue={setLevel} label="Level" />
 
-<!-- range: an array v-model grows a second thumb -->
-<DitherSlider v-model="range" label="Price" show-value />
+{/* range: an array modelValue grows a second thumb */}
+<DitherSlider modelValue={range()} onUpdateModelValue={setRange} label="Price" showValue />
 
-<!-- ticks mark the steps; variant picks the fill texture -->
-<DitherSlider v-model="quality" label="Quality" :step="10" ticks
-  variant="dotted" show-value />`
+{/* ticks mark the steps; variant picks the fill texture */}
+<DitherSlider modelValue={quality()} onUpdateModelValue={setQuality} label="Quality" step={10} ticks
+  variant="dotted" showValue />`
 
-const SNIPPET_PROGRESS = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_PROGRESS = `import { createSignal } from "solid-js"
 import { DitherProgress } from "@dither-kit"
 
-const level = ref(40)
-</script>
+export default function Example() {
+  const [level, setLevel] = createSignal(40)
 
-<template>
-  <div class="grid gap-6">
-    <DitherProgress :value="level" color="blue" />
-    <DitherProgress indeterminate color="purple" />
-  </div>
-</template>`
+  return (
+    <div class="grid gap-6">
+      <DitherProgress value={level()} color="blue" />
+      <DitherProgress indeterminate color="purple" />
+    </div>
+  )
+}`
 
 const API: Record<string, PropRow[]> = {
   switch: [

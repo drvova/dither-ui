@@ -87,16 +87,14 @@ are from the repository's.
   never in its own `onMount`.
 - A component's scoped styles are `<Name>.css` beside it, nested under a
   root hook class `<kebab-name>-scope`.
-- Docs tooling: each demo's snippet is authored once, in Vue's template
-  notation (a fragment or a short `<script setup>` file), and the Solid
-  a reader sees is derived from it, never forked by hand:
-  `pages/docs/solid.ts` (`toSolidCode`) translates it,
-  the `@dither-ui/restyle` package writes it in the reader's styling
-  system (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`; `dataCode`
-  prints an example's data from the demo's own values). Readers never
-  see the authoring notation.
-  `widgets/source` shows the files and runs the example in the page
-  (`src/widgets/source/AGENTS.md`).
+- Docs tooling: each demo's snippet is written once, in Solid with
+  Tailwind's classes (a fragment: JSX with the script it needs as loose
+  lines over or under it, or a whole `.tsx` module), and the
+  `@dither-ui/restyle` package writes it in the reader's styling system
+  (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`; `dataCode` prints an
+  example's data from the demo's own values). `widgets/source` completes
+  a fragment into the module a reader takes (`asTsx`), shows the files
+  and runs the example in the page (`src/widgets/source/AGENTS.md`).
 - The docs' API tables and prose are written in Solid's words (a row's
   names are its component's real props; `tests/site/docs-api.spec.ts`
   type-checks every row against the kit, with its exceptions listed and
@@ -108,7 +106,7 @@ are from the repository's.
   is the ONE path a document value takes into generated code (a hostile
   string stays data; `tests/site/codegen.spec.tsx` proves it against the
   real compiler). `entities/widget/model/model.ts` is the one reading of
-  the shared registry's `vmodel` rows as Solid's prop and callback.
+  the shared registry's `model` rows as Solid's prop and callback.
 - Vite plugins, each a file in `build/`: `utilities.ts` (the utility map
   the rewriter reads, compiled by `@dither-ui/restyle/utility-map` from the folders
   `utility-sources.ts` names, which the workspace's `rstack.config.ts`

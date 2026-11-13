@@ -778,8 +778,8 @@ in the page's folder.
   closes it, and its exit returns focus to the chip.
 - Code: the source panel (`widgets/source`, lazy) — the example as a
   complete file, the kit files it imports, `theme.css` and `prompt.md`,
-  editable, copied, zipped and run. The card hands it the authored
-  snippet, `docsCode`, the framework, the styling system and where it sits
+  editable, copied, zipped and run. The card hands it the snippet as
+  written, `docsFiles`, the framework, the styling system and where it sits
   (section, place, the section's h2 and first line, its URL, `INSTALL`). A
   run replaces the demo in the frame (shown above the source while it
   runs, with "Restore the demo"), carries its CSS in one `<style>` per card
@@ -806,18 +806,17 @@ in the page's folder.
   read through `docs/components/frames.ts` (`readFrames`, guarded by
   `tests/frames.spec.ts`); its snippet measures the same way on its own,
   so Run plays it.
-- Docs serve Solid: snippets are authored once, in Vue's
-  template notation (a reader never sees it), and the Solid a reader
-  sees is derived, never forked by hand:
-  `docs/solid.ts` (`toSolidCode`) writes it, for DemoCard code
-  tabs and Handbook CodeBlocks; the API tables are written in Solid's
-  words. A new idiom in a snippet
-  needs a rule in the translator + a case in
-  `tests/site/solid-code.spec.tsx` (which also compiles
-  every snippet in every styling system).
+- Docs serve Solid: snippets are written in Solid, once, for DemoCard
+  code tabs and Handbook CodeBlocks (a fragment, or a whole `.tsx`
+  module; the source panel completes a fragment, see
+  `widgets/source/AGENTS.md`); the API tables are written in Solid's
+  words. `tests/site/source.spec.tsx` compiles every snippet in every
+  styling system and holds every one to Solid (no Vue notation: no
+  `<template>`, directives, `:prop`/`@event` bindings, `{{ }}` or HTML
+  comments in markup).
 - Docs serve any styling system: `docs/snippet.ts` `docsCode()` (and
   `docsFiles()`, the file with its stylesheet for the source panel) is the
-  translation followed by the `@dither-ui/restyle` package's rewriter with the reader's
+  `@dither-ui/restyle` package's rewriter with the reader's
   `styling` (header switch at lg+, per-card chips). Every DemoCard code tab
   and Handbook block goes through it, so a snippet idiom the rewriter mangles
   gets a rule in `packages/restyle/src/index.ts` + a

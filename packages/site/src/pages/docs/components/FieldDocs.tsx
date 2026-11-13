@@ -13,120 +13,120 @@ import {
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 
-const SNIPPET_INPUT = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_INPUT = `import { createSignal } from "solid-js"
 import { DitherInput } from "@dither-kit"
 
-const name = ref("")
-const email = ref("not-an-email")
-</script>
+export default function Example() {
+  const [name, setName] = createSignal("")
+  const [email, setEmail] = createSignal("not-an-email")
 
-<template>
-  <div class="grid gap-3 sm:grid-cols-2">
-    <DitherInput v-model="name" placeholder="Ada Byte" />
-    <DitherInput v-model="email" type="email" invalid placeholder="you@dither-ui.com" />
-  </div>
-</template>`
+  return (
+    <div class="grid gap-3 sm:grid-cols-2">
+      <DitherInput modelValue={name()} onUpdateModelValue={setName} placeholder="Ada Byte" />
+      <DitherInput modelValue={email()} onUpdateModelValue={setEmail} type="email" invalid placeholder="you@dither-ui.com" />
+    </div>
+  )
+}`
 
-const SNIPPET_TEXTAREA = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_TEXTAREA = `import { createSignal } from "solid-js"
 import { DitherField, DitherTextarea } from "@dither-kit"
 
-const bio = ref("")
-</script>
+export default function Example() {
+  const [bio, setBio] = createSignal("")
 
-<template>
-  <DitherField label="Bio" description="A short introduction.">
-    <DitherTextarea v-model="bio" placeholder="Tell us what you make…" />
-  </DitherField>
-</template>`
+  return (
+    <DitherField label="Bio" description="A short introduction.">
+      <DitherTextarea modelValue={bio()} onUpdateModelValue={setBio} placeholder="Tell us what you make…" />
+    </DitherField>
+  )
+}`
 
-const SNIPPET_FIELD = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_FIELD = `import { createSignal } from "solid-js"
 import { DitherField, DitherInput } from "@dither-kit"
 
-const handle = ref("")
-const website = ref("")
-</script>
+export default function Example() {
+  const [handle, setHandle] = createSignal("")
+  const [website, setWebsite] = createSignal("")
 
-<template>
-  <div class="grid gap-5">
-    <DitherField label="Handle" description="Lowercase, no spaces.">
-      <DitherInput v-model="handle" placeholder="ada" />
-    </DitherField>
-    <DitherField label="Website" error="That URL does not resolve.">
-      <DitherInput v-model="website" placeholder="https://" />
-    </DitherField>
-  </div>
-</template>`
+  return (
+    <div class="grid gap-5">
+      <DitherField label="Handle" description="Lowercase, no spaces.">
+        <DitherInput modelValue={handle()} onUpdateModelValue={setHandle} placeholder="ada" />
+      </DitherField>
+      <DitherField label="Website" error="That URL does not resolve.">
+        <DitherInput modelValue={website()} onUpdateModelValue={setWebsite} placeholder="https://" />
+      </DitherField>
+    </div>
+  )
+}`
 
-const SNIPPET_FIELDSET = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_FIELDSET = `import { createSignal } from "solid-js"
 import { DitherField, DitherFieldset, DitherInput } from "@dither-kit"
 
-const name = ref("Ada Byte")
-const handle = ref("ada")
-</script>
+export default function Example() {
+  const [name, setName] = createSignal("Ada Byte")
+  const [handle, setHandle] = createSignal("ada")
 
-<template>
-  <DitherFieldset legend="Profile">
-    <DitherField label="Name" for="profile-name">
-      <DitherInput id="profile-name" v-model="name" />
-    </DitherField>
-    <DitherField label="Handle" for="profile-handle">
-      <DitherInput id="profile-handle" v-model="handle" />
-    </DitherField>
-  </DitherFieldset>
-</template>`
+  return (
+    <DitherFieldset legend="Profile">
+      <DitherField label="Name" for="profile-name">
+        <DitherInput id="profile-name" modelValue={name()} onUpdateModelValue={setName} />
+      </DitherField>
+      <DitherField label="Handle" for="profile-handle">
+        <DitherInput id="profile-handle" modelValue={handle()} onUpdateModelValue={setHandle} />
+      </DitherField>
+    </DitherFieldset>
+  )
+}`
 
-const SNIPPET_FORM = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_FORM = `import { createSignal } from "solid-js"
 import { DitherButton, DitherField, DitherForm, DitherInput } from "@dither-kit"
 
-const email = ref("")
-const submitted = ref(0)
-</script>
+export default function Example() {
+  const [email, setEmail] = createSignal("")
+  const [submitted, setSubmitted] = createSignal(0)
 
-<template>
-  <DitherForm @submit="submitted++">
-    <div class="grid gap-4">
-      <DitherField label="Email" for="form-email">
-        <DitherInput id="form-email" v-model="email" type="email" placeholder="you@dither-ui.com" />
-      </DitherField>
-      <DitherButton type="submit" color="blue" class="w-full">Subscribe</DitherButton>
-      <p class="text-[11px] text-muted-foreground">submitted {{ submitted }} times</p>
-    </div>
-  </DitherForm>
-</template>`
+  return (
+    <DitherForm onSubmit={() => setSubmitted(submitted() + 1)}>
+      <div class="grid gap-4">
+        <DitherField label="Email" for="form-email">
+          <DitherInput id="form-email" modelValue={email()} onUpdateModelValue={setEmail} type="email" placeholder="you@dither-ui.com" />
+        </DitherField>
+        <DitherButton type="submit" color="blue" class="w-full">Subscribe</DitherButton>
+        <p class="text-[11px] text-muted-foreground">submitted {submitted()} times</p>
+      </div>
+    </DitherForm>
+  )
+}`
 
-const SNIPPET_NUMBER = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_NUMBER = `import { createSignal } from "solid-js"
 import { DitherNumberField } from "@dither-kit"
 
-const qty = ref(3)
-</script>
+export default function Example() {
+  const [qty, setQty] = createSignal(3)
 
-<template>
-  <div class="flex items-center gap-4">
-    <DitherNumberField v-model="qty" :min="0" :max="10" label="Quantity" />
-    <span class="text-[13px] tabular-nums">{{ qty }} / 10</span>
-  </div>
-</template>`
+  return (
+    <div class="flex items-center gap-4">
+      <DitherNumberField modelValue={qty()} onUpdateModelValue={setQty} min={0} max={10} label="Quantity" />
+      <span class="text-[13px] tabular-nums">{qty()} / 10</span>
+    </div>
+  )
+}`
 
-const SNIPPET_OTP = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_OTP = `import { createSignal, Show } from "solid-js"
 import { DitherOtpField } from "@dither-kit"
 
-const otp = ref("")
-const complete = ref(false)
-</script>
+export default function Example() {
+  const [otp, setOtp] = createSignal("")
+  const [complete, setComplete] = createSignal(false)
 
-<template>
-  <div class="grid gap-3">
-    <DitherOtpField v-model="otp" :length="6" @complete="complete = true" />
-    <p v-if="complete" class="text-[11px]">complete!</p>
-  </div>
-</template>`
+  return (
+    <div class="grid gap-3">
+      <DitherOtpField modelValue={otp()} onUpdateModelValue={setOtp} length={6} onComplete={() => setComplete(true)} />
+      <Show when={complete()}><p class="text-[11px]">complete!</p></Show>
+    </div>
+  )
+}`
 
 const API: Record<string, PropRow[]> = {
   input: [

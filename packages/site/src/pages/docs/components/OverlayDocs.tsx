@@ -47,100 +47,92 @@ const MENUBAR = [
   },
 ]
 
-const SNIPPET_POPOVER = `<script setup>
-const open = ref(false)
-</script>
+const SNIPPET_POPOVER = `const [open, setOpen] = createSignal(false)
 
-<DitherPopover :open="open" align="center" @close="open = false">
-  <template #trigger>
-    <DitherButton @click="open = !open">Open popover</DitherButton>
-  </template>
+<DitherPopover open={open()} align="center" onClose={() => setOpen(false)}
+  trigger={
+    <DitherButton onClick={() => setOpen(!open())}>Open popover</DitherButton>
+  }
+>
   <p class="text-[12px] leading-relaxed text-muted-foreground">
     Anchored to its trigger. Escape or an outside press closes it.
   </p>
 </DitherPopover>`
 
-const SNIPPET_MENU = `<script setup>
-const items = [
+const SNIPPET_MENU = `const items = [
   { label: "New" },
   { label: "Duplicate" },
   { divider: true },
   { label: "Delete", danger: true },
 ]
-const last = ref("none")
-</script>
+const [last, setLast] = createSignal("none")
 
-<DitherMenu :items="items" @select="(label) => (last = label)">
+<DitherMenu items={items} onSelect={(label) => (setLast(label))}>
   Actions
 </DitherMenu>
-<p class="mt-3 text-[12px] text-muted-foreground">last action: {{ last }}</p>`
+<p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>`
 
-const SNIPPET_CONTEXT = `<script setup>
-const items = [
+const SNIPPET_CONTEXT = `const items = [
   { label: "Cut" },
   { label: "Copy" },
   { label: "Paste" },
   { divider: true },
   { label: "Delete", danger: true },
 ]
-const last = ref("none")
-</script>
+const [last, setLast] = createSignal("none")
 
-<DitherContextMenu :items="items" @select="(label) => (last = label)">
+<DitherContextMenu items={items} onSelect={(label) => (setLast(label))}>
   <div class="rounded-lg border border-dashed border-border p-10">
     right-click me
   </div>
 </DitherContextMenu>
-<p class="mt-3 text-[12px] text-muted-foreground">last action: {{ last }}</p>`
+<p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>`
 
-const SNIPPET_MENUBAR = `<script setup>
-const menus = [
+const SNIPPET_MENUBAR = `const menus = [
   { label: "File", items: [{ label: "New" }, { label: "Open" }, { label: "Save" }] },
   { label: "Edit", items: [{ label: "Undo" }, { label: "Redo" }, { label: "Find" }] },
   { label: "View", items: [{ label: "Zoom in" }, { label: "Zoom out" }] },
 ]
-const last = ref("none")
-</script>
+const [last, setLast] = createSignal("none")
 
-<DitherMenubar :menus="menus" @select="(m, i) => (last = \`\${m} → \${i}\`)" />
-<p class="mt-3 text-[12px] text-muted-foreground">last action: {{ last }}</p>`
+<DitherMenubar menus={menus} onSelect={(m, i) => (setLast(\`\${m} → \${i}\`))} />
+<p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>`
 
 const SNIPPET_TOOLTIP = `<DitherTooltip text="Deploys are frozen until Monday">
   <DitherBadge color="orange">frozen</DitherBadge>
 </DitherTooltip>`
 
-const SNIPPET_COMMAND = `<script setup>
-const open = ref(false)
-const ran = ref("nothing yet")
+const SNIPPET_COMMAND = `const [open, setOpen] = createSignal(false)
+const [ran, setRan] = createSignal("nothing yet")
 // the hotkey stays yours
 function hotkey(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key === "k") (e.preventDefault(), open.value = !open.value)
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") (e.preventDefault(), setOpen(!open()))
 }
-onMounted(() => window.addEventListener("keydown", hotkey))
-onBeforeUnmount(() => window.removeEventListener("keydown", hotkey))
-</script>
+onMount(() => window.addEventListener("keydown", hotkey))
+onCleanup(() => window.removeEventListener("keydown", hotkey))
 
-<DitherButton @click="open = true">Command (⌘K)</DitherButton>
+<DitherButton onClick={() => setOpen(true)}>Command (⌘K)</DitherButton>
 <DitherCommand
-  :open="open"
-  :items="[
+  open={open()}
+  items={[
     { value: 'new', label: 'New artboard', group: 'Studio', kbd: 'N' },
     { value: 'export', label: 'Export image', group: 'Studio' },
     { value: 'docs', label: 'Open docs', group: 'Navigate' },
-  ]"
-  @select="(value) => (ran = value)"
-  @close="open = false"
+  ]}
+  onSelect={(value) => (setRan(value))}
+  onClose={() => setOpen(false)}
 />
-<p class="text-[10px] text-muted-foreground">last ran: {{ ran }}</p>
+<p class="text-[10px] text-muted-foreground">last ran: {ran()}</p>
 
-<!-- type to filter, the arrows walk, Enter runs, Escape leaves -->`
+{/* type to filter, the arrows walk, Enter runs, Escape leaves */}`
 
-const SNIPPET_PREVIEW = `<DitherPreviewCard>
-  <template #trigger>
+const SNIPPET_PREVIEW = `<DitherPreviewCard
+  trigger={
     <button type="button" class="underline decoration-border underline-offset-4">@ada</button>
-  </template>
+  }
+>
   <div class="flex items-center gap-3">
-    <DitherAvatar name="Ada Lovelace" :size="40" />
+    <DitherAvatar name="Ada Lovelace" size={40} />
     <div>
       <p class="text-[13px]">Ada Lovelace</p>
       <p class="text-[11px] text-muted-foreground">Wrote the first program.</p>

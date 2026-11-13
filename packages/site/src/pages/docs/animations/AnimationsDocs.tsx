@@ -502,100 +502,108 @@ el.style.animationTimingFunction = cssSteps(6, "jump-none") // "steps(6, jump-no
 
 // driver-level: hold the raster between wall-time frame boundaries
 const idx = frameIndex(elapsedMs, 12)    // same idx → skip the paint entirely`,
-  stepTimingAurora: `<!-- the field driver's own knob: stop-motion and fewer uploads -->
+  stepTimingAurora: `{/* the field driver's own knob: stop-motion and fewer uploads */}
 <div class="grid grid-cols-2 gap-3">
-  <!-- smooth, a paint throttle near 30fps -->
+  {/* smooth, a paint throttle near 30fps */}
   <div class="h-36"><DitherAurora /></div>
-  <!-- film: paints 8 times a second, holds between -->
-  <div class="h-36"><DitherAurora :frame-rate="8" /></div>
+  {/* film: paints 8 times a second, holds between */}
+  <div class="h-36"><DitherAurora frameRate={8} /></div>
 </div>`,
   sequences: `import { DitherSequence, steps } from "@dither-kit"
+const [key, setKey] = createSignal(0)
+const [waves, setWaves] = createSignal(0)
 
-const key = ref(0)
-const waves = ref(0)
-
-<!-- children wave in from the center, ping-pong three times, quantized; the
+{/* children wave in from the center, ping-pong three times, quantized; the
      driver writes --seq-p (0 to 1) and data-seq (before, active or done) on
      each child, and each child styles itself from them. planSequence and
-     sampleSequence run the same algebra under your own clock -->
+     sampleSequence run the same algebra under your own clock */}
 <DitherSequence
-  :stagger="0.07" from="center" :duration="0.6"
-  :loop="3" yoyo :easing="steps(4)"
-  :restart-key="key" @complete="waves++"
+  stagger={0.07} from="center" duration={0.6}
+  loop={3} yoyo easing={steps(4)}
+  restartKey={key()} onComplete={() => setWaves(waves() + 1)}
   class="grid grid-cols-6 gap-2"
 >
-  <div v-for="i in 12" :key="i" class="h-8 rounded bg-foreground" style="opacity: var(--seq-p, 0)" />
+  <For each={Array.from({ length: 12 }, (_, k) => k + 1)}>{(i) => <div class="h-8 rounded bg-foreground" style="opacity: var(--seq-p, 0)" />}</For>
 </DitherSequence>
-<button type="button" class="mt-3" @click="key++">Replay ({{ waves }} played)</button>`,
-  stage: `<DitherStage :duration="8" class="h-56 rounded-lg border" v-slot="stage">
-  <!-- a canvas layer drifts 12% of the stage, at any size -->
-  <DitherLayer :keyframes="[{ x: '-6cqw' }, { x: '6cqw' }]" :duration="8" yoyo loop>
-    <DitherAurora :colors="['#1f6fd6', '#9ec5ff', '#ffffff']" class="h-full" />
-  </DitherLayer>
-  <!-- SVG parallax -->
-  <DitherLayer :keyframes="[{ x: 0 }, { x: '-24cqw' }]" :duration="8" yoyo loop>
-    <svg viewBox="0 0 148 40" preserveAspectRatio="none" class="absolute bottom-0 h-2/5 w-[124%] fill-[#0b1a3a]">
-      <path d="M0 40 V30 Q14 22 28 30 T56 24 T84 32 T112 22 T140 30 T148 26 V40 Z" />
-    </svg>
-  </DitherLayer>
-  <!-- the moon places its keys with at (seconds or a percentage) -->
-  <DitherLayer
-    :keyframes="[
-      { at: 0, x: '80cqw', y: '12cqh', rotate: 0 },
-      { at: '50%', easing: 'ease-in-out', rotate: '0.5turn' },
-      { x: '20cqw', y: '8cqh', rotate: '1turn' },
-    ]"
-    :duration="8" loop origin="0 0" class="size-7"
-  >
-    <svg viewBox="0 0 24 24" class="size-7 fill-white"><circle cx="12" cy="12" r="10" /></svg>
-  </DitherLayer>
-  <!-- the same keys, resolved to px for painters -->
-  <DitherLayer v-slot="at" :keyframes="[{ cx: '10cqw', cy: '70cqh' }, { cx: '90cqw', cy: '40cqh' }]" :duration="4" yoyo loop>
-    <svg :viewBox="'0 0 ' + Math.max(1, stage.width) + ' ' + Math.max(1, stage.height)" class="size-full">
-      <circle :cx="at.cx" :cy="at.cy" r="4" class="fill-current" />
-    </svg>
-  </DitherLayer>
+<button type="button" class="mt-3" onClick={() => setKey(key() + 1)}>Replay ({waves()} played)</button>`,
+  stage: `<DitherStage duration={8} class="h-56 rounded-lg border">
+  {(stage) => (
+    <>
+      {/* a canvas layer drifts 12% of the stage, at any size */}
+      <DitherLayer keyframes={[{ x: '-6cqw' }, { x: '6cqw' }]} duration={8} yoyo loop>
+        <DitherAurora colors={['#1f6fd6', '#9ec5ff', '#ffffff']} class="h-full" />
+      </DitherLayer>
+      {/* SVG parallax */}
+      <DitherLayer keyframes={[{ x: 0 }, { x: '-24cqw' }]} duration={8} yoyo loop>
+        <svg viewBox="0 0 148 40" preserveAspectRatio="none" class="absolute bottom-0 h-2/5 w-[124%] fill-[#0b1a3a]">
+          <path d="M0 40 V30 Q14 22 28 30 T56 24 T84 32 T112 22 T140 30 T148 26 V40 Z" />
+        </svg>
+      </DitherLayer>
+      {/* the moon places its keys with at (seconds or a percentage) */}
+      <DitherLayer
+        keyframes={[
+          { at: 0, x: '80cqw', y: '12cqh', rotate: 0 },
+          { at: '50%', easing: 'ease-in-out', rotate: '0.5turn' },
+          { x: '20cqw', y: '8cqh', rotate: '1turn' },
+        ]}
+        duration={8} loop origin="0 0" class="size-7"
+      >
+        <svg viewBox="0 0 24 24" class="size-7 fill-white"><circle cx="12" cy="12" r="10" /></svg>
+      </DitherLayer>
+      {/* the same keys, resolved to px for painters */}
+      <DitherLayer keyframes={[{ cx: '10cqw', cy: '70cqh' }, { cx: '90cqw', cy: '40cqh' }]} duration={4} yoyo loop>
+        {(at) => (
+          <svg viewBox={'0 0 ' + Math.max(1, stage.width) + ' ' + Math.max(1, stage.height)} class="size-full">
+            <circle cx={at.cx} cy={at.cy} r="4" class="fill-current" />
+          </svg>
+        )}
+      </DitherLayer>
+    </>
+  )}
 </DitherStage>
 
-<!-- the engine alone: sampleKeyframes, keyframeTransform and resolveSample
-     sample the same keys, write the transform and resolve it to px -->`,
+{/* the engine alone: sampleKeyframes, keyframeTransform and resolveSample
+     sample the same keys, write the transform and resolve it to px */}`,
   containerQueries: `import { DitherContainer, quantize } from "@dither-kit"
 
-<!-- children read THIS box's width — not the viewport's -->
+{/* children read THIS box's width — not the viewport's */}
 <DitherContainer
-  v-slot="{ width, size, index }"
-  :scale="{ xs: 0, sm: 260, md: 360, lg: 450, xl: 530 }"
-  :step="8"
+  scale={{ xs: 0, sm: 260, md: 360, lg: 450, xl: 530 }}
+  step={8}
   name="card"
   class="cq-card"
 >
-  <span class="readout">{{ size }} · {{ width }}px · q8 {{ quantize(width, 8) }}</span>
-  <DitherSequence
-    :stagger="0.03 + index * 0.02"
-    :from="index >= 3 ? 'center' : 'start'"
-    :restart-key="size"
-    class="cq-grid"
-  >
-    <div v-for="i in 12" :key="i" class="cell" />
-  </DitherSequence>
+  {(scope) => (
+    <>
+      <span class="readout">{scope.size} · {scope.width}px · q8 {quantize(scope.width, 8)}</span>
+      <DitherSequence
+        stagger={0.03 + scope.index * 0.02}
+        from={scope.index >= 3 ? 'center' : 'start'}
+        restartKey={scope.size}
+        class="cq-grid"
+      >
+        <For each={Array.from({ length: 12 }, (_, k) => k + 1)}>{(i) => <div class="cell" />}</For>
+      </DitherSequence>
+    </>
+  )}
 </DitherContainer>
 
-<!-- the stylesheet route, the same scope with zero JS (native @container):
+{/* the stylesheet route, the same scope with zero JS (native @container):
        @container card (min-width: 520px) { .readout { letter-spacing: 0.12em; } }
      the motion route, shipped keyframes that measure the container itself:
        .scan { animation: dither-cq-traverse 2.8s ease-in-out infinite alternate; }
      the selector route, the engine's active bucket on the host element:
        .cq-card[data-cq="xs"] .cell { border-color: #d9a441; }
-       .cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; } -->`,
-  animatedContent: `<DitherAnimatedContent :distance="40" direction="vertical">
+       .cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; } */}`,
+  animatedContent: `<DitherAnimatedContent distance={40} direction="vertical">
   <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Slides up on view</div>
 </DitherAnimatedContent>`,
-  fadeContent: `<DitherFadeContent :blur="true">
+  fadeContent: `<DitherFadeContent blur={true}>
   <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Fades in on view</div>
 </DitherFadeContent>`,
-  gradualBlur: `<DitherGradualBlur position="bottom" :height="72" :strength="5" class="w-64">
+  gradualBlur: `<DitherGradualBlur position="bottom" height={72} strength={5} class="w-64">
   <div class="grid gap-1 text-[13px] text-muted-foreground">
-    <p v-for="n in 6" :key="n">Row {{ n }}: content scrolls under the blur band.</p>
+    <For each={Array.from({ length: 6 }, (_, k) => k + 1)}>{(n) => <p>Row {n}: content scrolls under the blur band.</p>}</For>
   </div>
 </DitherGradualBlur>`,
   starBorder: `<DitherStarBorder color="#7CFF67">Star border</DitherStarBorder>`,
@@ -603,7 +611,7 @@ const waves = ref(0)
   glareHover: `<DitherGlareHover>
   <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Hover me</div>
 </DitherGlareHover>`,
-  magnet: `<DitherMagnet :strength="0.4"><button>Magnet</button></DitherMagnet>`,
+  magnet: `<DitherMagnet strength={0.4}><button>Magnet</button></DitherMagnet>`,
   clickSpark: `<DitherClickSpark color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
   Click anywhere here
 </DitherClickSpark>`,
@@ -637,38 +645,38 @@ const waves = ref(0)
   strands: `<DitherStrands class="h-64" />`,
   laserFlow: `<DitherLaserFlow class="h-64" />`,
   antigravity: `<DitherAntigravity class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">Antigravity</DitherAntigravity>`,
-  logoLoop: `<DitherLogoLoop :items="['DITHER', 'BAYER', 'CANVAS', 'SOLID', 'PIXELS']" />`,
+  logoLoop: `<DitherLogoLoop items={['DITHER', 'BAYER', 'CANVAS', 'SOLID', 'PIXELS']} />`,
   magicRings: `<DitherMagicRings class="h-52 w-full">
   <span class="grid size-12 place-items-center rounded-full border bg-card text-xs">core</span>
 </DitherMagicRings>`,
   magnetLines: `<DitherMagnetLines class="h-52" />`,
-  orbitImages: `<DitherOrbitImages :items="['A', 'B', 'C', 'D', 'E']" />`,
+  orbitImages: `<DitherOrbitImages items={['A', 'B', 'C', 'D', 'E']} />`,
   pixelTransition: `<DitherPixelTransition color="#181b22" class="grid h-32 w-56 place-items-center rounded-lg border">
   <span class="text-lg">Revealed</span>
 </DitherPixelTransition>`,
-  ditherReveal: `const nonce = ref(0)
+  ditherReveal: `const [nonce, setNonce] = createSignal(0)
 
-<DitherReveal direction="right" :cell="4" :duration="1.4" :restart-key="nonce" class="h-32 w-56">
+<DitherReveal direction="right" cell={4} duration={1.4} restartKey={nonce()} class="h-32 w-56">
   <div class="grid h-full place-items-center rounded-lg border bg-card text-lg">Revealed</div>
 </DitherReveal>
-<button type="button" class="mt-3" @click="nonce++">Replay</button>
+<button type="button" class="mt-3" onClick={() => setNonce(nonce() + 1)}>Replay</button>
 
-<!-- or drive it from a timeline: progress (0 to 1) sets the mask, a pure
-     function of it; wipeStyle gives any element the same mask -->`,
+{/* or drive it from a timeline: progress (0 to 1) sets the mask, a pure
+     function of it; wipeStyle gives any element the same mask */}`,
   stickerPeel: `<DitherStickerPeel>
   <div class="grid h-24 w-40 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Peel me</div>
 </DitherStickerPeel>`,
-  expandTabs: `const tab = ref("home")
+  expandTabs: `const [tab, setTab] = createSignal("home")
 
-<DitherExpandTabs v-model="tab" :tabs="[
+<DitherExpandTabs modelValue={tab()} onUpdateModelValue={setTab} tabs={[
   { value: 'home', label: 'Home' },
   { value: 'library', label: 'Library', color: 'purple' },
   { value: 'alerts', label: 'Alerts', color: 'red' },
-]" />  <!-- only the active tab unfolds its label -->`,
-  island: `const expanded = ref(false)
+]} />  {/* only the active tab unfolds its label */}`,
+  island: `const [expanded, setExpanded] = createSignal(false)
 
-<DitherIsland v-model="expanded" label="Deploy running" color="green" live>
-  Build 214, lint ok, bundle 84kB, 3 of 5 steps done.  <!-- unfolds beneath the pill -->
+<DitherIsland modelValue={expanded()} onUpdateModelValue={setExpanded} label="Deploy running" color="green" live>
+  Build 214, lint ok, bundle 84kB, 3 of 5 steps done.  {/* unfolds beneath the pill */}
 </DitherIsland>`,
   cardStack: `const cards = [
   { title: "Prints: riso on cream" },
@@ -676,92 +684,94 @@ const waves = ref(0)
   { title: "Zines: issue 04" },
   { title: "Stickers: die-cut set" },
 ]
-const top = ref(0)
+const [top, setTop] = createSignal(0)
 
-<!-- drag horizontally, a flick advances, the deck cycles -->
-<DitherCardStack :items="cards" class="h-40 w-64" @advance="(i) => (top = i)" v-slot="{ item }">
-  <article class="h-full rounded-lg border bg-card p-4">{{ item.title }}</article>
+{/* drag horizontally, a flick advances, the deck cycles */}
+<DitherCardStack items={cards} class="h-40 w-64" onAdvance={(i) => (setTop(i))}>
+  {(scope) => (
+    <article class="h-full rounded-lg border bg-card p-4">{scope.item.title}</article>
+  )}
 </DitherCardStack>
-<p class="mt-3 text-center text-[10px]">card {{ top + 1 }} of {{ cards.length }}</p>`,
-  dock: `const picked = ref("none")
+<p class="mt-3 text-center text-[10px]">card {top() + 1} of {cards.length}</p>`,
+  dock: `const [picked, setPicked] = createSignal("none")
 
-<!-- a gaussian magnify around the pointer -->
-<DitherDock :items="[
+{/* a gaussian magnify around the pointer */}
+<DitherDock items={[
   { value: 'home', label: 'Home' },
   { value: 'studio', label: 'Studio', color: 'purple' },
   { value: 'docs', label: 'Docs', color: 'green' },
   { value: 'alerts', label: 'Alerts', color: 'red' },
-]" @select="(value) => (picked = value)" />
-<p class="mt-2 text-[10px]">selected: {{ picked }}</p>`,
-  previewRail: `const dest = ref("inbox")
+]} onSelect={(value) => (setPicked(value))} />
+<p class="mt-2 text-[10px]">selected: {picked()}</p>`,
+  previewRail: `const [dest, setDest] = createSignal("inbox")
 
-<!-- ticks pyramid around the pointer, the preview floats beside the rail -->
-<DitherPreviewRail v-model="dest" :items="[
+{/* ticks pyramid around the pointer, the preview floats beside the rail */}
+<DitherPreviewRail modelValue={dest()} onUpdateModelValue={setDest} items={[
   { value: 'inbox', label: 'Inbox', hint: '12 unread threads', color: 'blue' },
   { value: 'drafts', label: 'Drafts', hint: '2 in progress', color: 'purple' },
   { value: 'planner', label: 'Planner', hint: 'Sprint 14, day 3', color: 'green' },
   { value: 'metrics', label: 'Metrics', hint: 'p95 latency 42ms', color: 'orange' },
   { value: 'settings', label: 'Settings', hint: 'Workspace + theme' },
-]" />`,
-  scrollProgress: `<DitherScrollProgress />                    <!-- viewport, fixed top -->
-<DitherScrollProgress attach="parent" color="purple" />  <!-- nearest scrollable parent -->`,
-  snapButton: `const deploys = ref(0)
+]} />`,
+  scrollProgress: `<DitherScrollProgress />                    {/* viewport, fixed top */}
+<DitherScrollProgress attach="parent" color="purple" />  {/* nearest scrollable parent */}`,
+  snapButton: `const [deploys, setDeploys] = createSignal(0)
 
-<!-- a 1:1 drag, rubber-band past the line, the border arms at the threshold;
-     release fires snap, and Enter or Space fires without the pull -->
-<DitherSnapButton :threshold="64" axis="x" color="green" @snap="deploys++">
+{/* a 1:1 drag, rubber-band past the line, the border arms at the threshold;
+     release fires snap, and Enter or Space fires without the pull */}
+<DitherSnapButton threshold={64} axis="x" color="green" onSnap={() => setDeploys(deploys() + 1)}>
   Pull to deploy
 </DitherSnapButton>
-<p class="text-[10px]">deploys fired: {{ deploys }}</p>`,
-  gooeyMenu: `const expanded = ref(false)
-const picked = ref("none")
+<p class="text-[10px]">deploys fired: {deploys()}</p>`,
+  gooeyMenu: `const [expanded, setExpanded] = createSignal(false)
+const [picked, setPicked] = createSignal("none")
 
-<!-- one SVG goo filter fuses the circles while they travel -->
-<DitherGooeyMenu v-model="expanded" :items="[
+{/* one SVG goo filter fuses the circles while they travel */}
+<DitherGooeyMenu modelValue={expanded()} onUpdateModelValue={setExpanded} items={[
   { value: 'add', label: 'Add', color: 'green' },
   { value: 'export', label: 'Export', color: 'blue' },
   { value: 'share', label: 'Share', color: 'purple' },
-]" direction="up" @select="(value) => (picked = value)" />
-<p class="mt-3 text-[10px]">picked: {{ picked }}</p>`,
-  bouncyAccordion: `const panel = ref("overview")
+]} direction="up" onSelect={(value) => (setPicked(value))} />
+<p class="mt-3 text-[10px]">picked: {picked()}</p>`,
+  bouncyAccordion: `const [panel, setPanel] = createSignal("overview")
 
-<!-- single-open: a spring overshoot on open, a brisk close -->
-<DitherBouncyAccordion v-model="panel" :items="[
+{/* single-open: a spring overshoot on open, a brisk close */}
+<DitherBouncyAccordion modelValue={panel()} onUpdateModelValue={setPanel} items={[
   { value: 'overview', label: 'Overview', hint: 'What shipped this week', icon: '▤',
     content: 'Charts, buttons and backgrounds now share one Bayer engine.' },
   { value: 'activity', label: 'Activity', hint: '3 deploys, 1 rollback', icon: '◷', color: 'green',
     content: 'Build 214 settled after a weighted spring: 8% overshoot, then calm.' },
   { value: 'alerts', label: 'Alerts', hint: 'One flapping check', icon: '◈', color: 'orange',
     content: 'p95 latency wobbled at 04:00 and snapped back on its own.' },
-]" />`,
-  expandingArrow: `<!-- a dotted trail unrolls on hover or focus -->
+]} />`,
+  expandingArrow: `{/* a dotted trail unrolls on hover or focus */}
 <DitherExpandingArrow color="blue">Explore the kit</DitherExpandingArrow>`,
-  slideAction: `const deploys = ref(0)
+  slideAction: `const [deploys, setDeploys] = createSignal(0)
 
-<!-- a 1:1 thumb drag where flick momentum counts; an early release springs
-     back, and Enter or Space confirms without the slide -->
-<DitherSlideAction label="Slide to deploy" color="green" @confirm="deploys++" />
-<p class="text-[10px]">deploys: {{ deploys }}</p>`,
-  holdAction: `const completed = ref(0)
+{/* a 1:1 thumb drag where flick momentum counts; an early release springs
+     back, and Enter or Space confirms without the slide */}
+<DitherSlideAction label="Slide to deploy" color="green" onConfirm={() => setDeploys(deploys() + 1)} />
+<p class="text-[10px]">deploys: {deploys()}</p>`,
+  holdAction: `const [completed, setCompleted] = createSignal(0)
 
-<!-- a liquid fill with a dotted crest; release early to drain -->
-<DitherHoldAction :duration="1200" direction="vertical" color="orange" @complete="completed++">
+{/* a liquid fill with a dotted crest; release early to drain */}
+<DitherHoldAction duration={1200} direction="vertical" color="orange" onComplete={() => setCompleted(completed() + 1)}>
   Hold to purge cache
 </DitherHoldAction>
-<p class="text-[10px]">completed: {{ completed }}</p>`,
-  walletCard: `const account = ref("main")
-const last = ref("none")
+<p class="text-[10px]">completed: {completed()}</p>`,
+  walletCard: `const [account, setAccount] = createSignal("main")
+const [last, setLast] = createSignal("none")
 
-<!-- the switcher and search morph from their triggers, the digits cascade,
-     privacy masks the balance, copying the address answers with a check -->
-<DitherWalletCard v-model="account" :accounts="[
+{/* the switcher and search morph from their triggers, the digits cascade,
+     privacy masks the balance, copying the address answers with a check */}
+<DitherWalletCard modelValue={account()} onUpdateModelValue={setAccount} accounts={[
   { value: 'main', label: 'Main', address: '0x7f3a9c2e14b7d55aa93d', balance: 12480.52, change: 2.4 },
   { value: 'savings', label: 'Savings', address: '0x8b21e0c4a6f9d1327e55', balance: 8210.11, change: -1.1, color: 'purple' },
   { value: 'trading', label: 'Trading', address: '0x91cc4db2e87a30f6b214', balance: 3033.7, change: 0.6, color: 'orange' },
-]" :recent="['gas fees', 'swap history']" notifications
-  @action="(name) => (last = name)" @submit="(query) => (last = 'search: ' + query)"
-  @notify="last = 'notifications'" class="w-full max-w-80" />
-<p class="text-[10px]">last: {{ last }}</p>`,
+]} recent={['gas fees', 'swap history']} notifications
+  onAction={(name) => (setLast(name))} onSubmit={(query) => (setLast('search: ' + query))}
+  onNotify={() => setLast('notifications')} class="w-full max-w-80" />
+<p class="text-[10px]">last: {last()}</p>`,
 }
 
 const cardBox =
@@ -826,17 +836,17 @@ export default function AnimationsDocs() {
   const [stackNote, setStackNote] = createSignal("none")
   const [stackVariant, setStackVariant] = createSignal<(typeof STACK_VARIANTS)[number]>("stack")
   const stackSnippet = createMemo(
-    () => `const pinned = ref(false)
-const last = ref("none")
+    () => `const [pinned, setPinned] = createSignal(false)
+const [last, setLast] = createSignal("none")
 
-<DitherNotificationStack v-model="pinned"${stackVariant() === "stack" ? "" : ` variant="${stackVariant()}"`} :items="[
+<DitherNotificationStack modelValue={pinned()} onUpdateModelValue={setPinned}${stackVariant() === "stack" ? "" : ` variant="${stackVariant()}"`} items={[
   { id: 'n1', title: 'Deploy finished', body: 'dither-ui shipped to production in 42s', time: '2m', icon: '↑', color: 'green' },
   { id: 'n2', title: 'New comment', body: 'Rei: “the drum snaps beautifully”', time: '16m', icon: '▤', color: 'blue' },
   { id: 'n3', title: 'Build warning', body: 'chunk index.js is 447 kB', time: '1h', icon: '◈', color: 'orange' },
-]" @viewall="last = 'view all'" />
-<p class="text-[10px]">pinned: {{ pinned }}, last: {{ last }}</p>
-<!-- stacked summary → readable list on hover, focus or tap · tap pins ·
-     spring fan-out with per-card stagger -->`,
+]} onViewall={() => setLast('view all')} />
+<p class="text-[10px]">pinned: {pinned()}, last: {last()}</p>
+{/* stacked summary → readable list on hover, focus or tap · tap pins ·
+     spring fan-out with per-card stagger */}`,
   )
   const [gooeyPick, setGooeyPick] = createSignal("none")
   // Sequence demo: control changes double as restart keys — the plan rebuilds

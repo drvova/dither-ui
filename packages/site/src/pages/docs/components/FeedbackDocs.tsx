@@ -10,7 +10,7 @@ const SNIPPET_BADGE = `<DitherBadge color="green">stable</DitherBadge>
 <DitherBadge color="orange">beta</DitherBadge>
 <DitherBadge color="red">deprecated</DitherBadge>
 
-<!-- variants -->
+{/* variants */}
 <DitherBadge variant="gradient">gradient</DitherBadge>
 <DitherBadge variant="solid">solid</DitherBadge>
 <DitherBadge variant="dotted">dotted</DitherBadge>
@@ -27,20 +27,20 @@ const SNIPPET_SKELETON = `<div class="rounded-lg border p-5">
   <DitherSkeleton class="mt-4 h-24 w-full rounded" />
 </div>`
 
-const SNIPPET_SPINNER = `<!-- default: a clean rotating arc -->
-<DitherSpinner :size="20" />
+const SNIPPET_SPINNER = `{/* default: a clean rotating arc */}
+<DitherSpinner size={20} />
 
-<!-- a seed picks the FORM — arc, ring of dots, rotating petals, thin comet -->
-<DitherSpinner :seed="42" :size="28" />
-<DitherSpinner :seed="777" color="green" />
+{/* a seed picks the FORM — arc, ring of dots, rotating petals, thin comet */}
+<DitherSpinner seed={42} size={28} />
+<DitherSpinner seed={777} color="green" />
 
-<!-- static: drawn once, no animation loop; precompiled takes a raster you exported -->
-<DitherSpinner render-mode="static" />`
+{/* static: drawn once, no animation loop; precompiled takes a raster you exported */}
+<DitherSpinner renderMode="static" />`
 const SNIPPET_SEPARATOR = `<p>Charts render on canvas.</p>
 <DitherSeparator class="my-4" />
 <p>Fills threshold the same Bayer matrix.</p>
 
-<!-- vertical -->
+{/* vertical */}
 <div class="flex h-5 items-center gap-4">
   <span>docs</span>
   <DitherSeparator orientation="vertical" />
@@ -156,7 +156,7 @@ export default function FeedbackDocs() {
               <span class="text-[11px] text-muted-foreground">default arc</span>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-6">
-              {/* by place, as the Vue list was keyed: a roll reseeds each spinner where it stands */}
+              {/* by place: a roll reseeds each spinner where it stands */}
               <Index each={spinnerSeeds()}>
                 {(sd, i) => <DitherSpinner seed={sd()} size={32} color={SPINNER_COLORS[i % 6]} />}
               </Index>

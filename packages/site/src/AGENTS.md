@@ -145,7 +145,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   `boundProps` is the ONE way a registry component's props are bound
   (mapped, the label left out), `fieldLabel` the label or null.
   `tests/field-label.spec.ts`. A component with a two-way value (a field's
-  value, the chips' pick; the registry's `vmodel` row) keeps it as `model`, which `sanitizeModel` takes
+  value, the chips' pick; the registry's `model` row) keeps it as `model`, which `sanitizeModel` takes
   from untrusted input (a file, `component.add`'s or a screen cell's
   `value`, `artboard.update`'s `widget.value`) only in the kind of the
   entry's default and under `MODEL_MAX`, else the default;
@@ -356,8 +356,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   (`stylex` writes `stylex.create` with `{...stylex.props()}` on the
   element), and `restyle(code, system)` is the two as one text, the sheet
   under the code; `tailwind` returns the code untouched. A docs snippet is
-  translated from its authoring notation first (`toSolidCode`), so that
-  notation never reaches the rewriter. Its data is
+  written in Solid, so it reaches the rewriter as it is. Its data is
   `virtual-dither-utilities`: `@dither-ui/restyle/utility-map` (node-side only: the Vite
   plugin `build/utilities.ts`, and `rstack.config.ts` for the framework-free
   specs) scans `UTILITY_SOURCES` (`build/utility-sources.ts`: `pages/docs` and
@@ -396,8 +395,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   `widgets/source/model/stylex.ts`. Pinned by
   `packages/restyle/tests/restyle.spec.ts`, `tests/stylex-coverage.spec.ts`
   (every docs snippet written as StyleX leaves no Tailwind class; only a
-  snippet's own CSS hooks stay classes), the Solid cases of
-  `tests/site/solid-code.spec.tsx`, and the export and `code.get` cases in
+  snippet's own CSS hooks stay classes), `tests/site/solid-code.spec.tsx`
+  (a file and a fragment in each system), and the export and `code.get` cases in
   `tests/site/codegen.spec.tsx` and `state.spec.tsx`.
 - Clock for drivers: `clock.seek { seconds? }` / `clock.release` hold or
   free the kit clock from the protocol (the `seek_clock` tool), and

@@ -103,58 +103,64 @@ const CHANNEL: ChannelMsg[] = [
 const copy = <T,>(list: T[]): T[] => JSON.parse(JSON.stringify(list)) as T[]
 
 const SNIPPET = `${dataCode("start", THREADS)}
-const threads = ref(start)
-const activeId = ref("rei")
-const active = computed(() => threads.value.find((t) => t.id === activeId.value)!)
-const draft = ref("")
-const typing = ref(false)
+const [threads, setThreads] = createSignal(start)
+const [activeId, setActiveId] = createSignal("rei")
+const active = createMemo(() => threads().find((t) => t.id === activeId())!)
+const [draft, setDraft] = createSignal("")
+const [typing, setTyping] = createSignal(false)
 
 function pick(id: string) {
-  activeId.value = id
-  threads.value = threads.value.map((t) => (t.id === id ? { ...t, unread: 0 } : t))
+  setActiveId(id)
+  setThreads(threads().map((t) => (t.id === id ? { ...t, unread: 0 } : t)))
 }
 function say(id: string, from: string, text: string) {
   const at = new Date().toTimeString().slice(0, 5)
-  threads.value = threads.value.map((t) => (t.id === id ? { ...t, messages: [...t.messages, { from, text, at }] } : t))
+  setThreads(threads().map((t) => (t.id === id ? { ...t, messages: [...t.messages, { from, text, at }] } : t)))
 }
 function send() {
-  const text = draft.value.trim()
-  if (!text || typing.value) return
-  const t = active.value
+  const text = draft().trim()
+  if (!text || typing()) return
+  const t = active()
   say(t.id, "me", text)
-  draft.value = ""
-  typing.value = true
+  setDraft("")
+  setTyping(true)
   setTimeout(() => {
     say(t.id, "them", t.replies[t.messages.length % t.replies.length])
-    typing.value = false
+    setTyping(false)
   }, 1200)
 }
 
 <div class="grid grid-cols-[140px_1fr] rounded-lg border">
-  <!-- conversation list -->
+  {/* conversation list */}
   <nav class="border-r p-1">
-    <button v-for="t in threads" :key="t.id" type="button" :aria-pressed="activeId === t.id"
-      class="flex w-full items-center gap-2 p-1.5 text-left text-[11px]" @click="pick(t.id)">
-      <DitherAvatar :name="t.name" :size="24" :color="t.color" />
-      <span class="min-w-0 flex-1 truncate">{{ t.name }}</span>
-      <DitherBadge v-if="t.unread" color="green">{{ t.unread }}</DitherBadge>
-    </button>
+    <For each={threads()}>
+      {(t) => (
+        <button type="button" aria-pressed={activeId() === t.id}
+          class="flex w-full items-center gap-2 p-1.5 text-left text-[11px]" onClick={() => pick(t.id)}>
+          <DitherAvatar name={t.name} size={24} color={t.color} />
+          <span class="min-w-0 flex-1 truncate">{t.name}</span>
+          <Show when={t.unread}><DitherBadge color="green">{t.unread}</DitherBadge></Show>
+        </button>
+      )}
+    </For>
   </nav>
   <div class="flex flex-col p-2">
-    <!-- thread -->
+    {/* thread */}
     <div class="grid flex-1 content-start gap-1.5">
-      <div v-for="m in active.messages" :key="m.at + m.text" class="flex"
-        :class="m.from === 'me' ? 'justify-end' : 'justify-start'">
-        <div class="max-w-[75%] rounded-lg border px-2.5 py-1.5 text-[11px]"
-          :class="m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'">
-          {{ m.text }} <span class="text-[9px] text-muted-foreground">{{ m.at }}</span>
-        </div>
-      </div>
-      <p v-if="typing" aria-live="polite" class="text-[10px] text-muted-foreground">{{ active.name }} is typing</p>
+      <For each={active().messages}>
+        {(m) => (
+          <div class={\`flex \${m.from === 'me' ? 'justify-end' : 'justify-start'}\`}>
+            <div class={\`max-w-[75%] rounded-lg border px-2.5 py-1.5 text-[11px] \${m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'}\`}>
+              {m.text} <span class="text-[9px] text-muted-foreground">{m.at}</span>
+            </div>
+          </div>
+        )}
+      </For>
+      <Show when={typing()}><p aria-live="polite" class="text-[10px] text-muted-foreground">{active().name} is typing</p></Show>
     </div>
-    <!-- composer -->
-    <form class="mt-2 flex gap-2" @submit.prevent="send()">
-      <DitherInput v-model="draft" placeholder="Message…" aria-label="Message" />
+    {/* composer */}
+    <form class="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); send() }}>
+      <DitherInput modelValue={draft()} onUpdateModelValue={setDraft} placeholder="Message…" aria-label="Message" />
       <DitherButton color="green" type="submit">Send</DitherButton>
     </form>
   </div>
@@ -162,25 +168,25 @@ function send() {
 
 const SNIPPET_AI = `${dataCode("answers", AI_ANSWERS)}
 const suggestions = Object.keys(answers)
-const messages = ref([{ role: "assistant", text: "Hi, ask me about seeds, theming, or exporting. Or pick a suggestion below." }])
-const draft = ref("")
-const streaming = ref(false)
+const [messages, setMessages] = createSignal([{ role: "assistant", text: "Hi, ask me about seeds, theming, or exporting. Or pick a suggestion below." }])
+const [draft, setDraft] = createSignal("")
+const [streaming, setStreaming] = createSignal(false)
 let timer = 0
 
 function reply(text: string) {
-  messages.value = [...messages.value.slice(0, -1), { role: "assistant", text }]
+  setMessages([...messages().slice(0, -1), { role: "assistant", text }])
 }
 function stop() {
   clearInterval(timer)
-  streaming.value = false
+  setStreaming(false)
 }
 function ask(prompt: string) {
   const text = prompt.trim()
-  if (!text || streaming.value) return
+  if (!text || streaming()) return
   const answer = answers[text] ?? ${JSON.stringify(AI_FALLBACK)}
-  messages.value = [...messages.value, { role: "user", text }, { role: "assistant", text: "" }]
-  draft.value = ""
-  streaming.value = true
+  setMessages([...messages(), { role: "user", text }, { role: "assistant", text: "" }])
+  setDraft("")
+  setStreaming(true)
   // reduced motion: the reply lands whole instead of streaming
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return (reply(answer), stop())
   let i = 0
@@ -190,42 +196,55 @@ function ask(prompt: string) {
     if (i >= answer.length) stop()
   }, 24)
 }
-onBeforeUnmount(stop)
+onCleanup(stop)
 
 <div class="grid gap-1.5">
-  <div v-for="(m, i) in messages" :key="i" class="flex" :class="m.role === 'user' ? 'justify-end' : ''">
-    <div class="max-w-[80%] rounded-lg border px-2.5 py-1.5 text-[11px]"
-      :class="m.role === 'user' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'">{{ m.text }}</div>
+  <Index each={messages()}>
+    {(m, i) => (
+      <div class={\`flex \${m().role === 'user' ? 'justify-end' : ''}\`}>
+        <div class={\`max-w-[80%] rounded-lg border px-2.5 py-1.5 text-[11px] \${m().role === 'user' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'}\`}>{m().text}</div>
+      </div>
+    )}
+  </Index>
+</div>
+
+{/* chips ask, a reply streams in, Stop cancels */}
+<Show
+  when={!streaming()}
+  fallback={
+    <button type="button" class="mt-2 text-[10px]" onClick={stop}>Stop generating</button>
+  }
+>
+  <div role="group" aria-label="Suggestions" class="mt-2 flex flex-wrap gap-1.5">
+    <For each={suggestions}>
+      {(s) => (
+        <button type="button" class="rounded border px-2 py-0.5 text-[10px]"
+          onClick={() => ask(s)}>{s}</button>
+      )}
+    </For>
   </div>
-</div>
+</Show>
 
-<!-- chips ask, a reply streams in, Stop cancels -->
-<div v-if="!streaming" role="group" aria-label="Suggestions" class="mt-2 flex flex-wrap gap-1.5">
-  <button v-for="s in suggestions" :key="s" type="button" class="rounded border px-2 py-0.5 text-[10px]"
-    @click="ask(s)">{{ s }}</button>
-</div>
-<button v-else type="button" class="mt-2 text-[10px]" @click="stop">Stop generating</button>
-
-<form class="mt-2 flex gap-2" @submit.prevent="ask(draft)">
-  <DitherInput v-model="draft" placeholder="Ask about the kit…" aria-label="Ask" />
-  <DitherButton color="purple" type="submit" :disabled="streaming">Ask</DitherButton>
+<form class="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); ask(draft()) }}>
+  <DitherInput modelValue={draft()} onUpdateModelValue={setDraft} placeholder="Ask about the kit…" aria-label="Ask" />
+  <DitherButton color="purple" type="submit" disabled={streaming()}>Ask</DitherButton>
 </form>`
 
 const SNIPPET_SUPPORT = `${dataCode("replies", SUPPORT_REPLIES)}
 const quickReplies = Object.keys(replies)
-const messages = ref([{ from: "agent", text: "Hi, you have reached dither support. How can I help?" }])
-const typing = ref(false)
+const [messages, setMessages] = createSignal([{ from: "agent", text: "Hi, you have reached dither support. How can I help?" }])
+const [typing, setTyping] = createSignal(false)
 
 function say(from: string, text: string) {
-  messages.value = [...messages.value, { from, text }]
+  setMessages([...messages(), { from, text }])
 }
 function ask(text: string) {
-  if (typing.value) return
+  if (typing()) return
   say("me", text)
-  typing.value = true
+  setTyping(true)
   setTimeout(() => {
     say("agent", replies[text])
-    typing.value = false
+    setTyping(false)
     // a human takes over: a system line opens the ticket
     if (text === "Talk to a human")
       setTimeout(() => say("system", "Ticket #4821 opened. Rei joined the conversation."), 900)
@@ -233,59 +252,80 @@ function ask(text: string) {
 }
 
 <header class="flex items-center gap-1.5 text-[11px]">
-  Support <span class="size-1.5 rounded-full" :style="{ background: 'var(--swatch-green)' }" /> online
+  Support <span class="size-1.5 rounded-full" style={{ background: 'var(--swatch-green)' }} /> online
 </header>
 
 <div class="mt-2 grid gap-1.5 text-[11px]">
-  <div v-for="(m, i) in messages" :key="i">
-    <!-- the ticket line -->
-    <p v-if="m.from === 'system'" class="text-center text-[10px] text-muted-foreground">{{ m.text }}</p>
-    <div v-else class="flex" :class="m.from === 'me' ? 'justify-end' : ''">
-      <span class="max-w-[80%] rounded-lg border px-2.5 py-1.5">{{ m.text }}</span>
-    </div>
-  </div>
-  <p v-if="typing" class="text-[10px] text-muted-foreground">An agent is typing</p>
+  <Index each={messages()}>
+    {(m, i) => (
+      <div>
+        {/* the ticket line */}
+        <Show
+          when={m().from === 'system'}
+          fallback={
+            <div class={\`flex \${m().from === 'me' ? 'justify-end' : ''}\`}>
+              <span class="max-w-[80%] rounded-lg border px-2.5 py-1.5">{m().text}</span>
+            </div>
+          }
+        >
+          <p class="text-center text-[10px] text-muted-foreground">{m().text}</p>
+        </Show>
+      </div>
+    )}
+  </Index>
+  <Show when={typing()}><p class="text-[10px] text-muted-foreground">An agent is typing</p></Show>
 </div>
 
 <div role="group" aria-label="Quick replies" class="mt-2 flex flex-wrap gap-1.5">
-  <button v-for="q in quickReplies" :key="q" type="button" class="rounded border px-2 py-0.5 text-[10px]"
-    @click="ask(q)">{{ q }}</button>
+  <For each={quickReplies}>
+    {(q) => (
+      <button type="button" class="rounded border px-2 py-0.5 text-[10px]"
+        onClick={() => ask(q)}>{q}</button>
+    )}
+  </For>
 </div>`
 
 const SNIPPET_CHANNEL = `${dataCode("start", CHANNEL)}
-const messages = ref(start)
-const draft = ref("")
+const [messages, setMessages] = createSignal(start)
+const [draft, setDraft] = createSignal("")
 // a row by the author above it joins their group: avatar and name print once
-const grouped = (i: number) => i > 0 && messages.value[i - 1].author === messages.value[i].author
+const grouped = (i: number) => i > 0 && messages()[i - 1].author === messages()[i].author
 
 function react(i: number, label: string) {
-  messages.value = messages.value.map((m, k) =>
+  setMessages(messages().map((m, k) =>
     k !== i
       ? m
       : { ...m, reactions: m.reactions.map((r) => (r.label !== label ? r : { ...r, mine: !r.mine, count: r.count + (r.mine ? -1 : 1) })) },
-  )
+  ))
 }
 function post() {
-  const text = draft.value.trim()
+  const text = draft().trim()
   if (!text) return
   const at = new Date().toTimeString().slice(0, 5)
-  messages.value = [...messages.value, { author: "You", color: "blue", text, at, reactions: [] }]
-  draft.value = ""
+  setMessages([...messages(), { author: "You", color: "blue", text, at, reactions: [] }])
+  setDraft("")
 }
 
-<div v-for="(m, i) in messages" :key="i" class="flex gap-2.5 text-[11px]">
-  <DitherAvatar v-if="!grouped(i)" :name="m.author" :size="24" :color="m.color" />
-  <div v-else class="w-6" />
-  <div>
-    <p v-if="!grouped(i)"><b>{{ m.author }}</b> <time class="text-[10px]">{{ m.at }}</time></p>
-    <p>{{ m.text }}</p>
-    <button v-for="r in m.reactions" :key="r.label" type="button" :aria-pressed="r.mine"
-      class="mr-1 rounded border px-1.5 text-[10px]" @click="react(i, r.label)">{{ r.label }} {{ r.count }}</button>
-  </div>
-</div>
+<Index each={messages()}>
+  {(m, i) => (
+    <div class="flex gap-2.5 text-[11px]">
+      <Show when={!grouped(i)} fallback={<div class="w-6" />}><DitherAvatar name={m().author} size={24} color={m().color} /></Show>
+      <div>
+        <Show when={!grouped(i)}><p><b>{m().author}</b> <time class="text-[10px]">{m().at}</time></p></Show>
+        <p>{m().text}</p>
+        <For each={m().reactions}>
+          {(r) => (
+            <button type="button" aria-pressed={r.mine}
+              class="mr-1 rounded border px-1.5 text-[10px]" onClick={() => react(i, r.label)}>{r.label} {r.count}</button>
+          )}
+        </For>
+      </div>
+    </div>
+  )}
+</Index>
 
-<form class="mt-2" @submit.prevent="post()">
-  <DitherInput v-model="draft" placeholder="Message #dither-dev…" aria-label="Message" />
+<form class="mt-2" onSubmit={(e) => { e.preventDefault(); post() }}>
+  <DitherInput modelValue={draft()} onUpdateModelValue={setDraft} placeholder="Message #dither-dev…" aria-label="Message" />
 </form>`
 
 export default function ChatExamples() {

@@ -21,7 +21,7 @@ const ALIGN: Record<string, string> = {
 }
 
 const resolve = (is: string) => (kit as Record<string, unknown>)[is] as Component<Record<string, unknown>>
-const hasModel = (cell: ScreenCell) => !!componentEntry(cell.is)?.vmodel
+const hasModel = (cell: ScreenCell) => !!componentEntry(cell.is)?.model
 
 export default function ScreenRenderer(props: { screen: ScreenModel; artboardId: string }) {
   const cellId = (cell: ScreenCell) => `${props.artboardId}:cell:${cell.id}`

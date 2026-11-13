@@ -1,6 +1,6 @@
 // A registry component's model, as Solid binds it. The registry
 // (`@/entities/widget/model/registry`, framework free) names a
-// model by its event (`vmodel`: a default, and a prop and an event where they
+// model by its event (`model`: a default, and a prop and an event where they
 // are not `modelValue` and `update:modelValue`); this is the one place that
 // reading becomes a prop and an `on<Event>` callback, for the canvas, the
 // code export and the agent's registry alike.
@@ -27,7 +27,7 @@ export type ModelBinding = {
 }
 
 export function modelOf(entry: ComponentEntry | undefined): ModelBinding | null {
-  const m = entry?.vmodel
+  const m = entry?.model
   if (!m) return null
   const event = m.event ?? "update:modelValue"
   return { default: m.def, prop: m.prop ?? "modelValue", on: listenerOf(event), carries: event.startsWith("update:") }

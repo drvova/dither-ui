@@ -252,7 +252,7 @@ export function registrySchema() {
       "chart.add": "{ chart, name?, data?: { labels, series: [{ key, label?, color?, values }] }, frame? }",
       "widget.add": "{ widget: avatar|button|gradient|image, name?, props? }",
       "component.add":
-        "{ is, name?, props?, slotText?, value?, frame? } — a registry component; value is what its v-model holds (a field's text, a toggle's state), checked against its default's kind (an empty string shows a field's placeholder)",
+        "{ is, name?, props?, slotText?, value?, frame? } — a registry component; value is the value it binds (a field's text, a toggle's state), checked against its default's kind (an empty string shows a field's placeholder)",
       "screen.add":
         "{ name?, rows: [{ cells: [{ is, props?, slotText?, value?, grow? }], align?, justify?, gap? }], gap?, padding?, frame? }",
       "reel.add": `{ name?, clips: [id | { id, seconds?, transition?: { kind?: ${REEL_TRANSITIONS.join("|")}, seconds?, cell?, seed? }, camera?: [{ t: 0-1 of the clip, x, y: the frame point looked at (0-1), zoom: 1 fitted, tilt: degrees }], callouts?: [{ x, y: a frame point (0-1), label, note?, side?: left|right, from?, to?: seconds into the clip }], chapter?: { line, spec?: [[figure, words]] } }], score?: true | { seed }, frame? } — frames played in order with ordered-dither transitions (clip 3s, dissolve 0.6s by default); a film when clips carry camera moves, callouts and chapters (a band under the stage), with a score synthesized from the cut; video.export renders the whole cut with its score`,

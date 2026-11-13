@@ -33,89 +33,95 @@ const STATUS: Record<string, { color: string; label: string }> = {
 }
 const PAGE_SIZE = ${PAGE_SIZE}
 
-const members = ref(start)
-const query = ref("")
-const sortKey = ref<"name" | "joined">("joined")
-const sortDir = ref(-1)
-const page = ref(1)
-const selected = ref(new Set<string>())
+const [members, setMembers] = createSignal(start)
+const [query, setQuery] = createSignal("")
+const [sortKey, setSortKey] = createSignal<"name" | "joined">("joined")
+const [sortDir, setSortDir] = createSignal(-1)
+const [page, setPage] = createSignal(1)
+const [selected, setSelected] = createSignal(new Set<string>())
 
 function sortBy(key: "name" | "joined") {
-  if (sortKey.value === key) sortDir.value = -sortDir.value
-  else (sortKey.value = key, sortDir.value = 1)
+  if (sortKey() === key) setSortDir(-sortDir())
+  else (setSortKey(key), setSortDir(1))
 }
-const filtered = computed(() => {
-  const q = query.value.trim().toLowerCase()
-  const rows = members.value.filter((m) => m.name.toLowerCase().includes(q) || m.email.includes(q))
-  return [...rows].sort((a, b) => a[sortKey.value].localeCompare(b[sortKey.value]) * sortDir.value)
+const filtered = createMemo(() => {
+  const q = query().trim().toLowerCase()
+  const rows = members().filter((m) => m.name.toLowerCase().includes(q) || m.email.includes(q))
+  return [...rows].sort((a, b) => a[sortKey()].localeCompare(b[sortKey()]) * sortDir())
 })
-const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
-const paged = computed(() => {
-  const p = Math.min(page.value, pages.value)
-  return filtered.value.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE)
+const pages = createMemo(() => Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)))
+const paged = createMemo(() => {
+  const p = Math.min(page(), pages())
+  return filtered().slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE)
 })
-const allOnPage = computed(() => paged.value.length > 0 && paged.value.every((m) => selected.value.has(m.email)))
+const allOnPage = createMemo(() => paged().length > 0 && paged().every((m) => selected().has(m.email)))
 
 function toggleAll() {
-  const next = new Set(selected.value)
-  paged.value.forEach((m) => (allOnPage.value ? next.delete(m.email) : next.add(m.email)))
-  selected.value = next
+  const next = new Set(selected())
+  paged().forEach((m) => (allOnPage() ? next.delete(m.email) : next.add(m.email)))
+  setSelected(next)
 }
 function toggleRow(email: string) {
-  const next = new Set(selected.value)
+  const next = new Set(selected())
   if (!next.delete(email)) next.add(email)
-  selected.value = next
+  setSelected(next)
 }
 function remove() {
-  members.value = members.value.filter((m) => !selected.value.has(m.email))
-  selected.value = new Set<string>()
+  setMembers(members().filter((m) => !selected().has(m.email)))
+  setSelected(new Set<string>())
 }
 
-<DitherInput v-model="query" placeholder="Filter members…" aria-label="Filter members" />
+<DitherInput modelValue={query()} onUpdateModelValue={setQuery} placeholder="Filter members…" aria-label="Filter members" />
 
-<!-- the selection toolbar appears while rows are checked -->
-<div v-if="selected.size" class="mt-3 flex items-center justify-between text-[11px]">
-  {{ selected.size }} selected
-  <DitherButton color="red" @click="remove">Remove</DitherButton>
-</div>
+{/* the selection toolbar appears while rows are checked */}
+<Show when={selected().size}>
+  <div class="mt-3 flex items-center justify-between text-[11px]">
+    {selected().size} selected
+    <DitherButton color="red" onClick={remove}>Remove</DitherButton>
+  </div>
+</Show>
 
 <div class="mt-3 overflow-x-auto">
   <table class="w-full text-left text-[11px]">
     <thead>
       <tr class="border-b">
-        <th><DitherCheckbox :model-value="allOnPage" aria-label="Select page"
-          @update:model-value="toggleAll" /></th>
-        <th :aria-sort="sortKey === 'name' ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'">
-          <button type="button" @click="sortBy('name')">Name</button>
+        <th><DitherCheckbox modelValue={allOnPage()} aria-label="Select page"
+          onUpdateModelValue={toggleAll} /></th>
+        <th aria-sort={sortKey() === 'name' ? (sortDir() === 1 ? 'ascending' : 'descending') : 'none'}>
+          <button type="button" onClick={() => sortBy('name')}>Name</button>
         </th>
         <th>Role</th>
         <th>Status</th>
-        <th :aria-sort="sortKey === 'joined' ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'">
-          <button type="button" @click="sortBy('joined')">Joined</button>
+        <th aria-sort={sortKey() === 'joined' ? (sortDir() === 1 ? 'ascending' : 'descending') : 'none'}>
+          <button type="button" onClick={() => sortBy('joined')}>Joined</button>
         </th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="m in paged" :key="m.email" :class="selected.has(m.email) ? 'bg-card/50' : ''">
-        <td><DitherCheckbox :model-value="selected.has(m.email)" :aria-label="'Select ' + m.name"
-          @update:model-value="toggleRow(m.email)" /></td>
-        <td>{{ m.name }} <span class="text-muted-foreground">{{ m.email }}</span></td>
-        <td>{{ m.role }}</td>
-        <td>
-          <!-- a presence dot from the palette's swatch variables -->
-          <span class="inline-block size-1.5 rounded-full"
-            :style="{ background: 'var(--swatch-' + STATUS[m.status].color + ')' }" />
-          {{ STATUS[m.status].label }}
-        </td>
-        <td>{{ m.joined }}</td>
-      </tr>
+      <For each={paged()}>
+        {(m) => (
+          <tr class={selected().has(m.email) ? 'bg-card/50' : ''}>
+            <td><DitherCheckbox modelValue={selected().has(m.email)} aria-label={'Select ' + m.name}
+              onUpdateModelValue={() => toggleRow(m.email)} /></td>
+            <td>{m.name} <span class="text-muted-foreground">{m.email}</span></td>
+            <td>{m.role}</td>
+            <td>
+              {/* a presence dot from the palette's swatch variables */}
+              <span class="inline-block size-1.5 rounded-full"
+                style={{ background: 'var(--swatch-' + STATUS[m.status].color + ')' }} />
+              {STATUS[m.status].label}
+            </td>
+            <td>{m.joined}</td>
+          </tr>
+        )}
+      </For>
     </tbody>
   </table>
 </div>
 
 <footer class="mt-3 flex items-center justify-between text-[11px]">
-  {{ filtered.length }} members
-  <DitherPagination v-model:page="page" :total="pages" />
+  {filtered().length} members
+  <DitherPagination page={page()} onUpdatePage={setPage} total={pages()} />
 </footer>`
 
 export default function TableExamples() {

@@ -36,7 +36,7 @@ const SNIPPET_DIVIDER = `<p>Charts render on canvas.</p>
 <DitherDivider class="my-4" />
 <p>Fills threshold the same Bayer matrix.</p>
 
-<!-- vertical: stretches inside a flex row -->
+{/* vertical: stretches inside a flex row */}
 <div class="flex h-10 items-center gap-4">
   <span class="text-[12px]">Left</span>
   <DitherDivider orientation="vertical" />
@@ -48,20 +48,20 @@ const SNIPPET_HIDDEN = `<p>
   <DitherVisuallyHidden>(this sentence is announced, not painted)</DitherVisuallyHidden>
 </p>
 
-<!-- focusable: the skip-link pattern, Tab reveals it -->
+{/* focusable: the skip-link pattern, Tab reveals it */}
 <DitherVisuallyHidden focusable>Skip to content</DitherVisuallyHidden>`
 
-const SNIPPET_SVG = `<!-- decorative by default: aria-hidden -->
+const SNIPPET_SVG = `{/* decorative by default: aria-hidden */}
 <DitherSvg viewBox="0 0 24 24" class="size-5">
   <path d="M4 12h16M12 4v16" stroke="currentColor" stroke-width="2" />
 </DitherSvg>
 
-<!-- labeled: promoted to role=img with a name -->
+{/* labeled: promoted to role=img with a name */}
 <DitherSvg viewBox="0 0 24 24" label="Plus" class="size-8">
   <path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.5" />
 </DitherSvg>`
 
-const SNIPPET_IMG = `<!-- loading contract built in; alt is required -->
+const SNIPPET_IMG = `{/* loading contract built in; alt is required */}
 <DitherImg src="/sprites.webp" alt="The sprite sheet" class="h-40 w-full object-cover" />`
 
 const SNIPPET_SPACER = `<div class="flex items-center">
@@ -78,19 +78,19 @@ const SNIPPET_PORTAL = `<div class="h-24 overflow-hidden rounded-md border p-4">
 </div>
 <div id="portal-demo-out" class="grid h-24 place-items-center rounded-md border border-dashed" />
 
-<!-- keep it in place (SSR / tests) -->
+{/* keep it in place (SSR / tests) */}
 <DitherPortal disabled>Inline.</DitherPortal>`
 
-const SNIPPET_OVERLAY = `const open = ref(true)
+const SNIPPET_OVERLAY = `const [open, setOpen] = createSignal(true)
 
-<!-- an overlay covers the screen; absolute positioning keeps it to its box -->
+{/* an overlay covers the screen; absolute positioning keeps it to its box */}
 <div class="relative isolate grid h-40 place-items-center overflow-hidden rounded-md border">
-  <button type="button" @click="open = true">Dim this box</button>
-  <!-- decorative by default; interactive catches presses, so a press closes it -->
-  <DitherOverlay v-if="open" dim="medium" interactive class="absolute" @click="open = false" />
+  <button type="button" onClick={() => setOpen(true)}>Dim this box</button>
+  {/* decorative by default; interactive catches presses, so a press closes it */}
+  <Show when={open()}><DitherOverlay dim="medium" interactive class="absolute" onClick={() => setOpen(false)} /></Show>
 </div>`
 
-const SNIPPET_MEASURE = `<DitherMeasure class="w-48" @resize="onResize">
+const SNIPPET_MEASURE = `<DitherMeasure class="w-48" onResize={onResize}>
   <div class="h-20 rounded border" />
 </DitherMeasure>
 
@@ -99,19 +99,21 @@ function onResize({ width, height }: { width: number; height: number }) {
 }`
 
 const SNIPPET_CLIPBOARD = `<DitherClipboard value="npm i d3-scale d3-shape clsx">
-  <!-- scoped slot wraps the trigger: copied + copy land right here -->
-  <template #default="{ copied }">
-    <button type="button" class="rounded border px-3 py-1.5 text-[11px]">
-      {{ copied ? "copied" : "copy install" }}
-    </button>
-  </template>
+  {(scope) => (
+    <>
+      {/* scoped slot wraps the trigger: copied + copy land right here */}
+      <button type="button" class="rounded border px-3 py-1.5 text-[11px]">
+        {scope.copied ? "copied" : "copy install"}
+      </button>
+    </>
+  )}
 </DitherClipboard>`
 
-const SNIPPET_CLICK_OUTSIDE = `const open = ref(false)
+const SNIPPET_CLICK_OUTSIDE = `const [open, setOpen] = createSignal(false)
 
-<DitherClickOutside :enabled="open" @outside="open = false">
-  <button type="button" @click="open = !open">{{ open ? "menu open: click anywhere outside" : "open the menu" }}</button>
-  <div v-if="open" class="mt-2 rounded border p-2">Pressing outside closes this.</div>
+<DitherClickOutside enabled={open()} onOutside={() => setOpen(false)}>
+  <button type="button" onClick={() => setOpen(!open())}>{open() ? "menu open: click anywhere outside" : "open the menu"}</button>
+  <Show when={open()}><div class="mt-2 rounded border p-2">Pressing outside closes this.</div></Show>
 </DitherClickOutside>`
 
 const SNIPPET_FOCUS_RING = `<DitherFocusRing class="inline-flex gap-2 p-1">
@@ -119,20 +121,24 @@ const SNIPPET_FOCUS_RING = `<DitherFocusRing class="inline-flex gap-2 p-1">
   <button type="button">Second</button>
 </DitherFocusRing>`
 
-const SNIPPET_FOCUS_SCOPE = `const dialog = ref(false)
+const SNIPPET_FOCUS_SCOPE = `const [dialog, setDialog] = createSignal(false)
 
-<button type="button" @click="dialog = !dialog">{{ dialog ? "close (focus returns to me)" : "open a focus scope" }}</button>
-<DitherFocusScope v-if="dialog" @keydown.esc="dialog = false">
-  <h2 tabindex="-1">Confirm</h2>
-  <button type="button">Yes</button>
-  <button type="button">No</button>
-</DitherFocusScope>
-<!-- focus enters on open, Tab cycles inside, returns to the opener on close -->`
+<button type="button" onClick={() => setDialog(!dialog())}>{dialog() ? "close (focus returns to me)" : "open a focus scope"}</button>
+<Show when={dialog()}>
+  <DitherFocusScope onKeydown={(e) => { if (e.key !== "Escape") return; setDialog(false) }}>
+    <h2 tabindex="-1">Confirm</h2>
+    <button type="button">Yes</button>
+    <button type="button">No</button>
+  </DitherFocusScope>
+</Show>
+{/* focus enters on open, Tab cycles inside, returns to the opener on close */}`
 
-const SNIPPET_HOVER_AREA = `<DitherHoverArea v-slot="{ hovered, focused }">
-  <div class="rounded border p-4" :class="hovered || focused ? 'border-foreground' : 'border-border/60'">
-    Reveal on hover — or on keyboard focus.
-  </div>
+const SNIPPET_HOVER_AREA = `<DitherHoverArea>
+  {(scope) => (
+    <div class={\`rounded border p-4 \${scope.hovered || scope.focused ? 'border-foreground' : 'border-border/60'}\`}>
+      Reveal on hover — or on keyboard focus.
+    </div>
+  )}
 </DitherHoverArea>`
 
 const SNIPPET_PRESSABLE = `<DitherPressable>Get started</DitherPressable>
@@ -141,25 +147,27 @@ const SNIPPET_PRESSABLE = `<DitherPressable>Get started</DitherPressable>
 <DitherPressable disabled>Sold out</DitherPressable>
 <DitherPressable variant="plain" class="underline underline-offset-4">Bare base, your look</DitherPressable>`
 
-const SNIPPET_IN_VIEW = `<DitherInView v-slot="{ inView }" :once="true">
-  <div class="h-40 rounded border transition-opacity" :class="inView ? 'opacity-100' : 'opacity-0'">
-    Reveals its state when it approaches the viewport.
-  </div>
+const SNIPPET_IN_VIEW = `<DitherInView once={true}>
+  {(scope) => (
+    <div class={\`h-40 rounded border transition-opacity \${scope.inView ? 'opacity-100' : 'opacity-0'}\`}>
+      Reveals its state when it approaches the viewport.
+    </div>
+  )}
 </DitherInView>`
 
-const SNIPPET_ICON = `<!-- decorative by default -->
-<DitherIcon name="Search" :size="20" />
+const SNIPPET_ICON = `{/* decorative by default */}
+<DitherIcon name="Search" size={20} />
 
-<!-- labeled: promoted to role=img with a name -->
-<DitherIcon name="Close" label="Dismiss" :size="18" />
+{/* labeled: promoted to role=img with a name */}
+<DitherIcon name="Close" label="Dismiss" size={18} />
 
-<!-- currentColor inherits; weight rides on stroke-width -->
-<DitherIcon name="Trash" :size="24" :stroke-width="1.5" class="text-red-400" />`
+{/* currentColor inherits; weight rides on stroke-width */}
+<DitherIcon name="Trash" size={24} strokeWidth={1.5} class="text-red-400" />`
 
-const SNIPPET_ICON_SET = `<!-- once, near the app root -->
+const SNIPPET_ICON_SET = `{/* once, near the app root */}
 <DitherIconSet />
 
-<!-- then anywhere: one symbol, many uses -->
+{/* then anywhere: one symbol, many uses */}
 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
   <use href="#di-icon-Star" />
 </svg>`

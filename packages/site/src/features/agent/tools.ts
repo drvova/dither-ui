@@ -62,7 +62,7 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<stri
     def: {
       name: "add_screen",
       description:
-        'Add a composed screen: rows of registry components (one nesting level). Each cell: { is, props?, slotText?, value?, grow? }; value is what its v-model holds (a field\'s text: "" shows its placeholder). Row: { cells, align?, justify?, gap? }.',
+        'Add a composed screen: rows of registry components (one nesting level). Each cell: { is, props?, slotText?, value?, grow? }; value is the value it binds (a field\'s text: "" shows its placeholder). Row: { cells, align?, justify?, gap? }.',
       parameters: obj(
         {
           name: str("frame name"),
@@ -90,7 +90,7 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<stri
           props: obj({}),
           slotText: str("visible text for slot components"),
           value: {
-            description: "what its v-model holds (a field's text, a switch's state); \"\" shows a field's placeholder",
+            description: "the value it binds (a field's text, a switch's state); \"\" shows a field's placeholder",
           },
           frame: obj({ w: num("width"), h: num("height") }),
         },

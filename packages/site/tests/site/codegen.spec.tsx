@@ -477,7 +477,6 @@ describe("every frame the Studio can place", () => {
 describe("the registry's model rows, for Solid", () => {
   it("names the prop and the callback of every model, from the shared table", () => {
     const rows = registrySchema().components
-    expect(rows.every((r) => !("vmodel" in r))).toBe(true)
     const row = (is: string) => rows.find((r) => r.is === is)!.model
     expect(row("DitherSlider")).toEqual({ default: 40, prop: "modelValue", on: "onUpdateModelValue" })
     expect(row("DitherPagination")).toEqual({ default: 4, prop: "page", on: "onUpdatePage" })
@@ -486,12 +485,12 @@ describe("the registry's model rows, for Solid", () => {
     expect(row("DitherBadge")).toBeNull()
     for (const e of COMPONENT_REGISTRY)
       expect(row(e.is), e.is).toEqual(
-        e.vmodel
+        e.model
           ? {
-              default: e.vmodel.def,
-              prop: e.vmodel.prop ?? "modelValue",
+              default: e.model.def,
+              prop: e.model.prop ?? "modelValue",
               on:
-                { "update:page": "onUpdatePage", close: "onClose", cancel: "onCancel" }[e.vmodel.event ?? ""] ??
+                { "update:page": "onUpdatePage", close: "onClose", cancel: "onCancel" }[e.model.event ?? ""] ??
                 "onUpdateModelValue",
             }
           : null,

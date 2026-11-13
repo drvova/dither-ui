@@ -179,7 +179,7 @@ describe("a field's value", () => {
     runCommand({ type: "artboard.update", id: a.id, patch: { widget: { value: "you@studio.com" } } })
     expect(a.widget?.kind === "component" && a.widget.model).toBe("you@studio.com")
     runCommand({ type: "artboard.update", id: a.id, patch: { widget: { value: { evil: true } } } })
-    expect(a.widget?.kind === "component" && a.widget.model).toBe(componentEntry("DitherEmailInput")!.vmodel!.def)
+    expect(a.widget?.kind === "component" && a.widget.model).toBe(componentEntry("DitherEmailInput")!.model!.def)
 
     const s = runCommand({
       type: "screen.add",
@@ -195,7 +195,7 @@ describe("a field's value", () => {
     expect(s.ok).toBe(true)
     const screen = editor.artboards[1].widget
     if (screen?.kind !== "screen") throw new Error("no screen")
-    expect(screen.rows[0].cells.map((x) => x.model)).toEqual(["", componentEntry("DitherSwitch")!.vmodel!.def])
+    expect(screen.rows[0].cells.map((x) => x.model)).toEqual(["", componentEntry("DitherSwitch")!.model!.def])
   })
 
   it("changes a screen's cells under widget, and refuses rows put beside it", () => {

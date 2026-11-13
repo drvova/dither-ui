@@ -28,7 +28,8 @@ editor with a bad document, but you can waste a turn, so follow the registry.
              { "key": "min", "kind": "number", "def": 0 },
              { "key": "max", "kind": "number", "def": 100 },
              { "key": "disabled", "kind": "boolean", "def": false } ],
-  "slotText": null, "vmodel": { "default": 40 } }
+  "slotText": null,
+  "model": { "default": 40, "prop": "modelValue", "on": "onUpdateModelValue" } }
 ```
 
 Rules the validator enforces:
@@ -41,9 +42,10 @@ Rules the validator enforces:
   `list` (array of strings).
 - `slotText` is the component's visible text where it has a slot (buttons,
   badges, checkboxes).
-- `value` (on `component.add` and on a screen cell) is what a control with a
-  `vmodel` holds, in the kind of its default (a field's text, a slider's
-  number, the chips' pick); anything else falls back to that default.
+- `value` (on `component.add` and on a screen cell) is the value a control
+  with a `model` binds (its `prop`, written back through `on`), in the kind
+  of its default (a field's text, a slider's number, the chips' pick);
+  anything else falls back to that default.
 - Screens have ONE nesting level: rows of cells. No nested containers.
 
 ## 2. The document shape

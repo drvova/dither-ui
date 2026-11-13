@@ -207,8 +207,8 @@ const API: Record<string, PropRow[]> = {
   ],
 }
 
-const SNIPPET_THUMBNAIL = `<!-- a picture that is a link: it rests under a Bayer veil and wakes under a
-     pointer, the picture scaling up a touch inside its frame as the veil goes -->
+const SNIPPET_THUMBNAIL = `{/* a picture that is a link: it rests under a Bayer veil and wakes under a
+     pointer, the picture scaling up a touch inside its frame as the veil goes */}
 <div class="grid gap-4 sm:grid-cols-2">
   <DitherThumbnail src="/sprites.webp" alt="The sprite sheet, in the Image docs" href="/docs/image" />
   <DitherThumbnail
@@ -216,12 +216,12 @@ const SNIPPET_THUMBNAIL = `<!-- a picture that is a link: it rests under a Bayer
     alt="The film's poster, in the Video player docs"
     href="/docs/video-player"
     ratio="16 / 9"
-    :veil-cell="3"
+    veilCell={3}
   />
 </div>`
 
-const SNIPPET_VIDEO = `<!-- a native <video> under dither chrome: play, a dithered scrubber,
-     tabular time, mute and fullscreen; no src is an honest empty face -->
+const SNIPPET_VIDEO = `{/* a native <video> under dither chrome: play, a dithered scrubber,
+     tabular time, mute and fullscreen; no src is an honest empty face */}
 <DitherVideoPlayer
   src="/trailer/dither-ui.mp4"
   poster="/trailer/poster.webp"
@@ -229,116 +229,107 @@ const SNIPPET_VIDEO = `<!-- a native <video> under dither chrome: play, a dither
   color="blue"
 />`
 
-const SNIPPET_BRACKET = `<script setup lang="ts">
-type Pairing = { a: string; b: string; winner?: "a" | "b" }
+const SNIPPET_BRACKET = `type Pairing = { a: string; b: string; winner?: "a" | "b" }
 
-const rounds = ref<Pairing[][]>([
+const [rounds, setRounds] = createSignal<Pairing[][]>([
   [{ a: "Bayer", b: "Ordered" }, { a: "Halftone", b: "Threshold" }],
   [{ a: "TBD", b: "TBD" }],
 ])
 
 // you own the data: the winner advances into the next round
 function pick(r: number, m: number, side: "a" | "b") {
-  const next = rounds.value.map((round) => round.map((match) => ({ ...match })))
+  const next = rounds().map((round) => round.map((match) => ({ ...match })))
   const match = next[r][m]
   match.winner = side
   const ahead = next[r + 1]?.[Math.floor(m / 2)]
   if (ahead) ahead[m % 2 === 0 ? "a" : "b"] = match[side]
-  rounds.value = next
+  setRounds(next)
 }
-</script>
 
-<DitherBracket :rounds="rounds" interactive color="green" @pick="pick" />`
+<DitherBracket rounds={rounds()} interactive color="green" onPick={pick} />`
 
-const SNIPPET_ROCKET = `<script setup>
-// one clock from the key: the file's moment, then the burst
-const t = ref(0)
-const scatter = computed(() => Math.min(1, Math.max(0, (t.value - 2.4) / 0.6)))
+const SNIPPET_ROCKET = `// one clock from the key: the file's moment, then the burst
+const [t, setT] = createSignal(0)
+const scatter = createMemo(() => Math.min(1, Math.max(0, (t() - 2.4) / 0.6)))
 function fire() {
   const t0 = performance.now()
   const step = (now) => {
-    t.value = Math.min(4.6, (now - t0) / 1000)
-    if (t.value < 4.6) requestAnimationFrame(step)
+    setT(Math.min(4.6, (now - t0) / 1000))
+    if (t() < 4.6) requestAnimationFrame(step)
   }
   requestAnimationFrame(step)
 }
 const rocket = \`${ROCKET}\`
-</script>
 
-<DitherWorld :source="rocket" material animate :time="t" :scatter="scatter" bloom="low" :zoom="0.62" :yaw="20" :pitch="8" />
-<DitherButton color="orange" @click="fire">Launch</DitherButton>`
+<DitherWorld source={rocket} material animate time={t()} scatter={scatter()} bloom="low" zoom={0.62} yaw={20} pitch={8} />
+<DitherButton color="orange" onClick={fire}>Launch</DitherButton>`
 
 // A Gaussian capture: the mascot as splats, served by the build.
 const CAPTURE = assetPath(`/${CAPTURE_PATH}`)
-const SNIPPET_CAPTURE = `<DitherWorld src="${CAPTURE}" up="y" material :auto-rotate="20" :fov="30" :zoom="1.35" :cell="2" class="h-72" />
-<!-- a Gaussian capture: a .splat file, or the .ply a trained capture writes.
+const SNIPPET_CAPTURE = `<DitherWorld src="${CAPTURE}" up="y" material autoRotate={20} fov={30} zoom={1.35} cell={2} class="h-72" />
+{/* a Gaussian capture: a .splat file, or the .ply a trained capture writes.
      Each Gaussian lands as its footprint on the cells, near to far until a
      cell is opaque; its colour and its light go through the same dither.
-     A capture's y runs down, so up defaults to -y; this one was made y up. -->`
+     A capture's y runs down, so up defaults to -y; this one was made y up. */}`
 
-const SNIPPET_WORLD = `<script setup>
-// The default content is this seeded VRML97 file, parsed like any other:
+const SNIPPET_WORLD = `// The default content is this seeded VRML97 file, parsed like any other:
 const world = \`${WORLD}\`
 // a GLSL material: ink where the depth jumps, a dimmer body inside
 const ink = \`${INK}\`
-const built = ref(0.6)
-</script>
+const [built, setBuilt] = createSignal(0.6)
 
-<!-- .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off, .splat:
+{/* .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off, .splat:
      by URL (src) or inline (source). The file's materials, lights, viewpoint
      and animations are honoured. CPU engine by default (same bytes everywhere,
      frame-exact in the video export); engine="gpu" rasterizes big meshes
-     through WebGL into the same dither. Drag or use the arrow keys to orbit. -->
+     through WebGL into the same dither. Drag or use the arrow keys to orbit. */}
 <div class="grid grid-cols-2 gap-3">
-  <DitherWorld :source="world" color="blue" :auto-rotate="12" wire class="h-40" />
+  <DitherWorld source={world} color="blue" autoRotate={12} wire class="h-40" />
 
-  <!-- the kit's other engines in the shade: a palette ramp, fbm grain, bloom -->
-  <DitherWorld :source="world" :colors="['#0b1a3a', '#1f6fd6', '#9ec5ff', '#fff']" :grain="0.5" bloom="low" class="h-40" />
+  {/* the kit's other engines in the shade: a palette ramp, fbm grain, bloom */}
+  <DitherWorld source={world} colors={['#0b1a3a', '#1f6fd6', '#9ec5ff', '#fff']} grain={0.5} bloom="low" class="h-40" />
 
-  <!-- a GLSL material over the finished target: dk_depth, dk_shade, dk_covered
+  {/* a GLSL material over the finished target: dk_depth, dk_shade, dk_covered
        and dk_color per cell; its alpha is the shade the Bayer cell thresholds.
        channels wrap any kit surface (or an image, canvas, video) onto the model
        through its texture coordinates (primitives, OBJ vt, glTF TEXCOORD_0, VRML
        TextureCoordinate, PLY s/t): in a material they are iChannel0..3, and
-       dk_texture(p) samples the first at the cell's dk_uv(p) -->
-  <DitherWorld :source="world" :shader="ink" class="h-40" />
+       dk_texture(p) samples the first at the cell's dk_uv(p) */}
+  <DitherWorld source={world} shader={ink} class="h-40" />
 
-  <!-- the model as a build: it comes apart along its own seams (each connected
+  {/* the model as a build: it comes apart along its own seams (each connected
        run of triangles is a piece), rises from a dotted wire cage bottom to top
        with the pieces in flight glowing in heat, blows apart with scatter, and
-       leans away from the pointer with nudge. Drive build from a scroll. -->
-  <DitherWorld :source="world" :build="built" heat="orange" nudge class="h-40" />
+       leans away from the pointer with nudge. Drive build from a scroll. */}
+  <DitherWorld source={world} build={built()} heat="orange" nudge class="h-40" />
 </div>
-<input v-model.number="built" type="range" min="0" max="1" step="0.01" aria-label="Build" class="mt-3 w-full" />`
+<input value={built()} onInput={(e) => setBuilt(Number(e.currentTarget.value))} type="range" min="0" max="1" step="0.01" aria-label="Build" class="mt-3 w-full" />`
 
-const SNIPPET_SHADER = `<script setup>
-// The default content is this seeded shader, compiled like any other:
+const SNIPPET_SHADER = `// The default content is this seeded shader, compiled like any other:
 const shader = \`${SHADER}\`
-</script>
 
-<DitherShader :source="shader" :levels="2" class="h-64" />
-<!-- Shadertoy conventions (mainImage, iTime, iResolution, iMouse) or a raw
+<DitherShader source={shader} levels={2} class="h-64" />
+{/* Shadertoy conventions (mainImage, iTime, iResolution, iMouse) or a raw
      main(), by URL (src) or inline (source); runs at the cell resolution, read
      back and ordered-dithered. Needs WebGL; iTime follows the kit clock, so it
      seeks and renders. channels bind any kit surface (or a canvas, image,
      video) as iChannel0..3, pulled at the same clock time, so the chain seeks
-     as one -->
+     as one */}
 
-<DitherShader :source="shader" mono color="blue" class="mt-3 h-64" />`
+<DitherShader source={shader} mono color="blue" class="mt-3 h-64" />`
 
 const SNIPPET_SCHEDULE = `<DitherSchedule
-  :events="[
+  events={[
     { start: 9, end: 10.5, label: 'Standup', color: 'blue' },
     { start: 11, end: 12.5, label: 'Design review', color: 'purple' },
     { start: 14, end: 16, label: 'Focus block', color: 'green' },
-  ]"
-  :from="8" :to="18" :now="13.5"
+  ]}
+  from={8} to={18} now={13.5}
 />
-<!-- fractional hours: 13.5 is half past one -->`
+{/* fractional hours: 13.5 is half past one */}`
 
 /** A kit surface as a channel: its element goes to `ref` once it stands
- * (null again when it leaves), as a Vue template ref gave the consumer the
- * component, which the channels read by its element. */
+ * (null again when it leaves), which the channels read. */
 function Source(props: { ref: (source: ChannelInput) => void; children: JSX.Element }) {
   const surface = children(() => props.children)
   onMount(() => {

@@ -414,16 +414,16 @@ const SNIPPETS = {
   seeds: `${dataCode("rows", rows)}
 ${dataCode("config", config)}
 
-<!-- one integer is a complete visual personality -->
-<AreaChart :data="rows" :config="config" :seed="1984" class="h-52">
-  <XAxis data-key="month" :max-ticks="6" />
-  <Area data-key="expenses" :variant="1985" />
-  <Area data-key="revenue" :variant="1984" />   <!-- texture -->
+{/* one integer is a complete visual personality */}
+<AreaChart data={rows} config={config} seed={1984} class="h-52">
+  <XAxis dataKey="month" maxTicks={6} />
+  <Area dataKey="expenses" variant={1985} />
+  <Area dataKey="revenue" variant={1984} />   {/* texture */}
 </AreaChart>
-<!-- seed derives duration, delay, easing, stagger, sparkles and bloom
+{/* seed derives duration, delay, easing, stagger, sparkles and bloom
      for every prop you leave unset; explicit props always win.
-     Seeds also work per prop: bloom, easing, variant, color (hue). -->
-<DitherButton :bloom="1984">Glow</DitherButton>`,
+     Seeds also work per prop: bloom, easing, variant, color (hue). */}
+<DitherButton bloom={1984}>Glow</DitherButton>`,
   styling: `/* the kit reads shadcn-style tokens: theme by overriding them */
 :root {
   --background: #08090b;   /* chart chrome: axes, legend, tooltip */
@@ -434,87 +434,98 @@ ${dataCode("config", config)}
 
 <!-- every component forwards class: compose with your utilities -->
 <AreaChart class="rounded-lg border border-border/60 p-2" … />`,
-  composition: `<AreaChart :data="rows" :config="config">  <!-- root: scales + context -->
-  <Grid horizontal />                       <!-- chrome registers first -->
-  <XAxis data-key="month" />
-  <YAxis :tick-count="4" />
-  <Area data-key="revenue" variant="gradient">
-    <Dot variant="border" :r="2" />         <!-- series children nest -->
+  composition: `<AreaChart data={rows} config={config}>  {/* root: scales + context */}
+  <Grid horizontal />                       {/* chrome registers first */}
+  <XAxis dataKey="month" />
+  <YAxis tickCount={4} />
+  <Area dataKey="revenue" variant="gradient">
+    <Dot variant="border" r={2} />         {/* series children nest */}
   </Area>
-  <Legend align="right" />                  <!-- reads the same context -->
-  <Tooltip label-key="month" />
+  <Legend align="right" />                  {/* reads the same context */}
+  <Tooltip labelKey="month" />
 </AreaChart>`,
-  accessibility: `<!-- one accessible node per chart, not 400 rects -->
-<svg role="img" aria-label="Chart">…</svg>   <!-- provided by the root -->
-<canvas aria-hidden="true" />                <!-- pixels stay silent -->
+  accessibility: `{/* one accessible node per chart, not 400 rects */}
+<svg role="img" aria-label="Chart">…</svg>   {/* provided by the root */}
+<canvas aria-hidden="true" />                {/* pixels stay silent */}
 
-<!-- honoured automatically, no opt-in props:
+{/* honoured automatically, no opt-in props:
      @media (prefers-reduced-motion: reduce): entrances snap
-     @media (prefers-reduced-transparency: reduce): chrome goes solid -->`,
+     @media (prefers-reduced-transparency: reduce): chrome goes solid */}`,
   dashboard: `${dataCode("stats", STAT_ROWS)}
 ${dataCode("rows", rows)}
 ${dataCode("config", config)}
 ${dataCode("share", pieRows)}
 ${dataCode("shareConfig", pieConfig)}
 
-<!-- stat cards -->
+{/* stat cards */}
 <div class="grid gap-4 sm:grid-cols-3">
-  <div v-for="s in stats" :key="s.label" class="rounded-lg border p-4">
-    <div class="text-[11px] text-muted-foreground">{{ s.label }}</div>
-    <span class="text-lg tabular-nums">{{ s.value }}</span>
-    <span class="ml-2 text-[11px]" :style="{ color: cssColor(s.up ? 'green' : 'red') }">{{ s.delta }}</span>
-    <Sparkline :data="s.data" :color="s.color" class="mt-3 h-8 w-full" />
-  </div>
+  <For each={stats}>
+    {(s) => (
+      <div class="rounded-lg border p-4">
+        <div class="text-[11px] text-muted-foreground">{s.label}</div>
+        <span class="text-lg tabular-nums">{s.value}</span>
+        <span class="ml-2 text-[11px]" style={{ color: cssColor(s.up ? 'green' : 'red') }}>{s.delta}</span>
+        <Sparkline data={s.data} color={s.color} class="mt-3 h-8 w-full" />
+      </div>
+    )}
+  </For>
 </div>
 
-<!-- main panel -->
+{/* main panel */}
 <div class="mt-4 grid gap-4 lg:grid-cols-3">
-  <AreaChart :data="rows" :config="config" stack-type="stacked" class="h-44 lg:col-span-2">
-    <XAxis data-key="month" :max-ticks="6" />
-    <Area data-key="expenses" variant="dotted" />
-    <Area data-key="revenue" variant="gradient" />
-    <Tooltip label-key="month" />
+  <AreaChart data={rows} config={config} stackType="stacked" class="h-44 lg:col-span-2">
+    <XAxis dataKey="month" maxTicks={6} />
+    <Area dataKey="expenses" variant="dotted" />
+    <Area dataKey="revenue" variant="gradient" />
+    <Tooltip labelKey="month" />
   </AreaChart>
-  <PieChart :data="share" :config="shareConfig" data-key="value" name-key="name" :inner-radius="0.55" class="h-44">
+  <PieChart data={share} config={shareConfig} dataKey="value" nameKey="name" innerRadius={0.55} class="h-44">
     <Pie variant="gradient" />
   </PieChart>
 </div>`,
   shell: `const nav = ${JSON.stringify(SHELL_NAV).replace(/,/g, ", ")}
-const page = ref("Overview")
+const [page, setPage] = createSignal("Overview")
 ${dataCode("stats", STAT_ROWS)}
 ${dataCode("rows", rows)}
 ${dataCode("config", config)}
 
 <div class="grid grid-cols-[160px_1fr] overflow-hidden rounded-lg border">
-  <!-- sidebar -->
+  {/* sidebar */}
   <aside class="flex min-h-[360px] flex-col border-r p-3">
     <span class="px-2 py-1.5 text-[12px]">dither-ui</span>
     <nav class="mt-4 grid gap-0.5">
-      <button v-for="item in nav" :key="item" type="button" :aria-pressed="page === item"
-        class="rounded-md px-2 py-1.5 text-left text-[11px]"
-        :class="page === item ? 'bg-card' : 'text-muted-foreground'" @click="page = item">{{ item }}</button>
+      <For each={nav}>
+        {(item) => (
+          <button type="button" aria-pressed={page() === item}
+            class={\`rounded-md px-2 py-1.5 text-left text-[11px] \${page() === item ? 'bg-card' : 'text-muted-foreground'}\`} onClick={() => setPage(item)}>{item}</button>
+        )}
+      </For>
     </nav>
     <div class="mt-auto flex items-center gap-2 px-2 pt-3 text-[11px]">
-      <DitherAvatar name="ada" :size="24" :animate="false" /> ada
+      <DitherAvatar name="ada" size={24} animate={false} /> ada
     </div>
   </aside>
   <div class="flex min-w-0 flex-col">
-    <!-- topbar -->
+    {/* topbar */}
     <header class="flex h-10 items-center justify-between border-b px-4 text-[12px]">
-      {{ page }}
+      {page()}
       <DitherButton color="blue" variant="gradient">Export</DitherButton>
     </header>
     <main class="grid gap-3 p-4">
       <div class="grid grid-cols-3 gap-3">
-        <div v-for="s in stats" :key="s.label" class="rounded-md border p-2.5 text-[10px]">
-          {{ s.label }} <b class="text-[13px]">{{ s.value }}</b>
-          <Sparkline :data="s.data" :color="s.color" class="mt-1.5 h-5 w-full" />
-        </div>
+        <For each={stats}>
+          {(s) => (
+            <div class="rounded-md border p-2.5 text-[10px]">
+              {s.label} <b class="text-[13px]">{s.value}</b>
+              <Sparkline data={s.data} color={s.color} class="mt-1.5 h-5 w-full" />
+            </div>
+          )}
+        </For>
       </div>
-      <!-- main panel -->
-      <AreaChart :data="rows" :config="config" stack-type="stacked" :interactive="false" class="h-36">
-        <Area data-key="expenses" variant="dotted" />
-        <Area data-key="revenue" variant="gradient" />
+      {/* main panel */}
+      <AreaChart data={rows} config={config} stackType="stacked" interactive={false} class="h-36">
+        <Area dataKey="expenses" variant="dotted" />
+        <Area dataKey="revenue" variant="gradient" />
       </AreaChart>
     </main>
   </div>
@@ -526,51 +537,59 @@ ${dataCode("radarConfig", radarConfig)}
 ${dataCode("services", SERVICES)}
 
 <div class="grid gap-4 lg:grid-cols-5">
-  <!-- pulse -->
-  <LineChart :data="rows" :config="config" :interactive="false" class="h-44 lg:col-span-3">
+  {/* pulse */}
+  <LineChart data={rows} config={config} interactive={false} class="h-44 lg:col-span-3">
     <Grid horizontal />
-    <XAxis data-key="month" :max-ticks="6" />
-    <Line data-key="revenue" />
-    <Line data-key="expenses" />
+    <XAxis dataKey="month" maxTicks={6} />
+    <Line dataKey="revenue" />
+    <Line dataKey="expenses" />
   </LineChart>
-  <!-- sprint health -->
-  <RadarChart :data="radarRows" :config="radarConfig" name-key="axis" class="h-44 lg:col-span-2">
-    <Radar data-key="current" />
-    <Radar data-key="previous" />
+  {/* sprint health */}
+  <RadarChart data={radarRows} config={radarConfig} nameKey="axis" class="h-44 lg:col-span-2">
+    <Radar dataKey="current" />
+    <Radar dataKey="previous" />
   </RadarChart>
-  <!-- status rows -->
+  {/* status rows */}
   <div class="rounded-lg border lg:col-span-5">
-    <div v-for="s in services" :key="s.name" class="flex items-center gap-4 px-4 py-2.5 text-[11px]">
-      <span class="size-1.5 rounded-full" :style="{ backgroundColor: cssColor(s.ok ? 'green' : 'red') }" />
-      <span class="w-28 truncate">{{ s.name }}</span>
-      <Sparkline :data="s.data" :color="s.color" class="h-5 min-w-0 flex-1" />
-      {{ s.uptime }}
-    </div>
+    <For each={services}>
+      {(s) => (
+        <div class="flex items-center gap-4 px-4 py-2.5 text-[11px]">
+          <span class="size-1.5 rounded-full" style={{ "background-color": cssColor(s.ok ? 'green' : 'red') }} />
+          <span class="w-28 truncate">{s.name}</span>
+          <Sparkline data={s.data} color={s.color} class="h-5 min-w-0 flex-1" />
+          {s.uptime}
+        </div>
+      )}
+    </For>
   </div>
 </div>`,
   team: `${dataCode("team", TEAM)}
 
-<div v-for="m in team" :key="m.name" class="flex items-center gap-4 px-4 py-2.5">
-  <DitherAvatar :name="m.name" :size="32" :animate="false" />
-  <span class="text-[11px]">{{ m.name }}</span>
-  <span class="text-[10px] text-muted-foreground">{{ m.role }}</span>
-  <Sparkline :data="m.data" :color="m.color" class="h-5 flex-1" />
-  <span class="tabular-nums">{{ m.commits }}</span>
-</div>`,
+<For each={team}>
+  {(m) => (
+    <div class="flex items-center gap-4 px-4 py-2.5">
+      <DitherAvatar name={m.name} size={32} animate={false} />
+      <span class="text-[11px]">{m.name}</span>
+      <span class="text-[10px] text-muted-foreground">{m.role}</span>
+      <Sparkline data={m.data} color={m.color} class="h-5 flex-1" />
+      <span class="tabular-nums">{m.commits}</span>
+    </div>
+  )}
+</For>`,
   usage: `${dataCode("usageRows", usageRows)}
 ${dataCode("usageConfig", usageConfig)}
 ${dataCode("quotaRows", quotaRows)}
 ${dataCode("quotaConfig", quotaConfig)}
 
 <div class="grid gap-4 sm:grid-cols-5">
-  <!-- renders a month -->
-  <BarChart :data="usageRows" :config="usageConfig" :interactive="false" class="h-40 sm:col-span-3">
-    <XAxis data-key="month" :max-ticks="4" />
-    <Bar data-key="renders" />
+  {/* renders a month */}
+  <BarChart data={usageRows} config={usageConfig} interactive={false} class="h-40 sm:col-span-3">
+    <XAxis dataKey="month" maxTicks={4} />
+    <Bar dataKey="renders" />
   </BarChart>
   <div class="flex flex-col sm:col-span-2">
-    <!-- quota donut -->
-    <PieChart :data="quotaRows" :config="quotaConfig" data-key="value" name-key="name" :inner-radius="0.62" class="h-28">
+    {/* quota donut */}
+    <PieChart data={quotaRows} config={quotaConfig} dataKey="value" nameKey="name" innerRadius={0.62} class="h-28">
       <Pie variant="gradient" />
     </PieChart>
     <p class="mt-2 text-center text-[11px]">6.8M / 10M renders</p>
@@ -578,8 +597,8 @@ ${dataCode("quotaConfig", quotaConfig)}
   </div>
 </div>`,
   signin: `<div class="relative overflow-hidden rounded-lg border p-8">
-  <DitherGradient from="blue" direction="up" :opacity="0.2" />
-  <span>dither-ui</span>                    <!-- wordmark -->
+  <DitherGradient from="blue" direction="up" opacity={0.2} />
+  <span>dither-ui</span>                    {/* wordmark */}
   <input placeholder="you@dither-ui.com" />
   <input type="password" placeholder="••••••••" />
   <DitherButton color="blue" class="w-full">Sign in</DitherButton>
@@ -587,57 +606,57 @@ ${dataCode("quotaConfig", quotaConfig)}
   area: `${dataCode("rows", rows)}
 ${dataCode("config", config)}
 
-<AreaChart class="h-64" :data="rows" :config="config" stack-type="stacked">
+<AreaChart class="h-64" data={rows} config={config} stackType="stacked">
   <Grid horizontal />
-  <XAxis data-key="month" :max-ticks="6" />
-  <YAxis :tick-count="4" />
-  <Area data-key="expenses" variant="dotted" />
-  <Area data-key="revenue" variant="gradient" />
+  <XAxis dataKey="month" maxTicks={6} />
+  <YAxis tickCount={4} />
+  <Area dataKey="expenses" variant="dotted" />
+  <Area dataKey="revenue" variant="gradient" />
   <Legend align="right" />
-  <Tooltip label-key="month" />
+  <Tooltip labelKey="month" />
 </AreaChart>`,
   line: `${dataCode("rows", rows)}
 ${dataCode("config", config)}
 
-<LineChart class="h-64" :data="rows" :config="config">
+<LineChart class="h-64" data={rows} config={config}>
   <Grid horizontal />
-  <XAxis data-key="month" :max-ticks="6" />
-  <Line data-key="revenue">
-    <Dot variant="border" :r="2" />
+  <XAxis dataKey="month" maxTicks={6} />
+  <Line dataKey="revenue">
+    <Dot variant="border" r={2} />
   </Line>
-  <Line data-key="expenses" />
+  <Line dataKey="expenses" />
   <Legend align="right" />
-  <Tooltip label-key="month" />
+  <Tooltip labelKey="month" />
 </LineChart>`,
   bar: `${dataCode("trafficRows", trafficRows)}
 ${dataCode("trafficConfig", trafficConfig)}
 
-<BarChart class="h-64" :data="trafficRows" :config="trafficConfig">
+<BarChart class="h-64" data={trafficRows} config={trafficConfig}>
   <Grid horizontal />
-  <XAxis data-key="month" />
-  <YAxis :tick-count="4" />
-  <Bar data-key="organic" />
-  <Bar data-key="paid" />
+  <XAxis dataKey="month" />
+  <YAxis tickCount={4} />
+  <Bar dataKey="organic" />
+  <Bar dataKey="paid" />
   <Legend align="right" />
-  <Tooltip label-key="month" />
+  <Tooltip labelKey="month" />
 </BarChart>`,
   pie: `${dataCode("pieRows", pieRows)}
 ${dataCode("pieConfig", pieConfig)}
 
-<PieChart class="h-64" :data="pieRows" :config="pieConfig"
-  data-key="value" name-key="name" :inner-radius="0.55">
-  <Pie variant="gradient" is-clickable />
+<PieChart class="h-64" data={pieRows} config={pieConfig}
+  dataKey="value" nameKey="name" innerRadius={0.55}>
+  <Pie variant="gradient" isClickable />
   <Legend align="center" />
 </PieChart>`,
   radar: `${dataCode("radarRows", radarRows)}
 ${dataCode("radarConfig", radarConfig)}
 
-<RadarChart class="h-72" :data="radarRows" :config="radarConfig" name-key="axis">
-  <Radar data-key="current" />
-  <Radar data-key="previous" />
+<RadarChart class="h-72" data={radarRows} config={radarConfig} nameKey="axis">
+  <Radar dataKey="current" />
+  <Radar dataKey="previous" />
   <Legend align="center" />
 </RadarChart>`,
-  sparkline: `const hour = ref<number | null>(null)
+  sparkline: `const [hour, setHour] = createSignal<number | null>(null)
 // The last 24 hours of revenue, in $k.
 const last24h = Array.from({ length: 24 }, (_, i) =>
   Number((2.4 * (10 + i * 0.35 + Math.sin(i * 0.8 + 1) * 2 + Math.sin(i * 1.7 + 2) * 1.1)).toFixed(1)),
@@ -646,55 +665,31 @@ const last24h = Array.from({ length: 24 }, (_, i) =>
 <div class="rounded-lg border p-4">
   <div class="text-xs text-muted-foreground">Revenue</div>
   <div class="flex items-baseline gap-2">
-    <span class="text-lg tabular-nums">$<DitherNumberFlow :value="last24h[hour ?? 23]" :decimals="1" />k</span>
-    <span class="text-xs text-muted-foreground">{{ hour === null ? "+48.3%" : \`\${23 - hour}h ago\` }}</span>
+    <span class="text-lg tabular-nums">$<DitherNumberFlow value={last24h[hour() ?? 23]} decimals={1} />k</span>
+    <span class="text-xs text-muted-foreground">{hour() === null ? "+48.3%" : \`\${23 - hour()}h ago\`}</span>
   </div>
-  <Sparkline :data="last24h" color="green" interactive label="Revenue" :hover-lift="false"
-    class="mt-3 h-8 w-full" @hover-change="(i) => (hour = i)" />
+  <Sparkline data={last24h} color="green" interactive label="Revenue" hoverLift={false}
+    class="mt-3 h-8 w-full" onHoverChange={(i) => (setHour(i))} />
 </div>`,
   motion: `${dataCode("rows", trafficRows)}
 ${dataCode("config", trafficConfig)}
-const replayToken = ref(0)
+const [replayToken, setReplayToken] = createSignal(0)
 
-<BarChart :data="rows" :config="config" class="h-48"
-  :animation-duration="900" :replay-token="replayToken">
-  <XAxis data-key="month" />
-  <Bar data-key="organic" />
-  <Bar data-key="paid" />
+<BarChart data={rows} config={config} class="h-48"
+  animationDuration={900} replayToken={replayToken()}>
+  <XAxis dataKey="month" />
+  <Bar dataKey="organic" />
+  <Bar dataKey="paid" />
 </BarChart>
 
-<DitherButton @click="replayToken++">Replay</DitherButton>
-<!-- prefers-reduced-motion is respected automatically:
-     entrances snap, sparkles hold still -->`,
-  button: `<!-- variants -->
-<DitherButton variant="gradient">Deploy</DitherButton>
-<DitherButton variant="solid">Run</DitherButton>
-<DitherButton variant="dotted">Preview</DitherButton>
-<DitherButton variant="hatched">Cancel</DitherButton>
-
-<!-- colors, bloom, static raster -->
-<DitherButton color="green" bloom="low">Approve</DitherButton>
-<DitherButton color="red" disabled>Delete</DitherButton>
-<!-- static: drawn once; precompiled takes a raster you exported -->
-<DitherButton render-mode="static">Saved</DitherButton>`,
-  avatar: `<DitherAvatar name="ada" :size="24" />
-<DitherAvatar name="ada" :size="32" />
-<DitherAvatar name="ada" :size="48" />
-<DitherAvatar name="grace" :size="48" bloom="low" />`,
-  gradient: `<div class="relative h-40">
-  <DitherGradient from="blue" to="transparent" direction="up" />
-</div>
-<div class="relative h-24">
-  <DitherGradient render-mode="static" />   <!-- drawn once; precompiled takes a raster you exported -->
-</div>
-<!-- from/to: any DitherColor; direction: up, down, left or right
-     cell: px per dither cell; opacity: 0…1
-     max-cols / max-rows: backing-resolution caps (default 960×600 live, 320×200 static) -->`,
-  image: `<DitherImage src="/sprites.webp" :cell="3" :focus-y="0.62" :fade="72"
+<DitherButton onClick={() => setReplayToken(replayToken() + 1)}>Replay</DitherButton>
+{/* prefers-reduced-motion is respected automatically:
+     entrances snap, sparkles hold still */}`,
+  image: `<DitherImage src="/sprites.webp" cell={3} focusY={0.62} fade={72}
   alt="The dither-ui sprite sheet, re-dithered" class="h-64 w-full" />
-<!-- cell: px per dither cell; fade: dithered edge dissolve;
+{/* cell: px per dither cell; fade: dithered edge dissolve;
      focus-y: cover-crop focus (0 top to 1 bottom);
-     precompiled takes an image you dithered ahead of time, drawn as it is -->`,
+     precompiled takes an image you dithered ahead of time, drawn as it is */}`,
   palette: `import { cssColor, type DitherColor } from "@dither-kit"
 cssColor("blue") // rgb(53,143,243)`,
 }
@@ -935,17 +930,17 @@ export default function DocsPage(props: DocsPageProps) {
   // Code tabs mirror the picked variant — what you see is what you copy.
   const areaCode = createMemo(() =>
     SNIPPETS.area.replace(
-      'data-key="revenue" variant="gradient"',
+      'dataKey="revenue" variant="gradient"',
       typeof picked.area === "number"
-        ? `data-key="revenue" :variant="${picked.area}"  <!-- a seed: deterministic -->`
-        : `data-key="revenue" variant="${picked.area}"`,
+        ? `dataKey="revenue" variant={${picked.area}}  /* a seed: deterministic */`
+        : `dataKey="revenue" variant="${picked.area}"`,
     ),
   )
   const lineCode = createMemo(() => SNIPPETS.line.replace('variant="border"', `variant="${picked.dot}"`))
   const barCode = createMemo(() =>
     SNIPPETS.bar
-      .replace('<Bar data-key="organic" />', `<Bar data-key="organic" variant="${picked.bar}" />`)
-      .replace('<Bar data-key="paid" />', `<Bar data-key="paid" variant="${picked.bar}" />`),
+      .replace('<Bar dataKey="organic" />', `<Bar dataKey="organic" variant="${picked.bar}" />`)
+      .replace('<Bar dataKey="paid" />', `<Bar dataKey="paid" variant="${picked.bar}" />`),
   )
   const pieCode = createMemo(() => SNIPPETS.pie.replace('variant="gradient"', `variant="${picked.pie}"`))
   const buttonCode = createMemo(
@@ -953,19 +948,19 @@ export default function DocsPage(props: DocsPageProps) {
       `<DitherButton color="${btn.color}" variant="${btn.variant}"${btn.bloom === "off" ? "" : ` bloom="${btn.bloom}"`}>
   Deploy
 </DitherButton>
-<!-- static: drawn once; precompiled takes a raster you exported -->
-<DitherButton render-mode="static">Saved</DitherButton>`,
+{/* static: drawn once; precompiled takes a raster you exported */}
+<DitherButton renderMode="static">Saved</DitherButton>`,
   )
   const avatarCode = createMemo(
-    () => `<DitherAvatar name="${avatarName()}" :size="48" />
-<!-- same name, same face, at any size -->`,
+    () => `<DitherAvatar name="${avatarName()}" size={48} />
+{/* same name, same face, at any size */}`,
   )
   const gradientCode = createMemo(
     () => `<div class="relative h-40">
   <DitherGradient from="${grad.from}" to="transparent" direction="${grad.direction}" />
 </div>
 <div class="relative h-24">
-  <DitherGradient render-mode="static" />   <!-- drawn once; precompiled takes a raster you exported -->
+  <DitherGradient renderMode="static" />   {/* drawn once; precompiled takes a raster you exported */}
 </div>`,
   )
 
