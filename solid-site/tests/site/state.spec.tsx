@@ -10,7 +10,6 @@ import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createEffect, createRoot, createSignal } from "solid-js"
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
-import { chartCode } from "@/entities/chart"
 import { FRAME_GAP } from "@/entities/editor/model/free"
 import { componentEntry, createCell, createRow, createScreen } from "@/entities/widget"
 import { evolveArtboard, mutateProps } from "@/features/agent/evolve"
@@ -150,6 +149,7 @@ import {
   stopAutosave,
   switchProject,
 } from "../../src/features/persistence"
+import { chartCode } from "../../src/entities/chart/model/codegen"
 import { addArtboardFromPreset, presets, removePreset, savePreset } from "../../src/features/presets"
 
 // The reader's styling system is the shared layer's: here a stand-in that
@@ -960,12 +960,17 @@ describe("ExportDialog", () => {
     await tick()
     expect(getByRole("dialog").getAttribute("aria-label")).toBe("Export code")
     expect(document.activeElement).toBe(getByRole("button", { name: "Close" }))
-    expect(getByText("Export as a Vue SFC")).toBeTruthy()
+    expect(getByText("Export as a Solid component")).toBeTruthy()
     const code = () => getByTestId("code").textContent
     expect(code()).toBe(chartCode(a.chart))
     // The reader's styling system, one choice for the docs and the Studio.
     fireEvent.click(getByRole("button", { name: "StyleX" }))
-    expect(code()).toBe(`/* stylex */\n${chartCode(a.chart)}`)
+    expect(code()).toContain("stylex.create({")
+    expect(code()).not.toContain('class="h-80"')
+    // A stylesheet is its own file, read under the component.
+    fireEvent.click(getByRole("button", { name: "Modules" }))
+    expect(code()).toContain('import styles from "./revenue-chart-.module.css"')
+    expect(code()).toContain("\n\n/* revenue-chart-.module.css */\n.")
     fireEvent.click(getByRole("button", { name: "Tailwind" }))
     // It follows the selection and the frame's edits.
     a.chart.cell = 3
@@ -976,7 +981,7 @@ describe("ExportDialog", () => {
     expect(code()).toBe("// select an artboard")
 
     const all = getByRole("button", { name: "Download all (2)" })
-    expect(all.title).toBe("Download every artboard as its own .vue file (2)")
+    expect(all.title).toBe("Download every artboard as its own .tsx file (2)")
     const saved: string[] = []
     const link = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
       saved.push(this.download)
@@ -985,8 +990,16 @@ describe("ExportDialog", () => {
     URL.revokeObjectURL ??= () => {}
     fireEvent.click(all)
     await vi.advanceTimersByTimeAsync(300)
+    expect(saved).toEqual(["revenue-chart-.tsx", "button.tsx"])
+    // ...each with the stylesheet it imports, where the system keeps one (a
+    // lone kit component has no class of its own to move).
+    fireEvent.click(getByRole("button", { name: "Modules" }))
+    saved.length = 0
+    fireEvent.click(all)
+    await vi.advanceTimersByTimeAsync(600)
     link.mockRestore()
-    expect(saved).toEqual(["revenue-chart-.vue", "button.vue"])
+    expect(saved).toEqual(["revenue-chart-.tsx", "revenue-chart-.module.css", "button.tsx"])
+    fireEvent.click(getByRole("button", { name: "Tailwind" }))
 
     Object.defineProperty(navigator, "clipboard", { value: { writeText: async () => {} }, configurable: true })
     fireEvent.click(getByRole("button", { name: "Copy" }))
@@ -997,7 +1010,7 @@ describe("ExportDialog", () => {
 
     getByRole("dialog").dispatchEvent(key("Escape"))
     fireEvent.click(getByRole("dialog"))
-    fireEvent.click(getByText("Export as a Vue SFC"))
+    fireEvent.click(getByText("Export as a Solid component"))
     expect(closes).toBe(2)
   })
 })
@@ -1042,6 +1055,17 @@ describe("the modules copied for the store's sake", () => {
   // A module that reaches the editor store cannot be shared with the Vue
   // site (it would reach the Vue store), so its twin is the same text with
   // its imports re-pointed. Anything else differing is drift.
+  // The one thing a twin says differently: what the code export writes.
+  const SAYS_SOLID: [string, string][] = [
+    [
+      "The frame as a Vue single-file component, in the styling system asked for:",
+      "The frame as a Solid component (a .tsx file on the kit's Solid layer), in the styling system asked for:",
+    ],
+    [
+      'while the kit components keep their own styles.",',
+      'while the kit components keep their own styles. css and modules come with the stylesheet the file imports, as sheet.",',
+    ],
+  ]
   const body = (path: string) =>
     readFileSync(path, "utf8")
       .replace(/^(\/\/ The Vue site's .*\n\/\/ .*\n\/\/ .*\n)/, "")
@@ -1064,7 +1088,9 @@ describe("the modules copied for the store's sake", () => {
     "features/persistence/index.ts",
     "features/presets/index.ts",
   ])("%s is its Vue twin, imports aside", (file) => {
-    expect(body(`src/${file}`)).toBe(body(`../src/${file}`))
+    expect(body(`src/${file}`)).toBe(
+      SAYS_SOLID.reduce((text, [vue, solid]) => text.replace(vue, solid), body(`../src/${file}`)),
+    )
   })
 })
 
@@ -1953,6 +1979,11 @@ describe("carried from tests/agent-protocol.spec.ts", () => {
       expect(list.ok && (list.data as unknown[]).length).toBe(1)
       const code = runCommand({ type: "code.get", id })
       expect(code.ok && String((code.data as { code: string }).code)).toContain("DitherButton")
+      // a Solid component file, never a Vue one
+      const frame = dataOf(code) as { file: string; code: string; sheet: null }
+      expect(frame).toMatchObject({ file: "cta.tsx", sheet: null })
+      expect(frame.code).toContain("export default function Frame() {")
+      expect(frame.code).not.toMatch(/<template>|<script/)
       const gen = runCommand({ type: "evolve", id, count: 3, seed: 5 })
       expect(gen.ok && (gen.data as unknown[]).length).toBe(3)
       expect(editor.artboards).toHaveLength(4)
@@ -1966,11 +1997,21 @@ describe("carried from tests/agent-protocol.spec.ts", () => {
       const id = (added as { data: { id: string } }).data.id
       const css = runCommand({ type: "code.get", id, styling: "css" })
       expect(css.ok && (css.data as { styling: string }).styling).toBe("css")
-      // What each system's code reads like is `restyle`'s own to hold (the shared layer's).
+      // What each system's code reads like is `restyle`'s own to hold (the shared
+      // layer's); a stylesheet comes beside the component, as the file it imports.
+      const styled = dataOf(css) as { code: string; sheet: { file: string; text: string } }
+      expect(styled.sheet.file).toBe("image.css")
+      expect(styled.sheet.text).toContain(".box {\n  height: 16rem;\n}")
+      expect(styled.code).toContain('import "./image.css"')
+      expect(styled.code).not.toContain('class="h-64"')
+      const sx = runCommand({ type: "code.get", id, styling: "stylex" })
+      expect(sx.ok && String((sx.data as { code: string }).code)).toContain("stylex.create({")
       const plain = runCommand({ type: "code.get", id })
       expect(plain.ok && String((plain.data as { code: string }).code)).toContain('class="h-64"')
       expect(runCommand({ type: "code.get", id, styling: "sass" }).ok).toBe(false)
       expect(registrySchema().commands["code.get"]).toContain("stylex")
+      expect(registrySchema().commands["code.get"]).toContain("Solid component")
+      expect(registrySchema().commands["code.get"]).not.toContain("Vue")
     })
 
     it("replaces the document through the import validation path", () => {

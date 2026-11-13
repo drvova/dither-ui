@@ -2,26 +2,22 @@ import { copyText, DitherFocusScope, DitherIcon } from "@dither-kit"
 import { Presence } from "@dither-kit/solid/runtime/presence"
 import { createEffect, createMemo, createSignal, on, onCleanup } from "solid-js"
 import type { Artboard } from "@/entities/artboard"
-import { chartCode } from "@/entities/chart"
-import { widgetCode } from "@/entities/widget"
 import { download } from "@/shared/lib/files"
-import { editor, selectedArtboard, selectedChart } from "../../entities/editor"
-import { restyle, setStyling, styling, STYLING_LABELS, STYLINGS } from "../../shared/lib/restyle"
+import { frameCode, shown } from "../../entities/artboard/code"
+import { editor, selectedArtboard } from "../../entities/editor"
+import { setStyling, styling, STYLING_LABELS, STYLINGS } from "../../shared/lib/restyle"
 import { CodeBlock, Segmented } from "../../shared/ui"
 import "./ExportDialog.css"
 
 export type ExportDialogProps = { open: boolean; onClose?: () => void }
 
 export default function ExportDialog(props: ExportDialogProps) {
-  // The SFC in the chosen styling system: Tailwind as generated, or a scoped
-  // stylesheet, CSS Modules or StyleX (the kit components keep their own styles).
-  const codeFor = (a: Artboard) =>
-    restyle(a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart), styling())
+  // The Solid component in the chosen styling system: Tailwind as generated,
+  // or a stylesheet, CSS Modules or StyleX (the kit components keep their own
+  // styles). A stylesheet is its own file, shown under the component.
   const code = createMemo(() => {
     const a = selectedArtboard.value
-    if (!a) return "// select an artboard"
-    if (a.widget) return codeFor(a)
-    return selectedChart.value ? restyle(chartCode(selectedChart.value), styling()) : "// select an artboard"
+    return a ? shown(frameCode(a, styling())) : "// select an artboard"
   })
 
   let closeRef: HTMLButtonElement | undefined
@@ -47,14 +43,16 @@ export default function ExportDialog(props: ExportDialogProps) {
   }
   onCleanup(() => clearTimeout(copyTimer))
 
-  const fileName = (a: Artboard) => `${a.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"}.vue`
-
-  /** Download every artboard as its own .vue file (staggered so the browser
+  /** Download every artboard as its own .tsx file, each with the stylesheet
+   * it imports where the styling system keeps one (staggered so the browser
    * accepts the download burst as one user gesture). */
   async function downloadAll() {
-    for (const a of editor.artboards) {
-      download(new Blob([codeFor(a)], { type: "text/plain" }), fileName(a))
-      await new Promise((r) => setTimeout(r, 120))
+    for (const a of editor.artboards as Artboard[]) {
+      const f = frameCode(a, styling())
+      for (const [name, text] of [[f.file, f.code], ...(f.sheet ? [[f.sheet.file, f.sheet.text]] : [])]) {
+        download(new Blob([text], { type: "text/plain" }), name)
+        await new Promise((r) => setTimeout(r, 120))
+      }
     }
   }
   // Heard on the element itself, never through Solid's delegation, so the
@@ -77,11 +75,11 @@ export default function ExportDialog(props: ExportDialogProps) {
       >
         <DitherFocusScope autofocus={false} class="hardshell flex max-h-[80dvh] w-full max-w-2xl flex-col bg-card">
           <div class="flex items-center justify-between border-b border-border/60 px-4 py-3">
-            <span class="text-sm font-medium">Export as a Vue SFC</span>
+            <span class="text-sm font-medium">Export as a Solid component</span>
             <div class="flex items-center gap-2">
               <button
                 type="button"
-                title={`Download every artboard as its own .vue file (${editor.artboards.length})`}
+                title={`Download every artboard as its own .tsx file (${editor.artboards.length})`}
                 class="rounded-lg border border-border px-3 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 onClick={downloadAll}
               >

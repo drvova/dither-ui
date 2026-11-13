@@ -331,7 +331,7 @@ export const STUDIO_TOOLS: { def: ToolDef; command: string; preset?: Record<stri
     def: {
       name: "get_code",
       description:
-        "The frame as a Vue single-file component, in the styling system asked for: tailwind (default) keeps the utility classes; css, modules (CSS Modules) or stylex write the same look that way while the kit components keep their own styles.",
+        "The frame as a Solid component (a .tsx file on the kit's Solid layer), in the styling system asked for: tailwind (default) keeps the utility classes; css, modules (CSS Modules) or stylex write the same look that way while the kit components keep their own styles. css and modules come with the stylesheet the file imports, as sheet.",
       parameters: obj(
         {
           id: str("artboard id"),

@@ -17,11 +17,3 @@ export function FieldWrap(props: { label: string | null; class?: string; childre
     </Show>
   )
 }
-
-/** The prop a Vue event's listener is in Solid: `update:modelValue` is
- * `onUpdateModelValue`, `close` is `onClose`. */
-export const listenerOf = (event: string): string =>
-  `on${event
-    .split(/[:-]/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("")}`

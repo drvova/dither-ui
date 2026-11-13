@@ -20,7 +20,7 @@
 // agent can only produce documents the inspector could have produced.
 import { directedTime, isDirected, release, seek } from "@dither-kit"
 import { type Artboard, type ArtboardKind, createArtboard, normalizeArtboard } from "@/entities/artboard"
-import { chartCode, createChart, createSeriesRow, LABEL_KEY } from "@/entities/chart"
+import { createChart, createSeriesRow, LABEL_KEY } from "@/entities/chart"
 import {
   actualSize,
   addArtboard,
@@ -55,7 +55,6 @@ import {
   type ReelTransitionKind,
   sanitizeComponentProps,
   sanitizeModel,
-  widgetCode,
 } from "@/entities/widget"
 import {
   compositionHtml,
@@ -71,7 +70,9 @@ import {
 import { applyDocument, documentSnapshot, type StudioDocument } from "../persistence"
 import { CHART_TYPES, type ChartType, familyOf } from "@/shared/config"
 import { bytesToBase64 } from "@/shared/lib/base64"
-import { isStyling, restyle, type Styling, STYLINGS } from "../../shared/lib/restyle"
+import { isStyling, type Styling, STYLINGS } from "../../shared/lib/restyle"
+import { frameCode } from "../../entities/artboard/code"
+import { modelOf } from "../../entities/widget/model/model"
 import { evolveArtboard, type EvolveOptions } from "@/features/agent/evolve"
 import { inspectFrame } from "./inspect"
 
@@ -201,6 +202,14 @@ export function summarize(a: Artboard) {
 /** The machine-readable registry: every component the studio can place,
  * with its prop specs, plus the chart and widget kinds and the command
  * vocabulary. Served at /agent/registry.json by the build. */
+/** A component's model as a Solid caller binds it: the prop that carries
+ * the value and the callback prop the control calls (`modelValue` with
+ * `onUpdateModelValue` unless the registry row names its own). */
+function modelRow(e: (typeof COMPONENT_REGISTRY)[number]) {
+  const m = modelOf(e)
+  return m ? { default: m.default, prop: m.prop, on: m.on } : null
+}
+
 export function registrySchema() {
   return {
     version: PROTOCOL_VERSION,
@@ -215,7 +224,7 @@ export function registrySchema() {
       frame: e.frame,
       props: e.props.map((p) => ({ ...p })),
       slotText: e.slotText ?? null,
-      vmodel: e.vmodel ? { default: e.vmodel.def } : null,
+      model: modelRow(e),
     })),
     document: {
       artboards:
@@ -257,7 +266,7 @@ export function registrySchema() {
       inspect:
         "{ id? } — what the frame reads as on the canvas: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, fields named only by their placeholder (set the field's `label` prop), targets under 24px, text under AA contrast, images without alt, positive tabindex)",
       "code.get":
-        "{ id, styling? } — the frame as a Vue SFC: tailwind (default) keeps the utility classes; css (a scoped stylesheet), modules (CSS Modules) or stylex write the same look in that system",
+        "{ id, styling? } — the frame as a Solid component, { file, code, sheet }: a .tsx file on the kit's Solid layer; tailwind (default) keeps the utility classes; css (a stylesheet), modules (CSS Modules) or stylex write the same look in that system, the stylesheet it then imports as sheet { file, text } (null otherwise)",
       "registry.get":
         "{ is?, brief? } — this schema (brief: each component's name, label and group, no prop specs), or one component's entry",
       "video.export":
@@ -595,8 +604,7 @@ export function runCommand(input: unknown): CommandResult {
         if (!a) return fail(`no artboard ${cmd.id}`)
         const system: unknown = cmd.styling ?? "tailwind"
         if (!isStyling(system)) return fail(`styling must be one of ${STYLINGS.join(", ")}`)
-        const code = a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart)
-        return ok({ id: a.id, styling: system, code: restyle(code, system) })
+        return ok({ id: a.id, styling: system, ...frameCode(a, system) })
       }
       case "video.export": {
         const a = find(typeof cmd.id === "string" ? cmd.id : editor.selectedArtboardId)
@@ -683,11 +691,12 @@ export type StudioAgentApi = {
   clock: StudioClockApi
 }
 
-declare global {
-  interface Window {
-    ditherStudio?: StudioAgentApi
-  }
-}
+// `Window.ditherStudio` is declared once a program, by the Vue site's
+// protocol, which the shared agent modules (`@/widgets/agent/model`) still
+// reach for its types. Its registry rows are the Vue ones (`vmodel`), so
+// this site's door goes on the window through this view until the cutover
+// leaves one protocol.
+const page = () => window as unknown as { ditherStudio?: StudioAgentApi }
 
 /** Open the three doors on the mounted studio. Returns the closer. */
 export function installStudioAgentApi(): () => void {
@@ -728,7 +737,7 @@ export function installStudioAgentApi(): () => void {
     { deep: true },
   )
 
-  window.ditherStudio = {
+  page().ditherStudio = {
     version: PROTOCOL_VERSION,
     run: runCommand,
     registry: registrySchema,
@@ -741,6 +750,6 @@ export function installStudioAgentApi(): () => void {
     clearTimeout(timer)
     document.removeEventListener(COMMAND_EVENT, onCommand)
     mirror?.remove()
-    delete window.ditherStudio
+    delete page().ditherStudio
   }
 }

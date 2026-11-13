@@ -4,6 +4,7 @@ import { boundProps, componentEntry, fieldLabel, type ScreenCell, type ScreenMod
 import * as kit from "@dither-kit"
 import { cn } from "@dither-kit/tailwind/lib"
 import { editor, selectLayer } from "~/entities/editor"
+import { slotChildren } from "../../entities/widget/model/model"
 import { FieldWrap } from "./FieldWrap"
 
 const JUSTIFY: Record<string, string> = {
@@ -68,7 +69,7 @@ export default function ScreenRenderer(props: { screen: ScreenModel; artboardId:
                       {...(hasModel(cell)
                         ? { modelValue: cell.model, onUpdateModelValue: (value: unknown) => (cell.model = value) }
                         : {})}
-                      {...(cell.slotText != null ? { children: cell.slotText } : {})}
+                      {...(cell.slotText != null ? { children: slotChildren(cell.is, cell.slotText) } : {})}
                       class={cell.grow ? "w-full" : ""}
                     />
                   </FieldWrap>

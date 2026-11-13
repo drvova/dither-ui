@@ -5,7 +5,8 @@ import * as kit from "@dither-kit"
 import { DitherAvatar, DitherButton, DitherGradient, DitherImage, toast } from "@dither-kit"
 import { editor } from "~/entities/editor"
 import ReelRenderer from "~/widgets/reel-renderer/ReelRenderer"
-import { FieldWrap, listenerOf } from "./FieldWrap"
+import { modelOf, slotChildren } from "../../entities/widget/model/model"
+import { FieldWrap } from "./FieldWrap"
 import ScreenRenderer from "./ScreenRenderer"
 import "./WidgetRenderer.css"
 
@@ -43,9 +44,7 @@ export default function WidgetRenderer(props: { widget: WidgetModel; artboardId:
     const w = component()
     return w ? componentEntry(w.is) : undefined
   })
-  const hasModel = createMemo(() => !!entry()?.vmodel)
-  const modelProp = createMemo(() => entry()?.vmodel?.prop ?? "modelValue")
-  const modelEvent = createMemo(() => listenerOf(entry()?.vmodel?.event ?? "update:modelValue"))
+  const model = createMemo(() => modelOf(entry()))
   const updateModel = (value: unknown) => {
     const w = component()
     if (w) w.model = value
@@ -56,8 +55,8 @@ export default function WidgetRenderer(props: { widget: WidgetModel; artboardId:
   }
   /** The slot's text as children, when the widget has any. */
   const slot = () => {
-    const text = component()?.slotText
-    return text != null ? { children: text } : {}
+    const w = component()
+    return w?.slotText != null ? { children: slotChildren(w.is, w.slotText) } : {}
   }
   const demo = (name: NonNullable<ComponentEntry["demo"]>) => entry()?.demo === name
 
@@ -141,7 +140,7 @@ export default function WidgetRenderer(props: { widget: WidgetModel; artboardId:
                   <Dynamic
                     component={comp()}
                     {...compProps()}
-                    {...(hasModel() ? { [modelProp()]: w().model, [modelEvent()]: updateModel } : {})}
+                    {...(model() ? { [model()!.prop]: w().model, [model()!.on]: updateModel } : {})}
                     {...slot()}
                     class="max-h-full max-w-full"
                   />
