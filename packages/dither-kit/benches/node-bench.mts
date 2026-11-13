@@ -7,7 +7,8 @@
  *   3. paintColumn into RasterBuffer
  *   4. JSON.stringify paintSig (per-frame overhead)
  *
- * Run: npx tsx packages/dither-kit/benches/node-bench.mts
+ * Run: npm run bench -w dither-kit
+ *      (node --import ./benches/resolve-ts.mts benches/node-bench.mts)
  */
 
 import { renderDitherGradient, renderDitherButton, DEFAULT_MAX_COLS, DEFAULT_MAX_ROWS } from "../src/engine/precompile"

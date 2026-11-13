@@ -771,6 +771,25 @@ generated twin. Inside the kit every import is relative
   (static mode, reduced motion) paints its one frame in `start()` and the
   visibility wake never starts the loop behind it — it did once, and every
   background animated under reduced motion as soon as it scrolled into view.
+  A held frame (static mode, reduced motion, paused) is printed from what
+  its `render` read, so it prints again when one of those changes, the
+  moment kept (no restart, no entrance replay, `startNow` untouched): the
+  core's `holds()` says a paint leaves such a frame and `repaint()` prints
+  it again, a still frame after the framework's pending changes and never
+  beside a restart the same change caused (one change, one paint), a paused
+  one through the loop, once, where it shows or as it comes into view;
+  nothing while the loop runs (it reads its inputs every frame), before the
+  mount or for a precompiled surface, and under the kit clock's direction
+  the print waits for the release. The Solid binding tracks `render`'s
+  reactive reads while the frame is held (`createReaction`) and calls
+  `repaint` on the first to change, so a component names no paint input:
+  its `restart` list holds only what must start the run over. A `render`
+  must not write a signal it reads on every paint.
+  (`tests/surface-loop.spec.ts`; the held-frame cases of
+  `tests/solid/kit.spec.tsx`.) A surface outside this loop that paints a
+  still frame lists every input its paint reads in its own repaint effect,
+  its `useDitherMatrix` matrix among them (`DitherSpinner`, `DitherAvatar`,
+  `DitherGradient`'s seed; the same cases).
   Its optional `frameRate` getter gates painting on
   `timing.frameIndex` boundaries — between boundaries the raster is held
   (stop-motion cadence, no upload), 0/undefined keeps the smooth ~30fps
@@ -991,6 +1010,16 @@ generated twin. Inside the kit every import is relative
   (a `DitherScreen` reaching a surface); the poster: `tests/poster.spec.ts`.
 - Painting at memory speed: `tests/paint-limits.spec.ts` pins `cellCanvas`
   to the fillRect pixel and `fbm`'s cache to the plain sum.
+- Benchmarks, in `benches/`, run by hand and never part of a build or a
+  spec: `npm run bench` times the engine's hot paths in Node
+  (`node-bench.mts`; `resolve-ts.mts` is the resolve hook that gives the
+  kit's extensionless imports their `.ts` under Node's own TypeScript);
+  `npm run bench:browser` (`browser-bench.mts`, its page
+  `browser-bench-page.tsx`) bundles the page in memory, mounts the Solid
+  components in headless Chromium (`CHROME_PATH`, else playwright-core's)
+  over the built `kit/dither-kit.css` (the site build's, or a path given)
+  and prints the root README's tables. A figure in the README is replaced
+  only by a run, with its machine, browser and date beside it.
 - Determinism: on the built site, `/play/#doc=…` driven by synthetic
   `hf-seek` events must give identical bytes for identical times, in any
   order, and request no animation frames while directed.

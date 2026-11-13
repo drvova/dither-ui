@@ -302,76 +302,90 @@ The kit applies several main-thread optimizations that benefit every consumer:
   canvas visible before calling `onWake` so `schedule()` sees the correct
   state and requests a RAF immediately.
 
-Kit-level benchmarks (Chrome DevTools, real DOM, 3 warmups + 5 batches × 3 runs),
-recorded on the kit's first, Vue build; the Solid components run the same
-engine paths and have not been re-measured:
+Kit-level benchmarks on the Solid components, in a real DOM
+(`npm run bench:browser -w dither-kit`, Solid's production build, 3 warmups +
+5 batches × 3 runs, the mean, as the median of five such passes). Measured
+2026-11-13 on a cloud container (4 cores of an Intel Xeon at 2.30 GHz, 16 GB),
+headless Chromium 141 rendering in software (SwiftShader, no GPU):
 
 | Operation | Compute | Full (RAF incl.) | Notes |
 | --- | ---: | ---: | --- |
-| DitherGradient live mount | 0.45 ms | 16.6 ms | 960×120, cell=3 |
-| DitherGradient static mount | 0.42 ms | 16.4 ms | 320×200 cap, cell=4, idle-deferred |
-| DitherGradient live re-render | 0.75 ms | 16.7 ms | direction up→down |
-| DitherButton live mount | 0.51 ms | 16.4 ms | 240×56, cell=2 |
-| DitherButton static mount | 0.48 ms | 16.5 ms | 320×200 cap, idle-deferred |
-| DitherSpinner live mount | 0.59 ms | 16.4 ms | 32px, RAF loop |
-| Raw raster gradient | 5.21 ms | 4.9 ms | 480×300, no framework |
+| DitherGradient live mount | 0.10 ms | 16.6 ms | 960×120, cell=3 |
+| DitherGradient static mount | 0.10 ms | 16.6 ms | 320×200 cap, cell=4, idle-deferred |
+| DitherGradient live re-render | 0.34 ms | 16.7 ms | direction up to down |
+| DitherButton live mount | 0.17 ms | 33.3 ms | gradient variant, cell=2 |
+| DitherButton static mount | 0.14 ms | 16.6 ms | 320×200 cap, idle-deferred |
+| DitherSpinner live mount | 0.26 ms | 16.6 ms | 32px, RAF loop |
+| Raw raster gradient | 2.25 ms | 2.2 ms | 480×300, no framework |
 
-**Compute time** is mount to the next tick (the framework's patch and the
-component's mount setup: the kit's actual work). **Full time** adds the `requestAnimationFrame` frame wait
-(~16.67 ms at 60 fps) before the canvas has visible pixels. The raw raster
-benchmark has no framework overhead and no RAF wait, so its full time equals
-compute time. Static mode is comparable to live mode in compute time because
-both use the same inlined pixel writes; the difference is that static mode
-auto-caps at 320×200 (4× fewer pixels) and defers paint via
-`requestIdleCallback`.
+**Compute time** is mount to the next microtask (Solid's render and the
+component's `onMount`: the kit's actual work). **Full time** adds the wait for
+a `requestAnimationFrame` frame (~16.67 ms at 60 fps) before the canvas has
+visible pixels; a live button measures its box in one frame and paints in the
+next, so its first pixels take two. The raw raster benchmark has no framework
+overhead and no RAF wait, so its full time equals compute time. Static mode
+is comparable to live mode in compute time because both use the same inlined
+pixel writes; the difference is that static mode auto-caps at 320×200 (4×
+fewer pixels) and defers paint via `requestIdleCallback`.
 
-These are per-component measurements on one desktop, not device-independent
-latency promises. Re-run on target devices before choosing `cell`, animation,
-bloom, or precompilation policy.
+These are per-component measurements on one machine without a GPU, not
+device-independent latency promises. Re-run on target devices before choosing
+`cell`, animation, bloom, or precompilation policy.
 
 ### Benchmark
 
-`npx tsx packages/dither-kit/benches/node-bench.mts` times the engine's hot paths in Node (pixel
-writes, the gradient compiler, a chart column). The figures below come from the
-browser benchmark page the kit's first build carried, which
-performed 3 warmups, then 6 measured batches × 2 repetitions.
-Gradient samples run at 960×600 CSS px with 2 px cells and compare the legacy
-per-cell `fillRect` painter with RGBA generation plus one `putImageData` upload.
-Button samples run at 240×56 CSS px and compare fresh RGBA allocation against a
-reused target buffer. The table reports mean, median, p95, canvas calls, and
-RGBA allocation count.
+The kit carries two benchmarks, both run by hand and neither part of a build.
+The figures below were measured 2026-11-13 on the same cloud container (4
+cores of an Intel Xeon at 2.30 GHz), Node 24.22.3.
 
-A local Chrome run of the expanded benchmark produced:
+`npm run bench -w dither-kit` times the engine's hot paths in Node, 3 warmups
+then 20 batches a path. The median batch, as the median of seven runs:
+
+| Hot path | Median |
+| --- | ---: |
+| `renderDitherGradient`, 960×600 at 2 px cells (144,000 pixels) | 1.80 ms |
+| `renderDitherGradient`, capped at 320×200 (64,000 pixels) | 0.83 ms |
+| `renderDitherButton`, 240×56 at 2 px cells, fresh buffer | 0.061 ms |
+| `renderDitherButton`, the same into a reused buffer | 0.056 ms |
+| `paintColumn` × 520 columns, a 520×200 chart frame | 1.24 ms |
+| `setOrBlendRasterPixel` × 64,000 (`blendRasterPixel`: 0.91 ms) | 0.86 ms |
+
+`npm run bench:browser -w dither-kit` runs the painters in headless Chromium
+141 (software rendering, SwiftShader): 3 warmups, then 6 measured batches × 2
+repetitions. Gradient samples run at 960×600 CSS px with 2 px cells and
+compare the legacy per-cell `fillRect` painter with RGBA generation plus one
+`putImageData` upload. Button samples run at 240×56 CSS px and compare fresh
+RGBA allocation against a reused target buffer. The table reports mean,
+median, p95, canvas calls, and RGBA allocation count, each timing the median
+of five independent runs (a fresh page each):
 
 | Painter | Mean | Median | p95 | Canvas calls | RGBA allocations |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Gradient legacy fillRect | 109.11 ms | 107.70 ms | 174.40 ms | 144,000 | 0 |
-| Gradient RGBA + putImageData | 4.70 ms | 4.10 ms | 10.00 ms | 1 | 13 |
-| Button fresh RGBA buffer | 0.28 ms | 0.30 ms | 0.40 ms | 1 | 24 |
-| Button reused RGBA buffer | 0.45 ms | 0.20 ms | 2.90 ms | 1 | 2 |
+| Gradient legacy fillRect | 60.03 ms | 58.26 ms | 71.12 ms | 144,000 | 0 |
+| Gradient RGBA + putImageData | 2.21 ms | 2.21 ms | 2.89 ms | 1 | 13 |
+| Button fresh RGBA buffer | 0.13 ms | 0.12 ms | 0.17 ms | 1 | 24 |
+| Button reused RGBA buffer | 0.07 ms | 0.07 ms | 0.11 ms | 1 | 2 |
 
-The gradient rows in that run show a **23.2× speedup** and **95.7% lower
-measured paint latency**. The button rows are intentionally small in wall-clock
-terms; their useful signal is allocation behavior, where reuse keeps the repeated
-RGBA buffer allocation count bounded at two reusable objects.
+The gradient rows show a **27.1× speedup** and **96.3% lower measured paint
+latency**. The button rows are intentionally small in wall-clock terms; their
+useful signal is allocation behavior, where reuse keeps the repeated RGBA
+buffer allocation count bounded at two reusable objects.
 
-Earlier five independent local Chrome runs without CPU throttling produced:
+The five runs behind those medians:
 
 | Run | Legacy mean | Legacy median | Legacy p95 | Raster mean | Raster median | Raster p95 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | 110.80 ms | 109.70 ms | 173.20 ms | 6.44 ms | 4.00 ms | 36.10 ms |
-| 2 | 111.76 ms | 114.40 ms | 180.00 ms | 4.01 ms | 4.30 ms | 5.10 ms |
-| 3 | 108.18 ms | 110.00 ms | 151.00 ms | 4.07 ms | 4.50 ms | 4.80 ms |
-| 4 | 122.25 ms | 121.80 ms | 179.60 ms | 5.62 ms | 4.60 ms | 20.10 ms |
-| 5 | 118.31 ms | 129.30 ms | 156.60 ms | 3.94 ms | 3.90 ms | 4.60 ms |
-| Average mean | 114.26 ms | — | — | 4.82 ms | — | — |
+| 1 | 66.45 ms | 66.80 ms | 79.11 ms | 2.57 ms | 2.31 ms | 3.58 ms |
+| 2 | 66.20 ms | 60.40 ms | 92.17 ms | 2.49 ms | 2.43 ms | 3.71 ms |
+| 3 | 58.33 ms | 56.61 ms | 68.05 ms | 2.21 ms | 2.21 ms | 2.58 ms |
+| 4 | 60.03 ms | 58.26 ms | 70.00 ms | 1.93 ms | 1.75 ms | 2.89 ms |
+| 5 | 58.74 ms | 56.51 ms | 71.12 ms | 1.89 ms | 1.76 ms | 2.88 ms |
 
-The earlier average means show a **23.7× speedup** and **95.8% lower measured
-paint latency**. Each legacy gradient sample made 144,000 `fillRect` calls; each
-raster gradient sample made one `putImageData` upload. These are directional
-measurements on one desktop, not a device-independent latency promise. Measure
-on target low-power devices before choosing `cell`, animation, bloom,
-or precompilation policy.
+Each legacy gradient sample made 144,000 `fillRect` calls; each raster
+gradient sample made one `putImageData` upload. These are directional
+measurements on one machine, in software, not a device-independent latency
+promise. Measure on target low-power devices before choosing `cell`,
+animation, bloom, or precompilation policy.
 
 ## Components
 
@@ -408,7 +422,7 @@ packages/
     src/engine/         styling-free logic: rasters, painters, contexts, clock, tokens
     src/solid/          the components, styled with Tailwind (what @dither-kit points at)
     src/tailwind/       the class helpers, the kit's stylesheet entry
-    tests/  benches/    the engine's and the components' specs; hot paths timed in Node
+    tests/  benches/    the engine's and the components' specs; hot paths timed in Node and Chromium
   dither-kit-stylex/    the same components in StyleX, generated from the kit's solid/
   restyle/              writes Tailwind-classed code in your styling system; the StyleX generator
   site/                 the site on SolidStart

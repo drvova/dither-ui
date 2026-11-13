@@ -126,8 +126,9 @@ Default section order:
   Config files load under Node's own TypeScript, so a module one imports
   at run time (`restyle/utility-map`, `crawler-files.ts` and its graph:
   `groups.ts`, `seo.ts`, the `*-nav.ts` packs) writes relative imports
-  WITH `.ts`. `packages/dither-kit/benches/node-bench.mts` is the kit's
-  raster micro-benchmark, run by hand in Node, never part of a build.
+  WITH `.ts`. `packages/dither-kit/benches/` holds the kit's
+  benchmarks, run by hand, never part of a build
+  (`packages/dither-kit/AGENTS.md`).
 - The site's build (`npm run build`): `vite build` prerenders every page
   into `packages/site/.output/public` (the landing, `/docs` and one page a
   docs section, the Studio, the player, and the missing page kept as
@@ -338,7 +339,7 @@ Default section order:
   is Solid (the docs' tables, prose and snippets, the Studio's code export
   and `code.get`) and comes in their styling system too: the `restyle`
   package (`packages/restyle/src/index.ts`) rewrites a Tailwind-classed
-  snippet into a scoped stylesheet, CSS Modules or StyleX from the
+  snippet into a stylesheet the file imports, CSS Modules or StyleX from the
   declarations Tailwind's compiler gives each class
   (`virtual-dither-utilities`, compiled at build by `restyle/utility-map`
   from the vocabulary the site names in
