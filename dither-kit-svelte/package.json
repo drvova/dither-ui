@@ -17,6 +17,8 @@
     "svelte": "^5.0.0"
   },
   "devDependencies": {
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.2.0",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "typescript": "~5.6.3"
