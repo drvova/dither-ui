@@ -1,0 +1,14 @@
+{
+  "name": "bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The local ACP bridge: a zero-dependency relay between a Studio tab and the user's own coding agent.",
+  "type": "module",
+  "bin": {
+    "dither-bridge": "./src/dither-bridge.mjs"
+  },
+  "exports": {
+    "./dither-bridge.mjs": "./src/dither-bridge.mjs"
+  },
+  "license": "MIT"
+}

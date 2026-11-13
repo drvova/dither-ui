@@ -3,8 +3,8 @@
 // it is, so the doc cannot drift: a design change touches both.
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
-import { GLIDE_BEZIER } from "../dither-kit/engine/dither-paint"
-import { FRAME_BUDGET_MS } from "../dither-kit/engine/frame-budget"
+import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
+import { FRAME_BUDGET_MS } from "dither-kit/engine/frame-budget.ts"
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 const doc = read("DESIGN.md")
@@ -21,12 +21,12 @@ describe("DESIGN.md", () => {
   it("names the one motion curve as the kit and the site define it", () => {
     const curve = `cubic-bezier(${GLIDE_BEZIER.join(", ")})`
     expect(doc).toContain(curve)
-    expect(read("src/app/styles.css")).toContain(`--ease-settle: ${curve};`)
+    expect(read("packages/site/src/app/styles.css")).toContain(`--ease-settle: ${curve};`)
   })
 
   it("gives the print's ground, inks and placeholder as the landing sets them", () => {
     const print = block(
-      read("src/pages/landing/chapters.css"),
+      read("packages/site/src/pages/landing/chapters.css"),
       ':root:is([data-page="landing"], [data-page="missing"])',
     )
     for (const token of ["--background", "--foreground", "--muted-foreground", "--placeholder"])
@@ -34,18 +34,18 @@ describe("DESIGN.md", () => {
   })
 
   it("gives the docs' hairline and card as the docs set them", () => {
-    const docs = block(read("src/app/styles.css"), ':root.dark[data-page="docs"]')
+    const docs = block(read("packages/site/src/app/styles.css"), ':root.dark[data-page="docs"]')
     for (const token of ["--border", "--card"]) expect(doc, token).toContain(`\`${docs[token]}\``)
   })
 
   it("gives the kit's dark swatches as the kit sets them", () => {
-    const dark = block(read("dither-kit/engine/theme.css"), ".dark")
+    const dark = block(read("packages/dither-kit/src/engine/theme.css"), ".dark")
     for (const name of ["green", "blue", "purple", "pink", "orange", "grey"])
       expect(doc, name).toContain(`\`${dark[`--swatch-${name}`]}\``)
   })
 
   it("gives the landing's page width, rhythm and header as the landing sets them", () => {
-    const page = read("solid-site/src/pages/landing/LandingPage.css")
+    const page = read("packages/site/src/pages/landing/LandingPage.css")
     for (const token of ["--page", "--rhythm", "--head"]) {
       const value = page.match(new RegExp(`${token}: ([^;]+);`))?.[1]
       expect(value, token).toBeTruthy()
@@ -54,7 +54,7 @@ describe("DESIGN.md", () => {
   })
 
   it("gives the section title's size as the landing sets it", () => {
-    const title = read("src/pages/landing/chapters.css").match(
+    const title = read("packages/site/src/pages/landing/chapters.css").match(
       /\.landing \.section-title \{[^}]*font-size: ([^;]+);/,
     )?.[1]
     expect(title).toBeTruthy()

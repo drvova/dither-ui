@@ -1,0 +1,90 @@
+// Generated from dither-kit/solid/SplashCursor.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
+import { type JSX, mergeProps, onCleanup, onMount } from "solid-js"
+import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { cn, type StyleProp } from "./lib"
+import * as stylex from "@stylexjs/stylex"
+
+const styles = stylex.create({
+  canvas: { pointerEvents: "none", position: "absolute", inset: "0px", height: "100%", width: "100%" },
+  frame: { position: "relative", overflow: "hidden" },
+})
+
+export type SplashCursorProps = {
+  color?: string
+  maxRadius?: number
+  duration?: number
+  class?: string
+  xstyle?: StyleProp
+  children?: JSX.Element
+}
+
+type Ripple = { x: number; y: number; t0: number }
+
+export default function SplashCursor(raw: SplashCursorProps) {
+  const props = mergeProps({ color: "#3DA5FF", maxRadius: 60, duration: 700 }, raw)
+
+  let wrap: HTMLDivElement | undefined
+  let canvas: HTMLCanvasElement | undefined
+  let ripples: Ripple[] = []
+  let raf = 0
+  let last = { x: 0, y: 0 }
+
+  function resize() {
+    const c = canvas
+    const w = wrap
+    if (!c || !w) return
+    const r = w.getBoundingClientRect()
+    c.width = Math.max(1, r.width)
+    c.height = Math.max(1, r.height)
+  }
+  function onMove(e: PointerEvent) {
+    if (pixelPrefersReducedMotion()) return
+    const r = wrap?.getBoundingClientRect()
+    if (!r) return
+    const x = e.clientX - r.left
+    const y = e.clientY - r.top
+    if (Math.hypot(x - last.x, y - last.y) < 22) return
+    last = { x, y }
+    ripples.push({ x, y, t0: performance.now() })
+    if (!raf) raf = requestAnimationFrame(frame)
+  }
+  function frame(now: number) {
+    const c = canvas
+    const ctx = c?.getContext("2d")
+    if (!c || !ctx) {
+      raf = 0
+      return
+    }
+    ctx.clearRect(0, 0, c.width, c.height)
+    ripples = ripples.filter((r) => now - r.t0 < props.duration)
+    ctx.strokeStyle = props.color
+    for (const r of ripples) {
+      const p = (now - r.t0) / props.duration
+      ctx.globalAlpha = (1 - p) * 0.7
+      ctx.lineWidth = 2 * (1 - p)
+      ctx.beginPath()
+      ctx.arc(r.x, r.y, p * props.maxRadius, 0, Math.PI * 2)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 1
+    raf = ripples.length ? requestAnimationFrame(frame) : 0
+  }
+
+  onMount(() => {
+    resize()
+    const ro = new ResizeObserver(resize)
+    if (wrap) ro.observe(wrap)
+    onCleanup(() => {
+      if (raf) cancelAnimationFrame(raf)
+      ro.disconnect()
+    })
+  })
+
+  return (
+    <div ref={(el) => (wrap = el)} class={cn(styles.frame, props.xstyle, props.class)} onPointerMove={onMove}>
+      {props.children}
+      <canvas ref={(el) => (canvas = el)} {...stylex.props(styles.canvas)} aria-hidden="true" />
+    </div>
+  )
+}

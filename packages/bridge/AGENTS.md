@@ -1,0 +1,112 @@
+# bridge
+
+## Purpose
+
+- `src/dither-bridge.mjs` is the local half of the Studio's harness control
+  plane: it knows the common ACP harnesses (`HARNESSES`: Claude Code, Codex,
+  Gemini CLI, Qwen Code, oh-my-pi, Goose, OpenCode, Auggie — preset id,
+  display name, command line, the binary that must be on the PATH), reports
+  which are installed, spawns the one the tab picks (or any command) over
+  stdio as the user's own process, relays its JSON-RPC verbatim to the tab
+  over a loopback websocket, injects the Studio MCP server into every
+  session, and routes that server's tool calls back to the tab.
+- `README.md` is the user-facing manual (run lines per harness, options,
+  what the bridge does and does not do).
+
+## Ownership
+
+- Owns the wire contract between the tab and the bridge; the browser side
+  lives in `packages/site/src/features/agent/acp.ts`, which must change in step.
+- Does not own the ACP or MCP protocols: both are relayed as the agent
+  speaks them.
+
+## Local Contracts
+
+- Zero dependencies, one file, Node built-ins only (`http`, `child_process`,
+  `crypto`, `readline`); no npm package, no build step. `package.json`
+  declares none and depends on no package of this workspace
+  (`tests/workspace.spec.ts` at the root); it exports the one file as
+  `bridge/dither-bridge.mjs`, which is how the site's build finds it.
+- The site serves this file as it is (the `siteFiles` plugin,
+  `packages/site/build/site-files.ts`, at `BRIDGE_FILE`), so it must keep
+  running as a
+  lone download: no import of a sibling file. The Studio's setup line
+  fetches it into the home folder and runs it from the user's project.
+- The origins let in with no `--origin` (`allowedOrigin`: the site and any
+  page on this machine) are mirrored by `bridgeKnows` in
+  `packages/site/src/features/agent/bridge-file.ts`;
+  `packages/site/tests/bridge.spec.ts` asks the
+  running bridge about each, so the two cannot drift.
+- Bridge-only methods are prefixed `bridge/`: `bridge/tools` (tab → bridge,
+  the Studio tool list as MCP tool defs), `bridge/start` (tab → bridge,
+  `{ harness: id }` or `{ command }`), `bridge/stop` (tab → bridge),
+  `bridge/hello` (bridge → tab: `{ cwd, harnesses: [{ id, name, command,
+  installed, note? }], agent: { id, name, command, pid } | null }`, sent on
+  connect and after every start/stop), `bridge/exit` (bridge → tab: exit
+  code). While no harness runs, a request from the tab is answered with a
+  JSON-RPC error (`no harness running`).
+  `studio/call` (bridge → tab, `{ name, arguments }`) is answered with the
+  protocol's `CommandResult`; relay ids are `b<N>` so they never collide
+  with the tab's `c<N>` or the agent's ids.
+- The one edit to relayed traffic is the `mcpServers` injection on
+  `session/new` / `session/load` and the default `cwd`; everything else
+  passes through untouched, line by line.
+- Loopback only, one tab at a time, agent killed on disconnect, 30s relay
+  timeout per tool call; `--mcp <port> --token <token>` is the server mode
+  the agent spawns, never run by hand.
+- The trust boundary is the browser: the websocket upgrade and every HTTP
+  request are refused (403) unless `Host` names the loopback
+  (`allowedHost`, against DNS rebinding) and any `Origin` is dither-ui.com,
+  a localhost or 127.0.0.1 page, or one `--origin` adds (`allowedOrigin`; a
+  client without an Origin is a local process). `/relay/*` also needs the
+  run's random token (`x-dither-bridge-token`), which only the injected MCP
+  server is given; no response carries a CORS header. A client frame must
+  be masked, a message is at most 64 MB and a relay body 1 MB. An agent
+  stdout line carrying a `bridge/` method is dropped, never relayed as the
+  bridge's own.
+- The agent is launched through the shell (`shell: true`) from `--cwd`, so
+  a preset or `--agent` can be any command line (a local script by absolute
+  path); it inherits the environment plus `DITHER_BRIDGE_PORT`. Adding a
+  harness is one row in `HARNESSES` (and the README table, the landing's
+  agents step — `HARNESSES` ids and names in
+  `packages/site/src/pages/landing/facts.ts`,
+  held to this file by `packages/site/tests/marks.spec.ts` — and its mark in
+  `packages/site/src/shared/ui/marks.ts` under the same id, which the landing's
+  chips
+  and the Studio's harness picker draw).
+- A tool result's `data.files` is materialized under `--cwd` before it
+  reaches the agent — only `video/<slug>/index.html` as text (`{ path,
+  content }`, `VIDEO_PATH`) and `image/<slug>.png` as base64 bytes (`{
+  path, base64 }`, `IMAGE_PATH`), a file that cannot be written skipped and
+  logged — and replaced by the written paths plus `data.cwd`, so the agent
+  gets a location, never a payload (`export_video` ships a self-contained
+  HyperFrames composition this way, `export_png` a picture).
+
+## Work Guidance
+
+- Keep it readable as a single page: a websocket codec, the serve mode, the
+  MCP mode. New behaviour must still leave the relay verbatim.
+- Any change to a `bridge/` or `studio/call` message updates `acp.ts`, the
+  fixture agent and `README.md` together.
+
+## Verification
+
+- `packages/site/tests/bridge.spec.ts` spawns the real bridge with
+  `packages/site/tests/fixtures/fake-acp-agent.mjs` (a scripted ACP agent that
+  spawns the
+  injected MCP server and calls `add_screen` through it) and plays the tab:
+  initialize, session/new, prompt with streaming, plan, permission, tool
+  relay, usage, health, second-tab refusal, the hello's harness list, a
+  bridge without `--agent` that refuses requests until `bridge/start` and
+  stops on `bridge/stop`, file materialization under `--cwd` (and refusal
+  of escaping paths), cancel, and the trust boundary (a foreign Origin, a
+  rebound Host and a relay call without the token refused; a localhost
+  page let in).
+- Lint covers the file (`npm run lint`); the browser walk is the Studio in
+  the acp backend against the same fixture (from the repository's root,
+  `node packages/bridge/src/dither-bridge.mjs --agent "node
+  packages/site/tests/fixtures/fake-acp-agent.mjs"`).
+
+## Child DOX Index
+
+- none

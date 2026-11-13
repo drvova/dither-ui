@@ -9,10 +9,10 @@ permissions:
   contents: read
 
 jobs:
-  # The framework-free code (the engine, the site's shared modules, the
-  # scripts) and the whole repository's lint and formatting, on the Rstack
-  # CLI. Its types are checked with the site's, in the job below.
-  root:
+  # One install at the workspace root, on the one Node (24, which SolidStart
+  # needs): the whole repository's lint and formatting, its types, every
+  # package's framework-free specs (Rstest) and the kit's component specs.
+  check:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,18 +22,23 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       - run: npm ci
       - name: Lint
         run: npm run lint
       - name: Format
         run: npx rs fmt --check
+      # one program: every package's source, build files and specs
+      - name: Typecheck
+        run: npm run typecheck
       - name: Unit tests
-        run: npm test
+        run: npx rs test
+      - name: Kit component tests
+        run: npm test -w dither-kit
 
-  # The site and the kit's Solid layer (SolidStart needs Node 24; the kit's
-  # own dependencies and the shared modules' resolve from the root install).
+  # The site: its component specs, the static build, and the specs again
+  # over the built site.
   site:
     runs-on: ubuntu-latest
     permissions:
@@ -46,25 +51,12 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            solid-site/package-lock.json
       - run: npm ci
-      - run: npm ci
-        working-directory: solid-site
-      # one program: the site, the kit, the engine, the shared modules, the
-      # scripts and every spec, the root's included
-      - name: Typecheck
-        run: npm run check
-        working-directory: solid-site
       # the sandbox spec runs in the runner's Chromium
       - name: Component tests
-        run: npm test
-        working-directory: solid-site
+        run: npm test -w site
       # the build ends by drawing the share cards in the runner's Chromium
       - name: Static build
         run: npm run build
-        working-directory: solid-site
       - name: Tests over the built site
-        run: npm test
-        working-directory: solid-site
+        run: npm test -w site

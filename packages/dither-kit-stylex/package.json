@@ -1,0 +1,29 @@
+{
+  "name": "dither-kit-stylex",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The dither-kit components in StyleX, generated from the kit's Solid layer.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "dither-kit": "*"
+  },
+  "peerDependencies": {
+    "@stylexjs/stylex": "^0.19.0",
+    "solid-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "@stylexjs/stylex": "0.19.1",
+    "restyle": "*",
+    "rstack": "^0.8.5",
+    "solid-js": "^1.9.19"
+  },
+  "license": "MIT"
+}

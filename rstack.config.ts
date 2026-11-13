@@ -1,39 +1,40 @@
-// The root toolchain in one file, run through the Rstack CLI (`rs`): the
-// tests of the framework-free code (Rstest: `rs test`), the lint (Rslint:
-// `rs lint`) and the formatter (`rs fmt`). The site itself is `solid-site/`,
-// on Vite with its own config.
+// The workspace's toolchain in one file, run through the Rstack CLI (`rs`):
+// the framework-free specs of every package (Rstest: `rs test`, each
+// package's `tests/*.spec.ts` and the workspace's own in `tests/`), the lint
+// (Rslint: `rs lint`) and the formatter (`rs fmt`). The specs that render a
+// component run on Vitest in their package (`packages/dither-kit`,
+// `packages/site`); the site builds on Vite with its own config.
 // Guide: https://rstack.rs/guide/configuration
 import { resolve } from "node:path"
 import { define } from "rstack"
-import { utilityMap } from "./src/shared/lib/utility-map.ts"
+import { utilityMap } from "restyle/utility-map"
+import { UTILITY_SOURCES } from "./packages/site/build/utility-sources.ts"
 
 const root = import.meta.dirname
 const at = (path: string) => resolve(root, path)
 
 define.test({
-  include: ["tests/**/*.spec.ts"],
+  include: ["tests/*.spec.ts", "packages/*/tests/*.spec.ts"],
   // A spec that needs a DOM opts into jsdom per file (`// @rstest-environment
   // jsdom` docblock).
   testEnvironment: "node",
-  setupFiles: ["./tests/setup.ts"],
-  // The utility map the styling rewriter reads (`virtual-dither-utilities`).
-  plugins: [utilityMap(root)],
-  // `@dither-kit` is the engine's public API here (nothing at the root
-  // renders a component); `@dither-kit/<layer>/…` any kit file.
-  resolve: {
-    alias: { "@": at("src"), "@dither-kit$": at("dither-kit/engine/api.ts"), "@dither-kit": at("dither-kit") },
-  },
+  setupFiles: ["./packages/dither-kit/tests/support/setup.ts"],
+  // The utility map the styling rewriter reads (`virtual-dither-utilities`),
+  // compiled from the vocabulary the site's build compiles it from.
+  plugins: [utilityMap(UTILITY_SOURCES)],
+  // The site's one alias, for its own specs; packages name each other.
+  resolve: { alias: { "@": at("packages/site/src") } },
 })
 
-/* Rslint lints the TypeScript and JavaScript, the Solid site's and the
-   kit's `.tsx` included. */
+/* Rslint lints the TypeScript and JavaScript of every package, the site's
+   and the kit's `.tsx` included. */
 define.lint(({ js, ts }) => [
   {
     ignores: [
       "dist/**",
-      // the Solid site's build output (Nitro's and Vite's)
-      "solid-site/.output/**",
-      "solid-site/.nitro/**",
+      // the site's build output (Nitro's and Vite's)
+      "packages/site/.output/**",
+      "packages/site/.nitro/**",
       "node_modules/**",
       "**/node_modules/**",
       "ui-laws/**",
@@ -73,13 +74,12 @@ define.fmt({
   semi: false,
   printWidth: 120,
   ignorePatterns: [
-    "public/**",
+    "packages/site/public/**",
     "**/*.md",
-    "*/index.html",
-    "solid-site/scripts/og-shell.html",
+    "packages/site/build/og-shell.html",
     ".scratch/**",
     ".claude/**",
-    "solid-site/.output/**",
-    "solid-site/.nitro/**",
+    "packages/site/.output/**",
+    "packages/site/.nitro/**",
   ],
 })

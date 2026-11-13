@@ -1,23 +1,23 @@
 # dither-ui
 
 <p align="center">
-  <img src="public/emotes/emote-heart.webp" alt="" width="42" height="38">
-  <img src="public/emotes/emote-sparkles.webp" alt="" width="36" height="41">
-  <img src="public/emotes/emote-note.webp" alt="" width="25" height="27">
-  <img src="public/emotes/emote-bang.webp" alt="" width="20" height="47">
-  <img src="public/emotes/emote-star.webp" alt="" width="40" height="40">
-  <img src="public/emotes/emote-dots.webp" alt="" width="51" height="49">
+  <img src="packages/site/public/emotes/emote-heart.webp" alt="" width="42" height="38">
+  <img src="packages/site/public/emotes/emote-sparkles.webp" alt="" width="36" height="41">
+  <img src="packages/site/public/emotes/emote-note.webp" alt="" width="25" height="27">
+  <img src="packages/site/public/emotes/emote-bang.webp" alt="" width="20" height="47">
+  <img src="packages/site/public/emotes/emote-star.webp" alt="" width="40" height="40">
+  <img src="packages/site/public/emotes/emote-dots.webp" alt="" width="51" height="49">
 </p>
 
 ![dither-ui: a dithered UI toolkit for Solid, the statement beside a live print the kit makes](.github/readme/banner.webp)
 
 <p align="center">
-  <img src="public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
-  <img src="public/emotes/face-smile.webp" alt="Smiling dither face" width="97" height="126">
-  <img src="public/emotes/face-blush.webp" alt="Blushing dither face" width="95" height="126">
-  <img src="public/emotes/face-wink.webp" alt="Winking dither face" width="98" height="126">
-  <img src="public/emotes/face-surprised.webp" alt="Surprised dither face" width="96" height="126">
-  <img src="public/emotes/face-excited.webp" alt="Excited dither face" width="94" height="126">
+  <img src="packages/site/public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
+  <img src="packages/site/public/emotes/face-smile.webp" alt="Smiling dither face" width="97" height="126">
+  <img src="packages/site/public/emotes/face-blush.webp" alt="Blushing dither face" width="95" height="126">
+  <img src="packages/site/public/emotes/face-wink.webp" alt="Winking dither face" width="98" height="126">
+  <img src="packages/site/public/emotes/face-surprised.webp" alt="Surprised dither face" width="96" height="126">
+  <img src="packages/site/public/emotes/face-excited.webp" alt="Excited dither face" width="94" height="126">
 </p>
 
 A dithered UI toolkit for Solid. 270 components draw themselves pixel by pixel
@@ -30,36 +30,34 @@ Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dith
 
 ![The dither-ui landing: a bento of live kit components under "Every component, live."](.github/readme/landing.webp)
 
-The kit is copy-in, shadcn-style: it lives in `dither-kit/` with no imports from
-the app, so you copy the folder into your project and own every line. It is one
-kit in layers: `engine/` holds the styling-free logic (rasters, painters,
-contexts, the clock, the tokens), `solid/` the SolidJS components styled with
-Tailwind classes and `solid-stylex/` the same components in StyleX, generated
-from the Tailwind ones so the two never drift (`tailwind/` holds what both
-share: the class helpers and the kit's stylesheet entry). `@dither-kit` points
-at the layer your app styles with. Beside
-Solid it needs four packages: `d3-scale`, `d3-shape`, `clsx` and
-`tailwind-merge`. Tailwind is optional. `npm run build:css` compiles the kit's
-own stylesheet (`solid-site/.output/public/kit/dither-kit.css`, or the path you
-pass it: tokens, a scoped base and every class the components use) for apps on
-StyleX, UnoCSS, plain CSS or CSS-in-JS.
+The kit is copy-in, shadcn-style: it lives in `packages/dither-kit/src/` with
+no imports from the app, so you copy the folder into your project and own every
+line. It is one kit in layers: `engine/` holds the styling-free logic (rasters,
+painters, contexts, the clock, the tokens), `solid/` the SolidJS components
+styled with Tailwind classes and `tailwind/` what that layer shares (the class
+helpers and the kit's stylesheet entry). The same components in StyleX are a
+folder beside it, `packages/dither-kit-stylex/src/`, generated from the
+Tailwind ones so the two never drift. `@dither-kit` points at the layer your
+app styles with. Beside Solid it needs four packages: `d3-scale`, `d3-shape`,
+`clsx` and `tailwind-merge`. Tailwind is optional. `npm run build:css` compiles
+the kit's own stylesheet (`packages/site/.output/public/kit/dither-kit.css`:
+tokens, a scoped base and every class the components use) for apps on StyleX,
+UnoCSS, plain CSS or CSS-in-JS.
 
 ## Quick start
 
 ```bash
-npm install                      # the kit's and the shared modules' packages
-npm install --prefix solid-site  # the site's own (SolidStart, Node 24)
+npm install        # one install for every package of the workspace (Node 24)
 npm run dev        # the site: http://localhost:3000 (/, /docs, /studio)
-npm run build      # the static site, into solid-site/.output/public
+npm run build      # the static site, into packages/site/.output/public
 npm run preview    # serves that build
-npm run typecheck  # tsc over the site
-npm run test       # rs test (Rstest): the engine and the shared modules
+npm run typecheck  # tsc over every package
+npm run test       # rs test (Rstest), then each package's component specs (Vitest)
 npm run lint       # rs lint (Rslint)
 npm run format     # rs fmt
 ```
 
-`dev`, `build`, `preview` and `typecheck` run in `solid-site/`, which needs
-Node 24 (its own tests: `npm test --prefix solid-site`). `npm run build`
+Everything runs from the root, on Node 24 (SolidStart needs it). `npm run build`
 prerenders every page, then draws the share cards and reads the agent registry
 in headless Chromium; point `CHROME_PATH` at a Chromium binary if it is not in
 a standard place. The GitHub Pages deploy runs on Node 24.
@@ -68,7 +66,7 @@ a standard place. The GitHub Pages deploy runs on Node 24.
 
 ```bash
 # 1. copy the kit folder straight from the repo
-npx degit drvova/dither-ui/dither-kit src/dither-kit
+npx degit drvova/dither-ui/packages/dither-kit/src src/dither-kit
 
 # 2. install the four packages it needs beside Solid
 npm i d3-scale d3-shape clsx tailwind-merge
@@ -77,9 +75,13 @@ npm i d3-scale d3-shape clsx tailwind-merge
 #    "@dither-kit" -> "./src/dither-kit/solid"
 ```
 
-On StyleX, alias `"@dither-kit"` to `./src/dither-kit/solid-stylex` instead, install
-`@stylexjs/stylex` (with your bundler's StyleX plugin) in place of `clsx` and
-`tailwind-merge`, and load `engine/theme.css` and `engine/base.css`. Every
+On StyleX, copy the StyleX folder beside the kit
+(`npx degit drvova/dither-ui/packages/dither-kit-stylex/src src/dither-kit-stylex`),
+alias `"@dither-kit"` to `./src/dither-kit-stylex` and `"dither-kit"` to
+`./src/dither-kit` (the StyleX files read the engine from the kit by that
+name), install `@stylexjs/stylex` (with your bundler's StyleX plugin) in place
+of `clsx` and `tailwind-merge`, and load `engine/theme.css` and
+`engine/base.css`. Every
 component that takes `class` also takes `xstyle`: your StyleX styles, merged
 after its own.
 
@@ -196,7 +198,7 @@ A canvas-first editor for every component in the kit:
 
 The Studio is addressable by the coding agent you already use:
 
-- `public/agent/SKILL.md` teaches any harness the document shape and the
+- `packages/site/public/agent/SKILL.md` teaches any harness the document shape and the
   commands.
 - The build writes every component's props to `/agent/registry.json`.
 - A live tab answers `dither-studio:command` DOM events and exposes
@@ -205,7 +207,7 @@ The Studio is addressable by the coding agent you already use:
 To drive it from the Studio's Agent panel, run the local bridge:
 
 ```bash
-npx degit drvova/dither-ui/bridge bridge && node bridge/dither-bridge.mjs
+npx degit drvova/dither-ui/packages/bridge/src bridge && node bridge/dither-bridge.mjs
 ```
 
 The bridge finds the harnesses on your PATH and starts the one you pick as your
@@ -221,7 +223,7 @@ own signed-in process. It works with:
 - Auggie
 - any other command that speaks the Agent Client Protocol
 
-No key is ever asked for in the app. See [bridge/README.md](bridge/README.md).
+No key is ever asked for in the app. See [packages/bridge/README.md](packages/bridge/README.md).
 
 ## Performance
 
@@ -329,7 +331,7 @@ bloom, or precompilation policy.
 
 ### Benchmark
 
-`npx tsx benchmarks/node-bench.mts` times the engine's hot paths in Node (pixel
+`npx tsx packages/dither-kit/benches/node-bench.mts` times the engine's hot paths in Node (pixel
 writes, the gradient compiler, a chart column). The figures below come from the
 browser benchmark page the kit's first build carried, which
 performed 3 warmups, then 6 measured batches × 2 repetitions.
@@ -400,31 +402,34 @@ Fill `variant`: `gradient`, `dotted`, `hatched`, `solid`. Palette colours:
 ## Repository
 
 ```
-dither-kit/          the Solid kit (@dither-kit): copy-in, MIT, no imports from the app
-  engine/        styling-free logic: rasters, painters, contexts, clock, tokens
-  solid/         the components, styled with Tailwind (what @dither-kit points at)
-  solid-stylex/  the same components in StyleX, generated from solid/
-  tailwind/      what both share: the class helpers, the kit's stylesheet entry
-solid-site/          the site on SolidStart: routes, pages, widgets, its build and tests
-bridge/              the local bridge between the Studio and your coding agent
-discord/             the /component slash command for Discord
-benchmarks/          the engine's hot paths, timed in Node
-scripts/             share cards, kit stylesheet, frame renderer, the agent demo
-src/                 the site's framework-free modules, by the same slices
-  app/        the site's styles, the install surface, the worker's rules
-  pages/      landing, docs and studio data: copy, facts, sections, crawler files
-  widgets/    models of the workbench, the source panel, the agent panel
-  features/   models of history, export, reels, the agent protocol
-  entities/   editor, chart, widget, artboard
-  shared/     ui, config, lib
-tests/        Rstest specs
+package.json            the workspace: one install, one lockfile, every script
+packages/
+  dither-kit/           the Solid kit (@dither-kit): copy-in, MIT, no imports from the app
+    src/engine/         styling-free logic: rasters, painters, contexts, clock, tokens
+    src/solid/          the components, styled with Tailwind (what @dither-kit points at)
+    src/tailwind/       the class helpers, the kit's stylesheet entry
+    tests/  benches/    the engine's and the components' specs; hot paths timed in Node
+  dither-kit-stylex/    the same components in StyleX, generated from the kit's solid/
+  restyle/              writes Tailwind-classed code in your styling system; the StyleX generator
+  site/                 the site on SolidStart
+    src/                routes and the app, by slice: app, pages, widgets, features, entities, shared
+    build/              the Vite plugins and the post-build
+    public/             static files
+    tests/              framework-free specs, and component specs in site/
+  tasks/                share cards, kit stylesheet, frame renderer, the agent demo
+  bridge/               the local bridge between the Studio and your coding agent
+  discord/              the /component slash command for Discord
+tests/                  the workspace's own specs: package boundaries, the design doc
 ```
 
-The site follows Feature-Sliced Design: imports only point down (app, pages,
-widgets, features, entities, shared), and everything reaches the kit through
-`@dither-kit`. The site is SolidStart on Vite, prerendered to static files,
-with its own CLI in `solid-site/` (`vite`, `vitest`, `tsc`); the root runs the
-Rstack CLI (`rs`) with one config, `rstack.config.ts`: Rstest, Rslint and the
+The repository is one npm workspace. Each package has its own manifest, source
+and tests, and dependencies point one way: the kit depends on nothing here, the
+site on everything it shows. A package imports another by name, never by a path
+out of its folder; `tests/workspace.spec.ts` fails the build on an import that
+goes the wrong way. The site follows Feature-Sliced Design: imports only point
+down (app, pages, widgets, features, entities, shared). It is SolidStart on
+Vite, prerendered to static files (`vite`, `vitest`); the root runs the Rstack
+CLI (`rs`) with one config, `rstack.config.ts`: Rstest, Rslint and the
 formatter. Routes are `/`, `/docs/<section>` and `/studio`; old hash links
 still resolve. GitHub Pages deploys through `.github/workflows/pages.yml` to
 `dither-ui.com`.

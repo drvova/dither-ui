@@ -7,14 +7,21 @@
 FROM node:24-alpine AS build
 RUN apk add --no-cache chromium
 WORKDIR /app
-COPY package*.json ./
+# One install for the workspace: the root's manifest and lockfile, and each
+# package's manifest.
+COPY package.json package-lock.json ./
+COPY packages/bridge/package.json packages/bridge/
+COPY packages/discord/package.json packages/discord/
+COPY packages/dither-kit/package.json packages/dither-kit/
+COPY packages/dither-kit-stylex/package.json packages/dither-kit-stylex/
+COPY packages/restyle/package.json packages/restyle/
+COPY packages/site/package.json packages/site/
+COPY packages/tasks/package.json packages/tasks/
 RUN npm ci
-COPY solid-site/package*.json solid-site/
-RUN npm ci --prefix solid-site
 COPY . .
 RUN npm run build
 
 FROM caddy:2-alpine
-COPY --from=build /app/solid-site/.output/public /srv
+COPY --from=build /app/packages/site/.output/public /srv
 COPY Caddyfile /etc/caddy/Caddyfile
 EXPOSE 8080

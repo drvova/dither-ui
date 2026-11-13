@@ -23,38 +23,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      # SolidStart needs Node 24; the kit's own dependencies and the shared
-      # modules' resolve from the root install.
+      # One install at the workspace root, on the one Node (24, which
+      # SolidStart needs).
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            solid-site/package-lock.json
       - run: npm ci
-      - run: npm ci
-        working-directory: solid-site
-      - run: npm run check
-        working-directory: solid-site
-      # The whole site as static files in solid-site/.output/public: every
-      # page prerendered (404.html among them, which a static host serves
-      # for an unknown address), the single-file player the video export
-      # inlines, the Studio's worker, the crawler files, then the post-build
-      # in the runner's Chromium: the kit stylesheet, a share card a page
-      # and the agent registry. `/` on dither-ui.com (public/CNAME);
-      # BASE_PATH=/dither-ui/ only for a project-URL deploy.
+      - run: npm run typecheck
+      # The whole site as static files in packages/site/.output/public:
+      # every page prerendered (404.html among them, which a static host
+      # serves for an unknown address), the single-file player the video
+      # export inlines, the Studio's worker, the crawler files, then the
+      # post-build in the runner's Chromium: the kit stylesheet, a share
+      # card a page and the agent registry. `/` on dither-ui.com (the
+      # site's public/CNAME); BASE_PATH=/dither-ui/ only for a project-URL
+      # deploy.
       - run: npm run build
-        working-directory: solid-site
         env:
           BASE_PATH: ${{ vars.BASE_PATH || '/' }}
       # Pages would drop the build's `_build/` folder without it.
       - name: Prepare Pages artifact
-        run: touch solid-site/.output/public/.nojekyll
+        run: touch packages/site/.output/public/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: solid-site/.output/public
+          path: packages/site/.output/public
 
   deploy:
     environment:
