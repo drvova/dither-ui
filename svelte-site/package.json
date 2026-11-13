@@ -20,6 +20,7 @@
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
     "@types/d3-scale": "^4.0.8",
     "@types/d3-shape": "^3.1.6",
+    "@types/node": "^22.20.5",
     "rstack": "^0.8.5",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
