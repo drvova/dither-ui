@@ -3,7 +3,7 @@
 // `siteFiles` plugin emits, the one head table (held tag for tag to the Vue
 // site's HTML entries until the cutover), the shell every page is rendered
 // into, the root's `data-page` marker and the old hash links. Carried from
-// the Vue site's `tests/crawler-files.spec.ts`, `tests/install.spec.ts`,
+// the earlier Vue site's `tests/crawler-files.spec.ts`, `tests/install.spec.ts`,
 // `tests/titles.spec.ts` and `tests/first-paint.spec.ts`; the builders'
 // own rules stay pinned there.
 import { existsSync, readFileSync } from "node:fs"
@@ -70,9 +70,7 @@ function headLines(doc: Document, skip: string): string[] {
 const parse = (html: string) => new DOMParser().parseFromString(html, "text/html")
 const sorted = (lines: string[]) => [...lines].sort()
 
-/** The Vue site's HTML entry of each page. */
-const ENTRY: Record<SitePage, string> = { landing: "index.html", docs: "docs/index.html", studio: "studio/index.html" }
-const PAGES = Object.keys(ENTRY) as SitePage[]
+const PAGES: SitePage[] = ["landing", "docs", "studio"]
 
 afterEach(() => {
   cleanup()
@@ -81,14 +79,6 @@ afterEach(() => {
 })
 
 describe("the head table", () => {
-  for (const page of PAGES)
-    it(`says of the ${page} what the Vue site's ${ENTRY[page]} says, tag for tag`, () => {
-      // the shell's own (charset, viewport) and the route's (its theme colour) aside
-      const theirs = headLines(parse(read(REPO, ENTRY[page])), "[charset], [name=viewport], [name=theme-color]")
-      expect(sorted(pageTags(page).map(ofTag))).toEqual(sorted(theirs))
-      expect(theirs.length).toBeGreaterThan(20)
-    })
-
   for (const page of PAGES)
     it(`carries the ${page} title three times: the title, og and X`, () => {
       const tags = pageTags(page).map(ofTag)

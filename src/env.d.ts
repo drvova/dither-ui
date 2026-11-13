@@ -1,12 +1,7 @@
-/// <reference types="rstack/types" />
-
-declare module "*.vue" {
-  import type { DefineComponent } from "vue"
-  const component: DefineComponent<object, object, unknown>
-  export default component
-}
-
+// The utility map the styling rewriter reads, a virtual module each build
+// makes from `shared/lib/utility-map.ts` (the Solid site's Vite plugin, the
+// root's Rstest plugin).
 declare module "virtual-dither-utilities" {
-  const map: import("./shared/lib/restyle").UtilityMap
+  const map: import("./shared/lib/restyle-rewrite").UtilityMap
   export default map
 }

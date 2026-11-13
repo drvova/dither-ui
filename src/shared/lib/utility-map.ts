@@ -1,4 +1,4 @@
-// Node-side only (rstack.config.ts, tests): the utility vocabulary
+// Node-side only (the builds' configs, tests): the utility vocabulary
 // a docs snippet or a Studio export can carry, compiled by Tailwind's own
 // compiler into the declarations each class stands for, so `restyle.ts` can
 // write the same look in vanilla CSS, CSS Modules or StyleX. The theme is
@@ -13,8 +13,14 @@ import { resolve } from "node:path"
 import type { RsbuildPlugin, Rspack } from "rstack/app"
 import type { UtilityMap, UtilityRule } from "./restyle-rewrite.ts"
 
-/** The folders whose class strings can end up in a snippet or an export. */
-export const UTILITY_SOURCES = ["src/pages/docs", "src/entities"]
+/** The folders whose class strings can end up in a snippet or an export:
+ * the docs and the entities, the framework-free half and the Solid one. */
+export const UTILITY_SOURCES = [
+  "src/pages/docs",
+  "src/entities",
+  "solid-site/src/pages/docs",
+  "solid-site/src/entities",
+]
 
 type Block = { prelude: string; decl: [string, string][]; children: Block[] }
 

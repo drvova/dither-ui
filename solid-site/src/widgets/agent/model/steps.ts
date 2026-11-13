@@ -1,6 +1,3 @@
-// The Vue site's `src/widgets/agent/model/steps.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/agent-panel.spec.tsx`.
 // A Studio tool call as the composer shows it: one step in words (a verb,
 // what it touched, a glyph) and the frames it changed, which the changes bar
 // gathers per turn so the user keeps them or puts the canvas back. Tools

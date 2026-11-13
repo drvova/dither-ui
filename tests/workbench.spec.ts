@@ -1,9 +1,6 @@
 // @rstest-environment jsdom
 import { describe, expect, it, rs } from "rstack/test"
-import { flushPromises, mount } from "@vue/test-utils"
-import { h, nextTick } from "vue"
-import { bayerMatrix } from "@dither-kit"
-import DemoCard from "@/pages/docs/DemoCard.vue"
+import { bayerMatrix } from "@dither-kit/engine/wipe"
 import { contrast, formatColor, grade, hex, over, parseColor } from "@/shared/lib/inspect/color"
 import { boxFrom, distances, dock, snap } from "@/shared/lib/inspect/geometry"
 import { encodeGif, lzw, medianCut, quantize } from "@/shared/lib/gif"
@@ -427,52 +424,5 @@ describe("workbench DOM readings", () => {
     r.querySelector("label")!.remove()
     expect(audit(r, r).filter((i) => i.kind === "target")).toEqual([])
     rs.restoreAllMocks()
-  })
-})
-
-describe("the workbench on a docs preview", () => {
-  it("opens from Inspect, switches tools by key and by tray, and steps out with Escape", async () => {
-    rs.stubGlobal("IntersectionObserver", undefined)
-    localStorage.clear()
-    const card = mount(DemoCard, {
-      props: { code: "<DitherButton />" },
-      slots: { default: () => h("button", { "aria-label": "Deploy" }) },
-      attachTo: document.body,
-    })
-    await nextTick()
-    const toggle = card.findAll("button").find((b) => b.text() === "Inspect")!
-    await toggle.trigger("click")
-    await flushPromises()
-    await new Promise((r) => setTimeout(r, 0))
-    await flushPromises()
-    const tray = document.querySelector('[role="toolbar"][aria-label="Workbench tools"]')
-    expect(tray).not.toBeNull()
-    const pressed = () =>
-      [...tray!.querySelectorAll('button[aria-pressed="true"]')].map((b) => b.getAttribute("aria-label"))
-    expect(pressed()).toContain("Inspect (I)")
-
-    const host = card.get('[role="group"]').element as HTMLElement
-    host.focus()
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "x" }))
-    await nextTick()
-    expect(pressed()).toContain("X-ray (X)")
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "2" }))
-    await nextTick()
-    expect(tray!.querySelector('[aria-label="Arrow (D)"]')).not.toBeNull()
-    ;(tray!.querySelector('[aria-label="Comment (M)"]') as HTMLButtonElement).click()
-    await nextTick()
-    expect(pressed()).toContain("Comment (M)")
-    expect(card.text()).toContain("Click an element to start a thread on it")
-
-    // Escape: the tool goes, then the workbench closes and focus returns.
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
-    await nextTick()
-    expect(pressed().some((l) => l?.startsWith("Comment"))).toBe(false)
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
-    await flushPromises()
-    expect(document.querySelector('[aria-label="Workbench tools"]')).toBeNull()
-    expect(toggle.attributes("aria-pressed")).toBe("false")
-    card.unmount()
-    rs.unstubAllGlobals()
   })
 })

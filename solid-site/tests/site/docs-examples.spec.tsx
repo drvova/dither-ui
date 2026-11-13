@@ -1,12 +1,7 @@
 // The docs' Examples packs (auth, chat, notifications, product, sidebar,
 // stats, table) on Solid: every section of each pack's nav in order under
-// its label, its prose word for word and its authored snippets character
-// for character as the Vue file has them, each preview mounting its demo
-// once it nears the view, and the demos' own state driving what they show.
-// The Vue site has no spec of these files beyond the packs' navs
-// (`tests/docs-packs.spec.ts`), carried here as the id order.
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+// its label, each preview mounting its demo once it nears the view, and
+// the demos' own state driving what they show.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import type { JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -25,9 +20,6 @@ import SidebarExamples from "../../src/pages/docs/examples/SidebarExamples"
 import StatsExamples from "../../src/pages/docs/examples/StatsExamples"
 import TableExamples from "../../src/pages/docs/examples/TableExamples"
 import { world } from "../world"
-
-// The specs run from `solid-site/`: a path is from the repository's root.
-const read = (path: string) => readFileSync(join(process.cwd(), "..", path), "utf8")
 
 const PACKS: [string, () => JSX.Element, readonly { id: string; label: string }[]][] = [
   ["AuthExamples", AuthExamples, AUTH_NAV],
@@ -62,8 +54,6 @@ afterEach(() => {
 
 const cards = (root: Element) => [...root.querySelectorAll("[data-demo-card]")]
 const words = (text: string | null | undefined) => (text ?? "").replace(/\s+/g, " ").trim()
-/** A Vue template's text as a reader gets it: tags out, whitespace condensed. */
-const prose = (html: string) => words(html.replace(/<[^>]+>/g, ""))
 /** The pack mounted with every preview in view. */
 function shown(Pack: () => JSX.Element) {
   const view = render(() => <Pack />)
@@ -77,11 +67,7 @@ const key = (root: Element, name: string) =>
 const type = (input: Element, value: string) => fireEvent.input(input, { target: { value } })
 const texts = (root: Element, selector: string) => [...root.querySelectorAll(selector)].map((e) => words(e.textContent))
 
-describe.each(PACKS)("%s", (name, Pack, nav) => {
-  const vue = read(`src/pages/docs/examples/${name}.vue`)
-  const solid = read(`solid-site/src/pages/docs/examples/${name}.tsx`)
-  const template = vue.slice(vue.lastIndexOf("\n<template>"))
-
+describe.each(PACKS)("%s", (_name, Pack, nav) => {
   it("writes every section of its nav, in order, under its label", () => {
     const { container } = render(() => <Pack />)
     const sections = [...container.querySelectorAll(":scope > section[id]")]
@@ -95,33 +81,6 @@ describe.each(PACKS)("%s", (name, Pack, nav) => {
       expect(cards(s)).toHaveLength(1)
       expect(s.lastElementChild).toBe(cards(s)[0])
     }
-  })
-
-  it("carries the Vue file's headings and prose word for word", () => {
-    const { container } = render(() => <Pack />)
-    const theirs = [...template.matchAll(/<section id="([^"]+)"[^>]*>([\s\S]*?)\n {2}<\/section>/g)]
-    expect(theirs.map((m) => m[1])).toEqual(nav.map((n) => n.id))
-    for (const [, id, body] of theirs) {
-      const s = container.querySelector(`section[id="${id}"]`)!
-      expect(s.querySelector("h2")?.textContent).toBe(prose(body.match(/<h2[^>]*>([\s\S]*?)<\/h2>/)![1]))
-      const ledes = [...body.matchAll(/\n {4}<p class="mt-2 text-\[13px\][^"]*">([\s\S]*?)<\/p>/g)].map((m) =>
-        prose(m[1]),
-      )
-      expect(ledes).toHaveLength(1)
-      expect(texts(s, ":scope > p")).toEqual(ledes)
-    }
-  })
-
-  it("carries the authored snippets character for character", () => {
-    // every template literal the Vue file's script declares, as written
-    const literals = [...vue.matchAll(/^const (\w+) = `(?:\\[\s\S]|[^`\\])*`$/gm)]
-    expect(literals.filter((m) => m[1].startsWith("SNIPPET"))).toHaveLength(nav.length)
-    for (const [text] of literals) expect(solid).toContain(text)
-    // each card is handed the one its Vue twin is
-    const handed = (source: string, attr: string) =>
-      [...source.matchAll(new RegExp(`<DemoCard ${attr}=\\{?"?(SNIPPET\\w*)`, "g"))].map((m) => m[1])
-    expect(handed(solid, "code")).toEqual(handed(template, ":code"))
-    expect(handed(solid, "code")).toHaveLength(nav.length)
   })
 
   it("mounts each preview's demo once, when it comes into view", () => {

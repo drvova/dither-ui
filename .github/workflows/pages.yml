@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -17,38 +15,46 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # reads the repository and the Pages settings; writes nothing
+    permissions:
+      contents: read
+      pages: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # SolidStart needs Node 24; the kit's own dependencies and the shared
+      # modules' resolve from the root install.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            solid-site/package-lock.json
       - run: npm ci
-      - run: npx vue-tsc --noEmit
-      # The site and the single-file player the video export inlines
-      # (dist/play/player.js), in one rs build.
-      - run: npx rs build
+      - run: npm ci
+        working-directory: solid-site
+      - run: npm run check
+        working-directory: solid-site
+      # The whole site as static files in solid-site/.output/public: every
+      # page prerendered (404.html among them, which a static host serves
+      # for an unknown address), the single-file player the video export
+      # inlines, the Studio's worker, the crawler files, then the post-build
+      # in the runner's Chromium: the kit stylesheet, a share card a page
+      # and the agent registry. `/` on dither-ui.com (public/CNAME);
+      # BASE_PATH=/dither-ui/ only for a project-URL deploy.
+      - run: npm run build
+        working-directory: solid-site
         env:
           BASE_PATH: ${{ vars.BASE_PATH || '/' }}
-      - run: npm run build:css
-      # Unknown paths get the bare app shell (copied before the snapshots
-      # land), which routes them itself.
+      # Pages would drop the build's `_build/` folder without it.
       - name: Prepare Pages artifact
-        run: |
-          cp dist/index.html dist/404.html
-          touch dist/.nojekyll
-      # The crawler surface: /, /docs and /studio as static DOM (the first
-      # paint, before the app mounts), the hero film's poster, the agent
-      # registry, and an og card and a page per docs section. Its server
-      # serves dist at /, so the
-      # project-URL deploy (BASE_PATH=/dither-ui/) ships the shell only.
-      - name: Prerender
-        if: ${{ (vars.BASE_PATH || '/') == '/' }}
-        run: node scripts/prerender.mjs
+        run: touch solid-site/.output/public/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: solid-site/.output/public
 
   deploy:
     environment:
@@ -56,6 +62,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4

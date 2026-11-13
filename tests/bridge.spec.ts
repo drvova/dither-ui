@@ -8,7 +8,6 @@ import { request } from "node:http"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "rstack/test"
-import { bridgeCommand } from "../src/features/agent/acp"
 import { bridgeKnows } from "../src/features/agent/bridge-file"
 
 const PORT = 18790 + (process.pid % 500)
@@ -326,18 +325,4 @@ describe("dither-bridge", () => {
     ]
     for (const o of origins) expect([o, await verdict(o)]).toEqual([o, bridgeKnows(o)])
   }, 20_000)
-})
-
-describe("the setup line", () => {
-  const file = new URL("https://dither-ui.com/bridge/dither-bridge.mjs")
-  it("fetches the served bridge and runs it, nothing more for the site's own page", () => {
-    expect(bridgeCommand(new URL("https://dither-ui.com/studio"), file, "ws://127.0.0.1:8790")).toBe(
-      "curl -fsSL https://dither-ui.com/bridge/dither-bridge.mjs -o ~/dither-bridge.mjs && node ~/dither-bridge.mjs",
-    )
-  })
-  it("names an origin the bridge would refuse and a port it would not listen on", () => {
-    const line = bridgeCommand(new URL("https://drvova.github.io/dither-ui/studio"), file, "ws://127.0.0.1:9000")
-    expect(line.endsWith(" --origin https://drvova.github.io --port 9000")).toBe(true)
-    expect(bridgeCommand(new URL("http://localhost:4310/studio"), file, "not a url")).not.toContain("--")
-  })
 })

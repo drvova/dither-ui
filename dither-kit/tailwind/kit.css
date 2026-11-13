@@ -2,7 +2,7 @@
    Tailwind — StyleX, UnoCSS, vanilla CSS, CSS-in-JS: the tokens (theme.css),
    the scoped base (base.css) and every utility class the kit's components
    use, compiled from the kit's own sources by scripts/kit-css.mjs into
-   dist/kit/dither-kit.css (served at /kit/dither-kit.css). Only the kit
+   kit/dither-kit.css in the site's build (served at /kit/dither-kit.css). Only the kit
    folders are scanned, so the file never grows with an app. Load it, wrap
    the region that holds kit components in `.dither-kit`, and style
    everything else your way: the kit's rules sit in layers, so unlayered

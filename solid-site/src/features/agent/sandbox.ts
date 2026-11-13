@@ -1,6 +1,3 @@
-// The Vue site's `src/features/agent/sandbox.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 // Where a tool a harness built runs: never in the Studio's page. A frame
 // with no origin of its own (`sandbox="allow-scripts"`, no
 // allow-same-origin: no page, no cookies, no storage of the Studio), under

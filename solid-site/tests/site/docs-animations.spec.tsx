@@ -1,8 +1,6 @@
 // The docs' Animations pack on Solid: every section of the pack's nav under
-// its heading, each preview mounting its demo once in view, the demos' own
-// controls, and the authored snippets held to the Vue site's, character for
-// character. The Vue pack has no spec of its own beyond the nav's
-// (`tests/docs-packs.spec.ts`), which the first case carries.
+// its heading, each preview mounting its demo once in view, and the demos'
+// own controls.
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
@@ -11,9 +9,7 @@ import { ANIMATIONS_NAV } from "@/pages/docs/animations/animations-nav"
 import AnimationsDocs from "../../src/pages/docs/animations/AnimationsDocs"
 import TransitionSection from "../../src/pages/docs/animations/TransitionSection"
 import { world } from "../world"
-import { sansRows, stringsIn } from "./docs-api"
 
-const VUE = join(__dirname, "../../../src/pages/docs/animations")
 const SOLID = join(__dirname, "../../src/pages/docs/animations")
 const read = (dir: string, file: string) => readFileSync(join(dir, file), "utf8")
 
@@ -86,10 +82,6 @@ describe("the Animations pack", () => {
     const scoped = [...root.querySelectorAll(".animations-docs-scope")].map((s) => s.id)
     expect(scoped).toEqual(["step-timing", "sequences", "container-queries", "stage"])
     const css = read(SOLID, "AnimationsDocs.css")
-    const vue = read(VUE, "AnimationsDocs.vue")
-    const rules = vue.slice(vue.indexOf("<style scoped>") + 15, vue.indexOf("</style>"))
-    // the Vue rules verbatim once the hook is taken off
-    expect(css.replaceAll(".animations-docs-scope ", "")).toBe(rules)
     for (const line of css.split("\n"))
       if (/^\s*\./.test(line)) expect(line.trimStart().startsWith(".animations-docs-scope "), line).toBe(true)
   })
@@ -181,31 +173,6 @@ describe("the Animations pack", () => {
     fireEvent.input(slider, { target: { value: "55" } })
     expect(stage.style.width).toBe("55%")
     expect(section("stage").querySelector(".tabular-nums")!.textContent).toBe("55%")
-  })
-
-  it("keeps the authored snippets the Vue pack's, character for character, and its tables' shape", () => {
-    const vue = read(VUE, "AnimationsDocs.vue")
-    const solid = read(SOLID, "AnimationsDocs.tsx")
-    const authored = vue.slice(vue.indexOf("const SHARED_CANVAS"), vue.indexOf("/* Skiper-adjacent widgets"))
-    expect(authored.length).toBeGreaterThan(30000)
-    // every string as written, the snippets among them; the tables by their keys and row counts, their
-    // words being the Solid kit's (`docs-api.spec.ts`)
-    for (const snippet of stringsIn(authored, "ts")) expect(solid).toContain(snippet)
-    expect(stringsIn(authored, "ts").length).toBeGreaterThan(50)
-    expect(sansRows(solid, "tsx")).toContain(sansRows(authored, "ts"))
-    // the one computed snippet: the same text over the same state
-    const from = (text: string) =>
-      text.slice(text.indexOf("`<DitherNotificationStack v-model"), text.indexOf("stagger -->`"))
-    expect(from(vue).length).toBeGreaterThan(400)
-    expect(from(solid)).toBe(from(vue).replaceAll("stackVariant.value", "stackVariant()").replaceAll('\\"', '"'))
-    const page = read(VUE, "TransitionSection.vue")
-    const twin = read(SOLID, "TransitionSection.tsx")
-    const between = (from: string, to: string) => page.slice(page.indexOf(from), page.indexOf(to))
-    for (const block of [between("const SCENES", "\n\nconst scene = ref"), between("const KEY", "</script>")]) {
-      expect(block.length).toBeGreaterThan(400)
-      for (const snippet of stringsIn(block, "ts")) expect(twin).toContain(snippet)
-      expect(sansRows(twin, "tsx")).toContain(sansRows(block, "ts"))
-    }
   })
 })
 

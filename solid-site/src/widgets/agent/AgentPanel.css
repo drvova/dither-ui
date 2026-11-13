@@ -178,7 +178,7 @@
   gap: 6px;
   padding: 0 14px 12px;
 }
-/* The composer: one surface holding the stack (`ui/TurnTrays.vue`), the
+/* The composer: one surface holding the stack (`ui/TurnTrays.tsx`), the
    input card resting under it, and the row that says where it runs (how
    permission prompts are answered, the folder, settings). */
 .agent-panel-scope .composer {

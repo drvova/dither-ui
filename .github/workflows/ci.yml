@@ -5,11 +5,21 @@ on:
     branches: [main, master]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  verify:
+  # The framework-free code (the engine, the site's shared modules, the
+  # scripts) and the whole repository's lint and formatting, on the Rstack
+  # CLI. Its types are checked with the site's, in the job below.
+  root:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -19,20 +29,19 @@ jobs:
         run: npm run lint
       - name: Format
         run: npx rs fmt --check
-      - name: Typecheck
-        run: npx vue-tsc --noEmit
       - name: Unit tests
         run: npm test
-      # rs build makes the site and the single-file player bundle together.
-      - name: Build
-        run: npx rs build
 
-  # The Solid site and kit (SolidStart needs Node 24; the kit's own
-  # dependencies resolve from the root install).
-  solid:
+  # The site and the kit's Solid layer (SolidStart needs Node 24; the kit's
+  # own dependencies and the shared modules' resolve from the root install).
+  site:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -43,9 +52,12 @@ jobs:
       - run: npm ci
       - run: npm ci
         working-directory: solid-site
+      # one program: the site, the kit, the engine, the shared modules, the
+      # scripts and every spec, the root's included
       - name: Typecheck
         run: npm run check
         working-directory: solid-site
+      # the sandbox spec runs in the runner's Chromium
       - name: Component tests
         run: npm test
         working-directory: solid-site
@@ -56,3 +68,33 @@ jobs:
       - name: Tests over the built site
         run: npm test
         working-directory: solid-site
+
+  # The Svelte port of the kit and its showcase site.
+  svelte:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            dither-kit-svelte/package-lock.json
+            svelte-site/package-lock.json
+      - run: npm ci
+        working-directory: dither-kit-svelte
+      - name: Check the kit
+        run: npm run check
+        working-directory: dither-kit-svelte
+      - run: npm ci
+        working-directory: svelte-site
+      - name: Check the site
+        run: npm run check
+        working-directory: svelte-site
+      - name: Build the site
+        run: npx rs build
+        working-directory: svelte-site

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
-import { STYLING_LABELS } from "../src/shared/lib/restyle"
+import { STYLING_LABELS } from "../src/shared/lib/restyle-rewrite"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
 import {
@@ -17,7 +17,7 @@ import {
 import { GROUND, PLATES, sceneOf, STOCK } from "../src/pages/landing/plate"
 import { ROAD } from "../src/pages/landing/road"
 
-const index = readFileSync(new URL("../dither-kit/tailwind/index.ts", import.meta.url), "utf8")
+const index = readFileSync(new URL("../dither-kit/solid/index.ts", import.meta.url), "utf8")
 const components = [...index.matchAll(/default as (\w+)/g)].map((m) => m[1])
 const kit = JSON.parse(readFileSync(new URL("../dither-kit/package.json", import.meta.url), "utf8")) as {
   license: string
@@ -35,16 +35,20 @@ describe("landing facts", () => {
 
   it("is the count every page, card and doc states", () => {
     const read = (f: string) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8")
-    const stated = ["index.html", "README.md", "public/agent/SKILL.md", "src/pages/docs/crawler-files.ts"].flatMap(
-      (f) =>
-        [...read(f).matchAll(/\b(\d{3}) (?:Vue |public `Dither\*` )?components\b|\["(\d{3})", "components"\]/g)].map(
-          (m) => Number(m[1] ?? m[2]),
-        ),
+    const stated = [
+      "solid-site/src/pages/docs/heads.ts",
+      "README.md",
+      "public/agent/SKILL.md",
+      "src/pages/docs/crawler-files.ts",
+    ].flatMap((f) =>
+      [...read(f).matchAll(/\b(\d{3}) (?:Vue |public `Dither\*` )?components\b|\["(\d{3})", "components"\]/g)].map(
+        (m) => Number(m[1] ?? m[2]),
+      ),
     )
-    expect(stated.length).toBeGreaterThanOrEqual(7)
+    expect(stated.length).toBeGreaterThanOrEqual(5)
     expect(new Set(stated)).toEqual(new Set([COMPONENT_COUNT]))
     // The Studio's film counts up to the components, the sections and the backgrounds, and names two.
-    const film = read("src/features/agent/film.ts")
+    const film = read("solid-site/src/features/agent/film.ts")
     const counts = [...film.matchAll(/to: (\d+), duration/g)].map((m) => Number(m[1]))
     expect(counts).toEqual([COMPONENT_COUNT, SECTION_COUNT, FAMILIES.find((f) => f.title === "Backgrounds")?.count])
     expect(film).toContain(`["${COMPONENT_COUNT}", "components"]`)
@@ -55,7 +59,7 @@ describe("landing facts", () => {
   it("keeps a spec sheet the kit bears out", () => {
     const spec = (label: string) => SPECS.find((s) => s.label === label)?.value ?? ""
     expect(spec("Components")).toContain("Vue 3")
-    expect(kit.peerDependencies.vue).toMatch(/^\^3\./)
+    expect(kit.peerDependencies["solid-js"]).toMatch(/^\^1\./)
     expect(spec("Components")).toContain("Svelte 5")
     expect(port.peerDependencies.svelte).toMatch(/^\^5\./)
     expect(spec("Engine")).toContain(`${SCREENS.bayer.length}×${SCREENS.bayer[0].length}`)
@@ -65,8 +69,10 @@ describe("landing facts", () => {
     for (const s of SPECS) expect(`${s.label} ${s.value}`).not.toMatch(/[—·]/)
   })
 
-  it("names every package the kit needs beside Vue (a styling layer's own, optional, aside)", () => {
-    const peers = Object.keys(kit.peerDependencies).filter((p) => p !== "vue" && !kit.peerDependenciesMeta[p]?.optional)
+  it("names every package the kit needs beside Solid (a styling layer's own, optional, aside)", () => {
+    const peers = Object.keys(kit.peerDependencies).filter(
+      (p) => p !== "solid-js" && !kit.peerDependenciesMeta[p]?.optional,
+    )
     expect([...RUNTIME_DEPS].sort()).toEqual(peers.sort())
   })
 
@@ -87,11 +93,12 @@ describe("landing facts", () => {
     // shader measures, the footer art's own (a container, not the viewport).
     const css = readFileSync(new URL("../src/pages/landing/chapters.css", import.meta.url), "utf8")
     expect(css).toContain(`--background: ${GROUND};`)
-    const page = readFileSync(new URL("../src/pages/landing/LandingPage.vue", import.meta.url), "utf8")
-    expect(page).toContain(`@container (width < ${ROAD.narrow}px)`)
+    const landing = (file: string) =>
+      readFileSync(new URL(`../solid-site/src/pages/landing/${file}`, import.meta.url), "utf8")
+    expect(landing("LandingPage.css")).toContain(`@container (width < ${ROAD.narrow}px)`)
     // The shader tells the same width by its cells only if a cell is CSS
     // px: at the screen's dpr a 3x phone reads three times as wide.
-    expect(page).toMatch(/:cell="ROAD\.cell"\s+:dpr="1"/)
+    expect(landing("LandingPage.tsx")).toMatch(/cell=\{ROAD\.cell\}\s+dpr=\{1\}/)
   })
 
   it("dances by itself for under five seconds, so the road needs no pause", () => {
@@ -169,7 +176,6 @@ describe("landing facts", () => {
       const left = 16 + Math.round(at * (box.width - 32 - LOCKUP_SIZE.width * cell))
       const slots = LOCKUP.map((c) => ({ x: left + c.x * cell, y: top + c.y * cell }))
       const starts = choreograph(scene, box, slots, cell).map((path) => path[0])
-      const home = (i: number) => starts[i].x === slots[i].x && starts[i].y === slots[i].y
       if (scene.move === "rain") {
         // One dotted line, every cell above its own column.
         expect(new Set(starts.map((p) => p.y)).size).toBe(1)

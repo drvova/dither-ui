@@ -9,10 +9,10 @@ const root = new URL("..", import.meta.url).pathname
 const read = (p: string) => readFileSync(join(root, p), "utf8")
 
 describe("the ledes", () => {
-  for (const dir of ["src/pages/landing", "svelte-site/src/landing"])
+  for (const dir of ["solid-site/src/pages/landing", "svelte-site/src/landing"])
     it(`in ${dir} each carry one key clause`, () => {
       const ledes = readdirSync(join(root, dir))
-        .filter((f) => /\.(vue|svelte)$/.test(f))
+        .filter((f) => /\.(tsx|svelte)$/.test(f))
         .flatMap((f) => [...read(`${dir}/${f}`).matchAll(/<p[^>]*class="sec-lede"[^>]*>([\s\S]*?)<\/p>/g)])
         .map((m) => m[1])
       expect(ledes.length).toBeGreaterThanOrEqual(5)

@@ -1,10 +1,10 @@
 // Solid's binding of a series' surface for its markers
-// (`engine/series-context.ts` holds the type).
+// (`engine/chart-types.ts` holds the type).
 
 import { createContext, useContext } from "solid-js"
-import type { SeriesContextValue } from "../../engine/series-context"
+import type { SeriesContextValue } from "../../engine/chart-types"
 
-export type { SeriesContextValue } from "../../engine/series-context"
+export type { SeriesContextValue } from "../../engine/chart-types"
 
 /** Live series surface for markers: `seed`/`dimmed` are getters so `<Dot>` /
  * `<ActiveDot>` read the current selection state reactively. */

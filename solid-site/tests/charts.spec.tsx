@@ -1,7 +1,7 @@
-// The chart family in Solid, held to what its Vue twins do: every kind
+// The chart family in Solid, held to what its Vue twins did: every kind
 // paints its canvas, the parts land in the root's layers, the legend and
 // tooltip read whichever root they sit in, and a part outside its root
-// says so in the words the Vue kit uses.
+// says so in the words the Vue kit used.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal, type JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"

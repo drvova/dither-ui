@@ -1,9 +1,10 @@
 // Compile the kit's standalone stylesheet: dither-kit/tailwind/kit.css (the tokens,
 // the scoped base, Tailwind's utilities restricted to the kit's own sources)
-// → dist/kit/dither-kit.css, for apps that style with anything but Tailwind.
-// The same compiler and scanner the build's Tailwind plugin runs, with no app around:
-// the kit folders are the only sources, so the file holds exactly the
-// classes the components use. Runs in `npm run build` (and build:css).
+// → kit/dither-kit.css in the site's build, for apps that style with
+// anything but Tailwind. The same compiler and scanner the build's Tailwind
+// plugin runs, with no app around: the kit folders are the only sources, so
+// the file holds exactly the classes the components use. The site's
+// post-build calls `buildKitCss`; `npm run build:css` writes the file alone.
 import { compile, optimize } from "@tailwindcss/node"
 import { Scanner } from "@tailwindcss/oxide"
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
@@ -28,7 +29,9 @@ export async function buildKitCss({ minify = true } = {}) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const out = resolve(process.argv[2] ?? fileURLToPath(new URL("../dist/kit/dither-kit.css", import.meta.url)))
+  const out = resolve(
+    process.argv[2] ?? fileURLToPath(new URL("../solid-site/.output/public/kit/dither-kit.css", import.meta.url)),
+  )
   const css = await buildKitCss()
   mkdirSync(dirname(out), { recursive: true })
   writeFileSync(out, css)

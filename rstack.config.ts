@@ -1,269 +1,32 @@
-// The whole toolchain in one file, run through the Rstack CLI (`rs`): the app
-// (Rsbuild: `rs dev`, `rs build`, `rs preview`), the tests (Rstest:
-// `rs test`), the lint (Rslint: `rs lint`) and the formatter (`rs fmt`).
+// The root toolchain in one file, run through the Rstack CLI (`rs`): the
+// tests of the framework-free code (Rstest: `rs test`), the lint (Rslint:
+// `rs lint`) and the formatter (`rs fmt`). The site itself is `solid-site/`,
+// on Vite with its own config.
 // Guide: https://rstack.rs/guide/configuration
-import { resolve, sep } from "node:path"
+import { resolve } from "node:path"
 import { define } from "rstack"
-import type { RsbuildPlugin } from "rstack/app"
-import { installHead } from "./src/app/install-files.ts"
-import { PAGE_END_ID, PAGE_REVEAL_SCRIPT, speculationRules } from "./src/app/page-reveal.ts"
-import { isKitSource } from "./src/shared/lib/kit-sources.ts"
-import { RISE_HEAD_SCRIPT } from "./src/shared/lib/rise-wait.ts"
+import { utilityMap } from "./src/shared/lib/utility-map.ts"
 
 const root = import.meta.dirname
 const at = (path: string) => resolve(root, path)
 
-/* The routes. An entry's name is its HTML's path in dist, so the canonical
-   URLs (`/`, `/docs/`, `/studio/`, `/play/`) are plain directories. */
-const SITE_MAIN = "src/app/main.ts"
-const PAGES: Record<string, { html: string; main: string }> = {
-  index: { html: "index.html", main: SITE_MAIN },
-  "docs/index": { html: "docs/index.html", main: SITE_MAIN },
-  "studio/index": { html: "studio/index.html", main: SITE_MAIN },
-  "play/index": { html: "play/index.html", main: "src/pages/play/main.ts" },
-  /* The share card renderer: the prerender draws every card's PNG and GIF
-     with it, the Discord service its re-rolled ones (noindex, and robots
-     keeps crawlers off it). */
-  "og/index": { html: "og/index.html", main: "src/pages/docs/og-page.ts" },
-}
-
-/* The docs deep links are the site's indexable surface beyond the route
-   entries. All three crawler files (sitemap, robots, llms.txt) are generated
-   from the same GROUPS/SITE_URL sources the app renders — new sections are
-   never hand-registered, and a dead reference fails the build. Emitted as
-   assets of the web build only (tests and the player never see them). */
-function crawlFiles(): RsbuildPlugin {
-  return {
-    name: "crawl-files",
-    setup(api) {
-      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
-        const crawl = await import("./src/pages/docs/crawler-files.ts")
-        const emit = (name: string, text: string) => compilation.emitAsset(name, new sources.RawSource(text))
-        emit("sitemap.xml", crawl.sitemapXml())
-        emit("robots.txt", crawl.robotsTxt())
-        emit("llms.txt", crawl.llmsTxt())
-        // The og engine's surface: the section manifest (the card renderer's
-        // data, the `og/index` entry, and the prerender's contract for
-        // per-section pages), and per card its Discord component embed and
-        // oEmbed photo (the prerender draws the PNG and GIF they point at).
-        emit("og/sections.json", crawl.sectionsManifest())
-        for (const card of crawl.shareCards()) {
-          emit(`embed/${card.id}.json`, crawl.componentEmbed(card))
-          emit(`oembed/${card.id}.json`, crawl.oembed(card))
-        }
-      })
-    },
-  }
-}
-
-/* The Studio as an installable app, and the site's icons: the app's
-   manifest and every icon, drawn from the brand mark at build
-   (src/app/install-files.ts), never a copy kept in public/. */
-function installFiles(): RsbuildPlugin {
-  return {
-    name: "install-files",
-    setup(api) {
-      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
-        const { installFiles } = await import("./src/app/install-files.ts")
-        for (const [name, body] of Object.entries(installFiles()))
-          compilation.emitAsset(name, new sources.RawSource(typeof body === "string" ? body : Buffer.from(body)))
-      })
-    },
-  }
-}
-
-/* The mascot as a Gaussian capture the docs' World section prints, drawn
-   from its cell table at build (src/shared/ui/mascot-capture.ts), never a
-   copy kept in public/. */
-function captureFiles(): RsbuildPlugin {
-  return {
-    name: "capture-files",
-    setup(api) {
-      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
-        const { CAPTURE_PATH, mascotCapture } = await import("./src/shared/ui/mascot-capture.ts")
-        compilation.emitAsset(CAPTURE_PATH, new sources.RawSource(Buffer.from(mascotCapture())))
-      })
-    },
-  }
-}
-
-/* The kits' own source, served beside the site for the docs' source panel:
-   every .vue/.svelte/.ts/.css file of both kits at `kit/src/<vue|svelte>/`
-   plus a `files.json` listing them — what a reader reads, edits, runs and
-   downloads is the file in this repo, never a copy kept by hand. */
-function kitSources(): RsbuildPlugin {
-  const KITS = { vue: "dither-kit", svelte: "dither-kit-svelte" }
-  return {
-    name: "kit-sources",
-    setup(api) {
-      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
-        const { readdir, readFile } = await import("node:fs/promises")
-        for (const [flavor, dir] of Object.entries(KITS)) {
-          const files = (await readdir(at(dir), { recursive: true }))
-            .map((f) => f.split(sep).join("/"))
-            .filter(isKitSource)
-            .sort()
-          for (const f of files)
-            compilation.emitAsset(
-              `kit/src/${flavor}/${f}`,
-              new sources.RawSource(await readFile(at(`${dir}/${f}`), "utf8")),
-            )
-          compilation.emitAsset(`kit/src/${flavor}/files.json`, new sources.RawSource(JSON.stringify(files)))
-        }
-      })
-    },
-  }
-}
-
-/* The bridge, served beside the site at the path the Studio's setup line
-   fetches (`BRIDGE_FILE` in src/features/agent/acp.ts): the file in this
-   repo, so the line and a clone run the same bridge. */
-function bridgeFile(): RsbuildPlugin {
-  return {
-    name: "bridge-file",
-    setup(api) {
-      api.processAssets({ stage: "additional", environments: ["web"] }, async ({ sources, compilation }) => {
-        const { readFile } = await import("node:fs/promises")
-        const { BRIDGE_FILE } = await import("./src/features/agent/bridge-file.ts")
-        // Served as written, never minified: a file people run on their own
-        // machine stays readable.
-        compilation.emitAsset(BRIDGE_FILE, new sources.RawSource(await readFile(at(BRIDGE_FILE), "utf8")), {
-          minimized: true,
-        })
-      })
-    },
-  }
-}
-
-/* The kit's raster benchmark (`benchmarks/`) is a page for `rs dev` only,
-   never built or deployed. */
-const DEV_PAGES: typeof PAGES = {
-  "benchmarks/index": { html: "benchmarks/index.html", main: "benchmarks/raster.ts" },
-}
-
-define.app(async ({ command }) => {
-  const pages = command === "dev" ? { ...PAGES, ...DEV_PAGES } : PAGES
-  const [{ pluginVue }, { pluginTailwindcss }, { utilityMap }] = await Promise.all([
-    import("@rsbuild/plugin-vue"),
-    import("@rsbuild/plugin-tailwindcss"),
-    import("./src/shared/lib/utility-map.ts"),
-  ])
-  return {
-    plugins: [
-      pluginVue(),
-      pluginTailwindcss(),
-      utilityMap(root),
-      crawlFiles(),
-      kitSources(),
-      installFiles(),
-      captureFiles(),
-      bridgeFile(),
-    ],
-    // `@dither-kit` is the Tailwind layer's index; `@dither-kit/<layer>/…` any kit file.
-    resolve: {
-      alias: { "@": at("src"), "@dither-kit$": at("dither-kit/tailwind/index.ts"), "@dither-kit": at("dither-kit") },
-    },
-    server: {
-      // `/` on dither-ui.com (public/CNAME); BASE_PATH=/dither-ui/ only for
-      // a GitHub Pages project-URL deploy.
-      base: process.env.BASE_PATH ?? "/",
-      port: 5173,
-      historyApiFallback: {
-        rewrites: ["docs", "studio", "play", "benchmarks"].map((page) => ({
-          from: new RegExp(`^/${page}`),
-          to: `/${page}/index.html`,
-        })),
-      },
-    },
-    // The display face (18 kB) is fetched with the HTML: found through the
-    // stylesheet, it came after the first paint and the lead swapped faces.
-    performance: { preload: { type: "all-assets", include: [/michroma-latin\.[\w]+\.woff2$/] } },
-    html: {
-      template: ({ entryName }) => at(pages[entryName].html),
-      // The site's routes take a page transition over before their first
-      // frame (src/app/page-reveal.ts), make the page a link points to ready
-      // before the click (its speculation rules), hold what rises until the
-      // app rises it (src/shared/lib/rise-wait.ts),
-      // and carry the site's icons; the Studio's page, the app's manifest and
-      // iOS's app tags too.
-      tags: (tags, { entryName }) =>
-        pages[entryName].main === SITE_MAIN
-          ? [
-              { tag: "script", children: PAGE_REVEAL_SCRIPT, head: true, append: false },
-              { tag: "script", children: RISE_HEAD_SCRIPT, head: true, append: false },
-              {
-                tag: "script",
-                attrs: { type: "speculationrules" },
-                children: speculationRules(process.env.BASE_PATH ?? "/"),
-                head: true,
-                append: false,
-              },
-              ...installHead(entryName).map((t) => ({ ...t, head: true })),
-              ...tags,
-              { tag: "span", attrs: { id: PAGE_END_ID, hidden: true }, head: false, append: true },
-            ]
-          : tags,
-    },
-    environments: {
-      web: {
-        source: { entry: Object.fromEntries(Object.entries(pages).map(([name, page]) => [name, `./${page.main}`])) },
-        // compiler-sfc's browser build (the docs' Run, a lazy chunk) keeps
-        // `require` hooks for Sass/Less/Stylus that Run never calls — it
-        // compiles plain CSS only.
-        tools: { rspack: { ignoreWarnings: [{ module: /@vue[\\/]compiler-sfc/, message: /Critical dependency/ }] } },
-      },
-      /* The Studio's service worker, one classic script at the site's
-         root, registered with the Studio's scope: `src/app/sw.ts`, the
-         offline rules of `src/app/offline.ts` (see src/AGENTS.md). */
-      sw: {
-        source: { entry: { sw: { import: "./src/app/sw.ts", html: false } } },
-        output: {
-          target: "web-worker",
-          distPath: { root: "dist", js: "" },
-          filename: { js: "[name].js" },
-          cleanDistPath: false,
-        },
-        splitChunks: false,
-        tools: { rspack: { output: { asyncChunks: false } } },
-      },
-      /* The player as ONE classic script + one stylesheet. A HyperFrames
-         composition exported by the Studio must render with no network at
-         render time, so it carries the player inline — Vue, the kit and the
-         Studio's renderers in a single file, every asset a data URI. The web
-         build cannot produce that (its entries share chunks), so this
-         environment builds it beside the `/play/` route the same entry
-         serves. */
-      player: {
-        source: { entry: { player: { import: "./src/pages/play/main.ts", html: false } } },
-        output: {
-          distPath: { root: "dist/play", js: "", css: "" },
-          filename: { js: "[name].js", css: "[name].css" },
-          cleanDistPath: false,
-          dataUriLimit: Number.MAX_SAFE_INTEGER,
-          legalComments: "inline",
-        },
-        splitChunks: false,
-        tools: { rspack: { output: { asyncChunks: false } } },
-      },
-    },
-  }
-})
-
 define.test({
   include: ["tests/**/*.spec.ts"],
-  // Component specs opt into jsdom per file (`// @rstest-environment
+  // A spec that needs a DOM opts into jsdom per file (`// @rstest-environment
   // jsdom` docblock).
   testEnvironment: "node",
-  setupFiles: ["./tests/components/setup.ts"],
-  // The docs' Run ships compiler-sfc's browser build; under the node target
-  // the bundle would take its CJS build instead, whose consolidate.js
-  // requires ~40 template engines that are not installed. Test what ships.
-  resolve: { alias: { "@vue/compiler-sfc$": at("node_modules/@vue/compiler-sfc/dist/compiler-sfc.esm-browser.js") } },
+  setupFiles: ["./tests/setup.ts"],
+  // The utility map the styling rewriter reads (`virtual-dither-utilities`).
+  plugins: [utilityMap(root)],
+  // `@dither-kit` is the engine's public API here (nothing at the root
+  // renders a component); `@dither-kit/<layer>/…` any kit file.
+  resolve: {
+    alias: { "@": at("src"), "@dither-kit$": at("dither-kit/engine/api.ts"), "@dither-kit": at("dither-kit") },
+  },
 })
 
-/* Rslint lints the TypeScript and JavaScript. It has no Vue SFC parser, so
-   `.vue` files stay on ESLint + eslint-plugin-vue (eslint.config.js); `npm
-   run lint` runs both. */
+/* Rslint lints the TypeScript and JavaScript, the Solid site's and the
+   kit's `.tsx` included. */
 define.lint(({ js, ts }) => [
   {
     ignores: [
@@ -305,16 +68,15 @@ define.lint(({ js, ts }) => [
 
 /* `rs fmt` (Prettier options): the house style — no semicolons, double
    quotes, trailing commas, 120 columns. Hand-wrapped prose (Markdown), the
-   HTML route templates (Rsbuild template syntax), public assets and local
-   scratch stay as they are. */
+   HTML shells, public assets and local scratch stay as they are. */
 define.fmt({
   semi: false,
   printWidth: 120,
   ignorePatterns: [
     "public/**",
     "**/*.md",
-    "*.html",
     "*/index.html",
+    "solid-site/scripts/og-shell.html",
     ".scratch/**",
     ".claude/**",
     "**/*.svelte",

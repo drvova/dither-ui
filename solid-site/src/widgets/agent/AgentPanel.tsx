@@ -18,8 +18,8 @@ import {
   quoteOf,
   withContext,
 } from "@/widgets/agent/model/compose"
-import { hintOf, type Slash, slashList, unknownOf } from "@/widgets/agent/model/slash"
-import { nextPrompts } from "@/widgets/agent/model/suggest"
+import { hintOf, type Slash, slashList, unknownOf } from "./model/slash"
+import { nextPrompts } from "./model/suggest"
 import { boundsOf, centreOn, editor, selectArtboard, selectedArtboard, watch } from "~/entities/editor"
 import { evolveSelected, runCommand } from "~/features/agent"
 import {

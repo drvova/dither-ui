@@ -1,14 +1,14 @@
 import { type Accessor, createSignal, onCleanup, onMount } from "solid-js"
-import type { Dimensions } from "../../engine/use-chart-dimensions"
+import type { Dimensions } from "../../engine/chart-types"
 
-export type { Dimensions } from "../../engine/use-chart-dimensions"
+export type { Dimensions } from "../../engine/chart-types"
 
 /**
  * Tracks an element's CSS pixel size via {@link ResizeObserver}. Uses the
  * observer's `contentRect` rather than `getBoundingClientRect()` so a parent
  * transform morph cannot trick the chart into measuring a scaled size and
- * locking its canvas to it. Solid twin of the Vue composable: takes the
- * element as an accessor and returns a reactive size.
+ * locking its canvas to it. Takes the element as an accessor and returns a
+ * reactive size.
  */
 export function useChartDimensions<T extends HTMLElement>(
   el: () => T | null | undefined,

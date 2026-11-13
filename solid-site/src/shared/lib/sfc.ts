@@ -1,5 +1,4 @@
-// The Solid twin of the Vue site's `src/shared/lib/sfc.ts`: writing a Solid
-// component file (`.tsx`) out of document values. A document arrives from
+// Writing a Solid component file (`.tsx`) out of document values. A document arrives from
 // files, links and agents, and the code it becomes is written into someone's
 // project, so every value goes in as data, never as code: these are the only
 // ways the code generators put a value into a component.

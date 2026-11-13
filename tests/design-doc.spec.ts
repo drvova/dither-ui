@@ -45,7 +45,7 @@ describe("DESIGN.md", () => {
   })
 
   it("gives the landing's page width, rhythm and header as the landing sets them", () => {
-    const page = read("src/pages/landing/LandingPage.vue")
+    const page = read("solid-site/src/pages/landing/LandingPage.css")
     for (const token of ["--page", "--rhythm", "--head"]) {
       const value = page.match(new RegExp(`${token}: ([^;]+);`))?.[1]
       expect(value, token).toBeTruthy()

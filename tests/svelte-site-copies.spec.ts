@@ -1,6 +1,6 @@
-// The Svelte site never imports from the Vue site (the two apps stay apart),
-// so what it shares with it is copied: the tool marks, the display face and
-// the Vue landing's pure modules. Every copy is byte for byte its original
+// The Svelte site never imports from the site's modules (the two apps stay
+// apart), so what it shares with them is copied: the tool marks, the display
+// face and the landing's pure modules. Every copy is byte for byte its original
 // (its Svelte-specific glue lives in modules of its own), so a change on one
 // side fails here until it is copied across.
 import { readdirSync, readFileSync } from "node:fs"
@@ -9,7 +9,7 @@ import { GROUPS } from "../svelte-site/src/docs/nav"
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url))
 
-/** Each copy in `svelte-site/` and the Vue original it mirrors. */
+/** Each copy in `svelte-site/` and the original it mirrors (the site's framework-free module). */
 const COPIES: readonly (readonly [copy: string, original: string])[] = [
   ["svelte-site/src/shared/marks.ts", "src/shared/ui/marks.ts"],
   ["svelte-site/src/fonts/display.css", "src/shared/fonts/display.css"],
@@ -51,7 +51,7 @@ describe("svelte-site copies", () => {
 
   it("links only to sections the Svelte docs render", () => {
     // `docsHref` throws on a dead id at runtime, which takes the whole
-    // landing down: a bento card once linked to a section only Vue had.
+    // landing down: a bento card once linked to a section only the other docs had.
     const sections = new Set(GROUPS.flatMap((g) => g.items.map((i) => i.id)))
     const dir = "svelte-site/src/landing"
     const ids = readdirSync(dir).flatMap((f) => {

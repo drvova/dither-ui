@@ -1,5 +1,6 @@
-// The bridge as the site hands it out. Imported by `rstack.config.ts`
-// (which serves the file) as well as the Studio, so it imports nothing.
+// The bridge as the site hands it out. Imported by the build's config
+// (`solid-site/site-files.ts`, which serves the file) as well as the Studio,
+// so it imports nothing.
 
 /** Where the site serves the bridge, next to its pages: the repo's own
  * file at the same path. */

@@ -1,7 +1,6 @@
 // What the docs specs read out of a docs source: its API tables (the
-// `PropRow` rows handed to `PropsTable`), and the source with those rows set
-// aside, so the rest can be held to the Vue file while the tables are held
-// to the Solid kit (`docs-api.spec.ts`).
+// `PropRow` rows handed to `PropsTable`), held to the Solid kit
+// (`docs-api.spec.ts`).
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join, relative } from "node:path"
 import ts from "typescript"
@@ -12,40 +11,6 @@ export const DOCS = join(SITE, "src/pages/docs")
 export type Row = { prop: string; type: string; default: string }
 /** One `<PropsTable rows={…} />`: the file, the expression it is handed and the rows that makes. */
 export type Table = { file: string; key: string; rows: Row[] }
-
-const isRow = (node: ts.Node): node is ts.ObjectLiteralExpression =>
-  ts.isObjectLiteralExpression(node) &&
-  ["prop", "type", "default"].every((cell) =>
-    node.properties.some((p) => ts.isPropertyAssignment(p) && p.name.getText() === cell),
-  )
-
-/** A source with every table row emptied and its layout taken out: what is
- * left (the snippets, the tables' keys and how many rows each holds) reads
- * the same however the formatter wrapped a row. `code` is statements, so a
- * slice of a Vue file's script parses as well as a whole `.tsx`. */
-export function sansRows(code: string, kind: "ts" | "tsx"): string {
-  const source = ts.createSourceFile("x." + kind, code, ts.ScriptTarget.Latest, true)
-  const rows: ts.Node[] = []
-  const visit = (node: ts.Node): void => (isRow(node) ? void rows.push(node) : ts.forEachChild(node, visit))
-  visit(source)
-  let out = code
-  for (const row of rows.reverse()) out = out.slice(0, row.getStart()) + "{}" + out.slice(row.getEnd())
-  return out.replace(/\s+/g, "").replace(/,(?=[\]})])/g, "")
-}
-
-/** Every string a source writes outside its table rows, as written (quotes
- * and all): the authored snippets among them. */
-export function stringsIn(code: string, kind: "ts" | "tsx"): string[] {
-  const source = ts.createSourceFile("x." + kind, code, ts.ScriptTarget.Latest, true)
-  const found: string[] = []
-  const visit = (node: ts.Node): void => {
-    if (isRow(node)) return
-    if (ts.isStringLiteralLike(node) || ts.isTemplateExpression(node)) found.push(node.getText())
-    else ts.forEachChild(node, visit)
-  }
-  visit(source)
-  return found
-}
 
 const sources = (dir: string): string[] =>
   readdirSync(dir).flatMap((name) => {

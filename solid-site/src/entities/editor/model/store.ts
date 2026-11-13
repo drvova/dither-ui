@@ -1,5 +1,5 @@
 // The editor store, the Studio's single source of truth. A mutable store
-// (`createMutable`), so it reads and writes as the Vue site's `reactive`
+// (`createMutable`), so it reads and writes as the earlier Vue site's `reactive`
 // one did: `editor.viewport.x += 4` is a write every reader hears. Solid
 // runs its effects as each write lands, where Vue waited for the turn to
 // end, so every action that writes more than once is one `batch`: no reader

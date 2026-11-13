@@ -1,5 +1,5 @@
 // A registry component's model, as Solid binds it. The registry
-// (`@/entities/widget/model/registry`, shared with the Vue site) names a
+// (`@/entities/widget/model/registry`, framework free) names a
 // model the Vue way (`vmodel`: a default, and a prop and an event where they
 // are not `modelValue` and `update:modelValue`); this is the one place that
 // reading becomes a prop and an `on<Event>` callback, for the canvas, the

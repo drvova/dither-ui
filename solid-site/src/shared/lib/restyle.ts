@@ -1,5 +1,5 @@
 // The reader's styling system: the rewriter (`@/shared/lib/restyle-rewrite`,
-// shared with the Vue site) and the reader's choice among the systems, kept
+// framework free) and the reader's choice among the systems, kept
 // across visits. The stored choice is read on first use in a browser, never
 // while rendering on a server.
 import { createSignal } from "solid-js"

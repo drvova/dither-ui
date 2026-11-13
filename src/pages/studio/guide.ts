@@ -1,7 +1,7 @@
 /** The Studio's tour: the mascot flies to each part of the window and says
  * what it is for. A stop names its part by the element it points at (the
  * page's own refs, never a selector), what is said there, and what to open
- * first so the part is showing. `StudioGuide.vue` flies it; `placeGuide` is
+ * first so the part is showing. `StudioGuide.tsx` flies it; `placeGuide` is
  * where it hovers. */
 
 export type GuideStop = {

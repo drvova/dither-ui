@@ -1,13 +1,11 @@
-// @rstest-environment jsdom
 import { describe, expect, it } from "rstack/test"
-import { mount } from "@vue/test-utils"
-import { paintFlowField, fadeRasterAlpha, DitherFlowField } from "@dither-kit"
+import { paintFlowField, fadeRasterAlpha } from "@dither-kit/engine/flow-field"
 import { createRasterBuffer } from "@dither-kit/engine/raster"
 import { BAYER4 } from "@dither-kit/engine/pixel"
 
 // The flow field's contract: seeded determinism, a trail that decays to a
 // full clear (no ghost residue), a stamped dither cell per particle per
-// frame, and the component wiring (mask, 60fps lock, transparent canvas).
+// frame.
 
 describe("paintFlowField", () => {
   const params = {
@@ -83,25 +81,5 @@ describe("paintFlowField", () => {
     let lit = 0
     for (let i = 3; i < buf.data.length; i += 4) if (buf.data[i] > 0) lit++
     expect(lit).toBeGreaterThan(50)
-  })
-})
-
-describe("DitherFlowField component", () => {
-  it("wires the runtime: transparent canvas, edge mask, 60fps lock", () => {
-    const w = mount(DitherFlowField, { props: { seed: 3 } })
-    const wrap = w.find("div")
-    expect(wrap.attributes("aria-hidden")).toBe("true")
-    expect(wrap.attributes("style")).toContain("radial-gradient") // the edge-fade mask
-    const canvas = w.find("canvas")
-    expect(canvas.exists()).toBe(true)
-    // The canvas itself carries no background: transparent over the hero's #000.
-    const cls = canvas.classes().join(" ")
-    expect(cls).toContain("absolute")
-  })
-
-  it("honors mask=none by dropping the mask style", () => {
-    const w = mount(DitherFlowField, { props: { mask: "none" } })
-    const style = w.find("div").attributes("style") ?? ""
-    expect(style).not.toContain("radial-gradient")
   })
 })

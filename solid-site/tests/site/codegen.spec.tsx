@@ -3,7 +3,7 @@
 // reader's project (the export dialog, `code.get`, the `get_code` tool), and
 // a frame's values come from files, links and agents: whatever a value
 // holds, the file stays a component Solid's own compiler reads, whose values
-// are data. Carried from the Vue site's `tests/codegen-escape.spec.ts`, the
+// are data. Carried from the earlier Vue site's `tests/codegen-escape.spec.ts`, the
 // `widgetCode` and `chartCode` cases of `tests/widget-model.spec.ts` and
 // `tests/chart-model.spec.ts`, the export case of `tests/field-label.spec.ts`
 // and the export half of `tests/stylex-coverage.spec.ts`.

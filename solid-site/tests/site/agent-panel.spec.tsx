@@ -1,9 +1,9 @@
 // The agent panel on Solid (`src/widgets/agent/`), held to what its Vue twin
-// does: the panel mounted as the Studio mounts it, before any bridge (its
+// did: the panel mounted as the Studio mounts it, before any bridge (its
 // setup in order, the field's keys, the chat it shows), the composer's
 // chips, quotes, edits and settings, the thread's entries and the trays
 // over the input, and the two model modules copied for the store's sake.
-// Carried from the Vue site's `tests/agent-panel.spec.ts`,
+// Carried from the earlier Vue site's `tests/agent-panel.spec.ts`,
 // `tests/agent-compose.spec.ts` and `tests/agent-composer.spec.ts`,
 // assertion for assertion, then this port's own.
 import { readFileSync } from "node:fs"
@@ -457,18 +457,7 @@ describe("the composer (carried from tests/agent-compose.spec.ts)", () => {
   })
 })
 
-describe("the model copied for the store's sake", () => {
-  // `steps.ts` reads the one tool's input and the Studio server's name, which
-  // reach the editor store; `thread.ts` runs it. Their twins are the same
-  // text with the imports re-pointed. Anything else differing is drift.
-  const body = (path: string) =>
-    readFileSync(path, "utf8")
-      .replace(/^(\/\/ The Vue site's .*\n\/\/ .*\n\/\/ .*\n)/, "")
-      .replace(/ from "[^"]+"$/gm, " from")
-  it.each(["steps.ts", "thread.ts"])("%s is its Vue twin, imports aside", (file) => {
-    expect(body(`src/widgets/agent/model/${file}`)).toBe(body(`../src/widgets/agent/model/${file}`))
-  })
-
+describe("the composer's model", () => {
   describe("a tool call as a step (carried from tests/agent-composer.spec.ts)", () => {
     it("names every Studio tool, with a glyph the kit draws", () => {
       for (const { def: t } of STUDIO_TOOLS) {

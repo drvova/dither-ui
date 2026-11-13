@@ -1,11 +1,10 @@
 // What the Studio draws with, on Solid: the chart, widget, screen and reel
 // renderers, the canvas with its frames and the ask at the selection, the
 // data editor, and the player page with its mount. The first half is this
-// port's own (a render or behaviour spec for each component the Vue site had
+// port's own (a render or behaviour spec for each component the earlier Vue site had
 // none for, and what Solid needs kept that Vue gave for free); the second
-// carries the Vue site's specs for these components, assertion for
+// carries the earlier Vue site's specs for these components, assertion for
 // assertion.
-import { readFileSync } from "node:fs"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
@@ -637,20 +636,9 @@ describe("the player", () => {
     location.hash = ""
     expect(() => mountPlayer()).toThrow("#dither-stage")
   })
-
-  // `source.ts` reads the Vue site's `shared/lib` barrel, which reaches Vue,
-  // so its twin is the same text with that import re-pointed. Anything else
-  // differing is drift.
-  it("keeps its copy of the source reader to the Vue site's, the import aside", () => {
-    const body = (path: string) =>
-      readFileSync(path, "utf8")
-        .replace(/^(\/\/ The Vue site's .*\n\/\/ .*\n\/\/ .*\n)/, "")
-        .replace(/ from "[^"]+"$/gm, " from")
-    expect(body("src/pages/play/source.ts")).toBe(body("../src/pages/play/source.ts"))
-  })
 })
 
-// The Vue site's specs for these components, carried.
+// The earlier Vue site's specs for these components, carried.
 
 describe("artboard surface drag", () => {
   it("moves from passive space but leaves controls interactive", () => {

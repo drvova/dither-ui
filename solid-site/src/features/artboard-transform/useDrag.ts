@@ -1,6 +1,3 @@
-// The Vue site's `src/features/artboard-transform/useDrag.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 import { editor } from "../../entities/editor"
 
 /** Pointer drag that reports world-space deltas and always tears down cleanly. */

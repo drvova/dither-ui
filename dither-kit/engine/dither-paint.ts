@@ -2,7 +2,7 @@
 // (area, line, bar). Keeping the Bayer threshold loop in one place means every
 // chart type reads with the exact same pixel texture.
 
-import type { AreaVariant } from "./chart-context"
+import type { AreaVariant } from "./chart-types"
 import { rgb, type Rgb, type Seed } from "./palette"
 import { xorshift32 } from "./pixel"
 import { setOrBlendRasterPixel, type RasterBuffer } from "./raster"

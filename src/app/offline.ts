@@ -1,5 +1,5 @@
-// The site offline: what its service worker (`sw.ts`, built to `dist/sw.js`
-// by the `sw` environment of rstack.config.ts) keeps and how it answers each
+// The site offline: what its service worker (`sw.ts`, built to `sw.js` by
+// `solid-site/standalone.ts`) keeps and how it answers each
 // request, and the registration the app makes once it has loaded. The
 // rules are pure so the tests can read them; the worker only wires them to
 // its events.
@@ -75,7 +75,7 @@ export function pageAssets(html: string, page: URL, site: URL): string[] {
 }
 
 /** Registers the worker, scoped to the app, once the app's page has loaded
- * (a production build only: `rs dev` serves no worker), where the browser
+ * (a production build only: the dev server serves no worker), where the browser
  * has service workers; `base` is the site's. */
 export function registerOffline(base: string, pathname: string): void {
   if (!import.meta.env.PROD || !inApp(pathname) || !("serviceWorker" in navigator)) return

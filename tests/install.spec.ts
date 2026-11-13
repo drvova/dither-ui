@@ -2,7 +2,7 @@
 // docs stay pages of the web): the manifest and the icons the build draws
 // from the brand mark (`app/install-files.ts`), the head each route carries,
 // and the service worker's rules (`app/offline.ts`).
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { inflateSync } from "node:zlib"
 import { describe, expect, it } from "rstack/test"
 import {
@@ -54,9 +54,8 @@ describe("the install surface", () => {
       /^\.dark \{[^}]*--swatch-orange: rgb\((\d+), (\d+), (\d+)\)/m,
     )!
     expect(INSTALL_INK.ember).toBe(`#${[r, g, b].map((v) => Number(v).toString(16).padStart(2, "0")).join("")}`)
-    expect(read("studio/index.html")).toContain(
-      `<meta name="theme-color" content="${STUDIO_GROUND}" media="(prefers-color-scheme: dark)" />`,
-    )
+    // The Studio's route names its chrome's colour from the same constant.
+    expect(read("solid-site/src/routes/studio.tsx")).toContain("createSignal<string>(STUDIO_GROUND)")
   })
 
   it("installs the Studio, standalone, from its own folder under whatever base the site is served", () => {
@@ -73,7 +72,7 @@ describe("the install surface", () => {
       expect(files[path]).toBeInstanceOf(Uint8Array)
     }
     // The app is one of the build's own routes.
-    expect(read("rstack.config.ts")).toContain(`"${OFFLINE.app}index"`)
+    expect(existsSync(`${root}/solid-site/src/routes/${OFFLINE.app.replace(/\/$/, "")}.tsx`)).toBe(true)
   })
 
   it("draws every icon from the brand mark: its cells whole and centred, the core in the ember", () => {
@@ -115,9 +114,6 @@ describe("the install surface", () => {
       expect.arrayContaining(["icon", "apple-touch-icon", "manifest", "apple-mobile-web-app-capable"]),
     )
     for (const t of installHead(`${OFFLINE.app}index`)) if (t.attrs.href) expect(files[t.attrs.href]).toBeDefined()
-    // The templates carry no copies of their own.
-    for (const page of ["index.html", "docs/index.html", "studio/index.html"])
-      expect(read(page)).not.toMatch(/rel="(icon|apple-touch-icon|manifest)"/)
   })
 })
 

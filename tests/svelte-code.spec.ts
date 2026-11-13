@@ -1,5 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import { toSvelteCode } from "@/pages/docs/svelte"
+import { toSvelteCode } from "@/pages/docs/svelte-code"
 
 // Inputs are verbatim Vue docs snippets; expectations mirror the hand-written
 // idioms in svelte-site/src/docs (the port author's ground truth).

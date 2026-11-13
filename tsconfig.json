@@ -1,34 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "preserve",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@dither-kit": ["./dither-kit/tailwind/index.ts"],
-      "@dither-kit/*": ["./dither-kit/*"]
-    }
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.vue",
-    "dither-kit/**/*.ts",
-    "dither-kit/**/*.vue",
-    "rstack.config.ts"
-  ],
-  "exclude": ["dither-kit/solid", "dither-kit/solid-stylex"]
+  "files": [],
+  "references": [{ "path": "./solid-site" }]
 }

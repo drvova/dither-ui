@@ -1,9 +1,9 @@
 // The Studio's state core on Solid: the editor store, its history and
 // persistence, the agent's protocol, tools and chats, the canvas's gestures
-// and keys, and the three dialogs, held to what their Vue twins do. The
+// and keys, and the three dialogs, held to what their Vue twins did. The
 // first half is this port's own (what a mutable Solid store must keep that
-// Vue's gave for free, and the modules the Vue site had no spec for); the
-// second carries the Vue site's specs for these modules, assertion for
+// Vue's gave for free, and the modules the earlier Vue site had no spec for); the
+// second carries the earlier Vue site's specs for these modules, assertion for
 // assertion.
 import { readFileSync } from "node:fs"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
@@ -1048,49 +1048,6 @@ describe("the agent's own inserts", () => {
     expect(new Set(gen.map((g) => g.y)).size).toBe(1)
     expect(gen.every((g) => g.id !== parent.id)).toBe(true)
     expect(editor.replayToken).toBe(token + 1)
-  })
-})
-
-describe("the modules copied for the store's sake", () => {
-  // A module that reaches the editor store cannot be shared with the Vue
-  // site (it would reach the Vue store), so its twin is the same text with
-  // its imports re-pointed. Anything else differing is drift.
-  // The one thing a twin says differently: what the code export writes.
-  const SAYS_SOLID: [string, string][] = [
-    [
-      "The frame as a Vue single-file component, in the styling system asked for:",
-      "The frame as a Solid component (a .tsx file on the kit's Solid layer), in the styling system asked for:",
-    ],
-    [
-      'while the kit components keep their own styles.",',
-      'while the kit components keep their own styles. css and modules come with the stylesheet the file imports, as sheet.",',
-    ],
-  ]
-  const body = (path: string) =>
-    readFileSync(path, "utf8")
-      .replace(/^(\/\/ The Vue site's .*\n\/\/ .*\n\/\/ .*\n)/, "")
-      .replace(/^import [^"]*"[^"]+"\n/gm, "")
-      .replace(/^(\} )?from "[^"]+"$/gm, "$1from")
-      .replace(/ from "[^"]+"$/gm, " from")
-  it.each([
-    "entities/editor/model/view.ts",
-    "features/agent/acp.ts",
-    "features/agent/film.ts",
-    "features/agent/index.ts",
-    "features/agent/inspect.ts",
-    "features/agent/sandbox.ts",
-    "features/agent/tools.ts",
-    "features/artboard-transform/index.ts",
-    "features/artboard-transform/useDrag.ts",
-    "features/export-video/exportVideo.ts",
-    "features/history/index.ts",
-    "features/pan-zoom/index.ts",
-    "features/persistence/index.ts",
-    "features/presets/index.ts",
-  ])("%s is its Vue twin, imports aside", (file) => {
-    expect(body(`src/${file}`)).toBe(
-      SAYS_SOLID.reduce((text, [vue, solid]) => text.replace(vue, solid), body(`../src/${file}`)),
-    )
   })
 })
 

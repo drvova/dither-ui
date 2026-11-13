@@ -1,11 +1,11 @@
 // What a docs preview is made of, as files: the example as a complete file
-// in the reader's framework (a fragment completed by `asSfc`, the Vue site's
-// own, then translated by the page: a Solid `.tsx` module, or a Svelte
+// in the reader's framework (a fragment completed by `asSfc`, then
+// translated by the page: a Solid `.tsx` module, or a Svelte
 // component), the stylesheet a Solid file imports on CSS or CSS Modules, the
 // kit's own source for every kit export the example imports, the kit's
 // tokens, and a prompt that hands the lot to a coding agent. Pure: the panel
 // fetches the kit sources and renders these. What does not depend on the
-// framework (a snippet's kind, its completion) is the Vue site's module,
+// framework (a snippet's kind, its completion) is `@/widgets/source/model/files`,
 // re-exported; what reads a kit's files is written here, since the Solid
 // kit's are `.tsx`.
 export { asSfc, snippetKind } from "@/widgets/source/model/files"

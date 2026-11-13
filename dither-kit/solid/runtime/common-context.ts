@@ -1,12 +1,12 @@
-// Solid's binding of the chart family's shared surface (`engine/common-context.ts`
+// Solid's binding of the chart family's shared surface (`engine/chart-types.ts`
 // holds the types): the context `<Legend>` and `<Tooltip>` read, whichever
 // root they sit in. The fields are live getters over the root's signals, so
 // reading them in JSX or a memo tracks.
 
 import { createContext, useContext } from "solid-js"
-import type { CommonChart } from "../../engine/common-context"
+import type { CommonChart } from "../../engine/chart-types"
 
-export type { CommonChart, TooltipItem } from "../../engine/common-context"
+export type { CommonChart, TooltipItem } from "../../engine/chart-types"
 
 export const CommonChartContext = createContext<CommonChart>()
 

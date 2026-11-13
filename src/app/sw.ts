@@ -1,5 +1,5 @@
-// The Studio's service worker, built on its own to `dist/sw.js` (the `sw`
-// environment of rstack.config.ts) and registered with the app's scope: it
+// The Studio's service worker, built on its own to `sw.js`
+// (`solid-site/standalone.ts`) and registered with the app's scope: it
 // keeps the app's page and its assets at install, answers each request the
 // app makes by its strategy (`offline.ts`), and drops an older version's
 // caches as it takes over.

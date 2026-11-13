@@ -1,6 +1,3 @@
-// The Vue site's `src/features/agent/index.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 import { editor, placeGeneration, selectedArtboard } from "../../entities/editor"
 import { evolveArtboard, type EvolveOptions } from "@/features/agent/evolve"
 

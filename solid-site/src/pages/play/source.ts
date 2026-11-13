@@ -1,6 +1,3 @@
-// The Vue site's `src/pages/play/source.ts`, line for line, its import of a ported
-// module pointed at its Solid twin (the Vue site's `shared/lib` barrel reaches
-// Vue, so it cannot be shared). Held to its source by `tests/site/render.spec.tsx`.
 // Where the player's document comes from: the composition's embedded JSON
 // first (an exported HyperFrames file), then the hash a live preview link
 // carries (`/play/#doc=<base64url document>&artboard=<id>&theme=light`).

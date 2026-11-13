@@ -1,11 +1,8 @@
-// @rstest-environment jsdom
 // The gauge: its dial's geometry (a 240-degree sweep from the lower left,
 // the gap at the bottom), the band it prints (filled to the needle, the
 // zone past `warn` in the warning ink, a faint track beyond, nothing in the
 // gap) and the component as a meter: valued, named and read out.
-import { mount } from "@vue/test-utils"
 import { describe, expect, it } from "rstack/test"
-import { DitherGauge } from "@dither-kit"
 import { gaugeAlong, gaugeAngle, gaugePoint, gaugeTicks, paintGauge } from "@dither-kit/engine/gauge"
 import { BAYER4 } from "@dither-kit/engine/pixel"
 
@@ -81,42 +78,5 @@ describe("the band", () => {
     const alpha = (x: number, y: number) => uploads[0].data[(y * CELLS + x) * 4 + 3]
     expect(alpha(CELLS / 2, CELLS - 2)).toBe(0) // the gap
     expect(alpha(CELLS / 2, CELLS / 2)).toBe(0) // the face
-  })
-})
-
-describe("the component", () => {
-  it("is a meter with its value, range, name and reading", () => {
-    const w = mount(DitherGauge, { props: { value: 1.6, min: 0, max: 4, decimals: 1, label: "bar" } })
-    const meter = w.get('[role="meter"]')
-    expect(meter.attributes("aria-valuenow")).toBe("1.6")
-    expect(meter.attributes("aria-valuemin")).toBe("0")
-    expect(meter.attributes("aria-valuemax")).toBe("4")
-    expect(meter.attributes("aria-label")).toBe("bar")
-    expect(meter.attributes("aria-valuetext")).toBe("1.6 bar")
-    expect(w.text()).toContain("1.6")
-    // ten intervals' worth of numerals by default: 0 and 4 at the ends
-    expect(w.findAll("text").map((t) => t.text())).toEqual(expect.arrayContaining(["0", "4"]))
-    w.unmount()
-  })
-  it("names every other major past six intervals, the ends always", () => {
-    const names = (ticks: number) =>
-      mount(DitherGauge, { props: { value: 0, ticks } })
-        .findAll("text")
-        .map((t) => t.text())
-        .slice(0, -1) // the reading
-    expect(names(10)).toEqual(["0", "20", "40", "60", "80", "100"])
-    expect(names(4)).toEqual(["0", "25", "50", "75", "100"])
-  })
-})
-
-describe("the knob that drives it on the landing", () => {
-  it("is named by its label, not one word for every knob", async () => {
-    const { DitherKnob } = await import("@dither-kit")
-    expect(
-      mount(DitherKnob, { props: { label: "Load" } })
-        .get('[role="slider"]')
-        .attributes("aria-label"),
-    ).toBe("Load")
-    expect(mount(DitherKnob).get('[role="slider"]').attributes("aria-label")).toBe("Knob")
   })
 })

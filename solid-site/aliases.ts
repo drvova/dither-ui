@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url"
 
 const at = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 
-/** The kit's Solid layer, any kit file, the Vue site's framework-free
- * modules, and this app's own source. */
+/** The kit's Solid layer, any kit file, the site's framework-free modules
+ * (`../src`), and this app's own source. */
 export const ALIASES = [
   { find: /^@dither-kit$/, replacement: at("../dither-kit/solid/index.ts") },
   { find: /^@dither-kit\//, replacement: at("../dither-kit/") },

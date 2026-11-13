@@ -1,5 +1,5 @@
 import { describe, expect, it } from "rstack/test"
-import { modKey } from "@/shared/lib"
+import { modKey } from "@/shared/lib/keys"
 
 // A shortcut reads as the reader's keyboard writes it: never ⌘ on a PC.
 describe("modKey", () => {

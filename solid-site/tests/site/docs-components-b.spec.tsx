@@ -1,10 +1,7 @@
 // The docs' component packs on Solid, second half (`src/pages/docs/components/`:
 // Navigation, Overlay, Selection, Structure, Surface): each pack's sections
 // against the nav table the rail, the search and the crawler read, each
-// preview mounting its demo once in view, the snippets held to the Vue
-// site's character for character, and the demos' own state.
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+// preview mounting its demo once in view, and the demos' own state.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import type { JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
@@ -19,7 +16,6 @@ import SelectionDocs from "../../src/pages/docs/components/SelectionDocs"
 import StructureDocs from "../../src/pages/docs/components/StructureDocs"
 import SurfaceDocs from "../../src/pages/docs/components/SurfaceDocs"
 import { world } from "../world"
-import { sansRows } from "./docs-api"
 
 const PACKS: { name: string; Pack: () => JSX.Element; nav: readonly { id: string; label: string }[] }[] = [
   { name: "NavigationDocs", Pack: NavigationDocs, nav: NAVIGATION_NAV },
@@ -28,9 +24,6 @@ const PACKS: { name: string; Pack: () => JSX.Element; nav: readonly { id: string
   { name: "StructureDocs", Pack: StructureDocs, nav: STRUCTURE_NAV },
   { name: "SurfaceDocs", Pack: SurfaceDocs, nav: SURFACE_NAV },
 ]
-
-// the specs run from the app's folder (`solid-site/`)
-const SITE = process.cwd()
 
 let w: ReturnType<typeof world>
 beforeEach(() => {
@@ -85,26 +78,6 @@ describe.each(PACKS)("$name", ({ Pack, nav }) => {
 })
 
 // The snippets are the authored notation the tooling derives Solid and
-// Svelte from: the same characters as the Vue site's.
-describe("snippets", () => {
-  const SNIPPET = /const (SNIPPET_\w+) = (?:\w+\(\s*\(\) => )?`((?:[^`\\]|\\[\s\S])*)`/g
-  const snippets = (source: string) =>
-    Object.fromEntries(
-      [...source.matchAll(SNIPPET)].map((m) => [m[1], m[2].replace(/\b(\w+)\.value\b/g, "$1()").replace(/\\\//g, "/")]),
-    )
-  const api = (source: string) => /const API: Record<string, PropRow\[\]> = \{[\s\S]*?\n\}/.exec(source)![0]
-
-  it.each(PACKS)("$name carries its Vue twin's snippets verbatim and its tables' shape", ({ name }) => {
-    const vue = readFileSync(join(SITE, "../src/pages/docs/components", `${name}.vue`), "utf8")
-    const solid = readFileSync(join(SITE, "src/pages/docs/components", `${name}.tsx`), "utf8")
-    const theirs = snippets(vue)
-    expect(Object.keys(theirs).length).toBeGreaterThan(0)
-    expect(snippets(solid)).toEqual(theirs)
-    // the tables by their keys and row counts: their words are the Solid kit's (`docs-api.spec.ts`)
-    expect(sansRows(api(solid), "tsx")).toBe(sansRows(api(vue), "ts"))
-  })
-})
-
 describe("the demos' own state", () => {
   async function open(Pack: () => JSX.Element) {
     const view = render(() => <Pack />)

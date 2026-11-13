@@ -4,12 +4,12 @@ import { sectionTags, type ShareCard, shareTags, tagHtml } from "./share-cards.t
 
 export { ROUTE_CARDS, sectionCard, type ShareCard, shareCards } from "./share-cards.ts"
 
-// The crawler-surface files (`dist/sitemap.xml`, `dist/robots.txt`,
-// `dist/llms.txt`) are generated at build time from the same GROUPS/SITE_URL
+// The crawler-surface files (`sitemap.xml`, `robots.txt`, `llms.txt`) are
+// generated at build time from the same GROUPS/SITE_URL
 // sources the app renders, so section renames or removals can never rot a
 // sitemap entry or an llms.txt link — a dead reference fails the build.
-// These render functions are node-side only (rstack.config + tests); the app
-// never imports this module. rstack.config.ts loads it under Node's own
+// These render functions are node-side only (the build's config + tests); the
+// app never imports this module. The config loads it under Node's own
 // TypeScript, so this module and its graph (groups, seo, the *-nav packs)
 // write relative imports with `.ts`.
 
@@ -67,7 +67,7 @@ export function robotsTxt(): string {
 /* ----------------------- sections manifest (og engine) -------------------- */
 
 // The SEO engine's data contract: one JSON record per docs section, consumed
-// by scripts/prerender.mjs (per-section static pages + og images), by the
+// by the post-build (og images, each section's embed), by the
 // /og/ renderer itself and by the Discord service. Same single source as
 // the sitemap — meta derives from seo.ts's docsMeta/docsBreadcrumb, never a
 // reimplementation. `head` is the section page's whole head block (its

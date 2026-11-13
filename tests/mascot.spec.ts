@@ -5,10 +5,8 @@
 // ground row standing and off it hopping or flying, a rotor that turns in
 // flight, and a body printed solid on the lit side and through the Bayer
 // thresholds on the shaded one.
-import { mount } from "@vue/test-utils"
 import { describe, expect, it } from "rstack/test"
 import { MASCOT_H, MASCOT_ROTOR_STEPS, MASCOT_W, type MascotPose, mascotCells } from "@/shared/ui/mascot"
-import Mascot from "@/shared/ui/Mascot.vue"
 
 const POSES: MascotPose[] = ["idle", "blink", "hop", "wave", "fly"]
 const at = (pose: MascotPose, x: number, y: number) => mascotCells(pose).find((c) => c.x === x && c.y === y)
@@ -92,13 +90,5 @@ describe("the mascot", () => {
       [6, 11],
     ].filter(([x, y]) => !at("idle", x, y))
     expect(flank.length).toBeGreaterThan(0)
-  })
-
-  it("draws as a decorative SVG, the size its height", () => {
-    const w = mount(Mascot, { props: { size: 30 } })
-    const svg = w.get("svg")
-    expect(svg.attributes("aria-hidden")).toBe("true")
-    expect(svg.attributes("height")).toBe("30")
-    expect(w.findAll("rect")).toHaveLength(mascotCells("idle").length)
   })
 })

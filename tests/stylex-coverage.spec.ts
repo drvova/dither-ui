@@ -7,10 +7,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
-import { chartCode, createChart } from "../src/entities/chart"
-import { COMPONENT_REGISTRY, createComponent, createWidget, widgetCode } from "../src/entities/widget"
-import { CHART_TYPES } from "../src/shared/config"
-import { restyle } from "../src/shared/lib/restyle"
+import { restyle } from "../src/shared/lib/restyle-rewrite"
 
 const OWN_CLASSES = new Set(["dither-kit", "cta", "cq-card", "cq-grid", "readout", "cell"])
 
@@ -27,25 +24,16 @@ function leftovers(code: string): string[] {
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((n) => {
     const p = join(dir, n)
-    return statSync(p).isDirectory() ? files(p) : /\.(vue|ts)$/.test(n) ? [p] : []
+    return statSync(p).isDirectory() ? files(p) : /\.tsx?$/.test(n) ? [p] : []
   })
 }
 
 describe("StyleX coverage", () => {
-  it("writes every Studio export as StyleX", () => {
-    const left: string[] = []
-    const check = (what: string, code: string) => left.push(...leftovers(code).map((c) => `${what}: ${c}`))
-    for (const e of COMPONENT_REGISTRY) check(e.is, widgetCode(createComponent(e), { w: 480, h: 320 }))
-    for (const k of ["avatar", "button", "image", "gradient"] as const)
-      check(k, widgetCode(createWidget(k), { w: 480, h: 320 }))
-    for (const t of CHART_TYPES) check(t, chartCode(createChart(t)))
-    expect(left).toEqual([])
-  })
-
   it("writes every docs snippet as StyleX", () => {
     const left: string[] = []
     let snippets = 0
-    for (const f of files("src/pages/docs"))
+    // The docs' two halves: the pages (the Solid site) and their framework-free data.
+    for (const f of ["solid-site/src/pages/docs", "src/pages/docs"].flatMap(files))
       for (const m of readFileSync(f, "utf8").matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
         if (!/<[A-Za-z]/.test(m[1]) || !/class=/.test(m[1])) continue
         snippets++

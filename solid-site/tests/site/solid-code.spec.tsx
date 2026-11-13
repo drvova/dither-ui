@@ -1,5 +1,5 @@
 // The docs' snippets as Solid: the Vue → Solid translation (`toSolidCode`,
-// held to every case the Vue site holds its Svelte translation to, and one
+// held to every case the Vue site held its Svelte translation to, and one
 // per construct the snippets use), the same file in each styling system
 // (`restyle` for Solid), and a sweep: every snippet the docs carry, as the
 // file the source panel shows, parses as TSX in all four systems.
@@ -11,7 +11,7 @@ import { restyle, restyleSolid, STYLINGS } from "@/shared/lib/restyle-rewrite"
 import { asSfc, snippetKind } from "@/widgets/source/model/files"
 import { toSolidCode } from "../../src/pages/docs/solid"
 
-// Inputs are verbatim Vue docs snippets: the cases of the Vue site's
+// Inputs are verbatim Vue docs snippets: the cases of the earlier Vue site's
 // `tests/svelte-code.spec.ts`, one for one, in its order.
 describe("toSolidCode", () => {
   it("translates a full SFC snippet: script setup, ref, v-model, kit import", () => {
@@ -680,11 +680,13 @@ const small = n() < 3 && n() > 1
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((n) => {
     const p = join(dir, n)
-    return statSync(p).isDirectory() ? files(p) : /\.(vue|ts)$/.test(n) ? [p] : []
+    return statSync(p).isDirectory() ? files(p) : /\.tsx?$/.test(n) ? [p] : []
   })
 }
 
-const DOCS = join(process.cwd(), "../src/pages/docs")
+// The docs' two halves: the pages (this app) and their framework-free data.
+const REPO = join(process.cwd(), "..")
+const DOCS = [join(REPO, "solid-site/src/pages/docs"), join(REPO, "src/pages/docs")]
 const KIT = new Set(
   [...readFileSync(join(process.cwd(), "../dither-kit/solid/index.ts"), "utf8").matchAll(/([A-Za-z]\w*)\s*[,}]/g)].map(
     (m) => m[1],
@@ -702,13 +704,13 @@ function problems(tsx: string): string[] {
 }
 
 describe("every docs snippet, as Solid", () => {
-  // The literals of `src/pages/docs` that hold markup, read the way
+  // The literals of the docs' files that hold markup, read the way
   // `tests/stylex-coverage.spec.ts` reads them (a `${…}` hole stands as a
   // name). A sketch's ellipsis stands for code the reader fills in, so it is
   // read as a name too; what then remains is held to parsing.
   const snippets: { file: string; code: string }[] = []
   const cut: { file: string; code: string }[] = []
-  for (const file of files(DOCS))
+  for (const file of DOCS.flatMap(files))
     for (const m of readFileSync(file, "utf8").matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
       if (!/<[A-Za-z]/.test(m[1])) continue
       const code = m[1]
@@ -721,12 +723,16 @@ describe("every docs snippet, as Solid", () => {
       // snippet built from a nested template literal, a tag quoted in a
       // comment), not a snippet.
       const bare = code.replace(/<!--[\s\S]*?-->/g, "")
-      ;(bare.indexOf(">", bare.lastIndexOf("<")) < 0 ? cut : snippets).push({ file: file.slice(DOCS.length + 1), code })
+      ;(bare.indexOf(">", bare.lastIndexOf("<")) < 0 ? cut : snippets).push({ file: file.slice(REPO.length + 1), code })
     }
 
   it("finds the docs' snippets, and only pieces of literals are left out", () => {
     expect(snippets.length).toBeGreaterThan(270)
-    expect(cut.map((c) => c.file).sort()).toEqual(["DocsPage.vue", "animations/AnimationsDocs.vue", "svelte-code.ts"])
+    expect(cut.map((c) => c.file).sort()).toEqual([
+      "solid-site/src/pages/docs/DocsPage.tsx",
+      "solid-site/src/pages/docs/animations/AnimationsDocs.tsx",
+      "src/pages/docs/svelte-code.ts",
+    ])
   })
 
   it("translates each into TSX that parses, in every styling system", () => {

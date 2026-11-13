@@ -1,6 +1,6 @@
 import { describe, expect, it } from "rstack/test"
 import UTILITIES from "virtual-dither-utilities"
-import { compileUtilities, Names, restyle, stylexText } from "../src/shared/lib/restyle"
+import { compileUtilities, Names, restyle, stylexText } from "../src/shared/lib/restyle-rewrite"
 import { buildUtilityMap } from "../src/shared/lib/utility-map"
 
 const decls = (tokens: string[], strict = false) =>
@@ -66,7 +66,7 @@ describe("compileUtilities", () => {
 describe("StyleX as its compiler takes it", () => {
   // The kit's vocabulary (what the StyleX layer is generated from) holds the
   // shapes the docs' does not: a placeholder, a clamp, a ring with an offset.
-  const kit = buildUtilityMap(process.cwd(), ["dither-kit/tailwind"])
+  const kit = buildUtilityMap(process.cwd(), ["dither-kit/solid", "dither-kit/tailwind"])
   const create = async (tokens: string) => {
     const names = new Names()
     names.claim("box", compileUtilities(tokens.split(" "), true, await kit))

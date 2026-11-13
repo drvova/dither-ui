@@ -6,7 +6,7 @@
 // January). The Svelte kit carries the same loop inline.
 import { readFileSync } from "node:fs"
 import { afterEach, expect, it } from "rstack/test"
-import { startCartesianLoop } from "@dither-kit/engine/cartesian-canvas"
+import { startCartesianLoop } from "@dither-kit/engine/cartesian-loop"
 
 const frames: FrameRequestCallback[] = []
 const realRaf = globalThis.requestAnimationFrame

@@ -1,6 +1,5 @@
 // The two scripts the site ships that stand alone, each one classic file
-// built on its own beside the client's chunks (the same files, at the same
-// paths, as the `sw` and `player` environments of `../rstack.config.ts`):
+// built on its own beside the client's chunks:
 //
 // `sw.js`, the Studio's service worker (`../src/app/sw.ts`, the rules of
 // `../src/app/offline.ts`), with the list of what the Studio loads drawn

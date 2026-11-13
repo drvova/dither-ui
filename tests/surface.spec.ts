@@ -1,9 +1,10 @@
 // @rstest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
-import { defineComponent, h, nextTick, ref } from "vue"
-import { mount } from "@vue/test-utils"
 import { release, seek } from "../dither-kit/engine/clock"
-import { surfaceOf, useDitherBackground, type DitherSurface } from "../dither-kit/engine/use-dither-background"
+import { createSurfaceLoop, surfaceOf, type SurfaceLoop } from "../dither-kit/engine/surface-loop"
+
+/** What a binding waits for before it reads a changed prop. */
+const nextTick = () => Promise.resolve()
 
 /** jsdom has no canvas: a 2D context that can take an upload. */
 const fakeContext = {
@@ -12,32 +13,28 @@ const fakeContext = {
 }
 const realGetContext = HTMLCanvasElement.prototype.getContext
 
-function surfaceComponent(render: (clock: number) => void, paused = () => false, restart: () => unknown = () => null) {
-  let handle: DitherSurface | null = null
-  const Comp = defineComponent({
-    setup() {
-      const wrapRef = ref<HTMLElement | null>(null)
-      const canvasRef = ref<HTMLCanvasElement | null>(null)
-      handle = useDitherBackground({
-        wrapRef,
-        canvasRef,
-        cell: 4,
-        maxCols: 8,
-        maxRows: 8,
-        dpr: () => 1,
-        paused,
-        renderMode: () => "live",
-        precompiled: () => undefined,
-        restart,
-        render: (buffer, clock) => {
-          buffer.data.fill(Math.round(clock * 10))
-          render(clock)
-        },
-      })
-      return () => h("div", { ref: wrapRef }, [h("canvas", { ref: canvasRef })])
+/** A surface as a binding drives it (`solid/runtime/surface.ts`): the loop
+ * mounted on its elements, restarted and paused by hand. */
+function surfaceOn(render: (clock: number) => void, paused = () => false) {
+  const wrap = document.createElement("div")
+  const canvas = wrap.appendChild(document.createElement("canvas"))
+  const loop: SurfaceLoop = createSurfaceLoop({
+    wrap: () => wrap,
+    canvas: () => canvas,
+    cell: 4,
+    maxCols: 8,
+    maxRows: 8,
+    dpr: () => 1,
+    paused,
+    renderMode: () => "live",
+    precompiled: () => undefined,
+    render: (buffer, clock) => {
+      buffer.data.fill(Math.round(clock * 10))
+      render(clock)
     },
   })
-  return { Comp, handle: () => handle! }
+  loop.mount()
+  return { loop, canvas, handle: () => loop.surface, unmount: () => loop.dispose() }
 }
 
 beforeEach(() => {
@@ -55,10 +52,9 @@ afterEach(() => {
 describe("DitherSurface: the render graph's edge", () => {
   it("pull paints a directed moment once, whoever asks first, and registers by canvas", async () => {
     const painted: number[] = []
-    const { Comp, handle } = surfaceComponent((c) => painted.push(c))
-    const w = mount(Comp)
+    const w = surfaceOn((c) => painted.push(c))
     await nextTick()
-    const s = handle()
+    const s = w.handle()
     expect(s.raster()).toBeNull()
     seek(1000)
     expect(painted).toEqual([1])
@@ -76,18 +72,17 @@ describe("DitherSurface: the render graph's edge", () => {
     // Back in time still paints (a new moment), and the canvas finds its surface.
     seek(500)
     expect(painted).toEqual([1, 2, 0.5])
-    expect(surfaceOf(w.find("canvas").element as HTMLCanvasElement)).toBe(s)
-    expect(s.canvas()).toBe(w.find("canvas").element)
+    expect(surfaceOf(w.canvas)).toBe(s)
+    expect(s.canvas()).toBe(w.canvas)
     expect(surfaceOf(document.createElement("canvas"))).toBeNull()
     w.unmount()
   })
   it("free-running, pull returns the latest raster without painting", async () => {
     const painted: number[] = []
-    const { Comp, handle } = surfaceComponent((c) => painted.push(c))
-    const w = mount(Comp)
+    const w = surfaceOn((c) => painted.push(c))
     await nextTick()
-    expect(handle().pull(null)).toBeNull()
-    expect(handle().pull(3000)).toBeNull()
+    expect(w.handle().pull(null)).toBeNull()
+    expect(w.handle().pull(3000)).toBeNull()
     expect(painted).toEqual([])
     w.unmount()
   })
@@ -116,18 +111,18 @@ describe("a paused surface", () => {
       for (const cb of due) cb(now)
     }
     const painted: number[] = []
-    const paused = ref(false)
-    const { Comp } = surfaceComponent(
+    let paused = false
+    const w = surfaceOn(
       (c) => painted.push(c),
-      () => paused.value,
+      () => paused,
     )
-    const w = mount(Comp)
     await nextTick()
     run(100)
     expect(painted).toEqual([])
     // Into view, then paused before the frame it asked for: that frame paints.
     show()
-    paused.value = true
+    paused = true
+    w.loop.pausedChanged(true)
     await nextTick()
     run(200)
     expect(painted).toHaveLength(1)
@@ -140,7 +135,7 @@ describe("a paused surface", () => {
 })
 
 describe("a surface driven every frame", () => {
-  it("paints while a restart prop changes every frame, never starved by its own restarts", async () => {
+  it("paints while it is restarted every frame, never starved by its own restarts", async () => {
     rs.stubGlobal(
       "IntersectionObserver",
       class {
@@ -155,21 +150,16 @@ describe("a surface driven every frame", () => {
     let id = 0
     rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => (frames.set(++id, cb), id))
     rs.stubGlobal("cancelAnimationFrame", (n: number) => frames.delete(n))
-    const driven = ref(0)
     let paints = 0
-    const { Comp } = surfaceComponent(
-      () => paints++,
-      () => false,
-      () => driven.value,
-    )
-    const w = mount(Comp)
+    const w = surfaceOn(() => paints++)
     await nextTick()
-    // each frame the page's own callback moves the prop first, then the surface's runs
-    // as a browser does: the frame's callbacks in order, a cancelled one skipped,
-    // microtasks (Vue's flush) run between them
+    // each frame the page's own callback moves a restart prop first (the
+    // binding restarts the loop), then the surface's runs as a browser does:
+    // the frame's callbacks in order, a cancelled one skipped, microtasks
+    // run between them
     for (let f = 1; f <= 10; f++) {
       const due = [...frames.keys()]
-      driven.value = f
+      w.loop.start()
       await nextTick()
       await nextTick()
       for (const n of due) {
@@ -282,30 +272,23 @@ describe("a surface reads the page once, not once a frame", () => {
     return { contexts, boxes: before, resized }
   }
 
-  it("the Vue runtime measures its box and asks for its context once", async () => {
+  it("the engine's loop measures its box and asks for its context once", async () => {
     let paints = 0
     const read = await tenFrames((wrap, canvas) => {
-      const w = mount(
-        defineComponent({
-          setup() {
-            useDitherBackground({
-              wrapRef: ref(wrap),
-              canvasRef: ref(canvas),
-              cell: 4,
-              maxCols: 8,
-              maxRows: 8,
-              dpr: () => 1,
-              paused: () => false,
-              renderMode: () => "live",
-              precompiled: () => undefined,
-              restart: () => null,
-              render: () => void paints++,
-            })
-            return () => h("div")
-          },
-        }),
-      )
-      return () => w.unmount()
+      const loop = createSurfaceLoop({
+        wrap: () => wrap,
+        canvas: () => canvas,
+        cell: 4,
+        maxCols: 8,
+        maxRows: 8,
+        dpr: () => 1,
+        paused: () => false,
+        renderMode: () => "live",
+        precompiled: () => undefined,
+        render: () => void paints++,
+      })
+      loop.mount()
+      return () => loop.dispose()
     })
     expect(paints).toBeGreaterThanOrEqual(8)
     expect(read).toEqual({ contexts: 1, boxes: 1, resized: 1 })
@@ -321,6 +304,7 @@ describe("a surface reads the page once, not once a frame", () => {
         maxCols: 8,
         maxRows: 8,
         dpr: 1,
+        restartKey: "",
         render: () => void paints++,
       })
       return () => action.destroy()
@@ -350,11 +334,10 @@ describe("a held surface out of view", () => {
       },
     )
     let paints = 0
-    const { Comp } = surfaceComponent(
+    const w = surfaceOn(
       () => paints++,
       () => true,
     )
-    const w = mount(Comp)
     await nextTick()
     await nextTick()
     const { ditherBackground } = await import("../dither-kit-svelte/runtime/use-dither-background")
@@ -365,6 +348,7 @@ describe("a held surface out of view", () => {
       maxRows: 8,
       dpr: 1,
       paused: true,
+      restartKey: "",
       render: () => void paints++,
     })
     expect(paints).toBe(0)

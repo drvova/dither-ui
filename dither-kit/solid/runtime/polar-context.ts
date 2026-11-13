@@ -1,18 +1,18 @@
-// Solid's binding of the polar chart context (`engine/polar-context.ts`
+// Solid's binding of the polar chart context (`engine/chart-types.ts`
 // holds the types): the context, its boundary guards and the controller a
 // polar root builds.
 
 import { createContext, createEffect, createMemo, createSignal, on, useContext } from "solid-js"
-import type { ChartConfig, Margins } from "../../engine/chart-context"
-import type { CommonChart, TooltipItem } from "../../engine/common-context"
+import type { ChartConfig, Margins } from "../../engine/chart-types"
+import type { CommonChart, TooltipItem } from "../../engine/chart-types"
 import type { BloomInput, EasingInput, VariantInput } from "../../engine/dither-paint"
 import { type Seed, seedFromColor } from "../../engine/palette"
 import { pieSlices, radarAxes } from "../../engine/polar"
-import type { PolarChartContextValue } from "../../engine/polar-context"
-import type { Dimensions } from "../../engine/use-chart-dimensions"
+import type { PolarChartContextValue } from "../../engine/chart-types"
+import type { Dimensions } from "../../engine/chart-types"
 import { useVariantMatrix } from "./screen"
 
-export type { PolarChartContextValue } from "../../engine/polar-context"
+export type { PolarChartContextValue } from "../../engine/chart-types"
 
 type Row = Record<string, unknown>
 

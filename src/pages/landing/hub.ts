@@ -56,7 +56,7 @@ export const DOCS_FAMILIES: DocsFamily[] = [
  * leads into its docs section. Planned as one picture: neighbours, across
  * and down, are different kinds (a moving surface beside a figure, a
  * control or a statement, never two moving surfaces side by side), and no
- * card repeats another's words. Its layout lives on `Examples.vue`'s
+ * card repeats another's words. Its layout lives on `Examples.tsx`'s
  * `.t-<id>` cards. */
 export type BentoTile = { id: string; label: string; family: string }
 export const BENTO: BentoTile[] = [

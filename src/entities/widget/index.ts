@@ -7,7 +7,6 @@ export {
   REEL_TRANSITIONS,
   type SimpleWidgetKind,
 } from "./model/factory"
-export { widgetCode } from "./model/codegen"
 export {
   COMPONENT_REGISTRY,
   boundProps,

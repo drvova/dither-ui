@@ -1,8 +1,8 @@
 // The docs previews' source panel on Solid: the files a preview is made of,
 // the compiler and the linker behind Run, the kits' served sources, and a
-// DemoCard opened to its files, edited and run. The Vue site's
+// DemoCard opened to its files, edited and run. The earlier Vue site's
 // `tests/source.spec.ts`, case for case where the behaviour is this site's
-// too (the zip, the sounds and the StyleX runtime are the Vue site's own
+// too (the zip, the sounds and the StyleX runtime are the earlier Vue site's own
 // modules, held there).
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
@@ -312,13 +312,14 @@ export const mode = import.meta.env.MODE`,
     const files = (dir: string): string[] =>
       readdirSync(dir).flatMap((n) => {
         const p = join(dir, n)
-        return statSync(p).isDirectory() ? files(p) : /\.(vue|ts)$/.test(n) ? [p] : []
+        return statSync(p).isDirectory() ? files(p) : /\.tsx?$/.test(n) ? [p] : []
       })
-    const docs = join(process.cwd(), "../src/pages/docs")
+    const repo = join(process.cwd(), "..")
+    const docs = [join(repo, "solid-site/src/pages/docs"), join(repo, "src/pages/docs")]
     const names = new Set(SOLID_INDEX.keys())
     const failures: string[] = []
     let snippets = 0
-    for (const file of files(docs)) {
+    for (const file of docs.flatMap(files)) {
       // the translator's own source: its literals name constructs, they are not snippets
       if (file.endsWith("svelte-code.ts")) continue
       for (const m of readFileSync(file, "utf8").matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
@@ -336,7 +337,7 @@ export const mode = import.meta.env.MODE`,
           try {
             compile("Example.tsx", restyleSolid(tsx, system).code)
           } catch (e) {
-            failures.push(`${file.slice(docs.length + 1)} (${system}): ${(e as Error).message}`)
+            failures.push(`${file.slice(repo.length + 1)} (${system}): ${(e as Error).message}`)
           }
       }
     }

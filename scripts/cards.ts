@@ -1,9 +1,8 @@
 // What a build does in a browser once its pages stand: every share card
 // drawn by the build's own renderer page (og/index.html, src/pages/docs/
 // og-page.ts), each section's Discord embed saying its own lede, and the
-// Studio's agent registry read off the mounted app. One copy for both
-// builds: scripts/prerender.mjs (the Vue site's dist) and
-// solid-site/scripts/postbuild.mjs (the Solid site's .output/public).
+// Studio's agent registry read off the mounted app. Run by the site's
+// post-build (solid-site/scripts/postbuild.mjs, over .output/public).
 // Loaded by Node as it is (type stripping): erasable syntax only.
 import { createHash } from "node:crypto"
 import { createReadStream, existsSync } from "node:fs"
@@ -139,7 +138,7 @@ export function refinedEmbed(json: string, section: CardSection, lede: string): 
   return Buffer.byteLength(out) <= 3000 ? out : null
 }
 
-/** Rewrites `dist/embed/<id>.json` to say the section's lede. */
+/** Rewrites `<dist>/embed/<id>.json` to say the section's lede. */
 export async function refineEmbed(dist: string, section: CardSection, lede: string): Promise<boolean> {
   const path = join(dist, "embed", `${section.id}.json`)
   const json = await readFile(path, "utf8").catch(() => "null")

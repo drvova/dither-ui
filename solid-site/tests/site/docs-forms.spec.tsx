@@ -16,7 +16,6 @@ import { TYPOGRAPHY_NAV } from "@/pages/docs/typography/typography-nav"
 import FormsDocs from "../../src/pages/docs/forms/FormsDocs"
 import EngineSection from "../../src/pages/docs/handbook/EngineSection"
 import VerificationSection from "../../src/pages/docs/handbook/VerificationSection"
-import { SOLID_STEPS } from "../../src/pages/docs/install"
 import QuickStart from "../../src/pages/docs/overview/QuickStart"
 import PrimitivesDocs from "../../src/pages/docs/primitives/PrimitivesDocs"
 import { setDocsFramework } from "../../src/pages/docs/svelte"
@@ -258,7 +257,7 @@ describe("the Quick start", () => {
     const section = container.querySelector("section#getting-started")!
     expect(section.querySelector("h2")!.textContent).toBe("Quick start")
     expect(stepsOf(container)).toEqual(
-      SOLID_STEPS.map((s, i) => ({ n: String(i + 1), title: s.title, why: s.why, code: s.code })),
+      INSTALL_STEPS.solid.map((s, i) => ({ n: String(i + 1), title: s.title, why: s.why, code: s.code })),
     )
     const lede = section.querySelector("p")!.textContent!.replace(/\s+/g, " ").trim()
     expect(lede).toBe(

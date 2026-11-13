@@ -1,5 +1,5 @@
 // The Solid ports of the controls, overlays, text and cursor widgets from
-// ColorPicker to TargetCursor, held to what their Vue twins do: each renders
+// ColorPicker to TargetCursor, held to what their Vue twins did: each renders
 // its content under its role and name, reports a change through its
 // callback, and the ones with a canvas paint it.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"

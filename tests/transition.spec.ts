@@ -22,9 +22,9 @@ function fakeTransition() {
   let end!: () => void
   const t = {
     skipped: false,
-    ready: new Promise<void>((r) => (begin = r)),
-    finished: new Promise<void>((r) => (end = r)),
-    updateCallbackDone: Promise.resolve(),
+    ready: new Promise<undefined>((r) => (begin = () => r(undefined))),
+    finished: new Promise<undefined>((r) => (end = () => r(undefined))),
+    updateCallbackDone: Promise.resolve(undefined),
     skipTransition() {
       t.skipped = true
       end()

@@ -3,10 +3,10 @@
 // browser tab's, the home screen's, the install prompt's, plain and
 // maskable) and the head that points at them, all drawn from the brand
 // mark's own cells (`shared/ui/brand-mark.ts`) on the landing's obsidian,
-// never hand-drawn. The build emits every file here (`rstack.config.ts`,
-// the `installFiles` plugin) and injects `installHead` into each route. Node-side only:
-// rstack.config.ts loads it under Node's own TypeScript, so its imports
-// carry `.ts`.
+// never hand-drawn. The build emits every file here
+// (`solid-site/site-files.ts`); the shell and the Studio's route render the
+// head tags. Node-side only: the build's config loads it under Node's own
+// TypeScript, so its imports carry `.ts`.
 import { deflateSync } from "node:zlib"
 import { ROUTE_CARDS } from "../pages/docs/crawler-files.ts"
 import { MARK_CELLS } from "../shared/ui/brand-mark.ts"

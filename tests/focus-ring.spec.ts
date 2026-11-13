@@ -7,10 +7,17 @@ import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
 
-const ROOTS = ["dither-kit/tailwind", "dither-kit-svelte", "src", "svelte-site/src"]
+const ROOTS = [
+  "dither-kit/solid",
+  "dither-kit/tailwind",
+  "dither-kit-svelte",
+  "src",
+  "solid-site/src",
+  "svelte-site/src",
+]
 const root = new URL("..", import.meta.url).pathname
 
-function* sources(dir: string, kinds = /\.(vue|ts|svelte)$/): Generator<string> {
+function* sources(dir: string, kinds = /\.(tsx?|svelte)$/): Generator<string> {
   for (const name of readdirSync(dir)) {
     if (name === "node_modules" || name.startsWith(".")) continue
     const path = join(dir, name)
@@ -51,7 +58,7 @@ describe("focus indicators", () => {
     const INDICATOR = /(?:border(?:-[a-z]+)?(?:-color)?|outline(?:-color)?|box-shadow)\s*:\s*([^;]+)/g
     const off: string[] = []
     for (const dir of ROOTS)
-      for (const file of sources(join(root, dir), /\.(vue|svelte|css)$/)) {
+      for (const file of sources(join(root, dir), /\.(svelte|css)$/)) {
         const text = readFileSync(file, "utf8")
         for (const rule of text.matchAll(RULE))
           for (const decl of rule[2].matchAll(INDICATOR))

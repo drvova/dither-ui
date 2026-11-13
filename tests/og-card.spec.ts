@@ -63,8 +63,8 @@ describe("share card art", () => {
   })
 
   it("prints the hero's own composition on the home card, through Bayer as the hero does", () => {
-    const hero = readFileSync(`${root}/src/pages/landing/Showcase.vue`, "utf8")
-    expect(hero).toMatch(new RegExp(`<DitherPoster :seed="${OG_HERO_SEED}" :inks="INKS"`))
+    const hero = readFileSync(`${root}/solid-site/src/pages/landing/Showcase.tsx`, "utf8")
+    expect(hero).toMatch(new RegExp(`<DitherPoster seed=\\{${OG_HERO_SEED}\\} inks=\\{INKS\\}`))
     expect(home.seed).toBe(OG_HERO_SEED)
     expect(ogScreen(home)).toBe("bayer")
     expect([...OG_PRINT_INKS.night]).toEqual(INKS)

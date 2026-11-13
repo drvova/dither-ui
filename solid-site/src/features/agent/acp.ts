@@ -1,6 +1,3 @@
-// The Vue site's `src/features/agent/acp.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 // The composer as an Agent Client Protocol client, through the local bridge.
 //
 // ACP (JSON-RPC 2.0, agentclientprotocol.com) is how editors drive coding

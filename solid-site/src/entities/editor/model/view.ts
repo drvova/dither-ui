@@ -1,6 +1,3 @@
-// The Vue site's `src/entities/editor/model/view.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 // The canvas view: where the viewport looks and how near, steered over the
 // stage the canvas measured. The canvas's bar and keys, its gestures and the
 // agent's `view` command all move it through these, so a zoom reads the same

@@ -12,7 +12,7 @@ export const COMPONENT_COUNT = 270
 /** The threshold matrix every surface prints through, as the page writes it. */
 export const MATRIX = `${SCREENS.bayer.length}×${SCREENS.bayer[0].length}`
 
-/** The packages the kit needs beside Vue (its peer dependencies), in the
+/** The packages the kit needs beside Solid (its peer dependencies), in the
  * order the install step names them. */
 export const RUNTIME_DEPS = ["d3-scale", "d3-shape", "clsx", "tailwind-merge"] as const
 

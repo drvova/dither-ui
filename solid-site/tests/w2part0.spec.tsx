@@ -1,5 +1,5 @@
 // The Solid kit's inputs, text pieces and small utilities, held to what
-// their Vue twins do: each renders its content under its role and name,
+// their Vue twins did: each renders its content under its role and name,
 // reports a change through its callback, and keeps its keyboard path.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"

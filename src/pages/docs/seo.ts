@@ -5,7 +5,7 @@ import { GROUPS, SECTIONS, type DocsGroup } from "./groups.ts"
 // render client-side from one HTML entry, so Google's JS renderer is what sees
 // the actual page — this module keeps the `<title>`, canonical, description,
 // and breadcrumb structured data in sync with the section in view. It is also
-// the source for the build-time sitemap (see rstack.config.ts).
+// the source for the build-time sitemap (see `crawler-files.ts`).
 export const SITE_URL = "https://dither-ui.com"
 export const REPO_URL = "https://github.com/drvova/dither-ui"
 

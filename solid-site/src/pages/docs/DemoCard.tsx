@@ -18,7 +18,7 @@ import { routePath } from "~/shared/lib"
 import { setStyling, STYLING_LABELS } from "~/shared/lib/restyle"
 import { play } from "~/shared/lib/sound"
 import type { RunResult, SourceContext } from "~/widgets/source"
-import { INSTALL } from "./install"
+import { INSTALL } from "@/pages/docs/install"
 import { docsFiles, docsFramework, docsStyling, docsStylings, restoreDocsFramework, setDocsFramework } from "./svelte"
 import "./DemoCard.css"
 

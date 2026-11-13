@@ -1,7 +1,7 @@
 // The docs' page on Solid: the shell around the sections (the rail, the
 // sheet, "On this page", Share), one section per page by its route, the
 // packs as chunks of their own and the ones kept, the page's head, and the
-// routes' wiring. Carried from the Vue site's `tests/docs-packs.spec.ts`,
+// routes' wiring. Carried from the earlier Vue site's `tests/docs-packs.spec.ts`,
 // `tests/docs-rail.spec.ts` and `tests/docs-sheet.spec.ts`.
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
@@ -478,7 +478,7 @@ describe("the docs' page", () => {
       crumbType: document.getElementById("docs-breadcrumb")?.getAttribute("type"),
     })
     // The docs' own address says in a preview what the head table says of
-    // it (the Vue site's entry page, word for word); a section, its meta.
+    // it (the earlier Vue site's entry page, word for word); a section, its meta.
     const front = (key: string) =>
       pageTags("docs").flatMap((t) =>
         t.tag === "meta" && (t.attrs.property ?? t.attrs.name) === key ? [t.attrs.content] : [],

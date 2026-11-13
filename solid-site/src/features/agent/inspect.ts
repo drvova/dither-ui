@@ -1,6 +1,3 @@
-// The Vue site's `src/features/agent/inspect.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 // The workbench's Inspect for a harness: what a frame on the canvas reads
 // as, from the live DOM: its controls in Tab order (role, name, states and
 // box) and what the accessibility floor finds (names, 24px targets,

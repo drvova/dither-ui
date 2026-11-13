@@ -1,5 +1,5 @@
 // The Studio's page on Solid (`src/pages/studio/`, `src/routes/studio.tsx`),
-// held to what its Vue twin does. Carried from the Vue site's
+// held to what its Vue twin did. Carried from the earlier Vue site's
 // `tests/studio-columns.spec.ts` (the side columns, a deleted project's
 // chats), `tests/studio-shell.spec.ts` (a row's menu, the search; the
 // page's own keys are in `state.spec.tsx`) and `tests/studio-guide.spec.ts`
@@ -240,7 +240,7 @@ describe("the route's head", () => {
     await tick()
     expect(document.title).toBe(ROUTE_TITLES.studio)
     expect(document.documentElement.dataset.page).toBe("studio")
-    // the app's own tags of the one table the Vue build injects from (the
+    // the app's own tags of the one table the Vue build injected from (the
     // icons are the shell's, on every page)
     for (const t of APP_HEAD) {
       const el = head(

@@ -1,6 +1,3 @@
-// The Vue site's `src/features/agent/film.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 // The launch film: a short film of the kit's own frames, built through the
 // protocol (every command validated like an agent's) and cut into a reel
 // with camera moves, callouts, chapters and a score. The Studio's

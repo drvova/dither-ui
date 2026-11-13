@@ -1,6 +1,6 @@
-// The share card renderer, built as its own page (`dist/og/index.html`,
-// the `og/index` entry in rstack.config.ts): one 1200x630 canvas. The
-// prerender asks `window.og.files(id)` for every card's PNG and GIF; the
+// The share card renderer, built as its own page (`og/index.html`, by
+// `solid-site/scripts/og-page.ts`): one 1200x630 canvas. The post-build
+// asks `window.og.files(id)` for every card's PNG and GIF; the
 // Discord service draws re-rolled and day cards with
 // `window.og.files(id, seed, inv)`. `?id=<card>&seed=<n>&inv=<0|1>` draws a
 // card's first frame and flips the title to "og-ready"; `&play` loops it in

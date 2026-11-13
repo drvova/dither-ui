@@ -1,10 +1,10 @@
-// Solid's binding of the cartesian chart context (`engine/chart-context.ts`
+// Solid's binding of the cartesian chart context (`engine/chart-types.ts`
 // holds the types): the context, its boundary guards and the controller a
 // chart root builds.
 
 import { createContext, createEffect, createMemo, createSignal, on, untrack, useContext } from "solid-js"
-import type { ChartContextValue, ChartConfig, ChartType, Margins, SeriesSpec } from "../../engine/chart-context"
-import type { CommonChart, TooltipItem } from "../../engine/common-context"
+import type { ChartContextValue, ChartConfig, ChartType, Margins, SeriesSpec } from "../../engine/chart-types"
+import type { CommonChart, TooltipItem } from "../../engine/chart-types"
 import type { BloomInput, EasingInput } from "../../engine/dither-paint"
 import { type Seed, seedFromColor } from "../../engine/palette"
 import {
@@ -16,7 +16,7 @@ import {
   nearestIndex,
   type StackType,
 } from "../../engine/scales"
-import type { Dimensions } from "../../engine/use-chart-dimensions"
+import type { Dimensions } from "../../engine/chart-types"
 import { useVariantMatrix } from "./screen"
 
 export type {
@@ -30,7 +30,7 @@ export type {
   StrokeVariant,
   TextureConfig,
   VariantInput,
-} from "../../engine/chart-context"
+} from "../../engine/chart-types"
 
 type Row = Record<string, unknown>
 

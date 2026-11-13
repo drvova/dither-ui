@@ -1,5 +1,4 @@
-// The Solid twin of the Vue site's `src/entities/widget/model/codegen.ts`:
-// a frame's widget as a Solid component file (`.tsx`), on the kit's Solid
+// A frame's widget as a Solid component file (`.tsx`), on the kit's Solid
 // layer (props camelCase, a model as its prop and `on<Event>` callback, the
 // slot as children, state as a signal).
 import { boundProps, componentEntry, fieldLabel } from "@/entities/widget/model/registry"

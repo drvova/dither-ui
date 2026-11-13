@@ -1,11 +1,8 @@
-// @rstest-environment jsdom
 // The scope: its waves, the signal read across the screen, the beam it
 // prints (bright on a flat stretch, faint on an edge, a glow beside it, an
 // afterglow of earlier phases behind a named wave only, the same moment the
 // same bytes) and the component as a named picture.
-import { mount } from "@vue/test-utils"
 import { describe, expect, it } from "rstack/test"
-import { DitherScope } from "@dither-kit"
 import { scopeEnergy, signalAt, waveAt, type ScopeTrace } from "@dither-kit/engine/scope"
 
 const W = 40
@@ -70,17 +67,5 @@ describe("the beam", () => {
     expect(scopeEnergy(W, H, trace({ phase: 0.42, afterglow: 0.6 }))).toEqual(
       scopeEnergy(W, H, trace({ phase: 0.42, afterglow: 0.6 })),
     )
-  })
-})
-
-describe("the component", () => {
-  it("is a picture named by its label, or by its wave", () => {
-    const named = mount(DitherScope, { props: { label: "ch1" } })
-    expect(named.get('[role="img"]').attributes("aria-label")).toBe("ch1")
-    expect(named.text()).toContain("ch1")
-    named.unmount()
-    const plain = mount(DitherScope, { props: { signal: "square" } })
-    expect(plain.get('[role="img"]').attributes("aria-label")).toBe("square wave")
-    plain.unmount()
   })
 })

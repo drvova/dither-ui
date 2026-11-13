@@ -92,7 +92,7 @@ export const OG_DRIFT = 16
 /** The loop's beats, as phases: at rest, the swell, the whole print turned
  * over, the recede, at rest again (to 1). */
 export const OG_BEATS = { swell: 0.28, over: 0.48, recede: 0.6, rest: 0.8 } as const
-/** The hero print's seed (`landing/Showcase.vue`), the home card's. */
+/** The hero print's seed (`landing/Showcase.tsx`), the home card's. */
 export const OG_HERO_SEED = 5
 /** The brand's top left, the type's column (from the left margin to a
  * gutter short of the print) and its line's lead, and the title's size at

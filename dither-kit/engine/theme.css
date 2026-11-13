@@ -1,7 +1,7 @@
 /* The kit's design tokens — shadcn-style custom properties every component
    reads (text-foreground, bg-card, border-border, …) and the swatches the
    palette mirrors. Plain CSS, no Tailwind in it: the app imports it under
-   Tailwind, the standalone stylesheet (kit.css → dist/kit/dither-kit.css)
+   Tailwind, the standalone stylesheet (kit.css → kit/dither-kit.css)
    ships it, and any styling system themes the kit by redefining these
    properties — a stylesheet, StyleX's defineVars, or theme.ts from JS.
    Light at :root, dark under .dark. */

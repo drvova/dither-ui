@@ -1,5 +1,5 @@
 // The workbench in Solid (`src/widgets/workbench/`), held to what its Vue
-// twin does: the controller's undoable workspace, its keys and its Escape
+// twin did: the controller's undoable workspace, its keys and its Escape
 // ladder, every layer of the overlay and every panel under the frame, the
 // feedback sent to an agent or copied, and what unmounting gives back.
 import { cleanup, render } from "@solidjs/testing-library"

@@ -1,5 +1,5 @@
-// The Solid twin of the Vue site's `src/entities/chart/model/codegen.ts`: a
-// chart frame as a Solid component file (`.tsx`) on the kit's Solid layer.
+// A chart frame as a Solid component file (`.tsx`) on the kit's Solid
+// layer.
 import { LABEL_KEY } from "@/entities/chart/model/data"
 import { activeSeries, dataOf } from "@/entities/chart/model/derive"
 import { defaultEasing } from "@/entities/chart/model/factory"

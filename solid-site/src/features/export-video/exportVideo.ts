@@ -1,6 +1,3 @@
-// The Vue site's `src/features/export-video/exportVideo.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 // Delivering a composition: the Studio's own download, the live preview link,
 // and the two agent paths (a browser download for the in-page loop, files for
 // the bridge to write under the harness's project).
@@ -66,7 +63,7 @@ async function fetchText(url: string): Promise<string> {
 }
 
 let assets: Promise<{ js: string; css: string }> | null = null
-/** The built player (dist/play/player.js + player.css), fetched once. */
+/** The built player (play/player.js + player.css), fetched once. */
 export function playerAssets(): Promise<{ js: string; css: string }> {
   assets ??= Promise.all(playerAssetUrls().map((a) => fetchText(a.url))).then(([js, css]) => ({ js, css }))
   assets.catch(() => (assets = null))

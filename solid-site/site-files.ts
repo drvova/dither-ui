@@ -5,9 +5,7 @@
 // install surface (the Studio's manifest and every icon, drawn from the
 // brand mark), the mascot's capture the docs' World section prints, and the
 // bridge at the path the Studio's setup line fetches. Served in dev,
-// emitted with the browser's assets in a build. The same paths and bytes as
-// the Vue site's build (`crawlFiles`, `installFiles`, `captureFiles` and
-// `bridgeFile` in `../rstack.config.ts`).
+// emitted with the browser's assets in a build.
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import type { Plugin } from "vite"

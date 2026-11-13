@@ -1,5 +1,5 @@
 // Controls, overlays, text and widgets of the Solid kit, held to what their
-// Vue twins do: each shows its content under its role and name, reports a
+// Vue twins did: each shows its content under its role and name, reports a
 // change through its callback, and keeps its keyboard and focus rules.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"

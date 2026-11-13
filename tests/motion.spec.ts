@@ -17,12 +17,22 @@ const read = (p: string) => readFileSync(join(root, p), "utf8")
 
 /** The site's own motion: its stylesheets, pages and widgets (the docs'
  * content and the Studio's easing editor teach curves; they are not motion). */
-const MOTION_ROOTS = ["src/app", "src/pages/landing", "src/widgets/site-header", "svelte-site/src/landing"]
+const MOTION_ROOTS = [
+  "src/app",
+  "src/pages/landing",
+  "src/widgets/site-header",
+  "solid-site/src/pages/landing",
+  "solid-site/src/widgets/site-header",
+  "svelte-site/src/landing",
+]
 const MOTION_FILES = [
-  "src/pages/docs/DocsNav.vue",
-  "src/pages/docs/DocsSheet.vue",
-  "src/pages/studio/StudioPage.vue",
-  "src/widgets/toolbar/Toolbar.vue",
+  "solid-site/src/pages/docs/DocsNav.tsx",
+  "solid-site/src/pages/docs/DocsNav.css",
+  "solid-site/src/pages/docs/DocsSheet.tsx",
+  "solid-site/src/pages/studio/StudioPage.tsx",
+  "solid-site/src/pages/studio/StudioPage.css",
+  "solid-site/src/widgets/toolbar/Toolbar.tsx",
+  "solid-site/src/widgets/toolbar/Toolbar.css",
   "src/shared/lib/rise.ts",
 ]
 
@@ -30,7 +40,7 @@ function* files(dir: string): Generator<string> {
   for (const name of readdirSync(join(root, dir))) {
     const path = join(dir, name)
     if (statSync(join(root, path)).isDirectory()) yield* files(path)
-    else if (/\.(vue|svelte|css|ts)$/.test(name)) yield path
+    else if (/\.(tsx|svelte|css|ts)$/.test(name)) yield path
   }
 }
 

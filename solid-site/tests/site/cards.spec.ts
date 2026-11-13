@@ -2,7 +2,7 @@
 // The post-build's pure parts (`scripts/postbuild.mjs`): the Chromium it
 // draws with, the server it draws from, the renderer page it builds, what a
 // section's embed says, the cards' cache marker, the registry's file, and
-// the kit's standalone stylesheet (the Vue site's `tests/kit-css.spec.ts`,
+// the kit's standalone stylesheet (the earlier Vue site's `tests/kit-css.spec.ts`,
 // held here for the Solid layer). The browser's parts are held by the build
 // itself, which fails when a card or the registry does.
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
@@ -22,7 +22,6 @@ import {
   servedFile,
   writeAgentRegistry,
 } from "../../../scripts/cards"
-// @ts-expect-error the kit stylesheet's compiler is a plain script with no types
 import { buildKitCss } from "../../../scripts/kit-css.mjs"
 import { ogPage } from "../../scripts/og-page"
 
@@ -91,14 +90,14 @@ describe("the server the cards are drawn from", () => {
 })
 
 describe("the renderer page", () => {
-  const shell = read("og/index.html")
+  const shell = read("solid-site/scripts/og-shell.html")
 
-  it("is the Vue build's own shell and script: one canvas, noindex, loading until its cards are", () => {
+  it("is one shell and one framework-free script: one canvas, noindex, loading until its cards are", () => {
     expect(shell).toContain('<canvas id="og" width="1200" height="630">')
     expect(shell).toContain('<meta name="robots" content="noindex" />')
     expect(shell).toContain("<title>og-loading</title>")
     const builder = read("solid-site/scripts/og-page.ts")
-    expect(builder).toContain("../../og/index.html")
+    expect(builder).toContain("./og-shell.html")
     expect(builder).toContain("../../src/pages/docs/og-page.ts")
   })
 

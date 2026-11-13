@@ -1,5 +1,5 @@
 // The site's shared slice in Solid (`src/shared/`, `src/widgets/site-header/`),
-// held to what its Vue twins do: the header and its menu, the mascot, the
+// held to what its Vue twins did: the header and its menu, the mascot, the
 // fields the Studio's inspector is built from, the theme, the interface
 // sounds and the rise.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

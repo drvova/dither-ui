@@ -1,6 +1,6 @@
-// The Solid kit's component specs (`tests/*.spec.tsx`), in jsdom with
-// Solid's browser build. The framework-free specs stay with `rs test` at
-// the root until the cutover.
+// The Solid kit's component specs (`tests/*.spec.tsx`) and the site's
+// (`tests/site/`), in jsdom with Solid's browser build. The framework-free
+// specs run with `rs test` at the root.
 import solid from "vite-plugin-solid"
 import { defineConfig } from "vitest/config"
 import { ALIASES, ONE_SOLID } from "./aliases.ts"

@@ -12,7 +12,7 @@ import { pageOf } from "~/pages/docs/heads"
 // The shell every page is rendered into. The landing is printed in the
 // dark, always; a page that turns with the reader's theme sets it itself.
 // Each route sets its own head (`pages/docs/PageHead`); the shell carries
-// what the Vue build injected into every page of the site (never the
+// what every page of the site shares (never the
 // player's): the root's `data-page` marker in the bytes (the grounds key on
 // it, so the first frame is the page's own), the page transition's hand-off
 // before the first frame and the marker at the end of the body it waits

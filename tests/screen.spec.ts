@@ -1,5 +1,4 @@
 import { describe, expect, it } from "rstack/test"
-import { widgetCode } from "../src/entities/widget/model/codegen"
 import { componentEntry } from "../src/entities/widget/model/registry"
 import {
   addCell,
@@ -13,7 +12,6 @@ import {
 } from "../src/entities/widget/model/screen"
 
 const entry = (is: string) => componentEntry(is)!
-const frame = { w: 380, h: 560 }
 
 describe("screen model ops", () => {
   it("creates with one empty row and grows", () => {
@@ -42,33 +40,5 @@ describe("screen model ops", () => {
     expect(s.rows[0].id).toBe(r2.id)
     removeScreenRow(s, r2.id)
     expect(s.rows).toHaveLength(1)
-  })
-})
-
-describe("screen codegen", () => {
-  it("emits a flex layout with one ref per v-model cell", () => {
-    const s = createScreen()
-    addCell(s.rows[0], entry("DitherInput"))
-    const sw = addCell(s.rows[0], entry("DitherSwitch"))
-    sw.model = false
-    const row2 = addScreenRow(s)
-    addCell(row2, entry("DitherBadge"))
-    const code = widgetCode(s, frame)
-    expect(code).toContain('import { DitherBadge, DitherInput, DitherSwitch } from "@dither-kit"')
-    expect(code).toContain('const value1 = ref("")')
-    expect(code).toContain("const value2 = ref(false)")
-    expect(code).toContain('v-model="value1"')
-    expect(code).toContain(">beta</DitherBadge>")
-    expect(code).toContain('class="flex flex-col" style="gap: 16px; padding: 20px"')
-    expect(code).toContain("items-center justify-start")
-  })
-  it("grow cells get flex-1; non-default props emit", () => {
-    const s = createScreen()
-    const input = addCell(s.rows[0], entry("DitherInput"))
-    input.grow = true
-    input.props.placeholder = "Email"
-    const code = widgetCode(s, frame)
-    expect(code).toContain('class="flex-1"')
-    expect(code).toContain('placeholder="Email"')
   })
 })

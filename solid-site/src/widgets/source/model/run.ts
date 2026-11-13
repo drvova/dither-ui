@@ -36,7 +36,7 @@ export const PACKAGES: Record<string, Record<string, unknown>> = {
   "solid-js": Solid,
   "solid-js/store": SolidStore,
   "solid-js/web": SolidWeb,
-  // StyleX done at run time (the Vue site's stand-in): what an app's bundler plugin compiles.
+  // StyleX done at run time: what an app's bundler plugin compiles.
   "@stylexjs/stylex": StyleX,
   clsx: { clsx },
   "d3-scale": { scaleBand, scaleLinear, scalePoint },

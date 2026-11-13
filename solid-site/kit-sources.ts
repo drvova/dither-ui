@@ -4,8 +4,7 @@
 // layer under `solid/`, the engine under `engine/`, the Tailwind layer's
 // framework-free modules under `tailwind/`), `kit/src/svelte/` the Svelte
 // kit, and each a `files.json` listing them. Served in dev, emitted with the
-// browser's assets in a build. The same URL contract as the Vue site's
-// build (`kitSources` in `../rstack.config.ts`).
+// browser's assets in a build.
 import { readdir, readFile } from "node:fs/promises"
 import { join } from "node:path"
 import type { Plugin } from "vite"

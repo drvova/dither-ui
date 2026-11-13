@@ -4,19 +4,19 @@ import {
   planSequence,
   sampleSequence,
   staggerDelay,
-  type SequenceNode,
+  type TrackNode,
   type SequencePlan,
 } from "../dither-kit/engine/sequence"
 
 const at = (plan: SequencePlan, t: number, id: string) => sampleSequence(plan, t).find((s) => s.id === id)!
 
-const track = (id: string, duration: number, extra: Record<string, unknown> = {}): SequenceNode =>
+const track = (id: string, duration: number, extra: Record<string, unknown> = {}): TrackNode =>
   ({
     kind: "track",
     id,
     duration,
     ...extra,
-  }) as SequenceNode
+  }) as TrackNode
 
 describe("planSequence — serial", () => {
   it("concatenates tracks with an optional gap", () => {

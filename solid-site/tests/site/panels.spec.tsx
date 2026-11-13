@@ -1,10 +1,10 @@
 // The Studio's panels on Solid: the inspector (with its avatar grid, its
 // spec-driven component rows and the reel's cut), the layer tree, the title
-// bar and the canvas's bar, held to what their Vue twins do. The canvas
-// bar's and the name column's cases carry the Vue site's specs
+// bar and the canvas's bar, held to what their Vue twins did. The canvas
+// bar's and the name column's cases carry the earlier Vue site's specs
 // (`tests/canvas-bar.spec.ts`, `tests/inspector-names.spec.ts`), assertion
 // for assertion; the rest is this port's own, a render and behaviour spec
-// for each panel the Vue site had none for.
+// for each panel the earlier Vue site had none for.
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
@@ -906,31 +906,7 @@ describe("the title bar", () => {
 })
 
 describe("the panels' stylesheets", () => {
-  /** The rules of a Vue file's own `<style scoped>` block (not a `src` one). */
-  const scoped = (file: string) => read(file).match(/<style scoped>\n([\s\S]*?)<\/style>/)![1]
-  /** A sheet's lines as written, whatever they are nested under. */
-  const lines = (css: string) =>
-    css
-      .split("\n")
-      .map((l) => l.trim().replace(/^&/, ""))
-      .filter(Boolean)
-  const count = (all: string[]) => all.reduce((n, l) => n.set(l, (n.get(l) ?? 0) + 1), new Map<string, number>())
-
-  it("carry their Vue twins' rules whole, under each panel's own hook", () => {
-    for (const [vue, css, hook] of [
-      ["src/widgets/toolbar/Toolbar.vue", "solid-site/src/widgets/toolbar/Toolbar.css", "toolbar-scope"],
-      ["src/widgets/toolbar/CanvasBar.vue", "solid-site/src/widgets/toolbar/CanvasBar.css", "canvas-bar-scope"],
-      ["src/widgets/inspector/ReelPanel.vue", "solid-site/src/widgets/inspector/ReelPanel.css", "reel-panel-scope"],
-    ]) {
-      const ours = count(lines(read(css)))
-      const missing = [...count(lines(scoped(vue)))].filter(([line, n]) => (ours.get(line) ?? 0) < n)
-      expect(missing, css).toEqual([])
-      expect(read(css), css).toContain(`.${hook} {`)
-      expect(read(css.replace(/\.css$/, ".tsx")), css).toContain(hook)
-    }
-  })
-
-  it("share the one tool key, the Vue site's own sheet", () => {
+  it("share the one tool key, one sheet", () => {
     for (const file of ["Toolbar.tsx", "CanvasBar.tsx"])
       expect(read(`solid-site/src/widgets/toolbar/${file}`)).toContain('import "@/widgets/toolbar/tool.css"')
   })

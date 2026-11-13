@@ -1,5 +1,5 @@
 // The Solid ports of the field backgrounds from Plasma to Waves, held to
-// what their Vue twins do: each paints its canvas once in view, shows a
+// what their Vue twins did: each paints its canvas once in view, shows a
 // precompiled image in its place, and the ones that follow the pointer
 // listen on the window only while they are on the page.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

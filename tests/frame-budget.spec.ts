@@ -4,12 +4,15 @@
 // together and the page hitched. Past the budget a paint waits one frame; one
 // that waited always paints, so none runs more than a frame late.
 import { afterEach, describe, expect, it, rs } from "rstack/test"
-import { defineComponent, h, nextTick, ref } from "vue"
-import { mount } from "@vue/test-utils"
 import { FRAME_BUDGET_MS, mayPaint, spend } from "../dither-kit/engine/frame-budget"
-import { useDitherBackground } from "../dither-kit/engine/use-dither-background"
+import { createSurfaceLoop } from "../dither-kit/engine/surface-loop"
 
-afterEach(() => rs.unstubAllGlobals())
+const realGetContext = HTMLCanvasElement.prototype.getContext
+afterEach(() => {
+  HTMLCanvasElement.prototype.getContext = realGetContext
+  rs.restoreAllMocks()
+  rs.unstubAllGlobals()
+})
 
 describe("the frame's paint budget", () => {
   it("lets paints run until the frame has spent it, then only one that waited", () => {
@@ -52,38 +55,35 @@ describe("two heavy surfaces in one frame", () => {
     // each paint costs more than the whole budget
     const painted: string[][] = []
     let frame = 0
-    const surface = (name: string) =>
-      defineComponent({
-        setup() {
-          const wrapRef = ref<HTMLElement | null>(null)
-          const canvasRef = ref<HTMLCanvasElement | null>(null)
-          useDitherBackground({
-            wrapRef,
-            canvasRef,
-            cell: 4,
-            maxCols: 8,
-            maxRows: 8,
-            dpr: () => 1,
-            paused: () => false,
-            renderMode: () => "live",
-            precompiled: () => undefined,
-            restart: () => null,
-            render: () => {
-              fake.ms += FRAME_BUDGET_MS + 2
-              ;(painted[frame] ??= []).push(name)
-            },
-          })
-          return () => h("div", { ref: wrapRef }, [h("canvas", { ref: canvasRef })])
+    const surface = (name: string) => {
+      const wrap = document.createElement("div")
+      const canvas = wrap.appendChild(document.createElement("canvas"))
+      document.body.append(wrap)
+      const loop = createSurfaceLoop({
+        wrap: () => wrap,
+        canvas: () => canvas,
+        cell: 4,
+        maxCols: 8,
+        maxRows: 8,
+        dpr: () => 1,
+        paused: () => false,
+        renderMode: () => "live",
+        precompiled: () => undefined,
+        render: () => {
+          fake.ms += FRAME_BUDGET_MS + 2
+          ;(painted[frame] ??= []).push(name)
         },
       })
-    const a = mount(surface("a"))
-    const b = mount(surface("b"))
-    await nextTick()
+      loop.mount()
+      return () => (loop.dispose(), wrap.remove())
+    }
+    const drop = [surface("a"), surface("b")]
+    await Promise.resolve()
     for (frame = 1; frame <= 12; frame++) {
       const due = [...frames.values()]
       frames.clear()
       for (const cb of due) cb(frame * 40)
-      await nextTick()
+      await Promise.resolve()
     }
     const rows = painted.slice(1)
     // one heavy paint a frame, never two, and every frame paints
@@ -95,7 +95,6 @@ describe("two heavy surfaces in one frame", () => {
     for (const name of ["a", "b"])
       for (let f = 2; f < rows.length; f++)
         expect(rows[f]?.includes(name) || rows[f - 1]?.includes(name), `${name} at ${f}`).toBe(true)
-    a.unmount()
-    b.unmount()
+    drop.forEach((d) => d())
   })
 })

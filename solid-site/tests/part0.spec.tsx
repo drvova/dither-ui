@@ -1,5 +1,5 @@
 // The Solid kit's backgrounds from Balatro to Ferrofluid, the shader and
-// the world, held to what their Vue twins do: each paints through the
+// the world, held to what their Vue twins did: each paints through the
 // shared loop once in view, gives way to a precompiled image, follows the
 // pointer where its twin does, and lets go of what it listened to.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

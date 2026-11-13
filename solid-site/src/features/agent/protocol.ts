@@ -691,12 +691,11 @@ export type StudioAgentApi = {
   clock: StudioClockApi
 }
 
-// `Window.ditherStudio` is declared once a program, by the Vue site's
-// protocol, which the shared agent modules (`@/widgets/agent/model`) still
-// reach for its types. Its registry rows are the Vue ones (`vmodel`), so
-// this site's door goes on the window through this view until the cutover
-// leaves one protocol.
-const page = () => window as unknown as { ditherStudio?: StudioAgentApi }
+declare global {
+  interface Window {
+    ditherStudio?: StudioAgentApi
+  }
+}
 
 /** Open the three doors on the mounted studio. Returns the closer. */
 export function installStudioAgentApi(): () => void {
@@ -737,7 +736,7 @@ export function installStudioAgentApi(): () => void {
     { deep: true },
   )
 
-  page().ditherStudio = {
+  window.ditherStudio = {
     version: PROTOCOL_VERSION,
     run: runCommand,
     registry: registrySchema,
@@ -750,6 +749,6 @@ export function installStudioAgentApi(): () => void {
     clearTimeout(timer)
     document.removeEventListener(COMMAND_EVENT, onCommand)
     mirror?.remove()
-    delete page().ditherStudio
+    delete window.ditherStudio
   }
 }

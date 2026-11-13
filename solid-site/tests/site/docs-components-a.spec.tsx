@@ -1,13 +1,7 @@
 // The docs' component packs Feedback, Field, Form, Layout and Media on
-// Solid: every section of each pack's nav in order under its label, its
-// prose word for word (but where it named Vue's syntax) and its authored
-// snippets character for character as the Vue file has them, its tables in
-// the Vue file's shape (their words: `docs-api.spec.ts`), each preview mounting its demo once
-// it nears the view, and the demos' own state driving what they show. The
-// Vue site has no spec of these files beyond the packs' navs
-// (`tests/docs-packs.spec.ts`), carried here as the id order.
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+// Solid: every section of each pack's nav in order under its label (its
+// tables' words: `docs-api.spec.ts`), each preview mounting its demo once
+// it nears the view, and the demos' own state driving what they show.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import type { JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -23,16 +17,12 @@ import FormDocs from "../../src/pages/docs/components/FormDocs"
 import LayoutDocs from "../../src/pages/docs/components/LayoutDocs"
 import MediaDocs from "../../src/pages/docs/components/MediaDocs"
 import { world } from "../world"
-import { sansRows } from "./docs-api"
 
 // No GPU in jsdom: a shader says so, a world keeps to its CPU engine.
 vi.mock("../../../dither-kit/engine/gl", async (original) => ({
   ...(await original<typeof import("../../../dither-kit/engine/gl")>()),
   createGl: () => null,
 }))
-
-// The specs run from `solid-site/`: a path is from the repository's root.
-const read = (path: string) => readFileSync(join(process.cwd(), "..", path), "utf8")
 
 const PACKS: [string, () => JSX.Element, readonly { id: string; label: string }[]][] = [
   ["FeedbackDocs", FeedbackDocs, FEEDBACK_NAV],
@@ -63,25 +53,6 @@ afterEach(() => {
 
 const cards = (root: Element) => [...root.querySelectorAll("[data-demo-card]")]
 const words = (text: string | null | undefined) => (text ?? "").replace(/\s+/g, " ").trim()
-/** A Vue template's text as a reader gets it: tags out, entities read, whitespace condensed. */
-const prose = (html: string) =>
-  words(
-    html
-      .replace(/<[^>]+>/g, "")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">"),
-  )
-/** Where the Vue prose names Vue's syntax, what the Solid page says instead; every other word is the Vue file's. */
-const SOLID_WORDS: [vue: string, solid: string][] = [
-  [
-    "submit is prevented and re-emitted as a clean submit event.",
-    "submit is prevented and handed on as a clean onSubmit call.",
-  ],
-  ["Label goes in the default slot.", "Label goes in as children."],
-  ["every region a slot.", "every region a prop."],
-  ["The zoom is a v-model.", "The zoom is two-way: zoom with onUpdateZoom."],
-]
-const solidWords = (text: string) => SOLID_WORDS.reduce((said, [vue, solid]) => said.replace(vue, solid), text)
 /** The pack mounted with every preview in view. */
 function shown(Pack: () => JSX.Element) {
   const view = render(() => <Pack />)
@@ -92,11 +63,7 @@ const section = (root: Element, id: string) => root.querySelector(`section[id="$
 const key = (root: Element, name: string) =>
   [...root.querySelectorAll("button")].find((b) => b.textContent?.trim() === name)!
 
-describe.each(PACKS)("%s", (name, Pack, nav) => {
-  const vue = read(`src/pages/docs/components/${name}.vue`)
-  const solid = read(`solid-site/src/pages/docs/components/${name}.tsx`)
-  const template = vue.slice(vue.lastIndexOf("\n<template>"))
-
+describe.each(PACKS)("%s", (_name, Pack, nav) => {
   it("writes every section of its nav, in order, under its label", () => {
     const { container } = render(() => <Pack />)
     const sections = [...container.querySelectorAll("section[id]")]
@@ -112,38 +79,6 @@ describe.each(PACKS)("%s", (name, Pack, nav) => {
       // the API table closes the section
       expect(s.lastElementChild?.tagName).toBe("DL")
     }
-  })
-
-  it("carries the Vue file's headings and prose word for word, but for Vue's own", () => {
-    const { container } = render(() => <Pack />)
-    const theirs = [...template.matchAll(/<section id="([^"]+)"[^>]*>([\s\S]*?)\n {2}<\/section>/g)]
-    expect(theirs.map((m) => m[1])).toEqual(nav.map((n) => n.id))
-    for (const [, id, body] of theirs) {
-      const s = section(container, id)
-      expect(s.querySelector("h2")?.textContent).toBe(prose(body.match(/<h2[^>]*>([\s\S]*?)<\/h2>/)![1]))
-      const ledes = [...body.matchAll(/<p class="mt-[26] text-\[13px\][^"]*">([\s\S]*?)<\/p>/g)].map((m) => prose(m[1]))
-      expect(ledes.length).toBeGreaterThan(0)
-      expect([...s.querySelectorAll(":scope > p")].map((p) => words(p.textContent))).toEqual(ledes.map(solidWords))
-      expect([...s.querySelectorAll(":scope > h3")].map((h) => h.textContent)).toEqual(
-        [...body.matchAll(/\n {4}<h3[^>]*>([^<]*)<\/h3>/g)].map((m) => m[1]),
-      )
-    }
-  })
-
-  it("carries the authored snippets character for character, and the API tables' shape", () => {
-    // every template literal the Vue file's script declares, as written
-    const literals = [...vue.matchAll(/^const (\w+) = `(?:\\[\s\S]|[^`\\])*`$/gm)]
-    expect(literals.some((m) => m[1].startsWith("SNIPPET_"))).toBe(true)
-    // (`<\/script>` there keeps Vue's parser off the tag: the same characters as `</script>` here)
-    for (const [text] of literals) expect(solid).toContain(text.replace(/(?<!\\)<\\\/script>/g, "</script>"))
-    // the tables by their keys and row counts: their words are the Solid kit's (`docs-api.spec.ts`)
-    const api = vue.match(/^const API: Record<string, PropRow\[\]> = \{\n[\s\S]*?\n\}$/m)![0]
-    expect(sansRows(solid, "tsx")).toContain(sansRows(api, "ts"))
-    // each card is handed one of them
-    const handed = (source: string, attr: string) =>
-      [...source.matchAll(new RegExp(`<DemoCard ${attr}=\\{?"?(SNIPPET_\\w+)`, "g"))].map((m) => m[1])
-    expect(handed(solid, "code")).toEqual(handed(template, ":code"))
-    expect(handed(solid, "code").length).toBeGreaterThan(0)
   })
 
   it("mounts each preview's demo once, when it comes into view", () => {

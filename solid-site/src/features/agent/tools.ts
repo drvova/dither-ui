@@ -1,6 +1,3 @@
-// The Vue site's `src/features/agent/tools.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/state.spec.tsx`.
 // The Studio's tools as any harness sees them, the events the composer
 // renders, and the composer's small persistent state.
 //

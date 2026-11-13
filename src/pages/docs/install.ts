@@ -1,18 +1,16 @@
-// The kit's install steps per framework, and the Vue kit's StyleX layer: the
-// docs' Quick start shows them one step at a time (each its own copy), the
-// source panel's prompt.md takes them as one commented script, and (kept in
-// sync by hand, it never imports the docs) the landing's InstallBlock runs
-// the same commands.
+// The kit's install steps per framework: the docs' Quick start shows them
+// one step at a time (each its own copy), the source panel's prompt.md takes
+// them as one commented script, and (kept in sync by hand, it never imports
+// the docs) the landing's InstallBlock runs the same commands.
 
-export type InstallKind = "vue" | "stylex" | "svelte"
+export type InstallKind = "solid" | "svelte"
 
 /** One step: what it does, why where a reader would ask, and its code. */
 export type InstallStep = { title: string; why?: string; code: string }
 
 /** The packages the kit needs beside the framework, per install. */
 export const INSTALL_DEPS: Record<InstallKind, readonly string[]> = {
-  vue: ["d3-scale", "d3-shape", "clsx", "tailwind-merge"],
-  stylex: ["d3-scale", "d3-shape", "@stylexjs/stylex"],
+  solid: ["d3-scale", "d3-shape", "clsx", "tailwind-merge"],
   svelte: ["d3-scale", "d3-shape", "clsx", "tailwind-merge"],
 }
 
@@ -38,28 +36,11 @@ resolve: { alias: { "${name}": "${target}" } }
 })
 
 export const INSTALL_STEPS: Record<InstallKind, readonly InstallStep[]> = {
-  vue: [
+  solid: [
     copy("dither-kit"),
-    deps("vue", "you already have Vue, and Tailwind if you use it"),
-    alias("@dither-kit", "/src/dither-kit/tailwind"),
+    deps("solid", "you already have Solid, and Tailwind if you use it"),
+    alias("@dither-kit", "/src/dither-kit/solid"),
     { title: "Use it", code: `import { AreaChart, Area, DitherButton } from "@dither-kit"` },
-  ],
-  stylex: [
-    copy("dither-kit"),
-    deps("stylex", "you already have Vue and your bundler's StyleX plugin"),
-    alias("@dither-kit", "/src/dither-kit/stylex"),
-    {
-      title: "Load the tokens and the base once",
-      why: "the base applies inside .dither-kit",
-      code: `import "./dither-kit/engine/theme.css"
-import "./dither-kit/engine/base.css"`,
-    },
-    {
-      title: "Use it",
-      why: "your own StyleX styles go in as xstyle",
-      code: `import { AreaChart, Area, DitherButton } from "@dither-kit"
-<DitherButton :xstyle="styles.cta">Ship</DitherButton>`,
-    },
   ],
   svelte: [
     copy("dither-kit-svelte"),
@@ -74,7 +55,6 @@ export const installScript = (steps: readonly InstallStep[]): string =>
   steps.map((s, i) => `# ${i + 1}. ${s.title}${s.why ? ` (${s.why})` : ""}\n${s.code}`).join("\n\n")
 
 export const INSTALL: Record<InstallKind, string> = {
-  vue: installScript(INSTALL_STEPS.vue),
-  stylex: installScript(INSTALL_STEPS.stylex),
+  solid: installScript(INSTALL_STEPS.solid),
   svelte: installScript(INSTALL_STEPS.svelte),
 }

@@ -1,9 +1,6 @@
 // Every page's head, from one table: what a crawler, a link preview and a
-// search result read of the landing, the docs and the Studio (the Vue
-// site's HTML entries carried these as static bytes, `../index.html`,
-// `../docs/index.html`, `../studio/index.html`; `tests/site/heads.spec.tsx`
-// holds this table to them tag for tag until the cutover), and of each docs
-// section (`sectionTags`, the list the Vue build's section manifest writes).
+// search result read of the landing, the docs and the Studio, and of each
+// docs section (`sectionTags`, the list the section manifest writes).
 // `PageHead` renders a page's tags; the shell (`entry-server.tsx`) reads
 // `pageOf` for the page an address opens on.
 import { docsSection } from "@/pages/docs/seo"

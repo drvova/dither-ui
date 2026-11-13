@@ -1,116 +1,109 @@
-// The Solid layer grows beside the Vue kit until it holds all of it
-// (`dither-kit/AGENTS.md`, the Solid layer). While both stand, the port
-// keeps to its contract by construction: a Solid component is a Vue
-// component's twin, under the same file name and the same public name, and
-// it reaches the engine and the layer's class constants, never Vue and
-// never a copy of either.
-import { existsSync, readdirSync, readFileSync } from "node:fs"
+// The kit's Solid layer and the framework-free code under it, held by
+// construction: every component file is in the layer's index, the index
+// hands on the engine's API instead of listing it again, the engine imports
+// no framework at all, and nothing in the kit or either half of the site
+// imports Vue (the kit and the site were Vue's before they were Solid's).
+import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
+import ts from "typescript"
 
-const KIT = join(import.meta.dirname, "../dither-kit")
+const ROOT = join(import.meta.dirname, "..")
+const KIT = join(ROOT, "dither-kit")
 const read = (path: string) => readFileSync(join(KIT, path), "utf8")
-const walk = (dir: string): string[] =>
-  readdirSync(join(KIT, dir), { withFileTypes: true }).flatMap((e) =>
-    e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`],
+const walk = (dir: string, from = KIT): string[] =>
+  readdirSync(join(from, dir), { withFileTypes: true }).flatMap((e) =>
+    e.name === "node_modules" || e.name.startsWith(".")
+      ? []
+      : e.isDirectory()
+        ? walk(`${dir}/${e.name}`, from)
+        : [`${dir}/${e.name}`],
   )
 
-/** The names a layer's index exports under each file it reads. */
-function exportsOf(index: string): Map<string, string[]> {
-  const byFile = new Map<string, string[]>()
-  for (const m of read(index).matchAll(/export\s+(?:type\s+)?\{([^}]*)\}\s+from\s+"([^"]+)"/g)) {
-    const names = m[1]
-      .split(",")
-      .map((n) => n.trim().replace(/^type\s+/, ""))
-      .filter(Boolean)
-      .map((n) => n.split(/\s+as\s+/).at(-1)!)
-    byFile.set(m[2], [...(byFile.get(m[2]) ?? []), ...names])
-  }
-  return byFile
-}
+/** The files a layer's index exports from. */
+const exportedFrom = (index: string) =>
+  new Set([...read(index).matchAll(/export\s+(?:type\s+)?(?:\*|\{[^}]*\})\s+from\s+"([^"]+)"/g)].map((m) => m[1]))
+
+/** What a module imports, as its parser reads it (a snippet's `from "vue"`
+ * inside a string is text, not an import). */
+const importsOf = (text: string) => ts.preProcessFile(text, true, true).importedFiles.map((f) => f.fileName)
 
 const solidFiles = walk("solid")
-// the layer's own files; `runtime/` is its bindings, twins of nothing
+// the layer's own files; `runtime/` is its bindings, which components reach
 const components = solidFiles
   .filter((f) => f.endsWith(".tsx") && !f.startsWith("solid/runtime/"))
   .map((f) => f.slice("solid/".length, -".tsx".length))
 
 describe("the Solid layer", () => {
   it("holds components", () => {
-    expect(components.length).toBeGreaterThan(0)
+    expect(components.length).toBeGreaterThan(250)
   })
 
-  it("names every component file as its Vue twin is named", () => {
-    // a component file's, or a module's that builds components (a chart root)
-    const vue = new Set(readdirSync(join(KIT, "tailwind")))
-    expect(components.filter((c) => !vue.has(`${c}.vue`) && !vue.has(`${c}.ts`))).toEqual([])
+  it("exports every component file from its index, or builds one that is with it", () => {
+    const exported = exportedFrom("solid/index.ts")
+    // a part two exported components share (a series under Area and Line)
+    const parts = new Set(
+      components.flatMap((c) => importsOf(read(`solid/${c}.tsx`)).filter((from) => /^\.\/[A-Z]/.test(from))),
+    )
+    const unreached = components.filter((c) => !exported.has(`./${c}`) && !parts.has(`./${c}`))
+    expect(unreached).toEqual([])
+    expect(components.filter((c) => !exported.has(`./${c}`))).toEqual(["CartesianSeries"])
   })
 
-  it("exports each component under the names the Vue kit gives it", () => {
-    const vue = exportsOf("tailwind/index.ts")
-    const solid = exportsOf("solid/index.ts")
-    for (const c of components) {
-      const theirs = new Set(vue.get(`./${c}.vue`) ?? vue.get(`./${c}`) ?? [])
-      const ours = solid.get(`./${c}`) ?? []
-      // its own props type, and the type of what it hands a `ref` (what Vue
-      // exposed), are the names a Solid file adds
-      const added = ours.filter((n) => !theirs.has(n) && !/(Props|Api)$/.test(n))
-      expect({ component: c, added }).toEqual({ component: c, added: [] })
-      const missing = [...theirs].filter((n) => !ours.includes(n))
-      expect({ component: c, missing }).toEqual({ component: c, missing: [] })
-    }
+  it("hands on the engine's API whole instead of listing it again", () => {
+    expect(read("solid/index.ts")).toContain('export * from "../engine/api"')
+    expect([...exportedFrom("solid/index.ts")].filter((from) => from.startsWith("../engine/"))).toEqual([
+      "../engine/api",
+    ])
+  })
+})
+
+describe("the engine", () => {
+  it("imports no framework: every module of it is shared by the kits", () => {
+    const framed = [...walk("engine"), "tailwind/lib.ts", "tailwind/control.ts"]
+      .filter((f) => f.endsWith(".ts"))
+      .flatMap((f) =>
+        importsOf(read(f))
+          .filter((from) => /^(vue|@vue\/|solid-js|svelte)(\/|$)/.test(from) || /\.(vue|svelte|tsx)$/.test(from))
+          .map((from) => `${f} imports ${from}`),
+      )
+    expect(framed).toEqual([])
   })
 
-  it("shares the engine's API with the Vue kit instead of listing it again", () => {
-    for (const index of ["tailwind/index.ts", "solid/index.ts"])
-      expect(read(index)).toContain('export * from "../engine/api"')
-    expect([...exportsOf("solid/index.ts").keys()].filter((from) => from.startsWith("../engine/"))).toEqual([])
+  it("reaches no deleted module through its public API", () => {
+    const missing = importsOf(read("engine/api.ts")).filter(
+      (from) => !walk("engine").includes(`engine/${from.slice(2)}.ts`),
+    )
+    expect(missing).toEqual([])
   })
+})
 
-  it("never imports Vue, a Vue component, or a Vue-bound engine module", () => {
-    const vueBound = readdirSync(join(KIT, "engine"))
-      .filter((f) => f.endsWith(".ts") && /from "vue"/.test(read(`engine/${f}`)))
-      .map((f) => f.slice(0, -3))
+describe("no Vue", () => {
+  it("is imported by the kit or by either half of the site, anywhere", () => {
     const offenders: string[] = []
-    for (const file of solidFiles) {
-      // a whole `import type` / `export type` is erased: only a type crosses
-      const live = read(file).replace(/(?:import|export) type \{[^}]*\}\s*from\s+"[^"]+"/g, "")
-      for (const m of live.matchAll(/from\s+"([^"]+)"/g)) {
-        const from = m[1]
-        const engine = /\/engine\/([\w-]+)$/.exec(from)?.[1]
-        if (from === "vue" || from.endsWith(".vue") || (engine && vueBound.includes(engine)))
-          offenders.push(`${file} imports ${from}`)
+    let read = 0
+    for (const tree of ["dither-kit", "solid-site", "src"])
+      for (const file of walk(tree, ROOT)) {
+        if (!/\.(tsx?|mts|mjs|js)$/.test(file) || file.startsWith("solid-site/.")) continue
+        read++
+        for (const from of importsOf(readFileSync(join(ROOT, file), "utf8")))
+          if (
+            /^(vue|@vue\/.*|vue\/.*|vue-.*|@vitejs\/plugin-vue.*|@rsbuild\/plugin-vue)$/.test(from) ||
+            from.endsWith(".vue")
+          )
+            offenders.push(`${file} imports ${from}`)
       }
-    }
+    expect(read).toBeGreaterThan(900)
     expect(offenders).toEqual([])
   })
 
-  it("reaches no Vue through anything it imports, however far down", () => {
-    const seen = new Set<string>()
-    const reached: string[] = []
-    const visit = (file: string) => {
-      if (seen.has(file)) return
-      seen.add(file)
-      const text = readFileSync(file, "utf8")
-      if (/from "vue"/.test(text)) reached.push(file.slice(KIT.length + 1))
-      // a whole `import type` is erased, so it reaches nothing
-      for (const m of text
-        .replace(/(?:import|export) type \{[^}]*\}\s*from\s+"[^"]+"/g, "")
-        .matchAll(/(?:from|import)\s+"(\.[^"]+)"/g)) {
-        const base = join(file, "..", m[1])
-        const next = [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts")].find(
-          (f) => /\.tsx?$/.test(f) && existsSync(f),
-        )
-        if (next) visit(next)
-      }
+  it("is a dependency of no package here", () => {
+    for (const manifest of ["package.json", "solid-site/package.json", "dither-kit/package.json"]) {
+      const pkg = JSON.parse(readFileSync(join(ROOT, manifest), "utf8")) as Record<string, Record<string, string>>
+      const named = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"].flatMap((k) =>
+        Object.keys(pkg[k] ?? {}).filter((n) => /^(vue|@vue\/.*|vue-.*|.*plugin-vue.*)$/.test(n)),
+      )
+      expect({ manifest, named }).toEqual({ manifest, named: [] })
     }
-    visit(join(KIT, "solid/index.ts"))
-    expect(seen.size).toBeGreaterThan(20)
-    expect(reached).toEqual([])
-  })
-
-  it("keeps the engine's shared cores free of any framework", () => {
-    for (const core of ["engine/surface-loop.ts", "engine/visibility.ts", "engine/api.ts"])
-      expect(read(core)).not.toMatch(/from "(vue|solid-js|svelte)[/"]/)
   })
 })

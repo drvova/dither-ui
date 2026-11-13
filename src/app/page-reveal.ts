@@ -2,9 +2,9 @@
 // site's pages is a view transition (styles.css opts in), and the new page
 // receives it in `pagereveal`, which fires before its first frame, before
 // the app's deferred script has run. So `PAGE_REVEAL_SCRIPT`, inlined at the
-// top of every route's head (rstack.config.ts), parks the transition where
-// `takePageTransition` finds it and holds the old page on screen; main.ts
-// then dithers it through the kit's transition engine. The hold lets go by
+// top of every page's head (the shell, `entry-server.tsx`), parks the
+// transition where `takePageTransition` finds it and holds the old page on
+// screen; the client's entry then dithers it through the kit's transition engine. The hold lets go by
 // itself if the app never comes. Arriving from one of the site's pages, the
 // script also holds the first frame until the HTML is parsed to the
 // `PAGE_END_ID` marker at the end of the body: Chromium drops the transition

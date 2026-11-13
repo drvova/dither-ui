@@ -1,12 +1,7 @@
 // The docs' Backgrounds pack and the Utils family's Print screens section on
 // Solid: every section in the nav's order under its own heading, each
 // preview mounting its demo once it nears the view, the pickers driving the
-// live surface, and the authored snippets held to the Vue file's,
-// character for character, its tables in the Vue file's shape (their words:
-// `docs-api.spec.ts`). The Vue site has no spec of these files beyond
-// the pack's nav (`tests/docs-packs.spec.ts`), carried here as the id order.
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
+// live surface (its tables' words: `docs-api.spec.ts`).
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { BACKGROUNDS_NAV } from "@/pages/docs/backgrounds/backgrounds-nav"
@@ -15,10 +10,6 @@ import BackgroundsDocs from "../../src/pages/docs/backgrounds/BackgroundsDocs"
 import PosterSection from "../../src/pages/docs/backgrounds/PosterSection"
 import ScreensSection from "../../src/pages/docs/utils/ScreensSection"
 import { world } from "../world"
-import { sansRows, stringsIn } from "./docs-api"
-
-// The specs run from `solid-site/`: a path is from the repository's root.
-const read = (path: string) => readFileSync(join(process.cwd(), "..", path), "utf8")
 
 let w: ReturnType<typeof world>
 beforeEach(() => {
@@ -138,30 +129,6 @@ describe("BackgroundsDocs", () => {
     pick("ferrofluid", "ice")
     expect(pressed(fluid)).toEqual(["ice", "left"])
   })
-
-  it("carries the Vue file's snippets character for character, and its tables' shape", () => {
-    const vue = read("src/pages/docs/backgrounds/BackgroundsDocs.vue")
-    const solid = read("solid-site/src/pages/docs/backgrounds/BackgroundsDocs.tsx")
-    // the static snippets and every API row: one block, verbatim
-    const from = vue.indexOf("const wrap = ")
-    const block = vue.slice(from, vue.indexOf("</script>")).trimEnd()
-    expect(from).toBeGreaterThan(0)
-    // every string as written, the snippets among them; the tables by their keys and row counts, their
-    // words being the Solid kit's (`docs-api.spec.ts`)
-    for (const snippet of stringsIn(block, "ts")) expect(solid).toContain(snippet)
-    expect(stringsIn(block, "ts").length).toBeGreaterThan(40)
-    expect(sansRows(solid, "tsx")).toContain(sansRows(block, "ts"))
-    // the snippets computed from the pickers: the same template, the memo read as a call
-    const computed = vue
-      .slice(0, from)
-      .split("\n")
-      .filter((l) => l.includes("`") && l.includes("<Dither"))
-    expect(computed).toHaveLength(6)
-    for (const line of computed) expect(solid).toContain(line.trim().replace(/\.value\b/g, "()"))
-    // and the terminal's attributes
-    for (const line of vue.slice(0, from).split("\n"))
-      if (/^\s+`[\w:-]+="\$\{/.test(line) || line.includes("attrs.push(")) expect(solid).toContain(line.trim())
-  })
 })
 
 describe("PosterSection", () => {
@@ -210,18 +177,5 @@ describe("ScreensSection", () => {
     fireEvent.click(kinds[3])
     expect(pressed(section)).toEqual(["Dot"])
     expect(section.querySelector("table")).not.toBeNull()
-  })
-
-  it("carries the Vue files' snippets character for character, and their tables' shape", () => {
-    for (const [vuePath, solidPath] of [
-      ["src/pages/docs/utils/ScreensSection.vue", "solid-site/src/pages/docs/utils/ScreensSection.tsx"],
-      ["src/pages/docs/backgrounds/PosterSection.vue", "solid-site/src/pages/docs/backgrounds/PosterSection.tsx"],
-    ]) {
-      const vue = read(vuePath)
-      const block = vue.slice(vue.indexOf("const CHIP = "), vue.indexOf("</script>")).trimEnd()
-      expect(block).toContain("const SNIPPET = `")
-      for (const snippet of stringsIn(block, "ts")) expect(read(solidPath)).toContain(snippet)
-      expect(sansRows(read(solidPath), "tsx")).toContain(sansRows(block, "ts"))
-    }
   })
 })

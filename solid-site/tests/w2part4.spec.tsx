@@ -1,5 +1,5 @@
 // The Solid kit's dialogs, palette, dials, text and small widgets, held to
-// what their Vue twins do: each renders what it is given, reports through
+// what their Vue twins did: each renders what it is given, reports through
 // its callbacks, keeps its keyboard paths, and lets go of what it listened
 // to when it leaves.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"

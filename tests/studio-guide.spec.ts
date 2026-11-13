@@ -3,11 +3,8 @@
 // one, under a thin one, whole in the window), that automation never gets
 // it on its own, and its keys: Next flies on and opens each part, Done,
 // Skip and Escape end it.
-import { mount } from "@vue/test-utils"
-import { nextTick } from "vue"
 import { afterEach, describe, expect, it } from "rstack/test"
-import { firstVisitTour, type GuideStop, placeGuide } from "@/pages/studio/guide"
-import StudioGuide from "@/pages/studio/ui/StudioGuide.vue"
+import { firstVisitTour, placeGuide } from "@/pages/studio/guide"
 
 const VIEW = { width: 1440, height: 900 }
 const GUIDE = { width: 320, height: 120 }
@@ -31,47 +28,11 @@ describe("where the guide hovers", () => {
 })
 
 describe("the first visit", () => {
-  afterEach(() => Reflect.deleteProperty(navigator, "webdriver"))
+  afterEach(() => void Reflect.deleteProperty(navigator, "webdriver"))
   it("tours once, and never under automation", () => {
     expect(firstVisitTour(null)).toBe(true)
     expect(firstVisitTour(true)).toBe(false)
     Object.defineProperty(navigator, "webdriver", { value: true, configurable: true })
     expect(firstVisitTour(null)).toBe(false)
-  })
-})
-
-describe("the tour", () => {
-  const parts = [document.createElement("div"), document.createElement("div")]
-  const opened: number[] = []
-  const stops: GuideStop[] = [
-    { target: () => parts[0], line: "First part." },
-    { target: () => parts[1], line: "Second part.", show: () => opened.push(1) },
-  ]
-
-  it("says each part's line, opens the next part and ends on Done", async () => {
-    const w = mount(StudioGuide, { props: { open: true, stops }, attachTo: document.body })
-    await nextTick()
-    await nextTick()
-    expect(w.get('[role="dialog"]').attributes("aria-label")).toBe("Studio tour")
-    expect(w.text()).toContain("First part.")
-    expect(w.text()).toContain("1 of 2")
-    await w.get(".next").trigger("click")
-    await nextTick()
-    expect(opened).toEqual([1])
-    expect(w.text()).toContain("Second part.")
-    expect(w.get(".next").text()).toBe("Done")
-    expect(w.find(".skip").exists()).toBe(false)
-    await w.get(".next").trigger("click")
-    expect(w.emitted("close")).toHaveLength(1)
-    w.unmount()
-  })
-
-  it("ends on Skip and on Escape", async () => {
-    const w = mount(StudioGuide, { props: { open: true, stops }, attachTo: document.body })
-    await nextTick()
-    await w.get(".skip").trigger("click")
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
-    expect(w.emitted("close")).toHaveLength(2)
-    w.unmount()
   })
 })

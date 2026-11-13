@@ -19,8 +19,8 @@ define.app(async () => {
       alias: {
         "@": resolve(root, "src"),
         "@dither-kit-svelte": resolve(root, "../dither-kit-svelte/index.ts"),
-        // The landing's copies of Vue landing modules import the engine as the
-        // Vue site names it; the Svelte kit's engine is its verbatim copy.
+        // The landing's copies of the site's landing modules import the engine
+        // as that site names it; the Svelte kit's engine is its verbatim copy.
         "@dither-kit/engine": resolve(root, "../dither-kit-svelte/engine"),
       },
     },

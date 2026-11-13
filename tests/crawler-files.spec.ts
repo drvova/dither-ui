@@ -8,14 +8,13 @@ import {
   robotsTxt,
   sectionsManifest,
   shareCards,
-  shareHead,
   sitemapXml,
 } from "@/pages/docs/crawler-files"
 import { SECTIONS } from "@/pages/docs/groups"
 import { SITE_URL } from "@/pages/docs/seo"
 
 // All three crawler files are generated at build time from GROUPS/SITE_URL
-// (see the rstack.config crawlFiles plugin); these tests pin the emitted shape and
+// (see `solid-site/site-files.ts`); these tests pin the emitted shape and
 // prove the generators never drift from the section IA. A renamed section id
 // referenced in llms.txt or the sitemap throws from docsUrl() at render time,
 // so dead links fail the build and these tests together.
@@ -76,7 +75,7 @@ describe("sitemap.xml", () => {
 })
 
 describe("sections manifest (og engine)", () => {
-  const manifest = JSON.parse(sectionsManifest())
+  const manifest = JSON.parse(sectionsManifest()) as Record<string, string>[]
 
   it("covers every section exactly once with seo-derived meta", () => {
     expect(manifest.map((s) => s.id)).toEqual(SECTIONS.map((s) => s.id))
@@ -128,17 +127,6 @@ describe("share cards", () => {
     expect(o.thumbnail_url).toBe(`${SITE_URL}/og/home.png`)
   })
 
-  it("is what each route's own head points at", () => {
-    const files = { home: "index.html", docs: "docs/index.html", studio: "studio/index.html" }
-    for (const card of cards.slice(0, ROUTE_CARDS.length)) {
-      const html = readFileSync(files[card.id as keyof typeof files], "utf8").replace(/\s+/g, " ")
-      for (const tag of shareHead(card)
-        .split("\n")
-        .map((t) => t.trim()))
-        expect(html).toContain(tag)
-    }
-  })
-
   it("keeps the copy bans: no middle dot, em dash or uppercase label", () => {
     for (const card of cards) {
       const text = [card.title, card.description, card.alt, ...card.links.map((l) => l.label)].join(" ")
@@ -149,17 +137,8 @@ describe("share cards", () => {
 
 describe("og card page", () => {
   const root = new URL("..", import.meta.url).pathname
-  const config = readFileSync(`${root}/rstack.config.ts`, "utf8")
-  const template = readFileSync(`${root}/og/index.html`, "utf8")
 
-  it("is a page of the build, at the path the prerender and the Discord service load", () => {
-    expect(config).toContain(`"og/index": { html: "og/index.html", main: "src/pages/docs/og-page.ts" }`)
-    expect(template).toMatch(/<canvas id="og" width="1200" height="630">/)
-    expect(template).toMatch(/noindex/)
-    expect(template).toContain("<title>og-loading</title>")
-  })
-
-  it("answers the prerender and the Discord service", () => {
+  it("answers the build's card drawing and the Discord service", () => {
     const page = readFileSync(`${root}/src/pages/docs/og-page.ts`, "utf8")
     expect(page).toContain("async files(id, seed, inv)")
     expect(page).toContain('document.title = "og-ready"')

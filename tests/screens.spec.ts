@@ -1,22 +1,10 @@
-// @rstest-environment jsdom
 // Print screens: each is a permutation of the 16 ranks that grows its own
 // shape (a line, a hatch, a dot, a cross) as density rises; the Bayer one
 // seeded is the old seeded matrix, bit for bit; and a `DitherScreen`
 // reaches every surface and chart series below it through one function.
 import { describe, expect, it } from "rstack/test"
-import { defineComponent, h } from "vue"
-import { mount } from "@vue/test-utils"
-import { matrixFromSeed, type VariantInput } from "../dither-kit/engine/dither-paint"
-import {
-  BAYER4,
-  pixelMatrixFromSeed,
-  SCREEN_KINDS,
-  SCREENS,
-  screenMatrix,
-  type ScreenKind,
-} from "../dither-kit/engine/pixel"
-import { useDitherMatrix, useLabelMatrix, useVariantMatrix } from "../dither-kit/engine/use-screen"
-import DitherScreen from "../dither-kit/tailwind/DitherScreen.vue"
+import { matrixFromSeed } from "../dither-kit/engine/dither-paint"
+import { BAYER4, pixelMatrixFromSeed, SCREEN_KINDS, SCREENS, screenMatrix } from "../dither-kit/engine/pixel"
 
 /** The cells a density lights, as "x,y". */
 const lit = (m: number[][], density: number) =>
@@ -52,48 +40,5 @@ describe("print screens", () => {
       expect(screenMatrix("line", seed)).not.toEqual(SCREENS.line)
     }
     expect(screenMatrix("dot")).toBe(SCREENS.dot)
-  })
-})
-
-describe("DitherScreen", () => {
-  type ProbeApi = { matrix: number[][]; label: number[][]; ofVariant: (v: VariantInput) => number[][] }
-  let seen: ProbeApi | undefined
-  const Probe = defineComponent({
-    props: { seed: Number },
-    setup(props) {
-      const matrix = useDitherMatrix(() => props.seed)
-      const ofVariant = useVariantMatrix()
-      const label = useLabelMatrix(() => props.seed)
-      seen = {
-        get matrix() {
-          return matrix.value
-        },
-        get label() {
-          return label.value
-        },
-        ofVariant,
-      }
-      return () => h("i")
-    },
-  })
-  const probe = (screen?: ScreenKind, seed?: number): ProbeApi => {
-    const child = () => h(Probe, { seed })
-    mount(defineComponent({ render: () => (screen ? h(DitherScreen, { screen }, { default: child }) : child()) }))
-    return seen!
-  }
-
-  it("prints everything below it through its screen", () => {
-    expect(probe().matrix).toBe(BAYER4)
-    expect(probe("line").matrix).toBe(SCREENS.line)
-    expect(probe("dot", 5).matrix).toEqual(screenMatrix("dot", 5))
-    // Chart series: a numeric variant seeds the screen; a named one takes it plain.
-    expect(probe("cross").ofVariant(9)).toEqual(screenMatrix("cross", 9))
-    expect(probe("cross").ofVariant("gradient")).toBe(SCREENS.cross)
-    expect(probe().ofVariant(9)).toEqual(matrixFromSeed(9))
-  })
-
-  it("leaves a fill that carries a label on the Bayer matrix", () => {
-    expect(probe("diagonal").label).toBe(BAYER4)
-    expect(probe("dot", 5).label).toEqual(pixelMatrixFromSeed(5))
   })
 })

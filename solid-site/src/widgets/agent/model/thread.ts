@@ -1,6 +1,3 @@
-// The Vue site's `src/widgets/agent/model/thread.ts`, line for line, its imports of ported
-// modules pointed at their Solid twins (it reaches the editor store through
-// them, so it cannot be shared). Held to its source by `tests/site/agent-panel.spec.tsx`.
 // The composer's thread as data: every entry it shows, and every reading of
 // it the panel needs (the chat's title, the turn's to-dos, what the turn
 // changed, the steps folded into runs). Pure: the panel owns the state,

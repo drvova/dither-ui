@@ -1,13 +1,10 @@
 // The Quick start: the kit is a folder, so installing it is a few steps a
-// reader takes one at a time, each with its own copy (`install.ts` holds
-// the Solid kit's, the Vue site's `install.ts` the Svelte kit's). Then the
-// question a reader asks next, under its own heading: the kit without
-// Tailwind. The Vue page's "On StyleX" part is the Vue kit's own layer and
-// has no place here: the Solid kit is one layer.
+// reader takes one at a time, each with its own copy (`@/pages/docs/install`
+// holds both kits'). Then the question a reader asks next, under its own
+// heading: the kit without Tailwind.
 import { createMemo, For, onMount, Show } from "solid-js"
 import { INSTALL_DEPS, INSTALL_STEPS } from "@/pages/docs/install"
 import { CodeBlock } from "~/shared/ui"
-import { SOLID_STEPS } from "../install"
 import { docsFramework, restoreDocsFramework } from "../svelte"
 import "./QuickStart.css"
 
@@ -34,10 +31,9 @@ export default function QuickStart() {
   const kind = docsFramework
   // the reader's own framework, read once in a browser
   onMount(restoreDocsFramework)
-  const steps = createMemo(() => (kind() === "svelte" ? INSTALL_STEPS.svelte : SOLID_STEPS))
+  const steps = createMemo(() => INSTALL_STEPS[kind()])
   const folder = createMemo(() => (kind() === "svelte" ? "dither-kit-svelte" : "dither-kit"))
-  // the Solid kit takes the Tailwind layer's packages (`SOLID_STEPS`)
-  const packages = createMemo(() => INSTALL_DEPS[kind() === "svelte" ? "svelte" : "vue"])
+  const packages = createMemo(() => INSTALL_DEPS[kind()])
   const deps = createMemo(() => COUNT[packages().length] ?? String(packages().length))
   const already = createMemo(() =>
     kind() === "svelte" ? "Svelte 5, and Tailwind if you use it" : "Solid, and Tailwind if you use it",

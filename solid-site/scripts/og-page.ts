@@ -1,16 +1,15 @@
 // The share card renderer as a page of the Solid site's build:
 // `og/index.html`, the one canvas `window.og.files(id)` draws on. Its shell
-// (`../../og/index.html`) and its script (`@/pages/docs/og-page`, framework
-// free) are the Vue build's own; this is the small Vite build that stands
-// in for that build's `og/index` entry, outside SolidStart (the page has no
-// app around it).
+// is `og-shell.html` beside this file and its script `@/pages/docs/og-page`
+// (framework free); this is the small Vite build that makes the page,
+// outside SolidStart (it has no app around it).
 import { readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { build } from "vite"
 import { ALIASES } from "../aliases.ts"
 
-const SHELL = fileURLToPath(new URL("../../og/index.html", import.meta.url))
+const SHELL = fileURLToPath(new URL("./og-shell.html", import.meta.url))
 const SCRIPT = fileURLToPath(new URL("../../src/pages/docs/og-page.ts", import.meta.url))
 
 /** The shell with the build's files in its head: each stylesheet, then each

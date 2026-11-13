@@ -1,7 +1,7 @@
 // The engine's public API: every framework-free name the kit hands a
-// consumer. A layer's `index.ts` (Vue's `tailwind/`, `stylex/`, Solid's
-// `solid/`) re-exports this whole file and adds its own components, so the
-// three never list the engine twice.
+// consumer. A layer's `index.ts` (`solid/`, and its generated StyleX twin
+// `solid-stylex/`) re-exports this whole file and adds its own components,
+// so neither lists the engine twice.
 
 export type { DitherRenderMode, PrecompiledDither } from "./precompile"
 export {
