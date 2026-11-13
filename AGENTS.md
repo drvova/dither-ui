@@ -116,8 +116,13 @@ Default section order:
   `scripts/cards.ts` (drawing the cards and the registry),
   `src/pages/docs/share-cards.ts` (the cards and head tags as data),
   `src/app/offline.ts` (the worker's rules, for either build's asset
-  folder). Left, in order: what still writes Vue for a reader (the Studio's code export and `code.get`, the StyleX generator,
-  the agent skill), the copy that says Vue, then the cutover. New work on a part already ported lands
+  folder), `src/shared/lib/stylex-core.ts` (classes to StyleX, under each
+  kit's generator). The Solid site writes Solid for a reader: the docs'
+  tables and prose, the Studio's code export and `code.get`, and the kit's
+  StyleX layer (`dither-kit/solid-stylex/`, generated; after editing a
+  Solid kit file, `npx rs test -u tests/stylex-layer-solid.spec.ts`).
+  Left: the cutover (the copy both sites share, the agent skill, deleting
+  Vue, moving Solid into place, the Pages deploy). New work on a part already ported lands
   in both until then.
 - Aliases: `@` → `src/`; `@dither-kit` → the kit's Tailwind layer
   (`dither-kit/tailwind/index.ts`), `@dither-kit/<layer>/<file>` → a file
