@@ -1,4 +1,4 @@
-import { type Accessor, createSignal, onMount } from "solid-js"
+import { type Accessor, createSignal, onMount, onCleanup } from "solid-js"
 import { ditherTransition } from "@dither-kit/engine/transition"
 import { storage } from "@/shared/lib/storage"
 
@@ -79,7 +79,13 @@ export function useTheme(): {
     // The tint reads the page's computed ground: inside the mount it forced
     // a style pass over the whole fresh page (583ms on the docs at 4x CPU);
     // after the first frame has painted, styles are clean and the read free.
-    requestAnimationFrame(() => setTimeout(tintChrome))
+    // (let go if the page leaves first: the read needs a page to stand)
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const frame = requestAnimationFrame(() => (timer = setTimeout(tintChrome)))
+    onCleanup(() => {
+      cancelAnimationFrame(frame)
+      clearTimeout(timer)
+    })
   })
   return { dark, ground, toggle, revealToggle }
 }
