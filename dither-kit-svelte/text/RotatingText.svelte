@@ -9,7 +9,7 @@
     class?: string
   }
 
-  let { texts = ["Vue", "canvas", "dither"], interval = 2000, class: className }: Props = $props()
+  let { texts = ["Svelte", "canvas", "dither"], interval = 2000, class: className }: Props = $props()
 
   const list = $derived(texts.length ? texts : [""])
   let idx = $state(0)

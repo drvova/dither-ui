@@ -43,11 +43,11 @@ export default function Showcase() {
             then the lede, the keys and what it works with. */}
         <div ref={rise} class="statement">
           <h1 id="hero-h" class="hero-h">
-            <RiseWords text="A dithered UI toolkit for Vue." word="chrome-type" />
+            <RiseWords text="A dithered UI toolkit for Solid." word="chrome-type" />
           </h1>
           <p data-rise class="hero-lede">
             {COMPONENT_COUNT} components, from charts and controls to GLSL and 3D, each printed cell by cell through one
-            seeded {MATRIX} matrix. Copy the folder into a Vue 3 or Svelte 5 app and change what you need.
+            seeded {MATRIX} matrix. Copy the folder into a Solid or Svelte 5 app and change what you need.
           </p>
           <div data-rise class="hero-keys">
             <a href={routePath("/studio")} class="nav-a key-chrome primary">

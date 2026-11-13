@@ -5,3 +5,5 @@ dist
 *.tsbuildinfo
 ui-laws
 .rpiv
+solid-site/node_modules
+solid-site/.output

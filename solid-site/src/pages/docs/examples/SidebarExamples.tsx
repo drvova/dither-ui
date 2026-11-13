@@ -302,9 +302,9 @@ const SNIPPET_TREE = `<DitherSidebar collapse="none" density="compact" variant="
 
   <DitherSidebarSub v-model="open.src" label="src">
     <DitherSidebarSub v-model="open.components" label="components">   <!-- nests -->
-      <DitherSidebarItem label="DitherSidebar.vue"
-        :active="file === 'DitherSidebar.vue'" @select="file = 'DitherSidebar.vue'" />
-      <DitherSidebarItem label="DitherButton.vue" />
+      <DitherSidebarItem label="DitherSidebar.tsx"
+        :active="file === 'DitherSidebar.tsx'" @select="file = 'DitherSidebar.tsx'" />
+      <DitherSidebarItem label="DitherButton.tsx" />
     </DitherSidebarSub>
     <DitherSidebarSub v-model="open.charts" label="charts">…</DitherSidebarSub>
     <DitherSidebarItem label="index.ts" />
@@ -443,7 +443,7 @@ export default function SidebarExamples() {
     public: false,
   })
 
-  const [treeActive, setTreeActive] = createSignal("DitherSidebar.vue")
+  const [treeActive, setTreeActive] = createSignal("DitherSidebar.tsx")
 
   const treeAll = (open: boolean) => Object.keys(treeOpen).forEach((k) => (treeOpen[k] = open))
 
@@ -1365,19 +1365,19 @@ export default function SidebarExamples() {
                   label="components"
                 >
                   <DitherSidebarItem
-                    label="DitherSidebar.vue"
-                    active={treeActive() === "DitherSidebar.vue"}
-                    onSelect={() => setTreeActive("DitherSidebar.vue")}
+                    label="DitherSidebar.tsx"
+                    active={treeActive() === "DitherSidebar.tsx"}
+                    onSelect={() => setTreeActive("DitherSidebar.tsx")}
                   />
                   <DitherSidebarItem
-                    label="DitherButton.vue"
-                    active={treeActive() === "DitherButton.vue"}
-                    onSelect={() => setTreeActive("DitherButton.vue")}
+                    label="DitherButton.tsx"
+                    active={treeActive() === "DitherButton.tsx"}
+                    onSelect={() => setTreeActive("DitherButton.tsx")}
                   />
                   <DitherSidebarItem
-                    label="DitherInput.vue"
-                    active={treeActive() === "DitherInput.vue"}
-                    onSelect={() => setTreeActive("DitherInput.vue")}
+                    label="DitherInput.tsx"
+                    active={treeActive() === "DitherInput.tsx"}
+                    onSelect={() => setTreeActive("DitherInput.tsx")}
                   />
                 </DitherSidebarSub>
                 <DitherSidebarSub
@@ -1386,14 +1386,14 @@ export default function SidebarExamples() {
                   label="charts"
                 >
                   <DitherSidebarItem
-                    label="AreaChart.vue"
-                    active={treeActive() === "AreaChart.vue"}
-                    onSelect={() => setTreeActive("AreaChart.vue")}
+                    label="AreaChart.tsx"
+                    active={treeActive() === "AreaChart.tsx"}
+                    onSelect={() => setTreeActive("AreaChart.tsx")}
                   />
                   <DitherSidebarItem
-                    label="Sparkline.vue"
-                    active={treeActive() === "Sparkline.vue"}
-                    onSelect={() => setTreeActive("Sparkline.vue")}
+                    label="Sparkline.tsx"
+                    active={treeActive() === "Sparkline.tsx"}
+                    onSelect={() => setTreeActive("Sparkline.tsx")}
                   />
                 </DitherSidebarSub>
                 <DitherSidebarSub modelValue={treeOpen.lib} onUpdateModelValue={(v) => (treeOpen.lib = v)} label="lib">

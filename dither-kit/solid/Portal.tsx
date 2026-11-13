@@ -9,7 +9,7 @@ export type PortalProps = {
   to?: string
   disabled?: boolean
   /** Solid mounts a portal after the render it is in, so the target may
-   * always come later: kept for the Vue kit's signature. */
+   * always come later: kept so a caller written for a deferred portal still types. */
   defer?: boolean
   children?: JSX.Element
 }

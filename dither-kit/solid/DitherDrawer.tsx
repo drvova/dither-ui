@@ -201,8 +201,7 @@ export default function DitherDrawer(raw: DitherDrawerProps) {
 
   /** The panel hears its keys and pointers on itself, never through Solid's
    * delegation, which carries an event out of a portal into the tree that
-   * opened it: a nested drawer's Escape or drag must stay its own, as
-   * `stopPropagation` and the page's own tree keep them in the Vue kit. */
+   * opened it: a nested drawer's Escape or drag must stay its own. */
   function bindPanel(el: HTMLDivElement) {
     panelRef = el
     el.addEventListener("keydown", onKeyDown)

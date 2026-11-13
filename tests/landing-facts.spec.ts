@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { SCREENS, SCREEN_KINDS } from "../dither-kit/engine/pixel"
 import { STYLING_LABELS } from "../src/shared/lib/restyle-rewrite"
-import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS } from "../src/pages/landing/facts"
+import { ROUTE_TITLES } from "../src/shared/config/titles"
+import { llmsTxt, ROUTE_CARDS } from "../src/pages/docs/crawler-files"
+import { DOCS_ROOT, docsMeta } from "../src/pages/docs/seo"
+import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS, WORKS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
 import {
   choreograph,
@@ -41,7 +44,7 @@ describe("landing facts", () => {
       "public/agent/SKILL.md",
       "src/pages/docs/crawler-files.ts",
     ].flatMap((f) =>
-      [...read(f).matchAll(/\b(\d{3}) (?:Vue |public `Dither\*` )?components\b|\["(\d{3})", "components"\]/g)].map(
+      [...read(f).matchAll(/\b(\d{3}) (?:Solid |public `Dither\*` )?components\b|\["(\d{3})", "components"\]/g)].map(
         (m) => Number(m[1] ?? m[2]),
       ),
     )
@@ -58,7 +61,7 @@ describe("landing facts", () => {
 
   it("keeps a spec sheet the kit bears out", () => {
     const spec = (label: string) => SPECS.find((s) => s.label === label)?.value ?? ""
-    expect(spec("Components")).toContain("Vue 3")
+    expect(spec("Components")).toContain("Solid")
     expect(kit.peerDependencies["solid-js"]).toMatch(/^\^1\./)
     expect(spec("Components")).toContain("Svelte 5")
     expect(port.peerDependencies.svelte).toMatch(/^\^5\./)
@@ -67,6 +70,43 @@ describe("landing facts", () => {
     for (const name of Object.values(STYLING_LABELS)) expect(spec("Styling")).toContain(name)
     expect(spec("License")).toBe(kit.license)
     for (const s of SPECS) expect(`${s.label} ${s.value}`).not.toMatch(/[—·]/)
+  })
+
+  it("calls the product a Solid toolkit wherever a reader, a crawler or an agent is told what it is", () => {
+    // The kit and the site were Vue once: copy that still says so tells a
+    // reader to install the wrong thing. Every place that states what the
+    // product is, by file: none names Vue, and the ones that name the
+    // framework name Solid.
+    const read = (f: string) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8")
+    const told = [
+      "src/shared/config/titles.ts",
+      "src/pages/docs/seo.ts",
+      "src/pages/docs/share-cards.ts",
+      "src/pages/docs/crawler-files.ts",
+      "src/pages/landing/facts.ts",
+      "src/pages/landing/story.ts",
+      "solid-site/src/pages/docs/heads.ts",
+      "solid-site/src/pages/landing/Showcase.tsx",
+      "solid-site/src/pages/landing/LandingPage.tsx",
+      "solid-site/src/features/agent/film.ts",
+      "solid-site/src/widgets/agent/model/slash.ts",
+      "public/agent/SKILL.md",
+      "dither-kit/package.json",
+      "dither-kit/README.md",
+    ]
+    for (const f of told) expect(read(f).match(/.*\bvue\b.*/gi) ?? [], f).toEqual([])
+    for (const title of [ROUTE_TITLES.landing, ROUTE_TITLES.docs, ROUTE_TITLES.studio]) expect(title).toContain("Solid")
+    expect(DOCS_ROOT.description).toContain("Solid")
+    expect(docsMeta("button").description).toContain("a Solid UI toolkit")
+    expect(llmsTxt()).toContain("dither-ui is a Solid UI toolkit")
+    expect(ROUTE_CARDS[0].line).toBe("A dithered UI toolkit for Solid and Svelte")
+    for (const f of ["public/agent/SKILL.md", "dither-kit/package.json", "solid-site/src/pages/docs/heads.ts"])
+      expect(read(f)).toMatch(/\bSolid\b/)
+    expect(JSON.parse(read("dither-kit/package.json")).keywords).toContain("solid")
+    expect(read("solid-site/src/pages/landing/Showcase.tsx")).toContain("A dithered UI toolkit for Solid.")
+    // The README's own claim (its history and credits may name Vue).
+    expect(read("README.md")).toContain("A dithered UI toolkit for Solid.")
+    expect(WORKS.map((w) => w.id)).toContain("solid")
   })
 
   it("names every package the kit needs beside Solid (a styling layer's own, optional, aside)", () => {

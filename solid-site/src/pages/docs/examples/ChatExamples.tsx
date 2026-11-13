@@ -23,7 +23,7 @@ const AI_ANSWERS: Record<string, string> = {
   "Theme the charts":
     "Override the shadcn-style tokens (background, foreground, border, accent) and every chart chrome follows. The dither reads the same vars.",
   "Export an artboard":
-    "Open Studio, select the artboard, and use Export: PNG for pixels, or copy the Vue snippet to keep it live.",
+    "Open Studio, select the artboard, and use Export: PNG for pixels, or copy the Solid snippet to keep it live.",
 }
 
 const AI_FALLBACK =

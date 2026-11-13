@@ -131,7 +131,7 @@ export type BouncyAccordionProps = {
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
-  /** A panel's content by its item's `value` (the Vue kit's slot per item);
+  /** A panel's content by its item's `value` (a slot per item);
    * an item without one shows its `content`. */
   slots?: Record<string, JSX.Element>
 }

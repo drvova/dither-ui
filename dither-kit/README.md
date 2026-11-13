@@ -1,26 +1,27 @@
 # dither-ui
 
-Dithered UI toolkit for Vue 3 — composable ordered-dither **charts** (area,
+Dithered UI toolkit for Solid: composable ordered-dither **charts** (area,
 line, bar, pie, radar) on one tiny canvas engine, plus generative **avatars**,
 **buttons**, **gradient washes** and friends.
 
-This package ships **source** (`.ts` + `.vue`), like shadcn-style kits: your
+This package ships **source** (`.ts` + `.tsx`), like shadcn-style kits: your
 bundler compiles it with your app. It is one kit in styling layers:
 `engine/` is the styling-free logic every layer shares (rasters, painters,
-chart and field contexts, the clock, `theme.css` and `theme.ts`), and
-`tailwind/` holds the components styled with Tailwind classes, the package's
-main entry (`tailwind/index.ts`), and `stylex/` the same components in
-StyleX (`dither-ui/stylex`), generated from the Tailwind ones. A StyleX app
-imports from `dither-ui/stylex`, compiles it with its StyleX plugin, loads
-`engine/theme.css` and `engine/base.css`, and passes its own styles to any
-component as `xstyle`. Requirements for the Tailwind layer:
+chart and field contexts, the clock, `theme.css` and `theme.ts`),
+`solid/` holds the SolidJS components styled with Tailwind classes, the
+package's main entry (`solid/index.ts`), and `solid-stylex/` the same
+components in StyleX (`dither-ui/solid-stylex`), generated from the Tailwind
+ones; `tailwind/` holds what both share (the class helpers and `kit.css`). A
+StyleX app imports from `dither-ui/solid-stylex`, compiles it with its StyleX
+plugin, loads `engine/theme.css` and `engine/base.css`, and passes its own
+styles to any component as `xstyle`. Requirements for the Tailwind layer:
 
-- Vite (or any bundler) with `@vitejs/plugin-vue`
+- Vite (or any bundler) with `vite-plugin-solid`, on `solid-js` 1.9
 - Tailwind CSS for the chrome classes (`text-muted-foreground`, `stroke-border`, …)
   with shadcn-style tokens (`--foreground`, `--card`, `--border`, `--popover`;
   `engine/theme.css` declares them) — or no Tailwind at all: `npm run build:css`
   compiles `tailwind/kit.css` (the tokens, the `.dither-kit`-scoped `base.css`, every
-  class the components use) into `dist/kit/dither-kit.css`, also served at
+  class the components use) into `kit/dither-kit.css` of the site's build, also served at
   dither-ui.com/kit/dither-kit.css. Load it, wrap the region in `.dither-kit`,
   and style the rest with StyleX, UnoCSS, plain CSS or any CSS-in-JS;
   `engine/theme.ts` (`applyTheme`, `themeCss`, `themeVars`) sets the tokens from JS.
@@ -29,14 +30,14 @@ component as `xstyle`. Requirements for the Tailwind layer:
 import { AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip } from "dither-ui"
 ```
 
-```vue
+```tsx
 <div class="h-80">
-  <AreaChart :data="data" :config="config" bloom="low">
+  <AreaChart data={data} config={config} bloom="low">
     <Grid />
     <XAxis dataKey="month" />
     <YAxis />
-    <Area dataKey="desktop" is-clickable />
-    <Legend is-clickable />
+    <Area dataKey="desktop" isClickable />
+    <Legend isClickable />
     <Tooltip labelKey="month" />
   </AreaChart>
 </div>
@@ -93,7 +94,7 @@ surfaces. Bloom canvases omit the flag because they only use `drawImage`.
 Standalone components defer their initial layout read (`getBoundingClientRect()`)
 to `requestAnimationFrame` so multiple components mounting simultaneously batch
 into one layout pass instead of forcing a synchronous reflow per component
-inside Vue's `flushJobs`. `DitherButton` uses the same pattern for its `resize()`
+as it mounts. `DitherButton` uses the same pattern for its `resize()`
 call.
 `paintToggleCanvas` (shared by DitherToggle and DitherToggleGroup) uses
 `RasterBuffer` + `putRasterBuffer` instead of per-pixel `fillRect`.
@@ -101,8 +102,8 @@ call.
 Keep `animate`, `sparkles`, and bloom off for static content, and use the
 precompiled path for content whose data and dimensions are known on the server.
 
-The repository benchmark is available at `/benchmarks/`; it records six measured
-batches after three warmups and reports mean, median, p95, canvas-call count, and
-RGBA allocation count. It covers the large gradient `fillRect` → `putImageData`
-path and button fresh-buffer versus reused-buffer rendering. See the root README
-for the current local baseline and reproduction command.
+The repository benchmark (`benchmarks/node-bench.mts`, run with
+`npx tsx benchmarks/node-bench.mts`) times the engine's hot paths in Node: the
+per-pixel writes, the gradient compiler and a chart column. See the root README
+for the recorded browser baseline of the gradient `fillRect` → `putImageData`
+path and button fresh-buffer versus reused-buffer rendering.

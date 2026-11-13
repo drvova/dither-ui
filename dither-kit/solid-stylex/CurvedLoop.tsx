@@ -26,7 +26,7 @@ export default function CurvedLoop(raw: CurvedLoopProps) {
 
   const uid = `dither-curve-${createUniqueId()}`
   // Repeated enough to always cover the visible path plus one wrap unit.
-  // Read once, as the Vue twin does.
+  // Read once: a later `text` does not rebuild the path.
   const content = props.text.repeat(10)
 
   let host: SVGSVGElement | undefined

@@ -106,7 +106,7 @@ export function addLaunchFilm(): string | null {
           line: "Compose whole screens.",
           spec: [
             ["1", "infinite canvas"],
-            ["3", "exports: Vue, PNG, MP4"],
+            ["3", "exports: Solid, PNG, MP4"],
           ],
         },
       },

@@ -35,7 +35,7 @@ export default function CodeInput(raw: CodeInputProps) {
   const [props, rest] = splitProps(merged, OWN)
 
   const onKeyDown: JSX.EventHandler<HTMLTextAreaElement, KeyboardEvent> = (e) => {
-    // The caller's own listener still hears it, as a Vue fallthrough would.
+    // The caller's own listener still hears it.
     const theirs = props.onKeyDown
     if (typeof theirs === "function") theirs(e)
     else if (theirs) theirs[0](theirs[1], e)

@@ -57,7 +57,7 @@
       { prop: "class", type: "string", default: "undefined" },
     ],
     rotatingText: [
-      { prop: "texts", type: "string[]", default: "['Vue', 'canvas', 'dither']" },
+      { prop: "texts", type: "string[]", default: "['Svelte', 'canvas', 'dither']" },
       { prop: "interval", type: "number (ms)", default: "2000" },
       { prop: "class", type: "string", default: "undefined" },
     ],
@@ -159,7 +159,7 @@
     shinyText: `<ShinyText>Shimmering headline</ShinyText>`,
     glitchText: `<GlitchText text="MALFUNCTION" />`,
     splitText: `<SplitText text="Split into characters" replayToken={token} />`,
-    rotatingText: `Built for <RotatingText texts={['Vue', 'canvas', 'the studio']} />`,
+    rotatingText: `Built for <RotatingText texts={['Svelte', 'canvas', 'the studio']} />`,
     countUp: `<CountUp to={1984} /> renders <!-- counts up when scrolled into view -->`,
     textType: `<TextType texts={['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']} />`,
     blurText: `<BlurText text="Blur into focus" by="words" />`,
@@ -261,7 +261,7 @@
   <DemoCard code={SNIPPETS.rotatingText}>
     <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
       <span>Built for&nbsp;</span>
-      <RotatingText texts={['Vue', 'canvas', 'the studio']} class="text-foreground" />
+      <RotatingText texts={['Svelte', 'canvas', 'the studio']} class="text-foreground" />
     </div>
   </DemoCard>
   <PropsTable rows={API.rotatingText} />

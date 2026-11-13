@@ -19,19 +19,19 @@ export const RUNTIME_DEPS = ["d3-scale", "d3-shape", "clsx", "tailwind-merge"] a
 /** The spec sheet that closes the install: label and value, each value read
  * from the kit where it can be, the rest held to it by the facts spec. */
 export const SPECS: readonly { label: string; value: string }[] = [
-  { label: "Components", value: `${COMPONENT_COUNT} for Vue 3, ported to Svelte 5` },
+  { label: "Components", value: `${COMPONENT_COUNT} for Solid, ported to Svelte 5` },
   { label: "Docs", value: `${SECTION_COUNT} live sections, each with its props and code` },
   { label: "Engine", value: `One seeded ${MATRIX} threshold matrix under every surface` },
   { label: "Screens", value: SCREEN_KINDS.join(", ") },
   { label: "Rendering", value: "Canvas on the CPU, WebGL for big meshes and GLSL" },
   { label: "Styling", value: "Tailwind, StyleX, CSS Modules or CSS" },
-  { label: "Exports", value: "Vue or Svelte code, PNG, MP4" },
+  { label: "Exports", value: "Solid code, PNG, MP4" },
   { label: "License", value: kit.license },
 ]
 
 /** What the kit styles with, each under its own mark. */
 export const WORKS: readonly { id: MarkId; name: string }[] = [
-  { id: "vue", name: "Vue 3" },
+  { id: "solid", name: "Solid" },
   { id: "svelte", name: "Svelte 5" },
   { id: "tailwind", name: "Tailwind" },
   { id: "stylex", name: "StyleX" },

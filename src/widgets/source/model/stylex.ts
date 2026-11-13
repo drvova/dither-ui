@@ -1,6 +1,6 @@
 // StyleX in the page, for Run. An app compiles StyleX with its bundler
 // plugin; Run has no build, so this module does the plugin's work at run
-// time for the API a reader's code uses (`create`, `attrs` for Vue, `props`,
+// time for the API a reader's code uses (`create`, `attrs`, `props`,
 // `defineVars`, `keyframes`, `firstThatWorks`): every property and condition
 // becomes one atomic class (`x` + a hash of its rule), written once into a
 // stylesheet in the head (rules under a condition after the plain ones, as
@@ -128,7 +128,7 @@ function classesOf(args: readonly Arg[]): string {
   return names.join(" ")
 }
 
-/** Vue (and any DOM template): `v-bind="stylex.attrs(styles.a, on && styles.b)"`. */
+/** A DOM template's spelling (Svelte): `{...stylex.attrs(styles.a, on && styles.b)}`. */
 export function attrs(...args: Arg[]): { class?: string } {
   const c = classesOf(args)
   return c ? { class: c } : {}

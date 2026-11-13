@@ -5,12 +5,13 @@ description: Compose dither-ui screens, components and charts as Studio document
 
 # dither-ui Studio
 
-dither-ui is a Vue 3 toolkit (plus a Svelte 5 port) rendered on one ordered-dither
+dither-ui is a Solid toolkit (plus a Svelte 5 port) rendered on one ordered-dither
 canvas engine: charts, 55+ components, generative backgrounds, text and motion
 effects, all seed-deterministic. The **Studio** at https://dither-ui.com/studio is
 an infinite-canvas editor: every frame ("artboard") is a chart, a widget, one
 registry component, or a **screen** composed of rows of registry components.
-Studio exports every frame as a Vue single-file component.
+Studio exports every frame as a Solid component: a `.tsx` file on the kit's
+Solid layer (`@dither-kit`).
 
 You build for the Studio by producing **documents**. A document is JSON. Studio
 validates everything it loads: unknown components are dropped, props are
@@ -163,7 +164,7 @@ Commands (`type` and fields):
 | `view` | `to?` (`all`, `selection`, `in`, `out`, `actual`), `zoom?` (0.2–3, 1 is 100%) or `id?` (fit that frame) — the canvas view; held at 100% while the user inspects |
 | `inspect` | `id?` — the frame as drawn: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, fields named only by their placeholder, targets under 24px, text under AA contrast, images without alt, positive tabindex); check a screen with it before calling it done. A text field (`DitherInput`, `DitherTextarea`, `DitherSelect`, `DitherEmailInput`, `DitherPasswordInput`, `DitherSearchInput`, `DitherPhoneInput`, `DitherCurrencyInput`) takes a `label` prop: its visible label, tied to it (the field inside a `DitherField`), which is what fixes a placeholder-only name |
 | `image.export` | `id?`, `scale?` (1–4, default 2) — names the PNG's place, `image/<name>.png`; the `export_png` action writes it under your project through the bridge |
-| `code.get` | `id`, `styling?` — the frame as a Vue SFC; `tailwind` (default) keeps the utility classes, `css` (a scoped stylesheet), `modules` (CSS Modules) or `stylex` write the same look in that system while the kit components keep their own styles |
+| `code.get` | `id`, `styling?` — the frame as a Solid component, `{ file, code, sheet }`: a `.tsx` file on the kit's Solid layer; `tailwind` (default) keeps the utility classes, `css` (a stylesheet), `modules` (CSS Modules) or `stylex` write the same look in that system while the kit components keep their own styles; `sheet` is the stylesheet the file then imports, `{ file, text }` (null otherwise) |
 | `registry.get` | `is?`, `brief?` — the registry (`brief`: names, labels and groups only), or one component |
 | `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it; a reel with a score adds `score: { path: "score.wav", base64 }` for the index's audio track |
 | `clock.seek` | `seconds?` — hold every animation on the canvas at that moment, so a screenshot is stable from any driver in any browser; without `seconds` time runs again (`clock.release` does the same) |
@@ -219,7 +220,7 @@ Commands (`type` and fields):
   run. The Studio is plain web platform — the same commands work through CDP
   (`Runtime.evaluate` on `window.ditherStudio.run(...)`), WebDriver, Playwright
   or a DOM event, in Chromium, WebKit and Firefox alike.
-- Finish with `code.get` when the user wants code, and quote the SFC — in
+- Finish with `code.get` when the user wants code, and quote the component (and its `sheet`, when there is one) — in
   their styling system (`styling: "css" | "modules" | "stylex"`) when their
   project has one.
 

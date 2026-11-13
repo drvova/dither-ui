@@ -37,8 +37,8 @@ export type Ask = { method: string; mode: string; range: boolean }
 const PASS = /^(trailer|og|embed|oembed|play)\/|^sw\.js$/
 
 /** Where a build puts the files it names by their content, under the site:
- * the Vue build's `static/`, the Solid build's `_build/assets/`. */
-const HASHED = /^(static|_build\/assets)\//
+ * the build's `_build/assets/`. */
+const HASHED = /^_build\/assets\//
 
 /** The build's own list of the app's files, as paths under the site: a
  * build that knows what the app loads after its page (the chunks it imports

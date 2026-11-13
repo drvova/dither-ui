@@ -98,7 +98,7 @@
       ink: "orange",
       screen: "line",
       art: "tone",
-      text: "An infinite canvas to play with screens of kit parts. Export a frame as Vue, a PNG or an MP4, then go again.",
+      text: "An infinite canvas to play with screens of kit parts. Export a frame as Solid, a PNG or an MP4, then go again.",
       link: { label: "Open the studio", href: STUDIO },
     },
     {
@@ -264,8 +264,8 @@
         </div>
         <InstallBlock />
         <p class="install-note">
-          On Vue 3? The same kit ships as <code>dither-kit</code>, and the
-          <a href={`${SITE}/docs/getting-started`} class="lead">Vue quick start</a> has its steps.
+          On Solid? The same kit ships as <code>dither-kit</code>, and the
+          <a href={`${SITE}/docs/getting-started`} class="lead">Solid quick start</a> has its steps.
         </p>
         <dl use:rise class="sheet" aria-label="The kit in brief">
           {#each SPECS as s (s.label)}
@@ -289,7 +289,7 @@
           ><BrandGather class="foot-lockup" scene={STAGINGS.foot} /><span class="sr-only">dither-ui</span></a
         >
         <p class="foot-line">
-          A dithered UI toolkit for Svelte 5, the Vue kit's twin on the same engine. Printed one cell at a time.
+          A dithered UI toolkit for Svelte 5, the Solid kit's twin on the same engine. Printed one cell at a time.
         </p>
         <a href={GITHUB} target="_blank" rel="noreferrer" class="foot-gh"
           ><ToolMark id="github" size={13} />GitHub<span class="sr-only"> (opens in a new tab)</span></a

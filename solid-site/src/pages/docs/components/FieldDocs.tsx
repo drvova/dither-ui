@@ -170,7 +170,7 @@ export default function FieldDocs() {
   const [name, setName] = createSignal("")
   const [email, setEmail] = createSignal("not-an-email")
   const [handle, setHandle] = createSignal("")
-  const [bio, setBio] = createSignal("Dithered interfaces, composed with Vue.")
+  const [bio, setBio] = createSignal("Dithered interfaces, composed with Solid.")
   const [website, setWebsite] = createSignal("")
   const [profileName, setProfileName] = createSignal("Ada Byte")
   const [profileHandle, setProfileHandle] = createSignal("ada")

@@ -54,7 +54,7 @@ export const DOCS_FAMILIES = (Object.keys(NOTES) as (keyof typeof NOTES)[]).map(
 /** The spec sheet that closes the install: label and value, each value read
  * from the kit where it can be. */
 export const SPECS: readonly { label: string; value: string }[] = [
-  { label: "Components", value: `${COMPONENT_COUNT} for Svelte 5, ported from the Vue kit` },
+  { label: "Components", value: `${COMPONENT_COUNT} for Svelte 5, ported from the Solid kit` },
   { label: "Docs", value: `${SECTION_COUNT} live sections, each with its props and code` },
   { label: "Engine", value: `One seeded ${MATRIX} threshold matrix under every surface` },
   { label: "Screens", value: SCREEN_KINDS.join(", ") },

@@ -88,7 +88,7 @@ const INSIDE: {
     ink: "orange",
     screen: "line",
     art: "tone",
-    text: "An infinite canvas to play with screens of kit parts. Export a frame as Vue, a PNG or an MP4, then go again.",
+    text: "An infinite canvas to play with screens of kit parts. Export a frame as Solid, a PNG or an MP4, then go again.",
     link: { label: "Open the studio", href: routePath("/studio") },
   },
   {

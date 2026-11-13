@@ -1,5 +1,5 @@
-// The class-to-StyleX core the kit's layer generators share (Vue:
-// `stylex-layer.ts`, Solid: `stylex-layer-solid.ts`), framework-free: where
+// The class-to-StyleX core under the kit's layer generator
+// (`stylex-layer-solid.ts`), framework-free: where
 // a class string stands in a TypeScript expression (`walk`), a parsed script
 // and its holders (`Script`), and a class literal as a named StyleX style
 // (`convert`), from the declarations Tailwind's compiler gives each class
@@ -15,28 +15,16 @@ export type Site = { node: ts.Node; text: string; hint: string; wrap?: (out: str
 /** What a generator cannot carry, found at `node`. */
 export type Refuse = (node: ts.Node, kind: string, message: string) => void
 
-/** One walk's ends: where its class literals and holders go. `templates`
- * (the Solid layer) carries a template literal whose classes and
- * expressions are apart, as the list it is (without it one is refused),
- * and a record of records read twice (`SPACE[size][axis]`), which the Vue
- * layer leaves as written. */
+/** One walk's ends: where its class literals and holders go. */
 export interface Walk {
   sites: Site[]
   holders: Set<string>
   refuse: Refuse
-  templates?: boolean
   /** Told each expression met in class position. */
   enter?: (n: ts.Expression) => void
   /** Told an expression in class position the walk cannot read. */
   other?: (n: ts.Expression) => void
 }
-
-/** The Vue generator's refusal: the file fails as a whole. */
-export const throwing =
-  (file: string): Refuse =>
-  (_node, _kind, message) => {
-    throw new Error(`${file}: ${message}`)
-  }
 
 /** `SIZES` + `sm` → `sizesSm`; `cellBase` stays. */
 export const hintOf = (...parts: string[]) =>
@@ -64,10 +52,11 @@ export function returnsOf(body: ts.Node, out: ts.Expression[] = []): ts.Expressi
 }
 
 /** The calls whose arguments are in class position: `cn`, and a memo's
- * (Vue's `computed`, Solid's `createMemo`), which hands on what it returns. */
-const MEMOS = new Set(["computed", "createMemo"])
+ * (`createMemo`), which hands on what it returns. */
+const MEMOS = new Set(["createMemo"])
 
-/** A template literal as the list it is: each run of classes one item,
+/** A template literal whose classes and expressions are apart, as the list
+ * it is (any other is refused): each run of classes one item,
  * each expression one. The pieces replace the literal's own punctuation, so
  * what the expressions hold is rewritten in place. */
 function template(n: ts.TemplateExpression, w: Walk): boolean {
@@ -97,8 +86,8 @@ function template(n: ts.TemplateExpression, w: Walk): boolean {
 
 /** The string literals in class position under `node`: the arms of a
  * ternary, the right of `&&`, both sides of `||` / `??`, array items, a
- * record's values, `cn()` and `computed()` arguments, a function's returns.
- * Identifiers met there (a constant, a record, a computed, a function) are
+ * record's values, `cn()` and `createMemo()` arguments, a function's returns.
+ * Identifiers met there (a constant, a record, a memo, a function) are
  * added to `holders`: their declarations hold classes too. */
 export function walk(node: ts.Expression, w: Walk, hint: string, records: boolean) {
   const n = unwrap(node)
@@ -106,7 +95,7 @@ export function walk(node: ts.Expression, w: Walk, hint: string, records: boolea
   w.enter?.(n)
   if (ts.isStringLiteralLike(n)) w.sites.push({ node: n, text: n.text, hint })
   else if (ts.isTemplateExpression(n)) {
-    if (w.templates && template(n, w)) for (const s of n.templateSpans) go(s.expression, "")
+    if (template(n, w)) for (const s of n.templateSpans) go(s.expression, "")
     else w.refuse(n, "template literal", "a template literal holds classes; write them as an array")
   } else if (ts.isConditionalExpression(n)) {
     go(n.whenTrue, "")
@@ -139,10 +128,8 @@ export function walk(node: ts.Expression, w: Walk, hint: string, records: boolea
     if (ts.isBlock(n.body)) for (const r of returnsOf(n.body)) go(r)
     else go(n.body)
   } else if (ts.isIdentifier(n)) w.holders.add(n.text)
-  else if (ts.isPropertyAccessExpression(n) && n.name.text === "value" && ts.isIdentifier(n.expression))
-    w.holders.add(n.expression.text)
   else if (ts.isElementAccessExpression(n) && ts.isIdentifier(n.expression)) w.holders.add(n.expression.text)
-  else if (w.templates && ts.isElementAccessExpression(n)) {
+  else if (ts.isElementAccessExpression(n)) {
     // `SPACE[size][axis]`: the record at the root.
     let root: ts.Expression = n
     while (ts.isElementAccessExpression(root)) root = root.expression
@@ -151,7 +138,7 @@ export function walk(node: ts.Expression, w: Walk, hint: string, records: boolea
   } else w.other?.(n)
 }
 
-/** One parsed script: its class sites from `cn()` calls, `class:` in `h()`,
+/** One parsed script: its class sites from `cn()` calls
  * and the declarations of every holder (to a fixpoint). */
 export class Script {
   sf: ts.SourceFile
@@ -159,18 +146,15 @@ export class Script {
   edits: Edit[] = []
   private done = new Set<string>()
   readonly walking: Walk
-  /** `lib`: the layer's `lib` as this file imports it. */
   constructor(
     readonly file: string,
     readonly text: string,
     readonly offset: number,
-    refuse: Refuse = throwing(file),
-    kind = ts.ScriptKind.TS,
-    templates = false,
-    readonly lib = "./lib",
+    refuse: Refuse,
+    kind: ts.ScriptKind,
   ) {
     this.sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind)
-    this.walking = { sites: this.sites, holders: new Set(), refuse, templates }
+    this.walking = { sites: this.sites, holders: new Set(), refuse }
   }
 
   private walk(node: ts.Expression, holders: Set<string>, hint: string, records: boolean) {
@@ -184,14 +168,6 @@ export class Script {
           if (a.getText() === "props.class") this.edit(a.getStart(), a.getStart(), "props.xstyle, ")
           this.walk(a, holders, "", false)
         }
-      else if (
-        ts.isPropertyAssignment(n) &&
-        n.name.getText() === "class" &&
-        ts.isObjectLiteralExpression(n.parent) &&
-        ts.isCallExpression(n.parent.parent) &&
-        n.parent.parent.expression.getText() === "h"
-      )
-        this.walk(n.initializer, holders, "", false)
       ts.forEachChild(n, visit)
     }
     visit(this.sf)
@@ -242,17 +218,6 @@ export class Script {
 
   edit(start: number, end: number, text: string) {
     this.edits.push({ start: this.offset + start, end: this.offset + end, text })
-  }
-
-  /** The names this script imports from `./lib`, and where that import is. */
-  libImport(): { names: string[]; start: number; end: number } | null {
-    for (const s of this.sf.statements)
-      if (ts.isImportDeclaration(s) && (s.moduleSpecifier as ts.StringLiteral).text === this.lib) {
-        const named = s.importClause?.namedBindings
-        const names = named && ts.isNamedImports(named) ? named.elements.map((e) => e.getText()) : []
-        return { names, start: s.getStart(), end: s.getEnd() }
-      }
-    return null
   }
 
   /** Where a new import goes: after the last one (0 when none). */
@@ -314,4 +279,3 @@ export function splice(text: string, edits: Edit[], start = 0, end = text.length
 
 export const CLASS_TYPE = /\bclass\?: string\b/g
 export const XSTYLE_TYPE = "; xstyle?: StyleProp"
-export const TAKES_CLASS = /\bclass\?: string\b/

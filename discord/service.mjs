@@ -22,7 +22,8 @@
 //   PUBLIC_BASE         public base URL serving this process (for re-rolled
 //                       preview URLs). Empty -> re-rolls keep the site's own
 //                       card (dither-ui.com/og/<id>.gif).
-//   DIST                dist folder to serve og assets from (default ../dist).
+//   DIST                the built site to serve og assets from (default
+//                       ../solid-site/.output/public).
 //
 // Run: node discord/service.mjs
 import { createServer } from "node:http"
@@ -44,7 +45,7 @@ const PUBLIC_KEY_OBJ = (() => {
   const der = raw.length === 32 ? Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), raw]) : raw
   return createPublicKey({ key: der, format: "der", type: "spki" })
 })()
-const DIST = process.env.DIST || join(dirname(fileURLToPath(import.meta.url)), "..", "dist")
+const DIST = process.env.DIST || join(dirname(fileURLToPath(import.meta.url)), "..", "solid-site", ".output", "public")
 const SITE = "https://dither-ui.com"
 // IsComponentsV2 message flag (bit 15) — the only way components render
 // standalone without content cohabitation.
@@ -377,7 +378,7 @@ const server = createServer(async (req, res) => {
 // Boot: load the manifest eagerly so a bad build fails loudly at start.
 await loadSections().then((m) => {
   if (m.size === 0)
-    console.error("discord: no sections loaded — run the site build first (dist/og/sections.json missing)")
+    console.error("discord: no sections loaded — run the site build first (og/sections.json missing from DIST)")
   else console.log(`discord: ${m.size} sections loaded`)
   if (!process.env.DISCORD_PUBLIC_KEY)
     console.error(

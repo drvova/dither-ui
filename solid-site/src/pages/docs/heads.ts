@@ -28,14 +28,14 @@ const PAGES: Record<
   landing: {
     card: "home",
     description:
-      "dither-ui is a Vue 3 UI toolkit of 270 components drawn pixel by pixel from one seeded palette: charts, controls, forms, overlays, backgrounds, text effects, 3D models and shaders. A Svelte 5 port, a live docs section for every component and a Studio your coding agent can drive. MIT licensed.",
+      "dither-ui is a Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette: charts, controls, forms, overlays, backgrounds, text effects, 3D models and shaders. A Svelte 5 port, a live docs section for every component and a Studio your coding agent can drive. MIT licensed.",
     keywords:
-      "dither, dithering, Vue, Vue 3, UI toolkit, component library, charts, canvas, pixel art, ordered dither, Bayer, seed-generative, shadcn, Base UI, data visualization",
+      "dither, dithering, Solid, SolidJS, UI toolkit, component library, charts, canvas, pixel art, ordered dither, Bayer, seed-generative, shadcn, Base UI, data visualization",
     data: {
       ...APP,
       name: "dither-ui",
       description:
-        "A Vue 3 UI toolkit of 270 components drawn pixel by pixel from one seeded palette, with a Svelte 5 port, live docs and a Studio your coding agent can drive.",
+        "A Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette, with a Svelte 5 port, live docs and a Studio your coding agent can drive.",
       operatingSystem: "Web",
       license: "https://opensource.org/licenses/MIT",
       author: { "@type": "Organization", name: "dither-ui" },
@@ -45,12 +45,12 @@ const PAGES: Record<
   docs: {
     card: "docs",
     description:
-      "Documentation, live examples, API references, and copy-ready Vue code for dither-ui charts, components, composition, animation, and accessibility.",
-    x: "Live Vue examples, API references, chart variants, and copy-ready code for dither-ui.",
+      "Documentation, live examples, API references, and copy-ready Solid code for dither-ui charts, components, composition, animation, and accessibility.",
+    x: "Live Solid examples, API references, chart variants, and copy-ready code for dither-ui.",
     data: {
       "@type": "TechArticle",
       headline: "dither-ui documentation",
-      description: "Documentation and live examples for dither-ui Vue charts and components.",
+      description: "Documentation and live examples for dither-ui Solid charts and components.",
       isPartOf: SITE,
       about: { ...APP, name: "dither-ui" },
     },
@@ -58,13 +58,13 @@ const PAGES: Record<
   studio: {
     card: "studio",
     description:
-      "Arrange, configure, preview, and export dither-ui Vue charts and components on an infinite canvas with direct manipulation, layers, and contextual properties.",
-    og: "Build dithered Vue interfaces on an infinite canvas, then export working component code.",
-    x: "Arrange, configure, preview, and export dithered Vue charts and components on an infinite canvas.",
+      "Arrange, configure, preview, and export dither-ui Solid charts and components on an infinite canvas with direct manipulation, layers, and contextual properties.",
+    og: "Build dithered Solid interfaces on an infinite canvas, then export working component code.",
+    x: "Arrange, configure, preview, and export dithered Solid charts and components on an infinite canvas.",
     data: {
       ...APP,
       name: "dither-ui Studio",
-      description: "An infinite-canvas editor for composing and exporting dither-ui Vue charts and components.",
+      description: "An infinite-canvas editor for composing and exporting dither-ui Solid charts and components.",
       operatingSystem: "Web",
       isAccessibleForFree: true,
       offers: FREE,

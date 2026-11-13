@@ -13,7 +13,7 @@ export const OURS: Slash[] = [
   { name: "auto", args: "on | off", desc: "answer permission prompts with their allow option" },
   { name: "evolve", args: "[count]", desc: "seeded variants of the selection" },
   { name: "select", args: "<name>", desc: "select a frame by name" },
-  { name: "code", desc: "the selection as a Vue SFC" },
+  { name: "code", desc: "the selection as a Solid component" },
   { name: "copy", desc: "copy the last reply" },
   { name: "session", desc: "harness, tokens, frames" },
   { name: "undo", desc: "undo the last edit" },

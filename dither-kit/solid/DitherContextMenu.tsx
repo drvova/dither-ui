@@ -97,7 +97,7 @@ export default function DitherContextMenu(props: DitherContextMenuProps) {
     })
   })
 
-  // Native listeners (`on:`), as the Vue twin's were: the panel's events stay
+  // Native listeners (`on:`): the panel's events stay
   // in the panel (a delegated one would climb out of the portal to this root).
   return (
     <div on:contextmenu={onContextmenu}>

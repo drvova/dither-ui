@@ -1,6 +1,6 @@
 import { GROUPS, SECTIONS } from "./groups.ts"
 import { docsBreadcrumb, docsMeta, REPO_URL, SITE_URL } from "./seo.ts"
-import { sectionTags, type ShareCard, shareTags, tagHtml } from "./share-cards.ts"
+import { sectionTags, type ShareCard, tagHtml } from "./share-cards.ts"
 
 export { ROUTE_CARDS, sectionCard, type ShareCard, shareCards } from "./share-cards.ts"
 
@@ -136,12 +136,6 @@ export function oembed(card: ShareCard): string {
   })
 }
 
-/** The head tags that point a page's previews at its card, as the section
- * pages' head carries them. */
-export function shareHead(card: ShareCard): string {
-  return shareTags(card).map(tagHtml).join("\n    ")
-}
-
 /* ------------------------------ sitemap.xml ------------------------------- */
 
 export function sitemapXml(): string {
@@ -170,7 +164,7 @@ export function sitemapXml(): string {
 // derived through docsUrl() so every docs link is validated against GROUPS.
 
 const LLMS_SUMMARY =
-  "dither-ui is a Vue 3 UI toolkit (plus a Svelte 5 port, dither-kit-svelte) rendered on one " +
+  "dither-ui is a Solid UI toolkit (plus a Svelte 5 port, dither-kit-svelte) rendered on one " +
   "ordered-dither canvas engine: composable area, line, bar, pie, radar and sparkline charts, " +
   "55+ Base UI-parity components, generative backgrounds, text and animation effects, all " +
   "seed-generative, MIT licensed, and free to use."
@@ -203,7 +197,7 @@ const LLMS_GROUPS: LlmsGroup[] = [
       {
         title: "GitHub repository",
         href: REPO_URL,
-        desc: "Full source for both kits (dither-kit Vue 3, dither-kit-svelte Svelte 5), benchmarks, and this site.",
+        desc: "Full source for both kits (dither-kit for Solid, dither-kit-svelte for Svelte 5), benchmarks, and this site.",
       },
     ],
   },
@@ -350,7 +344,7 @@ const LLMS_GROUPS: LlmsGroup[] = [
 const LLMS_CONTEXT =
   "dither-ui is not published to a package registry. Install by copying the `dither-kit` folder " +
   "(or `dither-kit-svelte` for Svelte 5) from the GitHub repository into your project, installing " +
-  "four small runtime dependencies (vue or svelte, tailwindcss, d3-scale, d3-shape), and aliasing " +
+  "four small runtime dependencies (d3-scale, d3-shape, clsx, tailwind-merge) beside solid-js or svelte, and aliasing " +
   "the folder. The documentation site is served as prerendered static HTML, so every page below " +
   "can be fetched directly without a browser."
 

@@ -627,6 +627,9 @@ describe("the styling card", () => {
     expect(all(w.container, ".seg button").map(text)).toEqual(Object.values(STYLING_LABELS))
     expect(pressed()).toEqual([STYLING_LABELS.stylex])
     expect(code().join("\n")).toContain("stylex")
+    // Written as the Solid file a reader takes, never in the snippets' authoring notation.
+    expect(code().join("\n")).toContain("{...stylex.props(")
+    expect(code().join("\n")).not.toMatch(/v-bind|<script setup|<style scoped/)
     expect(text(w.container.querySelector(".export-live"))).toContain("Invoices")
     fireEvent.click(w.getByRole("button", { name: STYLING_LABELS.tailwind }))
     expect(pressed()).toEqual([STYLING_LABELS.tailwind])
@@ -760,7 +763,7 @@ describe("the hero", () => {
     const w = render(() => <Showcase />)
     const hero = w.container.querySelector("section.hero")!
     expect(hero.getAttribute("aria-labelledby")).toBe("hero-h")
-    expect(hero.querySelector("h1#hero-h")!.textContent).toBe("A dithered UI toolkit for Vue.")
+    expect(hero.querySelector("h1#hero-h")!.textContent).toBe("A dithered UI toolkit for Solid.")
     expect(all(hero, "h1 .rise-word").every((s) => s.classList.contains("chrome-type"))).toBe(true)
     expect(text(hero.querySelector(".hero-lede"))).toMatch(
       new RegExp(`^${COMPONENT_COUNT} components, from charts .* one seeded \\S+ matrix\\. Copy the folder`),

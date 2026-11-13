@@ -37,7 +37,7 @@ export type DitherRevealProps = {
   class?: string
   xstyle?: StyleProp
   children?: JSX.Element
-  /** What Vue let fall through to the wrapper and a page relies on. */
+  /** Passed on to the wrapper: a page relies on it. */
   "aria-hidden"?: boolean | "true" | "false"
   "data-phase"?: string
 }

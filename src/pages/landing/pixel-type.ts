@@ -2,7 +2,7 @@
 // punctuation are narrower) for the brand's wordmark, with a lowercase set
 // (four wide, x-height from the third row, a descender hanging two rows
 // under the baseline) for the kit's parts' names. Pure: a string in, a
-// list of lit cells out; `BrandGather.vue` draws them as its own cells.
+// list of lit cells out; `BrandGather` draws them as its own cells.
 
 /** Rows top to bottom; `#` is a lit cell. Every row of a glyph is as wide
  * as the glyph. Seven rows stand on the baseline; a descender's rows past

@@ -1,6 +1,6 @@
 // Node-side only (tests/stylex-layer-solid.spec.ts): the Solid kit's StyleX
 // layer (`dither-kit/solid-stylex/`), written from its Tailwind-classed
-// layer (`dither-kit/solid/`) on the core the Vue generator shares
+// layer (`dither-kit/solid/`) on the class-to-StyleX core
 // (`stylex-core.ts`). Every class string a Solid file sets (a JSX `class`,
 // a `classList`, a `cn()` argument, a template literal of classes, and the
 // constants, records, memos and functions those reach) becomes a named style
@@ -133,7 +133,7 @@ function solidFile(
 ) {
   const refused: Refusal[] = []
   const refuse: Refuse = (node, kind, message) => refused.push({ file: source, line: lineOf(node), kind, message })
-  const s = new Script(name, text, 0, refuse, kindOf(name), true)
+  const s = new Script(name, text, 0, refuse, kindOf(name))
   const holders = new Set(exported)
   const passed = new Set<string>()
   const handled = new Set<ts.Node>()
@@ -171,7 +171,6 @@ function solidFile(
         sites: [],
         holders: found.holders,
         refuse: () => {},
-        templates: true,
         enter: (e) => void (isCn(e) && found.calls.push(e)),
       },
       "",

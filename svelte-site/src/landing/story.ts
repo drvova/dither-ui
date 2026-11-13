@@ -11,7 +11,7 @@ export const ASK = "A deploy panel: this week's deploys, the build minutes used 
 export const DOES = [
   "Reads every component and its props",
   "Lays out a Deploys screen from them",
-  "Writes the screen as a Vue file",
+  "Writes the screen as a Solid file",
   "Renders it as an MP4",
 ] as const
 

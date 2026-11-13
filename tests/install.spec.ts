@@ -12,7 +12,8 @@ import {
   STUDIO_GROUND,
   faviconSvg,
   installFiles,
-  installHead,
+  APP_HEAD,
+  ICON_HEAD,
   webManifest,
 } from "@/app/install-files"
 import { OFFLINE, cacheName, inApp, pageAssets, strategyFor } from "@/app/offline"
@@ -105,15 +106,11 @@ describe("the install surface", () => {
     expect(svg.split(INSTALL_INK.ember)).toHaveLength(2)
   })
 
-  it("gives every route the icons and only the Studio the manifest and iOS's app tags, from one table", () => {
-    const of = (entry: string) => installHead(entry).map((t) => t.attrs.rel ?? t.attrs.name)
-    for (const entry of ["index", "docs/index"]) {
-      expect(of(entry)).toEqual(["icon", "icon", "apple-touch-icon"])
-    }
-    expect(of(`${OFFLINE.app}index`)).toEqual(
-      expect.arrayContaining(["icon", "apple-touch-icon", "manifest", "apple-mobile-web-app-capable"]),
-    )
-    for (const t of installHead(`${OFFLINE.app}index`)) if (t.attrs.href) expect(files[t.attrs.href]).toBeDefined()
+  it("gives every route the icons and only the Studio the manifest and iOS's app tags", () => {
+    const of = (head: typeof ICON_HEAD) => head.map((t) => t.attrs.rel ?? t.attrs.name)
+    expect(of(ICON_HEAD)).toEqual(["icon", "icon", "apple-touch-icon"])
+    expect(of(APP_HEAD)).toEqual(expect.arrayContaining(["manifest", "apple-mobile-web-app-capable"]))
+    for (const t of [...ICON_HEAD, ...APP_HEAD]) if (t.attrs.href) expect(files[t.attrs.href]).toBeDefined()
   })
 })
 
@@ -130,31 +127,31 @@ describe("the service worker's rules", () => {
 
   it("answers pages network first, hashed assets from the cache, the rest stale while it refreshes", () => {
     expect(strategyFor(at("studio/"), site, ask("navigate"))).toBe("page")
-    expect(strategyFor(at("static/js/index.1a2b.js"), site, ask())).toBe("static")
+    expect(strategyFor(at("_build/assets/index-1a2b.js"), site, ask())).toBe("static")
     expect(strategyFor(at("favicon.svg"), site, ask())).toBe("asset")
-    expect(strategyFor(at("kit/src/vue/files.json"), site, ask())).toBe("asset")
+    expect(strategyFor(at("kit/src/solid/files.json"), site, ask())).toBe("asset")
   })
 
   it("leaves the film, the cards, the player, other origins, writes and range reads to the network", () => {
     for (const path of ["trailer/dither-ui.mp4", "og/home.gif", "embed/home.json", "play/", "sw.js"])
       expect(strategyFor(at(path), site, ask())).toBe("network")
     expect(strategyFor(new URL("https://fonts.example/a.woff2"), site, ask())).toBe("network")
-    expect(strategyFor(at("static/js/a.js"), site, ask("cors", "POST"))).toBe("network")
-    expect(strategyFor(at("static/a.mp4"), site, ask("no-cors", "GET", true))).toBe("network")
+    expect(strategyFor(at("_build/assets/a.js"), site, ask("cors", "POST"))).toBe("network")
+    expect(strategyFor(at("_build/assets/a.mp4"), site, ask("no-cors", "GET", true))).toBe("network")
   })
 
   it("keeps to the site when it is served under a base path", () => {
     const base = new URL("https://drvova.github.io/dither-ui/")
     expect(strategyFor(new URL("https://drvova.github.io/other/x.js"), base, ask())).toBe("network")
-    expect(strategyFor(new URL("static/js/a.js", base), base, ask())).toBe("static")
+    expect(strategyFor(new URL("_build/assets/a.js", base), base, ask())).toBe("static")
   })
 
   it("keeps the build assets the app's page loads, and only those", () => {
-    const html = `<script defer src="/static/js/index.1.js"></script><link href="/static/css/index.2.css" rel="stylesheet">
+    const html = `<script defer src="/_build/assets/index-1.js"></script><link href="/_build/assets/index-2.css" rel="stylesheet">
       <link rel="icon" href="/favicon.svg"><a href="/docs/">docs</a><img src="https://cdn.example/x.png">`
     expect(pageAssets(html, at(OFFLINE.app), site)).toEqual([
-      at("static/js/index.1.js").href,
-      at("static/css/index.2.css").href,
+      at("_build/assets/index-1.js").href,
+      at("_build/assets/index-2.css").href,
     ])
   })
 

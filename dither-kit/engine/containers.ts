@@ -1,6 +1,6 @@
 /** Container-query engine (pure): resolve a measured CONTAINER width against
  * a named bucket scale. DOM-free and clock-free like `timing.ts` — the
- * observing lives in `DitherContainer.vue`, the math here. */
+ * observing lives in the `DitherContainer` component, the math here. */
 
 /** One bucket's width range in px: `min` inclusive, `max` exclusive — CSS
  * range semantics, so a boundary width belongs to the WIDER bucket. */

@@ -128,7 +128,7 @@ describe("FieldDocs", () => {
     fireEvent.input(name, { target: { value: "Rei" } })
     expect(name.value).toBe("Rei")
     expect(section(container, "textarea").querySelector("textarea")?.value).toBe(
-      "Dithered interfaces, composed with Vue.",
+      "Dithered interfaces, composed with Solid.",
     )
     // a field ties its label, its control and its small print
     const field = section(container, "field")

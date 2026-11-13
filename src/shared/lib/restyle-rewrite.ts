@@ -753,10 +753,11 @@ export function restyleSolid(code: string, system: Styling, name = "styles"): { 
   return { code: withImports(out, [line]), sheet: { file, text: cssText(names.all) } }
 }
 
-/** `code` written in `system`: the classes the map knows become the target's
+/** `code` (in `framework`'s notation: `vue` is the one the docs' snippets
+ * are authored in) written in `system`: the classes the map knows become the target's
  * styles, every unknown class stays, Tailwind returns the code untouched. A
  * Solid file's stylesheet follows it, under its file's name. */
-export function restyle(code: string, system: Styling, framework: Framework = "vue"): string {
+export function restyle(code: string, system: Styling, framework: Framework): string {
   if (system === "tailwind") return code
   if (framework === "solid") {
     const solid = restyleSolid(code, system)

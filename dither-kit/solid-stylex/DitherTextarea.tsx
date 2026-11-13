@@ -60,7 +60,7 @@ export default function DitherTextarea(raw: DitherTextareaProps) {
 
   const onInput: JSX.InputEventHandler<HTMLTextAreaElement, InputEvent> = (e) => {
     props.onUpdateModelValue?.(e.currentTarget.value)
-    // The caller's own listener still hears it, as a Vue fallthrough would.
+    // The caller's own listener still hears it.
     const theirs = props.onInput
     if (typeof theirs === "function") theirs(e)
     else if (theirs) theirs[0](theirs[1], e)

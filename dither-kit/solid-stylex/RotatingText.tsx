@@ -18,7 +18,7 @@ export type RotatingTextProps = {
 }
 
 export default function RotatingText(raw: RotatingTextProps) {
-  const props = mergeProps({ texts: ["Vue", "canvas", "dither"], interval: 2000 }, raw)
+  const props = mergeProps({ texts: ["Solid", "canvas", "dither"], interval: 2000 }, raw)
 
   const list = createMemo(() => (props.texts.length ? props.texts : [""]))
   const [idx, setIdx] = createSignal(0)

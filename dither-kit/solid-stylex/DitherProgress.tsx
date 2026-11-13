@@ -76,7 +76,7 @@ export type DitherProgressProps = {
   indeterminate?: boolean
   class?: string
   xstyle?: StyleProp
-  /** The bar's accessible name (Vue let these fall through to the bar). */
+  /** The bar's accessible name (these are passed on to the bar). */
   "aria-label"?: string
   "aria-labelledby"?: string
 }

@@ -161,9 +161,3 @@ export const APP_HEAD: HeadTag[] = [
   { tag: "meta", attrs: { name: "apple-mobile-web-app-title", content: "Studio" } },
   { tag: "meta", attrs: { name: "apple-mobile-web-app-status-bar-style", content: "black" } },
 ]
-
-/** The head a route's page carries, by its build entry (`studio/index` is
- * the app's page): the one table the config injects from. */
-export function installHead(entry: string): HeadTag[] {
-  return entry === `${OFFLINE.app}index` ? [...ICON_HEAD, ...APP_HEAD] : ICON_HEAD
-}

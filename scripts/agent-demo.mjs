@@ -11,7 +11,7 @@
 // actions wrote into its folder.
 //
 //   npm run dev                       # the Studio, in another terminal
-//   node scripts/agent-demo.mjs [--url http://localhost:5173/studio/]
+//   node scripts/agent-demo.mjs [--url http://localhost:3000/studio/]
 //     [--harness claude] [--agent "<any ACP command>"] [--ask "<text>"]...
 //     [--attach <picture or text file>]...
 //     [--out agent-demo] [--timeout 300] [--executable <chromium>]
@@ -31,11 +31,11 @@ const flag = (name, fallback) => {
 }
 if (args.includes("--help")) {
   console.log(
-    'usage: node scripts/agent-demo.mjs [--url http://localhost:5173/studio/] [--harness claude] [--agent "<command>"] [--ask "<text>"]... [--attach <file>]... [--out agent-demo] [--timeout 300] [--executable <chromium>]',
+    'usage: node scripts/agent-demo.mjs [--url http://localhost:3000/studio/] [--harness claude] [--agent "<command>"] [--ask "<text>"]... [--attach <file>]... [--out agent-demo] [--timeout 300] [--executable <chromium>]',
   )
   process.exit(0)
 }
-const url = flag("url", "http://localhost:5173/studio/")
+const url = flag("url", "http://localhost:3000/studio/")
 const agent = flag("agent", "")
 const harness = flag("harness", "claude")
 // Each --ask is one turn of the same chat, in order.

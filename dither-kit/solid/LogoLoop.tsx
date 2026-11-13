@@ -10,7 +10,7 @@ export type LogoLoopProps = {
 }
 
 export default function LogoLoop(raw: LogoLoopProps) {
-  const props = mergeProps({ items: ["DITHER", "BAYER", "CANVAS", "VUE", "PIXELS"], speed: 18, gap: 48 }, raw)
+  const props = mergeProps({ items: ["DITHER", "BAYER", "CANVAS", "SOLID", "PIXELS"], speed: 18, gap: 48 }, raw)
 
   // Duplicated once so translateX(-50%) wraps seamlessly.
   const loop = createMemo(() => [...props.items, ...props.items])

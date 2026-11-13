@@ -54,7 +54,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "class", type: "string", default: "undefined" },
   ],
   rotatingText: [
-    { prop: "texts", type: "string[]", default: "['Vue', 'canvas', 'dither']" },
+    { prop: "texts", type: "string[]", default: "['Solid', 'canvas', 'dither']" },
     { prop: "interval", type: "number (ms)", default: "2000" },
     { prop: "class", type: "string", default: "undefined" },
   ],
@@ -162,7 +162,7 @@ const SNIPPETS = {
   shinyText: `<DitherShinyText>Shimmering headline</DitherShinyText>`,
   glitchText: `<DitherGlitchText text="MALFUNCTION" />`,
   splitText: `<DitherSplitText text="Split into characters" :replay-token="token" />`,
-  rotatingText: `Built for <DitherRotatingText :texts="['Vue', 'canvas', 'the studio']" />`,
+  rotatingText: `Built for <DitherRotatingText :texts="['Solid', 'canvas', 'the studio']" />`,
   countUp: `<DitherCountUp :to="1984" /> renders <!-- counts up when scrolled into view -->`,
   numberFlow: `<DitherNumberFlow :value="metric" />  <!-- digits roll on every change -->
 <DitherNumberFlow :value="price" :decimals="2" :duration="400" />`,
@@ -275,7 +275,7 @@ export default function TextDocs() {
         <DemoCard code={SNIPPETS.rotatingText}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
             <span>Built for&nbsp;</span>
-            <DitherRotatingText class="text-foreground" texts={["Vue", "canvas", "the studio"]} />
+            <DitherRotatingText class="text-foreground" texts={["Solid", "canvas", "the studio"]} />
           </div>
         </DemoCard>
         <PropsTable rows={API.rotatingText} />

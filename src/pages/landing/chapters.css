@@ -11,7 +11,7 @@
    LandingPage keeps on), so what it teleports to the body (the film's
    dialog) is printed on it too: the user's V5 obsidian and bone, a muted
    bone at AA on both grounds (6.6:1 on the obsidian, 5.7:1 raised). Keyed
-   on the route's mark on the root (App.vue), never `:has()`. The missing
+   on the route's mark on the root (the app shell), never `:has()`. The missing
    page wears it too. */
 :root:is([data-page="landing"], [data-page="missing"]) {
   color-scheme: dark;

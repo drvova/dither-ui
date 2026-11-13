@@ -640,7 +640,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 300, h: 80 },
     props: [
-      text("text", "src/pages/docs/primitives/PrimitivesDocs.vue"),
+      text("text", "solid-site/src/pages/docs/typography/TypographyDocs.tsx"),
       number("head", 8, 2, 24),
       number("tail", 6, 2, 24),
       bool("title", true),
@@ -667,8 +667,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "External link",
     group: "display",
     frame: { w: 240, h: 80 },
-    props: [url("href", "https://vuejs.org"), number("iconSize", 12, 8, 20)],
-    slotText: "Vue docs",
+    props: [url("href", "https://docs.solidjs.com"), number("iconSize", 12, 8, 20)],
+    slotText: "Solid docs",
   },
   {
     is: "DitherSelectableText",
@@ -851,7 +851,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 320, h: 100 },
     props: [text("placeholder", "Add tag…"), number("max", 8, 1, 20), bool("disabled")],
-    vmodel: { def: ["vue", "dither"] },
+    vmodel: { def: ["solid", "dither"] },
   },
   {
     is: "DitherChoiceChips",
@@ -911,8 +911,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Multi select",
     group: "inputs",
     frame: { w: 300, h: 220 },
-    props: [list("options", ["vue", "dither", "canvas", "tokens"]), text("placeholder", "Search…"), bool("disabled")],
-    vmodel: { def: ["vue"] },
+    props: [list("options", ["solid", "dither", "canvas", "tokens"]), text("placeholder", "Search…"), bool("disabled")],
+    vmodel: { def: ["solid"] },
   },
   {
     is: "DitherCascadeSelect",
@@ -2248,7 +2248,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Rotating text",
     group: "display",
     frame: { w: 320, h: 100 },
-    props: [list("texts", ["Vue", "canvas", "dither"]), number("interval", 2000, 400, 6000, 100)],
+    props: [list("texts", ["Solid", "canvas", "dither"]), number("interval", 2000, 400, 6000, 100)],
     mapProps: (p) => ({ ...p, texts: strList(p.texts) }),
   },
   {
@@ -3037,7 +3037,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 360, h: 70 },
     props: [
-      list("items", ["DITHER", "BAYER", "CANVAS", "VUE", "PIXELS"]),
+      list("items", ["DITHER", "BAYER", "CANVAS", "SOLID", "PIXELS"]),
       number("speed", 18, 3, 60, 1),
       number("gap", 48, 8, 160, 4),
     ],

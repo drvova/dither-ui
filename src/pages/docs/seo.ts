@@ -9,13 +9,13 @@ import { GROUPS, SECTIONS, type DocsGroup } from "./groups.ts"
 export const SITE_URL = "https://dither-ui.com"
 export const REPO_URL = "https://github.com/drvova/dither-ui"
 
-const SITE_OVERVIEW = "dither-ui: a Vue 3 UI toolkit on one ordered-dither canvas engine."
+const SITE_OVERVIEW = "dither-ui: a Solid UI toolkit on one ordered-dither canvas engine."
 
 export const DOCS_ROOT = {
   url: `${SITE_URL}/docs`,
   title: ROUTE_TITLES.docs,
   description:
-    "Documentation, live examples, API references, and copy-ready Vue code for dither-ui charts, components, composition, animation, and accessibility.",
+    "Documentation, live examples, API references, and copy-ready Solid code for dither-ui charts, components, composition, animation, and accessibility.",
 }
 
 export interface DocsMeta {

@@ -2,13 +2,13 @@
 
 A Svelte 5 port of the [dither-ui](https://dither-ui.com) toolkit — the same
 canvas ordered-dither (Bayer 4x4) engine and component contracts as `dither-kit`
-(Vue), re-expressed in Svelte 5 runes. Portable: copy the folder, alias it,
+(Solid), re-expressed in Svelte 5 runes. Portable: copy the folder, alias it,
 import from `index.ts`.
 
 ## Status
 
 Complete port: **all 168 components** across every family are ported and pass
-`svelte-check` (0 errors, 0 warnings) — the full Vue kit re-expressed in Svelte 5
+`svelte-check` (0 errors, 0 warnings), the kit as it stood at the port, re-expressed in Svelte 5
 runes with no legacy API and no `$effect`.
 
 | Family | Ported | Proves |
@@ -21,8 +21,8 @@ runes with no legacy API and no `$effect`.
 | Charts | 13 parts + 5 roots + `Sparkline` | reactive `setContext` getters, series `register*` actions, self-stacking SVG layers, framework-agnostic canvas loop |
 | Native canvas control / Context DI | `DitherButton`, `DitherField`+`DitherInput` | canvas action, `setContext`/`getContext`, `$bindable` |
 
-The Vue-free engine modules (`palette`, `pixel`, `raster`, `noise`, `precompile`,
-`dither-paint`, and each `paint*` module) are copied verbatim from the Vue kit —
+The framework-free engine modules (`palette`, `pixel`, `raster`, `noise`, `precompile`,
+`dither-paint`, and each `paint*` module) are copied verbatim from `dither-kit/engine` —
 `dither-kit` stays the single source of truth for engine math.
 
 ## Structure

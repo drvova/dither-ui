@@ -26,7 +26,7 @@ const VEC: Record<"up" | "down" | "left" | "right", [number, number]> = {
   right: [1, 0],
 }
 
-/** The matrix's `mode`, carried as the Vue twin writes it (the element's own
+/** The matrix's `mode`, carried beside it (the element's own
  * attribute is `type`, whose default is the matrix). */
 const MODE: object = { mode: "matrix" }
 

@@ -61,13 +61,13 @@ const SNIPPET_LINE_CLAMP = `<DitherLineClamp :lines="2">
   Long body copy that stops after two lines with an ellipsis…
 </DitherLineClamp>`
 
-const SNIPPET_MIDDLE_ELLIPSIS = `<DitherMiddleEllipsis text="src/pages/docs/primitives/PrimitivesDocs.vue" />`
+const SNIPPET_MIDDLE_ELLIPSIS = `<DitherMiddleEllipsis text="solid-site/src/pages/docs/typography/TypographyDocs.tsx" />`
 
 const SNIPPET_ELLIPSIS_TOOLTIP = `<DitherEllipsisTooltip>Full sentence that only shows a tooltip when it actually clips…</DitherEllipsisTooltip>`
 
 const SNIPPET_LINK = `<DitherLink :href="routePath('/docs')">Docs home</DitherLink>`
 
-const SNIPPET_EXTERNAL_LINK = `<DitherExternalLink href="https://vuejs.org">Vue docs</DitherExternalLink>`
+const SNIPPET_EXTERNAL_LINK = `<DitherExternalLink href="https://docs.solidjs.com">Solid docs</DitherExternalLink>`
 
 const SNIPPET_SELECTABLE_TEXT = `<DitherSelectableText>sk_live_51Nq…f9X</DitherSelectableText>`
 
@@ -367,7 +367,7 @@ export default function TypographyDocs() {
           <div class="grid gap-2 text-[12px]">
             <DitherMiddleEllipsis
               class="font-mono"
-              text="src/pages/docs/primitives/PrimitivesDocs.vue"
+              text="solid-site/src/pages/docs/typography/TypographyDocs.tsx"
               head={14}
               tail={10}
             />
@@ -422,7 +422,7 @@ export default function TypographyDocs() {
         </p>
         <DemoCard code={SNIPPET_EXTERNAL_LINK}>
           <p class="text-[13px]">
-            <DitherExternalLink href="https://vuejs.org">Vue docs</DitherExternalLink> and{" "}
+            <DitherExternalLink href="https://docs.solidjs.com">Solid docs</DitherExternalLink> and{" "}
             <DitherExternalLink href="https://tailwindcss.com">Tailwind docs</DitherExternalLink> ship the runtime this
             kit leans on.
           </p>

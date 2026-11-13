@@ -9,7 +9,7 @@ screen), **Night/Day mode** sets the card on obsidian or on bone paper,
 **Open docs** links out. No bot token needed — interactions answer inline via the webhook.
 
 A link to the site needs none of this: every page's head points Discord at
-its own component embed (`dist/embed/<id>.json`, the same card playing, with
+its own component embed (`embed/<id>.json` in the built site, the same card playing, with
 link buttons), built with the site.
 
 ## Setup (once)
@@ -36,7 +36,7 @@ curl -X PUT "https://discord.com/api/v10/applications/<APP_ID>/commands" \
 ## Run
 
 ```sh
-npm run build                                  # renders dist/og/*.png + *.gif + sections.json
+npm run build                                  # writes og/*.png, *.gif and sections.json into solid-site/.output/public
 DISCORD_PUBLIC_KEY=<hex> PUBLIC_BASE=https://<host> node discord/service.mjs
 ```
 
@@ -45,6 +45,8 @@ DISCORD_PUBLIC_KEY=<hex> PUBLIC_BASE=https://<host> node discord/service.mjs
   are served from `${PUBLIC_BASE}/preview/<id>/<seed>/<inv>.gif` and must be
   publicly fetchable by Discord's CDN. Without it, re-rolls keep the site's
   static card.
+- `DIST` — the built site the cards are read from; default
+  `solid-site/.output/public`, where `npm run build` puts it.
 - `PORT` — default 8787. `GET /health` for probes.
 
 ## Routes
@@ -54,7 +56,7 @@ DISCORD_PUBLIC_KEY=<hex> PUBLIC_BASE=https://<host> node discord/service.mjs
   `PING`, the `component` slash command (type 4 + IsComponentsV2), and
   button clicks (type 7, message updated in place).
 - `GET /preview/:id/:seed/:inv.gif` — on-demand share card re-render, its
-  whole loop (playwright over the built renderer page `dist/og/index.html`,
+  whole loop (playwright over the built renderer page `og/index.html`,
   its script and the sections manifest served from `DIST` as built, its
   `window.og.files`; memory-cached, 24h browser-cache headers). A seed is up to nine digits
   and an invert 0 or 1, read the same way as a button's custom id; renders

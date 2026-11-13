@@ -2,7 +2,7 @@
 // chains, parallel groups, staggered waves, loops. DOM-free and clock-free by
 // contract (see dither-kit/AGENTS.md): `planSequence` flattens a node tree into
 // scheduled tracks once, `sampleSequence(plan, t)` maps any moment to every
-// track's state — drivers own the clock (Sequence.vue, or your own rAF loop).
+// track's state — drivers own the clock (the `Sequence` component, or your own rAF loop).
 // Easing is the same `Easing` shape timing.ts exports, so steps() composes
 // straight into a sequence: quantized motion over orchestrated motion.
 // tests/sequence.spec.ts pins the algebra; change both together.

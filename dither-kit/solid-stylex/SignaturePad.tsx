@@ -38,7 +38,7 @@ export type SignaturePadProps = {
   onChange?: (value: string) => void
 }
 
-/** The button's stray `size` attribute, as the Vue kit renders it. */
+/** The button's `size` attribute, as the pad has always rendered it. */
 const SIZE = { "attr:size": "sm" }
 
 export default function SignaturePad(raw: SignaturePadProps) {

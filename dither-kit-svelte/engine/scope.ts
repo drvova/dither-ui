@@ -1,5 +1,5 @@
 // The scope: an oscilloscope's trace printed through the threshold matrix,
-// Vue-free so both kits share it verbatim. The beam sweeps the screen left
+// framework-free so both kits share it verbatim. The beam sweeps the screen left
 // to right; where it moves slowly (a flat stretch) it lands bright, where it
 // moves fast (an edge) it lands faint, as a real beam does, and it leaves a
 // glow on the rows beside it. A named wave drifts on its phase; its

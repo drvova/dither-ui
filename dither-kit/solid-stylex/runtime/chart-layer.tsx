@@ -1,8 +1,7 @@
 // Generated from ../../solid/runtime/chart-layer.tsx by src/shared/lib/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u tests/stylex-layer-solid.spec.ts
-// Which of a chart root's layers a composed part renders in. The Vue kit
-// reads a static `chartLayer` off each child's component; Solid's children
-// arrive already rendered, so a part that is not front SVG chrome hands the
+// Which of a chart root's layers a composed part renders in. Solid's children
+// arrive already rendered (a root cannot read a part's component), so a part that is not front SVG chrome hands the
 // root a token instead: its content, named for the layer it belongs in. The
 // root sorts its children by it and stacks the layers: back chrome (grid)
 // behind the dither canvas, the canvas, front chrome (axes, dots), then the

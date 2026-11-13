@@ -1,6 +1,6 @@
 // StyleX for everything a reader takes away: every Studio export (each
 // registry component, the bespoke widgets, each chart) and every docs
-// snippet comes out of `restyle(…, "stylex")` with no Tailwind class left.
+// snippet comes out of `restyle(…, "stylex", "vue")` with no Tailwind class left.
 // The only classes allowed to stay are the snippets' own hooks, which their
 // hand-written CSS styles (the kit stylesheet's scope, a class handed to a
 // component, the container-query routes).
@@ -13,7 +13,7 @@ const OWN_CLASSES = new Set(["dither-kit", "cta", "cq-card", "cq-grid", "readout
 
 /** The class attributes and bindings a StyleX rewrite left behind. */
 function leftovers(code: string): string[] {
-  const out = restyle(code, "stylex")
+  const out = restyle(code, "stylex", "vue")
   const left: string[] = []
   for (const m of out.matchAll(/(?:^|\s)class="([^"]*)"/g))
     for (const c of m[1].split(/\s+/)) if (c && !OWN_CLASSES.has(c)) left.push(c)

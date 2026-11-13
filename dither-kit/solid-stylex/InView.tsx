@@ -7,7 +7,7 @@ export type InViewProps = {
   rootMargin?: string
   threshold?: number
   once?: boolean
-  /** Declared as its Vue twin declares it, and like there not applied. */
+  /** Declared for callers that pass one; not applied (the wrapper has no box). */
   class?: string
   xstyle?: StyleProp
   onEnter?: () => void

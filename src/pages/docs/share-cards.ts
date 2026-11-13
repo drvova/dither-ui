@@ -34,9 +34,9 @@ export const ROUTE_CARDS = [
     id: "home",
     url: `${SITE_URL}/`,
     title: "dither-ui",
-    line: "A dithered UI toolkit for Vue and Svelte",
+    line: "A dithered UI toolkit for Solid and Svelte",
     description:
-      "270 Vue components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
+      "270 Solid components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
     links: [
       { label: "Read the docs", url: `${SITE_URL}/docs` },
       { label: "Open the studio", url: `${SITE_URL}/studio` },
@@ -49,7 +49,7 @@ export const ROUTE_CARDS = [
     title: "Documentation",
     line: "Every component live, with its source and its API",
     description:
-      "Explore live Vue examples, API references, component galleries, chart variants, and copy-ready code for dither-ui.",
+      "Explore live Solid examples, API references, component galleries, chart variants, and copy-ready code for dither-ui.",
     links: [
       { label: "Read the quick start", url: `${SITE_URL}/docs/getting-started` },
       { label: "Source on GitHub", url: REPO_URL },
@@ -61,7 +61,7 @@ export const ROUTE_CARDS = [
     title: "Studio",
     line: "Compose screens from the kit, or have your agent do it",
     description:
-      "Design dithered charts and screens in the browser, export Vue code, images or video, or hand the canvas to your own coding agent.",
+      "Design dithered charts and screens in the browser, export Solid code, images or video, or hand the canvas to your own coding agent.",
     links: [
       { label: "Open the studio", url: `${SITE_URL}/studio` },
       { label: "Read the agent skill", url: `${SITE_URL}/agent/SKILL.md` },

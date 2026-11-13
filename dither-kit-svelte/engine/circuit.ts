@@ -5,7 +5,7 @@
 // ring) or a pad; and signals run along every trace, a head in the pulse
 // ink with a tail that fades through the thresholds. The board is drawn
 // from the seed and the size; the signals are a pure function of time, so
-// a moment prints the same however it was reached. Vue-free: both kits
+// a moment prints the same however it was reached. Framework-free: both kits
 // share it verbatim.
 
 import { xorshift32 } from "./pixel"

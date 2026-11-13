@@ -33,7 +33,8 @@ describe("the service worker's rules", () => {
   it("answers pages network first, this build's hashed chunks from the cache, the rest stale while it refreshes", () => {
     expect(strategyFor(at("studio/"), site, ask("navigate"))).toBe("page")
     expect(strategyFor(at("_build/assets/studio-1a2b.js"), site, ask())).toBe("static")
-    expect(strategyFor(at("static/js/index.1a2b.js"), site, ask())).toBe("static")
+    // the name alone is no promise: only the build's own folder holds hashed files
+    expect(strategyFor(at("static/js/index.1a2b.js"), site, ask())).toBe("asset")
     expect(strategyFor(at("favicon.svg"), site, ask())).toBe("asset")
     expect(strategyFor(at("kit/src/solid/files.json"), site, ask())).toBe("asset")
   })

@@ -100,13 +100,13 @@ describe("StyleX as its compiler takes it", () => {
 
 describe("restyle", () => {
   it("leaves Tailwind, and code without utilities, alone", () => {
-    expect(restyle(SNIPPET, "tailwind")).toBe(SNIPPET)
+    expect(restyle(SNIPPET, "tailwind", "vue")).toBe(SNIPPET)
     const bare = `<DitherButton color="green">Ship</DitherButton>`
-    for (const system of ["css", "modules", "stylex"] as const) expect(restyle(bare, system)).toBe(bare)
+    for (const system of ["css", "modules", "stylex"] as const) expect(restyle(bare, system, "vue")).toBe(bare)
   })
 
   it("writes vanilla CSS: named classes and a scoped stylesheet", () => {
-    const out = restyle(SNIPPET, "css")
+    const out = restyle(SNIPPET, "css", "vue")
     expect(out).toContain(`<label class="label">`)
     expect(out).toContain(`<span class="text">Bloom on hover</span>`)
     expect(out).not.toContain("items-center")
@@ -126,14 +126,14 @@ describe("restyle", () => {
   })
 
   it("writes CSS Modules: $style bindings and a module block", () => {
-    const out = restyle(SNIPPET, "modules")
+    const out = restyle(SNIPPET, "modules", "vue")
     expect(out).toContain(`<label :class="$style.label">`)
     expect(out).toContain(`<span :class="$style.text">`)
     expect(out).toContain("<style module>\n.label {")
   })
 
   it("writes StyleX: the import after the others, create() in the script, attrs() on the element", () => {
-    const out = restyle(SNIPPET, "stylex")
+    const out = restyle(SNIPPET, "stylex", "vue")
     expect(out).toContain(`import { DitherSwitch } from "@dither-kit"
 import * as stylex from "@stylexjs/stylex"
 
@@ -150,7 +150,7 @@ const styles = stylex.create({
 
   it("nests variants: pseudo-classes and media in CSS, per-property conditions in StyleX", () => {
     const code = `<a class="text-muted-foreground hover:text-foreground" href="/docs">docs</a>`
-    expect(restyle(code, "css")).toBe(`<a class="a" href="/docs">docs</a>
+    expect(restyle(code, "css", "vue")).toBe(`<a class="a" href="/docs">docs</a>
 
 <style scoped>
 .a {
@@ -162,7 +162,7 @@ const styles = stylex.create({
   }
 }
 </style>`)
-    const sx = restyle(code, "stylex")
+    const sx = restyle(code, "stylex", "vue")
     expect(sx).toContain(`const styles = stylex.create({
   a: {
     color: {
@@ -180,7 +180,7 @@ const styles = stylex.create({
   <div class="flex items-center gap-2">two</div>
   <DitherButton class="flex-1 cta">Ship</DitherButton>
 </div>`
-    const out = restyle(code, "css")
+    const out = restyle(code, "css", "vue")
     expect(out).toContain(`<div class="stack">`)
     expect(out).toContain(`<div class="row my-thing">one</div>`)
     expect(out).toContain(`<div class="row">two</div>`)
@@ -193,20 +193,20 @@ const styles = stylex.create({
 
   it("names the literals of a dynamic class binding", () => {
     const code = `<button class="h-6" :class="on ? 'text-foreground' : 'text-muted-foreground'">x</button>`
-    expect(restyle(code, "css")).toContain(
+    expect(restyle(code, "css", "vue")).toContain(
       `<button class="button" :class="on ? 'textForeground' : 'textMutedForeground'">x</button>`,
     )
-    expect(restyle(code, "modules")).toContain(
+    expect(restyle(code, "modules", "vue")).toContain(
       `<button :class="[$style.button, on ? $style.textForeground : $style.textMutedForeground]">x</button>`,
     )
-    expect(restyle(code, "stylex")).toContain(
+    expect(restyle(code, "stylex", "vue")).toContain(
       `<button v-bind="stylex.attrs(styles.button, on ? styles.textForeground : styles.textMutedForeground)">x</button>`,
     )
-    expect(restyle(code, "css")).toContain(".textForeground {\n  color: var(--foreground);\n}")
+    expect(restyle(code, "css", "vue")).toContain(".textForeground {\n  color: var(--foreground);\n}")
   })
 
   it("names only a binding's class strings: its condition is code, whatever it holds", () => {
-    const sx = (b: string) => restyle(`<div :class="${b}">x</div>`, "stylex")
+    const sx = (b: string) => restyle(`<div :class="${b}">x</div>`, "stylex", "vue")
     expect(sx(`m.from === 'me' ? 'justify-end' : 'justify-start'`)).toContain(
       `<div v-bind="stylex.attrs(m.from === 'me' ? styles.justifyEnd : styles.justifyStart)">`,
     )
@@ -222,16 +222,18 @@ const styles = stylex.create({
     // A condition's string that is also a utility stays the value it is.
     const view = `view === 'grid' ? 'grid grid-cols-3' : 'flex flex-col'`
     expect(sx(view)).toContain(`stylex.attrs(view === 'grid' ? styles.grid : styles.flex)`)
-    expect(restyle(`<div :class="${view}">x</div>`, "css")).toContain(`:class="view === 'grid' ? 'grid' : 'flex'"`)
+    expect(restyle(`<div :class="${view}">x</div>`, "css", "vue")).toContain(
+      `:class="view === 'grid' ? 'grid' : 'flex'"`,
+    )
     // An array converts only whole: a class StyleX cannot name keeps the binding.
     expect(sx(`['p-4', on && 'cta']`)).toContain(`:class="['p-4', on && 'cta']"`)
   })
 
   it("keeps a binding StyleX cannot take, and a self-closing tag's slash", () => {
     const code = `<DitherBadge class="flex-1" :class="classFor(item)" />`
-    const sx = restyle(code, "stylex")
+    const sx = restyle(code, "stylex", "vue")
     expect(sx).toContain(`<DitherBadge v-bind="stylex.attrs(styles.badge)" :class="classFor(item)" />`)
-    expect(restyle(code, "css")).toContain(`<DitherBadge class="badge" :class="classFor(item)" />`)
+    expect(restyle(code, "css", "vue")).toContain(`<DitherBadge class="badge" :class="classFor(item)" />`)
   })
 
   it("speaks Svelte: a plain style block, spread attrs, class expressions", () => {
@@ -272,7 +274,7 @@ const styles = stylex.create({
     const code = `<div class="relative h-64">
   <DitherGradient from="blue" />
 </div>`
-    expect(restyle(code, "css")).toBe(`<div class="frame">
+    expect(restyle(code, "css", "vue")).toBe(`<div class="frame">
   <DitherGradient from="blue" />
 </div>
 
@@ -282,7 +284,7 @@ const styles = stylex.create({
   height: 16rem;
 }
 </style>`)
-    expect(restyle(code, "stylex")).toBe(`import * as stylex from "@stylexjs/stylex"
+    expect(restyle(code, "stylex", "vue")).toBe(`import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   frame: { position: "relative", height: "16rem" },
@@ -292,7 +294,7 @@ const styles = stylex.create({
   <DitherGradient from="blue" />
 </div>`)
     const sfc = `<template>\n  ${code.split("\n").join("\n  ")}\n</template>`
-    expect(restyle(sfc, "stylex")).toMatch(
+    expect(restyle(sfc, "stylex", "vue")).toMatch(
       /^<script setup lang="ts">\nimport \* as stylex from "@stylexjs\/stylex"\n\nconst styles = stylex\.create\(\{\n {2}frame: \{ position: "relative", height: "16rem" \},\n\}\)\n<\/script>\n\n<template>/,
     )
   })

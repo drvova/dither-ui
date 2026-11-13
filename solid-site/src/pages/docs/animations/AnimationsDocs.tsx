@@ -612,7 +612,7 @@ resolveSample(s, { width: 400, height: 200 }).x    // 105`,
   strands: `<DitherStrands class="h-64" />`,
   laserFlow: `<DitherLaserFlow class="h-64" />`,
   antigravity: `<DitherAntigravity class="h-52"><YourContent /></DitherAntigravity>`,
-  logoLoop: `<DitherLogoLoop :items="['DITHER', 'BAYER', 'CANVAS', 'VUE', 'PIXELS']" />`,
+  logoLoop: `<DitherLogoLoop :items="['DITHER', 'BAYER', 'CANVAS', 'SOLID', 'PIXELS']" />`,
   magicRings: `<DitherMagicRings class="h-52"><YourContent /></DitherMagicRings>`,
   magnetLines: `<DitherMagnetLines class="h-52" />`,
   orbitImages: `<DitherOrbitImages :items="['A', 'B', 'C', 'D', 'E']" />`,
@@ -1148,7 +1148,7 @@ export default function AnimationsDocs() {
         </p>
         <DemoCard code={SNIPPETS.logoLoop}>
           <div class="w-full text-xl font-medium tracking-tight text-muted-foreground">
-            <DitherLogoLoop items={["DITHER", "BAYER", "CANVAS", "VUE", "PIXELS"]} />
+            <DitherLogoLoop items={["DITHER", "BAYER", "CANVAS", "SOLID", "PIXELS"]} />
           </div>
         </DemoCard>
         <PropsTable rows={API.logoLoop} />

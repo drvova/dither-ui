@@ -1,5 +1,5 @@
 // The plates: print sheets between the landing's sections, each the brand
-// small in a wide field. One table sets the series; `Plate.vue` prints a row
+// small in a wide field. One table sets the series; `Plate` prints a row
 // of it. Each plate is a sheet of the heat thinning from its top edge to a
 // clear band and rising from it to the foot, the brand (`brand.ts`)
 // standing in the band.

@@ -1,6 +1,5 @@
-// An element that enters and leaves through CSS, by the class names Vue's
-// `<Transition name>` used, so a component's transition stylesheet carries
-// over unchanged: `<name>-enter-from` / `-enter-active` / `-enter-to` as it
+// An element that enters and leaves through CSS, by the class names a
+// component's transition stylesheet is written in: `<name>-enter-from` / `-enter-active` / `-enter-to` as it
 // arrives, `<name>-leave-from` / `-leave-active` / `-leave-to` as it goes,
 // and it stays in the page until the leave has run. Where the stylesheet
 // gives it no duration (reduced motion included), it comes and goes at once.

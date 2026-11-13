@@ -1,28 +1,30 @@
 # Static serving with explicit cache lifetimes — fixes Lighthouse's
-# "Use efficient cache lifetimes". Rsbuild fingerprints /static/* filenames, so
-# they are safe to cache forever; index.html must always revalidate so a new
-# deploy is seen immediately.
+# "Use efficient cache lifetimes". The build fingerprints /_build/assets/*
+# filenames, so they are safe to cache forever; a page must always revalidate
+# so a new deploy is seen immediately.
 :{$PORT:8080} {
 	root * /srv
 	encode zstd gzip
 
 	# Fingerprinted build output — immutable, cache for a year.
-	@immutable path /static/*
+	@immutable path /_build/assets/*
 	header @immutable Cache-Control "public, max-age=31536000, immutable"
 
 	# Static media & meta — long cache, still revalidated.
 	@static path *.webp *.png *.jpg *.svg *.ico *.woff2 *.txt *.xml
 	header @static Cache-Control "public, max-age=2592000"
 
-	# Entry HTML — never cache, so updates roll out instantly.
+	# Pages — never cache, so updates roll out instantly.
 	@html path / /docs /docs/ /docs/* /studio /studio/ /studio/* *.html
 	header @html Cache-Control "no-cache"
 
-	# Canonical route documents expose route-specific metadata to crawlers.
-	@docs path /docs /docs/*
-	rewrite @docs /docs/index.html
-	@studio path /studio /studio/*
-	rewrite @studio /studio/index.html
-	try_files {path} /index.html
+	# Every page is a prerendered file (/docs/<section>/index.html among
+	# them); an address nothing lives at gets the build's 404.html, as 404.
 	file_server
+	handle_errors {
+		@missing expression {err.status_code} == 404
+		rewrite @missing /404.html
+		header Cache-Control "no-cache"
+		file_server
+	}
 }

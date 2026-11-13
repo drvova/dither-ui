@@ -34,7 +34,7 @@ export type DitherAccordionProps = {
   type?: "single" | "multiple"
   color?: PixelColor
   onUpdateModelValue?: (value: string | string[]) => void
-  /** Each panel's content, by its item's `value` (the Vue kit's slot per item). */
+  /** Each panel's content, by its item's `value` (a slot per item). */
   slots?: Record<string, JSX.Element>
 }
 

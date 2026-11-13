@@ -9,7 +9,7 @@
   }
 
   let {
-    items = ["DITHER", "BAYER", "CANVAS", "VUE", "PIXELS"],
+    items = ["DITHER", "BAYER", "CANVAS", "SVELTE", "PIXELS"],
     speed = 18,
     gap = 48,
     class: className,

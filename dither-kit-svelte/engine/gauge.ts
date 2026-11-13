@@ -1,4 +1,4 @@
-// The gauge: an instrument dial's geometry and its printed band, Vue-free so
+// The gauge: an instrument dial's geometry and its printed band, framework-free so
 // both kits share it verbatim. The dial sweeps 240 degrees clockwise from
 // the lower left to the lower right (screen angles: 0 points right, y down),
 // the band between two radii printed cell by cell through the threshold

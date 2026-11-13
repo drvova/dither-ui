@@ -254,7 +254,7 @@
     strands: `<Strands class="h-64" />`,
     laserFlow: `<LaserFlow class="h-64" />`,
     antigravity: `<Antigravity class="h-52"><YourContent /></Antigravity>`,
-    logoLoop: `<LogoLoop items={['DITHER', 'BAYER', 'CANVAS', 'VUE', 'PIXELS']} />`,
+    logoLoop: `<LogoLoop items={['DITHER', 'BAYER', 'CANVAS', 'SVELTE', 'PIXELS']} />`,
     magicRings: `<MagicRings class="h-52"><YourContent /></MagicRings>`,
     magnetLines: `<MagnetLines class="h-52" />`,
     orbitImages: `<OrbitImages items={['A', 'B', 'C', 'D', 'E']} />`,
@@ -600,7 +600,7 @@
   </p>
   <DemoCard code={SNIPPETS.logoLoop}>
     <div class="w-full text-xl font-medium tracking-tight text-muted-foreground">
-      <LogoLoop items={['DITHER', 'BAYER', 'CANVAS', 'VUE', 'PIXELS']} />
+      <LogoLoop items={['DITHER', 'BAYER', 'CANVAS', 'SVELTE', 'PIXELS']} />
     </div>
   </DemoCard>
   <PropsTable rows={API.logoLoop} />

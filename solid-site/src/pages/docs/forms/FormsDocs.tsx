@@ -421,7 +421,7 @@ export default function FormsDocs() {
         </p>
         <DemoCard code={SNIPPET_TAG_INPUT}>
           <div class="mx-auto w-full max-w-sm">
-            <DitherTagInput modelValue={["vue", "dither"]} placeholder="Add tag…" />
+            <DitherTagInput modelValue={["solid", "dither"]} placeholder="Add tag…" />
           </div>
         </DemoCard>
         <PropsTable rows={API.tagInput} />
@@ -540,7 +540,7 @@ export default function FormsDocs() {
         </p>
         <DemoCard code={SNIPPET_MULTI_SELECT}>
           <div class="mx-auto w-full max-w-sm">
-            <DitherMultiSelect value={["vue", "dither"]} options={["vue", "dither", "canvas", "tokens", "ssr"]} />
+            <DitherMultiSelect value={["solid", "dither"]} options={["solid", "dither", "canvas", "tokens", "ssr"]} />
           </div>
         </DemoCard>
         <PropsTable rows={API.multiSelect} />

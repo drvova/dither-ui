@@ -1,8 +1,7 @@
 // Generated from ../solid/index.ts by src/shared/lib/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u tests/stylex-layer-solid.spec.ts
-// The Solid kit's public API, growing family by family until it holds
-// everything `../tailwind/index.ts` (the Vue kit) does; then it takes that
-// file's place. Names match the Vue kit's export for export.
+// The Solid kit's public API: every component, the engine's own exports
+// and the hooks an app composes with.
 
 export * from "../engine/api"
 export { default as DitherButton, type ButtonVariant, type DitherButtonProps } from "./DitherButton"
