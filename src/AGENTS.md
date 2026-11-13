@@ -5,11 +5,28 @@
 The dither-ui.com site (landing, docs) and the studio editor, built on the kit
 in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
+The app's source stands in two trees with the same layers and paths. This
+one, `src/`, holds the framework-free modules (models, pure logic, tables,
+stylesheets, fonts), read through `@/`. `../solid-site/src/` holds the
+Solid components and the Solid-bound modules (stores, hooks, the agent
+client), read through `~/`: a slice's component is at the path its model
+has here (`src/widgets/workbench/model/` beside
+`solid-site/src/widgets/workbench/Workbench.tsx`). This doc and its
+children are the contract for both trees: a path written from a layer
+(`features/agent/protocol.ts`, `pages/docs/DemoCard.tsx`) is under
+whichever tree holds the file, a `.tsx` always under `solid-site/src/`. A
+module that imports no framework belongs here, one that imports Solid
+there; nothing here imports from `solid-site/`. The SolidStart package
+around the second tree (entries, routes, the build, how Solid is written)
+is `../solid-site/AGENTS.md`'s.
+
 ## Ownership
 
-- `app/` — entry, global styles/tokens, canonical-path + legacy-hash router (App.vue),
-  the install surface (`install-files.ts`) and the Studio's service worker
-  (`sw.ts`, its rules in `offline.ts`).
+- `app/` — global styles/tokens (`styles.css`), the page transition's
+  hand-off (`page-reveal.ts`), the install surface (`install-files.ts`)
+  and the Studio's service worker (`sw.ts`, its rules in `offline.ts`).
+  The entries, the shell and the routes are `solid-site/src/`'s
+  (`entry-client.tsx`, `entry-server.tsx`, `app.tsx`, `routes/`).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
 - `widgets/` — the site's one `site-header` (the landing's and the docs'
   capsule, a page's tools in its slot, the menu sheet of tone bands under
@@ -21,7 +38,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   inspector, canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock; a film's camera, callouts and chapter band), data-editor, agent
-  (the composer / harness control plane: `AgentPanel.vue` holds the
+  (the composer / harness control plane: `AgentPanel.tsx` holds the
   session and lays it out, `ui/` draws the thread's entries and the trays
   over the input, `model/` reads the thread, the reply's prose and the
   tool steps in words).
@@ -38,10 +55,11 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   needs), pan-zoom (wheel, middle or Space drag, one finger on empty
   canvas pans, two fingers pinch about their midpoint; a second finger ends
   the first finger's drag with a `pointercancel`, a third starts nothing,
-  and the pinch rebases on whichever pair remains; `tests/canvas-touch.spec.ts`;
+  and the pinch rebases on whichever pair remains; the canvas touch cases
+  of `solid-site/tests/site/render.spec.tsx`;
   it reads `editor.viewport` at each use, never a kept copy, since loading
   a document, switching a project or centring a fresh frame replaces it;
-  `tests/pan-zoom.spec.ts`; the zoom keys, the canvas bar and the agent's
+  the pan-zoom cases of `solid-site/tests/site/state.spec.tsx`; the zoom keys, the canvas bar and the agent's
   `view` steer it through the editor's view functions, below),
   artboard-transform, agent (the Studio agent protocol, seeded evolution,
   the Studio tools and the ACP client behind the composer, and `handoff.ts`:
@@ -61,7 +79,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   shifts nothing).
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
   ContextMenu, ...; `ToolMark` over `marks.ts` — the real one-colour
-  marks of npm, pnpm, Bun, Node, Vue, Svelte, Tailwind, StyleX, CSS
+  marks of npm, pnpm, Bun, Node, Solid, Svelte, Tailwind, StyleX, CSS
   Modules, CSS, GitHub and the coding agents
   the bridge starts (keyed by its harness ids), from Simple Icons (CC0),
   LobeHub (MIT) and the tools' own site icons, paths verbatim; their
@@ -77,10 +95,10 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `storage.ts` — the ONE path to localStorage (`storage.get/set/remove`,
   `readJson` → `unknown` for the caller to parse, `writeJson`), never
   throwing where storage is blocked or full —
-  `sfc.ts` — the ONE way the code generators put a document value into an
-  SFC (`attr` for a static attribute, `js` for a literal in script or a
-  single-quoted binding, `key`, `objectLiteral`, `text` for template text),
-  so exported code carries values as data, never as code —
+  `sfc.ts` — the ONE way the code generators put a document value into a
+  component file (`js` for a literal, `key`, `objectLiteral`, `prop` for an
+  attribute, `text` for JSX text, `comment`, `px`), so exported code
+  carries values as data, never as code —
   `sound.ts` — Kobra's interface sounds as WebAudio voices behind one
   remembered switch (`sounds`, localStorage `dither-sounds`; a context
   WebKit left suspended or interrupted resumes on the next cue) —
@@ -95,10 +113,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the Studio's exports, the workbench and the source panel —
   `words.ts` — `breakable`, a camelCase name with a break point at each
   hump, for display only (the inspector's names) —
-  `restyle.ts` — a snippet in the reader's styling system — and the
-  node-side `utility-map.ts` that compiles its vocabulary and
-  `stylex-layer.ts` that writes the kit's StyleX layer from its Tailwind
-  layer (see `dither-kit/AGENTS.md`); `gif.ts` — the
+  `restyle-rewrite.ts` — a snippet in the reader's styling system
+  (`restyle.ts` beside it in `solid-site/` keeps the reader's choice) —
+  and the node-side `utility-map.ts` that compiles its vocabulary and
+  `stylex-layer-solid.ts` (over `stylex-core.ts`) that writes the kit's
+  StyleX layer from its Solid layer (see `dither-kit/AGENTS.md`);
+  `kit-sources.ts` — the one rule for which kit files the build serves;
+  `gif.ts` — the
   ONE GIF encoder (one palette, `keep` colours held exact, optional
   ordered dither, delta frames), import-free because the share-card
   renderer carries its source inline: the workbench's captures and the
@@ -115,8 +136,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   avatar's address through `safeUrl`), stored values through `storage.ts`
   and a parser at the reader, bridge messages through a parser in `acp.ts`
   (`permissionOptions`). Pinned by `tests/security.spec.ts` and
-  `tests/codegen-escape.spec.ts` (hostile labels, keys, props and slot text
-  through both code generators and Vue's own compiler).
+  `solid-site/tests/site/codegen.spec.tsx` (hostile labels, keys, props and
+  slot text through both code generators and Solid's own compiler).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
   component library, inspector controls, untrusted-prop sanitization, functional
   demo composition, and code export. A text field that reads a `DitherField`'s
@@ -127,8 +148,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   and the code export put it in, so the label is tied to the control;
   `boundProps` is the ONE way a registry component's props are bound
   (mapped, the label left out), `fieldLabel` the label or null.
-  `tests/field-label.spec.ts`. A component with a v-model (a field's
-  value, the chips' pick) keeps it as `model`, which `sanitizeModel` takes
+  `tests/field-label.spec.ts`. A component with a two-way value (a field's
+  value, the chips' pick; the registry's `vmodel` row) keeps it as `model`, which `sanitizeModel` takes
   from untrusted input (a file, `component.add`'s or a screen cell's
   `value`, `artboard.update`'s `widget.value`) only in the kind of the
   entry's default and under `MODEL_MAX`, else the default;
@@ -141,22 +162,21 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   shared. `@dither-kit` may be imported from any layer; nothing imports back
   into it.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
-  `noindex` player at `/play/` (not prerendered); legacy
+  `noindex` player at `/play/`; legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported.
   Any other address (`isLanding` in `shared/lib/routes.ts` says which are
   the landing's: the root and its entry file; `tests/titles.spec.ts`) is
-  the `missing` route, `MissingPage` (see `pages/AGENTS.md`), its title
-  in `ROUTE_TITLES` set at runtime only (it has no entry page: the host
-  serves the landing's shell as `404.html`). Route
-  entry HTML files own static crawler-visible metadata (their titles are
-  `shared/config/titles.ts` `ROUTE_TITLES`, which App.vue sets as the route
-  changes; `tests/titles.spec.ts` holds each page's three copies to it); docs sections refine
-  it at runtime per `/docs/<id>` (see `pages/AGENTS.md`). `app/App.vue`
-  resolves both path styles. Internal app links and public asset URLs use
-  `routePath()` /
+  the `missing` route, `MissingPage` (see `pages/AGENTS.md`), which the
+  build keeps as `404.html` for the host to serve. Each page's
+  crawler-visible metadata is rendered into its file from one head table
+  (`pages/docs/heads.ts`, its titles `shared/config/titles.ts`
+  `ROUTE_TITLES`; `solid-site/tests/site/heads.spec.tsx`), a docs section's
+  from `seo.ts` (see `pages/AGENTS.md`). The routes are SolidStart's file
+  routes (`solid-site/AGENTS.md`); a legacy hash address is sent to its
+  page before the app mounts (`shared/lib/legacy.ts`). Internal app links
+  and public asset URLs use `routePath()` /
   `assetPath()` from `shared/lib/routes.ts` so the same build works at `/` and
-  at the GitHub Pages project base. Add vue-router only when route params
-  outgrow this.
+  at the GitHub Pages project base.
 - `entities/editor` is the sole mutation path for document state. History
   (`features/history`) snapshots `{artboards, groups}` — excludes viewport and
   selection deliberately; new document-shaped state must be added to both the
@@ -179,7 +199,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   centred row moved as one onto free canvas, the batch treated as a single
   insert. Duplicate and paste place their copies (`cloneArtboard` keeps
   the source's spot) beside the originals, moved as one onto free canvas,
-  selected. `tests/editor-placement.spec.ts`.
+  selected. The placement cases of `solid-site/tests/site/state.spec.tsx`.
 - The Studio is agent-addressable through `features/agent`:
   - `protocol.ts` is ONE command vocabulary (`runCommand`) behind three doors:
     `window.ditherStudio.run()` (main world), `dither-studio:command` /
@@ -197,12 +217,12 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     goes. New commands are cases
     in `runCommand` + a row in `registrySchema().commands` + the SKILL table
     + an action in `tools.ts` (`STUDIO_TOOLS`, whose commands
-    `tests/agent-tools.spec.ts` holds to the registry's list) with its
+    `solid-site/tests/site/state.spec.tsx` holds to the registry's list) with its
     row in the composer's `STEPS` (`widgets/agent/model/steps.ts`).
   - `registrySchema()` is the machine-readable registry (every component's
-    prop specs, chart/widget kinds, document shape, commands); the prerender
-    reads it off the mounted studio and writes `dist/agent/registry.json`,
-    and strips the document mirror from the static bytes. The skill that
+    prop specs, chart/widget kinds, document shape, commands); the
+    post-build (`solid-site/scripts/postbuild.mjs`) reads it off the
+    mounted studio and writes `agent/registry.json` into the build. The skill that
     teaches harnesses the document shape and the protocol is
     `public/agent/SKILL.md`; both are indexed from `llms.txt` ("Agents").
   - `evolve.ts`: a GENERATION is `count` seeded clones of one parent, mutated
@@ -217,7 +237,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     brief registry, names, labels and groups, which a harness reads in one
     answer where the full prop specs run past 100 kB, and `is` for one
     component in full; `STUDIO_SERVER`, the MCP server's name the bridge
-    carries a copy of, pinned by `tests/agent-tools.spec.ts`; `callStudioTool` runs
+    carries a copy of, pinned by `solid-site/tests/site/state.spec.tsx`; `callStudioTool` runs
     one through `runCommand`, `finishStudioTool` turns `export_video`
     and `export_png` (the frame drawn by `artboardPng`, base64) into
     `data.files` for the bridge to write). The canvas bar's every key is
@@ -253,7 +273,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     keeps a built tool (`built`, `dither-agent-built`, newest first;
     `removeBuilt`), and runs one only after `approve`, through `sandbox`,
     its own Studio calls reaching the actions only; every action that ran
-    is reported as a step (`onStep`). Guarded by `tests/agent-dither.spec.ts`.
+    is reported as a step (`onStep`). Guarded by the `dither` cases of
+    `solid-site/tests/site/state.spec.tsx`.
   - `sandbox.ts`: where a built tool runs. `runSandboxed(code, args,
     call)` puts `sandboxDocument()` in an iframe with `sandbox="allow-scripts"`
     and no allow-same-origin (no page, cookies or storage), a CSP of
@@ -261,13 +282,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     (`workerSource`: `studio.run` over messages, then the code as the body
     of an async function of `(args, studio)`) behind one `MessageChannel`;
     past `SANDBOX_MS` or `SANDBOX_CALLS` the frame goes, the worker with it.
-    Proven in Chromium by `tests/sandbox.spec.ts` (answers through
+    Proven in Chromium by `solid-site/tests/site/sandbox.spec.ts` (answers through
     `studio.run` only; fetch, script imports and sockets refused with no
     request reaching a local server; no document, parent or storage; an
     endless loop stopped while the page answers; parse and throw errors
     reported).
   - `chats.ts` (imported by path, so the page never pulls the protocol):
-    a project's chats, the reactive `chats` store shared by the Studio's
+    a project's chats, the `chats` store shared by the Studio's
     sidebar, its search and the agent panel (`project`, `list` newest
     first as `{id, title, at, named?, pinned?}`, parsed once where the
     index is read, the `active` chat). `openProject` (a no-op when open;
@@ -284,14 +305,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     index (`dither-agent-chats-<projectId>`; moved to the top when
     something new is said); `titleOf` (its first message's first line) and
     `agoOf` (now, 5m, 2h, 3d, 2w, then the day). Guarded by
-    `tests/agent-chats.spec.ts`.
+    the chats cases of `solid-site/tests/site/state.spec.tsx`.
   - `acp.ts`: the composer as an Agent Client Protocol client over a
     loopback websocket to `bridge/dither-bridge.mjs` (see `bridge/AGENTS.md`
     for the wire contract). Nothing at the address rejects with
     `NoBridge`, which the panel answers with its setup card, never a raw
     error; `bridgeCommand(page, file, bridgeUrl)` is that card's line
     (the file the site serves at `BRIDGE_FILE`, from `bridge-file.ts`,
-    which imports nothing so `rstack.config.ts` reads it too; `--origin`
+    which imports nothing so `solid-site/site-files.ts` reads it too; `--origin`
     only when `bridgeKnows` says the bridge would refuse the page, pinned
     against the real bridge by `tests/bridge.spec.ts`). `connectAcp`
     sends the Studio tools
@@ -325,20 +346,22 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
     without it none runs) so each action lands on the canvas as a step, `prompt()` resolves with the stop reason and the
     turn's text (one assistant entry per prose segment between tool
     calls and thoughts), abort sends `session/cancel`, `bridge/exit` fails every pending
-    request. Pinned by `tests/agent-protocol.spec.ts`,
-    `agent-evolve.spec.ts`, `agent-tools.spec.ts`; the bridge chain by
+    request. Pinned by the protocol, evolve and tools cases of
+    `solid-site/tests/site/state.spec.tsx`; the bridge chain by
     `tests/bridge.spec.ts`.
-- Styling systems: `shared/lib/restyle.ts` is the ONE translator.
-  `restyle(code, system, framework)` rewrites the `class` / `:class` /
-  `style` attributes of a Vue snippet (or a Svelte one, `class={…}`) into
-  named styles for `css` (a `<style scoped>` block; `<style>` under Svelte),
-  `modules` (`$style` bindings + `<style module>`; CSS under Svelte) or
-  `stylex` (`stylex.create` in the script after its imports, `stylex.attrs`
-  on the element — `v-bind` in Vue, a spread in Svelte); `tailwind` returns
+- Styling systems: `shared/lib/restyle-rewrite.ts` is the ONE translator.
+  `restyle(code, system, framework)` rewrites the class and `style`
+  attributes of a snippet into named styles: a Solid file's (`class`,
+  `classList`; `restyleSolid` also hands back the stylesheet the `.tsx`
+  imports on `css` or `modules`, and writes `stylex.create` with
+  `{...stylex.props()}` on the element), the authoring notation's
+  (`class` / `:class`: a `<style scoped>` block, `$style` bindings +
+  `<style module>`, or `stylex.attrs` through `v-bind`) or a Svelte one's
+  (`class={…}`: a plain `<style>`, a spread); `tailwind` returns
   the code untouched. Its data is `virtual-dither-utilities`:
-  `utility-map.ts` (node-side only — rstack.config.ts, tests; an Rspack
-  virtual module, recompiled in watch mode when a scanned file changes)
-  scans `UTILITY_SOURCES` (`pages/docs`, `entities`) with Tailwind's scanner
+  `utility-map.ts` (node-side only: the Vite plugin
+  `solid-site/utilities.ts`, and `rstack.config.ts` for the root's specs)
+  scans `UTILITY_SOURCES` (`pages/docs` and `entities`, in both trees) with Tailwind's scanner
   and compiles every candidate with Tailwind's compiler (theme inlined; the
   kit's `@theme inline` tokens and dark variant read from
   `dither-kit/tailwind/kit.css`), keeping per class its cascade index, its variant
@@ -349,8 +372,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   folds Tailwind's `@supports (color: color-mix(...))` guard into its rule
   (every supported browser passes it), simplifies `calc()`s and drops
   no-op shadows; `map` defaults to the docs' vocabulary, and the kit
-  layer generator passes the kit's (`buildUtilityMap(root,
-  ["dither-kit/tailwind"])`). StyleX comes out as its compiler takes it:
+  layer generator's spec passes the kit's (`buildUtilityMap(root,
+  ["dither-kit/solid", "dither-kit/tailwind"])`). StyleX comes out as its compiler takes it:
   a pseudo-element is a top-level key holding its own properties
   (`"::placeholder": { color }`), vendor properties are spelled
   `WebkitLineClamp`. Unknown classes stay classes (the kit
@@ -365,17 +388,19 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (`stack`, `row`, `grid`, `layer`, `frame`, `box`, `text`, a component's
   name without `Dither`, a literal's first utility), one per distinct rule
   set, inline `style` folded into the element's rule. The preference
-  (`styling` ref, localStorage `dither-styling`) is shared by the docs and
+  (`shared/lib/restyle.ts`'s signal, localStorage `dither-styling`) is shared by the docs and
   the Studio. `code.get { id, styling? }` and the `get_code` tool return the
-  SFC restyled (`tailwind` default, junk fails); the export dialog's
+  component restyled (`tailwind` default, junk fails); the export dialog's
   `styling` control does the same for the copy and the download. New
-  vocabulary is picked up by the next build (dev: on a hot update of a
-  scanned file). The docs' Run plays the restyled example in any system,
+  vocabulary is picked up by the next build or dev server start. The docs'
+  Run plays the restyled example in any system,
   StyleX through `widgets/source/model/stylex.ts`. Pinned by
-  `tests/restyle.spec.ts`, `tests/stylex-coverage.spec.ts` (every Studio
-  export and every docs snippet written as StyleX leaves no Tailwind class;
-  only a snippet's own CSS hooks stay classes) and the `code.get` case in
-  `tests/agent-protocol.spec.ts`.
+  `tests/restyle.spec.ts`, `tests/stylex-coverage.spec.ts` (every docs
+  snippet written as StyleX leaves no Tailwind class; only a snippet's own
+  CSS hooks stay classes), the Solid cases of
+  `solid-site/tests/site/solid-code.spec.tsx`, and the export and
+  `code.get` cases in `solid-site/tests/site/codegen.spec.tsx` and
+  `state.spec.tsx`.
 - Clock for drivers: `clock.seek { seconds? }` / `clock.release` hold or
   free the kit clock from the protocol (the `seek_clock` tool), and
   `window.ditherStudio.clock` exposes the same four calls (`seek(seconds)`,
@@ -389,10 +414,9 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   frame), embeds the frame's document as JSON with `<` escaped, and carries
   the player inline (`{ js, css }`, `</script` escaped in the bundle) or by
   reference (`{ jsRef, cssRef }`). The player is `pages/play`; its
-  single-file bundle is the `player` environment of `rstack.config.ts` →
-  `dist/play/player.js` + `player.css` (one classic script, no async
-  chunks, every asset a data URI), built by the same `rs build` as the site
-  because the site's entries share chunks; `playerAssets()`
+  single-file bundle is `play/player.js` + `player.css` (one classic
+  script, no async chunks, every asset a data URI), built with the site by
+  `solid-site/standalone.ts`; `playerAssets()`
   fetches it from the same origin and on a dev server, where it does not
   exist, the export says so. Delivery: the Studio's video dialog downloads
   the self-contained file; the `video.export` protocol command returns the
@@ -404,7 +428,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   (default 6; a reel's default is its length), fps 24|30|60, theme
   dark|light. Pinned by
   `tests/composition.spec.ts`, the `video.export` case in
-  `tests/agent-protocol.spec.ts`, and the file case in `tests/bridge.spec.ts`.
+  `solid-site/tests/site/state.spec.tsx`, and the file case in `tests/bridge.spec.ts`.
 - Reel: a frame that plays other frames in order. `ReelModel`
   (`entities/widget`: `{ kind: "reel", clips: [{ id, seconds, transition: {
   kind: cut|dissolve|wipe-right|wipe-left|wipe-down|wipe-up, seconds, cell,
@@ -426,7 +450,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   and `replayToken` restarts it; directed it is the composition's moment,
   held past the end); reduced motion cuts; `data-reel-clip/time/total` and
   `data-reel-layer` are the walk's probes. Clips resolve from the
-  `REEL_POOL` injection (the player provides its document's frames) or the
+  `REEL_POOL` context (the player provides its document's frames) or the
   editor's artboards; `ReelClip` renders a clip through `WidgetRenderer` /
   `ChartRenderer` at its own size, scaled down (never up) to fit — the
   import cycle `WidgetRenderer` → `ReelRenderer` → `ReelClip` →
@@ -437,12 +461,13 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   name?, clips: [id | { id, seconds?, transition? }], frame? }` (unknown ids
   and reels fail loudly, other junk is sanitized), `artboard.update {
   widget: { clips } }` rebuilds the cut, the `add_reel` tool; `code.get`
-  answers a comment — a reel has no SFC, it is a video. UI: the toolbar's
+  answers a comment — a reel has no component file, it is a video. UI: the toolbar's
   `reel` action cuts the selection in selection order (hidden when only
   reels are selected); the inspector's `ReelPanel` edits length, transition
   kind/seconds/cell per clip, reorders, removes, adds from a picker. Pinned
-  by `tests/reel.spec.ts` (timeline, model, protocol, the renderer on a
-  seeked clock).
+  by `tests/reel.spec.ts` (timeline, model), `solid-site/tests/site/carried-reel.spec.ts`
+  (the store and the protocol) and the reel renderer cases of
+  `solid-site/tests/site/render.spec.tsx` (on a seeked clock).
 - Film: a reel with a camera, callouts, chapters and a score. Each clip
   carries `camera: [{ t, x, y, zoom, tilt }]` (t 0-1 of the clip; the frame
   point looked at, 0-1; zoom 1 = the frame fitted, 0.25-8; tilt ±30
@@ -492,22 +517,23 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   through `runCommand`: an area chart, a galaxy, a 640x360 dashboard
   screen, a bar chart and an ASCII "dither-ui", cut into a 21s 960x540 film
   (chapters, camera moves, three callouts, score seed 7), its frames in a
-  row under it. Pinned by `tests/reel.spec.ts` (the "film", "launch film"
-  and renderer cases) and `tests/score.spec.ts`.
+  row under it. Pinned by `tests/reel.spec.ts` (the "film" cases),
+  `solid-site/tests/site/carried-reel.spec.ts`, the renderer cases of
+  `solid-site/tests/site/render.spec.tsx` and `tests/score.spec.ts`.
 - Keyboard map lives in `features/keyboard/useShortcuts.ts` (the canvas's
   keys in `useShortcuts`, the page's own in `usePanelShortcuts`, read
   through one table, `pageKeyOf`: ⌘K search, ⌘I the chat, ⌘B the
   sidebar from anywhere, ⌘⇧↑ / ⌘⇧↓ the chat before or after outside a
   field; the canvas's arrows nudge only without ⌘); every new shortcut
-  also gets a row in `ShortcutsHelp.vue`.
-- Pointer transforms use `features/artboard-transform/startDrag`; it filters by
+  also gets a row in `ShortcutsHelp.tsx`.
+- Pointer transforms use `features/artboard-transform`'s `startDrag`; it filters by
   pointer id and owns pointer-up/cancel/unmount cleanup. Artboard surfaces drag
   only from non-interactive regions so live controls retain pointer ownership.
 - Move, nudge, duplicate, delete, lock, and group commands act on the complete
   selection; locked members remain stationary.
 - Toolbar hierarchy: project, insertion and panels in the title bar; the
   view, the selection's edit, data and export actions and Inspect in the
-  canvas bar (`widgets/toolbar/CanvasBar.vue`, over the canvas's foot,
+  canvas bar (`widgets/toolbar/CanvasBar.tsx`, over the canvas's foot,
   always there, its keys disabled rather than removed). Project file
   import/export stays in the project menu.
 - Studio lifecycle watchers are singletons while the route is mounted:
@@ -517,7 +543,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   toggles); dialogs use `role="dialog" aria-modal`, close on Escape, focus on
   open and TRAP Tab — app dialogs wrap their panel in the kit's
   `DitherFocusScope` (ExportDialog with `autofocus=false`, its own close
-  button takes focus via an `immediate` watch because it mounts lazily with
+  button taking focus as it opens, since it mounts lazily with
   `open` already true; ShortcutsHelp with autofocus), which also restores
   focus on close; menus (toolbar project/library, ContextMenu `role="menu"`
   + `menuitem`) dismiss on Escape and on a pointer outside, focus their
@@ -553,8 +579,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   name indents by `--prop-name` and the gap. No name keeps a width of its
   own: `tests/inspector-names.spec.ts`.
 - Layer tree is a `listbox`: every row type is a focusable `role="option"`
-  with `aria-selected`, Enter/Space select (`.self`-guarded so rename inputs
-  don't retrigger), ↑/↓ move focus and MUST stopPropagation — the same keys
+  with `aria-selected`, Enter/Space select (only when the row itself is
+  the target, so rename inputs don't retrigger), ↑/↓ move focus and MUST stopPropagation — the same keys
   nudge artboards at window level. A row's lock and hide keys show on hover,
   while the row holds focus (a key Tabbed to is never invisible) and
   always on a screen without hover; its menu opens on a right click or a
@@ -579,7 +605,7 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   grounds (`tests/theme-contrast.spec.ts` follows the reference); a
   scoped rule that colours a key outranks the utility, so a key wearing
   both carries its own `.key.text-destructive` rule, which
-  `tests/destructive-ink.spec.ts` checks across `src/`), and
+  `tests/destructive-ink.spec.ts` checks across `solid-site/src/`), and
   the look's MATERIALS, after the user's Y2K
   design system V5 (root `AGENTS.md`), per theme on `:root` (light) and
   `.dark`: `--chrome` (chrome type: gunmetal on light, its lightest stop
@@ -639,38 +665,24 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   `AGENTS.md`, `pages/landing/chapters.css`): its keys, picked segments,
   cards and panels are fills on one raised ground, never rings or tags;
   its only hairlines are the frame's.
-- Entry (`app/main.ts`) is `createApp` — client render, deliberately NOT
-  hydration: the route prerender (`scripts/prerender.mjs`) is a crawler
-  surface, and hydrating it corrupts DOM because kit components gate on
-  measured state (chart `ctx.ready`, mount flags), so first-render vnodes
-  never match the settled snapshot. Don't retry hydration without first
-  making first render equal settled state.
-  It mounts once the page the address opens on has loaded
-  (`app/route-pages.ts`: `resolveRoute`, `loadDocs` / `loadStudio`, each
-  loaded once by whoever asks first, `loadOpenPage` from main.ts; App.vue
-  takes the same loaders on a move): the prerendered bytes stay painted
-  while it loads and the app mounts the same page over them in one step
-  (mounting first emptied a docs page until its chunk came: a first paint
-  at about 2.5s at 4x CPU, now about 0.4s). The display face is preloaded
-  with each route's HTML (`performance.preload` in rstack.config.ts), and
-  each route's head carries the site's speculation rules
+- Entry (`solid-site/src/entry-client.tsx`) mounts the app, deliberately
+  NOT hydration: the prerendered page is what a crawler reads and what
+  paints first, and kit components gate on measured state (chart
+  `ctx.ready`, mount flags), so a first client render never matches the
+  settled bytes. Don't try hydration without first making first render
+  equal settled state. The display face is preloaded with each page's
+  HTML, and each page's head carries the site's speculation rules
   (`speculationRules` in `app/page-reveal.ts`: the landing and the docs
   rendered ahead when a pointer rests on a link to them, the Studio only
   fetched, the cards' renderer, the player and the kit's sources never;
-  Chromium only, and off under DevTools). `tests/first-paint.spec.ts`.
-  Because the client renders fresh over those bytes, one-shot entrance
-  latches are runtime-only: a figure marks itself `data-live`/`data-done`,
-  and the prerender strips both before serializing, so the static page
-  ships the figure un-latched and the client plays the entrance exactly
-  once (a snapshot taken after it played flashed the finished art, hid it
-  on mount, then replayed — measured on a 4x-throttled CPU).
+  Chromium only, and off under DevTools), both set by the shell
+  (`solid-site/src/entry-server.tsx`). `tests/first-paint.spec.ts`.
 - Docs sections are DIRECT children of `.docs-flow`: the page shows one
   at a time by toggling `hidden` on them (`pages/AGENTS.md`, Wayfinding),
-  and the prerender lifts each into its own static page by the same rule.
-  A section a pack renders is mounted only once opened (`docs/packs.ts`):
-  the prerender asks for all of them (`/docs?all-sections`,
-  `ALL_SECTIONS_PARAM`) and reads each family's name off its rail heading's
-  `data-group`; a new pack is a row in `PACKS` and a `v-if="mounted(...)"`.
+  and each is prerendered as its own page (`routes/docs/[section].tsx`).
+  A section a pack renders is mounted only once opened (`docs/packs.ts`,
+  `packOpen`; the last `PACKS_KEPT` packs read stay mounted): a new pack
+  is a row in `PACKS` and a `mounted(...)` gate in `DocsPage.tsx`.
   New section wrappers must stay direct children of `.docs-flow`.
 - Page transitions: the routes (`/`, `/docs`, `/studio` and the section
   pages) opt into cross-document view transitions in `app/styles.css`
@@ -678,56 +690,63 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   dithers from the old one through the kit's `ditherViewTransition`: a
   right wipe (left going back through history) with a band of the signal
   ink, on the glide like every motion on the site. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
-  inlined first in each route's head by `rstack.config.ts` (`html.tags`,
-  with the `PAGE_END_ID` marker it appends to each body), parks the
+  inlined first in each site page's head by the shell
+  (`solid-site/src/entry-server.tsx`, with the `PAGE_END_ID` marker at
+  the end of each body), parks the
   `pagereveal` transition and holds the old page on screen until the app
   takes it; arriving from one of the pages it also holds the first frame
   to the marker (`<link rel=expect blocking=render>`), since Chromium drops
-  a transition into a page it paints mid-parse (the 1.4 MB docs);
-  `takePageTransition` hands it to main.ts in either order (that hold lets
+  a transition into a page it paints mid-parse;
+  `takePageTransition` hands it to `entry-client.tsx` in either order (that hold lets
   the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
   runs the inline script both ways. The rise (`shared/lib/rise.ts`: a
   headline's words up one after another on the glide, 24px over 900ms,
   60ms apart, then its blocks 90ms apart; `rise(node)` is the Svelte
-  action, `vRise` the directive) waits in the prerendered bytes:
+  action the Svelte site's copy uses, the Solid site's `rise(el)` is
+  `solid-site/src/shared/lib/rise.ts` over the same table) waits in the
+  prerendered bytes:
   `RISE_HEAD_SCRIPT` (`shared/lib/rise-wait.ts`, inlined after the reveal
   script) sets `rise-wait` on `<html>` unless the reader asks for reduced
   motion, styles.css keeps unrisen `[data-rise]` out of sight under it,
-  the app takes over (`data-rise="live"`) or the wait lets go after 3s,
-  and the prerender strips that state from its snapshot. The theme toggle (`useTheme`'s
+  and the app takes over (`data-rise="live"`) or the wait lets go after
+  3s. The theme toggle (`useTheme`'s
   `revealToggle`) dithers the new theme in as an iris from its control.
 - Install and offline (the Studio is a PWA; the landing and the docs are
   not): `app/offline.ts` names the app's path (`OFFLINE.app`, `studio/`)
   that the manifest's place, the worker's scope and its kept page all
-  read. `app/install-files.ts` is Node-side (rstack.config loads it;
-  `.ts` imports): the app's manifest (`studio/app.webmanifest`; `id`,
+  read. `app/install-files.ts` is also read Node-side
+  (`solid-site/site-files.ts` loads it; `.ts` imports): the app's manifest (`studio/app.webmanifest`; `id`,
   `start_url` and `scope` all `.`, standalone, the Studio's dark ground
   as background and theme, icons a folder up), every icon drawn from
   `MARK_CELLS` as a PNG it encodes itself (the maskable one's mark inside
-  the 80% safe circle) and the tab's SVG, emitted by the `installFiles`
-  plugin, and `installHead(entry)`, the one table the config injects
-  each route's head from (the icons on every route; the manifest and
-  iOS's app tags on `studio/index` only; the templates carry none). The
+  the 80% safe circle) and the tab's SVG, all listed by `installFiles()`
+  and emitted by the `siteFiles` plugin, and the head tables the pages
+  render (`ICON_HEAD`, the icons, on every site page from the shell;
+  `APP_HEAD`, the manifest and iOS's app tags, on the Studio's route
+  only). The
   worker's rules are pure: `strategyFor` reads URLs against the SITE's
   root, since the app's assets live outside its scope and every fetch a
   controlled page makes reaches the worker (pages network first;
-  `static/` cache first, being named by content; the site's other files
+  `_build/assets/` cache first, being named by content; the site's other files
   stale while revalidating; non-GET, range reads, other origins,
   `trailer/`, `og/`, `embed/`, `oembed/`, `play/` and the worker itself
   left to the network), `pageAssets` (what the app's page loads, kept at
-  install), versioned cache names (a new `OFFLINE.version` drops the
-  old), `inApp`, and `registerOffline`, which main.ts calls on every
-  route: it registers only on the Studio's, after load, production
-  builds only, scoped to the app. `app/sw.ts` only wires them to the
+  install with the build's own list of the Studio's chunks, `buildKeep`,
+  which `solid-site/standalone.ts` defines as it builds the worker),
+  versioned cache names (a new `OFFLINE.version` drops the
+  old), `inApp`, and `registerOffline`, which the Studio's route calls
+  as it mounts: it registers only on the Studio's path, after load,
+  production builds only, scoped to the app. `app/sw.ts` only wires them to the
   worker's events (types of its own: the DOM and WebWorker libs cannot
-  meet in one program) and is built alone as a classic script, the `sw`
-  environment, at the site's root.
+  meet in one program) and is built alone as a classic script
+  (`solid-site/standalone.ts`), at the site's root. Guarded by
+  `tests/install.spec.ts` and `solid-site/tests/site/worker-player.spec.tsx`.
 - `shared/ui/mascot.ts` is the mascot's one table (the brand's diamond
   come alive, ORIGINAL: an 11x15 cell grid, the body printed through the
   Bayer thresholds, an eye hole beside an ember optic that never shuts,
   the mark's ember heart and antenna tips;
   poses idle, blink, hop, wave and fly, where the antennae fold into a
-  rotor whose `turn` steps it round); `Mascot.vue` draws it as a
+  rotor whose `turn` steps it round); `Mascot.tsx` draws it as a
   decorative SVG in `currentColor`, blinks when `alive`, hops under a
   pointer and spins the rotor while it flies, all held still under
   reduced motion. Imported by path. Guarded by `tests/mascot.spec.ts`.
@@ -736,14 +755,14 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   brand's diamond on the door, ember tail light, bone headlight, wheels
   whose spokes turn a step a frame), `drivenCells` seats the mascot in
   its cockpit (only what stands over the door line shows);
-  `MascotCar.vue` draws them, its wheels turning while `driving`, still
+  `MascotCar.tsx` draws them, its wheels turning while `driving`, still
   under reduced motion. Guarded by `tests/car.spec.ts`.
   `mascot-capture.ts` grows the table into a Gaussian capture of our own
   (a cut stone of splats, a dark eye and an ember optic on both faces, three ember orbits),
-  seeded; the build serves it at `CAPTURE_PATH` (`rstack.config.ts`, the
-  `captureFiles` plugin, never a copy in `public/`) and the docs' World
+  seeded; the build serves it at `CAPTURE_PATH` (the `siteFiles` plugin,
+  never a copy in `public/`) and the docs' World
   section prints it. Read by `tests/splats.spec.ts`.
-- `shared/ui/AdSlot.vue` never evaluates the EthicalAds client on the
+- `shared/ui/AdSlot.tsx` never evaluates the EthicalAds client on the
   critical path: the slot loads only when it approaches the viewport AND the
   document is loaded plus a beat (8s-after-load safety net), and the aside it
   lives in is `display: none` under lg — phones never fetch it. The gate is
@@ -751,14 +770,16 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
 
 ## Verification
 
-- `npx vue-tsc --noEmit` and `npx rs build` green before commit.
+- The root `AGENTS.md` gate, green before commit: the framework-free
+  specs at the root (`npm test`), and in `solid-site/` the types, the
+  component and site specs and the build.
 - The PWA on the built site: the Studio's head carries the manifest and
   the landing's and the docs' do not, Chrome finds the Studio installable,
   the landing registers no worker, and with the network cut the Studio
   opens (and a document from its hash) with the app mounted.
 - Interactive checks in a real browser (agent-browser + screenshots) for
   anything visual or stateful (undo/redo walks, dialog focus, deep links).
-- The video path on the built site (`rs preview`): the player seeked by
+- The video path on the built site (`npm run preview` in `solid-site/`): the player seeked by
   synthetic `hf-seek` events gives identical bytes for identical times, the
   dialog's download opened from disk matches the player at the same time,
   and `npx hyperframes lint`/`render` accept the file. A reel seeked the
@@ -781,9 +802,8 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   protocol and `clock.seek`, the player's `ditherClock` determinism — pass
   there, which is Safari's engine.
 - Perf probes use the canonical trailing-slash URLs (`/docs/`, `/studio/`)
-  — the directories the build writes; `rs dev`/`rs preview` also rewrite
-  the slashless forms to them (`server.historyApiFallback`), static hosts
-  may not.
+  — the directories the build writes; static hosts may not answer the
+  slashless forms.
 
 ## Child DOX Index
 
@@ -793,5 +813,5 @@ in `../dither-kit`. Feature-Sliced Design (FSD) layering.
   the sanitized per-preview workspace, captures, the agent hand-off
 - `widgets/source/AGENTS.md` — the docs previews' source files: the
   example, the kit's own files, tokens and prompt as tabs; edit, Run in
-  the page (compiler-sfc, types stripped, linked to the page's Vue and the
-  kit), download as a zip
+  the page (Solid's compiler, types removed, linked to the page's Solid
+  and the kit), download as a zip

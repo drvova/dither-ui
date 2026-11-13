@@ -9,15 +9,21 @@ result to a coding agent, on the live preview — a real tool, never a mock.
 
 ## Ownership
 
-- `Workbench.vue` — the root: creates the controller, provides it
-  (`context.ts` → `useBench()`), teleports the overlay into the preview
+The components and the controller live in
+`solid-site/src/widgets/workbench/`; this folder
+(`src/widgets/workbench/model/`) holds the framework-free model (see
+`src/AGENTS.md`).
+
+- `Workbench.tsx` — the root: creates the controller, provides it
+  (`context.ts` → `useBench()`), portals the overlay into the preview
   frame (`host`) and renders the readout and panels under it.
 - `bench.ts` — the controller: tool state, the undoable workspace, the
   per-frame measuring loop, every pointer gesture, the keyboard, captures,
   the agent hand-off (the feedback as Markdown: copied for an agent, or,
   where the host passes `send` as the Studio does, sent to its agent
   panel with the selection; `feedbackVerb` names which on K's key and the
-  readout's; `tests/workbench-send.spec.ts`). Components render from it
+  readout's; the feedback cases of
+  `solid-site/tests/site/workbench.spec.tsx`). Components render from it
   and call into it.
 - The DOM readings live a layer down, in `shared/lib/inspect/` (the
   agent's `inspect` reads with them too): `color.ts` (parse every computed
@@ -40,16 +46,18 @@ result to a coding agent, on the live preview — a real tool, never a mock.
   the first frame), `tools.ts`.
 - `ui/` — one component per layer or panel: `Tray`, `Rulers`, `Guides`,
   `Marks`, `Ink`, `Notes`, `Comments`, `Loupe`, `Readout`, `Motion`,
-  `Responsive`, `Settings`, `Icon`.
+  `Responsive`, `Settings`, `Icon`; `Keyed` is the list they share, its
+  rows living as long as their id (the workspace is replaced whole on
+  every change).
 
 ## Local Contracts
 
-- Mounted by `pages/docs/DemoCard.vue` through `defineAsyncComponent` when
+- Mounted by `pages/docs/DemoCard.tsx` through `lazy` when
   its Inspect chip is pressed (one lazy chunk; ~300 cards cost nothing
-  until used) with the frame (`host`), the slot wrapper (`content`), the
+  until used) with the frame (`host`), the demo's wrapper (`content`), the
   card, `benchKey` `<section>:<n>`, the section id, a title, the canonical
-  URL and the slot itself (`render`, for Responsive). Emits `exit`.
-  The Studio mounts it the same way (`pages/studio/StudioPage.vue`, while
+  URL and the demo itself (`render`, for Responsive). Calls `onExit`.
+  The Studio mounts it the same way (`pages/studio/StudioPage.tsx`, while
   `editor.inspecting`): the canvas as the frame, its world layer as the
   content, the canvas shell as the card, `studio:<projectId>`, no
   `render`; its readout and panels fill the right column.
@@ -108,7 +116,7 @@ result to a coding agent, on the live preview — a real tool, never a mock.
   the workbench sets `data-tray` on the frame and DemoCard keeps that
   edge's lane free (`data-[tray=…]` padding).
 - The measuring loop runs only while the workbench is mounted and writes a
-  reactive value only when it changed; X-ray and the audit refresh every
+  signal only when it changed; X-ray and the audit refresh every
   300 ms; the loupe redraws at 20 fps while visible.
 - The kit clock control (Motion) is page-wide and says so; unmounting a
   workbench releases a clock it held.
@@ -119,14 +127,18 @@ result to a coding agent, on the live preview — a real tool, never a mock.
 
 ## Verification
 
-- `tests/workbench.spec.ts`: the GIF encoder (LZW round-trips through a
+- `tests/workbench.spec.ts` (root, `rs test`): the GIF encoder (LZW round-trips through a
   decoder, table resets included; median cut; Bayer dithering; the
   GIF89a frame; delta frames decoded back exactly; kept colours exact), colour parsing/printing/contrast, geometry,
   ink, workspace sanitizing/history/Markdown, settings, the DOM readings
   (names, roles, states, Tab order, paths, selectors, controlOf, the
-  audit's targets: labels, spacing, disabled, hidden), and the
-  workbench mounted on a `DemoCard` driven by keys, the tray and Escape.
-- Browser walk (`rs dev`): every tool on `/docs/button` (hover, pin, Alt
+  audit's targets: labels, spacing, disabled, hidden).
+- `solid-site/tests/site/workbench.spec.tsx` (Vitest): the workbench
+  mounted on a preview, the controller's undoable workspace, its keys and
+  its Escape ladder, the measuring loop, every layer of the overlay and
+  panel under the frame, the feedback sent or copied, and what unmounting
+  gives back.
+- Browser walk (`npm run dev` in `solid-site/`): every tool on `/docs/button` (hover, pin, Alt
   distances and Alt+S, X-ray, Typography's contrast, Accessibility's Tab
   order, guides placed / dragged off, the loupe over a dithered canvas,
   arrows, ink and eraser, notes, a comment thread, Select marquee →

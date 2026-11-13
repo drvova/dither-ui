@@ -210,7 +210,7 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 
 - Icons do the work of labels where they can: kit glyphs (`DitherIcon`)
   for ideas.
-- Tools appear by their real marks (npm, pnpm, Bun, Node, Vue, Svelte,
+- Tools appear by their real marks (npm, pnpm, Bun, Node, Solid, Svelte,
   Tailwind, StyleX, CSS Modules, CSS, GitHub, each coding agent), one
   colour, beside their names, never restyled.
 - Every icon button has a name.
@@ -295,8 +295,8 @@ Smoothness is part of the look, so these are design rules too:
 |---|---|
 | Kit tokens (both themes) | `dither-kit/engine/theme.css` |
 | Site materials, chrome, motion | `src/app/styles.css` |
-| The landing's print | `src/pages/landing/chapters.css`, `LandingPage.vue` |
-| The docs' materials | `src/pages/docs/` (the Svelte site's `svelte-site/src/docs/docs.css`) |
+| The landing's print | `src/pages/landing/chapters.css`, `solid-site/src/pages/landing/LandingPage.tsx` |
+| The docs' materials | `solid-site/src/pages/docs/` (the Svelte site's `svelte-site/src/docs/docs.css`) |
 | Motion curves | `dither-kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `dither-kit/engine/spring.ts` |
 | Print screens | `dither-kit/engine/pixel.ts` (`SCREENS`) |
 | The heat and the plates | `src/pages/landing/heat.ts`, `plate.ts` |

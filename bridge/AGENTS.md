@@ -16,7 +16,7 @@
 ## Ownership
 
 - Owns the wire contract between the tab and the bridge; the browser side
-  lives in `src/features/agent/acp.ts`, which must change in step.
+  lives in `solid-site/src/features/agent/acp.ts`, which must change in step.
 - Does not own the ACP or MCP protocols: both are relayed as the agent
   speaks them.
 
@@ -24,8 +24,8 @@
 
 - Zero dependencies, one file, Node built-ins only (`http`, `child_process`,
   `crypto`, `readline`); no npm package, no build step.
-- The site serves this file as it is (the `bridgeFile` plugin in
-  `rstack.config.ts`, at `BRIDGE_FILE`), so it must keep running as a
+- The site serves this file as it is (the `siteFiles` plugin,
+  `solid-site/site-files.ts`, at `BRIDGE_FILE`), so it must keep running as a
   lone download: no import of a sibling file. The Studio's setup line
   fetches it into the home folder and runs it from the user's project.
 - The origins let in with no `--origin` (`allowedOrigin`: the site and any
@@ -63,9 +63,10 @@
   a preset or `--agent` can be any command line (a local script by absolute
   path); it inherits the environment plus `DITHER_BRIDGE_PORT`. Adding a
   harness is one row in `HARNESSES` (and the README table, the landing's
-  agents step — `HARNESSES` ids and names in `LandingPage.vue` — and its
-  mark in `src/shared/ui/marks.ts` under the same id, which the landing's
-  chips and the Studio's harness picker draw).
+  agents step — `HARNESSES` ids and names in `src/pages/landing/facts.ts`,
+  held to this file by `tests/marks.spec.ts` — and its mark in
+  `src/shared/ui/marks.ts` under the same id, which the landing's chips
+  and the Studio's harness picker draw).
 - A tool result's `data.files` is materialized under `--cwd` before it
   reaches the agent — only `video/<slug>/index.html` as text (`{ path,
   content }`, `VIDEO_PATH`) and `image/<slug>.png` as base64 bytes (`{

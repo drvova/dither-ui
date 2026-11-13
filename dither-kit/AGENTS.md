@@ -2,11 +2,12 @@
 
 ## Purpose
 
-Self-contained Vue 3 component library: charts, buttons, avatars, gradients and
+Self-contained SolidJS component library: charts, buttons, avatars, gradients and
 images rendered through one ordered-dither (Bayer 4x4) engine. Interactive
 surfaces use canvas; deterministic surfaces can use the dependency-free RGBA
-compiler and a packaged image URL. This folder is the product; the `src/` app
-is its showcase and editor.
+compiler and a packaged image URL. This folder is the product; the site
+(`solid-site/`, with its framework-free modules in `src/`) is its showcase
+and editor.
 
 ## Ownership
 
@@ -17,137 +18,120 @@ is its showcase and editor.
   container-query scales, chart roots/contexts, canvas painters, and the
   public component set.
 - Consumers import ONLY via a layer's `index.ts` (`@dither-kit` aliases
-  `tailwind/index.ts`; a StyleX app aliases `stylex/index.ts`).
+  `solid/index.ts`; a StyleX app aliases `solid-stylex/index.ts`), or the
+  engine's `engine/api.ts` where nothing renders.
 
 ## Layers
 
-One kit, folders by styling. File names are unique across layers; inside
-the kit every import is relative (`../engine/pixel`).
+One kit, in folders. File names are unique across the engine and the
+runtime; a component's file has one name in `solid/` and in its generated
+twin. Inside the kit every import is relative (`../engine/pixel`). The
+folders keep these names (`solid`, `solid-stylex`); no rename is decided.
 
-- `engine/` — every module that carries no class name: palette, pixel,
-  raster, the painters and backgrounds' renderers, the chart canvases
-  (their layers styled inline), timing, sequence, clock, wipe, keyframes,
-  score, the chart/field/common contexts (`chart-context.ts`, `field.ts`),
-  parsers and GL engines, `copy-text.ts`, `theme.css`, `theme.ts` and
-  `base.css` (the scoped box-model base every layer assumes). It imports
-  only `vue`, `d3-*` and itself, never a styling layer, and is what the
-  Svelte port copies verbatim. Behaviour lives in framework-free modules:
-  where a runtime must follow a component's lifecycle, a core holds the
-  behaviour (`surface-loop.ts`, the loop behind every generative surface;
-  `visibility.ts`) and a framework's binding is a few lines over it
-  (`use-dither-background.ts` and `use-visibility.ts` for Vue,
-  `solid/runtime/` for Solid). A core touches nothing when made (a server
-  render makes one per surface) and listens only between `mount` and
-  `dispose` (`tests/surface-loop.spec.ts`). `api.ts` is the engine's public
-  API, every framework-free name a consumer gets; each layer's index
-  re-exports it whole and never lists the engine again.
-- `tailwind/` — the source styling layer: every `.vue` component and the
-  `.ts` modules that write Tailwind classes (`lib.ts`'s `cn`,
-  `control.ts`'s `CONTROL` / `CONTROL_BUTTON` / `POPOVER`, the chart
-  roots), its `index.ts` (the public API) and `kit.css`.
-- A file name is one component across both layers: a chart's series part
-  and a background never share one (`Radar.vue` is the radar chart's
-  series part, which registers its texture with the chart; the sweep
-  background is `RadarSweep.vue`, exported as `DitherRadar`;
-  `tests/components/radar-series.spec.ts` holds it).
-- `stylex/` — the same components in StyleX, GENERATED from `tailwind/`
-  by `src/shared/lib/stylex-layer.ts`: never edit a generated file (each
-  says so in its first line); edit the Tailwind file and run
-  `npx rs test -u tests/stylex-layer.spec.ts`. Every class string in
-  class position (`class` / `:class`, `cn()` arguments, `class:` in `h()`,
-  and the constants, records, computeds and functions those reach)
-  becomes a named style in ONE `stylex.create` per file, at module level
-  in a plain `<script>` (where StyleX compiles it); an element's own
-  styles bind with `v-bind="stylex.attrs(...)"`, merged ones with
-  `:class="cn(...)"`. A component that takes `class` takes `xstyle` too
-  (StyleX styles or class names, merged after its own, so the last style
-  to set a property wins; Vue flattens any object given as `class`), and
-  kit components hand each other styles through it. Only `lib.ts` (`cn`
-  over `stylex.attrs`, `StyleProp`) is written by hand.
-- `solid/` — the kit in SolidJS, growing beside the Vue layers until it
-  holds all of them, then taking their place (the user's call: the Vue kit
-  is deleted at parity). One `.tsx` per component under its Vue twin's file
-  name, exported from `solid/index.ts` under the Vue kit's names, plus its
-  own `<Name>Props` type. It imports the engine (`../engine/`), the Tailwind
-  layer's framework-free modules (`../tailwind/lib`, `../tailwind/control`,
-  never a copy) and its runtime, `solid/runtime/`: `surface.ts`
-  (`createDitherBackground`, the surface loop bound to a component) and
-  `screen.ts` (the print screen as context: `useScreen`, `useDitherMatrix`,
-  `useLabelMatrix`, `useVariantMatrix`). Never Vue, a `.vue` file, or a
-  Vue-bound engine module, directly or through anything it imports.
+- `engine/` — every module that carries no class name and no framework:
+  palette, pixel, raster, the painters and backgrounds' renderers, the
+  chart paint loops (`cartesian-loop.ts`, `bar-loop.ts`, `pie-loop.ts`,
+  `radar-loop.ts`: `startCartesianLoop`, `startBarLoop`, `startPieLoop`,
+  `startRadarLoop`) and the chart family's types (`chart-types.ts`),
+  timing, sequence, clock, wipe, keyframes, score, parsers and GL engines,
+  `copy-text.ts`, `theme.css`, `theme.ts` and `base.css` (the scoped
+  box-model base every layer assumes). It imports only `d3-*` and itself,
+  never a framework or a styling layer (`tests/solid-kit.spec.ts`), and is
+  what the Svelte port copies verbatim. Behaviour lives here: where a
+  runtime must follow a component's lifecycle, a core holds the behaviour
+  (`surface-loop.ts`, the loop behind every generative surface;
+  `visibility.ts`) and the framework's binding is a few lines over it
+  (`solid/runtime/`). A core touches nothing when made (a server render
+  makes one per surface) and listens only between `mount` and `dispose`
+  (`tests/surface-loop.spec.ts`). `api.ts` is the engine's public API,
+  every framework-free name a consumer gets; each layer's index re-exports
+  it whole and never lists the engine again.
+- `tailwind/` — the Tailwind layer's framework-free modules, the `.ts`
+  files that write Tailwind classes (`lib.ts`'s `cn`, `control.ts`'s
+  `CONTROL` / `CONTROL_BUTTON` / `POPOVER`), and `kit.css`, the standalone
+  stylesheet's entry. It holds no component.
+- `solid/` — the components: one `.tsx` per component, exported from
+  `solid/index.ts` (the public API) with its own `<Name>Props` type, plus
+  the chart roots (`cartesian-root.tsx`, `polar-root.tsx`, `area-chart.ts`,
+  `bar-chart.ts`, `pie-chart.ts`, `radar-chart.ts`). It imports the engine
+  (`../engine/`), the Tailwind layer's modules (`../tailwind/lib`,
+  `../tailwind/control`, never a copy) and its runtime, `solid/runtime/`:
+  `surface.ts` (`createDitherBackground`, the surface loop bound to a
+  component), `screen.ts` (the print screen as context: `useScreen`,
+  `useDitherMatrix`, `useLabelMatrix`, `useVariantMatrix`),
+  `visibility.ts` and `in-view.ts` (the loop gates: `createCanvasVisibility`,
+  `createInviewLoop`), `field.ts` (a field's ids and error for the control
+  inside it), `toast.ts` (the toast store), `presence.tsx`
+  (`<Presence when name>`: an element enters and leaves through six class
+  names, `<name>-enter-from` / `-enter-active` / `-enter-to` and the three
+  `-leave-*`, so a transition is a plain stylesheet), and the chart
+  family's (`chart-context.ts`, `common-context.ts`, `polar-context.ts`,
+  `series-context.ts`, `use-chart-dimensions.ts`, the four `*-canvas.tsx`
+  over the engine's loops, `chart-layer.tsx`, which sorts a chart root's
+  children into its back, drawing and DOM layers).
   Conventions: props are never destructured (defaults through `mergeProps`,
   a control's own props apart from the element's through `splitProps`, the
   rest spread on the element so listeners and ARIA reach it); elements are
   `let` variables set by a function ref (`ref={(el) => (wrap = el)}`,
   an assignment the linter can see) and handed to the runtime as
-  accessors; what `computed` was
-  is `createMemo`; lifecycle work sits in `onMount` with its `onCleanup`
-  inside, so a server render runs none of it; inline styles use CSS
-  property names. A port carries its Vue twin's behaviour and comments
-  whole, and its specs come with it (`solid-site/tests/`). Held by
-  `tests/solid-kit.spec.ts`. It holds every component the Vue kit does.
-  The rest of its runtime: `visibility.ts` and `in-view.ts` (the loop
-  gates), `field.ts` (a field's ids and error for the control inside it),
-  `toast.ts` (the toast store), `presence.tsx` (`<Presence when name>`: an
-  element enters and leaves through the six class names Vue's
-  `<Transition name>` used, so a transition stylesheet carries over), and
-  the chart family's twins (`chart-context.ts`, `common-context.ts`,
-  `polar-context.ts`, `series-context.ts`, `use-chart-dimensions.ts`, the
-  four `*-canvas.tsx`, `chart-layer.tsx`, which sorts a chart root's
-  children into its back, drawing and DOM layers). The four chart paint
-  loops (`startCartesianLoop`, `startBarLoop`, `startPieLoop`,
-  `startRadarLoop`) are byte copies of the engine's Vue-bound files, owed
-  an extraction into shared cores before the cutover. What Vue's API
-  becomes: an emitted event is an `on<Event>` callback prop (`v-model` is
-  `modelValue` with `onUpdateModelValue`); the default slot is `children`,
-  a function of its scope when the slot was scoped, a named slot a prop of
-  its name; what a component exposed goes to a `ref` callback, typed
-  `<Name>Api`; a module-counter or random id is `createUniqueId()`, so a
-  server render and the browser agree; a `<style>` block is
-  `<Name>.css` beside the component, its rules verbatim, nested under a
-  root hook class `dk-<name>` where a selector was not already the
-  component's own; a component's own listener on an element that also
-  takes the caller's is a native `on:` listener, so both run, and so an
-  overlay's keys stop at its portal. The root type check leaves `solid/` out
-  (`tsconfig.json`); `solid-site`'s checks it.
+  accessors; derived values are `createMemo`; lifecycle work sits in
+  `onMount` with its `onCleanup` inside, so a server render runs none of
+  it; inline styles use CSS property names. A change is reported through
+  an `on<Event>` callback prop (a two-way value is `modelValue` with
+  `onUpdateModelValue`); content is `children`, a function of its scope
+  where the component hands one down, and a named region is a prop of its
+  name; what a component exposes goes to a `ref` callback, typed
+  `<Name>Api`; an id is `createUniqueId()`, so a server render and the
+  browser agree; a component's own stylesheet is `<Name>.css` beside it,
+  its rules nested under a root hook class `dk-<name>` where a selector is
+  not already the component's own; a component's own listener on an
+  element that also takes the caller's is a native `on:` listener, so both
+  run, and so an overlay's keys stop at its portal. Held by
+  `tests/solid-kit.spec.ts` (every component in the index, the engine's
+  API handed on whole, no framework in the engine) and the component specs
+  in `solid-site/tests/`.
+- A file name is one component: a chart's series part and a background
+  never share one (`Radar.tsx` is the radar chart's series part, which
+  registers its texture with the chart; the sweep background is
+  `RadarSweep.tsx`, exported as `DitherRadar`;
+  `solid-site/tests/charts.spec.tsx` holds it).
 - `solid-stylex/` — the Solid layer in StyleX, GENERATED from `solid/` by
-  `src/shared/lib/stylex-layer-solid.ts` (the class-to-StyleX core,
-  `stylex-core.ts`, is the Vue generator's too): never edit a generated
-  file; edit the Solid file and run
-  `npx rs test -u tests/stylex-layer-solid.spec.ts`, which fails on any
-  drift. One `stylex.create` a file; an element's own styles are
+  `src/shared/lib/stylex-layer-solid.ts` (over the class-to-StyleX core,
+  `stylex-core.ts`): never edit a generated file; edit the Solid file and
+  run `npx rs test -u tests/stylex-layer-solid.spec.ts`, which fails on
+  any drift. One `stylex.create` a file; an element's own styles are
   `{...stylex.props(...)}`, merged ones `class={cn(...)}`; a component that
-  takes `class` takes `xstyle` too. Stylesheets and the runtime are
-  imported from `../solid/`, never copied (`runtime/chart-layer.tsx`, the
-  one runtime file that writes classes, and `control.ts` are generated);
-  only `lib.ts` is written by hand. What the Solid source keeps to, so the
-  generator can carry it: classes in class position (`class`, `classList`
-  as a plain object, `cn()` arguments, and the constants, records and
-  functions those reach), a composition returning classes or lists, never
-  a `cn()` string fed into another list, never `+` or a class glued to an
-  expression in a template literal. The generator refuses anything else by
-  file and line and writes nothing for that file.
-- A module that stops carrying classes moves to `engine/`; a new component
-  goes in `tailwind/` and reaches shared logic through `../engine/`.
-- What the generator can carry, so the Tailwind source keeps to it: class
-  strings in class position (never a template literal or `+`: an array),
-  a composition returns classes or arrays (never a `cn()` string fed into
-  another `cn()`, which would merge twice), no `!important`, and a rule
-  about another element's state (a parent's hover, a `:has()`) lives in
-  the component's scoped `<style>` on its own hook classes, which both
-  layers carry verbatim. A utility that needs a selector StyleX cannot say
-  (`group-*`, `peer-*`, `has-*`, `*:`, an arbitrary `[&...]`) stays out of
-  class strings.
+  takes `class` takes `xstyle` too (StyleX styles or class names, merged
+  after its own, so the last style to set a property wins), and kit
+  components hand each other styles through it. Stylesheets and the
+  runtime are imported from `../solid/`, never copied
+  (`runtime/chart-layer.tsx`, the one runtime file that writes classes,
+  and `control.ts` are generated); only `lib.ts` (`cn` over
+  `stylex.props`, `StyleProp`) is written by hand. What the Solid source
+  keeps to, so the generator can carry it: classes in class position
+  (`class`, `classList` as a plain object, `cn()` arguments, and the
+  constants, records and functions those reach), a composition returning
+  classes or lists, never a `cn()` string fed into another list, never `+`
+  or a class glued to an expression in a template literal, no
+  `!important`; a rule about another element's state (a parent's hover, a
+  `:has()`) lives in the component's own stylesheet on its hook classes,
+  which both layers share; a utility that needs a selector StyleX cannot
+  say (`group-*`, `peer-*`, `has-*`, `*:`, an arbitrary `[&...]`) stays
+  out of class strings. The generator refuses anything else by file and
+  line and writes nothing for that file.
+- A module that carries neither classes nor Solid goes in `engine/`; a new
+  component goes in `solid/` and reaches shared logic through `../engine/`.
 
 ## Local Contracts
 
 - Covers: `engine/cover.ts` holds every loop under a layer that covers
   the page (`coverPage(el)` raises it, `coverPage(null)` lifts it): the
-  loop runtimes (`useCanvasVisibility`, so `useDitherBackground` and every
-  canvas loop gated on it, and `useInviewLoop`; the Svelte kit's
-  `ditherBackground` action) read a covered element as out of view and
-  wake as the cover lifts; loops inside the covering layer run on.
-  `tests/cover.spec.ts`.
+  loop gates (the engine's `watchVisibility`, so the surface loop and every
+  canvas loop gated on it, and the Solid runtime's `createInviewLoop`; the
+  Svelte kit's `ditherBackground` action) read a covered element as out of
+  view and wake as the cover lifts; loops inside the covering layer run on.
+  `tests/surface-loop.spec.ts` and the cover's cases in
+  `solid-site/tests/carried.spec.tsx`.
 - Motion: `engine/spring.ts` is Apple's smooth spring (critically damped,
   from rest, settling to within a thousandth by its end, never past its
   mark; one shape at every duration), the `"spring"` easing name in
@@ -160,9 +144,9 @@ the kit every import is relative (`../engine/pixel`).
 
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
   returns to its input; the list is arrow-driven), focus restores to the
-  opener on close. With nothing matching it shows `empty`; the Vue kit's
-  `empty` slot and the Svelte kit's `empty` snippet (a string or a
-  snippet, one prop) draw it instead, given the query.
+  opener on close. With nothing matching it shows `empty`: a string, or a
+  function (the Svelte kit: a snippet) that draws it instead, given the
+  query.
 - `DitherGauge` (both kits) is an instrument dial, read-only
   (`role="meter"`, valued, named by its `label`, read out as the reading
   and the label): its geometry and its band live in `engine/gauge.ts`
@@ -188,8 +172,9 @@ the kit every import is relative (`../engine/pixel`).
   while the tabs scrolled.
 
 - Zero imports from `src/` — the kit must stay copy-out portable
-  (docs promise: "copy the folder, alias it"). Dependencies: vue, d3-scale,
-  d3-shape, tailwind classes only.
+  (docs promise: "copy the folder, alias it"). Dependencies: solid-js,
+  d3-scale, d3-shape, clsx, tailwind-merge and Tailwind classes only
+  (`@stylexjs/stylex` for the StyleX layer).
 - `palette.ts` is the single source of color truth: 7 seeds, each resolving
   fill/line/star hues. Swatch CSS vars in `src/app/styles.css` mirror it.
 - `pixel.ts` owns BAYER4, the print screens and bloom presets. `SCREENS`
@@ -198,17 +183,18 @@ the kit every import is relative (`../engine/pixel`).
   `matrix[y & 3][x & 3]` painter takes any of them; `screenMatrix(screen,
   seed?)` jitters one exactly as `pixelMatrixFromSeed` jitters Bayer (the
   same bytes for `bayer`).
-- `use-screen.ts` is the ONE way a surface gets its matrix:
+- `solid/runtime/screen.ts` is the ONE way a surface gets its matrix:
   `useDitherMatrix(() => seed)` reads the screen a `DitherScreen` around
-  it provides (`SCREEN`, an inject; Bayer without one), seeded as ever;
+  it provides (`ScreenContext`; Bayer without one), seeded as ever;
   the charts' contexts expose the same as `matrixOf(variant)`
   (`useVariantMatrix`, `resolveMatrix` when no screen is around); a fill
   that carries a label (badge, toggle, button) keeps Bayer through
   `useLabelMatrix`, because a hatch under type breaks its letters.
   `precompile.ts` takes a `screen` option for surfaces that raster
   through it (the gradient passes its screen, the button does not).
-  `DitherScreen` is only the provider (`screen`, default `diagonal`, a
-  slot). Pinned by `tests/screens.spec.ts`.
+  `DitherScreen` is only the provider (`screen`, default `diagonal`, its
+  children). Pinned by `tests/screens.spec.ts` (the matrices) and the
+  `DitherScreen` cases in `solid-site/tests/carried.spec.tsx`.
 - `timing.ts` is the pure temporal core: DOM-free and clock-free. `steps()` is
   spec-locked to the css-easing-1 positions (jump-end/start/none/both),
   `frameSteps` derives a `frame(fps)` cadence, `frameIndex` is the wall-clock
@@ -225,15 +211,16 @@ the kit every import is relative (`../engine/pixel`).
   `steps()` composes into a sequence. Stagger origins (`start`/`center`/`end`/
   `edges`/index) live in the exported `staggerDelay`. Yoyo settling is
   continuous with the active legs: odd `loop` ends at 1, even at 0 — never
-  jump a settled track. `Sequence.vue` is the shared driver: it snapshots
-  slot children at start (rebuild via `restartKey`), writes `--seq-p` (eased,
+  jump a settled track. `Sequence.tsx` is the shared driver: it snapshots
+  its children at start (rebuild via `restartKey`), writes `--seq-p` (eased,
   `toFixed(4)`) + `data-seq` per child with change-skipping, and owns an
   rAF clock whose first frame is dt 0 and whose wake has no time jump —
-  `use-dither-background` semantics. IO gate and reduced-motion floor mirror
+  the surface loop's semantics. IO gate and reduced-motion floor mirror
   `AnimatedContent`; the `frameRate` gate mirrors the background runtime with
   completion checked BEFORE the gate. `tests/sequence.spec.ts` (algebra) and
-  `tests/sequence-vue.spec.ts` (driver, manual-rAF fake clock — respect the
-  100ms dt cap when stepping fake time) pin both halves.
+  the `Sequence` cases of `solid-site/tests/carried-motion.spec.tsx`
+  (driver, hand-stepped frames — respect the 100ms dt cap when stepping
+  fake time) pin both halves.
 - `clock.ts` is the director — external ownership of time. Free-running,
   every animated surface owns its own rAF loop on wall time. `seek(ms)`
   directs them: the loops stand down and each surface paints exactly the
@@ -242,7 +229,7 @@ the kit every import is relative (`../engine/pixel`).
   moment means released → resume through their own `wake`), request no
   frames while `isDirected()`, and paint `directedTime()` when they start
   or wake under direction. Directed semantics per surface:
-  `use-dither-background` sets `clock = ms/1000 · timeScale` (pure
+  the surface loop sets `clock = ms/1000 · timeScale` (pure
   renderers land on the exact frame) and passes `dt` = the step since the
   last directed moment (simulations advance in capture order, so those
   render with one worker); the chart canvases run the entrance from
@@ -256,7 +243,8 @@ the kit every import is relative (`../engine/pixel`).
   itself through WAAPI. `directFromHyperframes()` takes direction from
   HyperFrames' `hf-seek` events (`detail.time` seconds): the contract the
   Studio's video export and `src/pages/play` rely on. Pinned by
-  `tests/clock.spec.ts` and the directed case in `tests/sequence-vue.spec.ts`.
+  `tests/clock.spec.ts` and the directed cases in
+  `solid-site/tests/carried-motion.spec.tsx`.
 - `wipe.ts` is the wipe engine — ordered-dither reveal masks for any DOM.
   `wipeStyle(progress, { cell, seed?, direction, band, width, height })`
   turns a progress into CSS `mask-image/size/repeat/position` values: a
@@ -272,14 +260,15 @@ the kit every import is relative (`../engine/pixel`).
   strings from pure numbers (cached by key): the same progress gives the
   same mask, `null` at 1 (remove the mask), the 1×1 empty mask at 0 (the
   other way round inverted).
-  `DitherReveal.vue` applies it to its slot: manual `progress` (a
+  `DitherReveal.tsx` applies it to its children: manual `progress` (a
   timeline's — it runs no clock of its own), or a timed reveal
   (`duration`/`delay`/`easing`, `restartKey` replays) on the IO-gated rAF
   loop, its delay waited out before the first play and a pause resuming
   where it left off, the kit clock's moment when directed, shown at once under reduced
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
   The Studio's reels cut between frames with it. Pinned by
-  `tests/wipe.spec.ts` and `tests/reveal-vue.spec.ts`.
+  `tests/wipe.spec.ts` and the `DitherReveal` cases of
+  `solid-site/tests/carried-motion.spec.tsx`.
 - `transition.ts` is the transition engine: view transitions whose two
   snapshots meet through the wipe. `ditherTransition(update, opts)` runs a
   DOM change through `document.startViewTransition` and masks the new
@@ -315,19 +304,20 @@ the kit every import is relative (`../engine/pixel`).
   kit (nor are the wipe and keyframe engines). Pinned by
   `tests/score.spec.ts`.
 - Type voice: the kit's controls speak `--font-mono` (Button, Badge,
-  Toaster, Command), and every overlay that TELEPORTS to `<body>` carries
+  Toaster, Command), and every overlay that PORTALS to `<body>` carries
   it on its own panel — `DitherDialog`, `DitherAlertDialog`,
   `DitherDrawer`, `DitherContextMenu`, `CenterMorphModal` — because a
-  teleport leaves the host's font behind (the body's sans, not the page's
+  portal leaves the host's font behind (the body's sans, not the page's
   voice). Where the panel takes `class`, a consumer's `font-sans` wins
-  through `cn()`. New teleported overlays follow; the Svelte port mirrors
+  through `cn()`. New portaled overlays follow; the Svelte port mirrors
   each one.
 - Modal focus: every modal overlay holds focus through `FocusScope` (in on
   open, Tab cycling inside, back to its opener on close; only rendered
   controls are its Tab endpoints, never one hidden by CSS); `DitherDrawer`
   wraps its panel in one while `modal`. The Svelte port, which has no
-  `FocusScope`, does the same inline in each overlay. Pinned for the drawer
-  by `tests/drawer-focus.spec.ts`.
+  `FocusScope`, does the same inline in each overlay. Pinned by the
+  `FocusScope` and `DitherDrawer` cases of
+  `solid-site/tests/w2part5.spec.tsx`.
 - Styling contract: Tailwind is the kit's authoring tool, not a requirement
   of the app around it. `engine/theme.css` declares the shadcn-style tokens
   (`--background`, `--foreground`, `--card`, `--popover`, `--muted`,
@@ -338,25 +328,28 @@ the kit every import is relative (`../engine/pixel`).
   must stay in step) and every other styling system themes by redefining.
   `engine/base.css` is the box-model and form-control base the components assume
   (Tailwind's preflight is the global version the site uses), scoped under
-  `.dither-kit` through `:where()` at zero specificity. `tailwind/kit.css` (which also scans `solid/`, so one stylesheet serves either layer) is
+  `.dither-kit` through `:where()` at zero specificity. `tailwind/kit.css` is
   the standalone entry: the two files plus Tailwind's utilities with
-  `source(none)` and `@source` limited to `dither-kit/tailwind/` and
-  `dither-kit-svelte/`, in the `dither-kit.theme/base/utilities` layers;
-  `scripts/kit-css.mjs` (`npm run build:css`, part of `npm run build` and
-  the Pages deploy) compiles it with `@tailwindcss/node` + `oxide` into
-  `dist/kit/dither-kit.css` (~55 kB, served at `/kit/dither-kit.css`), so
-  an app on UnoCSS, vanilla CSS or any CSS-in-JS runs the Tailwind layer
+  `source(none)` and `@source` limited to `dither-kit/tailwind/`,
+  `dither-kit/solid/` and `dither-kit-svelte/` (one stylesheet serves
+  either kit), in the `dither-kit.theme/base/utilities` layers;
+  `scripts/kit-css.mjs` (`buildKitCss`, called by the site's post-build;
+  `npm run build:css` writes the file alone) compiles it with
+  `@tailwindcss/node` + `oxide` into `kit/dither-kit.css` in the site's
+  build (served at `/kit/dither-kit.css`), so
+  an app on UnoCSS, vanilla CSS or any CSS-in-JS runs the Solid layer
   by loading one file, wraps the region in `.dither-kit`, and wins every
-  cascade against the kit's layered rules (a StyleX app takes `stylex/`
-  instead, with `engine/theme.css` and `engine/base.css`); `class` on any component takes any class name
+  cascade against the kit's layered rules (a StyleX app takes
+  `solid-stylex/` instead, with `engine/theme.css` and `engine/base.css`); `class` on any component takes any class name
   (`cn()` merges Tailwind names, passes the rest through). `engine/theme.ts` sets
   the tokens from JS: `THEME_TOKENS`, `themeVars` (object of custom
   properties for inline styles or a vars contract), `themeCss` (a `:root`
   / `.dark` block), `applyTheme` (writes them on an element, returns the
-  undo); `placeholder` is among them, optional. A component may use only Tailwind utilities, its own scoped
-  styles and the tokens above — never an app class. Pinned by
+  undo); `placeholder` is among them, optional. A component may use only Tailwind utilities, its own
+  stylesheet and the tokens above — never an app class. Pinned by
   `tests/kit-css.spec.ts` (the compiled file: tokens, scoped base, the
-  utilities, no bare element rules) and `tests/theme.spec.ts`.
+  utilities, no bare element rules), the stylesheet case of
+  `solid-site/tests/site/cards.spec.ts` and `tests/theme.spec.ts`.
 - Browser contract: web platform only, every engine. The floor is Tailwind
   v4's (Chrome 111, Safari 16.4, Firefox 128: `@layer`, `color-mix()` in
   oklab, container queries and units, `:has()`, `inert`); anything newer
@@ -365,7 +358,8 @@ the kit every import is relative (`../engine/pixel`).
   extensions (`gl.ts`, `world-gl.ts` leaves uvs unset there), `ResizeObserver`
   and `IntersectionObserver` guarded (no gate → play), `document.fonts`
   optional, `text-wrap`/`content-visibility`/`scrollbar-*` progressive,
-  masks through Vue's style prefixing (`DitherReveal` sets both spellings),
+  masks in both spellings (`DitherReveal` sets `mask-*` and
+  `-webkit-mask-*`),
   `-webkit-background-clip` beside the standard one. `copy-text.ts`'s `copyText`
   is the one clipboard path: the async clipboard where it exists, else the
   selection + `execCommand` route (plain http, older engines, automation),
@@ -385,7 +379,7 @@ the kit every import is relative (`../engine/pixel`).
   the hardware buttons): `:volume-locked` where the engine knows the
   selector (a write there can read back, then revert), else a write that
   must read back.
-- `keyframes.ts` + `DitherStage.vue` + `DitherLayer.vue` are the keyframe
+- `keyframes.ts` + `DitherStage.tsx` + `DitherLayer.tsx` are the keyframe
   engine in container units. `parseLength` turns px numbers and any CSS
   length (`calc()` sums included) into unit terms, `lerpTerms` interpolates
   term by term, `termsToCss` prints one unit plain or several as a
@@ -411,13 +405,14 @@ the kit every import is relative (`../engine/pixel`).
   (time, box, reduced) and `data-stage` (playing/directed/paused/still).
   `DitherLayer` samples its track at the stage's moment and writes
   `transform` in the keyframes' own units, `opacity`, `--layer-p` and
-  `--layer-<name>` per property, `data-layer` state, and hands the slot
-  every property resolved to px/degrees plus progress, cycle, time, width,
+  `--layer-<name>` per property, `data-layer` state, and hands its
+  children every property resolved to px/degrees plus progress, cycle, time, width,
   height — the numbers a canvas painter needs; without a stage it holds
-  its first key. Pinned by `tests/keyframes.spec.ts` and
-  `tests/stage-vue.spec.ts` (fake rAF + ResizeObserver, directed seeks,
-  reduced motion).
-- `containers.ts` + `DitherContainer.vue` are the container-query engine —
+  its first key. Pinned by `tests/keyframes.spec.ts` and the
+  `DitherStage and DitherLayer` cases of
+  `solid-site/tests/carried-motion.spec.tsx` (hand-stepped frames and
+  observers, directed seeks, reduced motion).
+- `containers.ts` + `DitherContainer.tsx` are the container-query engine —
   children answer to their OWN box, never the viewport (the responsive half
   of the animation stack). The pure core resolves a content-box width
   against a named `CqScale` with CSS range semantics (min inclusive / max
@@ -432,18 +427,20 @@ the kit every import is relative (`../engine/pixel`).
   observer; a setTimeout(0) `clientWidth` guard fires only if nothing
   reported — never overwrite a real observation with the zero read), and
   publishes `data-cq` (active bucket) + `--cq-w`/`--cq-h` (content-box size,
-  raw or quantized together) + `--cq-i` (ordinal) + slot props
-  `{ width, height, size, index, matches }`. Its UNSCOPED style ships the
+  raw or quantized together) + `--cq-i` (ordinal) + its children's scope
+  `{ width, height, size, index, matches }`. Its stylesheet ships the
   container-relative reference keyframes `dither-cq-traverse`
   (translateX ±100cqw) and `dither-cq-rise` (translateY ±100cqh): motion
   measured against the query container, small-viewport fallback when none —
-  never vw/vh, never the animated element's own box (`tests/cq-units.spec.ts`
-  guards the units and the viewport leak).
+  never vw/vh, never the animated element's own box (the container units
+  cases of `solid-site/tests/carried.spec.tsx` guard the units and the
+  viewport leak).
   Unmount disconnects the observer and clears the timer (leak contract).
   `tests/container.spec.ts` (boundaries, ordering, overlaps, quantize) and
-  `tests/container-vue.spec.ts` (observer, var/attr writes, slot state,
-  silent-observer fallback) pin both halves; the docs `v-slot` snippet rides
-  the `toSvelteCode` children-snippet rule (`tests/svelte-code.spec.ts`).
+  the `DitherContainer` cases of `solid-site/tests/carried-motion.spec.tsx`
+  (observer, var/attr writes, scope state, silent-observer fallback) pin
+  both halves; the docs' `v-slot` snippet rides the `toSvelteCode`
+  children-snippet rule (`tests/svelte-code.spec.ts`).
 - Seed-generative contract: a `number` is a deterministic SEED everywhere a
   visual input is accepted — `VariantInput` (texture via `textureFromSeed`),
   `BloomInput`/`PixelBloomInput` (`bloomFromSeed`; pixel.ts mirrors the exact
@@ -513,7 +510,7 @@ the kit every import is relative (`../engine/pixel`).
   signal per trace whose head (`signalHead`, a pure function of time)
   runs in `pulse` with a `SIGNAL_TAIL` fading through the thresholds.
   Guarded by `tests/circuit.spec.ts`.
-- `HeatTrail` (`heat-trail.ts`, both kits; `DitherHeatTrail` in Vue) is the
+- `HeatTrail` (`heat-trail.ts`, both kits; exported as `DitherHeatTrail`) is the
   pointer printing: heat per cell, `trailTo` stamps the kit's diamond
   (hottest at its heart, its rim `RIM_COOL` cooler, so a stroke cools from
   its edges in and tapers like a comet, never one width along) at every cell from the stroke's last point, so a
@@ -527,7 +524,7 @@ the kit every import is relative (`../engine/pixel`).
   scrolling page, whose print rides the page (`scrollTrail` moves the heat
   whole cells and lets go of what leaves). Not `PixelTrail` (coarse blocks fading by alpha,
   one cell per event). Guarded by `tests/heat-trail.spec.ts`.
-- `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.vue` are the 3D
+- `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.tsx` are the 3D
   surface. `models.ts` parses model files into a `World`, bounded against
   a hostile file: a scene graph is walked for at most `MAX_NODES` (shared
   DEF/USE instances counted each time), a list or face a file declares is
@@ -669,10 +666,11 @@ the kit every import is relative (`../engine/pixel`).
   `texCoordIndex` (t flipped; X3D through the same builder) and PLY
   `s`/`t`; `WorldMesh.uv` per vertex interpolates perspective-correct into
   `WorldTarget.uv` (s = -1 where a mesh has none).
-- The render graph: every surface on `use-dither-background` is a
+- The render graph: every surface on the surface loop is a
   `DitherSurface` — `raster()` (the last painted buffer), `pull(ms)`,
-  `version()`, `canvas()` — returned by the composable, exposed by
-  `DitherWorld`/`DitherShader` (`defineExpose({ surface })`) and reachable
+  `version()`, `canvas()` — returned by `createDitherBackground`, handed
+  out by `DitherWorld`/`DitherShader` (their `ref` callback's `{ surface }`)
+  and reachable
   from any kit canvas through `surfaceOf(canvas)`. `pull(ms)` is the edge
   contract: under direction it paints the moment `ms` on demand when the
   source has not painted it yet (a moment paints once — the clock's own
@@ -680,8 +678,8 @@ the kit every import is relative (`../engine/pixel`).
   consumer always reads a source at its own time stamp whatever order the
   clock reaches them in, and a chain of surfaces seeks and renders as one.
   Consumers: `DitherShader.channels` binds up to four sources as
-  `iChannel0..3` (a surface, a component instance, a kit canvas → its
-  surface; any other canvas, image or video → its current pixels, uploaded
+  `iChannel0..3` (a surface, what a component hands its `ref`, a kit
+  canvas → its surface; any other canvas, image or video → its current pixels, uploaded
   upright with FLIP_Y, nearest-sampled, `iChannelResolution` set — all
   through `gl.ts`'s `createChannels`), `DitherWorld.channels` skins the
   model: without a shader the first channel is the texture (`rasterOf`
@@ -716,14 +714,14 @@ the kit every import is relative (`../engine/pixel`).
   (the program or the compiler's first line: fragment, vertex, then link),
   `dropProgram`; `buildProgram` is start and finish at once, for programs
   needed now (the world's engines; `tests/shader-compile.spec.ts`), and
-  the channel binding: `ChannelInput` (a surface, a component
-  instance, a kit canvas → its surface; any canvas, image or video),
+  the channel binding: `ChannelInput` (a surface, what a component
+  hands its `ref`, a kit canvas → its surface; any canvas, image or video),
   `bindChannel`, `createChannels` (the four textures of one program,
   re-uploaded only when a surface painted, FLIP_Y upright,
   `iChannelResolution` / `iChannelTime`) and `rasterOf` (the same input as
   a raster for the CPU engines). The GPU is only ever an evaluator — every
   surface still dithers on the CPU.
-- `shader.ts` + `DitherShader.vue` are the GLSL surface. The pure half:
+- `shader.ts` + `DitherShader.tsx` are the GLSL surface. The pure half:
   `wrapShader` builds a program around a user fragment shader — Shadertoy's
   `mainImage` gets the Shadertoy uniforms plus the kit's (`iColor` the
   component colour 0-1, `iSeed`, and `dk_bayer4(fragCoord)`, the 4x4 Bayer
@@ -747,14 +745,16 @@ the kit every import is relative (`../engine/pixel`).
   cost, the context and the program's compile, is started at idle as it
   comes within a screen of view (never for one far off, so a page of
   shaders holds no contexts it never shows): paid in its first frame it was
-  a stall just as it came into view (`tests/shader-warm.spec.ts`). The
+  a stall just as it came into view
+  (`solid-site/tests/carried-shader.spec.tsx`). The
   compile runs in the driver's background: a running shader holds its
   raster and asks `programReady` each frame, collecting the program once it
   is; a paused frame or a directed moment collects it at once, exact
-  (`tests/shader-compile.spec.ts`).
+  (`tests/shader-compile.spec.ts`, `solid-site/tests/carried-shader.spec.tsx`).
   `sampleShader(seed)` is the seeded default source. `tests/shader.spec.ts`
   pins the pure half.
-- `use-dither-background.ts` (`useDitherBackground`) is the single shared runtime
+- `engine/surface-loop.ts` (`createSurfaceLoop`; bound to a component by
+  `solid/runtime/surface.ts`'s `createDitherBackground`) is the single shared runtime
   for that family: throttled rAF loop, backing buffer + upload, visibility gate,
   resize, dpr, static/reduced-motion single frame, and the mount/restart/teardown
   lifecycle. It returns the surface's `DitherSurface` (see the render
@@ -796,9 +796,8 @@ the kit every import is relative (`../engine/pixel`).
   (`tests/frame-budget.spec.ts`).
   EVERY background component exposes the matching `frameRate` prop
   (default 0) and passes it through; the studio registry row and the docs API
-  table carry the same row — `scripts/frame-rate-codemod.ts` keeps all four
-  surfaces in step (strict anchors, idempotent, `--dry` to preview). A new
-  background is just an `engine.ts` `paint*` fn plus a thin `.vue`
+  table carry the same row. A new
+  background is just an engine `paint*` fn plus a thin `.tsx`
   that resolves props and passes a `render(buffer, clock, dt, elapsed)` callback —
   never re-implement the loop per component. Per-frame extras stay in `render`:
   page-load fade reads `elapsed`, eased pointers read `dt`.
@@ -835,11 +834,11 @@ the kit every import is relative (`../engine/pixel`).
 - Loop visibility contract: self-scheduling rAF loops in the text/animation
   family (CurvedLoop, ScrollVelocity, TextCursor, TextPressure,
   VariableProximity, GhostCursor, BlobCursor, Antigravity) run through
-  `use-inview-loop.ts` — `start` only on the first IntersectionObserver hit,
+  `solid/runtime/in-view.ts` (`createInviewLoop`) — `start` only on the first IntersectionObserver hit,
   `stop` when the host leaves, `start` idempotent, never an optimistic start
   at mount (measured: ungated demos burned ~440 rAF/s offscreen on docs).
   Without IO the loop is always-on — the old behaviour, which is what jsdom
-  tests get. A new looping component uses this composable, never a bare
+  tests get. A new looping component uses this runtime, never a bare
   mount-time `requestAnimationFrame` chain.
 - Per-letter text keeps its words wrappable: `VariableProximity` (both
   ports) renders a space as a plain space between the letters' spans (no
@@ -849,27 +848,29 @@ the kit every import is relative (`../engine/pixel`).
   `RotatingText`, `CountUp`, ...) are a separate family: pure DOM/CSS (or a small
   rAF for counting), NOT canvas/Bayer. They still ship as `Dither*` exports,
   register in `COMPONENT_REGISTRY`, and must honour `prefers-reduced-motion`
-  (CSS `@media` or `pixelPrefersReducedMotion`). Slot-based effects wrap arbitrary
-  text; char/number effects take a `text`/`to` prop. Docs live in `src/pages/docs/text/`.
+  (CSS `@media` or `pixelPrefersReducedMotion`). Wrapping effects take arbitrary
+  text as children; char/number effects take a `text`/`to` prop. Docs live in
+  `solid-site/src/pages/docs/text/`.
 - Interaction/motion effects (`AnimatedContent`, `FadeContent`, `Sequence`,
   `Reveal`, `Stage` + `Layer`, `GradualBlur`, `StarBorder`,
   `ElectricBorder`, `GlareHover`, `Magnet`, `ClickSpark`, ...) are
-  another DOM/CSS/pointer family: slot wrappers (reveal-on-view, animated
+  another DOM/CSS/pointer family: wrappers of their children (reveal-on-view, animated
   borders, hover glare), timeline-driven children (`Sequence` writes
   `--seq-p`/`data-seq` — see its engine bullet), the container-query scope
-  (`DitherContainer` — `data-cq`/`--cq-*` + slot state; and
+  (`DitherContainer` — `data-cq`/`--cq-*` + scope state; and
   `AnimatedContent.distance` accepts CSS length strings — `"4cqw"` makes a
   reveal measure its parent container, numbers stay px), or area wrappers
   (cursor +
   click effects on a canvas
   overlay). Same rules: `Dither*` export, `COMPONENT_REGISTRY` entry (wrappers use
-  `slotText`), reduced-motion aware. Docs live in `src/pages/docs/animations/`.
+  `slotText`), reduced-motion aware. Docs live in
+  `solid-site/src/pages/docs/animations/`.
 - The layout family (`DitherShell`, `DitherRail`, `DitherConsole`,
-  `DitherCanvas`, `DitherGrid`) is pure DOM/CSS — slot-driven frames for
+  `DitherCanvas`, `DitherGrid`) is pure DOM/CSS — frames around their children for
   dashboards. `DitherRail` provides the sidebar's collapsed context so
   `DitherSidebarItem` children fold automatically; `DitherConsole` follow-mode
   pins the newest line and its caret stills under reduced motion. Docs live in
-  `src/pages/docs/components/LayoutDocs.vue`.
+  `solid-site/src/pages/docs/components/LayoutDocs.tsx`.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
@@ -879,12 +880,12 @@ the kit every import is relative (`../engine/pixel`).
   because the kit uses `putImageData` for bulk pixel writes. Bloom canvases omit
   the flag (they only use `drawImage`).
 - Standalone components must defer their initial `getBoundingClientRect()` to
-  `requestAnimationFrame` to avoid forced reflow inside Vue's `flushJobs` when
+  `requestAnimationFrame` to avoid a forced reflow when
   many components mount simultaneously. `DitherButton` defers `init()` via RAF
   with a `restartToken` guard and sizes its canvas from its ResizeObserver's
   report (`borderBoxSize`), never a read of its box, so a wall of buttons
   starting together forces no layout (a static button, without one, reads
-  once; both kits; `tests/button-measure.spec.ts`). `DitherToggleGroup` defers `paintAll()` via RAF.
+  once; both kits). `DitherToggleGroup` defers `paintAll()` via RAF.
 - A canvas painted cell by cell writes a raster and uploads it once: a
   RasterBuffer + `putRasterBuffer` (`paintToggleCanvas`, the spinner's
   loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
@@ -898,11 +899,11 @@ the kit every import is relative (`../engine/pixel`).
   frames), the indeterminate progress only when its band steps (every
   50ms).
 - `control.ts` is the internal source for native-control geometry, focus rings,
-  disabled states and elevated popovers; `engine/field.ts` holds the
+  disabled states and elevated popovers; `solid/runtime/field.ts` holds the
   `DitherField` context. Inputs, textarea,
   select, number field, button, checkbox, switch, and modal controls reuse it;
   keep native elements and public component APIs rather than adding a base class.
-- `DitherPressable` (`Pressable.vue`) looks like a button out of the box:
+- `DitherPressable` (`Pressable.tsx`) looks like a button out of the box:
   `variant` `solid` (ink on the page, the default), `outline`, `ghost`, its
   ring `CONTROL_BUTTON`'s, a 40px mono key; `plain` is the bare base (only
   the press), for a caller that draws every pixel. A caller's class still
@@ -941,14 +942,14 @@ the kit every import is relative (`../engine/pixel`).
   an outer one.
 - Canvas visibility defaults to paused until IntersectionObserver reports the
   element visible; do not start chart animation loops optimistically before the
-  first visibility observation. The IO callback must set `visible.value` before
-  calling `onWake` so `schedule()` sees the correct state.
+  first visibility observation. The IO callback must record the element as
+  visible before calling `onWake` so `schedule()` sees the correct state.
 - A chart loop that skips a frame with nothing new to paint still asks for
   the next one while its entrance is under way (a delay, or two frames on
-  one timestamp), in both kits' copies of the cartesian loop; else it stops
+  one timestamp), in the engine's cartesian loop and the Svelte kit's copy; else it stops
   part drawn until a hover wakes it. `tests/chart-entrance.spec.ts`.
 - `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
-  must not import Vue, DOM APIs, or a server-specific image encoder. Consumers
+  must not import a framework, DOM APIs, or a server-specific image encoder. Consumers
   own encoding, caching, and invalidation of packaged assets.
 - `precompiled` replaces only the dither plot/surface image; surrounding chart
   composition remains available. `renderMode="static"` disables animation and
@@ -962,8 +963,9 @@ the kit every import is relative (`../engine/pixel`).
   and DitherImage for per-instance tuning.
 - Chart composition: root provides context (`cartesian-root` / `polar-root`),
   children register series via contexts. Props are declared with explicit
-  runtime defaults — keep API tables in `src/pages/docs` in sync when defaults
-  change.
+  runtime defaults — keep the API tables in `solid-site/src/pages/docs` in
+  sync when defaults change (`solid-site/tests/site/docs-api.spec.ts` checks
+  every row's names against the components).
 
 ## Work Guidance
 
@@ -972,18 +974,21 @@ the kit every import is relative (`../engine/pixel`).
 
 ## Verification
 
-- `npx vue-tsc --noEmit` (workspace-wide) must stay green.
-- Visual: `npx rs build && npx rs preview` and eyeball the `/docs/` previews.
-- The StyleX layer: `tests/stylex-layer.spec.ts` regenerates it and fails on
-  any drift, any Tailwind class left (only the components' own hooks stay
-  class names) and any utility input whose effect was lost;
-  `tests/components/stylex-layer.spec.ts` mounts it on the docs' StyleX
-  runtime. After a generator change, compile the layer once with the real
-  `@stylexjs/babel-plugin` (Vue's `compileScript`, then Babel): it must take
-  every file.
+- `npm run check` in `solid-site/` (the one type program, which holds the
+  engine and every layer) must stay green; the engine's specs run at the
+  root (`npm test`), the components' in `solid-site/` (`npm test`,
+  `tests/*.spec.tsx`).
+- Visual: in `solid-site/`, `npm run build && npm run preview` and eyeball
+  the `/docs/` previews.
+- The StyleX layer: `tests/stylex-layer-solid.spec.ts` regenerates it and
+  fails on any drift, any Tailwind class left (only the components' own
+  hooks stay class names) and any utility input whose effect was lost;
+  `solid-site/tests/stylex-layer.spec.tsx` mounts it on the docs' StyleX
+  runtime.
 - Print screens: `tests/screens.spec.ts` (each screen a permutation, the
-  seeded jitter equal to Bayer's, a `DitherScreen` reaching a surface,
-  labelled fills on Bayer); the poster: `tests/poster.spec.ts`.
+  seeded jitter equal to Bayer's) and the `DitherScreen` cases of
+  `solid-site/tests/carried.spec.tsx` and `solid-site/tests/kit.spec.tsx`
+  (a `DitherScreen` reaching a surface); the poster: `tests/poster.spec.ts`.
 - Painting at memory speed: `tests/paint-limits.spec.ts` pins `cellCanvas`
   to the fillRect pixel and `fbm`'s cache to the plain sum.
 - Determinism: on the built site, `/play/#doc=…` driven by synthetic

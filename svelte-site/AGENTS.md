@@ -3,18 +3,17 @@
 ## Purpose
 
 A Svelte 5 app on the Rstack CLI (`rs dev`/`rs build`/`rs preview`, Rsbuild with
-the Svelte and Tailwind plugins, `rstack.config.ts`) that showcases `dither-kit-svelte`, mirroring the Vue `src/`
-site: a landing page and a shadcn-style docs (sidebar rail, Preview/Code tabs, API
-tables). It is the Svelte counterpart to `src/` (the Vue site):
-same dark, monospace, pixel/dither identity, re-expressed with the Svelte kit.
-Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
+the Svelte and Tailwind plugins, `rstack.config.ts`) that showcases `dither-kit-svelte`, mirroring the
+site (`solid-site/`): a landing page and a shadcn-style docs (sidebar rail, Preview/Code tabs, API
+tables), in the same dark, monospace, pixel/dither identity, re-expressed with the Svelte kit.
+Its landing mirrors the site's (`solid-site/src/pages/landing/`, whose contract in
 `src/pages/AGENTS.md` it follows) wherever the Svelte kit has the parts.
 
 ## Ownership
 
 - Owns the entry (`src/main.ts`), the hash router (`src/App.svelte`), the landing
   (`src/landing/`), the copy-key helper every copy button uses
-  (`src/copy.svelte.ts`; each call keeps its own copied flag and timer), the copies shared with the Vue site (`src/shared/`,
+  (`src/copy.svelte.ts`; each call keeps its own copied flag and timer), the copies shared with the site (`src/shared/`,
   `src/fonts/`), the docs (`src/docs/` — `DocsPage.svelte` + `DemoCard`,
   `PropsTable`, `CodeBlock`), the design-token stylesheet (`src/app.css`), and the
   Rstack/Svelte/TS config.
@@ -31,13 +30,13 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
 - Import kit components from `@dither-kit-svelte` (alias → `../dither-kit-svelte/index.ts`,
   set in `rstack.config.ts` + `tsconfig.json`). Deep engine imports are avoided;
   `cssColor`/`rgb`/`DitherColor` are surfaced on the kit barrel.
-- Nothing here imports from the Vue site (`../src`): the two apps stay apart.
+- Nothing here imports from the site (`../src`, `../solid-site`): the two apps stay apart.
   What they share is COPIED byte for byte and pinned by
   `tests/svelte-site-copies.spec.ts` (repo root, `npx rs test`), which fails
   until a change on either side is copied across: `src/shared/marks.ts`
   (from `src/shared/ui/marks.ts`), `src/fonts/` (Michroma's `display.css`,
   `michroma-latin.woff2` and its `OFL.txt`, from `src/shared/fonts/`), and
-  the Vue landing's pure modules (from `src/pages/landing/`; `brand.ts`,
+  the landing's framework-free modules (from `src/pages/landing/`; `brand.ts`,
   `command.ts` (the install command's pieces), `film.ts` (the film's
   title and description), `pixel-type.ts`, `plate.ts`, `heat.ts` (the heat of the plates and the
   close, painted by `src/landing/HeatPrint.svelte`; the running close in a
@@ -46,12 +45,12 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   rise (from `src/shared/lib/`; `rise.ts`, `rise-wait.ts`: `use:rise` on the
   hero's statement, each section head and the block groups under them, the words from
   `src/landing/RiseWords.svelte`), and the
-  Vue header's menu table and stylesheet (from `src/widgets/site-header/`;
+  site header's menu table and stylesheet (from `src/widgets/site-header/`;
   `menu.ts`, `site-header.css`, which `src/landing/SiteHeader.svelte` uses
   with its own addresses (`HREF` by link id), its own wipe action over the
   engine's `wipeStyle` (played back as the sheet leaves) and a native
   `<dialog>`). Svelte-specific
-  glue stays out of the copies: they import the engine as the Vue site names
+  glue stays out of the copies: they import the engine as the site names
   it, so `@dither-kit/engine/*` resolves to the Svelte kit's verbatim engine
   (`rstack.config.ts` alias + `tsconfig.json` path) and the type-only
   `@dither-kit` maps to `src/landing/kit-types.ts` (tsconfig only; a value
@@ -68,7 +67,7 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   from the repo's `public/faces.webp`); keep them in sync.
 - The landing (`src/landing/`, `Landing.svelte` composing `Hero`, `Examples`,
   `AgentStory`, `WorksWith`, `Plate`, `InstallBlock`, `BrandGather`,
-  `PixelWord`, `LineWordmark`), in the Vue landing's order: hero, bento,
+  `PixelWord`, `LineWordmark`), in the site's landing's order: hero, bento,
   plate, ask, three parts (each card's strip, a tone or, for the bridge,
   the kit's `Circuit` board, its `DitherAvatar`
   character on a plate of the card's ground, its name in the pixel face
@@ -82,11 +81,11 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
     shared pieces (`.sec-head`, `.section-title`, `.more-link`, `.lead`,
     `.key`, `.seg`); the site voice's `.nav-a`, `.chrome-type` and
     `.key-chrome` sit in `@layer components` so a utility (`hidden`) on the
-    same element wins. The Vue landing's bans hold: no uppercase, eyebrows,
+    same element wins. The site's landing's bans hold: no uppercase, eyebrows,
     middle dots, em dashes, arrow links, badges, italics, borders,
     hairlines or numbered sections; colour only in the kit's art.
-  - Voice: calm and procedural, warm with a wink, as the Vue landing's.
-  - The ask (`AgentStory`) is composed as the Vue landing's (`src/pages/AGENTS.md`,
+  - Voice: calm and procedural, warm with a wink, as the site's landing's.
+  - The ask (`AgentStory`) is composed as the site's landing's (`src/pages/AGENTS.md`,
     Ask): corner bleed, the session beside the Deploys screen that runs off
     the stage, parts resolving in their slots, the line at work under
     `DitherSpinner`; a done line carries the kit's ember cell (the Svelte kit
@@ -115,13 +114,13 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   the docs to one, the router goes there once the landing has rendered, else
   to the top). Internal nav uses `#/` and `#/docs/<id>`; GitHub, the Studio
   and the agent files link out.
-- The docs look as the Vue docs (`src/pages/AGENTS.md`, docs/): the site's
+- The docs look as the site's docs (`src/pages/AGENTS.md`, docs/): the site's
   header (the landing's `SiteHeader`, `current="docs"`, its `tools` the
   sections key under lg), the obsidian ground under the grain (the
   landing's ground, `:root:is([data-page="landing"], [data-page="docs"])`
   in `landing.css`, and
   its header pieces under `:is(.landing, .docs-root)`), and `docs/docs.css`
-  for the rest, the Vue site's values: the docs' border and card, the
+  for the rest, the site's values: the docs' border and card, the
   tracks and their `.ring-on`, `.flat-shell`, `.spec`, `.speed-tag`, the
   demo's gel well (`.demo-well` + `.rim`), each section's own heading in the
   display face at 1.5rem over a 14px lede. One section a page (`nav.ts`:
@@ -129,7 +128,7 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   section, `neighbours` the pager, `groupOf` the breadcrumb;
   `tests/svelte-docs-pages.spec.ts`); the rest of the flow hidden, read from
   the top. The rail folds by family (the current one opens itself), each
-  under the kit's glyph (`icon` in `GROUPS`, drawn from the Vue kit's
+  under the kit's glyph (`icon` in `GROUPS`, drawn from the kit's
   `dither-kit/engine/icons.ts` data: the Svelte kit has no icon set), its
   count a `.spec`; "On this page" at xl; under lg a modal sheet of the same
   list (focus on its close key, Escape or a pick shuts it, focus back on
@@ -150,7 +149,7 @@ Its landing mirrors the Vue landing (`src/pages/landing/`, whose contract in
   Structure/Overlay/Surface/NavigationDocs`, `BackgroundsDocs`, `TextDocs`,
   `AnimationsDocs`, `PaletteDocs`). Each pack renders its own `<section id>` blocks,
   every one a direct child of `.docs-flow` (the page shows one at a time).
-- Full parity with the Vue docs (~170 sections). The only gap: the `radar` chart
+- Full parity with the site's docs (~170 sections). The only gap: the `radar` chart
   (the kit has no radar chart series — `Radar` is a background), omitted from `nav.ts`.
 - Extend by adding `<section id>` blocks to a pack + a matching `nav.ts` entry.
 

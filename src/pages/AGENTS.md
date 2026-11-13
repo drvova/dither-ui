@@ -3,7 +3,11 @@
 ## Purpose
 
 The routes of dither-ui.com. Each page is a thin composition over
-widgets/features; page-specific conventions live here.
+widgets/features; page-specific conventions live here. A page's
+components are in `solid-site/src/pages/<page>/` and its framework-free
+modules here, in `src/pages/<page>/`, at the same names (`src/AGENTS.md`);
+a file named below without a folder is in the page's folder of whichever
+tree holds it.
 
 ## Local Contracts
 
@@ -53,15 +57,15 @@ widgets/features; page-specific conventions live here.
   `.landing`, imported by `LandingPage`) over the site voice (only
   `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the ground
   on the root marked with its route (`:root[data-page="landing"]`, and
-  `missing`; App.vue sets `data-page` with the title, never a `:has()`,
+  `missing`; the shell renders `data-page` into the page's bytes and `PageHead` keeps it as the route changes, never a `:has()`,
   which re-matched the root on every node added anywhere and restyled the
   whole document as the page scrolled; `tests/root-has.spec.ts`)
   (obsidian `#101214`, bone `#e4e1d8`, the muted
   bone `#9c998f` at AA on both grounds, `color-scheme: dark`), so what the
-  page teleports to the body (the film's dialog) is printed too; the dark
-  theme stays on (`index.html` ships `class="dark"` and `LandingPage`
+  page portals to the body (the film's dialog) is printed too; the dark
+  theme stays on (the shell ships `class="dark"` and `LandingPage`
   re-adds it on mount, since a light theme saved on the docs or the Studio
-  persists on `<html>` in this one SPA); the two inks mapped to theme
+  persists on `<html>` across a client-side move); the two inks mapped to theme
   tokens (`--ink`, `--ink-3`), `--surface` (the one raised ground, 7% of
   the ink mixed into the obsidian) and `--signal` (the dark theme's ember,
   8.6:1 on the obsidian); the grain (a 96px PNG tile of single cells a
@@ -72,13 +76,13 @@ widgets/features; page-specific conventions live here.
   right, on its baseline, a `.sec-lede` (two tones: the muted ink, its one
   key clause, `.lede-key`, in the full ink, so the eye finds the point
   without bold; `tests/ledes.spec.ts`, both landings) and a `.more-link`; stacked under
-  900px; it rises as it comes into view: `v-rise` on the head, the title's
+  900px; it rises as it comes into view: `ref={rise}` on the head, the title's
   words through `RiseWords`, the lede and the link `data-rise` after them,
   the hero's statement likewise, and the blocks under a head (the three
   parts' cards, the families, what it works with, the spec sheet's rows)
   one after another, 90ms apart; the bento keeps its own reveal and the
   footer its own motion; `shared/lib/rise.ts`, and every riser
-  stands inside a `v-rise`, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
+  stands inside an element `rise` holds, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
   24px target through padding cancelled by a negative margin), `.key` (a
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
@@ -144,7 +148,7 @@ widgets/features; page-specific conventions live here.
   Svelte landing carries both byte for byte. It stays positioned
   (`z-40`): `main` is `relative isolate`, so a positioned sibling paints
   over a static header.
-- Hero (`Showcase.vue`, our own): the first screen's height under the
+- Hero (`Showcase.tsx`, our own): the first screen's height under the
   header (`clamp(34rem, 100svh - 64px, 52rem)`) on the page's own ground,
   where the pointer prints as it does on every section's ground (the
   page's one `.page-trail`, a `DitherHeatTrail` `pinned` to the viewport
@@ -160,7 +164,7 @@ widgets/features; page-specific conventions live here.
   the lede (three or four lines), the keys (`.key-chrome` "Open the
   studio", `.key` "Read the docs" and "Watch the film" under the Play
   glyph, which opens the trailer; `TrailerDialog` lives in the hero),
-  then a quiet line of what the kit works with (`WORKS` in `facts.ts`: Vue 3, Svelte 5,
+  then a quiet line of what the kit works with (`WORKS` in `facts.ts`: Solid, Svelte 5,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
   with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
   5, cell 4, `INKS` from `plate.ts`: the kit's blue, the ember and the page's bone ink;
@@ -194,14 +198,14 @@ widgets/features; page-specific conventions live here.
   it, landscape (5:4); on a phone both keep the page's 16px gutter. The
   h1 AND the keys must clear the fold at 1440×900, 1280×800 and
   1920×1080.
-- The missing page (`MissingPage.vue`, an address nothing lives at):
+- The missing page (`MissingPage.tsx`, an address nothing lives at):
   the landing's print and header, centred on one screen: the mascot
   (alive), "This page did not print." rising word by word, a two-tone
   line saying why, and the keys back (the chrome "Back to the start",
   then the docs and the Studio), the pointer printing over the whole
   ground (`TRAIL` in `plate.ts`, the hero's stroke). It turns the shell's
   robots tag to `noindex` while it stands and gives it back after.
-- The trailer (`TrailerDialog.vue`): the kit's `DitherDialog` (focus
+- The trailer (`TrailerDialog.tsx`): the kit's `DitherDialog` (focus
   trapped and handed back, Escape and the backdrop close it) titled "The
   dither-ui film", its description the film in words (no speech in it;
   both in `film.ts`, shared with the Svelte landing).
@@ -240,24 +244,24 @@ widgets/features; page-specific conventions live here.
 - Pixel type (`pixel-type.ts`): a proportional 5×7 bitmap face, a string
   in and its lit cells out, with a lowercase set (four wide, x-height from
   the third row); the brand's lockup sets "DITHER-UI" in it and
-  `PixelWord.vue` draws the parts' names. A
+  `PixelWord.tsx` draws the parts' names. A
   string with a glyph the face lacks throws; every string the page sets
   is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the hero's and
   the examples' ledes), `MATRIX` (the threshold matrix as the page writes
-  it, read from `SCREENS`), `RUNTIME_DEPS` (the packages beside Vue, which
+  it, read from `SCREENS`), `RUNTIME_DEPS` (the packages beside Solid, which
   the install bar's commands and the install lede's count are built from)
   and `SPECS` (the spec sheet closing the
   install: label and value rows on the raised ground, two columns from
   640px, values read from the kit where they can be: the counts, the
   screens, the license; the facts spec holds the rest to the kit's peers,
   matrices and styling systems); `tests/landing-facts.spec.ts` recounts
-  the first from `dither-kit/tailwind/index.ts` and holds the second to
+  the first from `dither-kit/solid/index.ts` and holds the second to
   the kit's required `peerDependencies` (a styling layer's optional one
   aside), and the plates' stock to the raised ground's mix; section counts
   come from `hub.ts`. A change that moves one
   fails until the page says it.
-- Examples (`Examples.vue`, `#examples`, "Every component, live."): a
+- Examples (`Examples.tsx`, `#examples`, "Every component, live."): a
   section head (the component count from `facts.ts`, "See every section in
   the docs"), then the bento: `BENTO` (`hub.ts`), twelve live kit
   components (the strongest; the docs hold the rest) on a 12-column grid
@@ -282,7 +286,7 @@ widgets/features; page-specific conventions live here.
   the kit's seeded sample, mono blue, a palette ramp or its own colours,
   "New shader" the next seed) and the decrypted text (6, a line that says
   what it does, never a second slogan); the styling card
-  (8, flush, `ExportScene.vue`: one snippet, an Invoices card, rendered
+  (8, flush, `ExportScene.tsx`: one snippet, an Invoices card, rendered
   live beside its code in the picked system through `restyle`, StyleX
   first; its code wraps inside its panel, never cut mid-token, each line
   hanging under its own indent, the pane fading at its foot; its code
@@ -326,7 +330,7 @@ widgets/features; page-specific conventions live here.
   card and first section is a section of the family it names).
 - Build (`#build`, "Built from the wire up."), between the bento's plate
   and the ask: a section head (the cell count read from the model, "See
-  the world engine"), then `BrandBuild.vue`: the brand itself as a model
+  the world engine"), then `BrandBuild.tsx`: the brand itself as a model
   (`build.ts`: every cell of `LOCKUP`, the mark and the pixel wordmark, a
   deep block with chamfered front edges and a hairline seam, the mark
   standing proud of the word, on a plinth of thin tiles written as the
@@ -357,7 +361,7 @@ widgets/features; page-specific conventions live here.
   the run's mapping. The Svelte landing has no world component, so it has
   no build.
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
-  agent skill"), then `AgentStory.vue`, one agent session played as the
+  agent skill"), then `AgentStory.tsx`, one agent session played as the
   page scrolls: a stage pinned under the header (`--pin`, most of the
   screen, at most 40rem: the stage is the frame, never a band over bare
   ground)
@@ -372,7 +376,7 @@ widgets/features; page-specific conventions live here.
   to the muted ink (`lineState`; one 16px cell for both marks, so a line
   never shifts); not yet said lines keep their place unseen. The lines:
   reads every component and its props (`get_registry`), lays out a
-  Deploys screen (`add_screen`), writes it as a Vue file (`get_code`),
+  Deploys screen (`add_screen`), writes it as a component file (`get_code`),
   renders it as an MP4 (`export_video`). Right, the hero: the screen the
   agent lays out on the page's ground, a gutter from the stage's top and
   from the session, running off the stage's right edge and foot; its
@@ -419,7 +423,7 @@ widgets/features; page-specific conventions live here.
   character standing on the strip's foot at the right, half over the card
   (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
   plate of the card's ground so its ink never melts into the strip's), then
-  its name chunky in the pixel face (`PixelWord.vue`, 5px cells: "kit",
+  its name chunky in the pixel face (`PixelWord.tsx`, 5px cells: "kit",
   "studio", "bridge"; its title the heading's text for screen readers),
   two lines and its link: the kit,
   the Studio, the agent bridge. Under them the five big families, biggest
@@ -430,7 +434,7 @@ widgets/features; page-specific conventions live here.
   sections, never read against the kit's component count) over its name,
   both the link to
   its first section, and its line.
-- Works with (`#works`, `WorksWith.vue`, "Plays well with others."): the
+- Works with (`#works`, `WorksWith.tsx`, "Plays well with others."): the
   section head (a lede with a wink, the link to the styling docs), then
   one raised panel of three lists at reading size, generous like a menu
   (18px marks, 15px names; three columns down to 640px, one under it with
@@ -442,7 +446,7 @@ widgets/features; page-specific conventions live here.
   the bridge"), "Your models" (every format the kit reads, in
   `MODEL_FORMATS` order, named by `MODEL_NAMES`, a `Record` keyed by the
   kit's own type, each after an ember cell; then GLSL).
-- The brand's moment (`brand.ts` + `BrandGather.vue`, decorative): the
+- The brand's moment (`brand.ts` + `BrandGather.tsx`, decorative): the
   brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
   core, which the header draws too), three clear columns, then
   "DITHER-UI" in the pixel face, 4px cells seven tall, as spans, each
@@ -484,10 +488,11 @@ widgets/features; page-specific conventions live here.
   animations per cell (an axis each, `steps()` one cell a step). Home by
   4.6s: under five seconds, so no pause; under reduced motion, without
   `IntersectionObserver` or `animate`, and in the prerendered bytes, the
-  brand is simply assembled (and a hover replays nothing). It emits
-  `moving` as its moment starts (the first time or again) and `settled`
+  brand is simply assembled (and a hover replays nothing). It calls
+  `onMoving` as its moment starts (the first time or again) and `onSettled`
   when home (at once when it does not move), so a parent keeps one moving
-  layer at a time; `tests/brand-replay.spec.ts` holds the replay.
+  layer at a time; the brand's moment cases of
+  `solid-site/tests/site/landing.spec.tsx` hold the replay.
   `tests/landing-facts.spec.ts` holds the mark's cells to the diamond, the
   four places to four different moves, each move's opening (rain's one
   line, converge's rows at the edges, strike's stack at the carriage), and every place's moment: home inside five seconds, every
@@ -513,7 +518,7 @@ widgets/features; page-specific conventions live here.
   folds than the close's, each plate its own region of the noise, read for
   a balanced mix of clear ground and each ink at the page's full width,
   `span`: a narrower sheet folds finer by as much, so a phone prints the
-  same picture smaller, never a cold corner of it). `Plate.vue` prints a row:
+  same picture smaller, never a cold corner of it). `Plate.tsx` prints a row:
   a passage of its proportion (at least 240px tall, so a phone's clouds
   billow rather than print as scraps) on the page's width,
   on the page's own ground (no box, no stock: the user's call, the
@@ -535,7 +540,7 @@ widgets/features; page-specific conventions live here.
   every fourth cell, and blended between, the final noise per cell: within
   a cell in a hundred of the exact fold at a quarter of its noise, a
   phone's finer fold every cell (`tests/heat.spec.ts`), `closeField`
-  here, copied byte for byte to the Svelte landing; `HeatPrint.vue` paints
+  here, copied byte for byte to the Svelte landing; `HeatPrint.tsx` paints
   it on the kit's background runtime at `CLOSE.fps`; while it runs the
   close is painted in a worker, `heat-offload.ts` (the page's side: each
   paint takes the worker's latest frame and asks for the one due at the
@@ -566,7 +571,7 @@ widgets/features; page-specific conventions live here.
 - Install (`#install`, "Copy one folder. Every pixel is yours."): the
   head centred (the lede, then the `.key` "Copy agent prompt" through
   `DitherClipboard`: the prompt names this origin's `SKILL.md`, the degit
-  command, the four packages and the alias), then `InstallBlock.vue`: a
+  command, the four packages and the alias), then `InstallBlock.tsx`: a
   box on the raised ground whose top row is the `.seg` step picker (the
   kit's Folder glyph, then npm, pnpm and Bun's own marks) and the Copy
   key (both filled with the page's ground), the command under them in
@@ -582,9 +587,9 @@ widgets/features; page-specific conventions live here.
   swaps both at once. Its four steps (degit folder + npm/pnpm/bun deps)
   run the docs' own commands (`docs/install.ts`; the landing never imports
   the docs, so `tests/docs-install.spec.ts` holds its folder and
-  `RUNTIME_DEPS` to `INSTALL_STEPS.vue` and `INSTALL_DEPS.vue`). Then one centred line for Svelte 5
+  `RUNTIME_DEPS` to `INSTALL_STEPS.solid` and `INSTALL_DEPS.solid`). Then one centred line for Svelte 5
   (`dither-kit-svelte`, the quick start).
-- Marks: tool logos (the package managers, Node, Vue, Svelte, Tailwind,
+- Marks: tool logos (the package managers, Node, Solid, Svelte, Tailwind,
   StyleX, CSS Modules, CSS, GitHub and the coding agents) come ONLY from
   `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
@@ -594,7 +599,7 @@ widgets/features; page-specific conventions live here.
   each plate's and the footer's brand as it nears); the hero's print waits for it, and the type
   simply is. Motion is the live kit
   surfaces, one moving layer at a time in the bento. Pause chips
-  (`PauseChip.vue`, WCAG 2.2.2): every surface that moves by itself for
+  (`PauseChip.tsx`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
   the model", "Pause the shader", "Pause the fluid", "Pause the silk"), `aria-pressed` while the
   surface is still, wired to its `paused` (the model's turn is its
@@ -605,7 +610,8 @@ widgets/features; page-specific conventions live here.
   chip, since a tap also focuses and would point at the card and then
   toggle what it just started. Chips stay under reduced motion, where
   every surface paints one frame and holds it.
-- Mounting reads no layout (`tests/mount-reads.spec.ts`): a read of a
+- Mounting reads no layout (the mounting cases of
+  `solid-site/tests/site/landing.spec.tsx`): a read of a
   box, `scrollY` or `offsetParent` while the landing mounts forced a
   layout of the whole page that the rest of the mount then undid (about
   350ms of a 4x-throttled load, now about 30ms). A reading waits for the
@@ -650,7 +656,7 @@ widgets/features; page-specific conventions live here.
   after: under five seconds on its own, so no pause chip (the user's
   call); it holds while the brand forms (`moving` holds, `settled`
   frees); under reduced motion one frame. The mascot drives its car
-  (`shared/ui/MascotCar.vue`, the user's call: a wedge speedster of our
+  (`shared/ui/MascotCar.tsx`, the user's call: a wedge speedster of our
   own, never a real maker's car, badge or name) along the wordmark's top,
   its wheels a screen row under the ink's top (`WORDMARK` in `road.ts`,
   the one geometry the wordmark and the car read): it drives exactly
@@ -675,7 +681,7 @@ widgets/features; page-specific conventions live here.
   copyright line as separate items (the year and dither-ui.com,
   `v<version>`, MIT license), then the road with the line-screen wordmark over its foot. Three columns
   under the brand under 900px, two under 640px.
-- Footer signature: the line-screen wordmark (`LineWordmark.vue`):
+- Footer signature: the line-screen wordmark (`LineWordmark.tsx`):
   "dither-ui" in the display face across the page width, filled by 24
   rows of ink that thicken toward the baseline (30% of the row's pitch at
   the top to 92% at the foot, each bar at the foot of its pitch), a
@@ -690,10 +696,10 @@ widgets/features; page-specific conventions live here.
 
 - Sidebar IA (after Base UI): Overview · Handbook (Styling, Composition,
   Seeds, Engine, Verification, Animation, Accessibility — prose +
-  CodeBlock, no DemoCard; Engine, `handbook/EngineSection.vue`, names the
+  CodeBlock, no DemoCard; Engine, `handbook/EngineSection.tsx`, names the
   parts under every surface, each with a figure read from the kit's own
   constants and a link to its section, a dead id failing the render;
-  Verification, `handbook/VerificationSection.vue`, is a lab report: each
+  Verification, `handbook/VerificationSection.tsx`, is a lab report: each
   claim of the kit (`CHECKS` in `handbook/lab.ts`: what, how, against
   what, the spec that holds it) measured with the kit's engine in the
   reader's browser as the section nears, one check per task, again on
@@ -726,7 +732,7 @@ widgets/features; page-specific conventions live here.
   and sides, takes its top corners and drops its own border (a surface
   reads as the well's picture, never a framed thumbnail; the controls
   under it, 24px below); a family sets its default through
-  `provide(DEMO_FIT, …)` (Backgrounds bleeds, its square demos and the
+  `<DEMO_FIT.Provider>` (Backgrounds bleeds, its square demos and the
   poster opt back in to the inset). Inset, its padding is 16px on phones and 40px from sm (the
   docs column is 16px from the screen's edge on phones, 24px from sm, as
   the user's design system sets), and every demo fits its well from
@@ -744,7 +750,7 @@ widgets/features; page-specific conventions live here.
   grain (`--grain`, the one tile the landing reads too); their light
   theme and the Studio keep the kit's neutrals. The section lists (the
   rail and the sheet) keep each group's heading stuck to the top while
-  its sections scroll under it (`NAV_PLACE` in `DocsNav.vue` holds each
+  its sections scroll under it (`NAV_PLACE` in `DocsNav.tsx` holds each
   place's top room and the heading's ground: unseen on the rail's page
   ground, a filled band on the page's ground in the sheet's shell).
 - Docs copy follows the landing's bans: no em dashes or middle dots in
@@ -754,16 +760,16 @@ widgets/features; page-specific conventions live here.
   table stay the kit's (the marquee texts keep their dots). The only
   uppercase in the docs' own chrome is `.spec` (the sidebar's group
   counts, the API table's heads) and `.speed-tag` (the title's tags).
-- DemoCard is the page's perf seam: its preview `<slot>` mounts only as the
-  card approaches the viewport (IO, 600px rootMargin) and LATCHES — once
-  revealed it stays, so demo interaction state never resets on scroll; the
-  Code tab mounts `CodeBlock` on first open (`v-if` — under the old `v-show`
-  every hidden code block highlighted at initial mount; the panel then
-  stays mounted under `v-show`, so edits survive the Preview tab). Section text,
+- DemoCard is the page's perf seam: its preview's children mount only as the
+  card approaches the viewport (IO, 600px rootMargin) and LATCH — once
+  revealed they stay, so demo interaction state never resets on scroll; the
+  Code tab mounts its source panel on first open (mounted with the page,
+  every hidden code block rendered at initial mount; once opened the panel
+  stays mounted, hidden by `display`, so edits survive the Preview tab). Section text,
   standalone Handbook CodeBlocks and PropsTables render eagerly, and the
   preview frame keeps `min-h-[280px]` so the box exists from first paint and
   below-fold growth never shifts visible content. Without IO (jsdom) the
-  slot renders immediately — tests stay on the eager path.
+  demo renders immediately — tests stay on the eager path.
 - Inspect: the `aria-pressed` Inspect chip on the Preview tab mounts the
   workbench (`widgets/workbench`, loaded lazily on first use) over that
   card's preview — Kobra's inspector and tool tray plus the kit's own
@@ -798,30 +804,35 @@ widgets/features; page-specific conventions live here.
 - Live readings: the Gauge section's second card is an instrument panel
   reading the page itself (frames a second, the worst frame over the last
   `FRAME_WINDOW` ms, the page's elements in thousands), measured by one
-  rAF loop that runs only while the card is in view (`useInviewLoop`) and
+  rAF loop that runs only while the card is in view (`createInviewLoop`) and
   read through `docs/components/frames.ts` (`readFrames`, guarded by
   `tests/frames.spec.ts`); its snippet measures the same way on its own,
   so Run plays it.
-- Docs serve Vue AND Svelte: snippets are authored once in Vue; `docs/svelte.ts`
-  (the reader's framework choice; the translator itself is the framework-free
-  `docs/svelte-code.ts`, which the Solid site shares)
-  derives the Svelte flavor (`toSvelteCode`) for DemoCard code tabs, Handbook
-  CodeBlocks (`fw()`), and PropsTable's modelValue/v-model display mapping. The
-  global `docsFramework` ref (header toggle + per-card chips, persisted to
-  localStorage) drives all of them. The translator parses real export names
+- Docs serve Solid AND Svelte: snippets are authored once, in Vue's
+  template notation (the notation both translators read; a reader never
+  sees it), and each flavor is derived, never forked by hand:
+  `docs/solid.ts` (`toSolidCode`) writes the Solid one, the framework-free
+  `docs/svelte-code.ts` (`toSvelteCode`) the Svelte one, for DemoCard code
+  tabs and Handbook CodeBlocks; the API tables are written in Solid's
+  words and `PropsTable`'s `svelteRow` derives the Svelte wording. The
+  global `docsFramework` signal (`docs/svelte.ts`; header toggle + per-card
+  chips, persisted to localStorage, restored on mount) drives all of them.
+  The Svelte translator parses real export names
   from `dither-kit-svelte/index.ts?raw` (plain-named background/text/animation
   families rename automatically); `V_MODEL_TARGETS` maps the two non-`value`
-  bindables (Sidebar→collapsed, SidebarSub→open). New Vue idioms in snippets
-  need a translator rule + a `tests/svelte-code.spec.ts` case — never a
-  hand-forked Svelte snippet.
-- Docs serve any styling system: `docs/svelte.ts` `docsCode()` is the
-  framework translation followed by `shared/lib/restyle.ts` with the
+  bindables (Sidebar→collapsed, SidebarSub→open). A new idiom in a snippet
+  needs a rule in both translators + a case in `tests/svelte-code.spec.ts`
+  and `solid-site/tests/site/solid-code.spec.tsx` (which also compiles
+  every snippet as Solid in every styling system).
+- Docs serve any styling system: `docs/svelte.ts` `docsCode()` (and
+  `docsFiles()`, the file with its stylesheet for the source panel) is the
+  framework translation followed by `shared/lib/restyle-rewrite.ts` with the
   reader's `styling` (header switch at md+, per-card chips beside
-  Vue/Svelte; `docsStylings` hides CSS Modules under Svelte and
+  Solid/Svelte; `docsStylings` hides CSS Modules under Svelte and
   `docsStyling` shows CSS in its place). Every DemoCard code tab and
-  Handbook `fw()` block goes through it, so a snippet idiom the translator
-  mangles gets a rule in `restyle.ts` + a `tests/restyle.spec.ts` case.
-- `SNIPPETS`/computed code must match what the demo renders — it now
+  Handbook block goes through it, so a snippet idiom the rewriter
+  mangles gets a rule in `restyle-rewrite.ts` + a `tests/restyle.spec.ts` case.
+- `SNIPPETS`/derived code must match what the demo renders — it now
   RUNS in the source panel, so a snippet that leaves out what the demo
   has (a chart's height: the chart snippets carry `class="h-64"`) renders
   differently there; API tables
@@ -848,15 +859,14 @@ widgets/features; page-specific conventions live here.
   pack is a chunk of its own (`pack-loaders.ts`: `PACK_LOADERS`, prefetched
   at idle, so moving family stays instant; the page evaluates only the
   pack it shows), the open section's pack loaded before the page first
-  renders (`preloadOpenPacks`, from `app/route-pages.ts`'s loader), so it never shows
+  renders (`preloadOpenPacks`, from the section route's preload), so it never shows
   empty, and a pack's sections, arriving after the page, are hidden and
   read for "On this page" as they come (a MutationObserver on the flow's
   children; once missed, a family's every section showed at once); the sections DocsPage writes itself keep their element but
   render their contents only while open or among the last read (`opened`,
   `PACKS_KEPT`; they held 3,000 of a section page's 4,200 nodes and all
-  its canvases, hidden); the prerender's `?all-sections` renders and
-  loads everything; `tests/docs-packs.spec.ts` holds every pack to its nav,
-  `tests/docs-rail.spec.ts` the own sections), pushes a history
+  its canvases, hidden); `tests/docs-packs.spec.ts` holds every pack to its nav,
+  `solid-site/tests/site/docs-page.spec.tsx` the page's own sections), pushes a history
   entry and reads from the top; back and forward walk them (`popstate`).
   The sidebar, search, the sheet and the pager all open through it. Over
   the section a breadcrumb (the docs, then its group, linking to the
@@ -871,14 +881,14 @@ widgets/features; page-specific conventions live here.
 - The docs' header is the site's (Header, above) with Search in its
   tools (a `.nav-a` with its shortcut, `modKey`); the switches that act on
   the page (framework, styling, sounds, theme) sit in the page's row
-  beside the breadcrumb, not in the header. Under sm the Vue/Svelte
+  beside the breadcrumb, not in the header. Under sm the Solid/Svelte
   switch shows its marks and Search its glyph (the words stay for screen
   readers); under 360px the brand shows its mark alone (the word stays
   for screen readers); the ⌘K kbd shows from md; the styling switch (on
   every card anyway) returns at lg. Under lg the header's tools add a key,
   "Browse sections" (the Book glyph, `aria-haspopup="dialog"`,
   `aria-expanded`, `aria-controls` = `SHEET_ID`), opens the sections sheet
-  from anywhere on the page (`DocsSheet.vue`), the site menu's kind of
+  from anywhere on the page (`DocsSheet.tsx`), the site menu's kind of
   sheet: the whole screen, `SheetHead` at its top ("Sections" and the
   count in the capsule, "Close sections"), the families under it as bands
   (`DocsNav`'s sheet place, read like the menu: one step of the ink per
@@ -908,16 +918,17 @@ widgets/features; page-specific conventions live here.
   column, the seeds; import-free, as crawler-files.ts reads it under Node),
   `docs/og-art.ts` (the art: the kit's own poster engine at the print's
   size, a seed's composition through a seed's printer's screen; home prints
-  the hero's, seed 5 through Bayer), `docs/og-page.ts` (the renderer, the
-  build's `og/index` entry over `og/index.html`: `window.og.files(id, seed,
-  inv)` for the prerender and the Discord service) and `crawler-files.ts`
+  the hero's, seed 5 through Bayer), `docs/og-page.ts` (the renderer, the script of the
+  build's `og/index.html`, which `solid-site/scripts/og-page.ts` builds over
+  `og-shell.html`: `window.og.files(id, seed,
+  inv)` for the post-build and the Discord service) and `crawler-files.ts`
   (the cards' copy, embeds and oEmbed).
   A card is obsidian with one bone ink: the brand top left (the header's
   diamond and name), the statement standing on the print's middle (the
   title in chrome, the display face and the site's ramp one horizon per
   line, a route's on one line and a section's on two at most; its line in
-  the muted mono, a route's own or a section's lede, which the prerender
-  lifts from the docs snapshot into `og/ledes.json` before it draws the
+  the muted mono, a route's own or a section's lede, which the post-build
+  reads off each section's built page into `og/ledes.json` before it draws the
   cards, `ogLede` setting whole sentences in two lines, else a word cut
   and an ellipsis; then the keys, the satin one naming where the card's
   first link goes and a filled one carrying the address), and the print
@@ -933,7 +944,7 @@ widgets/features; page-specific conventions live here.
   rest. Discord's containers draw no accent bar (no side line). Copy
   follows the landing's bans (no caps or tracking, no eyebrow over the
   title, no middle dot or em dash, buttons that name where they go).
-  `ROUTE_CARDS` holds the route cards' copy; their ids may never be section ids; the route templates' image alt is
+  `ROUTE_CARDS` holds the route cards' copy; their ids may never be section ids; each page's image alt is
   the card's. Guarded by `tests/og-card.spec.ts` (loop, determinism, the
   screens, the swell's beats, home as the hero's print with its inks, no
   bone on bone, the print and its floor clear of the type, AA, balanced
@@ -944,38 +955,40 @@ widgets/features; page-specific conventions live here.
   the renderer as a build page).
 - Section IA lives in `docs/groups.ts` — the single source for the sidebar,
   the `/docs/<id>` deep links, and the build-time crawl files
-  (`crawler-files.ts` generates `dist/sitemap.xml`, `dist/robots.txt`, and
-  `dist/llms.txt` via the `crawlFiles` plugin in `rstack.config.ts`; no
-  hand-maintained
+  (`crawler-files.ts` generates `sitemap.xml`, `robots.txt` and
+  `llms.txt`, emitted by the `siteFiles` plugin in
+  `solid-site/site-files.ts`; no hand-maintained
   public copies). New sections are added to a `*-nav.ts` pack and spread
   into a group there — never to the sitemap or llms.txt.
 - Search metadata: `docs/seo.ts` derives per-section title, canonical,
-  description, and BreadcrumbList JSON-LD from `GROUPS`. `DocsPage` applies
-  them to the DOM as `activeId` changes (scroll-spy, deep links, search), so
-  Google's renderer sees unique metadata per `/docs/<id>` page. Unknown or
+  description, and BreadcrumbList JSON-LD from `GROUPS`. `DocsPage` renders
+  them through `PageHead` (the one head table, `docs/heads.ts`) for its
+  `activeId`, into each section's prerendered page and again as the section
+  changes (deep links, search), so every `/docs/<id>` page carries unique
+  metadata in its bytes. Unknown or
   empty ids fall back to the generic `/docs` metadata; keep ids unique.
 - Chrome: the header is the site's one `SiteHeader` (Header, above),
   with Search and the sections key in its `tools`; the toggles under it
   are tracks, the picked one `.ring-on`. The search
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
-  elsewhere — the handler accepts both). The Vue/Svelte
+  elsewhere — the handler accepts both). The Solid/Svelte
   switch carries the tools' marks
   (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
-  mark. The section list is ONE component, `DocsNav.vue` (the sidebar
+  mark. The section list is ONE component, `DocsNav.tsx` (the sidebar
   rail at lg, the sheet under it; `docsUrl` is the one section address):
   groups under their glyphs (`GROUP_ICON`), each with its section count as
   a `.spec`; `NAV_LINK` sizes its links per place, 25px targets at a 27px
-  pitch on the rail, 30px in the sheet; "On this page" is `OnThisPage.vue`. The page title is the h1
+  pitch on the rail, 30px in the sheet; "On this page" is `OnThisPage.tsx`. The page title is the h1
   "Documentation" in the display face (`font-display`, 1.6rem) in plain
   ink, no eyebrow; on its
-  baseline, the kit's spec as `.speed-tag`s (the section count, Vue 3,
+  baseline, the kit's spec as `.speed-tag`s (the section count, Solid,
   Svelte 5, Tailwind or StyleX). At xl the rail right of
   the content is "On this page": the section in view, its gallery headings
   and its API table, read from its DOM as the scroll-spy moves (headings
   inside a preview are the demo's), each a button that scrolls to it (the
   sheet lists the same parts under the section's link).
-  Under it, Share (`SectionShare.vue`, a disclosure: `aria-expanded`, the
+  Under it, Share (`SectionShare.tsx`, a disclosure: `aria-expanded`, the
   name "Share this section"): opened, the section's share card playing
   (`og/<id>.gif`, loaded only then, hidden where no build drew it) and
   three copies with the copy sound and a polite announcement: the link,
@@ -994,18 +1007,18 @@ widgets/features; page-specific conventions live here.
   `docs/text/` = DOM/CSS text animations (gradient/shiny/glitch/split/...),
   `docs/animations/` = interaction/motion effects (content reveals, animated
   borders, cursor + hover effects; a section with its own state lives in
-  its own file, as `TransitionSection.vue`, the page transition's stage,
-  mounted where the nav orders it; so does `backgrounds/PosterSection.vue`,
+  its own file, as `TransitionSection.tsx`, the page transition's stage,
+  mounted where the nav orders it; so does `backgrounds/PosterSection.tsx`,
   the poster with a seed to roll and its screens, and
-  `utils/ScreensSection.vue`, `print-screens`: one `DitherScreen` around a
+  `utils/ScreensSection.tsx`, `print-screens`: one `DitherScreen` around a
   chart, an avatar and a gradient, its screen picked by chips). New
   packs follow this shape instead of growing DocsPage. `docs/overview/` =
-  the Quick start (`QuickStart.vue`, `getting-started`): the install as
-  steps from `docs/install.ts` (`INSTALL_STEPS` per kind: Vue, the Vue kit
-  on StyleX, Svelte; `INSTALL_DEPS`, the packages each needs), one at a
+  the Quick start (`QuickStart.tsx`, `getting-started`): the install as
+  steps from `docs/install.ts` (`INSTALL_STEPS` per kind: Solid,
+  Svelte; `INSTALL_DEPS`, the packages each needs), one at a
   time, each its title, why where a reader would ask, and its own
-  `CodeBlock` (full width on a phone), then "On StyleX" (Vue) and
-  "Without Tailwind" (the kit stylesheet, then theming), each short under
+  `CodeBlock` (full width on a phone), then
+  "Without Tailwind" (the kit stylesheet, then theming), short under
   its own heading; `installScript` turns the same steps into the one
   commented script the source panel's prompt.md carries (`INSTALL`). `docs/primitives/` =
   the Primitives pack (Box, Text, Divider, VisuallyHidden — the paste-list
@@ -1013,7 +1026,7 @@ widgets/features; page-specific conventions live here.
 
 ### studio/
 
-- Boot order in `StudioPage.vue` matters: `hydrate()` → `startAutosave()` →
+- Boot order in `StudioPage.tsx` matters: `hydrate()` → `startAutosave()` →
   `startHistory()` → deep-link handling (`/studio#new/<type>` or legacy
   `#/studio/new/<type>`), so deep-link artboards are part of the restored doc
   and undoable; the URL is cleaned via `replaceState` to prevent duplication.
@@ -1021,7 +1034,7 @@ widgets/features; page-specific conventions live here.
   five kit frames and the film cut from them, selected.
 - The Studio's chrome speaks the SITE voice, like the landing and the
   docs: `font-mono` on the page root (the context menu and the kit's
-  dialogs, teleported to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
+  dialogs, portaled to body, carry it on their own panels), the 7×7 diamond brand, `.micro` panel and
   section labels in sentence case, `.ring-on` pressed states, neutral
   focus borders, and the look's materials: the canvas bar is a `.capsule`
   (its tools machined, 8px; `widgets/toolbar/tool.css` is the one tool
@@ -1032,11 +1045,11 @@ widgets/features; page-specific conventions live here.
   dialog is its moment's one shaped panel), the chat and the right
   column `.flat-shell`s (the user's industrial brief: one shaped hero
   panel a page; nothing in them pops out, the context menu is
-  teleported), the video
+  portaled), the video
   dialog's download is the `.key-chrome`, and the menus (project, library,
   context menu) are rounded cards with a `.rim`. Every glyph button is a
   kit icon (the sidebar, undo/redo, properties, agent, theme, close, zoom,
-  fit, replay, menus). The canvas bar (`widgets/toolbar/CanvasBar.vue`) is
+  fit, replay, menus). The canvas bar (`widgets/toolbar/CanvasBar.tsx`) is
   ONE bar at the canvas's foot, centred: the view (zoom out, the
   percentage, which goes to 100%, zoom in, fit every frame), the
   selection's name in a slot of its own width, then Duplicate,
@@ -1044,7 +1057,7 @@ widgets/features; page-specific conventions live here.
   Video; Inspect. Every key is a glyph with its name (`aria-label`) and its
   words and keys in the title, always present: one that does not apply is
   disabled, never removed, so the bar keeps its width whatever is picked
-  (`tests/canvas-bar.spec.ts`). A narrower canvas (container queries)
+  (the canvas bar cases of `solid-site/tests/site/panels.spec.tsx`). A narrower canvas (container queries)
   lets the label go under 760px, the zoom steps under 600px, and closes
   the keys to 28px under 540px (the 1024px window with both columns
   open). Every key names the agent's action that does the same
@@ -1061,10 +1074,10 @@ widgets/features; page-specific conventions live here.
   the top (`Toolbar`, a `1fr auto 1fr` grid: the sidebar key and
   undo/redo on the left, the project and its menu at the window's centre,
   the Library chrome key, the Chat key, the properties key, the mascot's
-  tour key and the theme on the right); under it the sidebar (`ui/StudioSidebar.vue`, folded by
+  tour key and the theme on the right); under it the sidebar (`ui/StudioSidebar.tsx`, folded by
   the sidebar key or ⌘B: New chat, Search with its ⌘K hint, Add a frame
   (the Library); Projects, a plus for a new one, each project a row with
-  its `DitherAvatar` and a row menu (`ui/RowMenu.vue`, a real menu:
+  its `DitherAvatar` and a row menu (`ui/RowMenu.tsx`, a real menu:
   Rename, Duplicate, Delete project behind a confirm whose words come
   from `deleteWarning`, the title bar's too; a double-click renames in
   place; the key shows on hover or focus, always where there is no hover); the open project unfolds into its chats grouped
@@ -1075,9 +1088,9 @@ widgets/features; page-specific conventions live here.
   Docs at the foot), the chat column (`AgentPanel`, always mounted, ⌘I or
   the Chat key hides and shows it), the canvas in its shell (the canvas
   bar and the data editor inside it) and the right column: the panel
-  (`ui/StudioPanel.vue`: Properties and Layers tabs, arrow keys between
+  (`ui/StudioPanel.tsx`: Properties and Layers tabs, arrow keys between
   them, the tab kept; open by default from 1600px, the choice kept),
-  gone when closed. ⌘K opens Search (`ui/SearchPalette.vue`, a
+  gone when closed. ⌘K opens Search (`ui/SearchPalette.tsx`, a
   combobox): every project's chats (the open one's first; one in another
   project opens that project, then the chat), the projects, the open
   project's frames (one picked is selected and framed) and the actions
@@ -1087,7 +1100,7 @@ widgets/features; page-specific conventions live here.
   beside the canvas: opening one puts the other away. Inspect (the canvas
   bar's last key) puts the docs' workbench over the canvas
   (`widgets/workbench`, lazy, keyed `studio:<projectId>`): its overlay
-  and tray teleported into the canvas (`Canvas` exposes `host` and the
+  and tray portaled into the canvas (`Canvas` hands its `ref` `host` and the
   `world` layer the frames stand in, what it inspects), its readout in the
   right column (wide, scrolling) in place of the panel there.
   `startInspecting` (editor) goes to 100% on the selection first, since the
@@ -1103,13 +1116,13 @@ widgets/features; page-specific conventions live here.
   land at the centre of the canvas as seen (`editor.stage`, which the
   canvas measures; never the window's size). The canvas bar's Evolve
   places a generation of the primary selection.
-- The mascot (`shared/ui/Mascot.vue`) stands in the Studio's moments:
+- The mascot (`shared/ui/Mascot.tsx`) stands in the Studio's moments:
   the empty chat's hello and the bridge setup card (alive), the sidebar's
   empty chats, Search with no match (blinking) and the narrow notice;
   the agent's run row, flying in the spinner's slot while the harness
   works; in the docs, their search with no match (blinking, through
-  `DitherCommand`'s `empty` slot). Its
-  tour (`guide.ts`, `ui/StudioGuide.vue`) flies it, rotor turning, to
+  `DitherCommand`'s `empty`). Its
+  tour (`guide.ts`, `ui/StudioGuide.tsx`) flies it, rotor turning, to
   each part of the window by the page's own refs (the canvas, its bar,
   the sidebar, the chat, the panel, then its own key; a thin part from
   beside it, over it at the window's foot), opening a part folded
@@ -1117,8 +1130,10 @@ widgets/features; page-specific conventions live here.
   on, Skip, Done or Escape ends it and hands the focus back; shortcuts
   read as the keyboard writes them (`modKey`). It runs once on a first
   desktop visit (`GUIDE_SEEN_KEY`), never under automation
-  (`navigator.webdriver`: the prerender would print it), and again from
-  the title bar's key. Guarded by `tests/studio-guide.spec.ts`.
+  (`navigator.webdriver`: the build's browser would meet it), and again from
+  the title bar's key. Guarded by `tests/studio-guide.spec.ts` (where it
+  hovers, the first visit) and the tour cases of
+  `solid-site/tests/site/studio.spec.tsx`.
 - `StudioPage` opens the agent protocol on mount (`installStudioAgentApi`)
   and closes it on unmount; a project `.json` dropped anywhere on the studio
   loads through `importDocument`, the same path as Open file.
@@ -1129,14 +1144,14 @@ widgets/features; page-specific conventions live here.
   (`features/export-video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
-- The Agent panel (`widgets/agent/AgentPanel.vue`, the chat column; ⌘I
+- The Agent panel (`widgets/agent/AgentPanel.tsx`, the chat column; ⌘I
   hides and shows it; it stays mounted and closing only hides it, so a
   turn keeps running, and the title bar's Chat key carries a dot while the
   chat is hidden: breathing while it works, the signal ink while a
   permission prompt waits, still when a turn ended unseen,
   `AgentActivity`) is a CONTROL PLANE for the user's own harness, set as an
   agent app's composer, over `features/agent/acp.ts`. The panel holds the
-  session; `ui/ThreadEntry.vue` draws one entry, `ui/TurnTrays.vue` the
+  session; `ui/ThreadEntry.tsx` draws one entry, `ui/TurnTrays.tsx` the
   trays over the input, `model/thread.ts` every reading of the thread
   (title, to-dos, a turn's changes, the blocks it draws; one shared set
   of keys, folds, chips and the spinner lives unscoped under `.agent`).
@@ -1154,10 +1169,10 @@ widgets/features; page-specific conventions live here.
   / `restoreCheckpoint`: ONE undoable step; checkpoints live in memory,
   so a reloaded chat keeps none); the harness's reasoning as a fold, open
   while it streams ("Thinking"), then closed under how long it took; the
-  reply as prose (`widgets/agent/prose.ts` reads the harness's Markdown
-  into blocks, `Prose.vue` renders them as elements, never as HTML, a
+  reply as prose (`widgets/agent/model/prose.ts` reads the harness's Markdown
+  into blocks, `Prose.tsx` renders them as elements, never as HTML, a
   caret while it streams) with a copy key under it; each Studio tool call
-  one step in words with a kit glyph (`widgets/agent/steps.ts` `STEPS`,
+  one step in words with a kit glyph (`widgets/agent/model/steps.ts` `STEPS`,
   one row per Studio tool, held to `STUDIO_TOOLS` by the test), its args
   and result folded under it, destructive ink when the Studio rejected
   it; the harness's own tool calls as steps with a spinner or a check;
@@ -1176,7 +1191,7 @@ widgets/features; page-specific conventions live here.
   still and a "Latest" key brings you back. Replies, your messages and
   thoughts read in the proportional face (`--font-sans`, the user's call
   after the composer board); code, steps and the chrome stay mono. The
-  composer is ONE surface: the stack (`ui/TurnTrays.vue`, rows straight
+  composer is ONE surface: the stack (`ui/TurnTrays.tsx`, rows straight
   on it, a hairline between parts, none over the card) rests on the
   input card, and a row under the card says where it runs. Alignment
   (the user's call, measured in a browser, never eyeballed): the panel
@@ -1192,7 +1207,7 @@ widgets/features; page-specific conventions live here.
   (the site's stylesheet, used by the sidebar too: one line, ellipsis,
   and where the browser has `text-box`, trimmed to cap height and
   baseline with even padding back), never bare text in the flex row, whose face's line box
-  sits the words high beside a glyph; `tests/agent-panel.spec.ts` finds
+  sits the words high beside a glyph; `solid-site/tests/site/agent-panel.spec.tsx` finds
   bare words on a row. The stack, top to bottom: after a
   turn that finished on its own and while the field is empty, up to three
   next prompts (`model/suggest.ts` `nextPrompts`, from the frames the turn
@@ -1215,7 +1230,7 @@ widgets/features; page-specific conventions live here.
   while it holds the focus), two lines tall when empty: the context chips
   (the selection, any of it left out by its x, plus frames picked on the
   canvas or by name with `@`, typed or from the @ key, through a
-  listbox) and the attachments (`model/compose.ts`, `ui/Attached.vue`:
+  listbox) and the attachments (`model/compose.ts`, `ui/Attached.tsx`:
   a paste of `FOLD_LINES` lines or `FOLD_CHARS` characters folds into a
   "Pasted text" chip that, pressed, goes back into the field as text, and
   Cmd/Ctrl+Shift+V pastes it raw; a pasted or dropped picture, scaled to
@@ -1235,7 +1250,7 @@ widgets/features; page-specific conventions live here.
   the bridge knows with its PATH status, a custom command, stop;
   `/harness <id | command>` is the same; the choice persists and starts
   again on the next prompt; when no bridge answers, the thread shows
-  `ui/BridgeSetup.vue` in place of the greeting and the starters: the one
+  `ui/BridgeSetup.tsx` in place of the greeting and the starters: the one
   line that starts it (`bridgeCommand`: curl the bridge the site serves,
   then node, with `--origin` or `--port` only when needed) with a copy
   key, and the panel looking again every 2.5s for five minutes, then Look
@@ -1258,7 +1273,7 @@ widgets/features; page-specific conventions live here.
   the bridge's folder (the one key that gives way when the row is
   short), how full the harness's context is when it reports
   (`usage_update`: a ring and its percentage, the tokens and cost in its
-  title, `ui/ContextMeter.vue`; the destructive ink from 90%; in this row,
+  title, `ui/ContextMeter.tsx`; the destructive ink from 90%; in this row,
   not the foot, which it would crowd: the harness's and model's names keep
   their room), and the settings key (the bridge address, each other
   setting the harness offers (effort, thinking, as many as it has: a
@@ -1278,7 +1293,7 @@ widgets/features; page-specific conventions live here.
   bar and checkpoints cover what generated code did. Every grid in the
   panel that stacks blocks names one `minmax(0, 1fr)` column, so a long
   line (a path, a code line, a long suggestion) never widens the panel
-  (`tests/agent-panel.spec.ts` reads the styles). Words that are content
+  (`solid-site/tests/site/agent-panel.spec.tsx` reads the styles). Words that are content
   wrap, never cut short: a to-do, a queued message, a suggestion, a
   changed frame, a context chip, a permission choice, a step's title
   (`.row-label.is-wrap`, breaking inside a word only when one word is
@@ -1299,10 +1314,11 @@ widgets/features; page-specific conventions live here.
   hands it over or takes it back, a dashed ring in the signal ink marks
   it, nothing inside the frame sees the press, the canvas shows a
   crosshair and a "Click frames to hand them to the agent" bar with Done,
-  Esc ends it) and the ask at the selection (`widgets/canvas/SelectionAsk.vue`:
+  Esc ends it) and the ask at the selection (`widgets/canvas/SelectionAsk.tsx`:
   one frame selected, a one-line composer under it, or above its label
   when there is no room above the bar at the canvas's foot (`FOOT`, the
-  canvas bar's 60px; `tests/selection-ask.spec.ts`), away while a pointer is down, picking or inspecting; its
+  canvas bar's 60px; the selection's ask cases of
+  `solid-site/tests/site/render.spec.tsx`), away while a pointer is down, picking or inspecting; its
   message opens the panel, which sends it with the frame as context; asks
   waiting before the panel mounted are taken once it has). The harness reads
   the context as the frames' names and ids ahead of the message, each
@@ -1350,11 +1366,14 @@ widgets/features; page-specific conventions live here.
   reply starts under its message, even when the harness spoke while its
   session opened. The conversation persists per project and follows the
   active project; unanswered approvals are not saved. Pinned by
-  `tests/agent-composer.spec.ts` (prose, steps, checkpoints, the
-  thread's readings, next prompts, the canvas's handoff), `tests/agent-panel.spec.ts` (the panel mounted:
+  `tests/agent-composer.spec.ts` (the reply's prose),
+  `solid-site/tests/site/agent-panel.spec.tsx` (steps, the
+  thread's readings, the panel mounted:
   its setup in order, the draft back, history, IME, Esc, the key scope,
-  picked frames as context and the pick key, asks taken off the queue)
-  and the thought, picture and draft cases in `tests/agent-tools.spec.ts`;
+  picked frames as context and the pick key, asks taken off the queue),
+  `solid-site/tests/site/carried.spec.tsx` (the harness's updates, slash
+  commands, next prompts) and the checkpoint, handoff, thought, picture
+  and draft cases in `solid-site/tests/site/state.spec.tsx`;
   the attachments, the queue tray, edit from here and the context ring by
   `tests/agent-compose.spec.ts`, with the quote, the drafts, Follow, the
   harness's settings, the slash hint and refusal and the frames' heading.
@@ -1362,7 +1381,7 @@ widgets/features; page-specific conventions live here.
   add broken isolated previews merely to satisfy registry coverage.
 - `ShortcutsHelp` and lazy `ExportDialog` mount here; keep them on the page, not
   inside widgets. The export dialog's `styling` control (Segmented over
-  `STYLINGS`) writes the SFC in the reader's system — the same preference
+  `STYLINGS`) writes the component in the reader's system — the same preference
   the docs use.
 
 ### play/
@@ -1376,14 +1395,15 @@ widgets/features; page-specific conventions live here.
   `#doc=<base64url document>&artboard=<id>&theme=<dark|light>`; documents
   are untrusted and go through `parseDocument` (persistence) before they
   render. `main.ts` installs `directFromHyperframes()` before mount and
-  registers `window.__hf.buildReady["dither-ui"]` as fonts + Vue's mount
-  flush + one macrotask — never an animation frame: the renderer drives
+  registers `window.__hf.buildReady["dither-ui"]` as fonts + one
+  macrotask (Solid mounts in the call itself) — never an animation frame: the renderer drives
   Chrome with begin-frame control, so frames and rAF only happen when it
   captures one, and every surface paints its moment synchronously on seek
   (a chart that measures later repaints the moment through its `wake`).
-  `play/index.html` is the route's entry (noindex, not prerendered) and the
-  same `main.ts` is the entry of the single-file bundle
-  (the `player` environment of `rstack.config.ts`). Nothing here reads the
+  `routes/play.tsx` is the page (noindex, outside the site's shell,
+  prerendered as `play/index.html`) and the
+  same `main.ts` (`mountPlayer`) is the entry of the single-file bundle
+  (`solid-site/standalone.ts`). Nothing here reads the
   project store: the
   page provides `REEL_POOL` (its parsed document's artboards) so a reel
   cuts between the frames that travel with it. Besides `hf-seek`, `main.ts`
@@ -1395,9 +1415,9 @@ widgets/features; page-specific conventions live here.
 ## Verification
 
 - `tests/landing-facts.spec.ts` recounts `COMPONENT_COUNT` in `facts.ts`
-  and holds every count the site states to it (`index.html`, the README,
-  SKILL.md, `llms.txt`'s source, the Studio film's counters, which also
-  count the sections and the Backgrounds);
+  and holds every count the site states to it (the files its spec lists:
+  the README, SKILL.md, `llms.txt`'s source, the Studio film's counters,
+  which also count the sections and the Backgrounds);
   `tests/hub.spec.ts` holds `FAMILIES`, `DOCS_FAMILIES` and `BENTO` to the
   docs' `GROUPS`; `tests/pixel-type.spec.ts` every string the pixel face
   sets.
@@ -1411,7 +1431,7 @@ widgets/features; page-specific conventions live here.
   dark theme's ember), every named spec existing, and pins `POSTER_HASH`
   (the poster's bytes, the cross-engine row): a change to the poster's
   arithmetic fails it until the hash is recorded again.
-- `tests/docs-sheet.spec.ts`: the rail scrolls itself (never the page) to
+- `solid-site/tests/site/docs-page.spec.tsx`: the rail scrolls itself (never the page) to
   the current link,
   `DocsNav` lists every section once with 24px targets per
   place, and the sections sheet opens as a modal (focus in, page held,
@@ -1461,9 +1481,10 @@ widgets/features; page-specific conventions live here.
   rail lists the section in view at xl, and its Share opens on the
   section's card playing and copies its link, Markdown and HTML.
 - Share cards after a full `npm run build`: every id `window.og.ids()`
-  lists has `dist/og/<id>.png` and `.gif` (the GIF's frames move and its
+  lists has `og/<id>.png` and `.gif` in `solid-site/.output/public` (the
+  GIF's frames move and its
   first is the PNG's card, the mark's core included),
-  `dist/embed/<id>.json` and `dist/oembed/<id>.json`, and a section page's
+  `embed/<id>.json` and `oembed/<id>.json`, and a section page's
   head points at its own (Discord's Embed Debugger,
   discord.com/developers/embeds, reads a deployed URL as Discord will).
 
