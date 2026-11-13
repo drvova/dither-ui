@@ -16,6 +16,7 @@
     "preview": "npm run preview -w @dither-ui/site",
     "frames": "node packages/tasks/src/render-frames.mjs",
     "demo:agent": "node packages/tasks/src/agent-demo.mjs",
+    "walk": "node packages/tasks/src/walk.mjs",
     "typecheck": "tsc --noEmit",
     "test": "rs test && npm test --workspaces --if-present",
     "test:watch": "rs test watch",

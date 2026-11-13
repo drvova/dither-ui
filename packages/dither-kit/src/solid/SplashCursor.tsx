@@ -51,7 +51,9 @@ export default function SplashCursor(raw: SplashCursorProps) {
     ripples = ripples.filter((r) => now - r.t0 < props.duration)
     ctx.strokeStyle = props.color
     for (const r of ripples) {
-      const p = (now - r.t0) / props.duration
+      // A frame is stamped at its start, so the move that asked for it can
+      // be later than it: the ring starts at nothing, never before it.
+      const p = Math.max(0, (now - r.t0) / props.duration)
       ctx.globalAlpha = (1 - p) * 0.7
       ctx.lineWidth = 2 * (1 - p)
       ctx.beginPath()

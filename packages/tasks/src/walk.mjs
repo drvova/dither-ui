@@ -1,0 +1,964 @@
+// The browser walk: every page of a built site visited in one engine, and
+// what a reader would meet there checked. Run by hand, never by a build or
+// the gate:
+//
+//   npm run walk -- --engine chromium|webkit|firefox [--out <folder>] [--root <built site>]
+//     [--jobs 4] [--only <a path as /docs/area/, or text in one; several by commas>] [--run all|family|none] [--light 3]
+//     [--executable <browser>] [--driver <webdriver server>]
+//
+// Chromium is `CHROME_PATH` or a standard install, through Playwright.
+// WebKit is WebKitGTK (`WebKitWebDriver` and `MiniBrowser`), Firefox a
+// `firefox` with `geckodriver`, both over WebDriver; the walk installs no
+// browser, `--executable` and `--driver` name the ones this machine has.
+//
+// It serves `--root` (default `packages/site/.output/public`) itself and
+// walks: the landing, `/docs/`, EVERY docs section the build lists
+// (`og/sections.json`), the Studio, the player (bare, then given a frame
+// from the Studio's own document) and an address nothing answers. A page's
+// record: what it threw, what it logged as an error or a warning, what it
+// asked for and was refused, and for a docs section every demo card
+// revealed, every canvas in it painted, its Code tab's files read one by
+// one, and its example edited and Run. Sections walk in the dark theme; the
+// first `--light` of each family, and one in eight of the rest, walk again in
+// light. The Studio adds a
+// frame from the library, selects it, changes a property, undoes, redoes
+// and opens search.
+//
+// Out: `<out>/<engine>.json` (every page's record), `<out>/<engine>.md` (the
+// summary) and `<out>/shots/<engine>/` (the sampled and the flagged pages).
+// Exit code 1 when an unexplained finding remains.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { join, resolve } from "node:path"
+import { coloursIn, decodePng, firefoxDriver, playwrightDriver, serve, sleep, webkitDriver } from "./walk-drivers.mjs"
+
+const args = process.argv.slice(2)
+const flag = (name, fallback) => {
+  const i = args.indexOf(`--${name}`)
+  return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
+}
+if (args.includes("--help")) {
+  console.error(
+    "usage: npm run walk -- --engine chromium|webkit|firefox [--out <folder>] [--root <built site>] [--jobs 4] [--only <text>] [--run all|family|none] [--light 3] [--executable <browser>] [--driver <webdriver server>]",
+  )
+  process.exit(0)
+}
+const engine = flag("engine", "chromium")
+const root = resolve(flag("root", "packages/site/.output/public"))
+const out = resolve(flag("out", "walk-report"))
+const jobs = Math.max(1, Number(flag("jobs", "4")) || 4)
+const only = flag("only", "")
+const runMode = flag("run", "all")
+const lightEach = Number(flag("light", "3"))
+if (!existsSync(join(root, "og/sections.json"))) {
+  console.error(`no built site at ${root}: run \`npm run build\` first`)
+  process.exit(1)
+}
+
+function findChromium() {
+  return [
+    flag("executable", ""),
+    process.env.CHROME_PATH,
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+  ].find((p) => p && existsSync(p))
+}
+
+async function openEngine() {
+  if (engine === "chromium") {
+    const executablePath = findChromium()
+    if (!executablePath) throw new Error("no Chromium: set CHROME_PATH or pass --executable")
+    return playwrightDriver({ executablePath })
+  }
+  if (engine === "webkit")
+    return webkitDriver({ driver: flag("driver", undefined), binary: flag("executable", undefined) })
+  if (engine === "firefox")
+    return firefoxDriver({ driver: flag("driver", undefined), binary: flag("executable", undefined) })
+  throw new Error(`unknown engine ${engine}: chromium, webkit or firefox`)
+}
+
+// ---------------------------------------------------------------- the pages
+
+/** Requests a page is known to be refused, by design. */
+const KNOWN_REFUSALS = {
+  // the player stands outside the site's shell, so it names no icon and the browser asks for the default one
+  play: [/\/favicon\.ico$/],
+  // the address nothing answers is itself the refusal
+  missing: [/\/no-such-page\/?$/],
+}
+const MISSING = "/no-such-page/"
+
+/** What a machine without a GPU, or the walk's own hand, brings about: a
+ * page is not at fault for it. */
+const ENVIRONMENT = [
+  // software GL (SwiftShader): every readback of the kit's GL engines stalls its one thread
+  /GL Driver Message .*GPU stall due to ReadPixels/,
+  // the walk's pointer is a script's: Gecko holds no active pointer of its id for a surface to capture
+  /setPointerCapture: Invalid pointer id/,
+]
+
+const sections = JSON.parse(readFileSync(join(root, "og/sections.json"), "utf8"))
+const registry = JSON.parse(readFileSync(join(root, "agent/registry.json"), "utf8"))
+
+function plan() {
+  const pages = [
+    { kind: "landing", path: "/", theme: "dark" },
+    { kind: "docs", path: "/docs/", theme: "dark" },
+  ]
+  const perFamily = new Map()
+  for (const s of sections) {
+    const n = perFamily.get(s.group) ?? 0
+    perFamily.set(s.group, n + 1)
+    // the first few of a family, then one in eight of the rest
+    const sample = n < lightEach || (lightEach > 0 && n % 8 === 0)
+    pages.push({
+      kind: "section",
+      path: `/docs/${s.id}/`,
+      id: s.id,
+      group: s.group,
+      theme: "dark",
+      sample,
+      first: n === 0,
+    })
+    if (sample)
+      pages.push({ kind: "section", path: `/docs/${s.id}/`, id: s.id, group: s.group, theme: "light", sample })
+  }
+  pages.push(
+    { kind: "studio", path: "/studio/", theme: "dark" },
+    { kind: "studio", path: "/studio/", theme: "light", look: true },
+    { kind: "play", path: "/play/", theme: "dark" },
+    { kind: "missing", path: MISSING, theme: "dark" },
+  )
+  const picked = only.split(",").filter(Boolean)
+  return picked.length
+    ? pages.filter((p) => picked.some((t) => (t.startsWith("/") ? p.path === t : p.path.includes(t))))
+    : pages
+}
+
+// ---------------------------------------------------------------- page scripts
+// Each runs in the page, as the body of an async function given `arg`; the
+// recorder's helpers are `__walk` (walk-drivers.mjs).
+
+/** The app has mounted over the prerendered bytes and the page is at rest. */
+const READY = `
+const W = window.__walk
+await W.until(() => document.readyState === "complete", 20000)
+if (document.fonts && document.fonts.ready) await Promise.race([document.fonts.ready, W.sleep(4000)])
+await W.sleep(arg && arg.settle || 600)
+return { title: document.title, w: innerWidth, h: innerHeight, ratio: devicePixelRatio, dark: document.documentElement.classList.contains("dark"),
+  overflow: document.documentElement.scrollWidth - innerWidth }
+`
+
+const RECORD_FAILED = `return window.__walk.failed.splice(0)`
+
+const RECORD = `const W = window.__walk; return { errors: W.errors.splice(0), logs: W.logs.splice(0), failed: W.failed.splice(0) }`
+
+/** The docs section's cards, counted once the section's own pack has loaded. */
+const CARDS = `
+const W = window.__walk
+const section = document.getElementById(arg.id)
+if (!section) return { missing: true }
+await W.until(() => section.querySelector("[data-demo-card]"), 6000)
+await W.sleep(300)
+const cards = [...document.querySelectorAll("[data-demo-card]")]
+const shown = (c) => c.closest("section[id]") === section && c.getClientRects().length > 0
+return {
+  elsewhere: cards.filter((c) => !shown(c)).length,
+  heading: (section.querySelector("h1,h2") || {}).textContent || "",
+  text: section.innerText.length,
+  cards: cards.map((c) => (shown(c) ? arg.id : "")),
+  loose: [...section.querySelectorAll("canvas")].filter((c) => !c.closest("[data-demo-card]")).length,
+}
+`
+
+/** One card brought into view, revealed and settled; its canvases read. A
+ * canvas that reads blank gets a while longer: a model still loading, a
+ * surface that paints on its first frame in view. */
+const CARD = `
+const W = window.__walk
+const card = arg.n < 0 ? document.getElementById(arg.id) : document.querySelectorAll("[data-demo-card]")[arg.n]
+if (!card) return { missing: true }
+const well = arg.n < 0 ? card : card.querySelector(".demo-well")
+if (arg.n >= 0) card.scrollIntoView({ block: "center" })
+const waiting = () => arg.n >= 0 && well.querySelector(":scope > div > [aria-hidden=true].animate-pulse")
+const revealed = arg.n < 0 || !!(await W.until(() => !waiting(), 6000))
+await W.frames(3)
+await W.sleep(arg.settle)
+const list = () => [...well.querySelectorAll("canvas")].filter((c) => arg.n >= 0 || !c.closest("[data-demo-card]"))
+const read = async () => {
+  const seen = []
+  for (const c of list()) {
+    let s = W.canvas(c)
+    if (s.state !== "painted" && s.state !== "hidden") {
+      const r = c.getBoundingClientRect()
+      if (r.top < 0 || r.bottom > innerHeight) { c.scrollIntoView({ block: "center" }); await W.frames(3); s = W.canvas(c) }
+    }
+    seen.push(s)
+  }
+  return W.layers(seen)
+}
+let canvases = await read()
+const end = Date.now() + arg.patience
+const empty = () => canvases.some((c) => c.state === "blank" || c.state === "flat")
+if (empty()) {
+  // a surface that prints under a pointer is given one
+  const all = list()
+  for (let i = 0; i < all.length; i++) if (canvases[i].state === "blank") canvases[i] = await W.poke(all[i])
+  W.layers(canvases)
+  while (empty() && Date.now() < end) {
+    await W.sleep(250)
+    canvases = await read()
+  }
+}
+const alert = well.querySelector("[role=alert]")
+const content = arg.n < 0 ? well : well.firstElementChild
+return { revealed, canvases, text: well.innerText.trim().length,
+  rendered: content.children.length > 0 && content.getBoundingClientRect().height > 1, alert: alert ? alert.textContent.slice(0, 200) : "" }
+`
+
+/** A canvas the page could not read, centred for a screenshot. */
+const CENTRE = `
+const card = arg.n < 0 ? document.getElementById(arg.id) : document.querySelectorAll("[data-demo-card]")[arg.n]
+const well = arg.n < 0 ? card : card.querySelector(".demo-well")
+const c = [...well.querySelectorAll("canvas")][arg.i]
+if (!c) return null
+c.scrollIntoView({ block: "center" })
+await window.__walk.frames(3)
+await window.__walk.sleep(200)
+const r = c.getBoundingClientRect()
+const x = Math.max(0, r.left), y = Math.max(0, r.top)
+return [x, y, Math.min(innerWidth, r.right) - x, Math.min(innerHeight, r.bottom) - y]
+`
+
+/** The Code tab: opened, every file tab picked and read. */
+const CODE = `
+const W = window.__walk
+const card = document.querySelectorAll("[data-demo-card]")[arg.n]
+card.scrollIntoView({ block: "start" })
+const tabs = card.querySelector("[role=tablist]").querySelectorAll("[role=tab]")
+tabs[1].click()
+const panel = await W.until(() => card.querySelector(".source-panel-scope"), 10000)
+if (!panel) return { opened: false }
+const area = () => panel.querySelector("[role=tabpanel] textarea")
+const loaded = (name) => W.until(() => {
+  const note = panel.querySelector("[role=tabpanel] .src-note")
+  if (note && /Couldn't load/.test(note.textContent)) return { error: note.textContent.trim() }
+  const t = area()
+  return t && t.value && t.getAttribute("aria-label") === name + " source" ? { text: t.value } : null
+}, 10000)
+const files = []
+const fileTabs = () => [...panel.querySelectorAll(".src-tab")]
+await W.until(() => fileTabs().length, 5000)
+// the kit's files join the example's once the kit's index has loaded
+let count = -1
+await W.until(async () => { const n = fileTabs().length; const same = n === count; count = n; if (!same) await W.sleep(250); return same }, 6000)
+for (let i = 0; i < fileTabs().length; i++) {
+  const tab = fileTabs()[i]
+  tab.click()
+  const name = tab.dataset.path.split("/").pop()
+  const got = await loaded(name)
+  files.push({ path: tab.dataset.path, name, selected: tab.getAttribute("aria-selected") === "true",
+    size: got && got.text ? got.text.length : 0, error: got ? got.error || "" : "never loaded",
+    text: i === 0 && got && got.text ? got.text : undefined })
+}
+fileTabs()[0].click()
+await loaded(files[0].name)
+const run = panel.querySelector(".src-run")
+return { opened: true, files, runnable: run.getAttribute("aria-disabled") !== "true", why: run.getAttribute("title") || "",
+  styling: (card.querySelector("[aria-label=Styling] [aria-pressed=true]") || {}).textContent || "" }
+`
+
+/** Edit the example (a line the module runs as it loads, so a run that
+ * leaves its mark compiled and evaluated the edited text) and Run it; read
+ * the result standing in the preview; restore the demo. */
+const RUN = `
+const W = window.__walk
+const card = document.querySelectorAll("[data-demo-card]")[arg.n]
+const panel = card.querySelector(".source-panel-scope")
+const area = panel.querySelector("[role=tabpanel] textarea")
+const mark = "walk" + Date.now() + "_" + arg.n
+const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set
+set.call(area, area.value + "\\n;(globalThis.__walkRan = " + JSON.stringify(mark) + ")\\n")
+area.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText" }))
+await W.frames(2)
+const edited = !!panel.querySelector(".src-tab .src-dot")
+const run = panel.querySelector(".src-run")
+const started = Date.now()
+run.click()
+const restore = () => [...card.querySelectorAll("button")].find((b) => b.textContent.trim() === "Restore the demo")
+const done = await W.until(() => {
+  if (run.textContent.trim() === "Running") return null
+  const problems = [...panel.querySelectorAll(".src-problems li")].map((li) => li.textContent.trim().slice(0, 300))
+  if (problems.length) return { problems }
+  return restore() && globalThis.__walkRan === mark ? { ran: true } : restore() ? null : null
+}, arg.patience)
+const result = { edited, ms: Date.now() - started, ran: !!(done && done.ran), problems: done && done.problems || [],
+  timeout: !done, marked: globalThis.__walkRan === mark, status: (panel.querySelector(".src-status") || {}).textContent || "" }
+if (!result.ran) {
+  // put the example back as it was
+  const revert = panel.querySelector(".src-key[aria-label^=Revert]")
+  if (revert) revert.click()
+  return result
+}
+const well = card.querySelector(".demo-well")
+well.scrollIntoView({ block: "center" })
+await W.frames(3)
+await W.sleep(arg.settle)
+const stopped = well.querySelector("[role=alert]")
+result.stopped = stopped && /The run stopped/.test(stopped.textContent) ? stopped.textContent.trim().slice(0, 300) : ""
+const all = () => [...well.querySelectorAll("canvas")]
+const read = () => W.layers(all().map(W.canvas))
+let canvases = read()
+const empty = () => canvases.some((c) => c.state === "blank" || c.state === "flat")
+if (empty()) {
+  for (let i = 0; i < all().length; i++) if (canvases[i].state === "blank") canvases[i] = await W.poke(all()[i])
+  W.layers(canvases)
+  const end = Date.now() + 2500
+  while (empty() && Date.now() < end) { await W.sleep(250); canvases = read() }
+}
+result.canvases = canvases
+// rendered: the run put elements in the preview; visible: one of them has a box
+// (a surface that fills its parent has none when the example gives it no size)
+const made = [...well.firstElementChild.querySelectorAll("*")]
+result.rendered = made.length > 0
+result.visible = made.some((el) => { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1 })
+restore().click()
+await W.frames(2)
+result.restored = !restore()
+const revert = panel.querySelector(".src-key[aria-label^=Revert]")
+if (revert) revert.click()
+return result
+`
+
+const PREVIEW = `
+const card = document.querySelectorAll("[data-demo-card]")[arg.n]
+card.querySelector("[role=tablist]").querySelectorAll("[role=tab]")[0].click()
+await window.__walk.frames(2)
+return true
+`
+
+/** A long page read top to bottom: every canvas that comes into view, as it
+ * stands there. */
+const SCROLL = `
+const W = window.__walk
+const seen = new Map()
+const look = () => {
+  for (const c of document.querySelectorAll("canvas")) {
+    const r = c.getBoundingClientRect()
+    if (r.bottom < 0 || r.top > innerHeight) continue
+    const s = W.canvas(c)
+    const was = seen.get(c)
+    if (!was || was.state !== "painted") seen.set(c, s)
+  }
+}
+const step = Math.round(innerHeight * 0.6)
+let y = 0
+for (let i = 0; i < 400; i++) {
+  scrollTo(0, y)
+  await W.frames(2)
+  await W.sleep(arg.pause)
+  look()
+  if (y >= document.documentElement.scrollHeight - innerHeight - 1) break
+  y = Math.min(y + step, document.documentElement.scrollHeight - innerHeight)
+}
+await W.sleep(600)
+look()
+for (const [c, s] of seen) {
+  if (s.state !== "blank") continue
+  c.scrollIntoView({ block: "center" })
+  await W.frames(3)
+  await W.sleep(arg.pause)
+  let now = W.canvas(c)
+  if (now.state === "blank") now = await W.poke(c)
+  // a layer of a surface whose other canvas is painted
+  if (now.state === "blank" && [...c.parentElement.querySelectorAll("canvas")].some((o) => o !== c && W.canvas(o).state === "painted")) now.state = "layer"
+  seen.set(c, now)
+}
+const height = document.documentElement.scrollHeight
+scrollTo(0, 0)
+return { height, canvases: [...seen.values()], sections: document.querySelectorAll("section[id]").length,
+  cards: document.querySelectorAll("[data-demo-card]").length }
+`
+
+/** The Studio: a frame added from the library, selected, a property changed
+ * in the inspector, undone and redone, search opened. */
+const STUDIO = `
+const W = window.__walk
+const out = { steps: [] }
+const step = (name, ok, detail) => out.steps.push({ name, ok: !!ok, detail: detail === undefined ? "" : String(detail).slice(0, 300) })
+const named = (label) => [...document.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") || b.textContent.trim()) === label)
+const api = await W.until(() => window.ditherStudio, 15000)
+step("the Studio answers on window.ditherStudio", api)
+if (!api) return out
+const doc = () => (typeof api.document === "function" ? api.document() : api.document)
+const frames = () => document.querySelectorAll("[data-artboard-id]")
+await W.until(() => frames().length, 8000)
+await W.sleep(800)
+const before = frames().length
+step("a frame stands on the canvas", before > 0, before)
+const first = W.until(() => { const c = frames()[0] && frames()[0].querySelector("canvas"); return c && W.canvas(c).state === "painted" }, 5000)
+step("its chart is painted", await first)
+
+named("Library").click()
+const library = await W.until(() => document.querySelector('[role=dialog][aria-label="Component library"]'), 4000)
+step("the library opens", library)
+if (!library) return out
+const items = [...library.querySelectorAll(".library-item")]
+const registry = typeof api.registry === "function" ? await api.registry() : api.registry
+step("the library lists the registry", registry && items.length >= registry.components.length, items.length + " items")
+const pick = items.find((b) => b.textContent.includes("DitherSwitch"))
+pick.click()
+await W.until(() => frames().length === before + 1, 4000)
+step("the library adds a frame", frames().length === before + 1, frames().length)
+const added = frames()[frames().length - 1]
+const id = added.dataset.artboardId
+
+// select the first frame, then the new one, by its name plate
+const side = async () => {
+  let s = document.querySelector('aside[aria-label="Properties and layers"]')
+  if (!s) { named("Toggle properties and layers").click(); s = await W.until(() => document.querySelector('aside[aria-label="Properties and layers"]'), 4000) }
+  return s
+}
+const panel = await side()
+step("the inspector opens", panel)
+if (!panel) return out
+const press = (el) => {
+  const r = el.getBoundingClientRect()
+  const at = { bubbles: true, cancelable: true, composed: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, buttons: 1 }
+  el.dispatchEvent(new PointerEvent("pointerdown", at))
+  el.dispatchEvent(new MouseEvent("mousedown", at))
+  el.dispatchEvent(new PointerEvent("pointerup", { ...at, buttons: 0 }))
+  el.dispatchEvent(new MouseEvent("mouseup", { ...at, buttons: 0 }))
+  el.dispatchEvent(new MouseEvent("click", { ...at, buttons: 0 }))
+}
+const plate = (frame) => frame.querySelector(".cursor-move") || frame
+const nameField = () => panel.querySelector('input[name="artboard-name"]')
+press(plate(frames()[0]))
+const firstName = await W.until(() => nameField() && nameField().value !== "Switch" && nameField().value, 3000)
+step("selecting the first frame shows it in the inspector", firstName, firstName)
+press(plate(added))
+const second = await W.until(() => nameField() && nameField().value === "Switch", 3000)
+step("selecting the new frame shows it in the inspector", second, nameField() && nameField().value)
+
+const mine = () => JSON.stringify((doc().artboards || []).find((a) => a.id === id) || null)
+const box = panel.querySelector('input[type=checkbox][name="disabled"]') || [...panel.querySelectorAll("input[type=checkbox]")][0]
+step("the inspector offers the component's props", box)
+if (!box) return out
+// history gathers the edits of 300ms into one step: let the added frame become its own
+await W.sleep(700)
+const was = mine()
+box.click()
+await W.sleep(400)
+const changed = mine()
+step("a property change reaches the document", changed !== was && /"disabled":true/.test(changed), changed.slice(0, 200))
+const frameSwitch = () => added.querySelector("[role=switch],button,input")
+const disabledNow = () => { const el = frameSwitch(); return !!el && (el.disabled === true || el.getAttribute("aria-disabled") === "true" || el.hasAttribute("disabled")) }
+step("and the frame on the canvas", disabledNow())
+named("Undo").click()
+await W.sleep(400)
+step("undo takes it back", mine() === was, mine().slice(0, 200))
+named("Redo").click()
+await W.sleep(400)
+step("redo brings it again", mine() === changed)
+
+const search = [...document.querySelectorAll("button")].find((b) => /^Search/.test(b.textContent.trim()))
+search.click()
+const palette = await W.until(() => [...document.querySelectorAll("[role=dialog]")].find((d) => d.querySelector("input")), 4000)
+step("search opens", palette, palette && (palette.getAttribute("aria-label") || ""))
+if (palette) {
+  const field = palette.querySelector("input")
+  const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set
+  set.call(field, "area")
+  field.dispatchEvent(new InputEvent("input", { bubbles: true }))
+  await W.sleep(400)
+  step("search answers a query", palette.innerText.toLowerCase().includes("area"), palette.innerText.slice(0, 120))
+  field.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+  await W.sleep(300)
+}
+out.document = JSON.stringify(doc())
+// an undo or a redo stands the frames up again: their charts draw in
+const drawn = () => W.layers([...document.querySelectorAll("[data-artboard-id] canvas")].map(W.canvas))
+await W.until(() => !drawn().some((c) => c.state === "blank"), 5000, 200)
+out.canvases = drawn()
+return out
+`
+
+const PLAY = `
+const W = window.__walk
+const surface = await W.until(() => document.querySelector(".play-surface, .play-empty"), 8000)
+await W.sleep(1200)
+const canvases = W.layers([...document.querySelectorAll("canvas")].map(W.canvas))
+return { surface: surface ? surface.className.split(" ").find((c) => c === "play-surface" || c === "play-empty") : "", canvases,
+  text: document.body.innerText.trim().slice(0, 160), clock: typeof window.ditherClock }
+`
+
+// ---------------------------------------------------------------- the walk
+
+const shots = join(out, "shots", engine)
+mkdirSync(shots, { recursive: true })
+const slug = (page) =>
+  `${page.kind === "section" ? page.id : page.kind}${page.variant ? `-${page.variant}` : ""}-${page.theme}`
+
+/** The example's own words for what a run cannot do: an elision the reader
+ * fills in, or something only their app has. */
+const sketched = (text) => /…|\.\.\.\s*[\]})]/.test(text ?? "")
+
+function codeIssues(code) {
+  const issues = []
+  if (!code.opened) return ["the Code tab never opened its source panel"]
+  const [example, ...rest] = code.files
+  if (!example) return ["the source panel shows no file"]
+  for (const f of code.files) if (f.error) issues.push(`${f.name}: ${f.error}`)
+  for (const f of code.files) if (!f.error && !f.size) issues.push(`${f.name}: empty`)
+  const text = example.text ?? ""
+  if (/\.tsx$/.test(example.name)) {
+    if (
+      /<script setup|<template[\s>]|\bv-(if|for|model|show|bind|on)\b|\s@[a-z]+=|\s:[a-z-]+="|defineProps|from "vue"/.test(
+        text,
+      )
+    )
+      issues.push(`${example.name}: the authoring notation shows through`)
+    if (text.includes('{"{"}')) issues.push(`${example.name}: script or a stylesheet printed as the component's text`)
+    if (!/export default function|export function|export const/.test(text))
+      issues.push(`${example.name}: no component exported`)
+    const imported = new Set(
+      [...text.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s+from/g)].flatMap((m) =>
+        m[1].split(",").map((n) =>
+          n
+            .trim()
+            .split(/\s+as\s+/)
+            .pop(),
+        ),
+      ),
+    )
+    const loose = [...new Set([...text.matchAll(/<([A-Z][A-Za-z0-9]*)/g)].map((m) => m[1]))].filter(
+      (t) => KIT.has(t) && !imported.has(t),
+    )
+    if (loose.length) issues.push(`${example.name} renders ${loose.join(", ")} of the kit without importing it`)
+    const kit = /from "@dither-kit[^"]*"/.test(text)
+    const kitTabs = rest.filter((f) => f.path.startsWith("dither-kit/") && /\.tsx?$/.test(f.name))
+    if (kit && !kitTabs.length) issues.push(`${example.name} imports the kit, yet no kit file is a tab`)
+    if (!rest.some((f) => f.name === "theme.css")) issues.push("no theme.css tab")
+    if (!rest.some((f) => f.name === "prompt.md")) issues.push("no prompt.md tab")
+  } else if (!/\.(sh|ts|css)$/.test(example.name)) issues.push(`unexpected example file ${example.name}`)
+  return issues
+}
+
+/** Every name the kit's index exports, read from the kit's source as the build serves it. */
+const KIT = new Set(
+  [
+    ...readFileSync(join(root, "kit/src/solid/solid/index.ts"), "utf8").matchAll(/export\s+(?:type\s+)?\{([^}]*)\}/g),
+  ].flatMap((m) =>
+    m[1]
+      .split(",")
+      .map((n) =>
+        n
+          .trim()
+          .split(/\s+as\s+/)
+          .pop(),
+      )
+      .filter(Boolean),
+  ),
+)
+
+/** The name a stopped run could not find, when the example itself never
+ * declares it: state, data or a component the example leaves to its reader
+ * (`rows`, `setTab`, `YourCard`). */
+function freeName(stopped, text) {
+  const name = /ReferenceError: (?:Can't find variable: )?([A-Za-z_$][\w$]*)/.exec(stopped)?.[1]
+  if (!name) return ""
+  const word = `(?<![\\w$.])${name.replace(/\$/g, "\\$")}(?![\\w$])`
+  const declared = new RegExp(
+    `(?:const|let|var)\\s+(?:${word}|\\[[^\\]]*${word}[^\\]]*\\]|\\{[^}]*${word}[^}]*\\})|function\\s+${word}|class\\s+${word}|import[^\\n]*${word}[^\\n]*from`,
+  ).test(text)
+  return declared ? "" : name
+}
+
+async function unreadCanvases(s, ratio, where, canvases, page) {
+  // The page could not read these (a WebGL context, a tainted canvas): look
+  // at the pixels the browser shows instead.
+  for (let i = 0; i < canvases.length; i++) {
+    const c = canvases[i]
+    if (c.state !== "unread") continue
+    const rect = await s.run(CENTRE, { ...where, i })
+    if (!rect || rect[2] < 2 || rect[3] < 2) continue
+    const png = decodePng(await s.shot())
+    const colours = coloursIn(png, rect, png.width / page.w || ratio)
+    c.state = colours > 1 ? "painted" : "blank"
+    c.by = `screenshot (${colours} colours)`
+  }
+}
+
+const blank = (c) => c.state === "blank" || c.state === "flat"
+
+const STEPS = new Map()
+
+async function walkPage(session, server, page) {
+  const started = Date.now()
+  const rec = { ...page, issues: [], known: [], environment: [], outside: [], slow: [] }
+  // a step that takes long is kept with its name: a stalled page explains what it then shows
+  const s = {
+    ...session,
+    async run(body, arg) {
+      const at = Date.now()
+      try {
+        return await session.run(body, arg)
+      } finally {
+        if (Date.now() - at > 8000) rec.slow.push({ step: STEPS.get(body) ?? "script", ms: Date.now() - at })
+      }
+    },
+  }
+  const issue = (kind, detail) =>
+    ENVIRONMENT.some((e) => e.test(detail)) ? rec.environment.push(detail) : rec.issues.push({ kind, detail })
+  server.state.theme = page.theme
+  server.refused()
+  s.drain()
+  let url = server.origin + page.path
+  if (page.hash) url += page.hash
+  await s.go(url)
+  const ready = await s.run(READY, { settle: page.kind === "section" ? 500 : 1500 })
+  Object.assign(rec, { title: ready.title, w: ready.w, h: ready.h })
+  // the landing and the missing page are printed in the dark, always; the player takes its theme from its link
+  if (
+    ready.dark !== (page.theme === "dark") &&
+    (page.kind === "section" || page.kind === "studio" || page.kind === "docs")
+  )
+    issue("theme", `asked for ${page.theme}, the page is ${ready.dark ? "dark" : "light"}`)
+  if (ready.overflow > 1) issue("overflow", `the page is ${ready.overflow}px wider than the window`)
+  const full = page.theme === "dark"
+  // what the page was refused before each Run, kept apart from what a run's own example asks for
+  const held = { refused: [], failed: [], native: [] }
+
+  if (page.kind === "section") {
+    const found = await s.run(CARDS, { id: page.id })
+    if (found.missing) issue("section", `no section #${page.id} on its page`)
+    else {
+      rec.heading = found.heading
+      if (found.text < 40) issue("section", "the section is empty")
+      rec.cards = []
+      if (page.sample) writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
+      const wells = found.cards.map((section, n) => ({ n, section })).filter((w) => w.section)
+      if (found.loose) wells.push({ n: -1, section: page.id })
+      for (const { n, section } of wells) {
+        const card = { n, section, ...(await s.run(CARD, { n, id: page.id, settle: 350, patience: 4000 })) }
+        await unreadCanvases(s, ready.ratio, { n, id: page.id }, card.canvases ?? [], ready)
+        rec.cards.push(card)
+        const name = n < 0 ? "outside a card" : `card ${n + 1}${section === page.id ? "" : ` (#${section})`}`
+        if (card.missing) issue("card", `${name}: gone`)
+        else {
+          if (!card.revealed) issue("card", `${name}: never revealed its demo`)
+          else if (n >= 0 && !card.rendered) issue("card", `${name}: an empty preview`)
+          if (card.alert && /stopped|error/i.test(card.alert)) issue("card", `${name}: ${card.alert}`)
+          for (const c of card.canvases.filter(blank))
+            issue("canvas", `${name}: a ${c.state} canvas ${c.w}x${c.h} (${c.rect[2]}x${c.rect[3]} css) ${c.cls}`)
+        }
+        if (page.sample && n === wells[0].n) writeFileSync(join(shots, `${slug(page)}-card.png`), await s.shot())
+        if (n < 0 || !full || card.missing) continue
+        const code = await s.run(CODE, { n })
+        const example = code.files?.[0]
+        card.code = { ...code, files: code.files?.map(({ text, ...f }) => f) }
+        card.example = example?.text
+        for (const problem of codeIssues(code)) issue("code", `${name}: ${problem}`)
+        const mayRun = runMode === "all" || (runMode === "family" && page.first && n === 0)
+        if (code.opened && mayRun && code.runnable) {
+          const before = [server.refused(), await s.run(RECORD_FAILED, null), s.drain()]
+          const run = await s.run(RUN, { n, settle: 350, patience: 45000 })
+          card.run = run
+          // what the example asks for and the site does not hold: its own illustrative addresses
+          const asked = new Set([
+            ...server.refused().map((r) => r.url),
+            ...(await s.run(RECORD_FAILED, null)).map((f) => f.split(" ").pop()),
+          ])
+          const during = s
+            .drain()
+            .filter(
+              (d) => !(d.kind === "response" || d.kind === "requestfailed" || /Failed to load resource/.test(d.text)),
+            )
+          if (asked.size) card.run.asked = [...asked].map((u) => u.split(server.origin).join(""))
+          held.refused.push(...before[0])
+          held.failed.push(...before[1])
+          held.native.push(...before[2], ...during)
+          if (run.ran) {
+            await unreadCanvases(s, ready.ratio, { n, id: page.id }, run.canvases ?? [], ready)
+            const free = run.stopped && freeName(run.stopped, example?.text ?? "")
+            if (free && !KIT.has(free)) card.run.reader = free
+            else if (run.stopped) issue("run", `${name}: ${run.stopped}`)
+            else if (!run.rendered) issue("run", `${name}: the run rendered nothing`)
+            else if (!run.visible) card.run.unsized = true
+            for (const c of (run.canvases ?? []).filter(blank))
+              issue("run-canvas", `${name}: after Run, a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
+            if (!run.restored) issue("run", `${name}: the demo was not restored`)
+            if (!run.edited) issue("run", `${name}: the edit never marked the file`)
+          } else if (run.timeout) issue("run", `${name}: Run never finished (${run.ms}ms)`)
+          else if (sketched(example?.text)) card.run.sketch = true
+          else issue("run", `${name}: ${run.problems.join(" / ")}`)
+        }
+        if (code.opened) await s.run(PREVIEW, { n })
+      }
+      if (!found.cards.includes(page.id) && !found.loose) rec.bare = true
+    }
+  } else if (page.kind === "landing" || page.kind === "docs" || page.kind === "missing") {
+    writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
+    const read = await s.run(SCROLL, { pause: page.kind === "docs" ? 250 : 450 })
+    rec.height = read.height
+    rec.canvases = read.canvases
+    for (const c of read.canvases.filter(blank)) issue("canvas", `a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
+  } else if (page.kind === "studio") {
+    const studio = await s.run(STUDIO, null)
+    rec.steps = studio.steps
+    rec.document = studio.document
+    rec.canvases = studio.canvases
+    for (const st of studio.steps.filter((x) => !x.ok))
+      issue("studio", `${st.name}${st.detail ? `: ${st.detail}` : ""}`)
+    for (const c of (studio.canvases ?? []).filter(blank)) issue("canvas", `a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
+    writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
+  } else if (page.kind === "play") {
+    const play = await s.run(PLAY, null)
+    Object.assign(rec, play)
+    const want = page.hash ? "play-surface" : "play-empty"
+    if (play.surface !== want)
+      issue("play", `expected ${want}, the page shows ${play.surface || "nothing"}: ${play.text}`)
+    if (play.clock !== "object") issue("play", "no window.ditherClock")
+    if (page.hash && !play.canvases.some((c) => c.state === "painted"))
+      issue("canvas", "the played frame painted no canvas")
+    writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
+  }
+
+  const seen = await s.run(RECORD, null)
+  const known = KNOWN_REFUSALS[page.kind] ?? []
+  const isKnown = (text) => known.some((k) => k.test(text.split(" ").pop().split(/[?#]/)[0]))
+  const origin = server.origin
+  const strip = (t) => t.split(origin).join("")
+  for (const e of seen.errors) issue("error", strip(e))
+  for (const l of seen.logs) {
+    if (/Failed to load resource/.test(l)) continue
+    issue(l.startsWith("warn") ? "warning" : "console", strip(l))
+  }
+  const refused = new Set()
+  for (const r of [...held.refused, ...server.refused()]) refused.add(`${r.status} ${r.url}`)
+  for (const f of [...held.failed, ...seen.failed]) refused.add(`failed ${strip(f)}`)
+  for (const n of [...held.native, ...s.drain()]) {
+    const text = strip(n.text)
+    if (n.kind === "pageerror") {
+      if (
+        !seen.errors.some((e) =>
+          e.includes(
+            text
+              .split("\n")[0]
+              .replace(/^Error: /, "")
+              .slice(0, 60),
+          ),
+        )
+      )
+        issue("error", text)
+    } else if (n.kind === "requestfailed") {
+      // a request the page itself gave up (a preload it navigated away from) is no failure
+      if (!/ERR_ABORTED/.test(text)) refused.add(`failed ${text}`)
+    } else if (n.kind === "response") refused.add(text)
+    else if (/Failed to load resource/.test(text)) continue
+    else if (!seen.logs.some((l) => l.slice(l.indexOf(": ") + 2, 80) === text.slice(0, 80 - l.indexOf(": ") - 2)))
+      issue(n.kind === "console.warning" ? "warning" : "console", text)
+  }
+  // another host's answer is not this site's: a machine behind a network policy reaches none
+  const outside = (text) => /https?:\/\//.test(text)
+  for (const r of refused) {
+    if (outside(r)) rec.outside.push(r)
+    else if (isKnown(r)) rec.known.push(r)
+    else rec.issues.push({ kind: "request", detail: r })
+  }
+  if (rec.issues.length && page.kind === "section")
+    writeFileSync(join(shots, `${slug(page)}-flagged.png`), await s.shot())
+  rec.ms = Date.now() - started
+  return rec
+}
+
+/** The player given a frame: the Studio's own document, as the Studio's
+ * preview link carries it. */
+function playPage(document) {
+  const doc = JSON.parse(document)
+  const first = doc.artboards[0]
+  const encoded = Buffer.from(JSON.stringify({ artboards: [first] }), "utf8").toString("base64url")
+  return {
+    kind: "play",
+    variant: "frame",
+    path: "/play/",
+    theme: "dark",
+    hash: `#doc=${encoded}&artboard=${encodeURIComponent(first.id)}&theme=dark`,
+  }
+}
+
+for (const [name, body] of Object.entries({ READY, CARDS, CARD, CENTRE, CODE, RUN, PREVIEW, SCROLL, STUDIO, PLAY }))
+  STEPS.set(body, name.toLowerCase())
+
+const driver = await openEngine()
+const queue = plan()
+const total = queue.length
+const records = []
+let done = 0
+const started = Date.now()
+console.error(`${engine}: ${total} pages, ${jobs} at once, from ${root}`)
+
+async function worker() {
+  const server = await serve(root)
+  let s = await driver.session()
+  while (queue.length) {
+    const page = queue.shift()
+    let rec
+    for (let attempt = 0; attempt < 2 && !rec; attempt++) {
+      try {
+        rec = await walkPage(s, server, page)
+      } catch (e) {
+        if (attempt === 1)
+          rec = {
+            ...page,
+            issues: [{ kind: "walk", detail: String(e?.stack ?? e).slice(0, 600) }],
+            known: [],
+            environment: [],
+            outside: [],
+            slow: [],
+          }
+        // a session that died takes a new one
+        await s.close().catch(() => {})
+        s = await driver.session()
+      }
+    }
+    // A page that stalled and then showed an empty canvas is walked once more:
+    // on a machine drawing in software a renderer can hang for seconds. The
+    // first walk stays in the record.
+    if (rec.slow?.length && rec.issues.some((x) => x.kind === "canvas" || x.kind === "run-canvas")) {
+      const first = { slow: rec.slow, issues: rec.issues }
+      rec = await walkPage(s, server, page).catch(() => rec)
+      rec.stalled = first
+    }
+    records.push(rec)
+    if (page.kind === "studio" && page.theme === "dark" && rec.document) queue.push(playPage(rec.document))
+    done++
+    const bad = rec.issues.length ? ` ${rec.issues.length} finding(s)` : ""
+    console.error(`[${done}/${total}] ${page.path}${page.hash ? "#doc" : ""} ${page.theme} ${rec.ms ?? "?"}ms${bad}`)
+  }
+  await s.close().catch(() => {})
+  await server.close()
+}
+await Promise.all(Array.from({ length: Math.min(jobs, queue.length) }, worker))
+const version = driver.version
+await driver.close()
+
+// ---------------------------------------------------------------- the report
+
+const order = plan().map((p) => `${p.path}|${p.theme}`)
+records.sort((a, b) => order.indexOf(`${a.path}|${a.theme}`) - order.indexOf(`${b.path}|${b.theme}`))
+
+// Which registry components a docs example renders: a JSX tag in an
+// example's own file, on a page the walk read.
+const tags = new Set()
+for (const r of records)
+  for (const c of r.cards ?? []) for (const m of (c.example ?? "").matchAll(/<([A-Z][A-Za-z0-9]*)/g)) tags.add(m[1])
+const lower = new Set([...tags].map((t) => t.toLowerCase()))
+const chartTag = (t) => lower.has(`${t}chart`)
+const widgetTag = (t) => lower.has(`dither${t}`)
+const coverage = {
+  components: registry.components.length,
+  never: registry.components.filter((c) => !tags.has(c.is)).map((c) => c.is),
+  charts: registry.charts.filter((t) => !chartTag(t)),
+  widgets: registry.widgets.filter((t) => !widgetTag(t)),
+}
+
+const kinds = {}
+for (const r of records) for (const i of r.issues) kinds[i.kind] = (kinds[i.kind] ?? 0) + 1
+const slow = records
+  .filter((r) => r.slow?.length)
+  .map((r) => `${r.path} (${r.slow.map((x) => `${x.step} ${Math.round(x.ms / 1000)}s`).join(", ")})`)
+const again = records.filter((r) => r.stalled).map((r) => `${r.path} (${r.theme})`)
+const cards = records.filter((r) => r.theme === "dark").flatMap((r) => (r.cards ?? []).filter((c) => c.n >= 0))
+const runs = cards.filter((c) => c.run)
+const totals = {
+  pages: records.length,
+  sections: records.filter((r) => r.kind === "section" && r.theme === "dark").length,
+  light: records.filter((r) => r.kind === "section" && r.theme === "light").length,
+  cards: cards.length,
+  canvases: records.reduce(
+    (n, r) => n + (r.canvases?.length ?? 0) + (r.cards ?? []).reduce((m, c) => m + (c.canvases?.length ?? 0), 0),
+    0,
+  ),
+  codeTabs: cards.filter((c) => c.code?.opened).length,
+  files: cards.reduce((n, c) => n + (c.code?.files?.length ?? 0), 0),
+  runs: runs.length,
+  ran: runs.filter((c) => c.run.ran).length,
+  sketches: runs.filter((c) => c.run.sketch).length,
+  readers: runs.filter((c) => c.run.reader).length,
+  unsized: records.flatMap((r) => (r.cards ?? []).filter((c) => c.run?.unsized).map(() => r.id)),
+  asked: [...new Set(runs.flatMap((c) => c.run.asked ?? []))],
+  notComponents: cards.filter((c) => c.code?.opened && !c.code.runnable).length,
+  bare: [...new Set(records.filter((r) => r.bare).map((r) => r.id))],
+  findings: kinds,
+  known: records.reduce((n, r) => n + r.known.length, 0),
+  environment: records.reduce((n, r) => n + r.environment.length, 0),
+  outside: [...new Set(records.flatMap((r) => r.outside.map((o) => `${o.split(" ").pop()} (${r.id ?? r.kind})`)))],
+  minutes: Math.round((Date.now() - started) / 6000) / 10,
+}
+const report = {
+  engine,
+  version,
+  root,
+  date: new Date().toISOString(),
+  totals,
+  coverage,
+  pages: records.map(({ document, ...r }) => r),
+}
+writeFileSync(join(out, `${engine}.json`), JSON.stringify(report, null, 1))
+
+const md = [
+  `# The walk in ${version}`,
+  "",
+  `${totals.pages} pages in ${totals.minutes} min: ${totals.sections} docs sections in dark, ${totals.light} again in light, the landing, the docs index, the Studio, the player and a missing address.`,
+  "",
+  `- demo cards: ${totals.cards}; canvases read: ${totals.canvases}`,
+  `- Code tabs opened: ${totals.codeTabs} (${totals.files} files read)`,
+  `- Run: ${totals.ran} of ${totals.runs} examples compiled and ran, ${totals.ran - totals.readers} of them to a rendered result; ${totals.readers} stopped on a name the example leaves to its reader; ${totals.sketches} did not compile for an elision they print; ${totals.notComponents} are not components (a command, a module, a stylesheet)`,
+  `- runs that rendered with no visible box (a surface that fills a parent the example does not size): ${totals.unsized.length ? totals.unsized.join(", ") : "none"}`,
+  `- addresses a run's own example asked for and the site does not hold: ${totals.asked.length ? totals.asked.join(", ") : "none"}`,
+  `- other hosts a page asked and did not reach: ${totals.outside.length ? totals.outside.join(", ") : "none"}`,
+  `- steps that took over 8s: ${slow.length ? slow.join(", ") : "none"}`,
+  `- pages walked twice, the first walk having stalled and shown an empty canvas: ${again.length ? again.join(", ") : "none"}`,
+  `- sections without a demo card: ${totals.bare.length ? totals.bare.join(", ") : "none"}`,
+  `- known refusals: ${totals.known}; messages of this machine or of the walk's own pointer, not the page: ${totals.environment}`,
+  `- findings: ${
+    Object.keys(kinds).length
+      ? Object.entries(kinds)
+          .map(([k, n]) => `${k} ${n}`)
+          .join(", ")
+      : "none"
+  }`,
+  "",
+  "## Findings",
+  "",
+  ...(records.some((r) => r.issues.length)
+    ? records
+        .filter((r) => r.issues.length)
+        .flatMap((r) => [
+          `- \`${r.path}\` (${r.theme})`,
+          ...r.issues.map((i) => `  - ${i.kind}: ${i.detail.replace(/\s+/g, " ").slice(0, 400)}`),
+        ])
+    : ["None."]),
+  "",
+  "## Examples that stop on a name they leave to the reader",
+  "",
+  records.some((r) => (r.cards ?? []).some((c) => c.run?.reader))
+    ? records
+        .flatMap((r) => (r.cards ?? []).filter((c) => c.run?.reader).map((c) => `${r.id} (${c.run.reader})`))
+        .join(", ")
+    : "None.",
+  "",
+  "## Registry components no docs example renders",
+  "",
+  coverage.never.length ? coverage.never.join(", ") : "None: every registry component is a tag in a docs example.",
+  ...(coverage.charts.length ? ["", `Charts: ${coverage.charts.join(", ")}`] : []),
+  ...(coverage.widgets.length ? ["", `Widgets: ${coverage.widgets.join(", ")}`] : []),
+  "",
+].join("\n")
+writeFileSync(join(out, `${engine}.md`), md)
+console.error(`\n${md}\nwritten to ${out}`)
+await sleep(50)
+process.exit(Object.keys(kinds).length ? 1 : 0)

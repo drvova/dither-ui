@@ -442,9 +442,9 @@ const SNIPPETS = {
 <svg role="img" aria-label="Chart">…</svg>   <!-- provided by the root -->
 <canvas aria-hidden="true" />                <!-- pixels stay silent -->
 
-/* honored automatically — no opt-in props */
-@media (prefers-reduced-motion: reduce)      { /* entrances snap  */ }
-@media (prefers-reduced-transparency: reduce) { /* chrome goes solid */ }`,
+<!-- honoured automatically, no opt-in props:
+     @media (prefers-reduced-motion: reduce): entrances snap
+     @media (prefers-reduced-transparency: reduce): chrome goes solid -->`,
   dashboard: `<!-- stat cards -->
 <div v-for="s in stats" class="rounded-lg border p-4">
   <span>{{ s.label }}</span> <b>{{ s.value }}</b>

@@ -210,7 +210,7 @@ function pick(r, m, side) {          // you own the data — advance the winner
   const next = rounds[r + 1]?.[Math.floor(m / 2)]
   if (next) m % 2 === 0 ? (next.a = win(match)) : (next.b = win(match))
 }
-<\\/script>`
+</script>`
 
 const SNIPPET_ROCKET = `<script setup>
 // one clock from the key: the file's moment, then the burst

@@ -573,15 +573,13 @@ resolveSample(s, { width: 400, height: 200 }).x    // 105`,
   </DitherSequence>
 </DitherContainer>
 
-/* stylesheet route — the same scope with zero JS: native @container */
-@container card (min-width: 520px) {
-  .readout { letter-spacing: 0.12em; }
-}
-/* motion route — shipped keyframes measure the container itself */
-.scan { animation: dither-cq-traverse 2.8s ease-in-out infinite alternate; }
-/* selector route — the engine's active bucket rides the host element */
-.cq-card[data-cq="xs"] .cell { border-color: #d9a441; }
-.cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; }`,
+<!-- the stylesheet route, the same scope with zero JS (native @container):
+       @container card (min-width: 520px) { .readout { letter-spacing: 0.12em; } }
+     the motion route, shipped keyframes that measure the container itself:
+       .scan { animation: dither-cq-traverse 2.8s ease-in-out infinite alternate; }
+     the selector route, the engine's active bucket on the host element:
+       .cq-card[data-cq="xs"] .cell { border-color: #d9a441; }
+       .cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; } -->`,
   animatedContent: `<DitherAnimatedContent :distance="40" direction="vertical">
   <YourCard />
 </DitherAnimatedContent>`,
@@ -621,7 +619,7 @@ resolveSample(s, { width: 400, height: 200 }).x    // 105`,
   <YourCard />
 </DitherReveal>
 
-// or drive it from a timeline: the mask is a pure function of progress
+<!-- or drive it from a timeline: the mask is a pure function of progress -->
 <DitherReveal :progress="p"><YourCard /></DitherReveal>
 
 // the masks alone, for any element

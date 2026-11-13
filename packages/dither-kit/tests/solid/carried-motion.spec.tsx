@@ -90,12 +90,31 @@ describe("DitherContainer", () => {
     expect(ro.observed).toBe(rootOf(container))
     ro.fire(360) // md's min: boundaries are inclusive (the height mirrors it)
     await settle()
+    // A new bucket resizes this very box: applied inside the observer's
+    // delivery it is a loop the browser reports on the window, so the
+    // observation waits for the next frame.
+    expect(rootOf(container).getAttribute("data-cq")).toBe("xs")
+    flush(0)
+    await settle()
     expect(rootOf(container).getAttribute("data-cq")).toBe("md")
     expect(rootOf(container).style.getPropertyValue("--cq-i")).toBe("2")
     expect(rootOf(container).style.getPropertyValue("--cq-w")).toBe("360")
     expect(rootOf(container).style.getPropertyValue("--cq-h")).toBe("360")
+    ro.fire(600)
     unmount()
     expect(ro.disconnected).toBe(true)
+    expect(queue.size).toBe(0) // the frame an observation asked for goes with it
+  })
+
+  it("applies the latest of a frame's observations, once", async () => {
+    const { container } = render(() => <DitherContainer />)
+    const ro = FakeResizeObserver.last!
+    ro.fire(200)
+    ro.fire(360)
+    expect(queue.size).toBe(1)
+    flush(0)
+    await settle()
+    expect(rootOf(container).style.getPropertyValue("--cq-w")).toBe("360")
   })
 
   it("hands its children the width and the resolution; step quantizes only the var", async () => {
@@ -109,6 +128,7 @@ describe("DitherContainer", () => {
       </DitherContainer>
     ))
     FakeResizeObserver.last!.fire(404, 300) // 404/8 = 50.5 → 51 → 408
+    flush(0)
     await settle()
     expect(seen).toEqual({ width: 404, height: 300, size: "wide", index: 1, matches: ["narrow", "wide"] })
     expect(rootOf(container).style.getPropertyValue("--cq-w")).toBe("408")
@@ -137,9 +157,11 @@ describe("DitherContainer", () => {
   it("honours a custom scale's ranges (max exclusive)", async () => {
     const { container } = render(() => <DitherContainer scale={{ small: { max: 100 }, large: { min: 100 } }} />)
     FakeResizeObserver.last!.fire(99)
+    flush(0)
     await settle()
     expect(rootOf(container).getAttribute("data-cq")).toBe("small")
     FakeResizeObserver.last!.fire(100)
+    flush(0)
     await settle()
     expect(rootOf(container).getAttribute("data-cq")).toBe("large")
   })

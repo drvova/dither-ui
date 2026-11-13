@@ -23,6 +23,26 @@ by the site's post-build. Paths here are from this package's root.
   or an MP4, in Chromium, WebKit or Firefox, without CDP.
 - `src/agent-demo.mjs` (`npm run demo:agent`): records the Studio's agent
   panel driving the user's own harness into a video.
+- `src/walk.mjs` (`npm run walk -- --engine chromium|webkit|firefox`): the
+  browser walk over a built site, one walk for every engine. It serves the
+  build itself and visits the landing, `/docs/`, every docs section the
+  build lists (`og/sections.json`), the Studio, the player (bare, then
+  given a frame of the Studio's document) and an address nothing answers.
+  A page's record: what it threw, logged or was refused; in a docs section
+  every demo card revealed and every canvas painted (a blank one is given
+  a pointer first), each Code tab's files read, each example edited and
+  Run; in the Studio a frame added, selected, changed, undone, redone and
+  search opened. It lists the registry's components no docs example
+  renders. Out: `<out>/<engine>.json`, `<engine>.md` and `shots/<engine>/`.
+- `src/walk-drivers.mjs`: what the walk stands on: the static server (a
+  recorder first in every page's head, the theme set before the app reads
+  it), the one driver shape (`go`, `run`, `shot`, `drain`, `close`) over
+  Playwright for Chromium and plain W3C WebDriver for WebKit
+  (`WebKitWebDriver` + `MiniBrowser`) and
+  Firefox (`geckodriver`), each window on an Xvfb display of its own where
+  the machine has one (a window under another stops its frames, and
+  headless Firefox has no GL without a GPU), and the PNG reader for its
+  screenshots.
 
 ## Local Contracts
 
@@ -36,6 +56,14 @@ by the site's post-build. Paths here are from this package's root.
   agent demo runs where the harness is signed in, never with borrowed
   credentials.
 - A missing Chromium is an error, never a skip.
+- The walk is run by hand, never by a build or the gate. Its checks are
+  scripts run in the page, so they hold over WebDriver; it installs no
+  browser: `--executable` and `--driver` name the ones a machine has.
+  What a machine without a GPU says (`ENVIRONMENT`) and the refusals a
+  page makes by design (`KNOWN_REFUSALS`) are named in `walk.mjs` and
+  counted apart; anything else is a finding and the exit code is 1. A step
+  over 8s is kept with its page, and a page that stalled and then showed
+  an empty canvas is walked once more, its first walk kept in the record.
 
 ## Work Guidance
 

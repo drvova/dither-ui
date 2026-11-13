@@ -169,8 +169,8 @@ const SNIPPET_SIDEBAR = `<DitherSidebar v-model="collapsed" variant="default" co
 </DitherSidebar>
 
 <!-- variant: default | floating | inset | washed (dither gradient chrome)
-     collapse: rail | hide | none · side: left | right
-     density: default | compact · :toggle="false" = permanent rail -->`
+     collapse: rail | hide | none; side: left | right
+     density: default | compact; toggle={false} keeps a permanent rail -->`
 
 const SNIPPET_TOAST = `<script setup>
 import { DitherToaster, toast } from "@dither-kit"

@@ -59,7 +59,7 @@ const SNIPPET_SVG = `<!-- decorative by default: aria-hidden -->
 <DitherSvg viewBox="0 0 24 24" label="Close" class="size-4">…</DitherSvg>`
 
 const SNIPPET_IMG = `<!-- loading contract built in; alt is required -->
-<DitherImg :src="assetPath('/sprites.webp')" alt="The sprite sheet" class="h-40 w-full object-cover" />`
+<DitherImg src="/sprites.webp" alt="The sprite sheet" class="h-40 w-full object-cover" />`
 
 const SNIPPET_SPACER = `<div class="flex items-center">
   <span class="text-[12px]">Left</span>

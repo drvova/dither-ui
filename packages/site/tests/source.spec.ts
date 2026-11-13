@@ -83,6 +83,61 @@ onMounted(() => {})
 </template>`,
     )
   })
+
+  it("reads loose script lines under the markup as script, never as the template's text", () => {
+    expect(
+      asSfc(
+        'import { ref } from "vue"\n<DitherSlider v-model="level" @change="log" />\n<!-- one -->\n\n// the level\nconst level = ref(40)\nfunction log(v: number) {\n  console.log(v > 1)\n}',
+        KIT_NAMES,
+      ),
+    ).toBe(
+      `<script setup lang="ts">
+import { DitherSlider } from "@dither-kit"
+
+import { ref } from "vue"
+
+// the level
+const level = ref(40)
+function log(v: number) {
+  console.log(v > 1)
+}
+</script>
+
+<template>
+  <DitherSlider v-model="level" @change="log" />
+  <!-- one -->
+</template>`,
+    )
+    // a tag left open, or a comment, is still markup to its end
+    const open = '<DitherSlider\n  v-model="level"\n/>'
+    expect(asSfc(open, KIT_NAMES)).toContain('<template>\n  <DitherSlider\n    v-model="level"\n  />\n</template>')
+    const comment = "<DitherSlider />\n<!-- its\n     type: a number -->"
+    expect(asSfc(comment, KIT_NAMES)).toContain("     type: a number -->\n</template>")
+  })
+
+  it("completes loose markup over its script block the same way", () => {
+    // the media docs write the tag first and its data after: the file a
+    // reader got named the kit's component and never imported it
+    expect(
+      asSfc(
+        '<DitherSlider v-model="level" />\n<!-- one -->\n\n<script setup>\n// the level\nconst level = ref(40)\n</script>',
+        KIT_NAMES,
+      ),
+    ).toBe(
+      `<script setup lang="ts">
+import { ref } from "vue"
+import { DitherSlider } from "@dither-kit"
+
+// the level
+const level = ref(40)
+</script>
+
+<template>
+  <DitherSlider v-model="level" />
+  <!-- one -->
+</template>`,
+    )
+  })
 })
 
 describe("files out", () => {

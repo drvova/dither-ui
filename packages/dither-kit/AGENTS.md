@@ -422,7 +422,10 @@ generated twin. Inside the kit every import is relative
   sets native `container-type: inline-size` + `container-name` (stylesheet
   `@container` route), observes itself via ResizeObserver `contentRect`
   (transform-safe, `use-chart-dimensions` precedent; silent without the
-  observer; a setTimeout(0) `clientWidth` guard fires only if nothing
+  observer; an observation is applied on the next frame, the latest
+  winning, never inside the observer's delivery: a new bucket resizes the
+  box it observes, a loop the browser reports on the window; a
+  setTimeout(0) `clientWidth` guard fires only if nothing
   reported — never overwrite a real observation with the zero read), and
   publishes `data-cq` (active bucket) + `--cq-w`/`--cq-h` (content-box size,
   raw or quantized together) + `--cq-i` (ordinal) + its children's scope

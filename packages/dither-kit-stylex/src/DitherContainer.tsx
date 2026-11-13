@@ -72,23 +72,40 @@ export default function DitherContainer(raw: DitherContainerProps) {
     const node = root
     if (!node) return
     let ro: ResizeObserver | null = null
+    let frame = 0
+    let seen: [number, number] | null = null
     // contentRect = the content box, i.e. exactly what `@container` measures,
     // and transform-proof (use-chart-dimensions precedent). Without a
     // ResizeObserver the state simply stays at the 0-size bucket.
     if (typeof ResizeObserver !== "undefined") {
       ro = new ResizeObserver((entries) => {
         const entry = entries[0]
-        update(entry ? entry.contentRect.width : node.clientWidth, entry ? entry.contentRect.height : node.clientHeight)
+        // A new bucket lays the children out again, and with them this box.
+        // Written inside the observer's own delivery, that is a resize the
+        // observer cannot deliver in the same pass, which the browser
+        // reports on the window ("ResizeObserver loop completed with
+        // undelivered notifications"). The observation is applied on the
+        // next frame, the latest one winning.
+        seen = [
+          entry ? entry.contentRect.width : node.clientWidth,
+          entry ? entry.contentRect.height : node.clientHeight,
+        ]
+        if (frame) return
+        frame = requestAnimationFrame(() => {
+          frame = 0
+          if (seen) update(seen[0], seen[1])
+        })
       })
       ro.observe(node)
     }
     // First-paint guard: if nothing reported (silent observer), read the box
     // once — but never overwrite a real observation with the zero read.
     const fallback = window.setTimeout(() => {
-      if (!width()) update(node.clientWidth, node.clientHeight)
+      if (!width() && !seen) update(node.clientWidth, node.clientHeight)
     }, 0)
     onCleanup(() => {
       if (fallback) clearTimeout(fallback)
+      if (frame) cancelAnimationFrame(frame)
       ro?.disconnect()
       ro = null
     })

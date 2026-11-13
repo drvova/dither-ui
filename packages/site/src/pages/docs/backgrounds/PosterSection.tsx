@@ -9,7 +9,7 @@ const UNPICKED = "border-border/60 text-muted-foreground hover:bg-accent/40"
 
 const SNIPPET = `<DitherPoster :seed="7" :inks="['blue', 'orange', '#101214']" class="h-96" />
 
-// on paper: the open cells of a field show the page, or a ground you name
+<!-- on paper: the open cells of a field show the page, or a ground you name -->
 <DitherPoster ground="#e4e1d8" />`
 
 const API: PropRow[] = [

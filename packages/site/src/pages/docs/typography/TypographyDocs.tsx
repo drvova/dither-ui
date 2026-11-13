@@ -65,7 +65,7 @@ const SNIPPET_MIDDLE_ELLIPSIS = `<DitherMiddleEllipsis text="packages/site/src/p
 
 const SNIPPET_ELLIPSIS_TOOLTIP = `<DitherEllipsisTooltip>Full sentence that only shows a tooltip when it actually clips…</DitherEllipsisTooltip>`
 
-const SNIPPET_LINK = `<DitherLink :href="routePath('/docs')">Docs home</DitherLink>`
+const SNIPPET_LINK = `<DitherLink href="/docs">Docs home</DitherLink>`
 
 const SNIPPET_EXTERNAL_LINK = `<DitherExternalLink href="https://docs.solidjs.com">Solid docs</DitherExternalLink>`
 

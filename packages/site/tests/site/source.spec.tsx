@@ -311,6 +311,36 @@ export const mode = import.meta.env.MODE`,
         if ((kind !== "sfc" && kind !== "fragment") || bare.indexOf(">", bare.lastIndexOf("<")) < 0) continue
         snippets++
         const tsx = toSolidCode(asSfc(code, names))
+        const where = `${file.slice(process.cwd().length + 1)}: ${code.trim().split("\n")[0].slice(0, 60)}`
+        // what a reader gets stands in their app: every kit component it
+        // renders is imported, and nothing of this site's own is called
+        const imported = new Set(
+          [...tsx.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s+from/g)].flatMap((i) =>
+            i[1].split(",").map((n) =>
+              n
+                .trim()
+                .split(/\s+as\s+/)
+                .pop()!,
+            ),
+          ),
+        )
+        const loose = [...new Set([...tsx.matchAll(/<([A-Z][A-Za-z0-9]*)/g)].map((t) => t[1]))].filter(
+          (t) => names.has(t) && !imported.has(t),
+        )
+        if (loose.length) failures.push(`${where} renders ${loose.join(", ")} without importing it`)
+        const own = /\b(assetPath|routePath)\(/.exec(tsx)
+        if (own) failures.push(`${where} calls the site's own ${own[1]}`)
+        // script written under its markup with no block around it is read as text
+        if (tsx.includes('{"{"}')) failures.push(`${where} prints its script as text`)
+        // a note between two tags is a comment of the markup, or it prints
+        const said = tsx
+          .slice(tsx.lastIndexOf("  return ("))
+          .split("\n")
+          .find((l) => l.trim().startsWith("// "))
+        if (said) failures.push(`${where} prints a note as text: ${said.trim()}`)
+        // nor does a comment speak the authoring notation
+        const vue = /\s[:@][a-z][\w-]*="/.exec(tsx)
+        if (vue) failures.push(`${where} shows the authoring notation: ${vue[0].trim()}`)
         for (const system of STYLINGS)
           try {
             compile("Example.tsx", restyleSolid(tsx, system).code)

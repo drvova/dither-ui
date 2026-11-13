@@ -704,6 +704,27 @@ describe("SplashCursor", () => {
     await w.frame(now + 6000)
     expect(ctx.arc).toHaveBeenCalledTimes(1)
   })
+
+  it("starts a ring at nothing when the frame is stamped before the move that asked for it", async () => {
+    // A browser stamps a frame at its start and handles the pointer inside
+    // it: a canvas refuses a negative radius, and the throw ended the loop.
+    const ctx = drawing()
+    render(() => (
+      <SplashCursor duration={500}>
+        <p>Splash</p>
+      </SplashCursor>
+    ))
+    const root = screen.getByText("Splash").parentElement!
+    box(root, 200, 100)
+    const now = 1000
+    await clockAt(now)
+    fireEvent.pointerMove(root, { clientX: 80, clientY: 40 })
+    await w.frame(now - 3)
+    expect(ctx.arc.mock.lastCall?.[2]).toBe(0)
+    await w.frame(now + 100)
+    expect(ctx.arc).toHaveBeenCalledTimes(2)
+    expect(ctx.arc.mock.lastCall?.[2]).toBeGreaterThan(0)
+  })
 })
 
 describe("SplitText", () => {

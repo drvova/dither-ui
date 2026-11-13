@@ -26,7 +26,11 @@ the Solid-bound modules beside what is framework free (see
   throws shows in the preview, not as a broken page.
 - `model/snippet.ts` — pure, framework free: a snippet's
   kind (`snippetKind`) and a fragment completed into a whole file in the
-  authoring notation (`asSfc`), which the translators then read.
+  authoring notation (`asSfc`), which the translators then read. A
+  fragment's script may stand over its markup or under it, as loose lines
+  or as a `<script setup>` block: either way it is the file's script,
+  never text of its template. A stylesheet has no place in a fragment (it
+  goes in a comment, or in a snippet of its own).
 - `model/files.ts` — pure: what reads the kit's files: the kit index as export
   → file (`kitIndex`, `loadKitIndex`), `resolveKitFile`, the kit files an
   example imports (`kitFilesOf`), file names (`exampleName`), `prompt.md`
@@ -109,7 +113,9 @@ the Solid-bound modules beside what is framework free (see
   against Solid's runtime and a syntax error located, linking (re-exports,
   live exports), scoped tokens, CSS Modules; every file of the Solid kit
   compiles and every name it imports from a package is provided; every
-  docs snippet's Solid file compiles in every styling system; the reader's
+  docs snippet's Solid file compiles in every styling system, imports every
+  kit component it renders, calls nothing of the site's own, and prints
+  neither its script, a note nor the authoring notation as text; the reader's
   styling choice (and Solid for a reader who once stored another
   framework); a DemoCard opened to its files, an example
   edited and run and the demo restored, the example run as plain CSS, CSS
